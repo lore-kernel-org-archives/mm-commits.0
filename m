@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 621EAC07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9801CC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C62761C9E
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7FA3361C9D
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231737AbhGFTXP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:23:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56960 "EHLO mail.kernel.org"
+        id S231751AbhGFTXR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:23:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231696AbhGFTXP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:23:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6FAE561C9A;
-        Tue,  6 Jul 2021 19:20:36 +0000 (UTC)
+        id S231749AbhGFTXR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:23:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6865161C9E;
+        Tue,  6 Jul 2021 19:20:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599236;
-        bh=R2A08XVS8jaH63t2QedLq31VbjYTwornoP8rSltZsh8=;
+        s=korg; t=1625599238;
+        bh=OEUjms4esUC4B57D+dGLqrRxqM/OYLFsHJuNlcIAv30=;
         h=Date:From:To:Subject:From;
-        b=Iw7KUdyB4HDh8o/j+EmWBEzXcgOqgwIgNJIorKmEKN+ctQplhsK/1AKftbez6H0fF
-         Cb1WeHIddXz6COsTKjoqSvvCMUxbpgpjP02S7FLriv0WbyTuRLlG1YyyTwdwC/tJTV
-         PHXR1Q5DC2347byD8vGQIoIld3/PMJF770roYhiM=
-Date:   Tue, 06 Jul 2021 12:20:36 -0700
+        b=sjmCpuaW5piQjwqsRcRaZzs8R5j6Im2fOHZ1L3RTNrNmvcHUg6ZHNqPalhNtEoJDR
+         jd11hNPIl4OR69i2plHaa7zDVIvURGS1El0t2tvIMVPg5pQI6QTmkLnT3VADxFkCqr
+         mK4sseW9N5WYAuxknIApWHhCWXVWAuvcaraJD3qo=
+Date:   Tue, 06 Jul 2021 12:20:38 -0700
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, minchan@kernel.org,
         mm-commits@vger.kernel.org, ngupta@vflare.org,
         senozhatsky@chromium.org
 Subject:  [merged]
- mm-zsmallocc-remove-confusing-code-in-obj_free.patch removed from -mm tree
-Message-ID: <20210706192036.r69PCzZQu%akpm@linux-foundation.org>
+ mm-zsmallocc-improve-readability-for-async_free_zspage.patch removed from
+ -mm tree
+Message-ID: <20210706192038.l8WXTjAOT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,31 +45,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/zsmalloc.c: remove confusing code in obj_free()
+     Subject: mm/zsmalloc.c: improve readability for async_free_zspage()
 has been removed from the -mm tree.  Its filename was
-     mm-zsmallocc-remove-confusing-code-in-obj_free.patch
+     mm-zsmallocc-improve-readability-for-async_free_zspage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/zsmalloc.c: remove confusing code in obj_free()
+Subject: mm/zsmalloc.c: improve readability for async_free_zspage()
 
-Patch series "Cleanup for zsmalloc".
+The class is extracted from pool->size_class[class_idx] again before
+calling __free_zspage().  It looks like class will change after we fetch
+the class lock.  But this is misleading as class will stay unchanged.
 
-This series contains cleanups to remove confusing code in obj_free(),
-combine two atomic ops and improve readability for async_free_zspage(). 
-More details can be found in the respective changelogs.
-
-
-This patch (of 2):
-
-OBJ_ALLOCATED_TAG is only set for handle to indicate allocated object. 
-It's irrelevant with obj.  So remove this misleading code to improve
-readability.
-
-Link: https://lkml.kernel.org/r/20210624123930.1769093-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210624123930.1769093-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210624123930.1769093-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Nitin Gupta <ngupta@vflare.org>
@@ -76,19 +67,20 @@ Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/zsmalloc.c~mm-zsmallocc-remove-confusing-code-in-obj_free
+--- a/mm/zsmalloc.c~mm-zsmallocc-improve-readability-for-async_free_zspage
 +++ a/mm/zsmalloc.c
-@@ -1471,7 +1471,6 @@ static void obj_free(struct size_class *
- 	unsigned int f_objidx;
- 	void *vaddr;
- 
--	obj &= ~OBJ_ALLOCATED_TAG;
- 	obj_to_location(obj, &f_page, &f_objidx);
- 	f_offset = (class->size * f_objidx) & ~PAGE_MASK;
- 	zspage = get_zspage(f_page);
+@@ -2162,7 +2162,7 @@ static void async_free_zspage(struct wor
+ 		VM_BUG_ON(fullness != ZS_EMPTY);
+ 		class = pool->size_class[class_idx];
+ 		spin_lock(&class->lock);
+-		__free_zspage(pool, pool->size_class[class_idx], zspage);
++		__free_zspage(pool, class, zspage);
+ 		spin_unlock(&class->lock);
+ 	}
+ };
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
