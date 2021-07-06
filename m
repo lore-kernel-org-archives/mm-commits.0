@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9E3AC07E9B
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8EFE6C11F66
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9094A61CAA
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 793D461CA8
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229935AbhGFT0W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:26:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59474 "EHLO mail.kernel.org"
+        id S229925AbhGFT0X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:26:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229793AbhGFT0W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:26:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9189761C9E;
-        Tue,  6 Jul 2021 19:23:42 +0000 (UTC)
+        id S229793AbhGFT0X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:26:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6865861CA8;
+        Tue,  6 Jul 2021 19:23:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599422;
-        bh=rj78OVFPCfyonkpZFR/XyDWQrJEy6wqFx/EfaEx7v5o=;
+        s=korg; t=1625599424;
+        bh=Liz1eE06gcZA8Zampt8fZiNwy/GHpwRWbS9P9AiXFNA=;
         h=Date:From:To:Subject:From;
-        b=SvuWTlO/F2OeitFU+gVvn3K48iZOwZD6jC9E7ia12/2jmykdxBY6pCqpuPBTCZPTn
-         3XfhfE0XK+CVVYyuk5d88vseNu5hI4Ioi2u9SXMrxp22iX1w84Z9aVsWUxl9FFJXqg
-         MG8XFPAGOp4HO+3ycRRCQdjBZMVN+qtcDfcHzL8k=
-Date:   Tue, 06 Jul 2021 12:23:42 -0700
+        b=qjPHo+1ZvodByU6hIfiN0KsfCV3AXzOqr1fBiJu36uUSJLxcKh/wfNdVi9wEBKYIV
+         XnRgBEpp6RMAuynnsPx/uDLrQjWrzY+/SeScS6pDmxgQ2cUtreNpGq39+AIlkVi19b
+         nZadCEsd9eNuynHaufVfrV32XCyhWU5w2AWCRQtM=
+Date:   Tue, 06 Jul 2021 12:23:44 -0700
 From:   akpm@linux-foundation.org
-To:     1vier1@web.de, dbueso@suse.de, manfred@colorfullife.com,
-        mm-commits@vger.kernel.org
-Subject:  [merged] ipc-utilc-use-binary-search-for-max_idx.patch
- removed from -mm tree
-Message-ID: <20210706192342.hpr_5a5L_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [merged]
+ kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch removed from
+ -mm tree
+Message-ID: <20210706192344.KdV4gYdHh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,131 +43,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/util.c: use binary search for max_idx
+     Subject: kernel/cgroup/cgroup.c: don't export cgroup_get_e_css twice
 has been removed from the -mm tree.  Its filename was
-     ipc-utilc-use-binary-search-for-max_idx.patch
+     kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/util.c: use binary search for max_idx
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/cgroup/cgroup.c: don't export cgroup_get_e_css twice
 
-If semctl(), msgctl() and shmctl() are called with IPC_INFO, SEM_INFO,
-MSG_INFO or SHM_INFO, then the return value is the index of the highest
-used index in the kernel's internal array recording information about all
-SysV objects of the requested type for the current namespace.  (This
-information can be used with repeated ..._STAT or ..._STAT_ANY operations
-to obtain information about all SysV objects on the system.)
 
-There is a cache for this value.  But when the cache needs up be updated,
-then the highest used index is determined by looping over all possible
-values.  With the introduction of IPCMNI_EXTEND_SHIFT, this could be a
-loop over 16 million entries.  And due to /proc/sys/kernel/*next_id, the
-index values do not need to be consecutive.
-
-With <write 16000000 to msg_next_id>, msgget(), msgctl(,IPC_RMID) in a
-loop, I have observed a performance increase of around factor 13000.
-
-As there is no get_last() function for idr structures: Implement a
-"get_last()" using a binary search.
-
-As far as I see, ipc is the only user that needs get_last(), thus
-implement it in ipc/util.c and not in a central location.
-
-[akpm@linux-foundation.org: tweak comment, fix typo]
-Link: https://lkml.kernel.org/r/20210425075208.11777-2-manfred@colorfullife.com
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Acked-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: <1vier1@web.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/util.c |   44 +++++++++++++++++++++++++++++++++++++++-----
- ipc/util.h |    3 +++
- 2 files changed, 42 insertions(+), 5 deletions(-)
+ kernel/cgroup/cgroup.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/ipc/util.c~ipc-utilc-use-binary-search-for-max_idx
-+++ a/ipc/util.c
-@@ -64,6 +64,7 @@
- #include <linux/memory.h>
- #include <linux/ipc_namespace.h>
- #include <linux/rhashtable.h>
-+#include <linux/log2.h>
- 
- #include <asm/unistd.h>
- 
-@@ -451,6 +452,41 @@ static void ipc_kht_remove(struct ipc_id
+--- a/kernel/cgroup/cgroup.c~kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice
++++ a/kernel/cgroup/cgroup.c
+@@ -600,7 +600,6 @@ static void cgroup_get_live(struct cgrou
+ 	WARN_ON_ONCE(cgroup_is_dead(cgrp));
+ 	css_get(&cgrp->self);
  }
+-EXPORT_SYMBOL_GPL(cgroup_get_e_css);
  
  /**
-+ * ipc_search_maxidx - search for the highest assigned index
-+ * @ids: ipc identifier set
-+ * @limit: known upper limit for highest assigned index
-+ *
-+ * The function determines the highest assigned index in @ids. It is intended
-+ * to be called when ids->max_idx needs to be updated.
-+ * Updating ids->max_idx is necessary when the current highest index ipc
-+ * object is deleted.
-+ * If no ipc object is allocated, then -1 is returned.
-+ *
-+ * ipc_ids.rwsem needs to be held by the caller.
-+ */
-+static int ipc_search_maxidx(struct ipc_ids *ids, int limit)
-+{
-+	int tmpidx;
-+	int i;
-+	int retval;
-+
-+	i = ilog2(limit+1);
-+
-+	retval = 0;
-+	for (; i >= 0; i--) {
-+		tmpidx = retval | (1<<i);
-+		/*
-+		 * "0" is a possible index value, thus search using
-+		 * e.g. 15,7,3,1,0 instead of 16,8,4,2,1.
-+		 */
-+		tmpidx = tmpidx-1;
-+		if (idr_get_next(&ids->ipcs_idr, &tmpidx))
-+			retval |= (1<<i);
-+	}
-+	return retval - 1;
-+}
-+
-+/**
-  * ipc_rmid - remove an ipc identifier
-  * @ids: ipc identifier set
-  * @ipcp: ipc perm structure containing the identifier to remove
-@@ -468,11 +504,9 @@ void ipc_rmid(struct ipc_ids *ids, struc
- 	ipcp->deleted = true;
- 
- 	if (unlikely(idx == ids->max_idx)) {
--		do {
--			idx--;
--			if (idx == -1)
--				break;
--		} while (!idr_find(&ids->ipcs_idr, idx));
-+		idx = ids->max_idx-1;
-+		if (idx >= 0)
-+			idx = ipc_search_maxidx(ids, idx);
- 		ids->max_idx = idx;
- 	}
- }
---- a/ipc/util.h~ipc-utilc-use-binary-search-for-max_idx
-+++ a/ipc/util.h
-@@ -145,6 +145,9 @@ int ipcperms(struct ipc_namespace *ns, s
-  * ipc_get_maxidx - get the highest assigned index
-  * @ids: ipc identifier set
-  *
-+ * The function returns the highest assigned index for @ids. The function
-+ * doesn't scan the idr tree, it uses a cached value.
-+ *
-  * Called with ipc_ids.rwsem held for reading.
-  */
- static inline int ipc_get_maxidx(struct ipc_ids *ids)
+  * __cgroup_task_count - count the number of tasks in a cgroup. The caller
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
