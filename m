@@ -5,34 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62AE4C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:07:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24D9CC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4479B61C6C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:07:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0CF4661C6F
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231700AbhGFTKI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:10:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45388 "EHLO mail.kernel.org"
+        id S231590AbhGFTKj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:10:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231755AbhGFTKI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:10:08 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8883761C56;
-        Tue,  6 Jul 2021 19:07:29 +0000 (UTC)
+        id S231489AbhGFTKi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:10:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C775E61C23;
+        Tue,  6 Jul 2021 19:07:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598449;
-        bh=+Gns2kndGOhxwnKeSBvbluoJw0pQWziD8AywboK+23I=;
+        s=korg; t=1625598480;
+        bh=vlPyGefJ0JCr70vLnVlxZhyC+O0CrvODK63+VJMM0Aw=;
         h=Date:From:To:Subject:From;
-        b=Sx5pVfJFFbZLfa73saWEieY7lutNqfyM++IgCmuKamYoMVnnUSxRCCJyW7xHE5mrz
-         qXikdL2xuST68THAvrRujoEgl2MMEesyqJmghLbRw6T8sDTBElMqg+pgJ+YuFaZh3b
-         yuBCIOlCHKBQJCPaIVtXgfT+wjqkpMYzd34PnVvE=
-Date:   Tue, 06 Jul 2021 12:07:29 -0700
+        b=s+/dZqUNTaA9hreAeFxtVgtQtPf3jqnRdkn/S/UYnmIbu/3geI9x00+wAboHXCyXs
+         Pihel3KHAR6F1iJZw/j4ltT824cRJ51XurcNKB7g2N/cSBGcDzOzRb1hj+QC00X+5s
+         A96mf9Je7NbOQQwjXxeF+zD7OkcXt/KwWA1/vtz0=
+Date:   Tue, 06 Jul 2021 12:07:59 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-rejects.patch removed from -mm tree
-Message-ID: <20210706190729.wpztaiq4O%akpm@linux-foundation.org>
+To:     jack@suse.cz, jannh@google.com, jhubbard@nvidia.com,
+        kirill@shutemov.name, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, willy@infradead.org
+Subject:  [merged]
+ mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch removed
+ from -mm tree
+Message-ID: <20210706190759._ZDDwl3lf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,179 +45,173 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: mm/gup: fix try_grab_compound_head() race with split_huge_page()
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     mm-gup-fix-try_grab_compound_head-race-with-split_huge_page.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Jann Horn <jannh@google.com>
+Subject: mm/gup: fix try_grab_compound_head() race with split_huge_page()
 
+try_grab_compound_head() is used to grab a reference to a page from
+get_user_pages_fast(), which is only protected against concurrent freeing
+of page tables (via local_irq_save()), but not against concurrent TLB
+flushes, freeing of data pages, or splitting of compound pages.
+
+Because no reference is held to the page when try_grab_compound_head() is
+called, the page may have been freed and reallocated by the time its
+refcount has been elevated; therefore, once we're holding a stable
+reference to the page, the caller re-checks whether the PTE still points
+to the same page (with the same access rights).
+
+The problem is that try_grab_compound_head() has to grab a reference on
+the head page; but between the time we look up what the head page is and
+the time we actually grab a reference on the head page, the compound page
+may have been split up (either explicitly through split_huge_page() or by
+freeing the compound page to the buddy allocator and then allocating its
+individual order-0 pages).  If that happens, get_user_pages_fast() may end
+up returning the right page but lifting the refcount on a now-unrelated
+page, leading to use-after-free of pages.
+
+To fix it: Re-check whether the pages still belong together after lifting
+the refcount on the head page.  Move anything else that checks
+compound_head(page) below the refcount increment.
+
+This can't actually happen on bare-metal x86 (because there, disabling
+IRQs locks out remote TLB flushes), but it can happen on virtualized x86
+(e.g.  under KVM) and probably also on arm64.  The race window is pretty
+narrow, and constantly allocating and shattering hugepages isn't exactly
+fast; for now I've only managed to reproduce this in an x86 KVM guest with
+an artificially widened timing window (by adding a loop that repeatedly
+calls `inl(0x3f8 + 5)` in `try_get_compound_head()` to force VM exits, so
+that PV TLB flushes are used instead of IPIs).
+
+As requested on the list, also replace the existing VM_BUG_ON_PAGE() with
+a warning and bailout.  Since the existing code only performed the BUG_ON
+check on DEBUG_VM kernels, ensure that the new code also only performs the
+check under that configuration - I don't want to mix two logically
+separate changes together too much.  The macro VM_WARN_ON_ONCE_PAGE()
+doesn't return a value on !DEBUG_VM, so wrap the whole check in an #ifdef
+block.  An alternative would be to change the VM_WARN_ON_ONCE_PAGE()
+definition for !DEBUG_VM such that it always returns false, but since that
+would differ from the behavior of the normal WARN macros, it might be too
+confusing for readers.
+
+Link: https://lkml.kernel.org/r/20210615012014.1100672-1-jannh@google.com
+Fixes: 7aef4172c795 ("mm: handle PTE-mapped tail pages in gerneric fast gup implementaiton")
+Signed-off-by: Jann Horn <jannh@google.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Jan Kara <jack@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/smp.c      |    5 +++-
- arch/riscv/Kconfig             |    1 
- drivers/block/zram/zram_drv.h  |    2 -
- include/linux/compiler_types.h |    2 -
- lib/dump_stack.c               |   38 +------------------------------
- mm/kasan/sw_tags.c             |    7 +++++
- mm/memcontrol.c                |    6 ++--
- 7 files changed, 19 insertions(+), 42 deletions(-)
+ mm/gup.c |   58 +++++++++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 43 insertions(+), 15 deletions(-)
 
---- a/arch/powerpc/kernel/smp.c~linux-next-rejects
-+++ a/arch/powerpc/kernel/smp.c
-@@ -1552,13 +1552,16 @@ void start_secondary(void *unused)
- {
- 	unsigned int cpu = raw_smp_processor_id();
- 
-+	/* PPC64 calls setup_kup() in early_setup_secondary() */
-+	if (IS_ENABLED(CONFIG_PPC32))
-+		setup_kup();
-+
- 	mmgrab_lazy_tlb(&init_mm);
- 	current->active_mm = &init_mm;
- 
- 	smp_store_cpu_info(cpu);
- 	set_dec(tb_ticks_per_jiffy);
- 	rcu_cpu_starting(cpu);
--	preempt_disable();
- 	cpu_callin_map[cpu] = 1;
- 
- 	if (smp_ops->setup_cpu)
---- a/arch/riscv/Kconfig~linux-next-rejects
-+++ a/arch/riscv/Kconfig
-@@ -81,6 +81,7 @@ config RISCV
- 	select HAVE_GENERIC_VDSO if MMU && 64BIT
- 	select HAVE_IRQ_TIME_ACCOUNTING
- 	select HAVE_KPROBES if !XIP_KERNEL
-+	select HAVE_ARCH_TRANSPARENT_HUGEPAGE if 64BIT
- 	select HAVE_KPROBES_ON_FTRACE if !XIP_KERNEL
- 	select HAVE_KRETPROBES if !XIP_KERNEL
- 	select HAVE_MOVE_PMD
---- a/drivers/block/zram/zram_drv.h~linux-next-rejects
-+++ a/drivers/block/zram/zram_drv.h
-@@ -112,7 +112,7 @@ struct zram {
- 	/*
- 	 * zram is claimed so open request will be failed
- 	 */
--	bool claim; /* Protected by bdev->bd_mutex */
-+	bool claim; /* Protected by disk->open_mutex */
- #ifdef CONFIG_ZRAM_WRITEBACK
- 	struct file *backing_dev;
- 	spinlock_t wb_limit_lock;
---- a/lib/dump_stack.c~linux-next-rejects
-+++ a/lib/dump_stack.c
-@@ -84,52 +84,18 @@ static void __dump_stack(const char *log
-  *
-  * Architectures can override this implementation by implementing its own.
-  */
--#ifdef CONFIG_SMP
--static atomic_t dump_lock = ATOMIC_INIT(-1);
--
- asmlinkage __visible void dump_stack_lvl(const char *log_lvl)
- {
- 	unsigned long flags;
--	int was_locked;
--	int old;
--	int cpu;
- 
- 	/*
- 	 * Permit this cpu to perform nested stack dumps while serialising
- 	 * against other CPUs
- 	 */
--retry:
--	local_irq_save(flags);
--	cpu = smp_processor_id();
--	old = atomic_cmpxchg(&dump_lock, -1, cpu);
--	if (old == -1) {
--		was_locked = 0;
--	} else if (old == cpu) {
--		was_locked = 1;
--	} else {
--		local_irq_restore(flags);
--		/*
--		 * Wait for the lock to release before jumping to
--		 * atomic_cmpxchg() in order to mitigate the thundering herd
--		 * problem.
--		 */
--		do { cpu_relax(); } while (atomic_read(&dump_lock) != -1);
--		goto retry;
--	}
--
--	__dump_stack(log_lvl);
--
--	if (!was_locked)
--		atomic_set(&dump_lock, -1);
--
--	local_irq_restore(flags);
--}
--#else
--asmlinkage __visible void dump_stack_lvl(const char *log_lvl)
--{
-+	printk_cpu_lock_irqsave(flags);
- 	__dump_stack(log_lvl);
-+	printk_cpu_unlock_irqrestore(flags);
+--- a/mm/gup.c~mm-gup-fix-try_grab_compound_head-race-with-split_huge_page
++++ a/mm/gup.c
+@@ -44,6 +44,23 @@ static void hpage_pincount_sub(struct pa
+ 	atomic_sub(refs, compound_pincount_ptr(page));
  }
--#endif
- EXPORT_SYMBOL(dump_stack_lvl);
  
- asmlinkage __visible void dump_stack(void)
---- a/mm/memcontrol.c~linux-next-rejects
-+++ a/mm/memcontrol.c
-@@ -81,14 +81,14 @@ DEFINE_PER_CPU(struct mem_cgroup *, int_
- EXPORT_PER_CPU_SYMBOL_GPL(int_active_memcg);
- 
- /* Socket memory accounting disabled? */
--static bool cgroup_memory_nosocket;
-+static bool cgroup_memory_nosocket __ro_after_init;
- 
- /* Kernel memory accounting disabled? */
--bool cgroup_memory_nokmem;
-+bool cgroup_memory_nokmem __ro_after_init;
- 
- /* Whether the swap controller is active */
- #ifdef CONFIG_MEMCG_SWAP
--bool cgroup_memory_noswap __read_mostly;
-+bool cgroup_memory_noswap __ro_after_init;
- #else
- #define cgroup_memory_noswap		1
- #endif
---- a/include/linux/compiler_types.h~linux-next-rejects
-+++ a/include/linux/compiler_types.h
-@@ -210,7 +210,7 @@ struct ftrace_likely_data {
- /* Section for code which can't be instrumented at all */
- #define noinstr								\
- 	noinline notrace __attribute((__section__(".noinstr.text")))	\
--	__no_kcsan __no_sanitize_address __no_sanitize_coverage
-+	__no_kcsan __no_sanitize_address __no_sanitize_coverage __no_profile
- 
- #endif /* __KERNEL__ */
- 
---- a/mm/kasan/sw_tags.c~linux-next-rejects
-+++ a/mm/kasan/sw_tags.c
-@@ -166,3 +166,10 @@ void __hwasan_tag_memory(unsigned long a
- 	kasan_poison((void *)addr, size, tag, false);
- }
- EXPORT_SYMBOL(__hwasan_tag_memory);
-+
-+void kasan_tag_mismatch(unsigned long addr, unsigned long access_info,
-+			unsigned long ret_ip)
++/* Equivalent to calling put_page() @refs times. */
++static void put_page_refs(struct page *page, int refs)
 +{
-+	kasan_report(addr, 1 << (access_info & 0xf), access_info & 0x10,
-+		     ret_ip);
++#ifdef CONFIG_DEBUG_VM
++	if (VM_WARN_ON_ONCE_PAGE(page_ref_count(page) < refs, page))
++		return;
++#endif
++
++	/*
++	 * Calling put_page() for each ref is unnecessarily slow. Only the last
++	 * ref needs a put_page().
++	 */
++	if (refs > 1)
++		page_ref_sub(page, refs - 1);
++	put_page(page);
 +}
++
+ /*
+  * Return the compound head page with ref appropriately incremented,
+  * or NULL if that failed.
+@@ -56,6 +73,21 @@ static inline struct page *try_get_compo
+ 		return NULL;
+ 	if (unlikely(!page_cache_add_speculative(head, refs)))
+ 		return NULL;
++
++	/*
++	 * At this point we have a stable reference to the head page; but it
++	 * could be that between the compound_head() lookup and the refcount
++	 * increment, the compound page was split, in which case we'd end up
++	 * holding a reference on a page that has nothing to do with the page
++	 * we were given anymore.
++	 * So now that the head page is stable, recheck that the pages still
++	 * belong together.
++	 */
++	if (unlikely(compound_head(page) != head)) {
++		put_page_refs(head, refs);
++		return NULL;
++	}
++
+ 	return head;
+ }
+ 
+@@ -96,6 +128,14 @@ __maybe_unused struct page *try_grab_com
+ 			return NULL;
+ 
+ 		/*
++		 * CAUTION: Don't use compound_head() on the page before this
++		 * point, the result won't be stable.
++		 */
++		page = try_get_compound_head(page, refs);
++		if (!page)
++			return NULL;
++
++		/*
+ 		 * When pinning a compound page of order > 1 (which is what
+ 		 * hpage_pincount_available() checks for), use an exact count to
+ 		 * track it, via hpage_pincount_add/_sub().
+@@ -103,15 +143,10 @@ __maybe_unused struct page *try_grab_com
+ 		 * However, be sure to *also* increment the normal page refcount
+ 		 * field at least once, so that the page really is pinned.
+ 		 */
+-		if (!hpage_pincount_available(page))
+-			refs *= GUP_PIN_COUNTING_BIAS;
+-
+-		page = try_get_compound_head(page, refs);
+-		if (!page)
+-			return NULL;
+-
+ 		if (hpage_pincount_available(page))
+ 			hpage_pincount_add(page, refs);
++		else
++			page_ref_add(page, refs * (GUP_PIN_COUNTING_BIAS - 1));
+ 
+ 		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_ACQUIRED,
+ 				    orig_refs);
+@@ -135,14 +170,7 @@ static void put_compound_head(struct pag
+ 			refs *= GUP_PIN_COUNTING_BIAS;
+ 	}
+ 
+-	VM_BUG_ON_PAGE(page_ref_count(page) < refs, page);
+-	/*
+-	 * Calling put_page() for each ref is unnecessarily slow. Only the last
+-	 * ref needs a put_page().
+-	 */
+-	if (refs > 1)
+-		page_ref_sub(page, refs - 1);
+-	put_page(page);
++	put_page_refs(page, refs);
+ }
+ 
+ /**
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jannh@google.com are
 
-mm.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-kernel-cgroup-cgroupc-dont-export-cgroup_get_e_css-twice.patch
-mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
-module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
