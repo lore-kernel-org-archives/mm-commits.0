@@ -7,41 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07EB3C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F29A4C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E381761C72
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DB0AE61C6F
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231792AbhGFTKv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:10:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45694 "EHLO mail.kernel.org"
+        id S231794AbhGFTKx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:10:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45720 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231803AbhGFTKs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:10:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A544A61C6D;
-        Tue,  6 Jul 2021 19:08:09 +0000 (UTC)
+        id S231778AbhGFTKw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:10:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6F23961C23;
+        Tue,  6 Jul 2021 19:08:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598489;
-        bh=yJ0ULh2eZsV92yIBXJ7og2cba3CbLHEjyH15SCCL/6Q=;
+        s=korg; t=1625598492;
+        bh=W09liCDV+VTAA1r6BnWx4UxpIbyVnsjywQwWS3pnRjw=;
         h=Date:From:To:Subject:From;
-        b=cq72LEAcf9nOmjlUoFxJL8XQ+3h+ge7XoM0N+pLDq713OH2lC1WtvNe/d9RZGnZD8
-         fUxPzztXdOLjLLIp9GWFj6HbC20KJt4p9Wd2z1Hs7BCBUTk7bsFrzkc1E4PHUyVn4Z
-         iXWuIdgoK2yDlnBtSa+456HkjVrBi4kXl1nz++UE=
-Date:   Tue, 06 Jul 2021 12:08:09 -0700
+        b=YyFdsDgNBmYbIgL33IQxWKlel8RkSo4X+OaJIrIUKVRvwcSmXhPJU90HbSJYamXGA
+         z7EvsDo7tXLZz1wpbAizbS6XPaFOmTKJpfxvMtbsQOr/PDTB3hiKDR3l7dUbJ3lZxB
+         AbI+l7r3lyb0Fczl++GH1xa+JolgBqu+0iiRbqcw=
+Date:   Tue, 06 Jul 2021 12:08:12 -0700
 From:   akpm@linux-foundation.org
-To:     jenhaochen@google.com, liumartin@google.com, minchan@google.com,
-        mm-commits@vger.kernel.org, nathan@kernel.org,
-        ndesaulniers@google.com, oleg@redhat.com, pmladek@suse.com,
-        tj@kernel.org
-Subject:  [merged]
- =?US-ASCII?Q?kthread=5Fworker-fix-return-value-when-kthread=5Fmod=5Fde?=
- =?US-ASCII?Q?layed=5Fwork-races-with-kthread=5Fcancel=5Fdelayed=5Fwor?=
- =?US-ASCII?Q?k=5Fsync.patch?= removed from -mm tree
-Message-ID: <20210706190809.InyrhGk0i%akpm@linux-foundation.org>
+To:     fenghua.yu@intel.com, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org
+Subject:  [merged] ia64-headers-drop-duplicated-words.patch removed
+ from -mm tree
+Message-ID: <20210706190812.BR-sH4fX3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,101 +43,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread_worker: fix return value when kthread_mod_delayed_work() races with kthread_cancel_delayed_work_sync()
+     Subject: ia64: headers: drop duplicated words
 has been removed from the -mm tree.  Its filename was
-     kthread_worker-fix-return-value-when-kthread_mod_delayed_work-races-with-kthread_cancel_delayed_work_sync.patch
+     ia64-headers-drop-duplicated-words.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: kthread_worker: fix return value when kthread_mod_delayed_work() races with kthread_cancel_delayed_work_sync()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: ia64: headers: drop duplicated words
 
-kthread_mod_delayed_work() might race with
-kthread_cancel_delayed_work_sync() or another kthread_mod_delayed_work()
-call.  The function lets the other operation win when it sees
-work->canceling counter set.  And it returns @false.
+Delete the repeated words "to" and "the".
 
-But it should return @true as it is done by the related workqueue API, see
-mod_delayed_work_on().
-
-The reason is that the return value might be used for reference counting. 
-It has to distinguish the case when the number of queued works has changed
-or stayed the same.
-
-The change is safe.  kthread_mod_delayed_work() return value is not
-checked anywhere at the moment.
-
-Link: https://lore.kernel.org/r/20210521163526.GA17916@redhat.com
-Link: https://lkml.kernel.org/r/20210610133051.15337-4-pmladek@suse.com
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Reported-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Minchan Kim <minchan@google.com>
-Cc: <jenhaochen@google.com>
-Cc: Martin Liu <liumartin@google.com>
+Link: https://lkml.kernel.org/r/20210507184837.10754-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ arch/ia64/include/asm/pal.h       |    2 +-
+ arch/ia64/include/asm/spinlock.h  |    2 +-
+ arch/ia64/include/asm/uv/uv_hub.h |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
---- a/kernel/kthread.c~kthread_worker-fix-return-value-when-kthread_mod_delayed_work-races-with-kthread_cancel_delayed_work_sync
-+++ a/kernel/kthread.c
-@@ -1156,14 +1156,14 @@ static bool __kthread_cancel_work(struct
-  * modify @dwork's timer so that it expires after @delay. If @delay is zero,
-  * @work is guaranteed to be queued immediately.
+--- a/arch/ia64/include/asm/pal.h~ia64-headers-drop-duplicated-words
++++ a/arch/ia64/include/asm/pal.h
+@@ -1086,7 +1086,7 @@ static inline long ia64_pal_freq_base(un
+ 
+ /*
+  * Get the ratios for processor frequency, bus frequency and interval timer to
+- * to base frequency of the platform
++ * the base frequency of the platform
+  */
+ static inline s64
+ ia64_pal_freq_ratios (struct pal_freq_ratio *proc_ratio, struct pal_freq_ratio *bus_ratio,
+--- a/arch/ia64/include/asm/spinlock.h~ia64-headers-drop-duplicated-words
++++ a/arch/ia64/include/asm/spinlock.h
+@@ -26,7 +26,7 @@
+  * the queue, and the other indicating the current tail. The lock is acquired
+  * by atomically noting the tail and incrementing it by one (thus adding
+  * ourself to the queue and noting our position), then waiting until the head
+- * becomes equal to the the initial value of the tail.
++ * becomes equal to the initial value of the tail.
+  * The pad bits in the middle are used to prevent the next_ticket number
+  * overflowing into the now_serving number.
   *
-- * Return: %true if @dwork was pending and its timer was modified,
-- * %false otherwise.
-+ * Return: %false if @dwork was idle and queued, %true otherwise.
-  *
-  * A special case is when the work is being canceled in parallel.
-  * It might be caused either by the real kthread_cancel_delayed_work_sync()
-  * or yet another kthread_mod_delayed_work() call. We let the other command
-- * win and return %false here. The caller is supposed to synchronize these
-- * operations a reasonable way.
-+ * win and return %true here. The return value can be used for reference
-+ * counting and the number of queued works stays the same. Anyway, the caller
-+ * is supposed to synchronize these operations a reasonable way.
-  *
-  * This function is safe to call from any context including IRQ handler.
-  * See __kthread_cancel_work() and kthread_delayed_work_timer_fn()
-@@ -1175,13 +1175,15 @@ bool kthread_mod_delayed_work(struct kth
+--- a/arch/ia64/include/asm/uv/uv_hub.h~ia64-headers-drop-duplicated-words
++++ a/arch/ia64/include/asm/uv/uv_hub.h
+@@ -257,7 +257,7 @@ static inline int uv_numa_blade_id(void)
+ 	return 0;
+ }
+ 
+-/* Convert a cpu number to the the UV blade number */
++/* Convert a cpu number to the UV blade number */
+ static inline int uv_cpu_to_blade_id(int cpu)
  {
- 	struct kthread_work *work = &dwork->work;
- 	unsigned long flags;
--	int ret = false;
-+	int ret;
- 
- 	raw_spin_lock_irqsave(&worker->lock, flags);
- 
- 	/* Do not bother with canceling when never queued. */
--	if (!work->worker)
-+	if (!work->worker) {
-+		ret = false;
- 		goto fast_queue;
-+	}
- 
- 	/* Work must not be used with >1 worker, see kthread_queue_work() */
- 	WARN_ON_ONCE(work->worker != worker);
-@@ -1199,8 +1201,11 @@ bool kthread_mod_delayed_work(struct kth
- 	 * be used for reference counting.
- 	 */
- 	kthread_cancel_delayed_work_timer(work, &flags);
--	if (work->canceling)
-+	if (work->canceling) {
-+		/* The number of works in the queue does not change. */
-+		ret = true;
- 		goto out;
-+	}
- 	ret = __kthread_cancel_work(work);
- 
- fast_queue:
+ 	return 0;
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
+mm-slub-use-stackdepot-to-save-stack-trace-in-objects-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-2.patch
 
