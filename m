@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B7F0C07E9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 20:42:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24DABC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 20:44:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C7C461C99
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 20:42:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 001E661C9C
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 20:44:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229811AbhGFUpL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 16:45:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44550 "EHLO mail.kernel.org"
+        id S229812AbhGFUrT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 16:47:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44868 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229781AbhGFUpK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 16:45:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 94E8361C81;
-        Tue,  6 Jul 2021 20:42:31 +0000 (UTC)
+        id S229807AbhGFUrT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 16:47:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B729B61C85;
+        Tue,  6 Jul 2021 20:44:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625604151;
-        bh=l50DFt45xOqJeoLZaTPN7gR0kq8okc27ktQjrmkX7bY=;
+        s=korg; t=1625604280;
+        bh=uPxWk0Y0XBoZqIslbhUJFWCle1IJubSaIbh9QLwcFo8=;
         h=Date:From:To:Subject:From;
-        b=OSxosizpeN6a5Ig8n49rXn0Op2AgEUXVi7Ue5EEdsgGvKcAIXyxPGOD+oWOX2wB/j
-         RnVX6OZIwSnM1yPB+ESjiPre6S9MVWF0nmoH/wPnWAlEpjRJsh0NplkevKowf6iecm
-         PAH4K/Lzuj3poUWHyyooSzNC222Je23S5WLO/Ta4=
-Date:   Tue, 06 Jul 2021 13:42:31 -0700
+        b=Oy4f5LxOFgOOz34D3Ox4DfF7qJEAR235IpXIMGX9zEeDxnRylTtVTQNWeuZR8cp4+
+         Z33LDYD5y72Ixt8ifLlHoyRIPI4MoXvs6oQrXWg0iJYO9cLHXDY8ZfK378CA5m1M4O
+         UYf+9lOW3ZJae3WPGx9pmjdSUqhp5dupDQpN3stQ=
+Date:   Tue, 06 Jul 2021 13:44:37 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        ryabinin.a.a@gmail.com, nicholas.tang@mediatek.com,
-        Kuan-Ying.Lee@mediatek.com, glider@google.com, elver@google.com,
-        dvyukov@google.com, chinwen.chang@mediatek.com,
-        andreyknvl@gmail.com, yee.lee@mediatek.com
-Subject:  + kasan-add-memzero-int-for-unaligned-size-at-debug.patch
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tglx@linutronix.de,
+        peterz@infradead.org, mingo@kernel.org, mhocko@kernel.org,
+        chuck.lever@oracle.com, brouer@redhat.com, bigeasy@linutronix.de,
+        mgorman@techsingularity.net
+Subject:  + mm-page_alloc-revert-pahole-zero-sized-workaround.patch
  added to -mm tree
-Message-ID: <20210706204231.9B6tB%akpm@linux-foundation.org>
+Message-ID: <20210706204437.9HzPy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add memzero int for unaligned size at DEBUG
+     Subject: mm/page_alloc: Revert pahole zero-sized workaround
 has been added to the -mm tree.  Its filename is
-     kasan-add-memzero-int-for-unaligned-size-at-debug.patch
+     mm-page_alloc-revert-pahole-zero-sized-workaround.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-memzero-int-for-unaligned-size-at-debug.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-revert-pahole-zero-sized-workaround.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-memzero-int-for-unaligned-size-at-debug.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-revert-pahole-zero-sized-workaround.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,66 +66,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yee Lee <yee.lee@mediatek.com>
-Subject: kasan: add memzero int for unaligned size at DEBUG
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc: Revert pahole zero-sized workaround
 
-Issue: when SLUB debug is on, hwtag kasan_unpoison() would overwrite the
-redzone of object with unaligned size.
+Commit dbbee9d5cd83 ("mm/page_alloc: convert per-cpu list protection to
+local_lock") folded in a workaround patch for pahole that was unable to
+deal with zero-sized percpu structures.  A superior workaround is achieved
+with commit a0b8200d06ad ("kbuild: skip per-CPU BTF generation for pahole
+v1.18-v1.21").  This patch reverts the dummy field and the pahole version
+check.
 
-An additional memzero_explicit() path is added to replacing init by hwtag
-instruction for those unaligned size at SLUB debug mode.
-
-The penalty is acceptable since they are only enabled in debug mode, not
-production builds.  A block of comment is added for explanation.
-
-Link: https://lkml.kernel.org/r/20210705103229.8505-3-yee.lee@mediatek.com
-Signed-off-by: Yee Lee <yee.lee@mediatek.com>
-Suggested-by: Andrey Konovalov <andreyknvl@gmail.com>
-Suggested-by: Marco Elver <elver@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Nicholas Tang <nicholas.tang@mediatek.com>
-Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20210705095117.GM3840@techsingularity.net
+Fixes: dbbee9d5cd83 ("mm/page_alloc: convert per-cpu list protection to local_lock")
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Chuck Lever III <chuck.lever@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ lib/Kconfig.debug |    3 ---
+ mm/page_alloc.c   |   11 -----------
+ 2 files changed, 14 deletions(-)
 
---- a/mm/kasan/kasan.h~kasan-add-memzero-int-for-unaligned-size-at-debug
-+++ a/mm/kasan/kasan.h
-@@ -9,6 +9,7 @@
- #ifdef CONFIG_KASAN_HW_TAGS
+--- a/lib/Kconfig.debug~mm-page_alloc-revert-pahole-zero-sized-workaround
++++ a/lib/Kconfig.debug
+@@ -313,9 +313,6 @@ config DEBUG_INFO_BTF
+ config PAHOLE_HAS_SPLIT_BTF
+ 	def_bool $(success, test `$(PAHOLE) --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'` -ge "119")
  
- #include <linux/static_key.h>
-+#include "../slab.h"
+-config PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT
+-	def_bool $(success, test `$(PAHOLE) --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'` -ge "122")
+-
+ config DEBUG_INFO_BTF_MODULES
+ 	def_bool y
+ 	depends on DEBUG_INFO_BTF && MODULES && PAHOLE_HAS_SPLIT_BTF
+--- a/mm/page_alloc.c~mm-page_alloc-revert-pahole-zero-sized-workaround
++++ a/mm/page_alloc.c
+@@ -124,17 +124,6 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
  
- DECLARE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
- extern bool kasan_flag_async __ro_after_init;
-@@ -387,6 +388,17 @@ static inline void kasan_unpoison(const
- 
- 	if (WARN_ON((unsigned long)addr & KASAN_GRANULE_MASK))
- 		return;
-+	/*
-+	 * Explicitly initialize the memory with the precise object size to
-+	 * avoid overwriting the SLAB redzone. This disables initialization in
-+	 * the arch code and may thus lead to performance penalty. The penalty
-+	 * is accepted since SLAB redzones aren't enabled in production builds.
-+	 */
-+	if (__slub_debug_enabled() &&
-+	    init && ((unsigned long)size & KASAN_GRANULE_MASK)) {
-+		init = false;
-+		memzero_explicit((void *)addr, size);
-+	}
- 	size = round_up(size, KASAN_GRANULE_SIZE);
- 
- 	hw_set_mem_tag_range((void *)addr, size, tag, init);
+ struct pagesets {
+ 	local_lock_t lock;
+-#if defined(CONFIG_DEBUG_INFO_BTF) &&				\
+-	!defined(CONFIG_DEBUG_LOCK_ALLOC) &&			\
+-	!defined(CONFIG_PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT)
+-	/*
+-	 * pahole 1.21 and earlier gets confused by zero-sized per-CPU
+-	 * variables and produces invalid BTF. Ensure that
+-	 * sizeof(struct pagesets) != 0 for older versions of pahole.
+-	 */
+-	char __pahole_hack;
+-	#warning "pahole too old to support zero-sized struct pagesets"
+-#endif
+ };
+ static DEFINE_PER_CPU(struct pagesets, pagesets) = {
+ 	.lock = INIT_LOCAL_LOCK(lock),
 _
 
-Patches currently in -mm which might be from yee.lee@mediatek.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-kasan-add-memzero-int-for-unaligned-size-at-debug.patch
+mm-page_alloc-revert-pahole-zero-sized-workaround.patch
 
