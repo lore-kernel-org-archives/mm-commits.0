@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB92C07E9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAA07C11F68
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 282E561C89
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD06361057
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231841AbhGFTL7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:11:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46670 "EHLO mail.kernel.org"
+        id S230031AbhGFTMC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:12:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46698 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231836AbhGFTL7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:11:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6E68661C84;
-        Tue,  6 Jul 2021 19:09:20 +0000 (UTC)
+        id S231730AbhGFTMB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:12:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8DB1D61C85;
+        Tue,  6 Jul 2021 19:09:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598560;
-        bh=9MB4z4lKe1gBWtQDttPRnnnlNuYLFvPUgW5ePL/FRLc=;
+        s=korg; t=1625598562;
+        bh=Kcz6msh8ka60nTCR+HEn0pCXfNcJamrF9CIpM4xxmoM=;
         h=Date:From:To:Subject:From;
-        b=N/vAGJtGQ4OiLXmfyVSU00RjJSphqv5UYRRcaLUPAb7ADRFhChewHO1ycWWfAvrn+
-         Lv22I4BlPtjZTH1lF61bh1g3LNo+hahLogeowczqfRRNmMRag6Bk8k9J/UiKwHXjT/
-         Njw8utjsT+MIEXVDiedTpTlILm7XE8A2Q8JEbDRo=
-Date:   Tue, 06 Jul 2021 12:09:20 -0700
+        b=UtFozc12y9gpI4T4MXbnHzbPADeer3Mc2Y9CA/POIp4bnjYWybUCJmm46FZto9bIb
+         5NLS3tU3+YzlAWN6A4APMViHFSq2sFbzoHOcJx2HA3ejuJuzS0pkoWeBtkvhsnmqYS
+         rdZBIx4C/bYEQu/yjzFJ5eB04fG/gc1WElSgI/nU=
+Date:   Tue, 06 Jul 2021 12:09:22 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, mm-commits@vger.kernel.org,
-        yanfei.xu@windriver.com
+To:     aneesh.kumar@linux.ibm.com, dan.j.williams@intel.com, jack@suse.cz,
+        mm-commits@vger.kernel.org, willy@infradead.org
 Subject:  [merged]
- mm-kmemleak-fix-the-possible-wrong-memory-scanning-period.patch removed
- from -mm tree
-Message-ID: <20210706190920.dpOSW1ol9%akpm@linux-foundation.org>
+ dax-fix-enomem-handling-in-grab_mapping_entry.patch removed from -mm tree
+Message-ID: <20210706190922.vF3cms7eb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,90 +43,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak: fix possible wrong memory scanning period
+     Subject: dax: fix ENOMEM handling in grab_mapping_entry()
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-fix-the-possible-wrong-memory-scanning-period.patch
+     dax-fix-enomem-handling-in-grab_mapping_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yanfei Xu <yanfei.xu@windriver.com>
-Subject: mm/kmemleak: fix possible wrong memory scanning period
+From: Jan Kara <jack@suse.cz>
+Subject: dax: fix ENOMEM handling in grab_mapping_entry()
 
-This commit contains 3 modifications:
+grab_mapping_entry() has a bug in handling of ENOMEM condition.  Suppose
+we have a PMD entry at index i which we are downgrading to a PTE entry. 
+grab_mapping_entry() will set pmd_downgrade to true, lock the entry, clear
+the entry in xarray, and decrement mapping->nrpages.  The it will call:
 
-1. Convert the type of jiffies_scan_wait to "unsigned long".
+	entry = dax_make_entry(pfn_to_pfn_t(0), flags);
+	dax_lock_entry(xas, entry);
 
-2. Use READ/WRITE_ONCE() for accessing "jiffies_scan_wait".
+which inserts new PTE entry into xarray.  However this may fail allocating
+the new node.  We handle this by:
 
-3. Fix the possible wrong memory scanning period.  If you set a large
-   memory scanning period like blow, then the "secs" variable will be
-   non-zero, however the value of "jiffies_scan_wait" will be zero.
+	if (xas_nomem(xas, mapping_gfp_mask(mapping) & ~__GFP_HIGHMEM))
+		goto retry;
 
-    echo "scan=0x10000000" > /sys/kernel/debug/kmemleak
+however pmd_downgrade stays set to true even though 'entry' returned from
+get_unlocked_entry() will be NULL now.  And we will go again through the
+downgrade branch.  This is mostly harmless except that mapping->nrpages is
+decremented again and we temporarily have an invalid entry stored in
+xarray.  Fix the problem by setting pmd_downgrade to false each time we
+lookup the entry we work with so that it matches the entry we found.
 
-It is because the type of the msecs_to_jiffies()'s parameter is "unsigned
-int", and the "secs * 1000" is larger than its max value.  This in turn
-leads a unexpected jiffies_scan_wait, maybe zero.  We corret it by
-replacing kstrtoul() with kstrtouint(), and check the msecs to prevent it
-larger than UINT_MAX.
-
-Link: https://lkml.kernel.org/r/20210613174022.23044-1-yanfei.xu@windriver.com
-Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Link: https://lkml.kernel.org/r/20210622160015.18004-1-jack@suse.cz
+Fixes: b15cd800682f ("dax: Convert page fault handlers to XArray")
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ fs/dax.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-fix-the-possible-wrong-memory-scanning-period
-+++ a/mm/kmemleak.c
-@@ -219,7 +219,7 @@ static struct task_struct *scan_thread;
- static unsigned long jiffies_min_age;
- static unsigned long jiffies_last_scan;
- /* delay between automatic memory scannings */
--static signed long jiffies_scan_wait;
-+static unsigned long jiffies_scan_wait;
- /* enables or disables the task stacks scanning */
- static int kmemleak_stack_scan = 1;
- /* protects the memory scanning, parameters and debug/kmemleak file access */
-@@ -1567,7 +1567,7 @@ static int kmemleak_scan_thread(void *ar
- 	}
+--- a/fs/dax.c~dax-fix-enomem-handling-in-grab_mapping_entry
++++ a/fs/dax.c
+@@ -488,10 +488,11 @@ static void *grab_mapping_entry(struct x
+ 		struct address_space *mapping, unsigned int order)
+ {
+ 	unsigned long index = xas->xa_index;
+-	bool pmd_downgrade = false; /* splitting PMD entry into PTE entries? */
++	bool pmd_downgrade;	/* splitting PMD entry into PTE entries? */
+ 	void *entry;
  
- 	while (!kthread_should_stop()) {
--		signed long timeout = jiffies_scan_wait;
-+		signed long timeout = READ_ONCE(jiffies_scan_wait);
+ retry:
++	pmd_downgrade = false;
+ 	xas_lock_irq(xas);
+ 	entry = get_unlocked_entry(xas, order);
  
- 		mutex_lock(&scan_mutex);
- 		kmemleak_scan();
-@@ -1807,14 +1807,20 @@ static ssize_t kmemleak_write(struct fil
- 	else if (strncmp(buf, "scan=off", 8) == 0)
- 		stop_scan_thread();
- 	else if (strncmp(buf, "scan=", 5) == 0) {
--		unsigned long secs;
-+		unsigned secs;
-+		unsigned long msecs;
- 
--		ret = kstrtoul(buf + 5, 0, &secs);
-+		ret = kstrtouint(buf + 5, 0, &secs);
- 		if (ret < 0)
- 			goto out;
-+
-+		msecs = secs * MSEC_PER_SEC;
-+		if (msecs > UINT_MAX)
-+			msecs = UINT_MAX;
-+
- 		stop_scan_thread();
--		if (secs) {
--			jiffies_scan_wait = msecs_to_jiffies(secs * 1000);
-+		if (msecs) {
-+			WRITE_ONCE(jiffies_scan_wait, msecs_to_jiffies(msecs));
- 			start_scan_thread();
- 		}
- 	} else if (strncmp(buf, "scan", 4) == 0)
 _
 
-Patches currently in -mm which might be from yanfei.xu@windriver.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
 
