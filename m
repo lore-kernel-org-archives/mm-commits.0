@@ -7,35 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E848FC07E9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A51EAC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7C4661C72
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8E86261C74
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:11:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231791AbhGFTNm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:13:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47978 "EHLO mail.kernel.org"
+        id S231736AbhGFTNp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:13:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231438AbhGFTNl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:13:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7EE6F61C6C;
-        Tue,  6 Jul 2021 19:11:02 +0000 (UTC)
+        id S231829AbhGFTNo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:13:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8582961C6D;
+        Tue,  6 Jul 2021 19:11:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598662;
-        bh=n4dBvWFy2Z5rTBdLY6z9FZyESUHKkw7lmZ6rE8E9JpA=;
+        s=korg; t=1625598665;
+        bh=lK4lMqQNSNcQKTUSsIiCbXkY+6mBZ8hJ9MkjVUyk47o=;
         h=Date:From:To:Subject:From;
-        b=F594/wkDwXrnAineFD5hLA0c95gjYaFl0wMpWtyH19nmuxuET/HBs+m2VGRHgMHBQ
-         NqOAcumoCAGS0MiLPzUuMLZ71kQkiNucoPVp2QcyKU5vMA+bzJ+R8Gqyk7Jzd96ntC
-         qbvS1g5GhMSTLGUAjpFHJBrVN/w2eTEVgqy39bIA=
-Date:   Tue, 06 Jul 2021 12:11:02 -0700
+        b=wQK9/wCHQl9kvSch7rgppFfCSNVk5uZg5DtNzx/6t50yamaOMZHjARJEBosLjL9xL
+         2fn3nuYhHSdE1ITbmgRptCoABKC4y3nb5QEOAeZLbJpwhMNia51xo1kN0W/9x7WDLU
+         zCT0dwgYb0ekj3chv/WfFTwfoweRcvCZhoFlIBBQ=
+Date:   Tue, 06 Jul 2021 12:11:04 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
-        willy@infradead.org
+To:     ak@linux.intel.com, andrea.parri@amarulasolutions.com,
+        dan.carpenter@oracle.com, daniel.m.jordan@oracle.com,
+        dave.hansen@linux.intel.com, hughd@google.com,
+        linmiaohe@huawei.com, mm-commits@vger.kernel.org, osandov@fb.com,
+        paulmck@kernel.org, peterz@infradead.org, tj@kernel.org,
+        will.deacon@arm.com, ying.huang@intel.com
 Subject:  [merged]
- mm-swap_slotsc-delete-meaningless-forward-declarations.patch removed from
- -mm tree
-Message-ID: <20210706191102.QIA6h0B-A%akpm@linux-foundation.org>
+ mm-swap-remove-unnecessary-smp_rmb-in-swap_type_to_swap_info.patch removed
+ from -mm tree
+Message-ID: <20210706191104.BudYVPqBV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,44 +48,126 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap_slots.c: delete meaningless forward declarations
+     Subject: mm, swap: remove unnecessary smp_rmb() in swap_type_to_swap_info()
 has been removed from the -mm tree.  Its filename was
-     mm-swap_slotsc-delete-meaningless-forward-declarations.patch
+     mm-swap-remove-unnecessary-smp_rmb-in-swap_type_to_swap_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/swap_slots.c: delete meaningless forward declarations
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm, swap: remove unnecessary smp_rmb() in swap_type_to_swap_info()
 
-deactivate_swap_slots_cache() and reactivate_swap_slots_cache() are only
-called below their implementations.  So these forward declarations are
-meaningless and should be removed.
+Before commit c10d38cc8d3e ("mm, swap: bounds check swap_info array
+accesses to avoid NULL derefs"), the typical code to reference the
+swap_info[] is as follows,
 
-Link: https://lkml.kernel.org/r/20210520134022.1370406-4-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+  type = swp_type(swp_entry);
+  if (type >= nr_swapfiles)
+          /* handle invalid swp_entry */;
+  p = swap_info[type];
+  /* access fields of *p.  OOPS! p may be NULL! */
+
+Because the ordering isn't guaranteed, it's possible that swap_info[type]
+is read before "nr_swapfiles".  And that may result in NULL pointer
+dereference.
+
+So after commit c10d38cc8d3e, the code becomes,
+
+  struct swap_info_struct *swap_type_to_swap_info(int type)
+  {
+	  if (type >= READ_ONCE(nr_swapfiles))
+		  return NULL;
+	  smp_rmb();
+	  return READ_ONCE(swap_info[type]);
+  }
+
+  /* users */
+  type = swp_type(swp_entry);
+  p = swap_type_to_swap_info(type);
+  if (!p)
+	  /* handle invalid swp_entry */;
+  /* dereference p */
+
+Where the value of swap_info[type] (that is, "p") is checked to be
+non-zero before being dereferenced.  So, the NULL deferencing becomes
+impossible even if "nr_swapfiles" is read after swap_info[type]. 
+Therefore, the "smp_rmb()" becomes unnecessary.
+
+And, we don't even need to read "nr_swapfiles" here.  Because the non-zero
+checking for "p" is sufficient.  We just need to make sure we will not
+access out of the boundary of the array.  With the change, nr_swapfiles
+will only be accessed with swap_lock held, except in
+swapcache_free_entries().  Where the absolute correctness of the value
+isn't needed, as described in the comments.
+
+We still need to guarantee swap_info[type] is read before being
+dereferenced.  That can be satisfied via the data dependency ordering
+enforced by READ_ONCE(swap_info[type]).  This needs to be paired with
+proper write barriers.  So smp_store_release() is used in
+alloc_swap_info() to guarantee the fields of *swap_info[type] is
+initialized before swap_info[type] itself being written.  Note that the
+fields of *swap_info[type] is initialized to be 0 via kvzalloc() firstly. 
+The assignment and deferencing of swap_info[type] is like
+rcu_assign_pointer() and rcu_dereference().
+
+Link: https://lkml.kernel.org/r/20210520073301.1676294-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Daniel Jordan <daniel.m.jordan@oracle.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Andrea Parri <andrea.parri@amarulasolutions.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Omar Sandoval <osandov@fb.com>
+Cc: Paul McKenney <paulmck@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap_slots.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/swapfile.c |   15 ++++++---------
+ 1 file changed, 6 insertions(+), 9 deletions(-)
 
---- a/mm/swap_slots.c~mm-swap_slotsc-delete-meaningless-forward-declarations
-+++ a/mm/swap_slots.c
-@@ -43,8 +43,6 @@ static DEFINE_MUTEX(swap_slots_cache_mut
- static DEFINE_MUTEX(swap_slots_cache_enable_mutex);
+--- a/mm/swapfile.c~mm-swap-remove-unnecessary-smp_rmb-in-swap_type_to_swap_info
++++ a/mm/swapfile.c
+@@ -100,11 +100,10 @@ atomic_t nr_rotate_swap = ATOMIC_INIT(0)
  
- static void __drain_swap_slots_cache(unsigned int type);
--static void deactivate_swap_slots_cache(void);
--static void reactivate_swap_slots_cache(void);
+ static struct swap_info_struct *swap_type_to_swap_info(int type)
+ {
+-	if (type >= READ_ONCE(nr_swapfiles))
++	if (type >= MAX_SWAPFILES)
+ 		return NULL;
  
- #define use_swap_slot_cache (swap_slot_cache_active && swap_slot_cache_enabled)
- #define SLOTS_CACHE 0x1
+-	smp_rmb();	/* Pairs with smp_wmb in alloc_swap_info. */
+-	return READ_ONCE(swap_info[type]);
++	return READ_ONCE(swap_info[type]); /* rcu_dereference() */
+ }
+ 
+ static inline unsigned char swap_count(unsigned char ent)
+@@ -2863,14 +2862,12 @@ static struct swap_info_struct *alloc_sw
+ 	}
+ 	if (type >= nr_swapfiles) {
+ 		p->type = type;
+-		WRITE_ONCE(swap_info[type], p);
+ 		/*
+-		 * Write swap_info[type] before nr_swapfiles, in case a
+-		 * racing procfs swap_start() or swap_next() is reading them.
+-		 * (We never shrink nr_swapfiles, we never free this entry.)
++		 * Publish the swap_info_struct after initializing it.
++		 * Note that kvzalloc() above zeroes all its fields.
+ 		 */
+-		smp_wmb();
+-		WRITE_ONCE(nr_swapfiles, nr_swapfiles + 1);
++		smp_store_release(&swap_info[type], p); /* rcu_assign_pointer() */
++		nr_swapfiles++;
+ 	} else {
+ 		defer = p;
+ 		p = swap_info[type];
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
