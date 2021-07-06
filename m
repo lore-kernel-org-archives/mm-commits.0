@@ -5,42 +5,42 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5D85C11F66
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92140C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C20E361C75
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D89061C6F
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:08:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231791AbhGFTKp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:10:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45586 "EHLO mail.kernel.org"
+        id S231696AbhGFTKq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:10:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45664 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231696AbhGFTKp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:10:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 70B7161C6D;
-        Tue,  6 Jul 2021 19:08:05 +0000 (UTC)
+        id S231792AbhGFTKq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:10:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8B83661C70;
+        Tue,  6 Jul 2021 19:08:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598485;
-        bh=PThm40DjLBnSudVd8PzIw7okdraYPRbyLdhlgwwXXV4=;
+        s=korg; t=1625598487;
+        bh=qReaXwPaBHmJAkLExzHes9BjXJIM1RjZzGJhGfK+w7g=;
         h=Date:From:To:Subject:From;
-        b=o4TFh2hz4Yd268ny4cSOTCIFQLfk7pTSfe7Z1yyRc3MH280rPFfg+cBNZZEZ6boy/
-         xtZHCBD+cDMZGIu55qmnod8tBzJSAsH73He3vjsV5yfNqkTG/9DrK7xHNYJQ+wiIH/
-         2k2crFi98isQ0QHxatQ3Zm/o4NMCc8SHPQnl+aPg=
-Date:   Tue, 06 Jul 2021 12:08:05 -0700
+        b=WMGmUQJTO0XA5thWnGeHgwOnjPXPX2ijGf/2236K77NKeQbUel0CnuZUUkqNjk5as
+         1rcpdvVDR2mv+M9dbK4W1NHdxDzc4Es1xEsWMRggkbqK1pIUS620E4cKvFNmxI52cp
+         vzOAV2zbeUa4od2e9wNLjwGvYBsvymCcKH8d1gjg=
+Date:   Tue, 06 Jul 2021 12:08:07 -0700
 From:   akpm@linux-foundation.org
-To:     brouer@redhat.com, dan.carpenter@oracle.com,
-        davej@codemonkey.org.uk, geert+renesas@glider.be,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, vbabka@suse.cz
+To:     axboe@kernel.dk, Felix.Kuehling@amd.com, j.neuschaefer@gmx.net,
+        mm-commits@vger.kernel.org, peterz@infradead.org,
+        valentin.schneider@arm.com
 Subject:  [merged]
- =?US-ASCII?Q?mm-page=5Falloc-correct-return-value-of-populated-elements-?=
- =?US-ASCII?Q?if-bulk-array-is-populated.patch?= removed from -mm tree
-Message-ID: <20210706190805.sDeWWHBcA%akpm@linux-foundation.org>
+ =?US-ASCII?Q?kthread-switch-to-new-kerneldoc-syntax-for-named-variable-?=
+ =?US-ASCII?Q?macro-argument.patch?= removed from -mm tree
+Message-ID: <20210706190807.ywrfRJA4T%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,57 +48,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: correct return value of populated elements if bulk array is populated
+     Subject: kthread: switch to new kerneldoc syntax for named variable ma=
+cro argument
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-correct-return-value-of-populated-elements-if-bulk-array-is-populated.patch
+     kthread-switch-to-new-kerneldoc-syntax-for-named-variable-macro-argume=
+nt.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: correct return value of populated elements if bulk array is populated
+=46rom: Jonathan Neusch=C3=A4fer <j.neuschaefer@gmx.net>
+Subject: kthread: switch to new kerneldoc syntax for named variable macro a=
+rgument
 
-Dave Jones reported the following
+The syntax without dots is available since commit 43756e347f21
+("scripts/kernel-doc: Add support for named variable macro arguments").
 
-	This made it into 5.13 final, and completely breaks NFSD for me
-	(Serving tcp v3 mounts).  Existing mounts on clients hang, as do
-	new mounts from new clients.  Rebooting the server back to rc7
-	everything recovers.
+The same HTML output is produced with and without this patch.
 
-The commit b3b64ebd3822 ("mm/page_alloc: do bulk array bounds check after
-checking populated elements") returns the wrong value if the array is
-already populated which is interpreted as an allocation failure.  Dave
-reported this fixes his problem and it also passed a test running dbench
-over NFS.
-
-Link: https://lkml.kernel.org/r/20210628150219.GC3840@techsingularity.net
-Fixes: b3b64ebd3822 ("mm/page_alloc: do bulk array bounds check after checking populated elements")
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Dave Jones <davej@codemonkey.org.uk>
-Tested-by: Dave Jones <davej@codemonkey.org.uk>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org> [5.13+]
+Link: https://lkml.kernel.org/r/20210513161702.1721039-1-j.neuschaefer@gmx.=
+net
+Signed-off-by: Jonathan Neusch=C3=A4fer <j.neuschaefer@gmx.net>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Valentin Schneider <valentin.schneider@arm.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
+ include/linux/kthread.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-correct-return-value-of-populated-elements-if-bulk-array-is-populated
-+++ a/mm/page_alloc.c
-@@ -5058,7 +5058,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 
- 	/* Already populated array? */
- 	if (unlikely(page_array && nr_pages - nr_populated == 0))
--		return 0;
-+		return nr_populated;
- 
- 	/* Use the single page allocator for one page. */
- 	if (nr_pages - nr_populated == 1)
+--- a/include/linux/kthread.h~kthread-switch-to-new-kerneldoc-syntax-for-na=
+med-variable-macro-argument
++++ a/include/linux/kthread.h
+@@ -18,7 +18,7 @@ struct task_struct *kthread_create_on_no
+  * @threadfn: the function to run in the thread
+  * @data: data pointer for @threadfn()
+  * @namefmt: printf-style format string for the thread name
+- * @arg...: arguments for @namefmt.
++ * @arg: arguments for @namefmt.
+  *
+  * This macro will create a kthread on the current node, leaving it in
+  * the stopped state.  This is just a helper for kthread_create_on_node();
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from j.neuschaefer@gmx.net are
 
 
