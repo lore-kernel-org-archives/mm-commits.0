@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24DABC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 20:44:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9976EC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 20:47:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 001E661C9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 20:44:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A6A361C98
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 20:47:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229812AbhGFUrT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 16:47:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44868 "EHLO mail.kernel.org"
+        id S230077AbhGFUuE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 16:50:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45354 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229807AbhGFUrT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 16:47:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B729B61C85;
-        Tue,  6 Jul 2021 20:44:39 +0000 (UTC)
+        id S229781AbhGFUuD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 16:50:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A6EBB61C9D;
+        Tue,  6 Jul 2021 20:47:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625604280;
-        bh=uPxWk0Y0XBoZqIslbhUJFWCle1IJubSaIbh9QLwcFo8=;
+        s=korg; t=1625604443;
+        bh=hctRHTen9NHetN1O74fe2QcnUI1Ql2u7VUT6RC2ak7w=;
         h=Date:From:To:Subject:From;
-        b=Oy4f5LxOFgOOz34D3Ox4DfF7qJEAR235IpXIMGX9zEeDxnRylTtVTQNWeuZR8cp4+
-         Z33LDYD5y72Ixt8ifLlHoyRIPI4MoXvs6oQrXWg0iJYO9cLHXDY8ZfK378CA5m1M4O
-         UYf+9lOW3ZJae3WPGx9pmjdSUqhp5dupDQpN3stQ=
-Date:   Tue, 06 Jul 2021 13:44:37 -0700
+        b=hSjQNPA3nmpvVVJAg4LLkVufnBzZr76vf2+h+A4BdJE6ScidiTt6qFe8E3LgikgJ3
+         E5bgrE/WpykggeDVzs5Bh07eUloPoiww0pofsgHD4vAQ2Ad0n+cUBUy52ECuJGMjMj
+         V6xlQaxnASo75hRKLZ2nIzvMU0bRXJYBz0KDHcOE=
+Date:   Tue, 06 Jul 2021 13:47:23 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tglx@linutronix.de,
-        peterz@infradead.org, mingo@kernel.org, mhocko@kernel.org,
-        chuck.lever@oracle.com, brouer@redhat.com, bigeasy@linutronix.de,
-        mgorman@techsingularity.net
-Subject:  + mm-page_alloc-revert-pahole-zero-sized-workaround.patch
- added to -mm tree
-Message-ID: <20210706204437.9HzPy%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vincenzo.frascino@arm.com,
+        ryabinin.a.a@gmail.com, pcc@google.com, glider@google.com,
+        dvyukov@google.com, catalin.marinas@arm.com,
+        andy.shevchenko@gmail.com, andreyknvl@gmail.com, elver@google.com
+Subject:  + kasan-fix-build-by-including-kernelh.patch added to -mm
+ tree
+Message-ID: <20210706204723.O1wZ2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: Revert pahole zero-sized workaround
+     Subject: kasan: fix build by including kernel.h
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-revert-pahole-zero-sized-workaround.patch
+     kasan-fix-build-by-including-kernelh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-revert-pahole-zero-sized-workaround.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-build-by-including-kernelh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-revert-pahole-zero-sized-workaround.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-build-by-including-kernelh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,69 +66,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: Revert pahole zero-sized workaround
+From: Marco Elver <elver@google.com>
+Subject: kasan: fix build by including kernel.h
 
-Commit dbbee9d5cd83 ("mm/page_alloc: convert per-cpu list protection to
-local_lock") folded in a workaround patch for pahole that was unable to
-deal with zero-sized percpu structures.  A superior workaround is achieved
-with commit a0b8200d06ad ("kbuild: skip per-CPU BTF generation for pahole
-v1.18-v1.21").  This patch reverts the dummy field and the pahole version
-check.
+The <linux/kasan.h> header relies on _RET_IP_ being defined, and had been
+receiving that definition via inclusion of bug.h which includes kernel.h. 
+However, since f39650de687e ("kernel.h: split out panic and oops helpers")
+that is no longer the case and get the following build error when building
+CONFIG_KASAN_HW_TAGS on arm64:
 
-Link: https://lkml.kernel.org/r/20210705095117.GM3840@techsingularity.net
-Fixes: dbbee9d5cd83 ("mm/page_alloc: convert per-cpu list protection to local_lock")
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Chuck Lever III <chuck.lever@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+  In file included from arch/arm64/mm/kasan_init.c:10:
+  ./include/linux/kasan.h: In function 'kasan_slab_free':
+  ./include/linux/kasan.h:230:39: error: '_RET_IP_' undeclared (first use in this function)
+    230 |   return __kasan_slab_free(s, object, _RET_IP_, init);
+
+Fix it by including kernel.h from kasan.h.
+
+Link: https://lkml.kernel.org/r/20210705072716.2125074-1-elver@google.com
+Fixes: f39650de687e ("kernel.h: split out panic and oops helpers")
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    3 ---
- mm/page_alloc.c   |   11 -----------
- 2 files changed, 14 deletions(-)
+ include/linux/kasan.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/Kconfig.debug~mm-page_alloc-revert-pahole-zero-sized-workaround
-+++ a/lib/Kconfig.debug
-@@ -313,9 +313,6 @@ config DEBUG_INFO_BTF
- config PAHOLE_HAS_SPLIT_BTF
- 	def_bool $(success, test `$(PAHOLE) --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'` -ge "119")
+--- a/include/linux/kasan.h~kasan-fix-build-by-including-kernelh
++++ a/include/linux/kasan.h
+@@ -3,6 +3,7 @@
+ #define _LINUX_KASAN_H
  
--config PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT
--	def_bool $(success, test `$(PAHOLE) --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'` -ge "122")
--
- config DEBUG_INFO_BTF_MODULES
- 	def_bool y
- 	depends on DEBUG_INFO_BTF && MODULES && PAHOLE_HAS_SPLIT_BTF
---- a/mm/page_alloc.c~mm-page_alloc-revert-pahole-zero-sized-workaround
-+++ a/mm/page_alloc.c
-@@ -124,17 +124,6 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
+ #include <linux/bug.h>
++#include <linux/kernel.h>
+ #include <linux/static_key.h>
+ #include <linux/types.h>
  
- struct pagesets {
- 	local_lock_t lock;
--#if defined(CONFIG_DEBUG_INFO_BTF) &&				\
--	!defined(CONFIG_DEBUG_LOCK_ALLOC) &&			\
--	!defined(CONFIG_PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT)
--	/*
--	 * pahole 1.21 and earlier gets confused by zero-sized per-CPU
--	 * variables and produces invalid BTF. Ensure that
--	 * sizeof(struct pagesets) != 0 for older versions of pahole.
--	 */
--	char __pahole_hack;
--	#warning "pahole too old to support zero-sized struct pagesets"
--#endif
- };
- static DEFINE_PER_CPU(struct pagesets, pagesets) = {
- 	.lock = INIT_LOCAL_LOCK(lock),
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from elver@google.com are
 
-mm-page_alloc-revert-pahole-zero-sized-workaround.patch
+mm-move-helper-to-check-slub_debug_enabled.patch
+kasan-fix-build-by-including-kernelh.patch
 
