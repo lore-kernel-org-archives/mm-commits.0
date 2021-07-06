@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC61AC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F376DC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7B4A61C7F
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D899561C91
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231792AbhGFTTr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:19:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53694 "EHLO mail.kernel.org"
+        id S231740AbhGFTTu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:19:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53726 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229991AbhGFTTq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:19:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A279A61C91;
-        Tue,  6 Jul 2021 19:17:07 +0000 (UTC)
+        id S229991AbhGFTTt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:19:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 973BD61C7C;
+        Tue,  6 Jul 2021 19:17:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599027;
-        bh=7veIZ1/Eaw0pupbIqIvLwjbyzlxv/ltMMGh6fe874Dw=;
+        s=korg; t=1625599030;
+        bh=JBdOQJvXKHNnxWPznE1C3yGsaS22FIMNxGGCuY/krPQ=;
         h=Date:From:To:Subject:From;
-        b=ybZOz6pJ9H69QiYa0tYK5fvudnJT9FkwwEvCdcSbDf2Br8QjNKZwWGdseuAJajADE
-         exapMQR6SDpopOq1pZnvFtLzYsAvl1MS3U6DxHd3qjOKkyoxnP/zAuG38y0eeeR8xY
-         ZvFkcL6uj93k6UHu5e3gv0VTCf0fGaq3X7Q/WrTA=
-Date:   Tue, 06 Jul 2021 12:17:07 -0700
+        b=fyVJn4VmHO9ee9McWZv3oH92kB4VCt3m7igRSQPDT9JnI0F3j4jOhKd/2U8RG+Sc3
+         LwUYixORcBgRWremVoYdAexrkpmKR9vvpl+IBAGCwXoHnCKHUWp/z3ccFSk/gL2xx4
+         ZPCEbm/CffjrGVboil9I4QwszTFG574/nFzCeK8Q=
+Date:   Tue, 06 Jul 2021 12:17:10 -0700
 From:   akpm@linux-foundation.org
 To:     chenhuang5@huawei.com, corbet@lwn.net, david@redhat.com,
         duanxiongchun@bytedance.com, mhocko@suse.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         osalvador@suse.de, songmuchun@bytedance.com
 Subject:  [merged]
- mm-sparsemem-split-the-huge-pmd-mapping-of-vmemmap-pages.patch removed from
- -mm tree
-Message-ID: <20210706191707.5fKquDobS%akpm@linux-foundation.org>
+ mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages.patch removed from -mm
+ tree
+Message-ID: <20210706191710.y93TVvHDT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,383 +46,145 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: sparsemem: split the huge PMD mapping of vmemmap pages
+     Subject: mm: sparsemem: use huge PMD mapping for vmemmap pages
 has been removed from the -mm tree.  Its filename was
-     mm-sparsemem-split-the-huge-pmd-mapping-of-vmemmap-pages.patch
+     mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: sparsemem: split the huge PMD mapping of vmemmap pages
+Subject: mm: sparsemem: use huge PMD mapping for vmemmap pages
 
-Patch series "Split huge PMD mapping of vmemmap pages", v4.
+The preparation of splitting huge PMD mapping of vmemmap pages is ready,
+so switch the mapping from PTE to PMD.
 
-In order to reduce the difficulty of code review in series[1].  We disable
-huge PMD mapping of vmemmap pages when that feature is enabled.  In this
-series, we do not disable huge PMD mapping of vmemmap pages anymore.  We
-will split huge PMD mapping when needed.  When HugeTLB pages are freed
-from the pool we do not attempt coalasce and move back to a PMD mapping
-because it is much more complex.
-
-[1] https://lore.kernel.org/linux-doc/20210510030027.56044-1-songmuchun@bytedance.com/
-
-
-This patch (of 3):
-
-In [1], PMD mappings of vmemmap pages were disabled if the the feature
-hugetlb_free_vmemmap was enabled.  This was done to simplify the initial
-implementation of vmmemap freeing for hugetlb pages.  Now, remove this
-simplification by allowing PMD mapping and switching to PTE mappings as
-needed for allocated hugetlb pages.
-
-When a hugetlb page is allocated, the vmemmap page tables are walked to
-free vmemmap pages.  During this walk, split huge PMD mappings to PTE
-mappings as required.  In the unlikely case PTE pages can not be
-allocated, return error(ENOMEM) and do not optimize vmemmap of the hugetlb
-page.
-
-When HugeTLB pages are freed from the pool, we do not attempt to
-coalesce and move back to a PMD mapping because it is much more complex.
-
-[1] https://lkml.kernel.org/r/20210510030027.56044-8-songmuchun@bytedance.com
-
-Link: https://lkml.kernel.org/r/20210616094915.34432-1-songmuchun@bytedance.com
-Link: https://lkml.kernel.org/r/20210616094915.34432-2-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20210616094915.34432-3-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Chen Huang <chenhuang5@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h   |    4 -
- mm/hugetlb_vmemmap.c |    5 -
- mm/sparse-vmemmap.c  |  163 +++++++++++++++++++++++++++++++----------
- 3 files changed, 129 insertions(+), 43 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    7 ---
+ arch/x86/mm/init_64.c                           |    8 +---
+ include/linux/hugetlb.h                         |   25 +++-----------
+ mm/memory_hotplug.c                             |    2 -
+ 4 files changed, 9 insertions(+), 33 deletions(-)
 
---- a/include/linux/mm.h~mm-sparsemem-split-the-huge-pmd-mapping-of-vmemmap-pages
-+++ a/include/linux/mm.h
-@@ -3076,8 +3076,8 @@ static inline void print_vma_addr(char *
+--- a/arch/x86/mm/init_64.c~mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages
++++ a/arch/x86/mm/init_64.c
+@@ -34,7 +34,6 @@
+ #include <linux/gfp.h>
+ #include <linux/kcore.h>
+ #include <linux/bootmem_info.h>
+-#include <linux/hugetlb.h>
+ 
+ #include <asm/processor.h>
+ #include <asm/bios_ebda.h>
+@@ -1610,8 +1609,7 @@ int __meminit vmemmap_populate(unsigned
+ 	VM_BUG_ON(!IS_ALIGNED(start, PAGE_SIZE));
+ 	VM_BUG_ON(!IS_ALIGNED(end, PAGE_SIZE));
+ 
+-	if ((is_hugetlb_free_vmemmap_enabled()  && !altmap) ||
+-	    end - start < PAGES_PER_SECTION * sizeof(struct page))
++	if (end - start < PAGES_PER_SECTION * sizeof(struct page))
+ 		err = vmemmap_populate_basepages(start, end, node, NULL);
+ 	else if (boot_cpu_has(X86_FEATURE_PSE))
+ 		err = vmemmap_populate_hugepages(start, end, node, altmap);
+@@ -1639,8 +1637,6 @@ void register_page_bootmem_memmap(unsign
+ 	pmd_t *pmd;
+ 	unsigned int nr_pmd_pages;
+ 	struct page *page;
+-	bool base_mapping = !boot_cpu_has(X86_FEATURE_PSE) ||
+-			    is_hugetlb_free_vmemmap_enabled();
+ 
+ 	for (; addr < end; addr = next) {
+ 		pte_t *pte = NULL;
+@@ -1666,7 +1662,7 @@ void register_page_bootmem_memmap(unsign
+ 		}
+ 		get_page_bootmem(section_nr, pud_page(*pud), MIX_SECTION_INFO);
+ 
+-		if (base_mapping) {
++		if (!boot_cpu_has(X86_FEATURE_PSE)) {
+ 			next = (addr + PAGE_SIZE) & PAGE_MASK;
+ 			pmd = pmd_offset(pud, addr);
+ 			if (pmd_none(*pmd))
+--- a/Documentation/admin-guide/kernel-parameters.txt~mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1572,13 +1572,6 @@
+ 			enabled.
+ 			Allows heavy hugetlb users to free up some more
+ 			memory (6 * PAGE_SIZE for each 2MB hugetlb page).
+-			This feauture is not free though. Large page
+-			tables are not used to back vmemmap pages which
+-			can lead to a performance degradation for some
+-			workloads. Also there will be memory allocation
+-			required when hugetlb pages are freed from the
+-			pool which can lead to corner cases under heavy
+-			memory pressure.
+ 			Format: { on | off (default) }
+ 
+ 			on:  enable the feature
+--- a/include/linux/hugetlb.h~mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages
++++ a/include/linux/hugetlb.h
+@@ -895,20 +895,6 @@ static inline void huge_ptep_modify_prot
  }
  #endif
  
--void vmemmap_remap_free(unsigned long start, unsigned long end,
--			unsigned long reuse);
-+int vmemmap_remap_free(unsigned long start, unsigned long end,
-+		       unsigned long reuse);
- int vmemmap_remap_alloc(unsigned long start, unsigned long end,
- 			unsigned long reuse, gfp_t gfp_mask);
- 
---- a/mm/hugetlb_vmemmap.c~mm-sparsemem-split-the-huge-pmd-mapping-of-vmemmap-pages
-+++ a/mm/hugetlb_vmemmap.c
-@@ -258,9 +258,8 @@ void free_huge_page_vmemmap(struct hstat
- 	 * to the page which @vmemmap_reuse is mapped to, then free the pages
- 	 * which the range [@vmemmap_addr, @vmemmap_end] is mapped to.
- 	 */
--	vmemmap_remap_free(vmemmap_addr, vmemmap_end, vmemmap_reuse);
+-#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
+-extern bool hugetlb_free_vmemmap_enabled;
 -
--	SetHPageVmemmapOptimized(head);
-+	if (!vmemmap_remap_free(vmemmap_addr, vmemmap_end, vmemmap_reuse))
-+		SetHPageVmemmapOptimized(head);
- }
- 
- void __init hugetlb_vmemmap_init(struct hstate *h)
---- a/mm/sparse-vmemmap.c~mm-sparsemem-split-the-huge-pmd-mapping-of-vmemmap-pages
-+++ a/mm/sparse-vmemmap.c
-@@ -38,6 +38,7 @@
-  * struct vmemmap_remap_walk - walk vmemmap page table
-  *
-  * @remap_pte:		called for each lowest-level entry (PTE).
-+ * @nr_walked:		the number of walked pte.
-  * @reuse_page:		the page which is reused for the tail vmemmap pages.
-  * @reuse_addr:		the virtual address of the @reuse_page page.
-  * @vmemmap_pages:	the list head of the vmemmap pages that can be freed
-@@ -46,11 +47,44 @@
- struct vmemmap_remap_walk {
- 	void (*remap_pte)(pte_t *pte, unsigned long addr,
- 			  struct vmemmap_remap_walk *walk);
-+	unsigned long nr_walked;
- 	struct page *reuse_page;
- 	unsigned long reuse_addr;
- 	struct list_head *vmemmap_pages;
- };
- 
-+static int split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start,
-+				  struct vmemmap_remap_walk *walk)
-+{
-+	pmd_t __pmd;
-+	int i;
-+	unsigned long addr = start;
-+	struct page *page = pmd_page(*pmd);
-+	pte_t *pgtable = pte_alloc_one_kernel(&init_mm);
-+
-+	if (!pgtable)
-+		return -ENOMEM;
-+
-+	pmd_populate_kernel(&init_mm, &__pmd, pgtable);
-+
-+	for (i = 0; i < PMD_SIZE / PAGE_SIZE; i++, addr += PAGE_SIZE) {
-+		pte_t entry, *pte;
-+		pgprot_t pgprot = PAGE_KERNEL;
-+
-+		entry = mk_pte(page + i, pgprot);
-+		pte = pte_offset_kernel(&__pmd, addr);
-+		set_pte_at(&init_mm, addr, pte, entry);
-+	}
-+
-+	/* Make pte visible before pmd. See comment in __pte_alloc(). */
-+	smp_wmb();
-+	pmd_populate_kernel(&init_mm, pmd, pgtable);
-+
-+	flush_tlb_kernel_range(start, start + PMD_SIZE);
-+
-+	return 0;
-+}
-+
- static void vmemmap_pte_range(pmd_t *pmd, unsigned long addr,
- 			      unsigned long end,
- 			      struct vmemmap_remap_walk *walk)
-@@ -69,58 +103,80 @@ static void vmemmap_pte_range(pmd_t *pmd
- 		 */
- 		addr += PAGE_SIZE;
- 		pte++;
-+		walk->nr_walked++;
- 	}
- 
--	for (; addr != end; addr += PAGE_SIZE, pte++)
-+	for (; addr != end; addr += PAGE_SIZE, pte++) {
- 		walk->remap_pte(pte, addr, walk);
-+		walk->nr_walked++;
-+	}
- }
- 
--static void vmemmap_pmd_range(pud_t *pud, unsigned long addr,
--			      unsigned long end,
--			      struct vmemmap_remap_walk *walk)
-+static int vmemmap_pmd_range(pud_t *pud, unsigned long addr,
-+			     unsigned long end,
-+			     struct vmemmap_remap_walk *walk)
- {
- 	pmd_t *pmd;
- 	unsigned long next;
- 
- 	pmd = pmd_offset(pud, addr);
- 	do {
--		BUG_ON(pmd_leaf(*pmd));
-+		if (pmd_leaf(*pmd)) {
-+			int ret;
- 
-+			ret = split_vmemmap_huge_pmd(pmd, addr & PMD_MASK, walk);
-+			if (ret)
-+				return ret;
-+		}
- 		next = pmd_addr_end(addr, end);
- 		vmemmap_pte_range(pmd, addr, next, walk);
- 	} while (pmd++, addr = next, addr != end);
-+
-+	return 0;
- }
- 
--static void vmemmap_pud_range(p4d_t *p4d, unsigned long addr,
--			      unsigned long end,
--			      struct vmemmap_remap_walk *walk)
-+static int vmemmap_pud_range(p4d_t *p4d, unsigned long addr,
-+			     unsigned long end,
-+			     struct vmemmap_remap_walk *walk)
- {
- 	pud_t *pud;
- 	unsigned long next;
- 
- 	pud = pud_offset(p4d, addr);
- 	do {
-+		int ret;
-+
- 		next = pud_addr_end(addr, end);
--		vmemmap_pmd_range(pud, addr, next, walk);
-+		ret = vmemmap_pmd_range(pud, addr, next, walk);
-+		if (ret)
-+			return ret;
- 	} while (pud++, addr = next, addr != end);
-+
-+	return 0;
- }
- 
--static void vmemmap_p4d_range(pgd_t *pgd, unsigned long addr,
--			      unsigned long end,
--			      struct vmemmap_remap_walk *walk)
-+static int vmemmap_p4d_range(pgd_t *pgd, unsigned long addr,
-+			     unsigned long end,
-+			     struct vmemmap_remap_walk *walk)
- {
- 	p4d_t *p4d;
- 	unsigned long next;
- 
- 	p4d = p4d_offset(pgd, addr);
- 	do {
-+		int ret;
-+
- 		next = p4d_addr_end(addr, end);
--		vmemmap_pud_range(p4d, addr, next, walk);
-+		ret = vmemmap_pud_range(p4d, addr, next, walk);
-+		if (ret)
-+			return ret;
- 	} while (p4d++, addr = next, addr != end);
-+
-+	return 0;
- }
- 
--static void vmemmap_remap_range(unsigned long start, unsigned long end,
--				struct vmemmap_remap_walk *walk)
-+static int vmemmap_remap_range(unsigned long start, unsigned long end,
-+			       struct vmemmap_remap_walk *walk)
- {
- 	unsigned long addr = start;
- 	unsigned long next;
-@@ -131,8 +187,12 @@ static void vmemmap_remap_range(unsigned
- 
- 	pgd = pgd_offset_k(addr);
- 	do {
-+		int ret;
-+
- 		next = pgd_addr_end(addr, end);
--		vmemmap_p4d_range(pgd, addr, next, walk);
-+		ret = vmemmap_p4d_range(pgd, addr, next, walk);
-+		if (ret)
-+			return ret;
- 	} while (pgd++, addr = next, addr != end);
- 
- 	/*
-@@ -141,6 +201,8 @@ static void vmemmap_remap_range(unsigned
- 	 * belongs to the range.
- 	 */
- 	flush_tlb_kernel_range(start + PAGE_SIZE, end);
-+
-+	return 0;
- }
- 
- /*
-@@ -179,10 +241,27 @@ static void vmemmap_remap_pte(pte_t *pte
- 	pte_t entry = mk_pte(walk->reuse_page, pgprot);
- 	struct page *page = pte_page(*pte);
- 
--	list_add(&page->lru, walk->vmemmap_pages);
-+	list_add_tail(&page->lru, walk->vmemmap_pages);
- 	set_pte_at(&init_mm, addr, pte, entry);
- }
- 
-+static void vmemmap_restore_pte(pte_t *pte, unsigned long addr,
-+				struct vmemmap_remap_walk *walk)
-+{
-+	pgprot_t pgprot = PAGE_KERNEL;
-+	struct page *page;
-+	void *to;
-+
-+	BUG_ON(pte_page(*pte) != walk->reuse_page);
-+
-+	page = list_first_entry(walk->vmemmap_pages, struct page, lru);
-+	list_del(&page->lru);
-+	to = page_to_virt(page);
-+	copy_page(to, (void *)walk->reuse_addr);
-+
-+	set_pte_at(&init_mm, addr, pte, mk_pte(page, pgprot));
-+}
-+
- /**
-  * vmemmap_remap_free - remap the vmemmap virtual address range [@start, @end)
-  *			to the page which @reuse is mapped to, then free vmemmap
-@@ -193,12 +272,12 @@ static void vmemmap_remap_pte(pte_t *pte
-  *		remap.
-  * @reuse:	reuse address.
-  *
-- * Note: This function depends on vmemmap being base page mapped. Please make
-- * sure that we disable PMD mapping of vmemmap pages when calling this function.
-+ * Return: %0 on success, negative error code otherwise.
-  */
--void vmemmap_remap_free(unsigned long start, unsigned long end,
--			unsigned long reuse)
-+int vmemmap_remap_free(unsigned long start, unsigned long end,
-+		       unsigned long reuse)
- {
-+	int ret;
- 	LIST_HEAD(vmemmap_pages);
- 	struct vmemmap_remap_walk walk = {
- 		.remap_pte	= vmemmap_remap_pte,
-@@ -221,25 +300,31 @@ void vmemmap_remap_free(unsigned long st
- 	 */
- 	BUG_ON(start - reuse != PAGE_SIZE);
- 
--	vmemmap_remap_range(reuse, end, &walk);
--	free_vmemmap_page_list(&vmemmap_pages);
--}
-+	mmap_write_lock(&init_mm);
-+	ret = vmemmap_remap_range(reuse, end, &walk);
-+	mmap_write_downgrade(&init_mm);
- 
--static void vmemmap_restore_pte(pte_t *pte, unsigned long addr,
--				struct vmemmap_remap_walk *walk)
+-static inline bool is_hugetlb_free_vmemmap_enabled(void)
 -{
--	pgprot_t pgprot = PAGE_KERNEL;
--	struct page *page;
--	void *to;
-+	if (ret && walk.nr_walked) {
-+		end = reuse + walk.nr_walked * PAGE_SIZE;
-+		/*
-+		 * vmemmap_pages contains pages from the previous
-+		 * vmemmap_remap_range call which failed.  These
-+		 * are pages which were removed from the vmemmap.
-+		 * They will be restored in the following call.
-+		 */
-+		walk = (struct vmemmap_remap_walk) {
-+			.remap_pte	= vmemmap_restore_pte,
-+			.reuse_addr	= reuse,
-+			.vmemmap_pages	= &vmemmap_pages,
-+		};
- 
--	BUG_ON(pte_page(*pte) != walk->reuse_page);
-+		vmemmap_remap_range(reuse, end, &walk);
-+	}
-+	mmap_read_unlock(&init_mm);
- 
--	page = list_first_entry(walk->vmemmap_pages, struct page, lru);
--	list_del(&page->lru);
--	to = page_to_virt(page);
--	copy_page(to, (void *)walk->reuse_addr);
-+	free_vmemmap_page_list(&vmemmap_pages);
- 
--	set_pte_at(&init_mm, addr, pte, mk_pte(page, pgprot));
-+	return ret;
- }
- 
- static int alloc_vmemmap_page_list(unsigned long start, unsigned long end,
-@@ -273,6 +358,8 @@ out:
-  *		remap.
-  * @reuse:	reuse address.
-  * @gfp_mask:	GFP flag for allocating vmemmap pages.
-+ *
-+ * Return: %0 on success, negative error code otherwise.
-  */
- int vmemmap_remap_alloc(unsigned long start, unsigned long end,
- 			unsigned long reuse, gfp_t gfp_mask)
-@@ -287,12 +374,12 @@ int vmemmap_remap_alloc(unsigned long st
- 	/* See the comment in the vmemmap_remap_free(). */
- 	BUG_ON(start - reuse != PAGE_SIZE);
- 
--	might_sleep_if(gfpflags_allow_blocking(gfp_mask));
+-	return hugetlb_free_vmemmap_enabled;
+-}
+-#else
+-static inline bool is_hugetlb_free_vmemmap_enabled(void)
+-{
+-	return false;
+-}
+-#endif
 -
- 	if (alloc_vmemmap_page_list(start, end, gfp_mask, &vmemmap_pages))
- 		return -ENOMEM;
+ #else	/* CONFIG_HUGETLB_PAGE */
+ struct hstate {};
  
-+	mmap_read_lock(&init_mm);
- 	vmemmap_remap_range(reuse, end, &walk);
-+	mmap_read_unlock(&init_mm);
- 
- 	return 0;
+@@ -1063,13 +1049,14 @@ static inline void set_huge_swap_pte_at(
+ 					pte_t *ptep, pte_t pte, unsigned long sz)
+ {
  }
+-
+-static inline bool is_hugetlb_free_vmemmap_enabled(void)
+-{
+-	return false;
+-}
+ #endif	/* CONFIG_HUGETLB_PAGE */
+ 
++#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
++extern bool hugetlb_free_vmemmap_enabled;
++#else
++#define hugetlb_free_vmemmap_enabled	false
++#endif
++
+ static inline spinlock_t *huge_pte_lock(struct hstate *h,
+ 					struct mm_struct *mm, pte_t *pte)
+ {
+--- a/mm/memory_hotplug.c~mm-sparsemem-use-huge-pmd-mapping-for-vmemmap-pages
++++ a/mm/memory_hotplug.c
+@@ -1056,7 +1056,7 @@ bool mhp_supports_memmap_on_memory(unsig
+ 	 *       populate a single PMD.
+ 	 */
+ 	return memmap_on_memory &&
+-	       !is_hugetlb_free_vmemmap_enabled() &&
++	       !hugetlb_free_vmemmap_enabled &&
+ 	       IS_ENABLED(CONFIG_MHP_MEMMAP_ON_MEMORY) &&
+ 	       size == memory_block_size_bytes() &&
+ 	       IS_ALIGNED(vmemmap_size, PMD_SIZE) &&
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
