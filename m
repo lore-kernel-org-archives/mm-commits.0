@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A119BC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3A33C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7D62861C82
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFAB761C84
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231833AbhGFTLn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:11:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46348 "EHLO mail.kernel.org"
+        id S231590AbhGFTLq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:11:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46432 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231831AbhGFTLn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:11:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AAFD261C87;
-        Tue,  6 Jul 2021 19:09:03 +0000 (UTC)
+        id S231702AbhGFTLp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:11:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 99AD461C82;
+        Tue,  6 Jul 2021 19:09:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598544;
-        bh=h1JGXbzSvWdIgwM3wrnTPPu8QGo4aT+dQly/fuY+Usc=;
+        s=korg; t=1625598546;
+        bh=Ij7q0gHiAE5/G3f/3AD2kSjoGXKZMc6IF4ZTf745JzQ=;
         h=Date:From:To:Subject:From;
-        b=KirjdZ48bbG+d7+ftI44pfgLGr9izotAhZEXBhLHpGpws+3G+VoSSUvkAD48eNCkt
-         aMHh+H0DLvJCNcIU+n93P1TTjLnkfVOECq6/bF3705+JK5JiMB6tcaojQgu5zfFBDS
-         8AN95p8P5laB3Ndwe+sj216YbJ59jYEKXKQKGIgA=
-Date:   Tue, 06 Jul 2021 12:09:03 -0700
+        b=zu8cJdBbfvPHSGb6rVZpDAt2UJXoZTXYrKK017Jn7ZgeUQ7hcXJ/BjF8uy3goKSEJ
+         F9o15MwnYZXuoFXb2v5/OHt5u2ozt0uQXs/ajl9IeJ/BBWjC5osMheDgxaI8UDh3h5
+         zTX0mWuH9y6QKEWEXpN20MBb13/oJj+u3LQCRgAw=
+Date:   Tue, 06 Jul 2021 12:09:06 -0700
 From:   akpm@linux-foundation.org
-To:     42.hyeyoo@gmail.com, cl@linux.com, elver@google.com,
-        iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com, vbabka@suse.cz
-Subject:  [merged]
- mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time.patch
- removed from -mm tree
-Message-ID: <20210706190903.Fh8lHQsEa%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, joe@perches.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org, pmladek@suse.com,
+        rientjes@google.com, songmuchun@bytedance.com, swboyd@chromium.org,
+        vbabka@suse.cz
+Subject:  [merged] slub-restore-slub_debug=-behavior.patch removed
+ from -mm tree
+Message-ID: <20210706190906.azXYQok70%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,131 +45,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: change run-time assertion in kmalloc_index() to compile-time
+     Subject: slub: restore slub_debug=- behavior
 has been removed from the -mm tree.  Its filename was
-     mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time.patch
+     slub-restore-slub_debug=-behavior.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm, slub: change run-time assertion in kmalloc_index() to compile-time
+From: Stephen Boyd <swboyd@chromium.org>
+Subject: slub: restore slub_debug=- behavior
 
-Currently when size is not supported by kmalloc_index, compiler will
-generate a run-time BUG() while compile-time error is also possible, and
-better.  So change BUG to BUILD_BUG_ON_MSG to make compile-time check
-possible.
+Petch series "slub: Print non-hashed pointers in slub debugging", v3.
 
-Also remove code that allocates more than 32MB because current
-implementation supports only up to 32MB.
+I was doing some debugging recently and noticed that my pointers were
+being hashed while slub_debug was on the kernel commandline.  Let's force
+on the no hash pointer option when slub_debug is on the kernel commandline
+so that the prints are more meaningful.
 
-[42.hyeyoo@gmail.com: fix support for clang 10]
-  Link: https://lkml.kernel.org/r/20210518181247.GA10062@hyeyoo
-[vbabka@suse.cz: fix false-positive assert in kernel/bpf/local_storage.c]
-  Link: https://lkml.kernel.org/r/bea97388-01df-8eac-091b-a3c89b4a4a09@suse.czLink: https://lkml.kernel.org/r/20210511173448.GA54466@hyeyoo
-[elver@google.com: kfence fix]
-  Link: https://lkml.kernel.org/r/20210512195227.245000695c9014242e9a00e5@linux-foundation.org
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Signed-off-by: Marco Elver <elver@google.com>
+The first two patches are something else I noticed while looking at the
+code.  The message argument is never used so the debugging messages are
+not as clear as they could be and the slub_debug=- behavior seems to be
+busted.  Then there's a printf fixup from Joe and the final patch is the
+one that force disables pointer hashing.
+
+
+This patch (of 4):
+
+Passing slub_debug=- on the kernel commandline is supposed to disable slub
+debugging.  This is especially useful with CONFIG_SLUB_DEBUG_ON where the
+default is to have slub debugging enabled in the build.  Due to some code
+reorganization this behavior was dropped, but the code to make it work
+mostly stuck around.  Restore the previous behavior by disabling the
+static key when we parse the commandline and see that we're trying to
+disable slub debugging.
+
+Link: https://lkml.kernel.org/r/20210601182202.3011020-1-swboyd@chromium.org
+Link: https://lkml.kernel.org/r/20210601182202.3011020-2-swboyd@chromium.org
+Fixes: ca0cab65ea2b ("mm, slub: introduce static key for slub_debug()")
+Signed-off-by: Stephen Boyd <swboyd@chromium.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Joe Perches <joe@perches.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Marco Elver <elver@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h    |   17 ++++++++++++++---
- mm/kfence/kfence_test.c |    5 +++--
- mm/slab_common.c        |    7 +++----
- 3 files changed, 20 insertions(+), 9 deletions(-)
+ mm/slub.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/slab.h~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time
-+++ a/include/linux/slab.h
-@@ -346,8 +346,14 @@ static __always_inline enum kmalloc_cach
-  * 1 =  65 .. 96 bytes
-  * 2 = 129 .. 192 bytes
-  * n = 2^(n-1)+1 .. 2^n
-+ *
-+ * Note: __kmalloc_index() is compile-time optimized, and not runtime optimized;
-+ * typical usage is via kmalloc_index() and therefore evaluated at compile-time.
-+ * Callers where !size_is_constant should only be test modules, where runtime
-+ * overheads of __kmalloc_index() can be tolerated.  Also see kmalloc_slab().
-  */
--static __always_inline unsigned int kmalloc_index(size_t size)
-+static __always_inline unsigned int __kmalloc_index(size_t size,
-+						    bool size_is_constant)
- {
- 	if (!size)
- 		return 0;
-@@ -382,12 +388,17 @@ static __always_inline unsigned int kmal
- 	if (size <=  8 * 1024 * 1024) return 23;
- 	if (size <=  16 * 1024 * 1024) return 24;
- 	if (size <=  32 * 1024 * 1024) return 25;
--	if (size <=  64 * 1024 * 1024) return 26;
--	BUG();
-+
-+	if ((IS_ENABLED(CONFIG_CC_IS_GCC) || CONFIG_CLANG_VERSION >= 110000)
-+	    && !IS_ENABLED(CONFIG_PROFILE_ALL_BRANCHES) && size_is_constant)
-+		BUILD_BUG_ON_MSG(1, "unexpected size in kmalloc_index()");
+--- a/mm/slub.c~slub-restore-slub_debug=-behavior
++++ a/mm/slub.c
+@@ -1429,6 +1429,8 @@ static int __init setup_slub_debug(char
+ out:
+ 	if (slub_debug != 0 || slub_debug_string)
+ 		static_branch_enable(&slub_debug_enabled);
 +	else
-+		BUG();
- 
- 	/* Will never be reached. Needed because the compiler may complain */
- 	return -1;
- }
-+#define kmalloc_index(s) __kmalloc_index(s, true)
- #endif /* !CONFIG_SLOB */
- 
- void *__kmalloc(size_t size, gfp_t flags) __assume_kmalloc_alignment __malloc;
---- a/mm/kfence/kfence_test.c~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time
-+++ a/mm/kfence/kfence_test.c
-@@ -197,7 +197,7 @@ static void test_cache_destroy(void)
- 
- static inline size_t kmalloc_cache_alignment(size_t size)
- {
--	return kmalloc_caches[kmalloc_type(GFP_KERNEL)][kmalloc_index(size)]->align;
-+	return kmalloc_caches[kmalloc_type(GFP_KERNEL)][__kmalloc_index(size, false)]->align;
- }
- 
- /* Must always inline to match stack trace against caller. */
-@@ -267,7 +267,8 @@ static void *test_alloc(struct kunit *te
- 
- 		if (is_kfence_address(alloc)) {
- 			struct page *page = virt_to_head_page(alloc);
--			struct kmem_cache *s = test_cache ?: kmalloc_caches[kmalloc_type(GFP_KERNEL)][kmalloc_index(size)];
-+			struct kmem_cache *s = test_cache ?:
-+					kmalloc_caches[kmalloc_type(GFP_KERNEL)][__kmalloc_index(size, false)];
- 
- 			/*
- 			 * Verify that various helpers return the right values
---- a/mm/slab_common.c~mm-slub-change-run-time-assertion-in-kmalloc_index-to-compile-time
-+++ a/mm/slab_common.c
-@@ -754,8 +754,8 @@ struct kmem_cache *kmalloc_slab(size_t s
- 
- /*
-  * kmalloc_info[] is to make slub_debug=,kmalloc-xx option work at boot time.
-- * kmalloc_index() supports up to 2^26=64MB, so the final entry of the table is
-- * kmalloc-67108864.
-+ * kmalloc_index() supports up to 2^25=32MB, so the final entry of the table is
-+ * kmalloc-32M.
-  */
- const struct kmalloc_info_struct kmalloc_info[] __initconst = {
- 	INIT_KMALLOC_INFO(0, 0),
-@@ -783,8 +783,7 @@ const struct kmalloc_info_struct kmalloc
- 	INIT_KMALLOC_INFO(4194304, 4M),
- 	INIT_KMALLOC_INFO(8388608, 8M),
- 	INIT_KMALLOC_INFO(16777216, 16M),
--	INIT_KMALLOC_INFO(33554432, 32M),
--	INIT_KMALLOC_INFO(67108864, 64M)
-+	INIT_KMALLOC_INFO(33554432, 32M)
- };
- 
- /*
++		static_branch_disable(&slub_debug_enabled);
+ 	if ((static_branch_unlikely(&init_on_alloc) ||
+ 	     static_branch_unlikely(&init_on_free)) &&
+ 	    (slub_debug & SLAB_POISON))
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from swboyd@chromium.org are
 
+buildid-only-consider-gnu-notes-for-build-id-parsing.patch
+buildid-add-api-to-parse-build-id-out-of-buffer.patch
+buildid-stash-away-kernels-build-id-on-init.patch
+buildid-stash-away-kernels-build-id-on-init-fix.patch
+dump_stack-add-vmlinux-build-id-to-stack-traces.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
+arm64-stacktrace-use-%psb-for-backtrace-printing.patch
+x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch
+scripts-decode_stacktracesh-support-debuginfod.patch
+scripts-decode_stacktracesh-silence-stderr-messages-from-addr2line-nm.patch
+scripts-decode_stacktracesh-indicate-auto-can-be-used-for-base-path.patch
+buildid-mark-some-arguments-const.patch
+buildid-fix-kernel-doc-notation.patch
+kdump-use-vmlinux_build_id-to-simplify.patch
 
