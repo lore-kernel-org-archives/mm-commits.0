@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2632EC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7D0CC07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FD7C61C85
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3A5461C87
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231802AbhGFTTx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:19:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53762 "EHLO mail.kernel.org"
+        id S231803AbhGFTT4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:19:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53796 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231753AbhGFTTx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:19:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7048C61C7A;
-        Tue,  6 Jul 2021 19:17:13 +0000 (UTC)
+        id S231716AbhGFTTz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:19:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D9B961C7C;
+        Tue,  6 Jul 2021 19:17:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599033;
-        bh=/t3HwjMekIdNqz/qtaHl8sIE4sGjeuxOQP6jOe8M6MM=;
+        s=korg; t=1625599035;
+        bh=SxNF8cZStk66i3VjRvbNZxr7uf2BA62n7QzKt798Thw=;
         h=Date:From:To:Subject:From;
-        b=KXH5m2S0CgBlu6m0xke6vgRSy8m+LN0pKGvVnX2F7DPXYsjs5gKUIhxgWl6QQymOK
-         KYj4In98zTf2CxPF2hNcY/8SE0zqwuLkgz7dV8SJD64iP6D1iw3jQDFPTPYwuMezul
-         5WTpC+MeCrAkulD4RlZRnHxC8tvdowVKTLLlKpAw=
-Date:   Tue, 06 Jul 2021 12:17:13 -0700
+        b=xpaLyQWWKhYdld/7i6QdQsf2g53vpm51MKQzd7gGeo9L6SqOhBE1LG6gtKyZXy//a
+         tVOggVm1qt56B/eJT9F+poen0suMnlf8c6IjUh/TqyRsCN0DhgHWlBCwKtLjH2EHjZ
+         13Nq2qpbvgkqmJNBGXeq2VLiBK1+dhGzvu8mOfxE=
+Date:   Tue, 06 Jul 2021 12:17:15 -0700
 From:   akpm@linux-foundation.org
-To:     chenhuang5@huawei.com, corbet@lwn.net, david@redhat.com,
-        duanxiongchun@bytedance.com, mhocko@suse.com,
+To:     aarcange@redhat.com, jack@suse.cz, jannh@google.com,
+        jhubbard@nvidia.com, kirill@shutemov.name, mhocko@kernel.org,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, songmuchun@bytedance.com
+        songmuchun@bytedance.com, willy@infradead.org,
+        youquan.song@intel.com
 Subject:  [merged]
- mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on.patch
- removed from -mm tree
-Message-ID: <20210706191713.mbOE0Rqby%akpm@linux-foundation.org>
+ hugetlb-remove-prep_compound_huge_page-cleanup.patch removed from -mm tree
+Message-ID: <20210706191715.omBG5ay89%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,95 +46,125 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: introduce CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON
+     Subject: hugetlb: remove prep_compound_huge_page cleanup
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on.patch
+     hugetlb-remove-prep_compound_huge_page-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: introduce CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: remove prep_compound_huge_page cleanup
 
-When using HUGETLB_PAGE_FREE_VMEMMAP, the freeing unused vmemmap pages
-associated with each HugeTLB page is default off.  Now the vmemmap is PMD
-mapped.  So there is no side effect when this feature is enabled with no
-HugeTLB pages in the system.  Someone may want to enable this feature in
-the compiler time instead of using boot command line.  So add a config to
-make it default on when someone do not want to enable it via command line.
+Patch series "Fix prep_compound_gigantic_page ref count adjustment".
 
-Link: https://lkml.kernel.org/r/20210616094915.34432-4-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Chen Huang <chenhuang5@huawei.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+These patches address the possible race between
+prep_compound_gigantic_page and __page_cache_add_speculative as described
+by Jann Horn in [1].
+
+The first patch simply removes the unnecessary/obsolete helper routine
+prep_compound_huge_page to make the actual fix a little simpler.
+
+The second patch is the actual fix and has a detailed explanation in the
+commit message.
+
+This potential issue has existed for almost 10 years and I am unaware of
+anyone actually hitting the race.  I did not cc stable, but would be happy
+to squash the patches and send to stable if anyone thinks that is a good
+idea.
+
+[1] https://lore.kernel.org/linux-mm/CAG48ez23q0Jy9cuVnwAe7t_fdhMk2S7N5Hdi-GLcCeq5bsfLxw@mail.gmail.com/
+
+
+This patch (of 2):
+
+I could not think of a reliable way to recreate the issue for testing.
+Rather, I 'simulated errors' to exercise all the error paths.
+
+The routine prep_compound_huge_page is a simple wrapper to call either
+prep_compound_gigantic_page or prep_compound_page.  However, it is only
+called from gather_bootmem_prealloc which only processes gigantic pages. 
+Eliminate the routine and call prep_compound_gigantic_page directly.
+
+Link: https://lkml.kernel.org/r/20210622021423.154662-1-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20210622021423.154662-2-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jann Horn <jannh@google.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Youquan Song <youquan.song@intel.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    3 +++
- fs/Kconfig                                      |   10 ++++++++++
- mm/hugetlb_vmemmap.c                            |    6 ++++--
- 3 files changed, 17 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   29 ++++++++++-------------------
+ 1 file changed, 10 insertions(+), 19 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1577,6 +1577,9 @@
- 			on:  enable the feature
- 			off: disable the feature
+--- a/mm/hugetlb.c~hugetlb-remove-prep_compound_huge_page-cleanup
++++ a/mm/hugetlb.c
+@@ -1320,8 +1320,6 @@ static struct page *alloc_gigantic_page(
+ 	return alloc_contig_pages(nr_pages, gfp_mask, nid, nodemask);
+ }
  
-+			Built with CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON=y,
-+			the default is on.
-+
- 			This is not compatible with memory_hotplug.memmap_on_memory.
- 			If both parameters are enabled, hugetlb_free_vmemmap takes
- 			precedence over memory_hotplug.memmap_on_memory.
---- a/fs/Kconfig~mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on
-+++ a/fs/Kconfig
-@@ -245,6 +245,16 @@ config HUGETLB_PAGE_FREE_VMEMMAP
- 	depends on X86_64
- 	depends on SPARSEMEM_VMEMMAP
+-static void prep_new_huge_page(struct hstate *h, struct page *page, int nid);
+-static void prep_compound_gigantic_page(struct page *page, unsigned int order);
+ #else /* !CONFIG_CONTIG_ALLOC */
+ static struct page *alloc_gigantic_page(struct hstate *h, gfp_t gfp_mask,
+ 					int nid, nodemask_t *nodemask)
+@@ -2759,16 +2757,10 @@ found:
+ 	return 1;
+ }
  
-+config HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON
-+	bool "Default freeing vmemmap pages of HugeTLB to on"
-+	default n
-+	depends on HUGETLB_PAGE_FREE_VMEMMAP
-+	help
-+	  When using HUGETLB_PAGE_FREE_VMEMMAP, the freeing unused vmemmap
-+	  pages associated with each HugeTLB page is default off. Say Y here
-+	  to enable freeing vmemmap pages of HugeTLB by default. It can then
-+	  be disabled on the command line via hugetlb_free_vmemmap=off.
-+
- config MEMFD_CREATE
- 	def_bool TMPFS || HUGETLBFS
- 
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb-introduce-config_hugetlb_page_free_vmemmap_default_on
-+++ a/mm/hugetlb_vmemmap.c
-@@ -182,7 +182,7 @@
- #define RESERVE_VMEMMAP_NR		2U
- #define RESERVE_VMEMMAP_SIZE		(RESERVE_VMEMMAP_NR << PAGE_SHIFT)
- 
--bool hugetlb_free_vmemmap_enabled;
-+bool hugetlb_free_vmemmap_enabled = IS_ENABLED(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON);
- 
- static int __init early_hugetlb_free_vmemmap_param(char *buf)
+-static void __init prep_compound_huge_page(struct page *page,
+-		unsigned int order)
+-{
+-	if (unlikely(order > (MAX_ORDER - 1)))
+-		prep_compound_gigantic_page(page, order);
+-	else
+-		prep_compound_page(page, order);
+-}
+-
+-/* Put bootmem huge pages into the standard lists after mem_map is up */
++/*
++ * Put bootmem huge pages into the standard lists after mem_map is up.
++ * Note: This only applies to gigantic (order > MAX_ORDER) pages.
++ */
+ static void __init gather_bootmem_prealloc(void)
  {
-@@ -197,7 +197,9 @@ static int __init early_hugetlb_free_vme
+ 	struct huge_bootmem_page *m;
+@@ -2777,20 +2769,19 @@ static void __init gather_bootmem_preall
+ 		struct page *page = virt_to_page(m);
+ 		struct hstate *h = m->hstate;
  
- 	if (!strcmp(buf, "on"))
- 		hugetlb_free_vmemmap_enabled = true;
--	else if (strcmp(buf, "off"))
-+	else if (!strcmp(buf, "off"))
-+		hugetlb_free_vmemmap_enabled = false;
-+	else
- 		return -EINVAL;
++		VM_BUG_ON(!hstate_is_gigantic(h));
+ 		WARN_ON(page_count(page) != 1);
+-		prep_compound_huge_page(page, huge_page_order(h));
++		prep_compound_gigantic_page(page, huge_page_order(h));
+ 		WARN_ON(PageReserved(page));
+ 		prep_new_huge_page(h, page, page_to_nid(page));
+ 		put_page(page); /* free it into the hugepage allocator */
  
- 	return 0;
+ 		/*
+-		 * If we had gigantic hugepages allocated at boot time, we need
+-		 * to restore the 'stolen' pages to totalram_pages in order to
+-		 * fix confusing memory reports from free(1) and another
+-		 * side-effects, like CommitLimit going negative.
++		 * We need to restore the 'stolen' pages to totalram_pages
++		 * in order to fix confusing memory reports from free(1) and
++		 * other side-effects, like CommitLimit going negative.
+ 		 */
+-		if (hstate_is_gigantic(h))
+-			adjust_managed_page_count(page, pages_per_huge_page(h));
++		adjust_managed_page_count(page, pages_per_huge_page(h));
+ 		cond_resched();
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
