@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF961C07E9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7449C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C772461C9E
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BFD7B61CAA
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229834AbhGFT0A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:26:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59188 "EHLO mail.kernel.org"
+        id S229807AbhGFT0D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:26:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59226 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229793AbhGFT0A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:26:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A78661C9D;
-        Tue,  6 Jul 2021 19:23:20 +0000 (UTC)
+        id S229793AbhGFT0C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:26:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 76D7761C9E;
+        Tue,  6 Jul 2021 19:23:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599401;
-        bh=CX88bn+aYa/UD1XNdKTdK7Vb61S+aP6GnPAeQKe17Hs=;
+        s=korg; t=1625599403;
+        bh=PqXCit0sFI64tRF/siY4jAYAOEksnV/MnAiRvm0XUVs=;
         h=Date:From:To:Subject:From;
-        b=MetP/NW7W+oeghKqKhNHtm1r/CIXO0tC0PYbShjKr34zd9YoT/zjIFXpb84Je/Xax
-         LZNI6UX3BYoK63Q1D89lRk/g44RcfV0CP7VsBVCPx7v0xk757e0ZPbK1Z2bhyA5ZWH
-         BnBcN1IGA1RT8Um7GXrxo+pO2XWL3sxl97JUb/HE=
-Date:   Tue, 06 Jul 2021 12:23:20 -0700
+        b=dWOjWYd8Ry76q7J/M4S72VkBeh2hQ0vgtIt8LhEGxxdl5LRxBx5jW9rjXcg3xvD2S
+         tpfJON0BOAsigVOKv37rjV8x2wpTiVQx+NyAdd8dlsEhMEz1G4tM1gT2nwFlXz3CAC
+         kYP+XQFtyduo6vpD9gRNGh7dvdUCHoA/p5X7M/io=
+Date:   Tue, 06 Jul 2021 12:23:23 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com,
         dave.hansen@linux.intel.com, desnesn@linux.vnet.ibm.com,
@@ -37,12 +37,10 @@ To:     aneesh.kumar@linux.ibm.com, bauerman@linux.ibm.com,
         msuchanek@suse.de, sandipan@linux.ibm.com, shuah@kernel.org,
         tglx@linutronix.de
 Subject:  [merged]
- =?US-ASCII?Q?selftests-vm-pkeys-fix-alloc=5Frandom=5Fpkey-to-make-it-re?=
- =?US-ASCII?Q?ally-really-random.patch?= removed from -mm tree
-Message-ID: <20210706192320.B2AuHOdRx%akpm@linux-foundation.org>
+ selftests-vm-pkeys-handle-negative-sys_pkey_alloc-return-code.patch removed
+ from -mm tree
+Message-ID: <20210706192323.tUobW_3b6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,67 +48,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm/pkeys: fix alloc_random_pkey() to make it really, really random
+     Subject: selftests/vm/pkeys: handle negative sys_pkey_alloc() return code
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-really-random.patch
+     selftests-vm-pkeys-handle-negative-sys_pkey_alloc-return-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: selftests/vm/pkeys: fix alloc_random_pkey() to make it really, really random
+Subject: selftests/vm/pkeys: handle negative sys_pkey_alloc() return code
 
-Patch series "selftests/vm/pkeys: Bug fixes and a new test".
+The alloc_pkey() sefltest function wraps the sys_pkey_alloc() system call.
+On success, it updates its "shadow" register value because
+sys_pkey_alloc() updates the real register.
 
-There has been a lot of activity on the x86 front around the XSAVE
-architecture which is used to context-switch processor state (among other
-things).  In addition, AMD has recently joined the protection keys club by
-adding processor support for PKU.
+But, the success check is wrong.  pkey_alloc() considers any non-zero
+return code to indicate success where the pkey register will be modified. 
+This fails to take negative return codes into account.
 
-The AMD implementation helped uncover a kernel bug around the PKRU "init
-state", which actually applied to Intel's implementation but was just
-harder to hit.  This series adds a test which is expected to help find
-this class of bug both on AMD and Intel.  All the work around pkeys on x86
-also uncovered a few bugs in the selftest.
+Consider only a positive return value as a successful call.
 
-
-This patch (of 4):
-
-The "random" pkey allocation code currently does the good old:
-
-	srand((unsigned int)time(NULL));
-
-*But*, it unfortunately does this on every random pkey allocation.
-
-There may be thousands of these a second.  time() has a one second
-resolution.  So, each time alloc_random_pkey() is called, the PRNG is
-*RESET* to time().  This is nasty.  Normally, if you do:
-
-	srand(<ANYTHING>);
-	foo = rand();
-	bar = rand();
-
-You'll be quite guaranteed that 'foo' and 'bar' are different.  But, if
-you do:
-
-	srand(1);
-	foo = rand();
-	srand(1);
-	bar = rand();
-
-You are quite guaranteed that 'foo' and 'bar' are the *SAME*.  The recent
-"fix" effectively forced the test case to use the same "random" pkey for
-the whole test, unless the test run crossed a second boundary.
-
-Only run srand() once at program startup.
-
-This explains some very odd and persistent test failures I've been seeing.
-
-Link: https://lkml.kernel.org/r/20210611164153.91B76FB8@viggo.jf.intel.com
-Link: https://lkml.kernel.org/r/20210611164155.192D00FF@viggo.jf.intel.com
-Fixes: 6e373263ce07 ("selftests/vm/pkeys: fix alloc_random_pkey() to make it really random")
+Link: https://lkml.kernel.org/r/20210611164157.87AB4246@viggo.jf.intel.com
+Fixes: 5f23f6d082a9 ("x86/pkeys: Add self-tests")
+Reported-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Ram Pai <linuxram@us.ibm.com>
 Cc: Sandipan Das <sandipan@linux.ibm.com>
@@ -125,28 +86,20 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/protection_keys.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/protection_keys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-fix-alloc_random_pkey-to-make-it-really-really-random
+--- a/tools/testing/selftests/vm/protection_keys.c~selftests-vm-pkeys-handle-negative-sys_pkey_alloc-return-code
 +++ a/tools/testing/selftests/vm/protection_keys.c
-@@ -561,7 +561,6 @@ int alloc_random_pkey(void)
- 	int nr_alloced = 0;
- 	int random_index;
- 	memset(alloced_pkeys, 0, sizeof(alloced_pkeys));
--	srand((unsigned int)time(NULL));
- 
- 	/* allocate every possible key and make a note of which ones we got */
- 	max_nr_pkey_allocs = NR_PKEYS;
-@@ -1552,6 +1551,8 @@ int main(void)
- 	int nr_iterations = 22;
- 	int pkeys_supported = is_pkeys_supported();
- 
-+	srand((unsigned int)time(NULL));
-+
- 	setup_handlers();
- 
- 	printf("has pkeys: %d\n", pkeys_supported);
+@@ -510,7 +510,7 @@ int alloc_pkey(void)
+ 			" shadow: 0x%016llx\n",
+ 			__func__, __LINE__, ret, __read_pkey_reg(),
+ 			shadow_pkey_reg);
+-	if (ret) {
++	if (ret > 0) {
+ 		/* clear both the bits: */
+ 		shadow_pkey_reg = set_pkey_bits(shadow_pkey_reg, ret,
+ 						~PKEY_MASK);
 _
 
 Patches currently in -mm which might be from dave.hansen@linux.intel.com are
