@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9ABB8C07E9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F432C11F66
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82A1C61107
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 48DB66023F
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:09:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231863AbhGFTMO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:12:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46928 "EHLO mail.kernel.org"
+        id S231721AbhGFTMQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:12:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46964 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231700AbhGFTMO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:12:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B15260FEE;
-        Tue,  6 Jul 2021 19:09:34 +0000 (UTC)
+        id S231700AbhGFTMQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:12:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 94D2361057;
+        Tue,  6 Jul 2021 19:09:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598574;
-        bh=GOZf0fXdEQs5XLeEQHC8wRl+e6RvXUvBMxaQqSbs0Nk=;
+        s=korg; t=1625598576;
+        bh=ZwCRcaVK+QSDHaYjtMl2oR7CmlHASVouhI6TT0QRty4=;
         h=Date:From:To:Subject:From;
-        b=lgTCSjhCwjpLXQlF3JFkrfqqmP8cvlJXcCobPIEQsMqiMKjHL4yoHhOYcABEqyUUN
-         k6sbQP4twKcJGKlUThHBUgkyyCwgKFWEISgG5iYiRZ+24AJUnuh75VQJ6vH5gTzdIM
-         lFT+LzVuGAWPJQX8bGFpPagqj94aJxH3omFQ0vB0=
-Date:   Tue, 06 Jul 2021 12:09:34 -0700
+        b=aJ/rwOOyv4QMKKl/1pm+ZyWbA+ImlFHHKLRqmvrETjBPi+bpfNYvByljUjR+x3CZe
+         AI8gLx9q0rtwglG5QnRWFCTfyJr8j3xmtIcOVJxOF99Pk5vq4S55zHZqv8z+AGYfo5
+         7RJdUHaVdGvg8/BvOkodkFjBbS4OGY3EFPnHpOwk=
+Date:   Tue, 06 Jul 2021 12:09:36 -0700
 From:   akpm@linux-foundation.org
 To:     alexanderduyck@fb.com, anshuman.khandual@arm.com,
         catalin.marinas@arm.com, david@redhat.com, gshan@redhat.com,
         mm-commits@vger.kernel.org, mst@redhat.com, will@kernel.org
 Subject:  [merged]
- mm-page_reporting-allow-driver-to-specify-reporting-order.patch removed
- from -mm tree
-Message-ID: <20210706190934.tsjk7FHZ7%akpm@linux-foundation.org>
+ virtio_balloon-specify-page-reporting-order-if-needed.patch removed from
+ -mm tree
+Message-ID: <20210706190936.qY2kuen1e%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,81 +45,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_reporting: allow driver to specify reporting order
+     Subject: virtio_balloon: specify page reporting order if needed
 has been removed from the -mm tree.  Its filename was
-     mm-page_reporting-allow-driver-to-specify-reporting-order.patch
+     virtio_balloon-specify-page-reporting-order-if-needed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
-Subject: mm/page_reporting: allow driver to specify reporting order
+Subject: virtio_balloon: specify page reporting order if needed
 
-The page reporting order (threshold) is sticky to @pageblock_order by
-default.  The page reporting can never be triggered because the freeing
-page can't come up with a free area like that huge.  The situation becomes
-worse when the system memory becomes heavily fragmented.
+The page reporting won't be triggered if the freeing page can't come up
+with a free area, whose size is equal or bigger than the threshold (page
+reporting order).  The default page reporting order, equal to
+@pageblock_order, is too huge on some architectures to trigger page
+reporting.  One example is ARM64 when 64KB base page size is used.
 
-For example, the following configurations are used on ARM64 when 64KB base
-page size is enabled.  In this specific case, the page reporting won't be
-triggered until the freeing page comes up with a 512MB free area.  That's
-hard to be met, especially when the system memory becomes heavily
-fragmented.
+      PAGE_SIZE:          64KB
+      pageblock_order:    13       (512MB)
+      MAX_ORDER:          14
 
-   PAGE_SIZE:          64KB
-   HPAGE_SIZE:         512MB
-   pageblock_order:    13       (512MB)
-   MAX_ORDER:          14
+This specifies the page reporting order to 5 (2MB) for this specific case
+so that page reporting can be triggered.
 
-This allows the drivers to specify the page reporting order when the page
-reporting device is registered.  It falls back to @pageblock_order if it's
-not specified by the driver.  The existing users (hv_balloon and
-virtio_balloon) don't specify it and @pageblock_order is still taken as
-their page reporting order.  So this shouldn't introduce any functional
-changes.
-
-Link: https://lkml.kernel.org/r/20210625014710.42954-4-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210625014710.42954-5-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
 Reviewed-by: Alexander Duyck <alexanderduyck@fb.com>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_reporting.h |    3 +++
- mm/page_reporting.c            |    6 ++++++
- 2 files changed, 9 insertions(+)
+ drivers/virtio/virtio_balloon.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
---- a/include/linux/page_reporting.h~mm-page_reporting-allow-driver-to-specify-reporting-order
-+++ a/include/linux/page_reporting.h
-@@ -18,6 +18,9 @@ struct page_reporting_dev_info {
+--- a/drivers/virtio/virtio_balloon.c~virtio_balloon-specify-page-reporting-order-if-needed
++++ a/drivers/virtio/virtio_balloon.c
+@@ -993,6 +993,23 @@ static int virtballoon_probe(struct virt
+ 			goto out_unregister_oom;
+ 		}
  
- 	/* Current state of page reporting */
- 	atomic_t state;
++		/*
++		 * The default page reporting order is @pageblock_order, which
++		 * corresponds to 512MB in size on ARM64 when 64KB base page
++		 * size is used. The page reporting won't be triggered if the
++		 * freeing page can't come up with a free area like that huge.
++		 * So we specify the page reporting order to 5, corresponding
++		 * to 2MB. It helps to avoid THP splitting if 4KB base page
++		 * size is used by host.
++		 *
++		 * Ideally, the page reporting order is selected based on the
++		 * host's base page size. However, it needs more work to report
++		 * that value. The hard-coded order would be fine currently.
++		 */
++#if defined(CONFIG_ARM64) && defined(CONFIG_ARM64_64K_PAGES)
++		vb->pr_dev_info.order = 5;
++#endif
 +
-+	/* Minimal order of page reporting */
-+	unsigned int order;
- };
- 
- /* Tear-down and bring-up for page reporting devices */
---- a/mm/page_reporting.c~mm-page_reporting-allow-driver-to-specify-reporting-order
-+++ a/mm/page_reporting.c
-@@ -329,6 +329,12 @@ int page_reporting_register(struct page_
- 		goto err_out;
- 	}
- 
-+	/*
-+	 * Update the page reporting order if it's specified by driver.
-+	 * Otherwise, it falls back to @pageblock_order.
-+	 */
-+	page_reporting_order = prdev->order ? : pageblock_order;
-+
- 	/* initialize state and work structures */
- 	atomic_set(&prdev->state, PAGE_REPORTING_IDLE);
- 	INIT_DELAYED_WORK(&prdev->work, &page_reporting_process);
+ 		err = page_reporting_register(&vb->pr_dev_info);
+ 		if (err)
+ 			goto out_unregister_oom;
 _
 
 Patches currently in -mm which might be from gshan@redhat.com are
