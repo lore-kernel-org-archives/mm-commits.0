@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8395C07E9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:13:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 463A0C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:13:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C03EA61107
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:13:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2F12A61057
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:13:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231376AbhGFTPt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231721AbhGFTPt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 6 Jul 2021 15:15:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50200 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50222 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230031AbhGFTPs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:15:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A6A060FEE;
-        Tue,  6 Jul 2021 19:13:08 +0000 (UTC)
+        id S230031AbhGFTPt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:15:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 657AC60C3D;
+        Tue,  6 Jul 2021 19:13:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598788;
-        bh=Eqhrr4bZ1F8Fmv/4wZKSC4T4JwSQVFJ049F5j8hrs48=;
+        s=korg; t=1625598790;
+        bh=AkV25LtHDlpVUVzzV9H3KiK/hMTU3U6xH+bEjfvE19E=;
         h=Date:From:To:Subject:From;
-        b=aYkT6cEPrfH0OgRSaK+GN6kKy5Xkawg49NRsxGkUyJm3OG1zvGfviW9fkE1zYQOrq
-         qHWJo2lQLi4Xl+5xB97zNvseLY44zpkAq+q5yyjQR+yG96XwVaZ8dxqogr316RnKE7
-         C7cE6CPU5bjugxbKTub6cNg1PrDtwClzvO8Xr/uM=
-Date:   Tue, 06 Jul 2021 12:13:08 -0700
+        b=n64BmsHcK+LhXAJqN76XR/0WSyi4HUxAfQuAFyPbc137C+bBVdyv1gL89cFO2lVfS
+         KCUhZlC9Uose8T2KKh/VtVZ1KyL3k9UehWFh2XZlz/RZ8wAWgOnqCd0bLkkVz0vWGZ
+         7nb5+OTO7xk3rmr1Oo4VP1kYCjWqbBGbLumbJCbE=
+Date:   Tue, 06 Jul 2021 12:13:10 -0700
 From:   akpm@linux-foundation.org
-To:     jrdr.linux@gmail.com, lkp@intel.com, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com, ysato@users.sourceforge.jp
-Subject:  [merged] h8300-remove-unused-variable.patch removed from
- -mm tree
-Message-ID: <20210706191308.0hNZpjxuw%akpm@linux-foundation.org>
+To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org,
+        yuehaibing@huawei.com
+Subject:  [merged] mm-dmapool-use-device_attr_ro-macro.patch
+ removed from -mm tree
+Message-ID: <20210706191310.m0j4IrtYS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,48 +43,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: h8300: remove unused variable
+     Subject: mm/dmapool: use DEVICE_ATTR_RO macro
 has been removed from the -mm tree.  Its filename was
-     h8300-remove-unused-variable.patch
+     mm-dmapool-use-device_attr_ro-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Souptick Joarder <jrdr.linux@gmail.com>
-Subject: h8300: remove unused variable
+From: YueHaibing <yuehaibing@huawei.com>
+Subject: mm/dmapool: use DEVICE_ATTR_RO macro
 
-Kernel test robot throws below warning ->
+Use DEVICE_ATTR_RO() helper instead of plain DEVICE_ATTR(), which makes
+the code a bit shorter and easier to read.
 
->> arch/h8300/kernel/setup.c:72:26:
-warning: Unused variable: region [unusedVariable]
-    struct memblock_region *region;
-
-Fixed it by removing unused variable.
-
-Link: https://lkml.kernel.org/r/20210602185431.11416-1-jrdr.linux@gmail.com
-Signed-off-by: Souptick Joarder <jrdr.linux@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Yoshinori Sato <ysato@users.sourceforge.jp>
+Link: https://lkml.kernel.org/r/20210524112852.34716-1-yuehaibing@huawei.com
+Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/h8300/kernel/setup.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/dmapool.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/arch/h8300/kernel/setup.c~h8300-remove-unused-variable
-+++ a/arch/h8300/kernel/setup.c
-@@ -69,8 +69,6 @@ void __init h8300_fdt_init(void *fdt, ch
+--- a/mm/dmapool.c~mm-dmapool-use-device_attr_ro-macro
++++ a/mm/dmapool.c
+@@ -62,8 +62,7 @@ struct dma_page {		/* cacheable header f
+ static DEFINE_MUTEX(pools_lock);
+ static DEFINE_MUTEX(pools_reg_lock);
  
- static void __init bootmem_init(void)
+-static ssize_t
+-show_pools(struct device *dev, struct device_attribute *attr, char *buf)
++static ssize_t pools_show(struct device *dev, struct device_attribute *attr, char *buf)
  {
--	struct memblock_region *region;
--
- 	memory_end = memory_start = 0;
+ 	unsigned temp;
+ 	unsigned size;
+@@ -103,7 +102,7 @@ show_pools(struct device *dev, struct de
+ 	return PAGE_SIZE - size;
+ }
  
- 	/* Find main memory where is the kernel */
+-static DEVICE_ATTR(pools, 0444, show_pools, NULL);
++static DEVICE_ATTR_RO(pools);
+ 
+ /**
+  * dma_pool_create - Creates a pool of consistent memory blocks, for dma.
 _
 
-Patches currently in -mm which might be from jrdr.linux@gmail.com are
+Patches currently in -mm which might be from yuehaibing@huawei.com are
 
 
