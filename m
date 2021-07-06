@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CC01C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:19:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11B68C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:19:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8755C61C7A
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:19:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF5306192B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:19:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231909AbhGFTWF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:22:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55794 "EHLO mail.kernel.org"
+        id S231910AbhGFTWH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:22:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231696AbhGFTWD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:22:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A6AF061A14;
-        Tue,  6 Jul 2021 19:19:24 +0000 (UTC)
+        id S231718AbhGFTWH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:22:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E07E661C7A;
+        Tue,  6 Jul 2021 19:19:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599165;
-        bh=WHxGIoKuV99edrjJB6wVcLMZnvn5Otv7JIzojKZYBWQ=;
+        s=korg; t=1625599168;
+        bh=S+f3hkVExfYewkxhs+toqYKFoTUPFlUgLv8/TnYMjXg=;
         h=Date:From:To:Subject:From;
-        b=Su5Whqi6iFcveC6tXQZCPLySZmOUVA1kqsZA9/901YWOy11fgeCgY8UpYti5p8/15
-         MjqbFRqB0IxxVvoRYtHLEwa4sJ3oeGnmx0+lpAEDTw0do5QXdCJP1iOA918x4Au1Gv
-         QD+e1k599/To/A3swAqcOCwepCYMBzxB6JEdkqz4=
-Date:   Tue, 06 Jul 2021 12:19:24 -0700
+        b=gXR4NbHXT86aApAg78YfQ9V4y88q8lZATZq6GutfS/6wU/2UPhvj/M/57IGm7aw7g
+         mFvoE8U0HZhiebPmofpwWhsR55Zb41Wxyb4wG46vD7GPAOmWl24svJtPQf/y7Lkx0Y
+         mY3Gu+vnMigQaW4Uf9I+fVIv861h2baWTe2rz9g8=
+Date:   Tue, 06 Jul 2021 12:19:27 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, david@redhat.com,
-        duanxiongchun@bytedance.com, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, songmuchun@bytedance.com, willy@infradead.org
+To:     cfijalkovich@google.com, hridya@google.com, hughd@google.com,
+        kaleshsingh@google.com, mm-commits@vger.kernel.org,
+        song@kernel.org, surenb@google.com, timmurray@google.com,
+        viro@zeniv.linux.org.uk, william.kucharski@oracle.com,
+        willy@infradead.org
 Subject:  [merged]
- mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool.patch
- removed from -mm tree
-Message-ID: <20210706191924.NO6OlkvZO%akpm@linux-foundation.org>
+ mm-thp-relax-the-vm_denywrite-constraint-on-file-backed-thps.patch removed
+ from -mm tree
+Message-ID: <20210706191927.fZsXWEn-k%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,82 +47,150 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: fix missing update page_private to hugetlb_page_subpool
+     Subject: mm, thp: relax the VM_DENYWRITE constraint on file-backed THPs
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool.patch
+     mm-thp-relax-the-vm_denywrite-constraint-on-file-backed-thps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: migrate: fix missing update page_private to hugetlb_page_subpool
+From: Collin Fijalkovich <cfijalkovich@google.com>
+Subject: mm, thp: relax the VM_DENYWRITE constraint on file-backed THPs
 
-Since commit d6995da31122 ("hugetlb: use page.private for hugetlb specific
-page flags") converts page.private for hugetlb specific page flags.  We
-should use hugetlb_page_subpool() to get the subpool pointer instead of
-page_private().
+Transparent huge pages are supported for read-only non-shmem files, but
+are only used for vmas with VM_DENYWRITE.  This condition ensures that
+file THPs are protected from writes while an application is running
+(ETXTBSY).  Any existing file THPs are then dropped from the page cache
+when a file is opened for write in do_dentry_open().  Since sys_mmap
+ignores MAP_DENYWRITE, this constrains the use of file THPs to vmas
+produced by execve().
 
-This 'could' prevent the migration of hugetlb pages.  page_private(hpage)
-is now used for hugetlb page specific flags.  At migration time, the only
-flag which could be set is HPageVmemmapOptimized.  This flag will only be
-set if the new vmemmap reduction feature is enabled.  In addition,
-!page_mapping() implies an anonymous mapping.  So, this will prevent
-migration of hugetb pages in anonymous mappings if the vmemmap reduction
-feature is enabled.
+Systems that make heavy use of shared libraries (e.g.  Android) are unable
+to apply VM_DENYWRITE through the dynamic linker, preventing them from
+benefiting from the resultant reduced contention on the TLB.
 
-In addition, that if statement checked for the rare race condition of a
-page being migrated while in the process of being freed.  Since that check
-is now wrong, we could leak hugetlb subpool usage counts.
+This patch reduces the constraint on file THPs allowing use with any
+executable mapping from a file not opened for write (see
+inode_is_open_for_write()).  It also introduces additional conditions to
+ensure that files opened for write will never be backed by file THPs.
 
-The commit forgot to update it in the page migration routine.  So fix it.
+Restricting the use of THPs to executable mappings eliminates the risk
+that a read-only file later opened for write would encounter significant
+latencies due to page cache truncation.
 
-[songmuchun@bytedance.com: fix compiler error when !CONFIG_HUGETLB_PAGE reported by Randy]
-  Link: https://lkml.kernel.org/r/20210521022747.35736-1-songmuchun@bytedance.com
-Link: https://lkml.kernel.org/r/20210520025949.1866-1-songmuchun@bytedance.com
-Fixes: d6995da31122 ("hugetlb: use page.private for hugetlb specific page flags")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reported-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Tested-by: Anshuman Khandual <anshuman.khandual@arm.com>	[arm64]
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
+The ld linker flag '-z max-page-size=(hugepage size)' can be used to
+produce executables with the necessary layout.  The dynamic linker must
+map these file's segments at a hugepage size aligned vma for the mapping
+to be backed with THPs.
+
+Comparison of the performance characteristics of 4KB and 2MB-backed
+libraries follows; the Android dex2oat tool was used to AOT compile an
+example application on a single ARM core.
+
+4KB Pages:
+==========
+
+count              event_name            # count / runtime
+598,995,035,942    cpu-cycles            # 1.800861 GHz
+ 81,195,620,851    raw-stall-frontend    # 244.112 M/sec
+347,754,466,597    iTLB-loads            # 1.046 G/sec
+  2,970,248,900    iTLB-load-misses      # 0.854122% miss rate
+
+Total test time: 332.854998 seconds.
+
+2MB Pages:
+==========
+
+count              event_name            # count / runtime
+592,872,663,047    cpu-cycles            # 1.800358 GHz
+ 76,485,624,143    raw-stall-frontend    # 232.261 M/sec
+350,478,413,710    iTLB-loads            # 1.064 G/sec
+    803,233,322    iTLB-load-misses      # 0.229182% miss rate
+
+Total test time: 329.826087 seconds
+
+A check of /proc/$(pidof dex2oat64)/smaps shows THPs in use:
+
+/apex/com.android.art/lib64/libart.so
+FilePmdMapped:      4096 kB
+
+/apex/com.android.art/lib64/libart-compiler.so
+FilePmdMapped:      2048 kB
+
+Link: https://lkml.kernel.org/r/20210406000930.3455850-1-cfijalkovich@google.com
+Signed-off-by: Collin Fijalkovich <cfijalkovich@google.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Acked-by: Song Liu <song@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Hridya Valsaraju <hridya@google.com>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Tim Murray <timmurray@google.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +++++
- mm/migrate.c            |    2 +-
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ fs/open.c       |   13 +++++++++++--
+ mm/khugepaged.c |   16 +++++++++++++++-
+ 2 files changed, 26 insertions(+), 3 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool
-+++ a/include/linux/hugetlb.h
-@@ -898,6 +898,11 @@ static inline void huge_ptep_modify_prot
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- 
-+static inline struct hugepage_subpool *hugetlb_page_subpool(struct page *hpage)
-+{
-+	return NULL;
-+}
-+
- static inline int isolate_or_dissolve_huge_page(struct page *page,
- 						struct list_head *list)
- {
---- a/mm/migrate.c~mm-migrate-fix-missing-update-page_private-to-hugetlb_page_subpool
-+++ a/mm/migrate.c
-@@ -1293,7 +1293,7 @@ static int unmap_and_move_huge_page(new_
- 	 * page_mapping() set, hugetlbfs specific move page routine will not
- 	 * be called and we could leak usage counts for subpools.
+--- a/fs/open.c~mm-thp-relax-the-vm_denywrite-constraint-on-file-backed-thps
++++ a/fs/open.c
+@@ -852,8 +852,17 @@ static int do_dentry_open(struct file *f
+ 	 * XXX: Huge page cache doesn't support writing yet. Drop all page
+ 	 * cache for this file before processing writes.
  	 */
--	if (page_private(hpage) && !page_mapping(hpage)) {
-+	if (hugetlb_page_subpool(hpage) && !page_mapping(hpage)) {
- 		rc = -EBUSY;
- 		goto out_unlock;
+-	if ((f->f_mode & FMODE_WRITE) && filemap_nr_thps(inode->i_mapping))
+-		truncate_pagecache(inode, 0);
++	if (f->f_mode & FMODE_WRITE) {
++		/*
++		 * Paired with smp_mb() in collapse_file() to ensure nr_thps
++		 * is up to date and the update to i_writecount by
++		 * get_write_access() is visible. Ensures subsequent insertion
++		 * of THPs into the page cache will fail.
++		 */
++		smp_mb();
++		if (filemap_nr_thps(inode->i_mapping))
++			truncate_pagecache(inode, 0);
++	}
+ 
+ 	return 0;
+ 
+--- a/mm/khugepaged.c~mm-thp-relax-the-vm_denywrite-constraint-on-file-backed-thps
++++ a/mm/khugepaged.c
+@@ -457,7 +457,8 @@ static bool hugepage_vma_check(struct vm
+ 
+ 	/* Read-only file mappings need to be aligned for THP to work. */
+ 	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && vma->vm_file &&
+-	    (vm_flags & VM_DENYWRITE)) {
++	    !inode_is_open_for_write(vma->vm_file->f_inode) &&
++	    (vm_flags & VM_EXEC)) {
+ 		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
+ 				HPAGE_PMD_NR);
  	}
+@@ -1862,6 +1863,19 @@ out_unlock:
+ 	else {
+ 		__mod_lruvec_page_state(new_page, NR_FILE_THPS, nr);
+ 		filemap_nr_thps_inc(mapping);
++		/*
++		 * Paired with smp_mb() in do_dentry_open() to ensure
++		 * i_writecount is up to date and the update to nr_thps is
++		 * visible. Ensures the page cache will be truncated if the
++		 * file is opened writable.
++		 */
++		smp_mb();
++		if (inode_is_open_for_write(mapping->host)) {
++			result = SCAN_FAIL;
++			__mod_lruvec_page_state(new_page, NR_FILE_THPS, -nr);
++			filemap_nr_thps_dec(mapping);
++			goto xa_locked;
++		}
+ 	}
+ 
+ 	if (nr_none) {
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from cfijalkovich@google.com are
 
 
