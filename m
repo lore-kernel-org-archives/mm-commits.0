@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDA11C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1E8F0C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A362060FEE
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 090E960FEE
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:12:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231919AbhGFTP0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:15:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49834 "EHLO mail.kernel.org"
+        id S231872AbhGFTP2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:15:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49874 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231815AbhGFTPZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:15:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 678A16023F;
-        Tue,  6 Jul 2021 19:12:46 +0000 (UTC)
+        id S231815AbhGFTP2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:15:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6EDD56023F;
+        Tue,  6 Jul 2021 19:12:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598766;
-        bh=MZfc5Uwh8YtB3Fas8ixlWOblfg5H8nc28E2t9uqWEVo=;
+        s=korg; t=1625598768;
+        bh=POKmz/8Zv7TFp5b+obhsmwwNeoN90LRmmDfRqJ+FRWg=;
         h=Date:From:To:Subject:From;
-        b=Jiutd6Ncx5fCoAmlbBVZW59NZ/YolrwNsgfXBwnXIGUcfNVj9o3klFcH7Is0K7mav
-         p/OKX1aNaCKrFxhFwUFHLZRsWASeBwb0z+txZ2i5ImwxUIIk37KRkUcrU/GsVAl5co
-         FF8hruiVZI45G8sJ1vKzNAZamlRwJBjLmgm3wacI=
-Date:   Tue, 06 Jul 2021 12:12:46 -0700
+        b=poMWatybR6jxGSIXcTcrtQzZSCt5xZ03YdvYGzAoyyzLdNh3fjVOfoYAq9EJodClM
+         zhLOE36HigPGyrDkUm7xJzdmEr4waZIwg39XClVInLl3MfMv+P1MIm/MjgqQ6LSWm5
+         UUdayNtU6tWNzO+u7Mj2Agvm6XNo14ZBZO/Sjv/0=
+Date:   Tue, 06 Jul 2021 12:12:48 -0700
 From:   akpm@linux-foundation.org
-To:     alexander.deucher@amd.com, david@redhat.com, dbueso@suse.de,
-        geert@linux-m68k.org, ldufour@linux.ibm.com,
-        Liam.Howlett@Oracle.com, mm-commits@vger.kernel.org
+To:     david@redhat.com, dbueso@suse.de, geert@linux-m68k.org,
+        ldufour@linux.ibm.com, Liam.Howlett@Oracle.com,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- drm-amdgpu-use-vma_lookup-in-amdgpu_ttm_tt_get_user_pages.patch removed
- from -mm tree
-Message-ID: <20210706191246.XneqjXAcj%akpm@linux-foundation.org>
+ media-videobuf2-use-vma_lookup-in-get_vaddr_frames.patch removed from -mm
+ tree
+Message-ID: <20210706191248.3b2dUhHdy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,46 +45,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/amdgpu: use vma_lookup() in amdgpu_ttm_tt_get_user_pages()
+     Subject: media: videobuf2: use vma_lookup() in get_vaddr_frames()
 has been removed from the -mm tree.  Its filename was
-     drm-amdgpu-use-vma_lookup-in-amdgpu_ttm_tt_get_user_pages.patch
+     media-videobuf2-use-vma_lookup-in-get_vaddr_frames.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Liam Howlett <liam.howlett@oracle.com>
-Subject: drm/amdgpu: use vma_lookup() in amdgpu_ttm_tt_get_user_pages()
+Subject: media: videobuf2: use vma_lookup() in get_vaddr_frames()
 
-Use vma_lookup() to find the VMA at a specific address.  As vma_lookup()
-will return NULL if the address is not within any VMA, the start address
-no longer needs to be validated.
+vma_lookup() finds the vma of a specific address with a cleaner interface
+and is more readable.
 
-Link: https://lkml.kernel.org/r/20210521174745.2219620-14-Liam.Howlett@Oracle.com
+Link: https://lkml.kernel.org/r/20210521174745.2219620-15-Liam.Howlett@Oracle.com
 Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
 Reviewed-by: Laurent Dufour <ldufour@linux.ibm.com>
 Acked-by: David Hildenbrand <david@redhat.com>
 Acked-by: Davidlohr Bueso <dbueso@suse.de>
-Acked-by: Alex Deucher <alexander.deucher@amd.com>
 Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/common/videobuf2/frame_vector.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~drm-amdgpu-use-vma_lookup-in-amdgpu_ttm_tt_get_user_pages
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-@@ -709,8 +709,8 @@ int amdgpu_ttm_tt_get_user_pages(struct
- 	}
+--- a/drivers/media/common/videobuf2/frame_vector.c~media-videobuf2-use-vma_lookup-in-get_vaddr_frames
++++ a/drivers/media/common/videobuf2/frame_vector.c
+@@ -64,7 +64,7 @@ int get_vaddr_frames(unsigned long start
+ 	do {
+ 		unsigned long *nums = frame_vector_pfns(vec);
  
- 	mmap_read_lock(mm);
--	vma = find_vma(mm, start);
--	if (unlikely(!vma || start < vma->vm_start)) {
-+	vma = vma_lookup(mm, start);
-+	if (unlikely(!vma)) {
- 		r = -EFAULT;
- 		goto out_unlock;
- 	}
+-		vma = find_vma_intersection(mm, start, start + 1);
++		vma = vma_lookup(mm, start);
+ 		if (!vma)
+ 			break;
+ 
 _
 
 Patches currently in -mm which might be from liam.howlett@oracle.com are
