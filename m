@@ -7,44 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B68ADC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6BDEC07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F96861C9C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BB69061CA2
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:20:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231773AbhGFTX0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:23:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57054 "EHLO mail.kernel.org"
+        id S231755AbhGFTX3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:23:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57122 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231770AbhGFTXZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:23:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8946061C9A;
-        Tue,  6 Jul 2021 19:20:45 +0000 (UTC)
+        id S231749AbhGFTX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:23:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7FAEF61C9C;
+        Tue,  6 Jul 2021 19:20:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599246;
-        bh=qgE6gCCoNuTJcCQZv1qOtjT62DAz90EKqbCpzFK33Pk=;
+        s=korg; t=1625599248;
+        bh=DJKaK4Imr3Jzwk3xjzh0ru6lk3WmUZJcHG3MtWd8iiY=;
         h=Date:From:To:Subject:From;
-        b=ChxCQuP7aNc9OAN4ib1/ZFoDsljVCuZdJvL+gc0IakT4cvSWgUrByqIv59gE+mwaM
-         lG5ozAEHn1dLJVjC6ivXtqbKqLC8hQ+HaC6DmREDzIGLXO2xXw7AErG+nGT3wHCW/6
-         /EGNXiwsXpJPX8u1vZLbS37rPHhg1+4to6j+N+ac=
-Date:   Tue, 06 Jul 2021 12:20:45 -0700
+        b=nBPxYeAv+iNYY+/S6bfQrLf9zYUJPyNAmnOkrcY3lj6+dLK2bQDSvitvkp8X4ajdW
+         L1bjum4oUJijVgy9hHoYQLgTNSjtEbHoqUGOnpG4pqzRLmHckCzyfmMapScxnRdUMr
+         QpS6CIggqT1F3p0mSLe9Uedky98WPwaf6kuddvQo=
+Date:   Tue, 06 Jul 2021 12:20:48 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, bcain@codeaurora.org,
-        catalin.marinas@arm.com, chris@zankel.net,
-        christophe.leroy@csgroup.eu, davem@davemloft.net,
-        geert@linux-m68k.org, guoren@kernel.org, hca@linux.ibm.com,
-        James.Bottomley@HansenPartnership.com, jdike@addtoit.com,
-        jonas@southpole.se, ley.foon.tan@intel.com,
-        mm-commits@vger.kernel.org, monstr@monstr.eu, mpe@ellerman.id.au,
-        palmerdabbelt@google.com, paul.walmsley@sifive.com,
-        rppt@linux.ibm.com, rth@twiddle.net, shorne@gmail.com,
-        stefan.kristiansson@saunalahti.fi, tglx@linutronix.de,
-        tsbogend@alpha.franken.de, vgupta@synopsys.com, will@kernel.org,
-        ysato@users.sourceforge.jp
-Subject:  [merged]
- mm-define-default-value-for-first_user_address.patch removed from -mm tree
-Message-ID: <20210706192045.pDVME6JxR%akpm@linux-foundation.org>
+To:     jrdr.linux@gmail.com, mm-commits@vger.kernel.org,
+        thunder.leizhen@huawei.com
+Subject:  [merged] mm-clear-spelling-mistakes.patch removed from
+ -mm tree
+Message-ID: <20210706192048.6hoIuUSw6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,375 +43,136 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: define default value for FIRST_USER_ADDRESS
+     Subject: mm: fix spelling mistakes
 has been removed from the -mm tree.  Its filename was
-     mm-define-default-value-for-first_user_address.patch
+     mm-clear-spelling-mistakes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm: define default value for FIRST_USER_ADDRESS
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: mm: fix spelling mistakes
 
-Currently most platforms define FIRST_USER_ADDRESS as 0UL duplication the
-same code all over.  Instead just define a generic default value (i.e 0UL)
-for FIRST_USER_ADDRESS and let the platforms override when required.  This
-makes it much cleaner with reduced code.
+Fix some spelling mistakes in comments:
+each having differents usage ==> each has a different usage
+statments ==> statements
+adresses ==> addresses
+aggresive ==> aggressive
+datas ==> data
+posion ==> poison
+higer ==> higher
+precisly ==> precisely
+wont ==> won't
+We moves tha ==> We move the
+endianess ==> endianness
 
-The default FIRST_USER_ADDRESS here would be skipped in <linux/pgtable.h>
-when the given platform overrides its value via <asm/pgtable.h>.
-
-Link: https://lkml.kernel.org/r/1620615725-24623-1-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>	[m68k]
-Acked-by: Guo Ren <guoren@kernel.org>			[csky]
-Acked-by: Stafford Horne <shorne@gmail.com>		[openrisc]
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[arm64]
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Palmer Dabbelt <palmerdabbelt@google.com>	[RISC-V]
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Ley Foon Tan <ley.foon.tan@intel.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Stafford Horne <shorne@gmail.com>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Chris Zankel <chris@zankel.net>
+Link: https://lkml.kernel.org/r/20210519065853.7723-2-thunder.leizhen@huawei.com
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Reviewed-by: Souptick Joarder <jrdr.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/pgtable.h             |    1 -
- arch/arc/include/asm/pgtable.h               |    6 ------
- arch/arm64/include/asm/pgtable.h             |    2 --
- arch/csky/include/asm/pgtable.h              |    1 -
- arch/hexagon/include/asm/pgtable.h           |    3 ---
- arch/ia64/include/asm/pgtable.h              |    1 -
- arch/m68k/include/asm/pgtable_mm.h           |    1 -
- arch/microblaze/include/asm/pgtable.h        |    2 --
- arch/mips/include/asm/pgtable-32.h           |    1 -
- arch/mips/include/asm/pgtable-64.h           |    1 -
- arch/nios2/include/asm/pgtable.h             |    2 --
- arch/openrisc/include/asm/pgtable.h          |    1 -
- arch/parisc/include/asm/pgtable.h            |    2 --
- arch/powerpc/include/asm/book3s/pgtable.h    |    1 -
- arch/powerpc/include/asm/nohash/32/pgtable.h |    1 -
- arch/powerpc/include/asm/nohash/64/pgtable.h |    2 --
- arch/riscv/include/asm/pgtable.h             |    2 --
- arch/s390/include/asm/pgtable.h              |    2 --
- arch/sh/include/asm/pgtable.h                |    2 --
- arch/sparc/include/asm/pgtable_32.h          |    1 -
- arch/sparc/include/asm/pgtable_64.h          |    3 ---
- arch/um/include/asm/pgtable-2level.h         |    1 -
- arch/um/include/asm/pgtable-3level.h         |    1 -
- arch/x86/include/asm/pgtable_types.h         |    2 --
- arch/xtensa/include/asm/pgtable.h            |    1 -
- include/linux/pgtable.h                      |    9 +++++++++
- 26 files changed, 9 insertions(+), 43 deletions(-)
+ include/linux/memremap.h |    2 +-
+ include/linux/mm_types.h |    2 +-
+ include/linux/mmzone.h   |    2 +-
+ mm/memory-failure.c      |    2 +-
+ mm/memory_hotplug.c      |    4 ++--
+ mm/page_alloc.c          |    2 +-
+ mm/swapfile.c            |    2 +-
+ 7 files changed, 8 insertions(+), 8 deletions(-)
 
---- a/arch/alpha/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/alpha/include/asm/pgtable.h
-@@ -46,7 +46,6 @@ struct vm_area_struct;
- #define PTRS_PER_PMD	(1UL << (PAGE_SHIFT-3))
- #define PTRS_PER_PGD	(1UL << (PAGE_SHIFT-3))
- #define USER_PTRS_PER_PGD	(TASK_SIZE / PGDIR_SIZE)
--#define FIRST_USER_ADDRESS	0UL
- 
- /* Number of pointers that fit on a page:  this will go away. */
- #define PTRS_PER_PAGE	(1UL << (PAGE_SHIFT-3))
---- a/arch/arc/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/arc/include/asm/pgtable.h
-@@ -222,12 +222,6 @@
-  */
- #define	USER_PTRS_PER_PGD	(TASK_SIZE / PGDIR_SIZE)
- 
--/*
-- * No special requirements for lowest virtual address we permit any user space
-- * mapping to be mapped at.
-- */
--#define FIRST_USER_ADDRESS      0UL
--
- 
- /****************************************************************
-  * Bucket load of VM Helpers
---- a/arch/arm64/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -26,8 +26,6 @@
- 
- #define vmemmap			((struct page *)VMEMMAP_START - (memstart_addr >> PAGE_SHIFT))
- 
--#define FIRST_USER_ADDRESS	0UL
--
- #ifndef __ASSEMBLY__
- 
- #include <asm/cmpxchg.h>
---- a/arch/csky/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/csky/include/asm/pgtable.h
-@@ -14,7 +14,6 @@
- #define PGDIR_MASK		(~(PGDIR_SIZE-1))
- 
- #define USER_PTRS_PER_PGD	(PAGE_OFFSET/PGDIR_SIZE)
--#define FIRST_USER_ADDRESS	0UL
+--- a/include/linux/memremap.h~mm-clear-spelling-mistakes
++++ a/include/linux/memremap.h
+@@ -26,7 +26,7 @@ struct vmem_altmap {
+ };
  
  /*
-  * C-SKY is two-level paging structure:
---- a/arch/hexagon/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/hexagon/include/asm/pgtable.h
-@@ -155,9 +155,6 @@ extern unsigned long _dflt_cache_att;
- 
- extern pgd_t swapper_pg_dir[PTRS_PER_PGD];  /* located in head.S */
- 
--/* Seems to be zero even in architectures where the zero page is firewalled? */
--#define FIRST_USER_ADDRESS 0UL
--
- /*  HUGETLB not working currently  */
- #ifdef CONFIG_HUGETLB_PAGE
- #define pte_mkhuge(pte) __pte((pte_val(pte) & ~0x3) | HVM_HUGEPAGE_SIZE)
---- a/arch/ia64/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/ia64/include/asm/pgtable.h
-@@ -128,7 +128,6 @@
- #define PTRS_PER_PGD_SHIFT	PTRS_PER_PTD_SHIFT
- #define PTRS_PER_PGD		(1UL << PTRS_PER_PGD_SHIFT)
- #define USER_PTRS_PER_PGD	(5*PTRS_PER_PGD/8)	/* regions 0-4 are user regions */
--#define FIRST_USER_ADDRESS	0UL
- 
- /*
-  * All the normal masks have the "page accessed" bits on, as any time
---- a/arch/m68k/include/asm/pgtable_mm.h~mm-define-default-value-for-first_user_address
-+++ a/arch/m68k/include/asm/pgtable_mm.h
-@@ -72,7 +72,6 @@
- #define PTRS_PER_PGD	128
- #endif
- #define USER_PTRS_PER_PGD	(TASK_SIZE/PGDIR_SIZE)
--#define FIRST_USER_ADDRESS	0UL
- 
- /* Virtual address region for use by kernel_map() */
- #ifdef CONFIG_SUN3
---- a/arch/microblaze/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/microblaze/include/asm/pgtable.h
-@@ -25,8 +25,6 @@ extern int mem_init_done;
- #include <asm/mmu.h>
- #include <asm/page.h>
- 
--#define FIRST_USER_ADDRESS	0UL
--
- extern unsigned long va_to_phys(unsigned long address);
- extern pte_t *va_to_pte(unsigned long address);
- 
---- a/arch/mips/include/asm/pgtable-32.h~mm-define-default-value-for-first_user_address
-+++ a/arch/mips/include/asm/pgtable-32.h
-@@ -93,7 +93,6 @@ extern int add_temporary_entry(unsigned
- #endif
- 
- #define USER_PTRS_PER_PGD	(0x80000000UL/PGDIR_SIZE)
--#define FIRST_USER_ADDRESS	0UL
- 
- #define VMALLOC_START	  MAP_BASE
- 
---- a/arch/mips/include/asm/pgtable-64.h~mm-define-default-value-for-first_user_address
-+++ a/arch/mips/include/asm/pgtable-64.h
-@@ -137,7 +137,6 @@
- #define PTRS_PER_PTE	((PAGE_SIZE << PTE_ORDER) / sizeof(pte_t))
- 
- #define USER_PTRS_PER_PGD       ((TASK_SIZE64 / PGDIR_SIZE)?(TASK_SIZE64 / PGDIR_SIZE):1)
--#define FIRST_USER_ADDRESS	0UL
- 
- /*
-  * TLB refill handlers also map the vmalloc area into xuseg.  Avoid
---- a/arch/nios2/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/nios2/include/asm/pgtable.h
-@@ -24,8 +24,6 @@
- #include <asm/pgtable-bits.h>
- #include <asm-generic/pgtable-nopmd.h>
- 
--#define FIRST_USER_ADDRESS	0UL
--
- #define VMALLOC_START		CONFIG_NIOS2_KERNEL_MMU_REGION_BASE
- #define VMALLOC_END		(CONFIG_NIOS2_KERNEL_REGION_BASE - 1)
- 
---- a/arch/openrisc/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/openrisc/include/asm/pgtable.h
-@@ -73,7 +73,6 @@ extern void paging_init(void);
-  */
- 
- #define USER_PTRS_PER_PGD       (TASK_SIZE/PGDIR_SIZE)
--#define FIRST_USER_ADDRESS      0UL
- 
- /*
-  * Kernels own virtual memory area.
---- a/arch/parisc/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/parisc/include/asm/pgtable.h
-@@ -171,8 +171,6 @@ static inline void purge_tlb_entries(str
-  * pgd entries used up by user/kernel:
-  */
- 
--#define FIRST_USER_ADDRESS	0UL
--
- /* NB: The tlb miss handlers make certain assumptions about the order */
- /*     of the following bits, so be careful (One example, bits 25-31  */
- /*     are moved together in one instruction).                        */
---- a/arch/powerpc/include/asm/book3s/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/powerpc/include/asm/book3s/pgtable.h
-@@ -8,7 +8,6 @@
- #include <asm/book3s/32/pgtable.h>
- #endif
- 
--#define FIRST_USER_ADDRESS	0UL
- #ifndef __ASSEMBLY__
- /* Insert a PTE, top-level function is out of line. It uses an inline
-  * low level function in the respective pgtable-* files
---- a/arch/powerpc/include/asm/nohash/32/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/powerpc/include/asm/nohash/32/pgtable.h
-@@ -54,7 +54,6 @@ extern int icache_44x_need_flush;
- #define PGD_MASKED_BITS		0
- 
- #define USER_PTRS_PER_PGD	(TASK_SIZE / PGDIR_SIZE)
--#define FIRST_USER_ADDRESS	0UL
- 
- #define pte_ERROR(e) \
- 	pr_err("%s:%d: bad pte %llx.\n", __FILE__, __LINE__, \
---- a/arch/powerpc/include/asm/nohash/64/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/powerpc/include/asm/nohash/64/pgtable.h
-@@ -12,8 +12,6 @@
- #include <asm/barrier.h>
- #include <asm/asm-const.h>
- 
--#define FIRST_USER_ADDRESS	0UL
--
- /*
-  * Size of EA range mapped by our pagetables.
-  */
---- a/arch/riscv/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/riscv/include/asm/pgtable.h
-@@ -536,8 +536,6 @@ void setup_bootmem(void);
- void paging_init(void);
- void misc_mem_init(void);
- 
--#define FIRST_USER_ADDRESS  0
--
- /*
-  * ZERO_PAGE is a global shared page that is always zero,
-  * used for zero-mapped memory areas, etc.
---- a/arch/s390/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/s390/include/asm/pgtable.h
-@@ -65,8 +65,6 @@ extern unsigned long zero_page_mask;
- 
- /* TODO: s390 cannot support io_remap_pfn_range... */
- 
--#define FIRST_USER_ADDRESS  0UL
--
- #define pte_ERROR(e) \
- 	printk("%s:%d: bad pte %p.\n", __FILE__, __LINE__, (void *) pte_val(e))
- #define pmd_ERROR(e) \
---- a/arch/sh/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/sh/include/asm/pgtable.h
-@@ -59,8 +59,6 @@ static inline unsigned long long neff_si
- /* Entries per level */
- #define PTRS_PER_PTE	(PAGE_SIZE / (1 << PTE_MAGNITUDE))
- 
--#define FIRST_USER_ADDRESS	0UL
--
- #define PHYS_ADDR_MASK29		0x1fffffff
- #define PHYS_ADDR_MASK32		0xffffffff
- 
---- a/arch/sparc/include/asm/pgtable_32.h~mm-define-default-value-for-first_user_address
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -48,7 +48,6 @@ unsigned long __init bootmem_init(unsign
- #define PTRS_PER_PMD    	64
- #define PTRS_PER_PGD    	256
- #define USER_PTRS_PER_PGD	PAGE_OFFSET / PGDIR_SIZE
--#define FIRST_USER_ADDRESS	0UL
- #define PTE_SIZE		(PTRS_PER_PTE*4)
- 
- #define PAGE_NONE	SRMMU_PAGE_NONE
---- a/arch/sparc/include/asm/pgtable_64.h~mm-define-default-value-for-first_user_address
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -95,9 +95,6 @@ bool kern_addr_valid(unsigned long addr)
- #define PTRS_PER_PUD	(1UL << PUD_BITS)
- #define PTRS_PER_PGD	(1UL << PGDIR_BITS)
- 
--/* Kernel has a separate 44bit address space. */
--#define FIRST_USER_ADDRESS	0UL
--
- #define pmd_ERROR(e)							\
- 	pr_err("%s:%d: bad pmd %p(%016lx) seen at (%pS)\n",		\
- 	       __FILE__, __LINE__, &(e), pmd_val(e), __builtin_return_address(0))
---- a/arch/um/include/asm/pgtable-2level.h~mm-define-default-value-for-first_user_address
-+++ a/arch/um/include/asm/pgtable-2level.h
-@@ -23,7 +23,6 @@
- #define PTRS_PER_PTE	1024
- #define USER_PTRS_PER_PGD ((TASK_SIZE + (PGDIR_SIZE - 1)) / PGDIR_SIZE)
- #define PTRS_PER_PGD	1024
--#define FIRST_USER_ADDRESS	0UL
- 
- #define pte_ERROR(e) \
-         printk("%s:%d: bad pte %p(%08lx).\n", __FILE__, __LINE__, &(e), \
---- a/arch/um/include/asm/pgtable-3level.h~mm-define-default-value-for-first_user_address
-+++ a/arch/um/include/asm/pgtable-3level.h
-@@ -41,7 +41,6 @@
- #endif
- 
- #define USER_PTRS_PER_PGD ((TASK_SIZE + (PGDIR_SIZE - 1)) / PGDIR_SIZE)
--#define FIRST_USER_ADDRESS	0UL
- 
- #define pte_ERROR(e) \
-         printk("%s:%d: bad pte %p(%016lx).\n", __FILE__, __LINE__, &(e), \
---- a/arch/x86/include/asm/pgtable_types.h~mm-define-default-value-for-first_user_address
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -7,8 +7,6 @@
- 
- #include <asm/page_types.h>
- 
--#define FIRST_USER_ADDRESS	0UL
--
- #define _PAGE_BIT_PRESENT	0	/* is present */
- #define _PAGE_BIT_RW		1	/* writeable */
- #define _PAGE_BIT_USER		2	/* userspace addressable */
---- a/arch/xtensa/include/asm/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/arch/xtensa/include/asm/pgtable.h
-@@ -59,7 +59,6 @@
- #define PTRS_PER_PGD		1024
- #define PGD_ORDER		0
- #define USER_PTRS_PER_PGD	(TASK_SIZE/PGDIR_SIZE)
--#define FIRST_USER_ADDRESS	0UL
- #define FIRST_USER_PGD_NR	(FIRST_USER_ADDRESS >> PGDIR_SHIFT)
- 
- #ifdef CONFIG_MMU
---- a/include/linux/pgtable.h~mm-define-default-value-for-first_user_address
-+++ a/include/linux/pgtable.h
-@@ -29,6 +29,15 @@
- #endif
- 
- /*
-+ * This defines the first usable user address. Platforms
-+ * can override its value with custom FIRST_USER_ADDRESS
-+ * defined in their respective <asm/pgtable.h>.
-+ */
-+#ifndef FIRST_USER_ADDRESS
-+#define FIRST_USER_ADDRESS	0UL
-+#endif
-+
-+/*
-  * A page table page can be thought of an array like this: pXd_t[PTRS_PER_PxD]
+- * Specialize ZONE_DEVICE memory into multiple types each having differents
++ * Specialize ZONE_DEVICE memory into multiple types each has a different
+  * usage.
   *
-  * The pXx_index() functions return the index of the entry in the page
+  * MEMORY_DEVICE_PRIVATE:
+--- a/include/linux/mm_types.h~mm-clear-spelling-mistakes
++++ a/include/linux/mm_types.h
+@@ -397,7 +397,7 @@ struct mm_struct {
+ 		unsigned long mmap_base;	/* base of mmap area */
+ 		unsigned long mmap_legacy_base;	/* base of mmap area in bottom-up allocations */
+ #ifdef CONFIG_HAVE_ARCH_COMPAT_MMAP_BASES
+-		/* Base adresses for compatible mmap() */
++		/* Base addresses for compatible mmap() */
+ 		unsigned long mmap_compat_base;
+ 		unsigned long mmap_compat_legacy_base;
+ #endif
+--- a/include/linux/mmzone.h~mm-clear-spelling-mistakes
++++ a/include/linux/mmzone.h
+@@ -114,7 +114,7 @@ static inline bool free_area_empty(struc
+ struct pglist_data;
+ 
+ /*
+- * Add a wild amount of padding here to ensure datas fall into separate
++ * Add a wild amount of padding here to ensure data fall into separate
+  * cachelines.  There are very few zone structures in the machine, so space
+  * consumption is not a concern here.
+  */
+--- a/mm/memory-failure.c~mm-clear-spelling-mistakes
++++ a/mm/memory-failure.c
+@@ -1340,7 +1340,7 @@ static bool hwpoison_user_mappings(struc
+ 			 * could potentially call huge_pmd_unshare.  Because of
+ 			 * this, take semaphore in write mode here and set
+ 			 * TTU_RMAP_LOCKED to indicate we have taken the lock
+-			 * at this higer level.
++			 * at this higher level.
+ 			 */
+ 			mapping = hugetlb_page_mapping_lock_write(hpage);
+ 			if (mapping) {
+--- a/mm/memory_hotplug.c~mm-clear-spelling-mistakes
++++ a/mm/memory_hotplug.c
+@@ -783,7 +783,7 @@ int __ref online_pages(unsigned long pfn
+ 
+ 	/*
+ 	 * {on,off}lining is constrained to full memory sections (or more
+-	 * precisly to memory blocks from the user space POV).
++	 * precisely to memory blocks from the user space POV).
+ 	 * memmap_on_memory is an exception because it reserves initial part
+ 	 * of the physical memory space for vmemmaps. That space is pageblock
+ 	 * aligned.
+@@ -1580,7 +1580,7 @@ int __ref offline_pages(unsigned long st
+ 
+ 	/*
+ 	 * {on,off}lining is constrained to full memory sections (or more
+-	 * precisly to memory blocks from the user space POV).
++	 * precisely to memory blocks from the user space POV).
+ 	 * memmap_on_memory is an exception because it reserves initial part
+ 	 * of the physical memory space for vmemmaps. That space is pageblock
+ 	 * aligned.
+--- a/mm/page_alloc.c~mm-clear-spelling-mistakes
++++ a/mm/page_alloc.c
+@@ -3180,7 +3180,7 @@ static void __drain_all_pages(struct zon
+ 	int cpu;
+ 
+ 	/*
+-	 * Allocate in the BSS so we wont require allocation in
++	 * Allocate in the BSS so we won't require allocation in
+ 	 * direct reclaim path for CONFIG_CPUMASK_OFFSTACK=y
+ 	 */
+ 	static cpumask_t cpus_with_pcps;
+--- a/mm/swapfile.c~mm-clear-spelling-mistakes
++++ a/mm/swapfile.c
+@@ -2967,7 +2967,7 @@ static unsigned long read_swap_header(st
+ 		return 0;
+ 	}
+ 
+-	/* swap partition endianess hack... */
++	/* swap partition endianness hack... */
+ 	if (swab32(swap_header->info.version) == 1) {
+ 		swab32s(&swap_header->info.version);
+ 		swab32s(&swap_header->info.last_page);
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from thunder.leizhen@huawei.com are
 
-mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
+lib-test-fix-spelling-mistakes.patch
+lib-fix-spelling-mistakes.patch
+lib-fix-spelling-mistakes-in-header-files.patch
+mm-fix-spelling-mistakes-in-header-files.patch
 
