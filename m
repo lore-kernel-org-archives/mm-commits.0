@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73F70C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:21:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DB63C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:21:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59C2961C9D
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:21:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 65E0761CA2
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:21:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231244AbhGFTXw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:23:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57436 "EHLO mail.kernel.org"
+        id S230505AbhGFTXx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:23:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57472 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230505AbhGFTXw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:23:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 73B2F61C9E;
-        Tue,  6 Jul 2021 19:21:12 +0000 (UTC)
+        id S230408AbhGFTXx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:23:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6F1EF61C9C;
+        Tue,  6 Jul 2021 19:21:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599272;
-        bh=dGtS3E5sRYTs7SPWko8hgxNmau1xxb40YvlxRiD0SSQ=;
+        s=korg; t=1625599274;
+        bh=9S9Wyx62ZflfrP33jpE9CqpKm9/emIYrXqvhVIXf/V8=;
         h=Date:From:To:Subject:From;
-        b=nVLMObb+EMlFUkbg1A7NCygnJdMvP+xuNxNhhWSOHCEIpcLMKNk+fgOEsAovnBV6q
-         Aq8es7noZpUF64zmaHhcJPiNzskmIN2DuG7ngmf5mhvGIQukJQ11nw1BhpgNQTsHq4
-         w9IpJUfobj+TWtKeWTHFPFJQlYFKNzDQeBNTallM=
-Date:   Tue, 06 Jul 2021 12:21:12 -0700
+        b=xka+U6iYagZHGWiH53yU9HxGePlMYix6HCacSlabvnjnuiK2xYtZxwbF8ZC30uY8R
+         zB0ERJqgzH4fvL8fGrBBktlreS33iuENdeXgfGgcM2XQneLafo/M7ew8zpsPw2KNXH
+         VA4RjAlkcpP9EBCFfTxRFGMNovMn0OUdfixsY38o=
+Date:   Tue, 06 Jul 2021 12:21:14 -0700
 From:   akpm@linux-foundation.org
-To:     cuibixuan@huawei.com, david@redhat.com, ddstreet@ieee.org,
-        mgorman@techsingularity.net, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shy828301@gmail.com, vbabka@suse.cz
+To:     david@redhat.com, ddstreet@ieee.org, mgorman@techsingularity.net,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, shy828301@gmail.com,
+        vbabka@suse.cz
 Subject:  [merged]
- mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
- removed from -mm tree
-Message-ID: <20210706192112.Vd_PRGHSm%akpm@linux-foundation.org>
+ mm-page_alloc-move-prototype-for-find_suitable_fallback.patch removed from
+ -mm tree
+Message-ID: <20210706192114.ncBwx1Oil%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,35 +45,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap_lock: remove dead code for !CONFIG_TRACING configurations
+     Subject: mm/page_alloc: move prototype for find_suitable_fallback
 has been removed from the -mm tree.  Its filename was
-     mm-mmap_lock-remove-dead-code-for-config_tracing-configurations.patch
+     mm-page_alloc-move-prototype-for-find_suitable_fallback.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/mmap_lock: remove dead code for !CONFIG_TRACING configurations
+Subject: mm/page_alloc: move prototype for find_suitable_fallback
 
 make W=1 generates the following warning in mmap_lock.c for allnoconfig
 
-  mm/mmap_lock.c:213:6: warning: no previous prototype for `__mmap_lock_do_trace_start_locking' [-Wmissing-prototypes]
-   void __mmap_lock_do_trace_start_locking(struct mm_struct *mm, bool write)
-        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  mm/mmap_lock.c:219:6: warning: no previous prototype for `__mmap_lock_do_trace_acquire_returned' [-Wmissing-prototypes]
-   void __mmap_lock_do_trace_acquire_returned(struct mm_struct *mm, bool write,
-        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  mm/mmap_lock.c:226:6: warning: no previous prototype for `__mmap_lock_do_trace_released' [-Wmissing-prototypes]
-   void __mmap_lock_do_trace_released(struct mm_struct *mm, bool write)
+  mm/page_alloc.c:2670:5: warning: no previous prototype for `find_suitable_fallback' [-Wmissing-prototypes]
+   int find_suitable_fallback(struct free_area *area, unsigned int order,
+       ^~~~~~~~~~~~~~~~~~~~~~
 
-On !CONFIG_TRACING configurations, the code is dead so put it behind an
-#ifdef.
+find_suitable_fallback is only shared outside of page_alloc.c for
+CONFIG_COMPACTION but to suppress the warning, move the protype outside of
+CONFIG_COMPACTION.  It is not worth the effort at this time to find a
+clever way of allowing compaction.c to share the code or avoid the use
+entirely as the function is called on relatively slow paths.
 
-[cuibixuan@huawei.com: fix warning when CONFIG_TRACING is not defined]
-  Link: https://lkml.kernel.org/r/20210531033426.74031-1-cuibixuan@huawei.com
-Link: https://lkml.kernel.org/r/20210520084809.8576-13-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210520084809.8576-14-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Signed-off-by: Bixuan Cui <cuibixuan@huawei.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Dan Streetman <ddstreet@ieee.org>
@@ -82,88 +77,24 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap_lock.c |   59 +++++++++++++++++++++++++----------------------
- 1 file changed, 32 insertions(+), 27 deletions(-)
+ mm/internal.h |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/mmap_lock.c~mm-mmap_lock-remove-dead-code-for-config_tracing-configurations
-+++ a/mm/mmap_lock.c
-@@ -153,6 +153,37 @@ static inline void put_memcg_path_buf(vo
- 	rcu_read_unlock();
- }
+--- a/mm/internal.h~mm-page_alloc-move-prototype-for-find_suitable_fallback
++++ a/mm/internal.h
+@@ -274,11 +274,10 @@ isolate_freepages_range(struct compact_c
+ int
+ isolate_migratepages_range(struct compact_control *cc,
+ 			   unsigned long low_pfn, unsigned long end_pfn);
++#endif
+ int find_suitable_fallback(struct free_area *area, unsigned int order,
+ 			int migratetype, bool only_stealable, bool *can_steal);
  
-+#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
-+	do {                                                                   \
-+		const char *memcg_path;                                        \
-+		preempt_disable();                                             \
-+		memcg_path = get_mm_memcg_path(mm);                            \
-+		trace_mmap_lock_##type(mm,                                     \
-+				       memcg_path != NULL ? memcg_path : "",   \
-+				       ##__VA_ARGS__);                         \
-+		if (likely(memcg_path != NULL))                                \
-+			put_memcg_path_buf();                                  \
-+		preempt_enable();                                              \
-+	} while (0)
-+
-+#else /* !CONFIG_MEMCG */
-+
-+int trace_mmap_lock_reg(void)
-+{
-+	return 0;
-+}
-+
-+void trace_mmap_lock_unreg(void)
-+{
-+}
-+
-+#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
-+	trace_mmap_lock_##type(mm, "", ##__VA_ARGS__)
-+
-+#endif /* CONFIG_MEMCG */
-+
-+#ifdef CONFIG_TRACING
-+#ifdef CONFIG_MEMCG
+-#endif
+-
  /*
-  * Write the given mm_struct's memcg path to a percpu buffer, and return a
-  * pointer to it. If the path cannot be determined, or no buffer was available
-@@ -187,33 +218,6 @@ out:
- 	return buf;
- }
- 
--#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
--	do {                                                                   \
--		const char *memcg_path;                                        \
--		local_lock(&memcg_paths.lock);				       \
--		memcg_path = get_mm_memcg_path(mm);                            \
--		trace_mmap_lock_##type(mm,                                     \
--				       memcg_path != NULL ? memcg_path : "",   \
--				       ##__VA_ARGS__);                         \
--		if (likely(memcg_path != NULL))                                \
--			put_memcg_path_buf();                                  \
--		local_unlock(&memcg_paths.lock);			       \
--	} while (0)
--
--#else /* !CONFIG_MEMCG */
--
--int trace_mmap_lock_reg(void)
--{
--	return 0;
--}
--
--void trace_mmap_lock_unreg(void)
--{
--}
--
--#define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
--	trace_mmap_lock_##type(mm, "", ##__VA_ARGS__)
--
- #endif /* CONFIG_MEMCG */
- 
- /*
-@@ -239,3 +243,4 @@ void __mmap_lock_do_trace_released(struc
- 	TRACE_MMAP_LOCK_EVENT(released, mm, write);
- }
- EXPORT_SYMBOL(__mmap_lock_do_trace_released);
-+#endif /* CONFIG_TRACING */
+  * This function returns the order of a free page in the buddy system. In
+  * general, page_zone(page)->lock must be held by the caller to prevent the
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
