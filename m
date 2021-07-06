@@ -7,32 +7,32 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7BBC07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:07:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13975C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:07:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D3E3861C6C
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:07:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EF64161C6F
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:07:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231766AbhGFTJw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:09:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45346 "EHLO mail.kernel.org"
+        id S231752AbhGFTJy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:09:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45368 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231700AbhGFTJv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:09:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E67AA61C56;
-        Tue,  6 Jul 2021 19:07:12 +0000 (UTC)
+        id S231489AbhGFTJy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:09:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 770E961C6C;
+        Tue,  6 Jul 2021 19:07:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625598433;
-        bh=VBXXsP9sZ+H2B09Zw1ZyNNkoFUywp6BRKhZ+4ZGY3C8=;
+        s=korg; t=1625598434;
+        bh=0QXlZD380Yq6dGf55X7hWHlxQdqjfgV1F62xX2kN6JI=;
         h=Date:From:To:Subject:From;
-        b=Nv8JmMrpsMo+8To4wLkILhG7zh+fmCs/FN2obHR7p1sJ5Bvkmi2QIwcEOs8ln111g
-         DjErmSM+QKgPDhvGCrLf/qlWlSPTkFbSDmsnrpHTlILE0QC2GtV4k6oLXzpeq9MZBZ
-         VCFvrush2jIogLq0LlyWQPSQPkdsgmYILPdLvgZs=
-Date:   Tue, 06 Jul 2021 12:07:12 -0700
+        b=ZxL+1XM+FlOfBO+9kdkZzaz4bJ9rQWyiePsDgHuSu8Zo6Ek08s+j6bdhbPGWV9AM7
+         Gyh8JuHtSCXQb5popjVIaMDIldruOjyMoupXm83hknCEwzTuAxI17hZNgu50vcdWNX
+         hyQbf3niba6c9gB/jravHqnMlp8VF9BztoVvTSJU=
+Date:   Tue, 06 Jul 2021 12:07:14 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-post.patch removed from -mm tree
-Message-ID: <20210706190712.FGFfCunSo%akpm@linux-foundation.org>
+Subject:  [obsolete] linux-next-pre.patch removed from -mm tree
+Message-ID: <20210706190714.KBjHejEX4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,15 +41,15 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-post
+     Subject: linux-next-pre
 has been removed from the -mm tree.  Its filename was
-     linux-next-post.patch
+     linux-next-pre.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-post
+Subject: linux-next-pre
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -57,19 +57,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~linux-next-post
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c~linux-next-pre
 +++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
-@@ -681,9 +681,9 @@ int amdgpu_ttm_tt_get_user_pages(struct
- 		return -ESRCH;
+@@ -709,8 +709,8 @@ int amdgpu_ttm_tt_get_user_pages(struct
+ 	}
  
  	mmap_read_lock(mm);
--	vma = find_vma(mm, start);
-+	vma = vma_lookup(mm, start);
- 	mmap_read_unlock(mm);
--	if (unlikely(!vma || start < vma->vm_start)) {
-+	if (unlikely(!vma)) {
+-	vma = vma_lookup(mm, start);
+-	if (unlikely(!vma)) {
++	vma = find_vma(mm, start);
++	if (unlikely(!vma || start < vma->vm_start)) {
  		r = -EFAULT;
- 		goto out_putmm;
+ 		goto out_unlock;
  	}
 _
 
