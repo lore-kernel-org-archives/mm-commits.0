@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C0E5C07E96
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45334C07E96
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F82361CA9
-	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 25ACB61CAA
+	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:23:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229991AbhGFTZi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:25:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58822 "EHLO mail.kernel.org"
+        id S229956AbhGFTZl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:25:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58848 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229879AbhGFTZi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:25:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8DE2461CA8;
-        Tue,  6 Jul 2021 19:22:58 +0000 (UTC)
+        id S229999AbhGFTZk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:25:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 90C7C61CA9;
+        Tue,  6 Jul 2021 19:23:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599378;
-        bh=prnWirJCdOIZN5ftI0QNNX7XtV095pdr8dQCckbmfLc=;
+        s=korg; t=1625599380;
+        bh=PMp/KIMdf/7/w7cGMOlOvnfhKiPdIyHjr7ZWwZX6WTA=;
         h=Date:From:To:Subject:From;
-        b=j1FdDowOBBvabM81jpkNWLgfC1e2pnZUlXN5n4KF/NVjw4f3lnm2MbAYZrf2UWrOB
-         wCPT5wHtKPhZlDV2dCTlo9f+CLLBAAZB9JnGDNEMCKuOGleV1TxcQ/bHWcpG0FAi/X
-         BVVQvOnESNQ+KMh0y8hsHp4Z9GQ5AE3VygzEFuUM=
-Date:   Tue, 06 Jul 2021 12:22:58 -0700
+        b=yzRz7CHnnnAYfgJxMj+XlkGVKbclxg+pK/OPmu28o9uMjlfkdJzYwFZyssugc/AEb
+         HdqX0JEGDxcYv4tPt5LrzxBQb6vkWLNktklwkYdxRbxfWDNk9CNg1CyIHNtRGVElPh
+         nTNSXpWkiixLdTTdKQTiKFM2agssIUrGtzQ0fjKc=
+Date:   Tue, 06 Jul 2021 12:23:00 -0700
 From:   akpm@linux-foundation.org
-To:     elder@ieee.org, gregkh@linuxfoundation.org, joe@perches.com,
-        manikishanghantasala@gmail.com, mm-commits@vger.kernel.org
-Subject:  [merged] checkpatch-improve-the-indented-label-test.patch
- removed from -mm tree
-Message-ID: <20210706192258.j_Pc0cjHv%akpm@linux-foundation.org>
+To:     joe@perches.com, linux@roeck-us.net, mm-commits@vger.kernel.org,
+        ribalda@chromium.org
+Subject:  [merged]
+ =?US-ASCII?Q?checkpatch-do-not-complain-about-positive-return-values-s?=
+ =?US-ASCII?Q?tarting-with-epoll.patch?= removed from -mm tree
+Message-ID: <20210706192300.LDCwGUJ-3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,64 +46,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve the indented label test
+     Subject: checkpatch: do not complain about positive return values starting with EPOLL
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-the-indented-label-test.patch
+     checkpatch-do-not-complain-about-positive-return-values-starting-with-epoll.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve the indented label test
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: checkpatch: do not complain about positive return values starting with EPOLL
 
-checkpatch identifies a label only when a terminating colon
-immediately follows an identifier.
+checkpatch complains about positive return values of poll functions. 
+Example:
 
-Bitfield definitions can appear to be labels so ignore any
-spaces between the identifier terminating colon and any digit
-that may be used to define a bitfield length.
+WARNING: return of an errno should typically be negative (ie: return -EPOLLIN)
++		return EPOLLIN;
 
-Miscellanea:
+Poll functions return positive values.  The defines for the return values
+of poll functions all start with EPOLL, resulting in a number of false
+positives.  An often used workaround is to assign poll function return
+values to variables and returning that variable, but that is a less than
+perfect solution.
 
-o Improve the initial checkpatch comment
-o Use the more typical '&&' instead of 'and'
-o Require the initial label character to be a non-digit
-  (Can't use $Ident here because $Ident allows ## concatenation)
-o Use $sline instead of $line to ignore comments
-o Use '$sline !~ /.../' instead of '!($line =~ /.../)'
+There is no error definition which starts with EPOLL, so it is safe to
+omit the warning for return values starting with EPOLL.
 
-Link: https://lkml.kernel.org/r/b54d673e7cde7de5de0c9ba4dd57dd0858580ca4.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Manikishan Ghantasala <manikishanghantasala@gmail.com>
-Cc: Alex Elder <elder@ieee.org>
+Link: https://lkml.kernel.org/r/20210622004334.638680-1-linux@roeck-us.net
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Ricardo Ribalda <ribalda@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/scripts/checkpatch.pl~checkpatch-improve-the-indented-label-test
+--- a/scripts/checkpatch.pl~checkpatch-do-not-complain-about-positive-return-values-starting-with-epoll
 +++ a/scripts/checkpatch.pl
-@@ -5361,9 +5361,13 @@ sub process {
+@@ -5462,7 +5462,7 @@ sub process {
+ # Return of what appears to be an errno should normally be negative
+ 		if ($sline =~ /\breturn(?:\s*\(+\s*|\s+)(E[A-Z]+)(?:\s*\)+\s*|\s*)[;:,]/) {
+ 			my $name = $1;
+-			if ($name ne 'EOF' && $name ne 'ERROR') {
++			if ($name ne 'EOF' && $name ne 'ERROR' && $name !~ /^EPOLL/) {
+ 				WARN("USE_NEGATIVE_ERRNO",
+ 				     "return of an errno should typically be negative (ie: return -$1)\n" . $herecurr);
  			}
- 		}
- 
--#goto labels aren't indented, allow a single space however
--		if ($line=~/^.\s+[A-Za-z\d_]+:(?![0-9]+)/ and
--		   !($line=~/^. [A-Za-z\d_]+:/) and !($line=~/^.\s+default:/)) {
-+# check that goto labels aren't indented (allow a single space indentation)
-+# and ignore bitfield definitions like foo:1
-+# Strictly, labels can have whitespace after the identifier and before the :
-+# but this is not allowed here as many ?: uses would appear to be labels
-+		if ($sline =~ /^.\s+[A-Za-z_][A-Za-z\d_]*:(?!\s*\d+)/ &&
-+		    $sline !~ /^. [A-Za-z\d_][A-Za-z\d_]*:/ &&
-+		    $sline !~ /^.\s+default:/) {
- 			if (WARN("INDENTED_LABEL",
- 				 "labels should not be indented\n" . $herecurr) &&
- 			    $fix) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
 
