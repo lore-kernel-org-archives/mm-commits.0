@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 279A1C07E96
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DCBBC07E9C
 	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0DD2661C87
+	by mail.kernel.org (Postfix) with ESMTP id 793CC61C91
 	for <mm-commits@archiver.kernel.org>; Tue,  6 Jul 2021 19:17:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231808AbhGFTUE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 6 Jul 2021 15:20:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53904 "EHLO mail.kernel.org"
+        id S231838AbhGFTUF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 6 Jul 2021 15:20:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231838AbhGFTUD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 6 Jul 2021 15:20:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8299261C7F;
-        Tue,  6 Jul 2021 19:17:23 +0000 (UTC)
+        id S231833AbhGFTUF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 6 Jul 2021 15:20:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C4EF761C85;
+        Tue,  6 Jul 2021 19:17:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625599044;
-        bh=zFnUPt0vHdHBP1N4PKGb1hQLFLl6z+GXxKLT2xLuJ2k=;
+        s=korg; t=1625599046;
+        bh=uWcSuJAgBbLpxPOb1ei85jo9Ohwe/rXy7jiPseCXfcs=;
         h=Date:From:To:Subject:From;
-        b=bCj35BqFlB6xZ0r9wVIcsA3tee1OXJ02OO3cBkXqMn27sabt8j5dReZMCO4sCTqxq
-         jP/ngpRzDMYmGKhVuiJKKDWpqEmL3DDc+scFUienK2AskCDmfAq29pBfsJUC4aYAJV
-         brJN6eszgfq31vG6vhQHQf3kfqShcLqBvKs9vUvQ=
-Date:   Tue, 06 Jul 2021 12:17:23 -0700
+        b=BMMIVmnfAR95WnUgguBK6A0GxV2crz5AQEEx9RXUyCcAUjnHXKiNw3fv30UAfiWbd
+         riI6Nz45mI9KBAjOIJOOh8Aw2UOoNXKycxAzfZESP9TE9NI3+TiGQ6OP1gmZYlPVZ6
+         NJ0FLnOUczBPjnPGfyApu6PmXBVBk1SlHk+o8VbU=
+Date:   Tue, 06 Jul 2021 12:17:25 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, almasrymina@google.com,
         axelrasmussen@google.com, bgeffon@google.com, dgilbert@redhat.com,
@@ -38,9 +38,10 @@ To:     aarcange@redhat.com, almasrymina@google.com,
         oupton@google.com, peterx@redhat.com, rppt@linux.vnet.ibm.com,
         sfr@canb.auug.org.au, shli@fb.com, shuah@kernel.org,
         viro@zeniv.linux.org.uk, wangqing@vivo.com
-Subject:  [merged] userfaultfd-selftests-use-user-mode-only.patch
- removed from -mm tree
-Message-ID: <20210706191723.jKZV5WZ9f%akpm@linux-foundation.org>
+Subject:  [merged]
+ userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch removed
+ from -mm tree
+Message-ID: <20210706191725.zhkzyQMKk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,40 +50,30 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: use user mode only
+     Subject: userfaultfd/selftests: remove the time() check on delayed uffd
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-use-user-mode-only.patch
+     userfaultfd-selftests-remove-the-time-check-on-delayed-uffd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: userfaultfd/selftests: use user mode only
+Subject: userfaultfd/selftests: remove the time() check on delayed uffd
 
-Patch series "userfaultfd/selftests: A few cleanups", v2.
+There seems to have no guarantee that time() will return the same for the
+two calls even if there's no delay, e.g.  when a fault is accidentally
+crossing the changing of a second.  Meanwhile, this message is also not
+helping that much since delay could happen with a lot of reasons, e.g.,
+schedule latency of resolving thread.  It may not mean an issue with uffd.
 
-I wanted to cleanup userfaultfd.c fault handling for a long time.  If it's
-not cleaned, when the new code grows the file it'll also grow the size
-that needs to be cleaned...  This is my attempt to cleanup the userfaultfd
-selftest on fault handling, to use an err() macro instead of either
-fprintf() or perror() then another exit() call.
+Neither do I saw this error triggered either in the past runs.  Even if it
+triggers, it'll be drown in all the rest of test logs.  Remove it.
 
-The huge cleanup is done in the last patch.  The first 4 patches are some
-other standalone cleanups for the same file, so I put them together.
-
-
-This patch (of 5):
-
-Userfaultfd selftest does not need to handle kernel initiated fault.  Set
-user mode so it can be run even if unprivileged_userfaultfd=0 (which is
-the default).
-
-Link: https://lkml.kernel.org/r/20210412232753.1012412-2-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20210412232753.1012412-3-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Brian Geffon <bgeffon@google.com>
 Cc: "Dr . David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -91,6 +82,7 @@ Cc: Joe Perches <joe@perches.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Lokesh Gidra <lokeshgidra@google.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Mina Almasry <almasrymina@google.com>
 Cc: Oliver Upton <oupton@google.com>
 Cc: Shaohua Li <shli@fb.com>
@@ -100,20 +92,40 @@ Cc: Wang Qing <wangqing@vivo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/userfaultfd.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-use-user-mode-only
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-remove-the-time-check-on-delayed-uffd
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -831,7 +831,7 @@ static int userfaultfd_open_ext(uint64_t
- {
- 	struct uffdio_api uffdio_api;
+@@ -395,7 +395,6 @@ static void *locking_thread(void *arg)
+ 	unsigned long long count;
+ 	char randstate[64];
+ 	unsigned int seed;
+-	time_t start;
  
--	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
-+	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK | UFFD_USER_MODE_ONLY);
- 	if (uffd < 0) {
- 		fprintf(stderr,
- 			"userfaultfd syscall not available in this kernel\n");
+ 	if (bounces & BOUNCE_RANDOM) {
+ 		seed = (unsigned int) time(NULL) - bounces;
+@@ -432,7 +431,6 @@ static void *locking_thread(void *arg)
+ 			page_nr += 1;
+ 		page_nr %= nr_pages;
+ 
+-		start = time(NULL);
+ 		if (bounces & BOUNCE_VERIFY) {
+ 			count = *area_count(area_dst, page_nr);
+ 			if (!count) {
+@@ -495,12 +493,6 @@ static void *locking_thread(void *arg)
+ 		count++;
+ 		*area_count(area_dst, page_nr) = count_verify[page_nr] = count;
+ 		pthread_mutex_unlock(area_mutex(area_dst, page_nr));
+-
+-		if (time(NULL) - start > 1)
+-			fprintf(stderr,
+-				"userfault too slow %ld "
+-				"possible false positive with overcommit\n",
+-				time(NULL) - start);
+ 	}
+ 
+ 	return NULL;
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
