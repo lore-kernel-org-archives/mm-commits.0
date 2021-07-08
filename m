@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E65C07E95
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:34:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3960AC07E95
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:35:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DEA9F61CD3
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:34:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13A8561CCC
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:35:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230164AbhGHAhR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 20:37:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41332 "EHLO mail.kernel.org"
+        id S230166AbhGHAiK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 20:38:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41500 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230000AbhGHAhQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 20:37:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1CA9B61CCF;
-        Thu,  8 Jul 2021 00:34:35 +0000 (UTC)
+        id S230000AbhGHAiK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 20:38:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 32B4061C7F;
+        Thu,  8 Jul 2021 00:35:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625704475;
-        bh=1ywRq0wDj3qEU0ZVbvhaGEc1xujfRBZKhrXiSaVKMuA=;
+        s=korg; t=1625704528;
+        bh=syibbDwBo91REPzaxqy+qv0jdVivtMwaiAECy041JXI=;
         h=Date:From:To:Subject:From;
-        b=VewQ5Dp0WrmWsPige68BUYhf7GY1oywYKL8QekIIBdfQKT7GyQ/CFMAYDyI4KYz6s
-         9WKf4iVFVoPUl0NsDntOCE6SVdXVWkmyBVRya3Vge6NEKf3M0HOPasIz0KG6NvkR2G
-         4alD0GGrP9gOXSbyWBcJHW0zihwCvpCQ9fgTZaIA=
-Date:   Wed, 07 Jul 2021 17:34:34 -0700
+        b=UcwojtS9FoUTZbXkRPdNpyXWI7+aV56CFaHWM7gTBOWMwGcrvGy98c+0Ti+xNQ1Y7
+         B/tlnJsp1MbhC/vSj1ICk+c74+/7Vc9trdpV6vc9eiJVgbaBCBtmh4JcxbPZCtMoIr
+         zTUOi1I37IEaGgOaKWDcD7Ktge6V0n8vpF5EG/OQ=
+Date:   Wed, 07 Jul 2021 17:35:27 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, aneesh.kumar@linux.ibm.com,
-        sfr@canb.auug.org.au
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        npiggin@gmail.com, mpe@ellerman.id.au,
+        kirill.shutemov@linux.intel.com, kaleshsingh@google.com,
+        joel@joelfernandes.org, hughd@google.com,
+        christophe.leroy@csgroup.eu, aneesh.kumar@linux.ibm.com
 Subject:  [folded-merged]
- mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t-fix-3.patch
+ mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix.patch
  removed from -mm tree
-Message-ID: <20210708003434.zBwyl%akpm@linux-foundation.org>
+Message-ID: <20210708003527.UYeya%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,39 +47,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: [PATCH] mm: rename pud_page_vaddr to pud_pgtable and make it return pmd_t * fix
+     Subject: mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix
 has been removed from the -mm tree.  Its filename was
-     mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t-fix-3.patch
+     mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix.patch
 
-This patch was dropped because it was folded into mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t.patch
+This patch was dropped because it was folded into mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: [PATCH] mm: rename pud_page_vaddr to pud_pgtable and make it return pmd_t * fix
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix
 
-Link: https://lkml.kernel.org/r/20210619134410.89559-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+m68k build error reported by kernel robot.
+
+  We may want to fixup pgd_page_vaddr correctly later. pgd_page_vaddr() gets
+  cast to different pointer types based on architecture. But for now this
+  should work? This ensure we keep the pgd_page_vaddr() same as before.
+
+Link: https://lkml.kernel.org/r/87tulxnb2v.fsf@linux.ibm.com
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_32.h |    2 +-
+ include/asm-generic/pgtable-nop4d.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sparc/include/asm/pgtable_32.h~mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t-fix-3
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -154,7 +154,7 @@ static inline unsigned long pmd_page_vad
- static inline pmd_t *pud_pgtable(pud_t pud)
- {
- 	if (srmmu_device_memory(pud_val(pud))) {
--		return ~0;
-+		return (pmd_t *)~0;
- 	} else {
- 		unsigned long v = pud_val(pud) & SRMMU_PTD_PMASK;
- 		return (pmd_t *)__nocache_va(v << 4);
+--- a/include/asm-generic/pgtable-nop4d.h~mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix
++++ a/include/asm-generic/pgtable-nop4d.h
+@@ -41,7 +41,7 @@ static inline p4d_t *p4d_offset(pgd_t *p
+ #define __p4d(x)				((p4d_t) { __pgd(x) })
+ 
+ #define pgd_page(pgd)				(p4d_page((p4d_t){ pgd }))
+-#define pgd_page_vaddr(pgd)			(p4d_pgtable((p4d_t){ pgd }))
++#define pgd_page_vaddr(pgd)			((unsigned long)(p4d_pgtable((p4d_t){ pgd })))
+ 
+ /*
+  * allocating and freeing a p4d is trivial: the 1-entry p4d is
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
 mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t.patch
+mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t.patch
+selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
+selftest-mremap_test-avoid-crash-with-static-build.patch
+mm-mremap-convert-huge-pud-move-to-separate-helper.patch
+mm-mremap-convert-huge-pud-move-to-separate-helper-fix.patch
+mm-mremap-dont-enable-optimized-pud-move-if-page-table-levels-is-2.patch
+mm-mremap-use-pmd-pud_poplulate-to-update-page-table-entries.patch
+mm-mremap-hold-the-rmap-lock-in-write-mode-when-moving-page-table-entries.patch
+mm-mremap-allow-arch-runtime-override.patch
+powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache.patch
+powerpc-mm-enable-have_move_pmd-support.patch
 
