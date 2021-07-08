@@ -7,38 +7,39 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F0DB3C07E9B
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:32:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5943C07E95
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:34:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D519E61CCB
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:32:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84D4761CCF
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:34:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230091AbhGHAfC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 20:35:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40642 "EHLO mail.kernel.org"
+        id S230154AbhGHAhN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 20:37:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41284 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230000AbhGHAfC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 20:35:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1BEC661CAC;
-        Thu,  8 Jul 2021 00:32:20 +0000 (UTC)
+        id S230000AbhGHAhN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 20:37:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 88CB361CCC;
+        Thu,  8 Jul 2021 00:34:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625704340;
-        bh=gAt2gbgoUw/jCltSL7pBSk+tI+NBLJERcJXi7lwehdI=;
+        s=korg; t=1625704472;
+        bh=1X7wawZc3tGREi6zK8a2EY7lrkhPXl0hdLJKVOxkvsY=;
         h=Date:From:To:Subject:From;
-        b=s0hgX+bswQkLfjGFbgKop5i06z/NbP96n7cArL4dWtJgCWhOy/BtqR7s7m6VovsmN
-         Bj8ecNxQCovF16g1pdMiJ0Sey05CiAaXQ/vKKK8l0lkwqULxH7g6IgN8M4oJ+Eb6G/
-         zIZTDFx2yFzBSWEMo6Q/1OhMOvDUkJ9R+m0ZZmf8=
-Date:   Wed, 07 Jul 2021 17:32:19 -0700
+        b=KsFmonGZY+yknr3GA2Qnj/Dl9cQAi6tM7XSPXHl52wyorWvh8M+J0DfOEhGNDftaz
+         8DHRuibuDRPt01dFGp2WWQt88ZXFYgMH217/Ftteo+AYJGXAWIhFUk1ePmoLKam7vq
+         UUO9+dKT8x+Pw+/fZFAKPXNtUZ/WrStWhL63Tpa4=
+Date:   Wed, 07 Jul 2021 17:34:29 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, swboyd@chromium.org, jeyu@kernel.org,
-        hulkci@huawei.com, cuibixuan@huawei.com
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        npiggin@gmail.com, mpe@ellerman.id.au,
+        kirill.shutemov@linux.intel.com, kaleshsingh@google.com,
+        joel@joelfernandes.org, hughd@google.com,
+        christophe.leroy@csgroup.eu, aneesh.kumar@linux.ibm.com
 Subject:  [folded-merged]
- =?us-ascii?Q?module-add-printk-formats-to-add-module-build-id-to-stack?=
- =?us-ascii?Q?traces-fix-fix-fix.patch?= removed from -mm tree
-Message-ID: <20210708003219.aVef7%akpm@linux-foundation.org>
+ mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t-fix-2.patch
+ removed from -mm tree
+Message-ID: <20210708003429.R-rkN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,63 +47,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: module: fix build error when CONFIG_SYSFS is disabled
+     Subject: mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t-fix-2
 has been removed from the -mm tree.  Its filename was
-     module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix-fix.patch
+     mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t-fix-2.patch
 
-This patch was dropped because it was folded into module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
+This patch was dropped because it was folded into mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t.patch
 
 ------------------------------------------------------
-From: Bixuan Cui <cuibixuan@huawei.com>
-Subject: module: fix build error when CONFIG_SYSFS is disabled
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t-fix-2
 
-Fix build error when disable CONFIG_SYSFS:
-kernel/module.c:2805:8: error: implicit declaration of function `sect_empty'; did you mean `desc_empty'? [-Werror=implicit-function-declaration]
- 2805 |   if (!sect_empty(sechdr) && sechdr->sh_type == SHT_NOTE &&
-
-Link: https://lkml.kernel.org/r/20210525105049.34804-1-cuibixuan@huawei.com
-Fixes: 9ee6682aa528 ("module: add printk formats to add module build ID to stacktraces")
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Signed-off-by: Bixuan Cui <cuibixuan@huawei.com>
-Signed-off-by: Stephen Boyd <swboyd@chromium.org>
-Acked-by: Jessica Yu <jeyu@kernel.org>
+Link: https://lkml.kernel.org/r/87wnqtnb60.fsf@linux.ibm.com
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/module.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ arch/alpha/include/asm/pgtable.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/module.c~module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix-fix
-+++ a/kernel/module.c
-@@ -1466,6 +1466,13 @@ resolve_symbol_wait(struct module *mod,
- 	return ksym;
+--- a/arch/alpha/include/asm/pgtable.h~mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t-fix-2
++++ a/arch/alpha/include/asm/pgtable.h
+@@ -236,7 +236,7 @@ pmd_page_vaddr(pmd_t pmd)
+ #define pmd_page(pmd)	(pfn_to_page(pmd_val(pmd) >> 32))
+ #define pud_page(pud)	(pfn_to_page(pud_val(pud) >> 32))
+ 
+-static inline pmd_t *pud_pgtable(pud_t pgd)
++extern inline pmd_t *pud_pgtable(pud_t pgd)
+ {
+ 	return (pmd_t *)(PAGE_OFFSET + ((pud_val(pgd) & _PFN_MASK) >> (32-PAGE_SHIFT)));
  }
- 
-+#ifdef CONFIG_KALLSYMS
-+static inline bool sect_empty(const Elf_Shdr *sect)
-+{
-+	return !(sect->sh_flags & SHF_ALLOC) || sect->sh_size == 0;
-+}
-+#endif
-+
- /*
-  * /sys/module/foo/sections stuff
-  * J. Corbet <corbet@lwn.net>
-@@ -1473,11 +1480,6 @@ resolve_symbol_wait(struct module *mod,
- #ifdef CONFIG_SYSFS
- 
- #ifdef CONFIG_KALLSYMS
--static inline bool sect_empty(const Elf_Shdr *sect)
--{
--	return !(sect->sh_flags & SHF_ALLOC) || sect->sh_size == 0;
--}
--
- struct module_sect_attr {
- 	struct bin_attribute battr;
- 	unsigned long address;
 _
 
-Patches currently in -mm which might be from cuibixuan@huawei.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
+mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t.patch
+mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t.patch
+mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix.patch
+selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
+selftest-mremap_test-avoid-crash-with-static-build.patch
+mm-mremap-convert-huge-pud-move-to-separate-helper.patch
+mm-mremap-convert-huge-pud-move-to-separate-helper-fix.patch
+mm-mremap-dont-enable-optimized-pud-move-if-page-table-levels-is-2.patch
+mm-mremap-use-pmd-pud_poplulate-to-update-page-table-entries.patch
+mm-mremap-hold-the-rmap-lock-in-write-mode-when-moving-page-table-entries.patch
+mm-mremap-allow-arch-runtime-override.patch
+powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache.patch
+powerpc-mm-enable-have_move_pmd-support.patch
 
