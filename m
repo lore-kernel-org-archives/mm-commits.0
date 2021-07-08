@@ -7,39 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1637C07E95
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:10:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C4CF8C07E95
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:10:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CACD61CCC
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:10:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF44E61CE4
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:10:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230106AbhGHBM6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 21:12:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53246 "EHLO mail.kernel.org"
+        id S230169AbhGHBNB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 21:13:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53308 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230169AbhGHBM5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 21:12:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AD8F461C77;
-        Thu,  8 Jul 2021 01:10:15 +0000 (UTC)
+        id S230148AbhGHBNA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 21:13:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C025D61CCF;
+        Thu,  8 Jul 2021 01:10:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625706616;
-        bh=c58G42tAplLF5/KPACite1bg2ijNN7fTerdBh9raGmc=;
+        s=korg; t=1625706619;
+        bh=JPlfxG38wBvas8oMbF2vb+Dqy9D6PhgkM/h9WJlpMKY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xCxAkZX7HilYDYIC+MpkYdEr1mRriJlIYn2ByL/9R1GOZ9KZlwqRVUIkJI48vNfYB
-         OjA2eEUPeZKztSdga5m3CMRGaGGJJTohsVwbfBy+6byG+Cu9RuG9sXeAZcgP8DRLAm
-         0Jgtr1Q73LRZGzdvA4IjEr/2lpZPykx9wTYO418U=
-Date:   Wed, 07 Jul 2021 18:10:15 -0700
+        b=pcsyCqU9wUDS7wysXo9Ek0E64q3//0mcuGjdqGzKHtxWA62xnpddmrG8m4NWsDxaK
+         b1gH3U+ncjakdvdAjyDX9M+1AO6ylzaHWH5TWJHxhnEHJuvk1YUMqCnJlTCL31RAp9
+         vHVq5y+gcMC8HllQzWXm8r8Z/FpH1/UMUSuHQwEQ=
+Date:   Wed, 07 Jul 2021 18:10:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
         christophe.leroy@csgroup.eu, hughd@google.com,
         joel@joelfernandes.org, kaleshsingh@google.com,
         kirill.shutemov@linux.intel.com, kirill@shutemov.name,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        npiggin@gmail.com, sfr@canb.auug.org.au, stable@vger.kernel.org,
+        npiggin@gmail.com, sfr@canb.auug.org.au,
         torvalds@linux-foundation.org
-Subject:  [patch 51/54] mm/mremap: hold the rmap lock in write mode
- when moving page table entries.
-Message-ID: <20210708011015.CbAeaXmtO%akpm@linux-foundation.org>
+Subject:  [patch 52/54] mm/mremap: allow arch runtime override
+Message-ID: <20210708011018.iDakIn-fn%akpm@linux-foundation.org>
 In-Reply-To: <20210707175950.eceddb86c6c555555d4730e2@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,93 +47,98 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/mremap: hold the rmap lock in write mode when moving page table entries.
+Subject: mm/mremap: allow arch runtime override
 
-To avoid a race between rmap walk and mremap, mremap does
-take_rmap_locks().  The lock was taken to ensure that rmap walk don't miss
-a page table entry due to PTE moves via move_pagetables().  The kernel
-does further optimization of this lock such that if we are going to find
-the newly added vma after the old vma, the rmap lock is not taken.  This
-is because rmap walk would find the vmas in the same order and if we don't
-find the page table attached to older vma we would find it with the new
-vma which we would iterate later.
+Patch series "Speedup mremap on ppc64", v8.
 
-As explained in commit eb66ae030829 ("mremap: properly flush TLB before
-releasing the page") mremap is special in that it doesn't take ownership
-of the page.  The optimized version for PUD/PMD aligned mremap also
-doesn't hold the ptl lock.  This can result in stale TLB entries as show
-below.
+This patchset enables MOVE_PMD/MOVE_PUD support on power.  This requires
+the platform to support updating higher-level page tables without updating
+page table entries.  This also needs to invalidate the Page Walk Cache on
+architecture supporting the same.
 
-This patch updates the rmap locking requirement in mremap to handle the race condition
-explained below with optimized mremap::
 
-Optmized PMD move
+This patch (of 3):
 
-    CPU 1                           CPU 2                                   CPU 3
+Architectures like ppc64 support faster mremap only with radix
+translation.  Hence allow a runtime check w.r.t support for fast mremap.
 
-    mremap(old_addr, new_addr)      page_shrinker/try_to_unmap_one
-
-    mmap_write_lock_killable()
-
-                                    addr = old_addr
-                                    lock(pte_ptl)
-    lock(pmd_ptl)
-    pmd = *old_pmd
-    pmd_clear(old_pmd)
-    flush_tlb_range(old_addr)
-
-    *new_pmd = pmd
-                                                                            *new_addr = 10; and fills
-                                                                            TLB with new addr
-                                                                            and old pfn
-
-    unlock(pmd_ptl)
-                                    ptep_clear_flush()
-                                    old pfn is free.
-                                                                            Stale TLB entry
-
-Optimized PUD move also suffers from a similar race.  Both the above race
-condition can be fixed if we force mremap path to take rmap lock.
-
-Link: https://lkml.kernel.org/r/20210616045239.370802-7-aneesh.kumar@linux.ibm.com
-Fixes: 2c91bd4a4e2e ("mm: speed up mremap by 20x on large regions")
-Fixes: c49dd3401802 ("mm: speedup mremap on 1GB or larger regions")
-Link: https://lore.kernel.org/linux-mm/CAHk-=wgXVR04eBNtxQfevontWnP6FDm+oj5vauQXP3S-huwbPw@mail.gmail.com
+Link: https://lkml.kernel.org/r/20210616045735.374532-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20210616045735.374532-2-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/powerpc/include/asm/tlb.h |    6 ++++++
+ mm/mremap.c                    |   15 ++++++++++++++-
+ 2 files changed, 20 insertions(+), 1 deletion(-)
 
---- a/mm/mremap.c~mm-mremap-hold-the-rmap-lock-in-write-mode-when-moving-page-table-entries
+--- a/arch/powerpc/include/asm/tlb.h~mm-mremap-allow-arch-runtime-override
++++ a/arch/powerpc/include/asm/tlb.h
+@@ -83,5 +83,11 @@ static inline int mm_is_thread_local(str
+ }
+ #endif
+ 
++#define arch_supports_page_table_move arch_supports_page_table_move
++static inline bool arch_supports_page_table_move(void)
++{
++	return radix_enabled();
++}
++
+ #endif /* __KERNEL__ */
+ #endif /* __ASM_POWERPC_TLB_H */
+--- a/mm/mremap.c~mm-mremap-allow-arch-runtime-override
 +++ a/mm/mremap.c
-@@ -504,7 +504,7 @@ unsigned long move_page_tables(struct vm
- 		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PUD) && extent == PUD_SIZE) {
+@@ -25,7 +25,7 @@
+ #include <linux/userfaultfd_k.h>
  
- 			if (move_pgt_entry(NORMAL_PUD, vma, old_addr, new_addr,
--					   old_pud, new_pud, need_rmap_locks))
-+					   old_pud, new_pud, true))
- 				continue;
- 		}
+ #include <asm/cacheflush.h>
+-#include <asm/tlbflush.h>
++#include <asm/tlb.h>
+ #include <asm/pgalloc.h>
  
-@@ -531,7 +531,7 @@ unsigned long move_page_tables(struct vm
- 			 * moving at the PMD level if possible.
- 			 */
- 			if (move_pgt_entry(NORMAL_PMD, vma, old_addr, new_addr,
--					   old_pmd, new_pmd, need_rmap_locks))
-+					   old_pmd, new_pmd, true))
- 				continue;
- 		}
+ #include "internal.h"
+@@ -210,6 +210,15 @@ static void move_ptes(struct vm_area_str
+ 		drop_rmap_locks(vma);
+ }
  
++#ifndef arch_supports_page_table_move
++#define arch_supports_page_table_move arch_supports_page_table_move
++static inline bool arch_supports_page_table_move(void)
++{
++	return IS_ENABLED(CONFIG_HAVE_MOVE_PMD) ||
++		IS_ENABLED(CONFIG_HAVE_MOVE_PUD);
++}
++#endif
++
+ #ifdef CONFIG_HAVE_MOVE_PMD
+ static bool move_normal_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+ 		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
+@@ -218,6 +227,8 @@ static bool move_normal_pmd(struct vm_ar
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pmd_t pmd;
+ 
++	if (!arch_supports_page_table_move())
++		return false;
+ 	/*
+ 	 * The destination pmd shouldn't be established, free_pgtables()
+ 	 * should have released it.
+@@ -284,6 +295,8 @@ static bool move_normal_pud(struct vm_ar
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	pud_t pud;
+ 
++	if (!arch_supports_page_table_move())
++		return false;
+ 	/*
+ 	 * The destination pud shouldn't be established, free_pgtables()
+ 	 * should have released it.
 _
