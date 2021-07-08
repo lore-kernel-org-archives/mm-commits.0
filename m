@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51089C07E9E
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:09:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA6EBC07E95
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:09:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3C7E861183
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:09:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7DA7611BF
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:09:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230160AbhGHBMG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 21:12:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52282 "EHLO mail.kernel.org"
+        id S230164AbhGHBML (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 21:12:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52360 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230111AbhGHBMG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 21:12:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FE9361CE5;
-        Thu,  8 Jul 2021 01:09:24 +0000 (UTC)
+        id S230148AbhGHBMK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 21:12:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 068B160BD3;
+        Thu,  8 Jul 2021 01:09:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625706565;
-        bh=8kv2hzE/fWrdmYuWwLDL5wXejabyutqrDf6TB+ofz18=;
+        s=korg; t=1625706568;
+        bh=DXvXhYbO3HjQDt85yKqre7Otf62nPSqrdc2J57kZmis=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=RZ6EIjGBpLk8NnzMzWzPVYdqw3CKFUPyc0EegGNDcd4krKbanlv3YktYucVqbbJ0s
-         HpIHebD3yDloMQNzHzQ4acRK0QHQyIn/20YtYbeXa6LrUWQz8+Zq3ioh+DoAa5rfuw
-         2Q/r5/2Mji3Gbu4DTGLkQEBOyqvgtRdqfOGq43YQ=
-Date:   Wed, 07 Jul 2021 18:09:24 -0700
+        b=NjijErjRypEe5n77HIl5ShPglHMT22hxySEQHa7OsQtt2yw18GhL7U41RvZHUyG96
+         nAp2MMFC6yBcpmeuUip/pdKO3vlIisXe4f6/JluCZ9ONbYINMDAB3lRL7jXX2xuyHz
+         hZGzgx1nfAHDt9/KEIE0f20WDph8CRYgsIFwU0yQ=
+Date:   Wed, 07 Jul 2021 18:09:27 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
         ast@kernel.org, bhe@redhat.com, bp@alien8.de,
@@ -41,9 +41,9 @@ To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
         swboyd@chromium.org, tglx@linutronix.de,
         torvalds@linux-foundation.org, vgoyal@redhat.com, will@kernel.org,
         willy@infradead.org
-Subject:  [patch 36/54] arm64: stacktrace: use %pSb for backtrace
+Subject:  [patch 37/54] x86/dumpstack: use %pSb/%pBb for backtrace
  printing
-Message-ID: <20210708010924.mkoZjstH1%akpm@linux-foundation.org>
+Message-ID: <20210708010927.q7HSqwnZw%akpm@linux-foundation.org>
 In-Reply-To: <20210707175950.eceddb86c6c555555d4730e2@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -52,19 +52,20 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Stephen Boyd <swboyd@chromium.org>
-Subject: arm64: stacktrace: use %pSb for backtrace printing
+Subject: x86/dumpstack: use %pSb/%pBb for backtrace printing
 
-Let's use the new printk format to print the stacktrace entry when
-printing a backtrace to the kernel logs. This will include any module's
+Let's use the new printk formats to print the stacktrace entries when
+printing a backtrace to the kernel logs.  This will include any module's
 build ID[1] in it so that offline/crash debugging can easily locate the
 debuginfo for a module via something like debuginfod[2].
 
-Link: https://lkml.kernel.org/r/20210511003845.2429846-7-swboyd@chromium.org
+Link: https://lkml.kernel.org/r/20210511003845.2429846-8-swboyd@chromium.org
 Link: https://fedoraproject.org/wiki/Releases/FeatureBuildId [1]
 Link: https://sourceware.org/elfutils/Debuginfod.html [2]
 Signed-off-by: Stephen Boyd <swboyd@chromium.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
 Cc: Jiri Olsa <jolsa@kernel.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Jessica Yu <jeyu@kernel.org>
@@ -75,30 +76,29 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Young <dyoung@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Sasha Levin <sashal@kernel.org>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/stacktrace.c |    2 +-
+ arch/x86/kernel/dumpstack.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/arm64/kernel/stacktrace.c~arm64-stacktrace-use-%psb-for-backtrace-printing
-+++ a/arch/arm64/kernel/stacktrace.c
-@@ -153,7 +153,7 @@ NOKPROBE_SYMBOL(walk_stackframe);
- 
- static void dump_backtrace_entry(unsigned long where, const char *loglvl)
+--- a/arch/x86/kernel/dumpstack.c~x86-dumpstack-use-%psb-%pbb-for-backtrace-printing
++++ a/arch/x86/kernel/dumpstack.c
+@@ -69,7 +69,7 @@ static void printk_stack_address(unsigne
+ 				 const char *log_lvl)
  {
--	printk("%s %pS\n", loglvl, (void *)where);
-+	printk("%s %pSb\n", loglvl, (void *)where);
+ 	touch_nmi_watchdog();
+-	printk("%s %s%pB\n", log_lvl, reliable ? "" : "? ", (void *)address);
++	printk("%s %s%pBb\n", log_lvl, reliable ? "" : "? ", (void *)address);
  }
  
- void dump_backtrace(struct pt_regs *regs, struct task_struct *tsk,
+ static int copy_code(struct pt_regs *regs, u8 *buf, unsigned long src,
 _
