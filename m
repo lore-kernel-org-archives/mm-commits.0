@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3D92C07E9B
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:09:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E022C11F66
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:09:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA10361CE3
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:09:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7B80E61CD9
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:09:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230225AbhGHBLo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 21:11:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51706 "EHLO mail.kernel.org"
+        id S230166AbhGHBLq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 21:11:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230106AbhGHBLm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 21:11:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0D3C661CD6;
-        Thu,  8 Jul 2021 01:09:01 +0000 (UTC)
+        id S230222AbhGHBLp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 21:11:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CE4B661CD3;
+        Thu,  8 Jul 2021 01:09:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625706541;
-        bh=ASA6qRqYGj1xIUcbx38QmlfwXgtsfPSIOIk2a25V7y4=;
+        s=korg; t=1625706544;
+        bh=RLTuwmjG0Van34CYjZWL9fGqJSOQhfMV//gUTP/TH1M=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=EYouGAY2d9oUUb8elLT9eBLYxaLpsPCMoc3ksGF3omYNSTWRxnP0LbMjNaEUhTJAm
-         g/d6kGfnBlszOJ+MUzsOD9okTALZvrTBlD5/UX4nlHbBH8C22akmOEy8lg7va1lYEa
-         X+iuQWoPg8UJtzzWND4dY2N+piPvsUX7lSJpHh60=
-Date:   Wed, 07 Jul 2021 18:09:00 -0700
+        b=VCxAQ+HBiBVZj0QTXhwoLiaD4OkjBw9iVdvG4TlQTp6+JfvP8XjbOPl0799REdzEH
+         LEPuPCjlJF7sjbTW4WClAFG6VGLbRe+u6HazclmGnHA5OBfLJGG9z4wzRcXCADg2gE
+         bMFPfPBaYuzd14Pod7PeMiOk+nUGg7AAWB6P2XpY=
+Date:   Wed, 07 Jul 2021 18:09:03 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dalias@libc.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        wangkefeng.wang@huawei.com, ysato@users.sourceforge.jp
-Subject:  [patch 29/54] sh: convert to setup_initial_init_mm()
-Message-ID: <20210708010900.YBg6LUCjA%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, wangkefeng.wang@huawei.com
+Subject:  [patch 30/54] x86: convert to setup_initial_init_mm()
+Message-ID: <20210708010903.oR_PTO5mt%akpm@linux-foundation.org>
 In-Reply-To: <20210707175950.eceddb86c6c555555d4730e2@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,32 +43,32 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: sh: convert to setup_initial_init_mm()
+Subject: x86: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210608083418.137226-15-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210608083418.137226-16-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Rich Felker <dalias@libc.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/kernel/setup.c |    5 +----
+ arch/x86/kernel/setup.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/sh/kernel/setup.c~sh-convert-to-setup_initial_init_mm
-+++ a/arch/sh/kernel/setup.c
-@@ -294,10 +294,7 @@ void __init setup_arch(char **cmdline_p)
+--- a/arch/x86/kernel/setup.c~x86-convert-to-setup_initial_init_mm
++++ a/arch/x86/kernel/setup.c
+@@ -847,10 +847,7 @@ void __init setup_arch(char **cmdline_p)
  
- 	if (!MOUNT_ROOT_RDONLY)
+ 	if (!boot_params.hdr.root_flags)
  		root_mountflags &= ~MS_RDONLY;
 -	init_mm.start_code = (unsigned long) _text;
 -	init_mm.end_code = (unsigned long) _etext;
 -	init_mm.end_data = (unsigned long) _edata;
--	init_mm.brk = (unsigned long) _end;
-+	setup_initial_init_mm(_text, _etext, _edata, _end);
+-	init_mm.brk = _brk_end;
++	setup_initial_init_mm(_text, _etext, _edata, (void *)_brk_end);
  
- 	code_resource.start = virt_to_phys(_text);
- 	code_resource.end = virt_to_phys(_etext)-1;
+ 	code_resource.start = __pa_symbol(_text);
+ 	code_resource.end = __pa_symbol(_etext)-1;
 _
