@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B702C07E95
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:29:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A55AC07E95
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:31:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C5D561CCB
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:29:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33CA761CB9
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:31:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230038AbhGHAca (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 20:32:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39962 "EHLO mail.kernel.org"
+        id S230019AbhGHAd4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 20:33:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40376 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230000AbhGHAca (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 20:32:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 14EC061C91;
-        Thu,  8 Jul 2021 00:29:49 +0000 (UTC)
+        id S230000AbhGHAd4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 20:33:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7CA3061C91;
+        Thu,  8 Jul 2021 00:31:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625704189;
-        bh=sjbY13vAgwAKVXJRIiO9+eNG5N7NL+vWIcimPGdnMOA=;
+        s=korg; t=1625704274;
+        bh=vSUwj4AdA3yl+icLMJLPAOLAOPOa8iEQaSAicP/BSOo=;
         h=Date:From:To:Subject:From;
-        b=l+3PvgOM1cgmkEt6ohKCfcVp6vJGM7ey7jTY+JVBT8wjj5AZAOkv0fhj7EE9qA3LV
-         93DZ42ox8pFKRGvFHUpHgs6iQtH7XGtP5aY6n3UtNp70idESwaWta7TqUzlSV9ccWy
-         ZXsl1juAgZB4Aq57jXeJ9d/FuH2nsaZwRq34A+Fw=
-Date:   Wed, 07 Jul 2021 17:29:48 -0700
+        b=o6F4ATfl7CYeNGUbOnkfxR6Q0LIi09fJbPyS7VErf6lc6GPspDGdcJCkKnHVj6Bh/
+         GGJi3u5kv3kzYtt5Ygc/KNLuIDyz9seeukR5VKudtKm53n5i52h7QvUG8DTk/S8pBo
+         AyJg3+7qp2QfIh93vv6LjaGi2P1TlIwj9MNJWMsQ=
+Date:   Wed, 07 Jul 2021 17:31:13 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, paulmck@kernel.org,
-        oliver.sang@intel.com, vbabka@suse.cz
+To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        akpm@linux-foundation.org
 Subject:  [folded-merged]
- mm-slub-use-stackdepot-to-save-stack-trace-in-objects-fix-2.patch removed
- from -mm tree
-Message-ID: <20210708002948.wi-VD%akpm@linux-foundation.org>
+ mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
+ removed from -mm tree
+Message-ID: <20210708003113.Am52V%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,52 +44,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: use stackdepot to save stack trace in objects-fix
+     Subject: mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix
 has been removed from the -mm tree.  Its filename was
-     mm-slub-use-stackdepot-to-save-stack-trace-in-objects-fix-2.patch
+     mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix.patch
 
-This patch was dropped because it was folded into mm-slub-use-stackdepot-to-save-stack-trace-in-objects.patch
+This patch was dropped because it was folded into mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/slub: use stackdepot to save stack trace in objects-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix
 
-Paul reports [1] lockdep splat HARDIRQ-safe -> HARDIRQ-unsafe lock order
-detected.  Kernel test robot reports [2]
-BUG:sleeping_function_called_from_invalid_context_at_mm/page_alloc.c
+suppress Kconfig whine
 
-The stack trace might be saved from contexts where we can't block so GFP_KERNEL
-is unsafe. So use GFP_NOWAIT. Under memory pressure we might thus fail to save
-some new unique stack, but that should be extremely rare.
-
-[1] https://lore.kernel.org/linux-mm/20210515204622.GA2672367@paulmck-ThinkPad-P17-Gen-1/
-[2] https://lore.kernel.org/linux-mm/20210516144152.GA25903@xsang-OptiPlex-9020/
-
-Link: https://lkml.kernel.org/r/20210516195150.26740-1-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Paul E. McKenney <paulmck@kernel.org>
-Tested-by: Paul E. McKenney <paulmck@kernel.org>
-Reported-by: kernel test robot <oliver.sang@intel.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/slub.c~mm-slub-use-stackdepot-to-save-stack-trace-in-objects-fix-2
-+++ a/mm/slub.c
-@@ -646,7 +646,7 @@ static void set_track(struct kmem_cache
+--- a/mm/Kconfig~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas-fix
++++ a/mm/Kconfig
+@@ -888,6 +888,5 @@ config IO_MAPPING
  
- 	if (addr) {
- #ifdef CONFIG_STACKDEPOT
--		p->handle = save_stack_depot_trace(GFP_KERNEL);
-+		p->handle = save_stack_depot_trace(GFP_NOWAIT);
- #endif
- 		p->addr = addr;
- 		p->cpu = smp_processor_id();
+ config SECRETMEM
+ 	def_bool ARCH_HAS_SET_DIRECT_MAP && !EMBEDDED
+-	select STRICT_DEVMEM
+ 
+ endmenu
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-slub-use-stackdepot-to-save-stack-trace-in-objects.patch
+mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces-fix-fix.patch
+mm.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
