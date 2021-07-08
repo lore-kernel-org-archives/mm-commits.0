@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22E89C07E95
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:36:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 108DDC07E95
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:38:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B9EE61CD0
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:36:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDFE261CD0
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:38:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230194AbhGHAit (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 20:38:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41716 "EHLO mail.kernel.org"
+        id S230038AbhGHAkm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 20:40:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42024 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230115AbhGHAis (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 20:38:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EB15361CCC;
-        Thu,  8 Jul 2021 00:36:06 +0000 (UTC)
+        id S230019AbhGHAkm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 20:40:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2BC4E61CCC;
+        Thu,  8 Jul 2021 00:38:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625704567;
-        bh=dy1baU88GF2GrJ0RcA/U6Qrxy35TNk2+gCSOCzD3KLE=;
+        s=korg; t=1625704680;
+        bh=LKdlC1gqh7sFCaHzfOo8APULVgOMeJZxXjt1its0xIU=;
         h=Date:From:To:Subject:From;
-        b=bhgKlXfsZH54u8i4d/oxeqj/q1N87DOM+AWxjgle65jc5zn4xtEO6quraiFDVPaao
-         Lcxp9yHiVZP1tmiFDfVyleAqXJJk47+m7HK6QbRg+k/oonYgj/1Crl8gVPWpNLlHHS
-         A5ixjNsXMd3D6i1lEctNrDGxQvQDD80dlcrGt/CQ=
-Date:   Wed, 07 Jul 2021 17:36:05 -0700
+        b=OqeIzWhjmgFGb6GcxbZLnpK81oJ0Yi9hTZ3PMjsgy/lrHPHs5BGfB290S7TaKFL9M
+         1v9JmBaRdQSE/LcJ3j2zn1qE4bXRQs92fVNNkvAa3MGzthHhCEbV0lZKh9Z8IwCVr0
+         eTHqDpGKsxzaY1P178SdpfuS+N6BwRe3d0JtjB9I=
+Date:   Wed, 07 Jul 2021 17:37:59 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, aneesh.kumar@linux.ibm.com
+To:     mm-commits@vger.kernel.org, lkp@intel.com, swboyd@chromium.org
 Subject:  [folded-merged]
- mm-mremap-convert-huge-pud-move-to-separate-helper-fix.patch removed from -mm
- tree
-Message-ID: <20210708003605.y7bzS%akpm@linux-foundation.org>
+ buildid-stash-away-kernels-build-id-on-init-fix.patch removed from -mm tree
+Message-ID: <20210708003759.W5a7B%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,58 +42,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: fix build failure with clang-10
+     Subject: buildid-stash-away-kernels-build-id-on-init-fix
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-convert-huge-pud-move-to-separate-helper-fix.patch
+     buildid-stash-away-kernels-build-id-on-init-fix.patch
 
-This patch was dropped because it was folded into mm-mremap-convert-huge-pud-move-to-separate-helper.patch
+This patch was dropped because it was folded into buildid-stash-away-kernels-build-id-on-init.patch
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/mremap: fix build failure with clang-10
+From: Stephen Boyd <swboyd@chromium.org>
+Subject: buildid-stash-away-kernels-build-id-on-init-fix
 
-x86_64-linux-gnu-ld: mm/mremap.o: in function `move_pgt_entry':
-mremap.c:(.text+0x763): undefined reference to `__compiletime_assert_342'
-make[1]: *** [/builds/linux/Makefile:1252: vmlinux] Error 1
+fix implicit declaration of function 'init_vmlinux_build_id'
 
-This build failure is introduced by commit.
-
-  06b8db69ef5 ("mm/mremap: convert huge PUD move to separate helper")
-
-Link: https://lore.kernel.org/lkml/YMuOSnJsL9qkxweY@archlinux-ax161
-Link: https://lkml.kernel.org/r/20210619134310.89098-1-aneesh.kumar@linux.ibm.com
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Link: https://lkml.kernel.org/r/CAE-0n51UjTbay8N9FXAyE7_aR2+ePrQnKSRJ0gbmRsXtcLBVaw@mail.gmail.com
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ init/main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/mremap.c~mm-mremap-convert-huge-pud-move-to-separate-helper-fix
-+++ a/mm/mremap.c
-@@ -448,7 +448,8 @@ static bool move_pgt_entry(enum pgt_entr
- 				      new_entry);
- 		break;
- 	case HPAGE_PUD:
--		moved = move_huge_pud(vma, old_addr, new_addr, old_entry,
-+		moved = IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
-+			move_huge_pud(vma, old_addr, new_addr, old_entry,
- 				      new_entry);
- 		break;
- 
+--- a/init/main.c~buildid-stash-away-kernels-build-id-on-init-fix
++++ a/init/main.c
+@@ -45,6 +45,7 @@
+ #include <linux/srcu.h>
+ #include <linux/moduleparam.h>
+ #include <linux/kallsyms.h>
++#include <linux/buildid.h>
+ #include <linux/writeback.h>
+ #include <linux/cpu.h>
+ #include <linux/cpuset.h>
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from swboyd@chromium.org are
 
-mm-rename-pud_page_vaddr-to-pud_pgtable-and-make-it-return-pmd_t.patch
-mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t.patch
-selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
-selftest-mremap_test-avoid-crash-with-static-build.patch
-mm-mremap-convert-huge-pud-move-to-separate-helper.patch
-mm-mremap-dont-enable-optimized-pud-move-if-page-table-levels-is-2.patch
-mm-mremap-use-pmd-pud_poplulate-to-update-page-table-entries.patch
-mm-mremap-hold-the-rmap-lock-in-write-mode-when-moving-page-table-entries.patch
-mm-mremap-allow-arch-runtime-override.patch
-powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache.patch
-powerpc-mm-enable-have_move_pmd-support.patch
+buildid-only-consider-gnu-notes-for-build-id-parsing.patch
+buildid-add-api-to-parse-build-id-out-of-buffer.patch
+buildid-stash-away-kernels-build-id-on-init.patch
+dump_stack-add-vmlinux-build-id-to-stack-traces.patch
+module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
+arm64-stacktrace-use-%psb-for-backtrace-printing.patch
+x86-dumpstack-use-%psb-%pbb-for-backtrace-printing.patch
+scripts-decode_stacktracesh-support-debuginfod.patch
+scripts-decode_stacktracesh-silence-stderr-messages-from-addr2line-nm.patch
+scripts-decode_stacktracesh-indicate-auto-can-be-used-for-base-path.patch
+buildid-mark-some-arguments-const.patch
+buildid-fix-kernel-doc-notation.patch
+kdump-use-vmlinux_build_id-to-simplify.patch
 
