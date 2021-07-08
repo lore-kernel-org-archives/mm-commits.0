@@ -7,65 +7,65 @@ X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BE02C07E95
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 03:13:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89016C07E95
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 03:16:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55D3661158
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 03:13:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6768E61964
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 03:16:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230417AbhGHDQV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 23:16:21 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40850 "EHLO
+        id S230249AbhGHDTG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 23:19:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230244AbhGHDQV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jul 2021 23:16:21 -0400
-Received: from mail-lf1-x129.google.com (mail-lf1-x129.google.com [IPv6:2a00:1450:4864:20::129])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A29EC061574
-        for <mm-commits@vger.kernel.org>; Wed,  7 Jul 2021 20:13:39 -0700 (PDT)
-Received: by mail-lf1-x129.google.com with SMTP id p1so10443621lfr.12
-        for <mm-commits@vger.kernel.org>; Wed, 07 Jul 2021 20:13:39 -0700 (PDT)
+        with ESMTP id S230201AbhGHDTG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 7 Jul 2021 23:19:06 -0400
+Received: from mail-ej1-x633.google.com (mail-ej1-x633.google.com [IPv6:2a00:1450:4864:20::633])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CB576C061574
+        for <mm-commits@vger.kernel.org>; Wed,  7 Jul 2021 20:16:23 -0700 (PDT)
+Received: by mail-ej1-x633.google.com with SMTP id gb6so6909779ejc.5
+        for <mm-commits@vger.kernel.org>; Wed, 07 Jul 2021 20:16:23 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=linux-foundation.org; s=google;
         h=mime-version:references:in-reply-to:from:date:message-id:subject:to
          :cc;
-        bh=O55ZQycEnXNCbtVr7Ti0xhqPfnDuHqlpxZ+e4ib1qa0=;
-        b=ATYyFZVgIXYRxSSxG9UhCSlgfGO5Y8qN8rbztQQV9mVx0LF+/XIt+7Wehpnw8ybvuz
-         BPz0EA991MUrEdapqxxqTVfjfFhIgiaRpjySsCUmIvoPEPu3FhwmGEzFxs3RpIag/RC+
-         +aC7Fauzc4YkGO00TiOBXlZhI/LxhHBDOD5U0=
+        bh=iQkhgc4vWZYU2b8dnDdTcTWRP8gpSBH76oPx0kv632A=;
+        b=F9UqpMaSRPcazxsBYAKZF5tuF0hzcTaNzn6s+tK/ajt0I7feuGlUx58lZf1U4bH/Uj
+         gqR1Ly6OZmaZHq/nWOqzepVGMCcflsGQ7r+7fBVsHDvRF4xpkxSOFjUD8EwHitbKWpB8
+         KhKUSuFzewh5PD9P41VRWbCNFK4geAWvDqznU=
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
         h=x-gm-message-state:mime-version:references:in-reply-to:from:date
          :message-id:subject:to:cc;
-        bh=O55ZQycEnXNCbtVr7Ti0xhqPfnDuHqlpxZ+e4ib1qa0=;
-        b=MFaugpuhPXgbLhsy0e3ElUaDUy0ApOgt0dv5W4oQlEsW8dKVgJd1+Ny4IHvOsEOiQc
-         9oEI6w/521z3MN7VZIPzS4sKV+tn2pL7C/N0MZr0QVZ6Ahp3VvatzgC3KmyVRkJOoHqX
-         77xDktMeGqySzbFKV9duf7oB0tKz23vZPeSz7Jl+255ktmd2MBaY0Z3J7dqc45RwV/nK
-         TDIdepxdmQn6dCSnv/DEAEnj8NwosmzqOC/GHMf4LB2pAzog88yx5C2A/uGyKul6QMjc
-         DfhJHfQbOT+JGom2kRzqnkxek+8Gd8oHXUT5AH0oWrBRgM9QMzIu2JqDYbn0zpXqAZLu
-         zioQ==
-X-Gm-Message-State: AOAM533odt+M/3Y3q6Bj5Ll1Pp877bOE+zXfRyhDWp83Yj3bqamTw4Zv
-        ZHFCn+leF0IGvl9478wsjFEIYHLXKjyFyPb1zE4=
-X-Google-Smtp-Source: ABdhPJzzUUdtyWgnLxfI5Ddr1UP5yhAvurUls3q+AHGD0lCyGrWKQCee+SaERaQzWYDZ3CUb4pZ/Aw==
-X-Received: by 2002:a05:6512:3c83:: with SMTP id h3mr16718096lfv.387.1625714017477;
-        Wed, 07 Jul 2021 20:13:37 -0700 (PDT)
-Received: from mail-lf1-f46.google.com (mail-lf1-f46.google.com. [209.85.167.46])
-        by smtp.gmail.com with ESMTPSA id m7sm94072ljh.118.2021.07.07.20.13.37
+        bh=iQkhgc4vWZYU2b8dnDdTcTWRP8gpSBH76oPx0kv632A=;
+        b=TuaXxcEBlUKl8N30hIPlF2q5SsFIatHFuze4dEP44ap4Qz3tfYBHopH+qiDTBj3e5/
+         BEdAG+ZtLPtH2P9ugeoDzy8bS/snhZhGDjGZ7bn2VyPQUEVj0ZE6SD53mAdR0yFZQTz4
+         X20BuQPwzAOe1eOO9hSleV2aiRyVS4S4/7hQPMWCF+njxXhEo0ryEXIOYeOxis14H0Xp
+         lzHOkjn75Dln18pdRivm1gXqcl141p6oDqaGbbrbwgabYmM/c+dGYKAS5z7LRct7OfMp
+         92O8H390o074K/p+0DJJJZWN0Y9VpydzGOKBWGw3b/IiWbC4WvQUOTjtPPL/dW3vrtgQ
+         77jw==
+X-Gm-Message-State: AOAM5312a2fZA6fQCU+oKr6MdIv3aIhBRCupWDWa52jIZLikGc6LJp57
+        aNAGWtQu0fgoFBAiqzwmoC0JBmCW4PfJY+OY9bA=
+X-Google-Smtp-Source: ABdhPJzAtfOkL00lfWeYDdG3gxe1uuQVI8s/yG8/aibIEdX8MQSCx1Q139Q6WIU5502qy59tv7WMnw==
+X-Received: by 2002:a17:907:20b7:: with SMTP id pw23mr8894162ejb.198.1625714182231;
+        Wed, 07 Jul 2021 20:16:22 -0700 (PDT)
+Received: from mail-wr1-f45.google.com (mail-wr1-f45.google.com. [209.85.221.45])
+        by smtp.gmail.com with ESMTPSA id d13sm411846edz.53.2021.07.07.20.16.20
         for <mm-commits@vger.kernel.org>
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 07 Jul 2021 20:13:37 -0700 (PDT)
-Received: by mail-lf1-f46.google.com with SMTP id n14so10465148lfu.8
-        for <mm-commits@vger.kernel.org>; Wed, 07 Jul 2021 20:13:37 -0700 (PDT)
-X-Received: by 2002:a05:6512:374b:: with SMTP id a11mr21266526lfs.377.1625714006574;
- Wed, 07 Jul 2021 20:13:26 -0700 (PDT)
+        Wed, 07 Jul 2021 20:16:21 -0700 (PDT)
+Received: by mail-wr1-f45.google.com with SMTP id q17so5565310wrv.2
+        for <mm-commits@vger.kernel.org>; Wed, 07 Jul 2021 20:16:20 -0700 (PDT)
+X-Received: by 2002:a2e:b55b:: with SMTP id a27mr11302203ljn.251.1625714169485;
+ Wed, 07 Jul 2021 20:16:09 -0700 (PDT)
 MIME-Version: 1.0
-References: <20210707175950.eceddb86c6c555555d4730e2@linux-foundation.org> <20210708010803.i6RiDHM3L%akpm@linux-foundation.org>
-In-Reply-To: <20210708010803.i6RiDHM3L%akpm@linux-foundation.org>
+References: <20210707175950.eceddb86c6c555555d4730e2@linux-foundation.org> <20210708010807.hHILhs811%akpm@linux-foundation.org>
+In-Reply-To: <20210708010807.hHILhs811%akpm@linux-foundation.org>
 From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed, 7 Jul 2021 20:13:10 -0700
-X-Gmail-Original-Message-ID: <CAHk-=whWxnQW=2Rx8uj01nGMGK3oOS9fJZCe6atVP7and5DkWg@mail.gmail.com>
-Message-ID: <CAHk-=whWxnQW=2Rx8uj01nGMGK3oOS9fJZCe6atVP7and5DkWg@mail.gmail.com>
-Subject: Re: [patch 11/54] mm: introduce memfd_secret system call to create
- "secret" memory areas
+Date:   Wed, 7 Jul 2021 20:15:53 -0700
+X-Gmail-Original-Message-ID: <CAHk-=whwj1JGnGChkRyzbY4BBOvDfiv=xKbvMenoC4P2dDP5pw@mail.gmail.com>
+Message-ID: <CAHk-=whwj1JGnGChkRyzbY4BBOvDfiv=xKbvMenoC4P2dDP5pw@mail.gmail.com>
+Subject: Re: [patch 12/54] PM: hibernate: disable when there are active
+ secretmem users
 To:     Andrew Morton <akpm@linux-foundation.org>
 Cc:     Arnd Bergmann <arnd@arndb.de>, Borislav Petkov <bp@alien8.de>,
         Catalin Marinas <catalin.marinas@arm.com>,
@@ -106,25 +106,13 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 On Wed, Jul 7, 2021 at 6:08 PM Andrew Morton <akpm@linux-foundation.org> wrote:
 >
-> From: Mike Rapoport <rppt@linux.ibm.com>
-> Subject: mm: introduce memfd_secret system call to create "secret" memory areas
->
-> Introduce "memfd_secret" system call with the ability to create memory
-> areas visible only in the context of the owning process and not mapped not
-> only to other processes but in the kernel page tables as well.
+> Prevent hibernation whenever there are active secret memory users.
 
-Am I missing something?
+So now anybody can not only use up all memory resources with these
+fake mlock regions, they can also force laptops to run out of battery
+and crash.
 
-From what I can't tell, this must not be enabled for regular users,
-because the secret mapping is effectively mlock'ed into the address
-space.
+Again, maybe I'm missing something, but I didn't see any capability
+checks or anything at all to limit this once it is enabled.
 
-But there does not seem to be any permission checks or any limits, so
-this looks like a trivial way for a bad user to force the kernel to
-run out of memory.
-
-So this looks entirely unacceptable.
-
-Please tell me what I'm not getting...
-
-             Linus
+                    Linus
