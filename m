@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C4CF8C07E95
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:10:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D0549C07E95
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:10:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AF44E61CE4
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:10:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B8DF561CC4
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:10:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230169AbhGHBNB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 21:13:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53308 "EHLO mail.kernel.org"
+        id S230160AbhGHBNE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 21:13:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53358 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230148AbhGHBNA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 21:13:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C025D61CCF;
-        Thu,  8 Jul 2021 01:10:18 +0000 (UTC)
+        id S230148AbhGHBNE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 21:13:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CBFEC61CCC;
+        Thu,  8 Jul 2021 01:10:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625706619;
-        bh=JPlfxG38wBvas8oMbF2vb+Dqy9D6PhgkM/h9WJlpMKY=;
+        s=korg; t=1625706622;
+        bh=pQavm+VUPVhv3eQDCLWLWX+xz6WB2pkDjdPeIA2fLEg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=pcsyCqU9wUDS7wysXo9Ek0E64q3//0mcuGjdqGzKHtxWA62xnpddmrG8m4NWsDxaK
-         b1gH3U+ncjakdvdAjyDX9M+1AO6ylzaHWH5TWJHxhnEHJuvk1YUMqCnJlTCL31RAp9
-         vHVq5y+gcMC8HllQzWXm8r8Z/FpH1/UMUSuHQwEQ=
-Date:   Wed, 07 Jul 2021 18:10:18 -0700
+        b=A171zLo36O4XNIZnWwPVOL2WEJxIQPcr9RR2HhhWYNm/FMq/0fnk/nyz79LVvTZZG
+         sVPXne2BE5pz4wG4cFDoaUH07cD7yReQKLGY7d5lRCxORAcExuIzq2ncnkgk3ZCF9w
+         qtHQo6QqB65A03UwZUUBSUEaKDiU7pxaHr4AFHI0=
+Date:   Wed, 07 Jul 2021 18:10:21 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
         christophe.leroy@csgroup.eu, hughd@google.com,
         joel@joelfernandes.org, kaleshsingh@google.com,
-        kirill.shutemov@linux.intel.com, kirill@shutemov.name,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        npiggin@gmail.com, sfr@canb.auug.org.au,
-        torvalds@linux-foundation.org
-Subject:  [patch 52/54] mm/mremap: allow arch runtime override
-Message-ID: <20210708011018.iDakIn-fn%akpm@linux-foundation.org>
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
+        sfr@canb.auug.org.au, torvalds@linux-foundation.org
+Subject:  [patch 53/54] powerpc/book3s64/mm: update flush_tlb_range
+ to flush page walk cache
+Message-ID: <20210708011021.6PyMtPyxp%akpm@linux-foundation.org>
 In-Reply-To: <20210707175950.eceddb86c6c555555d4730e2@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,98 +47,183 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/mremap: allow arch runtime override
+Subject: powerpc/book3s64/mm: update flush_tlb_range to flush page walk cache
 
-Patch series "Speedup mremap on ppc64", v8.
+flush_tlb_range is special in that we don't specify the page size used for
+the translation.  Hence when flushing TLB we flush the translation cache
+for all possible page sizes.  The kernel also uses the same interface when
+moving page tables around.  Such a move requires us to flush the page walk
+cache.
 
-This patchset enables MOVE_PMD/MOVE_PUD support on power.  This requires
-the platform to support updating higher-level page tables without updating
-page table entries.  This also needs to invalidate the Page Walk Cache on
-architecture supporting the same.
+Instead of adding another interface to force page walk cache flush, update
+flush_tlb_range to flush page walk cache if the range flushed is more than
+the PMD range.  A page table move will always involve an invalidate range
+more than PMD_SIZE.
 
+Running microbenchmark with mprotect and parallel memory access didn't
+show any observable performance impact.
 
-This patch (of 3):
-
-Architectures like ppc64 support faster mremap only with radix
-translation.  Hence allow a runtime check w.r.t support for fast mremap.
-
-Link: https://lkml.kernel.org/r/20210616045735.374532-1-aneesh.kumar@linux.ibm.com
-Link: https://lkml.kernel.org/r/20210616045735.374532-2-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20210616045735.374532-3-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/tlb.h |    6 ++++++
- mm/mremap.c                    |   15 ++++++++++++++-
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ arch/powerpc/include/asm/book3s/64/tlbflush-radix.h |    2 
+ arch/powerpc/mm/book3s64/radix_hugetlbpage.c        |    8 +
+ arch/powerpc/mm/book3s64/radix_tlb.c                |   44 ++++++----
+ 3 files changed, 36 insertions(+), 18 deletions(-)
 
---- a/arch/powerpc/include/asm/tlb.h~mm-mremap-allow-arch-runtime-override
-+++ a/arch/powerpc/include/asm/tlb.h
-@@ -83,5 +83,11 @@ static inline int mm_is_thread_local(str
- }
- #endif
+--- a/arch/powerpc/include/asm/book3s/64/tlbflush-radix.h~powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache
++++ a/arch/powerpc/include/asm/book3s/64/tlbflush-radix.h
+@@ -64,6 +64,8 @@ extern void radix__flush_hugetlb_tlb_ran
+ 					   unsigned long start, unsigned long end);
+ extern void radix__flush_tlb_range_psize(struct mm_struct *mm, unsigned long start,
+ 					 unsigned long end, int psize);
++void radix__flush_tlb_pwc_range_psize(struct mm_struct *mm, unsigned long start,
++				      unsigned long end, int psize);
+ extern void radix__flush_pmd_tlb_range(struct vm_area_struct *vma,
+ 				       unsigned long start, unsigned long end);
+ extern void radix__flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
+--- a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c~powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache
++++ a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c
+@@ -32,7 +32,13 @@ void radix__flush_hugetlb_tlb_range(stru
+ 	struct hstate *hstate = hstate_file(vma->vm_file);
  
-+#define arch_supports_page_table_move arch_supports_page_table_move
-+static inline bool arch_supports_page_table_move(void)
-+{
-+	return radix_enabled();
-+}
-+
- #endif /* __KERNEL__ */
- #endif /* __ASM_POWERPC_TLB_H */
---- a/mm/mremap.c~mm-mremap-allow-arch-runtime-override
-+++ a/mm/mremap.c
-@@ -25,7 +25,7 @@
- #include <linux/userfaultfd_k.h>
- 
- #include <asm/cacheflush.h>
--#include <asm/tlbflush.h>
-+#include <asm/tlb.h>
- #include <asm/pgalloc.h>
- 
- #include "internal.h"
-@@ -210,6 +210,15 @@ static void move_ptes(struct vm_area_str
- 		drop_rmap_locks(vma);
+ 	psize = hstate_get_psize(hstate);
+-	radix__flush_tlb_range_psize(vma->vm_mm, start, end, psize);
++	/*
++	 * Flush PWC even if we get PUD_SIZE hugetlb invalidate to keep this simpler.
++	 */
++	if (end - start >= PUD_SIZE)
++		radix__flush_tlb_pwc_range_psize(vma->vm_mm, start, end, psize);
++	else
++		radix__flush_tlb_range_psize(vma->vm_mm, start, end, psize);
  }
  
-+#ifndef arch_supports_page_table_move
-+#define arch_supports_page_table_move arch_supports_page_table_move
-+static inline bool arch_supports_page_table_move(void)
-+{
-+	return IS_ENABLED(CONFIG_HAVE_MOVE_PMD) ||
-+		IS_ENABLED(CONFIG_HAVE_MOVE_PUD);
-+}
-+#endif
-+
- #ifdef CONFIG_HAVE_MOVE_PMD
- static bool move_normal_pmd(struct vm_area_struct *vma, unsigned long old_addr,
- 		  unsigned long new_addr, pmd_t *old_pmd, pmd_t *new_pmd)
-@@ -218,6 +227,8 @@ static bool move_normal_pmd(struct vm_ar
- 	struct mm_struct *mm = vma->vm_mm;
- 	pmd_t pmd;
+ /*
+--- a/arch/powerpc/mm/book3s64/radix_tlb.c~powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache
++++ a/arch/powerpc/mm/book3s64/radix_tlb.c
+@@ -1111,14 +1111,13 @@ static unsigned long tlb_local_single_pa
  
-+	if (!arch_supports_page_table_move())
-+		return false;
- 	/*
- 	 * The destination pmd shouldn't be established, free_pgtables()
- 	 * should have released it.
-@@ -284,6 +295,8 @@ static bool move_normal_pud(struct vm_ar
- 	struct mm_struct *mm = vma->vm_mm;
- 	pud_t pud;
+ static inline void __radix__flush_tlb_range(struct mm_struct *mm,
+ 					    unsigned long start, unsigned long end)
+-
+ {
+ 	unsigned long pid;
+ 	unsigned int page_shift = mmu_psize_defs[mmu_virtual_psize].shift;
+ 	unsigned long page_size = 1UL << page_shift;
+ 	unsigned long nr_pages = (end - start) >> page_shift;
+ 	bool fullmm = (end == TLB_FLUSH_ALL);
+-	bool flush_pid;
++	bool flush_pid, flush_pwc = false;
+ 	enum tlb_flush_type type;
  
-+	if (!arch_supports_page_table_move())
-+		return false;
- 	/*
- 	 * The destination pud shouldn't be established, free_pgtables()
- 	 * should have released it.
+ 	pid = mm->context.id;
+@@ -1137,8 +1136,16 @@ static inline void __radix__flush_tlb_ra
+ 		flush_pid = nr_pages > tlb_single_page_flush_ceiling;
+ 	else
+ 		flush_pid = nr_pages > tlb_local_single_page_flush_ceiling;
++	/*
++	 * full pid flush already does the PWC flush. if it is not full pid
++	 * flush check the range is more than PMD and force a pwc flush
++	 * mremap() depends on this behaviour.
++	 */
++	if (!flush_pid && (end - start) >= PMD_SIZE)
++		flush_pwc = true;
+ 
+ 	if (!mmu_has_feature(MMU_FTR_GTSE) && type == FLUSH_TYPE_GLOBAL) {
++		unsigned long type = H_RPTI_TYPE_TLB;
+ 		unsigned long tgt = H_RPTI_TARGET_CMMU;
+ 		unsigned long pg_sizes = psize_to_rpti_pgsize(mmu_virtual_psize);
+ 
+@@ -1146,19 +1153,20 @@ static inline void __radix__flush_tlb_ra
+ 			pg_sizes |= psize_to_rpti_pgsize(MMU_PAGE_2M);
+ 		if (atomic_read(&mm->context.copros) > 0)
+ 			tgt |= H_RPTI_TARGET_NMMU;
+-		pseries_rpt_invalidate(pid, tgt, H_RPTI_TYPE_TLB, pg_sizes,
+-				       start, end);
++		if (flush_pwc)
++			type |= H_RPTI_TYPE_PWC;
++		pseries_rpt_invalidate(pid, tgt, type, pg_sizes, start, end);
+ 	} else if (flush_pid) {
++		/*
++		 * We are now flushing a range larger than PMD size force a RIC_FLUSH_ALL
++		 */
+ 		if (type == FLUSH_TYPE_LOCAL) {
+-			_tlbiel_pid(pid, RIC_FLUSH_TLB);
++			_tlbiel_pid(pid, RIC_FLUSH_ALL);
+ 		} else {
+ 			if (cputlb_use_tlbie()) {
+-				if (mm_needs_flush_escalation(mm))
+-					_tlbie_pid(pid, RIC_FLUSH_ALL);
+-				else
+-					_tlbie_pid(pid, RIC_FLUSH_TLB);
++				_tlbie_pid(pid, RIC_FLUSH_ALL);
+ 			} else {
+-				_tlbiel_pid_multicast(mm, pid, RIC_FLUSH_TLB);
++				_tlbiel_pid_multicast(mm, pid, RIC_FLUSH_ALL);
+ 			}
+ 		}
+ 	} else {
+@@ -1174,6 +1182,9 @@ static inline void __radix__flush_tlb_ra
+ 
+ 		if (type == FLUSH_TYPE_LOCAL) {
+ 			asm volatile("ptesync": : :"memory");
++			if (flush_pwc)
++				/* For PWC, only one flush is needed */
++				__tlbiel_pid(pid, 0, RIC_FLUSH_PWC);
+ 			__tlbiel_va_range(start, end, pid, page_size, mmu_virtual_psize);
+ 			if (hflush)
+ 				__tlbiel_va_range(hstart, hend, pid,
+@@ -1181,6 +1192,8 @@ static inline void __radix__flush_tlb_ra
+ 			ppc_after_tlbiel_barrier();
+ 		} else if (cputlb_use_tlbie()) {
+ 			asm volatile("ptesync": : :"memory");
++			if (flush_pwc)
++				__tlbie_pid(pid, RIC_FLUSH_PWC);
+ 			__tlbie_va_range(start, end, pid, page_size, mmu_virtual_psize);
+ 			if (hflush)
+ 				__tlbie_va_range(hstart, hend, pid,
+@@ -1188,10 +1201,10 @@ static inline void __radix__flush_tlb_ra
+ 			asm volatile("eieio; tlbsync; ptesync": : :"memory");
+ 		} else {
+ 			_tlbiel_va_range_multicast(mm,
+-					start, end, pid, page_size, mmu_virtual_psize, false);
++					start, end, pid, page_size, mmu_virtual_psize, flush_pwc);
+ 			if (hflush)
+ 				_tlbiel_va_range_multicast(mm,
+-					hstart, hend, pid, PMD_SIZE, MMU_PAGE_2M, false);
++					hstart, hend, pid, PMD_SIZE, MMU_PAGE_2M, flush_pwc);
+ 		}
+ 	}
+ out:
+@@ -1265,9 +1278,6 @@ void radix__flush_all_lpid_guest(unsigne
+ 	_tlbie_lpid_guest(lpid, RIC_FLUSH_ALL);
+ }
+ 
+-static void radix__flush_tlb_pwc_range_psize(struct mm_struct *mm, unsigned long start,
+-				  unsigned long end, int psize);
+-
+ void radix__tlb_flush(struct mmu_gather *tlb)
+ {
+ 	int psize = 0;
+@@ -1374,8 +1384,8 @@ void radix__flush_tlb_range_psize(struct
+ 	return __radix__flush_tlb_range_psize(mm, start, end, psize, false);
+ }
+ 
+-static void radix__flush_tlb_pwc_range_psize(struct mm_struct *mm, unsigned long start,
+-				  unsigned long end, int psize)
++void radix__flush_tlb_pwc_range_psize(struct mm_struct *mm, unsigned long start,
++				      unsigned long end, int psize)
+ {
+ 	__radix__flush_tlb_range_psize(mm, start, end, psize, true);
+ }
 _
