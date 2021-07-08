@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-13.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 920CFC07E95
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:08:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12BA2C11F67
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:08:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F1AF61CD3
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:08:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EE8C661CCF
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:08:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230160AbhGHBK6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 21:10:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50926 "EHLO mail.kernel.org"
+        id S230166AbhGHBKq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 21:10:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50678 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230111AbhGHBK6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 21:10:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D55B461CC4;
-        Thu,  8 Jul 2021 01:08:15 +0000 (UTC)
+        id S230111AbhGHBKq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 21:10:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 625E961CD1;
+        Thu,  8 Jul 2021 01:08:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625706496;
-        bh=cjganBKKWhRSk21+TPYBzWtUoD78xXYkG3+049UM/bE=;
+        s=korg; t=1625706484;
+        bh=U6cRZy2IHp9aBUC4n2rhaRMnP6ptY6peNS/lu1sCQtA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=DCSlyfemAdcgcVaBr3ePmc7h508iXAYY84B4leVkQHKs5r8RsqHOFA9afBaNhxdZ4
-         zHA7RevyVOAVGSHKldgvIkIGqqqJUu/KESFEcP3ICIBxJb37UvX0Y0uUpqgyIwUDAn
-         T7N5MSXF2G/z1txLN+nhj8EOr9V72iVVCFne6LOE=
-Date:   Wed, 07 Jul 2021 18:08:15 -0700
+        b=bKFjqlTZAfx0UvRldmVmPSjx9mHIRuENDBUbkbMcDg+nQQddlcFsB7UsYkz590Nlq
+         iW4bxMbXnbNqP0Ha++Ui1qP7qu8QUD2e8O0xtprH70wE6r+EVf/CoLQ00aWqBNz07u
+         yVAtYdqQeK7CHV8G/5VBLs+cnKyJRi7VbxWej3Lo=
+Date:   Wed, 07 Jul 2021 18:08:03 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, arnd@arndb.de, bp@alien8.de,
         catalin.marinas@arm.com, cl@linux.com, dan.j.williams@intel.com,
@@ -44,9 +44,9 @@ To:     akpm@linux-foundation.org, arnd@arndb.de, bp@alien8.de,
         rppt@linux.ibm.com, shakeelb@google.com, shuah@kernel.org,
         tglx@linutronix.de, torvalds@linux-foundation.org, tycho@tycho.ws,
         viro@zeniv.linux.org.uk, will@kernel.org, willy@infradead.org
-Subject:  [patch 14/54] secretmem: test: add basic selftest for
- memfd_secret(2)
-Message-ID: <20210708010815.GLLeyFgrp%akpm@linux-foundation.org>
+Subject:  [patch 11/54] mm: introduce memfd_secret system call to
+ create "secret" memory areas
+Message-ID: <20210708010803.i6RiDHM3L%akpm@linux-foundation.org>
 In-Reply-To: <20210707175950.eceddb86c6c555555d4730e2@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,15 +55,123 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: secretmem: test: add basic selftest for memfd_secret(2)
+Subject: mm: introduce memfd_secret system call to create "secret" memory areas
 
-The test verifies that file descriptor created with memfd_secret does not
-allow read/write operations, that secret memory mappings respect
-RLIMIT_MEMLOCK and that remote accesses with process_vm_read() and
-ptrace() to the secret memory fail.
+Introduce "memfd_secret" system call with the ability to create memory
+areas visible only in the context of the owning process and not mapped not
+only to other processes but in the kernel page tables as well.
 
-Link: https://lkml.kernel.org/r/20210518072034.31572-8-rppt@kernel.org
+The secretmem feature is off by default and the user must explicitly
+enable it at the boot time.
+
+Once secretmem is enabled, the user will be able to create a file
+descriptor using the memfd_secret() system call.  The memory areas created
+by mmap() calls from this file descriptor will be unmapped from the kernel
+direct map and they will be only mapped in the page table of the processes
+that have access to the file descriptor.
+
+Secretmem is designed to provide the following protections:
+
+* Enhanced protection (in conjunction with all the other in-kernel
+  attack prevention systems) against ROP attacks.  Seceretmem makes
+  "simple" ROP insufficient to perform exfiltration, which increases the
+  required complexity of the attack.  Along with other protections like
+  the kernel stack size limit and address space layout randomization which
+  make finding gadgets is really hard, absence of any in-kernel primitive
+  for accessing secret memory means the one gadget ROP attack can't work. 
+  Since the only way to access secret memory is to reconstruct the missing
+  mapping entry, the attacker has to recover the physical page and insert
+  a PTE pointing to it in the kernel and then retrieve the contents.  That
+  takes at least three gadgets which is a level of difficulty beyond most
+  standard attacks.
+
+* Prevent cross-process secret userspace memory exposures.  Once the
+  secret memory is allocated, the user can't accidentally pass it into the
+  kernel to be transmitted somewhere.  The secreremem pages cannot be
+  accessed via the direct map and they are disallowed in GUP.
+
+* Harden against exploited kernel flaws.  In order to access secretmem,
+  a kernel-side attack would need to either walk the page tables and
+  create new ones, or spawn a new privileged uiserspace process to perform
+  secrets exfiltration using ptrace.
+
+The file descriptor based memory has several advantages over the
+"traditional" mm interfaces, such as mlock(), mprotect(), madvise().  File
+descriptor approach allows explicit and controlled sharing of the memory
+areas, it allows to seal the operations.  Besides, file descriptor based
+memory paves the way for VMMs to remove the secret memory range from the
+userspace hipervisor process, for instance QEMU.  Andy Lutomirski says:
+
+  "Getting fd-backed memory into a guest will take some possibly major
+  work in the kernel, but getting vma-backed memory into a guest without
+  mapping it in the host user address space seems much, much worse."
+
+memfd_secret() is made a dedicated system call rather than an extension to
+memfd_create() because it's purpose is to allow the user to create more
+secure memory mappings rather than to simply allow file based access to
+the memory.  Nowadays a new system call cost is negligible while it is way
+simpler for userspace to deal with a clear-cut system calls than with a
+multiplexer or an overloaded syscall.  Moreover, the initial
+implementation of memfd_secret() is completely distinct from
+memfd_create() so there is no much sense in overloading memfd_create() to
+begin with.  If there will be a need for code sharing between these
+implementation it can be easily achieved without a need to adjust user
+visible APIs.
+
+The secret memory remains accessible in the process context using uaccess
+primitives, but it is not exposed to the kernel otherwise; secret memory
+areas are removed from the direct map and functions in the
+follow_page()/get_user_page() family will refuse to return a page that
+belongs to the secret memory area.
+
+Once there will be a use case that will require exposing secretmem to the
+kernel it will be an opt-in request in the system call flags so that user
+would have to decide what data can be exposed to the kernel.
+
+Removing of the pages from the direct map may cause its fragmentation on
+architectures that use large pages to map the physical memory which
+affects the system performance.  However, the original Kconfig text for
+CONFIG_DIRECT_GBPAGES said that gigabyte pages in the direct map "...  can
+improve the kernel's performance a tiny bit ..." (commit 00d1c5e05736
+("x86: add gbpages switches")) and the recent report [1] showed that "... 
+although 1G mappings are a good default choice, there is no compelling
+evidence that it must be the only choice".  Hence, it is sufficient to
+have secretmem disabled by default with the ability of a system
+administrator to enable it at boot time.
+
+Pages in the secretmem regions are unevictable and unmovable to avoid
+accidental exposure of the sensitive data via swap or during page
+migration.
+
+Since the secretmem mappings are locked in memory they cannot exceed
+RLIMIT_MEMLOCK.  Since these mappings are already locked independently
+from mlock(), an attempt to mlock()/munlock() secretmem range would fail
+and mlockall()/munlockall() will ignore secretmem mappings.
+
+However, unlike mlock()ed memory, secretmem currently behaves more like
+long-term GUP: secretmem mappings are unmovable mappings directly consumed
+by user space.  With default limits, there is no excessive use of
+secretmem and it poses no real problem in combination with
+ZONE_MOVABLE/CMA, but in the future this should be addressed to allow
+balanced use of large amounts of secretmem along with ZONE_MOVABLE/CMA.
+
+A page that was a part of the secret memory area is cleared when it is
+freed to ensure the data is not exposed to the next user of that page.
+
+The following example demonstrates creation of a secret mapping (error
+handling is omitted):
+
+	fd = memfd_secret(0);
+	ftruncate(fd, MAP_SIZE);
+	ptr = mmap(NULL, MAP_SIZE, PROT_READ | PROT_WRITE,
+		   MAP_SHARED, fd, 0);
+
+[1] https://lore.kernel.org/linux-mm/213b4567-46ce-f116-9cdf-bbd0c884eb3c@linux.intel.com/
+
+[akpm@linux-foundation.org: suppress Kconfig whine]
+Link: https://lkml.kernel.org/r/20210518072034.31572-5-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Hagen Paul Pfeifer <hagen@jauu.net>
 Acked-by: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
@@ -73,15 +181,13 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christopher Lameter <cl@linux.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
 Cc: Elena Reshetova <elena.reshetova@intel.com>
-Cc: Hagen Paul Pfeifer <hagen@jauu.net>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: James Bottomley <jejb@linux.ibm.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Palmer Dabbelt <palmer@dabbelt.com>
 Cc: Palmer Dabbelt <palmerdabbelt@google.com>
@@ -94,47 +200,177 @@ Cc: Shuah Khan <shuah@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tycho Andersen <tycho@tycho.ws>
 Cc: Will Deacon <will@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore     |    1 
- tools/testing/selftests/vm/Makefile       |    3 
- tools/testing/selftests/vm/memfd_secret.c |  296 ++++++++++++++++++++
- tools/testing/selftests/vm/run_vmtests.sh |   17 +
- 4 files changed, 316 insertions(+), 1 deletion(-)
+ include/linux/secretmem.h  |   48 +++++++
+ include/uapi/linux/magic.h |    1 
+ kernel/sys_ni.c            |    2 
+ mm/Kconfig                 |    4 
+ mm/Makefile                |    1 
+ mm/gup.c                   |   12 +
+ mm/mlock.c                 |    3 
+ mm/secretmem.c             |  239 +++++++++++++++++++++++++++++++++++
+ 8 files changed, 309 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/.gitignore~secretmem-test-add-basic-selftest-for-memfd_secret2
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -24,5 +24,6 @@ va_128TBswitch
- map_fixed_noreplace
- write_to_hugetlbfs
- hmm-tests
-+memfd_secret
- local_config.*
- split_huge_page_test
---- a/tools/testing/selftests/vm/Makefile~secretmem-test-add-basic-selftest-for-memfd_secret2
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -35,6 +35,7 @@ TEST_GEN_FILES += madv_populate
- TEST_GEN_FILES += map_fixed_noreplace
- TEST_GEN_FILES += map_hugetlb
- TEST_GEN_FILES += map_populate
-+TEST_GEN_FILES += memfd_secret
- TEST_GEN_FILES += mlock-random-test
- TEST_GEN_FILES += mlock2-tests
- TEST_GEN_FILES += mremap_dontunmap
-@@ -135,7 +136,7 @@ warn_32bit_failure:
- endif
- endif
+--- /dev/null
++++ a/include/linux/secretmem.h
+@@ -0,0 +1,48 @@
++/* SPDX-License-Identifier: GPL-2.0 WITH Linux-syscall-note */
++#ifndef _LINUX_SECRETMEM_H
++#define _LINUX_SECRETMEM_H
++
++#ifdef CONFIG_SECRETMEM
++
++extern const struct address_space_operations secretmem_aops;
++
++static inline bool page_is_secretmem(struct page *page)
++{
++	struct address_space *mapping;
++
++	/*
++	 * Using page_mapping() is quite slow because of the actual call
++	 * instruction and repeated compound_head(page) inside the
++	 * page_mapping() function.
++	 * We know that secretmem pages are not compound and LRU so we can
++	 * save a couple of cycles here.
++	 */
++	if (PageCompound(page) || !PageLRU(page))
++		return false;
++
++	mapping = (struct address_space *)
++		((unsigned long)page->mapping & ~PAGE_MAPPING_FLAGS);
++
++	if (mapping != page->mapping)
++		return false;
++
++	return mapping->a_ops == &secretmem_aops;
++}
++
++bool vma_is_secretmem(struct vm_area_struct *vma);
++
++#else
++
++static inline bool vma_is_secretmem(struct vm_area_struct *vma)
++{
++	return false;
++}
++
++static inline bool page_is_secretmem(struct page *page)
++{
++	return false;
++}
++
++#endif /* CONFIG_SECRETMEM */
++
++#endif /* _LINUX_SECRETMEM_H */
+--- a/include/uapi/linux/magic.h~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/include/uapi/linux/magic.h
+@@ -97,5 +97,6 @@
+ #define DEVMEM_MAGIC		0x454d444d	/* "DMEM" */
+ #define Z3FOLD_MAGIC		0x33
+ #define PPC_CMM_MAGIC		0xc7571590
++#define SECRETMEM_MAGIC		0x5345434d	/* "SECM" */
  
--$(OUTPUT)/mlock-random-test: LDLIBS += -lcap
-+$(OUTPUT)/mlock-random-test $(OUTPUT)/memfd_secret: LDLIBS += -lcap
+ #endif /* __LINUX_MAGIC_H__ */
+--- a/kernel/sys_ni.c~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/kernel/sys_ni.c
+@@ -358,6 +358,8 @@ COND_SYSCALL(pkey_mprotect);
+ COND_SYSCALL(pkey_alloc);
+ COND_SYSCALL(pkey_free);
  
- $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
++/* memfd_secret */
++COND_SYSCALL(memfd_secret);
+ 
+ /*
+  * Architecture specific weak syscall entries.
+--- a/mm/gup.c~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/mm/gup.c
+@@ -10,6 +10,7 @@
+ #include <linux/rmap.h>
+ #include <linux/swap.h>
+ #include <linux/swapops.h>
++#include <linux/secretmem.h>
+ 
+ #include <linux/sched/signal.h>
+ #include <linux/rwsem.h>
+@@ -855,6 +856,9 @@ struct page *follow_page(struct vm_area_
+ 	struct follow_page_context ctx = { NULL };
+ 	struct page *page;
+ 
++	if (vma_is_secretmem(vma))
++		return NULL;
++
+ 	page = follow_page_mask(vma, address, foll_flags, &ctx);
+ 	if (ctx.pgmap)
+ 		put_dev_pagemap(ctx.pgmap);
+@@ -988,6 +992,9 @@ static int check_vma_flags(struct vm_are
+ 	if ((gup_flags & FOLL_LONGTERM) && vma_is_fsdax(vma))
+ 		return -EOPNOTSUPP;
+ 
++	if (vma_is_secretmem(vma))
++		return -EFAULT;
++
+ 	if (write) {
+ 		if (!(vm_flags & VM_WRITE)) {
+ 			if (!(gup_flags & FOLL_FORCE))
+@@ -2170,6 +2177,11 @@ static int gup_pte_range(pmd_t pmd, unsi
+ 		if (!head)
+ 			goto pte_unmap;
+ 
++		if (unlikely(page_is_secretmem(page))) {
++			put_compound_head(head, 1, flags);
++			goto pte_unmap;
++		}
++
+ 		if (unlikely(pte_val(pte) != pte_val(*ptep))) {
+ 			put_compound_head(head, 1, flags);
+ 			goto pte_unmap;
+--- a/mm/Kconfig~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/mm/Kconfig
+@@ -885,4 +885,8 @@ config KMAP_LOCAL
+ # struct io_mapping based helper.  Selected by drivers that need them
+ config IO_MAPPING
+ 	bool
++
++config SECRETMEM
++	def_bool ARCH_HAS_SET_DIRECT_MAP && !EMBEDDED
++
+ endmenu
+--- a/mm/Makefile~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/mm/Makefile
+@@ -113,6 +113,7 @@ obj-$(CONFIG_CMA)	+= cma.o
+ obj-$(CONFIG_MEMORY_BALLOON) += balloon_compaction.o
+ obj-$(CONFIG_PAGE_EXTENSION) += page_ext.o
+ obj-$(CONFIG_CMA_DEBUGFS) += cma_debug.o
++obj-$(CONFIG_SECRETMEM) += secretmem.o
+ obj-$(CONFIG_CMA_SYSFS) += cma_sysfs.o
+ obj-$(CONFIG_USERFAULTFD) += userfaultfd.o
+ obj-$(CONFIG_IDLE_PAGE_TRACKING) += page_idle.o
+--- a/mm/mlock.c~mm-introduce-memfd_secret-system-call-to-create-secret-memory-areas
++++ a/mm/mlock.c
+@@ -23,6 +23,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/memcontrol.h>
+ #include <linux/mm_inline.h>
++#include <linux/secretmem.h>
+ 
+ #include "internal.h"
+ 
+@@ -503,7 +504,7 @@ static int mlock_fixup(struct vm_area_st
+ 
+ 	if (newflags == vma->vm_flags || (vma->vm_flags & VM_SPECIAL) ||
+ 	    is_vm_hugetlb_page(vma) || vma == get_gate_vma(current->mm) ||
+-	    vma_is_dax(vma))
++	    vma_is_dax(vma) || vma_is_secretmem(vma))
+ 		/* don't set VM_LOCKED or VM_LOCKONFAULT and don't count */
+ 		goto out;
  
 --- /dev/null
-+++ a/tools/testing/selftests/vm/memfd_secret.c
-@@ -0,0 +1,296 @@
++++ a/mm/secretmem.c
+@@ -0,0 +1,239 @@
 +// SPDX-License-Identifier: GPL-2.0
 +/*
 + * Copyright IBM Corporation, 2021
@@ -142,317 +378,236 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 + * Author: Mike Rapoport <rppt@linux.ibm.com>
 + */
 +
-+#define _GNU_SOURCE
-+#include <sys/uio.h>
-+#include <sys/mman.h>
-+#include <sys/wait.h>
-+#include <sys/types.h>
-+#include <sys/ptrace.h>
-+#include <sys/syscall.h>
-+#include <sys/resource.h>
-+#include <sys/capability.h>
++#include <linux/mm.h>
++#include <linux/fs.h>
++#include <linux/swap.h>
++#include <linux/mount.h>
++#include <linux/memfd.h>
++#include <linux/bitops.h>
++#include <linux/printk.h>
++#include <linux/pagemap.h>
++#include <linux/syscalls.h>
++#include <linux/pseudo_fs.h>
++#include <linux/secretmem.h>
++#include <linux/set_memory.h>
++#include <linux/sched/signal.h>
 +
-+#include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <stdio.h>
++#include <uapi/linux/magic.h>
 +
-+#include "../kselftest.h"
++#include <asm/tlbflush.h>
 +
-+#define fail(fmt, ...) ksft_test_result_fail(fmt, ##__VA_ARGS__)
-+#define pass(fmt, ...) ksft_test_result_pass(fmt, ##__VA_ARGS__)
-+#define skip(fmt, ...) ksft_test_result_skip(fmt, ##__VA_ARGS__)
++#include "internal.h"
 +
-+#ifdef __NR_memfd_secret
++#undef pr_fmt
++#define pr_fmt(fmt) "secretmem: " fmt
 +
-+#define PATTERN	0x55
++/*
++ * Define mode and flag masks to allow validation of the system call
++ * parameters.
++ */
++#define SECRETMEM_MODE_MASK	(0x0)
++#define SECRETMEM_FLAGS_MASK	SECRETMEM_MODE_MASK
 +
-+static const int prot = PROT_READ | PROT_WRITE;
-+static const int mode = MAP_SHARED;
++static bool secretmem_enable __ro_after_init;
++module_param_named(enable, secretmem_enable, bool, 0400);
++MODULE_PARM_DESC(secretmem_enable,
++		 "Enable secretmem and memfd_secret(2) system call");
 +
-+static unsigned long page_size;
-+static unsigned long mlock_limit_cur;
-+static unsigned long mlock_limit_max;
-+
-+static int memfd_secret(unsigned int flags)
++static vm_fault_t secretmem_fault(struct vm_fault *vmf)
 +{
-+	return syscall(__NR_memfd_secret, flags);
++	struct address_space *mapping = vmf->vma->vm_file->f_mapping;
++	struct inode *inode = file_inode(vmf->vma->vm_file);
++	pgoff_t offset = vmf->pgoff;
++	gfp_t gfp = vmf->gfp_mask;
++	unsigned long addr;
++	struct page *page;
++	int err;
++
++	if (((loff_t)vmf->pgoff << PAGE_SHIFT) >= i_size_read(inode))
++		return vmf_error(-EINVAL);
++
++retry:
++	page = find_lock_page(mapping, offset);
++	if (!page) {
++		page = alloc_page(gfp | __GFP_ZERO);
++		if (!page)
++			return VM_FAULT_OOM;
++
++		err = set_direct_map_invalid_noflush(page);
++		if (err) {
++			put_page(page);
++			return vmf_error(err);
++		}
++
++		__SetPageUptodate(page);
++		err = add_to_page_cache_lru(page, mapping, offset, gfp);
++		if (unlikely(err)) {
++			put_page(page);
++			/*
++			 * If a split of large page was required, it
++			 * already happened when we marked the page invalid
++			 * which guarantees that this call won't fail
++			 */
++			set_direct_map_default_noflush(page);
++			if (err == -EEXIST)
++				goto retry;
++
++			return vmf_error(err);
++		}
++
++		addr = (unsigned long)page_address(page);
++		flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++	}
++
++	vmf->page = page;
++	return VM_FAULT_LOCKED;
 +}
 +
-+static void test_file_apis(int fd)
++static const struct vm_operations_struct secretmem_vm_ops = {
++	.fault = secretmem_fault,
++};
++
++static int secretmem_mmap(struct file *file, struct vm_area_struct *vma)
 +{
-+	char buf[64];
++	unsigned long len = vma->vm_end - vma->vm_start;
 +
-+	if ((read(fd, buf, sizeof(buf)) >= 0) ||
-+	    (write(fd, buf, sizeof(buf)) >= 0) ||
-+	    (pread(fd, buf, sizeof(buf), 0) >= 0) ||
-+	    (pwrite(fd, buf, sizeof(buf), 0) >= 0))
-+		fail("unexpected file IO\n");
-+	else
-+		pass("file IO is blocked as expected\n");
-+}
++	if ((vma->vm_flags & (VM_SHARED | VM_MAYSHARE)) == 0)
++		return -EINVAL;
 +
-+static void test_mlock_limit(int fd)
-+{
-+	size_t len;
-+	char *mem;
++	if (mlock_future_check(vma->vm_mm, vma->vm_flags | VM_LOCKED, len))
++		return -EAGAIN;
 +
-+	len = mlock_limit_cur;
-+	mem = mmap(NULL, len, prot, mode, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		fail("unable to mmap secret memory\n");
-+		return;
-+	}
-+	munmap(mem, len);
-+
-+	len = mlock_limit_max * 2;
-+	mem = mmap(NULL, len, prot, mode, fd, 0);
-+	if (mem != MAP_FAILED) {
-+		fail("unexpected mlock limit violation\n");
-+		munmap(mem, len);
-+		return;
-+	}
-+
-+	pass("mlock limit is respected\n");
-+}
-+
-+static void try_process_vm_read(int fd, int pipefd[2])
-+{
-+	struct iovec liov, riov;
-+	char buf[64];
-+	char *mem;
-+
-+	if (read(pipefd[0], &mem, sizeof(mem)) < 0) {
-+		fail("pipe write: %s\n", strerror(errno));
-+		exit(KSFT_FAIL);
-+	}
-+
-+	liov.iov_len = riov.iov_len = sizeof(buf);
-+	liov.iov_base = buf;
-+	riov.iov_base = mem;
-+
-+	if (process_vm_readv(getppid(), &liov, 1, &riov, 1, 0) < 0) {
-+		if (errno == ENOSYS)
-+			exit(KSFT_SKIP);
-+		exit(KSFT_PASS);
-+	}
-+
-+	exit(KSFT_FAIL);
-+}
-+
-+static void try_ptrace(int fd, int pipefd[2])
-+{
-+	pid_t ppid = getppid();
-+	int status;
-+	char *mem;
-+	long ret;
-+
-+	if (read(pipefd[0], &mem, sizeof(mem)) < 0) {
-+		perror("pipe write");
-+		exit(KSFT_FAIL);
-+	}
-+
-+	ret = ptrace(PTRACE_ATTACH, ppid, 0, 0);
-+	if (ret) {
-+		perror("ptrace_attach");
-+		exit(KSFT_FAIL);
-+	}
-+
-+	ret = waitpid(ppid, &status, WUNTRACED);
-+	if ((ret != ppid) || !(WIFSTOPPED(status))) {
-+		fprintf(stderr, "weird waitppid result %ld stat %x\n",
-+			ret, status);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	if (ptrace(PTRACE_PEEKDATA, ppid, mem, 0))
-+		exit(KSFT_PASS);
-+
-+	exit(KSFT_FAIL);
-+}
-+
-+static void check_child_status(pid_t pid, const char *name)
-+{
-+	int status;
-+
-+	waitpid(pid, &status, 0);
-+
-+	if (WIFEXITED(status) && WEXITSTATUS(status) == KSFT_SKIP) {
-+		skip("%s is not supported\n", name);
-+		return;
-+	}
-+
-+	if ((WIFEXITED(status) && WEXITSTATUS(status) == KSFT_PASS) ||
-+	    WIFSIGNALED(status)) {
-+		pass("%s is blocked as expected\n", name);
-+		return;
-+	}
-+
-+	fail("%s: unexpected memory access\n", name);
-+}
-+
-+static void test_remote_access(int fd, const char *name,
-+			       void (*func)(int fd, int pipefd[2]))
-+{
-+	int pipefd[2];
-+	pid_t pid;
-+	char *mem;
-+
-+	if (pipe(pipefd)) {
-+		fail("pipe failed: %s\n", strerror(errno));
-+		return;
-+	}
-+
-+	pid = fork();
-+	if (pid < 0) {
-+		fail("fork failed: %s\n", strerror(errno));
-+		return;
-+	}
-+
-+	if (pid == 0) {
-+		func(fd, pipefd);
-+		return;
-+	}
-+
-+	mem = mmap(NULL, page_size, prot, mode, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		fail("Unable to mmap secret memory\n");
-+		return;
-+	}
-+
-+	ftruncate(fd, page_size);
-+	memset(mem, PATTERN, page_size);
-+
-+	if (write(pipefd[1], &mem, sizeof(mem)) < 0) {
-+		fail("pipe write: %s\n", strerror(errno));
-+		return;
-+	}
-+
-+	check_child_status(pid, name);
-+}
-+
-+static void test_process_vm_read(int fd)
-+{
-+	test_remote_access(fd, "process_vm_read", try_process_vm_read);
-+}
-+
-+static void test_ptrace(int fd)
-+{
-+	test_remote_access(fd, "ptrace", try_ptrace);
-+}
-+
-+static int set_cap_limits(rlim_t max)
-+{
-+	struct rlimit new;
-+	cap_t cap = cap_init();
-+
-+	new.rlim_cur = max;
-+	new.rlim_max = max;
-+	if (setrlimit(RLIMIT_MEMLOCK, &new)) {
-+		perror("setrlimit() returns error");
-+		return -1;
-+	}
-+
-+	/* drop capabilities including CAP_IPC_LOCK */
-+	if (cap_set_proc(cap)) {
-+		perror("cap_set_proc() returns error");
-+		return -2;
-+	}
++	vma->vm_flags |= VM_LOCKED | VM_DONTDUMP;
++	vma->vm_ops = &secretmem_vm_ops;
 +
 +	return 0;
 +}
 +
-+static void prepare(void)
++bool vma_is_secretmem(struct vm_area_struct *vma)
 +{
-+	struct rlimit rlim;
-+
-+	page_size = sysconf(_SC_PAGE_SIZE);
-+	if (!page_size)
-+		ksft_exit_fail_msg("Failed to get page size %s\n",
-+				   strerror(errno));
-+
-+	if (getrlimit(RLIMIT_MEMLOCK, &rlim))
-+		ksft_exit_fail_msg("Unable to detect mlock limit: %s\n",
-+				   strerror(errno));
-+
-+	mlock_limit_cur = rlim.rlim_cur;
-+	mlock_limit_max = rlim.rlim_max;
-+
-+	printf("page_size: %ld, mlock.soft: %ld, mlock.hard: %ld\n",
-+	       page_size, mlock_limit_cur, mlock_limit_max);
-+
-+	if (page_size > mlock_limit_cur)
-+		mlock_limit_cur = page_size;
-+	if (page_size > mlock_limit_max)
-+		mlock_limit_max = page_size;
-+
-+	if (set_cap_limits(mlock_limit_max))
-+		ksft_exit_fail_msg("Unable to set mlock limit: %s\n",
-+				   strerror(errno));
++	return vma->vm_ops == &secretmem_vm_ops;
 +}
 +
-+#define NUM_TESTS 4
++static const struct file_operations secretmem_fops = {
++	.mmap		= secretmem_mmap,
++};
 +
-+int main(int argc, char *argv[])
++static bool secretmem_isolate_page(struct page *page, isolate_mode_t mode)
 +{
-+	int fd;
++	return false;
++}
 +
-+	prepare();
++static int secretmem_migratepage(struct address_space *mapping,
++				 struct page *newpage, struct page *page,
++				 enum migrate_mode mode)
++{
++	return -EBUSY;
++}
 +
-+	ksft_print_header();
-+	ksft_set_plan(NUM_TESTS);
++static void secretmem_freepage(struct page *page)
++{
++	set_direct_map_default_noflush(page);
++	clear_highpage(page);
++}
 +
-+	fd = memfd_secret(0);
-+	if (fd < 0) {
-+		if (errno == ENOSYS)
-+			ksft_exit_skip("memfd_secret is not supported\n");
-+		else
-+			ksft_exit_fail_msg("memfd_secret failed: %s\n",
-+					   strerror(errno));
++const struct address_space_operations secretmem_aops = {
++	.freepage	= secretmem_freepage,
++	.migratepage	= secretmem_migratepage,
++	.isolate_page	= secretmem_isolate_page,
++};
++
++static struct vfsmount *secretmem_mnt;
++
++static struct file *secretmem_file_create(unsigned long flags)
++{
++	struct file *file = ERR_PTR(-ENOMEM);
++	struct inode *inode;
++
++	inode = alloc_anon_inode(secretmem_mnt->mnt_sb);
++	if (IS_ERR(inode))
++		return ERR_CAST(inode);
++
++	file = alloc_file_pseudo(inode, secretmem_mnt, "secretmem",
++				 O_RDWR, &secretmem_fops);
++	if (IS_ERR(file))
++		goto err_free_inode;
++
++	mapping_set_gfp_mask(inode->i_mapping, GFP_HIGHUSER);
++	mapping_set_unevictable(inode->i_mapping);
++
++	inode->i_mapping->a_ops = &secretmem_aops;
++
++	/* pretend we are a normal file with zero size */
++	inode->i_mode |= S_IFREG;
++	inode->i_size = 0;
++
++	return file;
++
++err_free_inode:
++	iput(inode);
++	return file;
++}
++
++SYSCALL_DEFINE1(memfd_secret, unsigned int, flags)
++{
++	struct file *file;
++	int fd, err;
++
++	/* make sure local flags do not confict with global fcntl.h */
++	BUILD_BUG_ON(SECRETMEM_FLAGS_MASK & O_CLOEXEC);
++
++	if (!secretmem_enable)
++		return -ENOSYS;
++
++	if (flags & ~(SECRETMEM_FLAGS_MASK | O_CLOEXEC))
++		return -EINVAL;
++
++	fd = get_unused_fd_flags(flags & O_CLOEXEC);
++	if (fd < 0)
++		return fd;
++
++	file = secretmem_file_create(flags);
++	if (IS_ERR(file)) {
++		err = PTR_ERR(file);
++		goto err_put_fd;
 +	}
 +
-+	test_mlock_limit(fd);
-+	test_file_apis(fd);
-+	test_process_vm_read(fd);
-+	test_ptrace(fd);
++	file->f_flags |= O_LARGEFILE;
 +
-+	close(fd);
++	fd_install(fd, file);
++	return fd;
 +
-+	ksft_exit(!ksft_get_fail_cnt());
++err_put_fd:
++	put_unused_fd(fd);
++	return err;
 +}
 +
-+#else /* __NR_memfd_secret */
-+
-+int main(int argc, char *argv[])
++static int secretmem_init_fs_context(struct fs_context *fc)
 +{
-+	printf("skip: skipping memfd_secret test (missing __NR_memfd_secret)\n");
-+	return KSFT_SKIP;
++	return init_pseudo(fc, SECRETMEM_MAGIC) ? 0 : -ENOMEM;
 +}
 +
-+#endif /* __NR_memfd_secret */
---- a/tools/testing/selftests/vm/run_vmtests.sh~secretmem-test-add-basic-selftest-for-memfd_secret2
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -362,4 +362,21 @@ else
- 	exitcode=1
- fi
- 
-+echo "running memfd_secret test"
-+echo "------------------------------------"
-+./memfd_secret
-+ret_val=$?
++static struct file_system_type secretmem_fs = {
++	.name		= "secretmem",
++	.init_fs_context = secretmem_init_fs_context,
++	.kill_sb	= kill_anon_super,
++};
 +
-+if [ $ret_val -eq 0 ]; then
-+	echo "[PASS]"
-+elif [ $ret_val -eq $ksft_skip ]; then
-+	echo "[SKIP]"
-+	exitcode=$ksft_skip
-+else
-+	echo "[FAIL]"
-+	exitcode=1
-+fi
++static int secretmem_init(void)
++{
++	int ret = 0;
 +
-+exit $exitcode
++	if (!secretmem_enable)
++		return ret;
 +
- exit $exitcode
++	secretmem_mnt = kern_mount(&secretmem_fs);
++	if (IS_ERR(secretmem_mnt))
++		ret = PTR_ERR(secretmem_mnt);
++
++	/* prevent secretmem mappings from ever getting PROT_EXEC */
++	secretmem_mnt->mnt_flags |= MNT_NOEXEC;
++
++	return ret;
++}
++fs_initcall(secretmem_init);
 _
