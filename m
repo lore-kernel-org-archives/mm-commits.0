@@ -7,38 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3960AC07E95
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:35:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22E89C07E95
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:36:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 13A8561CCC
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:35:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B9EE61CD0
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 00:36:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230166AbhGHAiK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 20:38:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41500 "EHLO mail.kernel.org"
+        id S230194AbhGHAit (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 20:38:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41716 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230000AbhGHAiK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 20:38:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 32B4061C7F;
-        Thu,  8 Jul 2021 00:35:28 +0000 (UTC)
+        id S230115AbhGHAis (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 20:38:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EB15361CCC;
+        Thu,  8 Jul 2021 00:36:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625704528;
-        bh=syibbDwBo91REPzaxqy+qv0jdVivtMwaiAECy041JXI=;
+        s=korg; t=1625704567;
+        bh=dy1baU88GF2GrJ0RcA/U6Qrxy35TNk2+gCSOCzD3KLE=;
         h=Date:From:To:Subject:From;
-        b=UcwojtS9FoUTZbXkRPdNpyXWI7+aV56CFaHWM7gTBOWMwGcrvGy98c+0Ti+xNQ1Y7
-         B/tlnJsp1MbhC/vSj1ICk+c74+/7Vc9trdpV6vc9eiJVgbaBCBtmh4JcxbPZCtMoIr
-         zTUOi1I37IEaGgOaKWDcD7Ktge6V0n8vpF5EG/OQ=
-Date:   Wed, 07 Jul 2021 17:35:27 -0700
+        b=bhgKlXfsZH54u8i4d/oxeqj/q1N87DOM+AWxjgle65jc5zn4xtEO6quraiFDVPaao
+         Lcxp9yHiVZP1tmiFDfVyleAqXJJk47+m7HK6QbRg+k/oonYgj/1Crl8gVPWpNLlHHS
+         A5ixjNsXMd3D6i1lEctNrDGxQvQDD80dlcrGt/CQ=
+Date:   Wed, 07 Jul 2021 17:36:05 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        npiggin@gmail.com, mpe@ellerman.id.au,
-        kirill.shutemov@linux.intel.com, kaleshsingh@google.com,
-        joel@joelfernandes.org, hughd@google.com,
-        christophe.leroy@csgroup.eu, aneesh.kumar@linux.ibm.com
+To:     mm-commits@vger.kernel.org, aneesh.kumar@linux.ibm.com
 Subject:  [folded-merged]
- mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix.patch
- removed from -mm tree
-Message-ID: <20210708003527.UYeya%akpm@linux-foundation.org>
+ mm-mremap-convert-huge-pud-move-to-separate-helper-fix.patch removed from -mm
+ tree
+Message-ID: <20210708003605.y7bzS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,48 +43,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix
+     Subject: mm/mremap: fix build failure with clang-10
 has been removed from the -mm tree.  Its filename was
-     mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix.patch
+     mm-mremap-convert-huge-pud-move-to-separate-helper-fix.patch
 
-This patch was dropped because it was folded into mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t.patch
+This patch was dropped because it was folded into mm-mremap-convert-huge-pud-move-to-separate-helper.patch
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix
+Subject: mm/mremap: fix build failure with clang-10
 
-m68k build error reported by kernel robot.
+x86_64-linux-gnu-ld: mm/mremap.o: in function `move_pgt_entry':
+mremap.c:(.text+0x763): undefined reference to `__compiletime_assert_342'
+make[1]: *** [/builds/linux/Makefile:1252: vmlinux] Error 1
 
-  We may want to fixup pgd_page_vaddr correctly later. pgd_page_vaddr() gets
-  cast to different pointer types based on architecture. But for now this
-  should work? This ensure we keep the pgd_page_vaddr() same as before.
+This build failure is introduced by commit.
 
-Link: https://lkml.kernel.org/r/87tulxnb2v.fsf@linux.ibm.com
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Kalesh Singh <kaleshsingh@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+  06b8db69ef5 ("mm/mremap: convert huge PUD move to separate helper")
+
+Link: https://lore.kernel.org/lkml/YMuOSnJsL9qkxweY@archlinux-ax161
+Link: https://lkml.kernel.org/r/20210619134310.89098-1-aneesh.kumar@linux.ibm.com
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable-nop4d.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mremap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/asm-generic/pgtable-nop4d.h~mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t-fix
-+++ a/include/asm-generic/pgtable-nop4d.h
-@@ -41,7 +41,7 @@ static inline p4d_t *p4d_offset(pgd_t *p
- #define __p4d(x)				((p4d_t) { __pgd(x) })
+--- a/mm/mremap.c~mm-mremap-convert-huge-pud-move-to-separate-helper-fix
++++ a/mm/mremap.c
+@@ -448,7 +448,8 @@ static bool move_pgt_entry(enum pgt_entr
+ 				      new_entry);
+ 		break;
+ 	case HPAGE_PUD:
+-		moved = move_huge_pud(vma, old_addr, new_addr, old_entry,
++		moved = IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++			move_huge_pud(vma, old_addr, new_addr, old_entry,
+ 				      new_entry);
+ 		break;
  
- #define pgd_page(pgd)				(p4d_page((p4d_t){ pgd }))
--#define pgd_page_vaddr(pgd)			(p4d_pgtable((p4d_t){ pgd }))
-+#define pgd_page_vaddr(pgd)			((unsigned long)(p4d_pgtable((p4d_t){ pgd })))
- 
- /*
-  * allocating and freeing a p4d is trivial: the 1-entry p4d is
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
@@ -98,7 +91,6 @@ mm-rename-p4d_page_vaddr-to-p4d_pgtable-and-make-it-return-pud_t.patch
 selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
 selftest-mremap_test-avoid-crash-with-static-build.patch
 mm-mremap-convert-huge-pud-move-to-separate-helper.patch
-mm-mremap-convert-huge-pud-move-to-separate-helper-fix.patch
 mm-mremap-dont-enable-optimized-pud-move-if-page-table-levels-is-2.patch
 mm-mremap-use-pmd-pud_poplulate-to-update-page-table-entries.patch
 mm-mremap-hold-the-rmap-lock-in-write-mode-when-moving-page-table-entries.patch
