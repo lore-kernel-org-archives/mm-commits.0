@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE09DC11F66
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:08:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7922C07E9B
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:08:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD17E61CD7
-	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:08:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CF49E61CD9
+	for <mm-commits@archiver.kernel.org>; Thu,  8 Jul 2021 01:08:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230148AbhGHBLb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 7 Jul 2021 21:11:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51472 "EHLO mail.kernel.org"
+        id S230173AbhGHBLe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 7 Jul 2021 21:11:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51522 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230106AbhGHBLb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 7 Jul 2021 21:11:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 67DDC61CBE;
-        Thu,  8 Jul 2021 01:08:49 +0000 (UTC)
+        id S230106AbhGHBLe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 7 Jul 2021 21:11:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5ACBB61CD3;
+        Thu,  8 Jul 2021 01:08:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625706529;
-        bh=s1pdguBVX0lDGoYXjvSAWIzBa8nrHCA4aYolCSYfaKc=;
+        s=korg; t=1625706532;
+        bh=uKWWoA3nRbhSfqbwBw6QR79fTaF/sulh1yVGe8V40+w=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=gU7x/fKrs3Rd1F5GIkuBrGwDpdkPqgFSHqWTH2QhVAKgyddr3MFOI7/WZkMLDAq1m
-         SuDV+mJoy/kU8asHo4Gsh7uXnjrqJ+9Fw3KK8VjD2/qZLJ1d+FMZojpcpX0YaZw70/
-         lEkSRDyDjDBIlrfUFxdrFxKBEbsMTNQ+9Nangp3Y=
-Date:   Wed, 07 Jul 2021 18:08:49 -0700
+        b=sIU5M2IjVH7YS3bpofEz78ISEDaIgbxpUAxifD8f41/0M5H2iDXKh+LGGrnXoVvVs
+         BzLsueqMa9sBQ2q4qjyZGcPYIGwQIADb4onTJqDu4gb4URXzF/srH5q2UJu4CIgXm4
+         UqgM3zdpLotNyKp7n/OtJwt6Qg0F49yjuXmP+jLA=
+Date:   Wed, 07 Jul 2021 18:08:51 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, jonas@southpole.se, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, shorne@gmail.com,
-        stefan.kristiansson@saunalahti.fi, torvalds@linux-foundation.org,
-        wangkefeng.wang@huawei.com
-Subject:  [patch 25/54] openrisc: convert to
- setup_initial_init_mm()
-Message-ID: <20210708010849.OBn26dlwG%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, benh@kernel.crashing.org,
+        christophe.leroy@csgroup.eu, jrdr.linux@gmail.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        torvalds@linux-foundation.org, wangkefeng.wang@huawei.com
+Subject:  [patch 26/54] powerpc: convert to setup_initial_init_mm()
+Message-ID: <20210708010851.Nu7rJ1_vQ%akpm@linux-foundation.org>
 In-Reply-To: <20210707175950.eceddb86c6c555555d4730e2@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,34 +44,37 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: openrisc: convert to setup_initial_init_mm()
+Subject: powerpc: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210608083418.137226-11-wangkefeng.wang@huawei.com
+Note klimit is (unsigned long) _end, with new helper, will use _end
+directly.
+
+Link: https://lkml.kernel.org/r/20210608083418.137226-12-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Stafford Horne <shorne@gmail.com>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Stefan Kristiansson <stefan.kristiansson@saunalahti.fi>
-Cc: Stafford Horne <shorne@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/openrisc/kernel/setup.c |    5 +----
+ arch/powerpc/kernel/setup-common.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/openrisc/kernel/setup.c~openrisc-convert-to-setup_initial_init_mm
-+++ a/arch/openrisc/kernel/setup.c
-@@ -293,10 +293,7 @@ void __init setup_arch(char **cmdline_p)
- #endif
+--- a/arch/powerpc/kernel/setup-common.c~powerpc-convert-to-setup_initial_init_mm
++++ a/arch/powerpc/kernel/setup-common.c
+@@ -926,10 +926,7 @@ void __init setup_arch(char **cmdline_p)
  
- 	/* process 1's initial memory region is the kernel code/data */
+ 	klp_init_thread_info(&init_task);
+ 
 -	init_mm.start_code = (unsigned long)_stext;
--	init_mm.end_code = (unsigned long)_etext;
--	init_mm.end_data = (unsigned long)_edata;
+-	init_mm.end_code = (unsigned long) _etext;
+-	init_mm.end_data = (unsigned long) _edata;
 -	init_mm.brk = (unsigned long)_end;
 +	setup_initial_init_mm(_stext, _etext, _edata, _end);
  
- #ifdef CONFIG_BLK_DEV_INITRD
- 	if (initrd_start == initrd_end) {
+ 	mm_iommu_init(&init_mm);
+ 	irqstack_early_init();
 _
