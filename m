@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41BEEC07E9B
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:34:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B08F0C07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:34:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2BB24613C3
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:34:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 93391613D3
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:34:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231163AbhGIVg4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:36:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47624 "EHLO mail.kernel.org"
+        id S230519AbhGIVg7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:36:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47656 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230519AbhGIVg4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:36:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1C4F613C8;
-        Fri,  9 Jul 2021 21:34:11 +0000 (UTC)
+        id S230317AbhGIVg6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:36:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A47A1613D0;
+        Fri,  9 Jul 2021 21:34:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866452;
-        bh=bm2wsaXyK4IPZ4qbE83Sr9baSVXOOAIQ4WhQnQRy6jA=;
+        s=korg; t=1625866454;
+        bh=kxk4a+2EEdn1mEgG8uDlYe48QF6jo4cnXs3SaXegacE=;
         h=Date:From:To:Subject:From;
-        b=MyLpAIhyG4GPGk5TE6Nj4l7znRxV09aG9pGiZPvWBmLjWWf2izM+AXEttE4Cp4fej
-         s7NW/Luw1HT0bXEGwwDKIBoFp8dynCnyllHc8eCTuc12XzIS/oFRiz/5Bruf57jyPh
-         J0L6t/XpsQ+UHc5UPXVkGlXNQDPbVce8U39y5Qw8=
-Date:   Fri, 09 Jul 2021 14:34:11 -0700
+        b=i5bd79FUmOMuJwbSDf3gpsDm+NBFNhASzO/+WyTUxKoN8+evhMsLzqe1hLnP+QrSd
+         Z22yn8Y5oyfC3Opa6S0qY0crhZJgtrZaKQzsCVReGibzQfHfBxc/EY9yRC1VrggFYj
+         Xkogwu8vJTv73/kzrOZPTixwsDDqUq0I9no3LKzo=
+Date:   Fri, 09 Jul 2021 14:34:13 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
         hughd@google.com, joel@joelfernandes.org, kaleshsingh@google.com,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, npiggin@gmail.com, sfr@canb.auug.org.au
-Subject:  [merged]
- powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache.patch
+        kirill.shutemov@linux.intel.com, kirill@shutemov.name,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
+        sfr@canb.auug.org.au
+Subject:  [merged] powerpc-mm-enable-have_move_pmd-support.patch
  removed from -mm tree
-Message-ID: <20210709213411.Mp_v-w49t%akpm@linux-foundation.org>
+Message-ID: <20210709213413.DMi4VkBoQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,193 +46,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/book3s64/mm: update flush_tlb_range to flush page walk cache
+     Subject: powerpc/mm: enable HAVE_MOVE_PMD support
 has been removed from the -mm tree.  Its filename was
-     powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache.patch
+     powerpc-mm-enable-have_move_pmd-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: powerpc/book3s64/mm: update flush_tlb_range to flush page walk cache
+Subject: powerpc/mm: enable HAVE_MOVE_PMD support
 
-flush_tlb_range is special in that we don't specify the page size used for
-the translation.  Hence when flushing TLB we flush the translation cache
-for all possible page sizes.  The kernel also uses the same interface when
-moving page tables around.  Such a move requires us to flush the page walk
-cache.
+mremap HAVE_MOVE_PMD/PUD optimization time comparison for 1GB region:
+1GB mremap - Source PTE-aligned, Destination PTE-aligned
+  mremap time:      2292772ns
+1GB mremap - Source PMD-aligned, Destination PMD-aligned
+  mremap time:      1158928ns
+1GB mremap - Source PUD-aligned, Destination PUD-aligned
+  mremap time:        63886ns
 
-Instead of adding another interface to force page walk cache flush, update
-flush_tlb_range to flush page walk cache if the range flushed is more than
-the PMD range.  A page table move will always involve an invalidate range
-more than PMD_SIZE.
-
-Running microbenchmark with mprotect and parallel memory access didn't
-show any observable performance impact.
-
-Link: https://lkml.kernel.org/r/20210616045735.374532-3-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20210616045735.374532-4-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Joel Fernandes <joel@joelfernandes.org>
 Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/tlbflush-radix.h |    2 
- arch/powerpc/mm/book3s64/radix_hugetlbpage.c        |    8 +
- arch/powerpc/mm/book3s64/radix_tlb.c                |   44 ++++++----
- 3 files changed, 36 insertions(+), 18 deletions(-)
+ arch/powerpc/platforms/Kconfig.cputype |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/arch/powerpc/include/asm/book3s/64/tlbflush-radix.h~powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache
-+++ a/arch/powerpc/include/asm/book3s/64/tlbflush-radix.h
-@@ -64,6 +64,8 @@ extern void radix__flush_hugetlb_tlb_ran
- 					   unsigned long start, unsigned long end);
- extern void radix__flush_tlb_range_psize(struct mm_struct *mm, unsigned long start,
- 					 unsigned long end, int psize);
-+void radix__flush_tlb_pwc_range_psize(struct mm_struct *mm, unsigned long start,
-+				      unsigned long end, int psize);
- extern void radix__flush_pmd_tlb_range(struct vm_area_struct *vma,
- 				       unsigned long start, unsigned long end);
- extern void radix__flush_tlb_range(struct vm_area_struct *vma, unsigned long start,
---- a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c~powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache
-+++ a/arch/powerpc/mm/book3s64/radix_hugetlbpage.c
-@@ -32,7 +32,13 @@ void radix__flush_hugetlb_tlb_range(stru
- 	struct hstate *hstate = hstate_file(vma->vm_file);
- 
- 	psize = hstate_get_psize(hstate);
--	radix__flush_tlb_range_psize(vma->vm_mm, start, end, psize);
-+	/*
-+	 * Flush PWC even if we get PUD_SIZE hugetlb invalidate to keep this simpler.
-+	 */
-+	if (end - start >= PUD_SIZE)
-+		radix__flush_tlb_pwc_range_psize(vma->vm_mm, start, end, psize);
-+	else
-+		radix__flush_tlb_range_psize(vma->vm_mm, start, end, psize);
- }
- 
- /*
---- a/arch/powerpc/mm/book3s64/radix_tlb.c~powerpc-book3s64-mm-update-flush_tlb_range-to-flush-page-walk-cache
-+++ a/arch/powerpc/mm/book3s64/radix_tlb.c
-@@ -1111,14 +1111,13 @@ static unsigned long tlb_local_single_pa
- 
- static inline void __radix__flush_tlb_range(struct mm_struct *mm,
- 					    unsigned long start, unsigned long end)
--
- {
- 	unsigned long pid;
- 	unsigned int page_shift = mmu_psize_defs[mmu_virtual_psize].shift;
- 	unsigned long page_size = 1UL << page_shift;
- 	unsigned long nr_pages = (end - start) >> page_shift;
- 	bool fullmm = (end == TLB_FLUSH_ALL);
--	bool flush_pid;
-+	bool flush_pid, flush_pwc = false;
- 	enum tlb_flush_type type;
- 
- 	pid = mm->context.id;
-@@ -1137,8 +1136,16 @@ static inline void __radix__flush_tlb_ra
- 		flush_pid = nr_pages > tlb_single_page_flush_ceiling;
- 	else
- 		flush_pid = nr_pages > tlb_local_single_page_flush_ceiling;
-+	/*
-+	 * full pid flush already does the PWC flush. if it is not full pid
-+	 * flush check the range is more than PMD and force a pwc flush
-+	 * mremap() depends on this behaviour.
-+	 */
-+	if (!flush_pid && (end - start) >= PMD_SIZE)
-+		flush_pwc = true;
- 
- 	if (!mmu_has_feature(MMU_FTR_GTSE) && type == FLUSH_TYPE_GLOBAL) {
-+		unsigned long type = H_RPTI_TYPE_TLB;
- 		unsigned long tgt = H_RPTI_TARGET_CMMU;
- 		unsigned long pg_sizes = psize_to_rpti_pgsize(mmu_virtual_psize);
- 
-@@ -1146,19 +1153,20 @@ static inline void __radix__flush_tlb_ra
- 			pg_sizes |= psize_to_rpti_pgsize(MMU_PAGE_2M);
- 		if (atomic_read(&mm->context.copros) > 0)
- 			tgt |= H_RPTI_TARGET_NMMU;
--		pseries_rpt_invalidate(pid, tgt, H_RPTI_TYPE_TLB, pg_sizes,
--				       start, end);
-+		if (flush_pwc)
-+			type |= H_RPTI_TYPE_PWC;
-+		pseries_rpt_invalidate(pid, tgt, type, pg_sizes, start, end);
- 	} else if (flush_pid) {
-+		/*
-+		 * We are now flushing a range larger than PMD size force a RIC_FLUSH_ALL
-+		 */
- 		if (type == FLUSH_TYPE_LOCAL) {
--			_tlbiel_pid(pid, RIC_FLUSH_TLB);
-+			_tlbiel_pid(pid, RIC_FLUSH_ALL);
- 		} else {
- 			if (cputlb_use_tlbie()) {
--				if (mm_needs_flush_escalation(mm))
--					_tlbie_pid(pid, RIC_FLUSH_ALL);
--				else
--					_tlbie_pid(pid, RIC_FLUSH_TLB);
-+				_tlbie_pid(pid, RIC_FLUSH_ALL);
- 			} else {
--				_tlbiel_pid_multicast(mm, pid, RIC_FLUSH_TLB);
-+				_tlbiel_pid_multicast(mm, pid, RIC_FLUSH_ALL);
- 			}
- 		}
- 	} else {
-@@ -1174,6 +1182,9 @@ static inline void __radix__flush_tlb_ra
- 
- 		if (type == FLUSH_TYPE_LOCAL) {
- 			asm volatile("ptesync": : :"memory");
-+			if (flush_pwc)
-+				/* For PWC, only one flush is needed */
-+				__tlbiel_pid(pid, 0, RIC_FLUSH_PWC);
- 			__tlbiel_va_range(start, end, pid, page_size, mmu_virtual_psize);
- 			if (hflush)
- 				__tlbiel_va_range(hstart, hend, pid,
-@@ -1181,6 +1192,8 @@ static inline void __radix__flush_tlb_ra
- 			ppc_after_tlbiel_barrier();
- 		} else if (cputlb_use_tlbie()) {
- 			asm volatile("ptesync": : :"memory");
-+			if (flush_pwc)
-+				__tlbie_pid(pid, RIC_FLUSH_PWC);
- 			__tlbie_va_range(start, end, pid, page_size, mmu_virtual_psize);
- 			if (hflush)
- 				__tlbie_va_range(hstart, hend, pid,
-@@ -1188,10 +1201,10 @@ static inline void __radix__flush_tlb_ra
- 			asm volatile("eieio; tlbsync; ptesync": : :"memory");
- 		} else {
- 			_tlbiel_va_range_multicast(mm,
--					start, end, pid, page_size, mmu_virtual_psize, false);
-+					start, end, pid, page_size, mmu_virtual_psize, flush_pwc);
- 			if (hflush)
- 				_tlbiel_va_range_multicast(mm,
--					hstart, hend, pid, PMD_SIZE, MMU_PAGE_2M, false);
-+					hstart, hend, pid, PMD_SIZE, MMU_PAGE_2M, flush_pwc);
- 		}
- 	}
- out:
-@@ -1265,9 +1278,6 @@ void radix__flush_all_lpid_guest(unsigne
- 	_tlbie_lpid_guest(lpid, RIC_FLUSH_ALL);
- }
- 
--static void radix__flush_tlb_pwc_range_psize(struct mm_struct *mm, unsigned long start,
--				  unsigned long end, int psize);
--
- void radix__tlb_flush(struct mmu_gather *tlb)
- {
- 	int psize = 0;
-@@ -1374,8 +1384,8 @@ void radix__flush_tlb_range_psize(struct
- 	return __radix__flush_tlb_range_psize(mm, start, end, psize, false);
- }
- 
--static void radix__flush_tlb_pwc_range_psize(struct mm_struct *mm, unsigned long start,
--				  unsigned long end, int psize)
-+void radix__flush_tlb_pwc_range_psize(struct mm_struct *mm, unsigned long start,
-+				      unsigned long end, int psize)
- {
- 	__radix__flush_tlb_range_psize(mm, start, end, psize, true);
- }
+--- a/arch/powerpc/platforms/Kconfig.cputype~powerpc-mm-enable-have_move_pmd-support
++++ a/arch/powerpc/platforms/Kconfig.cputype
+@@ -102,6 +102,8 @@ config PPC_BOOK3S_64
+ 	select ARCH_ENABLE_THP_MIGRATION if TRANSPARENT_HUGEPAGE
+ 	select ARCH_SUPPORTS_HUGETLBFS
+ 	select ARCH_SUPPORTS_NUMA_BALANCING
++	select HAVE_MOVE_PMD
++	select HAVE_MOVE_PUD
+ 	select IRQ_WORK
+ 	select PPC_MM_SLICES
+ 	select PPC_HAVE_KUEP
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
