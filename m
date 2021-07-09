@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AFD17C07E9B
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57306C07E9C
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CDFC613E4
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46AA1613E1
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231215AbhGIVfm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:35:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46308 "EHLO mail.kernel.org"
+        id S231216AbhGIVfn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:35:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46334 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231205AbhGIVfm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:35:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 866A3613D0;
-        Fri,  9 Jul 2021 21:32:57 +0000 (UTC)
+        id S231205AbhGIVfn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:35:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 84EE1613D1;
+        Fri,  9 Jul 2021 21:32:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866377;
-        bh=kww0zr5Q0MnwSWpOSZMm7VCrxn2i73nobEZc3tXap+o=;
+        s=korg; t=1625866378;
+        bh=RP0mQhclsltsT9HrMsTCWjZTslNhwZmqdzPcKYEnNv0=;
         h=Date:From:To:Subject:From;
-        b=oBtnbQd7DtRhKKI1kKlC1g+CBY5+Nw6bP/oW6eJgyyC8JSfVxVo3WrULWuzSnmKxp
-         RuJvui9j/X7fLPkw8trcsqd1NoXpyUzVKOu1dMmdNf/Z/EfNVNcodiXl54hVIJpA0R
-         Aob09wqxmEQh/B+FIRG7JC6net48xUavRHNOn4y8=
-Date:   Fri, 09 Jul 2021 14:32:57 -0700
+        b=Q/TZIIIgtYvYtqcjs4qQMojhY/KakStKmLM42YUXlp38x6Od4Zk+c1KPS/qyeFcny
+         KBd7Xn6QMVpQZid8N6JTKbC/fcxoCaM1HkOfLkZT5bDm94dPB0Flpp9ajQqs3fLI2b
+         WwBBm8RNEHDwikb7x4gRQCOgiU65F4kQ6XSUbeUc=
+Date:   Fri, 09 Jul 2021 14:32:58 -0700
 From:   akpm@linux-foundation.org
-To:     guoren@kernel.org, mm-commits@vger.kernel.org,
-        wangkefeng.wang@huawei.com
-Subject:  [merged] csky-convert-to-setup_initial_init_mm.patch
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        ysato@users.sourceforge.jp
+Subject:  [merged] h8300-convert-to-setup_initial_init_mm.patch
  removed from -mm tree
-Message-ID: <20210709213257.ILPzudHzI%akpm@linux-foundation.org>
+Message-ID: <20210709213258.5TbzWzVsl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,41 +43,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: csky: convert to setup_initial_init_mm()
+     Subject: h8300: convert to setup_initial_init_mm()
 has been removed from the -mm tree.  Its filename was
-     csky-convert-to-setup_initial_init_mm.patch
+     h8300-convert-to-setup_initial_init_mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: csky: convert to setup_initial_init_mm()
+Subject: h8300: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210608083418.137226-6-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210608083418.137226-7-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Guo Ren <guoren@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/csky/kernel/setup.c |    5 +----
+ arch/h8300/kernel/setup.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/csky/kernel/setup.c~csky-convert-to-setup_initial_init_mm
-+++ a/arch/csky/kernel/setup.c
-@@ -78,10 +78,7 @@ void __init setup_arch(char **cmdline_p)
- 	pr_info("Phys. mem: %ldMB\n",
- 		(unsigned long) memblock_phys_mem_size()/1024/1024);
+--- a/arch/h8300/kernel/setup.c~h8300-convert-to-setup_initial_init_mm
++++ a/arch/h8300/kernel/setup.c
+@@ -95,10 +95,7 @@ void __init setup_arch(char **cmdline_p)
+ {
+ 	unflatten_and_copy_device_tree();
  
 -	init_mm.start_code = (unsigned long) _stext;
 -	init_mm.end_code = (unsigned long) _etext;
 -	init_mm.end_data = (unsigned long) _edata;
--	init_mm.brk = (unsigned long) _end;
-+	setup_initial_init_mm(_stext, _etext, _edata, _end);
+-	init_mm.brk = (unsigned long) 0;
++	setup_initial_init_mm(_stext, _etext, _edata, NULL);
  
- 	parse_early_param();
- 
+ 	pr_notice("\r\n\nuClinux " CPU "\n");
+ 	pr_notice("Flat model support (C) 1998,1999 Kenneth Albanowski, D. Jeff Dionne\n");
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
