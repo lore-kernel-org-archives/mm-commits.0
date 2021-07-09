@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5544BC07E9C
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F1FFC11F67
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40233613E6
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D4A9613D9
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231205AbhGIVft (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:35:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46458 "EHLO mail.kernel.org"
+        id S231243AbhGIVfu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:35:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46480 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231241AbhGIVft (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:35:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 80DA1613D6;
-        Fri,  9 Jul 2021 21:33:04 +0000 (UTC)
+        id S231241AbhGIVfu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:35:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 713C5613D0;
+        Fri,  9 Jul 2021 21:33:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866384;
-        bh=R517JCLG4c1fkD9V9SouJZxE3/1sVG3DReg+qTZzBHk=;
+        s=korg; t=1625866385;
+        bh=PcUSaAKtRJmMGnkEB77dwehToo6jCQ7FXPU6tuRDEfg=;
         h=Date:From:To:Subject:From;
-        b=HCaF+P4ukKXvE0BbiSwJAIbhrOIbR/3Ex+r92osIdWtWZz/aoAq3lYxaa0zvD3Bhh
-         xOZs7E/128BwVl9MmgW6wd+fFKXGlKhbXdkUEhlJIVJP8ag7kFcIYscoaOmIkaYTqY
-         ERn8+r+8SfcI+gxSYme3AEil8v/xMLA+f+1podHQ=
-Date:   Fri, 09 Jul 2021 14:33:04 -0700
+        b=F+RifHfkI/LHOFQve6SorT/kJoakppZ26nvaBlc310e7CLJmaU383qIol5qjnmc/j
+         H/pz8WZayqc/I3OJ0KWjQm5wTINA1RtFz6cWDAzt+Cl5mZNWITadu6C7LBfm4ppOBb
+         900PRuCjpXd9Rx6Jey/XVJAJkr0jEgYqx3UpkQJw=
+Date:   Fri, 09 Jul 2021 14:33:05 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, palmerdabbelt@google.com,
-        paul.walmsley@sifive.com, wangkefeng.wang@huawei.com
-Subject:  [merged] riscv-convert-to-setup_initial_init_mm.patch
+To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com
+Subject:  [merged] s390-convert-to-setup_initial_init_mm.patch
  removed from -mm tree
-Message-ID: <20210709213304.CIjP6Gpmi%akpm@linux-foundation.org>
+Message-ID: <20210709213305.xWkzX0mWg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,42 +43,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: riscv: convert to setup_initial_init_mm()
+     Subject: s390: convert to setup_initial_init_mm()
 has been removed from the -mm tree.  Its filename was
-     riscv-convert-to-setup_initial_init_mm.patch
+     s390-convert-to-setup_initial_init_mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: riscv: convert to setup_initial_init_mm()
+Subject: s390: convert to setup_initial_init_mm()
 
 Use setup_initial_init_mm() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210608083418.137226-13-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210608083418.137226-14-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/kernel/setup.c |    5 +----
+ arch/s390/kernel/setup.c |    5 +----
  1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/arch/riscv/kernel/setup.c~riscv-convert-to-setup_initial_init_mm
-+++ a/arch/riscv/kernel/setup.c
-@@ -264,10 +264,7 @@ static void __init parse_dtb(void)
- void __init setup_arch(char **cmdline_p)
- {
- 	parse_dtb();
--	init_mm.start_code = (unsigned long) _stext;
--	init_mm.end_code   = (unsigned long) _etext;
--	init_mm.end_data   = (unsigned long) _edata;
--	init_mm.brk        = (unsigned long) _end;
-+	setup_initial_init_mm(_stext, _etext, _edata, _end);
+--- a/arch/s390/kernel/setup.c~s390-convert-to-setup_initial_init_mm
++++ a/arch/s390/kernel/setup.c
+@@ -1028,10 +1028,7 @@ void __init setup_arch(char **cmdline_p)
  
- 	*cmdline_p = boot_command_line;
+         ROOT_DEV = Root_RAM0;
  
+-	init_mm.start_code = (unsigned long) _text;
+-	init_mm.end_code = (unsigned long) _etext;
+-	init_mm.end_data = (unsigned long) _edata;
+-	init_mm.brk = (unsigned long) _end;
++	setup_initial_init_mm(_text, _etext, _edata, _end);
+ 
+ 	if (IS_ENABLED(CONFIG_EXPOLINE_AUTO))
+ 		nospec_auto_detect();
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
