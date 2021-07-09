@@ -2,274 +2,135 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-24.0 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_IN_DEF_DKIM_WL autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7FC7C07E99
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:35:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3E0EC07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:38:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CCFFB613BC
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:35:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F6BC613B2
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:38:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231244AbhGIXiP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 19:38:15 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41822 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229854AbhGIXiP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2021 19:38:15 -0400
-Received: from mail-yb1-xb36.google.com (mail-yb1-xb36.google.com [IPv6:2607:f8b0:4864:20::b36])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 83467C0613DD
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jul 2021 16:35:30 -0700 (PDT)
-Received: by mail-yb1-xb36.google.com with SMTP id x192so17055741ybe.6
-        for <mm-commits@vger.kernel.org>; Fri, 09 Jul 2021 16:35:30 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=F0okWJOs/m5rIk+lqB/O7tPHyPCxVp7tXQW0BaZt/jo=;
-        b=smADiH+Omq3zFhOp46Ep92zPeRRLcYElI58YoE0+ke9LCb8TqYFi8C3AxFveav7GQb
-         vuJrzq8armlU0oce++KcBOmLrJ02+LNsyzr/IzXGIgO+iLNWXeaalB16mWHvmqFOrxtS
-         0AzL/36XX4MX2Ycq1cV3tc3SH9xG0ajizF1Lzk5fIDytZGvR7PKqRHBMSfMYPYqV5LWd
-         fJXwskLX/Dz2J0gqrR/Zfl+TM5FWyk4mikKXCplrGegFi9fB4Nyn7zhDb+8dHZl+EnoK
-         X98kHFXBsZvUgkiOSEqTTmeZrICPBlu0aRKtVKLgpU/IThpdEdSg2PdJgKlz2r6DyeM2
-         6+Yw==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=F0okWJOs/m5rIk+lqB/O7tPHyPCxVp7tXQW0BaZt/jo=;
-        b=dFQ+EsKmN3XLQpzq4M7vNMw2C6GiHRAPngL9H4tuspP31GzhZMoGpWVgYLOy4DsogJ
-         uSxrJ8IRUORQU6uP0N/56Ah6cLA0P68RHk4eBNCSLS8dtG+yfYzQBCwnGzo4EQGo6cEr
-         HJPVOe3qjJ+FWtXD8FkV1vGQsl0d8TH2OAYd8EFmbRYVuJ1TGldKdvGfHJpg/uSFwdkA
-         UyFZLDDKvdGeFkBT3z9LshyOAPjy9/xnLM7GgFY/rL7ODy7zTBL98a1o+joHyPW6Ya7F
-         gFhmlKqc3M94/d+rISFEYb4lVQDfr+tmjj/I7opSZHRmR6dx3tKlshiP6xmL/uxvSOyg
-         W2cg==
-X-Gm-Message-State: AOAM533zgV1m1xl0HBJUMRH+CDfk5WgdgTDtvm7DkvGNjiVGEs8VCEji
-        0BSl8XIVrlplkOS02DobsPBG+g5OPeT3d1+TTaMdLXFByqMGcprd
-X-Google-Smtp-Source: ABdhPJwApO7bz2G7aHcrjum+6hOc+QOOVjNDZaHxI9gf0OrKjwYef7rXrm0rj2hAd+HARUhpoE4MOrEcnQDaEkn9PV0=
-X-Received: by 2002:a25:2341:: with SMTP id j62mr51886824ybj.190.1625873729527;
- Fri, 09 Jul 2021 16:35:29 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210709222253.W41zC%akpm@linux-foundation.org>
-In-Reply-To: <20210709222253.W41zC%akpm@linux-foundation.org>
-From:   Suren Baghdasaryan <surenb@google.com>
-Date:   Fri, 9 Jul 2021 16:35:18 -0700
-Message-ID: <CAJuCfpG4JenxJX+-QpHBNkX=MY9hGhh1gTHp5z8vumeZNrCCdQ@mail.gmail.com>
-Subject: Re: + mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
+        id S230082AbhGIXl2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 19:41:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32908 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229854AbhGIXl1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 19:41:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B96AC613BC;
+        Fri,  9 Jul 2021 23:38:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1625873922;
+        bh=aCXuxArHkTqEEJPR3DxOSmPBMvZtPSGt+a0BCkb+pGs=;
+        h=Date:From:To:Subject:From;
+        b=AhlfhlCvV/e3o61T18/PM6LAVAgZr7Et4MCyFo2MTWXSXsU5h/kaJ+lfbOeLp2XUh
+         f54qRrYNv7nuzTtyWD20EsDHotNbQ9wVNvmT8Va5W+vboP6yGw+o5f3IPHI/ID4HE/
+         pLLQDGQugXtSNRUcFnRDz0828PydF0oQhASvI7PE=
+Date:   Fri, 09 Jul 2021 16:38:37 -0700
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com, mhocko@suse.com,
+        david@redhat.com, bhe@redhat.com, ohoono.kwon@samsung.com
+Subject:  + mm-sparse-pass-section_nr-to-section_mark_present.patch
  added to -mm tree
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
-        Shakeel Butt <shakeelb@google.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Johannes Weiner <hannes@cmpxchg.org>
-Content-Type: text/plain; charset="UTF-8"
+Message-ID: <20210709233837.eNSzJ%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Jul 9, 2021 at 3:22 PM <akpm@linux-foundation.org> wrote:
->
->
-> The patch titled
->      Subject: mm, memcg: inline mem_cgroup_{charge/uncharge} to improve disabled memcg config
-> has been added to the -mm tree.  Its filename is
->      mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
->
-> This patch should soon appear at
->     https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
-> and later at
->     https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
 
-Hi Andrew,
-Please note that this patch is the second in the series of 3 here:
-https://lore.kernel.org/patchwork/project/lkml/list/?series=507567 and
-the only one that needed a v2 (others seem to be fine and are Ack'ed).
-If you would like me to respin the whole series please let me know.
-Otherwise please don't forget to pick up the other two patches from
-this series.
-Thanks,
-Suren.
+The patch titled
+     Subject: mm: sparse: pass section_nr to section_mark_present
+has been added to the -mm tree.  Its filename is
+     mm-sparse-pass-section_nr-to-section_mark_present.patch
 
->
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
->
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
->
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
->
-> ------------------------------------------------------
-> From: Suren Baghdasaryan <surenb@google.com>
-> Subject: mm, memcg: inline mem_cgroup_{charge/uncharge} to improve disabled memcg config
->
-> Inline mem_cgroup_{charge/uncharge} and mem_cgroup_uncharge_list functions
-> functions to perform mem_cgroup_disabled static key check inline before
-> calling the main body of the function.  This minimizes the memcg overhead
-> in the pagefault and exit_mmap paths when memcgs are disabled using
-> cgroup_disable=memory command-line option.
->
-> This change results in ~0.4% overhead reduction when running PFT test
-> comparing {CONFIG_MEMCG=n} against {CONFIG_MEMCG=y, cgroup_disable=memory}
-> configurationon on an 8-core ARM64 Android device.
->
-> Link: https://lkml.kernel.org/r/20210709171554.3494654-1-surenb@google.com
-> Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-> Reviewed-by: Shakeel Butt <shakeelb@google.com>
-> Cc: Johannes Weiner <hannes@cmpxchg.org>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
->
->  include/linux/memcontrol.h |   28 +++++++++++++++++++++++++---
->  mm/memcontrol.c            |   29 ++++++++++-------------------
->  2 files changed, 35 insertions(+), 22 deletions(-)
->
-> --- a/include/linux/memcontrol.h~mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config
-> +++ a/include/linux/memcontrol.h
-> @@ -693,13 +693,35 @@ static inline bool mem_cgroup_below_min(
->                 page_counter_read(&memcg->memory);
->  }
->
-> -int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask);
-> +int __mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-> +                       gfp_t gfp_mask);
-> +static inline int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-> +                                   gfp_t gfp_mask)
-> +{
-> +       if (mem_cgroup_disabled())
-> +               return 0;
-> +       return __mem_cgroup_charge(page, mm, gfp_mask);
-> +}
-> +
->  int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
->                                   gfp_t gfp, swp_entry_t entry);
->  void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry);
->
-> -void mem_cgroup_uncharge(struct page *page);
-> -void mem_cgroup_uncharge_list(struct list_head *page_list);
-> +void __mem_cgroup_uncharge(struct page *page);
-> +static inline void mem_cgroup_uncharge(struct page *page)
-> +{
-> +       if (mem_cgroup_disabled())
-> +               return;
-> +       __mem_cgroup_uncharge(page);
-> +}
-> +
-> +void __mem_cgroup_uncharge_list(struct list_head *page_list);
-> +static inline void mem_cgroup_uncharge_list(struct list_head *page_list)
-> +{
-> +       if (mem_cgroup_disabled())
-> +               return;
-> +       __mem_cgroup_uncharge_list(page_list);
-> +}
->
->  void mem_cgroup_migrate(struct page *oldpage, struct page *newpage);
->
-> --- a/mm/memcontrol.c~mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config
-> +++ a/mm/memcontrol.c
-> @@ -6701,8 +6701,7 @@ void mem_cgroup_calculate_protection(str
->                         atomic_long_read(&parent->memory.children_low_usage)));
->  }
->
-> -static int __mem_cgroup_charge(struct page *page, struct mem_cgroup *memcg,
-> -                              gfp_t gfp)
-> +static int charge_memcg(struct page *page, struct mem_cgroup *memcg, gfp_t gfp)
->  {
->         unsigned int nr_pages = thp_nr_pages(page);
->         int ret;
-> @@ -6723,7 +6722,7 @@ out:
->  }
->
->  /**
-> - * mem_cgroup_charge - charge a newly allocated page to a cgroup
-> + * __mem_cgroup_charge - charge a newly allocated page to a cgroup
->   * @page: page to charge
->   * @mm: mm context of the victim
->   * @gfp_mask: reclaim mode
-> @@ -6736,16 +6735,14 @@ out:
->   *
->   * Returns 0 on success. Otherwise, an error code is returned.
->   */
-> -int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask)
-> +int __mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-> +                       gfp_t gfp_mask)
->  {
->         struct mem_cgroup *memcg;
->         int ret;
->
-> -       if (mem_cgroup_disabled())
-> -               return 0;
-> -
->         memcg = get_mem_cgroup_from_mm(mm);
-> -       ret = __mem_cgroup_charge(page, memcg, gfp_mask);
-> +       ret = charge_memcg(page, memcg, gfp_mask);
->         css_put(&memcg->css);
->
->         return ret;
-> @@ -6780,7 +6777,7 @@ int mem_cgroup_swapin_charge_page(struct
->                 memcg = get_mem_cgroup_from_mm(mm);
->         rcu_read_unlock();
->
-> -       ret = __mem_cgroup_charge(page, memcg, gfp);
-> +       ret = charge_memcg(page, memcg, gfp);
->
->         css_put(&memcg->css);
->         return ret;
-> @@ -6916,18 +6913,15 @@ static void uncharge_page(struct page *p
->  }
->
->  /**
-> - * mem_cgroup_uncharge - uncharge a page
-> + * __mem_cgroup_uncharge - uncharge a page
->   * @page: page to uncharge
->   *
->   * Uncharge a page previously charged with mem_cgroup_charge().
->   */
-> -void mem_cgroup_uncharge(struct page *page)
-> +void __mem_cgroup_uncharge(struct page *page)
->  {
->         struct uncharge_gather ug;
->
-> -       if (mem_cgroup_disabled())
-> -               return;
-> -
->         /* Don't touch page->lru of any random page, pre-check: */
->         if (!page_memcg(page))
->                 return;
-> @@ -6938,20 +6932,17 @@ void mem_cgroup_uncharge(struct page *pa
->  }
->
->  /**
-> - * mem_cgroup_uncharge_list - uncharge a list of page
-> + * __mem_cgroup_uncharge_list - uncharge a list of page
->   * @page_list: list of pages to uncharge
->   *
->   * Uncharge a list of pages previously charged with
->   * mem_cgroup_charge().
->   */
-> -void mem_cgroup_uncharge_list(struct list_head *page_list)
-> +void __mem_cgroup_uncharge_list(struct list_head *page_list)
->  {
->         struct uncharge_gather ug;
->         struct page *page;
->
-> -       if (mem_cgroup_disabled())
-> -               return;
-> -
->         uncharge_gather_clear(&ug);
->         list_for_each_entry(page, page_list, lru)
->                 uncharge_page(page, &ug);
-> _
->
-> Patches currently in -mm which might be from surenb@google.com are
->
-> mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
->
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-pass-section_nr-to-section_mark_present.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-pass-section_nr-to-section_mark_present.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Ohhoon Kwon <ohoono.kwon@samsung.com>
+Subject: mm: sparse: pass section_nr to section_mark_present
+
+Patch series "mm: sparse: remove __section_nr() function", v4.
+
+
+This patch (of 3):
+
+With CONFIG_SPARSEMEM_EXTREME enabled, __section_nr() which converts
+mem_section to section_nr could be costly since it iterates all section
+roots to check if the given mem_section is in its range.
+
+Since both callers of section_mark_present already know section_nr, let's
+also pass section_nr as well as mem_section in order to reduce costly
+translation.
+
+Link: https://lkml.kernel.org/r/20210707150212.855-1-ohoono.kwon@samsung.com
+Link: https://lkml.kernel.org/r/20210707150212.855-2-ohoono.kwon@samsung.com
+Signed-off-by: Ohhoon Kwon <ohoono.kwon@samsung.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Baoquan He <bhe@redhat.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/sparse.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
+
+--- a/mm/sparse.c~mm-sparse-pass-section_nr-to-section_mark_present
++++ a/mm/sparse.c
+@@ -187,10 +187,9 @@ void __meminit mminit_validate_memmodel_
+  * those loops early.
+  */
+ unsigned long __highest_present_section_nr;
+-static void section_mark_present(struct mem_section *ms)
++static void __section_mark_present(struct mem_section *ms,
++		unsigned long section_nr)
+ {
+-	unsigned long section_nr = __section_nr(ms);
+-
+ 	if (section_nr > __highest_present_section_nr)
+ 		__highest_present_section_nr = section_nr;
+ 
+@@ -280,7 +279,7 @@ static void __init memory_present(int ni
+ 		if (!ms->section_mem_map) {
+ 			ms->section_mem_map = sparse_encode_early_nid(nid) |
+ 							SECTION_IS_ONLINE;
+-			section_mark_present(ms);
++			__section_mark_present(ms, section);
+ 		}
+ 	}
+ }
+@@ -934,7 +933,7 @@ int __meminit sparse_add_section(int nid
+ 
+ 	ms = __nr_to_section(section_nr);
+ 	set_section_nid(section_nr, nid);
+-	section_mark_present(ms);
++	__section_mark_present(ms, section_nr);
+ 
+ 	/* Align memmap to section boundary in the subsection case */
+ 	if (section_nr_to_pfn(section_nr) != start_pfn)
+_
+
+Patches currently in -mm which might be from ohoono.kwon@samsung.com are
+
+mm-sparse-pass-section_nr-to-section_mark_present.patch
+mm-sparse-pass-section_nr-to-find_memory_block.patch
+mm-sparse-remove-__section_nr-function.patch
+
