@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A22DAC07E9B
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 302F5C07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83456613E3
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 17A84613E1
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231152AbhGIVg1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:36:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47196 "EHLO mail.kernel.org"
+        id S229931AbhGIVgZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:36:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47142 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231146AbhGIVg1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:36:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E5ACE613D0;
-        Fri,  9 Jul 2021 21:33:42 +0000 (UTC)
+        id S231152AbhGIVgZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:36:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C23DE613D1;
+        Fri,  9 Jul 2021 21:33:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866423;
-        bh=l4PKksy0Qy3T4du2sBSZ2LEEh03/y7+REnB3Pw/K/jw=;
+        s=korg; t=1625866420;
+        bh=xwkEX4j+tsUkpyCNd+M02MgyHV0zEO/eU6NzIKXLWlo=;
         h=Date:From:To:Subject:From;
-        b=z9Jciux718qO+Dshp9XY9fuNCcuxtD9ZMxMiHnpNXAnmKblHaxKWvUo+nsFsvqkZV
-         d3zj1k6tPE0Zk4lIv8KqGe+xLSGC14/wDewGP3mP3vw7jhQWZKC5/FkKT+hflpfJut
-         T52qa2nDVhLLd2ZTzfCflGRHTmTz9rpBpeuT7XqA=
-Date:   Fri, 09 Jul 2021 14:33:42 -0700
+        b=OXm0eZpqtiC5HeFPBeOLtmb5q2GXklkAkiohWs27ANXoOqM1yH8mcHaEMA+ruQA2k
+         IZH8cB7L/uwMnrSTICyZSlLoXGM/JWUkZpkD9TWVuU7dYieFzCsV1z3hGCcbReTrbO
+         R7WqBuDYba+4cN0XxU7LlEXv7JUVYd1iM5gEzzHQ=
+Date:   Fri, 09 Jul 2021 14:33:39 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, ast@kernel.org, bhe@redhat.com,
         bp@alien8.de, catalin.marinas@arm.com, dyoung@redhat.com,
@@ -39,9 +39,9 @@ To:     andriy.shevchenko@linux.intel.com, ast@kernel.org, bhe@redhat.com,
         sashal@kernel.org, sergey.senozhatsky@gmail.com,
         swboyd@chromium.org, tglx@linutronix.de, vgoyal@redhat.com,
         will@kernel.org, willy@infradead.org
-Subject:  [merged] buildid-fix-kernel-doc-notation.patch removed
+Subject:  [merged] buildid-mark-some-arguments-const.patch removed
  from -mm tree
-Message-ID: <20210709213342.YmnA2pHX1%akpm@linux-foundation.org>
+Message-ID: <20210709213339.fMXRtxyxm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,20 +50,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buildid: fix kernel-doc notation
+     Subject: buildid: mark some arguments const
 has been removed from the -mm tree.  Its filename was
-     buildid-fix-kernel-doc-notation.patch
+     buildid-mark-some-arguments-const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Stephen Boyd <swboyd@chromium.org>
-Subject: buildid: fix kernel-doc notation
+Subject: buildid: mark some arguments const
 
-Kernel doc should use "Return:" instead of "Returns" to properly reflect
-the return values.
+These arguments are never modified so they can be marked const to indicate
+as such.
 
-Link: https://lkml.kernel.org/r/20210511003845.2429846-13-swboyd@chromium.org
+Link: https://lkml.kernel.org/r/20210511003845.2429846-12-swboyd@chromium.org
 Signed-off-by: Stephen Boyd <swboyd@chromium.org>
 Cc: Jiri Olsa <jolsa@kernel.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
@@ -89,20 +89,42 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/buildid.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/buildid.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/lib/buildid.c~buildid-fix-kernel-doc-notation
+--- a/lib/buildid.c~buildid-mark-some-arguments-const
 +++ a/lib/buildid.c
-@@ -121,7 +121,7 @@ static int get_build_id_64(const void *p
-  * @build_id: buffer to store build id, at least BUILD_ID_SIZE long
-  * @size:     returns actual build id size in case of success
-  *
-- * Returns 0 on success, otherwise error (< 0).
-+ * Return: 0 on success, -EINVAL otherwise
-  */
- int build_id_parse(struct vm_area_struct *vma, unsigned char *build_id,
- 		   __u32 *size)
+@@ -48,10 +48,10 @@ static int parse_build_id_buf(unsigned c
+ 	return -EINVAL;
+ }
+ 
+-static inline int parse_build_id(void *page_addr,
++static inline int parse_build_id(const void *page_addr,
+ 				 unsigned char *build_id,
+ 				 __u32 *size,
+-				 void *note_start,
++				 const void *note_start,
+ 				 Elf32_Word note_size)
+ {
+ 	/* check for overflow */
+@@ -66,7 +66,7 @@ static inline int parse_build_id(void *p
+ }
+ 
+ /* Parse build ID from 32-bit ELF */
+-static int get_build_id_32(void *page_addr, unsigned char *build_id,
++static int get_build_id_32(const void *page_addr, unsigned char *build_id,
+ 			   __u32 *size)
+ {
+ 	Elf32_Ehdr *ehdr = (Elf32_Ehdr *)page_addr;
+@@ -91,7 +91,7 @@ static int get_build_id_32(void *page_ad
+ }
+ 
+ /* Parse build ID from 64-bit ELF */
+-static int get_build_id_64(void *page_addr, unsigned char *build_id,
++static int get_build_id_64(const void *page_addr, unsigned char *build_id,
+ 			   __u32 *size)
+ {
+ 	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)page_addr;
 _
 
 Patches currently in -mm which might be from swboyd@chromium.org are
