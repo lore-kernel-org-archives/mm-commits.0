@@ -2,41 +2,50 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF20FC07E99
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFEB1C07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9780F613C9
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B437F613C9
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231150AbhGIVfK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:35:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45670 "EHLO mail.kernel.org"
+        id S231156AbhGIVfP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:35:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45708 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229506AbhGIVfJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:35:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A0A85613C3;
-        Fri,  9 Jul 2021 21:32:25 +0000 (UTC)
+        id S229506AbhGIVfO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:35:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1DA9A613BD;
+        Fri,  9 Jul 2021 21:32:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866345;
-        bh=x8j0Vdg1HZ7px2H4Us59O/SST1dCm+lhVKJVHDCcqPY=;
+        s=korg; t=1625866350;
+        bh=BaR3HGcrJXt3kfL6DY7T1WO+oSnvVOrzB5/JG7/dbUE=;
         h=Date:From:To:Subject:From;
-        b=G/L1KOvYr8Ti0RB9xHzz7+GYeImNnxWaVlPrWzAjX9fN6WXcUu8JIVvS/qxePt8tr
-         SkcwJu7OTBDEtunRJxORT7u9kFaT3ivJYFb4eP36QQMT95SouJvTMK9j/EC5RcAxN5
-         3PuA7D9dpaKMvTQLZHxPfixtGvPeMIV+nx0E4fKg=
-Date:   Fri, 09 Jul 2021 14:32:25 -0700
+        b=j3MvIL3kZr/dL6Wpb6CgIsg7Q3EpDkCtWw2APbixbRtZmWMCGMh4cHvec1NlNzB/M
+         55OQbMBkRVRRTM0m66+edzQkd6IsI0xgYfYWSKPN5l6N/4fxBxfTqY2pIe0HgZet9k
+         EDEG/Hp5OqS/HCW2XakghgckpF0cKTPtIhB6UpBQ=
+Date:   Fri, 09 Jul 2021 14:32:28 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, glittao@gmail.com, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rdunlap@infradead.org, rientjes@google.com, vbabka@suse.cz
-Subject:  [merged]
- mm-slub-use-stackdepot-to-save-stack-trace-in-objects.patch removed from
- -mm tree
-Message-ID: <20210709213225.SVmgVELwC%akpm@linux-foundation.org>
+To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
+        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
+        david@redhat.com, elena.reshetova@intel.com, guro@fb.com,
+        hagen@jauu.net, hpa@zytor.com,
+        James.Bottomley@HansenPartnership.com, jejb@linux.ibm.com,
+        kirill@shutemov.name, lkp@intel.com, luto@kernel.org,
+        mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org,
+        mtk.manpages@gmail.com, palmer@dabbelt.com,
+        palmerdabbelt@google.com, paul.walmsley@sifive.com,
+        peterz@infradead.org, rick.p.edgecombe@intel.com,
+        rppt@linux.ibm.com, shakeelb@google.com, shuah@kernel.org,
+        tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
+        will@kernel.org, willy@infradead.org
+Subject:  [merged] mmap-make-mlock_future_check-global.patch
+ removed from -mm tree
+Message-ID: <20210709213228.CsHiRKz0V%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,181 +54,174 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: use stackdepot to save stack trace in objects
+     Subject: mmap: make mlock_future_check() global
 has been removed from the -mm tree.  Its filename was
-     mm-slub-use-stackdepot-to-save-stack-trace-in-objects.patch
+     mmap-make-mlock_future_check-global.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oliver Glitta <glittao@gmail.com>
-Subject: mm/slub: use stackdepot to save stack trace in objects
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mmap: make mlock_future_check() global
 
-Many stack traces are similar so there are many similar arrays. 
-Stackdepot saves each unique stack only once.
+Patch series "mm: introduce memfd_secret system call to create "secret" memory areas", v20.
 
-Replace field addrs in struct track with depot_stack_handle_t handle.  Use
-stackdepot to save stack trace.
+This is an implementation of "secret" mappings backed by a file
+descriptor.
 
-The benefits are smaller memory overhead and possibility to aggregate
-per-cache statistics in the future using the stackdepot handle instead of
-matching stacks manually.
+The file descriptor backing secret memory mappings is created using a
+dedicated memfd_secret system call The desired protection mode for the
+memory is configured using flags parameter of the system call.  The mmap()
+of the file descriptor created with memfd_secret() will create a "secret"
+memory mapping.  The pages in that mapping will be marked as not present
+in the direct map and will be present only in the page table of the owning
+mm.
 
-[rdunlap@infradead.org: rename save_stack_trace()]
-  Link: https://lkml.kernel.org/r/20210513051920.29320-1-rdunlap@infradead.org
-[vbabka@suse.cz: fix lockdep splat]
-  Link: https://lkml.kernel.org/r/20210516195150.26740-1-vbabka@suse.czLink: https://lkml.kernel.org/r/20210414163434.4376-1-glittao@gmail.com
-Signed-off-by: Oliver Glitta <glittao@gmail.com>
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Although normally Linux userspace mappings are protected from other users,
+such secret mappings are useful for environments where a hostile tenant is
+trying to trick the kernel into giving them access to other tenants
+mappings.
+
+It's designed to provide the following protections:
+
+* Enhanced protection (in conjunction with all the other in-kernel
+  attack prevention systems) against ROP attacks.  Seceretmem makes
+  "simple" ROP insufficient to perform exfiltration, which increases the
+  required complexity of the attack.  Along with other protections like
+  the kernel stack size limit and address space layout randomization which
+  make finding gadgets is really hard, absence of any in-kernel primitive
+  for accessing secret memory means the one gadget ROP attack can't work. 
+  Since the only way to access secret memory is to reconstruct the missing
+  mapping entry, the attacker has to recover the physical page and insert
+  a PTE pointing to it in the kernel and then retrieve the contents.  That
+  takes at least three gadgets which is a level of difficulty beyond most
+  standard attacks.
+
+* Prevent cross-process secret userspace memory exposures.  Once the
+  secret memory is allocated, the user can't accidentally pass it into the
+  kernel to be transmitted somewhere.  The secreremem pages cannot be
+  accessed via the direct map and they are disallowed in GUP.
+
+* Harden against exploited kernel flaws.  In order to access secretmem,
+  a kernel-side attack would need to either walk the page tables and
+  create new ones, or spawn a new privileged uiserspace process to perform
+  secrets exfiltration using ptrace.
+
+In the future the secret mappings may be used as a mean to protect guest
+memory in a virtual machine host.
+
+For demonstration of secret memory usage we've created a userspace library
+
+https://git.kernel.org/pub/scm/linux/kernel/git/jejb/secret-memory-preloader.git
+
+that does two things: the first is act as a preloader for openssl to
+redirect all the OPENSSL_malloc calls to secret memory meaning any secret
+keys get automatically protected this way and the other thing it does is
+expose the API to the user who needs it.  We anticipate that a lot of the
+use cases would be like the openssl one: many toolkits that deal with
+secret keys already have special handling for the memory to try to give
+them greater protection, so this would simply be pluggable into the
+toolkits without any need for user application modification.
+
+Hiding secret memory mappings behind an anonymous file allows usage of the
+page cache for tracking pages allocated for the "secret" mappings as well
+as using address_space_operations for e.g.  page migration callbacks.
+
+The anonymous file may be also used implicitly, like hugetlb files, to
+implement mmap(MAP_SECRET) and use the secret memory areas with "native"
+mm ABIs in the future.
+
+Removing of the pages from the direct map may cause its fragmentation on
+architectures that use large pages to map the physical memory which
+affects the system performance.  However, the original Kconfig text for
+CONFIG_DIRECT_GBPAGES said that gigabyte pages in the direct map "...  can
+improve the kernel's performance a tiny bit ..." (commit 00d1c5e05736
+("x86: add gbpages switches")) and the recent report [1] showed that "... 
+although 1G mappings are a good default choice, there is no compelling
+evidence that it must be the only choice".  Hence, it is sufficient to
+have secretmem disabled by default with the ability of a system
+administrator to enable it at boot time.
+
+In addition, there is also a long term goal to improve management of the
+direct map.
+
+[1] https://lore.kernel.org/linux-mm/213b4567-46ce-f116-9cdf-bbd0c884eb3c@linux.intel.com/
+
+
+This patch (of 7):
+
+It will be used by the upcoming secret memory implementation.
+
+Link: https://lkml.kernel.org/r/20210518072034.31572-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210518072034.31572-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christopher Lameter <cl@linux.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Elena Reshetova <elena.reshetova@intel.com>
+Cc: Hagen Paul Pfeifer <hagen@jauu.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Bottomley <jejb@linux.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tycho Andersen <tycho@tycho.ws>
+Cc: Will Deacon <will@kernel.org>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    1 
- mm/slub.c    |   79 ++++++++++++++++++++++++++++++-------------------
- 2 files changed, 50 insertions(+), 30 deletions(-)
+ mm/internal.h |    3 +++
+ mm/mmap.c     |    5 ++---
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
---- a/init/Kconfig~mm-slub-use-stackdepot-to-save-stack-trace-in-objects
-+++ a/init/Kconfig
-@@ -1847,6 +1847,7 @@ config SLUB_DEBUG
- 	default y
- 	bool "Enable SLUB debugging support" if EXPERT
- 	depends on SLUB && SYSFS
-+	select STACKDEPOT if STACKTRACE_SUPPORT
- 	help
- 	  SLUB has extensive debug support features. Disabling these can
- 	  result in significant savings in code size. This also disables
---- a/mm/slub.c~mm-slub-use-stackdepot-to-save-stack-trace-in-objects
-+++ a/mm/slub.c
-@@ -26,6 +26,7 @@
- #include <linux/cpuset.h>
- #include <linux/mempolicy.h>
- #include <linux/ctype.h>
-+#include <linux/stackdepot.h>
- #include <linux/debugobjects.h>
- #include <linux/kallsyms.h>
- #include <linux/kfence.h>
-@@ -220,8 +221,8 @@ static inline bool kmem_cache_has_cpu_pa
- #define TRACK_ADDRS_COUNT 16
- struct track {
- 	unsigned long addr;	/* Called from address */
--#ifdef CONFIG_STACKTRACE
--	unsigned long addrs[TRACK_ADDRS_COUNT];	/* Called from address */
-+#ifdef CONFIG_STACKDEPOT
-+	depot_stack_handle_t handle;
- #endif
- 	int cpu;		/* Was running on cpu */
- 	int pid;		/* Pid context */
-@@ -625,22 +626,27 @@ static struct track *get_track(struct km
- 	return kasan_reset_tag(p + alloc);
+--- a/mm/internal.h~mmap-make-mlock_future_check-global
++++ a/mm/internal.h
+@@ -360,6 +360,9 @@ static inline void munlock_vma_pages_all
+ extern void mlock_vma_page(struct page *page);
+ extern unsigned int munlock_vma_page(struct page *page);
+ 
++extern int mlock_future_check(struct mm_struct *mm, unsigned long flags,
++			      unsigned long len);
++
+ /*
+  * Clear the page's PageMlocked().  This can be useful in a situation where
+  * we want to unconditionally remove a page from the pagecache -- e.g.,
+--- a/mm/mmap.c~mmap-make-mlock_future_check-global
++++ a/mm/mmap.c
+@@ -1352,9 +1352,8 @@ static inline unsigned long round_hint_t
+ 	return hint;
  }
  
-+#ifdef CONFIG_STACKDEPOT
-+static depot_stack_handle_t save_stack_depot_trace(gfp_t flags)
-+{
-+	unsigned long entries[TRACK_ADDRS_COUNT];
-+	depot_stack_handle_t handle;
-+	unsigned int nr_entries;
-+
-+	nr_entries = stack_trace_save(entries, ARRAY_SIZE(entries), 4);
-+	handle = stack_depot_save(entries, nr_entries, flags);
-+	return handle;
-+}
-+#endif
-+
- static void set_track(struct kmem_cache *s, void *object,
- 			enum track_item alloc, unsigned long addr)
+-static inline int mlock_future_check(struct mm_struct *mm,
+-				     unsigned long flags,
+-				     unsigned long len)
++int mlock_future_check(struct mm_struct *mm, unsigned long flags,
++		       unsigned long len)
  {
- 	struct track *p = get_track(s, object, alloc);
+ 	unsigned long locked, lock_limit;
  
- 	if (addr) {
--#ifdef CONFIG_STACKTRACE
--		unsigned int nr_entries;
--
--		metadata_access_enable();
--		nr_entries = stack_trace_save(kasan_reset_tag(p->addrs),
--					      TRACK_ADDRS_COUNT, 3);
--		metadata_access_disable();
--
--		if (nr_entries < TRACK_ADDRS_COUNT)
--			p->addrs[nr_entries] = 0;
-+#ifdef CONFIG_STACKDEPOT
-+		p->handle = save_stack_depot_trace(GFP_NOWAIT);
- #endif
- 		p->addr = addr;
- 		p->cpu = smp_processor_id();
-@@ -667,14 +673,19 @@ static void print_track(const char *s, s
- 
- 	pr_err("%s in %pS age=%lu cpu=%u pid=%d\n",
- 	       s, (void *)t->addr, pr_time - t->when, t->cpu, t->pid);
--#ifdef CONFIG_STACKTRACE
-+#ifdef CONFIG_STACKDEPOT
- 	{
--		int i;
--		for (i = 0; i < TRACK_ADDRS_COUNT; i++)
--			if (t->addrs[i])
--				pr_err("\t%pS\n", (void *)t->addrs[i]);
--			else
--				break;
-+		depot_stack_handle_t handle;
-+		unsigned long *entries;
-+		unsigned int nr_entries;
-+
-+		handle = READ_ONCE(t->handle);
-+		if (!handle) {
-+			pr_err("object allocation/free stack trace missing\n");
-+		} else {
-+			nr_entries = stack_depot_fetch(handle, &entries);
-+			stack_trace_print(entries, nr_entries, 0);
-+		}
- 	}
- #endif
- }
-@@ -4048,18 +4059,26 @@ void kmem_obj_info(struct kmem_obj_info
- 	objp = fixup_red_left(s, objp);
- 	trackp = get_track(s, objp, TRACK_ALLOC);
- 	kpp->kp_ret = (void *)trackp->addr;
--#ifdef CONFIG_STACKTRACE
--	for (i = 0; i < KS_ADDRS_COUNT && i < TRACK_ADDRS_COUNT; i++) {
--		kpp->kp_stack[i] = (void *)trackp->addrs[i];
--		if (!kpp->kp_stack[i])
--			break;
--	}
-+#ifdef CONFIG_STACKDEPOT
-+	{
-+		depot_stack_handle_t handle;
-+		unsigned long *entries;
-+		unsigned int nr_entries;
- 
--	trackp = get_track(s, objp, TRACK_FREE);
--	for (i = 0; i < KS_ADDRS_COUNT && i < TRACK_ADDRS_COUNT; i++) {
--		kpp->kp_free_stack[i] = (void *)trackp->addrs[i];
--		if (!kpp->kp_free_stack[i])
--			break;
-+		handle = READ_ONCE(trackp->handle);
-+		if (handle) {
-+			nr_entries = stack_depot_fetch(handle, &entries);
-+			for (i = 0; i < KS_ADDRS_COUNT && i < nr_entries; i++)
-+				kpp->kp_stack[i] = (void *)entries[i];
-+		}
-+
-+		trackp = get_track(s, objp, TRACK_FREE);
-+		handle = READ_ONCE(trackp->handle);
-+		if (handle) {
-+			nr_entries = stack_depot_fetch(handle, &entries);
-+			for (i = 0; i < KS_ADDRS_COUNT && i < nr_entries; i++)
-+				kpp->kp_free_stack[i] = (void *)entries[i];
-+		}
- 	}
- #endif
- #endif
 _
 
-Patches currently in -mm which might be from glittao@gmail.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
 
