@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DB096C07E99
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B308C07E9C
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA698613C7
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 170CF613D0
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229506AbhGIVfU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:35:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45778 "EHLO mail.kernel.org"
+        id S231165AbhGIVfV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:35:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45878 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231146AbhGIVfR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:35:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F31C0613C9;
-        Fri,  9 Jul 2021 21:32:31 +0000 (UTC)
+        id S231146AbhGIVfU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:35:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0BF4F613C2;
+        Fri,  9 Jul 2021 21:32:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866353;
-        bh=bLbtBSK2baUju4mfhrtTqQnBLOkWMZjK4NpT6346SJA=;
+        s=korg; t=1625866356;
+        bh=0Yjznt70N9dUThfbMjrEdusmdwEXP8jGaOFZyOfwaN0=;
         h=Date:From:To:Subject:From;
-        b=ouMmrcIeCX/zOV/4DuGatVJgLjDtoCoFflokkRul4D6Bfs1llR+Bx9hxy1OcC9yt3
-         U+ll7ZvLGx48b1shMxS/EPFPgcWLHOnTUm4vWkM5sPrbNyf3c68OkE4cKMCtR4zciT
-         4KphAHM5d34yZhTNrx1XAIMircL1osdYYVYMllyM=
-Date:   Fri, 09 Jul 2021 14:32:31 -0700
+        b=g6PhTzt0DV57OqaBYUNF6YZfnlDS0jQA3JDkW/C2C22gfjDB3wNsGO4sX9EdcU6iy
+         qXTj0pX6wTQ099nQ0qTPKC1uN7+/NQmYcyan9A22OzFr6FgM0EPARV7NLjoFesApum
+         SPs1YTvxkNuRp+CqR4OyOTNAMJUfgOssLUqHC/hU=
+Date:   Fri, 09 Jul 2021 14:32:34 -0700
 From:   akpm@linux-foundation.org
 To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         dan.j.williams@intel.com, dave.hansen@linux.intel.com,
@@ -44,9 +44,9 @@ To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
         tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
         will@kernel.org, willy@infradead.org
 Subject:  [merged]
- riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+ set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
  removed from -mm tree
-Message-ID: <20210709213231.Y1VzcvZ_2%akpm@linux-foundation.org>
+Message-ID: <20210709213234.FzTp49B0z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,32 +55,38 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: riscv/Kconfig: make direct map manipulation options depend on MMU
+     Subject: set_memory: allow querying whether set_direct_map_*() is actually enabled
 has been removed from the -mm tree.  Its filename was
-     riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu.patch
+     set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: riscv/Kconfig: make direct map manipulation options depend on MMU
+Subject: set_memory: allow querying whether set_direct_map_*() is actually enabled
 
-ARCH_HAS_SET_DIRECT_MAP and ARCH_HAS_SET_MEMORY configuration options have
-no meaning when CONFIG_MMU is disabled and there is no point to enable
-them for the nommu case.
+On arm64, set_direct_map_*() functions may return 0 without actually
+changing the linear map.  This behaviour can be controlled using kernel
+parameters, so we need a way to determine at runtime whether calls to
+set_direct_map_invalid_noflush() and set_direct_map_default_noflush() have
+any effect.
 
-Add an explicit dependency on MMU for these options.
+Extend set_memory API with can_set_direct_map() function that allows
+checking if calling set_direct_map_*() will actually change the page
+table, replace several occurrences of open coded checks in arm64 with the
+new function and provide a generic stub for architectures that always
+modify page tables upon calls to set_direct_map APIs.
 
-Link: https://lkml.kernel.org/r/20210518072034.31572-3-rppt@kernel.org
+[arnd@arndb.de: arm64: kfence: fix header inclusion ]
+Link: https://lkml.kernel.org/r/20210518072034.31572-4-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reported-by: kernel test robot <lkp@intel.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Acked-by: James Bottomley <James.Bottomley@HansenPartnership.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Lutomirski <luto@kernel.org>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christopher Lameter <cl@linux.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -104,25 +110,188 @@ Cc: Shuah Khan <shuah@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Tycho Andersen <tycho@tycho.ws>
 Cc: Will Deacon <will@kernel.org>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/Kconfig |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm64/include/asm/Kbuild       |    1 -
+ arch/arm64/include/asm/cacheflush.h |    6 ------
+ arch/arm64/include/asm/kfence.h     |    2 +-
+ arch/arm64/include/asm/set_memory.h |   17 +++++++++++++++++
+ arch/arm64/kernel/machine_kexec.c   |    1 +
+ arch/arm64/mm/mmu.c                 |    7 +++----
+ arch/arm64/mm/pageattr.c            |   13 +++++++++----
+ include/linux/set_memory.h          |   12 ++++++++++++
+ 8 files changed, 43 insertions(+), 16 deletions(-)
 
---- a/arch/riscv/Kconfig~riscv-kconfig-make-direct-map-manipulation-options-depend-on-mmu
-+++ a/arch/riscv/Kconfig
-@@ -26,8 +26,8 @@ config RISCV
- 	select ARCH_HAS_KCOV
- 	select ARCH_HAS_MMIOWB
- 	select ARCH_HAS_PTE_SPECIAL
--	select ARCH_HAS_SET_DIRECT_MAP
--	select ARCH_HAS_SET_MEMORY
-+	select ARCH_HAS_SET_DIRECT_MAP if MMU
-+	select ARCH_HAS_SET_MEMORY if MMU
- 	select ARCH_HAS_STRICT_KERNEL_RWX if MMU && !XIP_KERNEL
- 	select ARCH_HAS_STRICT_MODULE_RWX if MMU && !XIP_KERNEL
- 	select ARCH_HAS_TICK_BROADCAST if GENERIC_CLOCKEVENTS_BROADCAST
+--- a/arch/arm64/include/asm/cacheflush.h~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/arch/arm64/include/asm/cacheflush.h
+@@ -144,12 +144,6 @@ static __always_inline void icache_inval
+ 	dsb(ish);
+ }
+ 
+-int set_memory_valid(unsigned long addr, int numpages, int enable);
+-
+-int set_direct_map_invalid_noflush(struct page *page);
+-int set_direct_map_default_noflush(struct page *page);
+-bool kernel_page_present(struct page *page);
+-
+ #include <asm-generic/cacheflush.h>
+ 
+ #endif /* __ASM_CACHEFLUSH_H */
+--- a/arch/arm64/include/asm/Kbuild~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/arch/arm64/include/asm/Kbuild
+@@ -3,7 +3,6 @@ generic-y += early_ioremap.h
+ generic-y += mcs_spinlock.h
+ generic-y += qrwlock.h
+ generic-y += qspinlock.h
+-generic-y += set_memory.h
+ generic-y += user.h
+ 
+ generated-y += cpucaps.h
+--- a/arch/arm64/include/asm/kfence.h~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/arch/arm64/include/asm/kfence.h
+@@ -8,7 +8,7 @@
+ #ifndef __ASM_KFENCE_H
+ #define __ASM_KFENCE_H
+ 
+-#include <asm/cacheflush.h>
++#include <asm/set_memory.h>
+ 
+ static inline bool arch_kfence_init_pool(void) { return true; }
+ 
+--- /dev/null
++++ a/arch/arm64/include/asm/set_memory.h
+@@ -0,0 +1,17 @@
++/* SPDX-License-Identifier: GPL-2.0-only */
++
++#ifndef _ASM_ARM64_SET_MEMORY_H
++#define _ASM_ARM64_SET_MEMORY_H
++
++#include <asm-generic/set_memory.h>
++
++bool can_set_direct_map(void);
++#define can_set_direct_map can_set_direct_map
++
++int set_memory_valid(unsigned long addr, int numpages, int enable);
++
++int set_direct_map_invalid_noflush(struct page *page);
++int set_direct_map_default_noflush(struct page *page);
++bool kernel_page_present(struct page *page);
++
++#endif /* _ASM_ARM64_SET_MEMORY_H */
+--- a/arch/arm64/kernel/machine_kexec.c~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/arch/arm64/kernel/machine_kexec.c
+@@ -11,6 +11,7 @@
+ #include <linux/kernel.h>
+ #include <linux/kexec.h>
+ #include <linux/page-flags.h>
++#include <linux/set_memory.h>
+ #include <linux/smp.h>
+ 
+ #include <asm/cacheflush.h>
+--- a/arch/arm64/mm/mmu.c~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/arch/arm64/mm/mmu.c
+@@ -22,6 +22,7 @@
+ #include <linux/io.h>
+ #include <linux/mm.h>
+ #include <linux/vmalloc.h>
++#include <linux/set_memory.h>
+ 
+ #include <asm/barrier.h>
+ #include <asm/cputype.h>
+@@ -515,8 +516,7 @@ static void __init map_mem(pgd_t *pgdp)
+ 	 */
+ 	BUILD_BUG_ON(pgd_index(direct_map_end - 1) == pgd_index(direct_map_end));
+ 
+-	if (rodata_full || crash_mem_map || debug_pagealloc_enabled() ||
+-	    IS_ENABLED(CONFIG_KFENCE))
++	if (can_set_direct_map() || crash_mem_map || IS_ENABLED(CONFIG_KFENCE))
+ 		flags |= NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
+ 
+ 	/*
+@@ -1489,8 +1489,7 @@ int arch_add_memory(int nid, u64 start,
+ 	 * KFENCE requires linear map to be mapped at page granularity, so that
+ 	 * it is possible to protect/unprotect single pages in the KFENCE pool.
+ 	 */
+-	if (rodata_full || debug_pagealloc_enabled() ||
+-	    IS_ENABLED(CONFIG_KFENCE))
++	if (can_set_direct_map() || IS_ENABLED(CONFIG_KFENCE))
+ 		flags |= NO_BLOCK_MAPPINGS | NO_CONT_MAPPINGS;
+ 
+ 	__create_pgd_mapping(swapper_pg_dir, start, __phys_to_virt(start),
+--- a/arch/arm64/mm/pageattr.c~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/arch/arm64/mm/pageattr.c
+@@ -19,6 +19,11 @@ struct page_change_data {
+ 
+ bool rodata_full __ro_after_init = IS_ENABLED(CONFIG_RODATA_FULL_DEFAULT_ENABLED);
+ 
++bool can_set_direct_map(void)
++{
++	return rodata_full || debug_pagealloc_enabled();
++}
++
+ static int change_page_range(pte_t *ptep, unsigned long addr, void *data)
+ {
+ 	struct page_change_data *cdata = data;
+@@ -155,7 +160,7 @@ int set_direct_map_invalid_noflush(struc
+ 		.clear_mask = __pgprot(PTE_VALID),
+ 	};
+ 
+-	if (!debug_pagealloc_enabled() && !rodata_full)
++	if (!can_set_direct_map())
+ 		return 0;
+ 
+ 	return apply_to_page_range(&init_mm,
+@@ -170,7 +175,7 @@ int set_direct_map_default_noflush(struc
+ 		.clear_mask = __pgprot(PTE_RDONLY),
+ 	};
+ 
+-	if (!debug_pagealloc_enabled() && !rodata_full)
++	if (!can_set_direct_map())
+ 		return 0;
+ 
+ 	return apply_to_page_range(&init_mm,
+@@ -181,7 +186,7 @@ int set_direct_map_default_noflush(struc
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
+ {
+-	if (!debug_pagealloc_enabled() && !rodata_full)
++	if (!can_set_direct_map())
+ 		return;
+ 
+ 	set_memory_valid((unsigned long)page_address(page), numpages, enable);
+@@ -206,7 +211,7 @@ bool kernel_page_present(struct page *pa
+ 	pte_t *ptep;
+ 	unsigned long addr = (unsigned long)page_address(page);
+ 
+-	if (!debug_pagealloc_enabled() && !rodata_full)
++	if (!can_set_direct_map())
+ 		return true;
+ 
+ 	pgdp = pgd_offset_k(addr);
+--- a/include/linux/set_memory.h~set_memory-allow-querying-whether-set_direct_map_-is-actually-enabled
++++ a/include/linux/set_memory.h
+@@ -28,7 +28,19 @@ static inline bool kernel_page_present(s
+ {
+ 	return true;
+ }
++#else /* CONFIG_ARCH_HAS_SET_DIRECT_MAP */
++/*
++ * Some architectures, e.g. ARM64 can disable direct map modifications at
++ * boot time. Let them overrive this query.
++ */
++#ifndef can_set_direct_map
++static inline bool can_set_direct_map(void)
++{
++	return true;
++}
++#define can_set_direct_map can_set_direct_map
+ #endif
++#endif /* CONFIG_ARCH_HAS_SET_DIRECT_MAP */
+ 
+ #ifndef set_mce_nospec
+ static inline int set_mce_nospec(unsigned long pfn, bool unmap)
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
