@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DDB0FC07E99
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D273FC07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFBE4613D6
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AF175613D6
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231146AbhGIVgj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:36:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47366 "EHLO mail.kernel.org"
+        id S230389AbhGIVgn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:36:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47436 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230441AbhGIVgi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:36:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A8277613DC;
-        Fri,  9 Jul 2021 21:33:54 +0000 (UTC)
+        id S229552AbhGIVgm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:36:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A9901613D3;
+        Fri,  9 Jul 2021 21:33:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866435;
-        bh=Tw4modhrj5aMJytXKRPAHvFsEGD67SzWhpx/7CzkwXc=;
+        s=korg; t=1625866439;
+        bh=n9eQi0BxKSZcHXPW9+c1Yid8imd/iolF0nAe0MQx1Yk=;
         h=Date:From:To:Subject:From;
-        b=Iy1nBjQwfUPLLftdhBgIHXZwg5f/X/IMcDRmfI64hMBKv8gn08vaYa9Vs9Q24o20E
-         dGUrXixRoPWYdSj9VUlfez53a1bou+gFUoXb3360x7Fcr/MVQjjamhGMPqFFk12gAC
-         RyrU1VS5MLbiMJI925WIp5uAk/GpVXueEZ0mwLsc=
-Date:   Fri, 09 Jul 2021 14:33:54 -0700
+        b=g0M0EySHlt324lDSK/P+5kd11vaOFdLbm6UDeOCmh6QILcDVsdEsy7r29SZDq/u9l
+         oBARUEOZ1txPhRyFZ1fTM7jmfWrqnPw8AW1SR3O6ZEHavwaW7KyObVEXpScjewHVcO
+         DRc4M4qY/PsLV8jGroua9be5F/+/eP9ZbS97VL0g=
+Date:   Fri, 09 Jul 2021 14:33:58 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
         hughd@google.com, joel@joelfernandes.org, kaleshsingh@google.com,
-        kirill.shutemov@linux.intel.com, kirill@shutemov.name,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, npiggin@gmail.com,
-        sfr@canb.auug.org.au
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, npiggin@gmail.com, sfr@canb.auug.org.au
 Subject:  [merged]
- selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
- removed from -mm tree
-Message-ID: <20210709213354.lWURj_0uT%akpm@linux-foundation.org>
+ mm-mremap-convert-huge-pud-move-to-separate-helper.patch removed from -mm
+ tree
+Message-ID: <20210709213358.ioSGjdgyQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,189 +46,167 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest/mremap_test: update the test to handle pagesize other than 4K
+     Subject: mm/mremap: convert huge PUD move to separate helper
 has been removed from the -mm tree.  Its filename was
-     selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k.patch
+     mm-mremap-convert-huge-pud-move-to-separate-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: selftest/mremap_test: update the test to handle pagesize other than 4K
+Subject: mm/mremap: convert huge PUD move to separate helper
 
-Patch series "mrermap fixes", v2.
+With TRANSPARENT_HUGEPAGE_PUD enabled the kernel can find huge PUD
+entries.  Add a helper to move huge PUD entries on mremap().
 
+This will be used by a later patch to optimize mremap of PUD_SIZE aligned
+level 4 PTE mapped address
 
-This patch (of 6):
+This also make sure we support mremap on huge PUD entries even with
+CONFIG_HAVE_MOVE_PUD disabled.
 
-Instead of hardcoding 4K page size fetch it using sysconf().  For the
-performance measurements test still assume 2M and 1G are hugepage sizes.
-
-Link: https://lkml.kernel.org/r/20210616045239.370802-1-aneesh.kumar@linux.ibm.com
-Link: https://lkml.kernel.org/r/20210616045239.370802-2-aneesh.kumar@linux.ibm.com
+[aneesh.kumar@linux.ibm.com: fix build failure with clang-10]
+  Link: https://lore.kernel.org/lkml/YMuOSnJsL9qkxweY@archlinux-ax161
+  Link: https://lkml.kernel.org/r/20210619134310.89098-1-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20210616045239.370802-4-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Kalesh Singh <kaleshsingh@google.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Joel Fernandes <joel@joelfernandes.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mremap_test.c |  111 +++++++++++----------
- 1 file changed, 60 insertions(+), 51 deletions(-)
+ mm/mremap.c |   80 +++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 73 insertions(+), 7 deletions(-)
 
---- a/tools/testing/selftests/vm/mremap_test.c~selftest-mremap_test-update-the-test-to-handle-pagesize-other-than-4k
-+++ a/tools/testing/selftests/vm/mremap_test.c
-@@ -45,14 +45,15 @@ enum {
- 	_4MB = 4ULL << 20,
- 	_1GB = 1ULL << 30,
- 	_2GB = 2ULL << 30,
--	PTE = _4KB,
- 	PMD = _2MB,
- 	PUD = _1GB,
+--- a/mm/mremap.c~mm-mremap-convert-huge-pud-move-to-separate-helper
++++ a/mm/mremap.c
+@@ -324,10 +324,61 @@ static inline bool move_normal_pud(struc
+ }
+ #endif
+ 
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++static bool move_huge_pud(struct vm_area_struct *vma, unsigned long old_addr,
++			  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
++{
++	spinlock_t *old_ptl, *new_ptl;
++	struct mm_struct *mm = vma->vm_mm;
++	pud_t pud;
++
++	/*
++	 * The destination pud shouldn't be established, free_pgtables()
++	 * should have released it.
++	 */
++	if (WARN_ON_ONCE(!pud_none(*new_pud)))
++		return false;
++
++	/*
++	 * We don't have to worry about the ordering of src and dst
++	 * ptlocks because exclusive mmap_lock prevents deadlock.
++	 */
++	old_ptl = pud_lock(vma->vm_mm, old_pud);
++	new_ptl = pud_lockptr(mm, new_pud);
++	if (new_ptl != old_ptl)
++		spin_lock_nested(new_ptl, SINGLE_DEPTH_NESTING);
++
++	/* Clear the pud */
++	pud = *old_pud;
++	pud_clear(old_pud);
++
++	VM_BUG_ON(!pud_none(*new_pud));
++
++	/* Set the new pud */
++	/* mark soft_ditry when we add pud level soft dirty support */
++	set_pud_at(mm, new_addr, new_pud, pud);
++	flush_pud_tlb_range(vma, old_addr, old_addr + HPAGE_PUD_SIZE);
++	if (new_ptl != old_ptl)
++		spin_unlock(new_ptl);
++	spin_unlock(old_ptl);
++
++	return true;
++}
++#else
++static bool move_huge_pud(struct vm_area_struct *vma, unsigned long old_addr,
++			  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
++{
++	WARN_ON_ONCE(1);
++	return false;
++
++}
++#endif
++
+ enum pgt_entry {
+ 	NORMAL_PMD,
+ 	HPAGE_PMD,
+ 	NORMAL_PUD,
++	HPAGE_PUD,
  };
  
-+#define PTE page_size
+ /*
+@@ -347,6 +398,7 @@ static __always_inline unsigned long get
+ 		mask = PMD_MASK;
+ 		size = PMD_SIZE;
+ 		break;
++	case HPAGE_PUD:
+ 	case NORMAL_PUD:
+ 		mask = PUD_MASK;
+ 		size = PUD_SIZE;
+@@ -395,6 +447,12 @@ static bool move_pgt_entry(enum pgt_entr
+ 			move_huge_pmd(vma, old_addr, new_addr, old_entry,
+ 				      new_entry);
+ 		break;
++	case HPAGE_PUD:
++		moved = IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++			move_huge_pud(vma, old_addr, new_addr, old_entry,
++				      new_entry);
++		break;
 +
- #define MAKE_TEST(source_align, destination_align, size,	\
- 		  overlaps, should_fail, test_name)		\
--{								\
-+(struct test){							\
- 	.name = test_name,					\
- 	.config = {						\
- 		.src_alignment = source_align,			\
-@@ -252,12 +253,17 @@ static int parse_args(int argc, char **a
- 	return 0;
- }
+ 	default:
+ 		WARN_ON_ONCE(1);
+ 		break;
+@@ -414,6 +472,7 @@ unsigned long move_page_tables(struct vm
+ 	unsigned long extent, old_end;
+ 	struct mmu_notifier_range range;
+ 	pmd_t *old_pmd, *new_pmd;
++	pud_t *old_pud, *new_pud;
  
-+#define MAX_TEST 13
-+#define MAX_PERF_TEST 3
- int main(int argc, char **argv)
- {
- 	int failures = 0;
- 	int i, run_perf_tests;
- 	unsigned int threshold_mb = VALIDATION_DEFAULT_THRESHOLD;
- 	unsigned int pattern_seed;
-+	struct test test_cases[MAX_TEST];
-+	struct test perf_test_cases[MAX_PERF_TEST];
-+	int page_size;
- 	time_t t;
+ 	old_end = old_addr + len;
+ 	flush_cache_range(vma, old_addr, old_end);
+@@ -429,15 +488,22 @@ unsigned long move_page_tables(struct vm
+ 		 * PUD level if possible.
+ 		 */
+ 		extent = get_extent(NORMAL_PUD, old_addr, old_end, new_addr);
+-		if (IS_ENABLED(CONFIG_HAVE_MOVE_PUD) && extent == PUD_SIZE) {
+-			pud_t *old_pud, *new_pud;
  
- 	pattern_seed = (unsigned int) time(&t);
-@@ -268,56 +274,59 @@ int main(int argc, char **argv)
- 	ksft_print_msg("Test configs:\n\tthreshold_mb=%u\n\tpattern_seed=%u\n\n",
- 		       threshold_mb, pattern_seed);
- 
--	struct test test_cases[] = {
--		/* Expected mremap failures */
--		MAKE_TEST(_4KB, _4KB, _4KB, OVERLAPPING, EXPECT_FAILURE,
--		  "mremap - Source and Destination Regions Overlapping"),
--		MAKE_TEST(_4KB, _1KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
--		  "mremap - Destination Address Misaligned (1KB-aligned)"),
--		MAKE_TEST(_1KB, _4KB, _4KB, NON_OVERLAPPING, EXPECT_FAILURE,
--		  "mremap - Source Address Misaligned (1KB-aligned)"),
--
--		/* Src addr PTE aligned */
--		MAKE_TEST(PTE, PTE, _8KB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "8KB mremap - Source PTE-aligned, Destination PTE-aligned"),
--
--		/* Src addr 1MB aligned */
--		MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned"),
--		MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned"),
--
--		/* Src addr PMD aligned */
--		MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "4MB mremap - Source PMD-aligned, Destination PTE-aligned"),
--		MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned"),
--		MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "4MB mremap - Source PMD-aligned, Destination PMD-aligned"),
--
--		/* Src addr PUD aligned */
--		MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2GB mremap - Source PUD-aligned, Destination PTE-aligned"),
--		MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2GB mremap - Source PUD-aligned, Destination 1MB-aligned"),
--		MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2GB mremap - Source PUD-aligned, Destination PMD-aligned"),
--		MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "2GB mremap - Source PUD-aligned, Destination PUD-aligned"),
--	};
-+	page_size = sysconf(_SC_PAGESIZE);
- 
--	struct test perf_test_cases[] = {
--		/*
--		 * mremap 1GB region - Page table level aligned time
--		 * comparison.
--		 */
--		MAKE_TEST(PTE, PTE, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "1GB mremap - Source PTE-aligned, Destination PTE-aligned"),
--		MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "1GB mremap - Source PMD-aligned, Destination PMD-aligned"),
--		MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
--		  "1GB mremap - Source PUD-aligned, Destination PUD-aligned"),
--	};
-+	/* Expected mremap failures */
-+	test_cases[0] =	MAKE_TEST(page_size, page_size, page_size,
-+				  OVERLAPPING, EXPECT_FAILURE,
-+				  "mremap - Source and Destination Regions Overlapping");
+-			old_pud = get_old_pud(vma->vm_mm, old_addr);
+-			if (!old_pud)
++		old_pud = get_old_pud(vma->vm_mm, old_addr);
++		if (!old_pud)
++			continue;
++		new_pud = alloc_new_pud(vma->vm_mm, vma, new_addr);
++		if (!new_pud)
++			break;
++		if (pud_trans_huge(*old_pud) || pud_devmap(*old_pud)) {
++			if (extent == HPAGE_PUD_SIZE) {
++				move_pgt_entry(HPAGE_PUD, vma, old_addr, new_addr,
++					       old_pud, new_pud, need_rmap_locks);
++				/* We ignore and continue on error? */
+ 				continue;
+-			new_pud = alloc_new_pud(vma->vm_mm, vma, new_addr);
+-			if (!new_pud)
+-				break;
++			}
++		} else if (IS_ENABLED(CONFIG_HAVE_MOVE_PUD) && extent == PUD_SIZE) {
 +
-+	test_cases[1] = MAKE_TEST(page_size, page_size/4, page_size,
-+				  NON_OVERLAPPING, EXPECT_FAILURE,
-+				  "mremap - Destination Address Misaligned (1KB-aligned)");
-+	test_cases[2] = MAKE_TEST(page_size/4, page_size, page_size,
-+				  NON_OVERLAPPING, EXPECT_FAILURE,
-+				  "mremap - Source Address Misaligned (1KB-aligned)");
-+
-+	/* Src addr PTE aligned */
-+	test_cases[3] = MAKE_TEST(PTE, PTE, PTE * 2,
-+				  NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "8KB mremap - Source PTE-aligned, Destination PTE-aligned");
-+
-+	/* Src addr 1MB aligned */
-+	test_cases[4] = MAKE_TEST(_1MB, PTE, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "2MB mremap - Source 1MB-aligned, Destination PTE-aligned");
-+	test_cases[5] = MAKE_TEST(_1MB, _1MB, _2MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "2MB mremap - Source 1MB-aligned, Destination 1MB-aligned");
-+
-+	/* Src addr PMD aligned */
-+	test_cases[6] = MAKE_TEST(PMD, PTE, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "4MB mremap - Source PMD-aligned, Destination PTE-aligned");
-+	test_cases[7] =	MAKE_TEST(PMD, _1MB, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "4MB mremap - Source PMD-aligned, Destination 1MB-aligned");
-+	test_cases[8] = MAKE_TEST(PMD, PMD, _4MB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "4MB mremap - Source PMD-aligned, Destination PMD-aligned");
-+
-+	/* Src addr PUD aligned */
-+	test_cases[9] = MAKE_TEST(PUD, PTE, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				  "2GB mremap - Source PUD-aligned, Destination PTE-aligned");
-+	test_cases[10] = MAKE_TEST(PUD, _1MB, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				   "2GB mremap - Source PUD-aligned, Destination 1MB-aligned");
-+	test_cases[11] = MAKE_TEST(PUD, PMD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				   "2GB mremap - Source PUD-aligned, Destination PMD-aligned");
-+	test_cases[12] = MAKE_TEST(PUD, PUD, _2GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				   "2GB mremap - Source PUD-aligned, Destination PUD-aligned");
-+
-+	perf_test_cases[0] =  MAKE_TEST(page_size, page_size, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+					"1GB mremap - Source PTE-aligned, Destination PTE-aligned");
-+	/*
-+	 * mremap 1GB region - Page table level aligned time
-+	 * comparison.
-+	 */
-+	perf_test_cases[1] = MAKE_TEST(PMD, PMD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				       "1GB mremap - Source PMD-aligned, Destination PMD-aligned");
-+	perf_test_cases[2] = MAKE_TEST(PUD, PUD, _1GB, NON_OVERLAPPING, EXPECT_SUCCESS,
-+				       "1GB mremap - Source PUD-aligned, Destination PUD-aligned");
- 
- 	run_perf_tests =  (threshold_mb == VALIDATION_NO_THRESHOLD) ||
- 				(threshold_mb * _1MB >= _1GB);
+ 			if (move_pgt_entry(NORMAL_PUD, vma, old_addr, new_addr,
+ 					   old_pud, new_pud, need_rmap_locks))
+ 				continue;
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
