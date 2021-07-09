@@ -7,46 +7,35 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FF8BC07E9B
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8DC2DC07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3460C613C3
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A006613D3
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:32:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231187AbhGIVfc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:35:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46100 "EHLO mail.kernel.org"
+        id S231195AbhGIVfe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:35:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46162 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231146AbhGIVfc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:35:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0443F613CF;
-        Fri,  9 Jul 2021 21:32:46 +0000 (UTC)
+        id S231146AbhGIVfe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:35:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AC4EE613D0;
+        Fri,  9 Jul 2021 21:32:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866368;
-        bh=wKYxHj37lMonRhsjb/njF3lzIsfatLfWmPCCuGYyZdk=;
+        s=korg; t=1625866369;
+        bh=zohgdIF1v+x1PnoBb2TXmP4fWmxXKrFvXsViNcgF3sU=;
         h=Date:From:To:Subject:From;
-        b=CxKKsllvOhgSUKkjnny+neGKLm5xWSnFNI3rRdjc4RB3usxaFV/mVaOAzbNMyfRSU
-         LccuyKkdwaMJRsQpC5bt34GuQAXM5iZbQvsSL2i2D0SNzKdLYPAzN52inE5zAk9f+0
-         zg+7J3OKVuj8qY3zC0IOxJf2Cgnx2DLxFxmlgU6g=
-Date:   Fri, 09 Jul 2021 14:32:46 -0700
+        b=jWtRZR0QwAdcM3UAd6KFrMO1NY6K4nP7Mm2uietPSA4NmVuuUGjS+N9Tc0DK2MMwg
+         Oc74HvFcexWK9brxVwJUUP6Y6LkhEBg1Zfp7vHzd72vAznCgZWwdloMBgpY0YVPTHX
+         wVGeTcmO5oSDnAtYoyGyk1NnjJdZmK/7JakumhMo=
+Date:   Fri, 09 Jul 2021 14:32:49 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, bp@alien8.de, catalin.marinas@arm.com, cl@linux.com,
-        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        david@redhat.com, elena.reshetova@intel.com, guro@fb.com,
-        hagen@jauu.net, hpa@zytor.com,
-        James.Bottomley@HansenPartnership.com, jejb@linux.ibm.com,
-        kirill@shutemov.name, lkp@intel.com, luto@kernel.org,
-        mark.rutland@arm.com, mingo@redhat.com, mm-commits@vger.kernel.org,
-        mtk.manpages@gmail.com, palmer@dabbelt.com,
-        palmerdabbelt@google.com, paul.walmsley@sifive.com,
-        peterz@infradead.org, rick.p.edgecombe@intel.com,
-        rppt@linux.ibm.com, shakeelb@google.com, shuah@kernel.org,
-        tglx@linutronix.de, tycho@tycho.ws, viro@zeniv.linux.org.uk,
-        will@kernel.org, willy@infradead.org
-Subject:  [merged]
- secretmem-test-add-basic-selftest-for-memfd_secret2.patch removed from -mm
- tree
-Message-ID: <20210709213246.jH4hT-5Kk%akpm@linux-foundation.org>
+To:     cl@linux.com, dennis@kernel.org, jglisse@redhat.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        thunder.leizhen@huawei.com, tj@kernel.org
+Subject:  [merged] mm-fix-spelling-mistakes-in-header-files.patch
+ removed from -mm tree
+Message-ID: <20210709213249.eMDNmS4-t%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,416 +44,211 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: secretmem: test: add basic selftest for memfd_secret(2)
+     Subject: mm: fix spelling mistakes in header files
 has been removed from the -mm tree.  Its filename was
-     secretmem-test-add-basic-selftest-for-memfd_secret2.patch
+     mm-fix-spelling-mistakes-in-header-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: secretmem: test: add basic selftest for memfd_secret(2)
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: mm: fix spelling mistakes in header files
 
-The test verifies that file descriptor created with memfd_secret does not
-allow read/write operations, that secret memory mappings respect
-RLIMIT_MEMLOCK and that remote accesses with process_vm_read() and
-ptrace() to the secret memory fail.
+Fix some spelling mistakes in comments:
+successfull ==> successful
+potentialy ==> potentially
+alloced ==> allocated
+indicies ==> indices
+wont ==> won't
+resposible ==> responsible
+dirtyness ==> dirtiness
+droppped ==> dropped
+alread ==> already
+occured ==> occurred
+interupts ==> interrupts
+extention ==> extension
+slighly ==> slightly
+Dont't ==> Don't
 
-Link: https://lkml.kernel.org/r/20210518072034.31572-8-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christopher Lameter <cl@linux.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Elena Reshetova <elena.reshetova@intel.com>
-Cc: Hagen Paul Pfeifer <hagen@jauu.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Bottomley <jejb@linux.ibm.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rick Edgecombe <rick.p.edgecombe@intel.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tycho Andersen <tycho@tycho.ws>
-Cc: Will Deacon <will@kernel.org>
-Cc: kernel test robot <lkp@intel.com>
+Link: https://lkml.kernel.org/r/20210531034849.9549-2-thunder.leizhen@huawei.com
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore     |    1 
- tools/testing/selftests/vm/Makefile       |    3 
- tools/testing/selftests/vm/memfd_secret.c |  296 ++++++++++++++++++++
- tools/testing/selftests/vm/run_vmtests.sh |   17 +
- 4 files changed, 316 insertions(+), 1 deletion(-)
+ include/linux/compaction.h   |    4 ++--
+ include/linux/hmm.h          |    2 +-
+ include/linux/hugetlb.h      |    6 +++---
+ include/linux/list_lru.h     |    4 ++--
+ include/linux/mmu_notifier.h |    8 ++++----
+ include/linux/percpu-defs.h  |    2 +-
+ include/linux/shrinker.h     |    2 +-
+ include/linux/vmalloc.h      |    4 ++--
+ 8 files changed, 16 insertions(+), 16 deletions(-)
 
---- a/tools/testing/selftests/vm/.gitignore~secretmem-test-add-basic-selftest-for-memfd_secret2
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -24,5 +24,6 @@ va_128TBswitch
- map_fixed_noreplace
- write_to_hugetlbfs
- hmm-tests
-+memfd_secret
- local_config.*
- split_huge_page_test
---- a/tools/testing/selftests/vm/Makefile~secretmem-test-add-basic-selftest-for-memfd_secret2
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -35,6 +35,7 @@ TEST_GEN_FILES += madv_populate
- TEST_GEN_FILES += map_fixed_noreplace
- TEST_GEN_FILES += map_hugetlb
- TEST_GEN_FILES += map_populate
-+TEST_GEN_FILES += memfd_secret
- TEST_GEN_FILES += mlock-random-test
- TEST_GEN_FILES += mlock2-tests
- TEST_GEN_FILES += mremap_dontunmap
-@@ -135,7 +136,7 @@ warn_32bit_failure:
- endif
- endif
+--- a/include/linux/compaction.h~mm-fix-spelling-mistakes-in-header-files
++++ a/include/linux/compaction.h
+@@ -35,12 +35,12 @@ enum compact_result {
+ 	COMPACT_CONTINUE,
  
--$(OUTPUT)/mlock-random-test: LDLIBS += -lcap
-+$(OUTPUT)/mlock-random-test $(OUTPUT)/memfd_secret: LDLIBS += -lcap
+ 	/*
+-	 * The full zone was compacted scanned but wasn't successfull to compact
++	 * The full zone was compacted scanned but wasn't successful to compact
+ 	 * suitable pages.
+ 	 */
+ 	COMPACT_COMPLETE,
+ 	/*
+-	 * direct compaction has scanned part of the zone but wasn't successfull
++	 * direct compaction has scanned part of the zone but wasn't successful
+ 	 * to compact suitable pages.
+ 	 */
+ 	COMPACT_PARTIAL_SKIPPED,
+--- a/include/linux/hmm.h~mm-fix-spelling-mistakes-in-header-files
++++ a/include/linux/hmm.h
+@@ -113,7 +113,7 @@ int hmm_range_fault(struct hmm_range *ra
+  * HMM_RANGE_DEFAULT_TIMEOUT - default timeout (ms) when waiting for a range
+  *
+  * When waiting for mmu notifiers we need some kind of time out otherwise we
+- * could potentialy wait for ever, 1000ms ie 1s sounds like a long time to
++ * could potentially wait for ever, 1000ms ie 1s sounds like a long time to
+  * wait already.
+  */
+ #define HMM_RANGE_DEFAULT_TIMEOUT 1000
+--- a/include/linux/hugetlb.h~mm-fix-spelling-mistakes-in-header-files
++++ a/include/linux/hugetlb.h
+@@ -51,7 +51,7 @@ struct hugepage_subpool {
+ 	long count;
+ 	long max_hpages;	/* Maximum huge pages or -1 if no maximum. */
+ 	long used_hpages;	/* Used count against maximum, includes */
+-				/* both alloced and reserved pages. */
++				/* both allocated and reserved pages. */
+ 	struct hstate *hstate;
+ 	long min_hpages;	/* Minimum huge pages or -1 if no minimum. */
+ 	long rsv_hpages;	/* Pages reserved against global pool to */
+@@ -85,7 +85,7 @@ struct resv_map {
+  * by a resv_map's lock.  The set of regions within the resv_map represent
+  * reservations for huge pages, or huge pages that have already been
+  * instantiated within the map.  The from and to elements are huge page
+- * indicies into the associated mapping.  from indicates the starting index
++ * indices into the associated mapping.  from indicates the starting index
+  * of the region.  to represents the first index past the end of  the region.
+  *
+  * For example, a file region structure with from == 0 and to == 4 represents
+@@ -797,7 +797,7 @@ static inline bool hugepage_migration_su
+  * It determines whether or not a huge page should be placed on
+  * movable zone or not. Movability of any huge page should be
+  * required only if huge page size is supported for migration.
+- * There wont be any reason for the huge page to be movable if
++ * There won't be any reason for the huge page to be movable if
+  * it is not migratable to start with. Also the size of the huge
+  * page should be large enough to be placed under a movable zone
+  * and still feasible enough to be migratable. Just the presence
+--- a/include/linux/list_lru.h~mm-fix-spelling-mistakes-in-header-files
++++ a/include/linux/list_lru.h
+@@ -146,7 +146,7 @@ typedef enum lru_status (*list_lru_walk_
+  * @lru: the lru pointer.
+  * @nid: the node id to scan from.
+  * @memcg: the cgroup to scan from.
+- * @isolate: callback function that is resposible for deciding what to do with
++ * @isolate: callback function that is responsible for deciding what to do with
+  *  the item currently being scanned
+  * @cb_arg: opaque type that will be passed to @isolate
+  * @nr_to_walk: how many items to scan.
+@@ -172,7 +172,7 @@ unsigned long list_lru_walk_one(struct l
+  * @lru: the lru pointer.
+  * @nid: the node id to scan from.
+  * @memcg: the cgroup to scan from.
+- * @isolate: callback function that is resposible for deciding what to do with
++ * @isolate: callback function that is responsible for deciding what to do with
+  *  the item currently being scanned
+  * @cb_arg: opaque type that will be passed to @isolate
+  * @nr_to_walk: how many items to scan.
+--- a/include/linux/mmu_notifier.h~mm-fix-spelling-mistakes-in-header-files
++++ a/include/linux/mmu_notifier.h
+@@ -33,7 +33,7 @@ struct mmu_interval_notifier;
+  *
+  * @MMU_NOTIFY_SOFT_DIRTY: soft dirty accounting (still same page and same
+  * access flags). User should soft dirty the page in the end callback to make
+- * sure that anyone relying on soft dirtyness catch pages that might be written
++ * sure that anyone relying on soft dirtiness catch pages that might be written
+  * through non CPU mappings.
+  *
+  * @MMU_NOTIFY_RELEASE: used during mmu_interval_notifier invalidate to signal
+@@ -167,7 +167,7 @@ struct mmu_notifier_ops {
+ 	 * decrease the refcount. If the refcount is decreased on
+ 	 * invalidate_range_start() then the VM can free pages as page
+ 	 * table entries are removed.  If the refcount is only
+-	 * droppped on invalidate_range_end() then the driver itself
++	 * dropped on invalidate_range_end() then the driver itself
+ 	 * will drop the last refcount but it must take care to flush
+ 	 * any secondary tlb before doing the final free on the
+ 	 * page. Pages will no longer be referenced by the linux
+@@ -196,7 +196,7 @@ struct mmu_notifier_ops {
+ 	 * If invalidate_range() is used to manage a non-CPU TLB with
+ 	 * shared page-tables, it not necessary to implement the
+ 	 * invalidate_range_start()/end() notifiers, as
+-	 * invalidate_range() alread catches the points in time when an
++	 * invalidate_range() already catches the points in time when an
+ 	 * external TLB range needs to be flushed. For more in depth
+ 	 * discussion on this see Documentation/vm/mmu_notifier.rst
+ 	 *
+@@ -369,7 +369,7 @@ mmu_interval_read_retry(struct mmu_inter
+  * mmu_interval_read_retry() will return true.
+  *
+  * False is not reliable and only suggests a collision may not have
+- * occured. It can be called many times and does not have to hold the user
++ * occurred. It can be called many times and does not have to hold the user
+  * provided lock.
+  *
+  * This call can be used as part of loops and other expensive operations to
+--- a/include/linux/percpu-defs.h~mm-fix-spelling-mistakes-in-header-files
++++ a/include/linux/percpu-defs.h
+@@ -412,7 +412,7 @@ do {									\
+  * instead.
+  *
+  * If there is no other protection through preempt disable and/or disabling
+- * interupts then one of these RMW operations can show unexpected behavior
++ * interrupts then one of these RMW operations can show unexpected behavior
+  * because the execution thread was rescheduled on another processor or an
+  * interrupt occurred and the same percpu variable was modified from the
+  * interrupt context.
+--- a/include/linux/shrinker.h~mm-fix-spelling-mistakes-in-header-files
++++ a/include/linux/shrinker.h
+@@ -4,7 +4,7 @@
  
- $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
+ /*
+  * This struct is used to pass information from page reclaim to the shrinkers.
+- * We consolidate the values for easier extention later.
++ * We consolidate the values for easier extension later.
+  *
+  * The 'gfpmask' refers to the allocation we are currently trying to
+  * fulfil.
+--- a/include/linux/vmalloc.h~mm-fix-spelling-mistakes-in-header-files
++++ a/include/linux/vmalloc.h
+@@ -29,7 +29,7 @@ struct notifier_block;		/* in notifier.h
+ #define VM_NO_HUGE_VMAP		0x00000400	/* force PAGE_SIZE pte mapping */
  
---- /dev/null
-+++ a/tools/testing/selftests/vm/memfd_secret.c
-@@ -0,0 +1,296 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Copyright IBM Corporation, 2021
-+ *
-+ * Author: Mike Rapoport <rppt@linux.ibm.com>
-+ */
-+
-+#define _GNU_SOURCE
-+#include <sys/uio.h>
-+#include <sys/mman.h>
-+#include <sys/wait.h>
-+#include <sys/types.h>
-+#include <sys/ptrace.h>
-+#include <sys/syscall.h>
-+#include <sys/resource.h>
-+#include <sys/capability.h>
-+
-+#include <stdlib.h>
-+#include <string.h>
-+#include <unistd.h>
-+#include <errno.h>
-+#include <stdio.h>
-+
-+#include "../kselftest.h"
-+
-+#define fail(fmt, ...) ksft_test_result_fail(fmt, ##__VA_ARGS__)
-+#define pass(fmt, ...) ksft_test_result_pass(fmt, ##__VA_ARGS__)
-+#define skip(fmt, ...) ksft_test_result_skip(fmt, ##__VA_ARGS__)
-+
-+#ifdef __NR_memfd_secret
-+
-+#define PATTERN	0x55
-+
-+static const int prot = PROT_READ | PROT_WRITE;
-+static const int mode = MAP_SHARED;
-+
-+static unsigned long page_size;
-+static unsigned long mlock_limit_cur;
-+static unsigned long mlock_limit_max;
-+
-+static int memfd_secret(unsigned int flags)
-+{
-+	return syscall(__NR_memfd_secret, flags);
-+}
-+
-+static void test_file_apis(int fd)
-+{
-+	char buf[64];
-+
-+	if ((read(fd, buf, sizeof(buf)) >= 0) ||
-+	    (write(fd, buf, sizeof(buf)) >= 0) ||
-+	    (pread(fd, buf, sizeof(buf), 0) >= 0) ||
-+	    (pwrite(fd, buf, sizeof(buf), 0) >= 0))
-+		fail("unexpected file IO\n");
-+	else
-+		pass("file IO is blocked as expected\n");
-+}
-+
-+static void test_mlock_limit(int fd)
-+{
-+	size_t len;
-+	char *mem;
-+
-+	len = mlock_limit_cur;
-+	mem = mmap(NULL, len, prot, mode, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		fail("unable to mmap secret memory\n");
-+		return;
-+	}
-+	munmap(mem, len);
-+
-+	len = mlock_limit_max * 2;
-+	mem = mmap(NULL, len, prot, mode, fd, 0);
-+	if (mem != MAP_FAILED) {
-+		fail("unexpected mlock limit violation\n");
-+		munmap(mem, len);
-+		return;
-+	}
-+
-+	pass("mlock limit is respected\n");
-+}
-+
-+static void try_process_vm_read(int fd, int pipefd[2])
-+{
-+	struct iovec liov, riov;
-+	char buf[64];
-+	char *mem;
-+
-+	if (read(pipefd[0], &mem, sizeof(mem)) < 0) {
-+		fail("pipe write: %s\n", strerror(errno));
-+		exit(KSFT_FAIL);
-+	}
-+
-+	liov.iov_len = riov.iov_len = sizeof(buf);
-+	liov.iov_base = buf;
-+	riov.iov_base = mem;
-+
-+	if (process_vm_readv(getppid(), &liov, 1, &riov, 1, 0) < 0) {
-+		if (errno == ENOSYS)
-+			exit(KSFT_SKIP);
-+		exit(KSFT_PASS);
-+	}
-+
-+	exit(KSFT_FAIL);
-+}
-+
-+static void try_ptrace(int fd, int pipefd[2])
-+{
-+	pid_t ppid = getppid();
-+	int status;
-+	char *mem;
-+	long ret;
-+
-+	if (read(pipefd[0], &mem, sizeof(mem)) < 0) {
-+		perror("pipe write");
-+		exit(KSFT_FAIL);
-+	}
-+
-+	ret = ptrace(PTRACE_ATTACH, ppid, 0, 0);
-+	if (ret) {
-+		perror("ptrace_attach");
-+		exit(KSFT_FAIL);
-+	}
-+
-+	ret = waitpid(ppid, &status, WUNTRACED);
-+	if ((ret != ppid) || !(WIFSTOPPED(status))) {
-+		fprintf(stderr, "weird waitppid result %ld stat %x\n",
-+			ret, status);
-+		exit(KSFT_FAIL);
-+	}
-+
-+	if (ptrace(PTRACE_PEEKDATA, ppid, mem, 0))
-+		exit(KSFT_PASS);
-+
-+	exit(KSFT_FAIL);
-+}
-+
-+static void check_child_status(pid_t pid, const char *name)
-+{
-+	int status;
-+
-+	waitpid(pid, &status, 0);
-+
-+	if (WIFEXITED(status) && WEXITSTATUS(status) == KSFT_SKIP) {
-+		skip("%s is not supported\n", name);
-+		return;
-+	}
-+
-+	if ((WIFEXITED(status) && WEXITSTATUS(status) == KSFT_PASS) ||
-+	    WIFSIGNALED(status)) {
-+		pass("%s is blocked as expected\n", name);
-+		return;
-+	}
-+
-+	fail("%s: unexpected memory access\n", name);
-+}
-+
-+static void test_remote_access(int fd, const char *name,
-+			       void (*func)(int fd, int pipefd[2]))
-+{
-+	int pipefd[2];
-+	pid_t pid;
-+	char *mem;
-+
-+	if (pipe(pipefd)) {
-+		fail("pipe failed: %s\n", strerror(errno));
-+		return;
-+	}
-+
-+	pid = fork();
-+	if (pid < 0) {
-+		fail("fork failed: %s\n", strerror(errno));
-+		return;
-+	}
-+
-+	if (pid == 0) {
-+		func(fd, pipefd);
-+		return;
-+	}
-+
-+	mem = mmap(NULL, page_size, prot, mode, fd, 0);
-+	if (mem == MAP_FAILED) {
-+		fail("Unable to mmap secret memory\n");
-+		return;
-+	}
-+
-+	ftruncate(fd, page_size);
-+	memset(mem, PATTERN, page_size);
-+
-+	if (write(pipefd[1], &mem, sizeof(mem)) < 0) {
-+		fail("pipe write: %s\n", strerror(errno));
-+		return;
-+	}
-+
-+	check_child_status(pid, name);
-+}
-+
-+static void test_process_vm_read(int fd)
-+{
-+	test_remote_access(fd, "process_vm_read", try_process_vm_read);
-+}
-+
-+static void test_ptrace(int fd)
-+{
-+	test_remote_access(fd, "ptrace", try_ptrace);
-+}
-+
-+static int set_cap_limits(rlim_t max)
-+{
-+	struct rlimit new;
-+	cap_t cap = cap_init();
-+
-+	new.rlim_cur = max;
-+	new.rlim_max = max;
-+	if (setrlimit(RLIMIT_MEMLOCK, &new)) {
-+		perror("setrlimit() returns error");
-+		return -1;
-+	}
-+
-+	/* drop capabilities including CAP_IPC_LOCK */
-+	if (cap_set_proc(cap)) {
-+		perror("cap_set_proc() returns error");
-+		return -2;
-+	}
-+
-+	return 0;
-+}
-+
-+static void prepare(void)
-+{
-+	struct rlimit rlim;
-+
-+	page_size = sysconf(_SC_PAGE_SIZE);
-+	if (!page_size)
-+		ksft_exit_fail_msg("Failed to get page size %s\n",
-+				   strerror(errno));
-+
-+	if (getrlimit(RLIMIT_MEMLOCK, &rlim))
-+		ksft_exit_fail_msg("Unable to detect mlock limit: %s\n",
-+				   strerror(errno));
-+
-+	mlock_limit_cur = rlim.rlim_cur;
-+	mlock_limit_max = rlim.rlim_max;
-+
-+	printf("page_size: %ld, mlock.soft: %ld, mlock.hard: %ld\n",
-+	       page_size, mlock_limit_cur, mlock_limit_max);
-+
-+	if (page_size > mlock_limit_cur)
-+		mlock_limit_cur = page_size;
-+	if (page_size > mlock_limit_max)
-+		mlock_limit_max = page_size;
-+
-+	if (set_cap_limits(mlock_limit_max))
-+		ksft_exit_fail_msg("Unable to set mlock limit: %s\n",
-+				   strerror(errno));
-+}
-+
-+#define NUM_TESTS 4
-+
-+int main(int argc, char *argv[])
-+{
-+	int fd;
-+
-+	prepare();
-+
-+	ksft_print_header();
-+	ksft_set_plan(NUM_TESTS);
-+
-+	fd = memfd_secret(0);
-+	if (fd < 0) {
-+		if (errno == ENOSYS)
-+			ksft_exit_skip("memfd_secret is not supported\n");
-+		else
-+			ksft_exit_fail_msg("memfd_secret failed: %s\n",
-+					   strerror(errno));
-+	}
-+
-+	test_mlock_limit(fd);
-+	test_file_apis(fd);
-+	test_process_vm_read(fd);
-+	test_ptrace(fd);
-+
-+	close(fd);
-+
-+	ksft_exit(!ksft_get_fail_cnt());
-+}
-+
-+#else /* __NR_memfd_secret */
-+
-+int main(int argc, char *argv[])
-+{
-+	printf("skip: skipping memfd_secret test (missing __NR_memfd_secret)\n");
-+	return KSFT_SKIP;
-+}
-+
-+#endif /* __NR_memfd_secret */
---- a/tools/testing/selftests/vm/run_vmtests.sh~secretmem-test-add-basic-selftest-for-memfd_secret2
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -362,4 +362,21 @@ else
- 	exitcode=1
- fi
+ /*
+- * VM_KASAN is used slighly differently depending on CONFIG_KASAN_VMALLOC.
++ * VM_KASAN is used slightly differently depending on CONFIG_KASAN_VMALLOC.
+  *
+  * If IS_ENABLED(CONFIG_KASAN_VMALLOC), VM_KASAN is set on a vm_struct after
+  * shadow memory has been mapped. It's used to handle allocation errors so that
+@@ -247,7 +247,7 @@ static inline void set_vm_flush_reset_pe
+ extern long vread(char *buf, char *addr, unsigned long count);
  
-+echo "running memfd_secret test"
-+echo "------------------------------------"
-+./memfd_secret
-+ret_val=$?
-+
-+if [ $ret_val -eq 0 ]; then
-+	echo "[PASS]"
-+elif [ $ret_val -eq $ksft_skip ]; then
-+	echo "[SKIP]"
-+	exitcode=$ksft_skip
-+else
-+	echo "[FAIL]"
-+	exitcode=1
-+fi
-+
-+exit $exitcode
-+
- exit $exitcode
+ /*
+- *	Internals.  Dont't use..
++ *	Internals.  Don't use..
+  */
+ extern struct list_head vmap_area_list;
+ extern __init void vm_area_add_early(struct vm_struct *vm);
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from thunder.leizhen@huawei.com are
 
 
