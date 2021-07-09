@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 476B5C07E9B
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:38:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78A56C07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:55:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3266D613C2
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:38:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 590BA613AF
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:55:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230429AbhGIXlb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 19:41:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33022 "EHLO mail.kernel.org"
+        id S230168AbhGIX6F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 19:58:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37386 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230130AbhGIXlb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 19:41:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 86370613BC;
-        Fri,  9 Jul 2021 23:38:46 +0000 (UTC)
+        id S229854AbhGIX6E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 19:58:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CD9C2613BE;
+        Fri,  9 Jul 2021 23:55:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625873926;
-        bh=bbC1EXNGmB+7NREM7S6vJsOI9pT1uYYms4z7uiHqFvo=;
+        s=korg; t=1625874919;
+        bh=SJwDZaMQfMVYyrtKIzWDMx/Q0Kf8qzmNqZtNPZFS7fw=;
         h=Date:From:To:Subject:From;
-        b=n0JzDpbHi6M2k8g3sTG0eyUHbesc5Xd9E4FD0SKEiMACywPLME6HD467gpjRxNS5i
-         AmQEql9vfIHsQ8Bf/dLQr09DEKqcFf1TXAczWsN7dvVXd60A8XhGFA81WgMku/cwel
-         /1FBWd2WC6qUpUTV5vtP3ipB4mqwDQbvhuvFk90E=
-Date:   Fri, 09 Jul 2021 16:38:46 -0700
+        b=d6Co8Bp9pyN8OpZq46dKMdeYsJvUmvPkGuhHWyF3hexuNYe+C9XS+FlOjJspFk7DT
+         S9wopBQbJaRn7OjuIhQkww638z/QMBD1ZSZVx6ufq7AQN+7PnE6zsWdAdhjMlkEica
+         cpQpLv9Gb5TdDuUj32q/+1e3gx2izqozLGBzmfM4=
+Date:   Fri, 09 Jul 2021 16:55:19 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com, mhocko@suse.com,
-        david@redhat.com, bhe@redhat.com, ohoono.kwon@samsung.com
-Subject:  + mm-sparse-remove-__section_nr-function.patch added to -mm
+To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
+        hulkci@huawei.com, sunnanyong@huawei.com
+Subject:  +
+ nilfs2-fix-memory-leak-in-nilfs_sysfs_create_device_group.patch added to -mm
  tree
-Message-ID: <20210709233846.M74LW%akpm@linux-foundation.org>
+Message-ID: <20210709235519.Sq7qz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: sparse: remove __section_nr() function
+     Subject: nilfs2: fix memory leak in nilfs_sysfs_create_device_group
 has been added to the -mm tree.  Its filename is
-     mm-sparse-remove-__section_nr-function.patch
+     nilfs2-fix-memory-leak-in-nilfs_sysfs_create_device_group.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-remove-__section_nr-function.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-memory-leak-in-nilfs_sysfs_create_device_group.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-remove-__section_nr-function.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-memory-leak-in-nilfs_sysfs_create_device_group.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,75 +65,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ohhoon Kwon <ohoono.kwon@samsung.com>
-Subject: mm: sparse: remove __section_nr() function
+From: Nanyong Sun <sunnanyong@huawei.com>
+Subject: nilfs2: fix memory leak in nilfs_sysfs_create_device_group
 
-As the last users of __section_nr() are gone, let's remove unused function
-__section_nr().
+Patch series "nilfs2: fix incorrect usage of kobject".
 
-Link: https://lkml.kernel.org/r/20210707150212.855-4-ohoono.kwon@samsung.com
-Signed-off-by: Ohhoon Kwon <ohoono.kwon@samsung.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
+This patchset from Nanyong Sun fixes memory leak issues and a NULL pointer
+dereference issue caused by incorrect usage of kboject in nilfs2 sysfs
+implementation.
+
+
+This patch (of 6):
+
+Reported by syzkaller:
+BUG: memory leak
+unreferenced object 0xffff888100ca8988 (size 8):
+comm "syz-executor.1", pid 1930, jiffies 4294745569 (age 18.052s)
+hex dump (first 8 bytes):
+6c 6f 6f 70 31 00 ff ff loop1...
+backtrace:
+[<000000009d9e0ac4>] slab_alloc_node mm/slub.c:2972 [inline]
+[<000000009d9e0ac4>] slab_alloc mm/slub.c:2980 [inline]
+[<000000009d9e0ac4>] __kmalloc_track_caller+0x164/0x330 mm/slub.c:4644
+[<00000000b1825477>] kstrdup+0x36/0x70 mm/util.c:60
+[<00000000fa081499>] kstrdup_const+0x35/0x60 mm/util.c:83
+[<0000000024d13570>] kvasprintf_const+0xf1/0x180 lib/kasprintf.c:48
+[<0000000024b69715>] kobject_set_name_vargs+0x56/0x150 lib/kobject.c:289
+[<000000003fedac3d>] kobject_add_varg lib/kobject.c:384 [inline]
+[<000000003fedac3d>] kobject_init_and_add+0xc9/0x150 lib/kobject.c:473
+[<000000002795bd99>] nilfs_sysfs_create_device_group+0x150/0x7d0 fs/nilfs2/sysfs.c:986
+[<00000000567fa12d>] init_nilfs+0xa21/0xea0 fs/nilfs2/the_nilfs.c:637
+[<00000000082e7458>] nilfs_fill_super fs/nilfs2/super.c:1046 [inline]
+[<00000000082e7458>] nilfs_mount+0x7b4/0xe80 fs/nilfs2/super.c:1316
+[<00000000adc3fd88>] legacy_get_tree+0x105/0x210 fs/fs_context.c:592
+[<00000000a98c45b8>] vfs_get_tree+0x8e/0x2d0 fs/super.c:1498
+[<00000000e96282d3>] do_new_mount fs/namespace.c:2905 [inline]
+[<00000000e96282d3>] path_mount+0xf9b/0x1990 fs/namespace.c:3235
+[<000000003d2eb1b0>] do_mount+0xea/0x100 fs/namespace.c:3248
+[<00000000e1ce771a>] __do_sys_mount fs/namespace.c:3456 [inline]
+[<00000000e1ce771a>] __se_sys_mount fs/namespace.c:3433 [inline]
+[<00000000e1ce771a>] __x64_sys_mount+0x14b/0x1f0 fs/namespace.c:3433
+[<000000007c7f81e8>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+[<000000007c7f81e8>] do_syscall_64+0x3b/0x90 arch/x86/entry/common.c:80
+[<00000000fd23ff06>] entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+If kobject_init_and_add return with error, then the cleanup of kobject is
+needed because memory may be allocated in kobject_init_and_add without
+freeing.
+
+And the place of cleanup_dev_kobject should use kobject_put to free the
+memory associated with the kobject.  As the section "Kobject removal" of
+"Documentation/core-api/kobject.rst" says, kobject_del() just makes the
+kobject "invisible", but it is not cleaned up.  And no more cleanup will
+do after cleanup_dev_kobject, so kobject_put is needed here.
+
+Link: https://lkml.kernel.org/r/1625651306-10829-1-git-send-email-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/1625651306-10829-2-git-send-email-konishi.ryusuke@gmail.com
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Link: https://lkml.kernel.org/r/20210629022556.3985106-2-sunnanyong@huawei.com
+Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    1 -
- mm/sparse.c            |   26 --------------------------
- 2 files changed, 27 deletions(-)
+ fs/nilfs2/sysfs.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparse-remove-__section_nr-function
-+++ a/include/linux/mmzone.h
-@@ -1342,7 +1342,6 @@ static inline struct mem_section *__nr_t
- 		return NULL;
- 	return &mem_section[SECTION_NR_TO_ROOT(nr)][nr & SECTION_ROOT_MASK];
- }
--extern unsigned long __section_nr(struct mem_section *ms);
- extern size_t mem_section_usage_size(void);
+--- a/fs/nilfs2/sysfs.c~nilfs2-fix-memory-leak-in-nilfs_sysfs_create_device_group
++++ a/fs/nilfs2/sysfs.c
+@@ -986,7 +986,7 @@ int nilfs_sysfs_create_device_group(stru
+ 	err = kobject_init_and_add(&nilfs->ns_dev_kobj, &nilfs_dev_ktype, NULL,
+ 				    "%s", sb->s_id);
+ 	if (err)
+-		goto free_dev_subgroups;
++		goto cleanup_dev_kobject;
  
- /*
---- a/mm/sparse.c~mm-sparse-remove-__section_nr-function
-+++ a/mm/sparse.c
-@@ -109,32 +109,6 @@ static inline int sparse_index_init(unsi
- }
- #endif
+ 	err = nilfs_sysfs_create_mounted_snapshots_group(nilfs);
+ 	if (err)
+@@ -1023,9 +1023,7 @@ delete_mounted_snapshots_group:
+ 	nilfs_sysfs_delete_mounted_snapshots_group(nilfs);
  
--#ifdef CONFIG_SPARSEMEM_EXTREME
--unsigned long __section_nr(struct mem_section *ms)
--{
--	unsigned long root_nr;
--	struct mem_section *root = NULL;
+ cleanup_dev_kobject:
+-	kobject_del(&nilfs->ns_dev_kobj);
 -
--	for (root_nr = 0; root_nr < NR_SECTION_ROOTS; root_nr++) {
--		root = __nr_to_section(root_nr * SECTIONS_PER_ROOT);
--		if (!root)
--			continue;
--
--		if ((ms >= root) && (ms < (root + SECTIONS_PER_ROOT)))
--		     break;
--	}
--
--	VM_BUG_ON(!root);
--
--	return (root_nr * SECTIONS_PER_ROOT) + (ms - root);
--}
--#else
--unsigned long __section_nr(struct mem_section *ms)
--{
--	return (unsigned long)(ms - mem_section[0]);
--}
--#endif
--
- /*
-  * During early boot, before section_mem_map is used for an actual
-  * mem_map, we use section_mem_map to store the section's NUMA
+-free_dev_subgroups:
++	kobject_put(&nilfs->ns_dev_kobj);
+ 	kfree(nilfs->ns_dev_subgroups);
+ 
+ failed_create_device_group:
 _
 
-Patches currently in -mm which might be from ohoono.kwon@samsung.com are
+Patches currently in -mm which might be from sunnanyong@huawei.com are
 
-mm-sparse-pass-section_nr-to-section_mark_present.patch
-mm-sparse-pass-section_nr-to-find_memory_block.patch
-mm-sparse-remove-__section_nr-function.patch
+nilfs2-fix-memory-leak-in-nilfs_sysfs_create_device_group.patch
+nilfs2-fix-null-pointer-in-nilfs_name_attr_release.patch
+nilfs2-fix-memory-leak-in-nilfs_sysfs_create_name_group.patch
+nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_name_group.patch
+nilfs2-fix-memory-leak-in-nilfs_sysfs_create_snapshot_group.patch
+nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_snapshot_group.patch
 
