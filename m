@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 302F5C07E99
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59A95C07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 17A84613E1
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4034B613EB
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229931AbhGIVgZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:36:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47142 "EHLO mail.kernel.org"
+        id S229546AbhGIVga (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:36:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47246 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231152AbhGIVgZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:36:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C23DE613D1;
-        Fri,  9 Jul 2021 21:33:39 +0000 (UTC)
+        id S231146AbhGIVga (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:36:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C69DA613C3;
+        Fri,  9 Jul 2021 21:33:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866420;
-        bh=xwkEX4j+tsUkpyCNd+M02MgyHV0zEO/eU6NzIKXLWlo=;
+        s=korg; t=1625866426;
+        bh=koLcoSYcyO44lvfcRv/lncn7XsRAufoOqKz6V/1Mjpw=;
         h=Date:From:To:Subject:From;
-        b=OXm0eZpqtiC5HeFPBeOLtmb5q2GXklkAkiohWs27ANXoOqM1yH8mcHaEMA+ruQA2k
-         IZH8cB7L/uwMnrSTICyZSlLoXGM/JWUkZpkD9TWVuU7dYieFzCsV1z3hGCcbReTrbO
-         R7WqBuDYba+4cN0XxU7LlEXv7JUVYd1iM5gEzzHQ=
-Date:   Fri, 09 Jul 2021 14:33:39 -0700
+        b=g+nv+agLN4WZqcBZ4fn7X78XGcyOhJa7EiiKhsbFc273ws00o9o/9V447nmCgVcJc
+         SXijP7xjHO/t3OkcZNJgoKvJRUi++qKkqSH7H1FU5ZPF3CbJkVDTK1NPDbq8WvkZfy
+         fxGzmMWgniaEMm9NyqhdOEpnAMIIezHli9OosSI4=
+Date:   Fri, 09 Jul 2021 14:33:45 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, ast@kernel.org, bhe@redhat.com,
         bp@alien8.de, catalin.marinas@arm.com, dyoung@redhat.com,
@@ -39,9 +39,9 @@ To:     andriy.shevchenko@linux.intel.com, ast@kernel.org, bhe@redhat.com,
         sashal@kernel.org, sergey.senozhatsky@gmail.com,
         swboyd@chromium.org, tglx@linutronix.de, vgoyal@redhat.com,
         will@kernel.org, willy@infradead.org
-Subject:  [merged] buildid-mark-some-arguments-const.patch removed
- from -mm tree
-Message-ID: <20210709213339.fMXRtxyxm%akpm@linux-foundation.org>
+Subject:  [merged] kdump-use-vmlinux_build_id-to-simplify.patch
+ removed from -mm tree
+Message-ID: <20210709213345.n_HZ49dFW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,31 +50,32 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: buildid: mark some arguments const
+     Subject: kdump: use vmlinux_build_id to simplify
 has been removed from the -mm tree.  Its filename was
-     buildid-mark-some-arguments-const.patch
+     kdump-use-vmlinux_build_id-to-simplify.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Stephen Boyd <swboyd@chromium.org>
-Subject: buildid: mark some arguments const
+Subject: kdump: use vmlinux_build_id to simplify
 
-These arguments are never modified so they can be marked const to indicate
-as such.
+We can use the vmlinux_build_id array here now instead of open coding it. 
+This mostly consolidates code.
 
-Link: https://lkml.kernel.org/r/20210511003845.2429846-12-swboyd@chromium.org
+Link: https://lkml.kernel.org/r/20210511003845.2429846-14-swboyd@chromium.org
 Signed-off-by: Stephen Boyd <swboyd@chromium.org>
 Cc: Jiri Olsa <jolsa@kernel.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Jessica Yu <jeyu@kernel.org>
 Cc: Evan Green <evgreen@chromium.org>
 Cc: Hsin-Yi Wang <hsinyi@chromium.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Dave Young <dyoung@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Young <dyoung@redhat.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -84,47 +85,139 @@ Cc: Sasha Levin <sashal@kernel.org>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/buildid.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/linux/buildid.h    |    2 -
+ include/linux/crash_core.h |   12 ++++----
+ kernel/crash_core.c        |   50 +----------------------------------
+ lib/buildid.c              |    2 -
+ 4 files changed, 10 insertions(+), 56 deletions(-)
 
---- a/lib/buildid.c~buildid-mark-some-arguments-const
+--- a/include/linux/buildid.h~kdump-use-vmlinux_build_id-to-simplify
++++ a/include/linux/buildid.h
+@@ -10,7 +10,7 @@ int build_id_parse(struct vm_area_struct
+ 		   __u32 *size);
+ int build_id_parse_buf(const void *buf, unsigned char *build_id, u32 buf_size);
+ 
+-#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
++#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID) || IS_ENABLED(CONFIG_CRASH_CORE)
+ extern unsigned char vmlinux_build_id[BUILD_ID_SIZE_MAX];
+ void init_vmlinux_build_id(void);
+ #else
+--- a/include/linux/crash_core.h~kdump-use-vmlinux_build_id-to-simplify
++++ a/include/linux/crash_core.h
+@@ -38,8 +38,12 @@ phys_addr_t paddr_vmcoreinfo_note(void);
+ 
+ #define VMCOREINFO_OSRELEASE(value) \
+ 	vmcoreinfo_append_str("OSRELEASE=%s\n", value)
+-#define VMCOREINFO_BUILD_ID(value) \
+-	vmcoreinfo_append_str("BUILD-ID=%s\n", value)
++#define VMCOREINFO_BUILD_ID()						\
++	({								\
++		static_assert(sizeof(vmlinux_build_id) == 20);		\
++		vmcoreinfo_append_str("BUILD-ID=%20phN\n", vmlinux_build_id); \
++	})
++
+ #define VMCOREINFO_PAGESIZE(value) \
+ 	vmcoreinfo_append_str("PAGESIZE=%ld\n", value)
+ #define VMCOREINFO_SYMBOL(name) \
+@@ -69,10 +73,6 @@ extern unsigned char *vmcoreinfo_data;
+ extern size_t vmcoreinfo_size;
+ extern u32 *vmcoreinfo_note;
+ 
+-/* raw contents of kernel .notes section */
+-extern const void __start_notes __weak;
+-extern const void __stop_notes __weak;
+-
+ Elf_Word *append_elf_note(Elf_Word *buf, char *name, unsigned int type,
+ 			  void *data, size_t data_len);
+ void final_note(Elf_Word *buf);
+--- a/kernel/crash_core.c~kdump-use-vmlinux_build_id-to-simplify
++++ a/kernel/crash_core.c
+@@ -4,6 +4,7 @@
+  * Copyright (C) 2002-2004 Eric Biederman  <ebiederm@xmission.com>
+  */
+ 
++#include <linux/buildid.h>
+ #include <linux/crash_core.h>
+ #include <linux/utsname.h>
+ #include <linux/vmalloc.h>
+@@ -378,53 +379,6 @@ phys_addr_t __weak paddr_vmcoreinfo_note
+ }
+ EXPORT_SYMBOL(paddr_vmcoreinfo_note);
+ 
+-#define NOTES_SIZE (&__stop_notes - &__start_notes)
+-#define BUILD_ID_MAX SHA1_DIGEST_SIZE
+-#define NT_GNU_BUILD_ID 3
+-
+-struct elf_note_section {
+-	struct elf_note	n_hdr;
+-	u8 n_data[];
+-};
+-
+-/*
+- * Add build ID from .notes section as generated by the GNU ld(1)
+- * or LLVM lld(1) --build-id option.
+- */
+-static void add_build_id_vmcoreinfo(void)
+-{
+-	char build_id[BUILD_ID_MAX * 2 + 1];
+-	int n_remain = NOTES_SIZE;
+-
+-	while (n_remain >= sizeof(struct elf_note)) {
+-		const struct elf_note_section *note_sec =
+-			&__start_notes + NOTES_SIZE - n_remain;
+-		const u32 n_namesz = note_sec->n_hdr.n_namesz;
+-
+-		if (note_sec->n_hdr.n_type == NT_GNU_BUILD_ID &&
+-		    n_namesz != 0 &&
+-		    !strcmp((char *)&note_sec->n_data[0], "GNU")) {
+-			if (note_sec->n_hdr.n_descsz <= BUILD_ID_MAX) {
+-				const u32 n_descsz = note_sec->n_hdr.n_descsz;
+-				const u8 *s = &note_sec->n_data[n_namesz];
+-
+-				s = PTR_ALIGN(s, 4);
+-				bin2hex(build_id, s, n_descsz);
+-				build_id[2 * n_descsz] = '\0';
+-				VMCOREINFO_BUILD_ID(build_id);
+-				return;
+-			}
+-			pr_warn("Build ID is too large to include in vmcoreinfo: %u > %u\n",
+-				note_sec->n_hdr.n_descsz,
+-				BUILD_ID_MAX);
+-			return;
+-		}
+-		n_remain -= sizeof(struct elf_note) +
+-			ALIGN(note_sec->n_hdr.n_namesz, 4) +
+-			ALIGN(note_sec->n_hdr.n_descsz, 4);
+-	}
+-}
+-
+ static int __init crash_save_vmcoreinfo_init(void)
+ {
+ 	vmcoreinfo_data = (unsigned char *)get_zeroed_page(GFP_KERNEL);
+@@ -443,7 +397,7 @@ static int __init crash_save_vmcoreinfo_
+ 	}
+ 
+ 	VMCOREINFO_OSRELEASE(init_uts_ns.name.release);
+-	add_build_id_vmcoreinfo();
++	VMCOREINFO_BUILD_ID();
+ 	VMCOREINFO_PAGESIZE(PAGE_SIZE);
+ 
+ 	VMCOREINFO_SYMBOL(init_uts_ns);
+--- a/lib/buildid.c~kdump-use-vmlinux_build_id-to-simplify
 +++ a/lib/buildid.c
-@@ -48,10 +48,10 @@ static int parse_build_id_buf(unsigned c
- 	return -EINVAL;
+@@ -174,7 +174,7 @@ int build_id_parse_buf(const void *buf,
+ 	return parse_build_id_buf(build_id, NULL, buf, buf_size);
  }
  
--static inline int parse_build_id(void *page_addr,
-+static inline int parse_build_id(const void *page_addr,
- 				 unsigned char *build_id,
- 				 __u32 *size,
--				 void *note_start,
-+				 const void *note_start,
- 				 Elf32_Word note_size)
- {
- 	/* check for overflow */
-@@ -66,7 +66,7 @@ static inline int parse_build_id(void *p
- }
+-#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
++#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID) || IS_ENABLED(CONFIG_CRASH_CORE)
+ unsigned char vmlinux_build_id[BUILD_ID_SIZE_MAX] __ro_after_init;
  
- /* Parse build ID from 32-bit ELF */
--static int get_build_id_32(void *page_addr, unsigned char *build_id,
-+static int get_build_id_32(const void *page_addr, unsigned char *build_id,
- 			   __u32 *size)
- {
- 	Elf32_Ehdr *ehdr = (Elf32_Ehdr *)page_addr;
-@@ -91,7 +91,7 @@ static int get_build_id_32(void *page_ad
- }
- 
- /* Parse build ID from 64-bit ELF */
--static int get_build_id_64(void *page_addr, unsigned char *build_id,
-+static int get_build_id_64(const void *page_addr, unsigned char *build_id,
- 			   __u32 *size)
- {
- 	Elf64_Ehdr *ehdr = (Elf64_Ehdr *)page_addr;
+ /**
 _
 
 Patches currently in -mm which might be from swboyd@chromium.org are
