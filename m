@@ -7,41 +7,43 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FF82C07E9C
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03946C07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83120613DC
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE9B3613E1
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231156AbhGIVgC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:36:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46778 "EHLO mail.kernel.org"
+        id S230317AbhGIVgG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:36:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46826 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229506AbhGIVgC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:36:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E925E613C8;
-        Fri,  9 Jul 2021 21:33:17 +0000 (UTC)
+        id S229506AbhGIVgF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:36:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9CE61613D3;
+        Fri,  9 Jul 2021 21:33:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866398;
-        bh=hpDHX6vgLVsFp2ugclwGXDS3EIacDi9pBkDQ7cmq8Z4=;
+        s=korg; t=1625866401;
+        bh=Cp70fVXnbfMcF+yocLFOjrvmdPvF4n626oeNGITnmM4=;
         h=Date:From:To:Subject:From;
-        b=EWfF1lEWkJTA6Ga4C1JupnZXJLLmYSRbhUIXdbyMbXZ2j5j3YeBZWrUGkR/0ADU+9
-         tkhTsVHa7Zd91MiAIxo7+Chj1XQTyB2XPHIOX2ccemAvPPloxfSeZezkfXdd8Pbcn+
-         fqY+Nt7I/90n86ZAWx8H+H13qbepStMz0Hc46YsY=
-Date:   Fri, 09 Jul 2021 14:33:17 -0700
+        b=lZwML83tsIRen8guFR0dfvl0LYFcsUJfRDD1ZdlTIl3IttWRLGLOYjL1JUP/sy5Zh
+         Xb5Yg/w7wUi9Vo0S7VTZm7HGqvZZtaQ0E+hs5bd8g0ou4aQ8Y9xJbW4LP+Io1yxPpU
+         y7oza1u63Vny5uKcxPsuUJ67L0IsvsVc2E24pmOY=
+Date:   Fri, 09 Jul 2021 14:33:20 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, ast@kernel.org, bhe@redhat.com,
-        bp@alien8.de, catalin.marinas@arm.com, dyoung@redhat.com,
-        evgreen@chromium.org, hsinyi@chromium.org, jeyu@kernel.org,
-        jolsa@kernel.org, khlebnikov@yandex-team.ru,
+        bp@alien8.de, catalin.marinas@arm.com, cuibixuan@huawei.com,
+        dyoung@redhat.com, evgreen@chromium.org, hsinyi@chromium.org,
+        jeyu@kernel.org, jolsa@kernel.org, khlebnikov@yandex-team.ru,
         linux@rasmusvillemoes.dk, mingo@redhat.com,
-        mm-commits@vger.kernel.org, pmladek@suse.com, rostedt@goodmis.org,
-        sashal@kernel.org, sergey.senozhatsky@gmail.com,
-        swboyd@chromium.org, tglx@linutronix.de, vgoyal@redhat.com,
-        will@kernel.org, willy@infradead.org
+        mm-commits@vger.kernel.org, pmladek@suse.com,
+        rdunlap@infradead.org, rostedt@goodmis.org, sashal@kernel.org,
+        sergey.senozhatsky@gmail.com, swboyd@chromium.org,
+        tglx@linutronix.de, vgoyal@redhat.com, will@kernel.org,
+        willy@infradead.org
 Subject:  [merged]
- dump_stack-add-vmlinux-build-id-to-stack-traces.patch removed from -mm tree
-Message-ID: <20210709213317.Ed5SRcr4f%akpm@linux-foundation.org>
+ module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
+ removed from -mm tree
+Message-ID: <20210709213320.mvtmACg-N%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,48 +52,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dump_stack: add vmlinux build ID to stack traces
+     Subject: module: add printk formats to add module build ID to stacktraces
 has been removed from the -mm tree.  Its filename was
-     dump_stack-add-vmlinux-build-id-to-stack-traces.patch
+     module-add-printk-formats-to-add-module-build-id-to-stacktraces.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Stephen Boyd <swboyd@chromium.org>
-Subject: dump_stack: add vmlinux build ID to stack traces
+Subject: module: add printk formats to add module build ID to stacktraces
 
-Add the running kernel's build ID[1] to the stacktrace information header.
-This makes it simpler for developers to locate the vmlinux with full
-debuginfo for a particular kernel stacktrace.  Combined with
-scripts/decode_stracktrace.sh, a developer can download the correct
-vmlinux from a debuginfod[2] server and find the exact file and line
-number for the functions plus offsets in a stacktrace.
+Let's make kernel stacktraces easier to identify by including the build
+ID[1] of a module if the stacktrace is printing a symbol from a module. 
+This makes it simpler for developers to locate a kernel module's full
+debuginfo for a particular stacktrace.  Combined with
+scripts/decode_stracktrace.sh, a developer can download the matching
+debuginfo from a debuginfod[2] server and find the exact file and line
+number for the functions plus offsets in a stacktrace that match the
+module.  This is especially useful for pstore crash debugging where the
+kernel crashes are recorded in something like console-ramoops and the
+recovery kernel/modules are different or the debuginfo doesn't exist on
+the device due to space concerns (the debuginfo can be too large for space
+limited devices).
 
-This is especially useful for pstore crash debugging where the kernel
-crashes are recorded in the pstore logs and the recovery kernel is
-different or the debuginfo doesn't exist on the device due to space
-concerns (the data can be large and a security concern).  The stacktrace
-can be analyzed after the crash by using the build ID to find the matching
-vmlinux and understand where in the function something went wrong.
+Originally, I put this on the %pS format, but that was quickly rejected
+given that %pS is used in other places such as ftrace where build IDs
+aren't meaningful.  There was some discussions on the list to put every
+module build ID into the "Modules linked in:" section of the stacktrace
+message but that quickly becomes very hard to read once you have more than
+three or four modules linked in.  It also provides too much information
+when we don't expect each module to be traversed in a stacktrace.  Having
+the build ID for modules that aren't important just makes things messy. 
+Splitting it to multiple lines for each module quickly explodes the number
+of lines printed in an oops too, possibly wrapping the warning off the
+console.  And finally, trying to stash away each module used in a
+callstack to provide the ID of each symbol printed is cumbersome and would
+require changes to each architecture to stash away modules and return
+their build IDs once unwinding has completed.
 
-Example stacktrace from lkdtm:
+Instead, we opt for the simpler approach of introducing new printk formats
+'%pS[R]b' for "pointer symbolic backtrace with module build ID" and '%pBb'
+for "pointer backtrace with module build ID" and then updating the few
+places in the architecture layer where the stacktrace is printed to use
+this new format.
 
- WARNING: CPU: 4 PID: 3255 at drivers/misc/lkdtm/bugs.c:83 lkdtm_WARNING+0x28/0x30 [lkdtm]
- Modules linked in: lkdtm rfcomm algif_hash algif_skcipher af_alg xt_cgroup uinput xt_MASQUERADE
- CPU: 4 PID: 3255 Comm: bash Not tainted 5.11 #3 aa23f7a1231c229de205662d5a9e0d4c580f19a1
- Hardware name: Google Lazor (rev3+) with KB Backlight (DT)
- pstate: 00400009 (nzcv daif +PAN -UAO -TCO BTYPE=--)
- pc : lkdtm_WARNING+0x28/0x30 [lkdtm]
+Before:
 
-The hex string aa23f7a1231c229de205662d5a9e0d4c580f19a1 is the build ID,
-following the kernel version number. Put it all behind a config option,
-STACKTRACE_BUILD_ID, so that kernel developers can remove this
-information if they decide it is too much.
+ Call trace:
+  lkdtm_WARNING+0x28/0x30 [lkdtm]
+  direct_entry+0x16c/0x1b4 [lkdtm]
+  full_proxy_write+0x74/0xa4
+  vfs_write+0xec/0x2e8
 
-Link: https://lkml.kernel.org/r/20210511003845.2429846-5-swboyd@chromium.org
+After:
+
+ Call trace:
+  lkdtm_WARNING+0x28/0x30 [lkdtm 6c2215028606bda50de823490723dc4bc5bf46f9]
+  direct_entry+0x16c/0x1b4 [lkdtm 6c2215028606bda50de823490723dc4bc5bf46f9]
+  full_proxy_write+0x74/0xa4
+  vfs_write+0xec/0x2e8
+
+[akpm@linux-foundation.org: fix build with CONFIG_MODULES=n, tweak code layout]
+[rdunlap@infradead.org: fix build when CONFIG_MODULES is not set]
+  Link: https://lkml.kernel.org/r/20210513171510.20328-1-rdunlap@infradead.org
+[akpm@linux-foundation.org: make kallsyms_lookup_buildid() static]
+[cuibixuan@huawei.com: fix build error when CONFIG_SYSFS is disabled]
+  Link: https://lkml.kernel.org/r/20210525105049.34804-1-cuibixuan@huawei.com
+Link: https://lkml.kernel.org/r/20210511003845.2429846-6-swboyd@chromium.org
 Link: https://fedoraproject.org/wiki/Releases/FeatureBuildId [1]
 Link: https://sourceware.org/elfutils/Debuginfod.html [2]
 Signed-off-by: Stephen Boyd <swboyd@chromium.org>
+Signed-off-by: Bixuan Cui <cuibixuan@huawei.com>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Jiri Olsa <jolsa@kernel.org>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Jessica Yu <jeyu@kernel.org>
@@ -99,7 +131,9 @@ Cc: Evan Green <evgreen@chromium.org>
 Cc: Hsin-Yi Wang <hsinyi@chromium.org>
 Cc: Petr Mladek <pmladek@suse.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
@@ -107,111 +141,452 @@ Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Sasha Levin <sashal@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vivek Goyal <vgoyal@redhat.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/buildid.h |    4 ++++
- lib/Kconfig.debug       |   11 +++++++++++
- lib/buildid.c           |    2 ++
- lib/dump_stack.c        |   13 +++++++++++--
- 4 files changed, 28 insertions(+), 2 deletions(-)
+ Documentation/core-api/printk-formats.rst |   11 ++
+ include/linux/kallsyms.h                  |   21 +++-
+ include/linux/module.h                    |    9 +
+ kernel/kallsyms.c                         |  104 ++++++++++++++++----
+ kernel/module.c                           |   42 +++++++-
+ lib/vsprintf.c                            |    8 +
+ 6 files changed, 166 insertions(+), 29 deletions(-)
 
---- a/include/linux/buildid.h~dump_stack-add-vmlinux-build-id-to-stack-traces
-+++ a/include/linux/buildid.h
-@@ -10,7 +10,11 @@ int build_id_parse(struct vm_area_struct
- 		   __u32 *size);
- int build_id_parse_buf(const void *buf, unsigned char *build_id, u32 buf_size);
+--- a/Documentation/core-api/printk-formats.rst~module-add-printk-formats-to-add-module-build-id-to-stacktraces
++++ a/Documentation/core-api/printk-formats.rst
+@@ -125,6 +125,17 @@ used when printing stack backtraces. The
+ consideration the effect of compiler optimisations which may occur
+ when tail-calls are used and marked with the noreturn GCC attribute.
  
-+#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
- extern unsigned char vmlinux_build_id[BUILD_ID_SIZE_MAX];
- void init_vmlinux_build_id(void);
-+#else
-+static inline void init_vmlinux_build_id(void) { }
-+#endif
++If the pointer is within a module, the module name and optionally build ID is
++printed after the symbol name with an extra ``b`` appended to the end of the
++specifier.
++
++::
++	%pS	versatile_init+0x0/0x110 [module_name]
++	%pSb	versatile_init+0x0/0x110 [module_name ed5019fdf5e53be37cb1ba7899292d7e143b259e]
++	%pSRb	versatile_init+0x9/0x110 [module_name ed5019fdf5e53be37cb1ba7899292d7e143b259e]
++		(with __builtin_extract_return_addr() translation)
++	%pBb	prev_fn_of_versatile_init+0x88/0x88 [module_name ed5019fdf5e53be37cb1ba7899292d7e143b259e]
++
+ Probed Pointers from BPF / tracing
+ ----------------------------------
  
- #endif
---- a/lib/buildid.c~dump_stack-add-vmlinux-build-id-to-stack-traces
-+++ a/lib/buildid.c
-@@ -174,6 +174,7 @@ int build_id_parse_buf(const void *buf,
- 	return parse_build_id_buf(build_id, NULL, buf, buf_size);
- }
+--- a/include/linux/kallsyms.h~module-add-printk-formats-to-add-module-build-id-to-stacktraces
++++ a/include/linux/kallsyms.h
+@@ -7,6 +7,7 @@
+ #define _LINUX_KALLSYMS_H
  
-+#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
- unsigned char vmlinux_build_id[BUILD_ID_SIZE_MAX] __ro_after_init;
- 
- /**
-@@ -187,3 +188,4 @@ void __init init_vmlinux_build_id(void)
- 
- 	build_id_parse_buf(&__start_notes, vmlinux_build_id, size);
- }
-+#endif
---- a/lib/dump_stack.c~dump_stack-add-vmlinux-build-id-to-stack-traces
-+++ a/lib/dump_stack.c
-@@ -5,6 +5,7 @@
-  */
- 
- #include <linux/kernel.h>
+ #include <linux/errno.h>
 +#include <linux/buildid.h>
- #include <linux/export.h>
- #include <linux/sched.h>
- #include <linux/sched/debug.h>
-@@ -36,6 +37,14 @@ void __init dump_stack_set_arch_desc(con
- 	va_end(args);
+ #include <linux/kernel.h>
+ #include <linux/stddef.h>
+ #include <linux/mm.h>
+@@ -15,8 +16,10 @@
+ #include <asm/sections.h>
+ 
+ #define KSYM_NAME_LEN 128
+-#define KSYM_SYMBOL_LEN (sizeof("%s+%#lx/%#lx [%s]") + (KSYM_NAME_LEN - 1) + \
+-			 2*(BITS_PER_LONG*3/10) + (MODULE_NAME_LEN - 1) + 1)
++#define KSYM_SYMBOL_LEN (sizeof("%s+%#lx/%#lx [%s %s]") + \
++			(KSYM_NAME_LEN - 1) + \
++			2*(BITS_PER_LONG*3/10) + (MODULE_NAME_LEN - 1) + \
++			(BUILD_ID_SIZE_MAX * 2) + 1)
+ 
+ struct cred;
+ struct module;
+@@ -91,8 +94,10 @@ const char *kallsyms_lookup(unsigned lon
+ 
+ /* Look up a kernel symbol and return it in a text buffer. */
+ extern int sprint_symbol(char *buffer, unsigned long address);
++extern int sprint_symbol_build_id(char *buffer, unsigned long address);
+ extern int sprint_symbol_no_offset(char *buffer, unsigned long address);
+ extern int sprint_backtrace(char *buffer, unsigned long address);
++extern int sprint_backtrace_build_id(char *buffer, unsigned long address);
+ 
+ int lookup_symbol_name(unsigned long addr, char *symname);
+ int lookup_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset, char *modname, char *name);
+@@ -128,6 +133,12 @@ static inline int sprint_symbol(char *bu
+ 	return 0;
  }
  
-+#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
-+#define BUILD_ID_FMT " %20phN"
-+#define BUILD_ID_VAL vmlinux_build_id
-+#else
-+#define BUILD_ID_FMT "%s"
-+#define BUILD_ID_VAL ""
++static inline int sprint_symbol_build_id(char *buffer, unsigned long address)
++{
++	*buffer = '\0';
++	return 0;
++}
++
+ static inline int sprint_symbol_no_offset(char *buffer, unsigned long addr)
+ {
+ 	*buffer = '\0';
+@@ -138,6 +149,12 @@ static inline int sprint_backtrace(char
+ {
+ 	*buffer = '\0';
+ 	return 0;
++}
++
++static inline int sprint_backtrace_build_id(char *buffer, unsigned long addr)
++{
++	*buffer = '\0';
++	return 0;
+ }
+ 
+ static inline int lookup_symbol_name(unsigned long addr, char *symname)
+--- a/include/linux/module.h~module-add-printk-formats-to-add-module-build-id-to-stacktraces
++++ a/include/linux/module.h
+@@ -11,6 +11,7 @@
+ 
+ #include <linux/list.h>
+ #include <linux/stat.h>
++#include <linux/buildid.h>
+ #include <linux/compiler.h>
+ #include <linux/cache.h>
+ #include <linux/kmod.h>
+@@ -369,6 +370,11 @@ struct module {
+ 	/* Unique handle for this module */
+ 	char name[MODULE_NAME_LEN];
+ 
++#ifdef CONFIG_STACKTRACE_BUILD_ID
++	/* Module build ID */
++	unsigned char build_id[BUILD_ID_SIZE_MAX];
 +#endif
 +
- /**
-  * dump_stack_print_info - print generic debug info for dump_stack()
-  * @log_lvl: log level
-@@ -45,13 +54,13 @@ void __init dump_stack_set_arch_desc(con
-  */
- void dump_stack_print_info(const char *log_lvl)
+ 	/* Sysfs stuff. */
+ 	struct module_kobject mkobj;
+ 	struct module_attribute *modinfo_attrs;
+@@ -636,7 +642,7 @@ void *dereference_module_function_descri
+ const char *module_address_lookup(unsigned long addr,
+ 			    unsigned long *symbolsize,
+ 			    unsigned long *offset,
+-			    char **modname,
++			    char **modname, const unsigned char **modbuildid,
+ 			    char *namebuf);
+ int lookup_module_symbol_name(unsigned long addr, char *symname);
+ int lookup_module_symbol_attrs(unsigned long addr, unsigned long *size, unsigned long *offset, char *modname, char *name);
+@@ -740,6 +746,7 @@ static inline const char *module_address
+ 					  unsigned long *symbolsize,
+ 					  unsigned long *offset,
+ 					  char **modname,
++					  const unsigned char **modbuildid,
+ 					  char *namebuf)
  {
--	printk("%sCPU: %d PID: %d Comm: %.20s %s%s %s %.*s\n",
-+	printk("%sCPU: %d PID: %d Comm: %.20s %s%s %s %.*s" BUILD_ID_FMT "\n",
- 	       log_lvl, raw_smp_processor_id(), current->pid, current->comm,
- 	       kexec_crash_loaded() ? "Kdump: loaded " : "",
- 	       print_tainted(),
- 	       init_utsname()->release,
- 	       (int)strcspn(init_utsname()->version, " "),
--	       init_utsname()->version);
-+	       init_utsname()->version, BUILD_ID_VAL);
+ 	return NULL;
+--- a/kernel/kallsyms.c~module-add-printk-formats-to-add-module-build-id-to-stacktraces
++++ a/kernel/kallsyms.c
+@@ -25,7 +25,10 @@
+ #include <linux/filter.h>
+ #include <linux/ftrace.h>
+ #include <linux/kprobes.h>
++#include <linux/build_bug.h>
+ #include <linux/compiler.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
  
- 	if (dump_stack_arch_desc_str[0] != '\0')
- 		printk("%sHardware name: %s\n",
---- a/lib/Kconfig.debug~dump_stack-add-vmlinux-build-id-to-stack-traces
-+++ a/lib/Kconfig.debug
-@@ -35,6 +35,17 @@ config PRINTK_CALLER
- 	  no option to enable/disable at the kernel command line parameter or
- 	  sysfs interface.
+ /*
+  * These will be re-linked against their real values
+@@ -297,21 +300,14 @@ int kallsyms_lookup_size_offset(unsigned
+ 		get_symbol_pos(addr, symbolsize, offset);
+ 		return 1;
+ 	}
+-	return !!module_address_lookup(addr, symbolsize, offset, NULL, namebuf) ||
++	return !!module_address_lookup(addr, symbolsize, offset, NULL, NULL, namebuf) ||
+ 	       !!__bpf_address_lookup(addr, symbolsize, offset, namebuf);
+ }
  
-+config STACKTRACE_BUILD_ID
-+	bool "Show build ID information in stacktraces"
-+	depends on PRINTK
-+	help
-+	  Selecting this option adds build ID information for symbols in
-+	  stacktraces printed with the printk format '%p[SR]b'.
+-/*
+- * Lookup an address
+- * - modname is set to NULL if it's in the kernel.
+- * - We guarantee that the returned name is valid until we reschedule even if.
+- *   It resides in a module.
+- * - We also guarantee that modname will be valid until rescheduled.
+- */
+-const char *kallsyms_lookup(unsigned long addr,
+-			    unsigned long *symbolsize,
+-			    unsigned long *offset,
+-			    char **modname, char *namebuf)
++static const char *kallsyms_lookup_buildid(unsigned long addr,
++			unsigned long *symbolsize,
++			unsigned long *offset, char **modname,
++			const unsigned char **modbuildid, char *namebuf)
+ {
+ 	const char *ret;
+ 
+@@ -327,6 +323,8 @@ const char *kallsyms_lookup(unsigned lon
+ 				       namebuf, KSYM_NAME_LEN);
+ 		if (modname)
+ 			*modname = NULL;
++		if (modbuildid)
++			*modbuildid = NULL;
+ 
+ 		ret = namebuf;
+ 		goto found;
+@@ -334,7 +332,7 @@ const char *kallsyms_lookup(unsigned lon
+ 
+ 	/* See if it's in a module or a BPF JITed image. */
+ 	ret = module_address_lookup(addr, symbolsize, offset,
+-				    modname, namebuf);
++				    modname, modbuildid, namebuf);
+ 	if (!ret)
+ 		ret = bpf_address_lookup(addr, symbolsize,
+ 					 offset, modname, namebuf);
+@@ -348,6 +346,22 @@ found:
+ 	return ret;
+ }
+ 
++/*
++ * Lookup an address
++ * - modname is set to NULL if it's in the kernel.
++ * - We guarantee that the returned name is valid until we reschedule even if.
++ *   It resides in a module.
++ * - We also guarantee that modname will be valid until rescheduled.
++ */
++const char *kallsyms_lookup(unsigned long addr,
++			    unsigned long *symbolsize,
++			    unsigned long *offset,
++			    char **modname, char *namebuf)
++{
++	return kallsyms_lookup_buildid(addr, symbolsize, offset, modname,
++				       NULL, namebuf);
++}
 +
-+	  This option is intended for distros where debuginfo is not easily
-+	  accessible but can be downloaded given the build ID of the vmlinux or
-+	  kernel module where the function is located.
+ int lookup_symbol_name(unsigned long addr, char *symname)
+ {
+ 	int res;
+@@ -404,15 +418,17 @@ found:
+ 
+ /* Look up a kernel symbol and return it in a text buffer. */
+ static int __sprint_symbol(char *buffer, unsigned long address,
+-			   int symbol_offset, int add_offset)
++			   int symbol_offset, int add_offset, int add_buildid)
+ {
+ 	char *modname;
++	const unsigned char *buildid;
+ 	const char *name;
+ 	unsigned long offset, size;
+ 	int len;
+ 
+ 	address += symbol_offset;
+-	name = kallsyms_lookup(address, &size, &offset, &modname, buffer);
++	name = kallsyms_lookup_buildid(address, &size, &offset, &modname, &buildid,
++				       buffer);
+ 	if (!name)
+ 		return sprintf(buffer, "0x%lx", address - symbol_offset);
+ 
+@@ -424,8 +440,19 @@ static int __sprint_symbol(char *buffer,
+ 	if (add_offset)
+ 		len += sprintf(buffer + len, "+%#lx/%#lx", offset, size);
+ 
+-	if (modname)
+-		len += sprintf(buffer + len, " [%s]", modname);
++	if (modname) {
++		len += sprintf(buffer + len, " [%s", modname);
++#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
++		if (add_buildid && buildid) {
++			/* build ID should match length of sprintf */
++#if IS_ENABLED(CONFIG_MODULES)
++			static_assert(sizeof(typeof_member(struct module, build_id)) == 20);
++#endif
++			len += sprintf(buffer + len, " %20phN", buildid);
++		}
++#endif
++		len += sprintf(buffer + len, "]");
++	}
+ 
+ 	return len;
+ }
+@@ -443,11 +470,28 @@ static int __sprint_symbol(char *buffer,
+  */
+ int sprint_symbol(char *buffer, unsigned long address)
+ {
+-	return __sprint_symbol(buffer, address, 0, 1);
++	return __sprint_symbol(buffer, address, 0, 1, 0);
+ }
+ EXPORT_SYMBOL_GPL(sprint_symbol);
+ 
+ /**
++ * sprint_symbol_build_id - Look up a kernel symbol and return it in a text buffer
++ * @buffer: buffer to be stored
++ * @address: address to lookup
++ *
++ * This function looks up a kernel symbol with @address and stores its name,
++ * offset, size, module name and module build ID to @buffer if possible. If no
++ * symbol was found, just saves its @address as is.
++ *
++ * This function returns the number of bytes stored in @buffer.
++ */
++int sprint_symbol_build_id(char *buffer, unsigned long address)
++{
++	return __sprint_symbol(buffer, address, 0, 1, 1);
++}
++EXPORT_SYMBOL_GPL(sprint_symbol_build_id);
 +
- config CONSOLE_LOGLEVEL_DEFAULT
- 	int "Default console loglevel (1-15)"
- 	range 1 15
++/**
+  * sprint_symbol_no_offset - Look up a kernel symbol and return it in a text buffer
+  * @buffer: buffer to be stored
+  * @address: address to lookup
+@@ -460,7 +504,7 @@ EXPORT_SYMBOL_GPL(sprint_symbol);
+  */
+ int sprint_symbol_no_offset(char *buffer, unsigned long address)
+ {
+-	return __sprint_symbol(buffer, address, 0, 0);
++	return __sprint_symbol(buffer, address, 0, 0, 0);
+ }
+ EXPORT_SYMBOL_GPL(sprint_symbol_no_offset);
+ 
+@@ -480,7 +524,27 @@ EXPORT_SYMBOL_GPL(sprint_symbol_no_offse
+  */
+ int sprint_backtrace(char *buffer, unsigned long address)
+ {
+-	return __sprint_symbol(buffer, address, -1, 1);
++	return __sprint_symbol(buffer, address, -1, 1, 0);
++}
++
++/**
++ * sprint_backtrace_build_id - Look up a backtrace symbol and return it in a text buffer
++ * @buffer: buffer to be stored
++ * @address: address to lookup
++ *
++ * This function is for stack backtrace and does the same thing as
++ * sprint_symbol() but with modified/decreased @address. If there is a
++ * tail-call to the function marked "noreturn", gcc optimized out code after
++ * the call so that the stack-saved return address could point outside of the
++ * caller. This function ensures that kallsyms will find the original caller
++ * by decreasing @address. This function also appends the module build ID to
++ * the @buffer if @address is within a kernel module.
++ *
++ * This function returns the number of bytes stored in @buffer.
++ */
++int sprint_backtrace_build_id(char *buffer, unsigned long address)
++{
++	return __sprint_symbol(buffer, address, -1, 1, 1);
+ }
+ 
+ /* To avoid using get_symbol_offset for every symbol, we carry prefix along. */
+--- a/kernel/module.c~module-add-printk-formats-to-add-module-build-id-to-stacktraces
++++ a/kernel/module.c
+@@ -13,6 +13,7 @@
+ #include <linux/trace_events.h>
+ #include <linux/init.h>
+ #include <linux/kallsyms.h>
++#include <linux/buildid.h>
+ #include <linux/file.h>
+ #include <linux/fs.h>
+ #include <linux/sysfs.h>
+@@ -1465,6 +1466,13 @@ resolve_symbol_wait(struct module *mod,
+ 	return ksym;
+ }
+ 
++#ifdef CONFIG_KALLSYMS
++static inline bool sect_empty(const Elf_Shdr *sect)
++{
++	return !(sect->sh_flags & SHF_ALLOC) || sect->sh_size == 0;
++}
++#endif
++
+ /*
+  * /sys/module/foo/sections stuff
+  * J. Corbet <corbet@lwn.net>
+@@ -1472,11 +1480,6 @@ resolve_symbol_wait(struct module *mod,
+ #ifdef CONFIG_SYSFS
+ 
+ #ifdef CONFIG_KALLSYMS
+-static inline bool sect_empty(const Elf_Shdr *sect)
+-{
+-	return !(sect->sh_flags & SHF_ALLOC) || sect->sh_size == 0;
+-}
+-
+ struct module_sect_attr {
+ 	struct bin_attribute battr;
+ 	unsigned long address;
+@@ -2797,6 +2800,26 @@ static void add_kallsyms(struct module *
+ }
+ #endif /* CONFIG_KALLSYMS */
+ 
++#if IS_ENABLED(CONFIG_KALLSYMS) && IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
++static void init_build_id(struct module *mod, const struct load_info *info)
++{
++	const Elf_Shdr *sechdr;
++	unsigned int i;
++
++	for (i = 0; i < info->hdr->e_shnum; i++) {
++		sechdr = &info->sechdrs[i];
++		if (!sect_empty(sechdr) && sechdr->sh_type == SHT_NOTE &&
++		    !build_id_parse_buf((void *)sechdr->sh_addr, mod->build_id,
++					sechdr->sh_size))
++			break;
++	}
++}
++#else
++static void init_build_id(struct module *mod, const struct load_info *info)
++{
++}
++#endif
++
+ static void dynamic_debug_setup(struct module *mod, struct _ddebug *debug, unsigned int num)
+ {
+ 	if (!debug)
+@@ -4021,6 +4044,7 @@ static int load_module(struct load_info
+ 		goto free_arch_cleanup;
+ 	}
+ 
++	init_build_id(mod, info);
+ 	dynamic_debug_setup(mod, info->debug, info->num_debug);
+ 
+ 	/* Ftrace init must be called in the MODULE_STATE_UNFORMED state */
+@@ -4254,6 +4278,7 @@ const char *module_address_lookup(unsign
+ 			    unsigned long *size,
+ 			    unsigned long *offset,
+ 			    char **modname,
++			    const unsigned char **modbuildid,
+ 			    char *namebuf)
+ {
+ 	const char *ret = NULL;
+@@ -4264,6 +4289,13 @@ const char *module_address_lookup(unsign
+ 	if (mod) {
+ 		if (modname)
+ 			*modname = mod->name;
++		if (modbuildid) {
++#if IS_ENABLED(CONFIG_STACKTRACE_BUILD_ID)
++			*modbuildid = mod->build_id;
++#else
++			*modbuildid = NULL;
++#endif
++		}
+ 
+ 		ret = find_kallsyms_symbol(mod, addr, size, offset);
+ 	}
+--- a/lib/vsprintf.c~module-add-printk-formats-to-add-module-build-id-to-stacktraces
++++ a/lib/vsprintf.c
+@@ -993,8 +993,12 @@ char *symbol_string(char *buf, char *end
+ 	value = (unsigned long)ptr;
+ 
+ #ifdef CONFIG_KALLSYMS
+-	if (*fmt == 'B')
++	if (*fmt == 'B' && fmt[1] == 'b')
++		sprint_backtrace_build_id(sym, value);
++	else if (*fmt == 'B')
+ 		sprint_backtrace(sym, value);
++	else if (*fmt == 'S' && (fmt[1] == 'b' || (fmt[1] == 'R' && fmt[2] == 'b')))
++		sprint_symbol_build_id(sym, value);
+ 	else if (*fmt != 's')
+ 		sprint_symbol(sym, value);
+ 	else
+@@ -2263,9 +2267,11 @@ early_param("no_hash_pointers", no_hash_
+  * - 'S' For symbolic direct pointers (or function descriptors) with offset
+  * - 's' For symbolic direct pointers (or function descriptors) without offset
+  * - '[Ss]R' as above with __builtin_extract_return_addr() translation
++ * - 'S[R]b' as above with module build ID (for use in backtraces)
+  * - '[Ff]' %pf and %pF were obsoleted and later removed in favor of
+  *	    %ps and %pS. Be careful when re-using these specifiers.
+  * - 'B' For backtraced symbolic direct pointers with offset
++ * - 'Bb' as above with module build ID (for use in backtraces)
+  * - 'R' For decoded struct resource, e.g., [mem 0x0-0x1f 64bit pref]
+  * - 'r' For raw struct resource, e.g., [mem 0x0-0x1f flags 0x201]
+  * - 'b[l]' For a bitmap, the number of bits is determined by the field
 _
 
 Patches currently in -mm which might be from swboyd@chromium.org are
