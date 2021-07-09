@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DADFCC07E9B
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEE40C07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:34:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C4D5A613D6
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:33:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 979BE613D6
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 21:34:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230441AbhGIVgl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 17:36:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47402 "EHLO mail.kernel.org"
+        id S229552AbhGIVgq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 17:36:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47468 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230389AbhGIVgk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 17:36:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A51D8613C8;
-        Fri,  9 Jul 2021 21:33:56 +0000 (UTC)
+        id S231137AbhGIVgp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 17:36:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9FB67613C8;
+        Fri,  9 Jul 2021 21:34:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625866437;
-        bh=hR7XKTc7sbbWHyI3dR1rKfl/4GKv9mD5J4lGMh7VNmg=;
+        s=korg; t=1625866441;
+        bh=Q1Z8/LVfuVwFtyUEHjeSofObsiWqphHNuDs7PqXFCYY=;
         h=Date:From:To:Subject:From;
-        b=ZhVV959xIP1wNz24Ggo2GTecN5T6tIpRl5NFDv/EdsW53tTD1rQOn7kZi3fB+W+ZC
-         Ptq1fqFoG5kbCcCTUQBNLQvK+aDIDFIO8+PPpCqsBxxIBiqsbNUOq7c+oclrCKkqi/
-         x9zaHV0h2VncJQEjqYv/RmaDmHroWsKOJFhdYGTM=
-Date:   Fri, 09 Jul 2021 14:33:56 -0700
+        b=qLWCMRX08BeqRtXi3ngjGU4ECYcJBaubC5g+f7rdKTIu/wXb8Op6hfPZ678rN4GQn
+         RaB1bFvkOTif5IXWLStjBRAK4gVo9zks8uK2AG+fVgCK6XDrOEDA+Uavsu3ICoMrxn
+         Z3mh5FU6zkhEXWOakjZrLgmE1kK1K0v+UpGFZPyw=
+Date:   Fri, 09 Jul 2021 14:34:01 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, christophe.leroy@csgroup.eu,
         hughd@google.com, joel@joelfernandes.org, kaleshsingh@google.com,
         kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
         mpe@ellerman.id.au, npiggin@gmail.com, sfr@canb.auug.org.au
 Subject:  [merged]
- selftest-mremap_test-avoid-crash-with-static-build.patch removed from -mm
- tree
-Message-ID: <20210709213356.p93Lq0Swh%akpm@linux-foundation.org>
+ mm-mremap-dont-enable-optimized-pud-move-if-page-table-levels-is-2.patch
+ removed from -mm tree
+Message-ID: <20210709213401.a8XmWSPCB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,26 +46,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest/mremap_test: avoid crash with static build
+     Subject: mm/mremap: don't enable optimized PUD move if page table levels is 2
 has been removed from the -mm tree.  Its filename was
-     selftest-mremap_test-avoid-crash-with-static-build.patch
+     mm-mremap-dont-enable-optimized-pud-move-if-page-table-levels-is-2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: selftest/mremap_test: avoid crash with static build
+Subject: mm/mremap: don't enable optimized PUD move if page table levels is 2
 
-With a large mmap map size, we can overlap with the text area and using
-MAP_FIXED results in unmapping that area.  Switch to MAP_FIXED_NOREPLACE
-and handle the EEXIST error.
+With two level page table don't enable move_normal_pud.
 
-Link: https://lkml.kernel.org/r/20210616045239.370802-3-aneesh.kumar@linux.ibm.com
+Link: https://lkml.kernel.org/r/20210616045239.370802-5-aneesh.kumar@linux.ibm.com
 Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Kalesh Singh <kaleshsingh@google.com>
 Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Joel Fernandes <joel@joelfernandes.org>
+Cc: Kalesh Singh <kaleshsingh@google.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Nicholas Piggin <npiggin@gmail.com>
@@ -73,24 +71,20 @@ Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mremap_test.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/mremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/mremap_test.c~selftest-mremap_test-avoid-crash-with-static-build
-+++ a/tools/testing/selftests/vm/mremap_test.c
-@@ -75,9 +75,10 @@ static void *get_source_mapping(struct c
- retry:
- 	addr += c.src_alignment;
- 	src_addr = mmap((void *) addr, c.region_size, PROT_READ | PROT_WRITE,
--			MAP_FIXED | MAP_ANONYMOUS | MAP_SHARED, -1, 0);
-+			MAP_FIXED_NOREPLACE | MAP_ANONYMOUS | MAP_SHARED,
-+			-1, 0);
- 	if (src_addr == MAP_FAILED) {
--		if (errno == EPERM)
-+		if (errno == EPERM || errno == EEXIST)
- 			goto retry;
- 		goto error;
- 	}
+--- a/mm/mremap.c~mm-mremap-dont-enable-optimized-pud-move-if-page-table-levels-is-2
++++ a/mm/mremap.c
+@@ -276,7 +276,7 @@ static inline bool move_normal_pmd(struc
+ }
+ #endif
+ 
+-#ifdef CONFIG_HAVE_MOVE_PUD
++#if CONFIG_PGTABLE_LEVELS > 2 && defined(CONFIG_HAVE_MOVE_PUD)
+ static bool move_normal_pud(struct vm_area_struct *vma, unsigned long old_addr,
+ 		  unsigned long new_addr, pud_t *old_pud, pud_t *new_pud)
+ {
 _
 
 Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
