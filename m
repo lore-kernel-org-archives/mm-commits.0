@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88DAEC07E9C
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:55:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31F99C07E99
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:55:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6C84D613AF
-	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:55:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11F19613AF
+	for <mm-commits@archiver.kernel.org>; Fri,  9 Jul 2021 23:55:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230409AbhGIX6G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 19:58:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37406 "EHLO mail.kernel.org"
+        id S230428AbhGIX6I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 19:58:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37434 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229854AbhGIX6G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 19:58:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C2E44613C2;
-        Fri,  9 Jul 2021 23:55:21 +0000 (UTC)
+        id S229854AbhGIX6I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 19:58:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 89851613C8;
+        Fri,  9 Jul 2021 23:55:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625874921;
-        bh=RKwrKrqtncu3K+Z0ilRrq5vq9X8g69Vk1Y6sbJxJvYk=;
+        s=korg; t=1625874923;
+        bh=j/vi99vyG9j6QO9MJrLQaeoxH7M+gCgBSaifpcmHTmc=;
         h=Date:From:To:Subject:From;
-        b=LZ5KHiTc2MAgzCJvMpxfQxwXcNl3d/L2e6a1PZGHyzFua0G2cGo559mTatNKOLQ/I
-         w+diqhMme92a4OzYj++FN4w3QAhffM2BLXAAaLpG1BlEpvA+04f0PLHYSVIt8AmFHh
-         Y9GMrY/Rv6xe0p5R122rVgp7wx0dxYDSdGDEzSA4=
-Date:   Fri, 09 Jul 2021 16:55:21 -0700
+        b=SYXsOPdcRhFsBy8CRA9WbB5gR2kq+Bsm5pFcES7erbo60Ku7temXWUQUl52SSMKt2
+         49PN8EoaJ6LBcOGjyQsyEplVbQUqwCKTfGJUPTVQeI3TixI++pseinDKTqw/3jzxQr
+         HLRyAFu6pS68mMf5ykpzl0wKQXoK4IEHHUIpL830=
+Date:   Fri, 09 Jul 2021 16:55:23 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
         sunnanyong@huawei.com
-Subject:  + nilfs2-fix-null-pointer-in-nilfs_name_attr_release.patch
- added to -mm tree
-Message-ID: <20210709235521.3mODJ%akpm@linux-foundation.org>
+Subject:  +
+ nilfs2-fix-memory-leak-in-nilfs_sysfs_create_name_group.patch added to -mm
+ tree
+Message-ID: <20210709235523.3yIyL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: fix NULL pointer in nilfs_##name##_attr_release
+     Subject: nilfs2: fix memory leak in nilfs_sysfs_create_##name##_group
 has been added to the -mm tree.  Its filename is
-     nilfs2-fix-null-pointer-in-nilfs_name_attr_release.patch
+     nilfs2-fix-memory-leak-in-nilfs_sysfs_create_name_group.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-null-pointer-in-nilfs_name_attr_release.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/nilfs2-fix-memory-leak-in-nilfs_sysfs_create_name_group.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-null-pointer-in-nilfs_name_attr_release.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-fix-memory-leak-in-nilfs_sysfs_create_name_group.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,42 +66,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Nanyong Sun <sunnanyong@huawei.com>
-Subject: nilfs2: fix NULL pointer in nilfs_##name##_attr_release
+Subject: nilfs2: fix memory leak in nilfs_sysfs_create_##name##_group
 
-In nilfs_##name##_attr_release, kobj->parent should not be referenced
-because it is a NULL pointer.  The release() method of kobject is always
-called in kobject_put(kobj), in the implementation of kobject_put(), the
-kobj->parent will be assigned as NULL before call the release() method. 
-So just use kobj to get the subgroups, which is more efficient and can fix
-a NULL pointer reference problem.
+If kobject_init_and_add return with error, kobject_put() is needed here to
+avoid memory leak, because kobject_init_and_add may return error without
+freeing the memory associated with the kobject it allocated.
 
-Link: https://lkml.kernel.org/r/20210629022556.3985106-3-sunnanyong@huawei.com
-Link: https://lkml.kernel.org/r/1625651306-10829-3-git-send-email-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20210629022556.3985106-4-sunnanyong@huawei.com
+Link: https://lkml.kernel.org/r/1625651306-10829-4-git-send-email-konishi.ryusuke@gmail.com
 Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sysfs.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ fs/nilfs2/sysfs.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/sysfs.c~nilfs2-fix-null-pointer-in-nilfs_name_attr_release
+--- a/fs/nilfs2/sysfs.c~nilfs2-fix-memory-leak-in-nilfs_sysfs_create_name_group
 +++ a/fs/nilfs2/sysfs.c
-@@ -51,11 +51,9 @@ static const struct sysfs_ops nilfs_##na
- #define NILFS_DEV_INT_GROUP_TYPE(name, parent_name) \
- static void nilfs_##name##_attr_release(struct kobject *kobj) \
- { \
--	struct nilfs_sysfs_##parent_name##_subgroups *subgroups; \
--	struct the_nilfs *nilfs = container_of(kobj->parent, \
--						struct the_nilfs, \
--						ns_##parent_name##_kobj); \
--	subgroups = nilfs->ns_##parent_name##_subgroups; \
-+	struct nilfs_sysfs_##parent_name##_subgroups *subgroups = container_of(kobj, \
-+						struct nilfs_sysfs_##parent_name##_subgroups, \
-+						sg_##name##_kobj); \
- 	complete(&subgroups->sg_##name##_kobj_unregister); \
+@@ -79,8 +79,8 @@ static int nilfs_sysfs_create_##name##_g
+ 	err = kobject_init_and_add(kobj, &nilfs_##name##_ktype, parent, \
+ 				    #name); \
+ 	if (err) \
+-		return err; \
+-	return 0; \
++		kobject_put(kobj); \
++	return err; \
  } \
- static struct kobj_type nilfs_##name##_ktype = { \
+ static void nilfs_sysfs_delete_##name##_group(struct the_nilfs *nilfs) \
+ { \
 _
 
 Patches currently in -mm which might be from sunnanyong@huawei.com are
