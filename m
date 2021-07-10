@@ -7,34 +7,38 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C34AFC07E95
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 04:04:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FDA8C07E95
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:50:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D422613D0
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 04:04:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 760746135E
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:50:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229501AbhGJEHf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 10 Jul 2021 00:07:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42702 "EHLO mail.kernel.org"
+        id S229614AbhGJSw5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 10 Jul 2021 14:52:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55200 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229500AbhGJEHf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 10 Jul 2021 00:07:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AFD0361375;
-        Sat, 10 Jul 2021 04:04:49 +0000 (UTC)
+        id S229599AbhGJSw4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 10 Jul 2021 14:52:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 141B261356;
+        Sat, 10 Jul 2021 18:50:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625889889;
-        bh=eLRK8TO+Wmn61A9joiIYXQST298QG2Lb0EuRfPRsuio=;
+        s=korg; t=1625943011;
+        bh=Twn1bOPq+n6EJJ5dZ2qdKjyF3GxN6HL/LIpYwMnZC+Y=;
         h=Date:From:To:Subject:From;
-        b=1QOJt0QJAS2bGGm+LmtjMz9oSniAHehrbWjF+1r7I7P8jJ7BzjWhaU6Piq15PGem3
-         rN2ap6mxw6JsOQQn33OfIWAZGXHpIsWl72OBXMEbILB/bnLwlPhSXA1JrOfvHmQmxB
-         0PphE255Qx7j2RWFkEVjPaKMhE4lUEYIPUbfqFN0=
-Date:   Fri, 09 Jul 2021 21:04:49 -0700
+        b=dQOmm5nRo4LJP6MJdUlPk01CTu7R793NDgHkWrGeWfURHHI2EsLPnHYafFXHqOCPP
+         Zy4q0Cuo+NVyi8CbbLepT9iWdHXmOgUDdHamhsOQRF+m6RAPPXE4eNkJsp5XREIWLa
+         n5FdYtEQVQc/ZCVOWPAVj77MT2L0XBDG3iWvUtI4=
+Date:   Sat, 10 Jul 2021 11:50:10 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, yangyingliang@huawei.com,
-        oliver.sang@intel.com, hulkci@huawei.com, apopple@nvidia.com
-Subject:  + lib-test_hmm-remove-set-but-unused-page-variable.patch
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        shli@fb.com, minchan@kernel.org, mhocko@suse.com,
+        iamjoonsoo.kim@lge.com, hillf.zj@alibaba-inc.com,
+        hannes@cmpxchg.org, david@redhat.com, axboe@kernel.dk,
+        apopple@nvidia.com, alexs@kernel.org, linmiaohe@huawei.com
+Subject:  +
+ mm-vmscan-put-the-redirtied-madv_free-pages-back-to-anonymous-lru-list.patch
  added to -mm tree
-Message-ID: <20210710040449.YJxfV%akpm@linux-foundation.org>
+Message-ID: <20210710185010.geLwj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_hmm: remove set but unused page variable
+     Subject: mm/vmscan: put the redirtied MADV_FREE pages back to anonymous LRU list
 has been added to the -mm tree.  Its filename is
-     lib-test_hmm-remove-set-but-unused-page-variable.patch
+     mm-vmscan-put-the-redirtied-madv_free-pages-back-to-anonymous-lru-list.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-test_hmm-remove-set-but-unused-page-variable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-put-the-redirtied-madv_free-pages-back-to-anonymous-lru-list.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-test_hmm-remove-set-but-unused-page-variable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-put-the-redirtied-madv_free-pages-back-to-anonymous-lru-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,45 +68,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: lib/test_hmm: remove set but unused page variable
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/vmscan: put the redirtied MADV_FREE pages back to anonymous LRU list
 
-The HMM selftests use atomic_check_access() to check atomic access to a
-page has been revoked.  It doesn't matter if the page mapping has been
-removed from the mirrored page tables as that also implies atomic access
-has been revoked.  Therefore remove the unused page variable to fix this
-compiler warning:
+Patch series "Cleanup and fixup for vmscan".
 
-  lib/test_hmm.c:631:16: warning: variable `page' set but not used [-Wunused-but-set-variable]
+This series contains cleanups to remove unneeded return value, misleading
+comment and so on.  Also this puts the redirtied MADV_FREE pages back to
+anonymous LRU list.  More details can be found in the respective
+changelogs.
 
-Link: https://lkml.kernel.org/r/20210706025603.4059-1-apopple@nvidia.com
-Fixes: b659baea7546 ("mm: selftests for exclusive device memory")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Reported-by: Yang Yingliang <yangyingliang@huawei.com>
+
+This patch (of 5):
+
+If the MADV_FREE pages are redirtied before they could be reclaimed, put
+the pages back to anonymous LRU list by setting SwapBacked flag and the
+pages will be reclaimed in normal swapout way.  Otherwise MADV_FREE pages
+won't be reclaimed as expected.
+
+Link: https://lkml.kernel.org/r/20210710100329.49174-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210710100329.49174-2-linmiaohe@huawei.com
+Fixes: 802a3a92ad7a ("mm: reclaim MADV_FREE pages")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/vmscan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/lib/test_hmm.c~lib-test_hmm-remove-set-but-unused-page-variable
-+++ a/lib/test_hmm.c
-@@ -628,10 +628,8 @@ static int dmirror_check_atomic(struct d
- 
- 	for (pfn = start >> PAGE_SHIFT; pfn < (end >> PAGE_SHIFT); pfn++) {
- 		void *entry;
--		struct page *page;
- 
- 		entry = xa_load(&dmirror->pt, pfn);
--		page = xa_untag_pointer(entry);
- 		if (xa_pointer_tag(entry) == DPT_XA_TAG_ATOMIC)
- 			return -EPERM;
- 	}
+--- a/mm/vmscan.c~mm-vmscan-put-the-redirtied-madv_free-pages-back-to-anonymous-lru-list
++++ a/mm/vmscan.c
+@@ -1628,6 +1628,7 @@ static unsigned int shrink_page_list(str
+ 			if (!page_ref_freeze(page, 1))
+ 				goto keep_locked;
+ 			if (PageDirty(page)) {
++				SetPageSwapBacked(page);
+ 				page_ref_unfreeze(page, 1);
+ 				goto keep_locked;
+ 			}
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-lib-test_hmm-remove-set-but-unused-page-variable.patch
+mm-vmscan-put-the-redirtied-madv_free-pages-back-to-anonymous-lru-list.patch
+mm-vmscan-remove-misleading-setting-to-sc-priority.patch
+mm-vmscan-remove-unneeded-return-value-of-kswapd_run.patch
+mm-vmscan-add-else-to-remove-check_pending-label.patch
+mm-vmscan-fix-misleading-comment-in-isolate_lru_pages.patch
+mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
