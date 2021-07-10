@@ -7,35 +7,39 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06D26C07E99
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:34:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8B3DC07E9B
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:34:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5206613DF
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:34:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B403613DF
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:34:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231253AbhGJDgs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 23:36:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40218 "EHLO mail.kernel.org"
+        id S230317AbhGJDgu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 23:36:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230317AbhGJDgs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 23:36:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BAA7D6101B;
-        Sat, 10 Jul 2021 03:34:03 +0000 (UTC)
+        id S231271AbhGJDgu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 23:36:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 95DA9613DC;
+        Sat, 10 Jul 2021 03:34:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625888043;
-        bh=zGCalafj4qSOXQXFePD0PL6fkyrq/KAnC2uB5qEw220=;
+        s=korg; t=1625888045;
+        bh=07OqWhU7qGzIkAjavK8Qrt1sispMM1gk8BS/UPjNR4E=;
         h=Date:From:To:Subject:From;
-        b=BTynxzexy8KYNd03fNW9x6Tr3iQcW7gkSEo86GIXU/jsqNqDCeiUWF76zfXUCCqso
-         blZzb/j5SLNGf/vuXxtdKEM5u90PtviZoeE/pO2qDplXLsXjeQCK3Led9dDBHqliEz
-         4INm3hCJP264JyM2XQPKPexR2s9CYKFiWa2qg91w=
-Date:   Fri, 09 Jul 2021 20:34:03 -0700
+        b=gpmnPpWDprMloATNKKffFGiPJdosj9ysHhsmX0/zIAuCVWJ4czwfqU5nZUZAHCl92
+         U/JmFD78rV9aHHqY5mXYvqbhtz3hMqnMkXHlLYHYIJh53n72x62m9h6WsjjQWkkXme
+         zfAY9jT0m2qhdAPvSzbR4MWpEHPv0CWt28I3F8GU=
+Date:   Fri, 09 Jul 2021 20:34:05 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tpiepho@gmail.com,
         colin.king@canonical.com, brendanhiggins@google.com,
         andriy.shevchenko@linux.intel.com, geert@linux-m68k.org
-Subject:  + math-make-rational-tristate.patch added to -mm tree
-Message-ID: <20210710033403.wiDF8%akpm@linux-foundation.org>
+Subject:  +
+ =?us-ascii?Q?math-rational=5Fkunit=5Ftest-should-depend-on-rational-inste?=
+ =?us-ascii?Q?ad-of-selecting-it.patch?= added to -mm tree
+Message-ID: <20210710033405.NHpaK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: math: make RATIONAL tristate
+     Subject: math: RATIONAL_KUNIT_TEST should depend on RATIONAL instead of selecting it
 has been added to the -mm tree.  Its filename is
-     math-make-rational-tristate.patch
+     math-rational_kunit_test-should-depend-on-rational-instead-of-selecting-it.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/math-make-rational-tristate.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/math-rational_kunit_test-should-depend-on-rational-instead-of-selecting-it.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/math-make-rational-tristate.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/math-rational_kunit_test-should-depend-on-rational-instead-of-selecting-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,59 +69,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: math: make RATIONAL tristate
+Subject: math: RATIONAL_KUNIT_TEST should depend on RATIONAL instead of selecting it
 
-Patch series "math: RATIONAL and RATIONAL_KUNIT_TEST improvements".
+RATIONAL_KUNIT_TEST selects RATIONAL, thus enabling an optional feature
+the user may not want to have enabled.  Fix this by making the test depend
+on RATIONAL instead.
 
-This series makes the RATIONAL symbol tristate, so it is not forced
-builtin if all users are modular, and makes the RATIONAL_KUNIT_TEST depend
-on RATIONAL, to avoid enabling RATIONAL if there are no real users.
-
-
-This patch (of 2):
-
-All but one symbols that select RATIONAL are tristate, but RATIONAL itself
-is bool.  Change it to tristate, so the rational fractions support code
-can be modular if no builtin code relies on it.
-
-Link: https://lkml.kernel.org/r/20210706100945.3803694-1-geert@linux-m68k.org
-Link: https://lkml.kernel.org/r/20210706100945.3803694-2-geert@linux-m68k.org
+Link: https://lkml.kernel.org/r/20210706100945.3803694-3-geert@linux-m68k.org
+Fixes: b6c75c4afceb8bc0 ("lib/math/rational: add Kunit test cases")
 Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Trent Piepho <tpiepho@gmail.com>
-Cc: Colin Ian King <colin.king@canonical.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: Colin Ian King <colin.king@canonical.com>
+Cc: Trent Piepho <tpiepho@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/math/Kconfig    |    2 +-
- lib/math/rational.c |    3 +++
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ lib/Kconfig.debug |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/lib/math/Kconfig~math-make-rational-tristate
-+++ a/lib/math/Kconfig
-@@ -14,4 +14,4 @@ config PRIME_NUMBERS
- 	  If unsure, say N.
+--- a/lib/Kconfig.debug~math-rational_kunit_test-should-depend-on-rational-instead-of-selecting-it
++++ a/lib/Kconfig.debug
+@@ -2463,8 +2463,7 @@ config SLUB_KUNIT_TEST
  
- config RATIONAL
--	bool
-+	tristate
---- a/lib/math/rational.c~math-make-rational-tristate
-+++ a/lib/math/rational.c
-@@ -13,6 +13,7 @@
- #include <linux/export.h>
- #include <linux/minmax.h>
- #include <linux/limits.h>
-+#include <linux/module.h>
- 
- /*
-  * calculate best rational approximation for a given fraction
-@@ -106,3 +107,5 @@ void rational_best_approximation(
- }
- 
- EXPORT_SYMBOL(rational_best_approximation);
-+
-+MODULE_LICENSE("GPL v2");
+ config RATIONAL_KUNIT_TEST
+ 	tristate "KUnit test for rational.c" if !KUNIT_ALL_TESTS
+-	depends on KUNIT
+-	select RATIONAL
++	depends on KUNIT && RATIONAL
+ 	default KUNIT_ALL_TESTS
+ 	help
+ 	  This builds the rational math unit test.
 _
 
 Patches currently in -mm which might be from geert@linux-m68k.org are
