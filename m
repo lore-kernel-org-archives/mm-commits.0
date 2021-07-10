@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2A8EC07E99
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:41:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05270C07E9B
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:41:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BB1EF613F5
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:41:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0545613F2
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:41:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231727AbhGJDoD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 23:44:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40960 "EHLO mail.kernel.org"
+        id S231631AbhGJDoE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 23:44:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40986 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230345AbhGJDoC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 23:44:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ACB95613E5;
-        Sat, 10 Jul 2021 03:41:17 +0000 (UTC)
+        id S230345AbhGJDoE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 23:44:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 811DC613EE;
+        Sat, 10 Jul 2021 03:41:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625888477;
-        bh=zxjPLW5Kni2KnpHygyMlB5xBPvxnODuES+7IFHIg4is=;
+        s=korg; t=1625888479;
+        bh=Whr1chfcWAd1DAPOnl/ehnwf+47a6/H4gJyKhwiUeEc=;
         h=Date:From:To:Subject:From;
-        b=MxRmwA4W/2ZKtE3ZfCnpjh3gh9D5qYaDrMtDRdhgf0y3myXN4MI2NKjROFeiHG9YW
-         9Xap/r3xjC5NA9DyCPD+9efrtJTFIRKzCI/mSElrc7UCqwPWrAyLcNqX+VRVuLj849
-         L6H/NCb706SKqnPxOX0rQB2IG6o7rxH6Mj+Lgjyw=
-Date:   Fri, 09 Jul 2021 20:41:17 -0700
+        b=k7ENNyPYXdeS6Z9FRwodnZeT67ESO9601jTiv0vXqYiSEs9cOrcMsW+VWuXVO8TAw
+         OHdjCZaSO7yvb0CfFmtZ63uT8EYkQQjYjxOBghZGhZs5+cA+2fjSTAIHRj3Bbg+08E
+         2GyXaq5RfUpaQYM8B9Ksq+2ANXn/3EcC4OtzB9pM=
+Date:   Fri, 09 Jul 2021 20:41:19 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org, chuhu@redhat.com,
         catalin.marinas@arm.com, anshuman.khandual@arm.com,
         gshan@redhat.com
 Subject:  +
- =?us-ascii?Q?mm-debug=5Fvm=5Fpgtable-use-struct-vm=5Fpgtable=5Fdebug-in-m?=
- =?us-ascii?Q?igration-and-thp-tests.patch?= added to -mm tree
-Message-ID: <20210710034117.OpgLn%akpm@linux-foundation.org>
+ mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pte-modifying-tests.patch
+ added to -mm tree
+Message-ID: <20210710034119.zlyZU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: use struct vm_pgtable_debug in migration and thp tests
+     Subject: mm/debug_vm_pgtable: use struct vm_pgtable_debug in PTE modifying tests
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-migration-and-thp-tests.patch
+     mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pte-modifying-tests.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-migration-and-thp-tests.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pte-modifying-tests.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-migration-and-thp-tests.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pte-modifying-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,13 +67,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
-Subject: mm/debug_vm_pgtable: use struct vm_pgtable_debug in migration and thp tests
+Subject: mm/debug_vm_pgtable: use struct vm_pgtable_debug in PTE modifying tests
 
-This uses struct vm_pgtable_debug in the migration and thp test functions.
-It's notable that the pre-allocated page is used in
-swap_migration_tests() as set_pte_at() is used there.
+This uses struct vm_pgtable_debug in PTE modifying tests.  The allocated
+page is used as set_pte_at() is used there.  The tests are skipped if the
+allocated page doesn't exist.
 
-Link: https://lkml.kernel.org/r/20210706061748.161258-7-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210706061748.161258-8-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -84,106 +82,135 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/debug_vm_pgtable.c |   71 +++++++++++++++++++++-------------------
+ 1 file changed, 38 insertions(+), 33 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-migration-and-thp-tests
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pte-modifying-tests
 +++ a/mm/debug_vm_pgtable.c
-@@ -844,7 +844,7 @@ static void __init pmd_swap_tests(struct
- static void __init pmd_swap_tests(struct vm_pgtable_debug *debug) { }
- #endif /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
- 
--static void __init swap_migration_tests(void)
-+static void __init swap_migration_tests(struct vm_pgtable_debug *debug)
- {
- 	struct page *page;
- 	swp_entry_t swp;
-@@ -860,9 +860,10 @@ static void __init swap_migration_tests(
- 	 * problematic. Lets allocate a dedicated page explicitly for this
- 	 * purpose that will be freed subsequently.
- 	 */
--	page = alloc_page(GFP_KERNEL);
-+	page = (debug->pte_pfn != ULONG_MAX) ?
-+	       pfn_to_page(debug->pte_pfn) : NULL;
- 	if (!page) {
--		pr_err("page allocation failed\n");
-+		pr_err("no page available\n");
- 		return;
- 	}
- 
-@@ -883,7 +884,6 @@ static void __init swap_migration_tests(
- 	WARN_ON(!is_migration_entry(swp));
- 	WARN_ON(is_writable_migration_entry(swp));
- 	__ClearPageLocked(page);
--	__free_page(page);
+@@ -116,10 +116,7 @@ static void __init pte_basic_tests(struc
+ 	WARN_ON(!pte_dirty(pte_wrprotect(pte_mkdirty(pte))));
  }
  
- #ifdef CONFIG_HUGETLB_PAGE
-@@ -915,7 +915,7 @@ static void __init hugetlb_basic_tests(s
- #endif /* CONFIG_HUGETLB_PAGE */
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static void __init pmd_thp_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pmd_thp_tests(struct vm_pgtable_debug *debug)
+-static void __init pte_advanced_tests(struct mm_struct *mm,
+-				      struct vm_area_struct *vma, pte_t *ptep,
+-				      unsigned long pfn, unsigned long vaddr,
+-				      pgprot_t prot)
++static void __init pte_advanced_tests(struct vm_pgtable_debug *debug)
  {
- 	pmd_t pmd;
+ 	pte_t pte;
  
-@@ -934,7 +934,7 @@ static void __init pmd_thp_tests(unsigne
- 	 * needs to return true. pmd_present() should be true whenever
- 	 * pmd_trans_huge() returns true.
+@@ -130,33 +127,38 @@ static void __init pte_advanced_tests(st
  	 */
--	pmd = pfn_pmd(pfn, prot);
-+	pmd = pfn_pmd(debug->fixed_pmd_pfn, debug->page_prot);
- 	WARN_ON(!pmd_trans_huge(pmd_mkhuge(pmd)));
  
- #ifndef __HAVE_ARCH_PMDP_INVALIDATE
-@@ -944,7 +944,7 @@ static void __init pmd_thp_tests(unsigne
+ 	pr_debug("Validating PTE advanced\n");
+-	pte = pfn_pte(pfn, prot);
+-	set_pte_at(mm, vaddr, ptep, pte);
+-	ptep_set_wrprotect(mm, vaddr, ptep);
+-	pte = ptep_get(ptep);
++	if (debug->pte_pfn == ULONG_MAX) {
++		pr_debug("%s: Skipped\n", __func__);
++		return;
++	}
++
++	pte = pfn_pte(debug->pte_pfn, debug->page_prot);
++	set_pte_at(debug->mm, debug->vaddr, debug->ptep, pte);
++	ptep_set_wrprotect(debug->mm, debug->vaddr, debug->ptep);
++	pte = ptep_get(debug->ptep);
+ 	WARN_ON(pte_write(pte));
+-	ptep_get_and_clear(mm, vaddr, ptep);
+-	pte = ptep_get(ptep);
++	ptep_get_and_clear(debug->mm, debug->vaddr, debug->ptep);
++	pte = ptep_get(debug->ptep);
+ 	WARN_ON(!pte_none(pte));
+ 
+-	pte = pfn_pte(pfn, prot);
++	pte = pfn_pte(debug->pte_pfn, debug->page_prot);
+ 	pte = pte_wrprotect(pte);
+ 	pte = pte_mkclean(pte);
+-	set_pte_at(mm, vaddr, ptep, pte);
++	set_pte_at(debug->mm, debug->vaddr, debug->ptep, pte);
+ 	pte = pte_mkwrite(pte);
+ 	pte = pte_mkdirty(pte);
+-	ptep_set_access_flags(vma, vaddr, ptep, pte, 1);
+-	pte = ptep_get(ptep);
++	ptep_set_access_flags(debug->vma, debug->vaddr, debug->ptep, pte, 1);
++	pte = ptep_get(debug->ptep);
+ 	WARN_ON(!(pte_write(pte) && pte_dirty(pte)));
+-	ptep_get_and_clear_full(mm, vaddr, ptep, 1);
+-	pte = ptep_get(ptep);
++	ptep_get_and_clear_full(debug->mm, debug->vaddr, debug->ptep, 1);
++	pte = ptep_get(debug->ptep);
+ 	WARN_ON(!pte_none(pte));
+ 
+-	pte = pfn_pte(pfn, prot);
++	pte = pfn_pte(debug->pte_pfn, debug->page_prot);
+ 	pte = pte_mkyoung(pte);
+-	set_pte_at(mm, vaddr, ptep, pte);
+-	ptep_test_and_clear_young(vma, vaddr, ptep);
+-	pte = ptep_get(ptep);
++	set_pte_at(debug->mm, debug->vaddr, debug->ptep, pte);
++	ptep_test_and_clear_young(debug->vma, debug->vaddr, debug->ptep);
++	pte = ptep_get(debug->ptep);
+ 	WARN_ON(pte_young(pte));
  }
  
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
--static void __init pud_thp_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pud_thp_tests(struct vm_pgtable_debug *debug)
- {
- 	pud_t pud;
- 
-@@ -952,7 +952,7 @@ static void __init pud_thp_tests(unsigne
- 		return;
- 
- 	pr_debug("Validating PUD based THP\n");
--	pud = pfn_pud(pfn, prot);
-+	pud = pfn_pud(debug->fixed_pud_pfn, debug->page_prot);
- 	WARN_ON(!pud_trans_huge(pud_mkhuge(pud)));
- 
- 	/*
-@@ -964,11 +964,11 @@ static void __init pud_thp_tests(unsigne
- 	 */
+@@ -617,20 +619,24 @@ static void __init pgd_populate_tests(st
  }
- #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
--static void __init pud_thp_tests(unsigned long pfn, pgprot_t prot) { }
-+static void __init pud_thp_tests(struct vm_pgtable_debug *debug) { }
- #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
--static void __init pmd_thp_tests(unsigned long pfn, pgprot_t prot) { }
--static void __init pud_thp_tests(unsigned long pfn, pgprot_t prot) { }
-+static void __init pmd_thp_tests(struct vm_pgtable_debug *debug) { }
-+static void __init pud_thp_tests(struct vm_pgtable_debug *debug) { }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif /* PAGETABLE_P4D_FOLDED */
  
- static unsigned long __init get_random_vaddr(void)
-@@ -1284,10 +1284,10 @@ static int __init debug_vm_pgtable(void)
- 	pte_swap_tests(&debug);
- 	pmd_swap_tests(&debug);
+-static void __init pte_clear_tests(struct mm_struct *mm, pte_t *ptep,
+-				   unsigned long pfn, unsigned long vaddr,
+-				   pgprot_t prot)
++static void __init pte_clear_tests(struct vm_pgtable_debug *debug)
+ {
+-	pte_t pte = pfn_pte(pfn, prot);
++	pte_t pte;
  
--	swap_migration_tests();
-+	swap_migration_tests(&debug);
+ 	pr_debug("Validating PTE clear\n");
++	if (debug->pte_pfn == ULONG_MAX) {
++		pr_debug("%s: Skipped\n", __func__);
++		return;
++	}
++
++	pte = pfn_pte(debug->pte_pfn, debug->page_prot);
+ #ifndef CONFIG_RISCV
+ 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
+ #endif
+-	set_pte_at(mm, vaddr, ptep, pte);
++	set_pte_at(debug->mm, debug->vaddr, debug->ptep, pte);
+ 	barrier();
+-	pte_clear(mm, vaddr, ptep);
+-	pte = ptep_get(ptep);
++	pte_clear(debug->mm, debug->vaddr, debug->ptep);
++	pte = ptep_get(debug->ptep);
+ 	WARN_ON(!pte_none(pte));
+ }
  
--	pmd_thp_tests(pmd_aligned, prot);
--	pud_thp_tests(pud_aligned, prot);
-+	pmd_thp_tests(&debug);
-+	pud_thp_tests(&debug);
- 
- 	/*
+@@ -1163,7 +1169,6 @@ static int __init debug_vm_pgtable(void)
+ 	p4d_t *p4dp, *saved_p4dp;
+ 	pud_t *pudp, *saved_pudp;
+ 	pmd_t *pmdp, *saved_pmdp, pmd;
+-	pte_t *ptep;
+ 	pgtable_t saved_ptep;
+ 	pgprot_t prot, protnone;
+ 	phys_addr_t paddr;
+@@ -1293,11 +1298,11 @@ static int __init debug_vm_pgtable(void)
  	 * Page table modifying tests. They need to hold
+ 	 * proper page table lock.
+ 	 */
+-
+-	ptep = pte_offset_map_lock(mm, pmdp, vaddr, &ptl);
+-	pte_clear_tests(mm, ptep, pte_aligned, vaddr, prot);
+-	pte_advanced_tests(mm, vma, ptep, pte_aligned, vaddr, prot);
+-	pte_unmap_unlock(ptep, ptl);
++	ptl = pte_lockptr(debug.mm, debug.pmdp);
++	spin_lock(ptl);
++	pte_clear_tests(&debug);
++	pte_advanced_tests(&debug);
++	spin_unlock(ptl);
+ 
+ 	ptl = pmd_lock(mm, pmdp);
+ 	pmd_clear_tests(mm, pmdp);
 _
 
 Patches currently in -mm which might be from gshan@redhat.com are
