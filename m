@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BCA9C07E9B
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 21:31:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B56B3C07E95
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 21:33:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6E6826135E
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 21:31:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 99E1F6135D
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 21:33:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229934AbhGJVeX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 10 Jul 2021 17:34:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56710 "EHLO mail.kernel.org"
+        id S229599AbhGJVgK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 10 Jul 2021 17:36:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56814 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229515AbhGJVeX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 10 Jul 2021 17:34:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B39146135F;
-        Sat, 10 Jul 2021 21:31:36 +0000 (UTC)
+        id S229515AbhGJVgK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 10 Jul 2021 17:36:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CAC086135B;
+        Sat, 10 Jul 2021 21:33:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625952697;
-        bh=fp2we8+q6nzRSp38FUusIFB1SJLg1LkyIMxcCE7hufI=;
+        s=korg; t=1625952804;
+        bh=KXS0s1B4vx2BQUJPSkLMLjMcjMEB5gbn7Awx9MU+0SU=;
         h=Date:From:To:Subject:From;
-        b=rklHr+6mfwp4nNheYlIKbZSqTCdpIxPfCdezFidN2vZftfTbZZVygPU2HDtu/3uyR
-         gkjyf0sxCjkNUCV+/0hpMf4BqiY7elhaxdUWntpNNwGddwnJWnPqsjxH/8NdNPeiDg
-         iUSpZ/lQlOXZr4gqnXQA5qmYXocQdKZ+iEYlbOnw=
-Date:   Sat, 10 Jul 2021 14:31:36 -0700
+        b=2qOMZfB9Rb06wtPHHcO67V2P0m9F+elxV4cG36HMsIRQQrIczcibX7dzY20VWTHvl
+         Ff4SDCP0bRhaOgTuEykUamuw2jozUIf2dzOAkrq7Mn5A87iahwq/nw0UHIOSZ73n5k
+         0KjxdcHIk9kNc7TsNAF3dLriFAHUkqzEdW3z1q3o=
+Date:   Sat, 10 Jul 2021 14:33:24 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, palmer@dabbelt.com,
-        ndesaulniers@google.com, mick@ics.forth.gr, kernel@esmil.dk,
-        hch@infradead.org, guoren@kernel.org, drew@beagleboard.org,
-        David.Laight@aculab.com, mcroce@microsoft.com
-Subject:  + lib-string-optimized-memset.patch added to -mm tree
-Message-ID: <20210710213136.fWqu6%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, shuah@kernel.org, mpe@ellerman.id.au,
+        joel@joelfernandes.org, gthelen@google.com
+Subject:  + selftests-memfd-remove-unused-variable.patch added to -mm
+ tree
+Message-ID: <20210710213324.5sqzV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string: optimized memset
+     Subject: selftests/memfd: remove unused variable
 has been added to the -mm tree.  Its filename is
-     lib-string-optimized-memset.patch
+     selftests-memfd-remove-unused-variable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-string-optimized-memset.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-memfd-remove-unused-variable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-string-optimized-memset.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-memfd-remove-unused-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,87 +64,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matteo Croce <mcroce@microsoft.com>
-Subject: lib/string: optimized memset
+From: Greg Thelen <gthelen@google.com>
+Subject: selftests/memfd: remove unused variable
 
-The generic memset is defined as a byte at time write.  This is always
-safe, but it's slower than a 4 byte or even 8 byte write.
+Commit 544029862cbb ("selftests/memfd: add tests for F_SEAL_FUTURE_WRITE
+seal") added an unused variable to mfd_assert_reopen_fd().
 
-Write a generic memset which fills the data one byte at time until the
-destination is aligned, then fills using the largest size allowed, and
-finally fills the remaining data one byte at time.
+Delete the unused variable.
 
-On a RISC-V machine the speed goes from 140 Mb/s to 241 Mb/s, and this the
-binary size increase according to bloat-o-meter:
-
-Function     old     new   delta
-memset        32     148    +116
-
-Link: https://lkml.kernel.org/r/20210702123153.14093-4-mcroce@linux.microsoft.com
-Signed-off-by: Matteo Croce <mcroce@microsoft.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Laight <David.Laight@aculab.com>
-Cc: Drew Fustini <drew@beagleboard.org>
-Cc: Emil Renner Berthing <kernel@esmil.dk>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Nick Kossifidis <mick@ics.forth.gr>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Link: https://lkml.kernel.org/r/20210702045509.1517643-1-gthelen@google.com
+Fixes: 544029862cbb ("selftests/memfd: add tests for F_SEAL_FUTURE_WRITE seal")
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Joel Fernandes (Google)" <joel@joelfernandes.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string.c |   32 ++++++++++++++++++++++++++++++--
- 1 file changed, 30 insertions(+), 2 deletions(-)
+ tools/testing/selftests/memfd/memfd_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/string.c~lib-string-optimized-memset
-+++ a/lib/string.c
-@@ -810,10 +810,38 @@ EXPORT_SYMBOL(__sysfs_match_string);
-  */
- void *memset(void *s, int c, size_t count)
- {
--	char *xs = s;
-+	union types dest = { .as_u8 = s };
+--- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-remove-unused-variable
++++ a/tools/testing/selftests/memfd/memfd_test.c
+@@ -56,7 +56,7 @@ static int mfd_assert_new(const char *na
  
-+	if (count >= MIN_THRESHOLD) {
-+		unsigned long cu = (unsigned long)c;
-+
-+		/* Compose an ulong with 'c' repeated 4/8 times */
-+#ifdef CONFIG_ARCH_HAS_FAST_MULTIPLIER
-+		cu *= 0x0101010101010101UL;
-+#else
-+		cu |= cu << 8;
-+		cu |= cu << 16;
-+		/* Suppress warning on 32 bit machines */
-+		cu |= (cu << 16) << 16;
-+#endif
-+		if (!IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)) {
-+			/*
-+			 * Fill the buffer one byte at time until
-+			 * the destination is word aligned.
-+			 */
-+			for (; count && dest.as_uptr & WORD_MASK; count--)
-+				*dest.as_u8++ = c;
-+		}
-+
-+		/* Copy using the largest size allowed */
-+		for (; count >= BYTES_LONG; count -= BYTES_LONG)
-+			*dest.as_ulong++ = cu;
-+	}
-+
-+	/* copy the remainder */
- 	while (count--)
--		*xs++ = c;
-+		*dest.as_u8++ = c;
-+
- 	return s;
- }
- EXPORT_SYMBOL(memset);
+ static int mfd_assert_reopen_fd(int fd_in)
+ {
+-	int r, fd;
++	int fd;
+ 	char path[100];
+ 
+ 	sprintf(path, "/proc/self/fd/%d", fd_in);
 _
 
-Patches currently in -mm which might be from mcroce@microsoft.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
-revert-mm-page_alloc-make-should_fail_alloc_page-static.patch
-lib-string-optimized-memcpy.patch
-lib-string-optimized-memmove.patch
-lib-string-optimized-memset.patch
+selftests-memfd-remove-unused-variable.patch
 
