@@ -7,39 +7,34 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8B3DC07E9B
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:34:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8FE10C07E99
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:36:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B403613DF
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:34:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72834613DC
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 03:36:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230317AbhGJDgu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 23:36:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40252 "EHLO mail.kernel.org"
+        id S230431AbhGJDiu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 23:38:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40358 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231271AbhGJDgu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 23:36:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 95DA9613DC;
-        Sat, 10 Jul 2021 03:34:05 +0000 (UTC)
+        id S230345AbhGJDiu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 23:38:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AD56B613C3;
+        Sat, 10 Jul 2021 03:36:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625888045;
-        bh=07OqWhU7qGzIkAjavK8Qrt1sispMM1gk8BS/UPjNR4E=;
+        s=korg; t=1625888165;
+        bh=+sFmKMtRRcU9QOG+dDHuV7oTI4ttKphN5kGD5B9bms8=;
         h=Date:From:To:Subject:From;
-        b=gpmnPpWDprMloATNKKffFGiPJdosj9ysHhsmX0/zIAuCVWJ4czwfqU5nZUZAHCl92
-         U/JmFD78rV9aHHqY5mXYvqbhtz3hMqnMkXHlLYHYIJh53n72x62m9h6WsjjQWkkXme
-         zfAY9jT0m2qhdAPvSzbR4MWpEHPv0CWt28I3F8GU=
-Date:   Fri, 09 Jul 2021 20:34:05 -0700
+        b=cChV3EAsc0MoX5gdw7HcaQ72RTIxDjmhKFnMrittfZFFUOIQLddym4kn+7Oh6Ifa+
+         TyTi60ZPaqSNgHrR2Pf7bY3N6RJxc9qWn9erRYW3noUbGyMiDmWgXK6XpjbXXtm388
+         RS/cwmVsbbaUoMPgV5oXMfay/PUQbbW2w+nW3KQg=
+Date:   Fri, 09 Jul 2021 20:36:05 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, tpiepho@gmail.com,
-        colin.king@canonical.com, brendanhiggins@google.com,
-        andriy.shevchenko@linux.intel.com, geert@linux-m68k.org
-Subject:  +
- =?us-ascii?Q?math-rational=5Fkunit=5Ftest-should-depend-on-rational-inste?=
- =?us-ascii?Q?ad-of-selecting-it.patch?= added to -mm tree
-Message-ID: <20210710033405.NHpaK%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, julianbraha@gmail.com,
+        julia.lawall@inria.fr, lkp@intel.com
+Subject:  + lib-fix-bugoncocci-warnings.patch added to -mm tree
+Message-ID: <20210710033605.aGjNf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: math: RATIONAL_KUNIT_TEST should depend on RATIONAL instead of selecting it
+     Subject: arch/csky/kernel/probes/kprobes.c: fix bugon.cocci warnings
 has been added to the -mm tree.  Its filename is
-     math-rational_kunit_test-should-depend-on-rational-instead-of-selecting-it.patch
+     lib-fix-bugoncocci-warnings.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/math-rational_kunit_test-should-depend-on-rational-instead-of-selecting-it.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-fix-bugoncocci-warnings.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/math-rational_kunit_test-should-depend-on-rational-instead-of-selecting-it.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-fix-bugoncocci-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,42 +63,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: math: RATIONAL_KUNIT_TEST should depend on RATIONAL instead of selecting it
+From: kernel test robot <lkp@intel.com>
+Subject: arch/csky/kernel/probes/kprobes.c: fix bugon.cocci warnings
 
-RATIONAL_KUNIT_TEST selects RATIONAL, thus enabling an optional feature
-the user may not want to have enabled.  Fix this by making the test depend
-on RATIONAL instead.
+Use BUG_ON instead of a if condition followed by BUG.
 
-Link: https://lkml.kernel.org/r/20210706100945.3803694-3-geert@linux-m68k.org
-Fixes: b6c75c4afceb8bc0 ("lib/math/rational: add Kunit test cases")
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: Colin Ian King <colin.king@canonical.com>
-Cc: Trent Piepho <tpiepho@gmail.com>
+Generated by: scripts/coccinelle/misc/bugon.cocci
+
+Link: https://lkml.kernel.org/r/alpine.DEB.2.22.394.2107061049150.7197@hadrien
+Fixes: 7d37cb2c912d ("lib: fix kconfig dependency on ARCH_WANT_FRAME_POINTERS")
+Signed-off-by: kernel test robot <lkp@intel.com>
+Signed-off-by: Julia Lawall <julia.lawall@inria.fr>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Julian Braha <julianbraha@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    3 +--
+ arch/csky/kernel/probes/kprobes.c |    3 +--
  1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/lib/Kconfig.debug~math-rational_kunit_test-should-depend-on-rational-instead-of-selecting-it
-+++ a/lib/Kconfig.debug
-@@ -2463,8 +2463,7 @@ config SLUB_KUNIT_TEST
+--- a/arch/csky/kernel/probes/kprobes.c~lib-fix-bugoncocci-warnings
++++ a/arch/csky/kernel/probes/kprobes.c
+@@ -283,8 +283,7 @@ int __kprobes kprobe_fault_handler(struc
+ 		 * normal page fault.
+ 		 */
+ 		regs->pc = (unsigned long) cur->addr;
+-		if (!instruction_pointer(regs))
+-			BUG();
++		BUG_ON(!instruction_pointer(regs));
  
- config RATIONAL_KUNIT_TEST
- 	tristate "KUnit test for rational.c" if !KUNIT_ALL_TESTS
--	depends on KUNIT
--	select RATIONAL
-+	depends on KUNIT && RATIONAL
- 	default KUNIT_ALL_TESTS
- 	help
- 	  This builds the rational math unit test.
+ 		if (kcb->kprobe_status == KPROBE_REENTER)
+ 			restore_previous_kprobe(kcb);
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from lkp@intel.com are
 
-math-make-rational-tristate.patch
-math-rational_kunit_test-should-depend-on-rational-instead-of-selecting-it.patch
+lib-fix-bugoncocci-warnings.patch
 
