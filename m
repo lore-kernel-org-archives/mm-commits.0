@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5ECFC07E95
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:51:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71573C07E95
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:52:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B57F66135E
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:51:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4B3366135E
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:52:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229614AbhGJSxz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 10 Jul 2021 14:53:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55434 "EHLO mail.kernel.org"
+        id S229652AbhGJSzg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 10 Jul 2021 14:55:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55480 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229599AbhGJSxz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 10 Jul 2021 14:53:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9AC4061356;
-        Sat, 10 Jul 2021 18:51:09 +0000 (UTC)
+        id S229599AbhGJSzg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 10 Jul 2021 14:55:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B39B061283;
+        Sat, 10 Jul 2021 18:52:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625943069;
-        bh=n1V2nGo6iklUvMQhHBH7y5Z9Prza9UWjGp29rC7wAOg=;
+        s=korg; t=1625943170;
+        bh=MESueb5rDBXcjEMP1KT7sa8rJsmO5nwZnPH2o+76kb8=;
         h=Date:From:To:Subject:From;
-        b=yFEPYUMLTQkLCvCfFvejvn3nBlNB1wPTbZojupbTWEOU5lIAKyj7FfGD7dICxU6PC
-         0YanatsY/a93/G9NiiEBgA50nCVLj0ANphsxjYVzhYGwS6u7cuRUVa61NLNX6B7Cl3
-         8bDgiImcauWC8/BUNVBGQY0XWbohgj3fRg2QbF3U=
-Date:   Sat, 10 Jul 2021 11:51:09 -0700
+        b=2BL3nPIO8DwbUbilxY8WnkL9NErtgUDv/0xpQJcLRP9At8hPinmGOYPQpbnEdhuxa
+         Ob4ERaeBNpje9aycnRV8DMMg+p2mPFXGPSF0TKNbLru58ANgyOScAORGQRC2QjvWQ2
+         n8qB1jj1geKxe0/1LuI3HnNx4e4SPDnRQUR6codM=
+Date:   Sat, 10 Jul 2021 11:52:50 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, colin.king@canonical.com
-Subject:  + arch-kconfig-fix-spelling-mistake-seperate-separate.patch
- added to -mm tree
-Message-ID: <20210710185109.wY9Qc%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, zhouchengming@bytedance.com,
+        songmuchun@bytedance.com, rppt@kernel.org,
+        chenying.kernel@bytedance.com, adobriyan@gmail.com,
+        zhoufeng.zf@bytedance.com
+Subject:  + fs-proc-kcorec-add-mmap-interface.patch added to -mm tree
+Message-ID: <20210710185250.AkvNB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch: Kconfig: fix spelling mistake "seperate" -> "separate"
+     Subject: fs/proc/kcore.c: add mmap interface
 has been added to the -mm tree.  Its filename is
-     arch-kconfig-fix-spelling-mistake-seperate-separate.patch
+     fs-proc-kcorec-add-mmap-interface.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arch-kconfig-fix-spelling-mistake-seperate-separate.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcorec-add-mmap-interface.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arch-kconfig-fix-spelling-mistake-seperate-separate.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcorec-add-mmap-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,33 +65,153 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: arch: Kconfig: fix spelling mistake "seperate" -> "separate"
+From: Feng Zhou <zhoufeng.zf@bytedance.com>
+Subject: fs/proc/kcore.c: add mmap interface
 
-Threre is a spelling mistake in the Kconfig text. Fix it.
+When we do the kernel monitor, use the DRGN
+(https://github.com/osandov/drgn) access to kernel data structures, found
+that the system calls a lot.  DRGN is implemented by reading /proc/kcore. 
+After looking at the kcore code, it is found that kcore does not implement
+mmap, resulting in frequent context switching triggered by read. 
+Therefore, we want to add mmap interface to optimize performance.  Since
+vmalloc and module areas will change with allocation and release,
+consistency cannot be guaranteed, so mmap interface only maps KCORE_TEXT
+and KCORE_RAM.
 
-Link: https://lkml.kernel.org/r/20210704095207.37342-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+The test results:
+1. the default version of kcore
+real 11.00
+user 8.53
+sys 3.59
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+99.64  128.578319          12  11168701           pread64
+...
+------ ----------- ----------- --------- --------- ----------------
+100.00  129.042853              11193748       966 total
+
+2. added kcore for the mmap interface
+real 6.44
+user 7.32
+sys 0.24
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+32.94    0.130120          24      5317       315 futex
+11.66    0.046077          21      2231         1 lstat
+ 9.23    0.036449         177       206           mmap
+...
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.395077                 25435       971 total
+
+The test results show that the number of system calls and time
+consumption are significantly reduced.
+
+Link: https://lkml.kernel.org/r/20210704062208.7898-1-zhoufeng.zf@bytedance.com
+Co-developed-by: Ying Chen <chenying.kernel@bytedance.com>
+Signed-off-by: Ying Chen <chenying.kernel@bytedance.com>
+Signed-off-by: Feng Zhou <zhoufeng.zf@bytedance.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/kcore.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 73 insertions(+)
 
---- a/arch/Kconfig~arch-kconfig-fix-spelling-mistake-seperate-separate
-+++ a/arch/Kconfig
-@@ -914,7 +914,7 @@ config HAVE_SOFTIRQ_ON_OWN_STACK
- 	bool
- 	help
- 	  Architecture provides a function to run __do_softirq() on a
--	  seperate stack.
-+	  separate stack.
+--- a/fs/proc/kcore.c~fs-proc-kcorec-add-mmap-interface
++++ a/fs/proc/kcore.c
+@@ -614,11 +614,84 @@ static int release_kcore(struct inode *i
+ 	return 0;
+ }
  
- config PGTABLE_LEVELS
- 	int
++static vm_fault_t mmap_kcore_fault(struct vm_fault *vmf)
++{
++	return VM_FAULT_SIGBUS;
++}
++
++static const struct vm_operations_struct kcore_mmap_ops = {
++	.fault = mmap_kcore_fault,
++};
++
++static int mmap_kcore(struct file *file, struct vm_area_struct *vma)
++{
++	size_t size = vma->vm_end - vma->vm_start;
++	u64 start, end, pfn;
++	int nphdr;
++	size_t data_offset;
++	size_t phdrs_len, notes_len;
++	struct kcore_list *m = NULL;
++	int ret = 0;
++
++	down_read(&kclist_lock);
++
++	get_kcore_size(&nphdr, &phdrs_len, &notes_len, &data_offset);
++
++	data_offset &= PAGE_MASK;
++	start = (u64)vma->vm_pgoff << PAGE_SHIFT;
++	if (start < data_offset) {
++		ret = -EINVAL;
++		goto out;
++	}
++	start = kc_offset_to_vaddr(start - data_offset);
++	end   = start + size;
++
++	list_for_each_entry(m, &kclist_head, list) {
++		if (start >= m->addr && end <= m->addr + m->size)
++			break;
++	}
++
++	if (&m->list == &kclist_head) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (vma->vm_flags & (VM_WRITE | VM_EXEC)) {
++		ret = -EPERM;
++		goto out;
++	}
++
++	vma->vm_flags &= ~(VM_MAYWRITE | VM_MAYEXEC);
++	vma->vm_flags |= VM_MIXEDMAP;
++	vma->vm_ops = &kcore_mmap_ops;
++
++	if (kern_addr_valid(start)) {
++		if (m->type == KCORE_RAM)
++			pfn = __pa(start) >> PAGE_SHIFT;
++		else if (m->type == KCORE_TEXT)
++			pfn = __pa_symbol(start) >> PAGE_SHIFT;
++		else {
++			ret = -EFAULT;
++			goto out;
++		}
++
++		ret = remap_pfn_range(vma, vma->vm_start, pfn, size,
++				vma->vm_page_prot);
++	} else {
++		ret = -EFAULT;
++	}
++
++out:
++	up_read(&kclist_lock);
++	return ret;
++}
++
+ static const struct proc_ops kcore_proc_ops = {
+ 	.proc_read	= read_kcore,
+ 	.proc_open	= open_kcore,
+ 	.proc_release	= release_kcore,
+ 	.proc_lseek	= default_llseek,
++	.proc_mmap	= mmap_kcore,
+ };
+ 
+ /* just remember that we have to update kcore */
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from zhoufeng.zf@bytedance.com are
 
-arch-kconfig-fix-spelling-mistake-seperate-separate.patch
+fs-proc-kcorec-add-mmap-interface.patch
 
