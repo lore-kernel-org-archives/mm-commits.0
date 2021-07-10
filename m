@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-21.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71573C07E95
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:52:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64CDCC07E95
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 21:31:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B3366135E
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:52:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 42A116135D
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 21:31:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229652AbhGJSzg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 10 Jul 2021 14:55:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55480 "EHLO mail.kernel.org"
+        id S229846AbhGJVeT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 10 Jul 2021 17:34:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56624 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229599AbhGJSzg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 10 Jul 2021 14:55:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B39B061283;
-        Sat, 10 Jul 2021 18:52:50 +0000 (UTC)
+        id S229515AbhGJVeS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 10 Jul 2021 17:34:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1CB3061353;
+        Sat, 10 Jul 2021 21:31:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625943170;
-        bh=MESueb5rDBXcjEMP1KT7sa8rJsmO5nwZnPH2o+76kb8=;
+        s=korg; t=1625952693;
+        bh=picFxzJUoGjoBA7YVdbtcznLqOgP6wU2p0FLwS5U0EM=;
         h=Date:From:To:Subject:From;
-        b=2BL3nPIO8DwbUbilxY8WnkL9NErtgUDv/0xpQJcLRP9At8hPinmGOYPQpbnEdhuxa
-         Ob4ERaeBNpje9aycnRV8DMMg+p2mPFXGPSF0TKNbLru58ANgyOScAORGQRC2QjvWQ2
-         n8qB1jj1geKxe0/1LuI3HnNx4e4SPDnRQUR6codM=
-Date:   Sat, 10 Jul 2021 11:52:50 -0700
+        b=cKJqopW9lYqX6K7UgCgdfZFTN6PhxzCd3yraV4FWobMYbRbEunAVjm0w3qQ8TQHFb
+         5HMSg5Y7QDPW1Z75m2oXt+efX7zSv57vsYV0TexYGAKXd0NIsBoCzod9XPdmQWxoDw
+         rXx3FDlLPzDAI50z9gu9hh6FvftEAOzQu27qalaw=
+Date:   Sat, 10 Jul 2021 14:31:32 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, zhouchengming@bytedance.com,
-        songmuchun@bytedance.com, rppt@kernel.org,
-        chenying.kernel@bytedance.com, adobriyan@gmail.com,
-        zhoufeng.zf@bytedance.com
-Subject:  + fs-proc-kcorec-add-mmap-interface.patch added to -mm tree
-Message-ID: <20210710185250.AkvNB%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, palmer@dabbelt.com,
+        ndesaulniers@google.com, mick@ics.forth.gr, kernel@esmil.dk,
+        hch@infradead.org, guoren@kernel.org, drew@beagleboard.org,
+        David.Laight@aculab.com, mcroce@microsoft.com
+Subject:  + lib-string-optimized-memcpy.patch added to -mm tree
+Message-ID: <20210710213132.Am5PY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/kcore.c: add mmap interface
+     Subject: lib/string: optimized memcpy
 has been added to the -mm tree.  Its filename is
-     fs-proc-kcorec-add-mmap-interface.patch
+     lib-string-optimized-memcpy.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-proc-kcorec-add-mmap-interface.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-string-optimized-memcpy.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-kcorec-add-mmap-interface.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-string-optimized-memcpy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,153 +65,206 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Feng Zhou <zhoufeng.zf@bytedance.com>
-Subject: fs/proc/kcore.c: add mmap interface
+From: Matteo Croce <mcroce@microsoft.com>
+Subject: lib/string: optimized memcpy
 
-When we do the kernel monitor, use the DRGN
-(https://github.com/osandov/drgn) access to kernel data structures, found
-that the system calls a lot.  DRGN is implemented by reading /proc/kcore. 
-After looking at the kcore code, it is found that kcore does not implement
-mmap, resulting in frequent context switching triggered by read. 
-Therefore, we want to add mmap interface to optimize performance.  Since
-vmalloc and module areas will change with allocation and release,
-consistency cannot be guaranteed, so mmap interface only maps KCORE_TEXT
-and KCORE_RAM.
+Patch series "lib/string: optimized mem* functions", v2.
 
-The test results:
-1. the default version of kcore
-real 11.00
-user 8.53
-sys 3.59
+Rewrite the generic mem{cpy,move,set} so that memory is accessed with the
+widest size possible, but without doing unaligned accesses.
 
-% time     seconds  usecs/call     calls    errors syscall
------- ----------- ----------- --------- --------- ----------------
-99.64  128.578319          12  11168701           pread64
-...
------- ----------- ----------- --------- --------- ----------------
-100.00  129.042853              11193748       966 total
+This was originally posted as C string functions for RISC-V[1], but as
+there was no specific RISC-V code, it was proposed for the generic
+lib/string.c implementation.
 
-2. added kcore for the mmap interface
-real 6.44
-user 7.32
-sys 0.24
+Tested on RISC-V and on x86_64 by undefining __HAVE_ARCH_MEM{CPY,SET,MOVE}
+and HAVE_EFFICIENT_UNALIGNED_ACCESS.
 
-% time     seconds  usecs/call     calls    errors syscall
------- ----------- ----------- --------- --------- ----------------
-32.94    0.130120          24      5317       315 futex
-11.66    0.046077          21      2231         1 lstat
- 9.23    0.036449         177       206           mmap
-...
------- ----------- ----------- --------- --------- ----------------
-100.00    0.395077                 25435       971 total
+These are the performances of memcpy() and memset() of a RISC-V machine on
+a 32 mbyte buffer:
 
-The test results show that the number of system calls and time
-consumption are significantly reduced.
+memcpy:
+original aligned:	 75 Mb/s
+original unaligned:	 75 Mb/s
+new aligned:		114 Mb/s
+new unaligned:		107 Mb/s
 
-Link: https://lkml.kernel.org/r/20210704062208.7898-1-zhoufeng.zf@bytedance.com
-Co-developed-by: Ying Chen <chenying.kernel@bytedance.com>
-Signed-off-by: Ying Chen <chenying.kernel@bytedance.com>
-Signed-off-by: Feng Zhou <zhoufeng.zf@bytedance.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Chengming Zhou <zhouchengming@bytedance.com>
+memset:
+original aligned:	140 Mb/s
+original unaligned:	140 Mb/s
+new aligned:		241 Mb/s
+new unaligned:		241 Mb/s
+
+The size increase is negligible:
+
+$ scripts/bloat-o-meter vmlinux.orig vmlinux
+add/remove: 0/0 grow/shrink: 4/1 up/down: 427/-6 (421)
+Function                                     old     new   delta
+memcpy                                        29     351    +322
+memset                                        29     117     +88
+strlcat                                       68      78     +10
+strlcpy                                       50      57      +7
+memmove                                       56      50      -6
+Total: Before=8556964, After=8557385, chg +0.00%
+
+These functions will be used for RISC-V initially.
+
+[1] https://lore.kernel.org/linux-riscv/20210617152754.17960-1-mcroce@linux.microsoft.com/
+
+
+This patch (of 3):
+
+Rewrite the generic memcpy() to copy a word at time, without generating
+unaligned accesses.
+
+The procedure is made of three steps: First copy data one byte at time
+until the destination buffer is aligned to a long boundary.  Then copy the
+data one long at time shifting the current and the next long to compose a
+long at every cycle.  Finally, copy the remainder one byte at time.
+
+This is the improvement on RISC-V:
+
+original aligned:	 75 Mb/s
+original unaligned:	 75 Mb/s
+new aligned:		114 Mb/s
+new unaligned:		107 Mb/s
+
+and this the binary size increase according to bloat-o-meter:
+
+Function     old     new   delta
+memcpy        36     324    +288
+
+Link: https://lkml.kernel.org/r/20210702123153.14093-1-mcroce@linux.microsoft.com
+Link: https://lkml.kernel.org/r/20210702123153.14093-2-mcroce@linux.microsoft.com
+Signed-off-by: Matteo Croce <mcroce@microsoft.com>
+Cc: Nick Kossifidis <mick@ics.forth.gr>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: David Laight <David.Laight@aculab.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Emil Renner Berthing <kernel@esmil.dk>
+Cc: Drew Fustini <drew@beagleboard.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/kcore.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 73 insertions(+)
+ lib/string.c |   80 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 77 insertions(+), 3 deletions(-)
 
---- a/fs/proc/kcore.c~fs-proc-kcorec-add-mmap-interface
-+++ a/fs/proc/kcore.c
-@@ -614,11 +614,84 @@ static int release_kcore(struct inode *i
- 	return 0;
- }
+--- a/lib/string.c~lib-string-optimized-memcpy
++++ a/lib/string.c
+@@ -33,6 +33,23 @@
+ #include <asm/word-at-a-time.h>
+ #include <asm/page.h>
  
-+static vm_fault_t mmap_kcore_fault(struct vm_fault *vmf)
-+{
-+	return VM_FAULT_SIGBUS;
-+}
++#define BYTES_LONG	sizeof(long)
++#define WORD_MASK	(BYTES_LONG - 1)
++#define MIN_THRESHOLD	(BYTES_LONG * 2)
 +
-+static const struct vm_operations_struct kcore_mmap_ops = {
-+	.fault = mmap_kcore_fault,
++/* convenience union to avoid cast between different pointer types */
++union types {
++	u8 *as_u8;
++	unsigned long *as_ulong;
++	uintptr_t as_uptr;
 +};
 +
-+static int mmap_kcore(struct file *file, struct vm_area_struct *vma)
-+{
-+	size_t size = vma->vm_end - vma->vm_start;
-+	u64 start, end, pfn;
-+	int nphdr;
-+	size_t data_offset;
-+	size_t phdrs_len, notes_len;
-+	struct kcore_list *m = NULL;
-+	int ret = 0;
++union const_types {
++	const u8 *as_u8;
++	const unsigned long *as_ulong;
++	uintptr_t as_uptr;
++};
 +
-+	down_read(&kclist_lock);
+ #ifndef __HAVE_ARCH_STRNCASECMP
+ /**
+  * strncasecmp - Case insensitive, length-limited string comparison
+@@ -869,6 +886,13 @@ EXPORT_SYMBOL(memset64);
+ #endif
+ 
+ #ifndef __HAVE_ARCH_MEMCPY
 +
-+	get_kcore_size(&nphdr, &phdrs_len, &notes_len, &data_offset);
++#ifdef __BIG_ENDIAN
++#define MERGE_UL(h, l, d) ((h) << ((d) * 8) | (l) >> ((BYTES_LONG - (d)) * 8))
++#else
++#define MERGE_UL(h, l, d) ((h) >> ((d) * 8) | (l) << ((BYTES_LONG - (d)) * 8))
++#endif
 +
-+	data_offset &= PAGE_MASK;
-+	start = (u64)vma->vm_pgoff << PAGE_SHIFT;
-+	if (start < data_offset) {
-+		ret = -EINVAL;
-+		goto out;
+ /**
+  * memcpy - Copy one area of memory to another
+  * @dest: Where to copy to
+@@ -880,14 +904,64 @@ EXPORT_SYMBOL(memset64);
+  */
+ void *memcpy(void *dest, const void *src, size_t count)
+ {
+-	char *tmp = dest;
+-	const char *s = src;
++	union const_types s = { .as_u8 = src };
++	union types d = { .as_u8 = dest };
++	int distance = 0;
++
++	if (!IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)) {
++		if (count < MIN_THRESHOLD)
++			goto copy_remainder;
++
++		/* Copy a byte at time until destination is aligned. */
++		for (; d.as_uptr & WORD_MASK; count--)
++			*d.as_u8++ = *s.as_u8++;
++
++		distance = s.as_uptr & WORD_MASK;
 +	}
-+	start = kc_offset_to_vaddr(start - data_offset);
-+	end   = start + size;
 +
-+	list_for_each_entry(m, &kclist_head, list) {
-+		if (start >= m->addr && end <= m->addr + m->size)
-+			break;
-+	}
++	if (distance) {
++		unsigned long last, next;
+ 
++		/*
++		 * s is distance bytes ahead of d, and d just reached
++		 * the alignment boundary. Move s backward to word align it
++		 * and shift data to compensate for distance, in order to do
++		 * word-by-word copy.
++		 */
++		s.as_u8 -= distance;
 +
-+	if (&m->list == &kclist_head) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
++		next = s.as_ulong[0];
++		for (; count >= BYTES_LONG; count -= BYTES_LONG) {
++			last = next;
++			next = s.as_ulong[1];
 +
-+	if (vma->vm_flags & (VM_WRITE | VM_EXEC)) {
-+		ret = -EPERM;
-+		goto out;
-+	}
++			d.as_ulong[0] = MERGE_UL(last, next, distance);
 +
-+	vma->vm_flags &= ~(VM_MAYWRITE | VM_MAYEXEC);
-+	vma->vm_flags |= VM_MIXEDMAP;
-+	vma->vm_ops = &kcore_mmap_ops;
-+
-+	if (kern_addr_valid(start)) {
-+		if (m->type == KCORE_RAM)
-+			pfn = __pa(start) >> PAGE_SHIFT;
-+		else if (m->type == KCORE_TEXT)
-+			pfn = __pa_symbol(start) >> PAGE_SHIFT;
-+		else {
-+			ret = -EFAULT;
-+			goto out;
++			d.as_ulong++;
++			s.as_ulong++;
 +		}
 +
-+		ret = remap_pfn_range(vma, vma->vm_start, pfn, size,
-+				vma->vm_page_prot);
++		/* Restore s with the original offset. */
++		s.as_u8 += distance;
 +	} else {
-+		ret = -EFAULT;
++		/*
++		 * If the source and dest lower bits are the same, do a simple
++		 * 32/64 bit wide copy.
++		 */
++		for (; count >= BYTES_LONG; count -= BYTES_LONG)
++			*d.as_ulong++ = *s.as_ulong++;
 +	}
 +
-+out:
-+	up_read(&kclist_lock);
-+	return ret;
-+}
++copy_remainder:
+ 	while (count--)
+-		*tmp++ = *s++;
++		*d.as_u8++ = *s.as_u8++;
 +
- static const struct proc_ops kcore_proc_ops = {
- 	.proc_read	= read_kcore,
- 	.proc_open	= open_kcore,
- 	.proc_release	= release_kcore,
- 	.proc_lseek	= default_llseek,
-+	.proc_mmap	= mmap_kcore,
- };
+ 	return dest;
+ }
+ EXPORT_SYMBOL(memcpy);
++
++#undef MERGE_UL
++
+ #endif
  
- /* just remember that we have to update kcore */
+ #ifndef __HAVE_ARCH_MEMMOVE
 _
 
-Patches currently in -mm which might be from zhoufeng.zf@bytedance.com are
+Patches currently in -mm which might be from mcroce@microsoft.com are
 
-fs-proc-kcorec-add-mmap-interface.patch
+revert-mm-page_alloc-make-should_fail_alloc_page-static.patch
+lib-string-optimized-memcpy.patch
+lib-string-optimized-memmove.patch
+lib-string-optimized-memset.patch
 
