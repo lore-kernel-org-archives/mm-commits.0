@@ -5,37 +5,39 @@ X-Spam-Level:
 X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B959C07E99
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 01:05:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47095C07E99
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 01:16:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 69EE5613C2
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 01:05:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20B0F613CA
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 01:16:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229931AbhGJBIb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 21:08:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59550 "EHLO mail.kernel.org"
+        id S230317AbhGJBTe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 21:19:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229506AbhGJBIa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 21:08:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 956FF613BF;
-        Sat, 10 Jul 2021 01:05:45 +0000 (UTC)
+        id S229703AbhGJBTe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 21:19:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B792E6120D;
+        Sat, 10 Jul 2021 01:16:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625879145;
-        bh=4SvgqXr51NfSIDc6c5xhCjN2AaBm7Gx4ZkK7jbGdlWw=;
+        s=korg; t=1625879810;
+        bh=T0jnMKfrJ6f8hQhHhOmb4e5hFvUAz00D0xm4WO8CVqU=;
         h=Date:From:To:Subject:From;
-        b=ShbhXaSmcY2aqcwK5mrTwSwANczn8rcm5d3wG+8UDl2GxAEeRda6JB4TlgTTKc/5y
-         KvHD9Sgp6LOZAO2fHCpOVCaKEjDSc6mVxSiV01i+gvtQDCUHJIRNv46ZHR7w/OOKiQ
-         A9/BqRqeVg6RbcGs0R/e6ma59YXrLoOALvYAf/hI=
-Date:   Fri, 09 Jul 2021 18:05:40 -0700
+        b=ZRbTuL9BVAoq7wxLVYsUNNqT+HYbo4ejk0TDD+xlm9XsPd6yXj6FvNDLa3A48sqBl
+         orM4LDXZ3p17kXPsucx3Io2Uwmhiq2tqUd/P1MMFmbVFYpzwTRkRaf1oSGiV/M0ReY
+         4Ia8BekbvljoFeIOPEm1rFaau8GGPi7eWfBkYW/0=
+Date:   Fri, 09 Jul 2021 18:16:49 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, wangwensheng4@huawei.com,
-        rui.xiang@huawei.com, osalvador@suse.de, k-hagio-ab@nec.com,
-        david@redhat.com, dan.j.williams@intel.com, naoya.horiguchi@nec.com
-Subject:  + mm-sparse-set-section_nid_shift-to-6.patch added to -mm
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        ptikhomirov@virtuozzo.com, miltonm@bga.com, millerjo@us.ibm.com,
+        manfred@colorfullife.com, ebiederm@xmission.com, dave@stgolabs.net,
+        alexander@mihalicyn.com, alexander.mikhalitsyn@virtuozzo.com
+Subject:  +
+ shm-skip-shm_destroy-if-task-ipc-namespace-was-changed.patch added to -mm
  tree
-Message-ID: <20210710010540.MKIS1%akpm@linux-foundation.org>
+Message-ID: <20210710011649.R8BLi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/sparse: set SECTION_NID_SHIFT to 6
+     Subject: shm: skip shm_destroy if task IPC namespace was changed
 has been added to the -mm tree.  Its filename is
-     mm-sparse-set-section_nid_shift-to-6.patch
+     shm-skip-shm_destroy-if-task-ipc-namespace-was-changed.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-set-section_nid_shift-to-6.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/shm-skip-shm_destroy-if-task-ipc-namespace-was-changed.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-set-section_nid_shift-to-6.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/shm-skip-shm_destroy-if-task-ipc-namespace-was-changed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,57 +67,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/sparse: set SECTION_NID_SHIFT to 6
+From: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+Subject: shm: skip shm_destroy if task IPC namespace was changed
 
-Currently SECTION_NID_SHIFT is set to 3, which is incorrect because bit 3
-and 4 can be overlapped by sub-field for early NID, and can be
-unexpectedly set on NUMA systems.  There are a few non-critical issues
-related to this:
+Patch series "shm: omit forced shm destroy if task IPC namespace was changed".
 
-- Having SECTION_TAINT_ZONE_DEVICE set for wrong sections forces
-  pfn_to_online_page() through the slow path, but doesn't actually break
-  the kernel.
+Task IPC namespace shm's has shm_rmid_forced feature which is per IPC
+namespace and controlled by kernel.shm_rmid_forced sysctl.  When feature
+is turned on, then during task exit (and unshare(CLONE_NEWIPC)) all
+sysvshm's will be destroyed by exit_shm(struct task_struct *task)
+function.
 
-- A kdump generation tool like makedumpfile uses this field to calculate
-  the physical address to read.  So wrong bits can make the tool access to
-  wrong address and fail to create kdump.  This can be avoided by the
-  tool, so it's not critical.
+But there is a problem if task was changed IPC namespace since shmget()
+call.  In such situation exit_shm() function will try to call
+shm_destroy(<new_ipc_namespace_ptr>, <sysvshmem_from_old_ipc_namespace>)
+which leads to the situation when sysvshm object still attached to old IPC
+namespace but freed; later during old IPC namespace cleanup we will try to
+free such sysvshm object for the second time and will get the problem :)
 
-To fix it, set SECTION_NID_SHIFT to 6 which is the minimum number of
-available bits of section flag field.
+First patch solves this problem by postponing shm_destroy to the moment
+when IPC namespace cleanup will be called.  Second patch is useful to
+prevent (or easy catch) such bugs in the future by adding corresponding
+WARNings.
 
-Link: https://lkml.kernel.org/r/20210707045548.810271-1-naoya.horiguchi@linux.dev
-Fixes: 1f90a3477df3 ("mm: teach pfn_to_online_page() about ZONE_DEVICE section collisions")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Kazuhito Hagio <k-hagio-ab@nec.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Wang Wensheng <wangwensheng4@huawei.com>
-Cc: Rui Xiang <rui.xiang@huawei.com>
-Cc: Kazu <k-hagio-ab@nec.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+
+This patch (of 2):
+
+Task may change IPC namespace by doing setns() but sysvshm objects remains
+at the origin IPC namespace (=IPC namespace where task was when shmget()
+was called).  Let's skip forced shm destroy in such case because we can't
+determine IPC namespace by shm only.  These problematic sysvshm's will be
+destroyed on ipc namespace cleanup.
+
+Link: https://lkml.kernel.org/r/20210706132259.71740-1-alexander.mikhalitsyn@virtuozzo.com
+Link: https://lkml.kernel.org/r/20210706132259.71740-2-alexander.mikhalitsyn@virtuozzo.com
+Fixes: ab602f79915 ("shm: make exit_shm work proportional to task activity")
+Signed-off-by: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+Cc: Milton Miller <miltonm@bga.com>
+Cc: Jack Miller <millerjo@us.ibm.com>
+Cc: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Cc: Alexander Mikhalitsyn <alexander@mihalicyn.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/shm.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/include/linux/mmzone.h~mm-sparse-set-section_nid_shift-to-6
-+++ a/include/linux/mmzone.h
-@@ -1364,7 +1364,7 @@ extern size_t mem_section_usage_size(voi
- #define SECTION_TAINT_ZONE_DEVICE	(1UL<<4)
- #define SECTION_MAP_LAST_BIT		(1UL<<5)
- #define SECTION_MAP_MASK		(~(SECTION_MAP_LAST_BIT-1))
--#define SECTION_NID_SHIFT		3
-+#define SECTION_NID_SHIFT		6
+--- a/ipc/shm.c~shm-skip-shm_destroy-if-task-ipc-namespace-was-changed
++++ a/ipc/shm.c
+@@ -173,6 +173,14 @@ static inline struct shmid_kernel *shm_o
+ 	return container_of(ipcp, struct shmid_kernel, shm_perm);
+ }
  
- static inline struct page *__section_mem_map_addr(struct mem_section *section)
- {
++static inline bool is_shm_in_ns(struct ipc_namespace *ns, struct shmid_kernel *shp)
++{
++	int idx = ipcid_to_idx(shp->shm_perm.id);
++	struct shmid_kernel *tshp = shm_obtain_object(ns, idx);
++
++	return !IS_ERR(tshp) && tshp == shp;
++}
++
+ /*
+  * shm_lock_(check_) routines are called in the paths where the rwsem
+  * is not necessarily held.
+@@ -415,7 +423,7 @@ void exit_shm(struct task_struct *task)
+ 	list_for_each_entry_safe(shp, n, &task->sysvshm.shm_clist, shm_clist) {
+ 		shp->shm_creator = NULL;
+ 
+-		if (shm_may_destroy(ns, shp)) {
++		if (is_shm_in_ns(ns, shp) && shm_may_destroy(ns, shp)) {
+ 			shm_lock_by_ptr(shp);
+ 			shm_destroy(ns, shp);
+ 		}
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from alexander.mikhalitsyn@virtuozzo.com are
 
-mm-sparse-set-section_nid_shift-to-6.patch
+shm-skip-shm_destroy-if-task-ipc-namespace-was-changed.patch
+ipc-warn-if-trying-to-remove-ipc-object-which-is-absent.patch
 
