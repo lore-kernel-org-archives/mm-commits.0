@@ -7,37 +7,33 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2F25C07E9C
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:50:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5ECFC07E95
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:51:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B39E761283
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:50:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B57F66135E
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 18:51:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229771AbhGJSxF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 10 Jul 2021 14:53:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55384 "EHLO mail.kernel.org"
+        id S229614AbhGJSxz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 10 Jul 2021 14:53:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55434 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229599AbhGJSxF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 10 Jul 2021 14:53:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A484361356;
-        Sat, 10 Jul 2021 18:50:19 +0000 (UTC)
+        id S229599AbhGJSxz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 10 Jul 2021 14:53:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9AC4061356;
+        Sat, 10 Jul 2021 18:51:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625943020;
-        bh=hzXvMhhdqZlc0GpG/e1ikiHlQIGzmHrwDK5KFiPGl1U=;
+        s=korg; t=1625943069;
+        bh=n1V2nGo6iklUvMQhHBH7y5Z9Prza9UWjGp29rC7wAOg=;
         h=Date:From:To:Subject:From;
-        b=GtJvbw/a9L4vfFlo0e9nf2bISdD2t0az3vVcXUSdrhfRfoHqTiSen/xiB9gcSfUTO
-         K4yCLVvfLoDTERgLnS7i5hjItAYxjRmz5CtvB0K3yZ9knJWifZfhq0zpJJRG87QCcM
-         2sJDYdFtONxsXpeCGx+n4ldaCWc89IRzlXIRTasM=
-Date:   Sat, 10 Jul 2021 11:50:19 -0700
+        b=yFEPYUMLTQkLCvCfFvejvn3nBlNB1wPTbZojupbTWEOU5lIAKyj7FfGD7dICxU6PC
+         0YanatsY/a93/G9NiiEBgA50nCVLj0ANphsxjYVzhYGwS6u7cuRUVa61NLNX6B7Cl3
+         8bDgiImcauWC8/BUNVBGQY0XWbohgj3fRg2QbF3U=
+Date:   Sat, 10 Jul 2021 11:51:09 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        shli@fb.com, minchan@kernel.org, mhocko@suse.com,
-        iamjoonsoo.kim@lge.com, hillf.zj@alibaba-inc.com,
-        hannes@cmpxchg.org, david@redhat.com, axboe@kernel.dk,
-        apopple@nvidia.com, alexs@kernel.org, linmiaohe@huawei.com
-Subject:  +
- mm-vmscan-fix-misleading-comment-in-isolate_lru_pages.patch added to -mm tree
-Message-ID: <20210710185019.i5CpF%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, colin.king@canonical.com
+Subject:  + arch-kconfig-fix-spelling-mistake-seperate-separate.patch
+ added to -mm tree
+Message-ID: <20210710185109.wY9Qc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: fix misleading comment in isolate_lru_pages()
+     Subject: arch: Kconfig: fix spelling mistake "seperate" -> "separate"
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-fix-misleading-comment-in-isolate_lru_pages.patch
+     arch-kconfig-fix-spelling-mistake-seperate-separate.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-misleading-comment-in-isolate_lru_pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arch-kconfig-fix-spelling-mistake-seperate-separate.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-misleading-comment-in-isolate_lru_pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arch-kconfig-fix-spelling-mistake-seperate-separate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,59 +63,33 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmscan: fix misleading comment in isolate_lru_pages()
+From: Colin Ian King <colin.king@canonical.com>
+Subject: arch: Kconfig: fix spelling mistake "seperate" -> "separate"
 
-We couldn't know whether the page is being freed elsewhere until we failed
-to increase the page count.
+Threre is a spelling mistake in the Kconfig text. Fix it.
 
-Link: https://lkml.kernel.org/r/20210710100329.49174-6-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Shaohua Li <shli@fb.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20210704095207.37342-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
+ arch/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-misleading-comment-in-isolate_lru_pages
-+++ a/mm/vmscan.c
-@@ -1891,7 +1891,6 @@ static unsigned long isolate_lru_pages(u
- 		 */
- 		scan += nr_pages;
- 		if (!__isolate_lru_page_prepare(page, mode)) {
--			/* It is being freed elsewhere */
- 			list_move(&page->lru, src);
- 			continue;
- 		}
-@@ -1901,6 +1900,7 @@ static unsigned long isolate_lru_pages(u
- 		 * page release code relies on it.
- 		 */
- 		if (unlikely(!get_page_unless_zero(page))) {
-+			/* It is being freed elsewhere. */
- 			list_move(&page->lru, src);
- 			continue;
- 		}
+--- a/arch/Kconfig~arch-kconfig-fix-spelling-mistake-seperate-separate
++++ a/arch/Kconfig
+@@ -914,7 +914,7 @@ config HAVE_SOFTIRQ_ON_OWN_STACK
+ 	bool
+ 	help
+ 	  Architecture provides a function to run __do_softirq() on a
+-	  seperate stack.
++	  separate stack.
+ 
+ config PGTABLE_LEVELS
+ 	int
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-mm-vmscan-put-the-redirtied-madv_free-pages-back-to-anonymous-lru-list.patch
-mm-vmscan-remove-misleading-setting-to-sc-priority.patch
-mm-vmscan-remove-unneeded-return-value-of-kswapd_run.patch
-mm-vmscan-add-else-to-remove-check_pending-label.patch
-mm-vmscan-fix-misleading-comment-in-isolate_lru_pages.patch
-mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
-mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
+arch-kconfig-fix-spelling-mistake-seperate-separate.patch
 
