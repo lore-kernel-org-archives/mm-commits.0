@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EED24C07E99
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 00:47:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FF90C07E9B
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 00:47:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA7BE613C9
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 00:47:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 53A48613CC
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 00:47:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230428AbhGJAuQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 20:50:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57902 "EHLO mail.kernel.org"
+        id S230519AbhGJAuS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 20:50:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57950 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229614AbhGJAuQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 9 Jul 2021 20:50:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E136C61205;
-        Sat, 10 Jul 2021 00:47:30 +0000 (UTC)
+        id S229614AbhGJAuR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 20:50:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 95ECB613C7;
+        Sat, 10 Jul 2021 00:47:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625878051;
-        bh=7GX1Xr7jPAEOO+sRHOf6w+mj1+8aQjtj7GcjvsLebUQ=;
+        s=korg; t=1625878052;
+        bh=PwlBy2W/uo7A5UHRqdSiK8sk2cnO4iQzaHln3L+PVo8=;
         h=Date:From:To:Subject:From;
-        b=UKvz3DORgfRsZAn3BWXgRS5Gn7q0r7dNUkLFctSiEB9vpO1r6v0Ui/1tlNTmRbRwr
-         p79a9QLVXrks0+55G6HAKU+0/s88BkECefJSr+76DCeWY0mZrHFwYvl5uaEP25XbBJ
-         4AgIN3+m4YekfZZf8aUThXO5ukh9vMy2b6bv0MY8=
-Date:   Fri, 09 Jul 2021 17:47:30 -0700
+        b=MiMySfa/MxsaUDCtm/ecCQKUui2ZtSJ8ae0S433ggKKQF30gi23wRw1JNgVkvq8Kt
+         RYJRbf/SkIOe2gj6YBkEjL2ap3Qz1KgTjLQOpKde4QY4pMiA+ZSiRKsBpYaW8ZkYYb
+         ZcT3wzXOhFCANI584iIZt8G4svFUChfNPKHv+Lkc=
+Date:   Fri, 09 Jul 2021 17:47:32 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         songmuchun@bytedance.com, osalvador@suse.de,
         naoya.horiguchi@linux.dev, mhocko@suse.com, david@redhat.com,
         almasrymina@google.com, mike.kravetz@oracle.com
 Subject:  +
- hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
- added to -mm tree
-Message-ID: <20210710004730.4V-cU%akpm@linux-foundation.org>
+ hugetlb-drop-ref-count-earlier-after-page-allocation.patch added to -mm tree
+Message-ID: <20210710004732.uA0A1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: simplify prep_compound_gigantic_page ref count racing code
+     Subject: hugetlb: drop ref count earlier after page allocation
 has been added to the -mm tree.  Its filename is
-     hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
+     hugetlb-drop-ref-count-earlier-after-page-allocation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-drop-ref-count-earlier-after-page-allocation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-drop-ref-count-earlier-after-page-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,99 +67,272 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: simplify prep_compound_gigantic_page ref count racing code
+Subject: hugetlb: drop ref count earlier after page allocation
 
-Patch series "hugetlb: fix potential ref counting races".
+When discussing the possibility of inflated page ref counts, Muuchun Song
+pointed out this potential issue [1].  It is true that any code could
+potentially take a reference on a compound page after allocation and
+before it is converted to and put into use as a hugetlb page. 
+Specifically, this could be done by any users of get_page_unless_zero.
 
-When Muchun Song brought up a potential issue with hugetlb ref
-counting[1], I started looking closer at the code.  hugetlbfs is the only
-code with it's own specialized compound page destructor and taking special
-action when ref counts drop to zero.  Potential races happen in this
-unique handling of ref counts.  The following patches address these races
-when creating and destroying hugetlb pages.
+There are three areas of concern within hugetlb code.
 
-These potential races have likely existed since the creation of hugetlbfs.
-They certainly have been around for more than 10 years.  However, I am
-unaware of anyone actually hitting these races.  It is VERY unlikely than
-anyone will actually hit these races, but they do exist.
+1) When adding pages to the pool.  In this case, new pages are
+   allocated added to the pool by calling put_page to invoke the hugetlb
+   destructor (free_huge_page).  If there is an inflated ref count on the
+   page, it will not be immediately added to the free list.  It will only
+   be added to the free list when the temporary ref count is dropped. 
+   This is deemed acceptable and will not be addressed.
 
-I could not think of an easy (or difficult) way to force these races. 
-Therefore, testing consisted of adding code to randomly increase ref
-counts in strategic places.  In this way, I was able to exercise all the
-race handling code paths.
+2) A page is allocated for immediate use normally as a surplus page or
+   migration target.  In this case, the user of the page will also hold a
+   reference.  There is no issue as this is just like normal page ref
+   counting.
+
+3) A page is allocated and MUST be added to the free list to satisfy a
+   reservation.  One such example is gather_surplus_pages as pointed out
+   by Muchun in [1].  More specifically, this case covers callers of
+   enqueue_huge_page where the page reference count must be zero.  This
+   patch covers this third case.
+
+Three routines call enqueue_huge_page when the page reference count could
+potentially be inflated.  They are: gather_surplus_pages,
+alloc_and_dissolve_huge_page and add_hugetlb_page.
+
+add_hugetlb_page is called on error paths when a huge page can not be
+freed due to the inability to allocate vmemmap pages.  In this case, the
+temporairly inflated ref count is not an issue.  When the ref is dropped
+the appropriate action will be taken.  Instead of VM_BUG_ON if the ref
+count does not drop to zero, simply return.
+
+In gather_surplus_pages and alloc_and_dissolve_huge_page the caller
+expects a page (or pages) to be put on the free lists.  In this case we
+must ensure there are no temporary ref counts.  We do this by calling
+put_page_testzero() earlier and not using pages without a zero ref count. 
+The temporary page flag (HPageTemporary) is used in such cases so that as
+soon as the inflated ref count is dropped the page will be freed.
 
 [1] https://lore.kernel.org/linux-mm/CAMZfGtVMn3daKrJwZMaVOGOaJU+B4dS--x_oPmGQMD=c=QNGEg@mail.gmail.com/
-
-
-This patch (of 3):
-
-Code in prep_compound_gigantic_page waits for a rcu grace period if it
-notices a temporarily inflated ref count on a tail page.  This was due to
-the identified potential race with speculative page cache references which
-could only last for a rcu grace period.  This is overly complicated as
-this situation is VERY unlikely to ever happen.  Instead, just quickly
-return an error.
-
-Also, only print a warning in prep_compound_gigantic_page instead of
-multiple callers.
-
-Link: https://lkml.kernel.org/r/20210710002441.167759-1-mike.kravetz@oracle.com
-Link: https://lkml.kernel.org/r/20210710002441.167759-2-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20210710002441.167759-3-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mina Almasry <almasrymina@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   15 +++++----------
- 1 file changed, 5 insertions(+), 10 deletions(-)
+ mm/hugetlb.c |  100 ++++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 78 insertions(+), 22 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code
+--- a/mm/hugetlb.c~hugetlb-drop-ref-count-earlier-after-page-allocation
 +++ a/mm/hugetlb.c
-@@ -1657,16 +1657,12 @@ static bool prep_compound_gigantic_page(
- 		 * cache adding could take a ref on a 'to be' tail page.
- 		 * We need to respect any increased ref count, and only set
- 		 * the ref count to zero if count is currently 1.  If count
--		 * is not 1, we call synchronize_rcu in the hope that a rcu
--		 * grace period will cause ref count to drop and then retry.
--		 * If count is still inflated on retry we return an error and
--		 * must discard the pages.
-+		 * is not 1, we return an error and caller must discard the
-+		 * pages.
- 		 */
- 		if (!page_ref_freeze(p, 1)) {
--			pr_info("HugeTLB unexpected inflated ref count on freshly allocated page\n");
--			synchronize_rcu();
--			if (!page_ref_freeze(p, 1))
--				goto out_error;
-+			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
-+			goto out_error;
- 		}
- 		set_page_count(p, 0);
- 		set_compound_head(p, page);
-@@ -1830,7 +1826,6 @@ retry:
- 				retry = true;
- 				goto retry;
- 			}
--			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
- 			return NULL;
- 		}
+@@ -1072,6 +1072,8 @@ static void enqueue_huge_page(struct hst
+ 	int nid = page_to_nid(page);
+ 
+ 	lockdep_assert_held(&hugetlb_lock);
++	VM_BUG_ON_PAGE(page_count(page), page);
++
+ 	list_move(&page->lru, &h->hugepage_freelists[nid]);
+ 	h->free_huge_pages++;
+ 	h->free_huge_pages_node[nid]++;
+@@ -1399,11 +1401,20 @@ static void add_hugetlb_page(struct hsta
+ 	SetHPageVmemmapOptimized(page);
+ 
+ 	/*
+-	 * This page is now managed by the hugetlb allocator and has
+-	 * no users -- drop the last reference.
++	 * This page is about to be managed by the hugetlb allocator and
++	 * should have no users.  Drop our reference, and check for others
++	 * just in case.
+ 	 */
+ 	zeroed = put_page_testzero(page);
+-	VM_BUG_ON_PAGE(!zeroed, page);
++	if (!zeroed)
++		/*
++		 * It is VERY unlikely soneone else has taken a ref on
++		 * the page.  In this case, we simply return as the
++		 * hugetlb destructor (free_huge_page) will be called
++		 * when this other ref is dropped.
++		 */
++		return;
++
+ 	arch_clear_hugepage_flags(page);
+ 	enqueue_huge_page(h, page);
+ }
+@@ -2015,9 +2026,10 @@ int dissolve_free_huge_pages(unsigned lo
+  * Allocates a fresh surplus page from the page allocator.
+  */
+ static struct page *alloc_surplus_huge_page(struct hstate *h, gfp_t gfp_mask,
+-		int nid, nodemask_t *nmask)
++		int nid, nodemask_t *nmask, bool zero_ref)
+ {
+ 	struct page *page = NULL;
++	bool retry = false;
+ 
+ 	if (hstate_is_gigantic(h))
+ 		return NULL;
+@@ -2027,6 +2039,7 @@ static struct page *alloc_surplus_huge_p
+ 		goto out_unlock;
+ 	spin_unlock_irq(&hugetlb_lock);
+ 
++retry:
+ 	page = alloc_fresh_huge_page(h, gfp_mask, nid, nmask, NULL);
+ 	if (!page)
+ 		return NULL;
+@@ -2044,11 +2057,35 @@ static struct page *alloc_surplus_huge_p
+ 		spin_unlock_irq(&hugetlb_lock);
+ 		put_page(page);
+ 		return NULL;
+-	} else {
+-		h->surplus_huge_pages++;
+-		h->surplus_huge_pages_node[page_to_nid(page)]++;
  	}
-@@ -2828,8 +2823,8 @@ static void __init gather_bootmem_preall
- 			prep_new_huge_page(h, page, page_to_nid(page));
- 			put_page(page); /* add to the hugepage allocator */
- 		} else {
-+			/* VERY unlikely inflated ref count on a tail page */
- 			free_gigantic_page(page, huge_page_order(h));
--			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
- 		}
+ 
++	if (zero_ref) {
++		/*
++		 * Caller requires a page with zero ref count.
++		 * We will drop ref count here.  If someone else is holding
++		 * a ref, the page will be freed when they drop it.  Abuse
++		 * temporary page flag to accomplish this.
++		 */
++		SetHPageTemporary(page);
++		if (!put_page_testzero(page)) {
++			/*
++			 * Unexpected inflated ref count on freshly allocated
++			 * huge.  Retry once.
++			 */
++			pr_info("HugeTLB unexpected inflated ref count on freshly allocated page\n");
++			spin_unlock_irq(&hugetlb_lock);
++			if (retry)
++				return NULL;
++
++			retry = true;
++			goto retry;
++		}
++		ClearHPageTemporary(page);
++	}
++
++	h->surplus_huge_pages++;
++	h->surplus_huge_pages_node[page_to_nid(page)]++;
++
+ out_unlock:
+ 	spin_unlock_irq(&hugetlb_lock);
+ 
+@@ -2090,7 +2127,7 @@ struct page *alloc_buddy_huge_page_with_
+ 	nodemask_t *nodemask;
+ 
+ 	nid = huge_node(vma, addr, gfp_mask, &mpol, &nodemask);
+-	page = alloc_surplus_huge_page(h, gfp_mask, nid, nodemask);
++	page = alloc_surplus_huge_page(h, gfp_mask, nid, nodemask, false);
+ 	mpol_cond_put(mpol);
+ 
+ 	return page;
+@@ -2162,7 +2199,7 @@ retry:
+ 	spin_unlock_irq(&hugetlb_lock);
+ 	for (i = 0; i < needed; i++) {
+ 		page = alloc_surplus_huge_page(h, htlb_alloc_mask(h),
+-				NUMA_NO_NODE, NULL);
++				NUMA_NO_NODE, NULL, true);
+ 		if (!page) {
+ 			alloc_ok = false;
+ 			break;
+@@ -2203,24 +2240,20 @@ retry:
+ 
+ 	/* Free the needed pages to the hugetlb pool */
+ 	list_for_each_entry_safe(page, tmp, &surplus_list, lru) {
+-		int zeroed;
+-
+ 		if ((--needed) < 0)
+ 			break;
+-		/*
+-		 * This page is now managed by the hugetlb allocator and has
+-		 * no users -- drop the buddy allocator's reference.
+-		 */
+-		zeroed = put_page_testzero(page);
+-		VM_BUG_ON_PAGE(!zeroed, page);
++		/* Add the page to the hugetlb allocator */
+ 		enqueue_huge_page(h, page);
+ 	}
+ free:
+ 	spin_unlock_irq(&hugetlb_lock);
+ 
+-	/* Free unnecessary surplus pages to the buddy allocator */
++	/*
++	 * Free unnecessary surplus pages to the buddy allocator.
++	 * Pages have no ref count, call free_huge_page directly.
++	 */
+ 	list_for_each_entry_safe(page, tmp, &surplus_list, lru)
+-		put_page(page);
++		free_huge_page(page);
+ 	spin_lock_irq(&hugetlb_lock);
+ 
+ 	return ret;
+@@ -2529,6 +2562,7 @@ static int alloc_and_dissolve_huge_page(
+ {
+ 	gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
+ 	int nid = page_to_nid(old_page);
++	bool alloc_retry = false;
+ 	struct page *new_page;
+ 	int ret = 0;
+ 
+@@ -2539,9 +2573,30 @@ static int alloc_and_dissolve_huge_page(
+ 	 * the pool.  This simplifies and let us do most of the processing
+ 	 * under the lock.
+ 	 */
++alloc_retry:
+ 	new_page = alloc_buddy_huge_page(h, gfp_mask, nid, NULL, NULL);
+ 	if (!new_page)
+ 		return -ENOMEM;
++	/*
++	 * If all goes well, this page will be directly added to the free
++	 * list in the pool.  For this the ref count needs to be zero.
++	 * Attempt to drop now, and retry once if needed.  It is VERY
++	 * unlikely there is another ref on the page.
++	 *
++	 * If someone else has a reference to the page, it will be freed
++	 * when they drop their ref.  Abuse temporary page flag to accomplish
++	 * this.  Retry once if there is an inflated ref count.
++	 */
++	SetHPageTemporary(new_page);
++	if (!put_page_testzero(new_page)) {
++		if (alloc_retry)
++			return -EBUSY;
++
++		alloc_retry = true;
++		goto alloc_retry;
++	}
++	ClearHPageTemporary(new_page);
++
+ 	__prep_new_huge_page(h, new_page);
+ 
+ retry:
+@@ -2581,11 +2636,10 @@ retry:
+ 		remove_hugetlb_page(h, old_page, false);
  
  		/*
+-		 * Reference count trick is needed because allocator gives us
+-		 * referenced page but the pool requires pages with 0 refcount.
++		 * Ref count on new page is already zero as it was dropped
++		 * earlier.  It can be directly added to the pool free list.
+ 		 */
+ 		__prep_account_new_huge_page(h, nid);
+-		page_ref_dec(new_page);
+ 		enqueue_huge_page(h, new_page);
+ 
+ 		/*
+@@ -2599,6 +2653,8 @@ retry:
+ 
+ free_new:
+ 	spin_unlock_irq(&hugetlb_lock);
++	/* Page has a zero ref count, but needs a ref to be freed */
++	set_page_refcounted(new_page);
+ 	update_and_free_page(h, new_page, false);
+ 
+ 	return ret;
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
