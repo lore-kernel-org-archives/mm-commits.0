@@ -2,115 +2,170 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.0 required=3.0 tests=BAYES_00,DKIMWL_WL_MED,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_IN_DEF_DKIM_WL
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD465C07E99
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 00:38:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EED24C07E99
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 00:47:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB1EF613C2
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 00:38:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CA7BE613C9
+	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 00:47:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231176AbhGJAlm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 9 Jul 2021 20:41:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55800 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230428AbhGJAll (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 9 Jul 2021 20:41:41 -0400
-Received: from mail-yb1-xb2f.google.com (mail-yb1-xb2f.google.com [IPv6:2607:f8b0:4864:20::b2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A1957C0613DD
-        for <mm-commits@vger.kernel.org>; Fri,  9 Jul 2021 17:38:57 -0700 (PDT)
-Received: by mail-yb1-xb2f.google.com with SMTP id o139so17155448ybg.9
-        for <mm-commits@vger.kernel.org>; Fri, 09 Jul 2021 17:38:57 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=google.com; s=20161025;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=vyFdGc55DL6K0OX2aUQDmVi9j1XjTMi0SM30A2bE1CM=;
-        b=TGlBZdQnQqBwm55sh/NVe9kNT0ieMQZ8inPcr3V9UxH8bGN/cr+kxyIsymzbPIBvI5
-         viu24pfWq5TI+qsaUjWcnxUR4jIlJJkKDK53eJzs9xVLVG2ashbfGUUfvqaD2dzgCXdO
-         RzRGlv3Rvnu1avzqSkDTrBk/hK8BtQFgW38oaYPSLBDws9wYql9l3vE4DvUnXq2l3gM1
-         Lodmrf/OvN1qaXRPEZr5YVIw229c8OFsVPrwdjXMBPWIrhdp0eMWxcs4wtFjZYnCFjg8
-         b0ryymx0MK3r15Xf5uLOKtapukBVfTX4DDYrh0HgcISOiaCBWuq4nHiaeR8zcMQSveeU
-         ctZg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=vyFdGc55DL6K0OX2aUQDmVi9j1XjTMi0SM30A2bE1CM=;
-        b=pb7DcU7hOfP2zsOlp0aY+aRzCT+agkjuYbYvt+Ridwnr4qZ77QiifcWDv/rsSZn6MM
-         q8yPbySz6Zx3BkY4XSfFftktpQl3Zoe0pQ1Q+NUELEJiECPh88T4d+CFmNLua9zdcP4p
-         zBLxxOTZTM49HvnC4CCnXEyHOFAcgTDOd75wUNYfGNtaBO43Ni6GP/2kfzR8CR/SNTpj
-         csbkDUk/+UjimtAT84sr7ABPGEmJZ6hGH2bHH/GgN/cSNx5JcnoXzh3Whl3dxEX90gzF
-         K+aDHAbacJk/Km8whPMKNe1KwXhffNkmoz/4LEre3LXhnqbrp8dBi/jm97P1pdw3sSeT
-         KkDQ==
-X-Gm-Message-State: AOAM532XlXWQx9fi9/deg/jc4AYnAUoy/wLnkqez0pVEJyOvelZq1nrw
-        Ok7SkugqXHwKqcERsSBuDAKK8Y+qhlROaCG/8kfCUQ==
-X-Google-Smtp-Source: ABdhPJyXbT13RYyTzLeRHexBrbclXFIV+zH0rPbwz9GTiT7xQb+H2c1SX4eQCtsX/egIT9opyaFbrv1K/qIDiy+GkU8=
-X-Received: by 2002:a25:7ec4:: with SMTP id z187mr49702938ybc.136.1625877536695;
- Fri, 09 Jul 2021 17:38:56 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210709222253.W41zC%akpm@linux-foundation.org>
- <CAJuCfpG4JenxJX+-QpHBNkX=MY9hGhh1gTHp5z8vumeZNrCCdQ@mail.gmail.com>
- <20210709170108.70a09b28e74ca0c3795c9117@linux-foundation.org> <CAJuCfpER47fhswssT=Lg0dpXtc0=waoaYcReyCUGOqJ8=k8_9g@mail.gmail.com>
-In-Reply-To: <CAJuCfpER47fhswssT=Lg0dpXtc0=waoaYcReyCUGOqJ8=k8_9g@mail.gmail.com>
-From:   Suren Baghdasaryan <surenb@google.com>
-Date:   Fri, 9 Jul 2021 17:38:45 -0700
-Message-ID: <CAJuCfpG2mgg4JBGpAs6YmBsUSPwhkR+Bf7SXKG7H6uvtZi65nw@mail.gmail.com>
-Subject: Re: + mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
+        id S230428AbhGJAuQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 9 Jul 2021 20:50:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57902 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229614AbhGJAuQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 9 Jul 2021 20:50:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E136C61205;
+        Sat, 10 Jul 2021 00:47:30 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1625878051;
+        bh=7GX1Xr7jPAEOO+sRHOf6w+mj1+8aQjtj7GcjvsLebUQ=;
+        h=Date:From:To:Subject:From;
+        b=UKvz3DORgfRsZAn3BWXgRS5Gn7q0r7dNUkLFctSiEB9vpO1r6v0Ui/1tlNTmRbRwr
+         p79a9QLVXrks0+55G6HAKU+0/s88BkECefJSr+76DCeWY0mZrHFwYvl5uaEP25XbBJ
+         4AgIN3+m4YekfZZf8aUThXO5ukh9vMy2b6bv0MY8=
+Date:   Fri, 09 Jul 2021 17:47:30 -0700
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        songmuchun@bytedance.com, osalvador@suse.de,
+        naoya.horiguchi@linux.dev, mhocko@suse.com, david@redhat.com,
+        almasrymina@google.com, mike.kravetz@oracle.com
+Subject:  +
+ hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
  added to -mm tree
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
-        Shakeel Butt <shakeelb@google.com>,
-        Michal Hocko <mhocko@suse.com>,
-        Johannes Weiner <hannes@cmpxchg.org>
-Content-Type: text/plain; charset="UTF-8"
+Message-ID: <20210710004730.4V-cU%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Jul 9, 2021 at 5:24 PM Suren Baghdasaryan <surenb@google.com> wrote:
->
-> On Fri, Jul 9, 2021 at 5:01 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> >
-> > On Fri, 9 Jul 2021 16:35:18 -0700 Suren Baghdasaryan <surenb@google.com> wrote:
-> >
-> > > On Fri, Jul 9, 2021 at 3:22 PM <akpm@linux-foundation.org> wrote:
-> > > >
-> > > >
-> > > > The patch titled
-> > > >      Subject: mm, memcg: inline mem_cgroup_{charge/uncharge} to improve disabled memcg config
-> > > > has been added to the -mm tree.  Its filename is
-> > > >      mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
-> > > >
-> > > > This patch should soon appear at
-> > > >     https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
-> > > > and later at
-> > > >     https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
-> > >
-> > > Hi Andrew,
-> > > Please note that this patch is the second in the series of 3 here:
-> >
-> > This patch had "[PATCH v2 1/1]" in the title.  Poor me.
->
-> Oops! My bad, sorry.
->
-> >
-> > > https://lore.kernel.org/patchwork/project/lkml/list/?series=507567 and
-> > > the only one that needed a v2 (others seem to be fine and are Ack'ed).
-> > > If you would like me to respin the whole series please let me know.
-> >
-> > Yes please.
->
-> Coming right up!
 
-Posted v3 of the whole series here:
-https://lore.kernel.org/patchwork/project/lkml/list/?series=507708
-Sorry about the confusion.
+The patch titled
+     Subject: hugetlb: simplify prep_compound_gigantic_page ref count racing code
+has been added to the -mm tree.  Its filename is
+     hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
 
->
-> >
-> >
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: simplify prep_compound_gigantic_page ref count racing code
+
+Patch series "hugetlb: fix potential ref counting races".
+
+When Muchun Song brought up a potential issue with hugetlb ref
+counting[1], I started looking closer at the code.  hugetlbfs is the only
+code with it's own specialized compound page destructor and taking special
+action when ref counts drop to zero.  Potential races happen in this
+unique handling of ref counts.  The following patches address these races
+when creating and destroying hugetlb pages.
+
+These potential races have likely existed since the creation of hugetlbfs.
+They certainly have been around for more than 10 years.  However, I am
+unaware of anyone actually hitting these races.  It is VERY unlikely than
+anyone will actually hit these races, but they do exist.
+
+I could not think of an easy (or difficult) way to force these races. 
+Therefore, testing consisted of adding code to randomly increase ref
+counts in strategic places.  In this way, I was able to exercise all the
+race handling code paths.
+
+[1] https://lore.kernel.org/linux-mm/CAMZfGtVMn3daKrJwZMaVOGOaJU+B4dS--x_oPmGQMD=c=QNGEg@mail.gmail.com/
+
+
+This patch (of 3):
+
+Code in prep_compound_gigantic_page waits for a rcu grace period if it
+notices a temporarily inflated ref count on a tail page.  This was due to
+the identified potential race with speculative page cache references which
+could only last for a rcu grace period.  This is overly complicated as
+this situation is VERY unlikely to ever happen.  Instead, just quickly
+return an error.
+
+Also, only print a warning in prep_compound_gigantic_page instead of
+multiple callers.
+
+Link: https://lkml.kernel.org/r/20210710002441.167759-1-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20210710002441.167759-2-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb.c |   15 +++++----------
+ 1 file changed, 5 insertions(+), 10 deletions(-)
+
+--- a/mm/hugetlb.c~hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code
++++ a/mm/hugetlb.c
+@@ -1657,16 +1657,12 @@ static bool prep_compound_gigantic_page(
+ 		 * cache adding could take a ref on a 'to be' tail page.
+ 		 * We need to respect any increased ref count, and only set
+ 		 * the ref count to zero if count is currently 1.  If count
+-		 * is not 1, we call synchronize_rcu in the hope that a rcu
+-		 * grace period will cause ref count to drop and then retry.
+-		 * If count is still inflated on retry we return an error and
+-		 * must discard the pages.
++		 * is not 1, we return an error and caller must discard the
++		 * pages.
+ 		 */
+ 		if (!page_ref_freeze(p, 1)) {
+-			pr_info("HugeTLB unexpected inflated ref count on freshly allocated page\n");
+-			synchronize_rcu();
+-			if (!page_ref_freeze(p, 1))
+-				goto out_error;
++			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
++			goto out_error;
+ 		}
+ 		set_page_count(p, 0);
+ 		set_compound_head(p, page);
+@@ -1830,7 +1826,6 @@ retry:
+ 				retry = true;
+ 				goto retry;
+ 			}
+-			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
+ 			return NULL;
+ 		}
+ 	}
+@@ -2828,8 +2823,8 @@ static void __init gather_bootmem_preall
+ 			prep_new_huge_page(h, page, page_to_nid(page));
+ 			put_page(page); /* add to the hugepage allocator */
+ 		} else {
++			/* VERY unlikely inflated ref count on a tail page */
+ 			free_gigantic_page(page, huge_page_order(h));
+-			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
+ 		}
+ 
+ 		/*
+_
+
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
+
+hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
+hugetlb-drop-ref-count-earlier-after-page-allocation.patch
+hugetlb-before-freeing-hugetlb-page-set-dtor-to-appropriate-value.patch
+
