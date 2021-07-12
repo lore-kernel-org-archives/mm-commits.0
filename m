@@ -2,151 +2,91 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-16.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7B59C07E9B
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 21:45:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBE6EC07E9A
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jul 2021 14:48:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8DDBE6135C
-	for <mm-commits@archiver.kernel.org>; Sat, 10 Jul 2021 21:45:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6889611CD
+	for <mm-commits@archiver.kernel.org>; Mon, 12 Jul 2021 14:48:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229640AbhGJVsK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 10 Jul 2021 17:48:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57410 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229515AbhGJVsJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 10 Jul 2021 17:48:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B4EDE6135E;
-        Sat, 10 Jul 2021 21:45:23 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1625953523;
-        bh=yVjIkjiwsUeyuLj9pdiwF0hEO+hXqQX+PsYURj2+2Nc=;
-        h=Date:From:To:Subject:From;
-        b=e1CijzwZ9VrDja81UGREqgbeuVopsqXQH71NtEaSf3ZsXp52z+9TgZaQzmwzZPZw3
-         U/5kRnhQ3lXZFKYO6ws1WaOs9u2OLKolKurFMjY91YncqasU32Ax8O44JLDwug9MTR
-         RZmwtwFHshodSpEYYsrXAPciYLauFoCwON/lvbak=
-Date:   Sat, 10 Jul 2021 14:45:23 -0700
-From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        slava@dubeyko.com, skhan@linuxfoundation.org,
-        gustavoars@kernel.org, gregkh@linuxfoundation.org,
-        desmondcheongzx@gmail.com
-Subject:  + hfs-add-lock-nesting-notation-to-hfs_find_init.patch
- added to -mm tree
-Message-ID: <20210710214523.Jcw4k%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+        id S234379AbhGLOvQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 12 Jul 2021 10:51:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60918 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230363AbhGLOvP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 12 Jul 2021 10:51:15 -0400
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A5001C0613DD
+        for <mm-commits@vger.kernel.org>; Mon, 12 Jul 2021 07:48:27 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=IrfkZtyTnZQpIyer0CcC3C6fDw3PExEkEtu69JUtc0s=; b=U/SK4tSIHbq1WitEwAfv5g+wDp
+        +4GzF6Rp3n25A5DbY7XwQ4nfYNAq6O5FJWKh4msl6Btk9Tz1zb4FUPs4vI969HMLHCB8KwVpyVFyK
+        WKO4WqnJTvS7xMvQ162YQNq8R1Pfp0uEWEGTaILcWaCFtoecwCnEJuOpumWxm0XVct1l5hIU4x9Af
+        cfGJEtn3ecLcm0jECeSKVjCUTYfUa2lkjHf+FJK72RrmifuHb+v/DUz99wPHgcP7R8NtmP3ByD9xM
+        V1Md6kjxTwBqOc82R3m1ls9o2FjF0vfIiFC8RZTrUURQRa1We9YTOw7mvaQBz5TK61MIcDYe8nYp7
+        2t4n0Aew==;
+Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1m2xE3-0008Dx-AH; Mon, 12 Jul 2021 14:48:05 +0000
+Date:   Mon, 12 Jul 2021 15:48:03 +0100
+From:   Matthew Wilcox <willy@infradead.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     almasrymina@google.com, axelrasmussen@google.com,
+        linux-mm@kvack.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, peterx@redhat.com,
+        torvalds@linux-foundation.org, yuehaibing@huawei.com
+Subject: Re: [patch 023/192] mm, hugetlb: fix racy resv_huge_pages underflow
+ on UFFDIO_COPY
+Message-ID: <YOxWI2imZq5/e8VW@casper.infradead.org>
+References: <20210630184624.9ca1937310b0dd5ce66b30e7@linux-foundation.org>
+ <20210701014819.Vm-gaPGHW%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210701014819.Vm-gaPGHW%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, Jun 30, 2021 at 06:48:19PM -0700, Andrew Morton wrote:
+> From: Mina Almasry <almasrymina@google.com>
+> Subject: mm, hugetlb: fix racy resv_huge_pages underflow on UFFDIO_COPY
+> 
+> On UFFDIO_COPY, if we fail to copy the page contents while holding the
+> hugetlb_fault_mutex, we will drop the mutex and return to the caller after
+> allocating a page that consumed a reservation.  In this case there may be
+> a fault that double consumes the reservation.  To handle this, we free the
+> allocated page, fix the reservations, and allocate a temporary hugetlb
+> page and return that to the caller.  When the caller does the copy outside
+> of the lock, we again check the cache, and allocate a page consuming the
+> reservation, and copy over the contents.
 
-The patch titled
-     Subject: hfs: add lock nesting notation to hfs_find_init
-has been added to the -mm tree.  Its filename is
-     hfs-add-lock-nesting-notation-to-hfs_find_init.patch
+But you only copy over the contents *IF* CONFIG_MIGRATION is enabled!
+Now, maybe there aren't many configs out there that enable HUGETLBFS
+and disable MIGRATION, but this is sloppy.
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hfs-add-lock-nesting-notation-to-hfs_find_init.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hfs-add-lock-nesting-notation-to-hfs_find_init.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
-Subject: hfs: add lock nesting notation to hfs_find_init
-
-Syzbot reports a possible recursive lock:
-https://syzkaller.appspot.com/bug?id=f007ef1d7a31a469e3be7aeb0fde0769b18585db
-
-This happens due to missing lock nesting information.  From the logs, we
-see that a call to hfs_fill_super is made to mount the hfs filesystem. 
-While searching for the root inode, the lock on the catalog btree is
-grabbed.  Then, when the parent of the root isn't found, a call to
-__hfs_bnode_create is made to create the parent of the root.  This
-eventually leads to a call to hfs_ext_read_extent which grabs a lock on
-the extents btree.
-
-Since the order of locking is catalog btree -> extents btree, this lock
-hierarchy does not lead to a deadlock.
-
-To tell lockdep that this locking is safe, we add nesting notation to
-distinguish between catalog btrees, extents btrees, and attributes btrees
-(for HFS+).  This has already been done in hfsplus.
-
-Link: https://lkml.kernel.org/r/20210701030756.58760-4-desmondcheongzx@gmail.com
-Signed-off-by: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
-Reported-by: syzbot+b718ec84a87b7e73ade4@syzkaller.appspotmail.com
-Tested-by: syzbot+b718ec84a87b7e73ade4@syzkaller.appspotmail.com
-Reviewed-by: Viacheslav Dubeyko <slava@dubeyko.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- fs/hfs/bfind.c |   14 +++++++++++++-
- fs/hfs/btree.h |    7 +++++++
- 2 files changed, 20 insertions(+), 1 deletion(-)
-
---- a/fs/hfs/bfind.c~hfs-add-lock-nesting-notation-to-hfs_find_init
-+++ a/fs/hfs/bfind.c
-@@ -25,7 +25,19 @@ int hfs_find_init(struct hfs_btree *tree
- 	fd->key = ptr + tree->max_key_len + 2;
- 	hfs_dbg(BNODE_REFS, "find_init: %d (%p)\n",
- 		tree->cnid, __builtin_return_address(0));
--	mutex_lock(&tree->tree_lock);
-+	switch (tree->cnid) {
-+	case HFS_CAT_CNID:
-+		mutex_lock_nested(&tree->tree_lock, CATALOG_BTREE_MUTEX);
-+		break;
-+	case HFS_EXT_CNID:
-+		mutex_lock_nested(&tree->tree_lock, EXTENTS_BTREE_MUTEX);
-+		break;
-+	case HFS_ATTR_CNID:
-+		mutex_lock_nested(&tree->tree_lock, ATTR_BTREE_MUTEX);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 	return 0;
- }
- 
---- a/fs/hfs/btree.h~hfs-add-lock-nesting-notation-to-hfs_find_init
-+++ a/fs/hfs/btree.h
-@@ -13,6 +13,13 @@ typedef int (*btree_keycmp)(const btree_
- 
- #define NODE_HASH_SIZE  256
- 
-+/* B-tree mutex nested subclasses */
-+enum hfs_btree_mutex_classes {
-+	CATALOG_BTREE_MUTEX,
-+	EXTENTS_BTREE_MUTEX,
-+	ATTR_BTREE_MUTEX,
-+};
-+
- /* A HFS BTree held in memory */
- struct hfs_btree {
- 	struct super_block *sb;
-_
-
-Patches currently in -mm which might be from desmondcheongzx@gmail.com are
-
-hfs-add-missing-clean-up-in-hfs_fill_super.patch
-hfs-fix-high-memory-mapping-in-hfs_bnode_read.patch
-hfs-add-lock-nesting-notation-to-hfs_find_init.patch
-
+> +++ a/include/linux/migrate.h
+> @@ -51,6 +51,7 @@ extern int migrate_huge_page_move_mappin
+>  				  struct page *newpage, struct page *page);
+>  extern int migrate_page_move_mapping(struct address_space *mapping,
+>  		struct page *newpage, struct page *page, int extra_count);
+> +extern void copy_huge_page(struct page *dst, struct page *src);
+>  #else
+>  
+>  static inline void putback_movable_pages(struct list_head *l) {}
+> @@ -77,6 +78,9 @@ static inline int migrate_huge_page_move
+>  	return -ENOSYS;
+>  }
+>  
+> +static inline void copy_huge_page(struct page *dst, struct page *src)
+> +{
+> +}
+>  #endif /* CONFIG_MIGRATION */
+>  
+>  #ifdef CONFIG_COMPACTION
