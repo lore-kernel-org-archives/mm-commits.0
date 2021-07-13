@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CF83C07E95
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Jul 2021 22:41:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA32FC07E96
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Jul 2021 22:41:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D90461284
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Jul 2021 22:41:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C1AC761279
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Jul 2021 22:41:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236668AbhGMWoW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jul 2021 18:44:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50572 "EHLO mail.kernel.org"
+        id S236671AbhGMWoZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Jul 2021 18:44:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50600 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235536AbhGMWoW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Jul 2021 18:44:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BFC9E6127C;
-        Tue, 13 Jul 2021 22:41:31 +0000 (UTC)
+        id S236669AbhGMWoZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Jul 2021 18:44:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A0F7461284;
+        Tue, 13 Jul 2021 22:41:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626216092;
-        bh=7SfPnqdF/gZnzadl2l51kIV99TM7zsqVB0B9QiiaFtU=;
+        s=korg; t=1626216094;
+        bh=B1hcD6SR1IfVW9g8w+NboVOS2C9yMkM6rLHqqkwF7VE=;
         h=Date:From:To:Subject:From;
-        b=1Ko+cu52lUKn+ySa/VhzaH+PArbd23UuZLHNApMyM+9NzYcb54NoN7EEi/THNvTAe
-         eE5YBEHoVoU2KxmksZ1XL7MNnnM0IBxr4/zTjoGvmw93eeVpZbyXylhdypPrzkg1Bq
-         yiOPs1SOh8z9IFNzsHjK4jK4OAWiPQIbX4K3dmls=
-Date:   Tue, 13 Jul 2021 15:41:31 -0700
+        b=IhgXYsqa/M039lqcJFNlHAJdUgIhravYsg8eHPw38DtNP0NtutKitj4TK3SpIXgox
+         03O3BtLoftLeP7dYyu+fvahqV4xC403dM08dezT3D0W2JGdsa2+ENl8pvXKxO3KNQn
+         +kRe2PMeoOaPMIPRcIbnV+TrTCae1VSTC9z/ddCM=
+Date:   Tue, 13 Jul 2021 15:41:34 -0700
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, brouer@redhat.com, chuck.lever@oracle.com,
-        mgorman@techsingularity.net, mhocko@kernel.org, mingo@kernel.org,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        tglx@linutronix.de, vbabka@suse.cz
+To:     apopple@nvidia.com, hch@lst.de, hughd@google.com, jgg@nvidia.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        rcampbell@nvidia.com, shakeelb@google.com, shy828301@gmail.com
 Subject:  [merged]
- mm-page_alloc-revert-pahole-zero-sized-workaround.patch removed from -mm
+ mm-rmap-fix-comments-left-over-from-recent-changes.patch removed from -mm
  tree
-Message-ID: <20210713224131.wTxYl5alO%akpm@linux-foundation.org>
+Message-ID: <20210713224134.9qsenWxai%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,76 +45,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: Revert pahole zero-sized workaround
+     Subject: mm/rmap: fix comments left over from recent changes
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-revert-pahole-zero-sized-workaround.patch
+     mm-rmap-fix-comments-left-over-from-recent-changes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/page_alloc: Revert pahole zero-sized workaround
+From: Hugh Dickins <hughd@google.com>
+Subject: mm/rmap: fix comments left over from recent changes
 
-Commit dbbee9d5cd83 ("mm/page_alloc: convert per-cpu list protection to
-local_lock") folded in a workaround patch for pahole that was unable to
-deal with zero-sized percpu structures.  A superior workaround is achieved
-with commit a0b8200d06ad ("kbuild: skip per-CPU BTF generation for pahole
-v1.18-v1.21").  This patch reverts the dummy field and the pahole version
-check.
+Parallel developments in mm/rmap.c have left behind some out-of-date
+comments: try_to_migrate_one() also accepts TTU_SYNC (already commented in
+try_to_migrate() itself), and try_to_migrate() returns nothing at all.
 
-Link: https://lkml.kernel.org/r/20210705095117.GM3840@techsingularity.net
-Fixes: dbbee9d5cd83 ("mm/page_alloc: convert per-cpu list protection to local_lock")
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Chuck Lever III <chuck.lever@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+TTU_SPLIT_FREEZE has just been deleted, so reword the comment about it in
+mm/huge_memory.c; and TTU_IGNORE_ACCESS was removed in 5.11, so delete the
+"recently referenced" comment from try_to_unmap_one() (once upon a time
+the comment was near the removed codeblock, but they drifted apart).
+
+Link: https://lkml.kernel.org/r/563ce5b2-7a44-5b4d-1dfd-59a0e65932a9@google.com
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    3 ---
- mm/page_alloc.c   |   11 -----------
- 2 files changed, 14 deletions(-)
+ mm/huge_memory.c |    2 +-
+ mm/rmap.c        |    7 +------
+ 2 files changed, 2 insertions(+), 7 deletions(-)
 
---- a/lib/Kconfig.debug~mm-page_alloc-revert-pahole-zero-sized-workaround
-+++ a/lib/Kconfig.debug
-@@ -313,9 +313,6 @@ config DEBUG_INFO_BTF
- config PAHOLE_HAS_SPLIT_BTF
- 	def_bool $(success, test `$(PAHOLE) --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'` -ge "119")
+--- a/mm/huge_memory.c~mm-rmap-fix-comments-left-over-from-recent-changes
++++ a/mm/huge_memory.c
+@@ -2331,7 +2331,7 @@ static void remap_page(struct page *page
+ {
+ 	int i;
  
--config PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT
--	def_bool $(success, test `$(PAHOLE) --version | sed -E 's/v([0-9]+)\.([0-9]+)/\1\2/'` -ge "122")
--
- config DEBUG_INFO_BTF_MODULES
- 	def_bool y
- 	depends on DEBUG_INFO_BTF && MODULES && PAHOLE_HAS_SPLIT_BTF
---- a/mm/page_alloc.c~mm-page_alloc-revert-pahole-zero-sized-workaround
-+++ a/mm/page_alloc.c
-@@ -124,17 +124,6 @@ static DEFINE_MUTEX(pcp_batch_high_lock)
- 
- struct pagesets {
- 	local_lock_t lock;
--#if defined(CONFIG_DEBUG_INFO_BTF) &&				\
--	!defined(CONFIG_DEBUG_LOCK_ALLOC) &&			\
--	!defined(CONFIG_PAHOLE_HAS_ZEROSIZE_PERCPU_SUPPORT)
--	/*
--	 * pahole 1.21 and earlier gets confused by zero-sized per-CPU
--	 * variables and produces invalid BTF. Ensure that
--	 * sizeof(struct pagesets) != 0 for older versions of pahole.
--	 */
--	char __pahole_hack;
--	#warning "pahole too old to support zero-sized struct pagesets"
--#endif
- };
- static DEFINE_PER_CPU(struct pagesets, pagesets) = {
- 	.lock = INIT_LOCAL_LOCK(lock),
+-	/* If TTU_SPLIT_FREEZE is ever extended to file, remove this check */
++	/* If unmap_page() uses try_to_migrate() on file, remove this check */
+ 	if (!PageAnon(page))
+ 		return;
+ 	if (PageTransHuge(page)) {
+--- a/mm/rmap.c~mm-rmap-fix-comments-left-over-from-recent-changes
++++ a/mm/rmap.c
+@@ -1439,8 +1439,6 @@ static bool try_to_unmap_one(struct page
+ 	while (page_vma_mapped_walk(&pvmw)) {
+ 		/*
+ 		 * If the page is mlock()d, we cannot swap it out.
+-		 * If it's recently referenced (perhaps page_referenced
+-		 * skipped over this mm) then we should reactivate it.
+ 		 */
+ 		if (!(flags & TTU_IGNORE_MLOCK)) {
+ 			if (vma->vm_flags & VM_LOCKED) {
+@@ -1687,8 +1685,7 @@ void try_to_unmap(struct page *page, enu
+  * @arg: enum ttu_flags will be passed to this argument.
+  *
+  * If TTU_SPLIT_HUGE_PMD is specified any PMD mappings will be split into PTEs
+- * containing migration entries. This and TTU_RMAP_LOCKED are the only supported
+- * flags.
++ * containing migration entries.
+  */
+ static bool try_to_migrate_one(struct page *page, struct vm_area_struct *vma,
+ 		     unsigned long address, void *arg)
+@@ -1928,8 +1925,6 @@ static bool try_to_migrate_one(struct pa
+  *
+  * Tries to remove all the page table entries which are mapping this page and
+  * replace them with special swap entries. Caller must hold the page lock.
+- *
+- * If is successful, return true. Otherwise, false.
+  */
+ void try_to_migrate(struct page *page, enum ttu_flags flags)
+ {
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-page_alloc-avoid-page-allocator-recursion-with-pagesetslock-held.patch
+fs-mm-fix-race-in-unlinking-swapfile.patch
 
