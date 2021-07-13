@@ -2,99 +2,126 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	SPF_HELO_NONE,SPF_PASS,TVD_SPACE_RATIO autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42158C07E95
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Jul 2021 23:15:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A03A4C07E95
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Jul 2021 23:16:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1841961363
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Jul 2021 23:15:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82AD761363
+	for <mm-commits@archiver.kernel.org>; Tue, 13 Jul 2021 23:16:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236666AbhGMXSp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jul 2021 19:18:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53654 "EHLO mail.kernel.org"
+        id S235417AbhGMXS4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Jul 2021 19:18:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53680 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235417AbhGMXSp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Jul 2021 19:18:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0F9C461361;
-        Tue, 13 Jul 2021 23:15:54 +0000 (UTC)
+        id S229500AbhGMXS4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Jul 2021 19:18:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A58BD61362;
+        Tue, 13 Jul 2021 23:16:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626218154;
-        bh=yPegGxBp2AFPXH+ONpMFoYlj0H468kfx9mYyz9Mwoqo=;
+        s=korg; t=1626218164;
+        bh=HE3+CFhozfYn+4FAWVV00jjsVMyapEu3llBAnHw5gq4=;
         h=Date:From:To:Subject:From;
-        b=DqeyZPF6N5aOFh+j3sdy9yKtsvHR8DeWZmYXMav0FfKVdTwFA356+VcymoQKhM3Nh
-         zxAuoFAtdd2da1TiZkGCtd+jbrMzdVT8ptDrFsp4/CqZDOhAnh4BOLBzESeNfST6jZ
-         jMCn0V+qXnjJrvmKG+66qjeuuL/ciFgE7XAyFU5Q=
-Date:   Tue, 13 Jul 2021 16:15:53 -0700
+        b=iA0byu7iLoeg3QemCt+ifENC+xASsbjAroGXyWgI30z7p7rOfmiw6y06NBFcMjgVo
+         GNJXs3FaSxUd3i3EbdnSx4mcziUrPDQ1a2nyPoskJrAR7iJWs8jJw271sTZlgAZRH3
+         Uq4CT9ensoNxY07EffmHK78fguXkC24ZOIdNofTA=
+Date:   Tue, 13 Jul 2021 16:16:04 -0700
 From:   akpm@linux-foundation.org
-To:     mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        yanfei.xu@windriver.com
+To:     brouer@redhat.com, chuck.lever@oracle.com,
+        desmondcheongzx@gmail.com, mcroce@microsoft.com,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        Qiang.Zhang@windriver.com, yanfei.xu@windriver.com
 Subject:  +
- mm-page_alloc-correct-return-value-when-failing-at-preparing.patch added to
+ mm-page_alloc-further-fix-__alloc_pages_bulk-return-value.patch added to
  -mm tree
-Message-ID: <20210713231553.PKhfKxEUK%akpm@linux-foundation.org>
+Message-ID: <20210713231604.nWBZTeQRY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: application/octet-stream; charset=binary
+Content-Transfer-Encoding: base64
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-
-The patch titled
-     Subject: mm/page_alloc: correct return value when failing at preparing
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-correct-return-value-when-failing-at-preparing.patch
-
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-correct-return-value-when-failing-at-preparing.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-correct-return-value-when-failing-at-preparing.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Yanfei Xu <yanfei.xu@windriver.com>
-Subject: mm/page_alloc: correct return value when failing at preparing
-
-If the array passed in is already partially populated, we should return
-"nr_populated" even failing at preparing arguments stage.
-
-Link: https://lkml.kernel.org/r/20210713152100.10381-3-mgorman@techsingularity.net
-Signed-off-by: Yanfei Xu <yanfei.xu@windriver.com>
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Link: https://lore.kernel.org/r/20210709102855.55058-1-yanfei.xu@windriver.com
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/page_alloc.c~mm-page_alloc-correct-return-value-when-failing-at-preparing
-+++ a/mm/page_alloc.c
-@@ -5255,7 +5255,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
- 	gfp &= gfp_allowed_mask;
- 	alloc_gfp = gfp;
- 	if (!prepare_alloc_pages(gfp, 0, preferred_nid, nodemask, &ac, &alloc_gfp, &alloc_flags))
--		return 0;
-+		return nr_populated;
- 	gfp = alloc_gfp;
- 
- 	/* Find an allowed local zone that meets the low watermark. */
-_
-
-Patches currently in -mm which might be from yanfei.xu@windriver.com are
-
-mm-page_alloc-correct-return-value-when-failing-at-preparing.patch
-
+ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBtbS9wYWdlX2FsbG9jOiBGdXJ0aGVyIGZp
+eCBfX2FsbG9jX3BhZ2VzX2J1bGsoKSByZXR1cm4gdmFsdWUKaGFzIGJlZW4gYWRkZWQgdG8gdGhl
+IC1tbSB0cmVlLiAgSXRzIGZpbGVuYW1lIGlzCiAgICAgbW0tcGFnZV9hbGxvYy1mdXJ0aGVyLWZp
+eC1fX2FsbG9jX3BhZ2VzX2J1bGstcmV0dXJuLXZhbHVlLnBhdGNoCgpUaGlzIHBhdGNoIHNob3Vs
+ZCBzb29uIGFwcGVhciBhdAogICAgaHR0cHM6Ly9vemxhYnMub3JnL35ha3BtL21tb3RzL2Jyb2tl
+bi1vdXQvbW0tcGFnZV9hbGxvYy1mdXJ0aGVyLWZpeC1fX2FsbG9jX3BhZ2VzX2J1bGstcmV0dXJu
+LXZhbHVlLnBhdGNoCmFuZCBsYXRlciBhdAogICAgaHR0cHM6Ly9vemxhYnMub3JnL35ha3BtL21t
+b3RtL2Jyb2tlbi1vdXQvbW0tcGFnZV9hbGxvYy1mdXJ0aGVyLWZpeC1fX2FsbG9jX3BhZ2VzX2J1
+bGstcmV0dXJuLXZhbHVlLnBhdGNoCgpCZWZvcmUgeW91IGp1c3QgZ28gYW5kIGhpdCAicmVwbHki
+LCBwbGVhc2U6CiAgIGEpIENvbnNpZGVyIHdobyBlbHNlIHNob3VsZCBiZSBjYydlZAogICBiKSBQ
+cmVmZXIgdG8gY2MgYSBzdWl0YWJsZSBtYWlsaW5nIGxpc3QgYXMgd2VsbAogICBjKSBJZGVhbGx5
+OiBmaW5kIHRoZSBvcmlnaW5hbCBwYXRjaCBvbiB0aGUgbWFpbGluZyBsaXN0IGFuZCBkbyBhCiAg
+ICAgIHJlcGx5LXRvLWFsbCB0byB0aGF0LCBhZGRpbmcgc3VpdGFibGUgYWRkaXRpb25hbCBjYydz
+CgoqKiogUmVtZW1iZXIgdG8gdXNlIERvY3VtZW50YXRpb24vcHJvY2Vzcy9zdWJtaXQtY2hlY2ts
+aXN0LnJzdCB3aGVuIHRlc3RpbmcgeW91ciBjb2RlICoqKgoKVGhlIC1tbSB0cmVlIGlzIGluY2x1
+ZGVkIGludG8gbGludXgtbmV4dCBhbmQgaXMgdXBkYXRlZAp0aGVyZSBldmVyeSAzLTQgd29ya2lu
+ZyBkYXlzCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0KRnJvbTogQ2h1Y2sgTGV2ZXIgPGNodWNrLmxldmVyQG9yYWNsZS5jb20+ClN1YmplY3Q6
+IG1tL3BhZ2VfYWxsb2M6IEZ1cnRoZXIgZml4IF9fYWxsb2NfcGFnZXNfYnVsaygpIHJldHVybiB2
+YWx1ZQoKEFRoZSBhdXRob3Igb2YgY29tbWl0IGIzYjY0ZWJkMzgyMiAoIm1tL3BhZ2VfYWxsb2M6
+IGRvIGJ1bGsgYXJyYXkKYm91bmRzIGNoZWNrIGFmdGVyIGNoZWNraW5nIHBvcHVsYXRlZCBlbGVt
+ZW50cyIpIHdhcyBwb3NzaWJseQpjb25mdXNlZCBieSB0aGUgbWl4dHVyZSBvZiByZXR1cm4gdmFs
+dWVzIHRocm91Z2hvdXQgdGhlIGZ1bmN0aW9uLgoKVGhlIEFQSSBjb250cmFjdCBpcyBjbGVhciB0
+aGF0IHRoZSBmdW5jdGlvbiAiUmV0dXJucyB0aGUgbnVtYmVyIG9mCnBhZ2VzIG9uIHRoZSBsaXN0
+IG9yIGFycmF5LiIgSXQgZG9lcyBub3QgbGlzdCB6ZXJvIGFzIGEgdW5pcXVlCnJldHVybiB2YWx1
+ZSB3aXRoIGEgc3BlY2lhbCBtZWFuaW5nLiBUaGVyZWZvcmUgemVybyBpcyBhIHBsYXVzaWJsZQpy
+ZRB0dXJuIHZhbHVlIG9ubHkgaWYgQG5yX3BhZ2VzIGlzIHplcm8gb3IgbGVzcy4KCkNsZWFuIHVw
+IHRoZSByZXR1cm4gbG9naWMgdG8gbWFrZSBpdCBjbGVhciB0aGF0IHRoZSByZXR1cm5lZCB2YWx1
+ZSBpcwphbHdheXMgdGhlIHRvdGFsIG51bWJlciBvZiBwYWdlcyBpbiB0aGUgYXJyYXkvbGlzdCwg
+bm90IHRoZSBudW1iZXIgb2YKcGFnZXMgdGhhdCB3ZXJlIGFsbG9jYXRlZCBkdXJpbmcgdGhpcyBj
+YWxsLgoKVGhlIG9ubHkgY2hhbmdlIGluIGJlaGF2aW9yIHdpdGggdGhpcyBwYXRjaCBpcyB0aGUg
+dmFsdWUgcmV0dXJuZWQKaWYgcHJlEHBhcmVfYWxsb2NfcGFnZXMoKSBmYWlscy4gVG8gbWF0Y2gg
+dGhlIEFQSSBjb250cmFjdCwgdGhlCm51bWJlciBvZiBwYWdlcyBjdXJyZW50bHkgaW4gdGhlIGFy
+cmF5L2xpc3QgaXMgcmV0dXJuZWQgaW4gdGhpcwpjYXNlLgoKVGhlIGNhbGwgc2l0ZSBpbiBfX3Bh
+Z2VfcG9vbF9hbGxvY19wYWdlc19zbG93KCkgYWxzbyBzZWVtcyB0byBiZSBjb25mdXNlZApvbiB0
+aGlzIG1hdHRlci4gIEl0IHNob3VsZCBiZSBhdHRlbmRlZCB0byBieSBzb21lb25lIHdobyBpcyBm
+YW1pbGlhciB3aXRoCnRoYXQgY29kZS4KClttZWxAdGVjaHNpbmd1bGFyaXR5Lm5ldDogUmV0dXJu
+IG5yX3BvcHVsYXRlZCBpZiAwIHBhZ2VzIGFyZSByZXF1ZXN0ZWRdCkxpbms6IGh0dHBzOi8vbGtt
+bC5rZXJuZWwub3JnL3IvMjAyMTA3MTMxNTIxMDAuMTAzODEtNC1tZ29ybWFuQHRlY2hzaW5ndWxh
+cml0eS5uZXQKU2lnbmVkLW9mZi1ieTogQ2h1Y2sgTGV2ZXIgPGNodWNrLmxldmVyQG9yYWNsZS5j
+b20+ClNpZ25lZC1vZmYtYnk6IE1lbCBHb3JtYW4gPG1nb3JtYW5AdGVjaHNpbmd1bGFyaXR5Lm5l
+dD4KQWNrZWQtYnk6IEplc3BlciBEYW5nYWFyZCBCcm91ZXIgPGJyb3VlckByZWRoYXQuY29tPgpD
+YzogRGVzbW9uZCBDaGVvbmcgWmhpIFhpIDxkZXNtb25kY2hlb25nenhAZ21haWwuY29tPgpDYzog
+WmhhbmcgUWlhbmcgPFFpYW5nLlpoYW5nQHdpbmRyaXZlci5jb20+CkNjOiBZYW5mZWkgWHUgPHlh
+bmZlaS54dUB3aW5kcml2ZXIuY29tPgpDYzogTWF0dGVvIENyb2NlIDxtY3JvY2VAbWljcm9zb2Z0
+LmNvbT4KU2lnbmVkLW9mZi1ieTogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9u
+Lm9yZz4KLS0tCgogbW0vcGFnZV9hbGxvYy5jIHwgICAxNCArKysrKysrKy0tLS0tLQogMSBmaWxl
+IGNoYW5nZWQsIDggaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKCi0tLSBhL21tL3BhZ2Vf
+YWxsb2MuY35tbS1wYWdlX2FsbG9jLWZ1cnRoZXItZml4LV9fYWxsb2NfcGFnZXNfYnVsay1yZXR1
+cm4tdmFsdWUKKysrIGEvbW0vcGFnZV9hbGxvYy5jCkBAIC01MjIxLDkgKzUyMjEsNiBAQCB1bnNp
+Z25lZCBsb25nIF9fYWxsb2NfcGFnZXNfYnVsayhnZnBfdCBnCiAJdW5zaWduZWQgaW50IGFsbG9j
+X2ZsYWdzID0gQUxMT0NfV01BUktfTE9XOwogCWludCBucl9wb3B1bGF0ZWQgPSAwLCBucl9hY2Nv
+dW50ID0gMDsKIAotCWlmICh1bmxpa2VseShucl9wYWdlcyA8PSAwKSkKLQkJcmV0dXJuIDA7Ci0K
+IAkvKgogCSAqIFNraXAgcG9wdWxhdGVkIGFycmF5IGVsZW1lbnRzIHRvIGRldGVybWluZSBpZiBh
+bnkgcGFnZXMgbmVlZAogCSAqIHRvIGJlIGFsbG9jYXRlZCBiZWZvcmUgZGlzYWJsaW5nIElSUXMu
+CkBAIC01MjMxLDkgKzUyMjgsMTMgQEAgdW5zaWduZWQgbG9uZyBfX2FsbG9jX3BhZ2VzX2J1bGso
+Z2ZwX3QgZwogCXdoaWxlIChwYWdlX2FycmF5ICYmIG5yX3BvcHVsYXRlZCA8IG5yX3BhZ2VzICYm
+IHBhZ2VfYXJyYXlbbnJfcG9wdWxhdGVkXSkKIAkJbnJfcG9wdWxhdGVkKys7CiAKKwkvKiBObyBw
+YWdlcyByZXF1ZXN0ZWQ/ICovCisJaWYgKHVubGlrZWx5KG5yX3BhZ2VzIDw9IDApKQorCQlnb3Rv
+IG91dDsKKwogCS8qIEFscmVhZHkgcG9wdWxhdGVkIGFycmF5PyAqLwogCWlmICh1bmxpa2VseShw
+YWdlX2FycmF5ICYmIG5yX3BhZ2VzIC0gbnJfcG9wdWxhdGVkID09IDApKQotCQlyZXR1cm4gbnJf
+cG9wdWxhdGVkOworCQlnb3RvIG91dDsKIAogCS8qIFVzZSB0aGUgc2luZ2xlIHBhZ2UgYWxsb2Nh
+dG9yIGZvciBvbmUgcGFnZS4gKi8KIAlpZiAobnJfcGFnZXMgLSBucl9wb3B1bGF0ZWQgPT0gMSkK
+QEAgLTUyNTUsNyArNTI1Niw3IEBAIHVuc2lnbmVkIGxvbmcgX19hbGxvY19wYWdlc19idWxrKGdm
+cF90IGcKIAlnZnAgJj0gZ2ZwX2FsbG93ZWRfbWFzazsKIAlhbGxvY19nZnAgPSBnZnA7CiAJaWYg
+KCFwcmVwYXJlX2FsbG9jX3BhZ2VzKGdmcCwgMCwgcHJlZmVycmVkX25pZCwgbm9kZW1hc2ssICZh
+YywgJmFsbG9jX2dmcCwgJmFsbG9jX2ZsYWdzKSkKLQkJcmV0dXJuIG5yX3BvcHVsYXRlZDsKKwkJ
+Z290byBvdXQ7CiAJZ2ZwID0gYWxsb2NfZ2ZwOwogCiAJLyogRmluZCBhbiBhbGxvd2VkIGxvY2Fs
+IHpvbmUgdGhhdCBtZWV0cyB0aGUgbG93IHdhdGVybWFyay4gKi8KQEAgLTUzMjMsNiArNTMyNCw3
+IEBAIHVuc2lnbmVkIGxvbmcgX19hbGxvY19wYWdlc19idWxrKGdmcF90IGcKIAlfX2NvdW50X3pp
+ZF92bV9ldmVudHMoUEdBTExPQywgem9uZV9pZHgoem9uZSksIG5yX2FjY291bnQpOwogCXpvbmVf
+c3RhdGlzdGljcyhhYy5wcmVmZXJyZWRfem9uZXJlZi0+em9uZSwgem9uZSwgbnJfYWNjb3VudCk7
+CiAKK291dDoKIAlyZXR1cm4gbnJfcG9wdWxhdGVkOwogCiBmYWlsZWRfaXJxOgpAQCAtNTMzOCw3
+ICs1MzQwLDcgQEAgZmFpbGVkOgogCQlucl9wb3B1bGF0ZWQrKzsKIAl9CiAKLQlyZXR1cm4gbnJf
+cG9wdWxhdGVkOworCWdvdG8gb3V0OwogfQogRVhQT1JUX1NZTUJPTF9HUEwoX19hbGxvY19wYWdl
+c19idWxrKTsKIApfCgpQYXRjaGVzIGN1cnJlbnRseSBpbiAtbW0gd2hpY2ggbWlnaHQgYmUgZnJv
+bSBjaHVjay5sZXZlckBvcmFjbGUuY29tIGFyZQoKbW0tcGFnZV9hbGxvYy1mdXJ0aGVyLWZpeC1f
+X2FsbG9jX3BhZ2VzX2J1bGstcmV0dXJuLXZhbHVlLnBhdGNoCgo=
