@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62587C07E95
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 02:02:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0B21C12002
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 21:44:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 490EA611AB
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 02:02:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ABACB6128C
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 21:44:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237376AbhGNCEx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jul 2021 22:04:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52228 "EHLO mail.kernel.org"
+        id S234365AbhGNVrv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 17:47:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36440 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237371AbhGNCEx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Jul 2021 22:04:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6082761361;
-        Wed, 14 Jul 2021 02:02:02 +0000 (UTC)
+        id S230470AbhGNVrv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 17:47:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7BB066128B;
+        Wed, 14 Jul 2021 21:44:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626228122;
-        bh=bPWJ0dLIFUBw+gVCjZ80/KjoLEoAdk6ptA7xYcrYZP0=;
+        s=korg; t=1626299098;
+        bh=xnyTnGDiLffy90XD6M4nQSUlB7IMf41D/V8EeqVBej8=;
         h=Date:From:To:Subject:From;
-        b=2Id4OgLBv0jGyaceBQ6YjUROnkha9axtkA/TnlQP/OxWhCajhg3GIayUNjGPhWlpF
-         A3miUXhvUXLOvFyCKwRuvfv+AvBEkAI/Z3Azko+Kzz4bAxX7/SUQI292FZf2wblFDb
-         akeVxjjdiXbkTYKEPtGx5SBkQTj+qObm0nhu32NQ=
-Date:   Tue, 13 Jul 2021 19:02:00 -0700
+        b=HXzBFmAhhum5MgdQWNKJDK+dGjJt5z0aCIzy65j5ntVD9uOSjEL9iGUs0n6HAz22x
+         0Cu7qpBMaDpz5wC3LcEIyoEmkOCynz3znrvJQY2IIKQ+QFjXPN8+RBRFizhvpWT/Sb
+         9N1H4RGD1jAQKmn+yQ1Gl3vmuEjUR8qpGpQMsez8=
+Date:   Wed, 14 Jul 2021 14:44:57 -0700
 From:   akpm@linux-foundation.org
-To:     bowsingbetee@pm.me, glider@google.com, keescook@chromium.org,
-        mm-commits@vger.kernel.org, slyfox@gentoo.org,
-        stable@vger.kernel.org, tglx@linutronix.de, vbabka@suse.cz
-Subject:  +
- mm-page_alloc-fix-page_poison=1-init_on_alloc_default_on-interaction.patch
- added to -mm tree
-Message-ID: <20210714020200.R85HJRvC7%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, adelva@google.com, andreyknvl@gmail.com,
+        catalin.marinas@arm.com, Dave.Martin@arm.com, eugenis@google.com,
+        lokeshgidra@google.com, mitchp@google.com,
+        mm-commits@vger.kernel.org, pcc@google.com, stable@vger.kernel.org,
+        vincenzo.frascino@arm.com, will@kernel.org, willmcvicker@google.com
+Subject:  + userfaultfd-do-not-untag-user-pointers.patch added to
+ -mm tree
+Message-ID: <20210714214457.y9x0E__3L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: fix page_poison=1 / INIT_ON_ALLOC_DEFAULT_ON interaction
+     Subject: userfaultfd: do not untag user pointers
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-fix-page_poison=1-init_on_alloc_default_on-interaction.patch
+     userfaultfd-do-not-untag-user-pointers.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-page_poison%3D1-init_on_alloc_default_on-interaction.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-do-not-untag-user-pointers.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-page_poison%3D1-init_on_alloc_default_on-interaction.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-do-not-untag-user-pointers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,101 +67,224 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergei Trofimovich <slyfox@gentoo.org>
-Subject: mm: page_alloc: fix page_poison=1 / INIT_ON_ALLOC_DEFAULT_ON interaction
+From: Peter Collingbourne <pcc@google.com>
+Subject: userfaultfd: do not untag user pointers
 
-To reproduce the failure we need the following system:
-  - kernel command: page_poison=1 init_on_free=0 init_on_alloc=0
-  - kernel config:
-    * CONFIG_INIT_ON_ALLOC_DEFAULT_ON=y
-    * CONFIG_INIT_ON_FREE_DEFAULT_ON=y
-    * CONFIG_PAGE_POISONING=y
+Patch series "userfaultfd: do not untag user pointers", v5.
 
-    0000000085629bdd: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    0000000022861832: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00000000c597f5b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    CPU: 11 PID: 15195 Comm: bash Kdump: loaded Tainted: G     U     O      5.13.1-gentoo-x86_64 #1
-    Hardware name: System manufacturer System Product Name/PRIME Z370-A, BIOS 2801 01/13/2021
-    Call Trace:
-     dump_stack+0x64/0x7c
-     __kernel_unpoison_pages.cold+0x48/0x84
-     post_alloc_hook+0x60/0xa0
-     get_page_from_freelist+0xdb8/0x1000
-     __alloc_pages+0x163/0x2b0
-     __get_free_pages+0xc/0x30
-     pgd_alloc+0x2e/0x1a0
-     ? dup_mm+0x37/0x4f0
-     mm_init+0x185/0x270
-     dup_mm+0x6b/0x4f0
-     ? __lock_task_sighand+0x35/0x70
-     copy_process+0x190d/0x1b10
-     kernel_clone+0xba/0x3b0
-     __do_sys_clone+0x8f/0xb0
-     do_syscall_64+0x68/0x80
-     ? do_syscall_64+0x11/0x80
-     entry_SYSCALL_64_after_hwframe+0x44/0xae
+If a user program uses userfaultfd on ranges of heap memory, it may end up
+passing a tagged pointer to the kernel in the range.start field of the
+UFFDIO_REGISTER ioctl.  This can happen when using an MTE-capable
+allocator, or on Android if using the Tagged Pointers feature for MTE
+readiness [1].
 
-Before the 51cba1eb ("init_on_alloc: Optimize static branches")
-init_on_alloc never enabled static branch by default.  It could only be
-enabed explicitly by init_mem_debugging_and_hardening().
+When a fault subsequently occurs, the tag is stripped from the fault
+address returned to the application in the fault.address field of struct
+uffd_msg.  However, from the application's perspective, the tagged address
+*is* the memory address, so if the application is unaware of memory tags,
+it may get confused by receiving an address that is, from its point of
+view, outside of the bounds of the allocation.  We observed this behavior
+in the kselftest for userfaultfd [2] but other applications could have the
+same problem.
 
-But after the 51cba1eb static branch could already be enabled by default. 
-There was no code to ever disable it.  That caused page_poison=1 /
-init_on_free=1 conflict.
+Address this by not untagging pointers passed to the userfaultfd ioctls. 
+Instead, let the system call fail.  Also change the kselftest to use mmap
+so that it doesn't encounter this problem.
 
-This change extends init_mem_debugging_and_hardening() to also disable
-static branch disabling.
+[1] https://source.android.com/devices/tech/debug/tagged-pointers
+[2] tools/testing/selftests/vm/userfaultfd.c
 
-Link: https://lkml.kernel.org/r/20210712215816.1512739-1-slyfox@gentoo.org
-Fixes: 51cba1eb ("init_on_alloc: Optimize static branches")
-Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
-Reported-by: <bowsingbetee@pm.me>
-Reported-by: Mikhail Morfikov
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+
+This patch (of 2):
+
+If a user program uses userfaultfd on ranges of heap memory, it may end up
+passing a tagged pointer to the kernel in the range.start field of the
+UFFDIO_REGISTER ioctl.  This can happen when using an MTE-capable
+allocator, or on Android if using the Tagged Pointers feature for MTE
+readiness [1].
+
+When a fault subsequently occurs, the tag is stripped from the fault
+address returned to the application in the fault.address field of struct
+uffd_msg.  However, from the application's perspective, the tagged address
+*is* the memory address, so if the application is unaware of memory tags,
+it may get confused by receiving an address that is, from its point of
+view, outside of the bounds of the allocation.  We observed this behavior
+in the kselftest for userfaultfd [2] but other applications could have the
+same problem.
+
+Address this by not untagging pointers passed to the userfaultfd ioctls. 
+Instead, let the system call fail.  This will provide an early indication
+of problems with tag-unaware userspace code instead of letting the code
+get confused later, and is consistent with how we decided to handle
+brk/mmap/mremap in commit dcde237319e6 ("mm: Avoid creating virtual
+address aliases in brk()/mmap()/mremap()"), as well as being consistent
+with the existing tagged address ABI documentation relating to how ioctl
+arguments are handled.
+
+The code change is a revert of commit 7d0325749a6c ("userfaultfd: untag
+user pointers") plus some fixups to some additional calls to
+validate_range that have appeared since then.
+
+[1] https://source.android.com/devices/tech/debug/tagged-pointers
+[2] tools/testing/selftests/vm/userfaultfd.c
+
+Link: https://lkml.kernel.org/r/20210714195437.118982-1-pcc@google.com
+Link: https://lkml.kernel.org/r/20210714195437.118982-2-pcc@google.com
+Link: https://linux-review.googlesource.com/id/I761aa9f0344454c482b83fcfcce547db0a25501b
+Fixes: 63f0c6037965 ("arm64: Introduce prctl() options to control the tagged user addresses ABI")
+Signed-off-by: Peter Collingbourne <pcc@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Alistair Delva <adelva@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Dave Martin <Dave.Martin@arm.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Mitch Phillips <mitchp@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: William McVicker <willmcvicker@google.com>
+Cc: <stable@vger.kernel.org>	[5.4]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ Documentation/arm64/tagged-address-abi.rst |   26 +++++++++++++------
+ fs/userfaultfd.c                           |   26 ++++++++-----------
+ 2 files changed, 30 insertions(+), 22 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-fix-page_poison=1-init_on_alloc_default_on-interaction
-+++ a/mm/page_alloc.c
-@@ -840,18 +840,22 @@ void init_mem_debugging_and_hardening(vo
- 	}
- #endif
+--- a/Documentation/arm64/tagged-address-abi.rst~userfaultfd-do-not-untag-user-pointers
++++ a/Documentation/arm64/tagged-address-abi.rst
+@@ -45,14 +45,24 @@ how the user addresses are used by the k
  
--	if (_init_on_alloc_enabled_early) {
--		if (page_poisoning_requested)
-+	if (_init_on_alloc_enabled_early ||
-+	    IS_ENABLED(CONFIG_INIT_ON_ALLOC_DEFAULT_ON)) {
-+		if (page_poisoning_requested) {
- 			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
- 				"will take precedence over init_on_alloc\n");
--		else
-+			static_branch_disable(&init_on_alloc);
-+		} else
- 			static_branch_enable(&init_on_alloc);
- 	}
--	if (_init_on_free_enabled_early) {
--		if (page_poisoning_requested)
-+	if (_init_on_free_enabled_early ||
-+	    IS_ENABLED(CONFIG_INIT_ON_FREE_DEFAULT_ON)) {
-+		if (page_poisoning_requested) {
- 			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
- 				"will take precedence over init_on_free\n");
--		else
-+			static_branch_disable(&init_on_free);
-+		} else
- 			static_branch_enable(&init_on_free);
+ 1. User addresses not accessed by the kernel but used for address space
+    management (e.g. ``mprotect()``, ``madvise()``). The use of valid
+-   tagged pointers in this context is allowed with the exception of
+-   ``brk()``, ``mmap()`` and the ``new_address`` argument to
+-   ``mremap()`` as these have the potential to alias with existing
+-   user addresses.
+-
+-   NOTE: This behaviour changed in v5.6 and so some earlier kernels may
+-   incorrectly accept valid tagged pointers for the ``brk()``,
+-   ``mmap()`` and ``mremap()`` system calls.
++   tagged pointers in this context is allowed with these exceptions:
++
++   - ``brk()``, ``mmap()`` and the ``new_address`` argument to
++     ``mremap()`` as these have the potential to alias with existing
++      user addresses.
++
++     NOTE: This behaviour changed in v5.6 and so some earlier kernels may
++     incorrectly accept valid tagged pointers for the ``brk()``,
++     ``mmap()`` and ``mremap()`` system calls.
++
++   - The ``range.start``, ``start`` and ``dst`` arguments to the
++     ``UFFDIO_*`` ``ioctl()``s used on a file descriptor obtained from
++     ``userfaultfd()``, as fault addresses subsequently obtained by reading
++     the file descriptor will be untagged, which may otherwise confuse
++     tag-unaware programs.
++
++     NOTE: This behaviour changed in v5.14 and so some earlier kernels may
++     incorrectly accept valid tagged pointers for this system call.
+ 
+ 2. User addresses accessed by the kernel (e.g. ``write()``). This ABI
+    relaxation is disabled by default and the application thread needs to
+--- a/fs/userfaultfd.c~userfaultfd-do-not-untag-user-pointers
++++ a/fs/userfaultfd.c
+@@ -1236,23 +1236,21 @@ static __always_inline void wake_userfau
+ }
+ 
+ static __always_inline int validate_range(struct mm_struct *mm,
+-					  __u64 *start, __u64 len)
++					  __u64 start, __u64 len)
+ {
+ 	__u64 task_size = mm->task_size;
+ 
+-	*start = untagged_addr(*start);
+-
+-	if (*start & ~PAGE_MASK)
++	if (start & ~PAGE_MASK)
+ 		return -EINVAL;
+ 	if (len & ~PAGE_MASK)
+ 		return -EINVAL;
+ 	if (!len)
+ 		return -EINVAL;
+-	if (*start < mmap_min_addr)
++	if (start < mmap_min_addr)
+ 		return -EINVAL;
+-	if (*start >= task_size)
++	if (start >= task_size)
+ 		return -EINVAL;
+-	if (len > task_size - *start)
++	if (len > task_size - start)
+ 		return -EINVAL;
+ 	return 0;
+ }
+@@ -1316,7 +1314,7 @@ static int userfaultfd_register(struct u
+ 		vm_flags |= VM_UFFD_MINOR;
  	}
  
+-	ret = validate_range(mm, &uffdio_register.range.start,
++	ret = validate_range(mm, uffdio_register.range.start,
+ 			     uffdio_register.range.len);
+ 	if (ret)
+ 		goto out;
+@@ -1522,7 +1520,7 @@ static int userfaultfd_unregister(struct
+ 	if (copy_from_user(&uffdio_unregister, buf, sizeof(uffdio_unregister)))
+ 		goto out;
+ 
+-	ret = validate_range(mm, &uffdio_unregister.start,
++	ret = validate_range(mm, uffdio_unregister.start,
+ 			     uffdio_unregister.len);
+ 	if (ret)
+ 		goto out;
+@@ -1671,7 +1669,7 @@ static int userfaultfd_wake(struct userf
+ 	if (copy_from_user(&uffdio_wake, buf, sizeof(uffdio_wake)))
+ 		goto out;
+ 
+-	ret = validate_range(ctx->mm, &uffdio_wake.start, uffdio_wake.len);
++	ret = validate_range(ctx->mm, uffdio_wake.start, uffdio_wake.len);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -1711,7 +1709,7 @@ static int userfaultfd_copy(struct userf
+ 			   sizeof(uffdio_copy)-sizeof(__s64)))
+ 		goto out;
+ 
+-	ret = validate_range(ctx->mm, &uffdio_copy.dst, uffdio_copy.len);
++	ret = validate_range(ctx->mm, uffdio_copy.dst, uffdio_copy.len);
+ 	if (ret)
+ 		goto out;
+ 	/*
+@@ -1768,7 +1766,7 @@ static int userfaultfd_zeropage(struct u
+ 			   sizeof(uffdio_zeropage)-sizeof(__s64)))
+ 		goto out;
+ 
+-	ret = validate_range(ctx->mm, &uffdio_zeropage.range.start,
++	ret = validate_range(ctx->mm, uffdio_zeropage.range.start,
+ 			     uffdio_zeropage.range.len);
+ 	if (ret)
+ 		goto out;
+@@ -1818,7 +1816,7 @@ static int userfaultfd_writeprotect(stru
+ 			   sizeof(struct uffdio_writeprotect)))
+ 		return -EFAULT;
+ 
+-	ret = validate_range(ctx->mm, &uffdio_wp.range.start,
++	ret = validate_range(ctx->mm, uffdio_wp.range.start,
+ 			     uffdio_wp.range.len);
+ 	if (ret)
+ 		return ret;
+@@ -1866,7 +1864,7 @@ static int userfaultfd_continue(struct u
+ 			   sizeof(uffdio_continue) - (sizeof(__s64))))
+ 		goto out;
+ 
+-	ret = validate_range(ctx->mm, &uffdio_continue.range.start,
++	ret = validate_range(ctx->mm, uffdio_continue.range.start,
+ 			     uffdio_continue.range.len);
+ 	if (ret)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from slyfox@gentoo.org are
+Patches currently in -mm which might be from pcc@google.com are
 
-mm-page_alloc-fix-page_poison=1-init_on_alloc_default_on-interaction.patch
+userfaultfd-do-not-untag-user-pointers.patch
+selftest-use-mmap-instead-of-posix_memalign-to-allocate-memory.patch
 
