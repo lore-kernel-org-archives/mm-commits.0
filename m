@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E04BC12002
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 22:33:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CBB3C12002
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 22:37:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 413D9610A7
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 22:33:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D6C5613CB
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 22:37:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234587AbhGNWgL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Jul 2021 18:36:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56522 "EHLO mail.kernel.org"
+        id S231824AbhGNWkq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 18:40:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57792 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229900AbhGNWgL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Jul 2021 18:36:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 86E1D613C2;
-        Wed, 14 Jul 2021 22:33:18 +0000 (UTC)
+        id S229900AbhGNWkp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 18:40:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A9978613C2;
+        Wed, 14 Jul 2021 22:37:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626301998;
-        bh=zUCtQy7t0OocPAcCU9hFB35JsAAYdrgcZG/MLia5DWc=;
+        s=korg; t=1626302272;
+        bh=ij1P2uNm1F/md0DJ78CDLWea66AsipZMMRaZmoMm9l8=;
         h=Date:From:To:Subject:From;
-        b=jM7OkLbPAtMnxSGXvEIbOako5UAMY2aLqFbRZ93ZETMjjdgN9PxiyhJSgjYQmrmWq
-         3mCJoBH2bx0I024KeWmwWfzZ1X1HzL2Akg9y7y3yF5IlBAyXs02795MK3zzpSZlSoV
-         jqAbWLvuWysNhTUXFDqjmlk+wqcyaHHGdRztb++k=
-Date:   Wed, 14 Jul 2021 15:33:18 -0700
+        b=KvyrCg9/MeXZB5JgjeaSKSPAeRcMacIOEg5cCpwkal7/uj6XxgsBez1Hpc7v4QCLW
+         LQOB5IkNjy9kqc9r3oi7ytYae0A6k83H7paIigZNYlp0HxiL7JrsO16UwPgpCTbFq6
+         WpD1n0rzob3tEdLzzs+UXlR/jWCpdo2+2xKw+fLY=
+Date:   Wed, 14 Jul 2021 15:37:52 -0700
 From:   akpm@linux-foundation.org
-To:     itazur@amazon.com, kuniyu@amazon.co.jp, mm-commits@vger.kernel.org
+To:     dvyukov@google.com, elver@google.com, glider@google.com,
+        mm-commits@vger.kernel.org, o451686892@gmail.com
 Subject:  +
- pid-cleanup-the-stale-comment-mentioning-pidmap_init.patch added to -mm
- tree
-Message-ID: <20210714223318.LNaGra_3V%akpm@linux-foundation.org>
+ kfence-defer-kfence_test_init-to-ensure-that-kunit-debugfs-is-created.patch
+ added to -mm tree
+Message-ID: <20210714223752.8SuCBLrQt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pid: cleanup the stale comment mentioning pidmap_init().
+     Subject: kfence: defer kfence_test_init to ensure that kunit debugfs is created
 has been added to the -mm tree.  Its filename is
-     pid-cleanup-the-stale-comment-mentioning-pidmap_init.patch
+     kfence-defer-kfence_test_init-to-ensure-that-kunit-debugfs-is-created.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/pid-cleanup-the-stale-comment-mentioning-pidmap_init.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kfence-defer-kfence_test_init-to-ensure-that-kunit-debugfs-is-created.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/pid-cleanup-the-stale-comment-mentioning-pidmap_init.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-defer-kfence_test_init-to-ensure-that-kunit-debugfs-is-created.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,36 +65,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Takahiro Itazuri <itazur@amazon.com>
-Subject: pid: cleanup the stale comment mentioning pidmap_init().
+From: Weizhao Ouyang <o451686892@gmail.com>
+Subject: kfence: defer kfence_test_init to ensure that kunit debugfs is created
 
-pidmap_init() has already been replaced with pid_idr_init() in the commit
-95846ecf9dac ("pid: replace pid bitmap implementation with IDR API"). 
-Cleanup the stale comment which still mentions it.
+kfence_test_init and kunit_init both use the same level late_initcall,
+which means if kfence_test_init linked ahead of kunit_init,
+kfence_test_init will get a NULL debugfs_rootdir as parent dentry, then
+kfence_test_init and kfence_debugfs_init both create a debugfs node named
+"kfence" under debugfs_mount->mnt_root, and it will throw out "debugfs:
+Directory 'kfence' with parent '/' already present!" with EEXIST.  So
+kfence_test_init should be deferred.
 
-Link: https://lkml.kernel.org/r/20210714120713.19825-1-itazur@amazon.com
-Signed-off-by: Takahiro Itazuri <itazur@amazon.com>
-Cc: Kuniyuki Iwashima <kuniyu@amazon.co.jp>
+Link: https://lkml.kernel.org/r/20210714113140.2949995-1-o451686892@gmail.com
+Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
+Tested-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/threads.h |    2 +-
+ mm/kfence/kfence_test.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/threads.h~pid-cleanup-the-stale-comment-mentioning-pidmap_init
-+++ a/include/linux/threads.h
-@@ -38,7 +38,7 @@
-  * Define a minimum number of pids per cpu.  Heuristically based
-  * on original pid max of 32k for 32 cpus.  Also, increase the
-  * minimum settable value for pid_max on the running system based
-- * on similar defaults.  See kernel/pid.c:pidmap_init() for details.
-+ * on similar defaults.  See kernel/pid.c:pid_idr_init() for details.
-  */
- #define PIDS_PER_CPU_DEFAULT	1024
- #define PIDS_PER_CPU_MIN	8
+--- a/mm/kfence/kfence_test.c~kfence-defer-kfence_test_init-to-ensure-that-kunit-debugfs-is-created
++++ a/mm/kfence/kfence_test.c
+@@ -852,7 +852,7 @@ static void kfence_test_exit(void)
+ 	tracepoint_synchronize_unregister();
+ }
+ 
+-late_initcall(kfence_test_init);
++late_initcall_sync(kfence_test_init);
+ module_exit(kfence_test_exit);
+ 
+ MODULE_LICENSE("GPL v2");
 _
 
-Patches currently in -mm which might be from itazur@amazon.com are
+Patches currently in -mm which might be from o451686892@gmail.com are
 
-pid-cleanup-the-stale-comment-mentioning-pidmap_init.patch
+kfence-defer-kfence_test_init-to-ensure-that-kunit-debugfs-is-created.patch
 
