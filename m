@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DF27C12002
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:11:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 796C1C12002
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:11:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4D452613BA
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:11:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 61D60613CC
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:11:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237481AbhGNXOU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Jul 2021 19:14:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35346 "EHLO mail.kernel.org"
+        id S234563AbhGNXOp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 19:14:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35406 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229928AbhGNXOU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Jul 2021 19:14:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 88444613BA;
-        Wed, 14 Jul 2021 23:11:27 +0000 (UTC)
+        id S229928AbhGNXOo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 19:14:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 970E9613CA;
+        Wed, 14 Jul 2021 23:11:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626304287;
+        s=korg; t=1626304311;
         bh=fQIzIK8yCCGrIL/sOPsmi0dMM3ffE4oU3dx/7bto9CM=;
         h=Date:From:To:Subject:From;
-        b=TQ8hx3505Fbqd09lW0poHtsWoRQYPAsNIYyzT1JLDcJQBglbEqqu2GFlEjs8nRPWZ
-         GgxCfBqhqUYITujGZBCtodRyBHE1Z8q08vAEYTDmZzYbOyGU8lOTmFf6x3w4uKshXx
-         6BEl+o4mvwt9+vRCnTQ3cedGsvOpoz7Bp48qQr08=
-Date:   Wed, 14 Jul 2021 16:11:27 -0700
+        b=EwxZmsQO8cfEHJFpcbcPBUSWKYD959e2pNh+vrmr1yyBww+pRARrtoO/iYAL2Lt0s
+         7vpg/lzF4SqA5Dd/wGYAIhJ5LBF96e3eGlV7RxT1XtG56m46AQZijrBqC/bt/OvAz6
+         S1HSZJHqoyDokXJLLE05hOX2aWm8SewKTdVPKRjY=
+Date:   Wed, 14 Jul 2021 16:11:51 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, monstr@monstr.eu, rppt@linux.ibm.com
 Subject:  + memblock-stop-poisoning-raw-allocations.patch added to
  -mm tree
-Message-ID: <20210714231127.Dan5RRdYW%akpm@linux-foundation.org>
+Message-ID: <20210714231151.nNQyzmaLp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
