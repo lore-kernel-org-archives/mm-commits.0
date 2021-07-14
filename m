@@ -7,35 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 083D9C07E95
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:14:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84306C07E95
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:18:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E5D8C6136E
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:14:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 623B261374
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:18:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237292AbhGNBQx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jul 2021 21:16:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36500 "EHLO mail.kernel.org"
+        id S237244AbhGNBU4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Jul 2021 21:20:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37036 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237281AbhGNBQx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Jul 2021 21:16:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D038A61370;
-        Wed, 14 Jul 2021 01:14:02 +0000 (UTC)
+        id S237232AbhGNBU4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Jul 2021 21:20:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F41FB61370;
+        Wed, 14 Jul 2021 01:18:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626225243;
-        bh=km9XRV0M+QCNMBaLuPu0DT6lUYm6q9HrT95tgsiF+I0=;
+        s=korg; t=1626225485;
+        bh=8he41gLTTy1QhCp/vbisCdC5Q7IyUznKMTBMZAy7ANs=;
         h=Date:From:To:Subject:From;
-        b=V4xM/8m1V9rW2Jn1YIotCW60zencODf/AXKgEAWSWdUY0OH4AGNGwGo4TYjOSYpS7
-         7EJVa5ukdEZXtBQd5khVfZlVvKvmEsa5cZg0M5nlMQPkKkY99ppUbqkVaT63dh04XY
-         rBB8eQvVc5XytnE6g6qd9kTjg6tpcqs5xHj6sOwI=
-Date:   Tue, 13 Jul 2021 18:14:02 -0700
+        b=nYSnFYAOEfoF9ctn+hXMcNwgVp4YMW0GcTpaQA+wJgB/52wJgTa71RUht5ztJxp2W
+         yilpdJoWJaEVvqDc2awwLDIc6FC+IFeTrOPI/fW24/xc3r3++/mLVBwcRLP1NKhfAJ
+         iewY0DPTcSEn3o0fGDQA5exaY3E/rIKJ4/WBW130=
+Date:   Tue, 13 Jul 2021 18:18:04 -0700
 From:   akpm@linux-foundation.org
-To:     fengguang.wu@intel.com, jack@suse.cz, mm-commits@vger.kernel.org,
-        stapelberg+linux@google.com
+To:     david@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
 Subject:  +
- writeback-use-read_once-for-unlocked-reads-of-writeback-stats.patch added
- to -mm tree
-Message-ID: <20210714011402.FdNaYYXTi%akpm@linux-foundation.org>
+ mm-remove-pfn_valid_within-and-config_holes_in_zone.patch added to -mm tree
+Message-ID: <20210714011804.51ui1EIQx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback: use READ_ONCE for unlocked reads of writeback stats
+     Subject: mm: remove pfn_valid_within() and CONFIG_HOLES_IN_ZONE
 has been added to the -mm tree.  Its filename is
-     writeback-use-read_once-for-unlocked-reads-of-writeback-stats.patch
+     mm-remove-pfn_valid_within-and-config_holes_in_zone.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/writeback-use-read_once-for-unlocked-reads-of-writeback-stats.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-pfn_valid_within-and-config_holes_in_zone.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/writeback-use-read_once-for-unlocked-reads-of-writeback-stats.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-pfn_valid_within-and-config_holes_in_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,149 +63,298 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: writeback: use READ_ONCE for unlocked reads of writeback stats
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm: remove pfn_valid_within() and CONFIG_HOLES_IN_ZONE
 
-We do some unlocked reads of writeback statistics like
-avg_write_bandwidth, dirty_ratelimit, or bw_time_stamp.  Generally we are
-fine with getting somewhat out-of-date values but actually getting
-different values in various parts of the functions because the compiler
-decided to reload value from original memory location could confuse
-calculations.  Use READ_ONCE for these unlocked accesses and WRITE_ONCE
-for the updates to be on the safe side.
+Patch series "mm: remove pfn_valid_within() and CONFIG_HOLES_IN_ZONE".
 
-Link: https://lkml.kernel.org/r/20210713104716.22868-5-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Michael Stapelberg <stapelberg+linux@google.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+After recent updates to freeing unused parts of the memory map, no
+architecture can have holes in the memory map within a pageblock.  This
+makes pfn_valid_within() check and CONFIG_HOLES_IN_ZONE configuration
+option redundant.
+
+The first patch removes them both in a mechanical way and the second patch
+simplifies memory_hotplug::test_pages_in_a_zone() that had
+pfn_valid_within() surrounded by more logic than simple if.
+
+
+This patch (of 2):
+
+After recent changes in freeing of the unused parts of the memory map and
+rework of pfn_valid() in arm and arm64 there are no architectures that can
+have holes in the memory map within a pageblock and so nothing can enable
+CONFIG_HOLES_IN_ZONE which guards non trivial implementation of
+pfn_valid_within().
+
+With that, pfn_valid_within() is always hardwired to 1 and can be
+completely removed.
+
+Remove calls to pfn_valid_within() and CONFIG_HOLES_IN_ZONE.
+
+Link: https://lkml.kernel.org/r/20210713080035.7464-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210713080035.7464-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   28 +++++++++++++++-------------
- 1 file changed, 15 insertions(+), 13 deletions(-)
+ drivers/base/node.c    |    2 --
+ include/linux/mmzone.h |   12 ------------
+ mm/Kconfig             |    3 ---
+ mm/compaction.c        |   20 +++++++-------------
+ mm/memory_hotplug.c    |    4 ----
+ mm/page_alloc.c        |   24 ++----------------------
+ mm/page_isolation.c    |    7 +------
+ mm/page_owner.c        |   14 +-------------
+ 8 files changed, 11 insertions(+), 75 deletions(-)
 
---- a/mm/page-writeback.c~writeback-use-read_once-for-unlocked-reads-of-writeback-stats
-+++ a/mm/page-writeback.c
-@@ -183,7 +183,7 @@ static struct fprop_local_percpu *wb_mem
- static void wb_min_max_ratio(struct bdi_writeback *wb,
- 			     unsigned long *minp, unsigned long *maxp)
+--- a/drivers/base/node.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/drivers/base/node.c
+@@ -768,8 +768,6 @@ int unregister_cpu_under_node(unsigned i
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ static int __ref get_nid_for_pfn(unsigned long pfn)
  {
--	unsigned long this_bw = wb->avg_write_bandwidth;
-+	unsigned long this_bw = READ_ONCE(wb->avg_write_bandwidth);
- 	unsigned long tot_bw = atomic_long_read(&wb->bdi->tot_write_bandwidth);
- 	unsigned long long min = wb->bdi->min_ratio;
- 	unsigned long long max = wb->bdi->max_ratio;
-@@ -892,7 +892,7 @@ static long long pos_ratio_polynom(unsig
- static void wb_position_ratio(struct dirty_throttle_control *dtc)
- {
- 	struct bdi_writeback *wb = dtc->wb;
--	unsigned long write_bw = wb->avg_write_bandwidth;
-+	unsigned long write_bw = READ_ONCE(wb->avg_write_bandwidth);
- 	unsigned long freerun = dirty_freerun_ceiling(dtc->thresh, dtc->bg_thresh);
- 	unsigned long limit = hard_dirty_limit(dtc_dom(dtc), dtc->thresh);
- 	unsigned long wb_thresh = dtc->wb_thresh;
-@@ -1115,7 +1115,7 @@ out:
- 					&wb->bdi->tot_write_bandwidth) <= 0);
- 	}
- 	wb->write_bandwidth = bw;
--	wb->avg_write_bandwidth = avg;
-+	WRITE_ONCE(wb->avg_write_bandwidth, avg);
- }
+-	if (!pfn_valid_within(pfn))
+-		return -1;
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ 	if (system_state < SYSTEM_RUNNING)
+ 		return early_pfn_to_nid(pfn);
+--- a/include/linux/mmzone.h~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/include/linux/mmzone.h
+@@ -1524,18 +1524,6 @@ void sparse_init(void);
+ #define subsection_map_init(_pfn, _nr_pages) do {} while (0)
+ #endif /* CONFIG_SPARSEMEM */
  
- static void update_dirty_limit(struct dirty_throttle_control *dtc)
-@@ -1324,7 +1324,7 @@ static void wb_update_dirty_ratelimit(st
- 	else
- 		dirty_ratelimit -= step;
- 
--	wb->dirty_ratelimit = max(dirty_ratelimit, 1UL);
-+	WRITE_ONCE(wb->dirty_ratelimit, max(dirty_ratelimit, 1UL));
- 	wb->balanced_dirty_ratelimit = balanced_dirty_ratelimit;
- 
- 	trace_bdi_dirty_ratelimit(wb, dirty_rate, task_ratelimit);
-@@ -1336,11 +1336,12 @@ static void __wb_update_bandwidth(struct
- {
- 	struct bdi_writeback *wb = gdtc->wb;
- 	unsigned long now = jiffies;
--	unsigned long elapsed = now - wb->bw_time_stamp;
-+	unsigned long elapsed;
- 	unsigned long dirtied;
- 	unsigned long written;
- 
- 	spin_lock(&wb->list_lock);
-+	elapsed = now - wb->bw_time_stamp;
- 	dirtied = percpu_counter_read(&wb->stat[WB_DIRTIED]);
- 	written = percpu_counter_read(&wb->stat[WB_WRITTEN]);
- 
-@@ -1361,7 +1362,7 @@ static void __wb_update_bandwidth(struct
- 
- 	wb->dirtied_stamp = dirtied;
- 	wb->written_stamp = written;
--	wb->bw_time_stamp = now;
-+	WRITE_ONCE(wb->bw_time_stamp, now);
- 	spin_unlock(&wb->list_lock);
- }
- 
-@@ -1385,7 +1386,7 @@ static void wb_bandwidth_estimate_start(
- 		spin_lock(&wb->list_lock);
- 		wb->dirtied_stamp = wb_stat(wb, WB_DIRTIED);
- 		wb->written_stamp = wb_stat(wb, WB_WRITTEN);
--		wb->bw_time_stamp = now;
-+		WRITE_ONCE(wb->bw_time_stamp, now);
- 		spin_unlock(&wb->list_lock);
- 	}
- }
-@@ -1410,7 +1411,7 @@ static unsigned long dirty_poll_interval
- static unsigned long wb_max_pause(struct bdi_writeback *wb,
- 				  unsigned long wb_dirty)
- {
--	unsigned long bw = wb->avg_write_bandwidth;
-+	unsigned long bw = READ_ONCE(wb->avg_write_bandwidth);
- 	unsigned long t;
- 
- 	/*
-@@ -1432,8 +1433,8 @@ static long wb_min_pause(struct bdi_writ
- 			 unsigned long dirty_ratelimit,
- 			 int *nr_dirtied_pause)
- {
--	long hi = ilog2(wb->avg_write_bandwidth);
--	long lo = ilog2(wb->dirty_ratelimit);
-+	long hi = ilog2(READ_ONCE(wb->avg_write_bandwidth));
-+	long lo = ilog2(READ_ONCE(wb->dirty_ratelimit));
- 	long t;		/* target pause */
- 	long pause;	/* estimated next pause */
- 	int pages;	/* target nr_dirtied_pause */
-@@ -1713,12 +1714,12 @@ free_running:
- 		if (dirty_exceeded && !wb->dirty_exceeded)
- 			wb->dirty_exceeded = 1;
- 
--		if (time_is_before_jiffies(wb->bw_time_stamp +
-+		if (time_is_before_jiffies(READ_ONCE(wb->bw_time_stamp) +
- 					   BANDWIDTH_INTERVAL))
- 			__wb_update_bandwidth(gdtc, mdtc, true);
- 
- 		/* throttle according to the chosen dtc */
--		dirty_ratelimit = wb->dirty_ratelimit;
-+		dirty_ratelimit = READ_ONCE(wb->dirty_ratelimit);
- 		task_ratelimit = ((u64)dirty_ratelimit * sdtc->pos_ratio) >>
- 							RATELIMIT_CALC_SHIFT;
- 		max_pause = wb_max_pause(wb, sdtc->wb_dirty);
-@@ -2368,7 +2369,8 @@ int do_writepages(struct address_space *
- 	 * but if there's constant writeback being submitted, this makes sure
- 	 * writeback bandwidth is updated once in a while.
+-/*
+- * If it is possible to have holes within a MAX_ORDER_NR_PAGES, then we
+- * need to check pfn validity within that MAX_ORDER_NR_PAGES block.
+- * pfn_valid_within() should be used in this case; we optimise this away
+- * when we have no holes within a MAX_ORDER_NR_PAGES block.
+- */
+-#ifdef CONFIG_HOLES_IN_ZONE
+-#define pfn_valid_within(pfn) pfn_valid(pfn)
+-#else
+-#define pfn_valid_within(pfn) (1)
+-#endif
+-
+ #endif /* !__GENERATING_BOUNDS.H */
+ #endif /* !__ASSEMBLY__ */
+ #endif /* _LINUX_MMZONE_H */
+--- a/mm/compaction.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/compaction.c
+@@ -306,16 +306,14 @@ __reset_isolation_pfn(struct zone *zone,
+ 	 * is necessary for the block to be a migration source/target.
  	 */
--	if (time_is_before_jiffies(wb->bw_time_stamp + BANDWIDTH_INTERVAL))
-+	if (time_is_before_jiffies(READ_ONCE(wb->bw_time_stamp) +
-+				   BANDWIDTH_INTERVAL))
- 		wb_update_bandwidth(wb);
- 	return ret;
+ 	do {
+-		if (pfn_valid_within(pfn)) {
+-			if (check_source && PageLRU(page)) {
+-				clear_pageblock_skip(page);
+-				return true;
+-			}
++		if (check_source && PageLRU(page)) {
++			clear_pageblock_skip(page);
++			return true;
++		}
+ 
+-			if (check_target && PageBuddy(page)) {
+-				clear_pageblock_skip(page);
+-				return true;
+-			}
++		if (check_target && PageBuddy(page)) {
++			clear_pageblock_skip(page);
++			return true;
+ 		}
+ 
+ 		page += (1 << PAGE_ALLOC_COSTLY_ORDER);
+@@ -585,8 +583,6 @@ static unsigned long isolate_freepages_b
+ 			break;
+ 
+ 		nr_scanned++;
+-		if (!pfn_valid_within(blockpfn))
+-			goto isolate_fail;
+ 
+ 		/*
+ 		 * For compound pages such as THP and hugetlbfs, we can save
+@@ -885,8 +881,6 @@ isolate_migratepages_block(struct compac
+ 			cond_resched();
+ 		}
+ 
+-		if (!pfn_valid_within(low_pfn))
+-			goto isolate_fail;
+ 		nr_scanned++;
+ 
+ 		page = pfn_to_page(low_pfn);
+--- a/mm/Kconfig~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/Kconfig
+@@ -96,9 +96,6 @@ config HAVE_FAST_GUP
+ 	depends on MMU
+ 	bool
+ 
+-config HOLES_IN_ZONE
+-	bool
+-
+ # Don't discard allocated memory used to track "memory" and "reserved" memblocks
+ # after early boot, so it can still be used to test for validity of memory.
+ # Also, memblocks are updated with memory hot(un)plug.
+--- a/mm/memory_hotplug.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/memory_hotplug.c
+@@ -1308,10 +1308,6 @@ struct zone *test_pages_in_a_zone(unsign
+ 		for (; pfn < sec_end_pfn && pfn < end_pfn;
+ 		     pfn += MAX_ORDER_NR_PAGES) {
+ 			i = 0;
+-			/* This is just a CONFIG_HOLES_IN_ZONE check.*/
+-			while ((i < MAX_ORDER_NR_PAGES) &&
+-				!pfn_valid_within(pfn + i))
+-				i++;
+ 			if (i == MAX_ORDER_NR_PAGES || pfn + i >= end_pfn)
+ 				continue;
+ 			/* Check if we got outside of the zone */
+--- a/mm/page_alloc.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/page_alloc.c
+@@ -594,8 +594,6 @@ static int page_outside_zone_boundaries(
+ 
+ static int page_is_consistent(struct zone *zone, struct page *page)
+ {
+-	if (!pfn_valid_within(page_to_pfn(page)))
+-		return 0;
+ 	if (zone != page_zone(page))
+ 		return 0;
+ 
+@@ -1022,16 +1020,12 @@ buddy_merge_likely(unsigned long pfn, un
+ 	if (order >= MAX_ORDER - 2)
+ 		return false;
+ 
+-	if (!pfn_valid_within(buddy_pfn))
+-		return false;
+-
+ 	combined_pfn = buddy_pfn & pfn;
+ 	higher_page = page + (combined_pfn - pfn);
+ 	buddy_pfn = __find_buddy_pfn(combined_pfn, order + 1);
+ 	higher_buddy = higher_page + (buddy_pfn - combined_pfn);
+ 
+-	return pfn_valid_within(buddy_pfn) &&
+-	       page_is_buddy(higher_page, higher_buddy, order + 1);
++	return page_is_buddy(higher_page, higher_buddy, order + 1);
  }
+ 
+ /*
+@@ -1092,8 +1086,6 @@ continue_merging:
+ 		buddy_pfn = __find_buddy_pfn(pfn, order);
+ 		buddy = page + (buddy_pfn - pfn);
+ 
+-		if (!pfn_valid_within(buddy_pfn))
+-			goto done_merging;
+ 		if (!page_is_buddy(page, buddy, order))
+ 			goto done_merging;
+ 		/*
+@@ -1751,9 +1743,7 @@ void __init memblock_free_pages(struct p
+ /*
+  * Check that the whole (or subset of) a pageblock given by the interval of
+  * [start_pfn, end_pfn) is valid and within the same zone, before scanning it
+- * with the migration of free compaction scanner. The scanners then need to
+- * use only pfn_valid_within() check for arches that allow holes within
+- * pageblocks.
++ * with the migration of free compaction scanner.
+  *
+  * Return struct page pointer of start_pfn, or NULL if checks were not passed.
+  *
+@@ -1869,8 +1859,6 @@ static inline void __init pgdat_init_rep
+  */
+ static inline bool __init deferred_pfn_valid(unsigned long pfn)
+ {
+-	if (!pfn_valid_within(pfn))
+-		return false;
+ 	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
+ 		return false;
+ 	return true;
+@@ -2517,11 +2505,6 @@ static int move_freepages(struct zone *z
+ 	int pages_moved = 0;
+ 
+ 	for (pfn = start_pfn; pfn <= end_pfn;) {
+-		if (!pfn_valid_within(pfn)) {
+-			pfn++;
+-			continue;
+-		}
+-
+ 		page = pfn_to_page(pfn);
+ 		if (!PageBuddy(page)) {
+ 			/*
+@@ -8812,9 +8795,6 @@ struct page *has_unmovable_pages(struct
+ 	}
+ 
+ 	for (; iter < pageblock_nr_pages - offset; iter++) {
+-		if (!pfn_valid_within(pfn + iter))
+-			continue;
+-
+ 		page = pfn_to_page(pfn + iter);
+ 
+ 		/*
+--- a/mm/page_isolation.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/page_isolation.c
+@@ -93,8 +93,7 @@ static void unset_migratetype_isolate(st
+ 			buddy_pfn = __find_buddy_pfn(pfn, order);
+ 			buddy = page + (buddy_pfn - pfn);
+ 
+-			if (pfn_valid_within(buddy_pfn) &&
+-			    !is_migrate_isolate_page(buddy)) {
++			if (!is_migrate_isolate_page(buddy)) {
+ 				__isolate_free_page(page, order);
+ 				isolated_page = true;
+ 			}
+@@ -250,10 +249,6 @@ __test_page_isolated_in_pageblock(unsign
+ 	struct page *page;
+ 
+ 	while (pfn < end_pfn) {
+-		if (!pfn_valid_within(pfn)) {
+-			pfn++;
+-			continue;
+-		}
+ 		page = pfn_to_page(pfn);
+ 		if (PageBuddy(page))
+ 			/*
+--- a/mm/page_owner.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/page_owner.c
+@@ -276,9 +276,6 @@ void pagetypeinfo_showmixedcount_print(s
+ 		pageblock_mt = get_pageblock_migratetype(page);
+ 
+ 		for (; pfn < block_end_pfn; pfn++) {
+-			if (!pfn_valid_within(pfn))
+-				continue;
+-
+ 			/* The pageblock is online, no need to recheck. */
+ 			page = pfn_to_page(pfn);
+ 
+@@ -479,10 +476,6 @@ read_page_owner(struct file *file, char
+ 			continue;
+ 		}
+ 
+-		/* Check for holes within a MAX_ORDER area */
+-		if (!pfn_valid_within(pfn))
+-			continue;
+-
+ 		page = pfn_to_page(pfn);
+ 		if (PageBuddy(page)) {
+ 			unsigned long freepage_order = buddy_order_unsafe(page);
+@@ -560,14 +553,9 @@ static void init_pages_in_zone(pg_data_t
+ 		block_end_pfn = min(block_end_pfn, end_pfn);
+ 
+ 		for (; pfn < block_end_pfn; pfn++) {
+-			struct page *page;
++			struct page *page = pfn_to_page(pfn);
+ 			struct page_ext *page_ext;
+ 
+-			if (!pfn_valid_within(pfn))
+-				continue;
+-
+-			page = pfn_to_page(pfn);
+-
+ 			if (page_zone(page) != zone)
+ 				continue;
+ 
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-writeback-track-number-of-inodes-under-writeback.patch
-writeback-reliably-update-bandwidth-estimation.patch
-writeback-fix-bandwidth-estimate-for-spiky-workload.patch
-writeback-rename-domain_update_bandwidth.patch
-writeback-use-read_once-for-unlocked-reads-of-writeback-stats.patch
+mm-remove-pfn_valid_within-and-config_holes_in_zone.patch
+mm-memory_hotplug-cleanup-after-removal-of-pfn_valid_within.patch
 
