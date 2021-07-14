@@ -7,40 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 011E2C12002
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 22:59:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33934C12002
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:06:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D23C2613CB
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 22:59:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1206561360
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:06:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235572AbhGNXCK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Jul 2021 19:02:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33316 "EHLO mail.kernel.org"
+        id S230390AbhGNXJ3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 19:09:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34350 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230388AbhGNXCK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Jul 2021 19:02:10 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B5F70610CB;
-        Wed, 14 Jul 2021 22:59:16 +0000 (UTC)
+        id S229928AbhGNXJ3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 19:09:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B989C613C2;
+        Wed, 14 Jul 2021 23:06:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626303557;
-        bh=6OLujbNOpgrkwifkJvn5BXqSQdpgb5ONhFnRG/n1t6Y=;
+        s=korg; t=1626303996;
+        bh=B5mAT138Ng1LaI3gJo+9LuGhZ0vn0kN4sGUAme0cawY=;
         h=Date:From:To:Subject:From;
-        b=IJvnVU9Shi5h7LLAICYzThjKPJdFyFORmNR5XB8EHBSuK8vJQ7D7KyVh6zD/XKZZX
-         xgmGfUYbru5U9YBZiLbBpqQ3EG7uZyzCwsMJAOo0BIULukdxyNHSVXuzIEnJjHdHnR
-         83VAITB8GPbwuMdTX58zb1k4UzrxGncpqSclhBuE=
-Date:   Wed, 14 Jul 2021 15:59:16 -0700
+        b=P1byBgkDI6yHZh7llu3uEaivIWAoWWlMShIuldXtT5tl0hWIPMBnYcRBpNDNtWxnf
+         BZXZOyxmz+6YywZfo1Px1JPV5lMga4W/j9GKZwIfPN+5Huil37AWd2+s6TbrKql+Ze
+         0jRtrB0ktYloqEzSSGYPhlhh4R2insHxOOTXLwI4=
+Date:   Wed, 14 Jul 2021 16:06:36 -0700
 From:   akpm@linux-foundation.org
-To:     christian.brauner@ubuntu.com, guro@fb.com, hannes@cmpxchg.org,
-        mhocko@suse.com, mkoutny@suse.com, mm-commits@vger.kernel.org,
-        shakeelb@google.com, vvs@virtuozzo.com
-Subject:  +
- memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch added to
- -mm tree
-Message-ID: <20210714225916.g6_jUAwbP%akpm@linux-foundation.org>
+To:     joao.m.martins@oracle.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org
+Subject:  [to-be-updated]
+ mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr.patch removed from -mm
+ tree
+Message-ID: <20210714230636.VSnmj4qe3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,87 +44,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: enable accounting for pids in nested pid namespaces
-has been added to the -mm tree.  Its filename is
-     memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
+     Subject: mm/hugetlb: fix refs calculation from unaligned @vaddr
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-enable-accounting-for-p=
-ids-in-nested-pid-namespaces.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-enable-accounting-for-p=
-ids-in-nested-pid-namespaces.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-=46rom: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: enable accounting for pids in nested pid namespaces
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm/hugetlb: fix refs calculation from unaligned @vaddr
 
-Commit 5d097056c9a0 ("kmemcg: account certain kmem allocations to memcg")
-enabled memcg accounting for pids allocated from init_pid_ns.pid_cachep,
-but forgot to adjust the setting for nested pid namespaces.  As a result,
-pid memory is not accounted exactly where it is really needed, inside
-memcg-limited containers with their own pid namespaces.
+commit 82e5d378b0e47 ("mm/hugetlb: refactor subpage recording") refactored
+the count of subpages but missed an edge case when @vaddr is not aligned
+to PAGE_SIZE e.g.  when close to vma->vm_end.  It would then errousnly set
+@refs to 0 and record_subpages_vmas() wouldn't set the @pages array
+element to its value, consequently causing the reported null-deref by
+syzbot.
 
-Pid was one the first kernel objects enabled for memcg accounting.=20
-init_pid_ns.pid_cachep marked by SLAB_ACCOUNT and we can expect that any
-new pids in the system are memcg-accounted.
+Fix it by aligning down @vaddr by PAGE_SIZE in @refs calculation.
 
-Though recently I've noticed that it is wrong.  nested pid namespaces
-creates own slab caches for pid objects, nested pids have increased size
-because contain id both for all parent and for own pid namespaces.  The
-problem is that these slab caches are _NOT_ marked by SLAB_ACCOUNT, as a
-result any pids allocated in nested pid namespaces are not
-memcg-accounted.
-
-Pid struct in nested pid namespace consumes up to 500 bytes memory, 100000
-such objects gives us up to ~50Mb unaccounted memory, this allow container
-to exceed assigned memcg limits.
-
-Link: https://lkml.kernel.org/r/8b6de616-fd1a-02c6-cbdb-976ecdcfa604@virtuo=
-zzo.com
-Fixes: 5d097056c9a0 ("kmemcg: account certain kmem allocations to memcg")
-Cc: stable@vger.kernel.org
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Reviewed-by: Michal Koutn=C3=BD <mkoutny@suse.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20210713152440.28650-1-joao.m.martins@oracle.com
+Fixes: 82e5d378b0e47 ("mm/hugetlb: refactor subpage recording")
+Reported-by: syzbot+a3fcd59df1b372066f5a@syzkaller.appspotmail.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/pid_namespace.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/kernel/pid_namespace.c~memcg-enable-accounting-for-pids-in-nested-pid=
--namespaces
-+++ a/kernel/pid_namespace.c
-@@ -51,7 +51,8 @@ static struct kmem_cache *create_pid_cac
- 	mutex_lock(&pid_caches_mutex);
- 	/* Name collision forces to do allocation under mutex. */
- 	if (!*pkc)
--		*pkc =3D kmem_cache_create(name, len, 0, SLAB_HWCACHE_ALIGN, 0);
-+		*pkc =3D kmem_cache_create(name, len, 0,
-+					 SLAB_HWCACHE_ALIGN | SLAB_ACCOUNT, 0);
- 	mutex_unlock(&pid_caches_mutex);
- 	/* current can fail, but someone else can succeed. */
- 	return READ_ONCE(*pkc);
+--- a/mm/hugetlb.c~mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr
++++ a/mm/hugetlb.c
+@@ -5440,8 +5440,9 @@ long follow_hugetlb_page(struct mm_struc
+ 			continue;
+ 		}
+ 
+-		refs = min3(pages_per_huge_page(h) - pfn_offset,
+-			    (vma->vm_end - vaddr) >> PAGE_SHIFT, remainder);
++		/* vaddr may not be aligned to PAGE_SIZE */
++		refs = min3(pages_per_huge_page(h) - pfn_offset, remainder,
++		    (vma->vm_end - ALIGN_DOWN(vaddr, PAGE_SIZE)) >> PAGE_SHIFT);
+ 
+ 		if (pages || vmas)
+ 			record_subpages_vmas(mem_map_offset(page, pfn_offset),
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
-memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
 
