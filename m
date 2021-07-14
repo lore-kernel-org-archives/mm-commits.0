@@ -7,36 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88731C12002
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 22:51:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 011E2C12002
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 22:59:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76934613CF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 22:51:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D23C2613CB
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 22:59:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236900AbhGNWyS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Jul 2021 18:54:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60130 "EHLO mail.kernel.org"
+        id S235572AbhGNXCK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 19:02:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33316 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236895AbhGNWyS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Jul 2021 18:54:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D5A8B613C9;
-        Wed, 14 Jul 2021 22:51:25 +0000 (UTC)
+        id S230388AbhGNXCK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 19:02:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B5F70610CB;
+        Wed, 14 Jul 2021 22:59:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626303086;
-        bh=Uu80tazv334VC6JP4GGflajpvWUopGfoCfOQ+EdHElY=;
+        s=korg; t=1626303557;
+        bh=6OLujbNOpgrkwifkJvn5BXqSQdpgb5ONhFnRG/n1t6Y=;
         h=Date:From:To:Subject:From;
-        b=goKhNiiw11cHa4+ZlV3oMVMegasZEqb1ISiDdSMj3QoRM1qV3wF4U6MsRGY/I7lQ0
-         aizYLLxgYnysnVn9KNFEsiCZyEagZ0b7CCX8bwJf+21zngkwKV1IWP222s2ERjaMNB
-         XGYUQCaibHetfULh/7K7xu/Lp91RfyN4lso0vlNI=
-Date:   Wed, 14 Jul 2021 15:51:25 -0700
+        b=IJvnVU9Shi5h7LLAICYzThjKPJdFyFORmNR5XB8EHBSuK8vJQ7D7KyVh6zD/XKZZX
+         xgmGfUYbru5U9YBZiLbBpqQ3EG7uZyzCwsMJAOo0BIULukdxyNHSVXuzIEnJjHdHnR
+         83VAITB8GPbwuMdTX58zb1k4UzrxGncpqSclhBuE=
+Date:   Wed, 14 Jul 2021 15:59:16 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, mm-commits@vger.kernel.org,
-        pasha.tatashin@soleen.com, shuah@kernel.org,
-        tyhicks@linux.microsoft.com, zhansayabagdaulet@gmail.com
-Subject:  + selftests-vm-add-ksm-merging-across-nodes-test.patch
- added to -mm tree
-Message-ID: <20210714225125.Jhvjip0ZJ%akpm@linux-foundation.org>
+To:     christian.brauner@ubuntu.com, guro@fb.com, hannes@cmpxchg.org,
+        mhocko@suse.com, mkoutny@suse.com, mm-commits@vger.kernel.org,
+        shakeelb@google.com, vvs@virtuozzo.com
+Subject:  +
+ memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch added to
+ -mm tree
+Message-ID: <20210714225916.g6_jUAwbP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +48,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: add KSM merging across nodes test
+     Subject: memcg: enable accounting for pids in nested pid namespaces
 has been added to the -mm tree.  Its filename is
-     selftests-vm-add-ksm-merging-across-nodes-test.patch
+     memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-add-ksm-merging-across-nodes-test.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-enable-accounting-for-p=
+ids-in-nested-pid-namespaces.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-add-ksm-merging-across-nodes-test.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-enable-accounting-for-p=
+ids-in-nested-pid-namespaces.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,261 +65,70 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
-Subject: selftests: vm: add KSM merging across nodes test
+=46rom: Vasily Averin <vvs@virtuozzo.com>
+Subject: memcg: enable accounting for pids in nested pid namespaces
 
-Add check_ksm_numa_merge() function to test that pages in different NUMA
-nodes are being handled properly.  First, two duplicate pages are
-allocated in two separate NUMA nodes using the libnuma library.  Since
-there is one unique page in each node, with merge_across_nodes = 0, there
-won't be any shared pages.  If merge_across_nodes is set to 1, the pages
-will be treated as usual duplicate pages and will be merged.  If NUMA
-config is not enabled or the number of NUMA nodes is less than two, then
-the test is skipped.  The test is run as follows: ./ksm_tests -N
+Commit 5d097056c9a0 ("kmemcg: account certain kmem allocations to memcg")
+enabled memcg accounting for pids allocated from init_pid_ns.pid_cachep,
+but forgot to adjust the setting for nested pid namespaces.  As a result,
+pid memory is not accounted exactly where it is really needed, inside
+memcg-limited containers with their own pid namespaces.
 
-Link: https://lkml.kernel.org/r/071c17b5b04ebb0dfeba137acc495e5dd9d2a719.1626252248.git.zhansayabagdaulet@gmail.com
-Signed-off-by: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
+Pid was one the first kernel objects enabled for memcg accounting.=20
+init_pid_ns.pid_cachep marked by SLAB_ACCOUNT and we can expect that any
+new pids in the system are memcg-accounted.
+
+Though recently I've noticed that it is wrong.  nested pid namespaces
+creates own slab caches for pid objects, nested pids have increased size
+because contain id both for all parent and for own pid namespaces.  The
+problem is that these slab caches are _NOT_ marked by SLAB_ACCOUNT, as a
+result any pids allocated in nested pid namespaces are not
+memcg-accounted.
+
+Pid struct in nested pid namespace consumes up to 500 bytes memory, 100000
+such objects gives us up to ~50Mb unaccounted memory, this allow container
+to exceed assigned memcg limits.
+
+Link: https://lkml.kernel.org/r/8b6de616-fd1a-02c6-cbdb-976ecdcfa604@virtuo=
+zzo.com
+Fixes: 5d097056c9a0 ("kmemcg: account certain kmem allocations to memcg")
+Cc: stable@vger.kernel.org
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Reviewed-by: Michal Koutn=C3=BD <mkoutny@suse.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile       |    2 
- tools/testing/selftests/vm/ksm_tests.c    |   88 +++++++++++++++++++-
- tools/testing/selftests/vm/run_vmtests.sh |   32 +++++++
- 3 files changed, 119 insertions(+), 3 deletions(-)
+ kernel/pid_namespace.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-add-ksm-merging-across-nodes-test
-+++ a/tools/testing/selftests/vm/ksm_tests.c
-@@ -4,6 +4,7 @@
- #include <stdbool.h>
- #include <time.h>
- #include <string.h>
-+#include <numa.h>
- 
- #include "../kselftest.h"
- 
-@@ -13,6 +14,7 @@
- #define KSM_PAGE_COUNT_DEFAULT 10l
- #define KSM_PROT_STR_DEFAULT "rw"
- #define KSM_USE_ZERO_PAGES_DEFAULT false
-+#define KSM_MERGE_ACROSS_NODES_DEFAULT true
- 
- struct ksm_sysfs {
- 	unsigned long max_page_sharing;
-@@ -27,7 +29,8 @@ struct ksm_sysfs {
- enum ksm_test_name {
- 	CHECK_KSM_MERGE,
- 	CHECK_KSM_UNMERGE,
--	CHECK_KSM_ZERO_PAGE_MERGE
-+	CHECK_KSM_ZERO_PAGE_MERGE,
-+	CHECK_KSM_NUMA_MERGE
- };
- 
- static int ksm_write_sysfs(const char *file_path, unsigned long val)
-@@ -83,11 +86,12 @@ static int str_to_prot(char *prot_str)
- static void print_help(void)
- {
- 	printf("usage: ksm_tests [-h] <test type> [-a prot] [-p page_count] [-l timeout]\n"
--	       "[-z use_zero_pages]\n");
-+	       "[-z use_zero_pages] [-m merge_across_nodes]\n");
- 
- 	printf("Supported <test type>:\n"
- 	       " -M (page merging)\n"
- 	       " -Z (zero pages merging)\n"
-+	       " -N (merging of pages in different NUMA nodes)\n"
- 	       " -U (page unmerging)\n\n");
- 
- 	printf(" -a: specify the access protections of pages.\n"
-@@ -99,6 +103,8 @@ static void print_help(void)
- 	       "     Default: %d seconds\n", KSM_SCAN_LIMIT_SEC_DEFAULT);
- 	printf(" -z: change use_zero_pages tunable\n"
- 	       "     Default: %d\n", KSM_USE_ZERO_PAGES_DEFAULT);
-+	printf(" -m: change merge_across_nodes tunable\n"
-+	       "     Default: %d\n", KSM_MERGE_ACROSS_NODES_DEFAULT);
- 
- 	exit(0);
- }
-@@ -339,6 +345,68 @@ err_out:
- 	return KSFT_FAIL;
- }
- 
-+static int check_ksm_numa_merge(int mapping, int prot, int timeout, bool merge_across_nodes,
-+				size_t page_size)
-+{
-+	void *numa1_map_ptr, *numa2_map_ptr;
-+	struct timespec start_time;
-+	int page_count = 2;
-+
-+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
-+		perror("clock_gettime");
-+		return KSFT_FAIL;
-+	}
-+
-+	if (numa_available() < 0) {
-+		perror("NUMA support not enabled");
-+		return KSFT_SKIP;
-+	}
-+	if (numa_max_node() < 1) {
-+		printf("At least 2 NUMA nodes must be available\n");
-+		return KSFT_SKIP;
-+	}
-+	if (ksm_write_sysfs(KSM_FP("merge_across_nodes"), merge_across_nodes))
-+		return KSFT_FAIL;
-+
-+	/* allocate 2 pages in 2 different NUMA nodes and fill them with the same data */
-+	numa1_map_ptr = numa_alloc_onnode(page_size, 0);
-+	numa2_map_ptr = numa_alloc_onnode(page_size, 1);
-+	if (!numa1_map_ptr || !numa2_map_ptr) {
-+		perror("numa_alloc_onnode");
-+		return KSFT_FAIL;
-+	}
-+
-+	memset(numa1_map_ptr, '*', page_size);
-+	memset(numa2_map_ptr, '*', page_size);
-+
-+	/* try to merge the pages */
-+	if (ksm_merge_pages(numa1_map_ptr, page_size, start_time, timeout) ||
-+	    ksm_merge_pages(numa2_map_ptr, page_size, start_time, timeout))
-+		goto err_out;
-+
-+       /*
-+	* verify that the right number of pages are merged:
-+	* 1) if merge_across_nodes was enabled, 2 duplicate pages will be merged;
-+	* 2) if merge_across_nodes = 0, there must be 0 merged pages, since there is
-+	*    only 1 unique page in each node and they can't be shared.
-+	*/
-+	if (merge_across_nodes && !assert_ksm_pages_count(page_count))
-+		goto err_out;
-+	else if (!merge_across_nodes && !assert_ksm_pages_count(0))
-+		goto err_out;
-+
-+	numa_free(numa1_map_ptr, page_size);
-+	numa_free(numa2_map_ptr, page_size);
-+	printf("OK\n");
-+	return KSFT_PASS;
-+
-+err_out:
-+	numa_free(numa1_map_ptr, page_size);
-+	numa_free(numa2_map_ptr, page_size);
-+	printf("Not OK\n");
-+	return KSFT_FAIL;
-+}
-+
- int main(int argc, char *argv[])
- {
- 	int ret, opt;
-@@ -349,8 +417,9 @@ int main(int argc, char *argv[])
- 	struct ksm_sysfs ksm_sysfs_old;
- 	int test_name = CHECK_KSM_MERGE;
- 	bool use_zero_pages = KSM_USE_ZERO_PAGES_DEFAULT;
-+	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
- 
--	while ((opt = getopt(argc, argv, "ha:p:l:z:MUZ")) != -1) {
-+	while ((opt = getopt(argc, argv, "ha:p:l:z:m:MUZN")) != -1) {
- 		switch (opt) {
- 		case 'a':
- 			prot = str_to_prot(optarg);
-@@ -378,6 +447,12 @@ int main(int argc, char *argv[])
- 			else
- 				use_zero_pages = 1;
- 			break;
-+		case 'm':
-+			if (strcmp(optarg, "0") == 0)
-+				merge_across_nodes = 0;
-+			else
-+				merge_across_nodes = 1;
-+			break;
- 		case 'M':
- 			break;
- 		case 'U':
-@@ -386,6 +461,9 @@ int main(int argc, char *argv[])
- 		case 'Z':
- 			test_name = CHECK_KSM_ZERO_PAGE_MERGE;
- 			break;
-+		case 'N':
-+			test_name = CHECK_KSM_NUMA_MERGE;
-+			break;
- 		default:
- 			return KSFT_FAIL;
- 		}
-@@ -423,6 +501,10 @@ int main(int argc, char *argv[])
- 		ret = check_ksm_zero_page_merge(MAP_PRIVATE | MAP_ANONYMOUS, prot, page_count,
- 						ksm_scan_limit_sec, use_zero_pages, page_size);
- 		break;
-+	case CHECK_KSM_NUMA_MERGE:
-+		ret = check_ksm_numa_merge(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
-+					   merge_across_nodes, page_size);
-+		break;
- 	}
- 
- 	if (ksm_restore(&ksm_sysfs_old)) {
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-ksm-merging-across-nodes-test
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -146,6 +146,8 @@ $(OUTPUT)/hmm-tests: local_config.h
- # HMM_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
- $(OUTPUT)/hmm-tests: LDLIBS += $(HMM_EXTRA_LIBS)
- 
-+$(OUTPUT)/ksm_tests: LDLIBS += -lnuma
-+
- local_config.mk local_config.h: check_config.sh
- 	/bin/sh ./check_config.sh $(CC)
- 
---- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-ksm-merging-across-nodes-test
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -441,6 +441,38 @@ else
- 	exitcode=1
- fi
- 
-+echo "-------------------------------------------------------------"
-+echo "running KSM test with 2 NUMA nodes and merge_across_nodes = 1"
-+echo "-------------------------------------------------------------"
-+./ksm_tests -N -m 1
-+ret_val=$?
-+
-+if [ $ret_val -eq 0 ]; then
-+	echo "[PASS]"
-+elif [ $ret_val -eq $ksft_skip ]; then
-+	 echo "[SKIP]"
-+	 exitcode=$ksft_skip
-+else
-+	echo "[FAIL]"
-+	exitcode=1
-+fi
-+
-+echo "-------------------------------------------------------------"
-+echo "running KSM test with 2 NUMA nodes and merge_across_nodes = 0"
-+echo "-------------------------------------------------------------"
-+./ksm_tests -N -m 0
-+ret_val=$?
-+
-+if [ $ret_val -eq 0 ]; then
-+	echo "[PASS]"
-+elif [ $ret_val -eq $ksft_skip ]; then
-+	 echo "[SKIP]"
-+	 exitcode=$ksft_skip
-+else
-+	echo "[FAIL]"
-+	exitcode=1
-+fi
-+
- exit $exitcode
- 
- exit $exitcode
+--- a/kernel/pid_namespace.c~memcg-enable-accounting-for-pids-in-nested-pid=
+-namespaces
++++ a/kernel/pid_namespace.c
+@@ -51,7 +51,8 @@ static struct kmem_cache *create_pid_cac
+ 	mutex_lock(&pid_caches_mutex);
+ 	/* Name collision forces to do allocation under mutex. */
+ 	if (!*pkc)
+-		*pkc =3D kmem_cache_create(name, len, 0, SLAB_HWCACHE_ALIGN, 0);
++		*pkc =3D kmem_cache_create(name, len, 0,
++					 SLAB_HWCACHE_ALIGN | SLAB_ACCOUNT, 0);
+ 	mutex_unlock(&pid_caches_mutex);
+ 	/* current can fail, but someone else can succeed. */
+ 	return READ_ONCE(*pkc);
 _
 
-Patches currently in -mm which might be from zhansayabagdaulet@gmail.com are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
-selftests-vm-add-ksm-merge-test.patch
-selftests-vm-add-ksm-unmerge-test.patch
-selftests-vm-add-ksm-zero-page-merging-test.patch
-selftests-vm-add-ksm-merging-across-nodes-test.patch
+memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
 
