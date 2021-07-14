@@ -7,37 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BBC8C12002
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:30:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48623C12002
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:32:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2C10F613CF
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:30:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 29BEE613CF
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:32:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230087AbhGNXdT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Jul 2021 19:33:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39314 "EHLO mail.kernel.org"
+        id S235114AbhGNXfg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 19:35:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229657AbhGNXdT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Jul 2021 19:33:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ACCEC613BF;
-        Wed, 14 Jul 2021 23:30:26 +0000 (UTC)
+        id S234647AbhGNXfg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 19:35:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1AEAF613CC;
+        Wed, 14 Jul 2021 23:32:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626305426;
-        bh=WnDWg8k+O6ks8OfScMHrOY7UpV/twcbJZ+tXfmWBwjY=;
+        s=korg; t=1626305563;
+        bh=dLL2UoNk/7+QNB26cDdhXjsRFpwzYlyo9Z+JRwHP0o4=;
         h=Date:From:To:Subject:From;
-        b=KfDI8ZgSAZ9rR8lbIpMzh1hM9Ih81Xoa1JiWHBG3fLuc6u4B9UqpbmDouvguimwSf
-         er0WPSO88bJH1Sr/Ec7Ce/lAif1rmLRCQwbYvkkQ3giI/pqUq36RHzphsAkXD5W9Zg
-         ZAA/iKLHGvqOo4l7BXfFgo9Mfq9r9cG+q3IDzivc=
-Date:   Wed, 14 Jul 2021 16:30:26 -0700
+        b=N5Mbz9LKQCrWT54QBKpkqaq8pHVAuEP/yInEhNCILCXSLxfMyJrozXD9ygga5jobg
+         ddV0Gdu/PPT5Bej19G5/hX9b4z0NaVntDLXV+umHRT9+eNHBAl3vqTCDq7aYBSdsid
+         fGdAghmnRJd0wJoqSGXS7FFGU8MsiSsUChpALw9o=
+Date:   Wed, 14 Jul 2021 16:32:42 -0700
 From:   akpm@linux-foundation.org
-To:     chenwandun@huawei.com, hulkci@huawei.com,
-        mm-commits@vger.kernel.org, serapheim.dimitro@delphix.com,
-        urezki@gmail.com, wangkefeng.wang@huawei.com,
-        weiyongjun1@huawei.com
-Subject:  + mm-vmalloc-fix-wrong-behavior-in-vread.patch added to
- -mm tree
-Message-ID: <20210714233026.QqQ9yvD1E%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, hdanton@sina.com,
+        mhocko@kernel.org, mkoutny@suse.com, mm-commits@vger.kernel.org,
+        shakeelb@google.com, songmuchun@bytedance.com, tj@kernel.org,
+        ying.huang@intel.com
+Subject:  + memcg-switch-lruvec-stats-to-rstat.patch added to -mm
+ tree
+Message-ID: <20210714233242.CdQZewJUP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +48,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: fix wrong behavior in vread
+     Subject: memcg: switch lruvec stats to rstat
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-fix-wrong-behavior-in-vread.patch
+     memcg-switch-lruvec-stats-to-rstat.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-wrong-behavior-in-vread.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-switch-lruvec-stats-to-=
+rstat.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-wrong-behavior-in-vread.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-switch-lruvec-stats-to-=
+rstat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,89 +65,331 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Wandun <chenwandun@huawei.com>
-Subject: mm/vmalloc: fix wrong behavior in vread
+=46rom: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: switch lruvec stats to rstat
 
-commit f608788cd2d6 ("mm/vmalloc: use rb_tree instead of list for vread()
-lookups") use rb_tree instread of list to speed up lookup, but function
-__find_vmap_area is try to find a vmap_area that include target address,
-if target address is smaller than the leftmost node in vmap_area_root, it
-will return NULL, then vread will read nothing.  This behavior is
-different from the primitive semantics.
+The commit 2d146aa3aa84 ("mm: memcontrol: switch to rstat") switched memcg
+stats to rstat infrastructure but skipped the conversion of the lruvec
+stats as such stats are read in the performance critical code paths and
+flushing stats may have impacted the performances of the applications.=20
+This patch converts the lruvec stats to rstat and later patches add
+mechanisms to keep the performance impact to minimum.
 
-The correct way is find the first vmap_are that bigger than target addr,
-that is what function find_vmap_area_exceed_addr does.
+The rstat conversion comes with the price i.e.  memory cost.  Effectively
+this patch reverts the savings done by the commit f3344adf38bd ("mm:
+memcontrol: optimize per-lruvec stats counter memory usage").  However
+this cost is justified due to negative impact of the inaccurate lruvec
+stats on many heuristics.  One such case is reported in [1].
 
-Link: https://lkml.kernel.org/r/20210714015959.3204871-1-chenwandun@huawei.com
-Fixes: f608788cd2d6 ("mm/vmalloc: use rb_tree instead of list for vread() lookups")
-Signed-off-by: Chen Wandun <chenwandun@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Cc: Serapheim Dimitropoulos <serapheim.dimitro@delphix.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>
+The memory reclaim code is filled with plethora of heuristics and many of
+those heuristics reads the lruvec stats.  So, inaccurate stats can make
+such heuristics ineffective.  [1] reports the impact of inaccurate lruvec
+stats on the "cache trim mode" heuristic.  Inaccurate lruvec stats can
+impact the deactivation and aging anon heuristics as well.
+
+[1] https://lore.kernel.org/linux-mm/20210311004449.1170308-1-ying.huang@in=
+tel.com/
+
+Link: https://lkml.kernel.org/r/20210714013948.270662-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Huang Ying <ying.huang@intel.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Michal Koutn=C3=BD <mkoutny@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   29 ++++++++++++++++++++++++++++-
- 1 file changed, 28 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |   42 ++++++------
+ mm/memcontrol.c            |  114 +++++++++++------------------------
+ 2 files changed, 58 insertions(+), 98 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-fix-wrong-behavior-in-vread
-+++ a/mm/vmalloc.c
-@@ -787,6 +787,28 @@ unsigned long vmalloc_nr_pages(void)
- 	return atomic_long_read(&nr_vmalloc_pages);
+--- a/include/linux/memcontrol.h~memcg-switch-lruvec-stats-to-rstat
++++ a/include/linux/memcontrol.h
+@@ -105,14 +105,6 @@ struct mem_cgroup_reclaim_iter {
+ 	unsigned int generation;
+ };
+=20
+-struct lruvec_stat {
+-	long count[NR_VM_NODE_STAT_ITEMS];
+-};
+-
+-struct batched_lruvec_stat {
+-	s32 count[NR_VM_NODE_STAT_ITEMS];
+-};
+-
+ /*
+  * Bitmap and deferred work of shrinker::id corresponding to memcg-aware
+  * shrinkers, which have elements charged to this memcg.
+@@ -123,24 +115,30 @@ struct shrinker_info {
+ 	unsigned long *map;
+ };
+=20
++struct lruvec_stats_percpu {
++	/* Local (CPU and cgroup) state */
++	long state[NR_VM_NODE_STAT_ITEMS];
++
++	/* Delta calculation for lockless upward propagation */
++	long state_prev[NR_VM_NODE_STAT_ITEMS];
++};
++
++struct lruvec_stats {
++	/* Aggregated (CPU and subtree) state */
++	long state[NR_VM_NODE_STAT_ITEMS];
++
++	/* Pending child counts during tree propagation */
++	long state_pending[NR_VM_NODE_STAT_ITEMS];
++};
++
+ /*
+  * per-node information in memory controller.
+  */
+ struct mem_cgroup_per_node {
+ 	struct lruvec		lruvec;
+=20
+-	/*
+-	 * Legacy local VM stats. This should be struct lruvec_stat and
+-	 * cannot be optimized to struct batched_lruvec_stat. Because
+-	 * the threshold of the lruvec_stat_cpu can be as big as
+-	 * MEMCG_CHARGE_BATCH * PAGE_SIZE. It can fit into s32. But this
+-	 * filed has no upper limit.
+-	 */
+-	struct lruvec_stat __percpu *lruvec_stat_local;
+-
+-	/* Subtree VM stats (batched updates) */
+-	struct batched_lruvec_stat __percpu *lruvec_stat_cpu;
+-	atomic_long_t		lruvec_stat[NR_VM_NODE_STAT_ITEMS];
++	struct lruvec_stats_percpu __percpu	*lruvec_stats_percpu;
++	struct lruvec_stats			lruvec_stats;
+=20
+ 	unsigned long		lru_zone_size[MAX_NR_ZONES][NR_LRU_LISTS];
+=20
+@@ -987,7 +985,7 @@ static inline unsigned long lruvec_page_
+ 		return node_page_state(lruvec_pgdat(lruvec), idx);
+=20
+ 	pn =3D container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	x =3D atomic_long_read(&pn->lruvec_stat[idx]);
++	x =3D READ_ONCE(pn->lruvec_stats.state[idx]);
+ #ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x =3D 0;
+@@ -1007,7 +1005,7 @@ static inline unsigned long lruvec_page_
+=20
+ 	pn =3D container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+ 	for_each_possible_cpu(cpu)
+-		x +=3D per_cpu(pn->lruvec_stat_local->count[idx], cpu);
++		x +=3D per_cpu(pn->lruvec_stats_percpu->state[idx], cpu);
+ #ifdef CONFIG_SMP
+ 	if (x < 0)
+ 		x =3D 0;
+--- a/mm/memcontrol.c~memcg-switch-lruvec-stats-to-rstat
++++ a/mm/memcontrol.c
+@@ -671,23 +671,11 @@ static unsigned long memcg_page_state_lo
+ 	return x;
  }
- 
-+static struct vmap_area *find_vmap_area_exceed_addr(unsigned long addr)
-+{
-+	struct vmap_area *va = NULL;
-+	struct rb_node *n = vmap_area_root.rb_node;
-+
-+	while (n) {
-+		struct vmap_area *tmp;
-+
-+		tmp = rb_entry(n, struct vmap_area, rb_node);
-+		if (tmp->va_end > addr) {
-+			va = tmp;
-+			if (tmp->va_start <= addr)
-+				break;
-+
-+			n = n->rb_left;
-+		} else
-+			n = n->rb_right;
-+	}
-+
-+	return va;
-+}
-+
- static struct vmap_area *__find_vmap_area(unsigned long addr)
+=20
+-static struct mem_cgroup_per_node *
+-parent_nodeinfo(struct mem_cgroup_per_node *pn, int nid)
+-{
+-	struct mem_cgroup *parent;
+-
+-	parent =3D parent_mem_cgroup(pn->memcg);
+-	if (!parent)
+-		return NULL;
+-	return parent->nodeinfo[nid];
+-}
+-
+ void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item i=
+dx,
+ 			      int val)
  {
- 	struct rb_node *n = vmap_area_root.rb_node;
-@@ -3287,9 +3309,14 @@ long vread(char *buf, char *addr, unsign
- 		count = -(unsigned long) addr;
- 
- 	spin_lock(&vmap_area_lock);
--	va = __find_vmap_area((unsigned long)addr);
-+	va = find_vmap_area_exceed_addr((unsigned long)addr);
- 	if (!va)
- 		goto finished;
+ 	struct mem_cgroup_per_node *pn;
+ 	struct mem_cgroup *memcg;
+-	long x, threshold =3D MEMCG_CHARGE_BATCH;
+=20
+ 	pn =3D container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+ 	memcg =3D pn->memcg;
+@@ -696,21 +684,7 @@ void __mod_memcg_lruvec_state(struct lru
+ 	__mod_memcg_state(memcg, idx, val);
+=20
+ 	/* Update lruvec */
+-	__this_cpu_add(pn->lruvec_stat_local->count[idx], val);
+-
+-	if (vmstat_item_in_bytes(idx))
+-		threshold <<=3D PAGE_SHIFT;
+-
+-	x =3D val + __this_cpu_read(pn->lruvec_stat_cpu->count[idx]);
+-	if (unlikely(abs(x) > threshold)) {
+-		pg_data_t *pgdat =3D lruvec_pgdat(lruvec);
+-		struct mem_cgroup_per_node *pi;
+-
+-		for (pi =3D pn; pi; pi =3D parent_nodeinfo(pi, pgdat->node_id))
+-			atomic_long_add(x, &pi->lruvec_stat[idx]);
+-		x =3D 0;
+-	}
+-	__this_cpu_write(pn->lruvec_stat_cpu->count[idx], x);
++	__this_cpu_add(pn->lruvec_stats_percpu->state[idx], val);
+ }
+=20
+ /**
+@@ -2289,40 +2263,13 @@ static void drain_all_stock(struct mem_c
+ 	mutex_unlock(&percpu_charge_mutex);
+ }
+=20
+-static void memcg_flush_lruvec_page_state(struct mem_cgroup *memcg, int cp=
+u)
+-{
+-	int nid;
+-
+-	for_each_node(nid) {
+-		struct mem_cgroup_per_node *pn =3D memcg->nodeinfo[nid];
+-		unsigned long stat[NR_VM_NODE_STAT_ITEMS];
+-		struct batched_lruvec_stat *lstatc;
+-		int i;
+-
+-		lstatc =3D per_cpu_ptr(pn->lruvec_stat_cpu, cpu);
+-		for (i =3D 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
+-			stat[i] =3D lstatc->count[i];
+-			lstatc->count[i] =3D 0;
+-		}
+-
+-		do {
+-			for (i =3D 0; i < NR_VM_NODE_STAT_ITEMS; i++)
+-				atomic_long_add(stat[i], &pn->lruvec_stat[i]);
+-		} while ((pn =3D parent_nodeinfo(pn, nid)));
+-	}
+-}
+-
+ static int memcg_hotplug_cpu_dead(unsigned int cpu)
+ {
+ 	struct memcg_stock_pcp *stock;
+-	struct mem_cgroup *memcg;
+=20
+ 	stock =3D &per_cpu(memcg_stock, cpu);
+ 	drain_stock(stock);
+=20
+-	for_each_mem_cgroup(memcg)
+-		memcg_flush_lruvec_page_state(memcg, cpu);
+-
+ 	return 0;
+ }
+=20
+@@ -5126,17 +5073,9 @@ static int alloc_mem_cgroup_per_node_inf
+ 	if (!pn)
+ 		return 1;
+=20
+-	pn->lruvec_stat_local =3D alloc_percpu_gfp(struct lruvec_stat,
+-						 GFP_KERNEL_ACCOUNT);
+-	if (!pn->lruvec_stat_local) {
+-		kfree(pn);
+-		return 1;
+-	}
+-
+-	pn->lruvec_stat_cpu =3D alloc_percpu_gfp(struct batched_lruvec_stat,
+-					       GFP_KERNEL_ACCOUNT);
+-	if (!pn->lruvec_stat_cpu) {
+-		free_percpu(pn->lruvec_stat_local);
++	pn->lruvec_stats_percpu =3D alloc_percpu_gfp(struct lruvec_stats_percpu,
++						   GFP_KERNEL_ACCOUNT);
++	if (!pn->lruvec_stats_percpu) {
+ 		kfree(pn);
+ 		return 1;
+ 	}
+@@ -5157,8 +5096,7 @@ static void free_mem_cgroup_per_node_inf
+ 	if (!pn)
+ 		return;
+=20
+-	free_percpu(pn->lruvec_stat_cpu);
+-	free_percpu(pn->lruvec_stat_local);
++	free_percpu(pn->lruvec_stats_percpu);
+ 	kfree(pn);
+ }
+=20
+@@ -5174,15 +5112,7 @@ static void __mem_cgroup_free(struct mem
+=20
+ static void mem_cgroup_free(struct mem_cgroup *memcg)
+ {
+-	int cpu;
+-
+ 	memcg_wb_domain_exit(memcg);
+-	/*
+-	 * Flush percpu lruvec stats to guarantee the value
+-	 * correctness on parent's and all ancestor levels.
+-	 */
+-	for_each_online_cpu(cpu)
+-		memcg_flush_lruvec_page_state(memcg, cpu);
+ 	__mem_cgroup_free(memcg);
+ }
+=20
+@@ -5415,7 +5345,7 @@ static void mem_cgroup_css_rstat_flush(s
+ 	struct mem_cgroup *parent =3D parent_mem_cgroup(memcg);
+ 	struct memcg_vmstats_percpu *statc;
+ 	long delta, v;
+-	int i;
++	int i, nid;
+=20
+ 	statc =3D per_cpu_ptr(memcg->vmstats_percpu, cpu);
+=20
+@@ -5463,6 +5393,36 @@ static void mem_cgroup_css_rstat_flush(s
+ 		if (parent)
+ 			parent->vmstats.events_pending[i] +=3D delta;
+ 	}
 +
-+	/* no intersects with alive vmap_area */
-+	if ((unsigned long)addr + count <= va->va_start)
-+		goto finished;
++	for_each_node_state(nid, N_MEMORY) {
++		struct mem_cgroup_per_node *pn =3D memcg->nodeinfo[nid];
++		struct mem_cgroup_per_node *ppn =3D NULL;
++		struct lruvec_stats_percpu *lstatc;
 +
- 	list_for_each_entry_from(va, &vmap_area_list, list) {
- 		if (!count)
- 			break;
++		if (parent)
++			ppn =3D parent->nodeinfo[nid];
++
++		lstatc =3D per_cpu_ptr(pn->lruvec_stats_percpu, cpu);
++
++		for (i =3D 0; i < NR_VM_NODE_STAT_ITEMS; i++) {
++			delta =3D pn->lruvec_stats.state_pending[i];
++			if (delta)
++				pn->lruvec_stats.state_pending[i] =3D 0;
++
++			v =3D READ_ONCE(lstatc->state[i]);
++			if (v !=3D lstatc->state_prev[i]) {
++				delta +=3D v - lstatc->state_prev[i];
++				lstatc->state_prev[i] =3D v;
++			}
++
++			if (!delta)
++				continue;
++
++			pn->lruvec_stats.state[i] +=3D delta;
++			if (ppn)
++				ppn->lruvec_stats.state_pending[i] +=3D delta;
++		}
++	}
+ }
+=20
+ #ifdef CONFIG_MMU
+@@ -6396,6 +6356,8 @@ static int memory_numa_stat_show(struct
+ 	int i;
+ 	struct mem_cgroup *memcg =3D mem_cgroup_from_seq(m);
+=20
++	cgroup_rstat_flush(memcg->css.cgroup);
++
+ 	for (i =3D 0; i < ARRAY_SIZE(memory_stats); i++) {
+ 		int nid;
+=20
 _
 
-Patches currently in -mm which might be from chenwandun@huawei.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-mm-vmalloc-fix-wrong-behavior-in-vread.patch
+memcg-switch-lruvec-stats-to-rstat.patch
+memcg-infrastructure-to-flush-memcg-stats.patch
 
