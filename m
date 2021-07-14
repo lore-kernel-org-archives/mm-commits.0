@@ -5,38 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CD1CC12002
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:09:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF34EC12002
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:11:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5EC03613CA
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:09:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2D89613D0
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:11:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235891AbhGNXMS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Jul 2021 19:12:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34900 "EHLO mail.kernel.org"
+        id S237473AbhGNXOG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 19:14:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235344AbhGNXMS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Jul 2021 19:12:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4437B613B5;
-        Wed, 14 Jul 2021 23:09:26 +0000 (UTC)
+        id S229928AbhGNXOG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 19:14:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CBF66613CA;
+        Wed, 14 Jul 2021 23:11:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626304166;
-        bh=JqZ737XEDaE3W/EPc5ghPKOtlyQV7tWlGwNDAYl7+zE=;
+        s=korg; t=1626304273;
+        bh=ArPfCT/GEKj+IGLPj9RzvBZMjW43w6M7RXcDIOrBaS4=;
         h=Date:From:To:Subject:From;
-        b=vvLYaD6lnNL20khIbt94sNDnJz2z1R1w/7v2LhLIXmuOoQ8kDNbceYBDlhiowQv6j
-         AZ64Q4EiTO8bIYvnA4d+b5WvimPTUYChHNXvtewFz5pSbxxn+cSFEJoesbdbDCKhsQ
-         /XiUVL/W3bUYTo8mYd9zA1FotP/UR2cDqXl0E1yU=
-Date:   Wed, 14 Jul 2021 16:09:25 -0700
+        b=xzBqD96KtwF6XNoprxQd3W+eyPpzr3dwsvDDhL1lGKkBHtIWO/enyc85jHJPEF8YA
+         vTEyfgWX6qSeKJLAAzssYePKfQlw0/5BQiTCyJBNYfV8pU1KMuAMoidJgeMFjuFOcy
+         nUxHNkoJC2B9FPwfsuGveDazWCrUCUZs9xAlu7L0=
+Date:   Wed, 14 Jul 2021 16:11:12 -0700
 From:   akpm@linux-foundation.org
 To:     bowsingbetee@pm.me, glider@google.com, keescook@chromium.org,
-        mm-commits@vger.kernel.org, slyfox@gentoo.org,
-        stable@vger.kernel.org, tglx@linutronix.de, vbabka@suse.cz
-Subject:  [to-be-updated]
+        mm-commits@vger.kernel.org, mmorfikov@gmail.com, slyfox@gentoo.org,
+        stable@vger.kernelo.org, tglx@linutronix.de, vbabka@suse.cz
+Subject:  +
  mm-page_alloc-fix-page_poison=1-init_on_alloc_default_on-interaction.patch
- removed from -mm tree
-Message-ID: <20210714230925.pMHiUhgZF%akpm@linux-foundation.org>
+ added to -mm tree
+Message-ID: <20210714231112.yFqBWw-BO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,10 +46,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm: page_alloc: fix page_poison=1 / INIT_ON_ALLOC_DEFAULT_ON interaction
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-page_alloc-fix-page_poison=1-init_on_alloc_default_on-interaction.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-page_poison%3D1-init_on_alloc_default_on-interaction.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-page_poison%3D1-init_on_alloc_default_on-interaction.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergei Trofimovich <slyfox@gentoo.org>
@@ -97,55 +111,67 @@ init_on_free=1 conflict.
 This change extends init_mem_debugging_and_hardening() to also disable
 static branch disabling.
 
-Link: https://lkml.kernel.org/r/20210712215816.1512739-1-slyfox@gentoo.org
-Fixes: 51cba1eb ("init_on_alloc: Optimize static branches")
+Link: https://lkml.kernel.org/r/20210714031935.4094114-1-keescook@chromium.org
+Link: https://lore.kernel.org/r/20210712215816.1512739-1-slyfox@gentoo.org
+Fixes: 51cba1ebc60d ("init_on_alloc: Optimize static branches")
 Signed-off-by: Sergei Trofimovich <slyfox@gentoo.org>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Co-developed-by: Kees Cook <keescook@chromium.org>
+Reported-by: Mikhail Morfikov <mmorfikov@gmail.com>
 Reported-by: <bowsingbetee@pm.me>
-Reported-by: Mikhail Morfikov
-Cc: Kees Cook <keescook@chromium.org>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Cc: <stable@vger.kernelo.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   16 ++++++++++------
- 1 file changed, 10 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |   29 ++++++++++++++++-------------
+ 1 file changed, 16 insertions(+), 13 deletions(-)
 
 --- a/mm/page_alloc.c~mm-page_alloc-fix-page_poison=1-init_on_alloc_default_on-interaction
 +++ a/mm/page_alloc.c
-@@ -840,18 +840,22 @@ void init_mem_debugging_and_hardening(vo
+@@ -840,21 +840,24 @@ void init_mem_debugging_and_hardening(vo
  	}
  #endif
  
 -	if (_init_on_alloc_enabled_early) {
 -		if (page_poisoning_requested)
-+	if (_init_on_alloc_enabled_early ||
-+	    IS_ENABLED(CONFIG_INIT_ON_ALLOC_DEFAULT_ON)) {
-+		if (page_poisoning_requested) {
- 			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
- 				"will take precedence over init_on_alloc\n");
+-			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
+-				"will take precedence over init_on_alloc\n");
 -		else
-+			static_branch_disable(&init_on_alloc);
-+		} else
- 			static_branch_enable(&init_on_alloc);
- 	}
+-			static_branch_enable(&init_on_alloc);
+-	}
 -	if (_init_on_free_enabled_early) {
 -		if (page_poisoning_requested)
-+	if (_init_on_free_enabled_early ||
-+	    IS_ENABLED(CONFIG_INIT_ON_FREE_DEFAULT_ON)) {
-+		if (page_poisoning_requested) {
- 			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
- 				"will take precedence over init_on_free\n");
+-			pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
+-				"will take precedence over init_on_free\n");
 -		else
-+			static_branch_disable(&init_on_free);
-+		} else
- 			static_branch_enable(&init_on_free);
+-			static_branch_enable(&init_on_free);
++	if ((_init_on_alloc_enabled_early || _init_on_free_enabled_early) &&
++	    page_poisoning_requested) {
++		pr_info("mem auto-init: CONFIG_PAGE_POISONING is on, "
++			"will take precedence over init_on_alloc and init_on_free\n");
++		_init_on_alloc_enabled_early = false;
++		_init_on_free_enabled_early = false;
  	}
  
++	if (_init_on_alloc_enabled_early)
++		static_branch_enable(&init_on_alloc);
++	else
++		static_branch_disable(&init_on_alloc);
++
++	if (_init_on_free_enabled_early)
++		static_branch_enable(&init_on_free);
++	else
++		static_branch_disable(&init_on_free);
++
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ 	if (!debug_pagealloc_enabled())
+ 		return;
 _
 
 Patches currently in -mm which might be from slyfox@gentoo.org are
 
+mm-page_alloc-fix-page_poison=1-init_on_alloc_default_on-interaction.patch
 
