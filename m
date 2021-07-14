@@ -7,38 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 481C0C12002
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 21:45:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1A50C12002
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 21:49:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30DF760C3D
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 21:45:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CC1C61370
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 21:49:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233778AbhGNVr4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Jul 2021 17:47:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36544 "EHLO mail.kernel.org"
+        id S229909AbhGNVwF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 17:52:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37376 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235751AbhGNVrz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Jul 2021 17:47:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E8E461358;
-        Wed, 14 Jul 2021 21:45:02 +0000 (UTC)
+        id S229498AbhGNVwE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 17:52:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AD0896128B;
+        Wed, 14 Jul 2021 21:49:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626299102;
-        bh=csbUR4VwW5Oh/OyHKwDdLpaYb3J21NNohncNdHr/W4Y=;
+        s=korg; t=1626299351;
+        bh=GdOyq2wO+EkEaTHWeEF8m34ibFRahBGWO1+P/4fgk0g=;
         h=Date:From:To:Subject:From;
-        b=mncOS4sYN2ZoIzYOL746F7QS91ofT+Y0hFSATvrXA0NrqxkPhxPCJWWGnc/TDukpo
-         htDLeO7y65kdN7SVqQDiJsyGWcOoB8hON2b17p/4nw+MUAAUNR44lEvWTSWDU4wsvF
-         9HAdDO2es7IoykFbHsdIzqdm7j1x6ZHm4zMGdhcI=
-Date:   Wed, 14 Jul 2021 14:45:01 -0700
+        b=Uqdk02+uBPGjozcB3qPmWYgHDLIkXwfqw59jlKcWyM8iITkiY8QOD2LXn7ljGw6/A
+         I8ftS+iogjg3H/8Jo7u7pyCG3bWFdK91/Y+GJW9+n5khUZP4LG1tx7tEXfu7HbaT4O
+         xCyvQVSg94YtbqHlCgzmduNxuW5EpMQk2BMnb+UI=
+Date:   Wed, 14 Jul 2021 14:49:11 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, adelva@google.com, andreyknvl@gmail.com,
-        catalin.marinas@arm.com, Dave.Martin@arm.com, eugenis@google.com,
-        lokeshgidra@google.com, mitchp@google.com,
-        mm-commits@vger.kernel.org, pcc@google.com, stable@vger.kernel.org,
-        vincenzo.frascino@arm.com, will@kernel.org, willmcvicker@google.com
-Subject:  +
- selftest-use-mmap-instead-of-posix_memalign-to-allocate-memory.patch added
- to -mm tree
-Message-ID: <20210714214501.zhVAj13Az%akpm@linux-foundation.org>
+To:     elver@google.com, glider@google.com, joern@purestorage.com,
+        mm-commits@vger.kernel.org, yzhong@purestorage.com
+Subject:  + kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
+ added to -mm tree
+Message-ID: <20210714214911.hlhvmq22i%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest: use mmap instead of posix_memalign to allocate memory
+     Subject: kfence: show cpu and timestamp in alloc/free info
 has been added to the -mm tree.  Its filename is
-     selftest-use-mmap-instead-of-posix_memalign-to-allocate-memory.patch
+     kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftest-use-mmap-instead-of-posix_memalign-to-allocate-memory.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftest-use-mmap-instead-of-posix_memalign-to-allocate-memory.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,59 +64,275 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Collingbourne <pcc@google.com>
-Subject: selftest: use mmap instead of posix_memalign to allocate memory
+From: Marco Elver <elver@google.com>
+Subject: kfence: show cpu and timestamp in alloc/free info
 
-This test passes pointers obtained from anon_allocate_area to the
-userfaultfd and mremap APIs.  This causes a problem if the system
-allocator returns tagged pointers because with the tagged address ABI the
-kernel rejects tagged addresses passed to these APIs, which would end up
-causing the test to fail.  To make this test compatible with such system
-allocators, stop using the system allocator to allocate memory in
-anon_allocate_area, and instead just use mmap.
+Record cpu and timestamp on allocations and frees, and show them in
+reports.  Upon an error, this can help correlate earlier messages in the
+kernel log via allocation and free timestamps.
 
-Link: https://lkml.kernel.org/r/20210714195437.118982-3-pcc@google.com
-Link: https://linux-review.googlesource.com/id/Icac91064fcd923f77a83e8e133f8631c5b8fc241
-Fixes: c47174fc362a ("userfaultfd: selftest")
-Co-developed-by: Lokesh Gidra <lokeshgidra@google.com>
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Dave Martin <Dave.Martin@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Alistair Delva <adelva@google.com>
-Cc: William McVicker <willmcvicker@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Mitch Phillips <mitchp@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: <stable@vger.kernel.org>	[5.4]
+Link: https://lkml.kernel.org/r/20210714175312.2947941-1-elver@google.com
+Suggested-by: Joern Engel <joern@purestorage.com>
+Signed-off-by: Marco Elver <elver@google.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Acked-by: Joern Engel <joern@purestorage.com>
+Cc: Yuanyuan Zhong <yzhong@purestorage.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Documentation/dev-tools/kfence.rst |   98 ++++++++++++++-------------
+ mm/kfence/core.c                   |    3 
+ mm/kfence/kfence.h                 |    2 
+ mm/kfence/report.c                 |   19 +++--
+ 4 files changed, 71 insertions(+), 51 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~selftest-use-mmap-instead-of-posix_memalign-to-allocate-memory
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -210,8 +210,10 @@ static void anon_release_pages(char *rel
+--- a/Documentation/dev-tools/kfence.rst~kfence-show-cpu-and-timestamp-in-alloc-free-info
++++ a/Documentation/dev-tools/kfence.rst
+@@ -65,25 +65,27 @@ Error reports
+ A typical out-of-bounds access looks like this::
  
- static void anon_allocate_area(void **alloc_area)
+     ==================================================================
+-    BUG: KFENCE: out-of-bounds read in test_out_of_bounds_read+0xa3/0x22b
++    BUG: KFENCE: out-of-bounds read in test_out_of_bounds_read+0xa6/0x234
+ 
+-    Out-of-bounds read at 0xffffffffb672efff (1B left of kfence-#17):
+-     test_out_of_bounds_read+0xa3/0x22b
+-     kunit_try_run_case+0x51/0x85
++    Out-of-bounds read at 0xffff8c3f2e291fff (1B left of kfence-#72):
++     test_out_of_bounds_read+0xa6/0x234
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    kfence-#17 [0xffffffffb672f000-0xffffffffb672f01f, size=32, cache=kmalloc-32] allocated by task 507:
+-     test_alloc+0xf3/0x25b
+-     test_out_of_bounds_read+0x98/0x22b
+-     kunit_try_run_case+0x51/0x85
++    kfence-#72: 0xffff8c3f2e292000-0xffff8c3f2e29201f, size=32, cache=kmalloc-32
++
++    allocated by task 484 on cpu 0 at 32.919330s:
++     test_alloc+0xfe/0x738
++     test_out_of_bounds_read+0x9b/0x234
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    CPU: 4 PID: 107 Comm: kunit_try_catch Not tainted 5.8.0-rc6+ #7
+-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
++    CPU: 0 PID: 484 Comm: kunit_try_catch Not tainted 5.13.0-rc3+ #7
++    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
+     ==================================================================
+ 
+ The header of the report provides a short summary of the function involved in
+@@ -96,30 +98,32 @@ Use-after-free accesses are reported as:
+     ==================================================================
+     BUG: KFENCE: use-after-free read in test_use_after_free_read+0xb3/0x143
+ 
+-    Use-after-free read at 0xffffffffb673dfe0 (in kfence-#24):
++    Use-after-free read at 0xffff8c3f2e2a0000 (in kfence-#79):
+      test_use_after_free_read+0xb3/0x143
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    kfence-#24 [0xffffffffb673dfe0-0xffffffffb673dfff, size=32, cache=kmalloc-32] allocated by task 507:
+-     test_alloc+0xf3/0x25b
++    kfence-#79: 0xffff8c3f2e2a0000-0xffff8c3f2e2a001f, size=32, cache=kmalloc-32
++
++    allocated by task 488 on cpu 2 at 33.871326s:
++     test_alloc+0xfe/0x738
+      test_use_after_free_read+0x76/0x143
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    freed by task 507:
++    freed by task 488 on cpu 2 at 33.871358s:
+      test_use_after_free_read+0xa8/0x143
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    CPU: 4 PID: 109 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
+-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
++    CPU: 2 PID: 488 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
++    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
+     ==================================================================
+ 
+ KFENCE also reports on invalid frees, such as double-frees::
+@@ -127,30 +131,32 @@ KFENCE also reports on invalid frees, su
+     ==================================================================
+     BUG: KFENCE: invalid free in test_double_free+0xdc/0x171
+ 
+-    Invalid free of 0xffffffffb6741000:
++    Invalid free of 0xffff8c3f2e2a4000 (in kfence-#81):
+      test_double_free+0xdc/0x171
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    kfence-#26 [0xffffffffb6741000-0xffffffffb674101f, size=32, cache=kmalloc-32] allocated by task 507:
+-     test_alloc+0xf3/0x25b
++    kfence-#81: 0xffff8c3f2e2a4000-0xffff8c3f2e2a401f, size=32, cache=kmalloc-32
++
++    allocated by task 490 on cpu 1 at 34.175321s:
++     test_alloc+0xfe/0x738
+      test_double_free+0x76/0x171
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    freed by task 507:
++    freed by task 490 on cpu 1 at 34.175348s:
+      test_double_free+0xa8/0x171
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    CPU: 4 PID: 111 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
+-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
++    CPU: 1 PID: 490 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
++    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
+     ==================================================================
+ 
+ KFENCE also uses pattern-based redzones on the other side of an object's guard
+@@ -160,23 +166,25 @@ These are reported on frees::
+     ==================================================================
+     BUG: KFENCE: memory corruption in test_kmalloc_aligned_oob_write+0xef/0x184
+ 
+-    Corrupted memory at 0xffffffffb6797ff9 [ 0xac . . . . . . ] (in kfence-#69):
++    Corrupted memory at 0xffff8c3f2e33aff9 [ 0xac . . . . . . ] (in kfence-#156):
+      test_kmalloc_aligned_oob_write+0xef/0x184
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    kfence-#69 [0xffffffffb6797fb0-0xffffffffb6797ff8, size=73, cache=kmalloc-96] allocated by task 507:
+-     test_alloc+0xf3/0x25b
++    kfence-#156: 0xffff8c3f2e33afb0-0xffff8c3f2e33aff8, size=73, cache=kmalloc-96
++
++    allocated by task 502 on cpu 7 at 42.159302s:
++     test_alloc+0xfe/0x738
+      test_kmalloc_aligned_oob_write+0x57/0x184
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    CPU: 4 PID: 120 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
+-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
++    CPU: 7 PID: 502 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
++    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
+     ==================================================================
+ 
+ For such errors, the address where the corruption occurred as well as the
+--- a/mm/kfence/core.c~kfence-show-cpu-and-timestamp-in-alloc-free-info
++++ a/mm/kfence/core.c
+@@ -20,6 +20,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/random.h>
+ #include <linux/rcupdate.h>
++#include <linux/sched/clock.h>
+ #include <linux/sched/sysctl.h>
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+@@ -196,6 +197,8 @@ static noinline void metadata_update_sta
+ 	 */
+ 	track->num_stack_entries = stack_trace_save(track->stack_entries, KFENCE_STACK_DEPTH, 1);
+ 	track->pid = task_pid_nr(current);
++	track->cpu = raw_smp_processor_id();
++	track->ts_nsec = local_clock(); /* Same source as printk timestamps. */
+ 
+ 	/*
+ 	 * Pairs with READ_ONCE() in
+--- a/mm/kfence/kfence.h~kfence-show-cpu-and-timestamp-in-alloc-free-info
++++ a/mm/kfence/kfence.h
+@@ -36,6 +36,8 @@ enum kfence_object_state {
+ /* Alloc/free tracking information. */
+ struct kfence_track {
+ 	pid_t pid;
++	int cpu;
++	u64 ts_nsec;
+ 	int num_stack_entries;
+ 	unsigned long stack_entries[KFENCE_STACK_DEPTH];
+ };
+--- a/mm/kfence/report.c~kfence-show-cpu-and-timestamp-in-alloc-free-info
++++ a/mm/kfence/report.c
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/lockdep.h>
++#include <linux/math.h>
+ #include <linux/printk.h>
+ #include <linux/sched/debug.h>
+ #include <linux/seq_file.h>
+@@ -100,6 +101,13 @@ static void kfence_print_stack(struct se
+ 			       bool show_alloc)
  {
--	if (posix_memalign(alloc_area, page_size, nr_pages * page_size))
--		err("posix_memalign() failed");
-+	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
-+			   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-+	if (*alloc_area == MAP_FAILED)
-+		err("mmap of anonymous memory failed");
- }
+ 	const struct kfence_track *track = show_alloc ? &meta->alloc_track : &meta->free_track;
++	u64 ts_sec = track->ts_nsec;
++	unsigned long rem_nsec = do_div(ts_sec, NSEC_PER_SEC);
++
++	/* Timestamp matches printk timestamp format. */
++	seq_con_printf(seq, "%s by task %d on cpu %d at %lu.%06lus:\n",
++		       show_alloc ? "allocated" : "freed", track->pid,
++		       track->cpu, (unsigned long)ts_sec, rem_nsec / 1000);
  
- static void noop_alias_mapping(__u64 *start, size_t len, unsigned long offset)
+ 	if (track->num_stack_entries) {
+ 		/* Skip allocation/free internals stack. */
+@@ -126,15 +134,14 @@ void kfence_print_object(struct seq_file
+ 		return;
+ 	}
+ 
+-	seq_con_printf(seq,
+-		       "kfence-#%td [0x%p-0x%p"
+-		       ", size=%d, cache=%s] allocated by task %d:\n",
+-		       meta - kfence_metadata, (void *)start, (void *)(start + size - 1), size,
+-		       (cache && cache->name) ? cache->name : "<destroyed>", meta->alloc_track.pid);
++	seq_con_printf(seq, "kfence-#%td: 0x%p-0x%p, size=%d, cache=%s\n\n",
++		       meta - kfence_metadata, (void *)start, (void *)(start + size - 1),
++		       size, (cache && cache->name) ? cache->name : "<destroyed>");
++
+ 	kfence_print_stack(seq, meta, true);
+ 
+ 	if (meta->state == KFENCE_OBJECT_FREED) {
+-		seq_con_printf(seq, "\nfreed by task %d:\n", meta->free_track.pid);
++		seq_con_printf(seq, "\n");
+ 		kfence_print_stack(seq, meta, false);
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from pcc@google.com are
+Patches currently in -mm which might be from elver@google.com are
 
-userfaultfd-do-not-untag-user-pointers.patch
-selftest-use-mmap-instead-of-posix_memalign-to-allocate-memory.patch
+mm-move-helper-to-check-slub_debug_enabled.patch
+kasan-fix-build-by-including-kernelh.patch
+kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
 
