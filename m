@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D704AC07E95
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:10:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40732C07E95
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:13:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B407661370
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:10:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1E85C61374
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:13:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237203AbhGNBMw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jul 2021 21:12:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35964 "EHLO mail.kernel.org"
+        id S237228AbhGNBQn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Jul 2021 21:16:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36400 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237199AbhGNBMw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Jul 2021 21:12:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A9BC36128E;
-        Wed, 14 Jul 2021 01:10:00 +0000 (UTC)
+        id S237198AbhGNBQm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Jul 2021 21:16:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E18361370;
+        Wed, 14 Jul 2021 01:13:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626225000;
-        bh=8F0k3z4xBvfqSFbgS4klviWxRxKvYhzWKJJnC1y4zCE=;
+        s=korg; t=1626225232;
+        bh=ZodQGn2zREuVuCFDZVPZ4wwonu0j5cuWFdAivE9i3lA=;
         h=Date:From:To:Subject:From;
-        b=g9Km2Pyu+YlT/UOTQa+mS98WYo84U9CqxEskQfpw1DjZSbBZj/KVqEMDZ71eU4TxJ
-         +pHa7zaQPtJL8o3h23uD4HifSh4GmjrjL7LmnPqK62CeTa0ZWZMBraTiBdsYvH5ikM
-         1bJk4QohzgaRFi+cCz1aA4NsVmRKiejI8wBbEb3M=
-Date:   Tue, 13 Jul 2021 18:10:00 -0700
+        b=r6i7kVzb5tKK6CqVecqbhb+PsZ4pUnBt8WbkWIzo+F1Vi8f03AwGcPaE7fp9kl3zd
+         I7v7r+sfDOGwabYtEvb+aEMHCocBGTqVN+zitQLhkxRCdxkWONIbb9ct5zrdm9hsRg
+         xgs0cBzOYdLdUxe/RTT7ecYSLvqYzgY3HE/33Gk8=
+Date:   Tue, 13 Jul 2021 18:13:51 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com, vbabka@suse.cz,
-        vjitta@codeaurora.org
-Subject:  +
- mm-slub-fix-slub_debug-disablement-for-list-of-slabs.patch added to -mm
- tree
-Message-ID: <20210714011000.lhtaX2B7f%akpm@linux-foundation.org>
+To:     fengguang.wu@intel.com, jack@suse.cz, mm-commits@vger.kernel.org,
+        stapelberg+linux@google.com
+Subject:  + writeback-track-number-of-inodes-under-writeback.patch
+ added to -mm tree
+Message-ID: <20210714011351.hemCJj_s5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slub: Fix slub_debug disablement for list of slabs
+     Subject: writeback: track number of inodes under writeback
 has been added to the -mm tree.  Its filename is
-     mm-slub-fix-slub_debug-disablement-for-list-of-slabs.patch
+     writeback-track-number-of-inodes-under-writeback.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-slub_debug-disablement-for-list-of-slabs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/writeback-track-number-of-inodes-under-writeback.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-slub_debug-disablement-for-list-of-slabs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/writeback-track-number-of-inodes-under-writeback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,67 +64,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vijayanand Jitta <vjitta@codeaurora.org>
-Subject: mm: slub: Fix slub_debug disablement for list of slabs
+From: Jan Kara <jack@suse.cz>
+Subject: writeback: track number of inodes under writeback
 
-Consider the scenario where CONFIG_SLUB_DEBUG_ON is set and we would want
-to disable slub_debug for few slabs.  Using boot parameter with
-slub_debug=-,slab_name syntax doesn't work as expected i.e; only disabling
-debugging for the specified list of slabs, instead it disables debugging
-for all slabs.  Fix this.
+Patch series "writeback: Fix bandwidth estimates", v4.
 
-Link: https://lkml.kernel.org/r/1626176750-13099-1-git-send-email-vjitta@codeaurora.org
-Signed-off-by: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Fix estimate of writeback throughput when device is not fully busy doing
+writeback.  Michael Stapelberg has reported that such workload (e.g. 
+generated by linking) tends to push estimated throughput down to 0 and as
+a result writeback on the device is practically stalled.
+
+The first three patches fix the reported issue, the remaining two patches
+are unrelated cleanups of problems I've noticed when reading the code.
+
+
+This patch (of 4):
+
+Track number of inodes under writeback for each bdi_writeback structure. 
+We will use this to decide whether wb does any IO and so we can estimate
+its writeback throughput.  In principle we could use number of pages under
+writeback (WB_WRITEBACK counter) for this however normal percpu counter
+reads are too inaccurate for our purposes and summing the counter is too
+expensive.
+
+Link: https://lkml.kernel.org/r/20210713104519.16394-1-jack@suse.cz
+Link: https://lkml.kernel.org/r/20210713104716.22868-1-jack@suse.cz
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Michael Stapelberg <stapelberg+linux@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/fs-writeback.c                |    5 +++++
+ include/linux/backing-dev-defs.h |    1 +
+ mm/backing-dev.c                 |    1 +
+ mm/page-writeback.c              |   22 ++++++++++++++++++++--
+ 4 files changed, 27 insertions(+), 2 deletions(-)
 
---- a/mm/slub.c~mm-slub-fix-slub_debug-disablement-for-list-of-slabs
-+++ a/mm/slub.c
-@@ -1415,6 +1415,7 @@ static int __init setup_slub_debug(char
- 	char *slab_list;
- 	bool global_slub_debug_changed = false;
- 	bool slab_list_specified = false;
-+	bool slab_list_debug_disable = true;
+--- a/fs/fs-writeback.c~writeback-track-number-of-inodes-under-writeback
++++ a/fs/fs-writeback.c
+@@ -406,6 +406,11 @@ static bool inode_do_switch_wbs(struct i
+ 		inc_wb_stat(new_wb, WB_WRITEBACK);
+ 	}
  
- 	slub_debug = DEBUG_DEFAULT_FLAGS;
- 	if (*str++ != '=' || !*str)
-@@ -1422,7 +1423,6 @@ static int __init setup_slub_debug(char
- 		 * No options specified. Switch on full debugging.
- 		 */
- 		goto out;
--
- 	saved_str = str;
- 	while (str) {
- 		str = parse_slub_debug_flags(str, &flags, &slab_list, true);
-@@ -1431,6 +1431,8 @@ static int __init setup_slub_debug(char
- 			slub_debug = flags;
- 			global_slub_debug_changed = true;
- 		} else {
-+			if (flags || !IS_ENABLED(CONFIG_SLUB_DEBUG_ON))
-+				slab_list_debug_disable = false;
- 			slab_list_specified = true;
++	if (mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK)) {
++		atomic_dec(&old_wb->writeback_inodes);
++		atomic_inc(&new_wb->writeback_inodes);
++	}
++
+ 	wb_get(new_wb);
+ 
+ 	/*
+--- a/include/linux/backing-dev-defs.h~writeback-track-number-of-inodes-under-writeback
++++ a/include/linux/backing-dev-defs.h
+@@ -116,6 +116,7 @@ struct bdi_writeback {
+ 	struct list_head b_dirty_time;	/* time stamps are dirty */
+ 	spinlock_t list_lock;		/* protects the b_* lists */
+ 
++	atomic_t writeback_inodes;	/* number of inodes under writeback */
+ 	struct percpu_counter stat[NR_WB_STAT_ITEMS];
+ 
+ 	unsigned long congested;	/* WB_[a]sync_congested flags */
+--- a/mm/backing-dev.c~writeback-track-number-of-inodes-under-writeback
++++ a/mm/backing-dev.c
+@@ -293,6 +293,7 @@ static int wb_init(struct bdi_writeback
+ 	INIT_LIST_HEAD(&wb->b_dirty_time);
+ 	spin_lock_init(&wb->list_lock);
+ 
++	atomic_set(&wb->writeback_inodes, 0);
+ 	wb->bw_time_stamp = jiffies;
+ 	wb->balanced_dirty_ratelimit = INIT_BW;
+ 	wb->dirty_ratelimit = INIT_BW;
+--- a/mm/page-writeback.c~writeback-track-number-of-inodes-under-writeback
++++ a/mm/page-writeback.c
+@@ -2731,6 +2731,16 @@ int clear_page_dirty_for_io(struct page
+ }
+ EXPORT_SYMBOL(clear_page_dirty_for_io);
+ 
++static void wb_inode_writeback_start(struct bdi_writeback *wb)
++{
++	atomic_inc(&wb->writeback_inodes);
++}
++
++static void wb_inode_writeback_end(struct bdi_writeback *wb)
++{
++	atomic_dec(&wb->writeback_inodes);
++}
++
+ int test_clear_page_writeback(struct page *page)
+ {
+ 	struct address_space *mapping = page_mapping(page);
+@@ -2752,6 +2762,9 @@ int test_clear_page_writeback(struct pag
+ 
+ 				dec_wb_stat(wb, WB_WRITEBACK);
+ 				__wb_writeout_inc(wb);
++				if (!mapping_tagged(mapping,
++						    PAGECACHE_TAG_WRITEBACK))
++					wb_inode_writeback_end(wb);
+ 			}
  		}
- 	}
-@@ -1442,7 +1444,7 @@ static int __init setup_slub_debug(char
- 	 * long as there is no option specifying flags without a slab list.
- 	 */
- 	if (slab_list_specified) {
--		if (!global_slub_debug_changed)
-+		if (!global_slub_debug_changed && !slab_list_debug_disable)
- 			slub_debug = 0;
- 		slub_debug_string = saved_str;
- 	}
+ 
+@@ -2794,8 +2807,13 @@ int __test_set_page_writeback(struct pag
+ 						   PAGECACHE_TAG_WRITEBACK);
+ 
+ 			xas_set_mark(&xas, PAGECACHE_TAG_WRITEBACK);
+-			if (bdi->capabilities & BDI_CAP_WRITEBACK_ACCT)
+-				inc_wb_stat(inode_to_wb(inode), WB_WRITEBACK);
++			if (bdi->capabilities & BDI_CAP_WRITEBACK_ACCT) {
++				struct bdi_writeback *wb = inode_to_wb(inode);
++
++				inc_wb_stat(wb, WB_WRITEBACK);
++				if (!on_wblist)
++					wb_inode_writeback_start(wb);
++			}
+ 
+ 			/*
+ 			 * We can come through here when swapping anonymous
 _
 
-Patches currently in -mm which might be from vjitta@codeaurora.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-mm-slub-fix-slub_debug-disablement-for-list-of-slabs.patch
+writeback-track-number-of-inodes-under-writeback.patch
+writeback-reliably-update-bandwidth-estimation.patch
+writeback-fix-bandwidth-estimate-for-spiky-workload.patch
+writeback-rename-domain_update_bandwidth.patch
+writeback-use-read_once-for-unlocked-reads-of-writeback-stats.patch
 
