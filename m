@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B41AFC07E95
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:00:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92B44C07E95
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:02:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B42161260
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:00:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 75144613AB
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:02:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237186AbhGNBDP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jul 2021 21:03:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34904 "EHLO mail.kernel.org"
+        id S237228AbhGNBFY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Jul 2021 21:05:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35202 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237180AbhGNBDP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Jul 2021 21:03:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B1A1C6135A;
-        Wed, 14 Jul 2021 01:00:23 +0000 (UTC)
+        id S237180AbhGNBFY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Jul 2021 21:05:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8DEB86136E;
+        Wed, 14 Jul 2021 01:02:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626224423;
-        bh=DOt8IsITYjYpBBI89mUo5BTojfag8AHT2FUmbj83qPA=;
+        s=korg; t=1626224552;
+        bh=6WehOXPfHGhmExw7DxXEZuuREMY9ztJvo0vuzRfxqDE=;
         h=Date:From:To:Subject:From;
-        b=Z97fMw1drDc0XGjsYFt78IA32WZg1HqeOztqdayaCCFujBLBWUZzzgSxS51fIUtqZ
-         msyhovzRw5mwYts4qThOfbBkwXkGEfUo1yyxfHpU7cBnEUwjHtG+3Xd7UdASRirWe4
-         +AmNjZ52ecXVZkYHZuk0NWZ/dx5KVE7Bn1hNq5wc=
-Date:   Tue, 13 Jul 2021 18:00:23 -0700
+        b=yx4Sh8P14g5aXWdqtC46rFFUjAl3xjfeAd9X6OqlSgqmFZcMw1hDMXrJ6MdiaXoy/
+         GOINS/fmTXnYGS3XabtG5AUD5Vph9MoSXvryQAt0J3Ot6gq4BL6nTk0jNtSMCiCT0o
+         TOwwzZic9p5DWPA/QTPl/Z29If0yk7Z2vz4vLIAg=
+Date:   Tue, 13 Jul 2021 18:02:32 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, arnd@arndb.de, mm-commits@vger.kernel.org
-Subject:  + decouple-build-from-userspace-headers.patch added to
- -mm tree
-Message-ID: <20210714010023.vC2Lxjcc7%akpm@linux-foundation.org>
+To:     joao.m.martins@oracle.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org
+Subject:  +
+ mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr.patch added to -mm
+ tree
+Message-ID: <20210714010232.mZYMDcaPP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kbuild: decouple build from userspace headers
+     Subject: mm/hugetlb: fix refs calculation from unaligned @vaddr
 has been added to the -mm tree.  Its filename is
-     decouple-build-from-userspace-headers.patch
+     mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/decouple-build-from-userspace-headers.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/decouple-build-from-userspace-headers.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,151 +65,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: kbuild: decouple build from userspace headers
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm/hugetlb: fix refs calculation from unaligned @vaddr
 
-In theory, userspace headers can be under incompatible license.
+commit 82e5d378b0e47 ("mm/hugetlb: refactor subpage recording") refactored
+the count of subpages but missed an edge case when @vaddr is not aligned
+to PAGE_SIZE e.g.  when close to vma->vm_end.  It would then errousnly set
+@refs to 0 and record_subpages_vmas() wouldn't set the @pages array
+element to its value, consequently causing the reported null-deref by
+syzbot.
 
-Linux by virtue of being OS kernel is fully independent piece of code and
-should not require anything from userspace.
+Fix it by aligning down @vaddr by PAGE_SIZE in @refs calculation.
 
-For this:
-
-* ship minimal <stdarg.h>
-	2 types, 4 macros
-
-* delete "-isystem"
-	This is what enables leakage.
-
-* fixup compilation where necessary.
-
-Link: https://lkml.kernel.org/r/YO3txvw87MjKfdpq@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/20210713152440.28650-1-joao.m.martins@oracle.com
+Fixes: 82e5d378b0e47 ("mm/hugetlb: refactor subpage recording")
+Reported-by: syzbot+a3fcd59df1b372066f5a@syzkaller.appspotmail.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile                                                               |    2 +-
- arch/um/include/shared/irq_user.h                                      |    1 -
- arch/um/os-Linux/signal.c                                              |    2 +-
- crypto/aegis128-neon-inner.c                                           |    2 --
- drivers/net/wwan/iosm/iosm_ipc_imem.h                                  |    1 -
- drivers/pinctrl/aspeed/pinmux-aspeed.h                                 |    1 -
- drivers/staging/media/atomisp/pci/hive_isp_css_common/host/isp_local.h |    2 --
- include/stdarg.h                                                       |    9 +++++++++
- sound/aoa/codecs/onyx.h                                                |    1 -
- sound/aoa/codecs/tas.c                                                 |    1 -
- 10 files changed, 11 insertions(+), 11 deletions(-)
+ mm/hugetlb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/arch/um/include/shared/irq_user.h~decouple-build-from-userspace-headers
-+++ a/arch/um/include/shared/irq_user.h
-@@ -7,7 +7,6 @@
- #define __IRQ_USER_H__
+--- a/mm/hugetlb.c~mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr
++++ a/mm/hugetlb.c
+@@ -5440,8 +5440,9 @@ long follow_hugetlb_page(struct mm_struc
+ 			continue;
+ 		}
  
- #include <sysdep/ptrace.h>
--#include <stdbool.h>
+-		refs = min3(pages_per_huge_page(h) - pfn_offset,
+-			    (vma->vm_end - vaddr) >> PAGE_SHIFT, remainder);
++		/* vaddr may not be aligned to PAGE_SIZE */
++		refs = min3(pages_per_huge_page(h) - pfn_offset, remainder,
++		    (vma->vm_end - ALIGN_DOWN(vaddr, PAGE_SIZE)) >> PAGE_SHIFT);
  
- enum um_irq_type {
- 	IRQ_READ,
---- a/arch/um/os-Linux/signal.c~decouple-build-from-userspace-headers
-+++ a/arch/um/os-Linux/signal.c
-@@ -67,7 +67,7 @@ int signals_enabled;
- #ifdef UML_CONFIG_UML_TIME_TRAVEL_SUPPORT
- static int signals_blocked;
- #else
--#define signals_blocked false
-+#define signals_blocked 0
- #endif
- static unsigned int signals_pending;
- static unsigned int signals_active = 0;
---- a/crypto/aegis128-neon-inner.c~decouple-build-from-userspace-headers
-+++ a/crypto/aegis128-neon-inner.c
-@@ -15,8 +15,6 @@
- 
- #define AEGIS_BLOCK_SIZE	16
- 
--#include <stddef.h>
--
- extern int aegis128_have_aes_insn;
- 
- void *memcpy(void *dest, const void *src, size_t n);
---- a/drivers/net/wwan/iosm/iosm_ipc_imem.h~decouple-build-from-userspace-headers
-+++ a/drivers/net/wwan/iosm/iosm_ipc_imem.h
-@@ -7,7 +7,6 @@
- #define IOSM_IPC_IMEM_H
- 
- #include <linux/skbuff.h>
--#include <stdbool.h>
- 
- #include "iosm_ipc_mmio.h"
- #include "iosm_ipc_pcie.h"
---- a/drivers/pinctrl/aspeed/pinmux-aspeed.h~decouple-build-from-userspace-headers
-+++ a/drivers/pinctrl/aspeed/pinmux-aspeed.h
-@@ -5,7 +5,6 @@
- #define ASPEED_PINMUX_H
- 
- #include <linux/regmap.h>
--#include <stdbool.h>
- 
- /*
-  * The ASPEED SoCs provide typically more than 200 pins for GPIO and other
---- a/drivers/staging/media/atomisp/pci/hive_isp_css_common/host/isp_local.h~decouple-build-from-userspace-headers
-+++ a/drivers/staging/media/atomisp/pci/hive_isp_css_common/host/isp_local.h
-@@ -16,8 +16,6 @@
- #ifndef __ISP_LOCAL_H_INCLUDED__
- #define __ISP_LOCAL_H_INCLUDED__
- 
--#include <stdbool.h>
--
- #include "isp_global.h"
- 
- #include <isp2400_support.h>
---- /dev/null
-+++ a/include/stdarg.h
-@@ -0,0 +1,9 @@
-+#ifndef _LINUX_STDARG_H
-+#define _LINUX_STDARG_H
-+typedef __builtin_va_list __gnuc_va_list;
-+typedef __builtin_va_list va_list;
-+#define va_start(v, l)	__builtin_va_start(v, l)
-+#define va_end(v)	__builtin_va_end(v)
-+#define va_arg(v, T)	__builtin_va_arg(v, T)
-+#define va_copy(d, s)	__builtin_va_copy(d, s)
-+#endif
---- a/Makefile~decouple-build-from-userspace-headers
-+++ a/Makefile
-@@ -978,7 +978,7 @@ KBUILD_CFLAGS += -falign-functions=64
- endif
- 
- # arch Makefile may override CC so keep this after arch Makefile is included
--NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
-+NOSTDINC_FLAGS += -nostdinc
- 
- # warn about C99 declaration after statement
- KBUILD_CFLAGS += -Wdeclaration-after-statement
---- a/sound/aoa/codecs/onyx.h~decouple-build-from-userspace-headers
-+++ a/sound/aoa/codecs/onyx.h
-@@ -6,7 +6,6 @@
-  */
- #ifndef __SND_AOA_CODEC_ONYX_H
- #define __SND_AOA_CODEC_ONYX_H
--#include <stddef.h>
- #include <linux/i2c.h>
- #include <asm/pmac_low_i2c.h>
- #include <asm/prom.h>
---- a/sound/aoa/codecs/tas.c~decouple-build-from-userspace-headers
-+++ a/sound/aoa/codecs/tas.c
-@@ -58,7 +58,6 @@
-  *    and up to the hardware designer to not wire
-  *    them up in some weird unusable way.
-  */
--#include <stddef.h>
- #include <linux/i2c.h>
- #include <asm/pmac_low_i2c.h>
- #include <asm/prom.h>
+ 		if (pages || vmas)
+ 			record_subpages_vmas(mem_map_offset(page, pfn_offset),
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from joao.m.martins@oracle.com are
 
-decouple-build-from-userspace-headers.patch
+mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr.patch
 
