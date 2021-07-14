@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B63C2C07E95
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:13:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 829DEC07E95
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:13:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9924561374
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:13:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6B18D613A9
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:13:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237255AbhGNBQq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jul 2021 21:16:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36426 "EHLO mail.kernel.org"
+        id S237244AbhGNBQt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Jul 2021 21:16:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36458 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237198AbhGNBQq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Jul 2021 21:16:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CA6C66136E;
-        Wed, 14 Jul 2021 01:13:54 +0000 (UTC)
+        id S237198AbhGNBQt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Jul 2021 21:16:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B234561374;
+        Wed, 14 Jul 2021 01:13:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626225235;
-        bh=7SbjtiBGnWOMVdSrAffrAvuJRJ7RM4VwBG9cm4QoNwY=;
+        s=korg; t=1626225237;
+        bh=g2k19iesuYAD5eYIN3ynhNC24TOV4xoXJSPJcYdUlTk=;
         h=Date:From:To:Subject:From;
-        b=fBCGUx+/nRXbvOMSxutgCARXKSuHn1jri2Z/wPClAsDZo0cqTw7xNNa9fgqpgYta9
-         cRzwPVNW8YyXLCl7y5bTwNEyFMQS9K3anM4YSOEoUpGIQNSHCN+JBHb8KcA61B1F2n
-         gwjOJhuhDP7WnNPbn4HbE7SP8QxeMFj2V73tGOy4=
-Date:   Tue, 13 Jul 2021 18:13:54 -0700
+        b=TJ0f+6DymI0xFQIVs9/fCl7zQ5hnUYg4psB5z3OXtS+uJ6xPbbYQUuN3QPp9fqCLL
+         jrF7THTaIb9ePSoh9iN6lSx3llXCyQSlcDYISysX69P6zj3dHOyszD1uZXJ93uHLT3
+         4dGikXTEBDlnrc8BOMcvG4XQGreM+hP3dWr1QjBY=
+Date:   Tue, 13 Jul 2021 18:13:57 -0700
 From:   akpm@linux-foundation.org
 To:     fengguang.wu@intel.com, jack@suse.cz, mm-commits@vger.kernel.org,
         stapelberg+linux@google.com
-Subject:  + writeback-reliably-update-bandwidth-estimation.patch
- added to -mm tree
-Message-ID: <20210714011354.K0_4DnHM_%akpm@linux-foundation.org>
+Subject:  +
+ writeback-fix-bandwidth-estimate-for-spiky-workload.patch added to -mm tree
+Message-ID: <20210714011357.CteH19Pmo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback: reliably update bandwidth estimation
+     Subject: writeback: fix bandwidth estimate for spiky workload
 has been added to the -mm tree.  Its filename is
-     writeback-reliably-update-bandwidth-estimation.patch
+     writeback-fix-bandwidth-estimate-for-spiky-workload.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/writeback-reliably-update-bandwidth-estimation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/writeback-fix-bandwidth-estimate-for-spiky-workload.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/writeback-reliably-update-bandwidth-estimation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/writeback-fix-bandwidth-estimate-for-spiky-workload.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,185 +65,172 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: writeback: reliably update bandwidth estimation
+Subject: writeback: fix bandwidth estimate for spiky workload
 
-Currently we trigger writeback bandwidth estimation from
-balance_dirty_pages() and from wb_writeback().  However neither of these
-need to trigger when the system is relatively idle and writeback is
-triggered e.g.  from fsync(2).  Make sure writeback estimates happen
-reliably by triggering them from do_writepages().
+Michael Stapelberg has reported that for workload with short big spikes of
+writes (GCC linker seem to trigger this frequently) the write throughput
+is heavily underestimated and tends to steadily sink until it reaches
+zero.  This has rather bad impact on writeback throttling (causing
+stalls).  The problem is that writeback throughput estimate gets updated
+at most once per 200 ms.  One update happens early after we submit pages
+for writeback (at that point writeout of only small fraction of pages is
+completed and thus observed throughput is tiny).  Next update happens only
+during the next write spike (updates happen only from inode writeback and
+dirty throttling code) and if that is more than 1s after previous spike,
+we decide system was idle and just ignore whatever was written until this
+moment.
 
-Link: https://lkml.kernel.org/r/20210713104716.22868-2-jack@suse.cz
+Fix the problem by making sure writeback throughput estimate is also
+updated shortly after writeback completes to get reasonable estimate of
+throughput for spiky workloads.
+
+Link: https://lore.kernel.org/lkml/20210617095309.3542373-1-stapelberg+linux@google.com
+Link: https://lkml.kernel.org/r/20210713104716.22868-3-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Michael Stapelberg <stapelberg+linux@google.com>
+Reported-by: Michael Stapelberg <stapelberg+linux@google.com>
+Tested-by: Michael Stapelberg <stapelberg+linux@google.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c           |    3 --
- include/linux/backing-dev.h |   19 ++++++++++++++++
- include/linux/writeback.h   |    1 
- mm/page-writeback.c         |   39 +++++++++++++++++++++++-----------
- 4 files changed, 46 insertions(+), 16 deletions(-)
+ include/linux/backing-dev-defs.h |    1 
+ include/linux/writeback.h        |    1 
+ mm/backing-dev.c                 |   10 ++++++++
+ mm/page-writeback.c              |   35 +++++++++++++++--------------
+ 4 files changed, 31 insertions(+), 16 deletions(-)
 
---- a/fs/fs-writeback.c~writeback-reliably-update-bandwidth-estimation
-+++ a/fs/fs-writeback.c
-@@ -2001,7 +2001,6 @@ static long writeback_inodes_wb(struct b
- static long wb_writeback(struct bdi_writeback *wb,
- 			 struct wb_writeback_work *work)
- {
--	unsigned long wb_start = jiffies;
- 	long nr_pages = work->nr_pages;
- 	unsigned long dirtied_before = jiffies;
- 	struct inode *inode;
-@@ -2055,8 +2054,6 @@ static long wb_writeback(struct bdi_writ
- 			progress = __writeback_inodes_wb(wb, work);
- 		trace_writeback_written(wb, work);
+--- a/include/linux/backing-dev-defs.h~writeback-fix-bandwidth-estimate-for-spiky-workload
++++ a/include/linux/backing-dev-defs.h
+@@ -143,6 +143,7 @@ struct bdi_writeback {
+ 	spinlock_t work_lock;		/* protects work_list & dwork scheduling */
+ 	struct list_head work_list;
+ 	struct delayed_work dwork;	/* work item used for writeback */
++	struct delayed_work bw_dwork;	/* work item used for bandwidth estimate */
  
--		wb_update_bandwidth(wb, wb_start);
--
- 		/*
- 		 * Did we write something? Try for more
- 		 *
---- a/include/linux/backing-dev.h~writeback-reliably-update-bandwidth-estimation
-+++ a/include/linux/backing-dev.h
-@@ -288,6 +288,17 @@ static inline struct bdi_writeback *inod
- 	return inode->i_wb;
- }
+ 	unsigned long dirty_sleep;	/* last wait */
  
-+static inline struct bdi_writeback *inode_to_wb_wbc(
-+				struct inode *inode,
-+				struct writeback_control *wbc)
-+{
-+	/*
-+	 * If wbc does not have inode attached, it means cgroup writeback was
-+ 	 * disabled when wbc started. Just use the default wb in that case.
-+	 */
-+	return wbc->wb ? wbc->wb : &inode_to_bdi(inode)->wb;
-+}
-+
- /**
-  * unlocked_inode_to_wb_begin - begin unlocked inode wb access transaction
-  * @inode: target inode
-@@ -366,6 +377,14 @@ static inline struct bdi_writeback *inod
- 	return &inode_to_bdi(inode)->wb;
- }
- 
-+static inline struct bdi_writeback *inode_to_wb_wbc(
-+				struct inode *inode,
-+				struct writeback_control *wbc)
-+{
-+	return inode_to_wb(inode);
-+}
-+
-+
- static inline struct bdi_writeback *
- unlocked_inode_to_wb_begin(struct inode *inode, struct wb_lock_cookie *cookie)
- {
---- a/include/linux/writeback.h~writeback-reliably-update-bandwidth-estimation
+--- a/include/linux/writeback.h~writeback-fix-bandwidth-estimate-for-spiky-workload
 +++ a/include/linux/writeback.h
-@@ -379,7 +379,6 @@ int dirty_writeback_centisecs_handler(st
+@@ -379,6 +379,7 @@ int dirty_writeback_centisecs_handler(st
  void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty);
  unsigned long wb_calc_thresh(struct bdi_writeback *wb, unsigned long thresh);
  
--void wb_update_bandwidth(struct bdi_writeback *wb, unsigned long start_time);
++void wb_update_bandwidth(struct bdi_writeback *wb);
  void balance_dirty_pages_ratelimited(struct address_space *mapping);
  bool wb_over_bg_thresh(struct bdi_writeback *wb);
  
---- a/mm/page-writeback.c~writeback-reliably-update-bandwidth-estimation
-+++ a/mm/page-writeback.c
-@@ -1332,7 +1332,6 @@ static void wb_update_dirty_ratelimit(st
+--- a/mm/backing-dev.c~writeback-fix-bandwidth-estimate-for-spiky-workload
++++ a/mm/backing-dev.c
+@@ -271,6 +271,14 @@ void wb_wakeup_delayed(struct bdi_writeb
+ 	spin_unlock_bh(&wb->work_lock);
+ }
  
- static void __wb_update_bandwidth(struct dirty_throttle_control *gdtc,
- 				  struct dirty_throttle_control *mdtc,
--				  unsigned long start_time,
- 				  bool update_ratelimit)
- {
- 	struct bdi_writeback *wb = gdtc->wb;
-@@ -1352,13 +1351,6 @@ static void __wb_update_bandwidth(struct
++static void wb_update_bandwidth_workfn(struct work_struct *work)
++{
++	struct bdi_writeback *wb = container_of(to_delayed_work(work),
++						struct bdi_writeback, bw_dwork);
++
++	wb_update_bandwidth(wb);
++}
++
+ /*
+  * Initial write bandwidth: 100 MB/s
+  */
+@@ -303,6 +311,7 @@ static int wb_init(struct bdi_writeback
+ 	spin_lock_init(&wb->work_lock);
+ 	INIT_LIST_HEAD(&wb->work_list);
+ 	INIT_DELAYED_WORK(&wb->dwork, wb_workfn);
++	INIT_DELAYED_WORK(&wb->bw_dwork, wb_update_bandwidth_workfn);
+ 	wb->dirty_sleep = jiffies;
+ 
+ 	err = fprop_local_init_percpu(&wb->completions, gfp);
+@@ -351,6 +360,7 @@ static void wb_shutdown(struct bdi_write
+ 	mod_delayed_work(bdi_wq, &wb->dwork, 0);
+ 	flush_delayed_work(&wb->dwork);
+ 	WARN_ON(!list_empty(&wb->work_list));
++	flush_delayed_work(&wb->bw_dwork);
+ }
+ 
+ static void wb_exit(struct bdi_writeback *wb)
+--- a/mm/page-writeback.c~writeback-fix-bandwidth-estimate-for-spiky-workload
++++ a/mm/page-writeback.c
+@@ -1340,14 +1340,7 @@ static void __wb_update_bandwidth(struct
+ 	unsigned long dirtied;
+ 	unsigned long written;
+ 
+-	lockdep_assert_held(&wb->list_lock);
+-
+-	/*
+-	 * rate-limit, only update once every 200ms.
+-	 */
+-	if (elapsed < BANDWIDTH_INTERVAL)
+-		return;
+-
++	spin_lock(&wb->list_lock);
  	dirtied = percpu_counter_read(&wb->stat[WB_DIRTIED]);
  	written = percpu_counter_read(&wb->stat[WB_WRITTEN]);
  
--	/*
--	 * Skip quiet periods when disk bandwidth is under-utilized.
--	 * (at least 1s idle time between two flusher runs)
--	 */
--	if (elapsed > HZ && time_before(wb->bw_time_stamp, start_time))
--		goto snapshot;
--
- 	if (update_ratelimit) {
- 		domain_update_bandwidth(gdtc, now);
- 		wb_update_dirty_ratelimit(gdtc, dirtied, elapsed);
-@@ -1374,17 +1366,36 @@ static void __wb_update_bandwidth(struct
- 	}
- 	wb_update_write_bandwidth(wb, elapsed, written);
- 
--snapshot:
+@@ -1369,15 +1362,14 @@ static void __wb_update_bandwidth(struct
  	wb->dirtied_stamp = dirtied;
  	wb->written_stamp = written;
  	wb->bw_time_stamp = now;
++	spin_unlock(&wb->list_lock);
  }
  
--void wb_update_bandwidth(struct bdi_writeback *wb, unsigned long start_time)
-+static void wb_update_bandwidth(struct bdi_writeback *wb)
+-static void wb_update_bandwidth(struct bdi_writeback *wb)
++void wb_update_bandwidth(struct bdi_writeback *wb)
  {
  	struct dirty_throttle_control gdtc = { GDTC_INIT(wb) };
  
--	__wb_update_bandwidth(&gdtc, NULL, start_time, false);
-+	spin_lock(&wb->list_lock);
-+	__wb_update_bandwidth(&gdtc, NULL, false);
-+	spin_unlock(&wb->list_lock);
-+}
-+
-+/* Interval after which we consider wb idle and don't estimate bandwidth */
-+#define WB_BANDWIDTH_IDLE_JIF (HZ)
-+
-+static void wb_bandwidth_estimate_start(struct bdi_writeback *wb)
-+{
-+	unsigned long now = jiffies;
-+	unsigned long elapsed = now - READ_ONCE(wb->bw_time_stamp);
-+
-+	if (elapsed > WB_BANDWIDTH_IDLE_JIF &&
-+	    !atomic_read(&wb->writeback_inodes)) {
-+		spin_lock(&wb->list_lock);
-+		wb->dirtied_stamp = wb_stat(wb, WB_DIRTIED);
-+		wb->written_stamp = wb_stat(wb, WB_WRITTEN);
-+		wb->bw_time_stamp = now;
-+		spin_unlock(&wb->list_lock);
-+	}
+-	spin_lock(&wb->list_lock);
+ 	__wb_update_bandwidth(&gdtc, NULL, false);
+-	spin_unlock(&wb->list_lock);
  }
  
- /*
-@@ -1713,7 +1724,7 @@ free_running:
+ /* Interval after which we consider wb idle and don't estimate bandwidth */
+@@ -1722,11 +1714,8 @@ free_running:
+ 			wb->dirty_exceeded = 1;
+ 
  		if (time_is_before_jiffies(wb->bw_time_stamp +
- 					   BANDWIDTH_INTERVAL)) {
- 			spin_lock(&wb->list_lock);
--			__wb_update_bandwidth(gdtc, mdtc, start_time, true);
-+			__wb_update_bandwidth(gdtc, mdtc, true);
- 			spin_unlock(&wb->list_lock);
- 		}
+-					   BANDWIDTH_INTERVAL)) {
+-			spin_lock(&wb->list_lock);
++					   BANDWIDTH_INTERVAL))
+ 			__wb_update_bandwidth(gdtc, mdtc, true);
+-			spin_unlock(&wb->list_lock);
+-		}
  
-@@ -2347,9 +2358,12 @@ EXPORT_SYMBOL(generic_writepages);
- int do_writepages(struct address_space *mapping, struct writeback_control *wbc)
- {
- 	int ret;
-+	struct bdi_writeback *wb;
- 
- 	if (wbc->nr_to_write <= 0)
- 		return 0;
-+	wb = inode_to_wb_wbc(mapping->host, wbc);
-+	wb_bandwidth_estimate_start(wb);
- 	while (1) {
- 		if (mapping->a_ops->writepages)
- 			ret = mapping->a_ops->writepages(mapping, wbc);
-@@ -2360,6 +2374,7 @@ int do_writepages(struct address_space *
+ 		/* throttle according to the chosen dtc */
+ 		dirty_ratelimit = wb->dirty_ratelimit;
+@@ -2374,7 +2363,13 @@ int do_writepages(struct address_space *
  		cond_resched();
  		congestion_wait(BLK_RW_ASYNC, HZ/50);
  	}
-+	wb_update_bandwidth(wb);
+-	wb_update_bandwidth(wb);
++	/*
++	 * Usually few pages are written by now from those we've just submitted
++	 * but if there's constant writeback being submitted, this makes sure
++	 * writeback bandwidth is updated once in a while.
++	 */
++	if (time_is_before_jiffies(wb->bw_time_stamp + BANDWIDTH_INTERVAL))
++		wb_update_bandwidth(wb);
  	return ret;
  }
  
+@@ -2754,6 +2749,14 @@ static void wb_inode_writeback_start(str
+ static void wb_inode_writeback_end(struct bdi_writeback *wb)
+ {
+ 	atomic_dec(&wb->writeback_inodes);
++	/*
++	 * Make sure estimate of writeback throughput gets updated after
++	 * writeback completed. We delay the update by BANDWIDTH_INTERVAL
++	 * (which is the interval other bandwidth updates use for batching) so
++	 * that if multiple inodes end writeback at a similar time, they get
++	 * batched into one bandwidth update.
++	 */
++	queue_delayed_work(bdi_wq, &wb->bw_dwork, BANDWIDTH_INTERVAL);
+ }
+ 
+ int test_clear_page_writeback(struct page *page)
 _
 
 Patches currently in -mm which might be from jack@suse.cz are
