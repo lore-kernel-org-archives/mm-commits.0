@@ -2,126 +2,212 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,TVD_SPACE_RATIO autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A03A4C07E95
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Jul 2021 23:16:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B41AFC07E95
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:00:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82AD761363
-	for <mm-commits@archiver.kernel.org>; Tue, 13 Jul 2021 23:16:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8B42161260
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:00:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235417AbhGMXS4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jul 2021 19:18:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53680 "EHLO mail.kernel.org"
+        id S237186AbhGNBDP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Jul 2021 21:03:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34904 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229500AbhGMXS4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Jul 2021 19:18:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A58BD61362;
-        Tue, 13 Jul 2021 23:16:04 +0000 (UTC)
+        id S237180AbhGNBDP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Jul 2021 21:03:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B1A1C6135A;
+        Wed, 14 Jul 2021 01:00:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626218164;
-        bh=HE3+CFhozfYn+4FAWVV00jjsVMyapEu3llBAnHw5gq4=;
+        s=korg; t=1626224423;
+        bh=DOt8IsITYjYpBBI89mUo5BTojfag8AHT2FUmbj83qPA=;
         h=Date:From:To:Subject:From;
-        b=iA0byu7iLoeg3QemCt+ifENC+xASsbjAroGXyWgI30z7p7rOfmiw6y06NBFcMjgVo
-         GNJXs3FaSxUd3i3EbdnSx4mcziUrPDQ1a2nyPoskJrAR7iJWs8jJw271sTZlgAZRH3
-         Uq4CT9ensoNxY07EffmHK78fguXkC24ZOIdNofTA=
-Date:   Tue, 13 Jul 2021 16:16:04 -0700
+        b=Z97fMw1drDc0XGjsYFt78IA32WZg1HqeOztqdayaCCFujBLBWUZzzgSxS51fIUtqZ
+         msyhovzRw5mwYts4qThOfbBkwXkGEfUo1yyxfHpU7cBnEUwjHtG+3Xd7UdASRirWe4
+         +AmNjZ52ecXVZkYHZuk0NWZ/dx5KVE7Bn1hNq5wc=
+Date:   Tue, 13 Jul 2021 18:00:23 -0700
 From:   akpm@linux-foundation.org
-To:     brouer@redhat.com, chuck.lever@oracle.com,
-        desmondcheongzx@gmail.com, mcroce@microsoft.com,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        Qiang.Zhang@windriver.com, yanfei.xu@windriver.com
-Subject:  +
- mm-page_alloc-further-fix-__alloc_pages_bulk-return-value.patch added to
+To:     adobriyan@gmail.com, arnd@arndb.de, mm-commits@vger.kernel.org
+Subject:  + decouple-build-from-userspace-headers.patch added to
  -mm tree
-Message-ID: <20210713231604.nWBZTeQRY%akpm@linux-foundation.org>
+Message-ID: <20210714010023.vC2Lxjcc7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: application/octet-stream; charset=binary
-Content-Transfer-Encoding: base64
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-ClRoZSBwYXRjaCB0aXRsZWQKICAgICBTdWJqZWN0OiBtbS9wYWdlX2FsbG9jOiBGdXJ0aGVyIGZp
-eCBfX2FsbG9jX3BhZ2VzX2J1bGsoKSByZXR1cm4gdmFsdWUKaGFzIGJlZW4gYWRkZWQgdG8gdGhl
-IC1tbSB0cmVlLiAgSXRzIGZpbGVuYW1lIGlzCiAgICAgbW0tcGFnZV9hbGxvYy1mdXJ0aGVyLWZp
-eC1fX2FsbG9jX3BhZ2VzX2J1bGstcmV0dXJuLXZhbHVlLnBhdGNoCgpUaGlzIHBhdGNoIHNob3Vs
-ZCBzb29uIGFwcGVhciBhdAogICAgaHR0cHM6Ly9vemxhYnMub3JnL35ha3BtL21tb3RzL2Jyb2tl
-bi1vdXQvbW0tcGFnZV9hbGxvYy1mdXJ0aGVyLWZpeC1fX2FsbG9jX3BhZ2VzX2J1bGstcmV0dXJu
-LXZhbHVlLnBhdGNoCmFuZCBsYXRlciBhdAogICAgaHR0cHM6Ly9vemxhYnMub3JnL35ha3BtL21t
-b3RtL2Jyb2tlbi1vdXQvbW0tcGFnZV9hbGxvYy1mdXJ0aGVyLWZpeC1fX2FsbG9jX3BhZ2VzX2J1
-bGstcmV0dXJuLXZhbHVlLnBhdGNoCgpCZWZvcmUgeW91IGp1c3QgZ28gYW5kIGhpdCAicmVwbHki
-LCBwbGVhc2U6CiAgIGEpIENvbnNpZGVyIHdobyBlbHNlIHNob3VsZCBiZSBjYydlZAogICBiKSBQ
-cmVmZXIgdG8gY2MgYSBzdWl0YWJsZSBtYWlsaW5nIGxpc3QgYXMgd2VsbAogICBjKSBJZGVhbGx5
-OiBmaW5kIHRoZSBvcmlnaW5hbCBwYXRjaCBvbiB0aGUgbWFpbGluZyBsaXN0IGFuZCBkbyBhCiAg
-ICAgIHJlcGx5LXRvLWFsbCB0byB0aGF0LCBhZGRpbmcgc3VpdGFibGUgYWRkaXRpb25hbCBjYydz
-CgoqKiogUmVtZW1iZXIgdG8gdXNlIERvY3VtZW50YXRpb24vcHJvY2Vzcy9zdWJtaXQtY2hlY2ts
-aXN0LnJzdCB3aGVuIHRlc3RpbmcgeW91ciBjb2RlICoqKgoKVGhlIC1tbSB0cmVlIGlzIGluY2x1
-ZGVkIGludG8gbGludXgtbmV4dCBhbmQgaXMgdXBkYXRlZAp0aGVyZSBldmVyeSAzLTQgd29ya2lu
-ZyBkYXlzCgotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0KRnJvbTogQ2h1Y2sgTGV2ZXIgPGNodWNrLmxldmVyQG9yYWNsZS5jb20+ClN1YmplY3Q6
-IG1tL3BhZ2VfYWxsb2M6IEZ1cnRoZXIgZml4IF9fYWxsb2NfcGFnZXNfYnVsaygpIHJldHVybiB2
-YWx1ZQoKEFRoZSBhdXRob3Igb2YgY29tbWl0IGIzYjY0ZWJkMzgyMiAoIm1tL3BhZ2VfYWxsb2M6
-IGRvIGJ1bGsgYXJyYXkKYm91bmRzIGNoZWNrIGFmdGVyIGNoZWNraW5nIHBvcHVsYXRlZCBlbGVt
-ZW50cyIpIHdhcyBwb3NzaWJseQpjb25mdXNlZCBieSB0aGUgbWl4dHVyZSBvZiByZXR1cm4gdmFs
-dWVzIHRocm91Z2hvdXQgdGhlIGZ1bmN0aW9uLgoKVGhlIEFQSSBjb250cmFjdCBpcyBjbGVhciB0
-aGF0IHRoZSBmdW5jdGlvbiAiUmV0dXJucyB0aGUgbnVtYmVyIG9mCnBhZ2VzIG9uIHRoZSBsaXN0
-IG9yIGFycmF5LiIgSXQgZG9lcyBub3QgbGlzdCB6ZXJvIGFzIGEgdW5pcXVlCnJldHVybiB2YWx1
-ZSB3aXRoIGEgc3BlY2lhbCBtZWFuaW5nLiBUaGVyZWZvcmUgemVybyBpcyBhIHBsYXVzaWJsZQpy
-ZRB0dXJuIHZhbHVlIG9ubHkgaWYgQG5yX3BhZ2VzIGlzIHplcm8gb3IgbGVzcy4KCkNsZWFuIHVw
-IHRoZSByZXR1cm4gbG9naWMgdG8gbWFrZSBpdCBjbGVhciB0aGF0IHRoZSByZXR1cm5lZCB2YWx1
-ZSBpcwphbHdheXMgdGhlIHRvdGFsIG51bWJlciBvZiBwYWdlcyBpbiB0aGUgYXJyYXkvbGlzdCwg
-bm90IHRoZSBudW1iZXIgb2YKcGFnZXMgdGhhdCB3ZXJlIGFsbG9jYXRlZCBkdXJpbmcgdGhpcyBj
-YWxsLgoKVGhlIG9ubHkgY2hhbmdlIGluIGJlaGF2aW9yIHdpdGggdGhpcyBwYXRjaCBpcyB0aGUg
-dmFsdWUgcmV0dXJuZWQKaWYgcHJlEHBhcmVfYWxsb2NfcGFnZXMoKSBmYWlscy4gVG8gbWF0Y2gg
-dGhlIEFQSSBjb250cmFjdCwgdGhlCm51bWJlciBvZiBwYWdlcyBjdXJyZW50bHkgaW4gdGhlIGFy
-cmF5L2xpc3QgaXMgcmV0dXJuZWQgaW4gdGhpcwpjYXNlLgoKVGhlIGNhbGwgc2l0ZSBpbiBfX3Bh
-Z2VfcG9vbF9hbGxvY19wYWdlc19zbG93KCkgYWxzbyBzZWVtcyB0byBiZSBjb25mdXNlZApvbiB0
-aGlzIG1hdHRlci4gIEl0IHNob3VsZCBiZSBhdHRlbmRlZCB0byBieSBzb21lb25lIHdobyBpcyBm
-YW1pbGlhciB3aXRoCnRoYXQgY29kZS4KClttZWxAdGVjaHNpbmd1bGFyaXR5Lm5ldDogUmV0dXJu
-IG5yX3BvcHVsYXRlZCBpZiAwIHBhZ2VzIGFyZSByZXF1ZXN0ZWRdCkxpbms6IGh0dHBzOi8vbGtt
-bC5rZXJuZWwub3JnL3IvMjAyMTA3MTMxNTIxMDAuMTAzODEtNC1tZ29ybWFuQHRlY2hzaW5ndWxh
-cml0eS5uZXQKU2lnbmVkLW9mZi1ieTogQ2h1Y2sgTGV2ZXIgPGNodWNrLmxldmVyQG9yYWNsZS5j
-b20+ClNpZ25lZC1vZmYtYnk6IE1lbCBHb3JtYW4gPG1nb3JtYW5AdGVjaHNpbmd1bGFyaXR5Lm5l
-dD4KQWNrZWQtYnk6IEplc3BlciBEYW5nYWFyZCBCcm91ZXIgPGJyb3VlckByZWRoYXQuY29tPgpD
-YzogRGVzbW9uZCBDaGVvbmcgWmhpIFhpIDxkZXNtb25kY2hlb25nenhAZ21haWwuY29tPgpDYzog
-WmhhbmcgUWlhbmcgPFFpYW5nLlpoYW5nQHdpbmRyaXZlci5jb20+CkNjOiBZYW5mZWkgWHUgPHlh
-bmZlaS54dUB3aW5kcml2ZXIuY29tPgpDYzogTWF0dGVvIENyb2NlIDxtY3JvY2VAbWljcm9zb2Z0
-LmNvbT4KU2lnbmVkLW9mZi1ieTogQW5kcmV3IE1vcnRvbiA8YWtwbUBsaW51eC1mb3VuZGF0aW9u
-Lm9yZz4KLS0tCgogbW0vcGFnZV9hbGxvYy5jIHwgICAxNCArKysrKysrKy0tLS0tLQogMSBmaWxl
-IGNoYW5nZWQsIDggaW5zZXJ0aW9ucygrKSwgNiBkZWxldGlvbnMoLSkKCi0tLSBhL21tL3BhZ2Vf
-YWxsb2MuY35tbS1wYWdlX2FsbG9jLWZ1cnRoZXItZml4LV9fYWxsb2NfcGFnZXNfYnVsay1yZXR1
-cm4tdmFsdWUKKysrIGEvbW0vcGFnZV9hbGxvYy5jCkBAIC01MjIxLDkgKzUyMjEsNiBAQCB1bnNp
-Z25lZCBsb25nIF9fYWxsb2NfcGFnZXNfYnVsayhnZnBfdCBnCiAJdW5zaWduZWQgaW50IGFsbG9j
-X2ZsYWdzID0gQUxMT0NfV01BUktfTE9XOwogCWludCBucl9wb3B1bGF0ZWQgPSAwLCBucl9hY2Nv
-dW50ID0gMDsKIAotCWlmICh1bmxpa2VseShucl9wYWdlcyA8PSAwKSkKLQkJcmV0dXJuIDA7Ci0K
-IAkvKgogCSAqIFNraXAgcG9wdWxhdGVkIGFycmF5IGVsZW1lbnRzIHRvIGRldGVybWluZSBpZiBh
-bnkgcGFnZXMgbmVlZAogCSAqIHRvIGJlIGFsbG9jYXRlZCBiZWZvcmUgZGlzYWJsaW5nIElSUXMu
-CkBAIC01MjMxLDkgKzUyMjgsMTMgQEAgdW5zaWduZWQgbG9uZyBfX2FsbG9jX3BhZ2VzX2J1bGso
-Z2ZwX3QgZwogCXdoaWxlIChwYWdlX2FycmF5ICYmIG5yX3BvcHVsYXRlZCA8IG5yX3BhZ2VzICYm
-IHBhZ2VfYXJyYXlbbnJfcG9wdWxhdGVkXSkKIAkJbnJfcG9wdWxhdGVkKys7CiAKKwkvKiBObyBw
-YWdlcyByZXF1ZXN0ZWQ/ICovCisJaWYgKHVubGlrZWx5KG5yX3BhZ2VzIDw9IDApKQorCQlnb3Rv
-IG91dDsKKwogCS8qIEFscmVhZHkgcG9wdWxhdGVkIGFycmF5PyAqLwogCWlmICh1bmxpa2VseShw
-YWdlX2FycmF5ICYmIG5yX3BhZ2VzIC0gbnJfcG9wdWxhdGVkID09IDApKQotCQlyZXR1cm4gbnJf
-cG9wdWxhdGVkOworCQlnb3RvIG91dDsKIAogCS8qIFVzZSB0aGUgc2luZ2xlIHBhZ2UgYWxsb2Nh
-dG9yIGZvciBvbmUgcGFnZS4gKi8KIAlpZiAobnJfcGFnZXMgLSBucl9wb3B1bGF0ZWQgPT0gMSkK
-QEAgLTUyNTUsNyArNTI1Niw3IEBAIHVuc2lnbmVkIGxvbmcgX19hbGxvY19wYWdlc19idWxrKGdm
-cF90IGcKIAlnZnAgJj0gZ2ZwX2FsbG93ZWRfbWFzazsKIAlhbGxvY19nZnAgPSBnZnA7CiAJaWYg
-KCFwcmVwYXJlX2FsbG9jX3BhZ2VzKGdmcCwgMCwgcHJlZmVycmVkX25pZCwgbm9kZW1hc2ssICZh
-YywgJmFsbG9jX2dmcCwgJmFsbG9jX2ZsYWdzKSkKLQkJcmV0dXJuIG5yX3BvcHVsYXRlZDsKKwkJ
-Z290byBvdXQ7CiAJZ2ZwID0gYWxsb2NfZ2ZwOwogCiAJLyogRmluZCBhbiBhbGxvd2VkIGxvY2Fs
-IHpvbmUgdGhhdCBtZWV0cyB0aGUgbG93IHdhdGVybWFyay4gKi8KQEAgLTUzMjMsNiArNTMyNCw3
-IEBAIHVuc2lnbmVkIGxvbmcgX19hbGxvY19wYWdlc19idWxrKGdmcF90IGcKIAlfX2NvdW50X3pp
-ZF92bV9ldmVudHMoUEdBTExPQywgem9uZV9pZHgoem9uZSksIG5yX2FjY291bnQpOwogCXpvbmVf
-c3RhdGlzdGljcyhhYy5wcmVmZXJyZWRfem9uZXJlZi0+em9uZSwgem9uZSwgbnJfYWNjb3VudCk7
-CiAKK291dDoKIAlyZXR1cm4gbnJfcG9wdWxhdGVkOwogCiBmYWlsZWRfaXJxOgpAQCAtNTMzOCw3
-ICs1MzQwLDcgQEAgZmFpbGVkOgogCQlucl9wb3B1bGF0ZWQrKzsKIAl9CiAKLQlyZXR1cm4gbnJf
-cG9wdWxhdGVkOworCWdvdG8gb3V0OwogfQogRVhQT1JUX1NZTUJPTF9HUEwoX19hbGxvY19wYWdl
-c19idWxrKTsKIApfCgpQYXRjaGVzIGN1cnJlbnRseSBpbiAtbW0gd2hpY2ggbWlnaHQgYmUgZnJv
-bSBjaHVjay5sZXZlckBvcmFjbGUuY29tIGFyZQoKbW0tcGFnZV9hbGxvYy1mdXJ0aGVyLWZpeC1f
-X2FsbG9jX3BhZ2VzX2J1bGstcmV0dXJuLXZhbHVlLnBhdGNoCgo=
+
+The patch titled
+     Subject: kbuild: decouple build from userspace headers
+has been added to the -mm tree.  Its filename is
+     decouple-build-from-userspace-headers.patch
+
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/decouple-build-from-userspace-headers.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/decouple-build-from-userspace-headers.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: kbuild: decouple build from userspace headers
+
+In theory, userspace headers can be under incompatible license.
+
+Linux by virtue of being OS kernel is fully independent piece of code and
+should not require anything from userspace.
+
+For this:
+
+* ship minimal <stdarg.h>
+	2 types, 4 macros
+
+* delete "-isystem"
+	This is what enables leakage.
+
+* fixup compilation where necessary.
+
+Link: https://lkml.kernel.org/r/YO3txvw87MjKfdpq@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Makefile                                                               |    2 +-
+ arch/um/include/shared/irq_user.h                                      |    1 -
+ arch/um/os-Linux/signal.c                                              |    2 +-
+ crypto/aegis128-neon-inner.c                                           |    2 --
+ drivers/net/wwan/iosm/iosm_ipc_imem.h                                  |    1 -
+ drivers/pinctrl/aspeed/pinmux-aspeed.h                                 |    1 -
+ drivers/staging/media/atomisp/pci/hive_isp_css_common/host/isp_local.h |    2 --
+ include/stdarg.h                                                       |    9 +++++++++
+ sound/aoa/codecs/onyx.h                                                |    1 -
+ sound/aoa/codecs/tas.c                                                 |    1 -
+ 10 files changed, 11 insertions(+), 11 deletions(-)
+
+--- a/arch/um/include/shared/irq_user.h~decouple-build-from-userspace-headers
++++ a/arch/um/include/shared/irq_user.h
+@@ -7,7 +7,6 @@
+ #define __IRQ_USER_H__
+ 
+ #include <sysdep/ptrace.h>
+-#include <stdbool.h>
+ 
+ enum um_irq_type {
+ 	IRQ_READ,
+--- a/arch/um/os-Linux/signal.c~decouple-build-from-userspace-headers
++++ a/arch/um/os-Linux/signal.c
+@@ -67,7 +67,7 @@ int signals_enabled;
+ #ifdef UML_CONFIG_UML_TIME_TRAVEL_SUPPORT
+ static int signals_blocked;
+ #else
+-#define signals_blocked false
++#define signals_blocked 0
+ #endif
+ static unsigned int signals_pending;
+ static unsigned int signals_active = 0;
+--- a/crypto/aegis128-neon-inner.c~decouple-build-from-userspace-headers
++++ a/crypto/aegis128-neon-inner.c
+@@ -15,8 +15,6 @@
+ 
+ #define AEGIS_BLOCK_SIZE	16
+ 
+-#include <stddef.h>
+-
+ extern int aegis128_have_aes_insn;
+ 
+ void *memcpy(void *dest, const void *src, size_t n);
+--- a/drivers/net/wwan/iosm/iosm_ipc_imem.h~decouple-build-from-userspace-headers
++++ a/drivers/net/wwan/iosm/iosm_ipc_imem.h
+@@ -7,7 +7,6 @@
+ #define IOSM_IPC_IMEM_H
+ 
+ #include <linux/skbuff.h>
+-#include <stdbool.h>
+ 
+ #include "iosm_ipc_mmio.h"
+ #include "iosm_ipc_pcie.h"
+--- a/drivers/pinctrl/aspeed/pinmux-aspeed.h~decouple-build-from-userspace-headers
++++ a/drivers/pinctrl/aspeed/pinmux-aspeed.h
+@@ -5,7 +5,6 @@
+ #define ASPEED_PINMUX_H
+ 
+ #include <linux/regmap.h>
+-#include <stdbool.h>
+ 
+ /*
+  * The ASPEED SoCs provide typically more than 200 pins for GPIO and other
+--- a/drivers/staging/media/atomisp/pci/hive_isp_css_common/host/isp_local.h~decouple-build-from-userspace-headers
++++ a/drivers/staging/media/atomisp/pci/hive_isp_css_common/host/isp_local.h
+@@ -16,8 +16,6 @@
+ #ifndef __ISP_LOCAL_H_INCLUDED__
+ #define __ISP_LOCAL_H_INCLUDED__
+ 
+-#include <stdbool.h>
+-
+ #include "isp_global.h"
+ 
+ #include <isp2400_support.h>
+--- /dev/null
++++ a/include/stdarg.h
+@@ -0,0 +1,9 @@
++#ifndef _LINUX_STDARG_H
++#define _LINUX_STDARG_H
++typedef __builtin_va_list __gnuc_va_list;
++typedef __builtin_va_list va_list;
++#define va_start(v, l)	__builtin_va_start(v, l)
++#define va_end(v)	__builtin_va_end(v)
++#define va_arg(v, T)	__builtin_va_arg(v, T)
++#define va_copy(d, s)	__builtin_va_copy(d, s)
++#endif
+--- a/Makefile~decouple-build-from-userspace-headers
++++ a/Makefile
+@@ -978,7 +978,7 @@ KBUILD_CFLAGS += -falign-functions=64
+ endif
+ 
+ # arch Makefile may override CC so keep this after arch Makefile is included
+-NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
++NOSTDINC_FLAGS += -nostdinc
+ 
+ # warn about C99 declaration after statement
+ KBUILD_CFLAGS += -Wdeclaration-after-statement
+--- a/sound/aoa/codecs/onyx.h~decouple-build-from-userspace-headers
++++ a/sound/aoa/codecs/onyx.h
+@@ -6,7 +6,6 @@
+  */
+ #ifndef __SND_AOA_CODEC_ONYX_H
+ #define __SND_AOA_CODEC_ONYX_H
+-#include <stddef.h>
+ #include <linux/i2c.h>
+ #include <asm/pmac_low_i2c.h>
+ #include <asm/prom.h>
+--- a/sound/aoa/codecs/tas.c~decouple-build-from-userspace-headers
++++ a/sound/aoa/codecs/tas.c
+@@ -58,7 +58,6 @@
+  *    and up to the hardware designer to not wire
+  *    them up in some weird unusable way.
+  */
+-#include <stddef.h>
+ #include <linux/i2c.h>
+ #include <asm/pmac_low_i2c.h>
+ #include <asm/prom.h>
+_
+
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+decouple-build-from-userspace-headers.patch
+
