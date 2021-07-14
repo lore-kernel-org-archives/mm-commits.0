@@ -5,30 +5,30 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CFE5BC1B08C
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:44:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21CD2C47E48
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:44:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE48461106
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:44:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 050F6613C8
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 23:44:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237807AbhGNXrd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Jul 2021 19:47:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45064 "EHLO mail.kernel.org"
+        id S237810AbhGNXrh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 19:47:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229535AbhGNXrd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Jul 2021 19:47:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EF84610A7;
-        Wed, 14 Jul 2021 23:44:38 +0000 (UTC)
+        id S229535AbhGNXrh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 19:47:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ADB8161026;
+        Wed, 14 Jul 2021 23:44:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626306280;
-        bh=f0GWe7ZR3vwGoAxxemm2hyuaobrHRNHXyUorXxjA38M=;
+        s=korg; t=1626306285;
+        bh=NSUSq3XxXYRzg23lTnTQkMgKQdVs06DE8fyUmFP5OKY=;
         h=Date:From:To:Subject:From;
-        b=iHPlZyHCO9FhFCp3S+1le2ITVmY/OF8/53iOoyQkPNGnpjX2w8gd1KoRmJUR2W1nK
-         ZFGvUz6mO0fMvXuypi6QWuCaUxTpo0X0ihucOxeDKsgV+inSdfcpqCPZ2GjtuRje65
-         YLn5/22X6zKDs7khv+PK6cttociIW1k7pD1Wqn8E=
-Date:   Wed, 14 Jul 2021 16:44:38 -0700
+        b=a+I9HvJ84XB25NZRiyPfMy0NKl4e/ZRq9faD5lbRZMVW3i55rHed/xHqZPUKZi/Hy
+         aq0yCy4SXhS9iHiizESb3czVcMZGivsaQc0lMbTP7wAonRRnMqaA557dfnqFOhUW2O
+         4Czq+QzIIOZy++dG/XVGCNQHTWqdpzo1NMBFmPF0=
+Date:   Wed, 14 Jul 2021 16:44:43 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
         anton@ozlabs.org, ardb@kernel.org, bauerman@linux.ibm.com,
@@ -47,14 +47,13 @@ To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
         paulus@samba.org, peterz@infradead.org, pmorel@linux.ibm.com,
         rafael.j.wysocki@intel.com, richard.weiyang@linux.alibaba.com,
         rjw@rjwysocki.net, rppt@kernel.org, slyfox@gentoo.org,
-        stable@vger.kernel.org, tglx@linutronix.de, vbabka@suse.cz,
-        vishal.l.verma@intel.com, vkuznets@redhat.com,
-        wangkefeng.wang@huawei.com, will@kernel.org,
+        tglx@linutronix.de, vbabka@suse.cz, vishal.l.verma@intel.com,
+        vkuznets@redhat.com, wangkefeng.wang@huawei.com, will@kernel.org,
         ysato@users.sourceforge.jp
 Subject:  +
- mm-memory_hotplug-use-unsigned-long-for-pfn-in-zone_for_pfn_range.patch
- added to -mm tree
-Message-ID: <20210714234438.0SGsYeFgx%akpm@linux-foundation.org>
+ mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory.patch added
+ to -mm tree
+Message-ID: <20210714234443.fv-q73cIA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -63,14 +62,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: use "unsigned long" for PFN in zone_for_pfn_range()
+     Subject: mm/memory_hotplug: remove nid parameter from arch_remove_memory()
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-use-unsigned-long-for-pfn-in-zone_for_pfn_range.patch
+     mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-use-unsigned-long-for-pfn-in-zone_for_pfn_range.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-use-unsigned-long-for-pfn-in-zone_for_pfn_range.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -85,120 +84,223 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: use "unsigned long" for PFN in zone_for_pfn_range()
+Subject: mm/memory_hotplug: remove nid parameter from arch_remove_memory()
 
-Patch series "mm/memory_hotplug: preparatory patches for new online policy and memory"
+The parameter is unused, let's remove it.
 
-These are all cleanups and one fix previously sent as part of [1]:
-[PATCH v1 00/12] mm/memory_hotplug: "auto-movable" online policy and memory
-groups.
-
-These patches make sense even without the other series, therefore I pulled
-them out to make the other series easier to digest.
-
-[1] https://lkml.kernel.org/r/20210607195430.48228-1-david@redhat.com 
-
-
-
-This patch (of 4):
-
-Checkpatch complained on a follow-up patch that we are using "unsigned"
-here, which defaults to "unsigned int" and checkpatch is correct.
-
-Use "unsigned long" instead, just as we do in other places when handling
-PFNs.  This can bite us once we have physical addresses in the range of
-multiple TB.
-
-Link: https://lkml.kernel.org/r/20210712124052.26491-2-david@redhat.com
-Fixes: e5e689302633 ("mm, memory_hotplug: display allowed zones in the preferred ordering")
+Link: https://lkml.kernel.org/r/20210712124052.26491-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au> [powerpc]
+Acked-by: Heiko Carstens <hca@linux.ibm.com>	[s390]
 Reviewed-by: Pankaj Gupta <pankaj.gupta@ionos.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: virtualization@lists.linux-foundation.org
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Anton Blanchard <anton@ozlabs.org>
-Cc: Ard Biesheuvel <ardb@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@c-s.fr>
-Cc: Dave Jiang <dave.jiang@intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jia He <justin.he@arm.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Laurent Dufour <ldufour@linux.ibm.com>
-Cc: Michel Lespinasse <michel@lespinasse.org>
-Cc: Nathan Lynch <nathanl@linux.ibm.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Pierre Morel <pmorel@linux.ibm.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Scott Cheloha <cheloha@linux.ibm.com>
-Cc: Sergei Trofimovich <slyfox@gentoo.org>
-Cc: Thiago Jung Bauermann <bauerman@linux.ibm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
 Cc: Will Deacon <will@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: <stable@vger.kernel.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Sergei Trofimovich <slyfox@gentoo.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Michel Lespinasse <michel@lespinasse.org>
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Thiago Jung Bauermann <bauerman@linux.ibm.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Pierre Morel <pmorel@linux.ibm.com>
+Cc: Jia He <justin.he@arm.com>
+Cc: Anton Blanchard <anton@ozlabs.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Nathan Lynch <nathanl@linux.ibm.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Scott Cheloha <cheloha@linux.ibm.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |    4 ++--
+ arch/arm64/mm/mmu.c            |    3 +--
+ arch/ia64/mm/init.c            |    3 +--
+ arch/powerpc/mm/mem.c          |    3 +--
+ arch/s390/mm/init.c            |    3 +--
+ arch/sh/mm/init.c              |    3 +--
+ arch/x86/mm/init_32.c          |    3 +--
+ arch/x86/mm/init_64.c          |    3 +--
+ include/linux/memory_hotplug.h |    3 +--
  mm/memory_hotplug.c            |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/memremap.c                  |    5 +----
+ 10 files changed, 11 insertions(+), 22 deletions(-)
 
---- a/include/linux/memory_hotplug.h~mm-memory_hotplug-use-unsigned-long-for-pfn-in-zone_for_pfn_range
-+++ a/include/linux/memory_hotplug.h
-@@ -339,8 +339,8 @@ extern void sparse_remove_section(struct
- 		unsigned long map_offset, struct vmem_altmap *altmap);
- extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
- 					  unsigned long pnum);
--extern struct zone *zone_for_pfn_range(int online_type, int nid, unsigned start_pfn,
--		unsigned long nr_pages);
-+extern struct zone *zone_for_pfn_range(int online_type, int nid,
-+		unsigned long start_pfn, unsigned long nr_pages);
- extern int arch_create_linear_mapping(int nid, u64 start, u64 size,
- 				      struct mhp_params *params);
- void arch_remove_linear_mapping(u64 start, u64 size);
---- a/mm/memory_hotplug.c~mm-memory_hotplug-use-unsigned-long-for-pfn-in-zone_for_pfn_range
-+++ a/mm/memory_hotplug.c
-@@ -708,8 +708,8 @@ static inline struct zone *default_zone_
- 	return movable_node_enabled ? movable_zone : kernel_zone;
+--- a/arch/arm64/mm/mmu.c~mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory
++++ a/arch/arm64/mm/mmu.c
+@@ -1506,8 +1506,7 @@ int arch_add_memory(int nid, u64 start,
+ 	return ret;
  }
  
--struct zone *zone_for_pfn_range(int online_type, int nid, unsigned start_pfn,
--		unsigned long nr_pages)
-+struct zone *zone_for_pfn_range(int online_type, int nid,
-+		unsigned long start_pfn, unsigned long nr_pages)
+-void arch_remove_memory(int nid, u64 start, u64 size,
+-			struct vmem_altmap *altmap)
++void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
  {
- 	if (online_type == MMOP_ONLINE_KERNEL)
- 		return default_kernel_zone_for_pfn(nid, start_pfn, nr_pages);
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+--- a/arch/ia64/mm/init.c~mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory
++++ a/arch/ia64/mm/init.c
+@@ -484,8 +484,7 @@ int arch_add_memory(int nid, u64 start,
+ 	return ret;
+ }
+ 
+-void arch_remove_memory(int nid, u64 start, u64 size,
+-			struct vmem_altmap *altmap)
++void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+--- a/arch/powerpc/mm/mem.c~mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory
++++ a/arch/powerpc/mm/mem.c
+@@ -119,8 +119,7 @@ int __ref arch_add_memory(int nid, u64 s
+ 	return rc;
+ }
+ 
+-void __ref arch_remove_memory(int nid, u64 start, u64 size,
+-			      struct vmem_altmap *altmap)
++void __ref arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+--- a/arch/s390/mm/init.c~mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory
++++ a/arch/s390/mm/init.c
+@@ -306,8 +306,7 @@ int arch_add_memory(int nid, u64 start,
+ 	return rc;
+ }
+ 
+-void arch_remove_memory(int nid, u64 start, u64 size,
+-			struct vmem_altmap *altmap)
++void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+--- a/arch/sh/mm/init.c~mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory
++++ a/arch/sh/mm/init.c
+@@ -414,8 +414,7 @@ int arch_add_memory(int nid, u64 start,
+ 	return ret;
+ }
+ 
+-void arch_remove_memory(int nid, u64 start, u64 size,
+-			struct vmem_altmap *altmap)
++void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = PFN_DOWN(start);
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+--- a/arch/x86/mm/init_32.c~mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory
++++ a/arch/x86/mm/init_32.c
+@@ -801,8 +801,7 @@ int arch_add_memory(int nid, u64 start,
+ 	return __add_pages(nid, start_pfn, nr_pages, params);
+ }
+ 
+-void arch_remove_memory(int nid, u64 start, u64 size,
+-			struct vmem_altmap *altmap)
++void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+--- a/arch/x86/mm/init_64.c~mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory
++++ a/arch/x86/mm/init_64.c
+@@ -1255,8 +1255,7 @@ kernel_physical_mapping_remove(unsigned
+ 	remove_pagetable(start, end, true, NULL);
+ }
+ 
+-void __ref arch_remove_memory(int nid, u64 start, u64 size,
+-			      struct vmem_altmap *altmap)
++void __ref arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
+ {
+ 	unsigned long start_pfn = start >> PAGE_SHIFT;
+ 	unsigned long nr_pages = size >> PAGE_SHIFT;
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory
++++ a/include/linux/memory_hotplug.h
+@@ -130,8 +130,7 @@ static inline bool movable_node_is_enabl
+ 	return movable_node_enabled;
+ }
+ 
+-extern void arch_remove_memory(int nid, u64 start, u64 size,
+-			       struct vmem_altmap *altmap);
++extern void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap);
+ extern void __remove_pages(unsigned long start_pfn, unsigned long nr_pages,
+ 			   struct vmem_altmap *altmap);
+ 
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory
++++ a/mm/memory_hotplug.c
+@@ -1106,7 +1106,7 @@ int __ref add_memory_resource(int nid, s
+ 	/* create memory block devices after memory was added */
+ 	ret = create_memory_block_devices(start, size, mhp_altmap.alloc);
+ 	if (ret) {
+-		arch_remove_memory(nid, start, size, NULL);
++		arch_remove_memory(start, size, NULL);
+ 		goto error;
+ 	}
+ 
+@@ -1885,7 +1885,7 @@ static int __ref try_remove_memory(int n
+ 
+ 	mem_hotplug_begin();
+ 
+-	arch_remove_memory(nid, start, size, altmap);
++	arch_remove_memory(start, size, altmap);
+ 
+ 	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK)) {
+ 		memblock_free(start, size);
+--- a/mm/memremap.c~mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory
++++ a/mm/memremap.c
+@@ -160,14 +160,11 @@ static void pageunmap_range(struct dev_p
+ {
+ 	struct range *range = &pgmap->ranges[range_id];
+ 	struct page *first_page;
+-	int nid;
+ 
+ 	/* make sure to access a memmap that was actually initialized */
+ 	first_page = pfn_to_page(pfn_first(pgmap, range_id));
+ 
+ 	/* pages are dead and unused, undo the arch mapping */
+-	nid = page_to_nid(first_page);
+-
+ 	mem_hotplug_begin();
+ 	remove_pfn_range_from_zone(page_zone(first_page), PHYS_PFN(range->start),
+ 				   PHYS_PFN(range_len(range)));
+@@ -175,7 +172,7 @@ static void pageunmap_range(struct dev_p
+ 		__remove_pages(PHYS_PFN(range->start),
+ 			       PHYS_PFN(range_len(range)), NULL);
+ 	} else {
+-		arch_remove_memory(nid, range->start, range_len(range),
++		arch_remove_memory(range->start, range_len(range),
+ 				pgmap_altmap(pgmap));
+ 		kasan_remove_zero_shadow(__va(range->start), range_len(range));
+ 	}
 _
 
 Patches currently in -mm which might be from david@redhat.com are
