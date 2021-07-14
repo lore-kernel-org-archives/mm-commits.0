@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1A50C12002
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 21:49:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA281C12002
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 21:50:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CC1C61370
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 21:49:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AABD36136E
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 21:50:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229909AbhGNVwF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Jul 2021 17:52:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37376 "EHLO mail.kernel.org"
+        id S230169AbhGNVww (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 17:52:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37442 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229498AbhGNVwE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Jul 2021 17:52:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AD0896128B;
-        Wed, 14 Jul 2021 21:49:11 +0000 (UTC)
+        id S229498AbhGNVwv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 17:52:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 97E2E61362;
+        Wed, 14 Jul 2021 21:49:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626299351;
-        bh=GdOyq2wO+EkEaTHWeEF8m34ibFRahBGWO1+P/4fgk0g=;
+        s=korg; t=1626299398;
+        bh=YayVdk8TIwBAir26IXlOhkD/deR3kpwSIl3Ryj8shC8=;
         h=Date:From:To:Subject:From;
-        b=Uqdk02+uBPGjozcB3qPmWYgHDLIkXwfqw59jlKcWyM8iITkiY8QOD2LXn7ljGw6/A
-         I8ftS+iogjg3H/8Jo7u7pyCG3bWFdK91/Y+GJW9+n5khUZP4LG1tx7tEXfu7HbaT4O
-         xCyvQVSg94YtbqHlCgzmduNxuW5EpMQk2BMnb+UI=
-Date:   Wed, 14 Jul 2021 14:49:11 -0700
+        b=Dluz5dB+6g1uQCOsHzfJ6nf3MKxIKlbaHiZfl6JmKPIEaE2oXoxEiuUojErjA90yB
+         GjX1mupjv3aE5bWB60ajyu1QaJqAGjmt+6m5YWtjiLevMyv8+0fGlmvT2tDYNjsfFa
+         BrAVBY8w/hU1R4C9Zo+Ju6teLX5YvqLAOWJ0Iq9c=
+Date:   Wed, 14 Jul 2021 14:49:58 -0700
 From:   akpm@linux-foundation.org
-To:     elver@google.com, glider@google.com, joern@purestorage.com,
-        mm-commits@vger.kernel.org, yzhong@purestorage.com
-Subject:  + kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
- added to -mm tree
-Message-ID: <20210714214911.hlhvmq22i%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, arnd@arndb.de, mm-commits@vger.kernel.org
+Subject:  [to-be-updated]
+ decouple-build-from-userspace-headers.patch removed from -mm tree
+Message-ID: <20210714214958.Uq9Q7VJVc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,296 +42,158 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: show cpu and timestamp in alloc/free info
-has been added to the -mm tree.  Its filename is
-     kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
+     Subject: kbuild: decouple build from userspace headers
+has been removed from the -mm tree.  Its filename was
+     decouple-build-from-userspace-headers.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: show cpu and timestamp in alloc/free info
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: kbuild: decouple build from userspace headers
 
-Record cpu and timestamp on allocations and frees, and show them in
-reports.  Upon an error, this can help correlate earlier messages in the
-kernel log via allocation and free timestamps.
+In theory, userspace headers can be under incompatible license.
 
-Link: https://lkml.kernel.org/r/20210714175312.2947941-1-elver@google.com
-Suggested-by: Joern Engel <joern@purestorage.com>
-Signed-off-by: Marco Elver <elver@google.com>
-Acked-by: Alexander Potapenko <glider@google.com>
-Acked-by: Joern Engel <joern@purestorage.com>
-Cc: Yuanyuan Zhong <yzhong@purestorage.com>
+Linux by virtue of being OS kernel is fully independent piece of code and
+should not require anything from userspace.
+
+For this:
+
+* ship minimal <stdarg.h>
+	2 types, 4 macros
+
+* delete "-isystem"
+	This is what enables leakage.
+
+* fixup compilation where necessary.
+
+Link: https://lkml.kernel.org/r/YO3txvw87MjKfdpq@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kfence.rst |   98 ++++++++++++++-------------
- mm/kfence/core.c                   |    3 
- mm/kfence/kfence.h                 |    2 
- mm/kfence/report.c                 |   19 +++--
- 4 files changed, 71 insertions(+), 51 deletions(-)
+ Makefile                                                               |    2 +-
+ arch/um/include/shared/irq_user.h                                      |    1 -
+ arch/um/os-Linux/signal.c                                              |    2 +-
+ crypto/aegis128-neon-inner.c                                           |    2 --
+ drivers/net/wwan/iosm/iosm_ipc_imem.h                                  |    1 -
+ drivers/pinctrl/aspeed/pinmux-aspeed.h                                 |    1 -
+ drivers/staging/media/atomisp/pci/hive_isp_css_common/host/isp_local.h |    2 --
+ include/stdarg.h                                                       |    9 +++++++++
+ sound/aoa/codecs/onyx.h                                                |    1 -
+ sound/aoa/codecs/tas.c                                                 |    1 -
+ 10 files changed, 11 insertions(+), 11 deletions(-)
 
---- a/Documentation/dev-tools/kfence.rst~kfence-show-cpu-and-timestamp-in-alloc-free-info
-+++ a/Documentation/dev-tools/kfence.rst
-@@ -65,25 +65,27 @@ Error reports
- A typical out-of-bounds access looks like this::
+--- a/arch/um/include/shared/irq_user.h~decouple-build-from-userspace-headers
++++ a/arch/um/include/shared/irq_user.h
+@@ -7,7 +7,6 @@
+ #define __IRQ_USER_H__
  
-     ==================================================================
--    BUG: KFENCE: out-of-bounds read in test_out_of_bounds_read+0xa3/0x22b
-+    BUG: KFENCE: out-of-bounds read in test_out_of_bounds_read+0xa6/0x234
+ #include <sysdep/ptrace.h>
+-#include <stdbool.h>
  
--    Out-of-bounds read at 0xffffffffb672efff (1B left of kfence-#17):
--     test_out_of_bounds_read+0xa3/0x22b
--     kunit_try_run_case+0x51/0x85
-+    Out-of-bounds read at 0xffff8c3f2e291fff (1B left of kfence-#72):
-+     test_out_of_bounds_read+0xa6/0x234
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
+ enum um_irq_type {
+ 	IRQ_READ,
+--- a/arch/um/os-Linux/signal.c~decouple-build-from-userspace-headers
++++ a/arch/um/os-Linux/signal.c
+@@ -67,7 +67,7 @@ int signals_enabled;
+ #ifdef UML_CONFIG_UML_TIME_TRAVEL_SUPPORT
+ static int signals_blocked;
+ #else
+-#define signals_blocked false
++#define signals_blocked 0
+ #endif
+ static unsigned int signals_pending;
+ static unsigned int signals_active = 0;
+--- a/crypto/aegis128-neon-inner.c~decouple-build-from-userspace-headers
++++ a/crypto/aegis128-neon-inner.c
+@@ -15,8 +15,6 @@
  
--    kfence-#17 [0xffffffffb672f000-0xffffffffb672f01f, size=32, cache=kmalloc-32] allocated by task 507:
--     test_alloc+0xf3/0x25b
--     test_out_of_bounds_read+0x98/0x22b
--     kunit_try_run_case+0x51/0x85
-+    kfence-#72: 0xffff8c3f2e292000-0xffff8c3f2e29201f, size=32, cache=kmalloc-32
-+
-+    allocated by task 484 on cpu 0 at 32.919330s:
-+     test_alloc+0xfe/0x738
-+     test_out_of_bounds_read+0x9b/0x234
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
+ #define AEGIS_BLOCK_SIZE	16
  
--    CPU: 4 PID: 107 Comm: kunit_try_catch Not tainted 5.8.0-rc6+ #7
--    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
-+    CPU: 0 PID: 484 Comm: kunit_try_catch Not tainted 5.13.0-rc3+ #7
-+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-     ==================================================================
+-#include <stddef.h>
+-
+ extern int aegis128_have_aes_insn;
  
- The header of the report provides a short summary of the function involved in
-@@ -96,30 +98,32 @@ Use-after-free accesses are reported as:
-     ==================================================================
-     BUG: KFENCE: use-after-free read in test_use_after_free_read+0xb3/0x143
+ void *memcpy(void *dest, const void *src, size_t n);
+--- a/drivers/net/wwan/iosm/iosm_ipc_imem.h~decouple-build-from-userspace-headers
++++ a/drivers/net/wwan/iosm/iosm_ipc_imem.h
+@@ -7,7 +7,6 @@
+ #define IOSM_IPC_IMEM_H
  
--    Use-after-free read at 0xffffffffb673dfe0 (in kfence-#24):
-+    Use-after-free read at 0xffff8c3f2e2a0000 (in kfence-#79):
-      test_use_after_free_read+0xb3/0x143
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
+ #include <linux/skbuff.h>
+-#include <stdbool.h>
  
--    kfence-#24 [0xffffffffb673dfe0-0xffffffffb673dfff, size=32, cache=kmalloc-32] allocated by task 507:
--     test_alloc+0xf3/0x25b
-+    kfence-#79: 0xffff8c3f2e2a0000-0xffff8c3f2e2a001f, size=32, cache=kmalloc-32
-+
-+    allocated by task 488 on cpu 2 at 33.871326s:
-+     test_alloc+0xfe/0x738
-      test_use_after_free_read+0x76/0x143
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
+ #include "iosm_ipc_mmio.h"
+ #include "iosm_ipc_pcie.h"
+--- a/drivers/pinctrl/aspeed/pinmux-aspeed.h~decouple-build-from-userspace-headers
++++ a/drivers/pinctrl/aspeed/pinmux-aspeed.h
+@@ -5,7 +5,6 @@
+ #define ASPEED_PINMUX_H
  
--    freed by task 507:
-+    freed by task 488 on cpu 2 at 33.871358s:
-      test_use_after_free_read+0xa8/0x143
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
+ #include <linux/regmap.h>
+-#include <stdbool.h>
  
--    CPU: 4 PID: 109 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
--    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
-+    CPU: 2 PID: 488 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
-+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-     ==================================================================
+ /*
+  * The ASPEED SoCs provide typically more than 200 pins for GPIO and other
+--- a/drivers/staging/media/atomisp/pci/hive_isp_css_common/host/isp_local.h~decouple-build-from-userspace-headers
++++ a/drivers/staging/media/atomisp/pci/hive_isp_css_common/host/isp_local.h
+@@ -16,8 +16,6 @@
+ #ifndef __ISP_LOCAL_H_INCLUDED__
+ #define __ISP_LOCAL_H_INCLUDED__
  
- KFENCE also reports on invalid frees, such as double-frees::
-@@ -127,30 +131,32 @@ KFENCE also reports on invalid frees, su
-     ==================================================================
-     BUG: KFENCE: invalid free in test_double_free+0xdc/0x171
+-#include <stdbool.h>
+-
+ #include "isp_global.h"
  
--    Invalid free of 0xffffffffb6741000:
-+    Invalid free of 0xffff8c3f2e2a4000 (in kfence-#81):
-      test_double_free+0xdc/0x171
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
+ #include <isp2400_support.h>
+--- /dev/null
++++ a/include/stdarg.h
+@@ -0,0 +1,9 @@
++#ifndef _LINUX_STDARG_H
++#define _LINUX_STDARG_H
++typedef __builtin_va_list __gnuc_va_list;
++typedef __builtin_va_list va_list;
++#define va_start(v, l)	__builtin_va_start(v, l)
++#define va_end(v)	__builtin_va_end(v)
++#define va_arg(v, T)	__builtin_va_arg(v, T)
++#define va_copy(d, s)	__builtin_va_copy(d, s)
++#endif
+--- a/Makefile~decouple-build-from-userspace-headers
++++ a/Makefile
+@@ -978,7 +978,7 @@ KBUILD_CFLAGS += -falign-functions=64
+ endif
  
--    kfence-#26 [0xffffffffb6741000-0xffffffffb674101f, size=32, cache=kmalloc-32] allocated by task 507:
--     test_alloc+0xf3/0x25b
-+    kfence-#81: 0xffff8c3f2e2a4000-0xffff8c3f2e2a401f, size=32, cache=kmalloc-32
-+
-+    allocated by task 490 on cpu 1 at 34.175321s:
-+     test_alloc+0xfe/0x738
-      test_double_free+0x76/0x171
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
+ # arch Makefile may override CC so keep this after arch Makefile is included
+-NOSTDINC_FLAGS += -nostdinc -isystem $(shell $(CC) -print-file-name=include)
++NOSTDINC_FLAGS += -nostdinc
  
--    freed by task 507:
-+    freed by task 490 on cpu 1 at 34.175348s:
-      test_double_free+0xa8/0x171
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    CPU: 4 PID: 111 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
--    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
-+    CPU: 1 PID: 490 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
-+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-     ==================================================================
- 
- KFENCE also uses pattern-based redzones on the other side of an object's guard
-@@ -160,23 +166,25 @@ These are reported on frees::
-     ==================================================================
-     BUG: KFENCE: memory corruption in test_kmalloc_aligned_oob_write+0xef/0x184
- 
--    Corrupted memory at 0xffffffffb6797ff9 [ 0xac . . . . . . ] (in kfence-#69):
-+    Corrupted memory at 0xffff8c3f2e33aff9 [ 0xac . . . . . . ] (in kfence-#156):
-      test_kmalloc_aligned_oob_write+0xef/0x184
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    kfence-#69 [0xffffffffb6797fb0-0xffffffffb6797ff8, size=73, cache=kmalloc-96] allocated by task 507:
--     test_alloc+0xf3/0x25b
-+    kfence-#156: 0xffff8c3f2e33afb0-0xffff8c3f2e33aff8, size=73, cache=kmalloc-96
-+
-+    allocated by task 502 on cpu 7 at 42.159302s:
-+     test_alloc+0xfe/0x738
-      test_kmalloc_aligned_oob_write+0x57/0x184
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    CPU: 4 PID: 120 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
--    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
-+    CPU: 7 PID: 502 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
-+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-     ==================================================================
- 
- For such errors, the address where the corruption occurred as well as the
---- a/mm/kfence/core.c~kfence-show-cpu-and-timestamp-in-alloc-free-info
-+++ a/mm/kfence/core.c
-@@ -20,6 +20,7 @@
- #include <linux/moduleparam.h>
- #include <linux/random.h>
- #include <linux/rcupdate.h>
-+#include <linux/sched/clock.h>
- #include <linux/sched/sysctl.h>
- #include <linux/seq_file.h>
- #include <linux/slab.h>
-@@ -196,6 +197,8 @@ static noinline void metadata_update_sta
- 	 */
- 	track->num_stack_entries = stack_trace_save(track->stack_entries, KFENCE_STACK_DEPTH, 1);
- 	track->pid = task_pid_nr(current);
-+	track->cpu = raw_smp_processor_id();
-+	track->ts_nsec = local_clock(); /* Same source as printk timestamps. */
- 
- 	/*
- 	 * Pairs with READ_ONCE() in
---- a/mm/kfence/kfence.h~kfence-show-cpu-and-timestamp-in-alloc-free-info
-+++ a/mm/kfence/kfence.h
-@@ -36,6 +36,8 @@ enum kfence_object_state {
- /* Alloc/free tracking information. */
- struct kfence_track {
- 	pid_t pid;
-+	int cpu;
-+	u64 ts_nsec;
- 	int num_stack_entries;
- 	unsigned long stack_entries[KFENCE_STACK_DEPTH];
- };
---- a/mm/kfence/report.c~kfence-show-cpu-and-timestamp-in-alloc-free-info
-+++ a/mm/kfence/report.c
-@@ -9,6 +9,7 @@
- 
- #include <linux/kernel.h>
- #include <linux/lockdep.h>
-+#include <linux/math.h>
- #include <linux/printk.h>
- #include <linux/sched/debug.h>
- #include <linux/seq_file.h>
-@@ -100,6 +101,13 @@ static void kfence_print_stack(struct se
- 			       bool show_alloc)
- {
- 	const struct kfence_track *track = show_alloc ? &meta->alloc_track : &meta->free_track;
-+	u64 ts_sec = track->ts_nsec;
-+	unsigned long rem_nsec = do_div(ts_sec, NSEC_PER_SEC);
-+
-+	/* Timestamp matches printk timestamp format. */
-+	seq_con_printf(seq, "%s by task %d on cpu %d at %lu.%06lus:\n",
-+		       show_alloc ? "allocated" : "freed", track->pid,
-+		       track->cpu, (unsigned long)ts_sec, rem_nsec / 1000);
- 
- 	if (track->num_stack_entries) {
- 		/* Skip allocation/free internals stack. */
-@@ -126,15 +134,14 @@ void kfence_print_object(struct seq_file
- 		return;
- 	}
- 
--	seq_con_printf(seq,
--		       "kfence-#%td [0x%p-0x%p"
--		       ", size=%d, cache=%s] allocated by task %d:\n",
--		       meta - kfence_metadata, (void *)start, (void *)(start + size - 1), size,
--		       (cache && cache->name) ? cache->name : "<destroyed>", meta->alloc_track.pid);
-+	seq_con_printf(seq, "kfence-#%td: 0x%p-0x%p, size=%d, cache=%s\n\n",
-+		       meta - kfence_metadata, (void *)start, (void *)(start + size - 1),
-+		       size, (cache && cache->name) ? cache->name : "<destroyed>");
-+
- 	kfence_print_stack(seq, meta, true);
- 
- 	if (meta->state == KFENCE_OBJECT_FREED) {
--		seq_con_printf(seq, "\nfreed by task %d:\n", meta->free_track.pid);
-+		seq_con_printf(seq, "\n");
- 		kfence_print_stack(seq, meta, false);
- 	}
- }
+ # warn about C99 declaration after statement
+ KBUILD_CFLAGS += -Wdeclaration-after-statement
+--- a/sound/aoa/codecs/onyx.h~decouple-build-from-userspace-headers
++++ a/sound/aoa/codecs/onyx.h
+@@ -6,7 +6,6 @@
+  */
+ #ifndef __SND_AOA_CODEC_ONYX_H
+ #define __SND_AOA_CODEC_ONYX_H
+-#include <stddef.h>
+ #include <linux/i2c.h>
+ #include <asm/pmac_low_i2c.h>
+ #include <asm/prom.h>
+--- a/sound/aoa/codecs/tas.c~decouple-build-from-userspace-headers
++++ a/sound/aoa/codecs/tas.c
+@@ -58,7 +58,6 @@
+  *    and up to the hardware designer to not wire
+  *    them up in some weird unusable way.
+  */
+-#include <stddef.h>
+ #include <linux/i2c.h>
+ #include <asm/pmac_low_i2c.h>
+ #include <asm/prom.h>
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-move-helper-to-check-slub_debug_enabled.patch
-kasan-fix-build-by-including-kernelh.patch
-kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
+decouple-build-from-userspace-headers-v2.patch
 
