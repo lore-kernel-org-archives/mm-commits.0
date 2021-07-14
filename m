@@ -7,35 +7,43 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA5CCC07E96
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:32:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CFA13C07E95
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:36:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A1ADE61380
-	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:32:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A381561380
+	for <mm-commits@archiver.kernel.org>; Wed, 14 Jul 2021 01:36:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237265AbhGNBfh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 13 Jul 2021 21:35:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39748 "EHLO mail.kernel.org"
+        id S237249AbhGNBjF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 13 Jul 2021 21:39:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46018 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237249AbhGNBfh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 13 Jul 2021 21:35:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CB53F61374;
-        Wed, 14 Jul 2021 01:32:45 +0000 (UTC)
+        id S229843AbhGNBjF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 13 Jul 2021 21:39:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3976961360;
+        Wed, 14 Jul 2021 01:36:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626226366;
-        bh=ITq9wJJC4GSMMU4RL8VkDgLrljWi0j09+AEwwwmrTm8=;
+        s=korg; t=1626226573;
+        bh=smm4A75g5m9WAWa8weB1pvWSb6prlSIHG4Re72ZXW/g=;
         h=Date:From:To:Subject:From;
-        b=fNiBvWI3NUQHk75qdMAZesR2p8MT9XDL/UrTtAacFpkDVYVIlsELl8PDCEsCpQS3L
-         g2FGdY0fi0pBQUeMBC42kab3Ph+dNMpIVmkbNNjqy3pjhAEP5c/DM60NjLfq+3pzvZ
-         tryDTg7fLMkMlcsADoAFIPtbW53SUz/VhD0QT3/Y=
-Date:   Tue, 13 Jul 2021 18:32:45 -0700
+        b=2Hx4NUEdHL2T0HqHTUEi44GalwodZ8jwdRgjLqXLyHpUC5ESe2WOQUQ1uCfsGEQb6
+         csgLq6zlCp38xBjMnjD2xs+RORFSfCyeBpSYBkOIukm1eY3L6QRCHTYyLMKI58DZF/
+         6bp5++8PEZ65mQWAxqr7v/heOyfW2YptYkX/yvCc=
+Date:   Tue, 13 Jul 2021 18:36:12 -0700
 From:   akpm@linux-foundation.org
-To:     chaitanya.kulkarni@wdc.com, hch@lst.de, ira.weiny@intel.com,
-        mm-commits@vger.kernel.org
-Subject:  + mm-use-kmap_local_page-in-memzero_page.patch added to
- -mm tree
-Message-ID: <20210714013245._HPLonFzN%akpm@linux-foundation.org>
+To:     alexs@kernel.org, apopple@nvidia.com, axboe@kernel.dk,
+        david@redhat.com, guro@fb.com, hannes@cmpxchg.org,
+        iamjoonsoo.kim@lge.com, linmiaohe@huawei.com, mhocko@suse.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, shakeelb@google.com,
+        shy828301@gmail.com, songmuchun@bytedance.com, surenb@google.com,
+        tj@kernel.org, willy@infradead.org
+Subject:  +
+ =?US-ASCII?Q?mm-memcg-add-mem=5Fcgroup=5Fdisabled-checks-in-vmpressure-?=
+ =?US-ASCII?Q?and-swap-related-functions.patch?= added to -mm tree
+Message-ID: <20210714013612.kyQ1kxrIL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use kmap_local_page in memzero_page
+     Subject: mm, memcg: add mem_cgroup_disabled checks in vmpressure and swap-related functions
 has been added to the -mm tree.  Its filename is
-     mm-use-kmap_local_page-in-memzero_page.patch
+     mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-kmap_local_page-in-memzero_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-kmap_local_page-in-memzero_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,44 +72,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: use kmap_local_page in memzero_page
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm, memcg: add mem_cgroup_disabled checks in vmpressure and swap-related functions
 
-The commit message introducing the global memzero_page explicitly mentions
-switching to kmap_local_page in the commit log but doesn't actually do
-that.
+Add mem_cgroup_disabled check in vmpressure, mem_cgroup_uncharge_swap and
+cgroup_throttle_swaprate functions.  This minimizes the memcg overhead in
+the pagefault and exit_mmap paths when memcgs are disabled using
+cgroup_disable=memory command-line option.
 
-Link: https://lkml.kernel.org/r/20210713055231.137602-3-hch@lst.de
-Fixes: 28961998f858 ("iov_iter: lift memzero_page() to highmem.h")
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Chaitanya Kulkarni <chaitanya.kulkarni@wdc.com>
-Reviewed-by: Ira Weiny <ira.weiny@intel.com>
+This change results in ~2.1% overhead reduction when running PFT test [1]
+comparing {CONFIG_MEMCG=n, CONFIG_MEMCG_SWAP=n} against {CONFIG_MEMCG=y,
+CONFIG_MEMCG_SWAP=y, cgroup_disable=memory} configuration on an 8-core
+ARM64 Android device.
+
+[1] https://lkml.org/lkml/2006/8/29/294 also used in mmtests suite
+
+Link: https://lkml.kernel.org/r/20210713010934.299876-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    3 +++
+ mm/swapfile.c   |    3 +++
+ mm/vmpressure.c |    7 ++++++-
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
---- a/include/linux/highmem.h~mm-use-kmap_local_page-in-memzero_page
-+++ a/include/linux/highmem.h
-@@ -324,10 +324,10 @@ static inline void memcpy_to_page(struct
+--- a/mm/memcontrol.c~mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions
++++ a/mm/memcontrol.c
+@@ -7305,6 +7305,9 @@ void mem_cgroup_uncharge_swap(swp_entry_
+ 	struct mem_cgroup *memcg;
+ 	unsigned short id;
  
- static inline void memzero_page(struct page *page, size_t offset, size_t len)
++	if (mem_cgroup_disabled())
++		return;
++
+ 	id = swap_cgroup_record(entry, 0, nr_pages);
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_id(id);
+--- a/mm/swapfile.c~mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions
++++ a/mm/swapfile.c
+@@ -3784,6 +3784,9 @@ void cgroup_throttle_swaprate(struct pag
+ 	struct swap_info_struct *si, *next;
+ 	int nid = page_to_nid(page);
+ 
++	if (mem_cgroup_disabled())
++		return;
++
+ 	if (!(gfp_mask & __GFP_IO))
+ 		return;
+ 
+--- a/mm/vmpressure.c~mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions
++++ a/mm/vmpressure.c
+@@ -240,7 +240,12 @@ static void vmpressure_work_fn(struct wo
+ void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
+ 		unsigned long scanned, unsigned long reclaimed)
  {
--	char *addr = kmap_atomic(page);
-+	char *addr = kmap_local_page(page);
- 	memset(addr + offset, 0, len);
- 	flush_dcache_page(page);
--	kunmap_atomic(addr);
-+	kunmap_local(addr);
- }
+-	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
++	struct vmpressure *vmpr;
++
++	if (mem_cgroup_disabled())
++		return;
++
++	vmpr = memcg_to_vmpressure(memcg);
  
- #endif /* _LINUX_HIGHMEM_H */
+ 	/*
+ 	 * Here we only want to account pressure that userland is able to
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-fix-the-try_to_unmap-prototype-for-config_mmu.patch
-mm-call-flush_dcache_page-in-memcpy_to_page-and-memzero_page.patch
-mm-use-kmap_local_page-in-memzero_page.patch
+mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
+mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
+mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config.patch
 
