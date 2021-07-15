@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38AA0C07E96
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 094C4C47E4B
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 278516136E
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5C6561362
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236350AbhGOE3x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 00:29:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36214 "EHLO mail.kernel.org"
+        id S236412AbhGOE3y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 00:29:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36278 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230076AbhGOE3w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Jul 2021 00:29:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E204C61360;
-        Thu, 15 Jul 2021 04:26:58 +0000 (UTC)
+        id S230076AbhGOE3y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Jul 2021 00:29:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E827C6128C;
+        Thu, 15 Jul 2021 04:27:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626323219;
-        bh=ISLOowqcXFi7D/AecfCO5p2bdmuAJjYUwY8N6CDHt1c=;
+        s=korg; t=1626323222;
+        bh=E/hPjciFPdETfzSqNvWxfE+8yg//T/nkcBgjMHae9rk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=tZsgM3blwJDRydnOBuqbwUx6MQqj9d3U690Ff9YPSKxtmMQVgrlWMF0oyxIkwuJkE
-         wI9UB2M5kqjbayPMClFRX/1elgqMBbMdy2Q1xODKv6mVRRyvCVVhQ+ER/9r+/C87fH
-         vxXKGiVJB2qlz5o+9D6t1JUCM+DUhC4iEpFmQMkk=
-Date:   Wed, 14 Jul 2021 21:26:58 -0700
+        b=N8I6RWMc37zDgNmp1V+XoHsqIo9L8t687sz7qt+z9WxgDbAkFpOEqMb1Hqfav8K7O
+         qAXBWM8HviPYcrV5RQRWrmPLtzC/GMpNzJdBIqsPBxfSEyN2pPePYNsTcJZXx7ewEz
+         AVicbTHcp/0GPnJTXiRhL07VBMPCfY0pO/SLQ4rY=
+Date:   Wed, 14 Jul 2021 21:27:01 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, apopple@nvidia.com, hulkci@huawei.com,
-        jrdr.linux@gmail.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, oliver.sang@intel.com,
-        torvalds@linux-foundation.org, yangyingliang@huawei.com
-Subject:  [patch 09/13] lib/test_hmm: remove set but unused page
- variable
-Message-ID: <20210715042658.PXuvewt1u%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, desmondcheongzx@gmail.com,
+        gregkh@linuxfoundation.org, gustavoars@kernel.org,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        skhan@linuxfoundation.org, slava@dubeyko.com,
+        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+Subject:  [patch 10/13] hfs: add missing clean-up in hfs_fill_super
+Message-ID: <20210715042701.RIM_Afm8q%akpm@linux-foundation.org>
 In-Reply-To: <20210714212609.fad116e584ba1194981a6294@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,41 +44,79 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alistair Popple <apopple@nvidia.com>
-Subject: lib/test_hmm: remove set but unused page variable
+From: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
+Subject: hfs: add missing clean-up in hfs_fill_super
 
-The HMM selftests use atomic_check_access() to check atomic access to a
-page has been revoked.  It doesn't matter if the page mapping has been
-removed from the mirrored page tables as that also implies atomic access
-has been revoked.  Therefore remove the unused page variable to fix this
-compiler warning:
+Patch series "hfs: fix various errors", v2.
 
-  lib/test_hmm.c:631:16: warning: variable `page' set but not used [-Wunused-but-set-variable]
+This series ultimately aims to address a lockdep warning in hfs_find_init
+reported by Syzbot:
+https://syzkaller.appspot.com/bug?id=f007ef1d7a31a469e3be7aeb0fde0769b18585db
 
-Link: https://lkml.kernel.org/r/20210706025603.4059-1-apopple@nvidia.com
-Fixes: b659baea7546 ("mm: selftests for exclusive device memory")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Reported-by: Yang Yingliang <yangyingliang@huawei.com>
-Acked-by: Souptick Joarder <jrdr.linux@gmail.com>
+The work done for this led to the discovery of another bug, and the
+Syzkaller repro test also reveals an invalid memory access error after
+clearing the lockdep warning.  Hence, this series is broken up into three
+patches:
+
+1. Add a missing call to hfs_find_exit for an error path in
+   hfs_fill_super
+
+2. Fix memory mapping in hfs_bnode_read by fixing calls to kmap
+
+3. Add lock nesting notation to tell lockdep that the observed locking
+   hierarchy is safe
+
+
+This patch (of 3):
+
+Before exiting hfs_fill_super, the struct hfs_find_data used in
+hfs_find_init should be passed to hfs_find_exit to be cleaned up, and to
+release the lock held on the btree.
+
+The call to hfs_find_exit is missing from an error path.  We add it back
+in by consolidating calls to hfs_find_exit for error paths.
+
+Link: https://lkml.kernel.org/r/20210701030756.58760-1-desmondcheongzx@gmail.com
+Link: https://lkml.kernel.org/r/20210701030756.58760-2-desmondcheongzx@gmail.com
+Signed-off-by: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
+Reviewed-by: Viacheslav Dubeyko <slava@dubeyko.com>
+Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c |    2 --
- 1 file changed, 2 deletions(-)
+ fs/hfs/super.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/lib/test_hmm.c~lib-test_hmm-remove-set-but-unused-page-variable
-+++ a/lib/test_hmm.c
-@@ -628,10 +628,8 @@ static int dmirror_check_atomic(struct d
- 
- 	for (pfn = start >> PAGE_SHIFT; pfn < (end >> PAGE_SHIFT); pfn++) {
- 		void *entry;
--		struct page *page;
- 
- 		entry = xa_load(&dmirror->pt, pfn);
--		page = xa_untag_pointer(entry);
- 		if (xa_pointer_tag(entry) == DPT_XA_TAG_ATOMIC)
- 			return -EPERM;
+--- a/fs/hfs/super.c~hfs-add-missing-clean-up-in-hfs_fill_super
++++ a/fs/hfs/super.c
+@@ -420,14 +420,12 @@ static int hfs_fill_super(struct super_b
+ 	if (!res) {
+ 		if (fd.entrylength > sizeof(rec) || fd.entrylength < 0) {
+ 			res =  -EIO;
+-			goto bail;
++			goto bail_hfs_find;
+ 		}
+ 		hfs_bnode_read(fd.bnode, &rec, fd.entryoffset, fd.entrylength);
  	}
+-	if (res) {
+-		hfs_find_exit(&fd);
+-		goto bail_no_root;
+-	}
++	if (res)
++		goto bail_hfs_find;
+ 	res = -EINVAL;
+ 	root_inode = hfs_iget(sb, &fd.search_key->cat, &rec);
+ 	hfs_find_exit(&fd);
+@@ -443,6 +441,8 @@ static int hfs_fill_super(struct super_b
+ 	/* everything's okay */
+ 	return 0;
+ 
++bail_hfs_find:
++	hfs_find_exit(&fd);
+ bail_no_root:
+ 	pr_err("get root inode failed\n");
+ bail:
 _
