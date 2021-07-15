@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 094C4C47E4B
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A50B8C07E96
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E5C6561362
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8778861377
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236412AbhGOE3y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 00:29:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36278 "EHLO mail.kernel.org"
+        id S236423AbhGOE36 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 00:29:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36340 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230076AbhGOE3y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Jul 2021 00:29:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E827C6128C;
-        Thu, 15 Jul 2021 04:27:01 +0000 (UTC)
+        id S230076AbhGOE36 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Jul 2021 00:29:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6B0FC61362;
+        Thu, 15 Jul 2021 04:27:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626323222;
-        bh=E/hPjciFPdETfzSqNvWxfE+8yg//T/nkcBgjMHae9rk=;
+        s=korg; t=1626323225;
+        bh=EAhRaG/NzxvwdVRCnQwl2EUao6cYfDwAyLvSLYFpsJ0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=N8I6RWMc37zDgNmp1V+XoHsqIo9L8t687sz7qt+z9WxgDbAkFpOEqMb1Hqfav8K7O
-         qAXBWM8HviPYcrV5RQRWrmPLtzC/GMpNzJdBIqsPBxfSEyN2pPePYNsTcJZXx7ewEz
-         AVicbTHcp/0GPnJTXiRhL07VBMPCfY0pO/SLQ4rY=
-Date:   Wed, 14 Jul 2021 21:27:01 -0700
+        b=EkOmNIRtYl2IrvRWNSGLX/5loThH9co0MMn/oLLdrAwVsuxccZzFAHEu+Mj5gB1HO
+         I4WO4S5yQkurDMKdDe2UqcAcsbmOTHsr+Wfu879BL/nmcnZtxuOKhis5UVw1wvgwtr
+         b+40yhuUf1qUVur91RhLF3ytMT2sb54CC1stt5O8=
+Date:   Wed, 14 Jul 2021 21:27:05 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, desmondcheongzx@gmail.com,
         gregkh@linuxfoundation.org, gustavoars@kernel.org,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         skhan@linuxfoundation.org, slava@dubeyko.com,
         torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
-Subject:  [patch 10/13] hfs: add missing clean-up in hfs_fill_super
-Message-ID: <20210715042701.RIM_Afm8q%akpm@linux-foundation.org>
+Subject:  [patch 11/13] hfs: fix high memory mapping in
+ hfs_bnode_read
+Message-ID: <20210715042705.lg8lgQHJU%akpm@linux-foundation.org>
 In-Reply-To: <20210714212609.fad116e584ba1194981a6294@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,78 +46,130 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
-Subject: hfs: add missing clean-up in hfs_fill_super
+Subject: hfs: fix high memory mapping in hfs_bnode_read
 
-Patch series "hfs: fix various errors", v2.
+Pages that we read in hfs_bnode_read need to be kmapped into kernel
+address space.  However, currently only the 0th page is kmapped.  If the
+given offset + length exceeds this 0th page, then we have an invalid
+memory access.
 
-This series ultimately aims to address a lockdep warning in hfs_find_init
-reported by Syzbot:
-https://syzkaller.appspot.com/bug?id=f007ef1d7a31a469e3be7aeb0fde0769b18585db
+To fix this, we kmap relevant pages one by one and copy their relevant
+portions of data.
 
-The work done for this led to the discovery of another bug, and the
-Syzkaller repro test also reveals an invalid memory access error after
-clearing the lockdep warning.  Hence, this series is broken up into three
-patches:
+An example of invalid memory access occurring without this fix can be seen
+in the following crash report:
 
-1. Add a missing call to hfs_find_exit for an error path in
-   hfs_fill_super
+==================================================================
+BUG: KASAN: use-after-free in memcpy include/linux/fortify-string.h:191 [inline]
+BUG: KASAN: use-after-free in hfs_bnode_read+0xc4/0xe0 fs/hfs/bnode.c:26
+Read of size 2 at addr ffff888125fdcffe by task syz-executor5/4634
 
-2. Fix memory mapping in hfs_bnode_read by fixing calls to kmap
+CPU: 0 PID: 4634 Comm: syz-executor5 Not tainted 5.13.0-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:79 [inline]
+ dump_stack+0x195/0x1f8 lib/dump_stack.c:120
+ print_address_description.constprop.0+0x1d/0x110 mm/kasan/report.c:233
+ __kasan_report mm/kasan/report.c:419 [inline]
+ kasan_report.cold+0x7b/0xd4 mm/kasan/report.c:436
+ check_region_inline mm/kasan/generic.c:180 [inline]
+ kasan_check_range+0x154/0x1b0 mm/kasan/generic.c:186
+ memcpy+0x24/0x60 mm/kasan/shadow.c:65
+ memcpy include/linux/fortify-string.h:191 [inline]
+ hfs_bnode_read+0xc4/0xe0 fs/hfs/bnode.c:26
+ hfs_bnode_read_u16 fs/hfs/bnode.c:34 [inline]
+ hfs_bnode_find+0x880/0xcc0 fs/hfs/bnode.c:365
+ hfs_brec_find+0x2d8/0x540 fs/hfs/bfind.c:126
+ hfs_brec_read+0x27/0x120 fs/hfs/bfind.c:165
+ hfs_cat_find_brec+0x19a/0x3b0 fs/hfs/catalog.c:194
+ hfs_fill_super+0xc13/0x1460 fs/hfs/super.c:419
+ mount_bdev+0x331/0x3f0 fs/super.c:1368
+ hfs_mount+0x35/0x40 fs/hfs/super.c:457
+ legacy_get_tree+0x10c/0x220 fs/fs_context.c:592
+ vfs_get_tree+0x93/0x300 fs/super.c:1498
+ do_new_mount fs/namespace.c:2905 [inline]
+ path_mount+0x13f5/0x20e0 fs/namespace.c:3235
+ do_mount fs/namespace.c:3248 [inline]
+ __do_sys_mount fs/namespace.c:3456 [inline]
+ __se_sys_mount fs/namespace.c:3433 [inline]
+ __x64_sys_mount+0x2b8/0x340 fs/namespace.c:3433
+ do_syscall_64+0x37/0xc0 arch/x86/entry/common.c:47
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x45e63a
+Code: 48 c7 c2 bc ff ff ff f7 d8 64 89 02 b8 ff ff ff ff eb d2 e8 88 04 00 00 0f 1f 84 00 00 00 00 00 49 89 ca b8 a5 00 00 00 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f9404d410d8 EFLAGS: 00000246 ORIG_RAX: 00000000000000a5
+RAX: ffffffffffffffda RBX: 0000000020000248 RCX: 000000000045e63a
+RDX: 0000000020000000 RSI: 0000000020000100 RDI: 00007f9404d41120
+RBP: 00007f9404d41120 R08: 00000000200002c0 R09: 0000000020000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000003
+R13: 0000000000000003 R14: 00000000004ad5d8 R15: 0000000000000000
 
-3. Add lock nesting notation to tell lockdep that the observed locking
-   hierarchy is safe
+The buggy address belongs to the page:
+page:00000000dadbcf3e refcount:0 mapcount:0 mapping:0000000000000000 index:0x1 pfn:0x125fdc
+flags: 0x2fffc0000000000(node=0|zone=2|lastcpupid=0x3fff)
+raw: 02fffc0000000000 ffffea000497f748 ffffea000497f6c8 0000000000000000
+raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+page dumped because: kasan: bad access detected
 
+Memory state around the buggy address:
+ ffff888125fdce80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888125fdcf00: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+>ffff888125fdcf80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+                                                                ^
+ ffff888125fdd000: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+ ffff888125fdd080: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+==================================================================
 
-This patch (of 3):
-
-Before exiting hfs_fill_super, the struct hfs_find_data used in
-hfs_find_init should be passed to hfs_find_exit to be cleaned up, and to
-release the lock held on the btree.
-
-The call to hfs_find_exit is missing from an error path.  We add it back
-in by consolidating calls to hfs_find_exit for error paths.
-
-Link: https://lkml.kernel.org/r/20210701030756.58760-1-desmondcheongzx@gmail.com
-Link: https://lkml.kernel.org/r/20210701030756.58760-2-desmondcheongzx@gmail.com
+Link: https://lkml.kernel.org/r/20210701030756.58760-3-desmondcheongzx@gmail.com
 Signed-off-by: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
 Reviewed-by: Viacheslav Dubeyko <slava@dubeyko.com>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/super.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/hfs/bnode.c |   25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
 
---- a/fs/hfs/super.c~hfs-add-missing-clean-up-in-hfs_fill_super
-+++ a/fs/hfs/super.c
-@@ -420,14 +420,12 @@ static int hfs_fill_super(struct super_b
- 	if (!res) {
- 		if (fd.entrylength > sizeof(rec) || fd.entrylength < 0) {
- 			res =  -EIO;
--			goto bail;
-+			goto bail_hfs_find;
- 		}
- 		hfs_bnode_read(fd.bnode, &rec, fd.entryoffset, fd.entrylength);
- 	}
--	if (res) {
--		hfs_find_exit(&fd);
--		goto bail_no_root;
--	}
-+	if (res)
-+		goto bail_hfs_find;
- 	res = -EINVAL;
- 	root_inode = hfs_iget(sb, &fd.search_key->cat, &rec);
- 	hfs_find_exit(&fd);
-@@ -443,6 +441,8 @@ static int hfs_fill_super(struct super_b
- 	/* everything's okay */
- 	return 0;
+--- a/fs/hfs/bnode.c~hfs-fix-high-memory-mapping-in-hfs_bnode_read
++++ a/fs/hfs/bnode.c
+@@ -15,16 +15,31 @@
  
-+bail_hfs_find:
-+	hfs_find_exit(&fd);
- bail_no_root:
- 	pr_err("get root inode failed\n");
- bail:
+ #include "btree.h"
+ 
+-void hfs_bnode_read(struct hfs_bnode *node, void *buf,
+-		int off, int len)
++void hfs_bnode_read(struct hfs_bnode *node, void *buf, int off, int len)
+ {
+ 	struct page *page;
++	int pagenum;
++	int bytes_read;
++	int bytes_to_read;
++	void *vaddr;
+ 
+ 	off += node->page_offset;
+-	page = node->page[0];
++	pagenum = off >> PAGE_SHIFT;
++	off &= ~PAGE_MASK; /* compute page offset for the first page */
+ 
+-	memcpy(buf, kmap(page) + off, len);
+-	kunmap(page);
++	for (bytes_read = 0; bytes_read < len; bytes_read += bytes_to_read) {
++		if (pagenum >= node->tree->pages_per_bnode)
++			break;
++		page = node->page[pagenum];
++		bytes_to_read = min_t(int, len - bytes_read, PAGE_SIZE - off);
++
++		vaddr = kmap_atomic(page);
++		memcpy(buf + bytes_read, vaddr + off, bytes_to_read);
++		kunmap_atomic(vaddr);
++
++		pagenum++;
++		off = 0; /* page offset only applies to the first page */
++	}
+ }
+ 
+ u16 hfs_bnode_read_u16(struct hfs_bnode *node, int off)
 _
