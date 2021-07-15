@@ -2,104 +2,147 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+X-Spam-Status: No, score=-12.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
 	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
 	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95568C07E96
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 09:35:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F34E5C07E96
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 12:14:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 78C786136E
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 09:35:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D503A61380
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 12:14:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233277AbhGOJiG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 05:38:06 -0400
-Received: from smtp-out1.suse.de ([195.135.220.28]:52376 "EHLO
-        smtp-out1.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230314AbhGOJiG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jul 2021 05:38:06 -0400
-Received: from imap1.suse-dmz.suse.de (imap1.suse-dmz.suse.de [192.168.254.73])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out1.suse.de (Postfix) with ESMTPS id 9D2C22292A;
-        Thu, 15 Jul 2021 09:35:12 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
-        t=1626341712; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=c/4CQgC1slhvxkRd4LR3wgf3PplGpEUBrClmRaNbPx4=;
-        b=VWLIPqovfo7Z94YK56MvIymH3XnZSV+6vfC54zkN2nQpEQEKQZdDQ7KPBqjHAQN4GO7b3V
-        DrOE7q7JUXOoo6u92iJc2wRTNVascv08OGdyvEQCZX9hv0nnTeYY64jKKRd7+BsCI5qpB2
-        I2lqNPoFtVn+d0p+WjpyBKe1XOHCFGo=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
-        s=susede2_ed25519; t=1626341712;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=c/4CQgC1slhvxkRd4LR3wgf3PplGpEUBrClmRaNbPx4=;
-        b=cp+9VhQbUBJ8GaBFWnV6IkbbVOS+NqzwFBw0kLhH7kt+rubdxNT/RxCC09uWdIB2hqIc/B
-        xOaW0oo5avVvbeAQ==
-Received: from imap1.suse-dmz.suse.de (imap1.suse-dmz.suse.de [192.168.254.73])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap1.suse-dmz.suse.de (Postfix) with ESMTPS id 6FA2613AB3;
-        Thu, 15 Jul 2021 09:35:12 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap1.suse-dmz.suse.de with ESMTPSA
-        id PnUMG1AB8GDPCAAAGKfGzw
-        (envelope-from <osalvador@suse.de>); Thu, 15 Jul 2021 09:35:12 +0000
+        id S236359AbhGOMRi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 08:17:38 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50408 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236342AbhGOMRh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jul 2021 08:17:37 -0400
+Received: from mail-il1-x130.google.com (mail-il1-x130.google.com [IPv6:2607:f8b0:4864:20::130])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id ED0F1C06175F
+        for <mm-commits@vger.kernel.org>; Thu, 15 Jul 2021 05:14:44 -0700 (PDT)
+Received: by mail-il1-x130.google.com with SMTP id y6so4731973ilj.13
+        for <mm-commits@vger.kernel.org>; Thu, 15 Jul 2021 05:14:44 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=5B8WMESI3kumlgfc1iv795unOe/5BbtUeoQ7RgZ5tLc=;
+        b=E8xHqXeIaG2OboSPL8upOxGXuAUWi5hjsTEKJXEZ8nmTL7+0LMj2jQIoaw9DibfgWF
+         NwCe5NKC3Ox55LYshAQXQ73RsnFTq7Ezrszn/mwv8aXGfH8wFJJ81NHG3Gp1j7CvcRSs
+         ClZ/SRnNIvJVjaV0+Aq8im6RB1tQdr22cwX0zbWYzmrQR0dnWIurmcHCRE9+TjAWUELr
+         T7LCKVq9xLACfrRpFZtO7L6ch++fHLfUUQSZTQoI7lQ99HVF6ZSaa7NCgRi8u9vQpTTE
+         n7FLUyuLv7lnr+PRWQNO/3bELQJ5M0dH+atA7BLNW5PwbaXreIxHhm3yd7/m/bhMIjhb
+         940w==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=5B8WMESI3kumlgfc1iv795unOe/5BbtUeoQ7RgZ5tLc=;
+        b=dVDr+Ev+DcKpBEQEJLhT+qeHktQGhdoqfwglLrwh52RhtabFroyYqSCwo0IDMltHS0
+         6Bop1b9qKSa3C1J7ztpR14kWBqUGpGjRpWFhdhnqa1YoYfPWD+OT4eKWepJAqaw7r4cT
+         WPcoJCwsGxi7+CkI9Q2aJpMT+Ls/UnpKfCeab49kh/rm+X/Iq3vqZ3HBwDtqLPUKypl8
+         gblmhIPaYbHwhFewgTf1rWC6jDUQ9wrom6fB4RoSvQK71fihaX7tEO8eP3XbEATzRJmL
+         rx2erlStTPFtkFitPK4xiA2nv4uRDiWlUIRCme3UcGU+Ouu+TUNBBft+tWMW0h1YQ8Bw
+         4MKg==
+X-Gm-Message-State: AOAM532XRdqMMSIMF6iVgqzBXBps26nqRiI3N0gdDodLhxV6V31OfHol
+        9F3ZF95TOi4bdLmAzZhVMh+wFalfJnPaey30nfStfWsKQjWpXw==
+X-Google-Smtp-Source: ABdhPJwnGjMUXa8D1qIzQt6+znzKEmcsZTN3MCvG1PCV5M65ND3I70kic5WxwrJV3KwVIPBHJZXY7Uz2vsRaCDWsMss=
+X-Received: by 2002:a05:6e02:1947:: with SMTP id x7mr2564865ilu.85.1626351284254;
+ Thu, 15 Jul 2021 05:14:44 -0700 (PDT)
 MIME-Version: 1.0
-Date:   Thu, 15 Jul 2021 11:35:12 +0200
-From:   Oscar Salvador <osalvador@suse.de>
-To:     akpm@linux-foundation.org
-Cc:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
-        anton@ozlabs.org, ardb@kernel.org, bauerman@linux.ibm.com,
-        benh@kernel.crashing.org, bhe@redhat.com, borntraeger@de.ibm.com,
-        bp@alien8.de, catalin.marinas@arm.com, cheloha@linux.ibm.com,
-        christophe.leroy@c-s.fr, dalias@libc.org, dan.j.williams@intel.com,
-        dave.hansen@linux.intel.com, dave.jiang@intel.com,
-        david@redhat.com, gor@linux.ibm.com, hca@linux.ibm.com,
-        hpa@zytor.com, jasowang@redhat.com, joe@perches.com,
-        justin.he@arm.com, ldufour@linux.ibm.com, lenb@kernel.org,
-        luto@kernel.org, mhocko@kernel.org, michel@lespinasse.org,
-        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        mst@redhat.com, nathanl@linux.ibm.com, npiggin@gmail.com,
-        pankaj.gupta.linux@gmail.com, pankaj.gupta@ionos.com,
-        pasha.tatashin@soleen.com, paulus@samba.org, peterz@infradead.org,
-        pmorel@linux.ibm.com, rafael.j.wysocki@intel.com,
-        richard.weiyang@linux.alibaba.com, rjw@rjwysocki.net,
-        rppt@kernel.org, slyfox@gentoo.org, tglx@linutronix.de,
-        vbabka@suse.cz, vishal.l.verma@intel.com, vkuznets@redhat.com,
-        wangkefeng.wang@huawei.com, will@kernel.org,
-        ysato@users.sourceforge.jp
+References: <20210714234454.uDqO8_L5c%akpm@linux-foundation.org>
+In-Reply-To: <20210714234454.uDqO8_L5c%akpm@linux-foundation.org>
+From:   Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Date:   Thu, 15 Jul 2021 14:14:33 +0200
+Message-ID: <CAM9Jb+haXyRy20WnuN1eLyzgBj8tvtETV0pmYw_rRaz0qSJ4eA@mail.gmail.com>
 Subject: Re: + acpi-memhotplug-memory-resources-cannot-be-enabled-yet.patch
  added to -mm tree
-In-Reply-To: <20210714234454.uDqO8_L5c%akpm@linux-foundation.org>
-References: <20210714234454.uDqO8_L5c%akpm@linux-foundation.org>
-User-Agent: Roundcube Webmail
-Message-ID: <59eed031cdeaf5563bb3ab49b3fa5d7f@suse.de>
-X-Sender: osalvador@suse.de
-Content-Type: text/plain; charset=US-ASCII;
- format=flowed
-Content-Transfer-Encoding: 7bit
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>,
+        Anshuman Khandual <anshuman.khandual@arm.com>,
+        Anton Blanchard <anton@ozlabs.org>,
+        Ard Biesheuvel <ardb@kernel.org>,
+        Thiago Jung Bauermann <bauerman@linux.ibm.com>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Baoquan He <bhe@redhat.com>,
+        Christian Borntraeger <borntraeger@de.ibm.com>,
+        Borislav Petkov <bp@alien8.de>,
+        Catalin Marinas <catalin.marinas@arm.com>,
+        Scott Cheloha <cheloha@linux.ibm.com>,
+        Christophe Leroy <christophe.leroy@c-s.fr>,
+        Rich Felker <dalias@libc.org>,
+        Dan Williams <dan.j.williams@intel.com>,
+        Dave Hansen <dave.hansen@linux.intel.com>,
+        Dave Jiang <dave.jiang@intel.com>,
+        David Hildenbrand <david@redhat.com>,
+        Vasily Gorbik <gor@linux.ibm.com>,
+        Heiko Carstens <hca@linux.ibm.com>,
+        "H. Peter Anvin" <hpa@zytor.com>, Jason Wang <jasowang@redhat.com>,
+        Joe Perches <joe@perches.com>, Jia He <justin.he@arm.com>,
+        Laurent Dufour <ldufour@linux.ibm.com>,
+        Len Brown <lenb@kernel.org>, Andy Lutomirski <luto@kernel.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        Michel Lespinasse <michel@lespinasse.org>,
+        Ingo Molnar <mingo@redhat.com>, mm-commits@vger.kernel.org,
+        Michael Ellerman <mpe@ellerman.id.au>,
+        "Michael S . Tsirkin" <mst@redhat.com>,
+        Nathan Lynch <nathanl@linux.ibm.com>,
+        Nicholas Piggin <npiggin@gmail.com>,
+        Oscar Salvador <osalvador@suse.de>,
+        Pankaj Gupta <pankaj.gupta@ionos.com>,
+        Pavel Tatashin <pasha.tatashin@soleen.com>,
+        Paul Mackerras <paulus@samba.org>,
+        Peter Zijlstra <peterz@infradead.org>,
+        Pierre Morel <pmorel@linux.ibm.com>,
+        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+        Wei Yang <richard.weiyang@linux.alibaba.com>,
+        "Rafael J. Wysocki" <rjw@rjwysocki.net>,
+        Mike Rapoport <rppt@kernel.org>,
+        Sergei Trofimovich <slyfox@gentoo.org>,
+        Thomas Gleixner <tglx@linutronix.de>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Vishal Verma <vishal.l.verma@intel.com>,
+        Vitaly Kuznetsov <vkuznets@redhat.com>,
+        Kefeng Wang <wangkefeng.wang@huawei.com>,
+        Will Deacon <will@kernel.org>,
+        Yoshinori Sato <ysato@users.sourceforge.jp>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-
+> The patch titled
+>      Subject: ACPI: memhotplug: memory resources cannot be enabled yet
+> has been added to the -mm tree.  Its filename is
+>      acpi-memhotplug-memory-resources-cannot-be-enabled-yet.patch
+>
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/acpi-memhotplug-memory-resources-cannot-be-enabled-yet.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/acpi-memhotplug-memory-resources-cannot-be-enabled-yet.patch
+>
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+>
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+>
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+>
 > ------------------------------------------------------
 > From: David Hildenbrand <david@redhat.com>
 > Subject: ACPI: memhotplug: memory resources cannot be enabled yet
-> 
+>
 > We allocate + initialize everything from scratch.  In case enabling the
 > device fails, we free all memory resourcs.
-> 
+>
 > Link: https://lkml.kernel.org/r/20210712124052.26491-5-david@redhat.com
 > Signed-off-by: David Hildenbrand <david@redhat.com>
 > Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
@@ -154,9 +197,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 > Cc: Will Deacon <will@kernel.org>
 > Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 > Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+>
+>  drivers/acpi/acpi_memhotplug.c |    4 ----
+>  1 file changed, 4 deletions(-)
+>
+> --- a/drivers/acpi/acpi_memhotplug.c~acpi-memhotplug-memory-resources-cannot-be-enabled-yet
+> +++ a/drivers/acpi/acpi_memhotplug.c
+> @@ -182,10 +182,6 @@ static int acpi_memory_enable_device(str
+>          * (i.e. memory-hot-remove function)
+>          */
+>         list_for_each_entry(info, &mem_device->res_list, list) {
+> -               if (info->enabled) { /* just sanity check...*/
+> -                       num_enabled++;
+> -                       continue;
+> -               }
+>                 /*
+>                  * If the memory block size is zero, please ignore it.
+>                  * Don't try to do the following memory hotplug flowchart.
 
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
 
--- 
-Oscar Salvador
-SUSE L3
+Reviewed-by: Pankaj Gupta <pankaj.gupta@ionos.com>
