@@ -7,38 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84E51C636C8
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 21:28:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C7FAC636CD
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 21:40:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F1EA613AF
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 21:28:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14C1B613CC
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 21:40:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230470AbhGOVbL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 17:31:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41370 "EHLO mail.kernel.org"
+        id S231374AbhGOVnE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 17:43:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229472AbhGOVbL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Jul 2021 17:31:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0A4C9611F1;
-        Thu, 15 Jul 2021 21:28:17 +0000 (UTC)
+        id S229794AbhGOVnD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Jul 2021 17:43:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AD5C0613C4;
+        Thu, 15 Jul 2021 21:40:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626384497;
-        bh=1ANRcO19YPIlhnXHDJxi+f/NeL2qSSw6VnIm8tDi1oU=;
+        s=korg; t=1626385208;
+        bh=Xu96YLApAp3tAGFa5cca9UKCPT/Mex0P2qLo0lslomc=;
         h=Date:From:To:Subject:From;
-        b=k4N/YLbT+GXmiTqwkT7xUxIWI/bMsey547Vr3e4xrcIrAa+FYWirNTo6CLhU8XlSw
-         GHFiSXHu4ZO5hb9zegZb+V62dd+Cb020R8s0Blu0gUzUbVBeHCX1PsugvG8YDp4BY5
-         +jIfRQxcIylhqCUpw19hAoobGp4ChnW8slLnVL8A=
-Date:   Thu, 15 Jul 2021 14:28:16 -0700
+        b=yiuF6nQ3lkOdXg0vCf57oGnGcW+YEeW6wXNFrOBfrB3bU4YqJZD3KFYU/0V6ea8D7
+         /qf5P+uA21Bx2kxRc/vlzcgOLLgRvgY/3e3bvT/+gcvb5p3ALp7peegDafiK1/z2u4
+         lHxthuFnTrPEXL1lZtsfiN63xqb7b7K/RyqxOLwU=
+Date:   Thu, 15 Jul 2021 14:40:08 -0700
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        david@redhat.com, gthelen@google.com, kbusch@kernel.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
-        rientjes@google.com, shy828301@gmail.com, weixugc@google.com,
-        yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
-Subject:  +
- mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch added to
- -mm tree
-Message-ID: <20210715212816.bpYsbqCDl%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, lkp@intel.com, mm-commits@vger.kernel.org
+Subject:  + decouple-build-from-userspace-headers-fix.patch added
+ to -mm tree
+Message-ID: <20210715214008.IbiY7Klah%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: add sysfs interface to enable reclaim migration
+     Subject: fixup "Decouple build from userspace headers"
 has been added to the -mm tree.  Its filename is
-     mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
+     decouple-build-from-userspace-headers-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/decouple-build-from-userspace-headers-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/decouple-build-from-userspace-headers-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,198 +63,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/migrate: add sysfs interface to enable reclaim migration
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fixup "Decouple build from userspace headers"
 
-Some method is obviously needed to enable reclaim-based migration.
+Allow to find SIMD headers where necessary.
 
-Just like traditional autonuma, there will be some workloads that will
-benefit like workloads with more "static" configurations where hot pages
-stay hot and cold pages stay cold.  If pages come and go from the hot and
-cold sets, the benefits of this approach will be more limited.
-
-The benefits are truly workload-based and *not* hardware-based.  We do not
-believe that there is a viable threshold where certain hardware
-configurations should have this mechanism enabled while others do not.
-
-To be conservative, earlier work defaulted to disable reclaim- based
-migration and did not include a mechanism to enable it.  This proposes add
-a new sysfs file
-
-  /sys/kernel/mm/numa/demotion_enabled
-
-as a method to enable it.
-
-We are open to any alternative that allows end users to enable this
-mechanism or disable it if workload harm is detected (just like
-traditional autonuma).
-
-Once this is enabled page demotion may move data to a NUMA node that does
-not fall into the cpuset of the allocating process.  This could be
-construed to violate the guarantees of cpusets.  However, since this is an
-opt-in mechanism, the assumption is that anyone enabling it is content to
-relax the guarantees.
-
-Originally-by: Dave Hansen <dave.hansen@linux.intel.com>
-Link: https://lkml.kernel.org/r/20210715055145.195411-10-ying.huang@intel.com
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Keith Busch <kbusch@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Shi <shy828301@gmail.com>
+Link: https://lkml.kernel.org/r/YPClYgoJOTUn4V0w@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-numa |   24 +++++
- include/linux/mempolicy.h                      |    4 
- mm/mempolicy.c                                 |   61 +++++++++++++++
- mm/vmscan.c                                    |    5 -
- 4 files changed, 92 insertions(+), 2 deletions(-)
+ arch/arm64/lib/Makefile   |    2 +-
+ arch/powerpc/lib/Makefile |    2 +-
+ lib/raid6/Makefile        |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-numa
-@@ -0,0 +1,24 @@
-+What:		/sys/kernel/mm/numa/
-+Date:		June 2021
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Interface for NUMA
-+
-+What:		/sys/kernel/mm/numa/demotion_enabled
-+Date:		June 2021
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Enable/disable demoting pages during reclaim
-+
-+		Page migration during reclaim is intended for systems
-+		with tiered memory configurations.  These systems have
-+		multiple types of memory with varied performance
-+		characteristics instead of plain NUMA systems where
-+		the same kind of memory is found at varied distances.
-+		Allowing page migration during reclaim enables these
-+		systems to migrate pages from fast tiers to slow tiers
-+		when the fast tier is under pressure.  This migration
-+		is performed before swap.  It may move data to a NUMA
-+		node that does not fall into the cpuset of the
-+		allocating process which might be construed to violate
-+		the guarantees of cpusets.  This should not be enabled
-+		on systems which need strict cpuset location
-+		guarantees.
---- a/include/linux/mempolicy.h~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
-+++ a/include/linux/mempolicy.h
-@@ -184,6 +184,8 @@ extern bool vma_migratable(struct vm_are
- extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
- extern void mpol_put_task_policy(struct task_struct *);
+--- a/arch/arm64/lib/Makefile~decouple-build-from-userspace-headers-fix
++++ a/arch/arm64/lib/Makefile
+@@ -8,7 +8,7 @@ lib-y		:= clear_user.o delay.o copy_from
+ ifeq ($(CONFIG_KERNEL_MODE_NEON), y)
+ obj-$(CONFIG_XOR_BLOCKS)	+= xor-neon.o
+ CFLAGS_REMOVE_xor-neon.o	+= -mgeneral-regs-only
+-CFLAGS_xor-neon.o		+= -ffreestanding
++CFLAGS_xor-neon.o		+= -ffreestanding -isystem $(shell $(CC) -print-file-name=include)
+ endif
  
-+extern bool numa_demotion_enabled;
-+
- #else
+ lib-$(CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE) += uaccess_flushcache.o
+--- a/arch/powerpc/lib/Makefile~decouple-build-from-userspace-headers-fix
++++ a/arch/powerpc/lib/Makefile
+@@ -64,6 +64,6 @@ obj-$(CONFIG_PPC_LIB_RHEAP) += rheap.o
+ obj-$(CONFIG_FTR_FIXUP_SELFTEST) += feature-fixups-test.o
  
- struct mempolicy {};
-@@ -292,5 +294,7 @@ static inline nodemask_t *policy_nodemas
- {
- 	return NULL;
- }
-+
-+#define numa_demotion_enabled	false
- #endif /* CONFIG_NUMA */
- #endif
---- a/mm/mempolicy.c~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
-+++ a/mm/mempolicy.c
-@@ -3021,3 +3021,64 @@ void mpol_to_str(char *buffer, int maxle
- 		p += scnprintf(p, buffer + maxlen - p, ":%*pbl",
- 			       nodemask_pr_args(&nodes));
- }
-+
-+bool numa_demotion_enabled = false;
-+
-+#ifdef CONFIG_SYSFS
-+static ssize_t numa_demotion_enabled_show(struct kobject *kobj,
-+					  struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%s\n",
-+			  numa_demotion_enabled? "true" : "false");
-+}
-+
-+static ssize_t numa_demotion_enabled_store(struct kobject *kobj,
-+					   struct kobj_attribute *attr,
-+					   const char *buf, size_t count)
-+{
-+	if (!strncmp(buf, "true", 4) || !strncmp(buf, "1", 1))
-+		numa_demotion_enabled = true;
-+	else if (!strncmp(buf, "false", 5) || !strncmp(buf, "0", 1))
-+		numa_demotion_enabled = false;
-+	else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute numa_demotion_enabled_attr =
-+	__ATTR(demotion_enabled, 0644, numa_demotion_enabled_show,
-+	       numa_demotion_enabled_store);
-+
-+static struct attribute *numa_attrs[] = {
-+	&numa_demotion_enabled_attr.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group numa_attr_group = {
-+	.attrs = numa_attrs,
-+};
-+
-+static int __init numa_init_sysfs(void)
-+{
-+	int err;
-+	struct kobject *numa_kobj;
-+
-+	numa_kobj = kobject_create_and_add("numa", mm_kobj);
-+	if (!numa_kobj) {
-+		pr_err("failed to create numa kobject\n");
-+		return -ENOMEM;
-+	}
-+	err = sysfs_create_group(numa_kobj, &numa_attr_group);
-+	if (err) {
-+		pr_err("failed to register numa group\n");
-+		goto delete_obj;
-+	}
-+	return 0;
-+
-+delete_obj:
-+	kobject_put(numa_kobj);
-+	return err;
-+}
-+subsys_initcall(numa_init_sysfs);
-+#endif
---- a/mm/vmscan.c~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
-+++ a/mm/vmscan.c
-@@ -521,6 +521,8 @@ static long add_nr_deferred(long nr, str
+ obj-$(CONFIG_ALTIVEC)	+= xor_vmx.o xor_vmx_glue.o
+-CFLAGS_xor_vmx.o += -maltivec $(call cc-option,-mabi=altivec)
++CFLAGS_xor_vmx.o += -maltivec $(call cc-option,-mabi=altivec) -isystem $(shell $(CC) -print-file-name=include)
  
- static bool can_demote_anon_pages(int nid, struct scan_control *sc)
- {
-+	if (!numa_demotion_enabled)
-+		return false;
- 	if (sc) {
- 		if (sc->no_demotion)
- 			return false;
-@@ -531,8 +533,7 @@ static bool can_demote_anon_pages(int ni
- 	if (next_demotion_node(nid) == NUMA_NO_NODE)
- 		return false;
+ obj-$(CONFIG_PPC64) += $(obj64-y)
+--- a/lib/raid6/Makefile~decouple-build-from-userspace-headers-fix
++++ a/lib/raid6/Makefile
+@@ -13,7 +13,7 @@ raid6_pq-$(CONFIG_S390) += s390vx8.o rec
+ hostprogs	+= mktables
  
--	// FIXME: actually enable this later in the series
--	return false;
-+	return true;
- }
+ ifeq ($(CONFIG_ALTIVEC),y)
+-altivec_flags := -maltivec $(call cc-option,-mabi=altivec)
++altivec_flags := -maltivec $(call cc-option,-mabi=altivec) -isystem $(shell $(CC) -print-file-name=include)
  
- static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
+ ifdef CONFIG_CC_IS_CLANG
+ # clang ppc port does not yet support -maltivec when -msoft-float is
+@@ -33,7 +33,7 @@ endif
+ # The GCC option -ffreestanding is required in order to compile code containing
+ # ARM/NEON intrinsics in a non C99-compliant environment (such as the kernel)
+ ifeq ($(CONFIG_KERNEL_MODE_NEON),y)
+-NEON_FLAGS := -ffreestanding
++NEON_FLAGS := -ffreestanding -isystem $(shell $(CC) -print-file-name=include)
+ ifeq ($(ARCH),arm)
+ NEON_FLAGS += -march=armv7-a -mfloat-abi=softfp -mfpu=neon
+ endif
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
+decouple-build-from-userspace-headers.patch
+decouple-build-from-userspace-headers-fix.patch
 
