@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D61BC12002
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 00:17:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E49BEC12002
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 00:17:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47502613CC
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 00:17:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6EB1613CC
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 00:17:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238019AbhGOAT6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 14 Jul 2021 20:19:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50850 "EHLO mail.kernel.org"
+        id S238035AbhGOAUB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 14 Jul 2021 20:20:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50894 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236933AbhGOAT6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 14 Jul 2021 20:19:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 05003613CF;
-        Thu, 15 Jul 2021 00:17:04 +0000 (UTC)
+        id S238027AbhGOAUB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 14 Jul 2021 20:20:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 08E5B613CA;
+        Thu, 15 Jul 2021 00:17:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626308225;
-        bh=CZg4pLAB7pdwtGuNEBByWxWdUTjoa6jaWObwno39ZQA=;
+        s=korg; t=1626308228;
+        bh=q0g8Z6joP556PwhkdzwksD94p7nGns7oqhc2HAj14xE=;
         h=Date:From:To:Subject:From;
-        b=oNg3g7789dYGbg/XRQdrMJn46cjDYs0+mihIWrSxbf54uPSK0DoqpFOxyOhg/EP4M
-         eLG9En8ZVUvi50mgS3uP+I0NeQy1OX+Q+LvcvKoyS6cfX4p8CXKJS4LvybMEGi7X7I
-         kkqMawDiJQ+5zIEmKaLKHOdY+cBEihTSI6GT0pNo=
-Date:   Wed, 14 Jul 2021 17:17:04 -0700
+        b=dlMHCXIbjWOUdhSpWmFw9Va4XNkKpWkAtRQ/s6Pk4jeUfJ0I6Xn1Aa4GXNy/55Sjv
+         53VtKh0/IsTdeDmlTz7I1ilMiiIdctrGuRqG6DIiIXSeaEFnx9IfOZWahVjakBtMjo
+         znJAry4lKmfg3zpiGVr+efCtSla+0V413sfmQo8c=
+Date:   Wed, 14 Jul 2021 17:17:07 -0700
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, ak@linux.intel.com, ben.widawsky@intel.com,
         dan.j.williams@intel.com, dave.hansen@linux.intel.com,
@@ -36,10 +36,9 @@ To:     aarcange@redhat.com, ak@linux.intel.com, ben.widawsky@intel.com,
         mhocko@kernel.org, mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, rdunlap@infradead.org,
         rientjes@google.com, vbabka@suse.cz, ying.huang@intel.com
-Subject:  +
- mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many.patch added to -mm
- tree
-Message-ID: <20210715001704.VHszzpxlD%akpm@linux-foundation.org>
+Subject:  + mm-mempolicy-advertise-new-mpol_preferred_many.patch
+ added to -mm tree
+Message-ID: <20210715001707.Pl7zuQzDW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: add support for mempolicy MPOL_PREFERRED_MANY
+     Subject: mm/mempolicy: advertise new MPOL_PREFERRED_MANY
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many.patch
+     mm-mempolicy-advertise-new-mpol_preferred_many.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-advertise-new-mpol_preferred_many.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-advertise-new-mpol_preferred_many.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,21 +69,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ben Widawsky <ben.widawsky@intel.com>
-Subject: mm/hugetlb: add support for mempolicy MPOL_PREFERRED_MANY
+Subject: mm/mempolicy: advertise new MPOL_PREFERRED_MANY
 
-Implement the missing huge page allocation functionality while obeying the
-preferred node semantics.  This is similar to the implementation for
-general page allocation, as it uses a fallback mechanism to try multiple
-preferred nodes first, and then all other nodes.
+Adds a new mode to the existing mempolicy modes, MPOL_PREFERRED_MANY.
 
-[Thanks to 0day bot for caching the missing #ifdef CONFIG_NUMA issue]
+MPOL_PREFERRED_MANY will be adequately documented in the internal
+admin-guide with this patch.  Eventually, the man pages for mbind(2),
+get_mempolicy(2), set_mempolicy(2) and numactl(8) will also have text
+about this mode.  Those shall contain the canonical reference.
 
-Link: https://lore.kernel.org/r/20200630212517.308045-12-ben.widawsky@intel.com
-Link: https://lkml.kernel.org/r/1626077374-81682-5-git-send-email-feng.tang@intel.com
+NUMA systems continue to become more prevalent.  New technologies like
+PMEM make finer grain control over memory access patterns increasingly
+desirable.  MPOL_PREFERRED_MANY allows userspace to specify a set of nodes
+that will be tried first when performing allocations.  If those
+allocations fail, all remaining nodes will be tried.  It's a straight
+forward API which solves many of the presumptive needs of system
+administrators wanting to optimize workloads on such machines.  The mode
+will work either per VMA, or per thread.
+
+Link: https://lore.kernel.org/r/20200630212517.308045-13-ben.widawsky@intel.com
+Link: https://lkml.kernel.org/r/1626077374-81682-6-git-send-email-feng.tang@intel.com
 Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
 Signed-off-by: Feng Tang <feng.tang@intel.com>
-Co-developed-by: Feng Tang <feng.tang@intel.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
@@ -93,70 +99,65 @@ Cc: David Rientjes <rientjes@google.com>
 Cc: Huang Ying <ying.huang@intel.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c   |   25 +++++++++++++++++++++++++
- mm/mempolicy.c |    3 ++-
- 2 files changed, 27 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/mm/numa_memory_policy.rst |   16 +++++++---
+ mm/mempolicy.c                                      |    7 ----
+ 2 files changed, 13 insertions(+), 10 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many
-+++ a/mm/hugetlb.c
-@@ -1166,7 +1166,18 @@ static struct page *dequeue_huge_page_vm
+--- a/Documentation/admin-guide/mm/numa_memory_policy.rst~mm-mempolicy-advertise-new-mpol_preferred_many
++++ a/Documentation/admin-guide/mm/numa_memory_policy.rst
+@@ -245,6 +245,14 @@ MPOL_INTERLEAVED
+ 	address range or file.  During system boot up, the temporary
+ 	interleaved system default policy works in this mode.
  
- 	gfp_mask = htlb_alloc_mask(h);
- 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
-+#ifdef CONFIG_NUMA
-+	if (mpol->mode == MPOL_PREFERRED_MANY) {
-+		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
-+		if (page)
-+			goto check_reserve;
-+		/* Fallback to all nodes */
-+		nodemask = NULL;
-+	}
-+#endif
- 	page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
++MPOL_PREFERRED_MANY
++        This mode specifies that the allocation should be attempted from the
++        nodemask specified in the policy. If that allocation fails, the kernel
++        will search other nodes, in order of increasing distance from the first
++        set bit in the nodemask based on information provided by the platform
++        firmware. It is similar to MPOL_PREFERRED with the main exception that
++        is an error to have an empty nodemask.
 +
-+check_reserve:
- 	if (page && !avoid_reserve && vma_has_reserves(vma, chg)) {
- 		SetHPageRestoreReserve(page);
- 		h->resv_huge_pages--;
-@@ -2147,6 +2158,20 @@ struct page *alloc_buddy_huge_page_with_
- 	nodemask_t *nodemask;
+ NUMA memory policy supports the following optional mode flags:
  
- 	nid = huge_node(vma, addr, gfp_mask, &mpol, &nodemask);
-+#ifdef CONFIG_NUMA
-+	if (mpol->mode == MPOL_PREFERRED_MANY) {
-+		gfp_t gfp = (gfp_mask | __GFP_NOWARN) & ~__GFP_DIRECT_RECLAIM;
-+
-+		page = alloc_surplus_huge_page(h, gfp, nid, nodemask);
-+		if (page) {
-+			mpol_cond_put(mpol);
-+			return page;
-+		}
-+
-+		/* Fallback to all nodes */
-+		nodemask = NULL;
-+	}
-+#endif
- 	page = alloc_surplus_huge_page(h, gfp_mask, nid, nodemask, false);
- 	mpol_cond_put(mpol);
+ MPOL_F_STATIC_NODES
+@@ -253,10 +261,10 @@ MPOL_F_STATIC_NODES
+ 	nodes changes after the memory policy has been defined.
  
---- a/mm/mempolicy.c~mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many
+ 	Without this flag, any time a mempolicy is rebound because of a
+-	change in the set of allowed nodes, the node (Preferred) or
+-	nodemask (Bind, Interleave) is remapped to the new set of
+-	allowed nodes.  This may result in nodes being used that were
+-	previously undesired.
++        change in the set of allowed nodes, the preferred nodemask (Preferred
++        Many), preferred node (Preferred) or nodemask (Bind, Interleave) is
++        remapped to the new set of allowed nodes.  This may result in nodes
++        being used that were previously undesired.
+ 
+ 	With this flag, if the user-specified nodes overlap with the
+ 	nodes allowed by the task's cpuset, then the memory policy is
+--- a/mm/mempolicy.c~mm-mempolicy-advertise-new-mpol_preferred_many
 +++ a/mm/mempolicy.c
-@@ -2054,7 +2054,8 @@ int huge_node(struct vm_area_struct *vma
- 					huge_page_shift(hstate_vma(vma)));
- 	} else {
- 		nid = policy_node(gfp_flags, *mpol, numa_node_id());
--		if ((*mpol)->mode == MPOL_BIND)
-+		if ((*mpol)->mode == MPOL_BIND ||
-+		    (*mpol)->mode == MPOL_PREFERRED_MANY)
- 			*nodemask = &(*mpol)->nodes;
- 	}
- 	return nid;
+@@ -1463,12 +1463,7 @@ static inline int sanitize_mpol_flags(in
+ 	*flags = *mode & MPOL_MODE_FLAGS;
+ 	*mode &= ~MPOL_MODE_FLAGS;
+ 
+-	/*
+-	 * The check should be 'mode >= MPOL_MAX', but as 'prefer_many'
+-	 * is not fully implemented, don't permit it to be used for now,
+-	 * and the logic will be restored in following patch
+-	 */
+-	if ((unsigned int)(*mode) >=  MPOL_PREFERRED_MANY)
++	if ((unsigned int)(*mode) >=  MPOL_MAX)
+ 		return -EINVAL;
+ 	if ((*flags & MPOL_F_STATIC_NODES) && (*flags & MPOL_F_RELATIVE_NODES))
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from ben.widawsky@intel.com are
