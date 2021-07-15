@@ -2,84 +2,165 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE autolearn=unavailable
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-8.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6A62C47E4E
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 510A5C07E96
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 09:33:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 89C13613A9
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BF08613C1
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 09:33:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236488AbhGOEaG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 00:30:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36468 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236439AbhGOEaF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Jul 2021 00:30:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 716DC613B2;
-        Thu, 15 Jul 2021 04:27:11 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626323231;
-        bh=9m0k110N20kOAoP/o62BcYLkYEF1k7ZEGkRxpN1LxW4=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=Jxns9f0nh5iFonmRirk9p1rMWpQ+Q8m7zXlPLCYUGL//VCSWxpTAJiEJmFPXEioiC
-         KP+PVX0tU8FukAljXxcH4D3djtQiklr87Z4NLuNEjiMj0U+YhMDbdfxm/3KsyAhyPD
-         odUbbxsCY7f7uj5pKTT21j3IYnMNvUrfi/cmwNeA=
-Date:   Wed, 14 Jul 2021 21:27:11 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, joao.m.martins@oracle.com,
-        linux-mm@kvack.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 13/13] mm/hugetlb: fix refs calculation from
- unaligned @vaddr
-Message-ID: <20210715042711.DQ8aY7BZt%akpm@linux-foundation.org>
-In-Reply-To: <20210714212609.fad116e584ba1194981a6294@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S231688AbhGOJgg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 05:36:36 -0400
+Received: from smtp-out1.suse.de ([195.135.220.28]:51996 "EHLO
+        smtp-out1.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230314AbhGOJgg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 15 Jul 2021 05:36:36 -0400
+Received: from imap1.suse-dmz.suse.de (imap1.suse-dmz.suse.de [192.168.254.73])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 62F6F2292E;
+        Thu, 15 Jul 2021 09:33:42 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.de; s=susede2_rsa;
+        t=1626341622; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=gY1l+0zWuGwQu+5MJl9DCny/55v2BAn5UyV2FhSQjU0=;
+        b=qkHNTlbxparAc00dT4UBadAzf+F55t2JT2ujq/ZZN1KtyMddIojvBHsK9VCF/d9tCXlMCw
+        xNKE/MfC/4VNtth12TC6thQ7LjX4Nzho255usoamkZ5IHUa4vIlC7ipHcjnMxFv0O+Zhey
+        HmU21MlJUImFrOxB598iS56XGtkBn/s=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.de;
+        s=susede2_ed25519; t=1626341622;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=gY1l+0zWuGwQu+5MJl9DCny/55v2BAn5UyV2FhSQjU0=;
+        b=W0KIMKvoTLS3jJE6+tcKJDCskzcYs1lej5Khd+fHwJuIsvJWIU/u7VvgYywwJtMuJQrsu9
+        NCtFwz6goLJByICw==
+Received: from imap1.suse-dmz.suse.de (imap1.suse-dmz.suse.de [192.168.254.73])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap1.suse-dmz.suse.de (Postfix) with ESMTPS id 256E413AB7;
+        Thu, 15 Jul 2021 09:33:42 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap1.suse-dmz.suse.de with ESMTPSA
+        id 5VDwB/YA8GARCAAAGKfGzw
+        (envelope-from <osalvador@suse.de>); Thu, 15 Jul 2021 09:33:42 +0000
+MIME-Version: 1.0
+Date:   Thu, 15 Jul 2021 11:33:41 +0200
+From:   Oscar Salvador <osalvador@suse.de>
+To:     akpm@linux-foundation.org
+Cc:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
+        anton@ozlabs.org, ardb@kernel.org, bauerman@linux.ibm.com,
+        benh@kernel.crashing.org, bhe@redhat.com, borntraeger@de.ibm.com,
+        bp@alien8.de, catalin.marinas@arm.com, cheloha@linux.ibm.com,
+        christophe.leroy@c-s.fr, dalias@libc.org, dan.j.williams@intel.com,
+        dave.hansen@linux.intel.com, dave.jiang@intel.com,
+        david@redhat.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        hpa@zytor.com, jasowang@redhat.com, joe@perches.com,
+        justin.he@arm.com, ldufour@linux.ibm.com, lenb@kernel.org,
+        luto@kernel.org, mhocko@kernel.org, michel@lespinasse.org,
+        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        mst@redhat.com, nathanl@linux.ibm.com, npiggin@gmail.com,
+        pankaj.gupta.linux@gmail.com, pankaj.gupta@ionos.com,
+        pasha.tatashin@soleen.com, paulus@samba.org, peterz@infradead.org,
+        pmorel@linux.ibm.com, rafael.j.wysocki@intel.com,
+        richard.weiyang@linux.alibaba.com, rjw@rjwysocki.net,
+        rppt@kernel.org, slyfox@gentoo.org, tglx@linutronix.de,
+        vbabka@suse.cz, vishal.l.verma@intel.com, vkuznets@redhat.com,
+        wangkefeng.wang@huawei.com, will@kernel.org,
+        ysato@users.sourceforge.jp
+Subject: Re: +
+ mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory.patch added to
+ -mm tree
+In-Reply-To: <20210714234443.fv-q73cIA%akpm@linux-foundation.org>
+References: <20210714234443.fv-q73cIA%akpm@linux-foundation.org>
+User-Agent: Roundcube Webmail
+Message-ID: <f1ffb46d276296c93f9a1a3254b5e8ac@suse.de>
+X-Sender: osalvador@suse.de
+Content-Type: text/plain; charset=US-ASCII;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/hugetlb: fix refs calculation from unaligned @vaddr
+On 2021-07-15 01:44, akpm@linux-foundation.org wrote:
+> ------------------------------------------------------
+> From: David Hildenbrand <david@redhat.com>
+> Subject: mm/memory_hotplug: remove nid parameter from 
+> arch_remove_memory()
+> 
+> The parameter is unused, let's remove it.
+> 
+> Link: https://lkml.kernel.org/r/20210712124052.26491-3-david@redhat.com
+> Signed-off-by: David Hildenbrand <david@redhat.com>
+> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+> Acked-by: Michael Ellerman <mpe@ellerman.id.au> [powerpc]
+> Acked-by: Heiko Carstens <hca@linux.ibm.com>	[s390]
+> Reviewed-by: Pankaj Gupta <pankaj.gupta@ionos.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Will Deacon <will@kernel.org>
+> Cc: Michael Ellerman <mpe@ellerman.id.au>
+> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+> Cc: Paul Mackerras <paulus@samba.org>
+> Cc: Heiko Carstens <hca@linux.ibm.com>
+> Cc: Vasily Gorbik <gor@linux.ibm.com>
+> Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+> Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+> Cc: Rich Felker <dalias@libc.org>
+> Cc: Dave Hansen <dave.hansen@linux.intel.com>
+> Cc: Andy Lutomirski <luto@kernel.org>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+> Cc: Ard Biesheuvel <ardb@kernel.org>
+> Cc: Mike Rapoport <rppt@kernel.org>
+> Cc: Nicholas Piggin <npiggin@gmail.com>
+> Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+> Cc: Baoquan He <bhe@redhat.com>
+> Cc: Laurent Dufour <ldufour@linux.ibm.com>
+> Cc: Sergei Trofimovich <slyfox@gentoo.org>
+> Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+> Cc: Michel Lespinasse <michel@lespinasse.org>
+> Cc: Christophe Leroy <christophe.leroy@c-s.fr>
+> Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+> Cc: Thiago Jung Bauermann <bauerman@linux.ibm.com>
+> Cc: Joe Perches <joe@perches.com>
+> Cc: Pierre Morel <pmorel@linux.ibm.com>
+> Cc: Jia He <justin.he@arm.com>
+> Cc: Anton Blanchard <anton@ozlabs.org>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Dave Jiang <dave.jiang@intel.com>
+> Cc: Jason Wang <jasowang@redhat.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: "Michael S. Tsirkin" <mst@redhat.com>
+> Cc: Michal Hocko <mhocko@kernel.org>
+> Cc: Nathan Lynch <nathanl@linux.ibm.com>
+> Cc: Oscar Salvador <osalvador@suse.de>
+> Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Scott Cheloha <cheloha@linux.ibm.com>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+> Cc: Vlastimil Babka <vbabka@suse.cz>
+> Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
-commit 82e5d378b0e47 ("mm/hugetlb: refactor subpage recording") refactored
-the count of subpages but missed an edge case when @vaddr is not aligned
-to PAGE_SIZE e.g.  when close to vma->vm_end.  It would then errousnly set
-@refs to 0 and record_subpages_vmas() wouldn't set the @pages array
-element to its value, consequently causing the reported null-deref by
-syzbot.
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 
-Fix it by aligning down @vaddr by PAGE_SIZE in @refs calculation.
-
-Link: https://lkml.kernel.org/r/20210713152440.28650-1-joao.m.martins@oracle.com
-Fixes: 82e5d378b0e47 ("mm/hugetlb: refactor subpage recording")
-Reported-by: syzbot+a3fcd59df1b372066f5a@syzkaller.appspotmail.com
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/hugetlb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
---- a/mm/hugetlb.c~mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr
-+++ a/mm/hugetlb.c
-@@ -5440,8 +5440,9 @@ long follow_hugetlb_page(struct mm_struc
- 			continue;
- 		}
- 
--		refs = min3(pages_per_huge_page(h) - pfn_offset,
--			    (vma->vm_end - vaddr) >> PAGE_SHIFT, remainder);
-+		/* vaddr may not be aligned to PAGE_SIZE */
-+		refs = min3(pages_per_huge_page(h) - pfn_offset, remainder,
-+		    (vma->vm_end - ALIGN_DOWN(vaddr, PAGE_SIZE)) >> PAGE_SHIFT);
- 
- 		if (pages || vmas)
- 			record_subpages_vmas(mem_map_offset(page, pfn_offset),
-_
+-- 
+Oscar Salvador
+SUSE L3
