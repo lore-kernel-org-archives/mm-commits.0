@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 183D1C636C8
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 441FBC636C9
 	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 22:34:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDE06613D4
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 22:34:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24578613D8
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 22:34:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232063AbhGOWhJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 18:37:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54256 "EHLO mail.kernel.org"
+        id S229792AbhGOWhK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 18:37:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54308 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229792AbhGOWhG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Jul 2021 18:37:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A44DD613D2;
-        Thu, 15 Jul 2021 22:34:11 +0000 (UTC)
+        id S232021AbhGOWhI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Jul 2021 18:37:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ED8E760E0B;
+        Thu, 15 Jul 2021 22:34:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626388452;
-        bh=h9S1FFXRuWRb0mfRtr8NvyQAEs7Tixx+Qpg80f57wxs=;
+        s=korg; t=1626388454;
+        bh=0veftMkZggUDL8i7c4nQw2SgIT57+Uoq3tgmi0huMF0=;
         h=Date:From:To:Subject:From;
-        b=ZpdX5+/vafdOM3fK9g2PgvfTc8rTtKc8ITc5WA8Q+JD9+CJUcMFQ9QgCKUJ1RjU8L
-         6rcbuiT9+2ZTUxFl94YGISI5z5xQEPKp4ZuC9x+RAyHZXVa3QETjl6Tun1OMRBlXB9
-         iNfbUFu5XjZo1k4keOxLPzGz+iqeIPT7NchVV04Q=
-Date:   Thu, 15 Jul 2021 15:34:11 -0700
+        b=WZdiMB9LrG5otvBNDZT2Hny2IC0knpAU0d9lhMAiBNQSQ3tI8dK+HoTvKn/ucPddI
+         Ri6d2vzLaOop5GB6COVfJ3dI968ppnRFvkGqn/wrWkYqfK14pNJHW4EvvgtYPF5AGS
+         8bKUAm0I+D6YgHtOltnmvwi9zLvBmQupeuF7vZuQ=
+Date:   Thu, 15 Jul 2021 15:34:13 -0700
 From:   akpm@linux-foundation.org
 To:     alexs@kernel.org, dalias@libc.org, deanbo422@gmail.com,
         deller@gmx.de, geoff@infradead.org, green.hu@gmail.com,
@@ -39,9 +39,9 @@ To:     alexs@kernel.org, dalias@libc.org, deanbo422@gmail.com,
         tsbogend@alpha.franken.de, ulf.hansson@linaro.org,
         ysato@users.osdn.me
 Subject:  +
- mmc-mmc_spi-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
- added to -mm tree
-Message-ID: <20210715223411.dF-4sczFv%akpm@linux-foundation.org>
+ ps3disk-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch added
+ to -mm tree
+Message-ID: <20210715223413.-WhITXNa2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +50,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmc: mmc_spi: replace flush_kernel_dcache_page with flush_dcache_page
+     Subject: ps3disk: replace flush_kernel_dcache_page with flush_dcache_page
 has been added to the -mm tree.  Its filename is
-     mmc-mmc_spi-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+     ps3disk-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmc-mmc_spi-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ps3disk-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmc-mmc_spi-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ps3disk-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,13 +72,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mmc: mmc_spi: replace flush_kernel_dcache_page with flush_dcache_page
+Subject: ps3disk: replace flush_kernel_dcache_page with flush_dcache_page
 
 Pages passed to block drivers can be mapped page cache pages, so we must
 use flush_dcache_page here instead of the more limited
 flush_kernel_dcache_page that is intended for highmem pages only.
 
-Link: https://lkml.kernel.org/r/20210712060928.4161649-3-hch@lst.de
+Link: https://lkml.kernel.org/r/20210712060928.4161649-4-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Alex Shi <alexs@kernel.org>
@@ -98,20 +98,20 @@ Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/host/mmc_spi.c |    2 +-
+ drivers/block/ps3disk.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/mmc/host/mmc_spi.c~mmc-mmc_spi-replace-flush_kernel_dcache_page-with-flush_dcache_page
-+++ a/drivers/mmc/host/mmc_spi.c
-@@ -948,7 +948,7 @@ mmc_spi_data_do(struct mmc_spi_host *hos
- 
- 		/* discard mappings */
- 		if (direction == DMA_FROM_DEVICE)
--			flush_kernel_dcache_page(sg_page(sg));
-+			flush_dcache_page(sg_page(sg));
- 		kunmap(sg_page(sg));
- 		if (dma_dev)
- 			dma_unmap_page(dma_dev, dma_addr, PAGE_SIZE, dir);
+--- a/drivers/block/ps3disk.c~ps3disk-replace-flush_kernel_dcache_page-with-flush_dcache_page
++++ a/drivers/block/ps3disk.c
+@@ -100,7 +100,7 @@ static void ps3disk_scatter_gather(struc
+ 		else
+ 			memcpy(buf, dev->bounce_buf+offset, size);
+ 		offset += size;
+-		flush_kernel_dcache_page(bvec.bv_page);
++		flush_dcache_page(bvec.bv_page);
+ 		bvec_kunmap_irq(buf, &flags);
+ 		i++;
+ 	}
 _
 
 Patches currently in -mm which might be from hch@lst.de are
