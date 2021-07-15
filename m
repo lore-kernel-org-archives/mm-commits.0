@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1BB9C6377A
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 18:54:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AF0FC636C9
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 18:54:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 995BD610CB
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 18:54:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39907613D7
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 18:54:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241651AbhGOS5S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 14:57:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33734 "EHLO mail.kernel.org"
+        id S241731AbhGOS5T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 14:57:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60204 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242113AbhGOS4v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Jul 2021 14:56:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C2A39613E4;
-        Thu, 15 Jul 2021 18:53:57 +0000 (UTC)
+        id S240871AbhGOS4x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Jul 2021 14:56:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B9AED613DA;
+        Thu, 15 Jul 2021 18:53:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626375237;
-        bh=EVVZoVytg1avIrnT+jzRMJZQB5t23a/y4OIGBNWbko0=;
+        s=korg; t=1626375239;
+        bh=sGEIbcWqKG5K6CxG3qKa7krDczYBTNyamsRWfKnzIoE=;
         h=Date:From:To:Subject:From;
-        b=ZIoNpB3uW0/tEF51BGZP28CZGoo22yzzUXZJPWGcsUaEWNtdOmes9OHqoIHRdewmf
-         goLyfFcROZArDYQjwlo7DK8LM7EXXGGX51byDlBYxmoj+WcElnogKdBegmx6JiIvoY
-         gIDXZ6ftfPmLdvRDcRGCfz6ceRgWI0JJj/CXuOnU=
-Date:   Thu, 15 Jul 2021 11:53:57 -0700
+        b=NLQEvFKLp95VHMH6a1uHUSaGgbbsc0JkOKuCxhSdNL4CXQOh2V345qZmtqFBzTo4D
+         mCcr2d0fozaRksGpP+HxsCXa2qH7bxi/w3kcCSqDtACCb11wulYP0gsRqSxw1D0F91
+         BSrmAB9w40AScty40GtevZM7tiqIuuHHmIQdn/h0=
+Date:   Thu, 15 Jul 2021 11:53:59 -0700
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org
-Subject:  + mm-vmstat-correct-some-wrong-comments.patch added to
- -mm tree
-Message-ID: <20210715185357.tDM-byA94%akpm@linux-foundation.org>
+Subject:  + mm-vmstat-simplify-the-array-size-calculation.patch
+ added to -mm tree
+Message-ID: <20210715185359.wfkpK3XFa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmstat: correct some wrong comments
+     Subject: mm/vmstat: simplify the array size calculation
 has been added to the -mm tree.  Its filename is
-     mm-vmstat-correct-some-wrong-comments.patch
+     mm-vmstat-simplify-the-array-size-calculation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-correct-some-wrong-comments.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-simplify-the-array-size-calculation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-correct-some-wrong-comments.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-simplify-the-array-size-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,52 +64,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmstat: correct some wrong comments
+Subject: mm/vmstat: simplify the array size calculation
 
-Patch series "Cleanup for vmstat".
+We can replace the array_num * sizeof(array[0]) with sizeof(array) to
+simplify the code.
 
-This series contains cleanups to remove unneeded return value, correct
-wrong comment and simplify the array size calculation.  More details can
-be found in the respective changelogs.
-
-
-This patch (of 3):
-
-Correct wrong fls(mem+1) to fls(mem)+1 and remove the duplicated comment
-with quiet_vmstat().
-
-Link: https://lkml.kernel.org/r/20210715122911.15700-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210715122911.15700-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210715122911.15700-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ mm/vmstat.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/vmstat.c~mm-vmstat-correct-some-wrong-comments
+--- a/mm/vmstat.c~mm-vmstat-simplify-the-array-size-calculation
 +++ a/mm/vmstat.c
-@@ -204,7 +204,7 @@ int calculate_normal_threshold(struct zo
- 	 *
- 	 * Some sample thresholds:
- 	 *
--	 * Threshold	Processors	(fls)	Zonesize	fls(mem+1)
-+	 * Threshold	Processors	(fls)	Zonesize	fls(mem)+1
- 	 * ------------------------------------------------------------------
- 	 * 8		1		1	0.9-1 GB	4
- 	 * 16		2		2	0.9-1 GB	4
-@@ -1874,11 +1874,6 @@ static void vmstat_update(struct work_st
- }
+@@ -1889,17 +1889,15 @@ static bool need_update(int cpu)
+ 		/*
+ 		 * The fast way of checking if there are any vmstat diffs.
+ 		 */
+-		if (memchr_inv(pzstats->vm_stat_diff, 0, NR_VM_ZONE_STAT_ITEMS *
+-			       sizeof(pzstats->vm_stat_diff[0])))
++		if (memchr_inv(pzstats->vm_stat_diff, 0, sizeof(pzstats->vm_stat_diff)))
+ 			return true;
  
- /*
-- * Switch off vmstat processing and then fold all the remaining differentials
-- * until the diffs stay at zero. The function is used by NOHZ and can only be
-- * invoked when tick processing is not active.
-- */
--/*
-  * Check if the diffs for a certain cpu indicate that
-  * an update is needed.
-  */
+ 		if (last_pgdat == zone->zone_pgdat)
+ 			continue;
+ 		last_pgdat = zone->zone_pgdat;
+ 		n = per_cpu_ptr(zone->zone_pgdat->per_cpu_nodestats, cpu);
+-		if (memchr_inv(n->vm_node_stat_diff, 0, NR_VM_NODE_STAT_ITEMS *
+-			       sizeof(n->vm_node_stat_diff[0])))
+-		    return true;
++		if (memchr_inv(n->vm_node_stat_diff, 0, sizeof(n->vm_node_stat_diff)))
++			return true;
+ 	}
+ 	return false;
+ }
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
