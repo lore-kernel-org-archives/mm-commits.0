@@ -4,40 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE autolearn=ham
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE autolearn=unavailable
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16CB3C1B08C
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6A62C47E4E
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3DE7613B2
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89C13613A9
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:27:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230076AbhGOEaC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 00:30:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36412 "EHLO mail.kernel.org"
+        id S236488AbhGOEaG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 00:30:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36468 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236430AbhGOEaB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Jul 2021 00:30:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 70E8C61380;
-        Thu, 15 Jul 2021 04:27:08 +0000 (UTC)
+        id S236439AbhGOEaF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Jul 2021 00:30:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 716DC613B2;
+        Thu, 15 Jul 2021 04:27:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626323228;
-        bh=H2vlNlo8faCnYTwf4DwHdOxymTkwkkSjiStHkHZLw/o=;
+        s=korg; t=1626323231;
+        bh=9m0k110N20kOAoP/o62BcYLkYEF1k7ZEGkRxpN1LxW4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OienGAGnhvQSsUoH9AsH0VabDDzH1GsXLPHkGRaycrbeuxczgKb4VYcUBxWT45V7N
-         jAQ6xJwkzI+luG3p16VTXBisE2ADQtHexdBnJ+6KTFuWDCD02ffYYBqNLhyqf1vg80
-         Fw8mx19DGKCZuwLZ3Y58xsKc8KJJtCg6VeUg8eXM=
-Date:   Wed, 14 Jul 2021 21:27:08 -0700
+        b=Jxns9f0nh5iFonmRirk9p1rMWpQ+Q8m7zXlPLCYUGL//VCSWxpTAJiEJmFPXEioiC
+         KP+PVX0tU8FukAljXxcH4D3djtQiklr87Z4NLuNEjiMj0U+YhMDbdfxm/3KsyAhyPD
+         odUbbxsCY7f7uj5pKTT21j3IYnMNvUrfi/cmwNeA=
+Date:   Wed, 14 Jul 2021 21:27:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, desmondcheongzx@gmail.com,
-        gregkh@linuxfoundation.org, gustavoars@kernel.org,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        skhan@linuxfoundation.org, slava@dubeyko.com,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
-Subject:  [patch 12/13] hfs: add lock nesting notation to
- hfs_find_init
-Message-ID: <20210715042708.eP0VysJim%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, joao.m.martins@oracle.com,
+        linux-mm@kvack.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 13/13] mm/hugetlb: fix refs calculation from
+ unaligned @vaddr
+Message-ID: <20210715042711.DQ8aY7BZt%akpm@linux-foundation.org>
 In-Reply-To: <20210714212609.fad116e584ba1194981a6294@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,80 +44,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
-Subject: hfs: add lock nesting notation to hfs_find_init
+From: Joao Martins <joao.m.martins@oracle.com>
+Subject: mm/hugetlb: fix refs calculation from unaligned @vaddr
 
-Syzbot reports a possible recursive lock:
-https://syzkaller.appspot.com/bug?id=f007ef1d7a31a469e3be7aeb0fde0769b18585db
+commit 82e5d378b0e47 ("mm/hugetlb: refactor subpage recording") refactored
+the count of subpages but missed an edge case when @vaddr is not aligned
+to PAGE_SIZE e.g.  when close to vma->vm_end.  It would then errousnly set
+@refs to 0 and record_subpages_vmas() wouldn't set the @pages array
+element to its value, consequently causing the reported null-deref by
+syzbot.
 
-This happens due to missing lock nesting information.  From the logs, we
-see that a call to hfs_fill_super is made to mount the hfs filesystem. 
-While searching for the root inode, the lock on the catalog btree is
-grabbed.  Then, when the parent of the root isn't found, a call to
-__hfs_bnode_create is made to create the parent of the root.  This
-eventually leads to a call to hfs_ext_read_extent which grabs a lock on
-the extents btree.
+Fix it by aligning down @vaddr by PAGE_SIZE in @refs calculation.
 
-Since the order of locking is catalog btree -> extents btree, this lock
-hierarchy does not lead to a deadlock.
-
-To tell lockdep that this locking is safe, we add nesting notation to
-distinguish between catalog btrees, extents btrees, and attributes btrees
-(for HFS+).  This has already been done in hfsplus.
-
-Link: https://lkml.kernel.org/r/20210701030756.58760-4-desmondcheongzx@gmail.com
-Signed-off-by: Desmond Cheong Zhi Xi <desmondcheongzx@gmail.com>
-Reported-by: syzbot+b718ec84a87b7e73ade4@syzkaller.appspotmail.com
-Tested-by: syzbot+b718ec84a87b7e73ade4@syzkaller.appspotmail.com
-Reviewed-by: Viacheslav Dubeyko <slava@dubeyko.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20210713152440.28650-1-joao.m.martins@oracle.com
+Fixes: 82e5d378b0e47 ("mm/hugetlb: refactor subpage recording")
+Reported-by: syzbot+a3fcd59df1b372066f5a@syzkaller.appspotmail.com
+Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/bfind.c |   14 +++++++++++++-
- fs/hfs/btree.h |    7 +++++++
- 2 files changed, 20 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/fs/hfs/bfind.c~hfs-add-lock-nesting-notation-to-hfs_find_init
-+++ a/fs/hfs/bfind.c
-@@ -25,7 +25,19 @@ int hfs_find_init(struct hfs_btree *tree
- 	fd->key = ptr + tree->max_key_len + 2;
- 	hfs_dbg(BNODE_REFS, "find_init: %d (%p)\n",
- 		tree->cnid, __builtin_return_address(0));
--	mutex_lock(&tree->tree_lock);
-+	switch (tree->cnid) {
-+	case HFS_CAT_CNID:
-+		mutex_lock_nested(&tree->tree_lock, CATALOG_BTREE_MUTEX);
-+		break;
-+	case HFS_EXT_CNID:
-+		mutex_lock_nested(&tree->tree_lock, EXTENTS_BTREE_MUTEX);
-+		break;
-+	case HFS_ATTR_CNID:
-+		mutex_lock_nested(&tree->tree_lock, ATTR_BTREE_MUTEX);
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 	return 0;
- }
+--- a/mm/hugetlb.c~mm-hugetlb-fix-refs-calculation-from-unaligned-vaddr
++++ a/mm/hugetlb.c
+@@ -5440,8 +5440,9 @@ long follow_hugetlb_page(struct mm_struc
+ 			continue;
+ 		}
  
---- a/fs/hfs/btree.h~hfs-add-lock-nesting-notation-to-hfs_find_init
-+++ a/fs/hfs/btree.h
-@@ -13,6 +13,13 @@ typedef int (*btree_keycmp)(const btree_
+-		refs = min3(pages_per_huge_page(h) - pfn_offset,
+-			    (vma->vm_end - vaddr) >> PAGE_SHIFT, remainder);
++		/* vaddr may not be aligned to PAGE_SIZE */
++		refs = min3(pages_per_huge_page(h) - pfn_offset, remainder,
++		    (vma->vm_end - ALIGN_DOWN(vaddr, PAGE_SIZE)) >> PAGE_SHIFT);
  
- #define NODE_HASH_SIZE  256
- 
-+/* B-tree mutex nested subclasses */
-+enum hfs_btree_mutex_classes {
-+	CATALOG_BTREE_MUTEX,
-+	EXTENTS_BTREE_MUTEX,
-+	ATTR_BTREE_MUTEX,
-+};
-+
- /* A HFS BTree held in memory */
- struct hfs_btree {
- 	struct super_block *sb;
+ 		if (pages || vmas)
+ 			record_subpages_vmas(mem_map_offset(page, pfn_offset),
 _
