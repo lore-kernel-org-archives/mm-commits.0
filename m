@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D768C07E96
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:26:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26AA9C47E48
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:26:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0860261380
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:26:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12FFB61370
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 04:26:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236301AbhGOE3b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 00:29:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35864 "EHLO mail.kernel.org"
+        id S236290AbhGOE3e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 00:29:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35906 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236290AbhGOE3a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Jul 2021 00:29:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 995BB6136E;
-        Thu, 15 Jul 2021 04:26:37 +0000 (UTC)
+        id S230076AbhGOE3d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Jul 2021 00:29:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AC33761362;
+        Thu, 15 Jul 2021 04:26:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626323198;
-        bh=Yxw/iQdvu4ERPuk8Pnk2d2Jkwo9ubIWvEPxE/T+Wz2c=;
+        s=korg; t=1626323201;
+        bh=suk6yR+TaSk/Rfa/37qk89OWG/hZc2Q8FnnnhUvgrd4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ARfCsFB2i4J4dAye/bh5roieiiU3Ha4sJLZgUSyPgIx0W/tmgD5LibGca8j3IHEc3
-         yq4j4xOFSjAJV+RBXToT+1nyQDXsK90wG6ZVZ1q8C3SzFjVLsePLSzp7E1uiMJk0jA
-         as7wxMy1Ekk3rZAqqfOvR8kuOPT7pmQiErYY4R/Y=
-Date:   Wed, 14 Jul 2021 21:26:37 -0700
+        b=Xp0G27ceZsFvFPMKYtSsiRGK8NT5l0a9cPIWxfmgcLg4duA2pJ4OdhXnqR1i/k/Md
+         e2pkGG4rdS7EYFpBqXkak53ItUoZq+6Qn/FD6IIh19R+Nt6LVTUvOb4pu4bwpTA9Kn
+         SzvWHMTiOsXnCnPf+nb9tkKAHvq3HIyQ1ki7s05U=
+Date:   Wed, 14 Jul 2021 21:26:40 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        chinwen.chang@mediatek.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, Kuan-Ying.Lee@mediatek.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, nicholas.tang@mediatek.com,
+        andy.shevchenko@gmail.com, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, glider@google.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, torvalds@linux-foundation.org,
-        willy@infradead.org, yee.lee@mediatek.com
-Subject:  [patch 02/13] kasan: add memzero init for unaligned size
- at DEBUG
-Message-ID: <20210715042637.B4Iu8-rX2%akpm@linux-foundation.org>
+        vincenzo.frascino@arm.com
+Subject:  [patch 03/13] kasan: fix build by including kernel.h
+Message-ID: <20210715042640.2WLhaWjjL%akpm@linux-foundation.org>
 In-Reply-To: <20210714212609.fad116e584ba1194981a6294@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,63 +45,47 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yee Lee <yee.lee@mediatek.com>
-Subject: kasan: add memzero init for unaligned size at DEBUG
+From: Marco Elver <elver@google.com>
+Subject: kasan: fix build by including kernel.h
 
-Issue: when SLUB debug is on, hwtag kasan_unpoison() would overwrite the
-redzone of object with unaligned size.
+The <linux/kasan.h> header relies on _RET_IP_ being defined, and had been
+receiving that definition via inclusion of bug.h which includes kernel.h. 
+However, since f39650de687e ("kernel.h: split out panic and oops helpers")
+that is no longer the case and get the following build error when building
+CONFIG_KASAN_HW_TAGS on arm64:
 
-An additional memzero_explicit() path is added to replacing init by hwtag
-instruction for those unaligned size at SLUB debug mode.
+  In file included from arch/arm64/mm/kasan_init.c:10:
+  ./include/linux/kasan.h: In function 'kasan_slab_free':
+  ./include/linux/kasan.h:230:39: error: '_RET_IP_' undeclared (first use in this function)
+    230 |   return __kasan_slab_free(s, object, _RET_IP_, init);
 
-The penalty is acceptable since they are only enabled in debug mode, not
-production builds.  A block of comment is added for explanation.
+Fix it by including kernel.h from kasan.h.
 
-Link: https://lkml.kernel.org/r/20210705103229.8505-3-yee.lee@mediatek.com
-Signed-off-by: Yee Lee <yee.lee@mediatek.com>
-Suggested-by: Andrey Konovalov <andreyknvl@gmail.com>
-Suggested-by: Marco Elver <elver@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
+Link: https://lkml.kernel.org/r/20210705072716.2125074-1-elver@google.com
+Fixes: f39650de687e ("kernel.h: split out panic and oops helpers")
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Nicholas Tang <nicholas.tang@mediatek.com>
-Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.h |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ include/linux/kasan.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/kasan/kasan.h~kasan-add-memzero-int-for-unaligned-size-at-debug
-+++ a/mm/kasan/kasan.h
-@@ -9,6 +9,7 @@
- #ifdef CONFIG_KASAN_HW_TAGS
+--- a/include/linux/kasan.h~kasan-fix-build-by-including-kernelh
++++ a/include/linux/kasan.h
+@@ -3,6 +3,7 @@
+ #define _LINUX_KASAN_H
  
+ #include <linux/bug.h>
++#include <linux/kernel.h>
  #include <linux/static_key.h>
-+#include "../slab.h"
+ #include <linux/types.h>
  
- DECLARE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
- extern bool kasan_flag_async __ro_after_init;
-@@ -387,6 +388,17 @@ static inline void kasan_unpoison(const
- 
- 	if (WARN_ON((unsigned long)addr & KASAN_GRANULE_MASK))
- 		return;
-+	/*
-+	 * Explicitly initialize the memory with the precise object size to
-+	 * avoid overwriting the SLAB redzone. This disables initialization in
-+	 * the arch code and may thus lead to performance penalty. The penalty
-+	 * is accepted since SLAB redzones aren't enabled in production builds.
-+	 */
-+	if (__slub_debug_enabled() &&
-+	    init && ((unsigned long)size & KASAN_GRANULE_MASK)) {
-+		init = false;
-+		memzero_explicit((void *)addr, size);
-+	}
- 	size = round_up(size, KASAN_GRANULE_SIZE);
- 
- 	hw_set_mem_tag_range((void *)addr, size, tag, init);
 _
