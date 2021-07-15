@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A186C636C8
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 22:34:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE304C636C9
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 22:34:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 144B2613D8
-	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 22:34:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 996C9613D8
+	for <mm-commits@archiver.kernel.org>; Thu, 15 Jul 2021 22:34:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232111AbhGOWhM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 18:37:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54354 "EHLO mail.kernel.org"
+        id S232116AbhGOWhP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 18:37:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54408 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232021AbhGOWhM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Jul 2021 18:37:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0160B613D9;
-        Thu, 15 Jul 2021 22:34:16 +0000 (UTC)
+        id S232021AbhGOWhO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Jul 2021 18:37:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0DA11613D2;
+        Thu, 15 Jul 2021 22:34:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626388457;
-        bh=a21AaaT6fDg9QCKNbLQ+KHYH5A6eBbgvejt/KWf5W2Y=;
+        s=korg; t=1626388460;
+        bh=o5B9dwAuBmxrsGCrpQFBUK+LvLYtPvub76RYCg3FACo=;
         h=Date:From:To:Subject:From;
-        b=DSO6hoAyFfFm328odHWiM6CMNbqS2rr21aVnF8ALKMagDMoYKUNxU8l3jCxSl0LgE
-         fnMd0Rtuoqb/UOIJ4ChxaU9y2DWf7GQrIdhl8uf4hRHLIvSduvxNL8pL/wj5KFf5+C
-         rJ84i/OELJy0SqOY/bTIJm1kYvkz3DS+om/kGAsE=
-Date:   Thu, 15 Jul 2021 15:34:16 -0700
+        b=VvWu+5zwPiwvy6k0qRPgTGqsNVt1bZSVPFAVJjZVJV83xiCha227pxQyqeQL/0yL5
+         HGyCXMkHy4UyaG2vu5iTTZYSja+8f6BxEEVYd66C/OcV9HyN6C9xghltE2h5d+cwVs
+         H97bk3MmVF8wG7u8ekp6NiVjElidXHucn3rPIc/Y=
+Date:   Thu, 15 Jul 2021 15:34:19 -0700
 From:   akpm@linux-foundation.org
 To:     alexs@kernel.org, dalias@libc.org, deanbo422@gmail.com,
         deller@gmx.de, geoff@infradead.org, green.hu@gmail.com,
@@ -38,10 +38,9 @@ To:     alexs@kernel.org, dalias@libc.org, deanbo422@gmail.com,
         paul@crapouillou.net, torvalds@linux-foundation.org,
         tsbogend@alpha.franken.de, ulf.hansson@linaro.org,
         ysato@users.osdn.me
-Subject:  +
- scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
- added to -mm tree
-Message-ID: <20210715223416.FxETB9tim%akpm@linux-foundation.org>
+Subject:  + aacraid-remove-an-unused-include.patch added to -mm
+ tree
+Message-ID: <20210715223419.pxIKMr9jX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scatterlist: replace flush_kernel_dcache_page with flush_dcache_page
+     Subject: aacraid: remove an unused include
 has been added to the -mm tree.  Its filename is
-     scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+     aacraid-remove-an-unused-include.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/aacraid-remove-an-unused-include.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/aacraid-remove-an-unused-include.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -72,16 +71,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: scatterlist: replace flush_kernel_dcache_page with flush_dcache_page
+Subject: aacraid: remove an unused include
 
-Pages used in scatterlist can be mapped page cache pages (and often are),
-so we must use flush_dcache_page here instead of the more limited
-flush_kernel_dcache_page that is intended for highmem pages only.
+flush_kernel_dcache_page is not used by aacraid, and this header already
+comes in through the scatterlist/block headers anyway.
 
-Also remove the PageSlab check given that page_mapping_file as used by the
-flush_dcache_page implementations already contains that check.
-
-Link: https://lkml.kernel.org/r/20210712060928.4161649-5-hch@lst.de
+Link: https://lkml.kernel.org/r/20210712060928.4161649-6-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
 Cc: Alex Shi <alexs@kernel.org>
@@ -101,23 +96,19 @@ Cc: Yoshinori Sato <ysato@users.osdn.me>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/scsi/aacraid/aachba.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/lib/scatterlist.c~scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page
-+++ a/lib/scatterlist.c
-@@ -887,9 +887,8 @@ void sg_miter_stop(struct sg_mapping_ite
- 		miter->__offset += miter->consumed;
- 		miter->__remaining -= miter->consumed;
+--- a/drivers/scsi/aacraid/aachba.c~aacraid-remove-an-unused-include
++++ a/drivers/scsi/aacraid/aachba.c
+@@ -25,7 +25,6 @@
+ #include <linux/completion.h>
+ #include <linux/blkdev.h>
+ #include <linux/uaccess.h>
+-#include <linux/highmem.h> /* For flush_kernel_dcache_page */
+ #include <linux/module.h>
  
--		if ((miter->__flags & SG_MITER_TO_SG) &&
--		    !PageSlab(miter->page))
--			flush_kernel_dcache_page(miter->page);
-+		if (miter->__flags & SG_MITER_TO_SG)
-+			flush_dcache_page(miter->page);
- 
- 		if (miter->__flags & SG_MITER_ATOMIC) {
- 			WARN_ON_ONCE(preemptible());
+ #include <asm/unaligned.h>
 _
 
 Patches currently in -mm which might be from hch@lst.de are
