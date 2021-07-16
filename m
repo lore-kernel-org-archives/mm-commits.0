@@ -7,33 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91A7EC636CB
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 00:14:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE918C636C9
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 00:28:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7226D613DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 00:14:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5A656100B
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 00:28:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229703AbhGPARV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 15 Jul 2021 20:17:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45004 "EHLO mail.kernel.org"
+        id S232290AbhGPAbp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 15 Jul 2021 20:31:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46310 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230317AbhGPARN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 15 Jul 2021 20:17:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4D825613C1;
-        Fri, 16 Jul 2021 00:14:19 +0000 (UTC)
+        id S231449AbhGPAbp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 15 Jul 2021 20:31:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ACF70613DC;
+        Fri, 16 Jul 2021 00:28:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626394459;
-        bh=5PUcw9KTBuqB8mb4Raf25vATrJBJBF/HX2OnRNjWFeA=;
+        s=korg; t=1626395330;
+        bh=maVl5juXO4dra1w5GfX41vQFE0WF2vb6heD7W2XJkT0=;
         h=Date:From:To:Subject:From;
-        b=wQihA7oqcYNXG6euUJQHYyWovvvpdnTQCaD7jvm/f9yhh77iq2UHgYBWJ/xwWI65t
-         e9GDd5/UCQolFbI3TCT30ZfwzDWSixHk4eD9q+hDZQeArrgg3JwtLvuTx+c2xiqL13
-         Nkc/WwERECRaslc2tP7p3tGUj7P74A3+gmniWaFE=
-Date:   Thu, 15 Jul 2021 17:14:18 -0700
+        b=xcr5GjcDSe5DAlQugDowkTqnl8hy1GNYkgCCLowrPhLNBNpza8qTIMfAVTI/l1C59
+         jMPaXrT257+5oaeB3fM7HpOSUZLxpIwcp9u7hQq9JViPmbriqL2l3GcPnjkivBB1g3
+         nBHt12PBNkjVKZOyUA297/tP+3VG1plRgRPAGEgs=
+Date:   Thu, 15 Jul 2021 17:28:50 -0700
 From:   akpm@linux-foundation.org
-To:     lkp@intel.com, mm-commits@vger.kernel.org
-Subject:  [obsolete]
- mm-hugetlb-__unmap_hugepage_range-can-be-static.patch removed from -mm tree
-Message-ID: <20210716001418.lH60aQvrJ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, ben.widawsky@intel.com,
+        feng.tang@intel.com, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
+Subject:  +
+ mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch added to
+ -mm tree
+Message-ID: <20210716002850.pxKKrzv_0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,45 +45,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: __unmap_hugepage_range() can be static
-has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-__unmap_hugepage_range-can-be-static.patch
+     Subject: mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: kernel test robot <lkp@intel.com>
-Subject: mm/hugetlb: __unmap_hugepage_range() can be static
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
 
-mm/hugetlb.c:4334:6: warning: symbol '__unmap_hugepage_range' was not declared. Should it be static?
+fix it for "hugetlb: drop ref count earlier after page allocation"
 
-Link: https://lkml.kernel.org/r/20210715170524.GA48547@78ef4ef0cd6c
-Signed-off-by: kernel test robot <lkp@intel.com>
-Reported-by: kernel test robot <lkp@intel.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-__unmap_hugepage_range-can-be-static
+--- a/mm/hugetlb.c~mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
 +++ a/mm/hugetlb.c
-@@ -4402,9 +4402,9 @@ again:
- 	return ret;
- }
+@@ -2162,7 +2162,7 @@ struct page *alloc_buddy_huge_page_with_
+ 	if (mpol->mode == MPOL_PREFERRED_MANY) {
+ 		gfp_t gfp = (gfp_mask | __GFP_NOWARN) & ~__GFP_DIRECT_RECLAIM;
  
--void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
--			    unsigned long start, unsigned long end,
--			    struct page *ref_page)
-+static void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+				   unsigned long start, unsigned long end,
-+				   struct page *ref_page)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long address;
+-		page = alloc_surplus_huge_page(h, gfp, nid, nodemask);
++		page = alloc_surplus_huge_page(h, gfp, nid, nodemask, false);
+ 		if (page) {
+ 			mpol_cond_put(mpol);
+ 			return page;
 _
 
-Patches currently in -mm which might be from lkp@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-fix-bugoncocci-warnings.patch
+mm.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
 
