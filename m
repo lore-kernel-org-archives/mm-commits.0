@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19F19C07E95
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:03:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCFC1C07E95
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:03:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E0F7A613E4
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:03:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF0BA613E5
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:03:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229534AbhGPEGR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Jul 2021 00:06:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44202 "EHLO mail.kernel.org"
+        id S229578AbhGPEG3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Jul 2021 00:06:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44242 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229507AbhGPEGQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Jul 2021 00:06:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EFF8613BB;
-        Fri, 16 Jul 2021 04:03:21 +0000 (UTC)
+        id S229507AbhGPEG2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Jul 2021 00:06:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D46D6115B;
+        Fri, 16 Jul 2021 04:03:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626408201;
-        bh=qsiYsMKLcqBvyJQqMTF+9AmWTElNAvB0iOMa+j51vgY=;
+        s=korg; t=1626408214;
+        bh=mi7BFcxsdhqcpKftEB1p8F/wtgQoMquKc4IIwkLHk3w=;
         h=Date:From:To:Subject:From;
-        b=Nb5NT2wEjp6STCt1gWjHzzk62KhYd4egZJwlYNSdKaDj4JfO2U9DnUKilfuHpYbQB
-         iEENUVlOHnnN+VWh8T/GppmMwXSAWESHfOaOGo3ARmc8NqCjP/IjYceSmvFOyMLqBx
-         yckmpNfINHZK8pXe7wV3dOnpz7JSmUQK95ImcYXQ=
-Date:   Thu, 15 Jul 2021 21:03:21 -0700
+        b=1DXMREZ17ARKKTWUfscSecsFu2IcZQHY9LGrgf5EQmP922HtPHs4OI8fFaVvDT79q
+         9hVp3tnc4y8WqfTCT4vsV4MEjGBzcOVDydTQSsE0VGS91AH8nBng66K+TZxGu7ISQw
+         RRe5TOEFta9DTev+6l+B16+TfhhFuCQ9M44SC8ks=
+Date:   Thu, 15 Jul 2021 21:03:34 -0700
 From:   akpm@linux-foundation.org
-To:     christian.brauner@ubuntu.com, davem@davemloft.net,
-        ebiederm@xmission.com, mingo@kernel.org,
+To:     adobriyan@gmail.com, christian.brauner@ubuntu.com,
+        davem@davemloft.net, ebiederm@xmission.com, mingo@kernel.org,
         mm-commits@vger.kernel.org, ohoono.kwon@samsung.com
 Subject:  + connector-send-event-on-write-to-proc-comm.patch added
  to -mm tree
-Message-ID: <20210716040321.097Pgiqvt%akpm@linux-foundation.org>
+Message-ID: <20210716040334.BNrG93r31%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -81,6 +81,7 @@ Cc: Ingo Molnar <mingo@kernel.org>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
