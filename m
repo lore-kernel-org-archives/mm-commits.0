@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCFC1C07E95
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:03:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41E50C07E95
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:06:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF0BA613E5
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:03:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1D174613E4
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:06:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229578AbhGPEG3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Jul 2021 00:06:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44242 "EHLO mail.kernel.org"
+        id S229626AbhGPEJM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Jul 2021 00:09:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46356 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229507AbhGPEG2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Jul 2021 00:06:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D46D6115B;
-        Fri, 16 Jul 2021 04:03:34 +0000 (UTC)
+        id S229534AbhGPEJL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Jul 2021 00:09:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B728613BB;
+        Fri, 16 Jul 2021 04:06:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626408214;
-        bh=mi7BFcxsdhqcpKftEB1p8F/wtgQoMquKc4IIwkLHk3w=;
+        s=korg; t=1626408376;
+        bh=SMdgNAr81qVcbEKeAK0i22Q1M2tjxMb9+xiP2JfEaWM=;
         h=Date:From:To:Subject:From;
-        b=1DXMREZ17ARKKTWUfscSecsFu2IcZQHY9LGrgf5EQmP922HtPHs4OI8fFaVvDT79q
-         9hVp3tnc4y8WqfTCT4vsV4MEjGBzcOVDydTQSsE0VGS91AH8nBng66K+TZxGu7ISQw
-         RRe5TOEFta9DTev+6l+B16+TfhhFuCQ9M44SC8ks=
-Date:   Thu, 15 Jul 2021 21:03:34 -0700
+        b=NC897fPeNFD9Zhvt+h8xgOasKig/m9JZL/e01RG45FqBCp9UGZeXjF60k5Jv2pmrO
+         BYoaOV9fMWKZqvUuQbZRYojMpEvwnqPWmUYq1OxnkCcHQfWUodIK4Vy2DaZQb4PPBI
+         inflP8m+NARnDcTq10/aIkv+FhcaHj8nz37afuyI=
+Date:   Thu, 15 Jul 2021 21:06:16 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, christian.brauner@ubuntu.com,
-        davem@davemloft.net, ebiederm@xmission.com, mingo@kernel.org,
-        mm-commits@vger.kernel.org, ohoono.kwon@samsung.com
-Subject:  + connector-send-event-on-write-to-proc-comm.patch added
- to -mm tree
-Message-ID: <20210716040334.BNrG93r31%akpm@linux-foundation.org>
+To:     cminyard@mvista.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        rientjes@google.com
+Subject:  +
+ oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage.patch
+ added to -mm tree
+Message-ID: <20210716040616.y2O3p7PA_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: connector: send event on write to /proc/[pid]/comm
+     Subject: oom_kill: oom_score_adj broken for processes with small memory usage
 has been added to the -mm tree.  Its filename is
-     connector-send-event-on-write-to-proc-comm.patch
+     oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/connector-send-event-on-write-to-proc-comm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/connector-send-event-on-write-to-proc-comm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,57 +65,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ohhoon Kwon <ohoono.kwon@samsung.com>
-Subject: connector: send event on write to /proc/[pid]/comm
+From: Corey Minyard <cminyard@mvista.com>
+Subject: oom_kill: oom_score_adj broken for processes with small memory usage
 
-While comm change event via prctl has been reported to proc connector by
-'commit f786ecba4158 ("connector: add comm change event report to proc
-connector")', connector listeners were missing comm changes by explicit
-writes on /proc/[pid]/comm.
+If you have a process with less than 1000 totalpages, the calculation:
 
-Let explicit writes on /proc/[pid]/comm report to proc connector.
+  adj = (long)p->signal->oom_score_adj;
+  ...
+  adj *= totalpages / 1000;
 
-Link: https://lkml.kernel.org/r/20210701133458epcms1p68e9eb9bd0eee8903ba26679a37d9d960@epcms1p6
-Signed-off-by: Ohhoon Kwon <ohoono.kwon@samsung.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+will always result in adj being zero no matter what oom_score_adj is,
+which could result in the wrong process being picked for killing.
+
+Fix by adding 1000 to totalpages before dividing.
+
+
+I ran across this trying to diagnose another problem where I set up a
+cgroup with a small amount of memory and couldn't get a test program to
+work right.
+
+I'm not sure this is quite right, to keep closer to the current behavior
+you could do:
+
+	if (totalpages >= 1000) adj *= totalpages / 1000;
+
+but that would map 0-1999 to the same value.  But this at least shows the
+issue.  I can provide a test program the shows the issue, but I think it's
+pretty obvious from the code.  
+
+Link: https://lkml.kernel.org/r/20210701125430.836308-1-minyard@acm.org
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/fs/proc/base.c~connector-send-event-on-write-to-proc-comm
-+++ a/fs/proc/base.c
-@@ -95,6 +95,7 @@
- #include <linux/posix-timers.h>
- #include <linux/time_namespace.h>
- #include <linux/resctrl.h>
-+#include <linux/cn_proc.h>
- #include <trace/events/oom.h>
- #include "internal.h"
- #include "fd.h"
-@@ -1674,8 +1675,10 @@ static ssize_t comm_write(struct file *f
- 	if (!p)
- 		return -ESRCH;
+--- a/mm/oom_kill.c~oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage
++++ a/mm/oom_kill.c
+@@ -233,8 +233,11 @@ long oom_badness(struct task_struct *p,
+ 		mm_pgtables_bytes(p->mm) / PAGE_SIZE;
+ 	task_unlock(p);
  
--	if (same_thread_group(current, p))
-+	if (same_thread_group(current, p)) {
- 		set_task_comm(p, buffer);
-+		proc_comm_connector(p);
-+	}
- 	else
- 		count = -EINVAL;
+-	/* Normalize to oom_score_adj units */
+-	adj *= totalpages / 1000;
++	/*
++	 * Normalize to oom_score_adj units.  You should never
++	 * multiply by zero here, or oom_score_adj will not work.
++	 */
++	adj *= (totalpages + 1000) / 1000;
+ 	points += adj;
  
+ 	return points;
 _
 
-Patches currently in -mm which might be from ohoono.kwon@samsung.com are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
-mm-sparse-pass-section_nr-to-section_mark_present.patch
-mm-sparse-pass-section_nr-to-find_memory_block.patch
-mm-sparse-remove-__section_nr-function.patch
-connector-send-event-on-write-to-proc-comm.patch
+oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage.patch
 
