@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B60F9C636CA
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 23:34:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B6B2C12002
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 23:35:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9CDF8613E7
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 23:34:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 684D4613E7
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 23:35:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237481AbhGPXht (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Jul 2021 19:37:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32876 "EHLO mail.kernel.org"
+        id S230104AbhGPXif (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Jul 2021 19:38:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230104AbhGPXht (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Jul 2021 19:37:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D97961357;
-        Fri, 16 Jul 2021 23:34:53 +0000 (UTC)
+        id S229893AbhGPXif (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Jul 2021 19:38:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 82961613E3;
+        Fri, 16 Jul 2021 23:35:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626478493;
-        bh=uC0GQQfwUTcxbu8nehWeZLZTy4FEe6BmqOiNT+CHvtc=;
+        s=korg; t=1626478539;
+        bh=C3q/4zoGqdrHHnK7XsCRTiRwksg0Ff4kCCgbPnqr97Q=;
         h=Date:From:To:Subject:From;
-        b=vtFx/6t9oC37BFklkMRGmulUH1E5GkGAHLyftCGdz0aZTLBGK8rPT0kXLxWs8hIaM
-         32qtygLj2InS78kfPV6oM6i17YJ062gupgW7f4QicqP8DZrd98Q0zeFHzvx3kk/GWY
-         b4Mm08auhubci1+SC5ti3ma+vxu+mXO4sdlCOKH4=
-Date:   Fri, 16 Jul 2021 16:34:53 -0700
+        b=vCQtE7mLKP2pOU6RwyNs9SO9OzYEbm1xYqHxr894RE1mknoXZYuUjQ8IudVNHkYjw
+         +7qeKv6Oej4IVXueTSesZe4bY3WURWwHH90IH1qPqfgX8BgHTWNKQ0LdDOvYmDMNEf
+         xYncRoZVNfluQXy74d0l/gLk/zuktHnk4VWBE734=
+Date:   Fri, 16 Jul 2021 16:35:39 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com
-Subject:  +
- mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref.patch added
- to -mm tree
-Message-ID: <20210716233453.wQ8ETR2bM%akpm@linux-foundation.org>
+To:     david@redhat.com, mm-commits@vger.kernel.org, rppt@linux.ibm.com
+Subject:  + mm-secretmem-wire-up-set_page_dirty.patch added to -mm
+ tree
+Message-ID: <20210716233539.Mv_udqnBs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: make alloc_node_mem_map() __init rather than __ref
+     Subject: mm/secretmem: wire up ->set_page_dirty
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref.patch
+     mm-secretmem-wire-up-set_page_dirty.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-secretmem-wire-up-set_page_dirty.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-secretmem-wire-up-set_page_dirty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,47 +64,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm/page_alloc: make alloc_node_mem_map() __init rather than __ref
+Subject: mm/secretmem: wire up ->set_page_dirty
 
-alloc_node_mem_map() is never only called from free_area_init_node() that
-is an __init function.
+Make secretmem up to date with the changes done in commit 0af573780b0b
+("mm: require ->set_page_dirty to be explicitly wired up") so that
+unconditional call to this method won't cause crashes.
 
-Make the actual alloc_node_mem_map() also __init and its stub version
-static inline.
-
-Link: https://lkml.kernel.org/r/20210716064124.31865-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210716063933.31633-1-rppt@kernel.org
+Fixes: 0af573780b0b ("mm: require ->set_page_dirty to be explicitly wired up")
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/secretmem.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref
-+++ a/mm/page_alloc.c
-@@ -7514,7 +7514,7 @@ static void __init free_area_init_core(s
+--- a/mm/secretmem.c~mm-secretmem-wire-up-set_page_dirty
++++ a/mm/secretmem.c
+@@ -152,6 +152,7 @@ static void secretmem_freepage(struct pa
  }
  
- #ifdef CONFIG_FLATMEM
--static void __ref alloc_node_mem_map(struct pglist_data *pgdat)
-+static void __init alloc_node_mem_map(struct pglist_data *pgdat)
- {
- 	unsigned long __maybe_unused start = 0;
- 	unsigned long __maybe_unused offset = 0;
-@@ -7560,7 +7560,7 @@ static void __ref alloc_node_mem_map(str
- #endif
- }
- #else
--static void __ref alloc_node_mem_map(struct pglist_data *pgdat) { }
-+static inline void alloc_node_mem_map(struct pglist_data *pgdat) { }
- #endif /* CONFIG_FLATMEM */
- 
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ const struct address_space_operations secretmem_aops = {
++	.set_page_dirty	= __set_page_dirty_no_writeback,
+ 	.freepage	= secretmem_freepage,
+ 	.migratepage	= secretmem_migratepage,
+ 	.isolate_page	= secretmem_isolate_page,
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
 
 memblock-make-for_each_mem_range-traverse-memblock_hotplug-regions.patch
+mm-secretmem-wire-up-set_page_dirty.patch
 mm-page_alloc-always-initialize-memory-map-for-the-holes.patch
 microblaze-simplify-pte_alloc_one_kernel.patch
 mm-introduce-memmap_alloc-to-unify-memory-map-allocation.patch
