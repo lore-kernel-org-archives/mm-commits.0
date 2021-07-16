@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FF44C07E95
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:14:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D3D3C07E95
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:20:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 29AEF613DF
-	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:14:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E4069613DF
+	for <mm-commits@archiver.kernel.org>; Fri, 16 Jul 2021 04:20:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229692AbhGPER3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 16 Jul 2021 00:17:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52958 "EHLO mail.kernel.org"
+        id S229692AbhGPEXC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 16 Jul 2021 00:23:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35540 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229507AbhGPER3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 16 Jul 2021 00:17:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AE0E3613D0;
-        Fri, 16 Jul 2021 04:14:34 +0000 (UTC)
+        id S229678AbhGPEXB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 16 Jul 2021 00:23:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 979766128C;
+        Fri, 16 Jul 2021 04:20:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626408874;
-        bh=yf9VCwqfaaEaR9b5Y1XJtmgs1ysqs3v+SqR6Gk/3uC4=;
+        s=korg; t=1626409206;
+        bh=7uVrSb5zeY0IEEx0sBuXHTRkVooH7aYSplp1y6miPCk=;
         h=Date:From:To:Subject:From;
-        b=zsWYzrFh7o+CFX/4ivvJ244VYOnQ1bPbl636PBTaRn2BUlvH24b8lYWAQX6aEy/u1
-         BPOXVxnEaVEFMZblmA2pXZMk3VnAyuZ1a0FbSD0e9JioPypvKyvZvCEHOfAgtyJhWG
-         s8dnI1okMcmrFxfrNWtT5JcCJMBOHxXD5IyUwKhE=
-Date:   Thu, 15 Jul 2021 21:14:34 -0700
+        b=oNWSTYxzjF/W2CJKCEgQGpAAFbElH36P5+8TpDl6BhkUDNjZldosHXpGcUugTKZqe
+         0xx10GrqDjxU9wkPXw004+8oda8mFf3E+gMB72s2q+qaP+hQ7JkwsbUUSv3J520BF5
+         +FiU5v0WZKlnzNBNzLUI/DANXVfpaX8VQbh6QQY4=
+Date:   Thu, 15 Jul 2021 21:20:06 -0700
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, suhui@zeku.com, vdavydov.dev@gmail.com
-Subject:  +
- mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg.patch
- added to -mm tree
-Message-ID: <20210716041434.yo3nJCJJN%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, vbabka@suse.cz,
+        willy@infradead.org
+Subject:  + mm-move-kvmalloc-related-functions-to-slabh.patch added
+ to -mm tree
+Message-ID: <20210716042006.mfTg_KFmP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmpressure: replace vmpressure_to_css() with vmpressure_to_memcg()
+     Subject: mm: move kvmalloc-related functions to slab.h
 has been added to the -mm tree.  Its filename is
-     mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg.patch
+     mm-move-kvmalloc-related-functions-to-slabh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-kvmalloc-related-functions-to-slabh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-kvmalloc-related-functions-to-slabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,67 +65,124 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hui Su <suhui@zeku.com>
-Subject: mm/vmpressure: replace vmpressure_to_css() with vmpressure_to_memcg()
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: move kvmalloc-related functions to slab.h
 
-We can get memcg directly form vmpr instead of vmpr->memcg->css->memcg, so
-add a new func helper vmpressure_to_memcg().  And no code will use
-vmpressure_to_css(), so delete it.
+Not all files in the kernel should include mm.h.  Migrating callers from
+kmalloc to kvmalloc is easier if the kvmalloc functions are in slab.h.
 
-Link: https://lkml.kernel.org/r/20210630112146.455103-1-suhui@zeku.com
-Signed-off-by: Hui Su <suhui@zeku.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: https://lkml.kernel.org/r/20210622215757.3525604-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmpressure.h |    2 +-
- mm/memcontrol.c            |    4 ++--
- mm/vmpressure.c            |    3 +--
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ drivers/of/kexec.c   |    1 +
+ include/linux/mm.h   |   32 --------------------------------
+ include/linux/slab.h |   32 ++++++++++++++++++++++++++++++++
+ 3 files changed, 33 insertions(+), 32 deletions(-)
 
---- a/include/linux/vmpressure.h~mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg
-+++ a/include/linux/vmpressure.h
-@@ -37,7 +37,7 @@ extern void vmpressure_prio(gfp_t gfp, s
- extern void vmpressure_init(struct vmpressure *vmpr);
- extern void vmpressure_cleanup(struct vmpressure *vmpr);
- extern struct vmpressure *memcg_to_vmpressure(struct mem_cgroup *memcg);
--extern struct cgroup_subsys_state *vmpressure_to_css(struct vmpressure *vmpr);
-+extern struct mem_cgroup *vmpressure_to_memcg(struct vmpressure *vmpr);
- extern int vmpressure_register_event(struct mem_cgroup *memcg,
- 				     struct eventfd_ctx *eventfd,
- 				     const char *args);
---- a/mm/memcontrol.c~mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg
-+++ a/mm/memcontrol.c
-@@ -256,9 +256,9 @@ struct vmpressure *memcg_to_vmpressure(s
- 	return &memcg->vmpressure;
+--- a/drivers/of/kexec.c~mm-move-kvmalloc-related-functions-to-slabh
++++ a/drivers/of/kexec.c
+@@ -16,6 +16,7 @@
+ #include <linux/of.h>
+ #include <linux/of_fdt.h>
+ #include <linux/random.h>
++#include <linux/slab.h>
+ #include <linux/types.h>
+ 
+ /* relevant device tree properties */
+--- a/include/linux/mm.h~mm-move-kvmalloc-related-functions-to-slabh
++++ a/include/linux/mm.h
+@@ -800,38 +800,6 @@ static inline int is_vmalloc_or_module_a
+ }
+ #endif
+ 
+-extern void *kvmalloc_node(size_t size, gfp_t flags, int node);
+-static inline void *kvmalloc(size_t size, gfp_t flags)
+-{
+-	return kvmalloc_node(size, flags, NUMA_NO_NODE);
+-}
+-static inline void *kvzalloc_node(size_t size, gfp_t flags, int node)
+-{
+-	return kvmalloc_node(size, flags | __GFP_ZERO, node);
+-}
+-static inline void *kvzalloc(size_t size, gfp_t flags)
+-{
+-	return kvmalloc(size, flags | __GFP_ZERO);
+-}
+-
+-static inline void *kvmalloc_array(size_t n, size_t size, gfp_t flags)
+-{
+-	size_t bytes;
+-
+-	if (unlikely(check_mul_overflow(n, size, &bytes)))
+-		return NULL;
+-
+-	return kvmalloc(bytes, flags);
+-}
+-
+-static inline void *kvcalloc(size_t n, size_t size, gfp_t flags)
+-{
+-	return kvmalloc_array(n, size, flags | __GFP_ZERO);
+-}
+-
+-extern void kvfree(const void *addr);
+-extern void kvfree_sensitive(const void *addr, size_t len);
+-
+ static inline int head_compound_mapcount(struct page *head)
+ {
+ 	return atomic_read(compound_mapcount_ptr(head)) + 1;
+--- a/include/linux/slab.h~mm-move-kvmalloc-related-functions-to-slabh
++++ a/include/linux/slab.h
+@@ -732,6 +732,38 @@ static inline void *kzalloc_node(size_t
+ 	return kmalloc_node(size, flags | __GFP_ZERO, node);
  }
  
--struct cgroup_subsys_state *vmpressure_to_css(struct vmpressure *vmpr)
-+struct mem_cgroup *vmpressure_to_memcg(struct vmpressure *vmpr)
- {
--	return &container_of(vmpr, struct mem_cgroup, vmpressure)->css;
-+	return container_of(vmpr, struct mem_cgroup, vmpressure);
- }
++void *kvmalloc_node(size_t size, gfp_t flags, int node);
++static inline void *kvmalloc(size_t size, gfp_t flags)
++{
++	return kvmalloc_node(size, flags, NUMA_NO_NODE);
++}
++static inline void *kvzalloc_node(size_t size, gfp_t flags, int node)
++{
++	return kvmalloc_node(size, flags | __GFP_ZERO, node);
++}
++static inline void *kvzalloc(size_t size, gfp_t flags)
++{
++	return kvmalloc(size, flags | __GFP_ZERO);
++}
++
++static inline void *kvmalloc_array(size_t n, size_t size, gfp_t flags)
++{
++	size_t bytes;
++
++	if (unlikely(check_mul_overflow(n, size, &bytes)))
++		return NULL;
++
++	return kvmalloc(bytes, flags);
++}
++
++static inline void *kvcalloc(size_t n, size_t size, gfp_t flags)
++{
++	return kvmalloc_array(n, size, flags | __GFP_ZERO);
++}
++
++void kvfree(const void *addr);
++void kvfree_sensitive(const void *addr, size_t len);
++
+ unsigned int kmem_cache_size(struct kmem_cache *s);
+ void __init kmem_cache_init_late(void);
  
- #ifdef CONFIG_MEMCG_KMEM
---- a/mm/vmpressure.c~mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg
-+++ a/mm/vmpressure.c
-@@ -74,8 +74,7 @@ static struct vmpressure *work_to_vmpres
- 
- static struct vmpressure *vmpressure_parent(struct vmpressure *vmpr)
- {
--	struct cgroup_subsys_state *css = vmpressure_to_css(vmpr);
--	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
-+	struct mem_cgroup *memcg = vmpressure_to_memcg(vmpr);
- 
- 	memcg = parent_mem_cgroup(memcg);
- 	if (!memcg)
 _
 
-Patches currently in -mm which might be from suhui@zeku.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg.patch
+mm-move-kvmalloc-related-functions-to-slabh.patch
+mm-mark-idle-page-tracking-as-broken.patch
+avoid-a-warning-in-sparse-memory-support.patch
 
