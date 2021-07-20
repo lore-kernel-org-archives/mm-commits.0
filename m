@@ -2,96 +2,108 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A037C636C8
-	for <mm-commits@archiver.kernel.org>; Sun, 18 Jul 2021 22:34:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB89AC07E95
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 20:13:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 417D16113D
-	for <mm-commits@archiver.kernel.org>; Sun, 18 Jul 2021 22:34:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D15B36044F
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 20:13:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233062AbhGRWhT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 18 Jul 2021 18:37:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43798 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229585AbhGRWhT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 18 Jul 2021 18:37:19 -0400
-Received: from ozlabs.org (bilbo.ozlabs.org [IPv6:2401:3900:2:1::2])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 060E4C061762
-        for <mm-commits@vger.kernel.org>; Sun, 18 Jul 2021 15:34:15 -0700 (PDT)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4GSfsX6WWGz9sSs;
-        Mon, 19 Jul 2021 08:34:08 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=canb.auug.org.au;
-        s=201702; t=1626647652;
-        bh=nYoJ9YDk9wALKdB3DTYdG6GpF3mT7FQ9BYJF0Qn9Lwc=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=ikds2dKbB2HBGHbDL2KGjfeoQg2lIxdZcUlWuURf/jt5ug2HIKda1V0XqYKanyLKA
-         DFRTveZN39wHBa4U2LQ/aembPaT5KG5MfLBNWzoa6HFd01n/9an/j8OwF4h8RlDbgl
-         7cGmebA8XgM023SZ6WzUo3MegsOUadfNEsmZ5WoQkGGzBOe+0eDqraXtBVejHRO3xk
-         fcc58eSCA7LkZFjKGqn3I8HLQwIbcz8vT0GHPigaitOSqy7XjA6I9gZ36LR+W4Dsza
-         AENCfn84XG62FhfJ7hJotoYDnr+qH0t/vGlIzTy6y+shKY4rKJj0cAL1arY3YwPcn7
-         nXZ11NudncgIg==
-Date:   Mon, 19 Jul 2021 08:34:07 +1000
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     guro@fb.com, hannes@cmpxchg.org, hdanton@sina.com,
-        m.szyprowski@samsung.com, mhocko@kernel.org, mkoutny@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        songmuchun@bytedance.com, tj@kernel.org, yangyingliang@huawei.com,
-        ying.huang@intel.com
-Subject: Re: + memcg-infrastructure-to-flush-memcg-stats-v5.patch added to
- -mm tree
-Message-ID: <20210719083341.37d58cfd@elm.ozlabs.ibm.com>
-In-Reply-To: <20210716230409.ihUziw7UR%akpm@linux-foundation.org>
-References: <20210716230409.ihUziw7UR%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/do5RZnCxQ5HHX+=ZnzkHGdX";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        id S231189AbhGTTbo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 15:31:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53668 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230030AbhGTT2M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Jul 2021 15:28:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A4A346100C;
+        Tue, 20 Jul 2021 20:08:14 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1626811695;
+        bh=bdiG+ojY9JW2vQirNOFO83K7owGO/8DR4bpQlqmmFLw=;
+        h=Date:From:To:Subject:From;
+        b=Ou1SRcBi2ymsyKBCuuWN48QLDpd9NVLxsFYRj1GI3SZoQbKW/9qlyl7X0vhkz74ux
+         kdwmthdntH9FqvcqcSBAQqrQes3XuAe+riyhXzHDH+j8fZbrQuksLa2ogAD2sjilHv
+         s3B9gdmggybd/plq/c5abO0wt395qw/aiiF6L6TE=
+Date:   Tue, 20 Jul 2021 13:08:14 -0700
+From:   akpm@linux-foundation.org
+To:     alexs@kernel.org, dalias@libc.org, deanbo422@gmail.com,
+        deller@gmx.de, geoff@infradead.org, green.hu@gmail.com,
+        guoren@kernel.org, hch@lst.de,
+        James.Bottomley@HansenPartnership.com, linux@armlinux.org.uk,
+        mm-commits@vger.kernel.org, nickhu@andestech.com,
+        paul@crapouillou.net, torvalds@linux-foundation.org,
+        tsbogend@alpha.franken.de, ulf.hansson@linaro.org,
+        ysato@users.osdn.me
+Subject:  [merged] aacraid-remove-an-unused-include.patch removed
+ from -mm tree
+Message-ID: <20210720200814.eKSEjGl3U%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/do5RZnCxQ5HHX+=ZnzkHGdX
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+The patch titled
+     Subject: aacraid: remove an unused include
+has been removed from the -mm tree.  Its filename was
+     aacraid-remove-an-unused-include.patch
 
-On Fri, 16 Jul 2021 16:04:09 -0700 akpm@linux-foundation.org wrote:
->
-> The patch titled
->      Subject: memcg-infrastructure-to-flush-memcg-stats-v5
-> has been added to the -mm tree.  Its filename is
->      memcg-infrastructure-to-flush-memcg-stats-v5.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-Added to linux-next today.
+------------------------------------------------------
+From: Christoph Hellwig <hch@lst.de>
+Subject: aacraid: remove an unused include
 
---=20
-Cheers,
-Stephen Rothwell
+flush_kernel_dcache_page is not used by aacraid, and this header already
+comes in through the scatterlist/block headers anyway.
 
---Sig_/do5RZnCxQ5HHX+=ZnzkHGdX
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+Link: https://lkml.kernel.org/r/20210712060928.4161649-6-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Geoff Levand <geoff@infradead.org>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Nick Hu <nickhu@andestech.com>
+Cc: Paul Cercueil <paul@crapouillou.net>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Vincent Chen <deanbo422@gmail.com>
+Cc: Yoshinori Sato <ysato@users.osdn.me>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
------BEGIN PGP SIGNATURE-----
+ drivers/scsi/aacraid/aachba.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmD0rF8ACgkQAVBC80lX
-0GwAaAf/aFfeFhsrKc5ZuZl7QdcC8SVz4lbTOt9RhCvUneWSGMQ1OUziP2R3K0Wk
-WhmEhbH2KjL9/6BE7f36Oj2LOWpfwmfI3V/t3F/LG8zJlFAv/GkJXrZhfZ1LSaEm
-DhjFQfkGQ/DFXerrz+RoChK95fWMbfixWIA23arjjP1ZC6Iea1kN7FXxowpL3iIJ
-jCE4QqWOt8uCEhC4eTe3pOZZS7yvYHSff4/KjHr2tXWJjAbMIeotRlIOblFv+RNd
-waGvaFUnkRy0xXJaWcRIAu+gmbWQXdGgfC05F5VmTCW8Z/Da0Vttt4BJp/r01XU1
-Gagmy/lSYPN7lQKDZeHvr6Nc3f0bLQ==
-=fzNd
------END PGP SIGNATURE-----
+--- a/drivers/scsi/aacraid/aachba.c~aacraid-remove-an-unused-include
++++ a/drivers/scsi/aacraid/aachba.c
+@@ -25,7 +25,6 @@
+ #include <linux/completion.h>
+ #include <linux/blkdev.h>
+ #include <linux/uaccess.h>
+-#include <linux/highmem.h> /* For flush_kernel_dcache_page */
+ #include <linux/module.h>
+ 
+ #include <asm/unaligned.h>
+_
 
---Sig_/do5RZnCxQ5HHX+=ZnzkHGdX--
+Patches currently in -mm which might be from hch@lst.de are
+
+mm-call-flush_dcache_page-in-memcpy_to_page-and-memzero_page.patch
+mm-use-kmap_local_page-in-memzero_page.patch
+mmc-jz4740-remove-the-flush_kernel_dcache_page-call-in-jz4740_mmc_read_data.patch
+mmc-mmc_spi-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+ps3disk-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+mm-remove-flush_kernel_dcache_page.patch
+
