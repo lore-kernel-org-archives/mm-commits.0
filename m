@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DDE1C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:34:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22F36C636C8
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:38:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4B6C611CE
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:34:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 096ED61106
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:38:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235922AbhGTWxY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jul 2021 18:53:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53130 "EHLO mail.kernel.org"
+        id S230282AbhGTW6E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 18:58:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57648 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236338AbhGTWrn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Jul 2021 18:47:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0B1AA610D2;
-        Tue, 20 Jul 2021 23:28:20 +0000 (UTC)
+        id S236423AbhGTWv6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Jul 2021 18:51:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 650BE6023B;
+        Tue, 20 Jul 2021 23:32:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626823701;
-        bh=vWLljrGx/ig0Dc1XVcns1chbcLtYpIV4SYPFWfY8DBY=;
+        s=korg; t=1626823956;
+        bh=+P1pqd/drFPQWMTIYYKczCnEYo/Ta0qRYVF9z13cpcA=;
         h=Date:From:To:Subject:From;
-        b=c8zaDprkl+sODC/85oybVkFTNkL6fNfLC4NmHYuGFt/qFjkeStdfYzGYMoa0WdfMr
-         dP7TwXyhHfXcs+s1QzPFMLe35ael3TO0uswBG61IeA7X5PMC0AMThhwDwzqD101CjD
-         jwWhCviMVirzsX2bztAcfr/3N9q4dL+vzJlfeiNw=
-Date:   Tue, 20 Jul 2021 16:28:20 -0700
+        b=RV1HxgsOkpXciylYAxKqytANyagXeLPSGkQDhiJDdA9qqRs8+hUK2orEyM1CVVXPl
+         AtdNEIWcZYQmJq9HalwCoq50IrfNEb6ej8E9KmsohbVxq727UCK281FjIcTdcO8oYm
+         NK6TDj/w0rHxjEP8mjISnkPcqkElLgFFNGozf+4o=
+Date:   Tue, 20 Jul 2021 16:32:34 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, weiyongjun1@huawei.com,
-        wangkefeng.wang@huawei.com, 0x7f454c46@gmail.com,
-        chenwandun@huawei.com
-Subject:  + mm-mremap-fix-memory-account-on-do_munmap-failure.patch
- added to -mm tree
-Message-ID: <20210720232820.Yy_P-%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        shli@fb.com, minchan@kernel.org, mhocko@suse.com,
+        iamjoonsoo.kim@lge.com, hillf.zj@alibaba-inc.com,
+        hannes@cmpxchg.org, david@redhat.com, axboe@kernel.dk,
+        apopple@nvidia.com, alexs@kernel.org, linmiaohe@huawei.com
+Subject:  [to-be-updated]
+ mm-vmscan-put-the-redirtied-madv_free-pages-back-to-anonymous-lru-list.patch
+ removed from -mm tree
+Message-ID: <20210720233234.jDaV0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,76 +47,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: fix memory account on do_munmap() failure
-has been added to the -mm tree.  Its filename is
-     mm-mremap-fix-memory-account-on-do_munmap-failure.patch
+     Subject: mm/vmscan: put the redirtied MADV_FREE pages back to anonymous LRU list
+has been removed from the -mm tree.  Its filename was
+     mm-vmscan-put-the-redirtied-madv_free-pages-back-to-anonymous-lru-list.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-fix-memory-account-on-do_munmap-failure.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-fix-memory-account-on-do_munmap-failure.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Chen Wandun <chenwandun@huawei.com>
-Subject: mm/mremap: fix memory account on do_munmap() failure
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/vmscan: put the redirtied MADV_FREE pages back to anonymous LRU list
 
-mremap will account the delta between new_len and old_len in
-vma_to_resize, and then call move_vma when expanding an existing memory
-mapping.  In function move_vma, there are two scenarios when calling
-do_munmap:
+Patch series "Cleanup and fixup for vmscan".
 
-1. move_page_tables from old_addr to new_addr success
-2. move_page_tables from old_addr to new_addr fail
+This series contains cleanups to remove unneeded return value, misleading
+comment and so on.  Also this puts the redirtied MADV_FREE pages back to
+anonymous LRU list.  More details can be found in the respective
+changelogs.
 
-In first scenario, it should account old_len if do_munmap fail, because
-the delta has already been accounted.
 
-In second scenario, new_addr/new_len will assign to old_addr/old_len if
-move_page_table fail, so do_munmap is try to unmap new_addr actually, if
-do_munmap fail, it should account the new_len, because error code will be
-return from move_vma, and delta will be unaccounted.  What'more, because
-of new_len == old_len, so account old_len also is OK.
+This patch (of 5):
 
-In summary, account old_len will be correct if do_munmap fail.
+If the MADV_FREE pages are redirtied before they could be reclaimed, put
+the pages back to anonymous LRU list by setting SwapBacked flag and the
+pages will be reclaimed in normal swapout way.  Otherwise MADV_FREE pages
+won't be reclaimed as expected.
 
-Link: https://lkml.kernel.org/r/20210717101942.120607-1-chenwandun@huawei.com
-Fixes: 51df7bcb6151 ("mm/mremap: account memory on do_munmap() failure")
-Signed-off-by: Chen Wandun <chenwandun@huawei.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>
+Link: https://lkml.kernel.org/r/20210710100329.49174-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210710100329.49174-2-linmiaohe@huawei.com
+Fixes: 802a3a92ad7a ("mm: reclaim MADV_FREE pages")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/mremap.c~mm-mremap-fix-memory-account-on-do_munmap-failure
-+++ a/mm/mremap.c
-@@ -686,7 +686,7 @@ static unsigned long move_vma(struct vm_
- 	if (do_munmap(mm, old_addr, old_len, uf_unmap) < 0) {
- 		/* OOM: unable to split vma, just get accounts right */
- 		if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP))
--			vm_acct_memory(new_len >> PAGE_SHIFT);
-+			vm_acct_memory(old_len >> PAGE_SHIFT);
- 		excess = 0;
- 	}
- 
+--- a/mm/vmscan.c~mm-vmscan-put-the-redirtied-madv_free-pages-back-to-anonymous-lru-list
++++ a/mm/vmscan.c
+@@ -1628,6 +1628,7 @@ static unsigned int shrink_page_list(str
+ 			if (!page_ref_freeze(page, 1))
+ 				goto keep_locked;
+ 			if (PageDirty(page)) {
++				SetPageSwapBacked(page);
+ 				page_ref_unfreeze(page, 1);
+ 				goto keep_locked;
+ 			}
 _
 
-Patches currently in -mm which might be from chenwandun@huawei.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-mremap-fix-memory-account-on-do_munmap-failure.patch
-mm-vmalloc-fix-wrong-behavior-in-vread.patch
+mm-vmscan-remove-misleading-setting-to-sc-priority.patch
+mm-vmscan-remove-unneeded-return-value-of-kswapd_run.patch
+mm-vmscan-add-else-to-remove-check_pending-label.patch
+mm-vmstat-correct-some-wrong-comments.patch
+mm-vmstat-simplify-the-array-size-calculation.patch
+mm-vmstat-remove-unneeded-return-value.patch
+mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
