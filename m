@@ -7,35 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA273C636C9
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:16:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 44F00C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:37:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 954446120F
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:16:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 21CDE611CE
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:37:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232701AbhGTVfw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jul 2021 17:35:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51932 "EHLO mail.kernel.org"
+        id S229630AbhGTV4c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 17:56:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56878 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232637AbhGTVd4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Jul 2021 17:33:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 07C0A61178;
-        Tue, 20 Jul 2021 22:14:32 +0000 (UTC)
+        id S229604AbhGTV4c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Jul 2021 17:56:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4345D61178;
+        Tue, 20 Jul 2021 22:37:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626819273;
-        bh=ThPO0L4NXtqkuRNzZauH4FQS9VsGTd3npxCBojwS2Dw=;
+        s=korg; t=1626820630;
+        bh=BjezZeGZwzUGEJIhZSIo8da90YW8EcnAmpVXD9gKpHw=;
         h=Date:From:To:Subject:From;
-        b=yl5L6q2q8RDjkHimFRihvvyqiUOv+hO53ANRKkopnhrIcfyjAC3nAI9ELva8/zb2I
-         nE0v+Ww5kC3p1CrxduMQ0Bw8nYoEFfZE/hMK4Zm73ESbqz1La0cPwM8lXpG+2sgSZG
-         /1yHUmv5LHw9qw0zQVLjzrhFQuXjhcWIDDF7wCp0=
-Date:   Tue, 20 Jul 2021 15:14:32 -0700
+        b=wIGdV1+K1Vk3RyRBmJJJbc3d67nS40jMybNLJtS7eDP0L4e4qMVKtscf08LPZqtN+
+         34qsdNZLGPCMqOycJ+NKb8U3aFZoV+Ca4h7n+XuAF9y2r2lDIa8yLgQ/mW48AVjI2p
+         x01Rcy9z6ejMaBmGzk76F+WMm/+1hgQphtBhtJLc=
+Date:   Tue, 20 Jul 2021 15:37:08 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        catalin.marinas@arm.com, anshuman.khandual@arm.com,
-        gshan@redhat.com
-Subject:  + mm-debug_vm_pgtable-remove-unused-code.patch added to -mm
- tree
-Message-ID: <20210720221432.Jnvi7%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, shy828301@gmail.com,
+        pbonzini@redhat.com, mhocko@suse.com, mgorman@suse.de,
+        kirill.shutemov@linux.intel.com, hughd@google.com,
+        hca@linux.ibm.com, gor@linux.ibm.com,
+        gerald.schaefer@linux.ibm.com, dan.carpenter@oracle.com,
+        borntraeger@de.ibm.com, aarcange@redhat.com, ying.huang@intel.com
+Subject:  +
+ mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch added to
+ -mm tree
+Message-ID: <20210720223708.V45O2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: remove unused code
+     Subject: mm,do_huge_pmd_numa_page: remove unnecessary TLB flushing code
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-remove-unused-code.patch
+     mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-remove-unused-code.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-remove-unused-code.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,115 +69,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gavin Shan <gshan@redhat.com>
-Subject: mm/debug_vm_pgtable: remove unused code
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm,do_huge_pmd_numa_page: remove unnecessary TLB flushing code
 
-The variables used by old implementation isn't needed as we switched to
-"struct pgtable_debug_args".  Lets remove them and related code in
-debug_vm_pgtable().
+Before commit c5b5a3dd2c1f ("mm: thp: refactor NUMA fault handling"), the
+TLB flushing is done in do_huge_pmd_numa_page() itself via
+flush_tlb_range().
 
-Link: https://lkml.kernel.org/r/20210719130613.334901-12-gshan@redhat.com
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
+But after commit c5b5a3dd2c1f ("mm: thp: refactor NUMA fault handling"),
+the TLB flushing is done in migrate_pages() as in the following code path
+anyway.
+
+do_huge_pmd_numa_page
+  migrate_misplaced_page
+    migrate_pages
+
+So now, the TLB flushing code in do_huge_pmd_numa_page() becomes
+unnecessary.  So the code is deleted in this patch to simplify the code. 
+This is only code cleanup, there's no visible performance difference.
+
+Link: https://lkml.kernel.org/r/20210720065529.716031-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   54 ----------------------------------------
- 1 file changed, 54 deletions(-)
+ mm/huge_memory.c |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-remove-unused-code
-+++ a/mm/debug_vm_pgtable.c
-@@ -1124,14 +1124,6 @@ error:
- static int __init debug_vm_pgtable(void)
- {
- 	struct pgtable_debug_args args;
--	struct vm_area_struct *vma;
--	struct mm_struct *mm;
--	pgd_t *pgdp;
--	p4d_t *p4dp;
--	pud_t *pudp;
--	pmd_t *pmdp, *saved_pmdp, pmd;
--	pgtable_t saved_ptep;
--	unsigned long vaddr;
- 	spinlock_t *ptl = NULL;
- 	int idx, ret;
+--- a/mm/huge_memory.c~mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code
++++ a/mm/huge_memory.c
+@@ -1440,32 +1440,6 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 		goto out;
+ 	}
  
-@@ -1140,41 +1132,6 @@ static int __init debug_vm_pgtable(void)
- 	if (ret)
- 		return ret;
- 
--	vaddr = get_random_vaddr();
--	mm = mm_alloc();
--	if (!mm) {
--		pr_err("mm_struct allocation failed\n");
--		return 1;
--	}
--
--	vma = vm_area_alloc(mm);
--	if (!vma) {
--		pr_err("vma allocation failed\n");
--		return 1;
--	}
--
--	pgdp = pgd_offset(mm, vaddr);
--	p4dp = p4d_alloc(mm, pgdp, vaddr);
--	pudp = pud_alloc(mm, p4dp, vaddr);
--	pmdp = pmd_alloc(mm, pudp, vaddr);
 -	/*
--	 * Allocate pgtable_t
+-	 * Since we took the NUMA fault, we must have observed the !accessible
+-	 * bit. Make sure all other CPUs agree with that, to avoid them
+-	 * modifying the page we're about to migrate.
+-	 *
+-	 * Must be done under PTL such that we'll observe the relevant
+-	 * inc_tlb_flush_pending().
+-	 *
+-	 * We are not sure a pending tlb flush here is for a huge page
+-	 * mapping or not. Hence use the tlb range variant
 -	 */
--	if (pte_alloc(mm, pmdp)) {
--		pr_err("pgtable allocation failed\n");
--		return 1;
+-	if (mm_tlb_flush_pending(vma->vm_mm)) {
+-		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
+-		/*
+-		 * change_huge_pmd() released the pmd lock before
+-		 * invalidating the secondary MMUs sharing the primary
+-		 * MMU pagetables (with ->invalidate_range()). The
+-		 * mmu_notifier_invalidate_range_end() (which
+-		 * internally calls ->invalidate_range()) in
+-		 * change_pmd_range() will run after us, so we can't
+-		 * rely on it here and we need an explicit invalidate.
+-		 */
+-		mmu_notifier_invalidate_range(vma->vm_mm, haddr,
+-					      haddr + HPAGE_PMD_SIZE);
 -	}
 -
--	/*
--	 * Save all the page table page addresses as the page table
--	 * entries will be used for testing with random or garbage
--	 * values. These saved addresses will be used for freeing
--	 * page table pages.
--	 */
--	pmd = READ_ONCE(*pmdp);
--	saved_pmdp = pmd_offset(pudp, 0UL);
--	saved_ptep = pmd_pgtable(pmd);
--
- 	/*
- 	 * Iterate over the protection_map[] to make sure that all
- 	 * the basic page table transformation validations just hold
-@@ -1256,17 +1213,6 @@ static int __init debug_vm_pgtable(void)
- 	pgd_populate_tests(&args);
- 	spin_unlock(&(args.mm->page_table_lock));
- 
--	p4d_free(mm, p4d_offset(pgdp, 0UL));
--	pud_free(mm, pud_offset(p4dp, 0UL));
--	pmd_free(mm, saved_pmdp);
--	pte_free(mm, saved_ptep);
--
--	vm_area_free(vma);
--	mm_dec_nr_puds(mm);
--	mm_dec_nr_pmds(mm);
--	mm_dec_nr_ptes(mm);
--	mmdrop(mm);
--
- 	destroy_args(&args);
- 	return 0;
- }
+ 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
+ 	page = vm_normal_page_pmd(vma, haddr, pmd);
+ 	if (!page)
 _
 
-Patches currently in -mm which might be from gshan@redhat.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-basic-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-leaf-and-savewrite-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-protnone-and-devmap-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-soft_dirty-and-swap-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-migration-and-thp-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pte-modifying-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pmd-modifying-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pgd-and-p4d-modifying-tests.patch
-mm-debug_vm_pgtable-remove-unused-code.patch
-mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
+mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
+mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
 
