@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74B6CC07E9B
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:10:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68C29C07E95
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:10:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5BAF961019
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:10:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4DFBC61004
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:10:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230083AbhGTV3T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jul 2021 17:29:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49368 "EHLO mail.kernel.org"
+        id S231411AbhGTV3W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 17:29:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49390 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231817AbhGTV3D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S231974AbhGTV3D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 20 Jul 2021 17:29:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D1DDA611F2;
-        Tue, 20 Jul 2021 22:09:23 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E83736120C;
+        Tue, 20 Jul 2021 22:09:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626818964;
-        bh=ljHUVFUEB385cTwuSTahax3dZNaMqR1b+bxz27DC4BA=;
+        s=korg; t=1626818976;
+        bh=ia8i+ii0dtrUu++yNoVrSH/juwuM138GLGEmSgsYYHs=;
         h=Date:From:To:Subject:From;
-        b=DvB0psx7BxIVpqJ3ET7cRzwBf4TdSz2/WV7/jFa4uzldOt9IfprbDSVB/rCMNeHht
-         10AklMun6qbbdEAHED1Yw8JBFwZ9uk19JU+D0eZG5wXhgZ0ZXFMPMyRyJaAaNkbawZ
-         NNIgNtEZ/a5rNtAWAmH+KkSF1WlqZbocMOs4JkBA=
-Date:   Tue, 20 Jul 2021 15:09:23 -0700
+        b=lD9Z1cTfxQLOiq9j60FRypLyU9wk70a883NH0k7dschT6eXfUb4BIyeCYg7MXPx8k
+         Be5nsuEi5ai6X4jvoseKNeR4ezXLSFLnh+IQWSAm7/gn9o114IhVHfO+2jvm1yWbbW
+         ROmWYtOeUPoNbhgzl58a9J/cfBYMaBoPMI1aQ99s=
+Date:   Tue, 20 Jul 2021 15:09:35 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org, chuhu@redhat.com,
         catalin.marinas@arm.com, anshuman.khandual@arm.com,
         gshan@redhat.com
 Subject:  [to-be-updated]
- =?us-ascii?Q?mm-debug=5Fvm=5Fpgtable-use-struct-vm=5Fpgtable=5Fdebug-in-m?=
- =?us-ascii?Q?igration-and-thp-tests.patch?= removed from -mm tree
-Message-ID: <20210720220923._-71_%akpm@linux-foundation.org>
+ =?us-ascii?Q?mm-debug=5Fvm=5Fpgtable-use-struct-vm=5Fpgtable=5Fdebug-in-p?=
+ =?us-ascii?Q?gd-and-p4d-modifying-tests.patch?= removed from -mm tree
+Message-ID: <20210720220935.fWQ9n%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -47,21 +47,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: use struct vm_pgtable_debug in migration and thp tests
+     Subject: mm/debug_vm_pgtable: use struct vm_pgtable_debug in PGD and P4D modifying tests
 has been removed from the -mm tree.  Its filename was
-     mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-migration-and-thp-tests.patch
+     mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pgd-and-p4d-modifying-tests.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
-Subject: mm/debug_vm_pgtable: use struct vm_pgtable_debug in migration and thp tests
+Subject: mm/debug_vm_pgtable: use struct vm_pgtable_debug in PGD and P4D modifying tests
 
-This uses struct vm_pgtable_debug in the migration and thp test functions.
-It's notable that the pre-allocated page is used in
-swap_migration_tests() as set_pte_at() is used there.
+This uses struct vm_pgtable_debug in PGD/P4D modifying tests.  No
+allocated huge page is used in these tests.
 
-Link: https://lkml.kernel.org/r/20210706061748.161258-7-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210706061748.161258-11-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -70,114 +69,149 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/debug_vm_pgtable.c |   76 +++++++++++++++++-----------------------
+ 1 file changed, 34 insertions(+), 42 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-migration-and-thp-tests
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pgd-and-p4d-modifying-tests
 +++ a/mm/debug_vm_pgtable.c
-@@ -844,7 +844,7 @@ static void __init pmd_swap_tests(struct
- static void __init pmd_swap_tests(struct vm_pgtable_debug *debug) { }
- #endif /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
+@@ -520,27 +520,26 @@ static void __init pud_populate_tests(st
+ #endif /* PAGETABLE_PUD_FOLDED */
  
--static void __init swap_migration_tests(void)
-+static void __init swap_migration_tests(struct vm_pgtable_debug *debug)
+ #ifndef __PAGETABLE_P4D_FOLDED
+-static void __init p4d_clear_tests(struct mm_struct *mm, p4d_t *p4dp)
++static void __init p4d_clear_tests(struct vm_pgtable_debug *debug)
  {
- 	struct page *page;
- 	swp_entry_t swp;
-@@ -860,9 +860,10 @@ static void __init swap_migration_tests(
- 	 * problematic. Lets allocate a dedicated page explicitly for this
- 	 * purpose that will be freed subsequently.
- 	 */
--	page = alloc_page(GFP_KERNEL);
-+	page = (debug->pte_pfn != ULONG_MAX) ?
-+	       pfn_to_page(debug->pte_pfn) : NULL;
- 	if (!page) {
--		pr_err("page allocation failed\n");
-+		pr_err("no page available\n");
- 		return;
- 	}
+-	p4d_t p4d = READ_ONCE(*p4dp);
++	p4d_t p4d = READ_ONCE(*(debug->p4dp));
  
-@@ -883,7 +884,6 @@ static void __init swap_migration_tests(
- 	WARN_ON(!is_migration_entry(swp));
- 	WARN_ON(is_writable_migration_entry(swp));
- 	__ClearPageLocked(page);
--	__free_page(page);
- }
- 
- #ifdef CONFIG_HUGETLB_PAGE
-@@ -915,7 +915,7 @@ static void __init hugetlb_basic_tests(s
- #endif /* CONFIG_HUGETLB_PAGE */
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static void __init pmd_thp_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pmd_thp_tests(struct vm_pgtable_debug *debug)
- {
- 	pmd_t pmd;
- 
-@@ -934,7 +934,7 @@ static void __init pmd_thp_tests(unsigne
- 	 * needs to return true. pmd_present() should be true whenever
- 	 * pmd_trans_huge() returns true.
- 	 */
--	pmd = pfn_pmd(pfn, prot);
-+	pmd = pfn_pmd(debug->fixed_pmd_pfn, debug->page_prot);
- 	WARN_ON(!pmd_trans_huge(pmd_mkhuge(pmd)));
- 
- #ifndef __HAVE_ARCH_PMDP_INVALIDATE
-@@ -944,7 +944,7 @@ static void __init pmd_thp_tests(unsigne
- }
- 
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
--static void __init pud_thp_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pud_thp_tests(struct vm_pgtable_debug *debug)
- {
- 	pud_t pud;
- 
-@@ -952,7 +952,7 @@ static void __init pud_thp_tests(unsigne
+-	if (mm_pud_folded(mm))
++	if (mm_pud_folded(debug->mm))
  		return;
  
- 	pr_debug("Validating PUD based THP\n");
--	pud = pfn_pud(pfn, prot);
-+	pud = pfn_pud(debug->fixed_pud_pfn, debug->page_prot);
- 	WARN_ON(!pud_trans_huge(pud_mkhuge(pud)));
- 
- 	/*
-@@ -964,11 +964,11 @@ static void __init pud_thp_tests(unsigne
- 	 */
+ 	pr_debug("Validating P4D clear\n");
+ 	p4d = __p4d(p4d_val(p4d) | RANDOM_ORVALUE);
+-	WRITE_ONCE(*p4dp, p4d);
+-	p4d_clear(p4dp);
+-	p4d = READ_ONCE(*p4dp);
++	WRITE_ONCE(*(debug->p4dp), p4d);
++	p4d_clear(debug->p4dp);
++	p4d = READ_ONCE(*(debug->p4dp));
+ 	WARN_ON(!p4d_none(p4d));
  }
- #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
--static void __init pud_thp_tests(unsigned long pfn, pgprot_t prot) { }
-+static void __init pud_thp_tests(struct vm_pgtable_debug *debug) { }
- #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
--static void __init pmd_thp_tests(unsigned long pfn, pgprot_t prot) { }
--static void __init pud_thp_tests(unsigned long pfn, pgprot_t prot) { }
-+static void __init pmd_thp_tests(struct vm_pgtable_debug *debug) { }
-+static void __init pud_thp_tests(struct vm_pgtable_debug *debug) { }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- static unsigned long __init get_random_vaddr(void)
-@@ -1284,10 +1284,10 @@ static int __init debug_vm_pgtable(void)
- 	pte_swap_tests(&debug);
- 	pmd_swap_tests(&debug);
+-static void __init p4d_populate_tests(struct mm_struct *mm, p4d_t *p4dp,
+-				      pud_t *pudp)
++static void __init p4d_populate_tests(struct vm_pgtable_debug *debug)
+ {
+ 	p4d_t p4d;
  
--	swap_migration_tests();
-+	swap_migration_tests(&debug);
+-	if (mm_pud_folded(mm))
++	if (mm_pud_folded(debug->mm))
+ 		return;
  
--	pmd_thp_tests(pmd_aligned, prot);
--	pud_thp_tests(pud_aligned, prot);
-+	pmd_thp_tests(&debug);
-+	pud_thp_tests(&debug);
+ 	pr_debug("Validating P4D populate\n");
+@@ -548,34 +547,33 @@ static void __init p4d_populate_tests(st
+ 	 * This entry points to next level page table page.
+ 	 * Hence this must not qualify as p4d_bad().
+ 	 */
+-	pud_clear(pudp);
+-	p4d_clear(p4dp);
+-	p4d_populate(mm, p4dp, pudp);
+-	p4d = READ_ONCE(*p4dp);
++	pud_clear(debug->pudp);
++	p4d_clear(debug->p4dp);
++	p4d_populate(debug->mm, debug->p4dp, debug->start_pudp);
++	p4d = READ_ONCE(*(debug->p4dp));
+ 	WARN_ON(p4d_bad(p4d));
+ }
  
- 	/*
- 	 * Page table modifying tests. They need to hold
+-static void __init pgd_clear_tests(struct mm_struct *mm, pgd_t *pgdp)
++static void __init pgd_clear_tests(struct vm_pgtable_debug *debug)
+ {
+-	pgd_t pgd = READ_ONCE(*pgdp);
++	pgd_t pgd = READ_ONCE(*(debug->pgdp));
+ 
+-	if (mm_p4d_folded(mm))
++	if (mm_p4d_folded(debug->mm))
+ 		return;
+ 
+ 	pr_debug("Validating PGD clear\n");
+ 	pgd = __pgd(pgd_val(pgd) | RANDOM_ORVALUE);
+-	WRITE_ONCE(*pgdp, pgd);
+-	pgd_clear(pgdp);
+-	pgd = READ_ONCE(*pgdp);
++	WRITE_ONCE(*(debug->pgdp), pgd);
++	pgd_clear(debug->pgdp);
++	pgd = READ_ONCE(*(debug->pgdp));
+ 	WARN_ON(!pgd_none(pgd));
+ }
+ 
+-static void __init pgd_populate_tests(struct mm_struct *mm, pgd_t *pgdp,
+-				      p4d_t *p4dp)
++static void __init pgd_populate_tests(struct vm_pgtable_debug *debug)
+ {
+ 	pgd_t pgd;
+ 
+-	if (mm_p4d_folded(mm))
++	if (mm_p4d_folded(debug->mm))
+ 		return;
+ 
+ 	pr_debug("Validating PGD populate\n");
+@@ -583,23 +581,17 @@ static void __init pgd_populate_tests(st
+ 	 * This entry points to next level page table page.
+ 	 * Hence this must not qualify as pgd_bad().
+ 	 */
+-	p4d_clear(p4dp);
+-	pgd_clear(pgdp);
+-	pgd_populate(mm, pgdp, p4dp);
+-	pgd = READ_ONCE(*pgdp);
++	p4d_clear(debug->p4dp);
++	pgd_clear(debug->pgdp);
++	pgd_populate(debug->mm, debug->pgdp, debug->start_p4dp);
++	pgd = READ_ONCE(*(debug->pgdp));
+ 	WARN_ON(pgd_bad(pgd));
+ }
+ #else  /* !__PAGETABLE_P4D_FOLDED */
+-static void __init p4d_clear_tests(struct mm_struct *mm, p4d_t *p4dp) { }
+-static void __init pgd_clear_tests(struct mm_struct *mm, pgd_t *pgdp) { }
+-static void __init p4d_populate_tests(struct mm_struct *mm, p4d_t *p4dp,
+-				      pud_t *pudp)
+-{
+-}
+-static void __init pgd_populate_tests(struct mm_struct *mm, pgd_t *pgdp,
+-				      p4d_t *p4dp)
+-{
+-}
++static void __init p4d_clear_tests(struct vm_pgtable_debug *debug) { }
++static void __init pgd_clear_tests(struct vm_pgtable_debug *debug) { }
++static void __init p4d_populate_tests(struct vm_pgtable_debug *debug) { }
++static void __init pgd_populate_tests(struct vm_pgtable_debug *debug) { }
+ #endif /* PAGETABLE_P4D_FOLDED */
+ 
+ static void __init pte_clear_tests(struct vm_pgtable_debug *debug)
+@@ -1300,12 +1292,12 @@ static int __init debug_vm_pgtable(void)
+ 	pud_populate_tests(&debug);
+ 	spin_unlock(ptl);
+ 
+-	spin_lock(&mm->page_table_lock);
+-	p4d_clear_tests(mm, p4dp);
+-	pgd_clear_tests(mm, pgdp);
+-	p4d_populate_tests(mm, p4dp, saved_pudp);
+-	pgd_populate_tests(mm, pgdp, saved_p4dp);
+-	spin_unlock(&mm->page_table_lock);
++	spin_lock(&(debug.mm->page_table_lock));
++	p4d_clear_tests(&debug);
++	pgd_clear_tests(&debug);
++	p4d_populate_tests(&debug);
++	pgd_populate_tests(&debug);
++	spin_unlock(&(debug.mm->page_table_lock));
+ 
+ 	p4d_free(mm, saved_p4dp);
+ 	pud_free(mm, saved_pudp);
 _
 
 Patches currently in -mm which might be from gshan@redhat.com are
 
-mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pte-modifying-tests.patch
-mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pmd-modifying-tests.patch
-mm-vm_debug_pgtable-use-struct-vm_pgtable_debug-in-pud-modifying-tests.patch
-mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pgd-and-p4d-modifying-tests.patch
 mm-debug_vm_pgtable-remove-unused-code.patch
 mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
 
