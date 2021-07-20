@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AB72C07E95
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:06:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D60DC07E95
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:09:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E118C61186
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:06:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 571CB61019
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:09:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229651AbhGTVZY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jul 2021 17:25:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45474 "EHLO mail.kernel.org"
+        id S232375AbhGTV3H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 17:29:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48832 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229635AbhGTVZX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Jul 2021 17:25:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 55D5361009;
-        Tue, 20 Jul 2021 22:06:00 +0000 (UTC)
+        id S231702AbhGTV2b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Jul 2021 17:28:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 05BE261019;
+        Tue, 20 Jul 2021 22:09:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626818760;
-        bh=gN/jPS848FU2ENarCTc/le/7931JdQt2pul19coH61s=;
+        s=korg; t=1626818948;
+        bh=sZhhMOe10ocu4V+chqB0bisFaMOAwLix47pNUby+Drg=;
         h=Date:From:To:Subject:From;
-        b=xAW77IRuK9aFUL3UOi0D+Fj8JI+mtteyTNe8jODqIR7Bw2dv28MgNhJjRSWF90bS6
-         7gCAm9FT2l8DXAWe/IoUZaTIJQBDCtewG+VUnwuwhR/0G9IhOyx3NCRXmcIFF0W2iS
-         2L9xRwzTZTdEiGFYJWTCFxEOT/HVChZcemDaJ22k=
-Date:   Tue, 20 Jul 2021 15:05:59 -0700
+        b=DQ7cx+JgmYXBUsFW04VHqZs1z84utNXm6k78qlC0xOLoWoAGNIkGfFesoSefdzPz0
+         b7OIGGZOOWeL4O7HjtmUJP7AtF8vLfsTwMN3SavC/Lo6Xg7Istou366QBEi7wFg508
+         LfSA0HHJAlGw4hx1jf/3PmztDAZxqlN5Ak9JPm0Y=
+Date:   Tue, 20 Jul 2021 15:09:07 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        jencce.kernel@gmail.com, jack@suse.cz, djwong@kernel.org,
-        dchinner@redhat.com, guro@fb.com
-Subject:  + writeback-cgroup-do-not-reparent-dax-inodes.patch added
- to -mm tree
-Message-ID: <20210720220559.olBSC%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, will@kernel.org, chuhu@redhat.com,
+        catalin.marinas@arm.com, anshuman.khandual@arm.com,
+        gshan@redhat.com
+Subject:  [to-be-updated]
+ mm-debug_vm_pgtable-introduce-struct-vm_pgtable_debug.patch removed from -mm
+ tree
+Message-ID: <20210720220907.xmvg3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,161 +45,329 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback, cgroup: do not reparent dax inodes
-has been added to the -mm tree.  Its filename is
-     writeback-cgroup-do-not-reparent-dax-inodes.patch
+     Subject: mm/debug_vm_pgtable: introduce struct vm_pgtable_debug
+has been removed from the -mm tree.  Its filename was
+     mm-debug_vm_pgtable-introduce-struct-vm_pgtable_debug.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/writeback-cgroup-do-not-reparent-dax-inodes.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/writeback-cgroup-do-not-reparent-dax-inodes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Roman Gushchin <guro@fb.com>
-Subject: writeback, cgroup: do not reparent dax inodes
+From: Gavin Shan <gshan@redhat.com>
+Subject: mm/debug_vm_pgtable: introduce struct vm_pgtable_debug
 
-The inode switching code is not suited for dax inodes.  An attempt to
-switch a dax inode to a parent writeback structure (as a part of a
-writeback cleanup procedure) results in a panic like this:
+Patch series "mm/debug_vm_pgtable: Enhancements".
 
-  [  987.071651] run fstests generic/270 at 2021-07-15 05:54:02
-  [  988.704940] XFS (pmem0p2): EXPERIMENTAL big timestamp feature in
-  use.  Use at your own risk!
-  [  988.746847] XFS (pmem0p2): DAX enabled. Warning: EXPERIMENTAL, use
-  at your own risk
-  [  988.786070] XFS (pmem0p2): EXPERIMENTAL inode btree counters
-  feature in use. Use at your own risk!
-  [  988.828639] XFS (pmem0p2): Mounting V5 Filesystem
-  [  988.854019] XFS (pmem0p2): Ending clean mount
-  [  988.874550] XFS (pmem0p2): Quotacheck needed: Please wait.
-  [  988.900618] XFS (pmem0p2): Quotacheck: Done.
-  [  989.090783] XFS (pmem0p2): xlog_verify_grant_tail: space > BBTOB(tail_blocks)
-  [  989.092751] XFS (pmem0p2): xlog_verify_grant_tail: space > BBTOB(tail_blocks)
-  [  989.092962] XFS (pmem0p2): xlog_verify_grant_tail: space > BBTOB(tail_blocks)
-  [ 1010.105586] BUG: unable to handle page fault for address: 0000000005b0f669
-  [ 1010.141817] #PF: supervisor read access in kernel mode
-  [ 1010.167824] #PF: error_code(0x0000) - not-present page
-  [ 1010.191499] PGD 0 P4D 0
-  [ 1010.203346] Oops: 0000 [#1] SMP PTI
-  [ 1010.219596] CPU: 13 PID: 10479 Comm: kworker/13:16 Not tainted
-  5.14.0-rc1-master-8096acd7442e+ #8
-  [ 1010.260441] Hardware name: HP ProLiant DL360 Gen9/ProLiant DL360
-  Gen9, BIOS P89 09/13/2016
-  [ 1010.297792] Workqueue: inode_switch_wbs inode_switch_wbs_work_fn
-  [ 1010.324832] RIP: 0010:inode_do_switch_wbs+0xaf/0x470
-  [ 1010.347261] Code: 00 30 0f 85 c1 03 00 00 0f 1f 44 00 00 31 d2 48
-  c7 c6 ff ff ff ff 48 8d 7c 24 08 e8 eb 49 1a 00 48 85 c0 74 4a bb ff
-  ff ff ff <48> 8b 50 08 48 8d 4a ff 83 e2 01 48 0f 45 c1 48 8b 00 a8 08
-  0f 85
-  [ 1010.434307] RSP: 0018:ffff9c66691abdc8 EFLAGS: 00010002
-  [ 1010.457795] RAX: 0000000005b0f661 RBX: 00000000ffffffff RCX: ffff89e6a21382b0
-  [ 1010.489922] RDX: 0000000000000001 RSI: ffff89e350230248 RDI: ffffffffffffffff
-  [ 1010.522085] RBP: ffff89e681d19400 R08: 0000000000000000 R09: 0000000000000228
-  [ 1010.554234] R10: ffffffffffffffff R11: ffffffffffffffc0 R12: ffff89e6a2138130
-  [ 1010.586414] R13: ffff89e316af7400 R14: ffff89e316af6e78 R15: ffff89e6a21382b0
-  [ 1010.619394] FS:  0000000000000000(0000) GS:ffff89ee5fb40000(0000)
-  knlGS:0000000000000000
-  [ 1010.658874] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  [ 1010.688085] CR2: 0000000005b0f669 CR3: 0000000cb2410004 CR4: 00000000001706e0
-  [ 1010.722129] Call Trace:
-  [ 1010.733132]  inode_switch_wbs_work_fn+0xb6/0x2a0
-  [ 1010.754121]  process_one_work+0x1e6/0x380
-  [ 1010.772512]  worker_thread+0x53/0x3d0
-  [ 1010.789221]  ? process_one_work+0x380/0x380
-  [ 1010.807964]  kthread+0x10f/0x130
-  [ 1010.822043]  ? set_kthread_struct+0x40/0x40
-  [ 1010.840818]  ret_from_fork+0x22/0x30
-  [ 1010.856851] Modules linked in: xt_CHECKSUM xt_MASQUERADE
-  xt_conntrack ipt_REJECT nf_reject_ipv4 nft_compat nft_chain_nat nf_nat
-  nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 nft_counter nf_tables
-  nfnetlink bridge stp llc rfkill sunrpc intel_rapl_msr
-  intel_rapl_common sb_edac x86_pkg_temp_thermal intel_powerclamp
-  coretemp kvm_intel ipmi_ssif kvm mgag200 i2c_algo_bit iTCO_wdt
-  irqbypass drm_kms_helper iTCO_vendor_support acpi_ipmi rapl
-  syscopyarea sysfillrect intel_cstate ipmi_si sysimgblt ioatdma
-  dax_pmem_compat fb_sys_fops ipmi_devintf device_dax i2c_i801 pcspkr
-  intel_uncore hpilo nd_pmem cec dax_pmem_core dca i2c_smbus acpi_tad
-  lpc_ich ipmi_msghandler acpi_power_meter drm fuse xfs libcrc32c sd_mod
-  t10_pi crct10dif_pclmul crc32_pclmul crc32c_intel tg3
-  ghash_clmulni_intel serio_raw hpsa hpwdt scsi_transport_sas wmi
-  dm_mirror dm_region_hash dm_log dm_mod
-  [ 1011.200864] CR2: 0000000005b0f669
-  [ 1011.215700] ---[ end trace ed2105faff8384f3 ]---
-  [ 1011.241727] RIP: 0010:inode_do_switch_wbs+0xaf/0x470
-  [ 1011.264306] Code: 00 30 0f 85 c1 03 00 00 0f 1f 44 00 00 31 d2 48
-  c7 c6 ff ff ff ff 48 8d 7c 24 08 e8 eb 49 1a 00 48 85 c0 74 4a bb ff
-  ff ff ff <48> 8b 50 08 48 8d 4a ff 83 e2 01 48 0f 45 c1 48 8b 00 a8 08
-  0f 85
-  [ 1011.348821] RSP: 0018:ffff9c66691abdc8 EFLAGS: 00010002
-  [ 1011.372734] RAX: 0000000005b0f661 RBX: 00000000ffffffff RCX: ffff89e6a21382b0
-  [ 1011.405826] RDX: 0000000000000001 RSI: ffff89e350230248 RDI: ffffffffffffffff
-  [ 1011.437852] RBP: ffff89e681d19400 R08: 0000000000000000 R09: 0000000000000228
-  [ 1011.469926] R10: ffffffffffffffff R11: ffffffffffffffc0 R12: ffff89e6a2138130
-  [ 1011.502179] R13: ffff89e316af7400 R14: ffff89e316af6e78 R15: ffff89e6a21382b0
-  [ 1011.534233] FS:  0000000000000000(0000) GS:ffff89ee5fb40000(0000)
-  knlGS:0000000000000000
-  [ 1011.571247] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-  [ 1011.597063] CR2: 0000000005b0f669 CR3: 0000000cb2410004 CR4: 00000000001706e0
-  [ 1011.629160] Kernel panic - not syncing: Fatal exception
-  [ 1011.653802] Kernel Offset: 0x15200000 from 0xffffffff81000000
-  (relocation range: 0xffffffff80000000-0xffffffffbfffffff)
-  [ 1011.713723] ---[ end Kernel panic - not syncing: Fatal exception ]---
+There are couple of issues with current implementations and this series
+tries to resolve the issues:
 
-The crash happens on an attempt to iterate over attached pagecache pages
-and check the dirty flag: a dax inode's xarray contains pfn's instead of
-generic struct page pointers.
+  (a) All needed information are scattered in variables, passed to various
+      test functions. The code is organized in pretty much relaxed fashion.
 
-This happens for DAX and not for other kinds of non-page entries in the
-inodes because it's a tagged iteration, and shadow/swap entries are never
-tagged; only DAX entries get tagged.
+  (b) The page isn't allocated from buddy during page table entry modifying
+      tests. The page can be invalid, conflicting to the implementations
+      of set_{pud, pmd, pte}_at() on ARM64. The target page is accessed
+      so that the iCache can be flushed when execution permission is given
+      on ARM64. Besides, the target page can be unmapped and access to
+      it causes kernel crash.
 
-Fix the problem by bailing out (with the false return value) of
-inode_prepare_sbs_switch() if a dax inode is passed.
+"struct vm_pgtable_debug" is introduced to address issue (a).  For issue
+(b), the used page is allocated from buddy in page table entry modifying
+tests.  The corresponding tets will be skipped if we fail to allocate the
+(huge) page.  For other test cases, the original page around to kernel
+symbol (@start_kernel) is still used.
 
-[willy@infradead.org: changelog addition]
-Link: https://lkml.kernel.org/r/20210719171350.3876830-1-guro@fb.com
-Fixes: c22d70a162d3 ("writeback, cgroup: release dying cgwbs by switching attached inodes")
-Signed-off-by: Roman Gushchin <guro@fb.com>
-Reported-by: Murphy Zhou <jencce.kernel@gmail.com>
-Reported-by: Darrick J. Wong <djwong@kernel.org>
-Tested-by: Darrick J. Wong <djwong@kernel.org>
-Tested-by: Murphy Zhou <jencce.kernel@gmail.com>
-Acked-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Dave Chinner <dchinner@redhat.com>
+
+This patch (of 12):
+
+In debug_vm_pgtable(), there are many local variables introduced to track
+the needed information and they are passed to the functions for various
+test cases.  It'd better to introduce a struct as place holder for these
+information.  With it, what the functions for various test cases need is
+the struct, to simplify the code.  It makes the code easier to be
+maintained.
+
+Besides, set_pte_at() could access the data on the corresponding pages. 
+So the test cases using set_pte_at() should have the pages allocated from
+buddy.  Otherwise, we're acceessing pages that aren't owned by us.  This
+causes issues like page flag corruption.  So we need the allocated pages
+for these tests where set_pte_at() is used.  The struct is introduced so
+that the old and new implementation can coexist so that the patches can be
+organized in a easy way.
+
+This introduces "struct vm_pgtable_debug" for above purposes.  The struct
+is initialized and destroyed, but the information in the struct isn't used
+yet.  They will be used in subsequent patches.
+
+Link: https://lkml.kernel.org/r/20210706061748.161258-1-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210706061748.161258-2-gshan@redhat.com
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Chunyu Hu <chuhu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/debug_vm_pgtable.c |  210 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 209 insertions(+), 1 deletion(-)
 
---- a/fs/fs-writeback.c~writeback-cgroup-do-not-reparent-dax-inodes
-+++ a/fs/fs-writeback.c
-@@ -521,6 +521,9 @@ static bool inode_prepare_wbs_switch(str
- 	 */
- 	smp_mb();
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-introduce-struct-vm_pgtable_debug
++++ a/mm/debug_vm_pgtable.c
+@@ -58,6 +58,36 @@
+ #define RANDOM_ORVALUE (GENMASK(BITS_PER_LONG - 1, 0) & ~ARCH_SKIP_MASK)
+ #define RANDOM_NZVALUE	GENMASK(7, 0)
  
-+	if (IS_DAX(inode))
-+		return false;
++struct vm_pgtable_debug {
++	struct mm_struct	*mm;
++	struct vm_area_struct	*vma;
 +
- 	/* while holding I_WB_SWITCH, no one else can update the association */
- 	spin_lock(&inode->i_lock);
- 	if (!(inode->i_sb->s_flags & SB_ACTIVE) ||
++	pgd_t			*pgdp;
++	p4d_t			*p4dp;
++	pud_t			*pudp;
++	pmd_t			*pmdp;
++	pte_t			*ptep;
++
++	p4d_t			*start_p4dp;
++	pud_t			*start_pudp;
++	pmd_t			*start_pmdp;
++	pgtable_t		start_ptep;
++
++	unsigned long		vaddr;
++	pgprot_t		page_prot;
++	pgprot_t		page_prot_none;
++
++	unsigned long		pud_pfn;
++	unsigned long		pmd_pfn;
++	unsigned long		pte_pfn;
++
++	unsigned long		fixed_pgd_pfn;
++	unsigned long		fixed_p4d_pfn;
++	unsigned long		fixed_pud_pfn;
++	unsigned long		fixed_pmd_pfn;
++	unsigned long		fixed_pte_pfn;
++};
++
+ static void __init pte_basic_tests(unsigned long pfn, int idx)
+ {
+ 	pgprot_t prot = protection_map[idx];
+@@ -955,8 +985,180 @@ static unsigned long __init get_random_v
+ 	return random_vaddr;
+ }
+ 
++static void __init free_mem(struct vm_pgtable_debug *debug)
++{
++	struct page *page = NULL;
++	int order = 0;
++
++	/* Free (huge) page */
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	if (has_transparent_hugepage() &&
++	    debug->pud_pfn != ULONG_MAX) {
++		page = pfn_to_page(debug->pud_pfn);
++		order = HPAGE_PUD_SHIFT - PAGE_SHIFT;
++	}
++#endif
++
++	if (has_transparent_hugepage() &&
++	    debug->pmd_pfn != ULONG_MAX && !page) {
++		page = pfn_to_page(debug->pmd_pfn);
++		order = HPAGE_PMD_ORDER;
++	}
++#endif
++
++	if (debug->pte_pfn != ULONG_MAX && !page) {
++		page = pfn_to_page(debug->pte_pfn);
++		order = 0;
++	}
++
++	if (page)
++		__free_pages(page, order);
++
++	/* Free page table */
++	if (debug->start_ptep) {
++		pte_free(debug->mm, debug->start_ptep);
++		mm_dec_nr_ptes(debug->mm);
++	}
++
++	if (debug->start_pmdp) {
++		pmd_free(debug->mm, debug->start_pmdp);
++		mm_dec_nr_pmds(debug->mm);
++	}
++
++	if (debug->start_pudp) {
++		pud_free(debug->mm, debug->start_pudp);
++		mm_dec_nr_puds(debug->mm);
++	}
++
++	if (debug->start_p4dp)
++		p4d_free(debug->mm, debug->p4dp);
++
++	/* Free vma and mm struct */
++	if (debug->vma)
++		vm_area_free(debug->vma);
++	if (debug->mm)
++		mmdrop(debug->mm);
++}
++
++static int __init alloc_mem(struct vm_pgtable_debug *debug)
++{
++	struct page *page = NULL;
++	phys_addr_t phys;
++	int ret = 0;
++
++	/* Initialize the debugging data */
++	debug->mm             = NULL;
++	debug->vma            = NULL;
++	debug->pgdp           = NULL;
++	debug->p4dp           = NULL;
++	debug->pudp           = NULL;
++	debug->pmdp           = NULL;
++	debug->ptep           = NULL;
++	debug->start_p4dp     = NULL;
++	debug->start_pudp     = NULL;
++	debug->start_pmdp     = NULL;
++	debug->start_ptep     = NULL;
++	debug->vaddr          = 0UL;
++	debug->page_prot      = vm_get_page_prot(VM_READ | VM_WRITE | VM_EXEC);
++	debug->page_prot_none = __P000;
++	debug->pud_pfn        = ULONG_MAX;
++	debug->pmd_pfn        = ULONG_MAX;
++	debug->pte_pfn        = ULONG_MAX;
++	debug->fixed_pgd_pfn  = ULONG_MAX;
++	debug->fixed_p4d_pfn  = ULONG_MAX;
++	debug->fixed_pud_pfn  = ULONG_MAX;
++	debug->fixed_pmd_pfn  = ULONG_MAX;
++	debug->fixed_pte_pfn  = ULONG_MAX;
++
++	/* Allocate mm and vma */
++	debug->mm = mm_alloc();
++	if (!debug->mm) {
++		pr_warn("Failed to allocate mm struct\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	debug->vma = vm_area_alloc(debug->mm);
++	if (!debug->vma) {
++		pr_warn("Failed to allocate vma\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	/* Figure out the virtual address and allocate page table entries */
++	debug->vaddr = get_random_vaddr();
++	debug->pgdp = pgd_offset(debug->mm, debug->vaddr);
++	debug->p4dp = p4d_alloc(debug->mm, debug->pgdp, debug->vaddr);
++	debug->pudp = debug->p4dp ?
++		      pud_alloc(debug->mm, debug->p4dp, debug->vaddr) : NULL;
++	debug->pmdp = debug->pudp ?
++		      pmd_alloc(debug->mm, debug->pudp, debug->vaddr) : NULL;
++	debug->ptep = debug->pmdp ?
++		      pte_alloc_map(debug->mm, debug->pmdp, debug->vaddr) : NULL;
++	if (!debug->ptep) {
++		pr_warn("Failed to allocate page table\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	/*
++	 * The above page table entries will be modified. Lets save the
++	 * page table entries so that they can be released when the tests
++	 * are completed.
++	 */
++	debug->start_p4dp = p4d_offset(debug->pgdp, 0UL);
++	debug->start_pudp = pud_offset(debug->p4dp, 0UL);
++	debug->start_pmdp = pmd_offset(debug->pudp, 0UL);
++	debug->start_ptep = pmd_pgtable(*(debug->pmdp));
++
++	/*
++	 * Figure out the fixed addresses, which are all around the kernel
++	 * symbol (@start_kernel). The corresponding PFNs might be invalid,
++	 * but it's fine as the following tests won't access the pages.
++	 */
++	phys = __pa_symbol(&start_kernel);
++	debug->fixed_pgd_pfn = __phys_to_pfn(phys & PGDIR_MASK);
++	debug->fixed_p4d_pfn = __phys_to_pfn(phys & P4D_MASK);
++	debug->fixed_pud_pfn = __phys_to_pfn(phys & PUD_MASK);
++	debug->fixed_pmd_pfn = __phys_to_pfn(phys & PMD_MASK);
++	debug->fixed_pte_pfn = __phys_to_pfn(phys & PAGE_MASK);
++
++	/*
++	 * Allocate (huge) pages because some of the tests need to access
++	 * the data in the pages. The corresponding tests will be skipped
++	 * if we fail to allocate (huge) pages.
++	 */
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
++#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
++	if (has_transparent_hugepage()) {
++		page = alloc_pages(GFP_KERNEL, HPAGE_PUD_SHIFT - PAGE_SHIFT);
++		if (page)
++			debug->pud_pfn = page_to_pfn(page);
++	}
++#endif
++
++	if (has_transparent_hugepage()) {
++		page = page ? page : alloc_pages(GFP_KERNEL, HPAGE_PMD_ORDER);
++		if (page)
++			debug->pmd_pfn = page_to_pfn(page);
++	}
++#endif
++
++	page = page ? page : alloc_pages(GFP_KERNEL, 0);
++	if (page)
++		debug->pte_pfn = page_to_pfn(page);
++
++	return 0;
++
++error:
++	free_mem(debug);
++	return ret;
++}
++
+ static int __init debug_vm_pgtable(void)
+ {
++	struct vm_pgtable_debug debug;
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm;
+ 	pgd_t *pgdp;
+@@ -970,9 +1172,13 @@ static int __init debug_vm_pgtable(void)
+ 	unsigned long vaddr, pte_aligned, pmd_aligned;
+ 	unsigned long pud_aligned, p4d_aligned, pgd_aligned;
+ 	spinlock_t *ptl = NULL;
+-	int idx;
++	int idx, ret;
+ 
+ 	pr_info("Validating architecture page table helpers\n");
++	ret = alloc_mem(&debug);
++	if (ret)
++		return ret;
++
+ 	prot = vm_get_page_prot(VMFLAGS);
+ 	vaddr = get_random_vaddr();
+ 	mm = mm_alloc();
+@@ -1127,6 +1333,8 @@ static int __init debug_vm_pgtable(void)
+ 	mm_dec_nr_pmds(mm);
+ 	mm_dec_nr_ptes(mm);
+ 	mmdrop(mm);
++
++	free_mem(&debug);
+ 	return 0;
+ }
+ late_initcall(debug_vm_pgtable);
 _
 
-Patches currently in -mm which might be from guro@fb.com are
+Patches currently in -mm which might be from gshan@redhat.com are
 
-writeback-cgroup-remove-wb-from-offline-list-before-releasing-refcnt.patch
-writeback-cgroup-do-not-reparent-dax-inodes.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-basic-tests.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-leaf-and-savewrite-tests.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-protnone-and-devmap-tests.patch
+mm-vm_debug_pgtable-use-struct-vm_pgtable_debug-in-soft_dirty-and-swap-tests.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-migration-and-thp-tests.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pte-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pmd-modifying-tests.patch
+mm-vm_debug_pgtable-use-struct-vm_pgtable_debug-in-pud-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pgd-and-p4d-modifying-tests.patch
+mm-debug_vm_pgtable-remove-unused-code.patch
+mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
 
