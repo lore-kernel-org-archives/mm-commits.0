@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC4D8C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:18:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DDE1C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:34:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 83E066101E
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:18:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E4B6C611CE
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:34:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231967AbhGTWhX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jul 2021 18:37:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44778 "EHLO mail.kernel.org"
+        id S235922AbhGTWxY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 18:53:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230282AbhGTWhU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Jul 2021 18:37:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 234DA6101E;
-        Tue, 20 Jul 2021 23:17:54 +0000 (UTC)
+        id S236338AbhGTWrn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Jul 2021 18:47:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0B1AA610D2;
+        Tue, 20 Jul 2021 23:28:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626823074;
-        bh=D2aJ6FWxW8C/th7YbRgqBvuSDjUNzS4/DA9Zr4k5F14=;
+        s=korg; t=1626823701;
+        bh=vWLljrGx/ig0Dc1XVcns1chbcLtYpIV4SYPFWfY8DBY=;
         h=Date:From:To:Subject:From;
-        b=xBnZYerOUVhR51/J8DnqDmCUHDMIeGHDiAsGYtZMG5IK85euOujDqpPNmhU+1IUHU
-         m9/A849AIUpC6i1ePbXIobK5luZjo5B9T4Dd653RaiGDOPlgxl/mUl4OPJhEbAPOcZ
-         lBdZzn21hrNl+xA+59QY+uUKVp2qeQ+GjFyelqcc=
-Date:   Tue, 20 Jul 2021 16:17:53 -0700
+        b=c8zaDprkl+sODC/85oybVkFTNkL6fNfLC4NmHYuGFt/qFjkeStdfYzGYMoa0WdfMr
+         dP7TwXyhHfXcs+s1QzPFMLe35ael3TO0uswBG61IeA7X5PMC0AMThhwDwzqD101CjD
+         jwWhCviMVirzsX2bztAcfr/3N9q4dL+vzJlfeiNw=
+Date:   Tue, 20 Jul 2021 16:28:20 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
-        shenwenbo@zju.edu.cn, shakeelb@google.com, mhocko@kernel.org,
-        hannes@cmpxchg.org, nglaive@gmail.com
-Subject:  + memcg-charge-fs_context-and-legacy_fs_context.patch added
- to -mm tree
-Message-ID: <20210720231753.bvWUx%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, weiyongjun1@huawei.com,
+        wangkefeng.wang@huawei.com, 0x7f454c46@gmail.com,
+        chenwandun@huawei.com
+Subject:  + mm-mremap-fix-memory-account-on-do_munmap-failure.patch
+ added to -mm tree
+Message-ID: <20210720232820.Yy_P-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: charge fs_context and legacy_fs_context
+     Subject: mm/mremap: fix memory account on do_munmap() failure
 has been added to the -mm tree.  Its filename is
-     memcg-charge-fs_context-and-legacy_fs_context.patch
+     mm-mremap-fix-memory-account-on-do_munmap-failure.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-charge-fs_context-and-legacy_fs_context.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-fix-memory-account-on-do_munmap-failure.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-charge-fs_context-and-legacy_fs_context.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-fix-memory-account-on-do_munmap-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,109 +65,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yutian Yang <nglaive@gmail.com>
-Subject: memcg: charge fs_context and legacy_fs_context
+From: Chen Wandun <chenwandun@huawei.com>
+Subject: mm/mremap: fix memory account on do_munmap() failure
 
-This patch adds accounting flags to fs_context and legacy_fs_context
-allocation sites so that kernel could correctly charge these objects.
+mremap will account the delta between new_len and old_len in
+vma_to_resize, and then call move_vma when expanding an existing memory
+mapping.  In function move_vma, there are two scenarios when calling
+do_munmap:
 
-We have written a PoC to demonstrate the effect of the missing-charging
-bugs.  The PoC takes around 1,200MB unaccounted memory, while it is
-charged for only 362MB memory usage.  We evaluate the PoC on QEMU x86_64
-v5.2.90 + Linux kernel v5.10.19 + Debian buster.  All the limitations
-including ulimits and sysctl variables are set as default.  Specifically,
-the hard NOFILE limit and nr_open in sysctl are both 1,048,576.
+1. move_page_tables from old_addr to new_addr success
+2. move_page_tables from old_addr to new_addr fail
 
-/*------------------------- POC code ----------------------------*/
+In first scenario, it should account old_len if do_munmap fail, because
+the delta has already been accounted.
 
-#define _GNU_SOURCE
-#include <sys/types.h>
-#include <sys/file.h>
-#include <time.h>
-#include <sys/wait.h>
-#include <stdint.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <signal.h>
-#include <sched.h>
-#include <fcntl.h>
-#include <linux/mount.h>
+In second scenario, new_addr/new_len will assign to old_addr/old_len if
+move_page_table fail, so do_munmap is try to unmap new_addr actually, if
+do_munmap fail, it should account the new_len, because error code will be
+return from move_vma, and delta will be unaccounted.  What'more, because
+of new_len == old_len, so account old_len also is OK.
 
-#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \
-                        } while (0)
+In summary, account old_len will be correct if do_munmap fail.
 
-#define STACK_SIZE (8 * 1024)
-#ifndef __NR_fsopen
-#define __NR_fsopen 430
-#endif
-static inline int fsopen(const char *fs_name, unsigned int flags)
-{
-        return syscall(__NR_fsopen, fs_name, flags);
-}
-
-static char thread_stack[512][STACK_SIZE];
-
-int thread_fn(void* arg)
-{
-  for (int i = 0; i< 800000; ++i) {
-    int fsfd = fsopen("nfs", FSOPEN_CLOEXEC);
-    if (fsfd == -1) {
-      errExit("fsopen");
-    }
-  }
-  while(1);
-  return 0;
-}
-
-int main(int argc, char *argv[]) {
-  int thread_pid;
-  for (int i = 0; i < 1; ++i) {
-    thread_pid = clone(thread_fn, thread_stack[i] + STACK_SIZE, \
-      SIGCHLD, NULL);
-  }
-  while(1);
-  return 0;
-}
-
-/*-------------------------- end --------------------------------*/
-
-Link: https://lkml.kernel.org/r/1626517201-24086-1-git-send-email-nglaive@gmail.com
-Signed-off-by: Yutian Yang <nglaive@gmail.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: <shenwenbo@zju.edu.cn>
+Link: https://lkml.kernel.org/r/20210717101942.120607-1-chenwandun@huawei.com
+Fixes: 51df7bcb6151 ("mm/mremap: account memory on do_munmap() failure")
+Signed-off-by: Chen Wandun <chenwandun@huawei.com>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs_context.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/fs_context.c~memcg-charge-fs_context-and-legacy_fs_context
-+++ a/fs/fs_context.c
-@@ -254,7 +254,7 @@ static struct fs_context *alloc_fs_conte
- 	struct fs_context *fc;
- 	int ret = -ENOMEM;
+--- a/mm/mremap.c~mm-mremap-fix-memory-account-on-do_munmap-failure
++++ a/mm/mremap.c
+@@ -686,7 +686,7 @@ static unsigned long move_vma(struct vm_
+ 	if (do_munmap(mm, old_addr, old_len, uf_unmap) < 0) {
+ 		/* OOM: unable to split vma, just get accounts right */
+ 		if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP))
+-			vm_acct_memory(new_len >> PAGE_SHIFT);
++			vm_acct_memory(old_len >> PAGE_SHIFT);
+ 		excess = 0;
+ 	}
  
--	fc = kzalloc(sizeof(struct fs_context), GFP_KERNEL);
-+	fc = kzalloc(sizeof(struct fs_context), GFP_KERNEL_ACCOUNT);
- 	if (!fc)
- 		return ERR_PTR(-ENOMEM);
- 
-@@ -649,7 +649,7 @@ const struct fs_context_operations legac
-  */
- static int legacy_init_fs_context(struct fs_context *fc)
- {
--	fc->fs_private = kzalloc(sizeof(struct legacy_fs_context), GFP_KERNEL);
-+	fc->fs_private = kzalloc(sizeof(struct legacy_fs_context), GFP_KERNEL_ACCOUNT);
- 	if (!fc->fs_private)
- 		return -ENOMEM;
- 	fc->ops = &legacy_fs_context_ops;
 _
 
-Patches currently in -mm which might be from nglaive@gmail.com are
+Patches currently in -mm which might be from chenwandun@huawei.com are
 
-memcg-charge-fs_context-and-legacy_fs_context.patch
+mm-mremap-fix-memory-account-on-do_munmap-failure.patch
+mm-vmalloc-fix-wrong-behavior-in-vread.patch
 
