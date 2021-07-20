@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E8FEC636C8
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:03:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC4D8C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:18:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4ABF60FF1
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:03:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 83E066101E
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:18:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231781AbhGTWWi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jul 2021 18:22:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38218 "EHLO mail.kernel.org"
+        id S231967AbhGTWhX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 18:37:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231403AbhGTWVg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Jul 2021 18:21:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 14BC360FE7;
-        Tue, 20 Jul 2021 23:02:10 +0000 (UTC)
+        id S230282AbhGTWhU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Jul 2021 18:37:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 234DA6101E;
+        Tue, 20 Jul 2021 23:17:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626822130;
-        bh=iPc8/mQ+Qw9C6ouXW/qLi25xJ4hO96y9u8dQogCeHKE=;
+        s=korg; t=1626823074;
+        bh=D2aJ6FWxW8C/th7YbRgqBvuSDjUNzS4/DA9Zr4k5F14=;
         h=Date:From:To:Subject:From;
-        b=RdHgdfetJ0Pasz9n5WLzsYnB7jnKSRIjUeqpj3l4pgIDfeCBTrSWoOGfSq890JOJS
-         fc5DKwYms83vjaZ7EWAyJIcKHqC/WHElHvIViij5+OssVcmLvdViIH6fVLBtx2Xpms
-         kJy6XRXkcxYFBVsWigdVLpQIITL5AGmn2x5sg/j0=
-Date:   Tue, 20 Jul 2021 16:02:09 -0700
+        b=xBnZYerOUVhR51/J8DnqDmCUHDMIeGHDiAsGYtZMG5IK85euOujDqpPNmhU+1IUHU
+         m9/A849AIUpC6i1ePbXIobK5luZjo5B9T4Dd653RaiGDOPlgxl/mUl4OPJhEbAPOcZ
+         lBdZzn21hrNl+xA+59QY+uUKVp2qeQ+GjFyelqcc=
+Date:   Tue, 20 Jul 2021 16:17:53 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, yuanxzhang@fudan.edu.cn,
-        tanxin.ctf@gmail.com, shy828301@gmail.com, shakeelb@google.com,
-        linmiaohe@huawei.com, hughd@google.com, apopple@nvidia.com,
-        xiyuyang19@fudan.edu.cn
-Subject:  +
- mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch added
+To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
+        shenwenbo@zju.edu.cn, shakeelb@google.com, mhocko@kernel.org,
+        hannes@cmpxchg.org, nglaive@gmail.com
+Subject:  + memcg-charge-fs_context-and-legacy_fs_context.patch added
  to -mm tree
-Message-ID: <20210720230209.JBAUW%akpm@linux-foundation.org>
+Message-ID: <20210720231753.bvWUx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap: convert from atomic_t to refcount_t on anon_vma->refcount
+     Subject: memcg: charge fs_context and legacy_fs_context
 has been added to the -mm tree.  Its filename is
-     mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
+     memcg-charge-fs_context-and-legacy_fs_context.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-charge-fs_context-and-legacy_fs_context.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-charge-fs_context-and-legacy_fs_context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,136 +65,109 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Subject: mm/rmap: convert from atomic_t to refcount_t on anon_vma->refcount
+From: Yutian Yang <nglaive@gmail.com>
+Subject: memcg: charge fs_context and legacy_fs_context
 
-refcount_t type and corresponding API can protect refcounters from
-accidental underflow and overflow and further use-after-free situations.
+This patch adds accounting flags to fs_context and legacy_fs_context
+allocation sites so that kernel could correctly charge these objects.
 
-Link: https://lkml.kernel.org/r/1626665029-49104-1-git-send-email-xiyuyang19@fudan.edu.cn
-Signed-off-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Signed-off-by: Xin Tan <tanxin.ctf@gmail.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: <yuanxzhang@fudan.edu.cn>
-Cc: Xin Tan <tanxin.ctf@gmail.com>
+We have written a PoC to demonstrate the effect of the missing-charging
+bugs.  The PoC takes around 1,200MB unaccounted memory, while it is
+charged for only 362MB memory usage.  We evaluate the PoC on QEMU x86_64
+v5.2.90 + Linux kernel v5.10.19 + Debian buster.  All the limitations
+including ulimits and sysctl variables are set as default.  Specifically,
+the hard NOFILE limit and nr_open in sysctl are both 1,048,576.
+
+/*------------------------- POC code ----------------------------*/
+
+#define _GNU_SOURCE
+#include <sys/types.h>
+#include <sys/file.h>
+#include <time.h>
+#include <sys/wait.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <signal.h>
+#include <sched.h>
+#include <fcntl.h>
+#include <linux/mount.h>
+
+#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \
+                        } while (0)
+
+#define STACK_SIZE (8 * 1024)
+#ifndef __NR_fsopen
+#define __NR_fsopen 430
+#endif
+static inline int fsopen(const char *fs_name, unsigned int flags)
+{
+        return syscall(__NR_fsopen, fs_name, flags);
+}
+
+static char thread_stack[512][STACK_SIZE];
+
+int thread_fn(void* arg)
+{
+  for (int i = 0; i< 800000; ++i) {
+    int fsfd = fsopen("nfs", FSOPEN_CLOEXEC);
+    if (fsfd == -1) {
+      errExit("fsopen");
+    }
+  }
+  while(1);
+  return 0;
+}
+
+int main(int argc, char *argv[]) {
+  int thread_pid;
+  for (int i = 0; i < 1; ++i) {
+    thread_pid = clone(thread_fn, thread_stack[i] + STACK_SIZE, \
+      SIGCHLD, NULL);
+  }
+  while(1);
+  return 0;
+}
+
+/*-------------------------- end --------------------------------*/
+
+Link: https://lkml.kernel.org/r/1626517201-24086-1-git-send-email-nglaive@gmail.com
+Signed-off-by: Yutian Yang <nglaive@gmail.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: <shenwenbo@zju.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    8 +++++---
- mm/rmap.c            |   14 +++++++-------
- 2 files changed, 12 insertions(+), 10 deletions(-)
+ fs/fs_context.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/rmap.h~mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount
-+++ a/include/linux/rmap.h
-@@ -12,6 +12,8 @@
- #include <linux/memcontrol.h>
- #include <linux/highmem.h>
+--- a/fs/fs_context.c~memcg-charge-fs_context-and-legacy_fs_context
++++ a/fs/fs_context.c
+@@ -254,7 +254,7 @@ static struct fs_context *alloc_fs_conte
+ 	struct fs_context *fc;
+ 	int ret = -ENOMEM;
  
-+#include <linux/refcount.h>
-+
- /*
-  * The anon_vma heads a list of private "related" vmas, to scan if
-  * an anonymous page pointing to this anon_vma needs to be unmapped:
-@@ -36,7 +38,7 @@ struct anon_vma {
- 	 * the reference is responsible for clearing up the
- 	 * anon_vma if they are the last user on release
- 	 */
--	atomic_t refcount;
-+	refcount_t refcount;
+-	fc = kzalloc(sizeof(struct fs_context), GFP_KERNEL);
++	fc = kzalloc(sizeof(struct fs_context), GFP_KERNEL_ACCOUNT);
+ 	if (!fc)
+ 		return ERR_PTR(-ENOMEM);
  
- 	/*
- 	 * Count of child anon_vmas and VMAs which points to this anon_vma.
-@@ -100,14 +102,14 @@ enum ttu_flags {
- #ifdef CONFIG_MMU
- static inline void get_anon_vma(struct anon_vma *anon_vma)
+@@ -649,7 +649,7 @@ const struct fs_context_operations legac
+  */
+ static int legacy_init_fs_context(struct fs_context *fc)
  {
--	atomic_inc(&anon_vma->refcount);
-+	refcount_inc(&anon_vma->refcount);
- }
- 
- void __put_anon_vma(struct anon_vma *anon_vma);
- 
- static inline void put_anon_vma(struct anon_vma *anon_vma)
- {
--	if (atomic_dec_and_test(&anon_vma->refcount))
-+	if (refcount_dec_and_test(&anon_vma->refcount))
- 		__put_anon_vma(anon_vma);
- }
- 
---- a/mm/rmap.c~mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount
-+++ a/mm/rmap.c
-@@ -88,7 +88,7 @@ static inline struct anon_vma *anon_vma_
- 
- 	anon_vma = kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
- 	if (anon_vma) {
--		atomic_set(&anon_vma->refcount, 1);
-+		refcount_set(&anon_vma->refcount, 1);
- 		anon_vma->degree = 1;	/* Reference for first vma */
- 		anon_vma->parent = anon_vma;
- 		/*
-@@ -103,7 +103,7 @@ static inline struct anon_vma *anon_vma_
- 
- static inline void anon_vma_free(struct anon_vma *anon_vma)
- {
--	VM_BUG_ON(atomic_read(&anon_vma->refcount));
-+	VM_BUG_ON(refcount_read(&anon_vma->refcount));
- 
- 	/*
- 	 * Synchronize against page_lock_anon_vma_read() such that
-@@ -445,7 +445,7 @@ static void anon_vma_ctor(void *data)
- 	struct anon_vma *anon_vma = data;
- 
- 	init_rwsem(&anon_vma->rwsem);
--	atomic_set(&anon_vma->refcount, 0);
-+	refcount_set(&anon_vma->refcount, 0);
- 	anon_vma->rb_root = RB_ROOT_CACHED;
- }
- 
-@@ -495,7 +495,7 @@ struct anon_vma *page_get_anon_vma(struc
- 		goto out;
- 
- 	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
--	if (!atomic_inc_not_zero(&anon_vma->refcount)) {
-+	if (!refcount_inc_not_zero(&anon_vma->refcount)) {
- 		anon_vma = NULL;
- 		goto out;
- 	}
-@@ -554,7 +554,7 @@ struct anon_vma *page_lock_anon_vma_read
- 	}
- 
- 	/* trylock failed, we got to sleep */
--	if (!atomic_inc_not_zero(&anon_vma->refcount)) {
-+	if (!refcount_inc_not_zero(&anon_vma->refcount)) {
- 		anon_vma = NULL;
- 		goto out;
- 	}
-@@ -569,7 +569,7 @@ struct anon_vma *page_lock_anon_vma_read
- 	rcu_read_unlock();
- 	anon_vma_lock_read(anon_vma);
- 
--	if (atomic_dec_and_test(&anon_vma->refcount)) {
-+	if (refcount_dec_and_test(&anon_vma->refcount)) {
- 		/*
- 		 * Oops, we held the last refcount, release the lock
- 		 * and bail -- can't simply use put_anon_vma() because
-@@ -2221,7 +2221,7 @@ void __put_anon_vma(struct anon_vma *ano
- 	struct anon_vma *root = anon_vma->root;
- 
- 	anon_vma_free(anon_vma);
--	if (root != anon_vma && atomic_dec_and_test(&root->refcount))
-+	if (root != anon_vma && refcount_dec_and_test(&root->refcount))
- 		anon_vma_free(root);
- }
- 
+-	fc->fs_private = kzalloc(sizeof(struct legacy_fs_context), GFP_KERNEL);
++	fc->fs_private = kzalloc(sizeof(struct legacy_fs_context), GFP_KERNEL_ACCOUNT);
+ 	if (!fc->fs_private)
+ 		return -ENOMEM;
+ 	fc->ops = &legacy_fs_context_ops;
 _
 
-Patches currently in -mm which might be from xiyuyang19@fudan.edu.cn are
+Patches currently in -mm which might be from nglaive@gmail.com are
 
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch
-mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
+memcg-charge-fs_context-and-legacy_fs_context.patch
 
