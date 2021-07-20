@@ -7,41 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB89AC07E95
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 20:13:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4956C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 21:10:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D15B36044F
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 20:13:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9B40F60C41
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 21:10:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231189AbhGTTbo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jul 2021 15:31:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53668 "EHLO mail.kernel.org"
+        id S232035AbhGTU3j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 16:29:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55954 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230030AbhGTT2M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Jul 2021 15:28:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A4A346100C;
-        Tue, 20 Jul 2021 20:08:14 +0000 (UTC)
+        id S236079AbhGTUVi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Jul 2021 16:21:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 141E86108B;
+        Tue, 20 Jul 2021 21:02:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626811695;
-        bh=bdiG+ojY9JW2vQirNOFO83K7owGO/8DR4bpQlqmmFLw=;
+        s=korg; t=1626814935;
+        bh=8QZxs7rlpw27x6WL4x40BQ//3dAPDUtbU+KLoOvcvDI=;
         h=Date:From:To:Subject:From;
-        b=Ou1SRcBi2ymsyKBCuuWN48QLDpd9NVLxsFYRj1GI3SZoQbKW/9qlyl7X0vhkz74ux
-         kdwmthdntH9FqvcqcSBAQqrQes3XuAe+riyhXzHDH+j8fZbrQuksLa2ogAD2sjilHv
-         s3B9gdmggybd/plq/c5abO0wt395qw/aiiF6L6TE=
-Date:   Tue, 20 Jul 2021 13:08:14 -0700
+        b=YEfUoP0r0gAeXFBpLdyxRubG+1JZG4RweyRFL3gUOoZIk98FAMi6pYXBRXv765nAK
+         QC9b+GjlemEnLvK0RfoC52B8KpCm3AKAkxmiCM9CWnHtK1qGEAqPR5NdH2rgJy3xcm
+         VJ7c5jisBdYHnmKTuUiYPJU/CUS1xRGLYlooArA8=
+Date:   Tue, 20 Jul 2021 14:02:14 -0700
 From:   akpm@linux-foundation.org
-To:     alexs@kernel.org, dalias@libc.org, deanbo422@gmail.com,
-        deller@gmx.de, geoff@infradead.org, green.hu@gmail.com,
-        guoren@kernel.org, hch@lst.de,
-        James.Bottomley@HansenPartnership.com, linux@armlinux.org.uk,
-        mm-commits@vger.kernel.org, nickhu@andestech.com,
-        paul@crapouillou.net, torvalds@linux-foundation.org,
-        tsbogend@alpha.franken.de, ulf.hansson@linaro.org,
-        ysato@users.osdn.me
-Subject:  [merged] aacraid-remove-an-unused-include.patch removed
- from -mm tree
-Message-ID: <20210720200814.eKSEjGl3U%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     mm-commits@vger.kernel.org, lkp@intel.com, adobriyan@gmail.com
+Subject:  [folded-merged]
+ decouple-build-from-userspace-headers-fix.patch removed from -mm tree
+Message-ID: <20210720210214.kIgBc%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,61 +42,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aacraid: remove an unused include
+     Subject: fixup "Decouple build from userspace headers"
 has been removed from the -mm tree.  Its filename was
-     aacraid-remove-an-unused-include.patch
+     decouple-build-from-userspace-headers-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into decouple-build-from-userspace-headers.patch
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: aacraid: remove an unused include
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: fixup "Decouple build from userspace headers"
 
-flush_kernel_dcache_page is not used by aacraid, and this header already
-comes in through the scatterlist/block headers anyway.
+Allow to find SIMD headers where necessary.
 
-Link: https://lkml.kernel.org/r/20210712060928.4161649-6-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Geoff Levand <geoff@infradead.org>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Paul Cercueil <paul@crapouillou.net>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Vincent Chen <deanbo422@gmail.com>
-Cc: Yoshinori Sato <ysato@users.osdn.me>
+Link: https://lkml.kernel.org/r/YPClYgoJOTUn4V0w@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/aacraid/aachba.c |    1 -
- 1 file changed, 1 deletion(-)
+ arch/arm64/lib/Makefile   |    2 +-
+ arch/powerpc/lib/Makefile |    2 +-
+ lib/raid6/Makefile        |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/drivers/scsi/aacraid/aachba.c~aacraid-remove-an-unused-include
-+++ a/drivers/scsi/aacraid/aachba.c
-@@ -25,7 +25,6 @@
- #include <linux/completion.h>
- #include <linux/blkdev.h>
- #include <linux/uaccess.h>
--#include <linux/highmem.h> /* For flush_kernel_dcache_page */
- #include <linux/module.h>
+--- a/arch/arm64/lib/Makefile~decouple-build-from-userspace-headers-fix
++++ a/arch/arm64/lib/Makefile
+@@ -8,7 +8,7 @@ lib-y		:= clear_user.o delay.o copy_from
+ ifeq ($(CONFIG_KERNEL_MODE_NEON), y)
+ obj-$(CONFIG_XOR_BLOCKS)	+= xor-neon.o
+ CFLAGS_REMOVE_xor-neon.o	+= -mgeneral-regs-only
+-CFLAGS_xor-neon.o		+= -ffreestanding
++CFLAGS_xor-neon.o		+= -ffreestanding -isystem $(shell $(CC) -print-file-name=include)
+ endif
  
- #include <asm/unaligned.h>
+ lib-$(CONFIG_ARCH_HAS_UACCESS_FLUSHCACHE) += uaccess_flushcache.o
+--- a/arch/powerpc/lib/Makefile~decouple-build-from-userspace-headers-fix
++++ a/arch/powerpc/lib/Makefile
+@@ -64,6 +64,6 @@ obj-$(CONFIG_PPC_LIB_RHEAP) += rheap.o
+ obj-$(CONFIG_FTR_FIXUP_SELFTEST) += feature-fixups-test.o
+ 
+ obj-$(CONFIG_ALTIVEC)	+= xor_vmx.o xor_vmx_glue.o
+-CFLAGS_xor_vmx.o += -maltivec $(call cc-option,-mabi=altivec)
++CFLAGS_xor_vmx.o += -maltivec $(call cc-option,-mabi=altivec) -isystem $(shell $(CC) -print-file-name=include)
+ 
+ obj-$(CONFIG_PPC64) += $(obj64-y)
+--- a/lib/raid6/Makefile~decouple-build-from-userspace-headers-fix
++++ a/lib/raid6/Makefile
+@@ -13,7 +13,7 @@ raid6_pq-$(CONFIG_S390) += s390vx8.o rec
+ hostprogs	+= mktables
+ 
+ ifeq ($(CONFIG_ALTIVEC),y)
+-altivec_flags := -maltivec $(call cc-option,-mabi=altivec)
++altivec_flags := -maltivec $(call cc-option,-mabi=altivec) -isystem $(shell $(CC) -print-file-name=include)
+ 
+ ifdef CONFIG_CC_IS_CLANG
+ # clang ppc port does not yet support -maltivec when -msoft-float is
+@@ -33,7 +33,7 @@ endif
+ # The GCC option -ffreestanding is required in order to compile code containing
+ # ARM/NEON intrinsics in a non C99-compliant environment (such as the kernel)
+ ifeq ($(CONFIG_KERNEL_MODE_NEON),y)
+-NEON_FLAGS := -ffreestanding
++NEON_FLAGS := -ffreestanding -isystem $(shell $(CC) -print-file-name=include)
+ ifeq ($(ARCH),arm)
+ NEON_FLAGS += -march=armv7-a -mfloat-abi=softfp -mfpu=neon
+ endif
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-call-flush_dcache_page-in-memcpy_to_page-and-memzero_page.patch
-mm-use-kmap_local_page-in-memzero_page.patch
-mmc-jz4740-remove-the-flush_kernel_dcache_page-call-in-jz4740_mmc_read_data.patch
-mmc-mmc_spi-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
-ps3disk-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
-scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
-mm-remove-flush_kernel_dcache_page.patch
+decouple-build-from-userspace-headers.patch
 
