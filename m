@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 321D9C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:47:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E8FEC636C8
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:03:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FC896101E
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:47:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E4ABF60FF1
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 23:03:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229946AbhGTWGh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jul 2021 18:06:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35422 "EHLO mail.kernel.org"
+        id S231781AbhGTWWi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 18:22:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38218 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229909AbhGTWGg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Jul 2021 18:06:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1FED2608FE;
-        Tue, 20 Jul 2021 22:47:13 +0000 (UTC)
+        id S231403AbhGTWVg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Jul 2021 18:21:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 14BC360FE7;
+        Tue, 20 Jul 2021 23:02:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626821233;
-        bh=9JeuQSmx1P4gPNs16W8cXfPX3PEYB0kZHaexOl0Ve+U=;
+        s=korg; t=1626822130;
+        bh=iPc8/mQ+Qw9C6ouXW/qLi25xJ4hO96y9u8dQogCeHKE=;
         h=Date:From:To:Subject:From;
-        b=olC5Dk55mxUJhHmJ96KDlrClFM9cRDkRVvKjb7jvk4oMmrvkkmEPf5QjXsFPXlr3i
-         15gNklwLDKFSFv6AcBKqVCTBfepYNchAsZVCVVCvbQwmawRJNObFc8pwpxBbPJdqMK
-         nR5ceVrE1xTWw+v20c3RMYjqLBSDF/i3zYR98gtE=
-Date:   Tue, 20 Jul 2021 15:47:12 -0700
+        b=RdHgdfetJ0Pasz9n5WLzsYnB7jnKSRIjUeqpj3l4pgIDfeCBTrSWoOGfSq890JOJS
+         fc5DKwYms83vjaZ7EWAyJIcKHqC/WHElHvIViij5+OssVcmLvdViIH6fVLBtx2Xpms
+         kJy6XRXkcxYFBVsWigdVLpQIITL5AGmn2x5sg/j0=
+Date:   Tue, 20 Jul 2021 16:02:09 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        feng.tang@intel.com
+To:     mm-commits@vger.kernel.org, yuanxzhang@fudan.edu.cn,
+        tanxin.ctf@gmail.com, shy828301@gmail.com, shakeelb@google.com,
+        linmiaohe@huawei.com, hughd@google.com, apopple@nvidia.com,
+        xiyuyang19@fudan.edu.cn
 Subject:  +
- mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix-2.patch added to
- -mm tree
-Message-ID: <20210720224712.UwPHu%akpm@linux-foundation.org>
+ mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch added
+ to -mm tree
+Message-ID: <20210720230209.JBAUW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix compile warning for !CONFIG_NUMA build
+     Subject: mm/rmap: convert from atomic_t to refcount_t on anon_vma->refcount
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix-2.patch
+     mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix-2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix-2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,46 +67,136 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Feng Tang <feng.tang@intel.com>
-Subject: mm/hugetlb: fix compile warning for !CONFIG_NUMA build
+From: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Subject: mm/rmap: convert from atomic_t to refcount_t on anon_vma->refcount
 
-Stephen Rothwell reported the i386 build with CONFIG_NUMA=n will have a
-warning:
+refcount_t type and corresponding API can protect refcounters from
+accidental underflow and overflow and further use-after-free situations.
 
-mm/hugetlb.c: In function 'dequeue_huge_page_vma':
-mm/hugetlb.c:1180:1: warning: label 'check_reserve' defined but not used [-Wunused-label]
- 1180 | check_reserve:
-       | ^~~~~~~~~~~~~
-
-introduced by commit
-    df178183cf05 ("mm/hugetlb: add support for mempolicy MPOL_PREFERRED_MANY")
-
-Link: https://lkml.kernel.org/r/20210719084752.GA51285@shbuild999.sh.intel.com
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/1626665029-49104-1-git-send-email-xiyuyang19@fudan.edu.cn
+Signed-off-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Signed-off-by: Xin Tan <tanxin.ctf@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: <yuanxzhang@fudan.edu.cn>
+Cc: Xin Tan <tanxin.ctf@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/rmap.h |    8 +++++---
+ mm/rmap.c            |   14 +++++++-------
+ 2 files changed, 12 insertions(+), 10 deletions(-)
 
---- a/mm/hugetlb.c~mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix-2
-+++ a/mm/hugetlb.c
-@@ -1177,7 +1177,9 @@ static struct page *dequeue_huge_page_vm
- #endif
- 	page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
+--- a/include/linux/rmap.h~mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount
++++ a/include/linux/rmap.h
+@@ -12,6 +12,8 @@
+ #include <linux/memcontrol.h>
+ #include <linux/highmem.h>
  
-+#ifdef CONFIG_NUMA
- check_reserve:
-+#endif
- 	if (page && !avoid_reserve && vma_has_reserves(vma, chg)) {
- 		SetHPageRestoreReserve(page);
- 		h->resv_huge_pages--;
++#include <linux/refcount.h>
++
+ /*
+  * The anon_vma heads a list of private "related" vmas, to scan if
+  * an anonymous page pointing to this anon_vma needs to be unmapped:
+@@ -36,7 +38,7 @@ struct anon_vma {
+ 	 * the reference is responsible for clearing up the
+ 	 * anon_vma if they are the last user on release
+ 	 */
+-	atomic_t refcount;
++	refcount_t refcount;
+ 
+ 	/*
+ 	 * Count of child anon_vmas and VMAs which points to this anon_vma.
+@@ -100,14 +102,14 @@ enum ttu_flags {
+ #ifdef CONFIG_MMU
+ static inline void get_anon_vma(struct anon_vma *anon_vma)
+ {
+-	atomic_inc(&anon_vma->refcount);
++	refcount_inc(&anon_vma->refcount);
+ }
+ 
+ void __put_anon_vma(struct anon_vma *anon_vma);
+ 
+ static inline void put_anon_vma(struct anon_vma *anon_vma)
+ {
+-	if (atomic_dec_and_test(&anon_vma->refcount))
++	if (refcount_dec_and_test(&anon_vma->refcount))
+ 		__put_anon_vma(anon_vma);
+ }
+ 
+--- a/mm/rmap.c~mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount
++++ a/mm/rmap.c
+@@ -88,7 +88,7 @@ static inline struct anon_vma *anon_vma_
+ 
+ 	anon_vma = kmem_cache_alloc(anon_vma_cachep, GFP_KERNEL);
+ 	if (anon_vma) {
+-		atomic_set(&anon_vma->refcount, 1);
++		refcount_set(&anon_vma->refcount, 1);
+ 		anon_vma->degree = 1;	/* Reference for first vma */
+ 		anon_vma->parent = anon_vma;
+ 		/*
+@@ -103,7 +103,7 @@ static inline struct anon_vma *anon_vma_
+ 
+ static inline void anon_vma_free(struct anon_vma *anon_vma)
+ {
+-	VM_BUG_ON(atomic_read(&anon_vma->refcount));
++	VM_BUG_ON(refcount_read(&anon_vma->refcount));
+ 
+ 	/*
+ 	 * Synchronize against page_lock_anon_vma_read() such that
+@@ -445,7 +445,7 @@ static void anon_vma_ctor(void *data)
+ 	struct anon_vma *anon_vma = data;
+ 
+ 	init_rwsem(&anon_vma->rwsem);
+-	atomic_set(&anon_vma->refcount, 0);
++	refcount_set(&anon_vma->refcount, 0);
+ 	anon_vma->rb_root = RB_ROOT_CACHED;
+ }
+ 
+@@ -495,7 +495,7 @@ struct anon_vma *page_get_anon_vma(struc
+ 		goto out;
+ 
+ 	anon_vma = (struct anon_vma *) (anon_mapping - PAGE_MAPPING_ANON);
+-	if (!atomic_inc_not_zero(&anon_vma->refcount)) {
++	if (!refcount_inc_not_zero(&anon_vma->refcount)) {
+ 		anon_vma = NULL;
+ 		goto out;
+ 	}
+@@ -554,7 +554,7 @@ struct anon_vma *page_lock_anon_vma_read
+ 	}
+ 
+ 	/* trylock failed, we got to sleep */
+-	if (!atomic_inc_not_zero(&anon_vma->refcount)) {
++	if (!refcount_inc_not_zero(&anon_vma->refcount)) {
+ 		anon_vma = NULL;
+ 		goto out;
+ 	}
+@@ -569,7 +569,7 @@ struct anon_vma *page_lock_anon_vma_read
+ 	rcu_read_unlock();
+ 	anon_vma_lock_read(anon_vma);
+ 
+-	if (atomic_dec_and_test(&anon_vma->refcount)) {
++	if (refcount_dec_and_test(&anon_vma->refcount)) {
+ 		/*
+ 		 * Oops, we held the last refcount, release the lock
+ 		 * and bail -- can't simply use put_anon_vma() because
+@@ -2221,7 +2221,7 @@ void __put_anon_vma(struct anon_vma *ano
+ 	struct anon_vma *root = anon_vma->root;
+ 
+ 	anon_vma_free(anon_vma);
+-	if (root != anon_vma && atomic_dec_and_test(&root->refcount))
++	if (root != anon_vma && refcount_dec_and_test(&root->refcount))
+ 		anon_vma_free(root);
+ }
+ 
 _
 
-Patches currently in -mm which might be from feng.tang@intel.com are
+Patches currently in -mm which might be from xiyuyang19@fudan.edu.cn are
 
-mm-memplicy-add-page-allocation-function-for-mpol_preferred_many-policy.patch
-mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix-2.patch
-mm-mempolicy-unify-the-create-func-for-bind-interleave-prefer-many-policies.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch
+mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
 
