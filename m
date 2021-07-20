@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB21EC636C9
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:09:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 775B9C07E9B
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:09:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D377F61178
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:09:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5FB8261019
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:09:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231493AbhGTV3I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jul 2021 17:29:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49388 "EHLO mail.kernel.org"
+        id S231445AbhGTV3M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 17:29:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48878 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232068AbhGTV3D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Jul 2021 17:29:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 00BF961004;
-        Tue, 20 Jul 2021 22:09:32 +0000 (UTC)
+        id S229902AbhGTV2d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Jul 2021 17:28:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D405F61009;
+        Tue, 20 Jul 2021 22:09:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626818973;
-        bh=KRkVzyYFaXxy7pJ709evlle3qfuHowzdbhj6Y3+BOxU=;
+        s=korg; t=1626818951;
+        bh=12qJgZI8okyObm5ROivGo/H9RCJyqSPa7joY2VcrVEo=;
         h=Date:From:To:Subject:From;
-        b=fkmTIeGkiPJV3QqbqdGI/Cltth97WHFdchXpNrJhEClE+XvpTmyLpkSzbs8xakT/e
-         zZbYXqlwl3I6gh9El2IaOncehwJ34Ne+cXKzInlVUzkZdbMmOkWURm45ut7X3S30Fo
-         Ln6ENQMjwSxt846mYdPoQ/calx/ZofExeMFITNxo=
-Date:   Tue, 20 Jul 2021 15:09:32 -0700
+        b=VNEMd/GbkcUHLtRFfOjNtyRY0IOj+Sv0ugQVL/AUFtjfrxCu+L4Puyxgex7Gvcpzy
+         jE/Jg8m2IZBSCPA/PvJWXLjQo+/rbc9IYGUva4y7O9VGllj8Czb6o3kXYpl04Zo7Mt
+         G07s9N9GhBc9l8iyYZrUjsU6up6u4s53HTa1IQ/Q=
+Date:   Tue, 20 Jul 2021 15:09:10 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org, chuhu@redhat.com,
         catalin.marinas@arm.com, anshuman.khandual@arm.com,
         gshan@redhat.com
 Subject:  [to-be-updated]
- mm-vm_debug_pgtable-use-struct-vm_pgtable_debug-in-pud-modifying-tests.patch
- removed from -mm tree
-Message-ID: <20210720220932.JkqpV%akpm@linux-foundation.org>
+ mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-basic-tests.patch removed
+ from -mm tree
+Message-ID: <20210720220910.fsC1K%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,21 +45,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vm_debug_pgtable: use struct vm_pgtable_debug in PUD modifying tests
+     Subject: mm/debug_vm_pgtable: use struct vm_pgtable_debug in basic tests
 has been removed from the -mm tree.  Its filename was
-     mm-vm_debug_pgtable-use-struct-vm_pgtable_debug-in-pud-modifying-tests.patch
+     mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-basic-tests.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
-Subject: mm/vm_debug_pgtable: use struct vm_pgtable_debug in PUD modifying tests
+Subject: mm/debug_vm_pgtable: use struct vm_pgtable_debug in basic tests
 
-This uses struct vm_pgtable_debug in PUD modifying tests.  The allocated
-huge page is used when set_pud_at() is used.  The corresponding tests are
-skipped if the huge page doesn't exist.
+This uses struct vm_pgtable_debug in the basic test functions.  There are
+more cleanups applied:
 
-Link: https://lkml.kernel.org/r/20210706061748.161258-10-gshan@redhat.com
+   * Move hugetlb_basic_tests() so that the basic tests are treated
+     as a bundle.
+
+   * Drop parameters to {pgd, p4d}_basic_tests() as they're never
+     used.
+
+Link: https://lkml.kernel.org/r/20210706061748.161258-3-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -68,231 +73,187 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |  113 +++++++++++++++++-----------------------
- 1 file changed, 50 insertions(+), 63 deletions(-)
+ mm/debug_vm_pgtable.c |   47 +++++++++++++++++++---------------------
+ 1 file changed, 23 insertions(+), 24 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-vm_debug_pgtable-use-struct-vm_pgtable_debug-in-pud-modifying-tests
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-basic-tests
 +++ a/mm/debug_vm_pgtable.c
-@@ -338,55 +338,55 @@ static void __init pud_basic_tests(struc
- 	WARN_ON(!pud_bad(pud_mkhuge(pud)));
+@@ -88,10 +88,10 @@ struct vm_pgtable_debug {
+ 	unsigned long		fixed_pte_pfn;
+ };
+ 
+-static void __init pte_basic_tests(unsigned long pfn, int idx)
++static void __init pte_basic_tests(struct vm_pgtable_debug *debug, int idx)
+ {
+ 	pgprot_t prot = protection_map[idx];
+-	pte_t pte = pfn_pte(pfn, prot);
++	pte_t pte = pfn_pte(debug->fixed_pte_pfn, prot);
+ 	unsigned long val = idx, *ptr = &val;
+ 
+ 	pr_debug("Validating PTE basic (%pGv)\n", ptr);
+@@ -173,7 +173,7 @@ static void __init pte_savedwrite_tests(
  }
  
--static void __init pud_advanced_tests(struct mm_struct *mm,
--				      struct vm_area_struct *vma, pud_t *pudp,
--				      unsigned long pfn, unsigned long vaddr,
--				      pgprot_t prot)
-+static void __init pud_advanced_tests(struct vm_pgtable_debug *debug)
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static void __init pmd_basic_tests(unsigned long pfn, int idx)
++static void __init pmd_basic_tests(struct vm_pgtable_debug *debug, int idx)
  {
-+	unsigned long vaddr = (debug->vaddr & HPAGE_PUD_MASK);
- 	pud_t pud;
- 
- 	if (!has_transparent_hugepage())
+ 	pgprot_t prot = protection_map[idx];
+ 	unsigned long val = idx, *ptr = &val;
+@@ -183,7 +183,7 @@ static void __init pmd_basic_tests(unsig
  		return;
  
- 	pr_debug("Validating PUD advanced\n");
--	/* Align the address wrt HPAGE_PUD_SIZE */
--	vaddr &= HPAGE_PUD_MASK;
-+	if (debug->pud_pfn == ULONG_MAX) {
-+		pr_debug("%s: Skipped\n", __func__);
-+		return;
-+	}
+ 	pr_debug("Validating PMD basic (%pGv)\n", ptr);
+-	pmd = pfn_pmd(pfn, prot);
++	pmd = pfn_pmd(debug->fixed_pmd_pfn, prot);
  
--	pud = pfn_pud(pfn, prot);
--	set_pud_at(mm, vaddr, pudp, pud);
--	pudp_set_wrprotect(mm, vaddr, pudp);
--	pud = READ_ONCE(*pudp);
-+	pud = pfn_pud(debug->pud_pfn, debug->page_prot);
-+	set_pud_at(debug->mm, vaddr, debug->pudp, pud);
-+	pudp_set_wrprotect(debug->mm, vaddr, debug->pudp);
-+	pud = READ_ONCE(*(debug->pudp));
- 	WARN_ON(pud_write(pud));
- 
- #ifndef __PAGETABLE_PMD_FOLDED
--	pudp_huge_get_and_clear(mm, vaddr, pudp);
--	pud = READ_ONCE(*pudp);
-+	pudp_huge_get_and_clear(debug->mm, vaddr, debug->pudp);
-+	pud = READ_ONCE(*(debug->pudp));
- 	WARN_ON(!pud_none(pud));
- #endif /* __PAGETABLE_PMD_FOLDED */
--	pud = pfn_pud(pfn, prot);
-+	pud = pfn_pud(debug->pud_pfn, debug->page_prot);
- 	pud = pud_wrprotect(pud);
- 	pud = pud_mkclean(pud);
--	set_pud_at(mm, vaddr, pudp, pud);
-+	set_pud_at(debug->mm, vaddr, debug->pudp, pud);
- 	pud = pud_mkwrite(pud);
- 	pud = pud_mkdirty(pud);
--	pudp_set_access_flags(vma, vaddr, pudp, pud, 1);
--	pud = READ_ONCE(*pudp);
-+	pudp_set_access_flags(debug->vma, vaddr, debug->pudp, pud, 1);
-+	pud = READ_ONCE(*(debug->pudp));
- 	WARN_ON(!(pud_write(pud) && pud_dirty(pud)));
- 
- #ifndef __PAGETABLE_PMD_FOLDED
--	pudp_huge_get_and_clear_full(mm, vaddr, pudp, 1);
--	pud = READ_ONCE(*pudp);
-+	pudp_huge_get_and_clear_full(debug->mm, vaddr, debug->pudp, 1);
-+	pud = READ_ONCE(*(debug->pudp));
- 	WARN_ON(!pud_none(pud));
- #endif /* __PAGETABLE_PMD_FOLDED */
- 
--	pud = pfn_pud(pfn, prot);
-+	pud = pfn_pud(debug->pud_pfn, debug->page_prot);
- 	pud = pud_mkyoung(pud);
--	set_pud_at(mm, vaddr, pudp, pud);
--	pudp_test_and_clear_young(vma, vaddr, pudp);
--	pud = READ_ONCE(*pudp);
-+	set_pud_at(debug->mm, vaddr, debug->pudp, pud);
-+	pudp_test_and_clear_young(debug->vma, vaddr, debug->pudp);
-+	pud = READ_ONCE(*(debug->pudp));
- 	WARN_ON(pud_young(pud));
- 
--	pudp_huge_get_and_clear(mm, vaddr, pudp);
-+	pudp_huge_get_and_clear(debug->mm, vaddr, debug->pudp);
+ 	/*
+ 	 * This test needs to be executed after the given page table entry
+@@ -295,7 +295,7 @@ static void __init pmd_savedwrite_tests(
  }
  
- static void __init pud_leaf_tests(struct vm_pgtable_debug *debug)
-@@ -406,24 +406,14 @@ static void __init pud_leaf_tests(struct
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+-static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int idx)
++static void __init pud_basic_tests(struct vm_pgtable_debug *debug, int idx)
+ {
+ 	pgprot_t prot = protection_map[idx];
+ 	unsigned long val = idx, *ptr = &val;
+@@ -305,7 +305,7 @@ static void __init pud_basic_tests(struc
+ 		return;
+ 
+ 	pr_debug("Validating PUD basic (%pGv)\n", ptr);
+-	pud = pfn_pud(pfn, prot);
++	pud = pfn_pud(debug->fixed_pud_pfn, prot);
+ 
+ 	/*
+ 	 * This test needs to be executed after the given page table entry
+@@ -326,7 +326,7 @@ static void __init pud_basic_tests(struc
+ 	WARN_ON(pud_dirty(pud_wrprotect(pud_mkclean(pud))));
+ 	WARN_ON(!pud_dirty(pud_wrprotect(pud_mkdirty(pud))));
+ 
+-	if (mm_pmd_folded(mm))
++	if (mm_pmd_folded(debug->mm))
+ 		return;
+ 
+ 	/*
+@@ -403,7 +403,7 @@ static void __init pud_leaf_tests(unsign
+ 	WARN_ON(!pud_leaf(pud));
  }
  #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- static void __init pud_basic_tests(struct vm_pgtable_debug *debug, int idx) { }
--static void __init pud_advanced_tests(struct mm_struct *mm,
--				      struct vm_area_struct *vma, pud_t *pudp,
--				      unsigned long pfn, unsigned long vaddr,
--				      pgprot_t prot)
--{
--}
-+static void __init pud_advanced_tests(struct vm_pgtable_debug *debug) { }
- static void __init pud_leaf_tests(struct vm_pgtable_debug *debug) { }
+-static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int idx) { }
++static void __init pud_basic_tests(struct vm_pgtable_debug *debug, int idx) { }
+ static void __init pud_advanced_tests(struct mm_struct *mm,
+ 				      struct vm_area_struct *vma, pud_t *pudp,
+ 				      unsigned long pfn, unsigned long vaddr,
+@@ -413,8 +413,8 @@ static void __init pud_advanced_tests(st
+ static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
  #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
  #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
- static void __init pmd_basic_tests(struct vm_pgtable_debug *debug, int idx) { }
- static void __init pud_basic_tests(struct vm_pgtable_debug *debug, int idx) { }
- static void __init pmd_advanced_tests(struct vm_pgtable_debug *debug) { }
--static void __init pud_advanced_tests(struct mm_struct *mm,
--				      struct vm_area_struct *vma, pud_t *pudp,
--				      unsigned long pfn, unsigned long vaddr,
--				      pgprot_t prot)
--{
--}
-+static void __init pud_advanced_tests(struct vm_pgtable_debug *debug) { }
- static void __init pmd_leaf_tests(struct vm_pgtable_debug *debug) { }
- static void __init pud_leaf_tests(struct vm_pgtable_debug *debug) { }
- static void __init pmd_savedwrite_tests(struct vm_pgtable_debug *debug) { }
-@@ -450,11 +440,11 @@ static void __init pmd_huge_tests(struct
- 	WARN_ON(!pmd_none(pmd));
- }
- 
--static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
-+static void __init pud_huge_tests(struct vm_pgtable_debug *debug)
- {
- 	pud_t pud;
- 
--	if (!arch_vmap_pud_supported(prot))
-+	if (!arch_vmap_pud_supported(debug->page_prot))
- 		return;
- 
- 	pr_debug("Validating PUD huge\n");
-@@ -462,15 +452,16 @@ static void __init pud_huge_tests(pud_t
- 	 * X86 defined pud_set_huge() verifies that the given
- 	 * PUD is not a populated non-leaf entry.
- 	 */
--	WRITE_ONCE(*pudp, __pud(0));
--	WARN_ON(!pud_set_huge(pudp, __pfn_to_phys(pfn), prot));
--	WARN_ON(!pud_clear_huge(pudp));
--	pud = READ_ONCE(*pudp);
-+	WRITE_ONCE(*(debug->pudp), __pud(0));
-+	WARN_ON(!pud_set_huge(debug->pudp, __pfn_to_phys(debug->fixed_pud_pfn),
-+			      debug->page_prot));
-+	WARN_ON(!pud_clear_huge(debug->pudp));
-+	pud = READ_ONCE(*(debug->pudp));
- 	WARN_ON(!pud_none(pud));
- }
- #else /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
- static void __init pmd_huge_tests(struct vm_pgtable_debug *debug) { }
--static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot) { }
-+static void __init pud_huge_tests(struct vm_pgtable_debug *debug) { }
+-static void __init pmd_basic_tests(unsigned long pfn, int idx) { }
+-static void __init pud_basic_tests(struct mm_struct *mm, unsigned long pfn, int idx) { }
++static void __init pmd_basic_tests(struct vm_pgtable_debug *debug, int idx) { }
++static void __init pud_basic_tests(struct vm_pgtable_debug *debug, int idx) { }
+ static void __init pmd_advanced_tests(struct mm_struct *mm,
+ 				      struct vm_area_struct *vma, pmd_t *pmdp,
+ 				      unsigned long pfn, unsigned long vaddr,
+@@ -475,7 +475,7 @@ static void __init pmd_huge_tests(pmd_t
+ static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot) { }
  #endif /* CONFIG_HAVE_ARCH_HUGE_VMAP */
  
- static void __init p4d_basic_tests(void)
-@@ -492,27 +483,26 @@ static void __init pgd_basic_tests(void)
+-static void __init p4d_basic_tests(unsigned long pfn, pgprot_t prot)
++static void __init p4d_basic_tests(void)
+ {
+ 	p4d_t p4d;
+ 
+@@ -484,7 +484,7 @@ static void __init p4d_basic_tests(unsig
+ 	WARN_ON(!p4d_same(p4d, p4d));
  }
  
- #ifndef __PAGETABLE_PUD_FOLDED
--static void __init pud_clear_tests(struct mm_struct *mm, pud_t *pudp)
-+static void __init pud_clear_tests(struct vm_pgtable_debug *debug)
+-static void __init pgd_basic_tests(unsigned long pfn, pgprot_t prot)
++static void __init pgd_basic_tests(void)
  {
--	pud_t pud = READ_ONCE(*pudp);
-+	pud_t pud = READ_ONCE(*(debug->pudp));
+ 	pgd_t pgd;
  
--	if (mm_pmd_folded(mm))
-+	if (mm_pmd_folded(debug->mm))
- 		return;
- 
- 	pr_debug("Validating PUD clear\n");
- 	pud = __pud(pud_val(pud) | RANDOM_ORVALUE);
--	WRITE_ONCE(*pudp, pud);
--	pud_clear(pudp);
--	pud = READ_ONCE(*pudp);
-+	WRITE_ONCE(*(debug->pudp), pud);
-+	pud_clear(debug->pudp);
-+	pud = READ_ONCE(*(debug->pudp));
- 	WARN_ON(!pud_none(pud));
+@@ -889,7 +889,7 @@ static void __init swap_migration_tests(
  }
  
--static void __init pud_populate_tests(struct mm_struct *mm, pud_t *pudp,
--				      pmd_t *pmdp)
-+static void __init pud_populate_tests(struct vm_pgtable_debug *debug)
+ #ifdef CONFIG_HUGETLB_PAGE
+-static void __init hugetlb_basic_tests(unsigned long pfn, pgprot_t prot)
++static void __init hugetlb_basic_tests(struct vm_pgtable_debug *debug)
  {
- 	pud_t pud;
- 
--	if (mm_pmd_folded(mm))
-+	if (mm_pmd_folded(debug->mm))
- 		return;
- 
- 	pr_debug("Validating PUD populate\n");
-@@ -520,16 +510,13 @@ static void __init pud_populate_tests(st
- 	 * This entry points to next level page table page.
- 	 * Hence this must not qualify as pud_bad().
+ 	struct page *page;
+ 	pte_t pte;
+@@ -899,21 +899,21 @@ static void __init hugetlb_basic_tests(u
+ 	 * Accessing the page associated with the pfn is safe here,
+ 	 * as it was previously derived from a real kernel symbol.
  	 */
--	pud_populate(mm, pudp, pmdp);
--	pud = READ_ONCE(*pudp);
-+	pud_populate(debug->mm, debug->pudp, debug->start_pmdp);
-+	pud = READ_ONCE(*(debug->pudp));
- 	WARN_ON(pud_bad(pud));
+-	page = pfn_to_page(pfn);
+-	pte = mk_huge_pte(page, prot);
++	page = pfn_to_page(debug->fixed_pmd_pfn);
++	pte = mk_huge_pte(page, debug->page_prot);
+ 
+ 	WARN_ON(!huge_pte_dirty(huge_pte_mkdirty(pte)));
+ 	WARN_ON(!huge_pte_write(huge_pte_mkwrite(huge_pte_wrprotect(pte))));
+ 	WARN_ON(huge_pte_write(huge_pte_wrprotect(huge_pte_mkwrite(pte))));
+ 
+ #ifdef CONFIG_ARCH_WANT_GENERAL_HUGETLB
+-	pte = pfn_pte(pfn, prot);
++	pte = pfn_pte(debug->fixed_pmd_pfn, debug->page_prot);
+ 
+ 	WARN_ON(!pte_huge(pte_mkhuge(pte)));
+ #endif /* CONFIG_ARCH_WANT_GENERAL_HUGETLB */
  }
- #else  /* !__PAGETABLE_PUD_FOLDED */
--static void __init pud_clear_tests(struct mm_struct *mm, pud_t *pudp) { }
--static void __init pud_populate_tests(struct mm_struct *mm, pud_t *pudp,
--				      pmd_t *pmdp)
--{
--}
-+static void __init pud_clear_tests(struct vm_pgtable_debug *debug) { }
-+static void __init pud_populate_tests(struct vm_pgtable_debug *debug) { }
- #endif /* PAGETABLE_PUD_FOLDED */
+ #else  /* !CONFIG_HUGETLB_PAGE */
+-static void __init hugetlb_basic_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init hugetlb_basic_tests(struct vm_pgtable_debug *debug) { }
+ #endif /* CONFIG_HUGETLB_PAGE */
  
- #ifndef __PAGETABLE_P4D_FOLDED
-@@ -1306,11 +1293,11 @@ static int __init debug_vm_pgtable(void)
- 	pmd_populate_tests(&debug);
- 	spin_unlock(ptl);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+@@ -1248,9 +1248,9 @@ static int __init debug_vm_pgtable(void)
+ 	 * given page table entry.
+ 	 */
+ 	for (idx = 0; idx < ARRAY_SIZE(protection_map); idx++) {
+-		pte_basic_tests(pte_aligned, idx);
+-		pmd_basic_tests(pmd_aligned, idx);
+-		pud_basic_tests(mm, pud_aligned, idx);
++		pte_basic_tests(&debug, idx);
++		pmd_basic_tests(&debug, idx);
++		pud_basic_tests(&debug, idx);
+ 	}
  
--	ptl = pud_lock(mm, pudp);
--	pud_clear_tests(mm, pudp);
--	pud_advanced_tests(mm, vma, pudp, pud_aligned, vaddr, prot);
--	pud_huge_tests(pudp, pud_aligned, prot);
--	pud_populate_tests(mm, pudp, saved_pmdp);
-+	ptl = pud_lock(debug.mm, debug.pudp);
-+	pud_clear_tests(&debug);
-+	pud_advanced_tests(&debug);
-+	pud_huge_tests(&debug);
-+	pud_populate_tests(&debug);
- 	spin_unlock(ptl);
+ 	/*
+@@ -1260,8 +1260,9 @@ static int __init debug_vm_pgtable(void)
+ 	 * the above iteration for now to save some test execution
+ 	 * time.
+ 	 */
+-	p4d_basic_tests(p4d_aligned, prot);
+-	pgd_basic_tests(pgd_aligned, prot);
++	p4d_basic_tests();
++	pgd_basic_tests();
++	hugetlb_basic_tests(&debug);
  
- 	spin_lock(&mm->page_table_lock);
+ 	pmd_leaf_tests(pmd_aligned, prot);
+ 	pud_leaf_tests(pud_aligned, prot);
+@@ -1290,8 +1291,6 @@ static int __init debug_vm_pgtable(void)
+ 	pmd_thp_tests(pmd_aligned, prot);
+ 	pud_thp_tests(pud_aligned, prot);
+ 
+-	hugetlb_basic_tests(pte_aligned, prot);
+-
+ 	/*
+ 	 * Page table modifying tests. They need to hold
+ 	 * proper page table lock.
 _
 
 Patches currently in -mm which might be from gshan@redhat.com are
 
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-leaf-and-savewrite-tests.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-protnone-and-devmap-tests.patch
+mm-vm_debug_pgtable-use-struct-vm_pgtable_debug-in-soft_dirty-and-swap-tests.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-migration-and-thp-tests.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pte-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pmd-modifying-tests.patch
+mm-vm_debug_pgtable-use-struct-vm_pgtable_debug-in-pud-modifying-tests.patch
 mm-debug_vm_pgtable-use-struct-vm_pgtable_debug-in-pgd-and-p4d-modifying-tests.patch
 mm-debug_vm_pgtable-remove-unused-code.patch
 mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
