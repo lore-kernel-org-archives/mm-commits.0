@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44F00C07E9B
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:37:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 628FEC07E9B
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:39:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 21CDE611CE
-	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:37:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3FB1560D07
+	for <mm-commits@archiver.kernel.org>; Tue, 20 Jul 2021 22:39:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229630AbhGTV4c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 20 Jul 2021 17:56:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56878 "EHLO mail.kernel.org"
+        id S229875AbhGTV6z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 20 Jul 2021 17:58:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229604AbhGTV4c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 20 Jul 2021 17:56:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4345D61178;
-        Tue, 20 Jul 2021 22:37:09 +0000 (UTC)
+        id S229604AbhGTV6y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 20 Jul 2021 17:58:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0158E60725;
+        Tue, 20 Jul 2021 22:39:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626820630;
-        bh=BjezZeGZwzUGEJIhZSIo8da90YW8EcnAmpVXD9gKpHw=;
+        s=korg; t=1626820770;
+        bh=Ztx/RvdbqudXQ5Ph1z0T7NEYqPO+yinWZ93eDn4Erh4=;
         h=Date:From:To:Subject:From;
-        b=wIGdV1+K1Vk3RyRBmJJJbc3d67nS40jMybNLJtS7eDP0L4e4qMVKtscf08LPZqtN+
-         34qsdNZLGPCMqOycJ+NKb8U3aFZoV+Ca4h7n+XuAF9y2r2lDIa8yLgQ/mW48AVjI2p
-         x01Rcy9z6ejMaBmGzk76F+WMm/+1hgQphtBhtJLc=
-Date:   Tue, 20 Jul 2021 15:37:08 -0700
+        b=tm33Z2x+b9Cxwb6848PQEUqwkcx9tFAgrdg5nJXeQP7MP870WJ/GRdSwIbq9N90Yr
+         iSUqK2pNnyW0w3FajajEnIxsvgManCogMs4Dipv8O8eZQQkIkN7m9SeE2UhtzahN0d
+         cfGVmshd35HvOkNOdwaRH+Trsx3wUFoyalXTJds8=
+Date:   Tue, 20 Jul 2021 15:39:29 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, shy828301@gmail.com,
-        pbonzini@redhat.com, mhocko@suse.com, mgorman@suse.de,
-        kirill.shutemov@linux.intel.com, hughd@google.com,
-        hca@linux.ibm.com, gor@linux.ibm.com,
-        gerald.schaefer@linux.ibm.com, dan.carpenter@oracle.com,
-        borntraeger@de.ibm.com, aarcange@redhat.com, ying.huang@intel.com
+To:     mm-commits@vger.kernel.org, yanfei.xu@windriver.com,
+        tanxin.ctf@gmail.com, songmuchun@bytedance.com,
+        mike.kravetz@oracle.com, feng.tang@intel.com,
+        ben.widawsky@intel.com, xiyuyang19@fudan.edu.cn
 Subject:  +
- mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch added to
- -mm tree
-Message-ID: <20210720223708.V45O2%akpm@linux-foundation.org>
+ mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch
+ added to -mm tree
+Message-ID: <20210720223929.xzW3r%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,do_huge_pmd_numa_page: remove unnecessary TLB flushing code
+     Subject: mm/mempolicy: convert from atomic_t to refcount_t on mempolicy->refcnt
 has been added to the -mm tree.  Its filename is
-     mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
+     mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,85 +67,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm,do_huge_pmd_numa_page: remove unnecessary TLB flushing code
+From: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Subject: mm/mempolicy: convert from atomic_t to refcount_t on mempolicy->refcnt
 
-Before commit c5b5a3dd2c1f ("mm: thp: refactor NUMA fault handling"), the
-TLB flushing is done in do_huge_pmd_numa_page() itself via
-flush_tlb_range().
+refcount_t type and corresponding API can protect refcounters from
+accidental underflow and overflow and further use-after-free situations.
 
-But after commit c5b5a3dd2c1f ("mm: thp: refactor NUMA fault handling"),
-the TLB flushing is done in migrate_pages() as in the following code path
-anyway.
-
-do_huge_pmd_numa_page
-  migrate_misplaced_page
-    migrate_pages
-
-So now, the TLB flushing code in do_huge_pmd_numa_page() becomes
-unnecessary.  So the code is deleted in this patch to simplify the code. 
-This is only code cleanup, there's no visible performance difference.
-
-Link: https://lkml.kernel.org/r/20210720065529.716031-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
+Link: https://lkml.kernel.org/r/1626683671-64407-1-git-send-email-xiyuyang19@fudan.edu.cn
+Signed-off-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
+Signed-off-by: Xin Tan <tanxin.ctf@gmail.com>
+Acked-by: Ben Widawsky <ben.widawsky@intel.com>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Yanfei Xu <yanfei.xu@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   26 --------------------------
- 1 file changed, 26 deletions(-)
+ include/linux/mempolicy.h |    5 +++--
+ mm/mempolicy.c            |    8 ++++----
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/huge_memory.c~mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code
-+++ a/mm/huge_memory.c
-@@ -1440,32 +1440,6 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 		goto out;
- 	}
+--- a/include/linux/mempolicy.h~mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt
++++ a/include/linux/mempolicy.h
+@@ -6,6 +6,7 @@
+ #ifndef _LINUX_MEMPOLICY_H
+ #define _LINUX_MEMPOLICY_H 1
  
--	/*
--	 * Since we took the NUMA fault, we must have observed the !accessible
--	 * bit. Make sure all other CPUs agree with that, to avoid them
--	 * modifying the page we're about to migrate.
--	 *
--	 * Must be done under PTL such that we'll observe the relevant
--	 * inc_tlb_flush_pending().
--	 *
--	 * We are not sure a pending tlb flush here is for a huge page
--	 * mapping or not. Hence use the tlb range variant
--	 */
--	if (mm_tlb_flush_pending(vma->vm_mm)) {
--		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
--		/*
--		 * change_huge_pmd() released the pmd lock before
--		 * invalidating the secondary MMUs sharing the primary
--		 * MMU pagetables (with ->invalidate_range()). The
--		 * mmu_notifier_invalidate_range_end() (which
--		 * internally calls ->invalidate_range()) in
--		 * change_pmd_range() will run after us, so we can't
--		 * rely on it here and we need an explicit invalidate.
--		 */
--		mmu_notifier_invalidate_range(vma->vm_mm, haddr,
--					      haddr + HPAGE_PMD_SIZE);
--	}
--
- 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
- 	page = vm_normal_page_pmd(vma, haddr, pmd);
- 	if (!page)
++#include <linux/refcount.h>
+ #include <linux/sched.h>
+ #include <linux/mmzone.h>
+ #include <linux/dax.h>
+@@ -43,7 +44,7 @@ struct mm_struct;
+  * to 1, representing the caller of mpol_dup().
+  */
+ struct mempolicy {
+-	atomic_t refcnt;
++	refcount_t refcnt;
+ 	unsigned short mode; 	/* See MPOL_* above */
+ 	unsigned short flags;	/* See set_mempolicy() MPOL_F_* above */
+ 	nodemask_t nodes;	/* interleave/bind/perfer */
+@@ -94,7 +95,7 @@ static inline struct mempolicy *mpol_dup
+ static inline void mpol_get(struct mempolicy *pol)
+ {
+ 	if (pol)
+-		atomic_inc(&pol->refcnt);
++		refcount_inc(&pol->refcnt);
+ }
+ 
+ extern bool __mpol_equal(struct mempolicy *a, struct mempolicy *b);
+--- a/mm/mempolicy.c~mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt
++++ a/mm/mempolicy.c
+@@ -293,7 +293,7 @@ static struct mempolicy *mpol_new(unsign
+ 	policy = kmem_cache_alloc(policy_cache, GFP_KERNEL);
+ 	if (!policy)
+ 		return ERR_PTR(-ENOMEM);
+-	atomic_set(&policy->refcnt, 1);
++	refcount_set(&policy->refcnt, 1);
+ 	policy->mode = mode;
+ 	policy->flags = flags;
+ 
+@@ -303,7 +303,7 @@ static struct mempolicy *mpol_new(unsign
+ /* Slow path of a mpol destructor. */
+ void __mpol_put(struct mempolicy *p)
+ {
+-	if (!atomic_dec_and_test(&p->refcnt))
++	if (!refcount_dec_and_test(&p->refcnt))
+ 		return;
+ 	kmem_cache_free(policy_cache, p);
+ }
+@@ -2324,7 +2324,7 @@ struct mempolicy *__mpol_dup(struct memp
+ 		nodemask_t mems = cpuset_mems_allowed(current);
+ 		mpol_rebind_policy(new, &mems);
+ 	}
+-	atomic_set(&new->refcnt, 1);
++	refcount_set(&new->refcnt, 1);
+ 	return new;
+ }
+ 
+@@ -2619,7 +2619,7 @@ restart:
+ 					goto alloc_new;
+ 
+ 				*mpol_new = *n->policy;
+-				atomic_set(&mpol_new->refcnt, 1);
++				refcount_set(&mpol_new->refcnt, 1);
+ 				sp_node_init(n_new, end, n->end, mpol_new);
+ 				n->end = start;
+ 				sp_insert(sp, n_new);
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from xiyuyang19@fudan.edu.cn are
 
-mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
-mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch
 
