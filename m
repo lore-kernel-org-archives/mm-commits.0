@@ -7,38 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61A96C6377B
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 247D5C6377B
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4BF2561244
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0FF9C61244
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229887AbhGUUKE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jul 2021 16:10:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58846 "EHLO mail.kernel.org"
+        id S229990AbhGUUKI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jul 2021 16:10:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58890 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229909AbhGUUKD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 21 Jul 2021 16:10:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4D88861222;
-        Wed, 21 Jul 2021 20:50:39 +0000 (UTC)
+        id S229909AbhGUUKH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 21 Jul 2021 16:10:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A420461221;
+        Wed, 21 Jul 2021 20:50:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626900640;
-        bh=fCVtVXPui5iVolzePMQxMTpWo9WPgyc9nS99tViKC+A=;
+        s=korg; t=1626900642;
+        bh=FzAvDyN8DlSKS3Y9obdQqjexf2UW1eiWBEA8vCOIFsk=;
         h=Date:From:To:Subject:From;
-        b=KbGE5qnCnMfEgGU7B7IpC+Ye4JMzaJAPLu3sK4Ve2NXeQAgwhxGhkaPseWwXrp1GV
-         ZglPcvT3RWf5t8PWWty7Kx8FbYAf1sIp59nZtukyxkI2vDhOds7nK6YsSMErKh1uzf
-         4XlrFRZ1Odo1Ewtlhul+ZmUEXmPclLWN7b4Jnj1k=
-Date:   Wed, 21 Jul 2021 13:50:38 -0700
+        b=AiucQUAOVRvF8kPzev8Pk9tXEi+EDw3ey0Nfyy5DXkppqIPaCT8Q1vvSNBh6/Fyhs
+         2rVZEi74LQdFpYrLDaGk92EphHvuLpteD2McmLXtm+hb621R5//tqBR3adietNxB28
+         dU5G/gWLlm6fmrpUNKvtRO/gh2F5N1wLZEiVZP7A=
+Date:   Wed, 21 Jul 2021 13:50:40 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         yang.shi@linux.alibaba.com, weixugc@google.com,
         shy828301@gmail.com, rientjes@google.com, osalvador@suse.de,
         mhocko@suse.com, kbusch@kernel.org, gthelen@google.com,
-        david@redhat.com, dan.j.williams@intel.com,
-        dave.hansen@linux.intel.com
-Subject:  + mm-vmscan-never-demote-for-memcg-reclaim.patch added to
- -mm tree
-Message-ID: <20210721205038.8DXBB%akpm@linux-foundation.org>
+        david@redhat.com, dave.hansen@linux.intel.com,
+        dan.j.williams@intel.com, ying.huang@intel.com
+Subject:  +
+ mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch added to -mm
+ tree
+Message-ID: <20210721205040.ce5Jj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: never demote for memcg reclaim
+     Subject: mm/migrate: add sysfs interface to enable reclaim migration
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-never-demote-for-memcg-reclaim.patch
+     mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-never-demote-for-memcg-reclaim.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-never-demote-for-memcg-reclaim.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,65 +69,200 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm/vmscan: never demote for memcg reclaim
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm/migrate: add sysfs interface to enable reclaim migration
 
-Global reclaim aims to reduce the amount of memory used on a given node or
-set of nodes.  Migrating pages to another node serves this purpose.
+Some method is obviously needed to enable reclaim-based migration.
 
-memcg reclaim is different.  Its goal is to reduce the total memory
-consumption of the entire memcg, across all nodes.  Migration does not
-assist memcg reclaim because it just moves page contents between nodes
-rather than actually reducing memory consumption.
+Just like traditional autonuma, there will be some workloads that will
+benefit like workloads with more "static" configurations where hot pages
+stay hot and cold pages stay cold.  If pages come and go from the hot and
+cold sets, the benefits of this approach will be more limited.
 
-Link: https://lkml.kernel.org/r/20210715055145.195411-9-ying.huang@intel.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Suggested-by: Yang Shi <yang.shi@linux.alibaba.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
+The benefits are truly workload-based and *not* hardware-based.  We do not
+believe that there is a viable threshold where certain hardware
+configurations should have this mechanism enabled while others do not.
+
+To be conservative, earlier work defaulted to disable reclaim- based
+migration and did not include a mechanism to enable it.  This proposes add
+a new sysfs file
+
+  /sys/kernel/mm/numa/demotion_enabled
+
+as a method to enable it.
+
+We are open to any alternative that allows end users to enable this
+mechanism or disable it if workload harm is detected (just like
+traditional autonuma).
+
+Once this is enabled page demotion may move data to a NUMA node that does
+not fall into the cpuset of the allocating process.  This could be
+construed to violate the guarantees of cpusets.  However, since this is an
+opt-in mechanism, the assumption is that anyone enabling it is content to
+relax the guarantees.
+
+Link: https://lkml.kernel.org/r/20210721063926.3024591-9-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20210715055145.195411-10-ying.huang@intel.com
+Signed-off-by: Huang Ying <ying.huang@intel.com>
+Originally-by: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Wei Xu <weixugc@google.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: Keith Busch <kbusch@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ Documentation/ABI/testing/sysfs-kernel-mm-numa |   24 +++++
+ include/linux/mempolicy.h                      |    4 
+ mm/mempolicy.c                                 |   61 +++++++++++++++
+ mm/vmscan.c                                    |    5 -
+ 4 files changed, 92 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-never-demote-for-memcg-reclaim
+--- /dev/null
++++ a/Documentation/ABI/testing/sysfs-kernel-mm-numa
+@@ -0,0 +1,24 @@
++What:		/sys/kernel/mm/numa/
++Date:		June 2021
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:	Interface for NUMA
++
++What:		/sys/kernel/mm/numa/demotion_enabled
++Date:		June 2021
++Contact:	Linux memory management mailing list <linux-mm@kvack.org>
++Description:	Enable/disable demoting pages during reclaim
++
++		Page migration during reclaim is intended for systems
++		with tiered memory configurations.  These systems have
++		multiple types of memory with varied performance
++		characteristics instead of plain NUMA systems where
++		the same kind of memory is found at varied distances.
++		Allowing page migration during reclaim enables these
++		systems to migrate pages from fast tiers to slow tiers
++		when the fast tier is under pressure.  This migration
++		is performed before swap.  It may move data to a NUMA
++		node that does not fall into the cpuset of the
++		allocating process which might be construed to violate
++		the guarantees of cpusets.  This should not be enabled
++		on systems which need strict cpuset location
++		guarantees.
+--- a/include/linux/mempolicy.h~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
++++ a/include/linux/mempolicy.h
+@@ -184,6 +184,8 @@ extern bool vma_migratable(struct vm_are
+ extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
+ extern void mpol_put_task_policy(struct task_struct *);
+ 
++extern bool numa_demotion_enabled;
++
+ #else
+ 
+ struct mempolicy {};
+@@ -292,5 +294,7 @@ static inline nodemask_t *policy_nodemas
+ {
+ 	return NULL;
+ }
++
++#define numa_demotion_enabled	false
+ #endif /* CONFIG_NUMA */
+ #endif
+--- a/mm/mempolicy.c~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
++++ a/mm/mempolicy.c
+@@ -3021,3 +3021,64 @@ void mpol_to_str(char *buffer, int maxle
+ 		p += scnprintf(p, buffer + maxlen - p, ":%*pbl",
+ 			       nodemask_pr_args(&nodes));
+ }
++
++bool numa_demotion_enabled = false;
++
++#ifdef CONFIG_SYSFS
++static ssize_t numa_demotion_enabled_show(struct kobject *kobj,
++					  struct kobj_attribute *attr, char *buf)
++{
++	return sysfs_emit(buf, "%s\n",
++			  numa_demotion_enabled? "true" : "false");
++}
++
++static ssize_t numa_demotion_enabled_store(struct kobject *kobj,
++					   struct kobj_attribute *attr,
++					   const char *buf, size_t count)
++{
++	if (!strncmp(buf, "true", 4) || !strncmp(buf, "1", 1))
++		numa_demotion_enabled = true;
++	else if (!strncmp(buf, "false", 5) || !strncmp(buf, "0", 1))
++		numa_demotion_enabled = false;
++	else
++		return -EINVAL;
++
++	return count;
++}
++
++static struct kobj_attribute numa_demotion_enabled_attr =
++	__ATTR(demotion_enabled, 0644, numa_demotion_enabled_show,
++	       numa_demotion_enabled_store);
++
++static struct attribute *numa_attrs[] = {
++	&numa_demotion_enabled_attr.attr,
++	NULL,
++};
++
++static const struct attribute_group numa_attr_group = {
++	.attrs = numa_attrs,
++};
++
++static int __init numa_init_sysfs(void)
++{
++	int err;
++	struct kobject *numa_kobj;
++
++	numa_kobj = kobject_create_and_add("numa", mm_kobj);
++	if (!numa_kobj) {
++		pr_err("failed to create numa kobject\n");
++		return -ENOMEM;
++	}
++	err = sysfs_create_group(numa_kobj, &numa_attr_group);
++	if (err) {
++		pr_err("failed to register numa group\n");
++		goto delete_obj;
++	}
++	return 0;
++
++delete_obj:
++	kobject_put(numa_kobj);
++	return err;
++}
++subsys_initcall(numa_init_sysfs);
++#endif
+--- a/mm/vmscan.c~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
 +++ a/mm/vmscan.c
-@@ -521,8 +521,13 @@ static long add_nr_deferred(long nr, str
+@@ -521,6 +521,8 @@ static long add_nr_deferred(long nr, str
  
  static bool can_demote(int nid, struct scan_control *sc)
  {
--	if (sc && sc->no_demotion)
--		return false;
-+	if (sc) {
-+		if (sc->no_demotion)
-+			return false;
-+		/* It is pointless to do demotion in memcg reclaim */
-+		if (cgroup_reclaim(sc))
-+			return false;
-+	}
++	if (!numa_demotion_enabled)
++		return false;
+ 	if (sc) {
+ 		if (sc->no_demotion)
+ 			return false;
+@@ -531,8 +533,7 @@ static bool can_demote(int nid, struct s
  	if (next_demotion_node(nid) == NUMA_NO_NODE)
  		return false;
  
+-	// FIXME: actually enable this later in the series
+-	return false;
++	return true;
+ }
+ 
+ static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-mm-numa-automatically-generate-node-migration-order.patch
-mm-migrate-update-node-demotion-order-on-hotplug-events.patch
-mm-migrate-demote-pages-during-reclaim.patch
-mm-migrate-demote-pages-during-reclaim-v11.patch
-mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages.patch
-mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages-v11.patch
-mm-vmscan-never-demote-for-memcg-reclaim.patch
-mm-mempolicy-add-mpol_preferred_many-for-multiple-preferred-nodes.patch
+mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
+mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
 
