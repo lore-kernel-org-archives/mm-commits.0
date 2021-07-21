@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E671DC6377A
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72F7DC6377B
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD06C61248
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C57861244
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229700AbhGUUJy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jul 2021 16:09:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58648 "EHLO mail.kernel.org"
+        id S229604AbhGUUJ7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jul 2021 16:09:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58734 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229604AbhGUUJy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 21 Jul 2021 16:09:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6E76561221;
-        Wed, 21 Jul 2021 20:50:29 +0000 (UTC)
+        id S229830AbhGUUJ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 21 Jul 2021 16:09:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6506D61009;
+        Wed, 21 Jul 2021 20:50:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626900630;
-        bh=nEbhg4BaoRkVHKaJzJW1XMJA4EPL7AUa3/vQoVnjPaQ=;
+        s=korg; t=1626900634;
+        bh=PHxceH22CIhXsDHbYEIdvAFg09J9AcvVe+s+8IjVB+Y=;
         h=Date:From:To:Subject:From;
-        b=1XgZBB69syUr7c0zEIufO5+YS5UqLeSWCOjeDpUT1mXE/FeNHSH2ZywjudVJ81Ym/
-         VYxLbkSdZdcoJPVoen/mMQR0ifEg0tMo/qadQxOpldvUyez09P4uHUUU8gBI/sImhl
-         KV8ujotR4IIb5J2a+N6R/uvhMDN+Qs4xrZbmupUo=
-Date:   Wed, 21 Jul 2021 13:50:28 -0700
+        b=RBn8Jp6EZFgaUQWiP7R8hKt7C3gs6vnyIgxgRiI32gQIprwvpmfiHNlL1kPbmt9Ya
+         adKsEqEvRkAiYI8ALgV0XMOhx8Rtbc7tHuVWZmxxeMGjjYddB2wrYrbomKNj3/6HI5
+         DFvsXXNMaf2BiD1Ndd9NX5h9/c0GsjeLeLW97AiE=
+Date:   Wed, 21 Jul 2021 13:50:32 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
-        tglx@linutronix.de, stable@vger.kernel.org,
-        songmuchun@bytedance.com, mhocko@kernel.org,
-        kirill.shutemov@linux.intel.com, hannes@cmpxchg.org,
-        zhengqi.arch@bytedance.com
-Subject:  + mm-fix-the-deadlock-in-finish_fault.patch added to -mm
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
+        weixugc@google.com, shy828301@gmail.com, rientjes@google.com,
+        osalvador@suse.de, mhocko@suse.com, kbusch@kernel.org,
+        gthelen@google.com, david@redhat.com, dan.j.williams@intel.com,
+        dave.hansen@linux.intel.com
+Subject:  + mm-migrate-demote-pages-during-reclaim.patch added to -mm
  tree
-Message-ID: <20210721205028.u0rxk%akpm@linux-foundation.org>
+Message-ID: <20210721205032.5Px8K%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix the deadlock in finish_fault()
+     Subject: mm/migrate: demote pages during reclaim
 has been added to the -mm tree.  Its filename is
-     mm-fix-the-deadlock-in-finish_fault.patch
+     mm-migrate-demote-pages-during-reclaim.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-the-deadlock-in-finish_fault.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-demote-pages-during-reclaim.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-the-deadlock-in-finish_fault.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-demote-pages-during-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,70 +67,249 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: fix the deadlock in finish_fault()
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm/migrate: demote pages during reclaim
 
-Commit 63f3655f9501 ("mm, memcg: fix reclaim deadlock with writeback") fix
-the following ABBA deadlock by pre-allocating the pte page table without
-holding the page lock.
+This is mostly derived from a patch from Yang Shi:
 
-	                                lock_page(A)
-                                        SetPageWriteback(A)
-                                        unlock_page(A)
-  lock_page(B)
-                                        lock_page(B)
-  pte_alloc_one
-    shrink_page_list
-      wait_on_page_writeback(A)
-                                        SetPageWriteback(B)
-                                        unlock_page(B)
+	https://lore.kernel.org/linux-mm/1560468577-101178-10-git-send-email-yang.shi@linux.alibaba.com/
 
-                                        # flush A, B to clear the writeback
+Add code to the reclaim path (shrink_page_list()) to "demote" data to
+another NUMA node instead of discarding the data.  This always avoids the
+cost of I/O needed to read the page back in and sometimes avoids the
+writeout cost when the page is dirty.
 
-Commit f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault()
-codepaths") rework the relevant code but ignore this race.  This will
-cause the deadlock above to appear again, so fix it.
+A second pass through shrink_page_list() will be made if any demotions
+fail.  This essentially falls back to normal reclaim behavior in the case
+that demotions fail.  Previous versions of this patch may have simply
+failed to reclaim pages which were eligible for demotion but were unable
+to be demoted in practice.
 
-Link: https://lkml.kernel.org/r/20210721074849.57004-1-zhengqi.arch@bytedance.com
-Fixes: f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault() codepaths")
-Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: <stable@vger.kernel.org>
+For some cases, for example, MADV_PAGEOUT, the pages are always discarded
+instead of demoted to follow the kernel API definition.  Because
+MADV_PAGEOUT is defined as freeing specified pages regardless in which
+tier they are.
+
+Note: This just adds the start of infrastructure for migration.  It is
+actually disabled next to the FIXME in migrate_demote_page_ok().
+
+Link: https://lkml.kernel.org/r/20210715055145.195411-5-ying.huang@intel.com
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Wei Xu <weixugc@google.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Keith Busch <kbusch@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ include/linux/migrate.h        |    9 +++
+ include/trace/events/migrate.h |    3 -
+ mm/vmscan.c                    |   85 +++++++++++++++++++++++++++++++
+ 3 files changed, 96 insertions(+), 1 deletion(-)
 
---- a/mm/memory.c~mm-fix-the-deadlock-in-finish_fault
-+++ a/mm/memory.c
-@@ -4026,8 +4026,17 @@ vm_fault_t finish_fault(struct vm_fault
- 				return ret;
+--- a/include/linux/migrate.h~mm-migrate-demote-pages-during-reclaim
++++ a/include/linux/migrate.h
+@@ -28,6 +28,7 @@ enum migrate_reason {
+ 	MR_NUMA_MISPLACED,
+ 	MR_CONTIG_RANGE,
+ 	MR_LONGTERM_PIN,
++	MR_DEMOTION,
+ 	MR_TYPES
+ };
+ 
+@@ -167,6 +168,14 @@ struct migrate_vma {
+ int migrate_vma_setup(struct migrate_vma *args);
+ void migrate_vma_pages(struct migrate_vma *migrate);
+ void migrate_vma_finalize(struct migrate_vma *migrate);
++int next_demotion_node(int node);
++
++#else /* CONFIG_MIGRATION disabled: */
++
++static inline int next_demotion_node(int node)
++{
++	return NUMA_NO_NODE;
++}
+ 
+ #endif /* CONFIG_MIGRATION */
+ 
+--- a/include/trace/events/migrate.h~mm-migrate-demote-pages-during-reclaim
++++ a/include/trace/events/migrate.h
+@@ -21,7 +21,8 @@
+ 	EM( MR_MEMPOLICY_MBIND,	"mempolicy_mbind")		\
+ 	EM( MR_NUMA_MISPLACED,	"numa_misplaced")		\
+ 	EM( MR_CONTIG_RANGE,	"contig_range")			\
+-	EMe(MR_LONGTERM_PIN,	"longterm_pin")
++	EM( MR_LONGTERM_PIN,	"longterm_pin")			\
++	EMe(MR_DEMOTION,	"demotion")
+ 
+ /*
+  * First define the enums in the above macros to be exported to userspace
+--- a/mm/vmscan.c~mm-migrate-demote-pages-during-reclaim
++++ a/mm/vmscan.c
+@@ -41,6 +41,7 @@
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
+ #include <linux/memcontrol.h>
++#include <linux/migrate.h>
+ #include <linux/delayacct.h>
+ #include <linux/sysctl.h>
+ #include <linux/oom.h>
+@@ -118,6 +119,9 @@ struct scan_control {
+ 	/* The file pages on the current node are dangerously low */
+ 	unsigned int file_is_tiny:1;
+ 
++	/* Always discard instead of demoting to lower tier memory */
++	unsigned int no_demotion:1;
++
+ 	/* Allocation order */
+ 	s8 order;
+ 
+@@ -515,6 +519,17 @@ static long add_nr_deferred(long nr, str
+ 	return atomic_long_add_return(nr, &shrinker->nr_deferred[nid]);
+ }
+ 
++static bool can_demote_anon_pages(int nid, struct scan_control *sc)
++{
++	if (sc->no_demotion)
++		return false;
++	if (next_demotion_node(nid) == NUMA_NO_NODE)
++		return false;
++
++	// FIXME: actually enable this later in the series
++	return false;
++}
++
+ /*
+  * This misses isolated pages which are not accounted for to save counters.
+  * As the data only determines if reclaim or compaction continues, it is
+@@ -1267,6 +1282,49 @@ static void page_check_dirty_writeback(s
+ 		mapping->a_ops->is_dirty_writeback(page, dirty, writeback);
+ }
+ 
++static struct page *alloc_demote_page(struct page *page, unsigned long node)
++{
++	struct migration_target_control mtc = {
++		/*
++		 * Allocate from 'node', or fail quickly and quietly.
++		 * When this happens, 'page' will likely just be discarded
++		 * instead of migrated.
++		 */
++		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) |
++			    __GFP_THISNODE  | __GFP_NOWARN |
++			    __GFP_NOMEMALLOC | GFP_NOWAIT,
++		.nid = node
++	};
++
++	return alloc_migration_target(page, (unsigned long)&mtc);
++}
++
++/*
++ * Take pages on @demote_list and attempt to demote them to
++ * another node.  Pages which are not demoted are left on
++ * @demote_pages.
++ */
++static unsigned int demote_page_list(struct list_head *demote_pages,
++				     struct pglist_data *pgdat)
++{
++	int target_nid = next_demotion_node(pgdat->node_id);
++	unsigned int nr_succeeded;
++	int err;
++
++	if (list_empty(demote_pages))
++		return 0;
++
++	if (target_nid == NUMA_NO_NODE)
++		return 0;
++
++	/* Demotion ignores all cpuset and mempolicy settings */
++	err = migrate_pages(demote_pages, alloc_demote_page, NULL,
++			    target_nid, MIGRATE_ASYNC, MR_DEMOTION,
++			    &nr_succeeded);
++
++	return nr_succeeded;
++}
++
+ /*
+  * shrink_page_list() returns the number of reclaimed pages
+  */
+@@ -1278,12 +1336,16 @@ static unsigned int shrink_page_list(str
+ {
+ 	LIST_HEAD(ret_pages);
+ 	LIST_HEAD(free_pages);
++	LIST_HEAD(demote_pages);
+ 	unsigned int nr_reclaimed = 0;
+ 	unsigned int pgactivate = 0;
++	bool do_demote_pass;
+ 
+ 	memset(stat, 0, sizeof(*stat));
+ 	cond_resched();
++	do_demote_pass = can_demote_anon_pages(pgdat->node_id, sc);
+ 
++retry:
+ 	while (!list_empty(page_list)) {
+ 		struct address_space *mapping;
+ 		struct page *page;
+@@ -1433,6 +1495,17 @@ static unsigned int shrink_page_list(str
  		}
  
--		if (unlikely(pte_alloc(vma->vm_mm, vmf->pmd)))
-+		if (vmf->prealloc_pte) {
-+			vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
-+			if (likely(pmd_none(*vmf->pmd))) {
-+				mm_inc_nr_ptes(vma->vm_mm);
-+				pmd_populate(vma->vm_mm, vmf->pmd, vmf->prealloc_pte);
-+				vmf->prealloc_pte = NULL;
-+			}
-+			spin_unlock(vmf->ptl);
-+		} else if (unlikely(pte_alloc(vma->vm_mm, vmf->pmd))) {
- 			return VM_FAULT_OOM;
+ 		/*
++		 * Before reclaiming the page, try to relocate
++		 * its contents to another node.
++		 */
++		if (do_demote_pass &&
++		    (thp_migration_supported() || !PageTransHuge(page))) {
++			list_add(&page->lru, &demote_pages);
++			unlock_page(page);
++			continue;
 +		}
++
++		/*
+ 		 * Anonymous process memory has backing store?
+ 		 * Try to allocate it some swap space here.
+ 		 * Lazyfree page could be freed directly
+@@ -1683,6 +1756,17 @@ keep:
+ 		list_add(&page->lru, &ret_pages);
+ 		VM_BUG_ON_PAGE(PageLRU(page) || PageUnevictable(page), page);
  	}
++	/* 'page_list' is always empty here */
++
++	/* Migrate pages selected for demotion */
++	nr_reclaimed += demote_page_list(&demote_pages, pgdat);
++	/* Pages that could not be demoted are still in @demote_pages */
++	if (!list_empty(&demote_pages)) {
++		/* Pages which failed to demoted go back on @page_list for retry: */
++		list_splice_init(&demote_pages, page_list);
++		do_demote_pass = false;
++		goto retry;
++	}
  
- 	/* See comment in handle_pte_fault() */
+ 	pgactivate = stat->nr_activate[0] + stat->nr_activate[1];
+ 
+@@ -2330,6 +2414,7 @@ unsigned long reclaim_pages(struct list_
+ 		.may_writepage = 1,
+ 		.may_unmap = 1,
+ 		.may_swap = 1,
++		.no_demotion = 1,
+ 	};
+ 
+ 	noreclaim_flag = memalloc_noreclaim_save();
 _
 
-Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
-mm-fix-the-deadlock-in-finish_fault.patch
+mm-numa-automatically-generate-node-migration-order.patch
+mm-migrate-update-node-demotion-order-on-hotplug-events.patch
+mm-migrate-demote-pages-during-reclaim.patch
+mm-migrate-demote-pages-during-reclaim-v11.patch
+mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages.patch
+mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages-v11.patch
+mm-vmscan-never-demote-for-memcg-reclaim.patch
+mm-mempolicy-add-mpol_preferred_many-for-multiple-preferred-nodes.patch
 
