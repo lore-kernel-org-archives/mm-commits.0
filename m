@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3ECDFC6377A
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 14077C6377C
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2898C60FEA
-	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F12A761244
+	for <mm-commits@archiver.kernel.org>; Wed, 21 Jul 2021 20:50:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229865AbhGUUJ7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 21 Jul 2021 16:09:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58698 "EHLO mail.kernel.org"
+        id S229848AbhGUUKC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 21 Jul 2021 16:10:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58768 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229604AbhGUUJ4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 21 Jul 2021 16:09:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4F48860FEA;
-        Wed, 21 Jul 2021 20:50:31 +0000 (UTC)
+        id S229830AbhGUUKA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 21 Jul 2021 16:10:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4D2AA61221;
+        Wed, 21 Jul 2021 20:50:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626900632;
-        bh=6gsvjWKP4hJD2Ef+qicS9lpMB27fcTFmQ3Ycqbynp+c=;
+        s=korg; t=1626900636;
+        bh=wU1hREKGJIXVl1TwaI9gxZZN0KwyE/JaK1D9f+BY2nU=;
         h=Date:From:To:Subject:From;
-        b=T9PreR5O5jnnGH+MXhYZMlQgRiEwsuu1bH9lOtVc4nIE5WnO2brFZfsJ3ZAgtQ+46
-         tHpNlJ6SEZJ+cW0GJ9diAbeFCS80wNEUyo0h7405uk1eNNY/tHtnh5e+hlgr7qLpbh
-         tQKyMZifdzyI/VW5hMr2vdfjrZKewMlQFWnappV8=
-Date:   Wed, 21 Jul 2021 13:50:30 -0700
+        b=l61mjvBPzUMK8hBU2SPHfzLlzb9/0XC6AXUD2VAf6a8HAn8Ptr/hhpPDmpIRvz2Jc
+         skGh74jnKdgWskwekvJzbsLurD5APhagnUytxNc1pLH1y92QDVbN9sPMvMFNncWx5c
+         G9NcHWxzX8mSlKZsN7RihXchvW/kEE2Viyq30XiI=
+Date:   Wed, 21 Jul 2021 13:50:34 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, ying.huang@intel.com,
         yang.shi@linux.alibaba.com, weixugc@google.com,
         shy828301@gmail.com, rientjes@google.com, osalvador@suse.de,
-        mhocko@suse.com, kbusch@kernel.org, gthelen@google.com,
-        david@redhat.com, dan.j.williams@intel.com,
-        dave.hansen@linux.intel.com
-Subject:  + mm-numa-automatically-generate-node-migration-order.patch
+        mhocko@suse.com, gthelen@google.com, david@redhat.com,
+        dave.hansen@linux.intel.com, dan.j.williams@intel.com,
+        kbusch@kernel.org
+Subject:  + mm-vmscan-consider-anonymous-pages-without-swap.patch
  added to -mm tree
-Message-ID: <20210721205030.KNoSx%akpm@linux-foundation.org>
+Message-ID: <20210721205034.0TIDQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/numa: automatically generate node migration order
+     Subject: mm/vmscan: Consider anonymous pages without swap
 has been added to the -mm tree.  Its filename is
-     mm-numa-automatically-generate-node-migration-order.patch
+     mm-vmscan-consider-anonymous-pages-without-swap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-numa-automatically-generate-node-migration-order.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-consider-anonymous-pages-without-swap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-automatically-generate-node-migration-order.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-consider-anonymous-pages-without-swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,449 +68,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm/numa: automatically generate node migration order
+From: Keith Busch <kbusch@kernel.org>
+Subject: mm/vmscan: Consider anonymous pages without swap
 
-Patch series "Migrate Pages in lieu of discard", v11.
+Reclaim anonymous pages if a migration path is available now that demotion
+provides a non-swap recourse for reclaiming anon pages.
 
-We're starting to see systems with more and more kinds of memory such as
-Intel's implementation of persistent memory.
+Note that this check is subtly different from the can_age_anon_pages()
+checks.  This mechanism checks whether a specific page in a specific
+context can actually be reclaimed, given current swap space and cgroup
+limits.
 
-Let's say you have a system with some DRAM and some persistent memory.
-Today, once DRAM fills up, reclaim will start and some of the DRAM
-contents will be thrown out.  Allocations will, at some point, start
-falling over to the slower persistent memory.
+can_age_anon_pages() is a much simpler and more preliminary check which
+just says whether there is a possibility of future reclaim.
 
-That has two nasty properties.  First, the newer allocations can end up in
-the slower persistent memory.  Second, reclaimed data in DRAM are just
-discarded even if there are gobs of space in persistent memory that could
-be used.
-
-This patchset implements a solution to these problems.  At the end of the
-reclaim process in shrink_page_list() just before the last page refcount
-is dropped, the page is migrated to persistent memory instead of being
-dropped.
-
-While I've talked about a DRAM/PMEM pairing, this approach would function
-in any environment where memory tiers exist.
-
-This is not perfect.  It "strands" pages in slower memory and never brings
-them back to fast DRAM.  Huang Ying has follow-on work which repurposes
-NUMA balancing to promote hot pages back to DRAM.
-
-This is also all based on an upstream mechanism that allows persistent
-memory to be onlined and used as if it were volatile:
-
-	http://lkml.kernel.org/r/20190124231441.37A4A305@viggo.jf.intel.com
-
-With that, the DRAM and PMEM in each socket will be represented as 2
-separate NUMA nodes, with the CPUs sit in the DRAM node.  So the
-general inter-NUMA demotion mechanism introduced in the patchset can
-migrate the cold DRAM pages to the PMEM node.
-
-We have tested the patchset with the postgresql and pgbench.  On a
-2-socket server machine with DRAM and PMEM, the kernel with the patchset
-can improve the score of pgbench up to 22.1% compared with that of the
-DRAM only + disk case.  This comes from the reduced disk read throughput
-(which reduces up to 70.8%).
-
-== Open Issues ==
-
- * Memory policies and cpusets that, for instance, restrict allocations
-   to DRAM can be demoted to PMEM whenever they opt in to this
-   new mechanism.  A cgroup-level API to opt-in or opt-out of
-   these migrations will likely be required as a follow-on.
- * Could be more aggressive about where anon LRU scanning occurs
-   since it no longer necessarily involves I/O.  get_scan_count()
-   for instance says: "If we have no swap space, do not bother
-   scanning anon pages"
-
-
-This patch (of 9):
-
-Prepare for the kernel to auto-migrate pages to other memory nodes with a
-node migration table.  This allows creating single migration target for
-each NUMA node to enable the kernel to do NUMA page migrations instead of
-simply discarding colder pages.  A node with no target is a "terminal
-node", so reclaim acts normally there.  The migration target does not
-fundamentally _need_ to be a single node, but this implementation starts
-there to limit complexity.
-
-When memory fills up on a node, memory contents can be automatically
-migrated to another node.  The biggest problems are knowing when to
-migrate and to where the migration should be targeted.
-
-The most straightforward way to generate the "to where" list would be to
-follow the page allocator fallback lists.  Those lists already tell us if
-memory is full where to look next.  It would also be logical to move
-memory in that order.
-
-But, the allocator fallback lists have a fatal flaw: most nodes appear in
-all the lists.  This would potentially lead to migration cycles (A->B,
-B->A, A->B, ...).
-
-Instead of using the allocator fallback lists directly, keep a separate
-node migration ordering.  But, reuse the same data used to generate page
-allocator fallback in the first place: find_next_best_node().
-
-This means that the firmware data used to populate node distances
-essentially dictates the ordering for now.  It should also be
-architecture-neutral since all NUMA architectures have a working
-find_next_best_node().
-
-RCU is used to allow lock-less read of node_demotion[] and prevent
-demotion cycles been observed.  If multiple reads of node_demotion[] are
-performed, a single rcu_read_lock() must be held over all reads to ensure
-no cycles are observed.  Details are as follows.
-
-=== What does RCU provide? ===
-
-Imagine a simple loop which walks down the demotion path looking
-for the last node:
-
-        terminal_node = start_node;
-        while (node_demotion[terminal_node] != NUMA_NO_NODE) {
-                terminal_node = node_demotion[terminal_node];
-        }
-
-The initial values are:
-
-        node_demotion[0] = 1;
-        node_demotion[1] = NUMA_NO_NODE;
-
-and are updated to:
-
-        node_demotion[0] = NUMA_NO_NODE;
-        node_demotion[1] = 0;
-
-What guarantees that the cycle is not observed:
-
-        node_demotion[0] = 1;
-        node_demotion[1] = 0;
-
-and would loop forever?
-
-With RCU, a rcu_read_lock/unlock() can be placed around the loop.  Since
-the write side does a synchronize_rcu(), the loop that observed the old
-contents is known to be complete before the synchronize_rcu() has
-completed.
-
-RCU, combined with disable_all_migrate_targets(), ensures that the old
-migration state is not visible by the time __set_migration_target_nodes()
-is called.
-
-=== What does READ_ONCE() provide? ===
-
-READ_ONCE() forbids the compiler from merging or reordering successive
-reads of node_demotion[].  This ensures that any updates are *eventually*
-observed.
-
-Consider the above loop again.  The compiler could theoretically read the
-entirety of node_demotion[] into local storage (registers) and never go
-back to memory, and *permanently* observe bad values for node_demotion[].
-
-Note: RCU does not provide any universal compiler-ordering
-guarantees:
-
-	https://lore.kernel.org/lkml/20150921204327.GH4029@linux.vnet.ibm.com/
-
-This code is unused for now.  It will be called later in the
-series.
-
-Link: https://lkml.kernel.org/r/20210721063926.3024591-1-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-1-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-2-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20210715055145.195411-8-ying.huang@intel.com
+Cc: Keith Busch <kbusch@kernel.org>
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: Wei Xu <weixugc@google.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Thelen <gthelen@google.com>
-Cc: Keith Busch <kbusch@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    5 +
- mm/migrate.c    |  216 ++++++++++++++++++++++++++++++++++++++++++++++
- mm/page_alloc.c |    2 
- 3 files changed, 222 insertions(+), 1 deletion(-)
+ mm/vmscan.c |   34 ++++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
---- a/mm/internal.h~mm-numa-automatically-generate-node-migration-order
-+++ a/mm/internal.h
-@@ -543,12 +543,17 @@ static inline void mminit_validate_memmo
+--- a/mm/vmscan.c~mm-vmscan-consider-anonymous-pages-without-swap
++++ a/mm/vmscan.c
+@@ -521,7 +521,7 @@ static long add_nr_deferred(long nr, str
  
- #ifdef CONFIG_NUMA
- extern int node_reclaim(struct pglist_data *, gfp_t, unsigned int);
-+extern int find_next_best_node(int node, nodemask_t *used_node_mask);
- #else
- static inline int node_reclaim(struct pglist_data *pgdat, gfp_t mask,
- 				unsigned int order)
+ static bool can_demote(int nid, struct scan_control *sc)
  {
- 	return NODE_RECLAIM_NOSCAN;
- }
-+static inline int find_next_best_node(int node, nodemask_t *used_node_mask)
-+{
-+	return NUMA_NO_NODE;
-+}
- #endif
- 
- extern int hwpoison_filter(struct page *p);
---- a/mm/migrate.c~mm-numa-automatically-generate-node-migration-order
-+++ a/mm/migrate.c
-@@ -1099,6 +1099,80 @@ out:
- 	return rc;
+-	if (sc->no_demotion)
++	if (sc && sc->no_demotion)
+ 		return false;
+ 	if (next_demotion_node(nid) == NUMA_NO_NODE)
+ 		return false;
+@@ -530,6 +530,31 @@ static bool can_demote(int nid, struct s
+ 	return false;
  }
  
-+
-+/*
-+ * node_demotion[] example:
-+ *
-+ * Consider a system with two sockets.  Each socket has
-+ * three classes of memory attached: fast, medium and slow.
-+ * Each memory class is placed in its own NUMA node.  The
-+ * CPUs are placed in the node with the "fast" memory.  The
-+ * 6 NUMA nodes (0-5) might be split among the sockets like
-+ * this:
-+ *
-+ *	Socket A: 0, 1, 2
-+ *	Socket B: 3, 4, 5
-+ *
-+ * When Node 0 fills up, its memory should be migrated to
-+ * Node 1.  When Node 1 fills up, it should be migrated to
-+ * Node 2.  The migration path start on the nodes with the
-+ * processors (since allocations default to this node) and
-+ * fast memory, progress through medium and end with the
-+ * slow memory:
-+ *
-+ *	0 -> 1 -> 2 -> stop
-+ *	3 -> 4 -> 5 -> stop
-+ *
-+ * This is represented in the node_demotion[] like this:
-+ *
-+ *	{  1, // Node 0 migrates to 1
-+ *	   2, // Node 1 migrates to 2
-+ *	  -1, // Node 2 does not migrate
-+ *	   4, // Node 3 migrates to 4
-+ *	   5, // Node 4 migrates to 5
-+ *	  -1} // Node 5 does not migrate
-+ */
-+
-+/*
-+ * Writes to this array occur without locking.  Cycles are
-+ * not allowed: Node X demotes to Y which demotes to X...
-+ *
-+ * If multiple reads are performed, a single rcu_read_lock()
-+ * must be held over all reads to ensure that no cycles are
-+ * observed.
-+ */
-+static int node_demotion[MAX_NUMNODES] __read_mostly =
-+	{[0 ...  MAX_NUMNODES - 1] = NUMA_NO_NODE};
-+
-+/**
-+ * next_demotion_node() - Get the next node in the demotion path
-+ * @node: The starting node to lookup the next node
-+ *
-+ * @returns: node id for next memory node in the demotion path hierarchy
-+ * from @node; NUMA_NO_NODE if @node is terminal.  This does not keep
-+ * @node online or guarantee that it *continues* to be the next demotion
-+ * target.
-+ */
-+int next_demotion_node(int node)
++static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
++					  int nid,
++					  struct scan_control *sc)
 +{
-+	int target;
++	if (memcg == NULL) {
++		/*
++		 * For non-memcg reclaim, is there
++		 * space in any swap device?
++		 */
++		if (get_nr_swap_pages() > 0)
++			return true;
++	} else {
++		/* Is the memcg below its swap limit? */
++		if (mem_cgroup_get_nr_swap_pages(memcg) > 0)
++			return true;
++	}
 +
 +	/*
-+	 * node_demotion[] is updated without excluding this
-+	 * function from running.  RCU doesn't provide any
-+	 * compiler barriers, so the READ_ONCE() is required
-+	 * to avoid compiler reordering or read merging.
++	 * The page can not be swapped.
 +	 *
-+	 * Make sure to use RCU over entire code blocks if
-+	 * node_demotion[] reads need to be consistent.
++	 * Can it be reclaimed from this node via demotion?
 +	 */
-+	rcu_read_lock();
-+	target = READ_ONCE(node_demotion[node]);
-+	rcu_read_unlock();
-+
-+	return target;
++	return can_demote_anon_pages(nid, sc);
 +}
 +
  /*
-  * Obtain the lock on page, remove all ptes and migrate the page
-  * to the newly allocated page in newpage.
-@@ -2982,3 +3056,145 @@ void migrate_vma_finalize(struct migrate
- }
- EXPORT_SYMBOL(migrate_vma_finalize);
- #endif /* CONFIG_DEVICE_PRIVATE */
-+
-+/* Disable reclaim-based migration. */
-+static void __disable_all_migrate_targets(void)
-+{
-+	int node;
-+
-+	for_each_online_node(node)
-+		node_demotion[node] = NUMA_NO_NODE;
-+}
-+
-+static void disable_all_migrate_targets(void)
-+{
-+	__disable_all_migrate_targets();
-+
-+	/*
-+	 * Ensure that the "disable" is visible across the system.
-+	 * Readers will see either a combination of before+disable
-+	 * state or disable+after.  They will never see before and
-+	 * after state together.
-+	 *
-+	 * The before+after state together might have cycles and
-+	 * could cause readers to do things like loop until this
-+	 * function finishes.  This ensures they can only see a
-+	 * single "bad" read and would, for instance, only loop
-+	 * once.
-+	 */
-+	synchronize_rcu();
-+}
-+
-+/*
-+ * Find an automatic demotion target for 'node'.
-+ * Failing here is OK.  It might just indicate
-+ * being at the end of a chain.
-+ */
-+static int establish_migrate_target(int node, nodemask_t *used)
-+{
-+	int migration_target;
-+
-+	/*
-+	 * Can not set a migration target on a
-+	 * node with it already set.
-+	 *
-+	 * No need for READ_ONCE() here since this
-+	 * in the write path for node_demotion[].
-+	 * This should be the only thread writing.
-+	 */
-+	if (node_demotion[node] != NUMA_NO_NODE)
-+		return NUMA_NO_NODE;
-+
-+	migration_target = find_next_best_node(node, used);
-+	if (migration_target == NUMA_NO_NODE)
-+		return NUMA_NO_NODE;
-+
-+	node_demotion[node] = migration_target;
-+
-+	return migration_target;
-+}
-+
-+/*
-+ * When memory fills up on a node, memory contents can be
-+ * automatically migrated to another node instead of
-+ * discarded at reclaim.
-+ *
-+ * Establish a "migration path" which will start at nodes
-+ * with CPUs and will follow the priorities used to build the
-+ * page allocator zonelists.
-+ *
-+ * The difference here is that cycles must be avoided.  If
-+ * node0 migrates to node1, then neither node1, nor anything
-+ * node1 migrates to can migrate to node0.
-+ *
-+ * This function can run simultaneously with readers of
-+ * node_demotion[].  However, it can not run simultaneously
-+ * with itself.  Exclusion is provided by memory hotplug events
-+ * being single-threaded.
-+ */
-+static void __set_migration_target_nodes(void)
-+{
-+	nodemask_t next_pass	= NODE_MASK_NONE;
-+	nodemask_t this_pass	= NODE_MASK_NONE;
-+	nodemask_t used_targets = NODE_MASK_NONE;
-+	int node;
-+
-+	/*
-+	 * Avoid any oddities like cycles that could occur
-+	 * from changes in the topology.  This will leave
-+	 * a momentary gap when migration is disabled.
-+	 */
-+	disable_all_migrate_targets();
-+
-+	/*
-+	 * Allocations go close to CPUs, first.  Assume that
-+	 * the migration path starts at the nodes with CPUs.
-+	 */
-+	next_pass = node_states[N_CPU];
-+again:
-+	this_pass = next_pass;
-+	next_pass = NODE_MASK_NONE;
-+	/*
-+	 * To avoid cycles in the migration "graph", ensure
-+	 * that migration sources are not future targets by
-+	 * setting them in 'used_targets'.  Do this only
-+	 * once per pass so that multiple source nodes can
-+	 * share a target node.
-+	 *
-+	 * 'used_targets' will become unavailable in future
-+	 * passes.  This limits some opportunities for
-+	 * multiple source nodes to share a destination.
-+	 */
-+	nodes_or(used_targets, used_targets, this_pass);
-+	for_each_node_mask(node, this_pass) {
-+		int target_node = establish_migrate_target(node, &used_targets);
-+
-+		if (target_node == NUMA_NO_NODE)
-+			continue;
-+
-+		/*
-+		 * Visit targets from this pass in the next pass.
-+		 * Eventually, every node will have been part of
-+		 * a pass, and will become set in 'used_targets'.
-+		 */
-+		node_set(target_node, next_pass);
-+	}
-+	/*
-+	 * 'next_pass' contains nodes which became migration
-+	 * targets in this pass.  Make additional passes until
-+	 * no more migrations targets are available.
-+	 */
-+	if (!nodes_empty(next_pass))
-+		goto again;
-+}
-+
-+/*
-+ * For callers that do not hold get_online_mems() already.
-+ */
-+__maybe_unused // <- temporay to prevent warnings during bisects
-+static void set_migration_target_nodes(void)
-+{
-+	get_online_mems();
-+	__set_migration_target_nodes();
-+	put_online_mems();
-+}
---- a/mm/page_alloc.c~mm-numa-automatically-generate-node-migration-order
-+++ a/mm/page_alloc.c
-@@ -6156,7 +6156,7 @@ static int node_load[MAX_NUMNODES];
-  *
-  * Return: node id of the found node or %NUMA_NO_NODE if no node is found.
-  */
--static int find_next_best_node(int node, nodemask_t *used_node_mask)
-+int find_next_best_node(int node, nodemask_t *used_node_mask)
+  * This misses isolated pages which are not accounted for to save counters.
+  * As the data only determines if reclaim or compaction continues, it is
+@@ -541,7 +566,7 @@ unsigned long zone_reclaimable_pages(str
+ 
+ 	nr = zone_page_state_snapshot(zone, NR_ZONE_INACTIVE_FILE) +
+ 		zone_page_state_snapshot(zone, NR_ZONE_ACTIVE_FILE);
+-	if (get_nr_swap_pages() > 0)
++	if (can_reclaim_anon_pages(NULL, zone_to_nid(zone), NULL))
+ 		nr += zone_page_state_snapshot(zone, NR_ZONE_INACTIVE_ANON) +
+ 			zone_page_state_snapshot(zone, NR_ZONE_ACTIVE_ANON);
+ 
+@@ -2545,6 +2570,7 @@ enum scan_balance {
+ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+ 			   unsigned long *nr)
  {
- 	int n, val;
- 	int min_val = INT_MAX;
++	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	unsigned long anon_cost, file_cost, total_cost;
+ 	int swappiness = mem_cgroup_swappiness(memcg);
+@@ -2555,7 +2581,7 @@ static void get_scan_count(struct lruvec
+ 	enum lru_list lru;
+ 
+ 	/* If we have no swap space, do not bother scanning anon pages. */
+-	if (!sc->may_swap || mem_cgroup_get_nr_swap_pages(memcg) <= 0) {
++	if (!sc->may_swap || !can_reclaim_anon_pages(memcg, pgdat->node_id, sc)) {
+ 		scan_balance = SCAN_FILE;
+ 		goto out;
+ 	}
+@@ -2925,7 +2951,7 @@ static inline bool should_continue_recla
+ 	 */
+ 	pages_for_compaction = compact_gap(sc->order);
+ 	inactive_lru_pages = node_page_state(pgdat, NR_INACTIVE_FILE);
+-	if (get_nr_swap_pages() > 0)
++	if (can_reclaim_anon_pages(NULL, pgdat->node_id, sc))
+ 		inactive_lru_pages += node_page_state(pgdat, NR_INACTIVE_ANON);
+ 
+ 	return inactive_lru_pages > pages_for_compaction;
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from kbusch@kernel.org are
 
-mm-numa-automatically-generate-node-migration-order.patch
-mm-migrate-update-node-demotion-order-on-hotplug-events.patch
-mm-migrate-demote-pages-during-reclaim.patch
-mm-migrate-demote-pages-during-reclaim-v11.patch
-mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages.patch
-mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages-v11.patch
-mm-vmscan-never-demote-for-memcg-reclaim.patch
-mm-mempolicy-add-mpol_preferred_many-for-multiple-preferred-nodes.patch
+mm-vmscan-consider-anonymous-pages-without-swap.patch
+mm-vmscan-consider-anonymous-pages-without-swap-v11.patch
 
