@@ -7,35 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42B99C4338F
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Jul 2021 21:39:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5CF1C4320A
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 19:43:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DC8960EBE
-	for <mm-commits@archiver.kernel.org>; Thu, 22 Jul 2021 21:39:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB7C560F36
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 19:43:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231513AbhGVU7X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 22 Jul 2021 16:59:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44766 "EHLO mail.kernel.org"
+        id S229657AbhGWTDV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jul 2021 15:03:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231336AbhGVU7W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 22 Jul 2021 16:59:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1F02460EBB;
-        Thu, 22 Jul 2021 21:39:57 +0000 (UTC)
+        id S229530AbhGWTDU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 23 Jul 2021 15:03:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D0E860E99;
+        Fri, 23 Jul 2021 19:43:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1626989997;
-        bh=dnhfMXJAb2yuREPQhv8HYmb5WdpgEdRlX2ixhxKgGIs=;
+        s=korg; t=1627069433;
+        bh=PXVpudlwhjjS+/Ce4vF7zGOda6HnrxVSZSuRVxMmAK4=;
         h=Date:From:To:Subject:From;
-        b=E2wSWbC7erE2xHazGucJRNv+bJHKBaS962y8mXfAEZh0Ous2BGF2YoZ0UrA/MaW0n
-         YapvebIEzzaWd2IkCuu7pY3xviL9EZ8GbtVUoX0nXASkBiW2fjabo/Wie0UdVqJQCy
-         dhDzXhtRE3ud1yiW6siU5BbZxEvnTYsR/fgm87kg=
-Date:   Thu, 22 Jul 2021 14:39:56 -0700
+        b=fS2H9lGhdeR8j30IJsVUx/EglXdsoUlH5axStNxFZ/yDvQBfSTuyePl3Pa/9cihNa
+         XdLFBntdBuzXLtE0CY2qwBUWy9pRWoalpOwARMr7fQG9NslP+S1cewcYga1j+Dkqcu
+         hVG/W5N0df/kIMNQlnXltHMCEzCJ7K9D0BfiSvow=
+Date:   Fri, 23 Jul 2021 12:43:52 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
-        rdunlap@xenotime.net, corbet@lwn.net, willy@infradead.org
-Subject:  + mm-doc-include-highmemh-in-kernel-doc.patch added to -mm
+To:     mm-commits@vger.kernel.org, surenb@google.com,
+        keescook@chromium.org, jannh@google.com, hridya@google.com,
+        ebiederm@xmission.com, christian.koenig@amd.com,
+        christian.brauner@ubuntu.com, kaleshsingh@google.com
+Subject:  [to-be-updated]
+ procfs-prevent-unpriveleged-processes-accessing-fdinfo.patch removed from -mm
  tree
-Message-ID: <20210722213956.iRyGF%akpm@linux-foundation.org>
+Message-ID: <20210723194352.nEQZy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,103 +49,157 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/doc: include highmem.h in kernel-doc
-has been added to the -mm tree.  Its filename is
-     mm-doc-include-highmemh-in-kernel-doc.patch
+     Subject: procfs: prevent unprivileged processes accessing fdinfo
+has been removed from the -mm tree.  Its filename was
+     procfs-prevent-unpriveleged-processes-accessing-fdinfo.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-doc-include-highmemh-in-kernel-doc.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-doc-include-highmemh-in-kernel-doc.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm/doc: include highmem.h in kernel-doc
+From: Kalesh Singh <kaleshsingh@google.com>
+Subject: procfs: prevent unprivileged processes accessing fdinfo
 
-There is lots of good documentation in highmem.h that isn't being pulled
-into the html documentation.  Fix up a couple of minor glitches and
-include it.
+The file permissions on the fdinfo dir from were changed from
+S_IRUSR|S_IXUSR to S_IRUGO|S_IXUGO, and a PTRACE_MODE_READ check was added
+for opening the fdinfo files [1].  However, the ptrace permission check
+was not added to the directory, allowing anyone to get the open FD numbers
+by reading the fdinfo directory.
 
-Link: https://lkml.kernel.org/r/20210722021843.2336117-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Randy.Dunlap" <rdunlap@xenotime.net>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Add the missing ptrace permission check for opening the fdinfo directory.=
+=20
+The check is also added for readdir, lseek in the case that an
+unprivileged process inherits an open FD to the fdinfo dir after an exec.
+
+For the same reason, similar checks are added for fdinfo files which
+previously only checked the ptrace permission in open.
+
+[1] https://lkml.kernel.org/r/20210308170651.919148-1-kaleshsingh@google.com
+
+Link: https://lkml.kernel.org/r/20210708155647.44208-1-kaleshsingh@google.c=
+om
+Fixes: 7bc3fa0172a4 ("procfs: allow reading fdinfo with PTRACE_MODE_READ")
+Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Christian K=C3=B6nig <christian.koenig@amd.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Hridya Valsaraju <hridya@google.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/core-api/mm-api.rst |    1 +
- include/linux/highmem.h           |   17 +++++++++--------
- 2 files changed, 10 insertions(+), 8 deletions(-)
+ fs/proc/fd.c |   65 +++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 61 insertions(+), 4 deletions(-)
 
---- a/Documentation/core-api/mm-api.rst~mm-doc-include-highmemh-in-kernel-doc
-+++ a/Documentation/core-api/mm-api.rst
-@@ -54,6 +54,7 @@ Virtually Contiguous Mappings
- 
- .. kernel-doc:: mm/vmalloc.c
-    :export:
-+.. kernel-doc:: include/linux/highmem.h
- 
- File Mapping and Page Cache
- ===========================
---- a/include/linux/highmem.h~mm-doc-include-highmemh-in-kernel-doc
-+++ a/include/linux/highmem.h
-@@ -37,8 +37,8 @@
- static inline void *kmap(struct page *page);
- 
- /**
-- * kunmap - Unmap the virtual address mapped by kmap()
-- * @addr:	Virtual address to be unmapped
-+ * kunmap - Unmap the page mapped by kmap()
-+ * @page: Page to be unmapped
-  *
-  * Counterpart to kmap(). A NOOP for CONFIG_HIGHMEM=n and for mappings of
-  * pages in the low memory area.
-@@ -69,13 +69,13 @@ static inline void kmap_flush_unused(voi
-  *
-  * Requires careful handling when nesting multiple mappings because the map
-  * management is stack based. The unmap has to be in the reverse order of
-- * the map operation:
-+ * the map operation::
-  *
-- * addr1 = kmap_local_page(page1);
-- * addr2 = kmap_local_page(page2);
-- * ...
-- * kunmap_local(addr2);
-- * kunmap_local(addr1);
-+ *   addr1 = kmap_local_page(page1);
-+ *   addr2 = kmap_local_page(page2);
-+ *   ...
-+ *   kunmap_local(addr2);
-+ *   kunmap_local(addr1);
-  *
-  * Unmapping addr1 before addr2 is invalid and causes malfunction.
-  *
-@@ -119,6 +119,7 @@ static inline void *kmap_atomic(struct p
-  * the side effects of kmap_atomic(), i.e. reenabling pagefaults and
-  * preemption.
-  */
-+static inline void kunmap_atomic(void *addr);
- 
- /* Highmem related interfaces for management code */
- static inline unsigned int nr_free_highpages(void);
+--- a/fs/proc/fd.c~procfs-prevent-unpriveleged-processes-accessing-fdinfo
++++ a/fs/proc/fd.c
+@@ -72,7 +72,7 @@ out:
+ 	return 0;
+ }
+=20
+-static int seq_fdinfo_open(struct inode *inode, struct file *file)
++static int proc_fdinfo_access_allowed(struct inode *inode)
+ {
+ 	bool allowed =3D false;
+ 	struct task_struct *task =3D get_proc_task(inode);
+@@ -86,13 +86,44 @@ static int seq_fdinfo_open(struct inode
+ 	if (!allowed)
+ 		return -EACCES;
+=20
++	return 0;
++}
++
++static int seq_fdinfo_open(struct inode *inode, struct file *file)
++{
++	int ret =3D proc_fdinfo_access_allowed(inode);
++
++	if (ret)
++		return ret;
++
+ 	return single_open(file, seq_show, inode);
+ }
+=20
++static ssize_t seq_fdinfo_read(struct file *file, char __user *buf, size_t=
+ size,
++		loff_t *ppos)
++{
++	int ret =3D proc_fdinfo_access_allowed(file_inode(file));
++
++	if (ret)
++		return ret;
++
++	return seq_read(file, buf, size, ppos);
++}
++
++static loff_t seq_fdinfo_lseek(struct file *file, loff_t offset, int whenc=
+e)
++{
++	int ret =3D proc_fdinfo_access_allowed(file_inode(file));
++
++	if (ret)
++		return ret;
++
++	return seq_lseek(file, offset, whence);
++}
++
+ static const struct file_operations proc_fdinfo_file_operations =3D {
+ 	.open		=3D seq_fdinfo_open,
+-	.read		=3D seq_read,
+-	.llseek		=3D seq_lseek,
++	.read		=3D seq_fdinfo_read,
++	.llseek		=3D seq_fdinfo_lseek,
+ 	.release	=3D single_release,
+ };
+=20
+@@ -344,17 +375,43 @@ proc_lookupfdinfo(struct inode *dir, str
+=20
+ static int proc_readfdinfo(struct file *file, struct dir_context *ctx)
+ {
++	int ret =3D proc_fdinfo_access_allowed(file_inode(file));
++
++	if (ret)
++		return ret;
++
+ 	return proc_readfd_common(file, ctx,
+ 				  proc_fdinfo_instantiate);
+ }
+=20
++static loff_t proc_llseek_fdinfo(struct file *file, loff_t offset, int whe=
+nce)
++{
++	int ret =3D proc_fdinfo_access_allowed(file_inode(file));
++
++	if (ret)
++		return ret;
++
++	return generic_file_llseek(file, offset, whence);
++}
++
++static int proc_open_fdinfo(struct inode *inode, struct file *file)
++{
++	int ret =3D proc_fdinfo_access_allowed(inode);
++
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
+ const struct inode_operations proc_fdinfo_inode_operations =3D {
+ 	.lookup		=3D proc_lookupfdinfo,
+ 	.setattr	=3D proc_setattr,
+ };
+=20
+ const struct file_operations proc_fdinfo_operations =3D {
++	.open		=3D proc_open_fdinfo,
+ 	.read		=3D generic_read_dir,
+ 	.iterate_shared	=3D proc_readfdinfo,
+-	.llseek		=3D generic_file_llseek,
++	.llseek		=3D proc_llseek_fdinfo,
+ };
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from kaleshsingh@google.com are
 
-mm-move-kvmalloc-related-functions-to-slabh.patch
-mm-mark-idle-page-tracking-as-broken.patch
-avoid-a-warning-in-sparse-memory-support.patch
-mm-doc-include-highmemh-in-kernel-doc.patch
 
