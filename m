@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5CF1C4320A
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 19:43:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7BBCC4338F
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 19:44:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB7C560F36
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 19:43:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B93FA60E99
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 19:44:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229657AbhGWTDV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jul 2021 15:03:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49782 "EHLO mail.kernel.org"
+        id S230351AbhGWTEI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jul 2021 15:04:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50204 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229530AbhGWTDU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 23 Jul 2021 15:03:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D0E860E99;
-        Fri, 23 Jul 2021 19:43:53 +0000 (UTC)
+        id S231337AbhGWTEH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 23 Jul 2021 15:04:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3A49660E97;
+        Fri, 23 Jul 2021 19:44:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627069433;
-        bh=PXVpudlwhjjS+/Ce4vF7zGOda6HnrxVSZSuRVxMmAK4=;
+        s=korg; t=1627069480;
+        bh=+vk1hn/dR+b22Cn3v4Mh643d503TV3Ed+1uxRvyTjLo=;
         h=Date:From:To:Subject:From;
-        b=fS2H9lGhdeR8j30IJsVUx/EglXdsoUlH5axStNxFZ/yDvQBfSTuyePl3Pa/9cihNa
-         XdLFBntdBuzXLtE0CY2qwBUWy9pRWoalpOwARMr7fQG9NslP+S1cewcYga1j+Dkqcu
-         hVG/W5N0df/kIMNQlnXltHMCEzCJ7K9D0BfiSvow=
-Date:   Fri, 23 Jul 2021 12:43:52 -0700
+        b=1rNYjBwRAQoiBgMlO7wt7qaNI7J2NiCfuUGu4nZ1tLjEhoBmwTFT0SHjfck92WjWs
+         8YC+AIcNZlMOrn5zOmuKBcP3drqDxZdsx5Zwm7pjNQOHqIwcPg3jjX0JbOTvExh9MO
+         zanClpoGWAszig8x04f6IP07dWpgDgHD8XqWEg8k=
+Date:   Fri, 23 Jul 2021 12:44:39 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, surenb@google.com,
         keescook@chromium.org, jannh@google.com, hridya@google.com,
         ebiederm@xmission.com, christian.koenig@amd.com,
         christian.brauner@ubuntu.com, kaleshsingh@google.com
-Subject:  [to-be-updated]
- procfs-prevent-unpriveleged-processes-accessing-fdinfo.patch removed from -mm
+Subject:  +
+ procfs-prevent-unpriveleged-processes-accessing-fdinfo-dir.patch added to -mm
  tree
-Message-ID: <20210723194352.nEQZy%akpm@linux-foundation.org>
+Message-ID: <20210723194439.LZABz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -49,15 +49,32 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: prevent unprivileged processes accessing fdinfo
-has been removed from the -mm tree.  Its filename was
-     procfs-prevent-unpriveleged-processes-accessing-fdinfo.patch
+     Subject: procfs: prevent unpriveleged processes accessing fdinfo dir
+has been added to the -mm tree.  Its filename is
+     procfs-prevent-unpriveleged-processes-accessing-fdinfo-dir.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/procfs-prevent-unpriveleged-p=
+rocesses-accessing-fdinfo-dir.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/procfs-prevent-unpriveleged-p=
+rocesses-accessing-fdinfo-dir.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing=
+ your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Kalesh Singh <kaleshsingh@google.com>
-Subject: procfs: prevent unprivileged processes accessing fdinfo
+Subject: procfs: prevent unpriveleged processes accessing fdinfo dir
 
 The file permissions on the fdinfo dir from were changed from
 S_IRUSR|S_IXUSR to S_IRUGO|S_IXUGO, and a PTRACE_MODE_READ check was added
@@ -65,18 +82,12 @@ for opening the fdinfo files [1].  However, the ptrace permission check
 was not added to the directory, allowing anyone to get the open FD numbers
 by reading the fdinfo directory.
 
-Add the missing ptrace permission check for opening the fdinfo directory.=
-=20
-The check is also added for readdir, lseek in the case that an
-unprivileged process inherits an open FD to the fdinfo dir after an exec.
-
-For the same reason, similar checks are added for fdinfo files which
-previously only checked the ptrace permission in open.
+Add the missing ptrace permission check for opening the fdinfo directory.
 
 [1] https://lkml.kernel.org/r/20210308170651.919148-1-kaleshsingh@google.com
 
-Link: https://lkml.kernel.org/r/20210708155647.44208-1-kaleshsingh@google.c=
-om
+Link: https://lkml.kernel.org/r/20210713162008.1056986-1-kaleshsingh@google=
+.com
 Fixes: 7bc3fa0172a4 ("procfs: allow reading fdinfo with PTRACE_MODE_READ")
 Signed-off-by: Kalesh Singh <kaleshsingh@google.com>
 Cc: Kees Cook <keescook@chromium.org>
@@ -89,10 +100,11 @@ Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/fd.c |   65 +++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 61 insertions(+), 4 deletions(-)
+ fs/proc/fd.c |   23 ++++++++++++++++++++++-
+ 1 file changed, 22 insertions(+), 1 deletion(-)
 
---- a/fs/proc/fd.c~procfs-prevent-unpriveleged-processes-accessing-fdinfo
+--- a/fs/proc/fd.c~procfs-prevent-unpriveleged-processes-accessing-fdinfo-d=
+ir
 +++ a/fs/proc/fd.c
 @@ -72,7 +72,7 @@ out:
  	return 0;
@@ -103,7 +115,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  {
  	bool allowed =3D false;
  	struct task_struct *task =3D get_proc_task(inode);
-@@ -86,13 +86,44 @@ static int seq_fdinfo_open(struct inode
+@@ -86,6 +86,16 @@ static int seq_fdinfo_open(struct inode
  	if (!allowed)
  		return -EACCES;
 =20
@@ -120,62 +132,10 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	return single_open(file, seq_show, inode);
  }
 =20
-+static ssize_t seq_fdinfo_read(struct file *file, char __user *buf, size_t=
- size,
-+		loff_t *ppos)
-+{
-+	int ret =3D proc_fdinfo_access_allowed(file_inode(file));
-+
-+	if (ret)
-+		return ret;
-+
-+	return seq_read(file, buf, size, ppos);
-+}
-+
-+static loff_t seq_fdinfo_lseek(struct file *file, loff_t offset, int whenc=
-e)
-+{
-+	int ret =3D proc_fdinfo_access_allowed(file_inode(file));
-+
-+	if (ret)
-+		return ret;
-+
-+	return seq_lseek(file, offset, whence);
-+}
-+
- static const struct file_operations proc_fdinfo_file_operations =3D {
- 	.open		=3D seq_fdinfo_open,
--	.read		=3D seq_read,
--	.llseek		=3D seq_lseek,
-+	.read		=3D seq_fdinfo_read,
-+	.llseek		=3D seq_fdinfo_lseek,
- 	.release	=3D single_release,
- };
-=20
-@@ -344,17 +375,43 @@ proc_lookupfdinfo(struct inode *dir, str
-=20
- static int proc_readfdinfo(struct file *file, struct dir_context *ctx)
- {
-+	int ret =3D proc_fdinfo_access_allowed(file_inode(file));
-+
-+	if (ret)
-+		return ret;
-+
- 	return proc_readfd_common(file, ctx,
+@@ -348,12 +358,23 @@ static int proc_readfdinfo(struct file *
  				  proc_fdinfo_instantiate);
  }
 =20
-+static loff_t proc_llseek_fdinfo(struct file *file, loff_t offset, int whe=
-nce)
-+{
-+	int ret =3D proc_fdinfo_access_allowed(file_inode(file));
-+
-+	if (ret)
-+		return ret;
-+
-+	return generic_file_llseek(file, offset, whence);
-+}
-+
 +static int proc_open_fdinfo(struct inode *inode, struct file *file)
 +{
 +	int ret =3D proc_fdinfo_access_allowed(inode);
@@ -195,11 +155,10 @@ nce)
 +	.open		=3D proc_open_fdinfo,
  	.read		=3D generic_read_dir,
  	.iterate_shared	=3D proc_readfdinfo,
--	.llseek		=3D generic_file_llseek,
-+	.llseek		=3D proc_llseek_fdinfo,
- };
+ 	.llseek		=3D generic_file_llseek,
 _
 
 Patches currently in -mm which might be from kaleshsingh@google.com are
 
+procfs-prevent-unpriveleged-processes-accessing-fdinfo-dir.patch
 
