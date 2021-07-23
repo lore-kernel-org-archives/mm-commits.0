@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C011C4338F
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7987EC4338F
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4C91160F38
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6408260F38
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233024AbhGWWJh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jul 2021 18:09:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49170 "EHLO mail.kernel.org"
+        id S233019AbhGWWJj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jul 2021 18:09:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231954AbhGWWJf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 23 Jul 2021 18:09:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 89FDC60F37;
-        Fri, 23 Jul 2021 22:50:08 +0000 (UTC)
+        id S231954AbhGWWJj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 23 Jul 2021 18:09:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7F39560EB5;
+        Fri, 23 Jul 2021 22:50:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627080608;
-        bh=dx1gV6KM0pdOuySOLjDluTLHL5+kDMKfQTL8YS6y57M=;
+        s=korg; t=1627080611;
+        bh=xpuL7eQJ7xIPE/XkgeA272A2+E7I7sd5biWYgp+buAw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=skA9qDzL8pCQXfK7RBxPbcYEJfHTlcZ+nbryDskDWJE8StNo9BVoU041ZHMfighBZ
-         bvIT+qHxokLRqydlI0yeYCDsR5ZtWjDbtiIROUeZvERRn9ZA0WuEjc7kmLXRE91Ru5
-         16H89bqkvsT9vOLJFTtOSMWbv+4rjGju5BhzQ9hM=
-Date:   Fri, 23 Jul 2021 15:50:08 -0700
+        b=AJJZqaI5Bfft/bWGO1YiP4dhQEbOZH/9BzClDlW/vYxzKmHONpSrgTH1RW/yMlufC
+         n2GokPJWggESxvNkdmzeZbDYIFtocQoVYAY/DIOGnnFD7Hym4FK3D+ELushuwhNVUT
+         yV3tq/6jrs9iYnCigvx0cGo/uJ20vsQ0VuleLJ24=
+Date:   Fri, 23 Jul 2021 15:50:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, dvyukov@google.com, elver@google.com,
-        glider@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        o451686892@gmail.com, torvalds@linux-foundation.org
-Subject:  [patch 03/15] kfence: defer kfence_test_init to ensure
- that kunit debugfs is created
-Message-ID: <20210723225008.moMYwrxvY%akpm@linux-foundation.org>
+        glider@google.com, gregkh@linuxfoundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 04/15] kfence: move the size check to the
+ beginning of __kfence_alloc()
+Message-ID: <20210723225011.pURAgvl2s%akpm@linux-foundation.org>
 In-Reply-To: <20210723154926.c6cda0f262b1990b950a5886@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,37 +44,51 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Weizhao Ouyang <o451686892@gmail.com>
-Subject: kfence: defer kfence_test_init to ensure that kunit debugfs is created
+From: Alexander Potapenko <glider@google.com>
+Subject: kfence: move the size check to the beginning of __kfence_alloc()
 
-kfence_test_init and kunit_init both use the same level late_initcall,
-which means if kfence_test_init linked ahead of kunit_init,
-kfence_test_init will get a NULL debugfs_rootdir as parent dentry, then
-kfence_test_init and kfence_debugfs_init both create a debugfs node named
-"kfence" under debugfs_mount->mnt_root, and it will throw out "debugfs:
-Directory 'kfence' with parent '/' already present!" with EEXIST.  So
-kfence_test_init should be deferred.
+Check the allocation size before toggling kfence_allocation_gate.  This
+way allocations that can't be served by KFENCE will not result in waiting
+for another CONFIG_KFENCE_SAMPLE_INTERVAL without allocating anything.
 
-Link: https://lkml.kernel.org/r/20210714113140.2949995-1-o451686892@gmail.com
-Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
-Tested-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Link: https://lkml.kernel.org/r/20210714092222.1890268-1-glider@google.com
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Suggested-by: Marco Elver <elver@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: <stable@vger.kernel.org>	[5.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/kfence_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kfence/core.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/kfence/kfence_test.c~kfence-defer-kfence_test_init-to-ensure-that-kunit-debugfs-is-created
-+++ a/mm/kfence/kfence_test.c
-@@ -852,7 +852,7 @@ static void kfence_test_exit(void)
- 	tracepoint_synchronize_unregister();
+--- a/mm/kfence/core.c~kfence-move-the-size-check-to-the-beginning-of-__kfence_alloc
++++ a/mm/kfence/core.c
+@@ -734,6 +734,13 @@ void kfence_shutdown_cache(struct kmem_c
+ void *__kfence_alloc(struct kmem_cache *s, size_t size, gfp_t flags)
+ {
+ 	/*
++	 * Perform size check before switching kfence_allocation_gate, so that
++	 * we don't disable KFENCE without making an allocation.
++	 */
++	if (size > PAGE_SIZE)
++		return NULL;
++
++	/*
+ 	 * allocation_gate only needs to become non-zero, so it doesn't make
+ 	 * sense to continue writing to it and pay the associated contention
+ 	 * cost, in case we have a large number of concurrent allocations.
+@@ -757,9 +764,6 @@ void *__kfence_alloc(struct kmem_cache *
+ 	if (!READ_ONCE(kfence_enabled))
+ 		return NULL;
+ 
+-	if (size > PAGE_SIZE)
+-		return NULL;
+-
+ 	return kfence_guarded_alloc(s, size, flags);
  }
  
--late_initcall(kfence_test_init);
-+late_initcall_sync(kfence_test_init);
- module_exit(kfence_test_exit);
- 
- MODULE_LICENSE("GPL v2");
 _
