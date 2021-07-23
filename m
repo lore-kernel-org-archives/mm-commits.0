@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7BA2C4320A
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F014AC4338F
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9FA2660F42
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CAE7C60F38
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233079AbhGWWKE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jul 2021 18:10:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49718 "EHLO mail.kernel.org"
+        id S233095AbhGWWKH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jul 2021 18:10:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233064AbhGWWKD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 23 Jul 2021 18:10:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5431F60F36;
-        Fri, 23 Jul 2021 22:50:36 +0000 (UTC)
+        id S233064AbhGWWKG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 23 Jul 2021 18:10:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 345D760EB5;
+        Fri, 23 Jul 2021 22:50:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627080636;
-        bh=/idCux6VI78ahDoXdpY+rIR9aMJz9Fhuw6pl2eaC+L8=;
+        s=korg; t=1627080639;
+        bh=MjVWOlwxEnyXFMcGd7wYkPesTcfyvbVCGVsHFNt63Mk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=uJNxTbRkj323LELxcYzloqNHbYt5Hy8ec1qSls+3kzfpm/equfEFjIUVhws/NzVOC
-         QENHzmG9SGUGIqHtqDXfiWcCfDz388JvhDcapmFLkk+k1o4vuGK7z8ZV6Gi+O5S9Ot
-         yPOFvPRdAphyxg44NgIHFr5Ry+56KxS0xCqx21cA=
-Date:   Fri, 23 Jul 2021 15:50:35 -0700
+        b=Jiyha2YZwX/tK0BEtEhXU6agivtiThuj83gOJbPPzkX7h+MSn61yxP3bQAJ1cHI9W
+         f1NkjiIB7+7aFIN+1a4fARj9tG1eoX+5nWmo+jl5D497e6POo8puKBRuGBNe8mESze
+         CSxkxo55I3Vv20/BCSW1mQbHsg0D1wYXcxn+vXr4=
+Date:   Fri, 23 Jul 2021 15:50:38 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 12/15] mm/secretmem: wire up ->set_page_dirty
-Message-ID: <20210723225035.OchgDJMop%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        pankaj.gupta@ionos.com, shy828301@gmail.com,
+        songmuchun@bytedance.com, torvalds@linux-foundation.org
+Subject:  [patch 13/15] mm: mmap_lock: fix disabling preemption
+ directly
+Message-ID: <20210723225038.7yIzuPTXo%akpm@linux-foundation.org>
 In-Reply-To: <20210723154926.c6cda0f262b1990b950a5886@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,31 +44,44 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm/secretmem: wire up ->set_page_dirty
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: mmap_lock: fix disabling preemption directly
 
-Make secretmem up to date with the changes done in commit 0af573780b0b
-("mm: require ->set_page_dirty to be explicitly wired up") so that
-unconditional call to this method won't cause crashes.
+The commit 832b50725373 ("mm: mmap_lock: use local locks instead of
+disabling preemption") fix a bug by using local locks.  But commit
+d01079f3d0c0 ("mm/mmap_lock: remove dead code for !CONFIG_TRACING
+configurations") changes those lines to original version.  I guess it is
+introduced by the conflicts fixing on merging.
 
-Link: https://lkml.kernel.org/r/20210716063933.31633-1-rppt@kernel.org
-Fixes: 0af573780b0b ("mm: require ->set_page_dirty to be explicitly wired up")
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20210720074228.76342-1-songmuchun@bytedance.com
+Fixes: d01079f3d0c0 ("mm/mmap_lock: remove dead code for !CONFIG_TRACING configurations")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Pankaj Gupta <pankaj.gupta@ionos.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mmap_lock.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/secretmem.c~mm-secretmem-wire-up-set_page_dirty
-+++ a/mm/secretmem.c
-@@ -152,6 +152,7 @@ static void secretmem_freepage(struct pa
- }
+--- a/mm/mmap_lock.c~mm-mmap_lock-fix-disabling-preemption-directly
++++ a/mm/mmap_lock.c
+@@ -156,14 +156,14 @@ static inline void put_memcg_path_buf(vo
+ #define TRACE_MMAP_LOCK_EVENT(type, mm, ...)                                   \
+ 	do {                                                                   \
+ 		const char *memcg_path;                                        \
+-		preempt_disable();                                             \
++		local_lock(&memcg_paths.lock);                                 \
+ 		memcg_path = get_mm_memcg_path(mm);                            \
+ 		trace_mmap_lock_##type(mm,                                     \
+ 				       memcg_path != NULL ? memcg_path : "",   \
+ 				       ##__VA_ARGS__);                         \
+ 		if (likely(memcg_path != NULL))                                \
+ 			put_memcg_path_buf();                                  \
+-		preempt_enable();                                              \
++		local_unlock(&memcg_paths.lock);                               \
+ 	} while (0)
  
- const struct address_space_operations secretmem_aops = {
-+	.set_page_dirty	= __set_page_dirty_no_writeback,
- 	.freepage	= secretmem_freepage,
- 	.migratepage	= secretmem_migratepage,
- 	.isolate_page	= secretmem_isolate_page,
+ #else /* !CONFIG_MEMCG */
 _
