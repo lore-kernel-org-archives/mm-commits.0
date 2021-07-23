@@ -5,40 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9976C43214
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C011C4338F
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B4C4260F41
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C91160F38
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 22:50:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233006AbhGWWJd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jul 2021 18:09:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49090 "EHLO mail.kernel.org"
+        id S233024AbhGWWJh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jul 2021 18:09:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49170 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231954AbhGWWJc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 23 Jul 2021 18:09:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 54F8860EB5;
-        Fri, 23 Jul 2021 22:50:05 +0000 (UTC)
+        id S231954AbhGWWJf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 23 Jul 2021 18:09:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 89FDC60F37;
+        Fri, 23 Jul 2021 22:50:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627080605;
-        bh=0y/+0uE1HjhZS70mVxDmV/xT3KMhjnogjh4zfjnr7IU=;
+        s=korg; t=1627080608;
+        bh=dx1gV6KM0pdOuySOLjDluTLHL5+kDMKfQTL8YS6y57M=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=yKvQ744TsnZLBGGY97tgFVU/ULcKVTeVzuBpqRYbZUdKI4jaTEUtWapcrdSPYhSO5
-         3Pth/H/9U09oh1oF09UGL72EMEEIxxTOuFkLuAD4EaA+2/USQ1K3pGg0Q34wS/WWCE
-         +mX765pTaTvqE5PjanSYdE0UMHVzRhwMi8u4/pho=
-Date:   Fri, 23 Jul 2021 15:50:04 -0700
+        b=skA9qDzL8pCQXfK7RBxPbcYEJfHTlcZ+nbryDskDWJE8StNo9BVoU041ZHMfighBZ
+         bvIT+qHxokLRqydlI0yeYCDsR5ZtWjDbtiIROUeZvERRn9ZA0WuEjc7kmLXRE91Ru5
+         16H89bqkvsT9vOLJFTtOSMWbv+4rjGju5BhzQ9hM=
+Date:   Fri, 23 Jul 2021 15:50:08 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, adelva@google.com, akpm@linux-foundation.org,
-        andreyknvl@gmail.com, catalin.marinas@arm.com, Dave.Martin@arm.com,
-        eugenis@google.com, linux-mm@kvack.org, lokeshgidra@google.com,
-        mitchp@google.com, mm-commits@vger.kernel.org, pcc@google.com,
-        stable@vger.kernel.org, torvalds@linux-foundation.org,
-        vincenzo.frascino@arm.com, will@kernel.org, willmcvicker@google.com
-Subject:  [patch 02/15] selftest: use mmap instead of
- posix_memalign to allocate memory
-Message-ID: <20210723225004.VMRataLna%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dvyukov@google.com, elver@google.com,
+        glider@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        o451686892@gmail.com, torvalds@linux-foundation.org
+Subject:  [patch 03/15] kfence: defer kfence_test_init to ensure
+ that kunit debugfs is created
+Message-ID: <20210723225008.moMYwrxvY%akpm@linux-foundation.org>
 In-Reply-To: <20210723154926.c6cda0f262b1990b950a5886@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,53 +43,37 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Peter Collingbourne <pcc@google.com>
-Subject: selftest: use mmap instead of posix_memalign to allocate memory
+From: Weizhao Ouyang <o451686892@gmail.com>
+Subject: kfence: defer kfence_test_init to ensure that kunit debugfs is created
 
-This test passes pointers obtained from anon_allocate_area to the
-userfaultfd and mremap APIs.  This causes a problem if the system
-allocator returns tagged pointers because with the tagged address ABI the
-kernel rejects tagged addresses passed to these APIs, which would end up
-causing the test to fail.  To make this test compatible with such system
-allocators, stop using the system allocator to allocate memory in
-anon_allocate_area, and instead just use mmap.
+kfence_test_init and kunit_init both use the same level late_initcall,
+which means if kfence_test_init linked ahead of kunit_init,
+kfence_test_init will get a NULL debugfs_rootdir as parent dentry, then
+kfence_test_init and kfence_debugfs_init both create a debugfs node named
+"kfence" under debugfs_mount->mnt_root, and it will throw out "debugfs:
+Directory 'kfence' with parent '/' already present!" with EEXIST.  So
+kfence_test_init should be deferred.
 
-Link: https://lkml.kernel.org/r/20210714195437.118982-3-pcc@google.com
-Link: https://linux-review.googlesource.com/id/Icac91064fcd923f77a83e8e133f8631c5b8fc241
-Fixes: c47174fc362a ("userfaultfd: selftest")
-Co-developed-by: Lokesh Gidra <lokeshgidra@google.com>
-Signed-off-by: Lokesh Gidra <lokeshgidra@google.com>
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Cc: Dave Martin <Dave.Martin@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Alistair Delva <adelva@google.com>
-Cc: William McVicker <willmcvicker@google.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Mitch Phillips <mitchp@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: <stable@vger.kernel.org>	[5.4]
+Link: https://lkml.kernel.org/r/20210714113140.2949995-1-o451686892@gmail.com
+Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
+Tested-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/kfence/kfence_test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~selftest-use-mmap-instead-of-posix_memalign-to-allocate-memory
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -210,8 +210,10 @@ static void anon_release_pages(char *rel
- 
- static void anon_allocate_area(void **alloc_area)
- {
--	if (posix_memalign(alloc_area, page_size, nr_pages * page_size))
--		err("posix_memalign() failed");
-+	*alloc_area = mmap(NULL, nr_pages * page_size, PROT_READ | PROT_WRITE,
-+			   MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-+	if (*alloc_area == MAP_FAILED)
-+		err("mmap of anonymous memory failed");
+--- a/mm/kfence/kfence_test.c~kfence-defer-kfence_test_init-to-ensure-that-kunit-debugfs-is-created
++++ a/mm/kfence/kfence_test.c
+@@ -852,7 +852,7 @@ static void kfence_test_exit(void)
+ 	tracepoint_synchronize_unregister();
  }
  
- static void noop_alias_mapping(__u64 *start, size_t len, unsigned long offset)
+-late_initcall(kfence_test_init);
++late_initcall_sync(kfence_test_init);
+ module_exit(kfence_test_exit);
+ 
+ MODULE_LICENSE("GPL v2");
 _
