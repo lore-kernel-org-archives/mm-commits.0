@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F598C4338F
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 20:04:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F537C432BE
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 20:04:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 13A9E60ED7
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 20:04:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 85FE060F37
+	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 20:04:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230312AbhGWTX3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jul 2021 15:23:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55076 "EHLO mail.kernel.org"
+        id S230289AbhGWTXa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jul 2021 15:23:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55146 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230351AbhGWTX1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 23 Jul 2021 15:23:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B971560F25;
-        Fri, 23 Jul 2021 20:03:59 +0000 (UTC)
+        id S229461AbhGWTXa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 23 Jul 2021 15:23:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 22B5560F36;
+        Fri, 23 Jul 2021 20:04:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627070640;
-        bh=YMNIoYIXcQwizOv/WObkWl7MR9oXBXVmuwvSZKlqugQ=;
+        s=korg; t=1627070643;
+        bh=4DmKIPju7LUYI9SuiZAEL1QqbMs9wxaZ/awjTFfue8w=;
         h=Date:From:To:Subject:From;
-        b=f+ewOWu3o22Tp88/wuXEQmDwNUAJpm7nSg4UhzMR1aqdo2sNjPDpUKEIdk2c7LmDq
-         fAXXfMTubH6u4ShGBggvARa5EFQiA04Yafb2GyMlDdjuLFvMnLZGn2ccLhD4/v25ue
-         YNt1A5ObLDFlAvIcGOsVc0jHxU4QrMZi9tse5IGg=
-Date:   Fri, 23 Jul 2021 13:03:58 -0700
+        b=1/j3hF9JTBMdzOBj0O9022pRNZDLu4DiteUPHXNoGPh9ErdPDq3BtoNXEIG6E1N5Z
+         /cWGqa2Iubg1SLbS5Ar0ObjzXwo1bhWjnq3n/lwgr9YYQ5w9HkL0u1THbgpgKmZIyZ
+         rJpqxPeYPDN5jnIOc9us2HEJ7CySXWgDIuE6Zfok=
+Date:   Fri, 23 Jul 2021 13:04:02 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mingo@kernel.org,
-        mingo@elte.hu, mgorman@techsingularity.net, hughd@google.com,
-        tglx@linutronix.de
-Subject:  + preempt-provide-preempt__nort-variants.patch added to -mm
- tree
-Message-ID: <20210723200358.NcPzD%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tglx@linutronix.de,
+        mingo@kernel.org, mgorman@techsingularity.net, hughd@google.com,
+        mingo@elte.hu
+Subject:  +
+ mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt.patch added to
+ -mm tree
+Message-ID: <20210723200402.7oh01%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: preempt: provide preempt_*_(no)rt variants
+     Subject: mm/vmstat: protect per cpu variables with preempt disable on RT
 has been added to the -mm tree.  Its filename is
-     preempt-provide-preempt__nort-variants.patch
+     mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/preempt-provide-preempt__nort-variants.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/preempt-provide-preempt__nort-variants.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,84 +66,134 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: preempt: provide preempt_*_(no)rt variants
+From: Ingo Molnar <mingo@elte.hu>
+Subject: mm/vmstat: protect per cpu variables with preempt disable on RT
 
-Patch series "Protect vmstats on PREEMPT_RT".
+Disable preemption on -RT for the vmstat code.  On vanilla the code runs
+in IRQ-off regions while on -RT it may not when stats are updated under a
+local_lock.  "preempt_disable" ensures that the same resources are not
+updated in parallel due to preemption.
 
-When adding local_lock support to mm/page_alloc.c and reducing the
-overhead of vmstats in general, I wondered how vmstats could be safe on
-PREEMPT_RT as it partially relies on interrupts being disabled for the
-stats that must be accurate for correctness.  As it turns out, the
-preempt-rt tree already encountered the same problem.
+This patch differs from the preempt-rt version where __count_vm_event and
+__count_vm_events are also protected.  The counters are explicitly
+"allowed to be to be racy" so there is no need to protect them from
+preemption.  Only the accurate page stats that are updated by a
+read-modify-write need protection.
 
-This series protects just the primary counters.  While there is another
-vmstat-related patch, it is related to memcg getting using local_lock and
-I have not fully considered those patches and whether they are ok as-is or
-need modification but this series makes a start.
-
-Patch 1 is authored by Thomas and has not being altered.
-
-Patch 2 is authored by Ingo but I modified what he implemented for reasons
-explained in the changelog.
-
-
-This patch (of 2):
-
-RT needs a few preempt_disable/enable points which are not necessary
-otherwise.  Implement variants to avoid #ifdeffery.
-
-Link: https://lkml.kernel.org/r/20210723100034.13353-1-mgorman@techsingularity.net
-Link: https://lkml.kernel.org/r/20210723100034.13353-2-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210723100034.13353-3-mgorman@techsingularity.net
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/preempt.h |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ mm/vmstat.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/include/linux/preempt.h~preempt-provide-preempt__nort-variants
-+++ a/include/linux/preempt.h
-@@ -184,7 +184,11 @@ do { \
- 	preempt_count_dec(); \
- } while (0)
+--- a/mm/vmstat.c~mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt
++++ a/mm/vmstat.c
+@@ -319,6 +319,7 @@ void __mod_zone_page_state(struct zone *
+ 	long x;
+ 	long t;
  
--#define preempt_enable_no_resched() sched_preempt_enable_no_resched()
-+#ifdef CONFIG_PREEMPT_RT
-+# define preempt_enable_no_resched() sched_preempt_enable_no_resched()
-+#else
-+# define preempt_enable_no_resched() preempt_enable()
-+#endif
++	preempt_disable_rt();
+ 	x = delta + __this_cpu_read(*p);
  
- #define preemptible()	(preempt_count() == 0 && !irqs_disabled())
+ 	t = __this_cpu_read(pcp->stat_threshold);
+@@ -328,6 +329,7 @@ void __mod_zone_page_state(struct zone *
+ 		x = 0;
+ 	}
+ 	__this_cpu_write(*p, x);
++	preempt_enable_rt();
+ }
+ EXPORT_SYMBOL(__mod_zone_page_state);
  
-@@ -278,6 +282,18 @@ do { \
- 		set_preempt_need_resched(); \
- } while (0)
+@@ -350,6 +352,7 @@ void __mod_node_page_state(struct pglist
+ 		delta >>= PAGE_SHIFT;
+ 	}
  
-+#ifdef CONFIG_PREEMPT_RT
-+# define preempt_disable_rt()		preempt_disable()
-+# define preempt_enable_rt()		preempt_enable()
-+# define preempt_disable_nort()		barrier()
-+# define preempt_enable_nort()		barrier()
-+#else
-+# define preempt_disable_rt()		barrier()
-+# define preempt_enable_rt()		barrier()
-+# define preempt_disable_nort()		preempt_disable()
-+# define preempt_enable_nort()		preempt_enable()
-+#endif
-+
- #ifdef CONFIG_PREEMPT_NOTIFIERS
++	preempt_disable_rt();
+ 	x = delta + __this_cpu_read(*p);
  
- struct preempt_notifier;
+ 	t = __this_cpu_read(pcp->stat_threshold);
+@@ -359,6 +362,7 @@ void __mod_node_page_state(struct pglist
+ 		x = 0;
+ 	}
+ 	__this_cpu_write(*p, x);
++	preempt_enable_rt();
+ }
+ EXPORT_SYMBOL(__mod_node_page_state);
+ 
+@@ -391,6 +395,7 @@ void __inc_zone_state(struct zone *zone,
+ 	s8 __percpu *p = pcp->vm_stat_diff + item;
+ 	s8 v, t;
+ 
++	preempt_disable_rt();
+ 	v = __this_cpu_inc_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v > t)) {
+@@ -399,6 +404,7 @@ void __inc_zone_state(struct zone *zone,
+ 		zone_page_state_add(v + overstep, zone, item);
+ 		__this_cpu_write(*p, -overstep);
+ 	}
++	preempt_enable_rt();
+ }
+ 
+ void __inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
+@@ -409,6 +415,7 @@ void __inc_node_state(struct pglist_data
+ 
+ 	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
+ 
++	preempt_disable_rt();
+ 	v = __this_cpu_inc_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v > t)) {
+@@ -417,6 +424,7 @@ void __inc_node_state(struct pglist_data
+ 		node_page_state_add(v + overstep, pgdat, item);
+ 		__this_cpu_write(*p, -overstep);
+ 	}
++	preempt_enable_rt();
+ }
+ 
+ void __inc_zone_page_state(struct page *page, enum zone_stat_item item)
+@@ -437,6 +445,7 @@ void __dec_zone_state(struct zone *zone,
+ 	s8 __percpu *p = pcp->vm_stat_diff + item;
+ 	s8 v, t;
+ 
++	preempt_disable_rt();
+ 	v = __this_cpu_dec_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v < - t)) {
+@@ -445,6 +454,7 @@ void __dec_zone_state(struct zone *zone,
+ 		zone_page_state_add(v - overstep, zone, item);
+ 		__this_cpu_write(*p, overstep);
+ 	}
++	preempt_enable_rt();
+ }
+ 
+ void __dec_node_state(struct pglist_data *pgdat, enum node_stat_item item)
+@@ -455,6 +465,7 @@ void __dec_node_state(struct pglist_data
+ 
+ 	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
+ 
++	preempt_disable_rt();
+ 	v = __this_cpu_dec_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v < - t)) {
+@@ -463,6 +474,7 @@ void __dec_node_state(struct pglist_data
+ 		node_page_state_add(v - overstep, pgdat, item);
+ 		__this_cpu_write(*p, overstep);
+ 	}
++	preempt_enable_rt();
+ }
+ 
+ void __dec_zone_page_state(struct page *page, enum zone_stat_item item)
 _
 
-Patches currently in -mm which might be from tglx@linutronix.de are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-preempt-provide-preempt__nort-variants.patch
+mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt.patch
 
