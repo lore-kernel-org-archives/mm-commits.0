@@ -2,72 +2,104 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.6 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C747BC4320A
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jul 2021 16:24:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE48EC432BE
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jul 2021 18:49:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A09860E91
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jul 2021 16:24:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA42860E8E
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jul 2021 18:49:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229535AbhGXPnf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 24 Jul 2021 11:43:35 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40600 "EHLO
+        id S230077AbhGXSJQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 24 Jul 2021 14:09:16 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229461AbhGXPnd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 24 Jul 2021 11:43:33 -0400
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16EAFC061575;
-        Sat, 24 Jul 2021 09:24:05 -0700 (PDT)
+        with ESMTP id S229530AbhGXSJP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 24 Jul 2021 14:09:15 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6132C061575;
+        Sat, 24 Jul 2021 11:49:47 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=UdKbYcMBZylcrRBVcQRb8LlJpC27Qlfh0Nw1vs/Gwg0=; b=cqmb2WZM0kG49hKRcejfxgDd1m
-        gg5Tf9URvWsomrRWIClBSDVXqzWwIov6bg2Z2xToDG3TJUHNBeILYodDfGmy3/e64idGeRewF+ZM+
-        7qTBZC+VDNVnS4sBZzoRihTgCI/+dRXLPuu9EXiBsqW/QbqiNYAuAaxkV/y+15uqKXd/iCsf98UMl
-        CFIAakZnIlDNhtq6h+8k7j3O+I3SYBmcY4Eq0BBaHITLyrUrRGYKTqdDClwM8EHqnAIrSPbMiNtZF
-        d00myIoTQfoscRiS1SHwtPgJ32OtQbckZJuSVKCuqW0JQkRQ2MURm5RIoiNPEudbzrWO4NdcVKm3D
-        u9IIUX9w==;
-Received: from willy by casper.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1m7KR8-00CO3a-5N; Sat, 24 Jul 2021 16:23:40 +0000
-Date:   Sat, 24 Jul 2021 17:23:38 +0100
-From:   Matthew Wilcox <willy@infradead.org>
-To:     Christoph Hellwig <hch@lst.de>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        chaitanya.kulkarni@wdc.com, ira.weiny@intel.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        stable@vger.kernel.org, torvalds@linux-foundation.org
-Subject: Re: [patch 06/15] mm: call flush_dcache_page() in memcpy_to_page()
- and memzero_page()
-Message-ID: <YPw+im91HBhFK6fd@casper.infradead.org>
-References: <20210723154926.c6cda0f262b1990b950a5886@linux-foundation.org>
- <20210723225017.xFO0jZesP%akpm@linux-foundation.org>
- <20210724065954.GA2505@lst.de>
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:
+        Subject:Sender:Reply-To:Cc:Content-ID:Content-Description;
+        bh=wxAvS7iHGAxQWca5sytD64g1MZMTPyvQWkfE1x9lyIc=; b=bfZdswynQet3POsZpKRsWLVCtB
+        Ih7EaGUOn+jsTPK7g7hfFQJ7/CoBkoxVtg0mFVxTtWFNe3/Ds1qkSIeJT1Vmg49OGMzCDYRmpmgxe
+        KbBbYukXS6uXDNmnPMTPGqwvfk5/y4z5caWg1haZT5yRagQTsYtA0sT1gKCnO8YKoC7tRnHkZxpNk
+        yZL8n70g+pDMXdATNwZRHFVKHIU1hmmQ+5B4A4C76MH2hTzfuQQs2dK5OsejlYkWskqG0eSIld9KO
+        XkVtTw1RHhGYXfPLmP3DdNvt5opveHzDWlUOcL+ZsWWewWunV6Ln8/6z9rl2Wi7Uc9V8njhIRaiBo
+        MMcvD4Og==;
+Received: from [2601:1c0:6280:3f0::aefb]
+        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1m7MiQ-007ggV-Od; Sat, 24 Jul 2021 18:49:38 +0000
+Subject: Re: mmotm 2021-07-23-15-03 uploaded (mm/memory_hotplug.c)
+To:     akpm@linux-foundation.org, broonie@kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        David Hildenbrand <david@redhat.com>
+References: <20210723220400.w5iKInKaC%akpm@linux-foundation.org>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <5966f6a2-bdba-3a54-c6cb-d21aaeb8f534@infradead.org>
+Date:   Sat, 24 Jul 2021 11:49:37 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20210724065954.GA2505@lst.de>
+In-Reply-To: <20210723220400.w5iKInKaC%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sat, Jul 24, 2021 at 08:59:54AM +0200, Christoph Hellwig wrote:
-> On Fri, Jul 23, 2021 at 03:50:17PM -0700, Andrew Morton wrote:
-> > one used the PC floppy dr\u0456ver, the aha1542 driver for an ISA SCSI
+On 7/23/21 3:04 PM, akpm@linux-foundation.org wrote:
+> The mm-of-the-moment snapshot 2021-07-23-15-03 has been uploaded to
 > 
-> Looks like I produced some messed up utf8 chars again - the above garbage
-> should read "driver" of course.
+>    https://www.ozlabs.org/~akpm/mmotm/
+> 
+> mmotm-readme.txt says
+> 
+> README for mm-of-the-moment:
+> 
+> https://www.ozlabs.org/~akpm/mmotm/
+> 
+> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+> more than once a week.
+> 
+> You will need quilt to apply these patches to the latest Linus release (5.x
+> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+> https://ozlabs.org/~akpm/mmotm/series
+> 
+> The file broken-out.tar.gz contains two datestamp files: .DATE and
+> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+> followed by the base kernel version against which this patch series is to
+> be applied.
+> 
 
-I went back and looked it up, and you did indeed manage to type:
+on x86_64:
+# CONFIG_CMA is not set
 
-U+0456 CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I character (&#x0456;)
+mm-memory_hotplug-memory-group-aware-auto-movable-online-policy.patch
 
-It's on the list:
-http://www.unicode.org/Public/security/revision-05/confusables.txt
 
-Maybe someone could do something with that file to prevent the
-confusables from slipping in when unwanted?
+
+../mm/memory_hotplug.c: In function ‘auto_movable_stats_account_zone’:
+../mm/memory_hotplug.c:748:33: error: ‘struct zone’ has no member named ‘cma_pages’; did you mean ‘managed_pages’?
+   stats->movable_pages += zone->cma_pages;
+                                 ^~~~~~~~~
+                                 managed_pages
+../mm/memory_hotplug.c:750:38: error: ‘struct zone’ has no member named ‘cma_pages’; did you mean ‘managed_pages’?
+   stats->kernel_early_pages -= zone->cma_pages;
+                                      ^~~~~~~~~
+                                      managed_pages
+
+
+-- 
+~Randy
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+
