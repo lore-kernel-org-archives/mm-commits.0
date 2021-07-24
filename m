@@ -2,198 +2,55 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9541C4338F
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 23:04:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E323DC4338F
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jul 2021 02:00:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9346C60F23
-	for <mm-commits@archiver.kernel.org>; Fri, 23 Jul 2021 23:04:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B1C8460E98
+	for <mm-commits@archiver.kernel.org>; Sat, 24 Jul 2021 02:00:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232904AbhGWWXy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 23 Jul 2021 18:23:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55546 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231954AbhGWWXx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 23 Jul 2021 18:23:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 548BF60F36;
-        Fri, 23 Jul 2021 23:04:25 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627081465;
-        bh=3o2252WvQFH7ErQtdm8eEVY+LSeYIOWgNax75NWAYRk=;
-        h=Date:From:To:Subject:From;
-        b=KnYDmKWHl+UvO9fOJQBOsePU9uczV+4yVdzzve67dHm2KX2H8pIr0EYIIGEcfARnF
-         eaHN6lqDtCY1gKnrc5IaDqQNd9dmbWjKu8angYknNQQmYakqr+fM8NFAjvXJAOwCzh
-         LqbcQav2gt+YgMiMW4lKkSufQbJZWj9lNf9zl91o=
-Date:   Fri, 23 Jul 2021 16:04:24 -0700
-From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, peterz@infradead.org, osandov@fb.com,
-        mingo@kernel.org, boqun.feng@gmail.com, willy@infradead.org
-Subject:  +
- mm-report-a-more-useful-address-for-reclaim-acquisition.patch added to -mm
- tree
-Message-ID: <20210723230424.W4gFi%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+        id S233398AbhGXBTZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 23 Jul 2021 21:19:25 -0400
+Received: from zeniv-ca.linux.org.uk ([142.44.231.140]:53048 "EHLO
+        zeniv-ca.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233366AbhGXBTZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 23 Jul 2021 21:19:25 -0400
+X-Greylist: delayed 952 seconds by postgrey-1.27 at vger.kernel.org; Fri, 23 Jul 2021 21:19:25 EDT
+Received: from viro by zeniv-ca.linux.org.uk with local (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1m76fo-003Lco-9E; Sat, 24 Jul 2021 01:41:52 +0000
+Date:   Sat, 24 Jul 2021 01:41:52 +0000
+From:   Al Viro <viro@zeniv.linux.org.uk>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     bugs+kernel.org@dtnr.ch, dhowells@redhat.com, linux-mm@kvack.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject: Re: [patch 15/15] hugetlbfs: fix mount mode command line processing
+Message-ID: <YPtv4E6Y/L1aGlK9@zeniv-ca.linux.org.uk>
+References: <20210723154926.c6cda0f262b1990b950a5886@linux-foundation.org>
+ <20210723225044.DpiHGbzxj%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210723225044.DpiHGbzxj%akpm@linux-foundation.org>
+Sender: Al Viro <viro@ftp.linux.org.uk>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Fri, Jul 23, 2021 at 03:50:44PM -0700, Andrew Morton wrote:
+> From: Mike Kravetz <mike.kravetz@oracle.com>
+> Subject: hugetlbfs: fix mount mode command line processing
+> 
+> In commit 32021982a324 ("hugetlbfs: Convert to fs_context") processing of
+> the mount mode string was changed from match_octal() to fsparam_u32.  This
+> changed existing behavior as match_octal does not require octal values to
+> have a '0' prefix, but fsparam_u32 does.
+> 
+> Use fsparam_u32oct which provides the same behavior as match_octal.
 
-The patch titled
-     Subject: mm: report a more useful address for reclaim acquisition
-has been added to the -mm tree.  Its filename is
-     mm-report-a-more-useful-address-for-reclaim-acquisition.patch
-
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-report-a-more-useful-address-for-reclaim-acquisition.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-report-a-more-useful-address-for-reclaim-acquisition.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: report a more useful address for reclaim acquisition
-
-A recent lockdep report included these lines:
-
-[   96.177910] 3 locks held by containerd/770:
-[   96.177934]  #0: ffff88810815ea28 (&mm->mmap_lock#2){++++}-{3:3},
-at: do_user_addr_fault+0x115/0x770
-[   96.177999]  #1: ffffffff82915020 (rcu_read_lock){....}-{1:2}, at:
-get_swap_device+0x33/0x140
-[   96.178057]  #2: ffffffff82955ba0 (fs_reclaim){+.+.}-{0:0}, at:
-__fs_reclaim_acquire+0x5/0x30
-
-While it was not useful to that bug report to know where the reclaim lock
-had been acquired, it might be useful under other circumstances.  Allow
-the caller of __fs_reclaim_acquire to specify the instruction pointer to
-use.
-
-Link: https://lkml.kernel.org/r/20210719185709.1755149-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Omar Sandoval <osandov@fb.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/sched/mm.h |    8 ++++----
- mm/page_alloc.c          |   12 ++++++------
- mm/vmscan.c              |    8 ++++----
- 3 files changed, 14 insertions(+), 14 deletions(-)
-
---- a/include/linux/sched/mm.h~mm-report-a-more-useful-address-for-reclaim-acquisition
-+++ a/include/linux/sched/mm.h
-@@ -174,13 +174,13 @@ static inline gfp_t current_gfp_context(
- }
- 
- #ifdef CONFIG_LOCKDEP
--extern void __fs_reclaim_acquire(void);
--extern void __fs_reclaim_release(void);
-+extern void __fs_reclaim_acquire(unsigned long ip);
-+extern void __fs_reclaim_release(unsigned long ip);
- extern void fs_reclaim_acquire(gfp_t gfp_mask);
- extern void fs_reclaim_release(gfp_t gfp_mask);
- #else
--static inline void __fs_reclaim_acquire(void) { }
--static inline void __fs_reclaim_release(void) { }
-+static inline void __fs_reclaim_acquire(unsigned long ip) { }
-+static inline void __fs_reclaim_release(unsigned long ip) { }
- static inline void fs_reclaim_acquire(gfp_t gfp_mask) { }
- static inline void fs_reclaim_release(gfp_t gfp_mask) { }
- #endif
---- a/mm/page_alloc.c~mm-report-a-more-useful-address-for-reclaim-acquisition
-+++ a/mm/page_alloc.c
-@@ -4550,14 +4550,14 @@ static bool __need_reclaim(gfp_t gfp_mas
- 	return true;
- }
- 
--void __fs_reclaim_acquire(void)
-+void __fs_reclaim_acquire(unsigned long ip)
- {
--	lock_map_acquire(&__fs_reclaim_map);
-+	lock_acquire_exclusive(&__fs_reclaim_map, 0, 0, NULL, ip);
- }
- 
--void __fs_reclaim_release(void)
-+void __fs_reclaim_release(unsigned long ip)
- {
--	lock_map_release(&__fs_reclaim_map);
-+	lock_release(&__fs_reclaim_map, ip);
- }
- 
- void fs_reclaim_acquire(gfp_t gfp_mask)
-@@ -4566,7 +4566,7 @@ void fs_reclaim_acquire(gfp_t gfp_mask)
- 
- 	if (__need_reclaim(gfp_mask)) {
- 		if (gfp_mask & __GFP_FS)
--			__fs_reclaim_acquire();
-+			__fs_reclaim_acquire(_RET_IP_);
- 
- #ifdef CONFIG_MMU_NOTIFIER
- 		lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
-@@ -4583,7 +4583,7 @@ void fs_reclaim_release(gfp_t gfp_mask)
- 
- 	if (__need_reclaim(gfp_mask)) {
- 		if (gfp_mask & __GFP_FS)
--			__fs_reclaim_release();
-+			__fs_reclaim_release(_RET_IP_);
- 	}
- }
- EXPORT_SYMBOL_GPL(fs_reclaim_release);
---- a/mm/vmscan.c~mm-report-a-more-useful-address-for-reclaim-acquisition
-+++ a/mm/vmscan.c
-@@ -3801,7 +3801,7 @@ static int balance_pgdat(pg_data_t *pgda
- 
- 	set_task_reclaim_state(current, &sc.reclaim_state);
- 	psi_memstall_enter(&pflags);
--	__fs_reclaim_acquire();
-+	__fs_reclaim_acquire(_THIS_IP_);
- 
- 	count_vm_event(PAGEOUTRUN);
- 
-@@ -3927,9 +3927,9 @@ restart:
- 			wake_up_all(&pgdat->pfmemalloc_wait);
- 
- 		/* Check if kswapd should be suspending */
--		__fs_reclaim_release();
-+		__fs_reclaim_release(_THIS_IP_);
- 		ret = try_to_freeze();
--		__fs_reclaim_acquire();
-+		__fs_reclaim_acquire(_THIS_IP_);
- 		if (ret || kthread_should_stop())
- 			break;
- 
-@@ -3981,7 +3981,7 @@ out:
- 	}
- 
- 	snapshot_refaults(NULL, pgdat);
--	__fs_reclaim_release();
-+	__fs_reclaim_release(_THIS_IP_);
- 	psi_memstall_leave(&pflags);
- 	set_task_reclaim_state(current, NULL);
- 
-_
-
-Patches currently in -mm which might be from willy@infradead.org are
-
-mm-move-kvmalloc-related-functions-to-slabh.patch
-mm-report-a-more-useful-address-for-reclaim-acquisition.patch
-mm-mark-idle-page-tracking-as-broken.patch
-avoid-a-warning-in-sparse-memory-support.patch
-
+Looks sane...  Which tree do you want it to go through?
