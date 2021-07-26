@@ -2,104 +2,67 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no
+X-Spam-Status: No, score=-6.2 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE48EC432BE
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jul 2021 18:49:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B2C8C4338F
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Jul 2021 05:22:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA42860E8E
-	for <mm-commits@archiver.kernel.org>; Sat, 24 Jul 2021 18:49:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D623F60F02
+	for <mm-commits@archiver.kernel.org>; Mon, 26 Jul 2021 05:22:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230077AbhGXSJQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 24 Jul 2021 14:09:16 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44382 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229530AbhGXSJP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 24 Jul 2021 14:09:15 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A6132C061575;
-        Sat, 24 Jul 2021 11:49:47 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:
-        Subject:Sender:Reply-To:Cc:Content-ID:Content-Description;
-        bh=wxAvS7iHGAxQWca5sytD64g1MZMTPyvQWkfE1x9lyIc=; b=bfZdswynQet3POsZpKRsWLVCtB
-        Ih7EaGUOn+jsTPK7g7hfFQJ7/CoBkoxVtg0mFVxTtWFNe3/Ds1qkSIeJT1Vmg49OGMzCDYRmpmgxe
-        KbBbYukXS6uXDNmnPMTPGqwvfk5/y4z5caWg1haZT5yRagQTsYtA0sT1gKCnO8YKoC7tRnHkZxpNk
-        yZL8n70g+pDMXdATNwZRHFVKHIU1hmmQ+5B4A4C76MH2hTzfuQQs2dK5OsejlYkWskqG0eSIld9KO
-        XkVtTw1RHhGYXfPLmP3DdNvt5opveHzDWlUOcL+ZsWWewWunV6Ln8/6z9rl2Wi7Uc9V8njhIRaiBo
-        MMcvD4Og==;
-Received: from [2601:1c0:6280:3f0::aefb]
-        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1m7MiQ-007ggV-Od; Sat, 24 Jul 2021 18:49:38 +0000
-Subject: Re: mmotm 2021-07-23-15-03 uploaded (mm/memory_hotplug.c)
-To:     akpm@linux-foundation.org, broonie@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        David Hildenbrand <david@redhat.com>
-References: <20210723220400.w5iKInKaC%akpm@linux-foundation.org>
-From:   Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <5966f6a2-bdba-3a54-c6cb-d21aaeb8f534@infradead.org>
-Date:   Sat, 24 Jul 2021 11:49:37 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
-MIME-Version: 1.0
-In-Reply-To: <20210723220400.w5iKInKaC%akpm@linux-foundation.org>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        id S229619AbhGZEmN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Jul 2021 00:42:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36418 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229580AbhGZEmN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 26 Jul 2021 00:42:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 73BDB60E78;
+        Mon, 26 Jul 2021 05:22:41 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1627276961;
+        bh=7VuNE40SapuFirvo2iFJbgsIEjfS892Eh8/ky0HWcYc=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=f7vnW0oRBpZbBvtsN2bbB7Hn3LlIFpY6jzSacS2zsAqaSATXkc43cqsLDZgh3kAqJ
+         R4lcTfnFd0VZ3X5vBsxo35mYL3hw8AW+aHNIIdCwoWwRg8d5Fn6IOjDPGzzONFzihN
+         r8xFpHOi8OARCV3neT5LSb562w0ATzc8lOTuDHIA=
+Date:   Sun, 25 Jul 2021 22:22:40 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Al Viro <viro@zeniv.linux.org.uk>
+Cc:     bugs+kernel.org@dtnr.ch, dhowells@redhat.com, linux-mm@kvack.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject: Re: [patch 15/15] hugetlbfs: fix mount mode command line processing
+Message-Id: <20210725222240.61b3c7b27724efa93414ac7e@linux-foundation.org>
+In-Reply-To: <YPtv4E6Y/L1aGlK9@zeniv-ca.linux.org.uk>
+References: <20210723154926.c6cda0f262b1990b950a5886@linux-foundation.org>
+        <20210723225044.DpiHGbzxj%akpm@linux-foundation.org>
+        <YPtv4E6Y/L1aGlK9@zeniv-ca.linux.org.uk>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 7/23/21 3:04 PM, akpm@linux-foundation.org wrote:
-> The mm-of-the-moment snapshot 2021-07-23-15-03 has been uploaded to
-> 
->    https://www.ozlabs.org/~akpm/mmotm/
-> 
-> mmotm-readme.txt says
-> 
-> README for mm-of-the-moment:
-> 
-> https://www.ozlabs.org/~akpm/mmotm/
-> 
-> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> more than once a week.
-> 
-> You will need quilt to apply these patches to the latest Linus release (5.x
-> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-> https://ozlabs.org/~akpm/mmotm/series
-> 
-> The file broken-out.tar.gz contains two datestamp files: .DATE and
-> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-> followed by the base kernel version against which this patch series is to
-> be applied.
-> 
+On Sat, 24 Jul 2021 01:41:52 +0000 Al Viro <viro@zeniv.linux.org.uk> wrote:
 
-on x86_64:
-# CONFIG_CMA is not set
+> On Fri, Jul 23, 2021 at 03:50:44PM -0700, Andrew Morton wrote:
+> > From: Mike Kravetz <mike.kravetz@oracle.com>
+> > Subject: hugetlbfs: fix mount mode command line processing
+> > 
+> > In commit 32021982a324 ("hugetlbfs: Convert to fs_context") processing of
+> > the mount mode string was changed from match_octal() to fsparam_u32.  This
+> > changed existing behavior as match_octal does not require octal values to
+> > have a '0' prefix, but fsparam_u32 does.
+> > 
+> > Use fsparam_u32oct which provides the same behavior as match_octal.
+> 
+> Looks sane...  Which tree do you want it to go through?
 
-mm-memory_hotplug-memory-group-aware-auto-movable-online-policy.patch
-
-
-
-../mm/memory_hotplug.c: In function ‘auto_movable_stats_account_zone’:
-../mm/memory_hotplug.c:748:33: error: ‘struct zone’ has no member named ‘cma_pages’; did you mean ‘managed_pages’?
-   stats->movable_pages += zone->cma_pages;
-                                 ^~~~~~~~~
-                                 managed_pages
-../mm/memory_hotplug.c:750:38: error: ‘struct zone’ has no member named ‘cma_pages’; did you mean ‘managed_pages’?
-   stats->kernel_early_pages -= zone->cma_pages;
-                                      ^~~~~~~~~
-                                      managed_pages
-
-
--- 
-~Randy
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-
+It's now in mainline, with cc:stable, Fixes: 32021982a324.
