@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C6EC3C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 19:35:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B119C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 19:35:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6E9060C51
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 19:35:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3394860FC0
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 19:35:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230458AbhG0TfP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 27 Jul 2021 15:35:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33508 "EHLO mail.kernel.org"
+        id S231479AbhG0TfR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Jul 2021 15:35:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33570 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230454AbhG0TfP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 27 Jul 2021 15:35:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9283560FC0;
-        Tue, 27 Jul 2021 19:35:13 +0000 (UTC)
+        id S230454AbhG0TfR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 27 Jul 2021 15:35:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8861460C51;
+        Tue, 27 Jul 2021 19:35:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627414513;
-        bh=b4dMsyqucEuRM+AnbCDh5Aeejld1Xu4ALcyg8KoBYlo=;
+        s=korg; t=1627414516;
+        bh=UqC7iVpZRZO2v9qZ5jIUYt85EscXGKaZLeB8rwhLa5o=;
         h=Date:From:To:Subject:From;
-        b=Ddnpc244wTpFjfahB8Rua8nvNxt560bLcpwdpPUoeWIc5e5KGoOM2SVCGpEzGkT9v
-         PuoOmf++yEzP92Jwms5TIX2TYCQSCSZWFXXr2F0UOZ4tJAzQDZx1+TOvGrugTkDrWn
-         3PUaSpSd3k3XmH9YmXNTm4UyHVquwa3eD1dYg6bk=
-Date:   Tue, 27 Jul 2021 12:35:13 -0700
+        b=uHXbdU28tALnHTtt9E+xBPtXpkb2K6r2oUvYS3q8V7BAbSFi7OCxiKiSVdsdo7a5O
+         aXW6hZOgjZXXVivfAdE+VEkUxl6wmH/uAjgXeE2mXREzPFYhlOkoRLZhzceWSNca4c
+         SooyOcFeDX887vF+V6a+BdEnkF9cdxHy2zl1DxUw=
+Date:   Tue, 27 Jul 2021 12:35:16 -0700
 From:   akpm@linux-foundation.org
-To:     dvyukov@google.com, elver@google.com, glider@google.com,
-        gregkh@linuxfoundation.org, jrdr.linux@gmail.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org
-Subject:  [merged] kfence-skip-all-gfp_zonemask-allocations.patch
+To:     chaitanya.kulkarni@wdc.com, hch@lst.de, ira.weiny@intel.com,
+        mm-commits@vger.kernel.org
+Subject:  [merged] mm-use-kmap_local_page-in-memzero_page.patch
  removed from -mm tree
-Message-ID: <20210727193513.7sGW9cB0m%akpm@linux-foundation.org>
+Message-ID: <20210727193516.g1yQ-CueV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,60 +43,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: skip all GFP_ZONEMASK allocations
+     Subject: mm: use kmap_local_page in memzero_page
 has been removed from the -mm tree.  Its filename was
-     kfence-skip-all-gfp_zonemask-allocations.patch
+     mm-use-kmap_local_page-in-memzero_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: kfence: skip all GFP_ZONEMASK allocations
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: use kmap_local_page in memzero_page
 
-Allocation requests outside ZONE_NORMAL (MOVABLE, HIGHMEM or DMA) cannot
-be fulfilled by KFENCE, because KFENCE memory pool is located in a zone
-different from the requested one.
+The commit message introducing the global memzero_page explicitly mentions
+switching to kmap_local_page in the commit log but doesn't actually do
+that.
 
-Because callers of kmem_cache_alloc() may actually rely on the allocation
-to reside in the requested zone (e.g.  memory allocations done with
-__GFP_DMA must be DMAable), skip all allocations done with GFP_ZONEMASK
-and/or respective SLAB flags (SLAB_CACHE_DMA and SLAB_CACHE_DMA32).
-
-Link: https://lkml.kernel.org/r/20210714092222.1890268-2-glider@google.com
-Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Acked-by: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
-Cc: <stable@vger.kernel.org>	[5.12+]
+Link: https://lkml.kernel.org/r/20210713055231.137602-3-hch@lst.de
+Fixes: 28961998f858 ("iov_iter: lift memzero_page() to highmem.h")
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Chaitanya Kulkarni <chaitanya.kulkarni@wdc.com>
+Reviewed-by: Ira Weiny <ira.weiny@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ include/linux/highmem.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/kfence/core.c~kfence-skip-all-gfp_zonemask-allocations
-+++ a/mm/kfence/core.c
-@@ -741,6 +741,15 @@ void *__kfence_alloc(struct kmem_cache *
- 		return NULL;
+--- a/include/linux/highmem.h~mm-use-kmap_local_page-in-memzero_page
++++ a/include/linux/highmem.h
+@@ -324,10 +324,10 @@ static inline void memcpy_to_page(struct
  
- 	/*
-+	 * Skip allocations from non-default zones, including DMA. We cannot
-+	 * guarantee that pages in the KFENCE pool will have the requested
-+	 * properties (e.g. reside in DMAable memory).
-+	 */
-+	if ((flags & GFP_ZONEMASK) ||
-+	    (s->flags & (SLAB_CACHE_DMA | SLAB_CACHE_DMA32)))
-+		return NULL;
-+
-+	/*
- 	 * allocation_gate only needs to become non-zero, so it doesn't make
- 	 * sense to continue writing to it and pay the associated contention
- 	 * cost, in case we have a large number of concurrent allocations.
+ static inline void memzero_page(struct page *page, size_t offset, size_t len)
+ {
+-	char *addr = kmap_atomic(page);
++	char *addr = kmap_local_page(page);
+ 	memset(addr + offset, 0, len);
+ 	flush_dcache_page(page);
+-	kunmap_atomic(addr);
++	kunmap_local(addr);
+ }
+ 
+ #endif /* _LINUX_HIGHMEM_H */
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from hch@lst.de are
 
+mmc-jz4740-remove-the-flush_kernel_dcache_page-call-in-jz4740_mmc_read_data.patch
+mmc-mmc_spi-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+ps3disk-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+mm-remove-flush_kernel_dcache_page.patch
 
