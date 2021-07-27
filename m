@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1F8CC4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:44:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0058C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:44:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BAAFE60FC0
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:44:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC1C260FC0
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:44:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231417AbhG0UoV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 27 Jul 2021 16:44:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51254 "EHLO mail.kernel.org"
+        id S231424AbhG0UoY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Jul 2021 16:44:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51308 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231133AbhG0UoV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 27 Jul 2021 16:44:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8303660FA0;
-        Tue, 27 Jul 2021 20:44:20 +0000 (UTC)
+        id S231133AbhG0UoY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 27 Jul 2021 16:44:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9BD1560D07;
+        Tue, 27 Jul 2021 20:44:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627418660;
-        bh=+AVrF0fADuyBL8W1+ZXQyW+UDcPChl33iQ87IFslHsU=;
+        s=korg; t=1627418663;
+        bh=YY7L/ebW/Xvxw2YfIjnit4IYJts9A6gYu6IfhBMzV9E=;
         h=Date:From:To:Subject:From;
-        b=R+DHfGppGMzGRulQS2tBivhuUv7UHxGQldZl1PJhtQZ4SzNf5MGvCA20qBTPA0vNl
-         TZTHN0GW3SxBqNVHACSN6a2HdYrdoGLXnOtMndRZJ+he7REeUGwTuTUnUebqENa4pc
-         WoGapw/xAwejlvP6Lt97+tyRNN3UVP9e3tdocwgU=
-Date:   Tue, 27 Jul 2021 13:44:20 -0700
+        b=EJY0IG4OQWdqRoPmpIEZJ2B948YmS+QjWzdjHpH5xvEmCUNNYPXjdg6xSFQvslp8i
+         sZfJCubBwuMSrBp6ZGPVZLEOK5XErEzC3WUNkSQy1t2DcGzS/G41UI+z1/WrABKQ5Z
+         HLK04fyKbAbYIk4hj8s1srYM12wILyL8NghQc3Ng=
+Date:   Tue, 27 Jul 2021 13:44:23 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org,
         catalin.marinas@arm.com, anshuman.khandual@arm.com,
         gshan@redhat.com
 Subject:  [to-be-updated]
- =?us-ascii?Q?mm-debug=5Fvm=5Fpgtable-use-struct-pgtable=5Fdebug=5Fargs-in?=
- =?us-ascii?Q?-soft=5Fdirty-and-swap-tests.patch?= removed from -mm tree
-Message-ID: <20210727204420.3Y0Zc%akpm@linux-foundation.org>
+ =?us-ascii?Q?mm-debug=5Fvm=5Fpgtable-use-struct-pgtable=5Fdebug=5Fargs-?=
+ =?us-ascii?Q?in-migration-and-thp-tests.patch?= removed from -mm tree
+Message-ID: <20210727204423.Uzuh4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -47,20 +47,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in soft_dirty and swap tests
+     Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in migration and thp tests
 has been removed from the -mm tree.  Its filename was
-     mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-soft_dirty-and-swap-tests.patch
+     mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-migration-and-thp-tests.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
-Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in soft_dirty and swap tests
+Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in migration and thp tests
 
-This uses struct pgtable_debug_args in the soft_dirty and swap test
-functions.
+This uses struct pgtable_debug_args in the migration and thp test
+functions.  It's notable that the pre-allocated page is used in
+swap_migration_tests() as set_pte_at() is used there.
 
-Link: https://lkml.kernel.org/r/20210719130613.334901-6-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210719130613.334901-7-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
@@ -68,140 +69,110 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   48 +++++++++++++++++++---------------------
- 1 file changed, 23 insertions(+), 25 deletions(-)
+ mm/debug_vm_pgtable.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-soft_dirty-and-swap-tests
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-migration-and-thp-tests
 +++ a/mm/debug_vm_pgtable.c
-@@ -751,9 +751,9 @@ static void __init pmd_devmap_tests(stru
- static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
- #endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
- 
--static void __init pte_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pte_soft_dirty_tests(struct pgtable_debug_args *args)
- {
--	pte_t pte = pfn_pte(pfn, prot);
-+	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
- 
- 	if (!IS_ENABLED(CONFIG_MEM_SOFT_DIRTY))
- 		return;
-@@ -763,9 +763,9 @@ static void __init pte_soft_dirty_tests(
- 	WARN_ON(pte_soft_dirty(pte_clear_soft_dirty(pte)));
- }
- 
--static void __init pte_swap_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pte_swap_soft_dirty_tests(struct pgtable_debug_args *args)
- {
--	pte_t pte = pfn_pte(pfn, prot);
-+	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
- 
- 	if (!IS_ENABLED(CONFIG_MEM_SOFT_DIRTY))
- 		return;
-@@ -776,7 +776,7 @@ static void __init pte_swap_soft_dirty_t
- }
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--static void __init pmd_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pmd_soft_dirty_tests(struct pgtable_debug_args *args)
- {
- 	pmd_t pmd;
- 
-@@ -787,12 +787,12 @@ static void __init pmd_soft_dirty_tests(
- 		return;
- 
- 	pr_debug("Validating PMD soft dirty\n");
--	pmd = pfn_pmd(pfn, prot);
-+	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
- 	WARN_ON(!pmd_soft_dirty(pmd_mksoft_dirty(pmd)));
- 	WARN_ON(pmd_soft_dirty(pmd_clear_soft_dirty(pmd)));
- }
- 
--static void __init pmd_swap_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pmd_swap_soft_dirty_tests(struct pgtable_debug_args *args)
- {
- 	pmd_t pmd;
- 
-@@ -804,31 +804,29 @@ static void __init pmd_swap_soft_dirty_t
- 		return;
- 
- 	pr_debug("Validating PMD swap soft dirty\n");
--	pmd = pfn_pmd(pfn, prot);
-+	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
- 	WARN_ON(!pmd_swp_soft_dirty(pmd_swp_mksoft_dirty(pmd)));
- 	WARN_ON(pmd_swp_soft_dirty(pmd_swp_clear_soft_dirty(pmd)));
- }
- #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
--static void __init pmd_soft_dirty_tests(unsigned long pfn, pgprot_t prot) { }
--static void __init pmd_swap_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
--{
--}
-+static void __init pmd_soft_dirty_tests(struct pgtable_debug_args *args) { }
-+static void __init pmd_swap_soft_dirty_tests(struct pgtable_debug_args *args) { }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- 
--static void __init pte_swap_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pte_swap_tests(struct pgtable_debug_args *args)
- {
- 	swp_entry_t swp;
- 	pte_t pte;
- 
- 	pr_debug("Validating PTE swap\n");
--	pte = pfn_pte(pfn, prot);
-+	pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
- 	swp = __pte_to_swp_entry(pte);
- 	pte = __swp_entry_to_pte(swp);
--	WARN_ON(pfn != pte_pfn(pte));
-+	WARN_ON(args->fixed_pte_pfn != pte_pfn(pte));
- }
- 
- #ifdef CONFIG_ARCH_ENABLE_THP_MIGRATION
--static void __init pmd_swap_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pmd_swap_tests(struct pgtable_debug_args *args)
- {
- 	swp_entry_t swp;
- 	pmd_t pmd;
-@@ -837,13 +835,13 @@ static void __init pmd_swap_tests(unsign
- 		return;
- 
- 	pr_debug("Validating PMD swap\n");
--	pmd = pfn_pmd(pfn, prot);
-+	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
- 	swp = __pmd_to_swp_entry(pmd);
- 	pmd = __swp_entry_to_pmd(swp);
--	WARN_ON(pfn != pmd_pfn(pmd));
-+	WARN_ON(args->fixed_pmd_pfn != pmd_pfn(pmd));
- }
- #else  /* !CONFIG_ARCH_ENABLE_THP_MIGRATION */
--static void __init pmd_swap_tests(unsigned long pfn, pgprot_t prot) { }
-+static void __init pmd_swap_tests(struct pgtable_debug_args *args) { }
+@@ -844,7 +844,7 @@ static void __init pmd_swap_tests(struct
+ static void __init pmd_swap_tests(struct pgtable_debug_args *args) { }
  #endif /* CONFIG_ARCH_ENABLE_THP_MIGRATION */
  
- static void __init swap_migration_tests(void)
-@@ -1257,13 +1255,13 @@ static int __init debug_vm_pgtable(void)
- 	pmd_devmap_tests(&args);
- 	pud_devmap_tests(&args);
+-static void __init swap_migration_tests(void)
++static void __init swap_migration_tests(struct pgtable_debug_args *args)
+ {
+ 	struct page *page;
+ 	swp_entry_t swp;
+@@ -860,9 +860,10 @@ static void __init swap_migration_tests(
+ 	 * problematic. Lets allocate a dedicated page explicitly for this
+ 	 * purpose that will be freed subsequently.
+ 	 */
+-	page = alloc_page(GFP_KERNEL);
++	page = (args->pte_pfn != ULONG_MAX) ?
++	       pfn_to_page(args->pte_pfn) : NULL;
+ 	if (!page) {
+-		pr_err("page allocation failed\n");
++		pr_err("no page available\n");
+ 		return;
+ 	}
  
--	pte_soft_dirty_tests(pte_aligned, prot);
--	pmd_soft_dirty_tests(pmd_aligned, prot);
--	pte_swap_soft_dirty_tests(pte_aligned, prot);
--	pmd_swap_soft_dirty_tests(pmd_aligned, prot);
-+	pte_soft_dirty_tests(&args);
-+	pmd_soft_dirty_tests(&args);
-+	pte_swap_soft_dirty_tests(&args);
-+	pmd_swap_soft_dirty_tests(&args);
+@@ -883,7 +884,6 @@ static void __init swap_migration_tests(
+ 	WARN_ON(!is_migration_entry(swp));
+ 	WARN_ON(is_writable_migration_entry(swp));
+ 	__ClearPageLocked(page);
+-	__free_page(page);
+ }
  
--	pte_swap_tests(pte_aligned, prot);
--	pmd_swap_tests(pmd_aligned, prot);
-+	pte_swap_tests(&args);
-+	pmd_swap_tests(&args);
+ #ifdef CONFIG_HUGETLB_PAGE
+@@ -915,7 +915,7 @@ static void __init hugetlb_basic_tests(s
+ #endif /* CONFIG_HUGETLB_PAGE */
  
- 	swap_migration_tests();
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static void __init pmd_thp_tests(unsigned long pfn, pgprot_t prot)
++static void __init pmd_thp_tests(struct pgtable_debug_args *args)
+ {
+ 	pmd_t pmd;
  
+@@ -934,7 +934,7 @@ static void __init pmd_thp_tests(unsigne
+ 	 * needs to return true. pmd_present() should be true whenever
+ 	 * pmd_trans_huge() returns true.
+ 	 */
+-	pmd = pfn_pmd(pfn, prot);
++	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
+ 	WARN_ON(!pmd_trans_huge(pmd_mkhuge(pmd)));
+ 
+ #ifndef __HAVE_ARCH_PMDP_INVALIDATE
+@@ -944,7 +944,7 @@ static void __init pmd_thp_tests(unsigne
+ }
+ 
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+-static void __init pud_thp_tests(unsigned long pfn, pgprot_t prot)
++static void __init pud_thp_tests(struct pgtable_debug_args *args)
+ {
+ 	pud_t pud;
+ 
+@@ -952,7 +952,7 @@ static void __init pud_thp_tests(unsigne
+ 		return;
+ 
+ 	pr_debug("Validating PUD based THP\n");
+-	pud = pfn_pud(pfn, prot);
++	pud = pfn_pud(args->fixed_pud_pfn, args->page_prot);
+ 	WARN_ON(!pud_trans_huge(pud_mkhuge(pud)));
+ 
+ 	/*
+@@ -964,11 +964,11 @@ static void __init pud_thp_tests(unsigne
+ 	 */
+ }
+ #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+-static void __init pud_thp_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pud_thp_tests(struct pgtable_debug_args *args) { }
+ #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
+-static void __init pmd_thp_tests(unsigned long pfn, pgprot_t prot) { }
+-static void __init pud_thp_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pmd_thp_tests(struct pgtable_debug_args *args) { }
++static void __init pud_thp_tests(struct pgtable_debug_args *args) { }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ static unsigned long __init get_random_vaddr(void)
+@@ -1263,10 +1263,10 @@ static int __init debug_vm_pgtable(void)
+ 	pte_swap_tests(&args);
+ 	pmd_swap_tests(&args);
+ 
+-	swap_migration_tests();
++	swap_migration_tests(&args);
+ 
+-	pmd_thp_tests(pmd_aligned, prot);
+-	pud_thp_tests(pud_aligned, prot);
++	pmd_thp_tests(&args);
++	pud_thp_tests(&args);
+ 
+ 	/*
+ 	 * Page table modifying tests. They need to hold
 _
 
 Patches currently in -mm which might be from gshan@redhat.com are
 
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-migration-and-thp-tests.patch
 mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pte-modifying-tests.patch
 mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pmd-modifying-tests.patch
 mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
