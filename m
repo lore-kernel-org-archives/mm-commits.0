@@ -7,34 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF062C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:34:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D2B4C4320A
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:43:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C9E5060F57
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:34:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2408160FA0
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:43:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231167AbhG0Ueo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 27 Jul 2021 16:34:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49004 "EHLO mail.kernel.org"
+        id S230425AbhG0UnE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Jul 2021 16:43:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50840 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231135AbhG0Ueo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 27 Jul 2021 16:34:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 97F9860F37;
-        Tue, 27 Jul 2021 20:34:43 +0000 (UTC)
+        id S231133AbhG0UnD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 27 Jul 2021 16:43:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 948FB60F9C;
+        Tue, 27 Jul 2021 20:43:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627418083;
-        bh=fPcnsu4XO9908gX8Tky1//D/pSnjK/0+Sj6cJSoWqc4=;
+        s=korg; t=1627418582;
+        bh=+1xBu4/BbS4D7z9HeivBMBKr9Iu5tBuA4zdelLy1hmg=;
         h=Date:From:To:Subject:From;
-        b=r48Y3AU0+wAr3DEAcL9VEmgvMe5Tgs4u3Rzzt3PjfvsQKfNBBogmT+jm5Hp21LPuV
-         NfGY1SJsmiIQ9T/pycK5rlbrBoWlpOra8ZVnJ5vOjKwZoWHceI8pumb5j1sBlx0dAn
-         qmIIkO9l59t17uyv9OnHFji/gVz0rwlAYMPUcL1M=
-Date:   Tue, 27 Jul 2021 13:34:43 -0700
+        b=VeSY1ZGwXKLk/4Jbgsr8hbWY4vZvKuEJJKrxTFWZa/tJ2UV8+Y9+Gzy9XMD6V28WE
+         sExesoVd0NOio1OWi0kp5Emu0x0Ua3MSxE2P4HfIatoJTkquDTemzYCs0LOHRWBuxx
+         V9inqnt4iyfN5aF6vn+6nNIspd5+A0ps2AgrJLpg=
+Date:   Tue, 27 Jul 2021 13:43:02 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org, david@redhat.com
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        william.kucharski@oracle.com, mchehab+huawei@kernel.org,
+        jordy@pwning.systems, hughd@google.com, djwong@kernel.org,
+        dhowells@redhat.com, gregkh@linuxfoundation.org
 Subject:  +
- mm-memory_hotplug-memory-group-aware-auto-movable-online-policy-fix.patch
- added to -mm tree
-Message-ID: <20210727203443.0Ufqa%akpm@linux-foundation.org>
+ mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch added to
+ -mm tree
+Message-ID: <20210727204302.VqGkS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory_hotplug-memory-group-aware-auto-movable-online-policy-fix
+     Subject: mm: change fault_in_pages_* to have an unsigned size parameter
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-memory-group-aware-auto-movable-online-policy-fix.patch
+     mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-memory-group-aware-auto-movable-online-policy-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-memory-group-aware-auto-movable-online-policy-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,68 +67,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: mm-memory_hotplug-memory-group-aware-auto-movable-online-policy-fix
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: mm: change fault_in_pages_* to have an unsigned size parameter
 
-fix warning
+fault_in_pages_writeable() and fault_in_pages_readable() treat the size
+parameter as unsigned, doing pointer math with the value, so make this
+explicit and set it to be a size_t type which all callers currently treat
+it as anyway.
 
-> ../mm/memory_hotplug.c: In function `auto_movable_stats_account_zone':
-> ../mm/memory_hotplug.c:748:33: error: `struct zone' has no member named `cma_pages'; did you mean `managed_pages'?
->     stats->movable_pages += zone->cma_pages;
->                                   ^~~~~~~~~
->                                   managed_pages
-> ../mm/memory_hotplug.c:750:38: error: `struct zone' has no member named `cma_pages'; did you mean `managed_pages'?
->     stats->kernel_early_pages -= zone->cma_pages;
->                                        ^~~~~~~~~
->                                        managed_pages
->
->
+This solves the issue where static checkers get nervous seeing pointer
+arithmetic happening with a signed value.
 
-Link: https://lkml.kernel.org/r/5394da5e-29f0-ff7d-e614-e2805400a8bb@redhat.com
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20210727111136.457638-1-gregkh@linuxfoundation.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reported-by: Jordy Zomer <jordy@pwning.systems>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/pagemap.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-memory-group-aware-auto-movable-online-policy-fix
-+++ a/mm/memory_hotplug.c
-@@ -741,13 +741,15 @@ static void auto_movable_stats_account_z
- 	if (zone_idx(zone) == ZONE_MOVABLE) {
- 		stats->movable_pages += zone->present_pages;
- 	} else {
-+		stats->kernel_early_pages += zone->present_early_pages;
-+#ifdef CONFIG_CMA
- 		/*
- 		 * CMA pages (never on hotplugged memory) behave like
- 		 * ZONE_MOVABLE.
- 		 */
- 		stats->movable_pages += zone->cma_pages;
--		stats->kernel_early_pages += zone->present_early_pages;
- 		stats->kernel_early_pages -= zone->cma_pages;
-+#endif /* CONFIG_CMA */
- 	}
+--- a/include/linux/pagemap.h~mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter
++++ a/include/linux/pagemap.h
+@@ -786,7 +786,7 @@ extern void add_page_wait_queue(struct p
+ /*
+  * Fault everything in given userspace address range in.
+  */
+-static inline int fault_in_pages_writeable(char __user *uaddr, int size)
++static inline int fault_in_pages_writeable(char __user *uaddr, size_t size)
+ {
+ 	char __user *end = uaddr + size - 1;
+ 
+@@ -813,7 +813,7 @@ static inline int fault_in_pages_writeab
+ 	return 0;
  }
  
+-static inline int fault_in_pages_readable(const char __user *uaddr, int size)
++static inline int fault_in_pages_readable(const char __user *uaddr, size_t size)
+ {
+ 	volatile char c;
+ 	const char __user *end = uaddr + size - 1;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from gregkh@linuxfoundation.org are
 
-memory-hotplugrst-remove-locking-details-from-admin-guide.patch
-memory-hotplugrst-complete-admin-guide-overhaul.patch
-mm-memory_hotplug-use-unsigned-long-for-pfn-in-zone_for_pfn_range.patch
-mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory.patch
-mm-memory_hotplug-remove-nid-parameter-from-remove_memory-and-friends.patch
-acpi-memhotplug-memory-resources-cannot-be-enabled-yet.patch
-mm-track-present-early-pages-per-zone.patch
-mm-memory_hotplug-introduce-auto-movable-online-policy.patch
-drivers-base-memory-introduce-memory-groups-to-logically-group-memory-blocks.patch
-mm-memory_hotplug-track-present-pages-in-memory-groups.patch
-acpi-memhotplug-use-a-single-static-memory-group-for-a-single-memory-device.patch
-dax-kmem-use-a-single-static-memory-group-for-a-single-probed-unit.patch
-virtio-mem-use-a-single-dynamic-memory-group-for-a-single-virtio-mem-device.patch
-mm-memory_hotplug-memory-group-aware-auto-movable-online-policy.patch
-mm-memory_hotplug-memory-group-aware-auto-movable-online-policy-fix.patch
-mm-memory_hotplug-improved-dynamic-memory-group-aware-auto-movable-online-policy.patch
+mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch
+percpu-remove-export-of-pcpu_base_addr.patch
 
