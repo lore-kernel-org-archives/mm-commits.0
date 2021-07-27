@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B03AC4320A
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:44:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A18A0C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:52:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 35CD860F9E
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:44:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8285360FA0
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:52:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231838AbhG0Uol (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 27 Jul 2021 16:44:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51504 "EHLO mail.kernel.org"
+        id S231608AbhG0Uwn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Jul 2021 16:52:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231666AbhG0Uol (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 27 Jul 2021 16:44:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E619460F9C;
-        Tue, 27 Jul 2021 20:44:40 +0000 (UTC)
+        id S231516AbhG0Uwn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 27 Jul 2021 16:52:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B755C60F58;
+        Tue, 27 Jul 2021 20:52:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627418681;
-        bh=UvNuSFlJONYei9XPrKZ7wA/gofQGp9om6IpS404Hrgs=;
+        s=korg; t=1627419161;
+        bh=MT7yiLOdLRbk+NK57a2WBYD7nH3QxYwgWWyHaCh2Fmw=;
         h=Date:From:To:Subject:From;
-        b=LfUr6EMIQ9OC7mH65as3hBIgI7da/9iI5D6hRaDZ629+BPQWnV7VMPQQO1Xd2xYHs
-         nwNorB6gOb7EE8SFt0wB8Z8ziGe2wVpxkC4Uc/4nC8Xstf6Lzt0jfPQwNVMvYxRo7H
-         cjjaY7qpmRWFza2hGwlF5QU+YmbfZd8VnNuaY+rY=
-Date:   Tue, 27 Jul 2021 13:44:40 -0700
+        b=JGp2c+6HlrjmjjmELe+wVlkkHHIqcMBhvrpscndlwsR5csbfYuA82lnva6v6uklSv
+         dBVZKCUcIZ4MzyMngc/2mT56sLTTrMcmJY1Ogxu6tJNH8C0OzOCxAYo0bSiyC406Um
+         Q6VODb2OPO+xqGaSavX4xuRwIYomjelFNtbnPqsw=
+Date:   Tue, 27 Jul 2021 13:52:41 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org,
-        catalin.marinas@arm.com, anshuman.khandual@arm.com,
+        gerald.schaefer@linux.ibm.com, chuhu@redhat.com,
+        christophe.leroy@csgroup.eu, catalin.marinas@arm.com, cai@lca.pw,
+        anshuman.khandual@arm.com, aneesh.kumar@linux.ibm.com,
         gshan@redhat.com
-Subject:  [to-be-updated]
- mm-debug_vm_pgtable-fix-corrupted-page-flag.patch removed from -mm tree
-Message-ID: <20210727204440.yAtxa%akpm@linux-foundation.org>
+Subject:  +
+ mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args.patch added to -mm
+ tree
+Message-ID: <20210727205241.2GdS7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,208 +47,427 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: fix corrupted page flag
-has been removed from the -mm tree.  Its filename was
-     mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
+     Subject: mm/debug_vm_pgtable: introduce struct pgtable_debug_args
+has been added to the -mm tree.  Its filename is
+     mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
-Subject: mm/debug_vm_pgtable: fix corrupted page flag
+Subject: mm/debug_vm_pgtable: introduce struct pgtable_debug_args
 
-In page table entry modifying tests, set_xxx_at() are used to populate the
-page table entries.  On ARM64, PG_arch_1 is set to the target page flag if
-execution permission is given.  The page flag is kept when the page is
-free'd to buddy's free area list.  However, it will trigger page checking
-failure when it's pulled from the buddy's free area list, as the following
-warning messages indicate.
+Patch series "mm/debug_vm_pgtable: Enhancements", v4.
 
-   BUG: Bad page state in process memhog  pfn:08000
-   page:0000000015c0a628 refcount:0 mapcount:0 \
-        mapping:0000000000000000 index:0x1 pfn:0x8000
-   flags: 0x7ffff8000000800(arch_1|node=0|zone=0|lastcpupid=0xfffff)
-   raw: 07ffff8000000800 dead000000000100 dead000000000122 0000000000000000
-   raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
-   page dumped because: PAGE_FLAGS_CHECK_AT_PREP flag(s) set
+There are a couple of issues with current implementations and this series
+tries to resolve the issues:
 
-This fixes the issue by clearing PG_arch_1 through flush_dcache_page()
-after set_xxx_at() is called.
+(a) All needed information are scattered in variables, passed to
+    various test functions.  The code is organized in pretty much relaxed
+    fashion.
 
-Link: https://lkml.kernel.org/r/20210719130613.334901-13-gshan@redhat.com
+(b) The page isn't allocated from buddy during page table entry
+    modifying tests.  The page can be invalid, conflicting to the
+    implementations of set_xxx_at() on ARM64.  The target page is accessed
+    so that the iCache can be flushed when execution permission is given
+    on ARM64.  Besides, the target page can be unmapped and access to it
+    causes kernel crash.
+
+"struct pgtable_debug_args" is introduced to address issue (a).  For issue
+(b), the used page is allocated from buddy in page table entry modifying
+tests.  The corresponding tets will be skipped if we fail to allocate the
+(huge) page.  For other test cases, the original page around to kernel
+symbol (@start_kernel) is still used.
+
+The patches are organized as below.  PATCH[2-10] could be combined to one
+patch, but it will make the review harder:
+
+  PATCH[1] introduces "struct pgtable_debug_args" as place holder of all
+           needed information. With it, the old and new implementation
+           can coexist.
+  PATCH[2-10] uses "struct pgtable_debug_args" in various test functions.
+  PATCH[11] removes the unused code for old implementation.
+  PATCH[12] fixes the issue of corrupted page flag for ARM64
+
+
+This patch (of 12):
+
+In debug_vm_pgtable(), there are many local variables introduced to track
+the needed information and they are passed to the functions for various
+test cases.  It'd better to introduce a struct as place holder for these
+information.  With it, what the tests functions need is the struct.  In
+this way, the code is simplified and easier to be maintained.
+
+Besides, set_xxx_at() could access the data on the corresponding pages in
+the page table modifying tests.  So the accessed pages in the tests should
+have been allocated from buddy.  Otherwise, we're accessing pages that
+aren't owned by us.  This causes issues like page flag corruption or
+kernel crash on accessing unmapped page when CONFIG_DEBUG_PAGEALLOC is
+enabled.
+
+This introduces "struct pgtable_debug_args".  The struct is initialized
+and destroyed, but the information in the struct isn't used yet.  It will
+be used in subsequent patches.
+
+Link: https://lkml.kernel.org/r/20210727061401.592616-1-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210727061401.592616-2-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Qian Cai <cai@lca.pw>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will@kernel.org>
+Cc: Chunyu Hu <chuhu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   32 ++++++++++++++++++++++++++++----
- 1 file changed, 28 insertions(+), 4 deletions(-)
+ mm/debug_vm_pgtable.c |  280 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 279 insertions(+), 1 deletion(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-fix-corrupted-page-flag
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args
 +++ a/mm/debug_vm_pgtable.c
-@@ -29,6 +29,8 @@
- #include <linux/start_kernel.h>
- #include <linux/sched/mm.h>
- #include <linux/io.h>
+@@ -58,6 +58,37 @@
+ #define RANDOM_ORVALUE (GENMASK(BITS_PER_LONG - 1, 0) & ~ARCH_SKIP_MASK)
+ #define RANDOM_NZVALUE	GENMASK(7, 0)
+ 
++struct pgtable_debug_args {
++	struct mm_struct	*mm;
++	struct vm_area_struct	*vma;
 +
-+#include <asm/cacheflush.h>
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
- 
-@@ -118,6 +120,7 @@ static void __init pte_basic_tests(struc
- 
- static void __init pte_advanced_tests(struct pgtable_debug_args *args)
++	pgd_t			*pgdp;
++	p4d_t			*p4dp;
++	pud_t			*pudp;
++	pmd_t			*pmdp;
++	pte_t			*ptep;
++
++	p4d_t			*start_p4dp;
++	pud_t			*start_pudp;
++	pmd_t			*start_pmdp;
++	pgtable_t		start_ptep;
++
++	unsigned long		vaddr;
++	pgprot_t		page_prot;
++	pgprot_t		page_prot_none;
++
++	bool			is_contiguous_page;
++	unsigned long		pud_pfn;
++	unsigned long		pmd_pfn;
++	unsigned long		pte_pfn;
++
++	unsigned long		fixed_pgd_pfn;
++	unsigned long		fixed_p4d_pfn;
++	unsigned long		fixed_pud_pfn;
++	unsigned long		fixed_pmd_pfn;
++	unsigned long		fixed_pte_pfn;
++};
++
+ static void __init pte_basic_tests(unsigned long pfn, int idx)
  {
-+	struct page *page;
- 	pte_t pte;
+ 	pgprot_t prot = protection_map[idx];
+@@ -955,8 +986,249 @@ static unsigned long __init get_random_v
+ 	return random_vaddr;
+ }
  
- 	/*
-@@ -127,13 +130,16 @@ static void __init pte_advanced_tests(st
- 	 */
- 
- 	pr_debug("Validating PTE advanced\n");
--	if (args->pte_pfn == ULONG_MAX) {
-+	page = (args->pte_pfn != ULONG_MAX) ?
-+	       pfn_to_page(args->pte_pfn) : NULL;
-+	if (!page) {
- 		pr_debug("%s: Skipped\n", __func__);
- 		return;
- 	}
- 
- 	pte = pfn_pte(args->pte_pfn, args->page_prot);
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	ptep_set_wrprotect(args->mm, args->vaddr, args->ptep);
- 	pte = ptep_get(args->ptep);
- 	WARN_ON(pte_write(pte));
-@@ -145,6 +151,7 @@ static void __init pte_advanced_tests(st
- 	pte = pte_wrprotect(pte);
- 	pte = pte_mkclean(pte);
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	pte = pte_mkwrite(pte);
- 	pte = pte_mkdirty(pte);
- 	ptep_set_access_flags(args->vma, args->vaddr, args->ptep, pte, 1);
-@@ -157,6 +164,7 @@ static void __init pte_advanced_tests(st
- 	pte = pfn_pte(args->pte_pfn, args->page_prot);
- 	pte = pte_mkyoung(pte);
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	ptep_test_and_clear_young(args->vma, args->vaddr, args->ptep);
- 	pte = ptep_get(args->ptep);
- 	WARN_ON(pte_young(pte));
-@@ -215,6 +223,7 @@ static void __init pmd_basic_tests(struc
- 
- static void __init pmd_advanced_tests(struct pgtable_debug_args *args)
++static void __init destroy_args(struct pgtable_debug_args *args)
++{
++	struct page *page = NULL;
++
++	/* Free (huge) page */
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
++	    has_transparent_hugepage() &&
++	    args->pud_pfn != ULONG_MAX) {
++		if (args->is_contiguous_page) {
++			free_contig_range(args->pud_pfn,
++					  (1 << (HPAGE_PUD_SHIFT - PAGE_SHIFT)));
++		} else {
++			page = pfn_to_page(args->pud_pfn);
++			__free_pages(page, HPAGE_PUD_SHIFT - PAGE_SHIFT);
++		}
++
++		args->pud_pfn = ULONG_MAX;
++		args->pmd_pfn = ULONG_MAX;
++		args->pte_pfn = ULONG_MAX;
++	}
++
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    has_transparent_hugepage() &&
++	    args->pmd_pfn != ULONG_MAX) {
++		if (args->is_contiguous_page) {
++			free_contig_range(args->pmd_pfn, (1 << HPAGE_PMD_ORDER));
++		} else {
++			page = pfn_to_page(args->pmd_pfn);
++			__free_pages(page, HPAGE_PMD_ORDER);
++		}
++
++		args->pmd_pfn = ULONG_MAX;
++		args->pte_pfn = ULONG_MAX;
++	}
++
++	if (args->pte_pfn != ULONG_MAX) {
++		page = pfn_to_page(args->pte_pfn);
++		__free_pages(page, 0);
++	}
++
++	/* Free page table entries */
++	if (args->start_ptep) {
++		pte_free(args->mm, args->start_ptep);
++		mm_dec_nr_ptes(args->mm);
++	}
++
++	if (args->start_pmdp) {
++		pmd_free(args->mm, args->start_pmdp);
++		mm_dec_nr_pmds(args->mm);
++	}
++
++	if (args->start_pudp) {
++		pud_free(args->mm, args->start_pudp);
++		mm_dec_nr_puds(args->mm);
++	}
++
++	if (args->start_p4dp)
++		p4d_free(args->mm, args->p4dp);
++
++	/* Free vma and mm struct */
++	if (args->vma)
++		vm_area_free(args->vma);
++	if (args->mm)
++		mmdrop(args->mm);
++}
++
++static int __init init_args(struct pgtable_debug_args *args)
++{
++	struct page *page = NULL;
++	phys_addr_t phys;
++	int ret = 0;
++
++	/*
++	 * Initialize the debugging data.
++	 *
++	 * __P000 (or even __S000) will help create page table entries with
++	 * PROT_NONE permission as required for pxx_protnone_tests().
++	 */
++	memset(args, 0, sizeof(*args));
++	args->vaddr              = get_random_vaddr();
++	args->page_prot          = vm_get_page_prot(VMFLAGS);
++	args->page_prot_none     = __P000;
++	args->is_contiguous_page = false;
++	args->pud_pfn            = ULONG_MAX;
++	args->pmd_pfn            = ULONG_MAX;
++	args->pte_pfn            = ULONG_MAX;
++	args->fixed_pgd_pfn      = ULONG_MAX;
++	args->fixed_p4d_pfn      = ULONG_MAX;
++	args->fixed_pud_pfn      = ULONG_MAX;
++	args->fixed_pmd_pfn      = ULONG_MAX;
++	args->fixed_pte_pfn      = ULONG_MAX;
++
++	/* Allocate mm and vma */
++	args->mm = mm_alloc();
++	if (!args->mm) {
++		pr_err("Failed to allocate mm struct\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	args->vma = vm_area_alloc(args->mm);
++	if (!args->vma) {
++		pr_err("Failed to allocate vma\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	/*
++	 * Allocate page table entries. They will be modified in the tests.
++	 * Lets save the page table entries so that they can be released
++	 * when the tests are completed.
++	 */
++	args->pgdp = pgd_offset(args->mm, args->vaddr);
++	args->p4dp = p4d_alloc(args->mm, args->pgdp, args->vaddr);
++	if (!args->p4dp) {
++		pr_err("Failed to allocate p4d entries\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	args->start_p4dp = p4d_offset(args->pgdp, 0UL);
++	WARN_ON(!args->start_p4dp);
++	args->pudp = pud_alloc(args->mm, args->p4dp, args->vaddr);
++	if (!args->pudp) {
++		pr_err("Failed to allocate pud entries\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	args->start_pudp = pud_offset(args->p4dp, 0UL);
++	WARN_ON(!args->start_pudp);
++	args->pmdp = pmd_alloc(args->mm, args->pudp, args->vaddr);
++	if (!args->pmdp) {
++		pr_err("Failed to allocate pmd entries\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	args->start_pmdp = pmd_offset(args->pudp, 0UL);
++	WARN_ON(!args->start_pmdp);
++	args->ptep = pte_alloc_map(args->mm, args->pmdp, args->vaddr);
++	if (!args->ptep) {
++		pr_err("Failed to allocate pte entries\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	args->start_ptep = pmd_pgtable(READ_ONCE(*args->pmdp));
++	WARN_ON(!args->start_ptep);
++
++	/*
++	 * PFN for mapping at PTE level is determined from a standard kernel
++	 * text symbol. But pfns for higher page table levels are derived by
++	 * masking lower bits of this real pfn. These derived pfns might not
++	 * exist on the platform but that does not really matter as pfn_pxx()
++	 * helpers will still create appropriate entries for the test. This
++	 * helps avoid large memory block allocations to be used for mapping
++	 * at higher page table levels in some of the tests.
++	 */
++	phys = __pa_symbol(&start_kernel);
++	args->fixed_pgd_pfn = __phys_to_pfn(phys & PGDIR_MASK);
++	args->fixed_p4d_pfn = __phys_to_pfn(phys & P4D_MASK);
++	args->fixed_pud_pfn = __phys_to_pfn(phys & PUD_MASK);
++	args->fixed_pmd_pfn = __phys_to_pfn(phys & PMD_MASK);
++	args->fixed_pte_pfn = __phys_to_pfn(phys & PAGE_MASK);
++	WARN_ON(!pfn_valid(args->fixed_pte_pfn));
++
++	/*
++	 * Allocate (huge) pages because some of the tests need to access
++	 * the data in the pages. The corresponding tests will be skipped
++	 * if we fail to allocate (huge) pages.
++	 */
++#ifdef CONFIG_CONTIG_ALLOC
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
++	    has_transparent_hugepage() &&
++	    (HPAGE_PUD_SHIFT - PAGE_SHIFT) >= MAX_ORDER) {
++		page = alloc_contig_pages((1 << (HPAGE_PUD_SHIFT - PAGE_SHIFT)),
++					  GFP_KERNEL, first_online_node, NULL);
++		if (page) {
++			args->is_contiguous_page = true;
++			args->pud_pfn = page_to_pfn(page);
++			args->pmd_pfn = args->pud_pfn;
++			args->pte_pfn = args->pud_pfn;
++			return 0;
++		}
++	}
++#endif
++
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
++	    has_transparent_hugepage() &&
++	    (HPAGE_PUD_SHIFT - PAGE_SHIFT) < MAX_ORDER) {
++		page = alloc_pages(GFP_KERNEL, HPAGE_PUD_SHIFT - PAGE_SHIFT);
++		if (page) {
++			args->pud_pfn = page_to_pfn(page);
++			args->pmd_pfn = args->pud_pfn;
++			args->pte_pfn = args->pud_pfn;
++			return 0;
++		}
++	}
++
++#ifdef CONFIG_CONTIG_ALLOC
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    has_transparent_hugepage() &&
++	    HPAGE_PMD_ORDER >= MAX_ORDER) {
++		page = alloc_contig_pages((1 << HPAGE_PMD_ORDER), GFP_KERNEL,
++					  first_online_node, NULL);
++		if (page) {
++			args->is_contiguous_page = true;
++			args->pmd_pfn = page_to_pfn(page);
++			args->pte_pfn = args->pmd_pfn;
++			return 0;
++		}
++	}
++#endif
++
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    has_transparent_hugepage() &&
++	    HPAGE_PMD_ORDER < MAX_ORDER) {
++		page = alloc_pages(GFP_KERNEL, HPAGE_PMD_ORDER);
++		if (page) {
++			args->pmd_pfn = page_to_pfn(page);
++			args->pte_pfn = args->pmd_pfn;
++			return 0;
++		}
++	}
++
++	page = alloc_pages(GFP_KERNEL, 0);
++	if (page)
++		args->pte_pfn = page_to_pfn(page);
++
++	return 0;
++
++error:
++	destroy_args(args);
++	return ret;
++}
++
+ static int __init debug_vm_pgtable(void)
  {
-+	struct page *page;
- 	pmd_t pmd;
- 	unsigned long vaddr = (args->vaddr & HPAGE_PMD_MASK);
++	struct pgtable_debug_args args;
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm;
+ 	pgd_t *pgdp;
+@@ -970,9 +1242,13 @@ static int __init debug_vm_pgtable(void)
+ 	unsigned long vaddr, pte_aligned, pmd_aligned;
+ 	unsigned long pud_aligned, p4d_aligned, pgd_aligned;
+ 	spinlock_t *ptl = NULL;
+-	int idx;
++	int idx, ret;
  
-@@ -222,7 +231,9 @@ static void __init pmd_advanced_tests(st
- 		return;
- 
- 	pr_debug("Validating PMD advanced\n");
--	if (args->pmd_pfn == ULONG_MAX) {
-+	page = (args->pmd_pfn != ULONG_MAX) ?
-+	       pfn_to_page(args->pmd_pfn) : NULL;
-+	if (!page) {
- 		pr_debug("%s: Skipped\n", __func__);
- 		return;
- 	}
-@@ -231,6 +242,7 @@ static void __init pmd_advanced_tests(st
- 
- 	pmd = pfn_pmd(args->pmd_pfn, args->page_prot);
- 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
-+	flush_dcache_page(page);
- 	pmdp_set_wrprotect(args->mm, vaddr, args->pmdp);
- 	pmd = READ_ONCE(*(args->pmdp));
- 	WARN_ON(pmd_write(pmd));
-@@ -242,6 +254,7 @@ static void __init pmd_advanced_tests(st
- 	pmd = pmd_wrprotect(pmd);
- 	pmd = pmd_mkclean(pmd);
- 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
-+	flush_dcache_page(page);
- 	pmd = pmd_mkwrite(pmd);
- 	pmd = pmd_mkdirty(pmd);
- 	pmdp_set_access_flags(args->vma, vaddr, args->pmdp, pmd, 1);
-@@ -254,6 +267,7 @@ static void __init pmd_advanced_tests(st
- 	pmd = pmd_mkhuge(pfn_pmd(args->pmd_pfn, args->page_prot));
- 	pmd = pmd_mkyoung(pmd);
- 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
-+	flush_dcache_page(page);
- 	pmdp_test_and_clear_young(args->vma, vaddr, args->pmdp);
- 	pmd = READ_ONCE(*(args->pmdp));
- 	WARN_ON(pmd_young(pmd));
-@@ -340,6 +354,7 @@ static void __init pud_basic_tests(struc
- 
- static void __init pud_advanced_tests(struct pgtable_debug_args *args)
- {
-+	struct page *page;
- 	unsigned long vaddr = (args->vaddr & HPAGE_PUD_MASK);
- 	pud_t pud;
- 
-@@ -347,13 +362,16 @@ static void __init pud_advanced_tests(st
- 		return;
- 
- 	pr_debug("Validating PUD advanced\n");
--	if (args->pud_pfn == ULONG_MAX) {
-+	page = (args->pud_pfn != ULONG_MAX) ?
-+	       pfn_to_page(args->pud_pfn) : NULL;
-+	if (!page) {
- 		pr_debug("%s: Skipped\n", __func__);
- 		return;
- 	}
- 
- 	pud = pfn_pud(args->pud_pfn, args->page_prot);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	flush_dcache_page(page);
- 	pudp_set_wrprotect(args->mm, vaddr, args->pudp);
- 	pud = READ_ONCE(*(args->pudp));
- 	WARN_ON(pud_write(pud));
-@@ -367,6 +385,7 @@ static void __init pud_advanced_tests(st
- 	pud = pud_wrprotect(pud);
- 	pud = pud_mkclean(pud);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	flush_dcache_page(page);
- 	pud = pud_mkwrite(pud);
- 	pud = pud_mkdirty(pud);
- 	pudp_set_access_flags(args->vma, vaddr, args->pudp, pud, 1);
-@@ -382,6 +401,7 @@ static void __init pud_advanced_tests(st
- 	pud = pfn_pud(args->pud_pfn, args->page_prot);
- 	pud = pud_mkyoung(pud);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	flush_dcache_page(page);
- 	pudp_test_and_clear_young(args->vma, vaddr, args->pudp);
- 	pud = READ_ONCE(*(args->pudp));
- 	WARN_ON(pud_young(pud));
-@@ -596,10 +616,13 @@ static void __init pgd_populate_tests(st
- 
- static void __init pte_clear_tests(struct pgtable_debug_args *args)
- {
-+	struct page *page;
- 	pte_t pte;
- 
- 	pr_debug("Validating PTE clear\n");
--	if (args->pte_pfn == ULONG_MAX) {
-+	page = (args->pte_pfn != ULONG_MAX) ?
-+	       pfn_to_page(args->pte_pfn) : NULL;
-+	if (!page) {
- 		pr_debug("%s: Skipped\n", __func__);
- 		return;
- 	}
-@@ -609,6 +632,7 @@ static void __init pte_clear_tests(struc
- 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
- #endif
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	barrier();
- 	pte_clear(args->mm, args->vaddr, args->ptep);
- 	pte = ptep_get(args->ptep);
+ 	pr_info("Validating architecture page table helpers\n");
++	ret = init_args(&args);
++	if (ret)
++		return ret;
++
+ 	prot = vm_get_page_prot(VMFLAGS);
+ 	vaddr = get_random_vaddr();
+ 	mm = mm_alloc();
+@@ -1127,6 +1403,8 @@ static int __init debug_vm_pgtable(void)
+ 	mm_dec_nr_pmds(mm);
+ 	mm_dec_nr_ptes(mm);
+ 	mmdrop(mm);
++
++	destroy_args(&args);
+ 	return 0;
+ }
+ late_initcall(debug_vm_pgtable);
 _
 
 Patches currently in -mm which might be from gshan@redhat.com are
 
+mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-basic-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-leaf-and-savewrite-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-protnone-and-devmap-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-soft_dirty-and-swap-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-migration-and-thp-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pte-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pmd-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pgd-and-p4d-modifying-tests.patch
+mm-debug_vm_pgtable-remove-unused-code.patch
+mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
 
