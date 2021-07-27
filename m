@@ -2,138 +2,273 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,URIBL_BLOCKED
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 526D4C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 03:32:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3651CC4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 19:35:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2A3CF61053
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 03:32:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1989E60C51
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 19:35:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234930AbhG0CwM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Jul 2021 22:52:12 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39606 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234422AbhG0CwM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jul 2021 22:52:12 -0400
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 074FFC061757;
-        Mon, 26 Jul 2021 20:32:39 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:
-        Subject:Sender:Reply-To:Cc:Content-ID:Content-Description;
-        bh=Z5OTHAoZBoL/SIl2ruEQOeyRsTlnOUVPwpimgyS/uS8=; b=OKHmk2zQ+VU1/UmXqMg+XTROia
-        eCdPlEg03Z42i9H1TINqbUMFUo0zG3Nma0I2Rv5B0ifctio5yE7P/9ncedSMUbW8/jtrZwe+qJZd6
-        0k+ajWQY71ticFXRcEXl8EbThQY2GxKLLOd1ramA2skbs/trFBklvKOjSrKxiURl2ljGfgti81tvT
-        ISly06NfPvXfPY6oo26nXXdwyB+3esFPaqZ3qvDMr+kHGGLhf0A+aVxdT2DLozInlhZlfzw+9bDnS
-        qJjUFB7Nyni5NmLzCvstoY/QD0JWrOkK/wB95lx8Ca/8zI5Zu/bFIqdOkiJAei8v7+oEM628yyTUc
-        NQR2fQuA==;
-Received: from [2601:1c0:6280:3f0::aefb]
-        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1m8Dpe-00D0NX-GD; Tue, 27 Jul 2021 03:32:38 +0000
-Subject: Re: mmotm 2021-07-23-15-03 uploaded (mm/memory_hotplug.c)
-To:     David Hildenbrand <david@redhat.com>, akpm@linux-foundation.org,
-        broonie@kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-References: <20210723220400.w5iKInKaC%akpm@linux-foundation.org>
- <5966f6a2-bdba-3a54-c6cb-d21aaeb8f534@infradead.org>
- <5394da5e-29f0-ff7d-e614-e2805400a8bb@redhat.com>
-From:   Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <1549416a-05aa-108b-ec95-cac9d84febd1@infradead.org>
-Date:   Mon, 26 Jul 2021 20:32:37 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
-MIME-Version: 1.0
-In-Reply-To: <5394da5e-29f0-ff7d-e614-e2805400a8bb@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        id S230387AbhG0TfD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Jul 2021 15:35:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33218 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229681AbhG0TfC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 27 Jul 2021 15:35:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 07F6C60F9D;
+        Tue, 27 Jul 2021 19:35:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1627414501;
+        bh=1En7gA4YwTERvfUKgh9fd5eLHZNtZtvFMkGzT8cWOpU=;
+        h=Date:From:To:Subject:From;
+        b=T7fa4FagXwEGHdpHD8nL7kikxxADLYkr4Up90sFA0XpiRVFdTJ8jSA/WuqcxBz2Fj
+         TlU6xBhdLcExnyMZSEiB8aUx4zXVmFCZAdsRpCtBr3zQYP5WWWthayKQ5RwggYRgVz
+         BkzQOI91nDgnlOJYWqoLnRGf91fgHpArgdlIPbf0=
+Date:   Tue, 27 Jul 2021 12:35:00 -0700
+From:   akpm@linux-foundation.org
+To:     aarcange@redhat.com, adelva@google.com, andreyknvl@gmail.com,
+        catalin.marinas@arm.com, Dave.Martin@arm.com, eugenis@google.com,
+        lokeshgidra@google.com, mitchp@google.com,
+        mm-commits@vger.kernel.org, pcc@google.com, stable@vger.kernel.org,
+        vincenzo.frascino@arm.com, will@kernel.org, willmcvicker@google.com
+Subject:  [merged] userfaultfd-do-not-untag-user-pointers.patch
+ removed from -mm tree
+Message-ID: <20210727193500.tVGaZZulU%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 7/26/21 12:14 AM, David Hildenbrand wrote:
-> On 24.07.21 20:49, Randy Dunlap wrote:
->> On 7/23/21 3:04 PM, akpm@linux-foundation.org wrote:
->>> The mm-of-the-moment snapshot 2021-07-23-15-03 has been uploaded to
->>>
->>>     https://www.ozlabs.org/~akpm/mmotm/
->>>
->>> mmotm-readme.txt says
->>>
->>> README for mm-of-the-moment:
->>>
->>> https://www.ozlabs.org/~akpm/mmotm/
->>>
->>> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
->>> more than once a week.
->>>
->>> You will need quilt to apply these patches to the latest Linus release (5.x
->>> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
->>> https://ozlabs.org/~akpm/mmotm/series
->>>
->>> The file broken-out.tar.gz contains two datestamp files: .DATE and
->>> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
->>> followed by the base kernel version against which this patch series is to
->>> be applied.
->>>
->>
->> on x86_64:
->> # CONFIG_CMA is not set
->>
->> mm-memory_hotplug-memory-group-aware-auto-movable-online-policy.patch
->>
->>
->>
->> ../mm/memory_hotplug.c: In function ‘auto_movable_stats_account_zone’:
->> ../mm/memory_hotplug.c:748:33: error: ‘struct zone’ has no member named ‘cma_pages’; did you mean ‘managed_pages’?
->>     stats->movable_pages += zone->cma_pages;
->>                                   ^~~~~~~~~
->>                                   managed_pages
->> ../mm/memory_hotplug.c:750:38: error: ‘struct zone’ has no member named ‘cma_pages’; did you mean ‘managed_pages’?
->>     stats->kernel_early_pages -= zone->cma_pages;
->>                                        ^~~~~~~~~
->>                                        managed_pages
->>
->>
-> 
-> Thanks Randy, the following on top should make it fly:
-> 
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index bfdaa28eb86f..fa1a0afd32ba 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -741,13 +741,15 @@ static void auto_movable_stats_account_zone(struct auto_movable_stats *stats,
->         if (zone_idx(zone) == ZONE_MOVABLE) {
->                 stats->movable_pages += zone->present_pages;
->         } else {
-> +               stats->kernel_early_pages += zone->present_early_pages;
-> +#ifdef CONFIG_CMA
->                 /*
->                  * CMA pages (never on hotplugged memory) behave like
->                  * ZONE_MOVABLE.
->                  */
->                 stats->movable_pages += zone->cma_pages;
-> -               stats->kernel_early_pages += zone->present_early_pages;
->                 stats->kernel_early_pages -= zone->cma_pages;
-> +#endif /* CONFIG_CMA */
->         }
->  }
->  struct auto_movable_group_stats {
-> 
-> 
 
-Acked-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+The patch titled
+     Subject: userfaultfd: do not untag user pointers
+has been removed from the -mm tree.  Its filename was
+     userfaultfd-do-not-untag-user-pointers.patch
 
-Thanks.
+This patch was dropped because it was merged into mainline or a subsystem tree
 
--- 
-~Randy
+------------------------------------------------------
+From: Peter Collingbourne <pcc@google.com>
+Subject: userfaultfd: do not untag user pointers
+
+Patch series "userfaultfd: do not untag user pointers", v5.
+
+If a user program uses userfaultfd on ranges of heap memory, it may end up
+passing a tagged pointer to the kernel in the range.start field of the
+UFFDIO_REGISTER ioctl.  This can happen when using an MTE-capable
+allocator, or on Android if using the Tagged Pointers feature for MTE
+readiness [1].
+
+When a fault subsequently occurs, the tag is stripped from the fault
+address returned to the application in the fault.address field of struct
+uffd_msg.  However, from the application's perspective, the tagged address
+*is* the memory address, so if the application is unaware of memory tags,
+it may get confused by receiving an address that is, from its point of
+view, outside of the bounds of the allocation.  We observed this behavior
+in the kselftest for userfaultfd [2] but other applications could have the
+same problem.
+
+Address this by not untagging pointers passed to the userfaultfd ioctls. 
+Instead, let the system call fail.  Also change the kselftest to use mmap
+so that it doesn't encounter this problem.
+
+[1] https://source.android.com/devices/tech/debug/tagged-pointers
+[2] tools/testing/selftests/vm/userfaultfd.c
+
+
+This patch (of 2):
+
+If a user program uses userfaultfd on ranges of heap memory, it may end up
+passing a tagged pointer to the kernel in the range.start field of the
+UFFDIO_REGISTER ioctl.  This can happen when using an MTE-capable
+allocator, or on Android if using the Tagged Pointers feature for MTE
+readiness [1].
+
+When a fault subsequently occurs, the tag is stripped from the fault
+address returned to the application in the fault.address field of struct
+uffd_msg.  However, from the application's perspective, the tagged address
+*is* the memory address, so if the application is unaware of memory tags,
+it may get confused by receiving an address that is, from its point of
+view, outside of the bounds of the allocation.  We observed this behavior
+in the kselftest for userfaultfd [2] but other applications could have the
+same problem.
+
+Address this by not untagging pointers passed to the userfaultfd ioctls. 
+Instead, let the system call fail.  This will provide an early indication
+of problems with tag-unaware userspace code instead of letting the code
+get confused later, and is consistent with how we decided to handle
+brk/mmap/mremap in commit dcde237319e6 ("mm: Avoid creating virtual
+address aliases in brk()/mmap()/mremap()"), as well as being consistent
+with the existing tagged address ABI documentation relating to how ioctl
+arguments are handled.
+
+The code change is a revert of commit 7d0325749a6c ("userfaultfd: untag
+user pointers") plus some fixups to some additional calls to
+validate_range that have appeared since then.
+
+[1] https://source.android.com/devices/tech/debug/tagged-pointers
+[2] tools/testing/selftests/vm/userfaultfd.c
+
+Link: https://lkml.kernel.org/r/20210714195437.118982-1-pcc@google.com
+Link: https://lkml.kernel.org/r/20210714195437.118982-2-pcc@google.com
+Link: https://linux-review.googlesource.com/id/I761aa9f0344454c482b83fcfcce547db0a25501b
+Fixes: 63f0c6037965 ("arm64: Introduce prctl() options to control the tagged user addresses ABI")
+Signed-off-by: Peter Collingbourne <pcc@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Alistair Delva <adelva@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Dave Martin <Dave.Martin@arm.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Lokesh Gidra <lokeshgidra@google.com>
+Cc: Mitch Phillips <mitchp@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: William McVicker <willmcvicker@google.com>
+Cc: <stable@vger.kernel.org>	[5.4]
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ Documentation/arm64/tagged-address-abi.rst |   26 +++++++++++++------
+ fs/userfaultfd.c                           |   26 ++++++++-----------
+ 2 files changed, 30 insertions(+), 22 deletions(-)
+
+--- a/Documentation/arm64/tagged-address-abi.rst~userfaultfd-do-not-untag-user-pointers
++++ a/Documentation/arm64/tagged-address-abi.rst
+@@ -45,14 +45,24 @@ how the user addresses are used by the k
+ 
+ 1. User addresses not accessed by the kernel but used for address space
+    management (e.g. ``mprotect()``, ``madvise()``). The use of valid
+-   tagged pointers in this context is allowed with the exception of
+-   ``brk()``, ``mmap()`` and the ``new_address`` argument to
+-   ``mremap()`` as these have the potential to alias with existing
+-   user addresses.
+-
+-   NOTE: This behaviour changed in v5.6 and so some earlier kernels may
+-   incorrectly accept valid tagged pointers for the ``brk()``,
+-   ``mmap()`` and ``mremap()`` system calls.
++   tagged pointers in this context is allowed with these exceptions:
++
++   - ``brk()``, ``mmap()`` and the ``new_address`` argument to
++     ``mremap()`` as these have the potential to alias with existing
++      user addresses.
++
++     NOTE: This behaviour changed in v5.6 and so some earlier kernels may
++     incorrectly accept valid tagged pointers for the ``brk()``,
++     ``mmap()`` and ``mremap()`` system calls.
++
++   - The ``range.start``, ``start`` and ``dst`` arguments to the
++     ``UFFDIO_*`` ``ioctl()``s used on a file descriptor obtained from
++     ``userfaultfd()``, as fault addresses subsequently obtained by reading
++     the file descriptor will be untagged, which may otherwise confuse
++     tag-unaware programs.
++
++     NOTE: This behaviour changed in v5.14 and so some earlier kernels may
++     incorrectly accept valid tagged pointers for this system call.
+ 
+ 2. User addresses accessed by the kernel (e.g. ``write()``). This ABI
+    relaxation is disabled by default and the application thread needs to
+--- a/fs/userfaultfd.c~userfaultfd-do-not-untag-user-pointers
++++ a/fs/userfaultfd.c
+@@ -1236,23 +1236,21 @@ static __always_inline void wake_userfau
+ }
+ 
+ static __always_inline int validate_range(struct mm_struct *mm,
+-					  __u64 *start, __u64 len)
++					  __u64 start, __u64 len)
+ {
+ 	__u64 task_size = mm->task_size;
+ 
+-	*start = untagged_addr(*start);
+-
+-	if (*start & ~PAGE_MASK)
++	if (start & ~PAGE_MASK)
+ 		return -EINVAL;
+ 	if (len & ~PAGE_MASK)
+ 		return -EINVAL;
+ 	if (!len)
+ 		return -EINVAL;
+-	if (*start < mmap_min_addr)
++	if (start < mmap_min_addr)
+ 		return -EINVAL;
+-	if (*start >= task_size)
++	if (start >= task_size)
+ 		return -EINVAL;
+-	if (len > task_size - *start)
++	if (len > task_size - start)
+ 		return -EINVAL;
+ 	return 0;
+ }
+@@ -1316,7 +1314,7 @@ static int userfaultfd_register(struct u
+ 		vm_flags |= VM_UFFD_MINOR;
+ 	}
+ 
+-	ret = validate_range(mm, &uffdio_register.range.start,
++	ret = validate_range(mm, uffdio_register.range.start,
+ 			     uffdio_register.range.len);
+ 	if (ret)
+ 		goto out;
+@@ -1522,7 +1520,7 @@ static int userfaultfd_unregister(struct
+ 	if (copy_from_user(&uffdio_unregister, buf, sizeof(uffdio_unregister)))
+ 		goto out;
+ 
+-	ret = validate_range(mm, &uffdio_unregister.start,
++	ret = validate_range(mm, uffdio_unregister.start,
+ 			     uffdio_unregister.len);
+ 	if (ret)
+ 		goto out;
+@@ -1671,7 +1669,7 @@ static int userfaultfd_wake(struct userf
+ 	if (copy_from_user(&uffdio_wake, buf, sizeof(uffdio_wake)))
+ 		goto out;
+ 
+-	ret = validate_range(ctx->mm, &uffdio_wake.start, uffdio_wake.len);
++	ret = validate_range(ctx->mm, uffdio_wake.start, uffdio_wake.len);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -1711,7 +1709,7 @@ static int userfaultfd_copy(struct userf
+ 			   sizeof(uffdio_copy)-sizeof(__s64)))
+ 		goto out;
+ 
+-	ret = validate_range(ctx->mm, &uffdio_copy.dst, uffdio_copy.len);
++	ret = validate_range(ctx->mm, uffdio_copy.dst, uffdio_copy.len);
+ 	if (ret)
+ 		goto out;
+ 	/*
+@@ -1768,7 +1766,7 @@ static int userfaultfd_zeropage(struct u
+ 			   sizeof(uffdio_zeropage)-sizeof(__s64)))
+ 		goto out;
+ 
+-	ret = validate_range(ctx->mm, &uffdio_zeropage.range.start,
++	ret = validate_range(ctx->mm, uffdio_zeropage.range.start,
+ 			     uffdio_zeropage.range.len);
+ 	if (ret)
+ 		goto out;
+@@ -1818,7 +1816,7 @@ static int userfaultfd_writeprotect(stru
+ 			   sizeof(struct uffdio_writeprotect)))
+ 		return -EFAULT;
+ 
+-	ret = validate_range(ctx->mm, &uffdio_wp.range.start,
++	ret = validate_range(ctx->mm, uffdio_wp.range.start,
+ 			     uffdio_wp.range.len);
+ 	if (ret)
+ 		return ret;
+@@ -1866,7 +1864,7 @@ static int userfaultfd_continue(struct u
+ 			   sizeof(uffdio_continue) - (sizeof(__s64))))
+ 		goto out;
+ 
+-	ret = validate_range(ctx->mm, &uffdio_continue.range.start,
++	ret = validate_range(ctx->mm, uffdio_continue.range.start,
+ 			     uffdio_continue.range.len);
+ 	if (ret)
+ 		goto out;
+_
+
+Patches currently in -mm which might be from pcc@google.com are
+
 
