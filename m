@@ -7,34 +7,42 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 465ECC43216
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:10:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E4281C43214
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:10:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2BAC260FC2
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:10:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C850D60FC0
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:10:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232140AbhG0VKB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231706AbhG0VKB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 27 Jul 2021 17:10:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34204 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:34044 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235874AbhG0VJ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 27 Jul 2021 17:09:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B339F60F90;
-        Tue, 27 Jul 2021 21:09:56 +0000 (UTC)
+        id S233840AbhG0VIl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 27 Jul 2021 17:08:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BC40560FC2;
+        Tue, 27 Jul 2021 21:08:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627420196;
-        bh=S7JZkOj/2q5Rv6y/ceVUnF9oRuMjwPPlfVC+Tqnh3ik=;
+        s=korg; t=1627420099;
+        bh=EQvEqzOW82cuHitPwr6Kiv2nIuMOLRfOipeudGvohLo=;
         h=Date:From:To:Subject:From;
-        b=cbgQYUt5ljMSo6zhAM6hL8mtZmil+qoJgjR3elXnRPd5Cqi3jcXrsELF5zR9yQb0P
-         EmypODpNGZMjILGxuSM3kJxpVVcIWYib8eDhinjzacNEbgiZBlnwDffIHQjzKrOZiU
-         OgFWw+OuOwzEwG2HrrTc6Ct3YMw8gCIyMARZZ4m4=
-Date:   Tue, 27 Jul 2021 14:09:54 -0700
+        b=cNIpaZhC1WNSpsqHWXzHRLTMByYZ2emYGCvVGGTpmj7w04/Qn/0PrZCm9EIbcnR3s
+         pBHkfsfx6VCmmw2k4ko3VVhhKf1KaEdU7yaObxl2pd9YTgtmqF02y84/vauRo3OMIF
+         Ms05B+ebk/io1Cv+aPUPheEBGEkp0xkE8HkuAjbw=
+Date:   Tue, 27 Jul 2021 14:08:18 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, quentin.casasnovas@oracle.com,
-        rdunlap@infradead.org
-Subject:  +
- scripts-check_extable-fix-typo-in-user-error-message.patch added to -mm tree
-Message-ID: <20210727210954.AOABT%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        vdavydov.dev@gmail.com, tj@kernel.org, tglx@linutronix.de,
+        shakeelb@google.com, serge@hallyn.com, oleg@redhat.com,
+        nglaive@gmail.com, mingo@redhat.com, mhocko@kernel.org,
+        lizefan.x@bytedance.com, ktkhai@virtuozzo.com, jlayton@kernel.org,
+        jirislaby@kernel.org, hpa@zytor.com, hannes@cmpxchg.org,
+        guro@fb.com, gregkh@linuxfoundation.org, ebiederm@xmission.com,
+        christian.brauner@ubuntu.com, bp@suse.de, bp@alien8.de,
+        bfields@fieldses.org, axboe@kernel.dk, avagin@gmail.com,
+        adobriyan@gmail.com, 0x7f454c46@gmail.com, vvs@virtuozzo.com
+Subject:  + memcg-enable-accounting-of-ipc-resources.patch added to
+ -mm tree
+Message-ID: <20210727210818.my9wD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts: check_extable: fix typo in user error message
+     Subject: memcg: enable accounting of ipc resources
 has been added to the -mm tree.  Its filename is
-     scripts-check_extable-fix-typo-in-user-error-message.patch
+     memcg-enable-accounting-of-ipc-resources.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/scripts-check_extable-fix-typo-in-user-error-message.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-enable-accounting-of-ipc-resources.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-check_extable-fix-typo-in-user-error-message.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-enable-accounting-of-ipc-resources.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,35 +72,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: scripts: check_extable: fix typo in user error message
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: memcg: enable accounting of ipc resources
 
-Fix typo ("and" should be "an") in an error message.
+When user creates IPC objects it forces kernel to allocate memory for
+these long-living objects.
 
-Link: https://lkml.kernel.org/r/20210727002943.29774-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Quentin Casasnovas <quentin.casasnovas@oracle.com>
+It makes sense to account them to restrict the host's memory consumption
+from inside the memcg-limited container.
+
+This patch enables accounting for IPC shared memory segments, messages
+semaphores and semaphore's undo lists.
+
+Link: https://lkml.kernel.org/r/d6507b06-4df6-78f8-6c54-3ae86e3b5339@virtuozzo.com
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Serge Hallyn <serge@hallyn.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Yutian Yang <nglaive@gmail.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/check_extable.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/msg.c |    2 +-
+ ipc/sem.c |    9 +++++----
+ ipc/shm.c |    2 +-
+ 3 files changed, 7 insertions(+), 6 deletions(-)
 
---- a/scripts/check_extable.sh~scripts-check_extable-fix-typo-in-user-error-message
-+++ a/scripts/check_extable.sh
-@@ -4,7 +4,7 @@
+--- a/ipc/msg.c~memcg-enable-accounting-of-ipc-resources
++++ a/ipc/msg.c
+@@ -147,7 +147,7 @@ static int newque(struct ipc_namespace *
+ 	key_t key = params->key;
+ 	int msgflg = params->flg;
  
- obj=$1
+-	msq = kmalloc(sizeof(*msq), GFP_KERNEL);
++	msq = kmalloc(sizeof(*msq), GFP_KERNEL_ACCOUNT);
+ 	if (unlikely(!msq))
+ 		return -ENOMEM;
  
--file ${obj} | grep -q ELF || (echo "${obj} is not and ELF file." 1>&2 ; exit 0)
-+file ${obj} | grep -q ELF || (echo "${obj} is not an ELF file." 1>&2 ; exit 0)
+--- a/ipc/sem.c~memcg-enable-accounting-of-ipc-resources
++++ a/ipc/sem.c
+@@ -514,7 +514,7 @@ static struct sem_array *sem_alloc(size_
+ 	if (nsems > (INT_MAX - sizeof(*sma)) / sizeof(sma->sems[0]))
+ 		return NULL;
  
- # Bail out early if there isn't an __ex_table section in this object file.
- objdump -hj __ex_table ${obj} 2> /dev/null > /dev/null
+-	sma = kvzalloc(struct_size(sma, sems, nsems), GFP_KERNEL);
++	sma = kvzalloc(struct_size(sma, sems, nsems), GFP_KERNEL_ACCOUNT);
+ 	if (unlikely(!sma))
+ 		return NULL;
+ 
+@@ -1855,7 +1855,7 @@ static inline int get_undo_list(struct s
+ 
+ 	undo_list = current->sysvsem.undo_list;
+ 	if (!undo_list) {
+-		undo_list = kzalloc(sizeof(*undo_list), GFP_KERNEL);
++		undo_list = kzalloc(sizeof(*undo_list), GFP_KERNEL_ACCOUNT);
+ 		if (undo_list == NULL)
+ 			return -ENOMEM;
+ 		spin_lock_init(&undo_list->lock);
+@@ -1941,7 +1941,7 @@ static struct sem_undo *find_alloc_undo(
+ 
+ 	/* step 2: allocate new undo structure */
+ 	new = kvzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems,
+-		       GFP_KERNEL);
++		       GFP_KERNEL_ACCOUNT);
+ 	if (!new) {
+ 		ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ 		return ERR_PTR(-ENOMEM);
+@@ -2005,7 +2005,8 @@ static long do_semtimedop(int semid, str
+ 	if (nsops > ns->sc_semopm)
+ 		return -E2BIG;
+ 	if (nsops > SEMOPM_FAST) {
+-		sops = kvmalloc_array(nsops, sizeof(*sops), GFP_KERNEL);
++		sops = kvmalloc_array(nsops, sizeof(*sops),
++				      GFP_KERNEL_ACCOUNT);
+ 		if (sops == NULL)
+ 			return -ENOMEM;
+ 	}
+--- a/ipc/shm.c~memcg-enable-accounting-of-ipc-resources
++++ a/ipc/shm.c
+@@ -627,7 +627,7 @@ static int newseg(struct ipc_namespace *
+ 			ns->shm_tot + numpages > ns->shm_ctlall)
+ 		return -ENOSPC;
+ 
+-	shp = kmalloc(sizeof(*shp), GFP_KERNEL);
++	shp = kmalloc(sizeof(*shp), GFP_KERNEL_ACCOUNT);
+ 	if (unlikely(!shp))
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
-scripts-check_extable-fix-typo-in-user-error-message.patch
-scripts-checkversion-modernize-linux-versionh-search-strings.patch
+memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
+memcg-enable-accounting-for-mnt_cache-entries.patch
+memcg-enable-accounting-for-pollfd-and-select-bits-arrays.patch
+memcg-enable-accounting-for-file-lock-caches.patch
+memcg-enable-accounting-for-fasync_cache.patch
+memcg-enable-accounting-for-new-namesapces-and-struct-nsproxy.patch
+memcg-enable-accounting-of-ipc-resources.patch
+memcg-enable-accounting-for-signals.patch
+memcg-enable-accounting-for-posix_timers_cache-slab.patch
+memcg-enable-accounting-for-tty-related-objects.patch
+memcg-enable-accounting-for-ldt_struct-objects.patch
 
