@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D2B4C4320A
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:43:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13942C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:44:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2408160FA0
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:43:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA51860F9E
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:44:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230425AbhG0UnE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 27 Jul 2021 16:43:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50840 "EHLO mail.kernel.org"
+        id S231211AbhG0UoK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Jul 2021 16:44:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231133AbhG0UnD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 27 Jul 2021 16:43:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 948FB60F9C;
-        Tue, 27 Jul 2021 20:43:02 +0000 (UTC)
+        id S231133AbhG0UoK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 27 Jul 2021 16:44:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BBA0C60F9C;
+        Tue, 27 Jul 2021 20:44:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627418582;
-        bh=+1xBu4/BbS4D7z9HeivBMBKr9Iu5tBuA4zdelLy1hmg=;
+        s=korg; t=1627418649;
+        bh=xuny0r78fyvwmRnHIBKZc9PCNFHaOw9OXHdSRQHKOk4=;
         h=Date:From:To:Subject:From;
-        b=VeSY1ZGwXKLk/4Jbgsr8hbWY4vZvKuEJJKrxTFWZa/tJ2UV8+Y9+Gzy9XMD6V28WE
-         sExesoVd0NOio1OWi0kp5Emu0x0Ua3MSxE2P4HfIatoJTkquDTemzYCs0LOHRWBuxx
-         V9inqnt4iyfN5aF6vn+6nNIspd5+A0ps2AgrJLpg=
-Date:   Tue, 27 Jul 2021 13:43:02 -0700
+        b=N5Z1qha97L/O4CZb5zKQR3eAp12OcycGxFJHNq/zbp66akYw6JsQtDlOvcdnnOhHQ
+         ckVChLzMWZa+oJcZvkABThFq7v2nFLoARJPa19fr8vfLLuvZ5EnsevpfN7ON8Ab0te
+         FKYcxZmIkTP3AhENLK2vkijFRRAAMJwYfDgVbgoo=
+Date:   Tue, 27 Jul 2021 13:44:09 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        william.kucharski@oracle.com, mchehab+huawei@kernel.org,
-        jordy@pwning.systems, hughd@google.com, djwong@kernel.org,
-        dhowells@redhat.com, gregkh@linuxfoundation.org
-Subject:  +
- mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch added to
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        catalin.marinas@arm.com, anshuman.khandual@arm.com,
+        gshan@redhat.com
+Subject:  [to-be-updated]
+ mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args.patch removed from
  -mm tree
-Message-ID: <20210727204302.VqGkS%akpm@linux-foundation.org>
+Message-ID: <20210727204409.Issjx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,77 +45,323 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: change fault_in_pages_* to have an unsigned size parameter
-has been added to the -mm tree.  Its filename is
-     mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch
+     Subject: mm/debug_vm_pgtable: introduce struct pgtable_debug_args
+has been removed from the -mm tree.  Its filename was
+     mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: mm: change fault_in_pages_* to have an unsigned size parameter
+From: Gavin Shan <gshan@redhat.com>
+Subject: mm/debug_vm_pgtable: introduce struct pgtable_debug_args
 
-fault_in_pages_writeable() and fault_in_pages_readable() treat the size
-parameter as unsigned, doing pointer math with the value, so make this
-explicit and set it to be a size_t type which all callers currently treat
-it as anyway.
+Patch series "mm/debug_vm_pgtable: Enhancements", v3.
 
-This solves the issue where static checkers get nervous seeing pointer
-arithmetic happening with a signed value.
+There are a couple of issues with current implementations and this series
+tries to resolve the issues:
 
-Link: https://lkml.kernel.org/r/20210727111136.457638-1-gregkh@linuxfoundation.org
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reported-by: Jordy Zomer <jordy@pwning.systems>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+(a) All needed information are scattered in variables, passed to
+    various test functions.  The code is organized in pretty much relaxed
+    fashion.
+
+(b) The page isn't allocated from buddy during page table entry
+    modifying tests.  The page can be invalid, conflicting to the
+    implementations of set_xxx_at() on ARM64.  The target page is accessed
+    so that the iCache can be flushed when execution permission is given
+    on ARM64.  Besides, the target page can be unmapped and access to it
+    causes kernel crash.
+
+"struct pgtable_debug_args" is introduced to address issue (a).  For issue
+(b), the used page is allocated from buddy in page table entry modifying
+tests.  The corresponding tets will be skipped if we fail to allocate the
+(huge) page.  For other test cases, the original page around to kernel
+symbol (@start_kernel) is still used.
+
+The patches are organized as below.  PATCH[2-10] could be combined to one
+patch, but it will make the review harder:
+
+  PATCH[1] introduces "struct pgtable_debug_args" as place holder of all
+           needed information. With it, the old and new implementation
+           can coexist.
+  PATCH[2-10] uses "struct pgtable_debug_args" in various test functions.
+  PATCH[11] removes the unused code for old implementation.
+  PATCH[12] fixes the issue of corrupted page flag for ARM64
+
+
+This patch (of 12):
+
+In debug_vm_pgtable(), there are many local variables introduced to track
+the needed information and they are passed to the functions for various
+test cases.  It'd better to introduce a struct as place holder for these
+information.  With it, what the functions for various test cases need is
+the struct, to simplify the code.  It also makes code easier to be
+maintained.
+
+Besides, set_xxx_at() could access the data on the corresponding pages in
+the page table modifying tests.  So the accessed pages in the tests should
+have been allocated from buddy.  Otherwise, we're accessing pages that
+aren't owned by us.  This causes issues like page flag corruption.
+
+This introduces "struct pgtable_debug_args".  The struct is initialized
+and destroyed, but the information in the struct isn't used yet.  They
+will be used in subsequent patches.
+
+Link: https://lkml.kernel.org/r/20210719130613.334901-1-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210719130613.334901-2-gshan@redhat.com
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/debug_vm_pgtable.c |  197 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 196 insertions(+), 1 deletion(-)
 
---- a/include/linux/pagemap.h~mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter
-+++ a/include/linux/pagemap.h
-@@ -786,7 +786,7 @@ extern void add_page_wait_queue(struct p
- /*
-  * Fault everything in given userspace address range in.
-  */
--static inline int fault_in_pages_writeable(char __user *uaddr, int size)
-+static inline int fault_in_pages_writeable(char __user *uaddr, size_t size)
- {
- 	char __user *end = uaddr + size - 1;
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args
++++ a/mm/debug_vm_pgtable.c
+@@ -58,6 +58,36 @@
+ #define RANDOM_ORVALUE (GENMASK(BITS_PER_LONG - 1, 0) & ~ARCH_SKIP_MASK)
+ #define RANDOM_NZVALUE	GENMASK(7, 0)
  
-@@ -813,7 +813,7 @@ static inline int fault_in_pages_writeab
- 	return 0;
++struct pgtable_debug_args {
++	struct mm_struct	*mm;
++	struct vm_area_struct	*vma;
++
++	pgd_t			*pgdp;
++	p4d_t			*p4dp;
++	pud_t			*pudp;
++	pmd_t			*pmdp;
++	pte_t			*ptep;
++
++	p4d_t			*start_p4dp;
++	pud_t			*start_pudp;
++	pmd_t			*start_pmdp;
++	pgtable_t		start_ptep;
++
++	unsigned long		vaddr;
++	pgprot_t		page_prot;
++	pgprot_t		page_prot_none;
++
++	unsigned long		pud_pfn;
++	unsigned long		pmd_pfn;
++	unsigned long		pte_pfn;
++
++	unsigned long		fixed_pgd_pfn;
++	unsigned long		fixed_p4d_pfn;
++	unsigned long		fixed_pud_pfn;
++	unsigned long		fixed_pmd_pfn;
++	unsigned long		fixed_pte_pfn;
++};
++
+ static void __init pte_basic_tests(unsigned long pfn, int idx)
+ {
+ 	pgprot_t prot = protection_map[idx];
+@@ -955,8 +985,167 @@ static unsigned long __init get_random_v
+ 	return random_vaddr;
  }
  
--static inline int fault_in_pages_readable(const char __user *uaddr, int size)
-+static inline int fault_in_pages_readable(const char __user *uaddr, size_t size)
++static void __init destroy_args(struct pgtable_debug_args *args)
++{
++	struct page *page = NULL;
++
++	/* Free (huge) page */
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
++	    has_transparent_hugepage() &&
++	    args->pud_pfn != ULONG_MAX) {
++		page = pfn_to_page(args->pud_pfn);
++		__free_pages(page, HPAGE_PUD_SHIFT - PAGE_SHIFT);
++	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++		   has_transparent_hugepage() &&
++		   args->pmd_pfn != ULONG_MAX) {
++		page = pfn_to_page(args->pmd_pfn);
++		__free_pages(page, HPAGE_PMD_ORDER);
++	} else if (args->pte_pfn != ULONG_MAX) {
++		page = pfn_to_page(args->pte_pfn);
++		__free_pages(page, 0);
++	}
++
++	/* Free page table */
++	if (args->start_ptep) {
++		pte_free(args->mm, args->start_ptep);
++		mm_dec_nr_ptes(args->mm);
++	}
++
++	if (args->start_pmdp) {
++		pmd_free(args->mm, args->start_pmdp);
++		mm_dec_nr_pmds(args->mm);
++	}
++
++	if (args->start_pudp) {
++		pud_free(args->mm, args->start_pudp);
++		mm_dec_nr_puds(args->mm);
++	}
++
++	if (args->start_p4dp)
++		p4d_free(args->mm, args->p4dp);
++
++	/* Free vma and mm struct */
++	if (args->vma)
++		vm_area_free(args->vma);
++	if (args->mm)
++		mmdrop(args->mm);
++}
++
++static int __init init_args(struct pgtable_debug_args *args)
++{
++	struct page *page = NULL;
++	phys_addr_t phys;
++	int ret = 0;
++
++	/* Initialize the debugging data */
++	memset(args, 0, sizeof(*args));
++	args->page_prot      = vm_get_page_prot(VMFLAGS);
++	args->page_prot_none = __P000;
++	args->pud_pfn        = ULONG_MAX;
++	args->pmd_pfn        = ULONG_MAX;
++	args->pte_pfn        = ULONG_MAX;
++	args->fixed_pgd_pfn  = ULONG_MAX;
++	args->fixed_p4d_pfn  = ULONG_MAX;
++	args->fixed_pud_pfn  = ULONG_MAX;
++	args->fixed_pmd_pfn  = ULONG_MAX;
++	args->fixed_pte_pfn  = ULONG_MAX;
++
++	/* Allocate mm and vma */
++	args->mm = mm_alloc();
++	if (!args->mm) {
++		pr_err("Failed to allocate mm struct\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	args->vma = vm_area_alloc(args->mm);
++	if (!args->vma) {
++		pr_err("Failed to allocate vma\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	/* Figure out the virtual address and allocate page table entries */
++	args->vaddr = get_random_vaddr();
++	args->pgdp = pgd_offset(args->mm, args->vaddr);
++	args->p4dp = p4d_alloc(args->mm, args->pgdp, args->vaddr);
++	args->pudp = args->p4dp ?
++		     pud_alloc(args->mm, args->p4dp, args->vaddr) : NULL;
++	args->pmdp = args->pudp ?
++		     pmd_alloc(args->mm, args->pudp, args->vaddr) : NULL;
++	args->ptep = args->pmdp ?
++		     pte_alloc_map(args->mm, args->pmdp, args->vaddr) : NULL;
++	if (!args->ptep) {
++		pr_err("Failed to allocate page table\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	/*
++	 * The above page table entries will be modified. Lets save the
++	 * page table entries so that they can be released when the tests
++	 * are completed.
++	 */
++	args->start_p4dp = p4d_offset(args->pgdp, 0UL);
++	args->start_pudp = pud_offset(args->p4dp, 0UL);
++	args->start_pmdp = pmd_offset(args->pudp, 0UL);
++	args->start_ptep = pmd_pgtable(READ_ONCE(*(args->pmdp)));
++
++	/*
++	 * Figure out the fixed addresses, which are all around the kernel
++	 * symbol (@start_kernel). The corresponding PFNs might be invalid,
++	 * but it's fine as the following tests won't access the pages.
++	 */
++	phys = __pa_symbol(&start_kernel);
++	args->fixed_pgd_pfn = __phys_to_pfn(phys & PGDIR_MASK);
++	args->fixed_p4d_pfn = __phys_to_pfn(phys & P4D_MASK);
++	args->fixed_pud_pfn = __phys_to_pfn(phys & PUD_MASK);
++	args->fixed_pmd_pfn = __phys_to_pfn(phys & PMD_MASK);
++	args->fixed_pte_pfn = __phys_to_pfn(phys & PAGE_MASK);
++
++	/*
++	 * Allocate (huge) pages because some of the tests need to access
++	 * the data in the pages. The corresponding tests will be skipped
++	 * if we fail to allocate (huge) pages.
++	 */
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
++	    has_transparent_hugepage()) {
++		page = alloc_pages(GFP_KERNEL | __GFP_NOWARN,
++				   HPAGE_PUD_SHIFT - PAGE_SHIFT);
++		if (page) {
++			args->pud_pfn = page_to_pfn(page);
++			args->pmd_pfn = args->pud_pfn;
++			args->pte_pfn = args->pud_pfn;
++			return 0;
++		}
++	}
++
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    has_transparent_hugepage()) {
++		page = alloc_pages(GFP_KERNEL | __GFP_NOWARN, HPAGE_PMD_ORDER);
++		if (page) {
++			args->pmd_pfn = page_to_pfn(page);
++			args->pte_pfn = args->pmd_pfn;
++			return 0;
++		}
++	}
++
++	page = alloc_pages(GFP_KERNEL, 0);
++	if (page)
++		args->pte_pfn = page_to_pfn(page);
++
++	return 0;
++
++error:
++	destroy_args(args);
++	return ret;
++}
++
+ static int __init debug_vm_pgtable(void)
  {
- 	volatile char c;
- 	const char __user *end = uaddr + size - 1;
++	struct pgtable_debug_args args;
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm;
+ 	pgd_t *pgdp;
+@@ -970,9 +1159,13 @@ static int __init debug_vm_pgtable(void)
+ 	unsigned long vaddr, pte_aligned, pmd_aligned;
+ 	unsigned long pud_aligned, p4d_aligned, pgd_aligned;
+ 	spinlock_t *ptl = NULL;
+-	int idx;
++	int idx, ret;
+ 
+ 	pr_info("Validating architecture page table helpers\n");
++	ret = init_args(&args);
++	if (ret)
++		return ret;
++
+ 	prot = vm_get_page_prot(VMFLAGS);
+ 	vaddr = get_random_vaddr();
+ 	mm = mm_alloc();
+@@ -1127,6 +1320,8 @@ static int __init debug_vm_pgtable(void)
+ 	mm_dec_nr_pmds(mm);
+ 	mm_dec_nr_ptes(mm);
+ 	mmdrop(mm);
++
++	destroy_args(&args);
+ 	return 0;
+ }
+ late_initcall(debug_vm_pgtable);
 _
 
-Patches currently in -mm which might be from gregkh@linuxfoundation.org are
+Patches currently in -mm which might be from gshan@redhat.com are
 
-mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch
-percpu-remove-export-of-pcpu_base_addr.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-basic-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-leaf-and-savewrite-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-protnone-and-devmap-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-soft_dirty-and-swap-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-migration-and-thp-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pte-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pmd-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pgd-and-p4d-modifying-tests.patch
+mm-debug_vm_pgtable-remove-unused-code.patch
+mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
 
