@@ -7,37 +7,42 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 58BC1C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:53:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 415CEC4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:08:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3ECFE60F6B
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 20:53:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A9D260FC0
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:08:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232340AbhG0UxF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 27 Jul 2021 16:53:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53732 "EHLO mail.kernel.org"
+        id S233739AbhG0VIk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Jul 2021 17:08:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33248 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232289AbhG0UxE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 27 Jul 2021 16:53:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9654E6056B;
-        Tue, 27 Jul 2021 20:53:03 +0000 (UTC)
+        id S234826AbhG0VII (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 27 Jul 2021 17:08:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1533D60FC4;
+        Tue, 27 Jul 2021 21:08:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627419183;
-        bh=6DCpyYnGDypQdq8biAGgnEMn8NGTKrdahWyHTE8b1ug=;
+        s=korg; t=1627420084;
+        bh=CscvFP6mudB0Sk/DnkGBwjfoc8wFDoyC3M4EAYuc5+Q=;
         h=Date:From:To:Subject:From;
-        b=eJgpK1GYplKer5n8uiMNomUn/+vnpoCbSc3QFqpiGeW89TkHx9ggNJbXXBaX5C1Ml
-         LNVXxRP53ioFay4guAglMMMWf/ogdEWU3RvwNjnd3PQ8P7KANYbjaOGvQTcs6yUDIO
-         VhL2OVVy99Tt+cn7VyeTDOZmIaMJ7Vohe1jIwC4w=
-Date:   Tue, 27 Jul 2021 13:53:03 -0700
+        b=JBFZlZCsChMagBhpjJaf3I568A6GjBygdHRdEGOKxCj+15wfR0ogeFj+z5YImnEkr
+         N4vbFSwJOX1oS2rt+w4ePNBCPHGecTCf3ybV4Njqx97Yo0I9bPvWySKiNFHKAX3XdI
+         A2HuSvTgsbDzw+xYo9gDm8iAKHTSWZbe4pLJyFCs=
+Date:   Tue, 27 Jul 2021 14:08:03 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        gerald.schaefer@linux.ibm.com, chuhu@redhat.com,
-        christophe.leroy@csgroup.eu, catalin.marinas@arm.com, cai@lca.pw,
-        anshuman.khandual@arm.com, aneesh.kumar@linux.ibm.com,
-        gshan@redhat.com
-Subject:  + mm-debug_vm_pgtable-fix-corrupted-page-flag.patch added
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        vdavydov.dev@gmail.com, tj@kernel.org, tglx@linutronix.de,
+        shakeelb@google.com, serge@hallyn.com, oleg@redhat.com,
+        nglaive@gmail.com, mingo@redhat.com, mhocko@kernel.org,
+        lizefan.x@bytedance.com, ktkhai@virtuozzo.com, jlayton@kernel.org,
+        jirislaby@kernel.org, hpa@zytor.com, hannes@cmpxchg.org,
+        guro@fb.com, gregkh@linuxfoundation.org, ebiederm@xmission.com,
+        christian.brauner@ubuntu.com, bp@suse.de, bp@alien8.de,
+        bfields@fieldses.org, axboe@kernel.dk, avagin@gmail.com,
+        adobriyan@gmail.com, 0x7f454c46@gmail.com, vvs@virtuozzo.com
+Subject:  + memcg-enable-accounting-for-mnt_cache-entries.patch added
  to -mm tree
-Message-ID: <20210727205303.fB02K%akpm@linux-foundation.org>
+Message-ID: <20210727210803.EoSMH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +51,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: fix corrupted page flag
+     Subject: memcg: enable accounting for mnt_cache entries
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
+     memcg-enable-accounting-for-mnt_cache-entries.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-enable-accounting-for-mnt_cache-entries.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-enable-accounting-for-mnt_cache-entries.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,243 +72,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gavin Shan <gshan@redhat.com>
-Subject: mm/debug_vm_pgtable: fix corrupted page flag
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: memcg: enable accounting for mnt_cache entries
 
-In page table entry modifying tests, set_xxx_at() are used to populate the
-page table entries.  On ARM64, PG_arch_1 (PG_dcache_clean) flag is set to
-the target page flag if execution permission is given.  The logic exits
-since commit 4f04d8f00545 ("arm64: MMU definitions").  The page flag is
-kept when the page is free'd to buddy's free area list.  However, it will
-trigger page checking failure when it's pulled from the buddy's free area
-list, as the following warning messages indicate.
+Patch series "memcg accounting from OpenVZ", v7.
 
-   BUG: Bad page state in process memhog  pfn:08000
-   page:0000000015c0a628 refcount:0 mapcount:0 \
-        mapping:0000000000000000 index:0x1 pfn:0x8000
-   flags: 0x7ffff8000000800(arch_1|node=0|zone=0|lastcpupid=0xfffff)
-   raw: 07ffff8000000800 dead000000000100 dead000000000122 0000000000000000
-   raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
-   page dumped because: PAGE_FLAGS_CHECK_AT_PREP flag(s) set
+OpenVZ uses memory accounting 20+ years since v2.2.x linux kernels. 
+Initially we used our own accounting subsystem, then partially committed
+it to upstream, and a few years ago switched to cgroups v1.  Now we're
+rebasing again, revising our old patches and trying to push them upstream.
 
-This fixes the issue by clearing PG_arch_1 through flush_dcache_page()
-after set_xxx_at() is called.  For architectures other than ARM64, the
-unexpected overhead of cache flushing is acceptable.
+We try to protect the host system from any misuse of kernel memory
+allocation triggered by untrusted users inside the containers.
 
-Link: https://lkml.kernel.org/r/20210727061401.592616-13-gshan@redhat.com
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Chunyu Hu <chuhu@redhat.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Will Deacon <will@kernel.org>
+Patch-set is addressed mostly to cgroups maintainers and cgroups@ mailing
+list, though I would be very grateful for any comments from maintainersi
+of affected subsystems or other people added in cc:
+
+Compared to the upstream, we additionally account the following kernel objects:
+- network devices and its Tx/Rx queues
+- ipv4/v6 addresses and routing-related objects
+- inet_bind_bucket cache objects
+- VLAN group arrays
+- ipv6/sit: ip_tunnel_prl
+- scm_fp_list objects used by SCM_RIGHTS messages of Unix sockets 
+- nsproxy and namespace objects itself
+- IPC objects: semaphores, message queues and share memory segments
+- mounts
+- pollfd and select bits arrays
+- signals and posix timers
+- file lock
+- fasync_struct used by the file lease code and driver's fasync queues 
+- tty objects
+- per-mm LDT
+
+We have an incorrect/incomplete/obsoleted accounting for few other kernel
+objects: sk_filter, af_packets, netlink and xt_counters for iptables. 
+They require rework and probably will be dropped at all.
+
+Also we're going to add an accounting for nft, however it is not ready
+yet.
+
+We have not tested performance on upstream, however, our performance team
+compares our current RHEL7-based production kernel and reports that they
+are at least not worse as the according original RHEL7 kernel.
+
+
+This patch (of 10):
+
+The kernel allocates ~400 bytes of 'struct mount' for any new mount. 
+Creating a new mount namespace clones most of the parent mounts, and this
+can be repeated many times.  Additionally, each mount allocates up to
+PATH_MAX=4096 bytes for mnt->mnt_devname.
+
+It makes sense to account for these allocations to restrict the host's
+memory consumption from inside the memcg-limited container.
+
+Link: https://lkml.kernel.org/r/045db11f-4a45-7c9b-2664-5b32c2b44943@virtuozzo.com
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Yutian Yang <nglaive@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Serge Hallyn <serge@hallyn.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   55 +++++++++++++++++++++++++++++++++++++---
- 1 file changed, 51 insertions(+), 4 deletions(-)
+ fs/namespace.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-fix-corrupted-page-flag
-+++ a/mm/debug_vm_pgtable.c
-@@ -29,6 +29,8 @@
- #include <linux/start_kernel.h>
- #include <linux/sched/mm.h>
- #include <linux/io.h>
-+
-+#include <asm/cacheflush.h>
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
+--- a/fs/namespace.c~memcg-enable-accounting-for-mnt_cache-entries
++++ a/fs/namespace.c
+@@ -203,7 +203,8 @@ static struct mount *alloc_vfsmnt(const
+ 			goto out_free_cache;
  
-@@ -119,19 +121,28 @@ static void __init pte_basic_tests(struc
+ 		if (name) {
+-			mnt->mnt_devname = kstrdup_const(name, GFP_KERNEL);
++			mnt->mnt_devname = kstrdup_const(name,
++							 GFP_KERNEL_ACCOUNT);
+ 			if (!mnt->mnt_devname)
+ 				goto out_free_id;
+ 		}
+@@ -4222,7 +4223,7 @@ void __init mnt_init(void)
+ 	int err;
  
- static void __init pte_advanced_tests(struct pgtable_debug_args *args)
- {
-+	struct page *page;
- 	pte_t pte;
+ 	mnt_cache = kmem_cache_create("mnt_cache", sizeof(struct mount),
+-			0, SLAB_HWCACHE_ALIGN | SLAB_PANIC, NULL);
++			0, SLAB_HWCACHE_ALIGN|SLAB_PANIC|SLAB_ACCOUNT, NULL);
  
- 	/*
- 	 * Architectures optimize set_pte_at by avoiding TLB flush.
- 	 * This requires set_pte_at to be not used to update an
- 	 * existing pte entry. Clear pte before we do set_pte_at
-+	 *
-+	 * flush_dcache_page() is called after set_pte_at() to clear
-+	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
-+	 * when it's released and page allocation check will fail when
-+	 * the page is allocated again. For architectures other than ARM64,
-+	 * the unexpected overhead of cache flushing is acceptable.
- 	 */
--	if (args->pte_pfn == ULONG_MAX)
-+	page = (args->pte_pfn != ULONG_MAX) ? pfn_to_page(args->pte_pfn) : NULL;
-+	if (!page)
- 		return;
- 
- 	pr_debug("Validating PTE advanced\n");
- 	pte = pfn_pte(args->pte_pfn, args->page_prot);
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	ptep_set_wrprotect(args->mm, args->vaddr, args->ptep);
- 	pte = ptep_get(args->ptep);
- 	WARN_ON(pte_write(pte));
-@@ -143,6 +154,7 @@ static void __init pte_advanced_tests(st
- 	pte = pte_wrprotect(pte);
- 	pte = pte_mkclean(pte);
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	pte = pte_mkwrite(pte);
- 	pte = pte_mkdirty(pte);
- 	ptep_set_access_flags(args->vma, args->vaddr, args->ptep, pte, 1);
-@@ -155,6 +167,7 @@ static void __init pte_advanced_tests(st
- 	pte = pfn_pte(args->pte_pfn, args->page_prot);
- 	pte = pte_mkyoung(pte);
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	ptep_test_and_clear_young(args->vma, args->vaddr, args->ptep);
- 	pte = ptep_get(args->ptep);
- 	WARN_ON(pte_young(pte));
-@@ -213,15 +226,24 @@ static void __init pmd_basic_tests(struc
- 
- static void __init pmd_advanced_tests(struct pgtable_debug_args *args)
- {
-+	struct page *page;
- 	pmd_t pmd;
- 	unsigned long vaddr = args->vaddr;
- 
- 	if (!has_transparent_hugepage())
- 		return;
- 
--	if (args->pmd_pfn == ULONG_MAX)
-+	page = (args->pmd_pfn != ULONG_MAX) ? pfn_to_page(args->pmd_pfn) : NULL;
-+	if (!page)
- 		return;
- 
-+	/*
-+	 * flush_dcache_page() is called after set_pmd_at() to clear
-+	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
-+	 * when it's released and page allocation check will fail when
-+	 * the page is allocated again. For architectures other than ARM64,
-+	 * the unexpected overhead of cache flushing is acceptable.
-+	 */
- 	pr_debug("Validating PMD advanced\n");
- 	/* Align the address wrt HPAGE_PMD_SIZE */
- 	vaddr &= HPAGE_PMD_MASK;
-@@ -230,6 +252,7 @@ static void __init pmd_advanced_tests(st
- 
- 	pmd = pfn_pmd(args->pmd_pfn, args->page_prot);
- 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
-+	flush_dcache_page(page);
- 	pmdp_set_wrprotect(args->mm, vaddr, args->pmdp);
- 	pmd = READ_ONCE(*args->pmdp);
- 	WARN_ON(pmd_write(pmd));
-@@ -241,6 +264,7 @@ static void __init pmd_advanced_tests(st
- 	pmd = pmd_wrprotect(pmd);
- 	pmd = pmd_mkclean(pmd);
- 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
-+	flush_dcache_page(page);
- 	pmd = pmd_mkwrite(pmd);
- 	pmd = pmd_mkdirty(pmd);
- 	pmdp_set_access_flags(args->vma, vaddr, args->pmdp, pmd, 1);
-@@ -253,6 +277,7 @@ static void __init pmd_advanced_tests(st
- 	pmd = pmd_mkhuge(pfn_pmd(args->pmd_pfn, args->page_prot));
- 	pmd = pmd_mkyoung(pmd);
- 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
-+	flush_dcache_page(page);
- 	pmdp_test_and_clear_young(args->vma, vaddr, args->pmdp);
- 	pmd = READ_ONCE(*args->pmdp);
- 	WARN_ON(pmd_young(pmd));
-@@ -339,21 +364,31 @@ static void __init pud_basic_tests(struc
- 
- static void __init pud_advanced_tests(struct pgtable_debug_args *args)
- {
-+	struct page *page;
- 	unsigned long vaddr = args->vaddr;
- 	pud_t pud;
- 
- 	if (!has_transparent_hugepage())
- 		return;
- 
--	if (args->pud_pfn == ULONG_MAX)
-+	page = (args->pud_pfn != ULONG_MAX) ? pfn_to_page(args->pud_pfn) : NULL;
-+	if (!page)
- 		return;
- 
-+	/*
-+	 * flush_dcache_page() is called after set_pud_at() to clear
-+	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
-+	 * when it's released and page allocation check will fail when
-+	 * the page is allocated again. For architectures other than ARM64,
-+	 * the unexpected overhead of cache flushing is acceptable.
-+	 */
- 	pr_debug("Validating PUD advanced\n");
- 	/* Align the address wrt HPAGE_PUD_SIZE */
- 	vaddr &= HPAGE_PUD_MASK;
- 
- 	pud = pfn_pud(args->pud_pfn, args->page_prot);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	flush_dcache_page(page);
- 	pudp_set_wrprotect(args->mm, vaddr, args->pudp);
- 	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(pud_write(pud));
-@@ -367,6 +402,7 @@ static void __init pud_advanced_tests(st
- 	pud = pud_wrprotect(pud);
- 	pud = pud_mkclean(pud);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	flush_dcache_page(page);
- 	pud = pud_mkwrite(pud);
- 	pud = pud_mkdirty(pud);
- 	pudp_set_access_flags(args->vma, vaddr, args->pudp, pud, 1);
-@@ -382,6 +418,7 @@ static void __init pud_advanced_tests(st
- 	pud = pfn_pud(args->pud_pfn, args->page_prot);
- 	pud = pud_mkyoung(pud);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	flush_dcache_page(page);
- 	pudp_test_and_clear_young(args->vma, vaddr, args->pudp);
- 	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(pud_young(pud));
-@@ -594,16 +631,26 @@ static void __init pgd_populate_tests(st
- 
- static void __init pte_clear_tests(struct pgtable_debug_args *args)
- {
-+	struct page *page;
- 	pte_t pte = pfn_pte(args->pte_pfn, args->page_prot);
- 
--	if (args->pte_pfn == ULONG_MAX)
-+	page = (args->pte_pfn != ULONG_MAX) ? pfn_to_page(args->pte_pfn) : NULL;
-+	if (!page)
- 		return;
- 
-+	/*
-+	 * flush_dcache_page() is called after set_pte_at() to clear
-+	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
-+	 * when it's released and page allocation check will fail when
-+	 * the page is allocated again. For architectures other than ARM64,
-+	 * the unexpected overhead of cache flushing is acceptable.
-+	 */
- 	pr_debug("Validating PTE clear\n");
- #ifndef CONFIG_RISCV
- 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
- #endif
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	barrier();
- 	pte_clear(args->mm, args->vaddr, args->ptep);
- 	pte = ptep_get(args->ptep);
+ 	mount_hashtable = alloc_large_system_hash("Mount-cache",
+ 				sizeof(struct hlist_head),
 _
 
-Patches currently in -mm which might be from gshan@redhat.com are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
-mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-basic-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-leaf-and-savewrite-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-protnone-and-devmap-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-soft_dirty-and-swap-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-migration-and-thp-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pte-modifying-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pmd-modifying-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
-mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pgd-and-p4d-modifying-tests.patch
-mm-debug_vm_pgtable-remove-unused-code.patch
-mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
+memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
+memcg-enable-accounting-for-mnt_cache-entries.patch
+memcg-enable-accounting-for-pollfd-and-select-bits-arrays.patch
+memcg-enable-accounting-for-file-lock-caches.patch
+memcg-enable-accounting-for-fasync_cache.patch
+memcg-enable-accounting-for-new-namesapces-and-struct-nsproxy.patch
+memcg-enable-accounting-of-ipc-resources.patch
+memcg-enable-accounting-for-signals.patch
+memcg-enable-accounting-for-posix_timers_cache-slab.patch
+memcg-enable-accounting-for-tty-related-objects.patch
+memcg-enable-accounting-for-ldt_struct-objects.patch
 
