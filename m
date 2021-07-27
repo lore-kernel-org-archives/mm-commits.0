@@ -7,42 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0AA2C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:10:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 86C98C43214
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:20:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA20060F6C
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:10:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67D2E60F9C
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:20:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232419AbhG0VKO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 27 Jul 2021 17:10:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34050 "EHLO mail.kernel.org"
+        id S235007AbhG0VUK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 27 Jul 2021 17:20:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37742 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233736AbhG0VIk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 27 Jul 2021 17:08:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B0C8F60FD7;
-        Tue, 27 Jul 2021 21:08:24 +0000 (UTC)
+        id S234427AbhG0VT3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 27 Jul 2021 17:19:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7ACBD60F9C;
+        Tue, 27 Jul 2021 21:18:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627420105;
-        bh=IPh0PDwbOqglt/2IbFADEccrwJoT/M6/gPZvQhEy5nw=;
+        s=korg; t=1627420732;
+        bh=Jt2rP8/sG2YYn4DyekcW4G0NlEZJpP9gYVVlqTFQ2gc=;
         h=Date:From:To:Subject:From;
-        b=lyLhiMFtl98NUK0crEGwGbAi9ZVNRWzhFuJg9SYRqk7MdVSCMLaJ/D77Ba2FuAWXy
-         agvl/LZBWS8PgimfCzhT+ibjiYgRMoKQ91bNj15YloYByhpG8AfpsbDVhyo4ZvvxNa
-         F5pGbCxTiPvd5C4GWKtxvnEHMAnBT39tkl4WYjIU=
-Date:   Tue, 27 Jul 2021 14:08:24 -0700
+        b=pdpExUeE7Uhk0GFGkFKqzyorbr83ATkEy6YZ9GprZ/D7oksEcM99xxpPcdygzMG1K
+         zKt0WxGrmNeKWjbXeLxHXIZNekiJirLn+MUjl/WQIVS+t/kDEo3Zna+n4h/p6kQwZD
+         F7RnIp2XDy1HWWgW8ABanOokqD/8MxXaUa0zzSZQ=
+Date:   Tue, 27 Jul 2021 14:18:52 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        vdavydov.dev@gmail.com, tj@kernel.org, tglx@linutronix.de,
-        shakeelb@google.com, serge@hallyn.com, oleg@redhat.com,
-        nglaive@gmail.com, mingo@redhat.com, mhocko@kernel.org,
-        lizefan.x@bytedance.com, ktkhai@virtuozzo.com, jlayton@kernel.org,
-        jirislaby@kernel.org, hpa@zytor.com, hannes@cmpxchg.org,
-        guro@fb.com, gregkh@linuxfoundation.org, ebiederm@xmission.com,
-        christian.brauner@ubuntu.com, bp@suse.de, bp@alien8.de,
-        bfields@fieldses.org, axboe@kernel.dk, avagin@gmail.com,
-        adobriyan@gmail.com, 0x7f454c46@gmail.com, vvs@virtuozzo.com
-Subject:  + memcg-enable-accounting-for-posix_timers_cache-slab.patch
- added to -mm tree
-Message-ID: <20210727210824.r0aro%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        surenb@google.com, rjw@rjwysocki.net, pavel@ucw.cz,
+        minchan@kernel.org, mhocko@suse.com, linmiaohe@huawei.com,
+        iamjoonsoo.kim@lge.com, hughd@google.com, hannes@cmpxchg.org,
+        david@redhat.com, apopple@nvidia.com, alexs@kernel.org,
+        evgreen@chromium.org
+Subject:  [to-be-updated] mm-enable-suspend-only-swap-spaces.patch
+ removed from -mm tree
+Message-ID: <20210727211852.AMTI8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,100 +47,218 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: enable accounting for posix_timers_cache slab
-has been added to the -mm tree.  Its filename is
-     memcg-enable-accounting-for-posix_timers_cache-slab.patch
+     Subject: mm: enable suspend-only swap spaces
+has been removed from the -mm tree.  Its filename was
+     mm-enable-suspend-only-swap-spaces.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-enable-accounting-for-posix_timers_cache-slab.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-enable-accounting-for-posix_timers_cache-slab.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: enable accounting for posix_timers_cache slab
+From: Evan Green <evgreen@chromium.org>
+Subject: mm: enable suspend-only swap spaces
 
-A program may create multiple interval timers using timer_create().  For
-each timer the kernel preallocates a "queued real-time signal",
-Consequently, the number of timers is limited by the RLIMIT_SIGPENDING
-resource limit.  The allocated object is quite small, ~250 bytes, but even
-the default signal limits allow to consume up to 100 megabytes per user.
+Currently it's not possible to enable hibernation without also enabling
+generic swap for a given swap area.  These two use cases are not the same.
+For example there may be users who want to enable hibernation, but whose
+drives don't have the write endurance for generic swap activities.  Swap
+and hibernate also have different security/integrity requirements,
+prompting folks to possibly set up something like block-level integrity
+for swap and image-level integrity for hibernate.  Keeping swap and
+hibernate separate in these cases becomes not just a matter of preference,
+but correctness.
 
-It makes sense to account for them to limit the host's memory consumption
-from inside the memcg-limited container.
+Add a new SWAP_FLAG_NOSWAP that adds a swap region but refuses to allow
+generic swapping to it.  This region can still be wired up for use in
+suspend-to-disk activities, but will never have regular pages swapped to
+it.  This flag will be passed in by utilities like swapon(8), usage would
+probably look something like: swapon -o noswap /dev/sda2.
 
-Link: https://lkml.kernel.org/r/57795560-025c-267c-6b1a-dea852d95530@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jiri Slaby <jirislaby@kernel.org>
+Swap regions with SWAP_FLAG_NOSWAP set will not appear in /proc/meminfo
+under SwapTotal and SwapFree, since they are not usable as general swap.
+
+Link: https://lkml.kernel.org/r/20210721143946.v3.1.I09866d90c6de14f21223a03e9e6a31f8a02ecbaf@changeid
+Signed-off-by: Evan Green <evgreen@chromium.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Pavel Machek <pavel@ucw.cz>
+Cc: Evan Green <evgreen@chromium.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Yutian Yang <nglaive@gmail.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/posix-timers.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/swap.h |    4 ++-
+ mm/swapfile.c        |   52 +++++++++++++++++++++++++++++------------
+ 2 files changed, 40 insertions(+), 16 deletions(-)
 
---- a/kernel/time/posix-timers.c~memcg-enable-accounting-for-posix_timers_cache-slab
-+++ a/kernel/time/posix-timers.c
-@@ -273,8 +273,8 @@ static int posix_get_hrtimer_res(clockid
- static __init int init_posix_timers(void)
- {
- 	posix_timers_cache = kmem_cache_create("posix_timers_cache",
--					sizeof (struct k_itimer), 0, SLAB_PANIC,
--					NULL);
-+					sizeof(struct k_itimer), 0,
-+					SLAB_PANIC | SLAB_ACCOUNT, NULL);
- 	return 0;
+--- a/include/linux/swap.h~mm-enable-suspend-only-swap-spaces
++++ a/include/linux/swap.h
+@@ -28,10 +28,11 @@ struct pagevec;
+ #define SWAP_FLAG_DISCARD	0x10000 /* enable discard for swap */
+ #define SWAP_FLAG_DISCARD_ONCE	0x20000 /* discard swap area at swapon-time */
+ #define SWAP_FLAG_DISCARD_PAGES 0x40000 /* discard page-clusters after use */
++#define SWAP_FLAG_NOSWAP	0x80000 /* use only for hibernate, not swap */
+ 
+ #define SWAP_FLAGS_VALID	(SWAP_FLAG_PRIO_MASK | SWAP_FLAG_PREFER | \
+ 				 SWAP_FLAG_DISCARD | SWAP_FLAG_DISCARD_ONCE | \
+-				 SWAP_FLAG_DISCARD_PAGES)
++				 SWAP_FLAG_DISCARD_PAGES | SWAP_FLAG_NOSWAP)
+ #define SWAP_BATCH 64
+ 
+ static inline int current_is_kswapd(void)
+@@ -182,6 +183,7 @@ enum {
+ 	SWP_PAGE_DISCARD = (1 << 10),	/* freed swap page-cluster discards */
+ 	SWP_STABLE_WRITES = (1 << 11),	/* no overwrite PG_writeback pages */
+ 	SWP_SYNCHRONOUS_IO = (1 << 12),	/* synchronous IO is efficient */
++	SWP_NOSWAP	= (1 << 13),	/* use only for suspend, not swap */
+ 					/* add others here before... */
+ 	SWP_SCANNING	= (1 << 14),	/* refcount in scan_swap_map */
+ };
+--- a/mm/swapfile.c~mm-enable-suspend-only-swap-spaces
++++ a/mm/swapfile.c
+@@ -697,7 +697,8 @@ static void swap_range_alloc(struct swap
+ 	if (si->inuse_pages == si->pages) {
+ 		si->lowest_bit = si->max;
+ 		si->highest_bit = 0;
+-		del_from_avail_list(si);
++		if (!(si->flags & SWP_NOSWAP))
++			del_from_avail_list(si);
+ 	}
  }
- __initcall(init_posix_timers);
+ 
+@@ -726,10 +727,12 @@ static void swap_range_free(struct swap_
+ 		bool was_full = !si->highest_bit;
+ 
+ 		WRITE_ONCE(si->highest_bit, end);
+-		if (was_full && (si->flags & SWP_WRITEOK))
++		if (was_full &&
++		    ((si->flags & (SWP_WRITEOK | SWP_NOSWAP)) == SWP_WRITEOK))
+ 			add_to_avail_list(si);
+ 	}
+-	atomic_long_add(nr_entries, &nr_swap_pages);
++	if (!(si->flags & SWP_NOSWAP))
++		atomic_long_add(nr_entries, &nr_swap_pages);
+ 	si->inuse_pages -= nr_entries;
+ 	if (si->flags & SWP_BLKDEV)
+ 		swap_slot_free_notify =
+@@ -1078,6 +1081,9 @@ start_over:
+ 			WARN(!(si->flags & SWP_WRITEOK),
+ 			     "swap_info %d in list but !SWP_WRITEOK\n",
+ 			     si->type);
++			WARN((si->flags & SWP_NOSWAP),
++			     "swap_info %d in list but SWP_NOSWAP\n",
++			     si->type);
+ 			__del_from_avail_list(si);
+ 			spin_unlock(&si->lock);
+ 			goto nextsi;
+@@ -1338,8 +1344,12 @@ void swap_free(swp_entry_t entry)
+ 	struct swap_info_struct *p;
+ 
+ 	p = _swap_info_get(entry);
+-	if (p)
+-		__swap_entry_free(p, entry);
++	if (p) {
++		if (p->flags & SWP_NOSWAP)
++			swap_entry_free(p, entry);
++		else
++			__swap_entry_free(p, entry);
++	}
+ }
+ 
+ /*
+@@ -1783,8 +1793,10 @@ swp_entry_t get_swap_page_of_type(int ty
+ 
+ 	/* This is called for allocating swap entry, not cache */
+ 	spin_lock(&si->lock);
+-	if ((si->flags & SWP_WRITEOK) && scan_swap_map_slots(si, 1, 1, &entry))
+-		atomic_long_dec(&nr_swap_pages);
++	if ((si->flags & SWP_WRITEOK) && scan_swap_map_slots(si, 1, 1, &entry)) {
++		if (!(si->flags & SWP_NOSWAP))
++			atomic_long_dec(&nr_swap_pages);
++	}
+ 	spin_unlock(&si->lock);
+ fail:
+ 	return entry;
+@@ -2454,8 +2466,6 @@ static void setup_swap_info(struct swap_
+ static void _enable_swap_info(struct swap_info_struct *p)
+ {
+ 	p->flags |= SWP_WRITEOK;
+-	atomic_long_add(p->pages, &nr_swap_pages);
+-	total_swap_pages += p->pages;
+ 
+ 	assert_spin_locked(&swap_lock);
+ 	/*
+@@ -2469,7 +2479,11 @@ static void _enable_swap_info(struct swa
+ 	 * swap_info_struct.
+ 	 */
+ 	plist_add(&p->list, &swap_active_head);
+-	add_to_avail_list(p);
++	if (!(p->flags & SWP_NOSWAP)) {
++		atomic_long_add(p->pages, &nr_swap_pages);
++		total_swap_pages += p->pages;
++		add_to_avail_list(p);
++	}
+ }
+ 
+ static void enable_swap_info(struct swap_info_struct *p, int prio,
+@@ -2564,7 +2578,9 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 		spin_unlock(&swap_lock);
+ 		goto out_dput;
+ 	}
+-	del_from_avail_list(p);
++	if (!(p->flags & SWP_NOSWAP))
++		del_from_avail_list(p);
++
+ 	spin_lock(&p->lock);
+ 	if (p->prio < 0) {
+ 		struct swap_info_struct *si = p;
+@@ -2581,8 +2597,10 @@ SYSCALL_DEFINE1(swapoff, const char __us
+ 		least_priority++;
+ 	}
+ 	plist_del(&p->list, &swap_active_head);
+-	atomic_long_sub(p->pages, &nr_swap_pages);
+-	total_swap_pages -= p->pages;
++	if (!(p->flags & SWP_NOSWAP)) {
++		atomic_long_sub(p->pages, &nr_swap_pages);
++		total_swap_pages -= p->pages;
++	}
+ 	p->flags &= ~SWP_WRITEOK;
+ 	spin_unlock(&p->lock);
+ 	spin_unlock(&swap_lock);
+@@ -3335,16 +3353,20 @@ SYSCALL_DEFINE2(swapon, const char __use
+ 	if (swap_flags & SWAP_FLAG_PREFER)
+ 		prio =
+ 		  (swap_flags & SWAP_FLAG_PRIO_MASK) >> SWAP_FLAG_PRIO_SHIFT;
++
++	if (swap_flags & SWAP_FLAG_NOSWAP)
++		p->flags |= SWP_NOSWAP;
+ 	enable_swap_info(p, prio, swap_map, cluster_info, frontswap_map);
+ 
+-	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s%s\n",
++	pr_info("Adding %uk swap on %s.  Priority:%d extents:%d across:%lluk %s%s%s%s%s%s\n",
+ 		p->pages<<(PAGE_SHIFT-10), name->name, p->prio,
+ 		nr_extents, (unsigned long long)span<<(PAGE_SHIFT-10),
+ 		(p->flags & SWP_SOLIDSTATE) ? "SS" : "",
+ 		(p->flags & SWP_DISCARDABLE) ? "D" : "",
+ 		(p->flags & SWP_AREA_DISCARD) ? "s" : "",
+ 		(p->flags & SWP_PAGE_DISCARD) ? "c" : "",
+-		(frontswap_map) ? "FS" : "");
++		(frontswap_map) ? "FS" : "",
++		(p->flags & SWP_NOSWAP) ? "N" : "");
+ 
+ 	mutex_unlock(&swapon_mutex);
+ 	atomic_inc(&proc_poll_event);
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from evgreen@chromium.org are
 
-memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
-memcg-enable-accounting-for-mnt_cache-entries.patch
-memcg-enable-accounting-for-pollfd-and-select-bits-arrays.patch
-memcg-enable-accounting-for-file-lock-caches.patch
-memcg-enable-accounting-for-fasync_cache.patch
-memcg-enable-accounting-for-new-namesapces-and-struct-nsproxy.patch
-memcg-enable-accounting-of-ipc-resources.patch
-memcg-enable-accounting-for-signals.patch
-memcg-enable-accounting-for-posix_timers_cache-slab.patch
-memcg-enable-accounting-for-tty-related-objects.patch
-memcg-enable-accounting-for-ldt_struct-objects.patch
 
