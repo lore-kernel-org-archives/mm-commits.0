@@ -2,81 +2,56 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.5 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AA40C4338F
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Jul 2021 07:14:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 526D4C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 03:32:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F330A60F4A
-	for <mm-commits@archiver.kernel.org>; Mon, 26 Jul 2021 07:14:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A3CF61053
+	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 03:32:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232190AbhGZGeC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 26 Jul 2021 02:34:02 -0400
-Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:38945 "EHLO
-        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
-        by vger.kernel.org with ESMTP id S232254AbhGZGeA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 26 Jul 2021 02:34:00 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
-        s=mimecast20190719; t=1627283669;
-        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
-         to:to:cc:mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=um4df6F+Tcs1NedbhaEs9ICFL4JEkb2ohkfDmaRpXVs=;
-        b=HdnxcrnE9PyzpgE4b4yqNeXuzbLGuc5mu+BoNa8WdKmEgkUsbrZweEAbaDgdVG599z1bPn
-        /tgVP/+z3SG4Jx0LyZGJeuHrMvy/bCcfROrLbYV1EAC2ShAhCETm5A1dOjXkv9B8655s8D
-        kAghvLQmEWyTkHZGzHHZ3yjrQwRTKTI=
-Received: from mail-wr1-f70.google.com (mail-wr1-f70.google.com
- [209.85.221.70]) (Using TLS) by relay.mimecast.com with ESMTP id
- us-mta-62-Unk87T5jO4mebvBNOY20HQ-1; Mon, 26 Jul 2021 03:14:28 -0400
-X-MC-Unique: Unk87T5jO4mebvBNOY20HQ-1
-Received: by mail-wr1-f70.google.com with SMTP id n1-20020a5d59810000b029013cd60e9baaso4338411wri.7
-        for <mm-commits@vger.kernel.org>; Mon, 26 Jul 2021 00:14:28 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:subject:to:references:from:organization
-         :message-id:date:user-agent:mime-version:in-reply-to
-         :content-language:content-transfer-encoding;
-        bh=um4df6F+Tcs1NedbhaEs9ICFL4JEkb2ohkfDmaRpXVs=;
-        b=XmxmH44T/gNStQivajOvPdqsthbbKhAVP4J2553svzhxO2YoEL7aVFbWuEtUPRoA0i
-         DLpZ8Kwq16mPbrLzcBxvrec1zBnxdpcHIzooYooLWpoy8PQz2Jd2ccClLJ8IKfie9uCj
-         GbaCRtb1NQmX9+JJ3Ut2j7wZo5BUrI0WqjZA78nKFV+nB/GC0KFyvhX/cTmCZKRRcwqE
-         Bp8xX6xU0U5VpOadi/ue2n2Sp8PJnC3kK3/0MFjP08H6L9PuAp3jPaERdG0z4OjSQ32X
-         g1BFTr+ZW77fL/apwLB5a2toiz3RcKnbbS7HaU1390GxezifSzQqHkCEKHGXS6xzwu8s
-         rkYw==
-X-Gm-Message-State: AOAM530drwhsZL+jgOzvsrUflMOIPT/yGdhUkVtJtTn9nB/utI3H3tFs
-        yjU1L2wuejvSQAFlpVnyryjbUVR65LinRxtxdDBSfIg7gybIlQ9jl7nHhpRwePOWXU5ztdhpoHw
-        znJdFRnXXQ83cfQXMkFno/w==
-X-Received: by 2002:a05:600c:a08:: with SMTP id z8mr11306679wmp.52.1627283667217;
-        Mon, 26 Jul 2021 00:14:27 -0700 (PDT)
-X-Google-Smtp-Source: ABdhPJyrJ5ioNqCfkDgUWTA7YxeWf82kzHlJSCsGt9E8hJ1xGP6IhEO9RD5CtVqgDVl+ePM/lAAEqw==
-X-Received: by 2002:a05:600c:a08:: with SMTP id z8mr11306664wmp.52.1627283667006;
-        Mon, 26 Jul 2021 00:14:27 -0700 (PDT)
-Received: from [192.168.3.132] (p4ff23b33.dip0.t-ipconnect.de. [79.242.59.51])
-        by smtp.gmail.com with ESMTPSA id d203sm7830431wmd.38.2021.07.26.00.14.26
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Mon, 26 Jul 2021 00:14:26 -0700 (PDT)
+        id S234930AbhG0CwM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 26 Jul 2021 22:52:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39606 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234422AbhG0CwM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 26 Jul 2021 22:52:12 -0400
+Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 074FFC061757;
+        Mon, 26 Jul 2021 20:32:39 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
+        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:
+        Subject:Sender:Reply-To:Cc:Content-ID:Content-Description;
+        bh=Z5OTHAoZBoL/SIl2ruEQOeyRsTlnOUVPwpimgyS/uS8=; b=OKHmk2zQ+VU1/UmXqMg+XTROia
+        eCdPlEg03Z42i9H1TINqbUMFUo0zG3Nma0I2Rv5B0ifctio5yE7P/9ncedSMUbW8/jtrZwe+qJZd6
+        0k+ajWQY71ticFXRcEXl8EbThQY2GxKLLOd1ramA2skbs/trFBklvKOjSrKxiURl2ljGfgti81tvT
+        ISly06NfPvXfPY6oo26nXXdwyB+3esFPaqZ3qvDMr+kHGGLhf0A+aVxdT2DLozInlhZlfzw+9bDnS
+        qJjUFB7Nyni5NmLzCvstoY/QD0JWrOkK/wB95lx8Ca/8zI5Zu/bFIqdOkiJAei8v7+oEM628yyTUc
+        NQR2fQuA==;
+Received: from [2601:1c0:6280:3f0::aefb]
+        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1m8Dpe-00D0NX-GD; Tue, 27 Jul 2021 03:32:38 +0000
 Subject: Re: mmotm 2021-07-23-15-03 uploaded (mm/memory_hotplug.c)
-To:     Randy Dunlap <rdunlap@infradead.org>, akpm@linux-foundation.org,
+To:     David Hildenbrand <david@redhat.com>, akpm@linux-foundation.org,
         broonie@kernel.org, linux-fsdevel@vger.kernel.org,
         linux-kernel@vger.kernel.org, linux-mm@kvack.org,
         linux-next@vger.kernel.org, mhocko@suse.cz,
         mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 References: <20210723220400.w5iKInKaC%akpm@linux-foundation.org>
  <5966f6a2-bdba-3a54-c6cb-d21aaeb8f534@infradead.org>
-From:   David Hildenbrand <david@redhat.com>
-Organization: Red Hat
-Message-ID: <5394da5e-29f0-ff7d-e614-e2805400a8bb@redhat.com>
-Date:   Mon, 26 Jul 2021 09:14:25 +0200
+ <5394da5e-29f0-ff7d-e614-e2805400a8bb@redhat.com>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <1549416a-05aa-108b-ec95-cac9d84febd1@infradead.org>
+Date:   Mon, 26 Jul 2021 20:32:37 -0700
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
  Thunderbird/78.11.0
 MIME-Version: 1.0
-In-Reply-To: <5966f6a2-bdba-3a54-c6cb-d21aaeb8f534@infradead.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
+In-Reply-To: <5394da5e-29f0-ff7d-e614-e2805400a8bb@redhat.com>
+Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
@@ -84,77 +59,81 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 24.07.21 20:49, Randy Dunlap wrote:
-> On 7/23/21 3:04 PM, akpm@linux-foundation.org wrote:
->> The mm-of-the-moment snapshot 2021-07-23-15-03 has been uploaded to
+On 7/26/21 12:14 AM, David Hildenbrand wrote:
+> On 24.07.21 20:49, Randy Dunlap wrote:
+>> On 7/23/21 3:04 PM, akpm@linux-foundation.org wrote:
+>>> The mm-of-the-moment snapshot 2021-07-23-15-03 has been uploaded to
+>>>
+>>>     https://www.ozlabs.org/~akpm/mmotm/
+>>>
+>>> mmotm-readme.txt says
+>>>
+>>> README for mm-of-the-moment:
+>>>
+>>> https://www.ozlabs.org/~akpm/mmotm/
+>>>
+>>> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+>>> more than once a week.
+>>>
+>>> You will need quilt to apply these patches to the latest Linus release (5.x
+>>> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+>>> https://ozlabs.org/~akpm/mmotm/series
+>>>
+>>> The file broken-out.tar.gz contains two datestamp files: .DATE and
+>>> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+>>> followed by the base kernel version against which this patch series is to
+>>> be applied.
+>>>
 >>
->>     https://www.ozlabs.org/~akpm/mmotm/
+>> on x86_64:
+>> # CONFIG_CMA is not set
 >>
->> mmotm-readme.txt says
+>> mm-memory_hotplug-memory-group-aware-auto-movable-online-policy.patch
 >>
->> README for mm-of-the-moment:
 >>
->> https://www.ozlabs.org/~akpm/mmotm/
 >>
->> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
->> more than once a week.
+>> ../mm/memory_hotplug.c: In function ‘auto_movable_stats_account_zone’:
+>> ../mm/memory_hotplug.c:748:33: error: ‘struct zone’ has no member named ‘cma_pages’; did you mean ‘managed_pages’?
+>>     stats->movable_pages += zone->cma_pages;
+>>                                   ^~~~~~~~~
+>>                                   managed_pages
+>> ../mm/memory_hotplug.c:750:38: error: ‘struct zone’ has no member named ‘cma_pages’; did you mean ‘managed_pages’?
+>>     stats->kernel_early_pages -= zone->cma_pages;
+>>                                        ^~~~~~~~~
+>>                                        managed_pages
 >>
->> You will need quilt to apply these patches to the latest Linus release (5.x
->> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
->> https://ozlabs.org/~akpm/mmotm/series
->>
->> The file broken-out.tar.gz contains two datestamp files: .DATE and
->> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
->> followed by the base kernel version against which this patch series is to
->> be applied.
 >>
 > 
-> on x86_64:
-> # CONFIG_CMA is not set
+> Thanks Randy, the following on top should make it fly:
 > 
-> mm-memory_hotplug-memory-group-aware-auto-movable-online-policy.patch
-> 
-> 
-> 
-> ../mm/memory_hotplug.c: In function ‘auto_movable_stats_account_zone’:
-> ../mm/memory_hotplug.c:748:33: error: ‘struct zone’ has no member named ‘cma_pages’; did you mean ‘managed_pages’?
->     stats->movable_pages += zone->cma_pages;
->                                   ^~~~~~~~~
->                                   managed_pages
-> ../mm/memory_hotplug.c:750:38: error: ‘struct zone’ has no member named ‘cma_pages’; did you mean ‘managed_pages’?
->     stats->kernel_early_pages -= zone->cma_pages;
->                                        ^~~~~~~~~
->                                        managed_pages
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index bfdaa28eb86f..fa1a0afd32ba 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -741,13 +741,15 @@ static void auto_movable_stats_account_zone(struct auto_movable_stats *stats,
+>         if (zone_idx(zone) == ZONE_MOVABLE) {
+>                 stats->movable_pages += zone->present_pages;
+>         } else {
+> +               stats->kernel_early_pages += zone->present_early_pages;
+> +#ifdef CONFIG_CMA
+>                 /*
+>                  * CMA pages (never on hotplugged memory) behave like
+>                  * ZONE_MOVABLE.
+>                  */
+>                 stats->movable_pages += zone->cma_pages;
+> -               stats->kernel_early_pages += zone->present_early_pages;
+>                 stats->kernel_early_pages -= zone->cma_pages;
+> +#endif /* CONFIG_CMA */
+>         }
+>  }
+>  struct auto_movable_group_stats {
 > 
 > 
 
-Thanks Randy, the following on top should make it fly:
+Acked-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index bfdaa28eb86f..fa1a0afd32ba 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -741,13 +741,15 @@ static void auto_movable_stats_account_zone(struct auto_movable_stats *stats,
-         if (zone_idx(zone) == ZONE_MOVABLE) {
-                 stats->movable_pages += zone->present_pages;
-         } else {
-+               stats->kernel_early_pages += zone->present_early_pages;
-+#ifdef CONFIG_CMA
-                 /*
-                  * CMA pages (never on hotplugged memory) behave like
-                  * ZONE_MOVABLE.
-                  */
-                 stats->movable_pages += zone->cma_pages;
--               stats->kernel_early_pages += zone->present_early_pages;
-                 stats->kernel_early_pages -= zone->cma_pages;
-+#endif /* CONFIG_CMA */
-         }
-  }
-  struct auto_movable_group_stats {
-
+Thanks.
 
 -- 
-Thanks,
-
-David / dhildenb
+~Randy
 
