@@ -7,35 +7,42 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8E2AC4338F
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 18:54:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 68E1BC4338F
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 19:27:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A883461059
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 18:54:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 476566101E
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 19:27:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229690AbhG1Syb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Jul 2021 14:54:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39784 "EHLO mail.kernel.org"
+        id S231236AbhG1T1Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Jul 2021 15:27:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56988 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230164AbhG1Syb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 28 Jul 2021 14:54:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E08A60F9B;
-        Wed, 28 Jul 2021 18:54:29 +0000 (UTC)
+        id S229690AbhG1T1Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 28 Jul 2021 15:27:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8BA1A6103A;
+        Wed, 28 Jul 2021 19:27:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627498469;
-        bh=Li2qvWKQllxhB0MLpub7RdvH+UveZIJwvMeNsojrzLc=;
+        s=korg; t=1627500441;
+        bh=afOwYZqKIqOh9uzbcr6cVh0W/mKL3Nvu8TVTA6sP+P4=;
         h=Date:From:To:Subject:From;
-        b=MOat69hZ77ajXCPMFE4gkqR4+gvi73YNa7ycFZznGxwAQC/TmwflFBc6fp22IVatm
-         Xu8BCHzJX0T7zX174dw028oXe8dr1LziaB9fbw4UbOe6xz4reYIhL8/NX2NgjDKvMF
-         4zX+M5S2eGm1XWKejy6oCmFPmZ9a7ZM9TiqNPUNo=
-Date:   Wed, 28 Jul 2021 11:54:29 -0700
+        b=G6s51kzLQva9IORWBAW5CrEYCVsU4stYUlpxTyfTLDlUw5l2XjtmcRrVW6GE5Z7kZ
+         KJCnh7UMI5M8AcTtyOq++YJF+4orWA91smSSAYNfdmD+8aSz5v0w1XpNXE0z1IRS5H
+         9Dmd4YVmJn1ZC0eeFsmvr/meIcbm+NdC7YaGFO00=
+Date:   Wed, 28 Jul 2021 12:27:20 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, mcgrof@kernel.org,
-        hkallweit1@gmail.com, egorenar@linux.ibm.com, bgoncalv@redhat.com,
-        linux@rasmusvillemoes.dk
-Subject:  + init-move-usermodehelper_enable-to-populate_rootfs.patch
- added to -mm tree
-Message-ID: <20210728185429.gIOLR%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        vdavydov.dev@gmail.com, tj@kernel.org, tglx@linutronix.de,
+        shakeelb@google.com, serge@hallyn.com, oleg@redhat.com,
+        nglaive@gmail.com, mingo@redhat.com, mhocko@kernel.org,
+        lizefan.x@bytedance.com, ktkhai@virtuozzo.com, jlayton@kernel.org,
+        jirislaby@kernel.org, hpa@zytor.com, hannes@cmpxchg.org,
+        guro@fb.com, gregkh@linuxfoundation.org, ebiederm@xmission.com,
+        christian.brauner@ubuntu.com, bp@suse.de, bp@alien8.de,
+        bfields@fieldses.org, axboe@kernel.dk, avagin@gmail.com,
+        adobriyan@gmail.com, 0x7f454c46@gmail.com, vvs@virtuozzo.com
+Subject:  [to-be-updated]
+ memcg-enable-accounting-for-tty-related-objects.patch removed from -mm tree
+Message-ID: <20210728192720.guoQb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,128 +51,106 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init: move usermodehelper_enable() to populate_rootfs()
-has been added to the -mm tree.  Its filename is
-     init-move-usermodehelper_enable-to-populate_rootfs.patch
+     Subject: memcg: enable accounting for tty-related objects
+has been removed from the -mm tree.  Its filename was
+     memcg-enable-accounting-for-tty-related-objects.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/init-move-usermodehelper_enable-to-populate_rootfs.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/init-move-usermodehelper_enable-to-populate_rootfs.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: init: move usermodehelper_enable() to populate_rootfs()
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: memcg: enable accounting for tty-related objects
 
-Currently, usermodehelper is enabled right before PID1 starts going
-through the initcalls. However, any call of a usermodehelper from a
-pure_, core_, postcore_, arch_, subsys_ or fs_ initcall is futile, as
-there is no filesystem contents yet.
+At each login the user forces the kernel to create a new terminal and
+allocate up to ~1Kb memory for the tty-related structures.
 
-Up until commit e7cb072eb988 ("init/initramfs.c: do unpacking
-asynchronously"), such calls, whether via some request_module(), a
-legacy uevent "/sbin/hotplug" notification or something else, would
-just fail silently with (presumably) -ENOENT from
-kernel_execve(). However, that commit introduced the
-wait_for_initramfs() synchronization hook which must be called from
-the usermodehelper exec path right before the kernel_execve, in order
-that request_module() et al done from *after* rootfs_initcall()
-time (i.e. device_ and late_ initcalls) would continue to find a
-populated initramfs as they used to.
+By default it's allowed to create up to 4096 ptys with 1024 reserve for
+initial mount namespace only and the settings are controlled by host
+admin.
 
-Any call of wait_for_initramfs() done before the unpacking has been
-scheduled (i.e. before rootfs_initcall time) must just return
-immediately [and let the caller find an empty file system] in order
-not to deadlock the machine. I mistakenly thought, and my limited
-testing confirmed, that there were no such calls, so I added a
-pr_warn_once() in wait_for_initramfs(). It turns out that one can
-indeed hit request_module() as well as kobject_uevent_env() during
-those early init calls, leading to a user-visible warning in the
-kernel log emitted consistently for certain configurations.
+Though this default is not enough for hosters with thousands of containers
+per node.  Host admin can be forced to increase it up to NR_UNIX98_PTY_MAX
+= 1<<20.
 
-We could just remove the pr_warn_once(), but I think it's better to
-postpone enabling the usermodehelper framework until there is at least
-some chance of finding the executable. That is also a little more
-efficient in that a lot of work done in umh.c will be elided. However,
-it does change the error seen by those early callers from -ENOENT to
--EBUSY, so there is a risk of a regression if any caller care about
-the exact error value.
+By default container is restricted by pty mount_opt.max = 1024, but admin
+inside container can change it via remount.  As a result, one container
+can consume almost all allowed ptys and allocate up to 1Gb of unaccounted
+memory.
 
-Link: https://lkml.kernel.org/r/20210728134638.329060-1-linux@rasmusvillemoes.dk
-Fixes: e7cb072eb988 ("init/initramfs.c: do unpacking asynchronously")
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reported-by: Alexander Egorenkov <egorenar@linux.ibm.com>
-Reported-by: Bruno Goncalves <bgoncalv@redhat.com>
-Reported-by: Heiner Kallweit <hkallweit1@gmail.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+It is not enough per-se to trigger OOM on host, however anyway, it allows
+to significantly exceed the assigned memcg limit and leads to troubles on
+the over-committed node.
+
+It makes sense to account for them to restrict the host's memory
+consumption from inside the memcg-limited container.
+
+Link: https://lkml.kernel.org/r/b8baa04f-e789-0321-b39d-07c5696ff755@virtuozzo.com
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Serge Hallyn <serge@hallyn.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Yutian Yang <nglaive@gmail.com>
+Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/initramfs.c   |    2 ++
- init/main.c        |    1 -
- init/noinitramfs.c |    2 ++
- 3 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/tty/tty_io.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/init/initramfs.c~init-move-usermodehelper_enable-to-populate_rootfs
-+++ a/init/initramfs.c
-@@ -15,6 +15,7 @@
- #include <linux/mm.h>
- #include <linux/namei.h>
- #include <linux/init_syscalls.h>
-+#include <linux/umh.h>
- 
- static ssize_t __init xwrite(struct file *file, const char *p, size_t count,
- 		loff_t *pos)
-@@ -727,6 +728,7 @@ static int __init populate_rootfs(void)
+--- a/drivers/tty/tty_io.c~memcg-enable-accounting-for-tty-related-objects
++++ a/drivers/tty/tty_io.c
+@@ -1493,7 +1493,7 @@ void tty_save_termios(struct tty_struct
+ 	/* Stash the termios data */
+ 	tp = tty->driver->termios[idx];
+ 	if (tp == NULL) {
+-		tp = kmalloc(sizeof(*tp), GFP_KERNEL);
++		tp = kmalloc(sizeof(*tp), GFP_KERNEL_ACCOUNT);
+ 		if (tp == NULL)
+ 			return;
+ 		tty->driver->termios[idx] = tp;
+@@ -3119,7 +3119,7 @@ struct tty_struct *alloc_tty_struct(stru
  {
- 	initramfs_cookie = async_schedule_domain(do_populate_rootfs, NULL,
- 						 &initramfs_domain);
-+	usermodehelper_enable();
- 	if (!initramfs_async)
- 		wait_for_initramfs();
- 	return 0;
---- a/init/main.c~init-move-usermodehelper_enable-to-populate_rootfs
-+++ a/init/main.c
-@@ -1387,7 +1387,6 @@ static void __init do_basic_setup(void)
- 	driver_init();
- 	init_irq_proc();
- 	do_ctors();
--	usermodehelper_enable();
- 	do_initcalls();
- }
+ 	struct tty_struct *tty;
  
---- a/init/noinitramfs.c~init-move-usermodehelper_enable-to-populate_rootfs
-+++ a/init/noinitramfs.c
-@@ -10,6 +10,7 @@
- #include <linux/kdev_t.h>
- #include <linux/syscalls.h>
- #include <linux/init_syscalls.h>
-+#include <linux/umh.h>
+-	tty = kzalloc(sizeof(*tty), GFP_KERNEL);
++	tty = kzalloc(sizeof(*tty), GFP_KERNEL_ACCOUNT);
+ 	if (!tty)
+ 		return NULL;
  
- /*
-  * Create a simple rootfs that is similar to the default initramfs
-@@ -18,6 +19,7 @@ static int __init default_rootfs(void)
- {
- 	int err;
- 
-+	usermodehelper_enable();
- 	err = init_mkdir("/dev", 0755);
- 	if (err < 0)
- 		goto out;
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
-init-move-usermodehelper_enable-to-populate_rootfs.patch
+memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
+memcg-enable-accounting-for-mnt_cache-entries.patch
+memcg-enable-accounting-for-pollfd-and-select-bits-arrays.patch
+memcg-enable-accounting-for-file-lock-caches.patch
+memcg-enable-accounting-for-fasync_cache.patch
+memcg-enable-accounting-for-new-namesapces-and-struct-nsproxy.patch
+memcg-enable-accounting-of-ipc-resources.patch
+memcg-enable-accounting-for-signals.patch
+memcg-enable-accounting-for-posix_timers_cache-slab.patch
+memcg-enable-accounting-for-ldt_struct-objects.patch
 
