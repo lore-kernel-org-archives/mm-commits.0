@@ -7,42 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68E1BC4338F
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 19:27:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 670CCC4338F
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 19:31:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 476566101E
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 19:27:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4673061042
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 19:31:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231236AbhG1T1Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Jul 2021 15:27:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56988 "EHLO mail.kernel.org"
+        id S229690AbhG1Tbq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Jul 2021 15:31:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59016 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229690AbhG1T1Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 28 Jul 2021 15:27:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8BA1A6103A;
-        Wed, 28 Jul 2021 19:27:20 +0000 (UTC)
+        id S229542AbhG1Tbp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 28 Jul 2021 15:31:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A8A661040;
+        Wed, 28 Jul 2021 19:31:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627500441;
-        bh=afOwYZqKIqOh9uzbcr6cVh0W/mKL3Nvu8TVTA6sP+P4=;
+        s=korg; t=1627500702;
+        bh=70k4HwtJIAP/DebnclGmkZ8yKAgh7IoogeD4dhVB0Jo=;
         h=Date:From:To:Subject:From;
-        b=G6s51kzLQva9IORWBAW5CrEYCVsU4stYUlpxTyfTLDlUw5l2XjtmcRrVW6GE5Z7kZ
-         KJCnh7UMI5M8AcTtyOq++YJF+4orWA91smSSAYNfdmD+8aSz5v0w1XpNXE0z1IRS5H
-         9Dmd4YVmJn1ZC0eeFsmvr/meIcbm+NdC7YaGFO00=
-Date:   Wed, 28 Jul 2021 12:27:20 -0700
+        b=JaUJJZjyD3PVKf8Z9TbhMmPDpn247aj91fdkAmAgm7ShGj2sKl/ZdUwGyQEk2p6hO
+         YGWAh1h8SIk/OWtRTjVbeotfA99OalenzxPLcU2JU+/Fq/uEba5z9u0o6dza4lutFu
+         JoiGissGX/iY/z70HJGSSmA/6CDLZz8/pqGVCw+8=
+Date:   Wed, 28 Jul 2021 12:31:42 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        vdavydov.dev@gmail.com, tj@kernel.org, tglx@linutronix.de,
-        shakeelb@google.com, serge@hallyn.com, oleg@redhat.com,
-        nglaive@gmail.com, mingo@redhat.com, mhocko@kernel.org,
-        lizefan.x@bytedance.com, ktkhai@virtuozzo.com, jlayton@kernel.org,
-        jirislaby@kernel.org, hpa@zytor.com, hannes@cmpxchg.org,
-        guro@fb.com, gregkh@linuxfoundation.org, ebiederm@xmission.com,
-        christian.brauner@ubuntu.com, bp@suse.de, bp@alien8.de,
-        bfields@fieldses.org, axboe@kernel.dk, avagin@gmail.com,
-        adobriyan@gmail.com, 0x7f454c46@gmail.com, vvs@virtuozzo.com
-Subject:  [to-be-updated]
- memcg-enable-accounting-for-tty-related-objects.patch removed from -mm tree
-Message-ID: <20210728192720.guoQb%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, shy828301@gmail.com, npiggin@gmail.com,
+        mpe@ellerman.id.au, mgorman@suse.de, david@redhat.com,
+        aik@ozlabs.ru, aneesh.kumar@linux.ibm.com
+Subject:  + mm-migrate-fix-nr_isolated-corruption-on-64-bit.patch
+ added to -mm tree
+Message-ID: <20210728193142.6nt8Z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,106 +44,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: enable accounting for tty-related objects
-has been removed from the -mm tree.  Its filename was
-     memcg-enable-accounting-for-tty-related-objects.patch
+     Subject: mm/migrate: fix NR_ISOLATED corruption on 64-bit
+has been added to the -mm tree.  Its filename is
+     mm-migrate-fix-nr_isolated-corruption-on-64-bit.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-nr_isolated-corruption-on-64-bit.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-nr_isolated-corruption-on-64-bit.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: enable accounting for tty-related objects
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/migrate: fix NR_ISOLATED corruption on 64-bit
 
-At each login the user forces the kernel to create a new terminal and
-allocate up to ~1Kb memory for the tty-related structures.
+Similar to commit 2da9f6305f30 ("mm/vmscan: fix NR_ISOLATED_FILE
+corruption on 64-bit") avoid using unsigned int for nr_pages.  With
+unsigned int type the large unsigned int converts to a large positive
+signed long.
 
-By default it's allowed to create up to 4096 ptys with 1024 reserve for
-initial mount namespace only and the settings are controlled by host
-admin.
+Symptoms include CMA allocations hanging forever due to
+alloc_contig_range->...->isolate_migratepages_block waiting forever in
+"while (unlikely(too_many_isolated(pgdat)))".
 
-Though this default is not enough for hosters with thousands of containers
-per node.  Host admin can be forced to increase it up to NR_UNIX98_PTY_MAX
-= 1<<20.
-
-By default container is restricted by pty mount_opt.max = 1024, but admin
-inside container can change it via remount.  As a result, one container
-can consume almost all allowed ptys and allocate up to 1Gb of unaccounted
-memory.
-
-It is not enough per-se to trigger OOM on host, however anyway, it allows
-to significantly exceed the assigned memcg limit and leads to troubles on
-the over-committed node.
-
-It makes sense to account for them to restrict the host's memory
-consumption from inside the memcg-limited container.
-
-Link: https://lkml.kernel.org/r/b8baa04f-e789-0321-b39d-07c5696ff755@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Yutian Yang <nglaive@gmail.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Link: https://lkml.kernel.org/r/20210728042531.359409-1-aneesh.kumar@linux.ibm.com
+Fixes: c5fc5c3ae0c8 ("mm: migrate: account THP NUMA migration counters correctly")
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reported-by: Michael Ellerman <mpe@ellerman.id.au>
+Reported-by: Alexey Kardashevskiy <aik@ozlabs.ru>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/tty_io.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/tty/tty_io.c~memcg-enable-accounting-for-tty-related-objects
-+++ a/drivers/tty/tty_io.c
-@@ -1493,7 +1493,7 @@ void tty_save_termios(struct tty_struct
- 	/* Stash the termios data */
- 	tp = tty->driver->termios[idx];
- 	if (tp == NULL) {
--		tp = kmalloc(sizeof(*tp), GFP_KERNEL);
-+		tp = kmalloc(sizeof(*tp), GFP_KERNEL_ACCOUNT);
- 		if (tp == NULL)
- 			return;
- 		tty->driver->termios[idx] = tp;
-@@ -3119,7 +3119,7 @@ struct tty_struct *alloc_tty_struct(stru
- {
- 	struct tty_struct *tty;
+--- a/mm/migrate.c~mm-migrate-fix-nr_isolated-corruption-on-64-bit
++++ a/mm/migrate.c
+@@ -2068,7 +2068,7 @@ int migrate_misplaced_page(struct page *
+ 	LIST_HEAD(migratepages);
+ 	new_page_t *new;
+ 	bool compound;
+-	unsigned int nr_pages = thp_nr_pages(page);
++	int nr_pages = thp_nr_pages(page);
  
--	tty = kzalloc(sizeof(*tty), GFP_KERNEL);
-+	tty = kzalloc(sizeof(*tty), GFP_KERNEL_ACCOUNT);
- 	if (!tty)
- 		return NULL;
- 
+ 	/*
+ 	 * PTE mapped THP or HugeTLB page can't reach here so the page could
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
-memcg-enable-accounting-for-mnt_cache-entries.patch
-memcg-enable-accounting-for-pollfd-and-select-bits-arrays.patch
-memcg-enable-accounting-for-file-lock-caches.patch
-memcg-enable-accounting-for-fasync_cache.patch
-memcg-enable-accounting-for-new-namesapces-and-struct-nsproxy.patch
-memcg-enable-accounting-of-ipc-resources.patch
-memcg-enable-accounting-for-signals.patch
-memcg-enable-accounting-for-posix_timers_cache-slab.patch
-memcg-enable-accounting-for-ldt_struct-objects.patch
+mm-migrate-fix-nr_isolated-corruption-on-64-bit.patch
 
