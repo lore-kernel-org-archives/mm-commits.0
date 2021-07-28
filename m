@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9DBA1C4338F
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 19:44:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65640C4338F
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 22:29:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7F53C61040
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 19:44:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F265603E9
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 22:29:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230289AbhG1ToB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Jul 2021 15:44:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45448 "EHLO mail.kernel.org"
+        id S232536AbhG1W34 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Jul 2021 18:29:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58628 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230164AbhG1ToB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 28 Jul 2021 15:44:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8555260234;
-        Wed, 28 Jul 2021 19:43:58 +0000 (UTC)
+        id S232143AbhG1W34 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 28 Jul 2021 18:29:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 956D060FED;
+        Wed, 28 Jul 2021 22:29:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627501438;
-        bh=DX0B5Wi2GzTXL5nYzTwe+87LvFsIh1fhvX2OLWfpHjQ=;
+        s=korg; t=1627511393;
+        bh=KQI6vwkcaILjpeq7hGvV7vJUBIu10tzY7NEUyMo4MhE=;
         h=Date:From:To:Subject:From;
-        b=hhbTbVnG0iLyMvdPYeBbwwZch8Jqe7YjEJ4es2TuGm9e4AtfOE9YLA/EIHItX2z8f
-         ZUVg7hR3TFvl0hdlocI9H9TbCfbH3IRQ5jJDCEvrJ546BlC9xnj04arvuxfC+XghqU
-         o6f2D2mNdS7fxZkv0+peSrESYbWLvgCPFO84yHP8=
-Date:   Wed, 28 Jul 2021 12:43:58 -0700
+        b=g6dSjGPHVGx+KaISyHCwKn+iBlg5AcGv3ACzB54I81fzu8yfLB8CfhhKu6KOSaRc4
+         twGnrnX0s9LjimRKtKrPXgUSokmq2svYsVUTeR/gIj++CuGoxkSAYwZkrPZEcRHr2f
+         mGF7n/OILaOseAwBpKiSNQKSW+Tf8Svk59BJuTsI=
+Date:   Wed, 28 Jul 2021 15:29:53 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, mhocko@suse.com, hannes@cmpxchg.org,
-        guro@fb.com, david@redhat.com, shakeelb@google.com
-Subject:  + memcg-cleanup-racy-sum-avoidance-code.patch added to -mm
- tree
-Message-ID: <20210728194358.jpJTD%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, dmitry.torokhov@gmail.com,
+        yuzenghui@huawei.com
+Subject:  + configs-remove-the-obsolete-config_input_polldev.patch
+ added to -mm tree
+Message-ID: <20210728222953.hteb_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: cleanup racy sum avoidance code
+     Subject: configs: remove the obsolete CONFIG_INPUT_POLLDEV
 has been added to the -mm tree.  Its filename is
-     memcg-cleanup-racy-sum-avoidance-code.patch
+     configs-remove-the-obsolete-config_input_polldev.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-cleanup-racy-sum-avoidance-code.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/configs-remove-the-obsolete-config_input_polldev.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-cleanup-racy-sum-avoidance-code.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/configs-remove-the-obsolete-config_input_polldev.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,71 +64,125 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: cleanup racy sum avoidance code
+From: Zenghui Yu <yuzenghui@huawei.com>
+Subject: configs: remove the obsolete CONFIG_INPUT_POLLDEV
 
-We used to have per-cpu memcg and lruvec stats and the readers have to
-traverse and sum the stats from each cpu.  This summing was racy and may
-expose transient negative values.  So, an explicit check was added to
-avoid such scenarios.  Now these stats are moved to rstat infrastructure
-and are no more per-cpu, so we can remove the fixup for transient negative
-values.
+This CONFIG option was removed in commit 278b13ce3a89 ("Input: remove
+input_polled_dev implementation") so there's no point to keep it in
+defconfigs any longer.
 
-Link: https://lkml.kernel.org/r/20210728012243.3369123-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Get rid of the leftover for all arches.
+
+Link: https://lkml.kernel.org/r/20210726074741.1062-1-yuzenghui@huawei.com
+Signed-off-by: Zenghui Yu <yuzenghui@huawei.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   15 ++-------------
- 1 file changed, 2 insertions(+), 13 deletions(-)
+ arch/arm/configs/dove_defconfig             |    1 -
+ arch/arm/configs/pxa_defconfig              |    1 -
+ arch/mips/configs/lemote2f_defconfig        |    1 -
+ arch/mips/configs/pic32mzda_defconfig       |    1 -
+ arch/mips/configs/rt305x_defconfig          |    1 -
+ arch/mips/configs/xway_defconfig            |    1 -
+ arch/parisc/configs/generic-32bit_defconfig |    1 -
+ arch/x86/configs/i386_defconfig             |    1 -
+ arch/x86/configs/x86_64_defconfig           |    1 -
+ 9 files changed, 9 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-cleanup-racy-sum-avoidance-code
-+++ a/include/linux/memcontrol.h
-@@ -977,30 +977,19 @@ static inline void mod_memcg_state(struc
- 
- static inline unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx)
- {
--	long x = READ_ONCE(memcg->vmstats.state[idx]);
--#ifdef CONFIG_SMP
--	if (x < 0)
--		x = 0;
--#endif
--	return x;
-+	return READ_ONCE(memcg->vmstats.state[idx]);
- }
- 
- static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
- 					      enum node_stat_item idx)
- {
- 	struct mem_cgroup_per_node *pn;
--	long x;
- 
- 	if (mem_cgroup_disabled())
- 		return node_page_state(lruvec_pgdat(lruvec), idx);
- 
- 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
--	x = READ_ONCE(pn->lruvec_stats.state[idx]);
--#ifdef CONFIG_SMP
--	if (x < 0)
--		x = 0;
--#endif
--	return x;
-+	return READ_ONCE(pn->lruvec_stats.state[idx]);
- }
- 
- static inline unsigned long lruvec_page_state_local(struct lruvec *lruvec,
+--- a/arch/arm/configs/dove_defconfig~configs-remove-the-obsolete-config_input_polldev
++++ a/arch/arm/configs/dove_defconfig
+@@ -56,7 +56,6 @@ CONFIG_ATA=y
+ CONFIG_SATA_MV=y
+ CONFIG_NETDEVICES=y
+ CONFIG_MV643XX_ETH=y
+-CONFIG_INPUT_POLLDEV=y
+ # CONFIG_INPUT_MOUSEDEV is not set
+ CONFIG_INPUT_EVDEV=y
+ # CONFIG_KEYBOARD_ATKBD is not set
+--- a/arch/arm/configs/pxa_defconfig~configs-remove-the-obsolete-config_input_polldev
++++ a/arch/arm/configs/pxa_defconfig
+@@ -284,7 +284,6 @@ CONFIG_RT2800USB=m
+ CONFIG_MWIFIEX=m
+ CONFIG_MWIFIEX_SDIO=m
+ CONFIG_INPUT_FF_MEMLESS=m
+-CONFIG_INPUT_POLLDEV=y
+ CONFIG_INPUT_MATRIXKMAP=y
+ CONFIG_INPUT_MOUSEDEV=m
+ CONFIG_INPUT_MOUSEDEV_SCREEN_X=640
+--- a/arch/mips/configs/lemote2f_defconfig~configs-remove-the-obsolete-config_input_polldev
++++ a/arch/mips/configs/lemote2f_defconfig
+@@ -116,7 +116,6 @@ CONFIG_8139TOO=y
+ CONFIG_R8169=y
+ CONFIG_USB_USBNET=m
+ CONFIG_USB_NET_CDC_EEM=m
+-CONFIG_INPUT_POLLDEV=m
+ CONFIG_INPUT_EVDEV=y
+ # CONFIG_MOUSE_PS2_ALPS is not set
+ # CONFIG_MOUSE_PS2_LOGIPS2PP is not set
+--- a/arch/mips/configs/pic32mzda_defconfig~configs-remove-the-obsolete-config_input_polldev
++++ a/arch/mips/configs/pic32mzda_defconfig
+@@ -34,7 +34,6 @@ CONFIG_SCSI_CONSTANTS=y
+ CONFIG_SCSI_SCAN_ASYNC=y
+ # CONFIG_SCSI_LOWLEVEL is not set
+ CONFIG_INPUT_LEDS=m
+-CONFIG_INPUT_POLLDEV=y
+ CONFIG_INPUT_MOUSEDEV=m
+ CONFIG_INPUT_EVDEV=y
+ CONFIG_INPUT_EVBUG=m
+--- a/arch/mips/configs/rt305x_defconfig~configs-remove-the-obsolete-config_input_polldev
++++ a/arch/mips/configs/rt305x_defconfig
+@@ -90,7 +90,6 @@ CONFIG_PPPOE=m
+ CONFIG_PPP_ASYNC=m
+ CONFIG_ISDN=y
+ CONFIG_INPUT=m
+-CONFIG_INPUT_POLLDEV=m
+ # CONFIG_KEYBOARD_ATKBD is not set
+ # CONFIG_INPUT_MOUSE is not set
+ CONFIG_INPUT_MISC=y
+--- a/arch/mips/configs/xway_defconfig~configs-remove-the-obsolete-config_input_polldev
++++ a/arch/mips/configs/xway_defconfig
+@@ -96,7 +96,6 @@ CONFIG_PPPOE=m
+ CONFIG_PPP_ASYNC=m
+ CONFIG_ISDN=y
+ CONFIG_INPUT=m
+-CONFIG_INPUT_POLLDEV=m
+ # CONFIG_KEYBOARD_ATKBD is not set
+ # CONFIG_INPUT_MOUSE is not set
+ CONFIG_INPUT_MISC=y
+--- a/arch/parisc/configs/generic-32bit_defconfig~configs-remove-the-obsolete-config_input_polldev
++++ a/arch/parisc/configs/generic-32bit_defconfig
+@@ -111,7 +111,6 @@ CONFIG_PPP_BSDCOMP=m
+ CONFIG_PPP_DEFLATE=m
+ CONFIG_PPPOE=m
+ # CONFIG_WLAN is not set
+-CONFIG_INPUT_POLLDEV=y
+ CONFIG_KEYBOARD_HIL_OLD=m
+ CONFIG_KEYBOARD_HIL=m
+ CONFIG_MOUSE_SERIAL=y
+--- a/arch/x86/configs/i386_defconfig~configs-remove-the-obsolete-config_input_polldev
++++ a/arch/x86/configs/i386_defconfig
+@@ -156,7 +156,6 @@ CONFIG_FORCEDETH=y
+ CONFIG_8139TOO=y
+ # CONFIG_8139TOO_PIO is not set
+ CONFIG_R8169=y
+-CONFIG_INPUT_POLLDEV=y
+ CONFIG_INPUT_EVDEV=y
+ CONFIG_INPUT_JOYSTICK=y
+ CONFIG_INPUT_TABLET=y
+--- a/arch/x86/configs/x86_64_defconfig~configs-remove-the-obsolete-config_input_polldev
++++ a/arch/x86/configs/x86_64_defconfig
+@@ -148,7 +148,6 @@ CONFIG_SKY2=y
+ CONFIG_FORCEDETH=y
+ CONFIG_8139TOO=y
+ CONFIG_R8169=y
+-CONFIG_INPUT_POLLDEV=y
+ CONFIG_INPUT_EVDEV=y
+ CONFIG_INPUT_JOYSTICK=y
+ CONFIG_INPUT_TABLET=y
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from yuzenghui@huawei.com are
 
-slub-fix-unreclaimable-slab-stat-for-bulk-free.patch
-writeback-memcg-simplify-cgroup_writeback_by_id.patch
-memcg-switch-lruvec-stats-to-rstat.patch
-memcg-infrastructure-to-flush-memcg-stats.patch
-memcg-infrastructure-to-flush-memcg-stats-v5.patch
-memcg-cleanup-racy-sum-avoidance-code.patch
+configs-remove-the-obsolete-config_input_polldev.patch
 
