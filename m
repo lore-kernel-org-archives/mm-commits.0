@@ -5,37 +5,40 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29C99C4338F
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 18:43:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ACFF8C4338F
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 18:46:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0507661052
-	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 18:43:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8184E6023B
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 18:46:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229565AbhG1Snc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 28 Jul 2021 14:43:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34904 "EHLO mail.kernel.org"
+        id S229686AbhG1SqB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Jul 2021 14:46:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229556AbhG1Snb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 28 Jul 2021 14:43:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C4EF961038;
-        Wed, 28 Jul 2021 18:43:29 +0000 (UTC)
+        id S229577AbhG1SqB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 28 Jul 2021 14:46:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EC33E60525;
+        Wed, 28 Jul 2021 18:45:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627497810;
-        bh=UvDNmXlhaMUMBsSorJEw66czAKt0Ylptzveeq6QEs+M=;
+        s=korg; t=1627497958;
+        bh=RjAgnQkk/Psy9Gs4coi2GKJyu5o6SGoC86V4MpiCPE4=;
         h=Date:From:To:Subject:From;
-        b=t7U2lQO5INVsOFF8KHNkvBdeBxYsAklf7WHQ0rBgZ1ArmHwPzQh7T1JTtIlLSpuTn
-         8wnxJxPt28loH1xDDS2l9gqP9zikJM774+zMHAitpbNzGX4TvWEzrWfQZdiSsLaqw7
-         haSqQk1wXvkvGemJe3gQ8fvEXVjMOrm5wyZA6yhk=
-Date:   Wed, 28 Jul 2021 11:43:27 -0700
+        b=OoX/9USH4OowkA7gO83Jp8xCJGKjyOyksANR+/CvfR5rw5azxzlNmshjiXzI2FpDl
+         xThDlMtBTePYlzcNUAdY+JMYOmwKd25cF6EnU6RoBN/WO0zRd6up/jcS3cFdYu+Y5a
+         5ZWoOtIhQ42bzggX2lAVE2lreSYy+aHf26GUuFjQ=
+Date:   Wed, 28 Jul 2021 11:45:57 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, rientjes@google.com,
-        penberg@kernel.org, mhocko@suse.com, iamjoonsoo.kim@lge.com,
-        cl@linux.com, shakeelb@google.com
-Subject:  + slub-fix-unreclaimable-slab-stat-for-bulk-free.patch
- added to -mm tree
-Message-ID: <20210728184327.mvPrP%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        vbabka@suse.cz, stable@vger.kernel.org, shakeelb@google.com,
+        rientjes@google.com, penberg@kernel.org, mhocko@suse.com,
+        iamjoonsoo.kim@lge.com, hannes@cmpxchg.org, guro@fb.com,
+        cl@linux.com, ast@kernel.org, wanghai38@huawei.com
+Subject:  +
+ mm-memcg-fix-null-pointer-dereference-in-memcg_slab_free_hook.patch added to
+ -mm tree
+Message-ID: <20210728184557.xaKCu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: fix unreclaimable slab stat for bulk free
+     Subject: mm/memcg: fix NULL pointer dereference in memcg_slab_free_hook()
 has been added to the -mm tree.  Its filename is
-     slub-fix-unreclaimable-slab-stat-for-bulk-free.patch
+     mm-memcg-fix-null-pointer-dereference-in-memcg_slab_free_hook.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/slub-fix-unreclaimable-slab-stat-for-bulk-free.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-fix-null-pointer-dereference-in-memcg_slab_free_hook.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/slub-fix-unreclaimable-slab-stat-for-bulk-free.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-fix-null-pointer-dereference-in-memcg_slab_free_hook.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,84 +68,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: slub: fix unreclaimable slab stat for bulk free
+From: Wang Hai <wanghai38@huawei.com>
+Subject: mm/memcg: fix NULL pointer dereference in memcg_slab_free_hook()
 
-SLUB uses page allocator for higher order allocations and update
-unreclaimable slab stat for such allocations.  At the moment, the bulk
-free for SLUB does not share code with normal free code path for these
-type of allocations and have missed the stat update.  So, fix the stat
-update by common code.  The user visible impact of the bug is the
-potential of inconsistent unreclaimable slab stat visible through meminfo
-and vmstat.
+When I use kfree_rcu() to free a large memory allocated by kmalloc_node(),
+the following dump occurs.
 
-Link: https://lkml.kernel.org/r/20210728155354.3440560-1-shakeelb@google.com
-Fixes: 6a486c0ad4dc ("mm, sl[ou]b: improve memory accounting")
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
+BUG: kernel NULL pointer dereference, address: 0000000000000020
+[...]
+Oops: 0000 [#1] SMP
+[...]
+Workqueue: events kfree_rcu_work
+RIP: 0010:__obj_to_index include/linux/slub_def.h:182 [inline]
+RIP: 0010:obj_to_index include/linux/slub_def.h:191 [inline]
+RIP: 0010:memcg_slab_free_hook+0x120/0x260 mm/slab.h:363
+[...]
+Call Trace:
+ kmem_cache_free_bulk+0x58/0x630 mm/slub.c:3293
+ kfree_bulk include/linux/slab.h:413 [inline]
+ kfree_rcu_work+0x1ab/0x200 kernel/rcu/tree.c:3300
+ process_one_work+0x207/0x530 kernel/workqueue.c:2276
+ worker_thread+0x320/0x610 kernel/workqueue.c:2422
+ kthread+0x13d/0x160 kernel/kthread.c:313
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:294
+
+When kmalloc_node() a large memory, page is allocated, not slab, so when
+freeing memory via kfree_rcu(), this large memory should not be used by
+memcg_slab_free_hook(), because memcg_slab_free_hook() is is used for
+slab.
+
+Using page_objcgs_check() instead of page_objcgs() in
+memcg_slab_free_hook() to fix this bug.
+
+Link: https://lkml.kernel.org/r/20210728145655.274476-1-wanghai38@huawei.com
+Fixes: 270c6a71460e ("mm: memcontrol/slab: Use helpers to access slab page's memcg_data")
+Signed-off-by: Wang Hai <wanghai38@huawei.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   22 ++++++++++++----------
- 1 file changed, 12 insertions(+), 10 deletions(-)
+ mm/slab.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slub.c~slub-fix-unreclaimable-slab-stat-for-bulk-free
-+++ a/mm/slub.c
-@@ -3236,6 +3236,16 @@ struct detached_freelist {
- 	struct kmem_cache *s;
- };
+--- a/mm/slab.h~mm-memcg-fix-null-pointer-dereference-in-memcg_slab_free_hook
++++ a/mm/slab.h
+@@ -346,7 +346,7 @@ static inline void memcg_slab_free_hook(
+ 			continue;
  
-+static inline void free_nonslab_page(struct page *page)
-+{
-+	unsigned int order = compound_order(page);
-+
-+	VM_BUG_ON_PAGE(!PageCompound(page), page);
-+	kfree_hook(page_address(page));
-+	mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B, -(PAGE_SIZE << order));
-+	__free_pages(page, order);
-+}
-+
- /*
-  * This function progressively scans the array with free objects (with
-  * a limited look ahead) and extract objects belonging to the same
-@@ -3272,9 +3282,7 @@ int build_detached_freelist(struct kmem_
- 	if (!s) {
- 		/* Handle kalloc'ed objects */
- 		if (unlikely(!PageSlab(page))) {
--			BUG_ON(!PageCompound(page));
--			kfree_hook(object);
--			__free_pages(page, compound_order(page));
-+			free_nonslab_page(page);
- 			p[size] = NULL; /* mark object processed */
- 			return size;
- 		}
-@@ -4250,13 +4258,7 @@ void kfree(const void *x)
+ 		page = virt_to_head_page(p[i]);
+-		objcgs = page_objcgs(page);
++		objcgs = page_objcgs_check(page);
+ 		if (!objcgs)
+ 			continue;
  
- 	page = virt_to_head_page(x);
- 	if (unlikely(!PageSlab(page))) {
--		unsigned int order = compound_order(page);
--
--		BUG_ON(!PageCompound(page));
--		kfree_hook(object);
--		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B,
--				      -(PAGE_SIZE << order));
--		__free_pages(page, order);
-+		free_nonslab_page(page);
- 		return;
- 	}
- 	slab_free(page->slab_cache, page, object, NULL, 1, _RET_IP_);
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from wanghai38@huawei.com are
 
-slub-fix-unreclaimable-slab-stat-for-bulk-free.patch
-writeback-memcg-simplify-cgroup_writeback_by_id.patch
-memcg-switch-lruvec-stats-to-rstat.patch
-memcg-infrastructure-to-flush-memcg-stats.patch
-memcg-infrastructure-to-flush-memcg-stats-v5.patch
+mm-memcg-fix-null-pointer-dereference-in-memcg_slab_free_hook.patch
 
