@@ -2,151 +2,183 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-16.5 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,
+	INCLUDES_CR_TRAILER,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF9F5C4320A
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:24:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 665F9C4338F
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 06:08:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91A866023F
-	for <mm-commits@archiver.kernel.org>; Tue, 27 Jul 2021 21:24:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4675460FA0
+	for <mm-commits@archiver.kernel.org>; Wed, 28 Jul 2021 06:08:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232663AbhG0VYG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 27 Jul 2021 17:24:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39142 "EHLO mail.kernel.org"
+        id S233082AbhG1GIu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 28 Jul 2021 02:08:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231719AbhG0VYG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 27 Jul 2021 17:24:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C0D160FC4;
-        Tue, 27 Jul 2021 21:24:05 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627421045;
-        bh=kQBIlKDJDPK3CRV50HKfBIx0ApYX/j28r/9bZkuFpYY=;
-        h=Date:From:To:Subject:From;
-        b=IvpMuWzJK2YQoVYpid7ZC70PmzjeuPm7k11Y/jnry4dNtwzQmnPbqyiroiCxKMRI2
-         X6qGL6Us9C+lXxlTgxHuFSQB6mgWeQJrw4wCg55W0j9UY6uoNAYHh7LHVGQSc2ERDs
-         4bBQRLCcZJsTd5DznhfWKZUtRQHnUzhVZnvr7qPw=
-Date:   Tue, 27 Jul 2021 14:24:05 -0700
-From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        shakeelb@google.com, riel@surriel.com, mhocko@suse.com,
-        dan.carpenter@oracle.com, chris@chrisdown.name, hannes@cmpxchg.org
-Subject:  +
- =?us-ascii?Q?mm-memcontrol-fix-blocking-rstat-function-called-from-atomic?=
- =?us-ascii?Q?-cgroup1-thresholding-code.patch?= added to -mm tree
-Message-ID: <20210727212405.jKaW_%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+        id S231199AbhG1GIu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 28 Jul 2021 02:08:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 93C5460F9E;
+        Wed, 28 Jul 2021 06:08:47 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linuxfoundation.org;
+        s=korg; t=1627452528;
+        bh=zDcZ1gQhXqUEsZ1uAAg77drWIrnJcFlK88PY+jFKOi8=;
+        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
+        b=jO+2/7gN9cbmQXEXEgK6YULFEQ3jqPJj8kdtMJ910SL2ocT+EYX1X4BubqWbjxJy2
+         Ys5xAlVITZKKhcI7BVEU8/j56Pb0Uqs8LFo579LTfB90tyQxPtBKsqrhxgL1WH0p1B
+         pWFmDiwFkwcHLIJLkExS32MGw79GGGctXInQ5tqs=
+Date:   Wed, 28 Jul 2021 08:08:46 +0200
+From:   Greg KH <gregkh@linuxfoundation.org>
+To:     akpm@linux-foundation.org
+Cc:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        vdavydov.dev@gmail.com, tj@kernel.org, tglx@linutronix.de,
+        shakeelb@google.com, serge@hallyn.com, oleg@redhat.com,
+        nglaive@gmail.com, mingo@redhat.com, mhocko@kernel.org,
+        lizefan.x@bytedance.com, ktkhai@virtuozzo.com, jlayton@kernel.org,
+        jirislaby@kernel.org, hpa@zytor.com, hannes@cmpxchg.org,
+        guro@fb.com, ebiederm@xmission.com, christian.brauner@ubuntu.com,
+        bp@suse.de, bp@alien8.de, bfields@fieldses.org, axboe@kernel.dk,
+        avagin@gmail.com, adobriyan@gmail.com, 0x7f454c46@gmail.com,
+        vvs@virtuozzo.com
+Subject: Re: + memcg-enable-accounting-for-tty-related-objects.patch added to
+ -mm tree
+Message-ID: <YQD0brY0x/uGTT15@kroah.com>
+References: <20210727210827.rn4v1%akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210727210827.rn4v1%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Tue, Jul 27, 2021 at 02:08:27PM -0700, akpm@linux-foundation.org wrote:
+> 
+> The patch titled
+>      Subject: memcg: enable accounting for tty-related objects
+> has been added to the -mm tree.  Its filename is
+>      memcg-enable-accounting-for-tty-related-objects.patch
+> 
+> This patch should soon appear at
+>     https://ozlabs.org/~akpm/mmots/broken-out/memcg-enable-accounting-for-tty-related-objects.patch
+> and later at
+>     https://ozlabs.org/~akpm/mmotm/broken-out/memcg-enable-accounting-for-tty-related-objects.patch
+> 
+> Before you just go and hit "reply", please:
+>    a) Consider who else should be cc'ed
+>    b) Prefer to cc a suitable mailing list as well
+>    c) Ideally: find the original patch on the mailing list and do a
+>       reply-to-all to that, adding suitable additional cc's
+> 
+> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> 
+> The -mm tree is included into linux-next and is updated
+> there every 3-4 working days
+> 
+> ------------------------------------------------------
+> From: Vasily Averin <vvs@virtuozzo.com>
+> Subject: memcg: enable accounting for tty-related objects
+> 
+> At each login the user forces the kernel to create a new terminal and
+> allocate up to ~1Kb memory for the tty-related structures.
+> 
+> By default it's allowed to create up to 4096 ptys with 1024 reserve for
+> initial mount namespace only and the settings are controlled by host
+> admin.
+> 
+> Though this default is not enough for hosters with thousands of containers
+> per node.  Host admin can be forced to increase it up to NR_UNIX98_PTY_MAX
+> = 1<<20.
+> 
+> By default container is restricted by pty mount_opt.max = 1024, but admin
+> inside container can change it via remount.  As a result, one container
+> can consume almost all allowed ptys and allocate up to 1Gb of unaccounted
+> memory.
+> 
+> It is not enough per-se to trigger OOM on host, however anyway, it allows
+> to significantly exceed the assigned memcg limit and leads to troubles on
+> the over-committed node.
+> 
+> It makes sense to account for them to restrict the host's memory
+> consumption from inside the memcg-limited container.
+> 
+> Link: https://lkml.kernel.org/r/b8baa04f-e789-0321-b39d-07c5696ff755@virtuozzo.com
+> Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+> Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+> Cc: Alexey Dobriyan <adobriyan@gmail.com>
+> Cc: Andrei Vagin <avagin@gmail.com>
+> Cc: Borislav Petkov <bp@alien8.de>
+> Cc: Borislav Petkov <bp@suse.de>
+> Cc: Christian Brauner <christian.brauner@ubuntu.com>
+> Cc: Dmitry Safonov <0x7f454c46@gmail.com>
+> Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+> Cc: "H. Peter Anvin" <hpa@zytor.com>
+> Cc: Ingo Molnar <mingo@redhat.com>
+> Cc: "J. Bruce Fields" <bfields@fieldses.org>
+> Cc: Jeff Layton <jlayton@kernel.org>
+> Cc: Jens Axboe <axboe@kernel.dk>
+> Cc: Jiri Slaby <jirislaby@kernel.org>
+> Cc: Johannes Weiner <hannes@cmpxchg.org>
+> Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
+> Cc: Michal Hocko <mhocko@kernel.org>
+> Cc: Oleg Nesterov <oleg@redhat.com>
+> Cc: Roman Gushchin <guro@fb.com>
+> Cc: Serge Hallyn <serge@hallyn.com>
+> Cc: Shakeel Butt <shakeelb@google.com>
+> Cc: Tejun Heo <tj@kernel.org>
+> Cc: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+> Cc: Yutian Yang <nglaive@gmail.com>
+> Cc: Zefan Li <lizefan.x@bytedance.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  drivers/tty/tty_io.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> --- a/drivers/tty/tty_io.c~memcg-enable-accounting-for-tty-related-objects
+> +++ a/drivers/tty/tty_io.c
+> @@ -1493,7 +1493,7 @@ void tty_save_termios(struct tty_struct
+>  	/* Stash the termios data */
+>  	tp = tty->driver->termios[idx];
+>  	if (tp == NULL) {
+> -		tp = kmalloc(sizeof(*tp), GFP_KERNEL);
+> +		tp = kmalloc(sizeof(*tp), GFP_KERNEL_ACCOUNT);
+>  		if (tp == NULL)
+>  			return;
+>  		tty->driver->termios[idx] = tp;
+> @@ -3119,7 +3119,7 @@ struct tty_struct *alloc_tty_struct(stru
+>  {
+>  	struct tty_struct *tty;
+>  
+> -	tty = kzalloc(sizeof(*tty), GFP_KERNEL);
+> +	tty = kzalloc(sizeof(*tty), GFP_KERNEL_ACCOUNT);
+>  	if (!tty)
+>  		return NULL;
+>  
+> _
+> 
+> Patches currently in -mm which might be from vvs@virtuozzo.com are
+> 
+> memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
+> memcg-enable-accounting-for-mnt_cache-entries.patch
+> memcg-enable-accounting-for-pollfd-and-select-bits-arrays.patch
+> memcg-enable-accounting-for-file-lock-caches.patch
+> memcg-enable-accounting-for-fasync_cache.patch
+> memcg-enable-accounting-for-new-namesapces-and-struct-nsproxy.patch
+> memcg-enable-accounting-of-ipc-resources.patch
+> memcg-enable-accounting-for-signals.patch
+> memcg-enable-accounting-for-posix_timers_cache-slab.patch
+> memcg-enable-accounting-for-tty-related-objects.patch
+> memcg-enable-accounting-for-ldt_struct-objects.patch
+> 
 
-The patch titled
-     Subject: mm: memcontrol: fix blocking rstat function called from atomic cgroup1 thresholding code
-has been added to the -mm tree.  Its filename is
-     mm-memcontrol-fix-blocking-rstat-function-called-from-atomic-cgroup1-thresholding-code.patch
+This patch should be dropped, as per review it was rejected as being
+incorrect.
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-blocking-rstat-function-called-from-atomic-cgroup1-thresholding-code.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-blocking-rstat-function-called-from-atomic-cgroup1-thresholding-code.patch
+thanks,
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: fix blocking rstat function called from atomic cgroup1 thresholding code
-
-Dan Carpenter reports:
-
-    The patch 2d146aa3aa84: "mm: memcontrol: switch to rstat" from Apr
-    29, 2021, leads to the following static checker warning:
-
-	    kernel/cgroup/rstat.c:200 cgroup_rstat_flush()
-	    warn: sleeping in atomic context
-
-    mm/memcontrol.c
-      3572  static unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
-      3573  {
-      3574          unsigned long val;
-      3575
-      3576          if (mem_cgroup_is_root(memcg)) {
-      3577                  cgroup_rstat_flush(memcg->css.cgroup);
-			    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    This is from static analysis and potentially a false positive.  The
-    problem is that mem_cgroup_usage() is called from __mem_cgroup_threshold()
-    which holds an rcu_read_lock().  And the cgroup_rstat_flush() function
-    can sleep.
-
-      3578                  val = memcg_page_state(memcg, NR_FILE_PAGES) +
-      3579                          memcg_page_state(memcg, NR_ANON_MAPPED);
-      3580                  if (swap)
-      3581                          val += memcg_page_state(memcg, MEMCG_SWAP);
-      3582          } else {
-      3583                  if (!swap)
-      3584                          val = page_counter_read(&memcg->memory);
-      3585                  else
-      3586                          val = page_counter_read(&memcg->memsw);
-      3587          }
-      3588          return val;
-      3589  }
-
-__mem_cgroup_threshold() indeed holds the rcu lock.  In addition, the
-thresholding code is invoked during stat changes, and those contexts have
-irqs disabled as well.  If the lock breaking occurs inside the flush
-function, it will result in a sleep from an atomic context.
-
-Use the irqsafe flushing variant in mem_cgroup_usage() to fix this.
-
-Link: https://lkml.kernel.org/r/20210726150019.251820-1-hannes@cmpxchg.org
-Fixes: 2d146aa3aa84 ("mm: memcontrol: switch to rstat")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Reviewed-by: Rik van Riel <riel@surriel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
---- a/mm/memcontrol.c~mm-memcontrol-fix-blocking-rstat-function-called-from-atomic-cgroup1-thresholding-code
-+++ a/mm/memcontrol.c
-@@ -3574,7 +3574,8 @@ static unsigned long mem_cgroup_usage(st
- 	unsigned long val;
- 
- 	if (mem_cgroup_is_root(memcg)) {
--		cgroup_rstat_flush(memcg->css.cgroup);
-+		/* mem_cgroup_threshold() calls here from irqsafe context */
-+		cgroup_rstat_flush_irqsafe(memcg->css.cgroup);
- 		val = memcg_page_state(memcg, NR_FILE_PAGES) +
- 			memcg_page_state(memcg, NR_ANON_MAPPED);
- 		if (swap)
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-mm-memcontrol-fix-blocking-rstat-function-called-from-atomic-cgroup1-thresholding-code.patch
-mm-remove-irqsave-restore-locking-from-contexts-with-irqs-enabled.patch
-fs-drop_caches-fix-skipping-over-shadow-cache-inodes.patch
-fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch
-vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
-
+greg k-h
