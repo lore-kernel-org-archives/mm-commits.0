@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47CEDC4338F
-	for <mm-commits@archiver.kernel.org>; Thu, 29 Jul 2021 21:53:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E30AC4320A
+	for <mm-commits@archiver.kernel.org>; Thu, 29 Jul 2021 21:53:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1C5B360F48
-	for <mm-commits@archiver.kernel.org>; Thu, 29 Jul 2021 21:53:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 15EC660F6F
+	for <mm-commits@archiver.kernel.org>; Thu, 29 Jul 2021 21:53:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233572AbhG2Vxk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 29 Jul 2021 17:53:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37542 "EHLO mail.kernel.org"
+        id S233918AbhG2Vxo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 29 Jul 2021 17:53:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37598 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229852AbhG2Vxk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 29 Jul 2021 17:53:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C13DE6069E;
-        Thu, 29 Jul 2021 21:53:35 +0000 (UTC)
+        id S229852AbhG2Vxn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 29 Jul 2021 17:53:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C46F660F48;
+        Thu, 29 Jul 2021 21:53:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627595616;
-        bh=5qzEY99ziOgfzaAAlZVsCRtC8IbjE8wj4LfrVRkBtds=;
+        s=korg; t=1627595619;
+        bh=qysA7nDRpqIDS5XUdlw1Nw1TLIWMRy4wbTIQgDsb3y8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=J/U0NQ5tktBz47d+jTtwB280QYoip17Xr4UnEKljVxUh3DtLkapIO+2pI29g3rF6v
-         tpvLSgPP12ZbT5Vn4+4OE9VowvPPsF4wGQ5jCmTPN4PeqahJFVqpQyWJnpNZAjuRWE
-         +GmJ1/ygeK7X32ahoJIydvY/sF1wijMFY3KWNFus=
-Date:   Thu, 29 Jul 2021 14:53:35 -0700
+        b=oVQiwpUG9tjeoHyIY+0CK7um2J+1QjAZnZfs15lH5z5mOuSKzObd7DoILVdgX3Jtk
+         aRxECMYfuX9gQ7RJVziE/jNKCfaW8sP6eVhyIDDgr/HxBWT9ZPLXhPI+rtQ7Or3/ML
+         lKYulMb1ArLQEpw634pAi3m/UEzHzqkyJOug6Ffs=
+Date:   Thu, 29 Jul 2021 14:53:38 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, geert@linux-m68k.org,
-        linux-mm@kvack.org, mcroce@microsoft.com,
-        mm-commits@vger.kernel.org, peda@axentia.se, rdunlap@infradead.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 1/7] lib/test_string.c: move string selftest in
- the Runtime Testing menu
-Message-ID: <20210729215335.VjpFgBWiV%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com,
+        jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
+        junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com,
+        mm-commits@vger.kernel.org, piaojun@huawei.com,
+        stable@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 2/7] ocfs2: fix zero out valid data
+Message-ID: <20210729215338.ZhfcJipXa%akpm@linux-foundation.org>
 In-Reply-To: <20210729145259.24681c326dc3ed18194cf9e5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,56 +44,56 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Matteo Croce <mcroce@microsoft.com>
-Subject: lib/test_string.c: move string selftest in the Runtime Testing menu
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: fix zero out valid data
 
-STRING_SELFTEST is presented in the "Library routines" menu.  Move it in
-Kernel hacking > Kernel Testing and Coverage > Runtime Testing together
-with other similar tests found in lib/
+If append-dio feature is enabled, direct-io write and fallocate could run
+in parallel to extend file size, fallocate used "orig_isize" to record
+i_size before taking "ip_alloc_sem", when ocfs2_zeroout_partial_cluster()
+zeroout EOF blocks, i_size maybe already extended by
+ocfs2_dio_end_io_write(), that will cause valid data zeroed out.
 
-	--- Runtime Testing
-	<*>   Test functions located in the hexdump module at runtime
-	<*>   Test string functions (NEW)
-	<*>   Test functions located in the string_helpers module at runtime
-	<*>   Test strscpy*() family of functions at runtime
-	<*>   Test kstrto*() family of functions at runtime
-	<*>   Test printf() family of functions at runtime
-	<*>   Test scanf() family of functions at runtime
-
-Link: https://lkml.kernel.org/r/20210719185158.190371-1-mcroce@linux.microsoft.com
-Signed-off-by: Matteo Croce <mcroce@microsoft.com>
-Cc: Peter Rosin <peda@axentia.se>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20210722054923.24389-1-junxiao.bi@oracle.com
+Fixes: 6bba4471f0cc ("ocfs2: fix data corruption by fallocate")
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig       |    3 ---
- lib/Kconfig.debug |    3 +++
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ fs/ocfs2/file.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/Kconfig~lib-test_stringc-move-string-selftest-in-the-runtime-testing-menu
-+++ a/lib/Kconfig
-@@ -683,9 +683,6 @@ config PARMAN
- config OBJAGG
- 	tristate "objagg" if COMPILE_TEST
+--- a/fs/ocfs2/file.c~ocfs2-fix-zero-out-valid-data
++++ a/fs/ocfs2/file.c
+@@ -1935,7 +1935,6 @@ static int __ocfs2_change_file_space(str
+ 		goto out_inode_unlock;
+ 	}
  
--config STRING_SELFTEST
--	tristate "Test string functions"
--
- endmenu
+-	orig_isize = i_size_read(inode);
+ 	switch (sr->l_whence) {
+ 	case 0: /*SEEK_SET*/
+ 		break;
+@@ -1943,7 +1942,7 @@ static int __ocfs2_change_file_space(str
+ 		sr->l_start += f_pos;
+ 		break;
+ 	case 2: /*SEEK_END*/
+-		sr->l_start += orig_isize;
++		sr->l_start += i_size_read(inode);
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+@@ -1998,6 +1997,7 @@ static int __ocfs2_change_file_space(str
+ 		ret = -EINVAL;
+ 	}
  
- config GENERIC_IOREMAP
---- a/lib/Kconfig.debug~lib-test_stringc-move-string-selftest-in-the-runtime-testing-menu
-+++ a/lib/Kconfig.debug
-@@ -2180,6 +2180,9 @@ config ASYNC_RAID6_TEST
- config TEST_HEXDUMP
- 	tristate "Test functions located in the hexdump module at runtime"
- 
-+config STRING_SELFTEST
-+	tristate "Test string functions at runtime"
-+
- config TEST_STRING_HELPERS
- 	tristate "Test functions located in the string_helpers module at runtime"
- 
++	orig_isize = i_size_read(inode);
+ 	/* zeroout eof blocks in the cluster. */
+ 	if (!ret && change_size && orig_isize < size) {
+ 		ret = ocfs2_zeroout_partial_cluster(inode, orig_isize,
 _
