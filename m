@@ -2,44 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D0D52C4338F
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 19:11:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE617C4320A
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 19:12:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD1C861078
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 19:11:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9F501610A1
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 19:12:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229851AbhHATMH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Aug 2021 15:12:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52172 "EHLO mail.kernel.org"
+        id S229955AbhHATMK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Aug 2021 15:12:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52214 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229497AbhHATMG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 1 Aug 2021 15:12:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AE66F61059;
-        Sun,  1 Aug 2021 19:11:57 +0000 (UTC)
+        id S229937AbhHATMJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 1 Aug 2021 15:12:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 94E4B61075;
+        Sun,  1 Aug 2021 19:12:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627845117;
-        bh=Syeh1lCF5/JHyYWrWl2wFmvsdWXHfUpr2p43fB5d/sc=;
+        s=korg; t=1627845120;
+        bh=+sjY0YKZOzzPyfFJhRIRwzd/R2nPa9krY+F40Uot574=;
         h=Date:From:To:Subject:From;
-        b=iLeW9WCOem5msw7zfSTAqDCDggnYhgk0SSYcWJMeHVrr8HteBf9qMr/joAShtyadF
-         PFNzQWUKUKievOxxy726Dwcfy2wSQjkjWLgdzUNSFHhQWkYn1/z8smmml6w3Tajobo
-         YokoYpAVZ/h1J1CmFRAdvXhF2/Tho/KqgLdKdjOw=
-Date:   Sun, 01 Aug 2021 12:11:57 -0700
+        b=HIsN5de7q86EPtVbBIvUY5gm7yrHBuqBuv764u6PLHSTaPIMudO8TntZUjcfo6AOr
+         oYE42yCfg9/QugQpw97PZEL8x+zWbaxskoOWNQvsLd+GuNZE0KZgjh85r9b3nd4nsm
+         eHYUP2FR6VgkuIokg/tvrw4n/1zm3NFRWAxvXCSs=
+Date:   Sun, 01 Aug 2021 12:12:00 -0700
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, dan.carpenter@oracle.com, hannes@cmpxchg.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, riel@surriel.com,
-        shakeelb@google.com, stable@vger.kernel.org
+To:     aik@ozlabs.ru, aneesh.kumar@linux.ibm.com, david@redhat.com,
+        mgorman@suse.de, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        npiggin@gmail.com, shy828301@gmail.com
 Subject:  [merged]
- =?US-ASCII?Q?mm-memcontrol-fix-blocking-rstat-function-called-from-atomic?=
- =?US-ASCII?Q?-cgroup1-thresholding-code.patch?= removed from -mm tree
-Message-ID: <20210801191157._NKo6lYAE%akpm@linux-foundation.org>
+ mm-migrate-fix-nr_isolated-corruption-on-64-bit.patch removed from -mm tree
+Message-ID: <20210801191200.cUQyQWvH5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,91 +44,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix blocking rstat function called from atomic cgroup1 thresholding code
+     Subject: mm/migrate: fix NR_ISOLATED corruption on 64-bit
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-blocking-rstat-function-called-from-atomic-cgroup1-thresholding-code.patch
+     mm-migrate-fix-nr_isolated-corruption-on-64-bit.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: fix blocking rstat function called from atomic cgroup1 thresholding code
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/migrate: fix NR_ISOLATED corruption on 64-bit
 
-Dan Carpenter reports:
+Similar to commit 2da9f6305f30 ("mm/vmscan: fix NR_ISOLATED_FILE
+corruption on 64-bit") avoid using unsigned int for nr_pages.  With
+unsigned int type the large unsigned int converts to a large positive
+signed long.
 
-    The patch 2d146aa3aa84: "mm: memcontrol: switch to rstat" from Apr
-    29, 2021, leads to the following static checker warning:
+Symptoms include CMA allocations hanging forever due to
+alloc_contig_range->...->isolate_migratepages_block waiting forever in
+"while (unlikely(too_many_isolated(pgdat)))".
 
-	    kernel/cgroup/rstat.c:200 cgroup_rstat_flush()
-	    warn: sleeping in atomic context
-
-    mm/memcontrol.c
-      3572  static unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
-      3573  {
-      3574          unsigned long val;
-      3575
-      3576          if (mem_cgroup_is_root(memcg)) {
-      3577                  cgroup_rstat_flush(memcg->css.cgroup);
-			    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-    This is from static analysis and potentially a false positive.  The
-    problem is that mem_cgroup_usage() is called from __mem_cgroup_threshold()
-    which holds an rcu_read_lock().  And the cgroup_rstat_flush() function
-    can sleep.
-
-      3578                  val = memcg_page_state(memcg, NR_FILE_PAGES) +
-      3579                          memcg_page_state(memcg, NR_ANON_MAPPED);
-      3580                  if (swap)
-      3581                          val += memcg_page_state(memcg, MEMCG_SWAP);
-      3582          } else {
-      3583                  if (!swap)
-      3584                          val = page_counter_read(&memcg->memory);
-      3585                  else
-      3586                          val = page_counter_read(&memcg->memsw);
-      3587          }
-      3588          return val;
-      3589  }
-
-__mem_cgroup_threshold() indeed holds the rcu lock.  In addition, the
-thresholding code is invoked during stat changes, and those contexts have
-irqs disabled as well.  If the lock breaking occurs inside the flush
-function, it will result in a sleep from an atomic context.
-
-Use the irqsafe flushing variant in mem_cgroup_usage() to fix this.
-
-Link: https://lkml.kernel.org/r/20210726150019.251820-1-hannes@cmpxchg.org
-Fixes: 2d146aa3aa84 ("mm: memcontrol: switch to rstat")
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Reviewed-by: Rik van Riel <riel@surriel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210728042531.359409-1-aneesh.kumar@linux.ibm.com
+Fixes: c5fc5c3ae0c8 ("mm: migrate: account THP NUMA migration counters correctly")
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reported-by: Michael Ellerman <mpe@ellerman.id.au>
+Reported-by: Alexey Kardashevskiy <aik@ozlabs.ru>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-fix-blocking-rstat-function-called-from-atomic-cgroup1-thresholding-code
-+++ a/mm/memcontrol.c
-@@ -3574,7 +3574,8 @@ static unsigned long mem_cgroup_usage(st
- 	unsigned long val;
+--- a/mm/migrate.c~mm-migrate-fix-nr_isolated-corruption-on-64-bit
++++ a/mm/migrate.c
+@@ -2068,7 +2068,7 @@ int migrate_misplaced_page(struct page *
+ 	LIST_HEAD(migratepages);
+ 	new_page_t *new;
+ 	bool compound;
+-	unsigned int nr_pages = thp_nr_pages(page);
++	int nr_pages = thp_nr_pages(page);
  
- 	if (mem_cgroup_is_root(memcg)) {
--		cgroup_rstat_flush(memcg->css.cgroup);
-+		/* mem_cgroup_threshold() calls here from irqsafe context */
-+		cgroup_rstat_flush_irqsafe(memcg->css.cgroup);
- 		val = memcg_page_state(memcg, NR_FILE_PAGES) +
- 			memcg_page_state(memcg, NR_ANON_MAPPED);
- 		if (swap)
+ 	/*
+ 	 * PTE mapped THP or HugeTLB page can't reach here so the page could
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
 
-mm-remove-irqsave-restore-locking-from-contexts-with-irqs-enabled.patch
-fs-drop_caches-fix-skipping-over-shadow-cache-inodes.patch
-fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch
-vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
 
