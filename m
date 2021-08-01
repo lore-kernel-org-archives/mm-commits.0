@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAF5BC4338F
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 19:38:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41691C4338F
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 20:05:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A191261059
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 19:38:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2010161075
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 20:05:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229680AbhHATi7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Aug 2021 15:38:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55718 "EHLO mail.kernel.org"
+        id S229759AbhHAUFW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Aug 2021 16:05:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229529AbhHATi6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 1 Aug 2021 15:38:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 937B460E09;
-        Sun,  1 Aug 2021 19:38:50 +0000 (UTC)
+        id S229497AbhHAUFW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 1 Aug 2021 16:05:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B35A761050;
+        Sun,  1 Aug 2021 20:05:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627846730;
-        bh=raf8F7Ez6pGjfIqA+hRlyumh5cpreyKeYGYyqWoS27Y=;
+        s=korg; t=1627848313;
+        bh=T2sbvR5ItM/SnC5UK837QIEAyrb+3LLfWMtre3GoYl0=;
         h=Date:From:To:Subject:From;
-        b=oxIetnp5/aEKwKtlGMmCbg/wMjDYKNyzJHLnd/4lMTirzmctTSpHYq47xhuOM/UoU
-         e5T7MufR/50M/oYKadkMwPzknEFR6ICU5PsozMnz72qYri4u5WGK+wCWd01cAqbcoQ
-         mnjX9jT/Gkaw5QGwzIVwbWPofUdTmGWn4w0ce56E=
-Date:   Sun, 01 Aug 2021 12:38:50 -0700
+        b=GeTonK+znDBnjTNNrstFtEfbMijeHbe9Xb9ji9/4ixAOxlDuNCiV6EoDrx9e3brvM
+         /SD+KKvmPbOKD/3p2MHZuTxH9Ox0jwI82O7NdWFsChlKytJ9xyZyP8obIV+N1Mi8WO
+         wEz/i9XwXwkuET9mXDBHz5k5+p2rz95QC2clrGAU=
+Date:   Sun, 01 Aug 2021 13:05:13 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        linux@roeck-us.net, rppt@kernel.org
-Subject:  +
- mm-page_alloc-always-initialize-memory-map-for-the-holes-fix.patch added to
- -mm tree
-Message-ID: <20210801193850.vHM1x%akpm@linux-foundation.org>
+        hca@linux.ibm.com, arnd@arndb.de
+Subject:  + mm-simplify-compat-numa-syscalls-fix.patch added to -mm
+ tree
+Message-ID: <20210801200513.1_pFq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-always-initialize-memory-map-for-the-holes-fix
+     Subject: fixup! mm: simplify compat numa syscalls
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-always-initialize-memory-map-for-the-holes-fix.patch
+     mm-simplify-compat-numa-syscalls-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-always-initialize-memory-map-for-the-holes-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-compat-numa-syscalls-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-always-initialize-memory-map-for-the-holes-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-compat-numa-syscalls-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,36 +64,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@kernel.org>
-Subject: mm-page_alloc-always-initialize-memory-map-for-the-holes-fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: fixup! mm: simplify compat numa syscalls
 
-It appears that petalogix-ml605 memory starts at 0x50000, but microblaze's
-pfn_valid does not reject pfns < ARCH_PFN_OFFSET.
+When compat user space asks for more data than the kernel has in its
+nodemask, get_mempolicy() now either leaks kernel stack data to user space
+or, if either VMAP_STACK or KASAN are enabled, causes a crash like
 
-Link: https://lkml.kernel.org/r/YQWW3RCE4eWBuMu/@kernel.org
-Tested-by: Guenter Roeck <linux@roeck-us.net>
+Unable to handle kernel pointer dereference in virtual kernel address space
+Failing address: 0000038003e7c000 TEID: 0000038003e7c803
+Fault in home space mode while using kernel ASCE.
+AS:00000001fb388007 R3:000000008021c007 S:0000000082142000 P:0000000000000400
+Oops: 0011 ilc:3 [#1] SMP
+CPU: 0 PID: 1017495 Comm: get_mempolicy Tainted: G           OE     5.14.0-20210730.rc3.git0.4ccc9e2db7ac.300.fc34.s390x+next #1
+Hardware name: IBM 2827 H66 708 (LPAR)
+Krnl PSW : 0704e00180000000 00000001f9f11000 (compat_put_bitmap+0x48/0xd0)
+           R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:3 CC:2 PM:0 RI:0 EA:3
+Krnl GPRS: 0000000000810000 0000000000000000 000000007d9df1c0 0000038003e7c008
+           0000000000000004 000000007d9df1c4 0000038003e7be40 0000000000010000
+           0000000000008000 0000000000000000 0000000000000390 00000000000001c8
+           000000020d6ea000 000002aa00401a48 00000001fa0a85fa 0000038003e7bd50
+Krnl Code: 00000001f9f10ff4: a7bb0001            aghi    %r11,1
+           00000001f9f10ff8: 41303008            la      %r3,8(%r3)
+          #00000001f9f10ffc: 41502004            la      %r5,4(%r2)
+          >00000001f9f11000: e3103ff8ff04        lg      %r1,-8(%r3)
+           00000001f9f11006: 5010f0a4            st      %r1,164(%r15)
+           00000001f9f1100a: a50e0081            llilh   %r0,129
+           00000001f9f1100e: c8402000f0a4        mvcos   0(%r2),164(%r15),%r4
+           00000001f9f11014: 1799                xr      %r9,%r9
+Call Trace:
+ [<00000001f9f11000>] compat_put_bitmap+0x48/0xd0
+ [<00000001fa0a85fa>] kernel_get_mempolicy+0x102/0x178
+ [<00000001fa0a86b0>] __s390_sys_get_mempolicy+0x40/0x50
+ [<00000001fa92be30>] __do_syscall+0x1c0/0x1e8
+ [<00000001fa939148>] system_call+0x78/0xa0
+Last Breaking-Event-Address:
+ [<0000038003e7bc00>] 0x38003e7bc00
+Kernel panic - not syncing: Fatal exception: panic_on_oops
+
+Fix it by copying the correct size in compat mode again.
+
+Link: https://lkml.kernel.org/r/20210730143417.3700653-1-arnd@kernel.org
+Link: https://lore.kernel.org/lkml/YQPLG20V3dmOfq3a@osiris/
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/include/asm/page.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mempolicy.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/microblaze/include/asm/page.h~mm-page_alloc-always-initialize-memory-map-for-the-holes-fix
-+++ a/arch/microblaze/include/asm/page.h
-@@ -112,8 +112,7 @@ extern int page_is_ram(unsigned long pfn
- #  define page_to_phys(page)     (page_to_pfn(page) << PAGE_SHIFT)
+--- a/mm/mempolicy.c~mm-simplify-compat-numa-syscalls-fix
++++ a/mm/mempolicy.c
+@@ -1438,6 +1438,7 @@ static int copy_nodes_to_user(unsigned l
+ 		if (clear_user((char __user *)mask + nbytes, copy - nbytes))
+ 			return -EFAULT;
+ 		copy = nbytes;
++		maxnode = nr_node_ids;
+ 	}
  
- #  define ARCH_PFN_OFFSET	(memory_start >> PAGE_SHIFT)
--#  define pfn_valid(pfn)	((pfn) < (max_mapnr + ARCH_PFN_OFFSET))
--
-+#  define pfn_valid(pfn)	((pfn) >= ARCH_PFN_OFFSET && (pfn) < (max_mapnr + ARCH_PFN_OFFSET))
- # endif /* __ASSEMBLY__ */
- 
- #define	virt_addr_valid(vaddr)	(pfn_valid(virt_to_pfn(vaddr)))
+ 	if (compat)
 _
 
-Patches currently in -mm which might be from rppt@kernel.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-page_alloc-always-initialize-memory-map-for-the-holes-fix.patch
+kexec-move-locking-into-do_kexec_load.patch
+kexec-avoid-compat_alloc_user_space.patch
+mm-simplify-compat_sys_move_pages.patch
+mm-simplify-compat-numa-syscalls.patch
+mm-simplify-compat-numa-syscalls-fix.patch
+compat-remove-some-compat-entry-points.patch
+arch-remove-compat_alloc_user_space.patch
 
