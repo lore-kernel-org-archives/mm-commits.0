@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-14.1 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLACK
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE617C4320A
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 19:12:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C306CC4338F
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 19:12:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F501610A1
-	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 19:12:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A920F61075
+	for <mm-commits@archiver.kernel.org>; Sun,  1 Aug 2021 19:12:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229955AbhHATMK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 1 Aug 2021 15:12:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52214 "EHLO mail.kernel.org"
+        id S229937AbhHATMN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 1 Aug 2021 15:12:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229937AbhHATMJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 1 Aug 2021 15:12:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 94E4B61075;
-        Sun,  1 Aug 2021 19:12:00 +0000 (UTC)
+        id S229497AbhHATMN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 1 Aug 2021 15:12:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B3AE61078;
+        Sun,  1 Aug 2021 19:12:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627845120;
-        bh=+sjY0YKZOzzPyfFJhRIRwzd/R2nPa9krY+F40Uot574=;
+        s=korg; t=1627845123;
+        bh=9qxK7mOxU+aOV0/kH/gVKyQMvEzX7OKpu0cCOy1f10Y=;
         h=Date:From:To:Subject:From;
-        b=HIsN5de7q86EPtVbBIvUY5gm7yrHBuqBuv764u6PLHSTaPIMudO8TntZUjcfo6AOr
-         oYE42yCfg9/QugQpw97PZEL8x+zWbaxskoOWNQvsLd+GuNZE0KZgjh85r9b3nd4nsm
-         eHYUP2FR6VgkuIokg/tvrw4n/1zm3NFRWAxvXCSs=
-Date:   Sun, 01 Aug 2021 12:12:00 -0700
+        b=DVIoDpl66LJZE/hCjhUwDMNMbO54sB0kObzXihsFCVJsmQbhQ/qcm/SE8hiVjAcMv
+         k42bOE/IeV5NkU1Fqzlg3IOExK7fvwXoNl9HYgueW+80pTyTENR24rA0pWScIBpsZ4
+         VsUVYF7xXqePGXqILJkKPY+O8r2nL4SMv07A8cqc=
+Date:   Sun, 01 Aug 2021 12:12:03 -0700
 From:   akpm@linux-foundation.org
-To:     aik@ozlabs.ru, aneesh.kumar@linux.ibm.com, david@redhat.com,
-        mgorman@suse.de, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        npiggin@gmail.com, shy828301@gmail.com
+To:     cl@linux.com, guro@fb.com, iamjoonsoo.kim@lge.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, shakeelb@google.com, songmuchun@bytedance.com,
+        vbabka@suse.cz
 Subject:  [merged]
- mm-migrate-fix-nr_isolated-corruption-on-64-bit.patch removed from -mm tree
-Message-ID: <20210801191200.cUQyQWvH5%akpm@linux-foundation.org>
+ slub-fix-unreclaimable-slab-stat-for-bulk-free.patch removed from -mm tree
+Message-ID: <20210801191203.G3BFvBRYx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,53 +45,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: fix NR_ISOLATED corruption on 64-bit
+     Subject: slub: fix unreclaimable slab stat for bulk free
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-fix-nr_isolated-corruption-on-64-bit.patch
+     slub-fix-unreclaimable-slab-stat-for-bulk-free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/migrate: fix NR_ISOLATED corruption on 64-bit
+From: Shakeel Butt <shakeelb@google.com>
+Subject: slub: fix unreclaimable slab stat for bulk free
 
-Similar to commit 2da9f6305f30 ("mm/vmscan: fix NR_ISOLATED_FILE
-corruption on 64-bit") avoid using unsigned int for nr_pages.  With
-unsigned int type the large unsigned int converts to a large positive
-signed long.
+SLUB uses page allocator for higher order allocations and update
+unreclaimable slab stat for such allocations.  At the moment, the bulk
+free for SLUB does not share code with normal free code path for these
+type of allocations and have missed the stat update.  So, fix the stat
+update by common code.  The user visible impact of the bug is the
+potential of inconsistent unreclaimable slab stat visible through meminfo
+and vmstat.
 
-Symptoms include CMA allocations hanging forever due to
-alloc_contig_range->...->isolate_migratepages_block waiting forever in
-"while (unlikely(too_many_isolated(pgdat)))".
-
-Link: https://lkml.kernel.org/r/20210728042531.359409-1-aneesh.kumar@linux.ibm.com
-Fixes: c5fc5c3ae0c8 ("mm: migrate: account THP NUMA migration counters correctly")
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reported-by: Michael Ellerman <mpe@ellerman.id.au>
-Reported-by: Alexey Kardashevskiy <aik@ozlabs.ru>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/20210728155354.3440560-1-shakeelb@google.com
+Fixes: 6a486c0ad4dc ("mm, sl[ou]b: improve memory accounting")
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-fix-nr_isolated-corruption-on-64-bit
-+++ a/mm/migrate.c
-@@ -2068,7 +2068,7 @@ int migrate_misplaced_page(struct page *
- 	LIST_HEAD(migratepages);
- 	new_page_t *new;
- 	bool compound;
--	unsigned int nr_pages = thp_nr_pages(page);
-+	int nr_pages = thp_nr_pages(page);
+--- a/mm/slub.c~slub-fix-unreclaimable-slab-stat-for-bulk-free
++++ a/mm/slub.c
+@@ -3236,6 +3236,16 @@ struct detached_freelist {
+ 	struct kmem_cache *s;
+ };
  
- 	/*
- 	 * PTE mapped THP or HugeTLB page can't reach here so the page could
++static inline void free_nonslab_page(struct page *page)
++{
++	unsigned int order = compound_order(page);
++
++	VM_BUG_ON_PAGE(!PageCompound(page), page);
++	kfree_hook(page_address(page));
++	mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B, -(PAGE_SIZE << order));
++	__free_pages(page, order);
++}
++
+ /*
+  * This function progressively scans the array with free objects (with
+  * a limited look ahead) and extract objects belonging to the same
+@@ -3272,9 +3282,7 @@ int build_detached_freelist(struct kmem_
+ 	if (!s) {
+ 		/* Handle kalloc'ed objects */
+ 		if (unlikely(!PageSlab(page))) {
+-			BUG_ON(!PageCompound(page));
+-			kfree_hook(object);
+-			__free_pages(page, compound_order(page));
++			free_nonslab_page(page);
+ 			p[size] = NULL; /* mark object processed */
+ 			return size;
+ 		}
+@@ -4250,13 +4258,7 @@ void kfree(const void *x)
+ 
+ 	page = virt_to_head_page(x);
+ 	if (unlikely(!PageSlab(page))) {
+-		unsigned int order = compound_order(page);
+-
+-		BUG_ON(!PageCompound(page));
+-		kfree_hook(object);
+-		mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B,
+-				      -(PAGE_SIZE << order));
+-		__free_pages(page, order);
++		free_nonslab_page(page);
+ 		return;
+ 	}
+ 	slab_free(page->slab_cache, page, object, NULL, 1, _RET_IP_);
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
+writeback-memcg-simplify-cgroup_writeback_by_id.patch
+memcg-switch-lruvec-stats-to-rstat.patch
+memcg-infrastructure-to-flush-memcg-stats.patch
+memcg-infrastructure-to-flush-memcg-stats-v5.patch
+memcg-cleanup-racy-sum-avoidance-code.patch
 
