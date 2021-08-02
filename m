@@ -7,40 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF57CC4338F
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Aug 2021 19:48:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 252E2C4338F
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Aug 2021 20:33:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 91784610A0
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Aug 2021 19:48:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B2BC61102
+	for <mm-commits@archiver.kernel.org>; Mon,  2 Aug 2021 20:33:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229612AbhHBTsQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 2 Aug 2021 15:48:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59810 "EHLO mail.kernel.org"
+        id S231547AbhHBUdJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 2 Aug 2021 16:33:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56408 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229607AbhHBTsQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 2 Aug 2021 15:48:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5577360F36;
-        Mon,  2 Aug 2021 19:48:06 +0000 (UTC)
+        id S229729AbhHBUdI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 2 Aug 2021 16:33:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B054D60F93;
+        Mon,  2 Aug 2021 20:32:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627933686;
-        bh=av6RMN8eWdQnDwV6IeWaq/3fmSKJ1GOqwQblycGAy9w=;
+        s=korg; t=1627936378;
+        bh=MfWKNlyFXIM7aZiBGYJyx9O2relZZjlE8BRzDHFtEKY=;
         h=Date:From:To:Subject:From;
-        b=uhjbneK2KfC12EbH++3cR1QUJucGlH+jpQIUHGo9ofZD4uZhORf4nA/S+/eP+11h0
-         lwUVHlLMWfACZJpInqXCS4mnA39NXW8rgvGHMoWIUOTSFglbd4FNsME+L8oeeS3jT8
-         0bM5hH5fmAdOYWxVOAEJgFEbj/fixmiCYXN1/DkE=
-Date:   Mon, 02 Aug 2021 12:48:02 -0700
+        b=0cgTlVUFnhhHUNyK73QFjhrqp8yNLNjwNyHyZe5A8HnfNV8ietljgFr3WbZFRl0AW
+         vYs/TTf05T5s5vqyFLnS2ggWpSiCSJkGz43br8R5rADvh2gOGiuylOMLaJ7JcuYpCl
+         Tx3pkSIFS3loajSG2BD3SDTTzR7mKiZvFqQU5DKc=
+Date:   Mon, 02 Aug 2021 13:32:55 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, yzaikin@google.com,
-        vinmenon@codeaurora.org, vbabka@suse.cz, rppt@kernel.org,
-        rientjes@google.com, nigupta@nvidia.com,
-        mgorman@techsingularity.net, mcgrof@kernel.org,
-        khalid.aziz@oracle.com, keescook@chromium.org,
-        dave.hansen@linux.intel.com, corbet@lwn.net,
-        charante@codeaurora.org, akpm@linux-foundation.org
-Subject:  +
- mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        songmuchun@bytedance.com, rientjes@google.com, penberg@kernel.org,
+        nathan@kernel.org, mhocko@suse.com, iamjoonsoo.kim@lge.com,
+        guro@fb.com, cl@linux.com, shakeelb@google.com
+Subject:  + slub-fix-kmalloc_pagealloc_invalid_free-unit-test.patch
  added to -mm tree
-Message-ID: <20210802194802.JHi0d%akpm@linux-foundation.org>
+Message-ID: <20210802203255.GrOu_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-support-triggering-of-proactive-compaction-by-user-fix
+     Subject: slub: fix kmalloc_pagealloc_invalid_free unit test
 has been added to the -mm tree.  Its filename is
-     mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
+     slub-fix-kmalloc_pagealloc_invalid_free-unit-test.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/slub-fix-kmalloc_pagealloc_invalid_free-unit-test.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/slub-fix-kmalloc_pagealloc_invalid_free-unit-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,52 +66,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-support-triggering-of-proactive-compaction-by-user-fix
+From: Shakeel Butt <shakeelb@google.com>
+Subject: slub: fix kmalloc_pagealloc_invalid_free unit test
 
-tweak vm.rst, per Mike
+The unit test kmalloc_pagealloc_invalid_free makes sure that for the
+higher order slub allocation which goes to page allocator, the free is
+called with the correct address i.e.  the virtual address of the head
+page.
 
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Charan Teja Reddy <charante@codeaurora.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+The commit f227f0faf63b ("slub: fix unreclaimable slab stat for bulk
+free") unified the free code paths for page allocator based slub
+allocations but instead of using the address passed by the caller, it
+extracted the address from the page.  Thus making the unit test
+kmalloc_pagealloc_invalid_free moot.  So, fix this by using the address
+passed by the caller.
+
+Should we fix this?  I think yes because dev expect kasan to catch these
+type of programming bugs.
+
+Link: https://lkml.kernel.org/r/20210802180819.1110165-1-shakeelb@google.com
+Fixes: f227f0faf63b ("slub: fix unreclaimable slab stat for bulk free")
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reported-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Nitin Gupta <nigupta@nvidia.com>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-compaction-support-triggering-of-proactive-compaction-by-user-fix
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -118,7 +118,7 @@ compaction_proactiveness
+--- a/mm/slub.c~slub-fix-kmalloc_pagealloc_invalid_free-unit-test
++++ a/mm/slub.c
+@@ -3236,12 +3236,12 @@ struct detached_freelist {
+ 	struct kmem_cache *s;
+ };
  
- This tunable takes a value in the range [0, 100] with a default value of
- 20. This tunable determines how aggressively compaction is done in the
--background. On write of non zero value to this tunable will immediately
-+background. Write of a non zero value to this tunable will immediately
- trigger the proactive compaction. Setting it to 0 disables proactive compaction.
+-static inline void free_nonslab_page(struct page *page)
++static inline void free_nonslab_page(struct page *page, void *object)
+ {
+ 	unsigned int order = compound_order(page);
  
- Note that compaction has a non-trivial system-wide impact as pages
+ 	VM_BUG_ON_PAGE(!PageCompound(page), page);
+-	kfree_hook(page_address(page));
++	kfree_hook(object);
+ 	mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B, -(PAGE_SIZE << order));
+ 	__free_pages(page, order);
+ }
+@@ -3282,7 +3282,7 @@ int build_detached_freelist(struct kmem_
+ 	if (!s) {
+ 		/* Handle kalloc'ed objects */
+ 		if (unlikely(!PageSlab(page))) {
+-			free_nonslab_page(page);
++			free_nonslab_page(page, object);
+ 			p[size] = NULL; /* mark object processed */
+ 			return size;
+ 		}
+@@ -4258,7 +4258,7 @@ void kfree(const void *x)
+ 
+ 	page = virt_to_head_page(x);
+ 	if (unlikely(!PageSlab(page))) {
+-		free_nonslab_page(page);
++		free_nonslab_page(page, object);
+ 		return;
+ 	}
+ 	slab_free(page->slab_cache, page, object, NULL, 1, _RET_IP_);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-mm.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
-mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
-mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+slub-fix-kmalloc_pagealloc_invalid_free-unit-test.patch
+writeback-memcg-simplify-cgroup_writeback_by_id.patch
+memcg-switch-lruvec-stats-to-rstat.patch
+memcg-infrastructure-to-flush-memcg-stats.patch
+memcg-infrastructure-to-flush-memcg-stats-v5.patch
+memcg-cleanup-racy-sum-avoidance-code.patch
 
