@@ -2,95 +2,175 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.1 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
-	SPF_HELO_NONE,SPF_PASS,URIBL_RED,USER_AGENT_SANE_1 autolearn=no
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_RED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90035C4320E
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Aug 2021 05:59:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF5C4C43214
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Aug 2021 17:06:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6CA7560FC2
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Aug 2021 05:59:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D2FE860EB9
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Aug 2021 17:06:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233867AbhHCF7l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Aug 2021 01:59:41 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46200 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233749AbhHCF7k (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 3 Aug 2021 01:59:40 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 947E3C06175F;
-        Mon,  2 Aug 2021 22:59:29 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
-        :In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject:Sender:
-        Reply-To:Cc:Content-ID:Content-Description;
-        bh=JFNAfoid2EflvMqbUdr93kxhjGBAuQTt0bwl7NJG+yI=; b=Jao0VIrbTAZbSu26/KOpMR6jzU
-        yUOfrChLrufy0HVxHl4tXESKFph39/WYHnXER5g0q9SlbNrAVvo2AxXPW5WE6BrpfOSGsiYH/4D3+
-        P8cgv9IXkKVSSYotxIr7YBGDTdWPifEugAG/399Vm2/pUBgXS1oeoQ0e3H5CC19Hvql3Xc05YrlvQ
-        wqHHgJjsiuB74D6JJZX4s3rJ/PyzPu9p7cqm1r97ovxUNEKiRRZXtIWuVO8F7kg/8++H1PJWYqo3k
-        FOSU3v7VDvJij42T877qTBjoLWGehMBzHqEmw3Zl+9kypsdnvPS41W49gSrCFnet8GWQW1++YAurE
-        MiZiFfhQ==;
-Received: from [2601:1c0:6280:3f0::aa0b]
-        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1mAnSY-005LHc-KX; Tue, 03 Aug 2021 05:59:27 +0000
-Subject: Re: mmotm 2021-08-02-18-51 uploaded
-To:     akpm@linux-foundation.org, broonie@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-References: <20210803015202.vA3c5O7uP%akpm@linux-foundation.org>
-From:   Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <3ac66120-99f0-c627-c783-500993ff3da0@infradead.org>
-Date:   Mon, 2 Aug 2021 22:59:22 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.12.0
-MIME-Version: 1.0
-In-Reply-To: <20210803015202.vA3c5O7uP%akpm@linux-foundation.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        id S237760AbhHCRGb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Aug 2021 13:06:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39118 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S237741AbhHCRGa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Aug 2021 13:06:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6F6EC6104F;
+        Tue,  3 Aug 2021 17:06:19 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1628010379;
+        bh=ynAb5rPttGWwLzLKUUUgU7o0+IkmUPiPff4n/MNOFs4=;
+        h=Date:From:To:Subject:From;
+        b=X2jB9bXdjgCUgCNT87RyodrphuDtscjWgQZlZ/QPQq6P3lFvvtCiWC2O+jmHz/QK6
+         qJ5aeX2lRXGWdze4g/w0MSbvC3W+BeclHaaILhLWfF/rSBnMecofVoCyZUlxvTQc1L
+         vIBhfB8ohMhn1VGdsdSU17vg63Uw3k7iWIiSnJzM=
+Date:   Tue, 03 Aug 2021 10:06:18 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20210803170618.SUrnTEM9a%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 8/2/21 6:52 PM, akpm@linux-foundation.org wrote:
-> The mm-of-the-moment snapshot 2021-08-02-18-51 has been uploaded to
-> 
->     https://www.ozlabs.org/~akpm/mmotm/
-> 
-> mmotm-readme.txt says
-> 
-> README for mm-of-the-moment:
-> 
-> https://www.ozlabs.org/~akpm/mmotm/
-> 
-> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> more than once a week.
-> 
-> You will need quilt to apply these patches to the latest Linus release (5.x
-> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-> https://ozlabs.org/~akpm/mmotm/series
-> 
-> The file broken-out.tar.gz contains two datestamp files: .DATE and
-> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-> followed by the base kernel version against which this patch series is to
-> be applied.
-> 
 
-Andrew:
+The patch titled
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-In linux-next.patch, drivers/net/mctp/Makefile is an empty file, so
-patch tools don't include/track it.  Not having it causes build errors
-in mmotm.  Just put a comment in it like so:
+This patch was dropped because it is obsolete
 
-# dummy file for now
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-and builds will not have so many errors.
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ MAINTAINERS                    |    8 --------
+ block/genhd.c                  |    4 ----
+ drivers/block/loop.c           |    7 -------
+ drivers/hid/wacom_wac.c        |    8 --------
+ drivers/nfc/s3fwrn5/firmware.c |    4 ----
+ 5 files changed, 31 deletions(-)
 
--- 
-~Randy
+--- a/block/genhd.c~linux-next-git-rejects
++++ a/block/genhd.c
+@@ -1100,11 +1100,7 @@ static void disk_release(struct device *
+ 	xa_destroy(&disk->part_tbl);
+ 	if (test_bit(GD_QUEUE_REF, &disk->state) && disk->queue)
+ 		blk_put_queue(disk->queue);
+-<<<<<<< HEAD
+-	bdput(disk->part0);	/* frees the disk */
+-=======
+ 	iput(disk->part0->bd_inode);	/* frees the disk */
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static int block_uevent(struct device *dev, struct kobj_uevent_env *env)
+--- a/drivers/block/loop.c~linux-next-git-rejects
++++ a/drivers/block/loop.c
+@@ -1306,13 +1306,6 @@ static int loop_configure(struct loop_de
+ 	if (partscan)
+ 		lo->lo_disk->flags &= ~GENHD_FL_NO_PART_SCAN;
+ 
+-<<<<<<< HEAD
+-	/* Grab the block_device to prevent its destruction after we
+-	 * put /dev/loopXX inode. Later in __loop_clr_fd() we bdput(bdev).
+-	 */
+-	bdgrab(bdev);
+-=======
+->>>>>>> linux-next/akpm-base
+ 	loop_global_unlock(lo, is_loop);
+ 	if (partscan)
+ 		loop_reread_partitions(lo);
+--- a/drivers/hid/wacom_wac.c~linux-next-git-rejects
++++ a/drivers/hid/wacom_wac.c
+@@ -2554,10 +2554,6 @@ static void wacom_wac_finger_slot(struct
+ 		int slot;
+ 
+ 		slot = input_mt_get_slot_by_key(input, hid_data->id);
+-<<<<<<< HEAD
+-		if (slot < 0)
+-			return;
+-=======
+ 		if (slot < 0) {
+ 			return;
+ 		} else {
+@@ -2569,7 +2565,6 @@ static void wacom_wac_finger_slot(struct
+ 				return;
+ 			}
+ 		}
+->>>>>>> linux-next/akpm-base
+ 
+ 		input_mt_slot(input, slot);
+ 		input_mt_report_slot_state(input, MT_TOOL_FINGER, prox);
+@@ -3865,10 +3860,7 @@ int wacom_setup_touch_input_capabilities
+ 			input_dev->evbit[0] |= BIT_MASK(EV_SW);
+ 			__set_bit(SW_MUTE_DEVICE, input_dev->swbit);
+ 			wacom_wac->has_mute_touch_switch = true;
+-<<<<<<< HEAD
+-=======
+ 			wacom_wac->is_soft_touch_switch = true;
+->>>>>>> linux-next/akpm-base
+ 		}
+ 		fallthrough;
+ 
+--- a/drivers/nfc/s3fwrn5/firmware.c~linux-next-git-rejects
++++ a/drivers/nfc/s3fwrn5/firmware.c
+@@ -423,11 +423,7 @@ int s3fwrn5_fw_download(struct s3fwrn5_f
+ 	if (IS_ERR(tfm)) {
+ 		dev_err(&fw_info->ndev->nfc_dev->dev,
+ 			"Cannot allocate shash (code=%pe)\n", tfm);
+-<<<<<<< HEAD
+-		goto out;
+-=======
+ 		return PTR_ERR(tfm);
+->>>>>>> linux-next/akpm-base
+ 	}
+ 
+ 	ret = crypto_shash_tfm_digest(tfm, fw->image, image_size, hash_data);
+--- a/MAINTAINERS~linux-next-git-rejects
++++ a/MAINTAINERS
+@@ -11365,19 +11365,11 @@ W:	https://linuxtv.org
+ T:	git git://linuxtv.org/media_tree.git
+ F:	drivers/media/radio/radio-maxiradio*
+ 
+-<<<<<<< HEAD
+-MCAB MICROCHIP CAN BUS ANALYZER TOOL DRIVER
+-R:	Yasushi SHOJI <yashi@spacecubics.com>
+-L:	linux-can@vger.kernel.org
+-S:	Maintained
+-F:	drivers/net/can/usb/mcba_usb.c
+-=======
+ MAXLINEAR ETHERNET PHY DRIVER
+ M:	Xu Liang <lxu@maxlinear.com>
+ L:	netdev@vger.kernel.org
+ S:	Supported
+ F:	drivers/net/phy/mxl-gpy.c
+->>>>>>> linux-next/akpm-base
+ 
+ MCAN MMIO DEVICE DRIVER
+ M:	Chandrasekar Ramakrishnan <rcsekar@samsung.com>
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
+mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
+mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+log-if-a-core-dump-is-aborted-due-to-changed-file-permissions-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
