@@ -2,114 +2,309 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FD18C4338F
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Aug 2021 21:43:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 31F54C4320A
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Aug 2021 01:52:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F1F6A60FA0
-	for <mm-commits@archiver.kernel.org>; Mon,  2 Aug 2021 21:43:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09C1461019
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Aug 2021 01:52:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230050AbhHBVnk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 2 Aug 2021 17:43:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46868 "EHLO mail.kernel.org"
+        id S233293AbhHCBwP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 2 Aug 2021 21:52:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42184 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229567AbhHBVnj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 2 Aug 2021 17:43:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9168F60F4B;
-        Mon,  2 Aug 2021 21:43:29 +0000 (UTC)
+        id S233178AbhHCBwO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 2 Aug 2021 21:52:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6012F60F41;
+        Tue,  3 Aug 2021 01:52:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1627940609;
-        bh=fZQZwA1yuPmyPhHUmU8SRgL77y7nFTJlHWtsJKNmtBw=;
+        s=korg; t=1627955523;
+        bh=fr3w/gn3PbvFnasNKS5acr58OF6O/FP3m7tsTZLPbY4=;
         h=Date:From:To:Subject:From;
-        b=T+C8sPnFY1NyAQwoXfndB+KXQ9L2F4mSXQ5S5zZwS2CCfOoKI2VMRyENLAwpORCwN
-         3ZItwMcyi8B9xt3/GlRuUf+HNKGZJM1DMWYonFjrBv27Mn3cgeUms4hggA5IcOOLu2
-         P4G0Fv83LgMg6j8PRSASA4aV1l+a+OObRgAJEuAk=
-Date:   Mon, 02 Aug 2021 14:43:29 -0700
+        b=NPbMBjBQY6XJpaFA20SJw4R2jHlhqOlCrNxWVTRdq3j5NVK+7X6YVk5vD9V87I6r/
+         Oy0A0jR83h4EJCrZ+2N7Iaiab4AA9Rl309TyBybGo6br+UCTFGRwerKNM7N+Lp/LF9
+         mpHzcVpR23BnhCWTwMrzNeQ0hEC21UfUsmukb/fU=
+Date:   Mon, 02 Aug 2021 18:52:02 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sjg@chromium.org, joe@perches.com
-Subject:  + checkpatch-support-wide-strings.patch added to -mm tree
-Message-ID: <20210802214329.2eMwR%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+To:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-next@vger.kernel.org, mhocko@suse.cz,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+Subject:  mmotm 2021-08-02-18-51 uploaded
+Message-ID: <20210803015202.vA3c5O7uP%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+The mm-of-the-moment snapshot 2021-08-02-18-51 has been uploaded to
 
-The patch titled
-     Subject: checkpatch: support wide strings
-has been added to the -mm tree.  Its filename is
-     checkpatch-support-wide-strings.patch
+   https://www.ozlabs.org/~akpm/mmotm/
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-support-wide-strings.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-support-wide-strings.patch
+mmotm-readme.txt says
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+README for mm-of-the-moment:
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+https://www.ozlabs.org/~akpm/mmotm/
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+more than once a week.
 
-------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: support wide strings
+You will need quilt to apply these patches to the latest Linus release (5.x
+or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+https://ozlabs.org/~akpm/mmotm/series
 
-Allow prefixing typical strings with L for wide strings and u for unicode
-strings.
+The file broken-out.tar.gz contains two datestamp files: .DATE and
+.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+followed by the base kernel version against which this patch series is to
+be applied.
 
-Link: https://lkml.kernel.org/r/20210801170733.1.I3f9784fd3c1007d08ec2e70b151d137687575495@changeid
-Signed-off-by: Joe Perches <joe@perches.com>
-Signed-off-by: Simon Glass <sjg@chromium.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+This tree is partially included in linux-next.  To see which patches are
+included in linux-next, consult the `series' file.  Only the patches
+within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
+linux-next.
 
- scripts/checkpatch.pl |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-support-wide-strings
-+++ a/scripts/checkpatch.pl
-@@ -501,7 +501,7 @@ our $Binary	= qr{(?i)0b[01]+$Int_type?};
- our $Hex	= qr{(?i)0x[0-9a-f]+$Int_type?};
- our $Int	= qr{[0-9]+$Int_type?};
- our $Octal	= qr{0[0-7]+$Int_type?};
--our $String	= qr{"[X\t]*"};
-+our $String	= qr{(?:\b[Lu])?"[X\t]*"};
- our $Float_hex	= qr{(?i)0x[0-9a-f]+p-?[0-9]+[fl]?};
- our $Float_dec	= qr{(?i)(?:[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(?:e-?[0-9]+)?[fl]?};
- our $Float_int	= qr{(?i)[0-9]+e-?[0-9]+[fl]?};
-@@ -6132,7 +6132,8 @@ sub process {
- 		}
- 
- # concatenated string without spaces between elements
--		if ($line =~ /$String[A-Za-z0-9_]/ || $line =~ /[A-Za-z0-9_]$String/) {
-+		if ($line =~ /$String[A-Z_]/ ||
-+		    ($line =~ /([A-Za-z0-9_]+)$String/ && $1 !~ /^[Lu]$/)) {
- 			if (CHK("CONCATENATED_STRING",
- 				"Concatenated strings should use spaces between elements\n" . $herecurr) &&
- 			    $fix) {
-@@ -6145,7 +6146,7 @@ sub process {
- 		}
- 
- # uncoalesced string fragments
--		if ($line =~ /$String\s*"/) {
-+		if ($line =~ /$String\s*[Lu]?"/) {
- 			if (WARN("STRING_FRAGMENTS",
- 				 "Consecutive strings are generally better as a single string\n" . $herecurr) &&
- 			    $fix) {
-_
+A full copy of the full kernel tree with the linux-next and mmotm patches
+already applied is available through git within an hour of the mmotm
+release.  Individual mmotm releases are tagged.  The master branch always
+points to the latest release, so it's constantly rebasing.
 
-Patches currently in -mm which might be from joe@perches.com are
+	https://github.com/hnaz/linux-mm
 
-checkpatch-support-wide-strings.patch
+The directory https://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
+contains daily snapshots of the -mm tree.  It is updated more frequently
+than mmotm, and is untested.
 
+A git copy of this tree is also available at
+
+	https://github.com/hnaz/linux-mm
+
+
+
+This mmotm tree contains the following patches against 5.14-rc4:
+(patches marked "*" will be included in linux-next)
+
+* procfs-prevent-unpriveleged-processes-accessing-fdinfo-dir.patch
+* mmshmem-fix-a-typo-in-shmem_swapin_page.patch
+* slub-fix-kmalloc_pagealloc_invalid_free-unit-test.patch
+* mm-slub-fix-slub_debug-disablement-for-list-of-slabs.patch
+* mm-madvise-report-sigbus-as-efault-for-madv_populate_readwrite.patch
+* mm-memcg-fix-incorrect-flushing-of-lruvec-data-in-obj_stock.patch
+* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
+* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
+* init-move-usermodehelper_enable-to-populate_rootfs.patch
+* scripts-check_extable-fix-typo-in-user-error-message.patch
+* scripts-checkversion-modernize-linux-versionh-search-strings.patch
+* scripts-recordmcountpl-remove-check_objcopy-and-can_use_local.patch
+* ocfs2-remove-an-unnecessary-condition.patch
+* ocfs2-reflink-deadlock-when-clone-file-to-the-same-directory-simultaneously.patch
+* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
+* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
+* lib-fix-bugoncocci-warnings.patch
+  mm.patch
+* mm-move-kvmalloc-related-functions-to-slabh.patch
+* mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args.patch
+* mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-basic-tests.patch
+* mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-leaf-and-savewrite-tests.patch
+* mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-protnone-and-devmap-tests.patch
+* mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-soft_dirty-and-swap-tests.patch
+* mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-migration-and-thp-tests.patch
+* mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pte-modifying-tests.patch
+* mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pmd-modifying-tests.patch
+* mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
+* mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pgd-and-p4d-modifying-tests.patch
+* mm-debug_vm_pgtable-remove-unused-code.patch
+* mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
+* mm-report-a-more-useful-address-for-reclaim-acquisition.patch
+* mm-mark-idle-page-tracking-as-broken.patch
+* writeback-track-number-of-inodes-under-writeback.patch
+* writeback-reliably-update-bandwidth-estimation.patch
+* writeback-fix-bandwidth-estimate-for-spiky-workload.patch
+* writeback-rename-domain_update_bandwidth.patch
+* writeback-use-read_once-for-unlocked-reads-of-writeback-stats.patch
+* mm-remove-irqsave-restore-locking-from-contexts-with-irqs-enabled.patch
+* fs-drop_caches-fix-skipping-over-shadow-cache-inodes.patch
+* fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch
+* vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
+* writeback-memcg-simplify-cgroup_writeback_by_id.patch
+* fs-mm-fix-race-in-unlinking-swapfile.patch
+* mm-delete-unused-get_kernel_page.patch
+* mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
+* mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
+* mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config.patch
+* memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
+* memcg-switch-lruvec-stats-to-rstat.patch
+* memcg-infrastructure-to-flush-memcg-stats.patch
+* memcg-infrastructure-to-flush-memcg-stats-v5.patch
+* memcg-charge-fs_context-and-legacy_fs_context.patch
+* memcg-enable-accounting-for-mnt_cache-entries.patch
+* memcg-enable-accounting-for-pollfd-and-select-bits-arrays.patch
+* memcg-enable-accounting-for-file-lock-caches.patch
+* memcg-enable-accounting-for-fasync_cache.patch
+* memcg-enable-accounting-for-new-namesapces-and-struct-nsproxy.patch
+* memcg-enable-accounting-of-ipc-resources.patch
+* memcg-enable-accounting-for-signals.patch
+* memcg-enable-accounting-for-posix_timers_cache-slab.patch
+* memcg-enable-accounting-for-ldt_struct-objects.patch
+* memcg-cleanup-racy-sum-avoidance-code.patch
+* memcg-replace-in_interrupt-by-in_task-in-active_memcg.patch
+* mm-memcontrol-set-the-correct-memcg-swappiness-restriction.patch
+* lazy-tlb-introduce-lazy-mm-refcount-helper-functions.patch
+* lazy-tlb-introduce-lazy-mm-refcount-helper-functions-fix.patch
+* lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable.patch
+* lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+* lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix-2.patch
+* lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option.patch
+* lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch
+* powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
+* mmc-jz4740-remove-the-flush_kernel_dcache_page-call-in-jz4740_mmc_read_data.patch
+* mmc-mmc_spi-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+* scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+* mm-remove-flush_kernel_dcache_page.patch
+* mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
+* mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch
+* add-mmap_assert_locked-annotations-to-find_vma.patch
+* mm-mremap-fix-memory-account-on-do_munmap-failure.patch
+* mm-mremap-dont-account-pages-in-vma_to_resize.patch
+* mm-sparse-pass-section_nr-to-section_mark_present.patch
+* mm-sparse-pass-section_nr-to-find_memory_block.patch
+* mm-sparse-remove-__section_nr-function.patch
+* mm-sparse-set-section_nid_shift-to-6.patch
+* avoid-a-warning-in-sparse-memory-support.patch
+* mm-sparse-clarify-pgdat_to_phys.patch
+* mm-vmalloc-use-batched-page-requests-in-bulk-allocator.patch
+* mm-vmalloc-remove-gfpflags_allow_blocking-check.patch
+* lib-test_vmallocc-add-a-new-nr_pages-parameter.patch
+* mm-vmalloc-fix-wrong-behavior-in-vread.patch
+* mm-kasan-move-kasanfault-to-mm-kasan-reportc.patch
+* mm-page_alloc-always-initialize-memory-map-for-the-holes.patch
+* mm-page_alloc-always-initialize-memory-map-for-the-holes-fix.patch
+* microblaze-simplify-pte_alloc_one_kernel.patch
+* mm-introduce-memmap_alloc-to-unify-memory-map-allocation.patch
+* memblock-stop-poisoning-raw-allocations.patch
+* fix-zone_id-may-be-used-uninitialized-in-this-function-warning.patch
+* mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref.patch
+* hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
+* hugetlb-drop-ref-count-earlier-after-page-allocation.patch
+* hugetlb-before-freeing-hugetlb-page-set-dtor-to-appropriate-value.patch
+* mm-numa-automatically-generate-node-migration-order.patch
+* mm-migrate-update-node-demotion-order-on-hotplug-events.patch
+* mm-migrate-enable-returning-precise-migrate_pages-success-count.patch
+* mm-migrate-demote-pages-during-reclaim.patch
+* mm-migrate-demote-pages-during-reclaim-v11.patch
+* mm-vmscan-add-page-demotion-counter.patch
+* mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages.patch
+* mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages-v11.patch
+* mm-vmscan-consider-anonymous-pages-without-swap.patch
+* mm-vmscan-consider-anonymous-pages-without-swap-v11.patch
+* mm-vmscan-never-demote-for-memcg-reclaim.patch
+* mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
+* mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg.patch
+* mm-vmscan-remove-the-pagedirty-check-after-madv_free-pages-are-page_ref_freezed.patch
+* mm-vmscan-remove-misleading-setting-to-sc-priority.patch
+* mm-vmscan-remove-unneeded-return-value-of-kswapd_run.patch
+* mm-vmscan-add-else-to-remove-check_pending-label.patch
+* mm-compaction-optimize-proactive-compaction-deferrals.patch
+* mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
+* mm-compaction-support-triggering-of-proactive-compaction-by-user.patch
+* mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
+* mm-mempolicy-add-mpol_preferred_many-for-multiple-preferred-nodes.patch
+* mm-memplicy-add-page-allocation-function-for-mpol_preferred_many-policy.patch
+* mm-mempolicy-enable-page-allocation-for-mpol_preferred_many-for-general-cases.patch
+* mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many.patch
+* mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
+* mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix-2.patch
+* mm-mempolicy-advertise-new-mpol_preferred_many.patch
+* mm-mempolicy-unify-the-create-func-for-bind-interleave-prefer-many-policies.patch
+* mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch
+* mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+* mm-mempolicy-use-readable-numa_no_node-macro-instead-of-magic-numer.patch
+* oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage.patch
+* mm-thp-make-alloc_split_ptlocks-dependent-on-use_split_pte_ptlocks.patch
+* selftests-vm-add-ksm-merge-test.patch
+* selftests-vm-add-ksm-unmerge-test.patch
+* selftests-vm-add-ksm-zero-page-merging-test.patch
+* selftests-vm-add-ksm-merging-across-nodes-test.patch
+* selftests-vm-add-ksm-merging-time-test.patch
+* selftests-vm-add-cow-time-test-for-ksm-pages.patch
+* mm-vmstat-correct-some-wrong-comments.patch
+* mm-vmstat-simplify-the-array-size-calculation.patch
+* mm-vmstat-remove-unneeded-return-value.patch
+* preempt-provide-preempt__nort-variants.patch
+* mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt.patch
+* memory-hotplugrst-remove-locking-details-from-admin-guide.patch
+* memory-hotplugrst-complete-admin-guide-overhaul.patch
+* mm-remove-pfn_valid_within-and-config_holes_in_zone.patch
+* mm-memory_hotplug-cleanup-after-removal-of-pfn_valid_within.patch
+* mm-memory_hotplug-use-unsigned-long-for-pfn-in-zone_for_pfn_range.patch
+* mm-memory_hotplug-remove-nid-parameter-from-arch_remove_memory.patch
+* mm-memory_hotplug-remove-nid-parameter-from-remove_memory-and-friends.patch
+* acpi-memhotplug-memory-resources-cannot-be-enabled-yet.patch
+* mm-track-present-early-pages-per-zone.patch
+* mm-memory_hotplug-introduce-auto-movable-online-policy.patch
+* drivers-base-memory-introduce-memory-groups-to-logically-group-memory-blocks.patch
+* mm-memory_hotplug-track-present-pages-in-memory-groups.patch
+* acpi-memhotplug-use-a-single-static-memory-group-for-a-single-memory-device.patch
+* dax-kmem-use-a-single-static-memory-group-for-a-single-probed-unit.patch
+* virtio-mem-use-a-single-dynamic-memory-group-for-a-single-virtio-mem-device.patch
+* mm-memory_hotplug-memory-group-aware-auto-movable-online-policy.patch
+* mm-memory_hotplug-memory-group-aware-auto-movable-online-policy-fix.patch
+* mm-memory_hotplug-improved-dynamic-memory-group-aware-auto-movable-online-policy.patch
+* mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
+* mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
+* mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
+* mm-highmem-remove-deprecated-kmap_atomic.patch
+* kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
+* info-task-hung-in-generic_file_write_iter.patch
+* info-task-hung-in-generic_file_write-fix.patch
+* kernel-hung_taskc-monitor-killed-tasks.patch
+* percpu-remove-export-of-pcpu_base_addr.patch
+* fs-proc-kcorec-add-mmap-interface.patch
+* connector-send-event-on-write-to-proc-comm.patch
+* proc-sysctl-make-protected_-world-readable.patch
+* arch-kconfig-fix-spelling-mistake-seperate-separate.patch
+* once-fix-trivia-typo-not-note.patch
+* acct-use-dedicated-helper-to-access-rlimit-values.patch
+* math-make-rational-tristate.patch
+* math-rational_kunit_test-should-depend-on-rational-instead-of-selecting-it.patch
+* lib-string-optimized-memcpy.patch
+* lib-string-optimized-memmove.patch
+* lib-string-optimized-memset.patch
+* lib-test-convert-test_sortc-to-use-kunit.patch
+* checkpatch-support-wide-strings.patch
+* fs-epoll-use-a-per-cpu-counter-for-users-watches-count.patch
+* init-mainc-silence-some-wunused-parameter-warnings.patch
+* nilfs2-fix-memory-leak-in-nilfs_sysfs_create_device_group.patch
+* nilfs2-fix-null-pointer-in-nilfs_name_attr_release.patch
+* nilfs2-fix-memory-leak-in-nilfs_sysfs_create_name_group.patch
+* nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_name_group.patch
+* nilfs2-fix-memory-leak-in-nilfs_sysfs_create_snapshot_group.patch
+* nilfs2-fix-memory-leak-in-nilfs_sysfs_delete_snapshot_group.patch
+* hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
+* log-if-a-core-dump-is-aborted-due-to-changed-file-permissions.patch
+* log-if-a-core-dump-is-aborted-due-to-changed-file-permissions-fix.patch
+* pid-cleanup-the-stale-comment-mentioning-pidmap_init.patch
+* prctl-allow-to-setup-brk-for-et_dyn-executables.patch
+* configs-remove-the-obsolete-config_input_polldev.patch
+* selftests-memfd-remove-unused-variable.patch
+  linux-next.patch
+  linux-next-rejects.patch
+  linux-next-git-rejects.patch
+* kexec-move-locking-into-do_kexec_load.patch
+* kexec-avoid-compat_alloc_user_space.patch
+* mm-simplify-compat_sys_move_pages.patch
+* mm-simplify-compat-numa-syscalls.patch
+* mm-simplify-compat-numa-syscalls-fix.patch
+* compat-remove-some-compat-entry-points.patch
+* arch-remove-compat_alloc_user_space.patch
+  make-sure-nobodys-leaking-resources.patch
+  releasing-resources-with-children.patch
+  mutex-subsystem-synchro-test-module.patch
+  kernel-forkc-export-kernel_thread-to-modules.patch
+  workaround-for-a-pci-restoring-bug.patch
