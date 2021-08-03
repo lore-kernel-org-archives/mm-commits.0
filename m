@@ -7,39 +7,42 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25E59C4320A
-	for <mm-commits@archiver.kernel.org>; Tue,  3 Aug 2021 21:49:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 156CCC432BE
+	for <mm-commits@archiver.kernel.org>; Tue,  3 Aug 2021 21:49:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 153926105A
+	by mail.kernel.org (Postfix) with ESMTP id F31B76105A
 	for <mm-commits@archiver.kernel.org>; Tue,  3 Aug 2021 21:49:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230406AbhHCVtx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Aug 2021 17:49:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57670 "EHLO mail.kernel.org"
+        id S229678AbhHCVty (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Aug 2021 17:49:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229678AbhHCVtu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Aug 2021 17:49:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 77DC260725;
-        Tue,  3 Aug 2021 21:49:38 +0000 (UTC)
+        id S230490AbhHCVtx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Aug 2021 17:49:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 72C0F61040;
+        Tue,  3 Aug 2021 21:49:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628027378;
-        bh=VIOECRHaCTiqjtcKYYK9lOG2NFFvHBE7tsvN8eRil5o=;
+        s=korg; t=1628027381;
+        bh=6aKjb8knEnD/zsXYxksmiVTPAnrGzdCWF4U8y3ST6ek=;
         h=Date:From:To:Subject:From;
-        b=T0LH+lOBo1AGvzJ2T7XfWqIoPT02Zgt+P6CWI7q5Fvnhin6/RcUFtrfBk6GhYZ40x
-         QtEYs8AEKOf7CicVelUXMo6uxsOoPfUA70AHKSksltPPISsd6MsffEdtGEten9ZDuX
-         v7yjr50/KSxhzKlwp2TgnmcujkSw6xxBkVUroA2o=
-Date:   Tue, 03 Aug 2021 14:49:38 -0700
+        b=qz2AVhR4+ZgzxTF8LTNPs96MDTurvgArDngWlJXv9xsof4SVR4EdBcN0EATYGC5gu
+         SMglqn+2ltvw9iuOVz9PzpTlKxVyUgN31vGopNgOJE3WXmWaAG+mMuekIRkM2akjfP
+         w80TF7fPqlRxyKWPmyv3BGvBIwRPQ9rsRs2r49s0=
+Date:   Tue, 03 Aug 2021 14:49:41 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, ying.huang@intel.com, vbabka@suse.cz,
         rientjes@google.com, rdunlap@infradead.org,
         mike.kravetz@oracle.com, mhocko@suse.com,
-        mgorman@techsingularity.net, feng.tang@intel.com,
-        dave.hansen@linux.intel.com, dan.j.williams@intel.com,
-        ak@linux.intel.com, aarcange@redhat.com, ben.widawsky@intel.com
+        mgorman@techsingularity.net, dave.hansen@linux.intel.com,
+        dan.j.williams@intel.com, ben.widawsky@intel.com,
+        ak@linux.intel.com, aarcange@redhat.com, feng.tang@intel.com
 Subject:  [to-be-updated]
- mm-mempolicy-advertise-new-mpol_preferred_many.patch removed from -mm tree
-Message-ID: <20210803214938.lfaDY%akpm@linux-foundation.org>
+ =?us-ascii?Q?mm-mempolicy-unify-the-create-func-for-bind-interleave-pr?=
+ =?us-ascii?Q?efer-many-policies.patch?= removed from -mm tree
+Message-ID: <20210803214941.gtDtt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,39 +50,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: advertise new MPOL_PREFERRED_MANY
+     Subject: mm/mempolicy: unify the create() func for bind/interleave/prefer-many policies
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-advertise-new-mpol_preferred_many.patch
+     mm-mempolicy-unify-the-create-func-for-bind-interleave-prefer-many-policies.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Ben Widawsky <ben.widawsky@intel.com>
-Subject: mm/mempolicy: advertise new MPOL_PREFERRED_MANY
+From: Feng Tang <feng.tang@intel.com>
+Subject: mm/mempolicy: unify the create() func for bind/interleave/prefer-many policies
 
-Adds a new mode to the existing mempolicy modes, MPOL_PREFERRED_MANY.
+As they all do the same thing: sanity check and save nodemask info, create
+one mpol_new_nodemask() to reduce redundancy.
 
-MPOL_PREFERRED_MANY will be adequately documented in the internal
-admin-guide with this patch.  Eventually, the man pages for mbind(2),
-get_mempolicy(2), set_mempolicy(2) and numactl(8) will also have text
-about this mode.  Those shall contain the canonical reference.
-
-NUMA systems continue to become more prevalent.  New technologies like
-PMEM make finer grain control over memory access patterns increasingly
-desirable.  MPOL_PREFERRED_MANY allows userspace to specify a set of nodes
-that will be tried first when performing allocations.  If those
-allocations fail, all remaining nodes will be tried.  It's a straight
-forward API which solves many of the presumptive needs of system
-administrators wanting to optimize workloads on such machines.  The mode
-will work either per VMA, or per thread.
-
-Link: https://lore.kernel.org/r/20200630212517.308045-13-ben.widawsky@intel.com
-Link: https://lkml.kernel.org/r/1626077374-81682-6-git-send-email-feng.tang@intel.com
-Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+Link: https://lkml.kernel.org/r/1626077374-81682-7-git-send-email-feng.tang@intel.com
 Signed-off-by: Feng Tang <feng.tang@intel.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Ben Widawsky <ben.widawsky@intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -91,60 +80,71 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/numa_memory_policy.rst |   16 +++++++---
- mm/mempolicy.c                                      |    7 ----
- 2 files changed, 13 insertions(+), 10 deletions(-)
+ mm/mempolicy.c |   24 ++++--------------------
+ 1 file changed, 4 insertions(+), 20 deletions(-)
 
---- a/Documentation/admin-guide/mm/numa_memory_policy.rst~mm-mempolicy-advertise-new-mpol_preferred_many
-+++ a/Documentation/admin-guide/mm/numa_memory_policy.rst
-@@ -245,6 +245,14 @@ MPOL_INTERLEAVED
- 	address range or file.  During system boot up, the temporary
- 	interleaved system default policy works in this mode.
- 
-+MPOL_PREFERRED_MANY
-+        This mode specifies that the allocation should be attempted from the
-+        nodemask specified in the policy. If that allocation fails, the kernel
-+        will search other nodes, in order of increasing distance from the first
-+        set bit in the nodemask based on information provided by the platform
-+        firmware. It is similar to MPOL_PREFERRED with the main exception that
-+        is an error to have an empty nodemask.
-+
- NUMA memory policy supports the following optional mode flags:
- 
- MPOL_F_STATIC_NODES
-@@ -253,10 +261,10 @@ MPOL_F_STATIC_NODES
- 	nodes changes after the memory policy has been defined.
- 
- 	Without this flag, any time a mempolicy is rebound because of a
--	change in the set of allowed nodes, the node (Preferred) or
--	nodemask (Bind, Interleave) is remapped to the new set of
--	allowed nodes.  This may result in nodes being used that were
--	previously undesired.
-+        change in the set of allowed nodes, the preferred nodemask (Preferred
-+        Many), preferred node (Preferred) or nodemask (Bind, Interleave) is
-+        remapped to the new set of allowed nodes.  This may result in nodes
-+        being used that were previously undesired.
- 
- 	With this flag, if the user-specified nodes overlap with the
- 	nodes allowed by the task's cpuset, then the memory policy is
---- a/mm/mempolicy.c~mm-mempolicy-advertise-new-mpol_preferred_many
+--- a/mm/mempolicy.c~mm-mempolicy-unify-the-create-func-for-bind-interleave-prefer-many-policies
 +++ a/mm/mempolicy.c
-@@ -1463,12 +1463,7 @@ static inline int sanitize_mpol_flags(in
- 	*flags = *mode & MPOL_MODE_FLAGS;
- 	*mode &= ~MPOL_MODE_FLAGS;
+@@ -192,7 +192,7 @@ static void mpol_relative_nodemask(nodem
+ 	nodes_onto(*ret, tmp, *rel);
+ }
  
--	/*
--	 * The check should be 'mode >= MPOL_MAX', but as 'prefer_many'
--	 * is not fully implemented, don't permit it to be used for now,
--	 * and the logic will be restored in following patch
--	 */
--	if ((unsigned int)(*mode) >=  MPOL_PREFERRED_MANY)
-+	if ((unsigned int)(*mode) >=  MPOL_MAX)
+-static int mpol_new_interleave(struct mempolicy *pol, const nodemask_t *nodes)
++static int mpol_new_nodemask(struct mempolicy *pol, const nodemask_t *nodes)
+ {
+ 	if (nodes_empty(*nodes))
  		return -EINVAL;
- 	if ((*flags & MPOL_F_STATIC_NODES) && (*flags & MPOL_F_RELATIVE_NODES))
- 		return -EINVAL;
+@@ -210,22 +210,6 @@ static int mpol_new_preferred(struct mem
+ 	return 0;
+ }
+ 
+-static int mpol_new_preferred_many(struct mempolicy *pol, const nodemask_t *nodes)
+-{
+-	if (nodes_empty(*nodes))
+-		return -EINVAL;
+-	pol->nodes = *nodes;
+-	return 0;
+-}
+-
+-static int mpol_new_bind(struct mempolicy *pol, const nodemask_t *nodes)
+-{
+-	if (nodes_empty(*nodes))
+-		return -EINVAL;
+-	pol->nodes = *nodes;
+-	return 0;
+-}
+-
+ /*
+  * mpol_set_nodemask is called after mpol_new() to set up the nodemask, if
+  * any, for the new policy.  mpol_new() has already validated the nodes
+@@ -405,7 +389,7 @@ static const struct mempolicy_operations
+ 		.rebind = mpol_rebind_default,
+ 	},
+ 	[MPOL_INTERLEAVE] = {
+-		.create = mpol_new_interleave,
++		.create = mpol_new_nodemask,
+ 		.rebind = mpol_rebind_nodemask,
+ 	},
+ 	[MPOL_PREFERRED] = {
+@@ -413,14 +397,14 @@ static const struct mempolicy_operations
+ 		.rebind = mpol_rebind_preferred,
+ 	},
+ 	[MPOL_BIND] = {
+-		.create = mpol_new_bind,
++		.create = mpol_new_nodemask,
+ 		.rebind = mpol_rebind_nodemask,
+ 	},
+ 	[MPOL_LOCAL] = {
+ 		.rebind = mpol_rebind_default,
+ 	},
+ 	[MPOL_PREFERRED_MANY] = {
+-		.create = mpol_new_preferred_many,
++		.create = mpol_new_nodemask,
+ 		.rebind = mpol_rebind_preferred,
+ 	},
+ };
 _
 
-Patches currently in -mm which might be from ben.widawsky@intel.com are
+Patches currently in -mm which might be from feng.tang@intel.com are
 
 
