@@ -4,39 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_RED
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D04EC4338F
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:00:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 67763C4338F
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:06:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12DA861078
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:00:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49C436103C
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:06:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232721AbhHDABA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Aug 2021 20:01:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46330 "EHLO mail.kernel.org"
+        id S233906AbhHDAHG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Aug 2021 20:07:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47168 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232641AbhHDAA7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Aug 2021 20:00:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E581761050;
-        Wed,  4 Aug 2021 00:00:46 +0000 (UTC)
+        id S231593AbhHDAHG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Aug 2021 20:07:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8622760F45;
+        Wed,  4 Aug 2021 00:06:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628035247;
-        bh=/EAJ2Tso9FHt+RVaw5q0u5Ngtth16BJ0eU+S8/JfnVY=;
+        s=korg; t=1628035613;
+        bh=hklzzfRQ7VsdfAVLZ+KlJbdhYM8oPJF3UsEyyk4rIaY=;
         h=Date:From:To:Subject:From;
-        b=GkrJB/2dcESCd9J3URQNk0YreLSkStELep2HMA9dxkgHf6C48eBQXZcvqu8ihUKY+
-         S1UZo9qAUkDluqq8Es9Uiz+qAyO2uVUaSp/eWwcg2ISS0ppvuZIQvxXluyKtT5bzcv
-         hqsQOEa7g18eQvBMfy+/GxP17bn0pg1f0R4b5bJY=
-Date:   Tue, 03 Aug 2021 17:00:46 -0700
+        b=aDkhYMtp27+F6nUGW5c8eB3e0b8l/dkr5J9HZ4LD3ch7aw2+VTDDvgsQQGaFPfdiW
+         rLJcZRSO5dzhmARj28SsEcwdqb5Ydf598Vv5LfLka2oOMiTzAucqe/LPdG1O4kUTxb
+         jTast3gH9AlqOe4Niie7sFK5Dx9DrQudIZ70RfPs=
+Date:   Tue, 03 Aug 2021 17:06:53 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, vbabka@suse.cz,
-        songmuchun@bytedance.com, shakeelb@google.com, mhocko@kernel.org,
-        lgoncalv@redhat.com, hannes@cmpxchg.org, guro@fb.com,
-        longman@redhat.com
-Subject:  [nacked]
- mm-memcg-disable-task-obj_stock-for-preempt_rt.patch removed from -mm tree
-Message-ID: <20210804000046.rhi6W%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        npiggin@gmail.com, anton@ozlabs.org, akpm@linux-foundation.org
+Subject:  +
+ fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch added to -mm
+ tree
+Message-ID: <20210804000653.HD54x%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,99 +44,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: disable task obj_stock for PREEMPT_RT
-has been removed from the -mm tree.  Its filename was
-     mm-memcg-disable-task-obj_stock-for-preempt_rt.patch
+     Subject: fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix
+has been added to the -mm tree.  Its filename is
+     fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/memcg: disable task obj_stock for PREEMPT_RT
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix
 
-For PREEMPT_RT kernel, preempt_disable() and local_irq_save() are
-typically converted to local_lock() and local_lock_irqsave() respectively.
-These two variants of local_lock() are essentially the same.  Thus, there
-is no performance advantage in choosing one over the other.
+fix build, fix printk typo
 
-As there is no point in maintaining two different sets of obj_stock, it is
-simpler and more efficient to just disable task_obj and use only irq_obj
-for PREEMPT_RT.  However, task_obj will still be there in the
-memcg_stock_pcp structure even though it is not used in this
-configuration.
-
-Link: https://lkml.kernel.org/r/20210803175519.22298-1-longman@redhat.com
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Luis Goncalves <lgoncalv@redhat.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Anton Blanchard <anton@ozlabs.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ kernel/user.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-disable-task-obj_stock-for-preempt_rt
-+++ a/mm/memcontrol.c
-@@ -2093,12 +2093,22 @@ static bool obj_stock_flush_required(str
-  * which is cheap in non-preempt kernel. The interrupt context object stock
-  * can only be accessed after disabling interrupt. User context code can
-  * access interrupt object stock, but not vice versa.
-+ *
-+ * For PREEMPT_RT kernel, preempt_disable() and local_irq_save() may have
-+ * to be changed to variants of local_lock(). This eliminates the
-+ * performance advantage of using preempt_disable(). Fall back to always
-+ * use local_irq_save() and use only irq_obj for simplicity.
-  */
-+static inline bool use_task_obj_stock(void)
-+{
-+	return !IS_ENABLED(CONFIG_PREEMPT_RT) && likely(in_task());
-+}
-+
- static inline struct obj_stock *get_obj_stock(unsigned long *pflags)
+--- a/kernel/user.c~fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix
++++ a/kernel/user.c
+@@ -138,7 +138,9 @@ static void free_user(struct user_struct
  {
- 	struct memcg_stock_pcp *stock;
+ 	uid_hash_remove(up);
+ 	spin_unlock_irqrestore(&uidhash_lock, flags);
++#ifdef CONFIG_EPOLL
+ 	percpu_counter_destroy(&up->epoll_watches);
++#endif
+ 	kmem_cache_free(uid_cachep, up);
+ }
  
--	if (likely(in_task())) {
-+	if (use_task_obj_stock()) {
- 		*pflags = 0UL;
- 		preempt_disable();
- 		stock = this_cpu_ptr(&memcg_stock);
-@@ -2112,7 +2122,7 @@ static inline struct obj_stock *get_obj_
+@@ -186,10 +188,12 @@ struct user_struct *alloc_uid(kuid_t uid
  
- static inline void put_obj_stock(unsigned long flags)
- {
--	if (likely(in_task()))
-+	if (use_task_obj_stock())
- 		preempt_enable();
- 	else
- 		local_irq_restore(flags);
-@@ -2185,7 +2195,7 @@ static void drain_local_stock(struct wor
+ 		new->uid = uid;
+ 		refcount_set(&new->__count, 1);
++#ifdef CONFIG_EPOLL
+ 		if (percpu_counter_init(&new->epoll_watches, 0, GFP_KERNEL)) {
+ 			kmem_cache_free(uid_cachep, new);
+ 			return NULL;
+ 		}
++#endif
+ 		ratelimit_state_init(&new->ratelimit, HZ, 100);
+ 		ratelimit_set_flags(&new->ratelimit, RATELIMIT_MSG_ON_RELEASE);
  
- 	stock = this_cpu_ptr(&memcg_stock);
- 	drain_obj_stock(&stock->irq_obj);
--	if (in_task())
-+	if (use_task_obj_stock())
- 		drain_obj_stock(&stock->task_obj);
- 	drain_stock(stock);
- 	clear_bit(FLUSHING_CACHED_CHARGE, &stock->flags);
-@@ -3163,7 +3173,7 @@ static bool obj_stock_flush_required(str
- {
- 	struct mem_cgroup *memcg;
+@@ -200,7 +204,9 @@ struct user_struct *alloc_uid(kuid_t uid
+ 		spin_lock_irq(&uidhash_lock);
+ 		up = uid_hash_find(uid, hashent);
+ 		if (up) {
++#ifdef CONFIG_EPOLL
+ 			percpu_counter_destroy(&new->epoll_watches);
++#endif
+ 			kmem_cache_free(uid_cachep, new);
+ 		} else {
+ 			uid_hash_insert(new, hashent);
+@@ -222,8 +228,10 @@ static int __init uid_cache_init(void)
+ 	for(n = 0; n < UIDHASH_SZ; ++n)
+ 		INIT_HLIST_HEAD(uidhash_table + n);
  
--	if (in_task() && stock->task_obj.cached_objcg) {
-+	if (use_task_obj_stock() && stock->task_obj.cached_objcg) {
- 		memcg = obj_cgroup_memcg(stock->task_obj.cached_objcg);
- 		if (memcg && mem_cgroup_is_descendant(memcg, root_memcg))
- 			return true;
++#ifdef CONFIG_EPOLL
+ 	if (percpu_counter_init(&root_user.epoll_watches, 0, GFP_KERNEL))
+-		panic("percpu cpunter alloc failed");
++		panic("percpu counter alloc failed");
++#endif
+ 
+ 	/* Insert the root user immediately (init already runs as root) */
+ 	spin_lock_irq(&uidhash_lock);
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memcg-fix-incorrect-flushing-of-lruvec-data-in-obj_stock.patch
+mm.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
+mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
+log-if-a-core-dump-is-aborted-due-to-changed-file-permissions-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
