@@ -5,37 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67763C4338F
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:06:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25A60C432BE
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:21:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 49C436103C
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:06:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA46360F94
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:21:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233906AbhHDAHG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Aug 2021 20:07:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47168 "EHLO mail.kernel.org"
+        id S233664AbhHDAWC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Aug 2021 20:22:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49780 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231593AbhHDAHG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Aug 2021 20:07:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8622760F45;
-        Wed,  4 Aug 2021 00:06:53 +0000 (UTC)
+        id S233759AbhHDAWC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Aug 2021 20:22:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B331F60F46;
+        Wed,  4 Aug 2021 00:21:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628035613;
-        bh=hklzzfRQ7VsdfAVLZ+KlJbdhYM8oPJF3UsEyyk4rIaY=;
+        s=korg; t=1628036509;
+        bh=s/ruTlnn1ChuucTiostqFTQUlcvakiAUmn7lWJLSI6M=;
         h=Date:From:To:Subject:From;
-        b=aDkhYMtp27+F6nUGW5c8eB3e0b8l/dkr5J9HZ4LD3ch7aw2+VTDDvgsQQGaFPfdiW
-         rLJcZRSO5dzhmARj28SsEcwdqb5Ydf598Vv5LfLka2oOMiTzAucqe/LPdG1O4kUTxb
-         jTast3gH9AlqOe4Niie7sFK5Dx9DrQudIZ70RfPs=
-Date:   Tue, 03 Aug 2021 17:06:53 -0700
+        b=DO5urH0QGHCyYeDI9iCGWxAn/wXrhnwrgHXS7ZiZih2DyKytcaFha8vNpEsrAHmNO
+         pemUHboBZn80vPsHhfp7aE+zDRzqTsOtiU4kmv//ZJ/ITOccymCKCUGeZMwuh5SZ0W
+         /L/Zqj8dv2Q66s37RQiL0FBo617jKBF6ksPa1Z8s=
+Date:   Tue, 03 Aug 2021 17:21:48 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        npiggin@gmail.com, anton@ozlabs.org, akpm@linux-foundation.org
-Subject:  +
- fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch added to -mm
+To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        stable@vger.kernel.org, palmerdabbelt@google.com,
+        nixiaoming@huawei.com, mcgrof@kernel.org, linux@armlinux.org.uk,
+        gregkh@linuxfoundation.org, wangliang101@huawei.com
+Subject:  + lib-use-pfn_phys-in-devmem_is_allowed.patch added to -mm
  tree
-Message-ID: <20210804000653.HD54x%akpm@linux-foundation.org>
+Message-ID: <20210804002148.96Sth%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix
+     Subject: lib: use PFN_PHYS() in devmem_is_allowed()
 has been added to the -mm tree.  Its filename is
-     fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
+     lib-use-pfn_phys-in-devmem_is_allowed.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-use-pfn_phys-in-devmem_is_allowed.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-use-pfn_phys-in-devmem_is_allowed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,78 +66,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix
+From: Liang Wang <wangliang101@huawei.com>
+Subject: lib: use PFN_PHYS() in devmem_is_allowed()
 
-fix build, fix printk typo
+The physical address may exceed 32 bits on 32-bit systems with more than
+32 bits of physcial address,use PFN_PHYS() in devmem_is_allowed(), or the
+physical address may overflow and be truncated.
 
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Anton Blanchard <anton@ozlabs.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+We found this bug when mapping a high addresses through devmem tool, when
+CONFIG_STRICT_DEVMEM is enabled on the ARM with ARM_LPAE and devmem is
+used to map a high address that is not in the iomem address range, an
+unexpected error indicating no permission is returned.
+
+This bug was initially introduced from v2.6.37, and the function was moved
+to lib when v5.11.
+
+Link: https://lkml.kernel.org/r/20210731025057.78825-1-wangliang101@huawei.com
+Fixes: 087aaffcdf9c ("ARM: implement CONFIG_STRICT_DEVMEM by disabling access to RAM via /dev/mem")
+Fixes: 527701eda5f1 ("lib: Add a generic version of devmem_is_allowed()")
+Signed-off-by: Liang Wang <wangliang101@huawei.com>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Liang Wang <wangliang101@huawei.com>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: <stable@vger.kernel.org>	[2.6.37+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/user.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ lib/devmem_is_allowed.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/user.c~fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix
-+++ a/kernel/user.c
-@@ -138,7 +138,9 @@ static void free_user(struct user_struct
+--- a/lib/devmem_is_allowed.c~lib-use-pfn_phys-in-devmem_is_allowed
++++ a/lib/devmem_is_allowed.c
+@@ -19,7 +19,7 @@
+  */
+ int devmem_is_allowed(unsigned long pfn)
  {
- 	uid_hash_remove(up);
- 	spin_unlock_irqrestore(&uidhash_lock, flags);
-+#ifdef CONFIG_EPOLL
- 	percpu_counter_destroy(&up->epoll_watches);
-+#endif
- 	kmem_cache_free(uid_cachep, up);
- }
- 
-@@ -186,10 +188,12 @@ struct user_struct *alloc_uid(kuid_t uid
- 
- 		new->uid = uid;
- 		refcount_set(&new->__count, 1);
-+#ifdef CONFIG_EPOLL
- 		if (percpu_counter_init(&new->epoll_watches, 0, GFP_KERNEL)) {
- 			kmem_cache_free(uid_cachep, new);
- 			return NULL;
- 		}
-+#endif
- 		ratelimit_state_init(&new->ratelimit, HZ, 100);
- 		ratelimit_set_flags(&new->ratelimit, RATELIMIT_MSG_ON_RELEASE);
- 
-@@ -200,7 +204,9 @@ struct user_struct *alloc_uid(kuid_t uid
- 		spin_lock_irq(&uidhash_lock);
- 		up = uid_hash_find(uid, hashent);
- 		if (up) {
-+#ifdef CONFIG_EPOLL
- 			percpu_counter_destroy(&new->epoll_watches);
-+#endif
- 			kmem_cache_free(uid_cachep, new);
- 		} else {
- 			uid_hash_insert(new, hashent);
-@@ -222,8 +228,10 @@ static int __init uid_cache_init(void)
- 	for(n = 0; n < UIDHASH_SZ; ++n)
- 		INIT_HLIST_HEAD(uidhash_table + n);
- 
-+#ifdef CONFIG_EPOLL
- 	if (percpu_counter_init(&root_user.epoll_watches, 0, GFP_KERNEL))
--		panic("percpu cpunter alloc failed");
-+		panic("percpu counter alloc failed");
-+#endif
- 
- 	/* Insert the root user immediately (init already runs as root) */
- 	spin_lock_irq(&uidhash_lock);
+-	if (iomem_is_exclusive(pfn << PAGE_SHIFT))
++	if (iomem_is_exclusive(PFN_PHYS(pfn)))
+ 		return 0;
+ 	if (!page_is_ram(pfn))
+ 		return 1;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangliang101@huawei.com are
 
-mm.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
-mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
-log-if-a-core-dump-is-aborted-due-to-changed-file-permissions-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+lib-use-pfn_phys-in-devmem_is_allowed.patch
 
