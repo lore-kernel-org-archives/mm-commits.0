@@ -5,38 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25A60C432BE
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:21:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9580C4320A
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:33:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EA46360F94
-	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:21:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 84BBE60F94
+	for <mm-commits@archiver.kernel.org>; Wed,  4 Aug 2021 00:33:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233664AbhHDAWC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 3 Aug 2021 20:22:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49780 "EHLO mail.kernel.org"
+        id S230205AbhHDAdm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 3 Aug 2021 20:33:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51640 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233759AbhHDAWC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 3 Aug 2021 20:22:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B331F60F46;
-        Wed,  4 Aug 2021 00:21:49 +0000 (UTC)
+        id S230140AbhHDAdl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 3 Aug 2021 20:33:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EDD4060F56;
+        Wed,  4 Aug 2021 00:33:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628036509;
-        bh=s/ruTlnn1ChuucTiostqFTQUlcvakiAUmn7lWJLSI6M=;
+        s=korg; t=1628037210;
+        bh=vrhXKvRswtqEpcQk/JZkR6BCW/vbE4r9Wp6vfiAv8gw=;
         h=Date:From:To:Subject:From;
-        b=DO5urH0QGHCyYeDI9iCGWxAn/wXrhnwrgHXS7ZiZih2DyKytcaFha8vNpEsrAHmNO
-         pemUHboBZn80vPsHhfp7aE+zDRzqTsOtiU4kmv//ZJ/ITOccymCKCUGeZMwuh5SZ0W
-         /L/Zqj8dv2Q66s37RQiL0FBo617jKBF6ksPa1Z8s=
-Date:   Tue, 03 Aug 2021 17:21:48 -0700
+        b=2dWrZmWlA0/1hvfOOqs03MO6/1Yp7gdbAU7m7cW0aK8dcWRQqG0dIzxkG+SsCKMd7
+         J62okhxO19+OdYqiC5I7vE8bK8t/QDAzS+hQk9gISkV4m/9NnB0lAdrCupfWTWWXn8
+         PWqDKNbCoIg2HZCTjeLJ6j4NmWLDhlFC74j0iiBo=
+Date:   Tue, 03 Aug 2021 17:33:29 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        stable@vger.kernel.org, palmerdabbelt@google.com,
-        nixiaoming@huawei.com, mcgrof@kernel.org, linux@armlinux.org.uk,
-        gregkh@linuxfoundation.org, wangliang101@huawei.com
-Subject:  + lib-use-pfn_phys-in-devmem_is_allowed.patch added to -mm
- tree
-Message-ID: <20210804002148.96Sth%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        minchan@kernel.org, mhocko@suse.com, linmiaohe@huawei.com,
+        iamjoonsoo.kim@lge.com, hughd@google.com, hannes@cmpxchg.org,
+        david@redhat.com, ying.huang@intel.com
+Subject:  [alternative-merged]
+ mmshmem-fix-a-typo-in-shmem_swapin_page.patch removed from -mm tree
+Message-ID: <20210804003329.k1las%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,74 +45,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: use PFN_PHYS() in devmem_is_allowed()
-has been added to the -mm tree.  Its filename is
-     lib-use-pfn_phys-in-devmem_is_allowed.patch
+     Subject: mm,shmem: fix a typo in shmem_swapin_page()
+has been removed from the -mm tree.  Its filename was
+     mmshmem-fix-a-typo-in-shmem_swapin_page.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-use-pfn_phys-in-devmem_is_allowed.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-use-pfn_phys-in-devmem_is_allowed.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Liang Wang <wangliang101@huawei.com>
-Subject: lib: use PFN_PHYS() in devmem_is_allowed()
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm,shmem: fix a typo in shmem_swapin_page()
 
-The physical address may exceed 32 bits on 32-bit systems with more than
-32 bits of physcial address,use PFN_PHYS() in devmem_is_allowed(), or the
-physical address may overflow and be truncated.
+"-" is missing before "EINVAL".
 
-We found this bug when mapping a high addresses through devmem tool, when
-CONFIG_STRICT_DEVMEM is enabled on the ARM with ARM_LPAE and devmem is
-used to map a high address that is not in the iomem address range, an
-unexpected error indicating no permission is returned.
-
-This bug was initially introduced from v2.6.37, and the function was moved
-to lib when v5.11.
-
-Link: https://lkml.kernel.org/r/20210731025057.78825-1-wangliang101@huawei.com
-Fixes: 087aaffcdf9c ("ARM: implement CONFIG_STRICT_DEVMEM by disabling access to RAM via /dev/mem")
-Fixes: 527701eda5f1 ("lib: Add a generic version of devmem_is_allowed()")
-Signed-off-by: Liang Wang <wangliang101@huawei.com>
-Cc: Palmer Dabbelt <palmerdabbelt@google.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Liang Wang <wangliang101@huawei.com>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: <stable@vger.kernel.org>	[2.6.37+]
+Link: https://lkml.kernel.org/r/20210723080000.93953-1-ying.huang@intel.com
+Fixes: 2efa33fc7f6e ("mm/shmem: fix shmem_swapin() race with swapoff")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/devmem_is_allowed.c |    2 +-
+ mm/shmem.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/devmem_is_allowed.c~lib-use-pfn_phys-in-devmem_is_allowed
-+++ a/lib/devmem_is_allowed.c
-@@ -19,7 +19,7 @@
-  */
- int devmem_is_allowed(unsigned long pfn)
- {
--	if (iomem_is_exclusive(pfn << PAGE_SHIFT))
-+	if (iomem_is_exclusive(PFN_PHYS(pfn)))
- 		return 0;
- 	if (!page_is_ram(pfn))
- 		return 1;
+--- a/mm/shmem.c~mmshmem-fix-a-typo-in-shmem_swapin_page
++++ a/mm/shmem.c
+@@ -1708,7 +1708,7 @@ static int shmem_swapin_page(struct inod
+ 	/* Prevent swapoff from happening to us. */
+ 	si = get_swap_device(swap);
+ 	if (!si) {
+-		error = EINVAL;
++		error = -EINVAL;
+ 		goto failed;
+ 	}
+ 	/* Look it up and read it in.. */
 _
 
-Patches currently in -mm which might be from wangliang101@huawei.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-lib-use-pfn_phys-in-devmem_is_allowed.patch
+mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
+mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
 
