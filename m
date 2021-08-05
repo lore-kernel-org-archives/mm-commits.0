@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 922F0C4338F
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AC14C4338F
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 76DE860E52
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11B356113C
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238816AbhHEXh4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:37:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35496 "EHLO mail.kernel.org"
+        id S238836AbhHEXh6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:37:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35530 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237996AbhHEXh4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:37:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ADCE9610CD;
-        Thu,  5 Aug 2021 23:37:40 +0000 (UTC)
+        id S237996AbhHEXh6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:37:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A2F2560E52;
+        Thu,  5 Aug 2021 23:37:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206660;
-        bh=3iBpjSGEl6y8Bk5KIyGoDQ3GGhHc0BfCzMkgzppbiGU=;
+        s=korg; t=1628206662;
+        bh=a18Lrs3Puja3hsOo8N1ilTdI4sABAz1CYaYxH7Zq1e8=;
         h=Date:From:To:Subject:From;
-        b=p19Zp1AR+oT4w/vBtE0xA63ryJZhIdpcYPiBPrE3zEzaTpIV+xHu5ij/NCXbvyDuY
-         q9NC3r0pQQ7GWV7tJhpYAsoHcp/B2zioxqvYmqNfnXXZcw5n13WM7997pm53dzSVgK
-         0cx0v3cwhRaWjsPGaPPZ7atOMHE0iElFJbgaosyk=
-Date:   Thu, 05 Aug 2021 16:37:40 -0700
+        b=FpbBBhS2qh8HpRJDcybceaANd4z+YUz20TlpLaHIEvQSJb32lmYV74YxgzH7koU+F
+         B925envHhj58MdFddAdSBZp8wTMhxyerM7n4X3iRKuZG6KlK+mNCJPXIqtCNwTZsa+
+         0xHIrezff0pEzHev3fb+2Fw05P12/YtCZJVcj3Y0=
+Date:   Thu, 05 Aug 2021 16:37:42 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
         mgorman@techsingularity.net, jannh@google.com,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
-Subject:  + mm-slub-check-new-pages-with-restored-irqs.patch added to
- -mm tree
-Message-ID: <20210805233740.EKbKB%akpm@linux-foundation.org>
+Subject:  + mm-slub-stop-disabling-irqs-around-get_partial.patch
+ added to -mm tree
+Message-ID: <20210805233742.GStCd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: check new pages with restored irqs
+     Subject: mm, slub: stop disabling irqs around get_partial()
 has been added to the -mm tree.  Its filename is
-     mm-slub-check-new-pages-with-restored-irqs.patch
+     mm-slub-stop-disabling-irqs-around-get_partial.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-check-new-pages-with-restored-irqs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-stop-disabling-irqs-around-get_partial.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-check-new-pages-with-restored-irqs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-stop-disabling-irqs-around-get_partial.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,14 +68,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: check new pages with restored irqs
+Subject: mm, slub: stop disabling irqs around get_partial()
 
-Building on top of the previous patch, re-enable irqs before checking new
-pages.  alloc_debug_processing() is now called with enabled irqs so we
-need to remove VM_BUG_ON(!irqs_disabled()); in check_slab() - there
-doesn't seem to be a need for it anyway.
+The function get_partial() does not need to have irqs disabled as a whole.
+It's sufficient to convert spin_lock operations to their irq
+saving/restoring versions.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-18-vbabka@suse.cz
+As a result, it's now possible to reach the page allocator from the slab
+allocator without disabling and re-enabling interrupts on the way.
+
+Link: https://lkml.kernel.org/r/20210805152000.12817-19-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -90,64 +92,79 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/slub.c |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
---- a/mm/slub.c~mm-slub-check-new-pages-with-restored-irqs
+--- a/mm/slub.c~mm-slub-stop-disabling-irqs-around-get_partial
 +++ a/mm/slub.c
-@@ -995,8 +995,6 @@ static int check_slab(struct kmem_cache
+@@ -1996,11 +1996,12 @@ static inline bool pfmemalloc_match(stru
+  * Try to allocate a partial slab from a specific node.
+  */
+ static void *get_partial_node(struct kmem_cache *s, struct kmem_cache_node *n,
+-			      struct page **ret_page, gfp_t flags)
++			      struct page **ret_page, gfp_t gfpflags)
  {
- 	int maxobj;
+ 	struct page *page, *page2;
+ 	void *object = NULL;
+ 	unsigned int available = 0;
++	unsigned long flags;
+ 	int objects;
  
--	VM_BUG_ON(!irqs_disabled());
--
- 	if (!PageSlab(page)) {
- 		slab_err(s, page, "Not a valid slab page");
- 		return 0;
-@@ -2775,10 +2773,10 @@ new_objects:
- 	lockdep_assert_irqs_disabled();
- 
- 	freelist = get_partial(s, gfpflags, node, &page);
-+	local_irq_restore(flags);
- 	if (freelist)
- 		goto check_new_page;
- 
--	local_irq_restore(flags);
- 	put_cpu_ptr(s->cpu_slab);
- 	page = new_slab(s, gfpflags, node);
- 	c = get_cpu_ptr(s->cpu_slab);
-@@ -2788,7 +2786,6 @@ new_objects:
+ 	/*
+@@ -2012,11 +2013,11 @@ static void *get_partial_node(struct kme
+ 	if (!n || !n->nr_partial)
  		return NULL;
+ 
+-	spin_lock(&n->list_lock);
++	spin_lock_irqsave(&n->list_lock, flags);
+ 	list_for_each_entry_safe(page, page2, &n->partial, slab_list) {
+ 		void *t;
+ 
+-		if (!pfmemalloc_match(page, flags))
++		if (!pfmemalloc_match(page, gfpflags))
+ 			continue;
+ 
+ 		t = acquire_slab(s, n, page, object == NULL, &objects);
+@@ -2037,7 +2038,7 @@ static void *get_partial_node(struct kme
+ 			break;
+ 
+ 	}
+-	spin_unlock(&n->list_lock);
++	spin_unlock_irqrestore(&n->list_lock, flags);
+ 	return object;
+ }
+ 
+@@ -2752,8 +2753,10 @@ new_slab:
+ 			local_irq_restore(flags);
+ 			goto reread_page;
+ 		}
+-		if (unlikely(!slub_percpu_partial(c)))
++		if (unlikely(!slub_percpu_partial(c))) {
++			local_irq_restore(flags);
+ 			goto new_objects; /* stolen by an IRQ handler */
++		}
+ 
+ 		page = c->page = slub_percpu_partial(c);
+ 		slub_set_percpu_partial(c, page);
+@@ -2762,18 +2765,9 @@ new_slab:
+ 		goto redo;
  	}
  
 -	local_irq_save(flags);
- 	/*
- 	 * No other reference to the page yet so we can
- 	 * muck around with it freely without cmpxchg
-@@ -2803,7 +2800,6 @@ check_new_page:
- 	if (kmem_cache_debug(s)) {
- 		if (!alloc_debug_processing(s, page, freelist, addr)) {
- 			/* Slab failed checks. Next slab needed */
--			local_irq_restore(flags);
- 			goto new_slab;
- 		} else {
- 			/*
-@@ -2821,6 +2817,7 @@ check_new_page:
- 		 */
- 		goto return_single;
+-	if (unlikely(c->page)) {
+-		local_irq_restore(flags);
+-		goto reread_page;
+-	}
+-
+ new_objects:
  
-+	local_irq_save(flags);
- 	if (unlikely(c->page))
- 		flush_slab(s, c);
- 	c->page = page;
-@@ -2829,6 +2826,7 @@ check_new_page:
+-	lockdep_assert_irqs_disabled();
+-
+ 	freelist = get_partial(s, gfpflags, node, &page);
+-	local_irq_restore(flags);
+ 	if (freelist)
+ 		goto check_new_page;
  
- return_single:
- 
-+	local_irq_save(flags);
- 	if (unlikely(c->page))
- 		flush_slab(s, c);
- 	c->page = page;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
