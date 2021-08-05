@@ -7,41 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1DFAC4320A
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 922F0C4338F
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C046F60F14
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 76DE860E52
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238601AbhHEXhy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:37:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35460 "EHLO mail.kernel.org"
+        id S238816AbhHEXh4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:37:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35496 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237996AbhHEXhy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:37:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A504260E53;
-        Thu,  5 Aug 2021 23:37:38 +0000 (UTC)
+        id S237996AbhHEXh4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:37:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ADCE9610CD;
+        Thu,  5 Aug 2021 23:37:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206658;
-        bh=LUUOaLU+P0/H44feEVMs89GJKwDPE8/AgsrTZk3H5z0=;
+        s=korg; t=1628206660;
+        bh=3iBpjSGEl6y8Bk5KIyGoDQ3GGhHc0BfCzMkgzppbiGU=;
         h=Date:From:To:Subject:From;
-        b=ooIDdDyp23SVjE8bEXiBusGldNVVm3yV+PXKStuF50nIzndr9FCgncAJMVYJZ8K8Z
-         y41DW+FswottN3feeQkE8etcKGdTsnAuiY1DcSd5nsxB6QTpxepGJiypfJanuOC7m3
-         di++Eoqoija6EoC321WVH7e2yJXL55q6oZsQ/SqE=
-Date:   Thu, 05 Aug 2021 16:37:38 -0700
+        b=p19Zp1AR+oT4w/vBtE0xA63ryJZhIdpcYPiBPrE3zEzaTpIV+xHu5ij/NCXbvyDuY
+         q9NC3r0pQQ7GWV7tJhpYAsoHcp/B2zioxqvYmqNfnXXZcw5n13WM7997pm53dzSVgK
+         0cx0v3cwhRaWjsPGaPPZ7atOMHE0iElFJbgaosyk=
+Date:   Thu, 05 Aug 2021 16:37:40 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
         mgorman@techsingularity.net, jannh@google.com,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
-Subject:  +
- =?us-ascii?Q?mm-slub-validate-slab-from-partial-list-or-page-allocator?=
- =?us-ascii?Q?-before-making-it-cpu-slab.patch?= added to -mm tree
-Message-ID: <20210805233738.CS6oX%akpm@linux-foundation.org>
+Subject:  + mm-slub-check-new-pages-with-restored-irqs.patch added to
+ -mm tree
+Message-ID: <20210805233740.EKbKB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: validate slab from partial list or page allocator before making it cpu slab
+     Subject: mm, slub: check new pages with restored irqs
 has been added to the -mm tree.  Its filename is
-     mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
+     mm-slub-check-new-pages-with-restored-irqs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-check-new-pages-with-restored-irqs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-check-new-pages-with-restored-irqs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,17 +68,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: validate slab from partial list or page allocator before making it cpu slab
+Subject: mm, slub: check new pages with restored irqs
 
-When we obtain a new slab page from node partial list or page allocator,
-we assign it to kmem_cache_cpu, perform some checks, and if they fail, we
-undo the assignment.
+Building on top of the previous patch, re-enable irqs before checking new
+pages.  alloc_debug_processing() is now called with enabled irqs so we
+need to remove VM_BUG_ON(!irqs_disabled()); in check_slab() - there
+doesn't seem to be a need for it anyway.
 
-In order to allow doing the checks without irq disabled, restructure the
-code so that the checks are done first, and kmem_cache_cpu.page assignment
-only after they pass.
-
-Link: https://lkml.kernel.org/r/20210805152000.12817-17-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-18-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -96,67 +90,64 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   17 +++++++++--------
- 1 file changed, 9 insertions(+), 8 deletions(-)
+ mm/slub.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/slub.c~mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab
+--- a/mm/slub.c~mm-slub-check-new-pages-with-restored-irqs
 +++ a/mm/slub.c
-@@ -2775,10 +2775,8 @@ new_objects:
+@@ -995,8 +995,6 @@ static int check_slab(struct kmem_cache
+ {
+ 	int maxobj;
+ 
+-	VM_BUG_ON(!irqs_disabled());
+-
+ 	if (!PageSlab(page)) {
+ 		slab_err(s, page, "Not a valid slab page");
+ 		return 0;
+@@ -2775,10 +2773,10 @@ new_objects:
  	lockdep_assert_irqs_disabled();
  
  	freelist = get_partial(s, gfpflags, node, &page);
--	if (freelist) {
--		c->page = page;
-+	if (freelist)
++	local_irq_restore(flags);
+ 	if (freelist)
  		goto check_new_page;
--	}
  
- 	local_irq_restore(flags);
+-	local_irq_restore(flags);
  	put_cpu_ptr(s->cpu_slab);
-@@ -2791,9 +2789,6 @@ new_objects:
+ 	page = new_slab(s, gfpflags, node);
+ 	c = get_cpu_ptr(s->cpu_slab);
+@@ -2788,7 +2786,6 @@ new_objects:
+ 		return NULL;
  	}
  
- 	local_irq_save(flags);
--	if (c->page)
--		flush_slab(s, c);
--
+-	local_irq_save(flags);
  	/*
  	 * No other reference to the page yet so we can
  	 * muck around with it freely without cmpxchg
-@@ -2802,14 +2797,12 @@ new_objects:
- 	page->freelist = NULL;
- 
- 	stat(s, ALLOC_SLAB);
--	c->page = page;
- 
- check_new_page:
- 
+@@ -2803,7 +2800,6 @@ check_new_page:
  	if (kmem_cache_debug(s)) {
  		if (!alloc_debug_processing(s, page, freelist, addr)) {
  			/* Slab failed checks. Next slab needed */
--			c->page = NULL;
- 			local_irq_restore(flags);
+-			local_irq_restore(flags);
  			goto new_slab;
  		} else {
-@@ -2828,10 +2821,18 @@ check_new_page:
+ 			/*
+@@ -2821,6 +2817,7 @@ check_new_page:
  		 */
  		goto return_single;
  
-+	if (unlikely(c->page))
-+		flush_slab(s, c);
-+	c->page = page;
-+
- 	goto load_freelist;
++	local_irq_save(flags);
+ 	if (unlikely(c->page))
+ 		flush_slab(s, c);
+ 	c->page = page;
+@@ -2829,6 +2826,7 @@ check_new_page:
  
  return_single:
  
-+	if (unlikely(c->page))
-+		flush_slab(s, c);
-+	c->page = page;
-+
- 	deactivate_slab(s, page, get_freepointer(s, freelist), c);
- 	local_irq_restore(flags);
- 	return freelist;
++	local_irq_save(flags);
+ 	if (unlikely(c->page))
+ 		flush_slab(s, c);
+ 	c->page = page;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
