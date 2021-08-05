@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97BEFC432BE
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01420C4338F
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 787EA60E53
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D27C861132
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229604AbhHEXh1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:37:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34986 "EHLO mail.kernel.org"
+        id S237007AbhHEXh2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:37:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35018 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231173AbhHEXh0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:37:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A8A4C60E52;
-        Thu,  5 Aug 2021 23:37:10 +0000 (UTC)
+        id S231173AbhHEXh2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:37:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A4A0B610FF;
+        Thu,  5 Aug 2021 23:37:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206630;
-        bh=kORF3V2IZF1bqOTa5HVm23NZVsIdawPj/JE07DqPG+g=;
+        s=korg; t=1628206632;
+        bh=+kcI7aUG4PTthYPcZXwgZ5odPGlxj0vTXSr4wYTMdlY=;
         h=Date:From:To:Subject:From;
-        b=D3w2tuEicXx+3YnBIJnbDvQhCG6DvqTpZR9cIGGRkauCic3Kehr/EnzPlI8SLPg0P
-         KP1Ejz4WVFtnZfif116CEG8qOhdvQ4HtuF0e8urlI4GpLW73pL2y6wLcOFQVJt1zSz
-         ZwzCZrQEVhK49AgfcvLyG7/oP6z/5t/IcmhObO3c=
-Date:   Thu, 05 Aug 2021 16:37:10 -0700
+        b=TDf9QVEvjf+eV2WYS3x0oh7mNAehx2ArpE2ROTuiWwS6EV6DRQ74JM85F6U6Xyb3b
+         jkWl0BAEFSEtBpDZEVMrsc6izo23mW05hT60Ye0i56cy/Kb9tuevRiNJKreFJALErX
+         PyX9TG0m4cNs0nHVdV7dOVVzY2+Yf9r/nv0WYgIQ=
+Date:   Thu, 05 Aug 2021 16:37:12 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
@@ -36,9 +36,9 @@ To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
 Subject:  +
- mm-slub-allocate-private-object-map-for-debugfs-listings.patch added to -mm
- tree
-Message-ID: <20210805233710.CXvw0%akpm@linux-foundation.org>
+ mm-slub-allocate-private-object-map-for-validate_slab_cache.patch added to
+ -mm tree
+Message-ID: <20210805233712._JiO1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: allocate private object map for debugfs listings
+     Subject: mm, slub: allocate private object map for validate_slab_cache()
 has been added to the -mm tree.  Its filename is
-     mm-slub-allocate-private-object-map-for-debugfs-listings.patch
+     mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-allocate-private-object-map-for-debugfs-listings.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-allocate-private-object-map-for-debugfs-listings.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,19 +69,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: allocate private object map for debugfs listings
+Subject: mm, slub: allocate private object map for validate_slab_cache()
 
-Slub has a static spinlock protected bitmap for marking which objects are
-on freelist when it wants to list them, for situations where dynamically
-allocating such map can lead to recursion or locking issues, and on-stack
-bitmap would be too large.
+validate_slab_cache() is called either to handle a sysfs write, or from a
+self-test context.  In both situations it's straightforward to preallocate
+a private object bitmap instead of grabbing the shared static one meant
+for critical sections, so let's do that.
 
-The handlers of debugfs files alloc_traces and free_traces also currently
-use this shared bitmap, but their syscall context makes it straightforward
-to allocate a private map before entering locked sections, so switch these
-processing paths to use a private bitmap.
-
-Link: https://lkml.kernel.org/r/20210805152000.12817-3-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-4-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Christoph Lameter <cl@linux.com>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
@@ -96,111 +91,87 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   44 +++++++++++++++++++++++++++++---------------
- 1 file changed, 29 insertions(+), 15 deletions(-)
+ mm/slub.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
---- a/mm/slub.c~mm-slub-allocate-private-object-map-for-debugfs-listings
+--- a/mm/slub.c~mm-slub-allocate-private-object-map-for-validate_slab_cache
 +++ a/mm/slub.c
-@@ -454,6 +454,18 @@ static inline bool cmpxchg_double_slab(s
- static unsigned long object_map[BITS_TO_LONGS(MAX_OBJS_PER_PAGE)];
- static DEFINE_SPINLOCK(object_map_lock);
+@@ -4679,11 +4679,11 @@ static int count_total(struct page *page
+ #endif
  
-+static void __fill_map(unsigned long *obj_map, struct kmem_cache *s,
-+		       struct page *page)
-+{
-+	void *addr = page_address(page);
-+	void *p;
-+
-+	bitmap_zero(obj_map, page->objects);
-+
-+	for (p = page->freelist; p; p = get_freepointer(s, p))
-+		set_bit(__obj_to_index(s, addr, p), obj_map);
-+}
-+
- #if IS_ENABLED(CONFIG_KUNIT)
- static bool slab_add_kunit_errors(void)
+ #ifdef CONFIG_SLUB_DEBUG
+-static void validate_slab(struct kmem_cache *s, struct page *page)
++static void validate_slab(struct kmem_cache *s, struct page *page,
++			  unsigned long *obj_map)
  {
-@@ -483,17 +495,11 @@ static inline bool slab_add_kunit_errors
- static unsigned long *get_map(struct kmem_cache *s, struct page *page)
- 	__acquires(&object_map_lock)
- {
--	void *p;
--	void *addr = page_address(page);
--
- 	VM_BUG_ON(!irqs_disabled());
- 
- 	spin_lock(&object_map_lock);
- 
--	bitmap_zero(object_map, page->objects);
--
--	for (p = page->freelist; p; p = get_freepointer(s, p))
--		set_bit(__obj_to_index(s, addr, p), object_map);
-+	__fill_map(object_map, s, page);
- 
- 	return object_map;
- }
-@@ -4879,17 +4885,17 @@ static int add_location(struct loc_track
- }
- 
- static void process_slab(struct loc_track *t, struct kmem_cache *s,
--		struct page *page, enum track_item alloc)
-+		struct page *page, enum track_item alloc,
-+		unsigned long *obj_map)
- {
- 	void *addr = page_address(page);
  	void *p;
+ 	void *addr = page_address(page);
 -	unsigned long *map;
  
+ 	slab_lock(page);
+ 
+@@ -4691,21 +4691,20 @@ static void validate_slab(struct kmem_ca
+ 		goto unlock;
+ 
+ 	/* Now we know that a valid freelist exists */
 -	map = get_map(s, page);
 +	__fill_map(obj_map, s, page);
-+
- 	for_each_object(p, s, addr, page->objects)
--		if (!test_bit(__obj_to_index(s, addr, p), map))
-+		if (!test_bit(__obj_to_index(s, addr, p), obj_map))
- 			add_location(t, s, get_track(s, p, alloc));
+ 	for_each_object(p, s, addr, page->objects) {
+-		u8 val = test_bit(__obj_to_index(s, addr, p), map) ?
++		u8 val = test_bit(__obj_to_index(s, addr, p), obj_map) ?
+ 			 SLUB_RED_INACTIVE : SLUB_RED_ACTIVE;
+ 
+ 		if (!check_object(s, page, p, val))
+ 			break;
+ 	}
 -	put_map(map);
+ unlock:
+ 	slab_unlock(page);
  }
- #endif  /* CONFIG_DEBUG_FS   */
- #endif	/* CONFIG_SLUB_DEBUG */
-@@ -5816,14 +5822,21 @@ static int slab_debug_trace_open(struct
- 	struct loc_track *t = __seq_open_private(filep, &slab_debugfs_sops,
- 						sizeof(struct loc_track));
- 	struct kmem_cache *s = file_inode(filep)->i_private;
+ 
+ static int validate_slab_node(struct kmem_cache *s,
+-		struct kmem_cache_node *n)
++		struct kmem_cache_node *n, unsigned long *obj_map)
+ {
+ 	unsigned long count = 0;
+ 	struct page *page;
+@@ -4714,7 +4713,7 @@ static int validate_slab_node(struct kme
+ 	spin_lock_irqsave(&n->list_lock, flags);
+ 
+ 	list_for_each_entry(page, &n->partial, slab_list) {
+-		validate_slab(s, page);
++		validate_slab(s, page, obj_map);
+ 		count++;
+ 	}
+ 	if (count != n->nr_partial) {
+@@ -4727,7 +4726,7 @@ static int validate_slab_node(struct kme
+ 		goto out;
+ 
+ 	list_for_each_entry(page, &n->full, slab_list) {
+-		validate_slab(s, page);
++		validate_slab(s, page, obj_map);
+ 		count++;
+ 	}
+ 	if (count != atomic_long_read(&n->nr_slabs)) {
+@@ -4746,10 +4745,17 @@ long validate_slab_cache(struct kmem_cac
+ 	int node;
+ 	unsigned long count = 0;
+ 	struct kmem_cache_node *n;
 +	unsigned long *obj_map;
 +
 +	obj_map = bitmap_alloc(oo_objects(s->oo), GFP_KERNEL);
 +	if (!obj_map)
 +		return -ENOMEM;
  
- 	if (strcmp(filep->f_path.dentry->d_name.name, "alloc_traces") == 0)
- 		alloc = TRACK_ALLOC;
- 	else
- 		alloc = TRACK_FREE;
- 
--	if (!alloc_loc_track(t, PAGE_SIZE / sizeof(struct location), GFP_KERNEL))
-+	if (!alloc_loc_track(t, PAGE_SIZE / sizeof(struct location), GFP_KERNEL)) {
-+		bitmap_free(obj_map);
- 		return -ENOMEM;
-+	}
- 
- 	for_each_kmem_cache_node(s, node, n) {
- 		unsigned long flags;
-@@ -5834,12 +5847,13 @@ static int slab_debug_trace_open(struct
- 
- 		spin_lock_irqsave(&n->list_lock, flags);
- 		list_for_each_entry(page, &n->partial, slab_list)
--			process_slab(t, s, page, alloc);
-+			process_slab(t, s, page, alloc, obj_map);
- 		list_for_each_entry(page, &n->full, slab_list)
--			process_slab(t, s, page, alloc);
-+			process_slab(t, s, page, alloc, obj_map);
- 		spin_unlock_irqrestore(&n->list_lock, flags);
- 	}
- 
+ 	flush_all(s);
+ 	for_each_kmem_cache_node(s, node, n)
+-		count += validate_slab_node(s, n);
++		count += validate_slab_node(s, n, obj_map);
++
 +	bitmap_free(obj_map);
- 	return 0;
- }
  
+ 	return count;
+ }
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
