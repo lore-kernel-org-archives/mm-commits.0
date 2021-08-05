@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD72AC4338F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1EAAC432BE
 	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A47FB610FF
+	by mail.kernel.org (Postfix) with ESMTP id B35AE61104
 	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231173AbhHEXhe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S238061AbhHEXhe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 5 Aug 2021 19:37:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35134 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:35096 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237996AbhHEXhd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:37:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A539E60E52;
-        Thu,  5 Aug 2021 23:37:18 +0000 (UTC)
+        id S231173AbhHEXhc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:37:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A9F06610FF;
+        Thu,  5 Aug 2021 23:37:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206638;
-        bh=VXeMIpVbLQJdyj/7dXiMkYUd0xe+z6Ew0sq26S/wSSE=;
+        s=korg; t=1628206636;
+        bh=5IUfa+mQpCUrCUrrcG7pe6yfk5HeU4e8BIyL5EdK5F0=;
         h=Date:From:To:Subject:From;
-        b=T7iOmLMVBNMDHypqiyZwY3iECS/avAXEiTpZTIIUD/ct6ATa5tBseERBu6Sjl+pgV
-         x19ZIQ+uBNeYI2hIByT5AVBTLcIMJzGlroVdNaCerN2XJKzxffJ34ANil2UQ5mmc/I
-         qK6Mznk7lZ5dxHfAoAdiiFvOw+EOrp44R5GiSZuM=
-Date:   Thu, 05 Aug 2021 16:37:18 -0700
+        b=iJi8me5ZSI7GrKH8PrbBKFwV3JdkNeCZu82Y3kzU6Q2rzAGvaUNbY2O/7VBctENSE
+         DT8JT+saTSeAvp/0BjF1spH+UDuToQVubVn4hp8fW0l8dymIJfbkJn6FBxybyfqQjQ
+         4rzhWaFIil7OYBUG8fs14lMcb4ajhEOepuT7e8Ys=
+Date:   Thu, 05 Aug 2021 16:37:16 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
@@ -36,9 +36,9 @@ To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
 Subject:  +
- mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch added to
- -mm tree
-Message-ID: <20210805233718.t-_z1%akpm@linux-foundation.org>
+ mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch added
+ to -mm tree
+Message-ID: <20210805233716.Fehph%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: unify cmpxchg_double_slab() and __cmpxchg_double_slab()
+     Subject: mm, slub: remove redundant unfreeze_partials() from put_cpu_partial()
 has been added to the -mm tree.  Its filename is
-     mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
+     mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,19 +69,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: unify cmpxchg_double_slab() and __cmpxchg_double_slab()
+Subject: mm, slub: remove redundant unfreeze_partials() from put_cpu_partial()
 
-These functions differ only in irq disabling in the slow path.  We can
-create a common function with an extra bool parameter to control the irq
-disabling.  As the functions are inline and the parameter compile-time
-constant, there will be no runtime overhead due to this change.
+Commit d6e0b7fa1186 ("slub: make dead caches discard free slabs
+immediately") introduced cpu partial flushing for kmemcg caches, based on
+setting the target cpu_partial to 0 and adding a flushing check in
+put_cpu_partial().  This code that sets cpu_partial to 0 was later moved
+by c9fc586403e7 ("slab: introduce __kmemcg_cache_deactivate()") and
+ultimately removed by 9855609bde03 ("mm: memcg/slab: use a single set of
+kmem_caches for all accounted allocations").  However the check and flush
+in put_cpu_partial() was never removed, although it's effectively a dead
+code.  So this patch removes it.
 
-Also change the DEBUG_VM based irqs disable assert to the more standard
-lockdep_assert based one.
+Note that d6e0b7fa1186 also added preempt_disable()/enable() to
+unfreeze_partials() which could be thus also considered unnecessary.  But
+further patches will rely on it, so keep it.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-7-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-6-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
@@ -94,111 +100,25 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   62 ++++++++++++++++++++--------------------------------
- 1 file changed, 24 insertions(+), 38 deletions(-)
+ mm/slub.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/mm/slub.c~mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab
+--- a/mm/slub.c~mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial
 +++ a/mm/slub.c
-@@ -371,13 +371,13 @@ static __always_inline void slab_unlock(
- 	__bit_spin_unlock(PG_locked, &page->flags);
- }
+@@ -2466,13 +2466,6 @@ static void put_cpu_partial(struct kmem_
  
--/* Interrupts must be disabled (for the fallback code to work right) */
--static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
-+static inline bool ___cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
- 		void *freelist_old, unsigned long counters_old,
- 		void *freelist_new, unsigned long counters_new,
--		const char *n)
-+		const char *n, bool disable_irqs)
- {
--	VM_BUG_ON(!irqs_disabled());
-+	if (!disable_irqs)
-+		lockdep_assert_irqs_disabled();
- #if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-     defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (s->flags & __CMPXCHG_DOUBLE) {
-@@ -388,15 +388,23 @@ static inline bool __cmpxchg_double_slab
- 	} else
- #endif
- 	{
-+		unsigned long flags;
-+
-+		if (disable_irqs)
-+			local_irq_save(flags);
- 		slab_lock(page);
- 		if (page->freelist == freelist_old &&
- 					page->counters == counters_old) {
- 			page->freelist = freelist_new;
- 			page->counters = counters_new;
- 			slab_unlock(page);
-+			if (disable_irqs)
-+				local_irq_restore(flags);
- 			return true;
- 		}
- 		slab_unlock(page);
-+		if (disable_irqs)
-+			local_irq_restore(flags);
- 	}
- 
- 	cpu_relax();
-@@ -409,45 +417,23 @@ static inline bool __cmpxchg_double_slab
- 	return false;
- }
- 
--static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
-+/* Interrupts must be disabled (for the fallback code to work right) */
-+static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
- 		void *freelist_old, unsigned long counters_old,
- 		void *freelist_new, unsigned long counters_new,
- 		const char *n)
- {
--#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
--    defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
--	if (s->flags & __CMPXCHG_DOUBLE) {
--		if (cmpxchg_double(&page->freelist, &page->counters,
--				   freelist_old, counters_old,
--				   freelist_new, counters_new))
--			return true;
--	} else
--#endif
--	{
+ 	} while (this_cpu_cmpxchg(s->cpu_slab->partial, oldpage, page)
+ 								!= oldpage);
+-	if (unlikely(!slub_cpu_partial(s))) {
 -		unsigned long flags;
 -
 -		local_irq_save(flags);
--		slab_lock(page);
--		if (page->freelist == freelist_old &&
--					page->counters == counters_old) {
--			page->freelist = freelist_new;
--			page->counters = counters_new;
--			slab_unlock(page);
--			local_irq_restore(flags);
--			return true;
--		}
--		slab_unlock(page);
+-		unfreeze_partials(s, this_cpu_ptr(s->cpu_slab));
 -		local_irq_restore(flags);
 -	}
--
--	cpu_relax();
--	stat(s, CMPXCHG_DOUBLE_FAIL);
--
--#ifdef SLUB_DEBUG_CMPXCHG
--	pr_info("%s %s: cmpxchg double redo ", n, s->name);
--#endif
-+	return ___cmpxchg_double_slab(s, page, freelist_old, counters_old,
-+				      freelist_new, counters_new, n, false);
-+}
- 
--	return false;
-+static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
-+		void *freelist_old, unsigned long counters_old,
-+		void *freelist_new, unsigned long counters_new,
-+		const char *n)
-+{
-+	return ___cmpxchg_double_slab(s, page, freelist_old, counters_old,
-+				      freelist_new, counters_new, n, true);
+ 	preempt_enable();
+ #endif	/* CONFIG_SLUB_CPU_PARTIAL */
  }
- 
- #ifdef CONFIG_SLUB_DEBUG
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
