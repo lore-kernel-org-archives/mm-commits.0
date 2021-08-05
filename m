@@ -7,40 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A8C2C4338F
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:08:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D892C4338F
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:22:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0069F6103B
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:08:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4264160EB9
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:22:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232238AbhHEXI0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:08:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60008 "EHLO mail.kernel.org"
+        id S234536AbhHEXWk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:22:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33258 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229697AbhHEXI0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:08:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1820160EE8;
-        Thu,  5 Aug 2021 23:08:11 +0000 (UTC)
+        id S229626AbhHEXWk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:22:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3C7B861104;
+        Thu,  5 Aug 2021 23:22:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628204891;
-        bh=imDGoH6V56k84iI2XuaEw+QAx7/eHzR9OXaNeNIi/5M=;
+        s=korg; t=1628205744;
+        bh=Dk4kJ3URn/Q9A6TDSl/tVtNxP3jdsLaixeCPXZ5BCBc=;
         h=Date:From:To:Subject:From;
-        b=2XhhBu/sPJdoL6BEA9OfnXS6tv6nPviUxjul1DHskG0ydX+IqkBVHCIXQnxRnOUQo
-         kNIsSzQvG/yxJerw25lNUz8bI5hHMxR6An6TK3M8upKuTGz7fu6GddCOvogyKPrGuQ
-         +ZAPJo3tbL8TBiFSvO/93kB7uC//89PDL86Um6ps=
-Date:   Thu, 05 Aug 2021 16:08:10 -0700
+        b=Ar0B78urdGQyGvGoLeew30FpXIgm0DlBT4HtXCKwqJWAwluBuEy60cWNKAhI0TTXx
+         rMQ0L251pMck7LeL0GN+5O05Gqv8mrSJuNyFZaDZGwtVEUYvaSNM2hDIERzGidy7ap
+         xfhtbuUxqcxIiQ+HxxJWrswQU67Bpl1S9cO4A018=
+Date:   Thu, 05 Aug 2021 16:22:21 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        timmurray@google.com, shakeelb@google.com, rientjes@google.com,
-        riel@surriel.com, oleg@redhat.com, minchan@kernel.org,
-        mhocko@suse.com, luto@kernel.org, jengelh@inai.de,
-        jannh@google.com, hch@infradead.org, hannes@cmpxchg.org,
-        guro@fb.com, fweimer@redhat.com, david@redhat.com,
-        christian.brauner@ubuntu.com, christian@brauner.io,
-        surenb@google.com
-Subject:  [to-be-updated] mm-wire-up-syscall-process_mrelease.patch
- removed from -mm tree
-Message-ID: <20210805230810.fhrg0%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tglx@linutronix.de,
+        mingo@kernel.org, mgorman@techsingularity.net, hughd@google.com,
+        mingo@elte.hu
+Subject:  [to-be-updated]
+ mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt.patch removed
+ from -mm tree
+Message-ID: <20210805232221.lQOBh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,255 +45,140 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: wire up syscall process_mrelease
+     Subject: mm/vmstat: protect per cpu variables with preempt disable on RT
 has been removed from the -mm tree.  Its filename was
-     mm-wire-up-syscall-process_mrelease.patch
+     mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: wire up syscall process_mrelease
+From: Ingo Molnar <mingo@elte.hu>
+Subject: mm/vmstat: protect per cpu variables with preempt disable on RT
 
-Split off from prev patch in the series that implements the syscall.
+Disable preemption on -RT for the vmstat code.  On vanilla the code runs
+in IRQ-off regions while on -RT it may not when stats are updated under a
+local_lock.  "preempt_disable" ensures that the same resources are not
+updated in parallel due to preemption.
 
-Link: https://lkml.kernel.org/r/20210804185004.1304692-2-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: Jan Engelhardt <jengelh@inai.de>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tim Murray <timmurray@google.com>
+This patch differs from the preempt-rt version where __count_vm_event and
+__count_vm_events are also protected.  The counters are explicitly
+"allowed to be to be racy" so there is no need to protect them from
+preemption.  Only the accurate page stats that are updated by a
+read-modify-write need protection.
+
+Link: https://lkml.kernel.org/r/20210723100034.13353-3-mgorman@techsingularity.net
+Signed-off-by: Ingo Molnar <mingo@elte.hu>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/syscalls/syscall.tbl      |    2 ++
- arch/arm/tools/syscall.tbl                  |    2 ++
- arch/arm64/include/asm/unistd.h             |    2 +-
- arch/arm64/include/asm/unistd32.h           |    2 ++
- arch/ia64/kernel/syscalls/syscall.tbl       |    2 ++
- arch/m68k/kernel/syscalls/syscall.tbl       |    2 ++
- arch/microblaze/kernel/syscalls/syscall.tbl |    2 ++
- arch/mips/kernel/syscalls/syscall_n32.tbl   |    2 ++
- arch/mips/kernel/syscalls/syscall_n64.tbl   |    2 ++
- arch/mips/kernel/syscalls/syscall_o32.tbl   |    2 ++
- arch/parisc/kernel/syscalls/syscall.tbl     |    2 ++
- arch/powerpc/kernel/syscalls/syscall.tbl    |    2 ++
- arch/s390/kernel/syscalls/syscall.tbl       |    2 ++
- arch/sh/kernel/syscalls/syscall.tbl         |    2 ++
- arch/sparc/kernel/syscalls/syscall.tbl      |    2 ++
- arch/x86/entry/syscalls/syscall_32.tbl      |    1 +
- arch/x86/entry/syscalls/syscall_64.tbl      |    1 +
- arch/xtensa/kernel/syscalls/syscall.tbl     |    2 ++
- include/linux/syscalls.h                    |    1 +
- include/uapi/asm-generic/unistd.h           |    4 +++-
- kernel/sys_ni.c                             |    1 +
- 21 files changed, 38 insertions(+), 2 deletions(-)
+ mm/vmstat.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/arch/alpha/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/alpha/kernel/syscalls/syscall.tbl
-@@ -486,3 +486,5 @@
- 554	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 555	common	landlock_add_rule		sys_landlock_add_rule
- 556	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 557 reserved for memfd_secret
-+558	common	process_mrelease		sys_process_mrelease
---- a/arch/arm64/include/asm/unistd32.h~mm-wire-up-syscall-process_mrelease
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -901,6 +901,8 @@ __SYSCALL(__NR_landlock_create_ruleset,
- __SYSCALL(__NR_landlock_add_rule, sys_landlock_add_rule)
- #define __NR_landlock_restrict_self 446
- __SYSCALL(__NR_landlock_restrict_self, sys_landlock_restrict_self)
-+#define __NR_process_mrelease 448
-+__SYSCALL(__NR_process_mrelease, sys_process_mrelease)
+--- a/mm/vmstat.c~mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt
++++ a/mm/vmstat.c
+@@ -319,6 +319,7 @@ void __mod_zone_page_state(struct zone *
+ 	long x;
+ 	long t;
  
- /*
-  * Please add new compat syscalls above this comment and update
---- a/arch/arm64/include/asm/unistd.h~mm-wire-up-syscall-process_mrelease
-+++ a/arch/arm64/include/asm/unistd.h
-@@ -38,7 +38,7 @@
- #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
- #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
++	preempt_disable_rt();
+ 	x = delta + __this_cpu_read(*p);
  
--#define __NR_compat_syscalls		447
-+#define __NR_compat_syscalls		449
- #endif
+ 	t = __this_cpu_read(pcp->stat_threshold);
+@@ -328,6 +329,7 @@ void __mod_zone_page_state(struct zone *
+ 		x = 0;
+ 	}
+ 	__this_cpu_write(*p, x);
++	preempt_enable_rt();
+ }
+ EXPORT_SYMBOL(__mod_zone_page_state);
  
- #define __ARCH_WANT_SYS_CLONE
---- a/arch/arm/tools/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/arm/tools/syscall.tbl
-@@ -460,3 +460,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/ia64/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/ia64/kernel/syscalls/syscall.tbl
-@@ -367,3 +367,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/m68k/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/m68k/kernel/syscalls/syscall.tbl
-@@ -446,3 +446,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/microblaze/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/microblaze/kernel/syscalls/syscall.tbl
-@@ -452,3 +452,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/mips/kernel/syscalls/syscall_n32.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
-@@ -385,3 +385,5 @@
- 444	n32	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	n32	landlock_add_rule		sys_landlock_add_rule
- 446	n32	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	n32	process_mrelease		sys_process_mrelease
---- a/arch/mips/kernel/syscalls/syscall_n64.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
-@@ -361,3 +361,5 @@
- 444	n64	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	n64	landlock_add_rule		sys_landlock_add_rule
- 446	n64	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	n64	process_mrelease		sys_process_mrelease
---- a/arch/mips/kernel/syscalls/syscall_o32.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
-@@ -434,3 +434,5 @@
- 444	o32	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	o32	landlock_add_rule		sys_landlock_add_rule
- 446	o32	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	o32	process_mrelease		sys_process_mrelease
---- a/arch/parisc/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/parisc/kernel/syscalls/syscall.tbl
-@@ -444,3 +444,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/powerpc/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/powerpc/kernel/syscalls/syscall.tbl
-@@ -526,3 +526,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/s390/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/s390/kernel/syscalls/syscall.tbl
-@@ -449,3 +449,5 @@
- 444  common	landlock_create_ruleset	sys_landlock_create_ruleset	sys_landlock_create_ruleset
- 445  common	landlock_add_rule	sys_landlock_add_rule		sys_landlock_add_rule
- 446  common	landlock_restrict_self	sys_landlock_restrict_self	sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448  common	process_mrelease	sys_process_mrelease		sys_process_mrelease
---- a/arch/sh/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/sh/kernel/syscalls/syscall.tbl
-@@ -449,3 +449,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/sparc/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/sparc/kernel/syscalls/syscall.tbl
-@@ -492,3 +492,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/x86/entry/syscalls/syscall_32.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -452,3 +452,4 @@
- 445	i386	landlock_add_rule	sys_landlock_add_rule
- 446	i386	landlock_restrict_self	sys_landlock_restrict_self
- 447	i386	memfd_secret		sys_memfd_secret
-+448	i386	process_mrelease	sys_process_mrelease
---- a/arch/x86/entry/syscalls/syscall_64.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -369,6 +369,7 @@
- 445	common	landlock_add_rule	sys_landlock_add_rule
- 446	common	landlock_restrict_self	sys_landlock_restrict_self
- 447	common	memfd_secret		sys_memfd_secret
-+448	common	process_mrelease	sys_process_mrelease
+@@ -350,6 +352,7 @@ void __mod_node_page_state(struct pglist
+ 		delta >>= PAGE_SHIFT;
+ 	}
  
- #
- # Due to a historical design error, certain syscalls are numbered differently
---- a/arch/xtensa/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/xtensa/kernel/syscalls/syscall.tbl
-@@ -417,3 +417,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/include/linux/syscalls.h~mm-wire-up-syscall-process_mrelease
-+++ a/include/linux/syscalls.h
-@@ -915,6 +915,7 @@ asmlinkage long sys_mincore(unsigned lon
- asmlinkage long sys_madvise(unsigned long start, size_t len, int behavior);
- asmlinkage long sys_process_madvise(int pidfd, const struct iovec __user *vec,
- 			size_t vlen, int behavior, unsigned int flags);
-+asmlinkage long sys_process_mrelease(int pidfd, unsigned int flags);
- asmlinkage long sys_remap_file_pages(unsigned long start, unsigned long size,
- 			unsigned long prot, unsigned long pgoff,
- 			unsigned long flags);
---- a/include/uapi/asm-generic/unistd.h~mm-wire-up-syscall-process_mrelease
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -877,9 +877,11 @@ __SYSCALL(__NR_landlock_restrict_self, s
- #define __NR_memfd_secret 447
- __SYSCALL(__NR_memfd_secret, sys_memfd_secret)
- #endif
-+#define __NR_process_mrelease 448
-+__SYSCALL(__NR_process_mrelease, sys_process_mrelease)
++	preempt_disable_rt();
+ 	x = delta + __this_cpu_read(*p);
  
- #undef __NR_syscalls
--#define __NR_syscalls 448
-+#define __NR_syscalls 449
+ 	t = __this_cpu_read(pcp->stat_threshold);
+@@ -359,6 +362,7 @@ void __mod_node_page_state(struct pglist
+ 		x = 0;
+ 	}
+ 	__this_cpu_write(*p, x);
++	preempt_enable_rt();
+ }
+ EXPORT_SYMBOL(__mod_node_page_state);
  
- /*
-  * 32 bit systems traditionally used different
---- a/kernel/sys_ni.c~mm-wire-up-syscall-process_mrelease
-+++ a/kernel/sys_ni.c
-@@ -289,6 +289,7 @@ COND_SYSCALL(munlockall);
- COND_SYSCALL(mincore);
- COND_SYSCALL(madvise);
- COND_SYSCALL(process_madvise);
-+COND_SYSCALL(process_mrelease);
- COND_SYSCALL(remap_file_pages);
- COND_SYSCALL(mbind);
- COND_SYSCALL_COMPAT(mbind);
+@@ -391,6 +395,7 @@ void __inc_zone_state(struct zone *zone,
+ 	s8 __percpu *p = pcp->vm_stat_diff + item;
+ 	s8 v, t;
+ 
++	preempt_disable_rt();
+ 	v = __this_cpu_inc_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v > t)) {
+@@ -399,6 +404,7 @@ void __inc_zone_state(struct zone *zone,
+ 		zone_page_state_add(v + overstep, zone, item);
+ 		__this_cpu_write(*p, -overstep);
+ 	}
++	preempt_enable_rt();
+ }
+ 
+ void __inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
+@@ -409,6 +415,7 @@ void __inc_node_state(struct pglist_data
+ 
+ 	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
+ 
++	preempt_disable_rt();
+ 	v = __this_cpu_inc_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v > t)) {
+@@ -417,6 +424,7 @@ void __inc_node_state(struct pglist_data
+ 		node_page_state_add(v + overstep, pgdat, item);
+ 		__this_cpu_write(*p, -overstep);
+ 	}
++	preempt_enable_rt();
+ }
+ 
+ void __inc_zone_page_state(struct page *page, enum zone_stat_item item)
+@@ -437,6 +445,7 @@ void __dec_zone_state(struct zone *zone,
+ 	s8 __percpu *p = pcp->vm_stat_diff + item;
+ 	s8 v, t;
+ 
++	preempt_disable_rt();
+ 	v = __this_cpu_dec_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v < - t)) {
+@@ -445,6 +454,7 @@ void __dec_zone_state(struct zone *zone,
+ 		zone_page_state_add(v - overstep, zone, item);
+ 		__this_cpu_write(*p, overstep);
+ 	}
++	preempt_enable_rt();
+ }
+ 
+ void __dec_node_state(struct pglist_data *pgdat, enum node_stat_item item)
+@@ -455,6 +465,7 @@ void __dec_node_state(struct pglist_data
+ 
+ 	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
+ 
++	preempt_disable_rt();
+ 	v = __this_cpu_dec_return(*p);
+ 	t = __this_cpu_read(pcp->stat_threshold);
+ 	if (unlikely(v < - t)) {
+@@ -463,6 +474,7 @@ void __dec_node_state(struct pglist_data
+ 		node_page_state_add(v - overstep, pgdat, item);
+ 		__this_cpu_write(*p, overstep);
+ 	}
++	preempt_enable_rt();
+ }
+ 
+ void __dec_zone_page_state(struct page *page, enum zone_stat_item item)
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from mingo@elte.hu are
 
-mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
-mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
-mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config.patch
 
