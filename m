@@ -7,39 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60AC2C4338F
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 28F96C4320A
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FC1D61157
+	by mail.kernel.org (Postfix) with ESMTP id 0745360E53
 	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239314AbhHEXiS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:38:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35934 "EHLO mail.kernel.org"
+        id S231208AbhHEXiU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:38:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238926AbhHEXiS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:38:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A2E1E61132;
-        Thu,  5 Aug 2021 23:38:02 +0000 (UTC)
+        id S238926AbhHEXiT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:38:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A4E06610FF;
+        Thu,  5 Aug 2021 23:38:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206682;
-        bh=jkyaMM++ADTfkhQ4mZkI0xC/LkFTAkijelpqmRxEfnk=;
+        s=korg; t=1628206684;
+        bh=9XGl3fp6PN0drgBTiYWRljvsozWRIiOteEgcYI2QbC8=;
         h=Date:From:To:Subject:From;
-        b=aW5Xyde99Fof03dJFNwFeC+kKyPCJawmqdTEd352O9f7F5qXtiGSG3ulS7WbjIKkF
-         KEFDKLieSXHQS+3NLKYjsIZjPVdigMbez0933WSq+J+tBA+SRDx9htJHRTkg5pWKao
-         WNxGRZVzQyyAdzHTCYIOBxV3HL2RnUBKwTMst+cI=
-Date:   Thu, 05 Aug 2021 16:38:02 -0700
+        b=Lg6EfqjdxdGseNKP3gqkP/I0fF/cxi70izReqY5ss2KI7XLzhIdpcvsKh5HT/SLEZ
+         jeLX8j3gsQmnYN+P1FpwsTcM4edBu0gDhsAhPxRuo/zsqsfK81Q7AX9u/pk123buTW
+         0z2CA7hrRTRtsA6cvXHQPOYQH4dimnbWB41Jz3qQ=
+Date:   Thu, 05 Aug 2021 16:38:04 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
         mgorman@techsingularity.net, jannh@google.com,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
-        brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
+        brouer@redhat.com, bigeasy@linutronix.de
 Subject:  +
- mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch added to -mm
- tree
-Message-ID: <20210805233802.a3yW_%akpm@linux-foundation.org>
+ =?us-ascii?Q?mm-slub-move-flush=5Fcpu=5Fslab-invocations-=5F=5Ffree=5Fs?=
+ =?us-ascii?Q?lab-invocations-out-of-irq-context.patch?= added to -mm tree
+Message-ID: <20210805233804.DQO-v%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab: make flush_slab() possible to call with irqs enabled
+     Subject: mm: slub: move flush_cpu_slab() invocations __free_slab() invocations out of IRQ context
 has been added to the -mm tree.  Its filename is
-     mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
+     mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,15 +70,19 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slab: make flush_slab() possible to call with irqs enabled
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm: slub: move flush_cpu_slab() invocations __free_slab() invocations out of IRQ context
 
-Currently flush_slab() is always called with disabled IRQs if it's needed,
-but the following patches will change that, so add a parameter to control
-IRQ disabling within the function, which only protects the kmem_cache_cpu
-manipulation and not the call to deactivate_slab() which doesn't need it.
+flush_all() flushes a specific SLAB cache on each CPU (where the cache is
+present).  The deactivate_slab()/__free_slab() invocation happens within
+IPI handler and is problematic for PREEMPT_RT.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-29-vbabka@suse.cz
+The flush operation is not a frequent operation or a hot path.  The
+per-CPU flush operation can be moved to within a workqueue.
+
+[vbabka@suse.cz: adapt to new SLUB changes]
+Link: https://lkml.kernel.org/r/20210805152000.12817-30-vbabka@suse.cz
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -86,103 +92,101 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Mike Galbraith <efault@gmx.de>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   24 ++++++++++++++++++------
- 1 file changed, 18 insertions(+), 6 deletions(-)
+ mm/slub.c |   56 ++++++++++++++++++++++++++++++++++++++++++++--------
+ 1 file changed, 48 insertions(+), 8 deletions(-)
 
---- a/mm/slub.c~mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled
+--- a/mm/slub.c~mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context
 +++ a/mm/slub.c
-@@ -2480,16 +2480,28 @@ static void put_cpu_partial(struct kmem_
- #endif	/* CONFIG_SLUB_CPU_PARTIAL */
- }
- 
--static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
-+static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c,
-+			      bool lock)
- {
--	void *freelist = c->freelist;
--	struct page *page = c->page;
-+	unsigned long flags;
-+	void *freelist;
-+	struct page *page;
-+
-+	if (lock)
-+		local_irq_save(flags);
-+
-+	freelist = c->freelist;
-+	page = c->page;
- 
- 	c->page = NULL;
- 	c->freelist = NULL;
- 	c->tid = next_tid(c->tid);
- 
--	deactivate_slab(s, page, freelist);
-+	if (lock)
-+		local_irq_restore(flags);
-+
-+	if (page)
-+		deactivate_slab(s, page, freelist);
- 
- 	stat(s, CPUSLAB_FLUSH);
- }
-@@ -2499,7 +2511,7 @@ static inline void __flush_cpu_slab(stru
- 	struct kmem_cache_cpu *c = per_cpu_ptr(s->cpu_slab, cpu);
- 
- 	if (c->page)
--		flush_slab(s, c);
-+		flush_slab(s, c, false);
- 
+@@ -2516,33 +2516,73 @@ static inline void __flush_cpu_slab(stru
  	unfreeze_partials_cpu(s, c);
  }
-@@ -2515,7 +2527,7 @@ static void flush_cpu_slab(void *d)
- 	struct kmem_cache_cpu *c = this_cpu_ptr(s->cpu_slab);
+ 
++struct slub_flush_work {
++	struct work_struct work;
++	struct kmem_cache *s;
++	bool skip;
++};
++
+ /*
+  * Flush cpu slab.
+  *
+- * Called from IPI handler with interrupts disabled.
++ * Called from CPU work handler with migration disabled.
+  */
+-static void flush_cpu_slab(void *d)
++static void flush_cpu_slab(struct work_struct *w)
+ {
+-	struct kmem_cache *s = d;
+-	struct kmem_cache_cpu *c = this_cpu_ptr(s->cpu_slab);
++	struct kmem_cache *s;
++	struct kmem_cache_cpu *c;
++	struct slub_flush_work *sfw;
++
++	sfw = container_of(w, struct slub_flush_work, work);
++
++	s = sfw->s;
++	c = this_cpu_ptr(s->cpu_slab);
  
  	if (c->page)
--		flush_slab(s, c);
-+		flush_slab(s, c, false);
+-		flush_slab(s, c, false);
++		flush_slab(s, c, true);
  
  	unfreeze_partials(s);
  }
+ 
+-static bool has_cpu_slab(int cpu, void *info)
++static bool has_cpu_slab(int cpu, struct kmem_cache *s)
+ {
+-	struct kmem_cache *s = info;
+ 	struct kmem_cache_cpu *c = per_cpu_ptr(s->cpu_slab, cpu);
+ 
+ 	return c->page || slub_percpu_partial(c);
+ }
+ 
++static DEFINE_MUTEX(flush_lock);
++static DEFINE_PER_CPU(struct slub_flush_work, slub_flush);
++
+ static void flush_all(struct kmem_cache *s)
+ {
+-	on_each_cpu_cond(has_cpu_slab, flush_cpu_slab, s, 1);
++	struct slub_flush_work *sfw;
++	unsigned int cpu;
++
++	mutex_lock(&flush_lock);
++	cpus_read_lock();
++
++	for_each_online_cpu(cpu) {
++		sfw = &per_cpu(slub_flush, cpu);
++		if (!has_cpu_slab(cpu, s)) {
++			sfw->skip = true;
++			continue;
++		}
++		INIT_WORK(&sfw->work, flush_cpu_slab);
++		sfw->skip = false;
++		sfw->s = s;
++		schedule_work_on(cpu, &sfw->work);
++	}
++
++	for_each_online_cpu(cpu) {
++		sfw = &per_cpu(slub_flush, cpu);
++		if (sfw->skip)
++			continue;
++		flush_work(&sfw->work);
++	}
++
++	cpus_read_unlock();
++	mutex_unlock(&flush_lock);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
-mm-slub-fix-slub_debug-disablement-for-list-of-slabs.patch
-mm-slub-dont-call-flush_all-from-slab_debug_trace_open.patch
-mm-slub-allocate-private-object-map-for-debugfs-listings.patch
-mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
-mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
-mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
-mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
-mm-slub-extract-get_partial-from-new_slab_objects.patch
-mm-slub-dissolve-new_slab_objects-into-___slab_alloc.patch
-mm-slub-return-slab-page-from-get_partial-and-set-c-page-afterwards.patch
-mm-slub-restructure-new-page-checks-in-___slab_alloc.patch
-mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch
-mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
-mm-slub-move-disabling-irqs-closer-to-get_partial-in-___slab_alloc.patch
-mm-slub-restore-irqs-around-calling-new_slab.patch
-mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
-mm-slub-check-new-pages-with-restored-irqs.patch
-mm-slub-stop-disabling-irqs-around-get_partial.patch
-mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
-mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
-mm-slub-call-deactivate_slab-without-disabling-irqs.patch
-mm-slub-move-irq-control-into-unfreeze_partials.patch
-mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled.patch
-mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials.patch
-mm-slub-separate-detaching-of-partial-list-in-unfreeze_partials-from-unfreezing.patch
-mm-slub-only-disable-irq-with-spin_lock-in-__unfreeze_partials.patch
-mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
-mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
-mm-slub-optionally-save-restore-irqs-in-slab_lock.patch
-mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
-mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
-mm-slub-use-migrate_disable-on-preempt_rt.patch
-mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
+mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context.patch
+mm-slub-make-object_map_lock-a-raw_spinlock_t.patch
 
