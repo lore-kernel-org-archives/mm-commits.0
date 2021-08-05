@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 222F8C432BE
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 275E5C4338F
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 08B15610CD
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0504861158
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238873AbhHEXiB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:38:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35558 "EHLO mail.kernel.org"
+        id S237996AbhHEXiD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:38:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237996AbhHEXiA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:38:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A3C4460E53;
-        Thu,  5 Aug 2021 23:37:44 +0000 (UTC)
+        id S238891AbhHEXiC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:38:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A4B7A60E52;
+        Thu,  5 Aug 2021 23:37:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206664;
-        bh=anNhAZOlh5ZIUQgvC6r5/LMF8iJxKHfLcInyyITuzow=;
+        s=korg; t=1628206666;
+        bh=5cYP1RrBjmx5UZH0dmtorYGkvhlszQdGXZHETZYCKbg=;
         h=Date:From:To:Subject:From;
-        b=nuO71fBCP5SkWYmLw/mhsAv9HuYm9Xn9MsRZ0fsHgSeumumx0zD7YVA9ytDw0Oqvn
-         aPAM3bFusz1g73FzJTxoLjCnR1/BlEBZUbPCryyikYtI8Eq3sPl1XOmskE3yyQ/2xS
-         3IsOP/qaQiGyxYf/5kuAK07Q5gAvx71Zzxlfe7Dw=
-Date:   Thu, 05 Aug 2021 16:37:44 -0700
+        b=SjcBYa0PAflY1Q/gpoe5ncTLlIfLAmECrcpplDHRO9Xi7y/ovX2D8yYPum8E7UzuC
+         ERZAMlULJNK94DXn4oByDixE2RdwAIcAegarQ2tm17sOGTzfgD7lNglUAZV0o0dDP4
+         t/SWT3eNd99ZJiSuB2M7GbtoTM29ejh2C1ug6Khw=
+Date:   Thu, 05 Aug 2021 16:37:46 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
         mgorman@techsingularity.net, jannh@google.com,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
-Subject:  +
- mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch added
- to -mm tree
-Message-ID: <20210805233744.4bLLn%akpm@linux-foundation.org>
+Subject:  + mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
+ added to -mm tree
+Message-ID: <20210805233746.EvMRQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: move reset of c->page and freelist out of deactivate_slab()
+     Subject: mm, slub: make locking in deactivate_slab() irq-safe
 has been added to the -mm tree.  Its filename is
-     mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
+     mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,21 +68,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: move reset of c->page and freelist out of deactivate_slab()
+Subject: mm, slub: make locking in deactivate_slab() irq-safe
 
-deactivate_slab() removes the cpu slab by merging the cpu freelist with
-slab's freelist and putting the slab on the proper node's list.  It also
-sets the respective kmem_cache_cpu pointers to NULL.
+dectivate_slab() now no longer touches the kmem_cache_cpu structure, so it
+will be possible to call it with irqs enabled.  Just convert the spin_lock
+calls to their irq saving/restoring variants to make it irq-safe.
 
-By extracting the kmem_cache_cpu operations from the function, we can make
-it not dependent on disabled irqs.
+Note we now have to use cmpxchg_double_slab() for irq-safe slab_lock(),
+because in some situations we don't take the list_lock, which would
+disable irqs.
 
-Also if we return a single free pointer from ___slab_alloc, we no longer
-have to assign kmem_cache_cpu.page before deactivation or care if somebody
-preempted us and assigned a different page to our kmem_cache_cpu in the
-process.
-
-Link: https://lkml.kernel.org/r/20210805152000.12817-20-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-21-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -98,81 +93,54 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   31 ++++++++++++++++++-------------
- 1 file changed, 18 insertions(+), 13 deletions(-)
+ mm/slub.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/slub.c~mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab
+--- a/mm/slub.c~mm-slub-make-locking-in-deactivate_slab-irq-safe
 +++ a/mm/slub.c
-@@ -2195,10 +2195,13 @@ static void init_kmem_cache_cpus(struct
- }
+@@ -2209,6 +2209,7 @@ static void deactivate_slab(struct kmem_
+ 	enum slab_modes l = M_NONE, m = M_NONE;
+ 	void *nextfree, *freelist_iter, *freelist_tail;
+ 	int tail = DEACTIVATE_TO_HEAD;
++	unsigned long flags = 0;
+ 	struct page new;
+ 	struct page old;
  
- /*
-- * Remove the cpu slab
-+ * Finishes removing the cpu slab. Merges cpu's freelist with page's freelist,
-+ * unfreezes the slabs and puts it on the proper list.
-+ * Assumes the slab has been already safely taken away from kmem_cache_cpu
-+ * by the caller.
-  */
- static void deactivate_slab(struct kmem_cache *s, struct page *page,
--				void *freelist, struct kmem_cache_cpu *c)
-+			    void *freelist)
- {
- 	enum slab_modes { M_NONE, M_PARTIAL, M_FULL, M_FREE };
- 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
-@@ -2327,9 +2330,6 @@ redo:
- 		discard_slab(s, page);
- 		stat(s, FREE_SLAB);
+@@ -2284,7 +2285,7 @@ redo:
+ 			 * that acquire_slab() will see a slab page that
+ 			 * is frozen
+ 			 */
+-			spin_lock(&n->list_lock);
++			spin_lock_irqsave(&n->list_lock, flags);
+ 		}
+ 	} else {
+ 		m = M_FULL;
+@@ -2295,7 +2296,7 @@ redo:
+ 			 * slabs from diagnostic functions will not see
+ 			 * any frozen slabs.
+ 			 */
+-			spin_lock(&n->list_lock);
++			spin_lock_irqsave(&n->list_lock, flags);
+ 		}
  	}
--
--	c->page = NULL;
--	c->freelist = NULL;
- }
  
- /*
-@@ -2454,10 +2454,16 @@ static void put_cpu_partial(struct kmem_
- 
- static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
- {
--	stat(s, CPUSLAB_FLUSH);
--	deactivate_slab(s, c->page, c->freelist, c);
-+	void *freelist = c->freelist;
-+	struct page *page = c->page;
- 
-+	c->page = NULL;
-+	c->freelist = NULL;
- 	c->tid = next_tid(c->tid);
-+
-+	deactivate_slab(s, page, freelist);
-+
-+	stat(s, CPUSLAB_FLUSH);
- }
- 
- /*
-@@ -2742,7 +2748,10 @@ deactivate_slab:
- 		local_irq_restore(flags);
- 		goto reread_page;
+@@ -2312,14 +2313,14 @@ redo:
  	}
--	deactivate_slab(s, page, c->freelist, c);
-+	freelist = c->freelist;
-+	c->page = NULL;
-+	c->freelist = NULL;
-+	deactivate_slab(s, page, freelist);
- 	local_irq_restore(flags);
  
- new_slab:
-@@ -2821,11 +2830,7 @@ check_new_page:
- return_single:
+ 	l = m;
+-	if (!__cmpxchg_double_slab(s, page,
++	if (!cmpxchg_double_slab(s, page,
+ 				old.freelist, old.counters,
+ 				new.freelist, new.counters,
+ 				"unfreezing slab"))
+ 		goto redo;
  
- 	local_irq_save(flags);
--	if (unlikely(c->page))
--		flush_slab(s, c);
--	c->page = page;
--
--	deactivate_slab(s, page, get_freepointer(s, freelist), c);
-+	deactivate_slab(s, page, get_freepointer(s, freelist));
- 	local_irq_restore(flags);
- 	return freelist;
- }
+ 	if (lock)
+-		spin_unlock(&n->list_lock);
++		spin_unlock_irqrestore(&n->list_lock, flags);
+ 
+ 	if (m == M_PARTIAL)
+ 		stat(s, tail);
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
