@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B867C4338F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFC60C4320A
 	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0914861156
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D63A160F14
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238523AbhHEXhq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:37:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35338 "EHLO mail.kernel.org"
+        id S238521AbhHEXhs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:37:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238521AbhHEXhq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:37:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B52B7610CD;
-        Thu,  5 Aug 2021 23:37:30 +0000 (UTC)
+        id S237996AbhHEXhr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:37:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8A77610FF;
+        Thu,  5 Aug 2021 23:37:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206650;
-        bh=/nt137zUra+w/UfyWf8RZ06PEGfKUJ4jkzKk4zDtWl4=;
+        s=korg; t=1628206652;
+        bh=nHRyJZrS1xRG2J1CKo86ISr38Z3BP0xQDWV1sNFuqF8=;
         h=Date:From:To:Subject:From;
-        b=1oEKn1djozdL0EMeuUsXuijWPiOrrL9vy34xX9VUIb354sH+stp0ptBZ0bQCVgWKa
-         FFZBs1uXvoqCfGrYhh8ItfO1+BlOQbc3HNXsxtj0ZSyETvxmoEZkc5J0PSxmQ2G+Po
-         p+/hbdwseW7owMXyA46d2M5d4Od0X+6BFj6JIt8E=
-Date:   Thu, 05 Aug 2021 16:37:30 -0700
+        b=uhNtVQz6w8WKnmCUo7p9WqoLLp8j4iucSa1ss9Kx+Y/ovTaNp9tGZkbmvxkrk45XQ
+         PfDIiatPk6LIZeNT/BGOKW6BGYSKcneQgrxgn/m9XcBK7ykfT2Tk+DoW101nEpZtpw
+         CbVkztwC9EgR+mcOWS6EpVkh+invEp60BBF6RbQs=
+Date:   Thu, 05 Aug 2021 16:37:32 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
         mgorman@techsingularity.net, jannh@google.com,
-        iamjoonsoo.kim@lge.com, cl@linux.com, brouer@redhat.com,
-        bigeasy@linutronix.de, vbabka@suse.cz
+        iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
+        brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
 Subject:  +
- mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch added to -mm tree
-Message-ID: <20210805233730.fO0em%akpm@linux-foundation.org>
+ mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch added to
+ -mm tree
+Message-ID: <20210805233732.m6Jdr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: move disabling/enabling irqs to ___slab_alloc()
+     Subject: mm, slub: do initial checks in ___slab_alloc() with irqs enabled
 has been added to the -mm tree.  Its filename is
-     mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch
+     mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,197 +69,124 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: move disabling/enabling irqs to ___slab_alloc()
+Subject: mm, slub: do initial checks in ___slab_alloc() with irqs enabled
 
-Currently __slab_alloc() disables irqs around the whole ___slab_alloc(). 
-This includes cases where this is not needed, such as when the allocation
-ends up in the page allocator and has to awkwardly enable irqs back based
-on gfp flags.  Also the whole kmem_cache_alloc_bulk() is executed with
-irqs disabled even when it hits the __slab_alloc() slow path, and long
-periods with disabled interrupts are undesirable.
+As another step of shortening irq disabled sections in ___slab_alloc(),
+delay disabling irqs until we pass the initial checks if there is a cached
+percpu slab and it's suitable for our allocation.
 
-As a first step towards reducing irq disabled periods, move irq handling
-into ___slab_alloc().  Callers will instead prevent the s->cpu_slab percpu
-pointer from becoming invalid via get_cpu_ptr(), thus preempt_disable(). 
-This does not protect against modification by an irq handler, which is
-still done by disabled irq for most of ___slab_alloc().  As a small
-immediate benefit, slab_out_of_memory() from ___slab_alloc() is now called
-with irqs enabled.
+Now we have to recheck c->page after actually disabling irqs as an
+allocation in irq handler might have replaced it.
 
-kmem_cache_alloc_bulk() disables irqs for its fastpath and then re-enables
-them before calling ___slab_alloc(), which then disables them at its
-discretion.  The whole kmem_cache_alloc_bulk() operation also disables
-preemption.
-
-When ___slab_alloc() calls new_slab() to allocate a new page, re-enable
-preemption, because new_slab() will re-enable interrupts in contexts that
-allow blocking (this will be improved by later patches).
-
-The patch itself will thus increase overhead a bit due to disabled
-preemption (on configs where it matters) and increased disabling/enabling
-irqs in kmem_cache_alloc_bulk(), but that will be gradually improved in
-the following patches.
-
-Note in __slab_alloc() we need to change the #ifdef CONFIG_PREEMPT guard
-to CONFIG_PREEMPT_COUNT to make sure preempt disable/enable is properly
-paired in all configurations.  On configs without involuntary preemption
-and debugging the re-read of kmem_cache_cpu pointer is still compiled out
-as it was before.
-
-[efault@gmx.de: fix kmem_cache_alloc_bulk() error path]
-Link: https://lkml.kernel.org/r/20210805152000.12817-13-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-14-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Mike Galbraith <efault@gmx.de>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   36 ++++++++++++++++++++++++------------
- 1 file changed, 24 insertions(+), 12 deletions(-)
+ mm/slub.c |   41 ++++++++++++++++++++++++++++++++---------
+ 1 file changed, 32 insertions(+), 9 deletions(-)
 
---- a/mm/slub.c~mm-slub-move-disabling-enabling-irqs-to-___slab_alloc
+--- a/mm/slub.c~mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled
 +++ a/mm/slub.c
-@@ -2656,7 +2656,7 @@ static inline void *get_freelist(struct
-  * we need to allocate a new slab. This is the slowest path since it involves
-  * a call to the page allocator and the setup of a new slab.
-  *
-- * Version of __slab_alloc to use when we know that interrupts are
-+ * Version of __slab_alloc to use when we know that preemption is
-  * already disabled (which is the case for bulk allocation).
-  */
- static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
-@@ -2664,9 +2664,11 @@ static void *___slab_alloc(struct kmem_c
- {
- 	void *freelist;
- 	struct page *page;
-+	unsigned long flags;
+@@ -2668,8 +2668,9 @@ static void *___slab_alloc(struct kmem_c
  
  	stat(s, ALLOC_SLOWPATH);
  
-+	local_irq_save(flags);
- 	page = c->page;
+-	local_irq_save(flags);
+-	page = c->page;
++reread_page:
++
++	page = READ_ONCE(c->page);
  	if (!page) {
  		/*
-@@ -2729,6 +2731,7 @@ load_freelist:
- 	VM_BUG_ON(!c->page->frozen);
- 	c->freelist = get_freepointer(s, freelist);
- 	c->tid = next_tid(c->tid);
-+	local_irq_restore(flags);
- 	return freelist;
- 
- new_slab:
-@@ -2746,14 +2749,16 @@ new_slab:
- 		goto check_new_page;
+ 		 * if the node is not online or has no normal memory, just
+@@ -2678,6 +2679,11 @@ static void *___slab_alloc(struct kmem_c
+ 		if (unlikely(node != NUMA_NO_NODE &&
+ 			     !node_isset(node, slab_nodes)))
+ 			node = NUMA_NO_NODE;
++		local_irq_save(flags);
++		if (unlikely(c->page)) {
++			local_irq_restore(flags);
++			goto reread_page;
++		}
+ 		goto new_slab;
  	}
- 
-+	put_cpu_ptr(s->cpu_slab);
- 	page = new_slab(s, gfpflags, node);
-+	c = get_cpu_ptr(s->cpu_slab);
- 
- 	if (unlikely(!page)) {
-+		local_irq_restore(flags);
- 		slab_out_of_memory(s, gfpflags, node);
- 		return NULL;
- 	}
- 
--	c = raw_cpu_ptr(s->cpu_slab);
- 	if (c->page)
- 		flush_slab(s, c);
- 
-@@ -2793,31 +2798,33 @@ check_new_page:
- return_single:
- 
- 	deactivate_slab(s, page, get_freepointer(s, freelist), c);
-+	local_irq_restore(flags);
- 	return freelist;
- }
- 
- /*
-- * Another one that disabled interrupt and compensates for possible
-- * cpu changes by refetching the per cpu area pointer.
-+ * A wrapper for ___slab_alloc() for contexts where preemption is not yet
-+ * disabled. Compensates for possible cpu changes by refetching the per cpu area
-+ * pointer.
-  */
- static void *__slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
- 			  unsigned long addr, struct kmem_cache_cpu *c)
- {
- 	void *p;
--	unsigned long flags;
- 
--	local_irq_save(flags);
--#ifdef CONFIG_PREEMPTION
-+#ifdef CONFIG_PREEMPT_COUNT
- 	/*
- 	 * We may have been preempted and rescheduled on a different
--	 * cpu before disabling interrupts. Need to reload cpu area
-+	 * cpu before disabling preemption. Need to reload cpu area
- 	 * pointer.
- 	 */
--	c = this_cpu_ptr(s->cpu_slab);
-+	c = get_cpu_ptr(s->cpu_slab);
- #endif
- 
- 	p = ___slab_alloc(s, gfpflags, node, addr, c);
--	local_irq_restore(flags);
-+#ifdef CONFIG_PREEMPT_COUNT
-+	put_cpu_ptr(s->cpu_slab);
-+#endif
- 	return p;
- }
- 
-@@ -3345,8 +3352,8 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 	 * IRQs, which protects against PREEMPT and interrupts
- 	 * handlers invoking normal fastpath.
- 	 */
-+	c = get_cpu_ptr(s->cpu_slab);
- 	local_irq_disable();
--	c = this_cpu_ptr(s->cpu_slab);
- 
- 	for (i = 0; i < size; i++) {
- 		void *object = kfence_alloc(s, s->object_size, flags);
-@@ -3367,6 +3374,8 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 			 */
- 			c->tid = next_tid(c->tid);
- 
-+			local_irq_enable();
-+
- 			/*
- 			 * Invoking slow path likely have side-effect
- 			 * of re-populating per CPU c->freelist
-@@ -3379,6 +3388,8 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 			c = this_cpu_ptr(s->cpu_slab);
- 			maybe_wipe_obj_freeptr(s, p[i]);
- 
-+			local_irq_disable();
-+
- 			continue; /* goto for-loop */
+ redo:
+@@ -2692,8 +2698,7 @@ redo:
+ 			goto redo;
+ 		} else {
+ 			stat(s, ALLOC_NODE_MISMATCH);
+-			deactivate_slab(s, page, c->freelist, c);
+-			goto new_slab;
++			goto deactivate_slab;
  		}
- 		c->freelist = get_freepointer(s, object);
-@@ -3387,6 +3398,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
  	}
- 	c->tid = next_tid(c->tid);
- 	local_irq_enable();
-+	put_cpu_ptr(s->cpu_slab);
  
+@@ -2702,12 +2707,15 @@ redo:
+ 	 * PFMEMALLOC but right now, we are losing the pfmemalloc
+ 	 * information when the page leaves the per-cpu allocator
+ 	 */
+-	if (unlikely(!pfmemalloc_match(page, gfpflags))) {
+-		deactivate_slab(s, page, c->freelist, c);
+-		goto new_slab;
+-	}
++	if (unlikely(!pfmemalloc_match(page, gfpflags)))
++		goto deactivate_slab;
+ 
+-	/* must check again c->freelist in case of cpu migration or IRQ */
++	/* must check again c->page in case IRQ handler changed it */
++	local_irq_save(flags);
++	if (unlikely(page != c->page)) {
++		local_irq_restore(flags);
++		goto reread_page;
++	}
+ 	freelist = c->freelist;
+ 	if (freelist)
+ 		goto load_freelist;
+@@ -2723,6 +2731,9 @@ redo:
+ 	stat(s, ALLOC_REFILL);
+ 
+ load_freelist:
++
++	lockdep_assert_irqs_disabled();
++
  	/*
- 	 * memcg and kmem_cache debug support and memory initialization.
-@@ -3396,7 +3408,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 				slab_want_init_on_alloc(flags, s));
- 	return i;
- error:
--	local_irq_enable();
-+	put_cpu_ptr(s->cpu_slab);
- 	slab_post_alloc_hook(s, objcg, flags, i, p, false);
- 	__kmem_cache_free_bulk(s, i, p);
- 	return 0;
+ 	 * freelist is pointing to the list of objects to be used.
+ 	 * page is pointing to the page from which the objects are obtained.
+@@ -2734,11 +2745,23 @@ load_freelist:
+ 	local_irq_restore(flags);
+ 	return freelist;
+ 
++deactivate_slab:
++
++	local_irq_save(flags);
++	if (page != c->page) {
++		local_irq_restore(flags);
++		goto reread_page;
++	}
++	deactivate_slab(s, page, c->freelist, c);
++
+ new_slab:
+ 
++	lockdep_assert_irqs_disabled();
++
+ 	if (slub_percpu_partial(c)) {
+ 		page = c->page = slub_percpu_partial(c);
+ 		slub_set_percpu_partial(c, page);
++		local_irq_restore(flags);
+ 		stat(s, CPU_PARTIAL_ALLOC);
+ 		goto redo;
+ 	}
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
