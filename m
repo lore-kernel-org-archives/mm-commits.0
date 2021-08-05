@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AC14C4338F
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 222F8C432BE
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11B356113C
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 08B15610CD
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238836AbhHEXh6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:37:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35530 "EHLO mail.kernel.org"
+        id S238873AbhHEXiB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:38:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35558 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237996AbhHEXh6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:37:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A2F2560E52;
-        Thu,  5 Aug 2021 23:37:42 +0000 (UTC)
+        id S237996AbhHEXiA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:38:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A3C4460E53;
+        Thu,  5 Aug 2021 23:37:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206662;
-        bh=a18Lrs3Puja3hsOo8N1ilTdI4sABAz1CYaYxH7Zq1e8=;
+        s=korg; t=1628206664;
+        bh=anNhAZOlh5ZIUQgvC6r5/LMF8iJxKHfLcInyyITuzow=;
         h=Date:From:To:Subject:From;
-        b=FpbBBhS2qh8HpRJDcybceaANd4z+YUz20TlpLaHIEvQSJb32lmYV74YxgzH7koU+F
-         B925envHhj58MdFddAdSBZp8wTMhxyerM7n4X3iRKuZG6KlK+mNCJPXIqtCNwTZsa+
-         0xHIrezff0pEzHev3fb+2Fw05P12/YtCZJVcj3Y0=
-Date:   Thu, 05 Aug 2021 16:37:42 -0700
+        b=nuO71fBCP5SkWYmLw/mhsAv9HuYm9Xn9MsRZ0fsHgSeumumx0zD7YVA9ytDw0Oqvn
+         aPAM3bFusz1g73FzJTxoLjCnR1/BlEBZUbPCryyikYtI8Eq3sPl1XOmskE3yyQ/2xS
+         3IsOP/qaQiGyxYf/5kuAK07Q5gAvx71Zzxlfe7Dw=
+Date:   Thu, 05 Aug 2021 16:37:44 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
         mgorman@techsingularity.net, jannh@google.com,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
-Subject:  + mm-slub-stop-disabling-irqs-around-get_partial.patch
- added to -mm tree
-Message-ID: <20210805233742.GStCd%akpm@linux-foundation.org>
+Subject:  +
+ mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch added
+ to -mm tree
+Message-ID: <20210805233744.4bLLn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: stop disabling irqs around get_partial()
+     Subject: mm, slub: move reset of c->page and freelist out of deactivate_slab()
 has been added to the -mm tree.  Its filename is
-     mm-slub-stop-disabling-irqs-around-get_partial.patch
+     mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-stop-disabling-irqs-around-get_partial.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-stop-disabling-irqs-around-get_partial.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,16 +69,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: stop disabling irqs around get_partial()
+Subject: mm, slub: move reset of c->page and freelist out of deactivate_slab()
 
-The function get_partial() does not need to have irqs disabled as a whole.
-It's sufficient to convert spin_lock operations to their irq
-saving/restoring versions.
+deactivate_slab() removes the cpu slab by merging the cpu freelist with
+slab's freelist and putting the slab on the proper node's list.  It also
+sets the respective kmem_cache_cpu pointers to NULL.
 
-As a result, it's now possible to reach the page allocator from the slab
-allocator without disabling and re-enabling interrupts on the way.
+By extracting the kmem_cache_cpu operations from the function, we can make
+it not dependent on disabled irqs.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-19-vbabka@suse.cz
+Also if we return a single free pointer from ___slab_alloc, we no longer
+have to assign kmem_cache_cpu.page before deactivation or care if somebody
+preempted us and assigned a different page to our kmem_cache_cpu in the
+process.
+
+Link: https://lkml.kernel.org/r/20210805152000.12817-20-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -92,79 +98,81 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   22 ++++++++--------------
- 1 file changed, 8 insertions(+), 14 deletions(-)
+ mm/slub.c |   31 ++++++++++++++++++-------------
+ 1 file changed, 18 insertions(+), 13 deletions(-)
 
---- a/mm/slub.c~mm-slub-stop-disabling-irqs-around-get_partial
+--- a/mm/slub.c~mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab
 +++ a/mm/slub.c
-@@ -1996,11 +1996,12 @@ static inline bool pfmemalloc_match(stru
-  * Try to allocate a partial slab from a specific node.
-  */
- static void *get_partial_node(struct kmem_cache *s, struct kmem_cache_node *n,
--			      struct page **ret_page, gfp_t flags)
-+			      struct page **ret_page, gfp_t gfpflags)
- {
- 	struct page *page, *page2;
- 	void *object = NULL;
- 	unsigned int available = 0;
-+	unsigned long flags;
- 	int objects;
- 
- 	/*
-@@ -2012,11 +2013,11 @@ static void *get_partial_node(struct kme
- 	if (!n || !n->nr_partial)
- 		return NULL;
- 
--	spin_lock(&n->list_lock);
-+	spin_lock_irqsave(&n->list_lock, flags);
- 	list_for_each_entry_safe(page, page2, &n->partial, slab_list) {
- 		void *t;
- 
--		if (!pfmemalloc_match(page, flags))
-+		if (!pfmemalloc_match(page, gfpflags))
- 			continue;
- 
- 		t = acquire_slab(s, n, page, object == NULL, &objects);
-@@ -2037,7 +2038,7 @@ static void *get_partial_node(struct kme
- 			break;
- 
- 	}
--	spin_unlock(&n->list_lock);
-+	spin_unlock_irqrestore(&n->list_lock, flags);
- 	return object;
+@@ -2195,10 +2195,13 @@ static void init_kmem_cache_cpus(struct
  }
  
-@@ -2752,8 +2753,10 @@ new_slab:
- 			local_irq_restore(flags);
- 			goto reread_page;
- 		}
--		if (unlikely(!slub_percpu_partial(c)))
-+		if (unlikely(!slub_percpu_partial(c))) {
-+			local_irq_restore(flags);
- 			goto new_objects; /* stolen by an IRQ handler */
-+		}
- 
- 		page = c->page = slub_percpu_partial(c);
- 		slub_set_percpu_partial(c, page);
-@@ -2762,18 +2765,9 @@ new_slab:
- 		goto redo;
+ /*
+- * Remove the cpu slab
++ * Finishes removing the cpu slab. Merges cpu's freelist with page's freelist,
++ * unfreezes the slabs and puts it on the proper list.
++ * Assumes the slab has been already safely taken away from kmem_cache_cpu
++ * by the caller.
+  */
+ static void deactivate_slab(struct kmem_cache *s, struct page *page,
+-				void *freelist, struct kmem_cache_cpu *c)
++			    void *freelist)
+ {
+ 	enum slab_modes { M_NONE, M_PARTIAL, M_FULL, M_FREE };
+ 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
+@@ -2327,9 +2330,6 @@ redo:
+ 		discard_slab(s, page);
+ 		stat(s, FREE_SLAB);
  	}
- 
--	local_irq_save(flags);
--	if (unlikely(c->page)) {
--		local_irq_restore(flags);
--		goto reread_page;
--	}
 -
- new_objects:
+-	c->page = NULL;
+-	c->freelist = NULL;
+ }
  
--	lockdep_assert_irqs_disabled();
+ /*
+@@ -2454,10 +2454,16 @@ static void put_cpu_partial(struct kmem_
+ 
+ static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
+ {
+-	stat(s, CPUSLAB_FLUSH);
+-	deactivate_slab(s, c->page, c->freelist, c);
++	void *freelist = c->freelist;
++	struct page *page = c->page;
+ 
++	c->page = NULL;
++	c->freelist = NULL;
+ 	c->tid = next_tid(c->tid);
++
++	deactivate_slab(s, page, freelist);
++
++	stat(s, CPUSLAB_FLUSH);
+ }
+ 
+ /*
+@@ -2742,7 +2748,10 @@ deactivate_slab:
+ 		local_irq_restore(flags);
+ 		goto reread_page;
+ 	}
+-	deactivate_slab(s, page, c->freelist, c);
++	freelist = c->freelist;
++	c->page = NULL;
++	c->freelist = NULL;
++	deactivate_slab(s, page, freelist);
+ 	local_irq_restore(flags);
+ 
+ new_slab:
+@@ -2821,11 +2830,7 @@ check_new_page:
+ return_single:
+ 
+ 	local_irq_save(flags);
+-	if (unlikely(c->page))
+-		flush_slab(s, c);
+-	c->page = page;
 -
- 	freelist = get_partial(s, gfpflags, node, &page);
--	local_irq_restore(flags);
- 	if (freelist)
- 		goto check_new_page;
- 
+-	deactivate_slab(s, page, get_freepointer(s, freelist), c);
++	deactivate_slab(s, page, get_freepointer(s, freelist));
+ 	local_irq_restore(flags);
+ 	return freelist;
+ }
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
