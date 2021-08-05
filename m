@@ -4,36 +4,44 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0DABC4338F
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:03:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A3CDCC4338F
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:07:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC3A66103B
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:03:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7CB54610CD
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:07:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242015AbhHEXEL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:04:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59302 "EHLO mail.kernel.org"
+        id S231893AbhHEXHp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:07:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242210AbhHEXEL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:04:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 29A366105A;
-        Thu,  5 Aug 2021 23:03:56 +0000 (UTC)
+        id S229697AbhHEXHo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:07:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9576B610A2;
+        Thu,  5 Aug 2021 23:07:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628204636;
-        bh=X7xHk9g+e6slg0y/0U8obiOo/iiQ5K1xQSnBiONBS8Q=;
+        s=korg; t=1628204849;
+        bh=axUDAQirWLa2Cvq8hauwErhacDuPSFQIYIkQj2P+g14=;
         h=Date:From:To:Subject:From;
-        b=apMkPitqvCeicX1qD97+Gg5DZ55KzaQsNWI/YoBHShXCmcRyE+rafS1F1tc8Iy1l/
-         ujk1SDRpiIsNJjeEHBZVsZ41kzJaGxHqlMNHXEClR/ReLcZp6jzSIX4+JMACfwGLtJ
-         /2OOyMfNylILpeyvlZFdWlFCzgYdOLQEu9GswQTw=
-Date:   Thu, 05 Aug 2021 16:03:55 -0700
+        b=1BrzmIIla4IjFfJNRo8nz+aPPkYkfDoUc9/eSKYv4ati4rF44LR8jpPtMij5q5LKs
+         mZl29dMehlmeBhQt8vCyPUqN02f0SJthz7Gg6NVQPrlut6necZNLSwMTsWhOYjG+N9
+         7WRy3/P+LIXq+LcdTWElVroDa0U+3l6LFD48p0Jo=
+Date:   Thu, 05 Aug 2021 16:07:26 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20210805230355.MRFYkCumD%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        timmurray@google.com, shakeelb@google.com, rientjes@google.com,
+        riel@surriel.com, oleg@redhat.com, minchan@kernel.org,
+        mhocko@suse.com, luto@kernel.org, jengelh@inai.de,
+        jannh@google.com, hch@infradead.org, hannes@cmpxchg.org,
+        guro@fb.com, fweimer@redhat.com, david@redhat.com,
+        christian.brauner@ubuntu.com, christian@brauner.io,
+        surenb@google.com
+Subject:  [to-be-updated]
+ mm-introduce-process_mrelease-system-call.patch removed from -mm tree
+Message-ID: <20210805230726.lq8_w%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,207 +49,200 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: mm: introduce process_mrelease system call
+has been removed from the -mm tree.  Its filename was
+     mm-introduce-process_mrelease-system-call.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: introduce process_mrelease system call
 
+Patch series "mm: introduce process_mrelease system call", v6.
+
+
+This patch (of 2):
+
+In modern systems it's not unusual to have a system component monitoring
+memory conditions of the system and tasked with keeping system memory
+pressure under control.  One way to accomplish that is to kill
+non-essential processes to free up memory for more important ones. 
+Examples of this are Facebook's OOM killer daemon called oomd and
+Android's low memory killer daemon called lmkd.
+
+For such system component it's important to be able to free memory quickly
+and efficiently.  Unfortunately the time process takes to free up its
+memory after receiving a SIGKILL might vary based on the state of the
+process (uninterruptible sleep), size and OPP level of the core the
+process is running.  A mechanism to free resources of the target process
+in a more predictable way would improve system's ability to control its
+memory pressure.
+
+Introduce process_mrelease system call that releases memory of a dying
+process from the context of the caller.  This way the memory is freed in a
+more controllable way with CPU affinity and priority of the caller.  The
+workload of freeing the memory will also be charged to the caller.  The
+operation is allowed only on a dying process.
+
+After previous discussions [1, 2, 3] the decision was made [4] to
+introduce a dedicated system call to cover this use case.
+
+The API is as follows,
+
+          int process_mrelease(int pidfd, unsigned int flags);
+
+        DESCRIPTION
+          The process_mrelease() system call is used to free the memory of
+          an exiting process.
+
+          The pidfd selects the process referred to by the PID file
+          descriptor.
+          (See pidfd_open(2) for further information)
+
+          The flags argument is reserved for future use; currently, this
+          argument must be specified as 0.
+
+        RETURN VALUE
+          On success, process_mrelease() returns 0. On error, -1 is
+          returned and errno is set to indicate the error.
+
+        ERRORS
+          EBADF  pidfd is not a valid PID file descriptor.
+
+          EAGAIN Failed to release part of the address space.
+
+          EINTR  The call was interrupted by a signal; see signal(7).
+
+          EINVAL flags is not 0.
+
+          EINVAL The memory of the task cannot be released because the
+                 process is not exiting, the address space is shared
+                 with another live process or there is a core dump in
+                 progress.
+
+          ENOSYS This system call is not supported, for example, without
+                 MMU support built into Linux.
+
+          ESRCH  The target process does not exist (i.e., it has terminated
+                 and been waited on).
+
+[1] https://lore.kernel.org/lkml/20190411014353.113252-3-surenb@google.com/
+[2] https://lore.kernel.org/linux-api/20201113173448.1863419-1-surenb@google.com/
+[3] https://lore.kernel.org/linux-api/20201124053943.1684874-3-surenb@google.com/
+[4] https://lore.kernel.org/linux-api/20201223075712.GA4719@lst.de/
+
+Link: https://lkml.kernel.org/r/20210804185004.1304692-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20210804185004.1304692-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Christian Brauner <christian@brauner.io>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: Jan Engelhardt <jengelh@inai.de>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/bus/mhi/core/main.c                      |    5 -----
- drivers/net/dsa/sja1105/sja1105_dynamic_config.c |    6 ------
- drivers/net/dsa/sja1105/sja1105_main.c           |    8 --------
- include/net/bluetooth/hci_core.h                 |    4 ----
- net/bluetooth/hci_core.c                         |   13 -------------
- net/bluetooth/hci_sysfs.c                        |    7 -------
- net/qrtr/mhi.c                                   |    4 ----
- 7 files changed, 47 deletions(-)
+ mm/oom_kill.c |   65 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
---- a/drivers/bus/mhi/core/main.c~linux-next-git-rejects
-+++ a/drivers/bus/mhi/core/main.c
-@@ -1457,11 +1457,6 @@ int mhi_prepare_channel(struct mhi_contr
- 
- 	if (mhi_chan->dir == DMA_FROM_DEVICE)
- 		mhi_chan->pre_alloc = !!(flags & MHI_CH_INBOUND_ALLOC_BUFS);
--<<<<<<< HEAD
--	
--=======
--
-->>>>>>> linux-next/akpm-base
- 	/* Pre-allocate buffer for xfer ring */
- 	if (mhi_chan->pre_alloc) {
- 		int nr_el = get_nr_avail_ring_elements(mhi_cntrl,
---- a/drivers/net/dsa/sja1105/sja1105_dynamic_config.c~linux-next-git-rejects
-+++ a/drivers/net/dsa/sja1105/sja1105_dynamic_config.c
-@@ -330,15 +330,9 @@ sja1110_l2_lookup_cmd_packing(void *buf,
- 			      enum packing_op op)
- {
- 	int entry_size = SJA1110_SIZE_L2_LOOKUP_ENTRY;
--<<<<<<< HEAD
- 
- 	sja1105pqrs_common_l2_lookup_cmd_packing(buf, cmd, op, entry_size);
- 
--=======
--
--	sja1105pqrs_common_l2_lookup_cmd_packing(buf, cmd, op, entry_size);
--
-->>>>>>> linux-next/akpm-base
- 	sja1105_packing(buf, &cmd->index, 10, 1, entry_size, op);
+--- a/mm/oom_kill.c~mm-introduce-process_mrelease-system-call
++++ a/mm/oom_kill.c
+@@ -28,6 +28,7 @@
+ #include <linux/sched/task.h>
+ #include <linux/sched/debug.h>
+ #include <linux/swap.h>
++#include <linux/syscalls.h>
+ #include <linux/timex.h>
+ #include <linux/jiffies.h>
+ #include <linux/cpuset.h>
+@@ -1141,3 +1142,67 @@ void pagefault_out_of_memory(void)
+ 	out_of_memory(&oc);
+ 	mutex_unlock(&oom_lock);
  }
- 
---- a/drivers/net/dsa/sja1105/sja1105_main.c~linux-next-git-rejects
-+++ a/drivers/net/dsa/sja1105/sja1105_main.c
-@@ -1500,9 +1500,6 @@ int sja1105pqrs_fdb_add(struct dsa_switc
- 	l2_lookup.macaddr = ether_addr_to_u64(addr);
- 	l2_lookup.vlanid = vid;
- 	l2_lookup.mask_macaddr = GENMASK_ULL(ETH_ALEN * 8 - 1, 0);
--<<<<<<< HEAD
--	l2_lookup.mask_vlanid = VLAN_VID_MASK;
--=======
- 	if (priv->vlan_aware) {
- 		l2_lookup.mask_vlanid = VLAN_VID_MASK;
- 		l2_lookup.mask_iotag = BIT(0);
-@@ -1510,7 +1507,6 @@ int sja1105pqrs_fdb_add(struct dsa_switc
- 		l2_lookup.mask_vlanid = 0;
- 		l2_lookup.mask_iotag = 0;
- 	}
-->>>>>>> linux-next/akpm-base
- 	l2_lookup.destports = BIT(port);
- 
- 	tmp = l2_lookup;
-@@ -1601,9 +1597,6 @@ int sja1105pqrs_fdb_del(struct dsa_switc
- 	l2_lookup.macaddr = ether_addr_to_u64(addr);
- 	l2_lookup.vlanid = vid;
- 	l2_lookup.mask_macaddr = GENMASK_ULL(ETH_ALEN * 8 - 1, 0);
--<<<<<<< HEAD
--	l2_lookup.mask_vlanid = VLAN_VID_MASK;
--=======
- 	if (priv->vlan_aware) {
- 		l2_lookup.mask_vlanid = VLAN_VID_MASK;
- 		l2_lookup.mask_iotag = BIT(0);
-@@ -1611,7 +1604,6 @@ int sja1105pqrs_fdb_del(struct dsa_switc
- 		l2_lookup.mask_vlanid = 0;
- 		l2_lookup.mask_iotag = 0;
- 	}
-->>>>>>> linux-next/akpm-base
- 	l2_lookup.destports = BIT(port);
- 
- 	rc = sja1105_dynamic_config_read(priv, BLK_IDX_L2_LOOKUP,
---- a/include/net/bluetooth/hci_core.h~linux-next-git-rejects
-+++ a/include/net/bluetooth/hci_core.h
-@@ -1231,11 +1231,7 @@ struct hci_dev *hci_alloc_dev(void);
- void hci_free_dev(struct hci_dev *hdev);
- int hci_register_dev(struct hci_dev *hdev);
- void hci_unregister_dev(struct hci_dev *hdev);
--<<<<<<< HEAD
--void hci_cleanup_dev(struct hci_dev *hdev);
--=======
- void hci_release_dev(struct hci_dev *hdev);
-->>>>>>> linux-next/akpm-base
- int hci_suspend_dev(struct hci_dev *hdev);
- int hci_resume_dev(struct hci_dev *hdev);
- int hci_reset_dev(struct hci_dev *hdev);
---- a/net/bluetooth/hci_core.c~linux-next-git-rejects
-+++ a/net/bluetooth/hci_core.c
-@@ -4034,21 +4034,12 @@ void hci_unregister_dev(struct hci_dev *
- 	}
- 
- 	device_del(&hdev->dev);
--<<<<<<< HEAD
--	/* Actual cleanup is deferred until hci_cleanup_dev(). */
--=======
-->>>>>>> linux-next/akpm-base
- 	hci_dev_put(hdev);
- }
- EXPORT_SYMBOL(hci_unregister_dev);
- 
--<<<<<<< HEAD
--/* Cleanup HCI device */
--void hci_cleanup_dev(struct hci_dev *hdev)
--=======
- /* Release HCI device */
- void hci_release_dev(struct hci_dev *hdev)
-->>>>>>> linux-next/akpm-base
- {
- 	debugfs_remove_recursive(hdev->debugfs);
- 	kfree_const(hdev->hw_info);
-@@ -4075,13 +4066,9 @@ void hci_release_dev(struct hci_dev *hde
- 	hci_dev_unlock(hdev);
- 
- 	ida_simple_remove(&hci_index_ida, hdev->id);
--<<<<<<< HEAD
--}
--=======
- 	kfree(hdev);
- }
- EXPORT_SYMBOL(hci_release_dev);
-->>>>>>> linux-next/akpm-base
- 
- /* Suspend HCI device */
- int hci_suspend_dev(struct hci_dev *hdev)
---- a/net/bluetooth/hci_sysfs.c~linux-next-git-rejects
-+++ a/net/bluetooth/hci_sysfs.c
-@@ -83,14 +83,7 @@ void hci_conn_del_sysfs(struct hci_conn
- static void bt_host_release(struct device *dev)
- {
- 	struct hci_dev *hdev = to_hci_dev(dev);
--<<<<<<< HEAD
--
--	if (hci_dev_test_flag(hdev, HCI_UNREGISTER))
--		hci_cleanup_dev(hdev);
--	kfree(hdev);
--=======
- 	hci_release_dev(hdev);
-->>>>>>> linux-next/akpm-base
- 	module_put(THIS_MODULE);
- }
- 
---- a/net/qrtr/mhi.c~linux-next-git-rejects
-+++ a/net/qrtr/mhi.c
-@@ -84,11 +84,7 @@ static int qcom_mhi_qrtr_probe(struct mh
- 	int rc;
- 
- 	/* start channels */
--<<<<<<< HEAD
--	rc = mhi_prepare_for_transfer(mhi_dev, 0);
--=======
- 	rc = mhi_prepare_for_transfer(mhi_dev, MHI_CH_INBOUND_ALLOC_BUFS);
-->>>>>>> linux-next/akpm-base
- 	if (rc)
- 		return rc;
- 
++
++SYSCALL_DEFINE2(process_mrelease, int, pidfd, unsigned int, flags)
++{
++#ifdef CONFIG_MMU
++	struct mm_struct *mm = NULL;
++	struct task_struct *task;
++	unsigned int f_flags;
++	struct pid *pid;
++	long ret = 0;
++
++	if (flags)
++		return -EINVAL;
++
++	pid = pidfd_get_pid(pidfd, &f_flags);
++	if (IS_ERR(pid))
++		return PTR_ERR(pid);
++
++	task = get_pid_task(pid, PIDTYPE_PID);
++	if (!task) {
++		ret = -ESRCH;
++		goto put_pid;
++	}
++
++	/*
++	 * If the task is dying and in the process of releasing its memory
++	 * then get its mm.
++	 */
++	task = find_lock_task_mm(task);
++	if (!task) {
++		ret = -ESRCH;
++		goto put_pid;
++	}
++	if (task_will_free_mem(task) && (task->flags & PF_KTHREAD) == 0) {
++		mm = task->mm;
++		mmget(mm);
++	}
++	task_unlock(task);
++	if (!mm) {
++		ret = -EINVAL;
++		goto put_task;
++	}
++
++	if (test_bit(MMF_OOM_SKIP, &mm->flags))
++		goto put_mm;
++
++	if (mmap_read_lock_killable(mm)) {
++		ret = -EINTR;
++		goto put_mm;
++	}
++	if (!__oom_reap_task_mm(mm))
++		ret = -EAGAIN;
++	mmap_read_unlock(mm);
++
++put_mm:
++	mmput(mm);
++put_task:
++	put_task_struct(task);
++put_pid:
++	put_pid(pid);
++	return ret;
++#else
++	return -ENOSYS;
++#endif /* CONFIG_MMU */
++}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
-mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
-log-if-a-core-dump-is-aborted-due-to-changed-file-permissions-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
+mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
+mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config.patch
+mm-wire-up-syscall-process_mrelease.patch
 
