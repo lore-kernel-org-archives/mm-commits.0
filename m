@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD994C432BE
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B18DEC4338F
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9EC7D610CD
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94BBD610FF
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239381AbhHEXi0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:38:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36068 "EHLO mail.kernel.org"
+        id S239498AbhHEXi2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:38:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36122 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235436AbhHEXi0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:38:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AA2E560E52;
-        Thu,  5 Aug 2021 23:38:10 +0000 (UTC)
+        id S239396AbhHEXi2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:38:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C7B6E60E53;
+        Thu,  5 Aug 2021 23:38:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206690;
-        bh=8H9tk3d6PojJxsrSy1FGwb8ZUKMcVT25wYNoETq0zAY=;
+        s=korg; t=1628206693;
+        bh=c7X1dKUPLfV4/CpTbeSeLHOjOTZz9TF6RcC44slLJVo=;
         h=Date:From:To:Subject:From;
-        b=0JkP5vhYP+hYNr8ScK3iV//SrVBGquppWQLp9o9c9LK79YpU8SeTC5bfdn2zMp5L9
-         dSseupp5zD4FNy5v3kLCsJ38xYkYBwZV6k4EOfzCIP0NVPwbTg42MH7ysBb+CHkfQt
-         +52Czqs43EhfKaHX6hBVYHDAmqicJovQFZnQmMCM=
-Date:   Thu, 05 Aug 2021 16:38:10 -0700
+        b=moFjJMXN1dcx0zUHjhjgwjeTxiRbQ8gkpKpwVh5eU6abS19o9ZHzfVeU1bpbRjS46
+         PrLI6XsHDEaOx8RxG4ADrghkpr/BaZngWnpZxCuuwFd/0hnZsPDoTUu9sytrG2d70l
+         CcVFn6EfhYQCVAH/wlesE1yEZT7QeP+rYEazxzBk=
+Date:   Thu, 05 Aug 2021 16:38:12 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
         mgorman@techsingularity.net, jannh@google.com,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
-Subject:  + mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
+Subject:  +
+ mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
  added to -mm tree
-Message-ID: <20210805233810.Ai-WB%akpm@linux-foundation.org>
+Message-ID: <20210805233812.BTXzG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: make slab_lock() disable irqs with PREEMPT_RT
+     Subject: mm, slub: protect put_cpu_partial() with disabled irqs instead of cmpxchg
 has been added to the -mm tree.  Its filename is
-     mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
+     mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,76 +69,182 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: make slab_lock() disable irqs with PREEMPT_RT
+Subject: mm, slub: protect put_cpu_partial() with disabled irqs instead of cmpxchg
 
-We need to disable irqs around slab_lock() (a bit spinlock) to make it
-irq-safe.  The calls to slab_lock() are nested under spin_lock_irqsave()
-which doesn't disable irqs on PREEMPT_RT, so add explicit disabling with
-PREEMPT_RT.
+Jann Horn reported [1] the following theoretically possible race:
 
-We also distinguish cmpxchg_double_slab() where we do the disabling
-explicitly and __cmpxchg_double_slab() for contexts with already disabled
-irqs.  However these context are also typically spin_lock_irqsave() thus
-insufficient on PREEMPT_RT.  Thus, change __cmpxchg_double_slab() to be
-same as cmpxchg_double_slab() on PREEMPT_RT.
+  task A: put_cpu_partial() calls preempt_disable()
+  task A: oldpage = this_cpu_read(s->cpu_slab->partial)
+  interrupt: kfree() reaches unfreeze_partials() and discards the page
+  task B (on another CPU): reallocates page as page cache
+  task A: reads page->pages and page->pobjects, which are actually
+  halves of the pointer page->lru.prev
+  task B (on another CPU): frees page
+  interrupt: allocates page as SLUB page and places it on the percpu partial list
+  task A: this_cpu_cmpxchg() succeeds
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-33-vbabka@suse.cz
+  which would cause page->pages and page->pobjects to end up containing
+  halves of pointers that would then influence when put_cpu_partial()
+  happens and show up in root-only sysfs files. Maybe that's acceptable,
+  I don't know. But there should probably at least be a comment for now
+  to point out that we're reading union fields of a page that might be
+  in a completely different state.
+
+Additionally, the this_cpu_cmpxchg() approach in put_cpu_partial() is only
+safe against s->cpu_slab->partial manipulation in ___slab_alloc() if the
+latter disables irqs, otherwise a __slab_free() in an irq handler could
+call put_cpu_partial() in the middle of ___slab_alloc() manipulating
+->partial and corrupt it.  This becomes an issue on RT after a local_lock
+is introduced in later patch.  The fix means taking the local_lock also in
+put_cpu_partial() on RT.
+
+After debugging this issue, Mike Galbraith suggested [2] that to avoid
+different locking schemes on RT and !RT, we can just protect
+put_cpu_partial() with disabled irqs (to be converted to
+local_lock_irqsave() later) everywhere.  This should be acceptable as it's
+not a fast path, and moving the actual partial unfreezing outside of the
+irq disabled section makes it short, and with the retry loop gone the code
+can be also simplified.  In addition, the race reported by Jann should no
+longer be possible.
+
+[1] https://lore.kernel.org/lkml/CAG48ez1mvUuXwg0YPH5ANzhQLpbphqk-ZS+jbRz+H66fvm4FcA@mail.gmail.com/
+[2] https://lore.kernel.org/linux-rt-users/e3470ab357b48bccfbd1f5133b982178a7d2befb.camel@gmx.de/
+
+Link: https://lkml.kernel.org/r/20210805152000.12817-34-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Jann Horn <jannh@google.com>
+Suggested-by: Mike Galbraith <efault@gmx.de>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Jann Horn <jannh@google.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Galbraith <efault@gmx.de>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ mm/slub.c |   83 ++++++++++++++++++++++++++++------------------------
+ 1 file changed, 45 insertions(+), 38 deletions(-)
 
---- a/mm/slub.c~mm-slub-make-slab_lock-disable-irqs-with-preempt_rt
+--- a/mm/slub.c~mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg
 +++ a/mm/slub.c
-@@ -380,12 +380,12 @@ __slab_unlock(struct page *page, unsigne
- static __always_inline void
- slab_lock(struct page *page, unsigned long *flags)
+@@ -2006,7 +2006,12 @@ static inline void *acquire_slab(struct
+ 	return freelist;
+ }
+ 
++#ifdef CONFIG_SLUB_CPU_PARTIAL
+ static void put_cpu_partial(struct kmem_cache *s, struct page *page, int drain);
++#else
++static inline void put_cpu_partial(struct kmem_cache *s, struct page *page,
++				   int drain) { }
++#endif
+ static inline bool pfmemalloc_match(struct page *page, gfp_t gfpflags);
+ 
+ /*
+@@ -2440,14 +2445,6 @@ static void unfreeze_partials_cpu(struct
+ 		__unfreeze_partials(s, partial_page);
+ }
+ 
+-#else	/* CONFIG_SLUB_CPU_PARTIAL */
+-
+-static inline void unfreeze_partials(struct kmem_cache *s) { }
+-static inline void unfreeze_partials_cpu(struct kmem_cache *s,
+-				  struct kmem_cache_cpu *c) { }
+-
+-#endif	/* CONFIG_SLUB_CPU_PARTIAL */
+-
+ /*
+  * Put a page that was just frozen (in __slab_free|get_partial_node) into a
+  * partial page slot if available.
+@@ -2457,46 +2454,56 @@ static inline void unfreeze_partials_cpu
+  */
+ static void put_cpu_partial(struct kmem_cache *s, struct page *page, int drain)
  {
--	__slab_lock(page, flags, false);
-+	__slab_lock(page, flags, IS_ENABLED(CONFIG_PREEMPT_RT));
+-#ifdef CONFIG_SLUB_CPU_PARTIAL
+ 	struct page *oldpage;
+-	int pages;
+-	int pobjects;
++	struct page *page_to_unfreeze = NULL;
++	unsigned long flags;
++	int pages = 0;
++	int pobjects = 0;
+ 
+-	preempt_disable();
+-	do {
+-		pages = 0;
+-		pobjects = 0;
+-		oldpage = this_cpu_read(s->cpu_slab->partial);
++	local_irq_save(flags);
++
++	oldpage = this_cpu_read(s->cpu_slab->partial);
+ 
+-		if (oldpage) {
++	if (oldpage) {
++		if (drain && oldpage->pobjects > slub_cpu_partial(s)) {
++			/*
++			 * Partial array is full. Move the existing set to the
++			 * per node partial list. Postpone the actual unfreezing
++			 * outside of the critical section.
++			 */
++			page_to_unfreeze = oldpage;
++			oldpage = NULL;
++		} else {
+ 			pobjects = oldpage->pobjects;
+ 			pages = oldpage->pages;
+-			if (drain && pobjects > slub_cpu_partial(s)) {
+-				/*
+-				 * partial array is full. Move the existing
+-				 * set to the per node partial list.
+-				 */
+-				unfreeze_partials(s);
+-				oldpage = NULL;
+-				pobjects = 0;
+-				pages = 0;
+-				stat(s, CPU_PARTIAL_DRAIN);
+-			}
+ 		}
++	}
+ 
+-		pages++;
+-		pobjects += page->objects - page->inuse;
++	pages++;
++	pobjects += page->objects - page->inuse;
+ 
+-		page->pages = pages;
+-		page->pobjects = pobjects;
+-		page->next = oldpage;
+-
+-	} while (this_cpu_cmpxchg(s->cpu_slab->partial, oldpage, page)
+-								!= oldpage);
+-	preempt_enable();
+-#endif	/* CONFIG_SLUB_CPU_PARTIAL */
++	page->pages = pages;
++	page->pobjects = pobjects;
++	page->next = oldpage;
++
++	this_cpu_write(s->cpu_slab->partial, page);
++
++	local_irq_restore(flags);
++
++	if (page_to_unfreeze) {
++		__unfreeze_partials(s, page_to_unfreeze);
++		stat(s, CPU_PARTIAL_DRAIN);
++	}
  }
  
- static __always_inline void slab_unlock(struct page *page, unsigned long *flags)
++#else	/* CONFIG_SLUB_CPU_PARTIAL */
++
++static inline void unfreeze_partials(struct kmem_cache *s) { }
++static inline void unfreeze_partials_cpu(struct kmem_cache *s,
++				  struct kmem_cache_cpu *c) { }
++
++#endif	/* CONFIG_SLUB_CPU_PARTIAL */
++
+ static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c,
+ 			      bool lock)
  {
--	__slab_unlock(page, flags, false);
-+	__slab_unlock(page, flags, IS_ENABLED(CONFIG_PREEMPT_RT));
- }
- 
- static inline bool ___cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
-@@ -429,14 +429,19 @@ static inline bool ___cmpxchg_double_sla
- 	return false;
- }
- 
--/* Interrupts must be disabled (for the fallback code to work right) */
-+/*
-+ * Interrupts must be disabled (for the fallback code to work right), typically
-+ * by an _irqsave() lock variant. Except on PREEMPT_RT where locks are different
-+ * so we disable interrupts explicitly here.
-+ */
- static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
- 		void *freelist_old, unsigned long counters_old,
- 		void *freelist_new, unsigned long counters_new,
- 		const char *n)
- {
- 	return ___cmpxchg_double_slab(s, page, freelist_old, counters_old,
--				      freelist_new, counters_new, n, false);
-+				      freelist_new, counters_new, n,
-+				      IS_ENABLED(CONFIG_PREEMPT_RT));
- }
- 
- static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
