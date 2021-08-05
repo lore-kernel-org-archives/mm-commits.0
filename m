@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9ABBC4338F
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60AC2C4338F
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90C8460E53
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3FC1D61157
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:38:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239266AbhHEXiQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:38:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35902 "EHLO mail.kernel.org"
+        id S239314AbhHEXiS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:38:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238926AbhHEXiP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:38:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A5B7661156;
-        Thu,  5 Aug 2021 23:38:00 +0000 (UTC)
+        id S238926AbhHEXiS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:38:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A2E1E61132;
+        Thu,  5 Aug 2021 23:38:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206680;
-        bh=UczPNj6YOyW2e7iR4bU9NQm8A2Irjo13Kk4FStHrJrs=;
+        s=korg; t=1628206682;
+        bh=jkyaMM++ADTfkhQ4mZkI0xC/LkFTAkijelpqmRxEfnk=;
         h=Date:From:To:Subject:From;
-        b=KHfWC1ycI9GSvlnH6Jb5uC9nNsA2OjFXRD0FY5OLECR39ghIFMhO+sib8Mm1wocV3
-         GZvPZW1H8NZva7bOlYHyRwbNyEIZc3YAs3MVm4hjYNrvaL98D+/xEC8PshGJkLD3Ou
-         zLQejr+fO9NnMRHW5P3WF0znMxIXPREzgxtLAAew=
-Date:   Thu, 05 Aug 2021 16:38:00 -0700
+        b=aW5Xyde99Fof03dJFNwFeC+kKyPCJawmqdTEd352O9f7F5qXtiGSG3ulS7WbjIKkF
+         KEFDKLieSXHQS+3NLKYjsIZjPVdigMbez0933WSq+J+tBA+SRDx9htJHRTkg5pWKao
+         WNxGRZVzQyyAdzHTCYIOBxV3HL2RnUBKwTMst+cI=
+Date:   Thu, 05 Aug 2021 16:38:02 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
         mgorman@techsingularity.net, jannh@google.com,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
-Subject:  + mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch added to
- -mm tree
-Message-ID: <20210805233800.Vz9i3%akpm@linux-foundation.org>
+Subject:  +
+ mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch added to -mm
+ tree
+Message-ID: <20210805233802.a3yW_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: don't disable irqs in slub_cpu_dead()
+     Subject: mm, slab: make flush_slab() possible to call with irqs enabled
 has been added to the -mm tree.  Its filename is
-     mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
+     mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,13 +69,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: don't disable irqs in slub_cpu_dead()
+Subject: mm, slab: make flush_slab() possible to call with irqs enabled
 
-slub_cpu_dead() cleans up for an offlined cpu from another cpu and calls
-only functions that are now irq safe, so we don't need to disable irqs
-anymore.
+Currently flush_slab() is always called with disabled IRQs if it's needed,
+but the following patches will change that, so add a parameter to control
+IRQ disabling within the function, which only protects the kmem_cache_cpu
+manipulation and not the call to deactivate_slab() which doesn't need it.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-28-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-29-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -89,26 +91,61 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ mm/slub.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
---- a/mm/slub.c~mm-slub-dont-disable-irqs-in-slub_cpu_dead
+--- a/mm/slub.c~mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled
 +++ a/mm/slub.c
-@@ -2540,14 +2540,10 @@ static void flush_all(struct kmem_cache
- static int slub_cpu_dead(unsigned int cpu)
- {
- 	struct kmem_cache *s;
--	unsigned long flags;
+@@ -2480,16 +2480,28 @@ static void put_cpu_partial(struct kmem_
+ #endif	/* CONFIG_SLUB_CPU_PARTIAL */
+ }
  
- 	mutex_lock(&slab_mutex);
--	list_for_each_entry(s, &slab_caches, list) {
--		local_irq_save(flags);
-+	list_for_each_entry(s, &slab_caches, list)
- 		__flush_cpu_slab(s, cpu);
--		local_irq_restore(flags);
--	}
- 	mutex_unlock(&slab_mutex);
- 	return 0;
+-static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
++static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c,
++			      bool lock)
+ {
+-	void *freelist = c->freelist;
+-	struct page *page = c->page;
++	unsigned long flags;
++	void *freelist;
++	struct page *page;
++
++	if (lock)
++		local_irq_save(flags);
++
++	freelist = c->freelist;
++	page = c->page;
+ 
+ 	c->page = NULL;
+ 	c->freelist = NULL;
+ 	c->tid = next_tid(c->tid);
+ 
+-	deactivate_slab(s, page, freelist);
++	if (lock)
++		local_irq_restore(flags);
++
++	if (page)
++		deactivate_slab(s, page, freelist);
+ 
+ 	stat(s, CPUSLAB_FLUSH);
+ }
+@@ -2499,7 +2511,7 @@ static inline void __flush_cpu_slab(stru
+ 	struct kmem_cache_cpu *c = per_cpu_ptr(s->cpu_slab, cpu);
+ 
+ 	if (c->page)
+-		flush_slab(s, c);
++		flush_slab(s, c, false);
+ 
+ 	unfreeze_partials_cpu(s, c);
+ }
+@@ -2515,7 +2527,7 @@ static void flush_cpu_slab(void *d)
+ 	struct kmem_cache_cpu *c = this_cpu_ptr(s->cpu_slab);
+ 
+ 	if (c->page)
+-		flush_slab(s, c);
++		flush_slab(s, c, false);
+ 
+ 	unfreeze_partials(s);
  }
 _
 
