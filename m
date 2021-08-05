@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0217DC432BE
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD72AC4338F
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D720D60E53
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A47FB610FF
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236593AbhHEXha (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:37:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35062 "EHLO mail.kernel.org"
+        id S231173AbhHEXhe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:37:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231173AbhHEXha (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:37:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A29A560E52;
-        Thu,  5 Aug 2021 23:37:14 +0000 (UTC)
+        id S237996AbhHEXhd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:37:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A539E60E52;
+        Thu,  5 Aug 2021 23:37:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206634;
-        bh=hTnZKLyin2cAP627zVqWWTtHfAY3xrDVdfw0AGNk3eY=;
+        s=korg; t=1628206638;
+        bh=VXeMIpVbLQJdyj/7dXiMkYUd0xe+z6Ew0sq26S/wSSE=;
         h=Date:From:To:Subject:From;
-        b=iw6URUwvCN2q/MKNreX2mFSyG6UAwL15RFfvtZvb3UUUU6f7mfzt8m4Jmnf0IylfR
-         1PF/6j7BQ6275qPE4OqcDnFbyfaJHCOgEKjWXXN/KeEX50b0/yMH2Ttj8K4maUPIni
-         9Rus1cQOed0forPZkaUdl0//ncjsoLE8oYsRHD30=
-Date:   Thu, 05 Aug 2021 16:37:14 -0700
+        b=T7iOmLMVBNMDHypqiyZwY3iECS/avAXEiTpZTIIUD/ct6ATa5tBseERBu6Sjl+pgV
+         x19ZIQ+uBNeYI2hIByT5AVBTLcIMJzGlroVdNaCerN2XJKzxffJ34ANil2UQ5mmc/I
+         qK6Mznk7lZ5dxHfAoAdiiFvOw+EOrp44R5GiSZuM=
+Date:   Thu, 05 Aug 2021 16:37:18 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
@@ -36,9 +36,9 @@ To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
 Subject:  +
- mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch added to -mm
- tree
-Message-ID: <20210805233714.eRC2L%akpm@linux-foundation.org>
+ mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch added to
+ -mm tree
+Message-ID: <20210805233718.t-_z1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: don't disable irq for debug_check_no_locks_freed()
+     Subject: mm, slub: unify cmpxchg_double_slab() and __cmpxchg_double_slab()
 has been added to the -mm tree.  Its filename is
-     mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
+     mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,25 +69,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: don't disable irq for debug_check_no_locks_freed()
+Subject: mm, slub: unify cmpxchg_double_slab() and __cmpxchg_double_slab()
 
-In slab_free_hook() we disable irqs around the
-debug_check_no_locks_freed() call, which is unnecessary, as irqs are
-already being disabled inside the call.  This seems to be leftover from
-the past where there were more calls inside the irq disabled sections. 
-Remove the irq disable/enable operations.
+These functions differ only in irq disabling in the slow path.  We can
+create a common function with an extra bool parameter to control the irq
+disabling.  As the functions are inline and the parameter compile-time
+constant, there will be no runtime overhead due to this change.
 
-Mel noted:
-> Looks like it was needed for kmemcheck which went away back in 4.15
+Also change the DEBUG_VM based irqs disable assert to the more standard
+lockdep_assert based one.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-5-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-7-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Christoph Lameter <cl@linux.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Mike Galbraith <efault@gmx.de>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
@@ -95,33 +94,111 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   14 +-------------
- 1 file changed, 1 insertion(+), 13 deletions(-)
+ mm/slub.c |   62 ++++++++++++++++++++--------------------------------
+ 1 file changed, 24 insertions(+), 38 deletions(-)
 
---- a/mm/slub.c~mm-slub-dont-disable-irq-for-debug_check_no_locks_freed
+--- a/mm/slub.c~mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab
 +++ a/mm/slub.c
-@@ -1591,20 +1591,8 @@ static __always_inline bool slab_free_ho
- {
- 	kmemleak_free_recursive(x, s->flags);
+@@ -371,13 +371,13 @@ static __always_inline void slab_unlock(
+ 	__bit_spin_unlock(PG_locked, &page->flags);
+ }
  
--	/*
--	 * Trouble is that we may no longer disable interrupts in the fast path
--	 * So in order to make the debug calls that expect irqs to be
--	 * disabled we need to disable interrupts temporarily.
--	 */
--#ifdef CONFIG_LOCKDEP
+-/* Interrupts must be disabled (for the fallback code to work right) */
+-static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
++static inline bool ___cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
+ 		void *freelist_old, unsigned long counters_old,
+ 		void *freelist_new, unsigned long counters_new,
+-		const char *n)
++		const char *n, bool disable_irqs)
+ {
+-	VM_BUG_ON(!irqs_disabled());
++	if (!disable_irqs)
++		lockdep_assert_irqs_disabled();
+ #if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
+     defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
+ 	if (s->flags & __CMPXCHG_DOUBLE) {
+@@ -388,15 +388,23 @@ static inline bool __cmpxchg_double_slab
+ 	} else
+ #endif
+ 	{
++		unsigned long flags;
++
++		if (disable_irqs)
++			local_irq_save(flags);
+ 		slab_lock(page);
+ 		if (page->freelist == freelist_old &&
+ 					page->counters == counters_old) {
+ 			page->freelist = freelist_new;
+ 			page->counters = counters_new;
+ 			slab_unlock(page);
++			if (disable_irqs)
++				local_irq_restore(flags);
+ 			return true;
+ 		}
+ 		slab_unlock(page);
++		if (disable_irqs)
++			local_irq_restore(flags);
+ 	}
+ 
+ 	cpu_relax();
+@@ -409,45 +417,23 @@ static inline bool __cmpxchg_double_slab
+ 	return false;
+ }
+ 
+-static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
++/* Interrupts must be disabled (for the fallback code to work right) */
++static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
+ 		void *freelist_old, unsigned long counters_old,
+ 		void *freelist_new, unsigned long counters_new,
+ 		const char *n)
+ {
+-#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
+-    defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
+-	if (s->flags & __CMPXCHG_DOUBLE) {
+-		if (cmpxchg_double(&page->freelist, &page->counters,
+-				   freelist_old, counters_old,
+-				   freelist_new, counters_new))
+-			return true;
+-	} else
+-#endif
 -	{
 -		unsigned long flags;
-+	debug_check_no_locks_freed(x, s->object_size);
- 
+-
 -		local_irq_save(flags);
--		debug_check_no_locks_freed(x, s->object_size);
+-		slab_lock(page);
+-		if (page->freelist == freelist_old &&
+-					page->counters == counters_old) {
+-			page->freelist = freelist_new;
+-			page->counters = counters_new;
+-			slab_unlock(page);
+-			local_irq_restore(flags);
+-			return true;
+-		}
+-		slab_unlock(page);
 -		local_irq_restore(flags);
 -	}
+-
+-	cpu_relax();
+-	stat(s, CMPXCHG_DOUBLE_FAIL);
+-
+-#ifdef SLUB_DEBUG_CMPXCHG
+-	pr_info("%s %s: cmpxchg double redo ", n, s->name);
 -#endif
- 	if (!(s->flags & SLAB_DEBUG_OBJECTS))
- 		debug_check_no_obj_freed(x, s->object_size);
++	return ___cmpxchg_double_slab(s, page, freelist_old, counters_old,
++				      freelist_new, counters_new, n, false);
++}
  
+-	return false;
++static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
++		void *freelist_old, unsigned long counters_old,
++		void *freelist_new, unsigned long counters_new,
++		const char *n)
++{
++	return ___cmpxchg_double_slab(s, page, freelist_old, counters_old,
++				      freelist_new, counters_new, n, true);
+ }
+ 
+ #ifdef CONFIG_SLUB_DEBUG
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
