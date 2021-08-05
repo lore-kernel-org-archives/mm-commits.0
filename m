@@ -7,38 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 394BAC4338F
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E1DFAC4320A
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1EE5E61104
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C046F60F14
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238561AbhHEXhx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:37:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35434 "EHLO mail.kernel.org"
+        id S238601AbhHEXhy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:37:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35460 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237996AbhHEXhw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:37:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A3C86610CD;
-        Thu,  5 Aug 2021 23:37:36 +0000 (UTC)
+        id S237996AbhHEXhy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:37:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A504260E53;
+        Thu,  5 Aug 2021 23:37:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206656;
-        bh=nRfg2lsFrft2xhaJ2HiNsG2NTqZwJuLoSKLwMPVYg5U=;
+        s=korg; t=1628206658;
+        bh=LUUOaLU+P0/H44feEVMs89GJKwDPE8/AgsrTZk3H5z0=;
         h=Date:From:To:Subject:From;
-        b=PBLLO5AKljgj4NRXNiwXN45QmFpZNxdXU2pkdIrXoCkhSdSoUg3QxA+Sk65VOp1pX
-         WEjiMZFQ9prgI94XAVvLYkFN4jDpS6si3u8eedRptP84a/E5maaJ/oELsnvpct3IFS
-         Y/2VPl29I8lDTNzKLnIMo8LJJ54RDi0kaU3MG+3A=
-Date:   Thu, 05 Aug 2021 16:37:36 -0700
+        b=ooIDdDyp23SVjE8bEXiBusGldNVVm3yV+PXKStuF50nIzndr9FCgncAJMVYJZ8K8Z
+         y41DW+FswottN3feeQkE8etcKGdTsnAuiY1DcSd5nsxB6QTpxepGJiypfJanuOC7m3
+         di++Eoqoija6EoC321WVH7e2yJXL55q6oZsQ/SqE=
+Date:   Thu, 05 Aug 2021 16:37:38 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
         mgorman@techsingularity.net, jannh@google.com,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
-Subject:  + mm-slub-restore-irqs-around-calling-new_slab.patch added
- to -mm tree
-Message-ID: <20210805233736.DZLnp%akpm@linux-foundation.org>
+Subject:  +
+ =?us-ascii?Q?mm-slub-validate-slab-from-partial-list-or-page-allocator?=
+ =?us-ascii?Q?-before-making-it-cpu-slab.patch?= added to -mm tree
+Message-ID: <20210805233738.CS6oX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: restore irqs around calling new_slab()
+     Subject: mm, slub: validate slab from partial list or page allocator before making it cpu slab
 has been added to the -mm tree.  Its filename is
-     mm-slub-restore-irqs-around-calling-new_slab.patch
+     mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-restore-irqs-around-calling-new_slab.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-restore-irqs-around-calling-new_slab.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,15 +71,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: restore irqs around calling new_slab()
+Subject: mm, slub: validate slab from partial list or page allocator before making it cpu slab
 
-allocate_slab() currently re-enables irqs before calling to the page
-allocator.  It depends on gfpflags_allow_blocking() to determine if it's
-safe to do so.  Now we can instead simply restore irq before calling it
-through new_slab().  The other caller early_kmem_cache_node_alloc() is
-unaffected by this.
+When we obtain a new slab page from node partial list or page allocator,
+we assign it to kmem_cache_cpu, perform some checks, and if they fail, we
+undo the assignment.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-16-vbabka@suse.cz
+In order to allow doing the checks without irq disabled, restructure the
+code so that the checks are done first, and kmem_cache_cpu.page assignment
+only after they pass.
+
+Link: https://lkml.kernel.org/r/20210805152000.12817-17-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -91,49 +96,67 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/slub.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/mm/slub.c~mm-slub-restore-irqs-around-calling-new_slab
+--- a/mm/slub.c~mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab
 +++ a/mm/slub.c
-@@ -1795,9 +1795,6 @@ static struct page *allocate_slab(struct
+@@ -2775,10 +2775,8 @@ new_objects:
+ 	lockdep_assert_irqs_disabled();
  
- 	flags &= gfp_allowed_mask;
- 
--	if (gfpflags_allow_blocking(flags))
--		local_irq_enable();
--
- 	flags |= s->allocflags;
- 
- 	/*
-@@ -1856,8 +1853,6 @@ static struct page *allocate_slab(struct
- 	page->frozen = 1;
- 
- out:
--	if (gfpflags_allow_blocking(flags))
--		local_irq_disable();
- 	if (!page)
- 		return NULL;
- 
-@@ -2785,16 +2780,17 @@ new_objects:
+ 	freelist = get_partial(s, gfpflags, node, &page);
+-	if (freelist) {
+-		c->page = page;
++	if (freelist)
  		goto check_new_page;
- 	}
+-	}
  
-+	local_irq_restore(flags);
+ 	local_irq_restore(flags);
  	put_cpu_ptr(s->cpu_slab);
- 	page = new_slab(s, gfpflags, node);
- 	c = get_cpu_ptr(s->cpu_slab);
- 
- 	if (unlikely(!page)) {
--		local_irq_restore(flags);
- 		slab_out_of_memory(s, gfpflags, node);
- 		return NULL;
+@@ -2791,9 +2789,6 @@ new_objects:
  	}
  
-+	local_irq_save(flags);
- 	if (c->page)
- 		flush_slab(s, c);
+ 	local_irq_save(flags);
+-	if (c->page)
+-		flush_slab(s, c);
+-
+ 	/*
+ 	 * No other reference to the page yet so we can
+ 	 * muck around with it freely without cmpxchg
+@@ -2802,14 +2797,12 @@ new_objects:
+ 	page->freelist = NULL;
  
+ 	stat(s, ALLOC_SLAB);
+-	c->page = page;
+ 
+ check_new_page:
+ 
+ 	if (kmem_cache_debug(s)) {
+ 		if (!alloc_debug_processing(s, page, freelist, addr)) {
+ 			/* Slab failed checks. Next slab needed */
+-			c->page = NULL;
+ 			local_irq_restore(flags);
+ 			goto new_slab;
+ 		} else {
+@@ -2828,10 +2821,18 @@ check_new_page:
+ 		 */
+ 		goto return_single;
+ 
++	if (unlikely(c->page))
++		flush_slab(s, c);
++	c->page = page;
++
+ 	goto load_freelist;
+ 
+ return_single:
+ 
++	if (unlikely(c->page))
++		flush_slab(s, c);
++	c->page = page;
++
+ 	deactivate_slab(s, page, get_freepointer(s, freelist), c);
+ 	local_irq_restore(flags);
+ 	return freelist;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
