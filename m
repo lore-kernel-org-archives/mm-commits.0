@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01420C4338F
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0217DC432BE
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D27C861132
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D720D60E53
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237007AbhHEXh2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:37:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35018 "EHLO mail.kernel.org"
+        id S236593AbhHEXha (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:37:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35062 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231173AbhHEXh2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:37:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A4A0B610FF;
-        Thu,  5 Aug 2021 23:37:12 +0000 (UTC)
+        id S231173AbhHEXha (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:37:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A29A560E52;
+        Thu,  5 Aug 2021 23:37:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206632;
-        bh=+kcI7aUG4PTthYPcZXwgZ5odPGlxj0vTXSr4wYTMdlY=;
+        s=korg; t=1628206634;
+        bh=hTnZKLyin2cAP627zVqWWTtHfAY3xrDVdfw0AGNk3eY=;
         h=Date:From:To:Subject:From;
-        b=TDf9QVEvjf+eV2WYS3x0oh7mNAehx2ArpE2ROTuiWwS6EV6DRQ74JM85F6U6Xyb3b
-         jkWl0BAEFSEtBpDZEVMrsc6izo23mW05hT60Ye0i56cy/Kb9tuevRiNJKreFJALErX
-         PyX9TG0m4cNs0nHVdV7dOVVzY2+Yf9r/nv0WYgIQ=
-Date:   Thu, 05 Aug 2021 16:37:12 -0700
+        b=iw6URUwvCN2q/MKNreX2mFSyG6UAwL15RFfvtZvb3UUUU6f7mfzt8m4Jmnf0IylfR
+         1PF/6j7BQ6275qPE4OqcDnFbyfaJHCOgEKjWXXN/KeEX50b0/yMH2Ttj8K4maUPIni
+         9Rus1cQOed0forPZkaUdl0//ncjsoLE8oYsRHD30=
+Date:   Thu, 05 Aug 2021 16:37:14 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
@@ -36,9 +36,9 @@ To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
 Subject:  +
- mm-slub-allocate-private-object-map-for-validate_slab_cache.patch added to
- -mm tree
-Message-ID: <20210805233712._JiO1%akpm@linux-foundation.org>
+ mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch added to -mm
+ tree
+Message-ID: <20210805233714.eRC2L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: allocate private object map for validate_slab_cache()
+     Subject: mm, slub: don't disable irq for debug_check_no_locks_freed()
 has been added to the -mm tree.  Its filename is
-     mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
+     mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,17 +69,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: allocate private object map for validate_slab_cache()
+Subject: mm, slub: don't disable irq for debug_check_no_locks_freed()
 
-validate_slab_cache() is called either to handle a sysfs write, or from a
-self-test context.  In both situations it's straightforward to preallocate
-a private object bitmap instead of grabbing the shared static one meant
-for critical sections, so let's do that.
+In slab_free_hook() we disable irqs around the
+debug_check_no_locks_freed() call, which is unnecessary, as irqs are
+already being disabled inside the call.  This seems to be leftover from
+the past where there were more calls inside the irq disabled sections. 
+Remove the irq disable/enable operations.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-4-vbabka@suse.cz
+Mel noted:
+> Looks like it was needed for kmemcheck which went away back in 4.15
+
+Link: https://lkml.kernel.org/r/20210805152000.12817-5-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Christoph Lameter <cl@linux.com>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
@@ -91,87 +95,33 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ mm/slub.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
---- a/mm/slub.c~mm-slub-allocate-private-object-map-for-validate_slab_cache
+--- a/mm/slub.c~mm-slub-dont-disable-irq-for-debug_check_no_locks_freed
 +++ a/mm/slub.c
-@@ -4679,11 +4679,11 @@ static int count_total(struct page *page
- #endif
- 
- #ifdef CONFIG_SLUB_DEBUG
--static void validate_slab(struct kmem_cache *s, struct page *page)
-+static void validate_slab(struct kmem_cache *s, struct page *page,
-+			  unsigned long *obj_map)
+@@ -1591,20 +1591,8 @@ static __always_inline bool slab_free_ho
  {
- 	void *p;
- 	void *addr = page_address(page);
--	unsigned long *map;
+ 	kmemleak_free_recursive(x, s->flags);
  
- 	slab_lock(page);
+-	/*
+-	 * Trouble is that we may no longer disable interrupts in the fast path
+-	 * So in order to make the debug calls that expect irqs to be
+-	 * disabled we need to disable interrupts temporarily.
+-	 */
+-#ifdef CONFIG_LOCKDEP
+-	{
+-		unsigned long flags;
++	debug_check_no_locks_freed(x, s->object_size);
  
-@@ -4691,21 +4691,20 @@ static void validate_slab(struct kmem_ca
- 		goto unlock;
+-		local_irq_save(flags);
+-		debug_check_no_locks_freed(x, s->object_size);
+-		local_irq_restore(flags);
+-	}
+-#endif
+ 	if (!(s->flags & SLAB_DEBUG_OBJECTS))
+ 		debug_check_no_obj_freed(x, s->object_size);
  
- 	/* Now we know that a valid freelist exists */
--	map = get_map(s, page);
-+	__fill_map(obj_map, s, page);
- 	for_each_object(p, s, addr, page->objects) {
--		u8 val = test_bit(__obj_to_index(s, addr, p), map) ?
-+		u8 val = test_bit(__obj_to_index(s, addr, p), obj_map) ?
- 			 SLUB_RED_INACTIVE : SLUB_RED_ACTIVE;
- 
- 		if (!check_object(s, page, p, val))
- 			break;
- 	}
--	put_map(map);
- unlock:
- 	slab_unlock(page);
- }
- 
- static int validate_slab_node(struct kmem_cache *s,
--		struct kmem_cache_node *n)
-+		struct kmem_cache_node *n, unsigned long *obj_map)
- {
- 	unsigned long count = 0;
- 	struct page *page;
-@@ -4714,7 +4713,7 @@ static int validate_slab_node(struct kme
- 	spin_lock_irqsave(&n->list_lock, flags);
- 
- 	list_for_each_entry(page, &n->partial, slab_list) {
--		validate_slab(s, page);
-+		validate_slab(s, page, obj_map);
- 		count++;
- 	}
- 	if (count != n->nr_partial) {
-@@ -4727,7 +4726,7 @@ static int validate_slab_node(struct kme
- 		goto out;
- 
- 	list_for_each_entry(page, &n->full, slab_list) {
--		validate_slab(s, page);
-+		validate_slab(s, page, obj_map);
- 		count++;
- 	}
- 	if (count != atomic_long_read(&n->nr_slabs)) {
-@@ -4746,10 +4745,17 @@ long validate_slab_cache(struct kmem_cac
- 	int node;
- 	unsigned long count = 0;
- 	struct kmem_cache_node *n;
-+	unsigned long *obj_map;
-+
-+	obj_map = bitmap_alloc(oo_objects(s->oo), GFP_KERNEL);
-+	if (!obj_map)
-+		return -ENOMEM;
- 
- 	flush_all(s);
- 	for_each_kmem_cache_node(s, node, n)
--		count += validate_slab_node(s, n);
-+		count += validate_slab_node(s, n, obj_map);
-+
-+	bitmap_free(obj_map);
- 
- 	return count;
- }
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
