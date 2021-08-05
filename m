@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BB67BC432BE
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06E0BC4338F
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 96CBD60F14
-	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D494361156
+	for <mm-commits@archiver.kernel.org>; Thu,  5 Aug 2021 23:37:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238382AbhHEXhm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 19:37:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35268 "EHLO mail.kernel.org"
+        id S238420AbhHEXhn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 19:37:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35304 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237996AbhHEXhm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 19:37:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A39D560E52;
-        Thu,  5 Aug 2021 23:37:26 +0000 (UTC)
+        id S237996AbhHEXhn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 19:37:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A46E36113C;
+        Thu,  5 Aug 2021 23:37:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628206646;
-        bh=GCdBdNxp6Y6avhGZD+7GorsUN8qDpfUKtysprdQfwpo=;
+        s=korg; t=1628206648;
+        bh=0bDkb44JVN+BZpUNpNSCN/ZocudAV2BkYXnSpEQ5hlA=;
         h=Date:From:To:Subject:From;
-        b=YVABR38Rw0fY96ZJd7XvhkxrmBMyx/8D3S3VEDhRlBaM28C5wdshhWzQU9hw7NBB5
-         kYQkLvsIwVzCqAP9Rly8GfmLE+Lub6hseFYgWoP0BI4xo3u5YLrQXBbTEExvgEZdVn
-         d6XjQRrLiuA/UACipKWBU4vceG/Vq6IEGUBtgZ4s=
-Date:   Thu, 05 Aug 2021 16:37:26 -0700
+        b=NcgP1hT0B6GDSaFWMZltQWylkb4HiT4roo55I9ClrSWUY51MZpMtxYZEqz6LfjFwy
+         59cLa8CV0bcJbyiK1DeuXCqMSWhUMGHjsyRAoY7u0Ml3bpWE8TyTLI//QNNKxpeHSu
+         1K4AE7i/X7jv0k4VsusPsxS45uMQKu4DnAtnclzg=
+Date:   Thu, 05 Aug 2021 16:37:28 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, tglx@linutronix.de,
         rientjes@google.com, penberg@kernel.org,
         mgorman@techsingularity.net, jannh@google.com,
         iamjoonsoo.kim@lge.com, efault@gmx.de, cl@linux.com,
         brouer@redhat.com, bigeasy@linutronix.de, vbabka@suse.cz
-Subject:  +
- mm-slub-restructure-new-page-checks-in-___slab_alloc.patch added to -mm tree
-Message-ID: <20210805233726.O1y36%akpm@linux-foundation.org>
+Subject:  + mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch added
+ to -mm tree
+Message-ID: <20210805233728.pNGNx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: restructure new page checks in ___slab_alloc()
+     Subject: mm, slub: simplify kmem_cache_cpu and tid setup
 has been added to the -mm tree.  Its filename is
-     mm-slub-restructure-new-page-checks-in-___slab_alloc.patch
+     mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-restructure-new-page-checks-in-___slab_alloc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-restructure-new-page-checks-in-___slab_alloc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,18 +68,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: restructure new page checks in ___slab_alloc()
+Subject: mm, slub: simplify kmem_cache_cpu and tid setup
 
-When we allocate slab object from a newly acquired page (from node's
-partial list or page allocator), we usually also retain the page as a new
-percpu slab.  There are two exceptions - when pfmemalloc status of the
-page doesn't match our gfp flags, or when the cache has debugging enabled.
+In slab_alloc_node() and do_slab_free() fastpaths we need to guarantee
+that our kmem_cache_cpu pointer is from the same cpu as the tid value. 
+Currently that's done by reading the tid first using this_cpu_read(), then
+the kmem_cache_cpu pointer and verifying we read the same tid using the
+pointer and plain READ_ONCE().
 
-The current code for these decisions is not easy to follow, so restructure
-it and add comments.  The new structure will also help with the following
-changes.  No functional change.
+This can be simplified to just fetching kmem_cache_cpu pointer and then
+reading tid using the pointer.  That guarantees they are from the same
+cpu.  We don't need to read the tid using this_cpu_read() because the
+value will be validated by this_cpu_cmpxchg_double(), making sure we are
+on the correct cpu and the freelist didn't change by anyone preempting us
+since reading the tid.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-11-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-12-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Christoph Lameter <cl@linux.com>
@@ -94,47 +98,48 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   28 ++++++++++++++++++++++------
- 1 file changed, 22 insertions(+), 6 deletions(-)
+ mm/slub.c |   22 +++++++++-------------
+ 1 file changed, 9 insertions(+), 13 deletions(-)
 
---- a/mm/slub.c~mm-slub-restructure-new-page-checks-in-___slab_alloc
+--- a/mm/slub.c~mm-slub-simplify-kmem_cache_cpu-and-tid-setup
 +++ a/mm/slub.c
-@@ -2768,13 +2768,29 @@ new_slab:
- 	c->page = page;
+@@ -2868,15 +2868,14 @@ redo:
+ 	 * reading from one cpu area. That does not matter as long
+ 	 * as we end up on the original cpu again when doing the cmpxchg.
+ 	 *
+-	 * We should guarantee that tid and kmem_cache are retrieved on
+-	 * the same cpu. It could be different if CONFIG_PREEMPTION so we need
+-	 * to check if it is matched or not.
++	 * We must guarantee that tid and kmem_cache_cpu are retrieved on the
++	 * same cpu. We read first the kmem_cache_cpu pointer and use it to read
++	 * the tid. If we are preempted and switched to another cpu between the
++	 * two reads, it's OK as the two are still associated with the same cpu
++	 * and cmpxchg later will validate the cpu.
+ 	 */
+-	do {
+-		tid = this_cpu_read(s->cpu_slab->tid);
+-		c = raw_cpu_ptr(s->cpu_slab);
+-	} while (IS_ENABLED(CONFIG_PREEMPTION) &&
+-		 unlikely(tid != READ_ONCE(c->tid)));
++	c = raw_cpu_ptr(s->cpu_slab);
++	tid = READ_ONCE(c->tid);
  
- check_new_page:
--	if (likely(!kmem_cache_debug(s) && pfmemalloc_match(page, gfpflags)))
--		goto load_freelist;
+ 	/*
+ 	 * Irqless object alloc/free algorithm used here depends on sequence
+@@ -3150,11 +3149,8 @@ redo:
+ 	 * data is retrieved via this pointer. If we are on the same cpu
+ 	 * during the cmpxchg then the free will succeed.
+ 	 */
+-	do {
+-		tid = this_cpu_read(s->cpu_slab->tid);
+-		c = raw_cpu_ptr(s->cpu_slab);
+-	} while (IS_ENABLED(CONFIG_PREEMPTION) &&
+-		 unlikely(tid != READ_ONCE(c->tid)));
++	c = raw_cpu_ptr(s->cpu_slab);
++	tid = READ_ONCE(c->tid);
  
--	/* Only entered in the debug case */
--	if (kmem_cache_debug(s) &&
--			!alloc_debug_processing(s, page, freelist, addr))
--		goto new_slab;	/* Slab failed checks. Next slab needed */
-+	if (kmem_cache_debug(s)) {
-+		if (!alloc_debug_processing(s, page, freelist, addr))
-+			/* Slab failed checks. Next slab needed */
-+			goto new_slab;
-+		else
-+			/*
-+			 * For debug case, we don't load freelist so that all
-+			 * allocations go through alloc_debug_processing()
-+			 */
-+			goto return_single;
-+	}
-+
-+	if (unlikely(!pfmemalloc_match(page, gfpflags)))
-+		/*
-+		 * For !pfmemalloc_match() case we don't load freelist so that
-+		 * we don't make further mismatched allocations easier.
-+		 */
-+		goto return_single;
-+
-+	goto load_freelist;
-+
-+return_single:
- 
- 	deactivate_slab(s, page, get_freepointer(s, freelist), c);
- 	return freelist;
+ 	/* Same with comment on barrier() in slab_alloc_node() */
+ 	barrier();
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
