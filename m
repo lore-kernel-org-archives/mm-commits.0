@@ -2,147 +2,174 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-12.7 required=3.0 tests=BAYES_00,DKIM_INVALID,
-	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
-	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,URIBL_BLOCKED,USER_AGENT_GIT autolearn=unavailable
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE203C4320A
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Aug 2021 05:00:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C9F4C432BE
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Aug 2021 09:22:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA4946105A
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Aug 2021 05:00:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 432F561102
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Aug 2021 09:22:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239767AbhHFFAv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Aug 2021 01:00:51 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41310 "EHLO
+        id S244440AbhHFJXM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Aug 2021 05:23:12 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44208 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231694AbhHFFAv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Aug 2021 01:00:51 -0400
-Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB1FDC061798;
-        Thu,  5 Aug 2021 22:00:35 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
-        :In-Reply-To:MIME-Version:Date:Message-ID:From:References:To:Subject:Sender:
-        Reply-To:Cc:Content-ID:Content-Description;
-        bh=mfp3lcLiizP+Ov0M2vzQv+FyVnyAM3p7EE1c6hFSDvk=; b=IyhXPpT63kcorJUwTft/59RsDJ
-        cU2CHG/+cfemuM+XwBi0Q/c4fLiMlVuGUKEDWvJbM1uwwYUwXX5I+H1zcoOlWmE3KHx/jnYztsg7+
-        AO8gm0o1UH/WdMuz4CuCl9u/KJjT/dxCeO5q7rHUIGZJOaMCxNPn+tNy73JEB7doHjUxUuRU+/uG9
-        Urgwvz9cqJUBdVEgrGDGLP3tyLDTJZMWAVm/dy1IPnW/ukLqu8IsOUk18YCrxk17Uba8LOUavdWTk
-        OKGVbEg4KIt5YuOVJo3IUWxkQC+h/RUnDAoWiqne/17TW+4E3zzwORCpVmV6+vPLf9aV/YD2EGRLA
-        YiwcKGZA==;
-Received: from [2601:1c0:6280:3f0::aa0b]
-        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1mBrxx-006GOr-3t; Fri, 06 Aug 2021 05:00:17 +0000
-Subject: Re: mmotm 2021-08-05-19-46 uploaded (mm/filemap.c)
-To:     akpm@linux-foundation.org, broonie@kernel.org,
+        with ESMTP id S244317AbhHFJXM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Aug 2021 05:23:12 -0400
+Received: from mail-qk1-x734.google.com (mail-qk1-x734.google.com [IPv6:2607:f8b0:4864:20::734])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E6A09C061798;
+        Fri,  6 Aug 2021 02:22:55 -0700 (PDT)
+Received: by mail-qk1-x734.google.com with SMTP id az7so9194693qkb.5;
+        Fri, 06 Aug 2021 02:22:55 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=from:to:cc:subject:date:message-id:mime-version:in-reply-to
+         :content-transfer-encoding;
+        bh=CMsmmLe070UmWwr4znuaFaK+prUVayJ14rPFcIrKVzs=;
+        b=NGkl4Dl/yMygd8Y2VWGA2keG/LEtrEGfTiP/5VZ9bFG2f7ETuV3fS1hVEJyUUxzxsy
+         /dQgjVennMhknl4yNtbIa4kBL4SWuxiqac2KA71a6KQDbTBu85cCZ1UdLt8/kwK5MlmU
+         76N9Js/SAt6sAa7g4LCBttRWSvBRRT2X9AM+2C2VPxCZeirDVqaNvwWIulMD97z1mOdo
+         qsFeOhaw8ExrvKdnTR8ucXoCDefrhHjx3ZVAUEVwN6lOkMQ1w/L8zuTwVWBU8qbiA+RB
+         LEoPmov53nQudg5+l0rMr6CeJuQiDPi9oX5KxMqBJPLqUkCOvNsmIUfTt/elpEIFTG+a
+         t6Sg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:from:to:cc:subject:date:message-id:mime-version
+         :in-reply-to:content-transfer-encoding;
+        bh=CMsmmLe070UmWwr4znuaFaK+prUVayJ14rPFcIrKVzs=;
+        b=ZideW9ZhmRgrM5hsrvyb9dapPo4AdnMhGKCxNyhmIjWkCGd0FoZ8E2/lQ8wQuo/21T
+         AzVQOzOg5VnfRLApe/AE/juO0/ISJJgotObR6i2R85ggUpkwGT7yqrd0a+CAoN6cId14
+         qh9JPtyi1QQgcp5K56zgvB9SzyGdk/PGEFsQuLyv1TYVQtDeTjAnKjny763ZHz+DNRcs
+         ujOgQyskk1zRAjDPIxpAWQ8nyBKECqa63omZm78yhzlLwASxD7QqnxAXnJYMLeDuhXCp
+         yj1muQq5k5C1tdZC3XNbEqikqEtZjUVOb7fmrcOIDS5k5peSVBxVKHnaKFKD7P+EyuHi
+         IVqw==
+X-Gm-Message-State: AOAM5335KnFWzMs/q2i+6idNTLZVR5gpQPb88Z9NSCDaMBRpaAxS6gxu
+        S5hweIL1unZUBs5414zwN5FjP4+Puro=
+X-Google-Smtp-Source: ABdhPJyrme3xLBPC4a8NUEb8cvLc9wRMeNJl6RI/6UaUHnI853QRF1eczjBxoNx6PBui3Pr6t4I0ww==
+X-Received: by 2002:ae9:f005:: with SMTP id l5mr1738905qkg.355.1628241775125;
+        Fri, 06 Aug 2021 02:22:55 -0700 (PDT)
+Received: from localhost.localdomain (ec2-35-169-212-159.compute-1.amazonaws.com. [35.169.212.159])
+        by smtp.gmail.com with ESMTPSA id r202sm2106039qke.45.2021.08.06.02.22.54
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 06 Aug 2021 02:22:54 -0700 (PDT)
+From:   SeongJae Park <sj38.park@gmail.com>
+X-Google-Original-From: SeongJae Park <sjpark@amazon.de>
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     akpm@linux-foundation.org, broonie@kernel.org,
         linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
         linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
         mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
         Matthew Wilcox <willy@infradead.org>,
         SeongJae Park <sjpark@amazon.de>
-References: <20210806024648.V0Ye_YURy%akpm@linux-foundation.org>
-From:   Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <43bf8d13-505c-35b3-c865-a62bdcbafcf8@infradead.org>
-Date:   Thu, 5 Aug 2021 22:00:11 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.12.0
+Subject: Re: mmotm 2021-08-05-19-46 uploaded (mm/filemap.c)
+Date:   Fri,  6 Aug 2021 09:22:46 +0000
+Message-Id: <20210806092246.30301-1-sjpark@amazon.de>
+X-Mailer: git-send-email 2.17.1
 MIME-Version: 1.0
-In-Reply-To: <20210806024648.V0Ye_YURy%akpm@linux-foundation.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
+In-Reply-To: <43bf8d13-505c-35b3-c865-a62bdcbafcf8@infradead.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 8/5/21 7:46 PM, akpm@linux-foundation.org wrote:
-> The mm-of-the-moment snapshot 2021-08-05-19-46 has been uploaded to
-> 
->     https://www.ozlabs.org/~akpm/mmotm/
-> 
-> mmotm-readme.txt says
-> 
-> README for mm-of-the-moment:
-> 
-> https://www.ozlabs.org/~akpm/mmotm/
-> 
-> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-> more than once a week.
-> 
-> You will need quilt to apply these patches to the latest Linus release (5.x
-> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-> https://ozlabs.org/~akpm/mmotm/series
-> 
-> The file broken-out.tar.gz contains two datestamp files: .DATE and
-> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-> followed by the base kernel version against which this patch series is to
-> be applied.
+From: SeongJae Park <sjpark@amazon.de>
 
-on i386, I am seeing lots of build errors due to references to
-some PAGE_ flags that are only defined for 64BIT:
+Hello Randy,
 
-In file included from ../mm/filemap.c:44:0:
-../include/linux/page_idle.h: In function ‘folio_test_young’:
-../include/linux/page_idle.h:25:18: error: ‘PAGE_EXT_YOUNG’ undeclared (first use in this function); did you mean ‘PAGEOUTRUN’?
-   return test_bit(PAGE_EXT_YOUNG, &page_ext->flags);
-                   ^~~~~~~~~~~~~~
-                   PAGEOUTRUN
-../include/linux/page_idle.h:25:18: note: each undeclared identifier is reported only once for each function it appears in
-../include/linux/page_idle.h:25:43: error: dereferencing pointer to incomplete type ‘struct page_ext’
-   return test_bit(PAGE_EXT_YOUNG, &page_ext->flags);
-                                            ^~
-../include/linux/page_idle.h: In function ‘folio_set_young’:
-../include/linux/page_idle.h:35:10: error: ‘PAGE_EXT_YOUNG’ undeclared (first use in this function); did you mean ‘PAGEOUTRUN’?
-   set_bit(PAGE_EXT_YOUNG, &page_ext->flags);
-           ^~~~~~~~~~~~~~
-           PAGEOUTRUN
-../include/linux/page_idle.h: In function ‘folio_test_clear_young’:
-../include/linux/page_idle.h:45:28: error: ‘PAGE_EXT_YOUNG’ undeclared (first use in this function); did you mean ‘PAGEOUTRUN’?
-   return test_and_clear_bit(PAGE_EXT_YOUNG, &page_ext->flags);
-                             ^~~~~~~~~~~~~~
-                             PAGEOUTRUN
-../include/linux/page_idle.h: In function ‘folio_test_idle’:
-../include/linux/page_idle.h:55:18: error: ‘PAGE_EXT_IDLE’ undeclared (first use in this function); did you mean ‘CPU_NOT_IDLE’?
-   return test_bit(PAGE_EXT_IDLE, &page_ext->flags);
-                   ^~~~~~~~~~~~~
-                   CPU_NOT_IDLE
-   AS      arch/x86/crypto/twofish-i586-asm_32.o
-   AR      arch/x86/events/zhaoxin/built-in.a
-../include/linux/page_idle.h: In function ‘folio_set_idle’:
-../include/linux/page_idle.h:65:10: error: ‘PAGE_EXT_IDLE’ undeclared (first use in this function); did you mean ‘CPU_NOT_IDLE’?
-   set_bit(PAGE_EXT_IDLE, &page_ext->flags);
-           ^~~~~~~~~~~~~
-           CPU_NOT_IDLE
-../include/linux/page_idle.h: In function ‘folio_clear_idle’:
-../include/linux/page_idle.h:75:12: error: ‘PAGE_EXT_IDLE’ undeclared (first use in this function); did you mean ‘CPU_NOT_IDLE’?
-   clear_bit(PAGE_EXT_IDLE, &page_ext->flags);
-             ^~~~~~~~~~~~~
-             CPU_NOT_IDLE
-   CC      mm/kfence/kfence_test.o
-   CC      arch/x86/events/intel/uncore_nhmex.o
-   CC      arch/x86/platform/atom/punit_atom_debug.o
-../include/linux/page_idle.h: In function ‘folio_test_idle’:
-../include/linux/page_idle.h:56:1: error: control reaches end of non-void function [-Werror=return-type]
-  }
+On Thu, 5 Aug 2021 22:00:11 -0700 Randy Dunlap <rdunlap@infradead.org> wrote:
 
-See:
---- a/include/linux/page_ext.h~mm-idle_page_tracking-make-pg_idle-reusable
-+++ a/include/linux/page_ext.h
-@@ -19,7 +19,7 @@ struct page_ext_operations {
-  enum page_ext_flags {
-  	PAGE_EXT_OWNER,
-  	PAGE_EXT_OWNER_ALLOCATED,
--#if defined(CONFIG_IDLE_PAGE_TRACKING) && !defined(CONFIG_64BIT)
-+#if defined(CONFIG_PAGE_IDLE_FLAG) && !defined(CONFIG_64BIT)
-  	PAGE_EXT_YOUNG,
-  	PAGE_EXT_IDLE,
-  #endif
+[...]
+> 
+> on i386, I am seeing lots of build errors due to references to
+> some PAGE_ flags that are only defined for 64BIT:
+> 
+> In file included from ../mm/filemap.c:44:0:
+> ../include/linux/page_idle.h: In function ‘folio_test_young’:
+> ../include/linux/page_idle.h:25:18: error: ‘PAGE_EXT_YOUNG’ undeclared (first use in this function); did you mean ‘PAGEOUTRUN’?
+>    return test_bit(PAGE_EXT_YOUNG, &page_ext->flags);
+>                    ^~~~~~~~~~~~~~
+>                    PAGEOUTRUN
+[...]
+> 
+> See:
+> --- a/include/linux/page_ext.h~mm-idle_page_tracking-make-pg_idle-reusable
+> +++ a/include/linux/page_ext.h
+> @@ -19,7 +19,7 @@ struct page_ext_operations {
+>   enum page_ext_flags {
+>   	PAGE_EXT_OWNER,
+>   	PAGE_EXT_OWNER_ALLOCATED,
+> -#if defined(CONFIG_IDLE_PAGE_TRACKING) && !defined(CONFIG_64BIT)
+> +#if defined(CONFIG_PAGE_IDLE_FLAG) && !defined(CONFIG_64BIT)
+>   	PAGE_EXT_YOUNG,
+>   	PAGE_EXT_IDLE,
+>   #endif
+
+Thanks for this report!  However, the flag is not defined for only-64BIT but
+none-64BIT.
+
+'enum page_ext_flags' is defined when 'CONFIG_PAGE_EXTENSION' is set.  It is
+automatically set for non-64BIT when 'CONFIG_IDLE_PAGE_TRACKING' or
+'CONFIG_DAMON_VADDR' is set.  However, 'CONFIG_PAGE_IDLE_FLAG' doesn't.  So, if
+'CONFIG_PAGE_IDLE_FLAG' is set but 'CONFIG_PAGE_EXTENSION' is not, this issue
+can be reproduced.
+
+I was able to reproduce this issue with:
+
+    make ARCH=i386 allnoconfig
+    echo 'CONFIG_PAGE_IDLE_FLAG=y' >> .config
+    make olddefconfig
+    make ARCH=i386
+
+And, confirmed below change fixes it.
+
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -741,6 +741,7 @@ config DEFERRED_STRUCT_PAGE_INIT
+ 
+ config PAGE_IDLE_FLAG
+ 	bool "Add PG_idle and PG_young flags"
++	select PAGE_EXTENSION if !64BIT
+ 	help
+ 	  This feature adds PG_idle and PG_young flags in 'struct page'.  PTE
+ 	  Accessed bit writers can set the state of the bit in the flags to let
+
+Also, below change would make more sense:
+
+@@ -749,7 +750,6 @@ config PAGE_IDLE_FLAG
+ config IDLE_PAGE_TRACKING
+ 	bool "Enable idle page tracking"
+ 	depends on SYSFS && MMU && BROKEN
+-	select PAGE_EXTENSION if !64BIT
+ 	select PAGE_IDLE_FLAG
+ 	help
+ 	  This feature allows to estimate the amount of user pages that have
+diff --git a/mm/damon/Kconfig b/mm/damon/Kconfig
+index 455995152697..37024798a97c 100644
+--- a/mm/damon/Kconfig
++++ b/mm/damon/Kconfig
+@@ -27,7 +27,6 @@ config DAMON_KUNIT_TEST
+ config DAMON_VADDR
+ 	bool "Data access monitoring primitives for virtual address spaces"
+ 	depends on DAMON && MMU
+-	select PAGE_EXTENSION if !64BIT
+ 	select PAGE_IDLE_FLAG
+ 	help
+ 	  This builds the default data access monitoring primitives for DAMON
+
+I will format these as patches and post soon.
 
 
--- 
-~Randy
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Thanks,
+SeongJae Park
 
+> 
+> 
+> -- 
+> ~Randy
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
