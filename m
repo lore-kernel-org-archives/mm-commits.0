@@ -7,35 +7,43 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B34AC4338F
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Aug 2021 00:42:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E35FC4320A
+	for <mm-commits@archiver.kernel.org>; Fri,  6 Aug 2021 00:42:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4128E61184
+	by mail.kernel.org (Postfix) with ESMTP id E3A0C611C2
 	for <mm-commits@archiver.kernel.org>; Fri,  6 Aug 2021 00:42:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241342AbhHFAmf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 5 Aug 2021 20:42:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48946 "EHLO mail.kernel.org"
+        id S241242AbhHFAmh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 5 Aug 2021 20:42:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48988 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S241242AbhHFAmZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 5 Aug 2021 20:42:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8ABEF611C2;
-        Fri,  6 Aug 2021 00:42:10 +0000 (UTC)
+        id S243077AbhHFAm2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 5 Aug 2021 20:42:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BE767611C4;
+        Fri,  6 Aug 2021 00:42:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628210530;
-        bh=s4r65CNHZa1t4HP93Y7XNufgAFZX5U0cOJr2Rswqoa0=;
+        s=korg; t=1628210533;
+        bh=FHChUrTQfI6mhlOWxWx/oXSH9oIRZdewAL8GUT4qTmg=;
         h=Date:From:To:Subject:From;
-        b=Wmwh+tzB0/4yt9CAzyhoXMxgJxc8VmMZTgT4/eHna8yl9Dqvz2MrLi7U+GW0siHTm
-         srA7ba5yh1GrHRgiHMO6Vz+wNO8s9Pkb10cFH9RwrZVujxm9nEcjnWgwMVevPxhimL
-         tILn9yGsAE9c8HnE4NLS0/cha15niUia2beajQtA=
-Date:   Thu, 05 Aug 2021 17:42:10 -0700
+        b=FQ3CHYKUvUQIsE2FllU7QF9S/TQ5z+Oc//qFGeMK2h4ovBs5wM7h3MEzSKJPFroNY
+         oqzD6APsYx7f5S8B9eOgB2Rin0k6xMnpergFjAR027qsrBWU5u473z+O/f9NCq1/Kc
+         0Kr3R9TfKJlqOOgSKlmGD2zBIAUOgDSunND++rZc=
+Date:   Thu, 05 Aug 2021 17:42:12 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sjpark@amazon.de,
-        akpm@linux-foundation.org
-Subject:  +
- mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix.patch added
- to -mm tree
-Message-ID: <20210806004210.8ezDO%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, vbabka@suse.cz,
+        sieberf@amazon.com, shuah@kernel.org, shakeelb@google.com,
+        rostedt@goodmis.org, rientjes@google.com, riel@surriel.com,
+        peterz@infradead.org, namhyung@kernel.org, mingo@redhat.com,
+        minchan@kernel.org, mheyne@amazon.de, mgorman@suse.de,
+        markubo@amazon.de, Jonathan.Cameron@huawei.com, joe@perches.com,
+        gthelen@google.com, greg@kroah.com, foersleo@amazon.de,
+        fan.du@intel.com, elver@google.com, dwmw@amazon.com,
+        david@redhat.com, corbet@lwn.net, brendanhiggins@google.com,
+        benh@kernel.crashing.org, amit@kernel.org,
+        alexander.shishkin@linux.intel.com, sjpark@amazon.de
+Subject:  + mm-damon-dbgfs-export-kdamond-pid-to-the-user-space.patch
+ added to -mm tree
+Message-ID: <20210806004212.cbpwL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix
+     Subject: mm/damon/dbgfs: export kdamond pid to the user space
 has been added to the -mm tree.  Its filename is
-     mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix.patch
+     mm-damon-dbgfs-export-kdamond-pid-to-the-user-space.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-dbgfs-export-kdamond-pid-to-the-user-space.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-dbgfs-export-kdamond-pid-to-the-user-space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,45 +73,122 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix
+From: SeongJae Park <sjpark@amazon.de>
+Subject: mm/damon/dbgfs: export kdamond pid to the user space
 
-Cc: SeongJae Park <sjpark@amazon.de>
+For CPU usage accounting, knowing pid of the monitoring thread could be
+helpful.  For example, users could use cpuaccount cgroups with the pid.
+
+This commit therefore exports the pid of currently running monitoring
+thread to the user space via 'kdamond_pid' file in the debugfs directory.
+
+Link: https://lkml.kernel.org/r/20210716081449.22187-9-sj38.park@gmail.com
+Signed-off-by: SeongJae Park <sjpark@amazon.de>
+Reviewed-by: Fernand Sieber <sieberf@amazon.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Amit Shah <amit@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David Woodhouse <dwmw@amazon.com>
+Cc: Fan Du <fan.du@intel.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Leonard Foerster <foersleo@amazon.de>
+Cc: Marco Elver <elver@google.com>
+Cc: Markus Boehme <markubo@amazon.de>
+Cc: Maximilian Heyne <mheyne@amazon.de>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/damon/dbgfs.c |   37 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
 
---- a/mm/damon/dbgfs.c~mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-export-kdamond-pid-to-the-user-space
 +++ a/mm/damon/dbgfs.c
-@@ -97,8 +97,10 @@ out:
+@@ -239,6 +239,32 @@ out:
  	return ret;
  }
  
--#define targetid_is_pid(ctx)	\
--	(ctx->primitive.target_valid == damon_va_target_valid)
-+static inline bool targetid_is_pid(const struct damon_ctx *ctx)
++static ssize_t dbgfs_kdamond_pid_read(struct file *file,
++		char __user *buf, size_t count, loff_t *ppos)
 +{
-+	return ctx->primitive.target_valid == damon_va_target_valid;
++	struct damon_ctx *ctx = file->private_data;
++	char *kbuf;
++	ssize_t len;
++
++	kbuf = kmalloc(count, GFP_KERNEL);
++	if (!kbuf)
++		return -ENOMEM;
++
++	mutex_lock(&ctx->kdamond_lock);
++	if (ctx->kdamond)
++		len = scnprintf(kbuf, count, "%d\n", ctx->kdamond->pid);
++	else
++		len = scnprintf(kbuf, count, "none\n");
++	mutex_unlock(&ctx->kdamond_lock);
++	if (!len)
++		goto out;
++	len = simple_read_from_buffer(buf, count, ppos, kbuf, len);
++
++out:
++	kfree(kbuf);
++	return len;
 +}
- 
- static ssize_t sprint_target_ids(struct damon_ctx *ctx, char *buf, ssize_t len)
++
+ static int damon_dbgfs_open(struct inode *inode, struct file *file)
  {
+ 	file->private_data = inode->i_private;
+@@ -258,10 +284,17 @@ static const struct file_operations targ
+ 	.write = dbgfs_target_ids_write,
+ };
+ 
++static const struct file_operations kdamond_pid_fops = {
++	.open = damon_dbgfs_open,
++	.read = dbgfs_kdamond_pid_read,
++};
++
+ static void dbgfs_fill_ctx_dir(struct dentry *dir, struct damon_ctx *ctx)
+ {
+-	const char * const file_names[] = {"attrs", "target_ids"};
+-	const struct file_operations *fops[] = {&attrs_fops, &target_ids_fops};
++	const char * const file_names[] = {"attrs", "target_ids",
++		"kdamond_pid"};
++	const struct file_operations *fops[] = {&attrs_fops, &target_ids_fops,
++		&kdamond_pid_fops};
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(file_names); i++)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sjpark@amazon.de are
 
-mm.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
-mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-damon-implement-a-debugfs-based-user-space-interface-fix.patch
-mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix.patch
-fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix-fix.patch
-log-if-a-core-dump-is-aborted-due-to-changed-file-permissions-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-introduce-data-access-monitor-damon.patch
+mm-damon-core-implement-region-based-sampling.patch
+mm-damon-adaptively-adjust-regions.patch
+mm-idle_page_tracking-make-pg_idle-reusable.patch
+mm-damon-implement-primitives-for-the-virtual-memory-address-spaces.patch
+mm-damon-add-a-tracepoint.patch
+mm-damon-implement-a-debugfs-based-user-space-interface.patch
+mm-damon-dbgfs-export-kdamond-pid-to-the-user-space.patch
+mm-damon-dbgfs-support-multiple-contexts.patch
+documentation-add-documents-for-damon.patch
+mm-damon-add-kunit-tests.patch
+mm-damon-add-user-space-selftests.patch
+maintainers-update-for-damon.patch
 
