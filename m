@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10F19C4338F
-	for <mm-commits@archiver.kernel.org>; Sat,  7 Aug 2021 18:43:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B958EC432BE
+	for <mm-commits@archiver.kernel.org>; Sat,  7 Aug 2021 18:43:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8EDC6105A
-	for <mm-commits@archiver.kernel.org>; Sat,  7 Aug 2021 18:43:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 92FEF60C41
+	for <mm-commits@archiver.kernel.org>; Sat,  7 Aug 2021 18:43:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229471AbhHGSnr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 Aug 2021 14:43:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39134 "EHLO mail.kernel.org"
+        id S229480AbhHGSnt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 Aug 2021 14:43:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39260 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229464AbhHGSnr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Aug 2021 14:43:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C12456101C;
-        Sat,  7 Aug 2021 18:43:29 +0000 (UTC)
+        id S229464AbhHGSnt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Aug 2021 14:43:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8727D61058;
+        Sat,  7 Aug 2021 18:43:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628361809;
-        bh=+KRzPdmjW3K14fIx2s40sMz2/+cOn+6tJlk6cGYocCs=;
+        s=korg; t=1628361811;
+        bh=UCiUS8RQdbE7CpLNvvKosDtZ7ekXuqzVU/DtnBTTg+0=;
         h=Date:From:To:Subject:From;
-        b=r+WuPaFq5wDTYngJQB8Gmu6E9ZEjCnjNmlrJjALRkvPfyG0E++JYmDgY0BW1fmpaN
-         DXjOQKooopMqF6RGzqSQVFJbiuI76Xaz9hxr+jcuipEa2Y2ug7F0GbZ4rySyIkZlsj
-         lYW5oGa1KmK5vhm3cdZ1kPRJa7Ym2INXJgN0tWhU=
-Date:   Sat, 07 Aug 2021 11:43:29 -0700
+        b=S7g1iJgPdMtDioAOHe5zwaM0XqjqdlNzQ5+reXXhjiGVQSINx49e6WSAo7GndsIUe
+         /hvqxEQdsrWb8oLkgKqaSgOJh0LV3BzSMWW65GO91n+Frtkj8L+/SE0nN81g+v3idW
+         tafEAkmI+D5BgXcRoJf65vcyzUIsYatssqXUWuE4=
+Date:   Sat, 07 Aug 2021 11:43:31 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com,
         jhubbard@nvidia.com, jack@suse.cz, imbrenda@linux.ibm.com,
         linmiaohe@huawei.com
-Subject:  + mm-gup-remove-set-but-unused-local-variable-major.patch
- added to -mm tree
-Message-ID: <20210807184329.uW2hB%akpm@linux-foundation.org>
+Subject:  + mm-gup-remove-unneed-local-variable-orig_refs.patch added
+ to -mm tree
+Message-ID: <20210807184331.U4fm6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: gup: remove set but unused local variable major
+     Subject: mm: gup: remove unneed local variable orig_refs
 has been added to the -mm tree.  Its filename is
-     mm-gup-remove-set-but-unused-local-variable-major.patch
+     mm-gup-remove-unneed-local-variable-orig_refs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-remove-set-but-unused-local-variable-major.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-remove-unneed-local-variable-orig_refs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-remove-set-but-unused-local-variable-major.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-remove-unneed-local-variable-orig_refs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,22 +66,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: gup: remove set but unused local variable major
+Subject: mm: gup: remove unneed local variable orig_refs
 
-Patch series "Cleanups and fixup for gup".
+Remove unneed local variable orig_refs since refs is unchanged now.
 
-This series contains cleanups to remove unneeded variable, useless BUG_ON
-and use helper to improve readability.  Also we fix a potential pgmap
-refcnt leak.  More details can be found in the respective changelogs.
-
-
-This patch (of 5):
-
-Since commit a2beb5f1efed ("mm: clean up the last pieces of page fault
-accountings"), the local variable major is unused.  Remove it.
-
-Link: https://lkml.kernel.org/r/20210807093620.21347-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210807093620.21347-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210807093620.21347-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -90,28 +79,29 @@ Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/gup.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/gup.c~mm-gup-remove-set-but-unused-local-variable-major
+--- a/mm/gup.c~mm-gup-remove-unneed-local-variable-orig_refs
 +++ a/mm/gup.c
-@@ -1276,7 +1276,7 @@ int fixup_user_fault(struct mm_struct *m
- 		     bool *unlocked)
- {
- 	struct vm_area_struct *vma;
--	vm_fault_t ret, major = 0;
-+	vm_fault_t ret;
+@@ -117,8 +117,6 @@ __maybe_unused struct page *try_grab_com
+ 	if (flags & FOLL_GET)
+ 		return try_get_compound_head(page, refs);
+ 	else if (flags & FOLL_PIN) {
+-		int orig_refs = refs;
+-
+ 		/*
+ 		 * Can't do FOLL_LONGTERM + FOLL_PIN gup fast path if not in a
+ 		 * right zone, so fail and let the caller fall back to the slow
+@@ -150,7 +148,7 @@ __maybe_unused struct page *try_grab_com
+ 			page_ref_add(page, refs * (GUP_PIN_COUNTING_BIAS - 1));
  
- 	address = untagged_addr(address);
+ 		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_ACQUIRED,
+-				    orig_refs);
++				    refs);
  
-@@ -1296,7 +1296,6 @@ retry:
- 		return -EINTR;
- 
- 	ret = handle_mm_fault(vma, address, fault_flags, NULL);
--	major |= ret & VM_FAULT_MAJOR;
- 	if (ret & VM_FAULT_ERROR) {
- 		int err = vm_fault_to_errno(ret, 0);
- 
+ 		return page;
+ 	}
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
