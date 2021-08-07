@@ -2,108 +2,122 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,
-	USER_AGENT_GIT autolearn=unavailable autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-22.7 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,
+	USER_AGENT_SANE_1 autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06A1FC4320A
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Aug 2021 09:52:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8379DC4338F
+	for <mm-commits@archiver.kernel.org>; Sat,  7 Aug 2021 02:02:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4EBA611B0
-	for <mm-commits@archiver.kernel.org>; Fri,  6 Aug 2021 09:52:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 571F3610FC
+	for <mm-commits@archiver.kernel.org>; Sat,  7 Aug 2021 02:02:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244729AbhHFJwe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 6 Aug 2021 05:52:34 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51036 "EHLO
+        id S230004AbhHGCCS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 6 Aug 2021 22:02:18 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43474 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242756AbhHFJwd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Aug 2021 05:52:33 -0400
-Received: from mail-qk1-x730.google.com (mail-qk1-x730.google.com [IPv6:2607:f8b0:4864:20::730])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C60D8C061799;
-        Fri,  6 Aug 2021 02:52:17 -0700 (PDT)
-Received: by mail-qk1-x730.google.com with SMTP id c130so936117qkg.7;
-        Fri, 06 Aug 2021 02:52:17 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20161025;
-        h=from:to:cc:subject:date:message-id:in-reply-to:references;
-        bh=fkNeqpNF5jRo/BI/tlSB7kvGxORHyjBjoaBmdA8dbl8=;
-        b=mSgqOk5xrXiP+7KgsXvpGH/KV/+ch8Yl1hT2lHmA/1bl6zuSQjjTh6U9gKu9qHuqPR
-         0TIeX0w1kc4lYP6hI6OCZuIFlZns8xXKcPPOTIRBY3c6JcXXb1KycI3odIN11Fk33AHr
-         Kumx+KuN74BS6U74VDe23dPIyBhpyKchDKNJGQyeiGibfBod4zKYz/g5YQqOz+CcaIep
-         LzDaCj7rwVS6Q5ljIgrLspcdh+Bo3iPu8yHZ4rqJN+b+bXR6DryvHgn4+GKUCQat3XeE
-         VB9EmbjIVWSFZffAOveJf1ZTJA1QlCWsj+xkNioxjr/6O603THzaxKUfdm7WX3vZm1tk
-         +oDg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:from:to:cc:subject:date:message-id:in-reply-to
-         :references;
-        bh=fkNeqpNF5jRo/BI/tlSB7kvGxORHyjBjoaBmdA8dbl8=;
-        b=ryUfvfU5l90vM8jL82fPjbWz7c7plaJkefdcTeVr0fksUbg0A5Q0RisVhIzd6iistO
-         4hwY1T+a6dqVzEDz3r7WAwUwcyq1aU4VEBYFbpFC46AC4UtNhWLm+lnT3rrgxDz7hTST
-         BN8zIXOgNq9+9ODgEGDw8snc1mbYRZpd1Yhm1koxUHiG6pi0HnAnRXTDiBmILIxAER33
-         P7A/fJ5WRUIhxsefJo41XTI3Vz/FTFUJ9Dm/0X4zSMelO2mvQHdrPtqeJPNXHmBbo5yJ
-         U5WmFp8dEQ4oCPH9JtBAMK0hx0QspVfrh5NokHVlVF83Wn8flvRR3rqMNPyxh5BDloC2
-         iwxA==
-X-Gm-Message-State: AOAM533dZIIOTbnt6lpiMrUy/wngdMsSF5ohBTNX0570UfLm8eAUeoHP
-        F5CpeYwpu+aE4TW4CTDJF6A=
-X-Google-Smtp-Source: ABdhPJxXhnPB2PZjfQlVlu8XQeA93JPqeH4IZUQ8g2nUjUzpDWq9chilNp7gyB3Xtqo4865m7hXUDw==
-X-Received: by 2002:a05:620a:158c:: with SMTP id d12mr9271433qkk.391.1628243537041;
-        Fri, 06 Aug 2021 02:52:17 -0700 (PDT)
-Received: from localhost.localdomain (ec2-35-169-212-159.compute-1.amazonaws.com. [35.169.212.159])
-        by smtp.gmail.com with ESMTPSA id s3sm3296915qtn.4.2021.08.06.02.52.16
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Fri, 06 Aug 2021 02:52:16 -0700 (PDT)
-From:   SeongJae Park <sj38.park@gmail.com>
-To:     akpm@linux-foundation.org
-Cc:     SeongJae Park <sjpark@amazon.de>, rdunlap@infradead.org,
-        broonie@kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-next@vger.kernel.org, mhocko@suse.cz,
+        with ESMTP id S229663AbhHGCCS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 6 Aug 2021 22:02:18 -0400
+Received: from desiato.infradead.org (desiato.infradead.org [IPv6:2001:8b0:10b:1:d65d:64ff:fe57:4e05])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8A758C0613CF;
+        Fri,  6 Aug 2021 19:02:01 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=desiato.20200630; h=Content-Transfer-Encoding:Content-Type
+        :In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:Subject:
+        Sender:Reply-To:Content-ID:Content-Description;
+        bh=/J4tKVW+an4YqzZpky0ZZI9/CoT+k+T+4SM/TLT14Ks=; b=djzqCUGdiuQ7yW/bbum4/iEbAT
+        Bh0d4iDEKBYoSS8UM04tMXI4KVuc/fiCHnCF0WmugjOb2yB9cGbWf5MIgNisdsYYmA2QfrzSi6Ega
+        otKvCQffVBhuaJUTbYiAHMQWiV4jSizZwPtO3rq6wLgvkRihEaCoxPX/wdcGrYIReArbmNI2ndSHL
+        NoZ8CF+pI2IC8NXLzcK1pSONNmvrNGAisiJWpR9EQqWdFt3mvaQld/Mp4Ty6WrNH4b7AQ3ovfwhCp
+        jgw/4P43b3/E9gBerehP8JMdVNW0+YChXbbFPXxRa0mms0XIiNnKquVr8OkV4qVCOXxe+82vZ6ua3
+        Epe4zUvg==;
+Received: from [2601:1c0:6280:3f0::aa0b]
+        by desiato.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1mCBeo-006VPk-B9; Sat, 07 Aug 2021 02:01:50 +0000
+Subject: Re: [PATCH 1/2] mm/PAGE_IDLE_FLAG: Set PAGE_EXTENSION for none-64BIT
+To:     SeongJae Park <sj38.park@gmail.com>, akpm@linux-foundation.org
+Cc:     SeongJae Park <sjpark@amazon.de>, broonie@kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
+        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
         mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
         willy@infradead.org, linux-damon@amazon.com
-Subject: [PATCH 2/2] mm/damon/Kconfig: Remove unnecessary PAGE_EXTENSION setup
-Date:   Fri,  6 Aug 2021 09:51:53 +0000
-Message-Id: <20210806095153.6444-2-sj38.park@gmail.com>
-X-Mailer: git-send-email 2.17.1
-In-Reply-To: <20210806095153.6444-1-sj38.park@gmail.com>
 References: <20210806092246.30301-1-sjpark@amazon.de>
  <20210806095153.6444-1-sj38.park@gmail.com>
+From:   Randy Dunlap <rdunlap@infradead.org>
+Message-ID: <829fd5ac-4761-9861-0517-4293bf9344cf@infradead.org>
+Date:   Fri, 6 Aug 2021 19:01:45 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.12.0
+MIME-Version: 1.0
+In-Reply-To: <20210806095153.6444-1-sj38.park@gmail.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: SeongJae Park <sjpark@amazon.de>
+On 8/6/21 2:51 AM, SeongJae Park wrote:
+> From: SeongJae Park <sjpark@amazon.de>
+> 
+> Commit 128fd80c4c07 ("mm/idle_page_tracking: Make PG_idle reusable") of
+> linux-mm[1] allows PAGE_IDLE_FLAG to be set without PAGE_EXTENSION
+> while 64BIT is not set.  This makes 'enum page_ext_flags' undefined, so
+> build fails as below for the config (!64BIT, !PAGE_EXTENSION, and
+> IDLE_PAGE_FLAG).
+> 
+>      $ make ARCH=i386 allnoconfig
+>      $ echo 'CONFIG_PAGE_IDLE_FLAG=y' >> .config
+>      $ make olddefconfig
+>      $ make ARCH=i386
+>      [...]
+>      ../include/linux/page_idle.h: In function ‘folio_test_young’:
+>      ../include/linux/page_idle.h:25:18: error: ‘PAGE_EXT_YOUNG’ undeclared (first use in this function); did you mean ‘PAGEOUTRUN’?
+>         return test_bit(PAGE_EXT_YOUNG, &page_ext->flags);
+>      [...]
+> 
+> This commit fixes this issue by making PAGE_EXTENSION to be set when
+> 64BIT is not set and PAGE_IDLE_FLAG is set.
+> 
+> [1] https://github.com/hnaz/linux-mm/commit/128fd80c4c07
+> 
+> Fixes: 128fd80c4c07 ("mm/idle_page_tracking: Make PG_idle reusable")
+> Reported-by: Randy Dunlap <rdunlap@infradead.org>
+> Signed-off-by: SeongJae Park <sjpark@amazon.de>
 
-Commit 13d49dbd0123 ("mm/damon: implement primitives for the virtual
-memory address spaces") of linux-mm[1] makes DAMON_VADDR to set
-PAGE_IDLE_FLAG.  PAGE_IDLE_FLAG sets PAGE_EXTENSION if !64BIT.  However,
-DAMON_VADDR do the same work again.  This commit removes the unnecessary
-duplicate.
+Acked-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
 
-[1] https://github.com/hnaz/linux-mm/commit/13d49dbd0123
+Thanks.
 
-Fixes: 13d49dbd0123 ("mm/damon: implement primitives for the virtual memory address spaces")
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: SeongJae Park <sjpark@amazon.de>
----
- mm/damon/Kconfig | 1 -
- 1 file changed, 1 deletion(-)
+> ---
+>   mm/Kconfig | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/mm/Kconfig b/mm/Kconfig
+> index d0b85dc12429..50ca602edeb6 100644
+> --- a/mm/Kconfig
+> +++ b/mm/Kconfig
+> @@ -741,6 +741,7 @@ config DEFERRED_STRUCT_PAGE_INIT
+>   
+>   config PAGE_IDLE_FLAG
+>   	bool "Add PG_idle and PG_young flags"
+> +	select PAGE_EXTENSION if !64BIT
+>   	help
+>   	  This feature adds PG_idle and PG_young flags in 'struct page'.  PTE
+>   	  Accessed bit writers can set the state of the bit in the flags to let
+> @@ -749,7 +750,6 @@ config PAGE_IDLE_FLAG
+>   config IDLE_PAGE_TRACKING
+>   	bool "Enable idle page tracking"
+>   	depends on SYSFS && MMU && BROKEN
+> -	select PAGE_EXTENSION if !64BIT
+>   	select PAGE_IDLE_FLAG
+>   	help
+>   	  This feature allows to estimate the amount of user pages that have
+> 
 
-diff --git a/mm/damon/Kconfig b/mm/damon/Kconfig
-index 455995152697..37024798a97c 100644
---- a/mm/damon/Kconfig
-+++ b/mm/damon/Kconfig
-@@ -27,7 +27,6 @@ config DAMON_KUNIT_TEST
- config DAMON_VADDR
- 	bool "Data access monitoring primitives for virtual address spaces"
- 	depends on DAMON && MMU
--	select PAGE_EXTENSION if !64BIT
- 	select PAGE_IDLE_FLAG
- 	help
- 	  This builds the default data access monitoring primitives for DAMON
+
 -- 
-2.17.1
+~Randy
 
