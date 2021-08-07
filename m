@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0926AC4338F
-	for <mm-commits@archiver.kernel.org>; Sat,  7 Aug 2021 19:32:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B44DC4338F
+	for <mm-commits@archiver.kernel.org>; Sat,  7 Aug 2021 19:36:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D566860F44
-	for <mm-commits@archiver.kernel.org>; Sat,  7 Aug 2021 19:32:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E090960EAF
+	for <mm-commits@archiver.kernel.org>; Sat,  7 Aug 2021 19:36:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229755AbhHGTdO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 7 Aug 2021 15:33:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53478 "EHLO mail.kernel.org"
+        id S229590AbhHGTgl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 7 Aug 2021 15:36:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55980 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229565AbhHGTdO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 7 Aug 2021 15:33:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 708CA61042;
-        Sat,  7 Aug 2021 19:32:56 +0000 (UTC)
+        id S229517AbhHGTgl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 7 Aug 2021 15:36:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8CD760E9B;
+        Sat,  7 Aug 2021 19:36:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628364776;
-        bh=FZsb17Uglqed4UpHbnFweZkeK3n8TlXXrZRvezkNeXM=;
+        s=korg; t=1628364983;
+        bh=hWlkWV1Ows1YdwsmaEY6d5urtKc3ZN+/HHsGxqiO8oI=;
         h=Date:From:To:Subject:From;
-        b=ilnOzq2p0TrLUdIbyz87h7OJ7kTN7BKmB1SB5mDl5MAVPSAzC7n+TfRV1mzQwtc95
-         Qtgxs58F1+oox16MBS0Ndx2SH3JWHs6Zn4Xrk8EhlOOMRh/Y1ZUBKjgQ6lx5o6Znfn
-         ufEDgxFWlPa0rcpoVvVNSjnREjTaWhMHS5WmgtH8=
-Date:   Sat, 07 Aug 2021 12:32:56 -0700
+        b=esyWMqEC78I1M6SPm6GvmXfBo/T8o9p58MBfDrRZl6q21w5Bs17i3aGcqDLLbY9Ur
+         kTrIWkvGQfiEUF7OvkOb/As76rmVAkDTOTlz7FcNTGMKlhnE8wzr3+O515Sok2MRKN
+         iVBxhHwRDhcrFgDCl5LHDK6+zWU3NMWdLF5Ni04Y=
+Date:   Sat, 07 Aug 2021 12:36:21 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, tyhicks@linux.microsoft.com,
-        shuah@kernel.org, pasha.tatashin@soleen.com, hughd@google.com,
-        zhansayabagdaulet@gmail.com
-Subject:  [to-be-updated]
- selftests-vm-add-cow-time-test-for-ksm-pages.patch removed from -mm tree
-Message-ID: <20210807193256.X81I0%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz, mingo@kernel.org,
+        mingo@elte.hu, mgorman@techsingularity.net, hughd@google.com,
+        tglx@linutronix.de
+Subject:  [obsolete] preempt-provide-preempt__nort-variants.patch
+ removed from -mm tree
+Message-ID: <20210807193621.josHF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,157 +44,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: add COW time test for KSM pages
+     Subject: preempt: provide preempt_*_(no)rt variants
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-add-cow-time-test-for-ksm-pages.patch
+     preempt-provide-preempt__nort-variants.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
-Subject: selftests: vm: add COW time test for KSM pages
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: preempt: provide preempt_*_(no)rt variants
 
-Since merged pages are copied every time they need to be modified,
-the write access time is different between shared and non-shared pages.
-Add ksm_cow_time() function which evaluates latency of these COW
-breaks. First, duplicated pages are merged and then the time required
-to write to each of the pages is detected.
+Patch series "Protect vmstats on PREEMPT_RT".
 
-The test is run as follows: ./ksm_tests -C -p 5000
-The output:
-	Total COW time:      0.012612 s
-	The number of pages: 5000
-	Average speed:	     1623 MB/s
+When adding local_lock support to mm/page_alloc.c and reducing the
+overhead of vmstats in general, I wondered how vmstats could be safe on
+PREEMPT_RT as it partially relies on interrupts being disabled for the
+stats that must be accurate for correctness.  As it turns out, the
+preempt-rt tree already encountered the same problem.
 
-Link: https://lkml.kernel.org/r/26a3cc3d02dc4fa65cc9b135be76e7d795c44877.1627828548.git.zhansayabagdaulet@gmail.com
-Signed-off-by: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
+This series protects just the primary counters.  While there is another
+vmstat-related patch, it is related to memcg getting using local_lock and
+I have not fully considered those patches and whether they are ok as-is or
+need modification but this series makes a start.
+
+Patch 1 is authored by Thomas and has not being altered.
+
+Patch 2 is authored by Ingo but I modified what he implemented for reasons
+explained in the changelog.
+
+
+This patch (of 2):
+
+RT needs a few preempt_disable/enable points which are not necessary
+otherwise.  Implement variants to avoid #ifdeffery.
+
+Link: https://lkml.kernel.org/r/20210723100034.13353-1-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20210723100034.13353-2-mgorman@techsingularity.net
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/ksm_tests.c |   66 +++++++++++++++++++++--
- 1 file changed, 63 insertions(+), 3 deletions(-)
+ include/linux/preempt.h |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-add-cow-time-test-for-ksm-pages
-+++ a/tools/testing/selftests/vm/ksm_tests.c
-@@ -33,7 +33,8 @@ enum ksm_test_name {
- 	CHECK_KSM_UNMERGE,
- 	CHECK_KSM_ZERO_PAGE_MERGE,
- 	CHECK_KSM_NUMA_MERGE,
--	KSM_MERGE_TIME
-+	KSM_MERGE_TIME,
-+	KSM_COW_TIME
- };
+--- a/include/linux/preempt.h~preempt-provide-preempt__nort-variants
++++ a/include/linux/preempt.h
+@@ -184,7 +184,11 @@ do { \
+ 	preempt_count_dec(); \
+ } while (0)
  
- static int ksm_write_sysfs(const char *file_path, unsigned long val)
-@@ -98,7 +99,9 @@ static void print_help(void)
- 	       " -U (page unmerging)\n"
- 	       " -P evaluate merging time and speed.\n"
- 	       "    For this test, the size of duplicated memory area (in MB)\n"
--	       "    must be provided using -s option\n\n");
-+	       "    must be provided using -s option\n"
-+	       " -C evaluate the time required to break COW of merged pages.\n"
-+	       "    The number of pages can be defined using -p option.\n\n");
+-#define preempt_enable_no_resched() sched_preempt_enable_no_resched()
++#ifdef CONFIG_PREEMPT_RT
++# define preempt_enable_no_resched() sched_preempt_enable_no_resched()
++#else
++# define preempt_enable_no_resched() preempt_enable()
++#endif
  
- 	printf(" -a: specify the access protections of pages.\n"
- 	       "     <prot> must be of the form [rwx].\n"
-@@ -457,6 +460,56 @@ err_out:
- 	return KSFT_FAIL;
- }
+ #define preemptible()	(preempt_count() == 0 && !irqs_disabled())
  
-+static int ksm_cow_time(int mapping, int prot, int timeout, size_t page_size, long page_count)
-+{
-+	void *map_ptr;
-+	struct timespec start_time, end_time;
-+	long cow_time_s, cow_time_ns;
-+	int avg_speed;
-+
-+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
-+		perror("clock_gettime");
-+		return KSFT_FAIL;
-+	}
-+
-+	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
-+	if (!map_ptr)
-+		return KSFT_FAIL;
-+
-+	if (ksm_merge_pages(map_ptr, page_size * page_count, start_time, timeout))
-+		goto err_out;
-+
-+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
-+		perror("clock_gettime");
-+		goto err_out;
-+	}
-+	for (size_t i = 0; i < page_count; i++)
-+		memset(map_ptr + page_size * i, '-', 1);
-+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
-+		perror("clock_gettime");
-+		goto err_out;
-+	}
-+
-+	cow_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
-+		       (end_time.tv_nsec - start_time.tv_nsec);
-+	cow_time_s = cow_time_ns / NSEC_PER_SEC;
-+	cow_time_ns %= NSEC_PER_SEC;
-+	avg_speed = (page_size * page_count) / (cow_time_s * USEC_PER_SEC +
-+						cow_time_ns / NSEC_PER_USEC);
-+
-+	printf("Total COW time:      %ld.%06ld s\n", cow_time_s, cow_time_ns / NSEC_PER_USEC);
-+	printf("The number of pages: %ld\n", page_count);
-+	printf("Average speed:	     %d MB/s\n", avg_speed);
-+
-+	munmap(map_ptr, page_size * page_count);
-+	return KSFT_PASS;
-+
-+err_out:
-+	printf("Not OK\n");
-+	munmap(map_ptr, page_size * page_count);
-+	return KSFT_FAIL;
-+}
-+
- int main(int argc, char *argv[])
- {
- 	int ret, opt;
-@@ -470,7 +523,7 @@ int main(int argc, char *argv[])
- 	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
- 	long size_MB = 0;
+@@ -278,6 +282,18 @@ do { \
+ 		set_preempt_need_resched(); \
+ } while (0)
  
--	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNP")) != -1) {
-+	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPC")) != -1) {
- 		switch (opt) {
- 		case 'a':
- 			prot = str_to_prot(optarg);
-@@ -524,6 +577,9 @@ int main(int argc, char *argv[])
- 		case 'P':
- 			test_name = KSM_MERGE_TIME;
- 			break;
-+		case 'C':
-+			test_name = KSM_COW_TIME;
-+			break;
- 		default:
- 			return KSFT_FAIL;
- 		}
-@@ -573,6 +629,10 @@ int main(int argc, char *argv[])
- 		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
- 				     size_MB);
- 		break;
-+	case KSM_COW_TIME:
-+		ret = ksm_cow_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
-+				   page_size, page_count);
-+		break;
- 	}
++#ifdef CONFIG_PREEMPT_RT
++# define preempt_disable_rt()		preempt_disable()
++# define preempt_enable_rt()		preempt_enable()
++# define preempt_disable_nort()		barrier()
++# define preempt_enable_nort()		barrier()
++#else
++# define preempt_disable_rt()		barrier()
++# define preempt_enable_rt()		barrier()
++# define preempt_disable_nort()		preempt_disable()
++# define preempt_enable_nort()		preempt_enable()
++#endif
++
+ #ifdef CONFIG_PREEMPT_NOTIFIERS
  
- 	if (ksm_restore(&ksm_sysfs_old)) {
+ struct preempt_notifier;
 _
 
-Patches currently in -mm which might be from zhansayabagdaulet@gmail.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
-selftests-vm-add-ksm-merge-test.patch
-selftests-vm-add-ksm-unmerge-test.patch
-selftests-vm-add-ksm-zero-page-merging-test.patch
-selftests-vm-add-ksm-merging-across-nodes-test.patch
-mm-ksm-fix-data-type.patch
 
