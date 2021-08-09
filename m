@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BADAFC4338F
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:14:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 307A1C4338F
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:14:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D72061052
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:14:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05AD061052
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:14:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235668AbhHITOV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Aug 2021 15:14:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44256 "EHLO mail.kernel.org"
+        id S235960AbhHITPD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Aug 2021 15:15:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44466 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235487AbhHITOV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Aug 2021 15:14:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7CD3660E09;
-        Mon,  9 Aug 2021 19:14:00 +0000 (UTC)
+        id S235895AbhHITPC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Aug 2021 15:15:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A91D8606A5;
+        Mon,  9 Aug 2021 19:14:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628536440;
-        bh=OqOR/gk1lqFY6qFH7a82sfIac+EQLl7heRg3df9ee4A=;
+        s=korg; t=1628536481;
+        bh=cd3SFioF0Czo/i8ITYcDA+z1lYdh6hkI/Vl4zG48MAU=;
         h=Date:From:To:Subject:From;
-        b=Q7A3R2L7r4kZNTOK3W94dyKqUdUlaKc6fYkmU3twFRJECtVeb5Ob4V9sbukmja0gJ
-         MKF6ql35IqKQp/21/a0CwtiN8gIBJa8W1bcq5uZSDOuAUJDq+t2SgVBrWdDWtUsEQG
-         Sr30RWqv2TZsZJsCZwsJWRjjqsU1zV8Nk0Io/jCA=
-Date:   Mon, 09 Aug 2021 12:14:00 -0700
+        b=jItA0vnxmk27eIe/uLOscpvmupIg/JWCdhFBsS10dq1FWLbosw7w8OIjWuOgYjC0Y
+         xCYdyzLwX+BX/aPsPC9huDKLgWr1SK1FQkGVs6aDmXqAqn+clQOqFPNJMf+S6bVIqn
+         yIbenY/Akht792Rc2oYTAy4zJc6eENnmMcOiMZUc=
+Date:   Mon, 09 Aug 2021 12:14:41 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        rdunlap@infradead.org
-Subject:  + mm-workingset-correct-kernel-doc-notations.patch added to
- -mm tree
-Message-ID: <20210809191400.yqvWu%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
+Subject:  + mm-migrate-correct-kernel-doc-notation.patch added to -mm
+ tree
+Message-ID: <20210809191441.EsHxu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/workingset: correct kernel-doc notations
+     Subject: mm/migrate: correct kernel-doc notation
 has been added to the -mm tree.  Its filename is
-     mm-workingset-correct-kernel-doc-notations.patch
+     mm-migrate-correct-kernel-doc-notation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-correct-kernel-doc-notations.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-correct-kernel-doc-notation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-correct-kernel-doc-notations.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-correct-kernel-doc-notation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,47 +64,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/workingset: correct kernel-doc notations
+Subject: mm/migrate: correct kernel-doc notation
 
-Use the documented kernel-doc format to prevent kernel-doc warnings.
+Use the expected "Return:" format to prevent a kernel-doc warning.
 
-mm/workingset.c:256: warning: No description found for return value of 'workingset_eviction'
-mm/workingset.c:285: warning: Function parameter or member 'folio' not described in 'workingset_refault'
-mm/workingset.c:285: warning: Excess function parameter 'page' description in 'workingset_refault'
+mm/migrate.c:1157: warning: Excess function parameter 'returns' description in 'next_demotion_node'
 
-Link: https://lkml.kernel.org/r/20210808203153.10678-1-rdunlap@infradead.org
+Link: https://lkml.kernel.org/r/20210808203151.10632-1-rdunlap@infradead.org
 Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/workingset.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/workingset.c~mm-workingset-correct-kernel-doc-notations
-+++ a/mm/workingset.c
-@@ -249,7 +249,7 @@ void workingset_age_nonresident(struct l
-  * @target_memcg: the cgroup that is causing the reclaim
-  * @page: the page being evicted
+--- a/mm/migrate.c~mm-migrate-correct-kernel-doc-notation
++++ a/mm/migrate.c
+@@ -1149,7 +1149,7 @@ static int node_demotion[MAX_NUMNODES] _
+  * next_demotion_node() - Get the next node in the demotion path
+  * @node: The starting node to lookup the next node
   *
-- * Returns a shadow entry to be stored in @page->mapping->i_pages in place
-+ * Return: a shadow entry to be stored in @page->mapping->i_pages in place
-  * of the evicted @page so that a later refault can be detected.
-  */
- void *workingset_eviction(struct page *page, struct mem_cgroup *target_memcg)
-@@ -274,7 +274,7 @@ void *workingset_eviction(struct page *p
- 
- /**
-  * workingset_refault - evaluate the refault of a previously evicted folio
-- * @page: the freshly allocated replacement folio
-+ * @folio: the freshly allocated replacement folio
-  * @shadow: shadow entry of the evicted folio
-  *
-  * Calculates and evaluates the refault distance of the previously
+- * @returns: node id for next memory node in the demotion path hierarchy
++ * Return: node id for next memory node in the demotion path hierarchy
+  * from @node; NUMA_NO_NODE if @node is terminal.  This does not keep
+  * @node online or guarantee that it *continues* to be the next demotion
+  * target.
 _
 
 Patches currently in -mm which might be from rdunlap@infradead.org are
 
+mm-migrate-correct-kernel-doc-notation.patch
 alpha-agp-make-empty-macros-use-do-while-0-style.patch
 lib-dump_stack-correct-kernel-doc-notation.patch
 lib-iov_iterc-fix-kernel-doc-warnings.patch
