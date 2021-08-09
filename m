@@ -7,39 +7,44 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15B8BC4338F
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:35:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB533C4338F
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:36:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EA47160EB5
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:35:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C33BE60EB5
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:36:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233662AbhHITfy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Aug 2021 15:35:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50480 "EHLO mail.kernel.org"
+        id S233558AbhHIThF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Aug 2021 15:37:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50714 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232334AbhHITfw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Aug 2021 15:35:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BE90960F6F;
-        Mon,  9 Aug 2021 19:35:31 +0000 (UTC)
+        id S232334AbhHIThE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Aug 2021 15:37:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 22DFB60C51;
+        Mon,  9 Aug 2021 19:36:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628537732;
-        bh=RPVrJ5jObIn/4D6tY+b6vJeLZ8W3i+f/zXjn2F6612w=;
+        s=korg; t=1628537802;
+        bh=DlY5td1SWHuD1Rr/70N4o72sJCuMjhZYFXJ/dRkSOgU=;
         h=Date:From:To:Subject:From;
-        b=bQBBkljT929p0YrYUQjkwMrv0P92AKSyuDw0LUwbwuMTwMvs4Xf2sRdhlkh7x7zvE
-         GsVHgev47Fg4nq3UTd5XJtPTGYfgily1zuRqAod3d1+sncXWSoQTdoiI9j7ZXU/r16
-         GIQU873d4RRsz0m1zFEK1ZNaMzjmNdv6IKkNJGbs=
-Date:   Mon, 09 Aug 2021 12:35:31 -0700
+        b=WYbpGY+5GSK8LiFWvRpuih55tN/q7ADzxuLzHfb35jhUg8PW+x2zyjlOjYaWlaY0s
+         9JxqPCXCCYFITIAzy82f1kJ3w3mgmcPJMAN2E2OMUyi/PLwkKsruWgApfES+RSkTJl
+         M7KKF2bGdw5urGZfdGRYv2sZlC3GLzDkqfN8JzAo=
+Date:   Mon, 09 Aug 2021 12:36:41 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        timmurray@google.com, shakeelb@google.com, rientjes@google.com,
-        riel@surriel.com, oleg@redhat.com, minchan@kernel.org,
-        mhocko@suse.com, luto@kernel.org, jengelh@inai.de,
-        jannh@google.com, hch@infradead.org, hannes@cmpxchg.org,
-        guro@fb.com, geert@linux-m68k.org, fweimer@redhat.com,
-        david@redhat.com, christian.brauner@ubuntu.com, surenb@google.com
-Subject:  + mm-wire-up-syscall-process_mrelease.patch added to -mm
+To:     mm-commits@vger.kernel.org, will@kernel.org,
+        tsbogend@alpha.franken.de, tglx@linutronix.de,
+        sfr@canb.auug.org.au, robh+dt@kernel.org,
+        rmk+kernel@armlinux.org.uk, rafael.j.wysocki@intel.com,
+        peterz@infradead.org, paul.walmsley@sifive.com, palmer@dabbelt.com,
+        mingo@redhat.com, mick@ics.forth.gr, maz@kernel.org,
+        luto@kernel.org, lenb@kernel.org, kirill@shutemov.name,
+        hpa@zytor.com, hca@linux.ibm.com, gregkh@linuxfoundation.org,
+        gor@linux.ibm.com, frowand.list@gmail.com,
+        dave.hansen@linux.intel.com, catalin.marinas@arm.com, bp@alien8.de,
+        borntraeger@de.ibm.com, aou@eecs.berkeley.edu, rppt@linux.ibm.com
+Subject:  [failures]
+ memblock-make-memblock_find_in_range-method-private.patch removed from -mm
  tree
-Message-ID: <20210809193531.gn5YX%akpm@linux-foundation.org>
+Message-ID: <20210809193641.BY7Ys%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,271 +53,539 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: wire up syscall process_mrelease
-has been added to the -mm tree.  Its filename is
-     mm-wire-up-syscall-process_mrelease.patch
+     Subject: memblock: make memblock_find_in_range method private
+has been removed from the -mm tree.  Its filename was
+     memblock-make-memblock_find_in_range-method-private.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-wire-up-syscall-process_mrelease.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-wire-up-syscall-process_mrelease.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: wire up syscall process_mrelease
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: memblock: make memblock_find_in_range method private
 
-Split off from prev patch in the series that implements the syscall.
+There are a lot of uses of memblock_find_in_range() along with
+memblock_reserve() from the times memblock allocation APIs did not exist.
 
-Link: https://lkml.kernel.org/r/20210809185259.405936-2-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
+memblock_find_in_range() is the very core of memblock allocations, so any
+future changes to its internal behaviour would mandate updates of all the
+users outside memblock.
+
+Replace the calls to memblock_find_in_range() with an equivalent calls to
+memblock_phys_alloc() and memblock_phys_alloc_range() and make
+memblock_find_in_range() private method of memblock.
+
+This simplifies the callers, ensures that (unlikely) errors in
+memblock_reserve() are handled and improves maintainability of
+memblock_find_in_range().
+
+Link: https://lkml.kernel.org/r/20210803064218.6611-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
+Acked-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>	[acpi]
+Acked-by: Nick Kossifidis <mick@ics.forth.gr>			[riscv]
+Cc: Albert Ou <aou@eecs.berkeley.edu>
 Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: Jan Engelhardt <jengelh@inai.de>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tim Murray <timmurray@google.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Marc Zyngier <maz@kernel.org>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/syscalls/syscall.tbl      |    2 ++
- arch/arm/tools/syscall.tbl                  |    2 ++
- arch/arm64/include/asm/unistd.h             |    2 +-
- arch/arm64/include/asm/unistd32.h           |    2 ++
- arch/ia64/kernel/syscalls/syscall.tbl       |    2 ++
- arch/m68k/kernel/syscalls/syscall.tbl       |    2 ++
- arch/microblaze/kernel/syscalls/syscall.tbl |    2 ++
- arch/mips/kernel/syscalls/syscall_n32.tbl   |    2 ++
- arch/mips/kernel/syscalls/syscall_n64.tbl   |    2 ++
- arch/mips/kernel/syscalls/syscall_o32.tbl   |    2 ++
- arch/parisc/kernel/syscalls/syscall.tbl     |    2 ++
- arch/powerpc/kernel/syscalls/syscall.tbl    |    2 ++
- arch/s390/kernel/syscalls/syscall.tbl       |    2 ++
- arch/sh/kernel/syscalls/syscall.tbl         |    2 ++
- arch/sparc/kernel/syscalls/syscall.tbl      |    2 ++
- arch/x86/entry/syscalls/syscall_32.tbl      |    1 +
- arch/x86/entry/syscalls/syscall_64.tbl      |    1 +
- arch/xtensa/kernel/syscalls/syscall.tbl     |    2 ++
- include/linux/syscalls.h                    |    1 +
- include/uapi/asm-generic/unistd.h           |    4 +++-
- kernel/sys_ni.c                             |    1 +
- 21 files changed, 38 insertions(+), 2 deletions(-)
+ arch/arm/kernel/setup.c           |   20 ++++--------
+ arch/arm64/kvm/hyp/reserved_mem.c |    9 +----
+ arch/arm64/mm/init.c              |   38 +++++++-----------------
+ arch/mips/kernel/setup.c          |   14 +++-----
+ arch/riscv/mm/init.c              |   44 ++++++++--------------------
+ arch/s390/kernel/setup.c          |   10 +++---
+ arch/x86/kernel/aperture_64.c     |    5 +--
+ arch/x86/mm/init.c                |   21 ++++++++-----
+ arch/x86/mm/numa.c                |    5 +--
+ arch/x86/mm/numa_emulation.c      |    5 +--
+ arch/x86/realmode/init.c          |    2 -
+ drivers/acpi/tables.c             |    5 +--
+ drivers/base/arch_numa.c          |    5 ---
+ drivers/of/of_reserved_mem.c      |   12 +++++--
+ include/linux/memblock.h          |    2 -
+ mm/memblock.c                     |    2 -
+ 16 files changed, 80 insertions(+), 119 deletions(-)
 
---- a/arch/alpha/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/alpha/kernel/syscalls/syscall.tbl
-@@ -486,3 +486,5 @@
- 554	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 555	common	landlock_add_rule		sys_landlock_add_rule
- 556	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 557 reserved for memfd_secret
-+558	common	process_mrelease		sys_process_mrelease
---- a/arch/arm64/include/asm/unistd32.h~mm-wire-up-syscall-process_mrelease
-+++ a/arch/arm64/include/asm/unistd32.h
-@@ -901,6 +901,8 @@ __SYSCALL(__NR_landlock_create_ruleset,
- __SYSCALL(__NR_landlock_add_rule, sys_landlock_add_rule)
- #define __NR_landlock_restrict_self 446
- __SYSCALL(__NR_landlock_restrict_self, sys_landlock_restrict_self)
-+#define __NR_process_mrelease 448
-+__SYSCALL(__NR_process_mrelease, sys_process_mrelease)
+--- a/arch/arm64/kvm/hyp/reserved_mem.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/arm64/kvm/hyp/reserved_mem.c
+@@ -92,12 +92,10 @@ void __init kvm_hyp_reserve(void)
+ 	 * this is unmapped from the host stage-2, and fallback to PAGE_SIZE.
+ 	 */
+ 	hyp_mem_size = hyp_mem_pages << PAGE_SHIFT;
+-	hyp_mem_base = memblock_find_in_range(0, memblock_end_of_DRAM(),
+-					      ALIGN(hyp_mem_size, PMD_SIZE),
+-					      PMD_SIZE);
++	hyp_mem_base = memblock_phys_alloc(ALIGN(hyp_mem_size, PMD_SIZE),
++					   PMD_SIZE);
+ 	if (!hyp_mem_base)
+-		hyp_mem_base = memblock_find_in_range(0, memblock_end_of_DRAM(),
+-						      hyp_mem_size, PAGE_SIZE);
++		hyp_mem_base = memblock_phys_alloc(hyp_mem_size, PAGE_SIZE);
+ 	else
+ 		hyp_mem_size = ALIGN(hyp_mem_size, PMD_SIZE);
+ 
+@@ -105,7 +103,6 @@ void __init kvm_hyp_reserve(void)
+ 		kvm_err("Failed to reserve hyp memory\n");
+ 		return;
+ 	}
+-	memblock_reserve(hyp_mem_base, hyp_mem_size);
+ 
+ 	kvm_info("Reserved %lld MiB at 0x%llx\n", hyp_mem_size >> 20,
+ 		 hyp_mem_base);
+--- a/arch/arm64/mm/init.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/arm64/mm/init.c
+@@ -74,6 +74,7 @@ phys_addr_t arm64_dma_phys_limit __ro_af
+ static void __init reserve_crashkernel(void)
+ {
+ 	unsigned long long crash_base, crash_size;
++	unsigned long long crash_max = arm64_dma_phys_limit;
+ 	int ret;
+ 
+ 	ret = parse_crashkernel(boot_command_line, memblock_phys_mem_size(),
+@@ -84,33 +85,18 @@ static void __init reserve_crashkernel(v
+ 
+ 	crash_size = PAGE_ALIGN(crash_size);
+ 
+-	if (crash_base == 0) {
+-		/* Current arm64 boot protocol requires 2MB alignment */
+-		crash_base = memblock_find_in_range(0, arm64_dma_phys_limit,
+-				crash_size, SZ_2M);
+-		if (crash_base == 0) {
+-			pr_warn("cannot allocate crashkernel (size:0x%llx)\n",
+-				crash_size);
+-			return;
+-		}
+-	} else {
+-		/* User specifies base address explicitly. */
+-		if (!memblock_is_region_memory(crash_base, crash_size)) {
+-			pr_warn("cannot reserve crashkernel: region is not memory\n");
+-			return;
+-		}
+-
+-		if (memblock_is_region_reserved(crash_base, crash_size)) {
+-			pr_warn("cannot reserve crashkernel: region overlaps reserved memory\n");
+-			return;
+-		}
+-
+-		if (!IS_ALIGNED(crash_base, SZ_2M)) {
+-			pr_warn("cannot reserve crashkernel: base address is not 2MB aligned\n");
+-			return;
+-		}
++	/* User specifies base address explicitly. */
++	if (crash_base)
++		crash_max = crash_base + crash_size;
++
++	/* Current arm64 boot protocol requires 2MB alignment */
++	crash_base = memblock_phys_alloc_range(crash_size, SZ_2M,
++					       crash_base, crash_max);
++	if (!crash_base) {
++		pr_warn("cannot allocate crashkernel (size:0x%llx)\n",
++			crash_size);
++		return;
+ 	}
+-	memblock_reserve(crash_base, crash_size);
+ 
+ 	pr_info("crashkernel reserved: 0x%016llx - 0x%016llx (%lld MB)\n",
+ 		crash_base, crash_base + crash_size, crash_size >> 20);
+--- a/arch/arm/kernel/setup.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/arm/kernel/setup.c
+@@ -1012,31 +1012,25 @@ static void __init reserve_crashkernel(v
+ 		unsigned long long lowmem_max = __pa(high_memory - 1) + 1;
+ 		if (crash_max > lowmem_max)
+ 			crash_max = lowmem_max;
+-		crash_base = memblock_find_in_range(CRASH_ALIGN, crash_max,
+-						    crash_size, CRASH_ALIGN);
++
++		crash_base = memblock_phys_alloc_range(crash_size, CRASH_ALIGN,
++						       CRASH_ALIGN, crash_max);
+ 		if (!crash_base) {
+ 			pr_err("crashkernel reservation failed - No suitable area found.\n");
+ 			return;
+ 		}
+ 	} else {
++		unsigned long long crash_max = crash_base + crash_size;
+ 		unsigned long long start;
+ 
+-		start = memblock_find_in_range(crash_base,
+-					       crash_base + crash_size,
+-					       crash_size, SECTION_SIZE);
+-		if (start != crash_base) {
++		start = memblock_phys_alloc_range(crash_size, SECTION_SIZE,
++						  crash_base, crash_max);
++		if (!start) {
+ 			pr_err("crashkernel reservation failed - memory is in use.\n");
+ 			return;
+ 		}
+ 	}
+ 
+-	ret = memblock_reserve(crash_base, crash_size);
+-	if (ret < 0) {
+-		pr_warn("crashkernel reservation failed - memory is in use (0x%lx)\n",
+-			(unsigned long)crash_base);
+-		return;
+-	}
+-
+ 	pr_info("Reserving %ldMB of memory at %ldMB for crashkernel (System RAM: %ldMB)\n",
+ 		(unsigned long)(crash_size >> 20),
+ 		(unsigned long)(crash_base >> 20),
+--- a/arch/mips/kernel/setup.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/mips/kernel/setup.c
+@@ -452,8 +452,9 @@ static void __init mips_parse_crashkerne
+ 		return;
+ 
+ 	if (crash_base <= 0) {
+-		crash_base = memblock_find_in_range(CRASH_ALIGN, CRASH_ADDR_MAX,
+-							crash_size, CRASH_ALIGN);
++		crash_base = memblock_phys_alloc_range(crash_size, CRASH_ALIGN,
++						       CRASH_ALIGN,
++						       CRASH_ADDR_MAX);
+ 		if (!crash_base) {
+ 			pr_warn("crashkernel reservation failed - No suitable area found.\n");
+ 			return;
+@@ -461,8 +462,9 @@ static void __init mips_parse_crashkerne
+ 	} else {
+ 		unsigned long long start;
+ 
+-		start = memblock_find_in_range(crash_base, crash_base + crash_size,
+-						crash_size, 1);
++		start = memblock_phys_alloc_range(crash_size, 1,
++						  crash_base,
++						  crash_base + crash_size);
+ 		if (start != crash_base) {
+ 			pr_warn("Invalid memory region reserved for crash kernel\n");
+ 			return;
+@@ -656,10 +658,6 @@ static void __init arch_mem_init(char **
+ 	mips_reserve_vmcore();
+ 
+ 	mips_parse_crashkernel();
+-#ifdef CONFIG_KEXEC
+-	if (crashk_res.start != crashk_res.end)
+-		memblock_reserve(crashk_res.start, resource_size(&crashk_res));
+-#endif
+ 	device_tree_init();
+ 
+ 	/*
+--- a/arch/riscv/mm/init.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/riscv/mm/init.c
+@@ -819,38 +819,22 @@ static void __init reserve_crashkernel(v
+ 
+ 	crash_size = PAGE_ALIGN(crash_size);
+ 
+-	if (crash_base == 0) {
+-		/*
+-		 * Current riscv boot protocol requires 2MB alignment for
+-		 * RV64 and 4MB alignment for RV32 (hugepage size)
+-		 */
+-		crash_base = memblock_find_in_range(search_start, search_end,
+-						    crash_size, PMD_SIZE);
+-
+-		if (crash_base == 0) {
+-			pr_warn("crashkernel: couldn't allocate %lldKB\n",
+-				crash_size >> 10);
+-			return;
+-		}
+-	} else {
+-		/* User specifies base address explicitly. */
+-		if (!memblock_is_region_memory(crash_base, crash_size)) {
+-			pr_warn("crashkernel: requested region is not memory\n");
+-			return;
+-		}
+-
+-		if (memblock_is_region_reserved(crash_base, crash_size)) {
+-			pr_warn("crashkernel: requested region is reserved\n");
+-			return;
+-		}
+-
++	if (crash_base) {
++		search_start = crash_base;
++		search_end = crash_base + crash_size;
++	}
+ 
+-		if (!IS_ALIGNED(crash_base, PMD_SIZE)) {
+-			pr_warn("crashkernel: requested region is misaligned\n");
+-			return;
+-		}
++	/*
++	 * Current riscv boot protocol requires 2MB alignment for
++	 * RV64 and 4MB alignment for RV32 (hugepage size)
++	 */
++	crash_base = memblock_phys_alloc_range(crash_size, PMD_SIZE,
++					       search_start, search_end);
++	if (crash_base == 0) {
++		pr_warn("crashkernel: couldn't allocate %lldKB\n",
++			crash_size >> 10);
++		return;
+ 	}
+-	memblock_reserve(crash_base, crash_size);
+ 
+ 	pr_info("crashkernel: reserved 0x%016llx - 0x%016llx (%lld MB)\n",
+ 		crash_base, crash_base + crash_size, crash_size >> 20);
+--- a/arch/s390/kernel/setup.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/s390/kernel/setup.c
+@@ -626,8 +626,9 @@ static void __init reserve_crashkernel(v
+ 			return;
+ 		}
+ 		low = crash_base ?: low;
+-		crash_base = memblock_find_in_range(low, high, crash_size,
+-						    KEXEC_CRASH_MEM_ALIGN);
++		crash_base = memblock_phys_alloc_range(crash_size,
++						       KEXEC_CRASH_MEM_ALIGN,
++						       low, high);
+ 	}
+ 
+ 	if (!crash_base) {
+@@ -636,14 +637,15 @@ static void __init reserve_crashkernel(v
+ 		return;
+ 	}
+ 
+-	if (register_memory_notifier(&kdump_mem_nb))
++	if (register_memory_notifier(&kdump_mem_nb)) {
++		memblock_free(crash_base, crash_size);
+ 		return;
++	}
+ 
+ 	if (!OLDMEM_BASE && MACHINE_IS_VM)
+ 		diag10_range(PFN_DOWN(crash_base), PFN_DOWN(crash_size));
+ 	crashk_res.start = crash_base;
+ 	crashk_res.end = crash_base + crash_size - 1;
+-	memblock_remove(crash_base, crash_size);
+ 	pr_info("Reserving %lluMB of memory at %lluMB "
+ 		"for crashkernel (System RAM: %luMB)\n",
+ 		crash_size >> 20, crash_base >> 20,
+--- a/arch/x86/kernel/aperture_64.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/x86/kernel/aperture_64.c
+@@ -109,14 +109,13 @@ static u32 __init allocate_aperture(void
+ 	 * memory. Unfortunately we cannot move it up because that would
+ 	 * make the IOMMU useless.
+ 	 */
+-	addr = memblock_find_in_range(GART_MIN_ADDR, GART_MAX_ADDR,
+-				      aper_size, aper_size);
++	addr = memblock_phys_alloc_range(aper_size, aper_size,
++					 GART_MIN_ADDR, GART_MAX_ADDR);
+ 	if (!addr) {
+ 		pr_err("Cannot allocate aperture memory hole [mem %#010lx-%#010lx] (%uKB)\n",
+ 		       addr, addr + aper_size - 1, aper_size >> 10);
+ 		return 0;
+ 	}
+-	memblock_reserve(addr, aper_size);
+ 	pr_info("Mapping aperture over RAM [mem %#010lx-%#010lx] (%uKB)\n",
+ 		addr, addr + aper_size - 1, aper_size >> 10);
+ 	register_nosave_region(addr >> PAGE_SHIFT,
+--- a/arch/x86/mm/init.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/x86/mm/init.c
+@@ -26,6 +26,7 @@
+ #include <asm/pti.h>
+ #include <asm/text-patching.h>
+ #include <asm/memtype.h>
++#include <xen/xen.h>
  
  /*
-  * Please add new compat syscalls above this comment and update
---- a/arch/arm64/include/asm/unistd.h~mm-wire-up-syscall-process_mrelease
-+++ a/arch/arm64/include/asm/unistd.h
-@@ -38,7 +38,7 @@
- #define __ARM_NR_compat_set_tls		(__ARM_NR_COMPAT_BASE + 5)
- #define __ARM_NR_COMPAT_END		(__ARM_NR_COMPAT_BASE + 0x800)
+  * We need to define the tracepoints somewhere, and tlb.c
+@@ -127,14 +128,12 @@ __ref void *alloc_low_pages(unsigned int
+ 		unsigned long ret = 0;
  
--#define __NR_compat_syscalls		447
-+#define __NR_compat_syscalls		449
- #endif
+ 		if (min_pfn_mapped < max_pfn_mapped) {
+-			ret = memblock_find_in_range(
++			ret = memblock_phys_alloc_range(
++					PAGE_SIZE * num, PAGE_SIZE,
+ 					min_pfn_mapped << PAGE_SHIFT,
+-					max_pfn_mapped << PAGE_SHIFT,
+-					PAGE_SIZE * num , PAGE_SIZE);
++					max_pfn_mapped << PAGE_SHIFT);
+ 		}
+-		if (ret)
+-			memblock_reserve(ret, PAGE_SIZE * num);
+-		else if (can_use_brk_pgt)
++		if (!ret && can_use_brk_pgt)
+ 			ret = __pa(extend_brk(PAGE_SIZE * num, PAGE_SIZE));
  
- #define __ARCH_WANT_SYS_CLONE
---- a/arch/arm/tools/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/arm/tools/syscall.tbl
-@@ -460,3 +460,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/ia64/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/ia64/kernel/syscalls/syscall.tbl
-@@ -367,3 +367,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/m68k/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/m68k/kernel/syscalls/syscall.tbl
-@@ -446,3 +446,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/microblaze/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/microblaze/kernel/syscalls/syscall.tbl
-@@ -452,3 +452,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/mips/kernel/syscalls/syscall_n32.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/mips/kernel/syscalls/syscall_n32.tbl
-@@ -385,3 +385,5 @@
- 444	n32	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	n32	landlock_add_rule		sys_landlock_add_rule
- 446	n32	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	n32	process_mrelease		sys_process_mrelease
---- a/arch/mips/kernel/syscalls/syscall_n64.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/mips/kernel/syscalls/syscall_n64.tbl
-@@ -361,3 +361,5 @@
- 444	n64	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	n64	landlock_add_rule		sys_landlock_add_rule
- 446	n64	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	n64	process_mrelease		sys_process_mrelease
---- a/arch/mips/kernel/syscalls/syscall_o32.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/mips/kernel/syscalls/syscall_o32.tbl
-@@ -434,3 +434,5 @@
- 444	o32	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	o32	landlock_add_rule		sys_landlock_add_rule
- 446	o32	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	o32	process_mrelease		sys_process_mrelease
---- a/arch/parisc/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/parisc/kernel/syscalls/syscall.tbl
-@@ -444,3 +444,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/powerpc/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/powerpc/kernel/syscalls/syscall.tbl
-@@ -526,3 +526,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/s390/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/s390/kernel/syscalls/syscall.tbl
-@@ -449,3 +449,5 @@
- 444  common	landlock_create_ruleset	sys_landlock_create_ruleset	sys_landlock_create_ruleset
- 445  common	landlock_add_rule	sys_landlock_add_rule		sys_landlock_add_rule
- 446  common	landlock_restrict_self	sys_landlock_restrict_self	sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448  common	process_mrelease	sys_process_mrelease		sys_process_mrelease
---- a/arch/sh/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/sh/kernel/syscalls/syscall.tbl
-@@ -449,3 +449,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/sparc/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/sparc/kernel/syscalls/syscall.tbl
-@@ -492,3 +492,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/arch/x86/entry/syscalls/syscall_32.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -452,3 +452,4 @@
- 445	i386	landlock_add_rule	sys_landlock_add_rule
- 446	i386	landlock_restrict_self	sys_landlock_restrict_self
- 447	i386	memfd_secret		sys_memfd_secret
-+448	i386	process_mrelease	sys_process_mrelease
---- a/arch/x86/entry/syscalls/syscall_64.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -369,6 +369,7 @@
- 445	common	landlock_add_rule	sys_landlock_add_rule
- 446	common	landlock_restrict_self	sys_landlock_restrict_self
- 447	common	memfd_secret		sys_memfd_secret
-+448	common	process_mrelease	sys_process_mrelease
+ 		if (!ret)
+@@ -610,9 +609,15 @@ static void __init memory_map_top_down(u
+ 	unsigned long addr;
+ 	unsigned long mapped_ram_size = 0;
  
- #
- # Due to a historical design error, certain syscalls are numbered differently
---- a/arch/xtensa/kernel/syscalls/syscall.tbl~mm-wire-up-syscall-process_mrelease
-+++ a/arch/xtensa/kernel/syscalls/syscall.tbl
-@@ -417,3 +417,5 @@
- 444	common	landlock_create_ruleset		sys_landlock_create_ruleset
- 445	common	landlock_add_rule		sys_landlock_add_rule
- 446	common	landlock_restrict_self		sys_landlock_restrict_self
-+# 447 reserved for memfd_secret
-+448	common	process_mrelease		sys_process_mrelease
---- a/include/linux/syscalls.h~mm-wire-up-syscall-process_mrelease
-+++ a/include/linux/syscalls.h
-@@ -915,6 +915,7 @@ asmlinkage long sys_mincore(unsigned lon
- asmlinkage long sys_madvise(unsigned long start, size_t len, int behavior);
- asmlinkage long sys_process_madvise(int pidfd, const struct iovec __user *vec,
- 			size_t vlen, int behavior, unsigned int flags);
-+asmlinkage long sys_process_mrelease(int pidfd, unsigned int flags);
- asmlinkage long sys_remap_file_pages(unsigned long start, unsigned long size,
- 			unsigned long prot, unsigned long pgoff,
- 			unsigned long flags);
---- a/include/uapi/asm-generic/unistd.h~mm-wire-up-syscall-process_mrelease
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -877,9 +877,11 @@ __SYSCALL(__NR_landlock_restrict_self, s
- #define __NR_memfd_secret 447
- __SYSCALL(__NR_memfd_secret, sys_memfd_secret)
- #endif
-+#define __NR_process_mrelease 448
-+__SYSCALL(__NR_process_mrelease, sys_process_mrelease)
++	real_end = ALIGN_DOWN(map_end, PMD_SIZE);
++
+ 	/* xen has big range in reserved near end of ram, skip it at first.*/
+-	addr = memblock_find_in_range(map_start, map_end, PMD_SIZE, PMD_SIZE);
+-	real_end = addr + PMD_SIZE;
++	if (xen_domain()) {
++		addr = memblock_phys_alloc_range(PMD_SIZE, PMD_SIZE,
++						 map_start, map_end);
++		memblock_free(addr, PMD_SIZE);
++		real_end = addr + PMD_SIZE;
++	}
  
- #undef __NR_syscalls
--#define __NR_syscalls 448
-+#define __NR_syscalls 449
+ 	/* step_size need to be small so pgt_buf from BRK could cover it */
+ 	step_size = PMD_SIZE;
+--- a/arch/x86/mm/numa.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/x86/mm/numa.c
+@@ -376,15 +376,14 @@ static int __init numa_alloc_distance(vo
+ 	cnt++;
+ 	size = cnt * cnt * sizeof(numa_distance[0]);
+ 
+-	phys = memblock_find_in_range(0, PFN_PHYS(max_pfn_mapped),
+-				      size, PAGE_SIZE);
++	phys = memblock_phys_alloc_range(size, PAGE_SIZE, 0,
++					 PFN_PHYS(max_pfn_mapped));
+ 	if (!phys) {
+ 		pr_warn("Warning: can't allocate distance table!\n");
+ 		/* don't retry until explicitly reset */
+ 		numa_distance = (void *)1LU;
+ 		return -ENOMEM;
+ 	}
+-	memblock_reserve(phys, size);
+ 
+ 	numa_distance = __va(phys);
+ 	numa_distance_cnt = cnt;
+--- a/arch/x86/mm/numa_emulation.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/x86/mm/numa_emulation.c
+@@ -447,13 +447,12 @@ void __init numa_emulation(struct numa_m
+ 	if (numa_dist_cnt) {
+ 		u64 phys;
+ 
+-		phys = memblock_find_in_range(0, PFN_PHYS(max_pfn_mapped),
+-					      phys_size, PAGE_SIZE);
++		phys = memblock_phys_alloc_range(phys_size, PAGE_SIZE, 0,
++						 PFN_PHYS(max_pfn_mapped));
+ 		if (!phys) {
+ 			pr_warn("NUMA: Warning: can't allocate copy of distance table, disabling emulation\n");
+ 			goto no_emu;
+ 		}
+-		memblock_reserve(phys, phys_size);
+ 		phys_dist = __va(phys);
+ 
+ 		for (i = 0; i < numa_dist_cnt; i++)
+--- a/arch/x86/realmode/init.c~memblock-make-memblock_find_in_range-method-private
++++ a/arch/x86/realmode/init.c
+@@ -28,7 +28,7 @@ void __init reserve_real_mode(void)
+ 	WARN_ON(slab_is_available());
+ 
+ 	/* Has to be under 1M so we can execute real-mode AP code. */
+-	mem = memblock_find_in_range(0, 1<<20, size, PAGE_SIZE);
++	mem = memblock_phys_alloc_range(size, PAGE_SIZE, 0, 1<<20);
+ 	if (!mem)
+ 		pr_info("No sub-1M memory is available for the trampoline\n");
+ 	else
+--- a/drivers/acpi/tables.c~memblock-make-memblock_find_in_range-method-private
++++ a/drivers/acpi/tables.c
+@@ -583,8 +583,8 @@ void __init acpi_table_upgrade(void)
+ 	}
+ 
+ 	acpi_tables_addr =
+-		memblock_find_in_range(0, ACPI_TABLE_UPGRADE_MAX_PHYS,
+-				       all_tables_size, PAGE_SIZE);
++		memblock_phys_alloc_range(all_tables_size, PAGE_SIZE,
++					  0, ACPI_TABLE_UPGRADE_MAX_PHYS);
+ 	if (!acpi_tables_addr) {
+ 		WARN_ON(1);
+ 		return;
+@@ -599,7 +599,6 @@ void __init acpi_table_upgrade(void)
+ 	 * Both memblock_reserve and e820__range_add (via arch_reserve_mem_area)
+ 	 * works fine.
+ 	 */
+-	memblock_reserve(acpi_tables_addr, all_tables_size);
+ 	arch_reserve_mem_area(acpi_tables_addr, all_tables_size);
+ 
+ 	/*
+--- a/drivers/base/arch_numa.c~memblock-make-memblock_find_in_range-method-private
++++ a/drivers/base/arch_numa.c
+@@ -279,13 +279,10 @@ static int __init numa_alloc_distance(vo
+ 	int i, j;
+ 
+ 	size = nr_node_ids * nr_node_ids * sizeof(numa_distance[0]);
+-	phys = memblock_find_in_range(0, PFN_PHYS(max_pfn),
+-				      size, PAGE_SIZE);
++	phys = memblock_phys_alloc_range(size, PAGE_SIZE, 0, PFN_PHYS(max_pfn));
+ 	if (WARN_ON(!phys))
+ 		return -ENOMEM;
+ 
+-	memblock_reserve(phys, size);
+-
+ 	numa_distance = __va(phys);
+ 	numa_distance_cnt = nr_node_ids;
+ 
+--- a/drivers/of/of_reserved_mem.c~memblock-make-memblock_find_in_range-method-private
++++ a/drivers/of/of_reserved_mem.c
+@@ -33,18 +33,22 @@ static int __init early_init_dt_alloc_re
+ 	phys_addr_t *res_base)
+ {
+ 	phys_addr_t base;
++	int err = 0;
+ 
+ 	end = !end ? MEMBLOCK_ALLOC_ANYWHERE : end;
+ 	align = !align ? SMP_CACHE_BYTES : align;
+-	base = memblock_find_in_range(start, end, size, align);
++	base = memblock_phys_alloc_range(size, align, start, end);
+ 	if (!base)
+ 		return -ENOMEM;
+ 
+ 	*res_base = base;
+-	if (nomap)
+-		return memblock_mark_nomap(base, size);
++	if (nomap) {
++		err = memblock_mark_nomap(base, size);
++		if (err)
++			memblock_free(base, size);
++	}
+ 
+-	return memblock_reserve(base, size);
++	return err;
+ }
  
  /*
-  * 32 bit systems traditionally used different
---- a/kernel/sys_ni.c~mm-wire-up-syscall-process_mrelease
-+++ a/kernel/sys_ni.c
-@@ -289,6 +289,7 @@ COND_SYSCALL(munlockall);
- COND_SYSCALL(mincore);
- COND_SYSCALL(madvise);
- COND_SYSCALL(process_madvise);
-+COND_SYSCALL(process_mrelease);
- COND_SYSCALL(remap_file_pages);
- COND_SYSCALL(mbind);
- COND_SYSCALL_COMPAT(mbind);
+--- a/include/linux/memblock.h~memblock-make-memblock_find_in_range-method-private
++++ a/include/linux/memblock.h
+@@ -99,8 +99,6 @@ void memblock_discard(void);
+ static inline void memblock_discard(void) {}
+ #endif
+ 
+-phys_addr_t memblock_find_in_range(phys_addr_t start, phys_addr_t end,
+-				   phys_addr_t size, phys_addr_t align);
+ void memblock_allow_resize(void);
+ int memblock_add_node(phys_addr_t base, phys_addr_t size, int nid);
+ int memblock_add(phys_addr_t base, phys_addr_t size);
+--- a/mm/memblock.c~memblock-make-memblock_find_in_range-method-private
++++ a/mm/memblock.c
+@@ -315,7 +315,7 @@ static phys_addr_t __init_memblock membl
+  * Return:
+  * Found address on success, 0 on failure.
+  */
+-phys_addr_t __init_memblock memblock_find_in_range(phys_addr_t start,
++static phys_addr_t __init_memblock memblock_find_in_range(phys_addr_t start,
+ 					phys_addr_t end, phys_addr_t size,
+ 					phys_addr_t align)
+ {
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
-mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
-mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
-mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config.patch
-mm-introduce-process_mrelease-system-call.patch
-mm-wire-up-syscall-process_mrelease.patch
+mm-page_alloc-always-initialize-memory-map-for-the-holes.patch
+microblaze-simplify-pte_alloc_one_kernel.patch
+mm-introduce-memmap_alloc-to-unify-memory-map-allocation.patch
+memblock-stop-poisoning-raw-allocations.patch
+mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref.patch
+mm-remove-pfn_valid_within-and-config_holes_in_zone.patch
+mm-memory_hotplug-cleanup-after-removal-of-pfn_valid_within.patch
 
