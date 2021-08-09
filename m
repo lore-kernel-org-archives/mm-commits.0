@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50681C4338F
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:08:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BADAFC4338F
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:14:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 26A4F61052
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:08:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D72061052
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:14:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235487AbhHITIl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Aug 2021 15:08:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42586 "EHLO mail.kernel.org"
+        id S235668AbhHITOV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Aug 2021 15:14:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44256 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235246AbhHITIk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Aug 2021 15:08:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B3AF761040;
-        Mon,  9 Aug 2021 19:08:19 +0000 (UTC)
+        id S235487AbhHITOV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Aug 2021 15:14:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7CD3660E09;
+        Mon,  9 Aug 2021 19:14:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628536099;
-        bh=vV12PUbyXXEFW4qQrdoY6trjq/Sg3S6RBemCVIXU7AI=;
+        s=korg; t=1628536440;
+        bh=OqOR/gk1lqFY6qFH7a82sfIac+EQLl7heRg3df9ee4A=;
         h=Date:From:To:Subject:From;
-        b=NoiZAxtjY13/UBcdzFMC/ajIJ+norr21DUse1JUZHCwL8xzOAQ5ZDWpIe/+U/oAG4
-         lxvF1hG8jKqizgvpSD27WutC6REgr4uHcKAP6wtk0zVgjPM72oKls3nD9W7jx0uFH3
-         zldDnR7FvOUK8AhJnRHKHGjIHSWrrq3obtvgrs44=
-Date:   Mon, 09 Aug 2021 12:08:19 -0700
+        b=Q7A3R2L7r4kZNTOK3W94dyKqUdUlaKc6fYkmU3twFRJECtVeb5Ob4V9sbukmja0gJ
+         MKF6ql35IqKQp/21/a0CwtiN8gIBJa8W1bcq5uZSDOuAUJDq+t2SgVBrWdDWtUsEQG
+         Sr30RWqv2TZsZJsCZwsJWRjjqsU1zV8Nk0Io/jCA=
+Date:   Mon, 09 Aug 2021 12:14:00 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, mhocko@suse.com, feng.tang@intel.com,
-        ben.widawsky@intel.com
-Subject:  +
- mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch added to
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        rdunlap@infradead.org
+Subject:  + mm-workingset-correct-kernel-doc-notations.patch added to
  -mm tree
-Message-ID: <20210809190819.dnyr8%akpm@linux-foundation.org>
+Message-ID: <20210809191400.yqvWu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
+     Subject: mm/workingset: correct kernel-doc notations
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
+     mm-workingset-correct-kernel-doc-notations.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-correct-kernel-doc-notations.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-correct-kernel-doc-notations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,126 +64,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ben Widawsky <ben.widawsky@intel.com>
-Subject: mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm/workingset: correct kernel-doc notations
 
-add helpers to avoid ifdefs
+Use the documented kernel-doc format to prevent kernel-doc warnings.
 
-Link: https://lore.kernel.org/r/20200630212517.308045-12-ben.widawsky@intel.com
-Link: https://lkml.kernel.org/r/1627970362-61305-4-git-send-email-feng.tang@intel.com
-Link: https://lkml.kernel.org/r/20210809024430.GA46432@shbuild999.sh.intel.com
-Signed-off-by: Feng Tang <feng.tang@intel.com>
-Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Co-developed-by: Feng Tang <feng.tang@intel.com>
+mm/workingset.c:256: warning: No description found for return value of 'workingset_eviction'
+mm/workingset.c:285: warning: Function parameter or member 'folio' not described in 'workingset_refault'
+mm/workingset.c:285: warning: Excess function parameter 'page' description in 'workingset_refault'
+
+Link: https://lkml.kernel.org/r/20210808203153.10678-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |   12 ++++++++++++
- mm/hugetlb.c              |   34 +++++++++++++---------------------
- 2 files changed, 25 insertions(+), 21 deletions(-)
+ mm/workingset.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/mempolicy.h~mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
-+++ a/include/linux/mempolicy.h
-@@ -187,6 +187,12 @@ extern void mpol_put_task_policy(struct
+--- a/mm/workingset.c~mm-workingset-correct-kernel-doc-notations
++++ a/mm/workingset.c
+@@ -249,7 +249,7 @@ void workingset_age_nonresident(struct l
+  * @target_memcg: the cgroup that is causing the reclaim
+  * @page: the page being evicted
+  *
+- * Returns a shadow entry to be stored in @page->mapping->i_pages in place
++ * Return: a shadow entry to be stored in @page->mapping->i_pages in place
+  * of the evicted @page so that a later refault can be detected.
+  */
+ void *workingset_eviction(struct page *page, struct mem_cgroup *target_memcg)
+@@ -274,7 +274,7 @@ void *workingset_eviction(struct page *p
  
- extern bool numa_demotion_enabled;
- 
-+static inline bool mpol_is_preferred_many(struct mempolicy *pol)
-+{
-+	return  (pol->mode == MPOL_PREFERRED_MANY);
-+}
-+
-+
- #else
- 
- struct mempolicy {};
-@@ -297,5 +303,11 @@ static inline nodemask_t *policy_nodemas
- }
- 
- #define numa_demotion_enabled	false
-+
-+static inline bool mpol_is_preferred_many(struct mempolicy *pol)
-+{
-+	return  false;
-+}
-+
- #endif /* CONFIG_NUMA */
- #endif
---- a/mm/hugetlb.c~mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
-+++ a/mm/hugetlb.c
-@@ -1145,7 +1145,7 @@ static struct page *dequeue_huge_page_vm
- 				unsigned long address, int avoid_reserve,
- 				long chg)
- {
--	struct page *page;
-+	struct page *page = NULL;
- 	struct mempolicy *mpol;
- 	gfp_t gfp_mask;
- 	nodemask_t *nodemask;
-@@ -1166,20 +1166,17 @@ static struct page *dequeue_huge_page_vm
- 
- 	gfp_mask = htlb_alloc_mask(h);
- 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
--#ifdef CONFIG_NUMA
--	if (mpol->mode == MPOL_PREFERRED_MANY) {
-+
-+	if (mpol_is_preferred_many(mpol)) {
- 		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
--		if (page)
--			goto check_reserve;
--		/* Fallback to all nodes */
-+
-+		/* Fallback to all nodes if page==NULL */
- 		nodemask = NULL;
- 	}
--#endif
--	page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
- 
--#ifdef CONFIG_NUMA
--check_reserve:
--#endif
-+	if (!page)
-+		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
-+
- 	if (page && !avoid_reserve && vma_has_reserves(vma, chg)) {
- 		SetHPageRestoreReserve(page);
- 		h->resv_huge_pages--;
-@@ -2160,24 +2157,19 @@ struct page *alloc_buddy_huge_page_with_
- 	nodemask_t *nodemask;
- 
- 	nid = huge_node(vma, addr, gfp_mask, &mpol, &nodemask);
--#ifdef CONFIG_NUMA
--	if (mpol->mode == MPOL_PREFERRED_MANY) {
-+	if (mpol_is_preferred_many(mpol)) {
- 		gfp_t gfp = gfp_mask | __GFP_NOWARN;
- 
- 		gfp &=  ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
- 		page = alloc_surplus_huge_page(h, gfp, nid, nodemask, false);
--		if (page) {
--			mpol_cond_put(mpol);
--			return page;
--		}
- 
--		/* Fallback to all nodes */
-+		/* Fallback to all nodes if page==NULL */
- 		nodemask = NULL;
- 	}
--#endif
--	page = alloc_surplus_huge_page(h, gfp_mask, nid, nodemask, false);
--	mpol_cond_put(mpol);
- 
-+	if (!page)
-+		page = alloc_surplus_huge_page(h, gfp_mask, nid, nodemask, false);
-+	mpol_cond_put(mpol);
- 	return page;
- }
- 
+ /**
+  * workingset_refault - evaluate the refault of a previously evicted folio
+- * @page: the freshly allocated replacement folio
++ * @folio: the freshly allocated replacement folio
+  * @shadow: shadow entry of the evicted folio
+  *
+  * Calculates and evaluates the refault distance of the previously
 _
 
-Patches currently in -mm which might be from ben.widawsky@intel.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many.patch
-mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
-mm-mempolicy-advertise-new-mpol_preferred_many.patch
+alpha-agp-make-empty-macros-use-do-while-0-style.patch
+lib-dump_stack-correct-kernel-doc-notation.patch
+lib-iov_iterc-fix-kernel-doc-warnings.patch
+fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
+mm-workingset-correct-kernel-doc-notations.patch
+scripts-check_extable-fix-typo-in-user-error-message.patch
 
