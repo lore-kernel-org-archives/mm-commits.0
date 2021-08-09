@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40FDCC4338F
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:15:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9D49C4338F
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:26:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24F2261058
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:15:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B15A660D07
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:26:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235961AbhHITPh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Aug 2021 15:15:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44678 "EHLO mail.kernel.org"
+        id S236031AbhHIT0j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Aug 2021 15:26:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235487AbhHITPg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Aug 2021 15:15:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A84E260E09;
-        Mon,  9 Aug 2021 19:15:15 +0000 (UTC)
+        id S231439AbhHIT0i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Aug 2021 15:26:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DEEEA60C51;
+        Mon,  9 Aug 2021 19:26:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628536515;
-        bh=ju3N1xh735nx/Z3hssCBjUTnxqkIes619xA4TrKH9eg=;
+        s=korg; t=1628537178;
+        bh=iQrHZIbR19NcIg408eamGUSwMC42RgTKDtszeOgAPBs=;
         h=Date:From:To:Subject:From;
-        b=FtmjRC+PQyMtYteoVprlmzf3QiUOE0SggVXUFL3HwZ9Rnb53iISVw7EDL5pUPe3LQ
-         Zikm7yiHXAI61Tzq5k1vd7mqaRb6xyY8utR0yOg3M08erMtjZ5gUaIWr1IE2qZnGXe
-         R2bV1p8dSFJ+tdr/yW7w7ClJnG3584kSCUrY/ULY=
-Date:   Mon, 09 Aug 2021 12:15:15 -0700
+        b=uqCTtMKyiN3YZTFQsozv1a0hMnvmGxoyLzSfmBfrRVQLI9UEpuu/Kvr44vxFV5xvi
+         y5oWAZfsH6bn/ujWeScEtpVZQZ2I+oj+xfRc+wzfnkBn3thpTbf/WwnEe0OrfuSaz4
+         DSRfQU3pf/8mxE9/OvCrm73WYKEX4Ypqr+DWQGXI=
+Date:   Mon, 09 Aug 2021 12:26:17 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rth@twiddle.net, mattst88@gmail.com,
-        ink@jurassic.park.msu.ru, rdunlap@infradead.org
-Subject:  + alpha-pci-sysfs-fix-all-kernel-doc-warnings.patch added
- to -mm tree
-Message-ID: <20210809191515.7iA6t%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, xemul@parallels.com,
+        viro@zeniv.linux.org.uk, rppt@linux.vnet.ibm.com,
+        peterx@redhat.com, axelrasmussen@google.com, axboe@kernel.dk,
+        aarcange@redhat.com, namit@vmware.com
+Subject:  + userfaultfd-change-mmap_changing-to-atomic.patch added to
+ -mm tree
+Message-ID: <20210809192617.8laWU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: pci-sysfs: fix all kernel-doc warnings
+     Subject: userfaultfd: change mmap_changing to atomic
 has been added to the -mm tree.  Its filename is
-     alpha-pci-sysfs-fix-all-kernel-doc-warnings.patch
+     userfaultfd-change-mmap_changing-to-atomic.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/alpha-pci-sysfs-fix-all-kernel-doc-warnings.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-change-mmap_changing-to-atomic.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/alpha-pci-sysfs-fix-all-kernel-doc-warnings.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-change-mmap_changing-to-atomic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,85 +66,250 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: alpha: pci-sysfs: fix all kernel-doc warnings
+From: Nadav Amit <namit@vmware.com>
+Subject: userfaultfd: change mmap_changing to atomic
 
-Fix all kernel-doc warnings in arch/alpha/kernel/pci-sysfs.c:
+Patch series "userfaultfd: minor bug fixes".
 
-../arch/alpha/kernel/pci-sysfs.c:67: warning: No description found for return value of 'pci_mmap_resource'
-../arch/alpha/kernel/pci-sysfs.c:115: warning: Function parameter or member 'pdev' not described in 'pci_remove_resource_files'
-../arch/alpha/kernel/pci-sysfs.c:115: warning: Excess function parameter 'dev' description in 'pci_remove_resource_files'
-../arch/alpha/kernel/pci-sysfs.c:230: warning: Function parameter or member 'pdev' not described in 'pci_create_resource_files'
-../arch/alpha/kernel/pci-sysfs.c:230: warning: Excess function parameter 'dev' description in 'pci_create_resource_files'
-../arch/alpha/kernel/pci-sysfs.c:232: warning: No description found for return value of 'pci_create_resource_files'
-../arch/alpha/kernel/pci-sysfs.c:305: warning: Function parameter or member 'bus' not described in 'pci_adjust_legacy_attr'
-../arch/alpha/kernel/pci-sysfs.c:305: warning: Excess function parameter 'b' description in 'pci_adjust_legacy_attr'
+Three unrelated bug fixes. The first two addresses possible issues (not
+too theoretical ones), but I did not encounter them in practice.
 
-Link: https://lkml.kernel.org/r/20210808185249.31442-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+The third patch addresses a test bug that causes the test to fail on my
+system. It has been sent before as part of a bigger RFC. 
+
+
+This patch (of 3):
+
+mmap_changing is currently a boolean variable, which is set and cleared
+without any lock that protects against concurrent modifications.
+
+mmap_chanign is supposed to mark whether userfaultfd page-faults handling
+should be retried since mappings are undergoing a change.  However,
+concurrent calls, for instance to madvise(MADV_DONTNEED), might cause
+mmap_changing to be false, although the remove event was still not read
+(hence acknowledged) by the user.
+
+Change mmap_changing to atomic_t and increase/decrease appropriately.  Add
+a debug assertion to see whether mmap_changing is negative.
+
+Link: https://lkml.kernel.org/r/20210808020724.1022515-1-namit@vmware.com
+Link: https://lkml.kernel.org/r/20210808020724.1022515-2-namit@vmware.com
+Fixes: df2cc96e77011 ("userfaultfd: prevent non-cooperative events vs mcopy_atomic races")
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pci-sysfs.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ fs/userfaultfd.c              |   25 +++++++++++++------------
+ include/linux/userfaultfd_k.h |    8 ++++----
+ mm/userfaultfd.c              |   15 ++++++++-------
+ 3 files changed, 25 insertions(+), 23 deletions(-)
 
---- a/arch/alpha/kernel/pci-sysfs.c~alpha-pci-sysfs-fix-all-kernel-doc-warnings
-+++ a/arch/alpha/kernel/pci-sysfs.c
-@@ -60,6 +60,8 @@ static int __pci_mmap_fits(struct pci_de
-  * @sparse: address space type
-  *
-  * Use the bus mapping routines to map a PCI resource into userspace.
-+ *
-+ * Return: %0 on success, negative error code otherwise
-  */
- static int pci_mmap_resource(struct kobject *kobj,
- 			     struct bin_attribute *attr,
-@@ -106,7 +108,7 @@ static int pci_mmap_resource_dense(struc
- 
- /**
-  * pci_remove_resource_files - cleanup resource files
-- * @dev: dev to cleanup
-+ * @pdev: pci_dev to cleanup
-  *
-  * If we created resource files for @dev, remove them from sysfs and
-  * free their resources.
-@@ -221,10 +223,12 @@ static int pci_create_attr(struct pci_de
+--- a/fs/userfaultfd.c~userfaultfd-change-mmap_changing-to-atomic
++++ a/fs/userfaultfd.c
+@@ -74,7 +74,7 @@ struct userfaultfd_ctx {
+ 	/* released */
+ 	bool released;
+ 	/* memory mappings are changing because of non-cooperative event */
+-	bool mmap_changing;
++	atomic_t mmap_changing;
+ 	/* mm with one ore more vmas attached to this userfaultfd_ctx */
+ 	struct mm_struct *mm;
+ };
+@@ -623,7 +623,8 @@ static void userfaultfd_event_wait_compl
+ 	 * already released.
+ 	 */
+ out:
+-	WRITE_ONCE(ctx->mmap_changing, false);
++	atomic_dec(&ctx->mmap_changing);
++	VM_BUG_ON(atomic_read(&ctx->mmap_changing) < 0);
+ 	userfaultfd_ctx_put(ctx);
  }
  
- /**
-- * pci_create_resource_files - create resource files in sysfs for @dev
-- * @dev: dev in question
-+ * pci_create_resource_files - create resource files in sysfs for @pdev
-+ * @pdev: pci_dev in question
-  *
-  * Walk the resources in @dev creating files for each resource available.
-+ *
-+ * Return: %0 on success, or negative error code
-  */
- int pci_create_resource_files(struct pci_dev *pdev)
- {
-@@ -296,7 +300,7 @@ int pci_mmap_legacy_page_range(struct pc
+@@ -669,12 +670,12 @@ int dup_userfaultfd(struct vm_area_struc
+ 		ctx->state = UFFD_STATE_RUNNING;
+ 		ctx->features = octx->features;
+ 		ctx->released = false;
+-		ctx->mmap_changing = false;
++		atomic_set(&ctx->mmap_changing, 0);
+ 		ctx->mm = vma->vm_mm;
+ 		mmgrab(ctx->mm);
  
- /**
-  * pci_adjust_legacy_attr - adjustment of legacy file attributes
-- * @b: bus to create files under
-+ * @bus: bus to create files under
-  * @mmap_type: I/O port or memory
-  *
-  * Adjust file name and size for sparse mappings.
+ 		userfaultfd_ctx_get(octx);
+-		WRITE_ONCE(octx->mmap_changing, true);
++		atomic_inc(&octx->mmap_changing);
+ 		fctx->orig = octx;
+ 		fctx->new = ctx;
+ 		list_add_tail(&fctx->list, fcs);
+@@ -721,7 +722,7 @@ void mremap_userfaultfd_prep(struct vm_a
+ 	if (ctx->features & UFFD_FEATURE_EVENT_REMAP) {
+ 		vm_ctx->ctx = ctx;
+ 		userfaultfd_ctx_get(ctx);
+-		WRITE_ONCE(ctx->mmap_changing, true);
++		atomic_inc(&ctx->mmap_changing);
+ 	} else {
+ 		/* Drop uffd context if remap feature not enabled */
+ 		vma->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+@@ -766,7 +767,7 @@ bool userfaultfd_remove(struct vm_area_s
+ 		return true;
+ 
+ 	userfaultfd_ctx_get(ctx);
+-	WRITE_ONCE(ctx->mmap_changing, true);
++	atomic_inc(&ctx->mmap_changing);
+ 	mmap_read_unlock(mm);
+ 
+ 	msg_init(&ewq.msg);
+@@ -810,7 +811,7 @@ int userfaultfd_unmap_prep(struct vm_are
+ 			return -ENOMEM;
+ 
+ 		userfaultfd_ctx_get(ctx);
+-		WRITE_ONCE(ctx->mmap_changing, true);
++		atomic_inc(&ctx->mmap_changing);
+ 		unmap_ctx->ctx = ctx;
+ 		unmap_ctx->start = start;
+ 		unmap_ctx->end = end;
+@@ -1700,7 +1701,7 @@ static int userfaultfd_copy(struct userf
+ 	user_uffdio_copy = (struct uffdio_copy __user *) arg;
+ 
+ 	ret = -EAGAIN;
+-	if (READ_ONCE(ctx->mmap_changing))
++	if (atomic_read(&ctx->mmap_changing))
+ 		goto out;
+ 
+ 	ret = -EFAULT;
+@@ -1757,7 +1758,7 @@ static int userfaultfd_zeropage(struct u
+ 	user_uffdio_zeropage = (struct uffdio_zeropage __user *) arg;
+ 
+ 	ret = -EAGAIN;
+-	if (READ_ONCE(ctx->mmap_changing))
++	if (atomic_read(&ctx->mmap_changing))
+ 		goto out;
+ 
+ 	ret = -EFAULT;
+@@ -1807,7 +1808,7 @@ static int userfaultfd_writeprotect(stru
+ 	struct userfaultfd_wake_range range;
+ 	bool mode_wp, mode_dontwake;
+ 
+-	if (READ_ONCE(ctx->mmap_changing))
++	if (atomic_read(&ctx->mmap_changing))
+ 		return -EAGAIN;
+ 
+ 	user_uffdio_wp = (struct uffdio_writeprotect __user *) arg;
+@@ -1855,7 +1856,7 @@ static int userfaultfd_continue(struct u
+ 	user_uffdio_continue = (struct uffdio_continue __user *)arg;
+ 
+ 	ret = -EAGAIN;
+-	if (READ_ONCE(ctx->mmap_changing))
++	if (atomic_read(&ctx->mmap_changing))
+ 		goto out;
+ 
+ 	ret = -EFAULT;
+@@ -2087,7 +2088,7 @@ SYSCALL_DEFINE1(userfaultfd, int, flags)
+ 	ctx->features = 0;
+ 	ctx->state = UFFD_STATE_WAIT_API;
+ 	ctx->released = false;
+-	ctx->mmap_changing = false;
++	atomic_set(&ctx->mmap_changing, 0);
+ 	ctx->mm = current->mm;
+ 	/* prevent the mm struct to be freed */
+ 	mmgrab(ctx->mm);
+--- a/include/linux/userfaultfd_k.h~userfaultfd-change-mmap_changing-to-atomic
++++ a/include/linux/userfaultfd_k.h
+@@ -60,16 +60,16 @@ extern int mfill_atomic_install_pte(stru
+ 
+ extern ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
+ 			    unsigned long src_start, unsigned long len,
+-			    bool *mmap_changing, __u64 mode);
++			    atomic_t *mmap_changing, __u64 mode);
+ extern ssize_t mfill_zeropage(struct mm_struct *dst_mm,
+ 			      unsigned long dst_start,
+ 			      unsigned long len,
+-			      bool *mmap_changing);
++			      atomic_t *mmap_changing);
+ extern ssize_t mcopy_continue(struct mm_struct *dst_mm, unsigned long dst_start,
+-			      unsigned long len, bool *mmap_changing);
++			      unsigned long len, atomic_t *mmap_changing);
+ extern int mwriteprotect_range(struct mm_struct *dst_mm,
+ 			       unsigned long start, unsigned long len,
+-			       bool enable_wp, bool *mmap_changing);
++			       bool enable_wp, atomic_t *mmap_changing);
+ 
+ /* mm helpers */
+ static inline bool is_mergeable_vm_userfaultfd_ctx(struct vm_area_struct *vma,
+--- a/mm/userfaultfd.c~userfaultfd-change-mmap_changing-to-atomic
++++ a/mm/userfaultfd.c
+@@ -483,7 +483,7 @@ static __always_inline ssize_t __mcopy_a
+ 					      unsigned long src_start,
+ 					      unsigned long len,
+ 					      enum mcopy_atomic_mode mcopy_mode,
+-					      bool *mmap_changing,
++					      atomic_t *mmap_changing,
+ 					      __u64 mode)
+ {
+ 	struct vm_area_struct *dst_vma;
+@@ -517,7 +517,7 @@ retry:
+ 	 * request the user to retry later
+ 	 */
+ 	err = -EAGAIN;
+-	if (mmap_changing && READ_ONCE(*mmap_changing))
++	if (mmap_changing && atomic_read(mmap_changing))
+ 		goto out_unlock;
+ 
+ 	/*
+@@ -650,28 +650,29 @@ out:
+ 
+ ssize_t mcopy_atomic(struct mm_struct *dst_mm, unsigned long dst_start,
+ 		     unsigned long src_start, unsigned long len,
+-		     bool *mmap_changing, __u64 mode)
++		     atomic_t *mmap_changing, __u64 mode)
+ {
+ 	return __mcopy_atomic(dst_mm, dst_start, src_start, len,
+ 			      MCOPY_ATOMIC_NORMAL, mmap_changing, mode);
+ }
+ 
+ ssize_t mfill_zeropage(struct mm_struct *dst_mm, unsigned long start,
+-		       unsigned long len, bool *mmap_changing)
++		       unsigned long len, atomic_t *mmap_changing)
+ {
+ 	return __mcopy_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_ZEROPAGE,
+ 			      mmap_changing, 0);
+ }
+ 
+ ssize_t mcopy_continue(struct mm_struct *dst_mm, unsigned long start,
+-		       unsigned long len, bool *mmap_changing)
++		       unsigned long len, atomic_t *mmap_changing)
+ {
+ 	return __mcopy_atomic(dst_mm, start, 0, len, MCOPY_ATOMIC_CONTINUE,
+ 			      mmap_changing, 0);
+ }
+ 
+ int mwriteprotect_range(struct mm_struct *dst_mm, unsigned long start,
+-			unsigned long len, bool enable_wp, bool *mmap_changing)
++			unsigned long len, bool enable_wp,
++			atomic_t *mmap_changing)
+ {
+ 	struct vm_area_struct *dst_vma;
+ 	pgprot_t newprot;
+@@ -694,7 +695,7 @@ int mwriteprotect_range(struct mm_struct
+ 	 * request the user to retry later
+ 	 */
+ 	err = -EAGAIN;
+-	if (mmap_changing && READ_ONCE(*mmap_changing))
++	if (mmap_changing && atomic_read(mmap_changing))
+ 		goto out_unlock;
+ 
+ 	err = -ENOENT;
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from namit@vmware.com are
 
-mm-migrate-correct-kernel-doc-notation.patch
-alpha-agp-make-empty-macros-use-do-while-0-style.patch
-alpha-pci-sysfs-fix-all-kernel-doc-warnings.patch
-lib-dump_stack-correct-kernel-doc-notation.patch
-lib-iov_iterc-fix-kernel-doc-warnings.patch
-fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix.patch
-mm-workingset-correct-kernel-doc-notations.patch
-scripts-check_extable-fix-typo-in-user-error-message.patch
+userfaultfd-change-mmap_changing-to-atomic.patch
+userfaultfd-prevent-concurrent-api-initialization.patch
+selftests-vm-userfaultfd-wake-after-copy-failure.patch
 
