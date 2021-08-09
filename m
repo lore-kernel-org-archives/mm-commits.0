@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 664D5C432BE
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 18:07:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3EB5C43216
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 18:07:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4BCFA60F02
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 18:07:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A999960F02
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 18:07:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233841AbhHISIG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Aug 2021 14:08:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51798 "EHLO mail.kernel.org"
+        id S234597AbhHISIH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Aug 2021 14:08:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51854 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232625AbhHISHr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Aug 2021 14:07:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9785A61040;
-        Mon,  9 Aug 2021 18:07:24 +0000 (UTC)
+        id S234456AbhHISHv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Aug 2021 14:07:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AD31960F02;
+        Mon,  9 Aug 2021 18:07:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628532444;
-        bh=+fQTXF6dCwmjR1h8/akkpRJS2U+Elaz3UeBwg8m358o=;
+        s=korg; t=1628532450;
+        bh=LMfY+r7ohAb+l9yM4hl1XNaHB7sv4FkLXkp/ZGNVyEA=;
         h=Date:From:To:Subject:From;
-        b=LBxEJCBy9M9+5BO+NdHw1tF9X71mQKZ/2BPqFMG6pmGabdD+TNGwdfmleK4ZZgGcj
-         1Fd+B1yGuW17XoABqoZuDY6Mglyxq+M1gP1yr2wUdnU/72V0CtiXaoOJW/9ERtF0AD
-         HACM+CLg3vRFtOmNWZ8FoS+qnU4SHrfyWw0oj42M=
-Date:   Mon, 09 Aug 2021 11:07:24 -0700
+        b=SlOB3kh2z9CGUZzF9xqUxj4C4w190xIyYQOSwimqTAdSKa2i0OVHcVVxYpMwg1mWk
+         2vxXT6XpljaIgult6dUah8YkdAiG+ac2g9g0MetKxTPyK4gGMuDLzFJrw9ePKQpXYi
+         Q0UJXR8Dp9aXaSEZTsiaKu5ngGmET5Va8Yzq/Tlc=
+Date:   Mon, 09 Aug 2021 11:07:30 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, will@kernel.org, vgupta@synopsys.com,
         gerald.schaefer@linux.ibm.com, chuhu@redhat.com,
         christophe.leroy@csgroup.eu, catalin.marinas@arm.com, cai@lca.pw,
         anshuman.khandual@arm.com, aneesh.kumar@linux.ibm.com,
         gshan@redhat.com
-Subject:  +
- mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
- added to -mm tree
-Message-ID: <20210809180724.Qyqml%akpm@linux-foundation.org>
+Subject:  + mm-debug_vm_pgtable-fix-corrupted-page-flag.patch added
+ to -mm tree
+Message-ID: <20210809180730.F54wg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in PUD modifying tests
+     Subject: mm/debug_vm_pgtable: fix corrupted page flag
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
+     mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,14 +68,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
-Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in PUD modifying tests
+Subject: mm/debug_vm_pgtable: fix corrupted page flag
 
-This uses struct pgtable_debug_args in PUD modifying tests.  The allocated
-huge page is used when set_pud_at() is used.  The corresponding tests are
-skipped if the huge page doesn't exist.  Besides, the following unused
-variables in debug_vm_pgtable() are dropped: @prot, @paddr, @pud_aligned.
+In page table entry modifying tests, set_xxx_at() are used to populate
+the page table entries. On ARM64, PG_arch_1 (PG_dcache_clean) flag is
+set to the target page flag if execution permission is given. The logic
+exits since commit 4f04d8f00545 ("arm64: MMU definitions"). The page
+flag is kept when the page is free'd to buddy's free area list. However,
+it will trigger page checking failure when it's pulled from the buddy's
+free area list, as the following warning messages indicate.
 
-Link: https://lkml.kernel.org/r/20210809092631.1888748-10-gshan@redhat.com
+   BUG: Bad page state in process memhog  pfn:08000
+   page:0000000015c0a628 refcount:0 mapcount:0 \
+        mapping:0000000000000000 index:0x1 pfn:0x8000
+   flags: 0x7ffff8000000800(arch_1|node=0|zone=0|lastcpupid=0xfffff)
+   raw: 07ffff8000000800 dead000000000100 dead000000000122 0000000000000000
+   raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+   page dumped because: PAGE_FLAGS_CHECK_AT_PREP flag(s) set
+
+This fixes the issue by clearing PG_arch_1 through flush_dcache_page()
+after set_xxx_at() is called. For architectures other than ARM64, the
+unexpected overhead of cache flushing is acceptable.
+
+Link: https://lkml.kernel.org/r/20210809092631.1888748-13-gshan@redhat.com
+Fixes: a5c3b9ffb0f4 ("mm/debug_vm_pgtable: add tests validating advanced arch page table helpers")
 Signed-off-by: Gavin Shan <gshan@redhat.com>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Tested-by: Christophe Leroy <christophe.leroy@csgroup.eu>	[powerpc 8xx]
@@ -90,264 +105,193 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |  126 +++++++++++++++-------------------------
- 1 file changed, 48 insertions(+), 78 deletions(-)
+ mm/debug_vm_pgtable.c |   55 +++++++++++++++++++++++++++++++++++++---
+ 1 file changed, 51 insertions(+), 4 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-fix-corrupted-page-flag
 +++ a/mm/debug_vm_pgtable.c
-@@ -337,55 +337,56 @@ static void __init pud_basic_tests(struc
- 	WARN_ON(!pud_bad(pud_mkhuge(pud)));
- }
+@@ -29,6 +29,8 @@
+ #include <linux/start_kernel.h>
+ #include <linux/sched/mm.h>
+ #include <linux/io.h>
++
++#include <asm/cacheflush.h>
+ #include <asm/pgalloc.h>
+ #include <asm/tlbflush.h>
  
--static void __init pud_advanced_tests(struct mm_struct *mm,
--				      struct vm_area_struct *vma, pud_t *pudp,
--				      unsigned long pfn, unsigned long vaddr,
--				      pgprot_t prot)
-+static void __init pud_advanced_tests(struct pgtable_debug_args *args)
+@@ -119,19 +121,28 @@ static void __init pte_basic_tests(struc
+ 
+ static void __init pte_advanced_tests(struct pgtable_debug_args *args)
  {
-+	unsigned long vaddr = args->vaddr;
++	struct page *page;
+ 	pte_t pte;
+ 
+ 	/*
+ 	 * Architectures optimize set_pte_at by avoiding TLB flush.
+ 	 * This requires set_pte_at to be not used to update an
+ 	 * existing pte entry. Clear pte before we do set_pte_at
++	 *
++	 * flush_dcache_page() is called after set_pte_at() to clear
++	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
++	 * when it's released and page allocation check will fail when
++	 * the page is allocated again. For architectures other than ARM64,
++	 * the unexpected overhead of cache flushing is acceptable.
+ 	 */
+-	if (args->pte_pfn == ULONG_MAX)
++	page = (args->pte_pfn != ULONG_MAX) ? pfn_to_page(args->pte_pfn) : NULL;
++	if (!page)
+ 		return;
+ 
+ 	pr_debug("Validating PTE advanced\n");
+ 	pte = pfn_pte(args->pte_pfn, args->page_prot);
+ 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
++	flush_dcache_page(page);
+ 	ptep_set_wrprotect(args->mm, args->vaddr, args->ptep);
+ 	pte = ptep_get(args->ptep);
+ 	WARN_ON(pte_write(pte));
+@@ -143,6 +154,7 @@ static void __init pte_advanced_tests(st
+ 	pte = pte_wrprotect(pte);
+ 	pte = pte_mkclean(pte);
+ 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
++	flush_dcache_page(page);
+ 	pte = pte_mkwrite(pte);
+ 	pte = pte_mkdirty(pte);
+ 	ptep_set_access_flags(args->vma, args->vaddr, args->ptep, pte, 1);
+@@ -155,6 +167,7 @@ static void __init pte_advanced_tests(st
+ 	pte = pfn_pte(args->pte_pfn, args->page_prot);
+ 	pte = pte_mkyoung(pte);
+ 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
++	flush_dcache_page(page);
+ 	ptep_test_and_clear_young(args->vma, args->vaddr, args->ptep);
+ 	pte = ptep_get(args->ptep);
+ 	WARN_ON(pte_young(pte));
+@@ -213,15 +226,24 @@ static void __init pmd_basic_tests(struc
+ 
+ static void __init pmd_advanced_tests(struct pgtable_debug_args *args)
+ {
++	struct page *page;
+ 	pmd_t pmd;
+ 	unsigned long vaddr = args->vaddr;
+ 
+ 	if (!has_transparent_hugepage())
+ 		return;
+ 
+-	if (args->pmd_pfn == ULONG_MAX)
++	page = (args->pmd_pfn != ULONG_MAX) ? pfn_to_page(args->pmd_pfn) : NULL;
++	if (!page)
+ 		return;
+ 
++	/*
++	 * flush_dcache_page() is called after set_pmd_at() to clear
++	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
++	 * when it's released and page allocation check will fail when
++	 * the page is allocated again. For architectures other than ARM64,
++	 * the unexpected overhead of cache flushing is acceptable.
++	 */
+ 	pr_debug("Validating PMD advanced\n");
+ 	/* Align the address wrt HPAGE_PMD_SIZE */
+ 	vaddr &= HPAGE_PMD_MASK;
+@@ -230,6 +252,7 @@ static void __init pmd_advanced_tests(st
+ 
+ 	pmd = pfn_pmd(args->pmd_pfn, args->page_prot);
+ 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
++	flush_dcache_page(page);
+ 	pmdp_set_wrprotect(args->mm, vaddr, args->pmdp);
+ 	pmd = READ_ONCE(*args->pmdp);
+ 	WARN_ON(pmd_write(pmd));
+@@ -241,6 +264,7 @@ static void __init pmd_advanced_tests(st
+ 	pmd = pmd_wrprotect(pmd);
+ 	pmd = pmd_mkclean(pmd);
+ 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
++	flush_dcache_page(page);
+ 	pmd = pmd_mkwrite(pmd);
+ 	pmd = pmd_mkdirty(pmd);
+ 	pmdp_set_access_flags(args->vma, vaddr, args->pmdp, pmd, 1);
+@@ -253,6 +277,7 @@ static void __init pmd_advanced_tests(st
+ 	pmd = pmd_mkhuge(pfn_pmd(args->pmd_pfn, args->page_prot));
+ 	pmd = pmd_mkyoung(pmd);
+ 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
++	flush_dcache_page(page);
+ 	pmdp_test_and_clear_young(args->vma, vaddr, args->pmdp);
+ 	pmd = READ_ONCE(*args->pmdp);
+ 	WARN_ON(pmd_young(pmd));
+@@ -339,21 +364,31 @@ static void __init pud_basic_tests(struc
+ 
+ static void __init pud_advanced_tests(struct pgtable_debug_args *args)
+ {
++	struct page *page;
+ 	unsigned long vaddr = args->vaddr;
  	pud_t pud;
  
  	if (!has_transparent_hugepage())
  		return;
  
-+	if (args->pud_pfn == ULONG_MAX)
-+		return;
-+
+-	if (args->pud_pfn == ULONG_MAX)
++	page = (args->pud_pfn != ULONG_MAX) ? pfn_to_page(args->pud_pfn) : NULL;
++	if (!page)
+ 		return;
+ 
++	/*
++	 * flush_dcache_page() is called after set_pud_at() to clear
++	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
++	 * when it's released and page allocation check will fail when
++	 * the page is allocated again. For architectures other than ARM64,
++	 * the unexpected overhead of cache flushing is acceptable.
++	 */
  	pr_debug("Validating PUD advanced\n");
  	/* Align the address wrt HPAGE_PUD_SIZE */
  	vaddr &= HPAGE_PUD_MASK;
  
--	pud = pfn_pud(pfn, prot);
--	set_pud_at(mm, vaddr, pudp, pud);
--	pudp_set_wrprotect(mm, vaddr, pudp);
--	pud = READ_ONCE(*pudp);
-+	pud = pfn_pud(args->pud_pfn, args->page_prot);
-+	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	pudp_set_wrprotect(args->mm, vaddr, args->pudp);
-+	pud = READ_ONCE(*args->pudp);
+ 	pud = pfn_pud(args->pud_pfn, args->page_prot);
+ 	set_pud_at(args->mm, vaddr, args->pudp, pud);
++	flush_dcache_page(page);
+ 	pudp_set_wrprotect(args->mm, vaddr, args->pudp);
+ 	pud = READ_ONCE(*args->pudp);
  	WARN_ON(pud_write(pud));
- 
- #ifndef __PAGETABLE_PMD_FOLDED
--	pudp_huge_get_and_clear(mm, vaddr, pudp);
--	pud = READ_ONCE(*pudp);
-+	pudp_huge_get_and_clear(args->mm, vaddr, args->pudp);
-+	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(!pud_none(pud));
- #endif /* __PAGETABLE_PMD_FOLDED */
--	pud = pfn_pud(pfn, prot);
-+	pud = pfn_pud(args->pud_pfn, args->page_prot);
+@@ -367,6 +402,7 @@ static void __init pud_advanced_tests(st
  	pud = pud_wrprotect(pud);
  	pud = pud_mkclean(pud);
--	set_pud_at(mm, vaddr, pudp, pud);
-+	set_pud_at(args->mm, vaddr, args->pudp, pud);
+ 	set_pud_at(args->mm, vaddr, args->pudp, pud);
++	flush_dcache_page(page);
  	pud = pud_mkwrite(pud);
  	pud = pud_mkdirty(pud);
--	pudp_set_access_flags(vma, vaddr, pudp, pud, 1);
--	pud = READ_ONCE(*pudp);
-+	pudp_set_access_flags(args->vma, vaddr, args->pudp, pud, 1);
-+	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(!(pud_write(pud) && pud_dirty(pud)));
- 
- #ifndef __PAGETABLE_PMD_FOLDED
--	pudp_huge_get_and_clear_full(mm, vaddr, pudp, 1);
--	pud = READ_ONCE(*pudp);
-+	pudp_huge_get_and_clear_full(args->mm, vaddr, args->pudp, 1);
-+	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(!pud_none(pud));
- #endif /* __PAGETABLE_PMD_FOLDED */
- 
--	pud = pfn_pud(pfn, prot);
-+	pud = pfn_pud(args->pud_pfn, args->page_prot);
+ 	pudp_set_access_flags(args->vma, vaddr, args->pudp, pud, 1);
+@@ -382,6 +418,7 @@ static void __init pud_advanced_tests(st
+ 	pud = pfn_pud(args->pud_pfn, args->page_prot);
  	pud = pud_mkyoung(pud);
--	set_pud_at(mm, vaddr, pudp, pud);
--	pudp_test_and_clear_young(vma, vaddr, pudp);
--	pud = READ_ONCE(*pudp);
-+	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	pudp_test_and_clear_young(args->vma, vaddr, args->pudp);
-+	pud = READ_ONCE(*args->pudp);
+ 	set_pud_at(args->mm, vaddr, args->pudp, pud);
++	flush_dcache_page(page);
+ 	pudp_test_and_clear_young(args->vma, vaddr, args->pudp);
+ 	pud = READ_ONCE(*args->pudp);
  	WARN_ON(pud_young(pud));
+@@ -594,16 +631,26 @@ static void __init pgd_populate_tests(st
  
--	pudp_huge_get_and_clear(mm, vaddr, pudp);
-+	pudp_huge_get_and_clear(args->mm, vaddr, args->pudp);
- }
- 
- static void __init pud_leaf_tests(struct pgtable_debug_args *args)
-@@ -405,24 +406,14 @@ static void __init pud_leaf_tests(struct
- }
- #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- static void __init pud_basic_tests(struct pgtable_debug_args *args, int idx) { }
--static void __init pud_advanced_tests(struct mm_struct *mm,
--				      struct vm_area_struct *vma, pud_t *pudp,
--				      unsigned long pfn, unsigned long vaddr,
--				      pgprot_t prot)
--{
--}
-+static void __init pud_advanced_tests(struct pgtable_debug_args *args) { }
- static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
- #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
- static void __init pmd_basic_tests(struct pgtable_debug_args *args, int idx) { }
- static void __init pud_basic_tests(struct pgtable_debug_args *args, int idx) { }
- static void __init pmd_advanced_tests(struct pgtable_debug_args *args) { }
--static void __init pud_advanced_tests(struct mm_struct *mm,
--				      struct vm_area_struct *vma, pud_t *pudp,
--				      unsigned long pfn, unsigned long vaddr,
--				      pgprot_t prot)
--{
--}
-+static void __init pud_advanced_tests(struct pgtable_debug_args *args) { }
- static void __init pmd_leaf_tests(struct pgtable_debug_args *args) { }
- static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
- static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args) { }
-@@ -448,11 +439,11 @@ static void __init pmd_huge_tests(struct
- 	WARN_ON(!pmd_none(pmd));
- }
- 
--static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot)
-+static void __init pud_huge_tests(struct pgtable_debug_args *args)
+ static void __init pte_clear_tests(struct pgtable_debug_args *args)
  {
- 	pud_t pud;
++	struct page *page;
+ 	pte_t pte = pfn_pte(args->pte_pfn, args->page_prot);
  
--	if (!arch_vmap_pud_supported(prot))
-+	if (!arch_vmap_pud_supported(args->page_prot))
+-	if (args->pte_pfn == ULONG_MAX)
++	page = (args->pte_pfn != ULONG_MAX) ? pfn_to_page(args->pte_pfn) : NULL;
++	if (!page)
  		return;
  
- 	pr_debug("Validating PUD huge\n");
-@@ -460,15 +451,15 @@ static void __init pud_huge_tests(pud_t
- 	 * X86 defined pud_set_huge() verifies that the given
- 	 * PUD is not a populated non-leaf entry.
- 	 */
--	WRITE_ONCE(*pudp, __pud(0));
--	WARN_ON(!pud_set_huge(pudp, __pfn_to_phys(pfn), prot));
--	WARN_ON(!pud_clear_huge(pudp));
--	pud = READ_ONCE(*pudp);
-+	WRITE_ONCE(*args->pudp, __pud(0));
-+	WARN_ON(!pud_set_huge(args->pudp, __pfn_to_phys(args->fixed_pud_pfn), args->page_prot));
-+	WARN_ON(!pud_clear_huge(args->pudp));
-+	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(!pud_none(pud));
- }
- #else /* !CONFIG_HAVE_ARCH_HUGE_VMAP */
- static void __init pmd_huge_tests(struct pgtable_debug_args *args) { }
--static void __init pud_huge_tests(pud_t *pudp, unsigned long pfn, pgprot_t prot) { }
-+static void __init pud_huge_tests(struct pgtable_debug_args *args) { }
- #endif /* CONFIG_HAVE_ARCH_HUGE_VMAP */
- 
- static void __init p4d_basic_tests(struct pgtable_debug_args *args)
-@@ -490,27 +481,26 @@ static void __init pgd_basic_tests(struc
- }
- 
- #ifndef __PAGETABLE_PUD_FOLDED
--static void __init pud_clear_tests(struct mm_struct *mm, pud_t *pudp)
-+static void __init pud_clear_tests(struct pgtable_debug_args *args)
- {
--	pud_t pud = READ_ONCE(*pudp);
-+	pud_t pud = READ_ONCE(*args->pudp);
- 
--	if (mm_pmd_folded(mm))
-+	if (mm_pmd_folded(args->mm))
- 		return;
- 
- 	pr_debug("Validating PUD clear\n");
- 	pud = __pud(pud_val(pud) | RANDOM_ORVALUE);
--	WRITE_ONCE(*pudp, pud);
--	pud_clear(pudp);
--	pud = READ_ONCE(*pudp);
-+	WRITE_ONCE(*args->pudp, pud);
-+	pud_clear(args->pudp);
-+	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(!pud_none(pud));
- }
- 
--static void __init pud_populate_tests(struct mm_struct *mm, pud_t *pudp,
--				      pmd_t *pmdp)
-+static void __init pud_populate_tests(struct pgtable_debug_args *args)
- {
- 	pud_t pud;
- 
--	if (mm_pmd_folded(mm))
-+	if (mm_pmd_folded(args->mm))
- 		return;
- 
- 	pr_debug("Validating PUD populate\n");
-@@ -518,16 +508,13 @@ static void __init pud_populate_tests(st
- 	 * This entry points to next level page table page.
- 	 * Hence this must not qualify as pud_bad().
- 	 */
--	pud_populate(mm, pudp, pmdp);
--	pud = READ_ONCE(*pudp);
-+	pud_populate(args->mm, args->pudp, args->start_pmdp);
-+	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(pud_bad(pud));
- }
- #else  /* !__PAGETABLE_PUD_FOLDED */
--static void __init pud_clear_tests(struct mm_struct *mm, pud_t *pudp) { }
--static void __init pud_populate_tests(struct mm_struct *mm, pud_t *pudp,
--				      pmd_t *pmdp)
--{
--}
-+static void __init pud_clear_tests(struct pgtable_debug_args *args) { }
-+static void __init pud_populate_tests(struct pgtable_debug_args *args) { }
- #endif /* PAGETABLE_PUD_FOLDED */
- 
- #ifndef __PAGETABLE_P4D_FOLDED
-@@ -1217,10 +1204,7 @@ static int __init debug_vm_pgtable(void)
- 	pud_t *pudp, *saved_pudp;
- 	pmd_t *pmdp, *saved_pmdp, pmd;
- 	pgtable_t saved_ptep;
--	pgprot_t prot;
--	phys_addr_t paddr;
- 	unsigned long vaddr;
--	unsigned long pud_aligned;
- 	spinlock_t *ptl = NULL;
- 	int idx, ret;
- 
-@@ -1229,7 +1213,6 @@ static int __init debug_vm_pgtable(void)
- 	if (ret)
- 		return ret;
- 
--	prot = vm_get_page_prot(VMFLAGS);
- 	vaddr = get_random_vaddr();
- 	mm = mm_alloc();
- 	if (!mm) {
-@@ -1243,19 +1226,6 @@ static int __init debug_vm_pgtable(void)
- 		return 1;
- 	}
- 
--	/*
--	 * PFN for mapping at PTE level is determined from a standard kernel
--	 * text symbol. But pfns for higher page table levels are derived by
--	 * masking lower bits of this real pfn. These derived pfns might not
--	 * exist on the platform but that does not really matter as pfn_pxx()
--	 * helpers will still create appropriate entries for the test. This
--	 * helps avoid large memory block allocations to be used for mapping
--	 * at higher page table levels.
--	 */
--	paddr = __pa_symbol(&start_kernel);
--
--	pud_aligned = (paddr & PUD_MASK) >> PAGE_SHIFT;
--
- 	pgdp = pgd_offset(mm, vaddr);
- 	p4dp = p4d_alloc(mm, pgdp, vaddr);
- 	pudp = pud_alloc(mm, p4dp, vaddr);
-@@ -1348,11 +1318,11 @@ static int __init debug_vm_pgtable(void)
- 	pmd_populate_tests(&args);
- 	spin_unlock(ptl);
- 
--	ptl = pud_lock(mm, pudp);
--	pud_clear_tests(mm, pudp);
--	pud_advanced_tests(mm, vma, pudp, pud_aligned, vaddr, prot);
--	pud_huge_tests(pudp, pud_aligned, prot);
--	pud_populate_tests(mm, pudp, saved_pmdp);
-+	ptl = pud_lock(args.mm, args.pudp);
-+	pud_clear_tests(&args);
-+	pud_advanced_tests(&args);
-+	pud_huge_tests(&args);
-+	pud_populate_tests(&args);
- 	spin_unlock(ptl);
- 
- 	spin_lock(&mm->page_table_lock);
++	/*
++	 * flush_dcache_page() is called after set_pte_at() to clear
++	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
++	 * when it's released and page allocation check will fail when
++	 * the page is allocated again. For architectures other than ARM64,
++	 * the unexpected overhead of cache flushing is acceptable.
++	 */
+ 	pr_debug("Validating PTE clear\n");
+ #ifndef CONFIG_RISCV
+ 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
+ #endif
+ 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
++	flush_dcache_page(page);
+ 	barrier();
+ 	pte_clear(args->mm, args->vaddr, args->ptep);
+ 	pte = ptep_get(args->ptep);
 _
 
 Patches currently in -mm which might be from gshan@redhat.com are
