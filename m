@@ -7,34 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B169CC4338F
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 17:30:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C9E7C4338F
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 17:59:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8E72860E76
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 17:30:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EBC25610A4
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 17:59:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234227AbhHIRbG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Aug 2021 13:31:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38552 "EHLO mail.kernel.org"
+        id S235784AbhHIR7b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Aug 2021 13:59:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47778 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233996AbhHIRbG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Aug 2021 13:31:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D465F60560;
-        Mon,  9 Aug 2021 17:30:45 +0000 (UTC)
+        id S236038AbhHIR5y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Aug 2021 13:57:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B86A1610E9;
+        Mon,  9 Aug 2021 17:57:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628530245;
-        bh=PIxbiWXXxGuxYaUVAEAxKJH6h6CWAulHBfyMGAwJB1I=;
+        s=korg; t=1628531854;
+        bh=+dZl3nm7N0sr3PP8RF5REQVpjhHyhnVcIGksYVPzmXk=;
         h=Date:From:To:Subject:From;
-        b=lPHy+cE4oznC5p9LQa36Pwyp/y4c6i1QXyr3UnU5/wyush9jRP0o3+fj5RB+uGD1q
-         0ufn5eHc446fetv2kEt91GRfiCjCDcVY/Q0iiiGckWIVi2rx0KQOOshW+fPPQxe109
-         rD1SNr/e3cb72nIfe1msh67qVW/IlljLzTf70WfY=
-Date:   Mon, 09 Aug 2021 10:30:45 -0700
+        b=AkmJV1jd1EaDPMOhgybH+hZ3kcsiKvOiHTsTvzLJPHN6adtQeQdok//BIxoUlFpbM
+         I4D/RKxWxgnIr2CbjqxRhcvGGg3VMtz9GfCyWee1m8B049Svr6dXfRFMimulgfHG1G
+         2aiiRNI73j+VbW4KTci6oK+CSv9VSSNIRLGSF2sk=
+Date:   Mon, 09 Aug 2021 10:57:33 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20210809173045.76LQtP5o_%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     mm-commits@vger.kernel.org, will@kernel.org, vgupta@synopsys.com,
+        gerald.schaefer@linux.ibm.com, chuhu@redhat.com,
+        christophe.leroy@csgroup.eu, catalin.marinas@arm.com, cai@lca.pw,
+        anshuman.khandual@arm.com, aneesh.kumar@linux.ibm.com,
+        gshan@redhat.com
+Subject:  [to-be-updated]
+ =?us-ascii?Q?mm-debug=5Fvm=5Fpgtable-use-struct-pgtable=5Fdebug=5Fargs-i?=
+ =?us-ascii?Q?n-leaf-and-savewrite-tests.patch?= removed from -mm tree
+Message-ID: <20210809175733.kY8h9%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,281 +49,153 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in leaf and savewrite tests
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-leaf-and-savewrite-tests.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Gavin Shan <gshan@redhat.com>
+Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in leaf and savewrite tests
 
+This uses struct pgtable_debug_args in the leaf and savewrite test
+functions.
+
+Link: https://lkml.kernel.org/r/20210802060419.1360913-4-gshan@redhat.com
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Chunyu Hu <chuhu@redhat.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dma/idxd/idxd.h                 |    5 --
- drivers/dma/idxd/init.c                 |    4 --
- drivers/dma/idxd/irq.c                  |   40 ----------------------
- drivers/dma/idxd/submit.c               |   22 ------------
- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c |    3 -
- drivers/gpu/drm/vmwgfx/vmwgfx_drv.h     |    4 --
- sound/usb/card.c                        |    4 --
- sound/usb/clock.c                       |    8 ----
- 8 files changed, 90 deletions(-)
+ mm/debug_vm_pgtable.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
---- a/drivers/dma/idxd/idxd.h~linux-next-git-rejects
-+++ a/drivers/dma/idxd/idxd.h
-@@ -327,10 +327,6 @@ enum idxd_completion_status {
- 	IDXD_COMP_DESC_ABORT = 0xff,
- };
- 
--<<<<<<< HEAD
--#define confdev_to_idxd(dev) container_of(dev, struct idxd_device, conf_dev)
--#define confdev_to_wq(dev) container_of(dev, struct idxd_wq, conf_dev)
--=======
- #define idxd_confdev(idxd) &idxd->idxd_dev.conf_dev
- #define wq_confdev(wq) &wq->idxd_dev.conf_dev
- #define engine_confdev(engine) &engine->idxd_dev.conf_dev
-@@ -385,7 +381,6 @@ static inline void idxd_dev_set_type(str
- 
- 	idev->type = type;
- }
-->>>>>>> linux-next/akpm-base
- 
- extern struct bus_type dsa_bus_type;
- 
---- a/drivers/dma/idxd/init.c~linux-next-git-rejects
-+++ a/drivers/dma/idxd/init.c
-@@ -815,11 +815,7 @@ static void idxd_remove(struct pci_dev *
- 	pci_disable_device(pdev);
- 	destroy_workqueue(idxd->wq);
- 	perfmon_pmu_remove(idxd);
--<<<<<<< HEAD
--	device_unregister(&idxd->conf_dev);
--=======
- 	device_unregister(idxd_confdev(idxd));
-->>>>>>> linux-next/akpm-base
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-leaf-and-savewrite-tests
++++ a/mm/debug_vm_pgtable.c
+@@ -161,9 +161,9 @@ static void __init pte_advanced_tests(st
+ 	WARN_ON(pte_young(pte));
  }
  
- static struct pci_driver idxd_pci_driver = {
---- a/drivers/dma/idxd/irq.c~linux-next-git-rejects
-+++ a/drivers/dma/idxd/irq.c
-@@ -177,26 +177,6 @@ irqreturn_t idxd_misc_thread(int vec, vo
- 	return IRQ_HANDLED;
- }
- 
--<<<<<<< HEAD
--static inline bool match_fault(struct idxd_desc *desc, u64 fault_addr)
--{
--	/*
--	 * Completion address can be bad as well. Check fault address match for descriptor
--	 * and completion address.
--	 */
--	if ((u64)desc->hw == fault_addr || (u64)desc->completion == fault_addr) {
--		struct idxd_device *idxd = desc->wq->idxd;
--		struct device *dev = &idxd->pdev->dev;
--
--		dev_warn(dev, "desc with fault address: %#llx\n", fault_addr);
--		return true;
--	}
--
--	return false;
--}
--
--=======
-->>>>>>> linux-next/akpm-base
- static int irq_process_pending_llist(struct idxd_irq_entry *irq_entry,
- 				     int *processed, u64 data)
+-static void __init pte_savedwrite_tests(unsigned long pfn, pgprot_t prot)
++static void __init pte_savedwrite_tests(struct pgtable_debug_args *args)
  {
-@@ -214,27 +194,17 @@ static int irq_process_pending_llist(str
- 		u8 status = desc->completion->status & DSA_COMP_STATUS_MASK;
+-	pte_t pte = pfn_pte(pfn, prot);
++	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot_none);
  
- 		if (status) {
--<<<<<<< HEAD
--			if (unlikely(status == IDXD_COMP_DESC_ABORT)) {
--=======
- 			/*
- 			 * Check against the original status as ABORT is software defined
- 			 * and 0xff, which DSA_COMP_STATUS_MASK can mask out.
- 			 */
- 			if (unlikely(desc->completion->status == IDXD_COMP_DESC_ABORT)) {
-->>>>>>> linux-next/akpm-base
- 				complete_desc(desc, IDXD_COMPLETE_ABORT);
- 				(*processed)++;
- 				continue;
- 			}
- 
--<<<<<<< HEAD
--			if (unlikely(status != DSA_COMP_SUCCESS))
--				match_fault(desc, data);
--			complete_desc(desc, reason);
--=======
- 			complete_desc(desc, IDXD_COMPLETE_NORMAL);
-->>>>>>> linux-next/akpm-base
- 			(*processed)++;
- 		} else {
- 			spin_lock_irqsave(&irq_entry->list_lock, flags);
-@@ -284,26 +254,16 @@ static int irq_process_work_list(struct
- 	list_for_each_entry(desc, &flist, list) {
- 		u8 status = desc->completion->status & DSA_COMP_STATUS_MASK;
- 
--<<<<<<< HEAD
--		if (unlikely(status == IDXD_COMP_DESC_ABORT)) {
--=======
- 		/*
- 		 * Check against the original status as ABORT is software defined
- 		 * and 0xff, which DSA_COMP_STATUS_MASK can mask out.
- 		 */
- 		if (unlikely(desc->completion->status == IDXD_COMP_DESC_ABORT)) {
-->>>>>>> linux-next/akpm-base
- 			complete_desc(desc, IDXD_COMPLETE_ABORT);
- 			continue;
- 		}
- 
--<<<<<<< HEAD
--		if (unlikely(status != DSA_COMP_SUCCESS))
--			match_fault(desc, data);
--		complete_desc(desc, reason);
--=======
- 		complete_desc(desc, IDXD_COMPLETE_NORMAL);
-->>>>>>> linux-next/akpm-base
- 	}
- 
- 	return queued;
---- a/drivers/dma/idxd/submit.c~linux-next-git-rejects
-+++ a/drivers/dma/idxd/submit.c
-@@ -25,25 +25,10 @@ static struct idxd_desc *__get_desc(stru
- 	 * On host, MSIX vecotr 0 is used for misc interrupt. Therefore when we match
- 	 * vector 1:1 to the WQ id, we need to add 1
- 	 */
--<<<<<<< HEAD
--	wq->vec_ptr = desc->vector = (wq->vec_ptr % idxd->num_wq_irqs) + 1;
--	if (!idxd->int_handles) {
--		desc->hw->int_handle = wq->vec_ptr;
--	} else {
--		/*
--		 * int_handles are only for descriptor completion. However for device
--		 * MSIX enumeration, vec 0 is used for misc interrupts. Therefore even
--		 * though we are rotating through 1...N for descriptor interrupts, we
--		 * need to acqurie the int_handles from 0..N-1.
--		 */
--		desc->hw->int_handle = idxd->int_handles[desc->vector - 1];
--	}
--=======
- 	if (!idxd->int_handles)
- 		desc->hw->int_handle = wq->id + 1;
- 	else
- 		desc->hw->int_handle = idxd->int_handles[wq->id];
-->>>>>>> linux-next/akpm-base
- 
- 	return desc;
+ 	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
+ 		return;
+@@ -262,7 +262,7 @@ static void __init pmd_advanced_tests(st
+ 	pgtable = pgtable_trans_huge_withdraw(mm, pmdp);
  }
-@@ -175,11 +160,7 @@ int idxd_submit_desc(struct idxd_wq *wq,
- 	 * that we designated the descriptor to.
+ 
+-static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot)
++static void __init pmd_leaf_tests(struct pgtable_debug_args *args)
+ {
+ 	pmd_t pmd;
+ 
+@@ -270,7 +270,7 @@ static void __init pmd_leaf_tests(unsign
+ 		return;
+ 
+ 	pr_debug("Validating PMD leaf\n");
+-	pmd = pfn_pmd(pfn, prot);
++	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
+ 
+ 	/*
+ 	 * PMD based THP is a leaf entry.
+@@ -279,7 +279,7 @@ static void __init pmd_leaf_tests(unsign
+ 	WARN_ON(!pmd_leaf(pmd));
+ }
+ 
+-static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot)
++static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args)
+ {
+ 	pmd_t pmd;
+ 
+@@ -290,7 +290,7 @@ static void __init pmd_savedwrite_tests(
+ 		return;
+ 
+ 	pr_debug("Validating PMD saved write\n");
+-	pmd = pfn_pmd(pfn, prot);
++	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot_none);
+ 	WARN_ON(!pmd_savedwrite(pmd_mk_savedwrite(pmd_clear_savedwrite(pmd))));
+ 	WARN_ON(pmd_savedwrite(pmd_clear_savedwrite(pmd_mk_savedwrite(pmd))));
+ }
+@@ -388,7 +388,7 @@ static void __init pud_advanced_tests(st
+ 	pudp_huge_get_and_clear(mm, vaddr, pudp);
+ }
+ 
+-static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot)
++static void __init pud_leaf_tests(struct pgtable_debug_args *args)
+ {
+ 	pud_t pud;
+ 
+@@ -396,7 +396,7 @@ static void __init pud_leaf_tests(unsign
+ 		return;
+ 
+ 	pr_debug("Validating PUD leaf\n");
+-	pud = pfn_pud(pfn, prot);
++	pud = pfn_pud(args->fixed_pud_pfn, args->page_prot);
+ 	/*
+ 	 * PUD based THP is a leaf entry.
  	 */
- 	if (desc->hw->flags & IDXD_OP_FLAG_RCI) {
--<<<<<<< HEAD
--		ie = &idxd->irq_entries[desc->vector];
--=======
- 		ie = &idxd->irq_entries[wq->id + 1];
-->>>>>>> linux-next/akpm-base
- 		llist_add(&desc->llnode, &ie->pending_llist);
- 	}
+@@ -411,7 +411,7 @@ static void __init pud_advanced_tests(st
+ 				      pgprot_t prot)
+ {
+ }
+-static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
+ #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+ #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
+ static void __init pmd_basic_tests(struct pgtable_debug_args *args, int idx) { }
+@@ -428,9 +428,9 @@ static void __init pud_advanced_tests(st
+ 				      pgprot_t prot)
+ {
+ }
+-static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot) { }
+-static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
+-static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pmd_leaf_tests(struct pgtable_debug_args *args) { }
++static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
++static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args) { }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
-@@ -194,10 +175,7 @@ int idxd_submit_desc(struct idxd_wq *wq,
- 		 */
- 		rc = enqcmds(portal, desc->hw);
- 		if (rc < 0) {
--<<<<<<< HEAD
--=======
- 			percpu_ref_put(&wq->wq_active);
-->>>>>>> linux-next/akpm-base
- 			if (ie)
- 				llist_abort_desc(wq, ie, desc);
- 			return rc;
---- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
-@@ -1219,8 +1219,6 @@ static const struct pci_device_id pciidl
- 	{0x1002, 0x7423, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_BEIGE_GOBY},
- 	{0x1002, 0x743F, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_BEIGE_GOBY},
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+@@ -1320,11 +1320,11 @@ static int __init debug_vm_pgtable(void)
+ 	p4d_basic_tests(&args);
+ 	pgd_basic_tests(&args);
  
--<<<<<<< HEAD
--=======
- 	/* CYAN_SKILLFISH */
- 	{0x1002, 0x13FE, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_CYAN_SKILLFISH|AMD_IS_APU},
+-	pmd_leaf_tests(pmd_aligned, prot);
+-	pud_leaf_tests(pud_aligned, prot);
++	pmd_leaf_tests(&args);
++	pud_leaf_tests(&args);
  
-@@ -1231,7 +1229,6 @@ static const struct pci_device_id pciidl
- 	{0x1002, 0x7423, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_BEIGE_GOBY},
- 	{0x1002, 0x743F, PCI_ANY_ID, PCI_ANY_ID, 0, 0, CHIP_BEIGE_GOBY},
+-	pte_savedwrite_tests(pte_aligned, protnone);
+-	pmd_savedwrite_tests(pmd_aligned, protnone);
++	pte_savedwrite_tests(&args);
++	pmd_savedwrite_tests(&args);
  
-->>>>>>> linux-next/akpm-base
- 	{0, 0, 0}
- };
- 
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h~linux-next-git-rejects
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
-@@ -492,11 +492,7 @@ struct vmw_private {
- 	resource_size_t io_start;
- 	resource_size_t vram_start;
- 	resource_size_t vram_size;
--<<<<<<< HEAD
--	resource_size_t prim_bb_mem;
--=======
- 	resource_size_t max_primary_mem;
-->>>>>>> linux-next/akpm-base
- 	u32 __iomem *rmmio;
- 	u32 *fifo_mem;
- 	resource_size_t fifo_mem_size;
---- a/sound/usb/card.c~linux-next-git-rejects
-+++ a/sound/usb/card.c
-@@ -941,11 +941,7 @@ static void usb_audio_disconnect(struct
- 		}
- 	}
- 
--<<<<<<< HEAD
--	if (chip->quirk_type == QUIRK_SETUP_DISABLE_AUTOSUSPEND)
--=======
- 	if (chip->quirk_flags & QUIRK_FLAG_DISABLE_AUTOSUSPEND)
-->>>>>>> linux-next/akpm-base
- 		usb_enable_autosuspend(interface_to_usbdev(intf));
- 
- 	chip->num_interfaces--;
---- a/sound/usb/clock.c~linux-next-git-rejects
-+++ a/sound/usb/clock.c
-@@ -324,16 +324,8 @@ static int __uac_clock_find_source(struc
- 					      sources[ret - 1],
- 					      visited, validate);
- 		if (ret > 0) {
--<<<<<<< HEAD
--			/*
--			 * For Samsung USBC Headset (AKG), setting clock selector again
--			 * will result in incorrect default clock setting problems
--			 */
--			if (chip->usb_id == USB_ID(0x04e8, 0xa051))
--=======
- 			/* Skip setting clock selector again for some devices */
- 			if (chip->quirk_flags & QUIRK_FLAG_SKIP_CLOCK_SELECTOR)
-->>>>>>> linux-next/akpm-base
- 				return ret;
- 			err = uac_clock_selector_set_val(chip, entity_id, cur);
- 			if (err < 0)
+ 	pte_special_tests(pte_aligned, prot);
+ 	pte_protnone_tests(pte_aligned, protnone);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from gshan@redhat.com are
 
-mm.patch
-mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix.patch
-mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix-fix.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
-mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-damon-implement-primitives-for-the-virtual-memory-address-spaces-fix.patch
-mm-damon-implement-a-debugfs-based-user-space-interface-fix.patch
-mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix.patch
-fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix-fix.patch
-log-if-a-core-dump-is-aborted-due-to-changed-file-permissions-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-protnone-and-devmap-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-soft_dirty-and-swap-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-migration-and-thp-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pte-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pmd-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pud-modifying-tests.patch
+mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-pgd-and-p4d-modifying-tests.patch
+mm-debug_vm_pgtable-remove-unused-code.patch
+mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
 
