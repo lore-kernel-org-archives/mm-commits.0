@@ -7,37 +7,39 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D1D4C4338F
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:32:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E96D7C4320A
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:35:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0045160C51
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:32:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C707561052
+	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 19:35:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232741AbhHITdC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Aug 2021 15:33:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49950 "EHLO mail.kernel.org"
+        id S233199AbhHITfu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Aug 2021 15:35:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50426 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233199AbhHITdA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Aug 2021 15:33:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 95FE060F6F;
-        Mon,  9 Aug 2021 19:32:39 +0000 (UTC)
+        id S232334AbhHITfu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Aug 2021 15:35:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E35BA60551;
+        Mon,  9 Aug 2021 19:35:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628537559;
-        bh=IA25x6xIDKgeBfvmNaiJvDZng9hEZxU8meirXug4O9w=;
+        s=korg; t=1628537729;
+        bh=RSij/e7PXFY2GhOfs573hnKsYM66N5YYi8blOigIFQg=;
         h=Date:From:To:Subject:From;
-        b=J9eWnvsPoa7dMhLJ1WTviMpcRMScR6clklBQeB8yjM0lfjVUT+ukW8yQ2sclHoFg6
-         pPIXgRcYflvlMkXPUIBvSnVBQWqQvt3E+3NelhavMW/XkzNEVPd31lAnL7eORlc/26
-         Q3yLzutzU9wLIs42neMUvAaD6MlxzuPtvHq2mQmY=
-Date:   Mon, 09 Aug 2021 12:32:39 -0700
+        b=SSoLFLZ+EHYqoS/HHjuGZz4VRoNOVLWL637F/IWHjyqJMGXD9PXt91EaZWXLitcFD
+         al14arwZyzKay/4zGSm273d9JndpSPQpyrcyz898tdlpGdoXb2nMImgdLv9vcIeQ1y
+         0G0ymtXYGNAYJK3o5IZpwY4AFUOW3074y/G2LYao=
+Date:   Mon, 09 Aug 2021 12:35:28 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, osalvador@suse.de,
-        naoya.horiguchi@linux.dev, mhocko@suse.com, david@redhat.com,
-        almasrymina@google.com, mike.kravetz@oracle.com
-Subject:  +
- hugetlb-before-freeing-hugetlb-page-set-dtor-to-appropriate-value.patch added
- to -mm tree
-Message-ID: <20210809193239.EpVyR%akpm@linux-foundation.org>
+        timmurray@google.com, shakeelb@google.com, rientjes@google.com,
+        riel@surriel.com, oleg@redhat.com, minchan@kernel.org,
+        mhocko@suse.com, luto@kernel.org, jengelh@inai.de,
+        jannh@google.com, hch@infradead.org, hannes@cmpxchg.org,
+        guro@fb.com, geert@linux-m68k.org, fweimer@redhat.com,
+        david@redhat.com, christian.brauner@ubuntu.com, surenb@google.com
+Subject:  + mm-introduce-process_mrelease-system-call.patch added to
+ -mm tree
+Message-ID: <20210809193528.bVi6B%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: before freeing hugetlb page set dtor to appropriate value
+     Subject: mm: introduce process_mrelease system call
 has been added to the -mm tree.  Its filename is
-     hugetlb-before-freeing-hugetlb-page-set-dtor-to-appropriate-value.patch
+     mm-introduce-process_mrelease-system-call.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-before-freeing-hugetlb-page-set-dtor-to-appropriate-value.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-process_mrelease-system-call.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-before-freeing-hugetlb-page-set-dtor-to-appropriate-value.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-process_mrelease-system-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,97 +69,194 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: before freeing hugetlb page set dtor to appropriate value
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: introduce process_mrelease system call
 
-When removing a hugetlb page from the pool the ref count is set to one (as
-the free page has no ref count) and compound page destructor is set to
-NULL_COMPOUND_DTOR.  Since a subsequent call to free the hugetlb page will
-call __free_pages for non-gigantic pages and free_gigantic_page for
-gigantic pages the destructor is not used.
+In modern systems it's not unusual to have a system component monitoring
+memory conditions of the system and tasked with keeping system memory
+pressure under control.  One way to accomplish that is to kill
+non-essential processes to free up memory for more important ones. 
+Examples of this are Facebook's OOM killer daemon called oomd and
+Android's low memory killer daemon called lmkd.
 
-However, consider the following race with code taking a speculative
-reference on the page:
+For such system component it's important to be able to free memory quickly
+and efficiently.  Unfortunately the time process takes to free up its
+memory after receiving a SIGKILL might vary based on the state of the
+process (uninterruptible sleep), size and OPP level of the core the
+process is running.  A mechanism to free resources of the target process
+in a more predictable way would improve system's ability to control its
+memory pressure.
 
-Thread 0				Thread 1
---------				--------
-remove_hugetlb_page
-  set_page_refcounted(page);
-  set_compound_page_dtor(page,
-           NULL_COMPOUND_DTOR);
-					get_page_unless_zero(page)
-__update_and_free_page
-  __free_pages(page,
-           huge_page_order(h));
+Introduce process_mrelease system call that releases memory of a dying
+process from the context of the caller.  This way the memory is freed in a
+more controllable way with CPU affinity and priority of the caller.  The
+workload of freeing the memory will also be charged to the caller.  The
+operation is allowed only on a dying process.
 
-		/* Note that __free_pages() will simply drop
-		   the reference to the page. */
+After previous discussions [1, 2, 3] the decision was made [4] to
+introduce a dedicated system call to cover this use case.
 
-					put_page(page)
-					  __put_compound_page()
-					    destroy_compound_page
-					      NULL_COMPOUND_DTOR
-						BUG: kernel NULL pointer
-						dereference, address:
-						0000000000000000
+The API is as follows,
 
-To address this race, set the dtor to the normal compound page dtor for
-non-gigantic pages.  The dtor for gigantic pages does not matter as
-gigantic pages are changed from a compound page to 'just a group of pages'
-before freeing.  Hence, the destructor is not used.
+          int process_mrelease(int pidfd, unsigned int flags);
 
-Link: https://lkml.kernel.org/r/20210809184832.18342-4-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Mina Almasry <almasrymina@google.com>
+        DESCRIPTION
+          The process_mrelease() system call is used to free the memory of
+          an exiting process.
+
+          The pidfd selects the process referred to by the PID file
+          descriptor.
+          (See pidfd_open(2) for further information)
+
+          The flags argument is reserved for future use; currently, this
+          argument must be specified as 0.
+
+        RETURN VALUE
+          On success, process_mrelease() returns 0. On error, -1 is
+          returned and errno is set to indicate the error.
+
+        ERRORS
+          EBADF  pidfd is not a valid PID file descriptor.
+
+          EAGAIN Failed to release part of the address space.
+
+          EINTR  The call was interrupted by a signal; see signal(7).
+
+          EINVAL flags is not 0.
+
+          EINVAL The memory of the task cannot be released because the
+                 process is not exiting, the address space is shared
+                 with another live process or there is a core dump in
+                 progress.
+
+          ENOSYS This system call is not supported, for example, without
+                 MMU support built into Linux.
+
+          ESRCH  The target process does not exist (i.e., it has terminated
+                 and been waited on).
+
+[1] https://lore.kernel.org/lkml/20190411014353.113252-3-surenb@google.com/
+[2] https://lore.kernel.org/linux-api/20201113173448.1863419-1-surenb@google.com/
+[3] https://lore.kernel.org/linux-api/20201124053943.1684874-3-surenb@google.com/
+[4] https://lore.kernel.org/linux-api/20201223075712.GA4719@lst.de/
+
+Link: https://lkml.kernel.org/r/20210809185259.405936-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: Jan Engelhardt <jengelh@inai.de>
+Cc: Tim Murray <timmurray@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   22 +++++++++++++++++++++-
- 1 file changed, 21 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |   70 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
 
---- a/mm/hugetlb.c~hugetlb-before-freeing-hugetlb-page-set-dtor-to-appropriate-value
-+++ a/mm/hugetlb.c
-@@ -1370,8 +1370,28 @@ static void remove_hugetlb_page(struct h
- 		h->surplus_huge_pages_node[nid]--;
- 	}
- 
+--- a/mm/oom_kill.c~mm-introduce-process_mrelease-system-call
++++ a/mm/oom_kill.c
+@@ -28,6 +28,7 @@
+ #include <linux/sched/task.h>
+ #include <linux/sched/debug.h>
+ #include <linux/swap.h>
++#include <linux/syscalls.h>
+ #include <linux/timex.h>
+ #include <linux/jiffies.h>
+ #include <linux/cpuset.h>
+@@ -1141,3 +1142,72 @@ void pagefault_out_of_memory(void)
+ 	out_of_memory(&oc);
+ 	mutex_unlock(&oom_lock);
+ }
++
++SYSCALL_DEFINE2(process_mrelease, int, pidfd, unsigned int, flags)
++{
++#ifdef CONFIG_MMU
++	struct mm_struct *mm = NULL;
++	struct task_struct *task;
++	struct task_struct *p;
++	unsigned int f_flags;
++	bool reap = true;
++	struct pid *pid;
++	long ret = 0;
++
++	if (flags)
++		return -EINVAL;
++
++	pid = pidfd_get_pid(pidfd, &f_flags);
++	if (IS_ERR(pid))
++		return PTR_ERR(pid);
++
++	task = get_pid_task(pid, PIDTYPE_TGID);
++	if (!task) {
++		ret = -ESRCH;
++		goto put_pid;
++	}
++
 +	/*
-+	 * Very subtle
-+	 *
-+	 * For non-gigantic pages set the destructor to the normal compound
-+	 * page dtor.  This is needed in case someone takes an additional
-+	 * temporary ref to the page, and freeing is delayed until they drop
-+	 * their reference.
-+	 *
-+	 * For gigantic pages set the destructor to the null dtor.  This
-+	 * destructor will never be called.  Before freeing the gigantic
-+	 * page destroy_compound_gigantic_page will turn the compound page
-+	 * into a simple group of pages.  After this the destructor does not
-+	 * apply.
-+	 *
-+	 * This handles the case where more than one ref is held when and
-+	 * after update_and_free_page is called.
++	 * Make sure to choose a thread which still has a reference to mm
++	 * during the group exit
 +	 */
- 	set_page_refcounted(page);
--	set_compound_page_dtor(page, NULL_COMPOUND_DTOR);
-+	if (hstate_is_gigantic(h))
-+		set_compound_page_dtor(page, NULL_COMPOUND_DTOR);
-+	else
-+		set_compound_page_dtor(page, COMPOUND_PAGE_DTOR);
- 
- 	h->nr_huge_pages--;
- 	h->nr_huge_pages_node[nid]--;
++	p = find_lock_task_mm(task);
++	if (!p) {
++		ret = -ESRCH;
++		goto put_task;
++	}
++
++	mm = p->mm;
++	mmgrab(mm);
++
++	/* If the work has been done already, just exit with success */
++	if (test_bit(MMF_OOM_SKIP, &mm->flags))
++		reap = false;
++	else if (!task_will_free_mem(p)) {
++		reap = false;
++		ret = -EINVAL;
++	}
++	task_unlock(p);
++
++	if (!reap)
++		goto drop_mm;
++
++	if (mmap_read_lock_killable(mm)) {
++		ret = -EINTR;
++		goto drop_mm;
++	}
++	if (!__oom_reap_task_mm(mm))
++		ret = -EAGAIN;
++	mmap_read_unlock(mm);
++
++drop_mm:
++	mmdrop(mm);
++put_task:
++	put_task_struct(task);
++put_pid:
++	put_pid(pid);
++	return ret;
++#else
++	return -ENOSYS;
++#endif /* CONFIG_MMU */
++}
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
-hugetlb-drop-ref-count-earlier-after-page-allocation.patch
-hugetlb-before-freeing-hugetlb-page-set-dtor-to-appropriate-value.patch
+mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
+mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
+mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config.patch
+mm-introduce-process_mrelease-system-call.patch
+mm-wire-up-syscall-process_mrelease.patch
 
