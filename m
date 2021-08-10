@@ -2,101 +2,125 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5224C4338F
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 22:13:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C3C2C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Aug 2021 00:23:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A8F506054F
-	for <mm-commits@archiver.kernel.org>; Mon,  9 Aug 2021 22:13:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1F81561004
+	for <mm-commits@archiver.kernel.org>; Tue, 10 Aug 2021 00:23:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232683AbhHIWNV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 9 Aug 2021 18:13:21 -0400
-Received: from bilbo.ozlabs.org ([203.11.71.1]:57489 "EHLO ozlabs.org"
+        id S235977AbhHJAXu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 9 Aug 2021 20:23:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52022 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234382AbhHIWNU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 9 Aug 2021 18:13:20 -0400
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4Gk9Lm3ktJz9sX5;
-        Tue, 10 Aug 2021 08:12:48 +1000 (AEST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-        s=201702; t=1628547178;
-        bh=P47RCmbwRnmZ5oX7RxHWtBPdXbC4bY65O7weeZiq8Pk=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=pFKykRVpAw2m6afq4fFVC36k3bfntao/wBi2JS0sdKIV6rUblJlTQvt6zTMUmt8wk
-         LC27hysS8TZMDhSTQXcQXXFwKW29giwOs0a/3EO+EB9pgMbsw61H8xuCbexdYYYDy6
-         3PfayP7DQ3xXRl9UbG/0X9cSnUb0JfKpq6I6dCamw7AXCVbSSlbOU578Y9wG+Z+hn+
-         wF+JLXjXpG6n9dHnCLljABVKhlPqP6IC02XHeqb/1cjVWiF2FHVVa+o062gYt4H/m0
-         JRCzHi4LXM5vgVuP3bCz2by8vDZlMzQPKIdmXfiQllOLoGRkKmFfrDUe1k9j4uYieD
-         3wwQLOMrt9MNg==
-Date:   Tue, 10 Aug 2021 08:12:47 +1000
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     mm-commits@vger.kernel.org, will@kernel.org,
-        tsbogend@alpha.franken.de, tglx@linutronix.de, robh+dt@kernel.org,
-        rmk+kernel@armlinux.org.uk, rafael.j.wysocki@intel.com,
-        peterz@infradead.org, paul.walmsley@sifive.com, palmer@dabbelt.com,
-        mingo@redhat.com, mick@ics.forth.gr, maz@kernel.org,
-        luto@kernel.org, lenb@kernel.org, kirill@shutemov.name,
-        hpa@zytor.com, hca@linux.ibm.com, gregkh@linuxfoundation.org,
-        gor@linux.ibm.com, frowand.list@gmail.com,
-        dave.hansen@linux.intel.com, catalin.marinas@arm.com, bp@alien8.de,
-        borntraeger@de.ibm.com, aou@eecs.berkeley.edu, rppt@linux.ibm.com
-Subject: Re: [failures]
- memblock-make-memblock_find_in_range-method-private.patch removed from -mm
- tree
-Message-ID: <20210810081207.339f17bd@elm.ozlabs.ibm.com>
-In-Reply-To: <20210809193641.BY7Ys%akpm@linux-foundation.org>
-References: <20210809193641.BY7Ys%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/=dzwn1DfRYKakOHT1ncR92k";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        id S231439AbhHJAXs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 9 Aug 2021 20:23:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C7A160F6F;
+        Tue, 10 Aug 2021 00:23:27 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1628555007;
+        bh=pH0NBF4LSODfFpjn1Zl00WPUooOUPZasC0ctOgtxM3A=;
+        h=Date:From:To:Subject:From;
+        b=Pr29PHGbu3+AeMabQNGWOKsqvQOFmqeqO17vLBhSQ+FGMZSr+ao/JCH5TiWNWoKCo
+         7mVc/Us4V2gz4M4N0T3RyjerYSv0rlsdbHT2S+wy8Ws9MSyrBpR/LNhUu71OFvGdco
+         EGJdb0CwmRwv269uKx4FkpKsCIlb7vHvgaBNZhEE=
+Date:   Mon, 09 Aug 2021 17:23:26 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-rejects-fix.patch added to -mm tree
+Message-ID: <20210810002326.n-IxxdKD-%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/=dzwn1DfRYKakOHT1ncR92k
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi Andrew,
+The patch titled
+     Subject: linux-next-rejects-fix
+has been added to the -mm tree.  Its filename is
+     linux-next-rejects-fix.patch
 
-On Mon, 09 Aug 2021 12:36:41 -0700 akpm@linux-foundation.org wrote:
->
-> The patch titled
->      Subject: memblock: make memblock_find_in_range method private
-> has been removed from the -mm tree.  Its filename was
->      memblock-make-memblock_find_in_range-method-private.patch
->=20
-> This patch was dropped because it had testing failures
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects-fix.patch
 
-Removed from linux-next.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---=20
-Cheers,
-Stephen Rothwell
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
---Sig_/=dzwn1DfRYKakOHT1ncR92k
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
------BEGIN PGP SIGNATURE-----
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects-fix
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmERqF8ACgkQAVBC80lX
-0GyK9gf+IGYK5E7y5RE06dTvbtr8T4js6efWtKMpBN/jg/xKF6rtmTJTCopyDnwC
-rG+QeiRB+SNtK1jAnHxex4fsCp9AXmTwndVj8ICCktgwn7j3sNCfdK/lIXPj65CK
-ASN0q355gh/2BpW3bEpyt1oEM3pDUSon4w7QVm+d0km58SIEemUzOWdADxh829lU
-QaIkiCuteOtDZZqsWOGrvNPHI2P3kiA7BhUQrU4At+Tw5tbTUuS3D0HbKQv0V8UA
-996kd58j/itVLO1/t1JRdry0wGZhK1kNyyU0nPduzD9w3BzeGRlfJ2Uv8RLldEgY
-lECdv6cqW1Pt7LdeWErYMaLVH6zAwA==
-=4xcQ
------END PGP SIGNATURE-----
 
---Sig_/=dzwn1DfRYKakOHT1ncR92k--
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/memcontrol.h |    1 -
+ mm/page_alloc.c            |    4 ++--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
+
+--- a/include/linux/memcontrol.h~linux-next-rejects-fix
++++ a/include/linux/memcontrol.h
+@@ -369,7 +369,6 @@ enum page_memcg_data_flags {
+ 
+ #define MEMCG_DATA_FLAGS_MASK (__NR_MEMCG_DATA_FLAGS - 1)
+ 
+-static inline bool PageMemcgKmem(struct page *page);
+ static inline bool folio_memcg_kmem(struct folio *folio);
+ 
+ /*
+--- a/mm/page_alloc.c~linux-next-rejects-fix
++++ a/mm/page_alloc.c
+@@ -1296,7 +1296,7 @@ static __always_inline bool free_pages_p
+ 		 * Do not let hwpoison pages hit pcplists/buddy
+ 		 * Untie memcg state and reset page's owner
+ 		 */
+-		if (memcg_kmem_enabled() && PageMemcgKmem(page))
++		if (memcg_kmem_enabled() && folio_memcg_kmem(page_folio(page)))
+ 			__memcg_kmem_uncharge_page(page, order);
+ 		reset_page_owner(page, order);
+ 		return false;
+@@ -1326,7 +1326,7 @@ static __always_inline bool free_pages_p
+ 	}
+ 	if (PageMappingFlags(page))
+ 		page->mapping = NULL;
+-	if (memcg_kmem_enabled() && PageMemcgKmem(page))
++	if (memcg_kmem_enabled() && folio_memcg_kmem(page_folio(page)))
+ 		__memcg_kmem_uncharge_page(page, order);
+ 	if (check_free)
+ 		bad += check_free_page(page);
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm.patch
+mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix.patch
+mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix-fix.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
+mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
+mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+mm-damon-implement-primitives-for-the-virtual-memory-address-spaces-fix.patch
+mm-damon-implement-a-debugfs-based-user-space-interface-fix.patch
+mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix.patch
+fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix-fix.patch
+log-if-a-core-dump-is-aborted-due-to-changed-file-permissions-fix.patch
+linux-next-rejects.patch
+linux-next-rejects-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+a.patch
+
