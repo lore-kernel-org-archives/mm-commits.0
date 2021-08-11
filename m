@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D1CFC432BE
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Aug 2021 00:44:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05064C4338F
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Aug 2021 01:12:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8561860E97
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Aug 2021 00:44:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C336060EC0
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Aug 2021 01:12:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236445AbhHKAo1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 10 Aug 2021 20:44:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42672 "EHLO mail.kernel.org"
+        id S229527AbhHKBNF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 10 Aug 2021 21:13:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236342AbhHKAoT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 10 Aug 2021 20:44:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BA6456056C;
-        Wed, 11 Aug 2021 00:43:56 +0000 (UTC)
+        id S229458AbhHKBNF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 10 Aug 2021 21:13:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 733BB60EDF;
+        Wed, 11 Aug 2021 01:12:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628642637;
-        bh=EVubBJKQA5uyxq8b4pPRmZqvMy6xOvNW2z7yUnCKnck=;
+        s=korg; t=1628644362;
+        bh=2Uf+ggdp8yZWL70U1yPi3Z+f2IeVu7//w8p29zdc63g=;
         h=Date:From:To:Subject:From;
-        b=CKfbKfvd1qFjhF4Tqmj/mOTfwpgztwqP2P1CMOXUuTNCdOpVLBGBek00Q+R2X1MsJ
-         aXPCi8UgDw/rJGeKNzw4FL0Tk1sT4lqtt7J3TJPqujdoqeXRAeDMsMSuJG/pEXCP4C
-         PK62D6td6fOTLF6YWzIi6xUzFWHotMScjnCWITtY=
-Date:   Tue, 10 Aug 2021 17:43:54 -0700
+        b=bG1dv8grfJ3ixbvgd1AMF91S1N2ku3+f8PW2Cuftvd6hgkifZjGmvVgTKL0GQb9VZ
+         XdGfhC+wAfdkF3BuWZXn+b+LM15fTSb+ht4wymvaseum+gfjxVJnmujeHnfrQcN4sF
+         sJL91JEWHJFqXTgagV8Ik2xVVgOAOayrhoA8s0T0=
+Date:   Tue, 10 Aug 2021 18:12:40 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vitor@massaru.org,
-        sedat.dilek@gmail.com, peterz@infradead.org,
-        penguin-kernel@I-love.SAKURA.ne.jp, paulmck@kernel.org,
-        ojeda@kernel.org, nathan@kernel.org, michal.lkml@markovi.net,
-        masahiroy@kernel.org, dlatypov@google.com, ndesaulniers@google.com
-Subject:  + makefile-remove-stale-cc-option-checks.patch added to -mm
- tree
-Message-ID: <20210811004354.3QRuS%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        minchan@kernel.org, mhocko@suse.com, linmiaohe@huawei.com,
+        iamjoonsoo.kim@lge.com, hughd@google.com, hannes@cmpxchg.org,
+        david@redhat.com, ying.huang@intel.com
+Subject:  [obsolete]
+ shmem_swapin_page-fix-error-processing-for-get_swap_device.patch removed from
+ -mm tree
+Message-ID: <20210811011240.i1CSY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,240 +46,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Makefile: remove stale cc-option checks
-has been added to the -mm tree.  Its filename is
-     makefile-remove-stale-cc-option-checks.patch
+     Subject: shmem_swapin_page(): fix error processing for get_swap_device()
+has been removed from the -mm tree.  Its filename was
+     shmem_swapin_page-fix-error-processing-for-get_swap_device.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/makefile-remove-stale-cc-option-checks.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/makefile-remove-stale-cc-option-checks.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Nick Desaulniers <ndesaulniers@google.com>
-Subject: Makefile: remove stale cc-option checks
+From: Huang Ying <ying.huang@intel.com>
+Subject: shmem_swapin_page(): fix error processing for get_swap_device()
 
-cc-option, cc-option-yn, and cc-disable-warning all invoke the compiler
-during build time, and can slow down the build when these checks become
-stale for our supported compilers, whose minimally supported versions
-increases over time.  See Documentation/process/changes.rst for the
-current supported minimal versions (GCC 4.9+, clang 10.0.1+).  Compiler
-version support for these flags may be verified on godbolt.org.
+If we hit this rare race, returning EINVAL (or even -EINVAL) would cause
+the page fault to be handled as a SIGBUS.  This is not correct; the page
+is not missing or unreadable, it has simply changed location.  Returning
+-EEXIST here will cause the lookup to be retried by the caller.
 
-The following flags are GCC only and supported since at least GCC 4.9.
-Remove cc-option and cc-disable-warning tests.
-* -fno-tree-loop-im
-* -Wno-maybe-uninitialized
-* -fno-reorder-blocks
-* -fno-ipa-cp-clone
-* -fno-partial-inlining
-* -femit-struct-debug-baseonly
-* -fno-inline-functions-called-once
-* -fconserve-stack
-
-The following flags are supported by all supported versions of GCC and
-Clang. Remove their cc-option, cc-option-yn, and cc-disable-warning tests.
-* -fno-delete-null-pointer-checks
-* -fno-var-tracking
-* -mfentry
-* -Wno-array-bounds
-
-The following configs are made dependent on GCC, since they use GCC
-specific flags.
-* READABLE_ASM
-* DEBUG_SECTION_MISMATCH
-
---param=allow-store-data-races=0 was renamed to --allow-store-data-races
-in the GCC 10 release.
-
-Also, base RETPOLINE_CFLAGS and RETPOLINE_VDSO_CFLAGS on CONFIC_CC_IS_*
-then remove cc-option tests for Clang.
-
-Link: https://github.com/ClangBuiltLinux/linux/issues/1436
-Link: https://lkml.kernel.org/r/20210810204240.4008685-1-ndesaulniers@google.com
-Signed-off-by: Nick Desaulniers <ndesaulniers@google.com>
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Michal Marek <michal.lkml@markovi.net>
-Cc: "Paul E. McKenney" <paulmck@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Vitor Massaru Iha <vitor@massaru.org>
-Cc: Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Daniel Latypov <dlatypov@google.com>
+[willy@infradead.org: changelog]
+Link: https://lkml.kernel.org/r/20210723080000.93953-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/877dh354vc.fsf@yhuang6-desk2.ccr.corp.intel.com
+Fixes: 2efa33fc7f6e ("mm/shmem: fix shmem_swapin() race with swapoff")
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile          |   55 ++++++++++++++++++++++++--------------------
- lib/Kconfig.debug |    2 +
- 2 files changed, 33 insertions(+), 24 deletions(-)
+ mm/shmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/lib/Kconfig.debug~makefile-remove-stale-cc-option-checks
-+++ a/lib/Kconfig.debug
-@@ -365,6 +365,7 @@ config STRIP_ASM_SYMS
- config READABLE_ASM
- 	bool "Generate readable assembler code"
- 	depends on DEBUG_KERNEL
-+	depends on CC_IS_GCC
- 	help
- 	  Disable some compiler optimizations that tend to generate human unreadable
- 	  assembler output. This may make the kernel slightly slower, but it helps
-@@ -383,6 +384,7 @@ config HEADERS_INSTALL
- 
- config DEBUG_SECTION_MISMATCH
- 	bool "Enable full Section mismatch analysis"
-+	depends on CC_IS_GCC
- 	help
- 	  The section mismatch analysis checks if there are illegal
- 	  references from one section to another section.
---- a/Makefile~makefile-remove-stale-cc-option-checks
-+++ a/Makefile
-@@ -683,9 +683,10 @@ endif # KBUILD_EXTMOD
- # Defaults to vmlinux, but the arch makefile usually adds further targets
- all: vmlinux
- 
--CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage \
--	$(call cc-option,-fno-tree-loop-im) \
--	$(call cc-disable-warning,maybe-uninitialized,)
-+CFLAGS_GCOV	:= -fprofile-arcs -ftest-coverage
-+ifdef CONFIG_CC_IS_GCC
-+CFLAGS_GCOV	+= -fno-tree-loop-im
-+endif
- export CFLAGS_GCOV
- 
- # The arch Makefiles can override CC_FLAGS_FTRACE. We may also append it later.
-@@ -693,12 +694,14 @@ ifdef CONFIG_FUNCTION_TRACER
-   CC_FLAGS_FTRACE := -pg
- endif
- 
--RETPOLINE_CFLAGS_GCC := -mindirect-branch=thunk-extern -mindirect-branch-register
--RETPOLINE_VDSO_CFLAGS_GCC := -mindirect-branch=thunk-inline -mindirect-branch-register
--RETPOLINE_CFLAGS_CLANG := -mretpoline-external-thunk
--RETPOLINE_VDSO_CFLAGS_CLANG := -mretpoline
--RETPOLINE_CFLAGS := $(call cc-option,$(RETPOLINE_CFLAGS_GCC),$(call cc-option,$(RETPOLINE_CFLAGS_CLANG)))
--RETPOLINE_VDSO_CFLAGS := $(call cc-option,$(RETPOLINE_VDSO_CFLAGS_GCC),$(call cc-option,$(RETPOLINE_VDSO_CFLAGS_CLANG)))
-+ifdef CONFIG_CC_IS_GCC
-+RETPOLINE_CFLAGS	:= $(call cc-option,-mindirect-branch=thunk-extern -mindirect-branch-register)
-+RETPOLINE_VDSO_CFLAGS	:= $(call cc-option,-mindirect-branch=thunk-inline -mindirect-branch-register)
-+endif
-+ifdef CONFIG_CC_IS_CLANG
-+RETPOLINE_CFLAGS	:= -mretpoline-external-thunk
-+RETPOLINE_VDSO_CFLAGS	:= -mretpoline
-+endif
- export RETPOLINE_CFLAGS
- export RETPOLINE_VDSO_CFLAGS
- 
-@@ -751,7 +754,7 @@ include/config/auto.conf:
- endif # may-sync-config
- endif # need-config
- 
--KBUILD_CFLAGS	+= $(call cc-option,-fno-delete-null-pointer-checks,)
-+KBUILD_CFLAGS	+= -fno-delete-null-pointer-checks
- KBUILD_CFLAGS	+= $(call cc-disable-warning,frame-address,)
- KBUILD_CFLAGS	+= $(call cc-disable-warning, format-truncation)
- KBUILD_CFLAGS	+= $(call cc-disable-warning, format-overflow)
-@@ -766,17 +769,17 @@ KBUILD_CFLAGS += -Os
- endif
- 
- # Tell gcc to never replace conditional load with a non-conditional one
--KBUILD_CFLAGS	+= $(call cc-option,--param=allow-store-data-races=0)
-+ifdef CONFIG_CC_IS_GCC
-+KBUILD_CFLAGS	+= $(call cc-option,--allow-store-data-races,--param=allow-store-data-races=0)
- KBUILD_CFLAGS	+= $(call cc-option,-fno-allow-store-data-races)
-+endif
- 
- ifdef CONFIG_READABLE_ASM
- # Disable optimizations that make assembler listings hard to read.
- # reorder blocks reorders the control in the function
- # ipa clone creates specialized cloned functions
- # partial inlining inlines only parts of functions
--KBUILD_CFLAGS += $(call cc-option,-fno-reorder-blocks,) \
--                 $(call cc-option,-fno-ipa-cp-clone,) \
--                 $(call cc-option,-fno-partial-inlining)
-+KBUILD_CFLAGS += -fno-reorder-blocks -fno-ipa-cp-clone -fno-partial-inlining
- endif
- 
- ifneq ($(CONFIG_FRAME_WARN),0)
-@@ -868,8 +871,10 @@ DEBUG_CFLAGS	+= -gdwarf-$(dwarf-version-
- endif
- 
- ifdef CONFIG_DEBUG_INFO_REDUCED
--DEBUG_CFLAGS	+= $(call cc-option, -femit-struct-debug-baseonly) \
--		   $(call cc-option,-fno-var-tracking)
-+DEBUG_CFLAGS	+= -fno-var-tracking
-+ifdef CONFIG_CC_IS_GCC
-+DEBUG_CFLAGS	+= -femit-struct-debug-baseonly
-+endif
- endif
- 
- ifdef CONFIG_DEBUG_INFO_COMPRESSED
-@@ -903,10 +908,8 @@ ifdef CONFIG_FTRACE_MCOUNT_USE_RECORDMCO
-   endif
- endif
- ifdef CONFIG_HAVE_FENTRY
--  ifeq ($(call cc-option-yn, -mfentry),y)
--    CC_FLAGS_FTRACE	+= -mfentry
--    CC_FLAGS_USING	+= -DCC_USING_FENTRY
--  endif
-+  CC_FLAGS_FTRACE	+= -mfentry
-+  CC_FLAGS_USING	+= -DCC_USING_FENTRY
- endif
- export CC_FLAGS_FTRACE
- KBUILD_CFLAGS	+= $(CC_FLAGS_FTRACE) $(CC_FLAGS_USING)
-@@ -915,7 +918,7 @@ endif
- 
- # We trigger additional mismatches with less inlining
- ifdef CONFIG_DEBUG_SECTION_MISMATCH
--KBUILD_CFLAGS += $(call cc-option, -fno-inline-functions-called-once)
-+KBUILD_CFLAGS += -fno-inline-functions-called-once
- endif
- 
- ifdef CONFIG_LD_DEAD_CODE_DATA_ELIMINATION
-@@ -994,14 +997,16 @@ KBUILD_CFLAGS += $(call cc-disable-warni
- 
- # We'll want to enable this eventually, but it's not going away for 5.7 at least
- KBUILD_CFLAGS += $(call cc-disable-warning, zero-length-bounds)
--KBUILD_CFLAGS += $(call cc-disable-warning, array-bounds)
-+KBUILD_CFLAGS += -Wno-array-bounds
- KBUILD_CFLAGS += $(call cc-disable-warning, stringop-overflow)
- 
- # Another good warning that we'll want to enable eventually
- KBUILD_CFLAGS += $(call cc-disable-warning, restrict)
- 
- # Enabled with W=2, disabled by default as noisy
--KBUILD_CFLAGS += $(call cc-disable-warning, maybe-uninitialized)
-+ifdef CONFIG_CC_IS_GCC
-+KBUILD_CFLAGS += -Wno-maybe-uninitialized
-+endif
- 
- # disable invalid "can't wrap" optimizations for signed / pointers
- KBUILD_CFLAGS	+= -fno-strict-overflow
-@@ -1010,7 +1015,9 @@ KBUILD_CFLAGS	+= -fno-strict-overflow
- KBUILD_CFLAGS  += -fno-stack-check
- 
- # conserve stack if available
--KBUILD_CFLAGS   += $(call cc-option,-fconserve-stack)
-+ifdef CONFIG_CC_IS_GCC
-+KBUILD_CFLAGS   += -fconserve-stack
-+endif
- 
- # Prohibit date/time macros, which would make the build non-deterministic
- KBUILD_CFLAGS   += -Werror=date-time
+--- a/mm/shmem.c~shmem_swapin_page-fix-error-processing-for-get_swap_device
++++ a/mm/shmem.c
+@@ -1708,8 +1708,8 @@ static int shmem_swapin_page(struct inod
+ 	/* Prevent swapoff from happening to us. */
+ 	si = get_swap_device(swap);
+ 	if (!si) {
+-		error = EINVAL;
+-		goto failed;
++		error = -EEXIST;
++		goto unlock;
+ 	}
+ 	/* Look it up and read it in.. */
+ 	page = lookup_swap_cache(swap, NULL, 0);
 _
 
-Patches currently in -mm which might be from ndesaulniers@google.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-makefile-remove-stale-cc-option-checks.patch
+mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
+mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
 
