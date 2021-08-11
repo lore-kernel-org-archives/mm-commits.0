@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07153C4338F
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Aug 2021 04:24:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7960BC4338F
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Aug 2021 04:28:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE48560F22
-	for <mm-commits@archiver.kernel.org>; Wed, 11 Aug 2021 04:24:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4313560F38
+	for <mm-commits@archiver.kernel.org>; Wed, 11 Aug 2021 04:28:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233453AbhHKEZQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 11 Aug 2021 00:25:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44544 "EHLO mail.kernel.org"
+        id S229586AbhHKE2o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 11 Aug 2021 00:28:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53360 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229586AbhHKEZP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 11 Aug 2021 00:25:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A7DE760C51;
-        Wed, 11 Aug 2021 04:24:52 +0000 (UTC)
+        id S229534AbhHKE2o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 11 Aug 2021 00:28:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BB8ED60F22;
+        Wed, 11 Aug 2021 04:28:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628655892;
-        bh=q2ZhM4FwYX+9DrwlEbCjn7/Ue3tgf/rMXbIBWTdEIMM=;
+        s=korg; t=1628656100;
+        bh=Sg+UQEQQ3wB/YCvUP56dqkHMkHmTcllHuVPKlLlRbLk=;
         h=Date:From:To:Subject:From;
-        b=UBfyzAUY1Z0zAsmYJOhqBL4hHU7fR7/7OJbEwEp/3zbq39wwSjQgH5wu2jcRp+7gd
-         kvKrvCokGz6PCNc1b1lCIlVBZRXdy0fk/9HVxTor5p8rPK6OZy99jezNfsOThqXUkt
-         5oLQSMwSrjSqyi7QEvsOAOzcLYO9sjkAQrej2p40=
-Date:   Tue, 10 Aug 2021 21:24:52 -0700
+        b=DC4+myqbHOaUuQBzrA593eta7PkkP1QpetKPnLN9XBAEZ1RTw/VkeL/cFQpoAq4Wr
+         sc5TV2w/RdUVAVtuxxuPfukBKYrYtxTmTu/OZBXAiE8Fkh1MrSItDHSrtKNwnXsOMH
+         +l/Z+O7/Z801LJQnnTpLQcOJU5j2Ix1uZY2HS7vI=
+Date:   Tue, 10 Aug 2021 21:28:18 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tglx@linutronix.de,
-        peterz@infradead.org, bigeasy@linutronix.de
-Subject:  +
- highmem-dont-disable-preemption-on-rt-in-kmap_atomic.patch added to -mm tree
-Message-ID: <20210811042452.E55Jh%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
+        jannh@google.com, gregkh@linuxfoundation.org, qiuxi1@huawei.com
+Subject:  + coredump-fix-memleak-in-dump_vma_snapshot.patch added to
+ -mm tree
+Message-ID: <20210811042818.Gqfyn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: highmem: don't disable preemption on RT in kmap_atomic()
+     Subject: coredump: fix memleak in dump_vma_snapshot()
 has been added to the -mm tree.  Its filename is
-     highmem-dont-disable-preemption-on-rt-in-kmap_atomic.patch
+     coredump-fix-memleak-in-dump_vma_snapshot.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/highmem-dont-disable-preemption-on-rt-in-kmap_atomic.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/coredump-fix-memleak-in-dump_vma_snapshot.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/highmem-dont-disable-preemption-on-rt-in-kmap_atomic.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/coredump-fix-memleak-in-dump_vma_snapshot.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,107 +64,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: highmem: don't disable preemption on RT in kmap_atomic()
+From: QiuXi <qiuxi1@huawei.com>
+Subject: coredump: fix memleak in dump_vma_snapshot()
 
-kmap_atomic() disables preemption and pagefaults for historical reasons. 
-The conversion to kmap_local(), which only disables migration, cannot be
-done wholesale because quite some call sites need to be updated to
-accommodate with the changed semantics.
+dump_vma_snapshot() allocs memory for *vma_meta, when dump_vma_snapshot()
+returns -EFAULT, the memory will be leaked, so we free it correctly.
 
-On PREEMPT_RT enabled kernels the kmap_atomic() semantics are problematic
-due to the implicit disabling of preemption which makes it impossible to
-acquire 'sleeping' spinlocks within the kmap atomic sections.
-
-PREEMPT_RT replaces the preempt_disable() with a migrate_disable() for
-more than a decade.  It could be argued that this is a justification to do
-this unconditionally, but PREEMPT_RT covers only a limited number of
-architectures and it disables some functionality which limits the coverage
-further.
-
-Limit the replacement to PREEMPT_RT for now.
-
-Link: https://lkml.kernel.org/r/20210810091116.pocdmaatdcogvdso@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20210810020441.62806-1-qiuxi1@huawei.com
+Fixes: a07279c9a8cd7 ("binfmt_elf, binfmt_elf_fdpic: use a VMA list snapshot")
+Signed-off-by: QiuXi <qiuxi1@huawei.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Jann Horn <jannh@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem-internal.h |   27 ++++++++++++++++++++++-----
- 1 file changed, 22 insertions(+), 5 deletions(-)
+ fs/coredump.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/highmem-internal.h~highmem-dont-disable-preemption-on-rt-in-kmap_atomic
-+++ a/include/linux/highmem-internal.h
-@@ -90,7 +90,11 @@ static inline void __kunmap_local(void *
+--- a/fs/coredump.c~coredump-fix-memleak-in-dump_vma_snapshot
++++ a/fs/coredump.c
+@@ -1134,8 +1134,10 @@ int dump_vma_snapshot(struct coredump_pa
  
- static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
- {
--	preempt_disable();
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		migrate_disable();
-+	else
-+		preempt_disable();
-+
- 	pagefault_disable();
- 	return __kmap_local_page_prot(page, prot);
- }
-@@ -102,7 +106,11 @@ static inline void *kmap_atomic(struct p
+ 	mmap_write_unlock(mm);
  
- static inline void *kmap_atomic_pfn(unsigned long pfn)
- {
--	preempt_disable();
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		migrate_disable();
-+	else
-+		preempt_disable();
-+
- 	pagefault_disable();
- 	return __kmap_local_pfn_prot(pfn, kmap_prot);
- }
-@@ -111,7 +119,10 @@ static inline void __kunmap_atomic(void
- {
- 	kunmap_local_indexed(addr);
- 	pagefault_enable();
--	preempt_enable();
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		migrate_enable();
-+	else
-+		preempt_enable();
- }
+-	if (WARN_ON(i != *vma_count))
++	if (WARN_ON(i != *vma_count)) {
++		kvfree(*vma_meta);
+ 		return -EFAULT;
++	}
  
- unsigned int __nr_free_highpages(void);
-@@ -179,7 +190,10 @@ static inline void __kunmap_local(void *
- 
- static inline void *kmap_atomic(struct page *page)
- {
--	preempt_disable();
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		migrate_disable();
-+	else
-+		preempt_disable();
- 	pagefault_disable();
- 	return page_address(page);
- }
-@@ -200,7 +214,10 @@ static inline void __kunmap_atomic(void
- 	kunmap_flush_on_unmap(addr);
- #endif
- 	pagefault_enable();
--	preempt_enable();
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		migrate_enable();
-+	else
-+		preempt_enable();
- }
- 
- static inline unsigned int nr_free_highpages(void) { return 0; }
+ 	*vma_data_size_ptr = vma_data_size;
+ 	return 0;
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from qiuxi1@huawei.com are
 
-mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context.patch
-mm-slub-make-object_map_lock-a-raw_spinlock_t.patch
-shmem-use-raw_spinlock_t-for-stat_lock.patch
-highmem-dont-disable-preemption-on-rt-in-kmap_atomic.patch
+coredump-fix-memleak-in-dump_vma_snapshot.patch
 
