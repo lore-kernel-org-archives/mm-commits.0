@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D253DC4338F
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Aug 2021 21:11:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1750DC4338F
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Aug 2021 21:11:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B5DF96103A
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Aug 2021 21:11:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E65F56101E
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Aug 2021 21:11:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234500AbhHLVLu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Aug 2021 17:11:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57300 "EHLO mail.kernel.org"
+        id S234700AbhHLVLw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Aug 2021 17:11:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57408 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231270AbhHLVLu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Aug 2021 17:11:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 86E0E6101E;
-        Thu, 12 Aug 2021 21:11:24 +0000 (UTC)
+        id S231270AbhHLVLw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Aug 2021 17:11:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8541360F57;
+        Thu, 12 Aug 2021 21:11:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628802684;
-        bh=eVQD7RXvmO2lvd9YQ7ASqUREgtJVIiTLFxlwMY02XVw=;
+        s=korg; t=1628802686;
+        bh=U1mQVZbQiP/OzvuSmN3cByVgld8akqi4x3MItiee39E=;
         h=Date:From:To:Subject:From;
-        b=j54jgudjqapPOE6IskDhNNL3T5AJhwM67UWDji9cw5qZvQ1mCq5FliBlz+zjQSEQM
-         K/XR9PCNcbTwfAE/gzLOZagcTBGhNHDzzlyXTFqQVnpuUmAkVUvtc65m/+cI/qNX4w
-         DIe7JG3JneK5tWhtsaMdiGx+6mWRZfYP8801rBPM=
-Date:   Thu, 12 Aug 2021 14:11:24 -0700
+        b=H6wDEjfOsneiIgmXsFdNZyHOcwX4ooH35TCZjbEZXOXIBoRFjf5L4j7QtlFjQPN00
+         udndvbSelnaMLOXTCtEATTCsTJJee8NhZsLWIOzllea9EZTNv2uxllss2UVbK/nBw9
+         AYTHgNKQRGlDvsD9IOKBLc0LQpg8w/+aF+p1MdFA=
+Date:   Thu, 12 Aug 2021 14:11:26 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, hughd@google.com, linmiaohe@huawei.com
-Subject:  + shmem-remove-unneeded-function-forward-declaration.patch
+Subject:  + shmem-include-header-file-to-declare-swap_info.patch
  added to -mm tree
-Message-ID: <20210812211124.wInFK%akpm@linux-foundation.org>
+Message-ID: <20210812211126.kxcl5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: remove unneeded function forward declaration
+     Subject: shmem: include header file to declare swap_info
 has been added to the -mm tree.  Its filename is
-     shmem-remove-unneeded-function-forward-declaration.patch
+     shmem-include-header-file-to-declare-swap_info.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/shmem-remove-unneeded-function-forward-declaration.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/shmem-include-header-file-to-declare-swap_info.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/shmem-remove-unneeded-function-forward-declaration.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/shmem-include-header-file-to-declare-swap_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,32 +64,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: shmem: remove unneeded function forward declaration
+Subject: shmem: include header file to declare swap_info
 
-The forward declaration for shmem_should_replace_page() and
-shmem_replace_page() is unnecessary.  Remove them.
+It's bad to extern swap_info[] in .c.  Include corresponding header file
+instead.
 
-Link: https://lkml.kernel.org/r/20210812120350.49801-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210812120350.49801-5-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/shmem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/shmem.c~shmem-remove-unneeded-function-forward-declaration
+--- a/mm/shmem.c~shmem-include-header-file-to-declare-swap_info
 +++ a/mm/shmem.c
-@@ -135,9 +135,6 @@ static unsigned long shmem_default_max_i
- }
- #endif
+@@ -38,6 +38,7 @@
+ #include <linux/hugetlb.h>
+ #include <linux/frontswap.h>
+ #include <linux/fs_parser.h>
++#include <linux/swapfile.h>
  
--static bool shmem_should_replace_page(struct page *page, gfp_t gfp);
--static int shmem_replace_page(struct page **pagep, gfp_t gfp,
--				struct shmem_inode_info *info, pgoff_t index);
- static int shmem_swapin_page(struct inode *inode, pgoff_t index,
- 			     struct page **pagep, enum sgp_type sgp,
- 			     gfp_t gfp, struct vm_area_struct *vma,
+ static struct vfsmount *shm_mnt;
+ 
+@@ -1152,8 +1153,6 @@ static void shmem_evict_inode(struct ino
+ 	clear_inode(inode);
+ }
+ 
+-extern struct swap_info_struct *swap_info[];
+-
+ static int shmem_find_swap_entries(struct address_space *mapping,
+ 				   pgoff_t start, unsigned int nr_entries,
+ 				   struct page **entries, pgoff_t *indices,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
