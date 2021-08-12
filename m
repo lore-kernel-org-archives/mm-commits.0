@@ -7,32 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2A93C4320A
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Aug 2021 21:11:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D253DC4338F
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Aug 2021 21:11:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D0E3C61038
-	for <mm-commits@archiver.kernel.org>; Thu, 12 Aug 2021 21:11:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B5DF96103A
+	for <mm-commits@archiver.kernel.org>; Thu, 12 Aug 2021 21:11:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233400AbhHLVLs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 12 Aug 2021 17:11:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57206 "EHLO mail.kernel.org"
+        id S234500AbhHLVLu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 12 Aug 2021 17:11:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231270AbhHLVLs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 12 Aug 2021 17:11:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 87B5360F57;
-        Thu, 12 Aug 2021 21:11:22 +0000 (UTC)
+        id S231270AbhHLVLu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 12 Aug 2021 17:11:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 86E0E6101E;
+        Thu, 12 Aug 2021 21:11:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628802682;
-        bh=tKYr/re42J/7XqJ2wqDMU/60gcb2d3Gxt70oeKdfuZQ=;
+        s=korg; t=1628802684;
+        bh=eVQD7RXvmO2lvd9YQ7ASqUREgtJVIiTLFxlwMY02XVw=;
         h=Date:From:To:Subject:From;
-        b=PoZpK87ZzrrZlSTk+BoOaKsGSpyKIONY8J0WpQHY90nnYpAtG6rwlR0MVtHrrfjK4
-         pKKjY9IZNEOSdgTtb13MPTfentpKlunuD8bcoGvT7zFYN2G+htbRwuJGcZ/obDL2mo
-         uGfqMEGjF2sLaWEgSDAC7UpbFTPrnibC1rKS0m+A=
-Date:   Thu, 12 Aug 2021 14:11:22 -0700
+        b=j54jgudjqapPOE6IskDhNNL3T5AJhwM67UWDji9cw5qZvQ1mCq5FliBlz+zjQSEQM
+         K/XR9PCNcbTwfAE/gzLOZagcTBGhNHDzzlyXTFqQVnpuUmAkVUvtc65m/+cI/qNX4w
+         DIe7JG3JneK5tWhtsaMdiGx+6mWRZfYP8801rBPM=
+Date:   Thu, 12 Aug 2021 14:11:24 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, hughd@google.com, linmiaohe@huawei.com
-Subject:  + shmem-remove-unneeded-header-file.patch added to -mm tree
-Message-ID: <20210812211122.EGt-h%akpm@linux-foundation.org>
+Subject:  + shmem-remove-unneeded-function-forward-declaration.patch
+ added to -mm tree
+Message-ID: <20210812211124.wInFK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: remove unneeded header file
+     Subject: shmem: remove unneeded function forward declaration
 has been added to the -mm tree.  Its filename is
-     shmem-remove-unneeded-header-file.patch
+     shmem-remove-unneeded-function-forward-declaration.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/shmem-remove-unneeded-header-file.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/shmem-remove-unneeded-function-forward-declaration.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/shmem-remove-unneeded-header-file.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/shmem-remove-unneeded-function-forward-declaration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,33 +64,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: shmem: remove unneeded header file
+Subject: shmem: remove unneeded function forward declaration
 
-mfill_atomic_install_pte() is introduced to install pte and update mmu
-cache since commit bf6ebd97aba0 ("userfaultfd/shmem: modify
-shmem_mfill_atomic_pte to use install_pte()").  So we should remove
-tlbflush.h as update_mmu_cache() is not called here now.
+The forward declaration for shmem_should_replace_page() and
+shmem_replace_page() is unnecessary.  Remove them.
 
-Link: https://lkml.kernel.org/r/20210812120350.49801-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210812120350.49801-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/shmem.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/shmem.c~shmem-remove-unneeded-header-file
+--- a/mm/shmem.c~shmem-remove-unneeded-function-forward-declaration
 +++ a/mm/shmem.c
-@@ -39,8 +39,6 @@
- #include <linux/frontswap.h>
- #include <linux/fs_parser.h>
+@@ -135,9 +135,6 @@ static unsigned long shmem_default_max_i
+ }
+ #endif
  
--#include <asm/tlbflush.h> /* for arch/microblaze update_mmu_cache() */
--
- static struct vfsmount *shm_mnt;
- 
- #ifdef CONFIG_SHMEM
+-static bool shmem_should_replace_page(struct page *page, gfp_t gfp);
+-static int shmem_replace_page(struct page **pagep, gfp_t gfp,
+-				struct shmem_inode_info *info, pgoff_t index);
+ static int shmem_swapin_page(struct inode *inode, pgoff_t index,
+ 			     struct page **pagep, enum sgp_type sgp,
+ 			     gfp_t gfp, struct vm_area_struct *vma,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
