@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE499C4320A
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B28FC4338F
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9CD860F51
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26DED60F9F
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233276AbhHNWSE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Aug 2021 18:18:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58512 "EHLO mail.kernel.org"
+        id S233488AbhHNWSI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Aug 2021 18:18:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58732 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233452AbhHNWSD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 14 Aug 2021 18:18:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A8C1E60F48;
-        Sat, 14 Aug 2021 22:17:34 +0000 (UTC)
+        id S233452AbhHNWSG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 14 Aug 2021 18:18:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 927AD60F4B;
+        Sat, 14 Aug 2021 22:17:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628979454;
-        bh=az8e+8nlbeFz/gW5LWRkYJWp3Yx064InB0XVOfdUNnk=;
+        s=korg; t=1628979457;
+        bh=yLdr4ufGrjQMIoKrU7h2GuShe3iX+No99w5UPd1/w70=;
         h=Date:From:To:Subject:From;
-        b=HGIOPCNqxjsy/2T+CIYeAWDVMHip10G050dg09jBr176OPpnEb8tQHDrNfSxigKbA
-         6eSM4HQyYCNWcksp534TV0Y8HPggpX2wpI1EOdCjF9pTqjVn0f7kd19jp7oMYnTzqd
-         ZSVxBwMeaZDn5oOE1pX1mxUUTgWtzQOHeUGOj7nc=
-Date:   Sat, 14 Aug 2021 15:17:34 -0700
+        b=YVQHz6ly1Bv9g1MhtFUB8mUsG7r4o2RqaFKtIZrutbApaKDb0nbsCa2NypFbWFd0x
+         0BBZTD08ISHro8oZT0ISkHzINbU+h/oiftok7k1jy0C+ZLZ0EOGTvcmkaY/LyjPK5B
+         XdsTZLV0RobCQAvs6/cRbevBpO8d1h4IaSyRpJRo=
+Date:   Sat, 14 Aug 2021 15:17:37 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
         will@kernel.org, ulf.hansson@linaro.org, lkp@intel.com,
@@ -36,9 +36,9 @@ To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
         andriy.shevchenko@linux.intel.com, alobakin@pm.me,
         aklimov@redhat.com, yury.norov@gmail.com
 Subject:  +
- cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate.patch
- added to -mm tree
-Message-ID: <20210814221734.fHlgx%akpm@linux-foundation.org>
+ include-linux-move-for_each_bit-macros-from-bitopsh-to-findh.patch added to
+ -mm tree
+Message-ID: <20210814221737.Q6IWp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpumask: replace cpumask_next_* with cpumask_first_* where appropriate
+     Subject: include/linux: move for_each_bit() macros from bitops.h to find.h
 has been added to the -mm tree.  Its filename is
-     cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate.patch
+     include-linux-move-for_each_bit-macros-from-bitopsh-to-findh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/include-linux-move-for_each_bit-macros-from-bitopsh-to-findh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/include-linux-move-for_each_bit-macros-from-bitopsh-to-findh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,15 +69,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: cpumask: replace cpumask_next_* with cpumask_first_* where appropriate
+Subject: include/linux: move for_each_bit() macros from bitops.h to find.h
 
-cpumask_first() is a more effective analogue of 'next' version if n == -1
-(which means start == 0).  This patch replaces 'next' with 'first' where
-things look trivial.
+for_each_bit() macros depend on find_bit() machinery, and so the proper
+place for them is the find.h header.
 
-There's no cpumask_first_zero() function, so create it.
-
-Link: https://lkml.kernel.org/r/20210814211713.180533-10-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210814211713.180533-11-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 Cc: Alexander Lobakin <alobakin@pm.me>
@@ -91,122 +88,94 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/cputhreads.h |    2 +-
- block/blk-mq.c                        |    2 +-
- drivers/net/virtio_net.c              |    2 +-
- drivers/soc/fsl/qbman/bman_portal.c   |    2 +-
- drivers/soc/fsl/qbman/qman_portal.c   |    2 +-
- include/linux/cpumask.h               |   16 ++++++++++++++++
- kernel/time/clocksource.c             |    4 ++--
- 7 files changed, 23 insertions(+), 7 deletions(-)
+ include/linux/bitops.h |   34 ----------------------------------
+ include/linux/find.h   |   34 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 34 insertions(+), 34 deletions(-)
 
---- a/arch/powerpc/include/asm/cputhreads.h~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/arch/powerpc/include/asm/cputhreads.h
-@@ -52,7 +52,7 @@ static inline cpumask_t cpu_thread_mask_
- 	for (i = 0; i < NR_CPUS; i += threads_per_core) {
- 		cpumask_shift_left(&tmp, &threads_core_mask, i);
- 		if (cpumask_intersects(threads, &tmp)) {
--			cpu = cpumask_next_and(-1, &tmp, cpu_online_mask);
-+			cpu = cpumask_first_and(&tmp, cpu_online_mask);
- 			if (cpu < nr_cpu_ids)
- 				cpumask_set_cpu(cpu, &res);
- 		}
---- a/block/blk-mq.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/block/blk-mq.c
-@@ -2544,7 +2544,7 @@ static bool blk_mq_hctx_has_requests(str
- static inline bool blk_mq_last_cpu_in_hctx(unsigned int cpu,
- 		struct blk_mq_hw_ctx *hctx)
+--- a/include/linux/bitops.h~include-linux-move-for_each_bit-macros-from-bitopsh-to-findh
++++ a/include/linux/bitops.h
+@@ -31,40 +31,6 @@ extern unsigned long __sw_hweight64(__u6
+  */
+ #include <asm/bitops.h>
+ 
+-#define for_each_set_bit(bit, addr, size) \
+-	for ((bit) = find_first_bit((addr), (size));		\
+-	     (bit) < (size);					\
+-	     (bit) = find_next_bit((addr), (size), (bit) + 1))
+-
+-/* same as for_each_set_bit() but use bit as value to start with */
+-#define for_each_set_bit_from(bit, addr, size) \
+-	for ((bit) = find_next_bit((addr), (size), (bit));	\
+-	     (bit) < (size);					\
+-	     (bit) = find_next_bit((addr), (size), (bit) + 1))
+-
+-#define for_each_clear_bit(bit, addr, size) \
+-	for ((bit) = find_first_zero_bit((addr), (size));	\
+-	     (bit) < (size);					\
+-	     (bit) = find_next_zero_bit((addr), (size), (bit) + 1))
+-
+-/* same as for_each_clear_bit() but use bit as value to start with */
+-#define for_each_clear_bit_from(bit, addr, size) \
+-	for ((bit) = find_next_zero_bit((addr), (size), (bit));	\
+-	     (bit) < (size);					\
+-	     (bit) = find_next_zero_bit((addr), (size), (bit) + 1))
+-
+-/**
+- * for_each_set_clump8 - iterate over bitmap for each 8-bit clump with set bits
+- * @start: bit offset to start search and to store the current iteration offset
+- * @clump: location to store copy of current 8-bit clump
+- * @bits: bitmap address to base the search on
+- * @size: bitmap size in number of bits
+- */
+-#define for_each_set_clump8(start, clump, bits, size) \
+-	for ((start) = find_first_clump8(&(clump), (bits), (size)); \
+-	     (start) < (size); \
+-	     (start) = find_next_clump8(&(clump), (bits), (size), (start) + 8))
+-
+ static inline int get_bitmask_order(unsigned int count)
  {
--	if (cpumask_next_and(-1, hctx->cpumask, cpu_online_mask) != cpu)
-+	if (cpumask_first_and(hctx->cpumask, cpu_online_mask) != cpu)
- 		return false;
- 	if (cpumask_next_and(cpu, hctx->cpumask, cpu_online_mask) < nr_cpu_ids)
- 		return false;
---- a/drivers/net/virtio_net.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/drivers/net/virtio_net.c
-@@ -2091,7 +2091,7 @@ static void virtnet_set_affinity(struct
- 	stragglers = num_cpu >= vi->curr_queue_pairs ?
- 			num_cpu % vi->curr_queue_pairs :
- 			0;
--	cpu = cpumask_next(-1, cpu_online_mask);
-+	cpu = cpumask_first(cpu_online_mask);
+ 	int order;
+--- a/include/linux/find.h~include-linux-move-for_each_bit-macros-from-bitopsh-to-findh
++++ a/include/linux/find.h
+@@ -279,4 +279,38 @@ unsigned long find_next_bit_le(const voi
+ #error "Please fix <asm/byteorder.h>"
+ #endif
  
- 	for (i = 0; i < vi->curr_queue_pairs; i++) {
- 		group_size = stride + (i < stragglers ? 1 : 0);
---- a/drivers/soc/fsl/qbman/bman_portal.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/drivers/soc/fsl/qbman/bman_portal.c
-@@ -155,7 +155,7 @@ static int bman_portal_probe(struct plat
- 	}
- 
- 	spin_lock(&bman_lock);
--	cpu = cpumask_next_zero(-1, &portal_cpus);
-+	cpu = cpumask_first_zero(&portal_cpus);
- 	if (cpu >= nr_cpu_ids) {
- 		__bman_portals_probed = 1;
- 		/* unassigned portal, skip init */
---- a/drivers/soc/fsl/qbman/qman_portal.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/drivers/soc/fsl/qbman/qman_portal.c
-@@ -248,7 +248,7 @@ static int qman_portal_probe(struct plat
- 	pcfg->pools = qm_get_pools_sdqcr();
- 
- 	spin_lock(&qman_lock);
--	cpu = cpumask_next_zero(-1, &portal_cpus);
-+	cpu = cpumask_first_zero(&portal_cpus);
- 	if (cpu >= nr_cpu_ids) {
- 		__qman_portals_probed = 1;
- 		/* unassigned portal, skip init */
---- a/include/linux/cpumask.h~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/include/linux/cpumask.h
-@@ -123,6 +123,11 @@ static inline unsigned int cpumask_first
- 	return 0;
- }
- 
-+static inline unsigned int cpumask_first_zero(const struct cpumask *srcp)
-+{
-+	return 0;
-+}
++#define for_each_set_bit(bit, addr, size) \
++	for ((bit) = find_first_bit((addr), (size));		\
++	     (bit) < (size);					\
++	     (bit) = find_next_bit((addr), (size), (bit) + 1))
 +
- static inline unsigned int cpumask_first_and(const struct cpumask *srcp1,
- 					     const struct cpumask *srcp2)
- {
-@@ -202,6 +207,17 @@ static inline unsigned int cpumask_first
- }
- 
- /**
-+ * cpumask_first_zero - get the first unset cpu in a cpumask
-+ * @srcp: the cpumask pointer
-+ *
-+ * Returns >= nr_cpu_ids if all cpus are set.
-+ */
-+static inline unsigned int cpumask_first_zero(const struct cpumask *srcp)
-+{
-+	return find_first_zero_bit(cpumask_bits(srcp), nr_cpumask_bits);
-+}
++/* same as for_each_set_bit() but use bit as value to start with */
++#define for_each_set_bit_from(bit, addr, size) \
++	for ((bit) = find_next_bit((addr), (size), (bit));	\
++	     (bit) < (size);					\
++	     (bit) = find_next_bit((addr), (size), (bit) + 1))
++
++#define for_each_clear_bit(bit, addr, size) \
++	for ((bit) = find_first_zero_bit((addr), (size));	\
++	     (bit) < (size);					\
++	     (bit) = find_next_zero_bit((addr), (size), (bit) + 1))
++
++/* same as for_each_clear_bit() but use bit as value to start with */
++#define for_each_clear_bit_from(bit, addr, size) \
++	for ((bit) = find_next_zero_bit((addr), (size), (bit));	\
++	     (bit) < (size);					\
++	     (bit) = find_next_zero_bit((addr), (size), (bit) + 1))
 +
 +/**
-  * cpumask_first_and - return the first cpu from *srcp1 & *srcp2
-  * @src1p: the first input
-  * @src2p: the second input
---- a/kernel/time/clocksource.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/kernel/time/clocksource.c
-@@ -257,7 +257,7 @@ static void clocksource_verify_choose_cp
- 		return;
- 
- 	/* Make sure to select at least one CPU other than the current CPU. */
--	cpu = cpumask_next(-1, cpu_online_mask);
-+	cpu = cpumask_first(cpu_online_mask);
- 	if (cpu == smp_processor_id())
- 		cpu = cpumask_next(cpu, cpu_online_mask);
- 	if (WARN_ON_ONCE(cpu >= nr_cpu_ids))
-@@ -279,7 +279,7 @@ static void clocksource_verify_choose_cp
- 		cpu = prandom_u32() % nr_cpu_ids;
- 		cpu = cpumask_next(cpu - 1, cpu_online_mask);
- 		if (cpu >= nr_cpu_ids)
--			cpu = cpumask_next(-1, cpu_online_mask);
-+			cpu = cpumask_first(cpu_online_mask);
- 		if (!WARN_ON_ONCE(cpu >= nr_cpu_ids))
- 			cpumask_set_cpu(cpu, &cpus_chosen);
- 	}
++ * for_each_set_clump8 - iterate over bitmap for each 8-bit clump with set bits
++ * @start: bit offset to start search and to store the current iteration offset
++ * @clump: location to store copy of current 8-bit clump
++ * @bits: bitmap address to base the search on
++ * @size: bitmap size in number of bits
++ */
++#define for_each_set_clump8(start, clump, bits, size) \
++	for ((start) = find_first_clump8(&(clump), (bits), (size)); \
++	     (start) < (size); \
++	     (start) = find_next_clump8(&(clump), (bits), (size), (start) + 8))
++
+ #endif /*__LINUX_FIND_H_ */
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
