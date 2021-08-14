@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 795BCC4338F
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 70DC8C4320A
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5DD2B60F48
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58BC960F9F
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233141AbhHNWRt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Aug 2021 18:17:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57736 "EHLO mail.kernel.org"
+        id S232919AbhHNWRy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Aug 2021 18:17:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57910 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232919AbhHNWRs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 14 Aug 2021 18:17:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C97A660EE0;
-        Sat, 14 Aug 2021 22:17:19 +0000 (UTC)
+        id S233276AbhHNWRx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 14 Aug 2021 18:17:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9300D60EE0;
+        Sat, 14 Aug 2021 22:17:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628979440;
-        bh=akqiCgqxusTk5bIm4w0TBiYubOYnq66zsl2LHUfrFH0=;
+        s=korg; t=1628979444;
+        bh=jb7axzOujKtXZkU9o/9280pz6hRcwJ9kaDPO7aeqlzc=;
         h=Date:From:To:Subject:From;
-        b=MUX3Us9JxqBTYLo5SaXBcDxeumJvgj5L9N+CvSMkvcLJ6OUD6mSGcEY04o3HdK/AL
-         qMk6lRtWfIrXoJrijRNXZwfZ9pbEwUPfYCqM+osCUdcepEr0ZZipGQyktHPhMRr6b8
-         ScRcuKMNDHSXywSVIbxT3GXNHOT7rFfjnvmovHlA=
-Date:   Sat, 14 Aug 2021 15:17:17 -0700
+        b=ll1Ci9W4EBrJPfIccSu3VyMzl8R5eeJB+KqkvoweSBzIjdu0bnuiFaxakmOWOGeU7
+         BaDqewvNZWn2Wz5G8wJmIfrkSJyfDz04YxiuZalp8yYOL1akXx9Ttto0XsWvL9V6dG
+         hlcN0btKLdiQqI0tAvSIkCGfcJJXFqjemOsF4YLk=
+Date:   Sat, 14 Aug 2021 15:17:24 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
         will@kernel.org, ulf.hansson@linaro.org, lkp@intel.com,
         jolsa@redhat.com, dennis@kernel.org,
         andriy.shevchenko@linux.intel.com, alobakin@pm.me,
         aklimov@redhat.com, yury.norov@gmail.com
-Subject:  + arch-remove-generic_find_first_bit-entirely.patch added
- to -mm tree
-Message-ID: <20210814221717.b8f6Z%akpm@linux-foundation.org>
+Subject:  + cpumask-use-find_first_and_bit.patch added to -mm tree
+Message-ID: <20210814221724.Z3Yy_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch: remove GENERIC_FIND_FIRST_BIT entirely
+     Subject: cpumask: use find_first_and_bit()
 has been added to the -mm tree.  Its filename is
-     arch-remove-generic_find_first_bit-entirely.patch
+     cpumask-use-find_first_and_bit.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arch-remove-generic_find_first_bit-entirely.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/cpumask-use-find_first_and_bit.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arch-remove-generic_find_first_bit-entirely.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/cpumask-use-find_first_and_bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,148 +67,88 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: arch: remove GENERIC_FIND_FIRST_BIT entirely
+Subject: cpumask: use find_first_and_bit()
 
-In 5.12 cycle we enabled GENERIC_FIND_FIRST_BIT config option for ARM64
-and MIPS.  It increased performance and shrunk .text size; and so far I
-didn't receive any negative feedback on the change.
+Now we have an efficient implementation for find_first_and_bit(), so
+switch cpumask to use it where appropriate.
 
-https://lore.kernel.org/linux-arch/20210225135700.1381396-1-yury.norov@gmail.com/
-
-Now I think it's a good time to switch all architectures to use
-find_{first,last}_bit() unconditionally, and so remove corresponding
-config option.
-
-The patch does't introduce functioal changes for arc, arm, arm64, mips,
-m68k, s390 and x86, for other architectures I expect improvement both in
-performance and .text size.
-
-Link: https://lkml.kernel.org/r/20210814211713.180533-5-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210814211713.180533-7-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Tested-by: Alexander Lobakin <alobakin@pm.me> (mips)
-Reviewed-by: Alexander Lobakin <alobakin@pm.me> (mips)
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Will Deacon <will@kernel.org>
 Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Alexander Lobakin <alobakin@pm.me>
 Cc: Alexey Klimov <aklimov@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Jiri Olsa <jolsa@redhat.com>
 Cc: kernel test robot <lkp@intel.com>
 Cc: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/Kconfig     |    1 -
- arch/arm64/Kconfig   |    1 -
- arch/mips/Kconfig    |    1 -
- arch/s390/Kconfig    |    1 -
- arch/x86/Kconfig     |    1 -
- arch/x86/um/Kconfig  |    1 -
- include/linux/find.h |   13 -------------
- lib/Kconfig          |    3 ---
- 8 files changed, 22 deletions(-)
+ include/linux/cpumask.h |   30 ++++++++++++++++++++----------
+ 1 file changed, 20 insertions(+), 10 deletions(-)
 
---- a/arch/arc/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/arc/Kconfig
-@@ -20,7 +20,6 @@ config ARC
- 	select COMMON_CLK
- 	select DMA_DIRECT_REMAP
- 	select GENERIC_ATOMIC64 if !ISA_ARCV2 || !(ARC_HAS_LL64 && ARC_HAS_LLSC)
--	select GENERIC_FIND_FIRST_BIT
- 	# for now, we don't need GENERIC_IRQ_PROBE, CONFIG_GENERIC_IRQ_CHIP
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_PCI_IOMAP
---- a/arch/arm64/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/arm64/Kconfig
-@@ -119,7 +119,6 @@ config ARM64
- 	select GENERIC_CPU_AUTOPROBE
- 	select GENERIC_CPU_VULNERABILITIES
- 	select GENERIC_EARLY_IOREMAP
--	select GENERIC_FIND_FIRST_BIT
- 	select GENERIC_IDLE_POLL_SETUP
- 	select GENERIC_IRQ_IPI
- 	select GENERIC_IRQ_PROBE
---- a/arch/mips/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/mips/Kconfig
-@@ -30,7 +30,6 @@ config MIPS
- 	select GENERIC_ATOMIC64 if !64BIT
- 	select GENERIC_CMOS_UPDATE
- 	select GENERIC_CPU_AUTOPROBE
--	select GENERIC_FIND_FIRST_BIT
- 	select GENERIC_GETTIMEOFDAY
- 	select GENERIC_IOMAP
- 	select GENERIC_IRQ_PROBE
---- a/arch/s390/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/s390/Kconfig
-@@ -126,7 +126,6 @@ config S390
- 	select GENERIC_CPU_AUTOPROBE
- 	select GENERIC_CPU_VULNERABILITIES
- 	select GENERIC_ENTRY
--	select GENERIC_FIND_FIRST_BIT
- 	select GENERIC_GETTIMEOFDAY
- 	select GENERIC_PTDUMP
- 	select GENERIC_SMP_IDLE_THREAD
---- a/arch/x86/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/x86/Kconfig
-@@ -133,7 +133,6 @@ config X86
- 	select GENERIC_CPU_VULNERABILITIES
- 	select GENERIC_EARLY_IOREMAP
- 	select GENERIC_ENTRY
--	select GENERIC_FIND_FIRST_BIT
- 	select GENERIC_IOMAP
- 	select GENERIC_IRQ_EFFECTIVE_AFF_MASK	if SMP
- 	select GENERIC_IRQ_MATRIX_ALLOCATOR	if X86_LOCAL_APIC
---- a/arch/x86/um/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/x86/um/Kconfig
-@@ -8,7 +8,6 @@ endmenu
- 
- config UML_X86
- 	def_bool y
--	select GENERIC_FIND_FIRST_BIT
- 
- config 64BIT
- 	bool "64-bit kernel" if "$(SUBARCH)" = "x86"
---- a/include/linux/find.h~arch-remove-generic_find_first_bit-entirely
-+++ a/include/linux/find.h
-@@ -101,8 +101,6 @@ unsigned long find_next_zero_bit(const u
+--- a/include/linux/cpumask.h~cpumask-use-find_first_and_bit
++++ a/include/linux/cpumask.h
+@@ -123,6 +123,12 @@ static inline unsigned int cpumask_first
+ 	return 0;
  }
- #endif
  
--#ifdef CONFIG_GENERIC_FIND_FIRST_BIT
--
- #ifndef find_first_bit
- /**
-  * find_first_bit - find the first set bit in a memory region
-@@ -147,17 +145,6 @@ unsigned long find_first_zero_bit(const
++static inline unsigned int cpumask_first_and(const struct cpumask *srcp1,
++					     const struct cpumask *srcp2)
++{
++	return 0;
++}
++
+ static inline unsigned int cpumask_last(const struct cpumask *srcp)
+ {
+ 	return 0;
+@@ -167,7 +173,7 @@ static inline unsigned int cpumask_local
+ 
+ static inline int cpumask_any_and_distribute(const struct cpumask *src1p,
+ 					     const struct cpumask *src2p) {
+-	return cpumask_next_and(-1, src1p, src2p);
++	return cpumask_first_and(src1p, src2p);
  }
- #endif
  
--#else /* CONFIG_GENERIC_FIND_FIRST_BIT */
--
--#ifndef find_first_bit
--#define find_first_bit(addr, size) find_next_bit((addr), (size), 0)
--#endif
--#ifndef find_first_zero_bit
--#define find_first_zero_bit(addr, size) find_next_zero_bit((addr), (size), 0)
--#endif
--
--#endif /* CONFIG_GENERIC_FIND_FIRST_BIT */
--
- #ifndef find_last_bit
+ static inline int cpumask_any_distribute(const struct cpumask *srcp)
+@@ -196,6 +202,19 @@ static inline unsigned int cpumask_first
+ }
+ 
  /**
-  * find_last_bit - find the last set bit in a memory region
---- a/lib/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/lib/Kconfig
-@@ -59,9 +59,6 @@ config GENERIC_STRNLEN_USER
- config GENERIC_NET_UTILS
- 	bool
++ * cpumask_first_and - return the first cpu from *srcp1 & *srcp2
++ * @src1p: the first input
++ * @src2p: the second input
++ *
++ * Returns >= nr_cpu_ids if no cpus set in both.  See also cpumask_next_and().
++ */
++static inline
++unsigned int cpumask_first_and(const struct cpumask *srcp1, const struct cpumask *srcp2)
++{
++	return find_first_and_bit(cpumask_bits(srcp1), cpumask_bits(srcp2), nr_cpumask_bits);
++}
++
++/**
+  * cpumask_last - get the last CPU in a cpumask
+  * @srcp:	- the cpumask pointer
+  *
+@@ -586,15 +605,6 @@ static inline void cpumask_copy(struct c
+ #define cpumask_any(srcp) cpumask_first(srcp)
  
--config GENERIC_FIND_FIRST_BIT
--	bool
+ /**
+- * cpumask_first_and - return the first cpu from *srcp1 & *srcp2
+- * @src1p: the first input
+- * @src2p: the second input
+- *
+- * Returns >= nr_cpu_ids if no cpus set in both.  See also cpumask_next_and().
+- */
+-#define cpumask_first_and(src1p, src2p) cpumask_next_and(-1, (src1p), (src2p))
 -
- source "lib/math/Kconfig"
- 
- config NO_GENERIC_PCI_IOPORT_MAP
+-/**
+  * cpumask_any_and - pick a "random" cpu from *mask1 & *mask2
+  * @mask1: the first input cpumask
+  * @mask2: the second input cpumask
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
