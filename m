@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B18BC4338F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CE499C4320A
 	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D11460F4B
+	by mail.kernel.org (Postfix) with ESMTP id B9CD860F51
 	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233455AbhHNWSE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S233276AbhHNWSE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Sat, 14 Aug 2021 18:18:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58284 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:58512 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233276AbhHNWSA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 14 Aug 2021 18:18:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9BC7760EE0;
-        Sat, 14 Aug 2021 22:17:31 +0000 (UTC)
+        id S233452AbhHNWSD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 14 Aug 2021 18:18:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8C1E60F48;
+        Sat, 14 Aug 2021 22:17:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628979451;
-        bh=QLRquAttMFKmv502IrFVkB726YBdk+lBv5Pf6P4R8iI=;
+        s=korg; t=1628979454;
+        bh=az8e+8nlbeFz/gW5LWRkYJWp3Yx064InB0XVOfdUNnk=;
         h=Date:From:To:Subject:From;
-        b=OalHN9aMgD+hnZF/33Bhuo5Wyk7gta1B0iO8EE+aC7LeIO7nT3b7f0McGwPFWjqdf
-         hvFYQ4Z9ApiiAPzZuiHfmrStEllNdbYAJE8J0IveXkWsGlmDZmOa6WdWknXyAg4sew
-         ehHRfNeMX9Ly+Pdqi69/Xnes65GPFAulhL3Eezgs=
-Date:   Sat, 14 Aug 2021 15:17:31 -0700
+        b=HGIOPCNqxjsy/2T+CIYeAWDVMHip10G050dg09jBr176OPpnEb8tQHDrNfSxigKbA
+         6eSM4HQyYCNWcksp534TV0Y8HPggpX2wpI1EOdCjF9pTqjVn0f7kd19jp7oMYnTzqd
+         ZSVxBwMeaZDn5oOE1pX1mxUUTgWtzQOHeUGOj7nc=
+Date:   Sat, 14 Aug 2021 15:17:34 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
         will@kernel.org, ulf.hansson@linaro.org, lkp@intel.com,
         jolsa@redhat.com, dennis@kernel.org,
         andriy.shevchenko@linux.intel.com, alobakin@pm.me,
         aklimov@redhat.com, yury.norov@gmail.com
-Subject:  + tools-sync-tools-bitmap-with-mother-linux.patch added to
- -mm tree
-Message-ID: <20210814221731.azMb3%akpm@linux-foundation.org>
+Subject:  +
+ cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate.patch
+ added to -mm tree
+Message-ID: <20210814221734.fHlgx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: sync tools/bitmap with mother linux
+     Subject: cpumask: replace cpumask_next_* with cpumask_first_* where appropriate
 has been added to the -mm tree.  Its filename is
-     tools-sync-tools-bitmap-with-mother-linux.patch
+     cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tools-sync-tools-bitmap-with-mother-linux.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tools-sync-tools-bitmap-with-mother-linux.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,13 +69,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: tools: sync tools/bitmap with mother linux
+Subject: cpumask: replace cpumask_next_* with cpumask_first_* where appropriate
 
-Remove tools/include/asm-generic/bitops/find.h and copy
-include/linux/bitmap.h to tools.  find_*_le() functions are not copied
-because not needed in tools.
+cpumask_first() is a more effective analogue of 'next' version if n == -1
+(which means start == 0).  This patch replaces 'next' with 'first' where
+things look trivial.
 
-Link: https://lkml.kernel.org/r/20210814211713.180533-9-yury.norov@gmail.com
+There's no cpumask_first_zero() function, so create it.
+
+Link: https://lkml.kernel.org/r/20210814211713.180533-10-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 Cc: Alexander Lobakin <alobakin@pm.me>
@@ -88,451 +91,122 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS                             |    2 
- tools/include/asm-generic/bitops.h      |    1 
- tools/include/asm-generic/bitops/find.h |  145 --------------
- tools/include/linux/bitmap.h            |    7 
- tools/include/linux/find.h              |  214 ++++++++++++++++++++++
- tools/lib/find_bit.c                    |   20 ++
- 6 files changed, 239 insertions(+), 150 deletions(-)
+ arch/powerpc/include/asm/cputhreads.h |    2 +-
+ block/blk-mq.c                        |    2 +-
+ drivers/net/virtio_net.c              |    2 +-
+ drivers/soc/fsl/qbman/bman_portal.c   |    2 +-
+ drivers/soc/fsl/qbman/qman_portal.c   |    2 +-
+ include/linux/cpumask.h               |   16 ++++++++++++++++
+ kernel/time/clocksource.c             |    4 ++--
+ 7 files changed, 23 insertions(+), 7 deletions(-)
 
---- a/MAINTAINERS~tools-sync-tools-bitmap-with-mother-linux
-+++ a/MAINTAINERS
-@@ -3268,8 +3268,8 @@ F:	lib/bitmap.c
- F:	lib/find_bit.c
- F:	lib/find_bit_benchmark.c
- F:	lib/test_bitmap.c
--F:	tools/include/asm-generic/bitops/find.h
- F:	tools/include/linux/bitmap.h
-+F:	tools/include/linux/find.h
- F:	tools/lib/bitmap.c
- F:	tools/lib/find_bit.c
+--- a/arch/powerpc/include/asm/cputhreads.h~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
++++ a/arch/powerpc/include/asm/cputhreads.h
+@@ -52,7 +52,7 @@ static inline cpumask_t cpu_thread_mask_
+ 	for (i = 0; i < NR_CPUS; i += threads_per_core) {
+ 		cpumask_shift_left(&tmp, &threads_core_mask, i);
+ 		if (cpumask_intersects(threads, &tmp)) {
+-			cpu = cpumask_next_and(-1, &tmp, cpu_online_mask);
++			cpu = cpumask_first_and(&tmp, cpu_online_mask);
+ 			if (cpu < nr_cpu_ids)
+ 				cpumask_set_cpu(cpu, &res);
+ 		}
+--- a/block/blk-mq.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
++++ a/block/blk-mq.c
+@@ -2544,7 +2544,7 @@ static bool blk_mq_hctx_has_requests(str
+ static inline bool blk_mq_last_cpu_in_hctx(unsigned int cpu,
+ 		struct blk_mq_hw_ctx *hctx)
+ {
+-	if (cpumask_next_and(-1, hctx->cpumask, cpu_online_mask) != cpu)
++	if (cpumask_first_and(hctx->cpumask, cpu_online_mask) != cpu)
+ 		return false;
+ 	if (cpumask_next_and(cpu, hctx->cpumask, cpu_online_mask) < nr_cpu_ids)
+ 		return false;
+--- a/drivers/net/virtio_net.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
++++ a/drivers/net/virtio_net.c
+@@ -2091,7 +2091,7 @@ static void virtnet_set_affinity(struct
+ 	stragglers = num_cpu >= vi->curr_queue_pairs ?
+ 			num_cpu % vi->curr_queue_pairs :
+ 			0;
+-	cpu = cpumask_next(-1, cpu_online_mask);
++	cpu = cpumask_first(cpu_online_mask);
  
---- a/tools/include/asm-generic/bitops/find.h
-+++ /dev/null
-@@ -1,145 +0,0 @@
--/* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _TOOLS_LINUX_ASM_GENERIC_BITOPS_FIND_H_
--#define _TOOLS_LINUX_ASM_GENERIC_BITOPS_FIND_H_
--
--extern unsigned long _find_next_bit(const unsigned long *addr1,
--		const unsigned long *addr2, unsigned long nbits,
--		unsigned long start, unsigned long invert, unsigned long le);
--extern unsigned long _find_first_bit(const unsigned long *addr, unsigned long size);
--extern unsigned long _find_first_zero_bit(const unsigned long *addr, unsigned long size);
--extern unsigned long _find_last_bit(const unsigned long *addr, unsigned long size);
--
--#ifndef find_next_bit
--/**
-- * find_next_bit - find the next set bit in a memory region
-- * @addr: The address to base the search on
-- * @offset: The bitnumber to start searching at
-- * @size: The bitmap size in bits
-- *
-- * Returns the bit number for the next set bit
-- * If no bits are set, returns @size.
-- */
--static inline
--unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
--			    unsigned long offset)
--{
--	if (small_const_nbits(size)) {
--		unsigned long val;
--
--		if (unlikely(offset >= size))
--			return size;
--
--		val = *addr & GENMASK(size - 1, offset);
--		return val ? __ffs(val) : size;
--	}
--
--	return _find_next_bit(addr, NULL, size, offset, 0UL, 0);
--}
--#endif
--
--#ifndef find_next_and_bit
--/**
-- * find_next_and_bit - find the next set bit in both memory regions
-- * @addr1: The first address to base the search on
-- * @addr2: The second address to base the search on
-- * @offset: The bitnumber to start searching at
-- * @size: The bitmap size in bits
-- *
-- * Returns the bit number for the next set bit
-- * If no bits are set, returns @size.
-- */
--static inline
--unsigned long find_next_and_bit(const unsigned long *addr1,
--		const unsigned long *addr2, unsigned long size,
--		unsigned long offset)
--{
--	if (small_const_nbits(size)) {
--		unsigned long val;
--
--		if (unlikely(offset >= size))
--			return size;
--
--		val = *addr1 & *addr2 & GENMASK(size - 1, offset);
--		return val ? __ffs(val) : size;
--	}
--
--	return _find_next_bit(addr1, addr2, size, offset, 0UL, 0);
--}
--#endif
--
--#ifndef find_next_zero_bit
--/**
-- * find_next_zero_bit - find the next cleared bit in a memory region
-- * @addr: The address to base the search on
-- * @offset: The bitnumber to start searching at
-- * @size: The bitmap size in bits
-- *
-- * Returns the bit number of the next zero bit
-- * If no bits are zero, returns @size.
-- */
--static inline
--unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
--				 unsigned long offset)
--{
--	if (small_const_nbits(size)) {
--		unsigned long val;
--
--		if (unlikely(offset >= size))
--			return size;
--
--		val = *addr | ~GENMASK(size - 1, offset);
--		return val == ~0UL ? size : ffz(val);
--	}
--
--	return _find_next_bit(addr, NULL, size, offset, ~0UL, 0);
--}
--#endif
--
--#ifndef find_first_bit
--
--/**
-- * find_first_bit - find the first set bit in a memory region
-- * @addr: The address to start the search at
-- * @size: The maximum number of bits to search
-- *
-- * Returns the bit number of the first set bit.
-- * If no bits are set, returns @size.
-- */
--static inline
--unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
--{
--	if (small_const_nbits(size)) {
--		unsigned long val = *addr & GENMASK(size - 1, 0);
--
--		return val ? __ffs(val) : size;
--	}
--
--	return _find_first_bit(addr, size);
--}
--
--#endif /* find_first_bit */
--
--#ifndef find_first_zero_bit
--
--/**
-- * find_first_zero_bit - find the first cleared bit in a memory region
-- * @addr: The address to start the search at
-- * @size: The maximum number of bits to search
-- *
-- * Returns the bit number of the first cleared bit.
-- * If no bits are zero, returns @size.
-- */
--static inline
--unsigned long find_first_zero_bit(const unsigned long *addr, unsigned long size)
--{
--	if (small_const_nbits(size)) {
--		unsigned long val = *addr | ~GENMASK(size - 1, 0);
--
--		return val == ~0UL ? size : ffz(val);
--	}
--
--	return _find_first_zero_bit(addr, size);
--}
--#endif
--
--#endif /*_TOOLS_LINUX_ASM_GENERIC_BITOPS_FIND_H_ */
---- a/tools/include/asm-generic/bitops.h~tools-sync-tools-bitmap-with-mother-linux
-+++ a/tools/include/asm-generic/bitops.h
-@@ -18,7 +18,6 @@
- #include <asm-generic/bitops/fls.h>
- #include <asm-generic/bitops/__fls.h>
- #include <asm-generic/bitops/fls64.h>
--#include <asm-generic/bitops/find.h>
+ 	for (i = 0; i < vi->curr_queue_pairs; i++) {
+ 		group_size = stride + (i < stragglers ? 1 : 0);
+--- a/drivers/soc/fsl/qbman/bman_portal.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
++++ a/drivers/soc/fsl/qbman/bman_portal.c
+@@ -155,7 +155,7 @@ static int bman_portal_probe(struct plat
+ 	}
  
- #ifndef _TOOLS_LINUX_BITOPS_H_
- #error only <linux/bitops.h> can be included directly
---- a/tools/include/linux/bitmap.h~tools-sync-tools-bitmap-with-mother-linux
-+++ a/tools/include/linux/bitmap.h
-@@ -1,9 +1,10 @@
- /* SPDX-License-Identifier: GPL-2.0 */
--#ifndef _PERF_BITOPS_H
--#define _PERF_BITOPS_H
-+#ifndef _TOOLS_LINUX_BITMAP_H
-+#define _TOOLS_LINUX_BITMAP_H
+ 	spin_lock(&bman_lock);
+-	cpu = cpumask_next_zero(-1, &portal_cpus);
++	cpu = cpumask_first_zero(&portal_cpus);
+ 	if (cpu >= nr_cpu_ids) {
+ 		__bman_portals_probed = 1;
+ 		/* unassigned portal, skip init */
+--- a/drivers/soc/fsl/qbman/qman_portal.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
++++ a/drivers/soc/fsl/qbman/qman_portal.c
+@@ -248,7 +248,7 @@ static int qman_portal_probe(struct plat
+ 	pcfg->pools = qm_get_pools_sdqcr();
  
- #include <string.h>
- #include <linux/bitops.h>
-+#include <linux/find.h>
- #include <stdlib.h>
- #include <linux/kernel.h>
- 
-@@ -181,4 +182,4 @@ static inline int bitmap_intersects(cons
- 		return __bitmap_intersects(src1, src2, nbits);
+ 	spin_lock(&qman_lock);
+-	cpu = cpumask_next_zero(-1, &portal_cpus);
++	cpu = cpumask_first_zero(&portal_cpus);
+ 	if (cpu >= nr_cpu_ids) {
+ 		__qman_portals_probed = 1;
+ 		/* unassigned portal, skip init */
+--- a/include/linux/cpumask.h~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
++++ a/include/linux/cpumask.h
+@@ -123,6 +123,11 @@ static inline unsigned int cpumask_first
+ 	return 0;
  }
  
--#endif /* _PERF_BITOPS_H */
-+#endif /* _TOOLS_LINUX_BITMAP_H */
---- /dev/null
-+++ a/tools/include/linux/find.h
-@@ -0,0 +1,214 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _TOOLS_LINUX_FIND_H_
-+#define _TOOLS_LINUX_FIND_H_
-+
-+#ifndef _TOOLS_LINUX_BITMAP_H
-+#error tools: only <linux/bitmap.h> can be included directly
-+#endif
-+
-+#include <linux/bitops.h>
-+
-+extern unsigned long _find_next_bit(const unsigned long *addr1,
-+		const unsigned long *addr2, unsigned long nbits,
-+		unsigned long start, unsigned long invert, unsigned long le);
-+extern unsigned long _find_first_bit(const unsigned long *addr, unsigned long size);
-+extern unsigned long _find_first_and_bit(const unsigned long *addr1,
-+					 const unsigned long *addr2, unsigned long size);
-+extern unsigned long _find_first_zero_bit(const unsigned long *addr, unsigned long size);
-+extern unsigned long _find_last_bit(const unsigned long *addr, unsigned long size);
-+
-+#ifndef find_next_bit
-+/**
-+ * find_next_bit - find the next set bit in a memory region
-+ * @addr: The address to base the search on
-+ * @offset: The bitnumber to start searching at
-+ * @size: The bitmap size in bits
-+ *
-+ * Returns the bit number for the next set bit
-+ * If no bits are set, returns @size.
-+ */
-+static inline
-+unsigned long find_next_bit(const unsigned long *addr, unsigned long size,
-+			    unsigned long offset)
++static inline unsigned int cpumask_first_zero(const struct cpumask *srcp)
 +{
-+	if (small_const_nbits(size)) {
-+		unsigned long val;
-+
-+		if (unlikely(offset >= size))
-+			return size;
-+
-+		val = *addr & GENMASK(size - 1, offset);
-+		return val ? __ffs(val) : size;
-+	}
-+
-+	return _find_next_bit(addr, NULL, size, offset, 0UL, 0);
++	return 0;
 +}
-+#endif
 +
-+#ifndef find_next_and_bit
-+/**
-+ * find_next_and_bit - find the next set bit in both memory regions
-+ * @addr1: The first address to base the search on
-+ * @addr2: The second address to base the search on
-+ * @offset: The bitnumber to start searching at
-+ * @size: The bitmap size in bits
-+ *
-+ * Returns the bit number for the next set bit
-+ * If no bits are set, returns @size.
-+ */
-+static inline
-+unsigned long find_next_and_bit(const unsigned long *addr1,
-+		const unsigned long *addr2, unsigned long size,
-+		unsigned long offset)
-+{
-+	if (small_const_nbits(size)) {
-+		unsigned long val;
-+
-+		if (unlikely(offset >= size))
-+			return size;
-+
-+		val = *addr1 & *addr2 & GENMASK(size - 1, offset);
-+		return val ? __ffs(val) : size;
-+	}
-+
-+	return _find_next_bit(addr1, addr2, size, offset, 0UL, 0);
-+}
-+#endif
-+
-+#ifndef find_next_zero_bit
-+/**
-+ * find_next_zero_bit - find the next cleared bit in a memory region
-+ * @addr: The address to base the search on
-+ * @offset: The bitnumber to start searching at
-+ * @size: The bitmap size in bits
-+ *
-+ * Returns the bit number of the next zero bit
-+ * If no bits are zero, returns @size.
-+ */
-+static inline
-+unsigned long find_next_zero_bit(const unsigned long *addr, unsigned long size,
-+				 unsigned long offset)
-+{
-+	if (small_const_nbits(size)) {
-+		unsigned long val;
-+
-+		if (unlikely(offset >= size))
-+			return size;
-+
-+		val = *addr | ~GENMASK(size - 1, offset);
-+		return val == ~0UL ? size : ffz(val);
-+	}
-+
-+	return _find_next_bit(addr, NULL, size, offset, ~0UL, 0);
-+}
-+#endif
-+
-+#ifndef find_first_bit
-+/**
-+ * find_first_bit - find the first set bit in a memory region
-+ * @addr: The address to start the search at
-+ * @size: The maximum number of bits to search
-+ *
-+ * Returns the bit number of the first set bit.
-+ * If no bits are set, returns @size.
-+ */
-+static inline
-+unsigned long find_first_bit(const unsigned long *addr, unsigned long size)
-+{
-+	if (small_const_nbits(size)) {
-+		unsigned long val = *addr & GENMASK(size - 1, 0);
-+
-+		return val ? __ffs(val) : size;
-+	}
-+
-+	return _find_first_bit(addr, size);
-+}
-+#endif
-+
-+#ifndef find_first_and_bit
-+/**
-+ * find_first_and_bit - find the first set bit in both memory regions
-+ * @addr1: The first address to base the search on
-+ * @addr2: The second address to base the search on
-+ * @size: The bitmap size in bits
-+ *
-+ * Returns the bit number for the next set bit
-+ * If no bits are set, returns @size.
-+ */
-+static inline
-+unsigned long find_first_and_bit(const unsigned long *addr1,
-+				 const unsigned long *addr2,
-+				 unsigned long size)
-+{
-+	if (small_const_nbits(size)) {
-+		unsigned long val = *addr1 & *addr2 & GENMASK(size - 1, 0);
-+
-+		return val ? __ffs(val) : size;
-+	}
-+
-+	return _find_first_and_bit(addr1, addr2, size);
-+}
-+#endif
-+
-+#ifndef find_first_zero_bit
-+/**
-+ * find_first_zero_bit - find the first cleared bit in a memory region
-+ * @addr: The address to start the search at
-+ * @size: The maximum number of bits to search
-+ *
-+ * Returns the bit number of the first cleared bit.
-+ * If no bits are zero, returns @size.
-+ */
-+static inline
-+unsigned long find_first_zero_bit(const unsigned long *addr, unsigned long size)
-+{
-+	if (small_const_nbits(size)) {
-+		unsigned long val = *addr | ~GENMASK(size - 1, 0);
-+
-+		return val == ~0UL ? size : ffz(val);
-+	}
-+
-+	return _find_first_zero_bit(addr, size);
-+}
-+#endif
-+
-+#ifndef find_last_bit
-+/**
-+ * find_last_bit - find the last set bit in a memory region
-+ * @addr: The address to start the search at
-+ * @size: The number of bits to search
-+ *
-+ * Returns the bit number of the last set bit, or size.
-+ */
-+static inline
-+unsigned long find_last_bit(const unsigned long *addr, unsigned long size)
-+{
-+	if (small_const_nbits(size)) {
-+		unsigned long val = *addr & GENMASK(size - 1, 0);
-+
-+		return val ? __fls(val) : size;
-+	}
-+
-+	return _find_last_bit(addr, size);
-+}
-+#endif
-+
-+/**
-+ * find_next_clump8 - find next 8-bit clump with set bits in a memory region
-+ * @clump: location to store copy of found clump
-+ * @addr: address to base the search on
-+ * @size: bitmap size in number of bits
-+ * @offset: bit offset at which to start searching
-+ *
-+ * Returns the bit offset for the next set clump; the found clump value is
-+ * copied to the location pointed by @clump. If no bits are set, returns @size.
-+ */
-+extern unsigned long find_next_clump8(unsigned long *clump,
-+				      const unsigned long *addr,
-+				      unsigned long size, unsigned long offset);
-+
-+#define find_first_clump8(clump, bits, size) \
-+	find_next_clump8((clump), (bits), (size), 0)
-+
-+
-+#endif /*__LINUX_FIND_H_ */
---- a/tools/lib/find_bit.c~tools-sync-tools-bitmap-with-mother-linux
-+++ a/tools/lib/find_bit.c
-@@ -96,6 +96,26 @@ unsigned long _find_first_bit(const unsi
+ static inline unsigned int cpumask_first_and(const struct cpumask *srcp1,
+ 					     const struct cpumask *srcp2)
+ {
+@@ -202,6 +207,17 @@ static inline unsigned int cpumask_first
  }
- #endif
  
-+#ifndef find_first_and_bit
-+/*
-+ * Find the first set bit in two memory regions.
+ /**
++ * cpumask_first_zero - get the first unset cpu in a cpumask
++ * @srcp: the cpumask pointer
++ *
++ * Returns >= nr_cpu_ids if all cpus are set.
 + */
-+unsigned long _find_first_and_bit(const unsigned long *addr1,
-+				  const unsigned long *addr2,
-+				  unsigned long size)
++static inline unsigned int cpumask_first_zero(const struct cpumask *srcp)
 +{
-+	unsigned long idx, val;
-+
-+	for (idx = 0; idx * BITS_PER_LONG < size; idx++) {
-+		val = addr1[idx] & addr2[idx];
-+		if (val)
-+			return min(idx * BITS_PER_LONG + __ffs(val), size);
-+	}
-+
-+	return size;
++	return find_first_zero_bit(cpumask_bits(srcp), nr_cpumask_bits);
 +}
-+#endif
 +
- #ifndef find_first_zero_bit
- /*
-  * Find the first cleared bit in a memory region.
++/**
+  * cpumask_first_and - return the first cpu from *srcp1 & *srcp2
+  * @src1p: the first input
+  * @src2p: the second input
+--- a/kernel/time/clocksource.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
++++ a/kernel/time/clocksource.c
+@@ -257,7 +257,7 @@ static void clocksource_verify_choose_cp
+ 		return;
+ 
+ 	/* Make sure to select at least one CPU other than the current CPU. */
+-	cpu = cpumask_next(-1, cpu_online_mask);
++	cpu = cpumask_first(cpu_online_mask);
+ 	if (cpu == smp_processor_id())
+ 		cpu = cpumask_next(cpu, cpu_online_mask);
+ 	if (WARN_ON_ONCE(cpu >= nr_cpu_ids))
+@@ -279,7 +279,7 @@ static void clocksource_verify_choose_cp
+ 		cpu = prandom_u32() % nr_cpu_ids;
+ 		cpu = cpumask_next(cpu - 1, cpu_online_mask);
+ 		if (cpu >= nr_cpu_ids)
+-			cpu = cpumask_next(-1, cpu_online_mask);
++			cpu = cpumask_first(cpu_online_mask);
+ 		if (!WARN_ON_ONCE(cpu >= nr_cpu_ids))
+ 			cpumask_set_cpu(cpu, &cpus_chosen);
+ 	}
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
