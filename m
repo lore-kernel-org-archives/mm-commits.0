@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00480C4338F
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E35ACC432BE
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C89E860F4B
-	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C3DCE60F51
+	for <mm-commits@archiver.kernel.org>; Sat, 14 Aug 2021 22:17:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229564AbhHNWRi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 14 Aug 2021 18:17:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56996 "EHLO mail.kernel.org"
+        id S232906AbhHNWRl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 14 Aug 2021 18:17:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57160 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229532AbhHNWRi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 14 Aug 2021 18:17:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BF87560EE0;
-        Sat, 14 Aug 2021 22:17:08 +0000 (UTC)
+        id S229532AbhHNWRj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 14 Aug 2021 18:17:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C02260F48;
+        Sat, 14 Aug 2021 22:17:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1628979429;
-        bh=eU3BQphohSeGcowOxFtJufEyQ7iOmy+Z3OmAqI2wKtY=;
+        s=korg; t=1628979430;
+        bh=wWJEuYL4DAf3FunT8cF+V3z7TkC1By7ofms7gVIhNIQ=;
         h=Date:From:To:Subject:From;
-        b=y+VLzU/bvEfkmPeP/OFTbh8o4mSB871Q7G6LrwYR6tMw3HDSRXHwNTMXBtLI23tuu
-         CgGLtdvW4w+QTT6rLeEuwMNMUV04L/Hvd+2iM8POkew1dFlgoVHEX61US4j0+S7RLg
-         wSndXBRFsosOuS75zr8YmCLaafyat2KFKBCrmwYc=
-Date:   Sat, 14 Aug 2021 15:17:08 -0700
+        b=pdFH13fbGiB33EwEDLreEQxjFnw5ZZGxW4dAmva42JpsYRJPIubJKYV3jPXQMma8G
+         tg72qrvskPiz9A5qO4GtoQk5Ts/dVyg/f93rQIAhdwEH86vHy4qM28ReF4z5KgeJVr
+         v8kxB0Aep4FucmXheumk/HTr1O+V/zxK0QAh0NSI=
+Date:   Sat, 14 Aug 2021 15:17:10 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, wsa+renesas@sang-engineering.com,
         will@kernel.org, ulf.hansson@linaro.org, lkp@intel.com,
         jolsa@redhat.com, dennis@kernel.org,
         andriy.shevchenko@linux.intel.com, alobakin@pm.me,
         aklimov@redhat.com, yury.norov@gmail.com
-Subject:  + bitops-protect-find_first_zero_bit-properly.patch added
- to -mm tree
-Message-ID: <20210814221708.GPb_j%akpm@linux-foundation.org>
+Subject:  +
+ bitops-move-find_bit__le-functions-from-leh-to-findh.patch added to -mm tree
+Message-ID: <20210814221710.gw-nz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitops: protect find_first_{,zero}_bit properly
+     Subject: bitops: move find_bit_*_le functions from le.h to find.h
 has been added to the -mm tree.  Its filename is
-     bitops-protect-find_first_zero_bit-properly.patch
+     bitops-move-find_bit__le-functions-from-leh-to-findh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/bitops-protect-find_first_zero_bit-properly.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/bitops-move-find_bit__le-functions-from-leh-to-findh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/bitops-protect-find_first_zero_bit-properly.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/bitops-move-find_bit__le-functions-from-leh-to-findh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,65 +68,190 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: bitops: protect find_first_{,zero}_bit properly
+Subject: bitops: move find_bit_*_le functions from le.h to find.h
 
-Patch series "Resend bitmap patches".
+It's convenient to have all find_bit declarations in one place.
 
-
-This patch (of 17):
-
-find_first_bit() and find_first_zero_bit() are not protected with ifdefs
-as other functions in find.h.  It causes build errors on some platforms if
-CONFIG_GENERIC_FIND_FIRST_BIT is enabled.
-
-Link: https://lkml.kernel.org/r/20210814211713.180533-1-yury.norov@gmail.com
-Link: https://lkml.kernel.org/r/20210814211713.180533-2-yury.norov@gmail.com
-Fixes: 2cc7b6a44ac2 ("lib: add fast path for find_first_*_bit() and find_last_bit()")
+Link: https://lkml.kernel.org/r/20210814211713.180533-3-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Reported-by: kernel test robot <lkp@intel.com>
 Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 Cc: Alexander Lobakin <alobakin@pm.me>
 Cc: Alexey Klimov <aklimov@redhat.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Jiri Olsa <jolsa@redhat.com>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Ulf Hansson <ulf.hansson@linaro.org>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bitops/find.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/asm-generic/bitops/find.h |   69 ++++++++++++++++++++++++++++
+ include/asm-generic/bitops/le.h   |   64 -------------------------
+ 2 files changed, 69 insertions(+), 64 deletions(-)
 
---- a/include/asm-generic/bitops/find.h~bitops-protect-find_first_zero_bit-properly
+--- a/include/asm-generic/bitops/find.h~bitops-move-find_bit__le-functions-from-leh-to-findh
 +++ a/include/asm-generic/bitops/find.h
-@@ -97,6 +97,7 @@ unsigned long find_next_zero_bit(const u
+@@ -190,4 +190,73 @@ extern unsigned long find_next_clump8(un
+ #define find_first_clump8(clump, bits, size) \
+ 	find_next_clump8((clump), (bits), (size), 0)
  
- #ifdef CONFIG_GENERIC_FIND_FIRST_BIT
- 
-+#ifndef find_first_bit
- /**
-  * find_first_bit - find the first set bit in a memory region
-  * @addr: The address to start the search at
-@@ -116,7 +117,9 @@ unsigned long find_first_bit(const unsig
- 
- 	return _find_first_bit(addr, size);
- }
-+#endif
- 
-+#ifndef find_first_zero_bit
- /**
-  * find_first_zero_bit - find the first cleared bit in a memory region
-  * @addr: The address to start the search at
-@@ -136,6 +139,8 @@ unsigned long find_first_zero_bit(const
- 
- 	return _find_first_zero_bit(addr, size);
- }
++#if defined(__LITTLE_ENDIAN)
++
++static inline unsigned long find_next_zero_bit_le(const void *addr,
++		unsigned long size, unsigned long offset)
++{
++	return find_next_zero_bit(addr, size, offset);
++}
++
++static inline unsigned long find_next_bit_le(const void *addr,
++		unsigned long size, unsigned long offset)
++{
++	return find_next_bit(addr, size, offset);
++}
++
++static inline unsigned long find_first_zero_bit_le(const void *addr,
++		unsigned long size)
++{
++	return find_first_zero_bit(addr, size);
++}
++
++#elif defined(__BIG_ENDIAN)
++
++#ifndef find_next_zero_bit_le
++static inline
++unsigned long find_next_zero_bit_le(const void *addr, unsigned
++		long size, unsigned long offset)
++{
++	if (small_const_nbits(size)) {
++		unsigned long val = *(const unsigned long *)addr;
++
++		if (unlikely(offset >= size))
++			return size;
++
++		val = swab(val) | ~GENMASK(size - 1, offset);
++		return val == ~0UL ? size : ffz(val);
++	}
++
++	return _find_next_bit(addr, NULL, size, offset, ~0UL, 1);
++}
 +#endif
 +
- #else /* CONFIG_GENERIC_FIND_FIRST_BIT */
++#ifndef find_next_bit_le
++static inline
++unsigned long find_next_bit_le(const void *addr, unsigned
++		long size, unsigned long offset)
++{
++	if (small_const_nbits(size)) {
++		unsigned long val = *(const unsigned long *)addr;
++
++		if (unlikely(offset >= size))
++			return size;
++
++		val = swab(val) & GENMASK(size - 1, offset);
++		return val ? __ffs(val) : size;
++	}
++
++	return _find_next_bit(addr, NULL, size, offset, 0UL, 1);
++}
++#endif
++
++#ifndef find_first_zero_bit_le
++#define find_first_zero_bit_le(addr, size) \
++	find_next_zero_bit_le((addr), (size), 0)
++#endif
++
++#else
++#error "Please fix <asm/byteorder.h>"
++#endif
++
+ #endif /*_ASM_GENERIC_BITOPS_FIND_H_ */
+--- a/include/asm-generic/bitops/le.h~bitops-move-find_bit__le-functions-from-leh-to-findh
++++ a/include/asm-generic/bitops/le.h
+@@ -2,83 +2,19 @@
+ #ifndef _ASM_GENERIC_BITOPS_LE_H_
+ #define _ASM_GENERIC_BITOPS_LE_H_
  
- #ifndef find_first_bit
+-#include <asm-generic/bitops/find.h>
+ #include <asm/types.h>
+ #include <asm/byteorder.h>
+-#include <linux/swab.h>
+ 
+ #if defined(__LITTLE_ENDIAN)
+ 
+ #define BITOP_LE_SWIZZLE	0
+ 
+-static inline unsigned long find_next_zero_bit_le(const void *addr,
+-		unsigned long size, unsigned long offset)
+-{
+-	return find_next_zero_bit(addr, size, offset);
+-}
+-
+-static inline unsigned long find_next_bit_le(const void *addr,
+-		unsigned long size, unsigned long offset)
+-{
+-	return find_next_bit(addr, size, offset);
+-}
+-
+-static inline unsigned long find_first_zero_bit_le(const void *addr,
+-		unsigned long size)
+-{
+-	return find_first_zero_bit(addr, size);
+-}
+-
+ #elif defined(__BIG_ENDIAN)
+ 
+ #define BITOP_LE_SWIZZLE	((BITS_PER_LONG-1) & ~0x7)
+ 
+-#ifndef find_next_zero_bit_le
+-static inline
+-unsigned long find_next_zero_bit_le(const void *addr, unsigned
+-		long size, unsigned long offset)
+-{
+-	if (small_const_nbits(size)) {
+-		unsigned long val = *(const unsigned long *)addr;
+-
+-		if (unlikely(offset >= size))
+-			return size;
+-
+-		val = swab(val) | ~GENMASK(size - 1, offset);
+-		return val == ~0UL ? size : ffz(val);
+-	}
+-
+-	return _find_next_bit(addr, NULL, size, offset, ~0UL, 1);
+-}
+ #endif
+ 
+-#ifndef find_next_bit_le
+-static inline
+-unsigned long find_next_bit_le(const void *addr, unsigned
+-		long size, unsigned long offset)
+-{
+-	if (small_const_nbits(size)) {
+-		unsigned long val = *(const unsigned long *)addr;
+-
+-		if (unlikely(offset >= size))
+-			return size;
+-
+-		val = swab(val) & GENMASK(size - 1, offset);
+-		return val ? __ffs(val) : size;
+-	}
+-
+-	return _find_next_bit(addr, NULL, size, offset, 0UL, 1);
+-}
+-#endif
+-
+-#ifndef find_first_zero_bit_le
+-#define find_first_zero_bit_le(addr, size) \
+-	find_next_zero_bit_le((addr), (size), 0)
+-#endif
+-
+-#else
+-#error "Please fix <asm/byteorder.h>"
+-#endif
+ 
+ static inline int test_bit_le(int nr, const void *addr)
+ {
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
