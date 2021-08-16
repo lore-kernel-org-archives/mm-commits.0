@@ -7,41 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E538C432BE
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Aug 2021 20:35:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 510D3C4338F
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Aug 2021 20:35:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3AA6560FD7
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Aug 2021 20:35:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3AB4C60FD7
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Aug 2021 20:35:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231811AbhHPUfl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Aug 2021 16:35:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34860 "EHLO mail.kernel.org"
+        id S231812AbhHPUfo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Aug 2021 16:35:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35050 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231785AbhHPUfl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Aug 2021 16:35:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F8B660F39;
-        Mon, 16 Aug 2021 20:35:08 +0000 (UTC)
+        id S231748AbhHPUfn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Aug 2021 16:35:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C94060F46;
+        Mon, 16 Aug 2021 20:35:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629146109;
-        bh=KcZ9SVg4hR4HZrop66m3viV0wY6I5c62HAoMuTmiytI=;
+        s=korg; t=1629146111;
+        bh=gQMi8VdKS1kJI2/BdiMSJAgplu244t+vr/AMMDM6Y4Y=;
         h=Date:From:To:Subject:From;
-        b=wxpTwE62ruSqbxJ4xx3pON8w/eJ3ZZ+NRZbssns5cMgLVWkRhn7RDLqG/LBACdLj/
-         XyDRlGCWGttIHoK5TiwMc+xgItKaVjSI3lws9Ko+rhFVkFtdPjGDMvaLStCzzOUi3n
-         8MHeBsxXbjVBSmfRqyuRlJczK+4dO6ovwwsw/T3s=
-Date:   Mon, 16 Aug 2021 13:35:08 -0700
+        b=WsN+lQwPeJD11bykI8AHgyd1azJMMrvcMWkYviH0yJuf2/BySnWfj+MZryIH2rOqd
+         9bmm2NIqbvMHzYoq/QohI/qSNi13lbjBn/QXQRRQMt0+ssLF/OIXWh+pg2jtRsxC6B
+         zBoBSPpCTucuw2KGO5vurpx6tncRHtMbqIk1YzfM=
+Date:   Mon, 16 Aug 2021 13:35:11 -0700
 From:   akpm@linux-foundation.org
-To:     alex.shi@linux.alibaba.com, chris@chrisdown.name, cl@linux.com,
-        guro@fb.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com,
-        laoar.shao@gmail.com, longman@redhat.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, msys.mizuma@gmail.com,
-        penberg@kernel.org, richard.weiyang@gmail.com, rientjes@google.com,
-        shakeelb@google.com, songmuchun@bytedance.com, tj@kernel.org,
-        vbabka@suse.cz, vdavydov.dev@gmail.com, willy@infradead.org,
-        zhengjun.xing@linux.intel.com
-Subject:  [merged]
- mm-memcg-fix-incorrect-flushing-of-lruvec-data-in-obj_stock.patch removed
- from -mm tree
-Message-ID: <20210816203508.DwMQd9zIv%akpm@linux-foundation.org>
+To:     gregkh@linuxfoundation.org, linux@armlinux.org.uk,
+        mcgrof@kernel.org, mm-commits@vger.kernel.org,
+        nixiaoming@huawei.com, palmerdabbelt@google.com,
+        stable@vger.kernel.org, wangkefeng.wang@huawei.com,
+        wangliang101@huawei.com
+Subject:  [merged] lib-use-pfn_phys-in-devmem_is_allowed.patch
+ removed from -mm tree
+Message-ID: <20210816203511.K2fX9guWK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,75 +46,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: fix incorrect flushing of lruvec data in obj_stock
+     Subject: lib: use PFN_PHYS() in devmem_is_allowed()
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-fix-incorrect-flushing-of-lruvec-data-in-obj_stock.patch
+     lib-use-pfn_phys-in-devmem_is_allowed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/memcg: fix incorrect flushing of lruvec data in obj_stock
+From: Liang Wang <wangliang101@huawei.com>
+Subject: lib: use PFN_PHYS() in devmem_is_allowed()
 
-When mod_objcg_state() is called with a pgdat that is different from that
-in the obj_stock, the old lruvec data cached in obj_stock are flushed out.
-Unfortunately, they were flushed to the new pgdat and so the data go to
-the wrong node.  This will screw up the slab data reported in
-/sys/devices/system/node/node*/meminfo.
+The physical address may exceed 32 bits on 32-bit systems with more than
+32 bits of physcial address.  Use PFN_PHYS() in devmem_is_allowed(), or
+the physical address may overflow and be truncated.
 
-Fix that by flushing the data to the cached pgdat instead.
+We found this bug when mapping a high addresses through devmem tool, when
+CONFIG_STRICT_DEVMEM is enabled on the ARM with ARM_LPAE and devmem is
+used to map a high address that is not in the iomem address range, an
+unexpected error indicating no permission is returned.
 
-Link: https://lkml.kernel.org/r/20210802143834.30578-1-longman@redhat.com
-Fixes: 68ac5b3c8db2 ("mm/memcg: cache vmstat data in percpu memcg_stock_pcp")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Alex Shi <alex.shi@linux.alibaba.com>
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Yafang Shao <laoar.shao@gmail.com>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Masayoshi Mizuma <msys.mizuma@gmail.com>
-Cc: Xing Zhengjun <zhengjun.xing@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Waiman Long <longman@redhat.com>
+This bug was initially introduced from v2.6.37, and the function was moved
+to lib when v5.11.
+
+Link: https://lkml.kernel.org/r/20210731025057.78825-1-wangliang101@huawei.com
+Fixes: 087aaffcdf9c ("ARM: implement CONFIG_STRICT_DEVMEM by disabling access to RAM via /dev/mem")
+Fixes: 527701eda5f1 ("lib: Add a generic version of devmem_is_allowed()")
+Signed-off-by: Liang Wang <wangliang101@huawei.com>
+Reviewed-by: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Palmer Dabbelt <palmerdabbelt@google.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Liang Wang <wangliang101@huawei.com>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: <stable@vger.kernel.org>	[2.6.37+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ lib/devmem_is_allowed.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-fix-incorrect-flushing-of-lruvec-data-in-obj_stock
-+++ a/mm/memcontrol.c
-@@ -3106,13 +3106,15 @@ void mod_objcg_state(struct obj_cgroup *
- 		stock->cached_pgdat = pgdat;
- 	} else if (stock->cached_pgdat != pgdat) {
- 		/* Flush the existing cached vmstat data */
-+		struct pglist_data *oldpg = stock->cached_pgdat;
-+
- 		if (stock->nr_slab_reclaimable_b) {
--			mod_objcg_mlstate(objcg, pgdat, NR_SLAB_RECLAIMABLE_B,
-+			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_RECLAIMABLE_B,
- 					  stock->nr_slab_reclaimable_b);
- 			stock->nr_slab_reclaimable_b = 0;
- 		}
- 		if (stock->nr_slab_unreclaimable_b) {
--			mod_objcg_mlstate(objcg, pgdat, NR_SLAB_UNRECLAIMABLE_B,
-+			mod_objcg_mlstate(objcg, oldpg, NR_SLAB_UNRECLAIMABLE_B,
- 					  stock->nr_slab_unreclaimable_b);
- 			stock->nr_slab_unreclaimable_b = 0;
- 		}
+--- a/lib/devmem_is_allowed.c~lib-use-pfn_phys-in-devmem_is_allowed
++++ a/lib/devmem_is_allowed.c
+@@ -19,7 +19,7 @@
+  */
+ int devmem_is_allowed(unsigned long pfn)
+ {
+-	if (iomem_is_exclusive(pfn << PAGE_SHIFT))
++	if (iomem_is_exclusive(PFN_PHYS(pfn)))
+ 		return 0;
+ 	if (!page_is_ram(pfn))
+ 		return 1;
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from wangliang101@huawei.com are
 
 
