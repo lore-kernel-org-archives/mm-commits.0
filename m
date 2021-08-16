@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67535C4320A
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Aug 2021 23:29:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A741BC4338F
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Aug 2021 23:29:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4FA0E60F58
-	for <mm-commits@archiver.kernel.org>; Mon, 16 Aug 2021 23:29:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8C1EE60F55
+	for <mm-commits@archiver.kernel.org>; Mon, 16 Aug 2021 23:29:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234704AbhHPX3z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Aug 2021 19:29:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56156 "EHLO mail.kernel.org"
+        id S232618AbhHPX35 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Aug 2021 19:29:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234791AbhHPX3y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Aug 2021 19:29:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C359A60F36;
-        Mon, 16 Aug 2021 23:29:21 +0000 (UTC)
+        id S234796AbhHPX3z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Aug 2021 19:29:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A44D8606A5;
+        Mon, 16 Aug 2021 23:29:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629156562;
-        bh=QtHS1FnaQd4g5QluaCQkLtLHviXnru21cRk+fuP5mX8=;
+        s=korg; t=1629156563;
+        bh=BP1j/SRPewsuwsURMQSb8KJq+PkrIoFqFLtP45JjLd8=;
         h=Date:From:To:Subject:From;
-        b=K0J0bD//9LXg+I6B21RpvtjmLchCsumoYAx1KTZpxg1LL2uIAXLTHudJ0G3nnQE96
-         T6sQyogsidY9F6xCzdanlD6AuKpkDqZI/tpaJSeM4Qjnz6keJYUVFsoqvX3hqOcazf
-         CmNjfbmK0WaJF1aa9W+blNPPKlWqUbi669CI7leE=
-Date:   Mon, 16 Aug 2021 16:29:21 -0700
+        b=CmOsnfGwWyT9UGpEgg/5GgsmwYXIoI8qdkxYik6Uzv4HBzk0IKS6/mGWPERG2hbcv
+         JiaAraSkoVY05/FbySWrE5viVF5HO84Kb8J/5X24D1llwJ9atpDZElPWxcocGxbaNu
+         RMaw9/4oPH8fVDGOVBHnI5jOa1THieYrNur9uMgY=
+Date:   Mon, 16 Aug 2021 16:29:23 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
         songmuchun@bytedance.com, rientjes@google.com, osalvador@suse.de,
         naoya.horiguchi@linux.dev, mhocko@suse.com, david@redhat.com,
         mike.kravetz@oracle.com
-Subject:  +
- hugetlb-add-hpagecma-flag-and-code-to-free-non-gigantic-pages-in-cma.patch
+Subject:  + hugetlb-add-demote-bool-to-gigantic-page-routines.patch
  added to -mm tree
-Message-ID: <20210816232921.bH9kQ%akpm@linux-foundation.org>
+Message-ID: <20210816232923.NOFFh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: add HPageCma flag and code to free non-gigantic pages in CMA
+     Subject: hugetlb: add demote bool to gigantic page routines
 has been added to the -mm tree.  Its filename is
-     hugetlb-add-hpagecma-flag-and-code-to-free-non-gigantic-pages-in-cma.patch
+     hugetlb-add-demote-bool-to-gigantic-page-routines.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-add-hpagecma-flag-and-code-to-free-non-gigantic-pages-in-cma.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-add-demote-bool-to-gigantic-page-routines.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-add-hpagecma-flag-and-code-to-free-non-gigantic-pages-in-cma.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-add-demote-bool-to-gigantic-page-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,27 +67,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: add HPageCma flag and code to free non-gigantic pages in CMA
+Subject: hugetlb: add demote bool to gigantic page routines
 
-When huge page demotion is fully implemented, gigantic pages can be
-demoted to a smaller huge page size.  For example, on x86 a 1G page can be
-demoted to 512 2M pages.  However, gigantic pages can potentially be
-allocated from CMA.  If a gigantic page which was allocated from CMA is
-demoted, the corresponding demoted pages needs to be returned to CMA.
+The routines remove_hugetlb_page and destroy_compound_gigantic_page will
+remove a gigantic page and make the set of base pages ready to be returned
+to a lower level allocator.  In the process of doing this, they make all
+base pages reference counted.
 
-In order to track hugetlb pages that need to be returned to CMA, add the
-hugetlb specific flag HPageCma.  Flag is set when a huge page is allocated
-from CMA and transferred to any demoted pages.  Non-gigantic huge page
-freeing code checks for the flag and takes appropriate action.
+The routine prep_compound_gigantic_page creates a gigantic page from a set
+of base pages.  It assumes that all these base pages are reference
+counted.
 
-This also requires a change to CMA reservations for gigantic pages. 
-Currently, the 'order_per_bit' is set to the gigantic page size.  However,
-if gigantic pages can be demoted this needs to be set to the order of the
-smallest huge page.  At CMA reservation time we do not know the size of
-the smallest huge page size, so use HUGETLB_PAGE_ORDER.  Also, prohibit
-demotion to huge page sizes smaller than HUGETLB_PAGE_ORDER.
+During demotion, a gigantic page will be split into huge pages of a
+smaller size.  This logically involves use of the routines,
+remove_hugetlb_page, and destroy_compound_gigantic_page followed by
+prep_compound*_page for each smaller huge page.
 
-Link: https://lkml.kernel.org/r/20210816224953.157796-3-mike.kravetz@oracle.com
+When pages are reference counted (ref count >= 0), additional speculative
+ref counts could be taken.  This could result in errors while demoting a
+huge page.  Quite a bit of code would need to be created to handle all
+possible issues.
+
+Instead of dealing with the possibility of speculative ref counts, avoid
+the possibility by keeping ref counts at zero during the demote process. 
+Add a boolean 'demote' to the routines remove_hugetlb_page,
+destroy_compound_gigantic_page and prep_compound_gigantic_page.  If the
+boolean is set, the remove and destroy routines will not reference count
+pages and the prep routine will not expect reference counted pages.
+
+'*_for_demote' wrappers of the routines will be added in a subsequent
+patch where this functionality is used.
+
+Link: https://lkml.kernel.org/r/20210816224953.157796-4-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -100,141 +110,133 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    7 +++++
- mm/hugetlb.c            |   46 ++++++++++++++++++++++++++++----------
- 2 files changed, 41 insertions(+), 12 deletions(-)
+ mm/hugetlb.c |   54 +++++++++++++++++++++++++++++++++++++++----------
+ 1 file changed, 43 insertions(+), 11 deletions(-)
 
---- a/include/linux/hugetlb.h~hugetlb-add-hpagecma-flag-and-code-to-free-non-gigantic-pages-in-cma
-+++ a/include/linux/hugetlb.h
-@@ -533,6 +533,11 @@ unsigned long hugetlb_get_unmapped_area(
-  * HPG_freed - Set when page is on the free lists.
-  *	Synchronization: hugetlb_lock held for examination and modification.
-  * HPG_vmemmap_optimized - Set when the vmemmap pages of the page are freed.
-+ * HPG_cma - Set if huge page was directly allocated from CMA area via
-+ *	cma_alloc.  Initially set for gigantic page cma allocations, but can
-+ *	be set in non-gigantic pages if gigantic pages are demoted.
-+ *	Synchronization: Only accessed or modified when there is only one
-+ *	reference to the page at allocation, free or demote time.
-  */
- enum hugetlb_page_flags {
- 	HPG_restore_reserve = 0,
-@@ -540,6 +545,7 @@ enum hugetlb_page_flags {
- 	HPG_temporary,
- 	HPG_freed,
- 	HPG_vmemmap_optimized,
-+	HPG_cma,
- 	__NR_HPAGEFLAGS,
- };
- 
-@@ -586,6 +592,7 @@ HPAGEFLAG(Migratable, migratable)
- HPAGEFLAG(Temporary, temporary)
- HPAGEFLAG(Freed, freed)
- HPAGEFLAG(VmemmapOptimized, vmemmap_optimized)
-+HPAGEFLAG(Cma, cma)
- 
- #ifdef CONFIG_HUGETLB_PAGE
- 
---- a/mm/hugetlb.c~hugetlb-add-hpagecma-flag-and-code-to-free-non-gigantic-pages-in-cma
+--- a/mm/hugetlb.c~hugetlb-add-demote-bool-to-gigantic-page-routines
 +++ a/mm/hugetlb.c
-@@ -1262,6 +1262,7 @@ static void destroy_compound_gigantic_pa
- 	atomic_set(compound_pincount_ptr(page), 0);
+@@ -1251,8 +1251,8 @@ static int hstate_next_node_to_free(stru
+ 		nr_nodes--)
  
+ #ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
+-static void destroy_compound_gigantic_page(struct page *page,
+-					unsigned int order)
++static void __destroy_compound_gigantic_page(struct page *page,
++					unsigned int order, bool demote)
+ {
+ 	int i;
+ 	int nr_pages = 1 << order;
+@@ -1264,7 +1264,8 @@ static void destroy_compound_gigantic_pa
  	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
-+		p->mapping = NULL;
+ 		p->mapping = NULL;
  		clear_compound_head(p);
- 		set_page_refcounted(p);
+-		set_page_refcounted(p);
++		if (!demote)
++			set_page_refcounted(p);
  	}
-@@ -1273,16 +1274,12 @@ static void destroy_compound_gigantic_pa
  
+ 	set_compound_order(page, 0);
+@@ -1272,6 +1273,12 @@ static void destroy_compound_gigantic_pa
+ 	__ClearPageHead(page);
+ }
+ 
++static void destroy_compound_gigantic_page(struct page *page,
++					unsigned int order)
++{
++	__destroy_compound_gigantic_page(page, order, false);
++}
++
  static void free_gigantic_page(struct page *page, unsigned int order)
  {
--	/*
--	 * If the page isn't allocated using the cma allocator,
--	 * cma_release() returns false.
--	 */
  #ifdef CONFIG_CMA
--	if (cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order))
--		return;
-+	if (HPageCma(page))
-+		cma_release(hugetlb_cma[page_to_nid(page)], page, 1 << order);
-+	else
- #endif
--
--	free_contig_range(page_to_pfn(page), 1 << order);
-+		free_contig_range(page_to_pfn(page), 1 << order);
+@@ -1344,12 +1351,15 @@ static inline void destroy_compound_giga
+ 
+ /*
+  * Remove hugetlb page from lists, and update dtor so that page appears
+- * as just a compound page.  A reference is held on the page.
++ * as just a compound page.
++ *
++ * A reference is held on the page, except in the case of demote.
+  *
+  * Must be called with hugetlb lock held.
+  */
+-static void remove_hugetlb_page(struct hstate *h, struct page *page,
+-							bool adjust_surplus)
++static void __remove_hugetlb_page(struct hstate *h, struct page *page,
++							bool adjust_surplus,
++							bool demote)
+ {
+ 	int nid = page_to_nid(page);
+ 
+@@ -1387,8 +1397,12 @@ static void remove_hugetlb_page(struct h
+ 	 *
+ 	 * This handles the case where more than one ref is held when and
+ 	 * after update_and_free_page is called.
++	 *
++	 * In the case of demote we do not ref count the page as it will soon
++	 * be turned into a page of smaller size.
+ 	 */
+-	set_page_refcounted(page);
++	if (!demote)
++		set_page_refcounted(page);
+ 	if (hstate_is_gigantic(h))
+ 		set_compound_page_dtor(page, NULL_COMPOUND_DTOR);
+ 	else
+@@ -1398,6 +1412,12 @@ static void remove_hugetlb_page(struct h
+ 	h->nr_huge_pages_node[nid]--;
  }
  
- #ifdef CONFIG_CONTIG_ALLOC
-@@ -1301,8 +1298,10 @@ static struct page *alloc_gigantic_page(
- 		if (hugetlb_cma[nid]) {
- 			page = cma_alloc(hugetlb_cma[nid], nr_pages,
- 					huge_page_order(h), true);
--			if (page)
-+			if (page) {
-+				SetHPageCma(page);
- 				return page;
++static void remove_hugetlb_page(struct hstate *h, struct page *page,
++							bool adjust_surplus)
++{
++	__remove_hugetlb_page(h, page, adjust_surplus, false);
++}
++
+ static void add_hugetlb_page(struct hstate *h, struct page *page,
+ 			     bool adjust_surplus)
+ {
+@@ -1669,7 +1689,8 @@ static void prep_new_huge_page(struct hs
+ 	spin_unlock_irq(&hugetlb_lock);
+ }
+ 
+-static bool prep_compound_gigantic_page(struct page *page, unsigned int order)
++static bool __prep_compound_gigantic_page(struct page *page, unsigned int order,
++								bool demote)
+ {
+ 	int i, j;
+ 	int nr_pages = 1 << order;
+@@ -1707,10 +1728,16 @@ static bool prep_compound_gigantic_page(
+ 		 * the set of pages can not be converted to a gigantic page.
+ 		 * The caller who allocated the pages should then discard the
+ 		 * pages using the appropriate free interface.
++		 *
++		 * In the case of demote, the ref count will be zero.
+ 		 */
+-		if (!page_ref_freeze(p, 1)) {
+-			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
+-			goto out_error;
++		if (!demote) {
++			if (!page_ref_freeze(p, 1)) {
++				pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
++				goto out_error;
 +			}
++		} else {
++			VM_BUG_ON_PAGE(page_count(p), p);
  		}
- 
- 		if (!(gfp_mask & __GFP_THISNODE)) {
-@@ -1312,8 +1311,10 @@ static struct page *alloc_gigantic_page(
- 
- 				page = cma_alloc(hugetlb_cma[node], nr_pages,
- 						huge_page_order(h), true);
--				if (page)
-+				if (page) {
-+					SetHPageCma(page);
- 					return page;
-+				}
- 			}
- 		}
- 	}
-@@ -1470,6 +1471,20 @@ static void __update_and_free_page(struc
- 		destroy_compound_gigantic_page(page, huge_page_order(h));
- 		free_gigantic_page(page, huge_page_order(h));
- 	} else {
-+#ifdef CONFIG_CMA
-+		/*
-+		 * Could be a page that was demoted from a gigantic page
-+		 * which was allocated in a CMA area.
-+		 */
-+		if (HPageCma(page)) {
-+			destroy_compound_gigantic_page(page,
-+					huge_page_order(h));
-+			if (!cma_release(hugetlb_cma[page_to_nid(page)], page,
-+					1 << huge_page_order(h)))
-+				VM_BUG_ON_PAGE(1, page);
-+			return;
-+		}
-+#endif
- 		__free_pages(page, huge_page_order(h));
- 	}
+ 		set_page_count(p, 0);
+ 		set_compound_head(p, page);
+@@ -1735,6 +1762,11 @@ out_error:
+ 	return false;
  }
-@@ -2983,7 +2998,8 @@ static void __init hugetlb_init_hstates(
- 		for_each_hstate(h2) {
- 			if (h2 == h)
- 				continue;
--			if (h2->order < h->order && h2->order > h->demote_order)
-+			if (h2->order >= HUGETLB_PAGE_ORDER &&
-+			    h2->order < h->order && h2->order > h->demote_order)
- 				h->demote_order = h2->order;
- 		}
- 	}
-@@ -6498,7 +6514,13 @@ void __init hugetlb_cma_reserve(int orde
- 		size = round_up(size, PAGE_SIZE << order);
  
- 		snprintf(name, sizeof(name), "hugetlb%d", nid);
--		res = cma_declare_contiguous_nid(0, size, 0, PAGE_SIZE << order,
-+		/*
-+		 * Note that 'order per bit' is based on smallest size that
-+		 * may be returned to CMA allocator in the case of
-+		 * huge page demotion.
-+		 */
-+		res = cma_declare_contiguous_nid(0, size, 0,
-+						PAGE_SIZE << HUGETLB_PAGE_ORDER,
- 						 0, false, name,
- 						 &hugetlb_cma[nid], nid);
- 		if (res) {
++static bool prep_compound_gigantic_page(struct page *page, unsigned int order)
++{
++	return __prep_compound_gigantic_page(page, order, false);
++}
++
+ /*
+  * PageHuge() only returns true for hugetlbfs pages, but not for normal or
+  * transparent huge pages.  See the PageTransHuge() documentation for more
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
