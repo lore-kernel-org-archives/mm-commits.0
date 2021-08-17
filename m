@@ -5,39 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5218DC432BE
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:32:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 435B4C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:35:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2FE0F61042
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:32:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 241A161056
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:35:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234080AbhHQUch (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Aug 2021 16:32:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34606 "EHLO mail.kernel.org"
+        id S234248AbhHQUfp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Aug 2021 16:35:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230459AbhHQUch (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Aug 2021 16:32:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ADCB56023E;
-        Tue, 17 Aug 2021 20:32:03 +0000 (UTC)
+        id S234474AbhHQUfp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Aug 2021 16:35:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AC17A6023E;
+        Tue, 17 Aug 2021 20:35:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629232323;
-        bh=uIavxu9uKJaSsw8MALMGLJLa81eFsOuWBNrUY1dAXrE=;
+        s=korg; t=1629232511;
+        bh=ChZ2ddTJq0t/vEfx/3gsgXkXjHzqDDPRedhrfK8lg1Q=;
         h=Date:From:To:Subject:From;
-        b=xwrWDtWU5mPYOiE5IOedzDxlHLpkqjkJ00LCboUJwYrnUkqpMU4k1ErRqJ8t2DQ9R
-         CMBJ6Wr5ZzhdtrRUnAIBMHtwl6MilYOTq6C1ZXFzAQUfUmcIP/IvgresB2+RjpBT4y
-         1PwJDjBQxcUixto7r2lxTpooN5U9oF11uFY7NqQg=
-Date:   Tue, 17 Aug 2021 13:32:03 -0700
+        b=S0zC4VqWdLwpsyuaB8NqhZywu7EpfOAUjJbMkvN2j9mccdkeyeL8G3gp9+zMVmIr8
+         rhOCS+sXY8MAYauC/GSVJx2BhfTx9M+ffQTexDZWfI39KRHkhvwdwRmHA3PV6zFrX9
+         5TDWS7bu720bQ65oebp5IFSfyOcaVF4Hr0/+MmNI=
+Date:   Tue, 17 Aug 2021 13:35:11 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
-        stable@vger.kernel.org, songmuchun@bytedance.com,
-        osalvador@suse.de, mike.kravetz@oracle.com, mhocko@suse.com,
-        naoya.horiguchi@nec.com
+To:     mm-commits@vger.kernel.org, osalvador@suse.de, mhocko@suse.com,
+        david@redhat.com, songmuchun@bytedance.com
 Subject:  +
- mm-hwpoison-retry-with-shake_page-for-unhandlable-pages.patch added to -mm
- tree
-Message-ID: <20210817203203.Piw81%akpm@linux-foundation.org>
+ mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section.patch added
+ to -mm tree
+Message-ID: <20210817203511.sPTWh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: retry with shake_page() for unhandlable pages
+     Subject: mm/bootmem_info.c: mark __init on register_page_bootmem_info_section
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-retry-with-shake_page-for-unhandlable-pages.patch
+     mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-retry-with-shake_page-for-unhandlable-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-retry-with-shake_page-for-unhandlable-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,64 +65,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: retry with shake_page() for unhandlable pages
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/bootmem_info.c: mark __init on register_page_bootmem_info_section
 
-HWPoisonHandlable() sometimes returns false for typical user pages due to
-races with average memory events like transfers over LRU lists.  This
-causes failures in hwpoison handling.
+register_page_bootmem_info_section() is only called from __init functions,
+so mark it __init as well.
 
-There's retry code for such a case but does not work because the retry
-loop reaches the retry limit too quickly before the page settles down to
-handlable state.  Let get_any_page() call shake_page() to fix it.
-
-Link: https://lkml.kernel.org/r/20210817053703.2267588-1-naoya.horiguchi@linux.dev
-Fixes: 25182f05ffed ("mm,hwpoison: fix race with hugetlb page allocation")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Tony Luck <tony.luck@intel.com>
+Link: https://lkml.kernel.org/r/20210817042221.77172-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>		[5.13]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/bootmem_info.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-retry-with-shake_page-for-unhandlable-pages
-+++ a/mm/memory-failure.c
-@@ -1146,7 +1146,7 @@ static int __get_hwpoison_page(struct pa
- 	 * unexpected races caused by taking a page refcount.
- 	 */
- 	if (!HWPoisonHandlable(head))
--		return 0;
-+		return -EBUSY;
+--- a/mm/bootmem_info.c~mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section
++++ a/mm/bootmem_info.c
+@@ -39,7 +39,7 @@ void put_page_bootmem(struct page *page)
+ }
  
- 	if (PageTransHuge(head)) {
- 		/*
-@@ -1199,9 +1199,14 @@ try_again:
- 			}
- 			goto out;
- 		} else if (ret == -EBUSY) {
--			/* We raced with freeing huge page to buddy, retry. */
--			if (pass++ < 3)
-+			/*
-+			 * We raced with (possibly temporary) unhandlable
-+			 * page, retry.
-+			 */
-+			if (pass++ < 3) {
-+				shake_page(p, 1);
- 				goto try_again;
-+			}
- 			goto out;
- 		}
- 	}
+ #ifndef CONFIG_SPARSEMEM_VMEMMAP
+-static void register_page_bootmem_info_section(unsigned long start_pfn)
++static void __init register_page_bootmem_info_section(unsigned long start_pfn)
+ {
+ 	unsigned long mapsize, section_nr, i;
+ 	struct mem_section *ms;
+@@ -74,7 +74,7 @@ static void register_page_bootmem_info_s
+ 
+ }
+ #else /* CONFIG_SPARSEMEM_VMEMMAP */
+-static void register_page_bootmem_info_section(unsigned long start_pfn)
++static void __init register_page_bootmem_info_section(unsigned long start_pfn)
+ {
+ 	unsigned long mapsize, section_nr, i;
+ 	struct mem_section *ms;
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-hwpoison-retry-with-shake_page-for-unhandlable-pages.patch
-mm-sparse-set-section_nid_shift-to-6.patch
+mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section.patch
+mm-remove-redundant-compound_head-calling.patch
 
