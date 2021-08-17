@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10F9FC4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:50:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB753C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:51:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9EAA61056
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:50:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 914BF61053
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:51:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231750AbhHQTvB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Aug 2021 15:51:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49196 "EHLO mail.kernel.org"
+        id S232631AbhHQTvo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Aug 2021 15:51:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49286 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229649AbhHQTvB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Aug 2021 15:51:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC4046102A;
-        Tue, 17 Aug 2021 19:50:27 +0000 (UTC)
+        id S229649AbhHQTvo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Aug 2021 15:51:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 777C660EE0;
+        Tue, 17 Aug 2021 19:51:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629229827;
-        bh=hqAHadsguRGGTtixc0ZhC+BlYV5kC69Bn+rKSuFLad0=;
+        s=korg; t=1629229870;
+        bh=s1cIYePDW0t4aKA2O8MvZLK8HGR/hAMl+kwLu0agSYE=;
         h=Date:From:To:Subject:From;
-        b=2n0NSC89srlQQSSUZDadRLbrVR83hibhR7IKAJ+rN33rj7qKumy6RT8rlsz0l66bz
-         s7FLAHRevOPy3l1GDnEAKwlvDePfAE8VwNZzOR0Cz4xnBPzE0T7lRLtSSojJYaASFk
-         jJIApkOQ1XNhP3s0hUZoQwsDxoxmOfHdnvqvc0YE=
-Date:   Tue, 17 Aug 2021 12:50:27 -0700
+        b=PoxDGXOr1dfk+kxySIWdySIyl1ADkEEczjPAOXyOi795g2NbZe7n2m4N8qZD23fqp
+         tXyiSR3vE3mMuyWvDXsHEQXmGeuTzLUPPAqjlz5sMeVpWlX20doXvAU0qQicHCuNIL
+         sePJJ1pKLivh4fj3caobQE4/344EaWDKq20X/tUM=
+Date:   Tue, 17 Aug 2021 12:51:10 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sven@narfation.org, vbabka@suse.cz
+To:     mm-commits@vger.kernel.org, sven@narfation.org,
+        sfr@canb.auug.org.au, vbabka@suse.cz
 Subject:  +
  mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix-2.patch added to
  -mm tree
-Message-ID: <20210817195027.gqGPs%akpm@linux-foundation.org>
+Message-ID: <20210817195110.QzjLL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -151,6 +152,7 @@ mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
 Link: https://lkml.kernel.org/r/e907c2b6-6df1-8038-8c6c-aa9c1fd11259@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reported-by: Sven Eckelmann <sven@narfation.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
