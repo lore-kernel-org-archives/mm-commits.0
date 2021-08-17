@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6386C432BE
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 01:18:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04C71C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 01:18:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 925C460F35
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 01:18:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6A4260F35
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 01:18:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233121AbhHQBSq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Aug 2021 21:18:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54400 "EHLO mail.kernel.org"
+        id S233166AbhHQBSr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Aug 2021 21:18:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54422 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230304AbhHQBSo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Aug 2021 21:18:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8810B60ED5;
-        Tue, 17 Aug 2021 01:18:12 +0000 (UTC)
+        id S230304AbhHQBSq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Aug 2021 21:18:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8ECC660EFF;
+        Tue, 17 Aug 2021 01:18:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629163092;
-        bh=+3UTn59kT2jdz8NFmiYhLW4JOxyWQOoDiUMMsp0Gn28=;
+        s=korg; t=1629163094;
+        bh=aBc3LZxvQiYhTuj5S0JD06iE0FT+/eIrFIE9GL/8OoA=;
         h=Date:From:To:Subject:From;
-        b=rqQoMG10DxnntWwtOI9UaYPHru2S31NIw5bhWEbBw1cuzURlvZfF+tBvJbmKmJ/Wg
-         yFiVnl5u8cRy6yG20R8Af+v0tcnweWwXvS4jvjywU6ATCbmP5fHzZGFmbJ5e8igZoD
-         M40jMnUg+u11w+AnApMdznEWTjeDGwrYrkpMdX0g=
-Date:   Mon, 16 Aug 2021 18:18:12 -0700
+        b=zoAHsmZ+hA0+cpCL9Gnc/oD2rpoMTUUiwK5Oq5nEcGvI1HwOTjSaw1BELTGo5KbYx
+         yV9EEoh5BixZ2q1bKoo7SNMsrtxPzh37njIhodOKM19Cjyzv1X/tHG4vbr1r8YK8mP
+         i6XkA/iAgBwkFgPkoC8kyW1cesWRsc1WwDDAuqSM=
+Date:   Mon, 16 Aug 2021 18:18:14 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com
 Subject:  +
- mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error.patch added to -mm tree
-Message-ID: <20210817011812.UMAEl%akpm@linux-foundation.org>
+ mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch added to -mm
+ tree
+Message-ID: <20210817011814.mgYWR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: fix potential pte_unmap_unlock pte error
+     Subject: mm/hwpoison: change argument struct page **hpagep to *hpage
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error.patch
+     mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,50 +66,56 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hwpoison: fix potential pte_unmap_unlock pte error
+Subject: mm/hwpoison: change argument struct page **hpagep to *hpage
 
-If the first pte is equal to poisoned_pfn, i.e.  check_hwpoisoned_entry()
-return 1, the wrong ptep - 1 would be passed to pte_unmap_unlock().
+It's unnecessary to pass in a struct page **hpagep because it's never
+modified.  Changing to use *hpage to simplify the code.
 
-Link: https://lkml.kernel.org/r/20210814105131.48814-3-linmiaohe@huawei.com
-Fixes: ad9c59c24095 ("mm,hwpoison: send SIGBUS with error virutal address")
+Link: https://lkml.kernel.org/r/20210814105131.48814-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error
+--- a/mm/memory-failure.c~mm-hwpoison-change-argument-struct-page-hpagep-to-hpage
 +++ a/mm/memory-failure.c
-@@ -632,7 +632,7 @@ static int hwpoison_pte_range(pmd_t *pmd
+@@ -1265,14 +1265,13 @@ static int get_hwpoison_page(struct page
+  * the pages and send SIGBUS to the processes if the data was dirty.
+  */
+ static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
+-				  int flags, struct page **hpagep)
++				  int flags, struct page *hpage)
  {
- 	struct hwp_walk *hwp = (struct hwp_walk *)walk->private;
- 	int ret = 0;
--	pte_t *ptep;
-+	pte_t *ptep, *mapped_pte;
- 	spinlock_t *ptl;
+ 	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC;
+ 	struct address_space *mapping;
+ 	LIST_HEAD(tokill);
+ 	bool unmap_success;
+ 	int kill = 1, forcekill;
+-	struct page *hpage = *hpagep;
+ 	bool mlocked = PageMlocked(hpage);
  
- 	ptl = pmd_trans_huge_lock(pmdp, walk->vma);
-@@ -645,14 +645,15 @@ static int hwpoison_pte_range(pmd_t *pmd
- 	if (pmd_trans_unstable(pmdp))
+ 	/*
+@@ -1497,7 +1496,7 @@ static int memory_failure_hugetlb(unsign
  		goto out;
- 
--	ptep = pte_offset_map_lock(walk->vma->vm_mm, pmdp, addr, &ptl);
-+	mapped_pte = ptep = pte_offset_map_lock(walk->vma->vm_mm, pmdp,
-+						addr, &ptl);
- 	for (; addr != end; ptep++, addr += PAGE_SIZE) {
- 		ret = check_hwpoisoned_entry(*ptep, addr, PAGE_SHIFT,
- 					     hwp->pfn, &hwp->tk);
- 		if (ret == 1)
- 			break;
  	}
--	pte_unmap_unlock(ptep - 1, ptl);
-+	pte_unmap_unlock(mapped_pte, ptl);
- out:
- 	cond_resched();
- 	return ret;
+ 
+-	if (!hwpoison_user_mappings(p, pfn, flags, &head)) {
++	if (!hwpoison_user_mappings(p, pfn, flags, head)) {
+ 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
+ 		res = -EBUSY;
+ 		goto out;
+@@ -1777,7 +1776,7 @@ try_again:
+ 	 * Now take care of user space mappings.
+ 	 * Abort on fail: __delete_from_page_cache() assumes unmapped page.
+ 	 */
+-	if (!hwpoison_user_mappings(p, pfn, flags, &p)) {
++	if (!hwpoison_user_mappings(p, pfn, flags, p)) {
+ 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
+ 		res = -EBUSY;
+ 		goto unlock_page;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
