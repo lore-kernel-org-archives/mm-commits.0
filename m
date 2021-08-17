@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 429ABC4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:10:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50D49C4320A
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:10:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2628961038
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:10:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 39FEA61038
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:10:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233876AbhHQUL3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Aug 2021 16:11:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52170 "EHLO mail.kernel.org"
+        id S233841AbhHQULb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Aug 2021 16:11:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52204 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233841AbhHQUL2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Aug 2021 16:11:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CA71D6103A;
-        Tue, 17 Aug 2021 20:10:54 +0000 (UTC)
+        id S229466AbhHQULb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Aug 2021 16:11:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A638960E78;
+        Tue, 17 Aug 2021 20:10:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629231055;
-        bh=2z/MLX23fgVjzStltQK/s/xLwK/d6DoDJty+eSBcVcg=;
+        s=korg; t=1629231057;
+        bh=GMy9tuf1f/yvuDaF0RKVWq+uVdeSm6xG0c5comZcPYQ=;
         h=Date:From:To:Subject:From;
-        b=LoyQE/mD/7CgXbkWGmCK3+CO/zXbOQBI6bdBnf//cQbAA5BimsrrtuQMtQ+bhDovq
-         4Wkinr412Xv3Etokj71ZZ5jUAOytuUvgAiZi8imj4nHeYhGz7zCQ9U0NqZX4IUja+G
-         G+oeFGdiX6oyVuzFA7Y9XJqKwPub3qbPbHCdYUSw=
-Date:   Tue, 17 Aug 2021 13:10:54 -0700
+        b=Ec6TjGiEaVsgd8meX0tCaEybcTC+osyXMUrGKqZvSmnz+WyiXVTxtZ5Kw4SbsygFJ
+         s/Pgra+PgQfYjPnteSEoFs5rCVlngImNui8P69kD14oQDWm1/x3IPJJf3jkE5dIBr5
+         FzoBGsf0Mh3zslDGGshAHda9/KpI8kcgGGUuBLhA=
+Date:   Tue, 17 Aug 2021 13:10:57 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         shy828301@gmail.com, shakeelb@google.com, riel@surriel.com,
         mike.kravetz@oracle.com, mhocko@suse.com, linmiaohe@huawei.com,
         kirill.shutemov@linux.intel.com, hughd@google.com
-Subject:  +
- huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race.patch added to -mm tree
-Message-ID: <20210817201054.VU9Ok%akpm@linux-foundation.org>
+Subject:  + huge-tmpfs-shmem_is_hugevma-inode-index.patch added to
+ -mm tree
+Message-ID: <20210817201057.-Lw_-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: SGP_NOALLOC to stop collapse_file() on race
+     Subject: huge tmpfs: shmem_is_huge(vma, inode, index)
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race.patch
+     huge-tmpfs-shmem_is_hugevma-inode-index.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-shmem_is_hugevma-inode-index.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-shmem_is_hugevma-inode-index.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,28 +67,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs: SGP_NOALLOC to stop collapse_file() on race
+Subject: huge tmpfs: shmem_is_huge(vma, inode, index)
 
-khugepaged's collapse_file() currently uses SGP_NOHUGE to tell
-shmem_getpage() not to try allocating a huge page, in the very unlikely
-event that a racing hole-punch removes the swapped or fallocated page as
-soon as i_pages lock is dropped.
+Extend shmem_huge_enabled(vma) to shmem_is_huge(vma, inode, index), so
+that a consistent set of checks can be applied, even when the inode is
+accessed through read/write syscalls (with NULL vma) instead of mmaps (the
+index argument is seldom of interest, but required by mount option
+"huge=within_size").  Clean up and rearrange the checks a little.
 
-We want to consolidate shmem's huge decisions, removing SGP_HUGE and
-SGP_NOHUGE; but cannot quite persuade ourselves that it's okay to regress
-the protection in this case - Yang Shi points out that the huge page would
-remain indefinitely, charged to root instead of the intended memcg.
+This then replaces the checks which shmem_fault() and shmem_getpage_gfp()
+were making, and eliminates the SGP_HUGE and SGP_NOHUGE modes.
 
-collapse_file() should not even allocate a small page in this case: why
-proceed if someone is punching a hole?  SGP_READ is almost the right flag
-here, except that it optimizes away from a fallocated page, with NULL to
-tell caller to fill with zeroes (like a hole); whereas collapse_file()'s
-sequence relies on using a cache page.  Add SGP_NOALLOC just for this.
+Replace a couple of 0s by explicit SHMEM_HUGE_NEVERs; and replace the
+obscure !shmem_mapping() symlink check by explicit S_ISLNK() - nothing
+else needs that symlink check, so leave it there in shmem_getpage_gfp().
 
-There are too many consecutive "if (page"s there in shmem_getpage_gfp():
-group it better; and fix the outdated "bring it back from swap" comment.
-
-Link: https://lkml.kernel.org/r/1355343b-acf-4653-ef79-6aee40214ac5@google.com
+Link: https://lkml.kernel.org/r/23a77889-2ddc-b030-75cd-44ca27fd4d1@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -101,78 +95,195 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |    1 +
- mm/khugepaged.c          |    2 +-
- mm/shmem.c               |   29 +++++++++++++++++------------
- 3 files changed, 19 insertions(+), 13 deletions(-)
+ include/linux/shmem_fs.h |    9 ++-
+ mm/shmem.c               |   84 +++++++++++--------------------------
+ 2 files changed, 31 insertions(+), 62 deletions(-)
 
---- a/include/linux/shmem_fs.h~huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race
+--- a/include/linux/shmem_fs.h~huge-tmpfs-shmem_is_hugevma-inode-index
 +++ a/include/linux/shmem_fs.h
-@@ -94,6 +94,7 @@ extern unsigned long shmem_partial_swap_
- /* Flag allocation requirements to shmem_getpage */
- enum sgp_type {
+@@ -86,7 +86,12 @@ extern void shmem_truncate_range(struct
+ extern int shmem_unuse(unsigned int type, bool frontswap,
+ 		       unsigned long *fs_pages_to_unuse);
+ 
+-extern bool shmem_huge_enabled(struct vm_area_struct *vma);
++extern bool shmem_is_huge(struct vm_area_struct *vma,
++			  struct inode *inode, pgoff_t index);
++static inline bool shmem_huge_enabled(struct vm_area_struct *vma)
++{
++	return shmem_is_huge(vma, file_inode(vma->vm_file), vma->vm_pgoff);
++}
+ extern unsigned long shmem_swap_usage(struct vm_area_struct *vma);
+ extern unsigned long shmem_partial_swap_usage(struct address_space *mapping,
+ 						pgoff_t start, pgoff_t end);
+@@ -96,8 +101,6 @@ enum sgp_type {
  	SGP_READ,	/* don't exceed i_size, don't allocate page */
-+	SGP_NOALLOC,	/* similar, but fail on hole or use fallocated page */
+ 	SGP_NOALLOC,	/* similar, but fail on hole or use fallocated page */
  	SGP_CACHE,	/* don't exceed i_size, may allocate page */
- 	SGP_NOHUGE,	/* like SGP_CACHE, but no huge pages */
- 	SGP_HUGE,	/* like SGP_CACHE, huge pages preferred */
---- a/mm/khugepaged.c~huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race
-+++ a/mm/khugepaged.c
-@@ -1721,7 +1721,7 @@ static void collapse_file(struct mm_stru
- 				xas_unlock_irq(&xas);
- 				/* swap in or instantiate fallocated page */
- 				if (shmem_getpage(mapping->host, index, &page,
--						  SGP_NOHUGE)) {
-+						  SGP_NOALLOC)) {
- 					result = SCAN_FAIL;
- 					goto xa_unlocked;
- 				}
---- a/mm/shmem.c~huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race
+-	SGP_NOHUGE,	/* like SGP_CACHE, but no huge pages */
+-	SGP_HUGE,	/* like SGP_CACHE, huge pages preferred */
+ 	SGP_WRITE,	/* may exceed i_size, may allocate !Uptodate page */
+ 	SGP_FALLOC,	/* like SGP_WRITE, but make existing page Uptodate */
+ };
+--- a/mm/shmem.c~huge-tmpfs-shmem_is_hugevma-inode-index
 +++ a/mm/shmem.c
-@@ -1854,26 +1854,31 @@ repeat:
- 		return error;
- 	}
+@@ -471,39 +471,35 @@ static bool shmem_confirm_swap(struct ad
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /* ifdef here to avoid bloating shmem.o when not necessary */
  
--	if (page)
-+	if (page) {
- 		hindex = page->index;
--	if (page && sgp == SGP_WRITE)
--		mark_page_accessed(page);
--
--	/* fallocated page? */
--	if (page && !PageUptodate(page)) {
-+		if (sgp == SGP_WRITE)
-+			mark_page_accessed(page);
-+		if (PageUptodate(page))
-+			goto out;
-+		/* fallocated page */
- 		if (sgp != SGP_READ)
- 			goto clear;
- 		unlock_page(page);
- 		put_page(page);
--		page = NULL;
--		hindex = index;
- 	}
--	if (page || sgp == SGP_READ)
--		goto out;
+-static int shmem_huge __read_mostly;
++static int shmem_huge __read_mostly = SHMEM_HUGE_NEVER;
  
- 	/*
--	 * Fast cache lookup did not find it:
--	 * bring it back from swap or allocate.
-+	 * SGP_READ: succeed on hole, with NULL page, letting caller zero.
-+	 * SGP_NOALLOC: fail on hole, with NULL page, letting caller fail.
-+	 */
-+	*pagep = NULL;
-+	if (sgp == SGP_READ)
-+		return 0;
-+	if (sgp == SGP_NOALLOC)
-+		return -ENOENT;
+-bool shmem_huge_enabled(struct vm_area_struct *vma)
++bool shmem_is_huge(struct vm_area_struct *vma,
++		   struct inode *inode, pgoff_t index)
+ {
+-	struct inode *inode = file_inode(vma->vm_file);
+-	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	loff_t i_size;
+-	pgoff_t off;
+ 
+-	if ((vma->vm_flags & VM_NOHUGEPAGE) ||
+-	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+-		return false;
+-	if (shmem_huge == SHMEM_HUGE_FORCE)
+-		return true;
+ 	if (shmem_huge == SHMEM_HUGE_DENY)
+ 		return false;
+-	switch (sbinfo->huge) {
+-	case SHMEM_HUGE_NEVER:
++	if (vma && ((vma->vm_flags & VM_NOHUGEPAGE) ||
++	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags)))
+ 		return false;
++	if (shmem_huge == SHMEM_HUGE_FORCE)
++		return true;
 +
-+	/*
-+	 * Fast cache lookup and swap lookup did not find it: allocate.
- 	 */
++	switch (SHMEM_SB(inode->i_sb)->huge) {
+ 	case SHMEM_HUGE_ALWAYS:
+ 		return true;
+ 	case SHMEM_HUGE_WITHIN_SIZE:
+-		off = round_up(vma->vm_pgoff, HPAGE_PMD_NR);
++		index = round_up(index, HPAGE_PMD_NR);
+ 		i_size = round_up(i_size_read(inode), PAGE_SIZE);
+-		if (i_size >= HPAGE_PMD_SIZE &&
+-				i_size >> PAGE_SHIFT >= off)
++		if (i_size >= HPAGE_PMD_SIZE && (i_size >> PAGE_SHIFT) >= index)
+ 			return true;
+ 		fallthrough;
+ 	case SHMEM_HUGE_ADVISE:
+-		/* TODO: implement fadvise() hints */
+-		return (vma->vm_flags & VM_HUGEPAGE);
++		if (vma && (vma->vm_flags & VM_HUGEPAGE))
++			return true;
++		fallthrough;
+ 	default:
+-		VM_BUG_ON(1);
+ 		return false;
+ 	}
+ }
+@@ -677,6 +673,12 @@ static long shmem_unused_huge_count(stru
  
- 	if (vma && userfaultfd_missing(vma)) {
+ #define shmem_huge SHMEM_HUGE_DENY
+ 
++bool shmem_is_huge(struct vm_area_struct *vma,
++		   struct inode *inode, pgoff_t index)
++{
++	return false;
++}
++
+ static unsigned long shmem_unused_huge_shrink(struct shmem_sb_info *sbinfo,
+ 		struct shrink_control *sc, unsigned long nr_to_split)
+ {
+@@ -1812,7 +1814,6 @@ static int shmem_getpage_gfp(struct inod
+ 	struct shmem_sb_info *sbinfo;
+ 	struct mm_struct *charge_mm;
+ 	struct page *page;
+-	enum sgp_type sgp_huge = sgp;
+ 	pgoff_t hindex = index;
+ 	gfp_t huge_gfp;
+ 	int error;
+@@ -1821,8 +1822,6 @@ static int shmem_getpage_gfp(struct inod
+ 
+ 	if (index > (MAX_LFS_FILESIZE >> PAGE_SHIFT))
+ 		return -EFBIG;
+-	if (sgp == SGP_NOHUGE || sgp == SGP_HUGE)
+-		sgp = SGP_CACHE;
+ repeat:
+ 	if (sgp <= SGP_CACHE &&
+ 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
+@@ -1886,36 +1885,12 @@ repeat:
+ 		return 0;
+ 	}
+ 
+-	/* shmem_symlink() */
+-	if (!shmem_mapping(mapping))
+-		goto alloc_nohuge;
+-	if (shmem_huge == SHMEM_HUGE_DENY || sgp_huge == SGP_NOHUGE)
++	/* Never use a huge page for shmem_symlink() */
++	if (S_ISLNK(inode->i_mode))
+ 		goto alloc_nohuge;
+-	if (shmem_huge == SHMEM_HUGE_FORCE)
+-		goto alloc_huge;
+-	switch (sbinfo->huge) {
+-	case SHMEM_HUGE_NEVER:
++	if (!shmem_is_huge(vma, inode, index))
+ 		goto alloc_nohuge;
+-	case SHMEM_HUGE_WITHIN_SIZE: {
+-		loff_t i_size;
+-		pgoff_t off;
+-
+-		off = round_up(index, HPAGE_PMD_NR);
+-		i_size = round_up(i_size_read(inode), PAGE_SIZE);
+-		if (i_size >= HPAGE_PMD_SIZE &&
+-		    i_size >> PAGE_SHIFT >= off)
+-			goto alloc_huge;
+ 
+-		fallthrough;
+-	}
+-	case SHMEM_HUGE_ADVISE:
+-		if (sgp_huge == SGP_HUGE)
+-			goto alloc_huge;
+-		/* TODO: implement fadvise() hints */
+-		goto alloc_nohuge;
+-	}
+-
+-alloc_huge:
+ 	huge_gfp = vma_thp_gfp_mask(vma);
+ 	huge_gfp = limit_gfp_mask(huge_gfp, gfp);
+ 	page = shmem_alloc_and_acct_page(huge_gfp, inode, index, true);
+@@ -2071,7 +2046,6 @@ static vm_fault_t shmem_fault(struct vm_
+ 	struct vm_area_struct *vma = vmf->vma;
+ 	struct inode *inode = file_inode(vma->vm_file);
+ 	gfp_t gfp = mapping_gfp_mask(inode->i_mapping);
+-	enum sgp_type sgp;
+ 	int err;
+ 	vm_fault_t ret = VM_FAULT_LOCKED;
+ 
+@@ -2134,15 +2108,7 @@ static vm_fault_t shmem_fault(struct vm_
+ 		spin_unlock(&inode->i_lock);
+ 	}
+ 
+-	sgp = SGP_CACHE;
+-
+-	if ((vma->vm_flags & VM_NOHUGEPAGE) ||
+-	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+-		sgp = SGP_NOHUGE;
+-	else if (vma->vm_flags & VM_HUGEPAGE)
+-		sgp = SGP_HUGE;
+-
+-	err = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, sgp,
++	err = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, SGP_CACHE,
+ 				  gfp, vma, vmf, &ret);
+ 	if (err)
+ 		return vmf_error(err);
+@@ -3950,7 +3916,7 @@ int __init shmem_init(void)
+ 	if (has_transparent_hugepage() && shmem_huge > SHMEM_HUGE_DENY)
+ 		SHMEM_SB(shm_mnt->mnt_sb)->huge = shmem_huge;
+ 	else
+-		shmem_huge = 0; /* just in case it was patched */
++		shmem_huge = SHMEM_HUGE_NEVER; /* just in case it was patched */
+ #endif
+ 	return 0;
+ 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
