@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04C71C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 01:18:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 991CEC432BE
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 01:18:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D6A4260F35
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 01:18:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C71C60F35
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 01:18:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233166AbhHQBSr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Aug 2021 21:18:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54422 "EHLO mail.kernel.org"
+        id S233167AbhHQBSt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Aug 2021 21:18:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54442 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230304AbhHQBSq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Aug 2021 21:18:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8ECC660EFF;
-        Tue, 17 Aug 2021 01:18:14 +0000 (UTC)
+        id S230304AbhHQBSs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Aug 2021 21:18:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 871EC60ED5;
+        Tue, 17 Aug 2021 01:18:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629163094;
-        bh=aBc3LZxvQiYhTuj5S0JD06iE0FT+/eIrFIE9GL/8OoA=;
+        s=korg; t=1629163096;
+        bh=N3Cz9axEd24V8xWr/SD/1WhSq7SV2DIkd9TwRjdnnbY=;
         h=Date:From:To:Subject:From;
-        b=zoAHsmZ+hA0+cpCL9Gnc/oD2rpoMTUUiwK5Oq5nEcGvI1HwOTjSaw1BELTGo5KbYx
-         yV9EEoh5BixZ2q1bKoo7SNMsrtxPzh37njIhodOKM19Cjyzv1X/tHG4vbr1r8YK8mP
-         i6XkA/iAgBwkFgPkoC8kyW1cesWRsc1WwDDAuqSM=
-Date:   Mon, 16 Aug 2021 18:18:14 -0700
+        b=B4cfj1byHbRzs0Udc4YAZcjAzdLB9qSjjsgwr9MpWxfQ9xkrrt3saDA6sxQ5wfnih
+         ERCSf0F+G16eF3UDdGwuJwWkO50CFym61I07O2RsldEpr3HHlPzOOa8XEegbC0xdKE
+         WbFXeHThsSzHxVehOqsNAIS/rSu05KABzV8+B/tc=
+Date:   Mon, 16 Aug 2021 18:18:16 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         linmiaohe@huawei.com
-Subject:  +
- mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch added to -mm
+Subject:  + mm-hwpoison-fix-some-obsolete-comments.patch added to -mm
  tree
-Message-ID: <20210817011814.mgYWR%akpm@linux-foundation.org>
+Message-ID: <20210817011816.w7BT6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: change argument struct page **hpagep to *hpage
+     Subject: mm/hwpoison: fix some obsolete comments
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch
+     mm-hwpoison-fix-some-obsolete-comments.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-some-obsolete-comments.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-some-obsolete-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,56 +65,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hwpoison: change argument struct page **hpagep to *hpage
+Subject: mm/hwpoison: fix some obsolete comments
 
-It's unnecessary to pass in a struct page **hpagep because it's never
-modified.  Changing to use *hpage to simplify the code.
+Since commit cb731d6c62bb ("vmscan: per memory cgroup slab shrinkers"),
+shrink_node_slabs is renamed to drop_slab_node.  And doit argument is
+changed to forcekill since commit 6751ed65dc66 ("x86/mce: Fix
+siginfo_t->si_addr value for non-recoverable memory faults").
 
-Link: https://lkml.kernel.org/r/20210814105131.48814-4-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210814105131.48814-5-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-change-argument-struct-page-hpagep-to-hpage
+--- a/mm/memory-failure.c~mm-hwpoison-fix-some-obsolete-comments
 +++ a/mm/memory-failure.c
-@@ -1265,14 +1265,13 @@ static int get_hwpoison_page(struct page
-  * the pages and send SIGBUS to the processes if the data was dirty.
-  */
- static bool hwpoison_user_mappings(struct page *p, unsigned long pfn,
--				  int flags, struct page **hpagep)
-+				  int flags, struct page *hpage)
- {
- 	enum ttu_flags ttu = TTU_IGNORE_MLOCK | TTU_SYNC;
- 	struct address_space *mapping;
- 	LIST_HEAD(tokill);
- 	bool unmap_success;
- 	int kill = 1, forcekill;
--	struct page *hpage = *hpagep;
- 	bool mlocked = PageMlocked(hpage);
- 
- 	/*
-@@ -1497,7 +1496,7 @@ static int memory_failure_hugetlb(unsign
- 		goto out;
+@@ -296,7 +296,7 @@ void shake_page(struct page *p, int acce
  	}
  
--	if (!hwpoison_user_mappings(p, pfn, flags, &head)) {
-+	if (!hwpoison_user_mappings(p, pfn, flags, head)) {
- 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		res = -EBUSY;
- 		goto out;
-@@ -1777,7 +1776,7 @@ try_again:
- 	 * Now take care of user space mappings.
- 	 * Abort on fail: __delete_from_page_cache() assumes unmapped page.
+ 	/*
+-	 * Only call shrink_node_slabs here (which would also shrink
++	 * Only call drop_slab_node here (which would also shrink
+ 	 * other caches) if access is not potentially fatal.
  	 */
--	if (!hwpoison_user_mappings(p, pfn, flags, &p)) {
-+	if (!hwpoison_user_mappings(p, pfn, flags, p)) {
- 		action_result(pfn, MF_MSG_UNMAP_FAILED, MF_IGNORED);
- 		res = -EBUSY;
- 		goto unlock_page;
+ 	if (access)
+@@ -391,8 +391,8 @@ static void add_to_kill(struct task_stru
+ /*
+  * Kill the processes that have been collected earlier.
+  *
+- * Only do anything when DOIT is set, otherwise just free the list
+- * (this is used for clean pages which do not need killing)
++ * Only do anything when FORCEKILL is set, otherwise just free the
++ * list (this is used for clean pages which do not need killing)
+  * Also when FAIL is set do a force kill because something went
+  * wrong earlier.
+  */
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
