@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BF43C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:10:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C122C432BE
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:10:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 37E2960F41
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:10:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 858C161056
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:10:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233837AbhHQULW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Aug 2021 16:11:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52014 "EHLO mail.kernel.org"
+        id S233763AbhHQULZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Aug 2021 16:11:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233763AbhHQULW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Aug 2021 16:11:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A9FEE61053;
-        Tue, 17 Aug 2021 20:10:48 +0000 (UTC)
+        id S233841AbhHQULY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Aug 2021 16:11:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A16E26109F;
+        Tue, 17 Aug 2021 20:10:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629231048;
-        bh=dO3KhDKgfXbfKroy0LEVV+RxaPWzXAuYTBFvPNYx/6Y=;
+        s=korg; t=1629231050;
+        bh=stcp/SnCVmqLFnhvqwmbNSgUkh4iEDW2lQbfny2yuG0=;
         h=Date:From:To:Subject:From;
-        b=m6As5iestTpUwIKj0PeZaO4Y1mP1TQC0s3rK6XQ89CIoMqdgCn04mj6mxl4bVnchC
-         3WQRGaJiBnlY6JBOplcYkS0c7+iuwQPqtk0HbGVU9TMwS11HCXSbisMBeed/f9Ns/v
-         aLcw/kpIdxLP8Py5cViv01Ek5vz12ibaN9Vqw7TI=
-Date:   Tue, 17 Aug 2021 13:10:48 -0700
+        b=KKfi14fEVRDgNYPp6cHEUiTHV9H+t39dC5SpuPjfEQl/i2hcxzPLKBvz2Jl/VcRTn
+         wnQ30d9BVgnx/MsRMKs28UA+exi0suq37UpKFvthrM2gIzHxuOMyYnY7WlxuHzziiB
+         qHwOgX2s88Lgz2uP6CeKYprQnEWvhLU2xeuYCuN0=
+Date:   Tue, 17 Aug 2021 13:10:50 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         shy828301@gmail.com, shakeelb@google.com, riel@surriel.com,
         mike.kravetz@oracle.com, mhocko@suse.com, linmiaohe@huawei.com,
         kirill.shutemov@linux.intel.com, hughd@google.com
 Subject:  +
- huge-tmpfs-remove-shrinklist-addition-from-shmem_setattr.patch added to -mm
- tree
-Message-ID: <20210817201048.r2EhE%akpm@linux-foundation.org>
+ huge-tmpfs-revert-shmems-use-of-transhuge_vma_enabled.patch added to -mm tree
+Message-ID: <20210817201050.e6Uxg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: remove shrinklist addition from shmem_setattr()
+     Subject: huge tmpfs: revert shmem's use of transhuge_vma_enabled()
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-remove-shrinklist-addition-from-shmem_setattr.patch
+     huge-tmpfs-revert-shmems-use-of-transhuge_vma_enabled.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-remove-shrinklist-addition-from-shmem_setattr.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-revert-shmems-use-of-transhuge_vma_enabled.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-remove-shrinklist-addition-from-shmem_setattr.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-revert-shmems-use-of-transhuge_vma_enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,22 +67,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs: remove shrinklist addition from shmem_setattr()
+Subject: huge tmpfs: revert shmem's use of transhuge_vma_enabled()
 
-There's a block of code in shmem_setattr() to add the inode to
-shmem_unused_huge_shrink()'s shrinklist when lowering i_size: it dates
-from before 5.7 changed truncation to do split_huge_page() for itself, and
-should have been removed at that time.
+5.14 commit e6be37b2e7bd ("mm/huge_memory.c: add missing read-only THP
+checking in transparent_hugepage_enabled()") added transhuge_vma_enabled()
+as a wrapper for two very different checks (one check is whether the app
+has marked its address range not to use THPs, the other check is whether
+the app is running in a hierarchy that has been marked never to use THPs).
+shmem_huge_enabled() prefers to show those two checks explicitly, as
+before.
 
-I am over-stating that: split_huge_page() can fail (notably if there's an
-extra reference to the page at that time), so there might be value in
-retrying.  But there were already retries as truncation worked through the
-tails, and this addition risks repeating unsuccessful retries
-indefinitely: I'd rather remove it now, and work on reducing the chance of
-split_huge_page() failures separately, if we need to.
-
-Link: https://lkml.kernel.org/r/b73b3492-8822-18f9-83e2-938528cdde94@google.com
-Fixes: 71725ed10c40 ("mm: huge tmpfs: try to split_huge_page() when punching hole")
+Link: https://lkml.kernel.org/r/45e5338-18d-c6f9-c17e-34f510bc1728@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -96,44 +90,21 @@ Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   19 -------------------
- 1 file changed, 19 deletions(-)
+ mm/shmem.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~huge-tmpfs-remove-shrinklist-addition-from-shmem_setattr
+--- a/mm/shmem.c~huge-tmpfs-revert-shmems-use-of-transhuge_vma_enabled
 +++ a/mm/shmem.c
-@@ -1058,7 +1058,6 @@ static int shmem_setattr(struct user_nam
- {
- 	struct inode *inode = d_inode(dentry);
- 	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
- 	int error;
+@@ -3987,7 +3987,8 @@ bool shmem_huge_enabled(struct vm_area_s
+ 	loff_t i_size;
+ 	pgoff_t off;
  
- 	error = setattr_prepare(&init_user_ns, dentry, attr);
-@@ -1094,24 +1093,6 @@ static int shmem_setattr(struct user_nam
- 			if (oldsize > holebegin)
- 				unmap_mapping_range(inode->i_mapping,
- 							holebegin, 0, 1);
--
--			/*
--			 * Part of the huge page can be beyond i_size: subject
--			 * to shrink under memory pressure.
--			 */
--			if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
--				spin_lock(&sbinfo->shrinklist_lock);
--				/*
--				 * _careful to defend against unlocked access to
--				 * ->shrink_list in shmem_unused_huge_shrink()
--				 */
--				if (list_empty_careful(&info->shrinklist)) {
--					list_add_tail(&info->shrinklist,
--							&sbinfo->shrinklist);
--					sbinfo->shrinklist_len++;
--				}
--				spin_unlock(&sbinfo->shrinklist_lock);
--			}
- 		}
- 	}
- 
+-	if (!transhuge_vma_enabled(vma, vma->vm_flags))
++	if ((vma->vm_flags & VM_NOHUGEPAGE) ||
++	    test_bit(MMF_DISABLE_THP, &vma->vm_mm->flags))
+ 		return false;
+ 	if (shmem_huge == SHMEM_HUGE_FORCE)
+ 		return true;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
