@@ -7,39 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4C89C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:23:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E532C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:23:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D9F561008
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:23:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B4A161038
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:23:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229821AbhHQTXz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Aug 2021 15:23:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43626 "EHLO mail.kernel.org"
+        id S229565AbhHQTYZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Aug 2021 15:24:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43680 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229565AbhHQTXy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Aug 2021 15:23:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EFE88600CC;
-        Tue, 17 Aug 2021 19:23:20 +0000 (UTC)
+        id S229905AbhHQTYZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Aug 2021 15:24:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CDDBF600CC;
+        Tue, 17 Aug 2021 19:23:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629228201;
-        bh=ekP6kQgpx5S+7p+uYt3MTCmylFz4jq5T4kr0aP93QTI=;
+        s=korg; t=1629228232;
+        bh=BsmkCZR4RFmIWqFnctuaWBzSwGj+s9IXJ77cjplyFEY=;
         h=Date:From:To:Subject:From;
-        b=XIxZUVppypNfdZJ2x4f+K6Ncawc0lvQc/twTHKfUbRSR4FeXcl5hNvfhXQX0PZrpq
-         GLItVwossBe6afb1nSAg++h0orAPYeGoiDKYnDUnIkgZx6p4tgN0UNdAhlp3PKyouy
-         oq15h+Wg9TYGugRKkvb0eF8AJCSEnt06NTpQKvQg=
-Date:   Tue, 17 Aug 2021 12:23:20 -0700
+        b=svImv+ywJiLkT5C2lERbaAc2ywEffBwUhHTi89VMtXjQfvNmWVxeeok+40Fste85A
+         FLZ3yLSq8WW4FG39PCC+iMMhPA8991NyTk//rtOsz1a5trSUr9ek0is1hrUgnJwiYR
+         +cycoN4L6kVXPoXTGOupV9CkjFgRHTuoaenq9N6w=
+Date:   Tue, 17 Aug 2021 12:23:51 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, riel@surriel.com, mhocko@suse.com,
-        lnyng@fb.com, hannes@cmpxchg.org, guro@fb.com,
-        chris@chrisdown.name, akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, bigeasy@linutronix.de, vbabka@suse.cz
 Subject:  +
- =?us-ascii?Q?mm-memcontrol-fix-occasional-ooms-due-to-proportional-memo?=
- =?us-ascii?Q?rylow-reclaim-checkpatch-fixes.patch?= added to -mm tree
-Message-ID: <20210817192320.68xr2%akpm@linux-foundation.org>
+ mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch added to -mm
+ tree
+Message-ID: <20210817192351.r7XD4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-fix-occasional-ooms-due-to-proportional-memorylow-reclaim-checkpatch-fixes
+     Subject: mm, slab: simplify lockdep_assert_held in lockdep_assert_held()
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-fix-occasional-ooms-due-to-proportional-memorylow-reclaim-checkpatch-fixes.patch
+     mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-occasional-ooms-due-to-proportional-memorylow-reclaim-checkpatch-fixes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-occasional-ooms-due-to-proportional-memorylow-reclaim-checkpatch-fixes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,68 +64,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-fix-occasional-ooms-due-to-proportional-memorylow-reclaim-checkpatch-fixes
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slab: simplify lockdep_assert_held in lockdep_assert_held()
 
-WARNING: Possible repeated word: 'back'
-#104: FILE: mm/vmscan.c:107:
-+	 * result, then go back back for one more cycle that reclaims
+Sebastian reports [1] that the special version of lockdep_assert_held() for a
+local lock with PREEMPT_RT is no longer necessary, and we can simplify.
 
-total: 0 errors, 1 warnings, 100 lines checked
+[1] https://lore.kernel.org/linux-mm/20210817153937.hxnuh7mqp6vuiyws@linutronix.de/
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+This is a fixup for mmotm patch
+mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
 
-./patches/mm-memcontrol-fix-occasional-ooms-due-to-proportional-memorylow-reclaim.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Chris Down <chris@chrisdown.name>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Leon Yang <lnyng@fb.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <guro@fb.com>
+Link: https://lkml.kernel.org/r/7e9ccf34-57d1-786b-2dfd-3b9ba78e1b32@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slub.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/vmscan.c~mm-memcontrol-fix-occasional-ooms-due-to-proportional-memorylow-reclaim-checkpatch-fixes
-+++ a/mm/vmscan.c
-@@ -104,8 +104,8 @@ struct scan_control {
- 	 * don't threaten to OOM. If any cgroup is reclaimed at
- 	 * reduced force or passed over entirely due to its memory.low
- 	 * setting (memcg_low_skipped), and nothing is reclaimed as a
--	 * result, then go back back for one more cycle that reclaims
--	 * the protected memory (memcg_low_reclaim) to avert OOM.
-+	 * result, then go back for one more cycle that reclaims the protected
-+	 * memory (memcg_low_reclaim) to avert OOM.
- 	 */
- 	unsigned int memcg_low_reclaim:1;
- 	unsigned int memcg_low_skipped:1;
+--- a/mm/slub.c~mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix
++++ a/mm/slub.c
+@@ -2913,11 +2913,7 @@ redo:
+ 
+ load_freelist:
+ 
+-#ifdef CONFIG_PREEMPT_RT
+-	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock.lock));
+-#else
+ 	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock));
+-#endif
+ 
+ 	/*
+ 	 * freelist is pointing to the list of objects to be used.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-memcontrol-fix-occasional-ooms-due-to-proportional-memorylow-reclaim-checkpatch-fixes.patch
-mm.patch
-mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix.patch
-mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix-fix.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
-mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
-mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-idle_page_tracking-make-pg_idle-reusable-fix-fix.patch
-mm-damon-implement-primitives-for-the-virtual-memory-address-spaces-fix.patch
-mm-damon-implement-a-debugfs-based-user-space-interface-fix.patch
-mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix.patch
-fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix-fix.patch
-log-if-a-core-dump-is-aborted-due-to-changed-file-permissions-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-slub-dont-call-flush_all-from-slab_debug_trace_open.patch
+mm-slub-allocate-private-object-map-for-debugfs-listings.patch
+mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
+mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
+mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
+mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
+mm-slub-extract-get_partial-from-new_slab_objects.patch
+mm-slub-dissolve-new_slab_objects-into-___slab_alloc.patch
+mm-slub-return-slab-page-from-get_partial-and-set-c-page-afterwards.patch
+mm-slub-restructure-new-page-checks-in-___slab_alloc.patch
+mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch
+mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch
+mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
+mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix.patch
+mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix.patch
+mm-slub-move-disabling-irqs-closer-to-get_partial-in-___slab_alloc.patch
+mm-slub-restore-irqs-around-calling-new_slab.patch
+mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
+mm-slub-check-new-pages-with-restored-irqs.patch
+mm-slub-stop-disabling-irqs-around-get_partial.patch
+mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
+mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
+mm-slub-call-deactivate_slab-without-disabling-irqs.patch
+mm-slub-move-irq-control-into-unfreeze_partials.patch
+mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled.patch
+mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials.patch
+mm-slub-separate-detaching-of-partial-list-in-unfreeze_partials-from-unfreezing.patch
+mm-slub-only-disable-irq-with-spin_lock-in-__unfreeze_partials.patch
+mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
+mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
+mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context-fix.patch
+mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context-fix-2.patch
+mm-slub-optionally-save-restore-irqs-in-slab_lock.patch
+mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
+mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
+mm-slub-use-migrate_disable-on-preempt_rt.patch
+mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
+mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
 
