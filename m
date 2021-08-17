@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10CAAC4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:33:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC513C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:33:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE5D861042
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:33:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8DDE360FDA
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:33:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234985AbhHQAdh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Aug 2021 20:33:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33580 "EHLO mail.kernel.org"
+        id S235183AbhHQAdj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Aug 2021 20:33:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33632 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234966AbhHQAdh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Aug 2021 20:33:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F80360FA0;
-        Tue, 17 Aug 2021 00:33:04 +0000 (UTC)
+        id S234966AbhHQAdj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Aug 2021 20:33:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A09D760FD7;
+        Tue, 17 Aug 2021 00:33:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629160385;
-        bh=Fz4Y7QRsYjt2mxTz0mn3An/mtxLMMUh5idUVDPcw9Y4=;
+        s=korg; t=1629160387;
+        bh=ETAKz+oVIeTZuqgLXKwc88Cx6cTHOlqbm3l74Mk8B94=;
         h=Date:From:To:Subject:From;
-        b=JIBYjhySYjvy2ECF0uLxXtHrjkdrjc7MebMiMNcyuxq5ODCIRkYtvwFIcHbH29R+g
-         z5ZVBrpt8iluQG5OxBZMmQk3uO6dTPHkgMl9LNIJR0lo6CcuGMRI2mqGQjTWaDpBEL
-         KS4rgDAEMNRo5r+HX+ZCcbYpL2OG4Swbh1mgu11w=
-Date:   Mon, 16 Aug 2021 17:33:04 -0700
+        b=v+bIsBBjzj/tsJlCUj+BMMKqh6wo4MpJiodD3ZDW9DdBXcGwclufIGljBNr8bG9Ro
+         Tm0BvcvTQ3OaKqTpOr02/iHE/aU/5a8e6QmFAftAwqrEbH2TQ8HxRgyV9mh4zDFdFN
+         sa2W6xXk6jjV9rBAThqFEJYkNefqFl4g2DI+XjAA=
+Date:   Mon, 16 Aug 2021 17:33:06 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, rui.zhang@intel.com, rafael@kernel.org,
         pmeerw@pmeerw.net, myungjoo.ham@samsung.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, rui.zhang@intel.com, rafael@kernel.org,
         kyungmin.park@samsung.com, Jonathan.Cameron@huawei.com,
         jic23@kernel.org, cw00.choi@samsung.com, ceggers@arri.de,
         andriy.shevchenko@linux.intel.com, daniel.lezcano@linaro.org
-Subject:  + i2c-drivers-ov02q10-use-hz-macros.patch added to -mm tree
-Message-ID: <20210817003304.9F5Gx%akpm@linux-foundation.org>
+Subject:  + mtd-drivers-nand-use-hz-macros.patch added to -mm tree
+Message-ID: <20210817003306.2jkur%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: i2c/drivers/ov02q10: use HZ macros
+     Subject: mtd/drivers/nand: use HZ macros
 has been added to the -mm tree.  Its filename is
-     i2c-drivers-ov02q10-use-hz-macros.patch
+     mtd-drivers-nand-use-hz-macros.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/i2c-drivers-ov02q10-use-hz-macros.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mtd-drivers-nand-use-hz-macros.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/i2c-drivers-ov02q10-use-hz-macros.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mtd-drivers-nand-use-hz-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,13 +69,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: i2c/drivers/ov02q10: use HZ macros
+Subject: mtd/drivers/nand: use HZ macros
 
 HZ unit conversion macros are available in units.h, use them and remove
 the duplicate definition.
 
-Link: https://lkml.kernel.org/r/20210816114732.1834145-9-daniel.lezcano@linaro.org
+Link: https://lkml.kernel.org/r/20210816114732.1834145-10-daniel.lezcano@linaro.org
 Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Acked-by: Miquel Raynal <miquel.raynal@bootlin.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Chanwoo Choi <cw00.choi@samsung.com>
 Cc: Christian Eggers <ceggers@arri.de>
@@ -86,7 +87,6 @@ Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: Lars-Peter Clausen <lars@metafoo.de>
 Cc: Lukasz Luba <lukasz.luba@arm.com>
 Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>
 Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
 Cc: Peter Meerwald <pmeerw@pmeerw.net>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
@@ -94,27 +94,27 @@ Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/i2c/ov02a10.c |    2 +-
+ drivers/mtd/nand/raw/intel-nand-controller.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/media/i2c/ov02a10.c~i2c-drivers-ov02q10-use-hz-macros
-+++ a/drivers/media/i2c/ov02a10.c
-@@ -9,6 +9,7 @@
- #include <linux/module.h>
- #include <linux/pm_runtime.h>
- #include <linux/regulator/consumer.h>
+--- a/drivers/mtd/nand/raw/intel-nand-controller.c~mtd-drivers-nand-use-hz-macros
++++ a/drivers/mtd/nand/raw/intel-nand-controller.c
+@@ -20,6 +20,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
 +#include <linux/units.h>
- #include <media/media-entity.h>
- #include <media/v4l2-async.h>
- #include <media/v4l2-ctrls.h>
-@@ -64,7 +65,6 @@
- /* Test pattern control */
- #define OV02A10_REG_TEST_PATTERN			0xb6
+ #include <asm/unaligned.h>
  
--#define HZ_PER_MHZ					1000000L
- #define OV02A10_LINK_FREQ_390MHZ			(390 * HZ_PER_MHZ)
- #define OV02A10_ECLK_FREQ				(24 * HZ_PER_MHZ)
+ #define EBU_CLC			0x000
+@@ -102,7 +103,6 @@
  
+ #define MAX_CS	2
+ 
+-#define HZ_PER_MHZ	1000000L
+ #define USEC_PER_SEC	1000000L
+ 
+ struct ebu_nand_cs {
 _
 
 Patches currently in -mm which might be from daniel.lezcano@linaro.org are
