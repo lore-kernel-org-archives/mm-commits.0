@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 28560C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:32:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47F6BC4320A
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:33:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1062261029
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:32:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2A6FF61052
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:33:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233200AbhHQAd3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Aug 2021 20:33:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33364 "EHLO mail.kernel.org"
+        id S235027AbhHQAde (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Aug 2021 20:33:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33488 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233009AbhHQAd3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Aug 2021 20:33:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1C7260F5C;
-        Tue, 17 Aug 2021 00:32:56 +0000 (UTC)
+        id S233227AbhHQAdd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Aug 2021 20:33:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A33AD60FD8;
+        Tue, 17 Aug 2021 00:33:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629160377;
-        bh=guEdd5uUlsuUsrNNFthkv/sWBXJSR84qzT75jlR1Y8k=;
+        s=korg; t=1629160381;
+        bh=YTCLv/Yr93jjt4MLhA79EtFwGJ4HCD/LsoSIob5Kj18=;
         h=Date:From:To:Subject:From;
-        b=cP4gE1lZ3vUckM1524EEzmv0Y7VVaT1H8M4aggxQB+5Yg38AINBNMQ8IjfgHHbJDv
-         h13lAPg2fkSyVPtt07qFwpaLkMYRo7/XUyl004YAn5qEtkYWq1Wdqvj93IUUd6e7LL
-         Q/R+HcE+2u2XNumL/k1qYJ/0zact9HSVTJua5/OI=
-Date:   Mon, 16 Aug 2021 17:32:56 -0700
+        b=V/jMBuwkePO+UMOgN2M7qKXDTdeuiGCV+So5kGu4Ye5axMMurNjOrOWajhFt2lDT+
+         ubkQY7P8vNBOtI0ukbcpZ/jdNWINK86aLA5HZ4D+CcQ+WkQmSA51JqcMJmhJ3cxIvC
+         bS0v5YGLlI/hPEo+FXV847q7/AIzABSyawhn9GIs=
+Date:   Mon, 16 Aug 2021 17:33:00 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, rui.zhang@intel.com, rafael@kernel.org,
         pmeerw@pmeerw.net, myungjoo.ham@samsung.com,
@@ -37,8 +37,9 @@ To:     mm-commits@vger.kernel.org, rui.zhang@intel.com, rafael@kernel.org,
         kyungmin.park@samsung.com, Jonathan.Cameron@huawei.com,
         jic23@kernel.org, cw00.choi@samsung.com, ceggers@arri.de,
         andriy.shevchenko@linux.intel.com, daniel.lezcano@linaro.org
-Subject:  + devfreq-use-hz-macros.patch added to -mm tree
-Message-ID: <20210817003256.9P3Fn%akpm@linux-foundation.org>
+Subject:  + hwmon-drivers-mr75203-use-hz-macros.patch added to -mm
+ tree
+Message-ID: <20210817003300.8Kt7E%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: devfreq: use HZ macros
+     Subject: hwmon/drivers/mr75203: use HZ macros
 has been added to the -mm tree.  Its filename is
-     devfreq-use-hz-macros.patch
+     hwmon-drivers-mr75203-use-hz-macros.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/devfreq-use-hz-macros.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hwmon-drivers-mr75203-use-hz-macros.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/devfreq-use-hz-macros.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hwmon-drivers-mr75203-use-hz-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,22 +70,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: devfreq: use HZ macros
+Subject: hwmon/drivers/mr75203: use HZ macros
 
 HZ unit conversion macros are available in units.h, use them and remove
 the duplicate definition.
 
-The new macro has an unsigned long type.
+The new macro is an unsigned long.  The code dealing with it is
+considering as an unsigned long also.
 
-All the code is dealing with unsigned long and the code using the macro is
-doing a coercitive cast to unsigned long.
-
-Link: https://lkml.kernel.org/r/20210816114732.1834145-5-daniel.lezcano@linaro.org
+Link: https://lkml.kernel.org/r/20210816114732.1834145-7-daniel.lezcano@linaro.org
 Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 Reviewed-by: Christian Eggers <ceggers@arri.de>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
+Acked-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
 Cc: Jonathan Cameron <jic23@kernel.org>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Kyungmin Park <kyungmin.park@samsung.com>
@@ -99,27 +98,27 @@ Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/devfreq/devfreq.c |    2 +-
+ drivers/hwmon/mr75203.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/devfreq/devfreq.c~devfreq-use-hz-macros
-+++ a/drivers/devfreq/devfreq.c
-@@ -27,6 +27,7 @@
- #include <linux/hrtimer.h>
- #include <linux/of.h>
- #include <linux/pm_qos.h>
+--- a/drivers/hwmon/mr75203.c~hwmon-drivers-mr75203-use-hz-macros
++++ a/drivers/hwmon/mr75203.c
+@@ -17,6 +17,7 @@
+ #include <linux/property.h>
+ #include <linux/regmap.h>
+ #include <linux/reset.h>
 +#include <linux/units.h>
- #include "governor.h"
  
- #define CREATE_TRACE_POINTS
-@@ -34,7 +35,6 @@
+ /* PVT Common register */
+ #define PVT_IP_CONFIG	0x04
+@@ -37,7 +38,6 @@
+ #define CLK_SYNTH_EN		BIT(24)
+ #define CLK_SYS_CYCLES_MAX	514
+ #define CLK_SYS_CYCLES_MIN	2
+-#define HZ_PER_MHZ		1000000L
  
- #define IS_SUPPORTED_FLAG(f, name) ((f & DEVFREQ_GOV_FLAG_##name) ? true : false)
- #define IS_SUPPORTED_ATTR(f, name) ((f & DEVFREQ_GOV_ATTR_##name) ? true : false)
--#define HZ_PER_KHZ	1000
+ #define SDIF_DISABLE	0x04
  
- static struct class *devfreq_class;
- static struct dentry *devfreq_debugfs;
 _
 
 Patches currently in -mm which might be from daniel.lezcano@linaro.org are
