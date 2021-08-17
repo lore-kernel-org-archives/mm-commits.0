@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E532C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:23:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5737C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:25:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B4A161038
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:23:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2076600CC
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 19:25:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229565AbhHQTYZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Aug 2021 15:24:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43680 "EHLO mail.kernel.org"
+        id S230040AbhHQT00 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Aug 2021 15:26:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43928 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229905AbhHQTYZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Aug 2021 15:24:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CDDBF600CC;
-        Tue, 17 Aug 2021 19:23:51 +0000 (UTC)
+        id S229905AbhHQT00 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Aug 2021 15:26:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8139F61008;
+        Tue, 17 Aug 2021 19:25:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629228232;
-        bh=BsmkCZR4RFmIWqFnctuaWBzSwGj+s9IXJ77cjplyFEY=;
+        s=korg; t=1629228352;
+        bh=tKuiQ4cV7JgrYDIZwj4efHr+SfQqUaOpVkB8oAKWuKo=;
         h=Date:From:To:Subject:From;
-        b=svImv+ywJiLkT5C2lERbaAc2ywEffBwUhHTi89VMtXjQfvNmWVxeeok+40Fste85A
-         FLZ3yLSq8WW4FG39PCC+iMMhPA8991NyTk//rtOsz1a5trSUr9ek0is1hrUgnJwiYR
-         +cycoN4L6kVXPoXTGOupV9CkjFgRHTuoaenq9N6w=
-Date:   Tue, 17 Aug 2021 12:23:51 -0700
+        b=c5v9C06Oe08zvjZ+SCxdNyOXfzKpGJiB7x7CtBoXc39zpSioAmrpMBa90oDjr9VwC
+         RkY3hQv0C3xYVin52mZQbQMsh+YHubUKU7izUtPwTihNmK2C59mrV48HzBqrH6XaQ8
+         73aFvNTPU34vjecqqm4r5VWaiK+YsEZKKUf8ZAYA=
+Date:   Tue, 17 Aug 2021 12:25:52 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, bigeasy@linutronix.de, vbabka@suse.cz
-Subject:  +
- mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch added to -mm
- tree
-Message-ID: <20210817192351.r7XD4%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, david@redhat.com,
+        Liam.Howlett@Oracle.com
+Subject:  + remap_file_pages-use-vma_lookup-instead-of-find_vma.patch
+ added to -mm tree
+Message-ID: <20210817192552.rX2JQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slab: simplify lockdep_assert_held in lockdep_assert_held()
+     Subject: remap_file_pages: Use vma_lookup() instead of find_vma()
 has been added to the -mm tree.  Its filename is
-     mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
+     remap_file_pages-use-vma_lookup-instead-of-find_vma.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/remap_file_pages-use-vma_lookup-instead-of-find_vma.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/remap_file_pages-use-vma_lookup-instead-of-find_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,80 +64,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slab: simplify lockdep_assert_held in lockdep_assert_held()
+From: "Liam R. Howlett" <Liam.Howlett@Oracle.com>
+Subject: remap_file_pages: Use vma_lookup() instead of find_vma()
 
-Sebastian reports [1] that the special version of lockdep_assert_held() for a
-local lock with PREEMPT_RT is no longer necessary, and we can simplify.
+Using vma_lookup() verifies the start address is contained in the found vma.
+This results in easier to read code.
 
-[1] https://lore.kernel.org/linux-mm/20210817153937.hxnuh7mqp6vuiyws@linutronix.de/
-
-This is a fixup for mmotm patch
-mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
-
-Link: https://lkml.kernel.org/r/7e9ccf34-57d1-786b-2dfd-3b9ba78e1b32@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Link: https://lkml.kernel.org/r/20210817135234.1550204-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@Oracle.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/mmap.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/slub.c~mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix
-+++ a/mm/slub.c
-@@ -2913,11 +2913,7 @@ redo:
+--- a/mm/mmap.c~remap_file_pages-use-vma_lookup-instead-of-find_vma
++++ a/mm/mmap.c
+@@ -2994,14 +2994,11 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	if (mmap_write_lock_killable(mm))
+ 		return -EINTR;
  
- load_freelist:
+-	vma = find_vma(mm, start);
++	vma = vma_lookup(mm, start);
  
--#ifdef CONFIG_PREEMPT_RT
--	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock.lock));
--#else
- 	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock));
--#endif
+ 	if (!vma || !(vma->vm_flags & VM_SHARED))
+ 		goto out;
  
- 	/*
- 	 * freelist is pointing to the list of objects to be used.
+-	if (start < vma->vm_start)
+-		goto out;
+-
+ 	if (start + size > vma->vm_end) {
+ 		struct vm_area_struct *next;
+ 
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from Liam.Howlett@Oracle.com are
 
-mm-slub-dont-call-flush_all-from-slab_debug_trace_open.patch
-mm-slub-allocate-private-object-map-for-debugfs-listings.patch
-mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
-mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
-mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
-mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
-mm-slub-extract-get_partial-from-new_slab_objects.patch
-mm-slub-dissolve-new_slab_objects-into-___slab_alloc.patch
-mm-slub-return-slab-page-from-get_partial-and-set-c-page-afterwards.patch
-mm-slub-restructure-new-page-checks-in-___slab_alloc.patch
-mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch
-mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix.patch
-mm-slub-move-disabling-irqs-closer-to-get_partial-in-___slab_alloc.patch
-mm-slub-restore-irqs-around-calling-new_slab.patch
-mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
-mm-slub-check-new-pages-with-restored-irqs.patch
-mm-slub-stop-disabling-irqs-around-get_partial.patch
-mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
-mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
-mm-slub-call-deactivate_slab-without-disabling-irqs.patch
-mm-slub-move-irq-control-into-unfreeze_partials.patch
-mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled.patch
-mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials.patch
-mm-slub-separate-detaching-of-partial-list-in-unfreeze_partials-from-unfreezing.patch
-mm-slub-only-disable-irq-with-spin_lock-in-__unfreeze_partials.patch
-mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
-mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
-mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context-fix.patch
-mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context-fix-2.patch
-mm-slub-optionally-save-restore-irqs-in-slab_lock.patch
-mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
-mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
-mm-slub-use-migrate_disable-on-preempt_rt.patch
-mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
-mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
+remap_file_pages-use-vma_lookup-instead-of-find_vma.patch
 
