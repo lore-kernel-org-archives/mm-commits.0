@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AB45C432BE
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:11:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DE8F3C4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:11:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 82EE16103A
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:11:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CCEA960F58
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:11:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233861AbhHQULd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Aug 2021 16:11:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52252 "EHLO mail.kernel.org"
+        id S233916AbhHQULh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 17 Aug 2021 16:11:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52290 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229466AbhHQULd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Aug 2021 16:11:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A313760F58;
-        Tue, 17 Aug 2021 20:10:59 +0000 (UTC)
+        id S233849AbhHQULf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 17 Aug 2021 16:11:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C835460F41;
+        Tue, 17 Aug 2021 20:11:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629231059;
-        bh=9G2u2GkU1SqDhe2JpE8L9GIKqzCesPFuVkjmXKQgIQ8=;
+        s=korg; t=1629231062;
+        bh=z2ShItFhj6tUKDQYeE0YJWMGib6Uk8G8M1MtxQEZjOo=;
         h=Date:From:To:Subject:From;
-        b=Oau6T/A86LSNELcKs2/F8dak5ojxtyjikMzCjIChjPPIllCkz6BXtZhKJ52N6WueG
-         V+slSV1f3WZh4KKteFcsV4E4dxJLWllIl5arljXFHoQvYsRShdwfHrQwnTA6vhj2pb
-         P4YeCr1Wb3PegzWE7PZR2gKfkDbXoSA2z1qSOLUo=
-Date:   Tue, 17 Aug 2021 13:10:59 -0700
+        b=PuX8QNwSzx+kYIsJu2jWi+nv84w23sep1TtRY26Ig8bcTNx4kY9lZzDbF63Tgrwks
+         NVDdFOA2kH6LGd/vyVnHOxD+S+xAszAnPVGZpVzVdRaI1avGOAibcnnxd5QKapd2yi
+         2x9Y/fT9gfD9nvotFKVbG4GYLkXyuM/ZmubzeTfM=
+Date:   Tue, 17 Aug 2021 13:11:01 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         shy828301@gmail.com, shakeelb@google.com, riel@surriel.com,
         mike.kravetz@oracle.com, mhocko@suse.com, linmiaohe@huawei.com,
         kirill.shutemov@linux.intel.com, hughd@google.com
-Subject:  + huge-tmpfs-decide-statst_blksize-by-shmem_is_huge.patch
- added to -mm tree
-Message-ID: <20210817201059.RpRs2%akpm@linux-foundation.org>
+Subject:  + shmem-shmem_writepage-split-unlikely-i915-thp.patch added
+ to -mm tree
+Message-ID: <20210817201101.hIzdF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: decide stat.st_blksize by shmem_is_huge()
+     Subject: shmem: shmem_writepage() split unlikely i915 THP
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-decide-statst_blksize-by-shmem_is_huge.patch
+     shmem-shmem_writepage-split-unlikely-i915-thp.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-decide-statst_blksize-by-shmem_is_huge.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/shmem-shmem_writepage-split-unlikely-i915-thp.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-decide-statst_blksize-by-shmem_is_huge.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/shmem-shmem_writepage-split-unlikely-i915-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,70 +67,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs: decide stat.st_blksize by shmem_is_huge()
+Subject: shmem: shmem_writepage() split unlikely i915 THP
 
-4.18 commit 89fdcd262fd4 ("mm: shmem: make stat.st_blksize return huge
-page size if THP is on") added is_huge_enabled() to decide st_blksize: if
-hugeness is to be defined per file, that will need to be replaced by
-shmem_is_huge().
+drivers/gpu/drm/i915/gem/i915_gem_shmem.c contains a shmem_writeback()
+which calls shmem_writepage() from a shrinker: that usually works well
+enough; but if /sys/kernel/mm/transparent_hugepage/shmem_enabled has been
+set to "always" (intended to be usable) or "force" (forces huge everywhere
+for easy testing), shmem_writepage() is surprised to be called with a huge
+page, and crashes on the VM_BUG_ON_PAGE(PageCompound) (I did not find out
+where the crash happens when CONFIG_DEBUG_VM is off).
 
-This does give a different answer (No) for small files on a
-"huge=within_size" mount: but that can be considered a minor bugfix.  And
-a different answer (No) for default files on a "huge=advise" mount: I'm
-reluctant to complicate it, just to reproduce the same debatable answer as
-before.
+LRU page reclaim always splits the shmem huge page first: I'd prefer not
+to demand that of i915, so check and split compound in shmem_writepage().
 
-Link: https://lkml.kernel.org/r/af7fb3f9-4415-9e8e-fdac-b1a5253ad21@google.com
+Patch history: when first sent last year
+http://lkml.kernel.org/r/alpine.LSU.2.11.2008301401390.5954@eggly.anvils
+https://lore.kernel.org/linux-mm/20200919042009.bomzxmrg7%25akpm@linux-foundation.org/
+Matthew Wilcox noticed that tail pages were wrongly left clean.  This
+version brackets the split with Set and Clear PageDirty as he suggested:
+which works very well, even if it falls short of our aspirations.  And
+recently I realized that the crash is not limited to the testing option
+"force", but affects "always" too: which is more important to fix.
+
+Link: https://lkml.kernel.org/r/bac6158c-8b3d-4dca-cffc-4982f58d9794@google.com
+Fixes: 2d6692e642e7 ("drm/i915: Start writeback from the shrinker")
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Yang Shi <shy828301@gmail.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ mm/shmem.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
---- a/mm/shmem.c~huge-tmpfs-decide-statst_blksize-by-shmem_is_huge
+--- a/mm/shmem.c~shmem-shmem_writepage-split-unlikely-i915-thp
 +++ a/mm/shmem.c
-@@ -686,15 +686,6 @@ static unsigned long shmem_unused_huge_s
- }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+@@ -1344,7 +1344,19 @@ static int shmem_writepage(struct page *
+ 	swp_entry_t swap;
+ 	pgoff_t index;
  
--static inline bool is_huge_enabled(struct shmem_sb_info *sbinfo)
--{
--	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
--	    (shmem_huge == SHMEM_HUGE_FORCE || sbinfo->huge) &&
--	    shmem_huge != SHMEM_HUGE_DENY)
--		return true;
--	return false;
--}
--
- /*
-  * Like add_to_page_cache_locked, but error if expected item has gone.
-  */
-@@ -1075,7 +1066,6 @@ static int shmem_getattr(struct user_nam
- {
- 	struct inode *inode = path->dentry->d_inode;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct shmem_sb_info *sb_info = SHMEM_SB(inode->i_sb);
- 
- 	if (info->alloced - info->swapped != inode->i_mapping->nrpages) {
- 		spin_lock_irq(&info->lock);
-@@ -1084,7 +1074,7 @@ static int shmem_getattr(struct user_nam
- 	}
- 	generic_fillattr(&init_user_ns, inode, stat);
- 
--	if (is_huge_enabled(sb_info))
-+	if (shmem_is_huge(NULL, inode, 0))
- 		stat->blksize = HPAGE_PMD_SIZE;
- 
- 	return 0;
+-	VM_BUG_ON_PAGE(PageCompound(page), page);
++	/*
++	 * If /sys/kernel/mm/transparent_hugepage/shmem_enabled is "always" or
++	 * "force", drivers/gpu/drm/i915/gem/i915_gem_shmem.c gets huge pages,
++	 * and its shmem_writeback() needs them to be split when swapping.
++	 */
++	if (PageTransCompound(page)) {
++		/* Ensure the subpages are still dirty */
++		SetPageDirty(page);
++		if (split_huge_page(page) < 0)
++			goto redirty;
++		ClearPageDirty(page);
++	}
++
+ 	BUG_ON(!PageLocked(page));
+ 	mapping = page->mapping;
+ 	index = page->index;
 _
 
 Patches currently in -mm which might be from hughd@google.com are
