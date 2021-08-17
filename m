@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC513C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:33:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3146BC432BE
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:33:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8DDE360FDA
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:33:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 16E8960F5C
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:33:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235183AbhHQAdj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Aug 2021 20:33:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33632 "EHLO mail.kernel.org"
+        id S235190AbhHQAdl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Aug 2021 20:33:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33682 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234966AbhHQAdj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Aug 2021 20:33:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A09D760FD7;
-        Tue, 17 Aug 2021 00:33:06 +0000 (UTC)
+        id S234935AbhHQAdl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Aug 2021 20:33:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A254560F39;
+        Tue, 17 Aug 2021 00:33:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629160387;
-        bh=ETAKz+oVIeTZuqgLXKwc88Cx6cTHOlqbm3l74Mk8B94=;
+        s=korg; t=1629160389;
+        bh=m5dtoXXPM2vXRxfkpIOTBKK2VwBuRS6Q76FsuJnrncs=;
         h=Date:From:To:Subject:From;
-        b=v+bIsBBjzj/tsJlCUj+BMMKqh6wo4MpJiodD3ZDW9DdBXcGwclufIGljBNr8bG9Ro
-         Tm0BvcvTQ3OaKqTpOr02/iHE/aU/5a8e6QmFAftAwqrEbH2TQ8HxRgyV9mh4zDFdFN
-         sa2W6xXk6jjV9rBAThqFEJYkNefqFl4g2DI+XjAA=
-Date:   Mon, 16 Aug 2021 17:33:06 -0700
+        b=Ij6LPqUSJaW3dIu6C21zycpLMmrn7bJ211CwjyMGJNIwctq3EkePmzHpy5d3uL8dv
+         IryDw+i7bxqyJMzh3JvmBQsI+t4DNihLWU+WvVre7SZcPkaeL4d+8ADDN13vo/iVjL
+         sXTmviLYJDyiOiuIHWgO/MUgxawf9JbJieTLwHQI=
+Date:   Mon, 16 Aug 2021 17:33:08 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, rui.zhang@intel.com, rafael@kernel.org,
         pmeerw@pmeerw.net, myungjoo.ham@samsung.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, rui.zhang@intel.com, rafael@kernel.org,
         kyungmin.park@samsung.com, Jonathan.Cameron@huawei.com,
         jic23@kernel.org, cw00.choi@samsung.com, ceggers@arri.de,
         andriy.shevchenko@linux.intel.com, daniel.lezcano@linaro.org
-Subject:  + mtd-drivers-nand-use-hz-macros.patch added to -mm tree
-Message-ID: <20210817003306.2jkur%akpm@linux-foundation.org>
+Subject:  + phy-drivers-stm32-use-hz-macros.patch added to -mm tree
+Message-ID: <20210817003308.sOjKe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mtd/drivers/nand: use HZ macros
+     Subject: phy/drivers/stm32: use HZ macros
 has been added to the -mm tree.  Its filename is
-     mtd-drivers-nand-use-hz-macros.patch
+     phy-drivers-stm32-use-hz-macros.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mtd-drivers-nand-use-hz-macros.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/phy-drivers-stm32-use-hz-macros.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mtd-drivers-nand-use-hz-macros.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/phy-drivers-stm32-use-hz-macros.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,14 +69,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: mtd/drivers/nand: use HZ macros
+Subject: phy/drivers/stm32: use HZ macros
 
 HZ unit conversion macros are available in units.h, use them and remove
 the duplicate definition.
 
-Link: https://lkml.kernel.org/r/20210816114732.1834145-10-daniel.lezcano@linaro.org
+Link: https://lkml.kernel.org/r/20210816114732.1834145-11-daniel.lezcano@linaro.org
 Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Acked-by: Miquel Raynal <miquel.raynal@bootlin.com>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Chanwoo Choi <cw00.choi@samsung.com>
 Cc: Christian Eggers <ceggers@arri.de>
@@ -87,6 +86,7 @@ Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: Lars-Peter Clausen <lars@metafoo.de>
 Cc: Lukasz Luba <lukasz.luba@arm.com>
 Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
+Cc: Miquel Raynal <miquel.raynal@bootlin.com>
 Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
 Cc: Peter Meerwald <pmeerw@pmeerw.net>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
@@ -94,27 +94,27 @@ Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/raw/intel-nand-controller.c |    2 +-
+ drivers/phy/st/phy-stm32-usbphyc.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/mtd/nand/raw/intel-nand-controller.c~mtd-drivers-nand-use-hz-macros
-+++ a/drivers/mtd/nand/raw/intel-nand-controller.c
-@@ -20,6 +20,7 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/types.h>
+--- a/drivers/phy/st/phy-stm32-usbphyc.c~phy-drivers-stm32-use-hz-macros
++++ a/drivers/phy/st/phy-stm32-usbphyc.c
+@@ -15,6 +15,7 @@
+ #include <linux/of_platform.h>
+ #include <linux/phy/phy.h>
+ #include <linux/reset.h>
 +#include <linux/units.h>
- #include <asm/unaligned.h>
  
- #define EBU_CLC			0x000
-@@ -102,7 +103,6 @@
+ #define STM32_USBPHYC_PLL	0x0
+ #define STM32_USBPHYC_MISC	0x8
+@@ -47,7 +48,6 @@
+ #define PLL_FVCO_MHZ		2880
+ #define PLL_INFF_MIN_RATE_HZ	19200000
+ #define PLL_INFF_MAX_RATE_HZ	38400000
+-#define HZ_PER_MHZ		1000000L
  
- #define MAX_CS	2
- 
--#define HZ_PER_MHZ	1000000L
- #define USEC_PER_SEC	1000000L
- 
- struct ebu_nand_cs {
+ struct pll_params {
+ 	u8 ndiv;
 _
 
 Patches currently in -mm which might be from daniel.lezcano@linaro.org are
