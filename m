@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75DBCC4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:45:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E757AC4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 01:18:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 53ED360234
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 00:45:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C323060ED5
+	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 01:18:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233066AbhHQApo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 16 Aug 2021 20:45:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40602 "EHLO mail.kernel.org"
+        id S231649AbhHQBSn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 16 Aug 2021 21:18:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54374 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232973AbhHQApm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 16 Aug 2021 20:45:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8B352601FD;
-        Tue, 17 Aug 2021 00:45:10 +0000 (UTC)
+        id S230304AbhHQBSn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 16 Aug 2021 21:18:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9CE3C60EE5;
+        Tue, 17 Aug 2021 01:18:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629161110;
-        bh=tFRhMZaHc7jvAQZE9DXTXxLMQts2g1sarojCShuX7T0=;
+        s=korg; t=1629163090;
+        bh=ysil2JFzteW9GOCnC5RKjCCiyApbHOYu2oFTpJmFeTE=;
         h=Date:From:To:Subject:From;
-        b=AR5BhEPFIfuav/nP7Jc/eF4sUL/KU4Jtq4DWUqtA+gId8EOr78Jgn3ZfcMYi1cs9i
-         bfx/fMRuziUGKeoah5QCgD9/P9RwnGepmWdzfKDg0TwHqGhCBdfF+CGc13i4pnZw9y
-         2fx0dE/46ddNQhvEweew/hoHniA12gTqQWKnaYWQ=
-Date:   Mon, 16 Aug 2021 17:45:08 -0700
+        b=QWezmkdXgcdLMWL6zvOst3R9Z/MlTqOEjLk/s49dzmTBFm+K3uY/nmqxoMRZDifYu
+         3xO3k1nhfv3QaV4V0TOeFbThoPsn9As2Pk7fHBJtnAbsk+ePiEqT1RU8hT86bZzQ47
+         I08MWJ/JIj9bJr/VHj8U1Fb522y3AK9rpaIl/X2o=
+Date:   Mon, 16 Aug 2021 18:18:10 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, williams@redhat.com, efault@gmx.de,
-        vbabka@suse.cz
-Subject:  +
- mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix.patch
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        linmiaohe@huawei.com
+Subject:  + mm-hwpoison-remove-unneeded-variable-unmap_success.patch
  added to -mm tree
-Message-ID: <20210817004508._5WpW%akpm@linux-foundation.org>
+Message-ID: <20210817011810.vyRh3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix
+     Subject: mm/hwpoison: remove unneeded variable unmap_success
 has been added to the -mm tree.  Its filename is
-     mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix.patch
+     mm-hwpoison-remove-unneeded-variable-unmap_success.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-remove-unneeded-variable-unmap_success.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-remove-unneeded-variable-unmap_success.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,71 +64,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/hwpoison: remove unneeded variable unmap_success
 
-fix renaming snafu
+Patch series "Cleanups and fixup for hwpoison"
 
-Link: https://lkml.kernel.org/r/ec98bce0-fef4-0fbc-2067-e358510e0321@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Clark Williams <williams@redhat.com>
-Cc: Mike Galbraith <efault@gmx.de>
+This series contains cleanups to remove unneeded variable, fix some
+obsolete comments and so on.  Also we fix potential pte_unmap_unlock on
+wrong pte.  More details can be found in the respective changelogs.
+
+
+This patch (of 4):
+
+unmap_success is used to indicate whether page is successfully unmapped
+but it's irrelated with ZONE_DEVICE page and unmap_success is always true
+here.  Remove this unneeded one.
+
+Link: https://lkml.kernel.org/r/20210814105131.48814-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210814105131.48814-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/slub.c~mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix
-+++ a/mm/slub.c
-@@ -2720,7 +2720,7 @@ redo:
- 	 * PFMEMALLOC but right now, we are losing the pfmemalloc
- 	 * information when the page leaves the per-cpu allocator
- 	 */
--	if (unlikely(!try_pfmemalloc_match(page, gfpflags)))
-+	if (unlikely(!pfmemalloc_match_unsafe(page, gfpflags)))
- 		goto deactivate_slab;
- 
- 	/* must check again c->page in case IRQ handler changed it */
+--- a/mm/memory-failure.c~mm-hwpoison-remove-unneeded-variable-unmap_success
++++ a/mm/memory-failure.c
+@@ -1512,7 +1512,6 @@ static int memory_failure_dev_pagemap(un
+ 		struct dev_pagemap *pgmap)
+ {
+ 	struct page *page = pfn_to_page(pfn);
+-	const bool unmap_success = true;
+ 	unsigned long size = 0;
+ 	struct to_kill *tk;
+ 	LIST_HEAD(tokill);
+@@ -1584,7 +1583,7 @@ static int memory_failure_dev_pagemap(un
+ 		start = (page->index << PAGE_SHIFT) & ~(size - 1);
+ 		unmap_mapping_range(page->mapping, start, size, 0);
+ 	}
+-	kill_procs(&tokill, flags & MF_MUST_KILL, !unmap_success, pfn, flags);
++	kill_procs(&tokill, flags & MF_MUST_KILL, false, pfn, flags);
+ 	rc = 0;
+ unlock:
+ 	dax_unlock_page(page, cookie);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-slub-dont-call-flush_all-from-slab_debug_trace_open.patch
-mm-slub-allocate-private-object-map-for-debugfs-listings.patch
-mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
-mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
-mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
-mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
-mm-slub-extract-get_partial-from-new_slab_objects.patch
-mm-slub-dissolve-new_slab_objects-into-___slab_alloc.patch
-mm-slub-return-slab-page-from-get_partial-and-set-c-page-afterwards.patch
-mm-slub-restructure-new-page-checks-in-___slab_alloc.patch
-mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch
-mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix.patch
-mm-slub-move-disabling-irqs-closer-to-get_partial-in-___slab_alloc.patch
-mm-slub-restore-irqs-around-calling-new_slab.patch
-mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
-mm-slub-check-new-pages-with-restored-irqs.patch
-mm-slub-stop-disabling-irqs-around-get_partial.patch
-mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
-mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
-mm-slub-call-deactivate_slab-without-disabling-irqs.patch
-mm-slub-move-irq-control-into-unfreeze_partials.patch
-mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled.patch
-mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials.patch
-mm-slub-separate-detaching-of-partial-list-in-unfreeze_partials-from-unfreezing.patch
-mm-slub-only-disable-irq-with-spin_lock-in-__unfreeze_partials.patch
-mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
-mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
-mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context-fix.patch
-mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context-fix-2.patch
-mm-slub-optionally-save-restore-irqs-in-slab_lock.patch
-mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
-mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
-mm-slub-use-migrate_disable-on-preempt_rt.patch
-mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
+mm-gup-remove-set-but-unused-local-variable-major.patch
+mm-gup-remove-unneed-local-variable-orig_refs.patch
+mm-gup-remove-useless-bug_on-in-__get_user_pages.patch
+mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge.patch
+mm-gup-use-helper-page_aligned-in-populate_vma_page_range.patch
+shmem-remove-unneeded-variable-ret.patch
+shmem-remove-unneeded-header-file.patch
+shmem-remove-unneeded-function-forward-declaration.patch
+shmem-include-header-file-to-declare-swap_info.patch
+mm-memcg-remove-unused-functions.patch
+mm-memcg-save-some-atomic-ops-when-flush-is-already-true.patch
+mm-hwpoison-remove-unneeded-variable-unmap_success.patch
+mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error.patch
+mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch
+mm-hwpoison-fix-some-obsolete-comments.patch
+mm-vmscan-remove-the-pagedirty-check-after-madv_free-pages-are-page_ref_freezed.patch
+mm-vmscan-remove-misleading-setting-to-sc-priority.patch
+mm-vmscan-remove-unneeded-return-value-of-kswapd_run.patch
+mm-vmscan-add-else-to-remove-check_pending-label.patch
+mm-vmstat-correct-some-wrong-comments.patch
+mm-vmstat-simplify-the-array-size-calculation.patch
+mm-vmstat-remove-unneeded-return-value.patch
+mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
