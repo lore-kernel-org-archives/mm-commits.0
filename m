@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D91C0C4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:36:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD6FEC4338F
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Aug 2021 18:59:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B9D9D60C3E
-	for <mm-commits@archiver.kernel.org>; Tue, 17 Aug 2021 20:36:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BE06661100
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Aug 2021 18:59:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233645AbhHQUgy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 17 Aug 2021 16:36:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40170 "EHLO mail.kernel.org"
+        id S232479AbhHRTAU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Aug 2021 15:00:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38448 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233179AbhHQUgy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 17 Aug 2021 16:36:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8BBD260C3E;
-        Tue, 17 Aug 2021 20:36:20 +0000 (UTC)
+        id S232404AbhHRTAT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Aug 2021 15:00:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 920A460EFE;
+        Wed, 18 Aug 2021 18:59:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629232580;
-        bh=1IFDsSvRr3kIjgJLSGEBDJyo97W+eTK/39Cn/Usy6EY=;
+        s=korg; t=1629313184;
+        bh=RtEHpuedfSkcRhQXJp29dtXR/0Jd6TF/b9gZS3CBk4M=;
         h=Date:From:To:Subject:From;
-        b=T83QGZMpsED4FU18H/I5aMkaQLtiWR8V2+SOpkjL+ADwsxTQwVpemup3V1ttwaBi8
-         4Ks0UkSB0e6ajwJ87lblqIyJcMEcpFo811TmCmDVgvDbJWHf3Qly7fePraZ0w1XmSF
-         yhwQ1BNXT0FX+/IL5mdYk366jFDV2Yh9aJs57lms=
-Date:   Tue, 17 Aug 2021 13:36:20 -0700
+        b=0ct0DibijLmeyBK7kAXPlP+PIzMEPko3AMfIdW4oTYvphj9LoGqQWuP2lZGpo85Zv
+         sqFcIqsWyjDB7naU7tgPw3jTanhibpfnNUaOY3nOwF7exbYFknfhL5zTGKn9cqZAUu
+         xtjvGoVGs7nRKPAqfW4NFtYEerqar6mzizsRQiQE=
+Date:   Wed, 18 Aug 2021 11:59:44 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com
+To:     mm-commits@vger.kernel.org, riel@surriel.com, hannes@cmpxchg.org
 Subject:  +
- mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch added to -mm
- tree
-Message-ID: <20210817203620.6ZnKu%akpm@linux-foundation.org>
+ mm-vmscan-fix-missing-psi-annotation-for-node_reclaim.patch added to -mm tree
+Message-ID: <20210818185944.nTJpA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce PAGEFLAGS_MASK to replace ((1UL << NR_PAGEFLAGS) - 1)
+     Subject: mm: vmscan: fix missing psi annotation for node_reclaim()
 has been added to the -mm tree.  Its filename is
-     mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
+     mm-vmscan-fix-missing-psi-annotation-for-node_reclaim.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-fix-missing-psi-annotation-for-node_reclaim.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-fix-missing-psi-annotation-for-node_reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,90 +63,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: introduce PAGEFLAGS_MASK to replace ((1UL << NR_PAGEFLAGS) - 1)
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: fix missing psi annotation for node_reclaim()
 
-Instead of hard-coding ((1UL << NR_PAGEFLAGS) - 1) everywhere, introducing
-PAGEFLAGS_MASK to make the code clear to get the page flags.
+In a debugging session the other day, Rik noticed that node_reclaim() was
+missing memstall annotations.  This means we'll miss pressure and lost
+productivity resulting from reclaim on an overloaded local NUMA node when
+vm.zone_reclaim_mode is enabled.
 
-Link: https://lkml.kernel.org/r/20210817033032.76089-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+There haven't been any reports, but that's likely because
+vm.zone_reclaim_mode hasn't been a commonly used feature recently, and the
+intersection between such setups and psi users is probably nil.  Although,
+secondary memory such as CXL-connected DIMMS, persistent memory etc.  and
+the page demotion patches that handle them
+(https://lore.kernel.org/lkml/20210401183216.443C4443@viggo.jf.intel.com/)
+could soon make this a more common codepath again.
+
+Link: https://lkml.kernel.org/r/20210818152457.35846-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h      |    4 +++-
- include/trace/events/page_ref.h |    4 ++--
- lib/test_printf.c               |    2 +-
- lib/vsprintf.c                  |    2 +-
- 4 files changed, 7 insertions(+), 5 deletions(-)
+ mm/vmscan.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/include/linux/page-flags.h~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
-+++ a/include/linux/page-flags.h
-@@ -178,6 +178,8 @@ enum pageflags {
- 	PG_reported = PG_uptodate,
- };
+--- a/mm/vmscan.c~mm-vmscan-fix-missing-psi-annotation-for-node_reclaim
++++ a/mm/vmscan.c
+@@ -4424,11 +4424,13 @@ static int __node_reclaim(struct pglist_
+ 		.may_swap = 1,
+ 		.reclaim_idx = gfp_zone(gfp_mask),
+ 	};
++	unsigned long pflags;
  
-+#define PAGEFLAGS_MASK		(~((1UL << NR_PAGEFLAGS) - 1))
-+
- #ifndef __GENERATING_BOUNDS_H
+ 	trace_mm_vmscan_node_reclaim_begin(pgdat->node_id, order,
+ 					   sc.gfp_mask);
  
- static inline unsigned long _compound_head(const struct page *page)
-@@ -868,7 +870,7 @@ static inline void ClearPageSlabPfmemall
-  * alloc-free cycle to prevent from reusing the page.
-  */
- #define PAGE_FLAGS_CHECK_AT_PREP	\
--	(((1UL << NR_PAGEFLAGS) - 1) & ~__PG_HWPOISON)
-+	(~(PAGEFLAGS_MASK | __PG_HWPOISON))
+ 	cond_resched();
++	psi_memstall_enter(&pflags);
+ 	fs_reclaim_acquire(sc.gfp_mask);
+ 	/*
+ 	 * We need to be able to allocate from the reserves for RECLAIM_UNMAP
+@@ -4453,6 +4455,7 @@ static int __node_reclaim(struct pglist_
+ 	current->flags &= ~PF_SWAPWRITE;
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 	fs_reclaim_release(sc.gfp_mask);
++	psi_memstall_leave(&pflags);
  
- #define PAGE_FLAGS_PRIVATE				\
- 	(1UL << PG_private | 1UL << PG_private_2)
---- a/include/trace/events/page_ref.h~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
-+++ a/include/trace/events/page_ref.h
-@@ -38,7 +38,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_templat
- 
- 	TP_printk("pfn=0x%lx flags=%s count=%d mapcount=%d mapping=%p mt=%d val=%d",
- 		__entry->pfn,
--		show_page_flags(__entry->flags & ((1UL << NR_PAGEFLAGS) - 1)),
-+		show_page_flags(__entry->flags & ~PAGEFLAGS_MASK),
- 		__entry->count,
- 		__entry->mapcount, __entry->mapping, __entry->mt,
- 		__entry->val)
-@@ -88,7 +88,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_and_tes
- 
- 	TP_printk("pfn=0x%lx flags=%s count=%d mapcount=%d mapping=%p mt=%d val=%d ret=%d",
- 		__entry->pfn,
--		show_page_flags(__entry->flags & ((1UL << NR_PAGEFLAGS) - 1)),
-+		show_page_flags(__entry->flags & ~PAGEFLAGS_MASK),
- 		__entry->count,
- 		__entry->mapcount, __entry->mapping, __entry->mt,
- 		__entry->val, __entry->ret)
---- a/lib/test_printf.c~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
-+++ a/lib/test_printf.c
-@@ -614,7 +614,7 @@ page_flags_test(int section, int node, i
- 	bool append = false;
- 	int i;
- 
--	flags &= BIT(NR_PAGEFLAGS) - 1;
-+	flags &= ~PAGEFLAGS_MASK;
- 	if (flags) {
- 		page_flags |= flags;
- 		snprintf(cmp_buf + size, BUF_SIZE - size, "%s", name);
---- a/lib/vsprintf.c~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
-+++ a/lib/vsprintf.c
-@@ -2019,7 +2019,7 @@ static const struct page_flags_fields pf
- static
- char *format_page_flags(char *buf, char *end, unsigned long flags)
- {
--	unsigned long main_flags = flags & (BIT(NR_PAGEFLAGS) - 1);
-+	unsigned long main_flags = flags & ~PAGEFLAGS_MASK;
- 	bool append = false;
- 	int i;
+ 	trace_mm_vmscan_node_reclaim_end(sc.nr_reclaimed);
  
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section.patch
-mm-remove-redundant-compound_head-calling.patch
-mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
+mm-memcontrol-fix-occasional-ooms-due-to-proportional-memorylow-reclaim.patch
+mm-vmscan-fix-missing-psi-annotation-for-node_reclaim.patch
+mm-remove-irqsave-restore-locking-from-contexts-with-irqs-enabled.patch
+fs-drop_caches-fix-skipping-over-shadow-cache-inodes.patch
+fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch
+vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
 
