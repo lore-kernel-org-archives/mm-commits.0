@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 103DCC4320E
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Aug 2021 19:34:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC6E2C432BE
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Aug 2021 19:42:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9766610FF
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Aug 2021 19:34:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E11C610CD
+	for <mm-commits@archiver.kernel.org>; Wed, 18 Aug 2021 19:42:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232831AbhHRTf0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Aug 2021 15:35:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50240 "EHLO mail.kernel.org"
+        id S233143AbhHRTn0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Aug 2021 15:43:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232149AbhHRTfZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Aug 2021 15:35:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A7D1960F4C;
-        Wed, 18 Aug 2021 19:34:50 +0000 (UTC)
+        id S233609AbhHRTnX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Aug 2021 15:43:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9816C610CF;
+        Wed, 18 Aug 2021 19:42:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629315290;
-        bh=EN7kRYTJb+Gsldxs/kkTEiPA6uL0vQ2qeaYiF5NF6g0=;
+        s=korg; t=1629315767;
+        bh=B3CQAhMCNYJgMhsKzmLCPidDmiDBat/SyAwqt+xIXX4=;
         h=Date:From:To:Subject:From;
-        b=qSdDGaPT4P/ccNIIHnmynHs3T/cjqHeZkJ1DYthpUFBAyo1QO2pttV+uxOZODBuU7
-         38qJgHvimmdFezHw9kO6S75O41i6NzyDeCdVcsKyeGRFmNH7vXoemk6J5KpmQ4nBxs
-         drXQSp70nSldIvhGMgAWMCBfqlt41yxSJf+mmmew=
-Date:   Wed, 18 Aug 2021 12:34:50 -0700
+        b=lLdx16Jaaad9J4MMbXbn9Ujpd4e1C4RPrZ/cZDEXCfFu1+YY3I5T5OerRclTfOhHV
+         j3cMNNbz9YO0kwG2Lb4llghkzcv9Oz1kGpZNf6b2C9eSK9N16Dfy+3uE+rFcTokLQH
+         1vATwl85eXvUsdGiSNGF0zyOh00DQAC7ikEDa+yk=
+Date:   Wed, 18 Aug 2021 12:42:47 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        Kuan-Ying.Lee@mediatek.com, glider@google.com, dvyukov@google.com,
-        elver@google.com
-Subject:  +
- kfence-fix-is_kfence_address-for-addresses-below-kfence_pool_size.patch added
+To:     mm-commits@vger.kernel.org, ndesaulniers@google.com,
+        keescook@chromium.org, nathan@kernel.org
+Subject:  + maintainers-update-clangbuiltlinux-irc-chat.patch added
  to -mm tree
-Message-ID: <20210818193450.CWYTY%akpm@linux-foundation.org>
+Message-ID: <20210818194247.vDPTe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: fix is_kfence_address() for addresses below KFENCE_POOL_SIZE
+     Subject: MAINTAINERS: update ClangBuiltLinux IRC chat
 has been added to the -mm tree.  Its filename is
-     kfence-fix-is_kfence_address-for-addresses-below-kfence_pool_size.patch
+     maintainers-update-clangbuiltlinux-irc-chat.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-fix-is_kfence_address-for-addresses-below-kfence_pool_size.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-clangbuiltlinux-irc-chat.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-fix-is_kfence_address-for-addresses-below-kfence_pool_size.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-clangbuiltlinux-irc-chat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,54 +64,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: fix is_kfence_address() for addresses below KFENCE_POOL_SIZE
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: MAINTAINERS: update ClangBuiltLinux IRC chat
 
-Originally the addr != NULL check was meant to take care of the case where
-__kfence_pool == NULL (KFENCE is disabled).  However, this does not work
-for addresses where addr > 0 && addr < KFENCE_POOL_SIZE.
+Everyone has moved from Freenode to Libera so updated the channel entry
+for MAINTAINERS.
 
-This can be the case on NULL-deref where addr > 0 && addr < PAGE_SIZE or
-any other faulting access with addr < KFENCE_POOL_SIZE.  While the kernel
-would likely crash, the stack traces and report might be confusing due to
-double faults upon KFENCE's attempt to unprotect such an address.
-
-Fix it by just checking that __kfence_pool != NULL instead.
-
-Link: https://lkml.kernel.org/r/20210818130300.2482437-1-elver@google.com
-Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Acked-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: <stable@vger.kernel.org>    [5.12+]
+Link: https://github.com/ClangBuiltLinux/linux/issues/1402
+Link: https://lkml.kernel.org/r/20210818022339.3863058-1-nathan@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kfence.h |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kfence.h~kfence-fix-is_kfence_address-for-addresses-below-kfence_pool_size
-+++ a/include/linux/kfence.h
-@@ -51,10 +51,11 @@ extern atomic_t kfence_allocation_gate;
- static __always_inline bool is_kfence_address(const void *addr)
- {
- 	/*
--	 * The non-NULL check is required in case the __kfence_pool pointer was
--	 * never initialized; keep it in the slow-path after the range-check.
-+	 * The __kfence_pool != NULL check is required to deal with the case
-+	 * where __kfence_pool == NULL && addr < KFENCE_POOL_SIZE. Keep it in
-+	 * the slow-path after the range-check!
- 	 */
--	return unlikely((unsigned long)((char *)addr - __kfence_pool) < KFENCE_POOL_SIZE && addr);
-+	return unlikely((unsigned long)((char *)addr - __kfence_pool) < KFENCE_POOL_SIZE && __kfence_pool);
- }
- 
- /**
+--- a/MAINTAINERS~maintainers-update-clangbuiltlinux-irc-chat
++++ a/MAINTAINERS
+@@ -4498,7 +4498,7 @@ L:	clang-built-linux@googlegroups.com
+ S:	Supported
+ W:	https://clangbuiltlinux.github.io/
+ B:	https://github.com/ClangBuiltLinux/linux/issues
+-C:	irc://chat.freenode.net/clangbuiltlinux
++C:	irc://irc.libera.chat/clangbuiltlinux
+ F:	Documentation/kbuild/llvm.rst
+ F:	include/linux/compiler-clang.h
+ F:	scripts/clang-tools/
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-kfence-fix-is_kfence_address-for-addresses-below-kfence_pool_size.patch
-kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
+maintainers-update-clangbuiltlinux-irc-chat.patch
+mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix-fix.patch
 
