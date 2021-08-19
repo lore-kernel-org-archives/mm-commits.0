@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4A10C4320A
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Aug 2021 21:39:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 152B5C4320A
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Aug 2021 21:41:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA962610A3
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Aug 2021 21:39:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F2AC76108F
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Aug 2021 21:41:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235399AbhHSVkJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 Aug 2021 17:40:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54838 "EHLO mail.kernel.org"
+        id S233338AbhHSVmf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 Aug 2021 17:42:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56338 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229619AbhHSVkI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 19 Aug 2021 17:40:08 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8BF7960231;
-        Thu, 19 Aug 2021 21:39:31 +0000 (UTC)
+        id S233664AbhHSVme (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 19 Aug 2021 17:42:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F4D561029;
+        Thu, 19 Aug 2021 21:41:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629409171;
-        bh=/3AexJ43RBNcCP977iARrHSM8ZzaiTEoHfxpPJ+3XRI=;
+        s=korg; t=1629409317;
+        bh=q553DMRncaNO4UN8W2gimKxTMcjHOsqN8Owv/nq/QhU=;
         h=Date:From:To:Subject:From;
-        b=FapZ1vKGwW+fncCu5dUQL9Mab4Cf9bduWoYjvgZd8/kslIjJar3/blpLVTi2w9fNn
-         /IO5KHmgTfgaWfRwscp1/BcosdLI9Rm8sfsmDKYFpYuo9Ru7bkba2tvdKpMPBWJAG8
-         SpMjUJuDEQuVb8J6TzRbeybuJbiwfDqUYgZ+mvCE=
-Date:   Thu, 19 Aug 2021 14:39:31 -0700
+        b=jNhyJ2uLdZY6CU2LA7m013oQ/ixf8BShSTh7NJFoCH3tge956VYXUaPqNsO8Gy/Ew
+         BhMxwDHDJ2SwFTYApDHWr1pOm9d9FylRHl36to+M6QvWBXMKfdVPSleErsAL050Vys
+         ns6xqW/yzTcv80Rg8ilnfWy3fMTgbwMYBYrmkuRs=
+Date:   Thu, 19 Aug 2021 14:41:55 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, tyhicks@linux.microsoft.com,
-        pasha.tatashin@soleen.com, zhansayabagdaulet@gmail.com
-Subject:  + selftests-vm-add-cow-time-test-for-ksm-pages.patch added
- to -mm tree
-Message-ID: <20210819213931.8ZMdG%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        vdavydov.dev@gmail.com, shakeelb@google.com, mhocko@kernel.org,
+        hannes@cmpxchg.org, guro@fb.com, songmuchun@bytedance.com
+Subject:  +
+ mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch added to -mm
+ tree
+Message-ID: <20210819214155.-zjRb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: add COW time test for KSM pages
+     Subject: mm: introduce PAGEFLAGS_MASK to replace ((1UL << NR_PAGEFLAGS) - 1)
 has been added to the -mm tree.  Its filename is
-     selftests-vm-add-cow-time-test-for-ksm-pages.patch
+     mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-add-cow-time-test-for-ksm-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-add-cow-time-test-for-ksm-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,179 +66,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
-Subject: selftests: vm: add COW time test for KSM pages
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: introduce PAGEFLAGS_MASK to replace ((1UL << NR_PAGEFLAGS) - 1)
 
-Since merged pages are copied every time they need to be modified, the
-write access time is different between shared and non-shared pages.  Add
-ksm_cow_time() function which evaluates latency of these COW breaks. 
-First, 4000 pages are allocated and the time, required to modify 1 byte in
-every other page, is measured.  After this, the pages are merged into 2000
-pairs and in each pair, 1 page is modified (i.e.  they are decoupled) to
-detect COW breaks.  The time needed to break COW of merged pages is then
-compared with performance of non-shared pages.
+Instead of hard-coding ((1UL << NR_PAGEFLAGS) - 1) everywhere, introducing
+PAGEFLAGS_MASK to make the code clear to get the page flags.
 
-The test is run as follows: ./ksm_tests -C
-The output:
-	Total size:    15 MiB
-
-	Not merged pages:
-	Total time:     0.002185489 s
-	Average speed:  3202.945 MiB/s
-
-	Merged pages:
-	Total time:     0.004386872 s
-	Average speed:  1595.670 MiB/s
-
-Link: https://lkml.kernel.org/r/1d03ee0d1b341959d4b61672c6401d498bff5652.1629386192.git.zhansayabagdaulet@gmail.com
-Signed-off-by: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
-Reviewed-by: Tyler Hicks <tyhicks@linux.microsoft.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Link: https://lkml.kernel.org/r/20210819150712.59948-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/ksm_tests.c |   86 ++++++++++++++++++++++-
- 1 file changed, 83 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h      |    4 +++-
+ include/trace/events/page_ref.h |    4 ++--
+ lib/test_printf.c               |    2 +-
+ lib/vsprintf.c                  |    2 +-
+ 4 files changed, 7 insertions(+), 5 deletions(-)
 
---- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-add-cow-time-test-for-ksm-pages
-+++ a/tools/testing/selftests/vm/ksm_tests.c
-@@ -33,7 +33,8 @@ enum ksm_test_name {
- 	CHECK_KSM_UNMERGE,
- 	CHECK_KSM_ZERO_PAGE_MERGE,
- 	CHECK_KSM_NUMA_MERGE,
--	KSM_MERGE_TIME
-+	KSM_MERGE_TIME,
-+	KSM_COW_TIME
+--- a/include/linux/page-flags.h~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
++++ a/include/linux/page-flags.h
+@@ -178,6 +178,8 @@ enum pageflags {
+ 	PG_reported = PG_uptodate,
  };
  
- static int ksm_write_sysfs(const char *file_path, unsigned long val)
-@@ -98,7 +99,8 @@ static void print_help(void)
- 	       " -U (page unmerging)\n"
- 	       " -P evaluate merging time and speed.\n"
- 	       "    For this test, the size of duplicated memory area (in MiB)\n"
--	       "    must be provided using -s option\n\n");
-+	       "    must be provided using -s option\n"
-+	       " -C evaluate the time required to break COW of merged pages.\n\n");
++#define PAGEFLAGS_MASK		((1UL << NR_PAGEFLAGS) - 1)
++
+ #ifndef __GENERATING_BOUNDS_H
  
- 	printf(" -a: specify the access protections of pages.\n"
- 	       "     <prot> must be of the form [rwx].\n"
-@@ -455,6 +457,77 @@ err_out:
- 	return KSFT_FAIL;
- }
+ static inline unsigned long _compound_head(const struct page *page)
+@@ -868,7 +870,7 @@ static inline void ClearPageSlabPfmemall
+  * alloc-free cycle to prevent from reusing the page.
+  */
+ #define PAGE_FLAGS_CHECK_AT_PREP	\
+-	(((1UL << NR_PAGEFLAGS) - 1) & ~__PG_HWPOISON)
++	(PAGEFLAGS_MASK & ~__PG_HWPOISON)
  
-+static int ksm_cow_time(int mapping, int prot, int timeout, size_t page_size)
-+{
-+	void *map_ptr;
-+	struct timespec start_time, end_time;
-+	unsigned long cow_time_ns;
-+
-+	/* page_count must be less than 2*page_size */
-+	size_t page_count = 4000;
-+
-+	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
-+	if (!map_ptr)
-+		return KSFT_FAIL;
-+
-+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
-+		perror("clock_gettime");
-+		return KSFT_FAIL;
-+	}
-+	for (size_t i = 0; i < page_count - 1; i = i + 2)
-+		memset(map_ptr + page_size * i, '-', 1);
-+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
-+		perror("clock_gettime");
-+		return KSFT_FAIL;
-+	}
-+
-+	cow_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
-+		       (end_time.tv_nsec - start_time.tv_nsec);
-+
-+	printf("Total size:    %lu MiB\n\n", (page_size * page_count) / MB);
-+	printf("Not merged pages:\n");
-+	printf("Total time:     %ld.%09ld s\n", cow_time_ns / NSEC_PER_SEC,
-+	       cow_time_ns % NSEC_PER_SEC);
-+	printf("Average speed:  %.3f MiB/s\n\n", ((page_size * (page_count / 2)) / MB) /
-+					       ((double)cow_time_ns / NSEC_PER_SEC));
-+
-+	/* Create 2000 pairs of duplicate pages */
-+	for (size_t i = 0; i < page_count - 1; i = i + 2) {
-+		memset(map_ptr + page_size * i, '+', i / 2 + 1);
-+		memset(map_ptr + page_size * (i + 1), '+', i / 2 + 1);
-+	}
-+	if (ksm_merge_pages(map_ptr, page_size * page_count, start_time, timeout))
-+		goto err_out;
-+
-+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
-+		perror("clock_gettime");
-+		goto err_out;
-+	}
-+	for (size_t i = 0; i < page_count - 1; i = i + 2)
-+		memset(map_ptr + page_size * i, '-', 1);
-+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
-+		perror("clock_gettime");
-+		goto err_out;
-+	}
-+
-+	cow_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
-+		       (end_time.tv_nsec - start_time.tv_nsec);
-+
-+	printf("Merged pages:\n");
-+	printf("Total time:     %ld.%09ld s\n", cow_time_ns / NSEC_PER_SEC,
-+	       cow_time_ns % NSEC_PER_SEC);
-+	printf("Average speed:  %.3f MiB/s\n", ((page_size * (page_count / 2)) / MB) /
-+					       ((double)cow_time_ns / NSEC_PER_SEC));
-+
-+	munmap(map_ptr, page_size * page_count);
-+	return KSFT_PASS;
-+
-+err_out:
-+	printf("Not OK\n");
-+	munmap(map_ptr, page_size * page_count);
-+	return KSFT_FAIL;
-+}
-+
- int main(int argc, char *argv[])
+ #define PAGE_FLAGS_PRIVATE				\
+ 	(1UL << PG_private | 1UL << PG_private_2)
+--- a/include/trace/events/page_ref.h~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
++++ a/include/trace/events/page_ref.h
+@@ -38,7 +38,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_templat
+ 
+ 	TP_printk("pfn=0x%lx flags=%s count=%d mapcount=%d mapping=%p mt=%d val=%d",
+ 		__entry->pfn,
+-		show_page_flags(__entry->flags & ((1UL << NR_PAGEFLAGS) - 1)),
++		show_page_flags(__entry->flags & PAGEFLAGS_MASK),
+ 		__entry->count,
+ 		__entry->mapcount, __entry->mapping, __entry->mt,
+ 		__entry->val)
+@@ -88,7 +88,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_and_tes
+ 
+ 	TP_printk("pfn=0x%lx flags=%s count=%d mapcount=%d mapping=%p mt=%d val=%d ret=%d",
+ 		__entry->pfn,
+-		show_page_flags(__entry->flags & ((1UL << NR_PAGEFLAGS) - 1)),
++		show_page_flags(__entry->flags & PAGEFLAGS_MASK),
+ 		__entry->count,
+ 		__entry->mapcount, __entry->mapping, __entry->mt,
+ 		__entry->val, __entry->ret)
+--- a/lib/test_printf.c~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
++++ a/lib/test_printf.c
+@@ -614,7 +614,7 @@ page_flags_test(int section, int node, i
+ 	bool append = false;
+ 	int i;
+ 
+-	flags &= BIT(NR_PAGEFLAGS) - 1;
++	flags &= PAGEFLAGS_MASK;
+ 	if (flags) {
+ 		page_flags |= flags;
+ 		snprintf(cmp_buf + size, BUF_SIZE - size, "%s", name);
+--- a/lib/vsprintf.c~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
++++ a/lib/vsprintf.c
+@@ -2019,7 +2019,7 @@ static const struct page_flags_fields pf
+ static
+ char *format_page_flags(char *buf, char *end, unsigned long flags)
  {
- 	int ret, opt;
-@@ -468,7 +541,7 @@ int main(int argc, char *argv[])
- 	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
- 	long size_MB = 0;
+-	unsigned long main_flags = flags & (BIT(NR_PAGEFLAGS) - 1);
++	unsigned long main_flags = flags & PAGEFLAGS_MASK;
+ 	bool append = false;
+ 	int i;
  
--	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNP")) != -1) {
-+	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPC")) != -1) {
- 		switch (opt) {
- 		case 'a':
- 			prot = str_to_prot(optarg);
-@@ -522,6 +595,9 @@ int main(int argc, char *argv[])
- 		case 'P':
- 			test_name = KSM_MERGE_TIME;
- 			break;
-+		case 'C':
-+			test_name = KSM_COW_TIME;
-+			break;
- 		default:
- 			return KSFT_FAIL;
- 		}
-@@ -571,6 +647,10 @@ int main(int argc, char *argv[])
- 		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
- 				     size_MB);
- 		break;
-+	case KSM_COW_TIME:
-+		ret = ksm_cow_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
-+				   page_size);
-+		break;
- 	}
- 
- 	if (ksm_restore(&ksm_sysfs_old)) {
 _
 
-Patches currently in -mm which might be from zhansayabagdaulet@gmail.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-selftests-vm-add-ksm-merge-test.patch
-selftests-vm-add-ksm-unmerge-test.patch
-selftests-vm-add-ksm-zero-page-merging-test.patch
-selftests-vm-add-ksm-merging-across-nodes-test.patch
-mm-ksm-fix-data-type.patch
-selftests-vm-add-ksm-merging-time-test.patch
-selftests-vm-add-cow-time-test-for-ksm-pages.patch
+mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section.patch
+mm-remove-redundant-compound_head-calling.patch
+mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
 
