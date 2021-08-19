@@ -4,42 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C46C0C4338F
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Aug 2021 23:19:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 074EAC4338F
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Aug 2021 00:29:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E2AE610CF
-	for <mm-commits@archiver.kernel.org>; Wed, 18 Aug 2021 23:19:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D42F9610A6
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Aug 2021 00:29:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234791AbhHRXTu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 18 Aug 2021 19:19:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36184 "EHLO mail.kernel.org"
+        id S234294AbhHSA3p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 18 Aug 2021 20:29:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57860 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234870AbhHRXTu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 18 Aug 2021 19:19:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9ACB7610CE;
-        Wed, 18 Aug 2021 23:19:14 +0000 (UTC)
+        id S234600AbhHSA3p (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 18 Aug 2021 20:29:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A357D610A5;
+        Thu, 19 Aug 2021 00:29:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629328755;
-        bh=CFPBmTo8AId3v21AtJEgHbdK3nDMhRTT/Goesbil5ac=;
+        s=korg; t=1629332949;
+        bh=uZPxWGxXh6nbz6WzgHX9l+6OTCKSaerfWJH53fBhxmg=;
         h=Date:From:To:Subject:From;
-        b=urq2sw5b/zeDBIsCwiIWzXtJ+xwbLotp4PenGCHUezg7M76nO5079E69Sz4bwXrdu
-         24FySKNnOEIcNaTUZ4TOYhez+dwB3FLl69OK5tcVDXG0VWV5zhGLdBuuZ0wTAQwB6p
-         YQTGBwmHB9ZeQ71gk77AkTEc3dWJr6R+Ad7aRK0Q=
-Date:   Wed, 18 Aug 2021 16:19:14 -0700
+        b=mP5Or7NbfdeSwHfPYsBGZCkzrqz2nO7EhS5DIUlTaMaTZ8djPe4qkwdDF+ddf7rx6
+         XyYC8si1lLiAMd1+gep5gg128ypyqjLd3XWuXE9nDyk+WhCs2zPG0fJ/a+QWFhpirs
+         5WilUpQBZxER90Oc2aUZGFkAGfP0/m4sss0vviSI=
+Date:   Wed, 18 Aug 2021 17:29:07 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, tj@kernel.org,
-        rientjes@google.com, penberg@kernel.org, ojeda@kernel.org,
-        ndesaulniers@google.com, nathan@kernel.org,
-        lukas.bulwahn@gmail.com, joe@perches.com, iamjoonsoo.kim@lge.com,
-        dwaipayanray1@gmail.com, dennis@kernel.org, danielmicay@gmail.com,
-        cl@linux.com, apw@canonical.com, keescook@chromium.org
+To:     mm-commits@vger.kernel.org, tony.luck@intel.com,
+        songmuchun@bytedance.com, osalvador@suse.de,
+        mike.kravetz@oracle.com, mhocko@suse.com, naoya.horiguchi@nec.com
 Subject:  +
- mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch added
- to -mm tree
-Message-ID: <20210818231914.lN6zj%akpm@linux-foundation.org>
+ mm-hwpoison-retry-with-shake_page-for-unhandlable-pages-v2.patch added to -mm
+ tree
+Message-ID: <20210819002907.oTt0d%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: add __alloc_size attributes for better bounds checking
+     Subject: mm-hwpoison-retry-with-shake_page-for-unhandlable-pages-v2
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+     mm-hwpoison-retry-with-shake_page-for-unhandlable-pages-v2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-retry-with-shake_page-for-unhandlable-pages-v2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-retry-with-shake_page-for-unhandlable-pages-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,81 +66,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm/vmalloc: add __alloc_size attributes for better bounds checking
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm-hwpoison-retry-with-shake_page-for-unhandlable-pages-v2
 
-As already done in GrapheneOS, add the __alloc_size attribute for
-appropriate vmalloc allocator interfaces, to provide additional hinting
-for better bounds checking, assisting CONFIG_FORTIFY_SOURCE and other
-compiler optimizations.
+get_any_page(): return -EIO when retry limit reached
 
-Link: https://lkml.kernel.org/r/20210818214021.2476230-8-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Co-developed-by: Daniel Micay <danielmicay@gmail.com>
-Signed-off-by: Daniel Micay <danielmicay@gmail.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20210819001958.2365157-1-naoya.horiguchi@linux.dev
+Fixes: 25182f05ffed ("mm,hwpoison: fix race with hugetlb page allocation")
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/memory-failure.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking
-+++ a/include/linux/vmalloc.h
-@@ -136,20 +136,31 @@ static inline void vmalloc_init(void)
- static inline unsigned long vmalloc_nr_pages(void) { return 0; }
- #endif
- 
-+__alloc_size(1)
- extern void *vmalloc(unsigned long size);
-+__alloc_size(1)
- extern void *vzalloc(unsigned long size);
-+__alloc_size(1)
- extern void *vmalloc_user(unsigned long size);
-+__alloc_size(1)
- extern void *vmalloc_node(unsigned long size, int node);
-+__alloc_size(1)
- extern void *vzalloc_node(unsigned long size, int node);
-+__alloc_size(1)
- extern void *vmalloc_32(unsigned long size);
-+__alloc_size(1)
- extern void *vmalloc_32_user(unsigned long size);
-+__alloc_size(1)
- extern void *__vmalloc(unsigned long size, gfp_t gfp_mask);
-+__alloc_size(1)
- extern void *__vmalloc_node_range(unsigned long size, unsigned long align,
- 			unsigned long start, unsigned long end, gfp_t gfp_mask,
- 			pgprot_t prot, unsigned long vm_flags, int node,
- 			const void *caller);
-+__alloc_size(1)
- void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
- 		int node, const void *caller);
-+__alloc_size(1)
- void *vmalloc_no_huge(unsigned long size);
- 
- extern void vfree(const void *addr);
+--- a/mm/memory-failure.c~mm-hwpoison-retry-with-shake_page-for-unhandlable-pages-v2
++++ a/mm/memory-failure.c
+@@ -1207,6 +1207,7 @@ try_again:
+ 				shake_page(p, 1);
+ 				goto try_again;
+ 			}
++			ret = -EIO;
+ 			goto out;
+ 		}
+ 	}
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
-checkpatch-add-__alloc_size-to-known-attribute.patch
-slab-clean-up-function-declarations.patch
-slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
-mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
-percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
-mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+mm-hwpoison-retry-with-shake_page-for-unhandlable-pages.patch
+mm-hwpoison-retry-with-shake_page-for-unhandlable-pages-v2.patch
+mm-sparse-set-section_nid_shift-to-6.patch
 
