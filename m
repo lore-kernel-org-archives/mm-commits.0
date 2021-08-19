@@ -7,36 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55953C4338F
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Aug 2021 21:51:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E57D4C4338F
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Aug 2021 22:12:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3BF006023E
-	for <mm-commits@archiver.kernel.org>; Thu, 19 Aug 2021 21:51:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB1F66108F
+	for <mm-commits@archiver.kernel.org>; Thu, 19 Aug 2021 22:12:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234908AbhHSVwO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 Aug 2021 17:52:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34602 "EHLO mail.kernel.org"
+        id S235911AbhHSWM5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 Aug 2021 18:12:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47448 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229497AbhHSVwN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 19 Aug 2021 17:52:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B6D116109E;
-        Thu, 19 Aug 2021 21:51:36 +0000 (UTC)
+        id S235878AbhHSWM5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 19 Aug 2021 18:12:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A872E60FDA;
+        Thu, 19 Aug 2021 22:12:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629409896;
-        bh=7idUfie+KxQQ7ECqSY4vLARGU8TigMlHID/EXnLnypI=;
+        s=korg; t=1629411140;
+        bh=wufrS9aFyxFZqnN/4B5SXNHHC95tzncH5zxdhXvkXrY=;
         h=Date:From:To:Subject:From;
-        b=in0bzkRZvFOYtrcbm+AD78t/i2ibx1k6uMoo9pBh43B+FvlJM+8s50JYEPg1iFVgB
-         NPaRDuRET1I6mpF6mpawb1wE1gXfeXekZ7lutoscc+m+EGjGI9sLebqL/LmUDTtn/M
-         kA3IjriAvPqLsdiqwIjbX8KrMYDIanNfhPDJE37o=
-Date:   Thu, 19 Aug 2021 14:51:36 -0700
+        b=1jjk69Y634bPexxzYFyp9W3sane0GrqgXuAtVSz0ITmkGs7dt0QwM08bdOOMl95MH
+         33NkRSqTPC4WZESHQbSJb/hmgJFvr8Axu5L/H6kPLWDKd2EAzOoxyaMme0PZlG6E88
+         jRcfJmnQ2Vn5Jn6ao64UIbF6KpdQ6MWmlWgIjakI=
+Date:   Thu, 19 Aug 2021 15:12:20 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        tdmackey@twitter.com, osalvador@suse.de, naoya.horiguchi@nec.com,
-        david@redhat.com, corbet@lwn.net, shy828301@gmail.com
-Subject:  + mm-hwpoison-dump-page-for-unhandlable-page.patch added to
- -mm tree
-Message-ID: <20210819215136.LOSVx%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com,
+        oslab@tsinghua.edu.cn, mark@fasheh.com, junxiao.bi@oracle.com,
+        joseph.qi@linux.alibaba.com, jlbec@evilplan.org, ghe@suse.com,
+        gechangwei@live.cn, islituo@gmail.com
+Subject:  +
+ =?us-ascii?Q?ocfs2-quota=5Flocal-fix-possible-uninitialized-variable-a?=
+ =?us-ascii?Q?ccess-in-ocfs2=5Flocal=5Fread=5Finfo.patch?= added to -mm
+ tree
+Message-ID: <20210819221220.__ljj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hwpoison: dump page for unhandlable page
+     Subject: ocfs2: quota_local: fix possible uninitialized-variable access in ocfs2_local_read_info()
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-dump-page-for-unhandlable-page.patch
+     ocfs2-quota_local-fix-possible-uninitialized-variable-access-in-ocfs2_local_read_info.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-dump-page-for-unhandlable-page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-quota_local-fix-possible-uninitialized-variable-access-in-ocfs2_local_read_info.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-dump-page-for-unhandlable-page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-quota_local-fix-possible-uninitialized-variable-access-in-ocfs2_local_read_info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,54 +70,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: hwpoison: dump page for unhandlable page
+From: Tuo Li <islituo@gmail.com>
+Subject: ocfs2: quota_local: fix possible uninitialized-variable access in ocfs2_local_read_info()
 
-Currently just very simple message is shown for unhandlable page, e.g.
-non-LRU page, like:
-soft_offline: 0x1469f2: unknown non LRU page type 5ffff0000000000 ()
+A memory block is allocated through kmalloc(), and its return value is
+assigned to the pointer oinfo. However, oinfo->dqi_gqinode is not
+initialized but it is accessed in:
+  iput(oinfo->dqi_gqinode);
 
-It is not very helpful for further debug, calling dump_page() could show
-more useful information.
+To fix this possible uninitialized-variable access, assign NULL to
+oinfo->dqi_gqinode, and add ocfs2_qinfo_lock_res_init() behind the
+assignment in ocfs2_local_read_info().  Remove ocfs2_qinfo_lock_res_init()
+in ocfs2_global_read_info().
 
-Calling dump_page() in get_any_page() in order to not duplicate the call
-in a couple of different places.  It may be called with pcp disabled and
-holding memory hotplug lock, it should be not a big deal since hwpoison
-handler is not called very often.
-
-Link: https://lkml.kernel.org/r/20210819054116.266126-3-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Suggested-by: Matthew Wilcox <willy@infradead.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Mackey <tdmackey@twitter.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Link: https://lkml.kernel.org/r/20210804031832.57154-1-islituo@gmail.com
+Signed-off-by: Tuo Li <islituo@gmail.com>
+Reported-by: TOTE Robot <oslab@tsinghua.edu.cn>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/quota_global.c |    1 -
+ fs/ocfs2/quota_local.c  |    2 ++
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-dump-page-for-unhandlable-page
-+++ a/mm/memory-failure.c
-@@ -1228,6 +1228,9 @@ try_again:
- 		ret = -EIO;
+--- a/fs/ocfs2/quota_global.c~ocfs2-quota_local-fix-possible-uninitialized-variable-access-in-ocfs2_local_read_info
++++ a/fs/ocfs2/quota_global.c
+@@ -357,7 +357,6 @@ int ocfs2_global_read_info(struct super_
  	}
- out:
-+	if (ret == -EIO)
-+		dump_page(p, "hwpoison: unhandlable page");
-+
- 	return ret;
- }
- 
+ 	oinfo->dqi_gi.dqi_sb = sb;
+ 	oinfo->dqi_gi.dqi_type = type;
+-	ocfs2_qinfo_lock_res_init(&oinfo->dqi_gqlock, oinfo);
+ 	oinfo->dqi_gi.dqi_entry_size = sizeof(struct ocfs2_global_disk_dqblk);
+ 	oinfo->dqi_gi.dqi_ops = &ocfs2_global_ops;
+ 	oinfo->dqi_gqi_bh = NULL;
+--- a/fs/ocfs2/quota_local.c~ocfs2-quota_local-fix-possible-uninitialized-variable-access-in-ocfs2_local_read_info
++++ a/fs/ocfs2/quota_local.c
+@@ -702,6 +702,8 @@ static int ocfs2_local_read_info(struct
+ 	info->dqi_priv = oinfo;
+ 	oinfo->dqi_type = type;
+ 	INIT_LIST_HEAD(&oinfo->dqi_chunk);
++	oinfo->dqi_gqinode = NULL;
++	ocfs2_qinfo_lock_res_init(&oinfo->dqi_gqlock, oinfo);
+ 	oinfo->dqi_rec = NULL;
+ 	oinfo->dqi_lqi_bh = NULL;
+ 	oinfo->dqi_libh = NULL;
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from islituo@gmail.com are
 
-revert-mm-shmem-fix-shmem_swapin-race-with-swapoff.patch
-revert-mm-swap-check-if-swap-backing-device-is-congested-or-not.patch
-mm-hwpoison-dont-drop-slab-caches-for-offlining-non-lru-page.patch
-doc-hwpoison-correct-the-support-for-hugepage.patch
-mm-hwpoison-dump-page-for-unhandlable-page.patch
+ocfs2-quota_local-fix-possible-uninitialized-variable-access-in-ocfs2_local_read_info.patch
 
