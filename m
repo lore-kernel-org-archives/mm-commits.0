@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3588C4320E
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Aug 2021 02:04:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C435CC4338F
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Aug 2021 02:04:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BAA9761101
-	for <mm-commits@archiver.kernel.org>; Fri, 20 Aug 2021 02:04:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A6363610FA
+	for <mm-commits@archiver.kernel.org>; Fri, 20 Aug 2021 02:04:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236811AbhHTCFC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 19 Aug 2021 22:05:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56698 "EHLO mail.kernel.org"
+        id S236824AbhHTCFF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 19 Aug 2021 22:05:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56756 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234428AbhHTCFB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 19 Aug 2021 22:05:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 831D6610FE;
-        Fri, 20 Aug 2021 02:04:24 +0000 (UTC)
+        id S234428AbhHTCFE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 19 Aug 2021 22:05:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 902D7610FF;
+        Fri, 20 Aug 2021 02:04:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629425064;
-        bh=Vc5t3ffg54MDOH+Bu8ofC9/2wjypspqcsOqm1+KcvWk=;
+        s=korg; t=1629425067;
+        bh=HhWI4yAbztYciuyaaAgUUnX6qCJfSTjgeSDuHh1CDWo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=DSnLOvfhNTTCjMAGUesYSoYC5NE8hjHCjhDcwIXLRDR4wva/B2xy/l3r0SbiALSI9
-         wA2fPccdtVYBRVricPnbQBtSIha2nnu+MYbnfZPc5sdwsA/GFJYHP3Iy2YN9S8yxXK
-         4xcM6eItqD3zYL4pAt4NmwX2449/fjNSFxSnjDHA=
-Date:   Thu, 19 Aug 2021 19:04:24 -0700
+        b=JYrs3N5yUY8BMuJTTpHmErNjuFvBW3Awdg87kfPzS1wNVITqtNQtk1CUtQN9GOUfJ
+         JxhsjfTLvUTi2tePhV4y74odam5hw5lo7lxS47yJWy7TmNPUMn7b0Kku2wdvo5jgdj
+         J2f0vKSGc/QdVChEE9qyFFHfmibEYWurQfLl518A=
+Date:   Thu, 19 Aug 2021 19:04:27 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de, shy828301@gmail.com,
-        songmuchun@bytedance.com, stable@vger.kernel.org,
-        tony.luck@intel.com, torvalds@linux-foundation.org
-Subject:  [patch 07/10] mm/hwpoison: retry with shake_page() for
- unhandlable pages
-Message-ID: <20210820020424.MPo-2MFQJ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 08/10] mm: vmscan: fix missing psi annotation for
+ node_reclaim()
+Message-ID: <20210820020427.f6efFx9EV%akpm@linux-foundation.org>
 In-Reply-To: <20210819190327.14fc4e97102e1af7929e30af@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,62 +43,54 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: retry with shake_page() for unhandlable pages
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: vmscan: fix missing psi annotation for node_reclaim()
 
-HWPoisonHandlable() sometimes returns false for typical user pages due to
-races with average memory events like transfers over LRU lists.  This
-causes failures in hwpoison handling.
+In a debugging session the other day, Rik noticed that node_reclaim() was
+missing memstall annotations.  This means we'll miss pressure and lost
+productivity resulting from reclaim on an overloaded local NUMA node when
+vm.zone_reclaim_mode is enabled.
 
-There's retry code for such a case but does not work because the retry
-loop reaches the retry limit too quickly before the page settles down to
-handlable state.  Let get_any_page() call shake_page() to fix it.
+There haven't been any reports, but that's likely because
+vm.zone_reclaim_mode hasn't been a commonly used feature recently, and the
+intersection between such setups and psi users is probably nil.  Although,
+secondary memory such as CXL-connected DIMMS, persistent memory etc.  and
+the page demotion patches that handle them
+(https://lore.kernel.org/lkml/20210401183216.443C4443@viggo.jf.intel.com/)
+could soon make this a more common codepath again.
 
-[naoya.horiguchi@nec.com: get_any_page(): return -EIO when retry limit reached]
-  Link: https://lkml.kernel.org/r/20210819001958.2365157-1-naoya.horiguchi@linux.dev
-Link: https://lkml.kernel.org/r/20210817053703.2267588-1-naoya.horiguchi@linux.dev
-Fixes: 25182f05ffed ("mm,hwpoison: fix race with hugetlb page allocation")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Tony Luck <tony.luck@intel.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>		[5.13+]
+Link: https://lkml.kernel.org/r/20210818152457.35846-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Rik van Riel <riel@surriel.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ mm/vmscan.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/memory-failure.c~mm-hwpoison-retry-with-shake_page-for-unhandlable-pages
-+++ a/mm/memory-failure.c
-@@ -1146,7 +1146,7 @@ static int __get_hwpoison_page(struct pa
- 	 * unexpected races caused by taking a page refcount.
- 	 */
- 	if (!HWPoisonHandlable(head))
--		return 0;
-+		return -EBUSY;
+--- a/mm/vmscan.c~mm-vmscan-fix-missing-psi-annotation-for-node_reclaim
++++ a/mm/vmscan.c
+@@ -4424,11 +4424,13 @@ static int __node_reclaim(struct pglist_
+ 		.may_swap = 1,
+ 		.reclaim_idx = gfp_zone(gfp_mask),
+ 	};
++	unsigned long pflags;
  
- 	if (PageTransHuge(head)) {
- 		/*
-@@ -1199,9 +1199,15 @@ try_again:
- 			}
- 			goto out;
- 		} else if (ret == -EBUSY) {
--			/* We raced with freeing huge page to buddy, retry. */
--			if (pass++ < 3)
-+			/*
-+			 * We raced with (possibly temporary) unhandlable
-+			 * page, retry.
-+			 */
-+			if (pass++ < 3) {
-+				shake_page(p, 1);
- 				goto try_again;
-+			}
-+			ret = -EIO;
- 			goto out;
- 		}
- 	}
+ 	trace_mm_vmscan_node_reclaim_begin(pgdat->node_id, order,
+ 					   sc.gfp_mask);
+ 
+ 	cond_resched();
++	psi_memstall_enter(&pflags);
+ 	fs_reclaim_acquire(sc.gfp_mask);
+ 	/*
+ 	 * We need to be able to allocate from the reserves for RECLAIM_UNMAP
+@@ -4453,6 +4455,7 @@ static int __node_reclaim(struct pglist_
+ 	current->flags &= ~PF_SWAPWRITE;
+ 	memalloc_noreclaim_restore(noreclaim_flag);
+ 	fs_reclaim_release(sc.gfp_mask);
++	psi_memstall_leave(&pflags);
+ 
+ 	trace_mm_vmscan_node_reclaim_end(sc.nr_reclaimed);
+ 
 _
