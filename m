@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB330C4338F
-	for <mm-commits@archiver.kernel.org>; Sun, 22 Aug 2021 22:16:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C843C4338F
+	for <mm-commits@archiver.kernel.org>; Sun, 22 Aug 2021 22:21:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CA14B6125F
-	for <mm-commits@archiver.kernel.org>; Sun, 22 Aug 2021 22:16:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 835186024A
+	for <mm-commits@archiver.kernel.org>; Sun, 22 Aug 2021 22:21:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233513AbhHVWR2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 22 Aug 2021 18:17:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55254 "EHLO mail.kernel.org"
+        id S234153AbhHVWVo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 22 Aug 2021 18:21:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59158 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229700AbhHVWR2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 22 Aug 2021 18:17:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 940BE6108B;
-        Sun, 22 Aug 2021 22:16:46 +0000 (UTC)
+        id S234232AbhHVWVm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 22 Aug 2021 18:21:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 703AA6135F;
+        Sun, 22 Aug 2021 22:21:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629670606;
-        bh=Zrgy6awcK1mq05FVDWlMgzHFrFjSijgTljHrljPKRtg=;
+        s=korg; t=1629670860;
+        bh=Hd6qWMmbjfF9v/t1oMh9jR74KgvAOYdVMRAI6QQQHEU=;
         h=Date:From:To:Subject:From;
-        b=kgCkZRzwG4jYuJBaxmER9J/vZR/C5Y7oWqj8w2pcZ8tTR7JH+Rf59lEFEunLWNan1
-         bp3GjP1djUifnC24nN5vcKIaEZmDcfiaEcsfbqEIbziIKdTCVWQrDbCZ/ItOUBY2Pw
-         wuhpu2U6KgSFPyWdboNYiLpZ/lq2dnPJww04JBlc=
-Date:   Sun, 22 Aug 2021 15:16:46 -0700
+        b=QwSOfsyzIjRvY3HZIcrU9nD2288CNHrPpe2cUtATpCYiVHN3rnL8/zpF0GLaE18pY
+         poPIir1b48n9FZBnMx0vBrw3uHfOb9o40uOWaDKN5oNbnttRyKsnuheZDUIpWyrAAE
+         fNXjEHdTBs2qFmCutILp/Xrn+XL1hqMOUMsMa8Vg=
+Date:   Sun, 22 Aug 2021 15:21:00 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@kernel.org, keescook@chromium.org,
-        jordy@pwning.systems, James.Bottomley@HansenPartnership.com,
-        jordy@jordyzomer.github.io
-Subject:  + mm-secretmem-use-refcount_t-instead-of-atomic_t.patch
- added to -mm tree
-Message-ID: <20210822221646.ZGbOy%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        minchan@kernel.org, mhocko@suse.com, cgoldswo@codeaurora.org,
+        linmiaohe@huawei.com
+Subject:  +
+ mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch added
+ to -mm tree
+Message-ID: <20210822222100.ISVF5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/secretmem: use refcount_t instead of atomic_t
+     Subject: mm/memory_hotplug: make HWPoisoned dirty swapcache pages unmovable
 has been added to the -mm tree.  Its filename is
-     mm-secretmem-use-refcount_t-instead-of-atomic_t.patch
+     mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-secretmem-use-refcount_t-instead-of-atomic_t.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-secretmem-use-refcount_t-instead-of-atomic_t.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,85 +66,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jordy Zomer <jordy@jordyzomer.github.io>
-Subject: mm/secretmem: use refcount_t instead of atomic_t
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory_hotplug: make HWPoisoned dirty swapcache pages unmovable
 
-When a secret memory region is active, memfd_secret disables hibernation. 
-One of the goals is to keep the secret data from being written to
-persistent-storage.
+HWPoisoned dirty swapcache pages are kept for killing owner processes.  We
+should not offline these pages or do_swap_page() would access the offline
+pages and lead to bad ending.
 
-It accomplishes this by maintaining a reference count to
-`secretmem_users`.  Once this reference is held your system can not be
-hibernated due to the check in `hibernation_available()`.  However,
-because `secretmem_users` is of type `atomic_t`, reference counter
-overflows are possible.
-
-As you can see there's an `atomic_inc` for each `memfd` that is opened in
-the `memfd_secret` syscall.  If a local attacker succeeds to open 2^32
-memfd's, the counter will wrap around to 0.  This implies that you may
-hibernate again, even though there are still regions of this secret
-memory, thereby bypassing the security check.
-
-In an attempt to fix this I have used `refcount_t` instead of `atomic_t`
-which prevents reference counter overflows.
-
-Link: https://lkml.kernel.org/r/20210820043339.2151352-1-jordy@pwning.systems
-Signed-off-by: Jordy Zomer <jordy@pwning.systems>
-Cc: Kees Cook <keescook@chromium.org>,
-Cc: Jordy Zomer <jordy@jordyzomer.github.io>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20210821094246.10149-4-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Chris Goldsworthy <cgoldswo@codeaurora.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
---- a/mm/secretmem.c~mm-secretmem-use-refcount_t-instead-of-atomic_t
-+++ a/mm/secretmem.c
-@@ -18,6 +18,7 @@
- #include <linux/secretmem.h>
- #include <linux/set_memory.h>
- #include <linux/sched/signal.h>
-+#include <linux/refcount.h>
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable
++++ a/mm/memory_hotplug.c
+@@ -1664,6 +1664,12 @@ static int scan_movable_pages(unsigned l
+ 		 */
+ 		if (PageOffline(page) && page_count(page))
+ 			return -EBUSY;
++		/*
++		 * HWPoisoned dirty swapcache pages are definitely unmovable
++		 * because they are kept for killing owner processes.
++		 */
++		if (PageHWPoison(page) && PageSwapCache(page))
++			return -EBUSY;
  
- #include <uapi/linux/magic.h>
- 
-@@ -40,11 +41,11 @@ module_param_named(enable, secretmem_ena
- MODULE_PARM_DESC(secretmem_enable,
- 		 "Enable secretmem and memfd_secret(2) system call");
- 
--static atomic_t secretmem_users;
-+static refcount_t secretmem_users;
- 
- bool secretmem_active(void)
- {
--	return !!atomic_read(&secretmem_users);
-+	return !!refcount_read(&secretmem_users);
- }
- 
- static vm_fault_t secretmem_fault(struct vm_fault *vmf)
-@@ -103,7 +104,7 @@ static const struct vm_operations_struct
- 
- static int secretmem_release(struct inode *inode, struct file *file)
- {
--	atomic_dec(&secretmem_users);
-+	refcount_dec(&secretmem_users);
- 	return 0;
- }
- 
-@@ -217,7 +218,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned i
- 	file->f_flags |= O_LARGEFILE;
- 
- 	fd_install(fd, file);
--	atomic_inc(&secretmem_users);
-+	refcount_inc(&secretmem_users);
- 	return fd;
- 
- err_put_fd:
+ 		if (!PageHuge(page))
+ 			continue;
 _
 
-Patches currently in -mm which might be from jordy@jordyzomer.github.io are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-secretmem-use-refcount_t-instead-of-atomic_t.patch
+mm-gup-remove-set-but-unused-local-variable-major.patch
+mm-gup-remove-unneed-local-variable-orig_refs.patch
+mm-gup-remove-useless-bug_on-in-__get_user_pages.patch
+mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge.patch
+mm-gup-use-helper-page_aligned-in-populate_vma_page_range.patch
+shmem-remove-unneeded-variable-ret.patch
+shmem-remove-unneeded-header-file.patch
+shmem-remove-unneeded-function-forward-declaration.patch
+shmem-include-header-file-to-declare-swap_info.patch
+mm-memcg-remove-unused-functions.patch
+mm-memcg-save-some-atomic-ops-when-flush-is-already-true.patch
+mm-hwpoison-remove-unneeded-variable-unmap_success.patch
+mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error.patch
+mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch
+mm-hwpoison-fix-some-obsolete-comments.patch
+mm-vmscan-remove-the-pagedirty-check-after-madv_free-pages-are-page_ref_freezed.patch
+mm-vmscan-remove-misleading-setting-to-sc-priority.patch
+mm-vmscan-remove-unneeded-return-value-of-kswapd_run.patch
+mm-vmscan-add-else-to-remove-check_pending-label.patch
+mm-vmstat-correct-some-wrong-comments.patch
+mm-vmstat-simplify-the-array-size-calculation.patch
+mm-vmstat-remove-unneeded-return-value.patch
+mm-memory_hotplug-use-helper-zone_is_zone_device-to-simplify-the-code.patch
+mm-memory_hotplug-fix-potential-permanent-lru-cache-disable.patch
+mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
+mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
