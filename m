@@ -7,37 +7,39 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0652C432BE
-	for <mm-commits@archiver.kernel.org>; Sun, 22 Aug 2021 20:11:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 457E3C4338F
+	for <mm-commits@archiver.kernel.org>; Sun, 22 Aug 2021 20:23:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A3E461356
-	for <mm-commits@archiver.kernel.org>; Sun, 22 Aug 2021 20:11:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1A29861284
+	for <mm-commits@archiver.kernel.org>; Sun, 22 Aug 2021 20:23:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232444AbhHVUMJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 22 Aug 2021 16:12:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52310 "EHLO mail.kernel.org"
+        id S231416AbhHVUYb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 22 Aug 2021 16:24:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231750AbhHVUMJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 22 Aug 2021 16:12:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C0D061284;
-        Sun, 22 Aug 2021 20:11:27 +0000 (UTC)
+        id S229654AbhHVUYb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 22 Aug 2021 16:24:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B770D611C8;
+        Sun, 22 Aug 2021 20:23:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629663087;
-        bh=QDlMJHqzv71+up46d4MR1w71msstUat4Z8BoL2XXHyA=;
+        s=korg; t=1629663829;
+        bh=7XtC/V+bXrfUAGEKJlt8lo666uOn+xy0pOBG5UnRsrE=;
         h=Date:From:To:Subject:From;
-        b=CPGLpSBCGG67WZsF7ZJ+R6NJzRUwGPAZm7VKTnBPC6aJMkj/A4llq2sEMbD5Pm4K/
-         gkJkCj9aYt2SbFWE5K95HMbpD/m3EKo/c1tnXtVA/IfDUFcWUvN5gCg8H4xhDIiGRM
-         RS8ePNdSg7ARD078J08z6vJjaQHqqdVa/IGFrMoM=
-Date:   Sun, 22 Aug 2021 13:11:27 -0700
+        b=Wuy/qZplZoWWT4M57Je/j/l7jZasym7yp+f9kmt7ZWtJz649i6/DQeIfZvJFCqFtq
+         DT/asFOA7mukdu3iVO0rQkvGS608NgErW6rlO+WzfEBYoKBe08BgIrdTS8Uh6prvi5
+         S8rNEwvLAAazwOcAjJPCKiIRVnA1a0gNxD8U3ybY=
+Date:   Sun, 22 Aug 2021 13:23:49 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        minchan@kernel.org, mhocko@suse.com, cgoldswo@codeaurora.org,
-        linmiaohe@huawei.com
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        shy828301@gmail.com, apopple@nvidia.com,
+        baolin.wang@linux.alibaba.com
 Subject:  +
- mm-memory_hotplug-fix-potential-permanent-lru-cache-disable.patch added to
- -mm tree
-Message-ID: <20210822201127.zNXNk%akpm@linux-foundation.org>
+ =?us-ascii?Q?mm-migrate-simplify-the-file-backed-pages-validation-when?=
+ =?us-ascii?Q?-migrating-its-mapping.patch?= added to -mm tree
+Message-ID: <20210822202349.p65ql%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: fix potential permanent lru cache disable
+     Subject: mm: migrate: simplify the file-backed pages validation when migrating its mapping
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-fix-potential-permanent-lru-cache-disable.patch
+     mm-migrate-simplify-the-file-backed-pages-validation-when-migrating-its-mapping.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-fix-potential-permanent-lru-cache-disable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-simplify-the-file-backed-pages-validation-when-migrating-its-mapping.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-fix-potential-permanent-lru-cache-disable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-simplify-the-file-backed-pages-validation-when-migrating-its-mapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,65 +68,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory_hotplug: fix potential permanent lru cache disable
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: migrate: simplify the file-backed pages validation when migrating its mapping
 
-If offline_pages failed after lru_cache_disable(), it forgot to do
-lru_cache_enable() in error path.  So we would have lru cache disabled
-permanently in this case.
+Patch series "Some cleanup for page migration", v3.
 
-Link: https://lkml.kernel.org/r/20210821094246.10149-3-linmiaohe@huawei.com
-Fixes: d479960e44f2 ("mm: disable LRU pagevec during the migration temporarily")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Chris Goldsworthy <cgoldswo@codeaurora.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+This patchset does some cleanups and improvements for page migration.
+
+
+This patch (of 4):
+
+There is no need to validate the file-backed page's refcount before trying
+to freeze the page's expected refcount, instead we can rely on the
+folio_ref_freeze() to validate if the page has the expected refcount
+before migrating its mapping.
+
+Moreover we are always under the page lock when migrating the page
+mapping, which means nowhere else can remove it from the page cache, so we
+can remove the xas_load() validation under the i_pages lock.
+
+Link: https://lkml.kernel.org/r/cover.1629447552.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/df4c129fd8e86a95dbc55f4663d77441cc0d3bd1.1629447552.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/migrate.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-potential-permanent-lru-cache-disable
-+++ a/mm/memory_hotplug.c
-@@ -2033,6 +2033,7 @@ failed_removal_isolated:
- 	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
- 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
- failed_removal_pcplists_disabled:
-+	lru_cache_enable();
- 	zone_pcp_enable(zone);
- failed_removal:
- 	pr_debug("memory offlining [mem %#010llx-%#010llx] failed due to %s\n",
+--- a/mm/migrate.c~mm-migrate-simplify-the-file-backed-pages-validation-when-migrating-its-mapping
++++ a/mm/migrate.c
+@@ -404,12 +404,6 @@ int folio_migrate_mapping(struct address
+ 	newzone = folio_zone(newfolio);
+ 
+ 	xas_lock_irq(&xas);
+-	if (folio_ref_count(folio) != expected_count ||
+-	    xas_load(&xas) != folio) {
+-		xas_unlock_irq(&xas);
+-		return -EAGAIN;
+-	}
+-
+ 	if (!folio_ref_freeze(folio, expected_count)) {
+ 		xas_unlock_irq(&xas);
+ 		return -EAGAIN;
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-gup-remove-set-but-unused-local-variable-major.patch
-mm-gup-remove-unneed-local-variable-orig_refs.patch
-mm-gup-remove-useless-bug_on-in-__get_user_pages.patch
-mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge.patch
-mm-gup-use-helper-page_aligned-in-populate_vma_page_range.patch
-shmem-remove-unneeded-variable-ret.patch
-shmem-remove-unneeded-header-file.patch
-shmem-remove-unneeded-function-forward-declaration.patch
-shmem-include-header-file-to-declare-swap_info.patch
-mm-memcg-remove-unused-functions.patch
-mm-memcg-save-some-atomic-ops-when-flush-is-already-true.patch
-mm-hwpoison-remove-unneeded-variable-unmap_success.patch
-mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error.patch
-mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch
-mm-hwpoison-fix-some-obsolete-comments.patch
-mm-vmscan-remove-the-pagedirty-check-after-madv_free-pages-are-page_ref_freezed.patch
-mm-vmscan-remove-misleading-setting-to-sc-priority.patch
-mm-vmscan-remove-unneeded-return-value-of-kswapd_run.patch
-mm-vmscan-add-else-to-remove-check_pending-label.patch
-mm-vmstat-correct-some-wrong-comments.patch
-mm-vmstat-simplify-the-array-size-calculation.patch
-mm-vmstat-remove-unneeded-return-value.patch
-mm-memory_hotplug-use-helper-zone_is_zone_device-to-simplify-the-code.patch
-mm-memory_hotplug-fix-potential-permanent-lru-cache-disable.patch
-mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
-mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
-mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
+mm-memcontrol-set-the-correct-memcg-swappiness-restriction.patch
+mm-mempolicy-use-readable-numa_no_node-macro-instead-of-magic-numer.patch
+mm-migrate-simplify-the-file-backed-pages-validation-when-migrating-its-mapping.patch
+mm-migrate-introduce-a-local-variable-to-get-the-number-of-pages.patch
+mm-migrate-fix-the-incorrect-function-name-in-comments.patch
+mm-migrate-change-to-use-bool-type-for-page_was_mapped.patch
 
