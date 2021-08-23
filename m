@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DBB3C432BE
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Aug 2021 18:24:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35B52C4320A
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Aug 2021 18:24:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 37E5A613A7
-	for <mm-commits@archiver.kernel.org>; Mon, 23 Aug 2021 18:24:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2039C613A8
+	for <mm-commits@archiver.kernel.org>; Mon, 23 Aug 2021 18:24:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232030AbhHWSZH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 23 Aug 2021 14:25:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59782 "EHLO mail.kernel.org"
+        id S231955AbhHWSZJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 23 Aug 2021 14:25:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59810 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231955AbhHWSZG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 23 Aug 2021 14:25:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 871E9613A6;
-        Mon, 23 Aug 2021 18:24:23 +0000 (UTC)
+        id S232035AbhHWSZI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 23 Aug 2021 14:25:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 90FA061391;
+        Mon, 23 Aug 2021 18:24:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629743063;
-        bh=qPQuKUoFohsO4INmMsT0H/QkTw2ONP3rojr+icyzgwQ=;
+        s=korg; t=1629743065;
+        bh=mbgdc0dUKiunmXoI2Rt2aikpXgEbZUlHQ/1szUid8Po=;
         h=Date:From:To:Subject:From;
-        b=qc5rUgn7gcJtBjXh99W84rSfDHNiHERFzvmmmqetWtQTB4Ipqt7FvfroPo3Te+JzR
-         jf1/q4e+lq8RxBi8ib+4D/Sffc/ogrNHuI98ZT6DlEardkDDQn3TGSN907LyZCnpOB
-         la7nNsIPOSzLd+4zSeXQEUa7oiNreCarBsrHzTH4=
-Date:   Mon, 23 Aug 2021 11:24:23 -0700
+        b=UQ/9x0BsYvhDdF3WFYgmOsFqTo43+u92THieiHHVQcbd3gYg/wja3mqdDG62JF6pR
+         FBgrL7CbhuMnGm1uuO3P7gKqCjHO+seaeYWcoCVLlLvVGAQ24Uj20+4DHcSQOlgmtW
+         LrTU4xsPjYMGPsW0gceelrC0MoWnR0peLYy2E1ZQ=
+Date:   Mon, 23 Aug 2021 11:24:25 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org, riel@surriel.com,
-        shakeelb@google.com
+To:     dvyukov@google.com, elver@google.com, glider@google.com,
+        Kuan-Ying.Lee@mediatek.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org
 Subject:  [merged]
- mm-vmscan-fix-missing-psi-annotation-for-node_reclaim.patch removed from
- -mm tree
-Message-ID: <20210823182423.LpcfYzlpn%akpm@linux-foundation.org>
+ kfence-fix-is_kfence_address-for-addresses-below-kfence_pool_size.patch
+ removed from -mm tree
+Message-ID: <20210823182425.G3o7F9SlF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,69 +45,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: fix missing psi annotation for node_reclaim()
+     Subject: kfence: fix is_kfence_address() for addresses below KFENCE_POOL_SIZE
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-fix-missing-psi-annotation-for-node_reclaim.patch
+     kfence-fix-is_kfence_address-for-addresses-below-kfence_pool_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: fix missing psi annotation for node_reclaim()
+From: Marco Elver <elver@google.com>
+Subject: kfence: fix is_kfence_address() for addresses below KFENCE_POOL_SIZE
 
-In a debugging session the other day, Rik noticed that node_reclaim() was
-missing memstall annotations.  This means we'll miss pressure and lost
-productivity resulting from reclaim on an overloaded local NUMA node when
-vm.zone_reclaim_mode is enabled.
+Originally the addr != NULL check was meant to take care of the case where
+__kfence_pool == NULL (KFENCE is disabled).  However, this does not work
+for addresses where addr > 0 && addr < KFENCE_POOL_SIZE.
 
-There haven't been any reports, but that's likely because
-vm.zone_reclaim_mode hasn't been a commonly used feature recently, and the
-intersection between such setups and psi users is probably nil.  Although,
-secondary memory such as CXL-connected DIMMS, persistent memory etc.  and
-the page demotion patches that handle them
-(https://lore.kernel.org/lkml/20210401183216.443C4443@viggo.jf.intel.com/)
-could soon make this a more common codepath again.
+This can be the case on NULL-deref where addr > 0 && addr < PAGE_SIZE or
+any other faulting access with addr < KFENCE_POOL_SIZE.  While the kernel
+would likely crash, the stack traces and report might be confusing due to
+double faults upon KFENCE's attempt to unprotect such an address.
 
-Link: https://lkml.kernel.org/r/20210818152457.35846-1-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Rik van Riel <riel@surriel.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Fix it by just checking that __kfence_pool != NULL instead.
+
+Link: https://lkml.kernel.org/r/20210818130300.2482437-1-elver@google.com
+Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
+Signed-off-by: Marco Elver <elver@google.com>
+Reported-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: <stable@vger.kernel.org>    [5.12+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    3 +++
- 1 file changed, 3 insertions(+)
+ include/linux/kfence.h |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-fix-missing-psi-annotation-for-node_reclaim
-+++ a/mm/vmscan.c
-@@ -4424,11 +4424,13 @@ static int __node_reclaim(struct pglist_
- 		.may_swap = 1,
- 		.reclaim_idx = gfp_zone(gfp_mask),
- 	};
-+	unsigned long pflags;
- 
- 	trace_mm_vmscan_node_reclaim_begin(pgdat->node_id, order,
- 					   sc.gfp_mask);
- 
- 	cond_resched();
-+	psi_memstall_enter(&pflags);
- 	fs_reclaim_acquire(sc.gfp_mask);
+--- a/include/linux/kfence.h~kfence-fix-is_kfence_address-for-addresses-below-kfence_pool_size
++++ a/include/linux/kfence.h
+@@ -51,10 +51,11 @@ extern atomic_t kfence_allocation_gate;
+ static __always_inline bool is_kfence_address(const void *addr)
+ {
  	/*
- 	 * We need to be able to allocate from the reserves for RECLAIM_UNMAP
-@@ -4453,6 +4455,7 @@ static int __node_reclaim(struct pglist_
- 	current->flags &= ~PF_SWAPWRITE;
- 	memalloc_noreclaim_restore(noreclaim_flag);
- 	fs_reclaim_release(sc.gfp_mask);
-+	psi_memstall_leave(&pflags);
+-	 * The non-NULL check is required in case the __kfence_pool pointer was
+-	 * never initialized; keep it in the slow-path after the range-check.
++	 * The __kfence_pool != NULL check is required to deal with the case
++	 * where __kfence_pool == NULL && addr < KFENCE_POOL_SIZE. Keep it in
++	 * the slow-path after the range-check!
+ 	 */
+-	return unlikely((unsigned long)((char *)addr - __kfence_pool) < KFENCE_POOL_SIZE && addr);
++	return unlikely((unsigned long)((char *)addr - __kfence_pool) < KFENCE_POOL_SIZE && __kfence_pool);
+ }
  
- 	trace_mm_vmscan_node_reclaim_end(sc.nr_reclaimed);
- 
+ /**
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from elver@google.com are
 
-mm-remove-irqsave-restore-locking-from-contexts-with-irqs-enabled.patch
-fs-drop_caches-fix-skipping-over-shadow-cache-inodes.patch
-fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch
-vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
+kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
 
