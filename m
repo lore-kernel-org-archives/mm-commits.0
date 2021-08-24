@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B5CDC4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Aug 2021 20:44:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A123CC432BE
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Aug 2021 20:44:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E16C061181
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Aug 2021 20:44:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88CE66121E
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Aug 2021 20:44:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235400AbhHXUpS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 24 Aug 2021 16:45:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43596 "EHLO mail.kernel.org"
+        id S235504AbhHXUpV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 24 Aug 2021 16:45:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233289AbhHXUpS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 24 Aug 2021 16:45:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D19A0611AF;
-        Tue, 24 Aug 2021 20:44:33 +0000 (UTC)
+        id S233289AbhHXUpV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 24 Aug 2021 16:45:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FC1661181;
+        Tue, 24 Aug 2021 20:44:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629837873;
-        bh=5y3B4+hkQoOaCuQNZ4yndfhC9OPzb53sMXXt+Cj+NnU=;
+        s=korg; t=1629837876;
+        bh=SJd7q+jrtKviKMpTV4FQCV8fju1Yf1y7yDT5cHyvqm4=;
         h=Date:From:To:Subject:From;
-        b=2WdWGIXXhMwXYxYs+k7ZLA9FNMVFUFkDTnsR7nQ3bCHxCDArrbrJq/ERrADNGj0+Z
-         Exhv67+CdHIFsPnHuwZOVf+qlRD0X6ZqQxuMjicPmZyv73jZMrQF1CxNAxMvLRQetD
-         mchxUVU0J6yLXmngKjg6P1Sh3LhvKgLldI4N9Te0=
-Date:   Tue, 24 Aug 2021 13:44:33 -0700
+        b=niEg60Vp/2FjS/fLw457qAKr3N0W1nPhPOlfDIfTjdAS4LFD5Q9Yjuwsjbzzk6YoE
+         9ao29UqRI7h93BFEAVC1bw2DnnSh+6TbbMBwbhKwLIuIA04pS8gIkJMtYq4LOfrFcc
+         g9pj2sTPgr4QfItmg2UZFiHEnyza3BxIaGr0dp+c=
+Date:   Tue, 24 Aug 2021 13:44:36 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, peterz@infradead.org,
         npiggin@gmail.com, hch@lst.de
-Subject:  + mm-move-ioremap_page_range-to-vmallocc.patch added to -mm
- tree
-Message-ID: <20210824204433.qwSJf%akpm@linux-foundation.org>
+Subject:  + mm-dont-allow-executable-ioremap-mappings.patch added to
+ -mm tree
+Message-ID: <20210824204436.B7gsj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move ioremap_page_range to vmalloc.c
+     Subject: mm: don't allow executable ioremap mappings
 has been added to the -mm tree.  Its filename is
-     mm-move-ioremap_page_range-to-vmallocc.patch
+     mm-dont-allow-executable-ioremap-mappings.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-ioremap_page_range-to-vmallocc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-dont-allow-executable-ioremap-mappings.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-ioremap_page_range-to-vmallocc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-allow-executable-ioremap-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,146 +65,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: move ioremap_page_range to vmalloc.c
+Subject: mm: don't allow executable ioremap mappings
 
-Patch series "small ioremap cleanups".
+There is no need to execute from iomem (and most platforms it is
+impossible anyway), so add the pgprot_nx() call similar to vmap.
 
-The first patch moves a little code around the vmalloc/ioremap boundary
-following a bigger move by Nick earlier.  The second enforces
-non-executable mapping on ioremap just like we do for vmap.  No driver
-currently uses executable mappings anyway, as they should.
-
-
-This patch (of 2):
-
-This keeps it together with the implementation, and to remove the
-vmap_range wrapper.
-
-Link: https://lkml.kernel.org/r/20210824091259.1324527-1-hch@lst.de
-Link: https://lkml.kernel.org/r/20210824091259.1324527-2-hch@lst.de
+Link: https://lkml.kernel.org/r/20210824091259.1324527-3-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Cc: Nicholas Piggin <npiggin@gmail.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    3 ---
- mm/Makefile             |    3 ++-
- mm/ioremap.c            |   25 -------------------------
- mm/vmalloc.c            |   22 +++++++++++++++++-----
- 4 files changed, 19 insertions(+), 34 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/vmalloc.h~mm-move-ioremap_page_range-to-vmallocc
-+++ a/include/linux/vmalloc.h
-@@ -225,9 +225,6 @@ static inline bool is_vm_area_hugepages(
- }
- 
- #ifdef CONFIG_MMU
--int vmap_range(unsigned long addr, unsigned long end,
--			phys_addr_t phys_addr, pgprot_t prot,
--			unsigned int max_page_shift);
- void vunmap_range(unsigned long addr, unsigned long end);
- static inline void set_vm_flush_reset_perms(void *addr)
- {
---- a/mm/ioremap.c~mm-move-ioremap_page_range-to-vmallocc
-+++ a/mm/ioremap.c
-@@ -8,33 +8,9 @@
-  */
- #include <linux/vmalloc.h>
- #include <linux/mm.h>
--#include <linux/sched.h>
- #include <linux/io.h>
- #include <linux/export.h>
--#include <asm/cacheflush.h>
- 
--#include "pgalloc-track.h"
--
--#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
--static unsigned int __ro_after_init iomap_max_page_shift = BITS_PER_LONG - 1;
--
--static int __init set_nohugeiomap(char *str)
--{
--	iomap_max_page_shift = PAGE_SHIFT;
--	return 0;
--}
--early_param("nohugeiomap", set_nohugeiomap);
--#else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
--static const unsigned int iomap_max_page_shift = PAGE_SHIFT;
--#endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
--
--int ioremap_page_range(unsigned long addr,
--		       unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
--{
--	return vmap_range(addr, end, phys_addr, prot, iomap_max_page_shift);
--}
--
--#ifdef CONFIG_GENERIC_IOREMAP
- void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot)
- {
- 	unsigned long offset, vaddr;
-@@ -71,4 +47,3 @@ void iounmap(volatile void __iomem *addr
- 	vunmap((void *)((unsigned long)addr & PAGE_MASK));
- }
- EXPORT_SYMBOL(iounmap);
--#endif /* CONFIG_GENERIC_IOREMAP */
---- a/mm/Makefile~mm-move-ioremap_page_range-to-vmallocc
-+++ a/mm/Makefile
-@@ -38,7 +38,7 @@ mmu-y			:= nommu.o
- mmu-$(CONFIG_MMU)	:= highmem.o memory.o mincore.o \
- 			   mlock.o mmap.o mmu_gather.o mprotect.o mremap.o \
- 			   msync.o page_vma_mapped.o pagewalk.o \
--			   pgtable-generic.o rmap.o vmalloc.o ioremap.o
-+			   pgtable-generic.o rmap.o vmalloc.o
- 
- 
- ifdef CONFIG_CROSS_MEMORY_ATTACH
-@@ -128,3 +128,4 @@ obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
- obj-$(CONFIG_PAGE_REPORTING) += page_reporting.o
- obj-$(CONFIG_IO_MAPPING) += io-mapping.o
- obj-$(CONFIG_HAVE_BOOTMEM_INFO_NODE) += bootmem_info.o
-+obj-$(CONFIG_GENERIC_IOREMAP) += ioremap.o
---- a/mm/vmalloc.c~mm-move-ioremap_page_range-to-vmallocc
+--- a/mm/vmalloc.c~mm-dont-allow-executable-ioremap-mappings
 +++ a/mm/vmalloc.c
-@@ -44,6 +44,19 @@
- #include "internal.h"
- #include "pgalloc-track.h"
- 
-+#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
-+static unsigned int __ro_after_init ioremap_max_page_shift = BITS_PER_LONG - 1;
-+
-+static int __init set_nohugeiomap(char *str)
-+{
-+	ioremap_max_page_shift = PAGE_SHIFT;
-+	return 0;
-+}
-+early_param("nohugeiomap", set_nohugeiomap);
-+#else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
-+static const unsigned int ioremap_max_page_shift = PAGE_SHIFT;
-+#endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
-+
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
- static bool __ro_after_init vmap_allow_huge = true;
- 
-@@ -298,15 +311,14 @@ static int vmap_range_noflush(unsigned l
- 	return err;
- }
- 
--int vmap_range(unsigned long addr, unsigned long end,
--			phys_addr_t phys_addr, pgprot_t prot,
--			unsigned int max_page_shift)
-+int ioremap_page_range(unsigned long addr, unsigned long end,
-+		phys_addr_t phys_addr, pgprot_t prot)
+@@ -316,7 +316,7 @@ int ioremap_page_range(unsigned long add
  {
  	int err;
  
--	err = vmap_range_noflush(addr, end, phys_addr, prot, max_page_shift);
-+	err = vmap_range_noflush(addr, end, phys_addr, prot,
-+				 ioremap_max_page_shift);
+-	err = vmap_range_noflush(addr, end, phys_addr, prot,
++	err = vmap_range_noflush(addr, end, phys_addr, pgprot_nx(prot),
+ 				 ioremap_max_page_shift);
  	flush_cache_vmap(addr, end);
--
  	return err;
- }
- 
 _
 
 Patches currently in -mm which might be from hch@lst.de are
