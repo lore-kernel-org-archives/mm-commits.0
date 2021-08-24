@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 54A8DC4338F
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Aug 2021 20:39:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B5CDC4338F
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Aug 2021 20:44:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3CC3261357
-	for <mm-commits@archiver.kernel.org>; Tue, 24 Aug 2021 20:39:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E16C061181
+	for <mm-commits@archiver.kernel.org>; Tue, 24 Aug 2021 20:44:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235205AbhHXUk3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 24 Aug 2021 16:40:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41444 "EHLO mail.kernel.org"
+        id S235400AbhHXUpS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 24 Aug 2021 16:45:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43596 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235378AbhHXUk2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 24 Aug 2021 16:40:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B62B161181;
-        Tue, 24 Aug 2021 20:39:42 +0000 (UTC)
+        id S233289AbhHXUpS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 24 Aug 2021 16:45:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D19A0611AF;
+        Tue, 24 Aug 2021 20:44:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629837582;
-        bh=Cg1ZM+hzG6fGURptNXVEl+zdyPnhNa3uwik/KaqoyYM=;
+        s=korg; t=1629837873;
+        bh=5y3B4+hkQoOaCuQNZ4yndfhC9OPzb53sMXXt+Cj+NnU=;
         h=Date:From:To:Subject:From;
-        b=oI4gJip0y0z1hpbvDHuDcRCvoylQWiwse0bIyYrhFjcSEz16/2BheB2T1ZF2U9y9l
-         l4QGP2pZJygUMfX6TvVCjioAAPDCdO3axonXHkDI7GZNyxuzJgQ6YQskXZ9ojNvbjt
-         w59GZhVdHB6Zb6NztDKYnOH9JXpN6pAGU1rUlixo=
-Date:   Tue, 24 Aug 2021 13:39:40 -0700
+        b=2WdWGIXXhMwXYxYs+k7ZLA9FNMVFUFkDTnsR7nQ3bCHxCDArrbrJq/ERrADNGj0+Z
+         Exhv67+CdHIFsPnHuwZOVf+qlRD0X6ZqQxuMjicPmZyv73jZMrQF1CxNAxMvLRQetD
+         mchxUVU0J6yLXmngKjg6P1Sh3LhvKgLldI4N9Te0=
+Date:   Tue, 24 Aug 2021 13:44:33 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz
-Subject:  + mm-vmscan-guarantee-drop_slab_node-termination-fix.patch
- added to -mm tree
-Message-ID: <20210824203940.RCeMf%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, peterz@infradead.org,
+        npiggin@gmail.com, hch@lst.de
+Subject:  + mm-move-ioremap_page_range-to-vmallocc.patch added to -mm
+ tree
+Message-ID: <20210824204433.qwSJf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: guarantee drop_slab_node() termination-fix
+     Subject: mm: move ioremap_page_range to vmalloc.c
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-guarantee-drop_slab_node-termination-fix.patch
+     mm-move-ioremap_page_range-to-vmallocc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-guarantee-drop_slab_node-termination-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-ioremap_page_range-to-vmallocc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-guarantee-drop_slab_node-termination-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-ioremap_page_range-to-vmallocc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,79 +64,159 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, vmscan: guarantee drop_slab_node() termination-fix
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: move ioremap_page_range to vmalloc.c
 
-Matthew reports [1] that if we free enough objects, we can eventually
-right-shift by BITS_PER_LONG, which is undefined behavior.  Raise the
-threshold from 0 to 1 which means we will shift only up to
-BITS_PER_LONG-1.
+Patch series "small ioremap cleanups".
 
-[1] https://lore.kernel.org/linux-mm/YSTDnqKgQLvziyQI@casper.infradead.org/
+The first patch moves a little code around the vmalloc/ioremap boundary
+following a bigger move by Nick earlier.  The second enforces
+non-executable mapping on ioremap just like we do for vmap.  No driver
+currently uses executable mappings anyway, as they should.
 
-Link: https://lkml.kernel.org/r/2f034e6f-a753-550a-f374-e4e23899d3d5@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Matthew Wilcox <willy@infradead.org>
+
+This patch (of 2):
+
+This keeps it together with the implementation, and to remove the
+vmap_range wrapper.
+
+Link: https://lkml.kernel.org/r/20210824091259.1324527-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20210824091259.1324527-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/vmalloc.h |    3 ---
+ mm/Makefile             |    3 ++-
+ mm/ioremap.c            |   25 -------------------------
+ mm/vmalloc.c            |   22 +++++++++++++++++-----
+ 4 files changed, 19 insertions(+), 34 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-guarantee-drop_slab_node-termination-fix
-+++ a/mm/vmscan.c
-@@ -952,7 +952,7 @@ void drop_slab_node(int nid)
- 		do {
- 			freed += shrink_slab(GFP_KERNEL, nid, memcg, 0);
- 		} while ((memcg = mem_cgroup_iter(NULL, memcg, NULL)) != NULL);
--	} while ((freed >> shift++) > 0);
-+	} while ((freed >> shift++) > 1);
+--- a/include/linux/vmalloc.h~mm-move-ioremap_page_range-to-vmallocc
++++ a/include/linux/vmalloc.h
+@@ -225,9 +225,6 @@ static inline bool is_vm_area_hugepages(
  }
  
- void drop_slab(void)
+ #ifdef CONFIG_MMU
+-int vmap_range(unsigned long addr, unsigned long end,
+-			phys_addr_t phys_addr, pgprot_t prot,
+-			unsigned int max_page_shift);
+ void vunmap_range(unsigned long addr, unsigned long end);
+ static inline void set_vm_flush_reset_perms(void *addr)
+ {
+--- a/mm/ioremap.c~mm-move-ioremap_page_range-to-vmallocc
++++ a/mm/ioremap.c
+@@ -8,33 +8,9 @@
+  */
+ #include <linux/vmalloc.h>
+ #include <linux/mm.h>
+-#include <linux/sched.h>
+ #include <linux/io.h>
+ #include <linux/export.h>
+-#include <asm/cacheflush.h>
+ 
+-#include "pgalloc-track.h"
+-
+-#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
+-static unsigned int __ro_after_init iomap_max_page_shift = BITS_PER_LONG - 1;
+-
+-static int __init set_nohugeiomap(char *str)
+-{
+-	iomap_max_page_shift = PAGE_SHIFT;
+-	return 0;
+-}
+-early_param("nohugeiomap", set_nohugeiomap);
+-#else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
+-static const unsigned int iomap_max_page_shift = PAGE_SHIFT;
+-#endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+-
+-int ioremap_page_range(unsigned long addr,
+-		       unsigned long end, phys_addr_t phys_addr, pgprot_t prot)
+-{
+-	return vmap_range(addr, end, phys_addr, prot, iomap_max_page_shift);
+-}
+-
+-#ifdef CONFIG_GENERIC_IOREMAP
+ void __iomem *ioremap_prot(phys_addr_t addr, size_t size, unsigned long prot)
+ {
+ 	unsigned long offset, vaddr;
+@@ -71,4 +47,3 @@ void iounmap(volatile void __iomem *addr
+ 	vunmap((void *)((unsigned long)addr & PAGE_MASK));
+ }
+ EXPORT_SYMBOL(iounmap);
+-#endif /* CONFIG_GENERIC_IOREMAP */
+--- a/mm/Makefile~mm-move-ioremap_page_range-to-vmallocc
++++ a/mm/Makefile
+@@ -38,7 +38,7 @@ mmu-y			:= nommu.o
+ mmu-$(CONFIG_MMU)	:= highmem.o memory.o mincore.o \
+ 			   mlock.o mmap.o mmu_gather.o mprotect.o mremap.o \
+ 			   msync.o page_vma_mapped.o pagewalk.o \
+-			   pgtable-generic.o rmap.o vmalloc.o ioremap.o
++			   pgtable-generic.o rmap.o vmalloc.o
+ 
+ 
+ ifdef CONFIG_CROSS_MEMORY_ATTACH
+@@ -128,3 +128,4 @@ obj-$(CONFIG_PTDUMP_CORE) += ptdump.o
+ obj-$(CONFIG_PAGE_REPORTING) += page_reporting.o
+ obj-$(CONFIG_IO_MAPPING) += io-mapping.o
+ obj-$(CONFIG_HAVE_BOOTMEM_INFO_NODE) += bootmem_info.o
++obj-$(CONFIG_GENERIC_IOREMAP) += ioremap.o
+--- a/mm/vmalloc.c~mm-move-ioremap_page_range-to-vmallocc
++++ a/mm/vmalloc.c
+@@ -44,6 +44,19 @@
+ #include "internal.h"
+ #include "pgalloc-track.h"
+ 
++#ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
++static unsigned int __ro_after_init ioremap_max_page_shift = BITS_PER_LONG - 1;
++
++static int __init set_nohugeiomap(char *str)
++{
++	ioremap_max_page_shift = PAGE_SHIFT;
++	return 0;
++}
++early_param("nohugeiomap", set_nohugeiomap);
++#else /* CONFIG_HAVE_ARCH_HUGE_VMAP */
++static const unsigned int ioremap_max_page_shift = PAGE_SHIFT;
++#endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
++
+ #ifdef CONFIG_HAVE_ARCH_HUGE_VMALLOC
+ static bool __ro_after_init vmap_allow_huge = true;
+ 
+@@ -298,15 +311,14 @@ static int vmap_range_noflush(unsigned l
+ 	return err;
+ }
+ 
+-int vmap_range(unsigned long addr, unsigned long end,
+-			phys_addr_t phys_addr, pgprot_t prot,
+-			unsigned int max_page_shift)
++int ioremap_page_range(unsigned long addr, unsigned long end,
++		phys_addr_t phys_addr, pgprot_t prot)
+ {
+ 	int err;
+ 
+-	err = vmap_range_noflush(addr, end, phys_addr, prot, max_page_shift);
++	err = vmap_range_noflush(addr, end, phys_addr, prot,
++				 ioremap_max_page_shift);
+ 	flush_cache_vmap(addr, end);
+-
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-slub-dont-call-flush_all-from-slab_debug_trace_open.patch
-mm-slub-allocate-private-object-map-for-debugfs-listings.patch
-mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
-mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
-mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
-mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
-mm-slub-extract-get_partial-from-new_slab_objects.patch
-mm-slub-dissolve-new_slab_objects-into-___slab_alloc.patch
-mm-slub-return-slab-page-from-get_partial-and-set-c-page-afterwards.patch
-mm-slub-restructure-new-page-checks-in-___slab_alloc.patch
-mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch
-mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled-fix-fix.patch
-mm-slub-move-disabling-irqs-closer-to-get_partial-in-___slab_alloc.patch
-mm-slub-restore-irqs-around-calling-new_slab.patch
-mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
-mm-slub-check-new-pages-with-restored-irqs.patch
-mm-slub-stop-disabling-irqs-around-get_partial.patch
-mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
-mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
-mm-slub-call-deactivate_slab-without-disabling-irqs.patch
-mm-slub-move-irq-control-into-unfreeze_partials.patch
-mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled.patch
-mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials.patch
-mm-slub-separate-detaching-of-partial-list-in-unfreeze_partials-from-unfreezing.patch
-mm-slub-only-disable-irq-with-spin_lock-in-__unfreeze_partials.patch
-mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
-mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
-mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context-fix.patch
-mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context-fix-2.patch
-mm-slub-optionally-save-restore-irqs-in-slab_lock.patch
-mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
-mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
-mm-slub-use-migrate_disable-on-preempt_rt.patch
-mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
-mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
-mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix-2.patch
-mm-vmscan-guarantee-drop_slab_node-termination.patch
-mm-vmscan-guarantee-drop_slab_node-termination-fix.patch
+mmc-jz4740-remove-the-flush_kernel_dcache_page-call-in-jz4740_mmc_read_data.patch
+mmc-mmc_spi-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page.patch
+mm-remove-flush_kernel_dcache_page.patch
+mm-move-ioremap_page_range-to-vmallocc.patch
+mm-dont-allow-executable-ioremap-mappings.patch
+proc-stop-using-seq_get_buf-in-proc_task_name.patch
+kernel-unexport-get_mmtask_exe_file.patch
+mm-unexport-folio_memcg_unlock.patch
+mm-unexport-unlock_page_memcg.patch
 
