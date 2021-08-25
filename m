@@ -2,69 +2,99 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-9.0 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3358EC43216
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Aug 2021 19:18:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3537C4320A
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Aug 2021 23:17:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1D5F6610E9
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Aug 2021 19:18:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A3939610CD
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Aug 2021 23:17:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237024AbhHYTSp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Aug 2021 15:18:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57296 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235172AbhHYTSp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 25 Aug 2021 15:18:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D78EC60F35;
-        Wed, 25 Aug 2021 19:17:58 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629919079;
-        bh=iSSYsEtYnR/D6bajbajTFtAChEw8sJSi4iiIyFgH7WM=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=jyxexarVI1B0zvGSYL0hhD6yV8Xh51wvMS5fcm094FPdsYTWpHQr3gQvL3PPxxaFf
-         mks9/4rLX3lIjy1oTFiuYwX3NEn3ZPz2j+9vOyf7VutpDpafIHpjXcDoVUm/eoEaqV
-         WuyIhCSVB2q/+FDjpHbsKBJoFgXxKg6wLVwUnQcg=
-Date:   Wed, 25 Aug 2021 12:17:58 -0700
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, namjae.jeon@samsung.com,
+        id S232789AbhHYXSW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Aug 2021 19:18:22 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49928 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231535AbhHYXSW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 25 Aug 2021 19:18:22 -0400
+Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 20ED3C061757;
+        Wed, 25 Aug 2021 16:17:36 -0700 (PDT)
+Received: by mail-pj1-x1034.google.com with SMTP id j4-20020a17090a734400b0018f6dd1ec97so906716pjs.3;
+        Wed, 25 Aug 2021 16:17:36 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20161025;
+        h=sender:date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=HHA4dIqDyaRjsKrnG7msKRzMkOmDWIdi+lx15oC+hnY=;
+        b=u53eiPwI4SZX4G1LTTj5mZCu3Zl0AK0XhynL+hMzMjNY/svqjeirm1+N6itwrdCGfT
+         60BW8cG0grgspqqvF0yPGVSGrl0dDSH5wa/pdWkPwVhVWRMZvWYspQNlDJsSiVejj8EZ
+         u0KMRPOjE7z1+WjNWWmZinwH+HRlG53DiUzm59nCWLYSareoFLP6T3mv8Xc2miTCgwhA
+         AhjJt1+SRiQfKNM5vg6XTMTOK3Y4IQQejAzQi1Z2pzY1mllsZ59e6TlWqHBpv7OnRvwo
+         KC7yhYautjr/1n0pL1zc0C8CQnD0QxXBrL/9yQ1Xp+xChg6Ln0AgRpbOp5h/dGfAKfuy
+         MEVw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20161025;
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=HHA4dIqDyaRjsKrnG7msKRzMkOmDWIdi+lx15oC+hnY=;
+        b=d/BuLGE2An+rXPDkQOSGRUro0TQRFSR7R+ExzDwWVTn91fXu1Cerix93vW6i/sYRi8
+         2ePNc3wowYjPimfZopp6GG8R8FudIVz+OYIS9Cr2Kcg78f5nLGS2AOTqjOjEV9OXQwhz
+         UN/btmwTXJIWqAkbAU6DRHszzgjqpIoaEYyvrp6VdWzp6GocGHl32J42UqjS4tGJPzOQ
+         LOIMrSCbm+8rIaz5FAoNllCaAP0iceiAwHIUZ7AjeBBie+sYor+8vT5sHRTV9mG0ugyy
+         4CFoNhiY0bYFT+gHD/WLekbRT+3LbqCH3yPldJRXUdOaMAo+vdZv98kkSBl6CZX6w732
+         wh8A==
+X-Gm-Message-State: AOAM531Bothwgpy1WE16CYcLSUCWmQo7PPEqUjTqGkPV9bmFDn8NJub7
+        f5zzouTdiymQ4hgP2TZhVlM=
+X-Google-Smtp-Source: ABdhPJxT3qO3YSJ7a9BGhRAk+eoIFxHo9jpHxEMYeUSUnYscmOhUHreFAXYwbGPgWdDX/wMrRqG2nw==
+X-Received: by 2002:a17:902:82c6:b0:136:59b0:ed17 with SMTP id u6-20020a17090282c600b0013659b0ed17mr905954plz.61.1629933455556;
+        Wed, 25 Aug 2021 16:17:35 -0700 (PDT)
+Received: from google.com ([2620:15c:211:201:87f7:83a2:3b32:4366])
+        by smtp.gmail.com with ESMTPSA id f10sm989244pgm.77.2021.08.25.16.17.34
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 25 Aug 2021 16:17:34 -0700 (PDT)
+Sender: Minchan Kim <minchan.kim@gmail.com>
+Date:   Wed, 25 Aug 2021 16:17:32 -0700
+From:   Minchan Kim <minchan@kernel.org>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     cgoldswo@codeaurora.org, david@redhat.com, linmiaohe@huawei.com,
+        linux-mm@kvack.org, mhocko@suse.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, osalvador@suse.de, stable@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 2/2] MAINTAINERS: exfat: update my email address
-Message-ID: <20210825191758.JIxP761sW%akpm@linux-foundation.org>
-In-Reply-To: <20210825121725.0b4f7ca217e22d9750bc6a6d@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+Subject: Re: [patch 1/2] mm/memory_hotplug: fix potential permanent lru cache
+ disable
+Message-ID: <YSbPjPykMcGIVM6b@google.com>
+References: <20210825121725.0b4f7ca217e22d9750bc6a6d@linux-foundation.org>
+ <20210825191755.q1BM2fgnb%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210825191755.q1BM2fgnb%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: MAINTAINERS: exfat: update my email address
+On Wed, Aug 25, 2021 at 12:17:55PM -0700, Andrew Morton wrote:
+> From: Miaohe Lin <linmiaohe@huawei.com>
+> Subject: mm/memory_hotplug: fix potential permanent lru cache disable
+> 
+> If offline_pages failed after lru_cache_disable(), it forgot to do
+> lru_cache_enable() in error path.  So we would have lru cache disabled
+> permanently in this case.
+> 
+> Link: https://lkml.kernel.org/r/20210821094246.10149-3-linmiaohe@huawei.com
+> Fixes: d479960e44f2 ("mm: disable LRU pagevec during the migration temporarily")
+> Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+> Reviewed-by: David Hildenbrand <david@redhat.com>
+> Reviewed-by: Oscar Salvador <osalvador@suse.de>
+> Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+> Cc: Chris Goldsworthy <cgoldswo@codeaurora.org>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Cc: Minchan Kim <minchan@kernel.org>
+> Cc: <stable@vger.kernel.org>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 
-My email address in exfat entry will be not available in a few days. 
-Update it to my own kernel.org address.
-
-Link: https://lkml.kernel.org/r/20210825044833.16806-1-namjae.jeon@samsung.com
-Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/MAINTAINERS~maintainers-exfat-update-my-email-address
-+++ a/MAINTAINERS
-@@ -6955,7 +6955,7 @@ F:	include/uapi/linux/mdio.h
- F:	include/uapi/linux/mii.h
- 
- EXFAT FILE SYSTEM
--M:	Namjae Jeon <namjae.jeon@samsung.com>
-+M:	Namjae Jeon <linkinjeon@kernel.org>
- M:	Sungjong Seo <sj1557.seo@samsung.com>
- L:	linux-fsdevel@vger.kernel.org
- S:	Maintained
-_
+Thanks for catching.
