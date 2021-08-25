@@ -2,65 +2,80 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
-	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07FA4C432BE
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Aug 2021 19:17:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D534AC4320E
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Aug 2021 19:17:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DD3FE60EFE
-	for <mm-commits@archiver.kernel.org>; Wed, 25 Aug 2021 19:17:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C05F860EFE
+	for <mm-commits@archiver.kernel.org>; Wed, 25 Aug 2021 19:17:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235726AbhHYTSO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 25 Aug 2021 15:18:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57112 "EHLO mail.kernel.org"
+        id S236934AbhHYTSm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 25 Aug 2021 15:18:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57232 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235172AbhHYTSN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 25 Aug 2021 15:18:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9156C60F35;
-        Wed, 25 Aug 2021 19:17:27 +0000 (UTC)
+        id S235172AbhHYTSm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 25 Aug 2021 15:18:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CF4BE60EAF;
+        Wed, 25 Aug 2021 19:17:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1629919047;
-        bh=hHKXoGUKrGXDJg0LITArryk1r4O/jGCSTji+C53QonA=;
-        h=Date:From:To:Cc:Subject:From;
-        b=uZNVkDLNu6ujloVqteZYQcYNviET9ntqXL8XcCNxKgxk6p434Uf12ElOUDFTGBX4X
-         dGyEtFGIYrP89+KxMS+N5nxLIcU3qZhK5cGEc5EBDkjl8Hk1Dj79LoRmOAYsaI1FuG
-         6Mx4/NWX/Vo3OKVQzMG+FFxj/3W1+geVkv1qFW0E=
-Date:   Wed, 25 Aug 2021 12:17:25 -0700
+        s=korg; t=1629919076;
+        bh=9eKVWYxZZwTl0suLazziuyIoja5ndJharWDLiFA0Ob0=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=Zrka7NY7T3o4zSnZpv/rQA/yMEwda7j6ZdxeUV8aHfCnQpHe8XGLTghTc3Q9jY+0E
+         20Ez6N1By6iAb6+FSr9BFb+QEpd7zihpqwWnLWvPtt6kqqe594+oqwfsMwsJo1QUWo
+         dQSkVFADAKy8v3HVkwRC6bZVs9K7gT5QY9Ss2+VM=
+Date:   Wed, 25 Aug 2021 12:17:55 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
-Subject: incoming
-Message-Id: <20210825121725.0b4f7ca217e22d9750bc6a6d@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     akpm@linux-foundation.org, cgoldswo@codeaurora.org,
+        david@redhat.com, linmiaohe@huawei.com, linux-mm@kvack.org,
+        mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, osalvador@suse.de, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 1/2] mm/memory_hotplug: fix potential permanent
+ lru cache disable
+Message-ID: <20210825191755.q1BM2fgnb%akpm@linux-foundation.org>
+In-Reply-To: <20210825121725.0b4f7ca217e22d9750bc6a6d@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-2 patches, based on 6e764bcd1cf72a2846c0e53d3975a09b242c04c9.
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory_hotplug: fix potential permanent lru cache disable
 
-Subsystems affected by this patch series:
+If offline_pages failed after lru_cache_disable(), it forgot to do
+lru_cache_enable() in error path.  So we would have lru cache disabled
+permanently in this case.
 
-  mm/memory-hotplug
-  MAINTAINERS
+Link: https://lkml.kernel.org/r/20210821094246.10149-3-linmiaohe@huawei.com
+Fixes: d479960e44f2 ("mm: disable LRU pagevec during the migration temporarily")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Chris Goldsworthy <cgoldswo@codeaurora.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Subsystem: mm/memory-hotplug
-
-    Miaohe Lin <linmiaohe@huawei.com>:
-      mm/memory_hotplug: fix potential permanent lru cache disable
-
-Subsystem: MAINTAINERS
-
-    Namjae Jeon <namjae.jeon@samsung.com>:
-      MAINTAINERS: exfat: update my email address
-
- MAINTAINERS         |    2 +-
  mm/memory_hotplug.c |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ 1 file changed, 1 insertion(+)
 
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-fix-potential-permanent-lru-cache-disable
++++ a/mm/memory_hotplug.c
+@@ -1731,6 +1731,7 @@ failed_removal_isolated:
+ 	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
+ failed_removal_pcplists_disabled:
++	lru_cache_enable();
+ 	zone_pcp_enable(zone);
+ failed_removal:
+ 	pr_debug("memory offlining [mem %#010llx-%#010llx] failed due to %s\n",
+_
