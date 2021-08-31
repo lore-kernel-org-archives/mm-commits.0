@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73437C432BE
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:45:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3182FC432BE
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:23:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4BCC661074
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:45:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0C2D861057
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:23:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240484AbhHaUqK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Aug 2021 16:46:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56186 "EHLO mail.kernel.org"
+        id S240780AbhHaWYQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Aug 2021 18:24:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36272 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230300AbhHaUqJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 31 Aug 2021 16:46:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AB17A61053;
-        Tue, 31 Aug 2021 20:45:13 +0000 (UTC)
+        id S230199AbhHaWYM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 31 Aug 2021 18:24:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B8FA86103D;
+        Tue, 31 Aug 2021 22:23:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630442713;
-        bh=xdRNAWGz1xX0jSstSFTy/QoBnhMZs2e3vR5PssHBUJw=;
+        s=korg; t=1630448596;
+        bh=e8Qe34h2M+KQqGJO/9hxEusoq27vkeJz4dyZxoLLuXM=;
         h=Date:From:To:Subject:From;
-        b=aAHDprngKfz/qNeJWDlDGOVyozRbfLqEooaUsfBKXXgvMPdOmP1HRnqcYSnp5TxJF
-         o96sRYYM0/Q/FtGBg9OsiX4J8iaHAb+JOyy2yOQPGByMW4d2REyjrN7MF95K4VdlFa
-         GQqRzW8Cci0+5yUN088kXhWX2p7WtB3dfxijAH+U=
-Date:   Tue, 31 Aug 2021 13:45:13 -0700
+        b=IE0MQYIzog3mg7C0OoC2+6jBQyOust3ECJD/8gR/N8Qb7xNZa594rLgaYwc53Nb7W
+         N+PjBFyyo8BVOMn7ycQp0qd8YcOkS4RWi3M8CzxD7oswTRH7BZnIq3L7KUhhTkUQxT
+         6Bnl6krOPjDKceeIU7CJEeKXNTc3fRCZzKkVuLjo=
+Date:   Tue, 31 Aug 2021 15:23:16 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, paskripkin@gmail.com,
-        penguin-kernel@i-love.sakura.ne.jp, rostedt@goodmis.org,
-        tglx@linutronix.de
-Subject:  + profiling-fix-shift-out-of-bounds-bugs.patch added to
- -mm tree
-Message-ID: <20210831204513.T3kfhT-Kh%akpm@linux-foundation.org>
+To:     keescook@chromium.org, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, sfr@canb.auug.org.au
+Subject:  +
+ compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
+ added to -mm tree
+Message-ID: <20210831222316.MR647AJiz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: profiling: fix shift-out-of-bounds bugs
+     Subject: Compiler Attributes: Add __alloc_size for better bounds checking fix
 has been added to the -mm tree.  Its filename is
-     profiling-fix-shift-out-of-bounds-bugs.patch
+     compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/profiling-fix-shift-out-of-bounds-bugs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/profiling-fix-shift-out-of-bounds-bugs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,100 +65,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pavel Skripkin <paskripkin@gmail.com>
-Subject: profiling: fix shift-out-of-bounds bugs
+From: Kees Cook <keescook@chromium.org>
+Subject: Compiler Attributes: Add __alloc_size for better bounds checking fix
 
-Syzbot reported shift-out-of-bounds bug in profile_init().
-The problem was in incorrect prof_shift. Since prof_shift value comes from
-userspace we need to clamp this value into [0, BITS_PER_LONG -1]
-boundaries.
+Adjust the warning logic to deal with pre-9.1 gcc behaviors.
 
-Second possible shiht-out-of-bounds was found by Tetsuo:
-sample_step local variable in read_profile() had "unsigned int" type,
-but prof_shift allows to make a BITS_PER_LONG shift. So, to prevent
-possible shiht-out-of-bounds sample_step type was changed to
-"unsigned long".
-
-Also, "unsigned short int" will be sufficient for storing
-[0, BITS_PER_LONG] value, that's why there is no need for
-"unsigned long" prof_shift.
-
-Link: https://lkml.kernel.org/r/20210813140022.5011-1-paskripkin@gmail.com
-Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
-Reported-and-tested-by: syzbot+e68c89a9510c159d9684@syzkaller.appspotmail.com
-Suggested-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Signed-off-by: Pavel Skripkin <paskripkin@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20210827151327.2729736-1-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/profile.c |   21 +++++++++++----------
- 1 file changed, 11 insertions(+), 10 deletions(-)
+ Makefile |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- a/kernel/profile.c~profiling-fix-shift-out-of-bounds-bugs
-+++ a/kernel/profile.c
-@@ -41,7 +41,8 @@ struct profile_hit {
- #define NR_PROFILE_GRP		(NR_PROFILE_HIT/PROFILE_GRPSZ)
+--- a/Makefile~compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2
++++ a/Makefile
+@@ -1094,8 +1094,17 @@ endif
  
- static atomic_t *prof_buffer;
--static unsigned long prof_len, prof_shift;
-+static unsigned long prof_len;
-+static unsigned short int prof_shift;
+ ifdef CONFIG_CC_IS_GCC
+ # The allocators already balk at large sizes, so silence the compiler
+-# warnings for bounds checks involving those possible values.
+-KBUILD_CFLAGS += -Wno-alloc-size-larger-than
++# warnings for bounds checks involving those possible values. While
++# -Wno-alloc-size-larger-than would normally be used here, earlier versions
++# of gcc (<9.1) weirdly don't handle the option correctly when _other_
++# warnings are produced (?!). Using -Walloc-size-larger-than=SIZE_MAX
++# doesn't work (as it is documented to), silently resolving to "0" prior to
++# version 9.1 (and producing an error more recently). Numeric values larger
++# than PTRDIFF_MAX also don't work prior to version 9.1, which are silently
++# ignored, continuing to default to PTRDIFF_MAX. So, left with no other
++# choice, we must perform a versioned check to disable this warning.
++# https://lore.kernel.org/lkml/20210824115859.187f272f@canb.auug.org.au
++KBUILD_CFLAGS += $(call cc-ifversion, -ge, 0901, -Wno-alloc-size-larger-than)
+ endif
  
- int prof_on __read_mostly;
- EXPORT_SYMBOL_GPL(prof_on);
-@@ -67,8 +68,8 @@ int profile_setup(char *str)
- 		if (str[strlen(sleepstr)] == ',')
- 			str += strlen(sleepstr) + 1;
- 		if (get_option(&str, &par))
--			prof_shift = par;
--		pr_info("kernel sleep profiling enabled (shift: %ld)\n",
-+			prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
-+		pr_info("kernel sleep profiling enabled (shift: %u)\n",
- 			prof_shift);
- #else
- 		pr_warn("kernel sleep profiling requires CONFIG_SCHEDSTATS\n");
-@@ -78,21 +79,21 @@ int profile_setup(char *str)
- 		if (str[strlen(schedstr)] == ',')
- 			str += strlen(schedstr) + 1;
- 		if (get_option(&str, &par))
--			prof_shift = par;
--		pr_info("kernel schedule profiling enabled (shift: %ld)\n",
-+			prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
-+		pr_info("kernel schedule profiling enabled (shift: %u)\n",
- 			prof_shift);
- 	} else if (!strncmp(str, kvmstr, strlen(kvmstr))) {
- 		prof_on = KVM_PROFILING;
- 		if (str[strlen(kvmstr)] == ',')
- 			str += strlen(kvmstr) + 1;
- 		if (get_option(&str, &par))
--			prof_shift = par;
--		pr_info("kernel KVM profiling enabled (shift: %ld)\n",
-+			prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
-+		pr_info("kernel KVM profiling enabled (shift: %u)\n",
- 			prof_shift);
- 	} else if (get_option(&str, &par)) {
--		prof_shift = par;
-+		prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
- 		prof_on = CPU_PROFILING;
--		pr_info("kernel profiling enabled (shift: %ld)\n",
-+		pr_info("kernel profiling enabled (shift: %u)\n",
- 			prof_shift);
- 	}
- 	return 1;
-@@ -468,7 +469,7 @@ read_profile(struct file *file, char __u
- 	unsigned long p = *ppos;
- 	ssize_t read;
- 	char *pnt;
--	unsigned int sample_step = 1 << prof_shift;
-+	unsigned long sample_step = 1UL << prof_shift;
- 
- 	profile_flip_buffers();
- 	if (p >= (prof_len+1)*sizeof(unsigned int))
+ # disable invalid "can't wrap" optimizations for signed / pointers
 _
 
-Patches currently in -mm which might be from paskripkin@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-profiling-fix-shift-out-of-bounds-bugs.patch
+compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
+compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
+compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix.patch
+compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-fix.patch
+checkpatch-add-__alloc_size-to-known-attribute.patch
+slab-clean-up-function-declarations.patch
+slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
+mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
+mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
 
