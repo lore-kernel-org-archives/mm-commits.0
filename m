@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3182FC432BE
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:23:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30984C4320E
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:23:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0C2D861057
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:23:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 107F761041
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:23:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240780AbhHaWYQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Aug 2021 18:24:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36272 "EHLO mail.kernel.org"
+        id S230400AbhHaWYV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Aug 2021 18:24:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36354 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230199AbhHaWYM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 31 Aug 2021 18:24:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B8FA86103D;
-        Tue, 31 Aug 2021 22:23:16 +0000 (UTC)
+        id S230199AbhHaWYU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 31 Aug 2021 18:24:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0A31C6103D;
+        Tue, 31 Aug 2021 22:23:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630448596;
-        bh=e8Qe34h2M+KQqGJO/9hxEusoq27vkeJz4dyZxoLLuXM=;
+        s=korg; t=1630448605;
+        bh=B54QXKCLkJ/782a7AU/HrxMut5xNVqTVsEkmNHFkqik=;
         h=Date:From:To:Subject:From;
-        b=IE0MQYIzog3mg7C0OoC2+6jBQyOust3ECJD/8gR/N8Qb7xNZa594rLgaYwc53Nb7W
-         N+PjBFyyo8BVOMn7ycQp0qd8YcOkS4RWi3M8CzxD7oswTRH7BZnIq3L7KUhhTkUQxT
-         6Bnl6krOPjDKceeIU7CJEeKXNTc3fRCZzKkVuLjo=
-Date:   Tue, 31 Aug 2021 15:23:16 -0700
+        b=PyygsbtZGJN1hblnh2bNiZeY4VP1MV2ztiFYhI5dXg/v/CL7zfILgGdZbRYbe5SEL
+         P1th/I/q+OhE1LStfMYLOgH5PTCtVXh0uHSLtLz8dNFHIUDqKTJMfMwCevO/HvpBsP
+         RNMGcJJ0S5yts+wBC+0564KkaeT0HnJCesLYgnU4=
+Date:   Tue, 31 Aug 2021 15:23:24 -0700
 From:   akpm@linux-foundation.org
 To:     keescook@chromium.org, mm-commits@vger.kernel.org,
         rdunlap@infradead.org, sfr@canb.auug.org.au
-Subject:  +
- compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
- added to -mm tree
-Message-ID: <20210831222316.MR647AJiz%akpm@linux-foundation.org>
+Subject:  [alternative-merged]
+ compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix.patch
+ removed from -mm tree
+Message-ID: <20210831222324.ZkJdsC4Zz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,62 +44,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Compiler Attributes: Add __alloc_size for better bounds checking fix
-has been added to the -mm tree.  Its filename is
-     compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
+     Subject: compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix
+has been removed from the -mm tree.  Its filename was
+     compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: Compiler Attributes: Add __alloc_size for better bounds checking fix
+Subject: compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix
 
-Adjust the warning logic to deal with pre-9.1 gcc behaviors.
+fix warning
 
-Link: https://lkml.kernel.org/r/20210827151327.2729736-1-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
+cc1: warning: unrecognized command line option '-Wno-alloc-size-larger-than'
+
+Ew. Thanks for letting me know. I thought I'd verified this existed in
+gcc going back to 4.9, but it looks like I did something wrong in that
+test.
+
+Link: https://lkml.kernel.org/r/202108202248.921E8C66@keescook
 Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |   13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+ Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Makefile~compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2
+--- a/Makefile~compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix
 +++ a/Makefile
-@@ -1094,8 +1094,17 @@ endif
- 
+@@ -1097,7 +1097,7 @@ endif
  ifdef CONFIG_CC_IS_GCC
  # The allocators already balk at large sizes, so silence the compiler
--# warnings for bounds checks involving those possible values.
+ # warnings for bounds checks involving those possible values.
 -KBUILD_CFLAGS += -Wno-alloc-size-larger-than
-+# warnings for bounds checks involving those possible values. While
-+# -Wno-alloc-size-larger-than would normally be used here, earlier versions
-+# of gcc (<9.1) weirdly don't handle the option correctly when _other_
-+# warnings are produced (?!). Using -Walloc-size-larger-than=SIZE_MAX
-+# doesn't work (as it is documented to), silently resolving to "0" prior to
-+# version 9.1 (and producing an error more recently). Numeric values larger
-+# than PTRDIFF_MAX also don't work prior to version 9.1, which are silently
-+# ignored, continuing to default to PTRDIFF_MAX. So, left with no other
-+# choice, we must perform a versioned check to disable this warning.
-+# https://lore.kernel.org/lkml/20210824115859.187f272f@canb.auug.org.au
-+KBUILD_CFLAGS += $(call cc-ifversion, -ge, 0901, -Wno-alloc-size-larger-than)
++KBUILD_CFLAGS += $(call cc-option, -Wno-alloc-size-larger-than)
  endif
  
  # disable invalid "can't wrap" optimizations for signed / pointers
@@ -109,7 +88,6 @@ Patches currently in -mm which might be from keescook@chromium.org are
 
 compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
 compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
-compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix.patch
 compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-fix.patch
 checkpatch-add-__alloc_size-to-known-attribute.patch
 slab-clean-up-function-declarations.patch
