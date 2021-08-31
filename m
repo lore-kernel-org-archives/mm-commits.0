@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D321C432BE
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:35:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35C16C432BE
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:36:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 095C660ED4
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:35:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 18A2461026
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:36:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232803AbhHaUgi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Aug 2021 16:36:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53310 "EHLO mail.kernel.org"
+        id S240795AbhHaUhn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Aug 2021 16:37:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53628 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230236AbhHaUgi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 31 Aug 2021 16:36:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A6F606103A;
-        Tue, 31 Aug 2021 20:35:42 +0000 (UTC)
+        id S230236AbhHaUhm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 31 Aug 2021 16:37:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B194C60ED4;
+        Tue, 31 Aug 2021 20:36:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630442142;
-        bh=s85S8KQXJOb7b1xa7D+f7KxhW9Tjq4i09HM2JGNUPg8=;
+        s=korg; t=1630442207;
+        bh=BEKTHG+J5wdHWaCPLArjMLLpSQ3gQMB9aSK5hbkQj24=;
         h=Date:From:To:Subject:From;
-        b=Co8RIRTdtMUHvmbSciQ2jKc61oCL71nvG8zE6WkSY/bS6DP9nxw4uFw5fy9oyWfGT
-         beLndQ5KJXWwIu6E/dvBorN9oc5QZX2IpB8t65aoC3j/LE5O7qA7tezASjnGrKdsnO
-         k4vQ4ZggcrUfAM+/sFcAC9Zse9m+DdjNzZ0Sq3HM=
-Date:   Tue, 31 Aug 2021 13:35:42 -0700
+        b=2dQgo+4iMqpT7LPmRs+2UsZXobnxtKeZfC9yvgDLLES7OUoWckQnGZGsRuqaBZdLc
+         BzWrJusFV9aIXLZHHw52EwigcEnXrv1Vs47Z42tudqItDvrhIMGFh/ty2C/S/JDwFg
+         BTEJTIEfQnj7wGDEuvjlkjGg/tOlF37qjqRsnre8=
+Date:   Tue, 31 Aug 2021 13:36:46 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, jgg@nvidia.com, lizhijian@cn.fujitsu.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org
+To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
+        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
+        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
 Subject:  +
- mm-hmm-bypass-devmap-pte-when-all-pfn-requested-flags-are-fulfilled.patch
- added to -mm tree
-Message-ID: <20210831203542.aBJpj84ci%akpm@linux-foundation.org>
+ ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock.patch added to -mm
+ tree
+Message-ID: <20210831203646.bhLgYTfc3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hmm: bypass devmap pte when all pfn requested flags are fulfilled
+     Subject: ocfs2: ocfs2_downconvert_lock failure results in deadlock
 has been added to the -mm tree.  Its filename is
-     mm-hmm-bypass-devmap-pte-when-all-pfn-requested-flags-are-fulfilled.patch
+     ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hmm-bypass-devmap-pte-when-all-pfn-requested-flags-are-fulfilled.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hmm-bypass-devmap-pte-when-all-pfn-requested-flags-are-fulfilled.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,52 +66,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Li Zhijian <lizhijian@cn.fujitsu.com>
-Subject: mm/hmm: bypass devmap pte when all pfn requested flags are fulfilled
+From: Gang He <ghe@suse.com>
+Subject: ocfs2: ocfs2_downconvert_lock failure results in deadlock
 
-Previously, we noticed the one rpma example was failed[1] since
-36f30e486d, where it will use ODP feature to do RDMA WRITE between fsdax
-files.
+Usually, ocfs2_downconvert_lock() function always downconverts dlm lock to
+the expected level for satisfy dlm bast requests from the other nodes.
 
-After digging into the code, we found hmm_vma_handle_pte() will still
-return EFAULT even though all the its requesting flags has been fulfilled.
-That's because a DAX page will be marked as (_PAGE_SPECIAL | PAGE_DEVMAP)
-by pte_mkdevmap().
+But there is a rare situation.  When dlm lock conversion is being
+canceled, ocfs2_downconvert_lock() function will return -EBUSY.  You need
+to be aware that ocfs2_cancel_convert() function is asynchronous in fsdlm
+implementation.
 
-[1]: https://github.com/pmem/rpma/issues/1142
+If we does not requeue this lockres entry, ocfs2 downconvert thread no
+longer handles this dlm lock bast request.  Then, the other nodes will not
+get the dlm lock again, the current node's process will be blocked when
+acquire this dlm lock again.
 
-Link: https://lkml.kernel.org/r/20210830094232.203029-1-lizhijian@cn.fujitsu.com
-Fixes: 405506274922 ("mm/hmm: add missing call to hmm_pte_need_fault in HMM_PFN_SPECIAL handling")
-Signed-off-by: Li Zhijian <lizhijian@cn.fujitsu.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210830044621.12544-1-ghe@suse.com
+Signed-off-by: Gang He <ghe@suse.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hmm.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlmglue.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/mm/hmm.c~mm-hmm-bypass-devmap-pte-when-all-pfn-requested-flags-are-fulfilled
-+++ a/mm/hmm.c
-@@ -295,10 +295,13 @@ static int hmm_vma_handle_pte(struct mm_
- 		goto fault;
+--- a/fs/ocfs2/dlmglue.c~ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock
++++ a/fs/ocfs2/dlmglue.c
+@@ -16,6 +16,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
+ #include <linux/time.h>
++#include <linux/delay.h>
+ #include <linux/quotaops.h>
+ #include <linux/sched/signal.h>
  
- 	/*
-+	 * Bypass devmap pte such as DAX page when all pfn requested
-+	 * flags(pfn_req_flags) are fulfilled.
- 	 * Since each architecture defines a struct page for the zero page, just
- 	 * fall through and treat it like a normal page.
- 	 */
--	if (pte_special(pte) && !is_zero_pfn(pte_pfn(pte))) {
-+	if (pte_special(pte) && !pte_devmap(pte) &&
-+	    !is_zero_pfn(pte_pfn(pte))) {
- 		if (hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0)) {
- 			pte_unmap(ptep);
- 			return -EFAULT;
+@@ -3912,6 +3913,17 @@ downconvert:
+ 	spin_unlock_irqrestore(&lockres->l_lock, flags);
+ 	ret = ocfs2_downconvert_lock(osb, lockres, new_level, set_lvb,
+ 				     gen);
++	/* The dlm lock convert is being cancelled in background,
++	 * ocfs2_cancel_convert() is asynchronous in fs/dlm,
++	 * requeue it, try again later.
++	 */
++	if (ret == -EBUSY) {
++		ctl->requeue = 1;
++		mlog(ML_BASTS, "lockres %s, ReQ: Downconvert busy\n",
++		     lockres->l_name);
++		ret = 0;
++		msleep(20);
++	}
+ 
+ leave:
+ 	if (ret)
 _
 
-Patches currently in -mm which might be from lizhijian@cn.fujitsu.com are
+Patches currently in -mm which might be from ghe@suse.com are
 
-mm-hmm-bypass-devmap-pte-when-all-pfn-requested-flags-are-fulfilled.patch
+ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock.patch
+ocfs2-reflink-deadlock-when-clone-file-to-the-same-directory-simultaneously.patch
 
