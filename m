@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D80CCC4320E
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:42:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F42EC432BE
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:48:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B866C60FE6
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:42:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C0416103D
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:48:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239914AbhHaWnr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Aug 2021 18:43:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43410 "EHLO mail.kernel.org"
+        id S235329AbhHaWtV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Aug 2021 18:49:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44220 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229602AbhHaWnq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 31 Aug 2021 18:43:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B0B8060FF2;
-        Tue, 31 Aug 2021 22:42:50 +0000 (UTC)
+        id S232580AbhHaWtV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 31 Aug 2021 18:49:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 04FE360FE6;
+        Tue, 31 Aug 2021 22:48:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630449770;
-        bh=JPaaH/lz1NiqWY8tspwvWTmAN1QHWj/poVs5KN/8N3c=;
+        s=korg; t=1630450105;
+        bh=Hl/WfPkbasP01ORmDG1xJWi3RjSQ6O43uNkoB0RWkE8=;
         h=Date:From:To:Subject:From;
-        b=AjWmw4YuvyEaWhT0m1QTjqG7mx9CgtA0x+yQRyGymxy4uUXuz0GDj/Fpeir/tlkOe
-         Trl+HMpj3HHT6YFAVdtXGzi4FKVtXwxMdUJ2Gb2VjkvwfQaHJGrpgvvGMw8Fyrq2VC
-         A6+mhS9fSWAYTJiLEJOEvfty87LuGxE0t6zppoas=
-Date:   Tue, 31 Aug 2021 15:42:50 -0700
+        b=mXaqQgZ+Fa3iXBkRt9Yp7JyWE/Q4/xC0NN22irCufU/aSbc0gqelSfqk9tNmzvRxS
+         f7+BG4BcLLxISLtLICoeUOvk/TGyLOWyoneKRtALtZttYdWxikWdieVm6t7JM9NWur
+         HyMZb2nNfhQ2fNtHrSLuJENgnKUaOt0wgKNfL9vQ=
+Date:   Tue, 31 Aug 2021 15:48:24 -0700
 From:   akpm@linux-foundation.org
-To:     liuzixian4@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        stable@vger.kernel.org
-Subject:  + mm-hugetlb-initialize-hugetlb_usage-in-mm_init.patch
+To:     keescook@chromium.org, masahiroy@kernel.org,
+        mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, samitolvanen@google.com
+Subject:  + maintainers-update-clangbuiltlinux-mailing-list.patch
  added to -mm tree
-Message-ID: <20210831224250.LRxYZi1vW%akpm@linux-foundation.org>
+Message-ID: <20210831224824.lNdQyhmGG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: initialize hugetlb_usage in mm_init
+     Subject: MAINTAINERS: update ClangBuiltLinux mailing list
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-initialize-hugetlb_usage-in-mm_init.patch
+     maintainers-update-clangbuiltlinux-mailing-list.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-initialize-hugetlb_usage-in-mm_init.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-clangbuiltlinux-mailing-list.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-initialize-hugetlb_usage-in-mm_init.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-clangbuiltlinux-mailing-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,75 +65,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liu Zixian <liuzixian4@huawei.com>
-Subject: mm/hugetlb: initialize hugetlb_usage in mm_init
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: MAINTAINERS: update ClangBuiltLinux mailing list
 
-After fork, the child process will get incorrect (2x) hugetlb_usage.
-If a process uses 5 2MB hugetlb pages in an anonymous mapping,
+We are now at llvm@lists.linux.dev.
 
-	HugetlbPages:	   10240 kB
-
-and then forks, the child will show,
-
-	HugetlbPages:	   20480 kB
-
-The reason for double the amount is because hugetlb_usage will be copied
-from the parent and then increased when we copy page tables from parent to
-child.  Child will have 2x actual usage.
-
-Fix this by adding hugetlb_count_init in mm_init.
-
-Link: https://lkml.kernel.org/r/20210826071742.877-1-liuzixian4@huawei.com
-Fixes: 5d317b2b6536 ("mm: hugetlb: proc: add HugetlbPages field to /proc/PID/status")
-Signed-off-by: Liu Zixian <liuzixian4@huawei.com>
-Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210825211823.6406-1-nathan@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Acked-by: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Sami Tolvanen <samitolvanen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    9 +++++++++
- kernel/fork.c           |    1 +
- 2 files changed, 10 insertions(+)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-initialize-hugetlb_usage-in-mm_init
-+++ a/include/linux/hugetlb.h
-@@ -858,6 +858,11 @@ static inline spinlock_t *huge_pte_lockp
- 
- void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm);
- 
-+static inline void hugetlb_count_init(struct mm_struct *mm)
-+{
-+	atomic_long_set(&mm->hugetlb_usage, 0);
-+}
-+
- static inline void hugetlb_count_add(long l, struct mm_struct *mm)
- {
- 	atomic_long_add(l, &mm->hugetlb_usage);
-@@ -1042,6 +1047,10 @@ static inline spinlock_t *huge_pte_lockp
- 	return &mm->page_table_lock;
- }
- 
-+static inline void hugetlb_count_init(struct mm_struct *mm)
-+{
-+}
-+
- static inline void hugetlb_report_usage(struct seq_file *f, struct mm_struct *m)
- {
- }
---- a/kernel/fork.c~mm-hugetlb-initialize-hugetlb_usage-in-mm_init
-+++ a/kernel/fork.c
-@@ -1052,6 +1052,7 @@ static struct mm_struct *mm_init(struct
- 	mm->pmd_huge_pte = NULL;
- #endif
- 	mm_init_uprobes_state(mm);
-+	hugetlb_count_init(mm);
- 
- 	if (current->mm) {
- 		mm->flags = current->mm->flags & MMF_INIT_MASK;
+--- a/MAINTAINERS~maintainers-update-clangbuiltlinux-mailing-list
++++ a/MAINTAINERS
+@@ -4504,7 +4504,7 @@ F:	.clang-format
+ CLANG/LLVM BUILD SUPPORT
+ M:	Nathan Chancellor <nathan@kernel.org>
+ M:	Nick Desaulniers <ndesaulniers@google.com>
+-L:	clang-built-linux@googlegroups.com
++L:	llvm@lists.linux.dev
+ S:	Supported
+ W:	https://clangbuiltlinux.github.io/
+ B:	https://github.com/ClangBuiltLinux/linux/issues
+@@ -4519,7 +4519,7 @@ M:	Sami Tolvanen <samitolvanen@google.co
+ M:	Kees Cook <keescook@chromium.org>
+ R:	Nathan Chancellor <nathan@kernel.org>
+ R:	Nick Desaulniers <ndesaulniers@google.com>
+-L:	clang-built-linux@googlegroups.com
++L:	llvm@lists.linux.dev
+ S:	Supported
+ B:	https://github.com/ClangBuiltLinux/linux/issues
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kees/linux.git for-next/clang/features
 _
 
-Patches currently in -mm which might be from liuzixian4@huawei.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-mm-hugetlb-initialize-hugetlb_usage-in-mm_init.patch
+mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix-fix.patch
+maintainers-update-clangbuiltlinux-mailing-list.patch
+documentation-llvm-update-mailing-list.patch
+documentation-llvm-update-irc-location.patch
 
