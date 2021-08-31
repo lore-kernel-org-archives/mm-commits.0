@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99CB8C4320E
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:16:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BBF5C43214
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:18:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 770DC60FED
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:16:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1FA6561074
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:18:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240795AbhHaURB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Aug 2021 16:17:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46892 "EHLO mail.kernel.org"
+        id S235207AbhHaUTo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Aug 2021 16:19:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48056 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232698AbhHaURA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 31 Aug 2021 16:17:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D3E3B60238;
-        Tue, 31 Aug 2021 20:16:04 +0000 (UTC)
+        id S240094AbhHaUTm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 31 Aug 2021 16:19:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B57A361057;
+        Tue, 31 Aug 2021 20:18:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630440965;
-        bh=vrSk7NGDKruQ1GGNei/dolE9sb0nalFXWoxlFB5C8ag=;
+        s=korg; t=1630441127;
+        bh=3Z6QvMM77RWiyoLBMRHPn23e8ETXtUvqzaTQbwu2HJk=;
         h=Date:From:To:Subject:From;
-        b=m6Pm6SUM35dJcyPfXTZsMSgGEjbOBkHoIzqT/2ktJ6m2fNIGN5musDyk9rKZXNASH
-         I5QypLdi4eR8RcjAolA0P0mFI9lTTjCP7abEMuzOpx5OvaRlMQUej2+DsvzMDOMgpO
-         5Uxeb0OaY0TLZ5pW2Mz6za+ZKpSUybRJi2yz1tW0=
-Date:   Tue, 31 Aug 2021 13:16:04 -0700
+        b=GW5ehWSDPfBSIAPgNoR+n07qUICuqqp6Lyrxt52gVpMTPnkq+liEjiZXxymr7fhQF
+         Rpp3cTn39jiZZcwSFJPYm5+FheIF4uk46y+2S5fHEeDwYXZrYprmJgbC3gOySXJjxQ
+         wvnhxjFjoXqKfXoYC5g4aTXtGkHmQZklaS6cjp9Y=
+Date:   Tue, 31 Aug 2021 13:18:46 -0700
 From:   akpm@linux-foundation.org
-To:     guillaume@morinfr.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org
-Subject:  +
- hugetlb-fix-hugetlb-cgroup-refcounting-during-vma-split.patch added to -mm
- tree
-Message-ID: <20210831201604.JZQfdyjOA%akpm@linux-foundation.org>
+To:     hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
+        shakeelb@google.com, tj@kernel.org
+Subject:  + memcg-make-memcg-event_list_lock-irqsafe.patch added to
+ -mm tree
+Message-ID: <20210831201846.5iWasRvj0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix hugetlb cgroup refcounting during vma split
+     Subject: memcg: make memcg->event_list_lock irqsafe
 has been added to the -mm tree.  Its filename is
-     hugetlb-fix-hugetlb-cgroup-refcounting-during-vma-split.patch
+     memcg-make-memcg-event_list_lock-irqsafe.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-fix-hugetlb-cgroup-refcounting-during-vma-split.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-make-memcg-event_list_lock-irqsafe.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-fix-hugetlb-cgroup-refcounting-during-vma-split.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-make-memcg-event_list_lock-irqsafe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,105 +64,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: fix hugetlb cgroup refcounting during vma split
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: make memcg->event_list_lock irqsafe
 
-Guillaume Morin reported hitting the following WARNING followed by GPF or
-NULL pointer deference either in cgroups_destroy or in the kill_css path.:
+The memcg->event_list_lock is usually taken in the normal context but when
+the userspace closes the corresponding eventfd, eventfd_release through
+memcg_event_wake takes memcg->event_list_lock with interrupts disabled. 
+This is not an issue on its own but it creates a nested dependency from
+eventfd_ctx->wqh.lock to memcg->event_list_lock.
 
-percpu ref (css_release) <= 0 (-1) after switching to atomic
-WARNING: CPU: 23 PID: 130 at lib/percpu-refcount.c:196 percpu_ref_switch_to_atomic_rcu+0x127/0x130
-CPU: 23 PID: 130 Comm: ksoftirqd/23 Kdump: loaded Tainted: G           O      5.10.60 #1
-RIP: 0010:percpu_ref_switch_to_atomic_rcu+0x127/0x130
-Call Trace:
- rcu_core+0x30f/0x530
- rcu_core_si+0xe/0x10
- __do_softirq+0x103/0x2a2
- ? sort_range+0x30/0x30
- run_ksoftirqd+0x2b/0x40
- smpboot_thread_fn+0x11a/0x170
- kthread+0x10a/0x140
- ? kthread_create_worker_on_cpu+0x70/0x70
- ret_from_fork+0x22/0x30
+Independently, for unrelated eventfd, eventfd_signal() can be called in
+the irq context, thus making eventfd_ctx->wqh.lock an irq lock.  For
+example, FPGA DFL driver, VHOST VPDA driver and couple of VFIO drivers. 
+This will force memcg->event_list_lock to be an irqsafe lock as well.
 
-Upon further examination, it was discovered that the css structure was
-associated with hugetlb reservations.
+One way to break the nested dependency between eventfd_ctx->wqh.lock and
+memcg->event_list_lock is to add an indirection.  However the simplest
+solution would be to make memcg->event_list_lock irqsafe.  This is cgroup
+v1 feature, is in maintenance and may get deprecated in near future.  So,
+no need to add more code.
 
-For private hugetlb mappings the vma points to a reserve map that contains
-a pointer to the css.  At mmap time, reservations are set up and a
-reference to the css is taken.  This reference is dropped in the vma close
-operation; hugetlb_vm_op_close.  However, if a vma is split no additional
-reference to the css is taken yet hugetlb_vm_op_close will be called twice
-for the split vma resulting in an underflow.
+BTW this has been discussed previously [1] but there weren't irq users of
+eventfd_signal() at the time.
 
-Fix by taking another reference in hugetlb_vm_op_open.  Note that the
-reference is only taken for the owner of the reserve map.  In the more
-common fork case, the pointer to the reserve map is cleared for non-owning
-vmas.
+[1] https://www.spinics.net/lists/cgroups/msg06248.html
 
-Link: https://lkml.kernel.org/r/20210830215015.155224-1-mike.kravetz@oracle.com
-Fixes: e9fe92ae0cd2 ("hugetlb_cgroup: add reservation accounting for
-private mappings")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: Guillaume Morin <guillaume@morinfr.org>
-Suggested-by: Guillaume Morin <guillaume@morinfr.org>
-Tested-by: Guillaume Morin <guillaume@morinfr.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210830172953.207257-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb_cgroup.h |   12 ++++++++++++
- mm/hugetlb.c                   |    4 +++-
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/hugetlb_cgroup.h~hugetlb-fix-hugetlb-cgroup-refcounting-during-vma-split
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -121,6 +121,13 @@ static inline void hugetlb_cgroup_put_rs
- 	css_put(&h_cg->css);
- }
+--- a/mm/memcontrol.c~memcg-make-memcg-event_list_lock-irqsafe
++++ a/mm/memcontrol.c
+@@ -4839,9 +4839,9 @@ static ssize_t memcg_write_event_control
  
-+static inline void resv_map_dup_hugetlb_cgroup_uncharge_info(
-+						struct resv_map *resv_map)
-+{
-+	if (resv_map->css)
-+		css_get(resv_map->css);
-+}
-+
- extern int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
- 					struct hugetlb_cgroup **ptr);
- extern int hugetlb_cgroup_charge_cgroup_rsvd(int idx, unsigned long nr_pages,
-@@ -199,6 +206,11 @@ static inline void hugetlb_cgroup_put_rs
- {
- }
+ 	vfs_poll(efile.file, &event->pt);
  
-+static inline void resv_map_dup_hugetlb_cgroup_uncharge_info(
-+						struct resv_map *resv_map)
-+{
-+}
-+
- static inline int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
- 					       struct hugetlb_cgroup **ptr)
- {
---- a/mm/hugetlb.c~hugetlb-fix-hugetlb-cgroup-refcounting-during-vma-split
-+++ a/mm/hugetlb.c
-@@ -4106,8 +4106,10 @@ static void hugetlb_vm_op_open(struct vm
- 	 * after this open call completes.  It is therefore safe to take a
- 	 * new reference here without additional locking.
+-	spin_lock(&memcg->event_list_lock);
++	spin_lock_irq(&memcg->event_list_lock);
+ 	list_add(&event->list, &memcg->event_list);
+-	spin_unlock(&memcg->event_list_lock);
++	spin_unlock_irq(&memcg->event_list_lock);
+ 
+ 	fdput(cfile);
+ 	fdput(efile);
+@@ -5268,12 +5268,12 @@ static void mem_cgroup_css_offline(struc
+ 	 * Notify userspace about cgroup removing only after rmdir of cgroup
+ 	 * directory to avoid race between userspace and kernelspace.
  	 */
--	if (resv && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
-+	if (resv && is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
-+		resv_map_dup_hugetlb_cgroup_uncharge_info(resv);
- 		kref_get(&resv->refs);
-+	}
- }
+-	spin_lock(&memcg->event_list_lock);
++	spin_lock_irq(&memcg->event_list_lock);
+ 	list_for_each_entry_safe(event, tmp, &memcg->event_list, list) {
+ 		list_del_init(&event->list);
+ 		schedule_work(&event->remove);
+ 	}
+-	spin_unlock(&memcg->event_list_lock);
++	spin_unlock_irq(&memcg->event_list_lock);
  
- static void hugetlb_vm_op_close(struct vm_area_struct *vma)
+ 	page_counter_set_min(&memcg->memory, 0);
+ 	page_counter_set_low(&memcg->memory, 0);
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code.patch
-hugetlb-drop-ref-count-earlier-after-page-allocation.patch
-hugetlb-before-freeing-hugetlb-page-set-dtor-to-appropriate-value.patch
-hugetlb-fix-hugetlb-cgroup-refcounting-during-vma-split.patch
+writeback-memcg-simplify-cgroup_writeback_by_id.patch
+memcg-switch-lruvec-stats-to-rstat.patch
+memcg-infrastructure-to-flush-memcg-stats.patch
+memcg-infrastructure-to-flush-memcg-stats-v5.patch
+memcg-cleanup-racy-sum-avoidance-code.patch
+memcg-make-memcg-event_list_lock-irqsafe.patch
 
