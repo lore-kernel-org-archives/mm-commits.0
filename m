@@ -7,38 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 076EDC432BE
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:23:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0103CC432BE
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:41:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D83E66103D
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:23:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE21F60FC3
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:41:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233519AbhHaWY0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Aug 2021 18:24:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36450 "EHLO mail.kernel.org"
+        id S239694AbhHaWmP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Aug 2021 18:42:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230199AbhHaWY0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 31 Aug 2021 18:24:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B628E60F56;
-        Tue, 31 Aug 2021 22:23:30 +0000 (UTC)
+        id S229602AbhHaWmP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 31 Aug 2021 18:42:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D44D60698;
+        Tue, 31 Aug 2021 22:41:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630448610;
-        bh=7Hby3Gr8JJpkYKCrz105W/6QHjDoukP1LV5Vda0K/pg=;
+        s=korg; t=1630449679;
+        bh=JuyQRqh/dWSrZUzNRRt5M2iI+3dB2DQtVekpccRv3Bg=;
         h=Date:From:To:Subject:From;
-        b=ie2R+chwzYN1UsBS6AtVoHa2ljdLfBbTajJnek/IMnDQ1VrlG4Yabts6R2CnZ7Y20
-         7N9WQYaXr0vWTtsq9qkTr0vsl+MuRTz1+cI5u2FS6dEjqNT6up7HaxTu6i5Dw0ub1g
-         yxI5H+TCOYrKOZZfUqpNouxJak1FenDncAxWWByw=
-Date:   Tue, 31 Aug 2021 15:23:30 -0700
+        b=EaG0KhV5oxTNxaOqG87F0UeRm8vK2ZHK0FfzJslmdKO8wTLACtPTan5GFPnJQmAVY
+         vD1sqFup3zyqUehg0bDbALO0+MFUfgr1qzbjaJy6szka4slLGYh0Z5ogMKYlMDmAJx
+         wkLlUafbJnFa2aFNbqDnfpr0me2jcyFuhNftkvcM=
+Date:   Tue, 31 Aug 2021 15:41:19 -0700
 From:   akpm@linux-foundation.org
-To:     keescook@chromium.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, sfr@canb.auug.org.au
-Subject:  [alternative-merged]
- =?US-ASCII?Q?compiler-attributes-add-=5F=5Falloc=5Fsize-for-better-bound?=
- =?US-ASCII?Q?s-checking-fix-fix.patch?= removed from -mm tree
-Message-ID: <20210831222330.4AnAAR0UK%akpm@linux-foundation.org>
+To:     colin.king@canonical.com, mm-commits@vger.kernel.org
+Subject:  + selftests-fix-spelling-mistake-cannt-cannot.patch added
+ to -mm tree
+Message-ID: <20210831224119.k1mwxUl0S%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,57 +42,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-fix
-has been removed from the -mm tree.  Its filename was
-     compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-fix.patch
+     Subject: selftests: Fix spelling mistake "cann't" -> "cannot"
+has been added to the -mm tree.  Its filename is
+     selftests-fix-spelling-mistake-cannt-cannot.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-fix-spelling-mistake-cannt-cannot.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-fix-spelling-mistake-cannt-cannot.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-fix
+From: Colin Ian King <colin.king@canonical.com>
+Subject: selftests: Fix spelling mistake "cann't" -> "cannot"
 
-Okay, I think this work-around should work. I've been able to reproduce
-the weird conditions, and this seems to behave correctly. Andrew, can
-you fixup the fixup with this?
+There is a spelling mistake in an error message. Fix it.
 
-Link: https://lkml.kernel.org/r/202108250959.CD734CED@keescook
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20210826121217.12885-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/mlock-random-test.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Makefile~compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-fix
-+++ a/Makefile
-@@ -1096,8 +1096,13 @@ endif
+--- a/tools/testing/selftests/vm/mlock-random-test.c~selftests-fix-spelling-mistake-cannt-cannot
++++ a/tools/testing/selftests/vm/mlock-random-test.c
+@@ -70,7 +70,7 @@ int get_proc_locked_vm_size(void)
+ 		}
+ 	}
  
- ifdef CONFIG_CC_IS_GCC
- # The allocators already balk at large sizes, so silence the compiler
--# warnings for bounds checks involving those possible values.
--KBUILD_CFLAGS += $(call cc-option, -Wno-alloc-size-larger-than)
-+# warnings for bounds checks involving those possible values. While
-+# -Wno-alloc-size-larger-than would normally be used here, some versions
-+# of gcc (<9.1) weirdly don't handle the option correctly when _other_
-+# warnings are produced (?!), so instead use SIZE_MAX to effectively
-+# disable it.
-+# https://lore.kernel.org/lkml/20210824115859.187f272f@canb.auug.org.au
-+KBUILD_CFLAGS += $(call cc-option, -Walloc-size-larger-than=SIZE_MAX)
- endif
- 
- # disable invalid "can't wrap" optimizations for signed / pointers
+-	perror("cann't parse VmLck in /proc/self/status\n");
++	perror("cannot parse VmLck in /proc/self/status\n");
+ 	fclose(f);
+ 	return -1;
+ }
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
-compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
-checkpatch-add-__alloc_size-to-known-attribute.patch
-slab-clean-up-function-declarations.patch
-slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
-mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
-percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
-mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+selftests-fix-spelling-mistake-cannt-cannot.patch
+arch-kconfig-fix-spelling-mistake-seperate-separate.patch
 
