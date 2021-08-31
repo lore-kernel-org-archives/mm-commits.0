@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04838C432BE
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:48:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D1D8C432BE
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:52:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E1CF661056
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:48:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E9095610A1
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 22:52:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238552AbhHaWtZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Aug 2021 18:49:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44280 "EHLO mail.kernel.org"
+        id S230291AbhHaWxN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Aug 2021 18:53:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45978 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235659AbhHaWtY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 31 Aug 2021 18:49:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CB58360FF2;
-        Tue, 31 Aug 2021 22:48:28 +0000 (UTC)
+        id S230400AbhHaWxL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 31 Aug 2021 18:53:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 008156108B;
+        Tue, 31 Aug 2021 22:52:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630450109;
-        bh=PtQaV0JQJlQVgmA3UuXbkVhACF0hwN6e0+w/S3nmNI4=;
+        s=korg; t=1630450335;
+        bh=kddXdq4O7PKwWK5COv7V1/gzDnYSCk56mdwLiWe6FC0=;
         h=Date:From:To:Subject:From;
-        b=LNL18OX4cu1wPXjp0efkGfl5Ejo23trBhJPl/LLbrDYARJE7CJ3P+OrEUgG1yIHh8
-         vD8Et8mIKnx4RFVMoZAy27WeICcxS/btAvrmePYiS66AGLZSifLXi9GMEd/PCl5Vd2
-         54o7DQqfaYQ+Wb46RikVn3GDFTCeAOFT6c/5pLA8=
-Date:   Tue, 31 Aug 2021 15:48:28 -0700
+        b=WzURPci/zEqlnOgIjYwnI4ozOr/Peo2NgNZu+qVo2HMuViZjNtStmGQ4OJMyV6DnC
+         cI4/ERJiEEBFpNiwrXfEtoGxggOc4XIMjCrDXXqOjVwqobTjZf8r3LTtqtLkrg0obB
+         rsysuRVf0VEP4HABufJhEoynODzhZFq7wXAzCz3Y=
+Date:   Tue, 31 Aug 2021 15:52:14 -0700
 From:   akpm@linux-foundation.org
-To:     keescook@chromium.org, masahiroy@kernel.org,
-        mm-commits@vger.kernel.org, nathan@kernel.org,
-        ndesaulniers@google.com, samitolvanen@google.com
-Subject:  + documentation-llvm-update-irc-location.patch added to
- -mm tree
-Message-ID: <20210831224828.VJvsbkIdF%akpm@linux-foundation.org>
+To:     frowand.list@gmail.com, geert+renesas@glider.be,
+        horms@verge.net.au, jlan@sgi.com, magnus.damm@gmail.com,
+        mm-commits@vger.kernel.org, robh+dt@kernel.org,
+        rppt@linux.vnet.ibm.com, tony.luck@intel.com
+Subject:  + ia64-fix-endif-comment-for-reserve_elfcorehdr.patch
+ added to -mm tree
+Message-ID: <20210831225214.8yM47GuEx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/llvm: update IRC location
+     Subject: ia64: fix #endif comment for reserve_elfcorehdr()
 has been added to the -mm tree.  Its filename is
-     documentation-llvm-update-irc-location.patch
+     ia64-fix-endif-comment-for-reserve_elfcorehdr.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/documentation-llvm-update-irc-location.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-fix-endif-comment-for-reserve_elfcorehdr.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/documentation-llvm-update-irc-location.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-fix-endif-comment-for-reserve_elfcorehdr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,42 +66,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: Documentation/llvm: update IRC location
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: ia64: fix #endif comment for reserve_elfcorehdr()
 
-This should have been done with commit 91ed3ed0f798 ("MAINTAINERS: update
-ClangBuiltLinux IRC chat") but I did not realize it was in two separate
-spots.
+Patch series "ia64: Miscellaneous fixes and cleanups".
 
-Link: https://lkml.kernel.org/r/20210825211823.6406-3-nathan@kernel.org
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Sami Tolvanen <samitolvanen@google.com>
+This patch series contains some miscellaneous fixes and cleanups for ia64.
+The second patch fixes a naming conflict triggered by a patch for the FDT
+code.
+
+
+This patch (of 3):
+
+The definition of reserve_elfcorehdr() depends on CONFIG_CRASH_DUMP, not
+CONFIG_PROC_VMCORE.
+
+Link: https://lkml.kernel.org/r/cover.1629884459.git.geert+renesas@glider.be
+Link: https://lkml.kernel.org/r/77b4c0648f200cab7e1c2c5171c06763e09362aa.1629884459.git.geert+renesas@glider.be
+Fixes: d9a9855d0b06ca6d ("always reserve elfcore header memory in crash kernel")
+Fixes: 17c1f07ed70afa4f ("[IA64] Reserve elfcorehdr memory in CONFIG_CRASH_DUMP")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Jay Lan <jlan@sgi.com>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kbuild/llvm.rst |    2 +-
+ arch/ia64/kernel/setup.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/kbuild/llvm.rst~documentation-llvm-update-irc-location
-+++ a/Documentation/kbuild/llvm.rst
-@@ -114,7 +114,7 @@ Getting Help
- - `Mailing List <https://lore.kernel.org/llvm/>`_: <llvm@lists.linux.dev>
- - `Old Mailing List Archives <https://groups.google.com/g/clang-built-linux>`_
- - `Issue Tracker <https://github.com/ClangBuiltLinux/linux/issues>`_
--- IRC: #clangbuiltlinux on chat.freenode.net
-+- IRC: #clangbuiltlinux on irc.libera.chat
- - `Telegram <https://t.me/ClangBuiltLinux>`_: @ClangBuiltLinux
- - `Wiki <https://github.com/ClangBuiltLinux/linux/wiki>`_
- - `Beginner Bugs <https://github.com/ClangBuiltLinux/linux/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22>`_
+--- a/arch/ia64/kernel/setup.c~ia64-fix-endif-comment-for-reserve_elfcorehdr
++++ a/arch/ia64/kernel/setup.c
+@@ -546,7 +546,7 @@ int __init reserve_elfcorehdr(u64 *start
+ 	return 0;
+ }
+ 
+-#endif /* CONFIG_PROC_VMCORE */
++#endif /* CONFIG_CRASH_DUMP */
+ 
+ void __init
+ setup_arch (char **cmdline_p)
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
-mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix-fix.patch
-maintainers-update-clangbuiltlinux-mailing-list.patch
-documentation-llvm-update-mailing-list.patch
-documentation-llvm-update-irc-location.patch
+ia64-fix-endif-comment-for-reserve_elfcorehdr.patch
+ia64-make-reserve_elfcorehdr-static.patch
+ia64-make-num_rsvd_regions-static.patch
 
