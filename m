@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35C16C432BE
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:36:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73437C432BE
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:45:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18A2461026
-	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:36:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4BCC661074
+	for <mm-commits@archiver.kernel.org>; Tue, 31 Aug 2021 20:45:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240795AbhHaUhn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 31 Aug 2021 16:37:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53628 "EHLO mail.kernel.org"
+        id S240484AbhHaUqK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 31 Aug 2021 16:46:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56186 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230236AbhHaUhm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 31 Aug 2021 16:37:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B194C60ED4;
-        Tue, 31 Aug 2021 20:36:46 +0000 (UTC)
+        id S230300AbhHaUqJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 31 Aug 2021 16:46:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AB17A61053;
+        Tue, 31 Aug 2021 20:45:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630442207;
-        bh=BEKTHG+J5wdHWaCPLArjMLLpSQ3gQMB9aSK5hbkQj24=;
+        s=korg; t=1630442713;
+        bh=xdRNAWGz1xX0jSstSFTy/QoBnhMZs2e3vR5PssHBUJw=;
         h=Date:From:To:Subject:From;
-        b=2dQgo+4iMqpT7LPmRs+2UsZXobnxtKeZfC9yvgDLLES7OUoWckQnGZGsRuqaBZdLc
-         BzWrJusFV9aIXLZHHw52EwigcEnXrv1Vs47Z42tudqItDvrhIMGFh/ty2C/S/JDwFg
-         BTEJTIEfQnj7wGDEuvjlkjGg/tOlF37qjqRsnre8=
-Date:   Tue, 31 Aug 2021 13:36:46 -0700
+        b=aAHDprngKfz/qNeJWDlDGOVyozRbfLqEooaUsfBKXXgvMPdOmP1HRnqcYSnp5TxJF
+         o96sRYYM0/Q/FtGBg9OsiX4J8iaHAb+JOyy2yOQPGByMW4d2REyjrN7MF95K4VdlFa
+         GQqRzW8Cci0+5yUN088kXhWX2p7WtB3dfxijAH+U=
+Date:   Tue, 31 Aug 2021 13:45:13 -0700
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
-Subject:  +
- ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock.patch added to -mm
- tree
-Message-ID: <20210831203646.bhLgYTfc3%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, paskripkin@gmail.com,
+        penguin-kernel@i-love.sakura.ne.jp, rostedt@goodmis.org,
+        tglx@linutronix.de
+Subject:  + profiling-fix-shift-out-of-bounds-bugs.patch added to
+ -mm tree
+Message-ID: <20210831204513.T3kfhT-Kh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: ocfs2_downconvert_lock failure results in deadlock
+     Subject: profiling: fix shift-out-of-bounds bugs
 has been added to the -mm tree.  Its filename is
-     ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock.patch
+     profiling-fix-shift-out-of-bounds-bugs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/profiling-fix-shift-out-of-bounds-bugs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/profiling-fix-shift-out-of-bounds-bugs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,69 +65,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: ocfs2_downconvert_lock failure results in deadlock
+From: Pavel Skripkin <paskripkin@gmail.com>
+Subject: profiling: fix shift-out-of-bounds bugs
 
-Usually, ocfs2_downconvert_lock() function always downconverts dlm lock to
-the expected level for satisfy dlm bast requests from the other nodes.
+Syzbot reported shift-out-of-bounds bug in profile_init().
+The problem was in incorrect prof_shift. Since prof_shift value comes from
+userspace we need to clamp this value into [0, BITS_PER_LONG -1]
+boundaries.
 
-But there is a rare situation.  When dlm lock conversion is being
-canceled, ocfs2_downconvert_lock() function will return -EBUSY.  You need
-to be aware that ocfs2_cancel_convert() function is asynchronous in fsdlm
-implementation.
+Second possible shiht-out-of-bounds was found by Tetsuo:
+sample_step local variable in read_profile() had "unsigned int" type,
+but prof_shift allows to make a BITS_PER_LONG shift. So, to prevent
+possible shiht-out-of-bounds sample_step type was changed to
+"unsigned long".
 
-If we does not requeue this lockres entry, ocfs2 downconvert thread no
-longer handles this dlm lock bast request.  Then, the other nodes will not
-get the dlm lock again, the current node's process will be blocked when
-acquire this dlm lock again.
+Also, "unsigned short int" will be sufficient for storing
+[0, BITS_PER_LONG] value, that's why there is no need for
+"unsigned long" prof_shift.
 
-Link: https://lkml.kernel.org/r/20210830044621.12544-1-ghe@suse.com
-Signed-off-by: Gang He <ghe@suse.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/20210813140022.5011-1-paskripkin@gmail.com
+Fixes: 1da177e4c3f4 ("Linux-2.6.12-rc2")
+Reported-and-tested-by: syzbot+e68c89a9510c159d9684@syzkaller.appspotmail.com
+Suggested-by: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Signed-off-by: Pavel Skripkin <paskripkin@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ kernel/profile.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/fs/ocfs2/dlmglue.c~ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock
-+++ a/fs/ocfs2/dlmglue.c
-@@ -16,6 +16,7 @@
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/time.h>
-+#include <linux/delay.h>
- #include <linux/quotaops.h>
- #include <linux/sched/signal.h>
+--- a/kernel/profile.c~profiling-fix-shift-out-of-bounds-bugs
++++ a/kernel/profile.c
+@@ -41,7 +41,8 @@ struct profile_hit {
+ #define NR_PROFILE_GRP		(NR_PROFILE_HIT/PROFILE_GRPSZ)
  
-@@ -3912,6 +3913,17 @@ downconvert:
- 	spin_unlock_irqrestore(&lockres->l_lock, flags);
- 	ret = ocfs2_downconvert_lock(osb, lockres, new_level, set_lvb,
- 				     gen);
-+	/* The dlm lock convert is being cancelled in background,
-+	 * ocfs2_cancel_convert() is asynchronous in fs/dlm,
-+	 * requeue it, try again later.
-+	 */
-+	if (ret == -EBUSY) {
-+		ctl->requeue = 1;
-+		mlog(ML_BASTS, "lockres %s, ReQ: Downconvert busy\n",
-+		     lockres->l_name);
-+		ret = 0;
-+		msleep(20);
-+	}
+ static atomic_t *prof_buffer;
+-static unsigned long prof_len, prof_shift;
++static unsigned long prof_len;
++static unsigned short int prof_shift;
  
- leave:
- 	if (ret)
+ int prof_on __read_mostly;
+ EXPORT_SYMBOL_GPL(prof_on);
+@@ -67,8 +68,8 @@ int profile_setup(char *str)
+ 		if (str[strlen(sleepstr)] == ',')
+ 			str += strlen(sleepstr) + 1;
+ 		if (get_option(&str, &par))
+-			prof_shift = par;
+-		pr_info("kernel sleep profiling enabled (shift: %ld)\n",
++			prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
++		pr_info("kernel sleep profiling enabled (shift: %u)\n",
+ 			prof_shift);
+ #else
+ 		pr_warn("kernel sleep profiling requires CONFIG_SCHEDSTATS\n");
+@@ -78,21 +79,21 @@ int profile_setup(char *str)
+ 		if (str[strlen(schedstr)] == ',')
+ 			str += strlen(schedstr) + 1;
+ 		if (get_option(&str, &par))
+-			prof_shift = par;
+-		pr_info("kernel schedule profiling enabled (shift: %ld)\n",
++			prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
++		pr_info("kernel schedule profiling enabled (shift: %u)\n",
+ 			prof_shift);
+ 	} else if (!strncmp(str, kvmstr, strlen(kvmstr))) {
+ 		prof_on = KVM_PROFILING;
+ 		if (str[strlen(kvmstr)] == ',')
+ 			str += strlen(kvmstr) + 1;
+ 		if (get_option(&str, &par))
+-			prof_shift = par;
+-		pr_info("kernel KVM profiling enabled (shift: %ld)\n",
++			prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
++		pr_info("kernel KVM profiling enabled (shift: %u)\n",
+ 			prof_shift);
+ 	} else if (get_option(&str, &par)) {
+-		prof_shift = par;
++		prof_shift = clamp(par, 0, BITS_PER_LONG - 1);
+ 		prof_on = CPU_PROFILING;
+-		pr_info("kernel profiling enabled (shift: %ld)\n",
++		pr_info("kernel profiling enabled (shift: %u)\n",
+ 			prof_shift);
+ 	}
+ 	return 1;
+@@ -468,7 +469,7 @@ read_profile(struct file *file, char __u
+ 	unsigned long p = *ppos;
+ 	ssize_t read;
+ 	char *pnt;
+-	unsigned int sample_step = 1 << prof_shift;
++	unsigned long sample_step = 1UL << prof_shift;
+ 
+ 	profile_flip_buffers();
+ 	if (p >= (prof_len+1)*sizeof(unsigned int))
 _
 
-Patches currently in -mm which might be from ghe@suse.com are
+Patches currently in -mm which might be from paskripkin@gmail.com are
 
-ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock.patch
-ocfs2-reflink-deadlock-when-clone-file-to-the-same-directory-simultaneously.patch
+profiling-fix-shift-out-of-bounds-bugs.patch
 
