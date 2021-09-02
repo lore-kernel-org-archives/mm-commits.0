@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06FAAC433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:09:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73752C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:10:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC85A61074
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:09:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4D66060BD3
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:10:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238554AbhIBVKe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:10:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42278 "EHLO mail.kernel.org"
+        id S234355AbhIBVL4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:11:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42958 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232087AbhIBVKe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:10:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A572F6108E;
-        Thu,  2 Sep 2021 21:09:35 +0000 (UTC)
+        id S232087AbhIBVLz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:11:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 09797604AC;
+        Thu,  2 Sep 2021 21:10:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630616975;
-        bh=zHsnYkYbsDmo5mjvIb3Hg4NSPbdAJBEJYPK2zA0LyK8=;
+        s=korg; t=1630617057;
+        bh=eaPtpQKWwWEdfG3Wl9ZOJTxXYVnjk5OSiclKdrFGlt8=;
         h=Date:From:To:Subject:From;
-        b=P+FQAbYH9hIoUuZIuSRBxIQUee5z4sjACzV7wDpKGZ0ki9SP3YE2PZTNVeY0Vq8yo
-         sDgelzUV+mJJHwjlICMva0WBv4z0tB0HaLnOBuXl/s9y16HmiuVMPf74sUUsQVwk2C
-         ArlJAe7CsNFqYkwYaTISD8OAdETyOY3GJW9nqpjY=
-Date:   Thu, 02 Sep 2021 14:09:35 -0700
+        b=LNQvZfMA6/PJMdd3KRaXrNjBr9Y3lEoom4H5GNOl49HlJc3X1/xyWoFGkRl9CWVNW
+         guT6a5B4hxj5VFy0I8yfJ4KsPuFbhWasZ/rvcLJi36jHLSRW2EJV8WPrlv981P0xJn
+         vssZ+5jAdrp6pSCPVwax4ig8FexXvbGc8egGctyc=
+Date:   Thu, 02 Sep 2021 14:10:56 -0700
 From:   akpm@linux-foundation.org
-To:     lkp@intel.com, mm-commits@vger.kernel.org, vbabka@suse.cz
+To:     bigeasy@linutronix.de, mm-commits@vger.kernel.org, vbabka@suse.cz
 Subject:  [folded-merged]
- =?US-ASCII?Q?mm-slub-move-flush=5Fcpu=5Fslab-invocations-=5F=5Ffree=5Fsla?=
- =?US-ASCII?Q?b-invocations-out-of-irq-context-fix-2.patch?= removed from
- -mm tree
-Message-ID: <20210902210935.VqbS1LzV3%akpm@linux-foundation.org>
+ mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch removed
+ from -mm tree
+Message-ID: <20210902211056.PwGRAX_9_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,38 +43,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: fix memory and cpu hotplug related lock ordering issues - fix
+     Subject: mm, slab: simplify lockdep_assert_held in lockdep_assert_held()
 has been removed from the -mm tree.  Its filename was
-     mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context-fix-2.patch
+     mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
 
-This patch was dropped because it was folded into mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context.patch
+This patch was dropped because it was folded into mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: fix memory and cpu hotplug related lock ordering issues - fix
+Subject: mm, slab: simplify lockdep_assert_held in lockdep_assert_held()
 
-Make __kmem_cache_do_shrink static to silence "no previous prototype" warning.
+Sebastian reports [1] that the special version of lockdep_assert_held() for a
+local lock with PREEMPT_RT is no longer necessary, and we can simplify.
 
-Link: https://lkml.kernel.org/r/60e50d8c-ccfa-1036-5a03-2b1a9d25f958@suse.cz
+[1] https://lore.kernel.org/linux-mm/20210817153937.hxnuh7mqp6vuiyws@linutronix.de/
+
+This is a fixup for mmotm patch
+mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
+
+Link: https://lkml.kernel.org/r/7e9ccf34-57d1-786b-2dfd-3b9ba78e1b32@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: kernel test robot <lkp@intel.com>
+Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/mm/slub.c~mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context-fix-2
+--- a/mm/slub.c~mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix
 +++ a/mm/slub.c
-@@ -4409,7 +4409,7 @@ EXPORT_SYMBOL(kfree);
-  * being allocated from last increasing the chance that the last objects
-  * are freed in them.
-  */
--int __kmem_cache_do_shrink(struct kmem_cache *s)
-+static int __kmem_cache_do_shrink(struct kmem_cache *s)
- {
- 	int node;
- 	int i;
+@@ -2913,11 +2913,7 @@ redo:
+ 
+ load_freelist:
+ 
+-#ifdef CONFIG_PREEMPT_RT
+-	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock.lock));
+-#else
+ 	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock));
+-#endif
+ 
+ 	/*
+ 	 * freelist is pointing to the list of objects to be used.
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
@@ -110,13 +116,11 @@ mm-slub-separate-detaching-of-partial-list-in-unfreeze_partials-from-unfreezing.
 mm-slub-only-disable-irq-with-spin_lock-in-__unfreeze_partials.patch
 mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
 mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
-mm-slub-move-flush_cpu_slab-invocations-__free_slab-invocations-out-of-irq-context.patch
 mm-slub-optionally-save-restore-irqs-in-slab_lock.patch
 mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
 mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
 mm-slub-use-migrate_disable-on-preempt_rt.patch
 mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
-mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix.patch
 mm-slub-convert-kmem_cpu_slab-protection-to-local_lock-fix-2.patch
 mm-vmscan-guarantee-drop_slab_node-termination.patch
 mm-vmscan-guarantee-drop_slab_node-termination-fix.patch
