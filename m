@@ -4,39 +4,38 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 255B6C433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:57:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90639C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:57:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A39860E8B
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:57:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7E7E060F21
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:57:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347938AbhIBV6x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:58:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54486 "EHLO mail.kernel.org"
+        id S1347939AbhIBV64 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:58:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54538 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243139AbhIBV6w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:58:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BDAAF6056B;
-        Thu,  2 Sep 2021 21:57:53 +0000 (UTC)
+        id S243139AbhIBV6z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:58:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C6F0C603E9;
+        Thu,  2 Sep 2021 21:57:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619874;
-        bh=W5UlXSXOIa4cHd1UZpUTIGQO5HZZUOKbYIsO69xw2R4=;
+        s=korg; t=1630619877;
+        bh=1e4+baT9YQNZHtvLD4ANYBwBP4ao4/Q0FX5nKV/aT+U=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=HuKqzstWiIPamkcSWK1GkzSJ03PE96MEk30BM6aBAjm8bqVU6NTb1sOxNF54h5swD
-         zK+Cap/ghcuKqfSk9WVN5+t2h8mnIa8PVa9xJe7ciyfdZaQOFROxDDVD1WU8tbLf8K
-         xg4ZyrP8NApYmQDqJ+j1Hqm6RALgCNCfqg8Fdj28=
-Date:   Thu, 02 Sep 2021 14:57:53 -0700
+        b=DOs2VpFvXkZwgDCsseROAI3CAwkpgMQWxHq185mVr3AzmwtxTtj66cEAJusv/T5hK
+         KCUtS3cg1nYnLE13/pFW5YOeqzUac6an8PW8bFwoYBuL9lg+upCpf3M0/GBG3OZhsR
+         6OPMyWCshhjRznCJY7sYbEhPPYMLNYPyBlE1DW0U=
+Date:   Thu, 02 Sep 2021 14:57:56 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        aryabinin@virtuozzo.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 149/212] kasan: test: avoid corrupting memory in
- kasan_rcu_uaf
-Message-ID: <20210902215753.m2qklrGfI%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
+        linux@roeck-us.net, mm-commits@vger.kernel.org, monstr@monstr.eu,
+        rppt@linux.ibm.com, torvalds@linux-foundation.org
+Subject:  [patch 150/212] mm/page_alloc: always initialize memory
+ map for the holes
+Message-ID: <20210902215756._IhuVYOIR%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,36 +43,98 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andrey Konovalov <andreyknvl@gmail.com>
-Subject: kasan: test: avoid corrupting memory in kasan_rcu_uaf
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm/page_alloc: always initialize memory map for the holes
 
-kasan_rcu_uaf() writes to freed memory via kasan_rcu_reclaim(), which is
-only safe with the GENERIC mode (as it uses quarantine).  For other modes,
-this test corrupts kernel memory, which might result in a crash.
+Patch series "mm: ensure consistency of memory map poisoning".
 
-Turn the write into a read.
+Currently memory map allocation for FLATMEM case does not poison the
+struct pages regardless of CONFIG_PAGE_POISON setting.
 
-Link: https://lkml.kernel.org/r/b6f2c3bf712d2457c783fa59498225b66a634f62.1628779805.git.andreyknvl@gmail.com
-Signed-off-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+This happens because allocation of the memory map for FLATMEM and SPARSMEM
+use different memblock functions and those that are used for SPARSMEM case
+(namely memblock_alloc_try_nid_raw() and memblock_alloc_exact_nid_raw())
+implicitly poison the allocated memory.
+
+Another side effect of this implicit poisoning is that early setup code
+that uses the same functions to allocate memory burns cycles for the
+memory poisoning even if it was not intended.
+
+These patches introduce memmap_alloc() wrapper that ensure that the memory
+map allocation is consistent for different memory models.
+
+
+This patch (of 4):
+
+Currently memory map for the holes is initialized only when SPARSEMEM
+memory model is used.  Yet, even with FLATMEM there could be holes in the
+physical memory layout that have memory map entries.
+
+For instance, the memory reserved using e820 API on i386 or
+"reserved-memory" nodes in device tree would not appear in memblock.memory
+and hence the struct pages for such holes will be skipped during memory
+map initialization.
+
+These struct pages will be zeroed because the memory map for FLATMEM
+systems is allocated with memblock_alloc_node() that clears the allocated
+memory.  While zeroed struct pages do not cause immediate problems, the
+correct behaviour is to initialize every page using __init_single_page(). 
+Besides, enabling page poison for FLATMEM case will trigger
+PF_POISONED_CHECK() unless the memory map is properly initialized.
+
+Make sure init_unavailable_range() is called for both SPARSEMEM and
+FLATMEM so that struct pages representing memory holes would appear as
+PG_Reserved with any memory layout.
+
+[rppt@kernel.org: fix microblaze]
+  Link: https://lkml.kernel.org/r/YQWW3RCE4eWBuMu/@kernel.org
+Link: https://lkml.kernel.org/r/20210714123739.16493-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210714123739.16493-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan_module.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/microblaze/include/asm/page.h |    3 +--
+ mm/page_alloc.c                    |    8 --------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
---- a/lib/test_kasan_module.c~kasan-test-avoid-corrupting-memory-in-kasan_rcu_uaf
-+++ a/lib/test_kasan_module.c
-@@ -71,7 +71,7 @@ static noinline void __init kasan_rcu_re
- 						struct kasan_rcu_info, rcu);
+--- a/arch/microblaze/include/asm/page.h~mm-page_alloc-always-initialize-memory-map-for-the-holes
++++ a/arch/microblaze/include/asm/page.h
+@@ -112,8 +112,7 @@ extern int page_is_ram(unsigned long pfn
+ #  define page_to_phys(page)     (page_to_pfn(page) << PAGE_SHIFT)
  
- 	kfree(fp);
--	fp->i = 1;
-+	((volatile struct kasan_rcu_info *)fp)->i;
+ #  define ARCH_PFN_OFFSET	(memory_start >> PAGE_SHIFT)
+-#  define pfn_valid(pfn)	((pfn) < (max_mapnr + ARCH_PFN_OFFSET))
+-
++#  define pfn_valid(pfn)	((pfn) >= ARCH_PFN_OFFSET && (pfn) < (max_mapnr + ARCH_PFN_OFFSET))
+ # endif /* __ASSEMBLY__ */
+ 
+ #define	virt_addr_valid(vaddr)	(pfn_valid(virt_to_pfn(vaddr)))
+--- a/mm/page_alloc.c~mm-page_alloc-always-initialize-memory-map-for-the-holes
++++ a/mm/page_alloc.c
+@@ -6642,7 +6642,6 @@ static void __meminit zone_init_free_lis
+ 	}
  }
  
- static noinline void __init kasan_rcu_uaf(void)
+-#if !defined(CONFIG_FLATMEM)
+ /*
+  * Only struct pages that correspond to ranges defined by memblock.memory
+  * are zeroed and initialized by going through __init_single_page() during
+@@ -6687,13 +6686,6 @@ static void __init init_unavailable_rang
+ 		pr_info("On node %d, zone %s: %lld pages in unavailable ranges",
+ 			node, zone_names[zone], pgcnt);
+ }
+-#else
+-static inline void init_unavailable_range(unsigned long spfn,
+-					  unsigned long epfn,
+-					  int zone, int node)
+-{
+-}
+-#endif
+ 
+ static void __init memmap_init_zone_range(struct zone *zone,
+ 					  unsigned long start_pfn,
 _
