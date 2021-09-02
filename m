@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C7431C43217
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 792E4C4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B283660724
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 64F31610F7
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347587AbhIBVw1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:52:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44204 "EHLO mail.kernel.org"
+        id S1347592AbhIBVwa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:52:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44302 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347593AbhIBVwZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:52:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 88F76610E8;
-        Thu,  2 Sep 2021 21:51:26 +0000 (UTC)
+        id S1347601AbhIBVw3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:52:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CECD660724;
+        Thu,  2 Sep 2021 21:51:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619487;
-        bh=2VC8vR0Jex6l186k9kUwjBQwHMAbLKS4TRvtxk9HPSU=;
+        s=korg; t=1630619490;
+        bh=MeoIL0dJnoGgoDIw9Ej135UcxJ327XFwp/gjL7dgyc4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=pHGoXADPcA+et/sOlkFTl7ZKdqhAkTHfq/UygJVX3tsL+w+AOOnQYomDIq0/4bCkG
-         IXsylgir2RS665qNgNWOvaSUUP1s8kArsoPpSNo0zRrKeWQHhec+sgpngfYcEqHf+M
-         g4NdsXesftLgN2phqC1o7yj2Awd9nLjit/ssj0Pk=
-Date:   Thu, 02 Sep 2021 14:51:26 -0700
+        b=M8K2j8dHGmPGH6PCxcets4uhk/AntqTtd9XHAlZbJzC5DRr4ib1qkN/5acsYuRUIF
+         WUp1Tssn0s8QTffyn6ZpWMaLNrxQLtnCFIZkNWC+cniyNPuUptgNSbYS0p8B14TThb
+         qHfLg4HBC8LbXhuyeKwsO3RncKVaf91NYtriN95o=
+Date:   Thu, 02 Sep 2021 14:51:29 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         brouer@redhat.com, cl@linux.com, efault@gmx.de,
@@ -36,9 +36,9 @@ To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         mgorman@techsingularity.net, mm-commits@vger.kernel.org,
         penberg@kernel.org, rientjes@google.com, tglx@linutronix.de,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 028/212] mm, slub: make locking in
- deactivate_slab() irq-safe
-Message-ID: <20210902215126.aclHPM8NP%akpm@linux-foundation.org>
+Subject:  [patch 029/212] mm, slub: call deactivate_slab() without
+ disabling irqs
+Message-ID: <20210902215129.vhGUq8f_E%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,17 +47,23 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: make locking in deactivate_slab() irq-safe
+Subject: mm, slub: call deactivate_slab() without disabling irqs
 
-dectivate_slab() now no longer touches the kmem_cache_cpu structure, so it
-will be possible to call it with irqs enabled.  Just convert the spin_lock
-calls to their irq saving/restoring variants to make it irq-safe.
+The function is now safe to be called with irqs enabled, so move the calls
+outside of irq disabled sections.
 
-Note we now have to use cmpxchg_double_slab() for irq-safe slab_lock(),
-because in some situations we don't take the list_lock, which would
-disable irqs.
+When called from ___slab_alloc() -> flush_slab() we have irqs disabled, so
+to reenable them before deactivate_slab() we need to open-code
+flush_slab() in ___slab_alloc() and reenable irqs after modifying the
+kmem_cache_cpu fields.  But that means a IRQ handler meanwhile might have
+assigned a new page to kmem_cache_cpu.page so we have to retry the whole
+check.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-21-vbabka@suse.cz
+The remaining callers of flush_slab() are the IPI handler which has
+disabled irqs anyway, and slub_cpu_dead() which will be dealt with in the
+following patch.
+
+Link: https://lkml.kernel.org/r/20210805152000.12817-22-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -72,52 +78,56 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/slub.c |   24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
---- a/mm/slub.c~mm-slub-make-locking-in-deactivate_slab-irq-safe
+--- a/mm/slub.c~mm-slub-call-deactivate_slab-without-disabling-irqs
 +++ a/mm/slub.c
-@@ -2209,6 +2209,7 @@ static void deactivate_slab(struct kmem_
- 	enum slab_modes l = M_NONE, m = M_NONE;
- 	void *nextfree, *freelist_iter, *freelist_tail;
- 	int tail = DEACTIVATE_TO_HEAD;
-+	unsigned long flags = 0;
- 	struct page new;
- 	struct page old;
+@@ -2765,8 +2765,8 @@ deactivate_slab:
+ 	freelist = c->freelist;
+ 	c->page = NULL;
+ 	c->freelist = NULL;
+-	deactivate_slab(s, page, freelist);
+ 	local_irq_restore(flags);
++	deactivate_slab(s, page, freelist);
  
-@@ -2284,7 +2285,7 @@ redo:
- 			 * that acquire_slab() will see a slab page that
- 			 * is frozen
- 			 */
--			spin_lock(&n->list_lock);
-+			spin_lock_irqsave(&n->list_lock, flags);
- 		}
- 	} else {
- 		m = M_FULL;
-@@ -2295,7 +2296,7 @@ redo:
- 			 * slabs from diagnostic functions will not see
- 			 * any frozen slabs.
- 			 */
--			spin_lock(&n->list_lock);
-+			spin_lock_irqsave(&n->list_lock, flags);
- 		}
- 	}
+ new_slab:
  
-@@ -2312,14 +2313,14 @@ redo:
- 	}
+@@ -2834,18 +2834,32 @@ check_new_page:
+ 		 */
+ 		goto return_single;
  
- 	l = m;
--	if (!__cmpxchg_double_slab(s, page,
-+	if (!cmpxchg_double_slab(s, page,
- 				old.freelist, old.counters,
- 				new.freelist, new.counters,
- 				"unfreezing slab"))
- 		goto redo;
++retry_load_page:
++
+ 	local_irq_save(flags);
+-	if (unlikely(c->page))
+-		flush_slab(s, c);
++	if (unlikely(c->page)) {
++		void *flush_freelist = c->freelist;
++		struct page *flush_page = c->page;
++
++		c->page = NULL;
++		c->freelist = NULL;
++		c->tid = next_tid(c->tid);
++
++		local_irq_restore(flags);
++
++		deactivate_slab(s, flush_page, flush_freelist);
++
++		stat(s, CPUSLAB_FLUSH);
++
++		goto retry_load_page;
++	}
+ 	c->page = page;
  
- 	if (lock)
--		spin_unlock(&n->list_lock);
-+		spin_unlock_irqrestore(&n->list_lock, flags);
+ 	goto load_freelist;
  
- 	if (m == M_PARTIAL)
- 		stat(s, tail);
+ return_single:
+ 
+-	local_irq_save(flags);
+ 	deactivate_slab(s, page, get_freepointer(s, freelist));
+-	local_irq_restore(flags);
+ 	return freelist;
+ }
+ 
 _
