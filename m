@@ -7,41 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 130BCC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:13:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 21415C4167B
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:14:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E622360FDA
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:13:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0BB41610CE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:14:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346355AbhIBVOr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:14:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45574 "EHLO mail.kernel.org"
+        id S1347275AbhIBVPw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:15:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46296 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232087AbhIBVOr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:14:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 519AB6102A;
-        Thu,  2 Sep 2021 21:13:48 +0000 (UTC)
+        id S1347282AbhIBVPu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:15:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C0A7061051;
+        Thu,  2 Sep 2021 21:14:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630617228;
-        bh=UmlkT1/Nx0k5JwNPSQ+AzJW3oRTE7doWAtPikOLG56o=;
+        s=korg; t=1630617291;
+        bh=/O1Dd7HIquWDgfZKV6l8Vz2LMrn23E1S7ZH7peM1UXU=;
         h=Date:From:To:Subject:From;
-        b=RJRYh0Iqt9UwG4oQeJHZw6c0Hof3jbu62w65MFld0MJVMpCFkRtLoVwxJeAt2GJ/G
-         jn5u6FOPvYDJ++mNZ/VNgSRjqHewfHjH58VW/xfBbgTle4f0Id7qK2ceL2DJR/ohkV
-         +P0UeEOT0tHtzF90wCy253M+qy6984Yr7mCPypxs=
-Date:   Thu, 02 Sep 2021 14:13:47 -0700
+        b=wzojgvG2CQaJV06AAMrbhlit5W25OzBJsdCiZmI7upUnzOAM7LkoeaCY4CJNQL8vs
+         wTsawXmUON22IUWe3eRVOXGmV8TQWhJxfSnQNWSYSP7BES/7+LQAovLt4ONEtw5XRo
+         2XZBwy0jeRmg9WbpLj+ijJs+VtYmfxU3dZSx+8cg=
+Date:   Thu, 02 Sep 2021 14:14:51 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, hdanton@sina.com,
-        m.szyprowski@samsung.com, mhocko@kernel.org, mkoutny@suse.com,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        shakeelb@google.com, songmuchun@bytedance.com, tj@kernel.org,
-        yangyingliang@huawei.com, ying.huang@intel.com
+To:     mm-commits@vger.kernel.org, npiggin@gmail.com, sfr@canb.auug.org.au
 Subject:  [folded-merged]
- memcg-infrastructure-to-flush-memcg-stats-v5.patch removed from -mm tree
-Message-ID: <20210902211347.BH7sfl6HH%akpm@linux-foundation.org>
+ lazy-tlb-introduce-lazy-mm-refcount-helper-functions-fix.patch removed from
+ -mm tree
+Message-ID: <20210902211451.FISHEASOT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -49,57 +43,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-infrastructure-to-flush-memcg-stats-v5
+     Subject: lazy-tlb-introduce-lazy-mm-refcount-helper-functions-fix
 has been removed from the -mm tree.  Its filename was
-     memcg-infrastructure-to-flush-memcg-stats-v5.patch
+     lazy-tlb-introduce-lazy-mm-refcount-helper-functions-fix.patch
 
-This patch was dropped because it was folded into memcg-infrastructure-to-f=
-lush-memcg-stats.patch
+This patch was dropped because it was folded into lazy-tlb-introduce-lazy-mm-refcount-helper-functions.patch
 
 ------------------------------------------------------
-=46rom: Shakeel Butt <shakeelb@google.com>
-Subject: memcg-infrastructure-to-flush-memcg-stats-v5
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: lazy-tlb-introduce-lazy-mm-refcount-helper-functions-fix
 
-fix sleep-in-wrong context bug
+Fix a refcounting bug in kthread_use_mm (the mm reference is increased
+unconditionally now, but the lazy tlb refcount is still only dropped only
+if mm != active_mm).
 
-Link: https://lkml.kernel.org/r/20210716212137.1391164-2-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reported-by: Yang Yingliang <yangyingliang@huawei.com>
-Reported-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Link: https://lkml.kernel.org/r/1623125298.bx63h3mopj.astroid@bobo.none
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutn=C3=BD <mkoutny@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kthread.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
---- a/mm/memcontrol.c~memcg-infrastructure-to-flush-memcg-stats-v5
-+++ a/mm/memcontrol.c
-@@ -5350,7 +5350,7 @@ void mem_cgroup_flush_stats(void)
- 	if (!spin_trylock(&stats_flush_lock))
- 		return;
-=20
--	cgroup_rstat_flush(root_mem_cgroup->css.cgroup);
-+	cgroup_rstat_flush_irqsafe(root_mem_cgroup->css.cgroup);
- 	spin_unlock(&stats_flush_lock);
+--- a/kernel/kthread.c~lazy-tlb-introduce-lazy-mm-refcount-helper-functions-fix
++++ a/kernel/kthread.c
+@@ -1350,6 +1350,11 @@ void kthread_use_mm(struct mm_struct *mm
+ 	WARN_ON_ONCE(!(tsk->flags & PF_KTHREAD));
+ 	WARN_ON_ONCE(tsk->mm);
+ 
++	/*
++	 * It's possible that tsk->active_mm == mm here, but we must
++	 * still mmgrab(mm) and mmdrop_lazy_tlb(active_mm), because lazy
++	 * mm may not have its own refcount (see mmgrab/drop_lazy_tlb()).
++	 */
+ 	mmgrab(mm);
+ 
+ 	task_lock(tsk);
+@@ -1374,12 +1379,9 @@ void kthread_use_mm(struct mm_struct *mm
+ 	 * memory barrier after storing to tsk->mm, before accessing
+ 	 * user-space memory. A full memory barrier for membarrier
+ 	 * {PRIVATE,GLOBAL}_EXPEDITED is implicitly provided by
+-	 * mmdrop(), or explicitly with smp_mb().
++	 * mmdrop_lazy_tlb().
+ 	 */
+-	if (active_mm != mm)
+-		mmdrop_lazy_tlb(active_mm);
+-	else
+-		smp_mb();
++	mmdrop_lazy_tlb(active_mm);
+ 
+ 	to_kthread(tsk)->oldfs = force_uaccess_begin();
  }
-=20
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
-writeback-memcg-simplify-cgroup_writeback_by_id.patch
-memcg-switch-lruvec-stats-to-rstat.patch
-memcg-infrastructure-to-flush-memcg-stats.patch
-memcg-cleanup-racy-sum-avoidance-code.patch
-memcg-make-memcg-event_list_lock-irqsafe.patch
+lazy-tlb-introduce-lazy-mm-refcount-helper-functions.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix-2.patch
+lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option.patch
+lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option-fix.patch
+powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
+fs-epoll-use-a-per-cpu-counter-for-users-watches-count.patch
 
