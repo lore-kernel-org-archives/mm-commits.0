@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2DDF4C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 18:04:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57FDAC433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 18:51:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0BCDE6109E
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 18:04:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3CA95610C8
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 18:51:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346676AbhIBSFf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 14:05:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43532 "EHLO mail.kernel.org"
+        id S1347038AbhIBSwV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 14:52:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229939AbhIBSFf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 14:05:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B25F60F4B;
-        Thu,  2 Sep 2021 18:04:36 +0000 (UTC)
+        id S230204AbhIBSwU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 14:52:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BEAE6610A0;
+        Thu,  2 Sep 2021 18:51:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630605876;
-        bh=UV4rrKQhxPOvRU++71jwRnQeJHSTuWixWyT47otImqY=;
+        s=korg; t=1630608682;
+        bh=DUFcY3wv6+PTmRHaA4osbQm/s3jE+4bLTQ6cS73hu18=;
         h=Date:From:To:Subject:From;
-        b=nrePDo6u/jWR2pKujpmBsOjp66B7anIuJTEndevjJP0EazOcbYRFZIf97sjIObnXV
-         O5fNXm0MKRKOkMduyaxtNRuZisUiEQFDrOzwAoYhF6Ag1pLHSgw2vP+So+pa1QEc30
-         IvwTQcVu4kokist8jF+0VUpJKNjr0c6kloOGfUsc=
-Date:   Thu, 02 Sep 2021 11:04:36 -0700
+        b=Zn2WqW+TGcnDvIIX2ZEKBowkfmhtbedzeMNh2X/z7Be7qYlAHR/60pz23eLWSvUg3
+         oFTowVoFEI6Z5BREYupqeFS5z215IxfX63gIEtSYGvB14OWZiIF6gqO9LxfowYCF2u
+         XKeNcbRAjeszrmi4+Sh71ThapN3B7Nayfa9dM928=
+Date:   Thu, 02 Sep 2021 11:51:21 -0700
 From:   akpm@linux-foundation.org
-To:     davem@davemloft.net, kernelfans@gmail.com,
-        mm-commits@vger.kernel.org, pmladek@suse.com, santosh@fossix.org,
-        tj@kernel.org, wangqing@vivo.com
-Subject:  [to-be-updated]
- kernel-watchdog-change-prototype-of-watchdog_nmi_enable.patch removed from
- -mm tree
-Message-ID: <20210902180436.dYnwbOJ1C%akpm@linux-foundation.org>
+To:     david@redhat.com, linmiaohe@huawei.com,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, vbabka@suse.cz
+Subject:  +
+ mm-page_allocc-avoid-accessing-uninitialized-pcp-page-migratetype.patch
+ added to -mm tree
+Message-ID: <20210902185121.U-Ew8iXzl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,92 +45,91 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog: change prototype of watchdog_nmi_enable()
-has been removed from the -mm tree.  Its filename was
-     kernel-watchdog-change-prototype-of-watchdog_nmi_enable.patch
+     Subject: mm/page_alloc.c: avoid accessing uninitialized pcp page migratetype
+has been added to the -mm tree.  Its filename is
+     mm-page_allocc-avoid-accessing-uninitialized-pcp-page-migratetype.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-avoid-accessing-uninitialized-pcp-page-migratetype.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-avoid-accessing-uninitialized-pcp-page-migratetype.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Pingfan Liu <kernelfans@gmail.com>
-Subject: kernel/watchdog: change prototype of watchdog_nmi_enable()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/page_alloc.c: avoid accessing uninitialized pcp page migratetype
 
-The only caller does not handle the return value of watchdog_nmi_enable().
-If there is an error, it seems to be reported by arch specific code.
+If it's not prepared to free unref page, the pcp page migratetype is
+unset.  Thus We will get rubbish from get_pcppage_migratetype() and might
+list_del &page->lru again after it's already deleted from the list leading
+to grumble about data corruption.
 
-Hence change watchdog_nmi_enable() return value from int to void.
-
-Link: https://lkml.kernel.org/r/20210824031435.9664-1-kernelfans@gmail.com
-Signed-off-by: Pingfan Liu <kernelfans@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Wang Qing <wangqing@vivo.com>
-Cc: Santosh Sivaraj <santosh@fossix.org>
-Cc: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20210902115447.57050-1-linmiaohe@huawei.com
+Fixes: df1acc856923 ("mm/page_alloc: avoid conflating IRQs disabled with zone->lock")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/nmi.c |    8 +++-----
- include/linux/nmi.h     |    2 +-
- kernel/watchdog.c       |    3 +--
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ mm/page_alloc.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/sparc/kernel/nmi.c~kernel-watchdog-change-prototype-of-watchdog_nmi_enable
-+++ a/arch/sparc/kernel/nmi.c
-@@ -282,11 +282,11 @@ __setup("nmi_watchdog=", setup_nmi_watch
-  * sparc specific NMI watchdog enable function.
-  * Enables watchdog if it is not enabled already.
-  */
--int watchdog_nmi_enable(unsigned int cpu)
-+void watchdog_nmi_enable(unsigned int cpu)
- {
- 	if (atomic_read(&nmi_active) == -1) {
- 		pr_warn("NMI watchdog cannot be enabled or disabled\n");
--		return -1;
-+		return;
- 	}
+--- a/mm/page_alloc.c~mm-page_allocc-avoid-accessing-uninitialized-pcp-page-migratetype
++++ a/mm/page_alloc.c
+@@ -3445,8 +3445,10 @@ void free_unref_page_list(struct list_he
+ 	/* Prepare pages for freeing */
+ 	list_for_each_entry_safe(page, next, list, lru) {
+ 		pfn = page_to_pfn(page);
+-		if (!free_unref_page_prepare(page, pfn, 0))
++		if (!free_unref_page_prepare(page, pfn, 0)) {
+ 			list_del(&page->lru);
++			continue;
++		}
  
- 	/*
-@@ -295,11 +295,9 @@ int watchdog_nmi_enable(unsigned int cpu
- 	 * process first.
- 	 */
- 	if (!nmi_init_done)
--		return 0;
-+		return;
- 
- 	smp_call_function_single(cpu, start_nmi_watchdog, NULL, 1);
--
--	return 0;
- }
- /*
-  * sparc specific NMI watchdog disable function.
---- a/include/linux/nmi.h~kernel-watchdog-change-prototype-of-watchdog_nmi_enable
-+++ a/include/linux/nmi.h
-@@ -119,7 +119,7 @@ static inline int hardlockup_detector_pe
- void watchdog_nmi_stop(void);
- void watchdog_nmi_start(void);
- int watchdog_nmi_probe(void);
--int watchdog_nmi_enable(unsigned int cpu);
-+void watchdog_nmi_enable(unsigned int cpu);
- void watchdog_nmi_disable(unsigned int cpu);
- 
- /**
---- a/kernel/watchdog.c~kernel-watchdog-change-prototype-of-watchdog_nmi_enable
-+++ a/kernel/watchdog.c
-@@ -95,10 +95,9 @@ __setup("nmi_watchdog=", hardlockup_pani
-  * softlockup watchdog start and stop. The arch must select the
-  * SOFTLOCKUP_DETECTOR Kconfig.
-  */
--int __weak watchdog_nmi_enable(unsigned int cpu)
-+void __weak watchdog_nmi_enable(unsigned int cpu)
- {
- 	hardlockup_detector_perf_enable();
--	return 0;
- }
- 
- void __weak watchdog_nmi_disable(unsigned int cpu)
+ 		/*
+ 		 * Free isolated pages directly to the allocator, see
 _
 
-Patches currently in -mm which might be from kernelfans@gmail.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-page_allocc-avoid-accessing-uninitialized-pcp-page-migratetype.patch
+mm-gup-remove-set-but-unused-local-variable-major.patch
+mm-gup-remove-unneed-local-variable-orig_refs.patch
+mm-gup-remove-useless-bug_on-in-__get_user_pages.patch
+mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge.patch
+mm-gup-use-helper-page_aligned-in-populate_vma_page_range.patch
+shmem-remove-unneeded-variable-ret.patch
+shmem-remove-unneeded-header-file.patch
+shmem-remove-unneeded-function-forward-declaration.patch
+shmem-include-header-file-to-declare-swap_info.patch
+mm-memcg-remove-unused-functions.patch
+mm-memcg-save-some-atomic-ops-when-flush-is-already-true.patch
+mm-hwpoison-remove-unneeded-variable-unmap_success.patch
+mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error.patch
+mm-hwpoison-change-argument-struct-page-hpagep-to-hpage.patch
+mm-hwpoison-fix-some-obsolete-comments.patch
+mm-vmscan-remove-the-pagedirty-check-after-madv_free-pages-are-page_ref_freezed.patch
+mm-vmscan-remove-misleading-setting-to-sc-priority.patch
+mm-vmscan-remove-unneeded-return-value-of-kswapd_run.patch
+mm-vmscan-add-else-to-remove-check_pending-label.patch
+mm-vmstat-correct-some-wrong-comments.patch
+mm-vmstat-simplify-the-array-size-calculation.patch
+mm-vmstat-remove-unneeded-return-value.patch
+mm-memory_hotplug-use-helper-zone_is_zone_device-to-simplify-the-code.patch
+mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
+mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
