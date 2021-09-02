@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5D19C43217
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED266C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CACE361139
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D50FB610D2
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347900AbhIBV4p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:56:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50898 "EHLO mail.kernel.org"
+        id S1347909AbhIBV4u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:56:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51004 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347922AbhIBV4T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:56:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 63BC0610A1;
-        Thu,  2 Sep 2021 21:55:19 +0000 (UTC)
+        id S1347926AbhIBV4X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:56:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 73EFB610CE;
+        Thu,  2 Sep 2021 21:55:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619720;
-        bh=u4W5TPoyhGJSKY9DzlyCbrzMVraMiDbgARH9v3hkkPs=;
+        s=korg; t=1630619724;
+        bh=oSP6LUWydAcW9pqliev4AkkC3hbKhQQj+TBNLLjTL7o=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=m0MCMkUd3m2iZdPPryZmVjOxONnpboBVvDpzUjBDUZxQqIdLsdVkfS4McaqOqgkGH
-         Ya6tmlcafC1MibA5dKW5O0rXiZ7X/twvbtIxdeLS2tBE+XSiVJPzitnphoN6cIIbWa
-         uO8lc78TtSiXUPSH4zGB+DRwvt1rvkTTSL87cewU=
-Date:   Thu, 02 Sep 2021 14:55:19 -0700
+        b=ciNlaRWqT4QJLwfQgAIe9scTR6LhaEH4JACR/S5yVlQlfAk8IrRreA/bT5uHjETLE
+         eqdXDV/QWIKrCF9rKqsj055iOPM8+bgb4Zf/BCzjwpu7GFcqSxHVtuAWgOvnGJlEd9
+         pKwUpxdOLfl6ogMszBWBVJT3geSzAgnXWCTrGlf4=
+Date:   Thu, 02 Sep 2021 14:55:23 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     0x7f454c46@gmail.com, adobriyan@gmail.com,
         akpm@linux-foundation.org, avagin@gmail.com, axboe@kernel.dk,
@@ -42,9 +42,8 @@ To:     0x7f454c46@gmail.com, adobriyan@gmail.com,
         shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
         torvalds@linux-foundation.org, vdavydov.dev@gmail.com,
         viro@zeniv.linux.org.uk, vvs@virtuozzo.com
-Subject:  [patch 101/212] memcg: enable accounting for file lock
- caches
-Message-ID: <20210902215519.AWcuVc3li%akpm@linux-foundation.org>
+Subject:  [patch 102/212] memcg: enable accounting for fasync_cache
+Message-ID: <20210902215523.0hTms4iNk%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -53,15 +52,17 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: enable accounting for file lock caches
+Subject: memcg: enable accounting for fasync_cache
 
-User can create file locks for each open file and force kernel to allocate
-small but long-living objects per each open file.
+fasync_struct is used by almost all character device drivers to set up the
+fasync queue, and for regular files by the file lease code.  This
+structure is quite small but long-living and it can be assigned for any
+open file.
 
-It makes sense to account for these objects to limit the host's memory
-consumption from inside the memcg-limited container.
+It makes sense to account for its allocations to restrict the host's
+memory consumption from inside the memcg-limited container.
 
-Link: https://lkml.kernel.org/r/b009f4c7-f0ab-c0ec-8e83-918f47d677da@virtuozzo.com
+Link: https://lkml.kernel.org/r/1b408625-d71c-0b26-b0b6-9baf00f93e69@virtuozzo.com
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -93,24 +94,19 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/fcntl.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/locks.c~memcg-enable-accounting-for-file-lock-caches
-+++ a/fs/locks.c
-@@ -3056,10 +3056,12 @@ static int __init filelock_init(void)
- 	int i;
+--- a/fs/fcntl.c~memcg-enable-accounting-for-fasync_cache
++++ a/fs/fcntl.c
+@@ -1049,7 +1049,8 @@ static int __init fcntl_init(void)
+ 			__FMODE_EXEC | __FMODE_NONOTIFY));
  
- 	flctx_cache = kmem_cache_create("file_lock_ctx",
--			sizeof(struct file_lock_context), 0, SLAB_PANIC, NULL);
-+			sizeof(struct file_lock_context), 0,
-+			SLAB_PANIC | SLAB_ACCOUNT, NULL);
+ 	fasync_cache = kmem_cache_create("fasync_cache",
+-		sizeof(struct fasync_struct), 0, SLAB_PANIC, NULL);
++					 sizeof(struct fasync_struct), 0,
++					 SLAB_PANIC | SLAB_ACCOUNT, NULL);
+ 	return 0;
+ }
  
- 	filelock_cache = kmem_cache_create("file_lock_cache",
--			sizeof(struct file_lock), 0, SLAB_PANIC, NULL);
-+			sizeof(struct file_lock), 0,
-+			SLAB_PANIC | SLAB_ACCOUNT, NULL);
- 
- 	for_each_possible_cpu(i) {
- 		struct file_lock_list_struct *fll = per_cpu_ptr(&file_lock_list, i);
 _
