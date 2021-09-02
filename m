@@ -2,45 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08C0AC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:00:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A1BD0C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:00:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E29B560F21
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:00:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8984360F12
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:00:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347786AbhIBWBA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 18:01:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57074 "EHLO mail.kernel.org"
+        id S1347852AbhIBWBD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 18:01:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57184 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347662AbhIBWA7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 18:00:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 51418603E9;
-        Thu,  2 Sep 2021 22:00:00 +0000 (UTC)
+        id S1347662AbhIBWBC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 18:01:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9BD5B6056B;
+        Thu,  2 Sep 2021 22:00:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630620000;
-        bh=mKmPaKH80Nr327CZHFV4UgjZoA3kovEAWrUYpSxjsmE=;
+        s=korg; t=1630620003;
+        bh=2579X2D7OHiIG+0TmC9k9ahkcd8x014K1suvwG08ANs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=qRpUK/FvdlIRK38QSI0br36+mCYdGIoSUKFKjB+uzYk+Q8pzP60fWErErejTzuUKR
-         eieWKOJDfEZavxXHQuYK/hzShsXYFgxCEay97gcff81D8Mq20xEdFP6fKN45jhTHyx
-         a9bc15/NqqI+s4dyHcWWz1FAGGurrY8Y+fMXpQN0=
-Date:   Thu, 02 Sep 2021 14:59:59 -0700
+        b=ha3chfdsKfvGchgc3itt7I2a5ZyvCCBagrGm6zf5/FYXjqMywOb0t170dxx+h1wp2
+         I/cVRxcgwubsA0Z5vnRlXswSFxJSMVdou5DDIjam2KQp2lkM5zLWpXXcAQCVO/asKp
+         FR/MEViDEhPSiIDu/WBMp5FrtR97ZiG7xh/lX5sk=
+Date:   Thu, 02 Sep 2021 15:00:03 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, aquini@redhat.com,
-        charante@codeaurora.org, corbet@lwn.net,
-        dave.hansen@linux.intel.com, keescook@chromium.org,
-        khalid.aziz@oracle.com, linux-mm@kvack.org, mcgrof@kernel.org,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        nigupta@nvidia.com, rientjes@google.com, rppt@kernel.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz,
-        vinmenon@codeaurora.org, yzaikin@google.com
-Subject:  [patch 189/212] mm: compaction: support triggering of
- proactive compaction by user
-Message-ID: <20210902215959.HA18ZjnMC%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, baolin.wang@linux.alibaba.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 190/212] mm/mempolicy: use readable NUMA_NO_NODE
+ macro instead of magic number
+Message-ID: <20210902220003.pONh2dywb%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,171 +43,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm: compaction: support triggering of proactive compaction by user
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm/mempolicy: use readable NUMA_NO_NODE macro instead of magic number
 
-The proactive compaction[1] gets triggered for every 500msec and run
-compaction on the node for COMPACTION_HPAGE_ORDER (usually order-9) pages
-based on the value set to sysctl.compaction_proactiveness.  Triggering the
-compaction for every 500msec in search of COMPACTION_HPAGE_ORDER pages is
-not needed for all applications, especially on the embedded system
-usecases which may have few MB's of RAM.  Enabling the proactive
-compaction in its state will endup in running almost always on such
-systems.
+The caller of mpol_misplaced() already use NUMA_NO_NODE to check whether
+current page node is misplaced, thus using NUMA_NO_NODE in
+mpol_misplaced() instead of magic number is more readable.
 
-Other side, proactive compaction can still be very much useful for getting
-a set of higher order pages in some controllable manner(controlled by
-using the sysctl.compaction_proactiveness).  So, on systems where enabling
-the proactive compaction always may proove not required, can trigger the
-same from user space on write to its sysctl interface.  As an example, say
-app launcher decide to launch the memory heavy application which can be
-launched fast if it gets more higher order pages thus launcher can prepare
-the system in advance by triggering the proactive compaction from
-userspace.
-
-This triggering of proactive compaction is done on a write to
-sysctl.compaction_proactiveness by user.
-
-[1]https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit?id=facdaa917c4d5a376d09d25865f5a863f906234a
-
-[akpm@linux-foundation.org: tweak vm.rst, per Mike]
-Link: https://lkml.kernel.org/r/1627653207-12317-1-git-send-email-charante@codeaurora.org
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Rafael Aquini <aquini@redhat.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Nitin Gupta <nigupta@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Link: https://lkml.kernel.org/r/1b77c0ce21183fa86f4db250b115cf5e27396528.1627558356.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |    3 +
- include/linux/compaction.h              |    2 +
- include/linux/mmzone.h                  |    1 
- kernel/sysctl.c                         |    2 -
- mm/compaction.c                         |   38 ++++++++++++++++++++--
- 5 files changed, 42 insertions(+), 4 deletions(-)
+ mm/mempolicy.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-compaction-support-triggering-of-proactive-compaction-by-user
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -118,7 +118,8 @@ compaction_proactiveness
- 
- This tunable takes a value in the range [0, 100] with a default value of
- 20. This tunable determines how aggressively compaction is done in the
--background. Setting it to 0 disables proactive compaction.
-+background. Write of a non zero value to this tunable will immediately
-+trigger the proactive compaction. Setting it to 0 disables proactive compaction.
- 
- Note that compaction has a non-trivial system-wide impact as pages
- belonging to different processes are moved around, which could also lead
---- a/include/linux/compaction.h~mm-compaction-support-triggering-of-proactive-compaction-by-user
-+++ a/include/linux/compaction.h
-@@ -84,6 +84,8 @@ static inline unsigned long compact_gap(
- extern unsigned int sysctl_compaction_proactiveness;
- extern int sysctl_compaction_handler(struct ctl_table *table, int write,
- 			void *buffer, size_t *length, loff_t *ppos);
-+extern int compaction_proactiveness_sysctl_handler(struct ctl_table *table,
-+		int write, void *buffer, size_t *length, loff_t *ppos);
- extern int sysctl_extfrag_threshold;
- extern int sysctl_compact_unevictable_allowed;
- 
---- a/include/linux/mmzone.h~mm-compaction-support-triggering-of-proactive-compaction-by-user
-+++ a/include/linux/mmzone.h
-@@ -846,6 +846,7 @@ typedef struct pglist_data {
- 	enum zone_type kcompactd_highest_zoneidx;
- 	wait_queue_head_t kcompactd_wait;
- 	struct task_struct *kcompactd;
-+	bool proactive_compact_trigger;
- #endif
- 	/*
- 	 * This is a per-node reserve of pages that are not available
---- a/kernel/sysctl.c~mm-compaction-support-triggering-of-proactive-compaction-by-user
-+++ a/kernel/sysctl.c
-@@ -2871,7 +2871,7 @@ static struct ctl_table vm_table[] = {
- 		.data		= &sysctl_compaction_proactiveness,
- 		.maxlen		= sizeof(sysctl_compaction_proactiveness),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
-+		.proc_handler	= compaction_proactiveness_sysctl_handler,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= &one_hundred,
- 	},
---- a/mm/compaction.c~mm-compaction-support-triggering-of-proactive-compaction-by-user
-+++ a/mm/compaction.c
-@@ -2706,6 +2706,30 @@ static void compact_nodes(void)
+--- a/mm/mempolicy.c~mm-mempolicy-use-readable-numa_no_node-macro-instead-of-magic-numer
++++ a/mm/mempolicy.c
+@@ -2425,8 +2425,8 @@ static void sp_free(struct sp_node *n)
+  * node id.  Policy determination "mimics" alloc_page_vma().
+  * Called from fault path where we know the vma and faulting address.
+  *
+- * Return: -1 if the page is in a node that is valid for this policy, or a
+- * suitable node ID to allocate a replacement page from.
++ * Return: NUMA_NO_NODE if the page is in a node that is valid for this
++ * policy, or a suitable node ID to allocate a replacement page from.
   */
- unsigned int __read_mostly sysctl_compaction_proactiveness = 20;
- 
-+int compaction_proactiveness_sysctl_handler(struct ctl_table *table, int write,
-+		void *buffer, size_t *length, loff_t *ppos)
-+{
-+	int rc, nid;
-+
-+	rc = proc_dointvec_minmax(table, write, buffer, length, ppos);
-+	if (rc)
-+		return rc;
-+
-+	if (write && sysctl_compaction_proactiveness) {
-+		for_each_online_node(nid) {
-+			pg_data_t *pgdat = NODE_DATA(nid);
-+
-+			if (pgdat->proactive_compact_trigger)
-+				continue;
-+
-+			pgdat->proactive_compact_trigger = true;
-+			wake_up_interruptible(&pgdat->kcompactd_wait);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
- /*
-  * This is the entry point for compacting all nodes via
-  * /proc/sys/vm/compact_memory
-@@ -2750,7 +2774,8 @@ void compaction_unregister_node(struct n
- 
- static inline bool kcompactd_work_requested(pg_data_t *pgdat)
+ int mpol_misplaced(struct page *page, struct vm_area_struct *vma, unsigned long addr)
  {
--	return pgdat->kcompactd_max_order > 0 || kthread_should_stop();
-+	return pgdat->kcompactd_max_order > 0 || kthread_should_stop() ||
-+		pgdat->proactive_compact_trigger;
- }
+@@ -2437,7 +2437,7 @@ int mpol_misplaced(struct page *page, st
+ 	int thiscpu = raw_smp_processor_id();
+ 	int thisnid = cpu_to_node(thiscpu);
+ 	int polnid = NUMA_NO_NODE;
+-	int ret = -1;
++	int ret = NUMA_NO_NODE;
  
- static bool kcompactd_node_suitable(pg_data_t *pgdat)
-@@ -2901,9 +2926,16 @@ static int kcompactd(void *p)
- 	while (!kthread_should_stop()) {
- 		unsigned long pflags;
- 
-+		/*
-+		 * Avoid the unnecessary wakeup for proactive compaction
-+		 * when it is disabled.
-+		 */
-+		if (!sysctl_compaction_proactiveness)
-+			timeout = MAX_SCHEDULE_TIMEOUT;
- 		trace_mm_compaction_kcompactd_sleep(pgdat->node_id);
- 		if (wait_event_freezable_timeout(pgdat->kcompactd_wait,
--			kcompactd_work_requested(pgdat), timeout)) {
-+			kcompactd_work_requested(pgdat), timeout) &&
-+			!pgdat->proactive_compact_trigger) {
- 
- 			psi_memstall_enter(&pflags);
- 			kcompactd_do_work(pgdat);
-@@ -2938,6 +2970,8 @@ static int kcompactd(void *p)
- 				timeout =
- 				   default_timeout << COMPACT_MAX_DEFER_SHIFT;
- 		}
-+		if (unlikely(pgdat->proactive_compact_trigger))
-+			pgdat->proactive_compact_trigger = false;
- 	}
- 
- 	return 0;
+ 	pol = get_vma_policy(vma, addr);
+ 	if (!(pol->flags & MPOL_F_MOF))
 _
