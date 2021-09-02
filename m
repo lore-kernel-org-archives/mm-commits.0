@@ -4,211 +4,144 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C70DCC4167D
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8777FC433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE8156112F
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72577610E6
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347780AbhIBV4F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:56:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50482 "EHLO mail.kernel.org"
+        id S1347933AbhIBV4b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:56:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347866AbhIBV4D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:56:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 82673610CF;
-        Thu,  2 Sep 2021 21:55:04 +0000 (UTC)
+        id S1347857AbhIBV4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:56:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C58D8610A0;
+        Thu,  2 Sep 2021 21:55:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619704;
-        bh=Ylv4FO6aBTEysbgu/+K2p5GLG9ehe6J2lFw/zNetmoQ=;
+        s=korg; t=1630619708;
+        bh=9Khd0fiL6Y0w4zEeD14hyDQqzQXIFxHV6a86me1iQ00=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Z6rnCzENg7IF1gifJx9CbhGi8wRPt7QL80m4gROnCrmerwM2/fNFOZUbBD/uV/pGj
-         Bza3noR5TrW3iaIN/KnL8B6OZpf7/mhvTDfQ9WAzgRRdQfzi8Qm3ZPEwYGtjtNRY/f
-         ZvZQ9PbdDF86MNHJu5T78alkKDESW8DaTKKrjMEI=
-Date:   Thu, 02 Sep 2021 14:55:04 -0700
+        b=tOxB9lvSvXhJP6ZDhH+Nf3AP/dJOy4Ky9xWVXo7+J72mcjhyP5RO3lMqyG0+VGDo7
+         aluU3VPMoOY2IfMF9SP06g41fXbEvi1FsBP1HsfBJpF3UYD1tAvln6/npfwjncByW+
+         5ekoBjVhsHWGLH72lHFiutLbZwXhhEPHXumAQ2Iw=
+Date:   Thu, 02 Sep 2021 14:55:07 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
-        hdanton@sina.com, linux-mm@kvack.org, m.szyprowski@samsung.com,
-        mhocko@kernel.org, mkoutny@suse.com, mm-commits@vger.kernel.org,
-        shakeelb@google.com, songmuchun@bytedance.com, tj@kernel.org,
-        torvalds@linux-foundation.org, ying.huang@intel.com
-Subject:  [patch 097/212] memcg: infrastructure to flush memcg
- stats
-Message-ID: <20210902215504.dSSfDKJZu%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hannes@cmpxchg.org, linux-mm@kvack.org,
+        mhocko@kernel.org, mm-commits@vger.kernel.org, nglaive@gmail.com,
+        shakeelb@google.com, shenwenbo@zju.edu.cn,
+        torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+Subject:  [patch 098/212] memcg: charge fs_context and
+ legacy_fs_context
+Message-ID: <20210902215507.FVhZ-cq1V%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: infrastructure to flush memcg stats
+From: Yutian Yang <nglaive@gmail.com>
+Subject: memcg: charge fs_context and legacy_fs_context
 
-At the moment memcg stats are read in four contexts:
+This patch adds accounting flags to fs_context and legacy_fs_context
+allocation sites so that kernel could correctly charge these objects.
 
-1. memcg stat user interfaces
-2. dirty throttling
-3. page fault
-4. memory reclaim
+We have written a PoC to demonstrate the effect of the missing-charging
+bugs.  The PoC takes around 1,200MB unaccounted memory, while it is
+charged for only 362MB memory usage.  We evaluate the PoC on QEMU x86_64
+v5.2.90 + Linux kernel v5.10.19 + Debian buster.  All the limitations
+including ulimits and sysctl variables are set as default.  Specifically,
+the hard NOFILE limit and nr_open in sysctl are both 1,048,576.
 
-Currently the kernel flushes the stats for first two cases.  Flushing the
-stats for remaining two casese may have performance impact.  Always
-flushing the memcg stats on the page fault code path may negatively
-impacts the performance of the applications.  In addition flushing in the
-memory reclaim code path, though treated as slowpath, can become the
-source of contention for the global lock taken for stat flushing because
-when system or memcg is under memory pressure, many tasks may enter the
-reclaim path.
+/*------------------------- POC code ----------------------------*/
 
-This patch uses following mechanisms to solve these challenges:
+#define _GNU_SOURCE
+#include <sys/types.h>
+#include <sys/file.h>
+#include <time.h>
+#include <sys/wait.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <signal.h>
+#include <sched.h>
+#include <fcntl.h>
+#include <linux/mount.h>
 
-1. Periodically flush the stats from root memcg every 2 seconds.  This
-   will time limit the out of sync stats.
+#define errExit(msg)    do { perror(msg); exit(EXIT_FAILURE); \
+                        } while (0)
 
-2. Asynchronously flush the stats after fixed number of stat updates.=20
-   In the worst case the stat can be out of sync by O(nr_cpus * BATCH) for
-   2 seconds.
+#define STACK_SIZE (8 * 1024)
+#ifndef __NR_fsopen
+#define __NR_fsopen 430
+#endif
+static inline int fsopen(const char *fs_name, unsigned int flags)
+{
+        return syscall(__NR_fsopen, fs_name, flags);
+}
 
-3. For avoiding thundering herd to flush the stats particularly from
-   the memory reclaim context, introduce memcg local spinlock and let only
-   one flusher active at a time.  This could have been done through
-   cgroup_rstat_lock lock but that lock is used by other subsystem and for
-   userspace reading memcg stats.  So, it is better to keep flushers
-   introduced by this patch decoupled from cgroup_rstat_lock.  However we
-   would have to use irqsafe version of rstat flush but that is fine as
-   this code path will be flushing for whole tree and do the work for
-   everyone.  No one will be waiting for that worker.
+static char thread_stack[512][STACK_SIZE];
 
-[shakeelb@google.com: fix sleep-in-wrong context bug]
-  Link: https://lkml.kernel.org/r/20210716212137.1391164-2-shakeelb@google.=
-com
-Link: https://lkml.kernel.org/r/20210714013948.270662-2-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Tested-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Huang Ying <ying.huang@intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+int thread_fn(void* arg)
+{
+  for (int i = 0; i< 800000; ++i) {
+    int fsfd = fsopen("nfs", FSOPEN_CLOEXEC);
+    if (fsfd == -1) {
+      errExit("fsopen");
+    }
+  }
+  while(1);
+  return 0;
+}
+
+int main(int argc, char *argv[]) {
+  int thread_pid;
+  for (int i = 0; i < 1; ++i) {
+    thread_pid = clone(thread_fn, thread_stack[i] + STACK_SIZE, \
+      SIGCHLD, NULL);
+  }
+  while(1);
+  return 0;
+}
+
+/*-------------------------- end --------------------------------*/
+
+Link: https://lkml.kernel.org/r/1626517201-24086-1-git-send-email-nglaive@gmail.com
+Signed-off-by: Yutian Yang <nglaive@gmail.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Michal Koutn=C3=BD <mkoutny@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Tejun Heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: <shenwenbo@zju.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 ++++++
- mm/memcontrol.c            |   34 ++++++++++++++++++++++++++++++++++
- mm/vmscan.c                |    6 ++++++
- 3 files changed, 46 insertions(+)
+ fs/fs_context.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/memcontrol.h~memcg-infrastructure-to-flush-memcg-stats
-+++ a/include/linux/memcontrol.h
-@@ -1023,6 +1023,8 @@ static inline unsigned long lruvec_page_
- 	return x;
- }
-=20
-+void mem_cgroup_flush_stats(void);
-+
- void __mod_memcg_lruvec_state(struct lruvec *lruvec, enum node_stat_item i=
-dx,
- 			      int val);
- void __mod_lruvec_kmem_state(void *p, enum node_stat_item idx, int val);
-@@ -1438,6 +1440,10 @@ static inline unsigned long lruvec_page_
- 	return node_page_state(lruvec_pgdat(lruvec), idx);
- }
-=20
-+static inline void mem_cgroup_flush_stats(void)
-+{
-+}
-+
- static inline void __mod_memcg_lruvec_state(struct lruvec *lruvec,
- 					    enum node_stat_item idx, int val)
+--- a/fs/fs_context.c~memcg-charge-fs_context-and-legacy_fs_context
++++ a/fs/fs_context.c
+@@ -254,7 +254,7 @@ static struct fs_context *alloc_fs_conte
+ 	struct fs_context *fc;
+ 	int ret = -ENOMEM;
+ 
+-	fc = kzalloc(sizeof(struct fs_context), GFP_KERNEL);
++	fc = kzalloc(sizeof(struct fs_context), GFP_KERNEL_ACCOUNT);
+ 	if (!fc)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -649,7 +649,7 @@ const struct fs_context_operations legac
+  */
+ static int legacy_init_fs_context(struct fs_context *fc)
  {
---- a/mm/memcontrol.c~memcg-infrastructure-to-flush-memcg-stats
-+++ a/mm/memcontrol.c
-@@ -103,6 +103,14 @@ static bool do_memsw_account(void)
- 	return !cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_noswap;
- }
-=20
-+/* memcg and lruvec stats flushing */
-+static void flush_memcg_stats_dwork(struct work_struct *w);
-+static DECLARE_DEFERRABLE_WORK(stats_flush_dwork, flush_memcg_stats_dwork);
-+static void flush_memcg_stats_work(struct work_struct *w);
-+static DECLARE_WORK(stats_flush_work, flush_memcg_stats_work);
-+static DEFINE_PER_CPU(unsigned int, stats_flush_threshold);
-+static DEFINE_SPINLOCK(stats_flush_lock);
-+
- #define THRESHOLDS_EVENTS_TARGET 128
- #define SOFTLIMIT_EVENTS_TARGET 1024
-=20
-@@ -674,6 +682,8 @@ void __mod_memcg_lruvec_state(struct lru
-=20
- 	/* Update lruvec */
- 	__this_cpu_add(pn->lruvec_stats_percpu->state[idx], val);
-+	if (!(__this_cpu_inc_return(stats_flush_threshold) % MEMCG_CHARGE_BATCH))
-+		queue_work(system_unbound_wq, &stats_flush_work);
- }
-=20
- /**
-@@ -5240,6 +5250,10 @@ static int mem_cgroup_css_online(struct
- 	/* Online state pins memcg ID, memcg ID pins CSS */
- 	refcount_set(&memcg->id.ref, 1);
- 	css_get(css);
-+
-+	if (unlikely(mem_cgroup_is_root(memcg)))
-+		queue_delayed_work(system_unbound_wq, &stats_flush_dwork,
-+				   2UL*HZ);
- 	return 0;
- }
-=20
-@@ -5331,6 +5345,26 @@ static void mem_cgroup_css_reset(struct
- 	memcg_wb_domain_size_changed(memcg);
- }
-=20
-+void mem_cgroup_flush_stats(void)
-+{
-+	if (!spin_trylock(&stats_flush_lock))
-+		return;
-+
-+	cgroup_rstat_flush_irqsafe(root_mem_cgroup->css.cgroup);
-+	spin_unlock(&stats_flush_lock);
-+}
-+
-+static void flush_memcg_stats_dwork(struct work_struct *w)
-+{
-+	mem_cgroup_flush_stats();
-+	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, 2UL*HZ);
-+}
-+
-+static void flush_memcg_stats_work(struct work_struct *w)
-+{
-+	mem_cgroup_flush_stats();
-+}
-+
- static void mem_cgroup_css_rstat_flush(struct cgroup_subsys_state *css, in=
-t cpu)
- {
- 	struct mem_cgroup *memcg =3D mem_cgroup_from_css(css);
---- a/mm/vmscan.c~memcg-infrastructure-to-flush-memcg-stats
-+++ a/mm/vmscan.c
-@@ -2897,6 +2897,12 @@ static void shrink_node(pg_data_t *pgdat
- 	target_lruvec =3D mem_cgroup_lruvec(sc->target_mem_cgroup, pgdat);
-=20
- again:
-+	/*
-+	 * Flush the memory cgroup stats, so that we read accurate per-memcg
-+	 * lruvec stats for heuristics.
-+	 */
-+	mem_cgroup_flush_stats();
-+
- 	memset(&sc->nr, 0, sizeof(sc->nr));
-=20
- 	nr_reclaimed =3D sc->nr_reclaimed;
+-	fc->fs_private = kzalloc(sizeof(struct legacy_fs_context), GFP_KERNEL);
++	fc->fs_private = kzalloc(sizeof(struct legacy_fs_context), GFP_KERNEL_ACCOUNT);
+ 	if (!fc->fs_private)
+ 		return -ENOMEM;
+ 	fc->ops = &legacy_fs_context_ops;
 _
