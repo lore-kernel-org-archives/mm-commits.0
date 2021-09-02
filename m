@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34E64C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:00:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19896C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:00:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1EFBC610E8
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:00:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F32B5610F7
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:00:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347929AbhIBWBv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 18:01:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57922 "EHLO mail.kernel.org"
+        id S1347973AbhIBWBy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 18:01:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57962 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347666AbhIBWBu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 18:01:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D63D0610CF;
-        Thu,  2 Sep 2021 22:00:51 +0000 (UTC)
+        id S1347666AbhIBWBx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 18:01:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C01A3610E8;
+        Thu,  2 Sep 2021 22:00:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630620052;
-        bh=hsalppLTlsYaoP8IHkO1XIVN4yg2GHH1N5KW0Gz3LQY=;
+        s=korg; t=1630620055;
+        bh=KYDFiFBd9fRtG9V9VBJylxBhMm4YW4EV3illGMpOQLU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=UK9apN5D1fIP22R9fUMfXy6kIVlwCbXc19Nhx3MVBW7VN7cZ2nVd3NZz6htQpVi8/
-         KUyoaejJbv6Ah6zBME6xLH7VeoYeFhg47bEF34EXTFzSE7xoDZDSRSKF9MngaIKOP/
-         4L/8Z7S3pXKcHC7j9qNf0JxWcxNx6MNzWQDFqJRI=
-Date:   Thu, 02 Sep 2021 15:00:51 -0700
+        b=VHvV2J1H2RHM31Ui4mlPX86zAQLjKKQAYl32ZKxjRP0QJ07W68BrOyZvk7u1ryW/W
+         UXiiBtIrJZO4QYn9N/FkFVbfPNShgz68CDZcBVwBVtzop68uNsoHBKSxrsXbylClia
+         9z8lB/2vtj5XYFwLPZeBPs9DiWLP0SjCpYoN86ts=
+Date:   Thu, 02 Sep 2021 15:00:54 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hughd@google.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
+        torvalds@linux-foundation.org, tyhicks@linux.microsoft.com,
         zhansayabagdaulet@gmail.com
-Subject:  [patch 205/212] mm: KSM: fix data type
-Message-ID: <20210902220051.abHhtqN5E%akpm@linux-foundation.org>
+Subject:  [patch 206/212] selftests: vm: add KSM merging time test
+Message-ID: <20210902220054.CSdWY5DTX%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,45 +44,189 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
-Subject: mm: KSM: fix data type
+Subject: selftests: vm: add KSM merging time test
 
-ksm_stable_node_chains_prune_millisecs is declared as int, but in
-stable__node_chains_prune_millisecs_store(), it can store values up to
-UINT_MAX.  Change its type to unsigned int.
+Patch series "add KSM performance tests", v3.
 
-Link: https://lkml.kernel.org/r/20210806111351.GA71845@asus
+Extend KSM self tests with a performance benchmark.  These tests are not
+part of regular regression testing, as they are mainly intended to be used
+by developers making changes to the memory management subsystem.
+
+
+This patch (of 2):
+
+Add ksm_merge_time() function to determine speed and time needed for
+merging.  The total spent time is shown in seconds while speed is in
+MiB/s.  User must specify the size of duplicated memory area (in MiB)
+before running the test.
+
+The test is run as follows: ./ksm_tests -P -s 100
+The output:
+	Total size:    100 MiB
+	Total time:    0.201106786 s
+	Average speed:  497.248 MiB/s
+
+Link: https://lkml.kernel.org/r/cover.1629386192.git.zhansayabagdaulet@gmail.com
+Link: https://lkml.kernel.org/r/318b946ac80cc9205c89d0962048378f7ce0705b.1629386192.git.zhansayabagdaulet@gmail.com
 Signed-off-by: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
-Cc: Hugh Dickins <hughd@google.com>
+Reviewed-by: Tyler Hicks <tyhicks@linux.microsoft.com>
+Reviewed-by: Pavel Tatashin <pasha.tatashin@soleen.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ tools/testing/selftests/vm/ksm_tests.c |   74 +++++++++++++++++++++--
+ 1 file changed, 70 insertions(+), 4 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-fix-data-type
-+++ a/mm/ksm.c
-@@ -259,7 +259,7 @@ static unsigned long ksm_stable_node_cha
- static unsigned long ksm_stable_node_dups;
+--- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-add-ksm-merging-time-test
++++ a/tools/testing/selftests/vm/ksm_tests.c
+@@ -7,6 +7,7 @@
+ #include <numa.h>
  
- /* Delay in pruning stale stable_node_dups in the stable_node_chains */
--static int ksm_stable_node_chains_prune_millisecs = 2000;
-+static unsigned int ksm_stable_node_chains_prune_millisecs = 2000;
+ #include "../kselftest.h"
++#include "../../../../include/vdso/time64.h"
  
- /* Maximum number of page slots sharing a stable node */
- static int ksm_max_page_sharing = 256;
-@@ -3105,11 +3105,11 @@ stable_node_chains_prune_millisecs_store
- 					 struct kobj_attribute *attr,
- 					 const char *buf, size_t count)
+ #define KSM_SYSFS_PATH "/sys/kernel/mm/ksm/"
+ #define KSM_FP(s) (KSM_SYSFS_PATH s)
+@@ -15,6 +16,7 @@
+ #define KSM_PROT_STR_DEFAULT "rw"
+ #define KSM_USE_ZERO_PAGES_DEFAULT false
+ #define KSM_MERGE_ACROSS_NODES_DEFAULT true
++#define MB (1ul << 20)
+ 
+ struct ksm_sysfs {
+ 	unsigned long max_page_sharing;
+@@ -30,7 +32,8 @@ enum ksm_test_name {
+ 	CHECK_KSM_MERGE,
+ 	CHECK_KSM_UNMERGE,
+ 	CHECK_KSM_ZERO_PAGE_MERGE,
+-	CHECK_KSM_NUMA_MERGE
++	CHECK_KSM_NUMA_MERGE,
++	KSM_MERGE_TIME
+ };
+ 
+ static int ksm_write_sysfs(const char *file_path, unsigned long val)
+@@ -86,13 +89,16 @@ static int str_to_prot(char *prot_str)
+ static void print_help(void)
  {
--	unsigned long msecs;
-+	unsigned int msecs;
- 	int err;
+ 	printf("usage: ksm_tests [-h] <test type> [-a prot] [-p page_count] [-l timeout]\n"
+-	       "[-z use_zero_pages] [-m merge_across_nodes]\n");
++	       "[-z use_zero_pages] [-m merge_across_nodes] [-s size]\n");
  
--	err = kstrtoul(buf, 10, &msecs);
--	if (err || msecs > UINT_MAX)
-+	err = kstrtouint(buf, 10, &msecs);
-+	if (err)
- 		return -EINVAL;
+ 	printf("Supported <test type>:\n"
+ 	       " -M (page merging)\n"
+ 	       " -Z (zero pages merging)\n"
+ 	       " -N (merging of pages in different NUMA nodes)\n"
+-	       " -U (page unmerging)\n\n");
++	       " -U (page unmerging)\n"
++	       " -P evaluate merging time and speed.\n"
++	       "    For this test, the size of duplicated memory area (in MiB)\n"
++	       "    must be provided using -s option\n\n");
  
- 	ksm_stable_node_chains_prune_millisecs = msecs;
+ 	printf(" -a: specify the access protections of pages.\n"
+ 	       "     <prot> must be of the form [rwx].\n"
+@@ -105,6 +111,7 @@ static void print_help(void)
+ 	       "     Default: %d\n", KSM_USE_ZERO_PAGES_DEFAULT);
+ 	printf(" -m: change merge_across_nodes tunable\n"
+ 	       "     Default: %d\n", KSM_MERGE_ACROSS_NODES_DEFAULT);
++	printf(" -s: the size of duplicated memory area (in MiB)\n");
+ 
+ 	exit(0);
+ }
+@@ -407,6 +414,47 @@ err_out:
+ 	return KSFT_FAIL;
+ }
+ 
++static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size)
++{
++	void *map_ptr;
++	struct timespec start_time, end_time;
++	unsigned long scan_time_ns;
++
++	map_size *= MB;
++
++	map_ptr = allocate_memory(NULL, prot, mapping, '*', map_size);
++	if (!map_ptr)
++		return KSFT_FAIL;
++
++	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
++		perror("clock_gettime");
++		goto err_out;
++	}
++	if (ksm_merge_pages(map_ptr, map_size, start_time, timeout))
++		goto err_out;
++	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
++		perror("clock_gettime");
++		goto err_out;
++	}
++
++	scan_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
++		       (end_time.tv_nsec - start_time.tv_nsec);
++
++	printf("Total size:    %lu MiB\n", map_size / MB);
++	printf("Total time:    %ld.%09ld s\n", scan_time_ns / NSEC_PER_SEC,
++	       scan_time_ns % NSEC_PER_SEC);
++	printf("Average speed:  %.3f MiB/s\n", (map_size / MB) /
++					       ((double)scan_time_ns / NSEC_PER_SEC));
++
++	munmap(map_ptr, map_size);
++	return KSFT_PASS;
++
++err_out:
++	printf("Not OK\n");
++	munmap(map_ptr, map_size);
++	return KSFT_FAIL;
++}
++
+ int main(int argc, char *argv[])
+ {
+ 	int ret, opt;
+@@ -418,8 +466,9 @@ int main(int argc, char *argv[])
+ 	int test_name = CHECK_KSM_MERGE;
+ 	bool use_zero_pages = KSM_USE_ZERO_PAGES_DEFAULT;
+ 	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
++	long size_MB = 0;
+ 
+-	while ((opt = getopt(argc, argv, "ha:p:l:z:m:MUZN")) != -1) {
++	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNP")) != -1) {
+ 		switch (opt) {
+ 		case 'a':
+ 			prot = str_to_prot(optarg);
+@@ -453,6 +502,12 @@ int main(int argc, char *argv[])
+ 			else
+ 				merge_across_nodes = 1;
+ 			break;
++		case 's':
++			size_MB = atoi(optarg);
++			if (size_MB <= 0) {
++				printf("Size must be greater than 0\n");
++				return KSFT_FAIL;
++			}
+ 		case 'M':
+ 			break;
+ 		case 'U':
+@@ -464,6 +519,9 @@ int main(int argc, char *argv[])
+ 		case 'N':
+ 			test_name = CHECK_KSM_NUMA_MERGE;
+ 			break;
++		case 'P':
++			test_name = KSM_MERGE_TIME;
++			break;
+ 		default:
+ 			return KSFT_FAIL;
+ 		}
+@@ -505,6 +563,14 @@ int main(int argc, char *argv[])
+ 		ret = check_ksm_numa_merge(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+ 					   merge_across_nodes, page_size);
+ 		break;
++	case KSM_MERGE_TIME:
++		if (size_MB == 0) {
++			printf("Option '-s' is required.\n");
++			return KSFT_FAIL;
++		}
++		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
++				     size_MB);
++		break;
+ 	}
+ 
+ 	if (ksm_restore(&ksm_sysfs_old)) {
 _
