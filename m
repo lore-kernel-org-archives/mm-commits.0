@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 734F9C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:58:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 624C3C43217
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:58:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61A52610D2
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:58:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C67D610A0
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:58:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347696AbhIBV7E (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:59:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54654 "EHLO mail.kernel.org"
+        id S1347643AbhIBV7V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:59:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347940AbhIBV7B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:59:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A92DA6056B;
-        Thu,  2 Sep 2021 21:58:02 +0000 (UTC)
+        id S1347971AbhIBV7K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:59:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 598F76056B;
+        Thu,  2 Sep 2021 21:58:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619882;
-        bh=1qPCvTvfmEkyRj/dSt89LtY63SlCjrKQtPcZVLUIYkk=;
+        s=korg; t=1630619891;
+        bh=/JgA1jgQyXsUoPq3Y5Yi5i6Me75aWSXQHxBfVoRdUUc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=nlGipWsvyr3Navsi4RZKYajuruoy/us32N2Fp/6YsuatXY19bLf9fkQa0MvtczOZd
-         s1gnbfCOh9JqrmU8/i0S02fPTwZSCBjqvGKQC6XPiOlTbjhRjAFZfYcBEaHbiFUt8m
-         ucWp5kbP/ChKl10DdvtKi2oFdwe6msf7zxU1U5s0=
-Date:   Thu, 02 Sep 2021 14:58:02 -0700
+        b=fL2CE9P2VGbe0vf9xNkRymd2yKCRsZyH8QeJZaxY+V1vPZrI1my00rnmUstcrb64k
+         9rnPp6mzetZ5d9F3dy6ystgx3wufc2c2mxMCA3uT3dggQOTR2RVK4dJSfGGWDJq3cy
+         mo4jFSvlDJqTAzIFuphCiJtp+m7RUDuQ9OZ1ydsU=
+Date:   Thu, 02 Sep 2021 14:58:10 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, monstr@monstr.eu, rppt@linux.ibm.com,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
         torvalds@linux-foundation.org
-Subject:  [patch 152/212] mm: introduce memmap_alloc() to unify
- memory map allocation
-Message-ID: <20210902215802.wAqP6xI0D%akpm@linux-foundation.org>
+Subject:  [patch 155/212] mm/page_alloc: make alloc_node_mem_map()
+ __init rather than __ref
+Message-ID: <20210902215810.mo6b3m0mv%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,106 +44,40 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: introduce memmap_alloc() to unify memory map allocation
+Subject: mm/page_alloc: make alloc_node_mem_map() __init rather than __ref
 
-There are several places that allocate memory for the memory map:
-alloc_node_mem_map() for FLATMEM, sparse_buffer_init() and
-__populate_section_memmap() for SPARSEMEM.
+alloc_node_mem_map() is never only called from free_area_init_node() that
+is an __init function.
 
-The memory allocated in the FLATMEM case is zeroed and it is never
-poisoned, regardless of CONFIG_PAGE_POISON setting.
+Make the actual alloc_node_mem_map() also __init and its stub version
+static inline.
 
-The memory allocated in the SPARSEMEM cases is not zeroed and it is
-implicitly poisoned inside memblock if CONFIG_PAGE_POISON is set.
-
-Introduce memmap_alloc() wrapper for memblock allocators that will be used
-for both FLATMEM and SPARSEMEM cases and will makei memory map zeroing and
-poisoning consistent for different memory models.
-
-Link: https://lkml.kernel.org/r/20210714123739.16493-4-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210716064124.31865-1-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    4 ++++
- mm/page_alloc.c |   24 ++++++++++++++++++++++--
- mm/sparse.c     |    6 ++----
- 3 files changed, 28 insertions(+), 6 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/internal.h~mm-introduce-memmap_alloc-to-unify-memory-map-allocation
-+++ a/mm/internal.h
-@@ -211,6 +211,10 @@ extern void zone_pcp_reset(struct zone *
- extern void zone_pcp_disable(struct zone *zone);
- extern void zone_pcp_enable(struct zone *zone);
- 
-+extern void *memmap_alloc(phys_addr_t size, phys_addr_t align,
-+			  phys_addr_t min_addr,
-+			  int nid, bool exact_nid);
-+
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
- 
- /*
---- a/mm/page_alloc.c~mm-introduce-memmap_alloc-to-unify-memory-map-allocation
+--- a/mm/page_alloc.c~mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref
 +++ a/mm/page_alloc.c
-@@ -6748,6 +6748,26 @@ static void __init memmap_init(void)
- 		init_unavailable_range(hole_pfn, end_pfn, zone_id, nid);
+@@ -7515,7 +7515,7 @@ static void __init free_area_init_core(s
  }
  
-+void __init *memmap_alloc(phys_addr_t size, phys_addr_t align,
-+			  phys_addr_t min_addr, int nid, bool exact_nid)
-+{
-+	void *ptr;
-+
-+	if (exact_nid)
-+		ptr = memblock_alloc_exact_nid_raw(size, align, min_addr,
-+						   MEMBLOCK_ALLOC_ACCESSIBLE,
-+						   nid);
-+	else
-+		ptr = memblock_alloc_try_nid_raw(size, align, min_addr,
-+						 MEMBLOCK_ALLOC_ACCESSIBLE,
-+						 nid);
-+
-+	if (ptr && size > 0)
-+		page_init_poison(ptr, size);
-+
-+	return ptr;
-+}
-+
- static int zone_batchsize(struct zone *zone)
+ #ifdef CONFIG_FLATMEM
+-static void __ref alloc_node_mem_map(struct pglist_data *pgdat)
++static void __init alloc_node_mem_map(struct pglist_data *pgdat)
  {
- #ifdef CONFIG_MMU
-@@ -7519,8 +7539,8 @@ static void __ref alloc_node_mem_map(str
- 		end = pgdat_end_pfn(pgdat);
- 		end = ALIGN(end, MAX_ORDER_NR_PAGES);
- 		size =  (end - start) * sizeof(struct page);
--		map = memblock_alloc_node(size, SMP_CACHE_BYTES,
--					  pgdat->node_id);
-+		map = memmap_alloc(size, SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
-+				   pgdat->node_id, false);
- 		if (!map)
- 			panic("Failed to allocate %ld bytes for node %d memory map\n",
- 			      size, pgdat->node_id);
---- a/mm/sparse.c~mm-introduce-memmap_alloc-to-unify-memory-map-allocation
-+++ a/mm/sparse.c
-@@ -436,8 +436,7 @@ struct page __init *__populate_section_m
- 	if (map)
- 		return map;
- 
--	map = memblock_alloc_try_nid_raw(size, size, addr,
--					  MEMBLOCK_ALLOC_ACCESSIBLE, nid);
-+	map = memmap_alloc(size, size, addr, nid, false);
- 	if (!map)
- 		panic("%s: Failed to allocate %lu bytes align=0x%lx nid=%d from=%pa\n",
- 		      __func__, size, PAGE_SIZE, nid, &addr);
-@@ -464,8 +463,7 @@ static void __init sparse_buffer_init(un
- 	 * and we want it to be properly aligned to the section size - this is
- 	 * especially the case for VMEMMAP which maps memmap to PMDs
- 	 */
--	sparsemap_buf = memblock_alloc_exact_nid_raw(size, section_map_size(),
--					addr, MEMBLOCK_ALLOC_ACCESSIBLE, nid);
-+	sparsemap_buf = memmap_alloc(size, section_map_size(), addr, nid, true);
- 	sparsemap_buf_end = sparsemap_buf + size;
+ 	unsigned long __maybe_unused start = 0;
+ 	unsigned long __maybe_unused offset = 0;
+@@ -7561,7 +7561,7 @@ static void __ref alloc_node_mem_map(str
+ #endif
  }
+ #else
+-static void __ref alloc_node_mem_map(struct pglist_data *pgdat) { }
++static inline void alloc_node_mem_map(struct pglist_data *pgdat) { }
+ #endif /* CONFIG_FLATMEM */
  
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
 _
