@@ -4,42 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D48EEC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BF85C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC7D060E8B
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35A9360F21
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347686AbhIBWAe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 18:00:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56520 "EHLO mail.kernel.org"
+        id S1347796AbhIBWAh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 18:00:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56584 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347671AbhIBWAd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 18:00:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CDC4360F21;
-        Thu,  2 Sep 2021 21:59:33 +0000 (UTC)
+        id S1347934AbhIBWAg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 18:00:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0FCEF603E9;
+        Thu,  2 Sep 2021 21:59:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619974;
-        bh=wjraOeQQXMnJxUpXG1iz9hMtWFAXCBfA11q1OzYtYYk=;
+        s=korg; t=1630619977;
+        bh=EB2upp/iydNFAXKEXUogtKyW+o9VS7pGox0Af3s+Vho=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ZFhyZRb9b9RfpCMYt/icb+xuh/YyiZlaPSatMernZiMzSVYM8TlBzLVOM9bRbVGCr
-         KZqwtkFdX/Wk3wC2SNgnwYRHt43uSFRce8Lgai9JcehuoSkGXiDzi5JUfBWNagm9Ta
-         O4lWgz49ERW2MqXtAGyk3dzf5tkJbB6cAGxc6rsw=
-Date:   Thu, 02 Sep 2021 14:59:33 -0700
+        b=Mp8KKudAJiualkRYmTqhzBNPk+p5p7piXpWQszB7UHYxcDmQgT93HjXHYdb3y+MbK
+         oPq9qRfKFe3giSuRpNFX9xOZCK6JotZ59EKPu36veckRJBtMNhOSp3vm8ABSviQxx6
+         AzX/Y8Y6aNbUsWyOzzSsnWtOfQoRBChUY9cWrFGw=
+Date:   Thu, 02 Sep 2021 14:59:36 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
-        dave.hansen@linux.intel.com, david@redhat.com, gthelen@google.com,
-        kbusch@kernel.org, linux-mm@kvack.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de, rientjes@google.com,
-        shy828301@gmail.com, torvalds@linux-foundation.org,
-        weixugc@google.com, yang.shi@linux.alibaba.com,
-        ying.huang@intel.com, ziy@nvidia.com
-Subject:  [patch 181/212] mm/migrate: add sysfs interface to enable
- reclaim migration
-Message-ID: <20210902215933.RKQ25QasP%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, chris@chrisdown.name,
+        hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, suhui@zeku.com,
+        torvalds@linux-foundation.org, vdavydov.dev@gmail.com
+Subject:  [patch 182/212] mm/vmpressure: replace
+ vmpressure_to_css() with vmpressure_to_memcg()
+Message-ID: <20210902215936.FyZZvBWhV%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,194 +44,62 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/migrate: add sysfs interface to enable reclaim migration
+From: Hui Su <suhui@zeku.com>
+Subject: mm/vmpressure: replace vmpressure_to_css() with vmpressure_to_memcg()
 
-Some method is obviously needed to enable reclaim-based migration.
+We can get memcg directly form vmpr instead of vmpr->memcg->css->memcg, so
+add a new func helper vmpressure_to_memcg().  And no code will use
+vmpressure_to_css(), so delete it.
 
-Just like traditional autonuma, there will be some workloads that will
-benefit like workloads with more "static" configurations where hot pages
-stay hot and cold pages stay cold.  If pages come and go from the hot and
-cold sets, the benefits of this approach will be more limited.
-
-The benefits are truly workload-based and *not* hardware-based.  We do not
-believe that there is a viable threshold where certain hardware
-configurations should have this mechanism enabled while others do not.
-
-To be conservative, earlier work defaulted to disable reclaim- based
-migration and did not include a mechanism to enable it.  This proposes add
-a new sysfs file
-
-  /sys/kernel/mm/numa/demotion_enabled
-
-as a method to enable it.
-
-We are open to any alternative that allows end users to enable this
-mechanism or disable it if workload harm is detected (just like
-traditional autonuma).
-
-Once this is enabled page demotion may move data to a NUMA node that does
-not fall into the cpuset of the allocating process.  This could be
-construed to violate the guarantees of cpusets.  However, since this is an
-opt-in mechanism, the assumption is that anyone enabling it is content to
-relax the guarantees.
-
-Link: https://lkml.kernel.org/r/20210721063926.3024591-9-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-10-ying.huang@intel.com
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Originally-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Keith Busch <kbusch@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Shi <shy828301@gmail.com>
+Link: https://lkml.kernel.org/r/20210630112146.455103-1-suhui@zeku.com
+Signed-off-by: Hui Su <suhui@zeku.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-numa |   24 +++++
- include/linux/mempolicy.h                      |    4 
- mm/mempolicy.c                                 |   61 +++++++++++++++
- mm/vmscan.c                                    |    5 -
- 4 files changed, 92 insertions(+), 2 deletions(-)
+ include/linux/vmpressure.h |    2 +-
+ mm/memcontrol.c            |    4 ++--
+ mm/vmpressure.c            |    3 +--
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-numa
-@@ -0,0 +1,24 @@
-+What:		/sys/kernel/mm/numa/
-+Date:		June 2021
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Interface for NUMA
-+
-+What:		/sys/kernel/mm/numa/demotion_enabled
-+Date:		June 2021
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Enable/disable demoting pages during reclaim
-+
-+		Page migration during reclaim is intended for systems
-+		with tiered memory configurations.  These systems have
-+		multiple types of memory with varied performance
-+		characteristics instead of plain NUMA systems where
-+		the same kind of memory is found at varied distances.
-+		Allowing page migration during reclaim enables these
-+		systems to migrate pages from fast tiers to slow tiers
-+		when the fast tier is under pressure.  This migration
-+		is performed before swap.  It may move data to a NUMA
-+		node that does not fall into the cpuset of the
-+		allocating process which might be construed to violate
-+		the guarantees of cpusets.  This should not be enabled
-+		on systems which need strict cpuset location
-+		guarantees.
---- a/include/linux/mempolicy.h~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
-+++ a/include/linux/mempolicy.h
-@@ -184,6 +184,8 @@ extern bool vma_migratable(struct vm_are
- extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
- extern void mpol_put_task_policy(struct task_struct *);
+--- a/include/linux/vmpressure.h~mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg
++++ a/include/linux/vmpressure.h
+@@ -37,7 +37,7 @@ extern void vmpressure_prio(gfp_t gfp, s
+ extern void vmpressure_init(struct vmpressure *vmpr);
+ extern void vmpressure_cleanup(struct vmpressure *vmpr);
+ extern struct vmpressure *memcg_to_vmpressure(struct mem_cgroup *memcg);
+-extern struct cgroup_subsys_state *vmpressure_to_css(struct vmpressure *vmpr);
++extern struct mem_cgroup *vmpressure_to_memcg(struct vmpressure *vmpr);
+ extern int vmpressure_register_event(struct mem_cgroup *memcg,
+ 				     struct eventfd_ctx *eventfd,
+ 				     const char *args);
+--- a/mm/memcontrol.c~mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg
++++ a/mm/memcontrol.c
+@@ -256,9 +256,9 @@ struct vmpressure *memcg_to_vmpressure(s
+ 	return &memcg->vmpressure;
+ }
  
-+extern bool numa_demotion_enabled;
-+
- #else
- 
- struct mempolicy {};
-@@ -292,5 +294,7 @@ static inline nodemask_t *policy_nodemas
+-struct cgroup_subsys_state *vmpressure_to_css(struct vmpressure *vmpr)
++struct mem_cgroup *vmpressure_to_memcg(struct vmpressure *vmpr)
  {
- 	return NULL;
+-	return &container_of(vmpr, struct mem_cgroup, vmpressure)->css;
++	return container_of(vmpr, struct mem_cgroup, vmpressure);
  }
-+
-+#define numa_demotion_enabled	false
- #endif /* CONFIG_NUMA */
- #endif
---- a/mm/mempolicy.c~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
-+++ a/mm/mempolicy.c
-@@ -3021,3 +3021,64 @@ void mpol_to_str(char *buffer, int maxle
- 		p += scnprintf(p, buffer + maxlen - p, ":%*pbl",
- 			       nodemask_pr_args(&nodes));
- }
-+
-+bool numa_demotion_enabled = false;
-+
-+#ifdef CONFIG_SYSFS
-+static ssize_t numa_demotion_enabled_show(struct kobject *kobj,
-+					  struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%s\n",
-+			  numa_demotion_enabled? "true" : "false");
-+}
-+
-+static ssize_t numa_demotion_enabled_store(struct kobject *kobj,
-+					   struct kobj_attribute *attr,
-+					   const char *buf, size_t count)
-+{
-+	if (!strncmp(buf, "true", 4) || !strncmp(buf, "1", 1))
-+		numa_demotion_enabled = true;
-+	else if (!strncmp(buf, "false", 5) || !strncmp(buf, "0", 1))
-+		numa_demotion_enabled = false;
-+	else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute numa_demotion_enabled_attr =
-+	__ATTR(demotion_enabled, 0644, numa_demotion_enabled_show,
-+	       numa_demotion_enabled_store);
-+
-+static struct attribute *numa_attrs[] = {
-+	&numa_demotion_enabled_attr.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group numa_attr_group = {
-+	.attrs = numa_attrs,
-+};
-+
-+static int __init numa_init_sysfs(void)
-+{
-+	int err;
-+	struct kobject *numa_kobj;
-+
-+	numa_kobj = kobject_create_and_add("numa", mm_kobj);
-+	if (!numa_kobj) {
-+		pr_err("failed to create numa kobject\n");
-+		return -ENOMEM;
-+	}
-+	err = sysfs_create_group(numa_kobj, &numa_attr_group);
-+	if (err) {
-+		pr_err("failed to register numa group\n");
-+		goto delete_obj;
-+	}
-+	return 0;
-+
-+delete_obj:
-+	kobject_put(numa_kobj);
-+	return err;
-+}
-+subsys_initcall(numa_init_sysfs);
-+#endif
---- a/mm/vmscan.c~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
-+++ a/mm/vmscan.c
-@@ -524,6 +524,8 @@ static long add_nr_deferred(long nr, str
  
- static bool can_demote(int nid, struct scan_control *sc)
+ #ifdef CONFIG_MEMCG_KMEM
+--- a/mm/vmpressure.c~mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg
++++ a/mm/vmpressure.c
+@@ -74,8 +74,7 @@ static struct vmpressure *work_to_vmpres
+ 
+ static struct vmpressure *vmpressure_parent(struct vmpressure *vmpr)
  {
-+	if (!numa_demotion_enabled)
-+		return false;
- 	if (sc) {
- 		if (sc->no_demotion)
- 			return false;
-@@ -534,8 +536,7 @@ static bool can_demote(int nid, struct s
- 	if (next_demotion_node(nid) == NUMA_NO_NODE)
- 		return false;
+-	struct cgroup_subsys_state *css = vmpressure_to_css(vmpr);
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct mem_cgroup *memcg = vmpressure_to_memcg(vmpr);
  
--	// FIXME: actually enable this later in the series
--	return false;
-+	return true;
- }
- 
- static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
+ 	memcg = parent_mem_cgroup(memcg);
+ 	if (!memcg)
 _
