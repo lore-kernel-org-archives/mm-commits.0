@@ -7,44 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A45D3C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8A7C1C4321E
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85E6B60F21
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E32760FA0
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347614AbhIBV46 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:56:58 -0400
+        id S1347569AbhIBV5A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:57:00 -0400
 Received: from mail.kernel.org ([198.145.29.99]:51536 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347571AbhIBV4n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:56:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9AA97610E6;
-        Thu,  2 Sep 2021 21:55:39 +0000 (UTC)
+        id S1347915AbhIBV46 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:56:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A81C60F12;
+        Thu,  2 Sep 2021 21:55:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619740;
-        bh=h5Kr6Ndkmn0iZqsQWGLj6TdAPeBte9nXjF9ZiOBcZr0=;
+        s=korg; t=1630619760;
+        bh=CszRvsYS7YknnqC2xK71FmtEtvifu+2vd9GJd820pIM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=BQtocblqR4QYlqMC0OdasHP7pU1cdFnH4v9wPUMDAivZKOWz8IWvHCkdBUe/3WLqH
-         fSEmJ5oiLll1a4CbzAxuLrPWBW6K95wYKp9EClV+uIa5RN8bDJhKO7A1e3nhAFMkK9
-         8wKhi3NuZfcNU1f7b8nxXrtl53EOqnQzwGmdgFgo=
-Date:   Thu, 02 Sep 2021 14:55:39 -0700
+        b=aaCug2yh/ZXRHwX7/vaxpOgdjQyzixlZ6H/7+0ZHvedefPWBN2CfIXDQaQDSxILG3
+         QF7cSZVVbE3B+JKubKan/wby9fnrTDBuLhIUJ7g+ajlfBSNZlG7WIJJeiu9V6dcfJn
+         ykkb1xQTSVdKpLiXoik/HZTOhZyYcsudP0omBICc=
+Date:   Thu, 02 Sep 2021 14:55:59 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     0x7f454c46@gmail.com, adobriyan@gmail.com,
-        akpm@linux-foundation.org, avagin@gmail.com, axboe@kernel.dk,
-        bfields@fieldses.org, bp@alien8.de, bp@suse.de,
-        christian.brauner@ubuntu.com, ebiederm@xmission.com,
-        gregkh@linuxfoundation.org, guro@fb.com, hannes@cmpxchg.org,
-        hpa@zytor.com, jirislaby@kernel.org, jlayton@kernel.org,
-        ktkhai@virtuozzo.com, linux-mm@kvack.org, lizefan.x@bytedance.com,
-        mhocko@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        nglaive@gmail.com, oleg@redhat.com, serge@hallyn.com,
-        shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
+To:     akpm@linux-foundation.org, alexs@kernel.org, guro@fb.com,
+        linmiaohe@huawei.com, linux-mm@kvack.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
+        shakeelb@google.com, songmuchun@bytedance.com,
         torvalds@linux-foundation.org, vdavydov.dev@gmail.com,
-        viro@zeniv.linux.org.uk, vvs@virtuozzo.com
-Subject:  [patch 106/212] memcg: enable accounting for
- posix_timers_cache slab
-Message-ID: <20210902215539.0_-1awCdb%akpm@linux-foundation.org>
+        willy@infradead.org
+Subject:  [patch 112/212] mm, memcg: save some atomic ops when
+ flush is already true
+Message-ID: <20210902215559.5d1VDc9Cn%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -52,64 +46,38 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: enable accounting for posix_timers_cache slab
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm, memcg: save some atomic ops when flush is already true
 
-A program may create multiple interval timers using timer_create().  For
-each timer the kernel preallocates a "queued real-time signal",
-Consequently, the number of timers is limited by the RLIMIT_SIGPENDING
-resource limit.  The allocated object is quite small, ~250 bytes, but even
-the default signal limits allow to consume up to 100 megabytes per user.
+Add 'else' to save some atomic ops in obj_stock_flush_required() when
+flush is already true.  No functional change intended here.
 
-It makes sense to account for them to limit the host's memory consumption
-from inside the memcg-limited container.
-
-Link: https://lkml.kernel.org/r/57795560-025c-267c-6b1a-dea852d95530@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20210807082835.61281-3-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: Tejun Heo <tj@kernel.org>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Yutian Yang <nglaive@gmail.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/time/posix-timers.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/time/posix-timers.c~memcg-enable-accounting-for-posix_timers_cache-slab
-+++ a/kernel/time/posix-timers.c
-@@ -273,8 +273,8 @@ static int posix_get_hrtimer_res(clockid
- static __init int init_posix_timers(void)
- {
- 	posix_timers_cache = kmem_cache_create("posix_timers_cache",
--					sizeof (struct k_itimer), 0, SLAB_PANIC,
--					NULL);
-+					sizeof(struct k_itimer), 0,
-+					SLAB_PANIC | SLAB_ACCOUNT, NULL);
- 	return 0;
- }
- __initcall(init_posix_timers);
+--- a/mm/memcontrol.c~mm-memcg-save-some-atomic-ops-when-flush-is-already-true
++++ a/mm/memcontrol.c
+@@ -2246,7 +2246,7 @@ static void drain_all_stock(struct mem_c
+ 		if (memcg && stock->nr_pages &&
+ 		    mem_cgroup_is_descendant(memcg, root_memcg))
+ 			flush = true;
+-		if (obj_stock_flush_required(stock, root_memcg))
++		else if (obj_stock_flush_required(stock, root_memcg))
+ 			flush = true;
+ 		rcu_read_unlock();
+ 
 _
