@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7A3C43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2F51C4332F
 	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D133C610E7
+	by mail.kernel.org (Postfix) with ESMTP id AAE1360E8B
 	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347687AbhIBWAb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 18:00:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56354 "EHLO mail.kernel.org"
+        id S1347912AbhIBWAa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 18:00:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56292 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347567AbhIBWA0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 18:00:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E7AF610A0;
-        Thu,  2 Sep 2021 21:59:27 +0000 (UTC)
+        id S1347687AbhIBWAX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 18:00:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A721D603E9;
+        Thu,  2 Sep 2021 21:59:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619967;
-        bh=xZpfLR+VnBCQKxkYuFG8+N2iHusfIyCWON8e/grx0a8=;
+        s=korg; t=1630619964;
+        bh=za4nWhqYyzSuq3eoMzcIxeXNsc/pHVdI06h+Kux3nqg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vP7RDfsWqut26XtKWEMiRUYrE8MACUEl/W3/2R98K3Mn+qkacw0AYf4Zr7Sxi0TsJ
-         znVEQvuu1b1LixFFJxbgQe/5edFh5w6gh1WtMUfR8KCgtW3nFvnwJEIdlvwfGKfuqi
-         e5qGQTJXKWgPkc8UagpfQrDsAMtbi9p6Gts362DI=
-Date:   Thu, 02 Sep 2021 14:59:26 -0700
+        b=Yw+K9KS+k9nt7rIxMSL9KkTf+ZVZTQpaagNwv/V5agHYXL61k2RbH2Ycx6dkIbhU3
+         0gtkIYwMumOj2T3Gkq/rG5/ANe7KsVx1d5PzfNRoj95yBSMYaIvV+gf4d2DxX5eqbE
+         w3cpL80xf44bwdam2bYqSQucjS0vphI8ZhOwkHPw=
+Date:   Thu, 02 Sep 2021 14:59:23 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
         dave.hansen@linux.intel.com, david@redhat.com, gthelen@google.com,
@@ -37,9 +37,9 @@ To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
         shy828301@gmail.com, torvalds@linux-foundation.org,
         weixugc@google.com, yang.shi@linux.alibaba.com,
         ying.huang@intel.com, ziy@nvidia.com
-Subject:  [patch 179/212] mm/vmscan: Consider anonymous pages
- without swap
-Message-ID: <20210902215926.S9pXb3J9c%akpm@linux-foundation.org>
+Subject:  [patch 178/212] mm/vmscan: add helper for querying
+ ability to age anonymous pages
+Message-ID: <20210902215923.WtGRh7fDb%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,119 +47,86 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Keith Busch <kbusch@kernel.org>
-Subject: mm/vmscan: Consider anonymous pages without swap
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm/vmscan: add helper for querying ability to age anonymous pages
 
-Reclaim anonymous pages if a migration path is available now that demotion
-provides a non-swap recourse for reclaiming anon pages.
+Anonymous pages are kept on their own LRU(s).  These lists could
+theoretically always be scanned and maintained.  But, without swap, there
+is currently nothing the kernel can *do* with the results of a scanned,
+sorted LRU for anonymous pages.
 
-Note that this check is subtly different from the can_age_anon_pages()
-checks.  This mechanism checks whether a specific page in a specific
-context can actually be reclaimed, given current swap space and cgroup
-limits.
+A check for '!total_swap_pages' currently serves as a valid check as to
+whether anonymous LRUs should be maintained.  However, another method will
+be added shortly: page demotion.
 
-can_age_anon_pages() is a much simpler and more preliminary check which
-just says whether there is a possibility of future reclaim.
+Abstract out the 'total_swap_pages' checks into a helper, give it a
+logically significant name, and check for the possibility of page
+demotion.
 
-[kbusch@kernel.org: v11]
-  Link: https://lkml.kernel.org/r/20210715055145.195411-8-ying.huang@intel.com
-  Link: https://lkml.kernel.org/r/20210721063926.3024591-7-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-8-ying.huang@intel.com
-Cc: Keith Busch <kbusch@kernel.org>
+[dave.hansen@linux.intel.com: v11]
+  Link: https://lkml.kernel.org/r/20210715055145.195411-7-ying.huang@intel.com
+  Link: https://lkml.kernel.org/r/20210721063926.3024591-6-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20210715055145.195411-7-ying.huang@intel.com
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Greg Thelen <gthelen@google.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Wei Xu <weixugc@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Keith Busch <kbusch@kernel.org>
 Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   34 ++++++++++++++++++++++++++++++----
- 1 file changed, 30 insertions(+), 4 deletions(-)
+ mm/vmscan.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-consider-anonymous-pages-without-swap
+--- a/mm/vmscan.c~mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages
 +++ a/mm/vmscan.c
-@@ -524,7 +524,7 @@ static long add_nr_deferred(long nr, str
- 
- static bool can_demote(int nid, struct scan_control *sc)
- {
--	if (sc->no_demotion)
-+	if (sc && sc->no_demotion)
- 		return false;
- 	if (next_demotion_node(nid) == NUMA_NO_NODE)
- 		return false;
-@@ -533,6 +533,31 @@ static bool can_demote(int nid, struct s
- 	return false;
+@@ -2734,6 +2734,21 @@ out:
+ 	}
  }
  
-+static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
-+					  int nid,
-+					  struct scan_control *sc)
++/*
++ * Anonymous LRU management is a waste if there is
++ * ultimately no way to reclaim the memory.
++ */
++static bool can_age_anon_pages(struct pglist_data *pgdat,
++			       struct scan_control *sc)
 +{
-+	if (memcg == NULL) {
-+		/*
-+		 * For non-memcg reclaim, is there
-+		 * space in any swap device?
-+		 */
-+		if (get_nr_swap_pages() > 0)
-+			return true;
-+	} else {
-+		/* Is the memcg below its swap limit? */
-+		if (mem_cgroup_get_nr_swap_pages(memcg) > 0)
-+			return true;
-+	}
++	/* Aging the anon LRU is valuable if swap is present: */
++	if (total_swap_pages > 0)
++		return true;
 +
-+	/*
-+	 * The page can not be swapped.
-+	 *
-+	 * Can it be reclaimed from this node via demotion?
-+	 */
-+	return can_demote(nid, sc);
++	/* Also valuable if anon pages can be demoted: */
++	return can_demote(pgdat->node_id, sc);
 +}
 +
- /*
-  * This misses isolated pages which are not accounted for to save counters.
-  * As the data only determines if reclaim or compaction continues, it is
-@@ -544,7 +569,7 @@ unsigned long zone_reclaimable_pages(str
- 
- 	nr = zone_page_state_snapshot(zone, NR_ZONE_INACTIVE_FILE) +
- 		zone_page_state_snapshot(zone, NR_ZONE_ACTIVE_FILE);
--	if (get_nr_swap_pages() > 0)
-+	if (can_reclaim_anon_pages(NULL, zone_to_nid(zone), NULL))
- 		nr += zone_page_state_snapshot(zone, NR_ZONE_INACTIVE_ANON) +
- 			zone_page_state_snapshot(zone, NR_ZONE_ACTIVE_ANON);
- 
-@@ -2541,6 +2566,7 @@ enum scan_balance {
- static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
- 			   unsigned long *nr)
+ static void shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
  {
-+	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
- 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
- 	unsigned long anon_cost, file_cost, total_cost;
- 	int swappiness = mem_cgroup_swappiness(memcg);
-@@ -2551,7 +2577,7 @@ static void get_scan_count(struct lruvec
- 	enum lru_list lru;
- 
- 	/* If we have no swap space, do not bother scanning anon pages. */
--	if (!sc->may_swap || mem_cgroup_get_nr_swap_pages(memcg) <= 0) {
-+	if (!sc->may_swap || !can_reclaim_anon_pages(memcg, pgdat->node_id, sc)) {
- 		scan_balance = SCAN_FILE;
- 		goto out;
- 	}
-@@ -2929,7 +2955,7 @@ static inline bool should_continue_recla
+ 	unsigned long nr[NR_LRU_LISTS];
+@@ -2843,7 +2858,8 @@ static void shrink_lruvec(struct lruvec
+ 	 * Even if we did not try to evict anon pages at all, we want to
+ 	 * rebalance the anon lru active/inactive ratio.
  	 */
- 	pages_for_compaction = compact_gap(sc->order);
- 	inactive_lru_pages = node_page_state(pgdat, NR_INACTIVE_FILE);
--	if (get_nr_swap_pages() > 0)
-+	if (can_reclaim_anon_pages(NULL, pgdat->node_id, sc))
- 		inactive_lru_pages += node_page_state(pgdat, NR_INACTIVE_ANON);
+-	if (total_swap_pages && inactive_is_low(lruvec, LRU_INACTIVE_ANON))
++	if (can_age_anon_pages(lruvec_pgdat(lruvec), sc) &&
++	    inactive_is_low(lruvec, LRU_INACTIVE_ANON))
+ 		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
+ 				   sc, LRU_ACTIVE_ANON);
+ }
+@@ -3678,7 +3694,7 @@ static void age_active_anon(struct pglis
+ 	struct mem_cgroup *memcg;
+ 	struct lruvec *lruvec;
  
- 	return inactive_lru_pages > pages_for_compaction;
+-	if (!total_swap_pages)
++	if (!can_age_anon_pages(pgdat, sc))
+ 		return;
+ 
+ 	lruvec = mem_cgroup_lruvec(NULL, pgdat);
 _
