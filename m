@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3186C433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9B6FC433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A277D6056B
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9542860F12
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347922AbhIBV5n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:57:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53096 "EHLO mail.kernel.org"
+        id S1347921AbhIBV5r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:57:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53174 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347809AbhIBV5n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:57:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 36EEC60FA0;
-        Thu,  2 Sep 2021 21:56:44 +0000 (UTC)
+        id S1347809AbhIBV5q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:57:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 41371603E9;
+        Thu,  2 Sep 2021 21:56:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619804;
-        bh=c5yA802kgCeNP/tLSxN9yttaY1VJIrX9mOtaDPcnYuI=;
+        s=korg; t=1630619807;
+        bh=2193Zu4lnKPlUV1Oy4tikW1izveRDzhhsPeeRlBmfLk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=sFaFLMJXkdHA5fm6uetk4dgigGOSRxF5qHj968JUlEvd4u2WLJWqK/smEPMUDN1tk
-         6cujCyUx7GQG1eMebEaJA639Vcd2BPxfDACoeDp9lDBpMHhBdwlom3eRyz+ttGdpJf
-         z0QcS1D2GCAz+mUn3thSAH8IADV36vonGqAaB3sw=
-Date:   Thu, 02 Sep 2021 14:56:43 -0700
+        b=ez12LioqIZXuM09mLr7zsp7Da9fmaSEfO/CjhzRnTtcPt6INPfWA5qrWNdJ7XqhO+
+         NqO88rq0Ayto30nSLih/O6kmlTU0JqivMtwyJMMWIvIng20OIB9CJEuf7J+00qRVfN
+         35eZKlO5bSIWaolx4n6KasJ3QR7RGbLzJaMiQd4g=
+Date:   Thu, 02 Sep 2021 14:56:46 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dhowells@redhat.com, djwong@kernel.org,
-        gregkh@linuxfoundation.org, hughd@google.com, jordy@pwning.systems,
-        linux-mm@kvack.org, mchehab+huawei@kernel.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        william.kucharski@oracle.com, willy@infradead.org
-Subject:  [patch 126/212] mm: change fault_in_pages_* to have an
- unsigned size parameter
-Message-ID: <20210902215643.s0dGtsXtL%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org, lrizzo@google.com,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 127/212] mm/pagemap: add mmap_assert_locked()
+ annotations to find_vma*()
+Message-ID: <20210902215646.xFeHkxgj1%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,50 +43,90 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: mm: change fault_in_pages_* to have an unsigned size parameter
+From: Luigi Rizzo <lrizzo@google.com>
+Subject: mm/pagemap: add mmap_assert_locked() annotations to find_vma*()
 
-fault_in_pages_writeable() and fault_in_pages_readable() treat the size
-parameter as unsigned, doing pointer math with the value, so make this
-explicit and set it to be a size_t type which all callers currently treat
-it as anyway.
+find_vma() and variants need protection when used.  This patch adds
+mmap_assert_lock() calls in the functions.
 
-This solves the issue where static checkers get nervous seeing pointer
-arithmetic happening with a signed value.
+To make sure the invariant is satisfied, we also need to add a
+mmap_read_loc() around the get_user_pages_remote() call in get_arg_page().
+The lock is not strictly necessary because the mm has been newly created,
+but the extra cost is limited because the same mutex was also acquired
+shortly before in __bprm_mm_init(), so it is hot and uncontended.
 
-Link: https://lkml.kernel.org/r/20210727111136.457638-1-gregkh@linuxfoundation.org
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reported-by: Jordy Zomer <jordy@pwning.systems>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: "Darrick J. Wong" <djwong@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+[penguin-kernel@i-love.sakura.ne.jp: TOMOYO needs the same protection which get_arg_page() needs]
+  Link: https://lkml.kernel.org/r/58bb6bf7-a57e-8a40-e74b-39584b415152@i-love.sakura.ne.jp
+Link: https://lkml.kernel.org/r/20210731175341.3458608-1-lrizzo@google.com
+Signed-off-by: Luigi Rizzo <lrizzo@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/exec.c                |    2 ++
+ mm/mmap.c                |    2 ++
+ security/tomoyo/domain.c |   13 +++++++++----
+ 3 files changed, 13 insertions(+), 4 deletions(-)
 
---- a/include/linux/pagemap.h~mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter
-+++ a/include/linux/pagemap.h
-@@ -736,7 +736,7 @@ extern void add_page_wait_queue(struct p
- /*
-  * Fault everything in given userspace address range in.
-  */
--static inline int fault_in_pages_writeable(char __user *uaddr, int size)
-+static inline int fault_in_pages_writeable(char __user *uaddr, size_t size)
- {
- 	char __user *end = uaddr + size - 1;
+--- a/fs/exec.c~add-mmap_assert_locked-annotations-to-find_vma
++++ a/fs/exec.c
+@@ -217,8 +217,10 @@ static struct page *get_arg_page(struct
+ 	 * We are doing an exec().  'current' is the process
+ 	 * doing the exec and bprm->mm is the new process's mm.
+ 	 */
++	mmap_read_lock(bprm->mm);
+ 	ret = get_user_pages_remote(bprm->mm, pos, 1, gup_flags,
+ 			&page, NULL, NULL);
++	mmap_read_unlock(bprm->mm);
+ 	if (ret <= 0)
+ 		return NULL;
  
-@@ -763,7 +763,7 @@ static inline int fault_in_pages_writeab
- 	return 0;
- }
- 
--static inline int fault_in_pages_readable(const char __user *uaddr, int size)
-+static inline int fault_in_pages_readable(const char __user *uaddr, size_t size)
+--- a/mm/mmap.c~add-mmap_assert_locked-annotations-to-find_vma
++++ a/mm/mmap.c
+@@ -534,6 +534,7 @@ static int find_vma_links(struct mm_stru
  {
- 	volatile char c;
- 	const char __user *end = uaddr + size - 1;
+ 	struct rb_node **__rb_link, *__rb_parent, *rb_prev;
+ 
++	mmap_assert_locked(mm);
+ 	__rb_link = &mm->mm_rb.rb_node;
+ 	rb_prev = __rb_parent = NULL;
+ 
+@@ -2303,6 +2304,7 @@ struct vm_area_struct *find_vma(struct m
+ 	struct rb_node *rb_node;
+ 	struct vm_area_struct *vma;
+ 
++	mmap_assert_locked(mm);
+ 	/* Check the cache first. */
+ 	vma = vmacache_find(mm, addr);
+ 	if (likely(vma))
+--- a/security/tomoyo/domain.c~add-mmap_assert_locked-annotations-to-find_vma
++++ a/security/tomoyo/domain.c
+@@ -897,6 +897,9 @@ bool tomoyo_dump_page(struct linux_binpr
+ 		      struct tomoyo_page_dump *dump)
+ {
+ 	struct page *page;
++#ifdef CONFIG_MMU
++	int ret;
++#endif
+ 
+ 	/* dump->data is released by tomoyo_find_next_domain(). */
+ 	if (!dump->data) {
+@@ -909,11 +912,13 @@ bool tomoyo_dump_page(struct linux_binpr
+ 	/*
+ 	 * This is called at execve() time in order to dig around
+ 	 * in the argv/environment of the new proceess
+-	 * (represented by bprm).  'current' is the process doing
+-	 * the execve().
++	 * (represented by bprm).
+ 	 */
+-	if (get_user_pages_remote(bprm->mm, pos, 1,
+-				FOLL_FORCE, &page, NULL, NULL) <= 0)
++	mmap_read_lock(bprm->mm);
++	ret = get_user_pages_remote(bprm->mm, pos, 1,
++				    FOLL_FORCE, &page, NULL, NULL);
++	mmap_read_unlock(bprm->mm);
++	if (ret <= 0)
+ 		return false;
+ #else
+ 	page = bprm->page[pos / PAGE_SIZE];
 _
