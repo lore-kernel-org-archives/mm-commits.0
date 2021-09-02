@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED266C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ACD2C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D50FB610D2
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 361B9610E7
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:55:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347909AbhIBV4u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:56:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51004 "EHLO mail.kernel.org"
+        id S1347797AbhIBV4v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:56:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51194 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347926AbhIBV4X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:56:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 73EFB610CE;
-        Thu,  2 Sep 2021 21:55:23 +0000 (UTC)
+        id S1347857AbhIBV4b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:56:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 91A8F610D2;
+        Thu,  2 Sep 2021 21:55:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619724;
-        bh=oSP6LUWydAcW9pqliev4AkkC3hbKhQQj+TBNLLjTL7o=;
+        s=korg; t=1630619732;
+        bh=6uw7EwPgHIv3M3PoVZuaQeTnb+NGOoVMzGNhLFFa7/k=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ciNlaRWqT4QJLwfQgAIe9scTR6LhaEH4JACR/S5yVlQlfAk8IrRreA/bT5uHjETLE
-         eqdXDV/QWIKrCF9rKqsj055iOPM8+bgb4Zf/BCzjwpu7GFcqSxHVtuAWgOvnGJlEd9
-         pKwUpxdOLfl6ogMszBWBVJT3geSzAgnXWCTrGlf4=
-Date:   Thu, 02 Sep 2021 14:55:23 -0700
+        b=nnaUTfb9ssn7p1w/hm01s8kJXvbDNAAPtoBcA0n1ErWEpVKuzY2vzqaMefGOjb8uQ
+         oVFs+ErS1lOaB8wfyf0tBGcHHeNMOUWqgSxrPtt/f0aQ0hTYQE1B76ehO5ETxlgtTa
+         9ZqRpyMPkSycGsffp5cOHlV4lhneay0lx9fSEzLY=
+Date:   Thu, 02 Sep 2021 14:55:31 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     0x7f454c46@gmail.com, adobriyan@gmail.com,
         akpm@linux-foundation.org, avagin@gmail.com, axboe@kernel.dk,
@@ -42,8 +42,8 @@ To:     0x7f454c46@gmail.com, adobriyan@gmail.com,
         shakeelb@google.com, tglx@linutronix.de, tj@kernel.org,
         torvalds@linux-foundation.org, vdavydov.dev@gmail.com,
         viro@zeniv.linux.org.uk, vvs@virtuozzo.com
-Subject:  [patch 102/212] memcg: enable accounting for fasync_cache
-Message-ID: <20210902215523.0hTms4iNk%akpm@linux-foundation.org>
+Subject:  [patch 104/212] memcg: enable accounting of ipc resources
+Message-ID: <20210902215531.C7GC9TxmS%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -52,17 +52,18 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: enable accounting for fasync_cache
+Subject: memcg: enable accounting of ipc resources
 
-fasync_struct is used by almost all character device drivers to set up the
-fasync queue, and for regular files by the file lease code.  This
-structure is quite small but long-living and it can be assigned for any
-open file.
+When user creates IPC objects it forces kernel to allocate memory for
+these long-living objects.
 
-It makes sense to account for its allocations to restrict the host's
-memory consumption from inside the memcg-limited container.
+It makes sense to account them to restrict the host's memory consumption
+from inside the memcg-limited container.
 
-Link: https://lkml.kernel.org/r/1b408625-d71c-0b26-b0b6-9baf00f93e69@virtuozzo.com
+This patch enables accounting for IPC shared memory segments, messages
+semaphores and semaphore's undo lists.
+
+Link: https://lkml.kernel.org/r/d6507b06-4df6-78f8-6c54-3ae86e3b5339@virtuozzo.com
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -94,19 +95,70 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fcntl.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ ipc/msg.c |    2 +-
+ ipc/sem.c |    9 +++++----
+ ipc/shm.c |    2 +-
+ 3 files changed, 7 insertions(+), 6 deletions(-)
 
---- a/fs/fcntl.c~memcg-enable-accounting-for-fasync_cache
-+++ a/fs/fcntl.c
-@@ -1049,7 +1049,8 @@ static int __init fcntl_init(void)
- 			__FMODE_EXEC | __FMODE_NONOTIFY));
+--- a/ipc/msg.c~memcg-enable-accounting-of-ipc-resources
++++ a/ipc/msg.c
+@@ -147,7 +147,7 @@ static int newque(struct ipc_namespace *
+ 	key_t key = params->key;
+ 	int msgflg = params->flg;
  
- 	fasync_cache = kmem_cache_create("fasync_cache",
--		sizeof(struct fasync_struct), 0, SLAB_PANIC, NULL);
-+					 sizeof(struct fasync_struct), 0,
-+					 SLAB_PANIC | SLAB_ACCOUNT, NULL);
- 	return 0;
- }
+-	msq = kmalloc(sizeof(*msq), GFP_KERNEL);
++	msq = kmalloc(sizeof(*msq), GFP_KERNEL_ACCOUNT);
+ 	if (unlikely(!msq))
+ 		return -ENOMEM;
+ 
+--- a/ipc/sem.c~memcg-enable-accounting-of-ipc-resources
++++ a/ipc/sem.c
+@@ -514,7 +514,7 @@ static struct sem_array *sem_alloc(size_
+ 	if (nsems > (INT_MAX - sizeof(*sma)) / sizeof(sma->sems[0]))
+ 		return NULL;
+ 
+-	sma = kvzalloc(struct_size(sma, sems, nsems), GFP_KERNEL);
++	sma = kvzalloc(struct_size(sma, sems, nsems), GFP_KERNEL_ACCOUNT);
+ 	if (unlikely(!sma))
+ 		return NULL;
+ 
+@@ -1855,7 +1855,7 @@ static inline int get_undo_list(struct s
+ 
+ 	undo_list = current->sysvsem.undo_list;
+ 	if (!undo_list) {
+-		undo_list = kzalloc(sizeof(*undo_list), GFP_KERNEL);
++		undo_list = kzalloc(sizeof(*undo_list), GFP_KERNEL_ACCOUNT);
+ 		if (undo_list == NULL)
+ 			return -ENOMEM;
+ 		spin_lock_init(&undo_list->lock);
+@@ -1941,7 +1941,7 @@ static struct sem_undo *find_alloc_undo(
+ 
+ 	/* step 2: allocate new undo structure */
+ 	new = kvzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems,
+-		       GFP_KERNEL);
++		       GFP_KERNEL_ACCOUNT);
+ 	if (!new) {
+ 		ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
+ 		return ERR_PTR(-ENOMEM);
+@@ -2005,7 +2005,8 @@ static long do_semtimedop(int semid, str
+ 	if (nsops > ns->sc_semopm)
+ 		return -E2BIG;
+ 	if (nsops > SEMOPM_FAST) {
+-		sops = kvmalloc_array(nsops, sizeof(*sops), GFP_KERNEL);
++		sops = kvmalloc_array(nsops, sizeof(*sops),
++				      GFP_KERNEL_ACCOUNT);
+ 		if (sops == NULL)
+ 			return -ENOMEM;
+ 	}
+--- a/ipc/shm.c~memcg-enable-accounting-of-ipc-resources
++++ a/ipc/shm.c
+@@ -619,7 +619,7 @@ static int newseg(struct ipc_namespace *
+ 			ns->shm_tot + numpages > ns->shm_ctlall)
+ 		return -ENOSPC;
+ 
+-	shp = kmalloc(sizeof(*shp), GFP_KERNEL);
++	shp = kmalloc(sizeof(*shp), GFP_KERNEL_ACCOUNT);
+ 	if (unlikely(!shp))
+ 		return -ENOMEM;
  
 _
