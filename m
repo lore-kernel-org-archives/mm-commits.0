@@ -4,31 +4,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0641BC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 22046C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E0C5C610F9
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0A574610F7
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347566AbhIBVvm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:51:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43128 "EHLO mail.kernel.org"
+        id S1347565AbhIBVvn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:51:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43218 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232404AbhIBVvj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:51:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C4A1610A0;
-        Thu,  2 Sep 2021 21:50:40 +0000 (UTC)
+        id S232404AbhIBVvn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:51:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CACE0610E9;
+        Thu,  2 Sep 2021 21:50:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619441;
-        bh=wW9GebXTOR/9pji37xYyRQ+hC2JmuS7SgrwRYDq5URI=;
+        s=korg; t=1630619444;
+        bh=O5D/xhKxJ2TH9c1z6DYdrLS2jmbPfm9L9oqykMdUpSw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=JxdlSQMqxri9nRCFf/ePWPOrXXAltIpeeVSFOPQeKD85W6x2rfCdJ6cq1v9oxgnHA
-         yxROaZDRYe+zLxcDzvbE6bifiOML5AQFIHK24VlltLNmLSYkLTx/JVjGJlEPs6TgY0
-         ZZY+iYHmSi24/BSRCPzrV/tnz/QYjBUNBaSW+f/A=
-Date:   Thu, 02 Sep 2021 14:50:40 -0700
+        b=xlmHsvlcs3tbe50FgXlhSJsMuWpeVuUQuIKNm+NpjozTNwnExEJ+TkM/38cWJaJTk
+         xR36CFZpP4I/k9isHTfNrMLlpDwXFAgNvJEJfwPzReTAachJLMw9j3DThgFGDkuX6y
+         9sL9fz7CSMzL56PmiC8oFI3rrnVUbrHh/K6OCZGQ=
+Date:   Thu, 02 Sep 2021 14:50:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         brouer@redhat.com, cl@linux.com, efault@gmx.de,
@@ -36,9 +36,9 @@ To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         mgorman@techsingularity.net, mm-commits@vger.kernel.org,
         penberg@kernel.org, rientjes@google.com, tglx@linutronix.de,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 014/212] mm, slub: unify cmpxchg_double_slab() and
- __cmpxchg_double_slab()
-Message-ID: <20210902215040.JtgJOciWe%akpm@linux-foundation.org>
+Subject:  [patch 015/212] mm, slub: extract get_partial() from
+ new_slab_objects()
+Message-ID: <20210902215043.OYw-zC-0A%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,17 +47,16 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: unify cmpxchg_double_slab() and __cmpxchg_double_slab()
+Subject: mm, slub: extract get_partial() from new_slab_objects()
 
-These functions differ only in irq disabling in the slow path.  We can
-create a common function with an extra bool parameter to control the irq
-disabling.  As the functions are inline and the parameter compile-time
-constant, there will be no runtime overhead due to this change.
+The later patches will need more fine grained control over individual
+actions in ___slab_alloc(), the only caller of new_slab_objects(), so this
+is a first preparatory step with no functional change.
 
-Also change the DEBUG_VM based irqs disable assert to the more standard
-lockdep_assert based one.
+This adds a goto label that appears unnecessary at this point, but will be
+useful for later changes.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-7-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-8-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -72,109 +71,47 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   62 ++++++++++++++++++++--------------------------------
- 1 file changed, 24 insertions(+), 38 deletions(-)
+ mm/slub.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/slub.c~mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab
+--- a/mm/slub.c~mm-slub-extract-get_partial-from-new_slab_objects
 +++ a/mm/slub.c
-@@ -371,13 +371,13 @@ static __always_inline void slab_unlock(
- 	__bit_spin_unlock(PG_locked, &page->flags);
- }
- 
--/* Interrupts must be disabled (for the fallback code to work right) */
--static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
-+static inline bool ___cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
- 		void *freelist_old, unsigned long counters_old,
- 		void *freelist_new, unsigned long counters_new,
--		const char *n)
-+		const char *n, bool disable_irqs)
+@@ -2599,17 +2599,12 @@ slab_out_of_memory(struct kmem_cache *s,
+ static inline void *new_slab_objects(struct kmem_cache *s, gfp_t flags,
+ 			int node, struct kmem_cache_cpu **pc)
  {
--	VM_BUG_ON(!irqs_disabled());
-+	if (!disable_irqs)
-+		lockdep_assert_irqs_disabled();
- #if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-     defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
- 	if (s->flags & __CMPXCHG_DOUBLE) {
-@@ -388,15 +388,23 @@ static inline bool __cmpxchg_double_slab
- 	} else
- #endif
- 	{
-+		unsigned long flags;
-+
-+		if (disable_irqs)
-+			local_irq_save(flags);
- 		slab_lock(page);
- 		if (page->freelist == freelist_old &&
- 					page->counters == counters_old) {
- 			page->freelist = freelist_new;
- 			page->counters = counters_new;
- 			slab_unlock(page);
-+			if (disable_irqs)
-+				local_irq_restore(flags);
- 			return true;
- 		}
- 		slab_unlock(page);
-+		if (disable_irqs)
-+			local_irq_restore(flags);
+-	void *freelist;
++	void *freelist = NULL;
+ 	struct kmem_cache_cpu *c = *pc;
+ 	struct page *page;
+ 
+ 	WARN_ON_ONCE(s->ctor && (flags & __GFP_ZERO));
+ 
+-	freelist = get_partial(s, flags, node, c);
+-
+-	if (freelist)
+-		return freelist;
+-
+ 	page = new_slab(s, flags, node);
+ 	if (page) {
+ 		c = raw_cpu_ptr(s->cpu_slab);
+@@ -2773,6 +2768,10 @@ new_slab:
+ 		goto redo;
  	}
  
- 	cpu_relax();
-@@ -409,45 +417,23 @@ static inline bool __cmpxchg_double_slab
- 	return false;
- }
++	freelist = get_partial(s, gfpflags, node, c);
++	if (freelist)
++		goto check_new_page;
++
+ 	freelist = new_slab_objects(s, gfpflags, node, &c);
  
--static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
-+/* Interrupts must be disabled (for the fallback code to work right) */
-+static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
- 		void *freelist_old, unsigned long counters_old,
- 		void *freelist_new, unsigned long counters_new,
- 		const char *n)
- {
--#if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
--    defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
--	if (s->flags & __CMPXCHG_DOUBLE) {
--		if (cmpxchg_double(&page->freelist, &page->counters,
--				   freelist_old, counters_old,
--				   freelist_new, counters_new))
--			return true;
--	} else
--#endif
--	{
--		unsigned long flags;
--
--		local_irq_save(flags);
--		slab_lock(page);
--		if (page->freelist == freelist_old &&
--					page->counters == counters_old) {
--			page->freelist = freelist_new;
--			page->counters = counters_new;
--			slab_unlock(page);
--			local_irq_restore(flags);
--			return true;
--		}
--		slab_unlock(page);
--		local_irq_restore(flags);
--	}
--
--	cpu_relax();
--	stat(s, CMPXCHG_DOUBLE_FAIL);
--
--#ifdef SLUB_DEBUG_CMPXCHG
--	pr_info("%s %s: cmpxchg double redo ", n, s->name);
--#endif
-+	return ___cmpxchg_double_slab(s, page, freelist_old, counters_old,
-+				      freelist_new, counters_new, n, false);
-+}
+ 	if (unlikely(!freelist)) {
+@@ -2780,6 +2779,7 @@ new_slab:
+ 		return NULL;
+ 	}
  
--	return false;
-+static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
-+		void *freelist_old, unsigned long counters_old,
-+		void *freelist_new, unsigned long counters_new,
-+		const char *n)
-+{
-+	return ___cmpxchg_double_slab(s, page, freelist_old, counters_old,
-+				      freelist_new, counters_new, n, true);
- }
- 
- #ifdef CONFIG_SLUB_DEBUG
++check_new_page:
+ 	page = c->page;
+ 	if (likely(!kmem_cache_debug(s) && pfmemalloc_match(page, gfpflags)))
+ 		goto load_freelist;
 _
