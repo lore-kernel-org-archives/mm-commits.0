@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 404C1C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85022C4332F
 	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:58:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2933F60F12
+	by mail.kernel.org (Postfix) with ESMTP id 720D660E8B
 	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:58:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347965AbhIBV7o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:59:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55382 "EHLO mail.kernel.org"
+        id S1347950AbhIBV7p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:59:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55446 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347960AbhIBV7k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:59:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4685D60F12;
-        Thu,  2 Sep 2021 21:58:41 +0000 (UTC)
+        id S1347669AbhIBV7n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:59:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 488536056B;
+        Thu,  2 Sep 2021 21:58:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619921;
-        bh=Hwr15fGwIvezpliPxy+tuM8+SSJ6UmqrSw1CVEf+YfE=;
+        s=korg; t=1630619924;
+        bh=ANDwkS9rBb2mlLAIfKtDDm9aLbrAyaB/cN4c+uXCLF0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ViBpMlZYxq8UBtRudo1dzt+W+HtG10PIdTMMuemHYpJImvkdEoN9Qy/GNdtsfol72
-         xWz+gswND+5KMkqds96FzF9kzEYfu4xLSKqu4PH/VfhwCmiZ0roB60c5Nae8o/w54i
-         JJyMEblyab1V3LqjPa3V3q1zVX6TaOxWnral8mSk=
-Date:   Thu, 02 Sep 2021 14:58:40 -0700
+        b=mC9C6TGFRkvXfXVl7rZjnw2ME8MvoBgQwWERsYXx8CP9sjhclgbxvKJJKe07Sofv3
+         GntQxOBM671GDts5Rlz/00lAs5nwnI+u+152mLwFFmkT7oVwBSwHOc0RvvWUt8Xcqq
+         3nzAG0pUENX9AoLwBDS9TDS8IMR0akZwYCCwzCvY=
+Date:   Thu, 02 Sep 2021 14:58:43 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     abaci@linux.alibaba.com, akpm@linux-foundation.org,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, stable@vger.kernel.org,
-        torvalds@linux-foundation.org, yun.wang@linux.alibaba.com
-Subject:  [patch 165/212] mm: fix panic caused by
- __page_handle_poison()
-Message-ID: <20210902215840.lw0-MrokA%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, almasrymina@google.com,
+        david@redhat.com, linux-mm@kvack.org, mhocko@suse.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@linux.dev, osalvador@suse.de,
+        songmuchun@bytedance.com, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject:  [patch 166/212] hugetlb: simplify
+ prep_compound_gigantic_page ref count racing code
+Message-ID: <20210902215843.gOQ0PNv6O%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,69 +46,75 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Michael Wang <yun.wang@linux.alibaba.com>
-Subject: mm: fix panic caused by __page_handle_poison()
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: simplify prep_compound_gigantic_page ref count racing code
 
-In commit 510d25c92ec4 ("mm/hwpoison: disable pcp for
-page_handle_poison()"), __page_handle_poison() was introduced, and if we
-mark:
+Code in prep_compound_gigantic_page waits for a rcu grace period if it
+notices a temporarily inflated ref count on a tail page.  This was due to
+the identified potential race with speculative page cache references which
+could only last for a rcu grace period.  This is overly complicated as
+this situation is VERY unlikely to ever happen.  Instead, just quickly
+return an error.
 
-RET_A = dissolve_free_huge_page();
-RET_B = take_page_off_buddy();
+Also, only print a warning in prep_compound_gigantic_page instead of
+multiple callers.
 
-then __page_handle_poison was supposed to return TRUE When RET_A == 0 &&
-RET_B == TRUE
-
-But since it failed to take care the case when RET_A is -EBUSY or -ENOMEM,
-and just return the ret as a bool which actually become TRUE, it break the
-original logic.
-
-The following result is a huge page in freelist but was
-referenced as poisoned, and lead into the final panic:
-
-  kernel BUG at mm/internal.h:95!
-  invalid opcode: 0000 [#1] SMP PTI
-  skip...
-  RIP: 0010:set_page_refcounted mm/internal.h:95 [inline]
-  RIP: 0010:remove_hugetlb_page+0x23c/0x240 mm/hugetlb.c:1371
-  skip...
-  Call Trace:
-   remove_pool_huge_page+0xe4/0x110 mm/hugetlb.c:1892
-   return_unused_surplus_pages+0x8d/0x150 mm/hugetlb.c:2272
-   hugetlb_acct_memory.part.91+0x524/0x690 mm/hugetlb.c:4017
-
-This patch replaces 'bool' with 'int' to handle RET_A correctly.
-
-Link: https://lkml.kernel.org/r/61782ac6-1e8a-4f6f-35e6-e94fce3b37f5@linux.alibaba.com
-Fixes: 510d25c92ec4 ("mm/hwpoison: disable pcp for page_handle_poison()")
-Signed-off-by: Michael Wang <yun.wang@linux.alibaba.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Abaci <abaci@linux.alibaba.com>
-Cc: <stable@vger.kernel.org>	[5.14+]
+Link: https://lkml.kernel.org/r/20210809184832.18342-2-mike.kravetz@oracle.com
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |   17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
---- a/mm/memory-failure.c~mm-fix-panic-caused-by-__page_handle_poison
-+++ a/mm/memory-failure.c
-@@ -68,7 +68,7 @@ atomic_long_t num_poisoned_pages __read_
+--- a/mm/hugetlb.c~hugetlb-simplify-prep_compound_gigantic_page-ref-count-racing-code
++++ a/mm/hugetlb.c
+@@ -1657,16 +1657,14 @@ static bool prep_compound_gigantic_page(
+ 		 * cache adding could take a ref on a 'to be' tail page.
+ 		 * We need to respect any increased ref count, and only set
+ 		 * the ref count to zero if count is currently 1.  If count
+-		 * is not 1, we call synchronize_rcu in the hope that a rcu
+-		 * grace period will cause ref count to drop and then retry.
+-		 * If count is still inflated on retry we return an error and
+-		 * must discard the pages.
++		 * is not 1, we return an error.  An error return indicates
++		 * the set of pages can not be converted to a gigantic page.
++		 * The caller who allocated the pages should then discard the
++		 * pages using the appropriate free interface.
+ 		 */
+ 		if (!page_ref_freeze(p, 1)) {
+-			pr_info("HugeTLB unexpected inflated ref count on freshly allocated page\n");
+-			synchronize_rcu();
+-			if (!page_ref_freeze(p, 1))
+-				goto out_error;
++			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
++			goto out_error;
+ 		}
+ 		set_page_count(p, 0);
+ 		set_compound_head(p, page);
+@@ -1830,7 +1828,6 @@ retry:
+ 				retry = true;
+ 				goto retry;
+ 			}
+-			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
+ 			return NULL;
+ 		}
+ 	}
+@@ -2828,8 +2825,8 @@ static void __init gather_bootmem_preall
+ 			prep_new_huge_page(h, page, page_to_nid(page));
+ 			put_page(page); /* add to the hugepage allocator */
+ 		} else {
++			/* VERY unlikely inflated ref count on a tail page */
+ 			free_gigantic_page(page, huge_page_order(h));
+-			pr_warn("HugeTLB page can not be used due to unexpected inflated ref count\n");
+ 		}
  
- static bool __page_handle_poison(struct page *page)
- {
--	bool ret;
-+	int ret;
- 
- 	zone_pcp_disable(page_zone(page));
- 	ret = dissolve_free_huge_page(page);
-@@ -76,7 +76,7 @@ static bool __page_handle_poison(struct
- 		ret = take_page_off_buddy(page);
- 	zone_pcp_enable(page_zone(page));
- 
--	return ret;
-+	return ret > 0;
- }
- 
- static bool page_handle_poison(struct page *page, bool hugepage_or_freepage, bool release)
+ 		/*
 _
