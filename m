@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7D7FC4167E
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61A30C004D5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D0E55610E5
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47F6A610D2
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347683AbhIBVxT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:53:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45878 "EHLO mail.kernel.org"
+        id S1347538AbhIBVxU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:53:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45954 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347698AbhIBVxP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:53:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 27FEC610A1;
-        Thu,  2 Sep 2021 21:52:16 +0000 (UTC)
+        id S1347710AbhIBVxS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:53:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 847CA60F12;
+        Thu,  2 Sep 2021 21:52:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619536;
-        bh=apIbXKSXSb3k/bARqoOIwFVmpi2eUc31dwXvLpxE8y0=;
+        s=korg; t=1630619540;
+        bh=cdltCKFLenaJJzcV6FrpQMoL24r+PqxD36iFXS8gbRA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=HjPRzxQkNvSap12IwfBAOfIecKkCdoRtJYmcLmskqIZQJ1axkXR5aGuI0qRIZF5me
-         JdJJ6CRN0nXCBvDX/U5RPTaVKHkr/YqIJOqLso2sNzh91z+dJSoPIuDRN4hgB5WjVk
-         T5V1M5bRmhgI1Fa6ebwsK+nhoH8th0DaywOR9cXI=
-Date:   Thu, 02 Sep 2021 14:52:15 -0700
+        b=gClNhp5g2bUdcdElvweeQrJul5/Rk8IXLwSija3BpPgWFWOku//YUFZrIFX7TNoYD
+         NxJVvMsHDkV4POV0mStfd38AaZQl+MLs03WPZI/184VtN4j4I2seC9aWgPppU1TlJ1
+         tP/xKxWH3W3ggsmKaQrpiD4Gcj7dCHf0CqlpCAo0=
+Date:   Thu, 02 Sep 2021 14:52:19 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
-        brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com,
-        jannh@google.com, linux-mm@kvack.org, mgorman@techsingularity.net,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, sven@narfation.org, tglx@linutronix.de,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 043/212] mm, slub: convert kmem_cpu_slab
- protection to local_lock
-Message-ID: <20210902215215.7TuZyn_O7%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
+        anshuman.khandual@arm.com, cai@lca.pw, catalin.marinas@arm.com,
+        christophe.leroy@csgroup.eu, chuhu@redhat.com,
+        gerald.schaefer@linux.ibm.com, gshan@redhat.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, vgupta@synopsys.com, will@kernel.org
+Subject:  [patch 044/212] mm/debug_vm_pgtable: introduce struct
+ pgtable_debug_args
+Message-ID: <20210902215219.8aARsh9pu%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,421 +46,381 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: convert kmem_cpu_slab protection to local_lock
+From: Gavin Shan <gshan@redhat.com>
+Subject: mm/debug_vm_pgtable: introduce struct pgtable_debug_args
 
-Embed local_lock into struct kmem_cpu_slab and use the irq-safe versions
-of local_lock instead of plain local_irq_save/restore.  On !PREEMPT_RT
-that's equivalent, with better lockdep visibility.  On PREEMPT_RT that
-means better preemption.
+Patch series "mm/debug_vm_pgtable: Enhancements", v6.
 
-However, the cost on PREEMPT_RT is the loss of lockless fast paths which
-only work with cpu freelist.  Those are designed to detect and recover
-from being preempted by other conflicting operations (both fast or slow
-path), but the slow path operations assume they cannot be preempted by a
-fast path operation, which is guaranteed naturally with disabled irqs. 
-With local locks on PREEMPT_RT, the fast paths now also need to take the
-local lock to avoid races.
+There are a couple of issues with current implementations and this series
+tries to resolve the issues:
 
-In the allocation fastpath slab_alloc_node() we can just defer to the
-slowpath __slab_alloc() which also works with cpu freelist, but under the
-local lock.  In the free fastpath do_slab_free() we have to add a new
-local lock protected version of freeing to the cpu freelist, as the
-existing slowpath only works with the page freelist.
+  (a) All needed information are scattered in variables, passed to various
+      test functions. The code is organized in pretty much relaxed fashion.
 
-Also update the comment about locking scheme in SLUB to reflect changes
-done by this series.
+  (b) The page isn't allocated from buddy during page table entry modifying
+      tests. The page can be invalid, conflicting to the implementations
+      of set_xxx_at() on ARM64. The target page is accessed so that the
+      iCache can be flushed when execution permission is given on ARM64.
+      Besides, the target page can be unmapped and accessing to it causes
+      kernel crash.
 
-[efault@gmx.de: use local_lock() without irq in PREEMPT_RT scope, debugging of RT crashes resulting in put_cpu_partial() locking changes]
-[vbabka@suse.cz: simplify lockdep_assert_held in lockdep_assert_held()]
-  Link: https://lkml.kernel.org/r/7e9ccf34-57d1-786b-2dfd-3b9ba78e1b32@suse.cz
-[vbabka@suse.cz: fix kmem_cache_cpu fields alignment for double cmpxchg]
-  Link: https://lkml.kernel.org/r/e907c2b6-6df1-8038-8c6c-aa9c1fd11259@suse.cz
-Link: https://lkml.kernel.org/r/20210805152000.12817-36-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Sven Eckelmann <sven@narfation.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+"struct pgtable_debug_args" is introduced to address issue (a).  For issue
+(b), the used page is allocated from buddy in page table entry modifying
+tests.  The corresponding tets will be skipped if we fail to allocate the
+(huge) page.  For other test cases, the original page around to kernel
+symbol (@start_kernel) is still used.
+
+The patches are organized as below.  PATCH[2-10] could be combined to one
+patch, but it will make the review harder:
+
+  PATCH[1] introduces "struct pgtable_debug_args" as place holder of all
+           needed information. With it, the old and new implementation
+           can coexist.
+  PATCH[2-10] uses "struct pgtable_debug_args" in various test functions.
+  PATCH[11] removes the unused code for old implementation.
+  PATCH[12] fixes the issue of corrupted page flag for ARM64
+
+
+This patch (of 6):
+
+In debug_vm_pgtable(), there are many local variables introduced to track
+the needed information and they are passed to the functions for various
+test cases.  It'd better to introduce a struct as place holder for these
+information.  With it, what the tests functions need is the struct.  In
+this way, the code is simplified and easier to be maintained.
+
+Besides, set_xxx_at() could access the data on the corresponding pages in
+the page table modifying tests.  So the accessed pages in the tests should
+have been allocated from buddy.  Otherwise, we're accessing pages that
+aren't owned by us.  This causes issues like page flag corruption or
+kernel crash on accessing unmapped page when CONFIG_DEBUG_PAGEALLOC is
+enabled.
+
+This introduces "struct pgtable_debug_args".  The struct is initialized
+and destroyed, but the information in the struct isn't used yet.  It will
+be used in subsequent patches.
+
+Link: https://lkml.kernel.org/r/20210809092631.1888748-1-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210809092631.1888748-2-gshan@redhat.com
+Signed-off-by: Gavin Shan <gshan@redhat.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Tested-by: Christophe Leroy <christophe.leroy@csgroup.eu>	[powerpc 8xx]
+Tested-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>	[s390]
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Qian Cai <cai@lca.pw>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Chunyu Hu <chuhu@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    6 +
- mm/slub.c                |  142 ++++++++++++++++++++++++++++---------
- 2 files changed, 115 insertions(+), 33 deletions(-)
+ mm/debug_vm_pgtable.c |  270 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 269 insertions(+), 1 deletion(-)
 
---- a/include/linux/slub_def.h~mm-slub-convert-kmem_cpu_slab-protection-to-local_lock
-+++ a/include/linux/slub_def.h
-@@ -10,6 +10,7 @@
- #include <linux/kfence.h>
- #include <linux/kobject.h>
- #include <linux/reciprocal_div.h>
-+#include <linux/local_lock.h>
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-introduce-struct-pgtable_debug_args
++++ a/mm/debug_vm_pgtable.c
+@@ -58,6 +58,37 @@
+ #define RANDOM_ORVALUE (GENMASK(BITS_PER_LONG - 1, 0) & ~ARCH_SKIP_MASK)
+ #define RANDOM_NZVALUE	GENMASK(7, 0)
  
- enum stat_item {
- 	ALLOC_FASTPATH,		/* Allocation from cpu slab */
-@@ -40,6 +41,10 @@ enum stat_item {
- 	CPU_PARTIAL_DRAIN,	/* Drain cpu partial to node partial */
- 	NR_SLUB_STAT_ITEMS };
- 
-+/*
-+ * When changing the layout, make sure freelist and tid are still compatible
-+ * with this_cpu_cmpxchg_double() alignment requirements.
-+ */
- struct kmem_cache_cpu {
- 	void **freelist;	/* Pointer to next available object */
- 	unsigned long tid;	/* Globally unique transaction id */
-@@ -47,6 +52,7 @@ struct kmem_cache_cpu {
- #ifdef CONFIG_SLUB_CPU_PARTIAL
- 	struct page *partial;	/* Partially allocated frozen slabs */
- #endif
-+	local_lock_t lock;	/* Protects the fields above */
- #ifdef CONFIG_SLUB_STATS
- 	unsigned stat[NR_SLUB_STAT_ITEMS];
- #endif
---- a/mm/slub.c~mm-slub-convert-kmem_cpu_slab-protection-to-local_lock
-+++ a/mm/slub.c
-@@ -46,13 +46,21 @@
- /*
-  * Lock order:
-  *   1. slab_mutex (Global Mutex)
-- *   2. node->list_lock
-- *   3. slab_lock(page) (Only on some arches and for debugging)
-+ *   2. node->list_lock (Spinlock)
-+ *   3. kmem_cache->cpu_slab->lock (Local lock)
-+ *   4. slab_lock(page) (Only on some arches or for debugging)
-+ *   5. object_map_lock (Only for debugging)
-  *
-  *   slab_mutex
-  *
-  *   The role of the slab_mutex is to protect the list of all the slabs
-  *   and to synchronize major metadata changes to slab cache structures.
-+ *   Also synchronizes memory hotplug callbacks.
-+ *
-+ *   slab_lock
-+ *
-+ *   The slab_lock is a wrapper around the page lock, thus it is a bit
-+ *   spinlock.
-  *
-  *   The slab_lock is only used for debugging and on arches that do not
-  *   have the ability to do a cmpxchg_double. It only protects:
-@@ -61,6 +69,8 @@
-  *	C. page->objects	-> Number of objects in page
-  *	D. page->frozen		-> frozen state
-  *
-+ *   Frozen slabs
-+ *
-  *   If a slab is frozen then it is exempt from list management. It is not
-  *   on any list except per cpu partial list. The processor that froze the
-  *   slab is the one who can perform list operations on the page. Other
-@@ -68,6 +78,8 @@
-  *   froze the slab is the only one that can retrieve the objects from the
-  *   page's freelist.
-  *
-+ *   list_lock
-+ *
-  *   The list_lock protects the partial and full list on each node and
-  *   the partial slab counter. If taken then no new slabs may be added or
-  *   removed from the lists nor make the number of partial slabs be modified.
-@@ -79,10 +91,36 @@
-  *   slabs, operations can continue without any centralized lock. F.e.
-  *   allocating a long series of objects that fill up slabs does not require
-  *   the list lock.
-- *   Interrupts are disabled during allocation and deallocation in order to
-- *   make the slab allocator safe to use in the context of an irq. In addition
-- *   interrupts are disabled to ensure that the processor does not change
-- *   while handling per_cpu slabs, due to kernel preemption.
-+ *
-+ *   cpu_slab->lock local lock
-+ *
-+ *   This locks protect slowpath manipulation of all kmem_cache_cpu fields
-+ *   except the stat counters. This is a percpu structure manipulated only by
-+ *   the local cpu, so the lock protects against being preempted or interrupted
-+ *   by an irq. Fast path operations rely on lockless operations instead.
-+ *   On PREEMPT_RT, the local lock does not actually disable irqs (and thus
-+ *   prevent the lockless operations), so fastpath operations also need to take
-+ *   the lock and are no longer lockless.
-+ *
-+ *   lockless fastpaths
-+ *
-+ *   The fast path allocation (slab_alloc_node()) and freeing (do_slab_free())
-+ *   are fully lockless when satisfied from the percpu slab (and when
-+ *   cmpxchg_double is possible to use, otherwise slab_lock is taken).
-+ *   They also don't disable preemption or migration or irqs. They rely on
-+ *   the transaction id (tid) field to detect being preempted or moved to
-+ *   another cpu.
-+ *
-+ *   irq, preemption, migration considerations
-+ *
-+ *   Interrupts are disabled as part of list_lock or local_lock operations, or
-+ *   around the slab_lock operation, in order to make the slab allocator safe
-+ *   to use in the context of an irq.
-+ *
-+ *   In addition, preemption (or migration on PREEMPT_RT) is disabled in the
-+ *   allocation slowpath, bulk allocation, and put_cpu_partial(), so that the
-+ *   local cpu doesn't change in the process and e.g. the kmem_cache_cpu pointer
-+ *   doesn't have to be revalidated in each section protected by the local lock.
-  *
-  * SLUB assigns one slab for allocation to each processor.
-  * Allocations only occur from these slabs called cpu slabs.
-@@ -2231,9 +2269,13 @@ static inline void note_cmpxchg_failure(
- static void init_kmem_cache_cpus(struct kmem_cache *s)
++struct pgtable_debug_args {
++	struct mm_struct	*mm;
++	struct vm_area_struct	*vma;
++
++	pgd_t			*pgdp;
++	p4d_t			*p4dp;
++	pud_t			*pudp;
++	pmd_t			*pmdp;
++	pte_t			*ptep;
++
++	p4d_t			*start_p4dp;
++	pud_t			*start_pudp;
++	pmd_t			*start_pmdp;
++	pgtable_t		start_ptep;
++
++	unsigned long		vaddr;
++	pgprot_t		page_prot;
++	pgprot_t		page_prot_none;
++
++	bool			is_contiguous_page;
++	unsigned long		pud_pfn;
++	unsigned long		pmd_pfn;
++	unsigned long		pte_pfn;
++
++	unsigned long		fixed_pgd_pfn;
++	unsigned long		fixed_p4d_pfn;
++	unsigned long		fixed_pud_pfn;
++	unsigned long		fixed_pmd_pfn;
++	unsigned long		fixed_pte_pfn;
++};
++
+ static void __init pte_basic_tests(unsigned long pfn, int idx)
  {
- 	int cpu;
-+	struct kmem_cache_cpu *c;
- 
--	for_each_possible_cpu(cpu)
--		per_cpu_ptr(s->cpu_slab, cpu)->tid = init_tid(cpu);
-+	for_each_possible_cpu(cpu) {
-+		c = per_cpu_ptr(s->cpu_slab, cpu);
-+		local_lock_init(&c->lock);
-+		c->tid = init_tid(cpu);
-+	}
+ 	pgprot_t prot = protection_map[idx];
+@@ -955,8 +986,239 @@ static unsigned long __init get_random_v
+ 	return random_vaddr;
  }
  
- /*
-@@ -2444,10 +2486,10 @@ static void unfreeze_partials(struct kme
- 	struct page *partial_page;
- 	unsigned long flags;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 	partial_page = this_cpu_read(s->cpu_slab->partial);
- 	this_cpu_write(s->cpu_slab->partial, NULL);
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 
- 	if (partial_page)
- 		__unfreeze_partials(s, partial_page);
-@@ -2480,7 +2522,7 @@ static void put_cpu_partial(struct kmem_
- 	int pages = 0;
- 	int pobjects = 0;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 
- 	oldpage = this_cpu_read(s->cpu_slab->partial);
- 
-@@ -2508,7 +2550,7 @@ static void put_cpu_partial(struct kmem_
- 
- 	this_cpu_write(s->cpu_slab->partial, page);
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 
- 	if (page_to_unfreeze) {
- 		__unfreeze_partials(s, page_to_unfreeze);
-@@ -2532,7 +2574,7 @@ static inline void flush_slab(struct kme
- 	struct page *page;
- 
- 	if (lock)
--		local_irq_save(flags);
-+		local_lock_irqsave(&s->cpu_slab->lock, flags);
- 
- 	freelist = c->freelist;
- 	page = c->page;
-@@ -2542,7 +2584,7 @@ static inline void flush_slab(struct kme
- 	c->tid = next_tid(c->tid);
- 
- 	if (lock)
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 
- 	if (page)
- 		deactivate_slab(s, page, freelist);
-@@ -2849,9 +2891,9 @@ redo:
- 		goto deactivate_slab;
- 
- 	/* must check again c->page in case we got preempted and it changed */
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 	if (unlikely(page != c->page)) {
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 		goto reread_page;
- 	}
- 	freelist = c->freelist;
-@@ -2862,7 +2904,7 @@ redo:
- 
- 	if (!freelist) {
- 		c->page = NULL;
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 		stat(s, DEACTIVATE_BYPASS);
- 		goto new_slab;
- 	}
-@@ -2871,7 +2913,7 @@ redo:
- 
- load_freelist:
- 
--	lockdep_assert_irqs_disabled();
-+	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock));
- 
- 	/*
- 	 * freelist is pointing to the list of objects to be used.
-@@ -2881,39 +2923,39 @@ load_freelist:
- 	VM_BUG_ON(!c->page->frozen);
- 	c->freelist = get_freepointer(s, freelist);
- 	c->tid = next_tid(c->tid);
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 	return freelist;
- 
- deactivate_slab:
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 	if (page != c->page) {
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 		goto reread_page;
- 	}
- 	freelist = c->freelist;
- 	c->page = NULL;
- 	c->freelist = NULL;
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 	deactivate_slab(s, page, freelist);
- 
- new_slab:
- 
- 	if (slub_percpu_partial(c)) {
--		local_irq_save(flags);
-+		local_lock_irqsave(&s->cpu_slab->lock, flags);
- 		if (unlikely(c->page)) {
--			local_irq_restore(flags);
-+			local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 			goto reread_page;
- 		}
- 		if (unlikely(!slub_percpu_partial(c))) {
--			local_irq_restore(flags);
-+			local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 			/* we were preempted and partial list got empty */
- 			goto new_objects;
- 		}
- 
- 		page = c->page = slub_percpu_partial(c);
- 		slub_set_percpu_partial(c, page);
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 		stat(s, CPU_PARTIAL_ALLOC);
- 		goto redo;
- 	}
-@@ -2966,7 +3008,7 @@ check_new_page:
- 
- retry_load_page:
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 	if (unlikely(c->page)) {
- 		void *flush_freelist = c->freelist;
- 		struct page *flush_page = c->page;
-@@ -2975,7 +3017,7 @@ retry_load_page:
- 		c->freelist = NULL;
- 		c->tid = next_tid(c->tid);
- 
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 
- 		deactivate_slab(s, flush_page, flush_freelist);
- 
-@@ -3094,7 +3136,15 @@ redo:
- 
- 	object = c->freelist;
- 	page = c->page;
--	if (unlikely(!object || !page || !node_match(page, node))) {
-+	/*
-+	 * We cannot use the lockless fastpath on PREEMPT_RT because if a
-+	 * slowpath has taken the local_lock_irqsave(), it is not protected
-+	 * against a fast path operation in an irq handler. So we need to take
-+	 * the slow path which uses local_lock. It is still relatively fast if
-+	 * there is a suitable cpu freelist.
-+	 */
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT) ||
-+	    unlikely(!object || !page || !node_match(page, node))) {
- 		object = __slab_alloc(s, gfpflags, node, addr, c);
- 	} else {
- 		void *next_object = get_freepointer_safe(s, object);
-@@ -3354,6 +3404,7 @@ redo:
- 	barrier();
- 
- 	if (likely(page == c->page)) {
-+#ifndef CONFIG_PREEMPT_RT
- 		void **freelist = READ_ONCE(c->freelist);
- 
- 		set_freepointer(s, tail_obj, freelist);
-@@ -3366,6 +3417,31 @@ redo:
- 			note_cmpxchg_failure("slab_free", s, tid);
- 			goto redo;
- 		}
-+#else /* CONFIG_PREEMPT_RT */
-+		/*
-+		 * We cannot use the lockless fastpath on PREEMPT_RT because if
-+		 * a slowpath has taken the local_lock_irqsave(), it is not
-+		 * protected against a fast path operation in an irq handler. So
-+		 * we need to take the local_lock. We shouldn't simply defer to
-+		 * __slab_free() as that wouldn't use the cpu freelist at all.
-+		 */
-+		void **freelist;
++static void __init destroy_args(struct pgtable_debug_args *args)
++{
++	struct page *page = NULL;
 +
-+		local_lock(&s->cpu_slab->lock);
-+		c = this_cpu_ptr(s->cpu_slab);
-+		if (unlikely(page != c->page)) {
-+			local_unlock(&s->cpu_slab->lock);
-+			goto redo;
++	/* Free (huge) page */
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
++	    has_transparent_hugepage() &&
++	    args->pud_pfn != ULONG_MAX) {
++		if (args->is_contiguous_page) {
++			free_contig_range(args->pud_pfn,
++					  (1 << (HPAGE_PUD_SHIFT - PAGE_SHIFT)));
++		} else {
++			page = pfn_to_page(args->pud_pfn);
++			__free_pages(page, HPAGE_PUD_SHIFT - PAGE_SHIFT);
 +		}
-+		tid = c->tid;
-+		freelist = c->freelist;
 +
-+		set_freepointer(s, tail_obj, freelist);
-+		c->freelist = head;
-+		c->tid = next_tid(tid);
++		args->pud_pfn = ULONG_MAX;
++		args->pmd_pfn = ULONG_MAX;
++		args->pte_pfn = ULONG_MAX;
++	}
 +
-+		local_unlock(&s->cpu_slab->lock);
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    has_transparent_hugepage() &&
++	    args->pmd_pfn != ULONG_MAX) {
++		if (args->is_contiguous_page) {
++			free_contig_range(args->pmd_pfn, (1 << HPAGE_PMD_ORDER));
++		} else {
++			page = pfn_to_page(args->pmd_pfn);
++			__free_pages(page, HPAGE_PMD_ORDER);
++		}
++
++		args->pmd_pfn = ULONG_MAX;
++		args->pte_pfn = ULONG_MAX;
++	}
++
++	if (args->pte_pfn != ULONG_MAX) {
++		page = pfn_to_page(args->pte_pfn);
++		__free_pages(page, 0);
++
++		args->pte_pfn = ULONG_MAX;
++	}
++
++	/* Free page table entries */
++	if (args->start_ptep) {
++		pte_free(args->mm, args->start_ptep);
++		mm_dec_nr_ptes(args->mm);
++	}
++
++	if (args->start_pmdp) {
++		pmd_free(args->mm, args->start_pmdp);
++		mm_dec_nr_pmds(args->mm);
++	}
++
++	if (args->start_pudp) {
++		pud_free(args->mm, args->start_pudp);
++		mm_dec_nr_puds(args->mm);
++	}
++
++	if (args->start_p4dp)
++		p4d_free(args->mm, args->start_p4dp);
++
++	/* Free vma and mm struct */
++	if (args->vma)
++		vm_area_free(args->vma);
++
++	if (args->mm)
++		mmdrop(args->mm);
++}
++
++static struct page * __init
++debug_vm_pgtable_alloc_huge_page(struct pgtable_debug_args *args, int order)
++{
++	struct page *page = NULL;
++
++#ifdef CONFIG_CONTIG_ALLOC
++	if (order >= MAX_ORDER) {
++		page = alloc_contig_pages((1 << order), GFP_KERNEL,
++					  first_online_node, NULL);
++		if (page) {
++			args->is_contiguous_page = true;
++			return page;
++		}
++	}
 +#endif
- 		stat(s, FREE_FASTPATH);
- 	} else
- 		__slab_free(s, page, head, tail_obj, cnt, addr);
-@@ -3544,7 +3620,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 	 * handlers invoking normal fastpath.
- 	 */
- 	c = slub_get_cpu_ptr(s->cpu_slab);
--	local_irq_disable();
-+	local_lock_irq(&s->cpu_slab->lock);
++
++	if (order < MAX_ORDER)
++		page = alloc_pages(GFP_KERNEL, order);
++
++	return page;
++}
++
++static int __init init_args(struct pgtable_debug_args *args)
++{
++	struct page *page = NULL;
++	phys_addr_t phys;
++	int ret = 0;
++
++	/*
++	 * Initialize the debugging data.
++	 *
++	 * __P000 (or even __S000) will help create page table entries with
++	 * PROT_NONE permission as required for pxx_protnone_tests().
++	 */
++	memset(args, 0, sizeof(*args));
++	args->vaddr              = get_random_vaddr();
++	args->page_prot          = vm_get_page_prot(VMFLAGS);
++	args->page_prot_none     = __P000;
++	args->is_contiguous_page = false;
++	args->pud_pfn            = ULONG_MAX;
++	args->pmd_pfn            = ULONG_MAX;
++	args->pte_pfn            = ULONG_MAX;
++	args->fixed_pgd_pfn      = ULONG_MAX;
++	args->fixed_p4d_pfn      = ULONG_MAX;
++	args->fixed_pud_pfn      = ULONG_MAX;
++	args->fixed_pmd_pfn      = ULONG_MAX;
++	args->fixed_pte_pfn      = ULONG_MAX;
++
++	/* Allocate mm and vma */
++	args->mm = mm_alloc();
++	if (!args->mm) {
++		pr_err("Failed to allocate mm struct\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	args->vma = vm_area_alloc(args->mm);
++	if (!args->vma) {
++		pr_err("Failed to allocate vma\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++
++	/*
++	 * Allocate page table entries. They will be modified in the tests.
++	 * Lets save the page table entries so that they can be released
++	 * when the tests are completed.
++	 */
++	args->pgdp = pgd_offset(args->mm, args->vaddr);
++	args->p4dp = p4d_alloc(args->mm, args->pgdp, args->vaddr);
++	if (!args->p4dp) {
++		pr_err("Failed to allocate p4d entries\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++	args->start_p4dp = p4d_offset(args->pgdp, 0UL);
++	WARN_ON(!args->start_p4dp);
++
++	args->pudp = pud_alloc(args->mm, args->p4dp, args->vaddr);
++	if (!args->pudp) {
++		pr_err("Failed to allocate pud entries\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++	args->start_pudp = pud_offset(args->p4dp, 0UL);
++	WARN_ON(!args->start_pudp);
++
++	args->pmdp = pmd_alloc(args->mm, args->pudp, args->vaddr);
++	if (!args->pmdp) {
++		pr_err("Failed to allocate pmd entries\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++	args->start_pmdp = pmd_offset(args->pudp, 0UL);
++	WARN_ON(!args->start_pmdp);
++
++	if (pte_alloc(args->mm, args->pmdp)) {
++		pr_err("Failed to allocate pte entries\n");
++		ret = -ENOMEM;
++		goto error;
++	}
++	args->start_ptep = pmd_pgtable(READ_ONCE(*args->pmdp));
++	WARN_ON(!args->start_ptep);
++
++	/*
++	 * PFN for mapping at PTE level is determined from a standard kernel
++	 * text symbol. But pfns for higher page table levels are derived by
++	 * masking lower bits of this real pfn. These derived pfns might not
++	 * exist on the platform but that does not really matter as pfn_pxx()
++	 * helpers will still create appropriate entries for the test. This
++	 * helps avoid large memory block allocations to be used for mapping
++	 * at higher page table levels in some of the tests.
++	 */
++	phys = __pa_symbol(&start_kernel);
++	args->fixed_pgd_pfn = __phys_to_pfn(phys & PGDIR_MASK);
++	args->fixed_p4d_pfn = __phys_to_pfn(phys & P4D_MASK);
++	args->fixed_pud_pfn = __phys_to_pfn(phys & PUD_MASK);
++	args->fixed_pmd_pfn = __phys_to_pfn(phys & PMD_MASK);
++	args->fixed_pte_pfn = __phys_to_pfn(phys & PAGE_MASK);
++	WARN_ON(!pfn_valid(args->fixed_pte_pfn));
++
++	/*
++	 * Allocate (huge) pages because some of the tests need to access
++	 * the data in the pages. The corresponding tests will be skipped
++	 * if we fail to allocate (huge) pages.
++	 */
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    IS_ENABLED(CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD) &&
++	    has_transparent_hugepage()) {
++		page = debug_vm_pgtable_alloc_huge_page(args,
++				HPAGE_PUD_SHIFT - PAGE_SHIFT);
++		if (page) {
++			args->pud_pfn = page_to_pfn(page);
++			args->pmd_pfn = args->pud_pfn;
++			args->pte_pfn = args->pud_pfn;
++			return 0;
++		}
++	}
++
++	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++	    has_transparent_hugepage()) {
++		page = debug_vm_pgtable_alloc_huge_page(args, HPAGE_PMD_ORDER);
++		if (page) {
++			args->pmd_pfn = page_to_pfn(page);
++			args->pte_pfn = args->pmd_pfn;
++			return 0;
++		}
++	}
++
++	page = alloc_pages(GFP_KERNEL, 0);
++	if (page)
++		args->pte_pfn = page_to_pfn(page);
++
++	return 0;
++
++error:
++	destroy_args(args);
++	return ret;
++}
++
+ static int __init debug_vm_pgtable(void)
+ {
++	struct pgtable_debug_args args;
+ 	struct vm_area_struct *vma;
+ 	struct mm_struct *mm;
+ 	pgd_t *pgdp;
+@@ -970,9 +1232,13 @@ static int __init debug_vm_pgtable(void)
+ 	unsigned long vaddr, pte_aligned, pmd_aligned;
+ 	unsigned long pud_aligned, p4d_aligned, pgd_aligned;
+ 	spinlock_t *ptl = NULL;
+-	int idx;
++	int idx, ret;
  
- 	for (i = 0; i < size; i++) {
- 		void *object = kfence_alloc(s, s->object_size, flags);
-@@ -3565,7 +3641,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 			 */
- 			c->tid = next_tid(c->tid);
- 
--			local_irq_enable();
-+			local_unlock_irq(&s->cpu_slab->lock);
- 
- 			/*
- 			 * Invoking slow path likely have side-effect
-@@ -3579,7 +3655,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 			c = this_cpu_ptr(s->cpu_slab);
- 			maybe_wipe_obj_freeptr(s, p[i]);
- 
--			local_irq_disable();
-+			local_lock_irq(&s->cpu_slab->lock);
- 
- 			continue; /* goto for-loop */
- 		}
-@@ -3588,7 +3664,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 		maybe_wipe_obj_freeptr(s, p[i]);
- 	}
- 	c->tid = next_tid(c->tid);
--	local_irq_enable();
-+	local_unlock_irq(&s->cpu_slab->lock);
- 	slub_put_cpu_ptr(s->cpu_slab);
- 
- 	/*
+ 	pr_info("Validating architecture page table helpers\n");
++	ret = init_args(&args);
++	if (ret)
++		return ret;
++
+ 	prot = vm_get_page_prot(VMFLAGS);
+ 	vaddr = get_random_vaddr();
+ 	mm = mm_alloc();
+@@ -1127,6 +1393,8 @@ static int __init debug_vm_pgtable(void)
+ 	mm_dec_nr_pmds(mm);
+ 	mm_dec_nr_ptes(mm);
+ 	mmdrop(mm);
++
++	destroy_args(&args);
+ 	return 0;
+ }
+ late_initcall(debug_vm_pgtable);
 _
