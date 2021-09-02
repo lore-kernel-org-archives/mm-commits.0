@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BC15C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:12:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EAF4DC433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:12:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32B9D6102A
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:12:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CEB346102A
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:12:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344283AbhIBVNy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:13:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45112 "EHLO mail.kernel.org"
+        id S1346156AbhIBVN5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:13:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45168 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232087AbhIBVNy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:13:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EAA5960FDA;
-        Thu,  2 Sep 2021 21:12:54 +0000 (UTC)
+        id S232087AbhIBVN4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:13:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A935561051;
+        Thu,  2 Sep 2021 21:12:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630617175;
-        bh=FULAQ3Vq2LDCaAgyCE8qCiQNR9B9drCIr2due7k//IU=;
+        s=korg; t=1630617178;
+        bh=oHdN4gCViXHj2KCa/7AGmpucQs7bKJHFV0NeWS81C9w=;
         h=Date:From:To:Subject:From;
-        b=XsVBV29juPU7LmeXSgy/x+U/EQF0kcfmEfWPlgYTT6EfFK7FcNB7LLPQW7ovPToqP
-         Jw6HSJm1QjqSRsEviQrxzvi+2Y+xzO12DqdoD4i3Q1v4qh6aZCxISSOqE08kM07xPi
-         YJnhDrCLi0Zt2qrHitf76oKPsLs6+/giKN7tSH04=
-Date:   Thu, 02 Sep 2021 14:12:54 -0700
+        b=m0DYH7L0Md7bR/peAYdqIrcdWqfsbi3CXkHbDdCkvWI69ai5o1jW536QiLvsuZObG
+         fX18NGTt6UF/Pfz5YksYX+Hm1wpfDna5UCMdJMfhAprwvYj5R6lGEkj8vZ47Og1an8
+         pz9/XkqWM4Z0tpS9tSYRWgwQnucm1/L3ObwkfQ2Q=
+Date:   Thu, 02 Sep 2021 14:12:57 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, imbrenda@linux.ibm.com, jack@suse.cz,
         jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
         linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix.patch
+ mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix-fix.patch
  removed from -mm tree
-Message-ID: <20210902211254.LhAIsfymD%akpm@linux-foundation.org>
+Message-ID: <20210902211257.ivEQspva2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,54 +45,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix
+     Subject: mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix.patch
+     mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix-fix.patch
 
 This patch was dropped because it was folded into mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix
+Subject: mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix-fix
 
-simplify, cleanup
+fix return value
 
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/gup.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix
+--- a/mm/gup.c~mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix-fix
 +++ a/mm/gup.c
-@@ -2247,14 +2247,13 @@ static int __gup_device_huge(unsigned lo
+@@ -2240,6 +2240,7 @@ static int __gup_device_huge(unsigned lo
+ {
+ 	int nr_start = *nr;
+ 	struct dev_pagemap *pgmap = NULL;
++	int ret = 1;
+ 
+ 	do {
+ 		struct page *page = pfn_to_page(pfn);
+@@ -2247,12 +2248,14 @@ static int __gup_device_huge(unsigned lo
  		pgmap = get_dev_pagemap(pfn, pgmap);
  		if (unlikely(!pgmap)) {
  			undo_dev_pagemap(nr, nr_start, flags, pages);
--			return 0;
-+			break;
++			ret = 0;
+ 			break;
  		}
  		SetPageReferenced(page);
  		pages[*nr] = page;
  		if (unlikely(!try_grab_page(page, flags))) {
  			undo_dev_pagemap(nr, nr_start, flags, pages);
--			put_dev_pagemap(pgmap);
--			return 0;
-+			break;
++			ret = 0;
+ 			break;
  		}
  		(*nr)++;
- 		pfn++;
+@@ -2260,7 +2263,7 @@ static int __gup_device_huge(unsigned lo
+ 	} while (addr += PAGE_SIZE, addr != end);
+ 
+ 	put_dev_pagemap(pgmap);
+-	return 1;
++	return ret;
+ }
+ 
+ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge.patch
-mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge-fix-fix.patch
 lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable-fix.patch
 mm-compaction-optimize-proactive-compaction-deferrals-fix.patch
 mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
