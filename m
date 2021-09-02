@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9AACC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39B83C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:54:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CFFEB610E6
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24713610CE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:54:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347727AbhIBVyt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:54:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48726 "EHLO mail.kernel.org"
+        id S1347867AbhIBVy5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:54:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48870 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347574AbhIBVys (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:54:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C3E80610A2;
-        Thu,  2 Sep 2021 21:53:48 +0000 (UTC)
+        id S1347855AbhIBVyy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:54:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D671C610A1;
+        Thu,  2 Sep 2021 21:53:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619629;
-        bh=FD1XJ6Z2HqBwRGOaWmggqrc333t0V5gxXPg1HxoaS0U=;
+        s=korg; t=1630619635;
+        bh=YHPR2lAZwJvfAMLra6/wNf+dwyE1V+PieWVCJjLBMs8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=nolTRCcD7MkCaBfJnAxnmWWiV5hKWEZWX+/QzSe99ee7FlePNwSnVtgauthkfV5Si
-         M0lGcw//CK4FeIB5jQSKMmywFNiL6Cccpx8nnS7OSiYOyMLs2NzKwGPwNFBY4SeCjm
-         y5Ywt6uGqs87MLe78ng/JkJ8MhsDGAkkFgrBm/RA=
-Date:   Thu, 02 Sep 2021 14:53:48 -0700
+        b=CPHekTQhu4jEF98LlVNN6+EFF/cPm5WcGA8VMZeWGV1fwQvBR9dRLueeSGevZ+egc
+         Bkc3BdVAGJC5m9M8sJbak17kAS7wqjQiGsUaApqDVQhGfrhXiMWyjr4ruvCxpHaXvB
+         rlfyxWwJWTA/w6tck9+dIvktbFLPOPd/GvD+vAIY=
+Date:   Thu, 02 Sep 2021 14:53:54 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, borntraeger@de.ibm.com,
         gor@linux.ibm.com, hca@linux.ibm.com, hch@lst.de,
         jhubbard@nvidia.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
         willy@infradead.org
-Subject:  [patch 073/212] mm/gup: documentation corrections for
- gup/pup
-Message-ID: <20210902215348.jAE5hqqnc%akpm@linux-foundation.org>
+Subject:  [patch 075/212] mm/gup: remove try_get_page(), call
+ try_get_compound_head() directly
+Message-ID: <20210902215354.ipaXS8yYx%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,99 +46,106 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: documentation corrections for gup/pup
+Subject: mm/gup: remove try_get_page(), call try_get_compound_head() directly
 
-Patch series "A few gup refactorings and documentation updates", v3.
+try_get_page() is very similar to try_get_compound_head(), and in fact
+try_get_page() has fallen a little behind in terms of maintenance:
+try_get_compound_head() handles speculative page references more
+thoroughly.
 
-While reviewing some of the other things going on around gup.c, I noticed
-that the documentation was wrong for a few of the routines that I wrote. 
-And then I noticed that there was some significant code duplication too. 
-So this fixes those issues.
+There are only two try_get_page() callsites, so just call
+try_get_compound_head() directly from those, and remove try_get_page()
+entirely.
 
-This is not entirely risk-free, but after looking closely at this, I think
-it's actually a useful improvement, getting rid of the code duplication
-here.
+Also, seeing as how this changes try_get_compound_head() into a non-static
+function, provide some kerneldoc documentation for it.
 
-
-This patch (of 3):
-
-The documentation for try_grab_compound_head() and try_grab_page() has
-fallen a little out of date.  Update and clarify a few points.
-
-Also make it kerneldoc-correct, by adding @args documentation.
-
-Link: https://lkml.kernel.org/r/20210813044133.1536842-1-jhubbard@nvidia.com
-Link: https://lkml.kernel.org/r/20210813044133.1536842-2-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20210813044133.1536842-4-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+ arch/s390/mm/fault.c |    2 +-
+ fs/pipe.c            |    2 +-
+ include/linux/mm.h   |   10 +---------
+ mm/gup.c             |   21 +++++++++++++++++----
+ 4 files changed, 20 insertions(+), 15 deletions(-)
 
---- a/mm/gup.c~mm-gup-documentation-corrections-for-gup-pup
+--- a/arch/s390/mm/fault.c~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
++++ a/arch/s390/mm/fault.c
+@@ -817,7 +817,7 @@ void do_secure_storage_access(struct pt_
+ 		break;
+ 	case KERNEL_FAULT:
+ 		page = phys_to_page(addr);
+-		if (unlikely(!try_get_page(page)))
++		if (unlikely(!try_get_compound_head(page, 1)))
+ 			break;
+ 		rc = arch_make_page_accessible(page);
+ 		put_page(page);
+--- a/fs/pipe.c~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
++++ a/fs/pipe.c
+@@ -191,7 +191,7 @@ EXPORT_SYMBOL(generic_pipe_buf_try_steal
+  */
+ bool generic_pipe_buf_get(struct pipe_inode_info *pipe, struct pipe_buffer *buf)
+ {
+-	return try_get_page(buf->page);
++	return try_get_compound_head(buf->page, 1);
+ }
+ EXPORT_SYMBOL(generic_pipe_buf_get);
+ 
+--- a/include/linux/mm.h~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
++++ a/include/linux/mm.h
+@@ -1217,15 +1217,7 @@ bool __must_check try_grab_page(struct p
+ struct page *try_grab_compound_head(struct page *page, int refs,
+ 				    unsigned int flags);
+ 
+-
+-static inline __must_check bool try_get_page(struct page *page)
+-{
+-	page = compound_head(page);
+-	if (WARN_ON_ONCE(page_ref_count(page) <= 0))
+-		return false;
+-	page_ref_inc(page);
+-	return true;
+-}
++struct page *try_get_compound_head(struct page *page, int refs);
+ 
+ static inline void put_page(struct page *page)
+ {
+--- a/mm/gup.c~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
 +++ a/mm/gup.c
-@@ -92,10 +92,17 @@ static inline struct page *try_get_compo
- 	return head;
+@@ -62,11 +62,24 @@ static void put_page_refs(struct page *p
+ 	put_page(page);
  }
  
 -/*
+- * Return the compound head page with ref appropriately incremented,
+- * or NULL if that failed.
 +/**
-  * try_grab_compound_head() - attempt to elevate a page's refcount, by a
-  * flags-dependent amount.
-  *
++ * try_get_compound_head() - return the compound head page with refcount
++ * appropriately incremented, or NULL if that failed.
++ *
++ * This handles potential refcount overflow correctly. It also works correclty
++ * for various lockless get_user_pages()-related callers, due to the use of
++ * page_cache_add_speculative().
++ *
 + * Even though the name includes "compound_head", this function is still
 + * appropriate for callers that have a non-compound @page to get.
 + *
-+ * @page:  pointer to page to be grabbed
-+ * @refs:  the value to (effectively) add to the page's refcount
-+ * @flags: gup flags: these are the FOLL_* flag values.
++ * @page:  pointer to page to be gotten
++ * @refs:  the value to add to the page's refcount
 + *
-  * "grab" names in this file mean, "look at flags to decide whether to use
-  * FOLL_PIN or FOLL_GET behavior, when incrementing the page's refcount.
-  *
-@@ -103,8 +110,14 @@ static inline struct page *try_get_compo
-  * same time. (That's true throughout the get_user_pages*() and
-  * pin_user_pages*() APIs.) Cases:
-  *
-- *    FOLL_GET: page's refcount will be incremented by 1.
-- *    FOLL_PIN: page's refcount will be incremented by GUP_PIN_COUNTING_BIAS.
-+ *    FOLL_GET: page's refcount will be incremented by @refs.
-+ *
-+ *    FOLL_PIN on compound pages that are > two pages long: page's refcount will
-+ *    be incremented by @refs, and page[2].hpage_pinned_refcount will be
-+ *    incremented by @refs * GUP_PIN_COUNTING_BIAS.
-+ *
-+ *    FOLL_PIN on normal pages, or compound pages that are two pages long:
-+ *    page's refcount will be incremented by @refs * GUP_PIN_COUNTING_BIAS.
-  *
-  * Return: head page (with refcount appropriately incremented) for success, or
-  * NULL upon failure. If neither FOLL_GET nor FOLL_PIN was set, that's
-@@ -141,6 +154,8 @@ __maybe_unused struct page *try_grab_com
- 		 *
- 		 * However, be sure to *also* increment the normal page refcount
- 		 * field at least once, so that the page really is pinned.
-+		 * That's why the refcount from the earlier
-+		 * try_get_compound_head() is left intact.
- 		 */
- 		if (hpage_pincount_available(page))
- 			hpage_pincount_add(page, refs);
-@@ -184,10 +199,8 @@ static void put_compound_head(struct pag
-  * @flags:   gup flags: these are the FOLL_* flag values.
-  *
-  * Either FOLL_PIN or FOLL_GET (or neither) may be set, but not both at the same
-- * time. Cases:
-- *
-- *    FOLL_GET: page's refcount will be incremented by 1.
-- *    FOLL_PIN: page's refcount will be incremented by GUP_PIN_COUNTING_BIAS.
-+ * time. Cases: please see the try_grab_compound_head() documentation, with
-+ * "refs=1".
-  *
-  * Return: true for success, or if no action was required (if neither FOLL_PIN
-  * nor FOLL_GET was set, nothing is done). False for failure: FOLL_GET or
++ * Return: head page (with refcount appropriately incremented) for success, or
++ * NULL upon failure.
+  */
+-static inline struct page *try_get_compound_head(struct page *page, int refs)
++struct page *try_get_compound_head(struct page *page, int refs)
+ {
+ 	struct page *head = compound_head(page);
+ 
 _
