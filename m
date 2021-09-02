@@ -7,39 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CBE5FC433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:22:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18FBAC433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:23:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC62C610A1
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:22:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EAAFF610C8
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:23:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346827AbhIBVXi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:23:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51320 "EHLO mail.kernel.org"
+        id S1347037AbhIBVYI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:24:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245379AbhIBVXi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:23:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 38B3C61074;
-        Thu,  2 Sep 2021 21:22:39 +0000 (UTC)
+        id S1347021AbhIBVYG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:24:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EA14461056;
+        Thu,  2 Sep 2021 21:23:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630617759;
-        bh=6CZ22aeLHf69rALvE/KBh60QlrEWxuI8PYbWoDud788=;
+        s=korg; t=1630617788;
+        bh=905jq5Mjrbtnj3dm2UAHhmMGevgCQDtR8zlxcKNlXk8=;
         h=Date:From:To:Subject:From;
-        b=0CCOKOqEcayrG7oSlwC0SiQ5Y8Wppe8w/nR6lwiSVYd+L+8EmwrpjQ/nV6+cJp4D7
-         pzlx+GsISgOut+ml7bW61JoaA2X2Pk058osMdO/BfBbKuUnT/aXuNU6T3AH0/L8XIK
-         CDXwEQoxWjyatn7QlD9s3SV3loLKdKNa8KCJ/ePs=
-Date:   Thu, 02 Sep 2021 14:22:38 -0700
+        b=Fb2Cdy9++iYqtVTJG22OqnGHNZLIFcCMNVaO08kr9Co2eLZH6ybLrjOMrttwOw33v
+         8iel6FIXxYpAXiDV3GUusK3sthlct0mTrAr3UuES/AxQhc9pcQNIZftcScj5IGsd9O
+         mUHq4kQJhNZUJfb7ee1HbIHmBcr1cdOb+xguNBro=
+Date:   Thu, 02 Sep 2021 14:23:07 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, charante@codeaurora.org, corbet@lwn.net,
-        dave.hansen@linux.intel.com, keescook@chromium.org,
-        khalid.aziz@oracle.com, mcgrof@kernel.org,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        nigupta@nvidia.com, rientjes@google.com, rppt@kernel.org,
-        vbabka@suse.cz, vinmenon@codeaurora.org, yzaikin@google.com
+To:     ben.widawsky@intel.com, feng.tang@intel.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
- removed from -mm tree
-Message-ID: <20210902212238.bZpNbtGfw%akpm@linux-foundation.org>
+ mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch removed
+ from -mm tree
+Message-ID: <20210902212307.96EaLDQzK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,62 +44,132 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-support-triggering-of-proactive-compaction-by-user-fix
+     Subject: mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-support-triggering-of-proactive-compaction-by-user-fix.patch
+     mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix.patch
 
-This patch was dropped because it was folded into mm-compaction-support-triggering-of-proactive-compaction-by-user.patch
+This patch was dropped because it was folded into mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-support-triggering-of-proactive-compaction-by-user-fix
+From: Ben Widawsky <ben.widawsky@intel.com>
+Subject: mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
 
-tweak vm.rst, per Mike
+add helpers to avoid ifdefs
 
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Charan Teja Reddy <charante@codeaurora.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Nitin Gupta <nigupta@nvidia.com>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lore.kernel.org/r/20200630212517.308045-12-ben.widawsky@intel.com
+Link: https://lkml.kernel.org/r/1627970362-61305-4-git-send-email-feng.tang@intel.com
+Link: https://lkml.kernel.org/r/20210809024430.GA46432@shbuild999.sh.intel.com
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+Suggested-by: Michal Hocko <mhocko@suse.com>
+Co-developed-by: Feng Tang <feng.tang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mempolicy.h |   12 ++++++++++++
+ mm/hugetlb.c              |   34 +++++++++++++---------------------
+ 2 files changed, 25 insertions(+), 21 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-compaction-support-triggering-of-proactive-compaction-by-user-fix
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -118,7 +118,7 @@ compaction_proactiveness
+--- a/include/linux/mempolicy.h~mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
++++ a/include/linux/mempolicy.h
+@@ -187,6 +187,12 @@ extern void mpol_put_task_policy(struct
  
- This tunable takes a value in the range [0, 100] with a default value of
- 20. This tunable determines how aggressively compaction is done in the
--background. On write of non zero value to this tunable will immediately
-+background. Write of a non zero value to this tunable will immediately
- trigger the proactive compaction. Setting it to 0 disables proactive compaction.
+ extern bool numa_demotion_enabled;
  
- Note that compaction has a non-trivial system-wide impact as pages
++static inline bool mpol_is_preferred_many(struct mempolicy *pol)
++{
++	return  (pol->mode == MPOL_PREFERRED_MANY);
++}
++
++
+ #else
+ 
+ struct mempolicy {};
+@@ -297,5 +303,11 @@ static inline nodemask_t *policy_nodemas
+ }
+ 
+ #define numa_demotion_enabled	false
++
++static inline bool mpol_is_preferred_many(struct mempolicy *pol)
++{
++	return  false;
++}
++
+ #endif /* CONFIG_NUMA */
+ #endif
+--- a/mm/hugetlb.c~mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many-fix
++++ a/mm/hugetlb.c
+@@ -1145,7 +1145,7 @@ static struct page *dequeue_huge_page_vm
+ 				unsigned long address, int avoid_reserve,
+ 				long chg)
+ {
+-	struct page *page;
++	struct page *page = NULL;
+ 	struct mempolicy *mpol;
+ 	gfp_t gfp_mask;
+ 	nodemask_t *nodemask;
+@@ -1166,20 +1166,17 @@ static struct page *dequeue_huge_page_vm
+ 
+ 	gfp_mask = htlb_alloc_mask(h);
+ 	nid = huge_node(vma, address, gfp_mask, &mpol, &nodemask);
+-#ifdef CONFIG_NUMA
+-	if (mpol->mode == MPOL_PREFERRED_MANY) {
++
++	if (mpol_is_preferred_many(mpol)) {
+ 		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
+-		if (page)
+-			goto check_reserve;
+-		/* Fallback to all nodes */
++
++		/* Fallback to all nodes if page==NULL */
+ 		nodemask = NULL;
+ 	}
+-#endif
+-	page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
+ 
+-#ifdef CONFIG_NUMA
+-check_reserve:
+-#endif
++	if (!page)
++		page = dequeue_huge_page_nodemask(h, gfp_mask, nid, nodemask);
++
+ 	if (page && !avoid_reserve && vma_has_reserves(vma, chg)) {
+ 		SetHPageRestoreReserve(page);
+ 		h->resv_huge_pages--;
+@@ -2162,24 +2159,19 @@ struct page *alloc_buddy_huge_page_with_
+ 	nodemask_t *nodemask;
+ 
+ 	nid = huge_node(vma, addr, gfp_mask, &mpol, &nodemask);
+-#ifdef CONFIG_NUMA
+-	if (mpol->mode == MPOL_PREFERRED_MANY) {
++	if (mpol_is_preferred_many(mpol)) {
+ 		gfp_t gfp = gfp_mask | __GFP_NOWARN;
+ 
+ 		gfp &=  ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
+ 		page = alloc_surplus_huge_page(h, gfp, nid, nodemask, false);
+-		if (page) {
+-			mpol_cond_put(mpol);
+-			return page;
+-		}
+ 
+-		/* Fallback to all nodes */
++		/* Fallback to all nodes if page==NULL */
+ 		nodemask = NULL;
+ 	}
+-#endif
+-	page = alloc_surplus_huge_page(h, gfp_mask, nid, nodemask, false);
+-	mpol_cond_put(mpol);
+ 
++	if (!page)
++		page = alloc_surplus_huge_page(h, gfp_mask, nid, nodemask, false);
++	mpol_cond_put(mpol);
+ 	return page;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from ben.widawsky@intel.com are
 
-mm-compaction-support-triggering-of-proactive-compaction-by-user.patch
-mm.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-idle_page_tracking-make-pg_idle-reusable-fix-fix.patch
-mm-damon-implement-primitives-for-the-virtual-memory-address-spaces-fix.patch
-mm-damon-implement-a-debugfs-based-user-space-interface-fix.patch
-mm-damon-implement-a-debugfs-based-user-space-interface-fix-fix.patch
-checkpatch-improve-git_commit_id-test-fix.patch
-fs-epoll-use-a-per-cpu-counter-for-users-watches-count-fix-fix.patch
-log-if-a-core-dump-is-aborted-due-to-changed-file-permissions-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-hugetlb-add-support-for-mempolicy-mpol_preferred_many.patch
+mm-mempolicy-advertise-new-mpol_preferred_many.patch
 
