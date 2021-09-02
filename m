@@ -4,31 +4,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E757DC43219
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3732C004D5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D533A610F7
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9F9E610E7
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:52:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347640AbhIBVxL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:53:11 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45538 "EHLO mail.kernel.org"
+        id S1347690AbhIBVxN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:53:13 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347659AbhIBVxF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:53:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1788C61107;
-        Thu,  2 Sep 2021 21:52:06 +0000 (UTC)
+        id S1347695AbhIBVxM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:53:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C0730610A0;
+        Thu,  2 Sep 2021 21:52:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619526;
-        bh=a0SQdmMFG84rm9BY87zGWxnAQhMoU/lki5fV6r/2mv4=;
+        s=korg; t=1630619533;
+        bh=sxrQfxoHGVKbljgranv0aNECw12f7++8fUn5E91ntJ4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wu8WHzCfNpU6rf3mqwQret3oQlgBSdeCkMYqbm+gvRsQM29vuniZHWsNSI5rkbvFx
-         KrGPJpM2pTVLrV3cs+0yDubdX1EU6GIhtT7BOG3Oi5myHOnEbdS0pWX+ybVwmUONZ8
-         VLLRH1rvcsGcuCLofY5ablafGeFhs8vbfwWpO1VY=
-Date:   Thu, 02 Sep 2021 14:52:05 -0700
+        b=pLojRSyaTE+l0w/aMAHo4onNlQwJp5IAXYtI/04Yhs8CNxC824oGPXpUcLqb/dDeu
+         wZvsDuGH1aPVyPIbcG/fjkkcBrgeSJc5bpkyB147wPsV40LzOEGskUac1k/0Jq1Mm/
+         XvYAsDL6QB68tgdby2aB/XDfE+TXDqz0RoWd98No=
+Date:   Thu, 02 Sep 2021 14:52:12 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         brouer@redhat.com, cl@linux.com, efault@gmx.de,
@@ -36,9 +36,9 @@ To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         mgorman@techsingularity.net, mm-commits@vger.kernel.org,
         penberg@kernel.org, rientjes@google.com, tglx@linutronix.de,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 040/212] mm, slub: make slab_lock() disable irqs
- with PREEMPT_RT
-Message-ID: <20210902215205.cEty-ni0y%akpm@linux-foundation.org>
+Subject:  [patch 042/212] mm, slub: use migrate_disable() on
+ PREEMPT_RT
+Message-ID: <20210902215212.CUVLaVpin%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,20 +47,19 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: make slab_lock() disable irqs with PREEMPT_RT
+Subject: mm, slub: use migrate_disable() on PREEMPT_RT
 
-We need to disable irqs around slab_lock() (a bit spinlock) to make it
-irq-safe.  The calls to slab_lock() are nested under spin_lock_irqsave()
-which doesn't disable irqs on PREEMPT_RT, so add explicit disabling with
-PREEMPT_RT.
+We currently use preempt_disable() (directly or via get_cpu_ptr()) to
+stabilize the pointer to kmem_cache_cpu.  On PREEMPT_RT this would be
+incompatible with the list_lock spinlock.  We can use migrate_disable()
+instead, but that increases overhead on !PREEMPT_RT as it's an
+unconditional function call.
 
-We also distinguish cmpxchg_double_slab() where we do the disabling
-explicitly and __cmpxchg_double_slab() for contexts with already disabled
-irqs.  However these context are also typically spin_lock_irqsave() thus
-insufficient on PREEMPT_RT.  Thus, change __cmpxchg_double_slab() to be
-same as cmpxchg_double_slab() on PREEMPT_RT.
+In order to get the best available mechanism on both PREEMPT_RT and
+!PREEMPT_RT, introduce private slub_get_cpu_ptr() and slub_put_cpu_ptr()
+wrappers and use them.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-33-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-35-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -75,46 +74,109 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ mm/slub.c |   39 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 9 deletions(-)
 
---- a/mm/slub.c~mm-slub-make-slab_lock-disable-irqs-with-preempt_rt
+--- a/mm/slub.c~mm-slub-use-migrate_disable-on-preempt_rt
 +++ a/mm/slub.c
-@@ -380,12 +380,12 @@ __slab_unlock(struct page *page, unsigne
- static __always_inline void
- slab_lock(struct page *page, unsigned long *flags)
- {
--	__slab_lock(page, flags, false);
-+	__slab_lock(page, flags, IS_ENABLED(CONFIG_PREEMPT_RT));
- }
+@@ -118,6 +118,26 @@
+  * 			the fast path and disables lockless freelists.
+  */
  
- static __always_inline void slab_unlock(struct page *page, unsigned long *flags)
- {
--	__slab_unlock(page, flags, false);
-+	__slab_unlock(page, flags, IS_ENABLED(CONFIG_PREEMPT_RT));
- }
- 
- static inline bool ___cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
-@@ -429,14 +429,19 @@ static inline bool ___cmpxchg_double_sla
- 	return false;
- }
- 
--/* Interrupts must be disabled (for the fallback code to work right) */
 +/*
-+ * Interrupts must be disabled (for the fallback code to work right), typically
-+ * by an _irqsave() lock variant. Except on PREEMPT_RT where locks are different
-+ * so we disable interrupts explicitly here.
++ * We could simply use migrate_disable()/enable() but as long as it's a
++ * function call even on !PREEMPT_RT, use inline preempt_disable() there.
 + */
- static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
- 		void *freelist_old, unsigned long counters_old,
- 		void *freelist_new, unsigned long counters_new,
- 		const char *n)
- {
- 	return ___cmpxchg_double_slab(s, page, freelist_old, counters_old,
--				      freelist_new, counters_new, n, false);
-+				      freelist_new, counters_new, n,
-+				      IS_ENABLED(CONFIG_PREEMPT_RT));
- }
++#ifndef CONFIG_PREEMPT_RT
++#define slub_get_cpu_ptr(var)	get_cpu_ptr(var)
++#define slub_put_cpu_ptr(var)	put_cpu_ptr(var)
++#else
++#define slub_get_cpu_ptr(var)		\
++({					\
++	migrate_disable();		\
++	this_cpu_ptr(var);		\
++})
++#define slub_put_cpu_ptr(var)		\
++do {					\
++	(void)(var);			\
++	migrate_enable();		\
++} while (0)
++#endif
++
+ #ifdef CONFIG_SLUB_DEBUG
+ #ifdef CONFIG_SLUB_DEBUG_ON
+ DEFINE_STATIC_KEY_TRUE(slub_debug_enabled);
+@@ -2828,7 +2848,7 @@ redo:
+ 	if (unlikely(!pfmemalloc_match_unsafe(page, gfpflags)))
+ 		goto deactivate_slab;
  
- static inline bool cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
+-	/* must check again c->page in case IRQ handler changed it */
++	/* must check again c->page in case we got preempted and it changed */
+ 	local_irq_save(flags);
+ 	if (unlikely(page != c->page)) {
+ 		local_irq_restore(flags);
+@@ -2887,7 +2907,8 @@ new_slab:
+ 		}
+ 		if (unlikely(!slub_percpu_partial(c))) {
+ 			local_irq_restore(flags);
+-			goto new_objects; /* stolen by an IRQ handler */
++			/* we were preempted and partial list got empty */
++			goto new_objects;
+ 		}
+ 
+ 		page = c->page = slub_percpu_partial(c);
+@@ -2903,9 +2924,9 @@ new_objects:
+ 	if (freelist)
+ 		goto check_new_page;
+ 
+-	put_cpu_ptr(s->cpu_slab);
++	slub_put_cpu_ptr(s->cpu_slab);
+ 	page = new_slab(s, gfpflags, node);
+-	c = get_cpu_ptr(s->cpu_slab);
++	c = slub_get_cpu_ptr(s->cpu_slab);
+ 
+ 	if (unlikely(!page)) {
+ 		slab_out_of_memory(s, gfpflags, node);
+@@ -2988,12 +3009,12 @@ static void *__slab_alloc(struct kmem_ca
+ 	 * cpu before disabling preemption. Need to reload cpu area
+ 	 * pointer.
+ 	 */
+-	c = get_cpu_ptr(s->cpu_slab);
++	c = slub_get_cpu_ptr(s->cpu_slab);
+ #endif
+ 
+ 	p = ___slab_alloc(s, gfpflags, node, addr, c);
+ #ifdef CONFIG_PREEMPT_COUNT
+-	put_cpu_ptr(s->cpu_slab);
++	slub_put_cpu_ptr(s->cpu_slab);
+ #endif
+ 	return p;
+ }
+@@ -3522,7 +3543,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 	 * IRQs, which protects against PREEMPT and interrupts
+ 	 * handlers invoking normal fastpath.
+ 	 */
+-	c = get_cpu_ptr(s->cpu_slab);
++	c = slub_get_cpu_ptr(s->cpu_slab);
+ 	local_irq_disable();
+ 
+ 	for (i = 0; i < size; i++) {
+@@ -3568,7 +3589,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 	}
+ 	c->tid = next_tid(c->tid);
+ 	local_irq_enable();
+-	put_cpu_ptr(s->cpu_slab);
++	slub_put_cpu_ptr(s->cpu_slab);
+ 
+ 	/*
+ 	 * memcg and kmem_cache debug support and memory initialization.
+@@ -3578,7 +3599,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 				slab_want_init_on_alloc(flags, s));
+ 	return i;
+ error:
+-	put_cpu_ptr(s->cpu_slab);
++	slub_put_cpu_ptr(s->cpu_slab);
+ 	slab_post_alloc_hook(s, objcg, flags, i, p, false);
+ 	__kmem_cache_free_bulk(s, i, p);
+ 	return 0;
 _
