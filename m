@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B9E3FC4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24448C43217
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A477E61166
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B6376115C
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347811AbhIBVyT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:54:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47726 "EHLO mail.kernel.org"
+        id S1347838AbhIBVyV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:54:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47804 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347868AbhIBVyJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:54:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 50C9B610CF;
-        Thu,  2 Sep 2021 21:53:10 +0000 (UTC)
+        id S1347756AbhIBVyM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:54:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 39730610D2;
+        Thu,  2 Sep 2021 21:53:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619590;
-        bh=u8xXRiuvZYfR6cXEyF+RaAvyKMn9gilM3TO6sKBzxA4=;
+        s=korg; t=1630619593;
+        bh=jRzEAfF4we4GyftA21skeapG/IoO+l1HQggWj654+rs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=0ONBMTrZxdlppgCt7QF3uX28RRHeBEDiAlCdoHf5E6zpfEeuGBtrYG68F7aYgoEGp
-         uxRB2DDhD5CbI3iodjlLPYwnu46p9b/XjdaYLRm44VnNyMol5AepVsEreCO/A50EnL
-         /yJAx1jKygiAk6x7W4cM+lvcJvi0dZOf3XyIC4mU=
-Date:   Thu, 02 Sep 2021 14:53:09 -0700
+        b=AToLtIgJs2ZXWNkrIaaOTjirGXDiN27eXI1k5tSQBTRePaLcxPMuHegfBq3PQzbO2
+         yAtF9gMqfjKghkmJjkm5mI7k5/tIbFhjUY4JUAkKV82ZCiph/d0bsIjYY26aHEmjL0
+         NekHLUSc6ba9ZTcnRbF7FVLdTS3KG3Lmmzj4DGQE=
+Date:   Thu, 02 Sep 2021 14:53:12 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, fengguang.wu@intel.com, jack@suse.cz,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         stapelberg+linux@google.com, torvalds@linux-foundation.org
-Subject:  [patch 060/212] writeback: fix bandwidth estimate for
- spiky workload
-Message-ID: <20210902215309.QON5u-liW%akpm@linux-foundation.org>
+Subject:  [patch 061/212] writeback: rename
+ domain_update_bandwidth()
+Message-ID: <20210902215312.f0YaZnU5h%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,181 +44,51 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Jan Kara <jack@suse.cz>
-Subject: writeback: fix bandwidth estimate for spiky workload
+Subject: writeback: rename domain_update_bandwidth()
 
-Michael Stapelberg has reported that for workload with short big spikes of
-writes (GCC linker seem to trigger this frequently) the write throughput
-is heavily underestimated and tends to steadily sink until it reaches
-zero.  This has rather bad impact on writeback throttling (causing
-stalls).  The problem is that writeback throughput estimate gets updated
-at most once per 200 ms.  One update happens early after we submit pages
-for writeback (at that point writeout of only small fraction of pages is
-completed and thus observed throughput is tiny).  Next update happens only
-during the next write spike (updates happen only from inode writeback and
-dirty throttling code) and if that is more than 1s after previous spike,
-we decide system was idle and just ignore whatever was written until this
-moment.
+Rename domain_update_bandwidth() to domain_update_dirty_limit().  The
+original name is a misnomer.  The function has nothing to do with a
+bandwidth, it updates dirty limits.
 
-Fix the problem by making sure writeback throughput estimate is also
-updated shortly after writeback completes to get reasonable estimate of
-throughput for spiky workloads.
-
-[jack@suse.cz: avoid division by 0 in wb_update_dirty_ratelimit()]
-Link: https://lore.kernel.org/lkml/20210617095309.3542373-1-stapelberg+linux@google.com
-Link: https://lkml.kernel.org/r/20210713104716.22868-3-jack@suse.cz
+Link: https://lkml.kernel.org/r/20210713104716.22868-4-jack@suse.cz
 Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Michael Stapelberg <stapelberg+linux@google.com>
-Tested-by: Michael Stapelberg <stapelberg+linux@google.com>
+Cc: Michael Stapelberg <stapelberg+linux@google.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev-defs.h |    1 
- include/linux/writeback.h        |    1 
- mm/backing-dev.c                 |   10 +++++++
- mm/page-writeback.c              |   39 ++++++++++++++++++-----------
- 4 files changed, 37 insertions(+), 14 deletions(-)
+ mm/page-writeback.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/backing-dev-defs.h~writeback-fix-bandwidth-estimate-for-spiky-workload
-+++ a/include/linux/backing-dev-defs.h
-@@ -143,6 +143,7 @@ struct bdi_writeback {
- 	spinlock_t work_lock;		/* protects work_list & dwork scheduling */
- 	struct list_head work_list;
- 	struct delayed_work dwork;	/* work item used for writeback */
-+	struct delayed_work bw_dwork;	/* work item used for bandwidth estimate */
- 
- 	unsigned long dirty_sleep;	/* last wait */
- 
---- a/include/linux/writeback.h~writeback-fix-bandwidth-estimate-for-spiky-workload
-+++ a/include/linux/writeback.h
-@@ -379,6 +379,7 @@ int dirty_writeback_centisecs_handler(st
- void global_dirty_limits(unsigned long *pbackground, unsigned long *pdirty);
- unsigned long wb_calc_thresh(struct bdi_writeback *wb, unsigned long thresh);
- 
-+void wb_update_bandwidth(struct bdi_writeback *wb);
- void balance_dirty_pages_ratelimited(struct address_space *mapping);
- bool wb_over_bg_thresh(struct bdi_writeback *wb);
- 
---- a/mm/backing-dev.c~writeback-fix-bandwidth-estimate-for-spiky-workload
-+++ a/mm/backing-dev.c
-@@ -271,6 +271,14 @@ void wb_wakeup_delayed(struct bdi_writeb
- 	spin_unlock_bh(&wb->work_lock);
- }
- 
-+static void wb_update_bandwidth_workfn(struct work_struct *work)
-+{
-+	struct bdi_writeback *wb = container_of(to_delayed_work(work),
-+						struct bdi_writeback, bw_dwork);
-+
-+	wb_update_bandwidth(wb);
-+}
-+
- /*
-  * Initial write bandwidth: 100 MB/s
-  */
-@@ -303,6 +311,7 @@ static int wb_init(struct bdi_writeback
- 	spin_lock_init(&wb->work_lock);
- 	INIT_LIST_HEAD(&wb->work_list);
- 	INIT_DELAYED_WORK(&wb->dwork, wb_workfn);
-+	INIT_DELAYED_WORK(&wb->bw_dwork, wb_update_bandwidth_workfn);
- 	wb->dirty_sleep = jiffies;
- 
- 	err = fprop_local_init_percpu(&wb->completions, gfp);
-@@ -351,6 +360,7 @@ static void wb_shutdown(struct bdi_write
- 	mod_delayed_work(bdi_wq, &wb->dwork, 0);
- 	flush_delayed_work(&wb->dwork);
- 	WARN_ON(!list_empty(&wb->work_list));
-+	flush_delayed_work(&wb->bw_dwork);
- }
- 
- static void wb_exit(struct bdi_writeback *wb)
---- a/mm/page-writeback.c~writeback-fix-bandwidth-estimate-for-spiky-workload
+--- a/mm/page-writeback.c~writeback-rename-domain_update_bandwidth
 +++ a/mm/page-writeback.c
-@@ -1336,18 +1336,19 @@ static void __wb_update_bandwidth(struct
+@@ -1147,8 +1147,8 @@ update:
+ 	dom->dirty_limit = limit;
+ }
+ 
+-static void domain_update_bandwidth(struct dirty_throttle_control *dtc,
+-				    unsigned long now)
++static void domain_update_dirty_limit(struct dirty_throttle_control *dtc,
++				      unsigned long now)
  {
- 	struct bdi_writeback *wb = gdtc->wb;
- 	unsigned long now = jiffies;
--	unsigned long elapsed = now - wb->bw_time_stamp;
-+	unsigned long elapsed;
- 	unsigned long dirtied;
- 	unsigned long written;
+ 	struct wb_domain *dom = dtc_dom(dtc);
  
--	lockdep_assert_held(&wb->list_lock);
-+	spin_lock(&wb->list_lock);
- 
- 	/*
--	 * rate-limit, only update once every 200ms.
-+	 * Lockless checks for elapsed time are racy and delayed update after
-+	 * IO completion doesn't do it at all (to make sure written pages are
-+	 * accounted reasonably quickly). Make sure elapsed >= 1 to avoid
-+	 * division errors.
- 	 */
--	if (elapsed < BANDWIDTH_INTERVAL)
--		return;
--
-+	elapsed = max(now - wb->bw_time_stamp, 1UL);
- 	dirtied = percpu_counter_read(&wb->stat[WB_DIRTIED]);
+@@ -1353,7 +1353,7 @@ static void __wb_update_bandwidth(struct
  	written = percpu_counter_read(&wb->stat[WB_WRITTEN]);
  
-@@ -1369,15 +1370,14 @@ static void __wb_update_bandwidth(struct
- 	wb->dirtied_stamp = dirtied;
- 	wb->written_stamp = written;
- 	wb->bw_time_stamp = now;
-+	spin_unlock(&wb->list_lock);
- }
+ 	if (update_ratelimit) {
+-		domain_update_bandwidth(gdtc, now);
++		domain_update_dirty_limit(gdtc, now);
+ 		wb_update_dirty_ratelimit(gdtc, dirtied, elapsed);
  
--static void wb_update_bandwidth(struct bdi_writeback *wb)
-+void wb_update_bandwidth(struct bdi_writeback *wb)
- {
- 	struct dirty_throttle_control gdtc = { GDTC_INIT(wb) };
- 
--	spin_lock(&wb->list_lock);
- 	__wb_update_bandwidth(&gdtc, NULL, false);
--	spin_unlock(&wb->list_lock);
- }
- 
- /* Interval after which we consider wb idle and don't estimate bandwidth */
-@@ -1722,11 +1722,8 @@ free_running:
- 			wb->dirty_exceeded = 1;
- 
- 		if (time_is_before_jiffies(wb->bw_time_stamp +
--					   BANDWIDTH_INTERVAL)) {
--			spin_lock(&wb->list_lock);
-+					   BANDWIDTH_INTERVAL))
- 			__wb_update_bandwidth(gdtc, mdtc, true);
--			spin_unlock(&wb->list_lock);
--		}
- 
- 		/* throttle according to the chosen dtc */
- 		dirty_ratelimit = wb->dirty_ratelimit;
-@@ -2374,7 +2371,13 @@ int do_writepages(struct address_space *
- 		cond_resched();
- 		congestion_wait(BLK_RW_ASYNC, HZ/50);
+ 		/*
+@@ -1361,7 +1361,7 @@ static void __wb_update_bandwidth(struct
+ 		 * compiler has no way to figure that out.  Help it.
+ 		 */
+ 		if (IS_ENABLED(CONFIG_CGROUP_WRITEBACK) && mdtc) {
+-			domain_update_bandwidth(mdtc, now);
++			domain_update_dirty_limit(mdtc, now);
+ 			wb_update_dirty_ratelimit(mdtc, dirtied, elapsed);
+ 		}
  	}
--	wb_update_bandwidth(wb);
-+	/*
-+	 * Usually few pages are written by now from those we've just submitted
-+	 * but if there's constant writeback being submitted, this makes sure
-+	 * writeback bandwidth is updated once in a while.
-+	 */
-+	if (time_is_before_jiffies(wb->bw_time_stamp + BANDWIDTH_INTERVAL))
-+		wb_update_bandwidth(wb);
- 	return ret;
- }
- 
-@@ -2754,6 +2757,14 @@ static void wb_inode_writeback_start(str
- static void wb_inode_writeback_end(struct bdi_writeback *wb)
- {
- 	atomic_dec(&wb->writeback_inodes);
-+	/*
-+	 * Make sure estimate of writeback throughput gets updated after
-+	 * writeback completed. We delay the update by BANDWIDTH_INTERVAL
-+	 * (which is the interval other bandwidth updates use for batching) so
-+	 * that if multiple inodes end writeback at a similar time, they get
-+	 * batched into one bandwidth update.
-+	 */
-+	queue_delayed_work(bdi_wq, &wb->bw_dwork, BANDWIDTH_INTERVAL);
- }
- 
- int test_clear_page_writeback(struct page *page)
 _
