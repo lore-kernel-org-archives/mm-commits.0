@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E69C5C433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:01:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93B5BC433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:01:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C724E610E7
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:01:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6DE1C610F7
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 22:01:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347976AbhIBWCC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 18:02:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58130 "EHLO mail.kernel.org"
+        id S1347733AbhIBWCF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 18:02:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58178 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347666AbhIBWCC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 18:02:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 72BE660F56;
-        Thu,  2 Sep 2021 22:01:03 +0000 (UTC)
+        id S1347666AbhIBWCF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 18:02:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4DB1D610A2;
+        Thu,  2 Sep 2021 22:01:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630620063;
-        bh=yJ/c/v/Jsbcr7kQtTIpggM1tcbMiXFW3gWqHugcss9A=;
+        s=korg; t=1630620066;
+        bh=Px6p1VEHn6MGZZ4Ar1Smc+Cee11OKc630leQeMa4Gzc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2dFJO2ZOJ5tfEBmiCxVdg2W27selw6epS5EIDiXqdaEB3jiydxIacWoN9Gubr+PFm
-         ++Ypv/N9UnicBHsaKm/6Le/0cDlIPFhYpq9EYdlxv1CLBGb+mOFgdINhiAPnZK+Rin
-         kQj6k21qIP68lO67aQEHlNsu2C7s23/BBiTTvBvg=
-Date:   Thu, 02 Sep 2021 15:01:03 -0700
+        b=C+C0zcBS3kbn0I2nniY9j3X/t7zbVIXrLNJSN8d1rqYhiG0MW5yju9+b8tg54f0ic
+         d3oLUy2rrsaZP4zExVejvXYrYa7xOceGf4MGa6Ud4aZD2C+hqjptq6wQ9re448loBp
+         YLB0xkxFj44a7N4CgBcp5NCNnOLBTH53W0SiSVc4=
+Date:   Thu, 02 Sep 2021 15:01:05 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linmiaohe@huawei.com,
+To:     akpm@linux-foundation.org, david@redhat.com, linmiaohe@huawei.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 209/212] mm/vmstat: correct some wrong comments
-Message-ID: <20210902220103.ObyYbTVoC%akpm@linux-foundation.org>
+Subject:  [patch 210/212] mm/vmstat: simplify the array size
+ calculation
+Message-ID: <20210902220105.GLslDVsS1%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,50 +44,41 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmstat: correct some wrong comments
+Subject: mm/vmstat: simplify the array size calculation
 
-Patch series "Cleanup for vmstat".
+We can replace the array_num * sizeof(array[0]) with sizeof(array) to
+simplify the code.
 
-This series contains cleanups to remove unneeded return value, correct
-wrong comment and simplify the array size calculation.  More details can
-be found in the respective changelogs.
-
-
-This patch (of 3):
-
-Correct wrong fls(mem+1) to fls(mem)+1 and remove the duplicated comment
-with quiet_vmstat().
-
-Link: https://lkml.kernel.org/r/20210715122911.15700-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210715122911.15700-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210715122911.15700-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    7 +------
- 1 file changed, 1 insertion(+), 6 deletions(-)
+ mm/vmstat.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/mm/vmstat.c~mm-vmstat-correct-some-wrong-comments
+--- a/mm/vmstat.c~mm-vmstat-simplify-the-array-size-calculation
 +++ a/mm/vmstat.c
-@@ -204,7 +204,7 @@ int calculate_normal_threshold(struct zo
- 	 *
- 	 * Some sample thresholds:
- 	 *
--	 * Threshold	Processors	(fls)	Zonesize	fls(mem+1)
-+	 * Threshold	Processors	(fls)	Zonesize	fls(mem)+1
- 	 * ------------------------------------------------------------------
- 	 * 8		1		1	0.9-1 GB	4
- 	 * 16		2		2	0.9-1 GB	4
-@@ -1876,11 +1876,6 @@ static void vmstat_update(struct work_st
- }
+@@ -1891,17 +1891,15 @@ static bool need_update(int cpu)
+ 		/*
+ 		 * The fast way of checking if there are any vmstat diffs.
+ 		 */
+-		if (memchr_inv(pzstats->vm_stat_diff, 0, NR_VM_ZONE_STAT_ITEMS *
+-			       sizeof(pzstats->vm_stat_diff[0])))
++		if (memchr_inv(pzstats->vm_stat_diff, 0, sizeof(pzstats->vm_stat_diff)))
+ 			return true;
  
- /*
-- * Switch off vmstat processing and then fold all the remaining differentials
-- * until the diffs stay at zero. The function is used by NOHZ and can only be
-- * invoked when tick processing is not active.
-- */
--/*
-  * Check if the diffs for a certain cpu indicate that
-  * an update is needed.
-  */
+ 		if (last_pgdat == zone->zone_pgdat)
+ 			continue;
+ 		last_pgdat = zone->zone_pgdat;
+ 		n = per_cpu_ptr(zone->zone_pgdat->per_cpu_nodestats, cpu);
+-		if (memchr_inv(n->vm_node_stat_diff, 0, NR_VM_NODE_STAT_ITEMS *
+-			       sizeof(n->vm_node_stat_diff[0])))
+-		    return true;
++		if (memchr_inv(n->vm_node_stat_diff, 0, sizeof(n->vm_node_stat_diff)))
++			return true;
+ 	}
+ 	return false;
+ }
 _
