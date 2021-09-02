@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D718C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64B10C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F2DD0610C8
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4C15B610CF
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243323AbhIBVvE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1347538AbhIBVvE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 2 Sep 2021 17:51:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42190 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:42256 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347540AbhIBVvB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:51:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2E8A6610A0;
-        Thu,  2 Sep 2021 21:50:02 +0000 (UTC)
+        id S232060AbhIBVvE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:51:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 45E4560F12;
+        Thu,  2 Sep 2021 21:50:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619402;
-        bh=5AjqKVEFTPxftISxRsVwzVkw7/cenVskMEX0FwhlsE4=;
+        s=korg; t=1630619405;
+        bh=xf84UPadpzjXj13H7EDbimJWmfWf/BtWxQ7uTXeuzZw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=eoZw6yZS+BDmSKzy0sICf2/2pNsx1H1xI2NmxZWu1aZIjtp9O8tSE5y1cTFZ533ra
-         Jk0iwU7pVfpNtvWC2mcoGEw1WgXiIeEojBY5yzQ6yIymNXWvI19IAyYIw+17o8uaaX
-         KY4npmwIJhd7jSlGbbXtBxwwWrStvo5PURBHH6NI=
-Date:   Thu, 02 Sep 2021 14:50:01 -0700
+        b=155BVV51D+n14CEo31H2yGf0LB7itAmpmOEW5iydd+X4ii7TXT/iZGkROuSxrLOHS
+         VQYD1bZdqB2+9q8N0/wJTxsi0b0yfIcYyqu9Oxe7lC4Y8aHuzVXu6ONBU10GYuKxp5
+         6WcIJrcG0nZfL9XfDJHWo6uqfkEHt6RYWo3kJHhc=
+Date:   Thu, 02 Sep 2021 14:50:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, frowand.list@gmail.com,
         geert+renesas@glider.be, horms@verge.net.au, jlan@sgi.com,
@@ -36,9 +36,8 @@ To:     akpm@linux-foundation.org, frowand.list@gmail.com,
         mm-commits@vger.kernel.org, robh+dt@kernel.org,
         rppt@linux.vnet.ibm.com, tony.luck@intel.com,
         torvalds@linux-foundation.org
-Subject:  [patch 002/212] ia64: fix #endif comment for
- reserve_elfcorehdr()
-Message-ID: <20210902215001.4qUF6e279%akpm@linux-foundation.org>
+Subject:  [patch 003/212] ia64: make reserve_elfcorehdr() static
+Message-ID: <20210902215004.Xtl4qh2JH%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,47 +46,103 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: ia64: fix #endif comment for reserve_elfcorehdr()
+Subject: ia64: make reserve_elfcorehdr() static
 
-Patch series "ia64: Miscellaneous fixes and cleanups".
+There never was a reason for reserve_elfcorehdr() to be global.  Make the
+function static, and move it before its sole caller.
 
-This patch series contains some miscellaneous fixes and cleanups for ia64.
-The second patch fixes a naming conflict triggered by a patch for the FDT
-code.
-
-
-This patch (of 3):
-
-The definition of reserve_elfcorehdr() depends on CONFIG_CRASH_DUMP, not
-CONFIG_PROC_VMCORE.
-
-Link: https://lkml.kernel.org/r/cover.1629884459.git.geert+renesas@glider.be
-Link: https://lkml.kernel.org/r/77b4c0648f200cab7e1c2c5171c06763e09362aa.1629884459.git.geert+renesas@glider.be
-Fixes: d9a9855d0b06ca6d ("always reserve elfcore header memory in crash kernel")
-Fixes: 17c1f07ed70afa4f ("[IA64] Reserve elfcorehdr memory in CONFIG_CRASH_DUMP")
+Link: https://lkml.kernel.org/r/fe236cd73b64abc4abd03dd808cb015c907f4c8c.1629884459.git.geert+renesas@glider.be
+Fixes: cee87af2a5f75713 ("[IA64] kexec: Use EFI_LOADER_DATA for ELF core header")
 Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Frank Rowand <frowand.list@gmail.com>
 Cc: Jay Lan <jlan@sgi.com>
 Cc: Magnus Damm <magnus.damm@gmail.com>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/setup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/ia64/include/asm/meminit.h |    1 
+ arch/ia64/kernel/setup.c        |   51 ++++++++++++++----------------
+ 2 files changed, 25 insertions(+), 27 deletions(-)
 
---- a/arch/ia64/kernel/setup.c~ia64-fix-endif-comment-for-reserve_elfcorehdr
+--- a/arch/ia64/include/asm/meminit.h~ia64-make-reserve_elfcorehdr-static
++++ a/arch/ia64/include/asm/meminit.h
+@@ -40,7 +40,6 @@ extern unsigned long efi_memmap_init(u64
+ extern int find_max_min_low_pfn (u64, u64, void *);
+ 
+ extern unsigned long vmcore_find_descriptor_size(unsigned long address);
+-extern int reserve_elfcorehdr(u64 *start, u64 *end);
+ 
+ /*
+  * For rounding an address to the next IA64_GRANULE_SIZE or order
+--- a/arch/ia64/kernel/setup.c~ia64-make-reserve_elfcorehdr-static
 +++ a/arch/ia64/kernel/setup.c
-@@ -546,7 +546,7 @@ int __init reserve_elfcorehdr(u64 *start
- 	return 0;
- }
+@@ -325,6 +325,31 @@ static inline void __init setup_crashker
+ {}
+ #endif
  
--#endif /* CONFIG_PROC_VMCORE */
++#ifdef CONFIG_CRASH_DUMP
++static int __init reserve_elfcorehdr(u64 *start, u64 *end)
++{
++	u64 length;
++
++	/* We get the address using the kernel command line,
++	 * but the size is extracted from the EFI tables.
++	 * Both address and size are required for reservation
++	 * to work properly.
++	 */
++
++	if (!is_vmcore_usable())
++		return -EINVAL;
++
++	if ((length = vmcore_find_descriptor_size(elfcorehdr_addr)) == 0) {
++		vmcore_unusable();
++		return -EINVAL;
++	}
++
++	*start = (unsigned long)__va(elfcorehdr_addr);
++	*end = *start + length;
++	return 0;
++}
 +#endif /* CONFIG_CRASH_DUMP */
++
+ /**
+  * reserve_memory - setup reserved memory areas
+  *
+@@ -522,32 +547,6 @@ static __init int setup_nomca(char *s)
+ }
+ early_param("nomca", setup_nomca);
  
+-#ifdef CONFIG_CRASH_DUMP
+-int __init reserve_elfcorehdr(u64 *start, u64 *end)
+-{
+-	u64 length;
+-
+-	/* We get the address using the kernel command line,
+-	 * but the size is extracted from the EFI tables.
+-	 * Both address and size are required for reservation
+-	 * to work properly.
+-	 */
+-
+-	if (!is_vmcore_usable())
+-		return -EINVAL;
+-
+-	if ((length = vmcore_find_descriptor_size(elfcorehdr_addr)) == 0) {
+-		vmcore_unusable();
+-		return -EINVAL;
+-	}
+-
+-	*start = (unsigned long)__va(elfcorehdr_addr);
+-	*end = *start + length;
+-	return 0;
+-}
+-
+-#endif /* CONFIG_CRASH_DUMP */
+-
  void __init
  setup_arch (char **cmdline_p)
+ {
 _
