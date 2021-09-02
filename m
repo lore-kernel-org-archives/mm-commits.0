@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AFD4C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F98AC433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E7CAF610E6
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8D098610F7
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347608AbhIBVwh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:52:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44552 "EHLO mail.kernel.org"
+        id S1347602AbhIBVwk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:52:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44624 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347612AbhIBVwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:52:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5898E60E8B;
-        Thu,  2 Sep 2021 21:51:36 +0000 (UTC)
+        id S1347612AbhIBVwj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:52:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A3B5B610A2;
+        Thu,  2 Sep 2021 21:51:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619496;
-        bh=wlQ+JrZrQ2lMJgREvEx1bBI6tzQ7dfol51Qx44Bj5/4=;
+        s=korg; t=1630619500;
+        bh=CXnhtn0toQdqyd7NwH68P9sp06/6rwnvetrSejIIIYg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=EmQWhG0ddVaandT1Pol5gULLotnUWOa7wn8vwk4Lp77pxu/Hew0+RIRV17+vjMA/x
-         oqpkOleQdJ1+uMkNrmUdZ/zY2HX6873lejwBo8/lwlwhoM8wzzmZHR+QV7ZiJuYfDX
-         CFuL7elqjvtXzVTs5PxgGKrnWLeghfQPNRENrtRE=
-Date:   Thu, 02 Sep 2021 14:51:35 -0700
+        b=MAOtWCWZYAUiKljOBGE78H7cczBpuVswMPt6o8mjvqxxPLbBdSsk6yXZoQiIpHwOG
+         YgXX5I/9ngmGxIrjfMhQIihX2X4r7/gCV4qpszA6ZF0dOvqbEnNOCPH3UZgpO/jyNd
+         LtN9+l0LhsMtpJxUXYXYPTJEDmtLLdGWb9hUk+xw=
+Date:   Thu, 02 Sep 2021 14:51:39 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         brouer@redhat.com, cl@linux.com, efault@gmx.de,
@@ -36,9 +36,9 @@ To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         mgorman@techsingularity.net, mm-commits@vger.kernel.org,
         penberg@kernel.org, rientjes@google.com, tglx@linutronix.de,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 031/212] mm, slub: discard slabs in
- unfreeze_partials() without irqs disabled
-Message-ID: <20210902215135.-QsPTU6IV%akpm@linux-foundation.org>
+Subject:  [patch 032/212] mm, slub: detach whole partial list at
+ once in unfreeze_partials()
+Message-ID: <20210902215139.SaVR2ei8O%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,12 +47,13 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: discard slabs in unfreeze_partials() without irqs disabled
+Subject: mm, slub: detach whole partial list at once in unfreeze_partials()
 
-No need for disabled irqs when discarding slabs, so restore them before
-discarding.
+Instead of iterating through the live percpu partial list, detach it from
+the kmem_cache_cpu at once.  This is simpler and will allow further
+optimization.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-24-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-25-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -67,26 +68,33 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slub.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/slub.c~mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled
+--- a/mm/slub.c~mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials
 +++ a/mm/slub.c
-@@ -2392,6 +2392,8 @@ static void unfreeze_partials(struct kme
- 	if (n)
- 		spin_unlock(&n->list_lock);
+@@ -2344,16 +2344,20 @@ static void unfreeze_partials(struct kme
+ {
+ #ifdef CONFIG_SLUB_CPU_PARTIAL
+ 	struct kmem_cache_node *n = NULL, *n2 = NULL;
+-	struct page *page, *discard_page = NULL;
++	struct page *page, *partial_page, *discard_page = NULL;
+ 	unsigned long flags;
  
-+	local_irq_restore(flags);
+ 	local_irq_save(flags);
+ 
+-	while ((page = slub_percpu_partial(c))) {
++	partial_page = slub_percpu_partial(c);
++	c->partial = NULL;
 +
- 	while (discard_page) {
- 		page = discard_page;
- 		discard_page = discard_page->next;
-@@ -2401,7 +2403,6 @@ static void unfreeze_partials(struct kme
- 		stat(s, FREE_SLAB);
- 	}
++	while (partial_page) {
+ 		struct page new;
+ 		struct page old;
  
--	local_irq_restore(flags);
- #endif	/* CONFIG_SLUB_CPU_PARTIAL */
- }
+-		slub_set_percpu_partial(c, page);
++		page = partial_page;
++		partial_page = page->next;
  
+ 		n2 = get_node(s, page_to_nid(page));
+ 		if (n != n2) {
 _
