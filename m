@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 241C5C4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7851C43217
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0EA13610D2
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A2C8560FA0
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347571AbhIBV5Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:57:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52422 "EHLO mail.kernel.org"
+        id S1347931AbhIBV5f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:57:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52528 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347628AbhIBV5T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:57:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D09960F12;
-        Thu,  2 Sep 2021 21:56:20 +0000 (UTC)
+        id S1347857AbhIBV5W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:57:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B6E0B60FA0;
+        Thu,  2 Sep 2021 21:56:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619780;
-        bh=BhxDNpVARis2frFmct7/+CvQ8G9IjaxZeoG6XegZF0c=;
+        s=korg; t=1630619784;
+        bh=bCE7NNfDEhX/wMSn/cKTxG6/nid5HiGDS8fDsrV2v5c=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=DRe125AyZNc4Fyxg1QkA5D9PYBYV9zUkOC1NcHYjlTdyXYO78y4uUygTih5yTU1M/
-         q6O07w1wEdfnt++3fn1MBX2vk7bch86WEpWbUZluBwTBQiZqRZAJhHQBV8PQckKcCJ
-         4RBUSeHqcCfxKVI+Gl50rvY/Lyvuz/TbxV4fm9ec=
-Date:   Thu, 02 Sep 2021 14:56:20 -0700
+        b=q+Mwso2hdaP3jgpi+wYTB9B6XSzyOh+rMAyId1HKy2kDi8sFiWLsjB+g8skip9huU
+         ohjwK3Hmx7HjyuKaKuJR1grW0SqFdghysfU1Wjt+kmrqhJ23LDMj1QVKPr+Y6UwO7/
+         pDXZ9sKOe9g11xC+u5l5o5YXECn8ptUoSG5qz8l4=
+Date:   Thu, 02 Sep 2021 14:56:23 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, anton@ozlabs.org,
         benh@kernel.crashing.org, linux-mm@kvack.org, luto@kernel.org,
         mm-commits@vger.kernel.org, npiggin@gmail.com, paulus@ozlabs.org,
         rdunlap@infradead.org, torvalds@linux-foundation.org
-Subject:  [patch 119/212] lazy tlb: shoot lazies, a non-refcounting
- lazy tlb option
-Message-ID: <20210902215620._WXglfIJy%akpm@linux-foundation.org>
+Subject:  [patch 120/212] powerpc/64s: enable
+ MMU_LAZY_TLB_SHOOTDOWN
+Message-ID: <20210902215623.-DcHgDyto%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,127 +45,68 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Nicholas Piggin <npiggin@gmail.com>
-Subject: lazy tlb: shoot lazies, a non-refcounting lazy tlb option
+Subject: powerpc/64s: enable MMU_LAZY_TLB_SHOOTDOWN
 
-On big systems, the mm refcount can become highly contented when doing a
-lot of context switching with threaded applications (particularly
-switching between the idle thread and an application thread).
+On a 16-socket 192-core POWER8 system, a context switching benchmark
+with as many software threads as CPUs (so each switch will go in and
+out of idle), upstream can achieve a rate of about 1 million context
+switches per second. After this patch it goes up to 118 million.
 
-Abandoning lazy tlb slows switching down quite a bit in the important
-user->idle->user cases, so instead implement a non-refcounted scheme that
-causes __mmdrop() to IPI all CPUs in the mm_cpumask and shoot down any
-remaining lazy ones.
+No real datya for real world workloads unfortunately.  I think it's
+always been a "known" cacheline, it just showed up badly on
+will-it-scale tests recently when Anton was doing a sweep of low
+hanging scalability issues on big systems.
 
-Shootdown IPIs are some concern, but they have not been observed to be a
-big problem with this scheme (the powerpc implementation generated 314
-additional interrupts on a 144 CPU system during a kernel compile).  There
-are a number of strategies that could be employed to reduce IPIs if they
-turn out to be a problem for some workload.
+We have some very big systems running certain in-memory databases that
+get into very high contention conditions on mutexes that push context
+switch rates right up and with idle times pretty high, which would get
+a lot of parallel context switching between user and idle thread, we
+might be getting a bit of this contention there.
 
-[npiggin@gmail.com: update comments]
-  Link: https://lkml.kernel.org/r/1623121901.mszkmmum0n.astroid@bobo.none
-Link: https://lkml.kernel.org/r/20210605014216.446867-4-npiggin@gmail.com
+It's not something at the top of profiles though.  And on
+multi-threaded workloads like this, the normal refcounting of the user
+mm still has fundmaental contention.  It's tricky to get the change
+tested on these workloads (machine time is very limited and I can't
+drive the software).
+
+I suspect it could also show in things that do high net or disk IO
+rates (enough to need a lot of cores), and do some user processing
+steps along the way.  You'd potentially get a lot of idle switching.
+
+
+This infrastructure could be beneficial to other architectures.  The
+cacheline is going to bounce in the same situations on other archs, so
+I would say yes.  Rik at one stage had some patches to try avoid it for
+x86 some years ago, I don't know what happened to those.
+
+The way powerpc has to maintain mm_cpumask for its TLB flushing makes
+it relatively easy to do this shootdown, and we decided the additional
+IPIs were less of a concern than the bouncing.  Others have different
+concerns, but I tried to make it generic and add comments explaining
+what other archs can do, or possibly different ways it might be
+achieved.
+
+Link: https://lkml.kernel.org/r/20210605014216.446867-5-npiggin@gmail.com
 Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Cc: Anton Blanchard <anton@ozlabs.org>
 Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Anton Blanchard <anton@ozlabs.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@ozlabs.org>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig  |   14 +++++++++++++
- kernel/fork.c |   51 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 65 insertions(+)
+ arch/powerpc/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/Kconfig~lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option
-+++ a/arch/Kconfig
-@@ -438,6 +438,20 @@ config ARCH_WANT_IRQS_OFF_ACTIVATE_MM
- # to a kthread ->active_mm (non-arch code has been converted already).
- config MMU_LAZY_TLB_REFCOUNT
- 	def_bool y
-+	depends on !MMU_LAZY_TLB_SHOOTDOWN
-+
-+# This option allows MMU_LAZY_TLB_REFCOUNT=n. It ensures no CPUs are using an
-+# mm as a lazy tlb beyond its last reference count, by shooting down these
-+# users before the mm is deallocated. __mmdrop() first IPIs all CPUs that may
-+# be using the mm as a lazy tlb, so that they may switch themselves to using
-+# init_mm for their active mm. mm_cpumask(mm) is used to determine which CPUs
-+# may be using mm as a lazy tlb mm.
-+#
-+# To implement this, an arch must ensure mm_cpumask(mm) contains at least all
-+# possible CPUs in which the mm is lazy, and it must meet the requirements for
-+# MMU_LAZY_TLB_REFCOUNT=n (see above).
-+config MMU_LAZY_TLB_SHOOTDOWN
-+	bool
- 
- config ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	bool
---- a/kernel/fork.c~lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option
-+++ a/kernel/fork.c
-@@ -674,6 +674,53 @@ static void check_mm(struct mm_struct *m
- #define allocate_mm()	(kmem_cache_alloc(mm_cachep, GFP_KERNEL))
- #define free_mm(mm)	(kmem_cache_free(mm_cachep, (mm)))
- 
-+static void do_shoot_lazy_tlb(void *arg)
-+{
-+	struct mm_struct *mm = arg;
-+
-+	if (current->active_mm == mm) {
-+		WARN_ON_ONCE(current->mm);
-+		current->active_mm = &init_mm;
-+		switch_mm(mm, &init_mm, current);
-+	}
-+}
-+
-+static void do_check_lazy_tlb(void *arg)
-+{
-+	struct mm_struct *mm = arg;
-+
-+	WARN_ON_ONCE(current->active_mm == mm);
-+}
-+
-+static void shoot_lazy_tlbs(struct mm_struct *mm)
-+{
-+	if (IS_ENABLED(CONFIG_MMU_LAZY_TLB_SHOOTDOWN)) {
-+		/*
-+		 * IPI overheads have not found to be expensive, but they could
-+		 * be reduced in a number of possible ways, for example (in
-+		 * roughly increasing order of complexity):
-+		 * - A batch of mms requiring IPIs could be gathered and freed
-+		 *   at once.
-+		 * - CPUs could store their active mm somewhere that can be
-+		 *   remotely checked without a lock, to filter out
-+		 *   false-positives in the cpumask.
-+		 * - After mm_users or mm_count reaches zero, switching away
-+		 *   from the mm could clear mm_cpumask to reduce some IPIs
-+		 *   (some batching or delaying would help).
-+		 * - A delayed freeing and RCU-like quiescing sequence based on
-+		 *   mm switching to avoid IPIs completely.
-+		 */
-+		on_each_cpu_mask(mm_cpumask(mm), do_shoot_lazy_tlb, (void *)mm, 1);
-+		if (IS_ENABLED(CONFIG_DEBUG_VM))
-+			on_each_cpu(do_check_lazy_tlb, (void *)mm, 1);
-+	} else {
-+		/*
-+		 * In this case, lazy tlb mms are refounted and would not reach
-+		 * __mmdrop until all CPUs have switched away and mmdrop()ed.
-+		 */
-+	}
-+}
-+
- /*
-  * Called when the last reference to the mm
-  * is dropped: either by a lazy thread or by
-@@ -683,6 +730,10 @@ void __mmdrop(struct mm_struct *mm)
- {
- 	BUG_ON(mm == &init_mm);
- 	WARN_ON_ONCE(mm == current->mm);
-+
-+	/* Ensure no CPUs are using this as their lazy tlb mm */
-+	shoot_lazy_tlbs(mm);
-+
- 	WARN_ON_ONCE(mm == current->active_mm);
- 	mm_free_pgd(mm);
- 	destroy_context(mm);
+--- a/arch/powerpc/Kconfig~powerpc-64s-enable-mmu_lazy_tlb_shootdown
++++ a/arch/powerpc/Kconfig
+@@ -253,6 +253,7 @@ config PPC
+ 	select IRQ_FORCED_THREADING
+ 	select MMU_GATHER_PAGE_SIZE
+ 	select MMU_GATHER_RCU_TABLE_FREE
++	select MMU_LAZY_TLB_SHOOTDOWN		if PPC_BOOK3S_64
+ 	select MODULES_USE_ELF_RELA
+ 	select NEED_DMA_MAP_STATE		if PPC64 || NOT_COHERENT_CACHE
+ 	select NEED_SG_DMA_LENGTH
 _
