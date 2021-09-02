@@ -4,31 +4,31 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FDF6C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05B05C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 700ED610E8
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCA6E610F9
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:51:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347591AbhIBVwU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:52:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43836 "EHLO mail.kernel.org"
+        id S234858AbhIBVwW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:52:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43908 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347585AbhIBVwM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1347588AbhIBVwM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 2 Sep 2021 17:52:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 166C5610A0;
-        Thu,  2 Sep 2021 21:51:10 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5EC36610A2;
+        Thu,  2 Sep 2021 21:51:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619470;
-        bh=iKCL9t0AJsfDaMp0Ws7YcAd+H0Cv9uhzY7W0KmNhbHw=;
+        s=korg; t=1630619473;
+        bh=HZn7D33SrH4jYcUvkbiT/tgLby7b4lj+Fvd6wQX7f4M=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=bJzqmpFANgMV6CxS9B1aPbtX0wzAZav5Zx3i/9mAek5LFBYMFOqbUG7/mfzY8chLc
-         BiSDldvjMGZTOK8Z4p+IaRei7nYyfyUpWcvGuZf7PLu0NSwKKd2qrvd0fdZch1suoR
-         ASeT5x9s0c1MjiEF6dEpwIIWlYvzEbiC8aRa3x2s=
-Date:   Thu, 02 Sep 2021 14:51:09 -0700
+        b=OIDkwsfnX/sFCtoGBrMb9/O8PoNqnCQfkNzFydZ1vKG90kWcJl0o/GM8CgrtNoE0Q
+         htXV+gNxm4kSBuyixGuvcpGCXYAbbyq9+/kbzTNKDv1/IyFA527ZV6OBZwfQ7IQ//N
+         jJSDbT5YSHOvKZ792MusIhWwX360ITzGamLjRleg=
+Date:   Thu, 02 Sep 2021 14:51:13 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         brouer@redhat.com, cl@linux.com, efault@gmx.de,
@@ -36,9 +36,9 @@ To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         mgorman@techsingularity.net, mm-commits@vger.kernel.org,
         penberg@kernel.org, rientjes@google.com, tglx@linutronix.de,
         torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 023/212] mm, slub: restore irqs around calling
- new_slab()
-Message-ID: <20210902215109.3qZclyA0Y%akpm@linux-foundation.org>
+Subject:  [patch 024/212] mm, slub: validate slab from partial list
+ or page allocator before making it cpu slab
+Message-ID: <20210902215113.Jm6aB8T5R%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,15 +47,17 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: restore irqs around calling new_slab()
+Subject: mm, slub: validate slab from partial list or page allocator before making it cpu slab
 
-allocate_slab() currently re-enables irqs before calling to the page
-allocator.  It depends on gfpflags_allow_blocking() to determine if it's
-safe to do so.  Now we can instead simply restore irq before calling it
-through new_slab().  The other caller early_kmem_cache_node_alloc() is
-unaffected by this.
+When we obtain a new slab page from node partial list or page allocator,
+we assign it to kmem_cache_cpu, perform some checks, and if they fail, we
+undo the assignment.
 
-Link: https://lkml.kernel.org/r/20210805152000.12817-16-vbabka@suse.cz
+In order to allow doing the checks without irq disabled, restructure the
+code so that the checks are done first, and kmem_cache_cpu.page assignment
+only after they pass.
+
+Link: https://lkml.kernel.org/r/20210805152000.12817-17-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -70,47 +72,65 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ mm/slub.c |   17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
 
---- a/mm/slub.c~mm-slub-restore-irqs-around-calling-new_slab
+--- a/mm/slub.c~mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab
 +++ a/mm/slub.c
-@@ -1795,9 +1795,6 @@ static struct page *allocate_slab(struct
+@@ -2788,10 +2788,8 @@ new_objects:
+ 	lockdep_assert_irqs_disabled();
  
- 	flags &= gfp_allowed_mask;
- 
--	if (gfpflags_allow_blocking(flags))
--		local_irq_enable();
--
- 	flags |= s->allocflags;
- 
- 	/*
-@@ -1856,8 +1853,6 @@ static struct page *allocate_slab(struct
- 	page->frozen = 1;
- 
- out:
--	if (gfpflags_allow_blocking(flags))
--		local_irq_disable();
- 	if (!page)
- 		return NULL;
- 
-@@ -2798,16 +2793,17 @@ new_objects:
+ 	freelist = get_partial(s, gfpflags, node, &page);
+-	if (freelist) {
+-		c->page = page;
++	if (freelist)
  		goto check_new_page;
- 	}
+-	}
  
-+	local_irq_restore(flags);
+ 	local_irq_restore(flags);
  	put_cpu_ptr(s->cpu_slab);
- 	page = new_slab(s, gfpflags, node);
- 	c = get_cpu_ptr(s->cpu_slab);
- 
- 	if (unlikely(!page)) {
--		local_irq_restore(flags);
- 		slab_out_of_memory(s, gfpflags, node);
- 		return NULL;
+@@ -2804,9 +2802,6 @@ new_objects:
  	}
  
-+	local_irq_save(flags);
- 	if (c->page)
- 		flush_slab(s, c);
+ 	local_irq_save(flags);
+-	if (c->page)
+-		flush_slab(s, c);
+-
+ 	/*
+ 	 * No other reference to the page yet so we can
+ 	 * muck around with it freely without cmpxchg
+@@ -2815,14 +2810,12 @@ new_objects:
+ 	page->freelist = NULL;
  
+ 	stat(s, ALLOC_SLAB);
+-	c->page = page;
+ 
+ check_new_page:
+ 
+ 	if (kmem_cache_debug(s)) {
+ 		if (!alloc_debug_processing(s, page, freelist, addr)) {
+ 			/* Slab failed checks. Next slab needed */
+-			c->page = NULL;
+ 			local_irq_restore(flags);
+ 			goto new_slab;
+ 		} else {
+@@ -2841,10 +2834,18 @@ check_new_page:
+ 		 */
+ 		goto return_single;
+ 
++	if (unlikely(c->page))
++		flush_slab(s, c);
++	c->page = page;
++
+ 	goto load_freelist;
+ 
+ return_single:
+ 
++	if (unlikely(c->page))
++		flush_slab(s, c);
++	c->page = page;
++
+ 	deactivate_slab(s, page, get_freepointer(s, freelist), c);
+ 	local_irq_restore(flags);
+ 	return freelist;
 _
