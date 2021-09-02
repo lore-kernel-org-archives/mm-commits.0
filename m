@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7520FC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EC7A3C43219
 	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5EF87603E9
+	by mail.kernel.org (Postfix) with ESMTP id D133C610E7
 	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347907AbhIBWAa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 18:00:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56230 "EHLO mail.kernel.org"
+        id S1347687AbhIBWAb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 18:00:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56354 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347971AbhIBWAT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 18:00:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4A1F46056B;
-        Thu,  2 Sep 2021 21:59:20 +0000 (UTC)
+        id S1347567AbhIBWA0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 18:00:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E7AF610A0;
+        Thu,  2 Sep 2021 21:59:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619960;
-        bh=HF4IYB4O3KQPgapm6PARej4Iu1WbhEoa65GPGK9Wkjg=;
+        s=korg; t=1630619967;
+        bh=xZpfLR+VnBCQKxkYuFG8+N2iHusfIyCWON8e/grx0a8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=D8BBFCpHUnD5bSpKP1J9FgSF43TRIwHmfi4nXX8tU3Y8R4uXWDuTlt3phde/M6J+A
-         1jDae/yya2sca/auN6ifoTqExuLgLSwXk0bCgYaV7BRbcoQcGTvzMqZapyuK6iTyCs
-         ipgiqplLZ4PKYsbz/n7UAF8zrNSaVf4uWZpl9MR4=
-Date:   Thu, 02 Sep 2021 14:59:19 -0700
+        b=vP7RDfsWqut26XtKWEMiRUYrE8MACUEl/W3/2R98K3Mn+qkacw0AYf4Zr7Sxi0TsJ
+         znVEQvuu1b1LixFFJxbgQe/5edFh5w6gh1WtMUfR8KCgtW3nFvnwJEIdlvwfGKfuqi
+         e5qGQTJXKWgPkc8UagpfQrDsAMtbi9p6Gts362DI=
+Date:   Thu, 02 Sep 2021 14:59:26 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
         dave.hansen@linux.intel.com, david@redhat.com, gthelen@google.com,
@@ -37,8 +37,9 @@ To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
         shy828301@gmail.com, torvalds@linux-foundation.org,
         weixugc@google.com, yang.shi@linux.alibaba.com,
         ying.huang@intel.com, ziy@nvidia.com
-Subject:  [patch 177/212] mm/vmscan: add page demotion counter
-Message-ID: <20210902215919.07ge1Ih1l%akpm@linux-foundation.org>
+Subject:  [patch 179/212] mm/vmscan: Consider anonymous pages
+ without swap
+Message-ID: <20210902215926.S9pXb3J9c%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,76 +47,119 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm/vmscan: add page demotion counter
+From: Keith Busch <kbusch@kernel.org>
+Subject: mm/vmscan: Consider anonymous pages without swap
 
-Account the number of demoted pages.
+Reclaim anonymous pages if a migration path is available now that demotion
+provides a non-swap recourse for reclaiming anon pages.
 
-Add pgdemote_kswapd and pgdemote_direct VM counters showed in
-/proc/vmstat.
+Note that this check is subtly different from the can_age_anon_pages()
+checks.  This mechanism checks whether a specific page in a specific
+context can actually be reclaimed, given current swap space and cgroup
+limits.
 
-[ daveh:
-   - __count_vm_events() a bit, and made them look at the THP
-     size directly rather than getting data from migrate_pages()
-]
+can_age_anon_pages() is a much simpler and more preliminary check which
+just says whether there is a possibility of future reclaim.
 
-Link: https://lkml.kernel.org/r/20210721063926.3024591-5-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-6-ying.huang@intel.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+[kbusch@kernel.org: v11]
+  Link: https://lkml.kernel.org/r/20210715055145.195411-8-ying.huang@intel.com
+  Link: https://lkml.kernel.org/r/20210721063926.3024591-7-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20210715055145.195411-8-ying.huang@intel.com
+Cc: Keith Busch <kbusch@kernel.org>
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Wei Xu <weixugc@google.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Wei Xu <weixugc@google.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Greg Thelen <gthelen@google.com>
-Cc: Keith Busch <kbusch@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    2 ++
- mm/vmscan.c                   |    5 +++++
- mm/vmstat.c                   |    2 ++
- 3 files changed, 9 insertions(+)
+ mm/vmscan.c |   34 ++++++++++++++++++++++++++++++----
+ 1 file changed, 30 insertions(+), 4 deletions(-)
 
---- a/include/linux/vm_event_item.h~mm-vmscan-add-page-demotion-counter
-+++ a/include/linux/vm_event_item.h
-@@ -33,6 +33,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGREUSE,
- 		PGSTEAL_KSWAPD,
- 		PGSTEAL_DIRECT,
-+		PGDEMOTE_KSWAPD,
-+		PGDEMOTE_DIRECT,
- 		PGSCAN_KSWAPD,
- 		PGSCAN_DIRECT,
- 		PGSCAN_DIRECT_THROTTLE,
---- a/mm/vmscan.c~mm-vmscan-add-page-demotion-counter
+--- a/mm/vmscan.c~mm-vmscan-consider-anonymous-pages-without-swap
 +++ a/mm/vmscan.c
-@@ -1318,6 +1318,11 @@ static unsigned int demote_page_list(str
- 			    target_nid, MIGRATE_ASYNC, MR_DEMOTION,
- 			    &nr_succeeded);
+@@ -524,7 +524,7 @@ static long add_nr_deferred(long nr, str
  
-+	if (current_is_kswapd())
-+		__count_vm_events(PGDEMOTE_KSWAPD, nr_succeeded);
-+	else
-+		__count_vm_events(PGDEMOTE_DIRECT, nr_succeeded);
-+
- 	return nr_succeeded;
+ static bool can_demote(int nid, struct scan_control *sc)
+ {
+-	if (sc->no_demotion)
++	if (sc && sc->no_demotion)
+ 		return false;
+ 	if (next_demotion_node(nid) == NUMA_NO_NODE)
+ 		return false;
+@@ -533,6 +533,31 @@ static bool can_demote(int nid, struct s
+ 	return false;
  }
  
---- a/mm/vmstat.c~mm-vmscan-add-page-demotion-counter
-+++ a/mm/vmstat.c
-@@ -1217,6 +1217,8 @@ const char * const vmstat_text[] = {
- 	"pgreuse",
- 	"pgsteal_kswapd",
- 	"pgsteal_direct",
-+	"pgdemote_kswapd",
-+	"pgdemote_direct",
- 	"pgscan_kswapd",
- 	"pgscan_direct",
- 	"pgscan_direct_throttle",
++static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
++					  int nid,
++					  struct scan_control *sc)
++{
++	if (memcg == NULL) {
++		/*
++		 * For non-memcg reclaim, is there
++		 * space in any swap device?
++		 */
++		if (get_nr_swap_pages() > 0)
++			return true;
++	} else {
++		/* Is the memcg below its swap limit? */
++		if (mem_cgroup_get_nr_swap_pages(memcg) > 0)
++			return true;
++	}
++
++	/*
++	 * The page can not be swapped.
++	 *
++	 * Can it be reclaimed from this node via demotion?
++	 */
++	return can_demote(nid, sc);
++}
++
+ /*
+  * This misses isolated pages which are not accounted for to save counters.
+  * As the data only determines if reclaim or compaction continues, it is
+@@ -544,7 +569,7 @@ unsigned long zone_reclaimable_pages(str
+ 
+ 	nr = zone_page_state_snapshot(zone, NR_ZONE_INACTIVE_FILE) +
+ 		zone_page_state_snapshot(zone, NR_ZONE_ACTIVE_FILE);
+-	if (get_nr_swap_pages() > 0)
++	if (can_reclaim_anon_pages(NULL, zone_to_nid(zone), NULL))
+ 		nr += zone_page_state_snapshot(zone, NR_ZONE_INACTIVE_ANON) +
+ 			zone_page_state_snapshot(zone, NR_ZONE_ACTIVE_ANON);
+ 
+@@ -2541,6 +2566,7 @@ enum scan_balance {
+ static void get_scan_count(struct lruvec *lruvec, struct scan_control *sc,
+ 			   unsigned long *nr)
+ {
++	struct pglist_data *pgdat = lruvec_pgdat(lruvec);
+ 	struct mem_cgroup *memcg = lruvec_memcg(lruvec);
+ 	unsigned long anon_cost, file_cost, total_cost;
+ 	int swappiness = mem_cgroup_swappiness(memcg);
+@@ -2551,7 +2577,7 @@ static void get_scan_count(struct lruvec
+ 	enum lru_list lru;
+ 
+ 	/* If we have no swap space, do not bother scanning anon pages. */
+-	if (!sc->may_swap || mem_cgroup_get_nr_swap_pages(memcg) <= 0) {
++	if (!sc->may_swap || !can_reclaim_anon_pages(memcg, pgdat->node_id, sc)) {
+ 		scan_balance = SCAN_FILE;
+ 		goto out;
+ 	}
+@@ -2929,7 +2955,7 @@ static inline bool should_continue_recla
+ 	 */
+ 	pages_for_compaction = compact_gap(sc->order);
+ 	inactive_lru_pages = node_page_state(pgdat, NR_INACTIVE_FILE);
+-	if (get_nr_swap_pages() > 0)
++	if (can_reclaim_anon_pages(NULL, pgdat->node_id, sc))
+ 		inactive_lru_pages += node_page_state(pgdat, NR_INACTIVE_ANON);
+ 
+ 	return inactive_lru_pages > pages_for_compaction;
 _
