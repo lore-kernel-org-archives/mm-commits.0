@@ -7,36 +7,40 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7851C43217
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 54C7AC433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2C8560FA0
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4270E610A1
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347931AbhIBV5f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:57:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52528 "EHLO mail.kernel.org"
+        id S1347865AbhIBV5i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:57:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52596 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347857AbhIBV5W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:57:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B6E0B60FA0;
-        Thu,  2 Sep 2021 21:56:23 +0000 (UTC)
+        id S1347902AbhIBV50 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:57:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EDDF5603E9;
+        Thu,  2 Sep 2021 21:56:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619784;
-        bh=bCE7NNfDEhX/wMSn/cKTxG6/nid5HiGDS8fDsrV2v5c=;
+        s=korg; t=1630619787;
+        bh=71JLXr1/MwNuL+BGYFCmVcS0u+kTqhsa6mapkMlasbs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=q+Mwso2hdaP3jgpi+wYTB9B6XSzyOh+rMAyId1HKy2kDi8sFiWLsjB+g8skip9huU
-         ohjwK3Hmx7HjyuKaKuJR1grW0SqFdghysfU1Wjt+kmrqhJ23LDMj1QVKPr+Y6UwO7/
-         pDXZ9sKOe9g11xC+u5l5o5YXECn8ptUoSG5qz8l4=
-Date:   Thu, 02 Sep 2021 14:56:23 -0700
+        b=WlyjoCrFbNyL7AU5Egj/m6WB++Zk/xzJmDOnsiSIcUMgH0sCfpQ0onX0uAobsS6Tg
+         CniMBJUEff0Ck/SXw1wuqKPs6q7PTTko1PSNwasPBCP0Dg/DpAPi23WTIqp9rfD7d2
+         /u7pHAHr5Od9t/v7/w4+Q0TbXFsX88oTXipHJ/5Y=
+Date:   Thu, 02 Sep 2021 14:56:26 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anton@ozlabs.org,
-        benh@kernel.crashing.org, linux-mm@kvack.org, luto@kernel.org,
-        mm-commits@vger.kernel.org, npiggin@gmail.com, paulus@ozlabs.org,
-        rdunlap@infradead.org, torvalds@linux-foundation.org
-Subject:  [patch 120/212] powerpc/64s: enable
- MMU_LAZY_TLB_SHOOTDOWN
-Message-ID: <20210902215623.-DcHgDyto%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alexs@kernel.org, dalias@libc.org,
+        deanbo422@gmail.com, deller@gmx.de, geoff@infradead.org,
+        green.hu@gmail.com, guoren@kernel.org, hch@lst.de,
+        James.Bottomley@HansenPartnership.com, linux-mm@kvack.org,
+        linux@armlinux.org.uk, mm-commits@vger.kernel.org,
+        nickhu@andestech.com, paul@crapouillou.net,
+        torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
+        ulf.hansson@linaro.org, ysato@users.osdn.me
+Subject:  [patch 121/212] mmc: JZ4740: remove the
+ flush_kernel_dcache_page call in jz4740_mmc_read_data
+Message-ID: <20210902215626.XuZ8S-pvO%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,69 +48,68 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: powerpc/64s: enable MMU_LAZY_TLB_SHOOTDOWN
+From: Christoph Hellwig <hch@lst.de>
+Subject: mmc: JZ4740: remove the flush_kernel_dcache_page call in jz4740_mmc_read_data
 
-On a 16-socket 192-core POWER8 system, a context switching benchmark
-with as many software threads as CPUs (so each switch will go in and
-out of idle), upstream can achieve a rate of about 1 million context
-switches per second. After this patch it goes up to 118 million.
+Patch series "_kernel_dcache_page fixes and removal".
 
-No real datya for real world workloads unfortunately.  I think it's
-always been a "known" cacheline, it just showed up badly on
-will-it-scale tests recently when Anton was doing a sweep of low
-hanging scalability issues on big systems.
+While looking to convert the block layer away from kmap_atomic towards
+kmap_local_page and prefeably the helpers that abstract it away I noticed
+that a few block drivers directly or implicitly call
+flush_kernel_dcache_page before kunmapping a page that has been written
+to.
 
-We have some very big systems running certain in-memory databases that
-get into very high contention conditions on mutexes that push context
-switch rates right up and with idle times pretty high, which would get
-a lot of parallel context switching between user and idle thread, we
-might be getting a bit of this contention there.
-
-It's not something at the top of profiles though.  And on
-multi-threaded workloads like this, the normal refcounting of the user
-mm still has fundmaental contention.  It's tricky to get the change
-tested on these workloads (machine time is very limited and I can't
-drive the software).
-
-I suspect it could also show in things that do high net or disk IO
-rates (enough to need a lot of cores), and do some user processing
-steps along the way.  You'd potentially get a lot of idle switching.
+flush_kernel_dcache_page is documented to to be used in such cases, but
+flush_dcache_page is actually required when the page could be in the page
+cache and mapped to userspace, which is pretty much always the case when
+kmapping an arbitrary page.  Unfortunately the documentation doesn't
+exactly make that clear, which lead to this misused.  And it turns out
+that only the copy_strings / copy_string_kernel in the exec code were
+actually correct users of flush_kernel_dcache_page, which is why I think
+we should just remove it and eat the very minor overhead in exec rather
+than confusing poor driver writers.
 
 
-This infrastructure could be beneficial to other architectures.  The
-cacheline is going to bounce in the same situations on other archs, so
-I would say yes.  Rik at one stage had some patches to try avoid it for
-x86 some years ago, I don't know what happened to those.
+This patch (of 6):
 
-The way powerpc has to maintain mm_cpumask for its TLB flushing makes
-it relatively easy to do this shootdown, and we decided the additional
-IPIs were less of a concern than the bouncing.  Others have different
-concerns, but I tried to make it generic and add comments explaining
-what other archs can do, or possibly different ways it might be
-achieved.
+MIPS now implements flush_kernel_dcache_page (as an alias to
+flush_dcache_page).
 
-Link: https://lkml.kernel.org/r/20210605014216.446867-5-npiggin@gmail.com
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Anton Blanchard <anton@ozlabs.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20210712060928.4161649-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20210712060928.4161649-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Nick Hu <nickhu@andestech.com>
+Cc: Greentime Hu <green.hu@gmail.com>
+Cc: Vincent Chen <deanbo422@gmail.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Yoshinori Sato <ysato@users.osdn.me>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Geoff Levand <geoff@infradead.org>
+Cc: Paul Cercueil <paul@crapouillou.net>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Alex Shi <alexs@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/mmc/host/jz4740_mmc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
---- a/arch/powerpc/Kconfig~powerpc-64s-enable-mmu_lazy_tlb_shootdown
-+++ a/arch/powerpc/Kconfig
-@@ -253,6 +253,7 @@ config PPC
- 	select IRQ_FORCED_THREADING
- 	select MMU_GATHER_PAGE_SIZE
- 	select MMU_GATHER_RCU_TABLE_FREE
-+	select MMU_LAZY_TLB_SHOOTDOWN		if PPC_BOOK3S_64
- 	select MODULES_USE_ELF_RELA
- 	select NEED_DMA_MAP_STATE		if PPC64 || NOT_COHERENT_CACHE
- 	select NEED_SG_DMA_LENGTH
+--- a/drivers/mmc/host/jz4740_mmc.c~mmc-jz4740-remove-the-flush_kernel_dcache_page-call-in-jz4740_mmc_read_data
++++ a/drivers/mmc/host/jz4740_mmc.c
+@@ -578,10 +578,6 @@ static bool jz4740_mmc_read_data(struct
+ 			}
+ 		}
+ 		data->bytes_xfered += miter->length;
+-
+-		/* This can go away once MIPS implements
+-		 * flush_kernel_dcache_page */
+-		flush_dcache_page(miter->page);
+ 	}
+ 	sg_miter_stop(miter);
+ 
 _
