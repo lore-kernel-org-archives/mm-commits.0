@@ -7,36 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0180C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E3C6C4167B
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6006610D2
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BD98610D2
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:53:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347822AbhIBVyr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1347823AbhIBVyr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 2 Sep 2021 17:54:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48550 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:48058 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347574AbhIBVyl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:54:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B12FA61106;
-        Thu,  2 Sep 2021 21:53:42 +0000 (UTC)
+        id S1347727AbhIBVyo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:54:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B5F98610A2;
+        Thu,  2 Sep 2021 21:53:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619623;
-        bh=Xjg05lUJFJney2qTQhTkKV7hezBsNAoulLyBLwKadVA=;
+        s=korg; t=1630619626;
+        bh=6JZSgG/1Cc6cC7JLrfjbC8YPtOtg1nVaTRX08D6/drI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oqFsVpdaoLFpVfKz4W2nLiFKMpW63IQfkdSV/xEKasj/xztfo6p2ofkGFV1VE7mh+
-         BVjgZn40vebPhxZEfHv0okOyTuYyRRMkXQZUCfZpai7QWhZi0HRbciw/OCN1/uZmNT
-         bONWBjpK0mnvc0cQH0NCmmsSjj9uCBOY4yz7AT7g=
-Date:   Thu, 02 Sep 2021 14:53:42 -0700
+        b=euKJXObnoXehB1leMP7Oq2dcg39PZgmuheIcwSyUhZ0kxXuvxeYgo7Q5qWqFXsQ8i
+         8cR3Ce1SKlmC4/N88oZ58sptLEP/k/MlgA56To0tokyut9pbP+oNXfz/OOiE57uls2
+         9lXdI37FSQ9qibtBeYPA3rTb36td16vDCUx6/jHY=
+Date:   Thu, 02 Sep 2021 14:53:45 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, imbrenda@linux.ibm.com, jack@suse.cz,
-        jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
-        linmiaohe@huawei.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 071/212] mm: gup: fix potential pgmap refcnt leak
- in __gup_device_huge()
-Message-ID: <20210902215342.RcyFEb0qQ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, david@redhat.com,
+        imbrenda@linux.ibm.com, jack@suse.cz, jhubbard@nvidia.com,
+        kirill.shutemov@linux.intel.com, linmiaohe@huawei.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 072/212] mm: gup: use helper PAGE_ALIGNED in
+ populate_vma_page_range()
+Message-ID: <20210902215345.YsVmhY1GZ%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,63 +46,35 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: gup: fix potential pgmap refcnt leak in __gup_device_huge()
+Subject: mm: gup: use helper PAGE_ALIGNED in populate_vma_page_range()
 
-When failed to try_grab_page, put_dev_pagemap() is missed.  So pgmap
-refcnt will leak in this case.  Also we remove the check for pgmap against
-NULL as it's also checked inside the put_dev_pagemap().
+Use helper PAGE_ALIGNED to check if address is aligned to PAGE_SIZE. 
+Minor readability improvement.
 
-[akpm@linux-foundation.org: simplify, cleanup]
-[akpm@linux-foundation.org: fix return value]
-Link: https://lkml.kernel.org/r/20210807093620.21347-5-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210807093620.21347-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Fixes: 3faa52c03f44 ("mm/gup: track FOLL_PIN pages")
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/gup.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge
+--- a/mm/gup.c~mm-gup-use-helper-page_aligned-in-populate_vma_page_range
 +++ a/mm/gup.c
-@@ -2240,6 +2240,7 @@ static int __gup_device_huge(unsigned lo
- {
- 	int nr_start = *nr;
- 	struct dev_pagemap *pgmap = NULL;
-+	int ret = 1;
+@@ -1471,8 +1471,8 @@ long populate_vma_page_range(struct vm_a
+ 	unsigned long nr_pages = (end - start) / PAGE_SIZE;
+ 	int gup_flags;
  
- 	do {
- 		struct page *page = pfn_to_page(pfn);
-@@ -2247,21 +2248,22 @@ static int __gup_device_huge(unsigned lo
- 		pgmap = get_dev_pagemap(pfn, pgmap);
- 		if (unlikely(!pgmap)) {
- 			undo_dev_pagemap(nr, nr_start, flags, pages);
--			return 0;
-+			ret = 0;
-+			break;
- 		}
- 		SetPageReferenced(page);
- 		pages[*nr] = page;
- 		if (unlikely(!try_grab_page(page, flags))) {
- 			undo_dev_pagemap(nr, nr_start, flags, pages);
--			return 0;
-+			ret = 0;
-+			break;
- 		}
- 		(*nr)++;
- 		pfn++;
- 	} while (addr += PAGE_SIZE, addr != end);
- 
--	if (pgmap)
--		put_dev_pagemap(pgmap);
--	return 1;
-+	put_dev_pagemap(pgmap);
-+	return ret;
- }
- 
- static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+-	VM_BUG_ON(start & ~PAGE_MASK);
+-	VM_BUG_ON(end   & ~PAGE_MASK);
++	VM_BUG_ON(!PAGE_ALIGNED(start));
++	VM_BUG_ON(!PAGE_ALIGNED(end));
+ 	VM_BUG_ON_VMA(start < vma->vm_start, vma);
+ 	VM_BUG_ON_VMA(end   > vma->vm_end, vma);
+ 	mmap_assert_locked(mm);
 _
