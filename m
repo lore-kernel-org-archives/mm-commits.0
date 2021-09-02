@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78769C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CC26C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 65AD06056B
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26E696056B
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:59:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347870AbhIBWA3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 18:00:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56096 "EHLO mail.kernel.org"
+        id S1347564AbhIBWAa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 18:00:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56162 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347946AbhIBWAM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 18:00:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 806E460FA0;
-        Thu,  2 Sep 2021 21:59:13 +0000 (UTC)
+        id S1347907AbhIBWAR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 18:00:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E896660E8B;
+        Thu,  2 Sep 2021 21:59:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619954;
-        bh=qOxtHZHW3LKOJ8+IiE4XH5bRlwUane3lXAJ58VCBuys=;
+        s=korg; t=1630619957;
+        bh=XhTxat4L1X/USXOMMoHIxswhWcd5JXvXKvyNv4/2RPs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ApYqw4YGsFE4aYa7V4zW3qvxZU7vjSePZonuUqhbS3lGWqqIsA1OSMBC0nSyquutR
-         Mcf3v4VgQVlukh0Znr1mFxU6BVSQc6cUO+w9XQHN4TXG2ITlxlEu2Ts6orl8kEq0eU
-         bkB7M7V1+9lyemjeOTZB3JwhpXAnIfLz/VlDK8do=
-Date:   Thu, 02 Sep 2021 14:59:13 -0700
+        b=QIM2mRTXgUvBq6+ZXqC9Z/KiFg1Fx9XSB2jLHhLfxCPa28zAr7etPIiEoJhkdIY3t
+         pGq7rl5pEvGR+E07U2KLkoUGJJlTTzuIRMTy9GULXJuiwlNxAGgYRTPM1tz1FA5VqZ
+         p5pwX4mtK0O0piOFluAQbd+H4nt3u3qQgMzvRL+w=
+Date:   Thu, 02 Sep 2021 14:59:16 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
         dave.hansen@linux.intel.com, david@redhat.com, gthelen@google.com,
         kbusch@kernel.org, linux-mm@kvack.org, mhocko@suse.com,
         mm-commits@vger.kernel.org, osalvador@suse.de, rientjes@google.com,
         shy828301@gmail.com, torvalds@linux-foundation.org,
-        weixugc@google.com, yang.shi@linux.alibaba.com,
-        ying.huang@intel.com, ziy@nvidia.com
-Subject:  [patch 175/212] mm/migrate: enable returning precise
- migrate_pages() success count
-Message-ID: <20210902215913.jUtIM9X-8%akpm@linux-foundation.org>
+        weixugc@google.com, ying.huang@intel.com, ziy@nvidia.com
+Subject:  [patch 176/212] mm/migrate: demote pages during reclaim
+Message-ID: <20210902215916.mND1SEmQd%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,188 +45,240 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm/migrate: enable returning precise migrate_pages() success count
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm/migrate: demote pages during reclaim
 
-Under normal circumstances, migrate_pages() returns the number of pages
-migrated.  In error conditions, it returns an error code.  When returning
-an error code, there is no way to know how many pages were migrated or not
-migrated.
+This is mostly derived from a patch from Yang Shi:
 
-Make migrate_pages() return how many pages are demoted successfully for
-all cases, including when encountering errors.  Page reclaim behavior will
-depend on this in subsequent patches.
+	https://lore.kernel.org/linux-mm/1560468577-101178-10-git-send-email-yang.shi@linux.alibaba.com/
 
-Link: https://lkml.kernel.org/r/20210721063926.3024591-3-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-4-ying.huang@intel.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+Add code to the reclaim path (shrink_page_list()) to "demote" data to
+another NUMA node instead of discarding the data.  This always avoids the
+cost of I/O needed to read the page back in and sometimes avoids the
+writeout cost when the page is dirty.
+
+A second pass through shrink_page_list() will be made if any demotions
+fail.  This essentially falls back to normal reclaim behavior in the case
+that demotions fail.  Previous versions of this patch may have simply
+failed to reclaim pages which were eligible for demotion but were unable
+to be demoted in practice.
+
+For some cases, for example, MADV_PAGEOUT, the pages are always discarded
+instead of demoted to follow the kernel API definition.  Because
+MADV_PAGEOUT is defined as freeing specified pages regardless in which
+tier they are.
+
+Note: This just adds the start of infrastructure for migration.  It is
+actually disabled next to the FIXME in migrate_demote_page_ok().
+
+[dave.hansen@linux.intel.com: v11]
+  Link: https://lkml.kernel.org/r/20210715055145.195411-5-ying.huang@intel.com
+  Link: https://lkml.kernel.org/r/20210721063926.3024591-4-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20210715055145.195411-5-ying.huang@intel.com
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Suggested-by: Oscar Salvador <osalvador@suse.de> [optional parameter]
 Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Wei Xu <weixugc@google.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Wei Xu <weixugc@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: Keith Busch <kbusch@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    5 +++--
- mm/compaction.c         |    2 +-
- mm/gup.c                |    2 +-
- mm/memory-failure.c     |    2 +-
- mm/memory_hotplug.c     |    2 +-
- mm/mempolicy.c          |    4 ++--
- mm/migrate.c            |   11 ++++++++---
- mm/page_alloc.c         |    2 +-
- 8 files changed, 18 insertions(+), 12 deletions(-)
+ include/linux/migrate.h        |    9 +++
+ include/trace/events/migrate.h |    3 -
+ mm/vmscan.c                    |   85 +++++++++++++++++++++++++++++++
+ 3 files changed, 96 insertions(+), 1 deletion(-)
 
---- a/include/linux/migrate.h~mm-migrate-enable-returning-precise-migrate_pages-success-count
+--- a/include/linux/migrate.h~mm-migrate-demote-pages-during-reclaim
 +++ a/include/linux/migrate.h
-@@ -41,7 +41,8 @@ extern int migrate_page(struct address_s
- 			struct page *newpage, struct page *page,
- 			enum migrate_mode mode);
- extern int migrate_pages(struct list_head *l, new_page_t new, free_page_t free,
--		unsigned long private, enum migrate_mode mode, int reason);
-+		unsigned long private, enum migrate_mode mode, int reason,
-+		unsigned int *ret_succeeded);
- extern struct page *alloc_migration_target(struct page *page, unsigned long private);
- extern int isolate_movable_page(struct page *page, isolate_mode_t mode);
+@@ -28,6 +28,7 @@ enum migrate_reason {
+ 	MR_NUMA_MISPLACED,
+ 	MR_CONTIG_RANGE,
+ 	MR_LONGTERM_PIN,
++	MR_DEMOTION,
+ 	MR_TYPES
+ };
  
-@@ -56,7 +57,7 @@ extern int migrate_page_move_mapping(str
- static inline void putback_movable_pages(struct list_head *l) {}
- static inline int migrate_pages(struct list_head *l, new_page_t new,
- 		free_page_t free, unsigned long private, enum migrate_mode mode,
--		int reason)
-+		int reason, unsigned int *ret_succeeded)
- 	{ return -ENOSYS; }
- static inline struct page *alloc_migration_target(struct page *page,
- 		unsigned long private)
---- a/mm/compaction.c~mm-migrate-enable-returning-precise-migrate_pages-success-count
-+++ a/mm/compaction.c
-@@ -2398,7 +2398,7 @@ compact_zone(struct compact_control *cc,
- 
- 		err = migrate_pages(&cc->migratepages, compaction_alloc,
- 				compaction_free, (unsigned long)cc, cc->mode,
--				MR_COMPACTION);
-+				MR_COMPACTION, NULL);
- 
- 		trace_mm_compaction_migratepages(cc->nr_migratepages, err,
- 							&cc->migratepages);
---- a/mm/gup.c~mm-migrate-enable-returning-precise-migrate_pages-success-count
-+++ a/mm/gup.c
-@@ -1772,7 +1772,7 @@ static long check_and_migrate_movable_pa
- 	if (!list_empty(&movable_page_list)) {
- 		ret = migrate_pages(&movable_page_list, alloc_migration_target,
- 				    NULL, (unsigned long)&mtc, MIGRATE_SYNC,
--				    MR_LONGTERM_PIN);
-+				    MR_LONGTERM_PIN, NULL);
- 		if (ret && !list_empty(&movable_page_list))
- 			putback_movable_pages(&movable_page_list);
- 	}
---- a/mm/memory-failure.c~mm-migrate-enable-returning-precise-migrate_pages-success-count
-+++ a/mm/memory-failure.c
-@@ -2099,7 +2099,7 @@ static int __soft_offline_page(struct pa
- 
- 	if (isolate_page(hpage, &pagelist)) {
- 		ret = migrate_pages(&pagelist, alloc_migration_target, NULL,
--			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_FAILURE);
-+			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_FAILURE, NULL);
- 		if (!ret) {
- 			bool release = !huge;
- 
---- a/mm/memory_hotplug.c~mm-migrate-enable-returning-precise-migrate_pages-success-count
-+++ a/mm/memory_hotplug.c
-@@ -1469,7 +1469,7 @@ do_migrate_range(unsigned long start_pfn
- 		if (nodes_empty(nmask))
- 			node_set(mtc.nid, nmask);
- 		ret = migrate_pages(&source, alloc_migration_target, NULL,
--			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_HOTPLUG);
-+			(unsigned long)&mtc, MIGRATE_SYNC, MR_MEMORY_HOTPLUG, NULL);
- 		if (ret) {
- 			list_for_each_entry(page, &source, lru) {
- 				if (__ratelimit(&migrate_rs)) {
---- a/mm/mempolicy.c~mm-migrate-enable-returning-precise-migrate_pages-success-count
-+++ a/mm/mempolicy.c
-@@ -1084,7 +1084,7 @@ static int migrate_to_node(struct mm_str
- 
- 	if (!list_empty(&pagelist)) {
- 		err = migrate_pages(&pagelist, alloc_migration_target, NULL,
--				(unsigned long)&mtc, MIGRATE_SYNC, MR_SYSCALL);
-+				(unsigned long)&mtc, MIGRATE_SYNC, MR_SYSCALL, NULL);
- 		if (err)
- 			putback_movable_pages(&pagelist);
- 	}
-@@ -1338,7 +1338,7 @@ static long do_mbind(unsigned long start
- 		if (!list_empty(&pagelist)) {
- 			WARN_ON_ONCE(flags & MPOL_MF_LAZY);
- 			nr_failed = migrate_pages(&pagelist, new_page, NULL,
--				start, MIGRATE_SYNC, MR_MEMPOLICY_MBIND);
-+				start, MIGRATE_SYNC, MR_MEMPOLICY_MBIND, NULL);
- 			if (nr_failed)
- 				putback_movable_pages(&pagelist);
- 		}
---- a/mm/migrate.c~mm-migrate-enable-returning-precise-migrate_pages-success-count
-+++ a/mm/migrate.c
-@@ -1429,6 +1429,8 @@ static inline int try_split_thp(struct p
-  * @mode:		The migration mode that specifies the constraints for
-  *			page migration, if any.
-  * @reason:		The reason for page migration.
-+ * @ret_succeeded:	Set to the number of pages migrated successfully if
-+ *			the caller passes a non-NULL pointer.
-  *
-  * The function returns after 10 attempts or if no pages are movable any more
-  * because the list has become empty or no retryable pages exist any more.
-@@ -1439,7 +1441,7 @@ static inline int try_split_thp(struct p
-  */
- int migrate_pages(struct list_head *from, new_page_t get_new_page,
- 		free_page_t put_new_page, unsigned long private,
--		enum migrate_mode mode, int reason)
-+		enum migrate_mode mode, int reason, unsigned int *ret_succeeded)
- {
- 	int retry = 1;
- 	int thp_retry = 1;
-@@ -1594,6 +1596,9 @@ out:
- 	if (!swapwrite)
- 		current->flags &= ~PF_SWAPWRITE;
- 
-+	if (ret_succeeded)
-+		*ret_succeeded = nr_succeeded;
+@@ -167,6 +168,14 @@ struct migrate_vma {
+ int migrate_vma_setup(struct migrate_vma *args);
+ void migrate_vma_pages(struct migrate_vma *migrate);
+ void migrate_vma_finalize(struct migrate_vma *migrate);
++int next_demotion_node(int node);
 +
- 	return rc;
++#else /* CONFIG_MIGRATION disabled: */
++
++static inline int next_demotion_node(int node)
++{
++	return NUMA_NO_NODE;
++}
+ 
+ #endif /* CONFIG_MIGRATION */
+ 
+--- a/include/trace/events/migrate.h~mm-migrate-demote-pages-during-reclaim
++++ a/include/trace/events/migrate.h
+@@ -21,7 +21,8 @@
+ 	EM( MR_MEMPOLICY_MBIND,	"mempolicy_mbind")		\
+ 	EM( MR_NUMA_MISPLACED,	"numa_misplaced")		\
+ 	EM( MR_CONTIG_RANGE,	"contig_range")			\
+-	EMe(MR_LONGTERM_PIN,	"longterm_pin")
++	EM( MR_LONGTERM_PIN,	"longterm_pin")			\
++	EMe(MR_DEMOTION,	"demotion")
+ 
+ /*
+  * First define the enums in the above macros to be exported to userspace
+--- a/mm/vmscan.c~mm-migrate-demote-pages-during-reclaim
++++ a/mm/vmscan.c
+@@ -41,6 +41,7 @@
+ #include <linux/kthread.h>
+ #include <linux/freezer.h>
+ #include <linux/memcontrol.h>
++#include <linux/migrate.h>
+ #include <linux/delayacct.h>
+ #include <linux/sysctl.h>
+ #include <linux/oom.h>
+@@ -121,6 +122,9 @@ struct scan_control {
+ 	/* The file pages on the current node are dangerously low */
+ 	unsigned int file_is_tiny:1;
+ 
++	/* Always discard instead of demoting to lower tier memory */
++	unsigned int no_demotion:1;
++
+ 	/* Allocation order */
+ 	s8 order;
+ 
+@@ -518,6 +522,17 @@ static long add_nr_deferred(long nr, str
+ 	return atomic_long_add_return(nr, &shrinker->nr_deferred[nid]);
  }
  
-@@ -1663,7 +1668,7 @@ static int do_move_pages_to_node(struct
- 	};
++static bool can_demote(int nid, struct scan_control *sc)
++{
++	if (sc->no_demotion)
++		return false;
++	if (next_demotion_node(nid) == NUMA_NO_NODE)
++		return false;
++
++	// FIXME: actually enable this later in the series
++	return false;
++}
++
+ /*
+  * This misses isolated pages which are not accounted for to save counters.
+  * As the data only determines if reclaim or compaction continues, it is
+@@ -1263,6 +1278,49 @@ static void page_check_dirty_writeback(s
+ 		mapping->a_ops->is_dirty_writeback(page, dirty, writeback);
+ }
  
- 	err = migrate_pages(pagelist, alloc_migration_target, NULL,
--			(unsigned long)&mtc, MIGRATE_SYNC, MR_SYSCALL);
-+		(unsigned long)&mtc, MIGRATE_SYNC, MR_SYSCALL, NULL);
- 	if (err)
- 		putback_movable_pages(pagelist);
- 	return err;
-@@ -2178,7 +2183,7 @@ int migrate_misplaced_page(struct page *
++static struct page *alloc_demote_page(struct page *page, unsigned long node)
++{
++	struct migration_target_control mtc = {
++		/*
++		 * Allocate from 'node', or fail quickly and quietly.
++		 * When this happens, 'page' will likely just be discarded
++		 * instead of migrated.
++		 */
++		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) |
++			    __GFP_THISNODE  | __GFP_NOWARN |
++			    __GFP_NOMEMALLOC | GFP_NOWAIT,
++		.nid = node
++	};
++
++	return alloc_migration_target(page, (unsigned long)&mtc);
++}
++
++/*
++ * Take pages on @demote_list and attempt to demote them to
++ * another node.  Pages which are not demoted are left on
++ * @demote_pages.
++ */
++static unsigned int demote_page_list(struct list_head *demote_pages,
++				     struct pglist_data *pgdat)
++{
++	int target_nid = next_demotion_node(pgdat->node_id);
++	unsigned int nr_succeeded;
++	int err;
++
++	if (list_empty(demote_pages))
++		return 0;
++
++	if (target_nid == NUMA_NO_NODE)
++		return 0;
++
++	/* Demotion ignores all cpuset and mempolicy settings */
++	err = migrate_pages(demote_pages, alloc_demote_page, NULL,
++			    target_nid, MIGRATE_ASYNC, MR_DEMOTION,
++			    &nr_succeeded);
++
++	return nr_succeeded;
++}
++
+ /*
+  * shrink_page_list() returns the number of reclaimed pages
+  */
+@@ -1274,12 +1332,16 @@ static unsigned int shrink_page_list(str
+ {
+ 	LIST_HEAD(ret_pages);
+ 	LIST_HEAD(free_pages);
++	LIST_HEAD(demote_pages);
+ 	unsigned int nr_reclaimed = 0;
+ 	unsigned int pgactivate = 0;
++	bool do_demote_pass;
  
- 	list_add(&page->lru, &migratepages);
- 	nr_remaining = migrate_pages(&migratepages, *new, NULL, node,
--				     MIGRATE_ASYNC, MR_NUMA_MISPLACED);
-+				     MIGRATE_ASYNC, MR_NUMA_MISPLACED, NULL);
- 	if (nr_remaining) {
- 		if (!list_empty(&migratepages)) {
- 			list_del(&page->lru);
---- a/mm/page_alloc.c~mm-migrate-enable-returning-precise-migrate_pages-success-count
-+++ a/mm/page_alloc.c
-@@ -8990,7 +8990,7 @@ static int __alloc_contig_migrate_range(
- 		cc->nr_migratepages -= nr_reclaimed;
+ 	memset(stat, 0, sizeof(*stat));
+ 	cond_resched();
++	do_demote_pass = can_demote(pgdat->node_id, sc);
  
- 		ret = migrate_pages(&cc->migratepages, alloc_migration_target,
--				NULL, (unsigned long)&mtc, cc->mode, MR_CONTIG_RANGE);
-+			NULL, (unsigned long)&mtc, cc->mode, MR_CONTIG_RANGE, NULL);
++retry:
+ 	while (!list_empty(page_list)) {
+ 		struct address_space *mapping;
+ 		struct page *page;
+@@ -1429,6 +1491,17 @@ static unsigned int shrink_page_list(str
+ 		}
  
  		/*
- 		 * On -ENOMEM, migrate_pages() bails out right away. It is pointless
++		 * Before reclaiming the page, try to relocate
++		 * its contents to another node.
++		 */
++		if (do_demote_pass &&
++		    (thp_migration_supported() || !PageTransHuge(page))) {
++			list_add(&page->lru, &demote_pages);
++			unlock_page(page);
++			continue;
++		}
++
++		/*
+ 		 * Anonymous process memory has backing store?
+ 		 * Try to allocate it some swap space here.
+ 		 * Lazyfree page could be freed directly
+@@ -1679,6 +1752,17 @@ keep:
+ 		list_add(&page->lru, &ret_pages);
+ 		VM_BUG_ON_PAGE(PageLRU(page) || PageUnevictable(page), page);
+ 	}
++	/* 'page_list' is always empty here */
++
++	/* Migrate pages selected for demotion */
++	nr_reclaimed += demote_page_list(&demote_pages, pgdat);
++	/* Pages that could not be demoted are still in @demote_pages */
++	if (!list_empty(&demote_pages)) {
++		/* Pages which failed to demoted go back on @page_list for retry: */
++		list_splice_init(&demote_pages, page_list);
++		do_demote_pass = false;
++		goto retry;
++	}
+ 
+ 	pgactivate = stat->nr_activate[0] + stat->nr_activate[1];
+ 
+@@ -2326,6 +2410,7 @@ unsigned long reclaim_pages(struct list_
+ 		.may_writepage = 1,
+ 		.may_unmap = 1,
+ 		.may_swap = 1,
++		.no_demotion = 1,
+ 	};
+ 
+ 	noreclaim_flag = memalloc_noreclaim_save();
 _
