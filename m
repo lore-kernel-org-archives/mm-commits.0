@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6AD8C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01DADC433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D4E62610A0
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E0E55610A0
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347546AbhIBVvI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:51:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42330 "EHLO mail.kernel.org"
+        id S1347539AbhIBVvL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:51:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42454 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347542AbhIBVvH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:51:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7033460F12;
-        Thu,  2 Sep 2021 21:50:08 +0000 (UTC)
+        id S1347550AbhIBVvK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:51:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9060E60F12;
+        Thu,  2 Sep 2021 21:50:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619408;
-        bh=YqpD/Cl6ZNTOkVlJ/6jyo9Hkr9GNkzKDIbscGSsGPpc=;
+        s=korg; t=1630619412;
+        bh=WwgXnmBR8Y4HL/Esv16qLwGow/Gazwg9e4SV8g/TJR4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=T/ZsR7z1c9V26PIJQvG6UvvgeJKjBPByzCsbx9LhWHk1rEGZgZ190Xd51dygx7mYZ
-         SrtiWo0Japac+zjLKVD0ljJ81XwSNkL82nmNef2nfoX+HpbGTqnfgKDiVsLFPxuXPg
-         6cLPLKVT3dF5e8IS03Z+bxom5yQ1cykaFP9mbQiU=
-Date:   Thu, 02 Sep 2021 14:50:08 -0700
+        b=yKavef2X082yGpEt+D/1wtWY2RUz0ewgF5Pl+iF55aduKA1tjf5RWmKVfizFT4XSg
+         y9Y6B6kcq2pgwARC9GnU1Fnw8OJ7xk6KmW0maEETv711Cvsi3/LhoYH6tc69i0oBXP
+         q72gtW+ybxokkjI17VrloYX1xlsX0Dyn5ziGgrn0=
+Date:   Thu, 02 Sep 2021 14:50:11 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, frowand.list@gmail.com,
-        geert+renesas@glider.be, horms@verge.net.au, jlan@sgi.com,
-        linux-mm@kvack.org, magnus.damm@gmail.com,
-        mm-commits@vger.kernel.org, robh+dt@kernel.org,
-        rppt@linux.vnet.ibm.com, tony.luck@intel.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 004/212] ia64: make num_rsvd_regions static
-Message-ID: <20210902215008.IM90cqiwW%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dan.carpenter@oracle.com,
+        gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
+        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com, lchen@suse.com,
+        linux-mm@kvack.org, mark@fasheh.com, mm-commits@vger.kernel.org,
+        piaojun@huawei.com, torvalds@linux-foundation.org
+Subject:  [patch 005/212] ocfs2: remove an unnecessary condition
+Message-ID: <20210902215011.ugDpy5f4J%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,47 +44,37 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: ia64: make num_rsvd_regions static
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: ocfs2: remove an unnecessary condition
 
-Commit f62800992e5917f2 ("ia64: switch to NO_BOOTMEM") removed the last
-user of num_rsvd_regions outside arch/ia64/kernel/setup.c.
+The case where "tmp_oh" is NULL is handled at the start of the function. 
+At this point we know it's non-NULL so this will always return 1.
 
-Link: https://lkml.kernel.org/r/a377b5437e3e9da93d02f996fe06a2b956cb0990.1629884459.git.geert+renesas@glider.be
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: Frank Rowand <frowand.list@gmail.com>
-Cc: Jay Lan <jlan@sgi.com>
-Cc: Magnus Damm <magnus.damm@gmail.com>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Tony Luck <tony.luck@intel.com>
+Link: https://lkml.kernel.org/r/YOcItgIXtisi3MaO@mwanda
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: Larry Chen <lchen@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/meminit.h |    1 -
- arch/ia64/kernel/setup.c        |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ fs/ocfs2/dlmglue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/ia64/include/asm/meminit.h~ia64-make-num_rsvd_regions-static
-+++ a/arch/ia64/include/asm/meminit.h
-@@ -29,7 +29,6 @@ struct rsvd_region {
- };
+--- a/fs/ocfs2/dlmglue.c~ocfs2-remove-an-unnecessary-condition
++++ a/fs/ocfs2/dlmglue.c
+@@ -2721,7 +2721,7 @@ int ocfs2_inode_lock_tracker(struct inod
+ 			return status;
+ 		}
+ 	}
+-	return tmp_oh ? 1 : 0;
++	return 1;
+ }
  
- extern struct rsvd_region rsvd_region[IA64_MAX_RSVD_REGIONS + 1];
--extern int num_rsvd_regions;
- 
- extern void find_memory (void);
- extern void reserve_memory (void);
---- a/arch/ia64/kernel/setup.c~ia64-make-num_rsvd_regions-static
-+++ a/arch/ia64/kernel/setup.c
-@@ -131,7 +131,7 @@ unsigned long ia64_cache_stride_shift =
-  * We use a special marker for the end of memory and it uses the extra (+1) slot
-  */
- struct rsvd_region rsvd_region[IA64_MAX_RSVD_REGIONS + 1] __initdata;
--int num_rsvd_regions __initdata;
-+static int num_rsvd_regions __initdata;
- 
- 
- /*
+ void ocfs2_inode_unlock_tracker(struct inode *inode,
 _
