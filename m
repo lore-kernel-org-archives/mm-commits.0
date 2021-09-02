@@ -4,43 +4,43 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AADAAC4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7B185C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 943EB610CE
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6736960FA0
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:56:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347902AbhIBV5i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:57:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52774 "EHLO mail.kernel.org"
+        id S1347919AbhIBV5k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:57:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53004 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347592AbhIBV5d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:57:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D917F60F21;
-        Thu,  2 Sep 2021 21:56:33 +0000 (UTC)
+        id S1347809AbhIBV5k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:57:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CD368603E9;
+        Thu,  2 Sep 2021 21:56:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619794;
-        bh=jU+8M5TJ9tde0qEm5zXzQdBL4OxfEqPn+SW6Idccwq4=;
+        s=korg; t=1630619801;
+        bh=PslTs4ahvcZGXx8UdTpJh/OsPSM8uqLo/YVA61IE9fQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=z0CHXc2ndoqDpNrOPXBp7fuB0rrzMFEO3rg/yrcXbr32wHihE9wUQBlEq3JLusH0c
-         zpOuPR/j1/3uTj5h1dgetMv1iW7uZgJFvgLlGGi+nlXRhfJqE8TS5fWHr8X8Rj6Bxt
-         T/ZeD69qmktF5WR7eVi7pMb8GjBV+KsaVrOMzQ1E=
-Date:   Thu, 02 Sep 2021 14:56:33 -0700
+        b=PNucE00mcclIt82N9f2PnKZBw9OGMvSnZ/TOb+fAvWdgW+sFv/Eb54ah82RVfnWKI
+         A2LtUwHgbUTI/c98q6V0NYkwiHJmG23pYuBNFITLxAdJpJcN/cKMAIoM4ns0bB/GxU
+         2psgEeH8/maLUD+NhwpaoR0aHT6OAprbocITlNs0=
+Date:   Thu, 02 Sep 2021 14:56:40 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alexs@kernel.org, dalias@libc.org,
-        deanbo422@gmail.com, deller@gmx.de, geoff@infradead.org,
-        green.hu@gmail.com, guoren@kernel.org, hch@lst.de,
-        James.Bottomley@HansenPartnership.com, linux-mm@kvack.org,
-        linux@armlinux.org.uk, mm-commits@vger.kernel.org,
-        nickhu@andestech.com, paul@crapouillou.net,
-        torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
-        ulf.hansson@linaro.org, ysato@users.osdn.me
-Subject:  [patch 123/212] scatterlist: replace
- flush_kernel_dcache_page with flush_dcache_page
-Message-ID: <20210902215633.89fP6QAW8%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org,
+        borntraeger@de.ibm.com, dan.carpenter@oracle.com,
+        gerald.schaefer@linux.ibm.com, gor@linux.ibm.com,
+        hca@linux.ibm.com, hughd@google.com,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org,
+        pbonzini@redhat.com, shy828301@gmail.com,
+        torvalds@linux-foundation.org, ying.huang@intel.com, ziy@nvidia.com
+Subject:  [patch 125/212] mm,do_huge_pmd_numa_page: remove
+ unnecessary TLB flushing code
+Message-ID: <20210902215640.JIDonco3t%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,51 +48,83 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Christoph Hellwig <hch@lst.de>
-Subject: scatterlist: replace flush_kernel_dcache_page with flush_dcache_page
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm,do_huge_pmd_numa_page: remove unnecessary TLB flushing code
 
-Pages used in scatterlist can be mapped page cache pages (and often are),
-so we must use flush_dcache_page here instead of the more limited
-flush_kernel_dcache_page that is intended for highmem pages only.
+Before commit c5b5a3dd2c1f ("mm: thp: refactor NUMA fault handling"), the
+TLB flushing is done in do_huge_pmd_numa_page() itself via
+flush_tlb_range().
 
-Also remove the PageSlab check given that page_mapping_file as used by the
-flush_dcache_page implementations already contains that check.
+But after commit c5b5a3dd2c1f ("mm: thp: refactor NUMA fault handling"),
+the TLB flushing is done in migrate_pages() as in the following code path
+anyway.
 
-Link: https://lkml.kernel.org/r/20210712060928.4161649-5-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Geoff Levand <geoff@infradead.org>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Guo Ren <guoren@kernel.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Paul Cercueil <paul@crapouillou.net>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Vincent Chen <deanbo422@gmail.com>
-Cc: Yoshinori Sato <ysato@users.osdn.me>
+do_huge_pmd_numa_page
+  migrate_misplaced_page
+    migrate_pages
+
+So now, the TLB flushing code in do_huge_pmd_numa_page() becomes
+unnecessary.  So the code is deleted in this patch to simplify the code. 
+This is only code cleanup, there's no visible performance difference.
+
+The mmu_notifier_invalidate_range() in do_huge_pmd_numa_page() is
+deleted too.  Because migrate_pages() takes care of that too when CPU
+TLB is flushed.
+
+Link: https://lkml.kernel.org/r/20210720065529.716031-1-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/scatterlist.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |   26 --------------------------
+ 1 file changed, 26 deletions(-)
 
---- a/lib/scatterlist.c~scatterlist-replace-flush_kernel_dcache_page-with-flush_dcache_page
-+++ a/lib/scatterlist.c
-@@ -887,9 +887,8 @@ void sg_miter_stop(struct sg_mapping_ite
- 		miter->__offset += miter->consumed;
- 		miter->__remaining -= miter->consumed;
+--- a/mm/huge_memory.c~mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code
++++ a/mm/huge_memory.c
+@@ -1440,32 +1440,6 @@ vm_fault_t do_huge_pmd_numa_page(struct
+ 		goto out;
+ 	}
  
--		if ((miter->__flags & SG_MITER_TO_SG) &&
--		    !PageSlab(miter->page))
--			flush_kernel_dcache_page(miter->page);
-+		if (miter->__flags & SG_MITER_TO_SG)
-+			flush_dcache_page(miter->page);
- 
- 		if (miter->__flags & SG_MITER_ATOMIC) {
- 			WARN_ON_ONCE(preemptible());
+-	/*
+-	 * Since we took the NUMA fault, we must have observed the !accessible
+-	 * bit. Make sure all other CPUs agree with that, to avoid them
+-	 * modifying the page we're about to migrate.
+-	 *
+-	 * Must be done under PTL such that we'll observe the relevant
+-	 * inc_tlb_flush_pending().
+-	 *
+-	 * We are not sure a pending tlb flush here is for a huge page
+-	 * mapping or not. Hence use the tlb range variant
+-	 */
+-	if (mm_tlb_flush_pending(vma->vm_mm)) {
+-		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
+-		/*
+-		 * change_huge_pmd() released the pmd lock before
+-		 * invalidating the secondary MMUs sharing the primary
+-		 * MMU pagetables (with ->invalidate_range()). The
+-		 * mmu_notifier_invalidate_range_end() (which
+-		 * internally calls ->invalidate_range()) in
+-		 * change_pmd_range() will run after us, so we can't
+-		 * rely on it here and we need an explicit invalidate.
+-		 */
+-		mmu_notifier_invalidate_range(vma->vm_mm, haddr,
+-					      haddr + HPAGE_PMD_SIZE);
+-	}
+-
+ 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
+ 	page = vm_normal_page_pmd(vma, haddr, pmd);
+ 	if (!page)
 _
