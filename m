@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FB5DC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 422B7C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8085C610D2
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 29A87610E7
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:50:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347549AbhIBVvO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:51:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42512 "EHLO mail.kernel.org"
+        id S1347550AbhIBVvR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:51:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42602 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347551AbhIBVvO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:51:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BC676610CE;
-        Thu,  2 Sep 2021 21:50:14 +0000 (UTC)
+        id S1347444AbhIBVvR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:51:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E9842610D2;
+        Thu,  2 Sep 2021 21:50:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619415;
-        bh=udrnajUojmXfuE5KXHwEfwX4SYHzH+JzZyw9zErroZk=;
+        s=korg; t=1630619418;
+        bh=tqaA7XDrR+7FTZxHRG8A/mlgf13gkLOrvDPmgum5ztU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ZzhhaxAs2Cbsx4qrPnhuBc2SuQ4mX6yduh6dSAaLmt8yYi48/loXFaCGO2ZqsKmBq
-         IDs0k932MeTZFKzJ9H+5HaIRVdq7+QErJGSAOVMnxcE8pvaSUagxreQHk9n8Oo9L+6
-         s1WlpWvlm2NFXJmuCVfLnIsqwtO6d6aECT0EB8Oc=
-Date:   Thu, 02 Sep 2021 14:50:14 -0700
+        b=bkKUW9waVuX1jbeKC+O7xCEwhrNLcI7z5GzhMSDMWiev6wqoPzLfOzalKdFan3zVd
+         nBFbIC0npsEBBT0f78nWsjeYedWc5tzuhu0oAFGrbgulUTzgtRaoqvoG8Cf5UgNNtz
+         U34KNRkaL87gS9LMESmVjbbJxrE+eJcEwcPGaQYg=
+Date:   Thu, 02 Sep 2021 14:50:17 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com,
-        islituo@gmail.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
+        jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
         junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com,
-        mm-commits@vger.kernel.org, oslab@tsinghua.edu.cn,
-        piaojun@huawei.com, torvalds@linux-foundation.org
-Subject:  [patch 006/212] ocfs2: quota_local: fix possible
- uninitialized-variable access in ocfs2_local_read_info()
-Message-ID: <20210902215014.-pZhwdYfb%akpm@linux-foundation.org>
+        mm-commits@vger.kernel.org, piaojun@huawei.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 007/212] ocfs2: ocfs2_downconvert_lock failure
+ results in deadlock
+Message-ID: <20210902215017.n_kxnxsoA%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,22 +45,24 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Tuo Li <islituo@gmail.com>
-Subject: ocfs2: quota_local: fix possible uninitialized-variable access in ocfs2_local_read_info()
+From: Gang He <ghe@suse.com>
+Subject: ocfs2: ocfs2_downconvert_lock failure results in deadlock
 
-A memory block is allocated through kmalloc(), and its return value is
-assigned to the pointer oinfo. However, oinfo->dqi_gqinode is not
-initialized but it is accessed in:
-  iput(oinfo->dqi_gqinode);
+Usually, ocfs2_downconvert_lock() function always downconverts dlm lock to
+the expected level for satisfy dlm bast requests from the other nodes.
 
-To fix this possible uninitialized-variable access, assign NULL to
-oinfo->dqi_gqinode, and add ocfs2_qinfo_lock_res_init() behind the
-assignment in ocfs2_local_read_info().  Remove ocfs2_qinfo_lock_res_init()
-in ocfs2_global_read_info().
+But there is a rare situation.  When dlm lock conversion is being
+canceled, ocfs2_downconvert_lock() function will return -EBUSY.  You need
+to be aware that ocfs2_cancel_convert() function is asynchronous in fsdlm
+implementation.
 
-Link: https://lkml.kernel.org/r/20210804031832.57154-1-islituo@gmail.com
-Signed-off-by: Tuo Li <islituo@gmail.com>
-Reported-by: TOTE Robot <oslab@tsinghua.edu.cn>
+If we does not requeue this lockres entry, ocfs2 downconvert thread no
+longer handles this dlm lock bast request.  Then, the other nodes will not
+get the dlm lock again, the current node's process will be blocked when
+acquire this dlm lock again.
+
+Link: https://lkml.kernel.org/r/20210830044621.12544-1-ghe@suse.com
+Signed-off-by: Gang He <ghe@suse.com>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
@@ -71,29 +73,35 @@ Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/quota_global.c |    1 -
- fs/ocfs2/quota_local.c  |    2 ++
- 2 files changed, 2 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlmglue.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/fs/ocfs2/quota_global.c~ocfs2-quota_local-fix-possible-uninitialized-variable-access-in-ocfs2_local_read_info
-+++ a/fs/ocfs2/quota_global.c
-@@ -357,7 +357,6 @@ int ocfs2_global_read_info(struct super_
- 	}
- 	oinfo->dqi_gi.dqi_sb = sb;
- 	oinfo->dqi_gi.dqi_type = type;
--	ocfs2_qinfo_lock_res_init(&oinfo->dqi_gqlock, oinfo);
- 	oinfo->dqi_gi.dqi_entry_size = sizeof(struct ocfs2_global_disk_dqblk);
- 	oinfo->dqi_gi.dqi_ops = &ocfs2_global_ops;
- 	oinfo->dqi_gqi_bh = NULL;
---- a/fs/ocfs2/quota_local.c~ocfs2-quota_local-fix-possible-uninitialized-variable-access-in-ocfs2_local_read_info
-+++ a/fs/ocfs2/quota_local.c
-@@ -702,6 +702,8 @@ static int ocfs2_local_read_info(struct
- 	info->dqi_priv = oinfo;
- 	oinfo->dqi_type = type;
- 	INIT_LIST_HEAD(&oinfo->dqi_chunk);
-+	oinfo->dqi_gqinode = NULL;
-+	ocfs2_qinfo_lock_res_init(&oinfo->dqi_gqlock, oinfo);
- 	oinfo->dqi_rec = NULL;
- 	oinfo->dqi_lqi_bh = NULL;
- 	oinfo->dqi_libh = NULL;
+--- a/fs/ocfs2/dlmglue.c~ocfs2-ocfs2_downconvert_lock-failure-results-in-deadlock
++++ a/fs/ocfs2/dlmglue.c
+@@ -16,6 +16,7 @@
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
+ #include <linux/time.h>
++#include <linux/delay.h>
+ #include <linux/quotaops.h>
+ #include <linux/sched/signal.h>
+ 
+@@ -3912,6 +3913,17 @@ downconvert:
+ 	spin_unlock_irqrestore(&lockres->l_lock, flags);
+ 	ret = ocfs2_downconvert_lock(osb, lockres, new_level, set_lvb,
+ 				     gen);
++	/* The dlm lock convert is being cancelled in background,
++	 * ocfs2_cancel_convert() is asynchronous in fs/dlm,
++	 * requeue it, try again later.
++	 */
++	if (ret == -EBUSY) {
++		ctl->requeue = 1;
++		mlog(ML_BASTS, "lockres %s, ReQ: Downconvert busy\n",
++		     lockres->l_name);
++		ret = 0;
++		msleep(20);
++	}
+ 
+ leave:
+ 	if (ret)
 _
