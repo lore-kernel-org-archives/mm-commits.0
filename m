@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7666AC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:58:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48680C43219
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:58:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5E9FD60F21
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:58:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 328FD610A0
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:58:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347538AbhIBV67 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:58:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54594 "EHLO mail.kernel.org"
+        id S243139AbhIBV7V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:59:21 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54740 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243139AbhIBV66 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:58:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C283A6056B;
-        Thu,  2 Sep 2021 21:57:59 +0000 (UTC)
+        id S1347962AbhIBV7H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:59:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7DBE160F12;
+        Thu,  2 Sep 2021 21:58:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619880;
-        bh=SqNRAxBCyjIPpTdD5v3BB15CqmYCrNn5RLp2EIJnELQ=;
+        s=korg; t=1630619888;
+        bh=d9c8R0THXOKK5/e1epdyW+I/9d/GDIqxH8veGcD6vKQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vE8/46h91o6MNzpLP7aYVe34/6hPqQvKV9R54kTT9Ge6afrFtYjq+0wc3Tmke6N+/
-         DPdj6SCjmVVPdpsYVp3uNc/ASJZ+E13lLLiYiwjSrO+YIKqigIggdLKLBh2nwKas5M
-         ehmf1si7nRfG+dVBgiUhoxN5K6V9mxY+5qljDqgA=
-Date:   Thu, 02 Sep 2021 14:57:59 -0700
+        b=wUT26+CEM0EaYe/5Tz5VzPcOnf59Lmi29z43gn+Euqb0whslejmQh8ZnWm7yyJnxr
+         q+JA/2vAC/8SSCE2wcPIcphEZw0xR7yX2FbCWB4qSiEY6G2OdBiASQf0opSBAzzIIB
+         yIJa+BqqAHkOAn3KYX2Koo569oUO7qr+F9DqX4hY=
+Date:   Thu, 02 Sep 2021 14:58:08 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, monstr@monstr.eu, rppt@linux.ibm.com,
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, npache@redhat.com, rppt@linux.ibm.com,
         torvalds@linux-foundation.org
-Subject:  [patch 151/212] microblaze: simplify
- pte_alloc_one_kernel()
-Message-ID: <20210902215759.dFQo6Q5aj%akpm@linux-foundation.org>
+Subject:  [patch 154/212] mm/page_alloc.c: fix 'zone_id' may be
+ used uninitialized in this function warning
+Message-ID: <20210902215808.cDXkJez81%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,95 +43,37 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: microblaze: simplify pte_alloc_one_kernel()
+From: Nico Pache <npache@redhat.com>
+Subject: mm/page_alloc.c: fix 'zone_id' may be used uninitialized in this function warning
 
-The microblaze's implementation of pte_alloc_one_kernel() used
-memblock_alloc_try_nid_raw() along with clear_page() to allocated a zeroed
-page during early setup.
+When compiling with -Werror, cc1 will warn that 'zone_id' may be used
+uninitialized in this function warning.
 
-Replace calls of these functions with a call to memblock_alloc_try_nid()
-that already returns zeroed page and respects the same allocation limits
-as memblock_alloc_try_nid_raw().
+Initialize the zone_id as 0.
 
-While on it drop early_get_page() wrapper that was only used in
-pte_alloc_one_kernel().
+Its safe to assume that if the code reaches this point it has at least one
+numa node with memory, so no need for an assertion before
+init_unavilable_range.
 
-Link: https://lkml.kernel.org/r/20210714123739.16493-3-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Michal Simek <monstr@monstr.eu>
+Link: https://lkml.kernel.org/r/20210716210336.1114114-1-npache@redhat.com
+Fixes: 122e093c1734 ("mm/page_alloc: fix memory map initialization for descending nodes")
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/include/asm/pgtable.h |    2 --
- arch/microblaze/mm/init.c             |   12 ------------
- arch/microblaze/mm/pgtable.c          |   17 ++++++++---------
- 3 files changed, 8 insertions(+), 23 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/microblaze/include/asm/pgtable.h~microblaze-simplify-pte_alloc_one_kernel
-+++ a/arch/microblaze/include/asm/pgtable.h
-@@ -443,8 +443,6 @@ extern int mem_init_done;
- 
- asmlinkage void __init mmu_init(void);
- 
--void __init *early_get_page(void);
--
- #endif /* __ASSEMBLY__ */
- #endif /* __KERNEL__ */
- 
---- a/arch/microblaze/mm/init.c~microblaze-simplify-pte_alloc_one_kernel
-+++ a/arch/microblaze/mm/init.c
-@@ -265,18 +265,6 @@ asmlinkage void __init mmu_init(void)
- 	dma_contiguous_reserve(memory_start + lowmem_size - 1);
- }
- 
--/* This is only called until mem_init is done. */
--void __init *early_get_page(void)
--{
--	/*
--	 * Mem start + kernel_tlb -> here is limit
--	 * because of mem mapping from head.S
--	 */
--	return memblock_alloc_try_nid_raw(PAGE_SIZE, PAGE_SIZE,
--				MEMBLOCK_LOW_LIMIT, memory_start + kernel_tlb,
--				NUMA_NO_NODE);
--}
--
- void * __ref zalloc_maybe_bootmem(size_t size, gfp_t mask)
+--- a/mm/page_alloc.c~fix-zone_id-may-be-used-uninitialized-in-this-function-warning
++++ a/mm/page_alloc.c
+@@ -6715,7 +6715,7 @@ static void __init memmap_init(void)
  {
- 	void *p;
---- a/arch/microblaze/mm/pgtable.c~microblaze-simplify-pte_alloc_one_kernel
-+++ a/arch/microblaze/mm/pgtable.c
-@@ -33,6 +33,7 @@
- #include <linux/init.h>
- #include <linux/mm_types.h>
- #include <linux/pgtable.h>
-+#include <linux/memblock.h>
+ 	unsigned long start_pfn, end_pfn;
+ 	unsigned long hole_pfn = 0;
+-	int i, j, zone_id, nid;
++	int i, j, zone_id = 0, nid;
  
- #include <asm/pgalloc.h>
- #include <linux/io.h>
-@@ -242,15 +243,13 @@ unsigned long iopa(unsigned long addr)
- 
- __ref pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
- {
--	pte_t *pte;
--	if (mem_init_done) {
--		pte = (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
--	} else {
--		pte = (pte_t *)early_get_page();
--		if (pte)
--			clear_page(pte);
--	}
--	return pte;
-+	if (mem_init_done)
-+		return (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
-+	else
-+		return memblock_alloc_try_nid(PAGE_SIZE, PAGE_SIZE,
-+					      MEMBLOCK_LOW_LIMIT,
-+					      memory_start + kernel_tlb,
-+					      NUMA_NO_NODE);
- }
- 
- void __set_fixmap(enum fixed_addresses idx, phys_addr_t phys, pgprot_t flags)
+ 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
+ 		struct pglist_data *node = NODE_DATA(nid);
 _
