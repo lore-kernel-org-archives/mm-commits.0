@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC93BC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:57:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F19FEC433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:57:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1D43610A0
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:57:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9AD8610A0
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Sep 2021 21:57:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347362AbhIBV6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 17:58:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53890 "EHLO mail.kernel.org"
+        id S1347527AbhIBV60 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 17:58:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53956 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243139AbhIBV6W (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 2 Sep 2021 17:58:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5E8A160E8B;
-        Thu,  2 Sep 2021 21:57:23 +0000 (UTC)
+        id S243139AbhIBV6Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 2 Sep 2021 17:58:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 813EE60F12;
+        Thu,  2 Sep 2021 21:57:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630619843;
-        bh=EpePhqHT0OhbV/Etf8aWW5ueU5URfLP9xW3TuA8uVfk=;
+        s=korg; t=1630619846;
+        bh=OwaN8v6C1NbT97sGy9YlM9Zk4NTvBL0tTybJzIPzk4M=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=iVDQEyhDY9hNR1hJKhaQmZBbViRHmnY6LQ4tn2pnOeoCy0oes0MUUiNeDZvOlxGWJ
-         OqLkH9Hthj85smoQtO4bsbZrwxuYOQAWRx2pMbwyxVH/zyCd7jWIE3gGb227IMXiV+
-         j+pJQk1ql04cgJb9gQ11NiVdq71y0FrDYKNGkNTg=
-Date:   Thu, 02 Sep 2021 14:57:23 -0700
+        b=kMkwHtXNhovFvlKy+bMc17TRgvsPMkzHKJJSX+QY/6fcLs61oMFiPYUOOG504uVWr
+         jVPOyFMxOuAom3rh6xV6WhgyBGmpib9VFGpoVo0MxIxJQI9FFHl80dwgXfQRh9lkZN
+         UDsozShSARzwXZ/B3+iyneMrRenmEBN2hOATtg8I=
+Date:   Thu, 02 Sep 2021 14:57:26 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hch@infradead.org, hdanton@sina.com,
-        linux-mm@kvack.org, mgorman@suse.de, mhocko@suse.com,
-        mm-commits@vger.kernel.org, npiggin@gmail.com,
-        oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
-        torvalds@linux-foundation.org, urezki@gmail.com,
-        willy@infradead.org
-Subject:  [patch 139/212] lib/test_vmalloc.c: add a new 'nr_pages'
- parameter
-Message-ID: <20210902215723.BQzLTknp6%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, chenwandun@huawei.com,
+        hulkci@huawei.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        serapheim.dimitro@delphix.com, torvalds@linux-foundation.org,
+        urezki@gmail.com, wangkefeng.wang@huawei.com,
+        weiyongjun1@huawei.com
+Subject:  [patch 140/212] mm/vmalloc: fix wrong behavior in vread
+Message-ID: <20210902215726.e_P1RDt_0%akpm@linux-foundation.org>
 In-Reply-To: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,51 +44,78 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: lib/test_vmalloc.c: add a new 'nr_pages' parameter
+From: Chen Wandun <chenwandun@huawei.com>
+Subject: mm/vmalloc: fix wrong behavior in vread
 
-In order to simulate different fixed sizes for vmalloc allocation
-introduce a new parameter that sets number of pages to be allocated for
-the "fix_size_alloc_test" test.
+commit f608788cd2d6 ("mm/vmalloc: use rb_tree instead of list for vread()
+lookups") use rb_tree instread of list to speed up lookup, but function
+__find_vmap_area is try to find a vmap_area that include target address,
+if target address is smaller than the leftmost node in vmap_area_root, it
+will return NULL, then vread will read nothing.  This behavior is
+different from the primitive semantics.
 
-By default 1 page is used unless a different number is specified over the
-new parameter.
+The correct way is find the first vmap_are that bigger than target addr,
+that is what function find_vmap_area_exceed_addr does.
 
-Link: https://lkml.kernel.org/r/20210710194151.21370-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Hillf Danton <hdanton@sina.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20210714015959.3204871-1-chenwandun@huawei.com
+Fixes: f608788cd2d6 ("mm/vmalloc: use rb_tree instead of list for vread() lookups")
+Signed-off-by: Chen Wandun <chenwandun@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Cc: Serapheim Dimitropoulos <serapheim.dimitro@delphix.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Wei Yongjun <weiyongjun1@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_vmalloc.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |   29 ++++++++++++++++++++++++++++-
+ 1 file changed, 28 insertions(+), 1 deletion(-)
 
---- a/lib/test_vmalloc.c~lib-test_vmallocc-add-a-new-nr_pages-parameter
-+++ a/lib/test_vmalloc.c
-@@ -35,6 +35,9 @@ __param(int, test_repeat_count, 1,
- __param(int, test_loop_count, 1000000,
- 	"Set test loop counter");
+--- a/mm/vmalloc.c~mm-vmalloc-fix-wrong-behavior-in-vread
++++ a/mm/vmalloc.c
+@@ -787,6 +787,28 @@ unsigned long vmalloc_nr_pages(void)
+ 	return atomic_long_read(&nr_vmalloc_pages);
+ }
  
-+__param(int, nr_pages, 0,
-+	"Set number of pages for fix_size_alloc_test(default: 1)");
++static struct vmap_area *find_vmap_area_exceed_addr(unsigned long addr)
++{
++	struct vmap_area *va = NULL;
++	struct rb_node *n = vmap_area_root.rb_node;
 +
- __param(int, run_test_mask, INT_MAX,
- 	"Set tests specified in the mask.\n\n"
- 		"\t\tid: 1,    name: fix_size_alloc_test\n"
-@@ -262,7 +265,7 @@ static int fix_size_alloc_test(void)
- 	int i;
++	while (n) {
++		struct vmap_area *tmp;
++
++		tmp = rb_entry(n, struct vmap_area, rb_node);
++		if (tmp->va_end > addr) {
++			va = tmp;
++			if (tmp->va_start <= addr)
++				break;
++
++			n = n->rb_left;
++		} else
++			n = n->rb_right;
++	}
++
++	return va;
++}
++
+ static struct vmap_area *__find_vmap_area(unsigned long addr)
+ {
+ 	struct rb_node *n = vmap_area_root.rb_node;
+@@ -3287,9 +3309,14 @@ long vread(char *buf, char *addr, unsign
+ 		count = -(unsigned long) addr;
  
- 	for (i = 0; i < test_loop_count; i++) {
--		ptr = vmalloc(3 * PAGE_SIZE);
-+		ptr = vmalloc((nr_pages > 0 ? nr_pages:1) * PAGE_SIZE);
- 
- 		if (!ptr)
- 			return -1;
+ 	spin_lock(&vmap_area_lock);
+-	va = __find_vmap_area((unsigned long)addr);
++	va = find_vmap_area_exceed_addr((unsigned long)addr);
+ 	if (!va)
+ 		goto finished;
++
++	/* no intersects with alive vmap_area */
++	if ((unsigned long)addr + count <= va->va_start)
++		goto finished;
++
+ 	list_for_each_entry_from(va, &vmap_area_list, list) {
+ 		if (!count)
+ 			break;
 _
