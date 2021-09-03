@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BAEBC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0B9AC4332F
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 215646113E
+	by mail.kernel.org (Postfix) with ESMTP id AE74E61153
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238770AbhICVAG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:00:06 -0400
+        id S1349566AbhICVAH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:00:07 -0400
 Received: from mail.kernel.org ([198.145.29.99]:58818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350017AbhICU75 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:59:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6DDD661107;
-        Fri,  3 Sep 2021 20:58:57 +0000 (UTC)
+        id S1350167AbhICVAG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:00:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7191661107;
+        Fri,  3 Sep 2021 20:59:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702737;
-        bh=8FdjSSZSKiHbl52pIbdmdd8uHjQKgfBJS10ZWzN5moU=;
+        s=korg; t=1630702745;
+        bh=gGINIPHfxAqxD0QH1EfjDZI3hLpese5UVbWhJ4DXZa0=;
         h=Date:From:To:Subject:From;
-        b=jB+pCtMgLLt0pXQ8mdhsWRMcjgLJInF+OtLwh9AQQDCpDx5rGphi6Mqr622GdWFb/
-         up6O6ZjGmbkfM+ClYsgoXuAfk7K7wBDPaVUTcHo+g3nJe0s37bEFIF7alBrrZ+xtMd
-         IvOSS3QXIBJccq9rF9RwtW6upAGH4SMu/LuQVh/4=
-Date:   Fri, 03 Sep 2021 13:58:57 -0700
+        b=F3X2dLkCqaEPmh7XMGVqFKaw/W4vJZ1NlqbM0ekhlK9R322bcM1ALK30xxULVp5r7
+         fUr48G59LakXMRwULOY9fXCB7GX7iU74K1ZVsihmB+GVtIBii3SXHiHFa8QkqVTF9N
+         +soNkOX5R4xSlQQVQ0lR6C2ImbAplB9xtxUiwUdc=
+Date:   Fri, 03 Sep 2021 13:59:05 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mark.rutland@arm.com, miles.chen@mediatek.com,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com
-Subject:  [merged] mm-sparse-clarify-pgdat_to_phys.patch removed
- from -mm tree
-Message-ID: <20210903205857.cUkVXeIUW%akpm@linux-foundation.org>
+To:     hch@infradead.org, hdanton@sina.com, mgorman@suse.de,
+        mhocko@suse.com, mm-commits@vger.kernel.org, npiggin@gmail.com,
+        oleksiy.avramchenko@sonymobile.com, rostedt@goodmis.org,
+        urezki@gmail.com, willy@infradead.org
+Subject:  [merged]
+ lib-test_vmallocc-add-a-new-nr_pages-parameter.patch removed from -mm tree
+Message-ID: <20210903205905.kkd-Daewh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,68 +45,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/sparse: clarify pgdat_to_phys
+     Subject: lib/test_vmalloc.c: add a new 'nr_pages' parameter
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-clarify-pgdat_to_phys.patch
+     lib-test_vmallocc-add-a-new-nr_pages-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miles Chen <miles.chen@mediatek.com>
-Subject: mm/sparse: clarify pgdat_to_phys
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: lib/test_vmalloc.c: add a new 'nr_pages' parameter
 
-Clarify pgdat_to_phys() by testing if
-pgdat == &contig_page_data when CONFIG_NUMA=n.
+In order to simulate different fixed sizes for vmalloc allocation
+introduce a new parameter that sets number of pages to be allocated for
+the "fix_size_alloc_test" test.
 
-We only expect contig_page_data in such case, so we
-use &contig_page_data directly instead of pgdat.
+By default 1 page is used unless a different number is specified over the
+new parameter.
 
-No functional change intended when CONFIG_BUG_VM=n.
-
-Comment from Mark [1]:
-"
-... and I reckon it'd be clearer and more robust to define
-pgdat_to_phys() in the same ifdefs as contig_page_data so
-that these, stay in-sync. e.g. have:
-
-| #ifdef CONFIG_NUMA
-| #define pgdat_to_phys(x)	virt_to_phys(x)
-| #else /* CONFIG_NUMA */
-|
-| extern struct pglist_data contig_page_data;
-| ...
-| #define pgdat_to_phys(x)	__pa_symbol(&contig_page_data)
-|
-| #endif /* CONIFIG_NUMA */
-"
-
-[1] https://lore.kernel.org/linux-arm-kernel/20210615131902.GB47121@C02TD0UTHF1T.local/
-
-Link: https://lkml.kernel.org/r/20210723123342.26406-1-miles.chen@mediatek.com
-Signed-off-by: Miles Chen <miles.chen@mediatek.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
+Link: https://lkml.kernel.org/r/20210710194151.21370-1-urezki@gmail.com
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/test_vmalloc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/sparse.c~mm-sparse-clarify-pgdat_to_phys
-+++ a/mm/sparse.c
-@@ -321,7 +321,8 @@ size_t mem_section_usage_size(void)
- static inline phys_addr_t pgdat_to_phys(struct pglist_data *pgdat)
- {
- #ifndef CONFIG_NUMA
--	return __pa_symbol(pgdat);
-+	VM_BUG_ON(pgdat != &contig_page_data);
-+	return __pa_symbol(&contig_page_data);
- #else
- 	return __pa(pgdat);
- #endif
+--- a/lib/test_vmalloc.c~lib-test_vmallocc-add-a-new-nr_pages-parameter
++++ a/lib/test_vmalloc.c
+@@ -35,6 +35,9 @@ __param(int, test_repeat_count, 1,
+ __param(int, test_loop_count, 1000000,
+ 	"Set test loop counter");
+ 
++__param(int, nr_pages, 0,
++	"Set number of pages for fix_size_alloc_test(default: 1)");
++
+ __param(int, run_test_mask, INT_MAX,
+ 	"Set tests specified in the mask.\n\n"
+ 		"\t\tid: 1,    name: fix_size_alloc_test\n"
+@@ -262,7 +265,7 @@ static int fix_size_alloc_test(void)
+ 	int i;
+ 
+ 	for (i = 0; i < test_loop_count; i++) {
+-		ptr = vmalloc(3 * PAGE_SIZE);
++		ptr = vmalloc((nr_pages > 0 ? nr_pages:1) * PAGE_SIZE);
+ 
+ 		if (!ptr)
+ 			return -1;
 _
 
-Patches currently in -mm which might be from miles.chen@mediatek.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
 
