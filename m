@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 13A18C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65D1CC433FE
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0039F60E9B
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 546E6610E8
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233315AbhICU6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1350445AbhICU6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Sep 2021 16:58:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57078 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57136 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350418AbhICU6T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:58:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FE21601FD;
-        Fri,  3 Sep 2021 20:57:18 +0000 (UTC)
+        id S1350417AbhICU6V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:58:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 84C2060184;
+        Fri,  3 Sep 2021 20:57:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702639;
-        bh=T4pLQxYnGXoNEgaytMEbLSTiGqFMiRjYpvwrExZADvQ=;
+        s=korg; t=1630702641;
+        bh=wkE2R3eD0k0zWfnWZ+vVP7zIeAue6q/5x9zk4h6VFTg=;
         h=Date:From:To:Subject:From;
-        b=YUdBGSTMMBc7MHsX3/dW+SFI1du3UHla/imCey7Qd5UHxryTBCQjjM5k7Zmja7iq9
-         FL4qjAf/czudh9++PAxW+310K3ZxWXRBGnRY7zLXIlhHugsHJaYkC3w6xOCyWEisY/
-         aS1+44vpUvAXyZiLbCcDJN6CfGvsCNrN4qpE+o/k=
-Date:   Fri, 03 Sep 2021 13:57:18 -0700
+        b=GMePIlggFyBX8t6ZByGSxdSyk0Om6B4LNr005BpFyMLMAfB4Tt03jAt71heFp7LOo
+         HfdXHhA4SBzcQxaFMQ52s1+AGAPjyx/OexxccDuIgHYOWP6GUSjY8cZlmraNNnWchn
+         kMmcGoH+Mg6mZQxJ5yznQxaYP9Uw/YsvvcZKKGIk=
+Date:   Fri, 03 Sep 2021 13:57:20 -0700
 From:   akpm@linux-foundation.org
 To:     alexs@kernel.org, apopple@nvidia.com, axboe@kernel.dk,
         david@redhat.com, guro@fb.com, hannes@cmpxchg.org,
@@ -38,9 +38,9 @@ To:     alexs@kernel.org, apopple@nvidia.com, axboe@kernel.dk,
         shy828301@gmail.com, songmuchun@bytedance.com, surenb@google.com,
         tj@kernel.org, willy@infradead.org
 Subject:  [merged]
- =?US-ASCII?Q?mm-memcg-inline-mem=5Fcgroup=5Fcharge-uncharge-to-improve?=
- =?US-ASCII?Q?-disabled-memcg-config.patch?= removed from -mm tree
-Message-ID: <20210903205718.8jTnydPR3%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-memcg-inline-swap-related-functions-to-improve-disable?=
+ =?US-ASCII?Q?d-memcg-config.patch?= removed from -mm tree
+Message-ID: <20210903205720.QHIxh-jo4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -51,190 +51,163 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: inline mem_cgroup_{charge/uncharge} to improve disabled memcg config
+     Subject: mm, memcg: inline swap-related functions to improve disabled memcg config
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
+     mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm, memcg: inline mem_cgroup_{charge/uncharge} to improve disabled memcg config
+Subject: mm, memcg: inline swap-related functions to improve disabled memcg config
 
-Inline mem_cgroup_{charge/uncharge} and mem_cgroup_uncharge_list functions
-functions to perform mem_cgroup_disabled static key check inline before
-calling the main body of the function.  This minimizes the memcg overhead
-in the pagefault and exit_mmap paths when memcgs are disabled using
-cgroup_disable=memory command-line option.
-
-This change results in ~0.4% overhead reduction when running PFT test [1]
+Inline mem_cgroup_try_charge_swap, mem_cgroup_uncharge_swap and
+cgroup_throttle_swaprate functions to perform mem_cgroup_disabled static
+key check inline before calling the main body of the function.  This
+minimizes the memcg overhead in the pagefault and exit_mmap paths when
+memcgs are disabled using cgroup_disable=memory command-line option.  This
+change results in ~1% overhead reduction when running PFT test [1]
 comparing {CONFIG_MEMCG=n} against {CONFIG_MEMCG=y, cgroup_disable=memory}
 configuration on an 8-core ARM64 Android device.
 
 [1] https://lkml.org/lkml/2006/8/29/294 also used in mmtests suite
 
-Link: https://lkml.kernel.org/r/20210713010934.299876-2-surenb@google.com
+Link: https://lkml.kernel.org/r/20210713010934.299876-3-surenb@google.com
 Signed-off-by: Suren Baghdasaryan <surenb@google.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Alex Shi <alexs@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Cc: Jens Axboe <axboe@kernel.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: David Hildenbrand <david@redhat.com>
 Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   28 +++++++++++++++++++++++++---
- mm/memcontrol.c            |   33 ++++++++++++---------------------
- 2 files changed, 37 insertions(+), 24 deletions(-)
+ include/linux/swap.h |   26 +++++++++++++++++++++++---
+ mm/memcontrol.c      |   14 ++++----------
+ mm/swapfile.c        |    5 +----
+ 3 files changed, 28 insertions(+), 17 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config
-+++ a/include/linux/memcontrol.h
-@@ -693,13 +693,35 @@ static inline bool mem_cgroup_below_min(
- 		page_counter_read(&memcg->memory);
- }
+--- a/include/linux/swap.h~mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config
++++ a/include/linux/swap.h
+@@ -721,7 +721,13 @@ static inline int mem_cgroup_swappiness(
+ #endif
  
--int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask);
-+int __mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-+			gfp_t gfp_mask);
-+static inline int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-+				    gfp_t gfp_mask)
+ #if defined(CONFIG_SWAP) && defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
+-extern void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask);
++extern void __cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask);
++static inline  void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
++{
++	if (mem_cgroup_disabled())
++		return;
++	__cgroup_throttle_swaprate(page, gfp_mask);
++}
+ #else
+ static inline void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
+ {
+@@ -730,8 +736,22 @@ static inline void cgroup_throttle_swapr
+ 
+ #ifdef CONFIG_MEMCG_SWAP
+ extern void mem_cgroup_swapout(struct page *page, swp_entry_t entry);
+-extern int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
+-extern void mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages);
++extern int __mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
++static inline int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
 +{
 +	if (mem_cgroup_disabled())
 +		return 0;
-+	return __mem_cgroup_charge(page, mm, gfp_mask);
++	return __mem_cgroup_try_charge_swap(page, entry);
 +}
 +
- int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
- 				  gfp_t gfp, swp_entry_t entry);
- void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry);
- 
--void mem_cgroup_uncharge(struct page *page);
--void mem_cgroup_uncharge_list(struct list_head *page_list);
-+void __mem_cgroup_uncharge(struct page *page);
-+static inline void mem_cgroup_uncharge(struct page *page)
++extern void __mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages);
++static inline void mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages)
 +{
 +	if (mem_cgroup_disabled())
 +		return;
-+	__mem_cgroup_uncharge(page);
++	__mem_cgroup_uncharge_swap(entry, nr_pages);
 +}
 +
-+void __mem_cgroup_uncharge_list(struct list_head *page_list);
-+static inline void mem_cgroup_uncharge_list(struct list_head *page_list)
-+{
-+	if (mem_cgroup_disabled())
-+		return;
-+	__mem_cgroup_uncharge_list(page_list);
-+}
- 
- void mem_cgroup_migrate(struct page *oldpage, struct page *newpage);
- 
---- a/mm/memcontrol.c~mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config
+ extern long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg);
+ extern bool mem_cgroup_swap_full(struct page *page);
+ #else
+--- a/mm/memcontrol.c~mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config
 +++ a/mm/memcontrol.c
-@@ -6693,8 +6693,7 @@ void mem_cgroup_calculate_protection(str
- 			atomic_long_read(&parent->memory.children_low_usage)));
- }
- 
--static int __mem_cgroup_charge(struct page *page, struct mem_cgroup *memcg,
--			       gfp_t gfp)
-+static int charge_memcg(struct page *page, struct mem_cgroup *memcg, gfp_t gfp)
- {
- 	unsigned int nr_pages = thp_nr_pages(page);
- 	int ret;
-@@ -6715,7 +6714,7 @@ out:
+@@ -7226,7 +7226,7 @@ void mem_cgroup_swapout(struct page *pag
  }
  
  /**
-- * mem_cgroup_charge - charge a newly allocated page to a cgroup
-+ * __mem_cgroup_charge - charge a newly allocated page to a cgroup
-  * @page: page to charge
-  * @mm: mm context of the victim
-  * @gfp_mask: reclaim mode
-@@ -6728,16 +6727,14 @@ out:
+- * mem_cgroup_try_charge_swap - try charging swap space for a page
++ * __mem_cgroup_try_charge_swap - try charging swap space for a page
+  * @page: page being added to swap
+  * @entry: swap entry to charge
   *
-  * Returns 0 on success. Otherwise, an error code is returned.
+@@ -7234,16 +7234,13 @@ void mem_cgroup_swapout(struct page *pag
+  *
+  * Returns 0 on success, -ENOMEM on failure.
   */
--int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask)
-+int __mem_cgroup_charge(struct page *page, struct mm_struct *mm,
-+			gfp_t gfp_mask)
+-int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
++int __mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
  {
+ 	unsigned int nr_pages = thp_nr_pages(page);
+ 	struct page_counter *counter;
  	struct mem_cgroup *memcg;
- 	int ret;
+ 	unsigned short oldid;
  
 -	if (mem_cgroup_disabled())
 -		return 0;
 -
- 	memcg = get_mem_cgroup_from_mm(mm);
--	ret = __mem_cgroup_charge(page, memcg, gfp_mask);
-+	ret = charge_memcg(page, memcg, gfp_mask);
- 	css_put(&memcg->css);
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
+ 		return 0;
  
- 	return ret;
-@@ -6772,7 +6769,7 @@ int mem_cgroup_swapin_charge_page(struct
- 		memcg = get_mem_cgroup_from_mm(mm);
- 	rcu_read_unlock();
- 
--	ret = __mem_cgroup_charge(page, memcg, gfp);
-+	ret = charge_memcg(page, memcg, gfp);
- 
- 	css_put(&memcg->css);
- 	return ret;
-@@ -6908,18 +6905,15 @@ static void uncharge_page(struct page *p
+@@ -7279,18 +7276,15 @@ int mem_cgroup_try_charge_swap(struct pa
  }
  
  /**
-- * mem_cgroup_uncharge - uncharge a page
-+ * __mem_cgroup_uncharge - uncharge a page
-  * @page: page to uncharge
-  *
-- * Uncharge a page previously charged with mem_cgroup_charge().
-+ * Uncharge a page previously charged with __mem_cgroup_charge().
+- * mem_cgroup_uncharge_swap - uncharge swap space
++ * __mem_cgroup_uncharge_swap - uncharge swap space
+  * @entry: swap entry to uncharge
+  * @nr_pages: the amount of swap space to uncharge
   */
--void mem_cgroup_uncharge(struct page *page)
-+void __mem_cgroup_uncharge(struct page *page)
+-void mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages)
++void __mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages)
  {
- 	struct uncharge_gather ug;
+ 	struct mem_cgroup *memcg;
+ 	unsigned short id;
  
 -	if (mem_cgroup_disabled())
 -		return;
 -
- 	/* Don't touch page->lru of any random page, pre-check: */
- 	if (!page_memcg(page))
+ 	id = swap_cgroup_record(entry, 0, nr_pages);
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_id(id);
+--- a/mm/swapfile.c~mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config
++++ a/mm/swapfile.c
+@@ -3779,14 +3779,11 @@ static void free_swap_count_continuation
+ }
+ 
+ #if defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
+-void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
++void __cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
+ {
+ 	struct swap_info_struct *si, *next;
+ 	int nid = page_to_nid(page);
+ 
+-	if (mem_cgroup_disabled())
+-		return;
+-
+ 	if (!(gfp_mask & __GFP_IO))
  		return;
-@@ -6930,20 +6924,17 @@ void mem_cgroup_uncharge(struct page *pa
- }
  
- /**
-- * mem_cgroup_uncharge_list - uncharge a list of page
-+ * __mem_cgroup_uncharge_list - uncharge a list of page
-  * @page_list: list of pages to uncharge
-  *
-  * Uncharge a list of pages previously charged with
-- * mem_cgroup_charge().
-+ * __mem_cgroup_charge().
-  */
--void mem_cgroup_uncharge_list(struct list_head *page_list)
-+void __mem_cgroup_uncharge_list(struct list_head *page_list)
- {
- 	struct uncharge_gather ug;
- 	struct page *page;
- 
--	if (mem_cgroup_disabled())
--		return;
--
- 	uncharge_gather_clear(&ug);
- 	list_for_each_entry(page, page_list, lru)
- 		uncharge_page(page, &ug);
 _
 
 Patches currently in -mm which might be from surenb@google.com are
