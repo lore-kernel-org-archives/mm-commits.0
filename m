@@ -7,43 +7,40 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65D1CC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7457C43217
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 546E6610E8
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9056E61131
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350445AbhICU6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:58:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57136 "EHLO mail.kernel.org"
+        id S235936AbhICU6Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:58:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57182 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350417AbhICU6V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:58:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 84C2060184;
-        Fri,  3 Sep 2021 20:57:20 +0000 (UTC)
+        id S1350417AbhICU6Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:58:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 765A0601FD;
+        Fri,  3 Sep 2021 20:57:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702641;
-        bh=wkE2R3eD0k0zWfnWZ+vVP7zIeAue6q/5x9zk4h6VFTg=;
+        s=korg; t=1630702643;
+        bh=aEtoh5UIssuE4RoAK6cmSwY7f0wRbwO1e5bnXTCK/u8=;
         h=Date:From:To:Subject:From;
-        b=GMePIlggFyBX8t6ZByGSxdSyk0Om6B4LNr005BpFyMLMAfB4Tt03jAt71heFp7LOo
-         HfdXHhA4SBzcQxaFMQ52s1+AGAPjyx/OexxccDuIgHYOWP6GUSjY8cZlmraNNnWchn
-         kMmcGoH+Mg6mZQxJ5yznQxaYP9Uw/YsvvcZKKGIk=
-Date:   Fri, 03 Sep 2021 13:57:20 -0700
+        b=0BPuKJGFrS8N3KhtkGCimYk04CMbxIzW/TJeMJTU3EvAgYAg/oEqo5Gzak6dSM+3U
+         qkyrT/idNqexRIM4amxtMQAWfV6VNUWYIVHUXevLaOQNk90EaQ32dU7OTgqLO5hsjO
+         IZV2uvY3iONwPidhzfGJ/MLaW3kT81GgaIADjYHY=
+Date:   Fri, 03 Sep 2021 13:57:23 -0700
 From:   akpm@linux-foundation.org
-To:     alexs@kernel.org, apopple@nvidia.com, axboe@kernel.dk,
-        david@redhat.com, guro@fb.com, hannes@cmpxchg.org,
-        iamjoonsoo.kim@lge.com, linmiaohe@huawei.com, mhocko@suse.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org,
-        richard.weiyang@gmail.com, shakeelb@google.com,
-        shy828301@gmail.com, songmuchun@bytedance.com, surenb@google.com,
-        tj@kernel.org, willy@infradead.org
+To:     christian.brauner@ubuntu.com, guro@fb.com, hannes@cmpxchg.org,
+        mhocko@suse.com, mkoutny@suse.com, mm-commits@vger.kernel.org,
+        shakeelb@google.com, vvs@virtuozzo.com
 Subject:  [merged]
- =?US-ASCII?Q?mm-memcg-inline-swap-related-functions-to-improve-disable?=
- =?US-ASCII?Q?d-memcg-config.patch?= removed from -mm tree
-Message-ID: <20210903205720.QHIxh-jo4%akpm@linux-foundation.org>
+ memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch removed
+ from -mm tree
+Message-ID: <20210903205723.FpHmqYoxx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,165 +48,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: inline swap-related functions to improve disabled memcg config
+     Subject: memcg: enable accounting for pids in nested pid namespaces
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config.patch
+     memcg-enable-accounting-for-pids-in-nested-pid-namespaces.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm, memcg: inline swap-related functions to improve disabled memcg config
+=46rom: Vasily Averin <vvs@virtuozzo.com>
+Subject: memcg: enable accounting for pids in nested pid namespaces
 
-Inline mem_cgroup_try_charge_swap, mem_cgroup_uncharge_swap and
-cgroup_throttle_swaprate functions to perform mem_cgroup_disabled static
-key check inline before calling the main body of the function.  This
-minimizes the memcg overhead in the pagefault and exit_mmap paths when
-memcgs are disabled using cgroup_disable=memory command-line option.  This
-change results in ~1% overhead reduction when running PFT test [1]
-comparing {CONFIG_MEMCG=n} against {CONFIG_MEMCG=y, cgroup_disable=memory}
-configuration on an 8-core ARM64 Android device.
+Commit 5d097056c9a0 ("kmemcg: account certain kmem allocations to memcg")
+enabled memcg accounting for pids allocated from init_pid_ns.pid_cachep,
+but forgot to adjust the setting for nested pid namespaces.  As a result,
+pid memory is not accounted exactly where it is really needed, inside
+memcg-limited containers with their own pid namespaces.
 
-[1] https://lkml.org/lkml/2006/8/29/294 also used in mmtests suite
+Pid was one the first kernel objects enabled for memcg accounting.=20
+init_pid_ns.pid_cachep marked by SLAB_ACCOUNT and we can expect that any
+new pids in the system are memcg-accounted.
 
-Link: https://lkml.kernel.org/r/20210713010934.299876-3-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Though recently I've noticed that it is wrong.  nested pid namespaces
+creates own slab caches for pid objects, nested pids have increased size
+because contain id both for all parent and for own pid namespaces.  The
+problem is that these slab caches are _NOT_ marked by SLAB_ACCOUNT, as a
+result any pids allocated in nested pid namespaces are not
+memcg-accounted.
+
+Pid struct in nested pid namespace consumes up to 500 bytes memory, 100000
+such objects gives us up to ~50Mb unaccounted memory, this allow container
+to exceed assigned memcg limits.
+
+Link: https://lkml.kernel.org/r/8b6de616-fd1a-02c6-cbdb-976ecdcfa604@virtuo=
+zzo.com
+Fixes: 5d097056c9a0 ("kmemcg: account certain kmem allocations to memcg")
+Cc: stable@vger.kernel.org
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Reviewed-by: Michal Koutn=C3=BD <mkoutny@suse.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   26 +++++++++++++++++++++++---
- mm/memcontrol.c      |   14 ++++----------
- mm/swapfile.c        |    5 +----
- 3 files changed, 28 insertions(+), 17 deletions(-)
+ kernel/pid_namespace.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/swap.h~mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config
-+++ a/include/linux/swap.h
-@@ -721,7 +721,13 @@ static inline int mem_cgroup_swappiness(
- #endif
- 
- #if defined(CONFIG_SWAP) && defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
--extern void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask);
-+extern void __cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask);
-+static inline  void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
-+{
-+	if (mem_cgroup_disabled())
-+		return;
-+	__cgroup_throttle_swaprate(page, gfp_mask);
-+}
- #else
- static inline void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
- {
-@@ -730,8 +736,22 @@ static inline void cgroup_throttle_swapr
- 
- #ifdef CONFIG_MEMCG_SWAP
- extern void mem_cgroup_swapout(struct page *page, swp_entry_t entry);
--extern int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
--extern void mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages);
-+extern int __mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
-+static inline int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
-+{
-+	if (mem_cgroup_disabled())
-+		return 0;
-+	return __mem_cgroup_try_charge_swap(page, entry);
-+}
-+
-+extern void __mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages);
-+static inline void mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages)
-+{
-+	if (mem_cgroup_disabled())
-+		return;
-+	__mem_cgroup_uncharge_swap(entry, nr_pages);
-+}
-+
- extern long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg);
- extern bool mem_cgroup_swap_full(struct page *page);
- #else
---- a/mm/memcontrol.c~mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config
-+++ a/mm/memcontrol.c
-@@ -7226,7 +7226,7 @@ void mem_cgroup_swapout(struct page *pag
- }
- 
- /**
-- * mem_cgroup_try_charge_swap - try charging swap space for a page
-+ * __mem_cgroup_try_charge_swap - try charging swap space for a page
-  * @page: page being added to swap
-  * @entry: swap entry to charge
-  *
-@@ -7234,16 +7234,13 @@ void mem_cgroup_swapout(struct page *pag
-  *
-  * Returns 0 on success, -ENOMEM on failure.
-  */
--int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
-+int __mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
- {
- 	unsigned int nr_pages = thp_nr_pages(page);
- 	struct page_counter *counter;
- 	struct mem_cgroup *memcg;
- 	unsigned short oldid;
- 
--	if (mem_cgroup_disabled())
--		return 0;
--
- 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
- 		return 0;
- 
-@@ -7279,18 +7276,15 @@ int mem_cgroup_try_charge_swap(struct pa
- }
- 
- /**
-- * mem_cgroup_uncharge_swap - uncharge swap space
-+ * __mem_cgroup_uncharge_swap - uncharge swap space
-  * @entry: swap entry to uncharge
-  * @nr_pages: the amount of swap space to uncharge
-  */
--void mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages)
-+void __mem_cgroup_uncharge_swap(swp_entry_t entry, unsigned int nr_pages)
- {
- 	struct mem_cgroup *memcg;
- 	unsigned short id;
- 
--	if (mem_cgroup_disabled())
--		return;
--
- 	id = swap_cgroup_record(entry, 0, nr_pages);
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_id(id);
---- a/mm/swapfile.c~mm-memcg-inline-swap-related-functions-to-improve-disabled-memcg-config
-+++ a/mm/swapfile.c
-@@ -3779,14 +3779,11 @@ static void free_swap_count_continuation
- }
- 
- #if defined(CONFIG_MEMCG) && defined(CONFIG_BLK_CGROUP)
--void cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
-+void __cgroup_throttle_swaprate(struct page *page, gfp_t gfp_mask)
- {
- 	struct swap_info_struct *si, *next;
- 	int nid = page_to_nid(page);
- 
--	if (mem_cgroup_disabled())
--		return;
--
- 	if (!(gfp_mask & __GFP_IO))
- 		return;
- 
+--- a/kernel/pid_namespace.c~memcg-enable-accounting-for-pids-in-nested-pid=
+-namespaces
++++ a/kernel/pid_namespace.c
+@@ -51,7 +51,8 @@ static struct kmem_cache *create_pid_cac
+ 	mutex_lock(&pid_caches_mutex);
+ 	/* Name collision forces to do allocation under mutex. */
+ 	if (!*pkc)
+-		*pkc =3D kmem_cache_create(name, len, 0, SLAB_HWCACHE_ALIGN, 0);
++		*pkc =3D kmem_cache_create(name, len, 0,
++					 SLAB_HWCACHE_ALIGN | SLAB_ACCOUNT, 0);
+ 	mutex_unlock(&pid_caches_mutex);
+ 	/* current can fail, but someone else can succeed. */
+ 	return READ_ONCE(*pkc);
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
 
