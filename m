@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 79581C43217
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CDA1AC433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 63EE3610FD
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B88AC61131
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350291AbhICVBF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:01:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59614 "EHLO mail.kernel.org"
+        id S1350144AbhICVBE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:01:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59534 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350253AbhICVBD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:01:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BB485610FB;
-        Fri,  3 Sep 2021 21:00:02 +0000 (UTC)
+        id S1350172AbhICVBA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:01:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A53461107;
+        Fri,  3 Sep 2021 20:59:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702802;
-        bh=yt74DI5KxqTJf8fDLPnmhvWpU44pEJQbweXpnaIqn/w=;
+        s=korg; t=1630702799;
+        bh=LmT9TIBeT2kZKPo4P5m74rckBoPaBCnP9Si/IWxtu2M=;
         h=Date:From:To:Subject:From;
-        b=E/MNXSC9TgWhYQcC1j5tRoZEJR4XxuBqsaCKgYbbaqzAcN3VFTtrCeq3/mw6Q/iAu
-         BLYGwIFHt9kFEUM59lh+qzjNhMortsh7IXaUu+D3gDvP+pZjw+Egtqa0RoatELS0YM
-         JvHnrH9F2iW78w2D31NvmdX4Z34r8bOHWuwNJDiw=
-Date:   Fri, 03 Sep 2021 14:00:02 -0700
+        b=ehPa44416aoPmYRFqWSXxG/WnUVXwAlzicCW4qC1Ixw0uPRDke3TEhfP37QozqGcV
+         pXQwhShR6CneYcFSpWX3zcvXL+x4UcPjp+piRL2o3zU/rLOmF/76Jzled3JISqgddG
+         hbVLvF5B2rvL94EqBQWawR+ygZu4fR5CIJ78HbcE=
+Date:   Fri, 03 Sep 2021 13:59:59 -0700
 From:   akpm@linux-foundation.org
-To:     abaci@linux.alibaba.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, stable@vger.kernel.org,
-        yun.wang@linux.alibaba.com
-Subject:  [merged]
- mm-fix-panic-caused-by-__page_handle_poison.patch removed from -mm tree
-Message-ID: <20210903210002.7xf8_km-9%akpm@linux-foundation.org>
+To:     corbet@lwn.net, david@redhat.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, osalvador@suse.de, shy828301@gmail.com,
+        tdmackey@twitter.com, willy@infradead.org
+Subject:  [merged] mm-hwpoison-dump-page-for-unhandlable-page.patch
+ removed from -mm tree
+Message-ID: <20210903205959.BV0-Q4Em8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,80 +44,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix panic caused by __page_handle_poison()
+     Subject: mm: hwpoison: dump page for unhandlable page
 has been removed from the -mm tree.  Its filename was
-     mm-fix-panic-caused-by-__page_handle_poison.patch
+     mm-hwpoison-dump-page-for-unhandlable-page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michael Wang <yun.wang@linux.alibaba.com>
-Subject: mm: fix panic caused by __page_handle_poison()
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: hwpoison: dump page for unhandlable page
 
-In commit 510d25c92ec4 ("mm/hwpoison: disable pcp for
-page_handle_poison()"), __page_handle_poison() was introduced, and if we
-mark:
+Currently just very simple message is shown for unhandlable page, e.g. 
+non-LRU page, like: soft_offline: 0x1469f2: unknown non LRU page type
+5ffff0000000000 ()
 
-RET_A = dissolve_free_huge_page();
-RET_B = take_page_off_buddy();
+It is not very helpful for further debug, calling dump_page() could show
+more useful information.
 
-then __page_handle_poison was supposed to return TRUE When RET_A == 0 &&
-RET_B == TRUE
+Calling dump_page() in get_any_page() in order to not duplicate the call
+in a couple of different places.  It may be called with pcp disabled and
+holding memory hotplug lock, it should be not a big deal since hwpoison
+handler is not called very often.
 
-But since it failed to take care the case when RET_A is -EBUSY or -ENOMEM,
-and just return the ret as a bool which actually become TRUE, it break the
-original logic.
-
-The following result is a huge page in freelist but was
-referenced as poisoned, and lead into the final panic:
-
-  kernel BUG at mm/internal.h:95!
-  invalid opcode: 0000 [#1] SMP PTI
-  skip...
-  RIP: 0010:set_page_refcounted mm/internal.h:95 [inline]
-  RIP: 0010:remove_hugetlb_page+0x23c/0x240 mm/hugetlb.c:1371
-  skip...
-  Call Trace:
-   remove_pool_huge_page+0xe4/0x110 mm/hugetlb.c:1892
-   return_unused_surplus_pages+0x8d/0x150 mm/hugetlb.c:2272
-   hugetlb_acct_memory.part.91+0x524/0x690 mm/hugetlb.c:4017
-
-This patch replaces 'bool' with 'int' to handle RET_A correctly.
-
-Link: https://lkml.kernel.org/r/61782ac6-1e8a-4f6f-35e6-e94fce3b37f5@linux.alibaba.com
-Fixes: 510d25c92ec4 ("mm/hwpoison: disable pcp for page_handle_poison()")
-Signed-off-by: Michael Wang <yun.wang@linux.alibaba.com>
+[shy828301@gmail.com: remove redundant pr_info per Noaya Horiguchi]
+  Link: https://lkml.kernel.org/r/20210824020946.195257-3-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20210819054116.266126-3-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Suggested-by: Matthew Wilcox <willy@infradead.org>
 Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Abaci <abaci@linux.alibaba.com>
-Cc: <stable@vger.kernel.org>	[5.14+]
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Mackey <tdmackey@twitter.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memory-failure.c~mm-fix-panic-caused-by-__page_handle_poison
+--- a/mm/memory-failure.c~mm-hwpoison-dump-page-for-unhandlable-page
 +++ a/mm/memory-failure.c
-@@ -68,7 +68,7 @@ atomic_long_t num_poisoned_pages __read_
- 
- static bool __page_handle_poison(struct page *page)
- {
--	bool ret;
-+	int ret;
- 
- 	zone_pcp_disable(page_zone(page));
- 	ret = dissolve_free_huge_page(page);
-@@ -76,7 +76,7 @@ static bool __page_handle_poison(struct
- 		ret = take_page_off_buddy(page);
- 	zone_pcp_enable(page_zone(page));
- 
--	return ret;
-+	return ret > 0;
+@@ -1228,6 +1228,9 @@ try_again:
+ 		ret = -EIO;
+ 	}
+ out:
++	if (ret == -EIO)
++		dump_page(p, "hwpoison: unhandlable page");
++
+ 	return ret;
  }
  
- static bool page_handle_poison(struct page *page, bool hugepage_or_freepage, bool release)
+@@ -2205,9 +2208,6 @@ retry:
+ 			try_again = false;
+ 			goto retry;
+ 		}
+-	} else if (ret == -EIO) {
+-		pr_info("%s: %#lx: unknown page type: %lx (%pGp)\n",
+-			 __func__, pfn, page->flags, &page->flags);
+ 	}
+ 
+ 	return ret;
 _
 
-Patches currently in -mm which might be from yun.wang@linux.alibaba.com are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
 
