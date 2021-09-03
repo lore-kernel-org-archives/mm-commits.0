@@ -5,75 +5,71 @@ X-Spam-Level:
 X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
 	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 837FEC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 00:46:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F8B2C433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 00:48:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5AFB160FD7
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 00:46:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 168BA61056
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 00:48:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346596AbhICArX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 20:47:23 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50478 "EHLO
+        id S233632AbhICAtJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Sep 2021 20:49:09 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50860 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346591AbhICArX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Sep 2021 20:47:23 -0400
-Received: from mail-pj1-x1033.google.com (mail-pj1-x1033.google.com [IPv6:2607:f8b0:4864:20::1033])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5947DC061575
-        for <mm-commits@vger.kernel.org>; Thu,  2 Sep 2021 17:46:24 -0700 (PDT)
-Received: by mail-pj1-x1033.google.com with SMTP id d3-20020a17090ae28300b0019629c96f25so2771811pjz.2
-        for <mm-commits@vger.kernel.org>; Thu, 02 Sep 2021 17:46:24 -0700 (PDT)
+        with ESMTP id S233254AbhICAtI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Sep 2021 20:49:08 -0400
+Received: from mail-pf1-x431.google.com (mail-pf1-x431.google.com [IPv6:2607:f8b0:4864:20::431])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3AF4C061575
+        for <mm-commits@vger.kernel.org>; Thu,  2 Sep 2021 17:48:09 -0700 (PDT)
+Received: by mail-pf1-x431.google.com with SMTP id r13so2978319pff.7
+        for <mm-commits@vger.kernel.org>; Thu, 02 Sep 2021 17:48:09 -0700 (PDT)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
-        h=date:from:subject:to:cc:references:in-reply-to:mime-version
-         :message-id:content-transfer-encoding;
-        bh=N2BdmhRUmSQiNzMSMVImm25XlVE/wi7ggyxEJHpZ/ew=;
-        b=T8Vn4YU3vukbWXQQqh3eBzB7cojn2HRpBM+mLtqVGwmUkKvm5F8TfoBw9gIKMbOM4m
-         g09dbtbjMHxXsqE/5yH3lm1ERm8HrXY/i0sgS25l+hHPytXFdwJ7DsojbSYconlrA2h9
-         EFH5O7e3vif39sfciCf02SPS41I0d18zn4zt4H6Jx4grd5h1MKoqCKL6gWEjFtUK9nbI
-         VmBQkcWdXj06V73h8MYNT+xSTEhbm7Wb1SaOyum/sYoS4nYB6Z28R4YKNR15bFqpVR4P
-         i7dPuPAgYBX9mnHjp3T6K0nQUvHL3HsKnKArKjNiYwy3Dwwj7fELi0rLXwMqIuiSNzEd
-         rDnw==
+        h=date:from:subject:to:references:in-reply-to:mime-version:message-id
+         :content-transfer-encoding;
+        bh=+18oeo+OGr71BMoOWexeG9aX72YBISWj1VF0yl+y9zg=;
+        b=Y6RhjmseUZIS66CGSthEj3Wel0Nyhl2uwKRthJYu3IW0/sjxUQRigQDnBjm/ZO1ptE
+         p8OlykAEG8HDkLnvT1hSCUw1+njBPI55Xvt+VA6AlvOjVzl5zAU5oMZsESvCgDC5W+2C
+         H2abrFFS8CZP9e1v4aWoyueyqyfvv/yxDc3bhTX+J/u1lJjPVcR10uMno223wNqeyJLH
+         YCF5bXp2IAptQrSRcnsL2s2EqPTFLLsFl0s0Cx3+DUa9VXDmnIYygq/8pvEF7K3cj8vh
+         e1J4d6VOwLcZSzLWQE1tQTDBZDoOWtzcIIWIBSR7GNaCPi2IqQWn2ofqZbF1zSp6/5wN
+         sUPg==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:subject:to:cc:references:in-reply-to
+        h=x-gm-message-state:date:from:subject:to:references:in-reply-to
          :mime-version:message-id:content-transfer-encoding;
-        bh=N2BdmhRUmSQiNzMSMVImm25XlVE/wi7ggyxEJHpZ/ew=;
-        b=QgtAYSUKAVKmPFTEm+NUFuAxH1qWhiek9ExNiXPkQZ54AQJH2zwDPYNSNBX8dgWEo+
-         KrYC1qGDKl1E0WwOmJikvE46QUWYhV3Egri1BylY40lHHkqALgAJZJrN1I9qR0slgtN3
-         sQlDuRqFS0CmtjAzLauGKquwhA3nJ5e7ttxwLzIfk2T8c1vv2RFKbnPLlNIsZ2yClhLq
-         az90YsaUYkh55lXa+yAW/f0GWABvlO1gzErYnE50bzO+cU1/u8IZVUWlX3lDYt3xTiJR
-         I18YEuPOBBaKmI65ixr8Ohgl0ndXaxaf1dMEgO0NNUBgCBJdvK/BsbO7uhzhJw3bx1fv
-         UxFg==
-X-Gm-Message-State: AOAM5326r3xFOaVRQ9f5pWeVQl097WAi3t3OaTS/aXKw0248sbU0zXx9
-        4cxsZZDHHU/no5ECNtE/aEU=
-X-Google-Smtp-Source: ABdhPJwhvC28qw4rSl7SY7gGtBznms7lX2PFw6l199xd31+jtm5BXHU/X8LnuDy5MSgiQ1lpA4ft/g==
-X-Received: by 2002:a17:902:b48c:b0:139:eec4:737c with SMTP id y12-20020a170902b48c00b00139eec4737cmr929609plr.11.1630629983869;
-        Thu, 02 Sep 2021 17:46:23 -0700 (PDT)
+        bh=+18oeo+OGr71BMoOWexeG9aX72YBISWj1VF0yl+y9zg=;
+        b=izEI0UVa5kK7dUrGweVnDgraBcQlWCwhIelwP+HD4O8LkyT5NW13S38yHo6PfyODD6
+         Y+0XeGtci3Y1aZr2BXtvVMG3yDsJnihwZR4/w+bxjuR/fQrQ8KtDM+8s6mN4Fu0uB1M3
+         1lnR9VpzbggPinFc0Up+cp/xG5sGmUdF6gtFFdeMHaepeL1FqVZEZMcMGX7ef9grVjsN
+         Vca00M9ZHuYbWShD5wLmGZGuuFmVdc94QyqXttwIYK0O/tmM8LWmpG712rbRtOGkervt
+         da9Fhb8iR6FtExBQW1POLUtzsiTYd1orWEAS2cHrghHyasIBp42ssonxxiuDVXTyeXkR
+         UmJg==
+X-Gm-Message-State: AOAM531OmDAlfoaGKydq4xqu3FOCv79Wc+LdQ2fBdj9KgH4kESVbMZCK
+        7GS2GrNwWngYMNRGNas0J1s=
+X-Google-Smtp-Source: ABdhPJxZNt9AgvXxmXgCbB+pBbcfTyBAjFVvyoyj9sFucrIg7K3XY/JoTJ6g/9BA2BzMRyzT+lec2A==
+X-Received: by 2002:aa7:8387:0:b029:395:a683:a0e6 with SMTP id u7-20020aa783870000b0290395a683a0e6mr778373pfm.12.1630630089131;
+        Thu, 02 Sep 2021 17:48:09 -0700 (PDT)
 Received: from localhost (203-219-56-12.tpgi.com.au. [203.219.56.12])
-        by smtp.gmail.com with ESMTPSA id v7sm3153207pjg.34.2021.09.02.17.46.22
+        by smtp.gmail.com with ESMTPSA id u9sm3942905pgp.83.2021.09.02.17.48.08
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 Sep 2021 17:46:23 -0700 (PDT)
-Date:   Fri, 03 Sep 2021 10:46:18 +1000
+        Thu, 02 Sep 2021 17:48:08 -0700 (PDT)
+Date:   Fri, 03 Sep 2021 10:48:03 +1000
 From:   Nicholas Piggin <npiggin@gmail.com>
 Subject: Re: [patch 119/212] lazy tlb: shoot lazies, a non-refcounting lazy
  tlb option
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Anton Blanchard <anton@ozlabs.org>,
+To:     Andrew Morton <akpm@linux-foundation.org>, anton@ozlabs.org,
         Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Linux-MM <linux-mm@kvack.org>, Andy Lutomirski <luto@kernel.org>,
-        mm-commits@vger.kernel.org, Paul Mackerras <paulus@ozlabs.org>,
-        Randy Dunlap <rdunlap@infradead.org>
+        linux-mm@kvack.org, Andy Lutomirski <luto@kernel.org>,
+        mm-commits@vger.kernel.org, paulus@ozlabs.org,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Linus Torvalds <torvalds@linux-foundation.org>
 References: <20210902215620._WXglfIJy%akpm@linux-foundation.org>
         <18b7e206-9ee6-4afe-b662-9dcbdf55a9db@www.fastmail.com>
-        <CAHk-=wjC05YZycowZkmvjZACNEm3rUhLTneN+Vaz9Ebp1+++Gw@mail.gmail.com>
-        <20210902155330.a643b03dc6991cde53133edf@linux-foundation.org>
-In-Reply-To: <20210902155330.a643b03dc6991cde53133edf@linux-foundation.org>
+In-Reply-To: <18b7e206-9ee6-4afe-b662-9dcbdf55a9db@www.fastmail.com>
 MIME-Version: 1.0
-Message-Id: <1630629747.odrw4rffkd.astroid@bobo.none>
+Message-Id: <1630629987.6eck6qpy33.astroid@bobo.none>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
@@ -81,49 +77,57 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Excerpts from Andrew Morton's message of September 3, 2021 8:53 am:
-> On Thu, 2 Sep 2021 15:50:03 -0700 Linus Torvalds <torvalds@linux-foundati=
-on.org> wrote:
+Excerpts from Andy Lutomirski's message of September 3, 2021 8:28 am:
 >=20
->> On Thu, Sep 2, 2021 at 3:29 PM Andy Lutomirski <luto@kernel.org> wrote:
->> >
->> > This pile is:
->> >
->> > Nacked-by: Andy Lutomirski <luto@kernel.org>
->>=20
->> Can you specify exactly the range you want me to drop?
->>=20
->> I assume it's the four patches 117-120, ie
->>=20
->>   lazy tlb: introduce lazy mm refcount helper functions
->>   lazy tlb: allow lazy tlb mm refcounting to be configurable
->>   lazy tlb: shoot lazies, a non-refcounting lazy tlb option
->>   powerpc/64s: enable MMU_LAZY_TLB_SHOOTDOWN
->>=20
->> but I just want to double-check before I do surgery on that series.
 >=20
-> Yes, those 4.
+> On Thu, Sep 2, 2021, at 2:56 PM, Andrew Morton wrote:
+>> From: Nicholas Piggin <npiggin@gmail.com>
+>> Subject: lazy tlb: shoot lazies, a non-refcounting lazy tlb option
+>>=20
+>> On big systems, the mm refcount can become highly contented when doing a
+>> lot of context switching with threaded applications (particularly
+>> switching between the idle thread and an application thread).
+>>=20
+>> Abandoning lazy tlb slows switching down quite a bit in the important
+>> user->idle->user cases, so instead implement a non-refcounted scheme tha=
+t
+>> causes __mmdrop() to IPI all CPUs in the mm_cpumask and shoot down any
+>> remaining lazy ones.
+>>=20
+>> Shootdown IPIs are some concern, but they have not been observed to be a
+>> big problem with this scheme (the powerpc implementation generated 314
+>> additional interrupts on a 144 CPU system during a kernel compile).  The=
+re
+>> are a number of strategies that could be employed to reduce IPIs if they
+>> turn out to be a problem for some workload.
 >=20
-> Sorry, I missed that email thread...
+> This pile is:
 >=20
+> Nacked-by: Andy Lutomirski <luto@kernel.org>
+>=20
+> For reasons that have been discussed previously. My series is still in pr=
+ogress.  It=E2=80=99s moving slowly for two reasons.  First, I have limited=
+ time to work on it. Second, the existing mm refcounting is a giant pile of=
+ worms, and that needs fixing one way or another before we add yet more com=
+plexity. For example, has anyone noticed that kthread mms are refcounted us=
+ing different rules than everything else?
 
-That's not reasonable. Andy has had complete misunderstandings about the
-series which seems to stem from x86's horrible hacks that have gone in
-has confused him.
+It's been like a year with ~no progress. mm refcounting is not a pile of =20
+worms, as you can see in my series it's pretty simple. The _x86_ mm=20
+refcounting is a huge pile of crap, but that doesn't give reason to nack=20
+this series.
 
-My series doesn't affect x86 at all and it's no reason why Andy's series
-to improve x86 can't be merged later. But that half finished series he=20
-keeps threatening with has been sitting there for almost a year now and=20
-it's gone nowhere, while there have been no unresolved technical=20
-objections to mine, it works, it's simple and small.
+>=20
+> Even if my modified refcounting scheme isn=E2=80=99t the eventual winner,=
+ the prerequisite cleanups are still prerequisites. I absolutely nack anyth=
+ing that adds yet more nonsensical complexity to the existing scheme, makes=
+ it substantially more fragile, and does not fix the underlying crap that m=
+akes speeding up responsibly such a mess.
+>=20
+> Nick or anyone else, you=E2=80=99re welcome to finish up my series (and I=
+ can give pointers) or you can wait.
 
-I've kept trying to offer to help Andy with reviewing his stuff or fix=20
-the horrible x86 hacks, but nothing.
-
-So
-
-Un-Nacked-by: Nicholas Piggin <npiggin@gmail.com>
-
+You or anyone else is welcome to rebase your series on top of mine.
 
 Thanks,
 Nick
