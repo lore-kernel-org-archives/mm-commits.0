@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 497B3C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BDA35C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3663D6112F
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC0606113A
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235926AbhICVAi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:00:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59288 "EHLO mail.kernel.org"
+        id S1349960AbhICVAl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:00:41 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59306 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235866AbhICVAi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:00:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8D27B6112F;
-        Fri,  3 Sep 2021 20:59:37 +0000 (UTC)
+        id S235866AbhICVAj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:00:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 64B586112E;
+        Fri,  3 Sep 2021 20:59:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702777;
-        bh=QrFkti6rcH2LRznnrq7o563fbfco8rGYzq8+Lg50LIw=;
+        s=korg; t=1630702779;
+        bh=RT+9Axu7uERom+Tw9fnFHLXmgZyM0xrxkOdaDxRygtM=;
         h=Date:From:To:Subject:From;
-        b=V6VA6MPp/r3F7HFTFYrGMOQSUph+WvdiIZpqWUCfxPVvFkn/Bn7tBbBhYqy7hFpFo
-         6tWaKn1HLmHwdrRnbGGOwykaXI+494AWP/60n7b8kf8L9KlPtXJG4UxOe+GLtYo3kp
-         3hDmFQquG3P/ZurCarXAgoji39XVsO3bP0eWfIPg=
-Date:   Fri, 03 Sep 2021 13:59:37 -0700
+        b=cAcduLxwuQ7lYS7gSXQJBWLONx5k+XHZe0K17Qg5CKAe1YiiYbqQ0Tss5y0A1Mkig
+         ndqabDaGBEVky4y3qESzgn4I8Vc9vRmODvVkedH8CQixazpafs6m8Jl3O4/lu5Os+I
+         kPG4VwZbSp1FzUzR/frPOT4dSLk67gZKgJfFkNJA=
+Date:   Fri, 03 Sep 2021 13:59:39 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, npache@redhat.com, rppt@linux.ibm.com
+To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com
 Subject:  [merged]
- fix-zone_id-may-be-used-uninitialized-in-this-function-warning.patch
+ mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref.patch
  removed from -mm tree
-Message-ID: <20210903205937.j1lfaTmun%akpm@linux-foundation.org>
+Message-ID: <20210903205939._wFwvKsOH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,48 +43,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: fix 'zone_id' may be used uninitialized in this function warning
+     Subject: mm/page_alloc: make alloc_node_mem_map() __init rather than __ref
 has been removed from the -mm tree.  Its filename was
-     fix-zone_id-may-be-used-uninitialized-in-this-function-warning.patch
+     mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nico Pache <npache@redhat.com>
-Subject: mm/page_alloc.c: fix 'zone_id' may be used uninitialized in this function warning
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm/page_alloc: make alloc_node_mem_map() __init rather than __ref
 
-When compiling with -Werror, cc1 will warn that 'zone_id' may be used
-uninitialized in this function warning.
+alloc_node_mem_map() is never only called from free_area_init_node() that
+is an __init function.
 
-Initialize the zone_id as 0.
+Make the actual alloc_node_mem_map() also __init and its stub version
+static inline.
 
-Its safe to assume that if the code reaches this point it has at least one
-numa node with memory, so no need for an assertion before
-init_unavilable_range.
-
-Link: https://lkml.kernel.org/r/20210716210336.1114114-1-npache@redhat.com
-Fixes: 122e093c1734 ("mm/page_alloc: fix memory map initialization for descending nodes")
-Signed-off-by: Nico Pache <npache@redhat.com>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20210716064124.31865-1-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~fix-zone_id-may-be-used-uninitialized-in-this-function-warning
+--- a/mm/page_alloc.c~mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref
 +++ a/mm/page_alloc.c
-@@ -6715,7 +6715,7 @@ static void __init memmap_init(void)
- {
- 	unsigned long start_pfn, end_pfn;
- 	unsigned long hole_pfn = 0;
--	int i, j, zone_id, nid;
-+	int i, j, zone_id = 0, nid;
+@@ -7515,7 +7515,7 @@ static void __init free_area_init_core(s
+ }
  
- 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
- 		struct pglist_data *node = NODE_DATA(nid);
+ #ifdef CONFIG_FLATMEM
+-static void __ref alloc_node_mem_map(struct pglist_data *pgdat)
++static void __init alloc_node_mem_map(struct pglist_data *pgdat)
+ {
+ 	unsigned long __maybe_unused start = 0;
+ 	unsigned long __maybe_unused offset = 0;
+@@ -7561,7 +7561,7 @@ static void __ref alloc_node_mem_map(str
+ #endif
+ }
+ #else
+-static void __ref alloc_node_mem_map(struct pglist_data *pgdat) { }
++static inline void alloc_node_mem_map(struct pglist_data *pgdat) { }
+ #endif /* CONFIG_FLATMEM */
+ 
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
 _
 
-Patches currently in -mm which might be from npache@redhat.com are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
+mm-remove-pfn_valid_within-and-config_holes_in_zone.patch
+mm-memory_hotplug-cleanup-after-removal-of-pfn_valid_within.patch
 
