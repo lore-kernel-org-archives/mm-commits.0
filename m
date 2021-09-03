@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19A23C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 497B3C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F3E736113A
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3663D6112F
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350130AbhICVAh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:00:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59268 "EHLO mail.kernel.org"
+        id S235926AbhICVAi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:00:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59288 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350144AbhICVAf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:00:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E1DF61107;
-        Fri,  3 Sep 2021 20:59:35 +0000 (UTC)
+        id S235866AbhICVAi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:00:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8D27B6112F;
+        Fri,  3 Sep 2021 20:59:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702775;
-        bh=i6uT+fjTaYlrtoHQD3lKfrT+oGsisnCyvhkrQg2Q/EA=;
+        s=korg; t=1630702777;
+        bh=QrFkti6rcH2LRznnrq7o563fbfco8rGYzq8+Lg50LIw=;
         h=Date:From:To:Subject:From;
-        b=W3olY4YWIZ97FsTVV37Fr40Usdb4PsmEDwqudMn1cH4BRgYmPZLZJOhuNoUPvEt/T
-         xDUUhiNOZHgPPdVS5oc29Ugc2NODZ2zxoLJkhmM7xz1gfsEynWakOLssGIfORpx1DR
-         a2U+3dauuZlsoP6VyKjAshc29iDR/FxMGASxsacE=
-Date:   Fri, 03 Sep 2021 13:59:35 -0700
+        b=V6VA6MPp/r3F7HFTFYrGMOQSUph+WvdiIZpqWUCfxPVvFkn/Bn7tBbBhYqy7hFpFo
+         6tWaKn1HLmHwdrRnbGGOwykaXI+494AWP/60n7b8kf8L9KlPtXJG4UxOe+GLtYo3kp
+         3hDmFQquG3P/ZurCarXAgoji39XVsO3bP0eWfIPg=
+Date:   Fri, 03 Sep 2021 13:59:37 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, monstr@monstr.eu, rppt@linux.ibm.com
-Subject:  [merged] memblock-stop-poisoning-raw-allocations.patch
+To:     mm-commits@vger.kernel.org, npache@redhat.com, rppt@linux.ibm.com
+Subject:  [merged]
+ fix-zone_id-may-be-used-uninitialized-in-this-function-warning.patch
  removed from -mm tree
-Message-ID: <20210903205935.a5emgGl6j%akpm@linux-foundation.org>
+Message-ID: <20210903205937.j1lfaTmun%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,83 +43,48 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: stop poisoning raw allocations
+     Subject: mm/page_alloc.c: fix 'zone_id' may be used uninitialized in this function warning
 has been removed from the -mm tree.  Its filename was
-     memblock-stop-poisoning-raw-allocations.patch
+     fix-zone_id-may-be-used-uninitialized-in-this-function-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: memblock: stop poisoning raw allocations
+From: Nico Pache <npache@redhat.com>
+Subject: mm/page_alloc.c: fix 'zone_id' may be used uninitialized in this function warning
 
-Functions memblock_alloc_exact_nid_raw() and memblock_alloc_try_nid_raw()
-are intended for early memory allocation without overhead of zeroing the
-allocated memory.  Since these functions were used to allocate the memory
-map, they have ended up with addition of a call to page_init_poison() that
-poisoned the allocated memory when CONFIG_PAGE_POISON was set.
+When compiling with -Werror, cc1 will warn that 'zone_id' may be used
+uninitialized in this function warning.
 
-Since the memory map is allocated using a dedicated memmep_alloc()
-function that takes care of the poisoning, remove page poisoning from the
-memblock_alloc_*_raw() functions.
+Initialize the zone_id as 0.
 
-Link: https://lkml.kernel.org/r/20210714123739.16493-5-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Michal Simek <monstr@monstr.eu>
+Its safe to assume that if the code reaches this point it has at least one
+numa node with memory, so no need for an assertion before
+init_unavilable_range.
+
+Link: https://lkml.kernel.org/r/20210716210336.1114114-1-npache@redhat.com
+Fixes: 122e093c1734 ("mm/page_alloc: fix memory map initialization for descending nodes")
+Signed-off-by: Nico Pache <npache@redhat.com>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   20 ++++----------------
- 1 file changed, 4 insertions(+), 16 deletions(-)
+ mm/page_alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/memblock.c~memblock-stop-poisoning-raw-allocations
-+++ a/mm/memblock.c
-@@ -1491,18 +1491,12 @@ void * __init memblock_alloc_exact_nid_r
- 			phys_addr_t min_addr, phys_addr_t max_addr,
- 			int nid)
+--- a/mm/page_alloc.c~fix-zone_id-may-be-used-uninitialized-in-this-function-warning
++++ a/mm/page_alloc.c
+@@ -6715,7 +6715,7 @@ static void __init memmap_init(void)
  {
--	void *ptr;
--
- 	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa %pS\n",
- 		     __func__, (u64)size, (u64)align, nid, &min_addr,
- 		     &max_addr, (void *)_RET_IP_);
+ 	unsigned long start_pfn, end_pfn;
+ 	unsigned long hole_pfn = 0;
+-	int i, j, zone_id, nid;
++	int i, j, zone_id = 0, nid;
  
--	ptr = memblock_alloc_internal(size, align,
--					   min_addr, max_addr, nid, true);
--	if (ptr && size > 0)
--		page_init_poison(ptr, size);
--
--	return ptr;
-+	return memblock_alloc_internal(size, align, min_addr, max_addr, nid,
-+				       true);
- }
- 
- /**
-@@ -1529,18 +1523,12 @@ void * __init memblock_alloc_try_nid_raw
- 			phys_addr_t min_addr, phys_addr_t max_addr,
- 			int nid)
- {
--	void *ptr;
--
- 	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa %pS\n",
- 		     __func__, (u64)size, (u64)align, nid, &min_addr,
- 		     &max_addr, (void *)_RET_IP_);
- 
--	ptr = memblock_alloc_internal(size, align,
--					   min_addr, max_addr, nid, false);
--	if (ptr && size > 0)
--		page_init_poison(ptr, size);
--
--	return ptr;
-+	return memblock_alloc_internal(size, align, min_addr, max_addr, nid,
-+				       false);
- }
- 
- /**
+ 	for_each_mem_pfn_range(i, MAX_NUMNODES, &start_pfn, &end_pfn, &nid) {
+ 		struct pglist_data *node = NODE_DATA(nid);
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from npache@redhat.com are
 
-mm-remove-pfn_valid_within-and-config_holes_in_zone.patch
-mm-memory_hotplug-cleanup-after-removal-of-pfn_valid_within.patch
 
