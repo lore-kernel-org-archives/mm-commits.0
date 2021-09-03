@@ -7,43 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9670C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A36DC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D575A60E9B
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6364D60E76
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350362AbhICU6S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1350386AbhICU6S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Sep 2021 16:58:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56960 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56990 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350418AbhICU6Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:58:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C3F860184;
-        Fri,  3 Sep 2021 20:57:15 +0000 (UTC)
+        id S1350417AbhICU6O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:58:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D5D9610E5;
+        Fri,  3 Sep 2021 20:57:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702636;
-        bh=9MVF/3ti0O1SiUVEPASMxnBcCWHrWk4jM/rz6lbXBek=;
+        s=korg; t=1630702633;
+        bh=umvBGAyCy2ATGEW0apNq9msRvmO/Ve/Gn6xW7GtRhro=;
         h=Date:From:To:Subject:From;
-        b=ZyalUM7szWbpf+W35PhzaCkpsm38CmhuJLShVWXiBH7lFwBEPff2nKGFxsImZ/KPP
-         Y4I24bbbbp7X4c4RMn378H82Uh/esBqluetM+aiRWEoKrNiDvtt5jTMKBqry4QhYZv
-         ufhLC8nqFRRBXWO8WXMRI1MNJBcrrSAH7dFFbBhU=
-Date:   Fri, 03 Sep 2021 13:57:15 -0700
+        b=pTN5czRTFxmCKfe3ZxLWiMa45VE2bRRkddR9RNDZaaTj7OklJS2h4CzcUXaW/F2TT
+         71fqg65Tk5JHggc+UxIhUzrE9RuCcPB3TKwBzxXcpXP80kLyrdTyu3AVAuorKJ64qK
+         51LKZ3VMFm8NK/imy/T7TTWkx0U39xyYLISeL4io=
+Date:   Fri, 03 Sep 2021 13:57:13 -0700
 From:   akpm@linux-foundation.org
-To:     alexs@kernel.org, apopple@nvidia.com, axboe@kernel.dk,
-        david@redhat.com, guro@fb.com, hannes@cmpxchg.org,
-        iamjoonsoo.kim@lge.com, linmiaohe@huawei.com, mhocko@suse.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org,
-        richard.weiyang@gmail.com, shakeelb@google.com,
-        shy828301@gmail.com, songmuchun@bytedance.com, surenb@google.com,
-        tj@kernel.org, willy@infradead.org
+To:     hughd@google.com, kirill.shutemov@linux.intel.com,
+        linmiaohe@huawei.com, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com,
+        shy828301@gmail.com, willy@infradead.org
 Subject:  [merged]
- =?US-ASCII?Q?mm-memcg-add-mem=5Fcgroup=5Fdisabled-checks-in-vmpressure-?=
- =?US-ASCII?Q?and-swap-related-functions.patch?= removed from -mm tree
-Message-ID: <20210903205715.KeAFe9fSA%akpm@linux-foundation.org>
+ shmem-shmem_writepage-split-unlikely-i915-thp.patch removed from -mm tree
+Message-ID: <20210903205713.rwcAMgLgh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -51,96 +45,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memcg: add mem_cgroup_disabled checks in vmpressure and swap-related functions
+     Subject: shmem: shmem_writepage() split unlikely i915 THP
 has been removed from the -mm tree.  Its filename was
-     mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
+     shmem-shmem_writepage-split-unlikely-i915-thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm, memcg: add mem_cgroup_disabled checks in vmpressure and swap-related functions
+From: Hugh Dickins <hughd@google.com>
+Subject: shmem: shmem_writepage() split unlikely i915 THP
 
-Add mem_cgroup_disabled check in vmpressure, mem_cgroup_uncharge_swap and
-cgroup_throttle_swaprate functions.  This minimizes the memcg overhead in
-the pagefault and exit_mmap paths when memcgs are disabled using
-cgroup_disable=memory command-line option.
+drivers/gpu/drm/i915/gem/i915_gem_shmem.c contains a shmem_writeback()
+which calls shmem_writepage() from a shrinker: that usually works well
+enough; but if /sys/kernel/mm/transparent_hugepage/shmem_enabled has been
+set to "always" (intended to be usable) or "force" (forces huge everywhere
+for easy testing), shmem_writepage() is surprised to be called with a huge
+page, and crashes on the VM_BUG_ON_PAGE(PageCompound) (I did not find out
+where the crash happens when CONFIG_DEBUG_VM is off).
 
-This change results in ~2.1% overhead reduction when running PFT test [1]
-comparing {CONFIG_MEMCG=n, CONFIG_MEMCG_SWAP=n} against {CONFIG_MEMCG=y,
-CONFIG_MEMCG_SWAP=y, cgroup_disable=memory} configuration on an 8-core
-ARM64 Android device.
+LRU page reclaim always splits the shmem huge page first: I'd prefer not
+to demand that of i915, so check and split compound in shmem_writepage().
 
-[1] https://lkml.org/lkml/2006/8/29/294 also used in mmtests suite
+Patch history: when first sent last year
+http://lkml.kernel.org/r/alpine.LSU.2.11.2008301401390.5954@eggly.anvils
+https://lore.kernel.org/linux-mm/20200919042009.bomzxmrg7%25akpm@linux-foundation.org/
+Matthew Wilcox noticed that tail pages were wrongly left clean.  This
+version brackets the split with Set and Clear PageDirty as he suggested:
+which works very well, even if it falls short of our aspirations.  And
+recently I realized that the crash is not limited to the testing option
+"force", but affects "always" too: which is more important to fix.
 
-Link: https://lkml.kernel.org/r/20210713010934.299876-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/bac6158c-8b3d-4dca-cffc-4982f58d9794@google.com
+Fixes: 2d6692e642e7 ("drm/i915: Start writeback from the shrinker")
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Yang Shi <shy828301@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Rik van Riel <riel@surriel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +++
- mm/swapfile.c   |    3 +++
- mm/vmpressure.c |    7 ++++++-
- 3 files changed, 12 insertions(+), 1 deletion(-)
+ mm/shmem.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
---- a/mm/memcontrol.c~mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions
-+++ a/mm/memcontrol.c
-@@ -7297,6 +7297,9 @@ void mem_cgroup_uncharge_swap(swp_entry_
- 	struct mem_cgroup *memcg;
- 	unsigned short id;
+--- a/mm/shmem.c~shmem-shmem_writepage-split-unlikely-i915-thp
++++ a/mm/shmem.c
+@@ -1344,7 +1344,19 @@ static int shmem_writepage(struct page *
+ 	swp_entry_t swap;
+ 	pgoff_t index;
  
-+	if (mem_cgroup_disabled())
-+		return;
+-	VM_BUG_ON_PAGE(PageCompound(page), page);
++	/*
++	 * If /sys/kernel/mm/transparent_hugepage/shmem_enabled is "always" or
++	 * "force", drivers/gpu/drm/i915/gem/i915_gem_shmem.c gets huge pages,
++	 * and its shmem_writeback() needs them to be split when swapping.
++	 */
++	if (PageTransCompound(page)) {
++		/* Ensure the subpages are still dirty */
++		SetPageDirty(page);
++		if (split_huge_page(page) < 0)
++			goto redirty;
++		ClearPageDirty(page);
++	}
 +
- 	id = swap_cgroup_record(entry, 0, nr_pages);
- 	rcu_read_lock();
- 	memcg = mem_cgroup_from_id(id);
---- a/mm/swapfile.c~mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions
-+++ a/mm/swapfile.c
-@@ -3784,6 +3784,9 @@ void cgroup_throttle_swaprate(struct pag
- 	struct swap_info_struct *si, *next;
- 	int nid = page_to_nid(page);
- 
-+	if (mem_cgroup_disabled())
-+		return;
-+
- 	if (!(gfp_mask & __GFP_IO))
- 		return;
- 
---- a/mm/vmpressure.c~mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions
-+++ a/mm/vmpressure.c
-@@ -240,7 +240,12 @@ static void vmpressure_work_fn(struct wo
- void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
- 		unsigned long scanned, unsigned long reclaimed)
- {
--	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
-+	struct vmpressure *vmpr;
-+
-+	if (mem_cgroup_disabled())
-+		return;
-+
-+	vmpr = memcg_to_vmpressure(memcg);
- 
- 	/*
- 	 * Here we only want to account pressure that userland is able to
+ 	BUG_ON(!PageLocked(page));
+ 	mapping = page->mapping;
+ 	index = page->index;
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 
