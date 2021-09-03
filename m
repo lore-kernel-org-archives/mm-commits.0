@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2171CC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:46:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 322D3C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:48:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F021A60EBA
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:46:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1001E6101A
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:48:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235691AbhICVrv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:47:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40580 "EHLO mail.kernel.org"
+        id S239024AbhICVtr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:49:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40834 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230425AbhICVrv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:47:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D95A560FD7;
-        Fri,  3 Sep 2021 21:46:50 +0000 (UTC)
+        id S235948AbhICVtr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:49:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A5DAE60FD7;
+        Fri,  3 Sep 2021 21:48:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630705611;
-        bh=XnkSNB3CubUrQd92eqAJqQLnb5oqNXMBk6CIMrF/LsI=;
+        s=korg; t=1630705726;
+        bh=JI+jrUBSAiSlVfPfdtdkEwySi4ElILwanMPzLVFSlvQ=;
         h=Date:From:To:Subject:From;
-        b=uNkVjwQQWEJMGpInvsQgd2cv19MA6orv7ARg+cx23AehQ4SNtODGrOjCFQrLmf3xo
-         nL5YACL+ZrejHPc29zUOC8X14LWk3mImYo2tjnGSPka/+poM3Z1yq00bZWA7xtxo61
-         Xt2b0n8BaBYpM9m2pPyt/3x11vcQIetNAASJhpzQ=
-Date:   Fri, 03 Sep 2021 14:46:50 -0700
+        b=YMUmENcpZSMonvGilXT8GxVjXReJvLg//rzNuzjKQyNDgj+mYRFYDjI0qDi/pZkFQ
+         CtDFXu4SR978ISh4gx1oa82iHF8sfCYXpIfeSYnLqyiW9j4EgGWsUa5MGDxzHAObQX
+         6t2eveUs/DD2dQzDAB0vRSTnk74hHI8h1f1h6ZLw=
+Date:   Fri, 03 Sep 2021 14:48:46 -0700
 From:   akpm@linux-foundation.org
-To:     efault@gmx.de, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  +
- mm-slub-remove-conditional-locking-parameter-from-flush_slab.patch added to
+To:     Liam.Howlett@oracle.com, mm-commits@vger.kernel.org,
+        rostedt@goodmis.org, vbabka@suse.cz, walken.cr@gmail.com,
+        willy@infradead.org
+Subject:  + mmap_lock-change-trace-and-locking-order.patch added to
  -mm tree
-Message-ID: <20210903214650.U0QvwXFWN%akpm@linux-foundation.org>
+Message-ID: <20210903214846.ZFlM5NTib%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: remove conditional locking parameter from flush_slab()
+     Subject: mmap_lock: change trace and locking order
 has been added to the -mm tree.  Its filename is
-     mm-slub-remove-conditional-locking-parameter-from-flush_slab.patch
+     mmap_lock-change-trace-and-locking-order.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-remove-conditional-locking-parameter-from-flush_slab.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmap_lock-change-trace-and-locking-order.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-remove-conditional-locking-parameter-from-flush_slab.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmap_lock-change-trace-and-locking-order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,124 +65,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: remove conditional locking parameter from flush_slab()
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: mmap_lock: change trace and locking order
 
-flush_slab() is called either as part of work scheduled on given live cpu,
-or called as a cleanup for another cpu that went offline.  In the first
-case it needs to hold the cpu_slab->lock local lock when updating the
-protected kmem_cache_cpu fields.  This is now achieved by a "bool lock"
-parameter.
+Print to the trace log before releasing the lock to avoid racing with
+other trace log printers of the same lock type.
 
-To avoid the conditional locking, we can instead lock unconditionally in
-flush_slab() for live cpus, and opencode the variant without locking in
-__flush_cpu_slab() for the dead cpus.
-
-Link: https://lkml.kernel.org/r/1ae902f7-c500-f9e8-1b4f-077beade0f42@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Linus Torvalds <torvalds@linux-foundation.org>
-Suggested-by: Mike Galbraith <efault@gmx.de>
+Link: https://lkml.kernel.org/r/20210903022041.1843024-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Suggested-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michel Lespinasse <walken.cr@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   23 ++++++++++++++---------
- 1 file changed, 14 insertions(+), 9 deletions(-)
+ include/linux/mmap_lock.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/slub.c~mm-slub-remove-conditional-locking-parameter-from-flush_slab
-+++ a/mm/slub.c
-@@ -2566,15 +2566,13 @@ static inline void unfreeze_partials_cpu
+--- a/include/linux/mmap_lock.h~mmap_lock-change-trace-and-locking-order
++++ a/include/linux/mmap_lock.h
+@@ -101,14 +101,14 @@ static inline bool mmap_write_trylock(st
  
- #endif	/* CONFIG_SLUB_CPU_PARTIAL */
- 
--static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c,
--			      bool lock)
-+static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c)
+ static inline void mmap_write_unlock(struct mm_struct *mm)
  {
- 	unsigned long flags;
- 	void *freelist;
- 	struct page *page;
+-	up_write(&mm->mmap_lock);
+ 	__mmap_lock_trace_released(mm, true);
++	up_write(&mm->mmap_lock);
+ }
  
--	if (lock)
--		local_lock_irqsave(&s->cpu_slab->lock, flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 
- 	freelist = c->freelist;
- 	page = c->page;
-@@ -2583,8 +2581,7 @@ static inline void flush_slab(struct kme
- 	c->freelist = NULL;
- 	c->tid = next_tid(c->tid);
- 
--	if (lock)
--		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
-+	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 
- 	if (page)
- 		deactivate_slab(s, page, freelist);
-@@ -2595,9 +2592,17 @@ static inline void flush_slab(struct kme
- static inline void __flush_cpu_slab(struct kmem_cache *s, int cpu)
+ static inline void mmap_write_downgrade(struct mm_struct *mm)
  {
- 	struct kmem_cache_cpu *c = per_cpu_ptr(s->cpu_slab, cpu);
-+	struct page *page = c->page;
-+	void *freelist = c->freelist;
- 
--	if (c->page)
--		flush_slab(s, c, false);
-+	c->page = NULL;
-+	c->freelist = NULL;
-+	c->tid = next_tid(c->tid);
-+
-+	if (page) {
-+		deactivate_slab(s, page, freelist);
-+		stat(s, CPUSLAB_FLUSH);
-+	}
- 
- 	unfreeze_partials_cpu(s, c);
+-	downgrade_write(&mm->mmap_lock);
+ 	__mmap_lock_trace_acquire_returned(mm, false, true);
++	downgrade_write(&mm->mmap_lock);
  }
-@@ -2625,7 +2630,7 @@ static void flush_cpu_slab(struct work_s
- 	c = this_cpu_ptr(s->cpu_slab);
  
- 	if (c->page)
--		flush_slab(s, c, true);
-+		flush_slab(s, c);
+ static inline void mmap_read_lock(struct mm_struct *mm)
+@@ -140,8 +140,8 @@ static inline bool mmap_read_trylock(str
  
- 	unfreeze_partials(s);
+ static inline void mmap_read_unlock(struct mm_struct *mm)
+ {
+-	up_read(&mm->mmap_lock);
+ 	__mmap_lock_trace_released(mm, false);
++	up_read(&mm->mmap_lock);
  }
+ 
+ static inline bool mmap_read_trylock_non_owner(struct mm_struct *mm)
+@@ -155,8 +155,8 @@ static inline bool mmap_read_trylock_non
+ 
+ static inline void mmap_read_unlock_non_owner(struct mm_struct *mm)
+ {
+-	up_read_non_owner(&mm->mmap_lock);
+ 	__mmap_lock_trace_released(mm, false);
++	up_read_non_owner(&mm->mmap_lock);
+ }
+ 
+ static inline void mmap_assert_locked(struct mm_struct *mm)
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
-mm-slub-dont-call-flush_all-from-slab_debug_trace_open.patch
-mm-slub-allocate-private-object-map-for-debugfs-listings.patch
-mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
-mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
-mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
-mm-slub-unify-cmpxchg_double_slab-and-__cmpxchg_double_slab.patch
-mm-slub-extract-get_partial-from-new_slab_objects.patch
-mm-slub-dissolve-new_slab_objects-into-___slab_alloc.patch
-mm-slub-return-slab-page-from-get_partial-and-set-c-page-afterwards.patch
-mm-slub-restructure-new-page-checks-in-___slab_alloc.patch
-mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch
-mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch
-mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
-mm-slub-move-disabling-irqs-closer-to-get_partial-in-___slab_alloc.patch
-mm-slub-restore-irqs-around-calling-new_slab.patch
-mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
-mm-slub-check-new-pages-with-restored-irqs.patch
-mm-slub-stop-disabling-irqs-around-get_partial.patch
-mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
-mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
-mm-slub-call-deactivate_slab-without-disabling-irqs.patch
-mm-slub-move-irq-control-into-unfreeze_partials.patch
-mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled.patch
-mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials.patch
-mm-slub-separate-detaching-of-partial-list-in-unfreeze_partials-from-unfreezing.patch
-mm-slub-only-disable-irq-with-spin_lock-in-__unfreeze_partials.patch
-mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
-mm-slab-make-flush_slab-possible-to-call-with-irqs-enabled.patch
-mm-slub-optionally-save-restore-irqs-in-slab_lock.patch
-mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
-mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
-mm-slub-use-migrate_disable-on-preempt_rt.patch
-mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
-mm-slub-remove-conditional-locking-parameter-from-flush_slab.patch
+mmap_lock-change-trace-and-locking-order.patch
 
