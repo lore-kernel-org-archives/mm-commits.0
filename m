@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 65D5FC433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE15BC433EF
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4B8B8610D2
+	by mail.kernel.org (Postfix) with ESMTP id D96E760E76
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349849AbhICU5Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:57:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56246 "EHLO mail.kernel.org"
+        id S1349960AbhICU5R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:57:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56260 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350048AbhICU5M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:57:12 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 82D1160184;
-        Fri,  3 Sep 2021 20:56:11 +0000 (UTC)
+        id S1350063AbhICU5N (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:57:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6D56160C3E;
+        Fri,  3 Sep 2021 20:56:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702571;
-        bh=8oJDayGkVIHFWpXwijEkipgq7DQ1LrCQf/HvAc6u2mU=;
+        s=korg; t=1630702573;
+        bh=XP8MWKle9EJN5rExptAM7GxI3yirFSMBRs6Et+0wmhk=;
         h=Date:From:To:Subject:From;
-        b=TdkG+qrSLcTeawmsEcs9GPbXOiNor3s038oMMXvAo2EA6k4QYaIQh90pUnZGUrwRx
-         rP5m4Yvg/9VhupXS/CNcHIa0gS08DdWLdnDLhmgM/AtRtIG8w5BUj+HeeJCx+aFB7i
-         8md88mVh33kb2NDbgxa+NfKXJneaf/vr5i7/yfp0=
-Date:   Fri, 03 Sep 2021 13:56:11 -0700
+        b=ZLhi5AGkpZIfM+XRyOoMirlnQAFVjNRXdQia/wPoGQTRcrk+D/sVR+l1zy8dczCi3
+         jMGE1pwq4ep6ANYtsIKk40g0Uimuux1zeag0icJPPHDUDuNbxywbjPh7nr7vPBUR7a
+         FK4OpxHfiR0Ybcy91rr69mFXMDN/MW/1yhyWmjII=
+Date:   Fri, 03 Sep 2021 13:56:13 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To:     hannes@cmpxchg.org, jack@suse.cz, mm-commits@vger.kernel.org,
+        shakeelb@google.com, tj@kernel.org
 Subject:  [merged]
- fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch removed from
- -mm tree
-Message-ID: <20210903205611.WOZeJV7pW%akpm@linux-foundation.org>
+ writeback-memcg-simplify-cgroup_writeback_by_id.patch removed from -mm tree
+Message-ID: <20210903205613.Xqo1X4pEy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,92 +43,168 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: inode: count invalidated shadow pages in pginodesteal
+     Subject: writeback: memcg: simplify cgroup_writeback_by_id
 has been removed from the -mm tree.  Its filename was
-     fs-inode-count-invalidated-shadow-pages-in-pginodesteal.patch
+     writeback-memcg-simplify-cgroup_writeback_by_id.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: fs: inode: count invalidated shadow pages in pginodesteal
+From: Shakeel Butt <shakeelb@google.com>
+Subject: writeback: memcg: simplify cgroup_writeback_by_id
 
-pginodesteal is supposed to capture the impact that inode reclaim has on
-the page cache state.  Currently, it doesn't consider shadow pages that
-get dropped this way, even though this can have a significant impact on
-paging behavior, memory pressure calculations etc.
+Currently cgroup_writeback_by_id calls mem_cgroup_wb_stats() to get dirty
+pages for a memcg.  However mem_cgroup_wb_stats() does a lot more than
+just get the number of dirty pages.  Just directly get the number of dirty
+pages instead of calling mem_cgroup_wb_stats().  Also
+cgroup_writeback_by_id() is only called for best-effort dirty flushing, so
+remove the unused 'nr' parameter and no need to explicitly flush memcg
+stats.
 
-To improve visibility into these effects, make sure shadow pages get
-counted when they get dropped through inode reclaim.
-
-This changes the return value semantics of invalidate_mapping_pages()
-semantics slightly, but the only two users are the inode shrinker itsel
-and a usb driver that logs it for debugging purposes.
-
-Link: https://lkml.kernel.org/r/20210614211904.14420-3-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20210722182627.2267368-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c    |    2 +-
- mm/truncate.c |   20 ++++++++++----------
- 2 files changed, 11 insertions(+), 11 deletions(-)
+ fs/fs-writeback.c          |   20 +++++++++-----------
+ include/linux/memcontrol.h |   15 +++++++++++++++
+ include/linux/writeback.h  |    2 +-
+ mm/memcontrol.c            |   13 +------------
+ 4 files changed, 26 insertions(+), 24 deletions(-)
 
---- a/fs/inode.c~fs-inode-count-invalidated-shadow-pages-in-pginodesteal
-+++ a/fs/inode.c
-@@ -768,7 +768,7 @@ static enum lru_status inode_lru_isolate
- 		return LRU_ROTATE;
+--- a/fs/fs-writeback.c~writeback-memcg-simplify-cgroup_writeback_by_id
++++ a/fs/fs-writeback.c
+@@ -1039,20 +1039,20 @@ restart:
+  * cgroup_writeback_by_id - initiate cgroup writeback from bdi and memcg IDs
+  * @bdi_id: target bdi id
+  * @memcg_id: target memcg css id
+- * @nr: number of pages to write, 0 for best-effort dirty flushing
+  * @reason: reason why some writeback work initiated
+  * @done: target wb_completion
+  *
+  * Initiate flush of the bdi_writeback identified by @bdi_id and @memcg_id
+  * with the specified parameters.
+  */
+-int cgroup_writeback_by_id(u64 bdi_id, int memcg_id, unsigned long nr,
++int cgroup_writeback_by_id(u64 bdi_id, int memcg_id,
+ 			   enum wb_reason reason, struct wb_completion *done)
+ {
+ 	struct backing_dev_info *bdi;
+ 	struct cgroup_subsys_state *memcg_css;
+ 	struct bdi_writeback *wb;
+ 	struct wb_writeback_work *work;
++	unsigned long dirty;
+ 	int ret;
+ 
+ 	/* lookup bdi and memcg */
+@@ -1081,24 +1081,22 @@ int cgroup_writeback_by_id(u64 bdi_id, i
  	}
  
--	if (inode_has_buffers(inode) || inode->i_data.nrpages) {
-+	if (inode_has_buffers(inode) || !mapping_empty(&inode->i_data)) {
- 		__iget(inode);
- 		spin_unlock(&inode->i_lock);
- 		spin_unlock(lru_lock);
---- a/mm/truncate.c~fs-inode-count-invalidated-shadow-pages-in-pginodesteal
-+++ a/mm/truncate.c
-@@ -483,8 +483,9 @@ static unsigned long __invalidate_mappin
- 			index = indices[i];
+ 	/*
+-	 * If @nr is zero, the caller is attempting to write out most of
++	 * The caller is attempting to write out most of
+ 	 * the currently dirty pages.  Let's take the current dirty page
+ 	 * count and inflate it by 25% which should be large enough to
+ 	 * flush out most dirty pages while avoiding getting livelocked by
+ 	 * concurrent dirtiers.
++	 *
++	 * BTW the memcg stats are flushed periodically and this is best-effort
++	 * estimation, so some potential error is ok.
+ 	 */
+-	if (!nr) {
+-		unsigned long filepages, headroom, dirty, writeback;
+-
+-		mem_cgroup_wb_stats(wb, &filepages, &headroom, &dirty,
+-				      &writeback);
+-		nr = dirty * 10 / 8;
+-	}
++	dirty = memcg_page_state(mem_cgroup_from_css(memcg_css), NR_FILE_DIRTY);
++	dirty = dirty * 10 / 8;
  
- 			if (xa_is_value(page)) {
--				invalidate_exceptional_entry(mapping, index,
--							     page);
-+				count += invalidate_exceptional_entry(mapping,
-+								      index,
-+								      page);
- 				continue;
- 			}
- 			index += thp_nr_pages(page) - 1;
-@@ -512,19 +513,18 @@ static unsigned long __invalidate_mappin
+ 	/* issue the writeback work */
+ 	work = kzalloc(sizeof(*work), GFP_NOWAIT | __GFP_NOWARN);
+ 	if (work) {
+-		work->nr_pages = nr;
++		work->nr_pages = dirty;
+ 		work->sync_mode = WB_SYNC_NONE;
+ 		work->range_cyclic = 1;
+ 		work->reason = reason;
+--- a/include/linux/memcontrol.h~writeback-memcg-simplify-cgroup_writeback_by_id
++++ a/include/linux/memcontrol.h
+@@ -955,6 +955,16 @@ static inline void mod_memcg_state(struc
+ 	local_irq_restore(flags);
  }
  
- /**
-- * invalidate_mapping_pages - Invalidate all the unlocked pages of one inode
-- * @mapping: the address_space which holds the pages to invalidate
-+ * invalidate_mapping_pages - Invalidate all clean, unlocked cache of one inode
-+ * @mapping: the address_space which holds the cache to invalidate
-  * @start: the offset 'from' which to invalidate
-  * @end: the offset 'to' which to invalidate (inclusive)
-  *
-- * This function only removes the unlocked pages, if you want to
-- * remove all the pages of one inode, you must call truncate_inode_pages.
-+ * This function removes pages that are clean, unmapped and unlocked,
-+ * as well as shadow entries. It will not block on IO activity.
-  *
-- * invalidate_mapping_pages() will not block on IO activity. It will not
-- * invalidate pages which are dirty, locked, under writeback or mapped into
-- * pagetables.
-+ * If you want to remove all the pages of one inode, regardless of
-+ * their use and writeback state, use truncate_inode_pages().
-  *
-- * Return: the number of the pages that were invalidated
-+ * Return: the number of the cache entries that were invalidated
-  */
- unsigned long invalidate_mapping_pages(struct address_space *mapping,
- 		pgoff_t start, pgoff_t end)
++static inline unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx)
++{
++	long x = READ_ONCE(memcg->vmstats.state[idx]);
++#ifdef CONFIG_SMP
++	if (x < 0)
++		x = 0;
++#endif
++	return x;
++}
++
+ static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
+ 					      enum node_stat_item idx)
+ {
+@@ -1391,6 +1401,11 @@ static inline void mod_memcg_state(struc
+ {
+ }
+ 
++static inline unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx)
++{
++	return 0;
++}
++
+ static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
+ 					      enum node_stat_item idx)
+ {
+--- a/include/linux/writeback.h~writeback-memcg-simplify-cgroup_writeback_by_id
++++ a/include/linux/writeback.h
+@@ -218,7 +218,7 @@ void wbc_attach_and_unlock_inode(struct
+ void wbc_detach_inode(struct writeback_control *wbc);
+ void wbc_account_cgroup_owner(struct writeback_control *wbc, struct page *page,
+ 			      size_t bytes);
+-int cgroup_writeback_by_id(u64 bdi_id, int memcg_id, unsigned long nr_pages,
++int cgroup_writeback_by_id(u64 bdi_id, int memcg_id,
+ 			   enum wb_reason reason, struct wb_completion *done);
+ void cgroup_writeback_umount(void);
+ bool cleanup_offline_cgwb(struct bdi_writeback *wb);
+--- a/mm/memcontrol.c~writeback-memcg-simplify-cgroup_writeback_by_id
++++ a/mm/memcontrol.c
+@@ -646,17 +646,6 @@ void __mod_memcg_state(struct mem_cgroup
+ }
+ 
+ /* idx can be of type enum memcg_stat_item or node_stat_item. */
+-static unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx)
+-{
+-	long x = READ_ONCE(memcg->vmstats.state[idx]);
+-#ifdef CONFIG_SMP
+-	if (x < 0)
+-		x = 0;
+-#endif
+-	return x;
+-}
+-
+-/* idx can be of type enum memcg_stat_item or node_stat_item. */
+ static unsigned long memcg_page_state_local(struct mem_cgroup *memcg, int idx)
+ {
+ 	long x = 0;
+@@ -4668,7 +4657,7 @@ void mem_cgroup_flush_foreign(struct bdi
+ 		    atomic_read(&frn->done.cnt) == 1) {
+ 			frn->at = 0;
+ 			trace_flush_foreign(wb, frn->bdi_id, frn->memcg_id);
+-			cgroup_writeback_by_id(frn->bdi_id, frn->memcg_id, 0,
++			cgroup_writeback_by_id(frn->bdi_id, frn->memcg_id,
+ 					       WB_REASON_FOREIGN_FLUSH,
+ 					       &frn->done);
+ 		}
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
 
