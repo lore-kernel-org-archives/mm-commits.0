@@ -2,132 +2,146 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
+	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F8B2C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 00:48:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5201C433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 05:11:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 168BA61056
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 00:48:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC058610CE
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 05:11:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233632AbhICAtJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Sep 2021 20:49:09 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50860 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233254AbhICAtI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Sep 2021 20:49:08 -0400
-Received: from mail-pf1-x431.google.com (mail-pf1-x431.google.com [IPv6:2607:f8b0:4864:20::431])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B3AF4C061575
-        for <mm-commits@vger.kernel.org>; Thu,  2 Sep 2021 17:48:09 -0700 (PDT)
-Received: by mail-pf1-x431.google.com with SMTP id r13so2978319pff.7
-        for <mm-commits@vger.kernel.org>; Thu, 02 Sep 2021 17:48:09 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:subject:to:references:in-reply-to:mime-version:message-id
-         :content-transfer-encoding;
-        bh=+18oeo+OGr71BMoOWexeG9aX72YBISWj1VF0yl+y9zg=;
-        b=Y6RhjmseUZIS66CGSthEj3Wel0Nyhl2uwKRthJYu3IW0/sjxUQRigQDnBjm/ZO1ptE
-         p8OlykAEG8HDkLnvT1hSCUw1+njBPI55Xvt+VA6AlvOjVzl5zAU5oMZsESvCgDC5W+2C
-         H2abrFFS8CZP9e1v4aWoyueyqyfvv/yxDc3bhTX+J/u1lJjPVcR10uMno223wNqeyJLH
-         YCF5bXp2IAptQrSRcnsL2s2EqPTFLLsFl0s0Cx3+DUa9VXDmnIYygq/8pvEF7K3cj8vh
-         e1J4d6VOwLcZSzLWQE1tQTDBZDoOWtzcIIWIBSR7GNaCPi2IqQWn2ofqZbF1zSp6/5wN
-         sUPg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:subject:to:references:in-reply-to
-         :mime-version:message-id:content-transfer-encoding;
-        bh=+18oeo+OGr71BMoOWexeG9aX72YBISWj1VF0yl+y9zg=;
-        b=izEI0UVa5kK7dUrGweVnDgraBcQlWCwhIelwP+HD4O8LkyT5NW13S38yHo6PfyODD6
-         Y+0XeGtci3Y1aZr2BXtvVMG3yDsJnihwZR4/w+bxjuR/fQrQ8KtDM+8s6mN4Fu0uB1M3
-         1lnR9VpzbggPinFc0Up+cp/xG5sGmUdF6gtFFdeMHaepeL1FqVZEZMcMGX7ef9grVjsN
-         Vca00M9ZHuYbWShD5wLmGZGuuFmVdc94QyqXttwIYK0O/tmM8LWmpG712rbRtOGkervt
-         da9Fhb8iR6FtExBQW1POLUtzsiTYd1orWEAS2cHrghHyasIBp42ssonxxiuDVXTyeXkR
-         UmJg==
-X-Gm-Message-State: AOAM531OmDAlfoaGKydq4xqu3FOCv79Wc+LdQ2fBdj9KgH4kESVbMZCK
-        7GS2GrNwWngYMNRGNas0J1s=
-X-Google-Smtp-Source: ABdhPJxZNt9AgvXxmXgCbB+pBbcfTyBAjFVvyoyj9sFucrIg7K3XY/JoTJ6g/9BA2BzMRyzT+lec2A==
-X-Received: by 2002:aa7:8387:0:b029:395:a683:a0e6 with SMTP id u7-20020aa783870000b0290395a683a0e6mr778373pfm.12.1630630089131;
-        Thu, 02 Sep 2021 17:48:09 -0700 (PDT)
-Received: from localhost (203-219-56-12.tpgi.com.au. [203.219.56.12])
-        by smtp.gmail.com with ESMTPSA id u9sm3942905pgp.83.2021.09.02.17.48.08
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 Sep 2021 17:48:08 -0700 (PDT)
-Date:   Fri, 03 Sep 2021 10:48:03 +1000
-From:   Nicholas Piggin <npiggin@gmail.com>
+        id S233764AbhICFMX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 01:12:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34214 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S236553AbhICFMU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 01:12:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4761560FDC;
+        Fri,  3 Sep 2021 05:11:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1630645880;
+        bh=EdGYyIVteppmS4PO2G0EKWwiWcwvczCgrv965hZ04q8=;
+        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
+        b=LIxkOhM8Ba4z2wGvi4AvWr0ZHvX0XXGVK5QpKTp43RPEIvZyU7S1JbdZWV15v8TqO
+         BHTgseKAOKZZdNmlaEk/DsKkpm6YZ9mOLnrzs2nO5ugEdqh8D7QVteNftj+iOAiZFp
+         jSIinsgyifW1rJbpbgPeQKevOWSYvVjdrgrKkCFxw7ZtDkXF+ipxJ3djR0VaQt0qw3
+         CK6vJwEAxnkG8rfG4WhhdoAiybfFuc/W7fMcHrphwEE8jgx37u+khCtQgHNtpMcZAO
+         xwQbiu68CuHJcsiXYGhkh5eNzM42VkFSUlmTd3+MnYJUIK55bU73OaNA7lI3q7vMmZ
+         d6qANAC1+uA9g==
 Subject: Re: [patch 119/212] lazy tlb: shoot lazies, a non-refcounting lazy
  tlb option
-To:     Andrew Morton <akpm@linux-foundation.org>, anton@ozlabs.org,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        linux-mm@kvack.org, Andy Lutomirski <luto@kernel.org>,
-        mm-commits@vger.kernel.org, paulus@ozlabs.org,
-        Randy Dunlap <rdunlap@infradead.org>,
+To:     Nicholas Piggin <npiggin@gmail.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
         Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     Anton Blanchard <anton@ozlabs.org>,
+        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Paul Mackerras <paulus@ozlabs.org>,
+        Randy Dunlap <rdunlap@infradead.org>
 References: <20210902215620._WXglfIJy%akpm@linux-foundation.org>
-        <18b7e206-9ee6-4afe-b662-9dcbdf55a9db@www.fastmail.com>
-In-Reply-To: <18b7e206-9ee6-4afe-b662-9dcbdf55a9db@www.fastmail.com>
+ <18b7e206-9ee6-4afe-b662-9dcbdf55a9db@www.fastmail.com>
+ <CAHk-=wjC05YZycowZkmvjZACNEm3rUhLTneN+Vaz9Ebp1+++Gw@mail.gmail.com>
+ <20210902155330.a643b03dc6991cde53133edf@linux-foundation.org>
+ <1630629747.odrw4rffkd.astroid@bobo.none>
+From:   Andy Lutomirski <luto@kernel.org>
+Message-ID: <e0166f2c-f742-635b-6b40-eef1a955f8c4@kernel.org>
+Date:   Thu, 2 Sep 2021 22:11:19 -0700
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
 MIME-Version: 1.0
-Message-Id: <1630629987.6eck6qpy33.astroid@bobo.none>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+In-Reply-To: <1630629747.odrw4rffkd.astroid@bobo.none>
+Content-Type: text/plain; charset=utf-8
+Content-Language: en-US
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Excerpts from Andy Lutomirski's message of September 3, 2021 8:28 am:
->=20
->=20
-> On Thu, Sep 2, 2021, at 2:56 PM, Andrew Morton wrote:
->> From: Nicholas Piggin <npiggin@gmail.com>
->> Subject: lazy tlb: shoot lazies, a non-refcounting lazy tlb option
->>=20
->> On big systems, the mm refcount can become highly contented when doing a
->> lot of context switching with threaded applications (particularly
->> switching between the idle thread and an application thread).
->>=20
->> Abandoning lazy tlb slows switching down quite a bit in the important
->> user->idle->user cases, so instead implement a non-refcounted scheme tha=
-t
->> causes __mmdrop() to IPI all CPUs in the mm_cpumask and shoot down any
->> remaining lazy ones.
->>=20
->> Shootdown IPIs are some concern, but they have not been observed to be a
->> big problem with this scheme (the powerpc implementation generated 314
->> additional interrupts on a 144 CPU system during a kernel compile).  The=
-re
->> are a number of strategies that could be employed to reduce IPIs if they
->> turn out to be a problem for some workload.
->=20
-> This pile is:
->=20
-> Nacked-by: Andy Lutomirski <luto@kernel.org>
->=20
-> For reasons that have been discussed previously. My series is still in pr=
-ogress.  It=E2=80=99s moving slowly for two reasons.  First, I have limited=
- time to work on it. Second, the existing mm refcounting is a giant pile of=
- worms, and that needs fixing one way or another before we add yet more com=
-plexity. For example, has anyone noticed that kthread mms are refcounted us=
-ing different rules than everything else?
+On 9/2/21 5:46 PM, Nicholas Piggin wrote:
+> Excerpts from Andrew Morton's message of September 3, 2021 8:53 am:
+>> On Thu, 2 Sep 2021 15:50:03 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
+>>
+>>> On Thu, Sep 2, 2021 at 3:29 PM Andy Lutomirski <luto@kernel.org> wrote:
+>>>>
+>>>> This pile is:
+>>>>
+>>>> Nacked-by: Andy Lutomirski <luto@kernel.org>
+>>>
+>>> Can you specify exactly the range you want me to drop?
+>>>
+>>> I assume it's the four patches 117-120, ie
+>>>
+>>>   lazy tlb: introduce lazy mm refcount helper functions
+>>>   lazy tlb: allow lazy tlb mm refcounting to be configurable
+>>>   lazy tlb: shoot lazies, a non-refcounting lazy tlb option
+>>>   powerpc/64s: enable MMU_LAZY_TLB_SHOOTDOWN
+>>>
+>>> but I just want to double-check before I do surgery on that series.
+>>
+>> Yes, those 4.
+>>
+>> Sorry, I missed that email thread...
+>>
+> 
+> That's not reasonable. Andy has had complete misunderstandings about the
+> series which seems to stem from x86's horrible hacks that have gone in
+> has confused him.
 
-It's been like a year with ~no progress. mm refcounting is not a pile of =20
-worms, as you can see in my series it's pretty simple. The _x86_ mm=20
-refcounting is a huge pile of crap, but that doesn't give reason to nack=20
-this series.
+The horrible hacks in question are almost exclusively in core code.
+Here's a brief summary of the situation.
 
->=20
-> Even if my modified refcounting scheme isn=E2=80=99t the eventual winner,=
- the prerequisite cleanups are still prerequisites. I absolutely nack anyth=
-ing that adds yet more nonsensical complexity to the existing scheme, makes=
- it substantially more fragile, and does not fix the underlying crap that m=
-akes speeding up responsibly such a mess.
->=20
-> Nick or anyone else, you=E2=80=99re welcome to finish up my series (and I=
- can give pointers) or you can wait.
+There's a messy interaction between mmget()/mmdrop() and membarrier.
+membarrier currently depends on some mmget() and mmdrop() calls to be
+full barriers.  You make membarrier keep working by putting an ifdef'd
+smp_mb() in the core scheduler.  I clean up the code to make it work
+independently of smp_mb() and therefore save the cost of the
+unconditional barrier for non-membarrier-using programs.
 
-You or anyone else is welcome to rebase your series on top of mine.
+Your series adds an option MMU_LAZY_TLB_REFCOUNT=n for architectures to
+opt out of lazy TLB refcounting.  This is simply wrong.  Right now, the
+core scheduler provides current->active_mm and guarantees that
+current->active_mm always points to a live (possibly mm_users == 0 but
+definitely not freed) mm_struct.  With MMU_LAZY_TLB_REFCOUNT=n,
+current->active_mm still exists, is still updated, but may point to
+freed memory.  I consider this unacceptable.  A comment says "This can
+be disabled if the architecture ensures no CPUs are using an mm as a
+"lazy tlb" beyond its final refcount" -- that's nice, but saying "well,
+if you this, you have to make sure you don't accidentally dereference
+that juicy dangling pointer we give you" is, in my book, a poor
+justification.
 
-Thanks,
-Nick
+I have no particular objection to the actual shoot lazies part, except
+insofar as I think we can do even better (e.g. my patch).  But 90% of
+the complexity of my WIP series is cleaning up the mess so that we can
+have a maintainable lazy mm mechanism instead of expanding the current
+hard-to-maintain part into three separate possible modes.
+
+Maybe I'm holding my own patches to an excessively high standard.
+
+
+
+> 
+> My series doesn't affect x86 at all and it's no reason why Andy's series
+> to improve x86 can't be merged later. But that half finished series he 
+> keeps threatening with has been sitting there for almost a year now and 
+> it's gone nowhere, while there have been no unresolved technical 
+> objections to mine, it works, it's simple and small.
+
+My series barely touches x86.  The only "hack" is that x86 may have a
+CPU that has ->mm == NULL, ->active_mm != NULL, CR3 pointing to the init
+pgd, and mm_cpumask clear.  I don't see why this is a problem other than
+being somewhat unusual.  But x86 bare metal, like every architecture
+that can only flush the TLB using an IPI, can very efficiently shoot
+lazies, since it shoots the lazies anyway when tearing down pagetables,
+but actually enabling the config option with this series applied will
+result in ->active_mm pointing to freed memory.  Ick.
+
+> 
+> I've kept trying to offer to help Andy with reviewing his stuff or fix 
+> the horrible x86 hacks, but nothing.
+
+I haven't finished it yet.  Sorry.
