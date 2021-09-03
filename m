@@ -7,42 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A3AC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15D66C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD33F6112F
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1C4F6113A
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237281AbhICU7B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:59:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57940 "EHLO mail.kernel.org"
+        id S1349566AbhICU7C (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:59:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1349566AbhICU66 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:58:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8AAC761106;
-        Fri,  3 Sep 2021 20:57:57 +0000 (UTC)
+        id S1350495AbhICU7B (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:59:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7213D610FB;
+        Fri,  3 Sep 2021 20:58:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702678;
-        bh=4KO43LvVmhw8/6tkFup97VdQKZbWuB6Dscsbq2m+VVE=;
+        s=korg; t=1630702680;
+        bh=TjvZvXVEDG1XZPSeob0t4yKRygTYvewt7XyXkcr+i/c=;
         h=Date:From:To:Subject:From;
-        b=oySrY24MJHo8SC++y1zK587Gh+7hq6OuF6o4ZEn4VuIqmvSr0lHsSszh3bu5hEsj8
-         h61o5vrNGa8RoPLWpnzD7NcqZ0jP/0K2Cpoa2b21mUopVoUA4gv/4BsuZH2Xmg81Zf
-         2S1V8DDLjvrZzFFo5zwCjsEBATHAHNiV9mXF4PMs=
-Date:   Fri, 03 Sep 2021 13:57:57 -0700
+        b=j0rHDOrdqe+0ukkqdvjHiBWBj0hOgqELyBfbv1EJawzRwWHIoqRf4im4j0C+805k0
+         dwJavbLueg4r2hWShUcpGfgpVDEk2O9Qs86JZ2n8E2ECY2fKasHHse3qkaeevZCfKW
+         freGPfssMfeqs27H8KQ3aQvtL52UzoNTdgUy7wVk=
+Date:   Fri, 03 Sep 2021 13:58:00 -0700
 From:   akpm@linux-foundation.org
-To:     0x7f454c46@gmail.com, adobriyan@gmail.com, avagin@gmail.com,
-        axboe@kernel.dk, bfields@fieldses.org, bp@alien8.de, bp@suse.de,
-        christian.brauner@ubuntu.com, ebiederm@xmission.com,
-        gregkh@linuxfoundation.org, guro@fb.com, hannes@cmpxchg.org,
-        hpa@zytor.com, jirislaby@kernel.org, jlayton@kernel.org,
-        ktkhai@virtuozzo.com, lizefan.x@bytedance.com, mhocko@kernel.org,
-        mingo@redhat.com, mm-commits@vger.kernel.org, nglaive@gmail.com,
-        oleg@redhat.com, serge@hallyn.com, shakeelb@google.com,
-        tglx@linutronix.de, tj@kernel.org, vdavydov.dev@gmail.com,
-        viro@zeniv.linux.org.uk, vvs@virtuozzo.com
-Subject:  [merged]
- memcg-enable-accounting-for-ldt_struct-objects.patch removed from -mm tree
-Message-ID: <20210903205757.vP3QT-Rlb%akpm@linux-foundation.org>
+To:     david@redhat.com, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com
+Subject:  [merged] memcg-cleanup-racy-sum-avoidance-code.patch
+ removed from -mm tree
+Message-ID: <20210903205800.IqBUCYOGN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,87 +43,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: enable accounting for ldt_struct objects
+     Subject: memcg: cleanup racy sum avoidance code
 has been removed from the -mm tree.  Its filename was
-     memcg-enable-accounting-for-ldt_struct-objects.patch
+     memcg-cleanup-racy-sum-avoidance-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: enable accounting for ldt_struct objects
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg: cleanup racy sum avoidance code
 
-Each task can request own LDT and force the kernel to allocate up to 64Kb
-memory per-mm.
+We used to have per-cpu memcg and lruvec stats and the readers have to
+traverse and sum the stats from each cpu.  This summing was racy and may
+expose transient negative values.  So, an explicit check was added to
+avoid such scenarios.  Now these stats are moved to rstat infrastructure
+and are no more per-cpu, so we can remove the fixup for transient negative
+values.
 
-There are legitimate workloads with hundreds of processes and there can be
-hundreds of workloads running on large machines.  The unaccounted memory
-can cause isolation issues between the workloads particularly on highly
-utilized machines.
-
-It makes sense to account for this objects to restrict the host's memory
-consumption from inside the memcg-limited container.
-
-Link: https://lkml.kernel.org/r/38010594-50fe-c06d-7cb0-d1f77ca422f3@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Acked-by: Borislav Petkov <bp@suse.de>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jiri Slaby <jirislaby@kernel.org>
+Link: https://lkml.kernel.org/r/20210728012243.3369123-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Yutian Yang <nglaive@gmail.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/ldt.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/memcontrol.h |   15 ++-------------
+ 1 file changed, 2 insertions(+), 13 deletions(-)
 
---- a/arch/x86/kernel/ldt.c~memcg-enable-accounting-for-ldt_struct-objects
-+++ a/arch/x86/kernel/ldt.c
-@@ -154,7 +154,7 @@ static struct ldt_struct *alloc_ldt_stru
- 	if (num_entries > LDT_ENTRIES)
- 		return NULL;
+--- a/include/linux/memcontrol.h~memcg-cleanup-racy-sum-avoidance-code
++++ a/include/linux/memcontrol.h
+@@ -977,30 +977,19 @@ static inline void mod_memcg_state(struc
  
--	new_ldt = kmalloc(sizeof(struct ldt_struct), GFP_KERNEL);
-+	new_ldt = kmalloc(sizeof(struct ldt_struct), GFP_KERNEL_ACCOUNT);
- 	if (!new_ldt)
- 		return NULL;
+ static inline unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx)
+ {
+-	long x = READ_ONCE(memcg->vmstats.state[idx]);
+-#ifdef CONFIG_SMP
+-	if (x < 0)
+-		x = 0;
+-#endif
+-	return x;
++	return READ_ONCE(memcg->vmstats.state[idx]);
+ }
  
-@@ -168,9 +168,9 @@ static struct ldt_struct *alloc_ldt_stru
- 	 * than PAGE_SIZE.
- 	 */
- 	if (alloc_size > PAGE_SIZE)
--		new_ldt->entries = vzalloc(alloc_size);
-+		new_ldt->entries = __vmalloc(alloc_size, GFP_KERNEL_ACCOUNT | __GFP_ZERO);
- 	else
--		new_ldt->entries = (void *)get_zeroed_page(GFP_KERNEL);
-+		new_ldt->entries = (void *)get_zeroed_page(GFP_KERNEL_ACCOUNT);
+ static inline unsigned long lruvec_page_state(struct lruvec *lruvec,
+ 					      enum node_stat_item idx)
+ {
+ 	struct mem_cgroup_per_node *pn;
+-	long x;
  
- 	if (!new_ldt->entries) {
- 		kfree(new_ldt);
+ 	if (mem_cgroup_disabled())
+ 		return node_page_state(lruvec_pgdat(lruvec), idx);
+ 
+ 	pn = container_of(lruvec, struct mem_cgroup_per_node, lruvec);
+-	x = READ_ONCE(pn->lruvec_stats.state[idx]);
+-#ifdef CONFIG_SMP
+-	if (x < 0)
+-		x = 0;
+-#endif
+-	return x;
++	return READ_ONCE(pn->lruvec_stats.state[idx]);
+ }
+ 
+ static inline unsigned long lruvec_page_state_local(struct lruvec *lruvec,
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
 
