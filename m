@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75F1DC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C896FC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6194461131
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B15146113A
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350231AbhICVBs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:01:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60204 "EHLO mail.kernel.org"
+        id S1350362AbhICVB6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:01:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60280 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350431AbhICVBl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:01:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AAE49610FD;
-        Fri,  3 Sep 2021 21:00:40 +0000 (UTC)
+        id S1350475AbhICVBr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:01:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9282E61107;
+        Fri,  3 Sep 2021 21:00:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702841;
-        bh=8i7RhWNvCPbVo5OAfSo6qCuZtodPUztmX0mN5oZHeHE=;
+        s=korg; t=1630702846;
+        bh=XmJGj9Q8+6q7FTP43TswNuKe1WGzzrgg1JVavlsCcEo=;
         h=Date:From:To:Subject:From;
-        b=sNmXZughPGaCw5AZ6pJ00ybecgecomNyPWK4+C9XJGKqq7S3ipNWaFILBUioOsGa2
-         t6Rw+eWIIAl4KS/7Kk3I0kKcyv/D5k2pXM5265o3WJupkNDJBg9dTYzrCj/7w17l6j
-         uP2US3j57Qhinqz9rZm10dWD6dLQ9XWGf++tzpcU=
-Date:   Fri, 03 Sep 2021 14:00:40 -0700
+        b=e4KL260rFmmLBh31X0xOHXyNbp8vGJrSwM5SskAu8w5B3/S4PBKpTf7dECb7vmrlD
+         lrnOn7zTMcr210XofHdovK3WyoYWoFOD/feB2AxtN44m7wNFYs/4pjU+3jcw7p4Iys
+         xIzjqeVfU/IuMuFHHwJDlLdNKHfTCJujFtojUesc=
+Date:   Fri, 03 Sep 2021 14:00:46 -0700
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        david@redhat.com, gthelen@google.com, kbusch@kernel.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
-        rientjes@google.com, shy828301@gmail.com, weixugc@google.com,
-        yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
-Subject:  [merged] mm-vmscan-never-demote-for-memcg-reclaim.patch
+To:     chris@chrisdown.name, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, suhui@zeku.com, vdavydov.dev@gmail.com
+Subject:  [merged]
+ mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg.patch
  removed from -mm tree
-Message-ID: <20210903210040.iWf9-kh7s%akpm@linux-foundation.org>
+Message-ID: <20210903210046.sllSiASIc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,64 +44,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: never demote for memcg reclaim
+     Subject: mm/vmpressure: replace vmpressure_to_css() with vmpressure_to_memcg()
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-never-demote-for-memcg-reclaim.patch
+     mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm/vmscan: never demote for memcg reclaim
+From: Hui Su <suhui@zeku.com>
+Subject: mm/vmpressure: replace vmpressure_to_css() with vmpressure_to_memcg()
 
-Global reclaim aims to reduce the amount of memory used on a given node or
-set of nodes.  Migrating pages to another node serves this purpose.
+We can get memcg directly form vmpr instead of vmpr->memcg->css->memcg, so
+add a new func helper vmpressure_to_memcg().  And no code will use
+vmpressure_to_css(), so delete it.
 
-memcg reclaim is different.  Its goal is to reduce the total memory
-consumption of the entire memcg, across all nodes.  Migration does not
-assist memcg reclaim because it just moves page contents between nodes
-rather than actually reducing memory consumption.
-
-Link: https://lkml.kernel.org/r/20210715055145.195411-9-ying.huang@intel.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Suggested-by: Yang Shi <yang.shi@linux.alibaba.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Keith Busch <kbusch@kernel.org>
+Link: https://lkml.kernel.org/r/20210630112146.455103-1-suhui@zeku.com
+Signed-off-by: Hui Su <suhui@zeku.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ include/linux/vmpressure.h |    2 +-
+ mm/memcontrol.c            |    4 ++--
+ mm/vmpressure.c            |    3 +--
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-never-demote-for-memcg-reclaim
-+++ a/mm/vmscan.c
-@@ -524,8 +524,13 @@ static long add_nr_deferred(long nr, str
+--- a/include/linux/vmpressure.h~mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg
++++ a/include/linux/vmpressure.h
+@@ -37,7 +37,7 @@ extern void vmpressure_prio(gfp_t gfp, s
+ extern void vmpressure_init(struct vmpressure *vmpr);
+ extern void vmpressure_cleanup(struct vmpressure *vmpr);
+ extern struct vmpressure *memcg_to_vmpressure(struct mem_cgroup *memcg);
+-extern struct cgroup_subsys_state *vmpressure_to_css(struct vmpressure *vmpr);
++extern struct mem_cgroup *vmpressure_to_memcg(struct vmpressure *vmpr);
+ extern int vmpressure_register_event(struct mem_cgroup *memcg,
+ 				     struct eventfd_ctx *eventfd,
+ 				     const char *args);
+--- a/mm/memcontrol.c~mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg
++++ a/mm/memcontrol.c
+@@ -256,9 +256,9 @@ struct vmpressure *memcg_to_vmpressure(s
+ 	return &memcg->vmpressure;
+ }
  
- static bool can_demote(int nid, struct scan_control *sc)
+-struct cgroup_subsys_state *vmpressure_to_css(struct vmpressure *vmpr)
++struct mem_cgroup *vmpressure_to_memcg(struct vmpressure *vmpr)
  {
--	if (sc && sc->no_demotion)
--		return false;
-+	if (sc) {
-+		if (sc->no_demotion)
-+			return false;
-+		/* It is pointless to do demotion in memcg reclaim */
-+		if (cgroup_reclaim(sc))
-+			return false;
-+	}
- 	if (next_demotion_node(nid) == NUMA_NO_NODE)
- 		return false;
+-	return &container_of(vmpr, struct mem_cgroup, vmpressure)->css;
++	return container_of(vmpr, struct mem_cgroup, vmpressure);
+ }
  
+ #ifdef CONFIG_MEMCG_KMEM
+--- a/mm/vmpressure.c~mm-vmpressure-replace-vmpressure_to_css-with-vmpressure_to_memcg
++++ a/mm/vmpressure.c
+@@ -74,8 +74,7 @@ static struct vmpressure *work_to_vmpres
+ 
+ static struct vmpressure *vmpressure_parent(struct vmpressure *vmpr)
+ {
+-	struct cgroup_subsys_state *css = vmpressure_to_css(vmpr);
+-	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++	struct mem_cgroup *memcg = vmpressure_to_memcg(vmpr);
+ 
+ 	memcg = parent_mem_cgroup(memcg);
+ 	if (!memcg)
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from suhui@zeku.com are
 
 
