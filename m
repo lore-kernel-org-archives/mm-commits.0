@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11E65C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E4BC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDCDB61107
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E074661131
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350079AbhICVA3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:00:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59202 "EHLO mail.kernel.org"
+        id S1350122AbhICVAc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:00:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59228 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1349960AbhICVA3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:00:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CE09B610FD;
-        Fri,  3 Sep 2021 20:59:28 +0000 (UTC)
+        id S1349960AbhICVAb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:00:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7062E6112F;
+        Fri,  3 Sep 2021 20:59:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702769;
-        bh=Ojbr8ZhbYusEz3UASHzgqx7lI681bqUglggdVIQUy28=;
+        s=korg; t=1630702771;
+        bh=Opw9LiKUSLOJ4XFLeKVbIWQ2TzF2yyK/j+lHzkGlRT0=;
         h=Date:From:To:Subject:From;
-        b=lVk6YIwUNeDzQ44nn0XogkmCfbdhM6NZ0grHrOdlgQRwpdmOIvyboB0UVcbjeqvSZ
-         gHQUR5sfwq5zIXj4ahCoPR7kTI8pOfzEkLADNvXrFZ66i/seMOtu8QIeEA0Pjl1nFi
-         BVR0/mJ1v+3OeC+q2ayAPgTHEV5jQpr6/LHgn1lY=
-Date:   Fri, 03 Sep 2021 13:59:28 -0700
+        b=m+noBDbv/oZoHI0DecoKaBZzdEKsT83NKwk6JpSN/GabHoaJB5acAW3hb8sCjQr/X
+         0WnUOND/2FWc7HRCoafIjEnIqST+R4v/O59elIZzYzSdHZRl5l0Rn04Nv8F5OyNrb2
+         GoQ+qTt3+WcMwKucmvIHVrtpj6diIrnCQsX0wdpg=
+Date:   Fri, 03 Sep 2021 13:59:31 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linux@roeck-us.net, mm-commits@vger.kernel.org,
-        monstr@monstr.eu, rppt@linux.ibm.com
-Subject:  [merged]
- mm-page_alloc-always-initialize-memory-map-for-the-holes.patch removed from
- -mm tree
-Message-ID: <20210903205928.7otHdRBRK%akpm@linux-foundation.org>
+To:     david@redhat.com, mm-commits@vger.kernel.org, monstr@monstr.eu,
+        rppt@linux.ibm.com
+Subject:  [merged] microblaze-simplify-pte_alloc_one_kernel.patch
+ removed from -mm tree
+Message-ID: <20210903205931.wt4oOdnfc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,107 +43,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: always initialize memory map for the holes
+     Subject: microblaze: simplify pte_alloc_one_kernel()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-always-initialize-memory-map-for-the-holes.patch
+     microblaze-simplify-pte_alloc_one_kernel.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm/page_alloc: always initialize memory map for the holes
+Subject: microblaze: simplify pte_alloc_one_kernel()
 
-Patch series "mm: ensure consistency of memory map poisoning".
+The microblaze's implementation of pte_alloc_one_kernel() used
+memblock_alloc_try_nid_raw() along with clear_page() to allocated a zeroed
+page during early setup.
 
-Currently memory map allocation for FLATMEM case does not poison the
-struct pages regardless of CONFIG_PAGE_POISON setting.
+Replace calls of these functions with a call to memblock_alloc_try_nid()
+that already returns zeroed page and respects the same allocation limits
+as memblock_alloc_try_nid_raw().
 
-This happens because allocation of the memory map for FLATMEM and SPARSMEM
-use different memblock functions and those that are used for SPARSMEM case
-(namely memblock_alloc_try_nid_raw() and memblock_alloc_exact_nid_raw())
-implicitly poison the allocated memory.
+While on it drop early_get_page() wrapper that was only used in
+pte_alloc_one_kernel().
 
-Another side effect of this implicit poisoning is that early setup code
-that uses the same functions to allocate memory burns cycles for the
-memory poisoning even if it was not intended.
-
-These patches introduce memmap_alloc() wrapper that ensure that the memory
-map allocation is consistent for different memory models.
-
-
-This patch (of 4):
-
-Currently memory map for the holes is initialized only when SPARSEMEM
-memory model is used.  Yet, even with FLATMEM there could be holes in the
-physical memory layout that have memory map entries.
-
-For instance, the memory reserved using e820 API on i386 or
-"reserved-memory" nodes in device tree would not appear in memblock.memory
-and hence the struct pages for such holes will be skipped during memory
-map initialization.
-
-These struct pages will be zeroed because the memory map for FLATMEM
-systems is allocated with memblock_alloc_node() that clears the allocated
-memory.  While zeroed struct pages do not cause immediate problems, the
-correct behaviour is to initialize every page using __init_single_page(). 
-Besides, enabling page poison for FLATMEM case will trigger
-PF_POISONED_CHECK() unless the memory map is properly initialized.
-
-Make sure init_unavailable_range() is called for both SPARSEMEM and
-FLATMEM so that struct pages representing memory holes would appear as
-PG_Reserved with any memory layout.
-
-[rppt@kernel.org: fix microblaze]
-  Link: https://lkml.kernel.org/r/YQWW3RCE4eWBuMu/@kernel.org
-Link: https://lkml.kernel.org/r/20210714123739.16493-1-rppt@kernel.org
-Link: https://lkml.kernel.org/r/20210714123739.16493-2-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210714123739.16493-3-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/include/asm/page.h |    3 +--
- mm/page_alloc.c                    |    8 --------
- 2 files changed, 1 insertion(+), 10 deletions(-)
+ arch/microblaze/include/asm/pgtable.h |    2 --
+ arch/microblaze/mm/init.c             |   12 ------------
+ arch/microblaze/mm/pgtable.c          |   17 ++++++++---------
+ 3 files changed, 8 insertions(+), 23 deletions(-)
 
---- a/arch/microblaze/include/asm/page.h~mm-page_alloc-always-initialize-memory-map-for-the-holes
-+++ a/arch/microblaze/include/asm/page.h
-@@ -112,8 +112,7 @@ extern int page_is_ram(unsigned long pfn
- #  define page_to_phys(page)     (page_to_pfn(page) << PAGE_SHIFT)
+--- a/arch/microblaze/include/asm/pgtable.h~microblaze-simplify-pte_alloc_one_kernel
++++ a/arch/microblaze/include/asm/pgtable.h
+@@ -443,8 +443,6 @@ extern int mem_init_done;
  
- #  define ARCH_PFN_OFFSET	(memory_start >> PAGE_SHIFT)
--#  define pfn_valid(pfn)	((pfn) < (max_mapnr + ARCH_PFN_OFFSET))
+ asmlinkage void __init mmu_init(void);
+ 
+-void __init *early_get_page(void);
 -
-+#  define pfn_valid(pfn)	((pfn) >= ARCH_PFN_OFFSET && (pfn) < (max_mapnr + ARCH_PFN_OFFSET))
- # endif /* __ASSEMBLY__ */
+ #endif /* __ASSEMBLY__ */
+ #endif /* __KERNEL__ */
  
- #define	virt_addr_valid(vaddr)	(pfn_valid(virt_to_pfn(vaddr)))
---- a/mm/page_alloc.c~mm-page_alloc-always-initialize-memory-map-for-the-holes
-+++ a/mm/page_alloc.c
-@@ -6642,7 +6642,6 @@ static void __meminit zone_init_free_lis
- 	}
+--- a/arch/microblaze/mm/init.c~microblaze-simplify-pte_alloc_one_kernel
++++ a/arch/microblaze/mm/init.c
+@@ -265,18 +265,6 @@ asmlinkage void __init mmu_init(void)
+ 	dma_contiguous_reserve(memory_start + lowmem_size - 1);
  }
  
--#if !defined(CONFIG_FLATMEM)
- /*
-  * Only struct pages that correspond to ranges defined by memblock.memory
-  * are zeroed and initialized by going through __init_single_page() during
-@@ -6687,13 +6686,6 @@ static void __init init_unavailable_rang
- 		pr_info("On node %d, zone %s: %lld pages in unavailable ranges",
- 			node, zone_names[zone], pgcnt);
- }
--#else
--static inline void init_unavailable_range(unsigned long spfn,
--					  unsigned long epfn,
--					  int zone, int node)
+-/* This is only called until mem_init is done. */
+-void __init *early_get_page(void)
 -{
+-	/*
+-	 * Mem start + kernel_tlb -> here is limit
+-	 * because of mem mapping from head.S
+-	 */
+-	return memblock_alloc_try_nid_raw(PAGE_SIZE, PAGE_SIZE,
+-				MEMBLOCK_LOW_LIMIT, memory_start + kernel_tlb,
+-				NUMA_NO_NODE);
 -}
--#endif
+-
+ void * __ref zalloc_maybe_bootmem(size_t size, gfp_t mask)
+ {
+ 	void *p;
+--- a/arch/microblaze/mm/pgtable.c~microblaze-simplify-pte_alloc_one_kernel
++++ a/arch/microblaze/mm/pgtable.c
+@@ -33,6 +33,7 @@
+ #include <linux/init.h>
+ #include <linux/mm_types.h>
+ #include <linux/pgtable.h>
++#include <linux/memblock.h>
  
- static void __init memmap_init_zone_range(struct zone *zone,
- 					  unsigned long start_pfn,
+ #include <asm/pgalloc.h>
+ #include <linux/io.h>
+@@ -242,15 +243,13 @@ unsigned long iopa(unsigned long addr)
+ 
+ __ref pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
+ {
+-	pte_t *pte;
+-	if (mem_init_done) {
+-		pte = (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
+-	} else {
+-		pte = (pte_t *)early_get_page();
+-		if (pte)
+-			clear_page(pte);
+-	}
+-	return pte;
++	if (mem_init_done)
++		return (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
++	else
++		return memblock_alloc_try_nid(PAGE_SIZE, PAGE_SIZE,
++					      MEMBLOCK_LOW_LIMIT,
++					      memory_start + kernel_tlb,
++					      NUMA_NO_NODE);
+ }
+ 
+ void __set_fixmap(enum fixed_addresses idx, phys_addr_t phys, pgprot_t flags)
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
