@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA205C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79581C43217
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9F93A610FD
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 63EE3610FD
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350270AbhICVBD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:01:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59496 "EHLO mail.kernel.org"
+        id S1350291AbhICVBF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:01:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59614 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350144AbhICVA5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:00:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 941D26112F;
-        Fri,  3 Sep 2021 20:59:56 +0000 (UTC)
+        id S1350253AbhICVBD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:01:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BB485610FB;
+        Fri,  3 Sep 2021 21:00:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702796;
-        bh=JcX1nJ4lLehllv1tXRsd1amEMvMzt2u+sgHU4ptRvog=;
+        s=korg; t=1630702802;
+        bh=yt74DI5KxqTJf8fDLPnmhvWpU44pEJQbweXpnaIqn/w=;
         h=Date:From:To:Subject:From;
-        b=wzg5e2iX0yGENv7ANAQcPJVb41Zq2mru/XIwY8L55N8vC4HLPoshUWgCXLBTHdEcj
-         YFpZLT/iLiM2/qMa3AH7f3Pw5e6U2Ed7EzbM2WrJFqseukJCIZaco06kcrsyy9kws9
-         tc1SPpcAu9ZAYMxV28cC2x2/Zjdm7hrBP1PIIhSM=
-Date:   Fri, 03 Sep 2021 13:59:56 -0700
+        b=E/MNXSC9TgWhYQcC1j5tRoZEJR4XxuBqsaCKgYbbaqzAcN3VFTtrCeq3/mw6Q/iAu
+         BLYGwIFHt9kFEUM59lh+qzjNhMortsh7IXaUu+D3gDvP+pZjw+Egtqa0RoatELS0YM
+         JvHnrH9F2iW78w2D31NvmdX4Z34r8bOHWuwNJDiw=
+Date:   Fri, 03 Sep 2021 14:00:02 -0700
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, david@redhat.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de, shy828301@gmail.com,
-        tdmackey@twitter.com, willy@infradead.org
+To:     abaci@linux.alibaba.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, stable@vger.kernel.org,
+        yun.wang@linux.alibaba.com
 Subject:  [merged]
- doc-hwpoison-correct-the-support-for-hugepage.patch removed from -mm tree
-Message-ID: <20210903205956.8_ZdZ6Mii%akpm@linux-foundation.org>
+ mm-fix-panic-caused-by-__page_handle_poison.patch removed from -mm tree
+Message-ID: <20210903210002.7xf8_km-9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,45 +44,80 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: doc: hwpoison: correct the support for hugepage
+     Subject: mm: fix panic caused by __page_handle_poison()
 has been removed from the -mm tree.  Its filename was
-     doc-hwpoison-correct-the-support-for-hugepage.patch
+     mm-fix-panic-caused-by-__page_handle_poison.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: doc: hwpoison: correct the support for hugepage
+From: Michael Wang <yun.wang@linux.alibaba.com>
+Subject: mm: fix panic caused by __page_handle_poison()
 
-The hwpoison support for huge page, both hugetlb and THP, has been in
-kernel for a while, the statement in document is obsolete, correct it.
+In commit 510d25c92ec4 ("mm/hwpoison: disable pcp for
+page_handle_poison()"), __page_handle_poison() was introduced, and if we
+mark:
 
-Link: https://lkml.kernel.org/r/20210819054116.266126-2-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
+RET_A = dissolve_free_huge_page();
+RET_B = take_page_off_buddy();
+
+then __page_handle_poison was supposed to return TRUE When RET_A == 0 &&
+RET_B == TRUE
+
+But since it failed to take care the case when RET_A is -EBUSY or -ENOMEM,
+and just return the ret as a bool which actually become TRUE, it break the
+original logic.
+
+The following result is a huge page in freelist but was
+referenced as poisoned, and lead into the final panic:
+
+  kernel BUG at mm/internal.h:95!
+  invalid opcode: 0000 [#1] SMP PTI
+  skip...
+  RIP: 0010:set_page_refcounted mm/internal.h:95 [inline]
+  RIP: 0010:remove_hugetlb_page+0x23c/0x240 mm/hugetlb.c:1371
+  skip...
+  Call Trace:
+   remove_pool_huge_page+0xe4/0x110 mm/hugetlb.c:1892
+   return_unused_surplus_pages+0x8d/0x150 mm/hugetlb.c:2272
+   hugetlb_acct_memory.part.91+0x524/0x690 mm/hugetlb.c:4017
+
+This patch replaces 'bool' with 'int' to handle RET_A correctly.
+
+Link: https://lkml.kernel.org/r/61782ac6-1e8a-4f6f-35e6-e94fce3b37f5@linux.alibaba.com
+Fixes: 510d25c92ec4 ("mm/hwpoison: disable pcp for page_handle_poison()")
+Signed-off-by: Michael Wang <yun.wang@linux.alibaba.com>
 Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Mackey <tdmackey@twitter.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Abaci <abaci@linux.alibaba.com>
+Cc: <stable@vger.kernel.org>	[5.14+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/hwpoison.rst |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memory-failure.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/Documentation/vm/hwpoison.rst~doc-hwpoison-correct-the-support-for-hugepage
-+++ a/Documentation/vm/hwpoison.rst
-@@ -180,7 +180,6 @@ Limitations
- ===========
- - Not all page types are supported and never will. Most kernel internal
-   objects cannot be recovered, only LRU pages for now.
--- Right now hugepage support is missing.
+--- a/mm/memory-failure.c~mm-fix-panic-caused-by-__page_handle_poison
++++ a/mm/memory-failure.c
+@@ -68,7 +68,7 @@ atomic_long_t num_poisoned_pages __read_
  
- ---
- Andi Kleen, Oct 2009
+ static bool __page_handle_poison(struct page *page)
+ {
+-	bool ret;
++	int ret;
+ 
+ 	zone_pcp_disable(page_zone(page));
+ 	ret = dissolve_free_huge_page(page);
+@@ -76,7 +76,7 @@ static bool __page_handle_poison(struct
+ 		ret = take_page_off_buddy(page);
+ 	zone_pcp_enable(page_zone(page));
+ 
+-	return ret;
++	return ret > 0;
+ }
+ 
+ static bool page_handle_poison(struct page *page, bool hugepage_or_freepage, bool release)
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from yun.wang@linux.alibaba.com are
 
 
