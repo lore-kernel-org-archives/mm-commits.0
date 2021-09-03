@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA6ADC43219
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9538EC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D97D16112F
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8003261107
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236900AbhICU6v (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:58:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57734 "EHLO mail.kernel.org"
+        id S239176AbhICU6x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:58:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57844 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235926AbhICU6t (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:58:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A6C7E610F9;
-        Fri,  3 Sep 2021 20:57:48 +0000 (UTC)
+        id S235926AbhICU6w (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:58:52 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A9C8F61102;
+        Fri,  3 Sep 2021 20:57:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702669;
-        bh=L+U4/9M/t4/dgHQKaeVeotheEP2HkLF+o18flHY8tNY=;
+        s=korg; t=1630702672;
+        bh=V+g3OJePeshc2iF61WQFxzepQGJLTTm+qDCDTnYp9lM=;
         h=Date:From:To:Subject:From;
-        b=r2wJWarme4pwfx6Ll/ICJLI0nXex1eCijuAxXnoEsjMq068KNNgplOjAetEBaF47h
-         y5gUIVxYDbrYh8YECkT0zLod9WZL5wEiBsxMo2A9MOeCahL4RJ28/VEAULZxTJkDdS
-         T6o5czun68GGrVpCcoOiWsZhIiupaA8ZL+iWQIMc=
-Date:   Fri, 03 Sep 2021 13:57:48 -0700
+        b=cUFJTumJ9v0pChaQSRo3seDxnpBWTMLlbLqGEP5YFOLasIkpoLt95LfgnEXO+NqRf
+         SgUblR/qOEhJaTvTCU4eU6yFYBGqBgu8bT0FAz+Y3x9FGJjuZO3TBhF8hNraoBfbdx
+         mQOkSxcPQ7rad1j7F2l8cA4YkWOI6T4bp5hD0CK0=
+Date:   Fri, 03 Sep 2021 13:57:51 -0700
 From:   akpm@linux-foundation.org
 To:     0x7f454c46@gmail.com, adobriyan@gmail.com, avagin@gmail.com,
         axboe@kernel.dk, bfields@fieldses.org, bp@alien8.de, bp@suse.de,
@@ -40,9 +40,9 @@ To:     0x7f454c46@gmail.com, adobriyan@gmail.com, avagin@gmail.com,
         oleg@redhat.com, serge@hallyn.com, shakeelb@google.com,
         tglx@linutronix.de, tj@kernel.org, vdavydov.dev@gmail.com,
         viro@zeniv.linux.org.uk, vvs@virtuozzo.com
-Subject:  [merged] memcg-enable-accounting-of-ipc-resources.patch
+Subject:  [merged] memcg-enable-accounting-for-signals.patch
  removed from -mm tree
-Message-ID: <20210903205748.i5IvhunNi%akpm@linux-foundation.org>
+Message-ID: <20210903205751.GGzeqH9eD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,26 +51,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: enable accounting of ipc resources
+     Subject: memcg: enable accounting for signals
 has been removed from the -mm tree.  Its filename was
-     memcg-enable-accounting-of-ipc-resources.patch
+     memcg-enable-accounting-for-signals.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: enable accounting of ipc resources
+Subject: memcg: enable accounting for signals
 
-When user creates IPC objects it forces kernel to allocate memory for
-these long-living objects.
+When a user send a signal to any another processes it forces the kernel to
+allocate memory for 'struct sigqueue' objects.  The number of signals is
+limited by RLIMIT_SIGPENDING resource limit, but even the default settings
+allow each user to consume up to several megabytes of memory.
 
-It makes sense to account them to restrict the host's memory consumption
-from inside the memcg-limited container.
+It makes sense to account for these allocations to restrict the host's
+memory consumption from inside the memcg-limited container.
 
-This patch enables accounting for IPC shared memory segments, messages
-semaphores and semaphore's undo lists.
-
-Link: https://lkml.kernel.org/r/d6507b06-4df6-78f8-6c54-3ae86e3b5339@virtuozzo.com
+Link: https://lkml.kernel.org/r/e34e958c-e785-712e-a62a-2c7b66c646c7@virtuozzo.com
 Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 Reviewed-by: Shakeel Butt <shakeelb@google.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -102,72 +101,20 @@ Cc: Zefan Li <lizefan.x@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msg.c |    2 +-
- ipc/sem.c |    9 +++++----
- ipc/shm.c |    2 +-
- 3 files changed, 7 insertions(+), 6 deletions(-)
+ kernel/signal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/ipc/msg.c~memcg-enable-accounting-of-ipc-resources
-+++ a/ipc/msg.c
-@@ -147,7 +147,7 @@ static int newque(struct ipc_namespace *
- 	key_t key = params->key;
- 	int msgflg = params->flg;
+--- a/kernel/signal.c~memcg-enable-accounting-for-signals
++++ a/kernel/signal.c
+@@ -4663,7 +4663,7 @@ void __init signals_init(void)
+ {
+ 	siginfo_buildtime_checks();
  
--	msq = kmalloc(sizeof(*msq), GFP_KERNEL);
-+	msq = kmalloc(sizeof(*msq), GFP_KERNEL_ACCOUNT);
- 	if (unlikely(!msq))
- 		return -ENOMEM;
+-	sigqueue_cachep = KMEM_CACHE(sigqueue, SLAB_PANIC);
++	sigqueue_cachep = KMEM_CACHE(sigqueue, SLAB_PANIC | SLAB_ACCOUNT);
+ }
  
---- a/ipc/sem.c~memcg-enable-accounting-of-ipc-resources
-+++ a/ipc/sem.c
-@@ -514,7 +514,7 @@ static struct sem_array *sem_alloc(size_
- 	if (nsems > (INT_MAX - sizeof(*sma)) / sizeof(sma->sems[0]))
- 		return NULL;
- 
--	sma = kvzalloc(struct_size(sma, sems, nsems), GFP_KERNEL);
-+	sma = kvzalloc(struct_size(sma, sems, nsems), GFP_KERNEL_ACCOUNT);
- 	if (unlikely(!sma))
- 		return NULL;
- 
-@@ -1855,7 +1855,7 @@ static inline int get_undo_list(struct s
- 
- 	undo_list = current->sysvsem.undo_list;
- 	if (!undo_list) {
--		undo_list = kzalloc(sizeof(*undo_list), GFP_KERNEL);
-+		undo_list = kzalloc(sizeof(*undo_list), GFP_KERNEL_ACCOUNT);
- 		if (undo_list == NULL)
- 			return -ENOMEM;
- 		spin_lock_init(&undo_list->lock);
-@@ -1941,7 +1941,7 @@ static struct sem_undo *find_alloc_undo(
- 
- 	/* step 2: allocate new undo structure */
- 	new = kvzalloc(sizeof(struct sem_undo) + sizeof(short)*nsems,
--		       GFP_KERNEL);
-+		       GFP_KERNEL_ACCOUNT);
- 	if (!new) {
- 		ipc_rcu_putref(&sma->sem_perm, sem_rcu_free);
- 		return ERR_PTR(-ENOMEM);
-@@ -2005,7 +2005,8 @@ static long do_semtimedop(int semid, str
- 	if (nsops > ns->sc_semopm)
- 		return -E2BIG;
- 	if (nsops > SEMOPM_FAST) {
--		sops = kvmalloc_array(nsops, sizeof(*sops), GFP_KERNEL);
-+		sops = kvmalloc_array(nsops, sizeof(*sops),
-+				      GFP_KERNEL_ACCOUNT);
- 		if (sops == NULL)
- 			return -ENOMEM;
- 	}
---- a/ipc/shm.c~memcg-enable-accounting-of-ipc-resources
-+++ a/ipc/shm.c
-@@ -619,7 +619,7 @@ static int newseg(struct ipc_namespace *
- 			ns->shm_tot + numpages > ns->shm_ctlall)
- 		return -ENOSPC;
- 
--	shp = kmalloc(sizeof(*shp), GFP_KERNEL);
-+	shp = kmalloc(sizeof(*shp), GFP_KERNEL_ACCOUNT);
- 	if (unlikely(!shp))
- 		return -ENOMEM;
- 
+ #ifdef CONFIG_KGDB_KDB
 _
 
 Patches currently in -mm which might be from vvs@virtuozzo.com are
