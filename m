@@ -7,39 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3B98AC433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F821C4332F
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 297EA61107
+	by mail.kernel.org (Postfix) with ESMTP id 34C326113A
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349941AbhICU7h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:59:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58512 "EHLO mail.kernel.org"
+        id S1349516AbhICU7i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:59:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58544 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350030AbhICU7c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:59:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 745C96112F;
-        Fri,  3 Sep 2021 20:58:31 +0000 (UTC)
+        id S1350362AbhICU7f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:59:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 96EED610FD;
+        Fri,  3 Sep 2021 20:58:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702711;
-        bh=P4iwOaVX8Oce2OoOdB9Ge/evlqelkuWY/T/P17XWvak=;
+        s=korg; t=1630702714;
+        bh=iTgkESpbNeZU3r0LCT0j16UZyw1nxyhaRhUrWoMRTGw=;
         h=Date:From:To:Subject:From;
-        b=I9Mxb9TkLJ1fIfSLdRcrVTp7bAjRLp5QxVLfzvtz5bPDBEmXzofF+p9SHVoWR98xg
-         JUHrmOTPnKKS4IUrfCN8Ebg9rtb4L9wKArQmUC8Q8Ez4bd8983qiVZOTL7Wd0OBEOb
-         PJFAMY6CiETwh63PoymQWf/EPKayh02lh9Ucrb84=
-Date:   Fri, 03 Sep 2021 13:58:31 -0700
+        b=wj5d9GCliG5sV3KA70dgnYE5gXf3Fjv+Y79q3tuAZratj0JlTl7bwLiWh1PLhLCSa
+         jLPUm7AW/MgBOBPte8agCqvkJ+67KjOY4h6ck9iVAdegfUXP5RKBmfK6WD5j41yMJs
+         u9LMZv+VdPWfPI+8xLBIvFXeCtq1dPdQhhFM4Fjg=
+Date:   Fri, 03 Sep 2021 13:58:34 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, borntraeger@de.ibm.com,
-        dan.carpenter@oracle.com, gerald.schaefer@linux.ibm.com,
-        gor@linux.ibm.com, hca@linux.ibm.com, hughd@google.com,
-        kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.com,
-        mm-commits@vger.kernel.org, pbonzini@redhat.com,
-        shy828301@gmail.com, ying.huang@intel.com, ziy@nvidia.com
+To:     dhowells@redhat.com, djwong@kernel.org, gregkh@linuxfoundation.org,
+        hughd@google.com, jordy@pwning.systems, mchehab+huawei@kernel.org,
+        mm-commits@vger.kernel.org, william.kucharski@oracle.com,
+        willy@infradead.org
 Subject:  [merged]
- mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch removed
+ mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch removed
  from -mm tree
-Message-ID: <20210903205831.j5prL21th%akpm@linux-foundation.org>
+Message-ID: <20210903205834.RbY0Yzcwm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,94 +46,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,do_huge_pmd_numa_page: remove unnecessary TLB flushing code
+     Subject: mm: change fault_in_pages_* to have an unsigned size parameter
 has been removed from the -mm tree.  Its filename was
-     mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code.patch
+     mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm,do_huge_pmd_numa_page: remove unnecessary TLB flushing code
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: mm: change fault_in_pages_* to have an unsigned size parameter
 
-Before commit c5b5a3dd2c1f ("mm: thp: refactor NUMA fault handling"), the
-TLB flushing is done in do_huge_pmd_numa_page() itself via
-flush_tlb_range().
+fault_in_pages_writeable() and fault_in_pages_readable() treat the size
+parameter as unsigned, doing pointer math with the value, so make this
+explicit and set it to be a size_t type which all callers currently treat
+it as anyway.
 
-But after commit c5b5a3dd2c1f ("mm: thp: refactor NUMA fault handling"),
-the TLB flushing is done in migrate_pages() as in the following code path
-anyway.
+This solves the issue where static checkers get nervous seeing pointer
+arithmetic happening with a signed value.
 
-do_huge_pmd_numa_page
-  migrate_misplaced_page
-    migrate_pages
-
-So now, the TLB flushing code in do_huge_pmd_numa_page() becomes
-unnecessary.  So the code is deleted in this patch to simplify the code. 
-This is only code cleanup, there's no visible performance difference.
-
-The mmu_notifier_invalidate_range() in do_huge_pmd_numa_page() is
-deleted too.  Because migrate_pages() takes care of that too when CPU
-TLB is flushed.
-
-Link: https://lkml.kernel.org/r/20210720065529.716031-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20210727111136.457638-1-gregkh@linuxfoundation.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reported-by: Jordy Zomer <jordy@pwning.systems>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: "Darrick J. Wong" <djwong@kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
-Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   26 --------------------------
- 1 file changed, 26 deletions(-)
+ include/linux/pagemap.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/huge_memory.c~mmdo_huge_pmd_numa_page-remove-unnecessary-tlb-flushing-code
-+++ a/mm/huge_memory.c
-@@ -1440,32 +1440,6 @@ vm_fault_t do_huge_pmd_numa_page(struct
- 		goto out;
- 	}
+--- a/include/linux/pagemap.h~mm-change-fault_in_pages_-to-have-an-unsigned-size-parameter
++++ a/include/linux/pagemap.h
+@@ -736,7 +736,7 @@ extern void add_page_wait_queue(struct p
+ /*
+  * Fault everything in given userspace address range in.
+  */
+-static inline int fault_in_pages_writeable(char __user *uaddr, int size)
++static inline int fault_in_pages_writeable(char __user *uaddr, size_t size)
+ {
+ 	char __user *end = uaddr + size - 1;
  
--	/*
--	 * Since we took the NUMA fault, we must have observed the !accessible
--	 * bit. Make sure all other CPUs agree with that, to avoid them
--	 * modifying the page we're about to migrate.
--	 *
--	 * Must be done under PTL such that we'll observe the relevant
--	 * inc_tlb_flush_pending().
--	 *
--	 * We are not sure a pending tlb flush here is for a huge page
--	 * mapping or not. Hence use the tlb range variant
--	 */
--	if (mm_tlb_flush_pending(vma->vm_mm)) {
--		flush_tlb_range(vma, haddr, haddr + HPAGE_PMD_SIZE);
--		/*
--		 * change_huge_pmd() released the pmd lock before
--		 * invalidating the secondary MMUs sharing the primary
--		 * MMU pagetables (with ->invalidate_range()). The
--		 * mmu_notifier_invalidate_range_end() (which
--		 * internally calls ->invalidate_range()) in
--		 * change_pmd_range() will run after us, so we can't
--		 * rely on it here and we need an explicit invalidate.
--		 */
--		mmu_notifier_invalidate_range(vma->vm_mm, haddr,
--					      haddr + HPAGE_PMD_SIZE);
--	}
--
- 	pmd = pmd_modify(oldpmd, vma->vm_page_prot);
- 	page = vm_normal_page_pmd(vma, haddr, pmd);
- 	if (!page)
+@@ -763,7 +763,7 @@ static inline int fault_in_pages_writeab
+ 	return 0;
+ }
+ 
+-static inline int fault_in_pages_readable(const char __user *uaddr, int size)
++static inline int fault_in_pages_readable(const char __user *uaddr, size_t size)
+ {
+ 	volatile char c;
+ 	const char __user *end = uaddr + size - 1;
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from gregkh@linuxfoundation.org are
 
+percpu-remove-export-of-pcpu_base_addr.patch
 
