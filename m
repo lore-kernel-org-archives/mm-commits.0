@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21B0DC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 745D4C433F5
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0916F610FB
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 557236113C
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350482AbhICVBk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1350205AbhICVBk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Sep 2021 17:01:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60044 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:60092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350205AbhICVB3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:01:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B2F2D61107;
-        Fri,  3 Sep 2021 21:00:28 +0000 (UTC)
+        id S1350431AbhICVBc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:01:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A94CB610FD;
+        Fri,  3 Sep 2021 21:00:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702829;
-        bh=s0XGR39mLiRamEXxxFAvZgoOK7tz5uYUFNcIBsdvc4k=;
+        s=korg; t=1630702832;
+        bh=nYFqEWjvvombK2w/7qtE7oWX+PtXI/SyBTveaHR7G70=;
         h=Date:From:To:Subject:From;
-        b=N20XEYO8+X+NeutHwYliUJWGhfeCG735wQpQK4OgWEs8k83khGz19IY4z27SUUmOt
-         35tqfz6SW8+FJJCrqcJMkwpauhf/xFr4qjt+Fu5cJgukwimH5B3OGKsdBZ0+9Xr3Hu
-         WHdvxo8Wp5Qawl6VndAcqkGS2AyvZ6z8pue9WbRk=
-Date:   Fri, 03 Sep 2021 14:00:28 -0700
+        b=ZyFJKICXm98j0TWa9k00C5eAsOMzJ2jEnqCc+SUyqtPv+JymM1D+8qpQyvY0oFE0m
+         CBnLdFyeiRFVdEp73ghmYZfIzbDA1L6kNKA1iBtUGvPfVDby4cjkIbQG/NZlV+290o
+         aB4S1l9ZveQHrE6rZCk7LvPjaffZh557G38bIE5g=
+Date:   Fri, 03 Sep 2021 14:00:31 -0700
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, dave.hansen@linux.intel.com,
         david@redhat.com, gthelen@google.com, kbusch@kernel.org,
         mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
         rientjes@google.com, shy828301@gmail.com, weixugc@google.com,
-        ying.huang@intel.com, ziy@nvidia.com
-Subject:  [merged] mm-migrate-demote-pages-during-reclaim.patch
+        yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
+Subject:  [merged] mm-vmscan-add-page-demotion-counter.patch
  removed from -mm tree
-Message-ID: <20210903210028.ZjMnqr6_q%akpm@linux-foundation.org>
+Message-ID: <20210903210031.wnWjvW_Ch%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,251 +46,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: demote pages during reclaim
+     Subject: mm/vmscan: add page demotion counter
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-demote-pages-during-reclaim.patch
+     mm-vmscan-add-page-demotion-counter.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm/migrate: demote pages during reclaim
+From: Yang Shi <yang.shi@linux.alibaba.com>
+Subject: mm/vmscan: add page demotion counter
 
-This is mostly derived from a patch from Yang Shi:
+Account the number of demoted pages.
 
-	https://lore.kernel.org/linux-mm/1560468577-101178-10-git-send-email-yang.shi@linux.alibaba.com/
+Add pgdemote_kswapd and pgdemote_direct VM counters showed in
+/proc/vmstat.
 
-Add code to the reclaim path (shrink_page_list()) to "demote" data to
-another NUMA node instead of discarding the data.  This always avoids the
-cost of I/O needed to read the page back in and sometimes avoids the
-writeout cost when the page is dirty.
+[ daveh:
+   - __count_vm_events() a bit, and made them look at the THP
+     size directly rather than getting data from migrate_pages()
+]
 
-A second pass through shrink_page_list() will be made if any demotions
-fail.  This essentially falls back to normal reclaim behavior in the case
-that demotions fail.  Previous versions of this patch may have simply
-failed to reclaim pages which were eligible for demotion but were unable
-to be demoted in practice.
-
-For some cases, for example, MADV_PAGEOUT, the pages are always discarded
-instead of demoted to follow the kernel API definition.  Because
-MADV_PAGEOUT is defined as freeing specified pages regardless in which
-tier they are.
-
-Note: This just adds the start of infrastructure for migration.  It is
-actually disabled next to the FIXME in migrate_demote_page_ok().
-
-[dave.hansen@linux.intel.com: v11]
-  Link: https://lkml.kernel.org/r/20210715055145.195411-5-ying.huang@intel.com
-  Link: https://lkml.kernel.org/r/20210721063926.3024591-4-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-5-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20210721063926.3024591-5-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20210715055145.195411-6-ying.huang@intel.com
+Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
 Reviewed-by: Wei Xu <weixugc@google.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: Keith Busch <kbusch@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h        |    9 +++
- include/trace/events/migrate.h |    3 -
- mm/vmscan.c                    |   85 +++++++++++++++++++++++++++++++
- 3 files changed, 96 insertions(+), 1 deletion(-)
+ include/linux/vm_event_item.h |    2 ++
+ mm/vmscan.c                   |    5 +++++
+ mm/vmstat.c                   |    2 ++
+ 3 files changed, 9 insertions(+)
 
---- a/include/linux/migrate.h~mm-migrate-demote-pages-during-reclaim
-+++ a/include/linux/migrate.h
-@@ -28,6 +28,7 @@ enum migrate_reason {
- 	MR_NUMA_MISPLACED,
- 	MR_CONTIG_RANGE,
- 	MR_LONGTERM_PIN,
-+	MR_DEMOTION,
- 	MR_TYPES
- };
- 
-@@ -167,6 +168,14 @@ struct migrate_vma {
- int migrate_vma_setup(struct migrate_vma *args);
- void migrate_vma_pages(struct migrate_vma *migrate);
- void migrate_vma_finalize(struct migrate_vma *migrate);
-+int next_demotion_node(int node);
-+
-+#else /* CONFIG_MIGRATION disabled: */
-+
-+static inline int next_demotion_node(int node)
-+{
-+	return NUMA_NO_NODE;
-+}
- 
- #endif /* CONFIG_MIGRATION */
- 
---- a/include/trace/events/migrate.h~mm-migrate-demote-pages-during-reclaim
-+++ a/include/trace/events/migrate.h
-@@ -21,7 +21,8 @@
- 	EM( MR_MEMPOLICY_MBIND,	"mempolicy_mbind")		\
- 	EM( MR_NUMA_MISPLACED,	"numa_misplaced")		\
- 	EM( MR_CONTIG_RANGE,	"contig_range")			\
--	EMe(MR_LONGTERM_PIN,	"longterm_pin")
-+	EM( MR_LONGTERM_PIN,	"longterm_pin")			\
-+	EMe(MR_DEMOTION,	"demotion")
- 
- /*
-  * First define the enums in the above macros to be exported to userspace
---- a/mm/vmscan.c~mm-migrate-demote-pages-during-reclaim
+--- a/include/linux/vm_event_item.h~mm-vmscan-add-page-demotion-counter
++++ a/include/linux/vm_event_item.h
+@@ -33,6 +33,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		PGREUSE,
+ 		PGSTEAL_KSWAPD,
+ 		PGSTEAL_DIRECT,
++		PGDEMOTE_KSWAPD,
++		PGDEMOTE_DIRECT,
+ 		PGSCAN_KSWAPD,
+ 		PGSCAN_DIRECT,
+ 		PGSCAN_DIRECT_THROTTLE,
+--- a/mm/vmscan.c~mm-vmscan-add-page-demotion-counter
 +++ a/mm/vmscan.c
-@@ -41,6 +41,7 @@
- #include <linux/kthread.h>
- #include <linux/freezer.h>
- #include <linux/memcontrol.h>
-+#include <linux/migrate.h>
- #include <linux/delayacct.h>
- #include <linux/sysctl.h>
- #include <linux/oom.h>
-@@ -121,6 +122,9 @@ struct scan_control {
- 	/* The file pages on the current node are dangerously low */
- 	unsigned int file_is_tiny:1;
+@@ -1318,6 +1318,11 @@ static unsigned int demote_page_list(str
+ 			    target_nid, MIGRATE_ASYNC, MR_DEMOTION,
+ 			    &nr_succeeded);
  
-+	/* Always discard instead of demoting to lower tier memory */
-+	unsigned int no_demotion:1;
++	if (current_is_kswapd())
++		__count_vm_events(PGDEMOTE_KSWAPD, nr_succeeded);
++	else
++		__count_vm_events(PGDEMOTE_DIRECT, nr_succeeded);
 +
- 	/* Allocation order */
- 	s8 order;
- 
-@@ -518,6 +522,17 @@ static long add_nr_deferred(long nr, str
- 	return atomic_long_add_return(nr, &shrinker->nr_deferred[nid]);
+ 	return nr_succeeded;
  }
  
-+static bool can_demote(int nid, struct scan_control *sc)
-+{
-+	if (sc->no_demotion)
-+		return false;
-+	if (next_demotion_node(nid) == NUMA_NO_NODE)
-+		return false;
-+
-+	// FIXME: actually enable this later in the series
-+	return false;
-+}
-+
- /*
-  * This misses isolated pages which are not accounted for to save counters.
-  * As the data only determines if reclaim or compaction continues, it is
-@@ -1263,6 +1278,49 @@ static void page_check_dirty_writeback(s
- 		mapping->a_ops->is_dirty_writeback(page, dirty, writeback);
- }
- 
-+static struct page *alloc_demote_page(struct page *page, unsigned long node)
-+{
-+	struct migration_target_control mtc = {
-+		/*
-+		 * Allocate from 'node', or fail quickly and quietly.
-+		 * When this happens, 'page' will likely just be discarded
-+		 * instead of migrated.
-+		 */
-+		.gfp_mask = (GFP_HIGHUSER_MOVABLE & ~__GFP_RECLAIM) |
-+			    __GFP_THISNODE  | __GFP_NOWARN |
-+			    __GFP_NOMEMALLOC | GFP_NOWAIT,
-+		.nid = node
-+	};
-+
-+	return alloc_migration_target(page, (unsigned long)&mtc);
-+}
-+
-+/*
-+ * Take pages on @demote_list and attempt to demote them to
-+ * another node.  Pages which are not demoted are left on
-+ * @demote_pages.
-+ */
-+static unsigned int demote_page_list(struct list_head *demote_pages,
-+				     struct pglist_data *pgdat)
-+{
-+	int target_nid = next_demotion_node(pgdat->node_id);
-+	unsigned int nr_succeeded;
-+	int err;
-+
-+	if (list_empty(demote_pages))
-+		return 0;
-+
-+	if (target_nid == NUMA_NO_NODE)
-+		return 0;
-+
-+	/* Demotion ignores all cpuset and mempolicy settings */
-+	err = migrate_pages(demote_pages, alloc_demote_page, NULL,
-+			    target_nid, MIGRATE_ASYNC, MR_DEMOTION,
-+			    &nr_succeeded);
-+
-+	return nr_succeeded;
-+}
-+
- /*
-  * shrink_page_list() returns the number of reclaimed pages
-  */
-@@ -1274,12 +1332,16 @@ static unsigned int shrink_page_list(str
- {
- 	LIST_HEAD(ret_pages);
- 	LIST_HEAD(free_pages);
-+	LIST_HEAD(demote_pages);
- 	unsigned int nr_reclaimed = 0;
- 	unsigned int pgactivate = 0;
-+	bool do_demote_pass;
- 
- 	memset(stat, 0, sizeof(*stat));
- 	cond_resched();
-+	do_demote_pass = can_demote(pgdat->node_id, sc);
- 
-+retry:
- 	while (!list_empty(page_list)) {
- 		struct address_space *mapping;
- 		struct page *page;
-@@ -1429,6 +1491,17 @@ static unsigned int shrink_page_list(str
- 		}
- 
- 		/*
-+		 * Before reclaiming the page, try to relocate
-+		 * its contents to another node.
-+		 */
-+		if (do_demote_pass &&
-+		    (thp_migration_supported() || !PageTransHuge(page))) {
-+			list_add(&page->lru, &demote_pages);
-+			unlock_page(page);
-+			continue;
-+		}
-+
-+		/*
- 		 * Anonymous process memory has backing store?
- 		 * Try to allocate it some swap space here.
- 		 * Lazyfree page could be freed directly
-@@ -1679,6 +1752,17 @@ keep:
- 		list_add(&page->lru, &ret_pages);
- 		VM_BUG_ON_PAGE(PageLRU(page) || PageUnevictable(page), page);
- 	}
-+	/* 'page_list' is always empty here */
-+
-+	/* Migrate pages selected for demotion */
-+	nr_reclaimed += demote_page_list(&demote_pages, pgdat);
-+	/* Pages that could not be demoted are still in @demote_pages */
-+	if (!list_empty(&demote_pages)) {
-+		/* Pages which failed to demoted go back on @page_list for retry: */
-+		list_splice_init(&demote_pages, page_list);
-+		do_demote_pass = false;
-+		goto retry;
-+	}
- 
- 	pgactivate = stat->nr_activate[0] + stat->nr_activate[1];
- 
-@@ -2326,6 +2410,7 @@ unsigned long reclaim_pages(struct list_
- 		.may_writepage = 1,
- 		.may_unmap = 1,
- 		.may_swap = 1,
-+		.no_demotion = 1,
- 	};
- 
- 	noreclaim_flag = memalloc_noreclaim_save();
+--- a/mm/vmstat.c~mm-vmscan-add-page-demotion-counter
++++ a/mm/vmstat.c
+@@ -1217,6 +1217,8 @@ const char * const vmstat_text[] = {
+ 	"pgreuse",
+ 	"pgsteal_kswapd",
+ 	"pgsteal_direct",
++	"pgdemote_kswapd",
++	"pgdemote_direct",
+ 	"pgscan_kswapd",
+ 	"pgscan_direct",
+ 	"pgscan_direct_throttle",
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
 
 
