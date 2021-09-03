@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCC09C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26CEFC4332F
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7D9E61131
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 137CD6113A
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239176AbhICVA0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:00:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59150 "EHLO mail.kernel.org"
+        id S1350048AbhICVA1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:00:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59176 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1349960AbhICVAZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:00:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A5D6610FD;
-        Fri,  3 Sep 2021 20:59:24 +0000 (UTC)
+        id S1349960AbhICVA1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:00:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8278561107;
+        Fri,  3 Sep 2021 20:59:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702764;
-        bh=QXQxDH8gvGzqU8WOBYpI+b88+Jb/DrnGq7O36z+UT70=;
+        s=korg; t=1630702766;
+        bh=Wljqq3SYWsuoWQiU0E5JbMRqKEN9xTgACg/Ei+rhaEM=;
         h=Date:From:To:Subject:From;
-        b=xoOMW7kguESgsyqIXw7/pT5ThFQUHm5FDQaj9uODPz33UPEzOQrX7D1MegIunOnDo
-         cmUE3cAahx5QKo8iaHXltF8b3gWoN2nTL5tol6roJ2guXEpXCCVXA9aZI+YDPFGwcZ
-         bD9ybUVJ3fqcguTCDsNmdGCoSfHf4wUSJBtEJNr0=
-Date:   Fri, 03 Sep 2021 13:59:24 -0700
+        b=yPtPLn48VwpLH0Pn3RiZgpe5lUYReXeQo0Yv1y53P3xz40oNJJ0y0P584Gc646luC
+         VsnzLMNmNFfu2eTbr4Vk1LKhDaVA8yxYWr+xHsS/2zGejoyElxrnxQwzyJpfni7LIr
+         kr0It96qAzuUZ674KU00pFwuop3zLtjtbtYEECmk=
+Date:   Fri, 03 Sep 2021 13:59:26 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, aryabinin@virtuozzo.com, dvyukov@google.com,
         elver@google.com, glider@google.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- kasan-test-avoid-corrupting-memory-in-copy_user_test.patch removed from -mm
+ kasan-test-avoid-corrupting-memory-in-kasan_rcu_uaf.patch removed from -mm
  tree
-Message-ID: <20210903205924.1udZ9JYkU%akpm@linux-foundation.org>
+Message-ID: <20210903205926.aiLUD_31B%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,26 +44,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: test: avoid corrupting memory in copy_user_test
+     Subject: kasan: test: avoid corrupting memory in kasan_rcu_uaf
 has been removed from the -mm tree.  Its filename was
-     kasan-test-avoid-corrupting-memory-in-copy_user_test.patch
+     kasan-test-avoid-corrupting-memory-in-kasan_rcu_uaf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@gmail.com>
-Subject: kasan: test: avoid corrupting memory in copy_user_test
+Subject: kasan: test: avoid corrupting memory in kasan_rcu_uaf
 
-copy_user_test() does writes past the allocated object.  As the result, it
-corrupts kernel memory, which might lead to crashes with the HW_TAGS mode,
-as it neither uses quarantine nor redzones.
+kasan_rcu_uaf() writes to freed memory via kasan_rcu_reclaim(), which is
+only safe with the GENERIC mode (as it uses quarantine).  For other modes,
+this test corrupts kernel memory, which might result in a crash.
 
-(Technically, this test can't yet be enabled with the HW_TAGS mode, but
-this will be implemented in the future.)
+Turn the write into a read.
 
-Adjust the test to only write memory within the aligned kmalloc object.
-
-Link: https://lkml.kernel.org/r/19bf3a5112ee65b7db88dc731643b657b816c5e8.1628779805.git.andreyknvl@gmail.com
+Link: https://lkml.kernel.org/r/b6f2c3bf712d2457c783fa59498225b66a634f62.1628779805.git.andreyknvl@gmail.com
 Signed-off-by: Andrey Konovalov <andreyknvl@gmail.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -72,59 +69,20 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan_module.c |   18 ++++++++----------
- 1 file changed, 8 insertions(+), 10 deletions(-)
+ lib/test_kasan_module.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/test_kasan_module.c~kasan-test-avoid-corrupting-memory-in-copy_user_test
+--- a/lib/test_kasan_module.c~kasan-test-avoid-corrupting-memory-in-kasan_rcu_uaf
 +++ a/lib/test_kasan_module.c
-@@ -15,13 +15,11 @@
+@@ -71,7 +71,7 @@ static noinline void __init kasan_rcu_re
+ 						struct kasan_rcu_info, rcu);
  
- #include "../mm/kasan/kasan.h"
+ 	kfree(fp);
+-	fp->i = 1;
++	((volatile struct kasan_rcu_info *)fp)->i;
+ }
  
--#define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_GRANULE_SIZE)
--
- static noinline void __init copy_user_test(void)
- {
- 	char *kmem;
- 	char __user *usermem;
--	size_t size = 10;
-+	size_t size = 128 - KASAN_GRANULE_SIZE;
- 	int __maybe_unused unused;
- 
- 	kmem = kmalloc(size, GFP_KERNEL);
-@@ -38,25 +36,25 @@ static noinline void __init copy_user_te
- 	}
- 
- 	pr_info("out-of-bounds in copy_from_user()\n");
--	unused = copy_from_user(kmem, usermem, size + 1 + OOB_TAG_OFF);
-+	unused = copy_from_user(kmem, usermem, size + 1);
- 
- 	pr_info("out-of-bounds in copy_to_user()\n");
--	unused = copy_to_user(usermem, kmem, size + 1 + OOB_TAG_OFF);
-+	unused = copy_to_user(usermem, kmem, size + 1);
- 
- 	pr_info("out-of-bounds in __copy_from_user()\n");
--	unused = __copy_from_user(kmem, usermem, size + 1 + OOB_TAG_OFF);
-+	unused = __copy_from_user(kmem, usermem, size + 1);
- 
- 	pr_info("out-of-bounds in __copy_to_user()\n");
--	unused = __copy_to_user(usermem, kmem, size + 1 + OOB_TAG_OFF);
-+	unused = __copy_to_user(usermem, kmem, size + 1);
- 
- 	pr_info("out-of-bounds in __copy_from_user_inatomic()\n");
--	unused = __copy_from_user_inatomic(kmem, usermem, size + 1 + OOB_TAG_OFF);
-+	unused = __copy_from_user_inatomic(kmem, usermem, size + 1);
- 
- 	pr_info("out-of-bounds in __copy_to_user_inatomic()\n");
--	unused = __copy_to_user_inatomic(usermem, kmem, size + 1 + OOB_TAG_OFF);
-+	unused = __copy_to_user_inatomic(usermem, kmem, size + 1);
- 
- 	pr_info("out-of-bounds in strncpy_from_user()\n");
--	unused = strncpy_from_user(kmem, usermem, size + 1 + OOB_TAG_OFF);
-+	unused = strncpy_from_user(kmem, usermem, size + 1);
- 
- 	vm_munmap((unsigned long)usermem, PAGE_SIZE);
- 	kfree(kmem);
+ static noinline void __init kasan_rcu_uaf(void)
 _
 
 Patches currently in -mm which might be from andreyknvl@gmail.com are
