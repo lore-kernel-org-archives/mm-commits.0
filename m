@@ -7,36 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46FD2C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F1E5C43217
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 350596113A
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 60271610FD
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350498AbhICVBW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:01:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59754 "EHLO mail.kernel.org"
+        id S1350386AbhICVBY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:01:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59954 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350205AbhICVBO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:01:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EC126112E;
-        Fri,  3 Sep 2021 21:00:13 +0000 (UTC)
+        id S1350205AbhICVBX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:01:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AB16661107;
+        Fri,  3 Sep 2021 21:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702813;
-        bh=IpbKJgiiKKuGmXWDNVecGtO2gk4RCN1R98mcz6Jygks=;
+        s=korg; t=1630702823;
+        bh=h0tVdmCKJ6M3TE9k5JtlxljO1QR4qk5nOTvxptQhuWI=;
         h=Date:From:To:Subject:From;
-        b=knnhT/AR8OrSCMCuy9VAq8zPzKHUUsBq+lf4jHcl6auyaAd2y+i/5mpUJkHsX9G3i
-         jebTL1fRfZmxLGlyIGsBcSQpgOmsPvm9EEiBPAtUQ16hm6HFGoa31zWybtpmU3Jv2W
-         Z10HI4WR6yAfQMcxtPspNL3BdrPC4D4a6LkuDB3E=
-Date:   Fri, 03 Sep 2021 14:00:13 -0700
+        b=ENjL5/WMLPJq5eZQOFF97zoP53X+RkoTckFHWqNaRtMGMNqtr0M7bNigzTNB7NxB0
+         UptNuSBoOi9yNWvmtQKwPyXEai2vq6nBCqopWkjeE0hBJvURUuzL3iay9TtiEq+cFF
+         J690D6fRGy+9ZGieez7pCC88/dNEMQLmbI0W2Li0=
+Date:   Fri, 03 Sep 2021 14:00:22 -0700
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, axboe@kernel.dk, axelrasmussen@google.com,
-        mm-commits@vger.kernel.org, namit@vmware.com, peterx@redhat.com,
-        rppt@linux.vnet.ibm.com, viro@zeniv.linux.org.uk
+To:     dan.j.williams@intel.com, dave.hansen@linux.intel.com,
+        david@redhat.com, gthelen@google.com, kbusch@kernel.org,
+        mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
+        rientjes@google.com, shy828301@gmail.com, weixugc@google.com,
+        yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
 Subject:  [merged]
- userfaultfd-prevent-concurrent-api-initialization.patch removed from -mm
- tree
-Message-ID: <20210903210013.cCh012kFc%akpm@linux-foundation.org>
+ mm-migrate-update-node-demotion-order-on-hotplug-events.patch removed from
+ -mm tree
+Message-ID: <20210903210022.sxAdv4xgy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,228 +47,170 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: prevent concurrent API initialization
+     Subject: mm/migrate: update node demotion order on hotplug events
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-prevent-concurrent-api-initialization.patch
+     mm-migrate-update-node-demotion-order-on-hotplug-events.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: userfaultfd: prevent concurrent API initialization
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm/migrate: update node demotion order on hotplug events
 
-userfaultfd assumes that the enabled features are set once and never
-changed after UFFDIO_API ioctl succeeded.
+Reclaim-based migration is attempting to optimize data placement in memory
+based on the system topology.  If the system changes, so must the
+migration ordering.
 
-However, currently, UFFDIO_API can be called concurrently from two
-different threads, succeed on both threads and leave userfaultfd's
-features in non-deterministic state.  Theoretically, other uffd operations
-(ioctl's and page-faults) can be dispatched while adversely affected by
-such changes of features.
+The implementation is conceptually simple and entirely unoptimized.  On
+any memory or CPU hotplug events, assume that a node was added or removed
+and recalculate all migration targets.  This ensures that the
+node_demotion[] array is always ready to be used in case the new reclaim
+mode is enabled.
 
-Moreover, the writes to ctx->state and ctx->features are not ordered,
-which can - theoretically, again - let userfaultfd_ioctl() think that
-userfaultfd API completed, while the features are still not initialized.
+This recalculation is far from optimal, most glaringly that it does not
+even attempt to figure out the hotplug event would have some *actual*
+effect on the demotion order.  But, given the expected paucity of hotplug
+events, this should be fine.
 
-To avoid races, it is arguably best to get rid of ctx->state.  Since there
-are only 2 states, record the API initialization in ctx->features as the
-uppermost bit and remove ctx->state.
-
-Link: https://lkml.kernel.org/r/20210808020724.1022515-3-namit@vmware.com
-Fixes: 9cd75c3cd4c3d ("userfaultfd: non-cooperative: add ability to report non-PF events from uffd descriptor")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20210721063926.3024591-2-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20210715055145.195411-3-ying.huang@intel.com
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Keith Busch <kbusch@kernel.org>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   91 +++++++++++++++++++++------------------------
- 1 file changed, 44 insertions(+), 47 deletions(-)
+ mm/migrate.c |   90 ++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 89 insertions(+), 1 deletion(-)
 
---- a/fs/userfaultfd.c~userfaultfd-prevent-concurrent-api-initialization
-+++ a/fs/userfaultfd.c
-@@ -33,11 +33,6 @@ int sysctl_unprivileged_userfaultfd __re
+--- a/mm/migrate.c~mm-migrate-update-node-demotion-order-on-hotplug-events
++++ a/mm/migrate.c
+@@ -49,6 +49,7 @@
+ #include <linux/sched/mm.h>
+ #include <linux/ptrace.h>
+ #include <linux/oom.h>
++#include <linux/memory.h>
  
- static struct kmem_cache *userfaultfd_ctx_cachep __read_mostly;
+ #include <asm/tlbflush.h>
  
--enum userfaultfd_state {
--	UFFD_STATE_WAIT_API,
--	UFFD_STATE_RUNNING,
--};
--
+@@ -3057,6 +3058,7 @@ void migrate_vma_finalize(struct migrate
+ EXPORT_SYMBOL(migrate_vma_finalize);
+ #endif /* CONFIG_DEVICE_PRIVATE */
+ 
++#if defined(CONFIG_MEMORY_HOTPLUG)
+ /* Disable reclaim-based migration. */
+ static void __disable_all_migrate_targets(void)
+ {
+@@ -3191,10 +3193,96 @@ again:
  /*
-  * Start with fault_pending_wqh and fault_wqh so they're more likely
-  * to be in the same cacheline.
-@@ -69,8 +64,6 @@ struct userfaultfd_ctx {
- 	unsigned int flags;
- 	/* features requested from the userspace */
- 	unsigned int features;
--	/* state machine */
--	enum userfaultfd_state state;
- 	/* released */
- 	bool released;
- 	/* memory mappings are changing because of non-cooperative event */
-@@ -104,6 +97,14 @@ struct userfaultfd_wake_range {
- 	unsigned long len;
- };
- 
-+/* internal indication that UFFD_API ioctl was successfully executed */
-+#define UFFD_FEATURE_INITIALIZED		(1u << 31)
+  * For callers that do not hold get_online_mems() already.
+  */
+-__maybe_unused // <- temporay to prevent warnings during bisects
+ static void set_migration_target_nodes(void)
+ {
+ 	get_online_mems();
+ 	__set_migration_target_nodes();
+ 	put_online_mems();
+ }
 +
-+static bool userfaultfd_is_initialized(struct userfaultfd_ctx *ctx)
++/*
++ * React to hotplug events that might affect the migration targets
++ * like events that online or offline NUMA nodes.
++ *
++ * The ordering is also currently dependent on which nodes have
++ * CPUs.  That means we need CPU on/offline notification too.
++ */
++static int migration_online_cpu(unsigned int cpu)
 +{
-+	return ctx->features & UFFD_FEATURE_INITIALIZED;
++	set_migration_target_nodes();
++	return 0;
 +}
 +
- static int userfaultfd_wake_function(wait_queue_entry_t *wq, unsigned mode,
- 				     int wake_flags, void *key)
- {
-@@ -667,7 +668,6 @@ int dup_userfaultfd(struct vm_area_struc
- 
- 		refcount_set(&ctx->refcount, 1);
- 		ctx->flags = octx->flags;
--		ctx->state = UFFD_STATE_RUNNING;
- 		ctx->features = octx->features;
- 		ctx->released = false;
- 		atomic_set(&ctx->mmap_changing, 0);
-@@ -944,38 +944,33 @@ static __poll_t userfaultfd_poll(struct
- 
- 	poll_wait(file, &ctx->fd_wqh, wait);
- 
--	switch (ctx->state) {
--	case UFFD_STATE_WAIT_API:
-+	if (!userfaultfd_is_initialized(ctx))
- 		return EPOLLERR;
--	case UFFD_STATE_RUNNING:
--		/*
--		 * poll() never guarantees that read won't block.
--		 * userfaults can be waken before they're read().
--		 */
--		if (unlikely(!(file->f_flags & O_NONBLOCK)))
--			return EPOLLERR;
--		/*
--		 * lockless access to see if there are pending faults
--		 * __pollwait last action is the add_wait_queue but
--		 * the spin_unlock would allow the waitqueue_active to
--		 * pass above the actual list_add inside
--		 * add_wait_queue critical section. So use a full
--		 * memory barrier to serialize the list_add write of
--		 * add_wait_queue() with the waitqueue_active read
--		 * below.
--		 */
--		ret = 0;
--		smp_mb();
--		if (waitqueue_active(&ctx->fault_pending_wqh))
--			ret = EPOLLIN;
--		else if (waitqueue_active(&ctx->event_wqh))
--			ret = EPOLLIN;
- 
--		return ret;
--	default:
--		WARN_ON_ONCE(1);
++static int migration_offline_cpu(unsigned int cpu)
++{
++	set_migration_target_nodes();
++	return 0;
++}
++
++/*
++ * This leaves migrate-on-reclaim transiently disabled between
++ * the MEM_GOING_OFFLINE and MEM_OFFLINE events.  This runs
++ * whether reclaim-based migration is enabled or not, which
++ * ensures that the user can turn reclaim-based migration at
++ * any time without needing to recalculate migration targets.
++ *
++ * These callbacks already hold get_online_mems().  That is why
++ * __set_migration_target_nodes() can be used as opposed to
++ * set_migration_target_nodes().
++ */
++static int __meminit migrate_on_reclaim_callback(struct notifier_block *self,
++						 unsigned long action, void *arg)
++{
++	switch (action) {
++	case MEM_GOING_OFFLINE:
++		/*
++		 * Make sure there are not transient states where
++		 * an offline node is a migration target.  This
++		 * will leave migration disabled until the offline
++		 * completes and the MEM_OFFLINE case below runs.
++		 */
++		disable_all_migrate_targets();
++		break;
++	case MEM_OFFLINE:
++	case MEM_ONLINE:
++		/*
++		 * Recalculate the target nodes once the node
++		 * reaches its final state (online or offline).
++		 */
++		__set_migration_target_nodes();
++		break;
++	case MEM_CANCEL_OFFLINE:
++		/*
++		 * MEM_GOING_OFFLINE disabled all the migration
++		 * targets.  Reenable them.
++		 */
++		__set_migration_target_nodes();
++		break;
++	case MEM_GOING_ONLINE:
++	case MEM_CANCEL_ONLINE:
++		break;
++	}
++
++	return notifier_from_errno(0);
++}
++
++static int __init migrate_on_reclaim_init(void)
++{
++	int ret;
++
++	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "migrate on reclaim",
++				migration_online_cpu,
++				migration_offline_cpu);
 +	/*
-+	 * poll() never guarantees that read won't block.
-+	 * userfaults can be waken before they're read().
++	 * In the unlikely case that this fails, the automatic
++	 * migration targets may become suboptimal for nodes
++	 * where N_CPU changes.  With such a small impact in a
++	 * rare case, do not bother trying to do anything special.
 +	 */
-+	if (unlikely(!(file->f_flags & O_NONBLOCK)))
- 		return EPOLLERR;
--	}
-+	/*
-+	 * lockless access to see if there are pending faults
-+	 * __pollwait last action is the add_wait_queue but
-+	 * the spin_unlock would allow the waitqueue_active to
-+	 * pass above the actual list_add inside
-+	 * add_wait_queue critical section. So use a full
-+	 * memory barrier to serialize the list_add write of
-+	 * add_wait_queue() with the waitqueue_active read
-+	 * below.
-+	 */
-+	ret = 0;
-+	smp_mb();
-+	if (waitqueue_active(&ctx->fault_pending_wqh))
-+		ret = EPOLLIN;
-+	else if (waitqueue_active(&ctx->event_wqh))
-+		ret = EPOLLIN;
++	WARN_ON(ret < 0);
 +
-+	return ret;
- }
- 
- static const struct file_operations userfaultfd_fops;
-@@ -1170,7 +1165,7 @@ static ssize_t userfaultfd_read(struct f
- 	int no_wait = file->f_flags & O_NONBLOCK;
- 	struct inode *inode = file_inode(file);
- 
--	if (ctx->state == UFFD_STATE_WAIT_API)
-+	if (!userfaultfd_is_initialized(ctx))
- 		return -EINVAL;
- 
- 	for (;;) {
-@@ -1909,9 +1904,10 @@ out:
- static inline unsigned int uffd_ctx_features(__u64 user_features)
- {
- 	/*
--	 * For the current set of features the bits just coincide
-+	 * For the current set of features the bits just coincide. Set
-+	 * UFFD_FEATURE_INITIALIZED to mark the features as enabled.
- 	 */
--	return (unsigned int)user_features;
-+	return (unsigned int)user_features | UFFD_FEATURE_INITIALIZED;
- }
- 
- /*
-@@ -1924,12 +1920,10 @@ static int userfaultfd_api(struct userfa
- {
- 	struct uffdio_api uffdio_api;
- 	void __user *buf = (void __user *)arg;
-+	unsigned int ctx_features;
- 	int ret;
- 	__u64 features;
- 
--	ret = -EINVAL;
--	if (ctx->state != UFFD_STATE_WAIT_API)
--		goto out;
- 	ret = -EFAULT;
- 	if (copy_from_user(&uffdio_api, buf, sizeof(uffdio_api)))
- 		goto out;
-@@ -1953,9 +1947,13 @@ static int userfaultfd_api(struct userfa
- 	ret = -EFAULT;
- 	if (copy_to_user(buf, &uffdio_api, sizeof(uffdio_api)))
- 		goto out;
--	ctx->state = UFFD_STATE_RUNNING;
-+
- 	/* only enable the requested features for this uffd context */
--	ctx->features = uffd_ctx_features(features);
-+	ctx_features = uffd_ctx_features(features);
-+	ret = -EINVAL;
-+	if (cmpxchg(&ctx->features, 0, ctx_features) != 0)
-+		goto err_out;
-+
- 	ret = 0;
- out:
- 	return ret;
-@@ -1972,7 +1970,7 @@ static long userfaultfd_ioctl(struct fil
- 	int ret = -EINVAL;
- 	struct userfaultfd_ctx *ctx = file->private_data;
- 
--	if (cmd != UFFDIO_API && ctx->state == UFFD_STATE_WAIT_API)
-+	if (cmd != UFFDIO_API && !userfaultfd_is_initialized(ctx))
- 		return -EINVAL;
- 
- 	switch(cmd) {
-@@ -2086,7 +2084,6 @@ SYSCALL_DEFINE1(userfaultfd, int, flags)
- 	refcount_set(&ctx->refcount, 1);
- 	ctx->flags = flags;
- 	ctx->features = 0;
--	ctx->state = UFFD_STATE_WAIT_API;
- 	ctx->released = false;
- 	atomic_set(&ctx->mmap_changing, 0);
- 	ctx->mm = current->mm;
++	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
++	return 0;
++}
++late_initcall(migrate_on_reclaim_init);
++#endif /* CONFIG_MEMORY_HOTPLUG */
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
 
