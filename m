@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B550C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4088DC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52AD8610E8
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2BFEC610E5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350079AbhICU5f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:57:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56400 "EHLO mail.kernel.org"
+        id S1350144AbhICU5g (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:57:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56328 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350144AbhICU5Z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:57:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9829D60E9B;
-        Fri,  3 Sep 2021 20:56:24 +0000 (UTC)
+        id S1350130AbhICU5V (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:57:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8D936601FD;
+        Fri,  3 Sep 2021 20:56:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702584;
-        bh=oqrpYBLvQp6ilJ7VBOn1XjAYh/dT4odPceD8Bc/QbYo=;
+        s=korg; t=1630702580;
+        bh=o9JNmuCBfD8v7eRZ4lcQLr3NwBX4oZAEFD99NfuBbT8=;
         h=Date:From:To:Subject:From;
-        b=LGjk0qRRB9icYIEGwj7yY4fAxwWafCqdyxQS6IVJgP/xmUlSxvt+rwuA7+3uXDRsZ
-         v2tf3Uoh76BQI2ezL+oN6CkMXtC65sbSpkcMIy4Pm2d/lieaTkYG6eis7nQLJK8Cvt
-         xjJFQzVETzOIIJu1+ppRXcmrTjD8ICrZjcHrEV0s=
-Date:   Fri, 03 Sep 2021 13:56:24 -0700
+        b=CzW/qBxa5gOb3vzOwy6xJjzGhD/gFTqc+JdAMhDoP08/P47SOtbs3wq7Xrdm+s8CI
+         TO5yTjsQCWaAy0hOidJovEL3dS3e1O6mbINjTvJQvWfYrUWrVHZVOfBq09vPRXWwr0
+         YrFJqZcv94t01viei4ueL+yV5vXtWHq5ASAvggMo=
+Date:   Fri, 03 Sep 2021 13:56:20 -0700
 From:   akpm@linux-foundation.org
-To:     imbrenda@linux.ibm.com, jack@suse.cz, jhubbard@nvidia.com,
-        kirill.shutemov@linux.intel.com, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org
+To:     david@redhat.com, imbrenda@linux.ibm.com, jack@suse.cz,
+        jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
+        linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge.patch removed
- from -mm tree
-Message-ID: <20210903205624.bKtOX9-au%akpm@linux-foundation.org>
+ mm-gup-remove-unneed-local-variable-orig_refs.patch removed from -mm tree
+Message-ID: <20210903205620.8v8rCG6ki%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,73 +44,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: gup: fix potential pgmap refcnt leak in __gup_device_huge()
+     Subject: mm: gup: remove unneed local variable orig_refs
 has been removed from the -mm tree.  Its filename was
-     mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge.patch
+     mm-gup-remove-unneed-local-variable-orig_refs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: gup: fix potential pgmap refcnt leak in __gup_device_huge()
+Subject: mm: gup: remove unneed local variable orig_refs
 
-When failed to try_grab_page, put_dev_pagemap() is missed.  So pgmap
-refcnt will leak in this case.  Also we remove the check for pgmap against
-NULL as it's also checked inside the put_dev_pagemap().
+Remove unneed local variable orig_refs since refs is unchanged now.
 
-[akpm@linux-foundation.org: simplify, cleanup]
-[akpm@linux-foundation.org: fix return value]
-Link: https://lkml.kernel.org/r/20210807093620.21347-5-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210807093620.21347-3-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Fixes: 3faa52c03f44 ("mm/gup: track FOLL_PIN pages")
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/gup.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/gup.c~mm-gup-fix-potential-pgmap-refcnt-leak-in-__gup_device_huge
+--- a/mm/gup.c~mm-gup-remove-unneed-local-variable-orig_refs
 +++ a/mm/gup.c
-@@ -2240,6 +2240,7 @@ static int __gup_device_huge(unsigned lo
- {
- 	int nr_start = *nr;
- 	struct dev_pagemap *pgmap = NULL;
-+	int ret = 1;
+@@ -117,8 +117,6 @@ __maybe_unused struct page *try_grab_com
+ 	if (flags & FOLL_GET)
+ 		return try_get_compound_head(page, refs);
+ 	else if (flags & FOLL_PIN) {
+-		int orig_refs = refs;
+-
+ 		/*
+ 		 * Can't do FOLL_LONGTERM + FOLL_PIN gup fast path if not in a
+ 		 * right zone, so fail and let the caller fall back to the slow
+@@ -150,7 +148,7 @@ __maybe_unused struct page *try_grab_com
+ 			page_ref_add(page, refs * (GUP_PIN_COUNTING_BIAS - 1));
  
- 	do {
- 		struct page *page = pfn_to_page(pfn);
-@@ -2247,21 +2248,22 @@ static int __gup_device_huge(unsigned lo
- 		pgmap = get_dev_pagemap(pfn, pgmap);
- 		if (unlikely(!pgmap)) {
- 			undo_dev_pagemap(nr, nr_start, flags, pages);
--			return 0;
-+			ret = 0;
-+			break;
- 		}
- 		SetPageReferenced(page);
- 		pages[*nr] = page;
- 		if (unlikely(!try_grab_page(page, flags))) {
- 			undo_dev_pagemap(nr, nr_start, flags, pages);
--			return 0;
-+			ret = 0;
-+			break;
- 		}
- 		(*nr)++;
- 		pfn++;
- 	} while (addr += PAGE_SIZE, addr != end);
+ 		mod_node_page_state(page_pgdat(page), NR_FOLL_PIN_ACQUIRED,
+-				    orig_refs);
++				    refs);
  
--	if (pgmap)
--		put_dev_pagemap(pgmap);
--	return 1;
-+	put_dev_pagemap(pgmap);
-+	return ret;
- }
- 
- static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
+ 		return page;
+ 	}
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
