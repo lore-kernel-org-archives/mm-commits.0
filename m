@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0FC3C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B8F4C433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C6B0260184
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4379760E9B
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350172AbhICU5e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1350048AbhICU5e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Sep 2021 16:57:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56302 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56368 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350048AbhICU5T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:57:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 956DB60C3E;
-        Fri,  3 Sep 2021 20:56:17 +0000 (UTC)
+        id S1350079AbhICU5X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:57:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 712D260184;
+        Fri,  3 Sep 2021 20:56:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702577;
-        bh=8J0jF1xwcBZCK4RbLWnkygtYAcx18ypUcEzQ0hukCbU=;
+        s=korg; t=1630702582;
+        bh=tn7AMT/Sm26dmDFVDMeNbiFV5n5yl2bGpRDxuLFWCyA=;
         h=Date:From:To:Subject:From;
-        b=rO6QtYg0x2HUJ8LTZsHbHgut9LyCszNWRde1Q5kQdh2CgKL4V3EKv2W2U3JdiaIRZ
-         Wd+i3kcwX8jlo1sLv4gKtK6MhTe/SSN3X4N0M5uewKPTplR9M824lPceGwVv3H54ba
-         DetTPMMbtr+yxb5Zf3LkCZSPV9jT35v+jGbDASng=
-Date:   Fri, 03 Sep 2021 13:56:17 -0700
+        b=MaZb9osZ0FvS3n2tqCyLCJArxYppdTDy4LGk/8x2ydAbANaXbg7RSXYSkDXJi/41d
+         SZSGUz9GtK7IHQmYmafRTRToVkDpiGND4XFeNbrJHU4inZbAaU5OBRci1Gk0sQgauB
+         eSX4nRK4k+sjZfuAP5CmZ7yLi2Fz637ACavIb1uo=
+Date:   Fri, 03 Sep 2021 13:56:22 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, imbrenda@linux.ibm.com, jack@suse.cz,
         jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
         linmiaohe@huawei.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-gup-remove-set-but-unused-local-variable-major.patch removed from -mm
+ mm-gup-remove-useless-bug_on-in-__get_user_pages.patch removed from -mm
  tree
-Message-ID: <20210903205617.ls50Inskv%akpm@linux-foundation.org>
+Message-ID: <20210903205622.lpBx2PUSh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,30 +45,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: gup: remove set but unused local variable major
+     Subject: mm: gup: remove useless BUG_ON in __get_user_pages()
 has been removed from the -mm tree.  Its filename was
-     mm-gup-remove-set-but-unused-local-variable-major.patch
+     mm-gup-remove-useless-bug_on-in-__get_user_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm: gup: remove set but unused local variable major
+Subject: mm: gup: remove useless BUG_ON in __get_user_pages()
 
-Patch series "Cleanups and fixup for gup".
+Indeed, this BUG_ON couldn't catch anything useful.  We are sure ret == 0
+here because we would already bail out if ret != 0 and ret is untouched
+till here.
 
-This series contains cleanups to remove unneeded variable, useless BUG_ON
-and use helper to improve readability.  Also we fix a potential pgmap
-refcnt leak.  More details can be found in the respective changelogs.
-
-
-This patch (of 5):
-
-Since commit a2beb5f1efed ("mm: clean up the last pieces of page fault
-accountings"), the local variable major is unused.  Remove it.
-
-Link: https://lkml.kernel.org/r/20210807093620.21347-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210807093620.21347-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210807093620.21347-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
@@ -78,28 +69,19 @@ Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/gup.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/gup.c~mm-gup-remove-set-but-unused-local-variable-major
+--- a/mm/gup.c~mm-gup-remove-useless-bug_on-in-__get_user_pages
 +++ a/mm/gup.c
-@@ -1276,7 +1276,7 @@ int fixup_user_fault(struct mm_struct *m
- 		     bool *unlocked)
- {
- 	struct vm_area_struct *vma;
--	vm_fault_t ret, major = 0;
-+	vm_fault_t ret;
- 
- 	address = untagged_addr(address);
- 
-@@ -1296,7 +1296,6 @@ retry:
- 		return -EINTR;
- 
- 	ret = handle_mm_fault(vma, address, fault_flags, NULL);
--	major |= ret & VM_FAULT_MAJOR;
- 	if (ret & VM_FAULT_ERROR) {
- 		int err = vm_fault_to_errno(ret, 0);
- 
+@@ -1149,7 +1149,6 @@ static long __get_user_pages(struct mm_s
+ 					 * We must stop here.
+ 					 */
+ 					BUG_ON(gup_flags & FOLL_NOWAIT);
+-					BUG_ON(ret != 0);
+ 					goto out;
+ 				}
+ 				continue;
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
