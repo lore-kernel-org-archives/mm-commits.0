@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19373C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5F53C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F17116113A
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A13866112F
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238770AbhICU7G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:59:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58054 "EHLO mail.kernel.org"
+        id S235866AbhICU7I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:59:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58084 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235866AbhICU7E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:59:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6E46C61107;
-        Fri,  3 Sep 2021 20:58:04 +0000 (UTC)
+        id S1349933AbhICU7H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:59:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7105A6112E;
+        Fri,  3 Sep 2021 20:58:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702684;
-        bh=dTN4HK9KSyJAUDs5VGJEtxDlBRwaX0Lgj3ZmOSRXSiI=;
+        s=korg; t=1630702686;
+        bh=obuRskh7hlDc+Fl3yvXI++PTn8iz594hlzbQ6wxvOF0=;
         h=Date:From:To:Subject:From;
-        b=vvE/Q4/tLYpTwZMwcFIpzYAJe9phoTwJVWGRcixHnjfZVQnPwZwIkDqrtMvDGIuo7
-         UqSzFd+vQwBMaYlHuUCtbLXr/oeS4qJ3N+67DrucKUZYiIvoFhG7XYtmdTZCaTUGy1
-         PJQd9jbm49tXPsBUePh9UCLhlLuorgEIiARiK4rQ=
-Date:   Fri, 03 Sep 2021 13:58:04 -0700
+        b=shGs29VQww8DIDFch9TMhb+ggoukIUwr3ZGVcddRELYxg5GbWdArwHcBwDDsgt8Ti
+         bvmKkkNWSnd2qBQjauT40SL4stPvc4ptl2+hzJQLm+dKLG/VzaiwUzV+uc5uOIzkDX
+         uAVpk6bFwi2g5egJBjs1qe9DRSlV/l2O7AM7vxyo=
+Date:   Fri, 03 Sep 2021 13:58:06 -0700
 From:   akpm@linux-foundation.org
-To:     baolin.wang@linux.alibaba.com, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, vdavydov.dev@gmail.com
-Subject:  [merged]
- mm-memcontrol-set-the-correct-memcg-swappiness-restriction.patch removed
+To:     alexs@kernel.org, guro@fb.com, linmiaohe@huawei.com,
+        mhocko@suse.com, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, shakeelb@google.com,
+        songmuchun@bytedance.com, vdavydov.dev@gmail.com,
+        willy@infradead.org
+Subject:  [merged] mm-memcg-remove-unused-functions.patch removed
  from -mm tree
-Message-ID: <20210903205804.n6efAnwaq%akpm@linux-foundation.org>
+Message-ID: <20210903205806.5h1z7n6xR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,50 +46,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: set the correct memcg swappiness restriction
+     Subject: mm, memcg: remove unused functions
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-set-the-correct-memcg-swappiness-restriction.patch
+     mm-memcg-remove-unused-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: memcontrol: set the correct memcg swappiness restriction
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm, memcg: remove unused functions
 
-Since commit c843966c556d ("mm: allow swappiness that prefers reclaiming
-anon over the file workingset") has expended the swappiness value to make
-swap to be preferred in some systems.  We should also change the memcg
-swappiness restriction to allow memcg swap-preferred.
+Since commit 2d146aa3aa84 ("mm: memcontrol: switch to rstat"), last user
+of memcg_stat_item_in_bytes() is gone.  And since commit fa40d1ee9f15
+("mm: vmscan: memcontrol: remove mem_cgroup_select_victim_node()"), only
+the declaration of mem_cgroup_select_victim_node() is remained here. 
+Remove them.
 
-Link: https://lkml.kernel.org/r/d77469b90c45c49953ccbc51e54a1d465bc18f70.1627626255.git.baolin.wang@linux.alibaba.com
-Fixes: c843966c556d ("mm: allow swappiness that prefers reclaiming anon over the file workingset")
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20210807082835.61281-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Roman Gushchin <guro@fb.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |   12 ------------
+ 1 file changed, 12 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcontrol-set-the-correct-memcg-swappiness-restriction
-+++ a/mm/memcontrol.c
-@@ -4062,7 +4062,7 @@ static int mem_cgroup_swappiness_write(s
+--- a/include/linux/memcontrol.h~mm-memcg-remove-unused-functions
++++ a/include/linux/memcontrol.h
+@@ -593,13 +593,6 @@ static inline struct obj_cgroup **page_o
+ }
+ #endif
+ 
+-static __always_inline bool memcg_stat_item_in_bytes(int idx)
+-{
+-	if (idx == MEMCG_PERCPU_B)
+-		return true;
+-	return vmstat_item_in_bytes(idx);
+-}
+-
+ static inline bool mem_cgroup_is_root(struct mem_cgroup *memcg)
  {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 	return (memcg == root_mem_cgroup);
+@@ -904,11 +897,6 @@ static inline bool mem_cgroup_online(str
+ 	return !!(memcg->css.flags & CSS_ONLINE);
+ }
  
--	if (val > 100)
-+	if (val > 200)
- 		return -EINVAL;
+-/*
+- * For memory reclaim.
+- */
+-int mem_cgroup_select_victim_node(struct mem_cgroup *memcg);
+-
+ void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
+ 		int zid, int nr_pages);
  
- 	if (!mem_cgroup_is_root(memcg))
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-mm-migrate-simplify-the-file-backed-pages-validation-when-migrating-its-mapping.patch
-mm-migrate-introduce-a-local-variable-to-get-the-number-of-pages.patch
-mm-migrate-fix-the-incorrect-function-name-in-comments.patch
-mm-migrate-change-to-use-bool-type-for-page_was_mapped.patch
+mm-page_allocc-avoid-accessing-uninitialized-pcp-page-migratetype.patch
+mm-memory_hotplug-use-helper-zone_is_zone_device-to-simplify-the-code.patch
+mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
+mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
