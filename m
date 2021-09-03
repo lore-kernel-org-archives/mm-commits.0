@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7198AC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 393FDC43217
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5731E60200
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1927861131
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232927AbhICVBs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:01:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60242 "EHLO mail.kernel.org"
+        id S235821AbhICVB6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:01:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60370 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350362AbhICVBo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:01:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A8D6610FB;
-        Fri,  3 Sep 2021 21:00:43 +0000 (UTC)
+        id S1350493AbhICVBx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:01:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7577E6112F;
+        Fri,  3 Sep 2021 21:00:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702843;
-        bh=Ra6i7WA4C8KKVUSFDShlYE3d/zj1y06S1dId5gvBhaU=;
+        s=korg; t=1630702853;
+        bh=utcVMJv1bu21jQp2ny/TI1EsRJhM3LaA+ZtcvrAkvno=;
         h=Date:From:To:Subject:From;
-        b=arM1h8Qa2ri5JKzd98pK7rmxWMYFacZIW7UxqYYQUVhE+bTM9I86ov4eK+0AoVPFa
-         9II+RCj5XqvRAy8uFRmse1xEcT6aNDMO2Zbm5aiw4lIoK5Oy6lZbAWT2xj90geRXub
-         STARv82NNbIDPI6mvm3fIqmoEkUd7b3KcFXfKD4U=
-Date:   Fri, 03 Sep 2021 14:00:43 -0700
+        b=1iAwW21fyvR0rJVbDhBXJx4z5jfwu7xHhfUQROXEZUjZVVx0Sde5Ml15M/S56y3pn
+         lS241XAibVtx61H3ZR393fMWDRv/X2jkvYhFj3z6t1ow0wFPVC93B4kaMjx6U/JEDf
+         VsZaUT0w+DuahLuLAgUWFRSOBVjZDozWLW08LRa0=
+Date:   Fri, 03 Sep 2021 14:00:52 -0700
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        david@redhat.com, gthelen@google.com, kbusch@kernel.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
-        rientjes@google.com, shy828301@gmail.com, weixugc@google.com,
-        yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
+To:     alexs@kernel.org, apopple@nvidia.com, axboe@kernel.dk,
+        david@redhat.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com,
+        iamjoonsoo.kim@lge.com, jhubbard@nvidia.com, linmiaohe@huawei.com,
+        mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org,
+        shli@fb.com, vbabka@suse.cz, willy@infradead.org, yuzhao@google.com
 Subject:  [merged]
- mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch removed
- from -mm tree
-Message-ID: <20210903210043.l4V1FSW_X%akpm@linux-foundation.org>
+ mm-vmscan-remove-misleading-setting-to-sc-priority.patch removed from -mm
+ tree
+Message-ID: <20210903210052.Zv2hqMO3H%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,205 +47,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: add sysfs interface to enable reclaim migration
+     Subject: mm/vmscan: remove misleading setting to sc->priority
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-add-sysfs-interface-to-enable-reclaim-migration.patch
+     mm-vmscan-remove-misleading-setting-to-sc-priority.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/migrate: add sysfs interface to enable reclaim migration
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/vmscan: remove misleading setting to sc->priority
 
-Some method is obviously needed to enable reclaim-based migration.
+The priority field of sc is used to control how many pages we should scan
+at once while we always traverse the list to shrink the pages in these
+functions.  So these settings are unneeded and misleading.
 
-Just like traditional autonuma, there will be some workloads that will
-benefit like workloads with more "static" configurations where hot pages
-stay hot and cold pages stay cold.  If pages come and go from the hot and
-cold sets, the benefits of this approach will be more limited.
-
-The benefits are truly workload-based and *not* hardware-based.  We do not
-believe that there is a viable threshold where certain hardware
-configurations should have this mechanism enabled while others do not.
-
-To be conservative, earlier work defaulted to disable reclaim- based
-migration and did not include a mechanism to enable it.  This proposes add
-a new sysfs file
-
-  /sys/kernel/mm/numa/demotion_enabled
-
-as a method to enable it.
-
-We are open to any alternative that allows end users to enable this
-mechanism or disable it if workload harm is detected (just like
-traditional autonuma).
-
-Once this is enabled page demotion may move data to a NUMA node that does
-not fall into the cpuset of the allocating process.  This could be
-construed to violate the guarantees of cpusets.  However, since this is an
-opt-in mechanism, the assumption is that anyone enabling it is content to
-relax the guarantees.
-
-Link: https://lkml.kernel.org/r/20210721063926.3024591-9-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-10-ying.huang@intel.com
-Signed-off-by: Huang Ying <ying.huang@intel.com>
-Originally-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Link: https://lkml.kernel.org/r/20210717065911.61497-3-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Keith Busch <kbusch@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Shaohua Li <shli@fb.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/sysfs-kernel-mm-numa |   24 +++++
- include/linux/mempolicy.h                      |    4 
- mm/mempolicy.c                                 |   61 +++++++++++++++
- mm/vmscan.c                                    |    5 -
- 4 files changed, 92 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- /dev/null
-+++ a/Documentation/ABI/testing/sysfs-kernel-mm-numa
-@@ -0,0 +1,24 @@
-+What:		/sys/kernel/mm/numa/
-+Date:		June 2021
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Interface for NUMA
-+
-+What:		/sys/kernel/mm/numa/demotion_enabled
-+Date:		June 2021
-+Contact:	Linux memory management mailing list <linux-mm@kvack.org>
-+Description:	Enable/disable demoting pages during reclaim
-+
-+		Page migration during reclaim is intended for systems
-+		with tiered memory configurations.  These systems have
-+		multiple types of memory with varied performance
-+		characteristics instead of plain NUMA systems where
-+		the same kind of memory is found at varied distances.
-+		Allowing page migration during reclaim enables these
-+		systems to migrate pages from fast tiers to slow tiers
-+		when the fast tier is under pressure.  This migration
-+		is performed before swap.  It may move data to a NUMA
-+		node that does not fall into the cpuset of the
-+		allocating process which might be construed to violate
-+		the guarantees of cpusets.  This should not be enabled
-+		on systems which need strict cpuset location
-+		guarantees.
---- a/include/linux/mempolicy.h~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
-+++ a/include/linux/mempolicy.h
-@@ -184,6 +184,8 @@ extern bool vma_migratable(struct vm_are
- extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
- extern void mpol_put_task_policy(struct task_struct *);
- 
-+extern bool numa_demotion_enabled;
-+
- #else
- 
- struct mempolicy {};
-@@ -292,5 +294,7 @@ static inline nodemask_t *policy_nodemas
- {
- 	return NULL;
- }
-+
-+#define numa_demotion_enabled	false
- #endif /* CONFIG_NUMA */
- #endif
---- a/mm/mempolicy.c~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
-+++ a/mm/mempolicy.c
-@@ -3021,3 +3021,64 @@ void mpol_to_str(char *buffer, int maxle
- 		p += scnprintf(p, buffer + maxlen - p, ":%*pbl",
- 			       nodemask_pr_args(&nodes));
- }
-+
-+bool numa_demotion_enabled = false;
-+
-+#ifdef CONFIG_SYSFS
-+static ssize_t numa_demotion_enabled_show(struct kobject *kobj,
-+					  struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%s\n",
-+			  numa_demotion_enabled? "true" : "false");
-+}
-+
-+static ssize_t numa_demotion_enabled_store(struct kobject *kobj,
-+					   struct kobj_attribute *attr,
-+					   const char *buf, size_t count)
-+{
-+	if (!strncmp(buf, "true", 4) || !strncmp(buf, "1", 1))
-+		numa_demotion_enabled = true;
-+	else if (!strncmp(buf, "false", 5) || !strncmp(buf, "0", 1))
-+		numa_demotion_enabled = false;
-+	else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute numa_demotion_enabled_attr =
-+	__ATTR(demotion_enabled, 0644, numa_demotion_enabled_show,
-+	       numa_demotion_enabled_store);
-+
-+static struct attribute *numa_attrs[] = {
-+	&numa_demotion_enabled_attr.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group numa_attr_group = {
-+	.attrs = numa_attrs,
-+};
-+
-+static int __init numa_init_sysfs(void)
-+{
-+	int err;
-+	struct kobject *numa_kobj;
-+
-+	numa_kobj = kobject_create_and_add("numa", mm_kobj);
-+	if (!numa_kobj) {
-+		pr_err("failed to create numa kobject\n");
-+		return -ENOMEM;
-+	}
-+	err = sysfs_create_group(numa_kobj, &numa_attr_group);
-+	if (err) {
-+		pr_err("failed to register numa group\n");
-+		goto delete_obj;
-+	}
-+	return 0;
-+
-+delete_obj:
-+	kobject_put(numa_kobj);
-+	return err;
-+}
-+subsys_initcall(numa_init_sysfs);
-+#endif
---- a/mm/vmscan.c~mm-migrate-add-sysfs-interface-to-enable-reclaim-migration
+--- a/mm/vmscan.c~mm-vmscan-remove-misleading-setting-to-sc-priority
 +++ a/mm/vmscan.c
-@@ -524,6 +524,8 @@ static long add_nr_deferred(long nr, str
- 
- static bool can_demote(int nid, struct scan_control *sc)
+@@ -1820,7 +1820,6 @@ unsigned int reclaim_clean_pages_from_li
  {
-+	if (!numa_demotion_enabled)
-+		return false;
- 	if (sc) {
- 		if (sc->no_demotion)
- 			return false;
-@@ -534,8 +536,7 @@ static bool can_demote(int nid, struct s
- 	if (next_demotion_node(nid) == NUMA_NO_NODE)
- 		return false;
- 
--	// FIXME: actually enable this later in the series
--	return false;
-+	return true;
- }
- 
- static inline bool can_reclaim_anon_pages(struct mem_cgroup *memcg,
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+-		.priority = DEF_PRIORITY,
+ 		.may_unmap = 1,
+ 	};
+ 	struct reclaim_stat stat;
+@@ -2445,7 +2444,6 @@ unsigned long reclaim_pages(struct list_
+ 	unsigned int noreclaim_flag;
+ 	struct scan_control sc = {
+ 		.gfp_mask = GFP_KERNEL,
+-		.priority = DEF_PRIORITY,
+ 		.may_writepage = 1,
+ 		.may_unmap = 1,
+ 		.may_swap = 1,
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
+mm-page_allocc-avoid-accessing-uninitialized-pcp-page-migratetype.patch
+mm-memory_hotplug-use-helper-zone_is_zone_device-to-simplify-the-code.patch
+mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
+mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
