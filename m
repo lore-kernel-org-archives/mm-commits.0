@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 730B4C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A23F7C433F5
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:55:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59F17610E6
+	by mail.kernel.org (Postfix) with ESMTP id 8D951610E6
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:55:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350017AbhICU4j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:56:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55636 "EHLO mail.kernel.org"
+        id S234472AbhICU4k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:56:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55690 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1349571AbhICU4d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:56:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A5514610E6;
-        Fri,  3 Sep 2021 20:55:32 +0000 (UTC)
+        id S238770AbhICU4f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:56:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A7008610E8;
+        Fri,  3 Sep 2021 20:55:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702533;
-        bh=04HlSnePsfSH+asBZWXlnOY0MdzCNG5o+eIwvJTdbAk=;
+        s=korg; t=1630702535;
+        bh=zsUvUVRcm+0wBZQ2Ib95PjXQhCjVHnr0cBnKojt8dXY=;
         h=Date:From:To:Subject:From;
-        b=ToVTUjWN4Eeuwc8DCKlMG9ICDGI0Mg8IJCs2Ya0CFRpB0YZzR49uv9GMFBqWQhZG7
-         JBw6dGsjo/Uysd3xWJH+ZMNnv1f3TyyuOuN8SbACQ6FgaSm1nXsP7fZC+6gvSHymie
-         Sh6W175EVjSHdXQKUEJY7+h9QJ79qiIlY6cHFw3M=
-Date:   Fri, 03 Sep 2021 13:55:32 -0700
+        b=t0N75Et6Ia0k8D6L4oveYhRMETKMMHedRJbkYtCHf9VZa3VXFnejwkcRr0LsAdBTw
+         PTbzu6DAaww0NRikNeZssiA+MvVC9qgS2sWBgxHKTDv7+TTr+3N3ysoFXVroF3Qgyq
+         RuavqajTapYnpkg85h2cor17t6UuYwv07OQz309c=
+Date:   Fri, 03 Sep 2021 13:55:34 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com, cai@lca.pw,
         catalin.marinas@arm.com, christophe.leroy@csgroup.eu,
         chuhu@redhat.com, gerald.schaefer@linux.ibm.com, gshan@redhat.com,
         mm-commits@vger.kernel.org, vgupta@synopsys.com, will@kernel.org
 Subject:  [merged]
- =?US-ASCII?Q?mm-debug=5Fvm=5Fpgtable-use-struct-pgtable=5Fdebug=5Fargs-i?=
- =?US-ASCII?Q?n-leaf-and-savewrite-tests.patch?= removed from -mm tree
-Message-ID: <20210903205532.1q7zus3Nr%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-debug=5Fvm=5Fpgtable-use-struct-pgtable=5Fdebug=5Fargs-in?=
+ =?US-ASCII?Q?-protnone-and-devmap-tests.patch?= removed from -mm tree
+Message-ID: <20210903205534.aYX0QcW2R%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -48,20 +48,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in leaf and savewrite tests
+     Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in protnone and devmap tests
 has been removed from the -mm tree.  Its filename was
-     mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-leaf-and-savewrite-tests.patch
+     mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-protnone-and-devmap-tests.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Gavin Shan <gshan@redhat.com>
-Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in leaf and savewrite tests
+Subject: mm/debug_vm_pgtable: use struct pgtable_debug_args in protnone and devmap tests
 
-This uses struct pgtable_debug_args in the leaf and savewrite test
-functions.
+This uses struct pgtable_debug_args in protnone and devmap test functions.
+After that, the unused variable @protnone in debug_vm_pgtable() is
+dropped.
 
-Link: https://lkml.kernel.org/r/20210809092631.1888748-4-gshan@redhat.com
+Link: https://lkml.kernel.org/r/20210809092631.1888748-5-gshan@redhat.com
 Signed-off-by: Gavin Shan <gshan@redhat.com>
 Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Tested-by: Christophe Leroy <christophe.leroy@csgroup.eu>	[powerpc 8xx]
@@ -75,115 +76,161 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   32 ++++++++++++++++----------------
- 1 file changed, 16 insertions(+), 16 deletions(-)
+ mm/debug_vm_pgtable.c |   60 ++++++++++++++++++----------------------
+ 1 file changed, 27 insertions(+), 33 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-leaf-and-savewrite-tests
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-use-struct-pgtable_debug_args-in-protnone-and-devmap-tests
 +++ a/mm/debug_vm_pgtable.c
-@@ -161,9 +161,9 @@ static void __init pte_advanced_tests(st
- 	WARN_ON(pte_young(pte));
+@@ -662,9 +662,9 @@ static void __init pmd_populate_tests(st
+ 	WARN_ON(pmd_bad(pmd));
  }
  
--static void __init pte_savedwrite_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pte_savedwrite_tests(struct pgtable_debug_args *args)
+-static void __init pte_special_tests(unsigned long pfn, pgprot_t prot)
++static void __init pte_special_tests(struct pgtable_debug_args *args)
+ {
+-	pte_t pte = pfn_pte(pfn, prot);
++	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
+ 
+ 	if (!IS_ENABLED(CONFIG_ARCH_HAS_PTE_SPECIAL))
+ 		return;
+@@ -673,9 +673,9 @@ static void __init pte_special_tests(uns
+ 	WARN_ON(!pte_special(pte_mkspecial(pte)));
+ }
+ 
+-static void __init pte_protnone_tests(unsigned long pfn, pgprot_t prot)
++static void __init pte_protnone_tests(struct pgtable_debug_args *args)
  {
 -	pte_t pte = pfn_pte(pfn, prot);
 +	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot_none);
  
  	if (!IS_ENABLED(CONFIG_NUMA_BALANCING))
  		return;
-@@ -262,7 +262,7 @@ static void __init pmd_advanced_tests(st
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmdp);
+@@ -686,7 +686,7 @@ static void __init pte_protnone_tests(un
  }
  
--static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pmd_leaf_tests(struct pgtable_debug_args *args)
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static void __init pmd_protnone_tests(unsigned long pfn, pgprot_t prot)
++static void __init pmd_protnone_tests(struct pgtable_debug_args *args)
  {
  	pmd_t pmd;
  
-@@ -270,7 +270,7 @@ static void __init pmd_leaf_tests(unsign
+@@ -697,25 +697,25 @@ static void __init pmd_protnone_tests(un
  		return;
  
- 	pr_debug("Validating PMD leaf\n");
+ 	pr_debug("Validating PMD protnone\n");
+-	pmd = pmd_mkhuge(pfn_pmd(pfn, prot));
++	pmd = pmd_mkhuge(pfn_pmd(args->fixed_pmd_pfn, args->page_prot_none));
+ 	WARN_ON(!pmd_protnone(pmd));
+ 	WARN_ON(!pmd_present(pmd));
+ }
+ #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
+-static void __init pmd_protnone_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pmd_protnone_tests(struct pgtable_debug_args *args) { }
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ 
+ #ifdef CONFIG_ARCH_HAS_PTE_DEVMAP
+-static void __init pte_devmap_tests(unsigned long pfn, pgprot_t prot)
++static void __init pte_devmap_tests(struct pgtable_debug_args *args)
+ {
+-	pte_t pte = pfn_pte(pfn, prot);
++	pte_t pte = pfn_pte(args->fixed_pte_pfn, args->page_prot);
+ 
+ 	pr_debug("Validating PTE devmap\n");
+ 	WARN_ON(!pte_devmap(pte_mkdevmap(pte)));
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-static void __init pmd_devmap_tests(unsigned long pfn, pgprot_t prot)
++static void __init pmd_devmap_tests(struct pgtable_debug_args *args)
+ {
+ 	pmd_t pmd;
+ 
+@@ -723,12 +723,12 @@ static void __init pmd_devmap_tests(unsi
+ 		return;
+ 
+ 	pr_debug("Validating PMD devmap\n");
 -	pmd = pfn_pmd(pfn, prot);
 +	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot);
- 
- 	/*
- 	 * PMD based THP is a leaf entry.
-@@ -279,7 +279,7 @@ static void __init pmd_leaf_tests(unsign
- 	WARN_ON(!pmd_leaf(pmd));
+ 	WARN_ON(!pmd_devmap(pmd_mkdevmap(pmd)));
  }
  
--static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args)
- {
- 	pmd_t pmd;
- 
-@@ -290,7 +290,7 @@ static void __init pmd_savedwrite_tests(
- 		return;
- 
- 	pr_debug("Validating PMD saved write\n");
--	pmd = pfn_pmd(pfn, prot);
-+	pmd = pfn_pmd(args->fixed_pmd_pfn, args->page_prot_none);
- 	WARN_ON(!pmd_savedwrite(pmd_mk_savedwrite(pmd_clear_savedwrite(pmd))));
- 	WARN_ON(pmd_savedwrite(pmd_clear_savedwrite(pmd_mk_savedwrite(pmd))));
- }
-@@ -388,7 +388,7 @@ static void __init pud_advanced_tests(st
- 	pudp_huge_get_and_clear(mm, vaddr, pudp);
- }
- 
--static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot)
-+static void __init pud_leaf_tests(struct pgtable_debug_args *args)
+ #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
+-static void __init pud_devmap_tests(unsigned long pfn, pgprot_t prot)
++static void __init pud_devmap_tests(struct pgtable_debug_args *args)
  {
  	pud_t pud;
  
-@@ -396,7 +396,7 @@ static void __init pud_leaf_tests(unsign
+@@ -736,20 +736,20 @@ static void __init pud_devmap_tests(unsi
  		return;
  
- 	pr_debug("Validating PUD leaf\n");
+ 	pr_debug("Validating PUD devmap\n");
 -	pud = pfn_pud(pfn, prot);
 +	pud = pfn_pud(args->fixed_pud_pfn, args->page_prot);
- 	/*
- 	 * PUD based THP is a leaf entry.
- 	 */
-@@ -411,7 +411,7 @@ static void __init pud_advanced_tests(st
- 				      pgprot_t prot)
- {
+ 	WARN_ON(!pud_devmap(pud_mkdevmap(pud)));
  }
--static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
-+static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
+ #else  /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
+-static void __init pud_devmap_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
  #endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
- #else  /* !CONFIG_TRANSPARENT_HUGEPAGE */
- static void __init pmd_basic_tests(struct pgtable_debug_args *args, int idx) { }
-@@ -428,9 +428,9 @@ static void __init pud_advanced_tests(st
- 				      pgprot_t prot)
- {
- }
--static void __init pmd_leaf_tests(unsigned long pfn, pgprot_t prot) { }
--static void __init pud_leaf_tests(unsigned long pfn, pgprot_t prot) { }
--static void __init pmd_savedwrite_tests(unsigned long pfn, pgprot_t prot) { }
-+static void __init pmd_leaf_tests(struct pgtable_debug_args *args) { }
-+static void __init pud_leaf_tests(struct pgtable_debug_args *args) { }
-+static void __init pmd_savedwrite_tests(struct pgtable_debug_args *args) { }
+ #else  /* CONFIG_TRANSPARENT_HUGEPAGE */
+-static void __init pmd_devmap_tests(unsigned long pfn, pgprot_t prot) { }
+-static void __init pud_devmap_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pmd_devmap_tests(struct pgtable_debug_args *args) { }
++static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
  #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #else
+-static void __init pte_devmap_tests(unsigned long pfn, pgprot_t prot) { }
+-static void __init pmd_devmap_tests(unsigned long pfn, pgprot_t prot) { }
+-static void __init pud_devmap_tests(unsigned long pfn, pgprot_t prot) { }
++static void __init pte_devmap_tests(struct pgtable_debug_args *args) { }
++static void __init pmd_devmap_tests(struct pgtable_debug_args *args) { }
++static void __init pud_devmap_tests(struct pgtable_debug_args *args) { }
+ #endif /* CONFIG_ARCH_HAS_PTE_DEVMAP */
  
- #ifdef CONFIG_HAVE_ARCH_HUGE_VMAP
-@@ -1321,11 +1321,11 @@ static int __init debug_vm_pgtable(void)
- 	p4d_basic_tests(&args);
- 	pgd_basic_tests(&args);
+ static void __init pte_soft_dirty_tests(unsigned long pfn, pgprot_t prot)
+@@ -1227,7 +1227,7 @@ static int __init debug_vm_pgtable(void)
+ 	pmd_t *pmdp, *saved_pmdp, pmd;
+ 	pte_t *ptep;
+ 	pgtable_t saved_ptep;
+-	pgprot_t prot, protnone;
++	pgprot_t prot;
+ 	phys_addr_t paddr;
+ 	unsigned long vaddr, pte_aligned, pmd_aligned;
+ 	unsigned long pud_aligned;
+@@ -1247,12 +1247,6 @@ static int __init debug_vm_pgtable(void)
+ 		return 1;
+ 	}
  
--	pmd_leaf_tests(pmd_aligned, prot);
--	pud_leaf_tests(pud_aligned, prot);
-+	pmd_leaf_tests(&args);
-+	pud_leaf_tests(&args);
+-	/*
+-	 * __P000 (or even __S000) will help create page table entries with
+-	 * PROT_NONE permission as required for pxx_protnone_tests().
+-	 */
+-	protnone = __P000;
+-
+ 	vma = vm_area_alloc(mm);
+ 	if (!vma) {
+ 		pr_err("vma allocation failed\n");
+@@ -1327,13 +1321,13 @@ static int __init debug_vm_pgtable(void)
+ 	pte_savedwrite_tests(&args);
+ 	pmd_savedwrite_tests(&args);
  
--	pte_savedwrite_tests(pte_aligned, protnone);
--	pmd_savedwrite_tests(pmd_aligned, protnone);
-+	pte_savedwrite_tests(&args);
-+	pmd_savedwrite_tests(&args);
+-	pte_special_tests(pte_aligned, prot);
+-	pte_protnone_tests(pte_aligned, protnone);
+-	pmd_protnone_tests(pmd_aligned, protnone);
+-
+-	pte_devmap_tests(pte_aligned, prot);
+-	pmd_devmap_tests(pmd_aligned, prot);
+-	pud_devmap_tests(pud_aligned, prot);
++	pte_special_tests(&args);
++	pte_protnone_tests(&args);
++	pmd_protnone_tests(&args);
++
++	pte_devmap_tests(&args);
++	pmd_devmap_tests(&args);
++	pud_devmap_tests(&args);
  
- 	pte_special_tests(pte_aligned, prot);
- 	pte_protnone_tests(pte_aligned, protnone);
+ 	pte_soft_dirty_tests(pte_aligned, prot);
+ 	pmd_soft_dirty_tests(pmd_aligned, prot);
 _
 
 Patches currently in -mm which might be from gshan@redhat.com are
