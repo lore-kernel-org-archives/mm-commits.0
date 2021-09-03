@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDA35C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19028C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC0606113A
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 06AD56113A
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349960AbhICVAl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:00:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59306 "EHLO mail.kernel.org"
+        id S1350164AbhICVAr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:00:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59326 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235866AbhICVAj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:00:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 64B586112E;
-        Fri,  3 Sep 2021 20:59:39 +0000 (UTC)
+        id S1350144AbhICVAl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:00:41 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 754646112F;
+        Fri,  3 Sep 2021 20:59:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702779;
-        bh=RT+9Axu7uERom+Tw9fnFHLXmgZyM0xrxkOdaDxRygtM=;
+        s=korg; t=1630702781;
+        bh=xT3aLeDPX2AQbBPLbUjdMos74IyBNX+alaiL62QmzR8=;
         h=Date:From:To:Subject:From;
-        b=cAcduLxwuQ7lYS7gSXQJBWLONx5k+XHZe0K17Qg5CKAe1YiiYbqQ0Tss5y0A1Mkig
-         ndqabDaGBEVky4y3qESzgn4I8Vc9vRmODvVkedH8CQixazpafs6m8Jl3O4/lu5Os+I
-         kPG4VwZbSp1FzUzR/frPOT4dSLk67gZKgJfFkNJA=
-Date:   Fri, 03 Sep 2021 13:59:39 -0700
+        b=eXRjuL8VAyN7c0lyvB33flB681AC9TCJnE1VkBb5ypj2NzxKPHOxf2W2D4+Ht1OMD
+         aXGVR72U6IauhTAKaZZPMsc3haZqvJCoSMjZDkL2MkdHYtDDvRBGTFvYvdC3BLPS3M
+         J2B39xm4g9bXq13029X058i6Wg8y5Y/mg25ULd4U=
+Date:   Fri, 03 Sep 2021 13:59:41 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rppt@linux.ibm.com
-Subject:  [merged]
- mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref.patch
- removed from -mm tree
-Message-ID: <20210903205939._wFwvKsOH%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vvs@virtuozzo.com
+Subject:  [merged] mm-use-in_task-in-mm-page_allocc.patch removed
+ from -mm tree
+Message-ID: <20210903205941.1G2hPL4OZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,54 +42,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: make alloc_node_mem_map() __init rather than __ref
+     Subject: mm/page_alloc.c: use in_task()
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref.patch
+     mm-use-in_task-in-mm-page_allocc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm/page_alloc: make alloc_node_mem_map() __init rather than __ref
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: mm/page_alloc.c: use in_task()
 
-alloc_node_mem_map() is never only called from free_area_init_node() that
-is an __init function.
+Obsoleted in_intrrupt() include task context with disabled BH, it's better
+to use in_task() instead.
 
-Make the actual alloc_node_mem_map() also __init and its stub version
-static inline.
-
-Link: https://lkml.kernel.org/r/20210716064124.31865-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Link: https://lkml.kernel.org/r/877caa99-1994-5545-92d2-d0bb2e394182@virtuozzo.com
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-make-alloc_node_mem_map-__init-rather-than-__ref
+--- a/mm/page_alloc.c~mm-use-in_task-in-mm-page_allocc
 +++ a/mm/page_alloc.c
-@@ -7515,7 +7515,7 @@ static void __init free_area_init_core(s
- }
+@@ -4211,7 +4211,7 @@ static void warn_alloc_show_mem(gfp_t gf
+ 		if (tsk_is_oom_victim(current) ||
+ 		    (current->flags & (PF_MEMALLOC | PF_EXITING)))
+ 			filter &= ~SHOW_MEM_FILTER_NODES;
+-	if (in_interrupt() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
++	if (!in_task() || !(gfp_mask & __GFP_DIRECT_RECLAIM))
+ 		filter &= ~SHOW_MEM_FILTER_NODES;
  
- #ifdef CONFIG_FLATMEM
--static void __ref alloc_node_mem_map(struct pglist_data *pgdat)
-+static void __init alloc_node_mem_map(struct pglist_data *pgdat)
- {
- 	unsigned long __maybe_unused start = 0;
- 	unsigned long __maybe_unused offset = 0;
-@@ -7561,7 +7561,7 @@ static void __ref alloc_node_mem_map(str
- #endif
- }
- #else
--static void __ref alloc_node_mem_map(struct pglist_data *pgdat) { }
-+static inline void alloc_node_mem_map(struct pglist_data *pgdat) { }
- #endif /* CONFIG_FLATMEM */
+ 	show_mem(filter, nodemask);
+@@ -4697,7 +4697,7 @@ gfp_to_alloc_flags(gfp_t gfp_mask)
+ 		 * comment for __cpuset_node_allowed().
+ 		 */
+ 		alloc_flags &= ~ALLOC_CPUSET;
+-	} else if (unlikely(rt_task(current)) && !in_interrupt())
++	} else if (unlikely(rt_task(current)) && in_task())
+ 		alloc_flags |= ALLOC_HARDER;
  
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ 	alloc_flags = gfp_to_alloc_flags_cma(gfp_mask, alloc_flags);
+@@ -5157,7 +5157,7 @@ static inline bool prepare_alloc_pages(g
+ 		 * When we are in the interrupt context, it is irrelevant
+ 		 * to the current task context. It means that any node ok.
+ 		 */
+-		if (!in_interrupt() && !ac->nodemask)
++		if (in_task() && !ac->nodemask)
+ 			ac->nodemask = &cpuset_current_mems_allowed;
+ 		else
+ 			*alloc_flags |= ALLOC_CPUSET;
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
-mm-remove-pfn_valid_within-and-config_holes_in_zone.patch
-mm-memory_hotplug-cleanup-after-removal-of-pfn_valid_within.patch
 
