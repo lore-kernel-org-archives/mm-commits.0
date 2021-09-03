@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04C2DC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 970D9C433F5
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFAE460184
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 82CF460E76
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350030AbhICU5I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234144AbhICU5I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Sep 2021 16:57:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56184 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56204 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234144AbhICU5G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:57:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 70DCE601FD;
-        Fri,  3 Sep 2021 20:56:05 +0000 (UTC)
+        id S1349960AbhICU5H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:57:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8374060184;
+        Fri,  3 Sep 2021 20:56:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702565;
-        bh=FUzcnmtAuA67VtV0t9pqqd7So3+QcngnwXfTFRYHaVc=;
+        s=korg; t=1630702567;
+        bh=JsYu4FkUHINQqXW9KMZAEGX7VanR/7atcLriuKLwuFQ=;
         h=Date:From:To:Subject:From;
-        b=UrQbhCy30HFRyaj/DXXp5oa/yFkeDCtXHqhTY4O+OHDdSInvtKGcVOBExPP+if21a
-         cVvhZteWa9Kcj2wZqXzwkCXvecb7QPBTIFgk84O8UJ0yE2B+q5nPv0Z1cgixGuB1hP
-         3LWogLnwZNvDVLCmOUyRhZQUadM5gYT0MPzM8gSg=
-Date:   Fri, 03 Sep 2021 13:56:05 -0700
+        b=r5es/AWIvkMW61NcW8P0u7tpzK7ttZ7eMi2i+dT1+d2NLwfE24iJNouKHbFD/A5Vv
+         T7qF2tw9ntRcVGqcDoYGY+KSj2twSRB3Rl9iZpNzli+l6C88rB9ZonWu2T6WMzjkFq
+         /DCO+/QuVVktNpB99yh99ZB3SuuptPpmFaOeff0k=
+Date:   Fri, 03 Sep 2021 13:56:07 -0700
 From:   akpm@linux-foundation.org
-To:     fengguang.wu@intel.com, jack@suse.cz, mm-commits@vger.kernel.org,
-        stapelberg+linux@google.com
+To:     hannes@cmpxchg.org, mm-commits@vger.kernel.org
 Subject:  [merged]
- writeback-use-read_once-for-unlocked-reads-of-writeback-stats.patch removed
- from -mm tree
-Message-ID: <20210903205605.7ZhHl8BWN%akpm@linux-foundation.org>
+ mm-remove-irqsave-restore-locking-from-contexts-with-irqs-enabled.patch
+ removed from -mm tree
+Message-ID: <20210903205607.3tXP1SXs1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,137 +43,182 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: writeback: use READ_ONCE for unlocked reads of writeback stats
+     Subject: mm: remove irqsave/restore locking from contexts with irqs enabled
 has been removed from the -mm tree.  Its filename was
-     writeback-use-read_once-for-unlocked-reads-of-writeback-stats.patch
+     mm-remove-irqsave-restore-locking-from-contexts-with-irqs-enabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: writeback: use READ_ONCE for unlocked reads of writeback stats
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: remove irqsave/restore locking from contexts with irqs enabled
 
-We do some unlocked reads of writeback statistics like
-avg_write_bandwidth, dirty_ratelimit, or bw_time_stamp.  Generally we are
-fine with getting somewhat out-of-date values but actually getting
-different values in various parts of the functions because the compiler
-decided to reload value from original memory location could confuse
-calculations.  Use READ_ONCE for these unlocked accesses and WRITE_ONCE
-for the updates to be on the safe side.
+The page cache deletion paths all have interrupts enabled, so no need to
+use irqsafe/irqrestore locking variants.
 
-Link: https://lkml.kernel.org/r/20210713104716.22868-5-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Michael Stapelberg <stapelberg+linux@google.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+They used to have irqs disabled by the memcg lock added in commit
+c4843a7593a9 ("memcg: add per cgroup dirty page accounting"), but that has
+since been replaced by memcg taking the page lock instead, commit
+0a31bc97c80c ("mm: memcontrol: rewrite uncharge AP").
+
+Link: https://lkml.kernel.org/r/20210614211904.14420-1-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page-writeback.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ mm/filemap.c  |   15 ++++++---------
+ mm/truncate.c |    8 +++-----
+ mm/vmscan.c   |    9 ++++-----
+ 3 files changed, 13 insertions(+), 19 deletions(-)
 
---- a/mm/page-writeback.c~writeback-use-read_once-for-unlocked-reads-of-writeback-stats
-+++ a/mm/page-writeback.c
-@@ -183,7 +183,7 @@ static struct fprop_local_percpu *wb_mem
- static void wb_min_max_ratio(struct bdi_writeback *wb,
- 			     unsigned long *minp, unsigned long *maxp)
+--- a/mm/filemap.c~mm-remove-irqsave-restore-locking-from-contexts-with-irqs-enabled
++++ a/mm/filemap.c
+@@ -258,12 +258,11 @@ static void page_cache_free_page(struct
+ void delete_from_page_cache(struct page *page)
  {
--	unsigned long this_bw = wb->avg_write_bandwidth;
-+	unsigned long this_bw = READ_ONCE(wb->avg_write_bandwidth);
- 	unsigned long tot_bw = atomic_long_read(&wb->bdi->tot_write_bandwidth);
- 	unsigned long long min = wb->bdi->min_ratio;
- 	unsigned long long max = wb->bdi->max_ratio;
-@@ -892,7 +892,7 @@ static long long pos_ratio_polynom(unsig
- static void wb_position_ratio(struct dirty_throttle_control *dtc)
+ 	struct address_space *mapping = page_mapping(page);
+-	unsigned long flags;
+ 
+ 	BUG_ON(!PageLocked(page));
+-	xa_lock_irqsave(&mapping->i_pages, flags);
++	xa_lock_irq(&mapping->i_pages);
+ 	__delete_from_page_cache(page, NULL);
+-	xa_unlock_irqrestore(&mapping->i_pages, flags);
++	xa_unlock_irq(&mapping->i_pages);
+ 
+ 	page_cache_free_page(mapping, page);
+ }
+@@ -335,19 +334,18 @@ void delete_from_page_cache_batch(struct
+ 				  struct pagevec *pvec)
  {
- 	struct bdi_writeback *wb = dtc->wb;
--	unsigned long write_bw = wb->avg_write_bandwidth;
-+	unsigned long write_bw = READ_ONCE(wb->avg_write_bandwidth);
- 	unsigned long freerun = dirty_freerun_ceiling(dtc->thresh, dtc->bg_thresh);
- 	unsigned long limit = hard_dirty_limit(dtc_dom(dtc), dtc->thresh);
- 	unsigned long wb_thresh = dtc->wb_thresh;
-@@ -1115,7 +1115,7 @@ out:
- 					&wb->bdi->tot_write_bandwidth) <= 0);
+ 	int i;
+-	unsigned long flags;
+ 
+ 	if (!pagevec_count(pvec))
+ 		return;
+ 
+-	xa_lock_irqsave(&mapping->i_pages, flags);
++	xa_lock_irq(&mapping->i_pages);
+ 	for (i = 0; i < pagevec_count(pvec); i++) {
+ 		trace_mm_filemap_delete_from_page_cache(pvec->pages[i]);
+ 
+ 		unaccount_page_cache_page(mapping, pvec->pages[i]);
  	}
- 	wb->write_bandwidth = bw;
--	wb->avg_write_bandwidth = avg;
-+	WRITE_ONCE(wb->avg_write_bandwidth, avg);
- }
+ 	page_cache_delete_batch(mapping, pvec);
+-	xa_unlock_irqrestore(&mapping->i_pages, flags);
++	xa_unlock_irq(&mapping->i_pages);
  
- static void update_dirty_limit(struct dirty_throttle_control *dtc)
-@@ -1324,7 +1324,7 @@ static void wb_update_dirty_ratelimit(st
- 	else
- 		dirty_ratelimit -= step;
+ 	for (i = 0; i < pagevec_count(pvec); i++)
+ 		page_cache_free_page(mapping, pvec->pages[i]);
+@@ -821,7 +819,6 @@ void replace_page_cache_page(struct page
+ 	void (*freepage)(struct page *) = mapping->a_ops->freepage;
+ 	pgoff_t offset = old->index;
+ 	XA_STATE(xas, &mapping->i_pages, offset);
+-	unsigned long flags;
  
--	wb->dirty_ratelimit = max(dirty_ratelimit, 1UL);
-+	WRITE_ONCE(wb->dirty_ratelimit, max(dirty_ratelimit, 1UL));
- 	wb->balanced_dirty_ratelimit = balanced_dirty_ratelimit;
+ 	VM_BUG_ON_PAGE(!PageLocked(old), old);
+ 	VM_BUG_ON_PAGE(!PageLocked(new), new);
+@@ -833,7 +830,7 @@ void replace_page_cache_page(struct page
  
- 	trace_bdi_dirty_ratelimit(wb, dirty_rate, task_ratelimit);
-@@ -1369,7 +1369,7 @@ static void __wb_update_bandwidth(struct
+ 	mem_cgroup_migrate(old, new);
  
- 	wb->dirtied_stamp = dirtied;
- 	wb->written_stamp = written;
--	wb->bw_time_stamp = now;
-+	WRITE_ONCE(wb->bw_time_stamp, now);
- 	spin_unlock(&wb->list_lock);
- }
+-	xas_lock_irqsave(&xas, flags);
++	xas_lock_irq(&xas);
+ 	xas_store(&xas, new);
  
-@@ -1393,7 +1393,7 @@ static void wb_bandwidth_estimate_start(
- 		spin_lock(&wb->list_lock);
- 		wb->dirtied_stamp = wb_stat(wb, WB_DIRTIED);
- 		wb->written_stamp = wb_stat(wb, WB_WRITTEN);
--		wb->bw_time_stamp = now;
-+		WRITE_ONCE(wb->bw_time_stamp, now);
- 		spin_unlock(&wb->list_lock);
- 	}
- }
-@@ -1418,7 +1418,7 @@ static unsigned long dirty_poll_interval
- static unsigned long wb_max_pause(struct bdi_writeback *wb,
- 				  unsigned long wb_dirty)
+ 	old->mapping = NULL;
+@@ -846,7 +843,7 @@ void replace_page_cache_page(struct page
+ 		__dec_lruvec_page_state(old, NR_SHMEM);
+ 	if (PageSwapBacked(new))
+ 		__inc_lruvec_page_state(new, NR_SHMEM);
+-	xas_unlock_irqrestore(&xas, flags);
++	xas_unlock_irq(&xas);
+ 	if (freepage)
+ 		freepage(old);
+ 	put_page(old);
+--- a/mm/truncate.c~mm-remove-irqsave-restore-locking-from-contexts-with-irqs-enabled
++++ a/mm/truncate.c
+@@ -560,21 +560,19 @@ void invalidate_mapping_pagevec(struct a
+ static int
+ invalidate_complete_page2(struct address_space *mapping, struct page *page)
  {
--	unsigned long bw = wb->avg_write_bandwidth;
-+	unsigned long bw = READ_ONCE(wb->avg_write_bandwidth);
- 	unsigned long t;
+-	unsigned long flags;
+-
+ 	if (page->mapping != mapping)
+ 		return 0;
  
+ 	if (page_has_private(page) && !try_to_release_page(page, GFP_KERNEL))
+ 		return 0;
+ 
+-	xa_lock_irqsave(&mapping->i_pages, flags);
++	xa_lock_irq(&mapping->i_pages);
+ 	if (PageDirty(page))
+ 		goto failed;
+ 
+ 	BUG_ON(page_has_private(page));
+ 	__delete_from_page_cache(page, NULL);
+-	xa_unlock_irqrestore(&mapping->i_pages, flags);
++	xa_unlock_irq(&mapping->i_pages);
+ 
+ 	if (mapping->a_ops->freepage)
+ 		mapping->a_ops->freepage(page);
+@@ -582,7 +580,7 @@ invalidate_complete_page2(struct address
+ 	put_page(page);	/* pagecache ref */
+ 	return 1;
+ failed:
+-	xa_unlock_irqrestore(&mapping->i_pages, flags);
++	xa_unlock_irq(&mapping->i_pages);
+ 	return 0;
+ }
+ 
+--- a/mm/vmscan.c~mm-remove-irqsave-restore-locking-from-contexts-with-irqs-enabled
++++ a/mm/vmscan.c
+@@ -1052,14 +1052,13 @@ static pageout_t pageout(struct page *pa
+ static int __remove_mapping(struct address_space *mapping, struct page *page,
+ 			    bool reclaimed, struct mem_cgroup *target_memcg)
+ {
+-	unsigned long flags;
+ 	int refcount;
+ 	void *shadow = NULL;
+ 
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(mapping != page_mapping(page));
+ 
+-	xa_lock_irqsave(&mapping->i_pages, flags);
++	xa_lock_irq(&mapping->i_pages);
  	/*
-@@ -1440,8 +1440,8 @@ static long wb_min_pause(struct bdi_writ
- 			 unsigned long dirty_ratelimit,
- 			 int *nr_dirtied_pause)
- {
--	long hi = ilog2(wb->avg_write_bandwidth);
--	long lo = ilog2(wb->dirty_ratelimit);
-+	long hi = ilog2(READ_ONCE(wb->avg_write_bandwidth));
-+	long lo = ilog2(READ_ONCE(wb->dirty_ratelimit));
- 	long t;		/* target pause */
- 	long pause;	/* estimated next pause */
- 	int pages;	/* target nr_dirtied_pause */
-@@ -1721,12 +1721,12 @@ free_running:
- 		if (dirty_exceeded && !wb->dirty_exceeded)
- 			wb->dirty_exceeded = 1;
+ 	 * The non racy check for a busy page.
+ 	 *
+@@ -1100,7 +1099,7 @@ static int __remove_mapping(struct addre
+ 		if (reclaimed && !mapping_exiting(mapping))
+ 			shadow = workingset_eviction(page, target_memcg);
+ 		__delete_from_swap_cache(page, swap, shadow);
+-		xa_unlock_irqrestore(&mapping->i_pages, flags);
++		xa_unlock_irq(&mapping->i_pages);
+ 		put_swap_page(page, swap);
+ 	} else {
+ 		void (*freepage)(struct page *);
+@@ -1126,7 +1125,7 @@ static int __remove_mapping(struct addre
+ 		    !mapping_exiting(mapping) && !dax_mapping(mapping))
+ 			shadow = workingset_eviction(page, target_memcg);
+ 		__delete_from_page_cache(page, shadow);
+-		xa_unlock_irqrestore(&mapping->i_pages, flags);
++		xa_unlock_irq(&mapping->i_pages);
  
--		if (time_is_before_jiffies(wb->bw_time_stamp +
-+		if (time_is_before_jiffies(READ_ONCE(wb->bw_time_stamp) +
- 					   BANDWIDTH_INTERVAL))
- 			__wb_update_bandwidth(gdtc, mdtc, true);
+ 		if (freepage != NULL)
+ 			freepage(page);
+@@ -1135,7 +1134,7 @@ static int __remove_mapping(struct addre
+ 	return 1;
  
- 		/* throttle according to the chosen dtc */
--		dirty_ratelimit = wb->dirty_ratelimit;
-+		dirty_ratelimit = READ_ONCE(wb->dirty_ratelimit);
- 		task_ratelimit = ((u64)dirty_ratelimit * sdtc->pos_ratio) >>
- 							RATELIMIT_CALC_SHIFT;
- 		max_pause = wb_max_pause(wb, sdtc->wb_dirty);
-@@ -2376,7 +2376,8 @@ int do_writepages(struct address_space *
- 	 * but if there's constant writeback being submitted, this makes sure
- 	 * writeback bandwidth is updated once in a while.
- 	 */
--	if (time_is_before_jiffies(wb->bw_time_stamp + BANDWIDTH_INTERVAL))
-+	if (time_is_before_jiffies(READ_ONCE(wb->bw_time_stamp) +
-+				   BANDWIDTH_INTERVAL))
- 		wb_update_bandwidth(wb);
- 	return ret;
+ cannot_free:
+-	xa_unlock_irqrestore(&mapping->i_pages, flags);
++	xa_unlock_irq(&mapping->i_pages);
+ 	return 0;
  }
+ 
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
 
