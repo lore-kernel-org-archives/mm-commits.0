@@ -2,229 +2,183 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-7.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED autolearn=no autolearn_force=no
-	version=3.4.0
+X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1BEABC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 05:45:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 617CEC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 06:22:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D1B546102A
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 05:45:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 433F7601FA
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 06:22:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234399AbhICFqE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 01:46:04 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59614 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234219AbhICFqD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2021 01:46:03 -0400
-Received: from mail-pj1-x1034.google.com (mail-pj1-x1034.google.com [IPv6:2607:f8b0:4864:20::1034])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A2C1C061575
-        for <mm-commits@vger.kernel.org>; Thu,  2 Sep 2021 22:45:04 -0700 (PDT)
-Received: by mail-pj1-x1034.google.com with SMTP id mj9-20020a17090b368900b001965618d019so3110330pjb.4
-        for <mm-commits@vger.kernel.org>; Thu, 02 Sep 2021 22:45:04 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:subject:to:cc:references:in-reply-to:mime-version
-         :message-id:content-transfer-encoding;
-        bh=Ea7FD0WPde6YonSkGR4z4c179B+D37khF0oGdfiR2N8=;
-        b=nG0lBjZ8wcw7Urj2i6LRFFPSfANiJIZESYUzlWMR5CzoEZDdHhUk1SD2vfyf3/8mqD
-         B8YoDUbFyzlu8bhajp8i25+ySkMIo058ucTE3NkGXZmNAgVRSNTpwRKYrIhiAOQRuymA
-         2iQVrhqHw1x2zrta7evFOnG/SyN7XRdHS74Bs/LstAlD1+8N2K1yGjAWkmaT5t62W224
-         hrxVOVT+qHOa1kotDQB88JjaG3+hYk55tw5sjbH45F863P/2GpbOfvnf0s9h6yqkcviC
-         EADhnHaIoMdNu8mRIQHfMM78e6XYQMSRmjkmqHGdZlpRHub6mPCTsbelNkrq58pPO/xg
-         omqQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20161025;
-        h=x-gm-message-state:date:from:subject:to:cc:references:in-reply-to
-         :mime-version:message-id:content-transfer-encoding;
-        bh=Ea7FD0WPde6YonSkGR4z4c179B+D37khF0oGdfiR2N8=;
-        b=itHRGoOX+4AVk72SHjcWCG8KLYJeo4UeZrlHHYlGb9sEIRDMLAOu/p0lFAFfpu/r0M
-         tSyI4yM59QwzoKhKTNZntznG6PKp/gmfplLligA/5RuxOhjLCuLZ3Lua2eGmMUygBIkV
-         wGRgKOiLUduXevilf4EFpFeOo3YBpLdGqRhIUYK+mlRRd/Rqys6lNuvt4pI1gWgM4QZK
-         TABtd15PEp2efxP7CrCJTKLRBs2pdbdQHMEg/WP0sPOgUiQZ8wA9ExpimwnrU8Q6Qomk
-         uq3JErCYH6hz/qyNA7IaVuZjkmSPwnNLOq3M1usMs8lTEcor57GPoSgRfBGaQRKZfTSR
-         8g+g==
-X-Gm-Message-State: AOAM533LjrdMw0xbzl8AjaR1zcfxtZSTCcbLO6zm66b86rtJfZsHlQe0
-        urdWBO72uo/ZGORaJgzfG2Nutu1/BGQ=
-X-Google-Smtp-Source: ABdhPJyae53Zn1s4MR3rSBe42XTlIg3tUzFb2bK8hWwEpLdFXbve6jjsGcQi/GpQC9+F1WMsB2d8QA==
-X-Received: by 2002:a17:90b:400c:: with SMTP id ie12mr1951368pjb.112.1630647903733;
-        Thu, 02 Sep 2021 22:45:03 -0700 (PDT)
-Received: from localhost (203-219-56-12.tpgi.com.au. [203.219.56.12])
-        by smtp.gmail.com with ESMTPSA id w3sm3821422pjv.0.2021.09.02.22.45.02
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Thu, 02 Sep 2021 22:45:03 -0700 (PDT)
-Date:   Fri, 03 Sep 2021 15:44:57 +1000
-From:   Nicholas Piggin <npiggin@gmail.com>
-Subject: Re: [patch 119/212] lazy tlb: shoot lazies, a non-refcounting lazy
- tlb option
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        Andy Lutomirski <luto@kernel.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Anton Blanchard <anton@ozlabs.org>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
-        Paul Mackerras <paulus@ozlabs.org>,
-        Randy Dunlap <rdunlap@infradead.org>
-References: <20210902215620._WXglfIJy%akpm@linux-foundation.org>
-        <18b7e206-9ee6-4afe-b662-9dcbdf55a9db@www.fastmail.com>
-        <CAHk-=wjC05YZycowZkmvjZACNEm3rUhLTneN+Vaz9Ebp1+++Gw@mail.gmail.com>
-        <20210902155330.a643b03dc6991cde53133edf@linux-foundation.org>
-        <1630629747.odrw4rffkd.astroid@bobo.none>
-        <e0166f2c-f742-635b-6b40-eef1a955f8c4@kernel.org>
-In-Reply-To: <e0166f2c-f742-635b-6b40-eef1a955f8c4@kernel.org>
+        id S234650AbhICGX3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 02:23:29 -0400
+Received: from mout.gmx.net ([212.227.17.21]:58503 "EHLO mout.gmx.net"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S230128AbhICGX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 02:23:28 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
+        s=badeba3b8450; t=1630650122;
+        bh=/bRw5YCQ4IWd0Lr2JjxHBW07ew2K//uXjYchUwdJ9to=;
+        h=X-UI-Sender-Class:Subject:From:To:Cc:Date:In-Reply-To:References;
+        b=QsQTVGQyquryKg0hvlJAkN9QMuB0A2QatSOzfDo7sRX/a19gF9dOjYHzWYUwmANNa
+         LPMGI3UOU6uLMIg7wGdsflQ5aemEMr3Luxv+xIF7p2C0nGN7KCi2Oib0Mm1kgUvcNa
+         +xRCL0Ns/27OCwn/6i3sHCL/8G/PqZnzZwvjr5Bc=
+X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
+Received: from homer.fritz.box ([185.191.218.121]) by mail.gmx.net (mrgmx105
+ [212.227.17.168]) with ESMTPSA (Nemesis) id 1MOiDX-1mcqmr0jdv-00QAjI; Fri, 03
+ Sep 2021 08:22:02 +0200
+Message-ID: <d406ebb42fb9914d1a6f2fe9f26bf083612ec796.camel@gmx.de>
+Subject: Re: [patch 036/212] mm, slab: make flush_slab() possible to call
+ with irqs enabled
+From:   Mike Galbraith <efault@gmx.de>
+To:     Vlastimil Babka <vbabka@suse.cz>,
+        Linus Torvalds <torvalds@linux-foundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc:     Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Christoph Lameter <cl@linux.com>,
+        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
+        Jann Horn <jannh@google.com>, Linux-MM <linux-mm@kvack.org>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        mm-commits@vger.kernel.org, Pekka Enberg <penberg@kernel.org>,
+        David Rientjes <rientjes@google.com>,
+        Thomas Gleixner <tglx@linutronix.de>
+Date:   Fri, 03 Sep 2021 08:22:00 +0200
+In-Reply-To: <ec75906a-bf4d-cad0-dd66-cdf2b7d35b1e@suse.cz>
+References: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
+         <20210902215152.ibWfL_bvd%akpm@linux-foundation.org>
+         <CAHk-=wiJLqL2cUhJbvpyPQpkbVOu1rVSzgO2=S2jC55hneLtfQ@mail.gmail.com>
+         <CAHk-=wiz+vp1k1Ag+fD57P4ehOpTAc=A9zT7YbGENUu57azeuQ@mail.gmail.com>
+         <CAHk-=wiX77e3G-cOP+OLPzf8krQXgyiz7PikurJYa0fsDhS34Q@mail.gmail.com>
+         <ec75906a-bf4d-cad0-dd66-cdf2b7d35b1e@suse.cz>
+Content-Type: text/plain; charset="UTF-8"
+User-Agent: Evolution 3.41.2 
 MIME-Version: 1.0
-Message-Id: <1630646475.88h9vy4orc.astroid@bobo.none>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Content-Transfer-Encoding: base64
+X-Provags-ID: V03:K1:UmzXKmky+y5uZNqN9fv6AR+XGeCnotJgxpUgJgxFNOU08OS6IiH
+ tjslqlYACkz/1f5WwG0B4B/bU+bkoWnm+lBbVj3T0K6Mr8topJ1JYiAiTlZSgrcMWpsrRu/
+ cDZyRq7brDS5USjdZlQsrumMoA0KwLQfEtxuTWrQ/JrfFRfT8lShI5yKryhnk2hNCRM0kmh
+ q/PTB5/9jjz1KTsXx3svQ==
+X-UI-Out-Filterresults: notjunk:1;V03:K0:Qa+1k7Ssp6g=:w9yPMU3g+fVB3I45Xuc3lZ
+ YVWeV6oxOerwbQj68Jfak+EHpNEcrX+fNY7OzSzVV0IPL55SwuDb/08w5ADIqdtEugnMAAF4S
+ ZWFGpLWeKifZG4HD4TpDmsPT3CU1noxsQL06BjawY0/oiFH7oe69I2oW5MZpp6ZJsHAezvk8N
+ EYFV/B/isySxLrusIsyqrFkaLASBnYVhwl9nI2ulsqDN6cOZPhonPhopiZ6kkJ5M1KwhtxLtk
+ he4EsuEeV+K9AX1eK/ZXBNrJKeXS+6KNNgVPDkE4dqDAoWGpSz1bsxzOW9JoE4sZf2wPYxIox
+ qaoXmWbbWz+5VXTc1r3Ug2Sf2QOOF/e9iRPO2SYLWZL3FU7SOyc8Z0qi9Tu/lZRPGa+3CLZ0E
+ v18tHLIFEJD9VH5Q4KiwTyjHS5aEYID6pWJGAvmFsv8qrcGw3lLh0rUfqiNzPaFYw4cSVeprI
+ IYtae/UdeYPXmxhfGIK7DDMlIgIkPRLY0krQPTCLmM6rZYVZF0uRCAYLD+HzkgG4aYIO49rSz
+ 2FJhDT2VW4sINKH6N45dtjgJVyMcyW/EQOX2dbknMtMjq16IPRjttoic0rtNus4h7V51LaUlE
+ HMAMJt1zbAI4/9imnFYevMjM7x6CXEs3+eTfjddK0H+eLfdKfNFViz3bLVO2XixN8BJFR/+ps
+ 124WENGZhIGMkSi9eUF7us96fb17fqqOt9zPj+XvrUFClLJ4qD4aGdBQKrx8GV0rJHBSV6pja
+ Ggoj3jdaFHUcMNoSn5kkKocxhzu0D68Cw2sR4g8RfBW1dIgYlxaWsZqDkmGcNeWsT9R+XWNVJ
+ OBntPIOqtadHMAYbmB1+sCd7bHnQ5g4YCJ+QlVrcatgROUXLpmUPyfH5/t78CdeQwylCScitf
+ 7HouDbyPdTQALJOcvx8L3t4oj8IQoGkMMigirc10U3v1N7o+qcmpHs+KChiNUGGcuT0BaDj/Q
+ ETH8W+dM/Vv5z/l6rB4j153FV8mWhE9rbk+NbjBaZVWmJ2kBQeP+r8eHAcc3qZqz4d7prploM
+ nFog82SkU0uBOczA2KH0ynJCXkPSepSCRvFDn//BfK1G6qcHRWPF+pupNbumqgeghov6Vj1qX
+ /5i7rynVLFj/kpgjKqyC3K9j0w2ejf9tHrC
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Excerpts from Andy Lutomirski's message of September 3, 2021 3:11 pm:
-> On 9/2/21 5:46 PM, Nicholas Piggin wrote:
->> Excerpts from Andrew Morton's message of September 3, 2021 8:53 am:
->>> On Thu, 2 Sep 2021 15:50:03 -0700 Linus Torvalds <torvalds@linux-founda=
-tion.org> wrote:
->>>
->>>> On Thu, Sep 2, 2021 at 3:29 PM Andy Lutomirski <luto@kernel.org> wrote=
-:
->>>>>
->>>>> This pile is:
->>>>>
->>>>> Nacked-by: Andy Lutomirski <luto@kernel.org>
->>>>
->>>> Can you specify exactly the range you want me to drop?
->>>>
->>>> I assume it's the four patches 117-120, ie
->>>>
->>>>   lazy tlb: introduce lazy mm refcount helper functions
->>>>   lazy tlb: allow lazy tlb mm refcounting to be configurable
->>>>   lazy tlb: shoot lazies, a non-refcounting lazy tlb option
->>>>   powerpc/64s: enable MMU_LAZY_TLB_SHOOTDOWN
->>>>
->>>> but I just want to double-check before I do surgery on that series.
->>>
->>> Yes, those 4.
->>>
->>> Sorry, I missed that email thread...
->>>
->>=20
->> That's not reasonable. Andy has had complete misunderstandings about the
->> series which seems to stem from x86's horrible hacks that have gone in
->> has confused him.
->=20
-> The horrible hacks in question are almost exclusively in core code.
-
-No, they're in x86.
-
-> Here's a brief summary of the situation.
->=20
-> There's a messy interaction between mmget()/mmdrop() and membarrier.
-> membarrier currently depends on some mmget() and mmdrop() calls to be
-> full barriers.
-
-Membarrier has had (and is improving but still has) some complexity,=20
-which is caused by interaction with _existing_ lazy-mm code in the tree.=20
-The complexity is not with lazy-mm itself, and my series does not add
-more to the membarrier interaction. So I don't accept the criticism
-that it has to do with membarrier complexity.
-
-> You make membarrier keep working by putting an ifdef'd
-> smp_mb() in the core scheduler.
-
-Sure, it's well commented and replaces the smp_mb provided by atomic=20
-operation that membarrier relied on to an explicit one. That's not a
-horrible hack.
-
-> I clean up the code to make it work
-> independently of smp_mb() and therefore save the cost of the
-> unconditional barrier for non-membarrier-using programs.
-
-Great. Nothing to do with this series though which is not changing=20
-membarrier ordering.
-
-I can certainly help you rebase it on top of these patches if you need.
-
->=20
-> Your series adds an option MMU_LAZY_TLB_REFCOUNT=3Dn for architectures to
-> opt out of lazy TLB refcounting.  This is simply wrong.  Right now, the
-> core scheduler provides current->active_mm and guarantees that
-> current->active_mm always points to a live (possibly mm_users =3D=3D 0 bu=
-t
-> definitely not freed) mm_struct.  With MMU_LAZY_TLB_REFCOUNT=3Dn,
-> current->active_mm still exists, is still updated, but may point to
-> freed memory.
-
-Wrong. It does nothing of the sort. I told you this in the previous=20
-discussion, you obviously ignored me. You are just wrong, and you can't
-actually point to where this happens.
-
-This criticism is invalid too.
-
-> I consider this unacceptable.  A comment says "This can
-> be disabled if the architecture ensures no CPUs are using an mm as a
-> "lazy tlb" beyond its final refcount" -- that's nice, but saying "well,
-> if you this, you have to make sure you don't accidentally dereference
-> that juicy dangling pointer we give you" is, in my book, a poor
-> justification.
-
-It's not a justification, it's a recipe for other archs which might want=20
-ot implement it!
-
->=20
-> I have no particular objection to the actual shoot lazies part, except
-> insofar as I think we can do even better (e.g. my patch).  But 90% of
-> the complexity of my WIP series is cleaning up the mess so that we can
-> have a maintainable lazy mm mechanism instead of expanding the current
-> hard-to-maintain part into three separate possible modes.
-
-What actually happened is that when you ran out of (incorrect) technical=20
-disputes like this confusion about the active_mm thing, you then started=20
-to demand that I massively rework core code that you don't understand so=20
-that it matches the horrible mess that x86 has got itself into. I can
-bring up quotes from previous threads.
-
->=20
-> Maybe I'm holding my own patches to an excessively high standard.
->=20
->=20
->=20
->>=20
->> My series doesn't affect x86 at all and it's no reason why Andy's series
->> to improve x86 can't be merged later. But that half finished series he=20
->> keeps threatening with has been sitting there for almost a year now and=20
->> it's gone nowhere, while there have been no unresolved technical=20
->> objections to mine, it works, it's simple and small.
->=20
-> My series barely touches x86.
-
-I'm talking about your previous insistence that my patch series removed=20
-"active_mm" from core code, because it doesn't match x86 internals, and=20
-similar such stupidity.
-
-> The only "hack" is that x86 may have a
-> CPU that has ->mm =3D=3D NULL, ->active_mm !=3D NULL, CR3 pointing to the=
- init
-> pgd, and mm_cpumask clear.  I don't see why this is a problem other than
-> being somewhat unusual.  But x86 bare metal, like every architecture
-> that can only flush the TLB using an IPI, can very efficiently shoot
-> lazies, since it shoots the lazies anyway when tearing down pagetables,
-> but actually enabling the config option with this series applied will
-> result in ->active_mm pointing to freed memory.  Ick.
->=20
->>=20
->> I've kept trying to offer to help Andy with reviewing his stuff or fix=20
->> the horrible x86 hacks, but nothing.
->=20
-> I haven't finished it yet.  Sorry.
->=20
-
-No need to be sorry about that, it will be trivial to rebase on top of=20
-my series, I've even done a quick attempt. No problem at all.
-
-Thanks,
-Nick
+PiA+IHNvIHRoYXQgd2hlbiB5b3UgcmVhZCB0aGF0IGZ1bmN0aW9uIG9uIGl0cyBvd24sIGl0J3Mg
+Y2xlYXIgdGhhdCB0aGUNCj4gPiBsb2NrIGlzIGFsd2F5cyBoZWxkIG92ZXIgdGhhdCBjcml0aWNh
+bCBzZWN0aW9uIC0gYW5kIHRoZSBpc3N1ZSBpcyB0aGF0DQo+ID4gcGVyaGFwcyB0aGUgbG9jayB3
+YXMgYWxyZWFkeSB0YWtlbiBieSB0aGUgY2FsbGVyLg0KPiANCj4gQWN0dWFsbHkgdGhhdCAiYWxy
+ZWFkeSB0YWtlbiIgYmVjb21lcyAiY2FsbGVyIGRvZXMgbm90IG5lZWQgaXQvY2FuJ3QNCj4gZXZl
+biB0YWtlIHRoZSBsb2NhbCBsb2NrIGFzIGl0J3Mgbm90IGxvY2FsIiAoaXQncyBhIGNwdSBob3Qg
+cmVtb3ZlDQo+IGhhbmRsZXIgb24gYmVoYWxmIG9mIGFub3RoZXIsIGRlYWQgY3B1KS4NCj4gDQo+
+IFNvIHdvdWxkIGl0IHdvcmsgd2l0aCBzb21ldGhpbmcgbGlrZSB0aGUgZm9sbG93aW5nIGNsZWFu
+dXAgb24gdG9wIGxhdGVyDQo+IGFmdGVyIHByb3BlciB0ZXN0aW5nPyAobm93IGp1c3QgY29tcGls
+ZSB0ZXN0ZWQpLg0KDQpTY3JvbGwgZG93bndhcmQuLi4NCg0KPiAtLS04PC0tLQ0KPiBkaWZmIC0t
+Z2l0IGEvbW0vc2x1Yi5jIGIvbW0vc2x1Yi5jDQo+IGluZGV4IGRmMWFjOGFmZjg2Zi4uMGQ5ZTYz
+ZTkxOGYxIDEwMDY0NA0KPiAtLS0gYS9tbS9zbHViLmMNCj4gKysrIGIvbW0vc2x1Yi5jDQo+IEBA
+IC0yNTY2LDM4ICsyNTY2LDMzIEBAIHN0YXRpYyBpbmxpbmUgdm9pZCB1bmZyZWV6ZV9wYXJ0aWFs
+c19jcHUoc3RydWN0IGttZW1fY2FjaGUgKnMsDQo+IMKgDQo+IMKgI2VuZGlmwqAvKiBDT05GSUdf
+U0xVQl9DUFVfUEFSVElBTCAqLw0KPiDCoA0KPiAtc3RhdGljIGlubGluZSB2b2lkIGZsdXNoX3Ns
+YWIoc3RydWN0IGttZW1fY2FjaGUgKnMsIHN0cnVjdCBrbWVtX2NhY2hlX2NwdSAqYywNCj4gLcKg
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGJv
+b2wgbG9jaykNCj4gK3N0YXRpYyBpbmxpbmUgc3RydWN0IHBhZ2UgKg0KPiArX19kZXRhY2hfY3B1
+X3NsYWIoc3RydWN0IGttZW1fY2FjaGUgKnMsIHN0cnVjdCBrbWVtX2NhY2hlX2NwdSAqYywNCj4g
+K8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHZvaWQgKipmcmVlbGlzdCkNCj4gwqB7
+DQo+IC3CoMKgwqDCoMKgwqDCoHVuc2lnbmVkIGxvbmcgZmxhZ3M7DQo+IC3CoMKgwqDCoMKgwqDC
+oHZvaWQgKmZyZWVsaXN0Ow0KPiDCoMKgwqDCoMKgwqDCoMKgc3RydWN0IHBhZ2UgKnBhZ2U7DQo+
+IMKgDQo+IC3CoMKgwqDCoMKgwqDCoGlmIChsb2NrKQ0KPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgbG9jYWxfbG9ja19pcnFzYXZlKCZzLT5jcHVfc2xhYi0+bG9jaywgZmxhZ3MpOw0K
+PiAtDQo+IC3CoMKgwqDCoMKgwqDCoGZyZWVsaXN0ID0gYy0+ZnJlZWxpc3Q7DQo+IMKgwqDCoMKg
+wqDCoMKgwqBwYWdlID0gYy0+cGFnZTsNCj4gK8KgwqDCoMKgwqDCoMKgKmZyZWVsaXN0ID0gYy0+
+ZnJlZWxpc3Q7DQo+IMKgDQo+IMKgwqDCoMKgwqDCoMKgwqBjLT5wYWdlID0gTlVMTDsNCj4gwqDC
+oMKgwqDCoMKgwqDCoGMtPmZyZWVsaXN0ID0gTlVMTDsNCj4gwqDCoMKgwqDCoMKgwqDCoGMtPnRp
+ZCA9IG5leHRfdGlkKGMtPnRpZCk7DQo+IMKgDQo+IC3CoMKgwqDCoMKgwqDCoGlmIChsb2NrKQ0K
+PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbG9jYWxfdW5sb2NrX2lycXJlc3RvcmUo
+JnMtPmNwdV9zbGFiLT5sb2NrLCBmbGFncyk7DQo+IC0NCj4gLcKgwqDCoMKgwqDCoMKgaWYgKHBh
+Z2UpDQo+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBkZWFjdGl2YXRlX3NsYWIocywg
+cGFnZSwgZnJlZWxpc3QpOw0KPiAtDQo+IC3CoMKgwqDCoMKgwqDCoHN0YXQocywgQ1BVU0xBQl9G
+TFVTSCk7DQo+ICvCoMKgwqDCoMKgwqDCoHJldHVybiBwYWdlOw0KPiDCoH0NCj4gwqANCj4gwqBz
+dGF0aWMgaW5saW5lIHZvaWQgX19mbHVzaF9jcHVfc2xhYihzdHJ1Y3Qga21lbV9jYWNoZSAqcywg
+aW50IGNwdSkNCj4gwqB7DQo+IMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3Qga21lbV9jYWNoZV9jcHUg
+KmMgPSBwZXJfY3B1X3B0cihzLT5jcHVfc2xhYiwgY3B1KTsNCj4gK8KgwqDCoMKgwqDCoMKgc3Ry
+dWN0IHBhZ2UgKnBhZ2U7DQo+ICvCoMKgwqDCoMKgwqDCoHZvaWQgKmZyZWVsaXN0Ow0KPiDCoA0K
+PiAtwqDCoMKgwqDCoMKgwqBpZiAoYy0+cGFnZSkNCj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoGZsdXNoX3NsYWIocywgYywgZmFsc2UpOw0KPiArwqDCoMKgwqDCoMKgwqBpZiAoYy0+
+cGFnZSkgew0KPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcGFnZSA9IF9fZGV0YWNo
+X2NwdV9zbGFiKHMsIGMsICZmcmVlbGlzdCk7DQo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqBkZWFjdGl2YXRlX3NsYWIocywgcGFnZSwgZnJlZWxpc3QpOw0KPiArwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoMKgwqDCoMKgc3RhdChzLCBDUFVTTEFCX0ZMVVNIKTsNCj4gK8KgwqDCoMKgwqDC
+oMKgfQ0KPiDCoA0KPiDCoMKgwqDCoMKgwqDCoMKgdW5mcmVlemVfcGFydGlhbHNfY3B1KHMsIGMp
+Ow0KPiDCoH0NCj4gQEAgLTI2MTgsMTQgKzI2MTMsMjQgQEAgc3RhdGljIHZvaWQgZmx1c2hfY3B1
+X3NsYWIoc3RydWN0IHdvcmtfc3RydWN0ICp3KQ0KPiDCoMKgwqDCoMKgwqDCoMKgc3RydWN0IGtt
+ZW1fY2FjaGUgKnM7DQo+IMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3Qga21lbV9jYWNoZV9jcHUgKmM7
+DQo+IMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3Qgc2x1Yl9mbHVzaF93b3JrICpzZnc7DQo+ICvCoMKg
+wqDCoMKgwqDCoHN0cnVjdCBwYWdlICpwYWdlOw0KPiArwqDCoMKgwqDCoMKgwqB2b2lkICpmcmVl
+bGlzdDsNCj4gK8KgwqDCoMKgwqDCoMKgdW5zaWduZWQgbG9uZyBmbGFnczsNCj4gwqANCj4gwqDC
+oMKgwqDCoMKgwqDCoHNmdyA9IGNvbnRhaW5lcl9vZih3LCBzdHJ1Y3Qgc2x1Yl9mbHVzaF93b3Jr
+LCB3b3JrKTsNCj4gwqANCj4gwqDCoMKgwqDCoMKgwqDCoHMgPSBzZnctPnM7DQo+IMKgwqDCoMKg
+wqDCoMKgwqBjID0gdGhpc19jcHVfcHRyKHMtPmNwdV9zbGFiKTsNCj4gwqANCj4gLcKgwqDCoMKg
+wqDCoMKgaWYgKGMtPnBhZ2UpDQo+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBmbHVz
+aF9zbGFiKHMsIGMsIHRydWUpOw0KPiArwqDCoMKgwqDCoMKgwqBpZiAoYy0+cGFnZSkgew0KPiAr
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbG9jYWxfbG9ja19pcnFzYXZlKCZzLT5jcHVf
+c2xhYi0+bG9jaywgZmxhZ3MpOw0KPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcGFn
+ZSA9IF9fZGV0YWNoX2NwdV9zbGFiKHMsIGMsICZmcmVlbGlzdCk7DQo+ICvCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqBsb2NhbF91bmxvY2tfaXJxcmVzdG9yZSgmcy0+Y3B1X3NsYWItPmxv
+Y2ssIGZsYWdzKTsNCj4gKw0KPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgaWYgKHBh
+Z2UpDQo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZGVh
+Y3RpdmF0ZV9zbGFiKHMsIHBhZ2UsIGZyZWVsaXN0KTsNCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoMKgwqDCoHN0YXQocywgQ1BVU0xBQl9GTFVTSCk7DQo+ICvCoMKgwqDCoMKgwqDCoH0NCj4g
+wqANCj4gwqDCoMKgwqDCoMKgwqDCoHVuZnJlZXplX3BhcnRpYWxzKHMpOw0KPiDCoH0NCg0KVG8g
+bXkgZXllYmFsbHMsIGJlbG93IGR1cGxpY2F0aW9uIG9mIGEgY291cGxlIGxpbmVzIG9mIGluaXRp
+YWxpemF0aW9uDQpuZWVkZWQgYnkgdGhlIGxvY2tsZXNzIGZ1bmN0aW9uIGlzIGxlc3MgaWNreSB0
+aGFuIHRoZSBkb3VibGUgcmV0dXJuLg0KDQotLS0NCiBtbS9zbHViLmMgfCAgIDIzICsrKysrKysr
+KysrKysrLS0tLS0tLS0tDQogMSBmaWxlIGNoYW5nZWQsIDE0IGluc2VydGlvbnMoKyksIDkgZGVs
+ZXRpb25zKC0pDQoNCi0tLSBhL21tL3NsdWIuYw0KKysrIGIvbW0vc2x1Yi5jDQpAQCAtMjU2Niwx
+NSArMjU2NiwxMyBAQCBzdGF0aWMgaW5saW5lIHZvaWQgdW5mcmVlemVfcGFydGlhbHNfY3B1DQog
+DQogI2VuZGlmCS8qIENPTkZJR19TTFVCX0NQVV9QQVJUSUFMICovDQogDQotc3RhdGljIGlubGlu
+ZSB2b2lkIGZsdXNoX3NsYWIoc3RydWN0IGttZW1fY2FjaGUgKnMsIHN0cnVjdCBrbWVtX2NhY2hl
+X2NwdSAqYywNCi0JCQkgICAgICBib29sIGxvY2spDQorc3RhdGljIGlubGluZSB2b2lkIGZsdXNo
+X3NsYWIoc3RydWN0IGttZW1fY2FjaGUgKnMsIHN0cnVjdCBrbWVtX2NhY2hlX2NwdSAqYykNCiB7
+DQogCXVuc2lnbmVkIGxvbmcgZmxhZ3M7DQogCXZvaWQgKmZyZWVsaXN0Ow0KIAlzdHJ1Y3QgcGFn
+ZSAqcGFnZTsNCiANCi0JaWYgKGxvY2spDQotCQlsb2NhbF9sb2NrX2lycXNhdmUoJnMtPmNwdV9z
+bGFiLT5sb2NrLCBmbGFncyk7DQorCWxvY2FsX2xvY2tfaXJxc2F2ZSgmcy0+Y3B1X3NsYWItPmxv
+Y2ssIGZsYWdzKTsNCiANCiAJZnJlZWxpc3QgPSBjLT5mcmVlbGlzdDsNCiAJcGFnZSA9IGMtPnBh
+Z2U7DQpAQCAtMjU4Myw4ICsyNTgxLDcgQEAgc3RhdGljIGlubGluZSB2b2lkIGZsdXNoX3NsYWIo
+c3RydWN0IGttZQ0KIAljLT5mcmVlbGlzdCA9IE5VTEw7DQogCWMtPnRpZCA9IG5leHRfdGlkKGMt
+PnRpZCk7DQogDQotCWlmIChsb2NrKQ0KLQkJbG9jYWxfdW5sb2NrX2lycXJlc3RvcmUoJnMtPmNw
+dV9zbGFiLT5sb2NrLCBmbGFncyk7DQorCWxvY2FsX3VubG9ja19pcnFyZXN0b3JlKCZzLT5jcHVf
+c2xhYi0+bG9jaywgZmxhZ3MpOw0KIA0KIAlpZiAocGFnZSkNCiAJCWRlYWN0aXZhdGVfc2xhYihz
+LCBwYWdlLCBmcmVlbGlzdCk7DQpAQCAtMjU5NSwxMSArMjU5MiwxOSBAQCBzdGF0aWMgaW5saW5l
+IHZvaWQgZmx1c2hfc2xhYihzdHJ1Y3Qga21lDQogc3RhdGljIGlubGluZSB2b2lkIF9fZmx1c2hf
+Y3B1X3NsYWIoc3RydWN0IGttZW1fY2FjaGUgKnMsIGludCBjcHUpDQogew0KIAlzdHJ1Y3Qga21l
+bV9jYWNoZV9jcHUgKmMgPSBwZXJfY3B1X3B0cihzLT5jcHVfc2xhYiwgY3B1KTsNCisJc3RydWN0
+IHBhZ2UgKnBhZ2UgPSBjLT5wYWdlOw0KKwl2b2lkICpmcmVlbGlzdCA9IGMtPmZyZWVsaXN0Ow0K
+IA0KLQlpZiAoYy0+cGFnZSkNCi0JCWZsdXNoX3NsYWIocywgYywgZmFsc2UpOw0KKwljLT5wYWdl
+ID0gTlVMTDsNCisJYy0+ZnJlZWxpc3QgPSBOVUxMOw0KKwljLT50aWQgPSBuZXh0X3RpZChjLT50
+aWQpOw0KKw0KKwlpZiAocGFnZSkNCisJCWRlYWN0aXZhdGVfc2xhYihzLCBwYWdlLCBmcmVlbGlz
+dCk7DQogDQogCXVuZnJlZXplX3BhcnRpYWxzX2NwdShzLCBjKTsNCisNCisJc3RhdChzLCBDUFVT
+TEFCX0ZMVVNIKTsNCiB9DQogDQogc3RydWN0IHNsdWJfZmx1c2hfd29yayB7DQpAQCAtMjYyNSw3
+ICsyNjMwLDcgQEAgc3RhdGljIHZvaWQgZmx1c2hfY3B1X3NsYWIoc3RydWN0IHdvcmtfcw0KIAlj
+ID0gdGhpc19jcHVfcHRyKHMtPmNwdV9zbGFiKTsNCiANCiAJaWYgKGMtPnBhZ2UpDQotCQlmbHVz
+aF9zbGFiKHMsIGMsIHRydWUpOw0KKwkJZmx1c2hfc2xhYihzLCBjKTsNCiANCiAJdW5mcmVlemVf
+cGFydGlhbHMocyk7DQogfQ0KDQo=
