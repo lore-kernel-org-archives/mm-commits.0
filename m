@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F75CC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CF56CC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7CC79610FB
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B96866112F
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236900AbhICU7r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:59:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58696 "EHLO mail.kernel.org"
+        id S1350063AbhICU7t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:59:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58718 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233315AbhICU7q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:59:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 701FD610FB;
-        Fri,  3 Sep 2021 20:58:45 +0000 (UTC)
+        id S1346630AbhICU7s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:59:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E22461107;
+        Fri,  3 Sep 2021 20:58:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702725;
-        bh=COnz8U7HJx/jQsDyi7A/gDYzf0opOnIxSzzmQHAD5ec=;
+        s=korg; t=1630702727;
+        bh=JJElt903fXfbG/GfIbSlPIZ3gbDh0nZONejsQi777zI=;
         h=Date:From:To:Subject:From;
-        b=sM9neJebDoz7AjcwnD3V5o1D15Qd3q3NfocABe4gBOpqijn8th5QZZKnj2WU4ZKbC
-         DAVIZcYO+xa+uOxtcKwY5nM7IUacgwIjMrYkyMFWQwAhxYL6wreYQRLIxdRho+rOnT
-         3cqQ/PNlgHOdM78xp2KGB38AiwMTf/auIYezU5+k=
-Date:   Fri, 03 Sep 2021 13:58:45 -0700
+        b=g+pS63yfhnXEmc+k4O7x2bXsPvKqT1+xgBDgAhcrnOl7gq3fWSWJmwR/HG5ybEHuw
+         6pr948vmKK6GAACpk3wW+BY1IwTodTgaLk4J7wO06KlFKhls/mYzFgM3iITxu/KOtW
+         zSPvTjdtLWSksidKy0u4V+iM/ep3nvLAc5Ju+TD0=
+Date:   Fri, 03 Sep 2021 13:58:47 -0700
 From:   akpm@linux-foundation.org
 To:     bhe@redhat.com, david@redhat.com, mhocko@suse.com,
         mm-commits@vger.kernel.org, ohoono.kwon@samsung.com,
         rppt@linux.ibm.com
 Subject:  [merged]
- mm-sparse-pass-section_nr-to-section_mark_present.patch removed from -mm
- tree
-Message-ID: <20210903205845.-2EbtunZV%akpm@linux-foundation.org>
+ mm-sparse-pass-section_nr-to-find_memory_block.patch removed from -mm tree
+Message-ID: <20210903205847.mSSoSc7pP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,75 +44,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: sparse: pass section_nr to section_mark_present
+     Subject: mm: sparse: pass section_nr to find_memory_block
 has been removed from the -mm tree.  Its filename was
-     mm-sparse-pass-section_nr-to-section_mark_present.patch
+     mm-sparse-pass-section_nr-to-find_memory_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ohhoon Kwon <ohoono.kwon@samsung.com>
-Subject: mm: sparse: pass section_nr to section_mark_present
-
-Patch series "mm: sparse: remove __section_nr() function", v4.
-
-
-This patch (of 3):
+Subject: mm: sparse: pass section_nr to find_memory_block
 
 With CONFIG_SPARSEMEM_EXTREME enabled, __section_nr() which converts
 mem_section to section_nr could be costly since it iterates all section
 roots to check if the given mem_section is in its range.
 
-Since both callers of section_mark_present already know section_nr, let's
-also pass section_nr as well as mem_section in order to reduce costly
-translation.
+On the other hand, __nr_to_section() which converts section_nr to
+mem_section can be done in O(1).
 
-Link: https://lkml.kernel.org/r/20210707150212.855-1-ohoono.kwon@samsung.com
-Link: https://lkml.kernel.org/r/20210707150212.855-2-ohoono.kwon@samsung.com
+Let's pass section_nr instead of mem_section ptr to find_memory_block() in
+order to reduce needless iterations.
+
+Link: https://lkml.kernel.org/r/20210707150212.855-3-ohoono.kwon@samsung.com
 Signed-off-by: Ohhoon Kwon <ohoono.kwon@samsung.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/sparse.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ arch/powerpc/platforms/pseries/hotplug-memory.c |    4 +---
+ drivers/base/memory.c                           |    4 ++--
+ include/linux/memory.h                          |    2 +-
+ 3 files changed, 4 insertions(+), 6 deletions(-)
 
---- a/mm/sparse.c~mm-sparse-pass-section_nr-to-section_mark_present
-+++ a/mm/sparse.c
-@@ -187,10 +187,9 @@ void __meminit mminit_validate_memmodel_
-  * those loops early.
-  */
- unsigned long __highest_present_section_nr;
--static void section_mark_present(struct mem_section *ms)
-+static void __section_mark_present(struct mem_section *ms,
-+		unsigned long section_nr)
+--- a/arch/powerpc/platforms/pseries/hotplug-memory.c~mm-sparse-pass-section_nr-to-find_memory_block
++++ a/arch/powerpc/platforms/pseries/hotplug-memory.c
+@@ -211,13 +211,11 @@ static int update_lmb_associativity_inde
+ static struct memory_block *lmb_to_memblock(struct drmem_lmb *lmb)
  {
--	unsigned long section_nr = __section_nr(ms);
--
- 	if (section_nr > __highest_present_section_nr)
- 		__highest_present_section_nr = section_nr;
+ 	unsigned long section_nr;
+-	struct mem_section *mem_sect;
+ 	struct memory_block *mem_block;
  
-@@ -280,7 +279,7 @@ static void __init memory_present(int ni
- 		if (!ms->section_mem_map) {
- 			ms->section_mem_map = sparse_encode_early_nid(nid) |
- 							SECTION_IS_ONLINE;
--			section_mark_present(ms);
-+			__section_mark_present(ms, section);
- 		}
- 	}
+ 	section_nr = pfn_to_section_nr(PFN_DOWN(lmb->base_addr));
+-	mem_sect = __nr_to_section(section_nr);
+ 
+-	mem_block = find_memory_block(mem_sect);
++	mem_block = find_memory_block(section_nr);
+ 	return mem_block;
  }
-@@ -934,7 +933,7 @@ int __meminit sparse_add_section(int nid
  
- 	ms = __nr_to_section(section_nr);
- 	set_section_nid(section_nr, nid);
--	section_mark_present(ms);
-+	__section_mark_present(ms, section_nr);
+--- a/drivers/base/memory.c~mm-sparse-pass-section_nr-to-find_memory_block
++++ a/drivers/base/memory.c
+@@ -578,9 +578,9 @@ static struct memory_block *find_memory_
+ /*
+  * Called under device_hotplug_lock.
+  */
+-struct memory_block *find_memory_block(struct mem_section *section)
++struct memory_block *find_memory_block(unsigned long section_nr)
+ {
+-	unsigned long block_id = memory_block_id(__section_nr(section));
++	unsigned long block_id = memory_block_id(section_nr);
  
- 	/* Align memmap to section boundary in the subsection case */
- 	if (section_nr_to_pfn(section_nr) != start_pfn)
+ 	return find_memory_block_by_id(block_id);
+ }
+--- a/include/linux/memory.h~mm-sparse-pass-section_nr-to-find_memory_block
++++ a/include/linux/memory.h
+@@ -90,7 +90,7 @@ int create_memory_block_devices(unsigned
+ void remove_memory_block_devices(unsigned long start, unsigned long size);
+ extern void memory_dev_init(void);
+ extern int memory_notify(unsigned long val, void *v);
+-extern struct memory_block *find_memory_block(struct mem_section *);
++extern struct memory_block *find_memory_block(unsigned long section_nr);
+ typedef int (*walk_memory_blocks_func_t)(struct memory_block *, void *);
+ extern int walk_memory_blocks(unsigned long start, unsigned long size,
+ 			      void *arg, walk_memory_blocks_func_t func);
 _
 
 Patches currently in -mm which might be from ohoono.kwon@samsung.com are
