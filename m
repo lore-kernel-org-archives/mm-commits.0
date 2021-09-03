@@ -2,39 +2,66 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
-	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
-	SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.9 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,NICE_REPLY_A,
+	SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1 autolearn=no autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 617CEC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 06:22:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 617DEC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 07:03:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 433F7601FA
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 06:22:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44B7360F9C
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 07:03:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234650AbhICGX3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 02:23:29 -0400
-Received: from mout.gmx.net ([212.227.17.21]:58503 "EHLO mout.gmx.net"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230128AbhICGX2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 02:23:28 -0400
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=gmx.net;
-        s=badeba3b8450; t=1630650122;
-        bh=/bRw5YCQ4IWd0Lr2JjxHBW07ew2K//uXjYchUwdJ9to=;
-        h=X-UI-Sender-Class:Subject:From:To:Cc:Date:In-Reply-To:References;
-        b=QsQTVGQyquryKg0hvlJAkN9QMuB0A2QatSOzfDo7sRX/a19gF9dOjYHzWYUwmANNa
-         LPMGI3UOU6uLMIg7wGdsflQ5aemEMr3Luxv+xIF7p2C0nGN7KCi2Oib0Mm1kgUvcNa
-         +xRCL0Ns/27OCwn/6i3sHCL/8G/PqZnzZwvjr5Bc=
-X-UI-Sender-Class: 01bb95c1-4bf8-414a-932a-4f6e2808ef9c
-Received: from homer.fritz.box ([185.191.218.121]) by mail.gmx.net (mrgmx105
- [212.227.17.168]) with ESMTPSA (Nemesis) id 1MOiDX-1mcqmr0jdv-00QAjI; Fri, 03
- Sep 2021 08:22:02 +0200
-Message-ID: <d406ebb42fb9914d1a6f2fe9f26bf083612ec796.camel@gmx.de>
-Subject: Re: [patch 036/212] mm, slab: make flush_slab() possible to call
- with irqs enabled
-From:   Mike Galbraith <efault@gmx.de>
-To:     Vlastimil Babka <vbabka@suse.cz>,
+        id S1347516AbhICHE4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 03:04:56 -0400
+Received: from smtp-out1.suse.de ([195.135.220.28]:48152 "EHLO
+        smtp-out1.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1347087AbhICHE4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2021 03:04:56 -0400
+Received: from imap1.suse-dmz.suse.de (imap1.suse-dmz.suse.de [192.168.254.73])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out1.suse.de (Postfix) with ESMTPS id 17FA9221B3;
+        Fri,  3 Sep 2021 07:03:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+        t=1630652636; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=CAm+yUedEll3+jHg2E06Q7Z+88FC6ohCxlncYCLEcyU=;
+        b=WefZjKOf+O9R18/jcRSs0PCVxvgnLWzPaWetD+9iY5KHvqGVrllQ2zFCDS/X2C/HPjQUIt
+        xP8nj1eNCPObzunyJPHy+wZNQPLahb3L8S87J0gO1EjTtStUrdMhM9IxdSc4yaFTpWADKC
+        LztSCUNKtOWVXRm2EMQ1qBuKdydQoPg=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+        s=susede2_ed25519; t=1630652636;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=CAm+yUedEll3+jHg2E06Q7Z+88FC6ohCxlncYCLEcyU=;
+        b=NS/PJbwHl+g9xNqobzNEW8v9Xcwt2keS7cA5ECHqmnDtRtq6MMAl00aV6ZIL7zGOJPSPKU
+        0fztORjoehoRFgDg==
+Received: from imap1.suse-dmz.suse.de (imap1.suse-dmz.suse.de [192.168.254.73])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap1.suse-dmz.suse.de (Postfix) with ESMTPS id AD260136BF;
+        Fri,  3 Sep 2021 07:03:55 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap1.suse-dmz.suse.de with ESMTPSA
+        id M8n3KNvIMWFgXAAAGKfGzw
+        (envelope-from <vbabka@suse.cz>); Fri, 03 Sep 2021 07:03:55 +0000
+Message-ID: <4d2bdf47-618e-40cd-d7c2-4a06a4b28335@suse.cz>
+Date:   Fri, 3 Sep 2021 09:03:55 +0200
+MIME-Version: 1.0
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.0.3
+Subject: Re: [patch 036/212] mm, slab: make flush_slab() possible to call with
+ irqs enabled
+Content-Language: en-US
+To:     Mike Galbraith <efault@gmx.de>,
         Linus Torvalds <torvalds@linux-foundation.org>,
         Andrew Morton <akpm@linux-foundation.org>
 Cc:     Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
@@ -46,139 +73,38 @@ Cc:     Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
         mm-commits@vger.kernel.org, Pekka Enberg <penberg@kernel.org>,
         David Rientjes <rientjes@google.com>,
         Thomas Gleixner <tglx@linutronix.de>
-Date:   Fri, 03 Sep 2021 08:22:00 +0200
-In-Reply-To: <ec75906a-bf4d-cad0-dd66-cdf2b7d35b1e@suse.cz>
 References: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
-         <20210902215152.ibWfL_bvd%akpm@linux-foundation.org>
-         <CAHk-=wiJLqL2cUhJbvpyPQpkbVOu1rVSzgO2=S2jC55hneLtfQ@mail.gmail.com>
-         <CAHk-=wiz+vp1k1Ag+fD57P4ehOpTAc=A9zT7YbGENUu57azeuQ@mail.gmail.com>
-         <CAHk-=wiX77e3G-cOP+OLPzf8krQXgyiz7PikurJYa0fsDhS34Q@mail.gmail.com>
-         <ec75906a-bf4d-cad0-dd66-cdf2b7d35b1e@suse.cz>
-Content-Type: text/plain; charset="UTF-8"
-User-Agent: Evolution 3.41.2 
-MIME-Version: 1.0
-Content-Transfer-Encoding: base64
-X-Provags-ID: V03:K1:UmzXKmky+y5uZNqN9fv6AR+XGeCnotJgxpUgJgxFNOU08OS6IiH
- tjslqlYACkz/1f5WwG0B4B/bU+bkoWnm+lBbVj3T0K6Mr8topJ1JYiAiTlZSgrcMWpsrRu/
- cDZyRq7brDS5USjdZlQsrumMoA0KwLQfEtxuTWrQ/JrfFRfT8lShI5yKryhnk2hNCRM0kmh
- q/PTB5/9jjz1KTsXx3svQ==
-X-UI-Out-Filterresults: notjunk:1;V03:K0:Qa+1k7Ssp6g=:w9yPMU3g+fVB3I45Xuc3lZ
- YVWeV6oxOerwbQj68Jfak+EHpNEcrX+fNY7OzSzVV0IPL55SwuDb/08w5ADIqdtEugnMAAF4S
- ZWFGpLWeKifZG4HD4TpDmsPT3CU1noxsQL06BjawY0/oiFH7oe69I2oW5MZpp6ZJsHAezvk8N
- EYFV/B/isySxLrusIsyqrFkaLASBnYVhwl9nI2ulsqDN6cOZPhonPhopiZ6kkJ5M1KwhtxLtk
- he4EsuEeV+K9AX1eK/ZXBNrJKeXS+6KNNgVPDkE4dqDAoWGpSz1bsxzOW9JoE4sZf2wPYxIox
- qaoXmWbbWz+5VXTc1r3Ug2Sf2QOOF/e9iRPO2SYLWZL3FU7SOyc8Z0qi9Tu/lZRPGa+3CLZ0E
- v18tHLIFEJD9VH5Q4KiwTyjHS5aEYID6pWJGAvmFsv8qrcGw3lLh0rUfqiNzPaFYw4cSVeprI
- IYtae/UdeYPXmxhfGIK7DDMlIgIkPRLY0krQPTCLmM6rZYVZF0uRCAYLD+HzkgG4aYIO49rSz
- 2FJhDT2VW4sINKH6N45dtjgJVyMcyW/EQOX2dbknMtMjq16IPRjttoic0rtNus4h7V51LaUlE
- HMAMJt1zbAI4/9imnFYevMjM7x6CXEs3+eTfjddK0H+eLfdKfNFViz3bLVO2XixN8BJFR/+ps
- 124WENGZhIGMkSi9eUF7us96fb17fqqOt9zPj+XvrUFClLJ4qD4aGdBQKrx8GV0rJHBSV6pja
- Ggoj3jdaFHUcMNoSn5kkKocxhzu0D68Cw2sR4g8RfBW1dIgYlxaWsZqDkmGcNeWsT9R+XWNVJ
- OBntPIOqtadHMAYbmB1+sCd7bHnQ5g4YCJ+QlVrcatgROUXLpmUPyfH5/t78CdeQwylCScitf
- 7HouDbyPdTQALJOcvx8L3t4oj8IQoGkMMigirc10U3v1N7o+qcmpHs+KChiNUGGcuT0BaDj/Q
- ETH8W+dM/Vv5z/l6rB4j153FV8mWhE9rbk+NbjBaZVWmJ2kBQeP+r8eHAcc3qZqz4d7prploM
- nFog82SkU0uBOczA2KH0ynJCXkPSepSCRvFDn//BfK1G6qcHRWPF+pupNbumqgeghov6Vj1qX
- /5i7rynVLFj/kpgjKqyC3K9j0w2ejf9tHrC
+ <20210902215152.ibWfL_bvd%akpm@linux-foundation.org>
+ <CAHk-=wiJLqL2cUhJbvpyPQpkbVOu1rVSzgO2=S2jC55hneLtfQ@mail.gmail.com>
+ <CAHk-=wiz+vp1k1Ag+fD57P4ehOpTAc=A9zT7YbGENUu57azeuQ@mail.gmail.com>
+ <CAHk-=wiX77e3G-cOP+OLPzf8krQXgyiz7PikurJYa0fsDhS34Q@mail.gmail.com>
+ <ec75906a-bf4d-cad0-dd66-cdf2b7d35b1e@suse.cz>
+ <d406ebb42fb9914d1a6f2fe9f26bf083612ec796.camel@gmx.de>
+From:   Vlastimil Babka <vbabka@suse.cz>
+In-Reply-To: <d406ebb42fb9914d1a6f2fe9f26bf083612ec796.camel@gmx.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-PiA+IHNvIHRoYXQgd2hlbiB5b3UgcmVhZCB0aGF0IGZ1bmN0aW9uIG9uIGl0cyBvd24sIGl0J3Mg
-Y2xlYXIgdGhhdCB0aGUNCj4gPiBsb2NrIGlzIGFsd2F5cyBoZWxkIG92ZXIgdGhhdCBjcml0aWNh
-bCBzZWN0aW9uIC0gYW5kIHRoZSBpc3N1ZSBpcyB0aGF0DQo+ID4gcGVyaGFwcyB0aGUgbG9jayB3
-YXMgYWxyZWFkeSB0YWtlbiBieSB0aGUgY2FsbGVyLg0KPiANCj4gQWN0dWFsbHkgdGhhdCAiYWxy
-ZWFkeSB0YWtlbiIgYmVjb21lcyAiY2FsbGVyIGRvZXMgbm90IG5lZWQgaXQvY2FuJ3QNCj4gZXZl
-biB0YWtlIHRoZSBsb2NhbCBsb2NrIGFzIGl0J3Mgbm90IGxvY2FsIiAoaXQncyBhIGNwdSBob3Qg
-cmVtb3ZlDQo+IGhhbmRsZXIgb24gYmVoYWxmIG9mIGFub3RoZXIsIGRlYWQgY3B1KS4NCj4gDQo+
-IFNvIHdvdWxkIGl0IHdvcmsgd2l0aCBzb21ldGhpbmcgbGlrZSB0aGUgZm9sbG93aW5nIGNsZWFu
-dXAgb24gdG9wIGxhdGVyDQo+IGFmdGVyIHByb3BlciB0ZXN0aW5nPyAobm93IGp1c3QgY29tcGls
-ZSB0ZXN0ZWQpLg0KDQpTY3JvbGwgZG93bndhcmQuLi4NCg0KPiAtLS04PC0tLQ0KPiBkaWZmIC0t
-Z2l0IGEvbW0vc2x1Yi5jIGIvbW0vc2x1Yi5jDQo+IGluZGV4IGRmMWFjOGFmZjg2Zi4uMGQ5ZTYz
-ZTkxOGYxIDEwMDY0NA0KPiAtLS0gYS9tbS9zbHViLmMNCj4gKysrIGIvbW0vc2x1Yi5jDQo+IEBA
-IC0yNTY2LDM4ICsyNTY2LDMzIEBAIHN0YXRpYyBpbmxpbmUgdm9pZCB1bmZyZWV6ZV9wYXJ0aWFs
-c19jcHUoc3RydWN0IGttZW1fY2FjaGUgKnMsDQo+IMKgDQo+IMKgI2VuZGlmwqAvKiBDT05GSUdf
-U0xVQl9DUFVfUEFSVElBTCAqLw0KPiDCoA0KPiAtc3RhdGljIGlubGluZSB2b2lkIGZsdXNoX3Ns
-YWIoc3RydWN0IGttZW1fY2FjaGUgKnMsIHN0cnVjdCBrbWVtX2NhY2hlX2NwdSAqYywNCj4gLcKg
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIGJv
-b2wgbG9jaykNCj4gK3N0YXRpYyBpbmxpbmUgc3RydWN0IHBhZ2UgKg0KPiArX19kZXRhY2hfY3B1
-X3NsYWIoc3RydWN0IGttZW1fY2FjaGUgKnMsIHN0cnVjdCBrbWVtX2NhY2hlX2NwdSAqYywNCj4g
-K8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgIHZvaWQgKipmcmVlbGlzdCkNCj4gwqB7
-DQo+IC3CoMKgwqDCoMKgwqDCoHVuc2lnbmVkIGxvbmcgZmxhZ3M7DQo+IC3CoMKgwqDCoMKgwqDC
-oHZvaWQgKmZyZWVsaXN0Ow0KPiDCoMKgwqDCoMKgwqDCoMKgc3RydWN0IHBhZ2UgKnBhZ2U7DQo+
-IMKgDQo+IC3CoMKgwqDCoMKgwqDCoGlmIChsb2NrKQ0KPiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgbG9jYWxfbG9ja19pcnFzYXZlKCZzLT5jcHVfc2xhYi0+bG9jaywgZmxhZ3MpOw0K
-PiAtDQo+IC3CoMKgwqDCoMKgwqDCoGZyZWVsaXN0ID0gYy0+ZnJlZWxpc3Q7DQo+IMKgwqDCoMKg
-wqDCoMKgwqBwYWdlID0gYy0+cGFnZTsNCj4gK8KgwqDCoMKgwqDCoMKgKmZyZWVsaXN0ID0gYy0+
-ZnJlZWxpc3Q7DQo+IMKgDQo+IMKgwqDCoMKgwqDCoMKgwqBjLT5wYWdlID0gTlVMTDsNCj4gwqDC
-oMKgwqDCoMKgwqDCoGMtPmZyZWVsaXN0ID0gTlVMTDsNCj4gwqDCoMKgwqDCoMKgwqDCoGMtPnRp
-ZCA9IG5leHRfdGlkKGMtPnRpZCk7DQo+IMKgDQo+IC3CoMKgwqDCoMKgwqDCoGlmIChsb2NrKQ0K
-PiAtwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbG9jYWxfdW5sb2NrX2lycXJlc3RvcmUo
-JnMtPmNwdV9zbGFiLT5sb2NrLCBmbGFncyk7DQo+IC0NCj4gLcKgwqDCoMKgwqDCoMKgaWYgKHBh
-Z2UpDQo+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBkZWFjdGl2YXRlX3NsYWIocywg
-cGFnZSwgZnJlZWxpc3QpOw0KPiAtDQo+IC3CoMKgwqDCoMKgwqDCoHN0YXQocywgQ1BVU0xBQl9G
-TFVTSCk7DQo+ICvCoMKgwqDCoMKgwqDCoHJldHVybiBwYWdlOw0KPiDCoH0NCj4gwqANCj4gwqBz
-dGF0aWMgaW5saW5lIHZvaWQgX19mbHVzaF9jcHVfc2xhYihzdHJ1Y3Qga21lbV9jYWNoZSAqcywg
-aW50IGNwdSkNCj4gwqB7DQo+IMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3Qga21lbV9jYWNoZV9jcHUg
-KmMgPSBwZXJfY3B1X3B0cihzLT5jcHVfc2xhYiwgY3B1KTsNCj4gK8KgwqDCoMKgwqDCoMKgc3Ry
-dWN0IHBhZ2UgKnBhZ2U7DQo+ICvCoMKgwqDCoMKgwqDCoHZvaWQgKmZyZWVsaXN0Ow0KPiDCoA0K
-PiAtwqDCoMKgwqDCoMKgwqBpZiAoYy0+cGFnZSkNCj4gLcKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoGZsdXNoX3NsYWIocywgYywgZmFsc2UpOw0KPiArwqDCoMKgwqDCoMKgwqBpZiAoYy0+
-cGFnZSkgew0KPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcGFnZSA9IF9fZGV0YWNo
-X2NwdV9zbGFiKHMsIGMsICZmcmVlbGlzdCk7DQo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
-oMKgwqBkZWFjdGl2YXRlX3NsYWIocywgcGFnZSwgZnJlZWxpc3QpOw0KPiArwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoMKgwqDCoMKgc3RhdChzLCBDUFVTTEFCX0ZMVVNIKTsNCj4gK8KgwqDCoMKgwqDC
-oMKgfQ0KPiDCoA0KPiDCoMKgwqDCoMKgwqDCoMKgdW5mcmVlemVfcGFydGlhbHNfY3B1KHMsIGMp
-Ow0KPiDCoH0NCj4gQEAgLTI2MTgsMTQgKzI2MTMsMjQgQEAgc3RhdGljIHZvaWQgZmx1c2hfY3B1
-X3NsYWIoc3RydWN0IHdvcmtfc3RydWN0ICp3KQ0KPiDCoMKgwqDCoMKgwqDCoMKgc3RydWN0IGtt
-ZW1fY2FjaGUgKnM7DQo+IMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3Qga21lbV9jYWNoZV9jcHUgKmM7
-DQo+IMKgwqDCoMKgwqDCoMKgwqBzdHJ1Y3Qgc2x1Yl9mbHVzaF93b3JrICpzZnc7DQo+ICvCoMKg
-wqDCoMKgwqDCoHN0cnVjdCBwYWdlICpwYWdlOw0KPiArwqDCoMKgwqDCoMKgwqB2b2lkICpmcmVl
-bGlzdDsNCj4gK8KgwqDCoMKgwqDCoMKgdW5zaWduZWQgbG9uZyBmbGFnczsNCj4gwqANCj4gwqDC
-oMKgwqDCoMKgwqDCoHNmdyA9IGNvbnRhaW5lcl9vZih3LCBzdHJ1Y3Qgc2x1Yl9mbHVzaF93b3Jr
-LCB3b3JrKTsNCj4gwqANCj4gwqDCoMKgwqDCoMKgwqDCoHMgPSBzZnctPnM7DQo+IMKgwqDCoMKg
-wqDCoMKgwqBjID0gdGhpc19jcHVfcHRyKHMtPmNwdV9zbGFiKTsNCj4gwqANCj4gLcKgwqDCoMKg
-wqDCoMKgaWYgKGMtPnBhZ2UpDQo+IC3CoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqBmbHVz
-aF9zbGFiKHMsIGMsIHRydWUpOw0KPiArwqDCoMKgwqDCoMKgwqBpZiAoYy0+cGFnZSkgew0KPiAr
-wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgbG9jYWxfbG9ja19pcnFzYXZlKCZzLT5jcHVf
-c2xhYi0+bG9jaywgZmxhZ3MpOw0KPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgcGFn
-ZSA9IF9fZGV0YWNoX2NwdV9zbGFiKHMsIGMsICZmcmVlbGlzdCk7DQo+ICvCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoMKgwqBsb2NhbF91bmxvY2tfaXJxcmVzdG9yZSgmcy0+Y3B1X3NsYWItPmxv
-Y2ssIGZsYWdzKTsNCj4gKw0KPiArwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgaWYgKHBh
-Z2UpDQo+ICvCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgZGVh
-Y3RpdmF0ZV9zbGFiKHMsIHBhZ2UsIGZyZWVsaXN0KTsNCj4gK8KgwqDCoMKgwqDCoMKgwqDCoMKg
-wqDCoMKgwqDCoHN0YXQocywgQ1BVU0xBQl9GTFVTSCk7DQo+ICvCoMKgwqDCoMKgwqDCoH0NCj4g
-wqANCj4gwqDCoMKgwqDCoMKgwqDCoHVuZnJlZXplX3BhcnRpYWxzKHMpOw0KPiDCoH0NCg0KVG8g
-bXkgZXllYmFsbHMsIGJlbG93IGR1cGxpY2F0aW9uIG9mIGEgY291cGxlIGxpbmVzIG9mIGluaXRp
-YWxpemF0aW9uDQpuZWVkZWQgYnkgdGhlIGxvY2tsZXNzIGZ1bmN0aW9uIGlzIGxlc3MgaWNreSB0
-aGFuIHRoZSBkb3VibGUgcmV0dXJuLg0KDQotLS0NCiBtbS9zbHViLmMgfCAgIDIzICsrKysrKysr
-KysrKysrLS0tLS0tLS0tDQogMSBmaWxlIGNoYW5nZWQsIDE0IGluc2VydGlvbnMoKyksIDkgZGVs
-ZXRpb25zKC0pDQoNCi0tLSBhL21tL3NsdWIuYw0KKysrIGIvbW0vc2x1Yi5jDQpAQCAtMjU2Niwx
-NSArMjU2NiwxMyBAQCBzdGF0aWMgaW5saW5lIHZvaWQgdW5mcmVlemVfcGFydGlhbHNfY3B1DQog
-DQogI2VuZGlmCS8qIENPTkZJR19TTFVCX0NQVV9QQVJUSUFMICovDQogDQotc3RhdGljIGlubGlu
-ZSB2b2lkIGZsdXNoX3NsYWIoc3RydWN0IGttZW1fY2FjaGUgKnMsIHN0cnVjdCBrbWVtX2NhY2hl
-X2NwdSAqYywNCi0JCQkgICAgICBib29sIGxvY2spDQorc3RhdGljIGlubGluZSB2b2lkIGZsdXNo
-X3NsYWIoc3RydWN0IGttZW1fY2FjaGUgKnMsIHN0cnVjdCBrbWVtX2NhY2hlX2NwdSAqYykNCiB7
-DQogCXVuc2lnbmVkIGxvbmcgZmxhZ3M7DQogCXZvaWQgKmZyZWVsaXN0Ow0KIAlzdHJ1Y3QgcGFn
-ZSAqcGFnZTsNCiANCi0JaWYgKGxvY2spDQotCQlsb2NhbF9sb2NrX2lycXNhdmUoJnMtPmNwdV9z
-bGFiLT5sb2NrLCBmbGFncyk7DQorCWxvY2FsX2xvY2tfaXJxc2F2ZSgmcy0+Y3B1X3NsYWItPmxv
-Y2ssIGZsYWdzKTsNCiANCiAJZnJlZWxpc3QgPSBjLT5mcmVlbGlzdDsNCiAJcGFnZSA9IGMtPnBh
-Z2U7DQpAQCAtMjU4Myw4ICsyNTgxLDcgQEAgc3RhdGljIGlubGluZSB2b2lkIGZsdXNoX3NsYWIo
-c3RydWN0IGttZQ0KIAljLT5mcmVlbGlzdCA9IE5VTEw7DQogCWMtPnRpZCA9IG5leHRfdGlkKGMt
-PnRpZCk7DQogDQotCWlmIChsb2NrKQ0KLQkJbG9jYWxfdW5sb2NrX2lycXJlc3RvcmUoJnMtPmNw
-dV9zbGFiLT5sb2NrLCBmbGFncyk7DQorCWxvY2FsX3VubG9ja19pcnFyZXN0b3JlKCZzLT5jcHVf
-c2xhYi0+bG9jaywgZmxhZ3MpOw0KIA0KIAlpZiAocGFnZSkNCiAJCWRlYWN0aXZhdGVfc2xhYihz
-LCBwYWdlLCBmcmVlbGlzdCk7DQpAQCAtMjU5NSwxMSArMjU5MiwxOSBAQCBzdGF0aWMgaW5saW5l
-IHZvaWQgZmx1c2hfc2xhYihzdHJ1Y3Qga21lDQogc3RhdGljIGlubGluZSB2b2lkIF9fZmx1c2hf
-Y3B1X3NsYWIoc3RydWN0IGttZW1fY2FjaGUgKnMsIGludCBjcHUpDQogew0KIAlzdHJ1Y3Qga21l
-bV9jYWNoZV9jcHUgKmMgPSBwZXJfY3B1X3B0cihzLT5jcHVfc2xhYiwgY3B1KTsNCisJc3RydWN0
-IHBhZ2UgKnBhZ2UgPSBjLT5wYWdlOw0KKwl2b2lkICpmcmVlbGlzdCA9IGMtPmZyZWVsaXN0Ow0K
-IA0KLQlpZiAoYy0+cGFnZSkNCi0JCWZsdXNoX3NsYWIocywgYywgZmFsc2UpOw0KKwljLT5wYWdl
-ID0gTlVMTDsNCisJYy0+ZnJlZWxpc3QgPSBOVUxMOw0KKwljLT50aWQgPSBuZXh0X3RpZChjLT50
-aWQpOw0KKw0KKwlpZiAocGFnZSkNCisJCWRlYWN0aXZhdGVfc2xhYihzLCBwYWdlLCBmcmVlbGlz
-dCk7DQogDQogCXVuZnJlZXplX3BhcnRpYWxzX2NwdShzLCBjKTsNCisNCisJc3RhdChzLCBDUFVT
-TEFCX0ZMVVNIKTsNCiB9DQogDQogc3RydWN0IHNsdWJfZmx1c2hfd29yayB7DQpAQCAtMjYyNSw3
-ICsyNjMwLDcgQEAgc3RhdGljIHZvaWQgZmx1c2hfY3B1X3NsYWIoc3RydWN0IHdvcmtfcw0KIAlj
-ID0gdGhpc19jcHVfcHRyKHMtPmNwdV9zbGFiKTsNCiANCiAJaWYgKGMtPnBhZ2UpDQotCQlmbHVz
-aF9zbGFiKHMsIGMsIHRydWUpOw0KKwkJZmx1c2hfc2xhYihzLCBjKTsNCiANCiAJdW5mcmVlemVf
-cGFydGlhbHMocyk7DQogfQ0KDQo=
+On 9/3/21 08:22, Mike Galbraith wrote:
+>> > so that when you read that function on its own, it's clear that the
+>> > lock is always held over that critical section - and the issue is that
+>> > perhaps the lock was already taken by the caller.
+>> 
+>> Actually that "already taken" becomes "caller does not need it/can't
+
+Meant to say "... later in the series becomes ...".
+
+>> even take the local lock as it's not local" (it's a cpu hot remove
+>> handler on behalf of another, dead cpu).
+>> 
+>> So would it work with something like the following cleanup on top later
+>> after proper testing? (now just compile tested).
+> 
+> To my eyeballs, below duplication of a couple lines of initialization
+> needed by the lockless function is less icky than the double return.
+
+Yeah, that's better, thanks Mike.
