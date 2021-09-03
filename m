@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8767EC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 456E0C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7512A610CC
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3100B610CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350002AbhICVCp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:02:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33068 "EHLO mail.kernel.org"
+        id S235751AbhICVCu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:02:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33092 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235821AbhICVCo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:02:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 81E9E60EE3;
-        Fri,  3 Sep 2021 21:01:44 +0000 (UTC)
+        id S231599AbhICVCq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:02:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D54060E8B;
+        Fri,  3 Sep 2021 21:01:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702904;
-        bh=Qi8NsuL4RPV4lEs616EOt1bOUbo8A0ygheu03Fbar4E=;
+        s=korg; t=1630702906;
+        bh=4L3i9giC1VcFBPJSVxWfElC7NpbChkk3APBHdt6hTOU=;
         h=Date:From:To:Subject:From;
-        b=XmqV+ZvQwDow5740SRBpKpon6IG4uJuv+0jK91wxl4HyyEM1A7BiTjDPL7A1jYupe
-         rFAZu6PFyLLQidEkVDnP861Bq0xW2hC5Na2Fn2IAi7cX2ZUwUIiKc1bneni8ADDTpO
-         g79QXgxQgcJTUfjJWcTa5zNtH+OhOtjo6ugFikHY=
-Date:   Fri, 03 Sep 2021 14:01:44 -0700
+        b=TujU0TU8TXe6o7Cv4030Hz3+At4gu4xUi5gpgqwoq9efuGB3TRX7KbtIpYfdUBsVw
+         Jk466cGR8ZAz3av9Rip+6KlMh0PX1QYHIUtUtR38BDxIK9s2A1ltJIJd54wVzR9qsY
+         PEPGJNxPmtH0suY77rL2KsDFMT6gCCSkrSgHGAU0=
+Date:   Fri, 03 Sep 2021 14:01:46 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
-Subject:  [merged]
- mm-vmstat-simplify-the-array-size-calculation.patch removed from -mm tree
-Message-ID: <20210903210144.7Rao40OQj%akpm@linux-foundation.org>
+Subject:  [merged] mm-vmstat-remove-unneeded-return-value.patch
+ removed from -mm tree
+Message-ID: <20210903210146.2OSv63qpv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,51 +42,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmstat: simplify the array size calculation
+     Subject: mm/vmstat: remove unneeded return value
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-simplify-the-array-size-calculation.patch
+     mm-vmstat-remove-unneeded-return-value.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/vmstat: simplify the array size calculation
+Subject: mm/vmstat: remove unneeded return value
 
-We can replace the array_num * sizeof(array[0]) with sizeof(array) to
-simplify the code.
+The return value of pagetypeinfo_showfree and pagetypeinfo_showblockcount
+are unused now.  Remove them.
 
-Link: https://lkml.kernel.org/r/20210715122911.15700-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210715122911.15700-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/vmstat.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
---- a/mm/vmstat.c~mm-vmstat-simplify-the-array-size-calculation
+--- a/mm/vmstat.c~mm-vmstat-remove-unneeded-return-value
 +++ a/mm/vmstat.c
-@@ -1891,17 +1891,15 @@ static bool need_update(int cpu)
- 		/*
- 		 * The fast way of checking if there are any vmstat diffs.
- 		 */
--		if (memchr_inv(pzstats->vm_stat_diff, 0, NR_VM_ZONE_STAT_ITEMS *
--			       sizeof(pzstats->vm_stat_diff[0])))
-+		if (memchr_inv(pzstats->vm_stat_diff, 0, sizeof(pzstats->vm_stat_diff)))
- 			return true;
- 
- 		if (last_pgdat == zone->zone_pgdat)
- 			continue;
- 		last_pgdat = zone->zone_pgdat;
- 		n = per_cpu_ptr(zone->zone_pgdat->per_cpu_nodestats, cpu);
--		if (memchr_inv(n->vm_node_stat_diff, 0, NR_VM_NODE_STAT_ITEMS *
--			       sizeof(n->vm_node_stat_diff[0])))
--		    return true;
-+		if (memchr_inv(n->vm_node_stat_diff, 0, sizeof(n->vm_node_stat_diff)))
-+			return true;
- 	}
- 	return false;
+@@ -1454,7 +1454,7 @@ static void pagetypeinfo_showfree_print(
  }
+ 
+ /* Print out the free pages at each order for each migatetype */
+-static int pagetypeinfo_showfree(struct seq_file *m, void *arg)
++static void pagetypeinfo_showfree(struct seq_file *m, void *arg)
+ {
+ 	int order;
+ 	pg_data_t *pgdat = (pg_data_t *)arg;
+@@ -1466,8 +1466,6 @@ static int pagetypeinfo_showfree(struct
+ 	seq_putc(m, '\n');
+ 
+ 	walk_zones_in_node(m, pgdat, true, false, pagetypeinfo_showfree_print);
+-
+-	return 0;
+ }
+ 
+ static void pagetypeinfo_showblockcount_print(struct seq_file *m,
+@@ -1503,7 +1501,7 @@ static void pagetypeinfo_showblockcount_
+ }
+ 
+ /* Print out the number of pageblocks for each migratetype */
+-static int pagetypeinfo_showblockcount(struct seq_file *m, void *arg)
++static void pagetypeinfo_showblockcount(struct seq_file *m, void *arg)
+ {
+ 	int mtype;
+ 	pg_data_t *pgdat = (pg_data_t *)arg;
+@@ -1514,8 +1512,6 @@ static int pagetypeinfo_showblockcount(s
+ 	seq_putc(m, '\n');
+ 	walk_zones_in_node(m, pgdat, true, false,
+ 		pagetypeinfo_showblockcount_print);
+-
+-	return 0;
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
