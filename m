@@ -7,33 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA9E3C4332F
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 404BFC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8B67F610F9
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 27A2660E9B
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350270AbhICU5w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:57:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56616 "EHLO mail.kernel.org"
+        id S231599AbhICU5x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:57:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56660 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231599AbhICU5o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:57:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 80D8960E9B;
-        Fri,  3 Sep 2021 20:56:44 +0000 (UTC)
+        id S1350231AbhICU5s (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:57:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B2C0610E8;
+        Fri,  3 Sep 2021 20:56:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702604;
-        bh=Ayr2ktMM3inS7ZwFH8h8hfOjFlt0wSTe7dvh7JDwcPA=;
+        s=korg; t=1630702608;
+        bh=BLsjoWqPmj/DCEaWB5UHg2DRFXOa9ehn6w47WPMcR3k=;
         h=Date:From:To:Subject:From;
-        b=y8BOYOxjdiwItoAqdM0S63uKmfn6HzdVPquRreM3sjxFyQlxe9dNrBlM2/7RGnDv/
-         vLhA5l/tBIETKPdfCzQD8GxRy/f2W03xEuWGl1hTAllZbf/iw9bXSw+KBsnebZqTeC
-         uJVv1PUQsTWfznuOFOk61GIBSS6LraGpKcNojSAw=
-Date:   Fri, 03 Sep 2021 13:56:44 -0700
+        b=kwKB4G8Fv67ZTRnN47jKa8RVUHIptTzT6b4GTRJ3jYe0jUF1nFyDRZWd0Ye9lcnde
+         3cUGI4kYc+cHdbzG96DT00+LkTd1t2V170CSNHTh6pT2wklayY6xevdHxWHAUiwuxo
+         hl09Ya+sKKImDdJ9iIpa67XFI9C/ALGbOXBMsPiw=
+Date:   Fri, 03 Sep 2021 13:56:48 -0700
 From:   akpm@linux-foundation.org
 To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
-Subject:  [merged] shmem-remove-unneeded-variable-ret.patch removed
- from -mm tree
-Message-ID: <20210903205644.zmYipUkpF%akpm@linux-foundation.org>
+Subject:  [merged]
+ shmem-remove-unneeded-function-forward-declaration.patch removed from -mm
+ tree
+Message-ID: <20210903205648.gLmWwqq04%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,57 +43,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: remove unneeded variable ret
+     Subject: shmem: remove unneeded function forward declaration
 has been removed from the -mm tree.  Its filename was
-     shmem-remove-unneeded-variable-ret.patch
+     shmem-remove-unneeded-function-forward-declaration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: shmem: remove unneeded variable ret
+Subject: shmem: remove unneeded function forward declaration
 
-Patch series "Cleanups for shmem".
+The forward declaration for shmem_should_replace_page() and
+shmem_replace_page() is unnecessary.  Remove them.
 
-This series contains cleanups to remove unneeded variable, header file,
-function forward declaration and so on.  More details can be found in the
-respective changelogs.
-
-
-This patch (of 4):
-
-The local variable ret is always equal to -ENOMEM and never touched.  So
-remove it and return -ENOMEM directly to simplify the code.
-
-Link: https://lkml.kernel.org/r/20210812120350.49801-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210812120350.49801-2-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210812120350.49801-4-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/shmem.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/shmem.c~shmem-remove-unneeded-variable-ret
+--- a/mm/shmem.c~shmem-remove-unneeded-function-forward-declaration
 +++ a/mm/shmem.c
-@@ -3616,7 +3616,6 @@ static int shmem_fill_super(struct super
- 	struct shmem_options *ctx = fc->fs_private;
- 	struct inode *inode;
- 	struct shmem_sb_info *sbinfo;
--	int err = -ENOMEM;
- 
- 	/* Round up to L1_CACHE_BYTES to resist false sharing */
- 	sbinfo = kzalloc(max((int)sizeof(struct shmem_sb_info),
-@@ -3694,7 +3693,7 @@ static int shmem_fill_super(struct super
- 
- failed:
- 	shmem_put_super(sb);
--	return err;
-+	return -ENOMEM;
+@@ -135,9 +135,6 @@ static unsigned long shmem_default_max_i
  }
+ #endif
  
- static int shmem_get_tree(struct fs_context *fc)
+-static bool shmem_should_replace_page(struct page *page, gfp_t gfp);
+-static int shmem_replace_page(struct page **pagep, gfp_t gfp,
+-				struct shmem_inode_info *info, pgoff_t index);
+ static int shmem_swapin_page(struct inode *inode, pgoff_t index,
+ 			     struct page **pagep, enum sgp_type sgp,
+ 			     gfp_t gfp, struct vm_area_struct *vma,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
