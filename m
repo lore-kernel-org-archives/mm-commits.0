@@ -7,38 +7,43 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5683C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9670C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF4BB610E5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D575A60E9B
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350309AbhICU6Q (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:58:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56898 "EHLO mail.kernel.org"
+        id S1350362AbhICU6S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:58:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56960 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350361AbhICU6H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:58:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 74B93610E5;
-        Fri,  3 Sep 2021 20:57:06 +0000 (UTC)
+        id S1350418AbhICU6Q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:58:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C3F860184;
+        Fri,  3 Sep 2021 20:57:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702626;
-        bh=jQUMqLkU2NBqqbe1Y5kVy60t1My2MC3i6V9CeKx+fYw=;
+        s=korg; t=1630702636;
+        bh=9MVF/3ti0O1SiUVEPASMxnBcCWHrWk4jM/rz6lbXBek=;
         h=Date:From:To:Subject:From;
-        b=ihNQB2G4zAtHvBqv6raKrcJ+kTpdmy2/iRZU3ZkPh9oLcz0NTePtSSLqeV3zhAdhH
-         13Hh6i3v+uYzoULpD7b8jvvDpVEfrpO40SYa5ZSk8Ln2xOPV3Mw/7qy/gLC0arxMDu
-         LjrxwjW+U/As7Y1ZL2YD9NgS683FCBsK+sabxwrQ=
-Date:   Fri, 03 Sep 2021 13:57:06 -0700
+        b=ZyalUM7szWbpf+W35PhzaCkpsm38CmhuJLShVWXiBH7lFwBEPff2nKGFxsImZ/KPP
+         Y4I24bbbbp7X4c4RMn378H82Uh/esBqluetM+aiRWEoKrNiDvtt5jTMKBqry4QhYZv
+         ufhLC8nqFRRBXWO8WXMRI1MNJBcrrSAH7dFFbBhU=
+Date:   Fri, 03 Sep 2021 13:57:15 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, kirill.shutemov@linux.intel.com,
-        linmiaohe@huawei.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com,
-        shy828301@gmail.com, willy@infradead.org
+To:     alexs@kernel.org, apopple@nvidia.com, axboe@kernel.dk,
+        david@redhat.com, guro@fb.com, hannes@cmpxchg.org,
+        iamjoonsoo.kim@lge.com, linmiaohe@huawei.com, mhocko@suse.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, shakeelb@google.com,
+        shy828301@gmail.com, songmuchun@bytedance.com, surenb@google.com,
+        tj@kernel.org, willy@infradead.org
 Subject:  [merged]
- huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race.patch removed from -mm
- tree
-Message-ID: <20210903205706.0zKLElMbA%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-memcg-add-mem=5Fcgroup=5Fdisabled-checks-in-vmpressure-?=
+ =?US-ASCII?Q?and-swap-related-functions.patch?= removed from -mm tree
+Message-ID: <20210903205715.KeAFe9fSA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,122 +51,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: SGP_NOALLOC to stop collapse_file() on race
+     Subject: mm, memcg: add mem_cgroup_disabled checks in vmpressure and swap-related functions
 has been removed from the -mm tree.  Its filename was
-     huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race.patch
+     mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs: SGP_NOALLOC to stop collapse_file() on race
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm, memcg: add mem_cgroup_disabled checks in vmpressure and swap-related functions
 
-khugepaged's collapse_file() currently uses SGP_NOHUGE to tell
-shmem_getpage() not to try allocating a huge page, in the very unlikely
-event that a racing hole-punch removes the swapped or fallocated page as
-soon as i_pages lock is dropped.
+Add mem_cgroup_disabled check in vmpressure, mem_cgroup_uncharge_swap and
+cgroup_throttle_swaprate functions.  This minimizes the memcg overhead in
+the pagefault and exit_mmap paths when memcgs are disabled using
+cgroup_disable=memory command-line option.
 
-We want to consolidate shmem's huge decisions, removing SGP_HUGE and
-SGP_NOHUGE; but cannot quite persuade ourselves that it's okay to regress
-the protection in this case - Yang Shi points out that the huge page would
-remain indefinitely, charged to root instead of the intended memcg.
+This change results in ~2.1% overhead reduction when running PFT test [1]
+comparing {CONFIG_MEMCG=n, CONFIG_MEMCG_SWAP=n} against {CONFIG_MEMCG=y,
+CONFIG_MEMCG_SWAP=y, cgroup_disable=memory} configuration on an 8-core
+ARM64 Android device.
 
-collapse_file() should not even allocate a small page in this case: why
-proceed if someone is punching a hole?  SGP_READ is almost the right flag
-here, except that it optimizes away from a fallocated page, with NULL to
-tell caller to fill with zeroes (like a hole); whereas collapse_file()'s
-sequence relies on using a cache page.  Add SGP_NOALLOC just for this.
+[1] https://lkml.org/lkml/2006/8/29/294 also used in mmtests suite
 
-There are too many consecutive "if (page"s there in shmem_getpage_gfp():
-group it better; and fix the outdated "bring it back from swap" comment.
-
-Link: https://lkml.kernel.org/r/1355343b-acf-4653-ef79-6aee40214ac5@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Link: https://lkml.kernel.org/r/20210713010934.299876-1-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/shmem_fs.h |    1 +
- mm/khugepaged.c          |    2 +-
- mm/shmem.c               |   29 +++++++++++++++++------------
- 3 files changed, 19 insertions(+), 13 deletions(-)
+ mm/memcontrol.c |    3 +++
+ mm/swapfile.c   |    3 +++
+ mm/vmpressure.c |    7 ++++++-
+ 3 files changed, 12 insertions(+), 1 deletion(-)
 
---- a/include/linux/shmem_fs.h~huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race
-+++ a/include/linux/shmem_fs.h
-@@ -94,6 +94,7 @@ extern unsigned long shmem_partial_swap_
- /* Flag allocation requirements to shmem_getpage */
- enum sgp_type {
- 	SGP_READ,	/* don't exceed i_size, don't allocate page */
-+	SGP_NOALLOC,	/* similar, but fail on hole or use fallocated page */
- 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
- 	SGP_NOHUGE,	/* like SGP_CACHE, but no huge pages */
- 	SGP_HUGE,	/* like SGP_CACHE, huge pages preferred */
---- a/mm/khugepaged.c~huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race
-+++ a/mm/khugepaged.c
-@@ -1721,7 +1721,7 @@ static void collapse_file(struct mm_stru
- 				xas_unlock_irq(&xas);
- 				/* swap in or instantiate fallocated page */
- 				if (shmem_getpage(mapping->host, index, &page,
--						  SGP_NOHUGE)) {
-+						  SGP_NOALLOC)) {
- 					result = SCAN_FAIL;
- 					goto xa_unlocked;
- 				}
---- a/mm/shmem.c~huge-tmpfs-sgp_noalloc-to-stop-collapse_file-on-race
-+++ a/mm/shmem.c
-@@ -1854,26 +1854,31 @@ repeat:
- 		return error;
- 	}
+--- a/mm/memcontrol.c~mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions
++++ a/mm/memcontrol.c
+@@ -7297,6 +7297,9 @@ void mem_cgroup_uncharge_swap(swp_entry_
+ 	struct mem_cgroup *memcg;
+ 	unsigned short id;
  
--	if (page)
-+	if (page) {
- 		hindex = page->index;
--	if (page && sgp == SGP_WRITE)
--		mark_page_accessed(page);
--
--	/* fallocated page? */
--	if (page && !PageUptodate(page)) {
-+		if (sgp == SGP_WRITE)
-+			mark_page_accessed(page);
-+		if (PageUptodate(page))
-+			goto out;
-+		/* fallocated page */
- 		if (sgp != SGP_READ)
- 			goto clear;
- 		unlock_page(page);
- 		put_page(page);
--		page = NULL;
--		hindex = index;
- 	}
--	if (page || sgp == SGP_READ)
--		goto out;
++	if (mem_cgroup_disabled())
++		return;
++
+ 	id = swap_cgroup_record(entry, 0, nr_pages);
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_id(id);
+--- a/mm/swapfile.c~mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions
++++ a/mm/swapfile.c
+@@ -3784,6 +3784,9 @@ void cgroup_throttle_swaprate(struct pag
+ 	struct swap_info_struct *si, *next;
+ 	int nid = page_to_nid(page);
+ 
++	if (mem_cgroup_disabled())
++		return;
++
+ 	if (!(gfp_mask & __GFP_IO))
+ 		return;
+ 
+--- a/mm/vmpressure.c~mm-memcg-add-mem_cgroup_disabled-checks-in-vmpressure-and-swap-related-functions
++++ a/mm/vmpressure.c
+@@ -240,7 +240,12 @@ static void vmpressure_work_fn(struct wo
+ void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
+ 		unsigned long scanned, unsigned long reclaimed)
+ {
+-	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
++	struct vmpressure *vmpr;
++
++	if (mem_cgroup_disabled())
++		return;
++
++	vmpr = memcg_to_vmpressure(memcg);
  
  	/*
--	 * Fast cache lookup did not find it:
--	 * bring it back from swap or allocate.
-+	 * SGP_READ: succeed on hole, with NULL page, letting caller zero.
-+	 * SGP_NOALLOC: fail on hole, with NULL page, letting caller fail.
-+	 */
-+	*pagep = NULL;
-+	if (sgp == SGP_READ)
-+		return 0;
-+	if (sgp == SGP_NOALLOC)
-+		return -ENOENT;
-+
-+	/*
-+	 * Fast cache lookup and swap lookup did not find it: allocate.
- 	 */
- 
- 	if (vma && userfaultfd_missing(vma)) {
+ 	 * Here we only want to account pressure that userland is able to
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from surenb@google.com are
 
 
