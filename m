@@ -7,38 +7,43 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BB37C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13A18C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 37FC3610F9
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0039F60E9B
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:57:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350427AbhICU6R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:58:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56960 "EHLO mail.kernel.org"
+        id S233315AbhICU6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:58:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57078 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350386AbhICU6L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:58:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EF1760E9B;
-        Fri,  3 Sep 2021 20:57:10 +0000 (UTC)
+        id S1350418AbhICU6T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:58:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FE21601FD;
+        Fri,  3 Sep 2021 20:57:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702631;
-        bh=Zs/+HYGrWWe5yL4ZEGcOv/30nJksbNJ0v/XM5otJ7c4=;
+        s=korg; t=1630702639;
+        bh=T4pLQxYnGXoNEgaytMEbLSTiGqFMiRjYpvwrExZADvQ=;
         h=Date:From:To:Subject:From;
-        b=hDowQoqBbEvXkI0MgXcIYnYXjBfEBiCelrTbo+ACDy09IxO6D5N+T5lkU0ry16KAA
-         1BPwybbKwVFYt4HxgNBxjY2ADv7yeTC+THbC8sGLWy1ngBM3VJ0AJB4JU7lZnEx+WA
-         YqTCgkxClHZCg1u6jtLpZNCDI8qVOOilu5HzEEB4=
-Date:   Fri, 03 Sep 2021 13:57:10 -0700
+        b=YUdBGSTMMBc7MHsX3/dW+SFI1du3UHla/imCey7Qd5UHxryTBCQjjM5k7Zmja7iq9
+         FL4qjAf/czudh9++PAxW+310K3ZxWXRBGnRY7zLXIlhHugsHJaYkC3w6xOCyWEisY/
+         aS1+44vpUvAXyZiLbCcDJN6CfGvsCNrN4qpE+o/k=
+Date:   Fri, 03 Sep 2021 13:57:18 -0700
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, kirill.shutemov@linux.intel.com,
-        linmiaohe@huawei.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com,
-        shy828301@gmail.com, willy@infradead.org
+To:     alexs@kernel.org, apopple@nvidia.com, axboe@kernel.dk,
+        david@redhat.com, guro@fb.com, hannes@cmpxchg.org,
+        iamjoonsoo.kim@lge.com, linmiaohe@huawei.com, mhocko@suse.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org,
+        richard.weiyang@gmail.com, shakeelb@google.com,
+        shy828301@gmail.com, songmuchun@bytedance.com, surenb@google.com,
+        tj@kernel.org, willy@infradead.org
 Subject:  [merged]
- huge-tmpfs-decide-statst_blksize-by-shmem_is_huge.patch removed from -mm
- tree
-Message-ID: <20210903205710.k_h0JRWSF%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-memcg-inline-mem=5Fcgroup=5Fcharge-uncharge-to-improve?=
+ =?US-ASCII?Q?-disabled-memcg-config.patch?= removed from -mm tree
+Message-ID: <20210903205718.8jTnydPR3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,80 +51,192 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: decide stat.st_blksize by shmem_is_huge()
+     Subject: mm, memcg: inline mem_cgroup_{charge/uncharge} to improve disabled memcg config
 has been removed from the -mm tree.  Its filename was
-     huge-tmpfs-decide-statst_blksize-by-shmem_is_huge.patch
+     mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs: decide stat.st_blksize by shmem_is_huge()
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm, memcg: inline mem_cgroup_{charge/uncharge} to improve disabled memcg config
 
-4.18 commit 89fdcd262fd4 ("mm: shmem: make stat.st_blksize return huge
-page size if THP is on") added is_huge_enabled() to decide st_blksize: if
-hugeness is to be defined per file, that will need to be replaced by
-shmem_is_huge().
+Inline mem_cgroup_{charge/uncharge} and mem_cgroup_uncharge_list functions
+functions to perform mem_cgroup_disabled static key check inline before
+calling the main body of the function.  This minimizes the memcg overhead
+in the pagefault and exit_mmap paths when memcgs are disabled using
+cgroup_disable=memory command-line option.
 
-This does give a different answer (No) for small files on a
-"huge=within_size" mount: but that can be considered a minor bugfix.  And
-a different answer (No) for default files on a "huge=advise" mount: I'm
-reluctant to complicate it, just to reproduce the same debatable answer as
-before.
+This change results in ~0.4% overhead reduction when running PFT test [1]
+comparing {CONFIG_MEMCG=n} against {CONFIG_MEMCG=y, cgroup_disable=memory}
+configuration on an 8-core ARM64 Android device.
 
-Link: https://lkml.kernel.org/r/af7fb3f9-4415-9e8e-fdac-b1a5253ad21@google.com
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+[1] https://lkml.org/lkml/2006/8/29/294 also used in mmtests suite
+
+Link: https://lkml.kernel.org/r/20210713010934.299876-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ include/linux/memcontrol.h |   28 +++++++++++++++++++++++++---
+ mm/memcontrol.c            |   33 ++++++++++++---------------------
+ 2 files changed, 37 insertions(+), 24 deletions(-)
 
---- a/mm/shmem.c~huge-tmpfs-decide-statst_blksize-by-shmem_is_huge
-+++ a/mm/shmem.c
-@@ -686,15 +686,6 @@ static unsigned long shmem_unused_huge_s
+--- a/include/linux/memcontrol.h~mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config
++++ a/include/linux/memcontrol.h
+@@ -693,13 +693,35 @@ static inline bool mem_cgroup_below_min(
+ 		page_counter_read(&memcg->memory);
  }
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
--static inline bool is_huge_enabled(struct shmem_sb_info *sbinfo)
--{
--	if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
--	    (shmem_huge == SHMEM_HUGE_FORCE || sbinfo->huge) &&
--	    shmem_huge != SHMEM_HUGE_DENY)
--		return true;
--	return false;
--}
--
- /*
-  * Like add_to_page_cache_locked, but error if expected item has gone.
-  */
-@@ -1075,7 +1066,6 @@ static int shmem_getattr(struct user_nam
+-int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask);
++int __mem_cgroup_charge(struct page *page, struct mm_struct *mm,
++			gfp_t gfp_mask);
++static inline int mem_cgroup_charge(struct page *page, struct mm_struct *mm,
++				    gfp_t gfp_mask)
++{
++	if (mem_cgroup_disabled())
++		return 0;
++	return __mem_cgroup_charge(page, mm, gfp_mask);
++}
++
+ int mem_cgroup_swapin_charge_page(struct page *page, struct mm_struct *mm,
+ 				  gfp_t gfp, swp_entry_t entry);
+ void mem_cgroup_swapin_uncharge_swap(swp_entry_t entry);
+ 
+-void mem_cgroup_uncharge(struct page *page);
+-void mem_cgroup_uncharge_list(struct list_head *page_list);
++void __mem_cgroup_uncharge(struct page *page);
++static inline void mem_cgroup_uncharge(struct page *page)
++{
++	if (mem_cgroup_disabled())
++		return;
++	__mem_cgroup_uncharge(page);
++}
++
++void __mem_cgroup_uncharge_list(struct list_head *page_list);
++static inline void mem_cgroup_uncharge_list(struct list_head *page_list)
++{
++	if (mem_cgroup_disabled())
++		return;
++	__mem_cgroup_uncharge_list(page_list);
++}
+ 
+ void mem_cgroup_migrate(struct page *oldpage, struct page *newpage);
+ 
+--- a/mm/memcontrol.c~mm-memcg-inline-mem_cgroup_charge-uncharge-to-improve-disabled-memcg-config
++++ a/mm/memcontrol.c
+@@ -6693,8 +6693,7 @@ void mem_cgroup_calculate_protection(str
+ 			atomic_long_read(&parent->memory.children_low_usage)));
+ }
+ 
+-static int __mem_cgroup_charge(struct page *page, struct mem_cgroup *memcg,
+-			       gfp_t gfp)
++static int charge_memcg(struct page *page, struct mem_cgroup *memcg, gfp_t gfp)
  {
- 	struct inode *inode = path->dentry->d_inode;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
--	struct shmem_sb_info *sb_info = SHMEM_SB(inode->i_sb);
+ 	unsigned int nr_pages = thp_nr_pages(page);
+ 	int ret;
+@@ -6715,7 +6714,7 @@ out:
+ }
  
- 	if (info->alloced - info->swapped != inode->i_mapping->nrpages) {
- 		spin_lock_irq(&info->lock);
-@@ -1084,7 +1074,7 @@ static int shmem_getattr(struct user_nam
- 	}
- 	generic_fillattr(&init_user_ns, inode, stat);
+ /**
+- * mem_cgroup_charge - charge a newly allocated page to a cgroup
++ * __mem_cgroup_charge - charge a newly allocated page to a cgroup
+  * @page: page to charge
+  * @mm: mm context of the victim
+  * @gfp_mask: reclaim mode
+@@ -6728,16 +6727,14 @@ out:
+  *
+  * Returns 0 on success. Otherwise, an error code is returned.
+  */
+-int mem_cgroup_charge(struct page *page, struct mm_struct *mm, gfp_t gfp_mask)
++int __mem_cgroup_charge(struct page *page, struct mm_struct *mm,
++			gfp_t gfp_mask)
+ {
+ 	struct mem_cgroup *memcg;
+ 	int ret;
  
--	if (is_huge_enabled(sb_info))
-+	if (shmem_is_huge(NULL, inode, 0))
- 		stat->blksize = HPAGE_PMD_SIZE;
+-	if (mem_cgroup_disabled())
+-		return 0;
+-
+ 	memcg = get_mem_cgroup_from_mm(mm);
+-	ret = __mem_cgroup_charge(page, memcg, gfp_mask);
++	ret = charge_memcg(page, memcg, gfp_mask);
+ 	css_put(&memcg->css);
  
- 	return 0;
+ 	return ret;
+@@ -6772,7 +6769,7 @@ int mem_cgroup_swapin_charge_page(struct
+ 		memcg = get_mem_cgroup_from_mm(mm);
+ 	rcu_read_unlock();
+ 
+-	ret = __mem_cgroup_charge(page, memcg, gfp);
++	ret = charge_memcg(page, memcg, gfp);
+ 
+ 	css_put(&memcg->css);
+ 	return ret;
+@@ -6908,18 +6905,15 @@ static void uncharge_page(struct page *p
+ }
+ 
+ /**
+- * mem_cgroup_uncharge - uncharge a page
++ * __mem_cgroup_uncharge - uncharge a page
+  * @page: page to uncharge
+  *
+- * Uncharge a page previously charged with mem_cgroup_charge().
++ * Uncharge a page previously charged with __mem_cgroup_charge().
+  */
+-void mem_cgroup_uncharge(struct page *page)
++void __mem_cgroup_uncharge(struct page *page)
+ {
+ 	struct uncharge_gather ug;
+ 
+-	if (mem_cgroup_disabled())
+-		return;
+-
+ 	/* Don't touch page->lru of any random page, pre-check: */
+ 	if (!page_memcg(page))
+ 		return;
+@@ -6930,20 +6924,17 @@ void mem_cgroup_uncharge(struct page *pa
+ }
+ 
+ /**
+- * mem_cgroup_uncharge_list - uncharge a list of page
++ * __mem_cgroup_uncharge_list - uncharge a list of page
+  * @page_list: list of pages to uncharge
+  *
+  * Uncharge a list of pages previously charged with
+- * mem_cgroup_charge().
++ * __mem_cgroup_charge().
+  */
+-void mem_cgroup_uncharge_list(struct list_head *page_list)
++void __mem_cgroup_uncharge_list(struct list_head *page_list)
+ {
+ 	struct uncharge_gather ug;
+ 	struct page *page;
+ 
+-	if (mem_cgroup_disabled())
+-		return;
+-
+ 	uncharge_gather_clear(&ug);
+ 	list_for_each_entry(page, page_list, lru)
+ 		uncharge_page(page, &ug);
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from surenb@google.com are
 
 
