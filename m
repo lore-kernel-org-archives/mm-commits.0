@@ -2,57 +2,83 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.1 required=3.0 tests=BAYES_00,DKIMWL_WL_HIGH,
-	DKIM_SIGNED,DKIM_VALID,DKIM_VALID_AU,INCLUDES_CR_TRAILER,MAILING_LIST_MULTI,
+X-Spam-Status: No, score=-12.3 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
 	NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=unavailable autolearn_force=no version=3.4.0
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D5201C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 05:11:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39E1AC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 05:26:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BC058610CE
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 05:11:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0B9C760FC0
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 05:26:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233764AbhICFMX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 01:12:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34214 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236553AbhICFMU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 01:12:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4761560FDC;
-        Fri,  3 Sep 2021 05:11:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1630645880;
-        bh=EdGYyIVteppmS4PO2G0EKWwiWcwvczCgrv965hZ04q8=;
-        h=Subject:To:Cc:References:From:Date:In-Reply-To:From;
-        b=LIxkOhM8Ba4z2wGvi4AvWr0ZHvX0XXGVK5QpKTp43RPEIvZyU7S1JbdZWV15v8TqO
-         BHTgseKAOKZZdNmlaEk/DsKkpm6YZ9mOLnrzs2nO5ugEdqh8D7QVteNftj+iOAiZFp
-         jSIinsgyifW1rJbpbgPeQKevOWSYvVjdrgrKkCFxw7ZtDkXF+ipxJ3djR0VaQt0qw3
-         CK6vJwEAxnkG8rfG4WhhdoAiybfFuc/W7fMcHrphwEE8jgx37u+khCtQgHNtpMcZAO
-         xwQbiu68CuHJcsiXYGhkh5eNzM42VkFSUlmTd3+MnYJUIK55bU73OaNA7lI3q7vMmZ
-         d6qANAC1+uA9g==
-Subject: Re: [patch 119/212] lazy tlb: shoot lazies, a non-refcounting lazy
- tlb option
-To:     Nicholas Piggin <npiggin@gmail.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Anton Blanchard <anton@ozlabs.org>,
-        Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-        Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
-        Paul Mackerras <paulus@ozlabs.org>,
-        Randy Dunlap <rdunlap@infradead.org>
-References: <20210902215620._WXglfIJy%akpm@linux-foundation.org>
- <18b7e206-9ee6-4afe-b662-9dcbdf55a9db@www.fastmail.com>
- <CAHk-=wjC05YZycowZkmvjZACNEm3rUhLTneN+Vaz9Ebp1+++Gw@mail.gmail.com>
- <20210902155330.a643b03dc6991cde53133edf@linux-foundation.org>
- <1630629747.odrw4rffkd.astroid@bobo.none>
-From:   Andy Lutomirski <luto@kernel.org>
-Message-ID: <e0166f2c-f742-635b-6b40-eef1a955f8c4@kernel.org>
-Date:   Thu, 2 Sep 2021 22:11:19 -0700
+        id S233634AbhICF1u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 01:27:50 -0400
+Received: from smtp-out2.suse.de ([195.135.220.29]:36796 "EHLO
+        smtp-out2.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233468AbhICF1u (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Sep 2021 01:27:50 -0400
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by smtp-out2.suse.de (Postfix) with ESMTPS id D2BC51FD71;
+        Fri,  3 Sep 2021 05:26:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
+        t=1630646809; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=GF/nflfmQ/5bocpoY6D5FROgSupVBFc/AXJNEOSO2Ow=;
+        b=Q2TeNxAP9uoXj4QPIVSTzd+VMwJTSJdKE7oB86l+kQ0fDVHQuyUkQdMZYjMUovvkuWetCz
+        f1BD30mxrNfYIsU+vQ6WtKOyTrDazF+BSCYHaAEZcNX5r/n3cpTTEUpFfLg2KBuQE7Ot5A
+        jqWisDDpI664O2UuICpvGdQnWowFORU=
+DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
+        s=susede2_ed25519; t=1630646809;
+        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=GF/nflfmQ/5bocpoY6D5FROgSupVBFc/AXJNEOSO2Ow=;
+        b=wU6m5iVw9DjeZMN2sACT0DKU5uhF7HvUkjbrZDJSoCvTnHkOmric6Rxf87BSjtU5BBA9Lo
+        2Bc8aAw7ujVgAbBg==
+Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
+        (No client certificate requested)
+        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id C1E2A13B1D;
+        Fri,  3 Sep 2021 05:26:48 +0000 (UTC)
+Received: from dovecot-director2.suse.de ([192.168.254.65])
+        by imap2.suse-dmz.suse.de with ESMTPSA
+        id H/bfLRiyMWFQIgAAMHmgww
+        (envelope-from <vbabka@suse.cz>); Fri, 03 Sep 2021 05:26:48 +0000
+Subject: Re: [patch 036/212] mm, slab: make flush_slab() possible to call with
+ irqs enabled
+To:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc:     Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
+        Jesper Dangaard Brouer <brouer@redhat.com>,
+        Christoph Lameter <cl@linux.com>,
+        Mike Galbraith <efault@gmx.de>,
+        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
+        Jann Horn <jannh@google.com>, Linux-MM <linux-mm@kvack.org>,
+        Mel Gorman <mgorman@techsingularity.net>,
+        mm-commits@vger.kernel.org, Pekka Enberg <penberg@kernel.org>,
+        David Rientjes <rientjes@google.com>,
+        Thomas Gleixner <tglx@linutronix.de>
+References: <20210902144820.78957dff93d7bea620d55a89@linux-foundation.org>
+ <20210902215152.ibWfL_bvd%akpm@linux-foundation.org>
+ <CAHk-=wiJLqL2cUhJbvpyPQpkbVOu1rVSzgO2=S2jC55hneLtfQ@mail.gmail.com>
+ <CAHk-=wiz+vp1k1Ag+fD57P4ehOpTAc=A9zT7YbGENUu57azeuQ@mail.gmail.com>
+ <CAHk-=wiX77e3G-cOP+OLPzf8krQXgyiz7PikurJYa0fsDhS34Q@mail.gmail.com>
+From:   Vlastimil Babka <vbabka@suse.cz>
+Message-ID: <ec75906a-bf4d-cad0-dd66-cdf2b7d35b1e@suse.cz>
+Date:   Fri, 3 Sep 2021 07:26:04 +0200
 User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.11.0
+ Thunderbird/78.12.0
 MIME-Version: 1.0
-In-Reply-To: <1630629747.odrw4rffkd.astroid@bobo.none>
+In-Reply-To: <CAHk-=wiX77e3G-cOP+OLPzf8krQXgyiz7PikurJYa0fsDhS34Q@mail.gmail.com>
 Content-Type: text/plain; charset=utf-8
 Content-Language: en-US
 Content-Transfer-Encoding: 7bit
@@ -61,87 +87,132 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 9/2/21 5:46 PM, Nicholas Piggin wrote:
-> Excerpts from Andrew Morton's message of September 3, 2021 8:53 am:
->> On Thu, 2 Sep 2021 15:50:03 -0700 Linus Torvalds <torvalds@linux-foundation.org> wrote:
->>
->>> On Thu, Sep 2, 2021 at 3:29 PM Andy Lutomirski <luto@kernel.org> wrote:
->>>>
->>>> This pile is:
->>>>
->>>> Nacked-by: Andy Lutomirski <luto@kernel.org>
->>>
->>> Can you specify exactly the range you want me to drop?
->>>
->>> I assume it's the four patches 117-120, ie
->>>
->>>   lazy tlb: introduce lazy mm refcount helper functions
->>>   lazy tlb: allow lazy tlb mm refcounting to be configurable
->>>   lazy tlb: shoot lazies, a non-refcounting lazy tlb option
->>>   powerpc/64s: enable MMU_LAZY_TLB_SHOOTDOWN
->>>
->>> but I just want to double-check before I do surgery on that series.
->>
->> Yes, those 4.
->>
->> Sorry, I missed that email thread...
->>
+
+On 9/3/21 1:51 AM, Linus Torvalds wrote:
+> [ Talking to myself while mulling this series over ... ]
 > 
-> That's not reasonable. Andy has had complete misunderstandings about the
-> series which seems to stem from x86's horrible hacks that have gone in
-> has confused him.
+> On Thu, Sep 2, 2021 at 4:34 PM Linus Torvalds
+> <torvalds@linux-foundation.org> wrote:
+>>
+>> Instead of having it lock/unlock halfway through the function (and
+>> have magic "Oh, the caller already holds the lock, so don't lock"
+>> semantics except with misleading names) I really think that function
+>> should just have been split in two, and then the locked region can be
+>> minimized in the caller only taking it for the first part.
 
-The horrible hacks in question are almost exclusively in core code.
-Here's a brief summary of the situation.
+Normally I would have done that, similarly to " [patch 033/212] mm,
+slub: separate detaching of partial list in unfreeze_partials() from
+unfreezing"
 
-There's a messy interaction between mmget()/mmdrop() and membarrier.
-membarrier currently depends on some mmget() and mmdrop() calls to be
-full barriers.  You make membarrier keep working by putting an ifdef'd
-smp_mb() in the core scheduler.  I clean up the code to make it work
-independently of smp_mb() and therefore save the cost of the
-unconditional barrier for non-membarrier-using programs.
+> If there's some reason why it can't sanely be split into two (too many
+> common variables or some odd control flow or whatever), at least the
+> locking logic should be changed from
 
-Your series adds an option MMU_LAZY_TLB_REFCOUNT=n for architectures to
-opt out of lazy TLB refcounting.  This is simply wrong.  Right now, the
-core scheduler provides current->active_mm and guarantees that
-current->active_mm always points to a live (possibly mm_users == 0 but
-definitely not freed) mm_struct.  With MMU_LAZY_TLB_REFCOUNT=n,
-current->active_mm still exists, is still updated, but may point to
-freed memory.  I consider this unacceptable.  A comment says "This can
-be disabled if the architecture ensures no CPUs are using an mm as a
-"lazy tlb" beyond its final refcount" -- that's nice, but saying "well,
-if you this, you have to make sure you don't accidentally dereference
-that juicy dangling pointer we give you" is, in my book, a poor
-justification.
-
-I have no particular objection to the actual shoot lazies part, except
-insofar as I think we can do even better (e.g. my patch).  But 90% of
-the complexity of my WIP series is cleaning up the mess so that we can
-have a maintainable lazy mm mechanism instead of expanding the current
-hard-to-maintain part into three separate possible modes.
-
-Maybe I'm holding my own patches to an excessively high standard.
-
-
+I think what discouraged me was that the second part is to call
+deactivate_slab() and to that we need to return two values
+from the first part (page and freelist), so one of them has to be a
+return parameter. On the other hand the second part does so little
+it can be opencoded. See below.
 
 > 
-> My series doesn't affect x86 at all and it's no reason why Andy's series
-> to improve x86 can't be merged later. But that half finished series he 
-> keeps threatening with has been sitting there for almost a year now and 
-> it's gone nowhere, while there have been no unresolved technical 
-> objections to mine, it works, it's simple and small.
-
-My series barely touches x86.  The only "hack" is that x86 may have a
-CPU that has ->mm == NULL, ->active_mm != NULL, CR3 pointing to the init
-pgd, and mm_cpumask clear.  I don't see why this is a problem other than
-being somewhat unusual.  But x86 bare metal, like every architecture
-that can only flush the TLB using an IPI, can very efficiently shoot
-lazies, since it shoots the lazies anyway when tearing down pagetables,
-but actually enabling the config option with this series applied will
-result in ->active_mm pointing to freed memory.  Ick.
-
+>       if (lock)
+>                local_irq_save(flags);
 > 
-> I've kept trying to offer to help Andy with reviewing his stuff or fix 
-> the horrible x86 hacks, but nothing.
+> to something along the lines of
+> 
+>       if (!caller_already_locked)
+>                local_irq_save(flags);
+> 
+> so that when you read that function on its own, it's clear that the
+> lock is always held over that critical section - and the issue is that
+> perhaps the lock was already taken by the caller.
 
-I haven't finished it yet.  Sorry.
+Actually that "already taken" becomes "caller does not need it/can't
+even take the local lock as it's not local" (it's a cpu hot remove
+handler on behalf of another, dead cpu).
+
+So would it work with something like the following cleanup on top later
+after proper testing? (now just compile tested).
+---8<---
+diff --git a/mm/slub.c b/mm/slub.c
+index df1ac8aff86f..0d9e63e918f1 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -2566,38 +2566,33 @@ static inline void unfreeze_partials_cpu(struct kmem_cache *s,
+ 
+ #endif	/* CONFIG_SLUB_CPU_PARTIAL */
+ 
+-static inline void flush_slab(struct kmem_cache *s, struct kmem_cache_cpu *c,
+-			      bool lock)
++static inline struct page *
++__detach_cpu_slab(struct kmem_cache *s, struct kmem_cache_cpu *c,
++		  void **freelist)
+ {
+-	unsigned long flags;
+-	void *freelist;
+ 	struct page *page;
+ 
+-	if (lock)
+-		local_lock_irqsave(&s->cpu_slab->lock, flags);
+-
+-	freelist = c->freelist;
+ 	page = c->page;
++	*freelist = c->freelist;
+ 
+ 	c->page = NULL;
+ 	c->freelist = NULL;
+ 	c->tid = next_tid(c->tid);
+ 
+-	if (lock)
+-		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+-
+-	if (page)
+-		deactivate_slab(s, page, freelist);
+-
+-	stat(s, CPUSLAB_FLUSH);
++	return page;
+ }
+ 
+ static inline void __flush_cpu_slab(struct kmem_cache *s, int cpu)
+ {
+ 	struct kmem_cache_cpu *c = per_cpu_ptr(s->cpu_slab, cpu);
++	struct page *page;
++	void *freelist;
+ 
+-	if (c->page)
+-		flush_slab(s, c, false);
++	if (c->page) {
++		page = __detach_cpu_slab(s, c, &freelist);
++		deactivate_slab(s, page, freelist);
++		stat(s, CPUSLAB_FLUSH);
++	}
+ 
+ 	unfreeze_partials_cpu(s, c);
+ }
+@@ -2618,14 +2613,24 @@ static void flush_cpu_slab(struct work_struct *w)
+ 	struct kmem_cache *s;
+ 	struct kmem_cache_cpu *c;
+ 	struct slub_flush_work *sfw;
++	struct page *page;
++	void *freelist;
++	unsigned long flags;
+ 
+ 	sfw = container_of(w, struct slub_flush_work, work);
+ 
+ 	s = sfw->s;
+ 	c = this_cpu_ptr(s->cpu_slab);
+ 
+-	if (c->page)
+-		flush_slab(s, c, true);
++	if (c->page) {
++		local_lock_irqsave(&s->cpu_slab->lock, flags);
++		page = __detach_cpu_slab(s, c, &freelist);
++		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
++
++		if (page)
++			deactivate_slab(s, page, freelist);
++		stat(s, CPUSLAB_FLUSH);
++	}
+ 
+ 	unfreeze_partials(s);
+ }
