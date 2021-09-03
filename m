@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01E4BC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F738C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E074661131
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09EF26112F
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350122AbhICVAc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:00:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59228 "EHLO mail.kernel.org"
+        id S235751AbhICVAf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:00:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59246 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1349960AbhICVAb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:00:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7062E6112F;
-        Fri,  3 Sep 2021 20:59:31 +0000 (UTC)
+        id S1349960AbhICVAe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:00:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 85D3161107;
+        Fri,  3 Sep 2021 20:59:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702771;
-        bh=Opw9LiKUSLOJ4XFLeKVbIWQ2TzF2yyK/j+lHzkGlRT0=;
+        s=korg; t=1630702773;
+        bh=9c0A6n1ohqJrIGrrxllJPsdpBlViq1OzzJwoRu4WqEk=;
         h=Date:From:To:Subject:From;
-        b=m+noBDbv/oZoHI0DecoKaBZzdEKsT83NKwk6JpSN/GabHoaJB5acAW3hb8sCjQr/X
-         0WnUOND/2FWc7HRCoafIjEnIqST+R4v/O59elIZzYzSdHZRl5l0Rn04Nv8F5OyNrb2
-         GoQ+qTt3+WcMwKucmvIHVrtpj6diIrnCQsX0wdpg=
-Date:   Fri, 03 Sep 2021 13:59:31 -0700
+        b=2YoZN9svw6X+c1Ka3F0QjJTaSEMJxm82LgsT+5Ht+do9hw0gDdHfHvd+NKtzWQmtu
+         fZ2cP/JMQ7/ZnjfXQRPYbOrqUMnybJpjh6VUxQjA0gFxagaaWskc8gz/PJSoJ1K7gz
+         Vr/mpOwG7kfDP61JQBqez58q0Ryou3uI70E/LICM=
+Date:   Fri, 03 Sep 2021 13:59:33 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mm-commits@vger.kernel.org, monstr@monstr.eu,
-        rppt@linux.ibm.com
-Subject:  [merged] microblaze-simplify-pte_alloc_one_kernel.patch
- removed from -mm tree
-Message-ID: <20210903205931.wt4oOdnfc%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, monstr@monstr.eu, rppt@linux.ibm.com
+Subject:  [merged]
+ mm-introduce-memmap_alloc-to-unify-memory-map-allocation.patch removed from
+ -mm tree
+Message-ID: <20210903205933.q0EqGagby%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,104 +43,116 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: microblaze: simplify pte_alloc_one_kernel()
+     Subject: mm: introduce memmap_alloc() to unify memory map allocation
 has been removed from the -mm tree.  Its filename was
-     microblaze-simplify-pte_alloc_one_kernel.patch
+     mm-introduce-memmap_alloc-to-unify-memory-map-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: microblaze: simplify pte_alloc_one_kernel()
+Subject: mm: introduce memmap_alloc() to unify memory map allocation
 
-The microblaze's implementation of pte_alloc_one_kernel() used
-memblock_alloc_try_nid_raw() along with clear_page() to allocated a zeroed
-page during early setup.
+There are several places that allocate memory for the memory map:
+alloc_node_mem_map() for FLATMEM, sparse_buffer_init() and
+__populate_section_memmap() for SPARSEMEM.
 
-Replace calls of these functions with a call to memblock_alloc_try_nid()
-that already returns zeroed page and respects the same allocation limits
-as memblock_alloc_try_nid_raw().
+The memory allocated in the FLATMEM case is zeroed and it is never
+poisoned, regardless of CONFIG_PAGE_POISON setting.
 
-While on it drop early_get_page() wrapper that was only used in
-pte_alloc_one_kernel().
+The memory allocated in the SPARSEMEM cases is not zeroed and it is
+implicitly poisoned inside memblock if CONFIG_PAGE_POISON is set.
 
-Link: https://lkml.kernel.org/r/20210714123739.16493-3-rppt@kernel.org
+Introduce memmap_alloc() wrapper for memblock allocators that will be used
+for both FLATMEM and SPARSEMEM cases and will makei memory map zeroing and
+poisoning consistent for different memory models.
+
+Link: https://lkml.kernel.org/r/20210714123739.16493-4-rppt@kernel.org
 Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Michal Simek <monstr@monstr.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/include/asm/pgtable.h |    2 --
- arch/microblaze/mm/init.c             |   12 ------------
- arch/microblaze/mm/pgtable.c          |   17 ++++++++---------
- 3 files changed, 8 insertions(+), 23 deletions(-)
+ mm/internal.h   |    4 ++++
+ mm/page_alloc.c |   24 ++++++++++++++++++++++--
+ mm/sparse.c     |    6 ++----
+ 3 files changed, 28 insertions(+), 6 deletions(-)
 
---- a/arch/microblaze/include/asm/pgtable.h~microblaze-simplify-pte_alloc_one_kernel
-+++ a/arch/microblaze/include/asm/pgtable.h
-@@ -443,8 +443,6 @@ extern int mem_init_done;
+--- a/mm/internal.h~mm-introduce-memmap_alloc-to-unify-memory-map-allocation
++++ a/mm/internal.h
+@@ -211,6 +211,10 @@ extern void zone_pcp_reset(struct zone *
+ extern void zone_pcp_disable(struct zone *zone);
+ extern void zone_pcp_enable(struct zone *zone);
  
- asmlinkage void __init mmu_init(void);
++extern void *memmap_alloc(phys_addr_t size, phys_addr_t align,
++			  phys_addr_t min_addr,
++			  int nid, bool exact_nid);
++
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
  
--void __init *early_get_page(void);
--
- #endif /* __ASSEMBLY__ */
- #endif /* __KERNEL__ */
- 
---- a/arch/microblaze/mm/init.c~microblaze-simplify-pte_alloc_one_kernel
-+++ a/arch/microblaze/mm/init.c
-@@ -265,18 +265,6 @@ asmlinkage void __init mmu_init(void)
- 	dma_contiguous_reserve(memory_start + lowmem_size - 1);
+ /*
+--- a/mm/page_alloc.c~mm-introduce-memmap_alloc-to-unify-memory-map-allocation
++++ a/mm/page_alloc.c
+@@ -6748,6 +6748,26 @@ static void __init memmap_init(void)
+ 		init_unavailable_range(hole_pfn, end_pfn, zone_id, nid);
  }
  
--/* This is only called until mem_init is done. */
--void __init *early_get_page(void)
--{
--	/*
--	 * Mem start + kernel_tlb -> here is limit
--	 * because of mem mapping from head.S
--	 */
--	return memblock_alloc_try_nid_raw(PAGE_SIZE, PAGE_SIZE,
--				MEMBLOCK_LOW_LIMIT, memory_start + kernel_tlb,
--				NUMA_NO_NODE);
--}
--
- void * __ref zalloc_maybe_bootmem(size_t size, gfp_t mask)
- {
- 	void *p;
---- a/arch/microblaze/mm/pgtable.c~microblaze-simplify-pte_alloc_one_kernel
-+++ a/arch/microblaze/mm/pgtable.c
-@@ -33,6 +33,7 @@
- #include <linux/init.h>
- #include <linux/mm_types.h>
- #include <linux/pgtable.h>
-+#include <linux/memblock.h>
- 
- #include <asm/pgalloc.h>
- #include <linux/io.h>
-@@ -242,15 +243,13 @@ unsigned long iopa(unsigned long addr)
- 
- __ref pte_t *pte_alloc_one_kernel(struct mm_struct *mm)
- {
--	pte_t *pte;
--	if (mem_init_done) {
--		pte = (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
--	} else {
--		pte = (pte_t *)early_get_page();
--		if (pte)
--			clear_page(pte);
--	}
--	return pte;
-+	if (mem_init_done)
-+		return (pte_t *)__get_free_page(GFP_KERNEL | __GFP_ZERO);
++void __init *memmap_alloc(phys_addr_t size, phys_addr_t align,
++			  phys_addr_t min_addr, int nid, bool exact_nid)
++{
++	void *ptr;
++
++	if (exact_nid)
++		ptr = memblock_alloc_exact_nid_raw(size, align, min_addr,
++						   MEMBLOCK_ALLOC_ACCESSIBLE,
++						   nid);
 +	else
-+		return memblock_alloc_try_nid(PAGE_SIZE, PAGE_SIZE,
-+					      MEMBLOCK_LOW_LIMIT,
-+					      memory_start + kernel_tlb,
-+					      NUMA_NO_NODE);
++		ptr = memblock_alloc_try_nid_raw(size, align, min_addr,
++						 MEMBLOCK_ALLOC_ACCESSIBLE,
++						 nid);
++
++	if (ptr && size > 0)
++		page_init_poison(ptr, size);
++
++	return ptr;
++}
++
+ static int zone_batchsize(struct zone *zone)
+ {
+ #ifdef CONFIG_MMU
+@@ -7519,8 +7539,8 @@ static void __ref alloc_node_mem_map(str
+ 		end = pgdat_end_pfn(pgdat);
+ 		end = ALIGN(end, MAX_ORDER_NR_PAGES);
+ 		size =  (end - start) * sizeof(struct page);
+-		map = memblock_alloc_node(size, SMP_CACHE_BYTES,
+-					  pgdat->node_id);
++		map = memmap_alloc(size, SMP_CACHE_BYTES, MEMBLOCK_LOW_LIMIT,
++				   pgdat->node_id, false);
+ 		if (!map)
+ 			panic("Failed to allocate %ld bytes for node %d memory map\n",
+ 			      size, pgdat->node_id);
+--- a/mm/sparse.c~mm-introduce-memmap_alloc-to-unify-memory-map-allocation
++++ a/mm/sparse.c
+@@ -436,8 +436,7 @@ struct page __init *__populate_section_m
+ 	if (map)
+ 		return map;
+ 
+-	map = memblock_alloc_try_nid_raw(size, size, addr,
+-					  MEMBLOCK_ALLOC_ACCESSIBLE, nid);
++	map = memmap_alloc(size, size, addr, nid, false);
+ 	if (!map)
+ 		panic("%s: Failed to allocate %lu bytes align=0x%lx nid=%d from=%pa\n",
+ 		      __func__, size, PAGE_SIZE, nid, &addr);
+@@ -464,8 +463,7 @@ static void __init sparse_buffer_init(un
+ 	 * and we want it to be properly aligned to the section size - this is
+ 	 * especially the case for VMEMMAP which maps memmap to PMDs
+ 	 */
+-	sparsemap_buf = memblock_alloc_exact_nid_raw(size, section_map_size(),
+-					addr, MEMBLOCK_ALLOC_ACCESSIBLE, nid);
++	sparsemap_buf = memmap_alloc(size, section_map_size(), addr, nid, true);
+ 	sparsemap_buf_end = sparsemap_buf + size;
  }
  
- void __set_fixmap(enum fixed_addresses idx, phys_addr_t phys, pgprot_t flags)
 _
 
 Patches currently in -mm which might be from rppt@linux.ibm.com are
