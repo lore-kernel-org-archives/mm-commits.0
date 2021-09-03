@@ -7,33 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4847AC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:55:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1404DC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:55:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23D44610E5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:55:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EB1F5610E7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:55:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235133AbhICU4G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:56:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55320 "EHLO mail.kernel.org"
+        id S233315AbhICU4J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:56:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55346 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233315AbhICU4G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:56:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ECCC1610CC;
-        Fri,  3 Sep 2021 20:55:05 +0000 (UTC)
+        id S235926AbhICU4J (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:56:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A78F1610E5;
+        Fri,  3 Sep 2021 20:55:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702506;
-        bh=bWWE3cUcbvRKFo0MFGe4uAY4ersDImWUgG0qW/xszqE=;
+        s=korg; t=1630702509;
+        bh=oy8jHAyJnIGv4FwsyyJEJPc5Vna4wHcyYB/GsJ2vogk=;
         h=Date:From:To:Subject:From;
-        b=X531hMvdp0Ar7sYm0LX8mkTl0aWdeYRg90/wG1A4KFeliZulBL6R7g0RJ12/CZFP4
-         1bIpSZTvXBlEjmQw7GHO+6RcNpWiiN8ob05BsJnl3dfQ4X0tAzLenZEj46Zou03QZN
-         m1bdBb9oOB+21Vh6COqORGRIvOIifqgGAKJnDfCg=
-Date:   Fri, 03 Sep 2021 13:55:05 -0700
+        b=XwXrLUYPPlvM3nK6O62a0VxWWu+7MgKEqWJO3h6hvqe1y0l9/IOZWmC3GY1CDdTTU
+         bNa0P/wv1SbcDgxL+QhUY0qxea2s3e7ydpr8vR+AQF0Zo9uLVcVNOxi4zNss7vO9T6
+         IupBhldiTP86prytyzoslY0XaGVIBQyYofIJpx3g=
+Date:   Fri, 03 Sep 2021 13:55:08 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, wangborong@cdjrlc.com
-Subject:  [merged] ia64-fix-typo-in-a-comment.patch removed from
- -mm tree
-Message-ID: <20210903205505.GsvfR4xfC%akpm@linux-foundation.org>
+To:     frowand.list@gmail.com, geert+renesas@glider.be,
+        horms@verge.net.au, jlan@sgi.com, magnus.damm@gmail.com,
+        mm-commits@vger.kernel.org, robh+dt@kernel.org,
+        rppt@linux.vnet.ibm.com, tony.luck@intel.com
+Subject:  [merged]
+ ia64-fix-endif-comment-for-reserve_elfcorehdr.patch removed from -mm tree
+Message-ID: <20210903205508.0dR6Q9P-D%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,38 +45,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: fix typo in a comment
+     Subject: ia64: fix #endif comment for reserve_elfcorehdr()
 has been removed from the -mm tree.  Its filename was
-     ia64-fix-typo-in-a-comment.patch
+     ia64-fix-endif-comment-for-reserve_elfcorehdr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jason Wang <wangborong@cdjrlc.com>
-Subject: ia64: fix typo in a comment
+From: Geert Uytterhoeven <geert+renesas@glider.be>
+Subject: ia64: fix #endif comment for reserve_elfcorehdr()
 
-s/when when/when/
+Patch series "ia64: Miscellaneous fixes and cleanups".
 
-Link: https://lkml.kernel.org/r/20210817112500.12848-1-wangborong@cdjrlc.com
-Signed-off-by: Jason Wang <wangborong@cdjrlc.com>
+This patch series contains some miscellaneous fixes and cleanups for ia64.
+The second patch fixes a naming conflict triggered by a patch for the FDT
+code.
+
+
+This patch (of 3):
+
+The definition of reserve_elfcorehdr() depends on CONFIG_CRASH_DUMP, not
+CONFIG_PROC_VMCORE.
+
+Link: https://lkml.kernel.org/r/cover.1629884459.git.geert+renesas@glider.be
+Link: https://lkml.kernel.org/r/77b4c0648f200cab7e1c2c5171c06763e09362aa.1629884459.git.geert+renesas@glider.be
+Fixes: d9a9855d0b06ca6d ("always reserve elfcore header memory in crash kernel")
+Fixes: 17c1f07ed70afa4f ("[IA64] Reserve elfcorehdr memory in CONFIG_CRASH_DUMP")
+Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Jay Lan <jlan@sgi.com>
+Cc: Magnus Damm <magnus.damm@gmail.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Frank Rowand <frowand.list@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/acpi.c |    2 +-
+ arch/ia64/kernel/setup.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/ia64/kernel/acpi.c~ia64-fix-typo-in-a-comment
-+++ a/arch/ia64/kernel/acpi.c
-@@ -906,6 +906,6 @@ EXPORT_SYMBOL(acpi_unregister_ioapic);
- /*
-  * acpi_suspend_lowlevel() - save kernel state and suspend.
-  *
-- * TBD when when IA64 starts to support suspend...
-+ * TBD when IA64 starts to support suspend...
-  */
- int acpi_suspend_lowlevel(void) { return 0; }
+--- a/arch/ia64/kernel/setup.c~ia64-fix-endif-comment-for-reserve_elfcorehdr
++++ a/arch/ia64/kernel/setup.c
+@@ -546,7 +546,7 @@ int __init reserve_elfcorehdr(u64 *start
+ 	return 0;
+ }
+ 
+-#endif /* CONFIG_PROC_VMCORE */
++#endif /* CONFIG_CRASH_DUMP */
+ 
+ void __init
+ setup_arch (char **cmdline_p)
 _
 
-Patches currently in -mm which might be from wangborong@cdjrlc.com are
+Patches currently in -mm which might be from geert+renesas@glider.be are
 
 
