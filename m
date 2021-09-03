@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8383C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 054F6C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FC05610E7
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1889610CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346630AbhICVCE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:02:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60634 "EHLO mail.kernel.org"
+        id S235957AbhICVCI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:02:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60712 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235957AbhICVCC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:02:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9444260EE3;
-        Fri,  3 Sep 2021 21:01:01 +0000 (UTC)
+        id S235133AbhICVCH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:02:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6999B610C8;
+        Fri,  3 Sep 2021 21:01:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702861;
-        bh=tAEwqI9g+8gDG2LSg38L/hjTrngsN/KwCCBBAwzZ1Lw=;
+        s=korg; t=1630702867;
+        bh=J8a5AWR4a4jy/X8Vt9UCp1bG7D2+cCOJsvm2o63KvC8=;
         h=Date:From:To:Subject:From;
-        b=LO4Lr8Efqw3gHxKlYscP6DawxcnXfRBVaAdvuOl1y6wPMscj/7Pg1ye5SOE1EZAA8
-         nQpRnQ8p4oieLmpLzW85N7iLbtzURSKdBgPyodPFR1w3nr+9CA126uNfAsX3c0lkT5
-         8byD6onhU6Dweir6ZaWZcfPOJAShteQFhCE0nooI=
-Date:   Fri, 03 Sep 2021 14:01:01 -0700
+        b=u/iy3wCUpYRKHKcFDjFFP/YDFav7uuLOxct47GQjCPao+gfBcDYyxCxnO5VqHVbtY
+         wipyQnBi8JMtyCanWid51XGoo8iZP4mOZV1BmIjqQ+aF+RXEqFyoeqyRpPEGE4Fle8
+         wXZ++/1SKYJ8AbLeUYqNU2iisI0ABTDl23NX1mVM=
+Date:   Fri, 03 Sep 2021 14:01:07 -0700
 From:   akpm@linux-foundation.org
-To:     charante@codeaurora.org, khalid.aziz@oracle.com,
-        mm-commits@vger.kernel.org, nigupta@nvidia.com,
-        rientjes@google.com, vbabka@suse.cz, vinmenon@codeaurora.org
+To:     akpm@linux-foundation.org, baolin.wang@linux.alibaba.com,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-compaction-optimize-proactive-compaction-deferrals.patch removed from
- -mm tree
-Message-ID: <20210903210101.eeqa8OYn1%akpm@linux-foundation.org>
+ mm-mempolicy-use-readable-numa_no_node-macro-instead-of-magic-numer.patch
+ removed from -mm tree
+Message-ID: <20210903210107.bmBz0N-et%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,108 +44,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: optimize proactive compaction deferrals
+     Subject: mm/mempolicy: use readable NUMA_NO_NODE macro instead of magic number
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-optimize-proactive-compaction-deferrals.patch
+     mm-mempolicy-use-readable-numa_no_node-macro-instead-of-magic-numer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm: compaction: optimize proactive compaction deferrals
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm/mempolicy: use readable NUMA_NO_NODE macro instead of magic number
 
-Vlastimil Babka figured out that when fragmentation score didn't go down
-across the proactive compaction i.e.  when no progress is made, next wake
-up for proactive compaction is deferred for 1 << COMPACT_MAX_DEFER_SHIFT,
-i.e.  64 times, with each wakeup interval of
-HPAGE_FRAG_CHECK_INTERVAL_MSEC(=500).  In each of this wakeup, it just
-decrement 'proactive_defer' counter and goes sleep i.e.  it is getting
-woken to just decrement a counter.
+The caller of mpol_misplaced() already use NUMA_NO_NODE to check whether
+current page node is misplaced, thus using NUMA_NO_NODE in
+mpol_misplaced() instead of magic number is more readable.
 
-The same deferral time can also achieved by simply doing the
-HPAGE_FRAG_CHECK_INTERVAL_MSEC << COMPACT_MAX_DEFER_SHIFT thus unnecessary
-wakeup of kcompact thread is avoided thus also removes the need of
-'proactive_defer' thread counter.
-
-[akpm@linux-foundation.org: tweak comment]
-Link: https://lore.kernel.org/linux-fsdevel/88abfdb6-2c13-b5a6-5b46-742d12d1c910@suse.cz/
-Link: https://lkml.kernel.org/r/1626869599-25412-1-git-send-email-charante@codeaurora.org
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Nitin Gupta <nigupta@nvidia.com>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Link: https://lkml.kernel.org/r/1b77c0ce21183fa86f4db250b115cf5e27396528.1627558356.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   29 +++++++++++++++++++----------
- 1 file changed, 19 insertions(+), 10 deletions(-)
+ mm/mempolicy.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/compaction.c~mm-compaction-optimize-proactive-compaction-deferrals
-+++ a/mm/compaction.c
-@@ -2885,7 +2885,8 @@ static int kcompactd(void *p)
+--- a/mm/mempolicy.c~mm-mempolicy-use-readable-numa_no_node-macro-instead-of-magic-numer
++++ a/mm/mempolicy.c
+@@ -2425,8 +2425,8 @@ static void sp_free(struct sp_node *n)
+  * node id.  Policy determination "mimics" alloc_page_vma().
+  * Called from fault path where we know the vma and faulting address.
+  *
+- * Return: -1 if the page is in a node that is valid for this policy, or a
+- * suitable node ID to allocate a replacement page from.
++ * Return: NUMA_NO_NODE if the page is in a node that is valid for this
++ * policy, or a suitable node ID to allocate a replacement page from.
+  */
+ int mpol_misplaced(struct page *page, struct vm_area_struct *vma, unsigned long addr)
  {
- 	pg_data_t *pgdat = (pg_data_t *)p;
- 	struct task_struct *tsk = current;
--	unsigned int proactive_defer = 0;
-+	long default_timeout = msecs_to_jiffies(HPAGE_FRAG_CHECK_INTERVAL_MSEC);
-+	long timeout = default_timeout;
+@@ -2437,7 +2437,7 @@ int mpol_misplaced(struct page *page, st
+ 	int thiscpu = raw_smp_processor_id();
+ 	int thisnid = cpu_to_node(thiscpu);
+ 	int polnid = NUMA_NO_NODE;
+-	int ret = -1;
++	int ret = NUMA_NO_NODE;
  
- 	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
- 
-@@ -2902,23 +2903,30 @@ static int kcompactd(void *p)
- 
- 		trace_mm_compaction_kcompactd_sleep(pgdat->node_id);
- 		if (wait_event_freezable_timeout(pgdat->kcompactd_wait,
--			kcompactd_work_requested(pgdat),
--			msecs_to_jiffies(HPAGE_FRAG_CHECK_INTERVAL_MSEC))) {
-+			kcompactd_work_requested(pgdat), timeout)) {
- 
- 			psi_memstall_enter(&pflags);
- 			kcompactd_do_work(pgdat);
- 			psi_memstall_leave(&pflags);
-+			/*
-+			 * Reset the timeout value. The defer timeout from
-+			 * proactive compaction is lost here but that is fine
-+			 * as the condition of the zone changing substantionally
-+			 * then carrying on with the previous defer interval is
-+			 * not useful.
-+			 */
-+			timeout = default_timeout;
- 			continue;
- 		}
- 
--		/* kcompactd wait timeout */
-+		/*
-+		 * Start the proactive work with default timeout. Based
-+		 * on the fragmentation score, this timeout is updated.
-+		 */
-+		timeout = default_timeout;
- 		if (should_proactive_compact_node(pgdat)) {
- 			unsigned int prev_score, score;
- 
--			if (proactive_defer) {
--				proactive_defer--;
--				continue;
--			}
- 			prev_score = fragmentation_score_node(pgdat);
- 			proactive_compact_node(pgdat);
- 			score = fragmentation_score_node(pgdat);
-@@ -2926,8 +2934,9 @@ static int kcompactd(void *p)
- 			 * Defer proactive compaction if the fragmentation
- 			 * score did not go down i.e. no progress made.
- 			 */
--			proactive_defer = score < prev_score ?
--					0 : 1 << COMPACT_MAX_DEFER_SHIFT;
-+			if (unlikely(score >= prev_score))
-+				timeout =
-+				   default_timeout << COMPACT_MAX_DEFER_SHIFT;
- 		}
- 	}
- 
+ 	pol = get_vma_policy(vma, addr);
+ 	if (!(pol->flags & MPOL_F_MOF))
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-migrate-simplify-the-file-backed-pages-validation-when-migrating-its-mapping.patch
+mm-migrate-introduce-a-local-variable-to-get-the-number-of-pages.patch
+mm-migrate-fix-the-incorrect-function-name-in-comments.patch
+mm-migrate-change-to-use-bool-type-for-page_was_mapped.patch
 
