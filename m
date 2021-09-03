@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0448C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCC09C433EF
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 865F161131
+	by mail.kernel.org (Postfix) with ESMTP id B7D9E61131
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350017AbhICVAZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:00:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59130 "EHLO mail.kernel.org"
+        id S239176AbhICVA0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:00:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59150 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239176AbhICVAX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:00:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E76361107;
-        Fri,  3 Sep 2021 20:59:22 +0000 (UTC)
+        id S1349960AbhICVAZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:00:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A5D6610FD;
+        Fri,  3 Sep 2021 20:59:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702762;
-        bh=Aa2203rOQS7LtsF+l7t1+t86w/kic2qf+3dB7eIC/tc=;
+        s=korg; t=1630702764;
+        bh=QXQxDH8gvGzqU8WOBYpI+b88+Jb/DrnGq7O36z+UT70=;
         h=Date:From:To:Subject:From;
-        b=RaLBdb0/VWJMG7aX+6wj3YmDMVQZR6Yp7iRhH/8HANlot1Sm6mtkAOTrRR6/Qu42m
-         p5n2wKZT4tF2O8QdcgBx2sSjQ2Czvw8GNLCvjUgRj3/FHw0huG+/wl3XN9o+IdtKyZ
-         mRts9zmFoZqP29NV/JnzWmzjLWf80Jo/ewJcZrGA=
-Date:   Fri, 03 Sep 2021 13:59:22 -0700
+        b=xoOMW7kguESgsyqIXw7/pT5ThFQUHm5FDQaj9uODPz33UPEzOQrX7D1MegIunOnDo
+         cmUE3cAahx5QKo8iaHXltF8b3gWoN2nTL5tol6roJ2guXEpXCCVXA9aZI+YDPFGwcZ
+         bD9ybUVJ3fqcguTCDsNmdGCoSfHf4wUSJBtEJNr0=
+Date:   Fri, 03 Sep 2021 13:59:24 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, aryabinin@virtuozzo.com, dvyukov@google.com,
         elver@google.com, glider@google.com, mm-commits@vger.kernel.org
-Subject:  [merged] kasan-test-clean-up-ksize_uaf.patch removed from
- -mm tree
-Message-ID: <20210903205922.AdWrFVWTC%akpm@linux-foundation.org>
+Subject:  [merged]
+ kasan-test-avoid-corrupting-memory-in-copy_user_test.patch removed from -mm
+ tree
+Message-ID: <20210903205924.1udZ9JYkU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,24 +44,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: test: clean up ksize_uaf
+     Subject: kasan: test: avoid corrupting memory in copy_user_test
 has been removed from the -mm tree.  Its filename was
-     kasan-test-clean-up-ksize_uaf.patch
+     kasan-test-avoid-corrupting-memory-in-copy_user_test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@gmail.com>
-Subject: kasan: test: clean up ksize_uaf
+Subject: kasan: test: avoid corrupting memory in copy_user_test
 
-Some KASAN tests use global variables to store function returns values so
-that the compiler doesn't optimize away these functions.
+copy_user_test() does writes past the allocated object.  As the result, it
+corrupts kernel memory, which might lead to crashes with the HW_TAGS mode,
+as it neither uses quarantine nor redzones.
 
-ksize_uaf() doesn't call any functions, so it doesn't need to use
-kasan_int_result.  Use volatile accesses instead, to be consistent with
-other similar tests.
+(Technically, this test can't yet be enabled with the HW_TAGS mode, but
+this will be implemented in the future.)
 
-Link: https://lkml.kernel.org/r/a1fc34faca4650f4a6e4dfb3f8d8d82c82eb953a.1628779805.git.andreyknvl@gmail.com
+Adjust the test to only write memory within the aligned kmalloc object.
+
+Link: https://lkml.kernel.org/r/19bf3a5112ee65b7db88dc731643b657b816c5e8.1628779805.git.andreyknvl@gmail.com
 Signed-off-by: Andrey Konovalov <andreyknvl@gmail.com>
 Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -69,22 +72,59 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/test_kasan_module.c |   18 ++++++++----------
+ 1 file changed, 8 insertions(+), 10 deletions(-)
 
---- a/lib/test_kasan.c~kasan-test-clean-up-ksize_uaf
-+++ a/lib/test_kasan.c
-@@ -737,8 +737,8 @@ static void ksize_uaf(struct kunit *test
- 	kfree(ptr);
+--- a/lib/test_kasan_module.c~kasan-test-avoid-corrupting-memory-in-copy_user_test
++++ a/lib/test_kasan_module.c
+@@ -15,13 +15,11 @@
  
- 	KUNIT_EXPECT_KASAN_FAIL(test, ksize(ptr));
--	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = *ptr);
--	KUNIT_EXPECT_KASAN_FAIL(test, kasan_int_result = *(ptr + size));
-+	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[0]);
-+	KUNIT_EXPECT_KASAN_FAIL(test, ((volatile char *)ptr)[size]);
- }
+ #include "../mm/kasan/kasan.h"
  
- static void kasan_stack_oob(struct kunit *test)
+-#define OOB_TAG_OFF (IS_ENABLED(CONFIG_KASAN_GENERIC) ? 0 : KASAN_GRANULE_SIZE)
+-
+ static noinline void __init copy_user_test(void)
+ {
+ 	char *kmem;
+ 	char __user *usermem;
+-	size_t size = 10;
++	size_t size = 128 - KASAN_GRANULE_SIZE;
+ 	int __maybe_unused unused;
+ 
+ 	kmem = kmalloc(size, GFP_KERNEL);
+@@ -38,25 +36,25 @@ static noinline void __init copy_user_te
+ 	}
+ 
+ 	pr_info("out-of-bounds in copy_from_user()\n");
+-	unused = copy_from_user(kmem, usermem, size + 1 + OOB_TAG_OFF);
++	unused = copy_from_user(kmem, usermem, size + 1);
+ 
+ 	pr_info("out-of-bounds in copy_to_user()\n");
+-	unused = copy_to_user(usermem, kmem, size + 1 + OOB_TAG_OFF);
++	unused = copy_to_user(usermem, kmem, size + 1);
+ 
+ 	pr_info("out-of-bounds in __copy_from_user()\n");
+-	unused = __copy_from_user(kmem, usermem, size + 1 + OOB_TAG_OFF);
++	unused = __copy_from_user(kmem, usermem, size + 1);
+ 
+ 	pr_info("out-of-bounds in __copy_to_user()\n");
+-	unused = __copy_to_user(usermem, kmem, size + 1 + OOB_TAG_OFF);
++	unused = __copy_to_user(usermem, kmem, size + 1);
+ 
+ 	pr_info("out-of-bounds in __copy_from_user_inatomic()\n");
+-	unused = __copy_from_user_inatomic(kmem, usermem, size + 1 + OOB_TAG_OFF);
++	unused = __copy_from_user_inatomic(kmem, usermem, size + 1);
+ 
+ 	pr_info("out-of-bounds in __copy_to_user_inatomic()\n");
+-	unused = __copy_to_user_inatomic(usermem, kmem, size + 1 + OOB_TAG_OFF);
++	unused = __copy_to_user_inatomic(usermem, kmem, size + 1);
+ 
+ 	pr_info("out-of-bounds in strncpy_from_user()\n");
+-	unused = strncpy_from_user(kmem, usermem, size + 1 + OOB_TAG_OFF);
++	unused = strncpy_from_user(kmem, usermem, size + 1);
+ 
+ 	vm_munmap((unsigned long)usermem, PAGE_SIZE);
+ 	kfree(kmem);
 _
 
 Patches currently in -mm which might be from andreyknvl@gmail.com are
