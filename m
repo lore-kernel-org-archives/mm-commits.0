@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BCD5C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:55:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C573DC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:55:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 24CBF610E5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:55:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B26936056C
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:55:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349571AbhICU4w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:56:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55994 "EHLO mail.kernel.org"
+        id S238471AbhICU4y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:56:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56020 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238471AbhICU4v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:56:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C5A0A610E5;
-        Fri,  3 Sep 2021 20:55:50 +0000 (UTC)
+        id S232927AbhICU4x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:56:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A1DFE610E6;
+        Fri,  3 Sep 2021 20:55:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702551;
-        bh=7eiPFPC6aB72kMM0SKJ+1QXxkf6KuUl/CqekMilsDkk=;
+        s=korg; t=1630702552;
+        bh=Wwa7rz5cSYzG0Qk8Zf5/q8MO7OQ6tsMocJe8L0LD6kE=;
         h=Date:From:To:Subject:From;
-        b=kl978nYS1SdqTog/BDT22k9AwG3o4Sr+Zzx/tPc00WAhNujg722jUM/vy2sLE0oJ2
-         3TKS20iEEs5Oft+tR5Fwya1Q+/NTc9mUIMF4eZa2IeuuvUOg/KxuZWYpwOtASsiPsw
-         wQIxU1G+2Bc659iFdYuQGsA4DTWHDPY2r+LbbTuU=
-Date:   Fri, 03 Sep 2021 13:55:50 -0700
+        b=hR2Jgp/khas8Gh4FkSsSvSVA3oaL8mMLfwCdT5CETRawKmmkrmO0XkOMam3+wX7YU
+         aefddsXZAq8NU2MpKpM26VA4Fn1GP1zaCmiMuSLae+PIftpkYc0w6iZVbM1LAHgk37
+         XmhnpRMpgJLEroZMKdRkTQ4SGQ34dDTqs4nb3TWM=
+Date:   Fri, 03 Sep 2021 13:55:52 -0700
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com, cai@lca.pw,
-        catalin.marinas@arm.com, christophe.leroy@csgroup.eu,
-        chuhu@redhat.com, gerald.schaefer@linux.ibm.com, gshan@redhat.com,
-        mm-commits@vger.kernel.org, vgupta@synopsys.com, will@kernel.org
+To:     boqun.feng@gmail.com, mingo@kernel.org, mm-commits@vger.kernel.org,
+        osandov@fb.com, peterz@infradead.org, willy@infradead.org
 Subject:  [merged]
- mm-debug_vm_pgtable-fix-corrupted-page-flag.patch removed from -mm tree
-Message-ID: <20210903205550.LP6SU_46x%akpm@linux-foundation.org>
+ mm-report-a-more-useful-address-for-reclaim-acquisition.patch removed from
+ -mm tree
+Message-ID: <20210903205552.9Yrgttl4q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,240 +44,141 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: fix corrupted page flag
+     Subject: mm: report a more useful address for reclaim acquisition
 has been removed from the -mm tree.  Its filename was
-     mm-debug_vm_pgtable-fix-corrupted-page-flag.patch
+     mm-report-a-more-useful-address-for-reclaim-acquisition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gavin Shan <gshan@redhat.com>
-Subject: mm/debug_vm_pgtable: fix corrupted page flag
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm: report a more useful address for reclaim acquisition
 
-In page table entry modifying tests, set_xxx_at() are used to populate
-the page table entries. On ARM64, PG_arch_1 (PG_dcache_clean) flag is
-set to the target page flag if execution permission is given. The logic
-exits since commit 4f04d8f00545 ("arm64: MMU definitions"). The page
-flag is kept when the page is free'd to buddy's free area list. However,
-it will trigger page checking failure when it's pulled from the buddy's
-free area list, as the following warning messages indicate.
+A recent lockdep report included these lines:
 
-   BUG: Bad page state in process memhog  pfn:08000
-   page:0000000015c0a628 refcount:0 mapcount:0 \
-        mapping:0000000000000000 index:0x1 pfn:0x8000
-   flags: 0x7ffff8000000800(arch_1|node=0|zone=0|lastcpupid=0xfffff)
-   raw: 07ffff8000000800 dead000000000100 dead000000000122 0000000000000000
-   raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
-   page dumped because: PAGE_FLAGS_CHECK_AT_PREP flag(s) set
+[   96.177910] 3 locks held by containerd/770:
+[   96.177934]  #0: ffff88810815ea28 (&mm->mmap_lock#2){++++}-{3:3},
+at: do_user_addr_fault+0x115/0x770
+[   96.177999]  #1: ffffffff82915020 (rcu_read_lock){....}-{1:2}, at:
+get_swap_device+0x33/0x140
+[   96.178057]  #2: ffffffff82955ba0 (fs_reclaim){+.+.}-{0:0}, at:
+__fs_reclaim_acquire+0x5/0x30
 
-This fixes the issue by clearing PG_arch_1 through flush_dcache_page()
-after set_xxx_at() is called. For architectures other than ARM64, the
-unexpected overhead of cache flushing is acceptable.
+While it was not useful to that bug report to know where the reclaim lock
+had been acquired, it might be useful under other circumstances.  Allow
+the caller of __fs_reclaim_acquire to specify the instruction pointer to
+use.
 
-Link: https://lkml.kernel.org/r/20210809092631.1888748-13-gshan@redhat.com
-Fixes: a5c3b9ffb0f4 ("mm/debug_vm_pgtable: add tests validating advanced arch page table helpers")
-Signed-off-by: Gavin Shan <gshan@redhat.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Tested-by: Christophe Leroy <christophe.leroy@csgroup.eu>	[powerpc 8xx]
-Tested-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>	[s390]
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chunyu Hu <chuhu@redhat.com>
-Cc: Qian Cai <cai@lca.pw>
-Cc: Vineet Gupta <vgupta@synopsys.com>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20210719185709.1755149-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Omar Sandoval <osandov@fb.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Boqun Feng <boqun.feng@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |   55 +++++++++++++++++++++++++++++++++++++---
- 1 file changed, 51 insertions(+), 4 deletions(-)
+ include/linux/sched/mm.h |    8 ++++----
+ mm/page_alloc.c          |   12 ++++++------
+ mm/vmscan.c              |    8 ++++----
+ 3 files changed, 14 insertions(+), 14 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-fix-corrupted-page-flag
-+++ a/mm/debug_vm_pgtable.c
-@@ -29,6 +29,8 @@
- #include <linux/start_kernel.h>
- #include <linux/sched/mm.h>
- #include <linux/io.h>
-+
-+#include <asm/cacheflush.h>
- #include <asm/pgalloc.h>
- #include <asm/tlbflush.h>
+--- a/include/linux/sched/mm.h~mm-report-a-more-useful-address-for-reclaim-acquisition
++++ a/include/linux/sched/mm.h
+@@ -174,13 +174,13 @@ static inline gfp_t current_gfp_context(
+ }
  
-@@ -119,19 +121,28 @@ static void __init pte_basic_tests(struc
- 
- static void __init pte_advanced_tests(struct pgtable_debug_args *args)
- {
-+	struct page *page;
- 	pte_t pte;
- 
- 	/*
- 	 * Architectures optimize set_pte_at by avoiding TLB flush.
- 	 * This requires set_pte_at to be not used to update an
- 	 * existing pte entry. Clear pte before we do set_pte_at
-+	 *
-+	 * flush_dcache_page() is called after set_pte_at() to clear
-+	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
-+	 * when it's released and page allocation check will fail when
-+	 * the page is allocated again. For architectures other than ARM64,
-+	 * the unexpected overhead of cache flushing is acceptable.
- 	 */
--	if (args->pte_pfn == ULONG_MAX)
-+	page = (args->pte_pfn != ULONG_MAX) ? pfn_to_page(args->pte_pfn) : NULL;
-+	if (!page)
- 		return;
- 
- 	pr_debug("Validating PTE advanced\n");
- 	pte = pfn_pte(args->pte_pfn, args->page_prot);
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	ptep_set_wrprotect(args->mm, args->vaddr, args->ptep);
- 	pte = ptep_get(args->ptep);
- 	WARN_ON(pte_write(pte));
-@@ -143,6 +154,7 @@ static void __init pte_advanced_tests(st
- 	pte = pte_wrprotect(pte);
- 	pte = pte_mkclean(pte);
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	pte = pte_mkwrite(pte);
- 	pte = pte_mkdirty(pte);
- 	ptep_set_access_flags(args->vma, args->vaddr, args->ptep, pte, 1);
-@@ -155,6 +167,7 @@ static void __init pte_advanced_tests(st
- 	pte = pfn_pte(args->pte_pfn, args->page_prot);
- 	pte = pte_mkyoung(pte);
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	ptep_test_and_clear_young(args->vma, args->vaddr, args->ptep);
- 	pte = ptep_get(args->ptep);
- 	WARN_ON(pte_young(pte));
-@@ -213,15 +226,24 @@ static void __init pmd_basic_tests(struc
- 
- static void __init pmd_advanced_tests(struct pgtable_debug_args *args)
- {
-+	struct page *page;
- 	pmd_t pmd;
- 	unsigned long vaddr = args->vaddr;
- 
- 	if (!has_transparent_hugepage())
- 		return;
- 
--	if (args->pmd_pfn == ULONG_MAX)
-+	page = (args->pmd_pfn != ULONG_MAX) ? pfn_to_page(args->pmd_pfn) : NULL;
-+	if (!page)
- 		return;
- 
-+	/*
-+	 * flush_dcache_page() is called after set_pmd_at() to clear
-+	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
-+	 * when it's released and page allocation check will fail when
-+	 * the page is allocated again. For architectures other than ARM64,
-+	 * the unexpected overhead of cache flushing is acceptable.
-+	 */
- 	pr_debug("Validating PMD advanced\n");
- 	/* Align the address wrt HPAGE_PMD_SIZE */
- 	vaddr &= HPAGE_PMD_MASK;
-@@ -230,6 +252,7 @@ static void __init pmd_advanced_tests(st
- 
- 	pmd = pfn_pmd(args->pmd_pfn, args->page_prot);
- 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
-+	flush_dcache_page(page);
- 	pmdp_set_wrprotect(args->mm, vaddr, args->pmdp);
- 	pmd = READ_ONCE(*args->pmdp);
- 	WARN_ON(pmd_write(pmd));
-@@ -241,6 +264,7 @@ static void __init pmd_advanced_tests(st
- 	pmd = pmd_wrprotect(pmd);
- 	pmd = pmd_mkclean(pmd);
- 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
-+	flush_dcache_page(page);
- 	pmd = pmd_mkwrite(pmd);
- 	pmd = pmd_mkdirty(pmd);
- 	pmdp_set_access_flags(args->vma, vaddr, args->pmdp, pmd, 1);
-@@ -253,6 +277,7 @@ static void __init pmd_advanced_tests(st
- 	pmd = pmd_mkhuge(pfn_pmd(args->pmd_pfn, args->page_prot));
- 	pmd = pmd_mkyoung(pmd);
- 	set_pmd_at(args->mm, vaddr, args->pmdp, pmd);
-+	flush_dcache_page(page);
- 	pmdp_test_and_clear_young(args->vma, vaddr, args->pmdp);
- 	pmd = READ_ONCE(*args->pmdp);
- 	WARN_ON(pmd_young(pmd));
-@@ -339,21 +364,31 @@ static void __init pud_basic_tests(struc
- 
- static void __init pud_advanced_tests(struct pgtable_debug_args *args)
- {
-+	struct page *page;
- 	unsigned long vaddr = args->vaddr;
- 	pud_t pud;
- 
- 	if (!has_transparent_hugepage())
- 		return;
- 
--	if (args->pud_pfn == ULONG_MAX)
-+	page = (args->pud_pfn != ULONG_MAX) ? pfn_to_page(args->pud_pfn) : NULL;
-+	if (!page)
- 		return;
- 
-+	/*
-+	 * flush_dcache_page() is called after set_pud_at() to clear
-+	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
-+	 * when it's released and page allocation check will fail when
-+	 * the page is allocated again. For architectures other than ARM64,
-+	 * the unexpected overhead of cache flushing is acceptable.
-+	 */
- 	pr_debug("Validating PUD advanced\n");
- 	/* Align the address wrt HPAGE_PUD_SIZE */
- 	vaddr &= HPAGE_PUD_MASK;
- 
- 	pud = pfn_pud(args->pud_pfn, args->page_prot);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	flush_dcache_page(page);
- 	pudp_set_wrprotect(args->mm, vaddr, args->pudp);
- 	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(pud_write(pud));
-@@ -367,6 +402,7 @@ static void __init pud_advanced_tests(st
- 	pud = pud_wrprotect(pud);
- 	pud = pud_mkclean(pud);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	flush_dcache_page(page);
- 	pud = pud_mkwrite(pud);
- 	pud = pud_mkdirty(pud);
- 	pudp_set_access_flags(args->vma, vaddr, args->pudp, pud, 1);
-@@ -382,6 +418,7 @@ static void __init pud_advanced_tests(st
- 	pud = pfn_pud(args->pud_pfn, args->page_prot);
- 	pud = pud_mkyoung(pud);
- 	set_pud_at(args->mm, vaddr, args->pudp, pud);
-+	flush_dcache_page(page);
- 	pudp_test_and_clear_young(args->vma, vaddr, args->pudp);
- 	pud = READ_ONCE(*args->pudp);
- 	WARN_ON(pud_young(pud));
-@@ -594,16 +631,26 @@ static void __init pgd_populate_tests(st
- 
- static void __init pte_clear_tests(struct pgtable_debug_args *args)
- {
-+	struct page *page;
- 	pte_t pte = pfn_pte(args->pte_pfn, args->page_prot);
- 
--	if (args->pte_pfn == ULONG_MAX)
-+	page = (args->pte_pfn != ULONG_MAX) ? pfn_to_page(args->pte_pfn) : NULL;
-+	if (!page)
- 		return;
- 
-+	/*
-+	 * flush_dcache_page() is called after set_pte_at() to clear
-+	 * PG_arch_1 for the page on ARM64. The page flag isn't cleared
-+	 * when it's released and page allocation check will fail when
-+	 * the page is allocated again. For architectures other than ARM64,
-+	 * the unexpected overhead of cache flushing is acceptable.
-+	 */
- 	pr_debug("Validating PTE clear\n");
- #ifndef CONFIG_RISCV
- 	pte = __pte(pte_val(pte) | RANDOM_ORVALUE);
+ #ifdef CONFIG_LOCKDEP
+-extern void __fs_reclaim_acquire(void);
+-extern void __fs_reclaim_release(void);
++extern void __fs_reclaim_acquire(unsigned long ip);
++extern void __fs_reclaim_release(unsigned long ip);
+ extern void fs_reclaim_acquire(gfp_t gfp_mask);
+ extern void fs_reclaim_release(gfp_t gfp_mask);
+ #else
+-static inline void __fs_reclaim_acquire(void) { }
+-static inline void __fs_reclaim_release(void) { }
++static inline void __fs_reclaim_acquire(unsigned long ip) { }
++static inline void __fs_reclaim_release(unsigned long ip) { }
+ static inline void fs_reclaim_acquire(gfp_t gfp_mask) { }
+ static inline void fs_reclaim_release(gfp_t gfp_mask) { }
  #endif
- 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
-+	flush_dcache_page(page);
- 	barrier();
- 	pte_clear(args->mm, args->vaddr, args->ptep);
- 	pte = ptep_get(args->ptep);
+--- a/mm/page_alloc.c~mm-report-a-more-useful-address-for-reclaim-acquisition
++++ a/mm/page_alloc.c
+@@ -4549,14 +4549,14 @@ static bool __need_reclaim(gfp_t gfp_mas
+ 	return true;
+ }
+ 
+-void __fs_reclaim_acquire(void)
++void __fs_reclaim_acquire(unsigned long ip)
+ {
+-	lock_map_acquire(&__fs_reclaim_map);
++	lock_acquire_exclusive(&__fs_reclaim_map, 0, 0, NULL, ip);
+ }
+ 
+-void __fs_reclaim_release(void)
++void __fs_reclaim_release(unsigned long ip)
+ {
+-	lock_map_release(&__fs_reclaim_map);
++	lock_release(&__fs_reclaim_map, ip);
+ }
+ 
+ void fs_reclaim_acquire(gfp_t gfp_mask)
+@@ -4565,7 +4565,7 @@ void fs_reclaim_acquire(gfp_t gfp_mask)
+ 
+ 	if (__need_reclaim(gfp_mask)) {
+ 		if (gfp_mask & __GFP_FS)
+-			__fs_reclaim_acquire();
++			__fs_reclaim_acquire(_RET_IP_);
+ 
+ #ifdef CONFIG_MMU_NOTIFIER
+ 		lock_map_acquire(&__mmu_notifier_invalidate_range_start_map);
+@@ -4582,7 +4582,7 @@ void fs_reclaim_release(gfp_t gfp_mask)
+ 
+ 	if (__need_reclaim(gfp_mask)) {
+ 		if (gfp_mask & __GFP_FS)
+-			__fs_reclaim_release();
++			__fs_reclaim_release(_RET_IP_);
+ 	}
+ }
+ EXPORT_SYMBOL_GPL(fs_reclaim_release);
+--- a/mm/vmscan.c~mm-report-a-more-useful-address-for-reclaim-acquisition
++++ a/mm/vmscan.c
+@@ -3812,7 +3812,7 @@ static int balance_pgdat(pg_data_t *pgda
+ 
+ 	set_task_reclaim_state(current, &sc.reclaim_state);
+ 	psi_memstall_enter(&pflags);
+-	__fs_reclaim_acquire();
++	__fs_reclaim_acquire(_THIS_IP_);
+ 
+ 	count_vm_event(PAGEOUTRUN);
+ 
+@@ -3938,9 +3938,9 @@ restart:
+ 			wake_up_all(&pgdat->pfmemalloc_wait);
+ 
+ 		/* Check if kswapd should be suspending */
+-		__fs_reclaim_release();
++		__fs_reclaim_release(_THIS_IP_);
+ 		ret = try_to_freeze();
+-		__fs_reclaim_acquire();
++		__fs_reclaim_acquire(_THIS_IP_);
+ 		if (ret || kthread_should_stop())
+ 			break;
+ 
+@@ -3992,7 +3992,7 @@ out:
+ 	}
+ 
+ 	snapshot_refaults(NULL, pgdat);
+-	__fs_reclaim_release();
++	__fs_reclaim_release(_THIS_IP_);
+ 	psi_memstall_leave(&pflags);
+ 	set_task_reclaim_state(current, NULL);
+ 
 _
 
-Patches currently in -mm which might be from gshan@redhat.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
+mm-remove-bogus-vm_bug_on.patch
+mm-mark-idle-page-tracking-as-broken.patch
+mm-move-kvmalloc-related-functions-to-slabh.patch
 
