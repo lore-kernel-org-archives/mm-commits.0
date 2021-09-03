@@ -7,37 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 745D4C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34013C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 557236113C
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1EB2561131
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350205AbhICVBk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:01:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60092 "EHLO mail.kernel.org"
+        id S234144AbhICVBr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:01:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350431AbhICVBc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:01:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A94CB610FD;
-        Fri,  3 Sep 2021 21:00:31 +0000 (UTC)
+        id S1350526AbhICVBg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:01:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B9A2F6112E;
+        Fri,  3 Sep 2021 21:00:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702832;
-        bh=nYFqEWjvvombK2w/7qtE7oWX+PtXI/SyBTveaHR7G70=;
+        s=korg; t=1630702835;
+        bh=fnvX/1cAl5LugXmThQd6Cu2RFJ9BlIk8vUvgfX3+ZP0=;
         h=Date:From:To:Subject:From;
-        b=ZyFJKICXm98j0TWa9k00C5eAsOMzJ2jEnqCc+SUyqtPv+JymM1D+8qpQyvY0oFE0m
-         CBnLdFyeiRFVdEp73ghmYZfIzbDA1L6kNKA1iBtUGvPfVDby4cjkIbQG/NZlV+290o
-         aB4S1l9ZveQHrE6rZCk7LvPjaffZh557G38bIE5g=
-Date:   Fri, 03 Sep 2021 14:00:31 -0700
+        b=ELfKVLc2Oj2L+v+iesnT7SBokpTUg8yUm+TuyYPCmAqxt1VnmW0QbmIKFKTObMTlZ
+         tfuARvQ4as6hpisOThHg3+z+tMmJZGY+XZnJdVpt9m/kAQwUpBGIbIxbmFYPL0hBG7
+         3Qx0XK1/1QfSdBgarFfaEgtSTTJqF2r8vzkv+WLU=
+Date:   Fri, 03 Sep 2021 14:00:34 -0700
 From:   akpm@linux-foundation.org
 To:     dan.j.williams@intel.com, dave.hansen@linux.intel.com,
         david@redhat.com, gthelen@google.com, kbusch@kernel.org,
         mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
         rientjes@google.com, shy828301@gmail.com, weixugc@google.com,
         yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
-Subject:  [merged] mm-vmscan-add-page-demotion-counter.patch
+Subject:  [merged]
+ mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages.patch
  removed from -mm tree
-Message-ID: <20210903210031.wnWjvW_Ch%akpm@linux-foundation.org>
+Message-ID: <20210903210034.sHgqXh4oa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,87 +47,97 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: add page demotion counter
+     Subject: mm/vmscan: add helper for querying ability to age anonymous pages
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-add-page-demotion-counter.patch
+     mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linux.alibaba.com>
-Subject: mm/vmscan: add page demotion counter
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm/vmscan: add helper for querying ability to age anonymous pages
 
-Account the number of demoted pages.
+Anonymous pages are kept on their own LRU(s).  These lists could
+theoretically always be scanned and maintained.  But, without swap, there
+is currently nothing the kernel can *do* with the results of a scanned,
+sorted LRU for anonymous pages.
 
-Add pgdemote_kswapd and pgdemote_direct VM counters showed in
-/proc/vmstat.
+A check for '!total_swap_pages' currently serves as a valid check as to
+whether anonymous LRUs should be maintained.  However, another method will
+be added shortly: page demotion.
 
-[ daveh:
-   - __count_vm_events() a bit, and made them look at the THP
-     size directly rather than getting data from migrate_pages()
-]
+Abstract out the 'total_swap_pages' checks into a helper, give it a
+logically significant name, and check for the possibility of page
+demotion.
 
-Link: https://lkml.kernel.org/r/20210721063926.3024591-5-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-6-ying.huang@intel.com
-Signed-off-by: Yang Shi <yang.shi@linux.alibaba.com>
+[dave.hansen@linux.intel.com: v11]
+  Link: https://lkml.kernel.org/r/20210715055145.195411-7-ying.huang@intel.com
+  Link: https://lkml.kernel.org/r/20210721063926.3024591-6-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20210715055145.195411-7-ying.huang@intel.com
 Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Wei Xu <weixugc@google.com>
+Reviewed-by: Greg Thelen <gthelen@google.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Michal Hocko <mhocko@suse.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Greg Thelen <gthelen@google.com>
 Cc: Keith Busch <kbusch@kernel.org>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    2 ++
- mm/vmscan.c                   |    5 +++++
- mm/vmstat.c                   |    2 ++
- 3 files changed, 9 insertions(+)
+ mm/vmscan.c |   20 ++++++++++++++++++--
+ 1 file changed, 18 insertions(+), 2 deletions(-)
 
---- a/include/linux/vm_event_item.h~mm-vmscan-add-page-demotion-counter
-+++ a/include/linux/vm_event_item.h
-@@ -33,6 +33,8 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		PGREUSE,
- 		PGSTEAL_KSWAPD,
- 		PGSTEAL_DIRECT,
-+		PGDEMOTE_KSWAPD,
-+		PGDEMOTE_DIRECT,
- 		PGSCAN_KSWAPD,
- 		PGSCAN_DIRECT,
- 		PGSCAN_DIRECT_THROTTLE,
---- a/mm/vmscan.c~mm-vmscan-add-page-demotion-counter
+--- a/mm/vmscan.c~mm-vmscan-add-helper-for-querying-ability-to-age-anonymous-pages
 +++ a/mm/vmscan.c
-@@ -1318,6 +1318,11 @@ static unsigned int demote_page_list(str
- 			    target_nid, MIGRATE_ASYNC, MR_DEMOTION,
- 			    &nr_succeeded);
- 
-+	if (current_is_kswapd())
-+		__count_vm_events(PGDEMOTE_KSWAPD, nr_succeeded);
-+	else
-+		__count_vm_events(PGDEMOTE_DIRECT, nr_succeeded);
-+
- 	return nr_succeeded;
+@@ -2734,6 +2734,21 @@ out:
+ 	}
  }
  
---- a/mm/vmstat.c~mm-vmscan-add-page-demotion-counter
-+++ a/mm/vmstat.c
-@@ -1217,6 +1217,8 @@ const char * const vmstat_text[] = {
- 	"pgreuse",
- 	"pgsteal_kswapd",
- 	"pgsteal_direct",
-+	"pgdemote_kswapd",
-+	"pgdemote_direct",
- 	"pgscan_kswapd",
- 	"pgscan_direct",
- 	"pgscan_direct_throttle",
++/*
++ * Anonymous LRU management is a waste if there is
++ * ultimately no way to reclaim the memory.
++ */
++static bool can_age_anon_pages(struct pglist_data *pgdat,
++			       struct scan_control *sc)
++{
++	/* Aging the anon LRU is valuable if swap is present: */
++	if (total_swap_pages > 0)
++		return true;
++
++	/* Also valuable if anon pages can be demoted: */
++	return can_demote(pgdat->node_id, sc);
++}
++
+ static void shrink_lruvec(struct lruvec *lruvec, struct scan_control *sc)
+ {
+ 	unsigned long nr[NR_LRU_LISTS];
+@@ -2843,7 +2858,8 @@ static void shrink_lruvec(struct lruvec
+ 	 * Even if we did not try to evict anon pages at all, we want to
+ 	 * rebalance the anon lru active/inactive ratio.
+ 	 */
+-	if (total_swap_pages && inactive_is_low(lruvec, LRU_INACTIVE_ANON))
++	if (can_age_anon_pages(lruvec_pgdat(lruvec), sc) &&
++	    inactive_is_low(lruvec, LRU_INACTIVE_ANON))
+ 		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
+ 				   sc, LRU_ACTIVE_ANON);
+ }
+@@ -3678,7 +3694,7 @@ static void age_active_anon(struct pglis
+ 	struct mem_cgroup *memcg;
+ 	struct lruvec *lruvec;
+ 
+-	if (!total_swap_pages)
++	if (!can_age_anon_pages(pgdat, sc))
+ 		return;
+ 
+ 	lruvec = mem_cgroup_lruvec(NULL, pgdat);
 _
 
-Patches currently in -mm which might be from yang.shi@linux.alibaba.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
 
