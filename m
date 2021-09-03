@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 132B0C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCF43C433EF
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F327E6112F
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B2F3E6113A
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:58:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235947AbhICU7n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:59:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58642 "EHLO mail.kernel.org"
+        id S235133AbhICU7o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:59:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58666 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233315AbhICU7l (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:59:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6FEB8610FB;
-        Fri,  3 Sep 2021 20:58:41 +0000 (UTC)
+        id S233315AbhICU7o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:59:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 828686112E;
+        Fri,  3 Sep 2021 20:58:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702721;
-        bh=Rc7Z4w/z4JCgEjw4rDEHF6E4j9XPAMPUjiQj3FFuKWo=;
+        s=korg; t=1630702723;
+        bh=UV/5IeMloP8qn3sO+3NHW2UDbYCU5JCcYnzDI8HdT5s=;
         h=Date:From:To:Subject:From;
-        b=V9WFWtsxg79Ob/VTgQ+yxnpKunMTju9LR672Dr63X84YXl3x8p3usg07QzMIPRW86
-         D7SwlUy1KlwQf774K8t8PVEVIy/uIwqXHFflHidTBlZy9mpSZ6uQ23lWQ8gwi8BhrT
-         K6n2iqzJncP9d4eeEdCSBXFqHfIO1AEF6WetFOjc=
-Date:   Fri, 03 Sep 2021 13:58:41 -0700
+        b=iysS4SeP2GuzpDw79u9xocUdZs1SSwHDCpXFqth84sWaRp79C8aQ9ssLCy9tPQRhi
+         aRLf5TCDWDQ7BdS1O18kMFG+iDASLrLB217SYlx+EYvr1E10ejWPl6QadzOKCCm5P3
+         AhckSQ4myNse00LEUdPnowYa/YwREckdXm+kw4v0=
+Date:   Fri, 03 Sep 2021 13:58:43 -0700
 From:   akpm@linux-foundation.org
-To:     chenwandun@huawei.com, dima@arista.com, mm-commits@vger.kernel.org,
-        wangkefeng.wang@huawei.com, weiyongjun1@huawei.com
+To:     david@redhat.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        osalvador@suse.de, songmuchun@bytedance.com
 Subject:  [merged]
- mm-mremap-fix-memory-account-on-do_munmap-failure.patch removed from -mm
- tree
-Message-ID: <20210903205841.qjQz5qF-O%akpm@linux-foundation.org>
+ mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section.patch
+ removed from -mm tree
+Message-ID: <20210903205843.GU8A2zsgW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,60 +44,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: fix memory account on do_munmap() failure
+     Subject: mm/bootmem_info.c: mark __init on register_page_bootmem_info_section
 has been removed from the -mm tree.  Its filename was
-     mm-mremap-fix-memory-account-on-do_munmap-failure.patch
+     mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Wandun <chenwandun@huawei.com>
-Subject: mm/mremap: fix memory account on do_munmap() failure
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm/bootmem_info.c: mark __init on register_page_bootmem_info_section
 
-mremap will account the delta between new_len and old_len in
-vma_to_resize, and then call move_vma when expanding an existing memory
-mapping.  In function move_vma, there are two scenarios when calling
-do_munmap:
+register_page_bootmem_info_section() is only called from __init functions,
+so mark it __init as well.
 
-1. move_page_tables from old_addr to new_addr success
-2. move_page_tables from old_addr to new_addr fail
-
-In first scenario, it should account old_len if do_munmap fail, because
-the delta has already been accounted.
-
-In second scenario, new_addr/new_len will assign to old_addr/old_len if
-move_page_table fail, so do_munmap is try to unmap new_addr actually, if
-do_munmap fail, it should account the new_len, because error code will be
-return from move_vma, and delta will be unaccounted.  What'more, because
-of new_len == old_len, so account old_len also is OK.
-
-In summary, account old_len will be correct if do_munmap fail.
-
-Link: https://lkml.kernel.org/r/20210717101942.120607-1-chenwandun@huawei.com
-Fixes: 51df7bcb6151 ("mm/mremap: account memory on do_munmap() failure")
-Signed-off-by: Chen Wandun <chenwandun@huawei.com>
-Acked-by: Dmitry Safonov <dima@arista.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Wei Yongjun <weiyongjun1@huawei.com>
+Link: https://lkml.kernel.org/r/20210817042221.77172-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/bootmem_info.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/mremap.c~mm-mremap-fix-memory-account-on-do_munmap-failure
-+++ a/mm/mremap.c
-@@ -686,7 +686,7 @@ static unsigned long move_vma(struct vm_
- 	if (do_munmap(mm, old_addr, old_len, uf_unmap) < 0) {
- 		/* OOM: unable to split vma, just get accounts right */
- 		if (vm_flags & VM_ACCOUNT && !(flags & MREMAP_DONTUNMAP))
--			vm_acct_memory(new_len >> PAGE_SHIFT);
-+			vm_acct_memory(old_len >> PAGE_SHIFT);
- 		excess = 0;
- 	}
+--- a/mm/bootmem_info.c~mm-bootmem_info-mark-__init-on-register_page_bootmem_info_section
++++ a/mm/bootmem_info.c
+@@ -39,7 +39,7 @@ void put_page_bootmem(struct page *page)
+ }
  
+ #ifndef CONFIG_SPARSEMEM_VMEMMAP
+-static void register_page_bootmem_info_section(unsigned long start_pfn)
++static void __init register_page_bootmem_info_section(unsigned long start_pfn)
+ {
+ 	unsigned long mapsize, section_nr, i;
+ 	struct mem_section *ms;
+@@ -74,7 +74,7 @@ static void register_page_bootmem_info_s
+ 
+ }
+ #else /* CONFIG_SPARSEMEM_VMEMMAP */
+-static void register_page_bootmem_info_section(unsigned long start_pfn)
++static void __init register_page_bootmem_info_section(unsigned long start_pfn)
+ {
+ 	unsigned long mapsize, section_nr, i;
+ 	struct mem_section *ms;
 _
 
-Patches currently in -mm which might be from chenwandun@huawei.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-remove-redundant-compound_head-calling.patch
+mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
 
