@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74AD1C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BE88C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 56D626112E
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66BE361131
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:59:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235866AbhICVAu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:00:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59380 "EHLO mail.kernel.org"
+        id S1349821AbhICVAw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:00:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350172AbhICVAr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:00:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8510E61131;
-        Fri,  3 Sep 2021 20:59:47 +0000 (UTC)
+        id S237281AbhICVAq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:00:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 843E561107;
+        Fri,  3 Sep 2021 20:59:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702787;
-        bh=y5WqSshU0uz8bO01FJYecZzPYYm4mq7KRY0Q1uaEFWg=;
+        s=korg; t=1630702785;
+        bh=+HGS8cclHFNIK/zHB+wsQaEUOTVotE1WxhtJmsKCkPo=;
         h=Date:From:To:Subject:From;
-        b=jP9azO6HdXawG73mIZ4f71vYCY35SzYGdvJ/6u07DrTiAz12KX6FGrFxEKUv3AbcP
-         bhJJuJofwtjhxIEuAL+5vgX13hFA6lIN8DO2n+1tF4tv+ZjpBxuljMJJ06LkjnWFqc
-         qEUyOK4nFnaIKKT711YsL4ZB1QNN1oHZiFyZ2QBE=
-Date:   Fri, 03 Sep 2021 13:59:47 -0700
+        b=kHlMfgZVAu0arn/imNg1nro9oM2AYDphBk0dol4L73CCHeCZVYFHhqoOsA6MkSY7s
+         JVZqFsEBe1nhX9YME/YciK+lpFNoFrRao3vYRrJoOr5pWwz8fkOlD+XT+j0dg4Cc4H
+         lqoKSuR4Jq6Xa/vMwDRJDRqgbPGVv+7eUq8wIQNw=
+Date:   Fri, 03 Sep 2021 13:59:45 -0700
 From:   akpm@linux-foundation.org
 To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org,
         naoya.horiguchi@nec.com
 Subject:  [merged]
- mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error.patch removed from -mm
+ mm-hwpoison-remove-unneeded-variable-unmap_success.patch removed from -mm
  tree
-Message-ID: <20210903205947.qAR1ijYPu%akpm@linux-foundation.org>
+Message-ID: <20210903205945.QMm3a6m3q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,58 +44,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: fix potential pte_unmap_unlock pte error
+     Subject: mm/hwpoison: remove unneeded variable unmap_success
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error.patch
+     mm-hwpoison-remove-unneeded-variable-unmap_success.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/hwpoison: fix potential pte_unmap_unlock pte error
+Subject: mm/hwpoison: remove unneeded variable unmap_success
 
-If the first pte is equal to poisoned_pfn, i.e.  check_hwpoisoned_entry()
-return 1, the wrong ptep - 1 would be passed to pte_unmap_unlock().
+Patch series "Cleanups and fixup for hwpoison"
 
-Link: https://lkml.kernel.org/r/20210814105131.48814-3-linmiaohe@huawei.com
-Fixes: ad9c59c24095 ("mm,hwpoison: send SIGBUS with error virutal address")
+This series contains cleanups to remove unneeded variable, fix some
+obsolete comments and so on.  Also we fix potential pte_unmap_unlock on
+wrong pte.  More details can be found in the respective changelogs.
+
+
+This patch (of 4):
+
+unmap_success is used to indicate whether page is successfully unmapped
+but it's irrelated with ZONE_DEVICE page and unmap_success is always true
+here.  Remove this unneeded one.
+
+Link: https://lkml.kernel.org/r/20210814105131.48814-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210814105131.48814-2-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-fix-potential-pte_unmap_unlock-pte-error
+--- a/mm/memory-failure.c~mm-hwpoison-remove-unneeded-variable-unmap_success
 +++ a/mm/memory-failure.c
-@@ -632,7 +632,7 @@ static int hwpoison_pte_range(pmd_t *pmd
+@@ -1518,7 +1518,6 @@ static int memory_failure_dev_pagemap(un
+ 		struct dev_pagemap *pgmap)
  {
- 	struct hwp_walk *hwp = (struct hwp_walk *)walk->private;
- 	int ret = 0;
--	pte_t *ptep;
-+	pte_t *ptep, *mapped_pte;
- 	spinlock_t *ptl;
- 
- 	ptl = pmd_trans_huge_lock(pmdp, walk->vma);
-@@ -645,14 +645,15 @@ static int hwpoison_pte_range(pmd_t *pmd
- 	if (pmd_trans_unstable(pmdp))
- 		goto out;
- 
--	ptep = pte_offset_map_lock(walk->vma->vm_mm, pmdp, addr, &ptl);
-+	mapped_pte = ptep = pte_offset_map_lock(walk->vma->vm_mm, pmdp,
-+						addr, &ptl);
- 	for (; addr != end; ptep++, addr += PAGE_SIZE) {
- 		ret = check_hwpoisoned_entry(*ptep, addr, PAGE_SHIFT,
- 					     hwp->pfn, &hwp->tk);
- 		if (ret == 1)
- 			break;
+ 	struct page *page = pfn_to_page(pfn);
+-	const bool unmap_success = true;
+ 	unsigned long size = 0;
+ 	struct to_kill *tk;
+ 	LIST_HEAD(tokill);
+@@ -1590,7 +1589,7 @@ static int memory_failure_dev_pagemap(un
+ 		start = (page->index << PAGE_SHIFT) & ~(size - 1);
+ 		unmap_mapping_range(page->mapping, start, size, 0);
  	}
--	pte_unmap_unlock(ptep - 1, ptl);
-+	pte_unmap_unlock(mapped_pte, ptl);
- out:
- 	cond_resched();
- 	return ret;
+-	kill_procs(&tokill, flags & MF_MUST_KILL, !unmap_success, pfn, flags);
++	kill_procs(&tokill, flags & MF_MUST_KILL, false, pfn, flags);
+ 	rc = 0;
+ unlock:
+ 	dax_unlock_page(page, cookie);
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
