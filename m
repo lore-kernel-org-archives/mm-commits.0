@@ -7,39 +7,39 @@ X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
 	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA356C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 940E3C433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A489F60EE3
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A67B610CC
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:01:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349849AbhICVCI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 17:02:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60670 "EHLO mail.kernel.org"
+        id S1350063AbhICVCM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 17:02:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60736 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235957AbhICVCF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:02:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7F7B560FE6;
-        Fri,  3 Sep 2021 21:01:04 +0000 (UTC)
+        id S235133AbhICVCK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:02:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9355260E8B;
+        Fri,  3 Sep 2021 21:01:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702865;
-        bh=yviA3lZHJieSNakFM/19gqji+mlR4NjAJxDEyQ5mmSc=;
+        s=korg; t=1630702870;
+        bh=PoTKDid3iVeU8UE+taobrBZU1ZsZkDvG1TJ6g+IH4e0=;
         h=Date:From:To:Subject:From;
-        b=RMZHZXCEAt70W4ll7gPIOBptqslN8uJZYP7W/HgHwXghRd37Dt2UT0eg0y68xPDZP
-         bZrr99QVEaH+0WhpZ7+982uhfj6S9d+lc1h445PnQaLy6Cci9u7kG+TyR6+x000McT
-         K6SxcUUSRSzBpMd+xxirBMgiRf0CEPqM3LP0VPx8=
-Date:   Fri, 03 Sep 2021 14:01:04 -0700
+        b=p0qpo/dLCUfLf1fMYq2dJPD5lUxO6wVs+1Ul7X7B/liIsdCNz/nCIo9JQYobk43Do
+         cb1sB1JevGiqbpQ9wJjcHUDOEotJxUXzxSQTIfqdB5PgH/ZmUs4htiAEX2rcWgLp/U
+         7UbgLRFWntefAzL1c0Wt/2SKXGqVG58e/3QpIykA=
+Date:   Fri, 03 Sep 2021 14:01:09 -0700
 From:   akpm@linux-foundation.org
-To:     aquini@redhat.com, charante@codeaurora.org, corbet@lwn.net,
-        dave.hansen@linux.intel.com, keescook@chromium.org,
-        khalid.aziz@oracle.com, mcgrof@kernel.org,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        nigupta@nvidia.com, rientjes@google.com, rppt@kernel.org,
-        vbabka@suse.cz, vinmenon@codeaurora.org, yzaikin@google.com
+To:     aarcange@redhat.com, ak@linux.intel.com, ben.widawsky@intel.com,
+        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
+        feng.tang@intel.com, mgorman@techsingularity.net,
+        mhocko@kernel.org, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org, vbabka@suse.cz,
+        ying.huang@intel.com
 Subject:  [merged]
- mm-compaction-support-triggering-of-proactive-compaction-by-user.patch
+ mm-mempolicy-add-mpol_preferred_many-for-multiple-preferred-nodes.patch
  removed from -mm tree
-Message-ID: <20210903210104.WawZyZVFX%akpm@linux-foundation.org>
+Message-ID: <20210903210109.gfaWGmqcV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,182 +48,390 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: compaction: support triggering of proactive compaction by user
+     Subject: mm/mempolicy: add MPOL_PREFERRED_MANY for multiple preferred nodes
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-support-triggering-of-proactive-compaction-by-user.patch
+     mm-mempolicy-add-mpol_preferred_many-for-multiple-preferred-nodes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Charan Teja Reddy <charante@codeaurora.org>
-Subject: mm: compaction: support triggering of proactive compaction by user
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm/mempolicy: add MPOL_PREFERRED_MANY for multiple preferred nodes
 
-The proactive compaction[1] gets triggered for every 500msec and run
-compaction on the node for COMPACTION_HPAGE_ORDER (usually order-9) pages
-based on the value set to sysctl.compaction_proactiveness.  Triggering the
-compaction for every 500msec in search of COMPACTION_HPAGE_ORDER pages is
-not needed for all applications, especially on the embedded system
-usecases which may have few MB's of RAM.  Enabling the proactive
-compaction in its state will endup in running almost always on such
-systems.
+Patch series "Introduce multi-preference mempolicy", v7.
 
-Other side, proactive compaction can still be very much useful for getting
-a set of higher order pages in some controllable manner(controlled by
-using the sysctl.compaction_proactiveness).  So, on systems where enabling
-the proactive compaction always may proove not required, can trigger the
-same from user space on write to its sysctl interface.  As an example, say
-app launcher decide to launch the memory heavy application which can be
-launched fast if it gets more higher order pages thus launcher can prepare
-the system in advance by triggering the proactive compaction from
-userspace.
+This patch series introduces the concept of the MPOL_PREFERRED_MANY
+mempolicy.  This mempolicy mode can be used with either the
+set_mempolicy(2) or mbind(2) interfaces.  Like the MPOL_PREFERRED
+interface, it allows an application to set a preference for nodes which
+will fulfil memory allocation requests.  Unlike the MPOL_PREFERRED mode,
+it takes a set of nodes.  Like the MPOL_BIND interface, it works over a
+set of nodes.  Unlike MPOL_BIND, it will not cause a SIGSEGV or invoke the
+OOM killer if those preferred nodes are not available.
 
-This triggering of proactive compaction is done on a write to
-sysctl.compaction_proactiveness by user.
+Along with these patches are patches for libnuma, numactl, numademo, and
+memhog.  They still need some polish, but can be found here:
+https://gitlab.com/bwidawsk/numactl/-/tree/prefer-many It allows new
+usage: `numactl -P 0,3,4`
 
-[1]https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit?id=facdaa917c4d5a376d09d25865f5a863f906234a
+The goal of the new mode is to enable some use-cases when using tiered memory
+usage models which I've lovingly named.
 
-[akpm@linux-foundation.org: tweak vm.rst, per Mike]
-Link: https://lkml.kernel.org/r/1627653207-12317-1-git-send-email-charante@codeaurora.org
-Signed-off-by: Charan Teja Reddy <charante@codeaurora.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Rafael Aquini <aquini@redhat.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+1a. The Hare - The interconnect is fast enough to meet bandwidth and
+    latency requirements allowing preference to be given to all nodes with
+    "fast" memory.
+1b. The Indiscriminate Hare - An application knows it wants fast
+    memory (or perhaps slow memory), but doesn't care which node it runs
+    on.  The application can prefer a set of nodes and then xpu bind to
+    the local node (cpu, accelerator, etc).  This reverses the nodes are
+    chosen today where the kernel attempts to use local memory to the CPU
+    whenever possible.  This will attempt to use the local accelerator to
+    the memory.
+2.  The Tortoise - The administrator (or the application itself) is
+    aware it only needs slow memory, and so can prefer that.
+
+Much of this is almost achievable with the bind interface, but the bind
+interface suffers from an inability to fallback to another set of nodes if
+binding fails to all nodes in the nodemask.
+
+Like MPOL_BIND a nodemask is given. Inherently this removes ordering from the
+preference.
+
+> /* Set first two nodes as preferred in an 8 node system. */
+> const unsigned long nodes = 0x3
+> set_mempolicy(MPOL_PREFER_MANY, &nodes, 8);
+
+> /* Mimic interleave policy, but have fallback *.
+> const unsigned long nodes = 0xaa
+> set_mempolicy(MPOL_PREFER_MANY, &nodes, 8);
+
+Some internal discussion took place around the interface. There are two
+alternatives which we have discussed, plus one I stuck in:
+
+1. Ordered list of nodes.  Currently it's believed that the added
+   complexity is nod needed for expected usecases.
+2. A flag for bind to allow falling back to other nodes.  This
+   confuses the notion of binding and is less flexible than the current
+   solution.
+3. Create flags or new modes that helps with some ordering.  This
+   offers both a friendlier API as well as a solution for more customized
+   usage.  It's unknown if it's worth the complexity to support this. 
+   Here is sample code for how this might work:
+
+> // Prefer specific nodes for some something wacky
+> set_mempolicy(MPOL_PREFER_MANY, 0x17c, 1024);
+>
+> // Default
+> set_mempolicy(MPOL_PREFER_MANY | MPOL_F_PREFER_ORDER_SOCKET, NULL, 0);
+> // which is the same as
+> set_mempolicy(MPOL_DEFAULT, NULL, 0);
+>
+> // The Hare
+> set_mempolicy(MPOL_PREFER_MANY | MPOL_F_PREFER_ORDER_TYPE, NULL, 0);
+>
+> // The Tortoise
+> set_mempolicy(MPOL_PREFER_MANY | MPOL_F_PREFER_ORDER_TYPE_REV, NULL, 0);
+>
+> // Prefer the fast memory of the first two sockets
+> set_mempolicy(MPOL_PREFER_MANY | MPOL_F_PREFER_ORDER_TYPE, -1, 2);
+>
+
+
+This patch (of 5):
+
+The NUMA APIs currently allow passing in a "preferred node" as a single
+bit set in a nodemask.  If more than one bit it set, bits after the first
+are ignored.
+
+This single node is generally OK for location-based NUMA where memory
+being allocated will eventually be operated on by a single CPU.  However,
+in systems with multiple memory types, folks want to target a *type* of
+memory instead of a location.  For instance, someone might want some
+high-bandwidth memory but do not care about the CPU next to which it is
+allocated.  Or, they want a cheap, high capacity allocation and want to
+target all NUMA nodes which have persistent memory in volatile mode.  In
+both of these cases, the application wants to target a *set* of nodes, but
+does not want strict MPOL_BIND behavior as that could lead to OOM killer
+or SIGSEGV.
+
+So add MPOL_PREFERRED_MANY policy to support the multiple preferred nodes
+requirement.  This is not a pie-in-the-sky dream for an API.  This was a
+response to a specific ask of more than one group at Intel.  Specifically:
+
+1. There are existing libraries that target memory types such as
+   https://github.com/memkind/memkind.  These are known to suffer from
+   SIGSEGV's when memory is low on targeted memory "kinds" that span more
+   than one node.  The MCDRAM on a Xeon Phi in "Cluster on Die" mode is an
+   example of this.
+
+2. Volatile-use persistent memory users want to have a memory policy
+   which is targeted at either "cheap and slow" (PMEM) or "expensive and
+   fast" (DRAM).  However, they do not want to experience allocation
+   failures when the targeted type is unavailable.
+
+3. Allocate-then-run.  Generally, we let the process scheduler decide
+   on which physical CPU to run a task.  That location provides a default
+   allocation policy, and memory availability is not generally considered
+   when placing tasks.  For situations where memory is valuable and
+   constrained, some users want to allocate memory first, *then* allocate
+   close compute resources to the allocation.  This is the reverse of the
+   normal (CPU) model.  Accelerators such as GPUs that operate on
+   core-mm-managed memory are interested in this model.
+
+A check is added in sanitize_mpol_flags() to not permit 'prefer_many'
+policy to be used for now, and will be removed in later patch after all
+implementations for 'prefer_many' are ready, as suggested by Michal Hocko.
+
+[mhocko@kernel.org: suggest to refine policy_node/policy_nodemask handling]
+Link: https://lkml.kernel.org/r/1627970362-61305-1-git-send-email-feng.tang@intel.com
+Link: https://lore.kernel.org/r/20200630212517.308045-4-ben.widawsky@intel.com
+Link: https://lkml.kernel.org/r/1627970362-61305-2-git-send-email-feng.tang@intel.com
+Co-developed-by: Ben Widawsky <ben.widawsky@intel.com>
+Signed-off-by: Ben Widawsky <ben.widawsky@intel.com>
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Feng Tang <feng.tang@intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Nitin Gupta <nigupta@nvidia.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Huang Ying <ying.huang@intel.com>b
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |    3 +
- include/linux/compaction.h              |    2 +
- include/linux/mmzone.h                  |    1 
- kernel/sysctl.c                         |    2 -
- mm/compaction.c                         |   38 ++++++++++++++++++++--
- 5 files changed, 42 insertions(+), 4 deletions(-)
+ include/uapi/linux/mempolicy.h |    1 
+ mm/mempolicy.c                 |   73 +++++++++++++++++++++++++------
+ 2 files changed, 60 insertions(+), 14 deletions(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~mm-compaction-support-triggering-of-proactive-compaction-by-user
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -118,7 +118,8 @@ compaction_proactiveness
+--- a/include/uapi/linux/mempolicy.h~mm-mempolicy-add-mpol_preferred_many-for-multiple-preferred-nodes
++++ a/include/uapi/linux/mempolicy.h
+@@ -22,6 +22,7 @@ enum {
+ 	MPOL_BIND,
+ 	MPOL_INTERLEAVE,
+ 	MPOL_LOCAL,
++	MPOL_PREFERRED_MANY,
+ 	MPOL_MAX,	/* always last member of enum */
+ };
  
- This tunable takes a value in the range [0, 100] with a default value of
- 20. This tunable determines how aggressively compaction is done in the
--background. Setting it to 0 disables proactive compaction.
-+background. Write of a non zero value to this tunable will immediately
-+trigger the proactive compaction. Setting it to 0 disables proactive compaction.
+--- a/mm/mempolicy.c~mm-mempolicy-add-mpol_preferred_many-for-multiple-preferred-nodes
++++ a/mm/mempolicy.c
+@@ -31,6 +31,9 @@
+  *                but useful to set in a VMA when you have a non default
+  *                process policy.
+  *
++ * preferred many Try a set of nodes first before normal fallback. This is
++ *                similar to preferred without the special case.
++ *
+  * default        Allocate on the local node first, or when on a VMA
+  *                use the process policy. This is what Linux always did
+  *		  in a NUMA aware kernel and still does by, ahem, default.
+@@ -207,6 +210,14 @@ static int mpol_new_preferred(struct mem
+ 	return 0;
+ }
  
- Note that compaction has a non-trivial system-wide impact as pages
- belonging to different processes are moved around, which could also lead
---- a/include/linux/compaction.h~mm-compaction-support-triggering-of-proactive-compaction-by-user
-+++ a/include/linux/compaction.h
-@@ -84,6 +84,8 @@ static inline unsigned long compact_gap(
- extern unsigned int sysctl_compaction_proactiveness;
- extern int sysctl_compaction_handler(struct ctl_table *table, int write,
- 			void *buffer, size_t *length, loff_t *ppos);
-+extern int compaction_proactiveness_sysctl_handler(struct ctl_table *table,
-+		int write, void *buffer, size_t *length, loff_t *ppos);
- extern int sysctl_extfrag_threshold;
- extern int sysctl_compact_unevictable_allowed;
- 
---- a/include/linux/mmzone.h~mm-compaction-support-triggering-of-proactive-compaction-by-user
-+++ a/include/linux/mmzone.h
-@@ -846,6 +846,7 @@ typedef struct pglist_data {
- 	enum zone_type kcompactd_highest_zoneidx;
- 	wait_queue_head_t kcompactd_wait;
- 	struct task_struct *kcompactd;
-+	bool proactive_compact_trigger;
- #endif
- 	/*
- 	 * This is a per-node reserve of pages that are not available
---- a/kernel/sysctl.c~mm-compaction-support-triggering-of-proactive-compaction-by-user
-+++ a/kernel/sysctl.c
-@@ -2871,7 +2871,7 @@ static struct ctl_table vm_table[] = {
- 		.data		= &sysctl_compaction_proactiveness,
- 		.maxlen		= sizeof(sysctl_compaction_proactiveness),
- 		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
-+		.proc_handler	= compaction_proactiveness_sysctl_handler,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= &one_hundred,
- 	},
---- a/mm/compaction.c~mm-compaction-support-triggering-of-proactive-compaction-by-user
-+++ a/mm/compaction.c
-@@ -2706,6 +2706,30 @@ static void compact_nodes(void)
-  */
- unsigned int __read_mostly sysctl_compaction_proactiveness = 20;
- 
-+int compaction_proactiveness_sysctl_handler(struct ctl_table *table, int write,
-+		void *buffer, size_t *length, loff_t *ppos)
++static int mpol_new_preferred_many(struct mempolicy *pol, const nodemask_t *nodes)
 +{
-+	int rc, nid;
-+
-+	rc = proc_dointvec_minmax(table, write, buffer, length, ppos);
-+	if (rc)
-+		return rc;
-+
-+	if (write && sysctl_compaction_proactiveness) {
-+		for_each_online_node(nid) {
-+			pg_data_t *pgdat = NODE_DATA(nid);
-+
-+			if (pgdat->proactive_compact_trigger)
-+				continue;
-+
-+			pgdat->proactive_compact_trigger = true;
-+			wake_up_interruptible(&pgdat->kcompactd_wait);
-+		}
-+	}
-+
++	if (nodes_empty(*nodes))
++		return -EINVAL;
++	pol->nodes = *nodes;
 +	return 0;
 +}
 +
- /*
-  * This is the entry point for compacting all nodes via
-  * /proc/sys/vm/compact_memory
-@@ -2750,7 +2774,8 @@ void compaction_unregister_node(struct n
- 
- static inline bool kcompactd_work_requested(pg_data_t *pgdat)
+ static int mpol_new_bind(struct mempolicy *pol, const nodemask_t *nodes)
  {
--	return pgdat->kcompactd_max_order > 0 || kthread_should_stop();
-+	return pgdat->kcompactd_max_order > 0 || kthread_should_stop() ||
-+		pgdat->proactive_compact_trigger;
+ 	if (nodes_empty(*nodes))
+@@ -408,6 +419,10 @@ static const struct mempolicy_operations
+ 	[MPOL_LOCAL] = {
+ 		.rebind = mpol_rebind_default,
+ 	},
++	[MPOL_PREFERRED_MANY] = {
++		.create = mpol_new_preferred_many,
++		.rebind = mpol_rebind_preferred,
++	},
+ };
+ 
+ static int migrate_page_add(struct page *page, struct list_head *pagelist,
+@@ -900,6 +915,7 @@ static void get_policy_nodemask(struct m
+ 	case MPOL_BIND:
+ 	case MPOL_INTERLEAVE:
+ 	case MPOL_PREFERRED:
++	case MPOL_PREFERRED_MANY:
+ 		*nodes = p->nodes;
+ 		break;
+ 	case MPOL_LOCAL:
+@@ -1446,7 +1462,13 @@ static inline int sanitize_mpol_flags(in
+ {
+ 	*flags = *mode & MPOL_MODE_FLAGS;
+ 	*mode &= ~MPOL_MODE_FLAGS;
+-	if ((unsigned int)(*mode) >= MPOL_MAX)
++
++	/*
++	 * The check should be 'mode >= MPOL_MAX', but as 'prefer_many'
++	 * is not fully implemented, don't permit it to be used for now,
++	 * and the logic will be restored in following patch
++	 */
++	if ((unsigned int)(*mode) >=  MPOL_PREFERRED_MANY)
+ 		return -EINVAL;
+ 	if ((*flags & MPOL_F_STATIC_NODES) && (*flags & MPOL_F_RELATIVE_NODES))
+ 		return -EINVAL;
+@@ -1875,16 +1897,27 @@ static int apply_policy_zone(struct memp
+  */
+ nodemask_t *policy_nodemask(gfp_t gfp, struct mempolicy *policy)
+ {
++	int mode = policy->mode;
++
+ 	/* Lower zones don't get a nodemask applied for MPOL_BIND */
+-	if (unlikely(policy->mode == MPOL_BIND) &&
+-			apply_policy_zone(policy, gfp_zone(gfp)) &&
+-			cpuset_nodemask_valid_mems_allowed(&policy->nodes))
++	if (unlikely(mode == MPOL_BIND) &&
++		apply_policy_zone(policy, gfp_zone(gfp)) &&
++		cpuset_nodemask_valid_mems_allowed(&policy->nodes))
++		return &policy->nodes;
++
++	if (mode == MPOL_PREFERRED_MANY)
+ 		return &policy->nodes;
+ 
+ 	return NULL;
  }
  
- static bool kcompactd_node_suitable(pg_data_t *pgdat)
-@@ -2901,9 +2926,16 @@ static int kcompactd(void *p)
- 	while (!kthread_should_stop()) {
- 		unsigned long pflags;
+-/* Return the node id preferred by the given mempolicy, or the given id */
++/*
++ * Return the  preferred node id for 'prefer' mempolicy, and return
++ * the given id for all other policies.
++ *
++ * policy_node() is always coupled with policy_nodemask(), which
++ * secures the nodemask limit for 'bind' and 'prefer-many' policy.
++ */
+ static int policy_node(gfp_t gfp, struct mempolicy *policy, int nd)
+ {
+ 	if (policy->mode == MPOL_PREFERRED) {
+@@ -1936,7 +1969,9 @@ unsigned int mempolicy_slab_node(void)
+ 	case MPOL_INTERLEAVE:
+ 		return interleave_nodes(policy);
  
-+		/*
-+		 * Avoid the unnecessary wakeup for proactive compaction
-+		 * when it is disabled.
-+		 */
-+		if (!sysctl_compaction_proactiveness)
-+			timeout = MAX_SCHEDULE_TIMEOUT;
- 		trace_mm_compaction_kcompactd_sleep(pgdat->node_id);
- 		if (wait_event_freezable_timeout(pgdat->kcompactd_wait,
--			kcompactd_work_requested(pgdat), timeout)) {
-+			kcompactd_work_requested(pgdat), timeout) &&
-+			!pgdat->proactive_compact_trigger) {
+-	case MPOL_BIND: {
++	case MPOL_BIND:
++	case MPOL_PREFERRED_MANY:
++	{
+ 		struct zoneref *z;
  
- 			psi_memstall_enter(&pflags);
- 			kcompactd_do_work(pgdat);
-@@ -2938,6 +2970,8 @@ static int kcompactd(void *p)
- 				timeout =
- 				   default_timeout << COMPACT_MAX_DEFER_SHIFT;
- 		}
-+		if (unlikely(pgdat->proactive_compact_trigger))
-+			pgdat->proactive_compact_trigger = false;
+ 		/*
+@@ -2008,12 +2043,12 @@ static inline unsigned interleave_nid(st
+  * @addr: address in @vma for shared policy lookup and interleave policy
+  * @gfp_flags: for requested zone
+  * @mpol: pointer to mempolicy pointer for reference counted mempolicy
+- * @nodemask: pointer to nodemask pointer for MPOL_BIND nodemask
++ * @nodemask: pointer to nodemask pointer for 'bind' and 'prefer-many' policy
+  *
+  * Returns a nid suitable for a huge page allocation and a pointer
+  * to the struct mempolicy for conditional unref after allocation.
+- * If the effective policy is 'BIND, returns a pointer to the mempolicy's
+- * @nodemask for filtering the zonelist.
++ * If the effective policy is 'bind' or 'prefer-many', returns a pointer
++ * to the mempolicy's @nodemask for filtering the zonelist.
+  *
+  * Must be protected by read_mems_allowed_begin()
+  */
+@@ -2021,16 +2056,18 @@ int huge_node(struct vm_area_struct *vma
+ 				struct mempolicy **mpol, nodemask_t **nodemask)
+ {
+ 	int nid;
++	int mode;
+ 
+ 	*mpol = get_vma_policy(vma, addr);
+-	*nodemask = NULL;	/* assume !MPOL_BIND */
++	*nodemask = NULL;
++	mode = (*mpol)->mode;
+ 
+-	if (unlikely((*mpol)->mode == MPOL_INTERLEAVE)) {
++	if (unlikely(mode == MPOL_INTERLEAVE)) {
+ 		nid = interleave_nid(*mpol, vma, addr,
+ 					huge_page_shift(hstate_vma(vma)));
+ 	} else {
+ 		nid = policy_node(gfp_flags, *mpol, numa_node_id());
+-		if ((*mpol)->mode == MPOL_BIND)
++		if (mode == MPOL_BIND || mode == MPOL_PREFERRED_MANY)
+ 			*nodemask = &(*mpol)->nodes;
  	}
+ 	return nid;
+@@ -2063,6 +2100,7 @@ bool init_nodemask_of_mempolicy(nodemask
+ 	mempolicy = current->mempolicy;
+ 	switch (mempolicy->mode) {
+ 	case MPOL_PREFERRED:
++	case MPOL_PREFERRED_MANY:
+ 	case MPOL_BIND:
+ 	case MPOL_INTERLEAVE:
+ 		*mask = mempolicy->nodes;
+@@ -2173,7 +2211,7 @@ struct page *alloc_pages_vma(gfp_t gfp,
+ 		 * node and don't fall back to other nodes, as the cost of
+ 		 * remote accesses would likely offset THP benefits.
+ 		 *
+-		 * If the policy is interleave, or does not allow the current
++		 * If the policy is interleave or does not allow the current
+ 		 * node in its nodemask, we allocate the standard way.
+ 		 */
+ 		if (pol->mode == MPOL_PREFERRED)
+@@ -2311,6 +2349,7 @@ bool __mpol_equal(struct mempolicy *a, s
+ 	case MPOL_BIND:
+ 	case MPOL_INTERLEAVE:
+ 	case MPOL_PREFERRED:
++	case MPOL_PREFERRED_MANY:
+ 		return !!nodes_equal(a->nodes, b->nodes);
+ 	case MPOL_LOCAL:
+ 		return true;
+@@ -2451,6 +2490,8 @@ int mpol_misplaced(struct page *page, st
+ 		break;
  
- 	return 0;
+ 	case MPOL_PREFERRED:
++		if (node_isset(curnid, pol->nodes))
++			goto out;
+ 		polnid = first_node(pol->nodes);
+ 		break;
+ 
+@@ -2465,9 +2506,10 @@ int mpol_misplaced(struct page *page, st
+ 				break;
+ 			goto out;
+ 		}
++		fallthrough;
+ 
++	case MPOL_PREFERRED_MANY:
+ 		/*
+-		 * allows binding to multiple nodes.
+ 		 * use current page if in policy nodemask,
+ 		 * else select nearest allowed node, if any.
+ 		 * If no allowed nodes, use current [!misplaced].
+@@ -2829,6 +2871,7 @@ static const char * const policy_modes[]
+ 	[MPOL_BIND]       = "bind",
+ 	[MPOL_INTERLEAVE] = "interleave",
+ 	[MPOL_LOCAL]      = "local",
++	[MPOL_PREFERRED_MANY]  = "prefer (many)",
+ };
+ 
+ 
+@@ -2907,6 +2950,7 @@ int mpol_parse_str(char *str, struct mem
+ 		if (!nodelist)
+ 			err = 0;
+ 		goto out;
++	case MPOL_PREFERRED_MANY:
+ 	case MPOL_BIND:
+ 		/*
+ 		 * Insist on a nodelist
+@@ -2993,6 +3037,7 @@ void mpol_to_str(char *buffer, int maxle
+ 	case MPOL_LOCAL:
+ 		break;
+ 	case MPOL_PREFERRED:
++	case MPOL_PREFERRED_MANY:
+ 	case MPOL_BIND:
+ 	case MPOL_INTERLEAVE:
+ 		nodes = pol->nodes;
 _
 
-Patches currently in -mm which might be from charante@codeaurora.org are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
 
