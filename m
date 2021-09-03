@@ -7,38 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9D1EC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46FD2C433FE
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90150610FD
+	by mail.kernel.org (Postfix) with ESMTP id 350596113A
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 21:00:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235936AbhICVBW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1350498AbhICVBW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 3 Sep 2021 17:01:22 -0400
 Received: from mail.kernel.org ([198.145.29.99]:59754 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350495AbhICVBU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 17:01:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F5BB610FB;
-        Fri,  3 Sep 2021 21:00:19 +0000 (UTC)
+        id S1350205AbhICVBO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 17:01:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9EC126112E;
+        Fri,  3 Sep 2021 21:00:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702820;
-        bh=QbhcfEY6bHkyaTYCmn+a2iERO/AHUAAZLEe0ipfvJio=;
+        s=korg; t=1630702813;
+        bh=IpbKJgiiKKuGmXWDNVecGtO2gk4RCN1R98mcz6Jygks=;
         h=Date:From:To:Subject:From;
-        b=ylpgCMTuziX5XvvbdpP8WOABD6Ox6r2HQZk0R/3KzLb8oE3AZS80MzoUeY//ErbEy
-         6tfu/PpkBhJzqrENgGvhF3gNrx3rUi0D7Wp8iRq4Ph1ZmcwO6qQJLbSQ6BNefzSD1W
-         Ul9/uIMapAX8E1tRLEa86Yyh1V5/1x1H1BRrObK0=
-Date:   Fri, 03 Sep 2021 14:00:19 -0700
+        b=knnhT/AR8OrSCMCuy9VAq8zPzKHUUsBq+lf4jHcl6auyaAd2y+i/5mpUJkHsX9G3i
+         jebTL1fRfZmxLGlyIGsBcSQpgOmsPvm9EEiBPAtUQ16hm6HFGoa31zWybtpmU3Jv2W
+         Z10HI4WR6yAfQMcxtPspNL3BdrPC4D4a6LkuDB3E=
+Date:   Fri, 03 Sep 2021 14:00:13 -0700
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        david@redhat.com, gthelen@google.com, kbusch@kernel.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
-        rientjes@google.com, shy828301@gmail.com, weixugc@google.com,
-        yang.shi@linux.alibaba.com, ying.huang@intel.com, ziy@nvidia.com
+To:     aarcange@redhat.com, axboe@kernel.dk, axelrasmussen@google.com,
+        mm-commits@vger.kernel.org, namit@vmware.com, peterx@redhat.com,
+        rppt@linux.vnet.ibm.com, viro@zeniv.linux.org.uk
 Subject:  [merged]
- mm-numa-automatically-generate-node-migration-order.patch removed from -mm
+ userfaultfd-prevent-concurrent-api-initialization.patch removed from -mm
  tree
-Message-ID: <20210903210019.D1LQ-y8Nn%akpm@linux-foundation.org>
+Message-ID: <20210903210013.cCh012kFc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,448 +45,228 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/numa: automatically generate node migration order
+     Subject: userfaultfd: prevent concurrent API initialization
 has been removed from the -mm tree.  Its filename was
-     mm-numa-automatically-generate-node-migration-order.patch
+     userfaultfd-prevent-concurrent-api-initialization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm/numa: automatically generate node migration order
+From: Nadav Amit <namit@vmware.com>
+Subject: userfaultfd: prevent concurrent API initialization
 
-Patch series "Migrate Pages in lieu of discard", v11.
+userfaultfd assumes that the enabled features are set once and never
+changed after UFFDIO_API ioctl succeeded.
 
-We're starting to see systems with more and more kinds of memory such as
-Intel's implementation of persistent memory.
+However, currently, UFFDIO_API can be called concurrently from two
+different threads, succeed on both threads and leave userfaultfd's
+features in non-deterministic state.  Theoretically, other uffd operations
+(ioctl's and page-faults) can be dispatched while adversely affected by
+such changes of features.
 
-Let's say you have a system with some DRAM and some persistent memory.
-Today, once DRAM fills up, reclaim will start and some of the DRAM
-contents will be thrown out.  Allocations will, at some point, start
-falling over to the slower persistent memory.
+Moreover, the writes to ctx->state and ctx->features are not ordered,
+which can - theoretically, again - let userfaultfd_ioctl() think that
+userfaultfd API completed, while the features are still not initialized.
 
-That has two nasty properties.  First, the newer allocations can end up in
-the slower persistent memory.  Second, reclaimed data in DRAM are just
-discarded even if there are gobs of space in persistent memory that could
-be used.
+To avoid races, it is arguably best to get rid of ctx->state.  Since there
+are only 2 states, record the API initialization in ctx->features as the
+uppermost bit and remove ctx->state.
 
-This patchset implements a solution to these problems.  At the end of the
-reclaim process in shrink_page_list() just before the last page refcount
-is dropped, the page is migrated to persistent memory instead of being
-dropped.
-
-While I've talked about a DRAM/PMEM pairing, this approach would function
-in any environment where memory tiers exist.
-
-This is not perfect.  It "strands" pages in slower memory and never brings
-them back to fast DRAM.  Huang Ying has follow-on work which repurposes
-NUMA balancing to promote hot pages back to DRAM.
-
-This is also all based on an upstream mechanism that allows persistent
-memory to be onlined and used as if it were volatile:
-
-	http://lkml.kernel.org/r/20190124231441.37A4A305@viggo.jf.intel.com
-
-With that, the DRAM and PMEM in each socket will be represented as 2
-separate NUMA nodes, with the CPUs sit in the DRAM node.  So the
-general inter-NUMA demotion mechanism introduced in the patchset can
-migrate the cold DRAM pages to the PMEM node.
-
-We have tested the patchset with the postgresql and pgbench.  On a
-2-socket server machine with DRAM and PMEM, the kernel with the patchset
-can improve the score of pgbench up to 22.1% compared with that of the
-DRAM only + disk case.  This comes from the reduced disk read throughput
-(which reduces up to 70.8%).
-
-== Open Issues ==
-
- * Memory policies and cpusets that, for instance, restrict allocations
-   to DRAM can be demoted to PMEM whenever they opt in to this
-   new mechanism.  A cgroup-level API to opt-in or opt-out of
-   these migrations will likely be required as a follow-on.
- * Could be more aggressive about where anon LRU scanning occurs
-   since it no longer necessarily involves I/O.  get_scan_count()
-   for instance says: "If we have no swap space, do not bother
-   scanning anon pages"
-
-
-This patch (of 9):
-
-Prepare for the kernel to auto-migrate pages to other memory nodes with a
-node migration table.  This allows creating single migration target for
-each NUMA node to enable the kernel to do NUMA page migrations instead of
-simply discarding colder pages.  A node with no target is a "terminal
-node", so reclaim acts normally there.  The migration target does not
-fundamentally _need_ to be a single node, but this implementation starts
-there to limit complexity.
-
-When memory fills up on a node, memory contents can be automatically
-migrated to another node.  The biggest problems are knowing when to
-migrate and to where the migration should be targeted.
-
-The most straightforward way to generate the "to where" list would be to
-follow the page allocator fallback lists.  Those lists already tell us if
-memory is full where to look next.  It would also be logical to move
-memory in that order.
-
-But, the allocator fallback lists have a fatal flaw: most nodes appear in
-all the lists.  This would potentially lead to migration cycles (A->B,
-B->A, A->B, ...).
-
-Instead of using the allocator fallback lists directly, keep a separate
-node migration ordering.  But, reuse the same data used to generate page
-allocator fallback in the first place: find_next_best_node().
-
-This means that the firmware data used to populate node distances
-essentially dictates the ordering for now.  It should also be
-architecture-neutral since all NUMA architectures have a working
-find_next_best_node().
-
-RCU is used to allow lock-less read of node_demotion[] and prevent
-demotion cycles been observed.  If multiple reads of node_demotion[] are
-performed, a single rcu_read_lock() must be held over all reads to ensure
-no cycles are observed.  Details are as follows.
-
-=== What does RCU provide? ===
-
-Imagine a simple loop which walks down the demotion path looking
-for the last node:
-
-        terminal_node = start_node;
-        while (node_demotion[terminal_node] != NUMA_NO_NODE) {
-                terminal_node = node_demotion[terminal_node];
-        }
-
-The initial values are:
-
-        node_demotion[0] = 1;
-        node_demotion[1] = NUMA_NO_NODE;
-
-and are updated to:
-
-        node_demotion[0] = NUMA_NO_NODE;
-        node_demotion[1] = 0;
-
-What guarantees that the cycle is not observed:
-
-        node_demotion[0] = 1;
-        node_demotion[1] = 0;
-
-and would loop forever?
-
-With RCU, a rcu_read_lock/unlock() can be placed around the loop.  Since
-the write side does a synchronize_rcu(), the loop that observed the old
-contents is known to be complete before the synchronize_rcu() has
-completed.
-
-RCU, combined with disable_all_migrate_targets(), ensures that the old
-migration state is not visible by the time __set_migration_target_nodes()
-is called.
-
-=== What does READ_ONCE() provide? ===
-
-READ_ONCE() forbids the compiler from merging or reordering successive
-reads of node_demotion[].  This ensures that any updates are *eventually*
-observed.
-
-Consider the above loop again.  The compiler could theoretically read the
-entirety of node_demotion[] into local storage (registers) and never go
-back to memory, and *permanently* observe bad values for node_demotion[].
-
-Note: RCU does not provide any universal compiler-ordering
-guarantees:
-
-	https://lore.kernel.org/lkml/20150921204327.GH4029@linux.vnet.ibm.com/
-
-This code is unused for now.  It will be called later in the
-series.
-
-Link: https://lkml.kernel.org/r/20210721063926.3024591-1-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-1-ying.huang@intel.com
-Link: https://lkml.kernel.org/r/20210715055145.195411-2-ying.huang@intel.com
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Keith Busch <kbusch@kernel.org>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20210808020724.1022515-3-namit@vmware.com
+Fixes: 9cd75c3cd4c3d ("userfaultfd: non-cooperative: add ability to report non-PF events from uffd descriptor")
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h   |    5 +
- mm/migrate.c    |  216 ++++++++++++++++++++++++++++++++++++++++++++++
- mm/page_alloc.c |    2 
- 3 files changed, 222 insertions(+), 1 deletion(-)
+ fs/userfaultfd.c |   91 +++++++++++++++++++++------------------------
+ 1 file changed, 44 insertions(+), 47 deletions(-)
 
---- a/mm/internal.h~mm-numa-automatically-generate-node-migration-order
-+++ a/mm/internal.h
-@@ -543,12 +543,17 @@ static inline void mminit_validate_memmo
+--- a/fs/userfaultfd.c~userfaultfd-prevent-concurrent-api-initialization
++++ a/fs/userfaultfd.c
+@@ -33,11 +33,6 @@ int sysctl_unprivileged_userfaultfd __re
  
- #ifdef CONFIG_NUMA
- extern int node_reclaim(struct pglist_data *, gfp_t, unsigned int);
-+extern int find_next_best_node(int node, nodemask_t *used_node_mask);
- #else
- static inline int node_reclaim(struct pglist_data *pgdat, gfp_t mask,
- 				unsigned int order)
- {
- 	return NODE_RECLAIM_NOSCAN;
- }
-+static inline int find_next_best_node(int node, nodemask_t *used_node_mask)
-+{
-+	return NUMA_NO_NODE;
-+}
- #endif
+ static struct kmem_cache *userfaultfd_ctx_cachep __read_mostly;
  
- extern int hwpoison_filter(struct page *p);
---- a/mm/migrate.c~mm-numa-automatically-generate-node-migration-order
-+++ a/mm/migrate.c
-@@ -1099,6 +1099,80 @@ out:
- 	return rc;
- }
- 
-+
-+/*
-+ * node_demotion[] example:
-+ *
-+ * Consider a system with two sockets.  Each socket has
-+ * three classes of memory attached: fast, medium and slow.
-+ * Each memory class is placed in its own NUMA node.  The
-+ * CPUs are placed in the node with the "fast" memory.  The
-+ * 6 NUMA nodes (0-5) might be split among the sockets like
-+ * this:
-+ *
-+ *	Socket A: 0, 1, 2
-+ *	Socket B: 3, 4, 5
-+ *
-+ * When Node 0 fills up, its memory should be migrated to
-+ * Node 1.  When Node 1 fills up, it should be migrated to
-+ * Node 2.  The migration path start on the nodes with the
-+ * processors (since allocations default to this node) and
-+ * fast memory, progress through medium and end with the
-+ * slow memory:
-+ *
-+ *	0 -> 1 -> 2 -> stop
-+ *	3 -> 4 -> 5 -> stop
-+ *
-+ * This is represented in the node_demotion[] like this:
-+ *
-+ *	{  1, // Node 0 migrates to 1
-+ *	   2, // Node 1 migrates to 2
-+ *	  -1, // Node 2 does not migrate
-+ *	   4, // Node 3 migrates to 4
-+ *	   5, // Node 4 migrates to 5
-+ *	  -1} // Node 5 does not migrate
-+ */
-+
-+/*
-+ * Writes to this array occur without locking.  Cycles are
-+ * not allowed: Node X demotes to Y which demotes to X...
-+ *
-+ * If multiple reads are performed, a single rcu_read_lock()
-+ * must be held over all reads to ensure that no cycles are
-+ * observed.
-+ */
-+static int node_demotion[MAX_NUMNODES] __read_mostly =
-+	{[0 ...  MAX_NUMNODES - 1] = NUMA_NO_NODE};
-+
-+/**
-+ * next_demotion_node() - Get the next node in the demotion path
-+ * @node: The starting node to lookup the next node
-+ *
-+ * @returns: node id for next memory node in the demotion path hierarchy
-+ * from @node; NUMA_NO_NODE if @node is terminal.  This does not keep
-+ * @node online or guarantee that it *continues* to be the next demotion
-+ * target.
-+ */
-+int next_demotion_node(int node)
-+{
-+	int target;
-+
-+	/*
-+	 * node_demotion[] is updated without excluding this
-+	 * function from running.  RCU doesn't provide any
-+	 * compiler barriers, so the READ_ONCE() is required
-+	 * to avoid compiler reordering or read merging.
-+	 *
-+	 * Make sure to use RCU over entire code blocks if
-+	 * node_demotion[] reads need to be consistent.
-+	 */
-+	rcu_read_lock();
-+	target = READ_ONCE(node_demotion[node]);
-+	rcu_read_unlock();
-+
-+	return target;
-+}
-+
+-enum userfaultfd_state {
+-	UFFD_STATE_WAIT_API,
+-	UFFD_STATE_RUNNING,
+-};
+-
  /*
-  * Obtain the lock on page, remove all ptes and migrate the page
-  * to the newly allocated page in newpage.
-@@ -2982,3 +3056,145 @@ void migrate_vma_finalize(struct migrate
- }
- EXPORT_SYMBOL(migrate_vma_finalize);
- #endif /* CONFIG_DEVICE_PRIVATE */
+  * Start with fault_pending_wqh and fault_wqh so they're more likely
+  * to be in the same cacheline.
+@@ -69,8 +64,6 @@ struct userfaultfd_ctx {
+ 	unsigned int flags;
+ 	/* features requested from the userspace */
+ 	unsigned int features;
+-	/* state machine */
+-	enum userfaultfd_state state;
+ 	/* released */
+ 	bool released;
+ 	/* memory mappings are changing because of non-cooperative event */
+@@ -104,6 +97,14 @@ struct userfaultfd_wake_range {
+ 	unsigned long len;
+ };
+ 
++/* internal indication that UFFD_API ioctl was successfully executed */
++#define UFFD_FEATURE_INITIALIZED		(1u << 31)
 +
-+/* Disable reclaim-based migration. */
-+static void __disable_all_migrate_targets(void)
++static bool userfaultfd_is_initialized(struct userfaultfd_ctx *ctx)
 +{
-+	int node;
-+
-+	for_each_online_node(node)
-+		node_demotion[node] = NUMA_NO_NODE;
++	return ctx->features & UFFD_FEATURE_INITIALIZED;
 +}
 +
-+static void disable_all_migrate_targets(void)
-+{
-+	__disable_all_migrate_targets();
-+
-+	/*
-+	 * Ensure that the "disable" is visible across the system.
-+	 * Readers will see either a combination of before+disable
-+	 * state or disable+after.  They will never see before and
-+	 * after state together.
-+	 *
-+	 * The before+after state together might have cycles and
-+	 * could cause readers to do things like loop until this
-+	 * function finishes.  This ensures they can only see a
-+	 * single "bad" read and would, for instance, only loop
-+	 * once.
-+	 */
-+	synchronize_rcu();
-+}
-+
-+/*
-+ * Find an automatic demotion target for 'node'.
-+ * Failing here is OK.  It might just indicate
-+ * being at the end of a chain.
-+ */
-+static int establish_migrate_target(int node, nodemask_t *used)
-+{
-+	int migration_target;
-+
-+	/*
-+	 * Can not set a migration target on a
-+	 * node with it already set.
-+	 *
-+	 * No need for READ_ONCE() here since this
-+	 * in the write path for node_demotion[].
-+	 * This should be the only thread writing.
-+	 */
-+	if (node_demotion[node] != NUMA_NO_NODE)
-+		return NUMA_NO_NODE;
-+
-+	migration_target = find_next_best_node(node, used);
-+	if (migration_target == NUMA_NO_NODE)
-+		return NUMA_NO_NODE;
-+
-+	node_demotion[node] = migration_target;
-+
-+	return migration_target;
-+}
-+
-+/*
-+ * When memory fills up on a node, memory contents can be
-+ * automatically migrated to another node instead of
-+ * discarded at reclaim.
-+ *
-+ * Establish a "migration path" which will start at nodes
-+ * with CPUs and will follow the priorities used to build the
-+ * page allocator zonelists.
-+ *
-+ * The difference here is that cycles must be avoided.  If
-+ * node0 migrates to node1, then neither node1, nor anything
-+ * node1 migrates to can migrate to node0.
-+ *
-+ * This function can run simultaneously with readers of
-+ * node_demotion[].  However, it can not run simultaneously
-+ * with itself.  Exclusion is provided by memory hotplug events
-+ * being single-threaded.
-+ */
-+static void __set_migration_target_nodes(void)
-+{
-+	nodemask_t next_pass	= NODE_MASK_NONE;
-+	nodemask_t this_pass	= NODE_MASK_NONE;
-+	nodemask_t used_targets = NODE_MASK_NONE;
-+	int node;
-+
-+	/*
-+	 * Avoid any oddities like cycles that could occur
-+	 * from changes in the topology.  This will leave
-+	 * a momentary gap when migration is disabled.
-+	 */
-+	disable_all_migrate_targets();
-+
-+	/*
-+	 * Allocations go close to CPUs, first.  Assume that
-+	 * the migration path starts at the nodes with CPUs.
-+	 */
-+	next_pass = node_states[N_CPU];
-+again:
-+	this_pass = next_pass;
-+	next_pass = NODE_MASK_NONE;
-+	/*
-+	 * To avoid cycles in the migration "graph", ensure
-+	 * that migration sources are not future targets by
-+	 * setting them in 'used_targets'.  Do this only
-+	 * once per pass so that multiple source nodes can
-+	 * share a target node.
-+	 *
-+	 * 'used_targets' will become unavailable in future
-+	 * passes.  This limits some opportunities for
-+	 * multiple source nodes to share a destination.
-+	 */
-+	nodes_or(used_targets, used_targets, this_pass);
-+	for_each_node_mask(node, this_pass) {
-+		int target_node = establish_migrate_target(node, &used_targets);
-+
-+		if (target_node == NUMA_NO_NODE)
-+			continue;
-+
-+		/*
-+		 * Visit targets from this pass in the next pass.
-+		 * Eventually, every node will have been part of
-+		 * a pass, and will become set in 'used_targets'.
-+		 */
-+		node_set(target_node, next_pass);
-+	}
-+	/*
-+	 * 'next_pass' contains nodes which became migration
-+	 * targets in this pass.  Make additional passes until
-+	 * no more migrations targets are available.
-+	 */
-+	if (!nodes_empty(next_pass))
-+		goto again;
-+}
-+
-+/*
-+ * For callers that do not hold get_online_mems() already.
-+ */
-+__maybe_unused // <- temporay to prevent warnings during bisects
-+static void set_migration_target_nodes(void)
-+{
-+	get_online_mems();
-+	__set_migration_target_nodes();
-+	put_online_mems();
-+}
---- a/mm/page_alloc.c~mm-numa-automatically-generate-node-migration-order
-+++ a/mm/page_alloc.c
-@@ -6157,7 +6157,7 @@ static int node_load[MAX_NUMNODES];
-  *
-  * Return: node id of the found node or %NUMA_NO_NODE if no node is found.
-  */
--static int find_next_best_node(int node, nodemask_t *used_node_mask)
-+int find_next_best_node(int node, nodemask_t *used_node_mask)
+ static int userfaultfd_wake_function(wait_queue_entry_t *wq, unsigned mode,
+ 				     int wake_flags, void *key)
  {
- 	int n, val;
- 	int min_val = INT_MAX;
+@@ -667,7 +668,6 @@ int dup_userfaultfd(struct vm_area_struc
+ 
+ 		refcount_set(&ctx->refcount, 1);
+ 		ctx->flags = octx->flags;
+-		ctx->state = UFFD_STATE_RUNNING;
+ 		ctx->features = octx->features;
+ 		ctx->released = false;
+ 		atomic_set(&ctx->mmap_changing, 0);
+@@ -944,38 +944,33 @@ static __poll_t userfaultfd_poll(struct
+ 
+ 	poll_wait(file, &ctx->fd_wqh, wait);
+ 
+-	switch (ctx->state) {
+-	case UFFD_STATE_WAIT_API:
++	if (!userfaultfd_is_initialized(ctx))
+ 		return EPOLLERR;
+-	case UFFD_STATE_RUNNING:
+-		/*
+-		 * poll() never guarantees that read won't block.
+-		 * userfaults can be waken before they're read().
+-		 */
+-		if (unlikely(!(file->f_flags & O_NONBLOCK)))
+-			return EPOLLERR;
+-		/*
+-		 * lockless access to see if there are pending faults
+-		 * __pollwait last action is the add_wait_queue but
+-		 * the spin_unlock would allow the waitqueue_active to
+-		 * pass above the actual list_add inside
+-		 * add_wait_queue critical section. So use a full
+-		 * memory barrier to serialize the list_add write of
+-		 * add_wait_queue() with the waitqueue_active read
+-		 * below.
+-		 */
+-		ret = 0;
+-		smp_mb();
+-		if (waitqueue_active(&ctx->fault_pending_wqh))
+-			ret = EPOLLIN;
+-		else if (waitqueue_active(&ctx->event_wqh))
+-			ret = EPOLLIN;
+ 
+-		return ret;
+-	default:
+-		WARN_ON_ONCE(1);
++	/*
++	 * poll() never guarantees that read won't block.
++	 * userfaults can be waken before they're read().
++	 */
++	if (unlikely(!(file->f_flags & O_NONBLOCK)))
+ 		return EPOLLERR;
+-	}
++	/*
++	 * lockless access to see if there are pending faults
++	 * __pollwait last action is the add_wait_queue but
++	 * the spin_unlock would allow the waitqueue_active to
++	 * pass above the actual list_add inside
++	 * add_wait_queue critical section. So use a full
++	 * memory barrier to serialize the list_add write of
++	 * add_wait_queue() with the waitqueue_active read
++	 * below.
++	 */
++	ret = 0;
++	smp_mb();
++	if (waitqueue_active(&ctx->fault_pending_wqh))
++		ret = EPOLLIN;
++	else if (waitqueue_active(&ctx->event_wqh))
++		ret = EPOLLIN;
++
++	return ret;
+ }
+ 
+ static const struct file_operations userfaultfd_fops;
+@@ -1170,7 +1165,7 @@ static ssize_t userfaultfd_read(struct f
+ 	int no_wait = file->f_flags & O_NONBLOCK;
+ 	struct inode *inode = file_inode(file);
+ 
+-	if (ctx->state == UFFD_STATE_WAIT_API)
++	if (!userfaultfd_is_initialized(ctx))
+ 		return -EINVAL;
+ 
+ 	for (;;) {
+@@ -1909,9 +1904,10 @@ out:
+ static inline unsigned int uffd_ctx_features(__u64 user_features)
+ {
+ 	/*
+-	 * For the current set of features the bits just coincide
++	 * For the current set of features the bits just coincide. Set
++	 * UFFD_FEATURE_INITIALIZED to mark the features as enabled.
+ 	 */
+-	return (unsigned int)user_features;
++	return (unsigned int)user_features | UFFD_FEATURE_INITIALIZED;
+ }
+ 
+ /*
+@@ -1924,12 +1920,10 @@ static int userfaultfd_api(struct userfa
+ {
+ 	struct uffdio_api uffdio_api;
+ 	void __user *buf = (void __user *)arg;
++	unsigned int ctx_features;
+ 	int ret;
+ 	__u64 features;
+ 
+-	ret = -EINVAL;
+-	if (ctx->state != UFFD_STATE_WAIT_API)
+-		goto out;
+ 	ret = -EFAULT;
+ 	if (copy_from_user(&uffdio_api, buf, sizeof(uffdio_api)))
+ 		goto out;
+@@ -1953,9 +1947,13 @@ static int userfaultfd_api(struct userfa
+ 	ret = -EFAULT;
+ 	if (copy_to_user(buf, &uffdio_api, sizeof(uffdio_api)))
+ 		goto out;
+-	ctx->state = UFFD_STATE_RUNNING;
++
+ 	/* only enable the requested features for this uffd context */
+-	ctx->features = uffd_ctx_features(features);
++	ctx_features = uffd_ctx_features(features);
++	ret = -EINVAL;
++	if (cmpxchg(&ctx->features, 0, ctx_features) != 0)
++		goto err_out;
++
+ 	ret = 0;
+ out:
+ 	return ret;
+@@ -1972,7 +1970,7 @@ static long userfaultfd_ioctl(struct fil
+ 	int ret = -EINVAL;
+ 	struct userfaultfd_ctx *ctx = file->private_data;
+ 
+-	if (cmd != UFFDIO_API && ctx->state == UFFD_STATE_WAIT_API)
++	if (cmd != UFFDIO_API && !userfaultfd_is_initialized(ctx))
+ 		return -EINVAL;
+ 
+ 	switch(cmd) {
+@@ -2086,7 +2084,6 @@ SYSCALL_DEFINE1(userfaultfd, int, flags)
+ 	refcount_set(&ctx->refcount, 1);
+ 	ctx->flags = flags;
+ 	ctx->features = 0;
+-	ctx->state = UFFD_STATE_WAIT_API;
+ 	ctx->released = false;
+ 	atomic_set(&ctx->mmap_changing, 0);
+ 	ctx->mm = current->mm;
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from namit@vmware.com are
 
 
