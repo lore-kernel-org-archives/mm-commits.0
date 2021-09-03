@@ -7,37 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 075B5C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29897C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E19A760E9B
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 130ED610F7
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350304AbhICU5y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:57:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56700 "EHLO mail.kernel.org"
+        id S1350319AbhICU55 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:57:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56754 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350309AbhICU5x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:57:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A6ED260C3E;
-        Fri,  3 Sep 2021 20:56:52 +0000 (UTC)
+        id S1350309AbhICU54 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:57:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A2F23601FD;
+        Fri,  3 Sep 2021 20:56:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702613;
-        bh=7LPCTXTQrx0Rx/GyzntX5LQhsNBM9y4W2mfJDk6rGIs=;
+        s=korg; t=1630702616;
+        bh=vAJHwgQnzyNusIMND2Z1eQ3AXDntQUJ8KOHcOd3lUho=;
         h=Date:From:To:Subject:From;
-        b=T2ln+g+EDAD6Q3OCW+PguBCw9azWz6QXXMmBKmWLUhdBXo/AToYfr3y7TY31bH7Ny
-         XegkVkyKJ+3xdKYRVE82y+gpsjB0O878Qd6ZfBTiacuRjlAQS7cqxy3hKRNb4maNaZ
-         emyEqD+EqItHcPIewxL2ns7ADzS6gtJBiTMV0A9c=
-Date:   Fri, 03 Sep 2021 13:56:52 -0700
+        b=n+LhW6y5oN96kSDpbjFQlrPmjFSIgZwhNI8FZoIUpACz+VD4qraqDSEKMMTVwI2fM
+         5OqK8BupLlGaegNtdhF6Ww7Miv5EYlQ+Fftnts9Qb5GJcJjuxYc7YOVOzN7dXcJh7f
+         mA8snKXFzUjbwVQoln6IDaT4sfroznnbW9lCYXZM=
+Date:   Fri, 03 Sep 2021 13:56:55 -0700
 From:   akpm@linux-foundation.org
 To:     hughd@google.com, kirill.shutemov@linux.intel.com,
         linmiaohe@huawei.com, mhocko@suse.com, mike.kravetz@oracle.com,
         mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com,
         shy828301@gmail.com, willy@infradead.org
 Subject:  [merged]
- huge-tmpfs-fix-fallocatevanilla-advance-over-huge-pages.patch removed from
+ huge-tmpfs-fix-split_huge_page-after-falloc_fl_keep_size.patch removed from
  -mm tree
-Message-ID: <20210903205652.bKE6fBJrv%akpm@linux-foundation.org>
+Message-ID: <20210903205655.kSvxML7kO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,98 +46,146 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: fix fallocate(vanilla) advance over huge pages
+     Subject: huge tmpfs: fix split_huge_page() after FALLOC_FL_KEEP_SIZE
 has been removed from the -mm tree.  Its filename was
-     huge-tmpfs-fix-fallocatevanilla-advance-over-huge-pages.patch
+     huge-tmpfs-fix-split_huge_page-after-falloc_fl_keep_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs: fix fallocate(vanilla) advance over huge pages
+Subject: huge tmpfs: fix split_huge_page() after FALLOC_FL_KEEP_SIZE
 
-Patch series "huge tmpfs: shmem_is_huge() fixes and cleanups".
+A successful shmem_fallocate() guarantees that the extent has been
+reserved, even beyond i_size when the FALLOC_FL_KEEP_SIZE flag was used. 
+But that guarantee is broken by shmem_unused_huge_shrink()'s attempts to
+split huge pages and free their excess beyond i_size; and by other uses of
+split_huge_page() near i_size.
 
-A series of huge tmpfs fixes and cleanups.
+It's sad to add a shmem inode field just for this, but I did not find a
+better way to keep the guarantee.  A flag to say KEEP_SIZE has been used
+would be cheaper, but I'm averse to unclearable flags.  The fallocend
+field is not perfect either (many disjoint ranges might be fallocated),
+but good enough; and gains another use later on.
 
-
-This patch (of 9):
-
-shmem_fallocate() goes to a lot of trouble to leave its newly allocated
-pages !Uptodate, partly to identify and undo them on failure, partly to
-leave the overhead of clearing them until later.  But the huge page case
-did not skip to the end of the extent, walked through the tail pages one
-by one, and appeared to work just fine: but in doing so, cleared and
-Uptodated the huge page, so there was no way to undo it on failure.
-
-And by setting Uptodate too soon, it messed up both its nr_falloced and
-nr_unswapped counts, so that the intended "time to give up" heuristic did
-not work at all.
-
-Now advance immediately to the end of the huge extent, with a comment on
-why this is more than just an optimization.  But although this speeds up
-huge tmpfs fallocation, it does leave the clearing until first use, and
-some users may have come to appreciate slow fallocate but fast first use:
-if they complain, then we can consider adding a pass to clear at the end.
-
-Link: https://lkml.kernel.org/r/da632211-8e3e-6b1-aee-ab24734429a0@google.com
-Link: https://lkml.kernel.org/r/16201bd2-70e-37e2-e89b-5f929430da@google.com
-Fixes: 800d8c63b2e9 ("shmem: add huge pages support")
+Link: https://lkml.kernel.org/r/ca9a146-3a59-6cd3-7f28-e9a044bb1052@google.com
+Fixes: 779750d20b93 ("shmem: split huge pages beyond i_size under memory pressure")
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Shakeel Butt <shakeelb@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Rik van Riel <riel@surriel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ include/linux/shmem_fs.h |   13 +++++++++++++
+ mm/huge_memory.c         |    6 ++++--
+ mm/shmem.c               |   15 ++++++++++++++-
+ 3 files changed, 31 insertions(+), 3 deletions(-)
 
---- a/mm/shmem.c~huge-tmpfs-fix-fallocatevanilla-advance-over-huge-pages
+--- a/include/linux/shmem_fs.h~huge-tmpfs-fix-split_huge_page-after-falloc_fl_keep_size
++++ a/include/linux/shmem_fs.h
+@@ -18,6 +18,7 @@ struct shmem_inode_info {
+ 	unsigned long		flags;
+ 	unsigned long		alloced;	/* data pages alloced to file */
+ 	unsigned long		swapped;	/* subtotal assigned to swap */
++	pgoff_t			fallocend;	/* highest fallocate endindex */
+ 	struct list_head        shrinklist;     /* shrinkable hpage inodes */
+ 	struct list_head	swaplist;	/* chain of maybes on swap */
+ 	struct shared_policy	policy;		/* NUMA memory alloc policy */
+@@ -119,6 +120,18 @@ static inline bool shmem_file(struct fil
+ 	return shmem_mapping(file->f_mapping);
+ }
+ 
++/*
++ * If fallocate(FALLOC_FL_KEEP_SIZE) has been used, there may be pages
++ * beyond i_size's notion of EOF, which fallocate has committed to reserving:
++ * which split_huge_page() must therefore not delete.  This use of a single
++ * "fallocend" per inode errs on the side of not deleting a reservation when
++ * in doubt: there are plenty of cases when it preserves unreserved pages.
++ */
++static inline pgoff_t shmem_fallocend(struct inode *inode, pgoff_t eof)
++{
++	return max(eof, SHMEM_I(inode)->fallocend);
++}
++
+ extern bool shmem_charge(struct inode *inode, long pages);
+ extern void shmem_uncharge(struct inode *inode, long pages);
+ 
+--- a/mm/huge_memory.c~huge-tmpfs-fix-split_huge_page-after-falloc_fl_keep_size
++++ a/mm/huge_memory.c
+@@ -2454,11 +2454,11 @@ static void __split_huge_page(struct pag
+ 
+ 	for (i = nr - 1; i >= 1; i--) {
+ 		__split_huge_page_tail(head, i, lruvec, list);
+-		/* Some pages can be beyond i_size: drop them from page cache */
++		/* Some pages can be beyond EOF: drop them from page cache */
+ 		if (head[i].index >= end) {
+ 			ClearPageDirty(head + i);
+ 			__delete_from_page_cache(head + i, NULL);
+-			if (IS_ENABLED(CONFIG_SHMEM) && PageSwapBacked(head))
++			if (shmem_mapping(head->mapping))
+ 				shmem_uncharge(head->mapping->host, 1);
+ 			put_page(head + i);
+ 		} else if (!PageAnon(page)) {
+@@ -2686,6 +2686,8 @@ int split_huge_page_to_list(struct page
+ 		 * head page lock is good enough to serialize the trimming.
+ 		 */
+ 		end = DIV_ROUND_UP(i_size_read(mapping->host), PAGE_SIZE);
++		if (shmem_mapping(mapping))
++			end = shmem_fallocend(mapping->host, end);
+ 	}
+ 
+ 	/*
+--- a/mm/shmem.c~huge-tmpfs-fix-split_huge_page-after-falloc_fl_keep_size
 +++ a/mm/shmem.c
-@@ -2719,7 +2719,7 @@ static long shmem_fallocate(struct file
+@@ -902,6 +902,9 @@ static void shmem_undo_range(struct inod
+ 	if (lend == -1)
+ 		end = -1;	/* unsigned, so actually very big */
+ 
++	if (info->fallocend > start && info->fallocend <= end && !unfalloc)
++		info->fallocend = start;
++
+ 	pagevec_init(&pvec);
+ 	index = start;
+ 	while (index < end && find_lock_entries(mapping, index, end - 1,
+@@ -2650,7 +2653,7 @@ static long shmem_fallocate(struct file
+ 	struct shmem_sb_info *sbinfo = SHMEM_SB(inode->i_sb);
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	struct shmem_falloc shmem_falloc;
+-	pgoff_t start, index, end;
++	pgoff_t start, index, end, undo_fallocend;
+ 	int error;
+ 
+ 	if (mode & ~(FALLOC_FL_KEEP_SIZE | FALLOC_FL_PUNCH_HOLE))
+@@ -2719,6 +2722,15 @@ static long shmem_fallocate(struct file
  	inode->i_private = &shmem_falloc;
  	spin_unlock(&inode->i_lock);
  
--	for (index = start; index < end; index++) {
-+	for (index = start; index < end; ) {
++	/*
++	 * info->fallocend is only relevant when huge pages might be
++	 * involved: to prevent split_huge_page() freeing fallocated
++	 * pages when FALLOC_FL_KEEP_SIZE committed beyond i_size.
++	 */
++	undo_fallocend = info->fallocend;
++	if (info->fallocend < end)
++		info->fallocend = end;
++
+ 	for (index = start; index < end; ) {
  		struct page *page;
  
- 		/*
-@@ -2742,13 +2742,26 @@ static long shmem_fallocate(struct file
- 			goto undone;
- 		}
- 
-+		index++;
-+		/*
-+		 * Here is a more important optimization than it appears:
-+		 * a second SGP_FALLOC on the same huge page will clear it,
-+		 * making it PageUptodate and un-undoable if we fail later.
-+		 */
-+		if (PageTransCompound(page)) {
-+			index = round_up(index, HPAGE_PMD_NR);
-+			/* Beware 32-bit wraparound */
-+			if (!index)
-+				index--;
-+		}
-+
- 		/*
- 		 * Inform shmem_writepage() how far we have reached.
- 		 * No need for lock or barrier: we have the page lock.
- 		 */
--		shmem_falloc.next++;
- 		if (!PageUptodate(page))
--			shmem_falloc.nr_falloced++;
-+			shmem_falloc.nr_falloced += index - shmem_falloc.next;
-+		shmem_falloc.next = index;
- 
- 		/*
- 		 * If !PageUptodate, leave it that way so that freeable pages
+@@ -2733,6 +2745,7 @@ static long shmem_fallocate(struct file
+ 		else
+ 			error = shmem_getpage(inode, index, &page, SGP_FALLOC);
+ 		if (error) {
++			info->fallocend = undo_fallocend;
+ 			/* Remove the !PageUptodate pages we added */
+ 			if (index > start) {
+ 				shmem_undo_range(inode,
 _
 
 Patches currently in -mm which might be from hughd@google.com are
