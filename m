@@ -7,33 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 485A2C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C6DCC43217
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 34898610F7
+	by mail.kernel.org (Postfix) with ESMTP id 7A83F60E9B
 	for <mm-commits@archiver.kernel.org>; Fri,  3 Sep 2021 20:56:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350231AbhICU5x (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Sep 2021 16:57:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56634 "EHLO mail.kernel.org"
+        id S1350253AbhICU5y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Sep 2021 16:57:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56676 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1350253AbhICU5r (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 3 Sep 2021 16:57:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7DE3B610E5;
-        Fri,  3 Sep 2021 20:56:46 +0000 (UTC)
+        id S1350304AbhICU5v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 3 Sep 2021 16:57:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 82989601FD;
+        Fri,  3 Sep 2021 20:56:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1630702606;
-        bh=goLk+VybLEYEIodX+yMV9remJgP1dityHH8ZnvBXyxw=;
+        s=korg; t=1630702610;
+        bh=VkQuieZoY5e8bNKoCZU+DDwT9b3KK7Vnuzc8ilBz/bU=;
         h=Date:From:To:Subject:From;
-        b=X8Q16eqinBIW63WkYzsYwG0XGlOggKBqfoW/FIi+X4oq8u6vdOPL44vfJ3MBs8oUZ
-         Q6AScxBbMcvyGD6nMDeV6S91qbJZv6Z1bOjTdefKNkg1TDEbN1xRTsATqPo9GwZCfz
-         Bm9yTZOGqgKxPWLHtp65sOrJDpPOC4LiP1LJdMKQ=
-Date:   Fri, 03 Sep 2021 13:56:46 -0700
+        b=Q0yj38GFRa503HNISorAi5fze2n9VCyqV1XheCpS+dTbDCFGd2mJSeLdV5yeTmziE
+         JFGdKjZac+L7a94d59uSrD/PtySnKtdjw5+81QnZEvdi047Jm4e070i7Dl0mslAhi+
+         UbRdDs/tt5ivrc7bUARH3OtHW+ERpnVNBxwd5z9I=
+Date:   Fri, 03 Sep 2021 13:56:50 -0700
 From:   akpm@linux-foundation.org
 To:     hughd@google.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org
-Subject:  [merged] shmem-remove-unneeded-header-file.patch removed
- from -mm tree
-Message-ID: <20210903205646.TLuAr9c9a%akpm@linux-foundation.org>
+Subject:  [merged]
+ shmem-include-header-file-to-declare-swap_info.patch removed from -mm tree
+Message-ID: <20210903205650.4HYQzrZoS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,41 +42,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: remove unneeded header file
+     Subject: shmem: include header file to declare swap_info
 has been removed from the -mm tree.  Its filename was
-     shmem-remove-unneeded-header-file.patch
+     shmem-include-header-file-to-declare-swap_info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: shmem: remove unneeded header file
+Subject: shmem: include header file to declare swap_info
 
-mfill_atomic_install_pte() is introduced to install pte and update mmu
-cache since commit bf6ebd97aba0 ("userfaultfd/shmem: modify
-shmem_mfill_atomic_pte to use install_pte()").  So we should remove
-tlbflush.h as update_mmu_cache() is not called here now.
+It's bad to extern swap_info[] in .c.  Include corresponding header file
+instead.
 
-Link: https://lkml.kernel.org/r/20210812120350.49801-3-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210812120350.49801-5-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/shmem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/shmem.c~shmem-remove-unneeded-header-file
+--- a/mm/shmem.c~shmem-include-header-file-to-declare-swap_info
 +++ a/mm/shmem.c
-@@ -39,8 +39,6 @@
+@@ -38,6 +38,7 @@
+ #include <linux/hugetlb.h>
  #include <linux/frontswap.h>
  #include <linux/fs_parser.h>
++#include <linux/swapfile.h>
  
--#include <asm/tlbflush.h> /* for arch/microblaze update_mmu_cache() */
--
  static struct vfsmount *shm_mnt;
  
- #ifdef CONFIG_SHMEM
+@@ -1152,8 +1153,6 @@ static void shmem_evict_inode(struct ino
+ 	clear_inode(inode);
+ }
+ 
+-extern struct swap_info_struct *swap_info[];
+-
+ static int shmem_find_swap_entries(struct address_space *mapping,
+ 				   pgoff_t start, unsigned int nr_entries,
+ 				   struct page **entries, pgoff_t *indices,
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
