@@ -2,70 +2,58 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-10.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,
-	SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,URIBL_BLOCKED,USER_AGENT_SANE_1
-	autolearn=ham autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,UPPERCASE_50_75,URIBL_BLOCKED,
+	USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DA9CAC433EF
-	for <mm-commits@archiver.kernel.org>; Sun,  5 Sep 2021 13:10:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B271BC433F5
+	for <mm-commits@archiver.kernel.org>; Sun,  5 Sep 2021 13:42:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AFF5560F8F
-	for <mm-commits@archiver.kernel.org>; Sun,  5 Sep 2021 13:10:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 77BCA60F9D
+	for <mm-commits@archiver.kernel.org>; Sun,  5 Sep 2021 13:42:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233827AbhIENLP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 5 Sep 2021 09:11:15 -0400
-Received: from mga04.intel.com ([192.55.52.120]:47774 "EHLO mga04.intel.com"
+        id S229759AbhIENnL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 5 Sep 2021 09:43:11 -0400
+Received: from mga11.intel.com ([192.55.52.93]:22476 "EHLO mga11.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231917AbhIENLO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 5 Sep 2021 09:11:14 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10097"; a="217916708"
+        id S229566AbhIENnL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 5 Sep 2021 09:43:11 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10097"; a="216632563"
 X-IronPort-AV: E=Sophos;i="5.85,269,1624345200"; 
-   d="yaml'?scan'208";a="217916708"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga104.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Sep 2021 06:10:10 -0700
+   d="yaml'?scan'208";a="216632563"
+Received: from orsmga007.jf.intel.com ([10.7.209.58])
+  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Sep 2021 06:42:06 -0700
 X-IronPort-AV: E=Sophos;i="5.85,269,1624345200"; 
-   d="yaml'?scan'208";a="535921803"
+   d="yaml'?scan'208";a="468558600"
 Received: from xsang-optiplex-9020.sh.intel.com (HELO xsang-OptiPlex-9020) ([10.239.159.41])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Sep 2021 06:09:59 -0700
-Date:   Sun, 5 Sep 2021 21:27:32 +0800
+  by orsmga007-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 05 Sep 2021 06:42:00 -0700
+Date:   Sun, 5 Sep 2021 21:59:33 +0800
 From:   kernel test robot <oliver.sang@intel.com>
 To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     0day robot <lkp@intel.com>, Shakeel Butt <shakeelb@google.com>,
-        Alexander Viro <viro@zeniv.linux.org.uk>,
-        Alexey Dobriyan <adobriyan@gmail.com>,
-        Andrei Vagin <avagin@gmail.com>,
-        Borislav Petkov <bp@alien8.de>, Borislav Petkov <bp@suse.de>,
-        Christian Brauner <christian.brauner@ubuntu.com>,
-        Dmitry Safonov <0x7f454c46@gmail.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-        "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>,
-        "J. Bruce Fields" <bfields@fieldses.org>,
-        Jeff Layton <jlayton@kernel.org>, Jens Axboe <axboe@kernel.dk>,
-        Jiri Slaby <jirislaby@kernel.org>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        Kirill Tkhai <ktkhai@virtuozzo.com>,
-        Michal Hocko <mhocko@kernel.org>,
-        Oleg Nesterov <oleg@redhat.com>, Roman Gushchin <guro@fb.com>,
-        Serge Hallyn <serge@hallyn.com>, Tejun Heo <tj@kernel.org>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Vladimir Davydov <vdavydov.dev@gmail.com>,
-        Yutian Yang <nglaive@gmail.com>,
-        Zefan Li <lizefan.x@bytedance.com>,
+Cc:     0day robot <lkp@intel.com>, "Huang, Ying" <ying.huang@intel.com>,
+        Yang Shi <shy828301@gmail.com>, Zi Yan <ziy@nvidia.com>,
+        Michal Hocko <mhocko@suse.com>, Wei Xu <weixugc@google.com>,
+        Oscar Salvador <osalvador@suse.de>,
+        David Rientjes <rientjes@google.com>,
+        Dan Williams <dan.j.williams@intel.com>,
+        David Hildenbrand <david@redhat.com>,
+        Greg Thelen <gthelen@google.com>,
+        Keith Busch <kbusch@kernel.org>,
+        Yang Shi <yang.shi@linux.alibaba.com>,
         Andrew Morton <akpm@linux-foundation.org>,
         LKML <linux-kernel@vger.kernel.org>, lkp@lists.01.org,
-        ying.huang@intel.com, feng.tang@intel.com,
-        zhengjun.xing@linux.intel.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        vvs@virtuozzo.com
-Subject: [memcg]  fa4e6b1ad5:  will-it-scale.per_thread_ops -15.4% regression
-Message-ID: <20210905132732.GC15026@xsang-OptiPlex-9020>
+        feng.tang@intel.com, zhengjun.xing@linux.intel.com,
+        dave.hansen@linux.intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject: [mm/migrate]  9eeb73028c:  stress-ng.memhotplug.ops_per_sec -53.8%
+ regression
+Message-ID: <20210905135932.GE15026@xsang-OptiPlex-9020>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="tqI+Z3u+9OQ7kwn0"
+Content-Type: multipart/mixed; boundary="84ND8YJRMFlzkrP4"
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20210902215514.tEU6wFfLD%akpm@linux-foundation.org>
+In-Reply-To: <20210902215909.0aWLE2-rh%akpm@linux-foundation.org>
 User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -73,7 +61,7 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
---tqI+Z3u+9OQ7kwn0
+--84ND8YJRMFlzkrP4
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
@@ -82,25 +70,26 @@ Content-Transfer-Encoding: 8bit
 
 Greeting,
 
-FYI, we noticed a -15.4% regression of will-it-scale.per_thread_ops due to commit:
+FYI, we noticed a -53.8% regression of stress-ng.memhotplug.ops_per_sec due to commit:
 
 
-commit: fa4e6b1ad57df096ddcf091fece3d9babfe90048 ("[patch 100/212] memcg: enable accounting for pollfd and select bits arrays")
+commit: 9eeb73028cfb54eb06efe87c50cc014d3f1ff43e ("[patch 174/212] mm/migrate: update node demotion order on hotplug events")
 url: https://github.com/0day-ci/linux/commits/Andrew-Morton/ia64-fix-typo-in-a-comment/20210903-065028
 
 
-in testcase: will-it-scale
-on test machine: 144 threads 4 sockets Intel(R) Xeon(R) CPU E7-8890 v3 @ 2.50GHz with 512G memory
+in testcase: stress-ng
+on test machine: 96 threads 2 sockets Intel(R) Xeon(R) Gold 6252 CPU @ 2.10GHz with 192G memory
 with following parameters:
 
-	nr_task: 50%
-	mode: thread
-	test: poll2
+	nr_threads: 10%
+	disk: 1HDD
+	testtime: 60s
+	fs: ext4
+	class: os
+	test: memhotplug
 	cpufreq_governor: performance
-	ucode: 0x16
+	ucode: 0x5003006
 
-test-description: Will It Scale takes a testcase and runs it from 1 through to n parallel copies to see if the testcase will scale. It builds both a process and threads based test in order to see any differences between the two.
-test-url: https://github.com/antonblanchard/will-it-scale
 
 
 
@@ -121,82 +110,106 @@ To reproduce:
         bin/lkp run                    generated-yaml-file
 
 =========================================================================================
-compiler/cpufreq_governor/kconfig/mode/nr_task/rootfs/tbox_group/test/testcase/ucode:
-  gcc-9/performance/x86_64-rhel-8.3/thread/50%/debian-10.4-x86_64-20200603.cgz/lkp-hsw-4ex1/poll2/will-it-scale/0x16
+class/compiler/cpufreq_governor/disk/fs/kconfig/nr_threads/rootfs/tbox_group/test/testcase/testtime/ucode:
+  os/gcc-9/performance/1HDD/ext4/x86_64-rhel-8.3/10%/debian-10.4-x86_64-20200603.cgz/lkp-csl-2sp5/memhotplug/stress-ng/60s/0x5003006
 
 commit: 
-  ddae5955e0 ("memcg: enable accounting for mnt_cache entries")
-  fa4e6b1ad5 ("memcg: enable accounting for pollfd and select bits arrays")
+  603f5ce25c ("mm/numa: automatically generate node migration order")
+  9eeb73028c ("mm/migrate: update node demotion order on hotplug events")
 
-ddae5955e09fc376 fa4e6b1ad57df096ddcf091fece 
+603f5ce25c452baf 9eeb73028cfb54eb06efe87c50c 
 ---------------- --------------------------- 
          %stddev     %change         %stddev
              \          |                \  
-  20037899           -15.4%   16955694 ±  3%  will-it-scale.72.threads
-    278303           -15.4%     235495 ±  3%  will-it-scale.per_thread_ops
-  20037899           -15.4%   16955694 ±  3%  will-it-scale.workload
-   1583653 ±  2%     +47.6%    2338047 ±  8%  cpuidle..usage
-      0.01 ±  2%      +0.0        0.02 ±  8%  mpstat.cpu.all.soft%
-      2568 ±188%    +336.5%      11212 ± 44%  numa-vmstat.node0.numa_other
-     76315            +3.5%      78953        vmstat.system.in
-      2953 ± 15%     +39.4%       4118 ±  6%  slabinfo.kmalloc-cg-1k.active_objs
-      2953 ± 15%     +39.4%       4118 ±  6%  slabinfo.kmalloc-cg-1k.num_objs
-     50719 ±  3%     -21.6%      39775 ± 10%  turbostat.C1E
-   1403174           +55.9%    2187482 ±  8%  turbostat.C6
-    645.68            -2.6%     628.84        turbostat.PkgWatt
-     61545 ±178%    +175.6%     169623 ± 78%  interrupts.CPU110.LOC:Local_timer_interrupts
-      8916 ±147%   +1620.7%     153419 ± 96%  interrupts.CPU134.LOC:Local_timer_interrupts
-    108655 ±124%    +105.1%     222831 ± 49%  interrupts.CPU23.LOC:Local_timer_interrupts
-    611.50 ± 62%     +65.4%       1011 ± 63%  interrupts.CPU25.CAL:Function_call_interrupts
-     56545 ±189%    +205.4%     172674 ± 74%  interrupts.CPU25.LOC:Local_timer_interrupts
-      1652 ± 13%     -48.5%     850.67 ± 63%  interrupts.CPU52.CAL:Function_call_interrupts
-    346.83           +72.7%     598.83 ± 57%  interrupts.CPU94.CAL:Function_call_interrupts
-      1279 ±  8%     +83.7%       2350 ± 31%  interrupts.RES:Rescheduling_interrupts
-     10413 ±  9%     -15.1%       8842 ± 11%  softirqs.CPU0.RCU
-     10111 ± 18%     -34.4%       6636 ± 19%  softirqs.CPU10.RCU
-      9749 ±  8%     -35.8%       6263 ± 32%  softirqs.CPU22.RCU
-     10009 ±  7%     -59.3%       4069 ± 69%  softirqs.CPU30.RCU
-     61.83 ± 38%   +3560.9%       2263 ±210%  softirqs.CPU74.TIMER
-    754991 ±  2%     -23.4%     578181 ±  5%  softirqs.RCU
-    727783           +16.3%     846764 ±  3%  softirqs.SCHED
-     40315           +29.1%      52046 ±  4%  softirqs.TIMER
-      5492           +14.7%       6298 ±  4%  syscalls.sys_mmap.med
- 1.083e+08 ±  6%  +1.3e+08   2.414e+08 ± 12%  syscalls.sys_mmap.noise.100%
- 1.806e+08 ±  3%  +1.3e+08   3.115e+08 ±  9%  syscalls.sys_mmap.noise.2%
- 1.715e+08 ±  3%  +1.3e+08   2.981e+08 ± 10%  syscalls.sys_mmap.noise.25%
- 1.801e+08 ±  3%  +1.3e+08   3.111e+08 ±  9%  syscalls.sys_mmap.noise.5%
-   1.4e+08 ±  4%  +1.3e+08   2.737e+08 ± 11%  syscalls.sys_mmap.noise.50%
- 1.181e+08 ±  6%  +1.4e+08   2.571e+08 ± 12%  syscalls.sys_mmap.noise.75%
-      5921           +11.7%       6612 ±  3%  syscalls.sys_openat.med
-   5133257 ± 10%  +4.5e+08   4.563e+08 ± 38%  syscalls.sys_poll.noise.100%
-   7282972 ± 31%  +4.5e+08   4.599e+08 ± 37%  syscalls.sys_poll.noise.2%
-   6705445 ± 30%  +4.5e+08   4.593e+08 ± 37%  syscalls.sys_poll.noise.25%
-   6828883 ± 32%  +4.5e+08   4.596e+08 ± 37%  syscalls.sys_poll.noise.5%
-   6600419 ± 29%  +4.5e+08   4.592e+08 ± 37%  syscalls.sys_poll.noise.50%
-   5686935 ± 13%  +4.5e+08   4.585e+08 ± 37%  syscalls.sys_poll.noise.75%
-     36152 ± 26%     +56.4%      56553 ± 12%  syscalls.sys_write.max
-  85796438 ± 15%  +5.5e+07   1.407e+08 ± 20%  syscalls.sys_write.noise.100%
- 1.024e+08 ± 14%  +4.3e+07   1.451e+08 ± 19%  syscalls.sys_write.noise.75%
+      2638           -53.7%       1221        stress-ng.memhotplug.ops
+     43.89           -53.8%      20.28        stress-ng.memhotplug.ops_per_sec
+     40637 ±  2%     -61.5%      15654 ±  4%  stress-ng.time.involuntary_context_switches
+     91.17           -50.6%      45.00        stress-ng.time.percent_of_cpu_this_job_got
+     57.11           -50.3%      28.40        stress-ng.time.system_time
+   1075917           -36.4%     684753        cpuidle..usage
+      0.92            -0.5        0.43 ±  2%  mpstat.cpu.all.sys%
+      7183 ±  3%     +17.9%       8467 ±  8%  numa-vmstat.node1.nr_kernel_stack
+     13042 ± 10%     -34.2%       8577 ± 11%  softirqs.CPU0.SCHED
+     17047            +5.8%      18036        proc-vmstat.nr_kernel_stack
+ 1.218e+09 ±  2%     -54.3%  5.564e+08 ±  3%  proc-vmstat.pgfree
+    766.67 ±  5%     +12.2%     860.50 ±  3%  slabinfo.kmalloc-cg-32.active_objs
+      7462 ±  7%     +13.3%       8458 ±  4%  slabinfo.kmalloc-cg-8.active_objs
+     25595 ±  2%     -40.0%      15361        vmstat.system.cs
+      7186           -22.4%       5577        vmstat.system.in
+      1422 ±  8%     -34.0%     939.50 ± 43%  numa-meminfo.node0.Active(anon)
+      7183 ±  3%     +17.9%       8467 ±  8%  numa-meminfo.node1.KernelStack
+    835236 ± 12%     +23.0%    1027326 ± 11%  numa-meminfo.node1.MemUsed
+     41.67           -48.8%      21.33 ±  3%  turbostat.Avg_MHz
+      1.42 ±  2%      -0.6        0.83 ±  2%  turbostat.Busy%
+      2937           -12.3%       2574        turbostat.Bzy_MHz
+     51129 ± 15%     -34.7%      33365 ± 10%  turbostat.C1
+      0.10 ±  4%      -0.0        0.07 ± 14%  turbostat.C1%
+    161038           -53.8%      74435        turbostat.C1E
+      0.82            -0.4        0.39        turbostat.C1E%
+    837765           -33.9%     553856        turbostat.C6
+     15.14           -28.8%      10.78 ±  3%  turbostat.CPU%c1
+    455267 ±  2%     -23.9%     346620 ±  2%  turbostat.IRQ
+    112.21            -7.7%     103.57        turbostat.PkgWatt
+     84.04            -4.3%      80.40        turbostat.RAMWatt
+     33885 ±  6%     -24.2%      25673        interrupts.CAL:Function_call_interrupts
+      6313 ±  8%     -75.6%       1541 ± 19%  interrupts.CPU0.CAL:Function_call_interrupts
+     30982 ± 16%     -55.4%      13832 ±  5%  interrupts.CPU0.LOC:Local_timer_interrupts
+    270.83 ± 18%     -79.5%      55.50 ± 21%  interrupts.CPU0.RES:Rescheduling_interrupts
+      2401 ± 25%     -76.3%     568.50 ± 21%  interrupts.CPU1.CAL:Function_call_interrupts
+     21139 ± 23%     -56.0%       9299 ± 27%  interrupts.CPU1.LOC:Local_timer_interrupts
+    108.33 ± 18%     -81.1%      20.50 ± 38%  interrupts.CPU1.RES:Rescheduling_interrupts
+    863.50 ± 24%     -59.7%     348.17 ± 34%  interrupts.CPU2.CAL:Function_call_interrupts
+     98.00 ± 35%     -70.9%      28.50 ± 86%  interrupts.CPU2.RES:Rescheduling_interrupts
+      1504 ± 29%    +168.4%       4037 ± 50%  interrupts.CPU22.LOC:Local_timer_interrupts
+     12932 ± 21%     -69.8%       3904 ± 41%  interrupts.CPU5.LOC:Local_timer_interrupts
+     77.17 ± 65%     -85.1%      11.50 ± 49%  interrupts.CPU5.RES:Rescheduling_interrupts
+      6555 ± 33%     -45.9%       3549 ± 58%  interrupts.CPU54.LOC:Local_timer_interrupts
+     87.33 ± 31%     -74.6%      22.17 ± 60%  interrupts.CPU58.RES:Rescheduling_interrupts
+     76.17 ± 24%     -80.7%      14.67 ± 39%  interrupts.CPU59.RES:Rescheduling_interrupts
+     76.17 ± 24%     -72.4%      21.00 ± 62%  interrupts.CPU63.RES:Rescheduling_interrupts
+      6038 ± 34%     -67.1%       1984 ± 40%  interrupts.CPU66.LOC:Local_timer_interrupts
+      7942 ± 37%     -55.8%       3513 ± 70%  interrupts.CPU7.LOC:Local_timer_interrupts
+    428264           -22.2%     333008        interrupts.LOC:Local_timer_interrupts
+      3123 ±  8%     -53.8%       1444 ± 10%  interrupts.RES:Rescheduling_interrupts
 
 
                                                                                 
-                            will-it-scale.per_thread_ops                        
+                             stress-ng.memhotplug.ops                           
                                                                                 
-  300000 +------------------------------------------------------------------+   
-         |   ++.+.+.+.++.+.+.+.+.++.+.+.+.++.+.+.+.++.+.+.+.+.++.+.+.+.++.+.|   
-  250000 |-+ :                    O          O                            O |   
-         | O :        OO   O          O O O      O OO     O      O O   OO   |   
-         |   :O   O O          O    O      O   O      O O   O  O     O      |   
-  200000 |:+:                O                                O             |   
-         |: :                    O                                          |   
-  150000 |:+:                                                               |   
-         |: :                                                               |   
-  100000 |:+:                                                               |   
-         |: :                                                               |   
-         | :                                                                |   
-   50000 |-:                                                                |   
-         | :                                                                |   
-       0 +------------------------------------------------------------------+   
+  3000 +--------------------------------------------------------------------+   
+       |            .+                   .+   +.       +.                   |   
+  2500 |.++.++.++.++  +.++.++.++.++.++.++  +.+  ++.++.+  ++.+               |   
+       |                                                                    |   
+       |                                                                    |   
+  2000 |-+                                                                  |   
+       |                                                                    |   
+  1500 |-+                                                                  |   
+       | OO OO OO OO O  OO OO OO OO OO OO OO  O OO OO  O OO O   O  O OO OO O|   
+  1000 |-+            O                                      O O  O         |   
+       |                                                                    |   
+       |                                                                    |   
+   500 |-+                                                                  |   
+       |                                     O        O                     |   
+     0 +--------------------------------------------------------------------+   
+                                                                                
+                                                                                                                                                                
+                        stress-ng.memhotplug.ops_per_sec                        
+                                                                                
+  50 +----------------------------------------------------------------------+   
+  45 |-+          .+                    .+   +.       +.                    |   
+     |.++.++.++.++  +.+.++.++.++.++.++.+  +.+  ++.++.+  ++.+                |   
+  40 |-+                                                                    |   
+  35 |-+                                                                    |   
+     |                                                                      |   
+  30 |-+                                                                    |   
+  25 |-+                                                                    |   
+  20 |-OO OO OO OO O  O OO OO OO OO OO O OO  O OO OO  O O  O    O  OO OO OO |   
+     |              O                                    O   OO  O          |   
+  15 |-+                                                                    |   
+  10 |-+                                                                    |   
+     |                                                                      |   
+   5 |-+                                    O        O                      |   
+   0 +----------------------------------------------------------------------+   
                                                                                 
                                                                                 
 [*] bisect-good sample
@@ -218,9 +231,9 @@ Thanks,
 Oliver Sang
 
 
---tqI+Z3u+9OQ7kwn0
+--84ND8YJRMFlzkrP4
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="config-5.14.0-00100-gfa4e6b1ad57d"
+Content-Disposition: attachment; filename="config-5.14.0-00174-g9eeb73028cfb"
 
 #
 # Automatically generated file; DO NOT EDIT.
@@ -1003,6 +1016,7 @@ CONFIG_HAVE_ARCH_JUMP_LABEL=y
 CONFIG_HAVE_ARCH_JUMP_LABEL_RELATIVE=y
 CONFIG_MMU_GATHER_TABLE_FREE=y
 CONFIG_MMU_GATHER_RCU_TABLE_FREE=y
+CONFIG_MMU_LAZY_TLB_REFCOUNT=y
 CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG=y
 CONFIG_HAVE_ALIGNED_STRUCT_PAGE=y
 CONFIG_HAVE_CMPXCHG_LOCAL=y
@@ -7181,7 +7195,7 @@ CONFIG_ARCH_USE_MEMTEST=y
 # end of Kernel Testing and Coverage
 # end of Kernel hacking
 
---tqI+Z3u+9OQ7kwn0
+--84ND8YJRMFlzkrP4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: attachment; filename=job-script
 
@@ -7189,43 +7203,51 @@ Content-Disposition: attachment; filename=job-script
 
 export_top_env()
 {
-	export suite='will-it-scale'
-	export testcase='will-it-scale'
+	export suite='stress-ng'
+	export testcase='stress-ng'
 	export category='benchmark'
-	export nr_task=72
-	export job_origin='will-it-scale-part3.yaml'
+	export nr_threads=9
+	export testtime=60
+	export job_origin='stress-ng-class-os.yaml'
 	export queue_cmdline_keys='branch
 commit
 queue_at_least_once'
 	export queue='validate'
-	export testbox='lkp-hsw-4ex1'
-	export tbox_group='lkp-hsw-4ex1'
+	export testbox='lkp-csl-2sp5'
+	export tbox_group='lkp-csl-2sp5'
 	export kconfig='x86_64-rhel-8.3'
-	export submit_id='6134902095adf0363645c749'
-	export job_file='/lkp/jobs/scheduled/lkp-hsw-4ex1/will-it-scale-performance-thread-50%-poll2-ucode=0x16-debian-10.4-x86_64-20200603.cgz-fa4e6b1ad57df096ddcf091fece3d9babfe90048-20210905-79414-thi1pi-4.yaml'
-	export id='04a731b63c9d53b593cc14420f3a54d3e8e51789'
+	export submit_id='61345a7bc4b7d214ba9fc48f'
+	export job_file='/lkp/jobs/scheduled/lkp-csl-2sp5/stress-ng-os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006-debian-10.4-x86_64-20200603.cgz-9eeb73028cfb54eb06efe87c50-20210905-5306-1yv8na2-4.yaml'
+	export id='38f465834151f0fe7be7cac0f29e9e4071934664'
 	export queuer_version='/lkp-src'
-	export model='Haswell-EX'
-	export nr_node=4
-	export nr_cpu=144
-	export memory='512G'
-	export nr_ssd_partitions=1
+	export model='Cascade Lake'
+	export nr_node=2
+	export nr_cpu=96
+	export memory='192G'
 	export nr_hdd_partitions=1
-	export hdd_partitions='/dev/disk/by-id/wwn-0x5000c50067bdf9c3-part1'
-	export ssd_partitions='/dev/disk/by-id/ata-INTEL_SSDSC2BB800G4_PHWL41710016800RGN-part1'
+	export nr_ssd_partitions=1
+	export hdd_partitions='/dev/disk/by-id/ata-ST1000NM0011_Z1N2QGYK-part5'
+	export ssd_partitions='/dev/disk/by-id/ata-INTEL_SSDSC2BB800G4_PHWL4204006P800RGN-part1'
 	export swap_partitions=
-	export rootfs_partition='/dev/disk/by-id/ata-INTEL_SSDSC2BA400G4_BTHV634503K3400NGN-part1'
-	export brand='Intel(R) Xeon(R) CPU E7-8890 v3 @ 2.50GHz'
-	export commit='fa4e6b1ad57df096ddcf091fece3d9babfe90048'
-	export ucode='0x16'
-	export kernel_cmdline_hw='cma=0'
-	export need_kconfig_hw='{"IXGBE"=>"y"}
-SCSI_MPT3SAS
+	export rootfs_partition='/dev/disk/by-id/ata-ST1000NM0011_Z1N2QGYK-part3'
+	export brand='Intel(R) Xeon(R) Gold 6252 CPU @ 2.10GHz'
+	export need_kconfig='BLK_DEV_SD
+SCSI
+{"BLOCK"=>"y"}
+SATA_AHCI
+SATA_AHCI_PLATFORM
+ATA
+{"PCI"=>"y"}
+EXT4_FS
+{"SECURITY_APPARMOR"=>"y"}'
+	export commit='9eeb73028cfb54eb06efe87c50cc014d3f1ff43e'
+	export need_kconfig_hw='{"I40E"=>"y"}
 SATA_AHCI'
+	export ucode='0x5003006'
 	export bisect_dmesg=true
-	export enqueue_time='2021-09-05 17:38:40 +0800'
-	export _id='6134902f95adf0363645c74a'
-	export _rt='/result/will-it-scale/performance-thread-50%-poll2-ucode=0x16/lkp-hsw-4ex1/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048'
+	export enqueue_time='2021-09-05 13:49:47 +0800'
+	export _id='61345a8bc4b7d214ba9fc490'
+	export _rt='/result/stress-ng/os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006/lkp-csl-2sp5/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e'
 	export user='lkp'
 	export compiler='gcc-9'
 	export LKP_SERVER='internal-lkp-server'
@@ -7233,22 +7255,21 @@ SATA_AHCI'
 	export base_commit='7d2a07b769330c34b4deabeed939325c77a7ec2f'
 	export branch='linux-review/Andrew-Morton/ia64-fix-typo-in-a-comment/20210903-065028'
 	export rootfs='debian-10.4-x86_64-20200603.cgz'
-	export result_root='/result/will-it-scale/performance-thread-50%-poll2-ucode=0x16/lkp-hsw-4ex1/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048/3'
+	export result_root='/result/stress-ng/os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006/lkp-csl-2sp5/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e/3'
 	export scheduler_version='/lkp/lkp/.src-20210903-234613'
 	export arch='x86_64'
 	export max_uptime=2100
 	export initrd='/osimage/debian/debian-10.4-x86_64-20200603.cgz'
 	export bootloader_append='root=/dev/ram0
 user=lkp
-job=/lkp/jobs/scheduled/lkp-hsw-4ex1/will-it-scale-performance-thread-50%-poll2-ucode=0x16-debian-10.4-x86_64-20200603.cgz-fa4e6b1ad57df096ddcf091fece3d9babfe90048-20210905-79414-thi1pi-4.yaml
+job=/lkp/jobs/scheduled/lkp-csl-2sp5/stress-ng-os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006-debian-10.4-x86_64-20200603.cgz-9eeb73028cfb54eb06efe87c50-20210905-5306-1yv8na2-4.yaml
 ARCH=x86_64
 kconfig=x86_64-rhel-8.3
 branch=linux-review/Andrew-Morton/ia64-fix-typo-in-a-comment/20210903-065028
-commit=fa4e6b1ad57df096ddcf091fece3d9babfe90048
-BOOT_IMAGE=/pkg/linux/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048/vmlinuz-5.14.0-00100-gfa4e6b1ad57d
-cma=0
+commit=9eeb73028cfb54eb06efe87c50cc014d3f1ff43e
+BOOT_IMAGE=/pkg/linux/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e/vmlinuz-5.14.0-00174-g9eeb73028cfb
 max_uptime=2100
-RESULT_ROOT=/result/will-it-scale/performance-thread-50%-poll2-ucode=0x16/lkp-hsw-4ex1/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048/3
+RESULT_ROOT=/result/stress-ng/os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006/lkp-csl-2sp5/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e/3
 LKP_SERVER=internal-lkp-server
 nokaslr
 selinux=0
@@ -7272,19 +7293,19 @@ earlyprintk=ttyS0,115200
 console=ttyS0,115200
 vga=normal
 rw'
-	export modules_initrd='/pkg/linux/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048/modules.cgz'
-	export bm_initrd='/osimage/deps/debian-10.4-x86_64-20200603.cgz/run-ipconfig_20200608.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/lkp_20210707.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/rsync-rootfs_20200608.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/will-it-scale_20210701.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/will-it-scale-x86_64-a34a85c-1_20210904.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/mpstat_20200714.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/turbostat_20200721.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/turbostat-x86_64-3.7-4_20200721.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/perf_20210621.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/sar-x86_64-34c92ae-1_20200702.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/hw_20200715.cgz'
+	export modules_initrd='/pkg/linux/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e/modules.cgz'
+	export bm_initrd='/osimage/deps/debian-10.4-x86_64-20200603.cgz/run-ipconfig_20200608.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/lkp_20210707.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/rsync-rootfs_20200608.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/fs_20200714.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/stress-ng_20210903.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/stress-ng-x86_64-0.11-06_20210904.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/mpstat_20200714.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/turbostat_20200721.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/turbostat-x86_64-3.7-4_20200721.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/perf_20210621.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/sar-x86_64-34c92ae-1_20200702.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/hw_20200715.cgz'
 	export ucode_initrd='/osimage/ucode/intel-ucode-20210222.cgz'
 	export lkp_initrd='/osimage/user/lkp/lkp-x86_64.cgz'
 	export site='inn'
 	export LKP_CGI_PORT=80
 	export LKP_CIFS_PORT=139
-	export last_kernel='4.20.0'
+	export last_kernel='5.14.0'
 	export repeat_to=6
 	export queue_at_least_once=1
-	export kernel='/pkg/linux/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048/vmlinuz-5.14.0-00100-gfa4e6b1ad57d'
-	export dequeue_time='2021-09-05 17:49:20 +0800'
-	export job_initrd='/lkp/jobs/scheduled/lkp-hsw-4ex1/will-it-scale-performance-thread-50%-poll2-ucode=0x16-debian-10.4-x86_64-20200603.cgz-fa4e6b1ad57df096ddcf091fece3d9babfe90048-20210905-79414-thi1pi-4.cgz'
+	export kernel='/pkg/linux/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e/vmlinuz-5.14.0-00174-g9eeb73028cfb'
+	export dequeue_time='2021-09-05 13:53:29 +0800'
+	export job_initrd='/lkp/jobs/scheduled/lkp-csl-2sp5/stress-ng-os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006-debian-10.4-x86_64-20200603.cgz-9eeb73028cfb54eb06efe87c50-20210905-5306-1yv8na2-4.cgz'
 
 	[ -n "$LKP_SRC" ] ||
 	export LKP_SRC=/lkp/${user:-lkp}/src
@@ -7299,6 +7320,10 @@ run_job()
 	. $LKP_SRC/lib/env.sh
 
 	export_top_env
+
+	run_setup nr_hdd=1 $LKP_SRC/setup/disk
+
+	run_setup fs='ext4' $LKP_SRC/setup/fs
 
 	run_setup $LKP_SRC/setup/cpufreq_governor 'performance'
 
@@ -7329,11 +7354,10 @@ run_job()
 	run_monitor $LKP_SRC/monitors/wrapper perf-stat
 	run_monitor $LKP_SRC/monitors/wrapper mpstat
 	run_monitor lite_mode=1 $LKP_SRC/monitors/no-stdout/wrapper perf-profile
-	run_monitor $LKP_SRC/monitors/wrapper syscalls
 	run_monitor $LKP_SRC/monitors/wrapper oom-killer
 	run_monitor $LKP_SRC/monitors/plain/watchdog
 
-	run_test mode='thread' test='poll2' $LKP_SRC/tests/wrapper will-it-scale
+	run_test class='os' test='memhotplug' $LKP_SRC/tests/wrapper stress-ng
 }
 
 extract_stats()
@@ -7341,7 +7365,7 @@ extract_stats()
 	export stats_part_begin=
 	export stats_part_end=
 
-	env mode='thread' test='poll2' $LKP_SRC/stats/wrapper will-it-scale
+	env class='os' test='memhotplug' $LKP_SRC/stats/wrapper stress-ng
 	$LKP_SRC/stats/wrapper kmsg
 	$LKP_SRC/stats/wrapper boot-time
 	$LKP_SRC/stats/wrapper uptime
@@ -7365,9 +7389,8 @@ extract_stats()
 	$LKP_SRC/stats/wrapper perf-stat
 	$LKP_SRC/stats/wrapper mpstat
 	env lite_mode=1 $LKP_SRC/stats/wrapper perf-profile
-	$LKP_SRC/stats/wrapper syscalls
 
-	$LKP_SRC/stats/wrapper time will-it-scale.time
+	$LKP_SRC/stats/wrapper time stress-ng.time
 	$LKP_SRC/stats/wrapper dmesg
 	$LKP_SRC/stats/wrapper kmsg
 	$LKP_SRC/stats/wrapper last_state
@@ -7377,45 +7400,48 @@ extract_stats()
 
 "$@"
 
---tqI+Z3u+9OQ7kwn0
+--84ND8YJRMFlzkrP4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: attachment; filename="job.yaml"
 
 ---
-:#! jobs/will-it-scale-part3.yaml:
-suite: will-it-scale
-testcase: will-it-scale
+:#! jobs/stress-ng-class-os.yaml:
+suite: stress-ng
+testcase: stress-ng
 category: benchmark
-nr_task: 50%
-will-it-scale:
-  mode: thread
-  test: poll2
-job_origin: will-it-scale-part3.yaml
+nr_threads: 10%
+disk: 1HDD
+testtime: 60s
+fs: ext4
+stress-ng:
+  class: os
+  test: memhotplug
+job_origin: stress-ng-class-os.yaml
 :#! queue options:
 queue_cmdline_keys:
 - branch
 - commit
 - queue_at_least_once
 queue: bisect
-testbox: lkp-hsw-4ex1
-tbox_group: lkp-hsw-4ex1
+testbox: lkp-csl-2sp5
+tbox_group: lkp-csl-2sp5
 kconfig: x86_64-rhel-8.3
-submit_id: 6134808895adf03424e85fb6
-job_file: "/lkp/jobs/scheduled/lkp-hsw-4ex1/will-it-scale-performance-thread-50%-poll2-ucode=0x16-debian-10.4-x86_64-20200603.cgz-fa4e6b1ad57df096ddcf091fece3d9babfe90048-20210905-78884-13nyurd-2.yaml"
-id: 4bef73ba3860c1a42f99969faddb76a2b3aad552
+submit_id: 61344de5c4b7d21041bd8334
+job_file: "/lkp/jobs/scheduled/lkp-csl-2sp5/stress-ng-os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006-debian-10.4-x86_64-20200603.cgz-9eeb73028cfb54eb06efe87c50-20210905-4161-rpy6g7-2.yaml"
+id: 329cf3971f0893a7ea317a3f58b2bb731edd3e98
 queuer_version: "/lkp-src"
-:#! hosts/lkp-hsw-4ex1:
-model: Haswell-EX
-nr_node: 4
-nr_cpu: 144
-memory: 512G
-nr_ssd_partitions: 1
+:#! hosts/lkp-csl-2sp5:
+model: Cascade Lake
+nr_node: 2
+nr_cpu: 96
+memory: 192G
 nr_hdd_partitions: 1
-hdd_partitions: "/dev/disk/by-id/wwn-0x5000c50067bdf9c3-part1"
-ssd_partitions: "/dev/disk/by-id/ata-INTEL_SSDSC2BB800G4_PHWL41710016800RGN-part1"
+nr_ssd_partitions: 1
+hdd_partitions: "/dev/disk/by-id/ata-ST1000NM0011_Z1N2QGYK-part5"
+ssd_partitions: "/dev/disk/by-id/ata-INTEL_SSDSC2BB800G4_PHWL4204006P800RGN-part1"
 swap_partitions:
-rootfs_partition: "/dev/disk/by-id/ata-INTEL_SSDSC2BA400G4_BTHV634503K3400NGN-part1"
-brand: Intel(R) Xeon(R) CPU E7-8890 v3 @ 2.50GHz
+rootfs_partition: "/dev/disk/by-id/ata-ST1000NM0011_Z1N2QGYK-part3"
+brand: Intel(R) Xeon(R) Gold 6252 CPU @ 2.10GHz
 :#! include/category/benchmark:
 kmsg:
 boot-time:
@@ -7448,20 +7474,30 @@ perf-profile:
   lite_mode: 1
 :#! include/category/ALL:
 cpufreq_governor: performance
-:#! include/queue/cyclic:
-commit: fa4e6b1ad57df096ddcf091fece3d9babfe90048
-:#! include/testbox/lkp-hsw-4ex1:
-syscalls:
-ucode: '0x16'
-kernel_cmdline_hw: cma=0
-need_kconfig_hw:
-- IXGBE: y
-- SCSI_MPT3SAS
+:#! include/disk/nr_hdd:
+need_kconfig:
+- BLK_DEV_SD
+- SCSI
+- BLOCK: y
 - SATA_AHCI
+- SATA_AHCI_PLATFORM
+- ATA
+- PCI: y
+- EXT4_FS
+- SECURITY_APPARMOR: y
+:#! include/fs/OTHERS:
+:#! include/stress-ng:
+:#! include/queue/cyclic:
+commit: 9eeb73028cfb54eb06efe87c50cc014d3f1ff43e
+:#! include/testbox/lkp-csl-2sp5:
+need_kconfig_hw:
+- I40E: y
+- SATA_AHCI
+ucode: '0x5003006'
 bisect_dmesg: true
-enqueue_time: 2021-09-05 16:32:09.109501681 +08:00
-_id: 6134809895adf03424e85fb8
-_rt: "/result/will-it-scale/performance-thread-50%-poll2-ucode=0x16/lkp-hsw-4ex1/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048"
+enqueue_time: 2021-09-05 12:56:06.053532750 +08:00
+_id: 613455b9c4b7d21041bd8336
+_rt: "/result/stress-ng/os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006/lkp-csl-2sp5/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e"
 :#! schedule options:
 user: lkp
 compiler: gcc-9
@@ -7470,7 +7506,7 @@ head_commit: 29414d6e109d1dd7d5c7002a4078b26f08a79c1a
 base_commit: 7d2a07b769330c34b4deabeed939325c77a7ec2f
 branch: linux-devel/devel-hourly-20210904-000148
 rootfs: debian-10.4-x86_64-20200603.cgz
-result_root: "/result/will-it-scale/performance-thread-50%-poll2-ucode=0x16/lkp-hsw-4ex1/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048/0"
+result_root: "/result/stress-ng/os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006/lkp-csl-2sp5/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e/0"
 scheduler_version: "/lkp/lkp/.src-20210903-234613"
 arch: x86_64
 max_uptime: 2100
@@ -7478,15 +7514,14 @@ initrd: "/osimage/debian/debian-10.4-x86_64-20200603.cgz"
 bootloader_append:
 - root=/dev/ram0
 - user=lkp
-- job=/lkp/jobs/scheduled/lkp-hsw-4ex1/will-it-scale-performance-thread-50%-poll2-ucode=0x16-debian-10.4-x86_64-20200603.cgz-fa4e6b1ad57df096ddcf091fece3d9babfe90048-20210905-78884-13nyurd-2.yaml
+- job=/lkp/jobs/scheduled/lkp-csl-2sp5/stress-ng-os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006-debian-10.4-x86_64-20200603.cgz-9eeb73028cfb54eb06efe87c50-20210905-4161-rpy6g7-2.yaml
 - ARCH=x86_64
 - kconfig=x86_64-rhel-8.3
 - branch=linux-devel/devel-hourly-20210904-000148
-- commit=fa4e6b1ad57df096ddcf091fece3d9babfe90048
-- BOOT_IMAGE=/pkg/linux/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048/vmlinuz-5.14.0-00100-gfa4e6b1ad57d
-- cma=0
+- commit=9eeb73028cfb54eb06efe87c50cc014d3f1ff43e
+- BOOT_IMAGE=/pkg/linux/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e/vmlinuz-5.14.0-00174-g9eeb73028cfb
 - max_uptime=2100
-- RESULT_ROOT=/result/will-it-scale/performance-thread-50%-poll2-ucode=0x16/lkp-hsw-4ex1/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048/0
+- RESULT_ROOT=/result/stress-ng/os-performance-1HDD-ext4-10%-memhotplug-60s-ucode=0x5003006/lkp-csl-2sp5/debian-10.4-x86_64-20200603.cgz/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e/0
 - LKP_SERVER=internal-lkp-server
 - nokaslr
 - selinux=0
@@ -7510,8 +7545,8 @@ bootloader_append:
 - console=ttyS0,115200
 - vga=normal
 - rw
-modules_initrd: "/pkg/linux/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048/modules.cgz"
-bm_initrd: "/osimage/deps/debian-10.4-x86_64-20200603.cgz/run-ipconfig_20200608.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/lkp_20210707.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/rsync-rootfs_20200608.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/will-it-scale_20210701.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/will-it-scale-x86_64-a34a85c-1_20210904.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/mpstat_20200714.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/turbostat_20200721.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/turbostat-x86_64-3.7-4_20200721.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/perf_20210621.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/sar-x86_64-34c92ae-1_20200702.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/hw_20200715.cgz"
+modules_initrd: "/pkg/linux/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e/modules.cgz"
+bm_initrd: "/osimage/deps/debian-10.4-x86_64-20200603.cgz/run-ipconfig_20200608.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/lkp_20210707.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/rsync-rootfs_20200608.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/fs_20200714.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/stress-ng_20210903.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/stress-ng-x86_64-0.11-06_20210904.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/mpstat_20200714.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/turbostat_20200721.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/turbostat-x86_64-3.7-4_20200721.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/perf_20210621.cgz,/osimage/pkg/debian-10.4-x86_64-20200603.cgz/sar-x86_64-34c92ae-1_20200702.cgz,/osimage/deps/debian-10.4-x86_64-20200603.cgz/hw_20200715.cgz"
 ucode_initrd: "/osimage/ucode/intel-ucode-20210222.cgz"
 lkp_initrd: "/osimage/user/lkp/lkp-x86_64.cgz"
 site: inn
@@ -7521,22 +7556,27 @@ LKP_CIFS_PORT: 139
 oom-killer:
 watchdog:
 :#! runtime status:
-last_kernel: 5.14.0
+last_kernel: 5.14.0-wt-ath-07128-g29414d6e109d
 repeat_to: 3
 :#! user overrides:
 queue_at_least_once: 0
-kernel: "/pkg/linux/x86_64-rhel-8.3/gcc-9/fa4e6b1ad57df096ddcf091fece3d9babfe90048/vmlinuz-5.14.0-00100-gfa4e6b1ad57d"
-dequeue_time: 2021-09-05 16:49:24.367868919 +08:00
+kernel: "/pkg/linux/x86_64-rhel-8.3/gcc-9/9eeb73028cfb54eb06efe87c50cc014d3f1ff43e/vmlinuz-5.14.0-00174-g9eeb73028cfb"
+dequeue_time: 2021-09-05 13:30:24.155322597 +08:00
 job_state: finished
-loadavg: 19.82 35.38 18.48 1/1065 18752
-start_time: '1630831848'
-end_time: '1630832149'
+loadavg: 5.91 1.92 0.68 1/974 8455
+start_time: '1630819906'
+end_time: '1630819969'
 version: "/lkp/lkp/.src-20210903-234710:9cfae862:2d6eafa30"
 
---tqI+Z3u+9OQ7kwn0
+--84ND8YJRMFlzkrP4
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: attachment; filename=reproduce
 
+dmsetup remove_all
+wipefs -a --force /dev/sda5
+mkfs -t ext4 -q -F /dev/sda5
+mkdir -p /fs/sda5
+mount -t ext4 /dev/sda5 /fs/sda5
 
 for cpu_dir in /sys/devices/system/cpu/cpu[0-9]*
 do
@@ -7547,6 +7587,8 @@ do
 	[ -f "$file" ] && echo "performance" > "$file"
 done
 
- "/lkp/benchmarks/python3/bin/python3" "./runtest.py" "poll2" "295" "thread" "72"
+ "mkdir" "-p" "/mnt/stress-ng"
+ "mount" "/dev/sda5" "/mnt/stress-ng"
+ "stress-ng" "--timeout" "60" "--times" "--verify" "--metrics-brief" "--memhotplug" "9"
 
---tqI+Z3u+9OQ7kwn0--
+--84ND8YJRMFlzkrP4--
