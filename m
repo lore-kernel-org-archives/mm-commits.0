@@ -2,116 +2,89 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
-	autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED,USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AD29C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Sep 2021 08:32:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CEE6C433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Sep 2021 03:30:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E732660F21
-	for <mm-commits@archiver.kernel.org>; Mon,  6 Sep 2021 08:32:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 33A226069E
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Sep 2021 03:30:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240522AbhIFIdI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Sep 2021 04:33:08 -0400
-Received: from mga02.intel.com ([134.134.136.20]:46653 "EHLO mga02.intel.com"
+        id S232912AbhIGDbN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Sep 2021 23:31:13 -0400
+Received: from mga18.intel.com ([134.134.136.126]:49992 "EHLO mga18.intel.com"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230161AbhIFIdI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 6 Sep 2021 04:33:08 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10098"; a="207142670"
-X-IronPort-AV: E=Sophos;i="5.85,271,1624345200"; 
-   d="scan'208";a="207142670"
+        id S231880AbhIGDbN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 6 Sep 2021 23:31:13 -0400
+X-IronPort-AV: E=McAfee;i="6200,9189,10099"; a="207203958"
+X-IronPort-AV: E=Sophos;i="5.85,273,1624345200"; 
+   d="scan'208";a="207203958"
 Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by orsmga101.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Sep 2021 01:32:03 -0700
-X-IronPort-AV: E=Sophos;i="5.85,271,1624345200"; 
-   d="scan'208";a="536634574"
-Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.239.159.119])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Sep 2021 01:31:46 -0700
-From:   "Huang, Ying" <ying.huang@intel.com>
-To:     Chen Yu <yu.c.chen@intel.com>
-Cc:     Dave Hansen <dave.hansen@intel.com>,
-        kernel test robot <oliver.sang@intel.com>,
-        Rui Zhang <rui.zhang@intel.com>,
-        Len Brown <len.brown@intel.com>,
-        "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>,
+  by orsmga106.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 06 Sep 2021 20:30:06 -0700
+X-ExtLoop1: 1
+X-IronPort-AV: E=Sophos;i="5.85,273,1624345200"; 
+   d="scan'208";a="537666725"
+Received: from shbuild999.sh.intel.com (HELO localhost) ([10.239.146.151])
+  by FMSMGA003.fm.intel.com with ESMTP; 06 Sep 2021 20:30:01 -0700
+Date:   Tue, 7 Sep 2021 11:30:00 +0800
+From:   Feng Tang <feng.tang@intel.com>
+To:     Shakeel Butt <shakeelb@google.com>
+Cc:     kernel test robot <oliver.sang@intel.com>,
         Andrew Morton <akpm@linux-foundation.org>,
-        0day robot <lkp@intel.com>, "Yang Shi" <shy828301@gmail.com>,
-        Zi Yan <ziy@nvidia.com>, Michal Hocko <mhocko@suse.com>,
-        Wei Xu <weixugc@google.com>,
-        Oscar Salvador <osalvador@suse.de>,
-        David Rientjes <rientjes@google.com>,
-        Dan Williams <dan.j.williams@intel.com>,
-        David Hildenbrand <david@redhat.com>,
-        Greg Thelen <gthelen@google.com>,
-        Keith Busch <kbusch@kernel.org>,
-        Yang Shi <yang.shi@linux.alibaba.com>,
-        LKML <linux-kernel@vger.kernel.org>, <lkp@lists.01.org>,
-        <feng.tang@intel.com>, <zhengjun.xing@linux.intel.com>,
-        <dave.hansen@linux.intel.com>, <linux-mm@kvack.org>,
-        <mm-commits@vger.kernel.org>, <torvalds@linux-foundation.org>
-Subject: Re: [mm/migrate] 9eeb73028c: stress-ng.memhotplug.ops_per_sec
- -53.8% regression
-References: <20210905135932.GE15026@xsang-OptiPlex-9020>
-        <87y28aii58.fsf@yhuang6-desk2.ccr.corp.intel.com>
-        <ee55e83e-d8bd-2888-3159-154706aa5173@intel.com>
-        <87lf4ai6u3.fsf@yhuang6-desk2.ccr.corp.intel.com>
-        <20210906060908.GA17483@chenyu5-mobl1>
-Date:   Mon, 06 Sep 2021 16:31:41 +0800
-In-Reply-To: <20210906060908.GA17483@chenyu5-mobl1> (Chen Yu's message of
-        "Mon, 6 Sep 2021 14:09:08 +0800")
-Message-ID: <874kayhzpu.fsf@yhuang6-desk2.ccr.corp.intel.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.1 (gnu/linux)
+        0day robot <lkp@intel.com>,
+        Marek Szyprowski <m.szyprowski@samsung.com>,
+        Hillf Danton <hdanton@sina.com>,
+        Huang Ying <ying.huang@intel.com>,
+        Johannes Weiner <hannes@cmpxchg.org>,
+        Michal Hocko <mhocko@kernel.org>,
+        Michal Koutn?? <mkoutny@suse.com>,
+        Muchun Song <songmuchun@bytedance.com>,
+        Roman Gushchin <guro@fb.com>, Tejun Heo <tj@kernel.org>,
+        LKML <linux-kernel@vger.kernel.org>, lkp@lists.01.org,
+        Xing Zhengjun <zhengjun.xing@linux.intel.com>,
+        Linux MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [memcg] 45208c9105: aim7.jobs-per-min -14.0% regression
+Message-ID: <20210907033000.GA88160@shbuild999.sh.intel.com>
+References: <20210902215504.dSSfDKJZu%akpm@linux-foundation.org>
+ <20210905124439.GA15026@xsang-OptiPlex-9020>
+ <CALvZod77aP7qdwc5FkaZJf4FikeD0NwSuoJB4N94Uf0yqZFQpQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ascii
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CALvZod77aP7qdwc5FkaZJf4FikeD0NwSuoJB4N94Uf0yqZFQpQ@mail.gmail.com>
+User-Agent: Mutt/1.5.24 (2015-08-30)
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Chen Yu <yu.c.chen@intel.com> writes:
+Hi Shakeel, 
 
-> On Mon, Sep 06, 2021 at 01:57:56PM +0800, Huang, Ying wrote:
->> Dave Hansen <dave.hansen@intel.com> writes:
->> 
->> > On 9/5/21 6:53 PM, Huang, Ying wrote:
->> >>> in testcase: stress-ng
->> >>> on test machine: 96 threads 2 sockets Intel(R) Xeon(R) Gold 6252 CPU @ 2.10GHz with 192G memory
->> >>> with following parameters:
->> >>>
->> >>> 	nr_threads: 10%
->> >>> 	disk: 1HDD
->> >>> 	testtime: 60s
->> >>> 	fs: ext4
->> >>> 	class: os
->> >>> 	test: memhotplug
->> >>> 	cpufreq_governor: performance
->> >>> 	ucode: 0x5003006
->> >>>
->> >> Because we added some operations during online/offline CPU, it's
->> >> expected that the performance of online/offline CPU will decrease.  In
->> >> most cases, the performance of CPU hotplug isn't a big problem.  But
->> >> then I remembers that the performance of the CPU hotplug may influence
->> >> suspend/resume performance :-(
->> >> 
->> >> It appears that it is easy and reasonable to enclose the added
->> >> operations inside #ifdef CONFIG_NUMA.  Is this sufficient to restore the
->> >> performance of suspend/resume?
->> >
->> > It's "memhotplug", not CPUs, right?
->> 
->> Yes.  Thanks for pointing that out!
->> 
->> We will update node_demotion[] in CPU hotplug too.  Because the status
->> that whether a node has CPU may change after CPU hotplug.  And CPU
->> online/offline performance may be relevant for suspend/resume.
->>
-> Rui and I took a look at the default kernel config, it seems that CONFIG_NUMA is
-> enabled on laptops on some distributions. Maybe a runtime detecting flag indicating
-> that whether this system has enabled NUMA (static key eg) would be an option too, so as
-> not to enable node_demotion[] on non-NUMA laptops/desktops.
+On Sun, Sep 05, 2021 at 03:15:46PM -0700, Shakeel Butt wrote:
+> On Sun, Sep 5, 2021 at 5:27 AM kernel test robot <oliver.sang@intel.com> wrote:
+[...]
+> > =========================================================================================
+> > compiler/cpufreq_governor/disk/fs/kconfig/load/rootfs/tbox_group/test/testcase/ucode:
+> >   gcc-9/performance/1BRD_48G/xfs/x86_64-rhel-8.3/3000/debian-10.4-x86_64-20200603.cgz/lkp-icl-2sp2/disk_rr/aim7/0xd000280
+> >
+> > commit:
+> >   3c28c7680e ("memcg: switch lruvec stats to rstat")
+> >   45208c9105 ("memcg: infrastructure to flush memcg stats")
+> 
+> I am looking into this. I was hoping we have resolution for [1] as
+> these patches touch similar data structures.
+> 
+> [1] https://lore.kernel.org/all/20210811031734.GA5193@xsang-OptiPlex-9020/T/#u
 
-Got it!  Thanks for your information.  Maybe we can try Dave's method
-firstly and check whether that's OK for suspend/resume.
+I tried 2 debug methods for that 36.4% vm-scalability regression:
 
-Best Regards,
-Huang, Ying
+1. Disable the HW cache prefetcher, no effect on this case 
+2. relayout and add padding to 'struct cgroup_subsys_state', reduce
+   the regression to 3.1%
+
+Thanks,
+Feng
+
