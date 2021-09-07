@@ -2,40 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
+	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F0B0C433EF
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Sep 2021 21:09:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F0BEC433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Sep 2021 21:18:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0229861130
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Sep 2021 21:09:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5AB7261102
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Sep 2021 21:18:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346800AbhIGVKr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 17:10:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51910 "EHLO mail.kernel.org"
+        id S1347062AbhIGVTs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 17:19:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60158 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1344670AbhIGVKq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 17:10:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C555261103;
-        Tue,  7 Sep 2021 21:09:39 +0000 (UTC)
+        id S243883AbhIGVTr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 17:19:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D0A5660F70;
+        Tue,  7 Sep 2021 21:18:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631048979;
-        bh=JeGwobpl2T0OjPT/9MbulzjljynIwxEUrsK3Z64UqPo=;
+        s=korg; t=1631049521;
+        bh=LSfkLssbZ+rSkuK3HqBBrQ6ZUjVDEd0f6Kad0GmTqT4=;
         h=Date:From:To:Subject:From;
-        b=x9S4DjK8hreA8u4ax3NQMXpDTEVANCbiikvQekj7FNEsb87XWle1k8FTdBzFgbW/u
-         8I5k0d6ITUvPgxirbFgE8VvFEvT6x/fTXW0/wuAsvJNjPJfqf9e9SEw/863C4f0Jcg
-         APA2uu+JGgVgP5TUQIMzYQJXLrltPjgIK3mhtLbk=
-Date:   Tue, 07 Sep 2021 14:09:39 -0700
+        b=hsb1XnTCzSHcUBAfn/Sq/4nPlgDE5II40QWaT+E9ACEKHFnU7X6Jglz+SmkAYqO99
+         VW54Hb7J8T1MRU7gPW2e+jag2/9Q+rr1VwMiNpJvEz1O1i7H0TbmO40VOMfzziWQqb
+         CiJVuOjLil5+FbRHy5un5eKq43mkzBIvX66ceUCg=
+Date:   Tue, 07 Sep 2021 14:18:40 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        stable@vger.kernel.org, yanghui.def@bytedance.com
-Subject:  +
- mm-mempolicy-fix-a-race-between-offset_il_node-and-mpol_rebind_task.patch
- added to -mm tree
-Message-ID: <20210907210939.o1mG3MgPY%akpm@linux-foundation.org>
+To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
+        efault@gmx.de, iamjoonsoo.kim@lge.com, jannh@google.com,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, tglx@linutronix.de,
+        vbabka@suse.cz
+Subject:  [to-be-updated]
+ mm-slub-dont-call-flush_all-from-slab_debug_trace_open.patch removed from
+ -mm tree
+Message-ID: <20210907211840.tb-z8UshM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,111 +47,242 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: fix a race between offset_il_node and mpol_rebind_task
-has been added to the -mm tree.  Its filename is
-     mm-mempolicy-fix-a-race-between-offset_il_node-and-mpol_rebind_task.patch
+     Subject: mm, slub: don't call flush_all() from slab_debug_trace_open()
+has been removed from the -mm tree.  Its filename was
+     mm-slub-dont-call-flush_all-from-slab_debug_trace_open.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-fix-a-race-between-offset_il_node-and-mpol_rebind_task.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-fix-a-race-between-offset_il_node-and-mpol_rebind_task.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: yanghui <yanghui.def@bytedance.com>
-Subject: mm/mempolicy: fix a race between offset_il_node and mpol_rebind_task
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slub: don't call flush_all() from slab_debug_trace_open()
 
-Servers happened below panic:
-Kernel version:5.4.56
-BUG: unable to handle page fault for address: 0000000000002c48
-RIP: 0010:__next_zones_zonelist+0x1d/0x40
-[264003.977696] RAX: 0000000000002c40 RBX: 0000000000100dca RCX: 0000000000000014
-[264003.977872] Call Trace:
-[264003.977888]  __alloc_pages_nodemask+0x277/0x310
-[264003.977908]  alloc_page_interleave+0x13/0x70
-[264003.977926]  handle_mm_fault+0xf99/0x1390
-[264003.977951]  __do_page_fault+0x288/0x500
-[264003.977979]  ? schedule+0x39/0xa0
-[264003.977994]  do_page_fault+0x30/0x110
-[264003.978010]  page_fault+0x3e/0x50
+Patch series "SLUB: reduce irq disabled scope and make it RT compatible", v4.
 
-The reason for the panic is that MAX_NUMNODES is passed in the third
-parameter in __alloc_pages_nodemask(preferred_nid).  So access to
-zonelist->zoneref->zone_idx in __next_zones_zonelist will cause a panic.
+This series was initially inspired by Mel's pcplist local_lock rewrite,
+and also interest to better understand SLUB's locking and the new
+primitives and RT variants and implications.  It should make SLUB more
+preemption-friendly, especially for RT, hopefully without noticeable
+regressions, as the fast paths are not affected.
 
-In offset_il_node(), first_node() returns nid from pol->v.nodes, after
-this other threads may chang pol->v.nodes before next_node().  This race
-condition will let next_node return MAX_NUMNODES.  So put pol->nodes in a
-local variable.
+The RFC/v1 version got basic performance screening by Mel that didn't show
+major regressions.  Mike's testing with hackbench of v2 on !RT reported
+negligible differences [6]:
 
-The race condition is between offset_il_node and cpuset_change_task_nodemask:
-CPU0:                                     CPU1:
-alloc_pages_vma()
-  interleave_nid(pol,)
-    offset_il_node(pol,)
-      first_node(pol->v.nodes)            cpuset_change_task_nodemask
-                      //nodes==0xc          mpol_rebind_task
-                                              mpol_rebind_policy
-                                                mpol_rebind_nodemask(pol,nodes)
-                      //nodes==0x3
-      next_node(nid, pol->v.nodes)//return MAX_NUMNODES
+virgin(ish) tip
+5.13.0.g60ab3ed-tip
+          7,320.67 msec task-clock                #    7.792 CPUs utilized            ( +-  0.31% )
+           221,215      context-switches          #    0.030 M/sec                    ( +-  3.97% )
+            16,234      cpu-migrations            #    0.002 M/sec                    ( +-  4.07% )
+            13,233      page-faults               #    0.002 M/sec                    ( +-  0.91% )
+    27,592,205,252      cycles                    #    3.769 GHz                      ( +-  0.32% )
+     8,309,495,040      instructions              #    0.30  insn per cycle           ( +-  0.37% )
+     1,555,210,607      branches                  #  212.441 M/sec                    ( +-  0.42% )
+         5,484,209      branch-misses             #    0.35% of all branches          ( +-  2.13% )
 
-Link: https://lkml.kernel.org/r/20210906034658.48721-1-yanghui.def@bytedance.com
-Signed-off-by: yanghui <yanghui.def@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: <stable@vger.kernel.org>
+           0.93949 +- 0.00423 seconds time elapsed  ( +-  0.45% )
+           0.94608 +- 0.00384 seconds time elapsed  ( +-  0.41% ) (repeat)
+           0.94422 +- 0.00410 seconds time elapsed  ( +-  0.43% )
+
+5.13.0.g60ab3ed-tip +slub-local-lock-v2r3
+          7,343.57 msec task-clock                #    7.776 CPUs utilized            ( +-  0.44% )
+           223,044      context-switches          #    0.030 M/sec                    ( +-  3.02% )
+            16,057      cpu-migrations            #    0.002 M/sec                    ( +-  4.03% )
+            13,164      page-faults               #    0.002 M/sec                    ( +-  0.97% )
+    27,684,906,017      cycles                    #    3.770 GHz                      ( +-  0.45% )
+     8,323,273,871      instructions              #    0.30  insn per cycle           ( +-  0.28% )
+     1,556,106,680      branches                  #  211.901 M/sec                    ( +-  0.31% )
+         5,463,468      branch-misses             #    0.35% of all branches          ( +-  1.33% )
+
+           0.94440 +- 0.00352 seconds time elapsed  ( +-  0.37% )
+           0.94830 +- 0.00228 seconds time elapsed  ( +-  0.24% ) (repeat)
+           0.93813 +- 0.00440 seconds time elapsed  ( +-  0.47% ) (repeat)
+
+RT configs showed some throughput regressions, but that's expected
+tradeoff for the preemption improvements through the RT mutex.  It didn't
+prevent the v2 to be incorporated to the 5.13 RT tree [7], leading to
+testing exposure and bugfixes.
+
+Before the series, SLUB is lockless in both allocation and free fast
+paths, but elsewhere, it's disabling irqs for considerable periods of time
+- especially in allocation slowpath and the bulk allocation, where IRQs
+are re-enabled only when a new page from the page allocator is needed, and
+the context allows blocking.  The irq disabled sections can then include
+deactivate_slab() which walks a full freelist and frees the slab back to
+page allocator or unfreeze_partials() going through a list of percpu
+partial slabs.  The RT tree currently has some patches mitigating these,
+but we can do much better in mainline too.
+
+Patches 1-6 are straightforward improvements or cleanups that could exist
+outside of this series too, but are prerequsities.
+
+Patches 7-10 are also preparatory code changes without functional changes,
+but not so useful without the rest of the series.
+
+Patch 11 simplifies the fast paths on systems with preemption, based on
+(hopefully correct) observation that the current loops to verify tid are
+unnecessary.
+
+Patches 12-21 focus on reducing irq disabled scope in the allocation
+slowpath.
+
+Patch 12 moves disabling of irqs into ___slab_alloc() from its callers,
+which are the allocation slowpath, and bulk allocation.  Instead these
+callers only disable preemption to stabilize the cpu.  The following
+patches then gradually reduce the scope of disabled irqs in
+___slab_alloc() and the functions called from there.  As of patch 15, the
+re-enabling of irqs based on gfp flags before calling the page allocator
+is removed from allocate_slab().  As of patch 18, it's possible to reach
+the page allocator (in case of existing slabs depleted) without disabling
+and re-enabling irqs a single time.
+
+Pathces 22-27 reduce the scope of disabled irqs in functions related to
+unfreezing percpu partial slab.
+
+Patch 28 is preparatory.  Patch 29 is adopted from the RT tree and
+converts the flushing of percpu slabs on all cpus from using IPI to
+workqueue, so that the processing isn't happening with irqs disabled in
+the IPI handler.  The flushing is not performance critical so it should be
+acceptable.
+
+Patch 30 also comes from RT tree and makes object_map_lock RT compatible.
+
+Patches 31-32 make slab_lock irq-safe on RT where we cannot rely on having
+irq disabled from the list_lock spin lock usage.
+
+Patch 33 changes kmem_cache_cpu->partial handling in put_cpu_partial()
+from cmpxchg loop to a short irq disabled section, which is used by all
+other code modifying the field.  This addresses a theoretical race
+scenario pointed out by Jann, and makes the critical section safe wrt with
+RT local_lock semantics after the conversion in patch 35.
+
+Patch 34 changes preempt disable to migrate disable, so that the nested
+list_lock spinlock is safe to take on RT.  Because migrate_disable() is a
+function call even on !RT, a small set of private wrappers is introduced
+to keep using the cheaper preempt_disable() on !PREEMPT_RT configurations.
+
+As of this patch, SLUB should be compatible with RT's lock semantics, to
+the best of my knowledge.
+
+Finally, patch 35 changes irq disabled sections that protect
+kmem_cache_cpu fields in the slow paths, with a local lock.  However on
+PREEMPT_RT it means the lockless fast paths can now preempt slow paths
+which don't expect that, so the local lock has to be taken also in the
+fast paths and they are no longer lockless.  It's up to RT folks to decide
+if this is a good tradeoff.  The patch also updates the locking
+documentation in the file's comment.
+
+The main results of this series:
+
+* irq disabling is only done for minimum amount of time needed to
+  protect the kmem_cache_cpu data and as part of spin lock, local lock and
+  bit lock operations to make them irq-safe
+
+* SLUB should be fully PREEMPT_RT compatible
+
+This should have obvious implications for better preemptibility,
+especially on RT.
+
+Some details are different than how the previous SLUB RT tree patches were
+implemented:
+
+  mm: sl[au]b: Change list_lock to raw_spinlock_t [2] - the SLAB part
+  can be dropped as a different patch restricts RT to SLUB anyway.  And
+  after this series the list_lock in SLUB is never used with irqs disabled
+  before taking the lock so it doesn't have to be converted to
+  raw_spinlock_t.
+
+  mm: slub: Move discard_slab() invocations out of IRQ-off sections [3]
+  should be unnecessary as this series does move these invocations outside
+  irq disabled sections in a different way.
+
+The remaining patches to upstream from the RT tree are small ones related
+to KConfig.  The patch that restricts PREEMPT_RT to SLUB (not SLAB or
+SLOB) makes sense.  The patch that disables CONFIG_SLUB_CPU_PARTIAL with
+PREEMPT_RT could perhaps be re-evaluated as the series addresses some
+latency issues with it.
+
+[1] https://lore.kernel.org/lkml/20210524233946.20352-1-vbabka@suse.cz/
+[2] https://git.kernel.org/pub/scm/linux/kernel/git/rt/linux-rt-devel.git/tree/patches/0001-mm-sl-au-b-Change-list_lock-to-raw_spinlock_t.patch?h=linux-5.12.y-rt-patches
+[3] https://git.kernel.org/pub/scm/linux/kernel/git/rt/linux-rt-devel.git/tree/patches/0004-mm-slub-Move-discard_slab-invocations-out-of-IRQ-off.patch?h=linux-5.12.y-rt-patches
+[4] https://git.kernel.org/pub/scm/linux/kernel/git/rt/linux-rt-devel.git/tree/patches/0005-mm-slub-Move-flush_cpu_slab-invocations-__free_slab-.patch?h=linux-5.12.y-rt-patches
+[5] https://lore.kernel.org/lkml/20210609113903.1421-1-vbabka@suse.cz/
+[6] https://lore.kernel.org/lkml/891dc24e38106f8542f4c72831d52dc1a1863ae8.camel@gmx.de
+[7] https://lore.kernel.org/linux-rt-users/87tul5p2fa.ffs@nanos.tec.linutronix.de/
+[8] https://lore.kernel.org/lkml/20210729132132.19691-1-vbabka@suse.cz/
+[9] https://lore.kernel.org/lkml/20210804120522.GD6464@techsingularity.net/
+
+
+This patch (of 35:
+
+slab_debug_trace_open() can only be called on caches with SLAB_STORE_USER
+flag and as with all slub debugging flags, such caches avoid cpu or percpu
+partial slabs altogether, so there's nothing to flush.
+
+Link: https://lkml.kernel.org/r/20210805152000.12817-1-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210805152000.12817-2-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ mm/slub.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-a-race-between-offset_il_node-and-mpol_rebind_task
-+++ a/mm/mempolicy.c
-@@ -1979,17 +1979,26 @@ unsigned int mempolicy_slab_node(void)
-  */
- static unsigned offset_il_node(struct mempolicy *pol, unsigned long n)
- {
--	unsigned nnodes = nodes_weight(pol->nodes);
--	unsigned target;
-+	nodemask_t nodemask = pol->nodes;
-+	unsigned int target, nnodes;
- 	int i;
- 	int nid;
-+	/*
-+	 * The barrier will stabilize the nodemask in a register or on
-+	 * the stack so that it will stop changing under the code.
-+	 *
-+	 * Between first_node() and next_node(), pol->nodes could be changed
-+	 * by other threads. So we put pol->nodes in a local stack.
-+	 */
-+	barrier();
+--- a/mm/slub.c~mm-slub-dont-call-flush_all-from-slab_debug_trace_open
++++ a/mm/slub.c
+@@ -5825,9 +5825,6 @@ static int slab_debug_trace_open(struct
+ 	if (!alloc_loc_track(t, PAGE_SIZE / sizeof(struct location), GFP_KERNEL))
+ 		return -ENOMEM;
  
-+	nnodes = nodes_weight(nodemask);
- 	if (!nnodes)
- 		return numa_node_id();
- 	target = (unsigned int)n % nnodes;
--	nid = first_node(pol->nodes);
-+	nid = first_node(nodemask);
- 	for (i = 0; i < target; i++)
--		nid = next_node(nid, pol->nodes);
-+		nid = next_node(nid, nodemask);
- 	return nid;
- }
- 
+-	/* Push back cpu slabs */
+-	flush_all(s);
+-
+ 	for_each_kmem_cache_node(s, node, n) {
+ 		unsigned long flags;
+ 		struct page *page;
 _
 
-Patches currently in -mm which might be from yanghui.def@bytedance.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-mempolicy-fix-a-race-between-offset_il_node-and-mpol_rebind_task.patch
+mm-slub-allocate-private-object-map-for-debugfs-listings.patch
+mm-slub-allocate-private-object-map-for-validate_slab_cache.patch
+mm-slub-dont-disable-irq-for-debug_check_no_locks_freed.patch
+mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
+mm-slub-extract-get_partial-from-new_slab_objects.patch
+mm-slub-dissolve-new_slab_objects-into-___slab_alloc.patch
+mm-slub-return-slab-page-from-get_partial-and-set-c-page-afterwards.patch
+mm-slub-restructure-new-page-checks-in-___slab_alloc.patch
+mm-slub-simplify-kmem_cache_cpu-and-tid-setup.patch
+mm-slub-move-disabling-enabling-irqs-to-___slab_alloc.patch
+mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
+mm-slub-move-disabling-irqs-closer-to-get_partial-in-___slab_alloc.patch
+mm-slub-restore-irqs-around-calling-new_slab.patch
+mm-slub-validate-slab-from-partial-list-or-page-allocator-before-making-it-cpu-slab.patch
+mm-slub-check-new-pages-with-restored-irqs.patch
+mm-slub-stop-disabling-irqs-around-get_partial.patch
+mm-slub-move-reset-of-c-page-and-freelist-out-of-deactivate_slab.patch
+mm-slub-make-locking-in-deactivate_slab-irq-safe.patch
+mm-slub-call-deactivate_slab-without-disabling-irqs.patch
+mm-slub-move-irq-control-into-unfreeze_partials.patch
+mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled.patch
+mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials.patch
+mm-slub-separate-detaching-of-partial-list-in-unfreeze_partials-from-unfreezing.patch
+mm-slub-only-disable-irq-with-spin_lock-in-__unfreeze_partials.patch
+mm-slub-dont-disable-irqs-in-slub_cpu_dead.patch
+mm-slub-optionally-save-restore-irqs-in-slab_lock.patch
+mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
+mm-slub-protect-put_cpu_partial-with-disabled-irqs-instead-of-cmpxchg.patch
+mm-slub-use-migrate_disable-on-preempt_rt.patch
+mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
+mm-slub-remove-conditional-locking-parameter-from-flush_slab.patch
 
