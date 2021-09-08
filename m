@@ -7,39 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E5BAC433FE
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:58:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24D53C43219
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:58:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F02156115A
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:58:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F86E61153
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:58:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347363AbhIHC7X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 22:59:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57076 "EHLO mail.kernel.org"
+        id S1347430AbhIHC71 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 22:59:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57164 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347361AbhIHC7X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 22:59:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9865D61102;
-        Wed,  8 Sep 2021 02:58:15 +0000 (UTC)
+        id S1347390AbhIHC70 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 22:59:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D9BBF6113C;
+        Wed,  8 Sep 2021 02:58:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069896;
-        bh=HyCZB6ft9MjemUtYvrEY8stnp8yloeRKzg/Qyl04RQA=;
+        s=korg; t=1631069899;
+        bh=gTkP6jaWkfbYKLjyGTpii2sLP6eOwxMVLLTX8ZQ3TUk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=kw1F8ekG0bGOsRuZHikFJ/R7pdSU3UMYyLP99nfisZtrh5wBb07/61RQhDsyK3osW
-         KepMc1uFycIef9YakCxBpBKtVrwKoC3GTSBXmj5WNPIASdiS7VxuaF76V/bY/Xpb99
-         Dqph5//UieuK7Uu9aJR9TZoLCrhO17eqv9Wqw/sc=
-Date:   Tue, 07 Sep 2021 19:58:15 -0700
+        b=zGSTenZ8CRhqLxzOmiUvftL5Ykv0Ujon26sT2H2RMqZCGqzzr0XKlLHs4hFkyGMfW
+         yz/6mujt8jdjg7v7MC48GLt4h3/Q8b5qWUV9Wm7dQXZ/7k7WcgLY4o2eEDTO/UHXE3
+         9YNVh6R7M3Gj2Bvw5BawMGVc2tnRKjzz4sUr7L1A=
+Date:   Tue, 07 Sep 2021 19:58:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
-        ceggers@arri.de, cw00.choi@samsung.com, daniel.lezcano@linaro.org,
-        jic23@kernel.org, Jonathan.Cameron@huawei.com,
-        kyungmin.park@samsung.com, lars@metafoo.de, linux-mm@kvack.org,
-        linux@roeck-us.net, lukasz.luba@arm.com, mcoquelin.stm32@gmail.com,
-        miquel.raynal@bootlin.com, mm-commits@vger.kernel.org,
-        myungjoo.ham@samsung.com, pmeerw@pmeerw.net, rafael@kernel.org,
-        rui.zhang@intel.com, torvalds@linux-foundation.org
-Subject:  [patch 093/147] phy/drivers/stm32: use HZ macros
-Message-ID: <20210908025815.wkJV0R3Qx%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org, sh_def@163.com,
+        torvalds@linux-foundation.org, yang.yang29@zte.com.cn,
+        zealci@zte.com.cn
+Subject:  [patch 094/147] kernel/acct.c: use dedicated helper to
+ access rlimit values
+Message-ID: <20210908025818.SN1YMF0Cv%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,51 +44,34 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: phy/drivers/stm32: use HZ macros
+From: Yang Yang <yang.yang29@zte.com.cn>
+Subject: kernel/acct.c: use dedicated helper to access rlimit values
 
-HZ unit conversion macros are available in units.h, use them and remove
-the duplicate definition.
+Use rlimit() helper instead of manually writing whole chain from
+task to rlimit value. See patch "posix-cpu-timers: Use dedicated
+helper to access rlimit values".
 
-Link: https://lkml.kernel.org/r/20210816114732.1834145-11-daniel.lezcano@linaro.org
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Christian Eggers <ceggers@arri.de>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Jonathan Cameron <jic23@kernel.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Lukasz Luba <lukasz.luba@arm.com>
-Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>
-Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
-Cc: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Link: https://lkml.kernel.org/r/20210728030822.524789-1-yang.yang29@zte.com.cn
+Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: sh_def@163.com <sh_def@163.com>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/phy/st/phy-stm32-usbphyc.c |    2 +-
+ kernel/acct.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/phy/st/phy-stm32-usbphyc.c~phy-drivers-stm32-use-hz-macros
-+++ a/drivers/phy/st/phy-stm32-usbphyc.c
-@@ -15,6 +15,7 @@
- #include <linux/of_platform.h>
- #include <linux/phy/phy.h>
- #include <linux/reset.h>
-+#include <linux/units.h>
- 
- #define STM32_USBPHYC_PLL	0x0
- #define STM32_USBPHYC_MISC	0x8
-@@ -47,7 +48,6 @@
- #define PLL_FVCO_MHZ		2880
- #define PLL_INFF_MIN_RATE_HZ	19200000
- #define PLL_INFF_MAX_RATE_HZ	38400000
--#define HZ_PER_MHZ		1000000L
- 
- struct pll_params {
- 	u8 ndiv;
+--- a/kernel/acct.c~acct-use-dedicated-helper-to-access-rlimit-values
++++ a/kernel/acct.c
+@@ -478,7 +478,7 @@ static void do_acct_process(struct bsd_a
+ 	/*
+ 	 * Accounting records are not subject to resource limits.
+ 	 */
+-	flim = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
++	flim = rlimit(RLIMIT_FSIZE);
+ 	current->signal->rlim[RLIMIT_FSIZE].rlim_cur = RLIM_INFINITY;
+ 	/* Perform file operations on behalf of whoever enabled accounting */
+ 	orig_cred = override_creds(file->f_cred);
 _
