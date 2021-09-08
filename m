@@ -7,36 +7,41 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA3CFC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58F90C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D13961157
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 44E8D61158
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235893AbhIHWTQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Sep 2021 18:19:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41768 "EHLO mail.kernel.org"
+        id S235902AbhIHWTU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Sep 2021 18:19:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41810 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235377AbhIHWTP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Sep 2021 18:19:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4902D61158;
-        Wed,  8 Sep 2021 22:18:07 +0000 (UTC)
+        id S235377AbhIHWTT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Sep 2021 18:19:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A8B561157;
+        Wed,  8 Sep 2021 22:18:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631139487;
-        bh=IE2T/nyosoJXWfsmb0XZvS0qfX+7nvspqvMr4iz9ZMA=;
+        s=korg; t=1631139491;
+        bh=q/PD6t8JS0lm/LqBo+ttuCCrD/FiS3mOQd5AzLRe7xQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=fYwHHHWF/RrK3iSq2Wmecc8rO0VEmPKZa73FZNAx3WbR3prM/1xkOetuXeVnOvNNC
-         fOht83CjDiPUAuKTsDjEar2vvviC0Cpi5/FPcww0MwrEqekaVWNcPwsT7AnqiKf8zL
-         +bVY0tKM5aj7XMqs0d78OAro+lNReO3TYl0551b8=
-Date:   Wed, 08 Sep 2021 15:18:06 -0700
+        b=eEUo3SsQryMrGkQx+kIgcZHVlEgiyBKi3mlp+YmY4HRlrpcipuw/yTRPJmubbUj0q
+         NdDQaGgtATe1GYmcnnmemH3tIT5RxNxApTCbfa0OGXAIE2G9leqHLGAFwNbBAsigT7
+         aRF/yzIi7DygAEorQeqIo2M944J22DEECfoyjE54=
+Date:   Wed, 08 Sep 2021 15:18:10 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, apopple@nvidia.com,
-        baolin.wang@linux.alibaba.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, shy828301@gmail.com,
-        torvalds@linux-foundation.org, willy@infradead.org
-Subject:  [patch 04/10] mm: migrate: change to use bool type for
- 'page_was_mapped'
-Message-ID: <20210908221806.ykzxWtvhy%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, arnd@arndb.de, benh@kernel.crashing.org,
+        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
+        davem@davemloft.net, deller@gmx.de, ebiederm@xmission.com,
+        feng.tang@intel.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        hch@infradead.org, hch@lst.de, hpa@zytor.com,
+        James.Bottomley@HansenPartnership.com, linux-mm@kvack.org,
+        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
+        paulus@samba.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
+        viro@zeniv.linux.org.uk, will@kernel.org
+Subject:  [patch 05/10] kexec: move locking into do_kexec_load
+Message-ID: <20210908221810.y8qh41Lwj%akpm@linux-foundation.org>
 In-Reply-To: <20210908151729.c9a15a9508ba0aed22289c76@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,41 +49,143 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: migrate: change to use bool type for 'page_was_mapped'
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: kexec: move locking into do_kexec_load
 
-Change to use bool type for 'page_was_mapped' variable making it more
-readable.
+Patch series "compat: remove compat_alloc_user_space", v5.
 
-Link: https://lkml.kernel.org/r/ce1279df18d2c163998c403e0b5ec6d3f6f90f7a.1629447552.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Going through compat_alloc_user_space() to convert indirect system call
+arguments tends to add complexity compared to handling the native and
+compat logic in the same code.
+
+
+This patch (of 6):
+
+The locking is the same between the native and compat version of
+sys_kexec_load(), so it can be done in the common implementation to reduce
+duplication.
+
+Link: https://lkml.kernel.org/r/20210727144859.4150043-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20210727144859.4150043-2-arnd@kernel.org
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Co-developed-by: Eric Biederman <ebiederm@xmission.com>
+Co-developed-by: Christoph Hellwig <hch@infradead.org>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/kexec.c |   44 ++++++++++++++++----------------------------
+ 1 file changed, 16 insertions(+), 28 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-change-to-use-bool-type-for-page_was_mapped
-+++ a/mm/migrate.c
-@@ -960,7 +960,7 @@ static int __unmap_and_move(struct page
- 				int force, enum migrate_mode mode)
- {
- 	int rc = -EAGAIN;
--	int page_was_mapped = 0;
-+	bool page_was_mapped = false;
- 	struct anon_vma *anon_vma = NULL;
- 	bool is_lru = !__PageMovable(page);
+--- a/kernel/kexec.c~kexec-move-locking-into-do_kexec_load
++++ a/kernel/kexec.c
+@@ -110,6 +110,17 @@ static int do_kexec_load(unsigned long e
+ 	unsigned long i;
+ 	int ret;
  
-@@ -1063,7 +1063,7 @@ static int __unmap_and_move(struct page
- 		VM_BUG_ON_PAGE(PageAnon(page) && !PageKsm(page) && !anon_vma,
- 				page);
- 		try_to_migrate(page, 0);
--		page_was_mapped = 1;
-+		page_was_mapped = true;
++	/*
++	 * Because we write directly to the reserved memory region when loading
++	 * crash kernels we need a mutex here to prevent multiple crash kernels
++	 * from attempting to load simultaneously, and to prevent a crash kernel
++	 * from loading over the top of a in use crash kernel.
++	 *
++	 * KISS: always take the mutex.
++	 */
++	if (!mutex_trylock(&kexec_mutex))
++		return -EBUSY;
++
+ 	if (flags & KEXEC_ON_CRASH) {
+ 		dest_image = &kexec_crash_image;
+ 		if (kexec_crash_image)
+@@ -121,7 +132,8 @@ static int do_kexec_load(unsigned long e
+ 	if (nr_segments == 0) {
+ 		/* Uninstall image */
+ 		kimage_free(xchg(dest_image, NULL));
+-		return 0;
++		ret = 0;
++		goto out_unlock;
+ 	}
+ 	if (flags & KEXEC_ON_CRASH) {
+ 		/*
+@@ -134,7 +146,7 @@ static int do_kexec_load(unsigned long e
+ 
+ 	ret = kimage_alloc_init(&image, entry, nr_segments, segments, flags);
+ 	if (ret)
+-		return ret;
++		goto out_unlock;
+ 
+ 	if (flags & KEXEC_PRESERVE_CONTEXT)
+ 		image->preserve_context = 1;
+@@ -171,6 +183,8 @@ out:
+ 		arch_kexec_protect_crashkres();
+ 
+ 	kimage_free(image);
++out_unlock:
++	mutex_unlock(&kexec_mutex);
+ 	return ret;
+ }
+ 
+@@ -247,21 +261,8 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
+ 		((flags & KEXEC_ARCH_MASK) != KEXEC_ARCH_DEFAULT))
+ 		return -EINVAL;
+ 
+-	/* Because we write directly to the reserved memory
+-	 * region when loading crash kernels we need a mutex here to
+-	 * prevent multiple crash  kernels from attempting to load
+-	 * simultaneously, and to prevent a crash kernel from loading
+-	 * over the top of a in use crash kernel.
+-	 *
+-	 * KISS: always take the mutex.
+-	 */
+-	if (!mutex_trylock(&kexec_mutex))
+-		return -EBUSY;
+-
+ 	result = do_kexec_load(entry, nr_segments, segments, flags);
+ 
+-	mutex_unlock(&kexec_mutex);
+-
+ 	return result;
+ }
+ 
+@@ -301,21 +302,8 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compa
+ 			return -EFAULT;
  	}
  
- 	if (!page_mapped(page))
+-	/* Because we write directly to the reserved memory
+-	 * region when loading crash kernels we need a mutex here to
+-	 * prevent multiple crash  kernels from attempting to load
+-	 * simultaneously, and to prevent a crash kernel from loading
+-	 * over the top of a in use crash kernel.
+-	 *
+-	 * KISS: always take the mutex.
+-	 */
+-	if (!mutex_trylock(&kexec_mutex))
+-		return -EBUSY;
+-
+ 	result = do_kexec_load(entry, nr_segments, ksegments, flags);
+ 
+-	mutex_unlock(&kexec_mutex);
+-
+ 	return result;
+ }
+ #endif
 _
