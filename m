@@ -7,37 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD097C43219
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 232C4C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A4D8A60555
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09A016113E
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347363AbhIHC51 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 22:57:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54150 "EHLO mail.kernel.org"
+        id S1347302AbhIHC5b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 22:57:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54392 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347371AbhIHC50 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 22:57:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 16C9061130;
-        Wed,  8 Sep 2021 02:56:19 +0000 (UTC)
+        id S1347371AbhIHC53 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 22:57:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E72460555;
+        Wed,  8 Sep 2021 02:56:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069779;
-        bh=pg1m6oXEJJP9D6Ond+erSteMiOSPq8e8NARDoJ297xo=;
+        s=korg; t=1631069782;
+        bh=r1uHQZWv3gU7zQEB6UsgNVNwvHhATGehhhyMw4BFHtQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=KZLNpwBqfW2nMTeYTngZQ4qHaSZcrR/17uSegXqAgc/rfQODKGROFOhnjxa0+p7rt
-         85j4dq0BTAjbzdd95Rk7Koc/lgnw7rQDbv1ldyxO5WmgZoN5KoK4HIXXV0baur8FOw
-         2wtJjrycGS1yDWqVcgbs5x1QuKHgEdbjWUZBUMCQ=
-Date:   Tue, 07 Sep 2021 19:56:18 -0700
+        b=gTf1S8eNuWuSe+HiTTwThFw4wXE5lpB9imZSnUrnYUdtgvOE57eOwmHp8AOzskQzc
+         Qrsy6KA2nXruGF/yG3pVj8rZAhVSAioTUAeBxPF8FoJ6ixKhN+0Py2Mv8Cr1pv57yg
+         A3tD0MWgcZSJkgiaTD4r25qU889rXxj/LIzzZlLc=
+Date:   Tue, 07 Sep 2021 19:56:21 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, James.Bottomley@HansenPartnership.com,
-        jordy@jordyzomer.github.io, jordy@pwning.systems,
-        keescook@chromium.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rppt@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 060/147] mm/secretmem: use refcount_t instead of
- atomic_t
-Message-ID: <20210908025618.bTvTJiPSV%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, elver@google.com, glider@google.com,
+        joern@purestorage.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        yzhong@purestorage.com
+Subject:  [patch 061/147] kfence: show cpu and timestamp in
+ alloc/free info
+Message-ID: <20210908025621.S8dy4oODe%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,80 +44,268 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Jordy Zomer <jordy@jordyzomer.github.io>
-Subject: mm/secretmem: use refcount_t instead of atomic_t
+From: Marco Elver <elver@google.com>
+Subject: kfence: show cpu and timestamp in alloc/free info
 
-When a secret memory region is active, memfd_secret disables hibernation. 
-One of the goals is to keep the secret data from being written to
-persistent-storage.
+Record cpu and timestamp on allocations and frees, and show them in
+reports.  Upon an error, this can help correlate earlier messages in the
+kernel log via allocation and free timestamps.
 
-It accomplishes this by maintaining a reference count to
-`secretmem_users`.  Once this reference is held your system can not be
-hibernated due to the check in `hibernation_available()`.  However,
-because `secretmem_users` is of type `atomic_t`, reference counter
-overflows are possible.
-
-As you can see there's an `atomic_inc` for each `memfd` that is opened in
-the `memfd_secret` syscall.  If a local attacker succeeds to open 2^32
-memfd's, the counter will wrap around to 0.  This implies that you may
-hibernate again, even though there are still regions of this secret
-memory, thereby bypassing the security check.
-
-In an attempt to fix this I have used `refcount_t` instead of `atomic_t`
-which prevents reference counter overflows.
-
-Link: https://lkml.kernel.org/r/20210820043339.2151352-1-jordy@pwning.systems
-Signed-off-by: Jordy Zomer <jordy@pwning.systems>
-Cc: Kees Cook <keescook@chromium.org>,
-Cc: Jordy Zomer <jordy@jordyzomer.github.io>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20210714175312.2947941-1-elver@google.com
+Suggested-by: Joern Engel <joern@purestorage.com>
+Signed-off-by: Marco Elver <elver@google.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Acked-by: Joern Engel <joern@purestorage.com>
+Cc: Yuanyuan Zhong <yzhong@purestorage.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ Documentation/dev-tools/kfence.rst |   98 ++++++++++++++-------------
+ mm/kfence/core.c                   |    3 
+ mm/kfence/kfence.h                 |    2 
+ mm/kfence/report.c                 |   19 +++--
+ 4 files changed, 71 insertions(+), 51 deletions(-)
 
---- a/mm/secretmem.c~mm-secretmem-use-refcount_t-instead-of-atomic_t
-+++ a/mm/secretmem.c
-@@ -18,6 +18,7 @@
- #include <linux/secretmem.h>
- #include <linux/set_memory.h>
- #include <linux/sched/signal.h>
-+#include <linux/refcount.h>
+--- a/Documentation/dev-tools/kfence.rst~kfence-show-cpu-and-timestamp-in-alloc-free-info
++++ a/Documentation/dev-tools/kfence.rst
+@@ -65,25 +65,27 @@ Error reports
+ A typical out-of-bounds access looks like this::
  
- #include <uapi/linux/magic.h>
+     ==================================================================
+-    BUG: KFENCE: out-of-bounds read in test_out_of_bounds_read+0xa3/0x22b
++    BUG: KFENCE: out-of-bounds read in test_out_of_bounds_read+0xa6/0x234
  
-@@ -40,11 +41,11 @@ module_param_named(enable, secretmem_ena
- MODULE_PARM_DESC(secretmem_enable,
- 		 "Enable secretmem and memfd_secret(2) system call");
+-    Out-of-bounds read at 0xffffffffb672efff (1B left of kfence-#17):
+-     test_out_of_bounds_read+0xa3/0x22b
+-     kunit_try_run_case+0x51/0x85
++    Out-of-bounds read at 0xffff8c3f2e291fff (1B left of kfence-#72):
++     test_out_of_bounds_read+0xa6/0x234
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
  
--static atomic_t secretmem_users;
-+static refcount_t secretmem_users;
+-    kfence-#17 [0xffffffffb672f000-0xffffffffb672f01f, size=32, cache=kmalloc-32] allocated by task 507:
+-     test_alloc+0xf3/0x25b
+-     test_out_of_bounds_read+0x98/0x22b
+-     kunit_try_run_case+0x51/0x85
++    kfence-#72: 0xffff8c3f2e292000-0xffff8c3f2e29201f, size=32, cache=kmalloc-32
++
++    allocated by task 484 on cpu 0 at 32.919330s:
++     test_alloc+0xfe/0x738
++     test_out_of_bounds_read+0x9b/0x234
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
  
- bool secretmem_active(void)
+-    CPU: 4 PID: 107 Comm: kunit_try_catch Not tainted 5.8.0-rc6+ #7
+-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
++    CPU: 0 PID: 484 Comm: kunit_try_catch Not tainted 5.13.0-rc3+ #7
++    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
+     ==================================================================
+ 
+ The header of the report provides a short summary of the function involved in
+@@ -96,30 +98,32 @@ Use-after-free accesses are reported as:
+     ==================================================================
+     BUG: KFENCE: use-after-free read in test_use_after_free_read+0xb3/0x143
+ 
+-    Use-after-free read at 0xffffffffb673dfe0 (in kfence-#24):
++    Use-after-free read at 0xffff8c3f2e2a0000 (in kfence-#79):
+      test_use_after_free_read+0xb3/0x143
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    kfence-#24 [0xffffffffb673dfe0-0xffffffffb673dfff, size=32, cache=kmalloc-32] allocated by task 507:
+-     test_alloc+0xf3/0x25b
++    kfence-#79: 0xffff8c3f2e2a0000-0xffff8c3f2e2a001f, size=32, cache=kmalloc-32
++
++    allocated by task 488 on cpu 2 at 33.871326s:
++     test_alloc+0xfe/0x738
+      test_use_after_free_read+0x76/0x143
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    freed by task 507:
++    freed by task 488 on cpu 2 at 33.871358s:
+      test_use_after_free_read+0xa8/0x143
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    CPU: 4 PID: 109 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
+-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
++    CPU: 2 PID: 488 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
++    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
+     ==================================================================
+ 
+ KFENCE also reports on invalid frees, such as double-frees::
+@@ -127,30 +131,32 @@ KFENCE also reports on invalid frees, su
+     ==================================================================
+     BUG: KFENCE: invalid free in test_double_free+0xdc/0x171
+ 
+-    Invalid free of 0xffffffffb6741000:
++    Invalid free of 0xffff8c3f2e2a4000 (in kfence-#81):
+      test_double_free+0xdc/0x171
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    kfence-#26 [0xffffffffb6741000-0xffffffffb674101f, size=32, cache=kmalloc-32] allocated by task 507:
+-     test_alloc+0xf3/0x25b
++    kfence-#81: 0xffff8c3f2e2a4000-0xffff8c3f2e2a401f, size=32, cache=kmalloc-32
++
++    allocated by task 490 on cpu 1 at 34.175321s:
++     test_alloc+0xfe/0x738
+      test_double_free+0x76/0x171
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    freed by task 507:
++    freed by task 490 on cpu 1 at 34.175348s:
+      test_double_free+0xa8/0x171
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    CPU: 4 PID: 111 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
+-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
++    CPU: 1 PID: 490 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
++    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
+     ==================================================================
+ 
+ KFENCE also uses pattern-based redzones on the other side of an object's guard
+@@ -160,23 +166,25 @@ These are reported on frees::
+     ==================================================================
+     BUG: KFENCE: memory corruption in test_kmalloc_aligned_oob_write+0xef/0x184
+ 
+-    Corrupted memory at 0xffffffffb6797ff9 [ 0xac . . . . . . ] (in kfence-#69):
++    Corrupted memory at 0xffff8c3f2e33aff9 [ 0xac . . . . . . ] (in kfence-#156):
+      test_kmalloc_aligned_oob_write+0xef/0x184
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    kfence-#69 [0xffffffffb6797fb0-0xffffffffb6797ff8, size=73, cache=kmalloc-96] allocated by task 507:
+-     test_alloc+0xf3/0x25b
++    kfence-#156: 0xffff8c3f2e33afb0-0xffff8c3f2e33aff8, size=73, cache=kmalloc-96
++
++    allocated by task 502 on cpu 7 at 42.159302s:
++     test_alloc+0xfe/0x738
+      test_kmalloc_aligned_oob_write+0x57/0x184
+-     kunit_try_run_case+0x51/0x85
++     kunit_try_run_case+0x61/0xa0
+      kunit_generic_run_threadfn_adapter+0x16/0x30
+-     kthread+0x137/0x160
++     kthread+0x176/0x1b0
+      ret_from_fork+0x22/0x30
+ 
+-    CPU: 4 PID: 120 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
+-    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
++    CPU: 7 PID: 502 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
++    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
+     ==================================================================
+ 
+ For such errors, the address where the corruption occurred as well as the
+--- a/mm/kfence/core.c~kfence-show-cpu-and-timestamp-in-alloc-free-info
++++ a/mm/kfence/core.c
+@@ -20,6 +20,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/random.h>
+ #include <linux/rcupdate.h>
++#include <linux/sched/clock.h>
+ #include <linux/sched/sysctl.h>
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+@@ -196,6 +197,8 @@ static noinline void metadata_update_sta
+ 	 */
+ 	track->num_stack_entries = stack_trace_save(track->stack_entries, KFENCE_STACK_DEPTH, 1);
+ 	track->pid = task_pid_nr(current);
++	track->cpu = raw_smp_processor_id();
++	track->ts_nsec = local_clock(); /* Same source as printk timestamps. */
+ 
+ 	/*
+ 	 * Pairs with READ_ONCE() in
+--- a/mm/kfence/kfence.h~kfence-show-cpu-and-timestamp-in-alloc-free-info
++++ a/mm/kfence/kfence.h
+@@ -36,6 +36,8 @@ enum kfence_object_state {
+ /* Alloc/free tracking information. */
+ struct kfence_track {
+ 	pid_t pid;
++	int cpu;
++	u64 ts_nsec;
+ 	int num_stack_entries;
+ 	unsigned long stack_entries[KFENCE_STACK_DEPTH];
+ };
+--- a/mm/kfence/report.c~kfence-show-cpu-and-timestamp-in-alloc-free-info
++++ a/mm/kfence/report.c
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/lockdep.h>
++#include <linux/math.h>
+ #include <linux/printk.h>
+ #include <linux/sched/debug.h>
+ #include <linux/seq_file.h>
+@@ -100,6 +101,13 @@ static void kfence_print_stack(struct se
+ 			       bool show_alloc)
  {
--	return !!atomic_read(&secretmem_users);
-+	return !!refcount_read(&secretmem_users);
+ 	const struct kfence_track *track = show_alloc ? &meta->alloc_track : &meta->free_track;
++	u64 ts_sec = track->ts_nsec;
++	unsigned long rem_nsec = do_div(ts_sec, NSEC_PER_SEC);
++
++	/* Timestamp matches printk timestamp format. */
++	seq_con_printf(seq, "%s by task %d on cpu %d at %lu.%06lus:\n",
++		       show_alloc ? "allocated" : "freed", track->pid,
++		       track->cpu, (unsigned long)ts_sec, rem_nsec / 1000);
+ 
+ 	if (track->num_stack_entries) {
+ 		/* Skip allocation/free internals stack. */
+@@ -126,15 +134,14 @@ void kfence_print_object(struct seq_file
+ 		return;
+ 	}
+ 
+-	seq_con_printf(seq,
+-		       "kfence-#%td [0x%p-0x%p"
+-		       ", size=%d, cache=%s] allocated by task %d:\n",
+-		       meta - kfence_metadata, (void *)start, (void *)(start + size - 1), size,
+-		       (cache && cache->name) ? cache->name : "<destroyed>", meta->alloc_track.pid);
++	seq_con_printf(seq, "kfence-#%td: 0x%p-0x%p, size=%d, cache=%s\n\n",
++		       meta - kfence_metadata, (void *)start, (void *)(start + size - 1),
++		       size, (cache && cache->name) ? cache->name : "<destroyed>");
++
+ 	kfence_print_stack(seq, meta, true);
+ 
+ 	if (meta->state == KFENCE_OBJECT_FREED) {
+-		seq_con_printf(seq, "\nfreed by task %d:\n", meta->free_track.pid);
++		seq_con_printf(seq, "\n");
+ 		kfence_print_stack(seq, meta, false);
+ 	}
  }
- 
- static vm_fault_t secretmem_fault(struct vm_fault *vmf)
-@@ -103,7 +104,7 @@ static const struct vm_operations_struct
- 
- static int secretmem_release(struct inode *inode, struct file *file)
- {
--	atomic_dec(&secretmem_users);
-+	refcount_dec(&secretmem_users);
- 	return 0;
- }
- 
-@@ -217,7 +218,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned i
- 	file->f_flags |= O_LARGEFILE;
- 
- 	fd_install(fd, file);
--	atomic_inc(&secretmem_users);
-+	refcount_inc(&secretmem_users);
- 	return fd;
- 
- err_put_fd:
 _
