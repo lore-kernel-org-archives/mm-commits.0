@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1D19C4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:00:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F16EAC433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:00:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B8C6961100
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:00:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DA6A061153
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:00:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345390AbhIHDBM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 23:01:12 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59294 "EHLO mail.kernel.org"
+        id S1347433AbhIHDB0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 23:01:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347322AbhIHDBH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 23:01:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8365A61131;
-        Wed,  8 Sep 2021 03:00:00 +0000 (UTC)
+        id S1347390AbhIHDBR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 23:01:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EA9D261131;
+        Wed,  8 Sep 2021 03:00:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631070000;
-        bh=nd4u4fDypysX9G3pFooySHBX8QI4OQwJmeR0QYSJjE0=;
+        s=korg; t=1631070010;
+        bh=wDr4SvlGnwGxrTiQgEK5imjf6xAeEw/MQGbfyTeS/UM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oEAlYFh5ZvuOsBQG0oei0AgHkltvLTQdfN2ZcmYTDkkDPy1zSpSsJSjAJfzlabdwr
-         J9f4fbrb00dsmoR2rDuXrHPHVK2qxK2t7A3Q7PLxKlGkC6uRttikBFgqE4LvH8NfMz
-         zJ52n8DKNCr1DULdvaxxln+0twmZFtsojaEgq9ss=
-Date:   Tue, 07 Sep 2021 20:00:00 -0700
+        b=hDlULrqn/IaEfDvzoAw6i6YxTAxe1GvaVH9ZJmpKWbmAs8VuY86o4e9nBCgVI1XJU
+         9B9e9KfQH097kSvedvj/+j6mubUpCnJ8xSlApDlMz8B3sqr0qKX4so50580VmHeTDj
+         f44oA91bQYQae39Cq/iJJCpcUkeuCeNjShC0QdBc=
+Date:   Tue, 07 Sep 2021 20:00:09 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anton@ozlabs.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, npiggin@gmail.com,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
-Subject:  [patch 127/147] fs/epoll: use a per-cpu counter for
- user's watches count
-Message-ID: <20210908030000.0jfb4cnXC%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hulkci@huawei.com,
+        konishi.ryusuke@gmail.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, sunnanyong@huawei.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 130/147] nilfs2: fix memory leak in
+ nilfs_sysfs_create_device_group
+Message-ID: <20210908030009.rpqY6Lr_a%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,169 +44,92 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: fs/epoll: use a per-cpu counter for user's watches count
+From: Nanyong Sun <sunnanyong@huawei.com>
+Subject: nilfs2: fix memory leak in nilfs_sysfs_create_device_group
 
-This counter tracks the number of watches a user has, to compare against
-the 'max_user_watches' limit. This causes a scalability bottleneck on
-SPECjbb2015 on large systems as there is only one user. Changing to a
-per-cpu counter increases throughput of the benchmark by about 30% on a
-16-socket, > 1000 thread system.
+Patch series "nilfs2: fix incorrect usage of kobject".
 
-[rdunlap@infradead.org: fix build errors in kernel/user.c when CONFIG_EPOLL=n]
-[npiggin@gmail.com: move ifdefs into wrapper functions, slightly improve panic message]
-  Link: https://lkml.kernel.org/r/1628051945.fens3r99ox.astroid@bobo.none
-[akpm@linux-foundation.org: tweak user_epoll_alloc(), per Guenter]
-  Link: https://lkml.kernel.org/r/20210804191421.GA1900577@roeck-us.net
-Link: https://lkml.kernel.org/r/20210802032013.2751916-1-npiggin@gmail.com
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Reported-by: Anton Blanchard <anton@ozlabs.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+This patchset from Nanyong Sun fixes memory leak issues and a NULL pointer
+dereference issue caused by incorrect usage of kboject in nilfs2 sysfs
+implementation.
+
+
+This patch (of 6):
+
+Reported by syzkaller:
+BUG: memory leak
+unreferenced object 0xffff888100ca8988 (size 8):
+comm "syz-executor.1", pid 1930, jiffies 4294745569 (age 18.052s)
+hex dump (first 8 bytes):
+6c 6f 6f 70 31 00 ff ff loop1...
+backtrace:
+[<000000009d9e0ac4>] slab_alloc_node mm/slub.c:2972 [inline]
+[<000000009d9e0ac4>] slab_alloc mm/slub.c:2980 [inline]
+[<000000009d9e0ac4>] __kmalloc_track_caller+0x164/0x330 mm/slub.c:4644
+[<00000000b1825477>] kstrdup+0x36/0x70 mm/util.c:60
+[<00000000fa081499>] kstrdup_const+0x35/0x60 mm/util.c:83
+[<0000000024d13570>] kvasprintf_const+0xf1/0x180 lib/kasprintf.c:48
+[<0000000024b69715>] kobject_set_name_vargs+0x56/0x150 lib/kobject.c:289
+[<000000003fedac3d>] kobject_add_varg lib/kobject.c:384 [inline]
+[<000000003fedac3d>] kobject_init_and_add+0xc9/0x150 lib/kobject.c:473
+[<000000002795bd99>] nilfs_sysfs_create_device_group+0x150/0x7d0 fs/nilfs2/sysfs.c:986
+[<00000000567fa12d>] init_nilfs+0xa21/0xea0 fs/nilfs2/the_nilfs.c:637
+[<00000000082e7458>] nilfs_fill_super fs/nilfs2/super.c:1046 [inline]
+[<00000000082e7458>] nilfs_mount+0x7b4/0xe80 fs/nilfs2/super.c:1316
+[<00000000adc3fd88>] legacy_get_tree+0x105/0x210 fs/fs_context.c:592
+[<00000000a98c45b8>] vfs_get_tree+0x8e/0x2d0 fs/super.c:1498
+[<00000000e96282d3>] do_new_mount fs/namespace.c:2905 [inline]
+[<00000000e96282d3>] path_mount+0xf9b/0x1990 fs/namespace.c:3235
+[<000000003d2eb1b0>] do_mount+0xea/0x100 fs/namespace.c:3248
+[<00000000e1ce771a>] __do_sys_mount fs/namespace.c:3456 [inline]
+[<00000000e1ce771a>] __se_sys_mount fs/namespace.c:3433 [inline]
+[<00000000e1ce771a>] __x64_sys_mount+0x14b/0x1f0 fs/namespace.c:3433
+[<000000007c7f81e8>] do_syscall_x64 arch/x86/entry/common.c:50 [inline]
+[<000000007c7f81e8>] do_syscall_64+0x3b/0x90 arch/x86/entry/common.c:80
+[<00000000fd23ff06>] entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+If kobject_init_and_add return with error, then the cleanup of kobject is
+needed because memory may be allocated in kobject_init_and_add without
+freeing.
+
+And the place of cleanup_dev_kobject should use kobject_put to free the
+memory associated with the kobject.  As the section "Kobject removal" of
+"Documentation/core-api/kobject.rst" says, kobject_del() just makes the
+kobject "invisible", but it is not cleaned up.  And no more cleanup will
+do after cleanup_dev_kobject, so kobject_put is needed here.
+
+Link: https://lkml.kernel.org/r/1625651306-10829-1-git-send-email-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/1625651306-10829-2-git-send-email-konishi.ryusuke@gmail.com
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Link: https://lkml.kernel.org/r/20210629022556.3985106-2-sunnanyong@huawei.com
+Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c             |   18 ++++++++++--------
- include/linux/sched/user.h |    3 ++-
- kernel/user.c              |   25 +++++++++++++++++++++++++
- 3 files changed, 37 insertions(+), 9 deletions(-)
+ fs/nilfs2/sysfs.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/fs/eventpoll.c~fs-epoll-use-a-per-cpu-counter-for-users-watches-count
-+++ a/fs/eventpoll.c
-@@ -723,7 +723,7 @@ static int ep_remove(struct eventpoll *e
- 	 */
- 	call_rcu(&epi->rcu, epi_rcu_free);
+--- a/fs/nilfs2/sysfs.c~nilfs2-fix-memory-leak-in-nilfs_sysfs_create_device_group
++++ a/fs/nilfs2/sysfs.c
+@@ -986,7 +986,7 @@ int nilfs_sysfs_create_device_group(stru
+ 	err = kobject_init_and_add(&nilfs->ns_dev_kobj, &nilfs_dev_ktype, NULL,
+ 				    "%s", sb->s_id);
+ 	if (err)
+-		goto free_dev_subgroups;
++		goto cleanup_dev_kobject;
  
--	atomic_long_dec(&ep->user->epoll_watches);
-+	percpu_counter_dec(&ep->user->epoll_watches);
+ 	err = nilfs_sysfs_create_mounted_snapshots_group(nilfs);
+ 	if (err)
+@@ -1023,9 +1023,7 @@ delete_mounted_snapshots_group:
+ 	nilfs_sysfs_delete_mounted_snapshots_group(nilfs);
  
- 	return 0;
- }
-@@ -1439,7 +1439,6 @@ static int ep_insert(struct eventpoll *e
- {
- 	int error, pwake = 0;
- 	__poll_t revents;
--	long user_watches;
- 	struct epitem *epi;
- 	struct ep_pqueue epq;
- 	struct eventpoll *tep = NULL;
-@@ -1449,11 +1448,15 @@ static int ep_insert(struct eventpoll *e
- 
- 	lockdep_assert_irqs_enabled();
- 
--	user_watches = atomic_long_read(&ep->user->epoll_watches);
--	if (unlikely(user_watches >= max_user_watches))
-+	if (unlikely(percpu_counter_compare(&ep->user->epoll_watches,
-+					    max_user_watches) >= 0))
- 		return -ENOSPC;
--	if (!(epi = kmem_cache_zalloc(epi_cache, GFP_KERNEL)))
-+	percpu_counter_inc(&ep->user->epoll_watches);
-+
-+	if (!(epi = kmem_cache_zalloc(epi_cache, GFP_KERNEL))) {
-+		percpu_counter_dec(&ep->user->epoll_watches);
- 		return -ENOMEM;
-+	}
- 
- 	/* Item initialization follow here ... */
- 	INIT_LIST_HEAD(&epi->rdllink);
-@@ -1466,17 +1469,16 @@ static int ep_insert(struct eventpoll *e
- 		mutex_lock_nested(&tep->mtx, 1);
- 	/* Add the current item to the list of active epoll hook for this file */
- 	if (unlikely(attach_epitem(tfile, epi) < 0)) {
--		kmem_cache_free(epi_cache, epi);
- 		if (tep)
- 			mutex_unlock(&tep->mtx);
-+		kmem_cache_free(epi_cache, epi);
-+		percpu_counter_dec(&ep->user->epoll_watches);
- 		return -ENOMEM;
- 	}
- 
- 	if (full_check && !tep)
- 		list_file(tfile);
- 
--	atomic_long_inc(&ep->user->epoll_watches);
+ cleanup_dev_kobject:
+-	kobject_del(&nilfs->ns_dev_kobj);
 -
- 	/*
- 	 * Add the current item to the RB tree. All RB tree operations are
- 	 * protected by "mtx", and ep_insert() is called with "mtx" held.
---- a/include/linux/sched/user.h~fs-epoll-use-a-per-cpu-counter-for-users-watches-count
-+++ a/include/linux/sched/user.h
-@@ -4,6 +4,7 @@
+-free_dev_subgroups:
++	kobject_put(&nilfs->ns_dev_kobj);
+ 	kfree(nilfs->ns_dev_subgroups);
  
- #include <linux/uidgid.h>
- #include <linux/atomic.h>
-+#include <linux/percpu_counter.h>
- #include <linux/refcount.h>
- #include <linux/ratelimit.h>
- 
-@@ -13,7 +14,7 @@
- struct user_struct {
- 	refcount_t __count;	/* reference count */
- #ifdef CONFIG_EPOLL
--	atomic_long_t epoll_watches; /* The number of file descriptors currently watched */
-+	struct percpu_counter epoll_watches; /* The number of file descriptors currently watched */
- #endif
- 	unsigned long unix_inflight;	/* How many files in flight in unix sockets */
- 	atomic_long_t pipe_bufs;  /* how many pages are allocated in pipe buffers */
---- a/kernel/user.c~fs-epoll-use-a-per-cpu-counter-for-users-watches-count
-+++ a/kernel/user.c
-@@ -129,6 +129,22 @@ static struct user_struct *uid_hash_find
- 	return NULL;
- }
- 
-+static int user_epoll_alloc(struct user_struct *up)
-+{
-+#ifdef CONFIG_EPOLL
-+	return percpu_counter_init(&up->epoll_watches, 0, GFP_KERNEL);
-+#else
-+	return 0;
-+#endif
-+}
-+
-+static void user_epoll_free(struct user_struct *up)
-+{
-+#ifdef CONFIG_EPOLL
-+	percpu_counter_destroy(&up->epoll_watches);
-+#endif
-+}
-+
- /* IRQs are disabled and uidhash_lock is held upon function entry.
-  * IRQ state (as stored in flags) is restored and uidhash_lock released
-  * upon function exit.
-@@ -138,6 +154,7 @@ static void free_user(struct user_struct
- {
- 	uid_hash_remove(up);
- 	spin_unlock_irqrestore(&uidhash_lock, flags);
-+	user_epoll_free(up);
- 	kmem_cache_free(uid_cachep, up);
- }
- 
-@@ -185,6 +202,10 @@ struct user_struct *alloc_uid(kuid_t uid
- 
- 		new->uid = uid;
- 		refcount_set(&new->__count, 1);
-+		if (user_epoll_alloc(new)) {
-+			kmem_cache_free(uid_cachep, new);
-+			return NULL;
-+		}
- 		ratelimit_state_init(&new->ratelimit, HZ, 100);
- 		ratelimit_set_flags(&new->ratelimit, RATELIMIT_MSG_ON_RELEASE);
- 
-@@ -195,6 +216,7 @@ struct user_struct *alloc_uid(kuid_t uid
- 		spin_lock_irq(&uidhash_lock);
- 		up = uid_hash_find(uid, hashent);
- 		if (up) {
-+			user_epoll_free(new);
- 			kmem_cache_free(uid_cachep, new);
- 		} else {
- 			uid_hash_insert(new, hashent);
-@@ -216,6 +238,9 @@ static int __init uid_cache_init(void)
- 	for(n = 0; n < UIDHASH_SZ; ++n)
- 		INIT_HLIST_HEAD(uidhash_table + n);
- 
-+	if (user_epoll_alloc(&root_user))
-+		panic("root_user epoll percpu counter alloc failed");
-+
- 	/* Insert the root user immediately (init already runs as root) */
- 	spin_lock_irq(&uidhash_lock);
- 	uid_hash_insert(&root_user, uidhashentry(GLOBAL_ROOT_UID));
+ failed_create_device_group:
 _
