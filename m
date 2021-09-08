@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA5BFC4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:59:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 206FFC433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:59:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A3ECF6113C
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:59:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 09D4F6115A
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:59:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347421AbhIHDAS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 23:00:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58256 "EHLO mail.kernel.org"
+        id S1345895AbhIHDAW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 23:00:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58330 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347231AbhIHDAS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 23:00:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E698761131;
-        Wed,  8 Sep 2021 02:59:10 +0000 (UTC)
+        id S1347231AbhIHDAV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 23:00:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 14AB16113C;
+        Wed,  8 Sep 2021 02:59:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069951;
-        bh=41brlujgaeDpfZOnh6y6wQjbQXnsaqy9bKXeMcC6TAw=;
+        s=korg; t=1631069954;
+        bh=IT922PgIv9S8UCSIAot2MPPvmcx6YWLGc3zj7DXQjQ4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=nRmUkrMci9X3ysdWp4PGRwis/2iWJupRnCLjGXHe6vFjQOVD4voPC4/SD7qNZ/uQU
-         agYsekhZwfGRgfm/lVFwHFcoNsPJpyu6vGG8vL3sfo87G+bfJf2Kq3+YLQvBKy+TOI
-         UhmqAYo9rSNuyXcAEnySF3eOGgO5+eT5xBrhzcNY=
-Date:   Tue, 07 Sep 2021 19:59:10 -0700
+        b=kmRSb31i9AUkxlLQUNCBlbv0nnNvp8iajsno/zoh0YA9O9QxdKRbG7vk0md6QceVV
+         flJ52kTjZyxlOtQYDbGiVJuUi4kzYxW3M5SeTkcWPiXwvoWWyKC2Ch9FVxbv9+R0nv
+         /aopGQ6Xo4DMdGxB1kWl/8sobdgQfZEPgQwHP0NU=
+Date:   Tue, 07 Sep 2021 19:59:13 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aklimov@redhat.com, akpm@linux-foundation.org, alobakin@pm.me,
         andriy.shevchenko@linux.intel.com, dennis@kernel.org,
@@ -36,8 +36,8 @@ To:     aklimov@redhat.com, akpm@linux-foundation.org, alobakin@pm.me,
         torvalds@linux-foundation.org, ulf.hansson@linaro.org,
         will@kernel.org, wsa+renesas@sang-engineering.com,
         yury.norov@gmail.com
-Subject:  [patch 111/147] lib: add find_first_and_bit()
-Message-ID: <20210908025910.Pw_ZatM_E%akpm@linux-foundation.org>
+Subject:  [patch 112/147] cpumask: use find_first_and_bit()
+Message-ID: <20210908025913.vhf6JYCU-%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,33 +46,16 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Yury Norov <yury.norov@gmail.com>
-Subject: lib: add find_first_and_bit()
+Subject: cpumask: use find_first_and_bit()
 
-Currently find_first_and_bit() is an alias to find_next_and_bit(). 
-However, it is widely used in cpumask, so it worth to optimize it.  This
-patch adds its own implementation for find_first_and_bit().
+Now we have an efficient implementation for find_first_and_bit(), so
+switch cpumask to use it where appropriate.
 
-On x86_64 find_bit_benchmark says:
-
-Before (#define find_first_and_bit(...) find_next_and_bit(..., 0):
-Start testing find_bit() with random-filled bitmap
-[  140.291468] find_first_and_bit:           46890919 ns,  32671 iterations
-Start testing find_bit() with sparse bitmap
-[  140.295028] find_first_and_bit:               7103 ns,      1 iterations
-
-After:
-Start testing find_bit() with random-filled bitmap
-[  162.574907] find_first_and_bit:           25045813 ns,  32846 iterations
-Start testing find_bit() with sparse bitmap
-[  162.578458] find_first_and_bit:               4900 ns,      1 iterations
-
-(Thanks to Alexey Klimov for thorough testing.)
-
-Link: https://lkml.kernel.org/r/20210814211713.180533-6-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210814211713.180533-7-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Tested-by: Alexey Klimov <aklimov@redhat.com>
 Cc: Alexander Lobakin <alobakin@pm.me>
+Cc: Alexey Klimov <aklimov@redhat.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Jiri Olsa <jolsa@redhat.com>
@@ -81,126 +64,67 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/find.h     |   27 +++++++++++++++++++++++++++
- lib/find_bit.c           |   21 +++++++++++++++++++++
- lib/find_bit_benchmark.c |   21 +++++++++++++++++++++
- 3 files changed, 69 insertions(+)
+ include/linux/cpumask.h |   30 ++++++++++++++++++++----------
+ 1 file changed, 20 insertions(+), 10 deletions(-)
 
---- a/include/linux/find.h~lib-add-find_first_and_bit
-+++ a/include/linux/find.h
-@@ -12,6 +12,8 @@ extern unsigned long _find_next_bit(cons
- 		const unsigned long *addr2, unsigned long nbits,
- 		unsigned long start, unsigned long invert, unsigned long le);
- extern unsigned long _find_first_bit(const unsigned long *addr, unsigned long size);
-+extern unsigned long _find_first_and_bit(const unsigned long *addr1,
-+					 const unsigned long *addr2, unsigned long size);
- extern unsigned long _find_first_zero_bit(const unsigned long *addr, unsigned long size);
- extern unsigned long _find_last_bit(const unsigned long *addr, unsigned long size);
- 
-@@ -123,6 +125,31 @@ unsigned long find_first_bit(const unsig
- }
- #endif
- 
-+#ifndef find_first_and_bit
-+/**
-+ * find_first_and_bit - find the first set bit in both memory regions
-+ * @addr1: The first address to base the search on
-+ * @addr2: The second address to base the search on
-+ * @size: The bitmap size in bits
-+ *
-+ * Returns the bit number for the next set bit
-+ * If no bits are set, returns @size.
-+ */
-+static inline
-+unsigned long find_first_and_bit(const unsigned long *addr1,
-+				 const unsigned long *addr2,
-+				 unsigned long size)
-+{
-+	if (small_const_nbits(size)) {
-+		unsigned long val = *addr1 & *addr2 & GENMASK(size - 1, 0);
-+
-+		return val ? __ffs(val) : size;
-+	}
-+
-+	return _find_first_and_bit(addr1, addr2, size);
-+}
-+#endif
-+
- #ifndef find_first_zero_bit
- /**
-  * find_first_zero_bit - find the first cleared bit in a memory region
---- a/lib/find_bit_benchmark.c~lib-add-find_first_and_bit
-+++ a/lib/find_bit_benchmark.c
-@@ -49,6 +49,25 @@ static int __init test_find_first_bit(vo
+--- a/include/linux/cpumask.h~cpumask-use-find_first_and_bit
++++ a/include/linux/cpumask.h
+@@ -123,6 +123,12 @@ static inline unsigned int cpumask_first
  	return 0;
  }
  
-+static int __init test_find_first_and_bit(void *bitmap, const void *bitmap2, unsigned long len)
++static inline unsigned int cpumask_first_and(const struct cpumask *srcp1,
++					     const struct cpumask *srcp2)
 +{
-+	static DECLARE_BITMAP(cp, BITMAP_LEN) __initdata;
-+	unsigned long i, cnt;
-+	ktime_t time;
-+
-+	bitmap_copy(cp, bitmap, BITMAP_LEN);
-+
-+	time = ktime_get();
-+	for (cnt = i = 0; i < len; cnt++) {
-+		i = find_first_and_bit(cp, bitmap2, len);
-+		__clear_bit(i, cp);
-+	}
-+	time = ktime_get() - time;
-+	pr_err("find_first_and_bit: %18llu ns, %6ld iterations\n", time, cnt);
-+
 +	return 0;
 +}
 +
- static int __init test_find_next_bit(const void *bitmap, unsigned long len)
+ static inline unsigned int cpumask_last(const struct cpumask *srcp)
  {
- 	unsigned long i, cnt;
-@@ -129,6 +148,7 @@ static int __init find_bit_test(void)
- 	 * traverse only part of bitmap to avoid soft lockup.
- 	 */
- 	test_find_first_bit(bitmap, BITMAP_LEN / 10);
-+	test_find_first_and_bit(bitmap, bitmap2, BITMAP_LEN / 2);
- 	test_find_next_and_bit(bitmap, bitmap2, BITMAP_LEN);
+ 	return 0;
+@@ -167,7 +173,7 @@ static inline unsigned int cpumask_local
  
- 	pr_err("\nStart testing find_bit() with sparse bitmap\n");
-@@ -145,6 +165,7 @@ static int __init find_bit_test(void)
- 	test_find_next_zero_bit(bitmap, BITMAP_LEN);
- 	test_find_last_bit(bitmap, BITMAP_LEN);
- 	test_find_first_bit(bitmap, BITMAP_LEN);
-+	test_find_first_and_bit(bitmap, bitmap2, BITMAP_LEN);
- 	test_find_next_and_bit(bitmap, bitmap2, BITMAP_LEN);
+ static inline int cpumask_any_and_distribute(const struct cpumask *src1p,
+ 					     const struct cpumask *src2p) {
+-	return cpumask_next_and(-1, src1p, src2p);
++	return cpumask_first_and(src1p, src2p);
+ }
  
- 	/*
---- a/lib/find_bit.c~lib-add-find_first_and_bit
-+++ a/lib/find_bit.c
-@@ -89,6 +89,27 @@ unsigned long _find_first_bit(const unsi
- EXPORT_SYMBOL(_find_first_bit);
- #endif
+ static inline int cpumask_any_distribute(const struct cpumask *srcp)
+@@ -196,6 +202,19 @@ static inline unsigned int cpumask_first
+ }
  
-+#ifndef find_first_and_bit
-+/*
-+ * Find the first set bit in two memory regions.
+ /**
++ * cpumask_first_and - return the first cpu from *srcp1 & *srcp2
++ * @src1p: the first input
++ * @src2p: the second input
++ *
++ * Returns >= nr_cpu_ids if no cpus set in both.  See also cpumask_next_and().
 + */
-+unsigned long _find_first_and_bit(const unsigned long *addr1,
-+				  const unsigned long *addr2,
-+				  unsigned long size)
++static inline
++unsigned int cpumask_first_and(const struct cpumask *srcp1, const struct cpumask *srcp2)
 +{
-+	unsigned long idx, val;
-+
-+	for (idx = 0; idx * BITS_PER_LONG < size; idx++) {
-+		val = addr1[idx] & addr2[idx];
-+		if (val)
-+			return min(idx * BITS_PER_LONG + __ffs(val), size);
-+	}
-+
-+	return size;
++	return find_first_and_bit(cpumask_bits(srcp1), cpumask_bits(srcp2), nr_cpumask_bits);
 +}
-+EXPORT_SYMBOL(_find_first_and_bit);
-+#endif
 +
- #ifndef find_first_zero_bit
- /*
-  * Find the first cleared bit in a memory region.
++/**
+  * cpumask_last - get the last CPU in a cpumask
+  * @srcp:	- the cpumask pointer
+  *
+@@ -586,15 +605,6 @@ static inline void cpumask_copy(struct c
+ #define cpumask_any(srcp) cpumask_first(srcp)
+ 
+ /**
+- * cpumask_first_and - return the first cpu from *srcp1 & *srcp2
+- * @src1p: the first input
+- * @src2p: the second input
+- *
+- * Returns >= nr_cpu_ids if no cpus set in both.  See also cpumask_next_and().
+- */
+-#define cpumask_first_and(src1p, src2p) cpumask_next_and(-1, (src1p), (src2p))
+-
+-/**
+  * cpumask_any_and - pick a "random" cpu from *mask1 & *mask2
+  * @mask1: the first input cpumask
+  * @mask2: the second input cpumask
 _
