@@ -7,36 +7,55 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81B90C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:55:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FEB9C433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:55:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C90461104
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:55:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 509FB6113C
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:55:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347361AbhIHC4F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 22:56:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52318 "EHLO mail.kernel.org"
+        id S1347421AbhIHC4M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 22:56:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347421AbhIHC4D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 22:56:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 17E6E61100;
-        Wed,  8 Sep 2021 02:54:56 +0000 (UTC)
+        id S1347363AbhIHC4I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 22:56:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AEDDE61101;
+        Wed,  8 Sep 2021 02:54:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069696;
-        bh=HzNXv/zXh7+mtwoGwAl+xx7zHq5/brAzSpoyeK4i64U=;
+        s=korg; t=1631069701;
+        bh=fUew40qj/8w4/AzPxfELH062qu0GY66FEfx5GfWLGXk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=FRhbIIAnjP5l54BW/6NzFMezHQVGTpaTUbs5xbMvH9A/PZ2zz+FUQrnVR56LBVej7
-         AsVkaoH2K6Q1lpfeCP2xwccOMolX7WT7Q2y0yjL2uEVT1Fk9QaRb7DY/lP86vJ45XL
-         BUUZiOfbLLUFhhA+hmg/F02YTo8oXs6+j5nnhbJY=
-Date:   Tue, 07 Sep 2021 19:54:55 -0700
+        b=GO37iwyFKwwRJkO/QJ0/BZq1sUPxd1S3MIUuqzyng/Znm4cJvrswrErpto7jws2Te
+         EgrU9q1qGq0XNpXJ+tT4ubZq4c2/KHk5JlcWLlmXSMGxGs7xMRjORsw2pmG/Uqqq9v
+         n/V9VFmSUwPqCh13D+iPB3YvkHRVSo6pJHG/Hyjk=
+Date:   Tue, 07 Sep 2021 19:54:59 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com,
-        gregkh@linuxfoundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rafael@kernel.org, rppt@linux.ibm.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 037/147] mm: memory_hotplug: cleanup after removal
- of pfn_valid_within()
-Message-ID: <20210908025455.RodG9sgjP%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
+        anshuman.khandual@arm.com, anton@ozlabs.org, ardb@kernel.org,
+        bauerman@linux.ibm.com, benh@kernel.crashing.org, bhe@redhat.com,
+        borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
+        cheloha@linux.ibm.com, christophe.leroy@c-s.fr, dalias@libc.org,
+        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
+        dave.jiang@intel.com, david@redhat.com, gor@linux.ibm.com,
+        hca@linux.ibm.com, hpa@zytor.com, jasowang@redhat.com,
+        joe@perches.com, justin.he@arm.com, ldufour@linux.ibm.com,
+        lenb@kernel.org, linux-mm@kvack.org, luto@kernel.org,
+        mhocko@kernel.org, michel@lespinasse.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, mst@redhat.com,
+        nathanl@linux.ibm.com, npiggin@gmail.com, osalvador@suse.de,
+        pankaj.gupta.linux@gmail.com, pankaj.gupta@ionos.com,
+        pasha.tatashin@soleen.com, paulus@samba.org, peterz@infradead.org,
+        pmorel@linux.ibm.com, rafael.j.wysocki@intel.com,
+        richard.weiyang@linux.alibaba.com, rjw@rjwysocki.net,
+        rppt@kernel.org, slyfox@gentoo.org, songmuchun@bytedance.com,
+        stable@vger.kernel.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, vbabka@suse.cz,
+        vishal.l.verma@intel.com, vkuznets@redhat.com,
+        wangkefeng.wang@huawei.com, will@kernel.org,
+        ysato@users.sourceforge.jp
+Subject:  [patch 038/147] mm/memory_hotplug: use "unsigned long"
+ for PFN in zone_for_pfn_range()
+Message-ID: <20210908025459.6ns0U_Ngx%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,50 +63,125 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm: memory_hotplug: cleanup after removal of pfn_valid_within()
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug: use "unsigned long" for PFN in zone_for_pfn_range()
 
-When test_pages_in_a_zone() used pfn_valid_within() is has some logic
-surrounding pfn_valid_within() checks.
+Patch series "mm/memory_hotplug: preparatory patches for new online policy and memory"
 
-Since pfn_valid_within() is gone, this logic can be removed.
+These are all cleanups and one fix previously sent as part of [1]:
+[PATCH v1 00/12] mm/memory_hotplug: "auto-movable" online policy and memory
+groups.
 
-Link: https://lkml.kernel.org/r/20210713080035.7464-3-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+These patches make sense even without the other series, therefore I pulled
+them out to make the other series easier to digest.
+
+[1] https://lkml.kernel.org/r/20210607195430.48228-1-david@redhat.com 
+
+
+
+This patch (of 4):
+
+Checkpatch complained on a follow-up patch that we are using "unsigned"
+here, which defaults to "unsigned int" and checkpatch is correct.
+
+As we will search for a fitting zone using the wrong pfn, we might end 
+up onlining memory to one of the special kernel zones, such as ZONE_DMA, 
+which can end badly as the onlined memory does not satisfy properties of 
+these zones.
+
+Use "unsigned long" instead, just as we do in other places when handling
+PFNs.  This can bite us once we have physical addresses in the range of
+multiple TB.
+
+Link: https://lkml.kernel.org/r/20210712124052.26491-2-david@redhat.com
+Fixes: e5e689302633 ("mm, memory_hotplug: display allowed zones in the preferred ordering")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: Pankaj Gupta <pankaj.gupta@ionos.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: virtualization@lists.linux-foundation.org
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Cc: Anton Blanchard <anton@ozlabs.org>
+Cc: Ard Biesheuvel <ardb@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@c-s.fr>
+Cc: Dave Jiang <dave.jiang@intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jia He <justin.he@arm.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Laurent Dufour <ldufour@linux.ibm.com>
+Cc: Michel Lespinasse <michel@lespinasse.org>
+Cc: Nathan Lynch <nathanl@linux.ibm.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Pierre Morel <pmorel@linux.ibm.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Scott Cheloha <cheloha@linux.ibm.com>
+Cc: Sergei Trofimovich <slyfox@gentoo.org>
+Cc: Thiago Jung Bauermann <bauerman@linux.ibm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ include/linux/memory_hotplug.h |    4 ++--
+ mm/memory_hotplug.c            |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-cleanup-after-removal-of-pfn_valid_within
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-use-unsigned-long-for-pfn-in-zone_for_pfn_range
++++ a/include/linux/memory_hotplug.h
+@@ -339,8 +339,8 @@ extern void sparse_remove_section(struct
+ 		unsigned long map_offset, struct vmem_altmap *altmap);
+ extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
+ 					  unsigned long pnum);
+-extern struct zone *zone_for_pfn_range(int online_type, int nid, unsigned start_pfn,
+-		unsigned long nr_pages);
++extern struct zone *zone_for_pfn_range(int online_type, int nid,
++		unsigned long start_pfn, unsigned long nr_pages);
+ extern int arch_create_linear_mapping(int nid, u64 start, u64 size,
+ 				      struct mhp_params *params);
+ void arch_remove_linear_mapping(u64 start, u64 size);
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-use-unsigned-long-for-pfn-in-zone_for_pfn_range
 +++ a/mm/memory_hotplug.c
-@@ -1298,7 +1298,7 @@ struct zone *test_pages_in_a_zone(unsign
- 	unsigned long pfn, sec_end_pfn;
- 	struct zone *zone = NULL;
- 	struct page *page;
--	int i;
-+
- 	for (pfn = start_pfn, sec_end_pfn = SECTION_ALIGN_UP(start_pfn + 1);
- 	     pfn < end_pfn;
- 	     pfn = sec_end_pfn, sec_end_pfn += PAGES_PER_SECTION) {
-@@ -1307,13 +1307,10 @@ struct zone *test_pages_in_a_zone(unsign
- 			continue;
- 		for (; pfn < sec_end_pfn && pfn < end_pfn;
- 		     pfn += MAX_ORDER_NR_PAGES) {
--			i = 0;
--			if (i == MAX_ORDER_NR_PAGES || pfn + i >= end_pfn)
--				continue;
- 			/* Check if we got outside of the zone */
--			if (zone && !zone_spans_pfn(zone, pfn + i))
-+			if (zone && !zone_spans_pfn(zone, pfn))
- 				return NULL;
--			page = pfn_to_page(pfn + i);
-+			page = pfn_to_page(pfn);
- 			if (zone && page_zone(page) != zone)
- 				return NULL;
- 			zone = page_zone(page);
+@@ -708,8 +708,8 @@ static inline struct zone *default_zone_
+ 	return movable_node_enabled ? movable_zone : kernel_zone;
+ }
+ 
+-struct zone *zone_for_pfn_range(int online_type, int nid, unsigned start_pfn,
+-		unsigned long nr_pages)
++struct zone *zone_for_pfn_range(int online_type, int nid,
++		unsigned long start_pfn, unsigned long nr_pages)
+ {
+ 	if (online_type == MMOP_ONLINE_KERNEL)
+ 		return default_kernel_zone_for_pfn(nid, start_pfn, nr_pages);
 _
