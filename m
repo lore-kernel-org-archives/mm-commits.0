@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85629C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 45160C4332F
 	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 71E256113C
+	by mail.kernel.org (Postfix) with ESMTP id 2E8946113C
 	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347339AbhIHC5T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1347323AbhIHC5T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 7 Sep 2021 22:57:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54092 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347443AbhIHC5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 22:57:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 516AB60E52;
-        Wed,  8 Sep 2021 02:56:07 +0000 (UTC)
+        id S1347433AbhIHC5L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 22:57:11 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7951661100;
+        Wed,  8 Sep 2021 02:56:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069767;
-        bh=bTET6WtxaFFA3PxjQ1OEseughZtMui/CPs+xk1yLi8o=;
+        s=korg; t=1631069764;
+        bh=XNahHEED0dv6D5JHiqZXWfyh6iSLlm+nqYHpDiwzbDA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=T6maq6UEydlGcBlSRRsDyxAo9COIPTWZZqb9wnxVcb8JOJPuYJBSYyzLguKHm6pJ3
-         yS9f12e+Mti3gIMlE/PsSIGLFGRYCzOw/kEefXwJjuIDmXbR1KIZT8GSlTwv/RLaJC
-         uct+V0Egg7OdO+1vrqtigLZXBgx3xEuBYiFDkIls=
-Date:   Tue, 07 Sep 2021 19:56:06 -0700
+        b=SiCIdy0P+jl/WLClD+IevWFwbfi1+1KWXSv3SaBEChlYZ94XKj1vrXA9EwsIqIVCE
+         ++GjYM1ASPejpA9wtsSxmP/P7YFbjVj+hH8K4n5hO9cRxuN+mKQ/v8bhfSQHy102cH
+         ACdKvvlWMW/QrQjJJqm7OlATBlo8i7kDLLeQ7uLo=
+Date:   Tue, 07 Sep 2021 19:56:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, arnd@arndb.de, david@redhat.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        o451686892@gmail.com, torvalds@linux-foundation.org
-Subject:  [patch 056/147] mm/early_ioremap.c: remove redundant
- early_ioremap_shutdown()
-Message-ID: <20210908025606.tVQuv0bIc%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hch@lst.de, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, npiggin@gmail.com,
+        peterz@infradead.org, torvalds@linux-foundation.org
+Subject:  [patch 055/147] mm: don't allow executable ioremap
+ mappings
+Message-ID: <20210908025604.WeTOgRzRO%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,53 +43,31 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Weizhao Ouyang <o451686892@gmail.com>
-Subject: mm/early_ioremap.c: remove redundant early_ioremap_shutdown()
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: don't allow executable ioremap mappings
 
-early_ioremap_reset() reserved a weak function so that architectures can
-provide a specific cleanup.  Now no architectures use it, remove this
-redundant function.
+There is no need to execute from iomem (and most platforms it is
+impossible anyway), so add the pgprot_nx() call similar to vmap.
 
-Link: https://lkml.kernel.org/r/20210901082917.399953-1-o451686892@gmail.com
-Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/20210824091259.1324527-3-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/early_ioremap.h |    6 ------
- mm/early_ioremap.c                  |    5 -----
- 2 files changed, 11 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/asm-generic/early_ioremap.h~mm-early_ioremapc-remove-redundant-early_ioremap_shutdown
-+++ a/include/asm-generic/early_ioremap.h
-@@ -19,12 +19,6 @@ extern void *early_memremap_prot(resourc
- extern void early_iounmap(void __iomem *addr, unsigned long size);
- extern void early_memunmap(void *addr, unsigned long size);
- 
--/*
-- * Weak function called by early_ioremap_reset(). It does nothing, but
-- * architectures may provide their own version to do any needed cleanups.
-- */
--extern void early_ioremap_shutdown(void);
--
- #if defined(CONFIG_GENERIC_EARLY_IOREMAP) && defined(CONFIG_MMU)
- /* Arch-specific initialization */
- extern void early_ioremap_init(void);
---- a/mm/early_ioremap.c~mm-early_ioremapc-remove-redundant-early_ioremap_shutdown
-+++ a/mm/early_ioremap.c
-@@ -38,13 +38,8 @@ pgprot_t __init __weak early_memremap_pg
- 	return prot;
- }
- 
--void __init __weak early_ioremap_shutdown(void)
--{
--}
--
- void __init early_ioremap_reset(void)
+--- a/mm/vmalloc.c~mm-dont-allow-executable-ioremap-mappings
++++ a/mm/vmalloc.c
+@@ -316,7 +316,7 @@ int ioremap_page_range(unsigned long add
  {
--	early_ioremap_shutdown();
- 	after_paging_init = 1;
- }
+ 	int err;
  
+-	err = vmap_range_noflush(addr, end, phys_addr, prot,
++	err = vmap_range_noflush(addr, end, phys_addr, pgprot_nx(prot),
+ 				 ioremap_max_page_shift);
+ 	flush_cache_vmap(addr, end);
+ 	return err;
 _
