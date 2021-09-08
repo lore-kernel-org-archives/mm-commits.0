@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFEFEC433FE
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B27CEC4332F
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D818F61152
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9D0D561153
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346101AbhIHC54 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 22:57:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54932 "EHLO mail.kernel.org"
+        id S1347361AbhIHC55 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 22:57:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55038 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347421AbhIHC5x (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 22:57:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4273960E52;
-        Wed,  8 Sep 2021 02:56:45 +0000 (UTC)
+        id S234389AbhIHC55 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 22:57:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3A0D561102;
+        Wed,  8 Sep 2021 02:56:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069806;
-        bh=P7UrUJj9ljKD2b4hrsfDZjIryEPObX9u7uD/HQJxWQo=;
+        s=korg; t=1631069810;
+        bh=33zPKqWQtcQTifAfBDLsOhJsqkfm3gCMiekqfC/rixA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=nq1+OLNp26ubvtAXWnVBBLuYD8Z5vPlk6+co/UHcP78K5MO00iJs6muVhgRTymk26
-         oV5TqGlXu9BpgJ2jUTsaO+Pz8I5Cy7m4p0/7u+6gn7ZmJ3haWJcDfoNdKHCexCcN+J
-         aflvm4wkvYTNkUQellPpCG8I0kV45sMXoxMKotgg=
-Date:   Tue, 07 Sep 2021 19:56:44 -0700
+        b=Mm4s9k3u+en+0frOCSw/K/oEiy7/rRUNX2W1XM1R4ZC5mCG7E5D4HpRS3vfwAoP1s
+         QivkpAA1ok1kKT97+62AdS2xKnvINnHIb+ZN0jAavDCXDiQ+h6t0uomgYYQXi7v4SN
+         gXX59HIMh/A7hKZ8Iojgj6olqr/F4TvBt5ElmcEQ=
+Date:   Tue, 07 Sep 2021 19:56:48 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, alexander.shishkin@linux.intel.com,
         amit@kernel.org, benh@kernel.crashing.org,
@@ -43,9 +43,8 @@ To:     akpm@linux-foundation.org, alexander.shishkin@linux.intel.com,
         shuah@kernel.org, sieberf@amazon.com, sjpark@amazon.de,
         torvalds@linux-foundation.org, vbabka@suse.cz,
         vdavydov.dev@gmail.com
-Subject:  [patch 067/147] mm/damon: implement primitives for the
- virtual memory address spaces
-Message-ID: <20210908025644.9S9cRdYAt%akpm@linux-foundation.org>
+Subject:  [patch 068/147] mm/damon: add a tracepoint
+Message-ID: <20210908025648.Nq2FOFR4y%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,71 +53,16 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: SeongJae Park <sjpark@amazon.de>
-Subject: mm/damon: implement primitives for the virtual memory address spaces
+Subject: mm/damon: add a tracepoint
 
-This commit introduces a reference implementation of the address space
-specific low level primitives for the virtual address space, so that users
-of DAMON can easily monitor the data accesses on virtual address spaces of
-specific processes by simply configuring the implementation to be used by
-DAMON.
+This commit adds a tracepoint for DAMON.  It traces the monitoring results
+of each region for each aggregation interval.  Using this, DAMON can
+easily integrated with tracepoints supporting tools such as perf.
 
-The low level primitives for the fundamental access monitoring are defined
-in two parts:
-
-1. Identification of the monitoring target address range for the address
-   space.
-2. Access check of specific address range in the target space.
-
-The reference implementation for the virtual address space does the works
-as below.
-
-PTE Accessed-bit Based Access Check
------------------------------------
-
-The implementation uses PTE Accessed-bit for basic access checks.  That
-is, it clears the bit for the next sampling target page and checks whether
-it is set again after one sampling period.  This could disturb the reclaim
-logic.  DAMON uses ``PG_idle`` and ``PG_young`` page flags to solve the
-conflict, as Idle page tracking does.
-
-VMA-based Target Address Range Construction
--------------------------------------------
-
-Only small parts in the super-huge virtual address space of the processes
-are mapped to physical memory and accessed.  Thus, tracking the unmapped
-address regions is just wasteful.  However, because DAMON can deal with
-some level of noise using the adaptive regions adjustment mechanism,
-tracking every mapping is not strictly required but could even incur a
-high overhead in some cases.  That said, too huge unmapped areas inside
-the monitoring target should be removed to not take the time for the
-adaptive mechanism.
-
-For the reason, this implementation converts the complex mappings to three
-distinct regions that cover every mapped area of the address space.  Also,
-the two gaps between the three regions are the two biggest unmapped areas
-in the given address space.  The two biggest unmapped areas would be the
-gap between the heap and the uppermost mmap()-ed region, and the gap
-between the lowermost mmap()-ed region and the stack in most of the cases.
-Because these gaps are exceptionally huge in usual address spaces,
-excluding these will be sufficient to make a reasonable trade-off.  Below
-shows this in detail::
-
-    <heap>
-    <BIG UNMAPPED REGION 1>
-    <uppermost mmap()-ed region>
-    (small mmap()-ed regions and munmap()-ed regions)
-    <lowermost mmap()-ed region>
-    <BIG UNMAPPED REGION 2>
-    <stack>
-
-[akpm@linux-foundation.org: mm/damon/vaddr.c needs highmem.h for kunmap_atomic()]
-[sjpark@amazon.de: remove unnecessary PAGE_EXTENSION setup]
-  Link: https://lkml.kernel.org/r/20210806095153.6444-2-sj38.park@gmail.com
-[sjpark@amazon.de: safely walk page table]
-  Link: https://lkml.kernel.org/r/20210831161800.29419-1-sj38.park@gmail.com
-Link: https://lkml.kernel.org/r/20210716081449.22187-6-sj38.park@gmail.com
+Link: https://lkml.kernel.org/r/20210716081449.22187-7-sj38.park@gmail.com
 Signed-off-by: SeongJae Park <sjpark@amazon.de>
 Reviewed-by: Leonard Foerster <foersleo@amazon.de>
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Reviewed-by: Fernand Sieber <sieberf@amazon.com>
 Acked-by: Shakeel Butt <shakeelb@google.com>
 Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
@@ -144,726 +88,83 @@ Cc: Namhyung Kim <namhyung@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rik van Riel <riel@surriel.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   13 
- mm/damon/Kconfig      |    8 
- mm/damon/Makefile     |    1 
- mm/damon/vaddr.c      |  665 ++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 687 insertions(+)
+ include/trace/events/damon.h |   43 +++++++++++++++++++++++++++++++++
+ mm/damon/core.c              |    7 ++++-
+ 2 files changed, 49 insertions(+), 1 deletion(-)
 
---- a/include/linux/damon.h~mm-damon-implement-primitives-for-the-virtual-memory-address-spaces
-+++ a/include/linux/damon.h
-@@ -249,4 +249,17 @@ int damon_stop(struct damon_ctx **ctxs,
- 
- #endif	/* CONFIG_DAMON */
- 
-+#ifdef CONFIG_DAMON_VADDR
-+
-+/* Monitoring primitives for virtual memory address spaces */
-+void damon_va_init(struct damon_ctx *ctx);
-+void damon_va_update(struct damon_ctx *ctx);
-+void damon_va_prepare_access_checks(struct damon_ctx *ctx);
-+unsigned int damon_va_check_accesses(struct damon_ctx *ctx);
-+bool damon_va_target_valid(void *t);
-+void damon_va_cleanup(struct damon_ctx *ctx);
-+void damon_va_set_primitives(struct damon_ctx *ctx);
-+
-+#endif	/* CONFIG_DAMON_VADDR */
-+
- #endif	/* _DAMON_H */
---- a/mm/damon/Kconfig~mm-damon-implement-primitives-for-the-virtual-memory-address-spaces
-+++ a/mm/damon/Kconfig
-@@ -12,4 +12,12 @@ config DAMON
- 	  See https://damonitor.github.io/doc/html/latest-damon/index.html for
- 	  more information.
- 
-+config DAMON_VADDR
-+	bool "Data access monitoring primitives for virtual address spaces"
-+	depends on DAMON && MMU
-+	select PAGE_IDLE_FLAG
-+	help
-+	  This builds the default data access monitoring primitives for DAMON
-+	  that works for virtual address spaces.
-+
- endmenu
---- a/mm/damon/Makefile~mm-damon-implement-primitives-for-the-virtual-memory-address-spaces
-+++ a/mm/damon/Makefile
-@@ -1,3 +1,4 @@
- # SPDX-License-Identifier: GPL-2.0
- 
- obj-$(CONFIG_DAMON)		:= core.o
-+obj-$(CONFIG_DAMON_VADDR)	+= vaddr.o
 --- /dev/null
-+++ a/mm/damon/vaddr.c
-@@ -0,0 +1,665 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * DAMON Primitives for Virtual Address Spaces
-+ *
-+ * Author: SeongJae Park <sjpark@amazon.de>
-+ */
++++ a/include/trace/events/damon.h
+@@ -0,0 +1,43 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM damon
 +
-+#define pr_fmt(fmt) "damon-va: " fmt
++#if !defined(_TRACE_DAMON_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_DAMON_H
 +
 +#include <linux/damon.h>
-+#include <linux/hugetlb.h>
-+#include <linux/mm.h>
-+#include <linux/mmu_notifier.h>
-+#include <linux/highmem.h>
-+#include <linux/page_idle.h>
-+#include <linux/pagewalk.h>
-+#include <linux/random.h>
-+#include <linux/sched/mm.h>
-+#include <linux/slab.h>
++#include <linux/types.h>
++#include <linux/tracepoint.h>
 +
-+/* Get a random number in [l, r) */
-+#define damon_rand(l, r) (l + prandom_u32_max(r - l))
++TRACE_EVENT(damon_aggregated,
 +
-+/*
-+ * 't->id' should be the pointer to the relevant 'struct pid' having reference
-+ * count.  Caller must put the returned task, unless it is NULL.
-+ */
-+#define damon_get_task_struct(t) \
-+	(get_pid_task((struct pid *)t->id, PIDTYPE_PID))
++	TP_PROTO(struct damon_target *t, struct damon_region *r,
++		unsigned int nr_regions),
 +
-+/*
-+ * Get the mm_struct of the given target
-+ *
-+ * Caller _must_ put the mm_struct after use, unless it is NULL.
-+ *
-+ * Returns the mm_struct of the target on success, NULL on failure
-+ */
-+static struct mm_struct *damon_get_mm(struct damon_target *t)
-+{
-+	struct task_struct *task;
-+	struct mm_struct *mm;
++	TP_ARGS(t, r, nr_regions),
 +
-+	task = damon_get_task_struct(t);
-+	if (!task)
-+		return NULL;
++	TP_STRUCT__entry(
++		__field(unsigned long, target_id)
++		__field(unsigned int, nr_regions)
++		__field(unsigned long, start)
++		__field(unsigned long, end)
++		__field(unsigned int, nr_accesses)
++	),
 +
-+	mm = get_task_mm(task);
-+	put_task_struct(task);
-+	return mm;
-+}
++	TP_fast_assign(
++		__entry->target_id = t->id;
++		__entry->nr_regions = nr_regions;
++		__entry->start = r->ar.start;
++		__entry->end = r->ar.end;
++		__entry->nr_accesses = r->nr_accesses;
++	),
 +
-+/*
-+ * Functions for the initial monitoring target regions construction
-+ */
++	TP_printk("target_id=%lu nr_regions=%u %lu-%lu: %u",
++			__entry->target_id, __entry->nr_regions,
++			__entry->start, __entry->end, __entry->nr_accesses)
++);
 +
-+/*
-+ * Size-evenly split a region into 'nr_pieces' small regions
-+ *
-+ * Returns 0 on success, or negative error code otherwise.
-+ */
-+static int damon_va_evenly_split_region(struct damon_target *t,
-+		struct damon_region *r, unsigned int nr_pieces)
-+{
-+	unsigned long sz_orig, sz_piece, orig_end;
-+	struct damon_region *n = NULL, *next;
-+	unsigned long start;
++#endif /* _TRACE_DAMON_H */
 +
-+	if (!r || !nr_pieces)
-+		return -EINVAL;
++/* This part must be outside protection */
++#include <trace/define_trace.h>
+--- a/mm/damon/core.c~mm-damon-add-a-tracepoint
++++ a/mm/damon/core.c
+@@ -13,6 +13,9 @@
+ #include <linux/random.h>
+ #include <linux/slab.h>
+ 
++#define CREATE_TRACE_POINTS
++#include <trace/events/damon.h>
 +
-+	orig_end = r->ar.end;
-+	sz_orig = r->ar.end - r->ar.start;
-+	sz_piece = ALIGN_DOWN(sz_orig / nr_pieces, DAMON_MIN_REGION);
-+
-+	if (!sz_piece)
-+		return -EINVAL;
-+
-+	r->ar.end = r->ar.start + sz_piece;
-+	next = damon_next_region(r);
-+	for (start = r->ar.end; start + sz_piece <= orig_end;
-+			start += sz_piece) {
-+		n = damon_new_region(start, start + sz_piece);
-+		if (!n)
-+			return -ENOMEM;
-+		damon_insert_region(n, r, next, t);
-+		r = n;
-+	}
-+	/* complement last region for possible rounding error */
-+	if (n)
-+		n->ar.end = orig_end;
-+
-+	return 0;
-+}
-+
-+static unsigned long sz_range(struct damon_addr_range *r)
-+{
-+	return r->end - r->start;
-+}
-+
-+static void swap_ranges(struct damon_addr_range *r1,
-+			struct damon_addr_range *r2)
-+{
-+	struct damon_addr_range tmp;
-+
-+	tmp = *r1;
-+	*r1 = *r2;
-+	*r2 = tmp;
-+}
-+
-+/*
-+ * Find three regions separated by two biggest unmapped regions
-+ *
-+ * vma		the head vma of the target address space
-+ * regions	an array of three address ranges that results will be saved
-+ *
-+ * This function receives an address space and finds three regions in it which
-+ * separated by the two biggest unmapped regions in the space.  Please refer to
-+ * below comments of '__damon_va_init_regions()' function to know why this is
-+ * necessary.
-+ *
-+ * Returns 0 if success, or negative error code otherwise.
-+ */
-+static int __damon_va_three_regions(struct vm_area_struct *vma,
-+				       struct damon_addr_range regions[3])
-+{
-+	struct damon_addr_range gap = {0}, first_gap = {0}, second_gap = {0};
-+	struct vm_area_struct *last_vma = NULL;
-+	unsigned long start = 0;
-+	struct rb_root rbroot;
-+
-+	/* Find two biggest gaps so that first_gap > second_gap > others */
-+	for (; vma; vma = vma->vm_next) {
-+		if (!last_vma) {
-+			start = vma->vm_start;
-+			goto next;
-+		}
-+
-+		if (vma->rb_subtree_gap <= sz_range(&second_gap)) {
-+			rbroot.rb_node = &vma->vm_rb;
-+			vma = rb_entry(rb_last(&rbroot),
-+					struct vm_area_struct, vm_rb);
-+			goto next;
-+		}
-+
-+		gap.start = last_vma->vm_end;
-+		gap.end = vma->vm_start;
-+		if (sz_range(&gap) > sz_range(&second_gap)) {
-+			swap_ranges(&gap, &second_gap);
-+			if (sz_range(&second_gap) > sz_range(&first_gap))
-+				swap_ranges(&second_gap, &first_gap);
-+		}
-+next:
-+		last_vma = vma;
-+	}
-+
-+	if (!sz_range(&second_gap) || !sz_range(&first_gap))
-+		return -EINVAL;
-+
-+	/* Sort the two biggest gaps by address */
-+	if (first_gap.start > second_gap.start)
-+		swap_ranges(&first_gap, &second_gap);
-+
-+	/* Store the result */
-+	regions[0].start = ALIGN(start, DAMON_MIN_REGION);
-+	regions[0].end = ALIGN(first_gap.start, DAMON_MIN_REGION);
-+	regions[1].start = ALIGN(first_gap.end, DAMON_MIN_REGION);
-+	regions[1].end = ALIGN(second_gap.start, DAMON_MIN_REGION);
-+	regions[2].start = ALIGN(second_gap.end, DAMON_MIN_REGION);
-+	regions[2].end = ALIGN(last_vma->vm_end, DAMON_MIN_REGION);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Get the three regions in the given target (task)
-+ *
-+ * Returns 0 on success, negative error code otherwise.
-+ */
-+static int damon_va_three_regions(struct damon_target *t,
-+				struct damon_addr_range regions[3])
-+{
-+	struct mm_struct *mm;
-+	int rc;
-+
-+	mm = damon_get_mm(t);
-+	if (!mm)
-+		return -EINVAL;
-+
-+	mmap_read_lock(mm);
-+	rc = __damon_va_three_regions(mm->mmap, regions);
-+	mmap_read_unlock(mm);
-+
-+	mmput(mm);
-+	return rc;
-+}
-+
-+/*
-+ * Initialize the monitoring target regions for the given target (task)
-+ *
-+ * t	the given target
-+ *
-+ * Because only a number of small portions of the entire address space
-+ * is actually mapped to the memory and accessed, monitoring the unmapped
-+ * regions is wasteful.  That said, because we can deal with small noises,
-+ * tracking every mapping is not strictly required but could even incur a high
-+ * overhead if the mapping frequently changes or the number of mappings is
-+ * high.  The adaptive regions adjustment mechanism will further help to deal
-+ * with the noise by simply identifying the unmapped areas as a region that
-+ * has no access.  Moreover, applying the real mappings that would have many
-+ * unmapped areas inside will make the adaptive mechanism quite complex.  That
-+ * said, too huge unmapped areas inside the monitoring target should be removed
-+ * to not take the time for the adaptive mechanism.
-+ *
-+ * For the reason, we convert the complex mappings to three distinct regions
-+ * that cover every mapped area of the address space.  Also the two gaps
-+ * between the three regions are the two biggest unmapped areas in the given
-+ * address space.  In detail, this function first identifies the start and the
-+ * end of the mappings and the two biggest unmapped areas of the address space.
-+ * Then, it constructs the three regions as below:
-+ *
-+ *     [mappings[0]->start, big_two_unmapped_areas[0]->start)
-+ *     [big_two_unmapped_areas[0]->end, big_two_unmapped_areas[1]->start)
-+ *     [big_two_unmapped_areas[1]->end, mappings[nr_mappings - 1]->end)
-+ *
-+ * As usual memory map of processes is as below, the gap between the heap and
-+ * the uppermost mmap()-ed region, and the gap between the lowermost mmap()-ed
-+ * region and the stack will be two biggest unmapped regions.  Because these
-+ * gaps are exceptionally huge areas in usual address space, excluding these
-+ * two biggest unmapped regions will be sufficient to make a trade-off.
-+ *
-+ *   <heap>
-+ *   <BIG UNMAPPED REGION 1>
-+ *   <uppermost mmap()-ed region>
-+ *   (other mmap()-ed regions and small unmapped regions)
-+ *   <lowermost mmap()-ed region>
-+ *   <BIG UNMAPPED REGION 2>
-+ *   <stack>
-+ */
-+static void __damon_va_init_regions(struct damon_ctx *ctx,
-+				     struct damon_target *t)
-+{
-+	struct damon_region *r;
-+	struct damon_addr_range regions[3];
-+	unsigned long sz = 0, nr_pieces;
-+	int i;
-+
-+	if (damon_va_three_regions(t, regions)) {
-+		pr_err("Failed to get three regions of target %lu\n", t->id);
-+		return;
-+	}
-+
-+	for (i = 0; i < 3; i++)
-+		sz += regions[i].end - regions[i].start;
-+	if (ctx->min_nr_regions)
-+		sz /= ctx->min_nr_regions;
-+	if (sz < DAMON_MIN_REGION)
-+		sz = DAMON_MIN_REGION;
-+
-+	/* Set the initial three regions of the target */
-+	for (i = 0; i < 3; i++) {
-+		r = damon_new_region(regions[i].start, regions[i].end);
-+		if (!r) {
-+			pr_err("%d'th init region creation failed\n", i);
-+			return;
-+		}
-+		damon_add_region(r, t);
-+
-+		nr_pieces = (regions[i].end - regions[i].start) / sz;
-+		damon_va_evenly_split_region(t, r, nr_pieces);
-+	}
-+}
-+
-+/* Initialize '->regions_list' of every target (task) */
-+void damon_va_init(struct damon_ctx *ctx)
-+{
-+	struct damon_target *t;
-+
-+	damon_for_each_target(t, ctx) {
-+		/* the user may set the target regions as they want */
-+		if (!damon_nr_regions(t))
-+			__damon_va_init_regions(ctx, t);
-+	}
-+}
-+
-+/*
-+ * Functions for the dynamic monitoring target regions update
-+ */
-+
-+/*
-+ * Check whether a region is intersecting an address range
-+ *
-+ * Returns true if it is.
-+ */
-+static bool damon_intersect(struct damon_region *r, struct damon_addr_range *re)
-+{
-+	return !(r->ar.end <= re->start || re->end <= r->ar.start);
-+}
-+
-+/*
-+ * Update damon regions for the three big regions of the given target
-+ *
-+ * t		the given target
-+ * bregions	the three big regions of the target
-+ */
-+static void damon_va_apply_three_regions(struct damon_target *t,
-+		struct damon_addr_range bregions[3])
-+{
-+	struct damon_region *r, *next;
-+	unsigned int i = 0;
-+
-+	/* Remove regions which are not in the three big regions now */
-+	damon_for_each_region_safe(r, next, t) {
-+		for (i = 0; i < 3; i++) {
-+			if (damon_intersect(r, &bregions[i]))
-+				break;
-+		}
-+		if (i == 3)
-+			damon_destroy_region(r, t);
-+	}
-+
-+	/* Adjust intersecting regions to fit with the three big regions */
-+	for (i = 0; i < 3; i++) {
-+		struct damon_region *first = NULL, *last;
-+		struct damon_region *newr;
-+		struct damon_addr_range *br;
-+
-+		br = &bregions[i];
-+		/* Get the first and last regions which intersects with br */
+ /* Get a random number in [l, r) */
+ #define damon_rand(l, r) (l + prandom_u32_max(r - l))
+ 
+@@ -387,8 +390,10 @@ static void kdamond_reset_aggregated(str
+ 	damon_for_each_target(t, c) {
+ 		struct damon_region *r;
+ 
+-		damon_for_each_region(r, t)
 +		damon_for_each_region(r, t) {
-+			if (damon_intersect(r, br)) {
-+				if (!first)
-+					first = r;
-+				last = r;
-+			}
-+			if (r->ar.start >= br->end)
-+				break;
++			trace_damon_aggregated(t, r, damon_nr_regions(t));
+ 			r->nr_accesses = 0;
 +		}
-+		if (!first) {
-+			/* no damon_region intersects with this big region */
-+			newr = damon_new_region(
-+					ALIGN_DOWN(br->start,
-+						DAMON_MIN_REGION),
-+					ALIGN(br->end, DAMON_MIN_REGION));
-+			if (!newr)
-+				continue;
-+			damon_insert_region(newr, damon_prev_region(r), r, t);
-+		} else {
-+			first->ar.start = ALIGN_DOWN(br->start,
-+					DAMON_MIN_REGION);
-+			last->ar.end = ALIGN(br->end, DAMON_MIN_REGION);
-+		}
-+	}
-+}
-+
-+/*
-+ * Update regions for current memory mappings
-+ */
-+void damon_va_update(struct damon_ctx *ctx)
-+{
-+	struct damon_addr_range three_regions[3];
-+	struct damon_target *t;
-+
-+	damon_for_each_target(t, ctx) {
-+		if (damon_va_three_regions(t, three_regions))
-+			continue;
-+		damon_va_apply_three_regions(t, three_regions);
-+	}
-+}
-+
-+/*
-+ * Get an online page for a pfn if it's in the LRU list.  Otherwise, returns
-+ * NULL.
-+ *
-+ * The body of this function is stolen from the 'page_idle_get_page()'.  We
-+ * steal rather than reuse it because the code is quite simple.
-+ */
-+static struct page *damon_get_page(unsigned long pfn)
-+{
-+	struct page *page = pfn_to_online_page(pfn);
-+
-+	if (!page || !PageLRU(page) || !get_page_unless_zero(page))
-+		return NULL;
-+
-+	if (unlikely(!PageLRU(page))) {
-+		put_page(page);
-+		page = NULL;
-+	}
-+	return page;
-+}
-+
-+static void damon_ptep_mkold(pte_t *pte, struct mm_struct *mm,
-+			     unsigned long addr)
-+{
-+	bool referenced = false;
-+	struct page *page = damon_get_page(pte_pfn(*pte));
-+
-+	if (!page)
-+		return;
-+
-+	if (pte_young(*pte)) {
-+		referenced = true;
-+		*pte = pte_mkold(*pte);
-+	}
-+
-+#ifdef CONFIG_MMU_NOTIFIER
-+	if (mmu_notifier_clear_young(mm, addr, addr + PAGE_SIZE))
-+		referenced = true;
-+#endif /* CONFIG_MMU_NOTIFIER */
-+
-+	if (referenced)
-+		set_page_young(page);
-+
-+	set_page_idle(page);
-+	put_page(page);
-+}
-+
-+static void damon_pmdp_mkold(pmd_t *pmd, struct mm_struct *mm,
-+			     unsigned long addr)
-+{
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	bool referenced = false;
-+	struct page *page = damon_get_page(pmd_pfn(*pmd));
-+
-+	if (!page)
-+		return;
-+
-+	if (pmd_young(*pmd)) {
-+		referenced = true;
-+		*pmd = pmd_mkold(*pmd);
-+	}
-+
-+#ifdef CONFIG_MMU_NOTIFIER
-+	if (mmu_notifier_clear_young(mm, addr,
-+				addr + ((1UL) << HPAGE_PMD_SHIFT)))
-+		referenced = true;
-+#endif /* CONFIG_MMU_NOTIFIER */
-+
-+	if (referenced)
-+		set_page_young(page);
-+
-+	set_page_idle(page);
-+	put_page(page);
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+}
-+
-+static int damon_mkold_pmd_entry(pmd_t *pmd, unsigned long addr,
-+		unsigned long next, struct mm_walk *walk)
-+{
-+	pte_t *pte;
-+	spinlock_t *ptl;
-+
-+	if (pmd_huge(*pmd)) {
-+		ptl = pmd_lock(walk->mm, pmd);
-+		if (pmd_huge(*pmd)) {
-+			damon_pmdp_mkold(pmd, walk->mm, addr);
-+			spin_unlock(ptl);
-+			return 0;
-+		}
-+		spin_unlock(ptl);
-+	}
-+
-+	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
-+		return 0;
-+	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (!pte_present(*pte))
-+		goto out;
-+	damon_ptep_mkold(pte, walk->mm, addr);
-+out:
-+	pte_unmap_unlock(pte, ptl);
-+	return 0;
-+}
-+
-+static struct mm_walk_ops damon_mkold_ops = {
-+	.pmd_entry = damon_mkold_pmd_entry,
-+};
-+
-+static void damon_va_mkold(struct mm_struct *mm, unsigned long addr)
-+{
-+	mmap_read_lock(mm);
-+	walk_page_range(mm, addr, addr + 1, &damon_mkold_ops, NULL);
-+	mmap_read_unlock(mm);
-+}
-+
-+/*
-+ * Functions for the access checking of the regions
-+ */
-+
-+static void damon_va_prepare_access_check(struct damon_ctx *ctx,
-+			struct mm_struct *mm, struct damon_region *r)
-+{
-+	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
-+
-+	damon_va_mkold(mm, r->sampling_addr);
-+}
-+
-+void damon_va_prepare_access_checks(struct damon_ctx *ctx)
-+{
-+	struct damon_target *t;
-+	struct mm_struct *mm;
-+	struct damon_region *r;
-+
-+	damon_for_each_target(t, ctx) {
-+		mm = damon_get_mm(t);
-+		if (!mm)
-+			continue;
-+		damon_for_each_region(r, t)
-+			damon_va_prepare_access_check(ctx, mm, r);
-+		mmput(mm);
-+	}
-+}
-+
-+struct damon_young_walk_private {
-+	unsigned long *page_sz;
-+	bool young;
-+};
-+
-+static int damon_young_pmd_entry(pmd_t *pmd, unsigned long addr,
-+		unsigned long next, struct mm_walk *walk)
-+{
-+	pte_t *pte;
-+	spinlock_t *ptl;
-+	struct page *page;
-+	struct damon_young_walk_private *priv = walk->private;
-+
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	if (pmd_huge(*pmd)) {
-+		ptl = pmd_lock(walk->mm, pmd);
-+		if (!pmd_huge(*pmd)) {
-+			spin_unlock(ptl);
-+			goto regular_page;
-+		}
-+		page = damon_get_page(pmd_pfn(*pmd));
-+		if (!page)
-+			goto huge_out;
-+		if (pmd_young(*pmd) || !page_is_idle(page) ||
-+					mmu_notifier_test_young(walk->mm,
-+						addr)) {
-+			*priv->page_sz = ((1UL) << HPAGE_PMD_SHIFT);
-+			priv->young = true;
-+		}
-+		put_page(page);
-+huge_out:
-+		spin_unlock(ptl);
-+		return 0;
-+	}
-+
-+regular_page:
-+#endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
-+
-+	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
-+		return -EINVAL;
-+	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (!pte_present(*pte))
-+		goto out;
-+	page = damon_get_page(pte_pfn(*pte));
-+	if (!page)
-+		goto out;
-+	if (pte_young(*pte) || !page_is_idle(page) ||
-+			mmu_notifier_test_young(walk->mm, addr)) {
-+		*priv->page_sz = PAGE_SIZE;
-+		priv->young = true;
-+	}
-+	put_page(page);
-+out:
-+	pte_unmap_unlock(pte, ptl);
-+	return 0;
-+}
-+
-+static struct mm_walk_ops damon_young_ops = {
-+	.pmd_entry = damon_young_pmd_entry,
-+};
-+
-+static bool damon_va_young(struct mm_struct *mm, unsigned long addr,
-+		unsigned long *page_sz)
-+{
-+	struct damon_young_walk_private arg = {
-+		.page_sz = page_sz,
-+		.young = false,
-+	};
-+
-+	mmap_read_lock(mm);
-+	walk_page_range(mm, addr, addr + 1, &damon_young_ops, &arg);
-+	mmap_read_unlock(mm);
-+	return arg.young;
-+}
-+
-+/*
-+ * Check whether the region was accessed after the last preparation
-+ *
-+ * mm	'mm_struct' for the given virtual address space
-+ * r	the region to be checked
-+ */
-+static void damon_va_check_access(struct damon_ctx *ctx,
-+			       struct mm_struct *mm, struct damon_region *r)
-+{
-+	static struct mm_struct *last_mm;
-+	static unsigned long last_addr;
-+	static unsigned long last_page_sz = PAGE_SIZE;
-+	static bool last_accessed;
-+
-+	/* If the region is in the last checked page, reuse the result */
-+	if (mm == last_mm && (ALIGN_DOWN(last_addr, last_page_sz) ==
-+				ALIGN_DOWN(r->sampling_addr, last_page_sz))) {
-+		if (last_accessed)
-+			r->nr_accesses++;
-+		return;
-+	}
-+
-+	last_accessed = damon_va_young(mm, r->sampling_addr, &last_page_sz);
-+	if (last_accessed)
-+		r->nr_accesses++;
-+
-+	last_mm = mm;
-+	last_addr = r->sampling_addr;
-+}
-+
-+unsigned int damon_va_check_accesses(struct damon_ctx *ctx)
-+{
-+	struct damon_target *t;
-+	struct mm_struct *mm;
-+	struct damon_region *r;
-+	unsigned int max_nr_accesses = 0;
-+
-+	damon_for_each_target(t, ctx) {
-+		mm = damon_get_mm(t);
-+		if (!mm)
-+			continue;
-+		damon_for_each_region(r, t) {
-+			damon_va_check_access(ctx, mm, r);
-+			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
-+		}
-+		mmput(mm);
-+	}
-+
-+	return max_nr_accesses;
-+}
-+
-+/*
-+ * Functions for the target validity check and cleanup
-+ */
-+
-+bool damon_va_target_valid(void *target)
-+{
-+	struct damon_target *t = target;
-+	struct task_struct *task;
-+
-+	task = damon_get_task_struct(t);
-+	if (task) {
-+		put_task_struct(task);
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
-+void damon_va_set_primitives(struct damon_ctx *ctx)
-+{
-+	ctx->primitive.init = damon_va_init;
-+	ctx->primitive.update = damon_va_update;
-+	ctx->primitive.prepare_access_checks = damon_va_prepare_access_checks;
-+	ctx->primitive.check_accesses = damon_va_check_accesses;
-+	ctx->primitive.reset_aggregated = NULL;
-+	ctx->primitive.target_valid = damon_va_target_valid;
-+	ctx->primitive.cleanup = NULL;
-+}
+ 	}
+ }
+ 
 _
