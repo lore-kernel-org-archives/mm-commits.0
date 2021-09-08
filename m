@@ -7,34 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 69391C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:58:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1452C433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:58:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51E9661131
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:58:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A31F961131
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:58:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347371AbhIHDAC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 23:00:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57932 "EHLO mail.kernel.org"
+        id S1347390AbhIHDAG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 23:00:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57978 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234389AbhIHDAC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 23:00:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 047C461100;
-        Wed,  8 Sep 2021 02:58:54 +0000 (UTC)
+        id S234389AbhIHDAF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 23:00:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4348D60E52;
+        Wed,  8 Sep 2021 02:58:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069935;
-        bh=xzDyQFzSg4dX7OcdFUUFWHpxdJ2lSGmbuoeNMUCsjfc=;
+        s=korg; t=1631069938;
+        bh=6MnXxYIUWDtg0IGe5IuxtCv8ZrxNDexoYzuAJkxxQp0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=CMXDFszRe1SmtAtccFEB6OQdfc3uUWCmQgyvctKTdFT3sfNw9MgfM2t0rRyjRxfjx
-         7H2T+q0UBQI4W8YaR7lJ3qx0Xvvurx8RTrY8bcLnrzSB4sLoL3TPq2GipqgyiwXRh2
-         1FXGp7rvuHm3utTpG1VGL71y0mIOhzTsWD9eLUc0=
-Date:   Tue, 07 Sep 2021 19:58:54 -0700
+        b=wMlpbkLaw+1VXQ4aH72u8A4C8ONZGANhnEv9TbxPdK2puUP9FmsZOsAAn4T0oQ3/4
+         YAnGEjcpJRne6FG5m8d1IuNxq3OItT7dAFWSWJKNI/EUNy8szOKLsMMIkNFSaBY69v
+         DbBKN3ScpoM0uMO5eKvbQx9gcLhlfiVr/y0ZHoog=
+Date:   Tue, 07 Sep 2021 19:58:57 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
-Subject:  [patch 106/147] lib/iov_iter.c: fix kernel-doc warnings
-Message-ID: <20210908025854.WyQCOMmvy%akpm@linux-foundation.org>
+To:     aklimov@redhat.com, akpm@linux-foundation.org, alobakin@pm.me,
+        andriy.shevchenko@linux.intel.com, dennis@kernel.org,
+        jolsa@redhat.com, linux-mm@kvack.org, lkp@intel.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        ulf.hansson@linaro.org, will@kernel.org,
+        wsa+renesas@sang-engineering.com, yury.norov@gmail.com
+Subject:  [patch 107/147] bitops: protect find_first_{,zero}_bit
+ properly
+Message-ID: <20210908025857.8qR6jzQxc%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,63 +46,64 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: lib/iov_iter.c: fix kernel-doc warnings
+From: Yury Norov <yury.norov@gmail.com>
+Subject: bitops: protect find_first_{,zero}_bit properly
 
-Fix all kernel-doc warnings in lib/iov_iter.c:
+Patch series "Resend bitmap patches".
 
-lib/iov_iter.c:695: warning: Function parameter or member 'i' not described in '_copy_mc_to_iter'
-lib/iov_iter.c:695: warning: Excess function parameter 'iter' description in '_copy_mc_to_iter'
-lib/iov_iter.c:695: warning: No description found for return value of '_copy_mc_to_iter'
-lib/iov_iter.c:758: warning: Function parameter or member 'i' not described in '_copy_from_iter_flushcache'
-lib/iov_iter.c:758: warning: Excess function parameter 'iter' description in '_copy_from_iter_flushcache'
-lib/iov_iter.c:758: warning: No description found for return value of '_copy_from_iter_flushcache'
 
-Link: https://lkml.kernel.org/r/20210809051053.6531-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+This patch (of 17):
+
+find_first_bit() and find_first_zero_bit() are not protected with ifdefs
+as other functions in find.h.  It causes build errors on some platforms if
+CONFIG_GENERIC_FIND_FIRST_BIT is enabled.
+
+Link: https://lkml.kernel.org/r/20210814211713.180533-1-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210814211713.180533-2-yury.norov@gmail.com
+Fixes: 2cc7b6a44ac2 ("lib: add fast path for find_first_*_bit() and find_last_bit()")
+Signed-off-by: Yury Norov <yury.norov@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Alexander Lobakin <alobakin@pm.me>
+Cc: Alexey Klimov <aklimov@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Jiri Olsa <jolsa@redhat.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/iov_iter.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ include/asm-generic/bitops/find.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/lib/iov_iter.c~lib-iov_iterc-fix-kernel-doc-warnings
-+++ a/lib/iov_iter.c
-@@ -672,7 +672,7 @@ static size_t copy_mc_pipe_to_iter(const
-  * _copy_mc_to_iter - copy to iter with source memory error exception handling
-  * @addr: source kernel address
-  * @bytes: total transfer length
-- * @iter: destination iterator
-+ * @i: destination iterator
-  *
-  * The pmem driver deploys this for the dax operation
-  * (dax_copy_to_iter()) for dax reads (bypass page-cache and the
-@@ -690,6 +690,8 @@ static size_t copy_mc_pipe_to_iter(const
-  * * ITER_KVEC, ITER_PIPE, and ITER_BVEC can return short copies.
-  *   Compare to copy_to_iter() where only ITER_IOVEC attempts might return
-  *   a short copy.
-+ *
-+ * Return: number of bytes copied (may be %0)
-  */
- size_t _copy_mc_to_iter(const void *addr, size_t bytes, struct iov_iter *i)
- {
-@@ -744,7 +746,7 @@ EXPORT_SYMBOL(_copy_from_iter_nocache);
-  * _copy_from_iter_flushcache - write destination through cpu cache
-  * @addr: destination kernel address
-  * @bytes: total transfer length
-- * @iter: source iterator
-+ * @i: source iterator
-  *
-  * The pmem driver arranges for filesystem-dax to use this facility via
-  * dax_copy_from_iter() for ensuring that writes to persistent memory
-@@ -753,6 +755,8 @@ EXPORT_SYMBOL(_copy_from_iter_nocache);
-  * all iterator types. The _copy_from_iter_nocache() only attempts to
-  * bypass the cache for the ITER_IOVEC case, and on some archs may use
-  * instructions that strand dirty-data in the cache.
-+ *
-+ * Return: number of bytes copied (may be %0)
-  */
- size_t _copy_from_iter_flushcache(void *addr, size_t bytes, struct iov_iter *i)
- {
+--- a/include/asm-generic/bitops/find.h~bitops-protect-find_first_zero_bit-properly
++++ a/include/asm-generic/bitops/find.h
+@@ -97,6 +97,7 @@ unsigned long find_next_zero_bit(const u
+ 
+ #ifdef CONFIG_GENERIC_FIND_FIRST_BIT
+ 
++#ifndef find_first_bit
+ /**
+  * find_first_bit - find the first set bit in a memory region
+  * @addr: The address to start the search at
+@@ -116,7 +117,9 @@ unsigned long find_first_bit(const unsig
+ 
+ 	return _find_first_bit(addr, size);
+ }
++#endif
+ 
++#ifndef find_first_zero_bit
+ /**
+  * find_first_zero_bit - find the first cleared bit in a memory region
+  * @addr: The address to start the search at
+@@ -136,6 +139,8 @@ unsigned long find_first_zero_bit(const
+ 
+ 	return _find_first_zero_bit(addr, size);
+ }
++#endif
++
+ #else /* CONFIG_GENERIC_FIND_FIRST_BIT */
+ 
+ #ifndef find_first_bit
 _
