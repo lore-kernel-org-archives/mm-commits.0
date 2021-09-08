@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B68F7C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:59:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60A9EC433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:59:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A1ACC61153
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:59:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 497DC61152
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:59:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345895AbhIHDBB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 23:01:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59046 "EHLO mail.kernel.org"
+        id S1347302AbhIHDBC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 23:01:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59108 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347322AbhIHDA5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 23:00:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B005361102;
-        Wed,  8 Sep 2021 02:59:48 +0000 (UTC)
+        id S1347433AbhIHDBA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 23:01:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C7F7A60E52;
+        Wed,  8 Sep 2021 02:59:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069989;
-        bh=LSZnqdKr26eTreoRKsmvAbakBcOQrQwUjMLtOIxvhd0=;
+        s=korg; t=1631069992;
+        bh=C4MKGdYbfVC2dqpk0g/vEcJXyGgRque3txQGFQ/N2gk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=GNtKwPHejKgiZTQDsEow+krpINbSCSNS46HDhVEXLG0+FpVnQBJRoyVw5/5wjcm28
-         rBywGPuhI81t8k9vSs3kcL9P0MWaasM3McBSvCsCEs3NXaE9k3WgjmSAsngHMOvQvd
-         AnsgVSY79xeL4rGtKBshpLkLrpWkFsoKdnYh6g1E=
-Date:   Tue, 07 Sep 2021 19:59:48 -0700
+        b=Yg2t727Rx/4NAM/strHe2r9emj3GjtS1dHDRgkGGGzB15qc2hPrBtvUB7AyB/8XYP
+         cQjZpO4qAZgf5XcEzJbKrchB3JLQtClBpdvDXqTN38HuDjbhVT6qvVHsd9vgZNcsh+
+         UbeBX78jqr+WoNHYXTLdkbu1mtDEPQbgoT//vvug=
+Date:   Tue, 07 Sep 2021 19:59:51 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aklimov@redhat.com, akpm@linux-foundation.org, alobakin@pm.me,
-        andriy.shevchenko@linux.intel.com, dennis@kernel.org,
-        jolsa@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, ulf.hansson@linaro.org,
-        will@kernel.org, wsa+renesas@sang-engineering.com,
-        yury.norov@gmail.com
-Subject:  [patch 123/147] vsprintf: rework bitmap_list_string
-Message-ID: <20210908025948.a-7N5QB_n%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dwaipayanray1@gmail.com,
+        joe@perches.com, linux-mm@kvack.org, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org, sjg@chromium.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 124/147] checkpatch: support wide strings
+Message-ID: <20210908025951.ces8m4xI1%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,77 +43,51 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yury Norov <yury.norov@gmail.com>
-Subject: vsprintf: rework bitmap_list_string
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: support wide strings
 
-bitmap_list_string() is very ineffective when printing bitmaps with long
-ranges of set bits because it calls find_next_bit for each bit in the
-bitmap.  We can do better by detecting ranges of set bits.
+Allow prefixing typical strings with L for wide strings and u for unicode
+strings.
 
-In my environment, before/after is 943008/31008 ns.
-
-[yury.norov@gmail.com: don't increment buf in bitmap_list_string]
-  Link: https://lkml.kernel.org/r/20210817193735.269942-1-yury.norov@gmail.com
-Link: https://lkml.kernel.org/r/20210814211713.180533-18-yury.norov@gmail.com
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Cc: Alexander Lobakin <alobakin@pm.me>
-Cc: Alexey Klimov <aklimov@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Jiri Olsa <jolsa@redhat.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20210801170733.1.I3f9784fd3c1007d08ec2e70b151d137687575495@changeid
+Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Simon Glass <sjg@chromium.org>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   24 +++++++-----------------
- 1 file changed, 7 insertions(+), 17 deletions(-)
+ scripts/checkpatch.pl |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/lib/vsprintf.c~vsprintf-rework-bitmap_list_string
-+++ a/lib/vsprintf.c
-@@ -1241,20 +1241,13 @@ char *bitmap_list_string(char *buf, char
- 			 struct printf_spec spec, const char *fmt)
- {
- 	int nr_bits = max_t(int, spec.field_width, 0);
--	/* current bit is 'cur', most recently seen range is [rbot, rtop] */
--	int cur, rbot, rtop;
- 	bool first = true;
-+	int rbot, rtop;
+--- a/scripts/checkpatch.pl~checkpatch-support-wide-strings
++++ a/scripts/checkpatch.pl
+@@ -501,7 +501,7 @@ our $Binary	= qr{(?i)0b[01]+$Int_type?};
+ our $Hex	= qr{(?i)0x[0-9a-f]+$Int_type?};
+ our $Int	= qr{[0-9]+$Int_type?};
+ our $Octal	= qr{0[0-7]+$Int_type?};
+-our $String	= qr{"[X\t]*"};
++our $String	= qr{(?:\b[Lu])?"[X\t]*"};
+ our $Float_hex	= qr{(?i)0x[0-9a-f]+p-?[0-9]+[fl]?};
+ our $Float_dec	= qr{(?i)(?:[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(?:e-?[0-9]+)?[fl]?};
+ our $Float_int	= qr{(?i)[0-9]+e-?[0-9]+[fl]?};
+@@ -6132,7 +6132,8 @@ sub process {
+ 		}
  
- 	if (check_pointer(&buf, end, bitmap, spec))
- 		return buf;
+ # concatenated string without spaces between elements
+-		if ($line =~ /$String[A-Za-z0-9_]/ || $line =~ /[A-Za-z0-9_]$String/) {
++		if ($line =~ /$String[A-Z_]/ ||
++		    ($line =~ /([A-Za-z0-9_]+)$String/ && $1 !~ /^[Lu]$/)) {
+ 			if (CHK("CONCATENATED_STRING",
+ 				"Concatenated strings should use spaces between elements\n" . $herecurr) &&
+ 			    $fix) {
+@@ -6145,7 +6146,7 @@ sub process {
+ 		}
  
--	rbot = cur = find_first_bit(bitmap, nr_bits);
--	while (cur < nr_bits) {
--		rtop = cur;
--		cur = find_next_bit(bitmap, nr_bits, cur + 1);
--		if (cur < nr_bits && cur <= rtop + 1)
--			continue;
--
-+	for_each_set_bitrange(rbot, rtop, bitmap, nr_bits) {
- 		if (!first) {
- 			if (buf < end)
- 				*buf = ',';
-@@ -1263,15 +1256,12 @@ char *bitmap_list_string(char *buf, char
- 		first = false;
- 
- 		buf = number(buf, end, rbot, default_dec_spec);
--		if (rbot < rtop) {
--			if (buf < end)
--				*buf = '-';
--			buf++;
--
--			buf = number(buf, end, rtop, default_dec_spec);
--		}
-+		if (rtop == rbot + 1)
-+			continue;
- 
--		rbot = cur;
-+		if (buf < end)
-+			*buf = '-';
-+		buf = number(buf + 1, end, rtop - 1, default_dec_spec);
- 	}
- 	return buf;
- }
+ # uncoalesced string fragments
+-		if ($line =~ /$String\s*"/) {
++		if ($line =~ /$String\s*[Lu]?"/) {
+ 			if (WARN("STRING_FRAGMENTS",
+ 				 "Consecutive strings are generally better as a single string\n" . $herecurr) &&
+ 			    $fix) {
 _
