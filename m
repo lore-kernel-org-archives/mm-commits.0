@@ -7,32 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C57EFC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 20:34:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52DB0C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 21:49:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D0AE61164
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 20:34:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B2C8610FF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 21:49:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235038AbhIHUfb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Sep 2021 16:35:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47020 "EHLO mail.kernel.org"
+        id S235320AbhIHVuU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Sep 2021 17:50:20 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37476 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229677AbhIHUfb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Sep 2021 16:35:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4526E6115B;
-        Wed,  8 Sep 2021 20:34:23 +0000 (UTC)
+        id S231639AbhIHVuI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Sep 2021 17:50:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C8F1E60698;
+        Wed,  8 Sep 2021 21:48:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631133263;
-        bh=Q/oXorxdAWOgD1uEGLwFR5tR24s1JRP8XN/+q/+vHEw=;
+        s=korg; t=1631137739;
+        bh=Dg0Xn2eeALxyY8UHCr2P6qZrWluxw7jANi6WF3OCW4c=;
         h=Date:From:To:Subject:From;
-        b=bSWFyMPWy7YB+5l/th9i3PVHBPtHdvSPL5+wZMWbb6frC5V53gORNAYz7xIQjJA/8
-         xEBusjZ5bOJatr2GR7TKWSS1Aij+0CPFl5juDxMA/S5d1Stmi0qKWrcj8D8P3ODpLX
-         Q6owKvD6taqc4Ht9kpN0gzCEwm+rYXqyhscNmJDk=
-Date:   Wed, 08 Sep 2021 13:34:22 -0700
+        b=0I3dGMLcfn8f/+r7GKXbT3DbwgtsiLyn84LXQhRejtxQMsHcWru7anhn4xpztwYuY
+         k1Dj4EVXSvHCTPhFowjCefVmqtF2CeEDRCLSyx1ZLL58NUb4a7Fd7rLYiI6JyZhG/y
+         BmbslCU8471gzf2h/IWZsOqDj7LxL++Fnhwz50X4=
+Date:   Wed, 08 Sep 2021 14:48:58 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-rejects.patch removed from -mm tree
-Message-ID: <20210908203422.ODmFPRuQS%akpm@linux-foundation.org>
+To:     arnd@arndb.de, hca@linux.ibm.com, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
+Subject:  [folded-merged]
+ mm-simplify-compat-numa-syscalls-fix.patch removed from -mm tree
+Message-ID: <20210908214858.JFhH94grt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,141 +43,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: fixup! mm: simplify compat numa syscalls
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     mm-simplify-compat-numa-syscalls-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was folded into mm-simplify-compat-numa-syscalls.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: fixup! mm: simplify compat numa syscalls
 
+When compat user space asks for more data than the kernel has in its
+nodemask, get_mempolicy() now either leaks kernel stack data to user space
+or, if either VMAP_STACK or KASAN are enabled, causes a crash like
 
+Unable to handle kernel pointer dereference in virtual kernel address space
+Failing address: 0000038003e7c000 TEID: 0000038003e7c803
+Fault in home space mode while using kernel ASCE.
+AS:00000001fb388007 R3:000000008021c007 S:0000000082142000 P:0000000000000400
+Oops: 0011 ilc:3 [#1] SMP
+CPU: 0 PID: 1017495 Comm: get_mempolicy Tainted: G           OE     5.14.0-20210730.rc3.git0.4ccc9e2db7ac.300.fc34.s390x+next #1
+Hardware name: IBM 2827 H66 708 (LPAR)
+Krnl PSW : 0704e00180000000 00000001f9f11000 (compat_put_bitmap+0x48/0xd0)
+           R:0 T:1 IO:1 EX:1 Key:0 M:1 W:0 P:0 AS:3 CC:2 PM:0 RI:0 EA:3
+Krnl GPRS: 0000000000810000 0000000000000000 000000007d9df1c0 0000038003e7c008
+           0000000000000004 000000007d9df1c4 0000038003e7be40 0000000000010000
+           0000000000008000 0000000000000000 0000000000000390 00000000000001c8
+           000000020d6ea000 000002aa00401a48 00000001fa0a85fa 0000038003e7bd50
+Krnl Code: 00000001f9f10ff4: a7bb0001            aghi    %r11,1
+           00000001f9f10ff8: 41303008            la      %r3,8(%r3)
+          #00000001f9f10ffc: 41502004            la      %r5,4(%r2)
+          >00000001f9f11000: e3103ff8ff04        lg      %r1,-8(%r3)
+           00000001f9f11006: 5010f0a4            st      %r1,164(%r15)
+           00000001f9f1100a: a50e0081            llilh   %r0,129
+           00000001f9f1100e: c8402000f0a4        mvcos   0(%r2),164(%r15),%r4
+           00000001f9f11014: 1799                xr      %r9,%r9
+Call Trace:
+ [<00000001f9f11000>] compat_put_bitmap+0x48/0xd0
+ [<00000001fa0a85fa>] kernel_get_mempolicy+0x102/0x178
+ [<00000001fa0a86b0>] __s390_sys_get_mempolicy+0x40/0x50
+ [<00000001fa92be30>] __do_syscall+0x1c0/0x1e8
+ [<00000001fa939148>] system_call+0x78/0xa0
+Last Breaking-Event-Address:
+ [<0000038003e7bc00>] 0x38003e7bc00
+Kernel panic - not syncing: Fatal exception: panic_on_oops
+
+Fix it by copying the correct size in compat mode again.
+
+Link: https://lkml.kernel.org/r/20210730143417.3700653-1-arnd@kernel.org
+Link: https://lore.kernel.org/lkml/YQPLG20V3dmOfq3a@osiris/
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/mctp/Makefile |    1 
- include/linux/page_idle.h |   47 +++++++++++++++++++++++++++++-------
- mm/page_alloc.c           |    4 +--
- 3 files changed, 41 insertions(+), 11 deletions(-)
+ mm/mempolicy.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/drivers/net/mctp/Makefile~linux-next-rejects
-+++ a/drivers/net/mctp/Makefile
-@@ -0,0 +1 @@
-+#dummy
---- a/include/linux/page_idle.h~linux-next-rejects
-+++ a/include/linux/page_idle.h
-@@ -65,46 +65,75 @@ static inline void folio_set_idle(struct
- 	set_bit(PAGE_EXT_IDLE, &page_ext->flags);
- }
- 
--static inline void clear_page_idle(struct page *page)
-+static inline void folio_clear_idle(struct folio *folio)
- {
--	struct page_ext *page_ext = lookup_page_ext(page);
-+	struct page_ext *page_ext = lookup_page_ext(&folio->page);
- 
- 	if (unlikely(!page_ext))
- 		return;
- 
- 	clear_bit(PAGE_EXT_IDLE, &page_ext->flags);
- }
--#endif /* CONFIG_64BIT */
-+#endif /* !CONFIG_64BIT */
- 
- #else /* !CONFIG_PAGE_IDLE_FLAG */
- 
--static inline bool page_is_young(struct page *page)
-+static inline bool folio_test_young(struct folio *folio)
- {
- 	return false;
- }
- 
--static inline void set_page_young(struct page *page)
-+static inline void folio_set_young(struct folio *folio)
- {
- }
- 
--static inline bool test_and_clear_page_young(struct page *page)
-+static inline bool folio_test_clear_young(struct folio *folio)
- {
- 	return false;
- }
- 
--static inline bool page_is_idle(struct page *page)
-+static inline bool folio_test_idle(struct folio *folio)
- {
- 	return false;
- }
- 
--static inline void set_page_idle(struct page *page)
-+static inline void folio_set_idle(struct folio *folio)
- {
- }
- 
--static inline void clear_page_idle(struct page *page)
-+static inline void folio_clear_idle(struct folio *folio)
- {
- }
- 
- #endif /* CONFIG_PAGE_IDLE_FLAG */
- 
-+static inline bool page_is_young(struct page *page)
-+{
-+	return folio_test_young(page_folio(page));
-+}
-+
-+static inline void set_page_young(struct page *page)
-+{
-+	folio_set_young(page_folio(page));
-+}
-+
-+static inline bool test_and_clear_page_young(struct page *page)
-+{
-+	return folio_test_clear_young(page_folio(page));
-+}
-+
-+static inline bool page_is_idle(struct page *page)
-+{
-+	return folio_test_idle(page_folio(page));
-+}
-+
-+static inline void set_page_idle(struct page *page)
-+{
-+	folio_set_idle(page_folio(page));
-+}
-+
-+static inline void clear_page_idle(struct page *page)
-+{
-+	folio_clear_idle(page_folio(page));
-+}
- #endif /* _LINUX_MM_PAGE_IDLE_H */
---- a/mm/page_alloc.c~linux-next-rejects
-+++ a/mm/page_alloc.c
-@@ -1296,7 +1296,7 @@ static __always_inline bool free_pages_p
- 		 * Do not let hwpoison pages hit pcplists/buddy
- 		 * Untie memcg state and reset page's owner
- 		 */
--		if (memcg_kmem_enabled() && PageMemcgKmem(page))
-+		if (memcg_kmem_enabled() && folio_memcg_kmem(page_folio(page)))
- 			__memcg_kmem_uncharge_page(page, order);
- 		reset_page_owner(page, order);
- 		return false;
-@@ -1326,7 +1326,7 @@ static __always_inline bool free_pages_p
+--- a/mm/mempolicy.c~mm-simplify-compat-numa-syscalls-fix
++++ a/mm/mempolicy.c
+@@ -1438,6 +1438,7 @@ static int copy_nodes_to_user(unsigned l
+ 		if (clear_user((char __user *)mask + nbytes, copy - nbytes))
+ 			return -EFAULT;
+ 		copy = nbytes;
++		maxnode = nr_node_ids;
  	}
- 	if (PageMappingFlags(page))
- 		page->mapping = NULL;
--	if (memcg_kmem_enabled() && PageMemcgKmem(page))
-+	if (memcg_kmem_enabled() && folio_memcg_kmem(page_folio(page)))
- 		__memcg_kmem_uncharge_page(page, order);
- 	if (check_free)
- 		bad += check_free_page(page);
+ 
+ 	if (compat)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+kexec-move-locking-into-do_kexec_load.patch
+kexec-avoid-compat_alloc_user_space.patch
+mm-simplify-compat_sys_move_pages.patch
+mm-simplify-compat-numa-syscalls.patch
+compat-remove-some-compat-entry-points.patch
+arch-remove-compat_alloc_user_space.patch
 
