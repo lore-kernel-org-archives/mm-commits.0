@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BF58C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5650DC433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5B2CF61168
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3A16D61178
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235377AbhIHWTY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Sep 2021 18:19:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41890 "EHLO mail.kernel.org"
+        id S235936AbhIHWT2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Sep 2021 18:19:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41968 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234941AbhIHWTX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Sep 2021 18:19:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 568CA61158;
-        Wed,  8 Sep 2021 22:18:14 +0000 (UTC)
+        id S234941AbhIHWT1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Sep 2021 18:19:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 28F5860F5B;
+        Wed,  8 Sep 2021 22:18:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631139495;
-        bh=qmWH8BH4G2QCUAFpCHD0Fd9vGsEKb6Iao8ZuD/pNnmw=;
+        s=korg; t=1631139498;
+        bh=/a8vHUdjnvVWNlw3c1xN/pv7+6h4tXT3Y3H5NTYWSHc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=hAqdf7lsTgguKT4FLrAd1jLwKueegoiG5upRYj3gCffSEFBZQBkLFT6whJle/BeBO
-         BKq1bTCUe29MtJGtPQ5mxvLQ1dpYsk0Ob8YmZ9efRu4RtoAUAnK6hFfRmEVL1lcnmd
-         XtN7z5cHKdqOZd5bSKg7WYmBvBH1k2mpUA1LGcFE=
-Date:   Wed, 08 Sep 2021 15:18:13 -0700
+        b=YkKnEZyjkBzvW1EPrQLOQcRe5UmVRqXhuwZVdiTNAboGNC5SyjKaeSKc6Pm7dTcRb
+         h7TWgXndHnKgMrIDXzZOOx363kxKAL8T9oKisxAYglxcDdV8WfG+gIg9/6BHHrr2LM
+         Uq3iUYwdgZ4yfsEe1VG3O+QDThARij6a/D/c+beM=
+Date:   Wed, 08 Sep 2021 15:18:17 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, arnd@arndb.de, benh@kernel.crashing.org,
         borntraeger@de.ibm.com, bp@alien8.de, catalin.marinas@arm.com,
@@ -40,8 +40,8 @@ To:     akpm@linux-foundation.org, arnd@arndb.de, benh@kernel.crashing.org,
         paulus@samba.org, tglx@linutronix.de,
         torvalds@linux-foundation.org, tsbogend@alpha.franken.de,
         viro@zeniv.linux.org.uk, will@kernel.org
-Subject:  [patch 06/10] kexec: avoid compat_alloc_user_space
-Message-ID: <20210908221813.eX9z-Ddoa%akpm@linux-foundation.org>
+Subject:  [patch 07/10] mm: simplify compat_sys_move_pages
+Message-ID: <20210908221817.j2XwhR14b%akpm@linux-foundation.org>
 In-Reply-To: <20210908151729.c9a15a9508ba0aed22289c76@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,30 +50,24 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: kexec: avoid compat_alloc_user_space
+Subject: mm: simplify compat_sys_move_pages
 
-kimage_alloc_init() expects a __user pointer, so compat_sys_kexec_load()
-uses compat_alloc_user_space() to convert the layout and put it back onto
-the user space caller stack.
+The compat move_pages() implementation uses compat_alloc_user_space() for
+converting the pointer array.  Moving the compat handling into the
+function itself is a bit simpler and lets us avoid the
+compat_alloc_user_space() call.
 
-Moving the user space access into the syscall handler directly actually
-makes the code simpler, as the conversion for compat mode can now be done
-on kernel memory.
-
-Link: https://lkml.kernel.org/r/20210727144859.4150043-3-arnd@kernel.org
-Link: https://lore.kernel.org/lkml/YPbtsU4GX6PL7%2F42@infradead.org/
-Link: https://lore.kernel.org/lkml/m1y2cbzmnw.fsf@fess.ebiederm.org/
+Link: https://lkml.kernel.org/r/20210727144859.4150043-4-arnd@kernel.org
 Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Co-developed-by: Eric Biederman <ebiederm@xmission.com>
-Co-developed-by: Christoph Hellwig <hch@infradead.org>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Christoph Hellwig <hch@lst.de>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Feng Tang <feng.tang@intel.com>
 Cc: Heiko Carstens <hca@linux.ibm.com>
 Cc: Helge Deller <deller@gmx.de>
@@ -89,129 +83,79 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |   61 +++++++++++++++++++----------------------------
- 1 file changed, 25 insertions(+), 36 deletions(-)
+ mm/migrate.c |   45 ++++++++++++++++++++++++++++++---------------
+ 1 file changed, 30 insertions(+), 15 deletions(-)
 
---- a/kernel/kexec.c~kexec-avoid-compat_alloc_user_space
-+++ a/kernel/kexec.c
-@@ -19,26 +19,9 @@
- 
- #include "kexec_internal.h"
- 
--static int copy_user_segment_list(struct kimage *image,
--				  unsigned long nr_segments,
--				  struct kexec_segment __user *segments)
--{
--	int ret;
--	size_t segment_bytes;
--
--	/* Read in the segments */
--	image->nr_segments = nr_segments;
--	segment_bytes = nr_segments * sizeof(*segments);
--	ret = copy_from_user(image->segment, segments, segment_bytes);
--	if (ret)
--		ret = -EFAULT;
--
--	return ret;
--}
--
- static int kimage_alloc_init(struct kimage **rimage, unsigned long entry,
- 			     unsigned long nr_segments,
--			     struct kexec_segment __user *segments,
-+			     struct kexec_segment *segments,
- 			     unsigned long flags)
- {
- 	int ret;
-@@ -58,10 +41,8 @@ static int kimage_alloc_init(struct kima
- 		return -ENOMEM;
- 
- 	image->start = entry;
--
--	ret = copy_user_segment_list(image, nr_segments, segments);
--	if (ret)
--		goto out_free_image;
-+	image->nr_segments = nr_segments;
-+	memcpy(image->segment, segments, nr_segments * sizeof(*segments));
- 
- 	if (kexec_on_panic) {
- 		/* Enable special crash kernel control page alloc policy. */
-@@ -104,7 +85,7 @@ out_free_image:
+--- a/mm/migrate.c~mm-simplify-compat_sys_move_pages
++++ a/mm/migrate.c
+@@ -1900,6 +1900,23 @@ set_status:
+ 	mmap_read_unlock(mm);
  }
  
- static int do_kexec_load(unsigned long entry, unsigned long nr_segments,
--		struct kexec_segment __user *segments, unsigned long flags)
-+		struct kexec_segment *segments, unsigned long flags)
- {
- 	struct kimage **dest_image, *image;
- 	unsigned long i;
-@@ -250,7 +231,8 @@ static inline int kexec_load_check(unsig
- SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
- 		struct kexec_segment __user *, segments, unsigned long, flags)
- {
--	int result;
-+	struct kexec_segment *ksegments;
-+	unsigned long result;
- 
- 	result = kexec_load_check(nr_segments, flags);
- 	if (result)
-@@ -261,7 +243,12 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
- 		((flags & KEXEC_ARCH_MASK) != KEXEC_ARCH_DEFAULT))
- 		return -EINVAL;
- 
--	result = do_kexec_load(entry, nr_segments, segments, flags);
-+	ksegments = memdup_user(segments, nr_segments * sizeof(ksegments[0]));
-+	if (IS_ERR(ksegments))
-+		return PTR_ERR(ksegments);
++static int get_compat_pages_array(const void __user *chunk_pages[],
++				  const void __user * __user *pages,
++				  unsigned long chunk_nr)
++{
++	compat_uptr_t __user *pages32 = (compat_uptr_t __user *)pages;
++	compat_uptr_t p;
++	int i;
 +
-+	result = do_kexec_load(entry, nr_segments, ksegments, flags);
-+	kfree(ksegments);
- 
- 	return result;
- }
-@@ -273,7 +260,7 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compa
- 		       compat_ulong_t, flags)
- {
- 	struct compat_kexec_segment in;
--	struct kexec_segment out, __user *ksegments;
-+	struct kexec_segment *ksegments;
- 	unsigned long i, result;
- 
- 	result = kexec_load_check(nr_segments, flags);
-@@ -286,24 +273,26 @@ COMPAT_SYSCALL_DEFINE4(kexec_load, compa
- 	if ((flags & KEXEC_ARCH_MASK) == KEXEC_ARCH_DEFAULT)
- 		return -EINVAL;
- 
--	ksegments = compat_alloc_user_space(nr_segments * sizeof(out));
-+	ksegments = kmalloc_array(nr_segments, sizeof(ksegments[0]),
-+			GFP_KERNEL);
-+	if (!ksegments)
-+		return -ENOMEM;
++	for (i = 0; i < chunk_nr; i++) {
++		if (get_user(p, pages32 + i))
++			return -EFAULT;
++		chunk_pages[i] = compat_ptr(p);
++	}
 +
- 	for (i = 0; i < nr_segments; i++) {
- 		result = copy_from_user(&in, &segments[i], sizeof(in));
- 		if (result)
--			return -EFAULT;
-+			goto fail;
++	return 0;
++}
++
+ /*
+  * Determine the nodes of a user array of pages and store it in
+  * a user array of status.
+@@ -1919,8 +1936,15 @@ static int do_pages_stat(struct mm_struc
+ 		if (chunk_nr > DO_PAGES_STAT_CHUNK_NR)
+ 			chunk_nr = DO_PAGES_STAT_CHUNK_NR;
  
--		out.buf   = compat_ptr(in.buf);
--		out.bufsz = in.bufsz;
--		out.mem   = in.mem;
--		out.memsz = in.memsz;
+-		if (copy_from_user(chunk_pages, pages, chunk_nr * sizeof(*chunk_pages)))
+-			break;
++		if (in_compat_syscall()) {
++			if (get_compat_pages_array(chunk_pages, pages,
++						   chunk_nr))
++				break;
++		} else {
++			if (copy_from_user(chunk_pages, pages,
++				      chunk_nr * sizeof(*chunk_pages)))
++				break;
++		}
+ 
+ 		do_pages_stat_array(mm, chunk_nr, chunk_pages, chunk_status);
+ 
+@@ -2025,23 +2049,14 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid,
+ 
+ #ifdef CONFIG_COMPAT
+ COMPAT_SYSCALL_DEFINE6(move_pages, pid_t, pid, compat_ulong_t, nr_pages,
+-		       compat_uptr_t __user *, pages32,
++		       compat_uptr_t __user *, pages,
+ 		       const int __user *, nodes,
+ 		       int __user *, status,
+ 		       int, flags)
+ {
+-	const void __user * __user *pages;
+-	int i;
 -
--		result = copy_to_user(&ksegments[i], &out, sizeof(out));
--		if (result)
+-	pages = compat_alloc_user_space(nr_pages * sizeof(void *));
+-	for (i = 0; i < nr_pages; i++) {
+-		compat_uptr_t p;
+-
+-		if (get_user(p, pages32 + i) ||
+-			put_user(compat_ptr(p), pages + i))
 -			return -EFAULT;
-+		ksegments[i].buf   = compat_ptr(in.buf);
-+		ksegments[i].bufsz = in.bufsz;
-+		ksegments[i].mem   = in.mem;
-+		ksegments[i].memsz = in.memsz;
- 	}
- 
- 	result = do_kexec_load(entry, nr_segments, ksegments, flags);
- 
-+fail:
-+	kfree(ksegments);
- 	return result;
+-	}
+-	return kernel_move_pages(pid, nr_pages, pages, nodes, status, flags);
++	return kernel_move_pages(pid, nr_pages,
++				 (const void __user *__user *)pages,
++				 nodes, status, flags);
  }
- #endif
+ #endif /* CONFIG_COMPAT */
+ 
 _
