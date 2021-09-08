@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5055EC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C6B80C433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3363361158
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AD63761158
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 22:18:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235838AbhIHWTH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Sep 2021 18:19:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41630 "EHLO mail.kernel.org"
+        id S236280AbhIHWTK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Sep 2021 18:19:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41680 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235377AbhIHWTG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Sep 2021 18:19:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5DECE6113A;
-        Wed,  8 Sep 2021 22:17:58 +0000 (UTC)
+        id S235902AbhIHWTK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Sep 2021 18:19:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5B6E761166;
+        Wed,  8 Sep 2021 22:18:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631139478;
-        bh=qPu9SLKScCBklSmSTRxNrrfpi44aPVfRJfKUgbGVIew=;
+        s=korg; t=1631139481;
+        bh=/86B/oJOImUzQJj8YYpw9OE2C2agTidEvnZ/CVTjXoA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=nZH3GxuyxjzncPKa9hQzTkVSf5ve3DtWUJwC0a7TV2opzeuHnNLC0ECPTRjJF//Ou
-         lyJCU63X9XllVq1vudRc/JxM4huIlR48W5HmhoW23cZw9A+17F/WvUUvyk8rHckUhN
-         VNuwzgy94E9UfU5oJKs6al01j7Xc4gkgFo1DYDg4=
-Date:   Wed, 08 Sep 2021 15:17:57 -0700
+        b=JtMNhsgq3+ta7M5WzONOJJ6yhqYRMCTjimxRrOFILI3atqf0TzyBukg0FA7fD6PJ6
+         Z1/tjaFj06UuQStqkDEp5qfAM4HzY10NNEsA2bBiHGpVAGsPYN5nXztA0fEnYVrfq7
+         NM4LzasWYGqB5DmRT4ILPUFxS6BKF3F+VPWAjbv0=
+Date:   Wed, 08 Sep 2021 15:18:01 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hughd@google.com, linux-mm@kvack.org,
-        mgorman@techsingularity.net, mingo@elte.hu,
-        mm-commits@vger.kernel.org, tglx@linutronix.de,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 01/10] mm/vmstat: protect per cpu variables with
- preempt disable on RT
-Message-ID: <20210908221757.XbXkMPWjB%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, apopple@nvidia.com,
+        baolin.wang@linux.alibaba.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, shy828301@gmail.com,
+        torvalds@linux-foundation.org, willy@infradead.org
+Subject:  [patch 02/10] mm: migrate: introduce a local variable to
+ get the number of pages
+Message-ID: <20210908221801.pXExhc7i6%akpm@linux-foundation.org>
 In-Reply-To: <20210908151729.c9a15a9508ba0aed22289c76@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,167 +44,50 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Ingo Molnar <mingo@elte.hu>
-Subject: mm/vmstat: protect per cpu variables with preempt disable on RT
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm: migrate: introduce a local variable to get the number of pages
 
-Disable preemption on -RT for the vmstat code.  On vanila the code runs in
-IRQ-off regions while on -RT it may not when stats are updated under a
-local_lock.  "preempt_disable" ensures that the same resources is not
-updated in parallel due to preemption.
+Use thp_nr_pages() instead of compound_nr() to get the number of pages for
+THP page, meanwhile introducing a local variable 'nr_pages' to avoid
+getting the number of pages repeatedly.
 
-This patch differs from the preempt-rt version where __count_vm_event and
-__count_vm_events are also protected.  The counters are explicitly
-"allowed to be to be racy" so there is no need to protect them from
-preemption.  Only the accurate page stats that are updated by a
-read-modify-write need protection.  This patch also differs in that a
-preempt_[en|dis]able_rt helper is not used.  As vmstat is the only user of
-the helper, it was suggested that it be open-coded in vmstat.c instead of
-risking the helper being used in unnecessary contexts.
-
-Link: https://lkml.kernel.org/r/20210805160019.1137-2-mgorman@techsingularity.net
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
+Link: https://lkml.kernel.org/r/a8e331ac04392ee230c79186330fb05e86a2aa77.1629447552.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 48 insertions(+)
+ mm/migrate.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/vmstat.c~mm-vmstat-protect-per-cpu-variables-with-preempt-disable-on-rt
-+++ a/mm/vmstat.c
-@@ -319,6 +319,16 @@ void __mod_zone_page_state(struct zone *
- 	long x;
- 	long t;
+--- a/mm/migrate.c~mm-migrate-introduce-a-local-variable-to-get-the-number-of-pages
++++ a/mm/migrate.c
+@@ -2107,6 +2107,7 @@ out:
+ static int numamigrate_isolate_page(pg_data_t *pgdat, struct page *page)
+ {
+ 	int page_lru;
++	int nr_pages = thp_nr_pages(page);
  
-+	/*
-+	 * Accurate vmstat updates require a RMW. On !PREEMPT_RT kernels,
-+	 * atomicity is provided by IRQs being disabled -- either explicitly
-+	 * or via local_lock_irq. On PREEMPT_RT, local_lock_irq only disables
-+	 * CPU migrations and preemption potentially corrupts a counter so
-+	 * disable preemption.
-+	 */
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_disable();
-+
- 	x = delta + __this_cpu_read(*p);
+ 	VM_BUG_ON_PAGE(compound_order(page) && !PageTransHuge(page), page);
  
- 	t = __this_cpu_read(pcp->stat_threshold);
-@@ -328,6 +338,9 @@ void __mod_zone_page_state(struct zone *
- 		x = 0;
- 	}
- 	__this_cpu_write(*p, x);
-+
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_enable();
- }
- EXPORT_SYMBOL(__mod_zone_page_state);
+@@ -2115,7 +2116,7 @@ static int numamigrate_isolate_page(pg_d
+ 		return 0;
  
-@@ -350,6 +363,10 @@ void __mod_node_page_state(struct pglist
- 		delta >>= PAGE_SHIFT;
- 	}
+ 	/* Avoid migrating to a node that is nearly full */
+-	if (!migrate_balanced_pgdat(pgdat, compound_nr(page)))
++	if (!migrate_balanced_pgdat(pgdat, nr_pages))
+ 		return 0;
  
-+	/* See __mod_node_page_state */
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_disable();
-+
- 	x = delta + __this_cpu_read(*p);
+ 	if (isolate_lru_page(page))
+@@ -2123,7 +2124,7 @@ static int numamigrate_isolate_page(pg_d
  
- 	t = __this_cpu_read(pcp->stat_threshold);
-@@ -359,6 +376,9 @@ void __mod_node_page_state(struct pglist
- 		x = 0;
- 	}
- 	__this_cpu_write(*p, x);
-+
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_enable();
- }
- EXPORT_SYMBOL(__mod_node_page_state);
+ 	page_lru = page_is_file_lru(page);
+ 	mod_node_page_state(page_pgdat(page), NR_ISOLATED_ANON + page_lru,
+-				thp_nr_pages(page));
++			    nr_pages);
  
-@@ -391,6 +411,10 @@ void __inc_zone_state(struct zone *zone,
- 	s8 __percpu *p = pcp->vm_stat_diff + item;
- 	s8 v, t;
- 
-+	/* See __mod_node_page_state */
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_disable();
-+
- 	v = __this_cpu_inc_return(*p);
- 	t = __this_cpu_read(pcp->stat_threshold);
- 	if (unlikely(v > t)) {
-@@ -399,6 +423,9 @@ void __inc_zone_state(struct zone *zone,
- 		zone_page_state_add(v + overstep, zone, item);
- 		__this_cpu_write(*p, -overstep);
- 	}
-+
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_enable();
- }
- 
- void __inc_node_state(struct pglist_data *pgdat, enum node_stat_item item)
-@@ -409,6 +436,10 @@ void __inc_node_state(struct pglist_data
- 
- 	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
- 
-+	/* See __mod_node_page_state */
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_disable();
-+
- 	v = __this_cpu_inc_return(*p);
- 	t = __this_cpu_read(pcp->stat_threshold);
- 	if (unlikely(v > t)) {
-@@ -417,6 +448,9 @@ void __inc_node_state(struct pglist_data
- 		node_page_state_add(v + overstep, pgdat, item);
- 		__this_cpu_write(*p, -overstep);
- 	}
-+
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_enable();
- }
- 
- void __inc_zone_page_state(struct page *page, enum zone_stat_item item)
-@@ -437,6 +471,10 @@ void __dec_zone_state(struct zone *zone,
- 	s8 __percpu *p = pcp->vm_stat_diff + item;
- 	s8 v, t;
- 
-+	/* See __mod_node_page_state */
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_disable();
-+
- 	v = __this_cpu_dec_return(*p);
- 	t = __this_cpu_read(pcp->stat_threshold);
- 	if (unlikely(v < - t)) {
-@@ -445,6 +483,9 @@ void __dec_zone_state(struct zone *zone,
- 		zone_page_state_add(v - overstep, zone, item);
- 		__this_cpu_write(*p, overstep);
- 	}
-+
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_enable();
- }
- 
- void __dec_node_state(struct pglist_data *pgdat, enum node_stat_item item)
-@@ -455,6 +496,10 @@ void __dec_node_state(struct pglist_data
- 
- 	VM_WARN_ON_ONCE(vmstat_item_in_bytes(item));
- 
-+	/* See __mod_node_page_state */
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_disable();
-+
- 	v = __this_cpu_dec_return(*p);
- 	t = __this_cpu_read(pcp->stat_threshold);
- 	if (unlikely(v < - t)) {
-@@ -463,6 +508,9 @@ void __dec_node_state(struct pglist_data
- 		node_page_state_add(v - overstep, pgdat, item);
- 		__this_cpu_write(*p, overstep);
- 	}
-+
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		preempt_enable();
- }
- 
- void __dec_zone_page_state(struct page *page, enum zone_stat_item item)
+ 	/*
+ 	 * Isolating the page has taken another reference, so the
 _
