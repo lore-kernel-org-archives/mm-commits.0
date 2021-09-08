@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00FD2C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:00:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D543CC433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:00:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DAD1A61165
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:00:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BBDE86115B
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:00:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347322AbhIHDB5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1345390AbhIHDB5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 7 Sep 2021 23:01:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59924 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59970 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347390AbhIHDBk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 23:01:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 34ACB61100;
-        Wed,  8 Sep 2021 03:00:33 +0000 (UTC)
+        id S243156AbhIHDBn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 23:01:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0F15661131;
+        Wed,  8 Sep 2021 03:00:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631070033;
-        bh=k0D6Llvti4CGdvXoX7LC2nA6KQX7y4PlB2tB4YaUi9k=;
+        s=korg; t=1631070036;
+        bh=aeFkU7szAQ3a+zo/FMFMTu3yED8DKB0nfZxN6oRlfvo=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=WXm+79qaWjhZZKJBhzkXYxsrlAJv9T52lKscVhqgkhsZtcMDfLkH329NHRbfo7rb1
-         FoUah9iBw2baCiej7Ro8fty9ecx/N1R+RANxhd7dgTotvEK8sUA2Xe3yRxm3az4FLm
-         rls5Z/aHiNURNxlp1V/71PzMOw5pjzGP3sLd4oow=
-Date:   Tue, 07 Sep 2021 20:00:32 -0700
+        b=fp2IufF0wd7JqQSHsMb0ciZjeXxDCU4yU+MnJMDaK+yiOO1G1P8LF5YTACQlXn8fl
+         wj3bXtXfdepsycP2ICcuY1Op6vGSBEzOuNVaCA2BTqqu/5ojo+j5IIyCI7Gp9Ab0FA
+         OO4/7DKuF7PyVZMBNeDY2lAIyevUwWSNsUmTika0=
+Date:   Tue, 07 Sep 2021 20:00:35 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-        jannh@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        qiuxi1@huawei.com, torvalds@linux-foundation.org,
-        viro@zeniv.linux.org.uk
-Subject:  [patch 138/147] coredump: fix memleak in
- dump_vma_snapshot()
-Message-ID: <20210908030032.ciB5RdV6g%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hch@lst.de, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 139/147] kernel/fork.c: unexport
+ get_{mm,task}_exe_file
+Message-ID: <20210908030035.Ts5IRyChM%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,36 +42,35 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: QiuXi <qiuxi1@huawei.com>
-Subject: coredump: fix memleak in dump_vma_snapshot()
+From: Christoph Hellwig <hch@lst.de>
+Subject: kernel/fork.c: unexport get_{mm,task}_exe_file
 
-dump_vma_snapshot() allocs memory for *vma_meta, when dump_vma_snapshot()
-returns -EFAULT, the memory will be leaked, so we free it correctly.
+Only used by core code and the tomoyo which can't be a module either.
 
-Link: https://lkml.kernel.org/r/20210810020441.62806-1-qiuxi1@huawei.com
-Fixes: a07279c9a8cd7 ("binfmt_elf, binfmt_elf_fdpic: use a VMA list snapshot")
-Signed-off-by: QiuXi <qiuxi1@huawei.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jann Horn <jannh@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Link: https://lkml.kernel.org/r/20210820095430.445242-1-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ kernel/fork.c |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/fs/coredump.c~coredump-fix-memleak-in-dump_vma_snapshot
-+++ a/fs/coredump.c
-@@ -1134,8 +1134,10 @@ int dump_vma_snapshot(struct coredump_pa
+--- a/kernel/fork.c~kernel-unexport-get_mmtask_exe_file
++++ a/kernel/fork.c
+@@ -1187,7 +1187,6 @@ struct file *get_mm_exe_file(struct mm_s
+ 	rcu_read_unlock();
+ 	return exe_file;
+ }
+-EXPORT_SYMBOL(get_mm_exe_file);
  
- 	mmap_write_unlock(mm);
+ /**
+  * get_task_exe_file - acquire a reference to the task's executable file
+@@ -1210,7 +1209,6 @@ struct file *get_task_exe_file(struct ta
+ 	task_unlock(task);
+ 	return exe_file;
+ }
+-EXPORT_SYMBOL(get_task_exe_file);
  
--	if (WARN_ON(i != *vma_count))
-+	if (WARN_ON(i != *vma_count)) {
-+		kvfree(*vma_meta);
- 		return -EFAULT;
-+	}
- 
- 	*vma_data_size_ptr = vma_data_size;
- 	return 0;
+ /**
+  * get_task_mm - acquire a reference to the task's mm
 _
