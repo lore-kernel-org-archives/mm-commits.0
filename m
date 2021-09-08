@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E9A7C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D89EC43217
 	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:53:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 17B9F61100
+	by mail.kernel.org (Postfix) with ESMTP id 86CCD60EE6
 	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:53:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347509AbhIHCy0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 22:54:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49804 "EHLO mail.kernel.org"
+        id S1347049AbhIHCy1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 22:54:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347291AbhIHCyN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 22:54:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 17B6D610C9;
-        Wed,  8 Sep 2021 02:53:06 +0000 (UTC)
+        id S1347404AbhIHCyQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 22:54:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5C04360EE6;
+        Wed,  8 Sep 2021 02:53:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069586;
-        bh=Ga4Couddr396dCEe/4wWVWoAX+tGISvaf0iNFUsO1Bg=;
+        s=korg; t=1631069589;
+        bh=GioCe36xeI8WC8hKTkLiHhXg+2QO4zxdJkkfB/vovHw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=fs+ebpVAyH/hbjRcbvM3nDG5KWW3ZhKiTxM/w0eWs9NEMJ5NzKQNAoiST4wqb4C0e
-         59UD6ykQElypWhXzrgyZrMHkgLgki+zE6mqAq34M/BXvpcvdZytKkEle+KFBNTvv6g
-         Cc9ILeVc1bR5g626tHMbK9202VY9fivFwndFWOO0=
-Date:   Tue, 07 Sep 2021 19:53:05 -0700
+        b=onbtoRi2aBge+OW5ksMVo9S2+P7oT1SOqgNEURz8cHd9DvwiaJFMgt5oYownHKIFn
+         c1zEnkOw/zbCTu+CpN9MDuBbIC/hQWTIL7dOfiSYK9ie0dXqLHvUUS37RrOcoOdO24
+         Tq1C78el41Xd8eXbK1A//GX/eQcO3Xv/1p+kCtS8=
+Date:   Tue, 07 Sep 2021 19:53:09 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         brouer@redhat.com, cl@linux.com, efault@gmx.de,
@@ -36,9 +36,9 @@ To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         mgorman@techsingularity.net, mm-commits@vger.kernel.org,
         penberg@kernel.org, quic_qiancai@quicinc.com, rientjes@google.com,
         tglx@linutronix.de, torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 003/147] mm, slub: allocate private object map for
- validate_slab_cache()
-Message-ID: <20210908025305.gswNP7HrX%akpm@linux-foundation.org>
+Subject:  [patch 004/147] mm, slub: don't disable irq for
+ debug_check_no_locks_freed()
+Message-ID: <20210908025309.canfZlF7S%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,17 +47,21 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: allocate private object map for validate_slab_cache()
+Subject: mm, slub: don't disable irq for debug_check_no_locks_freed()
 
-validate_slab_cache() is called either to handle a sysfs write, or from a
-self-test context.  In both situations it's straightforward to preallocate
-a private object bitmap instead of grabbing the shared static one meant
-for critical sections, so let's do that.
+In slab_free_hook() we disable irqs around the
+debug_check_no_locks_freed() call, which is unnecessary, as irqs are
+already being disabled inside the call.  This seems to be leftover from
+the past where there were more calls inside the irq disabled sections. 
+Remove the irq disable/enable operations.
 
-Link: https://lkml.kernel.org/r/20210904105003.11688-4-vbabka@suse.cz
+Mel noted:
+> Looks like it was needed for kmemcheck which went away back in 4.15
+
+Link: https://lkml.kernel.org/r/20210904105003.11688-5-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Christoph Lameter <cl@linux.com>
 Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
@@ -70,85 +74,31 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ mm/slub.c |   14 +-------------
+ 1 file changed, 1 insertion(+), 13 deletions(-)
 
---- a/mm/slub.c~mm-slub-allocate-private-object-map-for-validate_slab_cache
+--- a/mm/slub.c~mm-slub-dont-disable-irq-for-debug_check_no_locks_freed
 +++ a/mm/slub.c
-@@ -4679,11 +4679,11 @@ static int count_total(struct page *page
- #endif
- 
- #ifdef CONFIG_SLUB_DEBUG
--static void validate_slab(struct kmem_cache *s, struct page *page)
-+static void validate_slab(struct kmem_cache *s, struct page *page,
-+			  unsigned long *obj_map)
+@@ -1591,20 +1591,8 @@ static __always_inline bool slab_free_ho
  {
- 	void *p;
- 	void *addr = page_address(page);
--	unsigned long *map;
+ 	kmemleak_free_recursive(x, s->flags);
  
- 	slab_lock(page);
+-	/*
+-	 * Trouble is that we may no longer disable interrupts in the fast path
+-	 * So in order to make the debug calls that expect irqs to be
+-	 * disabled we need to disable interrupts temporarily.
+-	 */
+-#ifdef CONFIG_LOCKDEP
+-	{
+-		unsigned long flags;
++	debug_check_no_locks_freed(x, s->object_size);
  
-@@ -4691,21 +4691,20 @@ static void validate_slab(struct kmem_ca
- 		goto unlock;
+-		local_irq_save(flags);
+-		debug_check_no_locks_freed(x, s->object_size);
+-		local_irq_restore(flags);
+-	}
+-#endif
+ 	if (!(s->flags & SLAB_DEBUG_OBJECTS))
+ 		debug_check_no_obj_freed(x, s->object_size);
  
- 	/* Now we know that a valid freelist exists */
--	map = get_map(s, page);
-+	__fill_map(obj_map, s, page);
- 	for_each_object(p, s, addr, page->objects) {
--		u8 val = test_bit(__obj_to_index(s, addr, p), map) ?
-+		u8 val = test_bit(__obj_to_index(s, addr, p), obj_map) ?
- 			 SLUB_RED_INACTIVE : SLUB_RED_ACTIVE;
- 
- 		if (!check_object(s, page, p, val))
- 			break;
- 	}
--	put_map(map);
- unlock:
- 	slab_unlock(page);
- }
- 
- static int validate_slab_node(struct kmem_cache *s,
--		struct kmem_cache_node *n)
-+		struct kmem_cache_node *n, unsigned long *obj_map)
- {
- 	unsigned long count = 0;
- 	struct page *page;
-@@ -4714,7 +4713,7 @@ static int validate_slab_node(struct kme
- 	spin_lock_irqsave(&n->list_lock, flags);
- 
- 	list_for_each_entry(page, &n->partial, slab_list) {
--		validate_slab(s, page);
-+		validate_slab(s, page, obj_map);
- 		count++;
- 	}
- 	if (count != n->nr_partial) {
-@@ -4727,7 +4726,7 @@ static int validate_slab_node(struct kme
- 		goto out;
- 
- 	list_for_each_entry(page, &n->full, slab_list) {
--		validate_slab(s, page);
-+		validate_slab(s, page, obj_map);
- 		count++;
- 	}
- 	if (count != atomic_long_read(&n->nr_slabs)) {
-@@ -4746,10 +4745,17 @@ long validate_slab_cache(struct kmem_cac
- 	int node;
- 	unsigned long count = 0;
- 	struct kmem_cache_node *n;
-+	unsigned long *obj_map;
-+
-+	obj_map = bitmap_alloc(oo_objects(s->oo), GFP_KERNEL);
-+	if (!obj_map)
-+		return -ENOMEM;
- 
- 	flush_all(s);
- 	for_each_kmem_cache_node(s, node, n)
--		count += validate_slab_node(s, n);
-+		count += validate_slab_node(s, n, obj_map);
-+
-+	bitmap_free(obj_map);
- 
- 	return count;
- }
 _
