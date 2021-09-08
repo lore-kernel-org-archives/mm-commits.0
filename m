@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B24EBC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C8E05C433FE
 	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:59:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A21C56115B
+	by mail.kernel.org (Postfix) with ESMTP id AFA986115A
 	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:59:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234389AbhIHDAR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 23:00:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58180 "EHLO mail.kernel.org"
+        id S1347404AbhIHDAQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 23:00:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58120 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347231AbhIHDAP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 23:00:15 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C405F61100;
-        Wed,  8 Sep 2021 02:59:07 +0000 (UTC)
+        id S234389AbhIHDAM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 23:00:12 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 995C261131;
+        Wed,  8 Sep 2021 02:59:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069948;
-        bh=fwYIxVmaCXuh2bjSxeZ7JQlFFF+RYWbr0BWaQVIf9iA=;
+        s=korg; t=1631069945;
+        bh=4MUyZ5fBTCXqA9qz3u3fXepw/nu66zAxnZ8Deg/oivg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2l+QYUp1CgQExeGKz+kr0Exx36Z2ua41G7wi/bqst9VjUG21EzMQQXHcaVVxylyAR
-         qDVJ75B1z/MUEEgTaXe78EEfiCta8adtRyxJYf5C7DaHGwcz4iQvegUhn2wqLsFXzd
-         iwsCLCfftgsW3abPrLR3Pv5wxUoM9++l+JudjtXM=
-Date:   Tue, 07 Sep 2021 19:59:07 -0700
+        b=cCbkLKqfN8g8VMEhz0iBWyV8BNDHb/FEg30eTGWKoJEdzG7/0uv0ItK9viI+7H0n5
+         hsQhPej8QJqlJUkHgq+Sp5e0dDQ8RxV1tk4S6ngY2YXn+xIuOyy8tP1VPDvaWTUfqD
+         GLxVEshu842vbYQ0loN09shAfCtCoKwHsn1LUJSM=
+Date:   Tue, 07 Sep 2021 19:59:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     aklimov@redhat.com, akpm@linux-foundation.org, alobakin@pm.me,
         andriy.shevchenko@linux.intel.com, dennis@kernel.org,
@@ -36,9 +36,9 @@ To:     aklimov@redhat.com, akpm@linux-foundation.org, alobakin@pm.me,
         torvalds@linux-foundation.org, ulf.hansson@linaro.org,
         will@kernel.org, wsa+renesas@sang-engineering.com,
         yury.norov@gmail.com
-Subject:  [patch 110/147] arch: remove GENERIC_FIND_FIRST_BIT
- entirely
-Message-ID: <20210908025907.YK9ww9N-v%akpm@linux-foundation.org>
+Subject:  [patch 109/147] include: move find.h from asm_generic to
+ linux
+Message-ID: <20210908025904.mie2fTUKk%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,145 +47,286 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Yury Norov <yury.norov@gmail.com>
-Subject: arch: remove GENERIC_FIND_FIRST_BIT entirely
+Subject: include: move find.h from asm_generic to linux
 
-In 5.12 cycle we enabled GENERIC_FIND_FIRST_BIT config option for ARM64
-and MIPS.  It increased performance and shrunk .text size; and so far I
-didn't receive any negative feedback on the change.
+find_bit API and bitmap API are closely related, but inclusion paths are
+different - include/asm-generic and include/linux, correspondingly.  In
+the past it made a lot of troubles due to circular dependencies and/or
+undefined symbols.  Fix this by moving find.h under include/linux.
 
-https://lore.kernel.org/linux-arch/20210225135700.1381396-1-yury.norov@gmail.com/
-
-Now I think it's a good time to switch all architectures to use
-find_{first,last}_bit() unconditionally, and so remove corresponding
-config option.
-
-The patch does't introduce functioal changes for arc, arm, arm64, mips,
-m68k, s390 and x86, for other architectures I expect improvement both in
-performance and .text size.
-
-Link: https://lkml.kernel.org/r/20210814211713.180533-5-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210814211713.180533-4-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Tested-by: Alexander Lobakin <alobakin@pm.me> (mips)
-Reviewed-by: Alexander Lobakin <alobakin@pm.me> (mips)
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Will Deacon <will@kernel.org>
 Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
+Cc: Alexander Lobakin <alobakin@pm.me>
 Cc: Alexey Klimov <aklimov@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Jiri Olsa <jolsa@redhat.com>
 Cc: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/Kconfig     |    1 -
- arch/arm64/Kconfig   |    1 -
- arch/mips/Kconfig    |    1 -
- arch/s390/Kconfig    |    1 -
- arch/x86/Kconfig     |    1 -
- arch/x86/um/Kconfig  |    1 -
- include/linux/find.h |   13 -------------
- lib/Kconfig          |    3 ---
- 8 files changed, 22 deletions(-)
+ MAINTAINERS                        |    2 
+ arch/alpha/include/asm/bitops.h    |    2 
+ arch/arc/include/asm/bitops.h      |    1 
+ arch/arm/include/asm/bitops.h      |    1 
+ arch/arm64/include/asm/bitops.h    |    1 
+ arch/csky/include/asm/bitops.h     |    1 
+ arch/h8300/include/asm/bitops.h    |    1 
+ arch/hexagon/include/asm/bitops.h  |    1 
+ arch/ia64/include/asm/bitops.h     |    2 
+ arch/m68k/include/asm/bitops.h     |    2 
+ arch/mips/include/asm/bitops.h     |    1 
+ arch/openrisc/include/asm/bitops.h |    1 
+ arch/parisc/include/asm/bitops.h   |    2 
+ arch/powerpc/include/asm/bitops.h  |    2 
+ arch/riscv/include/asm/bitops.h    |    1 
+ arch/s390/include/asm/bitops.h     |    1 
+ arch/sh/include/asm/bitops.h       |    1 
+ arch/sparc/include/asm/bitops_32.h |    1 
+ arch/sparc/include/asm/bitops_64.h |    2 
+ arch/x86/include/asm/bitops.h      |    2 
+ arch/xtensa/include/asm/bitops.h   |    1 
+ include/asm-generic/bitops.h       |    1 
+ include/linux/bitmap.h             |    1 
+ include/{asm-generic/bitops => linux}/find.h | 12 +++++++++---
+ 25 files changed, 270 insertions(+), 291 deletions(-)
 
---- a/arch/arc/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/arc/Kconfig
-@@ -20,7 +20,6 @@ config ARC
- 	select COMMON_CLK
- 	select DMA_DIRECT_REMAP
- 	select GENERIC_ATOMIC64 if !ISA_ARCV2 || !(ARC_HAS_LL64 && ARC_HAS_LLSC)
--	select GENERIC_FIND_FIRST_BIT
- 	# for now, we don't need GENERIC_IRQ_PROBE, CONFIG_GENERIC_IRQ_CHIP
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_PCI_IOMAP
---- a/arch/arm64/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/arm64/Kconfig
-@@ -119,7 +119,6 @@ config ARM64
- 	select GENERIC_CPU_AUTOPROBE
- 	select GENERIC_CPU_VULNERABILITIES
- 	select GENERIC_EARLY_IOREMAP
--	select GENERIC_FIND_FIRST_BIT
- 	select GENERIC_IDLE_POLL_SETUP
- 	select GENERIC_IRQ_IPI
- 	select GENERIC_IRQ_PROBE
---- a/arch/mips/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/mips/Kconfig
-@@ -30,7 +30,6 @@ config MIPS
- 	select GENERIC_ATOMIC64 if !64BIT
- 	select GENERIC_CMOS_UPDATE
- 	select GENERIC_CPU_AUTOPROBE
--	select GENERIC_FIND_FIRST_BIT
- 	select GENERIC_GETTIMEOFDAY
- 	select GENERIC_IOMAP
- 	select GENERIC_IRQ_PROBE
---- a/arch/s390/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/s390/Kconfig
-@@ -126,7 +126,6 @@ config S390
- 	select GENERIC_CPU_AUTOPROBE
- 	select GENERIC_CPU_VULNERABILITIES
- 	select GENERIC_ENTRY
--	select GENERIC_FIND_FIRST_BIT
- 	select GENERIC_GETTIMEOFDAY
- 	select GENERIC_PTDUMP
- 	select GENERIC_SMP_IDLE_THREAD
---- a/arch/x86/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/x86/Kconfig
-@@ -133,7 +133,6 @@ config X86
- 	select GENERIC_CPU_VULNERABILITIES
- 	select GENERIC_EARLY_IOREMAP
- 	select GENERIC_ENTRY
--	select GENERIC_FIND_FIRST_BIT
- 	select GENERIC_IOMAP
- 	select GENERIC_IRQ_EFFECTIVE_AFF_MASK	if SMP
- 	select GENERIC_IRQ_MATRIX_ALLOCATOR	if X86_LOCAL_APIC
---- a/arch/x86/um/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/arch/x86/um/Kconfig
-@@ -8,7 +8,6 @@ endmenu
+--- a/arch/alpha/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/alpha/include/asm/bitops.h
+@@ -430,8 +430,6 @@ static inline unsigned int __arch_hweigh
  
- config UML_X86
- 	def_bool y
--	select GENERIC_FIND_FIRST_BIT
+ #endif /* __KERNEL__ */
  
- config 64BIT
- 	bool "64-bit kernel" if "$(SUBARCH)" = "x86"
---- a/include/linux/find.h~arch-remove-generic_find_first_bit-entirely
-+++ a/include/linux/find.h
-@@ -101,8 +101,6 @@ unsigned long find_next_zero_bit(const u
- }
+-#include <asm-generic/bitops/find.h>
+-
+ #ifdef __KERNEL__
+ 
+ /*
+--- a/arch/arc/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/arc/include/asm/bitops.h
+@@ -369,7 +369,6 @@ static inline __attribute__ ((const)) un
+ #include <asm-generic/bitops/sched.h>
+ #include <asm-generic/bitops/lock.h>
+ 
+-#include <asm-generic/bitops/find.h>
+ #include <asm-generic/bitops/le.h>
+ #include <asm-generic/bitops/ext2-atomic-setbit.h>
+ 
+--- a/arch/arm64/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/arm64/include/asm/bitops.h
+@@ -18,7 +18,6 @@
+ 
+ #include <asm-generic/bitops/ffz.h>
+ #include <asm-generic/bitops/fls64.h>
+-#include <asm-generic/bitops/find.h>
+ 
+ #include <asm-generic/bitops/sched.h>
+ #include <asm-generic/bitops/hweight.h>
+--- a/arch/arm/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/arm/include/asm/bitops.h
+@@ -264,7 +264,6 @@ static inline int find_next_bit_le(const
+ 
  #endif
  
--#ifdef CONFIG_GENERIC_FIND_FIRST_BIT
--
- #ifndef find_first_bit
- /**
-  * find_first_bit - find the first set bit in a memory region
-@@ -147,17 +145,6 @@ unsigned long find_first_zero_bit(const
+-#include <asm-generic/bitops/find.h>
+ #include <asm-generic/bitops/le.h>
+ 
+ /*
+--- a/arch/csky/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/csky/include/asm/bitops.h
+@@ -59,7 +59,6 @@ static __always_inline unsigned long __f
+ 
+ #include <asm-generic/bitops/ffz.h>
+ #include <asm-generic/bitops/fls64.h>
+-#include <asm-generic/bitops/find.h>
+ 
+ #ifndef _LINUX_BITOPS_H
+ #error only <linux/bitops.h> can be included directly
+--- a/arch/h8300/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/h8300/include/asm/bitops.h
+@@ -168,7 +168,6 @@ static inline unsigned long __ffs(unsign
+ 	return result;
  }
+ 
+-#include <asm-generic/bitops/find.h>
+ #include <asm-generic/bitops/sched.h>
+ #include <asm-generic/bitops/hweight.h>
+ #include <asm-generic/bitops/lock.h>
+--- a/arch/hexagon/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/hexagon/include/asm/bitops.h
+@@ -271,7 +271,6 @@ static inline unsigned long __fls(unsign
+ }
+ 
+ #include <asm-generic/bitops/lock.h>
+-#include <asm-generic/bitops/find.h>
+ 
+ #include <asm-generic/bitops/fls64.h>
+ #include <asm-generic/bitops/sched.h>
+--- a/arch/ia64/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/ia64/include/asm/bitops.h
+@@ -441,8 +441,6 @@ static __inline__ unsigned long __arch_h
+ 
+ #endif /* __KERNEL__ */
+ 
+-#include <asm-generic/bitops/find.h>
+-
+ #ifdef __KERNEL__
+ 
+ #include <asm-generic/bitops/le.h>
+--- a/arch/m68k/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/m68k/include/asm/bitops.h
+@@ -529,6 +529,4 @@ static inline int __fls(int x)
+ #include <asm-generic/bitops/le.h>
+ #endif /* __KERNEL__ */
+ 
+-#include <asm-generic/bitops/find.h>
+-
+ #endif /* _M68K_BITOPS_H */
+--- a/arch/mips/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/mips/include/asm/bitops.h
+@@ -446,7 +446,6 @@ static inline int ffs(int word)
+ }
+ 
+ #include <asm-generic/bitops/ffz.h>
+-#include <asm-generic/bitops/find.h>
+ 
+ #ifdef __KERNEL__
+ 
+--- a/arch/openrisc/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/openrisc/include/asm/bitops.h
+@@ -30,7 +30,6 @@
+ #include <asm/bitops/fls.h>
+ #include <asm/bitops/__fls.h>
+ #include <asm-generic/bitops/fls64.h>
+-#include <asm-generic/bitops/find.h>
+ 
+ #ifndef _LINUX_BITOPS_H
+ #error only <linux/bitops.h> can be included directly
+--- a/arch/parisc/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/parisc/include/asm/bitops.h
+@@ -208,8 +208,6 @@ static __inline__ int fls(unsigned int x
+ 
+ #endif /* __KERNEL__ */
+ 
+-#include <asm-generic/bitops/find.h>
+-
+ #ifdef __KERNEL__
+ 
+ #include <asm-generic/bitops/le.h>
+--- a/arch/powerpc/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/powerpc/include/asm/bitops.h
+@@ -255,8 +255,6 @@ unsigned long __arch_hweight64(__u64 w);
+ #include <asm-generic/bitops/hweight.h>
  #endif
  
--#else /* CONFIG_GENERIC_FIND_FIRST_BIT */
+-#include <asm-generic/bitops/find.h>
 -
--#ifndef find_first_bit
--#define find_first_bit(addr, size) find_next_bit((addr), (size), 0)
--#endif
--#ifndef find_first_zero_bit
--#define find_first_zero_bit(addr, size) find_next_zero_bit((addr), (size), 0)
--#endif
--
--#endif /* CONFIG_GENERIC_FIND_FIRST_BIT */
--
- #ifndef find_last_bit
- /**
-  * find_last_bit - find the last set bit in a memory region
---- a/lib/Kconfig~arch-remove-generic_find_first_bit-entirely
-+++ a/lib/Kconfig
-@@ -59,9 +59,6 @@ config GENERIC_STRNLEN_USER
- config GENERIC_NET_UTILS
- 	bool
+ /* wrappers that deal with KASAN instrumentation */
+ #include <asm-generic/bitops/instrumented-atomic.h>
+ #include <asm-generic/bitops/instrumented-lock.h>
+--- a/arch/riscv/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/riscv/include/asm/bitops.h
+@@ -20,7 +20,6 @@
+ #include <asm-generic/bitops/fls.h>
+ #include <asm-generic/bitops/__fls.h>
+ #include <asm-generic/bitops/fls64.h>
+-#include <asm-generic/bitops/find.h>
+ #include <asm-generic/bitops/sched.h>
+ #include <asm-generic/bitops/ffs.h>
  
--config GENERIC_FIND_FIRST_BIT
--	bool
--
- source "lib/math/Kconfig"
+--- a/arch/s390/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/s390/include/asm/bitops.h
+@@ -387,7 +387,6 @@ static inline int fls(unsigned int word)
+ #endif /* CONFIG_HAVE_MARCH_Z9_109_FEATURES */
  
- config NO_GENERIC_PCI_IOPORT_MAP
+ #include <asm-generic/bitops/ffz.h>
+-#include <asm-generic/bitops/find.h>
+ #include <asm-generic/bitops/hweight.h>
+ #include <asm-generic/bitops/sched.h>
+ #include <asm-generic/bitops/le.h>
+--- a/arch/sh/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/sh/include/asm/bitops.h
+@@ -68,6 +68,5 @@ static inline unsigned long __ffs(unsign
+ #include <asm-generic/bitops/fls64.h>
+ 
+ #include <asm-generic/bitops/le.h>
+-#include <asm-generic/bitops/find.h>
+ 
+ #endif /* __ASM_SH_BITOPS_H */
+--- a/arch/sparc/include/asm/bitops_32.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/sparc/include/asm/bitops_32.h
+@@ -100,7 +100,6 @@ static inline void change_bit(unsigned l
+ #include <asm-generic/bitops/fls64.h>
+ #include <asm-generic/bitops/hweight.h>
+ #include <asm-generic/bitops/lock.h>
+-#include <asm-generic/bitops/find.h>
+ #include <asm-generic/bitops/le.h>
+ #include <asm-generic/bitops/ext2-atomic.h>
+ 
+--- a/arch/sparc/include/asm/bitops_64.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/sparc/include/asm/bitops_64.h
+@@ -52,8 +52,6 @@ unsigned int __arch_hweight8(unsigned in
+ #include <asm-generic/bitops/lock.h>
+ #endif /* __KERNEL__ */
+ 
+-#include <asm-generic/bitops/find.h>
+-
+ #ifdef __KERNEL__
+ 
+ #include <asm-generic/bitops/le.h>
+--- a/arch/x86/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/x86/include/asm/bitops.h
+@@ -380,8 +380,6 @@ static __always_inline int fls64(__u64 x
+ #include <asm-generic/bitops/fls64.h>
+ #endif
+ 
+-#include <asm-generic/bitops/find.h>
+-
+ #include <asm-generic/bitops/sched.h>
+ 
+ #include <asm/arch_hweight.h>
+--- a/arch/xtensa/include/asm/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/arch/xtensa/include/asm/bitops.h
+@@ -205,7 +205,6 @@ BIT_OPS(change, "xor", )
+ #undef BIT_OP
+ #undef TEST_AND_BIT_OP
+ 
+-#include <asm-generic/bitops/find.h>
+ #include <asm-generic/bitops/le.h>
+ 
+ #include <asm-generic/bitops/ext2-atomic-setbit.h>
+--- a/include/asm-generic/bitops.h~include-move-findh-from-asm_generic-to-linux
++++ a/include/asm-generic/bitops.h
+@@ -20,7 +20,6 @@
+ #include <asm-generic/bitops/fls.h>
+ #include <asm-generic/bitops/__fls.h>
+ #include <asm-generic/bitops/fls64.h>
+-#include <asm-generic/bitops/find.h>
+ 
+ #ifndef _LINUX_BITOPS_H
+ #error only <linux/bitops.h> can be included directly
+--- a/include/linux/bitmap.h~include-move-findh-from-asm_generic-to-linux
++++ a/include/linux/bitmap.h
+@@ -6,6 +6,7 @@
+ 
+ #include <linux/align.h>
+ #include <linux/bitops.h>
++#include <linux/find.h>
+ #include <linux/limits.h>
+ #include <linux/string.h>
+ #include <linux/types.h>
+--- a/MAINTAINERS~include-move-findh-from-asm_generic-to-linux
++++ a/MAINTAINERS
+@@ -3262,8 +3262,8 @@ M:	Yury Norov <yury.norov@gmail.com>
+ R:	Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+ R:	Rasmus Villemoes <linux@rasmusvillemoes.dk>
+ S:	Maintained
+-F:	include/asm-generic/bitops/find.h
+ F:	include/linux/bitmap.h
++F:	include/linux/find.h
+ F:	lib/bitmap.c
+ F:	lib/find_bit.c
+ F:	lib/find_bit_benchmark.c
 _
