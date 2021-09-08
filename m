@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A0D4C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A636FC433FE
 	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:57:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01BE361152
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:57:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 921E461152
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:57:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345895AbhIHC6i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 22:58:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55908 "EHLO mail.kernel.org"
+        id S1347292AbhIHC6m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 22:58:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55972 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347421AbhIHC6b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 22:58:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 89AE96113C;
-        Wed,  8 Sep 2021 02:57:24 +0000 (UTC)
+        id S1347409AbhIHC6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 22:58:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 76D0E61153;
+        Wed,  8 Sep 2021 02:57:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069844;
-        bh=J/1f4NB0EtfMYr1uEt0/5osQXIKlPNUyqhSXnY34VR8=;
+        s=korg; t=1631069847;
+        bh=KCeFamD3+yu2IP2kG803DYdWWNNiJJNKTG1/8HLuiIs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=czaF/8yDEEn+JXMqdpnE3ubH3poXSA7/8I1eNH2uurc4vgVINDB8hDbcuXJsZRJJ3
-         ECe9NRzMSmjW0wGJmoB3Z8A3qeC3PMCstFPGMcWGm+TyHLpEl2459233PcZoknqTt8
-         t3iwBemI82oewpoFwyJpMU/hYVbKEhDjW6NrgdQY=
-Date:   Tue, 07 Sep 2021 19:57:24 -0700
+        b=Rb0SV99AD1sN1Q7Ae6mUvKcUJyEwtDPy7ZtB/aI0igmkrVAlklpMGAIClmvWqZQSY
+         ZNBQXlR4enDcxGw3XXD8jR/q3mLKpJ1d2S2gJFk1wh73Qxxsknkd98wSgiYCChH1Sk
+         dowpzrwysmrkZv1UcDux10pq0YAH6/7cqGiagm74=
+Date:   Tue, 07 Sep 2021 19:57:27 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, ink@jurassic.park.msu.ru,
-        linux-mm@kvack.org, mattst88@gmail.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, rth@twiddle.net,
+To:     akpm@linux-foundation.org, cl@linux.com, dennis@kernel.org,
+        gregkh@linuxfoundation.org, hch@lst.de, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, tj@kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 077/147] alpha: pci-sysfs: fix all kernel-doc
- warnings
-Message-ID: <20210908025724.UVQBlFdLp%akpm@linux-foundation.org>
+Subject:  [patch 078/147] percpu: remove export of pcpu_base_addr
+Message-ID: <20210908025727.o4i9tf480%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,73 +43,31 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: alpha: pci-sysfs: fix all kernel-doc warnings
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: percpu: remove export of pcpu_base_addr
 
-Fix all kernel-doc warnings in arch/alpha/kernel/pci-sysfs.c:
+This is not needed by any modules, so remove the export.
 
-../arch/alpha/kernel/pci-sysfs.c:67: warning: No description found for return value of 'pci_mmap_resource'
-../arch/alpha/kernel/pci-sysfs.c:115: warning: Function parameter or member 'pdev' not described in 'pci_remove_resource_files'
-../arch/alpha/kernel/pci-sysfs.c:115: warning: Excess function parameter 'dev' description in 'pci_remove_resource_files'
-../arch/alpha/kernel/pci-sysfs.c:230: warning: Function parameter or member 'pdev' not described in 'pci_create_resource_files'
-../arch/alpha/kernel/pci-sysfs.c:230: warning: Excess function parameter 'dev' description in 'pci_create_resource_files'
-../arch/alpha/kernel/pci-sysfs.c:232: warning: No description found for return value of 'pci_create_resource_files'
-../arch/alpha/kernel/pci-sysfs.c:305: warning: Function parameter or member 'bus' not described in 'pci_adjust_legacy_attr'
-../arch/alpha/kernel/pci-sysfs.c:305: warning: Excess function parameter 'b' description in 'pci_adjust_legacy_attr'
-
-Link: https://lkml.kernel.org/r/20210808185249.31442-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
+Link: https://lkml.kernel.org/r/20210722185814.504541-1-gregkh@linuxfoundation.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/pci-sysfs.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/percpu.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/arch/alpha/kernel/pci-sysfs.c~alpha-pci-sysfs-fix-all-kernel-doc-warnings
-+++ a/arch/alpha/kernel/pci-sysfs.c
-@@ -60,6 +60,8 @@ static int __pci_mmap_fits(struct pci_de
-  * @sparse: address space type
-  *
-  * Use the bus mapping routines to map a PCI resource into userspace.
-+ *
-+ * Return: %0 on success, negative error code otherwise
-  */
- static int pci_mmap_resource(struct kobject *kobj,
- 			     struct bin_attribute *attr,
-@@ -106,7 +108,7 @@ static int pci_mmap_resource_dense(struc
+--- a/mm/percpu.c~percpu-remove-export-of-pcpu_base_addr
++++ a/mm/percpu.c
+@@ -146,7 +146,6 @@ static unsigned int pcpu_high_unit_cpu _
  
- /**
-  * pci_remove_resource_files - cleanup resource files
-- * @dev: dev to cleanup
-+ * @pdev: pci_dev to cleanup
-  *
-  * If we created resource files for @dev, remove them from sysfs and
-  * free their resources.
-@@ -221,10 +223,12 @@ static int pci_create_attr(struct pci_de
- }
+ /* the address of the first chunk which starts with the kernel static area */
+ void *pcpu_base_addr __ro_after_init;
+-EXPORT_SYMBOL_GPL(pcpu_base_addr);
  
- /**
-- * pci_create_resource_files - create resource files in sysfs for @dev
-- * @dev: dev in question
-+ * pci_create_resource_files - create resource files in sysfs for @pdev
-+ * @pdev: pci_dev in question
-  *
-  * Walk the resources in @dev creating files for each resource available.
-+ *
-+ * Return: %0 on success, or negative error code
-  */
- int pci_create_resource_files(struct pci_dev *pdev)
- {
-@@ -296,7 +300,7 @@ int pci_mmap_legacy_page_range(struct pc
- 
- /**
-  * pci_adjust_legacy_attr - adjustment of legacy file attributes
-- * @b: bus to create files under
-+ * @bus: bus to create files under
-  * @mmap_type: I/O port or memory
-  *
-  * Adjust file name and size for sparse mappings.
+ static const int *pcpu_unit_map __ro_after_init;		/* cpu -> unit */
+ const unsigned long *pcpu_unit_offsets __ro_after_init;	/* cpu -> unit offset */
 _
