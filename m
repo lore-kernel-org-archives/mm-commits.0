@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45160C4332F
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0714BC433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2E8946113C
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E4FCA60555
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:56:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347323AbhIHC5T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 22:57:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54042 "EHLO mail.kernel.org"
+        id S1347404AbhIHC51 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 22:57:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54150 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347433AbhIHC5L (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 22:57:11 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7951661100;
-        Wed,  8 Sep 2021 02:56:04 +0000 (UTC)
+        id S1345895AbhIHC5R (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 22:57:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2DAD261102;
+        Wed,  8 Sep 2021 02:56:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069764;
-        bh=XNahHEED0dv6D5JHiqZXWfyh6iSLlm+nqYHpDiwzbDA=;
+        s=korg; t=1631069770;
+        bh=JTuuKuBB4TF3mceLklzO/aQuRqCoA7/73JGLwJCc8PM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=SiCIdy0P+jl/WLClD+IevWFwbfi1+1KWXSv3SaBEChlYZ94XKj1vrXA9EwsIqIVCE
-         ++GjYM1ASPejpA9wtsSxmP/P7YFbjVj+hH8K4n5hO9cRxuN+mKQ/v8bhfSQHy102cH
-         ACdKvvlWMW/QrQjJJqm7OlATBlo8i7kDLLeQ7uLo=
-Date:   Tue, 07 Sep 2021 19:56:04 -0700
+        b=CbXFv+KqMrNxYBKK09e9xUNCHj0cxglAEasb/VAlxvvj/FkIx5VhrJhgvLBixprvm
+         LR4upxhfUf9Maix7bO+aSoRs8OtN2j1Mmp9J7LYE8wltXTb5JtSDtMyj3lcBPrTOBU
+         iwvP2r/HEiFGD5ezomaeyozLtXnI2O06wC90iwnc=
+Date:   Tue, 07 Sep 2021 19:56:09 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hch@lst.de, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, npiggin@gmail.com,
-        peterz@infradead.org, torvalds@linux-foundation.org
-Subject:  [patch 055/147] mm: don't allow executable ioremap
- mappings
-Message-ID: <20210908025604.WeTOgRzRO%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        peterz@infradead.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 057/147] highmem: don't disable preemption on RT
+ in kmap_atomic()
+Message-ID: <20210908025609.wt-dh5J3r%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,31 +44,99 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: don't allow executable ioremap mappings
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: highmem: don't disable preemption on RT in kmap_atomic()
 
-There is no need to execute from iomem (and most platforms it is
-impossible anyway), so add the pgprot_nx() call similar to vmap.
+kmap_atomic() disables preemption and pagefaults for historical reasons. 
+The conversion to kmap_local(), which only disables migration, cannot be
+done wholesale because quite some call sites need to be updated to
+accommodate with the changed semantics.
 
-Link: https://lkml.kernel.org/r/20210824091259.1324527-3-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Nicholas Piggin <npiggin@gmail.com>
+On PREEMPT_RT enabled kernels the kmap_atomic() semantics are problematic
+due to the implicit disabling of preemption which makes it impossible to
+acquire 'sleeping' spinlocks within the kmap atomic sections.
+
+PREEMPT_RT replaces the preempt_disable() with a migrate_disable() for
+more than a decade.  It could be argued that this is a justification to do
+this unconditionally, but PREEMPT_RT covers only a limited number of
+architectures and it disables some functionality which limits the coverage
+further.
+
+Limit the replacement to PREEMPT_RT for now.
+
+Link: https://lkml.kernel.org/r/20210810091116.pocdmaatdcogvdso@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/highmem-internal.h |   27 ++++++++++++++++++++++-----
+ 1 file changed, 22 insertions(+), 5 deletions(-)
 
---- a/mm/vmalloc.c~mm-dont-allow-executable-ioremap-mappings
-+++ a/mm/vmalloc.c
-@@ -316,7 +316,7 @@ int ioremap_page_range(unsigned long add
- {
- 	int err;
+--- a/include/linux/highmem-internal.h~highmem-dont-disable-preemption-on-rt-in-kmap_atomic
++++ a/include/linux/highmem-internal.h
+@@ -90,7 +90,11 @@ static inline void __kunmap_local(void *
  
--	err = vmap_range_noflush(addr, end, phys_addr, prot,
-+	err = vmap_range_noflush(addr, end, phys_addr, pgprot_nx(prot),
- 				 ioremap_max_page_shift);
- 	flush_cache_vmap(addr, end);
- 	return err;
+ static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
+ {
+-	preempt_disable();
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		migrate_disable();
++	else
++		preempt_disable();
++
+ 	pagefault_disable();
+ 	return __kmap_local_page_prot(page, prot);
+ }
+@@ -102,7 +106,11 @@ static inline void *kmap_atomic(struct p
+ 
+ static inline void *kmap_atomic_pfn(unsigned long pfn)
+ {
+-	preempt_disable();
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		migrate_disable();
++	else
++		preempt_disable();
++
+ 	pagefault_disable();
+ 	return __kmap_local_pfn_prot(pfn, kmap_prot);
+ }
+@@ -111,7 +119,10 @@ static inline void __kunmap_atomic(void
+ {
+ 	kunmap_local_indexed(addr);
+ 	pagefault_enable();
+-	preempt_enable();
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		migrate_enable();
++	else
++		preempt_enable();
+ }
+ 
+ unsigned int __nr_free_highpages(void);
+@@ -179,7 +190,10 @@ static inline void __kunmap_local(void *
+ 
+ static inline void *kmap_atomic(struct page *page)
+ {
+-	preempt_disable();
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		migrate_disable();
++	else
++		preempt_disable();
+ 	pagefault_disable();
+ 	return page_address(page);
+ }
+@@ -200,7 +214,10 @@ static inline void __kunmap_atomic(void
+ 	kunmap_flush_on_unmap(addr);
+ #endif
+ 	pagefault_enable();
+-	preempt_enable();
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		migrate_enable();
++	else
++		preempt_enable();
+ }
+ 
+ static inline unsigned int nr_free_highpages(void) { return 0; }
 _
