@@ -2,40 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A636FC433FE
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:57:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F7A4C43217
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:57:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 921E461152
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:57:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8A4E66115A
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:57:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347292AbhIHC6m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 22:58:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55972 "EHLO mail.kernel.org"
+        id S1347361AbhIHC6o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 22:58:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56038 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347409AbhIHC6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 22:58:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 76D0E61153;
-        Wed,  8 Sep 2021 02:57:27 +0000 (UTC)
+        id S243156AbhIHC6i (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 22:58:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 69A2F61102;
+        Wed,  8 Sep 2021 02:57:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069847;
-        bh=KCeFamD3+yu2IP2kG803DYdWWNNiJJNKTG1/8HLuiIs=;
+        s=korg; t=1631069850;
+        bh=E6yXOIy8/mHLbYXx5Zr6KrxuGZ9LmNrNgVJDvVoKd54=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Rb0SV99AD1sN1Q7Ae6mUvKcUJyEwtDPy7ZtB/aI0igmkrVAlklpMGAIClmvWqZQSY
-         ZNBQXlR4enDcxGw3XXD8jR/q3mLKpJ1d2S2gJFk1wh73Qxxsknkd98wSgiYCChH1Sk
-         dowpzrwysmrkZv1UcDux10pq0YAH6/7cqGiagm74=
-Date:   Tue, 07 Sep 2021 19:57:27 -0700
+        b=fsvIrPcymRZwM8SnABhf4DM+eFkIUoZ0UW+/kna44gDUprEovPkc04Z30tnIh9dlr
+         /n/M6r/hChNsQpsrINm9wCW97kb63Vm5+XTi2HRh+5tzWwL38eakYpbrZyCsSpMvXc
+         Ctny3UtaD8d1llsEdvPFa9HlCPJH5H1l82iDwPiA=
+Date:   Tue, 07 Sep 2021 19:57:30 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, dennis@kernel.org,
-        gregkh@linuxfoundation.org, hch@lst.de, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, tj@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 078/147] percpu: remove export of pcpu_base_addr
-Message-ID: <20210908025727.o4i9tf480%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akpm@linux-foundation.org,
+        chenying.kernel@bytedance.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rppt@kernel.org,
+        songmuchun@bytedance.com, torvalds@linux-foundation.org,
+        zhouchengming@bytedance.com, zhoufeng.zf@bytedance.com
+Subject:  [patch 079/147] fs/proc/kcore.c: add mmap interface
+Message-ID: <20210908025730.S88ylmikU%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,31 +44,148 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: percpu: remove export of pcpu_base_addr
+From: Feng Zhou <zhoufeng.zf@bytedance.com>
+Subject: fs/proc/kcore.c: add mmap interface
 
-This is not needed by any modules, so remove the export.
+When we do the kernel monitor, use the DRGN
+(https://github.com/osandov/drgn) access to kernel data structures, found
+that the system calls a lot.  DRGN is implemented by reading /proc/kcore. 
+After looking at the kcore code, it is found that kcore does not implement
+mmap, resulting in frequent context switching triggered by read. 
+Therefore, we want to add mmap interface to optimize performance.  Since
+vmalloc and module areas will change with allocation and release,
+consistency cannot be guaranteed, so mmap interface only maps KCORE_TEXT
+and KCORE_RAM.
 
-Link: https://lkml.kernel.org/r/20210722185814.504541-1-gregkh@linuxfoundation.org
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
+The test results:
+1. the default version of kcore
+real 11.00
+user 8.53
+sys 3.59
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+99.64  128.578319          12  11168701           pread64
+...
+------ ----------- ----------- --------- --------- ----------------
+100.00  129.042853              11193748       966 total
+
+2. added kcore for the mmap interface
+real 6.44
+user 7.32
+sys 0.24
+
+% time     seconds  usecs/call     calls    errors syscall
+------ ----------- ----------- --------- --------- ----------------
+32.94    0.130120          24      5317       315 futex
+11.66    0.046077          21      2231         1 lstat
+ 9.23    0.036449         177       206           mmap
+...
+------ ----------- ----------- --------- --------- ----------------
+100.00    0.395077                 25435       971 total
+
+The test results show that the number of system calls and time
+consumption are significantly reduced.
+
+Link: https://lkml.kernel.org/r/20210704062208.7898-1-zhoufeng.zf@bytedance.com
+Co-developed-by: Ying Chen <chenying.kernel@bytedance.com>
+Signed-off-by: Ying Chen <chenying.kernel@bytedance.com>
+Signed-off-by: Feng Zhou <zhoufeng.zf@bytedance.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Chengming Zhou <zhouchengming@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/proc/kcore.c |   73 ++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 73 insertions(+)
 
---- a/mm/percpu.c~percpu-remove-export-of-pcpu_base_addr
-+++ a/mm/percpu.c
-@@ -146,7 +146,6 @@ static unsigned int pcpu_high_unit_cpu _
+--- a/fs/proc/kcore.c~fs-proc-kcorec-add-mmap-interface
++++ a/fs/proc/kcore.c
+@@ -614,11 +614,84 @@ static int release_kcore(struct inode *i
+ 	return 0;
+ }
  
- /* the address of the first chunk which starts with the kernel static area */
- void *pcpu_base_addr __ro_after_init;
--EXPORT_SYMBOL_GPL(pcpu_base_addr);
++static vm_fault_t mmap_kcore_fault(struct vm_fault *vmf)
++{
++	return VM_FAULT_SIGBUS;
++}
++
++static const struct vm_operations_struct kcore_mmap_ops = {
++	.fault = mmap_kcore_fault,
++};
++
++static int mmap_kcore(struct file *file, struct vm_area_struct *vma)
++{
++	size_t size = vma->vm_end - vma->vm_start;
++	u64 start, end, pfn;
++	int nphdr;
++	size_t data_offset;
++	size_t phdrs_len, notes_len;
++	struct kcore_list *m = NULL;
++	int ret = 0;
++
++	down_read(&kclist_lock);
++
++	get_kcore_size(&nphdr, &phdrs_len, &notes_len, &data_offset);
++
++	data_offset &= PAGE_MASK;
++	start = (u64)vma->vm_pgoff << PAGE_SHIFT;
++	if (start < data_offset) {
++		ret = -EINVAL;
++		goto out;
++	}
++	start = kc_offset_to_vaddr(start - data_offset);
++	end   = start + size;
++
++	list_for_each_entry(m, &kclist_head, list) {
++		if (start >= m->addr && end <= m->addr + m->size)
++			break;
++	}
++
++	if (&m->list == &kclist_head) {
++		ret = -EINVAL;
++		goto out;
++	}
++
++	if (vma->vm_flags & (VM_WRITE | VM_EXEC)) {
++		ret = -EPERM;
++		goto out;
++	}
++
++	vma->vm_flags &= ~(VM_MAYWRITE | VM_MAYEXEC);
++	vma->vm_flags |= VM_MIXEDMAP;
++	vma->vm_ops = &kcore_mmap_ops;
++
++	if (kern_addr_valid(start)) {
++		if (m->type == KCORE_RAM)
++			pfn = __pa(start) >> PAGE_SHIFT;
++		else if (m->type == KCORE_TEXT)
++			pfn = __pa_symbol(start) >> PAGE_SHIFT;
++		else {
++			ret = -EFAULT;
++			goto out;
++		}
++
++		ret = remap_pfn_range(vma, vma->vm_start, pfn, size,
++				vma->vm_page_prot);
++	} else {
++		ret = -EFAULT;
++	}
++
++out:
++	up_read(&kclist_lock);
++	return ret;
++}
++
+ static const struct proc_ops kcore_proc_ops = {
+ 	.proc_read	= read_kcore,
+ 	.proc_open	= open_kcore,
+ 	.proc_release	= release_kcore,
+ 	.proc_lseek	= default_llseek,
++	.proc_mmap	= mmap_kcore,
+ };
  
- static const int *pcpu_unit_map __ro_after_init;		/* cpu -> unit */
- const unsigned long *pcpu_unit_offsets __ro_after_init;	/* cpu -> unit offset */
+ /* just remember that we have to update kcore */
 _
