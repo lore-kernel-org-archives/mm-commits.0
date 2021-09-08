@@ -2,162 +2,218 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
-	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-12.0 required=3.0 tests=BAYES_00,DKIM_INVALID,
+	DKIM_SIGNED,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
+	MENTIONS_GIT_HOSTING,NICE_REPLY_A,SPF_HELO_NONE,SPF_PASS,USER_AGENT_SANE_1
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C910AC433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 16:31:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79D1FC433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 17:14:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B25A46105A
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 16:31:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 566F561166
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 17:14:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349183AbhIHQcm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Sep 2021 12:32:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59786 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234225AbhIHQcl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Sep 2021 12:32:41 -0400
-Received: from mail-lj1-x231.google.com (mail-lj1-x231.google.com [IPv6:2a00:1450:4864:20::231])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 303CAC061575
-        for <mm-commits@vger.kernel.org>; Wed,  8 Sep 2021 09:31:33 -0700 (PDT)
-Received: by mail-lj1-x231.google.com with SMTP id s3so4471385ljp.11
-        for <mm-commits@vger.kernel.org>; Wed, 08 Sep 2021 09:31:33 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=SVlWaxGx6FYZPcg4i9WVD15rj+S71jYg6Og6e2k1zfU=;
-        b=L9F43tftzm0xASYTik31lPxna5y5nRH1cgGiCCBAz5Liw7VqJrSIBOCUhTjiw3WSzs
-         54KnrAHqR0LQ+pHK+hMCLCQ+DNgZmPxQR1YlrjxEoWiyVqfHcxpFkO3pISkZksxSO8xP
-         lYuCXBN2XaCvf++ggfc47HL1+MK3tQ8Frbz0Y=
+        id S1352400AbhIHRPw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Sep 2021 13:15:52 -0400
+Received: from us-smtp-delivery-124.mimecast.com ([170.10.133.124]:57550 "EHLO
+        us-smtp-delivery-124.mimecast.com" rhost-flags-OK-OK-OK-OK)
+        by vger.kernel.org with ESMTP id S1350179AbhIHRPv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Sep 2021 13:15:51 -0400
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=redhat.com;
+        s=mimecast20190719; t=1631121281;
+        h=from:from:reply-to:subject:subject:date:date:message-id:message-id:
+         to:to:cc:cc:mime-version:mime-version:content-type:content-type:
+         content-transfer-encoding:content-transfer-encoding:
+         in-reply-to:in-reply-to:references:references;
+        bh=Ejqc40sWfMbE1YSHcLCom16WT8UJzripXSIXzFK8K1w=;
+        b=AnZo5VnmhXDVVxIC9rb471Yrb+9EyZWvb5UDtx7HKnfELya/DX3ejA9zcvpySvKoh+E//0
+        SUNccLOa3zyR7cNiyEz++uVvJIn7k8UFaVlijR7GiWCGQexADi0K8+aUGqP3t3KKF6LHh2
+        qR7d0+hv5ypiubIi+VdUOh3PKGiWDeg=
+Received: from mail-lj1-f200.google.com (mail-lj1-f200.google.com
+ [209.85.208.200]) (Using TLS) by relay.mimecast.com with ESMTP id
+ us-mta-538-HtEJm02kN0yPtfZlVNjLlg-1; Wed, 08 Sep 2021 13:14:40 -0400
+X-MC-Unique: HtEJm02kN0yPtfZlVNjLlg-1
+Received: by mail-lj1-f200.google.com with SMTP id v2-20020a2e5042000000b001def54ff19eso1310354ljd.2
+        for <mm-commits@vger.kernel.org>; Wed, 08 Sep 2021 10:14:39 -0700 (PDT)
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=SVlWaxGx6FYZPcg4i9WVD15rj+S71jYg6Og6e2k1zfU=;
-        b=pOXz8nJJstDdAdmIdr7cnRw5QIvGFNONkS71+MqmbA/Vxe10J8I1lMNsDo5Ax3SOyK
-         rZWNP4W5ByptU3M9+Fi5SVmaJTLxluQc7kyXFt8oqs8henEkXfXJkt/fJmGn9BHIUr4y
-         QZmN14S0+fHmtvR+JvGGCgUCGgZHwoU8sfdMvQR69h7xXE13ySS/KgQrbNFi6W6owMfc
-         EKaY/Eeob2rCRL4Kweq7LwlzfP63txZw8iLRE5PTAe65pQiZPAVNPyWgDTQ8rkjQQA3C
-         sfdbFw3ehc26cOPj3ShAcR4EJZ2ectTZtlb1OUZov9mqmOK+bB+RHly0cvMIQmDaZr8f
-         P8xQ==
-X-Gm-Message-State: AOAM531qCN108JmvzdmfRcS0A6HLwYBl00roTeSwCjgUho72AUSF8CY/
-        9wPlW4pSBICooSGaW6hKPQ/OzIEkcScfnzSVJfw=
-X-Google-Smtp-Source: ABdhPJxa/ACb9XAjcbSXxJH3x824iD125/k9XS6Aw9ZjSX9kB5hdyLztU++3e2a0P8NKfpBatcCWlA==
-X-Received: by 2002:a05:651c:339:: with SMTP id b25mr3586012ljp.312.1631118690788;
-        Wed, 08 Sep 2021 09:31:30 -0700 (PDT)
-Received: from mail-lj1-f180.google.com (mail-lj1-f180.google.com. [209.85.208.180])
-        by smtp.gmail.com with ESMTPSA id v3sm234348lfr.44.2021.09.08.09.31.26
-        for <mm-commits@vger.kernel.org>
+        h=x-gm-message-state:from:cc:subject:to:references:message-id:date
+         :user-agent:mime-version:in-reply-to:content-language
+         :content-transfer-encoding;
+        bh=Ejqc40sWfMbE1YSHcLCom16WT8UJzripXSIXzFK8K1w=;
+        b=NpSOyiIicVrPes1GIbUniKcnA/TeLXlgB61kxr/e3UrsDrc/o3sYbAnobSB1IGbTv5
+         J70Pr5Y+hZ9eBmSf9d/M3M0XiPMbYa6QLOOmFNNxrF5Hi8binFzQpLC4y0pEgxAFFrKN
+         BkGjdQNBzdqZ5Bc7eZkAGswf04X3DjGTEJJNzuEuE1pxuS4vSdnn5BtoczAmSreKIR4Z
+         G2ZXvtPDtc/IbWYNyw88BFqb7x9vbL6buXLeIowthzTqG900MUHDfdAslzkQZHiuvBH6
+         OEKwosspsRIGunjNON3OBQOv4wd5+r8m25ptRtaxv/avjz4N6b/gewXlu/qqSm1YlBR7
+         qslQ==
+X-Gm-Message-State: AOAM531itQyAiVEYnxCPv7GtH7t0Bsmnyon8Syhy1k4mPD39oLT5EMcR
+        MWR6PkeWyVsWrKUCpv6GhQTsQgn9NhAuSvsxuKY685pRjNyzMnrdeES5sOzIU209qdI5kQ3NlsI
+        XLFa8nIu1EgitAUPGasi06A==
+X-Received: by 2002:a05:651c:1683:: with SMTP id bd3mr3731264ljb.323.1631121278710;
+        Wed, 08 Sep 2021 10:14:38 -0700 (PDT)
+X-Google-Smtp-Source: ABdhPJx+I/SsfLJUbJ18xeXxd4lV7F2XPmOj+17jTuyWR1+uDvSd+DyIl24dNLFt0ngeBrBrTTFKIQ==
+X-Received: by 2002:a05:651c:1683:: with SMTP id bd3mr3731245ljb.323.1631121278468;
+        Wed, 08 Sep 2021 10:14:38 -0700 (PDT)
+Received: from [192.168.42.238] (87-59-106-155-cable.dk.customer.tdc.net. [87.59.106.155])
+        by smtp.gmail.com with ESMTPSA id r5sm243505lfm.2.2021.09.08.10.14.37
         (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Wed, 08 Sep 2021 09:31:26 -0700 (PDT)
-Received: by mail-lj1-f180.google.com with SMTP id f2so4519984ljn.1
-        for <mm-commits@vger.kernel.org>; Wed, 08 Sep 2021 09:31:26 -0700 (PDT)
-X-Received: by 2002:a2e:8185:: with SMTP id e5mr3412736ljg.31.1631118685695;
- Wed, 08 Sep 2021 09:31:25 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210908025436.dvsgeCXAh%akpm@linux-foundation.org>
- <d35ad130-c72a-c47b-9d00-5c7bb5196421@redhat.com> <c29dc2e4-df74-c5cc-9580-9cdff7e2a309@suse.cz>
- <0bc898a0-2c3f-a8db-ef19-e8c5ebc3ed71@redhat.com>
-In-Reply-To: <0bc898a0-2c3f-a8db-ef19-e8c5ebc3ed71@redhat.com>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Wed, 8 Sep 2021 09:31:09 -0700
-X-Gmail-Original-Message-ID: <CAHk-=wjKFKyAz+DtAyXCaj8-ppaK_1TRyXPFvaNm42B1wDzEug@mail.gmail.com>
-Message-ID: <CAHk-=wjKFKyAz+DtAyXCaj8-ppaK_1TRyXPFvaNm42B1wDzEug@mail.gmail.com>
+        Wed, 08 Sep 2021 10:14:37 -0700 (PDT)
+From:   Jesper Dangaard Brouer <jbrouer@redhat.com>
+X-Google-Original-From: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc:     brouer@redhat.com
 Subject: Re: [patch 031/147] mm, slub: protect put_cpu_partial() with disabled
  irqs instead of cmpxchg
-To:     Jesper Dangaard Brouer <jbrouer@redhat.com>
-Cc:     Vlastimil Babka <vbabka@suse.cz>,
+To:     David Hildenbrand <david@redhat.com>,
+        Vlastimil Babka <vbabka@suse.cz>,
+        Jesper Dangaard Brouer <jbrouer@redhat.com>,
         Andrew Morton <akpm@linux-foundation.org>,
-        Sebastian Andrzej Siewior <bigeasy@linutronix.de>,
-        Christoph Lameter <cl@linux.com>,
-        Mike Galbraith <efault@gmx.de>,
-        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
-        Jann Horn <jannh@google.com>, Linux-MM <linux-mm@kvack.org>,
-        Mel Gorman <mgorman@techsingularity.net>,
-        mm-commits@vger.kernel.org, Pekka Enberg <penberg@kernel.org>,
-        quic_qiancai@quicinc.com, David Rientjes <rientjes@google.com>,
-        Thomas Gleixner <tglx@linutronix.de>,
-        Jesper Dangaard Brouer <brouer@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
+        bigeasy@linutronix.de, cl@linux.com, efault@gmx.de,
+        iamjoonsoo.kim@lge.com, jannh@google.com, linux-mm@kvack.org,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        penberg@kernel.org, quic_qiancai@quicinc.com, rientjes@google.com,
+        tglx@linutronix.de, torvalds@linux-foundation.org
+References: <20210908025436.dvsgeCXAh%akpm@linux-foundation.org>
+ <d35ad130-c72a-c47b-9d00-5c7bb5196421@redhat.com>
+ <c29dc2e4-df74-c5cc-9580-9cdff7e2a309@suse.cz>
+ <1a8ecf24-dca4-54f2-cdbf-9135b856b773@redhat.com>
+ <6524bba5-f737-3ab4-ee90-d6c70bac04f7@redhat.com>
+Message-ID: <3a83989f-aa36-3aee-d92f-5ddc912d7fc5@redhat.com>
+Date:   Wed, 8 Sep 2021 19:14:36 +0200
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
+ Thunderbird/78.11.0
+MIME-Version: 1.0
+In-Reply-To: <6524bba5-f737-3ab4-ee90-d6c70bac04f7@redhat.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Language: en-US
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, Sep 8, 2021 at 9:11 AM Jesper Dangaard Brouer
-<jbrouer@redhat.com> wrote:
->
-> The non-save variant simply translated onto CLI and STI, which seems to
-> be very fast.
 
-It will depend on the microarchitecture.
 
-Happily:
+On 08/09/2021 16.59, David Hildenbrand wrote:
+> On 08.09.21 16:55, David Hildenbrand wrote:
+>> On 08.09.21 15:58, Vlastimil Babka wrote:
+>>> On 9/8/21 15:05, Jesper Dangaard Brouer wrote:
+>>>>
+>>>>
+>>>> On 08/09/2021 04.54, Andrew Morton wrote:
+>>>>> From: Vlastimil Babka <vbabka@suse.cz>
+>>>>> Subject: mm, slub: protect put_cpu_partial() with disabled irqs 
+>>>>> instead of cmpxchg
+>>>>>
+>>>>> Jann Horn reported [1] the following theoretically possible race:
+>>>>>
+>>>>>      task A: put_cpu_partial() calls preempt_disable()
+>>>>>      task A: oldpage = this_cpu_read(s->cpu_slab->partial)
+>>>>>      interrupt: kfree() reaches unfreeze_partials() and discards 
+>>>>> the page
+>>>>>      task B (on another CPU): reallocates page as page cache
+>>>>>      task A: reads page->pages and page->pobjects, which are actually
+>>>>>      halves of the pointer page->lru.prev
+>>>>>      task B (on another CPU): frees page
+>>>>>      interrupt: allocates page as SLUB page and places it on the 
+>>>>> percpu partial list
+>>>>>      task A: this_cpu_cmpxchg() succeeds
+>>>>>
+>>>>>      which would cause page->pages and page->pobjects to end up 
+>>>>> containing
+>>>>>      halves of pointers that would then influence when 
+>>>>> put_cpu_partial()
+>>>>>      happens and show up in root-only sysfs files. Maybe that's 
+>>>>> acceptable,
+>>>>>      I don't know. But there should probably at least be a comment 
+>>>>> for now
+>>>>>      to point out that we're reading union fields of a page that 
+>>>>> might be
+>>>>>      in a completely different state.
+>>>>>
+>>>>> Additionally, the this_cpu_cmpxchg() approach in put_cpu_partial() 
+>>>>> is only
+>>>>> safe against s->cpu_slab->partial manipulation in ___slab_alloc() 
+>>>>> if the
+>>>>> latter disables irqs, otherwise a __slab_free() in an irq handler 
+>>>>> could
+>>>>> call put_cpu_partial() in the middle of ___slab_alloc() manipulating
+>>>>> ->partial and corrupt it.  This becomes an issue on RT after a 
+>>>>> local_lock
+>>>>> is introduced in later patch.  The fix means taking the local_lock 
+>>>>> also in
+>>>>> put_cpu_partial() on RT.
+>>>>>
+>>>>> After debugging this issue, Mike Galbraith suggested [2] that to avoid
+>>>>> different locking schemes on RT and !RT, we can just protect
+>>>>> put_cpu_partial() with disabled irqs (to be converted to
+>>>>> local_lock_irqsave() later) everywhere.  This should be acceptable 
+>>>>> as it's
+>>>>> not a fast path, and moving the actual partial unfreezing outside 
+>>>>> of the
+>>>>> irq disabled section makes it short, and with the retry loop gone 
+>>>>> the code
+>>>>> can be also simplified.  In addition, the race reported by Jann 
+>>>>> should no
+>>>>> longer be possible.
+>>>>
+>>>> Based on my microbench[0] measurement changing preempt_disable to
+>>>> local_irq_save will cost us 11 cycles (TSC).  I'm not against the
+>>>> change, I just want people to keep this in mind.
+>>>
+>>> OK, but this is not a fast path for every allocation/free, so it gets
+>>> amortized. Also it eliminates a this_cpu_cmpxchg loop, and I'd expect
+>>> cmpxchg to be expensive too?
+>>>
+>>>> On my E5-1650 v4 @ 3.60GHz:
+>>>>     - preempt_disable(+enable)  cost: 11 cycles(tsc) 3.161 ns
+>>>>     - local_irq_save (+restore) cost: 22 cycles(tsc) 6.331 ns
+>>>>
+>>>> Notice the non-save/restore variant is superfast:
+>>>>     - local_irq_disable(+enable) cost: 6 cycles(tsc) 1.844 ns
+>>>
+>>> It actually surprises me that it's that cheap, and would have expected
+>>> changing the irq state would be the costly part, not the 
+>>> saving/restoring.
+>>> Incidentally, would you know what's the cost of save+restore when the
+>>> irqs are already disabled, so it's effectively a no-op?
+>>
+>> It surprises me as well. That would imply that protecting short RCU
+>> sections using
+>>
+>> local_irq_disable
+>> local_irq_enable
+>>
+>> instead of via
+>>
+>> preempt_disable
+>> preempt_enable
+>>
+>> would actually be very beneficial.
 
-> The cost of save+restore when the irqs are already disabled is the same
-> (did a quick test).
+Please don't draw this as a general conclusion.
+As Linus describe in details, the IRQ disable/enable will be very 
+micro-arch specific.
 
-The really expensive part used to be P4. 'popf' was hundreds of cycles
-if any of the non-arithmetic bits changed, iirc.
+The preempt_disable/enable will likely be more stable/consistent across 
+micro-archs.
+Keep an eye out for kernel config options when juding 
+preempt_disable/enable performance [1]
 
-P4 used to be a big headache just because of things like that -
-straightforward code ran very well, but anything a bit more special
-took forever because it flushed the pipeline.
+[1] 
+https://github.com/netoptimizer/prototype-kernel/blob/master/kernel/lib/time_bench_sample.c#L363-L367
 
-So some of our optimizations may be historic because of things like
-that. We don't really need to worry about the P4 glass jaws any more,
-but it *used* to be much quicker to do 'preempt_disable()' that just
-does an add to a memory location than it was to disable interrupts.
 
-> Cannot remember who told me, but (apparently) the expensive part is
-> reading the CPU FLAGS.
+>>
+>> Are the numbers trustworthy? :)
+>>
+> 
+> .. and especially did the benchmark consider side effects of 
+> enabling/disabling interrupts (pipeline flushes etc ..)?
+> 
 
-Again, it ends up being very dependent on the uarch.
+Of-cause not, this is a microbenchmark... they are per definition not 
+trustworthy :-P
 
-Reading and writing the flags register is somewhat expensive because
-it's not really "one" register in hardware any more (even if that was
-obviously the historical implementation).
+-Jesper
 
-These days, the arithmetic flags are generally multiple renamed
-registers, and then the other flags are a separate system register
-(possibly multiple bits spread out).
-
-The cost of doing those flag reads and writes are hard to really
-specify, because in an OoO architecture a lot of it ends up being "how
-much of that can be done in parallel, and what's the pipeline
-serialization cost". Doing a loop with rdtsc is not necessarily AT ALL
-indicative of the cost when there is other real code around it.
-
-The cost _could_ be much smaller, in case there is little
-serialization with normal other code. Or, it could be much bigger than
-what a rdtsc shows, because if it's a hard pipeline flush, then a
-tight loop with those things won't have any real work to flush, while
-in "real code" there may be hundreds of instructions in flight and
-doing the flush is very expensive.
-
-The good news is that afaik, all the modern x86 CPU microarchitectures
-do reasonably well. And while a "pushf/cli/popf" sequence is probably
-more cycles than an add/subtract one in a benchmark, if the preempt
-counter is not otherwise needed, and is cold in the cache, then the
-pushf/cli/popf may be *much* cheaper than a cache miss.
-
-So the only way to really tell would be to run real benchmarks of real
-loads on multiple different microarchitectures.
-
-I'm pretty sure the actual result is: "you can't measure the 10-cycle
-difference on any modern core because it can actually go either way".
-
-But "I'm pretty sure" and "reality" are not the same thing.
-
-These days, pipeline flushes and cache misses (and then as a very
-particularly bad case - cache line pingpong issues) are almost the
-only thing that matters.
-
-And the most common reason by far for the pipeline flushes are branch
-mispredicts, but see above: the system bits in the flags register
-_have_ been cause of them in the past, so it's not entirely
-impossible.
-
-               Linus
