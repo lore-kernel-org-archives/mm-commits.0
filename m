@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78272C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:01:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8257BC433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:01:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5072861101
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:01:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 675C160EE6
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 03:01:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347339AbhIHDCG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 23:02:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60184 "EHLO mail.kernel.org"
+        id S234389AbhIHDCh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 23:02:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60298 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347428AbhIHDBz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 23:01:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D95E26115A;
-        Wed,  8 Sep 2021 03:00:47 +0000 (UTC)
+        id S1347450AbhIHDCB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 23:02:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D9D1B6115B;
+        Wed,  8 Sep 2021 03:00:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631070048;
-        bh=wft8+l0eKu/8vUflU53CGL1GXpCtIaCBCI06WtNLJRY=;
+        s=korg; t=1631070054;
+        bh=c+u+HUlxPzxAbHVXw1b4TlISD7daj5+/hKtpepjKSNU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=CVCb28M2YHYRrPu8FTdAO+lgci6M2MGGQFva6cafGMpTAUrjQNAWj6JliHK9w9D6O
-         7Q30yTxbVk6c/IqUIixbiUkIVqteF8zgGLlasJ1sTkD6GrP9UD5rtnui7X8Nrlbuhr
-         lRlErbIjorBzotP+UPiboXl4S+5aMWLLZB6ucHsA=
-Date:   Tue, 07 Sep 2021 20:00:47 -0700
+        b=ahzLOZIPU60TwkHYAko1SoPOLhSSAm0Hr/ye/y7qSBO6R6ukJ8wax8VwStC7fcpEa
+         nnze2kstvVk6ipHi3tO4th4QHksUGhjkeBXj7r2l3XXnK4Ie985sUuNVvwLOUBdevO
+         1naEYVbNn8u/PrXG54ZmBKTjBDxJuI0v4Jpd5noo=
+Date:   Tue, 07 Sep 2021 20:00:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, babu.moger@oracle.com,
-        dzickus@redhat.com, linux-mm@kvack.org, lukas.bulwahn@gmail.com,
-        masahiroy@kernel.org, mm-commits@vger.kernel.org,
-        npiggin@gmail.com, rdunlap@infradead.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 143/147] Kconfig.debug: drop selecting
- non-existing HARDLOCKUP_DETECTOR_ARCH
-Message-ID: <20210908030047.04y0bRC2_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aquini@redhat.com, dbueso@suse.de,
+        linux-mm@kvack.org, llong@redhat.com, manfred@colorfullife.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 145/147] ipc: replace costly bailout check in
+ sysvipc_find_ipc()
+Message-ID: <20210908030053.bzt189DZK%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,41 +43,78 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: Kconfig.debug: drop selecting non-existing HARDLOCKUP_DETECTOR_ARCH
+From: Rafael Aquini <aquini@redhat.com>
+Subject: ipc: replace costly bailout check in sysvipc_find_ipc()
 
-Commit 05a4a9527931 ("kernel/watchdog: split up config options") adds a
-new config HARDLOCKUP_DETECTOR, which selects the non-existing config
-HARDLOCKUP_DETECTOR_ARCH.
+sysvipc_find_ipc() was left with a costly way to check if the offset
+position fed to it is bigger than the total number of IPC IDs in use.  So
+much so that the time it takes to iterate over /proc/sysvipc/* files grows
+exponentially for a custom benchmark that creates "N" SYSV shm segments
+and then times the read of /proc/sysvipc/shm (milliseconds):
 
-Hence, ./scripts/checkkconfigsymbols.py warns:
+    12 msecs to read   1024 segs from /proc/sysvipc/shm
+    18 msecs to read   2048 segs from /proc/sysvipc/shm
+    65 msecs to read   4096 segs from /proc/sysvipc/shm
+   325 msecs to read   8192 segs from /proc/sysvipc/shm
+  1303 msecs to read  16384 segs from /proc/sysvipc/shm
+  5182 msecs to read  32768 segs from /proc/sysvipc/shm
 
-HARDLOCKUP_DETECTOR_ARCH Referencing files: lib/Kconfig.debug
+The root problem lies with the loop that computes the total amount of ids
+in use to check if the "pos" feeded to sysvipc_find_ipc() grew bigger than
+"ids->in_use".  That is a quite inneficient way to get to the maximum
+index in the id lookup table, specially when that value is already
+provided by struct ipc_ids.max_idx.
 
-Simply drop selecting the non-existing HARDLOCKUP_DETECTOR_ARCH.
+This patch follows up on the optimization introduced via commit
+15df03c879836 ("sysvipc: make get_maxid O(1) again") and gets rid of the
+aforementioned costly loop replacing it by a simpler checkpoint based on
+ipc_get_maxidx() returned value, which allows for a smooth linear increase
+in time complexity for the same custom benchmark:
 
-Link: https://lkml.kernel.org/r/20210806115618.22088-1-lukas.bulwahn@gmail.com
-Fixes: 05a4a9527931 ("kernel/watchdog: split up config options")
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Babu Moger <babu.moger@oracle.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+     2 msecs to read   1024 segs from /proc/sysvipc/shm
+     2 msecs to read   2048 segs from /proc/sysvipc/shm
+     4 msecs to read   4096 segs from /proc/sysvipc/shm
+     9 msecs to read   8192 segs from /proc/sysvipc/shm
+    19 msecs to read  16384 segs from /proc/sysvipc/shm
+    39 msecs to read  32768 segs from /proc/sysvipc/shm
+
+Link: https://lkml.kernel.org/r/20210809203554.1562989-1-aquini@redhat.com
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Waiman Long <llong@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 -
- 1 file changed, 1 deletion(-)
+ ipc/util.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
---- a/lib/Kconfig.debug~kconfigdebug-drop-selecting-non-existing-hardlockup_detector_arch
-+++ a/lib/Kconfig.debug
-@@ -1062,7 +1062,6 @@ config HARDLOCKUP_DETECTOR
- 	depends on HAVE_HARDLOCKUP_DETECTOR_PERF || HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	select LOCKUP_DETECTOR
- 	select HARDLOCKUP_DETECTOR_PERF if HAVE_HARDLOCKUP_DETECTOR_PERF
--	select HARDLOCKUP_DETECTOR_ARCH if HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	help
- 	  Say Y here to enable the kernel to act as a watchdog to detect
- 	  hard lockups.
+--- a/ipc/util.c~ipc-replace-costly-bailout-check-in-sysvipc_find_ipc
++++ a/ipc/util.c
+@@ -788,21 +788,13 @@ struct pid_namespace *ipc_seq_pid_ns(str
+ static struct kern_ipc_perm *sysvipc_find_ipc(struct ipc_ids *ids, loff_t pos,
+ 					      loff_t *new_pos)
+ {
+-	struct kern_ipc_perm *ipc;
+-	int total, id;
++	struct kern_ipc_perm *ipc = NULL;
++	int max_idx = ipc_get_maxidx(ids);
+ 
+-	total = 0;
+-	for (id = 0; id < pos && total < ids->in_use; id++) {
+-		ipc = idr_find(&ids->ipcs_idr, id);
+-		if (ipc != NULL)
+-			total++;
+-	}
+-
+-	ipc = NULL;
+-	if (total >= ids->in_use)
++	if (max_idx == -1 || pos > max_idx)
+ 		goto out;
+ 
+-	for (; pos < ipc_mni; pos++) {
++	for (; pos <= max_idx; pos++) {
+ 		ipc = idr_find(&ids->ipcs_idr, pos);
+ 		if (ipc != NULL) {
+ 			rcu_read_lock();
 _
