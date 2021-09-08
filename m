@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-20.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E74AEC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:19:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33B5DC433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:19:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC0C76108B
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:19:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1162660187
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:19:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346920AbhIHCUQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1345390AbhIHCUQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 7 Sep 2021 22:20:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59396 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:59324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345390AbhIHCUO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S235450AbhIHCUO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Tue, 7 Sep 2021 22:20:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A72F06108B;
-        Wed,  8 Sep 2021 02:19:04 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A305F60187;
+        Wed,  8 Sep 2021 02:19:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631067544;
-        bh=1rIJ5gUgMGldcG+wol21tYwCTfvZ+eZ87HYmEnVPxI0=;
+        s=korg; t=1631067541;
+        bh=+TXJXDDbQWNhb/Gi64OqF2RdBY9qT9SBBKGW39jbDsc=;
         h=Date:From:To:Subject:From;
-        b=viv+mP3a/Od3ZOuP42EnDpN+DnpKCdWmzR7saooMKIj3bpA7DmjuxGs6gfu/Str4V
-         DgWSvF2Q8BLhGTq81sJtbI3KcRSDEP1VVJL+agotSo/1Zr018Zb1h8XvT9A5jQs4PR
-         wlP3nX+YARhZM/W8LSQkgzhBJJtOVaHcW2H9Ds/0=
-Date:   Tue, 07 Sep 2021 19:19:04 -0700
+        b=X1cfkT+ATjxrVeEkf95WlnHuYQa/ae5+N9otv7eSwchHc097h3FLjkszvCeZEHirJ
+         V6Pr62SBC0KjqbaAyrLLyrVCrsgWV1u1x1N81bRMQ7yTikBRyBkk9LU8IEZdN6mnb0
+         /oeRjDQXDO0suTV4Aj7RL1J8X+6/Vyrz9cV2uRis=
+Date:   Tue, 07 Sep 2021 19:19:01 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, mm-commits@vger.kernel.org, sjpark@amazon.de
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        sfr@canb.auug.org.au, sjpark@amazon.de
 Subject:  [folded-merged]
  =?US-ASCII?Q?mm-damon-implement-primitives-for-the-virtual-memory-addres?=
- =?US-ASCII?Q?s-spaces-fix-3.patch?= removed from -mm tree
-Message-ID: <20210908021904.ykDAIWGyE%akpm@linux-foundation.org>
+ =?US-ASCII?Q?s-spaces-fix-2.patch?= removed from -mm tree
+Message-ID: <20210908021901.8BghyHOay%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -45,213 +46,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/vaddr: safely walk page table
+     Subject: mm/damon/Kconfig: Remove unnecessary PAGE_EXTENSION setup
 has been removed from the -mm tree.  Its filename was
-     mm-damon-implement-primitives-for-the-virtual-memory-address-spaces-fix-3.patch
+     mm-damon-implement-primitives-for-the-virtual-memory-address-spaces-fix-2.patch
 
 This patch was dropped because it was folded into mm-damon-implement-primitives-for-the-virtual-memory-address-spaces.patch
 
 ------------------------------------------------------
 From: SeongJae Park <sjpark@amazon.de>
-Subject: mm/damon/vaddr: safely walk page table
+Subject: mm/damon/Kconfig: Remove unnecessary PAGE_EXTENSION setup
 
-Commit d7f647622761 ("mm/damon: implement primitives for the virtual
-memory address spaces") of linux-mm[1] tries to find PTE or PMD for
-arbitrary virtual address using 'follow_invalidate_pte()' without proper
-locking[2].  This commit fixes the issue by using another page table walk
-function for more general use case ('walk_page_range()') under proper
-locking (holding mmap read lock).
+Commit 13d49dbd0123 ("mm/damon: implement primitives for the virtual
+memory address spaces") of linux-mm[1] makes DAMON_VADDR to set
+PAGE_IDLE_FLAG.  PAGE_IDLE_FLAG sets PAGE_EXTENSION if !64BIT.  However,
+DAMON_VADDR do the same work again.  This commit removes the unnecessary
+duplicate.
 
-[1] https://github.com/hnaz/linux-mm/commit/d7f647622761
-[2] https://lore.kernel.org/linux-mm/3b094493-9c1e-6024-bfd5-7eca66399b7e@redhat.com
+[1] https://github.com/hnaz/linux-mm/commit/13d49dbd0123
 
-Link: https://lkml.kernel.org/r/20210831161800.29419-1-sj38.park@gmail.com
-Fixes: d7f647622761 ("mm/damon: implement primitives for the virtual memory address spaces")
+Link: https://lkml.kernel.org/r/20210806095153.6444-2-sj38.park@gmail.com
+Fixes: 13d49dbd0123 ("mm/damon: implement primitives for the virtual memory address spaces")
 Signed-off-by: SeongJae Park <sjpark@amazon.de>
-Reported-by: David Hildenbrand <david@redhat.com>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |  136 ++++++++++++++++++++++++++++++++-------------
- 1 file changed, 97 insertions(+), 39 deletions(-)
+ mm/damon/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/damon/vaddr.c~mm-damon-implement-primitives-for-the-virtual-memory-address-spaces-fix-3
-+++ a/mm/damon/vaddr.c
-@@ -8,10 +8,12 @@
- #define pr_fmt(fmt) "damon-va: " fmt
- 
- #include <linux/damon.h>
-+#include <linux/hugetlb.h>
- #include <linux/mm.h>
- #include <linux/mmu_notifier.h>
- #include <linux/highmem.h>
- #include <linux/page_idle.h>
-+#include <linux/pagewalk.h>
- #include <linux/random.h>
- #include <linux/sched/mm.h>
- #include <linux/slab.h>
-@@ -441,22 +443,42 @@ static void damon_pmdp_mkold(pmd_t *pmd,
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
- }
- 
--static void damon_va_mkold(struct mm_struct *mm, unsigned long addr)
-+static int damon_mkold_pmd_entry(pmd_t *pmd, unsigned long addr,
-+		unsigned long next, struct mm_walk *walk)
- {
--	pte_t *pte = NULL;
--	pmd_t *pmd = NULL;
-+	pte_t *pte;
- 	spinlock_t *ptl;
- 
--	if (follow_invalidate_pte(mm, addr, NULL, &pte, &pmd, &ptl))
--		return;
--
--	if (pte) {
--		damon_ptep_mkold(pte, mm, addr);
--		pte_unmap_unlock(pte, ptl);
--	} else {
--		damon_pmdp_mkold(pmd, mm, addr);
-+	if (pmd_huge(*pmd)) {
-+		ptl = pmd_lock(walk->mm, pmd);
-+		if (pmd_huge(*pmd)) {
-+			damon_pmdp_mkold(pmd, walk->mm, addr);
-+			spin_unlock(ptl);
-+			return 0;
-+		}
- 		spin_unlock(ptl);
- 	}
-+
-+	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
-+		return 0;
-+	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (!pte_present(*pte))
-+		goto out;
-+	damon_ptep_mkold(pte, walk->mm, addr);
-+out:
-+	pte_unmap_unlock(pte, ptl);
-+	return 0;
-+}
-+
-+static struct mm_walk_ops damon_mkold_ops = {
-+	.pmd_entry = damon_mkold_pmd_entry,
-+};
-+
-+static void damon_va_mkold(struct mm_struct *mm, unsigned long addr)
-+{
-+	mmap_read_lock(mm);
-+	walk_page_range(mm, addr, addr + 1, &damon_mkold_ops, NULL);
-+	mmap_read_unlock(mm);
- }
- 
- /*
-@@ -487,43 +509,79 @@ void damon_va_prepare_access_checks(stru
- 	}
- }
- 
--static bool damon_va_young(struct mm_struct *mm, unsigned long addr,
--			unsigned long *page_sz)
-+struct damon_young_walk_private {
-+	unsigned long *page_sz;
-+	bool young;
-+};
-+
-+static int damon_young_pmd_entry(pmd_t *pmd, unsigned long addr,
-+		unsigned long next, struct mm_walk *walk)
- {
--	pte_t *pte = NULL;
--	pmd_t *pmd = NULL;
-+	pte_t *pte;
- 	spinlock_t *ptl;
- 	struct page *page;
--	bool young = false;
--
--	if (follow_invalidate_pte(mm, addr, NULL, &pte, &pmd, &ptl))
--		return false;
--
--	*page_sz = PAGE_SIZE;
--	if (pte) {
--		page = damon_get_page(pte_pfn(*pte));
--		if (page && (pte_young(*pte) || !page_is_idle(page) ||
--					mmu_notifier_test_young(mm, addr)))
--			young = true;
--		if (page)
--			put_page(page);
--		pte_unmap_unlock(pte, ptl);
--		return young;
--	}
-+	struct damon_young_walk_private *priv = walk->private;
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	page = damon_get_page(pmd_pfn(*pmd));
--	if (page && (pmd_young(*pmd) || !page_is_idle(page) ||
--			mmu_notifier_test_young(mm, addr)))
--		young = true;
--	if (page)
-+	if (pmd_huge(*pmd)) {
-+		ptl = pmd_lock(walk->mm, pmd);
-+		if (!pmd_huge(*pmd)) {
-+			spin_unlock(ptl);
-+			goto regular_page;
-+		}
-+		page = damon_get_page(pmd_pfn(*pmd));
-+		if (!page)
-+			goto huge_out;
-+		if (pmd_young(*pmd) || !page_is_idle(page) ||
-+					mmu_notifier_test_young(walk->mm,
-+						addr)) {
-+			*priv->page_sz = ((1UL) << HPAGE_PMD_SHIFT);
-+			priv->young = true;
-+		}
- 		put_page(page);
-+huge_out:
-+		spin_unlock(ptl);
-+		return 0;
-+	}
- 
--	spin_unlock(ptl);
--	*page_sz = ((1UL) << HPAGE_PMD_SHIFT);
-+regular_page:
- #endif	/* CONFIG_TRANSPARENT_HUGEPAGE */
- 
--	return young;
-+	if (pmd_none(*pmd) || unlikely(pmd_bad(*pmd)))
-+		return -EINVAL;
-+	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-+	if (!pte_present(*pte))
-+		goto out;
-+	page = damon_get_page(pte_pfn(*pte));
-+	if (!page)
-+		goto out;
-+	if (pte_young(*pte) || !page_is_idle(page) ||
-+			mmu_notifier_test_young(walk->mm, addr)) {
-+		*priv->page_sz = PAGE_SIZE;
-+		priv->young = true;
-+	}
-+	put_page(page);
-+out:
-+	pte_unmap_unlock(pte, ptl);
-+	return 0;
-+}
-+
-+static struct mm_walk_ops damon_young_ops = {
-+	.pmd_entry = damon_young_pmd_entry,
-+};
-+
-+static bool damon_va_young(struct mm_struct *mm, unsigned long addr,
-+		unsigned long *page_sz)
-+{
-+	struct damon_young_walk_private arg = {
-+		.page_sz = page_sz,
-+		.young = false,
-+	};
-+
-+	mmap_read_lock(mm);
-+	walk_page_range(mm, addr, addr + 1, &damon_young_ops, &arg);
-+	mmap_read_unlock(mm);
-+	return arg.young;
- }
- 
- /*
+--- a/mm/damon/Kconfig~mm-damon-implement-primitives-for-the-virtual-memory-address-spaces-fix-2
++++ a/mm/damon/Kconfig
+@@ -15,7 +15,6 @@ config DAMON
+ config DAMON_VADDR
+ 	bool "Data access monitoring primitives for virtual address spaces"
+ 	depends on DAMON && MMU
+-	select PAGE_EXTENSION if !64BIT
+ 	select PAGE_IDLE_FLAG
+ 	help
+ 	  This builds the default data access monitoring primitives for DAMON
 _
 
 Patches currently in -mm which might be from sjpark@amazon.de are
@@ -261,6 +95,7 @@ mm-damon-core-implement-region-based-sampling.patch
 mm-damon-adaptively-adjust-regions.patch
 mm-idle_page_tracking-make-pg_idle-reusable.patch
 mm-damon-implement-primitives-for-the-virtual-memory-address-spaces.patch
+mm-damon-implement-primitives-for-the-virtual-memory-address-spaces-fix-3.patch
 mm-damon-add-a-tracepoint.patch
 mm-damon-implement-a-debugfs-based-user-space-interface.patch
 mm-damon-dbgfs-export-kdamond-pid-to-the-user-space.patch
