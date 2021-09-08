@@ -7,42 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
 	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AF47C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:55:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41646C433FE
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:55:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47F3C60555
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:55:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28D6D61130
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Sep 2021 02:55:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347409AbhIHC5D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Sep 2021 22:57:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53704 "EHLO mail.kernel.org"
+        id S1346101AbhIHC5F (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Sep 2021 22:57:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53848 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347472AbhIHC44 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 7 Sep 2021 22:56:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2E17761102;
-        Wed,  8 Sep 2021 02:55:49 +0000 (UTC)
+        id S1347302AbhIHC5D (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 7 Sep 2021 22:57:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B2B9C6112F;
+        Wed,  8 Sep 2021 02:55:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631069749;
-        bh=SQHnYkLOgNbmohKV8F5doYV4oVImOvsnfrHWjHHGDKQ=;
+        s=korg; t=1631069756;
+        bh=nFrc7mZ8EW1yGDw5KjWEW6ACBx0L2kgLk7MwftLmXew=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=SJw/FhR7mBm/f0Mdw5GzycZjQiVhpC5iBxkybDQ6fhe/wULBqIvhJBXZJdov1i1NP
-         FC0aSz6Up7YJCLC5xobfgXgqiN7fKkNIIxHCYHePv1Hihj2pUb5/rDf7rnhdMzY0yM
-         ocOkwgsBVOuzeJH8Y8QCLU40/3ZfwPeP5SUkE+aM=
-Date:   Tue, 07 Sep 2021 19:55:48 -0700
+        b=TuC3dM81Wun7lQbvNjcdRycGlb14liTYWYEqZcFtPF5BbfvhG6wgN9tknnhy0qu3m
+         OVrlGwOQVN7OGG5Uyy1lblWb8+Sh+zr+dl0W6E7o1YVJjGJEmBoqUkxl8V+oFYC68D
+         /C+VR3k9ua5Mom8L39z7OmR/Djz56344STHlJu7M=
+Date:   Tue, 07 Sep 2021 19:55:55 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
-        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        david@redhat.com, gregkh@linuxfoundation.org, jasowang@redhat.com,
-        lenb@kernel.org, linux-mm@kvack.org, mhocko@kernel.org,
-        mkedzier@redhat.com, mm-commits@vger.kernel.org, mst@redhat.com,
-        osalvador@suse.de, pankaj.gupta.linux@gmail.com,
-        pasha.tatashin@soleen.com, rafael.j.wysocki@intel.com,
-        richard.weiyang@linux.alibaba.com, rjw@rjwysocki.net,
-        rppt@kernel.org, teawater@gmail.com, torvalds@linux-foundation.org,
-        vbabka@suse.cz, vkuznets@redhat.com
-Subject:  [patch 050/147] mm/memory_hotplug: improved dynamic
- memory group aware "auto-movable" online policy
-Message-ID: <20210908025548.DzGM9hwPQ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dhowells@redhat.com, hannes@cmpxchg.org,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        torvalds@linux-foundation.org, william.kucharski@oracle.com,
+        willy@infradead.org
+Subject:  [patch 052/147] mm: remove redundant compound_head()
+ calling
+Message-ID: <20210908025555.vSbhhchuo%akpm@linux-foundation.org>
 In-Reply-To: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -50,253 +45,68 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: mm/memory_hotplug: improved dynamic memory group aware "auto-movable" online policy
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: remove redundant compound_head() calling
 
-Currently, the "auto-movable" online policy does not allow for hotplugged
-KERNEL (ZONE_NORMAL) memory to increase the amount of MOVABLE memory we
-can have, primarily, because there is no coordiantion across memory
-devices and we don't want to create zone-imbalances accidentially when
-unplugging memory.
+There is a READ_ONCE() in the macro of compound_head(), which will prevent
+compiler from optimizing the code when there are more than once calling of
+it in a function.  Remove the redundant calling of compound_head() from
+page_to_index() and page_add_file_rmap() for better code generation.
 
-However, within a single memory device it's different.  Let's allow for
-KERNEL memory within a dynamic memory group to allow for more MOVABLE
-within the same memory group.  The only thing we have to take care of is
-that the managing driver avoids zone imbalances by unplugging MOVABLE
-memory first, otherwise there can be corner cases where unplug of memory
-could result in (accidential) zone imbalances.
-
-virtio-mem is the only user of dynamic memory groups and recently added
-support for prioritizing unplug of ZONE_MOVABLE over ZONE_NORMAL, so we
-don't need a new toggle to enable it for dynamic memory groups.
-
-We limit this handling to dynamic memory groups, because:
-
-* We want to keep the runtime overhead for collecting stats when
-  onlining a single memory block small.  We tend to have only a handful of
-  dynamic memory groups, but we can have quite some static memory groups
-  (e.g., 256 DIMMs).
-
-* It doesn't make too much sense for static memory groups, as we try
-  onlining all applicable memory blocks either completely to ZONE_MOVABLE
-  or not.  In ordinary operation, we won't have a mixture of zones within
-  a static memory group.
-
-When adding memory to a dynamic memory group, we'll first online memory to
-ZONE_MOVABLE as long as early KERNEL memory allows for it.  Then, we'll
-online the next unit(s) to ZONE_NORMAL, until we can online the next
-unit(s) to ZONE_MOVABLE.
-
-For a simple virtio-mem device with a MOVABLE:KERNEL ratio of 3:1, it will
-result in a layout like:
-
-  [M][M][M][M][M][M][M][M][N][M][M][M][N][M][M][M]...
-  ^ movable memory due to early kernel memory
-			   ^ allows for more movable memory ...
-			      ^-----^ ... here
-				       ^ allows for more movable memory ...
-				          ^-----^ ... here
-
-While the created layout is sub-optimal when it comes to contiguous zones,
-it gives us the maximum flexibility when dynamically growing/shrinking a
-device; we can grow small VMs really big in small steps, and still shrink
-reliably to e.g., 1/4 of the maximum VM size in this example, removing
-full memory blocks along with meta data more reliably.
-
-Mark dynamic memory groups in the xarray such that we can efficiently
-iterate over them when collecting stats.  In usual setups, we have one
-virtio-mem device per NUMA node, and usually only a small number of NUMA
-nodes.
-
-Note: for now, there seems to be no compelling reason to make this
-behavior configurable.
-
-Link: https://lkml.kernel.org/r/20210806124715.17090-10-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hui Zhu <teawater@gmail.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Marek Kedzierski <mkedzier@redhat.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20210811101431.83940-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: David Howells <dhowells@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c  |   30 +++++++++++++++++++
- include/linux/memory.h |    3 +
- mm/memory_hotplug.c    |   60 ++++++++++++++++++++++++++++++++++++---
- 3 files changed, 89 insertions(+), 4 deletions(-)
+ include/linux/pagemap.h |    7 +++----
+ mm/rmap.c               |    6 ++++--
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
---- a/drivers/base/memory.c~mm-memory_hotplug-improved-dynamic-memory-group-aware-auto-movable-online-policy
-+++ a/drivers/base/memory.c
-@@ -86,6 +86,7 @@ static DEFINE_XARRAY(memory_blocks);
-  * Memory groups, indexed by memory group id (mgid).
+--- a/include/linux/pagemap.h~mm-remove-redundant-compound_head-calling
++++ a/include/linux/pagemap.h
+@@ -521,18 +521,17 @@ static inline struct page *read_mapping_
   */
- static DEFINE_XARRAY_FLAGS(memory_groups, XA_FLAGS_ALLOC);
-+#define MEMORY_GROUP_MARK_DYNAMIC	XA_MARK_1
- 
- static BLOCKING_NOTIFIER_HEAD(memory_chain);
- 
-@@ -939,6 +940,8 @@ static int memory_group_register(struct
- 	if (ret) {
- 		kfree(new_group);
- 		return ret;
-+	} else if (group.is_dynamic) {
-+		xa_set_mark(&memory_groups, mgid, MEMORY_GROUP_MARK_DYNAMIC);
- 	}
- 	return mgid;
- }
-@@ -1044,3 +1047,30 @@ struct memory_group *memory_group_find_b
+ static inline pgoff_t page_to_index(struct page *page)
  {
- 	return xa_load(&memory_groups, mgid);
- }
-+
-+/*
-+ * This is an internal helper only to be used in core memory hotplug code to
-+ * walk all dynamic memory groups excluding a given memory group, either
-+ * belonging to a specific node, or belonging to any node.
-+ */
-+int walk_dynamic_memory_groups(int nid, walk_memory_groups_func_t func,
-+			       struct memory_group *excluded, void *arg)
-+{
-+	struct memory_group *group;
-+	unsigned long index;
-+	int ret = 0;
-+
-+	xa_for_each_marked(&memory_groups, index, group,
-+			   MEMORY_GROUP_MARK_DYNAMIC) {
-+		if (group == excluded)
-+			continue;
-+#ifdef CONFIG_NUMA
-+		if (nid != NUMA_NO_NODE && group->nid != nid)
-+			continue;
-+#endif /* CONFIG_NUMA */
-+		ret = func(group, arg);
-+		if (ret)
-+			break;
-+	}
-+	return ret;
-+}
---- a/include/linux/memory.h~mm-memory_hotplug-improved-dynamic-memory-group-aware-auto-movable-online-policy
-+++ a/include/linux/memory.h
-@@ -146,6 +146,9 @@ extern int memory_group_register_static(
- extern int memory_group_register_dynamic(int nid, unsigned long unit_pages);
- extern int memory_group_unregister(int mgid);
- struct memory_group *memory_group_find_by_id(int mgid);
-+typedef int (*walk_memory_groups_func_t)(struct memory_group *, void *);
-+int walk_dynamic_memory_groups(int nid, walk_memory_groups_func_t func,
-+			       struct memory_group *excluded, void *arg);
- #endif /* CONFIG_MEMORY_HOTPLUG_SPARSE */
+-	pgoff_t pgoff;
++	struct page *head;
  
- #ifdef CONFIG_MEMORY_HOTPLUG
---- a/mm/memory_hotplug.c~mm-memory_hotplug-improved-dynamic-memory-group-aware-auto-movable-online-policy
-+++ a/mm/memory_hotplug.c
-@@ -752,11 +752,44 @@ static void auto_movable_stats_account_z
- #endif /* CONFIG_CMA */
- 	}
- }
-+struct auto_movable_group_stats {
-+	unsigned long movable_pages;
-+	unsigned long req_kernel_early_pages;
-+};
+ 	if (likely(!PageTransTail(page)))
+ 		return page->index;
  
--static bool auto_movable_can_online_movable(int nid, unsigned long nr_pages)
-+static int auto_movable_stats_account_group(struct memory_group *group,
-+					   void *arg)
-+{
-+	const int ratio = READ_ONCE(auto_movable_ratio);
-+	struct auto_movable_group_stats *stats = arg;
-+	long pages;
-+
-+	/*
-+	 * We don't support modifying the config while the auto-movable online
-+	 * policy is already enabled. Just avoid the division by zero below.
-+	 */
-+	if (!ratio)
-+		return 0;
-+
-+	/*
-+	 * Calculate how many early kernel pages this group requires to
-+	 * satisfy the configured zone ratio.
-+	 */
-+	pages = group->present_movable_pages * 100 / ratio;
-+	pages -= group->present_kernel_pages;
-+
-+	if (pages > 0)
-+		stats->req_kernel_early_pages += pages;
-+	stats->movable_pages += group->present_movable_pages;
-+	return 0;
-+}
-+
-+static bool auto_movable_can_online_movable(int nid, struct memory_group *group,
-+					    unsigned long nr_pages)
- {
--	struct auto_movable_stats stats = {};
- 	unsigned long kernel_early_pages, movable_pages;
-+	struct auto_movable_group_stats group_stats = {};
-+	struct auto_movable_stats stats = {};
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	struct zone *zone;
- 	int i;
-@@ -778,6 +811,21 @@ static bool auto_movable_can_online_mova
- 	movable_pages = stats.movable_pages;
- 
++	head = compound_head(page);
  	/*
-+	 * Kernel memory inside dynamic memory group allows for more MOVABLE
-+	 * memory within the same group. Remove the effect of all but the
-+	 * current group from the stats.
-+	 */
-+	walk_dynamic_memory_groups(nid, auto_movable_stats_account_group,
-+				   group, &group_stats);
-+	if (kernel_early_pages <= group_stats.req_kernel_early_pages)
-+		return false;
-+	kernel_early_pages -= group_stats.req_kernel_early_pages;
-+	movable_pages -= group_stats.movable_pages;
-+
-+	if (group && group->is_dynamic)
-+		kernel_early_pages += group->present_kernel_pages;
-+
-+	/*
- 	 * Test if we could online the given number of pages to ZONE_MOVABLE
- 	 * and still stay in the configured ratio.
+ 	 *  We don't initialize ->index for tail pages: calculate based on
+ 	 *  head page
  	 */
-@@ -834,6 +882,10 @@ static struct zone *default_kernel_zone_
-  *    with unmovable allocations). While there are corner cases where it might
-  *    still work, it is barely relevant in practice.
-  *
-+ * Exceptions are dynamic memory groups, which allow for more MOVABLE
-+ * memory within the same memory group -- because in that case, there is
-+ * coordination within the single memory device managed by a single driver.
-+ *
-  * We rely on "present pages" instead of "managed pages", as the latter is
-  * highly unreliable and dynamic in virtualized environments, and does not
-  * consider boot time allocations. For example, memory ballooning adjusts the
-@@ -899,12 +951,12 @@ static struct zone *auto_movable_zone_fo
- 	 * nobody interferes, all will be MOVABLE if possible.
- 	 */
- 	nr_pages = max_pages - online_pages;
--	if (!auto_movable_can_online_movable(NUMA_NO_NODE, nr_pages))
-+	if (!auto_movable_can_online_movable(NUMA_NO_NODE, group, nr_pages))
- 		goto kernel_zone;
+-	pgoff = compound_head(page)->index;
+-	pgoff += page - compound_head(page);
+-	return pgoff;
++	return head->index + page - head;
+ }
  
- #ifdef CONFIG_NUMA
- 	if (auto_movable_numa_aware &&
--	    !auto_movable_can_online_movable(nid, nr_pages))
-+	    !auto_movable_can_online_movable(nid, group, nr_pages))
- 		goto kernel_zone;
- #endif /* CONFIG_NUMA */
+ extern pgoff_t hugetlb_basepage_index(struct page *page);
+--- a/mm/rmap.c~mm-remove-redundant-compound_head-calling
++++ a/mm/rmap.c
+@@ -1230,11 +1230,13 @@ void page_add_file_rmap(struct page *pag
+ 						nr_pages);
+ 	} else {
+ 		if (PageTransCompound(page) && page_mapping(page)) {
++			struct page *head = compound_head(page);
++
+ 			VM_WARN_ON_ONCE(!PageLocked(page));
  
+-			SetPageDoubleMap(compound_head(page));
++			SetPageDoubleMap(head);
+ 			if (PageMlocked(page))
+-				clear_page_mlock(compound_head(page));
++				clear_page_mlock(head);
+ 		}
+ 		if (!atomic_inc_and_test(&page->_mapcount))
+ 			goto out;
 _
