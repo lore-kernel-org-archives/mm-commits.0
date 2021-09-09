@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 579ADC433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 320A0C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44C2E61186
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CAED6103E
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345722AbhIIVCI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:02:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50282 "EHLO mail.kernel.org"
+        id S1345793AbhIIVCL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:02:11 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50316 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345513AbhIIVCG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:02:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AC4886103D;
-        Thu,  9 Sep 2021 21:00:56 +0000 (UTC)
+        id S1345513AbhIIVCJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:02:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AACD361026;
+        Thu,  9 Sep 2021 21:00:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221257;
-        bh=RCyJ8yEf+RomXW/zENrBSoz/J6CXoKOQ3+bSFDXI1CY=;
+        s=korg; t=1631221259;
+        bh=MPmc6PcyAC0hh7rJvkQl10e8YkB5phfz7j5NC/Z82J8=;
         h=Date:From:To:Subject:From;
-        b=AGmR+RJ3VzMXMlDhlS7QxX15VwdULj1Tq50lLuyJV7B3E0hPFSAXY+QCyCsjciOYM
-         i2qIjnUjZnJctb0VMGoUdUZe5pPK3VonPLwEMzsDDgkqdnXg2TnUgKp4CaENhCoeav
-         HsOBsgyg8Z0bGRiBl8bRYuoAxk3Wo3DVD8TGoGHU=
-Date:   Thu, 09 Sep 2021 14:00:56 -0700
+        b=K/R3BSeuVO1Cs6xKYzfyCO5TQasvMQI5y16wDeteeJhL4SZJ9Bc3bhK242ca8L/L/
+         jPz2QwXK6HUaAEDWv6ev97cJm61FcOJ8uiJT+nr7OTDaT3iB/Jqo39Ea0CYm9YgF4O
+         HXNkcDu0Vku9K5du7zsQBFH0pWwoRRc0i/5viXq0=
+Date:   Thu, 09 Sep 2021 14:00:58 -0700
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
         efault@gmx.de, iamjoonsoo.kim@lge.com, jannh@google.com,
@@ -36,9 +36,9 @@ To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
         penberg@kernel.org, quic_qiancai@quicinc.com, rientjes@google.com,
         tglx@linutronix.de, vbabka@suse.cz
 Subject:  [merged]
- mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled.patch
+ mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials.patch
  removed from -mm tree
-Message-ID: <20210909210056.IVGCvPlZo%akpm@linux-foundation.org>
+Message-ID: <20210909210058.yNuaFi77L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,20 +47,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: discard slabs in unfreeze_partials() without irqs disabled
+     Subject: mm, slub: detach whole partial list at once in unfreeze_partials()
 has been removed from the -mm tree.  Its filename was
-     mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled.patch
+     mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: discard slabs in unfreeze_partials() without irqs disabled
+Subject: mm, slub: detach whole partial list at once in unfreeze_partials()
 
-No need for disabled irqs when discarding slabs, so restore them before
-discarding.
+Instead of iterating through the live percpu partial list, detach it from
+the kmem_cache_cpu at once.  This is simpler and will allow further
+optimization.
 
-Link: https://lkml.kernel.org/r/20210904105003.11688-23-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210904105003.11688-24-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -76,28 +77,35 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slub.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
---- a/mm/slub.c~mm-slub-discard-slabs-in-unfreeze_partials-without-irqs-disabled
+--- a/mm/slub.c~mm-slub-detach-whole-partial-list-at-once-in-unfreeze_partials
 +++ a/mm/slub.c
-@@ -2406,6 +2406,8 @@ static void unfreeze_partials(struct kme
- 	if (n)
- 		spin_unlock(&n->list_lock);
+@@ -2358,16 +2358,20 @@ static void unfreeze_partials(struct kme
+ {
+ #ifdef CONFIG_SLUB_CPU_PARTIAL
+ 	struct kmem_cache_node *n = NULL, *n2 = NULL;
+-	struct page *page, *discard_page = NULL;
++	struct page *page, *partial_page, *discard_page = NULL;
+ 	unsigned long flags;
  
-+	local_irq_restore(flags);
+ 	local_irq_save(flags);
+ 
+-	while ((page = slub_percpu_partial(c))) {
++	partial_page = slub_percpu_partial(c);
++	c->partial = NULL;
 +
- 	while (discard_page) {
- 		page = discard_page;
- 		discard_page = discard_page->next;
-@@ -2415,7 +2417,6 @@ static void unfreeze_partials(struct kme
- 		stat(s, FREE_SLAB);
- 	}
++	while (partial_page) {
+ 		struct page new;
+ 		struct page old;
  
--	local_irq_restore(flags);
- #endif	/* CONFIG_SLUB_CPU_PARTIAL */
- }
+-		slub_set_percpu_partial(c, page);
++		page = partial_page;
++		partial_page = page->next;
  
+ 		n2 = get_node(s, page_to_nid(page));
+ 		if (n != n2) {
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
