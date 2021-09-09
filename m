@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF1F9C433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85BADC433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA76D611EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 72F16611EF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345722AbhIIVEz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:04:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53880 "EHLO mail.kernel.org"
+        id S1346654AbhIIVFD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:05:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348704AbhIIVD6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:03:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E8C00611B0;
-        Thu,  9 Sep 2021 21:02:47 +0000 (UTC)
+        id S1349090AbhIIVEG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:04:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E6391611BD;
+        Thu,  9 Sep 2021 21:02:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221369;
-        bh=oHNxZKfRtA/yjTPxCEaWHpTneRinzu2aySV6fRkRkiU=;
+        s=korg; t=1631221376;
+        bh=VroxilNZ+lhCD6EPOtOCFpI+WFL+fgT8JVhq7UX30V0=;
         h=Date:From:To:Subject:From;
-        b=nGyOHoxdOZzCXOhZZz9HONGhRpbAuLLMtJFc/KgYcFYaRgks2VuigE/ihK9GIexz+
-         0/H10CuVZpWxvDcAvqKoIaaFHLA3Oyxv+z2zI04ABkTkFqrYypYReUx+U/vCj0+I8a
-         xvPF2YOSyaR1j1kQhQtchFicALW/0YU3M/Kb/Zd4=
-Date:   Thu, 09 Sep 2021 14:02:47 -0700
+        b=Xc+EGSLuJ/AYxJMy+/oM4Qfqg1NeiTmPTJZvuTXMDMb0zqV5964XkdnBm+rEe9f/y
+         W8Kc6O0ybIEmqMEAazXQvXfK9kR4EhnddXXa7fL9x6OEWuEBRILuBowKaAzLDjO1K5
+         5aAoPDNCBiit+KZAdgNHUPvBRfZte3FEx/YD8ahU=
+Date:   Thu, 09 Sep 2021 14:02:55 -0700
 From:   akpm@linux-foundation.org
 To:     alexander.shishkin@linux.intel.com, amit@kernel.org,
         benh@kernel.crashing.org, brendanhiggins@google.com,
@@ -42,9 +42,10 @@ To:     alexander.shishkin@linux.intel.com, amit@kernel.org,
         rostedt@goodmis.org, shakeelb@google.com, shuah@kernel.org,
         sieberf@amazon.com, sjpark@amazon.de, vbabka@suse.cz,
         vdavydov.dev@gmail.com
-Subject:  [merged] mm-damon-add-a-tracepoint.patch removed from -mm
+Subject:  [merged]
+ mm-damon-dbgfs-export-kdamond-pid-to-the-user-space.patch removed from -mm
  tree
-Message-ID: <20210909210247.bJC2bcBl6%akpm@linux-foundation.org>
+Message-ID: <20210909210255.9cEgwxTKm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,26 +54,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: add a tracepoint
+     Subject: mm/damon/dbgfs: export kdamond pid to the user space
 has been removed from the -mm tree.  Its filename was
-     mm-damon-add-a-tracepoint.patch
+     mm-damon-dbgfs-export-kdamond-pid-to-the-user-space.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: SeongJae Park <sjpark@amazon.de>
-Subject: mm/damon: add a tracepoint
+Subject: mm/damon/dbgfs: export kdamond pid to the user space
 
-This commit adds a tracepoint for DAMON.  It traces the monitoring results
-of each region for each aggregation interval.  Using this, DAMON can
-easily integrated with tracepoints supporting tools such as perf.
+For CPU usage accounting, knowing pid of the monitoring thread could be
+helpful.  For example, users could use cpuaccount cgroups with the pid.
 
-Link: https://lkml.kernel.org/r/20210716081449.22187-7-sj38.park@gmail.com
+This commit therefore exports the pid of currently running monitoring
+thread to the user space via 'kdamond_pid' file in the debugfs directory.
+
+Link: https://lkml.kernel.org/r/20210716081449.22187-9-sj38.park@gmail.com
 Signed-off-by: SeongJae Park <sjpark@amazon.de>
-Reviewed-by: Leonard Foerster <foersleo@amazon.de>
-Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Reviewed-by: Fernand Sieber <sieberf@amazon.com>
-Acked-by: Shakeel Butt <shakeelb@google.com>
 Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -87,6 +87,7 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Leonard Foerster <foersleo@amazon.de>
 Cc: Marco Elver <elver@google.com>
 Cc: Markus Boehme <markubo@amazon.de>
 Cc: Maximilian Heyne <mheyne@amazon.de>
@@ -95,86 +96,72 @@ Cc: Minchan Kim <minchan@kernel.org>
 Cc: Namhyung Kim <namhyung@kernel.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/damon.h |   43 +++++++++++++++++++++++++++++++++
- mm/damon/core.c              |    7 ++++-
- 2 files changed, 49 insertions(+), 1 deletion(-)
+ mm/damon/dbgfs.c |   37 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
 
---- /dev/null
-+++ a/include/trace/events/damon.h
-@@ -0,0 +1,43 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#undef TRACE_SYSTEM
-+#define TRACE_SYSTEM damon
-+
-+#if !defined(_TRACE_DAMON_H) || defined(TRACE_HEADER_MULTI_READ)
-+#define _TRACE_DAMON_H
-+
-+#include <linux/damon.h>
-+#include <linux/types.h>
-+#include <linux/tracepoint.h>
-+
-+TRACE_EVENT(damon_aggregated,
-+
-+	TP_PROTO(struct damon_target *t, struct damon_region *r,
-+		unsigned int nr_regions),
-+
-+	TP_ARGS(t, r, nr_regions),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, target_id)
-+		__field(unsigned int, nr_regions)
-+		__field(unsigned long, start)
-+		__field(unsigned long, end)
-+		__field(unsigned int, nr_accesses)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->target_id = t->id;
-+		__entry->nr_regions = nr_regions;
-+		__entry->start = r->ar.start;
-+		__entry->end = r->ar.end;
-+		__entry->nr_accesses = r->nr_accesses;
-+	),
-+
-+	TP_printk("target_id=%lu nr_regions=%u %lu-%lu: %u",
-+			__entry->target_id, __entry->nr_regions,
-+			__entry->start, __entry->end, __entry->nr_accesses)
-+);
-+
-+#endif /* _TRACE_DAMON_H */
-+
-+/* This part must be outside protection */
-+#include <trace/define_trace.h>
---- a/mm/damon/core.c~mm-damon-add-a-tracepoint
-+++ a/mm/damon/core.c
-@@ -13,6 +13,9 @@
- #include <linux/random.h>
- #include <linux/slab.h>
- 
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/damon.h>
-+
- /* Get a random number in [l, r) */
- #define damon_rand(l, r) (l + prandom_u32_max(r - l))
- 
-@@ -387,8 +390,10 @@ static void kdamond_reset_aggregated(str
- 	damon_for_each_target(t, c) {
- 		struct damon_region *r;
- 
--		damon_for_each_region(r, t)
-+		damon_for_each_region(r, t) {
-+			trace_damon_aggregated(t, r, damon_nr_regions(t));
- 			r->nr_accesses = 0;
-+		}
- 	}
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-export-kdamond-pid-to-the-user-space
++++ a/mm/damon/dbgfs.c
+@@ -239,6 +239,32 @@ out:
+ 	return ret;
  }
  
++static ssize_t dbgfs_kdamond_pid_read(struct file *file,
++		char __user *buf, size_t count, loff_t *ppos)
++{
++	struct damon_ctx *ctx = file->private_data;
++	char *kbuf;
++	ssize_t len;
++
++	kbuf = kmalloc(count, GFP_KERNEL);
++	if (!kbuf)
++		return -ENOMEM;
++
++	mutex_lock(&ctx->kdamond_lock);
++	if (ctx->kdamond)
++		len = scnprintf(kbuf, count, "%d\n", ctx->kdamond->pid);
++	else
++		len = scnprintf(kbuf, count, "none\n");
++	mutex_unlock(&ctx->kdamond_lock);
++	if (!len)
++		goto out;
++	len = simple_read_from_buffer(buf, count, ppos, kbuf, len);
++
++out:
++	kfree(kbuf);
++	return len;
++}
++
+ static int damon_dbgfs_open(struct inode *inode, struct file *file)
+ {
+ 	file->private_data = inode->i_private;
+@@ -258,10 +284,17 @@ static const struct file_operations targ
+ 	.write = dbgfs_target_ids_write,
+ };
+ 
++static const struct file_operations kdamond_pid_fops = {
++	.open = damon_dbgfs_open,
++	.read = dbgfs_kdamond_pid_read,
++};
++
+ static void dbgfs_fill_ctx_dir(struct dentry *dir, struct damon_ctx *ctx)
+ {
+-	const char * const file_names[] = {"attrs", "target_ids"};
+-	const struct file_operations *fops[] = {&attrs_fops, &target_ids_fops};
++	const char * const file_names[] = {"attrs", "target_ids",
++		"kdamond_pid"};
++	const struct file_operations *fops[] = {&attrs_fops, &target_ids_fops,
++		&kdamond_pid_fops};
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(file_names); i++)
 _
 
 Patches currently in -mm which might be from sjpark@amazon.de are
