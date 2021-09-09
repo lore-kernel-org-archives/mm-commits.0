@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BDD41C43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52BB3C433FE
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC7F8611EF
+	by mail.kernel.org (Postfix) with ESMTP id 400C2611C8
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348026AbhIIVGy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:06:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56292 "EHLO mail.kernel.org"
+        id S1347901AbhIIVGx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:06:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56238 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232891AbhIIVG3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:06:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8BCFF611C4;
-        Thu,  9 Sep 2021 21:05:19 +0000 (UTC)
+        id S1348312AbhIIVGY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:06:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AFE63611C0;
+        Thu,  9 Sep 2021 21:05:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221519;
-        bh=RYtG5j1/39b42veNYyCSl5WBgYF2LVYowO9o6Orz/NE=;
+        s=korg; t=1631221514;
+        bh=6lHqxtHPYYLtmQAxR441dZ/B9D/0P9ArhmLWtNMv38A=;
         h=Date:From:To:Subject:From;
-        b=PLTC8C5jv/i2UNLD3C4u6hJ0bUGDa0H483v0J6O+0556foxkH4jccAgwVe5vBLUv2
-         X5ZVsjLFEPjl9sdU5rOrqZ6ZO4Ktr1eVdVyQxfjoJJHLEMUqHLuFdkfbVfF4Mvd1wF
-         pFOExEfYeOY9qHNvWSM9e1Xxwp4JiSE2vPWN0VbQ=
-Date:   Thu, 09 Sep 2021 14:05:19 -0700
+        b=gIX7vmoTAbQi4/gQLo+/WCroaOO8wfKTjnypLlSVFP1Fl2lrg4vzUntW6ZeT/BFzZ
+         ZPxWpz9edcMMorEfn3Q2yy3Dr6QuBL1W91baJzSO13b+qpIaPWDAerb3xFfcDA3y8r
+         4Dz20fCGfGx3qP/a9KmLtXreA95/954ebXJLe1gk=
+Date:   Thu, 09 Sep 2021 14:05:14 -0700
 From:   akpm@linux-foundation.org
-To:     gregkh@linuxfoundation.org, jannh@google.com,
-        mm-commits@vger.kernel.org, qiuxi1@huawei.com,
-        viro@zeniv.linux.org.uk
-Subject:  [merged] coredump-fix-memleak-in-dump_vma_snapshot.patch
- removed from -mm tree
-Message-ID: <20210909210519.-v4dDKYRs%akpm@linux-foundation.org>
+To:     konishi.ryusuke@gmail.com, mm-commits@vger.kernel.org,
+        thunder.leizhen@huawei.com
+Subject:  [merged]
+ nilfs2-use-refcount_dec_and_lock-to-fix-potential-uaf.patch removed from
+ -mm tree
+Message-ID: <20210909210514.Hou5dhIAj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,47 +44,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: fix memleak in dump_vma_snapshot()
+     Subject: nilfs2: use refcount_dec_and_lock() to fix potential UAF
 has been removed from the -mm tree.  Its filename was
-     coredump-fix-memleak-in-dump_vma_snapshot.patch
+     nilfs2-use-refcount_dec_and_lock-to-fix-potential-uaf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: QiuXi <qiuxi1@huawei.com>
-Subject: coredump: fix memleak in dump_vma_snapshot()
+From: Zhen Lei <thunder.leizhen@huawei.com>
+Subject: nilfs2: use refcount_dec_and_lock() to fix potential UAF
 
-dump_vma_snapshot() allocs memory for *vma_meta, when dump_vma_snapshot()
-returns -EFAULT, the memory will be leaked, so we free it correctly.
+When the refcount is decreased to 0, the resource reclamation branch is
+entered.  Before CPU0 reaches the race point (1), CPU1 may obtain the
+spinlock and traverse the rbtree to find 'root', see nilfs_lookup_root(). 
+Although CPU1 will call refcount_inc() to increase the refcount, it is
+obviously too late.  CPU0 will release 'root' directly, CPU1 then accesses
+'root' and triggers UAF.
 
-Link: https://lkml.kernel.org/r/20210810020441.62806-1-qiuxi1@huawei.com
-Fixes: a07279c9a8cd7 ("binfmt_elf, binfmt_elf_fdpic: use a VMA list snapshot")
-Signed-off-by: QiuXi <qiuxi1@huawei.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jann Horn <jannh@google.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Use refcount_dec_and_lock() to ensure that both the operations of decrease
+refcount to 0 and link deletion are lock protected eliminates this risk.
+
+     CPU0                      CPU1
+nilfs_put_root():
+			    <-------- (1)
+spin_lock(&nilfs->ns_cptree_lock);
+rb_erase(&root->rb_node, &nilfs->ns_cptree);
+spin_unlock(&nilfs->ns_cptree_lock);
+
+kfree(root);
+			    <-------- use-after-free
+
+========================================================================
+refcount_t: underflow; use-after-free.
+WARNING: CPU: 2 PID: 9476 at lib/refcount.c:28 \
+refcount_warn_saturate+0x1cf/0x210 lib/refcount.c:28
+Modules linked in:
+CPU: 2 PID: 9476 Comm: syz-executor.0 Not tainted 5.10.45-rc1+ #3
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), ...
+RIP: 0010:refcount_warn_saturate+0x1cf/0x210 lib/refcount.c:28
+... ...
+Call Trace:
+ __refcount_sub_and_test include/linux/refcount.h:283 [inline]
+ __refcount_dec_and_test include/linux/refcount.h:315 [inline]
+ refcount_dec_and_test include/linux/refcount.h:333 [inline]
+ nilfs_put_root+0xc1/0xd0 fs/nilfs2/the_nilfs.c:795
+ nilfs_segctor_destroy fs/nilfs2/segment.c:2749 [inline]
+ nilfs_detach_log_writer+0x3fa/0x570 fs/nilfs2/segment.c:2812
+ nilfs_put_super+0x2f/0xf0 fs/nilfs2/super.c:467
+ generic_shutdown_super+0xcd/0x1f0 fs/super.c:464
+ kill_block_super+0x4a/0x90 fs/super.c:1446
+ deactivate_locked_super+0x6a/0xb0 fs/super.c:335
+ deactivate_super+0x85/0x90 fs/super.c:366
+ cleanup_mnt+0x277/0x2e0 fs/namespace.c:1118
+ __cleanup_mnt+0x15/0x20 fs/namespace.c:1125
+ task_work_run+0x8e/0x110 kernel/task_work.c:151
+ tracehook_notify_resume include/linux/tracehook.h:188 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:164 [inline]
+ exit_to_user_mode_prepare+0x13c/0x170 kernel/entry/common.c:191
+ syscall_exit_to_user_mode+0x16/0x30 kernel/entry/common.c:266
+ do_syscall_64+0x45/0x80 arch/x86/entry/common.c:56
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
+
+There is no reproduction program, and the above is only theoretical
+analysis.
+
+Link: https://lkml.kernel.org/r/1629859428-5906-1-git-send-email-konishi.ryusuke@gmail.com
+Fixes: ba65ae4729bf ("nilfs2: add checkpoint tree to nilfs object")
+Link: https://lkml.kernel.org/r/20210723012317.4146-1-thunder.leizhen@huawei.com
+Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ fs/nilfs2/the_nilfs.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/fs/coredump.c~coredump-fix-memleak-in-dump_vma_snapshot
-+++ a/fs/coredump.c
-@@ -1134,8 +1134,10 @@ int dump_vma_snapshot(struct coredump_pa
+--- a/fs/nilfs2/the_nilfs.c~nilfs2-use-refcount_dec_and_lock-to-fix-potential-uaf
++++ a/fs/nilfs2/the_nilfs.c
+@@ -792,14 +792,13 @@ nilfs_find_or_create_root(struct the_nil
  
- 	mmap_write_unlock(mm);
+ void nilfs_put_root(struct nilfs_root *root)
+ {
+-	if (refcount_dec_and_test(&root->count)) {
+-		struct the_nilfs *nilfs = root->nilfs;
++	struct the_nilfs *nilfs = root->nilfs;
  
--	if (WARN_ON(i != *vma_count))
-+	if (WARN_ON(i != *vma_count)) {
-+		kvfree(*vma_meta);
- 		return -EFAULT;
-+	}
+-		nilfs_sysfs_delete_snapshot_group(root);
+-
+-		spin_lock(&nilfs->ns_cptree_lock);
++	if (refcount_dec_and_lock(&root->count, &nilfs->ns_cptree_lock)) {
+ 		rb_erase(&root->rb_node, &nilfs->ns_cptree);
+ 		spin_unlock(&nilfs->ns_cptree_lock);
++
++		nilfs_sysfs_delete_snapshot_group(root);
+ 		iput(root->ifile);
  
- 	*vma_data_size_ptr = vma_data_size;
- 	return 0;
+ 		kfree(root);
 _
 
-Patches currently in -mm which might be from qiuxi1@huawei.com are
+Patches currently in -mm which might be from thunder.leizhen@huawei.com are
 
 
