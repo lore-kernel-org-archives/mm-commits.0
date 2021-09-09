@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C00CC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC267C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 59D44611CC
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC7E0611C2
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347395AbhIIVDF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1347419AbhIIVDF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 9 Sep 2021 17:03:05 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52028 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52148 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347495AbhIIVC5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:02:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9AFC361179;
-        Thu,  9 Sep 2021 21:01:46 +0000 (UTC)
+        id S1346853AbhIIVC7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:02:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F0B2C611BD;
+        Thu,  9 Sep 2021 21:01:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221307;
-        bh=ch9UwBP9ls4YfD9k30oF8o7a+OY9WvAZnil5LQGnbOw=;
+        s=korg; t=1631221309;
+        bh=149bSDAF3bhBWZ5eeCSvPQzbEpgPrbzUNKuGcznRi90=;
         h=Date:From:To:Subject:From;
-        b=S8/KUzWCiZzAY8izuUrG9Beq455unMsckKjblZeGql2X/mO2tU0JWCXHyxyBWiHJg
-         8ja9QxvJG8sX4PXrdKgklR+CsQcQBN/lksafdtDGMr247BO3dJfruzlQO2EokWkKY+
-         lyaOiDgzKVNXxzRM5oSNADPmkCMdQX0UfEYgnmUk=
-Date:   Thu, 09 Sep 2021 14:01:46 -0700
+        b=q50luRvNL3K/LbyvO5u5F5UBDIw1vOJ2X3/awLTT5FWHx8V/NWIEeC47v87EeTGTx
+         A4ac+Ndq+1eFkzLlAkPjSrxW4k9NJ94imGwFF+kCMUxDY2wOgk1jo71BcTuzL0mNwU
+         7DgTojkw+xmqNIcZtEZT00RkORn9PdSxMxztjDBU=
+Date:   Thu, 09 Sep 2021 14:01:48 -0700
 From:   akpm@linux-foundation.org
 To:     anshuman.khandual@arm.com, dan.j.williams@intel.com,
         dave.hansen@linux.intel.com, david@redhat.com,
@@ -39,9 +39,10 @@ To:     anshuman.khandual@arm.com, dan.j.williams@intel.com,
         richard.weiyang@linux.alibaba.com, rjw@rjwysocki.net,
         rppt@kernel.org, teawater@gmail.com, vbabka@suse.cz,
         vkuznets@redhat.com
-Subject:  [merged] mm-track-present-early-pages-per-zone.patch
- removed from -mm tree
-Message-ID: <20210909210146.P52MRztiT%akpm@linux-foundation.org>
+Subject:  [merged]
+ mm-memory_hotplug-introduce-auto-movable-online-policy.patch removed from
+ -mm tree
+Message-ID: <20210909210148.Z8aiU3EDA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,353 +51,346 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: track present early pages per zone
+     Subject: mm/memory_hotplug: introduce "auto-movable" online policy
 has been removed from the -mm tree.  Its filename was
-     mm-track-present-early-pages-per-zone.patch
+     mm-memory_hotplug-introduce-auto-movable-online-policy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: track present early pages per zone
+Subject: mm/memory_hotplug: introduce "auto-movable" online policy
 
-Patch series "mm/memory_hotplug: "auto-movable" online policy and memory groups", v3.
+When onlining without specifying a zone (using "online" instead of
+"online_kernel" or "online_movable"), we currently select a zone such that
+existing zones are kept contiguous.  This online policy made sense in the
+past, where contiguous zones where required.
 
-I. Goal
+We'd like to implement smarter policies, however:
 
-The goal of this series is improving in-kernel auto-online support.  It
-tackles the fundamental problems that:
+* User space has little insight.  As one example, it has no idea which
+  memory blocks logically belong together (e.g., to a DIMM or to a
+  virtio-mem device).
 
- 1) We can create zone imbalances when onlining all memory blindly to
-    ZONE_MOVABLE, in the worst case crashing the system. We have to know
-    upfront how much memory we are going to hotplug such that we can
-    safely enable auto-onlining of all hotplugged memory to ZONE_MOVABLE
-    via "online_movable". This is far from practical and only applicable in
-    limited setups -- like inside VMs under the RHV/oVirt hypervisor which
-    will never hotplug more than 3 times the boot memory (and the
-    limitation is only in place due to the Linux limitation).
+* Drivers that add memory in separate memory blocks, especially
+  virtio-mem, want memory to get onlined right from the kernel when
+  adding.
 
- 2) We see more setups that implement dynamic VM resizing, hot(un)plugging
-    memory to resize VM memory. In these setups, we might hotplug a lot of
-    memory, but it might happen in various small steps in both directions
-    (e.g., 2 GiB -> 8 GiB -> 4 GiB -> 16 GiB ...). virtio-mem is the
-    primary driver of this upstream right now, performing such dynamic
-    resizing NUMA-aware via multiple virtio-mem devices.
+So we really want to have onlining to differing zones managed in the
+kernel, configured by user space.
 
-    Onlining all hotplugged memory to ZONE_NORMAL means we basically have
-    no hotunplug guarantees. Onlining all to ZONE_MOVABLE means we can
-    easily run into zone imbalances when growing a VM. We want a mixture,
-    and we want as much memory as reasonable/configured in ZONE_MOVABLE.
-    Details regarding zone imbalances can be found at [1].
+We see more and more cases where we might eventually hotplug a lot of
+memory in the future (e.g., eventually grow a 2 GiB VM to 64 GiB),
+however:
 
- 3) Memory devices consist of 1..X memory block devices, however, the
-    kernel doesn't really track the relationship. Consequently, also user
-    space has no idea. We want to make per-device decisions.
+* Resizing happens dynamically, in smaller steps in both directions
+  (e.g., 2 GiB -> 8 GiB -> 4 GiB -> 16 GiB ...)
 
-    As one example, for memory hotunplug it doesn't make sense to use a
-    mixture of zones within a single DIMM: we want all MOVABLE if
-    possible, otherwise all !MOVABLE, because any !MOVABLE part will easily
-    block the whole DIMM from getting hotunplugged.
+* We still want as much flexibility as possible, especially,
+  hotunplugging as much memory as possible later.
 
-    As another example, virtio-mem operates on individual units that span
-    1..X memory blocks. Similar to a DIMM, we want a unit to either be all
-    MOVABLE or !MOVABLE. A "unit" can be thought of like a DIMM, however,
-    all units of a virtio-mem device logically belong together and are
-    managed (added/removed) by a single driver. We want as much memory of
-    a virtio-mem device to be MOVABLE as possible.
+We can really only use "online_movable" if we know that the amount of
+memory we are going to hotplug upfront, and we know that it won't result
+in a zone imbalance.  So in our example, a 2 GiB VM that could grow to 64
+GiB could currently not use "online_movable", and instead, "online_kernel"
+would have to be used, resulting in worse (no) memory hotunplug
+reliability.
 
- 4) We want memory onlining to be done right from the kernel while adding
-    memory, not triggered by user space via udev rules; for example, this
-    is reqired for fast memory hotplug for drivers that add individual
-    memory blocks, like virito-mem. We want a way to configure a policy in
-    the kernel and avoid implementing advanced policies in user space.
+Let's add a new "auto-movable" online policy that considers the current
+zone ratios (global, per-node) to determine, whether we a memory block can
+be onlined to ZONE_MOVABLE:
 
-The auto-onlining support we have in the kernel is not sufficient.  All we
-have is a) online everything MOVABLE (online_movable) b) online everything
-!MOVABLE (online_kernel) c) keep zones contiguous (online).  This series
-allows configuring c) to mean instead "online movable if possible
-according to the coniguration, driven by a maximum MOVABLE:KERNEL ratio"
--- a new onlining policy.
+	MOVABLE : KERNEL
 
+However, internally we'll only consider the following ratio for now:
 
-II. Approach
+	MOVABLE : KERNEL_EARLY
 
-This series does 3 things:
+For now, we don't allow for hotplugged KERNEL memory to allow for more
+MOVABLE memory, because there is no coordination across memory devices. 
+In follow-up patches, we will allow for more KERNEL memory within a memory
+device to allow for more MOVABLE memory within the same memory device --
+which only makes sense for special memory device types.
 
- 1) Introduces the "auto-movable" online policy that initially operates on
-    individual memory blocks only. It uses a maximum MOVABLE:KERNEL ratio
-    to make a decision whether a memory block will be onlined to
-    ZONE_MOVABLE or not. However, in the basic form, hotplugged KERNEL
-    memory does not allow for more MOVABLE memory (details in the
-    patches). CMA memory is treated like MOVABLE memory.
+We base our calculation on "present pages", see the code comments for
+details.  Hotplugged memory will get online to ZONE_MOVABLE if the
+configured ratio allows for it.  Depending on the setup, this can result
+in fragmented zones, which can make compaction slower and dynamic
+allocation of gigantic pages when not using CMA less reliable (...  which
+is already pretty unreliable).
 
- 2) Introduces static (e.g., DIMM) and dynamic (e.g., virtio-mem) memory
-    groups and uses group information to make decisions in the
-    "auto-movable" online policy across memory blocks of a single memory
-    device (modeled as memory group). More details can be found in patch
-    #3 or in the DIMM example below.
+The old policy will be the default and called "contig-zones".  In
+follow-up patches, our new policy will use additional information, such as
+memory groups, to make even smarter decisions across memory blocks.
 
- 3) Maximizes ZONE_MOVABLE memory within dynamic memory groups, by
-    allowing ZONE_NORMAL memory within a dynamic memory group to allow for
-    more ZONE_MOVABLE memory within the same memory group. The target use
-    case is dynamic VM resizing using virtio-mem. See the virtio-mem
-    example below.
+Configuration:
 
-I remember that the basic idea of using a ratio to implement a policy in
-the kernel was once mentioned by Vitaly Kuznetsov, but I might be wrong (I
-lost the pointer to that discussion).
+* memory_hotplug.online_policy is used to switch between both polices
+  and defaults to "contig-zones".
 
-For me, the main use case is using it along with virtio-mem (and DIMMs /
-ppc64 dlpar where necessary) for dynamic resizing of VMs, increasing the
-amount of memory we can hotunplug reliably again if we might eventually
-hotplug a lot of memory to a VM.
+* memory_hotplug.auto_movable_ratio defines the maximum ratio is in
+  percent and defaults to "301" -- allowing e.g., most 8 GiB machines to
+  grow to 32 GiB and have all hotplugged memory in ZONE_MOVABLE.  The
+  additional percent accounts for a handful of lost present pages (e.g.,
+  firmware allocations).  User space is expected to adjust this ratio when
+  enabling the new "auto-movable" policy, though.
 
+* memory_hotplug.auto_movable_numa_aware considers numa node stats in
+  addition to global stats, and defaults to "true".
 
-III. Target Usage
+Note: just like the old policy, the new policy won't take things like
+unmovable huge pages or memory ballooning that doesn't support balloon
+compaction into account.  User space has to configure onlining
+accordingly.
 
-The target usage will be:
-
- 1) Linux boots with "mhp_default_online_type=offline"
-
- 2) User space (e.g., systemd unit) configures memory onlining (according
-    to a config file and system properties), for example:
-    * Setting memory_hotplug.online_policy=auto-movable
-    * Setting memory_hotplug.auto_movable_ratio=301
-    * Setting memory_hotplug.auto_movable_numa_aware=true
-
- 3) User space enabled auto onlining via "echo online >
-    /sys/devices/system/memory/auto_online_blocks"
-
- 4) User space triggers manual onlining of all already-offline memory
-    blocks (go over offline memory blocks and set them to "online")
-
-
-IV. Example
-
-For DIMMs, hotplugging 4 GiB DIMMs to a 4 GiB VM with a configured ratio of
-301% results in the following layout:
-	Memory block 0-15:    DMA32   (early)
-	Memory block 32-47:   Normal  (early)
-	Memory block 48-79:   Movable (DIMM 0)
-	Memory block 80-111:  Movable (DIMM 1)
-	Memory block 112-143: Movable (DIMM 2)
-	Memory block 144-275: Normal  (DIMM 3)
-	Memory block 176-207: Normal  (DIMM 4)
-	... all Normal
-	(-> hotplugged Normal memory does not allow for more Movable memory)
-
-For virtio-mem, using a simple, single virtio-mem device with a 4 GiB VM
-will result in the following layout:
-	Memory block 0-15:    DMA32   (early)
-	Memory block 32-47:   Normal  (early)
-	Memory block 48-143:  Movable (virtio-mem, first 12 GiB)
-	Memory block 144:     Normal  (virtio-mem, next 128 MiB)
-	Memory block 145-147: Movable (virtio-mem, next 384 MiB)
-	Memory block 148:     Normal  (virtio-mem, next 128 MiB)
-	Memory block 149-151: Movable (virtio-mem, next 384 MiB)
-	... Normal/Movable mixture as above
-	(-> hotplugged Normal memory allows for more Movable memory within
-	    the same device)
-
-Which gives us maximum flexibility when dynamically growing/shrinking a
-VM in smaller steps.
-
-
-V. Doc Update
-
-I'll update the memory-hotplug.rst documentation, once the overhaul [1] is
-usptream. Until then, details can be found in patch #2.
-
-
-VI. Future Work
-
- 1) Use memory groups for ppc64 dlpar
- 2) Being able to specify a portion of (early) kernel memory that will be
-    excluded from the ratio. Like "128 MiB globally/per node" are excluded.
-
-    This might be helpful when starting VMs with extremely small memory
-    footprint (e.g., 128 MiB) and hotplugging memory later -- not wanting
-    the first hotplugged units getting onlined to ZONE_MOVABLE. One
-    alternative would be a trigger to not consider ZONE_DMA memory
-    in the ratio. We'll have to see if this is really rrequired.
- 3) Indicate to user space that MOVABLE might be a bad idea -- especially
-    relevant when memory ballooning without support for balloon compaction
-    is active.
-
-
-This patch (of 9):
-
-For implementing a new memory onlining policy, which determines when to
-online memory blocks to ZONE_MOVABLE semi-automatically, we need the
-number of present early (boot) pages -- present pages excluding hotplugged
-pages.  Let's track these pages per zone.
-
-Pass a page instead of the zone to adjust_present_page_count(), similar as
-adjust_managed_page_count() and derive the zone from the page.
-
-It's worth noting that a memory block to be offlined/onlined is either
-completely "early" or "not early".  add_memory() and friends can only add
-complete memory blocks and we only online/offline complete (individual)
-memory blocks.
-
-Link: https://lkml.kernel.org/r/20210806124715.17090-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20210806124715.17090-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20210806124715.17090-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Marek Kedzierski <mkedzier@redhat.com>
-Cc: Hui Zhu <teawater@gmail.com>
-Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
-Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Hui Zhu <teawater@gmail.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Marek Kedzierski <mkedzier@redhat.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Pankaj Gupta <pankaj.gupta.linux@gmail.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
 Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Wei Yang <richard.weiyang@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c          |   14 +++++++-------
- include/linux/memory_hotplug.h |    2 +-
- include/linux/mmzone.h         |    7 +++++++
- mm/memory_hotplug.c            |   14 +++++++++++---
- mm/page_alloc.c                |    3 +++
- 5 files changed, 29 insertions(+), 11 deletions(-)
+ mm/memory_hotplug.c |  191 ++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 191 insertions(+)
 
---- a/drivers/base/memory.c~mm-track-present-early-pages-per-zone
-+++ a/drivers/base/memory.c
-@@ -205,7 +205,8 @@ static int memory_block_online(struct me
- 	 * now already properly populated.
- 	 */
- 	if (nr_vmemmap_pages)
--		adjust_present_page_count(zone, nr_vmemmap_pages);
-+		adjust_present_page_count(pfn_to_page(start_pfn),
-+					  nr_vmemmap_pages);
- 
- 	return ret;
- }
-@@ -215,24 +216,23 @@ static int memory_block_offline(struct m
- 	unsigned long start_pfn = section_nr_to_pfn(mem->start_section_nr);
- 	unsigned long nr_pages = PAGES_PER_SECTION * sections_per_block;
- 	unsigned long nr_vmemmap_pages = mem->nr_vmemmap_pages;
--	struct zone *zone;
- 	int ret;
- 
- 	/*
- 	 * Unaccount before offlining, such that unpopulated zone and kthreads
- 	 * can properly be torn down in offline_pages().
- 	 */
--	if (nr_vmemmap_pages) {
--		zone = page_zone(pfn_to_page(start_pfn));
--		adjust_present_page_count(zone, -nr_vmemmap_pages);
--	}
-+	if (nr_vmemmap_pages)
-+		adjust_present_page_count(pfn_to_page(start_pfn),
-+					  -nr_vmemmap_pages);
- 
- 	ret = offline_pages(start_pfn + nr_vmemmap_pages,
- 			    nr_pages - nr_vmemmap_pages);
- 	if (ret) {
- 		/* offline_pages() failed. Account back. */
- 		if (nr_vmemmap_pages)
--			adjust_present_page_count(zone, nr_vmemmap_pages);
-+			adjust_present_page_count(pfn_to_page(start_pfn),
-+						  nr_vmemmap_pages);
- 		return ret;
- 	}
- 
---- a/include/linux/memory_hotplug.h~mm-track-present-early-pages-per-zone
-+++ a/include/linux/memory_hotplug.h
-@@ -95,7 +95,7 @@ static inline void zone_seqlock_init(str
- extern int zone_grow_free_lists(struct zone *zone, unsigned long new_nr_pages);
- extern int zone_grow_waitqueues(struct zone *zone, unsigned long nr_pages);
- extern int add_one_highpage(struct page *page, int pfn, int bad_ppro);
--extern void adjust_present_page_count(struct zone *zone, long nr_pages);
-+extern void adjust_present_page_count(struct page *page, long nr_pages);
- /* VM interface that may be used by firmware interface */
- extern int mhp_init_memmap_on_memory(unsigned long pfn, unsigned long nr_pages,
- 				     struct zone *zone);
---- a/include/linux/mmzone.h~mm-track-present-early-pages-per-zone
-+++ a/include/linux/mmzone.h
-@@ -540,6 +540,10 @@ struct zone {
- 	 * is calculated as:
- 	 *	present_pages = spanned_pages - absent_pages(pages in holes);
- 	 *
-+	 * present_early_pages is present pages existing within the zone
-+	 * located on memory available since early boot, excluding hotplugged
-+	 * memory.
-+	 *
- 	 * managed_pages is present pages managed by the buddy system, which
- 	 * is calculated as (reserved_pages includes pages allocated by the
- 	 * bootmem allocator):
-@@ -572,6 +576,9 @@ struct zone {
- 	atomic_long_t		managed_pages;
- 	unsigned long		spanned_pages;
- 	unsigned long		present_pages;
-+#if defined(CONFIG_MEMORY_HOTPLUG)
-+	unsigned long		present_early_pages;
-+#endif
- #ifdef CONFIG_CMA
- 	unsigned long		cma_pages;
- #endif
---- a/mm/memory_hotplug.c~mm-track-present-early-pages-per-zone
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-introduce-auto-movable-online-policy
 +++ a/mm/memory_hotplug.c
-@@ -724,8 +724,16 @@ struct zone *zone_for_pfn_range(int onli
-  * This function should only be called by memory_block_{online,offline},
-  * and {online,offline}_pages.
-  */
--void adjust_present_page_count(struct zone *zone, long nr_pages)
-+void adjust_present_page_count(struct page *page, long nr_pages)
- {
-+	struct zone *zone = page_zone(page);
+@@ -52,6 +52,73 @@ module_param(memmap_on_memory, bool, 044
+ MODULE_PARM_DESC(memmap_on_memory, "Enable memmap on memory for memory hotplug");
+ #endif
+ 
++enum {
++	ONLINE_POLICY_CONTIG_ZONES = 0,
++	ONLINE_POLICY_AUTO_MOVABLE,
++};
++
++const char *online_policy_to_str[] = {
++	[ONLINE_POLICY_CONTIG_ZONES] = "contig-zones",
++	[ONLINE_POLICY_AUTO_MOVABLE] = "auto-movable",
++};
++
++static int set_online_policy(const char *val, const struct kernel_param *kp)
++{
++	int ret = sysfs_match_string(online_policy_to_str, val);
++
++	if (ret < 0)
++		return ret;
++	*((int *)kp->arg) = ret;
++	return 0;
++}
++
++static int get_online_policy(char *buffer, const struct kernel_param *kp)
++{
++	return sprintf(buffer, "%s\n", online_policy_to_str[*((int *)kp->arg)]);
++}
++
++/*
++ * memory_hotplug.online_policy: configure online behavior when onlining without
++ * specifying a zone (MMOP_ONLINE)
++ *
++ * "contig-zones": keep zone contiguous
++ * "auto-movable": online memory to ZONE_MOVABLE if the configuration
++ *                 (auto_movable_ratio, auto_movable_numa_aware) allows for it
++ */
++static int online_policy __read_mostly = ONLINE_POLICY_CONTIG_ZONES;
++static const struct kernel_param_ops online_policy_ops = {
++	.set = set_online_policy,
++	.get = get_online_policy,
++};
++module_param_cb(online_policy, &online_policy_ops, &online_policy, 0644);
++MODULE_PARM_DESC(online_policy,
++		"Set the online policy (\"contig-zones\", \"auto-movable\") "
++		"Default: \"contig-zones\"");
++
++/*
++ * memory_hotplug.auto_movable_ratio: specify maximum MOVABLE:KERNEL ratio
++ *
++ * The ratio represent an upper limit and the kernel might decide to not
++ * online some memory to ZONE_MOVABLE -- e.g., because hotplugged KERNEL memory
++ * doesn't allow for more MOVABLE memory.
++ */
++static unsigned int auto_movable_ratio __read_mostly = 301;
++module_param(auto_movable_ratio, uint, 0644);
++MODULE_PARM_DESC(auto_movable_ratio,
++		"Set the maximum ratio of MOVABLE:KERNEL memory in the system "
++		"in percent for \"auto-movable\" online policy. Default: 301");
++
++/*
++ * memory_hotplug.auto_movable_numa_aware: consider numa node stats
++ */
++#ifdef CONFIG_NUMA
++static bool auto_movable_numa_aware __read_mostly = true;
++module_param(auto_movable_numa_aware, bool, 0644);
++MODULE_PARM_DESC(auto_movable_numa_aware,
++		"Consider numa node stats in addition to global stats in "
++		"\"auto-movable\" online policy. Default: true");
++#endif /* CONFIG_NUMA */
++
+ /*
+  * online_page_callback contains pointer to current page onlining function.
+  * Initially it is generic_online_page(). If it is required it could be
+@@ -663,6 +730,61 @@ void __ref move_pfn_range_to_zone(struct
+ 	set_zone_contiguous(zone);
+ }
+ 
++struct auto_movable_stats {
++	unsigned long kernel_early_pages;
++	unsigned long movable_pages;
++};
++
++static void auto_movable_stats_account_zone(struct auto_movable_stats *stats,
++					    struct zone *zone)
++{
++	if (zone_idx(zone) == ZONE_MOVABLE) {
++		stats->movable_pages += zone->present_pages;
++	} else {
++		stats->kernel_early_pages += zone->present_early_pages;
++#ifdef CONFIG_CMA
++		/*
++		 * CMA pages (never on hotplugged memory) behave like
++		 * ZONE_MOVABLE.
++		 */
++		stats->movable_pages += zone->cma_pages;
++		stats->kernel_early_pages -= zone->cma_pages;
++#endif /* CONFIG_CMA */
++	}
++}
++
++static bool auto_movable_can_online_movable(int nid, unsigned long nr_pages)
++{
++	struct auto_movable_stats stats = {};
++	unsigned long kernel_early_pages, movable_pages;
++	pg_data_t *pgdat = NODE_DATA(nid);
++	struct zone *zone;
++	int i;
++
++	/* Walk all relevant zones and collect MOVABLE vs. KERNEL stats. */
++	if (nid == NUMA_NO_NODE) {
++		/* TODO: cache values */
++		for_each_populated_zone(zone)
++			auto_movable_stats_account_zone(&stats, zone);
++	} else {
++		for (i = 0; i < MAX_NR_ZONES; i++) {
++			zone = pgdat->node_zones + i;
++			if (populated_zone(zone))
++				auto_movable_stats_account_zone(&stats, zone);
++		}
++	}
++
++	kernel_early_pages = stats.kernel_early_pages;
++	movable_pages = stats.movable_pages;
 +
 +	/*
-+	 * We only support onlining/offlining/adding/removing of complete
-+	 * memory blocks; therefore, either all is either early or hotplugged.
++	 * Test if we could online the given number of pages to ZONE_MOVABLE
++	 * and still stay in the configured ratio.
 +	 */
-+	if (early_section(__pfn_to_section(page_to_pfn(page))))
-+		zone->present_early_pages += nr_pages;
- 	zone->present_pages += nr_pages;
- 	zone->zone_pgdat->node_present_pages += nr_pages;
++	movable_pages += nr_pages;
++	return movable_pages <= (auto_movable_ratio * kernel_early_pages) / 100;
++}
++
+ /*
+  * Returns a default kernel memory zone for the given pfn range.
+  * If no kernel zone covers this pfn range it will automatically go
+@@ -684,6 +806,72 @@ static struct zone *default_kernel_zone_
+ 	return &pgdat->node_zones[ZONE_NORMAL];
  }
-@@ -826,7 +834,7 @@ int __ref online_pages(unsigned long pfn
- 	}
  
- 	online_pages_range(pfn, nr_pages);
--	adjust_present_page_count(zone, nr_pages);
-+	adjust_present_page_count(pfn_to_page(pfn), nr_pages);
++/*
++ * Determine to which zone to online memory dynamically based on user
++ * configuration and system stats. We care about the following ratio:
++ *
++ *   MOVABLE : KERNEL
++ *
++ * Whereby MOVABLE is memory in ZONE_MOVABLE and KERNEL is memory in
++ * one of the kernel zones. CMA pages inside one of the kernel zones really
++ * behaves like ZONE_MOVABLE, so we treat them accordingly.
++ *
++ * We don't allow for hotplugged memory in a KERNEL zone to increase the
++ * amount of MOVABLE memory we can have, so we end up with:
++ *
++ *   MOVABLE : KERNEL_EARLY
++ *
++ * Whereby KERNEL_EARLY is memory in one of the kernel zones, available sinze
++ * boot. We base our calculation on KERNEL_EARLY internally, because:
++ *
++ * a) Hotplugged memory in one of the kernel zones can sometimes still get
++ *    hotunplugged, especially when hot(un)plugging individual memory blocks.
++ *    There is no coordination across memory devices, therefore "automatic"
++ *    hotunplugging, as implemented in hypervisors, could result in zone
++ *    imbalances.
++ * b) Early/boot memory in one of the kernel zones can usually not get
++ *    hotunplugged again (e.g., no firmware interface to unplug, fragmented
++ *    with unmovable allocations). While there are corner cases where it might
++ *    still work, it is barely relevant in practice.
++ *
++ * We rely on "present pages" instead of "managed pages", as the latter is
++ * highly unreliable and dynamic in virtualized environments, and does not
++ * consider boot time allocations. For example, memory ballooning adjusts the
++ * managed pages when inflating/deflating the balloon, and balloon compaction
++ * can even migrate inflated pages between zones.
++ *
++ * Using "present pages" is better but some things to keep in mind are:
++ *
++ * a) Some memblock allocations, such as for the crashkernel area, are
++ *    effectively unused by the kernel, yet they account to "present pages".
++ *    Fortunately, these allocations are comparatively small in relevant setups
++ *    (e.g., fraction of system memory).
++ * b) Some hotplugged memory blocks in virtualized environments, esecially
++ *    hotplugged by virtio-mem, look like they are completely present, however,
++ *    only parts of the memory block are actually currently usable.
++ *    "present pages" is an upper limit that can get reached at runtime. As
++ *    we base our calculations on KERNEL_EARLY, this is not an issue.
++ */
++static struct zone *auto_movable_zone_for_pfn(int nid, unsigned long pfn,
++					      unsigned long nr_pages)
++{
++	if (!auto_movable_ratio)
++		goto kernel_zone;
++
++	if (!auto_movable_can_online_movable(NUMA_NO_NODE, nr_pages))
++		goto kernel_zone;
++
++#ifdef CONFIG_NUMA
++	if (auto_movable_numa_aware &&
++	    !auto_movable_can_online_movable(nid, nr_pages))
++		goto kernel_zone;
++#endif /* CONFIG_NUMA */
++
++	return &NODE_DATA(nid)->node_zones[ZONE_MOVABLE];
++kernel_zone:
++	return default_kernel_zone_for_pfn(nid, pfn, nr_pages);
++}
++
+ static inline struct zone *default_zone_for_pfn(int nid, unsigned long start_pfn,
+ 		unsigned long nr_pages)
+ {
+@@ -717,6 +905,9 @@ struct zone *zone_for_pfn_range(int onli
+ 	if (online_type == MMOP_ONLINE_MOVABLE)
+ 		return &NODE_DATA(nid)->node_zones[ZONE_MOVABLE];
  
- 	node_states_set_node(nid, &arg);
- 	if (need_zonelists_rebuild)
-@@ -1697,7 +1705,7 @@ int __ref offline_pages(unsigned long st
++	if (online_policy == ONLINE_POLICY_AUTO_MOVABLE)
++		return auto_movable_zone_for_pfn(nid, start_pfn, nr_pages);
++
+ 	return default_zone_for_pfn(nid, start_pfn, nr_pages);
+ }
  
- 	/* removal success */
- 	adjust_managed_page_count(pfn_to_page(start_pfn), -nr_pages);
--	adjust_present_page_count(zone, -nr_pages);
-+	adjust_present_page_count(pfn_to_page(start_pfn), -nr_pages);
- 
- 	/* reinitialise watermarks and update pcp limits */
- 	init_per_zone_wmark_min();
---- a/mm/page_alloc.c~mm-track-present-early-pages-per-zone
-+++ a/mm/page_alloc.c
-@@ -7254,6 +7254,9 @@ static void __init calculate_node_totalp
- 			zone->zone_start_pfn = 0;
- 		zone->spanned_pages = size;
- 		zone->present_pages = real_size;
-+#if defined(CONFIG_MEMORY_HOTPLUG)
-+		zone->present_early_pages = real_size;
-+#endif
- 
- 		totalpages += size;
- 		realtotalpages += real_size;
 _
 
 Patches currently in -mm which might be from david@redhat.com are
