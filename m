@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B7BC433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92D6DC433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EFCF7611AD
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A74C61186
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345763AbhIIVCW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:02:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50552 "EHLO mail.kernel.org"
+        id S1345874AbhIIVCY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:02:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50598 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233991AbhIIVCV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:02:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 969F361026;
-        Thu,  9 Sep 2021 21:01:11 +0000 (UTC)
+        id S233991AbhIIVCX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:02:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 802556103D;
+        Thu,  9 Sep 2021 21:01:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221272;
-        bh=Qn7+WbsHVD3DeFjD8ozodslaCVYsNX+CJvRF80rZFDM=;
+        s=korg; t=1631221273;
+        bh=4CMTgXmgG8rGYNBvzFVhzFSrqagWxBGA7zYH2529Zo8=;
         h=Date:From:To:Subject:From;
-        b=wz5XmNQacHih1hwxmGEd/0izs7h38/lROzljeWozoINYPU3qQwa6LoioUT8yOoe0N
-         qeqh2JVTX+CbV/3dpLHfRn2/nPB7AaaN55gO6NlzoAF9uu7RvBUEeIaFylpvsNd2Zq
-         bvHYCSklP7M/mIEsvAVZTq4OiNTUW93wHvdvEEJM=
-Date:   Thu, 09 Sep 2021 14:01:11 -0700
+        b=mm9vFQ/OFcgeN6z83LLl3pCrYz9fWvK3ARe81lDnzGTMGGU1ZhzEBKW6z+H9o6VS5
+         LiUjJd+FNi4evJcdlgC9KBgx9IGJfUdrQ1EgPkHJtBNbcM5JDh0tJ1GgmT1KMO4S+o
+         HnSCnNvpWQjuaT9WZqtdXB0Y8MqtSHtmzQbjUkG0=
+Date:   Thu, 09 Sep 2021 14:01:13 -0700
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
         efault@gmx.de, iamjoonsoo.kim@lge.com, jannh@google.com,
@@ -36,8 +36,9 @@ To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
         penberg@kernel.org, quic_qiancai@quicinc.com, rientjes@google.com,
         tglx@linutronix.de, vbabka@suse.cz
 Subject:  [merged]
- mm-slub-make-object_map_lock-a-raw_spinlock_t.patch removed from -mm tree
-Message-ID: <20210909210111.mzPJ6QCm8%akpm@linux-foundation.org>
+ mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch removed from -mm
+ tree
+Message-ID: <20210909210113.Xomdrwuei%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,23 +47,35 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: slub: make object_map_lock a raw_spinlock_t
+     Subject: mm, slub: make slab_lock() disable irqs with PREEMPT_RT
 has been removed from the -mm tree.  Its filename was
-     mm-slub-make-object_map_lock-a-raw_spinlock_t.patch
+     mm-slub-make-slab_lock-disable-irqs-with-preempt_rt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: mm: slub: make object_map_lock a raw_spinlock_t
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slub: make slab_lock() disable irqs with PREEMPT_RT
 
-The variable object_map is protected by object_map_lock.  The lock is
-always acquired in debug code and within already atomic context
+We need to disable irqs around slab_lock() (a bit spinlock) to make it
+irq-safe.  Most calls to slab_lock() are nested under spin_lock_irqsave()
+which doesn't disable irqs on PREEMPT_RT, so add explicit disabling with
+PREEMPT_RT.  The exception is cmpxchg_double_slab() which already disables
+irqs, so use a __slab_[un]lock() variant without irq disable there.
 
-Make object_map_lock a raw_spinlock_t.
+slab_[un]lock() thus needs a flags pointer parameter, which is unused on
+!RT.  free_debug_processing() now has two flags variables, which looks
+odd, but only one is actually used - the one used in spin_lock_irqsave()
+on !RT and the one used in slab_lock() on RT.
 
-Link: https://lkml.kernel.org/r/20210904105003.11688-30-vbabka@suse.cz
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+As a result, __cmpxchg_double_slab() and cmpxchg_double_slab() become
+effectively identical on RT, as both will disable irqs, which is necessary
+on RT as most callers of this function also rely on irqsaving lock
+operations.  Thus, assert that irqs are already disabled in
+__cmpxchg_double_slab() only on !RT and also change the VM_BUG_ON
+assertion to the more standard lockdep_assert one.
+
+Link: https://lkml.kernel.org/r/20210904105003.11688-31-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
@@ -73,44 +86,175 @@ Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Mike Galbraith <efault@gmx.de>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Qian Cai <quic_qiancai@quicinc.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/slub.c |   58 ++++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 41 insertions(+), 17 deletions(-)
 
---- a/mm/slub.c~mm-slub-make-object_map_lock-a-raw_spinlock_t
+--- a/mm/slub.c~mm-slub-make-slab_lock-disable-irqs-with-preempt_rt
 +++ a/mm/slub.c
-@@ -452,7 +452,7 @@ static inline bool cmpxchg_double_slab(s
- 
- #ifdef CONFIG_SLUB_DEBUG
- static unsigned long object_map[BITS_TO_LONGS(MAX_OBJS_PER_PAGE)];
--static DEFINE_SPINLOCK(object_map_lock);
-+static DEFINE_RAW_SPINLOCK(object_map_lock);
- 
- static void __fill_map(unsigned long *obj_map, struct kmem_cache *s,
- 		       struct page *page)
-@@ -497,7 +497,7 @@ static unsigned long *get_map(struct kme
+@@ -359,25 +359,44 @@ static inline unsigned int oo_objects(st
+ /*
+  * Per slab locking using the pagelock
+  */
+-static __always_inline void slab_lock(struct page *page)
++static __always_inline void __slab_lock(struct page *page)
  {
- 	VM_BUG_ON(!irqs_disabled());
- 
--	spin_lock(&object_map_lock);
-+	raw_spin_lock(&object_map_lock);
- 
- 	__fill_map(object_map, s, page);
- 
-@@ -507,7 +507,7 @@ static unsigned long *get_map(struct kme
- static void put_map(unsigned long *map) __releases(&object_map_lock)
- {
- 	VM_BUG_ON(map != object_map);
--	spin_unlock(&object_map_lock);
-+	raw_spin_unlock(&object_map_lock);
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+ 	bit_spin_lock(PG_locked, &page->flags);
  }
  
- static inline unsigned int size_from_object(struct kmem_cache *s)
+-static __always_inline void slab_unlock(struct page *page)
++static __always_inline void __slab_unlock(struct page *page)
+ {
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+ 	__bit_spin_unlock(PG_locked, &page->flags);
+ }
+ 
+-/* Interrupts must be disabled (for the fallback code to work right) */
++static __always_inline void slab_lock(struct page *page, unsigned long *flags)
++{
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		local_irq_save(*flags);
++	__slab_lock(page);
++}
++
++static __always_inline void slab_unlock(struct page *page, unsigned long *flags)
++{
++	__slab_unlock(page);
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		local_irq_restore(*flags);
++}
++
++/*
++ * Interrupts must be disabled (for the fallback code to work right), typically
++ * by an _irqsave() lock variant. Except on PREEMPT_RT where locks are different
++ * so we disable interrupts as part of slab_[un]lock().
++ */
+ static inline bool __cmpxchg_double_slab(struct kmem_cache *s, struct page *page,
+ 		void *freelist_old, unsigned long counters_old,
+ 		void *freelist_new, unsigned long counters_new,
+ 		const char *n)
+ {
+-	VM_BUG_ON(!irqs_disabled());
++	if (!IS_ENABLED(CONFIG_PREEMPT_RT))
++		lockdep_assert_irqs_disabled();
+ #if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
+     defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
+ 	if (s->flags & __CMPXCHG_DOUBLE) {
+@@ -388,15 +407,18 @@ static inline bool __cmpxchg_double_slab
+ 	} else
+ #endif
+ 	{
+-		slab_lock(page);
++		/* init to 0 to prevent spurious warnings */
++		unsigned long flags = 0;
++
++		slab_lock(page, &flags);
+ 		if (page->freelist == freelist_old &&
+ 					page->counters == counters_old) {
+ 			page->freelist = freelist_new;
+ 			page->counters = counters_new;
+-			slab_unlock(page);
++			slab_unlock(page, &flags);
+ 			return true;
+ 		}
+-		slab_unlock(page);
++		slab_unlock(page, &flags);
+ 	}
+ 
+ 	cpu_relax();
+@@ -427,16 +449,16 @@ static inline bool cmpxchg_double_slab(s
+ 		unsigned long flags;
+ 
+ 		local_irq_save(flags);
+-		slab_lock(page);
++		__slab_lock(page);
+ 		if (page->freelist == freelist_old &&
+ 					page->counters == counters_old) {
+ 			page->freelist = freelist_new;
+ 			page->counters = counters_new;
+-			slab_unlock(page);
++			__slab_unlock(page);
+ 			local_irq_restore(flags);
+ 			return true;
+ 		}
+-		slab_unlock(page);
++		__slab_unlock(page);
+ 		local_irq_restore(flags);
+ 	}
+ 
+@@ -1269,11 +1291,11 @@ static noinline int free_debug_processin
+ 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
+ 	void *object = head;
+ 	int cnt = 0;
+-	unsigned long flags;
++	unsigned long flags, flags2;
+ 	int ret = 0;
+ 
+ 	spin_lock_irqsave(&n->list_lock, flags);
+-	slab_lock(page);
++	slab_lock(page, &flags2);
+ 
+ 	if (s->flags & SLAB_CONSISTENCY_CHECKS) {
+ 		if (!check_slab(s, page))
+@@ -1306,7 +1328,7 @@ out:
+ 		slab_err(s, page, "Bulk freelist count(%d) invalid(%d)\n",
+ 			 bulk_cnt, cnt);
+ 
+-	slab_unlock(page);
++	slab_unlock(page, &flags2);
+ 	spin_unlock_irqrestore(&n->list_lock, flags);
+ 	if (!ret)
+ 		slab_fix(s, "Object at 0x%p not freed", object);
+@@ -4087,11 +4109,12 @@ static void list_slab_objects(struct kme
+ {
+ #ifdef CONFIG_SLUB_DEBUG
+ 	void *addr = page_address(page);
++	unsigned long flags;
+ 	unsigned long *map;
+ 	void *p;
+ 
+ 	slab_err(s, page, text, s->name);
+-	slab_lock(page);
++	slab_lock(page, &flags);
+ 
+ 	map = get_map(s, page);
+ 	for_each_object(p, s, addr, page->objects) {
+@@ -4102,7 +4125,7 @@ static void list_slab_objects(struct kme
+ 		}
+ 	}
+ 	put_map(map);
+-	slab_unlock(page);
++	slab_unlock(page, &flags);
+ #endif
+ }
+ 
+@@ -4834,8 +4857,9 @@ static void validate_slab(struct kmem_ca
+ {
+ 	void *p;
+ 	void *addr = page_address(page);
++	unsigned long flags;
+ 
+-	slab_lock(page);
++	slab_lock(page, &flags);
+ 
+ 	if (!check_slab(s, page) || !on_freelist(s, page, NULL))
+ 		goto unlock;
+@@ -4850,7 +4874,7 @@ static void validate_slab(struct kmem_ca
+ 			break;
+ 	}
+ unlock:
+-	slab_unlock(page);
++	slab_unlock(page, &flags);
+ }
+ 
+ static int validate_slab_node(struct kmem_cache *s,
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
