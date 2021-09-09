@@ -7,33 +7,39 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CF057C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 906B5C43219
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB9B8611C1
+	by mail.kernel.org (Postfix) with ESMTP id 7CD87611C1
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345763AbhIIVFf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1347719AbhIIVFf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 9 Sep 2021 17:05:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52868 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345899AbhIIVEj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:04:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 66786611C1;
-        Thu,  9 Sep 2021 21:03:29 +0000 (UTC)
+        id S1347901AbhIIVEp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:04:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 79DA0611C4;
+        Thu,  9 Sep 2021 21:03:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221409;
-        bh=OeY77t2SqITp3hDya4yV3ZAefV1faj3Cshq8EEL6/1U=;
+        s=korg; t=1631221415;
+        bh=8SBXlzkncU17b6i6naS5FxZlst/pAOrKE8Eg9dnqQXc=;
         h=Date:From:To:Subject:From;
-        b=IBDsz1qujsKeg93hx3hfefz2KfGJp91z8HxRidCVX4D//SZzykbLHw23FwkrH1Q4q
-         tnCQsMiZDfDYF5tEDmhvE9AAqkQj5MDuokFVa5+KkM86QIITPI6pj0aapJh7m2gGJV
-         roTfNrRK1XEl7Cvy2XMbTiac8jLHMlBozQkuL6Jg=
-Date:   Thu, 09 Sep 2021 14:03:29 -0700
+        b=aCr93ECzAQ95CP4yxmf0BEPVbCwem70bsrdHlkovJ2konnyh0JMRCC4rD5IBYapzx
+         iKbg8exZCXwXhzhUsPlHxhiVzGuzcpwawnTmGLAdAMoJH+wwNcT0XPjjuXUi7Lc0Fs
+         sDf5ORYf4y9NJdX1JAWHE97+1pKEb3CB6TTKUZ4M=
+Date:   Thu, 09 Sep 2021 14:03:34 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
-Subject:  [merged] once-fix-trivia-typo-not-note.patch removed from
- -mm tree
-Message-ID: <20210909210329.3GTbks0K1%akpm@linux-foundation.org>
+To:     andriy.shevchenko@linux.intel.com, ceggers@arri.de,
+        cw00.choi@samsung.com, daniel.lezcano@linaro.org, jic23@kernel.org,
+        Jonathan.Cameron@huawei.com, kyungmin.park@samsung.com,
+        lars@metafoo.de, linux@roeck-us.net, lukasz.luba@arm.com,
+        mcoquelin.stm32@gmail.com, miquel.raynal@bootlin.com,
+        mm-commits@vger.kernel.org, myungjoo.ham@samsung.com,
+        pmeerw@pmeerw.net, rafael@kernel.org, rui.zhang@intel.com
+Subject:  [merged] units-add-the-hz-macros.patch removed from -mm
+ tree
+Message-ID: <20210909210334.kZKCgspyj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,39 +48,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/once.h: fix trivia typo Not -> Note
+     Subject: units: add the HZ macros
 has been removed from the -mm tree.  Its filename was
-     once-fix-trivia-typo-not-note.patch
+     units-add-the-hz-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: include/linux/once.h: fix trivia typo Not -> Note
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: units: add the HZ macros
 
-Fix trivia typo Not -> Note in the comment to DO_ONCE().
+The macros for the unit conversion for frequency are duplicated in
+different places.
 
-Link: https://lkml.kernel.org/r/20210722184349.76290-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Provide these macros in the 'units' header, so they can be reused.
+
+Link: https://lkml.kernel.org/r/20210816114732.1834145-3-daniel.lezcano@linaro.org
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Reviewed-by: Christian Eggers <ceggers@arri.de>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Jonathan Cameron <jic23@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Lukasz Luba <lukasz.luba@arm.com>
+Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
+Cc: Miquel Raynal <miquel.raynal@bootlin.com>
+Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
+Cc: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/once.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/units.h |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/once.h~once-fix-trivia-typo-not-note
-+++ a/include/linux/once.h
-@@ -16,7 +16,7 @@ void __do_once_done(bool *done, struct s
-  * out the condition into a nop. DO_ONCE() guarantees type safety of
-  * arguments!
-  *
-- * Not that the following is not equivalent ...
-+ * Note that the following is not equivalent ...
-  *
-  *   DO_ONCE(func, arg);
-  *   DO_ONCE(func, arg);
+--- a/include/linux/units.h~units-add-the-hz-macros
++++ a/include/linux/units.h
+@@ -4,6 +4,10 @@
+ 
+ #include <linux/math.h>
+ 
++#define HZ_PER_KHZ		1000UL
++#define KHZ_PER_MHZ		1000UL
++#define HZ_PER_MHZ		1000000UL
++
+ #define MILLIWATT_PER_WATT	1000UL
+ #define MICROWATT_PER_MILLIWATT	1000UL
+ #define MICROWATT_PER_WATT	1000000UL
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from daniel.lezcano@linaro.org are
 
 
