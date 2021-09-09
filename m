@@ -7,44 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5B31C433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A73C1C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D8E161179
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88D44611C5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346133AbhIIVFa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:05:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52502 "EHLO mail.kernel.org"
+        id S1348719AbhIIVFd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:05:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54464 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1346067AbhIIVEY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:04:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E5F88611C2;
-        Thu,  9 Sep 2021 21:03:13 +0000 (UTC)
+        id S1346920AbhIIVE1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:04:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 84C43611C8;
+        Thu,  9 Sep 2021 21:03:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221394;
-        bh=XjBLmta16cQSsoMExoLDc0GiyxM7jXR39SHz+wx3IUc=;
+        s=korg; t=1631221397;
+        bh=OdWi2EsYZJVNx5DA39DjHHKeTSErUGydBk7btdFp9N4=;
         h=Date:From:To:Subject:From;
-        b=phSDu6R/0xc3+Dv2OkBgECtCBRJrEoeLZKTLY3W1Ziv31h9NIO91FGC0PxnyhQu0j
-         gHoHurFqD686VZo1V2DJPUuQqcJdV7EocUuXNdcoOBWUiBqJsDaMLZh0qRv0I/CfmI
-         5S8ja9fkzpi1xcmnCde3yevscMFhuhDS63gFqsGo=
-Date:   Thu, 09 Sep 2021 14:03:13 -0700
+        b=Cn0P0gyWhpzzCcC/Vig4vlAx3iGR8PI9UIdiCmrQRC/cmJ9Smk4cFGesQMeanx0hS
+         4UXjXwkbo/f4n90gFLQgMM+fOEakQ9gDCwnvgRVx5Fvz5tPXcN4h7vWcHmM/sk7k3G
+         SArSdrD8mGL0WRjSUNqxsc31qOXdbnXg2tfaxgDE=
+Date:   Thu, 09 Sep 2021 14:03:17 -0700
 From:   akpm@linux-foundation.org
-To:     alexander.shishkin@linux.intel.com, amit@kernel.org,
-        benh@kernel.crashing.org, brendanhiggins@google.com,
-        corbet@lwn.net, david@redhat.com, dwmw@amazon.com,
-        elver@google.com, fan.du@intel.com, foersleo@amazon.de,
-        greg@kroah.com, gthelen@google.com, joe@perches.com,
-        Jonathan.Cameron@huawei.com, markubo@amazon.de, mgorman@suse.de,
-        mheyne@amazon.de, minchan@kernel.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, namhyung@kernel.org,
-        peterz@infradead.org, riel@surriel.com, rientjes@google.com,
-        rostedt@goodmis.org, shakeelb@google.com, shuah@kernel.org,
-        sieberf@amazon.com, sjpark@amazon.de, vbabka@suse.cz,
-        vdavydov.dev@gmail.com
-Subject:  [merged] maintainers-update-for-damon.patch removed from
- -mm tree
-Message-ID: <20210909210313.K-XutSr6I%akpm@linux-foundation.org>
+To:     airlied@linux.ie, ink@jurassic.park.msu.ru, mattst88@gmail.com,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org, rth@twiddle.net
+Subject:  [merged]
+ alpha-agp-make-empty-macros-use-do-while-0-style.patch removed from -mm
+ tree
+Message-ID: <20210909210317.I1f-fd8S6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -53,77 +44,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update for DAMON
+     Subject: alpha: agp: make empty macros use do-while-0 style
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-for-damon.patch
+     alpha-agp-make-empty-macros-use-do-while-0-style.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: SeongJae Park <sjpark@amazon.de>
-Subject: MAINTAINERS: update for DAMON
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: alpha: agp: make empty macros use do-while-0 style
 
-This commit updates MAINTAINERS file for DAMON related files.
+Copy these macros from ia64/include/asm/agp.h to avoid the
+"empty-body" in 'if' statment warning.
 
-Link: https://lkml.kernel.org/r/20210716081449.22187-14-sj38.park@gmail.com
-Signed-off-by: SeongJae Park <sjpark@amazon.de>
-Reviewed-by: Markus Boehme <markubo@amazon.de>
-Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
-Cc: Amit Shah <amit@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: David Woodhouse <dwmw@amazon.com>
-Cc: Fan Du <fan.du@intel.com>
-Cc: Fernand Sieber <sieberf@amazon.com>
-Cc: Greg Kroah-Hartman <greg@kroah.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Leonard Foerster <foersleo@amazon.de>
-Cc: Marco Elver <elver@google.com>
-Cc: Maximilian Heyne <mheyne@amazon.de>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Namhyung Kim <namhyung@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+drivers/char/agp/generic.c: In function 'agp_generic_destroy_page':
+../drivers/char/agp/generic.c:1265:42: warning: suggest braces around empty body in an 'if' statement [-Wempty-body]
+ 1265 |                 unmap_page_from_agp(page);
+
+Link: https://lkml.kernel.org/r/20210809030822.20658-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ arch/alpha/include/asm/agp.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/MAINTAINERS~maintainers-update-for-damon
-+++ a/MAINTAINERS
-@@ -5125,6 +5125,17 @@ F:	net/ax25/ax25_out.c
- F:	net/ax25/ax25_timer.c
- F:	net/ax25/sysctl_net_ax25.c
+--- a/arch/alpha/include/asm/agp.h~alpha-agp-make-empty-macros-use-do-while-0-style
++++ a/arch/alpha/include/asm/agp.h
+@@ -6,8 +6,8 @@
  
-+DATA ACCESS MONITOR
-+M:	SeongJae Park <sjpark@amazon.de>
-+L:	linux-mm@kvack.org
-+S:	Maintained
-+F:	Documentation/admin-guide/mm/damon/
-+F:	Documentation/vm/damon/
-+F:	include/linux/damon.h
-+F:	include/trace/events/damon.h
-+F:	mm/damon/
-+F:	tools/testing/selftests/damon/
-+
- DAVICOM FAST ETHERNET (DMFE) NETWORK DRIVER
- L:	netdev@vger.kernel.org
- S:	Orphan
+ /* dummy for now */
+ 
+-#define map_page_into_agp(page) 
+-#define unmap_page_from_agp(page) 
++#define map_page_into_agp(page)		do { } while (0)
++#define unmap_page_from_agp(page)	do { } while (0)
+ #define flush_agp_cache() mb()
+ 
+ /* GATT allocation. Returns/accepts GATT kernel virtual address. */
 _
 
-Patches currently in -mm which might be from sjpark@amazon.de are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 
