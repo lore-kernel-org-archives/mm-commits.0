@@ -7,38 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D706C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:57:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E10CC433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:57:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1A23761186
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:57:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 17BAE6113E
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:57:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345533AbhIIU6l (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 16:58:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48764 "EHLO mail.kernel.org"
+        id S1345556AbhIIU6o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 16:58:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233573AbhIIU6k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 16:58:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 96FFD6103E;
-        Thu,  9 Sep 2021 20:57:30 +0000 (UTC)
+        id S233573AbhIIU6n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 16:58:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A80A6103E;
+        Thu,  9 Sep 2021 20:57:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221050;
-        bh=iSl0R3Oe1aIfCYROTGI9JYcjuSttAlk0zbg8pgCRtWc=;
+        s=korg; t=1631221054;
+        bh=tfvxs6guLvtFEQIpIynoyOEOKFkw6W8aIOiq8CcEkR0=;
         h=Date:From:To:Subject:From;
-        b=E2KlDbHB7v4v2NmP0AakYsA9sloo+caO+lTF3Qopiw/eaGWCaxuaMAxDPwkFkiRsD
-         hRcUe5LWdMS3M31ugJkpcH2qz9sE1hEI/wiJALSKngsmmv9/lThlsZSt5TZ3g7j6hq
-         LZWEIC8bQUzx48XK3xcKv/zN2GxjXGVh0jPzRIhY=
-Date:   Thu, 09 Sep 2021 13:57:30 -0700
+        b=imtBWMxv7jPbhUzh5dPNjra+nLA1qFseaaaZG8SIxWyHBWBwc39LwgvMUg4uQsfLj
+         dW0yi0lw9hkMpcWXUs/Xut2beR5hrJo4cxYI8Hwkh9m4084T8YJNxWR4gEElBGu5vF
+         zbuKtCBXotb8NPJT044EartdoW2Och/wz6LLrZBQ=
+Date:   Thu, 09 Sep 2021 13:57:33 -0700
 From:   akpm@linux-foundation.org
 To:     aklimov@redhat.com, alobakin@pm.me,
         andriy.shevchenko@linux.intel.com, dennis@kernel.org,
         jolsa@redhat.com, mm-commits@vger.kernel.org,
         ulf.hansson@linaro.org, will@kernel.org,
         wsa+renesas@sang-engineering.com, yury.norov@gmail.com
-Subject:  [to-be-updated]
- lib-bitmap-add-performance-test-for-bitmap_print_to_pagebuf.patch removed
- from -mm tree
-Message-ID: <20210909205730.W_y9_UECh%akpm@linux-foundation.org>
+Subject:  [to-be-updated] vsprintf-rework-bitmap_list_string.patch
+ removed from -mm tree
+Message-ID: <20210909205733.6K65EtrZh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,21 +46,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: bitmap: add performance test for bitmap_print_to_pagebuf
+     Subject: vsprintf: rework bitmap_list_string
 has been removed from the -mm tree.  Its filename was
-     lib-bitmap-add-performance-test-for-bitmap_print_to_pagebuf.patch
+     vsprintf-rework-bitmap_list_string.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: lib: bitmap: add performance test for bitmap_print_to_pagebuf
+Subject: vsprintf: rework bitmap_list_string
 
-Functional tests for bitmap_print_to_pagebuf() are provided in
-lib/test_printf.c.  This patch adds performance test for a case of fully
-set bitmap.
+bitmap_list_string() is very ineffective when printing bitmaps with long
+ranges of set bits because it calls find_next_bit for each bit in the
+bitmap.  We can do better by detecting ranges of set bits.
 
-Link: https://lkml.kernel.org/r/20210814211713.180533-17-yury.norov@gmail.com
+In my environment, before/after is 943008/31008 ns.
+
+[yury.norov@gmail.com: don't increment buf in bitmap_list_string]
+  Link: https://lkml.kernel.org/r/20210817193735.269942-1-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210814211713.180533-18-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 Cc: Alexander Lobakin <alobakin@pm.me>
@@ -74,65 +77,57 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_bitmap.c |   37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ lib/vsprintf.c |   24 +++++++-----------------
+ 1 file changed, 7 insertions(+), 17 deletions(-)
 
---- a/lib/test_bitmap.c~lib-bitmap-add-performance-test-for-bitmap_print_to_pagebuf
-+++ a/lib/test_bitmap.c
-@@ -430,6 +430,42 @@ static void __init test_bitmap_parselist
- 	}
- }
+--- a/lib/vsprintf.c~vsprintf-rework-bitmap_list_string
++++ a/lib/vsprintf.c
+@@ -1241,20 +1241,13 @@ char *bitmap_list_string(char *buf, char
+ 			 struct printf_spec spec, const char *fmt)
+ {
+ 	int nr_bits = max_t(int, spec.field_width, 0);
+-	/* current bit is 'cur', most recently seen range is [rbot, rtop] */
+-	int cur, rbot, rtop;
+ 	bool first = true;
++	int rbot, rtop;
  
-+static void __init test_bitmap_printlist(void)
-+{
-+	unsigned long *bmap = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	char *buf = kmalloc(PAGE_SIZE, GFP_KERNEL);
-+	char expected[256];
-+	int ret, slen;
-+	ktime_t time;
-+
-+	if (!buf || !bmap)
-+		goto out;
-+
-+	memset(bmap, -1, PAGE_SIZE);
-+	slen = snprintf(expected, 256, "0-%ld", PAGE_SIZE * 8 - 1);
-+	if (slen < 0)
-+		goto out;
-+
-+	time = ktime_get();
-+	ret = bitmap_print_to_pagebuf(true, buf, bmap, PAGE_SIZE * 8);
-+	time = ktime_get() - time;
-+
-+	if (ret != slen + 1) {
-+		pr_err("bitmap_print_to_pagebuf: result is %d, expected %d\n", ret, slen);
-+		goto out;
-+	}
-+
-+	if (strncmp(buf, expected, slen)) {
-+		pr_err("bitmap_print_to_pagebuf: result is %s, expected %s\n", buf, expected);
-+		goto out;
-+	}
-+
-+	pr_err("bitmap_print_to_pagebuf: input is '%s', Time: %llu\n", buf, time);
-+out:
-+	kfree(buf);
-+	kfree(bmap);
-+}
-+
- static const unsigned long parse_test[] __initconst = {
- 	BITMAP_FROM_U64(0),
- 	BITMAP_FROM_U64(1),
-@@ -669,6 +705,7 @@ static void __init selftest(void)
- 	test_bitmap_arr32();
- 	test_bitmap_parse();
- 	test_bitmap_parselist();
-+	test_bitmap_printlist();
- 	test_mem_optimisations();
- 	test_for_each_set_clump8();
- 	test_bitmap_cut();
+ 	if (check_pointer(&buf, end, bitmap, spec))
+ 		return buf;
+ 
+-	rbot = cur = find_first_bit(bitmap, nr_bits);
+-	while (cur < nr_bits) {
+-		rtop = cur;
+-		cur = find_next_bit(bitmap, nr_bits, cur + 1);
+-		if (cur < nr_bits && cur <= rtop + 1)
+-			continue;
+-
++	for_each_set_bitrange(rbot, rtop, bitmap, nr_bits) {
+ 		if (!first) {
+ 			if (buf < end)
+ 				*buf = ',';
+@@ -1263,15 +1256,12 @@ char *bitmap_list_string(char *buf, char
+ 		first = false;
+ 
+ 		buf = number(buf, end, rbot, default_dec_spec);
+-		if (rbot < rtop) {
+-			if (buf < end)
+-				*buf = '-';
+-			buf++;
+-
+-			buf = number(buf, end, rtop, default_dec_spec);
+-		}
++		if (rtop == rbot + 1)
++			continue;
+ 
+-		rbot = cur;
++		if (buf < end)
++			*buf = '-';
++		buf = number(buf + 1, end, rtop - 1, default_dec_spec);
+ 	}
+ 	return buf;
+ }
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
 
-vsprintf-rework-bitmap_list_string.patch
 
