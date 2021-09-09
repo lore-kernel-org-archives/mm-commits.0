@@ -7,37 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7C08C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DFD2C43217
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 986E2611C9
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47FCB611C9
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347756AbhIIVEY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1346884AbhIIVEY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 9 Sep 2021 17:04:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52502 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:53486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348628AbhIIVDm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1348640AbhIIVDm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 9 Sep 2021 17:03:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6F5D1611C9;
-        Thu,  9 Sep 2021 21:02:20 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 99D6E611ED;
+        Thu,  9 Sep 2021 21:02:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221340;
-        bh=BY1ErntJfjhsRFWzkdkpjBYeLA3sYjxrtZfH78EZKr0=;
+        s=korg; t=1631221341;
+        bh=11vEMl/c4eqmfxLrKZ8967ppCnYOzDSi/qGBsUxH+B8=;
         h=Date:From:To:Subject:From;
-        b=OLUbyZC/cfBs6KytD1wAL8lgG4fhcP/I36oA6jjSB6S4ELZ9wDlGwZjO5Z07MvgOY
-         T1d/VAHy8kdgayB4vXeYkuwxCY94YPJJ7ldZducf4crfNYOkrG11aAzlZfRiOrh2C2
-         G7SXGATW9eFXGoLZlUaf6VA14ADw0tAWZONfzWAA=
-Date:   Thu, 09 Sep 2021 14:02:20 -0700
+        b=tNkSNvkRuvK6xpaa4j4rv7iTGDZ0Wa7O2hz+5D6irjsbkMJJ7zqFcF3lFTYgDobZu
+         rCfo/WpdVCb7M++fZfDpGljUFbqiDWhgnP9ivIWl8O/4Zn59QCtjOGsbcQ8y7EGJbu
+         NXqqpyWSM8YuZDGSw7Uv0XsUq3CmFQEazB5Oiw9Y=
+Date:   Thu, 09 Sep 2021 14:02:21 -0700
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, shakeelb@google.com,
-        songmuchun@bytedance.com, vdavydov.dev@gmail.com,
-        willy@infradead.org
+To:     James.Bottomley@HansenPartnership.com, jordy@jordyzomer.github.io,
+        jordy@pwning.systems, keescook@chromium.org,
+        mm-commits@vger.kernel.org, rppt@kernel.org
 Subject:  [merged]
- mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch removed
- from -mm tree
-Message-ID: <20210909210220.hMRmtpx__%akpm@linux-foundation.org>
+ mm-secretmem-use-refcount_t-instead-of-atomic_t.patch removed from -mm tree
+Message-ID: <20210909210221.S5oGqpvlm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,100 +44,91 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce PAGEFLAGS_MASK to replace ((1UL << NR_PAGEFLAGS) - 1)
+     Subject: mm/secretmem: use refcount_t instead of atomic_t
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
+     mm-secretmem-use-refcount_t-instead-of-atomic_t.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: introduce PAGEFLAGS_MASK to replace ((1UL << NR_PAGEFLAGS) - 1)
+From: Jordy Zomer <jordy@jordyzomer.github.io>
+Subject: mm/secretmem: use refcount_t instead of atomic_t
 
-Instead of hard-coding ((1UL << NR_PAGEFLAGS) - 1) everywhere, introducing
-PAGEFLAGS_MASK to make the code clear to get the page flags.
+When a secret memory region is active, memfd_secret disables hibernation. 
+One of the goals is to keep the secret data from being written to
+persistent-storage.
 
-Link: https://lkml.kernel.org/r/20210819150712.59948-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+It accomplishes this by maintaining a reference count to
+`secretmem_users`.  Once this reference is held your system can not be
+hibernated due to the check in `hibernation_available()`.  However,
+because `secretmem_users` is of type `atomic_t`, reference counter
+overflows are possible.
+
+As you can see there's an `atomic_inc` for each `memfd` that is opened in
+the `memfd_secret` syscall.  If a local attacker succeeds to open 2^32
+memfd's, the counter will wrap around to 0.  This implies that you may
+hibernate again, even though there are still regions of this secret
+memory, thereby bypassing the security check.
+
+In an attempt to fix this I have used `refcount_t` instead of `atomic_t`
+which prevents reference counter overflows.
+
+Link: https://lkml.kernel.org/r/20210820043339.2151352-1-jordy@pwning.systems
+Signed-off-by: Jordy Zomer <jordy@pwning.systems>
+Cc: Kees Cook <keescook@chromium.org>,
+Cc: Jordy Zomer <jordy@jordyzomer.github.io>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h      |    4 +++-
- include/trace/events/page_ref.h |    4 ++--
- lib/test_printf.c               |    2 +-
- lib/vsprintf.c                  |    2 +-
- 4 files changed, 7 insertions(+), 5 deletions(-)
+ mm/secretmem.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/include/linux/page-flags.h~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
-+++ a/include/linux/page-flags.h
-@@ -178,6 +178,8 @@ enum pageflags {
- 	PG_reported = PG_uptodate,
- };
+--- a/mm/secretmem.c~mm-secretmem-use-refcount_t-instead-of-atomic_t
++++ a/mm/secretmem.c
+@@ -18,6 +18,7 @@
+ #include <linux/secretmem.h>
+ #include <linux/set_memory.h>
+ #include <linux/sched/signal.h>
++#include <linux/refcount.h>
  
-+#define PAGEFLAGS_MASK		((1UL << NR_PAGEFLAGS) - 1)
-+
- #ifndef __GENERATING_BOUNDS_H
+ #include <uapi/linux/magic.h>
  
- static inline unsigned long _compound_head(const struct page *page)
-@@ -868,7 +870,7 @@ static inline void ClearPageSlabPfmemall
-  * alloc-free cycle to prevent from reusing the page.
-  */
- #define PAGE_FLAGS_CHECK_AT_PREP	\
--	(((1UL << NR_PAGEFLAGS) - 1) & ~__PG_HWPOISON)
-+	(PAGEFLAGS_MASK & ~__PG_HWPOISON)
+@@ -40,11 +41,11 @@ module_param_named(enable, secretmem_ena
+ MODULE_PARM_DESC(secretmem_enable,
+ 		 "Enable secretmem and memfd_secret(2) system call");
  
- #define PAGE_FLAGS_PRIVATE				\
- 	(1UL << PG_private | 1UL << PG_private_2)
---- a/include/trace/events/page_ref.h~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
-+++ a/include/trace/events/page_ref.h
-@@ -38,7 +38,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_templat
+-static atomic_t secretmem_users;
++static refcount_t secretmem_users;
  
- 	TP_printk("pfn=0x%lx flags=%s count=%d mapcount=%d mapping=%p mt=%d val=%d",
- 		__entry->pfn,
--		show_page_flags(__entry->flags & ((1UL << NR_PAGEFLAGS) - 1)),
-+		show_page_flags(__entry->flags & PAGEFLAGS_MASK),
- 		__entry->count,
- 		__entry->mapcount, __entry->mapping, __entry->mt,
- 		__entry->val)
-@@ -88,7 +88,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_and_tes
- 
- 	TP_printk("pfn=0x%lx flags=%s count=%d mapcount=%d mapping=%p mt=%d val=%d ret=%d",
- 		__entry->pfn,
--		show_page_flags(__entry->flags & ((1UL << NR_PAGEFLAGS) - 1)),
-+		show_page_flags(__entry->flags & PAGEFLAGS_MASK),
- 		__entry->count,
- 		__entry->mapcount, __entry->mapping, __entry->mt,
- 		__entry->val, __entry->ret)
---- a/lib/test_printf.c~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
-+++ a/lib/test_printf.c
-@@ -614,7 +614,7 @@ page_flags_test(int section, int node, i
- 	bool append = false;
- 	int i;
- 
--	flags &= BIT(NR_PAGEFLAGS) - 1;
-+	flags &= PAGEFLAGS_MASK;
- 	if (flags) {
- 		page_flags |= flags;
- 		snprintf(cmp_buf + size, BUF_SIZE - size, "%s", name);
---- a/lib/vsprintf.c~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
-+++ a/lib/vsprintf.c
-@@ -2019,7 +2019,7 @@ static const struct page_flags_fields pf
- static
- char *format_page_flags(char *buf, char *end, unsigned long flags)
+ bool secretmem_active(void)
  {
--	unsigned long main_flags = flags & (BIT(NR_PAGEFLAGS) - 1);
-+	unsigned long main_flags = flags & PAGEFLAGS_MASK;
- 	bool append = false;
- 	int i;
+-	return !!atomic_read(&secretmem_users);
++	return !!refcount_read(&secretmem_users);
+ }
  
+ static vm_fault_t secretmem_fault(struct vm_fault *vmf)
+@@ -103,7 +104,7 @@ static const struct vm_operations_struct
+ 
+ static int secretmem_release(struct inode *inode, struct file *file)
+ {
+-	atomic_dec(&secretmem_users);
++	refcount_dec(&secretmem_users);
+ 	return 0;
+ }
+ 
+@@ -217,7 +218,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned i
+ 	file->f_flags |= O_LARGEFILE;
+ 
+ 	fd_install(fd, file);
+-	atomic_inc(&secretmem_users);
++	refcount_inc(&secretmem_users);
+ 	return fd;
+ 
+ err_put_fd:
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from jordy@jordyzomer.github.io are
 
 
