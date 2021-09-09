@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D29C2C433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FC63C43219
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BF0CA611C9
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3517D611C9
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346952AbhIIVEX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:04:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52352 "EHLO mail.kernel.org"
+        id S1347746AbhIIVEY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:04:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53202 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347746AbhIIVDa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1348562AbhIIVDa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 9 Sep 2021 17:03:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 953A8611C7;
-        Thu,  9 Sep 2021 21:02:14 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6E1E8611C8;
+        Thu,  9 Sep 2021 21:02:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221334;
-        bh=7BWeY7jZf2ARlswwmir2ibzjP/ISOvia+wJxQRJBS1g=;
+        s=korg; t=1631221336;
+        bh=hMXRLb2eftfTM8Ce34IAUnPDHjzAgbQpVJX9c7Nhc/k=;
         h=Date:From:To:Subject:From;
-        b=zewirI6BwHFRwWWM9o4142T7Uk4JtQYxINZxsj30qdqfftQl8vUvHm5oQY21SOSbh
-         Gxdfk1CuX2ygeuFor0PjJM1R2zYHR5Zk9uYtYpP/1LiZEtiIUVYfMHvkKxO20oIpRg
-         LB7YV1cXSITE7/3dYpmLCX5Ix7JU7pWMkdDDkdq0=
-Date:   Thu, 09 Sep 2021 14:02:14 -0700
+        b=T/Ia2uejnReMREkXUgBYKEx89VE7GYCLWM4EDwOp8nGAkzmKFXdlR/9GhpeBHmv8k
+         lfDj0qkrOShUPoiFbTGtq9m9Vdove6kbHyrsSkM1e7d4zPCPRQxM49ou86H6NR8tBo
+         yzdZ3PpWiZv1FfoZQ31yg4FWyw0IkTNOfowXo7T8=
+Date:   Thu, 09 Sep 2021 14:02:16 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, david@redhat.com, mm-commits@vger.kernel.org,
-        o451686892@gmail.com
+To:     bigeasy@linutronix.de, mm-commits@vger.kernel.org,
+        peterz@infradead.org, tglx@linutronix.de, vbabka@suse.cz
 Subject:  [merged]
- mm-early_ioremapc-remove-redundant-early_ioremap_shutdown.patch removed
- from -mm tree
-Message-ID: <20210909210214.vup5DLLPC%akpm@linux-foundation.org>
+ highmem-dont-disable-preemption-on-rt-in-kmap_atomic.patch removed from -mm
+ tree
+Message-ID: <20210909210216.fTrJS-nuT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,64 +44,110 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/early_ioremap.c: remove redundant early_ioremap_shutdown()
+     Subject: highmem: don't disable preemption on RT in kmap_atomic()
 has been removed from the -mm tree.  Its filename was
-     mm-early_ioremapc-remove-redundant-early_ioremap_shutdown.patch
+     highmem-dont-disable-preemption-on-rt-in-kmap_atomic.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Weizhao Ouyang <o451686892@gmail.com>
-Subject: mm/early_ioremap.c: remove redundant early_ioremap_shutdown()
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: highmem: don't disable preemption on RT in kmap_atomic()
 
-early_ioremap_reset() reserved a weak function so that architectures can
-provide a specific cleanup.  Now no architectures use it, remove this
-redundant function.
+kmap_atomic() disables preemption and pagefaults for historical reasons. 
+The conversion to kmap_local(), which only disables migration, cannot be
+done wholesale because quite some call sites need to be updated to
+accommodate with the changed semantics.
 
-Link: https://lkml.kernel.org/r/20210901082917.399953-1-o451686892@gmail.com
-Signed-off-by: Weizhao Ouyang <o451686892@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+On PREEMPT_RT enabled kernels the kmap_atomic() semantics are problematic
+due to the implicit disabling of preemption which makes it impossible to
+acquire 'sleeping' spinlocks within the kmap atomic sections.
+
+PREEMPT_RT replaces the preempt_disable() with a migrate_disable() for
+more than a decade.  It could be argued that this is a justification to do
+this unconditionally, but PREEMPT_RT covers only a limited number of
+architectures and it disables some functionality which limits the coverage
+further.
+
+Limit the replacement to PREEMPT_RT for now.
+
+Link: https://lkml.kernel.org/r/20210810091116.pocdmaatdcogvdso@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/early_ioremap.h |    6 ------
- mm/early_ioremap.c                  |    5 -----
- 2 files changed, 11 deletions(-)
+ include/linux/highmem-internal.h |   27 ++++++++++++++++++++++-----
+ 1 file changed, 22 insertions(+), 5 deletions(-)
 
---- a/include/asm-generic/early_ioremap.h~mm-early_ioremapc-remove-redundant-early_ioremap_shutdown
-+++ a/include/asm-generic/early_ioremap.h
-@@ -19,12 +19,6 @@ extern void *early_memremap_prot(resourc
- extern void early_iounmap(void __iomem *addr, unsigned long size);
- extern void early_memunmap(void *addr, unsigned long size);
+--- a/include/linux/highmem-internal.h~highmem-dont-disable-preemption-on-rt-in-kmap_atomic
++++ a/include/linux/highmem-internal.h
+@@ -90,7 +90,11 @@ static inline void __kunmap_local(void *
  
--/*
-- * Weak function called by early_ioremap_reset(). It does nothing, but
-- * architectures may provide their own version to do any needed cleanups.
-- */
--extern void early_ioremap_shutdown(void);
--
- #if defined(CONFIG_GENERIC_EARLY_IOREMAP) && defined(CONFIG_MMU)
- /* Arch-specific initialization */
- extern void early_ioremap_init(void);
---- a/mm/early_ioremap.c~mm-early_ioremapc-remove-redundant-early_ioremap_shutdown
-+++ a/mm/early_ioremap.c
-@@ -38,13 +38,8 @@ pgprot_t __init __weak early_memremap_pg
- 	return prot;
- }
- 
--void __init __weak early_ioremap_shutdown(void)
--{
--}
--
- void __init early_ioremap_reset(void)
+ static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
  {
--	early_ioremap_shutdown();
- 	after_paging_init = 1;
+-	preempt_disable();
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		migrate_disable();
++	else
++		preempt_disable();
++
+ 	pagefault_disable();
+ 	return __kmap_local_page_prot(page, prot);
+ }
+@@ -102,7 +106,11 @@ static inline void *kmap_atomic(struct p
+ 
+ static inline void *kmap_atomic_pfn(unsigned long pfn)
+ {
+-	preempt_disable();
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		migrate_disable();
++	else
++		preempt_disable();
++
+ 	pagefault_disable();
+ 	return __kmap_local_pfn_prot(pfn, kmap_prot);
+ }
+@@ -111,7 +119,10 @@ static inline void __kunmap_atomic(void
+ {
+ 	kunmap_local_indexed(addr);
+ 	pagefault_enable();
+-	preempt_enable();
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		migrate_enable();
++	else
++		preempt_enable();
  }
  
+ unsigned int __nr_free_highpages(void);
+@@ -179,7 +190,10 @@ static inline void __kunmap_local(void *
+ 
+ static inline void *kmap_atomic(struct page *page)
+ {
+-	preempt_disable();
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		migrate_disable();
++	else
++		preempt_disable();
+ 	pagefault_disable();
+ 	return page_address(page);
+ }
+@@ -200,7 +214,10 @@ static inline void __kunmap_atomic(void
+ 	kunmap_flush_on_unmap(addr);
+ #endif
+ 	pagefault_enable();
+-	preempt_enable();
++	if (IS_ENABLED(CONFIG_PREEMPT_RT))
++		migrate_enable();
++	else
++		preempt_enable();
+ }
+ 
+ static inline unsigned int nr_free_highpages(void) { return 0; }
 _
 
-Patches currently in -mm which might be from o451686892@gmail.com are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
 
