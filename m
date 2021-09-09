@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C492EC4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:07:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73F77C43219
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:07:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B1766611AF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:07:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5E3C4611AF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:07:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345533AbhIIVIO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1345621AbhIIVIO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 9 Sep 2021 17:08:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57374 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57066 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347460AbhIIVH2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:07:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A3669611C1;
-        Thu,  9 Sep 2021 21:06:18 +0000 (UTC)
+        id S1348070AbhIIVH0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:07:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8957561179;
+        Thu,  9 Sep 2021 21:06:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221578;
-        bh=DwWgYcvl/Ku8J4w7nRj0SEUzqvXAeuYytdQOU292rO4=;
+        s=korg; t=1631221576;
+        bh=frFrDNgnF/1JzZd3xlc8776IQqqnh6G4SqmT1zvu15E=;
         h=Date:From:To:Subject:From;
-        b=0RbzYWVDtwjUXKuEcJtJJ7HqNjaLT6Qj3vJi+OEuaInxP1Wy4k5pMt/q3wb3kCFIn
-         uuq8IrfW982yjhhWnEs8JEKrZ18dQb+xkm8lTPKgICbVyFXOIOEuP+aFaLF4UdWQOw
-         ohMIsrDesD6CZNkkOr7lAq4Qebq3eDthYK6e05no=
-Date:   Thu, 09 Sep 2021 14:06:18 -0700
+        b=qtvG4IBBdSB11TQnjhj+eK+CVgsEwJcKexy+8qjgKW1qrAYcvAb74Ud44dlF3BxQO
+         4l8HPbjWF2erh93MTcJnzT/3MYt6M+1uvFU4zRrq9D9TaFzIJETXIdOV+NN/WDjreo
+         97o9tjvzqTDJLG02Qtc9tkxFIO30UhAK+s7dMmdU=
+Date:   Thu, 09 Sep 2021 14:06:16 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, djwong@kernel.org,
-        mm-commits@vger.kernel.org, naohiro.aota@wdc.com
-Subject:  [merged]
- mm-kmemleak-allow-__gfp_nolockdep-passed-to-kmemleaks-gfp.patch removed
- from -mm tree
-Message-ID: <20210909210618.pgzqaq2vq%akpm@linux-foundation.org>
+To:     Liam.Howlett@oracle.com, mm-commits@vger.kernel.org,
+        rostedt@goodmis.org, vbabka@suse.cz, walken.cr@gmail.com,
+        willy@infradead.org
+Subject:  [merged] mmap_lock-change-trace-and-locking-order.patch
+ removed from -mm tree
+Message-ID: <20210909210616.1U__20o4c%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,124 +44,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak: allow __GFP_NOLOCKDEP passed to kmemleak's gfp
+     Subject: mmap_lock: change trace and locking order
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-allow-__gfp_nolockdep-passed-to-kmemleaks-gfp.patch
+     mmap_lock-change-trace-and-locking-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naohiro Aota <naohiro.aota@wdc.com>
-Subject: mm/kmemleak: allow __GFP_NOLOCKDEP passed to kmemleak's gfp
+From: Liam Howlett <liam.howlett@oracle.com>
+Subject: mmap_lock: change trace and locking order
 
-In a memory pressure situation, I'm seeing the lockdep WARNING below. 
-Actually, this is similar to a known false positive which is already
-addressed by commit 6dcde60efd94 ("xfs: more lockdep whackamole with
-kmem_alloc*").
+Print to the trace log before releasing the lock to avoid racing with
+other trace log printers of the same lock type.
 
-This warning still persists because it's not from kmalloc() itself but
-from an allocation for kmemleak object.  While kmalloc() itself suppress
-the warning with __GFP_NOLOCKDEP, gfp_kmemleak_mask() is dropping the flag
-for the kmemleak's allocation.
-
-Allow __GFP_NOLOCKDEP to be passed to kmemleak's allocation, so that the
-warning for it is also suppressed.
-
-  ======================================================
-  WARNING: possible circular locking dependency detected
-  5.14.0-rc7-BTRFS-ZNS+ #37 Not tainted
-  ------------------------------------------------------
-  kswapd0/288 is trying to acquire lock:
-  ffff88825ab45df0 (&xfs_nondir_ilock_class){++++}-{3:3}, at: xfs_ilock+0x8a/0x250
-
-  but task is already holding lock:
-  ffffffff848cc1e0 (fs_reclaim){+.+.}-{0:0}, at: __fs_reclaim_acquire+0x5/0x30
-
-  which lock already depends on the new lock.
-
-  the existing dependency chain (in reverse order) is:
-
-  -> #1 (fs_reclaim){+.+.}-{0:0}:
-         fs_reclaim_acquire+0x112/0x160
-         kmem_cache_alloc+0x48/0x400
-         create_object.isra.0+0x42/0xb10
-         kmemleak_alloc+0x48/0x80
-         __kmalloc+0x228/0x440
-         kmem_alloc+0xd3/0x2b0
-         kmem_alloc_large+0x5a/0x1c0
-         xfs_attr_copy_value+0x112/0x190
-         xfs_attr_shortform_getvalue+0x1fc/0x300
-         xfs_attr_get_ilocked+0x125/0x170
-         xfs_attr_get+0x329/0x450
-         xfs_get_acl+0x18d/0x430
-         get_acl.part.0+0xb6/0x1e0
-         posix_acl_xattr_get+0x13a/0x230
-         vfs_getxattr+0x21d/0x270
-         getxattr+0x126/0x310
-         __x64_sys_fgetxattr+0x1a6/0x2a0
-         do_syscall_64+0x3b/0x90
-         entry_SYSCALL_64_after_hwframe+0x44/0xae
-
-  -> #0 (&xfs_nondir_ilock_class){++++}-{3:3}:
-         __lock_acquire+0x2c0f/0x5a00
-         lock_acquire+0x1a1/0x4b0
-         down_read_nested+0x50/0x90
-         xfs_ilock+0x8a/0x250
-         xfs_can_free_eofblocks+0x34f/0x570
-         xfs_inactive+0x411/0x520
-         xfs_fs_destroy_inode+0x2c8/0x710
-         destroy_inode+0xc5/0x1a0
-         evict+0x444/0x620
-         dispose_list+0xfe/0x1c0
-         prune_icache_sb+0xdc/0x160
-         super_cache_scan+0x31e/0x510
-         do_shrink_slab+0x337/0x8e0
-         shrink_slab+0x362/0x5c0
-         shrink_node+0x7a7/0x1a40
-         balance_pgdat+0x64e/0xfe0
-         kswapd+0x590/0xa80
-         kthread+0x38c/0x460
-         ret_from_fork+0x22/0x30
-
-  other info that might help us debug this:
-   Possible unsafe locking scenario:
-         CPU0                    CPU1
-         ----                    ----
-    lock(fs_reclaim);
-                                 lock(&xfs_nondir_ilock_class);
-                                 lock(fs_reclaim);
-    lock(&xfs_nondir_ilock_class);
-
-   *** DEADLOCK ***
-  3 locks held by kswapd0/288:
-   #0: ffffffff848cc1e0 (fs_reclaim){+.+.}-{0:0}, at: __fs_reclaim_acquire+0x5/0x30
-   #1: ffffffff848a08d8 (shrinker_rwsem){++++}-{3:3}, at: shrink_slab+0x269/0x5c0
-   #2: ffff8881a7a820e8 (&type->s_umount_key#60){++++}-{3:3}, at: super_cache_scan+0x5a/0x510
-
-Link: https://lkml.kernel.org/r/20210907055659.3182992-1-naohiro.aota@wdc.com
-Signed-off-by: Naohiro Aota <naohiro.aota@wdc.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Darrick J . Wong" <djwong@kernel.org>
+Link: https://lkml.kernel.org/r/20210903022041.1843024-1-Liam.Howlett@oracle.com
+Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
+Suggested-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michel Lespinasse <walken.cr@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mmap_lock.h |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-allow-__gfp_nolockdep-passed-to-kmemleaks-gfp
-+++ a/mm/kmemleak.c
-@@ -113,7 +113,8 @@
- #define BYTES_PER_POINTER	sizeof(void *)
+--- a/include/linux/mmap_lock.h~mmap_lock-change-trace-and-locking-order
++++ a/include/linux/mmap_lock.h
+@@ -101,14 +101,14 @@ static inline bool mmap_write_trylock(st
  
- /* GFP bitmask for kmemleak internal allocations */
--#define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC)) | \
-+#define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC | \
-+					   __GFP_NOLOCKDEP)) | \
- 				 __GFP_NORETRY | __GFP_NOMEMALLOC | \
- 				 __GFP_NOWARN)
+ static inline void mmap_write_unlock(struct mm_struct *mm)
+ {
+-	up_write(&mm->mmap_lock);
+ 	__mmap_lock_trace_released(mm, true);
++	up_write(&mm->mmap_lock);
+ }
  
+ static inline void mmap_write_downgrade(struct mm_struct *mm)
+ {
+-	downgrade_write(&mm->mmap_lock);
+ 	__mmap_lock_trace_acquire_returned(mm, false, true);
++	downgrade_write(&mm->mmap_lock);
+ }
+ 
+ static inline void mmap_read_lock(struct mm_struct *mm)
+@@ -140,8 +140,8 @@ static inline bool mmap_read_trylock(str
+ 
+ static inline void mmap_read_unlock(struct mm_struct *mm)
+ {
+-	up_read(&mm->mmap_lock);
+ 	__mmap_lock_trace_released(mm, false);
++	up_read(&mm->mmap_lock);
+ }
+ 
+ static inline bool mmap_read_trylock_non_owner(struct mm_struct *mm)
+@@ -155,8 +155,8 @@ static inline bool mmap_read_trylock_non
+ 
+ static inline void mmap_read_unlock_non_owner(struct mm_struct *mm)
+ {
+-	up_read_non_owner(&mm->mmap_lock);
+ 	__mmap_lock_trace_released(mm, false);
++	up_read_non_owner(&mm->mmap_lock);
+ }
+ 
+ static inline void mmap_assert_locked(struct mm_struct *mm)
 _
 
-Patches currently in -mm which might be from naohiro.aota@wdc.com are
+Patches currently in -mm which might be from liam.howlett@oracle.com are
 
 
