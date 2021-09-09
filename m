@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E4D16C433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57E27C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CBFD6611BD
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 427E3611BD
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348027AbhIIVFB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:05:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53912 "EHLO mail.kernel.org"
+        id S1345990AbhIIVFD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:05:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54084 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348980AbhIIVEC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:04:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 080C461186;
-        Thu,  9 Sep 2021 21:02:52 +0000 (UTC)
+        id S1349171AbhIIVEK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:04:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E5DD9611AF;
+        Thu,  9 Sep 2021 21:02:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221373;
-        bh=k1v4/c5W4VDuZHO48bWPolSaJB/AdGSWYBiSADLIh7M=;
+        s=korg; t=1631221380;
+        bh=GPcyBISpsi3aOGjS8IUxezAdpsOO4VWmWftX0N7NDKA=;
         h=Date:From:To:Subject:From;
-        b=yfh/9gpFt72MZat3STD0NwIDeH+SyB1Jt5fZK+wMVR1kH3glUzj5ohpkuzgM7ovTC
-         JHvWn5z7h6Rz1zZtanhCp+/1E+9nPOn6Y9ksdfxMm5l50wBNujBGZQ7kAcumAcgC25
-         y36/OUrAWUJTVCKx5qwfJVqUsI15RCGfmZPur4xc=
-Date:   Thu, 09 Sep 2021 14:02:51 -0700
+        b=CfHQb2a863TV7TKuoDwkzWRwnCu/FkTyABKR2zhIShU9Ogj+76gO95PF5jnNzp1DW
+         i6iMPnL/Gf0zXKR8mn7FKyRMM3iC5q0gDpd7mgq7daK7/6YYgoMaICUvz3m/izhw7H
+         fEjlHerGOL1LHkY/e8ixc/ZSSWBQUyTbe08vJQ5s=
+Date:   Thu, 09 Sep 2021 14:02:59 -0700
 From:   akpm@linux-foundation.org
 To:     alexander.shishkin@linux.intel.com, amit@kernel.org,
         benh@kernel.crashing.org, brendanhiggins@google.com,
@@ -42,10 +42,9 @@ To:     alexander.shishkin@linux.intel.com, amit@kernel.org,
         rostedt@goodmis.org, shakeelb@google.com, shuah@kernel.org,
         sieberf@amazon.com, sjpark@amazon.de, vbabka@suse.cz,
         vdavydov.dev@gmail.com
-Subject:  [merged]
- mm-damon-implement-a-debugfs-based-user-space-interface.patch removed from
- -mm tree
-Message-ID: <20210909210251._4L_USj-H%akpm@linux-foundation.org>
+Subject:  [merged] mm-damon-dbgfs-support-multiple-contexts.patch
+ removed from -mm tree
+Message-ID: <20210909210259.3H_Wj5sbp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -54,89 +53,38 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: implement a debugfs-based user space interface
+     Subject: mm/damon/dbgfs: support multiple contexts
 has been removed from the -mm tree.  Its filename was
-     mm-damon-implement-a-debugfs-based-user-space-interface.patch
+     mm-damon-dbgfs-support-multiple-contexts.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: SeongJae Park <sjpark@amazon.de>
-Subject: mm/damon: implement a debugfs-based user space interface
+Subject: mm/damon/dbgfs: support multiple contexts
 
-DAMON is designed to be used by kernel space code such as the memory
-management subsystems, and therefore it provides only kernel space API. 
-That said, letting the user space control DAMON could provide some
-benefits to them.  For example, it will allow user space to analyze their
-specific workloads and make their own special optimizations.
+In some use cases, users would want to run multiple monitoring context. 
+For example, if a user wants a high precision monitoring and dedicating
+multiple CPUs for the job is ok, because DAMON creates one monitoring
+thread per one context, the user can split the monitoring target regions
+into multiple small regions and create one context for each region.  Or,
+someone might want to simultaneously monitor different address spaces,
+e.g., both virtual address space and physical address space.
 
-For such cases, this commit implements a simple DAMON application kernel
-module, namely 'damon-dbgfs', which merely wraps the DAMON api and exports
-those to the user space via the debugfs.
+The DAMON's API allows such usage, but 'damon-dbgfs' does not.  Therefore,
+only kernel space DAMON users can do multiple contexts monitoring.
 
-'damon-dbgfs' exports three files, ``attrs``, ``target_ids``, and
-``monitor_on`` under its debugfs directory, ``<debugfs>/damon/``.
+This commit allows the user space DAMON users to use multiple contexts
+monitoring by introducing two new 'damon-dbgfs' debugfs files,
+'mk_context' and 'rm_context'.  Users can create a new monitoring context
+by writing the desired name of the new context to 'mk_context'.  Then, a
+new directory with the name and having the files for setting of the
+context ('attrs', 'target_ids' and 'record') will be created under the
+debugfs directory.  Writing the name of the context to remove to
+'rm_context' will remove the related context and directory.
 
-Attributes
-----------
-
-Users can read and write the ``sampling interval``, ``aggregation
-interval``, ``regions update interval``, and min/max number of monitoring
-target regions by reading from and writing to the ``attrs`` file.  For
-example, below commands set those values to 5 ms, 100 ms, 1,000 ms, 10,
-1000 and check it again::
-
-    # cd <debugfs>/damon
-    # echo 5000 100000 1000000 10 1000 > attrs
-    # cat attrs
-    5000 100000 1000000 10 1000
-
-Target IDs
-----------
-
-Some types of address spaces supports multiple monitoring target.  For
-example, the virtual memory address spaces monitoring can have multiple
-processes as the monitoring targets.  Users can set the targets by writing
-relevant id values of the targets to, and get the ids of the current
-targets by reading from the ``target_ids`` file.  In case of the virtual
-address spaces monitoring, the values should be pids of the monitoring
-target processes.  For example, below commands set processes having pids
-42 and 4242 as the monitoring targets and check it again::
-
-    # cd <debugfs>/damon
-    # echo 42 4242 > target_ids
-    # cat target_ids
-    42 4242
-
-Note that setting the target ids doesn't start the monitoring.
-
-Turning On/Off
---------------
-
-Setting the files as described above doesn't incur effect unless you
-explicitly start the monitoring.  You can start, stop, and check the
-current status of the monitoring by writing to and reading from the
-``monitor_on`` file.  Writing ``on`` to the file starts the monitoring of
-the targets with the attributes.  Writing ``off`` to the file stops those.
-DAMON also stops if every targets are invalidated (in case of the virtual
-memory monitoring, target processes are invalidated when terminated). 
-Below example commands turn on, off, and check the status of DAMON::
-
-    # cd <debugfs>/damon
-    # echo on > monitor_on
-    # echo off > monitor_on
-    # cat monitor_on
-    off
-
-Please note that you cannot write to the above-mentioned debugfs files
-while the monitoring is turned on.  If you write to the files while DAMON
-is running, an error code such as ``-EBUSY`` will be returned.
-
-[akpm@linux-foundation.org: remove unneeded "alloc failed" printks]
-[akpm@linux-foundation.org: replace macro with static inline]
-Link: https://lkml.kernel.org/r/20210716081449.22187-8-sj38.park@gmail.com
+Link: https://lkml.kernel.org/r/20210716081449.22187-10-sj38.park@gmail.com
 Signed-off-by: SeongJae Park <sjpark@amazon.de>
-Reviewed-by: Leonard Foerster <foersleo@amazon.de>
 Reviewed-by: Fernand Sieber <sieberf@amazon.com>
 Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
 Cc: Amit Shah <amit@kernel.org>
@@ -152,6 +100,7 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Leonard Foerster <foersleo@amazon.de>
 Cc: Marco Elver <elver@google.com>
 Cc: Markus Boehme <markubo@amazon.de>
 Cc: Maximilian Heyne <mheyne@amazon.de>
@@ -168,514 +117,234 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    3 
- mm/damon/Kconfig      |    9 
- mm/damon/Makefile     |    1 
- mm/damon/core.c       |   47 ++++
- mm/damon/dbgfs.c      |  397 ++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 457 insertions(+)
+ mm/damon/dbgfs.c |  195 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 193 insertions(+), 2 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-implement-a-debugfs-based-user-space-interface
-+++ a/include/linux/damon.h
-@@ -240,9 +240,12 @@ unsigned int damon_nr_regions(struct dam
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-support-multiple-contexts
++++ a/mm/damon/dbgfs.c
+@@ -18,6 +18,7 @@
+ static struct damon_ctx **dbgfs_ctxs;
+ static int dbgfs_nr_ctxs;
+ static struct dentry **dbgfs_dirs;
++static DEFINE_MUTEX(damon_dbgfs_lock);
  
- struct damon_ctx *damon_new_ctx(void);
- void damon_destroy_ctx(struct damon_ctx *ctx);
-+int damon_set_targets(struct damon_ctx *ctx,
-+		unsigned long *ids, ssize_t nr_ids);
- int damon_set_attrs(struct damon_ctx *ctx, unsigned long sample_int,
- 		unsigned long aggr_int, unsigned long primitive_upd_int,
- 		unsigned long min_nr_reg, unsigned long max_nr_reg);
-+int damon_nr_running_ctxs(void);
- 
- int damon_start(struct damon_ctx **ctxs, int nr_ctxs);
- int damon_stop(struct damon_ctx **ctxs, int nr_ctxs);
---- a/mm/damon/core.c~mm-damon-implement-a-debugfs-based-user-space-interface
-+++ a/mm/damon/core.c
-@@ -172,6 +172,39 @@ void damon_destroy_ctx(struct damon_ctx
+ /*
+  * Returns non-empty string on success, negative error code otherwise.
+@@ -328,6 +329,186 @@ static struct damon_ctx *dbgfs_new_ctx(v
+ 	return ctx;
  }
  
- /**
-+ * damon_set_targets() - Set monitoring targets.
-+ * @ctx:	monitoring context
-+ * @ids:	array of target ids
-+ * @nr_ids:	number of entries in @ids
-+ *
-+ * This function should not be called while the kdamond is running.
-+ *
-+ * Return: 0 on success, negative error code otherwise.
-+ */
-+int damon_set_targets(struct damon_ctx *ctx,
-+		      unsigned long *ids, ssize_t nr_ids)
++static void dbgfs_destroy_ctx(struct damon_ctx *ctx)
 +{
-+	ssize_t i;
-+	struct damon_target *t, *next;
++	damon_destroy_ctx(ctx);
++}
 +
-+	damon_destroy_targets(ctx);
++/*
++ * Make a context of @name and create a debugfs directory for it.
++ *
++ * This function should be called while holding damon_dbgfs_lock.
++ *
++ * Returns 0 on success, negative error code otherwise.
++ */
++static int dbgfs_mk_context(char *name)
++{
++	struct dentry *root, **new_dirs, *new_dir;
++	struct damon_ctx **new_ctxs, *new_ctx;
 +
-+	for (i = 0; i < nr_ids; i++) {
-+		t = damon_new_target(ids[i]);
-+		if (!t) {
-+			pr_err("Failed to alloc damon_target\n");
-+			/* The caller should do cleanup of the ids itself */
-+			damon_for_each_target_safe(t, next, ctx)
-+				damon_destroy_target(t);
-+			return -ENOMEM;
-+		}
-+		damon_add_target(ctx, t);
++	if (damon_nr_running_ctxs())
++		return -EBUSY;
++
++	new_ctxs = krealloc(dbgfs_ctxs, sizeof(*dbgfs_ctxs) *
++			(dbgfs_nr_ctxs + 1), GFP_KERNEL);
++	if (!new_ctxs)
++		return -ENOMEM;
++	dbgfs_ctxs = new_ctxs;
++
++	new_dirs = krealloc(dbgfs_dirs, sizeof(*dbgfs_dirs) *
++			(dbgfs_nr_ctxs + 1), GFP_KERNEL);
++	if (!new_dirs)
++		return -ENOMEM;
++	dbgfs_dirs = new_dirs;
++
++	root = dbgfs_dirs[0];
++	if (!root)
++		return -ENOENT;
++
++	new_dir = debugfs_create_dir(name, root);
++	dbgfs_dirs[dbgfs_nr_ctxs] = new_dir;
++
++	new_ctx = dbgfs_new_ctx();
++	if (!new_ctx) {
++		debugfs_remove(new_dir);
++		dbgfs_dirs[dbgfs_nr_ctxs] = NULL;
++		return -ENOMEM;
 +	}
++
++	dbgfs_ctxs[dbgfs_nr_ctxs] = new_ctx;
++	dbgfs_fill_ctx_dir(dbgfs_dirs[dbgfs_nr_ctxs],
++			dbgfs_ctxs[dbgfs_nr_ctxs]);
++	dbgfs_nr_ctxs++;
 +
 +	return 0;
 +}
 +
-+/**
-  * damon_set_attrs() - Set attributes for the monitoring.
-  * @ctx:		monitoring context
-  * @sample_int:		time interval between samplings
-@@ -209,6 +242,20 @@ int damon_set_attrs(struct damon_ctx *ct
- 	return 0;
- }
- 
-+/**
-+ * damon_nr_running_ctxs() - Return number of currently running contexts.
-+ */
-+int damon_nr_running_ctxs(void)
-+{
-+	int nr_ctxs;
-+
-+	mutex_lock(&damon_lock);
-+	nr_ctxs = nr_running_ctxs;
-+	mutex_unlock(&damon_lock);
-+
-+	return nr_ctxs;
-+}
-+
- /* Returns the size upper limit for each monitoring region */
- static unsigned long damon_region_sz_limit(struct damon_ctx *ctx)
- {
---- /dev/null
-+++ a/mm/damon/dbgfs.c
-@@ -0,0 +1,397 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * DAMON Debugfs Interface
-+ *
-+ * Author: SeongJae Park <sjpark@amazon.de>
-+ */
-+
-+#define pr_fmt(fmt) "damon-dbgfs: " fmt
-+
-+#include <linux/damon.h>
-+#include <linux/debugfs.h>
-+#include <linux/file.h>
-+#include <linux/mm.h>
-+#include <linux/module.h>
-+#include <linux/page_idle.h>
-+#include <linux/slab.h>
-+
-+static struct damon_ctx **dbgfs_ctxs;
-+static int dbgfs_nr_ctxs;
-+static struct dentry **dbgfs_dirs;
-+
-+/*
-+ * Returns non-empty string on success, negative error code otherwise.
-+ */
-+static char *user_input_str(const char __user *buf, size_t count, loff_t *ppos)
-+{
-+	char *kbuf;
-+	ssize_t ret;
-+
-+	/* We do not accept continuous write */
-+	if (*ppos)
-+		return ERR_PTR(-EINVAL);
-+
-+	kbuf = kmalloc(count + 1, GFP_KERNEL);
-+	if (!kbuf)
-+		return ERR_PTR(-ENOMEM);
-+
-+	ret = simple_write_to_buffer(kbuf, count + 1, ppos, buf, count);
-+	if (ret != count) {
-+		kfree(kbuf);
-+		return ERR_PTR(-EIO);
-+	}
-+	kbuf[ret] = '\0';
-+
-+	return kbuf;
-+}
-+
-+static ssize_t dbgfs_attrs_read(struct file *file,
-+		char __user *buf, size_t count, loff_t *ppos)
-+{
-+	struct damon_ctx *ctx = file->private_data;
-+	char kbuf[128];
-+	int ret;
-+
-+	mutex_lock(&ctx->kdamond_lock);
-+	ret = scnprintf(kbuf, ARRAY_SIZE(kbuf), "%lu %lu %lu %lu %lu\n",
-+			ctx->sample_interval, ctx->aggr_interval,
-+			ctx->primitive_update_interval, ctx->min_nr_regions,
-+			ctx->max_nr_regions);
-+	mutex_unlock(&ctx->kdamond_lock);
-+
-+	return simple_read_from_buffer(buf, count, ppos, kbuf, ret);
-+}
-+
-+static ssize_t dbgfs_attrs_write(struct file *file,
++static ssize_t dbgfs_mk_context_write(struct file *file,
 +		const char __user *buf, size_t count, loff_t *ppos)
 +{
-+	struct damon_ctx *ctx = file->private_data;
-+	unsigned long s, a, r, minr, maxr;
 +	char *kbuf;
++	char *ctx_name;
 +	ssize_t ret = count;
 +	int err;
 +
 +	kbuf = user_input_str(buf, count, ppos);
 +	if (IS_ERR(kbuf))
 +		return PTR_ERR(kbuf);
++	ctx_name = kmalloc(count + 1, GFP_KERNEL);
++	if (!ctx_name) {
++		kfree(kbuf);
++		return -ENOMEM;
++	}
 +
-+	if (sscanf(kbuf, "%lu %lu %lu %lu %lu",
-+				&s, &a, &r, &minr, &maxr) != 5) {
++	/* Trim white space */
++	if (sscanf(kbuf, "%s", ctx_name) != 1) {
 +		ret = -EINVAL;
 +		goto out;
 +	}
 +
-+	mutex_lock(&ctx->kdamond_lock);
-+	if (ctx->kdamond) {
-+		ret = -EBUSY;
-+		goto unlock_out;
-+	}
-+
-+	err = damon_set_attrs(ctx, s, a, r, minr, maxr);
++	mutex_lock(&damon_dbgfs_lock);
++	err = dbgfs_mk_context(ctx_name);
 +	if (err)
 +		ret = err;
-+unlock_out:
-+	mutex_unlock(&ctx->kdamond_lock);
++	mutex_unlock(&damon_dbgfs_lock);
++
 +out:
 +	kfree(kbuf);
++	kfree(ctx_name);
 +	return ret;
 +}
 +
-+static inline bool targetid_is_pid(const struct damon_ctx *ctx)
-+{
-+	return ctx->primitive.target_valid == damon_va_target_valid;
-+}
-+
-+static ssize_t sprint_target_ids(struct damon_ctx *ctx, char *buf, ssize_t len)
-+{
-+	struct damon_target *t;
-+	unsigned long id;
-+	int written = 0;
-+	int rc;
-+
-+	damon_for_each_target(t, ctx) {
-+		id = t->id;
-+		if (targetid_is_pid(ctx))
-+			/* Show pid numbers to debugfs users */
-+			id = (unsigned long)pid_vnr((struct pid *)id);
-+
-+		rc = scnprintf(&buf[written], len - written, "%lu ", id);
-+		if (!rc)
-+			return -ENOMEM;
-+		written += rc;
-+	}
-+	if (written)
-+		written -= 1;
-+	written += scnprintf(&buf[written], len - written, "\n");
-+	return written;
-+}
-+
-+static ssize_t dbgfs_target_ids_read(struct file *file,
-+		char __user *buf, size_t count, loff_t *ppos)
-+{
-+	struct damon_ctx *ctx = file->private_data;
-+	ssize_t len;
-+	char ids_buf[320];
-+
-+	mutex_lock(&ctx->kdamond_lock);
-+	len = sprint_target_ids(ctx, ids_buf, 320);
-+	mutex_unlock(&ctx->kdamond_lock);
-+	if (len < 0)
-+		return len;
-+
-+	return simple_read_from_buffer(buf, count, ppos, ids_buf, len);
-+}
-+
 +/*
-+ * Converts a string into an array of unsigned long integers
++ * Remove a context of @name and its debugfs directory.
 + *
-+ * Returns an array of unsigned long integers if the conversion success, or
-+ * NULL otherwise.
++ * This function should be called while holding damon_dbgfs_lock.
++ *
++ * Return 0 on success, negative error code otherwise.
 + */
-+static unsigned long *str_to_target_ids(const char *str, ssize_t len,
-+					ssize_t *nr_ids)
++static int dbgfs_rm_context(char *name)
 +{
-+	unsigned long *ids;
-+	const int max_nr_ids = 32;
-+	unsigned long id;
-+	int pos = 0, parsed, ret;
++	struct dentry *root, *dir, **new_dirs;
++	struct damon_ctx **new_ctxs;
++	int i, j;
 +
-+	*nr_ids = 0;
-+	ids = kmalloc_array(max_nr_ids, sizeof(id), GFP_KERNEL);
-+	if (!ids)
-+		return NULL;
-+	while (*nr_ids < max_nr_ids && pos < len) {
-+		ret = sscanf(&str[pos], "%lu%n", &id, &parsed);
-+		pos += parsed;
-+		if (ret != 1)
-+			break;
-+		ids[*nr_ids] = id;
-+		*nr_ids += 1;
++	if (damon_nr_running_ctxs())
++		return -EBUSY;
++
++	root = dbgfs_dirs[0];
++	if (!root)
++		return -ENOENT;
++
++	dir = debugfs_lookup(name, root);
++	if (!dir)
++		return -ENOENT;
++
++	new_dirs = kmalloc_array(dbgfs_nr_ctxs - 1, sizeof(*dbgfs_dirs),
++			GFP_KERNEL);
++	if (!new_dirs)
++		return -ENOMEM;
++
++	new_ctxs = kmalloc_array(dbgfs_nr_ctxs - 1, sizeof(*dbgfs_ctxs),
++			GFP_KERNEL);
++	if (!new_ctxs) {
++		kfree(new_dirs);
++		return -ENOMEM;
 +	}
 +
-+	return ids;
++	for (i = 0, j = 0; i < dbgfs_nr_ctxs; i++) {
++		if (dbgfs_dirs[i] == dir) {
++			debugfs_remove(dbgfs_dirs[i]);
++			dbgfs_destroy_ctx(dbgfs_ctxs[i]);
++			continue;
++		}
++		new_dirs[j] = dbgfs_dirs[i];
++		new_ctxs[j++] = dbgfs_ctxs[i];
++	}
++
++	kfree(dbgfs_dirs);
++	kfree(dbgfs_ctxs);
++
++	dbgfs_dirs = new_dirs;
++	dbgfs_ctxs = new_ctxs;
++	dbgfs_nr_ctxs--;
++
++	return 0;
 +}
 +
-+static void dbgfs_put_pids(unsigned long *ids, int nr_ids)
-+{
-+	int i;
-+
-+	for (i = 0; i < nr_ids; i++)
-+		put_pid((struct pid *)ids[i]);
-+}
-+
-+static ssize_t dbgfs_target_ids_write(struct file *file,
++static ssize_t dbgfs_rm_context_write(struct file *file,
 +		const char __user *buf, size_t count, loff_t *ppos)
 +{
-+	struct damon_ctx *ctx = file->private_data;
-+	char *kbuf, *nrs;
-+	unsigned long *targets;
-+	ssize_t nr_targets;
++	char *kbuf;
 +	ssize_t ret = count;
-+	int i;
 +	int err;
++	char *ctx_name;
 +
 +	kbuf = user_input_str(buf, count, ppos);
 +	if (IS_ERR(kbuf))
 +		return PTR_ERR(kbuf);
++	ctx_name = kmalloc(count + 1, GFP_KERNEL);
++	if (!ctx_name) {
++		kfree(kbuf);
++		return -ENOMEM;
++	}
 +
-+	nrs = kbuf;
-+
-+	targets = str_to_target_ids(nrs, ret, &nr_targets);
-+	if (!targets) {
-+		ret = -ENOMEM;
++	/* Trim white space */
++	if (sscanf(kbuf, "%s", ctx_name) != 1) {
++		ret = -EINVAL;
 +		goto out;
 +	}
 +
-+	if (targetid_is_pid(ctx)) {
-+		for (i = 0; i < nr_targets; i++) {
-+			targets[i] = (unsigned long)find_get_pid(
-+					(int)targets[i]);
-+			if (!targets[i]) {
-+				dbgfs_put_pids(targets, i);
-+				ret = -EINVAL;
-+				goto free_targets_out;
-+			}
-+		}
-+	}
-+
-+	mutex_lock(&ctx->kdamond_lock);
-+	if (ctx->kdamond) {
-+		if (targetid_is_pid(ctx))
-+			dbgfs_put_pids(targets, nr_targets);
-+		ret = -EBUSY;
-+		goto unlock_out;
-+	}
-+
-+	err = damon_set_targets(ctx, targets, nr_targets);
-+	if (err) {
-+		if (targetid_is_pid(ctx))
-+			dbgfs_put_pids(targets, nr_targets);
-+		ret = err;
-+	}
-+
-+unlock_out:
-+	mutex_unlock(&ctx->kdamond_lock);
-+free_targets_out:
-+	kfree(targets);
-+out:
-+	kfree(kbuf);
-+	return ret;
-+}
-+
-+static int damon_dbgfs_open(struct inode *inode, struct file *file)
-+{
-+	file->private_data = inode->i_private;
-+
-+	return nonseekable_open(inode, file);
-+}
-+
-+static const struct file_operations attrs_fops = {
-+	.open = damon_dbgfs_open,
-+	.read = dbgfs_attrs_read,
-+	.write = dbgfs_attrs_write,
-+};
-+
-+static const struct file_operations target_ids_fops = {
-+	.open = damon_dbgfs_open,
-+	.read = dbgfs_target_ids_read,
-+	.write = dbgfs_target_ids_write,
-+};
-+
-+static void dbgfs_fill_ctx_dir(struct dentry *dir, struct damon_ctx *ctx)
-+{
-+	const char * const file_names[] = {"attrs", "target_ids"};
-+	const struct file_operations *fops[] = {&attrs_fops, &target_ids_fops};
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(file_names); i++)
-+		debugfs_create_file(file_names[i], 0600, dir, ctx, fops[i]);
-+}
-+
-+static int dbgfs_before_terminate(struct damon_ctx *ctx)
-+{
-+	struct damon_target *t, *next;
-+
-+	if (!targetid_is_pid(ctx))
-+		return 0;
-+
-+	damon_for_each_target_safe(t, next, ctx) {
-+		put_pid((struct pid *)t->id);
-+		damon_destroy_target(t);
-+	}
-+	return 0;
-+}
-+
-+static struct damon_ctx *dbgfs_new_ctx(void)
-+{
-+	struct damon_ctx *ctx;
-+
-+	ctx = damon_new_ctx();
-+	if (!ctx)
-+		return NULL;
-+
-+	damon_va_set_primitives(ctx);
-+	ctx->callback.before_terminate = dbgfs_before_terminate;
-+	return ctx;
-+}
-+
-+static ssize_t dbgfs_monitor_on_read(struct file *file,
-+		char __user *buf, size_t count, loff_t *ppos)
-+{
-+	char monitor_on_buf[5];
-+	bool monitor_on = damon_nr_running_ctxs() != 0;
-+	int len;
-+
-+	len = scnprintf(monitor_on_buf, 5, monitor_on ? "on\n" : "off\n");
-+
-+	return simple_read_from_buffer(buf, count, ppos, monitor_on_buf, len);
-+}
-+
-+static ssize_t dbgfs_monitor_on_write(struct file *file,
-+		const char __user *buf, size_t count, loff_t *ppos)
-+{
-+	ssize_t ret = count;
-+	char *kbuf;
-+	int err;
-+
-+	kbuf = user_input_str(buf, count, ppos);
-+	if (IS_ERR(kbuf))
-+		return PTR_ERR(kbuf);
-+
-+	/* Remove white space */
-+	if (sscanf(kbuf, "%s", kbuf) != 1) {
-+		kfree(kbuf);
-+		return -EINVAL;
-+	}
-+
-+	if (!strncmp(kbuf, "on", count))
-+		err = damon_start(dbgfs_ctxs, dbgfs_nr_ctxs);
-+	else if (!strncmp(kbuf, "off", count))
-+		err = damon_stop(dbgfs_ctxs, dbgfs_nr_ctxs);
-+	else
-+		err = -EINVAL;
-+
++	mutex_lock(&damon_dbgfs_lock);
++	err = dbgfs_rm_context(ctx_name);
 +	if (err)
 +		ret = err;
++	mutex_unlock(&damon_dbgfs_lock);
++
++out:
 +	kfree(kbuf);
++	kfree(ctx_name);
 +	return ret;
 +}
 +
-+static const struct file_operations monitor_on_fops = {
-+	.read = dbgfs_monitor_on_read,
-+	.write = dbgfs_monitor_on_write,
+ static ssize_t dbgfs_monitor_on_read(struct file *file,
+ 		char __user *buf, size_t count, loff_t *ppos)
+ {
+@@ -370,6 +551,14 @@ static ssize_t dbgfs_monitor_on_write(st
+ 	return ret;
+ }
+ 
++static const struct file_operations mk_contexts_fops = {
++	.write = dbgfs_mk_context_write,
 +};
 +
-+static int __init __damon_dbgfs_init(void)
-+{
-+	struct dentry *dbgfs_root;
-+	const char * const file_names[] = {"monitor_on"};
-+	const struct file_operations *fops[] = {&monitor_on_fops};
-+	int i;
++static const struct file_operations rm_contexts_fops = {
++	.write = dbgfs_rm_context_write,
++};
 +
-+	dbgfs_root = debugfs_create_dir("damon", NULL);
-+
-+	for (i = 0; i < ARRAY_SIZE(file_names); i++)
-+		debugfs_create_file(file_names[i], 0600, dbgfs_root, NULL,
-+				fops[i]);
-+	dbgfs_fill_ctx_dir(dbgfs_root, dbgfs_ctxs[0]);
-+
-+	dbgfs_dirs = kmalloc_array(1, sizeof(dbgfs_root), GFP_KERNEL);
-+	if (!dbgfs_dirs) {
-+		debugfs_remove(dbgfs_root);
-+		return -ENOMEM;
-+	}
-+	dbgfs_dirs[0] = dbgfs_root;
-+
-+	return 0;
-+}
-+
-+/*
-+ * Functions for the initialization
-+ */
-+
-+static int __init damon_dbgfs_init(void)
-+{
-+	int rc;
-+
-+	dbgfs_ctxs = kmalloc(sizeof(*dbgfs_ctxs), GFP_KERNEL);
-+	if (!dbgfs_ctxs)
-+		return -ENOMEM;
-+	dbgfs_ctxs[0] = dbgfs_new_ctx();
-+	if (!dbgfs_ctxs[0]) {
-+		kfree(dbgfs_ctxs);
-+		return -ENOMEM;
-+	}
-+	dbgfs_nr_ctxs = 1;
-+
-+	rc = __damon_dbgfs_init();
-+	if (rc) {
-+		kfree(dbgfs_ctxs[0]);
-+		kfree(dbgfs_ctxs);
-+		pr_err("%s: dbgfs init failed\n", __func__);
-+	}
-+
-+	return rc;
-+}
-+
-+module_init(damon_dbgfs_init);
---- a/mm/damon/Kconfig~mm-damon-implement-a-debugfs-based-user-space-interface
-+++ a/mm/damon/Kconfig
-@@ -20,4 +20,13 @@ config DAMON_VADDR
- 	  This builds the default data access monitoring primitives for DAMON
- 	  that works for virtual address spaces.
+ static const struct file_operations monitor_on_fops = {
+ 	.read = dbgfs_monitor_on_read,
+ 	.write = dbgfs_monitor_on_write,
+@@ -378,8 +567,10 @@ static const struct file_operations moni
+ static int __init __damon_dbgfs_init(void)
+ {
+ 	struct dentry *dbgfs_root;
+-	const char * const file_names[] = {"monitor_on"};
+-	const struct file_operations *fops[] = {&monitor_on_fops};
++	const char * const file_names[] = {"mk_contexts", "rm_contexts",
++		"monitor_on"};
++	const struct file_operations *fops[] = {&mk_contexts_fops,
++		&rm_contexts_fops, &monitor_on_fops};
+ 	int i;
  
-+config DAMON_DBGFS
-+	bool "DAMON debugfs interface"
-+	depends on DAMON_VADDR && DEBUG_FS
-+	help
-+	  This builds the debugfs interface for DAMON.  The user space admins
-+	  can use the interface for arbitrary data access monitoring.
-+
-+	  If unsure, say N.
-+
- endmenu
---- a/mm/damon/Makefile~mm-damon-implement-a-debugfs-based-user-space-interface
-+++ a/mm/damon/Makefile
-@@ -2,3 +2,4 @@
- 
- obj-$(CONFIG_DAMON)		:= core.o
- obj-$(CONFIG_DAMON_VADDR)	+= vaddr.o
-+obj-$(CONFIG_DAMON_DBGFS)	+= dbgfs.o
+ 	dbgfs_root = debugfs_create_dir("damon", NULL);
 _
 
 Patches currently in -mm which might be from sjpark@amazon.de are
