@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE1A3C4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74108C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8A198611C8
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5AD5A611EE
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346415AbhIIVG0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:06:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54302 "EHLO mail.kernel.org"
+        id S1347789AbhIIVGi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:06:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52502 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232739AbhIIVGE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:06:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C234611C5;
-        Thu,  9 Sep 2021 21:04:53 +0000 (UTC)
+        id S1347901AbhIIVGI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:06:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A0236611C9;
+        Thu,  9 Sep 2021 21:04:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221493;
-        bh=gcURFWWSO5iapQ49kZ+xibNsIYBmI3BId3gPbrMUMu8=;
+        s=korg; t=1631221495;
+        bh=6qikMliJPTYAMC619hfX3hTcA0NN2cpDaW4j9SAXGxY=;
         h=Date:From:To:Subject:From;
-        b=HsTJrXPh0DrdkL/CpMymy7/XYLSbHVMtQKY4yUtjg6iRMc91B1Ym/EXtcg8OOShn5
-         f42Kd5G95VKCj+7/ISRz0mEmkbVeonIdSxs7+C4ZfRKfqsDnjoQVXGFPty6E4A6YMh
-         y/IdohdTqEUDT5PeJKjMPm/EMmCyg6MxKoaFMxPM=
-Date:   Thu, 09 Sep 2021 14:04:53 -0700
+        b=Day4Jv3zTa4GqujNseuNl4KZVfbm0tW1Z3AUhG8EF5qeTgtyczZo7Tt1cCPwK6b2/
+         TYOomHpKXFdHQYKz0rfIYbKobn2MvRP6K3yUCzJpydlU5qFTGyMa0gUiUhtdbEvMP8
+         2gImwDRNw9zR31u7Bx2qKkvEkuMhvvfbYzdLR3RA=
+Date:   Thu, 09 Sep 2021 14:04:55 -0700
 From:   akpm@linux-foundation.org
-To:     anton@ozlabs.org, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        viro@zeniv.linux.org.uk
+To:     bgoncalv@redhat.com, egorenar@linux.ibm.com, hkallweit1@gmail.com,
+        linux@rasmusvillemoes.dk, mcgrof@kernel.org,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- fs-epoll-use-a-per-cpu-counter-for-users-watches-count.patch removed from
- -mm tree
-Message-ID: <20210909210453.uaJkiTXcw%akpm@linux-foundation.org>
+ init-move-usermodehelper_enable-to-populate_rootfs.patch removed from -mm
+ tree
+Message-ID: <20210909210455.pmWjrQCj7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,184 +45,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/epoll: use a per-cpu counter for user's watches count
+     Subject: init: move usermodehelper_enable() to populate_rootfs()
 has been removed from the -mm tree.  Its filename was
-     fs-epoll-use-a-per-cpu-counter-for-users-watches-count.patch
+     init-move-usermodehelper_enable-to-populate_rootfs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicholas Piggin <npiggin@gmail.com>
-Subject: fs/epoll: use a per-cpu counter for user's watches count
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: init: move usermodehelper_enable() to populate_rootfs()
 
-This counter tracks the number of watches a user has, to compare against
-the 'max_user_watches' limit. This causes a scalability bottleneck on
-SPECjbb2015 on large systems as there is only one user. Changing to a
-per-cpu counter increases throughput of the benchmark by about 30% on a
-16-socket, > 1000 thread system.
+Currently, usermodehelper is enabled right before PID1 starts going
+through the initcalls. However, any call of a usermodehelper from a
+pure_, core_, postcore_, arch_, subsys_ or fs_ initcall is futile, as
+there is no filesystem contents yet.
 
-[rdunlap@infradead.org: fix build errors in kernel/user.c when CONFIG_EPOLL=n]
-[npiggin@gmail.com: move ifdefs into wrapper functions, slightly improve panic message]
-  Link: https://lkml.kernel.org/r/1628051945.fens3r99ox.astroid@bobo.none
-[akpm@linux-foundation.org: tweak user_epoll_alloc(), per Guenter]
-  Link: https://lkml.kernel.org/r/20210804191421.GA1900577@roeck-us.net
-Link: https://lkml.kernel.org/r/20210802032013.2751916-1-npiggin@gmail.com
-Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
-Reported-by: Anton Blanchard <anton@ozlabs.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Up until commit e7cb072eb988 ("init/initramfs.c: do unpacking
+asynchronously"), such calls, whether via some request_module(), a
+legacy uevent "/sbin/hotplug" notification or something else, would
+just fail silently with (presumably) -ENOENT from
+kernel_execve(). However, that commit introduced the
+wait_for_initramfs() synchronization hook which must be called from
+the usermodehelper exec path right before the kernel_execve, in order
+that request_module() et al done from *after* rootfs_initcall()
+time (i.e. device_ and late_ initcalls) would continue to find a
+populated initramfs as they used to.
+
+Any call of wait_for_initramfs() done before the unpacking has been
+scheduled (i.e. before rootfs_initcall time) must just return
+immediately [and let the caller find an empty file system] in order
+not to deadlock the machine. I mistakenly thought, and my limited
+testing confirmed, that there were no such calls, so I added a
+pr_warn_once() in wait_for_initramfs(). It turns out that one can
+indeed hit request_module() as well as kobject_uevent_env() during
+those early init calls, leading to a user-visible warning in the
+kernel log emitted consistently for certain configurations.
+
+We could just remove the pr_warn_once(), but I think it's better to
+postpone enabling the usermodehelper framework until there is at least
+some chance of finding the executable. That is also a little more
+efficient in that a lot of work done in umh.c will be elided. However,
+it does change the error seen by those early callers from -ENOENT to
+-EBUSY, so there is a risk of a regression if any caller care about
+the exact error value.
+
+Link: https://lkml.kernel.org/r/20210728134638.329060-1-linux@rasmusvillemoes.dk
+Fixes: e7cb072eb988 ("init/initramfs.c: do unpacking asynchronously")
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Reported-by: Alexander Egorenkov <egorenar@linux.ibm.com>
+Reported-by: Bruno Goncalves <bgoncalv@redhat.com>
+Reported-by: Heiner Kallweit <hkallweit1@gmail.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c             |   18 ++++++++++--------
- include/linux/sched/user.h |    3 ++-
- kernel/user.c              |   25 +++++++++++++++++++++++++
- 3 files changed, 37 insertions(+), 9 deletions(-)
+ init/initramfs.c   |    2 ++
+ init/main.c        |    1 -
+ init/noinitramfs.c |    2 ++
+ 3 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/fs/eventpoll.c~fs-epoll-use-a-per-cpu-counter-for-users-watches-count
-+++ a/fs/eventpoll.c
-@@ -723,7 +723,7 @@ static int ep_remove(struct eventpoll *e
- 	 */
- 	call_rcu(&epi->rcu, epi_rcu_free);
+--- a/init/initramfs.c~init-move-usermodehelper_enable-to-populate_rootfs
++++ a/init/initramfs.c
+@@ -15,6 +15,7 @@
+ #include <linux/mm.h>
+ #include <linux/namei.h>
+ #include <linux/init_syscalls.h>
++#include <linux/umh.h>
  
--	atomic_long_dec(&ep->user->epoll_watches);
-+	percpu_counter_dec(&ep->user->epoll_watches);
- 
+ static ssize_t __init xwrite(struct file *file, const char *p, size_t count,
+ 		loff_t *pos)
+@@ -727,6 +728,7 @@ static int __init populate_rootfs(void)
+ {
+ 	initramfs_cookie = async_schedule_domain(do_populate_rootfs, NULL,
+ 						 &initramfs_domain);
++	usermodehelper_enable();
+ 	if (!initramfs_async)
+ 		wait_for_initramfs();
  	return 0;
+--- a/init/main.c~init-move-usermodehelper_enable-to-populate_rootfs
++++ a/init/main.c
+@@ -1392,7 +1392,6 @@ static void __init do_basic_setup(void)
+ 	driver_init();
+ 	init_irq_proc();
+ 	do_ctors();
+-	usermodehelper_enable();
+ 	do_initcalls();
  }
-@@ -1439,7 +1439,6 @@ static int ep_insert(struct eventpoll *e
+ 
+--- a/init/noinitramfs.c~init-move-usermodehelper_enable-to-populate_rootfs
++++ a/init/noinitramfs.c
+@@ -10,6 +10,7 @@
+ #include <linux/kdev_t.h>
+ #include <linux/syscalls.h>
+ #include <linux/init_syscalls.h>
++#include <linux/umh.h>
+ 
+ /*
+  * Create a simple rootfs that is similar to the default initramfs
+@@ -18,6 +19,7 @@ static int __init default_rootfs(void)
  {
- 	int error, pwake = 0;
- 	__poll_t revents;
--	long user_watches;
- 	struct epitem *epi;
- 	struct ep_pqueue epq;
- 	struct eventpoll *tep = NULL;
-@@ -1449,11 +1448,15 @@ static int ep_insert(struct eventpoll *e
+ 	int err;
  
- 	lockdep_assert_irqs_enabled();
- 
--	user_watches = atomic_long_read(&ep->user->epoll_watches);
--	if (unlikely(user_watches >= max_user_watches))
-+	if (unlikely(percpu_counter_compare(&ep->user->epoll_watches,
-+					    max_user_watches) >= 0))
- 		return -ENOSPC;
--	if (!(epi = kmem_cache_zalloc(epi_cache, GFP_KERNEL)))
-+	percpu_counter_inc(&ep->user->epoll_watches);
-+
-+	if (!(epi = kmem_cache_zalloc(epi_cache, GFP_KERNEL))) {
-+		percpu_counter_dec(&ep->user->epoll_watches);
- 		return -ENOMEM;
-+	}
- 
- 	/* Item initialization follow here ... */
- 	INIT_LIST_HEAD(&epi->rdllink);
-@@ -1466,17 +1469,16 @@ static int ep_insert(struct eventpoll *e
- 		mutex_lock_nested(&tep->mtx, 1);
- 	/* Add the current item to the list of active epoll hook for this file */
- 	if (unlikely(attach_epitem(tfile, epi) < 0)) {
--		kmem_cache_free(epi_cache, epi);
- 		if (tep)
- 			mutex_unlock(&tep->mtx);
-+		kmem_cache_free(epi_cache, epi);
-+		percpu_counter_dec(&ep->user->epoll_watches);
- 		return -ENOMEM;
- 	}
- 
- 	if (full_check && !tep)
- 		list_file(tfile);
- 
--	atomic_long_inc(&ep->user->epoll_watches);
--
- 	/*
- 	 * Add the current item to the RB tree. All RB tree operations are
- 	 * protected by "mtx", and ep_insert() is called with "mtx" held.
---- a/include/linux/sched/user.h~fs-epoll-use-a-per-cpu-counter-for-users-watches-count
-+++ a/include/linux/sched/user.h
-@@ -4,6 +4,7 @@
- 
- #include <linux/uidgid.h>
- #include <linux/atomic.h>
-+#include <linux/percpu_counter.h>
- #include <linux/refcount.h>
- #include <linux/ratelimit.h>
- 
-@@ -13,7 +14,7 @@
- struct user_struct {
- 	refcount_t __count;	/* reference count */
- #ifdef CONFIG_EPOLL
--	atomic_long_t epoll_watches; /* The number of file descriptors currently watched */
-+	struct percpu_counter epoll_watches; /* The number of file descriptors currently watched */
- #endif
- 	unsigned long unix_inflight;	/* How many files in flight in unix sockets */
- 	atomic_long_t pipe_bufs;  /* how many pages are allocated in pipe buffers */
---- a/kernel/user.c~fs-epoll-use-a-per-cpu-counter-for-users-watches-count
-+++ a/kernel/user.c
-@@ -129,6 +129,22 @@ static struct user_struct *uid_hash_find
- 	return NULL;
- }
- 
-+static int user_epoll_alloc(struct user_struct *up)
-+{
-+#ifdef CONFIG_EPOLL
-+	return percpu_counter_init(&up->epoll_watches, 0, GFP_KERNEL);
-+#else
-+	return 0;
-+#endif
-+}
-+
-+static void user_epoll_free(struct user_struct *up)
-+{
-+#ifdef CONFIG_EPOLL
-+	percpu_counter_destroy(&up->epoll_watches);
-+#endif
-+}
-+
- /* IRQs are disabled and uidhash_lock is held upon function entry.
-  * IRQ state (as stored in flags) is restored and uidhash_lock released
-  * upon function exit.
-@@ -138,6 +154,7 @@ static void free_user(struct user_struct
- {
- 	uid_hash_remove(up);
- 	spin_unlock_irqrestore(&uidhash_lock, flags);
-+	user_epoll_free(up);
- 	kmem_cache_free(uid_cachep, up);
- }
- 
-@@ -185,6 +202,10 @@ struct user_struct *alloc_uid(kuid_t uid
- 
- 		new->uid = uid;
- 		refcount_set(&new->__count, 1);
-+		if (user_epoll_alloc(new)) {
-+			kmem_cache_free(uid_cachep, new);
-+			return NULL;
-+		}
- 		ratelimit_state_init(&new->ratelimit, HZ, 100);
- 		ratelimit_set_flags(&new->ratelimit, RATELIMIT_MSG_ON_RELEASE);
- 
-@@ -195,6 +216,7 @@ struct user_struct *alloc_uid(kuid_t uid
- 		spin_lock_irq(&uidhash_lock);
- 		up = uid_hash_find(uid, hashent);
- 		if (up) {
-+			user_epoll_free(new);
- 			kmem_cache_free(uid_cachep, new);
- 		} else {
- 			uid_hash_insert(new, hashent);
-@@ -216,6 +238,9 @@ static int __init uid_cache_init(void)
- 	for(n = 0; n < UIDHASH_SZ; ++n)
- 		INIT_HLIST_HEAD(uidhash_table + n);
- 
-+	if (user_epoll_alloc(&root_user))
-+		panic("root_user epoll percpu counter alloc failed");
-+
- 	/* Insert the root user immediately (init already runs as root) */
- 	spin_lock_irq(&uidhash_lock);
- 	uid_hash_insert(&root_user, uidhashentry(GLOBAL_ROOT_UID));
++	usermodehelper_enable();
+ 	err = init_mkdir("/dev", 0755);
+ 	if (err < 0)
+ 		goto out;
 _
 
-Patches currently in -mm which might be from npiggin@gmail.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-lazy-tlb-introduce-lazy-mm-refcount-helper-functions.patch
-lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable.patch
-lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option.patch
-powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
 
