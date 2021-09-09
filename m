@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D284AC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 937BBC4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD554611C1
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78950611C5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347151AbhIIVFm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:05:42 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53912 "EHLO mail.kernel.org"
+        id S1345646AbhIIVFn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:05:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55158 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345533AbhIIVFA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:05:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B070661205;
-        Thu,  9 Sep 2021 21:03:49 +0000 (UTC)
+        id S1346632AbhIIVFJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:05:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ADCCE61206;
+        Thu,  9 Sep 2021 21:03:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221430;
-        bh=MoEG6RYpbr6l9U4OJxM98+mLzH30TF8hdhRZo45Sqc8=;
+        s=korg; t=1631221439;
+        bh=Wr712TNi/quH82hRGYcmV5tBY6ZKsHjuDLHE9DPehuw=;
         h=Date:From:To:Subject:From;
-        b=aQcEu4yDPZhc2rrONdj2FHzTyfHqc64WBIa89P7TKlb+FNuPJ9GZv/uk1Z/qeB5lS
-         s9yN828GfNM7QoNQ8VjP+tvkCR4P0B3026knLgtERwkgLbCCtRwYQZqHHTQAPuOaui
-         uLmgKdHrjeTuvsdSn2AxGw0hsiCMluM6WTEVuvmE=
-Date:   Thu, 09 Sep 2021 14:03:49 -0700
+        b=OXJjGneF5L+Piku7DeudjAF4fndkbsvu5/wRlbxRF8Nv1boXsEa/aCWRnCUea9KQI
+         4JtC9ev1qaF7Shb6JZiKqKg0sGuA/rLOdSw4fZiPK/+qews/f7rYBwGXKRyyYIG9ws
+         yNZt2vgFAMf18nCJSrXpbW5SV+tFkxd3bPZGmwGs=
+Date:   Thu, 09 Sep 2021 14:03:58 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, ceggers@arri.de,
         cw00.choi@samsung.com, daniel.lezcano@linaro.org, jic23@kernel.org,
@@ -37,9 +37,9 @@ To:     andriy.shevchenko@linux.intel.com, ceggers@arri.de,
         mcoquelin.stm32@gmail.com, miquel.raynal@bootlin.com,
         mm-commits@vger.kernel.org, myungjoo.ham@samsung.com,
         pmeerw@pmeerw.net, rafael@kernel.org, rui.zhang@intel.com
-Subject:  [merged] iio-drivers-hid-sensor-use-hz-macros.patch
- removed from -mm tree
-Message-ID: <20210909210349.0UgUnyfB-%akpm@linux-foundation.org>
+Subject:  [merged] phy-drivers-stm32-use-hz-macros.patch removed
+ from -mm tree
+Message-ID: <20210909210358.wGnjL8rK1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,27 +48,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iio/drivers/hid-sensor: use HZ macros
+     Subject: phy/drivers/stm32: use HZ macros
 has been removed from the -mm tree.  Its filename was
-     iio-drivers-hid-sensor-use-hz-macros.patch
+     phy-drivers-stm32-use-hz-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: iio/drivers/hid-sensor: use HZ macros
+Subject: phy/drivers/stm32: use HZ macros
 
 HZ unit conversion macros are available in units.h, use them and remove
 the duplicate definition.
 
-Link: https://lkml.kernel.org/r/20210816114732.1834145-8-daniel.lezcano@linaro.org
+Link: https://lkml.kernel.org/r/20210816114732.1834145-11-daniel.lezcano@linaro.org
 Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
 Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Chanwoo Choi <cw00.choi@samsung.com>
 Cc: Christian Eggers <ceggers@arri.de>
 Cc: Guenter Roeck <linux@roeck-us.net>
 Cc: Jonathan Cameron <jic23@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Kyungmin Park <kyungmin.park@samsung.com>
 Cc: Lars-Peter Clausen <lars@metafoo.de>
 Cc: Lukasz Luba <lukasz.luba@arm.com>
@@ -81,25 +81,27 @@ Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iio/common/hid-sensors/hid-sensor-attributes.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/phy/st/phy-stm32-usbphyc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/iio/common/hid-sensors/hid-sensor-attributes.c~iio-drivers-hid-sensor-use-hz-macros
-+++ a/drivers/iio/common/hid-sensors/hid-sensor-attributes.c
-@@ -6,12 +6,11 @@
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/time.h>
+--- a/drivers/phy/st/phy-stm32-usbphyc.c~phy-drivers-stm32-use-hz-macros
++++ a/drivers/phy/st/phy-stm32-usbphyc.c
+@@ -15,6 +15,7 @@
+ #include <linux/of_platform.h>
+ #include <linux/phy/phy.h>
+ #include <linux/reset.h>
 +#include <linux/units.h>
  
- #include <linux/hid-sensor-hub.h>
- #include <linux/iio/iio.h>
+ #define STM32_USBPHYC_PLL	0x0
+ #define STM32_USBPHYC_MISC	0x8
+@@ -47,7 +48,6 @@
+ #define PLL_FVCO_MHZ		2880
+ #define PLL_INFF_MIN_RATE_HZ	19200000
+ #define PLL_INFF_MAX_RATE_HZ	38400000
+-#define HZ_PER_MHZ		1000000L
  
--#define HZ_PER_MHZ	1000000L
--
- static struct {
- 	u32 usage_id;
- 	int unit; /* 0 for default others from HID sensor spec */
+ struct pll_params {
+ 	u8 ndiv;
 _
 
 Patches currently in -mm which might be from daniel.lezcano@linaro.org are
