@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A73C1C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52BDAC4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 88D44611C5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3BFA8611C4
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348719AbhIIVFd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:05:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54464 "EHLO mail.kernel.org"
+        id S1347439AbhIIVFf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:05:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1346920AbhIIVE1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:04:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 84C43611C8;
-        Thu,  9 Sep 2021 21:03:17 +0000 (UTC)
+        id S1347758AbhIIVEb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:04:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A555611C9;
+        Thu,  9 Sep 2021 21:03:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221397;
-        bh=OdWi2EsYZJVNx5DA39DjHHKeTSErUGydBk7btdFp9N4=;
+        s=korg; t=1631221401;
+        bh=XaEKRhqweEheBKBsP4QZ2yGPDhC7ZOd0pTtSIVRnL1c=;
         h=Date:From:To:Subject:From;
-        b=Cn0P0gyWhpzzCcC/Vig4vlAx3iGR8PI9UIdiCmrQRC/cmJ9Smk4cFGesQMeanx0hS
-         4UXjXwkbo/f4n90gFLQgMM+fOEakQ9gDCwnvgRVx5Fvz5tPXcN4h7vWcHmM/sk7k3G
-         SArSdrD8mGL0WRjSUNqxsc31qOXdbnXg2tfaxgDE=
-Date:   Thu, 09 Sep 2021 14:03:17 -0700
+        b=G2iwVcVGpEImy6TIwcAdGsetZEX/BurNeGFbuX6YsgzUd6hXS2SOqz3ESX6BK7Vt1
+         p959Tpf+ggezT4EuQkw0ZQT2YhRpT2TG7Tgp2IBBgEN598acF3aBVKLwkvIZEqjst7
+         9uzrL1kLAS63vQpu3qBIGKCEqgZq9d3MIWTZOkAQ=
+Date:   Thu, 09 Sep 2021 14:03:21 -0700
 From:   akpm@linux-foundation.org
-To:     airlied@linux.ie, ink@jurassic.park.msu.ru, mattst88@gmail.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org, rth@twiddle.net
-Subject:  [merged]
- alpha-agp-make-empty-macros-use-do-while-0-style.patch removed from -mm
- tree
-Message-ID: <20210909210317.I1f-fd8S6%akpm@linux-foundation.org>
+To:     cl@linux.com, dennis@kernel.org, gregkh@linuxfoundation.org,
+        hch@lst.de, mm-commits@vger.kernel.org, tj@kernel.org
+Subject:  [merged] percpu-remove-export-of-pcpu_base_addr.patch
+ removed from -mm tree
+Message-ID: <20210909210321.hVR11wBvl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,50 +43,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: alpha: agp: make empty macros use do-while-0 style
+     Subject: percpu: remove export of pcpu_base_addr
 has been removed from the -mm tree.  Its filename was
-     alpha-agp-make-empty-macros-use-do-while-0-style.patch
+     percpu-remove-export-of-pcpu_base_addr.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: alpha: agp: make empty macros use do-while-0 style
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: percpu: remove export of pcpu_base_addr
 
-Copy these macros from ia64/include/asm/agp.h to avoid the
-"empty-body" in 'if' statment warning.
+This is not needed by any modules, so remove the export.
 
-drivers/char/agp/generic.c: In function 'agp_generic_destroy_page':
-../drivers/char/agp/generic.c:1265:42: warning: suggest braces around empty body in an 'if' statement [-Wempty-body]
- 1265 |                 unmap_page_from_agp(page);
-
-Link: https://lkml.kernel.org/r/20210809030822.20658-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: David Airlie <airlied@linux.ie>
+Link: https://lkml.kernel.org/r/20210722185814.504541-1-gregkh@linuxfoundation.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/agp.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/percpu.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/arch/alpha/include/asm/agp.h~alpha-agp-make-empty-macros-use-do-while-0-style
-+++ a/arch/alpha/include/asm/agp.h
-@@ -6,8 +6,8 @@
+--- a/mm/percpu.c~percpu-remove-export-of-pcpu_base_addr
++++ a/mm/percpu.c
+@@ -146,7 +146,6 @@ static unsigned int pcpu_high_unit_cpu _
  
- /* dummy for now */
+ /* the address of the first chunk which starts with the kernel static area */
+ void *pcpu_base_addr __ro_after_init;
+-EXPORT_SYMBOL_GPL(pcpu_base_addr);
  
--#define map_page_into_agp(page) 
--#define unmap_page_from_agp(page) 
-+#define map_page_into_agp(page)		do { } while (0)
-+#define unmap_page_from_agp(page)	do { } while (0)
- #define flush_agp_cache() mb()
- 
- /* GATT allocation. Returns/accepts GATT kernel virtual address. */
+ static const int *pcpu_unit_map __ro_after_init;		/* cpu -> unit */
+ const unsigned long *pcpu_unit_offsets __ro_after_init;	/* cpu -> unit offset */
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from gregkh@linuxfoundation.org are
 
 
