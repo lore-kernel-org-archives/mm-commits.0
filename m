@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FC63C43219
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B7C08C433FE
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3517D611C9
+	by mail.kernel.org (Postfix) with ESMTP id 986E2611C9
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347746AbhIIVEY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1347756AbhIIVEY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 9 Sep 2021 17:04:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53202 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:52502 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348562AbhIIVDa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:03:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6E1E8611C8;
-        Thu,  9 Sep 2021 21:02:16 +0000 (UTC)
+        id S1348628AbhIIVDm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:03:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6F5D1611C9;
+        Thu,  9 Sep 2021 21:02:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221336;
-        bh=hMXRLb2eftfTM8Ce34IAUnPDHjzAgbQpVJX9c7Nhc/k=;
+        s=korg; t=1631221340;
+        bh=BY1ErntJfjhsRFWzkdkpjBYeLA3sYjxrtZfH78EZKr0=;
         h=Date:From:To:Subject:From;
-        b=T/Ia2uejnReMREkXUgBYKEx89VE7GYCLWM4EDwOp8nGAkzmKFXdlR/9GhpeBHmv8k
-         lfDj0qkrOShUPoiFbTGtq9m9Vdove6kbHyrsSkM1e7d4zPCPRQxM49ou86H6NR8tBo
-         yzdZ3PpWiZv1FfoZQ31yg4FWyw0IkTNOfowXo7T8=
-Date:   Thu, 09 Sep 2021 14:02:16 -0700
+        b=OLUbyZC/cfBs6KytD1wAL8lgG4fhcP/I36oA6jjSB6S4ELZ9wDlGwZjO5Z07MvgOY
+         T1d/VAHy8kdgayB4vXeYkuwxCY94YPJJ7ldZducf4crfNYOkrG11aAzlZfRiOrh2C2
+         G7SXGATW9eFXGoLZlUaf6VA14ADw0tAWZONfzWAA=
+Date:   Thu, 09 Sep 2021 14:02:20 -0700
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, mm-commits@vger.kernel.org,
-        peterz@infradead.org, tglx@linutronix.de, vbabka@suse.cz
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        songmuchun@bytedance.com, vdavydov.dev@gmail.com,
+        willy@infradead.org
 Subject:  [merged]
- highmem-dont-disable-preemption-on-rt-in-kmap_atomic.patch removed from -mm
- tree
-Message-ID: <20210909210216.fTrJS-nuT%akpm@linux-foundation.org>
+ mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch removed
+ from -mm tree
+Message-ID: <20210909210220.hMRmtpx__%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,110 +46,100 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: highmem: don't disable preemption on RT in kmap_atomic()
+     Subject: mm: introduce PAGEFLAGS_MASK to replace ((1UL << NR_PAGEFLAGS) - 1)
 has been removed from the -mm tree.  Its filename was
-     highmem-dont-disable-preemption-on-rt-in-kmap_atomic.patch
+     mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: highmem: don't disable preemption on RT in kmap_atomic()
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: introduce PAGEFLAGS_MASK to replace ((1UL << NR_PAGEFLAGS) - 1)
 
-kmap_atomic() disables preemption and pagefaults for historical reasons. 
-The conversion to kmap_local(), which only disables migration, cannot be
-done wholesale because quite some call sites need to be updated to
-accommodate with the changed semantics.
+Instead of hard-coding ((1UL << NR_PAGEFLAGS) - 1) everywhere, introducing
+PAGEFLAGS_MASK to make the code clear to get the page flags.
 
-On PREEMPT_RT enabled kernels the kmap_atomic() semantics are problematic
-due to the implicit disabling of preemption which makes it impossible to
-acquire 'sleeping' spinlocks within the kmap atomic sections.
-
-PREEMPT_RT replaces the preempt_disable() with a migrate_disable() for
-more than a decade.  It could be argued that this is a justification to do
-this unconditionally, but PREEMPT_RT covers only a limited number of
-architectures and it disables some functionality which limits the coverage
-further.
-
-Limit the replacement to PREEMPT_RT for now.
-
-Link: https://lkml.kernel.org/r/20210810091116.pocdmaatdcogvdso@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20210819150712.59948-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/highmem-internal.h |   27 ++++++++++++++++++++++-----
- 1 file changed, 22 insertions(+), 5 deletions(-)
+ include/linux/page-flags.h      |    4 +++-
+ include/trace/events/page_ref.h |    4 ++--
+ lib/test_printf.c               |    2 +-
+ lib/vsprintf.c                  |    2 +-
+ 4 files changed, 7 insertions(+), 5 deletions(-)
 
---- a/include/linux/highmem-internal.h~highmem-dont-disable-preemption-on-rt-in-kmap_atomic
-+++ a/include/linux/highmem-internal.h
-@@ -90,7 +90,11 @@ static inline void __kunmap_local(void *
+--- a/include/linux/page-flags.h~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
++++ a/include/linux/page-flags.h
+@@ -178,6 +178,8 @@ enum pageflags {
+ 	PG_reported = PG_uptodate,
+ };
  
- static inline void *kmap_atomic_prot(struct page *page, pgprot_t prot)
- {
--	preempt_disable();
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		migrate_disable();
-+	else
-+		preempt_disable();
++#define PAGEFLAGS_MASK		((1UL << NR_PAGEFLAGS) - 1)
 +
- 	pagefault_disable();
- 	return __kmap_local_page_prot(page, prot);
- }
-@@ -102,7 +106,11 @@ static inline void *kmap_atomic(struct p
+ #ifndef __GENERATING_BOUNDS_H
  
- static inline void *kmap_atomic_pfn(unsigned long pfn)
+ static inline unsigned long _compound_head(const struct page *page)
+@@ -868,7 +870,7 @@ static inline void ClearPageSlabPfmemall
+  * alloc-free cycle to prevent from reusing the page.
+  */
+ #define PAGE_FLAGS_CHECK_AT_PREP	\
+-	(((1UL << NR_PAGEFLAGS) - 1) & ~__PG_HWPOISON)
++	(PAGEFLAGS_MASK & ~__PG_HWPOISON)
+ 
+ #define PAGE_FLAGS_PRIVATE				\
+ 	(1UL << PG_private | 1UL << PG_private_2)
+--- a/include/trace/events/page_ref.h~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
++++ a/include/trace/events/page_ref.h
+@@ -38,7 +38,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_templat
+ 
+ 	TP_printk("pfn=0x%lx flags=%s count=%d mapcount=%d mapping=%p mt=%d val=%d",
+ 		__entry->pfn,
+-		show_page_flags(__entry->flags & ((1UL << NR_PAGEFLAGS) - 1)),
++		show_page_flags(__entry->flags & PAGEFLAGS_MASK),
+ 		__entry->count,
+ 		__entry->mapcount, __entry->mapping, __entry->mt,
+ 		__entry->val)
+@@ -88,7 +88,7 @@ DECLARE_EVENT_CLASS(page_ref_mod_and_tes
+ 
+ 	TP_printk("pfn=0x%lx flags=%s count=%d mapcount=%d mapping=%p mt=%d val=%d ret=%d",
+ 		__entry->pfn,
+-		show_page_flags(__entry->flags & ((1UL << NR_PAGEFLAGS) - 1)),
++		show_page_flags(__entry->flags & PAGEFLAGS_MASK),
+ 		__entry->count,
+ 		__entry->mapcount, __entry->mapping, __entry->mt,
+ 		__entry->val, __entry->ret)
+--- a/lib/test_printf.c~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
++++ a/lib/test_printf.c
+@@ -614,7 +614,7 @@ page_flags_test(int section, int node, i
+ 	bool append = false;
+ 	int i;
+ 
+-	flags &= BIT(NR_PAGEFLAGS) - 1;
++	flags &= PAGEFLAGS_MASK;
+ 	if (flags) {
+ 		page_flags |= flags;
+ 		snprintf(cmp_buf + size, BUF_SIZE - size, "%s", name);
+--- a/lib/vsprintf.c~mm-introduce-pageflags_mask-to-replace-1ul-nr_pageflags-1
++++ a/lib/vsprintf.c
+@@ -2019,7 +2019,7 @@ static const struct page_flags_fields pf
+ static
+ char *format_page_flags(char *buf, char *end, unsigned long flags)
  {
--	preempt_disable();
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		migrate_disable();
-+	else
-+		preempt_disable();
-+
- 	pagefault_disable();
- 	return __kmap_local_pfn_prot(pfn, kmap_prot);
- }
-@@ -111,7 +119,10 @@ static inline void __kunmap_atomic(void
- {
- 	kunmap_local_indexed(addr);
- 	pagefault_enable();
--	preempt_enable();
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		migrate_enable();
-+	else
-+		preempt_enable();
- }
+-	unsigned long main_flags = flags & (BIT(NR_PAGEFLAGS) - 1);
++	unsigned long main_flags = flags & PAGEFLAGS_MASK;
+ 	bool append = false;
+ 	int i;
  
- unsigned int __nr_free_highpages(void);
-@@ -179,7 +190,10 @@ static inline void __kunmap_local(void *
- 
- static inline void *kmap_atomic(struct page *page)
- {
--	preempt_disable();
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		migrate_disable();
-+	else
-+		preempt_disable();
- 	pagefault_disable();
- 	return page_address(page);
- }
-@@ -200,7 +214,10 @@ static inline void __kunmap_atomic(void
- 	kunmap_flush_on_unmap(addr);
- #endif
- 	pagefault_enable();
--	preempt_enable();
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT))
-+		migrate_enable();
-+	else
-+		preempt_enable();
- }
- 
- static inline unsigned int nr_free_highpages(void) { return 0; }
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
