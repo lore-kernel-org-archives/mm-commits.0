@@ -5,38 +5,37 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5EEDC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:07:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 41945C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:07:05 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8361F61179
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:07:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 254636109F
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:07:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232739AbhIIVIN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:08:13 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57432 "EHLO mail.kernel.org"
+        id S1345284AbhIIVIO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:08:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57228 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348443AbhIIVHd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:07:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 928D7611AF;
-        Thu,  9 Sep 2021 21:06:23 +0000 (UTC)
+        id S1348160AbhIIVHb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:07:31 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 72B9D611B0;
+        Thu,  9 Sep 2021 21:06:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221583;
-        bh=roOhH3L7oKADJPJWsja1r6V2eq0ftCZwmm+jqhg5RiA=;
+        s=korg; t=1631221581;
+        bh=AxJCkDEpShrQUlXh5uda1KrXeb96xr+L4noP5Mh8mKc=;
         h=Date:From:To:Subject:From;
-        b=dSS5ZOs0jh385lueLDNTkk8pN8NETc/9I1MKdrHNmEs3sfoo9ol87xEGh4g6jVNMM
-         OwIKGbBbYhT5+rEzIUaPc5nNCgUtqWGGW9TLZtFIqiajOGHnv0WtMRFcJiHekM808c
-         hRmpCAv2/ELHSywVaDs5UgR6BhSiQIHLfGmaLjUA=
-Date:   Thu, 09 Sep 2021 14:06:23 -0700
+        b=xlnj+VUOZQ732MWNAGpHjbfNvJ4iCvxV3drjBFyh54sGXwo7M2CELYKCV6E2GvqXS
+         YDMB1AUneIiqif9XqPyFc77C6pjPo7XbWqNrIrac0wiyM2LNDPguUXA0cuE1fX+fwk
+         sDu5wnx8HbyAFzmrXK6H6oFZRxr/gkHH6RGnXk6o=
+Date:   Thu, 09 Sep 2021 14:06:21 -0700
 From:   akpm@linux-foundation.org
-To:     deanbo422@gmail.com, green.hu@gmail.com, linux@roeck-us.net,
-        lkp@intel.com, mm-commits@vger.kernel.org, nickhu@andestech.com,
-        rppt@linux.ibm.com
+To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        stable@vger.kernel.org, yanghui.def@bytedance.com
 Subject:  [merged]
- nds32-setup-remove-unused-memblock_region-variable-in-setup_memory.patch
+ mm-mempolicy-fix-a-race-between-offset_il_node-and-mpol_rebind_task.patch
  removed from -mm tree
-Message-ID: <20210909210623.Enjdryqfe%akpm@linux-foundation.org>
+Message-ID: <20210909210621.ei9jo8-8M%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,54 +44,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nds32/setup: remove unused memblock_region variable in setup_memory()
+     Subject: mm/mempolicy: fix a race between offset_il_node and mpol_rebind_task
 has been removed from the -mm tree.  Its filename was
-     nds32-setup-remove-unused-memblock_region-variable-in-setup_memory.patch
+     mm-mempolicy-fix-a-race-between-offset_il_node-and-mpol_rebind_task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: nds32/setup: remove unused memblock_region variable in setup_memory()
+From: yanghui <yanghui.def@bytedance.com>
+Subject: mm/mempolicy: fix a race between offset_il_node and mpol_rebind_task
 
-kernel test robot reports unused variable warning:
+Servers happened below panic:
+Kernel version:5.4.56
+BUG: unable to handle page fault for address: 0000000000002c48
+RIP: 0010:__next_zones_zonelist+0x1d/0x40
+[264003.977696] RAX: 0000000000002c40 RBX: 0000000000100dca RCX: 0000000000000014
+[264003.977872] Call Trace:
+[264003.977888]  __alloc_pages_nodemask+0x277/0x310
+[264003.977908]  alloc_page_interleave+0x13/0x70
+[264003.977926]  handle_mm_fault+0xf99/0x1390
+[264003.977951]  __do_page_fault+0x288/0x500
+[264003.977979]  ? schedule+0x39/0xa0
+[264003.977994]  do_page_fault+0x30/0x110
+[264003.978010]  page_fault+0x3e/0x50
 
-cppcheck possible warnings: (new ones prefixed by >>, may not real
-problems)
+The reason for the panic is that MAX_NUMNODES is passed in the third
+parameter in __alloc_pages_nodemask(preferred_nid).  So access to
+zonelist->zoneref->zone_idx in __next_zones_zonelist will cause a panic.
 
->> arch/nds32/kernel/setup.c:247:26: warning: Unused variable: region
->> [unusedVariable]
-    struct memblock_region *region;
-                            ^
+In offset_il_node(), first_node() returns nid from pol->v.nodes, after
+this other threads may chang pol->v.nodes before next_node().  This race
+condition will let next_node return MAX_NUMNODES.  So put pol->nodes in a
+local variable.
 
-Remove the unused variable.
+The race condition is between offset_il_node and cpuset_change_task_nodemask:
+CPU0:                                     CPU1:
+alloc_pages_vma()
+  interleave_nid(pol,)
+    offset_il_node(pol,)
+      first_node(pol->v.nodes)            cpuset_change_task_nodemask
+                      //nodes==0xc          mpol_rebind_task
+                                              mpol_rebind_policy
+                                                mpol_rebind_nodemask(pol,nodes)
+                      //nodes==0x3
+      next_node(nid, pol->v.nodes)//return MAX_NUMNODES
 
-Link: https://lkml.kernel.org/r/20210712125218.28951-1-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reviewed-by: Guenter Roeck <linux@roeck-us.net>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Greentime Hu <green.hu@gmail.com>
-Cc: Nick Hu <nickhu@andestech.com>
-Cc: Vincent Chen <deanbo422@gmail.com>
+Link: https://lkml.kernel.org/r/20210906034658.48721-1-yanghui.def@bytedance.com
+Signed-off-by: yanghui <yanghui.def@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nds32/kernel/setup.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/mempolicy.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/arch/nds32/kernel/setup.c~nds32-setup-remove-unused-memblock_region-variable-in-setup_memory
-+++ a/arch/nds32/kernel/setup.c
-@@ -244,7 +244,6 @@ static void __init setup_memory(void)
- 	unsigned long ram_start_pfn;
- 	unsigned long free_ram_start_pfn;
- 	phys_addr_t memory_start, memory_end;
--	struct memblock_region *region;
+--- a/mm/mempolicy.c~mm-mempolicy-fix-a-race-between-offset_il_node-and-mpol_rebind_task
++++ a/mm/mempolicy.c
+@@ -1876,17 +1876,26 @@ unsigned int mempolicy_slab_node(void)
+  */
+ static unsigned offset_il_node(struct mempolicy *pol, unsigned long n)
+ {
+-	unsigned nnodes = nodes_weight(pol->nodes);
+-	unsigned target;
++	nodemask_t nodemask = pol->nodes;
++	unsigned int target, nnodes;
+ 	int i;
+ 	int nid;
++	/*
++	 * The barrier will stabilize the nodemask in a register or on
++	 * the stack so that it will stop changing under the code.
++	 *
++	 * Between first_node() and next_node(), pol->nodes could be changed
++	 * by other threads. So we put pol->nodes in a local stack.
++	 */
++	barrier();
  
- 	memory_end = memory_start = 0;
++	nnodes = nodes_weight(nodemask);
+ 	if (!nnodes)
+ 		return numa_node_id();
+ 	target = (unsigned int)n % nnodes;
+-	nid = first_node(pol->nodes);
++	nid = first_node(nodemask);
+ 	for (i = 0; i < target; i++)
+-		nid = next_node(nid, pol->nodes);
++		nid = next_node(nid, nodemask);
+ 	return nid;
+ }
  
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from yanghui.def@bytedance.com are
 
 
