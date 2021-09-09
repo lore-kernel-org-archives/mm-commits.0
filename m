@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B77AEC433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9E09C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2AFE61186
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D1AB46103E
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345085AbhIIVBr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:01:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49888 "EHLO mail.kernel.org"
+        id S1345284AbhIIVBt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:01:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49922 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245624AbhIIVBq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:01:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B3C046103D;
-        Thu,  9 Sep 2021 21:00:36 +0000 (UTC)
+        id S245624AbhIIVBt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:01:49 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AA8D7611AD;
+        Thu,  9 Sep 2021 21:00:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221237;
-        bh=Tc2Cybd0aOxJQguYO95GpCVf3YIidhx6qW9FDyzFzmk=;
+        s=korg; t=1631221239;
+        bh=p4pivHSiSSC0HbdKgieZ9HPuP5/EfDVk8wDRjlfW0xA=;
         h=Date:From:To:Subject:From;
-        b=dHZFcr1UmL532F9blS7TpFSq45fLHKbI6GlEFVQ9RLeEjnJQsat9HKsuMGTwDrHZV
-         L8V1En9c0v6ozHUeRlaxMPCmZ7+M3/Ia/hcQjhbrfti8KWsvd9OXFxgBTwingoJOzJ
-         3MdU3K3EQxVdE0g5gbKqEra1lop7wbj0tESpcmrs=
-Date:   Thu, 09 Sep 2021 14:00:36 -0700
+        b=R2bdOpR0GbfJztgpWk+0Qh9W8qCshsuaQyj3ivmYMtP9Hn7eJUV1XwxP/s7/JqMyX
+         EZWmpFAA4jXrRyCtn2pfo9FDwGqkC52s25+KH30rZivuvNA9SSeWsSnW/H1K8e3VtH
+         9IfnAo+CV8WdL9O816xMclRvZ0k1cYfSUVJ2BeUs=
+Date:   Thu, 09 Sep 2021 14:00:38 -0700
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
         efault@gmx.de, iamjoonsoo.kim@lge.com, jannh@google.com,
@@ -36,9 +36,9 @@ To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
         penberg@kernel.org, quic_qiancai@quicinc.com, rientjes@google.com,
         tglx@linutronix.de, vbabka@suse.cz
 Subject:  [merged]
- mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch removed
- from -mm tree
-Message-ID: <20210909210036.kjrHDbU-_%akpm@linux-foundation.org>
+ mm-slub-move-disabling-irqs-closer-to-get_partial-in-___slab_alloc.patch
+ removed from -mm tree
+Message-ID: <20210909210038.nAxu0s54z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,36 +47,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: do initial checks in ___slab_alloc() with irqs enabled
+     Subject: mm, slub: move disabling irqs closer to get_partial() in ___slab_alloc()
 has been removed from the -mm tree.  Its filename was
-     mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled.patch
+     mm-slub-move-disabling-irqs-closer-to-get_partial-in-___slab_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: do initial checks in ___slab_alloc() with irqs enabled
+Subject: mm, slub: move disabling irqs closer to get_partial() in ___slab_alloc()
 
-As another step of shortening irq disabled sections in ___slab_alloc(),
-delay disabling irqs until we pass the initial checks if there is a cached
-percpu slab and it's suitable for our allocation.
+Continue reducing the irq disabled scope.  Check for per-cpu partial slabs
+with first with irqs enabled and then recheck with irqs disabled before
+grabbing the slab page.  Mostly preparatory for the following patches.
 
-Now we have to recheck c->page after actually disabling irqs as an
-allocation in irq handler might have replaced it.
-
-Because we call pfmemalloc_match() as one of the checks, we might hit
-VM_BUG_ON_PAGE(!PageSlab(page)) in PageSlabPfmemalloc in case we get
-interrupted and the page is freed.  Thus introduce a
-pfmemalloc_match_unsafe() variant that lacks the PageSlab check.
-
-Link: https://lkml.kernel.org/r/20210904105003.11688-13-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210904105003.11688-14-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Mike Galbraith <efault@gmx.de>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Qian Cai <quic_qiancai@quicinc.com>
@@ -85,139 +77,91 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    9 +++++
- mm/slub.c                  |   54 +++++++++++++++++++++++++++++------
- 2 files changed, 54 insertions(+), 9 deletions(-)
+ mm/slub.c |   34 +++++++++++++++++++++++++---------
+ 1 file changed, 25 insertions(+), 9 deletions(-)
 
---- a/include/linux/page-flags.h~mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled
-+++ a/include/linux/page-flags.h
-@@ -815,6 +815,15 @@ static inline int PageSlabPfmemalloc(str
- 	return PageActive(page);
- }
- 
-+/*
-+ * A version of PageSlabPfmemalloc() for opportunistic checks where the page
-+ * might have been freed under us and not be a PageSlab anymore.
-+ */
-+static inline int __PageSlabPfmemalloc(struct page *page)
-+{
-+	return PageActive(page);
-+}
-+
- static inline void SetPageSlabPfmemalloc(struct page *page)
- {
- 	VM_BUG_ON_PAGE(!PageSlab(page), page);
---- a/mm/slub.c~mm-slub-do-initial-checks-in-___slab_alloc-with-irqs-enabled
+--- a/mm/slub.c~mm-slub-move-disabling-irqs-closer-to-get_partial-in-___slab_alloc
 +++ a/mm/slub.c
-@@ -2621,6 +2621,19 @@ static inline bool pfmemalloc_match(stru
- }
- 
- /*
-+ * A variant of pfmemalloc_match() that tests page flags without asserting
-+ * PageSlab. Intended for opportunistic checks before taking a lock and
-+ * rechecking that nobody else freed the page under us.
-+ */
-+static inline bool pfmemalloc_match_unsafe(struct page *page, gfp_t gfpflags)
-+{
-+	if (unlikely(__PageSlabPfmemalloc(page)))
-+		return gfp_pfmemalloc_allowed(gfpflags);
-+
-+	return true;
-+}
-+
-+/*
-  * Check the page->freelist of a page and either transfer the freelist to the
-  * per cpu freelist or deactivate the page.
-  *
-@@ -2682,8 +2695,9 @@ static void *___slab_alloc(struct kmem_c
- 
- 	stat(s, ALLOC_SLOWPATH);
- 
--	local_irq_save(flags);
--	page = c->page;
-+reread_page:
-+
-+	page = READ_ONCE(c->page);
- 	if (!page) {
- 		/*
- 		 * if the node is not online or has no normal memory, just
-@@ -2692,6 +2706,11 @@ static void *___slab_alloc(struct kmem_c
+@@ -2706,11 +2706,6 @@ reread_page:
  		if (unlikely(node != NUMA_NO_NODE &&
  			     !node_isset(node, slab_nodes)))
  			node = NUMA_NO_NODE;
+-		local_irq_save(flags);
+-		if (unlikely(c->page)) {
+-			local_irq_restore(flags);
+-			goto reread_page;
+-		}
+ 		goto new_slab;
+ 	}
+ redo:
+@@ -2751,6 +2746,7 @@ redo:
+ 
+ 	if (!freelist) {
+ 		c->page = NULL;
++		local_irq_restore(flags);
+ 		stat(s, DEACTIVATE_BYPASS);
+ 		goto new_slab;
+ 	}
+@@ -2780,12 +2776,19 @@ deactivate_slab:
+ 		goto reread_page;
+ 	}
+ 	deactivate_slab(s, page, c->freelist, c);
++	local_irq_restore(flags);
+ 
+ new_slab:
+ 
+-	lockdep_assert_irqs_disabled();
+-
+ 	if (slub_percpu_partial(c)) {
 +		local_irq_save(flags);
 +		if (unlikely(c->page)) {
 +			local_irq_restore(flags);
 +			goto reread_page;
 +		}
- 		goto new_slab;
- 	}
- redo:
-@@ -2706,8 +2725,7 @@ redo:
- 			goto redo;
- 		} else {
- 			stat(s, ALLOC_NODE_MISMATCH);
--			deactivate_slab(s, page, c->freelist, c);
--			goto new_slab;
-+			goto deactivate_slab;
- 		}
- 	}
- 
-@@ -2716,12 +2734,15 @@ redo:
- 	 * PFMEMALLOC but right now, we are losing the pfmemalloc
- 	 * information when the page leaves the per-cpu allocator
- 	 */
--	if (unlikely(!pfmemalloc_match(page, gfpflags))) {
--		deactivate_slab(s, page, c->freelist, c);
--		goto new_slab;
--	}
-+	if (unlikely(!pfmemalloc_match_unsafe(page, gfpflags)))
-+		goto deactivate_slab;
- 
--	/* must check again c->freelist in case of cpu migration or IRQ */
-+	/* must check again c->page in case IRQ handler changed it */
-+	local_irq_save(flags);
-+	if (unlikely(page != c->page)) {
-+		local_irq_restore(flags);
-+		goto reread_page;
-+	}
- 	freelist = c->freelist;
- 	if (freelist)
- 		goto load_freelist;
-@@ -2737,6 +2758,9 @@ redo:
- 	stat(s, ALLOC_REFILL);
- 
- load_freelist:
++		if (unlikely(!slub_percpu_partial(c)))
++			goto new_objects; /* stolen by an IRQ handler */
 +
-+	lockdep_assert_irqs_disabled();
-+
- 	/*
- 	 * freelist is pointing to the list of objects to be used.
- 	 * page is pointing to the page from which the objects are obtained.
-@@ -2748,11 +2772,23 @@ load_freelist:
- 	local_irq_restore(flags);
- 	return freelist;
- 
-+deactivate_slab:
-+
-+	local_irq_save(flags);
-+	if (page != c->page) {
-+		local_irq_restore(flags);
-+		goto reread_page;
-+	}
-+	deactivate_slab(s, page, c->freelist, c);
-+
- new_slab:
- 
-+	lockdep_assert_irqs_disabled();
-+
- 	if (slub_percpu_partial(c)) {
  		page = c->page = slub_percpu_partial(c);
  		slub_set_percpu_partial(c, page);
-+		local_irq_restore(flags);
- 		stat(s, CPU_PARTIAL_ALLOC);
+ 		local_irq_restore(flags);
+@@ -2793,6 +2796,16 @@ new_slab:
  		goto redo;
  	}
+ 
++	local_irq_save(flags);
++	if (unlikely(c->page)) {
++		local_irq_restore(flags);
++		goto reread_page;
++	}
++
++new_objects:
++
++	lockdep_assert_irqs_disabled();
++
+ 	freelist = get_partial(s, gfpflags, node, &page);
+ 	if (freelist) {
+ 		c->page = page;
+@@ -2825,15 +2838,18 @@ new_slab:
+ check_new_page:
+ 
+ 	if (kmem_cache_debug(s)) {
+-		if (!alloc_debug_processing(s, page, freelist, addr))
++		if (!alloc_debug_processing(s, page, freelist, addr)) {
+ 			/* Slab failed checks. Next slab needed */
++			c->page = NULL;
++			local_irq_restore(flags);
+ 			goto new_slab;
+-		else
++		} else {
+ 			/*
+ 			 * For debug case, we don't load freelist so that all
+ 			 * allocations go through alloc_debug_processing()
+ 			 */
+ 			goto return_single;
++		}
+ 	}
+ 
+ 	if (unlikely(!pfmemalloc_match(page, gfpflags)))
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
