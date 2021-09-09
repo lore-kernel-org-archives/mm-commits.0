@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04F8AC433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 52F8AC43217
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4D8E611CA
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3D441611CA
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347395AbhIIVHB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1347083AbhIIVHB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 9 Sep 2021 17:07:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56444 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:56482 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347083AbhIIVGn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:06:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8B70D611CC;
-        Thu,  9 Sep 2021 21:05:33 +0000 (UTC)
+        id S1347788AbhIIVGp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:06:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9312C611CE;
+        Thu,  9 Sep 2021 21:05:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221533;
-        bh=bv0mtks3pQeNuzAGq/QIIp9thoWjb4b6mhjmKowHmZE=;
+        s=korg; t=1631221535;
+        bh=1H+ijX0GDd7zae+SOLb+fVHJFCUvVwGtjK2ge6mzXAc=;
         h=Date:From:To:Subject:From;
-        b=NggxgoXMgU3KmYnb+ZVL+QDb8Zq9JdqsEgtNPP1EXaWYRmGNv1tPeCdITIBKCZsi/
-         tvnlCrbChzwhHnkXe18SjwvrhWMCLjd5DhpvWj7MF5e0Yn//F+G14KX3whgwDyfrM/
-         kqLBJNaVjg9rmZgZNisBA8ZJYnOtelORBPJC94l8=
-Date:   Thu, 09 Sep 2021 14:05:33 -0700
+        b=JqCpoxdnTVQg/FRcFXWNZDek5zwixUfjYqRuWOd4Q5VXb4U50NUOruUgIDu4tw4NE
+         ciZhsSFNaEiD/O5J+SvaodTnwrpbX/eb2t70GgNpGvD/JFZYWrZ0giSiB3YStYnxR5
+         94QMuleEyTodhtgo/QAeW8yUP17EDwTRaEfkz/bA=
+Date:   Thu, 09 Sep 2021 14:05:35 -0700
 From:   akpm@linux-foundation.org
-To:     gthelen@google.com, joel@joelfernandes.org,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, shuah@kernel.org
-Subject:  [merged] selftests-memfd-remove-unused-variable.patch
- removed from -mm tree
-Message-ID: <20210909210533.3mDKtWWik%akpm@linux-foundation.org>
+To:     aquini@redhat.com, dbueso@suse.de, llong@redhat.com,
+        manfred@colorfullife.com, mm-commits@vger.kernel.org
+Subject:  [merged]
+ ipc-replace-costly-bailout-check-in-sysvipc_find_ipc.patch removed from -mm
+ tree
+Message-ID: <20210909210535.tnHyMX0qu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,46 +44,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/memfd: remove unused variable
+     Subject: ipc: replace costly bailout check in sysvipc_find_ipc()
 has been removed from the -mm tree.  Its filename was
-     selftests-memfd-remove-unused-variable.patch
+     ipc-replace-costly-bailout-check-in-sysvipc_find_ipc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: selftests/memfd: remove unused variable
+From: Rafael Aquini <aquini@redhat.com>
+Subject: ipc: replace costly bailout check in sysvipc_find_ipc()
 
-Commit 544029862cbb ("selftests/memfd: add tests for F_SEAL_FUTURE_WRITE
-seal") added an unused variable to mfd_assert_reopen_fd().
+sysvipc_find_ipc() was left with a costly way to check if the offset
+position fed to it is bigger than the total number of IPC IDs in use.  So
+much so that the time it takes to iterate over /proc/sysvipc/* files grows
+exponentially for a custom benchmark that creates "N" SYSV shm segments
+and then times the read of /proc/sysvipc/shm (milliseconds):
 
-Delete the unused variable.
+    12 msecs to read   1024 segs from /proc/sysvipc/shm
+    18 msecs to read   2048 segs from /proc/sysvipc/shm
+    65 msecs to read   4096 segs from /proc/sysvipc/shm
+   325 msecs to read   8192 segs from /proc/sysvipc/shm
+  1303 msecs to read  16384 segs from /proc/sysvipc/shm
+  5182 msecs to read  32768 segs from /proc/sysvipc/shm
 
-Link: https://lkml.kernel.org/r/20210702045509.1517643-1-gthelen@google.com
-Fixes: 544029862cbb ("selftests/memfd: add tests for F_SEAL_FUTURE_WRITE seal")
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Joel Fernandes (Google)" <joel@joelfernandes.org>
+The root problem lies with the loop that computes the total amount of ids
+in use to check if the "pos" feeded to sysvipc_find_ipc() grew bigger than
+"ids->in_use".  That is a quite inneficient way to get to the maximum
+index in the id lookup table, specially when that value is already
+provided by struct ipc_ids.max_idx.
+
+This patch follows up on the optimization introduced via commit
+15df03c879836 ("sysvipc: make get_maxid O(1) again") and gets rid of the
+aforementioned costly loop replacing it by a simpler checkpoint based on
+ipc_get_maxidx() returned value, which allows for a smooth linear increase
+in time complexity for the same custom benchmark:
+
+     2 msecs to read   1024 segs from /proc/sysvipc/shm
+     2 msecs to read   2048 segs from /proc/sysvipc/shm
+     4 msecs to read   4096 segs from /proc/sysvipc/shm
+     9 msecs to read   8192 segs from /proc/sysvipc/shm
+    19 msecs to read  16384 segs from /proc/sysvipc/shm
+    39 msecs to read  32768 segs from /proc/sysvipc/shm
+
+Link: https://lkml.kernel.org/r/20210809203554.1562989-1-aquini@redhat.com
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Acked-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: Waiman Long <llong@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/memfd/memfd_test.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/util.c |   16 ++++------------
+ 1 file changed, 4 insertions(+), 12 deletions(-)
 
---- a/tools/testing/selftests/memfd/memfd_test.c~selftests-memfd-remove-unused-variable
-+++ a/tools/testing/selftests/memfd/memfd_test.c
-@@ -56,7 +56,7 @@ static int mfd_assert_new(const char *na
- 
- static int mfd_assert_reopen_fd(int fd_in)
+--- a/ipc/util.c~ipc-replace-costly-bailout-check-in-sysvipc_find_ipc
++++ a/ipc/util.c
+@@ -788,21 +788,13 @@ struct pid_namespace *ipc_seq_pid_ns(str
+ static struct kern_ipc_perm *sysvipc_find_ipc(struct ipc_ids *ids, loff_t pos,
+ 					      loff_t *new_pos)
  {
--	int r, fd;
-+	int fd;
- 	char path[100];
+-	struct kern_ipc_perm *ipc;
+-	int total, id;
++	struct kern_ipc_perm *ipc = NULL;
++	int max_idx = ipc_get_maxidx(ids);
  
- 	sprintf(path, "/proc/self/fd/%d", fd_in);
+-	total = 0;
+-	for (id = 0; id < pos && total < ids->in_use; id++) {
+-		ipc = idr_find(&ids->ipcs_idr, id);
+-		if (ipc != NULL)
+-			total++;
+-	}
+-
+-	ipc = NULL;
+-	if (total >= ids->in_use)
++	if (max_idx == -1 || pos > max_idx)
+ 		goto out;
+ 
+-	for (; pos < ipc_mni; pos++) {
++	for (; pos <= max_idx; pos++) {
+ 		ipc = idr_find(&ids->ipcs_idr, pos);
+ 		if (ipc != NULL) {
+ 			rcu_read_lock();
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from aquini@redhat.com are
 
 
