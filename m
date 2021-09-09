@@ -7,42 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 81DC8C433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:37:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9951BC433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:38:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5E761611AD
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:37:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C1EA611AD
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:38:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345354AbhIIUjC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 16:39:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42780 "EHLO mail.kernel.org"
+        id S245624AbhIIUjc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 16:39:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43704 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245195AbhIIUjC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 16:39:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 51A186054F;
-        Thu,  9 Sep 2021 20:37:51 +0000 (UTC)
+        id S245195AbhIIUjc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 16:39:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 141266113A;
+        Thu,  9 Sep 2021 20:38:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631219872;
-        bh=5mVH3cCQMf228bICoj7NDHMZtiF/IJnS9iqWsjQo708=;
+        s=korg; t=1631219902;
+        bh=tIRM0Op5mYl9J9KJhZyC7QRI+rA3pprat69hd4TsrtM=;
         h=Date:From:To:Subject:From;
-        b=NlRFN2HLYJoB5VgZoARxdEhEI9EZ43Ugy7iH3lKIfbAs5h5Y/2kvei1I8HwyIGXuB
-         t+fBI2ExuF74FUxGFmp1T8N4y+/Rr+FKp45OSIlDsu3azDbb7GXQHs4VUv+gqsz64+
-         TZBewtqykmn6k62D2h2Laa22/m5WWoO3gEqZSS1w=
-Date:   Thu, 09 Sep 2021 13:37:49 -0700
+        b=dJJLpyyE0K8dIVtlHTKdTmuQc3itm10AkDRAzmMIIrn5gW4xw8FVkIQNZ7UR2Kh6w
+         bIJSCsEZHWYbtSpihGzvn+NDwnNn8KDNuogOKubEfLIeCw7vC+DpbLM2/QOT+qo5gN
+         GeIGRYyV10s1m33iSzY8lvonTiXDx7IusXL5o8WI=
+Date:   Thu, 09 Sep 2021 13:38:21 -0700
 From:   akpm@linux-foundation.org
-To:     0x7f454c46@gmail.com, adobriyan@gmail.com, avagin@gmail.com,
-        axboe@kernel.dk, bfields@fieldses.org, bp@alien8.de, bp@suse.de,
-        christian.brauner@ubuntu.com, ebiederm@xmission.com,
-        gregkh@linuxfoundation.org, guro@fb.com, hannes@cmpxchg.org,
-        hpa@zytor.com, jirislaby@kernel.org, jlayton@kernel.org,
-        ktkhai@virtuozzo.com, lizefan.x@bytedance.com, mhocko@kernel.org,
-        mingo@redhat.com, mm-commits@vger.kernel.org, nglaive@gmail.com,
-        oleg@redhat.com, serge@hallyn.com, shakeelb@google.com,
-        tglx@linutronix.de, tj@kernel.org, vdavydov.dev@gmail.com,
-        viro@zeniv.linux.org.uk, vvs@virtuozzo.com
+To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
+        hch@lst.de, jhubbard@nvidia.com, mm-commits@vger.kernel.org,
+        willy@infradead.org
 Subject:  [to-be-updated]
- memcg-enable-accounting-for-file-lock-caches.patch removed from -mm tree
-Message-ID: <20210909203749._gLlkNrsZ%akpm@linux-foundation.org>
+ mm-gup-remove-try_get_page-call-try_get_compound_head-directly.patch
+ removed from -mm tree
+Message-ID: <20210909203821.l3lYZIcM4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,77 +45,118 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: enable accounting for file lock caches
+     Subject: mm/gup: remove try_get_page(), call try_get_compound_head() directly
 has been removed from the -mm tree.  Its filename was
-     memcg-enable-accounting-for-file-lock-caches.patch
+     mm-gup-remove-try_get_page-call-try_get_compound_head-directly.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: enable accounting for file lock caches
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: remove try_get_page(), call try_get_compound_head() directly
 
-User can create file locks for each open file and force kernel to allocate
-small but long-living objects per each open file.
+try_get_page() is very similar to try_get_compound_head(), and in fact
+try_get_page() has fallen a little behind in terms of maintenance:
+try_get_compound_head() handles speculative page references more
+thoroughly.
 
-It makes sense to account for these objects to limit the host's memory
-consumption from inside the memcg-limited container.
+There are only two try_get_page() callsites, so just call
+try_get_compound_head() directly from those, and remove try_get_page()
+entirely.
 
-Link: https://lkml.kernel.org/r/b009f4c7-f0ab-c0ec-8e83-918f47d677da@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Andrei Vagin <avagin@gmail.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill Tkhai <ktkhai@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Serge Hallyn <serge@hallyn.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Yutian Yang <nglaive@gmail.com>
-Cc: Zefan Li <lizefan.x@bytedance.com>
+Also, seeing as how this changes try_get_compound_head() into a non-static
+function, provide some kerneldoc documentation for it.
+
+Link: https://lkml.kernel.org/r/20210813044133.1536842-4-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/locks.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/s390/mm/fault.c |    2 +-
+ fs/pipe.c            |    2 +-
+ include/linux/mm.h   |   10 +---------
+ mm/gup.c             |   21 +++++++++++++++++----
+ 4 files changed, 20 insertions(+), 15 deletions(-)
 
---- a/fs/locks.c~memcg-enable-accounting-for-file-lock-caches
-+++ a/fs/locks.c
-@@ -3056,10 +3056,12 @@ static int __init filelock_init(void)
- 	int i;
+--- a/arch/s390/mm/fault.c~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
++++ a/arch/s390/mm/fault.c
+@@ -817,7 +817,7 @@ void do_secure_storage_access(struct pt_
+ 		break;
+ 	case KERNEL_FAULT:
+ 		page = phys_to_page(addr);
+-		if (unlikely(!try_get_page(page)))
++		if (unlikely(!try_get_compound_head(page, 1)))
+ 			break;
+ 		rc = arch_make_page_accessible(page);
+ 		put_page(page);
+--- a/fs/pipe.c~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
++++ a/fs/pipe.c
+@@ -191,7 +191,7 @@ EXPORT_SYMBOL(generic_pipe_buf_try_steal
+  */
+ bool generic_pipe_buf_get(struct pipe_inode_info *pipe, struct pipe_buffer *buf)
+ {
+-	return try_get_page(buf->page);
++	return try_get_compound_head(buf->page, 1);
+ }
+ EXPORT_SYMBOL(generic_pipe_buf_get);
  
- 	flctx_cache = kmem_cache_create("file_lock_ctx",
--			sizeof(struct file_lock_context), 0, SLAB_PANIC, NULL);
-+			sizeof(struct file_lock_context), 0,
-+			SLAB_PANIC | SLAB_ACCOUNT, NULL);
+--- a/include/linux/mm.h~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
++++ a/include/linux/mm.h
+@@ -1217,15 +1217,7 @@ bool __must_check try_grab_page(struct p
+ struct page *try_grab_compound_head(struct page *page, int refs,
+ 				    unsigned int flags);
  
- 	filelock_cache = kmem_cache_create("file_lock_cache",
--			sizeof(struct file_lock), 0, SLAB_PANIC, NULL);
-+			sizeof(struct file_lock), 0,
-+			SLAB_PANIC | SLAB_ACCOUNT, NULL);
+-
+-static inline __must_check bool try_get_page(struct page *page)
+-{
+-	page = compound_head(page);
+-	if (WARN_ON_ONCE(page_ref_count(page) <= 0))
+-		return false;
+-	page_ref_inc(page);
+-	return true;
+-}
++struct page *try_get_compound_head(struct page *page, int refs);
  
- 	for_each_possible_cpu(i) {
- 		struct file_lock_list_struct *fll = per_cpu_ptr(&file_lock_list, i);
+ static inline void put_page(struct page *page)
+ {
+--- a/mm/gup.c~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
++++ a/mm/gup.c
+@@ -62,11 +62,24 @@ static void put_page_refs(struct page *p
+ 	put_page(page);
+ }
+ 
+-/*
+- * Return the compound head page with ref appropriately incremented,
+- * or NULL if that failed.
++/**
++ * try_get_compound_head() - return the compound head page with refcount
++ * appropriately incremented, or NULL if that failed.
++ *
++ * This handles potential refcount overflow correctly. It also works correclty
++ * for various lockless get_user_pages()-related callers, due to the use of
++ * page_cache_add_speculative().
++ *
++ * Even though the name includes "compound_head", this function is still
++ * appropriate for callers that have a non-compound @page to get.
++ *
++ * @page:  pointer to page to be gotten
++ * @refs:  the value to add to the page's refcount
++ *
++ * Return: head page (with refcount appropriately incremented) for success, or
++ * NULL upon failure.
+  */
+-static inline struct page *try_get_compound_head(struct page *page, int refs)
++struct page *try_get_compound_head(struct page *page, int refs)
+ {
+ 	struct page *head = compound_head(page);
+ 
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from jhubbard@nvidia.com are
 
-mm-use-in_task-in-mempolicy_slab_node.patch
 
