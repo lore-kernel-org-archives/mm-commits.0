@@ -7,38 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DFB1C43217
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96C8DC43219
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1DF6E6103D
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7113B611BF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346217AbhIIVCf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:02:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50760 "EHLO mail.kernel.org"
+        id S1346457AbhIIVCj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:02:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50966 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345897AbhIIVC3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:02:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A38E61026;
-        Thu,  9 Sep 2021 21:01:19 +0000 (UTC)
+        id S1346287AbhIIVCg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:02:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7630161026;
+        Thu,  9 Sep 2021 21:01:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221279;
-        bh=l8rURialS/Ytr2Ybv5Y8qxQ3Gf4yNrHeiZ4ZJldBqXE=;
+        s=korg; t=1631221286;
+        bh=icaLkfKEve8cElUM6M6A89euZWfXawOYls3Jl/L1+cI=;
         h=Date:From:To:Subject:From;
-        b=DX+xR+AtTanCcjUiaM2J+UJ8Ea7SPcb2XRdc8e4NiSNuzt/uPH3QNJ8REiL8Ut/rL
-         OaoaDpu+DV1yC1gzGH+Vvc720uUzQyhmzFlyK6lXDihyf5RvKQFrtS/GmDSa7WlIac
-         Wk9wpfjE8BOZ0cgZ1w2jbrT8cit0zCbGIUIc03PM=
-Date:   Thu, 09 Sep 2021 14:01:19 -0700
+        b=qGhWAtQal2fZHQiUU3XH2hGFgZ+1FSN6OUryTf+4/R1spAB8GAnmCatG7hEE9KbMH
+         WmYkfTPL3hepT/RuZ+e0gO2YyihiYUeo41Uyy71absKek6CvoIxkEuvSDKkuOgDzlf
+         +Jjj0B8xImTNbZiZmPXeKStwJIVC/4vfLkC5FODA=
+Date:   Thu, 09 Sep 2021 14:01:26 -0700
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
-        iamjoonsoo.kim@lge.com, jannh@google.com,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        penberg@kernel.org, quic_qiancai@quicinc.com, rientjes@google.com,
-        tglx@linutronix.de, vbabka@suse.cz
+To:     david@redhat.com, gregkh@linuxfoundation.org,
+        mm-commits@vger.kernel.org, rafael@kernel.org, rppt@linux.ibm.com
 Subject:  [merged]
- mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch removed from
- -mm tree
-Message-ID: <20210909210119.aXEkO6nFH%akpm@linux-foundation.org>
+ mm-remove-pfn_valid_within-and-config_holes_in_zone.patch removed from -mm
+ tree
+Message-ID: <20210909210126.3jC1lx8hf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,447 +44,305 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: convert kmem_cpu_slab protection to local_lock
+     Subject: mm: remove pfn_valid_within() and CONFIG_HOLES_IN_ZONE
 has been removed from the -mm tree.  Its filename was
-     mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
+     mm-remove-pfn_valid_within-and-config_holes_in_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: convert kmem_cpu_slab protection to local_lock
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: mm: remove pfn_valid_within() and CONFIG_HOLES_IN_ZONE
 
-Embed local_lock into struct kmem_cpu_slab and use the irq-safe versions
-of local_lock instead of plain local_irq_save/restore.  On !PREEMPT_RT
-that's equivalent, with better lockdep visibility.  On PREEMPT_RT that
-means better preemption.
+Patch series "mm: remove pfn_valid_within() and CONFIG_HOLES_IN_ZONE".
 
-However, the cost on PREEMPT_RT is the loss of lockless fast paths which
-only work with cpu freelist.  Those are designed to detect and recover
-from being preempted by other conflicting operations (both fast or slow
-path), but the slow path operations assume they cannot be preempted by a
-fast path operation, which is guaranteed naturally with disabled irqs. 
-With local locks on PREEMPT_RT, the fast paths now also need to take the
-local lock to avoid races.
+After recent updates to freeing unused parts of the memory map, no
+architecture can have holes in the memory map within a pageblock.  This
+makes pfn_valid_within() check and CONFIG_HOLES_IN_ZONE configuration
+option redundant.
 
-In the allocation fastpath slab_alloc_node() we can just defer to the
-slowpath __slab_alloc() which also works with cpu freelist, but under the
-local lock.  In the free fastpath do_slab_free() we have to add a new
-local lock protected version of freeing to the cpu freelist, as the
-existing slowpath only works with the page freelist.
+The first patch removes them both in a mechanical way and the second patch
+simplifies memory_hotplug::test_pages_in_a_zone() that had
+pfn_valid_within() surrounded by more logic than simple if.
 
-Also update the comment about locking scheme in SLUB to reflect changes
-done by this series.
 
-[ Mike Galbraith <efault@gmx.de>: use local_lock() without irq in PREEMPT_RT
-  scope; debugging of RT crashes resulting in put_cpu_partial() locking changes ]
-Link: https://lkml.kernel.org/r/20210904105003.11688-34-vbabka@suse.cz
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Qian Cai <quic_qiancai@quicinc.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+This patch (of 2):
+
+After recent changes in freeing of the unused parts of the memory map and
+rework of pfn_valid() in arm and arm64 there are no architectures that can
+have holes in the memory map within a pageblock and so nothing can enable
+CONFIG_HOLES_IN_ZONE which guards non trivial implementation of
+pfn_valid_within().
+
+With that, pfn_valid_within() is always hardwired to 1 and can be
+completely removed.
+
+Remove calls to pfn_valid_within() and CONFIG_HOLES_IN_ZONE.
+
+Link: https://lkml.kernel.org/r/20210713080035.7464-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210713080035.7464-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    6 +
- mm/slub.c                |  146 ++++++++++++++++++++++++++++---------
- 2 files changed, 117 insertions(+), 35 deletions(-)
+ drivers/base/node.c    |    2 --
+ include/linux/mmzone.h |   12 ------------
+ mm/Kconfig             |    3 ---
+ mm/compaction.c        |   20 +++++++-------------
+ mm/memory_hotplug.c    |    4 ----
+ mm/page_alloc.c        |   24 ++----------------------
+ mm/page_isolation.c    |    7 +------
+ mm/page_owner.c        |   14 +-------------
+ 8 files changed, 11 insertions(+), 75 deletions(-)
 
---- a/include/linux/slub_def.h~mm-slub-convert-kmem_cpu_slab-protection-to-local_lock
-+++ a/include/linux/slub_def.h
-@@ -10,6 +10,7 @@
- #include <linux/kfence.h>
- #include <linux/kobject.h>
- #include <linux/reciprocal_div.h>
-+#include <linux/local_lock.h>
- 
- enum stat_item {
- 	ALLOC_FASTPATH,		/* Allocation from cpu slab */
-@@ -40,6 +41,10 @@ enum stat_item {
- 	CPU_PARTIAL_DRAIN,	/* Drain cpu partial to node partial */
- 	NR_SLUB_STAT_ITEMS };
- 
-+/*
-+ * When changing the layout, make sure freelist and tid are still compatible
-+ * with this_cpu_cmpxchg_double() alignment requirements.
-+ */
- struct kmem_cache_cpu {
- 	void **freelist;	/* Pointer to next available object */
- 	unsigned long tid;	/* Globally unique transaction id */
-@@ -47,6 +52,7 @@ struct kmem_cache_cpu {
- #ifdef CONFIG_SLUB_CPU_PARTIAL
- 	struct page *partial;	/* Partially allocated frozen slabs */
- #endif
-+	local_lock_t lock;	/* Protects the fields above */
- #ifdef CONFIG_SLUB_STATS
- 	unsigned stat[NR_SLUB_STAT_ITEMS];
- #endif
---- a/mm/slub.c~mm-slub-convert-kmem_cpu_slab-protection-to-local_lock
-+++ a/mm/slub.c
-@@ -46,13 +46,21 @@
- /*
-  * Lock order:
-  *   1. slab_mutex (Global Mutex)
-- *   2. node->list_lock
-- *   3. slab_lock(page) (Only on some arches and for debugging)
-+ *   2. node->list_lock (Spinlock)
-+ *   3. kmem_cache->cpu_slab->lock (Local lock)
-+ *   4. slab_lock(page) (Only on some arches or for debugging)
-+ *   5. object_map_lock (Only for debugging)
-  *
-  *   slab_mutex
-  *
-  *   The role of the slab_mutex is to protect the list of all the slabs
-  *   and to synchronize major metadata changes to slab cache structures.
-+ *   Also synchronizes memory hotplug callbacks.
-+ *
-+ *   slab_lock
-+ *
-+ *   The slab_lock is a wrapper around the page lock, thus it is a bit
-+ *   spinlock.
-  *
-  *   The slab_lock is only used for debugging and on arches that do not
-  *   have the ability to do a cmpxchg_double. It only protects:
-@@ -61,6 +69,8 @@
-  *	C. page->objects	-> Number of objects in page
-  *	D. page->frozen		-> frozen state
-  *
-+ *   Frozen slabs
-+ *
-  *   If a slab is frozen then it is exempt from list management. It is not
-  *   on any list except per cpu partial list. The processor that froze the
-  *   slab is the one who can perform list operations on the page. Other
-@@ -68,6 +78,8 @@
-  *   froze the slab is the only one that can retrieve the objects from the
-  *   page's freelist.
-  *
-+ *   list_lock
-+ *
-  *   The list_lock protects the partial and full list on each node and
-  *   the partial slab counter. If taken then no new slabs may be added or
-  *   removed from the lists nor make the number of partial slabs be modified.
-@@ -79,10 +91,36 @@
-  *   slabs, operations can continue without any centralized lock. F.e.
-  *   allocating a long series of objects that fill up slabs does not require
-  *   the list lock.
-- *   Interrupts are disabled during allocation and deallocation in order to
-- *   make the slab allocator safe to use in the context of an irq. In addition
-- *   interrupts are disabled to ensure that the processor does not change
-- *   while handling per_cpu slabs, due to kernel preemption.
-+ *
-+ *   cpu_slab->lock local lock
-+ *
-+ *   This locks protect slowpath manipulation of all kmem_cache_cpu fields
-+ *   except the stat counters. This is a percpu structure manipulated only by
-+ *   the local cpu, so the lock protects against being preempted or interrupted
-+ *   by an irq. Fast path operations rely on lockless operations instead.
-+ *   On PREEMPT_RT, the local lock does not actually disable irqs (and thus
-+ *   prevent the lockless operations), so fastpath operations also need to take
-+ *   the lock and are no longer lockless.
-+ *
-+ *   lockless fastpaths
-+ *
-+ *   The fast path allocation (slab_alloc_node()) and freeing (do_slab_free())
-+ *   are fully lockless when satisfied from the percpu slab (and when
-+ *   cmpxchg_double is possible to use, otherwise slab_lock is taken).
-+ *   They also don't disable preemption or migration or irqs. They rely on
-+ *   the transaction id (tid) field to detect being preempted or moved to
-+ *   another cpu.
-+ *
-+ *   irq, preemption, migration considerations
-+ *
-+ *   Interrupts are disabled as part of list_lock or local_lock operations, or
-+ *   around the slab_lock operation, in order to make the slab allocator safe
-+ *   to use in the context of an irq.
-+ *
-+ *   In addition, preemption (or migration on PREEMPT_RT) is disabled in the
-+ *   allocation slowpath, bulk allocation, and put_cpu_partial(), so that the
-+ *   local cpu doesn't change in the process and e.g. the kmem_cache_cpu pointer
-+ *   doesn't have to be revalidated in each section protected by the local lock.
-  *
-  * SLUB assigns one slab for allocation to each processor.
-  * Allocations only occur from these slabs called cpu slabs.
-@@ -2250,9 +2288,13 @@ static inline void note_cmpxchg_failure(
- static void init_kmem_cache_cpus(struct kmem_cache *s)
+--- a/drivers/base/node.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/drivers/base/node.c
+@@ -768,8 +768,6 @@ int unregister_cpu_under_node(unsigned i
+ #ifdef CONFIG_MEMORY_HOTPLUG_SPARSE
+ static int __ref get_nid_for_pfn(unsigned long pfn)
  {
- 	int cpu;
-+	struct kmem_cache_cpu *c;
+-	if (!pfn_valid_within(pfn))
+-		return -1;
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ 	if (system_state < SYSTEM_RUNNING)
+ 		return early_pfn_to_nid(pfn);
+--- a/include/linux/mmzone.h~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/include/linux/mmzone.h
+@@ -1525,18 +1525,6 @@ void sparse_init(void);
+ #define subsection_map_init(_pfn, _nr_pages) do {} while (0)
+ #endif /* CONFIG_SPARSEMEM */
  
--	for_each_possible_cpu(cpu)
--		per_cpu_ptr(s->cpu_slab, cpu)->tid = init_tid(cpu);
-+	for_each_possible_cpu(cpu) {
-+		c = per_cpu_ptr(s->cpu_slab, cpu);
-+		local_lock_init(&c->lock);
-+		c->tid = init_tid(cpu);
-+	}
+-/*
+- * If it is possible to have holes within a MAX_ORDER_NR_PAGES, then we
+- * need to check pfn validity within that MAX_ORDER_NR_PAGES block.
+- * pfn_valid_within() should be used in this case; we optimise this away
+- * when we have no holes within a MAX_ORDER_NR_PAGES block.
+- */
+-#ifdef CONFIG_HOLES_IN_ZONE
+-#define pfn_valid_within(pfn) pfn_valid(pfn)
+-#else
+-#define pfn_valid_within(pfn) (1)
+-#endif
+-
+ #endif /* !__GENERATING_BOUNDS.H */
+ #endif /* !__ASSEMBLY__ */
+ #endif /* _LINUX_MMZONE_H */
+--- a/mm/compaction.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/compaction.c
+@@ -306,16 +306,14 @@ __reset_isolation_pfn(struct zone *zone,
+ 	 * is necessary for the block to be a migration source/target.
+ 	 */
+ 	do {
+-		if (pfn_valid_within(pfn)) {
+-			if (check_source && PageLRU(page)) {
+-				clear_pageblock_skip(page);
+-				return true;
+-			}
++		if (check_source && PageLRU(page)) {
++			clear_pageblock_skip(page);
++			return true;
++		}
+ 
+-			if (check_target && PageBuddy(page)) {
+-				clear_pageblock_skip(page);
+-				return true;
+-			}
++		if (check_target && PageBuddy(page)) {
++			clear_pageblock_skip(page);
++			return true;
+ 		}
+ 
+ 		page += (1 << PAGE_ALLOC_COSTLY_ORDER);
+@@ -585,8 +583,6 @@ static unsigned long isolate_freepages_b
+ 			break;
+ 
+ 		nr_scanned++;
+-		if (!pfn_valid_within(blockpfn))
+-			goto isolate_fail;
+ 
+ 		/*
+ 		 * For compound pages such as THP and hugetlbfs, we can save
+@@ -885,8 +881,6 @@ isolate_migratepages_block(struct compac
+ 			cond_resched();
+ 		}
+ 
+-		if (!pfn_valid_within(low_pfn))
+-			goto isolate_fail;
+ 		nr_scanned++;
+ 
+ 		page = pfn_to_page(low_pfn);
+--- a/mm/Kconfig~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/Kconfig
+@@ -96,9 +96,6 @@ config HAVE_FAST_GUP
+ 	depends on MMU
+ 	bool
+ 
+-config HOLES_IN_ZONE
+-	bool
+-
+ # Don't discard allocated memory used to track "memory" and "reserved" memblocks
+ # after early boot, so it can still be used to test for validity of memory.
+ # Also, memblocks are updated with memory hot(un)plug.
+--- a/mm/memory_hotplug.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/memory_hotplug.c
+@@ -1308,10 +1308,6 @@ struct zone *test_pages_in_a_zone(unsign
+ 		for (; pfn < sec_end_pfn && pfn < end_pfn;
+ 		     pfn += MAX_ORDER_NR_PAGES) {
+ 			i = 0;
+-			/* This is just a CONFIG_HOLES_IN_ZONE check.*/
+-			while ((i < MAX_ORDER_NR_PAGES) &&
+-				!pfn_valid_within(pfn + i))
+-				i++;
+ 			if (i == MAX_ORDER_NR_PAGES || pfn + i >= end_pfn)
+ 				continue;
+ 			/* Check if we got outside of the zone */
+--- a/mm/page_alloc.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/page_alloc.c
+@@ -594,8 +594,6 @@ static int page_outside_zone_boundaries(
+ 
+ static int page_is_consistent(struct zone *zone, struct page *page)
+ {
+-	if (!pfn_valid_within(page_to_pfn(page)))
+-		return 0;
+ 	if (zone != page_zone(page))
+ 		return 0;
+ 
+@@ -1025,16 +1023,12 @@ buddy_merge_likely(unsigned long pfn, un
+ 	if (order >= MAX_ORDER - 2)
+ 		return false;
+ 
+-	if (!pfn_valid_within(buddy_pfn))
+-		return false;
+-
+ 	combined_pfn = buddy_pfn & pfn;
+ 	higher_page = page + (combined_pfn - pfn);
+ 	buddy_pfn = __find_buddy_pfn(combined_pfn, order + 1);
+ 	higher_buddy = higher_page + (buddy_pfn - combined_pfn);
+ 
+-	return pfn_valid_within(buddy_pfn) &&
+-	       page_is_buddy(higher_page, higher_buddy, order + 1);
++	return page_is_buddy(higher_page, higher_buddy, order + 1);
  }
  
  /*
-@@ -2463,10 +2505,10 @@ static void unfreeze_partials(struct kme
- 	struct page *partial_page;
- 	unsigned long flags;
+@@ -1095,8 +1089,6 @@ continue_merging:
+ 		buddy_pfn = __find_buddy_pfn(pfn, order);
+ 		buddy = page + (buddy_pfn - pfn);
  
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 	partial_page = this_cpu_read(s->cpu_slab->partial);
- 	this_cpu_write(s->cpu_slab->partial, NULL);
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 
- 	if (partial_page)
- 		__unfreeze_partials(s, partial_page);
-@@ -2499,7 +2541,7 @@ static void put_cpu_partial(struct kmem_
- 	int pages = 0;
- 	int pobjects = 0;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 
- 	oldpage = this_cpu_read(s->cpu_slab->partial);
- 
-@@ -2527,7 +2569,7 @@ static void put_cpu_partial(struct kmem_
- 
- 	this_cpu_write(s->cpu_slab->partial, page);
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 
- 	if (page_to_unfreeze) {
- 		__unfreeze_partials(s, page_to_unfreeze);
-@@ -2549,7 +2591,7 @@ static inline void flush_slab(struct kme
- 	struct page *page;
- 	void *freelist;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 
- 	page = c->page;
- 	freelist = c->freelist;
-@@ -2558,7 +2600,7 @@ static inline void flush_slab(struct kme
- 	c->freelist = NULL;
- 	c->tid = next_tid(c->tid);
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 
- 	if (page) {
- 		deactivate_slab(s, page, freelist);
-@@ -2780,8 +2822,6 @@ static inline bool pfmemalloc_match_unsa
-  * The page is still frozen if the return value is not NULL.
+-		if (!pfn_valid_within(buddy_pfn))
+-			goto done_merging;
+ 		if (!page_is_buddy(page, buddy, order))
+ 			goto done_merging;
+ 		/*
+@@ -1754,9 +1746,7 @@ void __init memblock_free_pages(struct p
+ /*
+  * Check that the whole (or subset of) a pageblock given by the interval of
+  * [start_pfn, end_pfn) is valid and within the same zone, before scanning it
+- * with the migration of free compaction scanner. The scanners then need to
+- * use only pfn_valid_within() check for arches that allow holes within
+- * pageblocks.
++ * with the migration of free compaction scanner.
   *
-  * If this function returns NULL then the page has been unfrozen.
-- *
-- * This function must be called with interrupt disabled.
+  * Return struct page pointer of start_pfn, or NULL if checks were not passed.
+  *
+@@ -1872,8 +1862,6 @@ static inline void __init pgdat_init_rep
   */
- static inline void *get_freelist(struct kmem_cache *s, struct page *page)
+ static inline bool __init deferred_pfn_valid(unsigned long pfn)
  {
-@@ -2789,6 +2829,8 @@ static inline void *get_freelist(struct
- 	unsigned long counters;
- 	void *freelist;
+-	if (!pfn_valid_within(pfn))
+-		return false;
+ 	if (!(pfn & (pageblock_nr_pages - 1)) && !pfn_valid(pfn))
+ 		return false;
+ 	return true;
+@@ -2520,11 +2508,6 @@ static int move_freepages(struct zone *z
+ 	int pages_moved = 0;
  
-+	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock));
-+
- 	do {
- 		freelist = page->freelist;
- 		counters = page->counters;
-@@ -2873,9 +2915,9 @@ redo:
- 		goto deactivate_slab;
- 
- 	/* must check again c->page in case we got preempted and it changed */
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 	if (unlikely(page != c->page)) {
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 		goto reread_page;
- 	}
- 	freelist = c->freelist;
-@@ -2886,7 +2928,7 @@ redo:
- 
- 	if (!freelist) {
- 		c->page = NULL;
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 		stat(s, DEACTIVATE_BYPASS);
- 		goto new_slab;
- 	}
-@@ -2895,7 +2937,7 @@ redo:
- 
- load_freelist:
- 
--	lockdep_assert_irqs_disabled();
-+	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock));
- 
- 	/*
- 	 * freelist is pointing to the list of objects to be used.
-@@ -2905,39 +2947,39 @@ load_freelist:
- 	VM_BUG_ON(!c->page->frozen);
- 	c->freelist = get_freepointer(s, freelist);
- 	c->tid = next_tid(c->tid);
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 	return freelist;
- 
- deactivate_slab:
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 	if (page != c->page) {
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 		goto reread_page;
- 	}
- 	freelist = c->freelist;
- 	c->page = NULL;
- 	c->freelist = NULL;
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 	deactivate_slab(s, page, freelist);
- 
- new_slab:
- 
- 	if (slub_percpu_partial(c)) {
--		local_irq_save(flags);
-+		local_lock_irqsave(&s->cpu_slab->lock, flags);
- 		if (unlikely(c->page)) {
--			local_irq_restore(flags);
-+			local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 			goto reread_page;
- 		}
- 		if (unlikely(!slub_percpu_partial(c))) {
--			local_irq_restore(flags);
-+			local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 			/* we were preempted and partial list got empty */
- 			goto new_objects;
- 		}
- 
- 		page = c->page = slub_percpu_partial(c);
- 		slub_set_percpu_partial(c, page);
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 		stat(s, CPU_PARTIAL_ALLOC);
- 		goto redo;
- 	}
-@@ -2990,7 +3032,7 @@ check_new_page:
- 
- retry_load_page:
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 	if (unlikely(c->page)) {
- 		void *flush_freelist = c->freelist;
- 		struct page *flush_page = c->page;
-@@ -2999,7 +3041,7 @@ retry_load_page:
- 		c->freelist = NULL;
- 		c->tid = next_tid(c->tid);
- 
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
- 
- 		deactivate_slab(s, flush_page, flush_freelist);
- 
-@@ -3118,7 +3160,15 @@ redo:
- 
- 	object = c->freelist;
- 	page = c->page;
--	if (unlikely(!object || !page || !node_match(page, node))) {
-+	/*
-+	 * We cannot use the lockless fastpath on PREEMPT_RT because if a
-+	 * slowpath has taken the local_lock_irqsave(), it is not protected
-+	 * against a fast path operation in an irq handler. So we need to take
-+	 * the slow path which uses local_lock. It is still relatively fast if
-+	 * there is a suitable cpu freelist.
-+	 */
-+	if (IS_ENABLED(CONFIG_PREEMPT_RT) ||
-+	    unlikely(!object || !page || !node_match(page, node))) {
- 		object = __slab_alloc(s, gfpflags, node, addr, c);
- 	} else {
- 		void *next_object = get_freepointer_safe(s, object);
-@@ -3378,6 +3428,7 @@ redo:
- 	barrier();
- 
- 	if (likely(page == c->page)) {
-+#ifndef CONFIG_PREEMPT_RT
- 		void **freelist = READ_ONCE(c->freelist);
- 
- 		set_freepointer(s, tail_obj, freelist);
-@@ -3390,6 +3441,31 @@ redo:
- 			note_cmpxchg_failure("slab_free", s, tid);
- 			goto redo;
- 		}
-+#else /* CONFIG_PREEMPT_RT */
-+		/*
-+		 * We cannot use the lockless fastpath on PREEMPT_RT because if
-+		 * a slowpath has taken the local_lock_irqsave(), it is not
-+		 * protected against a fast path operation in an irq handler. So
-+		 * we need to take the local_lock. We shouldn't simply defer to
-+		 * __slab_free() as that wouldn't use the cpu freelist at all.
-+		 */
-+		void **freelist;
-+
-+		local_lock(&s->cpu_slab->lock);
-+		c = this_cpu_ptr(s->cpu_slab);
-+		if (unlikely(page != c->page)) {
-+			local_unlock(&s->cpu_slab->lock);
-+			goto redo;
-+		}
-+		tid = c->tid;
-+		freelist = c->freelist;
-+
-+		set_freepointer(s, tail_obj, freelist);
-+		c->freelist = head;
-+		c->tid = next_tid(tid);
-+
-+		local_unlock(&s->cpu_slab->lock);
-+#endif
- 		stat(s, FREE_FASTPATH);
- 	} else
- 		__slab_free(s, page, head, tail_obj, cnt, addr);
-@@ -3568,7 +3644,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 	 * handlers invoking normal fastpath.
- 	 */
- 	c = slub_get_cpu_ptr(s->cpu_slab);
--	local_irq_disable();
-+	local_lock_irq(&s->cpu_slab->lock);
- 
- 	for (i = 0; i < size; i++) {
- 		void *object = kfence_alloc(s, s->object_size, flags);
-@@ -3589,7 +3665,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 			 */
- 			c->tid = next_tid(c->tid);
- 
--			local_irq_enable();
-+			local_unlock_irq(&s->cpu_slab->lock);
- 
+ 	for (pfn = start_pfn; pfn <= end_pfn;) {
+-		if (!pfn_valid_within(pfn)) {
+-			pfn++;
+-			continue;
+-		}
+-
+ 		page = pfn_to_page(pfn);
+ 		if (!PageBuddy(page)) {
  			/*
- 			 * Invoking slow path likely have side-effect
-@@ -3603,7 +3679,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 			c = this_cpu_ptr(s->cpu_slab);
- 			maybe_wipe_obj_freeptr(s, p[i]);
- 
--			local_irq_disable();
-+			local_lock_irq(&s->cpu_slab->lock);
- 
- 			continue; /* goto for-loop */
- 		}
-@@ -3612,7 +3688,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
- 		maybe_wipe_obj_freeptr(s, p[i]);
+@@ -8828,9 +8811,6 @@ struct page *has_unmovable_pages(struct
  	}
- 	c->tid = next_tid(c->tid);
--	local_irq_enable();
-+	local_unlock_irq(&s->cpu_slab->lock);
- 	slub_put_cpu_ptr(s->cpu_slab);
  
- 	/*
+ 	for (; iter < pageblock_nr_pages - offset; iter++) {
+-		if (!pfn_valid_within(pfn + iter))
+-			continue;
+-
+ 		page = pfn_to_page(pfn + iter);
+ 
+ 		/*
+--- a/mm/page_isolation.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/page_isolation.c
+@@ -93,8 +93,7 @@ static void unset_migratetype_isolate(st
+ 			buddy_pfn = __find_buddy_pfn(pfn, order);
+ 			buddy = page + (buddy_pfn - pfn);
+ 
+-			if (pfn_valid_within(buddy_pfn) &&
+-			    !is_migrate_isolate_page(buddy)) {
++			if (!is_migrate_isolate_page(buddy)) {
+ 				__isolate_free_page(page, order);
+ 				isolated_page = true;
+ 			}
+@@ -250,10 +249,6 @@ __test_page_isolated_in_pageblock(unsign
+ 	struct page *page;
+ 
+ 	while (pfn < end_pfn) {
+-		if (!pfn_valid_within(pfn)) {
+-			pfn++;
+-			continue;
+-		}
+ 		page = pfn_to_page(pfn);
+ 		if (PageBuddy(page))
+ 			/*
+--- a/mm/page_owner.c~mm-remove-pfn_valid_within-and-config_holes_in_zone
++++ a/mm/page_owner.c
+@@ -276,9 +276,6 @@ void pagetypeinfo_showmixedcount_print(s
+ 		pageblock_mt = get_pageblock_migratetype(page);
+ 
+ 		for (; pfn < block_end_pfn; pfn++) {
+-			if (!pfn_valid_within(pfn))
+-				continue;
+-
+ 			/* The pageblock is online, no need to recheck. */
+ 			page = pfn_to_page(pfn);
+ 
+@@ -479,10 +476,6 @@ read_page_owner(struct file *file, char
+ 			continue;
+ 		}
+ 
+-		/* Check for holes within a MAX_ORDER area */
+-		if (!pfn_valid_within(pfn))
+-			continue;
+-
+ 		page = pfn_to_page(pfn);
+ 		if (PageBuddy(page)) {
+ 			unsigned long freepage_order = buddy_order_unsafe(page);
+@@ -560,14 +553,9 @@ static void init_pages_in_zone(pg_data_t
+ 		block_end_pfn = min(block_end_pfn, end_pfn);
+ 
+ 		for (; pfn < block_end_pfn; pfn++) {
+-			struct page *page;
++			struct page *page = pfn_to_page(pfn);
+ 			struct page_ext *page_ext;
+ 
+-			if (!pfn_valid_within(pfn))
+-				continue;
+-
+-			page = pfn_to_page(pfn);
+-
+ 			if (page_zone(page) != zone)
+ 				continue;
+ 
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from rppt@linux.ibm.com are
 
 
