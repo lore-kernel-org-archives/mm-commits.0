@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43638C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE1A3C4332F
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 245BA611C8
+	by mail.kernel.org (Postfix) with ESMTP id 8A198611C8
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345284AbhIIVG0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1346415AbhIIVG0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 9 Sep 2021 17:06:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55914 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:54302 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1346415AbhIIVGB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:06:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8975F611C4;
-        Thu,  9 Sep 2021 21:04:51 +0000 (UTC)
+        id S232739AbhIIVGE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:06:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C234611C5;
+        Thu,  9 Sep 2021 21:04:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221491;
-        bh=cd45iVyCAGOY7ln8l4MWGSrn41HAGAMXqMrZtRpEBwY=;
+        s=korg; t=1631221493;
+        bh=gcURFWWSO5iapQ49kZ+xibNsIYBmI3BId3gPbrMUMu8=;
         h=Date:From:To:Subject:From;
-        b=NPQYrIMFGKp9O57fjH9pTR4F/hu0IhCQ4ieVq3NO98pmdlmdMrN2ygsZnKQRZ8l3p
-         ODTlRox/nGvBwso0XG88HsJHTxhfCeCnccNFhOu4mBgwXM/GzXKCnxEl9yn8aL2oCy
-         Ps3qshpB0NmSgNNAv/BA/QMIq1aAnGwzjwJhG6aQ=
-Date:   Thu, 09 Sep 2021 14:04:51 -0700
+        b=HsTJrXPh0DrdkL/CpMymy7/XYLSbHVMtQKY4yUtjg6iRMc91B1Ym/EXtcg8OOShn5
+         f42Kd5G95VKCj+7/ISRz0mEmkbVeonIdSxs7+C4ZfRKfqsDnjoQVXGFPty6E4A6YMh
+         y/IdohdTqEUDT5PeJKjMPm/EMmCyg6MxKoaFMxPM=
+Date:   Thu, 09 Sep 2021 14:04:53 -0700
 From:   akpm@linux-foundation.org
-To:     dwaipayanray1@gmail.com, efremov@linux.com, joe@perches.com,
-        lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org
-Subject:  [merged] checkpatch-improve-git_commit_id-test.patch
- removed from -mm tree
-Message-ID: <20210909210451.J6LJzxEyS%akpm@linux-foundation.org>
+To:     anton@ozlabs.org, mm-commits@vger.kernel.org, npiggin@gmail.com,
+        viro@zeniv.linux.org.uk
+Subject:  [merged]
+ fs-epoll-use-a-per-cpu-counter-for-users-watches-count.patch removed from
+ -mm tree
+Message-ID: <20210909210453.uaJkiTXcw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,173 +44,184 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve GIT_COMMIT_ID test
+     Subject: fs/epoll: use a per-cpu counter for user's watches count
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-git_commit_id-test.patch
+     fs-epoll-use-a-per-cpu-counter-for-users-watches-count.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve GIT_COMMIT_ID test
+From: Nicholas Piggin <npiggin@gmail.com>
+Subject: fs/epoll: use a per-cpu counter for user's watches count
 
-The preferred git commit id reference has the form
+This counter tracks the number of watches a user has, to compare against
+the 'max_user_watches' limit. This causes a scalability bottleneck on
+SPECjbb2015 on large systems as there is only one user. Changing to a
+per-cpu counter increases throughput of the benchmark by about 30% on a
+16-socket, > 1000 thread system.
 
-	commit <SHA-1> ("Title line")
-
-where SHA-1 is the commit hex hash with a minimum lenth of 12 and ("Title
-line") is the complete title line of the commit with a (" prefix and ")
-suffix.
-
-The current tests fail when the "Title line" has one or more embedded
-double quotes.
-
-Improve the test that finds the commit SHA-1 hex hash then ("Title line")
-by using $balanced_parens for a maximum of 3 consecutive lines.
-
-[akpm@linux-foundation.org: add missing &&]
-Link: https://lkml.kernel.org/r/976c6cdd680db4b55ae31b5fc2d1779da5c0dc66.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Denis Efremov <efremov@linux.com>
+[rdunlap@infradead.org: fix build errors in kernel/user.c when CONFIG_EPOLL=n]
+[npiggin@gmail.com: move ifdefs into wrapper functions, slightly improve panic message]
+  Link: https://lkml.kernel.org/r/1628051945.fens3r99ox.astroid@bobo.none
+[akpm@linux-foundation.org: tweak user_epoll_alloc(), per Guenter]
+  Link: https://lkml.kernel.org/r/20210804191421.GA1900577@roeck-us.net
+Link: https://lkml.kernel.org/r/20210802032013.2751916-1-npiggin@gmail.com
+Signed-off-by: Nicholas Piggin <npiggin@gmail.com>
+Reported-by: Anton Blanchard <anton@ozlabs.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   82 ++++++++++++++++++++++++----------------
- 1 file changed, 51 insertions(+), 31 deletions(-)
+ fs/eventpoll.c             |   18 ++++++++++--------
+ include/linux/sched/user.h |    3 ++-
+ kernel/user.c              |   25 +++++++++++++++++++++++++
+ 3 files changed, 37 insertions(+), 9 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-improve-git_commit_id-test
-+++ a/scripts/checkpatch.pl
-@@ -1181,7 +1181,8 @@ sub git_commit_info {
- #		    git log --format='%H %s' -1 $line |
- #		    echo "commit $(cut -c 1-12,41-)"
- #		done
--	} elsif ($lines[0] =~ /^fatal: ambiguous argument '$commit': unknown revision or path not in the working tree\./) {
-+	} elsif ($lines[0] =~ /^fatal: ambiguous argument '$commit': unknown revision or path not in the working tree\./ ||
-+		 $lines[0] =~ /^fatal: bad object $commit/) {
- 		$id = undef;
- 	} else {
- 		$id = substr($lines[0], 0, 12);
-@@ -2587,6 +2588,8 @@ sub process {
- 	my $reported_maintainer_file = 0;
- 	my $non_utf8_charset = 0;
+--- a/fs/eventpoll.c~fs-epoll-use-a-per-cpu-counter-for-users-watches-count
++++ a/fs/eventpoll.c
+@@ -723,7 +723,7 @@ static int ep_remove(struct eventpoll *e
+ 	 */
+ 	call_rcu(&epi->rcu, epi_rcu_free);
  
-+	my $last_git_commit_id_linenr = -1;
+-	atomic_long_dec(&ep->user->epoll_watches);
++	percpu_counter_dec(&ep->user->epoll_watches);
+ 
+ 	return 0;
+ }
+@@ -1439,7 +1439,6 @@ static int ep_insert(struct eventpoll *e
+ {
+ 	int error, pwake = 0;
+ 	__poll_t revents;
+-	long user_watches;
+ 	struct epitem *epi;
+ 	struct ep_pqueue epq;
+ 	struct eventpoll *tep = NULL;
+@@ -1449,11 +1448,15 @@ static int ep_insert(struct eventpoll *e
+ 
+ 	lockdep_assert_irqs_enabled();
+ 
+-	user_watches = atomic_long_read(&ep->user->epoll_watches);
+-	if (unlikely(user_watches >= max_user_watches))
++	if (unlikely(percpu_counter_compare(&ep->user->epoll_watches,
++					    max_user_watches) >= 0))
+ 		return -ENOSPC;
+-	if (!(epi = kmem_cache_zalloc(epi_cache, GFP_KERNEL)))
++	percpu_counter_inc(&ep->user->epoll_watches);
 +
- 	my $last_blank_line = 0;
- 	my $last_coalesced_string_linenr = -1;
++	if (!(epi = kmem_cache_zalloc(epi_cache, GFP_KERNEL))) {
++		percpu_counter_dec(&ep->user->epoll_watches);
+ 		return -ENOMEM;
++	}
  
-@@ -3170,10 +3173,20 @@ sub process {
- 		}
+ 	/* Item initialization follow here ... */
+ 	INIT_LIST_HEAD(&epi->rdllink);
+@@ -1466,17 +1469,16 @@ static int ep_insert(struct eventpoll *e
+ 		mutex_lock_nested(&tep->mtx, 1);
+ 	/* Add the current item to the list of active epoll hook for this file */
+ 	if (unlikely(attach_epitem(tfile, epi) < 0)) {
+-		kmem_cache_free(epi_cache, epi);
+ 		if (tep)
+ 			mutex_unlock(&tep->mtx);
++		kmem_cache_free(epi_cache, epi);
++		percpu_counter_dec(&ep->user->epoll_watches);
+ 		return -ENOMEM;
+ 	}
  
- # Check for git id commit length and improperly formed commit descriptions
--		if ($in_commit_log && !$commit_log_possible_stack_dump &&
-+# A correctly formed commit description is:
-+#    commit <SHA-1 hash length 12+ chars> ("Complete commit subject")
-+# with the commit subject '("' prefix and '")' suffix
-+# This is a fairly compilicated block as it tests for what appears to be
-+# bare SHA-1 hash with  minimum length of 5.  It also avoids several types of
-+# possible SHA-1 matches.
-+# A commit match can span multiple lines so this block attempts to find a
-+# complete typical commit on a maximum of 3 lines
-+		if ($perl_version_ok &&
-+		    $in_commit_log && !$commit_log_possible_stack_dump &&
- 		    $line !~ /^\s*(?:Link|Patchwork|http|https|BugLink|base-commit):/i &&
- 		    $line !~ /^This reverts commit [0-9a-f]{7,40}/ &&
--		    ($line =~ /\bcommit\s+[0-9a-f]{5,}\b/i ||
-+		    (($line =~ /\bcommit\s+[0-9a-f]{5,}\b/i ||
-+		      ($line =~ /\bcommit\s*$/i && defined($rawlines[$linenr]) && $rawlines[$linenr] =~ /^\s*[0-9a-f]{5,}\b/i)) ||
- 		     ($line =~ /(?:\s|^)[0-9a-f]{12,40}(?:[\s"'\(\[]|$)/i &&
- 		      $line !~ /[\<\[][0-9a-f]{12,40}[\>\]]/i &&
- 		      $line !~ /\bfixes:\s*[0-9a-f]{12,40}/i))) {
-@@ -3183,49 +3196,56 @@ sub process {
- 			my $long = 0;
- 			my $case = 1;
- 			my $space = 1;
--			my $hasdesc = 0;
--			my $hasparens = 0;
- 			my $id = '0123456789ab';
- 			my $orig_desc = "commit description";
- 			my $description = "";
-+			my $herectx = $herecurr;
-+			my $has_parens = 0;
-+			my $has_quotes = 0;
-+
-+			my $input = $line;
-+			if ($line =~ /(?:\bcommit\s+[0-9a-f]{5,}|\bcommit\s*$)/i) {
-+				for (my $n = 0; $n < 2; $n++) {
-+					if ($input =~ /\bcommit\s+[0-9a-f]{5,}\s*($balanced_parens)/i) {
-+						$orig_desc = $1;
-+						$has_parens = 1;
-+						# Always strip leading/trailing parens then double quotes if existing
-+						$orig_desc = substr($orig_desc, 1, -1);
-+						if ($orig_desc =~ /^".*"$/) {
-+							$orig_desc = substr($orig_desc, 1, -1);
-+							$has_quotes = 1;
-+						}
-+						last;
-+					}
-+					last if ($#lines < $linenr + $n);
-+					$input .= " " . trim($rawlines[$linenr + $n]);
-+					$herectx .= "$rawlines[$linenr + $n]\n";
-+				}
-+				$herectx = $herecurr if (!$has_parens);
-+			}
+ 	if (full_check && !tep)
+ 		list_file(tfile);
  
--			if ($line =~ /\b(c)ommit\s+([0-9a-f]{5,})\b/i) {
-+			if ($input =~ /\b(c)ommit\s+([0-9a-f]{5,})\b/i) {
- 				$init_char = $1;
- 				$orig_commit = lc($2);
--			} elsif ($line =~ /\b([0-9a-f]{12,40})\b/i) {
-+				$short = 0 if ($input =~ /\bcommit\s+[0-9a-f]{12,40}/i);
-+				$long = 1 if ($input =~ /\bcommit\s+[0-9a-f]{41,}/i);
-+				$space = 0 if ($input =~ /\bcommit [0-9a-f]/i);
-+				$case = 0 if ($input =~ /\b[Cc]ommit\s+[0-9a-f]{5,40}[^A-F]/);
-+			} elsif ($input =~ /\b([0-9a-f]{12,40})\b/i) {
- 				$orig_commit = lc($1);
- 			}
- 
--			$short = 0 if ($line =~ /\bcommit\s+[0-9a-f]{12,40}/i);
--			$long = 1 if ($line =~ /\bcommit\s+[0-9a-f]{41,}/i);
--			$space = 0 if ($line =~ /\bcommit [0-9a-f]/i);
--			$case = 0 if ($line =~ /\b[Cc]ommit\s+[0-9a-f]{5,40}[^A-F]/);
--			if ($line =~ /\bcommit\s+[0-9a-f]{5,}\s+\("([^"]+)"\)/i) {
--				$orig_desc = $1;
--				$hasparens = 1;
--			} elsif ($line =~ /\bcommit\s+[0-9a-f]{5,}\s*$/i &&
--				 defined $rawlines[$linenr] &&
--				 $rawlines[$linenr] =~ /^\s*\("([^"]+)"\)/) {
--				$orig_desc = $1;
--				$hasparens = 1;
--			} elsif ($line =~ /\bcommit\s+[0-9a-f]{5,}\s+\("[^"]+$/i &&
--				 defined $rawlines[$linenr] &&
--				 $rawlines[$linenr] =~ /^\s*[^"]+"\)/) {
--				$line =~ /\bcommit\s+[0-9a-f]{5,}\s+\("([^"]+)$/i;
--				$orig_desc = $1;
--				$rawlines[$linenr] =~ /^\s*([^"]+)"\)/;
--				$orig_desc .= " " . $1;
--				$hasparens = 1;
--			}
+-	atomic_long_inc(&ep->user->epoll_watches);
 -
- 			($id, $description) = git_commit_info($orig_commit,
- 							      $id, $orig_desc);
+ 	/*
+ 	 * Add the current item to the RB tree. All RB tree operations are
+ 	 * protected by "mtx", and ep_insert() is called with "mtx" held.
+--- a/include/linux/sched/user.h~fs-epoll-use-a-per-cpu-counter-for-users-watches-count
++++ a/include/linux/sched/user.h
+@@ -4,6 +4,7 @@
  
- 			if (defined($id) &&
--			   ($short || $long || $space || $case || ($orig_desc ne $description) || !$hasparens)) {
-+			    ($short || $long || $space || $case || ($orig_desc ne $description) || !$has_quotes) &&
-+			    $last_git_commit_id_linenr != $linenr - 1) {
- 				ERROR("GIT_COMMIT_ID",
--				      "Please use git commit description style 'commit <12+ chars of sha1> (\"<title line>\")' - ie: '${init_char}ommit $id (\"$description\")'\n" . $herecurr);
-+				      "Please use git commit description style 'commit <12+ chars of sha1> (\"<title line>\")' - ie: '${init_char}ommit $id (\"$description\")'\n" . $herectx);
- 			}
-+			#don't report the next line if this line ends in commit and the sha1 hash is the next line
-+			$last_git_commit_id_linenr = $linenr if ($line =~ /\bcommit\s*$/i);
- 		}
+ #include <linux/uidgid.h>
+ #include <linux/atomic.h>
++#include <linux/percpu_counter.h>
+ #include <linux/refcount.h>
+ #include <linux/ratelimit.h>
  
- # Check for added, moved or deleted files
+@@ -13,7 +14,7 @@
+ struct user_struct {
+ 	refcount_t __count;	/* reference count */
+ #ifdef CONFIG_EPOLL
+-	atomic_long_t epoll_watches; /* The number of file descriptors currently watched */
++	struct percpu_counter epoll_watches; /* The number of file descriptors currently watched */
+ #endif
+ 	unsigned long unix_inflight;	/* How many files in flight in unix sockets */
+ 	atomic_long_t pipe_bufs;  /* how many pages are allocated in pipe buffers */
+--- a/kernel/user.c~fs-epoll-use-a-per-cpu-counter-for-users-watches-count
++++ a/kernel/user.c
+@@ -129,6 +129,22 @@ static struct user_struct *uid_hash_find
+ 	return NULL;
+ }
+ 
++static int user_epoll_alloc(struct user_struct *up)
++{
++#ifdef CONFIG_EPOLL
++	return percpu_counter_init(&up->epoll_watches, 0, GFP_KERNEL);
++#else
++	return 0;
++#endif
++}
++
++static void user_epoll_free(struct user_struct *up)
++{
++#ifdef CONFIG_EPOLL
++	percpu_counter_destroy(&up->epoll_watches);
++#endif
++}
++
+ /* IRQs are disabled and uidhash_lock is held upon function entry.
+  * IRQ state (as stored in flags) is restored and uidhash_lock released
+  * upon function exit.
+@@ -138,6 +154,7 @@ static void free_user(struct user_struct
+ {
+ 	uid_hash_remove(up);
+ 	spin_unlock_irqrestore(&uidhash_lock, flags);
++	user_epoll_free(up);
+ 	kmem_cache_free(uid_cachep, up);
+ }
+ 
+@@ -185,6 +202,10 @@ struct user_struct *alloc_uid(kuid_t uid
+ 
+ 		new->uid = uid;
+ 		refcount_set(&new->__count, 1);
++		if (user_epoll_alloc(new)) {
++			kmem_cache_free(uid_cachep, new);
++			return NULL;
++		}
+ 		ratelimit_state_init(&new->ratelimit, HZ, 100);
+ 		ratelimit_set_flags(&new->ratelimit, RATELIMIT_MSG_ON_RELEASE);
+ 
+@@ -195,6 +216,7 @@ struct user_struct *alloc_uid(kuid_t uid
+ 		spin_lock_irq(&uidhash_lock);
+ 		up = uid_hash_find(uid, hashent);
+ 		if (up) {
++			user_epoll_free(new);
+ 			kmem_cache_free(uid_cachep, new);
+ 		} else {
+ 			uid_hash_insert(new, hashent);
+@@ -216,6 +238,9 @@ static int __init uid_cache_init(void)
+ 	for(n = 0; n < UIDHASH_SZ; ++n)
+ 		INIT_HLIST_HEAD(uidhash_table + n);
+ 
++	if (user_epoll_alloc(&root_user))
++		panic("root_user epoll percpu counter alloc failed");
++
+ 	/* Insert the root user immediately (init already runs as root) */
+ 	spin_lock_irq(&uidhash_lock);
+ 	uid_hash_insert(&root_user, uidhashentry(GLOBAL_ROOT_UID));
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from npiggin@gmail.com are
 
+lazy-tlb-introduce-lazy-mm-refcount-helper-functions.patch
+lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable.patch
+lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option.patch
+powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
 
