@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8CDFC4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38D7CC43217
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2011611EE
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 24ECC611EE
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232739AbhIIVGy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:06:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55914 "EHLO mail.kernel.org"
+        id S1346067AbhIIVGz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:06:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:56332 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347076AbhIIVG1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:06:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 86277611C1;
-        Thu,  9 Sep 2021 21:05:17 +0000 (UTC)
+        id S1348319AbhIIVGd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:06:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 83091611C8;
+        Thu,  9 Sep 2021 21:05:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221517;
-        bh=XJK4mpoFkpJSMbAi8tPMwBfDB5JmCdA6Lr3Mec4E9NI=;
+        s=korg; t=1631221523;
+        bh=UZ4frFS/6qh86GWzevCVPVX6n2jH7Y1p1hneei5ieg0=;
         h=Date:From:To:Subject:From;
-        b=KST7rFjhMzobb+CpiliDXznddjZ5dE4fBbeL390SQyspv6WFlXAiz47s/ew3v/AjR
-         sRCLOjGuZ8r5SrhLt7ecD6Jk/UHEmHB02vKskKytfy+qRfKnhEtUZ9+dktqcIkv+UZ
-         yIMDnDCIqIaGu52AYi2t09PDnOK8xDRCJ9zgH0NI=
-Date:   Thu, 09 Sep 2021 14:05:17 -0700
+        b=rYPGAPcBb/0FZdQ7VWiVQj1aEY3hgsKeJwO4Cl6RiOjTGCGE5IXNmyDkfuzXrRKez
+         zx73X9pahpdhbxubTTBKa78ATy2kQJEGqXG7P7yeZXfxb6yaWZQc8lDoRhb8W0UjA1
+         l+vfjr0k3VPLi3u/aD4w49vTlcdAmfKvARQmUOAk=
+Date:   Thu, 09 Sep 2021 14:05:23 -0700
 From:   akpm@linux-foundation.org
-To:     david.oberhollenzer@sigma-star.at, mm-commits@vger.kernel.org,
-        viro@zeniv.linux.org.uk
+To:     itazur@amazon.com, kuniyu@amazon.co.jp, mm-commits@vger.kernel.org
 Subject:  [merged]
- log-if-a-core-dump-is-aborted-due-to-changed-file-permissions.patch removed
- from -mm tree
-Message-ID: <20210909210517.X7zqfD5JS%akpm@linux-foundation.org>
+ pid-cleanup-the-stale-comment-mentioning-pidmap_init.patch removed from -mm
+ tree
+Message-ID: <20210909210523.fsl2ajWyQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,61 +43,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/coredump.c: log if a core dump is aborted due to changed file permissions
+     Subject: pid: cleanup the stale comment mentioning pidmap_init().
 has been removed from the -mm tree.  Its filename was
-     log-if-a-core-dump-is-aborted-due-to-changed-file-permissions.patch
+     pid-cleanup-the-stale-comment-mentioning-pidmap_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Oberhollenzer <david.oberhollenzer@sigma-star.at>
-Subject: fs/coredump.c: log if a core dump is aborted due to changed file permissions
+From: Takahiro Itazuri <itazur@amazon.com>
+Subject: pid: cleanup the stale comment mentioning pidmap_init().
 
-For obvious security reasons, a core dump is aborted if the filesystem
-cannot preserve ownership or permissions of the dump file.
+pidmap_init() has already been replaced with pid_idr_init() in the commit
+95846ecf9dac ("pid: replace pid bitmap implementation with IDR API"). 
+Cleanup the stale comment which still mentions it.
 
-This affects filesystems like e.g.  vfat, but also something like a 9pfs
-share in a Qemu test setup, running as a regular user, depending on the
-security model used.  In those cases, the result is an empty core file and
-a confused user.
-
-To hopefully safe other people a lot of time figuring out the cause, this
-patch adds a simple log message for those specific cases.
-
-[akpm@linux-foundation.org: s/|%s/%s/ in printk text]
-Link: https://lkml.kernel.org/r/20210701233151.102720-1-david.oberhollenzer@sigma-star.at
-Signed-off-by: David Oberhollenzer <david.oberhollenzer@sigma-star.at>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: https://lkml.kernel.org/r/20210714120713.19825-1-itazur@amazon.com
+Signed-off-by: Takahiro Itazuri <itazur@amazon.com>
+Cc: Kuniyuki Iwashima <kuniyu@amazon.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ include/linux/threads.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/coredump.c~log-if-a-core-dump-is-aborted-due-to-changed-file-permissions
-+++ a/fs/coredump.c
-@@ -782,10 +782,17 @@ void do_coredump(const kernel_siginfo_t
- 		 * filesystem.
- 		 */
- 		mnt_userns = file_mnt_user_ns(cprm.file);
--		if (!uid_eq(i_uid_into_mnt(mnt_userns, inode), current_fsuid()))
-+		if (!uid_eq(i_uid_into_mnt(mnt_userns, inode),
-+			    current_fsuid())) {
-+			pr_info_ratelimited("Core dump to %s aborted: cannot preserve file owner\n",
-+					    cn.corename);
- 			goto close_fail;
--		if ((inode->i_mode & 0677) != 0600)
-+		}
-+		if ((inode->i_mode & 0677) != 0600) {
-+			pr_info_ratelimited("Core dump to %s aborted: cannot preserve file permissions\n",
-+					    cn.corename);
- 			goto close_fail;
-+		}
- 		if (!(cprm.file->f_mode & FMODE_CAN_WRITE))
- 			goto close_fail;
- 		if (do_truncate(mnt_userns, cprm.file->f_path.dentry,
+--- a/include/linux/threads.h~pid-cleanup-the-stale-comment-mentioning-pidmap_init
++++ a/include/linux/threads.h
+@@ -38,7 +38,7 @@
+  * Define a minimum number of pids per cpu.  Heuristically based
+  * on original pid max of 32k for 32 cpus.  Also, increase the
+  * minimum settable value for pid_max on the running system based
+- * on similar defaults.  See kernel/pid.c:pidmap_init() for details.
++ * on similar defaults.  See kernel/pid.c:pid_idr_init() for details.
+  */
+ #define PIDS_PER_CPU_DEFAULT	1024
+ #define PIDS_PER_CPU_MIN	8
 _
 
-Patches currently in -mm which might be from david.oberhollenzer@sigma-star.at are
+Patches currently in -mm which might be from itazur@amazon.com are
 
 
