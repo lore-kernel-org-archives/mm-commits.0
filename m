@@ -5,37 +5,38 @@ X-Spam-Level:
 X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	autolearn=unavailable autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2933DC4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 01:10:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5EDF6C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 01:10:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1564C61164
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 01:10:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 49B1C6113C
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 01:10:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349038AbhIIBL1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Sep 2021 21:11:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60666 "EHLO mail.kernel.org"
+        id S1349081AbhIIBLa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Sep 2021 21:11:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60728 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1349033AbhIIBL0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 8 Sep 2021 21:11:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F3B366113C;
-        Thu,  9 Sep 2021 01:10:17 +0000 (UTC)
+        id S1349033AbhIIBL3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 8 Sep 2021 21:11:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E0AD261167;
+        Thu,  9 Sep 2021 01:10:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631149818;
-        bh=2q62wAo9+xHvJRAKFfR+8egR2nPvhZG6hSw7pFoQFA0=;
+        s=korg; t=1631149821;
+        bh=hQV3I7izmMCYun39hvLMYFdMjP18vrfosOb34WJ/O54=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=tIcHA95KctSvIRhIaMSYlkteHbsVttqR4OXzfnmFSVTuIskq2RrgpTTCB3FgnVJd9
-         QxHu0ofu+xTR354dj0TQ2yg01VSgDQIEyuyz3d+y0yQ1QzO20nVQN5DHPaDXRRFqY1
-         eqVBfN6iILRHY83Prf8q+RaQ9HA+qJusV8a+u9sE=
-Date:   Wed, 08 Sep 2021 18:10:17 -0700
+        b=LtsZXf55SheMRiWr7peh4Gk0+FrR/YsG5PCq9J1Qwv9Mxqn/2XCEMx2W7Mq1n/DAa
+         GKyY5PpadS4RbFJ79MXmFinIxCldvAoF4sUEJRM5/UV/FOpnfnK8qa9gR8STORxhNN
+         SFLCjamnMwhQFJIUafwVTbJoFhXbV1jBVJNhZ0y4=
+Date:   Wed, 08 Sep 2021 18:10:20 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, catalin.marinas@arm.com,
-        djwong@kernel.org, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        naohiro.aota@wdc.com, torvalds@linux-foundation.org
-Subject:  [patch 6/8] mm/kmemleak: allow __GFP_NOLOCKDEP passed to
- kmemleak's gfp
-Message-ID: <20210909011017.JzVNUgrc2%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        stable@vger.kernel.org, torvalds@linux-foundation.org,
+        yanghui.def@bytedance.com
+Subject:  [patch 7/8] mm/mempolicy: fix a race between
+ offset_il_node and mpol_rebind_task
+Message-ID: <20210909011020.5uPjbdM2T%akpm@linux-foundation.org>
 In-Reply-To: <20210908180859.d523d4bb4ad8eec11c61500d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,113 +44,85 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Naohiro Aota <naohiro.aota@wdc.com>
-Subject: mm/kmemleak: allow __GFP_NOLOCKDEP passed to kmemleak's gfp
+From: yanghui <yanghui.def@bytedance.com>
+Subject: mm/mempolicy: fix a race between offset_il_node and mpol_rebind_task
 
-In a memory pressure situation, I'm seeing the lockdep WARNING below. 
-Actually, this is similar to a known false positive which is already
-addressed by commit 6dcde60efd94 ("xfs: more lockdep whackamole with
-kmem_alloc*").
+Servers happened below panic:
+Kernel version:5.4.56
+BUG: unable to handle page fault for address: 0000000000002c48
+RIP: 0010:__next_zones_zonelist+0x1d/0x40
+[264003.977696] RAX: 0000000000002c40 RBX: 0000000000100dca RCX: 0000000000000014
+[264003.977872] Call Trace:
+[264003.977888]  __alloc_pages_nodemask+0x277/0x310
+[264003.977908]  alloc_page_interleave+0x13/0x70
+[264003.977926]  handle_mm_fault+0xf99/0x1390
+[264003.977951]  __do_page_fault+0x288/0x500
+[264003.977979]  ? schedule+0x39/0xa0
+[264003.977994]  do_page_fault+0x30/0x110
+[264003.978010]  page_fault+0x3e/0x50
 
-This warning still persists because it's not from kmalloc() itself but
-from an allocation for kmemleak object.  While kmalloc() itself suppress
-the warning with __GFP_NOLOCKDEP, gfp_kmemleak_mask() is dropping the flag
-for the kmemleak's allocation.
+The reason for the panic is that MAX_NUMNODES is passed in the third
+parameter in __alloc_pages_nodemask(preferred_nid).  So access to
+zonelist->zoneref->zone_idx in __next_zones_zonelist will cause a panic.
 
-Allow __GFP_NOLOCKDEP to be passed to kmemleak's allocation, so that the
-warning for it is also suppressed.
+In offset_il_node(), first_node() returns nid from pol->v.nodes, after
+this other threads may chang pol->v.nodes before next_node().  This race
+condition will let next_node return MAX_NUMNODES.  So put pol->nodes in a
+local variable.
 
-  ======================================================
-  WARNING: possible circular locking dependency detected
-  5.14.0-rc7-BTRFS-ZNS+ #37 Not tainted
-  ------------------------------------------------------
-  kswapd0/288 is trying to acquire lock:
-  ffff88825ab45df0 (&xfs_nondir_ilock_class){++++}-{3:3}, at: xfs_ilock+0x8a/0x250
+The race condition is between offset_il_node and cpuset_change_task_nodemask:
+CPU0:                                     CPU1:
+alloc_pages_vma()
+  interleave_nid(pol,)
+    offset_il_node(pol,)
+      first_node(pol->v.nodes)            cpuset_change_task_nodemask
+                      //nodes==0xc          mpol_rebind_task
+                                              mpol_rebind_policy
+                                                mpol_rebind_nodemask(pol,nodes)
+                      //nodes==0x3
+      next_node(nid, pol->v.nodes)//return MAX_NUMNODES
 
-  but task is already holding lock:
-  ffffffff848cc1e0 (fs_reclaim){+.+.}-{0:0}, at: __fs_reclaim_acquire+0x5/0x30
-
-  which lock already depends on the new lock.
-
-  the existing dependency chain (in reverse order) is:
-
-  -> #1 (fs_reclaim){+.+.}-{0:0}:
-         fs_reclaim_acquire+0x112/0x160
-         kmem_cache_alloc+0x48/0x400
-         create_object.isra.0+0x42/0xb10
-         kmemleak_alloc+0x48/0x80
-         __kmalloc+0x228/0x440
-         kmem_alloc+0xd3/0x2b0
-         kmem_alloc_large+0x5a/0x1c0
-         xfs_attr_copy_value+0x112/0x190
-         xfs_attr_shortform_getvalue+0x1fc/0x300
-         xfs_attr_get_ilocked+0x125/0x170
-         xfs_attr_get+0x329/0x450
-         xfs_get_acl+0x18d/0x430
-         get_acl.part.0+0xb6/0x1e0
-         posix_acl_xattr_get+0x13a/0x230
-         vfs_getxattr+0x21d/0x270
-         getxattr+0x126/0x310
-         __x64_sys_fgetxattr+0x1a6/0x2a0
-         do_syscall_64+0x3b/0x90
-         entry_SYSCALL_64_after_hwframe+0x44/0xae
-
-  -> #0 (&xfs_nondir_ilock_class){++++}-{3:3}:
-         __lock_acquire+0x2c0f/0x5a00
-         lock_acquire+0x1a1/0x4b0
-         down_read_nested+0x50/0x90
-         xfs_ilock+0x8a/0x250
-         xfs_can_free_eofblocks+0x34f/0x570
-         xfs_inactive+0x411/0x520
-         xfs_fs_destroy_inode+0x2c8/0x710
-         destroy_inode+0xc5/0x1a0
-         evict+0x444/0x620
-         dispose_list+0xfe/0x1c0
-         prune_icache_sb+0xdc/0x160
-         super_cache_scan+0x31e/0x510
-         do_shrink_slab+0x337/0x8e0
-         shrink_slab+0x362/0x5c0
-         shrink_node+0x7a7/0x1a40
-         balance_pgdat+0x64e/0xfe0
-         kswapd+0x590/0xa80
-         kthread+0x38c/0x460
-         ret_from_fork+0x22/0x30
-
-  other info that might help us debug this:
-   Possible unsafe locking scenario:
-         CPU0                    CPU1
-         ----                    ----
-    lock(fs_reclaim);
-                                 lock(&xfs_nondir_ilock_class);
-                                 lock(fs_reclaim);
-    lock(&xfs_nondir_ilock_class);
-
-   *** DEADLOCK ***
-  3 locks held by kswapd0/288:
-   #0: ffffffff848cc1e0 (fs_reclaim){+.+.}-{0:0}, at: __fs_reclaim_acquire+0x5/0x30
-   #1: ffffffff848a08d8 (shrinker_rwsem){++++}-{3:3}, at: shrink_slab+0x269/0x5c0
-   #2: ffff8881a7a820e8 (&type->s_umount_key#60){++++}-{3:3}, at: super_cache_scan+0x5a/0x510
-
-Link: https://lkml.kernel.org/r/20210907055659.3182992-1-naohiro.aota@wdc.com
-Signed-off-by: Naohiro Aota <naohiro.aota@wdc.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: "Darrick J . Wong" <djwong@kernel.org>
+Link: https://lkml.kernel.org/r/20210906034658.48721-1-yanghui.def@bytedance.com
+Signed-off-by: yanghui <yanghui.def@bytedance.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/mempolicy.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-allow-__gfp_nolockdep-passed-to-kmemleaks-gfp
-+++ a/mm/kmemleak.c
-@@ -113,7 +113,8 @@
- #define BYTES_PER_POINTER	sizeof(void *)
+--- a/mm/mempolicy.c~mm-mempolicy-fix-a-race-between-offset_il_node-and-mpol_rebind_task
++++ a/mm/mempolicy.c
+@@ -1876,17 +1876,26 @@ unsigned int mempolicy_slab_node(void)
+  */
+ static unsigned offset_il_node(struct mempolicy *pol, unsigned long n)
+ {
+-	unsigned nnodes = nodes_weight(pol->nodes);
+-	unsigned target;
++	nodemask_t nodemask = pol->nodes;
++	unsigned int target, nnodes;
+ 	int i;
+ 	int nid;
++	/*
++	 * The barrier will stabilize the nodemask in a register or on
++	 * the stack so that it will stop changing under the code.
++	 *
++	 * Between first_node() and next_node(), pol->nodes could be changed
++	 * by other threads. So we put pol->nodes in a local stack.
++	 */
++	barrier();
  
- /* GFP bitmask for kmemleak internal allocations */
--#define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC)) | \
-+#define gfp_kmemleak_mask(gfp)	(((gfp) & (GFP_KERNEL | GFP_ATOMIC | \
-+					   __GFP_NOLOCKDEP)) | \
- 				 __GFP_NORETRY | __GFP_NOMEMALLOC | \
- 				 __GFP_NOWARN)
++	nnodes = nodes_weight(nodemask);
+ 	if (!nnodes)
+ 		return numa_node_id();
+ 	target = (unsigned int)n % nnodes;
+-	nid = first_node(pol->nodes);
++	nid = first_node(nodemask);
+ 	for (i = 0; i < target; i++)
+-		nid = next_node(nid, pol->nodes);
++		nid = next_node(nid, nodemask);
+ 	return nid;
+ }
  
 _
