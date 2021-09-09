@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0892FC433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:02:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD003C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:02:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E555A61186
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:02:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8DA2C611CE
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:02:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348026AbhIIVDy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:03:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52868 "EHLO mail.kernel.org"
+        id S1348903AbhIIVEB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:04:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52898 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348224AbhIIVDO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:03:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7EECD611B0;
-        Thu,  9 Sep 2021 21:02:04 +0000 (UTC)
+        id S1348275AbhIIVDQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:03:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6F80B611AF;
+        Thu,  9 Sep 2021 21:02:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221324;
-        bh=dlkIuHyX/KR38ywhIwXi/mBJcylrymAMD5qhjDDn2dk=;
+        s=korg; t=1631221326;
+        bh=OqtFjs0Jxjddhv/bHFYw5gKVVf1TbYh+3vKn6NiA194=;
         h=Date:From:To:Subject:From;
-        b=x4zJ0GNRaA+P9m95KJeYoXd36PwbBiYf+MFwGYtmxgTv/3wtTfft+UuULH9llVfor
-         Nz8HqVCCms3A1uE0GmsO+hmcpM5BVxH8h8YaDNgxPyl2aNmjeNT9L0lVvw3dRYkcan
-         LlGkShCApZ0fw6z8xVs9N1R/x8+2RWlISQTUILeU=
-Date:   Thu, 09 Sep 2021 14:02:04 -0700
+        b=wFk+e93K7IZ+eSvA7dsYuOOV+qBXxdrD8nfzQm9hhq1lNJPerkFhKKxZzKBzj0uqM
+         Lk6lJ+n3W9hsLiuMHGO7y6TlJO0rJn1iD0+5cZ6OCT9nQ793xWMmcv5/5iINhnwcki
+         SW93VS7+QR4e+0EU8DFPq7wFW2YkQryTckqayS50=
+Date:   Thu, 09 Sep 2021 14:02:06 -0700
 From:   akpm@linux-foundation.org
-To:     cgoldswo@codeaurora.org, david@redhat.com, linmiaohe@huawei.com,
-        mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de
-Subject:  [merged]
- mm-memory_hotplug-use-helper-zone_is_zone_device-to-simplify-the-code.patch
+To:     dhowells@redhat.com, hannes@cmpxchg.org,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        songmuchun@bytedance.com, william.kucharski@oracle.com,
+        willy@infradead.org
+Subject:  [merged] mm-remove-redundant-compound_head-calling.patch
  removed from -mm tree
-Message-ID: <20210909210204.8g1255fCl%akpm@linux-foundation.org>
+Message-ID: <20210909210206.wWOnkkS1H%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,67 +45,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: use helper zone_is_zone_device() to simplify the code
+     Subject: mm: remove redundant compound_head() calling
 has been removed from the -mm tree.  Its filename was
-     mm-memory_hotplug-use-helper-zone_is_zone_device-to-simplify-the-code.patch
+     mm-remove-redundant-compound_head-calling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/memory_hotplug: use helper zone_is_zone_device() to simplify the code
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: remove redundant compound_head() calling
 
-Patch series "Cleanup and fixups for memory hotplug".
+There is a READ_ONCE() in the macro of compound_head(), which will prevent
+compiler from optimizing the code when there are more than once calling of
+it in a function.  Remove the redundant calling of compound_head() from
+page_to_index() and page_add_file_rmap() for better code generation.
 
-This series contains cleanup to use helper function to simplify the code. 
-Also we fix some potential bugs.  More details can be found in the
-respective changelogs.
-
-
-This patch (of 3):
-
-Use helper zone_is_zone_device() to simplify the code and remove some
-explicit CONFIG_ZONE_DEVICE codes.
-
-Link: https://lkml.kernel.org/r/20210821094246.10149-1-linmiaohe@huawei.com
-Link: https://lkml.kernel.org/r/20210821094246.10149-2-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Chris Goldsworthy <cgoldswo@codeaurora.org>
+Link: https://lkml.kernel.org/r/20210811101431.83940-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: David Howells <dhowells@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/pagemap.h |    7 +++----
+ mm/rmap.c               |    6 ++++--
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/memory_hotplug.c~mm-memory_hotplug-use-helper-zone_is_zone_device-to-simplify-the-code
-+++ a/mm/memory_hotplug.c
-@@ -477,15 +477,13 @@ void __ref remove_pfn_range_from_zone(st
- 				 sizeof(struct page) * cur_nr_pages);
- 	}
+--- a/include/linux/pagemap.h~mm-remove-redundant-compound_head-calling
++++ a/include/linux/pagemap.h
+@@ -521,18 +521,17 @@ static inline struct page *read_mapping_
+  */
+ static inline pgoff_t page_to_index(struct page *page)
+ {
+-	pgoff_t pgoff;
++	struct page *head;
  
--#ifdef CONFIG_ZONE_DEVICE
+ 	if (likely(!PageTransTail(page)))
+ 		return page->index;
+ 
++	head = compound_head(page);
  	/*
- 	 * Zone shrinking code cannot properly deal with ZONE_DEVICE. So
- 	 * we will not try to shrink the zones - which is okay as
- 	 * set_zone_contiguous() cannot deal with ZONE_DEVICE either way.
+ 	 *  We don't initialize ->index for tail pages: calculate based on
+ 	 *  head page
  	 */
--	if (zone_idx(zone) == ZONE_DEVICE)
-+	if (zone_is_zone_device(zone))
- 		return;
--#endif
+-	pgoff = compound_head(page)->index;
+-	pgoff += page - compound_head(page);
+-	return pgoff;
++	return head->index + page - head;
+ }
  
- 	clear_zone_contiguous(zone);
+ extern pgoff_t hugetlb_basepage_index(struct page *page);
+--- a/mm/rmap.c~mm-remove-redundant-compound_head-calling
++++ a/mm/rmap.c
+@@ -1230,11 +1230,13 @@ void page_add_file_rmap(struct page *pag
+ 						nr_pages);
+ 	} else {
+ 		if (PageTransCompound(page) && page_mapping(page)) {
++			struct page *head = compound_head(page);
++
+ 			VM_WARN_ON_ONCE(!PageLocked(page));
  
+-			SetPageDoubleMap(compound_head(page));
++			SetPageDoubleMap(head);
+ 			if (PageMlocked(page))
+-				clear_page_mlock(compound_head(page));
++				clear_page_mlock(head);
+ 		}
+ 		if (!atomic_inc_and_test(&page->_mapcount))
+ 			goto out;
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
-mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
-mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
