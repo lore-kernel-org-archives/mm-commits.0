@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FC3DC433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:57:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 48464C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:57:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2A9776113E
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:57:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 28D1A6103D
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:57:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345085AbhIIU6e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 16:58:34 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48666 "EHLO mail.kernel.org"
+        id S1345073AbhIIU6f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 16:58:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48696 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233573AbhIIU6b (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 16:58:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9CC346113E;
-        Thu,  9 Sep 2021 20:57:21 +0000 (UTC)
+        id S233573AbhIIU6e (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 16:58:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B12761026;
+        Thu,  9 Sep 2021 20:57:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221041;
-        bh=B41g9KDqiNzGQavrRNn3ZrvFFXTQrXdGCr1tCF1xXX0=;
+        s=korg; t=1631221044;
+        bh=FS25rS99ViFoKJp9SQhomSw48UnMu1ucwMkccF3wbnE=;
         h=Date:From:To:Subject:From;
-        b=iQjyEBkx96Zav0HCDWat4ELpBSxHt9En88ws0a4I9p+20SiPcwUZZ3BFx806RSipo
-         Op0n4gGn2VctGXoJGrXar2BfiX0Ad2jhTamMDxszJ93Y62rR9XKU84m8Rry498tkVz
-         gmugjHw+OmQWHTFADZFMQc8uMojUVkzbL6KLAdOw=
-Date:   Thu, 09 Sep 2021 13:57:21 -0700
+        b=jHeVbRa1f+tA5e7uSlGnnN2vWgs5w7v3Vr/jGHrmLihMOlMJqfwlc/fhkLj61gilA
+         MQ/DSd1tC1JYoSRYPbqpRAx2Z+bgq73czeLmOE+UrnjduMQo+OpCFWXwQ1JQHkDR6o
+         4d/+xPJ9pzG4QxQL75AgK+5epofx+uLtxXD+hskI=
+Date:   Thu, 09 Sep 2021 13:57:24 -0700
 From:   akpm@linux-foundation.org
 To:     aklimov@redhat.com, alobakin@pm.me,
         andriy.shevchenko@linux.intel.com, dennis@kernel.org,
@@ -36,9 +36,9 @@ To:     aklimov@redhat.com, alobakin@pm.me,
         ulf.hansson@linaro.org, will@kernel.org,
         wsa+renesas@sang-engineering.com, yury.norov@gmail.com
 Subject:  [to-be-updated]
- cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate.patch
+ replace-for_each__bit_from-with-for_each__bit-where-appropriate.patch
  removed from -mm tree
-Message-ID: <20210909205721.ZOwzf6f_g%akpm@linux-foundation.org>
+Message-ID: <20210909205724.M6u42nSpS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,23 +47,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpumask: replace cpumask_next_* with cpumask_first_* where appropriate
+     Subject: bitops: replace for_each_*_bit_from() with for_each_*_bit() where appropriate
 has been removed from the -mm tree.  Its filename was
-     cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate.patch
+     replace-for_each__bit_from-with-for_each__bit-where-appropriate.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Yury Norov <yury.norov@gmail.com>
-Subject: cpumask: replace cpumask_next_* with cpumask_first_* where appropriate
+Subject: bitops: replace for_each_*_bit_from() with for_each_*_bit() where appropriate
 
-cpumask_first() is a more effective analogue of 'next' version if n == -1
-(which means start == 0).  This patch replaces 'next' with 'first' where
-things look trivial.
+A couple of kernel functions call for_each_*_bit_from() with start bit
+equal to 0.  Replace them with for_each_*_bit().
 
-There's no cpumask_first_zero() function, so create it.
+No functional changes, but might improve on readability.
 
-Link: https://lkml.kernel.org/r/20210814211713.180533-10-yury.norov@gmail.com
+Link: https://lkml.kernel.org/r/20210814211713.180533-13-yury.norov@gmail.com
 Signed-off-by: Yury Norov <yury.norov@gmail.com>
 Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
 Cc: Alexander Lobakin <alobakin@pm.me>
@@ -76,127 +75,61 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/cputhreads.h |    2 +-
- block/blk-mq.c                        |    2 +-
- drivers/net/virtio_net.c              |    2 +-
- drivers/soc/fsl/qbman/bman_portal.c   |    2 +-
- drivers/soc/fsl/qbman/qman_portal.c   |    2 +-
- include/linux/cpumask.h               |   16 ++++++++++++++++
- kernel/time/clocksource.c             |    4 ++--
- 7 files changed, 23 insertions(+), 7 deletions(-)
+ arch/x86/kernel/apic/vector.c         |    4 ++--
+ drivers/gpu/drm/etnaviv/etnaviv_gpu.c |    4 ++--
+ drivers/hwmon/ltc2992.c               |    3 +--
+ 3 files changed, 5 insertions(+), 6 deletions(-)
 
---- a/arch/powerpc/include/asm/cputhreads.h~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/arch/powerpc/include/asm/cputhreads.h
-@@ -52,7 +52,7 @@ static inline cpumask_t cpu_thread_mask_
- 	for (i = 0; i < NR_CPUS; i += threads_per_core) {
- 		cpumask_shift_left(&tmp, &threads_core_mask, i);
- 		if (cpumask_intersects(threads, &tmp)) {
--			cpu = cpumask_next_and(-1, &tmp, cpu_online_mask);
-+			cpu = cpumask_first_and(&tmp, cpu_online_mask);
- 			if (cpu < nr_cpu_ids)
- 				cpumask_set_cpu(cpu, &res);
- 		}
---- a/block/blk-mq.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/block/blk-mq.c
-@@ -2524,7 +2524,7 @@ static bool blk_mq_hctx_has_requests(str
- static inline bool blk_mq_last_cpu_in_hctx(unsigned int cpu,
- 		struct blk_mq_hw_ctx *hctx)
+--- a/arch/x86/kernel/apic/vector.c~replace-for_each__bit_from-with-for_each__bit-where-appropriate
++++ a/arch/x86/kernel/apic/vector.c
+@@ -760,9 +760,9 @@ void __init lapic_update_legacy_vectors(
+ 
+ void __init lapic_assign_system_vectors(void)
  {
--	if (cpumask_next_and(-1, hctx->cpumask, cpu_online_mask) != cpu)
-+	if (cpumask_first_and(hctx->cpumask, cpu_online_mask) != cpu)
- 		return false;
- 	if (cpumask_next_and(cpu, hctx->cpumask, cpu_online_mask) < nr_cpu_ids)
- 		return false;
---- a/drivers/net/virtio_net.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/drivers/net/virtio_net.c
-@@ -2091,7 +2091,7 @@ static void virtnet_set_affinity(struct
- 	stragglers = num_cpu >= vi->curr_queue_pairs ?
- 			num_cpu % vi->curr_queue_pairs :
- 			0;
--	cpu = cpumask_next(-1, cpu_online_mask);
-+	cpu = cpumask_first(cpu_online_mask);
+-	unsigned int i, vector = 0;
++	unsigned int i, vector;
  
- 	for (i = 0; i < vi->curr_queue_pairs; i++) {
- 		group_size = stride + (i < stragglers ? 1 : 0);
---- a/drivers/soc/fsl/qbman/bman_portal.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/drivers/soc/fsl/qbman/bman_portal.c
-@@ -155,7 +155,7 @@ static int bman_portal_probe(struct plat
- 	}
+-	for_each_set_bit_from(vector, system_vectors, NR_VECTORS)
++	for_each_set_bit(vector, system_vectors, NR_VECTORS)
+ 		irq_matrix_assign_system(vector_matrix, vector, false);
  
- 	spin_lock(&bman_lock);
--	cpu = cpumask_next_zero(-1, &portal_cpus);
-+	cpu = cpumask_first_zero(&portal_cpus);
- 	if (cpu >= nr_cpu_ids) {
- 		__bman_portals_probed = 1;
- 		/* unassigned portal, skip init */
---- a/drivers/soc/fsl/qbman/qman_portal.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/drivers/soc/fsl/qbman/qman_portal.c
-@@ -248,7 +248,7 @@ static int qman_portal_probe(struct plat
- 	pcfg->pools = qm_get_pools_sdqcr();
+ 	if (nr_legacy_irqs() > 1)
+--- a/drivers/gpu/drm/etnaviv/etnaviv_gpu.c~replace-for_each__bit_from-with-for_each__bit-where-appropriate
++++ a/drivers/gpu/drm/etnaviv/etnaviv_gpu.c
+@@ -1032,7 +1032,7 @@ pm_put:
  
- 	spin_lock(&qman_lock);
--	cpu = cpumask_next_zero(-1, &portal_cpus);
-+	cpu = cpumask_first_zero(&portal_cpus);
- 	if (cpu >= nr_cpu_ids) {
- 		__qman_portals_probed = 1;
- 		/* unassigned portal, skip init */
---- a/include/linux/cpumask.h~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/include/linux/cpumask.h
-@@ -123,6 +123,11 @@ static inline unsigned int cpumask_first
- 	return 0;
- }
- 
-+static inline unsigned int cpumask_first_zero(const struct cpumask *srcp)
-+{
-+	return 0;
-+}
-+
- static inline unsigned int cpumask_first_and(const struct cpumask *srcp1,
- 					     const struct cpumask *srcp2)
+ void etnaviv_gpu_recover_hang(struct etnaviv_gpu *gpu)
  {
-@@ -202,6 +207,17 @@ static inline unsigned int cpumask_first
- }
+-	unsigned int i = 0;
++	unsigned int i;
  
- /**
-+ * cpumask_first_zero - get the first unset cpu in a cpumask
-+ * @srcp: the cpumask pointer
-+ *
-+ * Returns >= nr_cpu_ids if all cpus are set.
-+ */
-+static inline unsigned int cpumask_first_zero(const struct cpumask *srcp)
-+{
-+	return find_first_zero_bit(cpumask_bits(srcp), nr_cpumask_bits);
-+}
-+
-+/**
-  * cpumask_first_and - return the first cpu from *srcp1 & *srcp2
-  * @src1p: the first input
-  * @src2p: the second input
---- a/kernel/time/clocksource.c~cpumask-replace-cpumask_next_-with-cpumask_first_-where-appropriate
-+++ a/kernel/time/clocksource.c
-@@ -257,7 +257,7 @@ static void clocksource_verify_choose_cp
- 		return;
+ 	dev_err(gpu->dev, "recover hung GPU!\n");
  
- 	/* Make sure to select at least one CPU other than the current CPU. */
--	cpu = cpumask_next(-1, cpu_online_mask);
-+	cpu = cpumask_first(cpu_online_mask);
- 	if (cpu == smp_processor_id())
- 		cpu = cpumask_next(cpu, cpu_online_mask);
- 	if (WARN_ON_ONCE(cpu >= nr_cpu_ids))
-@@ -279,7 +279,7 @@ static void clocksource_verify_choose_cp
- 		cpu = prandom_u32() % nr_cpu_ids;
- 		cpu = cpumask_next(cpu - 1, cpu_online_mask);
- 		if (cpu >= nr_cpu_ids)
--			cpu = cpumask_next(-1, cpu_online_mask);
-+			cpu = cpumask_first(cpu_online_mask);
- 		if (!WARN_ON_ONCE(cpu >= nr_cpu_ids))
- 			cpumask_set_cpu(cpu, &cpus_chosen);
+@@ -1045,7 +1045,7 @@ void etnaviv_gpu_recover_hang(struct etn
+ 
+ 	/* complete all events, the GPU won't do it after the reset */
+ 	spin_lock(&gpu->event_spinlock);
+-	for_each_set_bit_from(i, gpu->event_bitmap, ETNA_NR_EVENTS)
++	for_each_set_bit(i, gpu->event_bitmap, ETNA_NR_EVENTS)
+ 		complete(&gpu->event_free);
+ 	bitmap_zero(gpu->event_bitmap, ETNA_NR_EVENTS);
+ 	spin_unlock(&gpu->event_spinlock);
+--- a/drivers/hwmon/ltc2992.c~replace-for_each__bit_from-with-for_each__bit-where-appropriate
++++ a/drivers/hwmon/ltc2992.c
+@@ -248,8 +248,7 @@ static int ltc2992_gpio_get_multiple(str
+ 
+ 	gpio_status = reg;
+ 
+-	gpio_nr = 0;
+-	for_each_set_bit_from(gpio_nr, mask, LTC2992_GPIO_NR) {
++	for_each_set_bit(gpio_nr, mask, LTC2992_GPIO_NR) {
+ 		if (test_bit(LTC2992_GPIO_BIT(gpio_nr), &gpio_status))
+ 			set_bit(gpio_nr, bits);
  	}
 _
 
 Patches currently in -mm which might be from yury.norov@gmail.com are
 
-replace-for_each__bit_from-with-for_each__bit-where-appropriate.patch
 mm-percpu-micro-optimize-pcpu_is_populated.patch
 lib-bitmap-add-performance-test-for-bitmap_print_to_pagebuf.patch
 vsprintf-rework-bitmap_list_string.patch
