@@ -7,34 +7,39 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EFA88C4167D
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A74C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE517611C4
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CB76A611C5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346320AbhIIVFj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:05:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53530 "EHLO mail.kernel.org"
+        id S1345533AbhIIVFm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:05:42 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54002 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348439AbhIIVEd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:04:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 687B7611CA;
-        Thu,  9 Sep 2021 21:03:23 +0000 (UTC)
+        id S1345621AbhIIVFD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:05:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ADC1E61186;
+        Thu,  9 Sep 2021 21:03:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221403;
-        bh=wCLTk0OryhOH0h8o0MB2POu/xovFtAmaBYQyGwz5fUU=;
+        s=korg; t=1631221433;
+        bh=3IqZNY5t004GaMEGly8xK0gDmYrKF4e4t9LSMzzCTec=;
         h=Date:From:To:Subject:From;
-        b=feKF6mUmSmy/B3QADJvRJ8zbdvb5+ohxEn3VUTGSoYsm67yOKmWxkqbVXu56Dk4u0
-         B7e6jqclnDhQ/2tV/I/fxYAUX4nsIGLmkYNjhAdaoyZJaWF0GQBilWhKDDxx+6Fth1
-         XahpIaCCRh0b6Lfc62Cac+erDJ9L+zwI4wkAHYCM=
-Date:   Thu, 09 Sep 2021 14:03:23 -0700
+        b=SJ9e5PYNpHv/1EkObNcshgJoSNRyiYRSFvH0AgVoZljEk2zAvbut0EAxAzKkYgYsV
+         m1TgOzT+YSkxNyg7HeYtfICaXG7jt4Do9J+KydjKtD7TLPlX1wOWLXlpM+82sfQBif
+         Jbt1SS4PITbeqs5a1WhSvDaIHCvMYJSdDZ7oVplU=
+Date:   Thu, 09 Sep 2021 14:03:52 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, christian.brauner@ubuntu.com, hch@lst.de,
-        mm-commits@vger.kernel.org
-Subject:  [merged]
- proc-stop-using-seq_get_buf-in-proc_task_name.patch removed from -mm tree
-Message-ID: <20210909210323.TifPA0GXO%akpm@linux-foundation.org>
+To:     andriy.shevchenko@linux.intel.com, ceggers@arri.de,
+        cw00.choi@samsung.com, daniel.lezcano@linaro.org, jic23@kernel.org,
+        Jonathan.Cameron@huawei.com, kyungmin.park@samsung.com,
+        lars@metafoo.de, linux@roeck-us.net, lukasz.luba@arm.com,
+        mcoquelin.stm32@gmail.com, miquel.raynal@bootlin.com,
+        mm-commits@vger.kernel.org, myungjoo.ham@samsung.com,
+        pmeerw@pmeerw.net, rafael@kernel.org, rui.zhang@intel.com
+Subject:  [merged] i2c-drivers-ov02q10-use-hz-macros.patch removed
+ from -mm tree
+Message-ID: <20210909210352.wyGpleSF2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,67 +48,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: stop using seq_get_buf in proc_task_name
+     Subject: i2c/drivers/ov02q10: use HZ macros
 has been removed from the -mm tree.  Its filename was
-     proc-stop-using-seq_get_buf-in-proc_task_name.patch
+     i2c-drivers-ov02q10-use-hz-macros.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: proc: stop using seq_get_buf in proc_task_name
+From: Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: i2c/drivers/ov02q10: use HZ macros
 
-Use seq_escape_str and seq_printf instead of poking holes into the
-seq_file abstraction.
+HZ unit conversion macros are available in units.h, use them and remove
+the duplicate definition.
 
-Link: https://lkml.kernel.org/r/20210810151945.1795567-1-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Link: https://lkml.kernel.org/r/20210816114732.1834145-9-daniel.lezcano@linaro.org
+Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Chanwoo Choi <cw00.choi@samsung.com>
+Cc: Christian Eggers <ceggers@arri.de>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Jonathan Cameron <jic23@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Lukasz Luba <lukasz.luba@arm.com>
+Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
+Cc: Miquel Raynal <miquel.raynal@bootlin.com>
+Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
+Cc: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   18 ++++--------------
- 1 file changed, 4 insertions(+), 14 deletions(-)
+ drivers/media/i2c/ov02a10.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/proc/array.c~proc-stop-using-seq_get_buf-in-proc_task_name
-+++ a/fs/proc/array.c
-@@ -98,27 +98,17 @@
+--- a/drivers/media/i2c/ov02a10.c~i2c-drivers-ov02q10-use-hz-macros
++++ a/drivers/media/i2c/ov02a10.c
+@@ -9,6 +9,7 @@
+ #include <linux/module.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/regulator/consumer.h>
++#include <linux/units.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-ctrls.h>
+@@ -64,7 +65,6 @@
+ /* Test pattern control */
+ #define OV02A10_REG_TEST_PATTERN			0xb6
  
- void proc_task_name(struct seq_file *m, struct task_struct *p, bool escape)
- {
--	char *buf;
--	size_t size;
- 	char tcomm[64];
--	int ret;
+-#define HZ_PER_MHZ					1000000L
+ #define OV02A10_LINK_FREQ_390MHZ			(390 * HZ_PER_MHZ)
+ #define OV02A10_ECLK_FREQ				(24 * HZ_PER_MHZ)
  
- 	if (p->flags & PF_WQ_WORKER)
- 		wq_worker_comm(tcomm, sizeof(tcomm), p);
- 	else
- 		__get_task_comm(tcomm, sizeof(tcomm), p);
- 
--	size = seq_get_buf(m, &buf);
--	if (escape) {
--		ret = string_escape_str(tcomm, buf, size,
--					ESCAPE_SPACE | ESCAPE_SPECIAL, "\n\\");
--		if (ret >= size)
--			ret = -1;
--	} else {
--		ret = strscpy(buf, tcomm, size);
--	}
--
--	seq_commit(m, ret);
-+	if (escape)
-+		seq_escape_str(m, tcomm, ESCAPE_SPACE | ESCAPE_SPECIAL, "\n\\");
-+	else
-+		seq_printf(m, "%.64s", tcomm);
- }
- 
- /*
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from daniel.lezcano@linaro.org are
 
-mm-unexport-folio_memcg_unlock.patch
-mm-unexport-unlock_page_memcg.patch
 
