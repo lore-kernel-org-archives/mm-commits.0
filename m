@@ -7,39 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EBDEC433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9FC22C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B491611C9
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88C0B611C9
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345621AbhIIVFn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:05:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55104 "EHLO mail.kernel.org"
+        id S1347693AbhIIVF4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:05:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1346214AbhIIVFG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:05:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AD5E2611AF;
-        Thu,  9 Sep 2021 21:03:55 +0000 (UTC)
+        id S1348026AbhIIVFQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:05:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 89D6A611C0;
+        Thu,  9 Sep 2021 21:04:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221436;
-        bh=vuB1tmNxkk9MbCz6u3cE32kF9/oP7l5nQ+Ak2MHpEes=;
+        s=korg; t=1631221441;
+        bh=0HbKyyYQMepWSzpujgJA5AwMYHFboK0kLtpWYKklA6o=;
         h=Date:From:To:Subject:From;
-        b=DBgbViTu0nvWEob9Y6gaUpuqquslsbERPX5B/enSIfMAd6aT1eKB9I/QLW3Pd+VCQ
-         tNWB7LVXPKHLqNPRqKsbUfkexYXIjMe/0boA2R0nr2/O/HUNQC0tjwuOsK6UPWh3MW
-         Ql/v2nu33/OfAdHuaDPbdX+/qlPSwmEO53oTgClQ=
-Date:   Thu, 09 Sep 2021 14:03:55 -0700
+        b=YTsaAl+qHn2rv+GAhdxYaR5trVkVWo/7FQeKqlJ6EUtRZTrWBTHRHeOGmfsbHlCF0
+         fJCn0eyFMYjfKEfLBhadvzP1ZVXpbWR/RkvKI0Grrd6JEE5f1s7IMXKcyZUSC7VfKg
+         pxk4s8Us6OJ3Zepwr1D1Pxp4kQuYxsPDhxxbGn+M=
+Date:   Thu, 09 Sep 2021 14:04:01 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, ceggers@arri.de,
-        cw00.choi@samsung.com, daniel.lezcano@linaro.org, jic23@kernel.org,
-        Jonathan.Cameron@huawei.com, kyungmin.park@samsung.com,
-        lars@metafoo.de, linux@roeck-us.net, lukasz.luba@arm.com,
-        mcoquelin.stm32@gmail.com, miquel.raynal@bootlin.com,
-        mm-commits@vger.kernel.org, myungjoo.ham@samsung.com,
-        pmeerw@pmeerw.net, rafael@kernel.org, rui.zhang@intel.com
-Subject:  [merged] mtd-drivers-nand-use-hz-macros.patch removed
- from -mm tree
-Message-ID: <20210909210355.L9pZcwYkD%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org, sh_def@163.com,
+        yang.yang29@zte.com.cn, zealci@zte.com.cn
+Subject:  [merged]
+ acct-use-dedicated-helper-to-access-rlimit-values.patch removed from -mm
+ tree
+Message-ID: <20210909210401.gOflHGD8Y%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,62 +44,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mtd/drivers/nand: use HZ macros
+     Subject: kernel/acct.c: use dedicated helper to access rlimit values
 has been removed from the -mm tree.  Its filename was
-     mtd-drivers-nand-use-hz-macros.patch
+     acct-use-dedicated-helper-to-access-rlimit-values.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: mtd/drivers/nand: use HZ macros
+From: Yang Yang <yang.yang29@zte.com.cn>
+Subject: kernel/acct.c: use dedicated helper to access rlimit values
 
-HZ unit conversion macros are available in units.h, use them and remove
-the duplicate definition.
+Use rlimit() helper instead of manually writing whole chain from
+task to rlimit value. See patch "posix-cpu-timers: Use dedicated
+helper to access rlimit values".
 
-Link: https://lkml.kernel.org/r/20210816114732.1834145-10-daniel.lezcano@linaro.org
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Acked-by: Miquel Raynal <miquel.raynal@bootlin.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Christian Eggers <ceggers@arri.de>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Jonathan Cameron <jic23@kernel.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Lukasz Luba <lukasz.luba@arm.com>
-Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
-Cc: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Link: https://lkml.kernel.org/r/20210728030822.524789-1-yang.yang29@zte.com.cn
+Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: sh_def@163.com <sh_def@163.com>
+Cc: Yang Yang <yang.yang29@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/raw/intel-nand-controller.c |    2 +-
+ kernel/acct.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/mtd/nand/raw/intel-nand-controller.c~mtd-drivers-nand-use-hz-macros
-+++ a/drivers/mtd/nand/raw/intel-nand-controller.c
-@@ -20,6 +20,7 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/types.h>
-+#include <linux/units.h>
- #include <asm/unaligned.h>
- 
- #define EBU_CLC			0x000
-@@ -102,7 +103,6 @@
- 
- #define MAX_CS	2
- 
--#define HZ_PER_MHZ	1000000L
- #define USEC_PER_SEC	1000000L
- 
- struct ebu_nand_cs {
+--- a/kernel/acct.c~acct-use-dedicated-helper-to-access-rlimit-values
++++ a/kernel/acct.c
+@@ -478,7 +478,7 @@ static void do_acct_process(struct bsd_a
+ 	/*
+ 	 * Accounting records are not subject to resource limits.
+ 	 */
+-	flim = current->signal->rlim[RLIMIT_FSIZE].rlim_cur;
++	flim = rlimit(RLIMIT_FSIZE);
+ 	current->signal->rlim[RLIMIT_FSIZE].rlim_cur = RLIM_INFINITY;
+ 	/* Perform file operations on behalf of whoever enabled accounting */
+ 	orig_cred = override_creds(file->f_cred);
 _
 
-Patches currently in -mm which might be from daniel.lezcano@linaro.org are
+Patches currently in -mm which might be from yang.yang29@zte.com.cn are
 
 
