@@ -7,37 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C011AC43217
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED78EC433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AB1DF61186
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D37E1611AF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346465AbhIIVGQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:06:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55796 "EHLO mail.kernel.org"
+        id S1347478AbhIIVGT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:06:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1346632AbhIIVFu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:05:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F11661186;
-        Thu,  9 Sep 2021 21:04:40 +0000 (UTC)
+        id S1347610AbhIIVF4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:05:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8FC71611C0;
+        Thu,  9 Sep 2021 21:04:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221481;
-        bh=0p0p9dMU/HCDNOKnERGmhpRlROTbS4AjBS3TUNlpBaE=;
+        s=korg; t=1631221486;
+        bh=jYa1DkqmhidWRx+Y0E6MNjrikLjsJ63+ZFVhGoVxFlU=;
         h=Date:From:To:Subject:From;
-        b=WRU/cmXpCunQuC7XSYgzIGz99nRVwI4oztwTjgE8fXrA4yFt5LGq62SXS4xULhJy8
-         M52m1dNCNS2WpkbiP9pvnDGYDBOncP37XpRdTSV0IINczbKakh8styeOls9QdG0SXF
-         jZsAaARJg7JjICmzKEwLt7W3b3eom3EJYT3j65m8=
-Date:   Thu, 09 Sep 2021 14:04:40 -0700
+        b=XbQCtmHdSwc4yJ0b9jDCX1/ETnfQB4hz4Ko4m/FtaWIHC+RkmGLnqYow+nIqtLSha
+         EBv5S3dMzfFctIurGVU52PFwSmBdIqAWCKUwnL+JJ+iMxJ0zkDIlnxljhkMn+rjGz/
+         2g3RTFsX3oTWj9OG8qdPaIcb4V0xYfpFc1dh2Ab0=
+Date:   Thu, 09 Sep 2021 14:04:46 -0700
 From:   akpm@linux-foundation.org
-To:     aklimov@redhat.com, alobakin@pm.me,
-        andriy.shevchenko@linux.intel.com, dennis@kernel.org,
-        jolsa@redhat.com, mm-commits@vger.kernel.org,
-        ulf.hansson@linaro.org, will@kernel.org,
-        wsa+renesas@sang-engineering.com, yury.norov@gmail.com
-Subject:  [merged] tools-rename-bitmap_alloc-to-bitmap_zalloc.patch
- removed from -mm tree
-Message-ID: <20210909210440.iuR72bTMA%akpm@linux-foundation.org>
+To:     dwaipayanray1@gmail.com, joe@perches.com, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org, sjg@chromium.org
+Subject:  [merged] checkpatch-support-wide-strings.patch removed
+ from -mm tree
+Message-ID: <20210909210446.iqytjlDmr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,239 +43,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: rename bitmap_alloc() to bitmap_zalloc()
+     Subject: checkpatch: support wide strings
 has been removed from the -mm tree.  Its filename was
-     tools-rename-bitmap_alloc-to-bitmap_zalloc.patch
+     checkpatch-support-wide-strings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: tools: rename bitmap_alloc() to bitmap_zalloc()
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: support wide strings
 
-Rename bitmap_alloc() to bitmap_zalloc() in tools to follow the bitmap API
-in the kernel.
+Allow prefixing typical strings with L for wide strings and u for unicode
+strings.
 
-No functional changes intended.
-
-Link: https://lkml.kernel.org/r/20210814211713.180533-14-yury.norov@gmail.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Signed-off-by: Yury Norov <yury.norov@gmail.com>
-Suggested-by: Yury Norov <yury.norov@gmail.com>
-Acked-by: Yury Norov <yury.norov@gmail.com>
-Tested-by: Wolfram Sang <wsa+renesas@sang-engineering.com>
-Acked-by: Jiri Olsa <jolsa@redhat.com>
-Cc: Alexander Lobakin <alobakin@pm.me>
-Cc: Alexey Klimov <aklimov@redhat.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: Will Deacon <will@kernel.org>
+Link: https://lkml.kernel.org/r/20210801170733.1.I3f9784fd3c1007d08ec2e70b151d137687575495@changeid
+Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Simon Glass <sjg@chromium.org>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/include/linux/bitmap.h                            |    4 ++--
- tools/perf/bench/find-bit-bench.c                       |    2 +-
- tools/perf/builtin-c2c.c                                |    6 +++---
- tools/perf/builtin-record.c                             |    2 +-
- tools/perf/tests/bitmap.c                               |    2 +-
- tools/perf/tests/mem2node.c                             |    2 +-
- tools/perf/util/affinity.c                              |    4 ++--
- tools/perf/util/header.c                                |    4 ++--
- tools/perf/util/metricgroup.c                           |    2 +-
- tools/perf/util/mmap.c                                  |    4 ++--
- tools/testing/selftests/kvm/dirty_log_perf_test.c       |    2 +-
- tools/testing/selftests/kvm/dirty_log_test.c            |    4 ++--
- tools/testing/selftests/kvm/x86_64/vmx_dirty_log_test.c |    2 +-
- 13 files changed, 20 insertions(+), 20 deletions(-)
+ scripts/checkpatch.pl |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/tools/include/linux/bitmap.h~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/include/linux/bitmap.h
-@@ -112,10 +112,10 @@ static inline int test_and_clear_bit(int
- }
+--- a/scripts/checkpatch.pl~checkpatch-support-wide-strings
++++ a/scripts/checkpatch.pl
+@@ -501,7 +501,7 @@ our $Binary	= qr{(?i)0b[01]+$Int_type?};
+ our $Hex	= qr{(?i)0x[0-9a-f]+$Int_type?};
+ our $Int	= qr{[0-9]+$Int_type?};
+ our $Octal	= qr{0[0-7]+$Int_type?};
+-our $String	= qr{"[X\t]*"};
++our $String	= qr{(?:\b[Lu])?"[X\t]*"};
+ our $Float_hex	= qr{(?i)0x[0-9a-f]+p-?[0-9]+[fl]?};
+ our $Float_dec	= qr{(?i)(?:[0-9]+\.[0-9]*|[0-9]*\.[0-9]+)(?:e-?[0-9]+)?[fl]?};
+ our $Float_int	= qr{(?i)[0-9]+e-?[0-9]+[fl]?};
+@@ -6132,7 +6132,8 @@ sub process {
+ 		}
  
- /**
-- * bitmap_alloc - Allocate bitmap
-+ * bitmap_zalloc - Allocate bitmap
-  * @nbits: Number of bits
-  */
--static inline unsigned long *bitmap_alloc(int nbits)
-+static inline unsigned long *bitmap_zalloc(int nbits)
- {
- 	return calloc(1, BITS_TO_LONGS(nbits) * sizeof(unsigned long));
- }
---- a/tools/perf/bench/find-bit-bench.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/perf/bench/find-bit-bench.c
-@@ -54,7 +54,7 @@ static bool asm_test_bit(long nr, const
+ # concatenated string without spaces between elements
+-		if ($line =~ /$String[A-Za-z0-9_]/ || $line =~ /[A-Za-z0-9_]$String/) {
++		if ($line =~ /$String[A-Z_]/ ||
++		    ($line =~ /([A-Za-z0-9_]+)$String/ && $1 !~ /^[Lu]$/)) {
+ 			if (CHK("CONCATENATED_STRING",
+ 				"Concatenated strings should use spaces between elements\n" . $herecurr) &&
+ 			    $fix) {
+@@ -6145,7 +6146,7 @@ sub process {
+ 		}
  
- static int do_for_each_set_bit(unsigned int num_bits)
- {
--	unsigned long *to_test = bitmap_alloc(num_bits);
-+	unsigned long *to_test = bitmap_zalloc(num_bits);
- 	struct timeval start, end, diff;
- 	u64 runtime_us;
- 	struct stats fb_time_stats, tb_time_stats;
---- a/tools/perf/builtin-c2c.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/perf/builtin-c2c.c
-@@ -139,11 +139,11 @@ static void *c2c_he_zalloc(size_t size)
- 	if (!c2c_he)
- 		return NULL;
- 
--	c2c_he->cpuset = bitmap_alloc(c2c.cpus_cnt);
-+	c2c_he->cpuset = bitmap_zalloc(c2c.cpus_cnt);
- 	if (!c2c_he->cpuset)
- 		return NULL;
- 
--	c2c_he->nodeset = bitmap_alloc(c2c.nodes_cnt);
-+	c2c_he->nodeset = bitmap_zalloc(c2c.nodes_cnt);
- 	if (!c2c_he->nodeset)
- 		return NULL;
- 
-@@ -2047,7 +2047,7 @@ static int setup_nodes(struct perf_sessi
- 		struct perf_cpu_map *map = n[node].map;
- 		unsigned long *set;
- 
--		set = bitmap_alloc(c2c.cpus_cnt);
-+		set = bitmap_zalloc(c2c.cpus_cnt);
- 		if (!set)
- 			return -ENOMEM;
- 
---- a/tools/perf/builtin-record.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/perf/builtin-record.c
-@@ -2786,7 +2786,7 @@ int cmd_record(int argc, const char **ar
- 
- 	if (rec->opts.affinity != PERF_AFFINITY_SYS) {
- 		rec->affinity_mask.nbits = cpu__max_cpu();
--		rec->affinity_mask.bits = bitmap_alloc(rec->affinity_mask.nbits);
-+		rec->affinity_mask.bits = bitmap_zalloc(rec->affinity_mask.nbits);
- 		if (!rec->affinity_mask.bits) {
- 			pr_err("Failed to allocate thread mask for %zd cpus\n", rec->affinity_mask.nbits);
- 			err = -ENOMEM;
---- a/tools/perf/tests/bitmap.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/perf/tests/bitmap.c
-@@ -14,7 +14,7 @@ static unsigned long *get_bitmap(const c
- 	unsigned long *bm = NULL;
- 	int i;
- 
--	bm = bitmap_alloc(nbits);
-+	bm = bitmap_zalloc(nbits);
- 
- 	if (map && bm) {
- 		for (i = 0; i < map->nr; i++)
---- a/tools/perf/tests/mem2node.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/perf/tests/mem2node.c
-@@ -27,7 +27,7 @@ static unsigned long *get_bitmap(const c
- 	unsigned long *bm = NULL;
- 	int i;
- 
--	bm = bitmap_alloc(nbits);
-+	bm = bitmap_zalloc(nbits);
- 
- 	if (map && bm) {
- 		for (i = 0; i < map->nr; i++) {
---- a/tools/perf/util/affinity.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/perf/util/affinity.c
-@@ -25,11 +25,11 @@ int affinity__setup(struct affinity *a)
- {
- 	int cpu_set_size = get_cpu_set_size();
- 
--	a->orig_cpus = bitmap_alloc(cpu_set_size * 8);
-+	a->orig_cpus = bitmap_zalloc(cpu_set_size * 8);
- 	if (!a->orig_cpus)
- 		return -1;
- 	sched_getaffinity(0, cpu_set_size, (cpu_set_t *)a->orig_cpus);
--	a->sched_cpus = bitmap_alloc(cpu_set_size * 8);
-+	a->sched_cpus = bitmap_zalloc(cpu_set_size * 8);
- 	if (!a->sched_cpus) {
- 		zfree(&a->orig_cpus);
- 		return -1;
---- a/tools/perf/util/header.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/perf/util/header.c
-@@ -278,7 +278,7 @@ static int do_read_bitmap(struct feat_fd
- 	if (ret)
- 		return ret;
- 
--	set = bitmap_alloc(size);
-+	set = bitmap_zalloc(size);
- 	if (!set)
- 		return -ENOMEM;
- 
-@@ -1294,7 +1294,7 @@ static int memory_node__read(struct memo
- 
- 	size++;
- 
--	n->set = bitmap_alloc(size);
-+	n->set = bitmap_zalloc(size);
- 	if (!n->set) {
- 		closedir(dir);
- 		return -ENOMEM;
---- a/tools/perf/util/metricgroup.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/perf/util/metricgroup.c
-@@ -313,7 +313,7 @@ static int metricgroup__setup_events(str
- 	struct evsel *evsel, *tmp;
- 	unsigned long *evlist_used;
- 
--	evlist_used = bitmap_alloc(perf_evlist->core.nr_entries);
-+	evlist_used = bitmap_zalloc(perf_evlist->core.nr_entries);
- 	if (!evlist_used)
- 		return -ENOMEM;
- 
---- a/tools/perf/util/mmap.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/perf/util/mmap.c
-@@ -106,7 +106,7 @@ static int perf_mmap__aio_bind(struct mm
- 		data = map->aio.data[idx];
- 		mmap_len = mmap__mmap_len(map);
- 		node_index = cpu__get_node(cpu);
--		node_mask = bitmap_alloc(node_index + 1);
-+		node_mask = bitmap_zalloc(node_index + 1);
- 		if (!node_mask) {
- 			pr_err("Failed to allocate node mask for mbind: error %m\n");
- 			return -1;
-@@ -258,7 +258,7 @@ static void build_node_mask(int node, st
- static int perf_mmap__setup_affinity_mask(struct mmap *map, struct mmap_params *mp)
- {
- 	map->affinity_mask.nbits = cpu__max_cpu();
--	map->affinity_mask.bits = bitmap_alloc(map->affinity_mask.nbits);
-+	map->affinity_mask.bits = bitmap_zalloc(map->affinity_mask.nbits);
- 	if (!map->affinity_mask.bits)
- 		return -1;
- 
---- a/tools/testing/selftests/kvm/dirty_log_perf_test.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/testing/selftests/kvm/dirty_log_perf_test.c
-@@ -121,7 +121,7 @@ static void run_test(enum vm_guest_mode
- 	guest_num_pages = (nr_vcpus * guest_percpu_mem_size) >> vm_get_page_shift(vm);
- 	guest_num_pages = vm_adjust_num_guest_pages(mode, guest_num_pages);
- 	host_num_pages = vm_num_host_pages(mode, guest_num_pages);
--	bmap = bitmap_alloc(host_num_pages);
-+	bmap = bitmap_zalloc(host_num_pages);
- 
- 	if (dirty_log_manual_caps) {
- 		cap.cap = KVM_CAP_MANUAL_DIRTY_LOG_PROTECT2;
---- a/tools/testing/selftests/kvm/dirty_log_test.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/testing/selftests/kvm/dirty_log_test.c
-@@ -749,8 +749,8 @@ static void run_test(enum vm_guest_mode
- 
- 	pr_info("guest physical test memory offset: 0x%lx\n", guest_test_phys_mem);
- 
--	bmap = bitmap_alloc(host_num_pages);
--	host_bmap_track = bitmap_alloc(host_num_pages);
-+	bmap = bitmap_zalloc(host_num_pages);
-+	host_bmap_track = bitmap_zalloc(host_num_pages);
- 
- 	/* Add an extra memory slot for testing dirty logging */
- 	vm_userspace_mem_region_add(vm, VM_MEM_SRC_ANONYMOUS,
---- a/tools/testing/selftests/kvm/x86_64/vmx_dirty_log_test.c~tools-rename-bitmap_alloc-to-bitmap_zalloc
-+++ a/tools/testing/selftests/kvm/x86_64/vmx_dirty_log_test.c
-@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
- 	nested_map(vmx, vm, NESTED_TEST_MEM1, GUEST_TEST_MEM, 4096);
- 	nested_map(vmx, vm, NESTED_TEST_MEM2, GUEST_TEST_MEM, 4096);
- 
--	bmap = bitmap_alloc(TEST_MEM_PAGES);
-+	bmap = bitmap_zalloc(TEST_MEM_PAGES);
- 	host_test_mem = addr_gpa2hva(vm, GUEST_TEST_MEM);
- 
- 	while (!done) {
+ # uncoalesced string fragments
+-		if ($line =~ /$String\s*"/) {
++		if ($line =~ /$String\s*[Lu]?"/) {
+ 			if (WARN("STRING_FRAGMENTS",
+ 				 "Consecutive strings are generally better as a single string\n" . $herecurr) &&
+ 			    $fix) {
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
 
