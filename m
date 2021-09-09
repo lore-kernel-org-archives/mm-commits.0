@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 94163C43217
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0AA5C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 80BFF6103E
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 86ACF61179
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241083AbhIIVBi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:01:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49682 "EHLO mail.kernel.org"
+        id S235679AbhIIVBk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:01:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49724 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235679AbhIIVBg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:01:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AC33C6103E;
-        Thu,  9 Sep 2021 21:00:26 +0000 (UTC)
+        id S245624AbhIIVBi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:01:38 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF4086113E;
+        Thu,  9 Sep 2021 21:00:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221227;
-        bh=zP6dP19WGc3ObNDXHa0V/+m/uYzBYDnAYt0W5E2ZMWM=;
+        s=korg; t=1631221229;
+        bh=utV5eC0W81kReTuaewhCEgi8mcUi+mCGrLIs/o+UYAw=;
         h=Date:From:To:Subject:From;
-        b=JYfjX4P4FD50momcM3VQ9ryJQyz1rHzk3xzIk5bUIMs2166FHw023JwO0Dd9GJdhr
-         /IaUceBQRqoIkfZi8KajseW75JUhaQT0LkuQVFHePuKtHIVtvPvQjFGW8tn8uG0qXJ
-         7Hq8o2dGISs8wm+e/Vp+RaQjvM7qgJru+CCCN7GE=
-Date:   Thu, 09 Sep 2021 14:00:26 -0700
+        b=APcIUnALNXB4vm3+wR+fecfIpFADK/D61wO/9MrnYAJuZ592Uou+eFAn9aBkAPkDl
+         5IpkSbYKU+48XlgY5/JCbD3ahuGTK10Dx+/EyExgT41FtqmI9zYIAGkVlC1l8si+sX
+         bvAD4BYSbBx4PP31tcqZkuQjSutZi5530+DCN/VU=
+Date:   Thu, 09 Sep 2021 14:00:28 -0700
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
         efault@gmx.de, iamjoonsoo.kim@lge.com, jannh@google.com,
@@ -36,9 +36,9 @@ To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
         penberg@kernel.org, quic_qiancai@quicinc.com, rientjes@google.com,
         tglx@linutronix.de, vbabka@suse.cz
 Subject:  [merged]
- mm-slub-dissolve-new_slab_objects-into-___slab_alloc.patch removed from -mm
- tree
-Message-ID: <20210909210026.al_2X-j4e%akpm@linux-foundation.org>
+ mm-slub-return-slab-page-from-get_partial-and-set-c-page-afterwards.patch
+ removed from -mm tree
+Message-ID: <20210909210028.H33FoQqCp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,33 +47,32 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: dissolve new_slab_objects() into ___slab_alloc()
+     Subject: mm, slub: return slab page from get_partial() and set c->page afterwards
 has been removed from the -mm tree.  Its filename was
-     mm-slub-dissolve-new_slab_objects-into-___slab_alloc.patch
+     mm-slub-return-slab-page-from-get_partial-and-set-c-page-afterwards.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: dissolve new_slab_objects() into ___slab_alloc()
+Subject: mm, slub: return slab page from get_partial() and set c->page afterwards
 
-The later patches will need more fine grained control over individual
-actions in ___slab_alloc(), the only caller of new_slab_objects(), so
-dissolve it there.  This is a preparatory step with no functional change.
+The function get_partial() finds a suitable page on a partial list,
+acquires and returns its freelist and assigns the page pointer to
+kmem_cache_cpu.  In later patch we will need more control over the
+kmem_cache_cpu.page assignment, so instead of passing a kmem_cache_cpu
+pointer, pass a pointer to a pointer to a page that get_partial() can fill
+and the caller can assign the kmem_cache_cpu.page pointer.  No functional
+change as all of this still happens with disabled IRQs.
 
-The only minor change is moving WARN_ON_ONCE() for using a constructor
-together with __GFP_ZERO to new_slab(), which makes it somewhat less
-frequent, but still able to catch a development change introducing a
-systematic misuse.
-
-Link: https://lkml.kernel.org/r/20210904105003.11688-8-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210904105003.11688-9-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Mike Galbraith <efault@gmx.de>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: Qian Cai <quic_qiancai@quicinc.com>
@@ -82,87 +81,92 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   50 ++++++++++++++++++--------------------------------
- 1 file changed, 18 insertions(+), 32 deletions(-)
+ mm/slub.c |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
---- a/mm/slub.c~mm-slub-dissolve-new_slab_objects-into-___slab_alloc
+--- a/mm/slub.c~mm-slub-return-slab-page-from-get_partial-and-set-c-page-afterwards
 +++ a/mm/slub.c
-@@ -1885,6 +1885,8 @@ static struct page *new_slab(struct kmem
- 	if (unlikely(flags & GFP_SLAB_BUG_MASK))
- 		flags = kmalloc_fix_flags(flags);
- 
-+	WARN_ON_ONCE(s->ctor && (flags & __GFP_ZERO));
-+
- 	return allocate_slab(s,
- 		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
- }
-@@ -2610,36 +2612,6 @@ slab_out_of_memory(struct kmem_cache *s,
- #endif
- }
- 
--static inline void *new_slab_objects(struct kmem_cache *s, gfp_t flags,
--			int node, struct kmem_cache_cpu **pc)
--{
--	void *freelist = NULL;
--	struct kmem_cache_cpu *c = *pc;
--	struct page *page;
--
--	WARN_ON_ONCE(s->ctor && (flags & __GFP_ZERO));
--
--	page = new_slab(s, flags, node);
--	if (page) {
--		c = raw_cpu_ptr(s->cpu_slab);
--		if (c->page)
--			flush_slab(s, c);
--
--		/*
--		 * No other reference to the page yet so we can
--		 * muck around with it freely without cmpxchg
--		 */
--		freelist = page->freelist;
--		page->freelist = NULL;
--
--		stat(s, ALLOC_SLAB);
--		c->page = page;
--		*pc = c;
--	}
--
--	return freelist;
--}
--
- static inline bool pfmemalloc_match(struct page *page, gfp_t gfpflags)
+@@ -2017,7 +2017,7 @@ static inline bool pfmemalloc_match(stru
+  * Try to allocate a partial slab from a specific node.
+  */
+ static void *get_partial_node(struct kmem_cache *s, struct kmem_cache_node *n,
+-				struct kmem_cache_cpu *c, gfp_t flags)
++			      struct page **ret_page, gfp_t flags)
  {
- 	if (unlikely(PageSlabPfmemalloc(page)))
-@@ -2786,13 +2758,27 @@ new_slab:
- 	if (freelist)
- 		goto check_new_page;
+ 	struct page *page, *page2;
+ 	void *object = NULL;
+@@ -2046,7 +2046,7 @@ static void *get_partial_node(struct kme
  
--	freelist = new_slab_objects(s, gfpflags, node, &c);
-+	page = new_slab(s, gfpflags, node);
+ 		available += objects;
+ 		if (!object) {
+-			c->page = page;
++			*ret_page = page;
+ 			stat(s, ALLOC_FROM_PARTIAL);
+ 			object = t;
+ 		} else {
+@@ -2066,7 +2066,7 @@ static void *get_partial_node(struct kme
+  * Get a page from somewhere. Search in increasing NUMA distances.
+  */
+ static void *get_any_partial(struct kmem_cache *s, gfp_t flags,
+-		struct kmem_cache_cpu *c)
++			     struct page **ret_page)
+ {
+ #ifdef CONFIG_NUMA
+ 	struct zonelist *zonelist;
+@@ -2108,7 +2108,7 @@ static void *get_any_partial(struct kmem
  
--	if (unlikely(!freelist)) {
-+	if (unlikely(!page)) {
- 		slab_out_of_memory(s, gfpflags, node);
- 		return NULL;
+ 			if (n && cpuset_zone_allowed(zone, flags) &&
+ 					n->nr_partial > s->min_partial) {
+-				object = get_partial_node(s, n, c, flags);
++				object = get_partial_node(s, n, ret_page, flags);
+ 				if (object) {
+ 					/*
+ 					 * Don't check read_mems_allowed_retry()
+@@ -2130,7 +2130,7 @@ static void *get_any_partial(struct kmem
+  * Get a partial page, lock it and return it.
+  */
+ static void *get_partial(struct kmem_cache *s, gfp_t flags, int node,
+-		struct kmem_cache_cpu *c)
++			 struct page **ret_page)
+ {
+ 	void *object;
+ 	int searchnode = node;
+@@ -2138,11 +2138,11 @@ static void *get_partial(struct kmem_cac
+ 	if (node == NUMA_NO_NODE)
+ 		searchnode = numa_mem_id();
+ 
+-	object = get_partial_node(s, get_node(s, searchnode), c, flags);
++	object = get_partial_node(s, get_node(s, searchnode), ret_page, flags);
+ 	if (object || node != NUMA_NO_NODE)
+ 		return object;
+ 
+-	return get_any_partial(s, flags, c);
++	return get_any_partial(s, flags, ret_page);
+ }
+ 
+ #ifdef CONFIG_PREEMPTION
+@@ -2754,9 +2754,11 @@ new_slab:
+ 		goto redo;
  	}
  
-+	c = raw_cpu_ptr(s->cpu_slab);
-+	if (c->page)
-+		flush_slab(s, c);
-+
-+	/*
-+	 * No other reference to the page yet so we can
-+	 * muck around with it freely without cmpxchg
-+	 */
-+	freelist = page->freelist;
-+	page->freelist = NULL;
-+
-+	stat(s, ALLOC_SLAB);
-+	c->page = page;
-+
+-	freelist = get_partial(s, gfpflags, node, c);
+-	if (freelist)
++	freelist = get_partial(s, gfpflags, node, &page);
++	if (freelist) {
++		c->page = page;
+ 		goto check_new_page;
++	}
+ 
+ 	page = new_slab(s, gfpflags, node);
+ 
+@@ -2780,7 +2782,6 @@ new_slab:
+ 	c->page = page;
+ 
  check_new_page:
- 	page = c->page;
+-	page = c->page;
  	if (likely(!kmem_cache_debug(s) && pfmemalloc_match(page, gfpflags)))
+ 		goto load_freelist;
+ 
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
