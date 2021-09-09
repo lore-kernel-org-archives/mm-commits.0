@@ -7,35 +7,44 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39AF5C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 03189C4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 25643611C4
+	by mail.kernel.org (Postfix) with ESMTP id E3DC6611EF
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348125AbhIIVEc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:04:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52622 "EHLO mail.kernel.org"
+        id S1346792AbhIIVEe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:04:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53654 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347339AbhIIVDn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:03:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6ED74611C4;
-        Thu,  9 Sep 2021 21:02:24 +0000 (UTC)
+        id S1347667AbhIIVDr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:03:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A72F611EF;
+        Thu,  9 Sep 2021 21:02:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221344;
-        bh=0ZEgAEhSiAHBA9IZW0ReEq8fvTVtQ3XClcQ4TODxfIg=;
+        s=korg; t=1631221353;
+        bh=IPpfSxGQG3tVFpVv73dw3vILct7ENTHTIKlY0Js8Y18=;
         h=Date:From:To:Subject:From;
-        b=on0n1nSyJ210pXmXTgc5aETQXDfv1BLyfRoYS0dZK6MZS0GegIZQOQuPWK0jL0o2m
-         rYeSlR5enylU+d0FRPlmyKoGOyG08dxSkHKa1W7K0QWbo+AHfYy8lOPKlLhhrHjdWD
-         dbCnC/4kGLl7SKMuhff5yexdFpnOJlZwDNoOPpqk=
-Date:   Thu, 09 Sep 2021 14:02:24 -0700
+        b=Owl1BeNDoHA6R3sE7mrgLffOjZ5skgyclv7oip8B/TuAMdFUlcldFkNNkiKmteYO+
+         4cPiuTgxOKbfmzVtui2TszDSkxf6aXYCx+/IRnzYEO5sQGuzyhfl2mfScP9X3yn8L5
+         ibfER96hANfv05auTwboLCOT45nVBMwIHC/fRl48=
+Date:   Thu, 09 Sep 2021 14:02:32 -0700
 From:   akpm@linux-foundation.org
-To:     elver@google.com, glider@google.com, joern@purestorage.com,
-        mm-commits@vger.kernel.org, yzhong@purestorage.com
+To:     alexander.shishkin@linux.intel.com, amit@kernel.org,
+        benh@kernel.crashing.org, brendanhiggins@google.com,
+        corbet@lwn.net, david@redhat.com, dwmw@amazon.com,
+        elver@google.com, fan.du@intel.com, foersleo@amazon.de,
+        greg@kroah.com, gthelen@google.com, joe@perches.com,
+        Jonathan.Cameron@huawei.com, markubo@amazon.de, mgorman@suse.de,
+        mheyne@amazon.de, minchan@kernel.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, namhyung@kernel.org,
+        peterz@infradead.org, riel@surriel.com, rientjes@google.com,
+        rostedt@goodmis.org, shakeelb@google.com, shuah@kernel.org,
+        sieberf@amazon.com, sjpark@amazon.de, vbabka@suse.cz,
+        vdavydov.dev@gmail.com
 Subject:  [merged]
- kfence-show-cpu-and-timestamp-in-alloc-free-info.patch removed from -mm
- tree
-Message-ID: <20210909210224.sFQkCYWGt%akpm@linux-foundation.org>
+ mm-damon-core-implement-region-based-sampling.patch removed from -mm tree
+Message-ID: <20210909210232.8O-HFHJVP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,279 +53,394 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: show cpu and timestamp in alloc/free info
+     Subject: mm/damon/core: implement region-based sampling
 has been removed from the -mm tree.  Its filename was
-     kfence-show-cpu-and-timestamp-in-alloc-free-info.patch
+     mm-damon-core-implement-region-based-sampling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: show cpu and timestamp in alloc/free info
+From: SeongJae Park <sjpark@amazon.de>
+Subject: mm/damon/core: implement region-based sampling
 
-Record cpu and timestamp on allocations and frees, and show them in
-reports.  Upon an error, this can help correlate earlier messages in the
-kernel log via allocation and free timestamps.
+To avoid the unbounded increase of the overhead, DAMON groups adjacent
+pages that are assumed to have the same access frequencies into a
+region.  As long as the assumption (pages in a region have the same
+access frequencies) is kept, only one page in the region is required to
+be checked.  Thus, for each ``sampling interval``,
 
-Link: https://lkml.kernel.org/r/20210714175312.2947941-1-elver@google.com
-Suggested-by: Joern Engel <joern@purestorage.com>
-Signed-off-by: Marco Elver <elver@google.com>
-Acked-by: Alexander Potapenko <glider@google.com>
-Acked-by: Joern Engel <joern@purestorage.com>
-Cc: Yuanyuan Zhong <yzhong@purestorage.com>
+ 1. the 'prepare_access_checks' primitive picks one page in each region,
+ 2. waits for one ``sampling interval``,
+ 3. checks whether the page is accessed meanwhile, and
+ 4. increases the access count of the region if so.
+
+Therefore, the monitoring overhead is controllable by adjusting the
+number of regions.  DAMON allows both the underlying primitives and user
+callbacks to adjust regions for the trade-off.  In other words, this
+commit makes DAMON to use not only time-based sampling but also
+space-based sampling.
+
+This scheme, however, cannot preserve the quality of the output if the
+assumption is not guaranteed.  Next commit will address this problem.
+
+Link: https://lkml.kernel.org/r/20210716081449.22187-3-sj38.park@gmail.com
+Signed-off-by: SeongJae Park <sjpark@amazon.de>
+Reviewed-by: Leonard Foerster <foersleo@amazon.de>
+Reviewed-by: Fernand Sieber <sieberf@amazon.com>
+Acked-by: Shakeel Butt <shakeelb@google.com>
+Cc: Alexander Shishkin <alexander.shishkin@linux.intel.com>
+Cc: Amit Shah <amit@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David Woodhouse <dwmw@amazon.com>
+Cc: Fan Du <fan.du@intel.com>
+Cc: Greg Kroah-Hartman <greg@kroah.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Marco Elver <elver@google.com>
+Cc: Markus Boehme <markubo@amazon.de>
+Cc: Maximilian Heyne <mheyne@amazon.de>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Namhyung Kim <namhyung@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kfence.rst |   98 ++++++++++++++-------------
- mm/kfence/core.c                   |    3 
- mm/kfence/kfence.h                 |    2 
- mm/kfence/report.c                 |   19 +++--
- 4 files changed, 71 insertions(+), 51 deletions(-)
+ include/linux/damon.h |   77 ++++++++++++++++++++-
+ mm/damon/core.c       |  143 ++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 213 insertions(+), 7 deletions(-)
 
---- a/Documentation/dev-tools/kfence.rst~kfence-show-cpu-and-timestamp-in-alloc-free-info
-+++ a/Documentation/dev-tools/kfence.rst
-@@ -65,25 +65,27 @@ Error reports
- A typical out-of-bounds access looks like this::
+--- a/include/linux/damon.h~mm-damon-core-implement-region-based-sampling
++++ a/include/linux/damon.h
+@@ -12,6 +12,48 @@
+ #include <linux/time64.h>
+ #include <linux/types.h>
  
-     ==================================================================
--    BUG: KFENCE: out-of-bounds read in test_out_of_bounds_read+0xa3/0x22b
-+    BUG: KFENCE: out-of-bounds read in test_out_of_bounds_read+0xa6/0x234
- 
--    Out-of-bounds read at 0xffffffffb672efff (1B left of kfence-#17):
--     test_out_of_bounds_read+0xa3/0x22b
--     kunit_try_run_case+0x51/0x85
-+    Out-of-bounds read at 0xffff8c3f2e291fff (1B left of kfence-#72):
-+     test_out_of_bounds_read+0xa6/0x234
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    kfence-#17 [0xffffffffb672f000-0xffffffffb672f01f, size=32, cache=kmalloc-32] allocated by task 507:
--     test_alloc+0xf3/0x25b
--     test_out_of_bounds_read+0x98/0x22b
--     kunit_try_run_case+0x51/0x85
-+    kfence-#72: 0xffff8c3f2e292000-0xffff8c3f2e29201f, size=32, cache=kmalloc-32
++/**
++ * struct damon_addr_range - Represents an address region of [@start, @end).
++ * @start:	Start address of the region (inclusive).
++ * @end:	End address of the region (exclusive).
++ */
++struct damon_addr_range {
++	unsigned long start;
++	unsigned long end;
++};
 +
-+    allocated by task 484 on cpu 0 at 32.919330s:
-+     test_alloc+0xfe/0x738
-+     test_out_of_bounds_read+0x9b/0x234
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    CPU: 4 PID: 107 Comm: kunit_try_catch Not tainted 5.8.0-rc6+ #7
--    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
-+    CPU: 0 PID: 484 Comm: kunit_try_catch Not tainted 5.13.0-rc3+ #7
-+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-     ==================================================================
- 
- The header of the report provides a short summary of the function involved in
-@@ -96,30 +98,32 @@ Use-after-free accesses are reported as:
-     ==================================================================
-     BUG: KFENCE: use-after-free read in test_use_after_free_read+0xb3/0x143
- 
--    Use-after-free read at 0xffffffffb673dfe0 (in kfence-#24):
-+    Use-after-free read at 0xffff8c3f2e2a0000 (in kfence-#79):
-      test_use_after_free_read+0xb3/0x143
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    kfence-#24 [0xffffffffb673dfe0-0xffffffffb673dfff, size=32, cache=kmalloc-32] allocated by task 507:
--     test_alloc+0xf3/0x25b
-+    kfence-#79: 0xffff8c3f2e2a0000-0xffff8c3f2e2a001f, size=32, cache=kmalloc-32
++/**
++ * struct damon_region - Represents a monitoring target region.
++ * @ar:			The address range of the region.
++ * @sampling_addr:	Address of the sample for the next access check.
++ * @nr_accesses:	Access frequency of this region.
++ * @list:		List head for siblings.
++ */
++struct damon_region {
++	struct damon_addr_range ar;
++	unsigned long sampling_addr;
++	unsigned int nr_accesses;
++	struct list_head list;
++};
 +
-+    allocated by task 488 on cpu 2 at 33.871326s:
-+     test_alloc+0xfe/0x738
-      test_use_after_free_read+0x76/0x143
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    freed by task 507:
-+    freed by task 488 on cpu 2 at 33.871358s:
-      test_use_after_free_read+0xa8/0x143
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    CPU: 4 PID: 109 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
--    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
-+    CPU: 2 PID: 488 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
-+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-     ==================================================================
- 
- KFENCE also reports on invalid frees, such as double-frees::
-@@ -127,30 +131,32 @@ KFENCE also reports on invalid frees, su
-     ==================================================================
-     BUG: KFENCE: invalid free in test_double_free+0xdc/0x171
- 
--    Invalid free of 0xffffffffb6741000:
-+    Invalid free of 0xffff8c3f2e2a4000 (in kfence-#81):
-      test_double_free+0xdc/0x171
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    kfence-#26 [0xffffffffb6741000-0xffffffffb674101f, size=32, cache=kmalloc-32] allocated by task 507:
--     test_alloc+0xf3/0x25b
-+    kfence-#81: 0xffff8c3f2e2a4000-0xffff8c3f2e2a401f, size=32, cache=kmalloc-32
++/**
++ * struct damon_target - Represents a monitoring target.
++ * @id:			Unique identifier for this target.
++ * @regions_list:	Head of the monitoring target regions of this target.
++ * @list:		List head for siblings.
++ *
++ * Each monitoring context could have multiple targets.  For example, a context
++ * for virtual memory address spaces could have multiple target processes.  The
++ * @id of each target should be unique among the targets of the context.  For
++ * example, in the virtual address monitoring context, it could be a pidfd or
++ * an address of an mm_struct.
++ */
++struct damon_target {
++	unsigned long id;
++	struct list_head regions_list;
++	struct list_head list;
++};
 +
-+    allocated by task 490 on cpu 1 at 34.175321s:
-+     test_alloc+0xfe/0x738
-      test_double_free+0x76/0x171
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
+ struct damon_ctx;
  
--    freed by task 507:
-+    freed by task 490 on cpu 1 at 34.175348s:
-      test_double_free+0xa8/0x171
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
+ /**
+@@ -36,7 +78,7 @@ struct damon_ctx;
+  *
+  * @init should initialize primitive-internal data structures.  For example,
+  * this could be used to construct proper monitoring target regions and link
+- * those to @damon_ctx.target.
++ * those to @damon_ctx.adaptive_targets.
+  * @update should update the primitive-internal data structures.  For example,
+  * this could be used to update monitoring target regions for current status.
+  * @prepare_access_checks should manipulate the monitoring regions to be
+@@ -130,7 +172,7 @@ struct damon_callback {
+  * @primitive:	Set of monitoring primitives for given use cases.
+  * @callback:	Set of callbacks for monitoring events notifications.
+  *
+- * @target:	Pointer to the user-defined monitoring target.
++ * @region_targets:	Head of monitoring targets (&damon_target) list.
+  */
+ struct damon_ctx {
+ 	unsigned long sample_interval;
+@@ -149,11 +191,40 @@ struct damon_ctx {
+ 	struct damon_primitive primitive;
+ 	struct damon_callback callback;
  
--    CPU: 4 PID: 111 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
--    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
-+    CPU: 1 PID: 490 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
-+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-     ==================================================================
- 
- KFENCE also uses pattern-based redzones on the other side of an object's guard
-@@ -160,23 +166,25 @@ These are reported on frees::
-     ==================================================================
-     BUG: KFENCE: memory corruption in test_kmalloc_aligned_oob_write+0xef/0x184
- 
--    Corrupted memory at 0xffffffffb6797ff9 [ 0xac . . . . . . ] (in kfence-#69):
-+    Corrupted memory at 0xffff8c3f2e33aff9 [ 0xac . . . . . . ] (in kfence-#156):
-      test_kmalloc_aligned_oob_write+0xef/0x184
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    kfence-#69 [0xffffffffb6797fb0-0xffffffffb6797ff8, size=73, cache=kmalloc-96] allocated by task 507:
--     test_alloc+0xf3/0x25b
-+    kfence-#156: 0xffff8c3f2e33afb0-0xffff8c3f2e33aff8, size=73, cache=kmalloc-96
-+
-+    allocated by task 502 on cpu 7 at 42.159302s:
-+     test_alloc+0xfe/0x738
-      test_kmalloc_aligned_oob_write+0x57/0x184
--     kunit_try_run_case+0x51/0x85
-+     kunit_try_run_case+0x61/0xa0
-      kunit_generic_run_threadfn_adapter+0x16/0x30
--     kthread+0x137/0x160
-+     kthread+0x176/0x1b0
-      ret_from_fork+0x22/0x30
- 
--    CPU: 4 PID: 120 Comm: kunit_try_catch Tainted: G        W         5.8.0-rc6+ #7
--    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1 04/01/2014
-+    CPU: 7 PID: 502 Comm: kunit_try_catch Tainted: G    B             5.13.0-rc3+ #7
-+    Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
-     ==================================================================
- 
- For such errors, the address where the corruption occurred as well as the
---- a/mm/kfence/core.c~kfence-show-cpu-and-timestamp-in-alloc-free-info
-+++ a/mm/kfence/core.c
-@@ -20,6 +20,7 @@
- #include <linux/moduleparam.h>
- #include <linux/random.h>
- #include <linux/rcupdate.h>
-+#include <linux/sched/clock.h>
- #include <linux/sched/sysctl.h>
- #include <linux/seq_file.h>
- #include <linux/slab.h>
-@@ -196,6 +197,8 @@ static noinline void metadata_update_sta
- 	 */
- 	track->num_stack_entries = stack_trace_save(track->stack_entries, KFENCE_STACK_DEPTH, 1);
- 	track->pid = task_pid_nr(current);
-+	track->cpu = raw_smp_processor_id();
-+	track->ts_nsec = local_clock(); /* Same source as printk timestamps. */
- 
- 	/*
- 	 * Pairs with READ_ONCE() in
---- a/mm/kfence/kfence.h~kfence-show-cpu-and-timestamp-in-alloc-free-info
-+++ a/mm/kfence/kfence.h
-@@ -36,6 +36,8 @@ enum kfence_object_state {
- /* Alloc/free tracking information. */
- struct kfence_track {
- 	pid_t pid;
-+	int cpu;
-+	u64 ts_nsec;
- 	int num_stack_entries;
- 	unsigned long stack_entries[KFENCE_STACK_DEPTH];
+-	void *target;
++	struct list_head region_targets;
  };
---- a/mm/kfence/report.c~kfence-show-cpu-and-timestamp-in-alloc-free-info
-+++ a/mm/kfence/report.c
-@@ -9,6 +9,7 @@
  
- #include <linux/kernel.h>
- #include <linux/lockdep.h>
-+#include <linux/math.h>
- #include <linux/printk.h>
- #include <linux/sched/debug.h>
- #include <linux/seq_file.h>
-@@ -100,6 +101,13 @@ static void kfence_print_stack(struct se
- 			       bool show_alloc)
++#define damon_next_region(r) \
++	(container_of(r->list.next, struct damon_region, list))
++
++#define damon_prev_region(r) \
++	(container_of(r->list.prev, struct damon_region, list))
++
++#define damon_for_each_region(r, t) \
++	list_for_each_entry(r, &t->regions_list, list)
++
++#define damon_for_each_region_safe(r, next, t) \
++	list_for_each_entry_safe(r, next, &t->regions_list, list)
++
++#define damon_for_each_target(t, ctx) \
++	list_for_each_entry(t, &(ctx)->region_targets, list)
++
++#define damon_for_each_target_safe(t, next, ctx)	\
++	list_for_each_entry_safe(t, next, &(ctx)->region_targets, list)
++
+ #ifdef CONFIG_DAMON
+ 
++struct damon_region *damon_new_region(unsigned long start, unsigned long end);
++inline void damon_insert_region(struct damon_region *r,
++		struct damon_region *prev, struct damon_region *next);
++void damon_add_region(struct damon_region *r, struct damon_target *t);
++void damon_destroy_region(struct damon_region *r);
++
++struct damon_target *damon_new_target(unsigned long id);
++void damon_add_target(struct damon_ctx *ctx, struct damon_target *t);
++void damon_free_target(struct damon_target *t);
++void damon_destroy_target(struct damon_target *t);
++
+ struct damon_ctx *damon_new_ctx(void);
+ void damon_destroy_ctx(struct damon_ctx *ctx);
+ int damon_set_attrs(struct damon_ctx *ctx, unsigned long sample_int,
+--- a/mm/damon/core.c~mm-damon-core-implement-region-based-sampling
++++ a/mm/damon/core.c
+@@ -15,6 +15,101 @@
+ static DEFINE_MUTEX(damon_lock);
+ static int nr_running_ctxs;
+ 
++/*
++ * Construct a damon_region struct
++ *
++ * Returns the pointer to the new struct if success, or NULL otherwise
++ */
++struct damon_region *damon_new_region(unsigned long start, unsigned long end)
++{
++	struct damon_region *region;
++
++	region = kmalloc(sizeof(*region), GFP_KERNEL);
++	if (!region)
++		return NULL;
++
++	region->ar.start = start;
++	region->ar.end = end;
++	region->nr_accesses = 0;
++	INIT_LIST_HEAD(&region->list);
++
++	return region;
++}
++
++/*
++ * Add a region between two other regions
++ */
++inline void damon_insert_region(struct damon_region *r,
++		struct damon_region *prev, struct damon_region *next)
++{
++	__list_add(&r->list, &prev->list, &next->list);
++}
++
++void damon_add_region(struct damon_region *r, struct damon_target *t)
++{
++	list_add_tail(&r->list, &t->regions_list);
++}
++
++static void damon_del_region(struct damon_region *r)
++{
++	list_del(&r->list);
++}
++
++static void damon_free_region(struct damon_region *r)
++{
++	kfree(r);
++}
++
++void damon_destroy_region(struct damon_region *r)
++{
++	damon_del_region(r);
++	damon_free_region(r);
++}
++
++/*
++ * Construct a damon_target struct
++ *
++ * Returns the pointer to the new struct if success, or NULL otherwise
++ */
++struct damon_target *damon_new_target(unsigned long id)
++{
++	struct damon_target *t;
++
++	t = kmalloc(sizeof(*t), GFP_KERNEL);
++	if (!t)
++		return NULL;
++
++	t->id = id;
++	INIT_LIST_HEAD(&t->regions_list);
++
++	return t;
++}
++
++void damon_add_target(struct damon_ctx *ctx, struct damon_target *t)
++{
++	list_add_tail(&t->list, &ctx->region_targets);
++}
++
++static void damon_del_target(struct damon_target *t)
++{
++	list_del(&t->list);
++}
++
++void damon_free_target(struct damon_target *t)
++{
++	struct damon_region *r, *next;
++
++	damon_for_each_region_safe(r, next, t)
++		damon_free_region(r);
++	kfree(t);
++}
++
++void damon_destroy_target(struct damon_target *t)
++{
++	damon_del_target(t);
++	damon_free_target(t);
++}
++
+ struct damon_ctx *damon_new_ctx(void)
  {
- 	const struct kfence_track *track = show_alloc ? &meta->alloc_track : &meta->free_track;
-+	u64 ts_sec = track->ts_nsec;
-+	unsigned long rem_nsec = do_div(ts_sec, NSEC_PER_SEC);
-+
-+	/* Timestamp matches printk timestamp format. */
-+	seq_con_printf(seq, "%s by task %d on cpu %d at %lu.%06lus:\n",
-+		       show_alloc ? "allocated" : "freed", track->pid,
-+		       track->cpu, (unsigned long)ts_sec, rem_nsec / 1000);
+ 	struct damon_ctx *ctx;
+@@ -32,15 +127,27 @@ struct damon_ctx *damon_new_ctx(void)
  
- 	if (track->num_stack_entries) {
- 		/* Skip allocation/free internals stack. */
-@@ -126,15 +134,14 @@ void kfence_print_object(struct seq_file
- 		return;
- 	}
+ 	mutex_init(&ctx->kdamond_lock);
  
--	seq_con_printf(seq,
--		       "kfence-#%td [0x%p-0x%p"
--		       ", size=%d, cache=%s] allocated by task %d:\n",
--		       meta - kfence_metadata, (void *)start, (void *)(start + size - 1), size,
--		       (cache && cache->name) ? cache->name : "<destroyed>", meta->alloc_track.pid);
-+	seq_con_printf(seq, "kfence-#%td: 0x%p-0x%p, size=%d, cache=%s\n\n",
-+		       meta - kfence_metadata, (void *)start, (void *)(start + size - 1),
-+		       size, (cache && cache->name) ? cache->name : "<destroyed>");
-+
- 	kfence_print_stack(seq, meta, true);
+-	ctx->target = NULL;
++	INIT_LIST_HEAD(&ctx->region_targets);
  
- 	if (meta->state == KFENCE_OBJECT_FREED) {
--		seq_con_printf(seq, "\nfreed by task %d:\n", meta->free_track.pid);
-+		seq_con_printf(seq, "\n");
- 		kfence_print_stack(seq, meta, false);
- 	}
+ 	return ctx;
  }
+ 
+-void damon_destroy_ctx(struct damon_ctx *ctx)
++static void damon_destroy_targets(struct damon_ctx *ctx)
+ {
+-	if (ctx->primitive.cleanup)
++	struct damon_target *t, *next_t;
++
++	if (ctx->primitive.cleanup) {
+ 		ctx->primitive.cleanup(ctx);
++		return;
++	}
++
++	damon_for_each_target_safe(t, next_t, ctx)
++		damon_destroy_target(t);
++}
++
++void damon_destroy_ctx(struct damon_ctx *ctx)
++{
++	damon_destroy_targets(ctx);
+ 	kfree(ctx);
+ }
+ 
+@@ -218,6 +325,21 @@ static bool kdamond_aggregate_interval_p
+ }
+ 
+ /*
++ * Reset the aggregated monitoring results ('nr_accesses' of each region).
++ */
++static void kdamond_reset_aggregated(struct damon_ctx *c)
++{
++	struct damon_target *t;
++
++	damon_for_each_target(t, c) {
++		struct damon_region *r;
++
++		damon_for_each_region(r, t)
++			r->nr_accesses = 0;
++	}
++}
++
++/*
+  * Check whether it is time to check and apply the target monitoring regions
+  *
+  * Returns true if it is.
+@@ -238,6 +360,7 @@ static bool kdamond_need_update_primitiv
+  */
+ static bool kdamond_need_stop(struct damon_ctx *ctx)
+ {
++	struct damon_target *t;
+ 	bool stop;
+ 
+ 	mutex_lock(&ctx->kdamond_lock);
+@@ -249,7 +372,12 @@ static bool kdamond_need_stop(struct dam
+ 	if (!ctx->primitive.target_valid)
+ 		return false;
+ 
+-	return !ctx->primitive.target_valid(ctx->target);
++	damon_for_each_target(t, ctx) {
++		if (ctx->primitive.target_valid(t))
++			return false;
++	}
++
++	return true;
+ }
+ 
+ static void set_kdamond_stop(struct damon_ctx *ctx)
+@@ -265,6 +393,8 @@ static void set_kdamond_stop(struct damo
+ static int kdamond_fn(void *data)
+ {
+ 	struct damon_ctx *ctx = (struct damon_ctx *)data;
++	struct damon_target *t;
++	struct damon_region *r, *next;
+ 
+ 	mutex_lock(&ctx->kdamond_lock);
+ 	pr_info("kdamond (%d) starts\n", ctx->kdamond->pid);
+@@ -291,6 +421,7 @@ static int kdamond_fn(void *data)
+ 			if (ctx->callback.after_aggregation &&
+ 					ctx->callback.after_aggregation(ctx))
+ 				set_kdamond_stop(ctx);
++			kdamond_reset_aggregated(ctx);
+ 			if (ctx->primitive.reset_aggregated)
+ 				ctx->primitive.reset_aggregated(ctx);
+ 		}
+@@ -300,6 +431,10 @@ static int kdamond_fn(void *data)
+ 				ctx->primitive.update(ctx);
+ 		}
+ 	}
++	damon_for_each_target(t, ctx) {
++		damon_for_each_region_safe(r, next, t)
++			damon_destroy_region(r);
++	}
+ 
+ 	if (ctx->callback.before_terminate &&
+ 			ctx->callback.before_terminate(ctx))
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from sjpark@amazon.de are
 
 
