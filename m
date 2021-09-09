@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5DFD2C43217
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 80138C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47FCB611C9
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6D698611C4
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346884AbhIIVEY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:04:24 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53486 "EHLO mail.kernel.org"
+        id S1348443AbhIIVEd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:04:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53530 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348640AbhIIVDm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:03:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 99D6E611ED;
-        Thu,  9 Sep 2021 21:02:21 +0000 (UTC)
+        id S1347563AbhIIVDn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:03:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 78C9F611CA;
+        Thu,  9 Sep 2021 21:02:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221341;
-        bh=11vEMl/c4eqmfxLrKZ8967ppCnYOzDSi/qGBsUxH+B8=;
+        s=korg; t=1631221346;
+        bh=85wTXEwHhgPYBAchTM7rl1QyjvAfBlCBooOF6HZgiyw=;
         h=Date:From:To:Subject:From;
-        b=tNkSNvkRuvK6xpaa4j4rv7iTGDZ0Wa7O2hz+5D6irjsbkMJJ7zqFcF3lFTYgDobZu
-         rCfo/WpdVCb7M++fZfDpGljUFbqiDWhgnP9ivIWl8O/4Zn59QCtjOGsbcQ8y7EGJbu
-         NXqqpyWSM8YuZDGSw7Uv0XsUq3CmFQEazB5Oiw9Y=
-Date:   Thu, 09 Sep 2021 14:02:21 -0700
+        b=vwTMh9YysiueG9BTKHWYkyWNqepHCl6uDQNfivMMw+8qfWq6G6T+V4MxRfIhXN9BS
+         /CqMd8xicqOFPIX3prqdE6unrZdltzALtRKIO0lngqxcYvUY/dIjhfd2lAupktx448
+         1h+x1+0ZrsgxEQ6dhltrBB25J7gy5etQpBuIemyU=
+Date:   Thu, 09 Sep 2021 14:02:26 -0700
 From:   akpm@linux-foundation.org
-To:     James.Bottomley@HansenPartnership.com, jordy@jordyzomer.github.io,
-        jordy@pwning.systems, keescook@chromium.org,
-        mm-commits@vger.kernel.org, rppt@kernel.org
-Subject:  [merged]
- mm-secretmem-use-refcount_t-instead-of-atomic_t.patch removed from -mm tree
-Message-ID: <20210909210221.S5oGqpvlm%akpm@linux-foundation.org>
+To:     dvyukov@google.com, elver@google.com, glider@google.com,
+        mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com
+Subject:  [merged] kfence-test-fail-fast-if-disabled-at-boot.patch
+ removed from -mm tree
+Message-ID: <20210909210226.6EHnRTTrZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,91 +43,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/secretmem: use refcount_t instead of atomic_t
+     Subject: kfence: test: fail fast if disabled at boot
 has been removed from the -mm tree.  Its filename was
-     mm-secretmem-use-refcount_t-instead-of-atomic_t.patch
+     kfence-test-fail-fast-if-disabled-at-boot.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jordy Zomer <jordy@jordyzomer.github.io>
-Subject: mm/secretmem: use refcount_t instead of atomic_t
+From: Marco Elver <elver@google.com>
+Subject: kfence: test: fail fast if disabled at boot
 
-When a secret memory region is active, memfd_secret disables hibernation. 
-One of the goals is to keep the secret data from being written to
-persistent-storage.
+Fail kfence_test fast if KFENCE was disabled at boot, instead of each test
+case trying several seconds to allocate from KFENCE and failing.  KUnit
+will fail all test cases if kunit_suite::init returns an error.
 
-It accomplishes this by maintaining a reference count to
-`secretmem_users`.  Once this reference is held your system can not be
-hibernated due to the check in `hibernation_available()`.  However,
-because `secretmem_users` is of type `atomic_t`, reference counter
-overflows are possible.
+Even if KFENCE was disabled, we still want the test to fail, so that CI
+systems that parse KUnit output will alert on KFENCE being disabled
+(accidentally or otherwise).
 
-As you can see there's an `atomic_inc` for each `memfd` that is opened in
-the `memfd_secret` syscall.  If a local attacker succeeds to open 2^32
-memfd's, the counter will wrap around to 0.  This implies that you may
-hibernate again, even though there are still regions of this secret
-memory, thereby bypassing the security check.
-
-In an attempt to fix this I have used `refcount_t` instead of `atomic_t`
-which prevents reference counter overflows.
-
-Link: https://lkml.kernel.org/r/20210820043339.2151352-1-jordy@pwning.systems
-Signed-off-by: Jordy Zomer <jordy@pwning.systems>
-Cc: Kees Cook <keescook@chromium.org>,
-Cc: Jordy Zomer <jordy@jordyzomer.github.io>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20210825105533.1247922-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Reported-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Tested-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/kfence/kfence_test.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/secretmem.c~mm-secretmem-use-refcount_t-instead-of-atomic_t
-+++ a/mm/secretmem.c
-@@ -18,6 +18,7 @@
- #include <linux/secretmem.h>
- #include <linux/set_memory.h>
- #include <linux/sched/signal.h>
-+#include <linux/refcount.h>
+--- a/mm/kfence/kfence_test.c~kfence-test-fail-fast-if-disabled-at-boot
++++ a/mm/kfence/kfence_test.c
+@@ -789,6 +789,9 @@ static int test_init(struct kunit *test)
+ 	unsigned long flags;
+ 	int i;
  
- #include <uapi/linux/magic.h>
- 
-@@ -40,11 +41,11 @@ module_param_named(enable, secretmem_ena
- MODULE_PARM_DESC(secretmem_enable,
- 		 "Enable secretmem and memfd_secret(2) system call");
- 
--static atomic_t secretmem_users;
-+static refcount_t secretmem_users;
- 
- bool secretmem_active(void)
- {
--	return !!atomic_read(&secretmem_users);
-+	return !!refcount_read(&secretmem_users);
- }
- 
- static vm_fault_t secretmem_fault(struct vm_fault *vmf)
-@@ -103,7 +104,7 @@ static const struct vm_operations_struct
- 
- static int secretmem_release(struct inode *inode, struct file *file)
- {
--	atomic_dec(&secretmem_users);
-+	refcount_dec(&secretmem_users);
- 	return 0;
- }
- 
-@@ -217,7 +218,7 @@ SYSCALL_DEFINE1(memfd_secret, unsigned i
- 	file->f_flags |= O_LARGEFILE;
- 
- 	fd_install(fd, file);
--	atomic_inc(&secretmem_users);
-+	refcount_inc(&secretmem_users);
- 	return fd;
- 
- err_put_fd:
++	if (!__kfence_pool)
++		return -EINVAL;
++
+ 	spin_lock_irqsave(&observed.lock, flags);
+ 	for (i = 0; i < ARRAY_SIZE(observed.lines); i++)
+ 		observed.lines[i][0] = '\0';
 _
 
-Patches currently in -mm which might be from jordy@jordyzomer.github.io are
+Patches currently in -mm which might be from elver@google.com are
 
 
