@@ -7,36 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFF65C4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69859C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A6D74611C7
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 579CE611B0
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:05:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346720AbhIIVHA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:07:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56396 "EHLO mail.kernel.org"
+        id S1347849AbhIIVHE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:07:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347859AbhIIVGk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:06:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9574E611BD;
-        Thu,  9 Sep 2021 21:05:30 +0000 (UTC)
+        id S1348000AbhIIVGr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:06:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 83E346120D;
+        Thu,  9 Sep 2021 21:05:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221530;
-        bh=7ie/jqVcN/jfS9tiQjUpL+wAaJB3/fEP40Mq2ZOfzyA=;
+        s=korg; t=1631221537;
+        bh=2iGJj2GXGymjzoP114PMyDxupPN3atrXWTPotS5QUwI=;
         h=Date:From:To:Subject:From;
-        b=PGgpbUOQIK0ywD/4qLBhSr3McH+yc3/+2k4aal92EYfT0lZ1SkDy96MWVkq7zgQXk
-         ypmAwFbcKrmy74rxCBca9P9zz7EkJk8s3XLETOIvb3Wsz6MWRWb3CpGNk9ee/97v99
-         8fPcut9pIpmuQIar1gfhQKmUAcHx9qDcga2qvDgs=
-Date:   Thu, 09 Sep 2021 14:05:30 -0700
+        b=WKAxazA/yDWzS649S1K3+oo4bT0cqWUATY6GgYGEr/vlHdBHA1Sp3SyS3/qbVzHyj
+         3MMSY74hpY31kW7mHuNrxRUA+6H6dcbWDkacTaLocAQsCCvH4wSG3u57W4AG6SG/hO
+         iAVa/1cCJwWt4xWcFdISGveXN4O1sMidqQTPp3cE=
+Date:   Thu, 09 Sep 2021 14:05:37 -0700
 From:   akpm@linux-foundation.org
-To:     babu.moger@oracle.com, dzickus@redhat.com, lukas.bulwahn@gmail.com,
-        masahiroy@kernel.org, mm-commits@vger.kernel.org,
-        npiggin@gmail.com, rdunlap@infradead.org
-Subject:  [merged]
- kconfigdebug-drop-selecting-non-existing-hardlockup_detector_arch.patch
+To:     mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        willy@infradead.org
+Subject:  [merged] mm-workingset-correct-kernel-doc-notations.patch
  removed from -mm tree
-Message-ID: <20210909210530.7RUhZcGHF%akpm@linux-foundation.org>
+Message-ID: <20210909210537.oA4Q7GjHY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,52 +43,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Kconfig.debug: drop selecting non-existing HARDLOCKUP_DETECTOR_ARCH
+     Subject: mm/workingset: correct kernel-doc notations
 has been removed from the -mm tree.  Its filename was
-     kconfigdebug-drop-selecting-non-existing-hardlockup_detector_arch.patch
+     mm-workingset-correct-kernel-doc-notations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: Kconfig.debug: drop selecting non-existing HARDLOCKUP_DETECTOR_ARCH
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm/workingset: correct kernel-doc notations
 
-Commit 05a4a9527931 ("kernel/watchdog: split up config options") adds a
-new config HARDLOCKUP_DETECTOR, which selects the non-existing config
-HARDLOCKUP_DETECTOR_ARCH.
+Use the documented kernel-doc format to prevent kernel-doc warnings.
 
-Hence, ./scripts/checkkconfigsymbols.py warns:
+mm/workingset.c:256: warning: No description found for return value of 'workingset_eviction'
+mm/workingset.c:285: warning: Function parameter or member 'folio' not described in 'workingset_refault'
+mm/workingset.c:285: warning: Excess function parameter 'page' description in 'workingset_refault'
 
-HARDLOCKUP_DETECTOR_ARCH Referencing files: lib/Kconfig.debug
-
-Simply drop selecting the non-existing HARDLOCKUP_DETECTOR_ARCH.
-
-Link: https://lkml.kernel.org/r/20210806115618.22088-1-lukas.bulwahn@gmail.com
-Fixes: 05a4a9527931 ("kernel/watchdog: split up config options")
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Babu Moger <babu.moger@oracle.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20210808203153.10678-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 -
- 1 file changed, 1 deletion(-)
+ mm/workingset.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/lib/Kconfig.debug~kconfigdebug-drop-selecting-non-existing-hardlockup_detector_arch
-+++ a/lib/Kconfig.debug
-@@ -1062,7 +1062,6 @@ config HARDLOCKUP_DETECTOR
- 	depends on HAVE_HARDLOCKUP_DETECTOR_PERF || HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	select LOCKUP_DETECTOR
- 	select HARDLOCKUP_DETECTOR_PERF if HAVE_HARDLOCKUP_DETECTOR_PERF
--	select HARDLOCKUP_DETECTOR_ARCH if HAVE_HARDLOCKUP_DETECTOR_ARCH
- 	help
- 	  Say Y here to enable the kernel to act as a watchdog to detect
- 	  hard lockups.
+--- a/mm/workingset.c~mm-workingset-correct-kernel-doc-notations
++++ a/mm/workingset.c
+@@ -249,7 +249,7 @@ void workingset_age_nonresident(struct l
+  * @target_memcg: the cgroup that is causing the reclaim
+  * @page: the page being evicted
+  *
+- * Returns a shadow entry to be stored in @page->mapping->i_pages in place
++ * Return: a shadow entry to be stored in @page->mapping->i_pages in place
+  * of the evicted @page so that a later refault can be detected.
+  */
+ void *workingset_eviction(struct page *page, struct mem_cgroup *target_memcg)
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
 
