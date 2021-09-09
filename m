@@ -7,34 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC138C43217
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFA88C4167D
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA0E1611C4
+	by mail.kernel.org (Postfix) with ESMTP id CE517611C4
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244755AbhIIVFi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:05:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53700 "EHLO mail.kernel.org"
+        id S1346320AbhIIVFj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:05:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53530 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348518AbhIIVEh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:04:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D15361179;
-        Thu,  9 Sep 2021 21:03:27 +0000 (UTC)
+        id S1348439AbhIIVEd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:04:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 687B7611CA;
+        Thu,  9 Sep 2021 21:03:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221407;
-        bh=wVYf0BK0Upr7H95pwEk01iTJnsJ5MN/IpD6WhZzEQvM=;
+        s=korg; t=1631221403;
+        bh=wCLTk0OryhOH0h8o0MB2POu/xovFtAmaBYQyGwz5fUU=;
         h=Date:From:To:Subject:From;
-        b=2nymarlbThEkXx9oLSSo4sM6W0HIwhZG0df8GaCTQnl5jeJYok7eiLP5TcouvVY9C
-         aBAYgpFbZ08erj2RI+NZXgIrW8D0850LYqk6yAGZODAZh+3GfmoDWrxff96zKLmmKW
-         f1R/0BI9NsGvmTS8XYz8oy60Zh+twL7dp+fhO2iU=
-Date:   Thu, 09 Sep 2021 14:03:27 -0700
+        b=feKF6mUmSmy/B3QADJvRJ8zbdvb5+ohxEn3VUTGSoYsm67yOKmWxkqbVXu56Dk4u0
+         B7e6jqclnDhQ/2tV/I/fxYAUX4nsIGLmkYNjhAdaoyZJaWF0GQBilWhKDDxx+6Fth1
+         XahpIaCCRh0b6Lfc62Cac+erDJ9L+zwI4wkAHYCM=
+Date:   Thu, 09 Sep 2021 14:03:23 -0700
 From:   akpm@linux-foundation.org
-To:     colin.king@canonical.com, mm-commits@vger.kernel.org
+To:     adobriyan@gmail.com, christian.brauner@ubuntu.com, hch@lst.de,
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- arch-kconfig-fix-spelling-mistake-seperate-separate.patch removed from -mm
- tree
-Message-ID: <20210909210327.hzKxa0QQt%akpm@linux-foundation.org>
+ proc-stop-using-seq_get_buf-in-proc_task_name.patch removed from -mm tree
+Message-ID: <20210909210323.TifPA0GXO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,39 +43,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch: Kconfig: fix spelling mistake "seperate" -> "separate"
+     Subject: proc: stop using seq_get_buf in proc_task_name
 has been removed from the -mm tree.  Its filename was
-     arch-kconfig-fix-spelling-mistake-seperate-separate.patch
+     proc-stop-using-seq_get_buf-in-proc_task_name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: arch: Kconfig: fix spelling mistake "seperate" -> "separate"
+From: Christoph Hellwig <hch@lst.de>
+Subject: proc: stop using seq_get_buf in proc_task_name
 
-Threre is a spelling mistake in the Kconfig text. Fix it.
+Use seq_escape_str and seq_printf instead of poking holes into the
+seq_file abstraction.
 
-Link: https://lkml.kernel.org/r/20210704095207.37342-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Link: https://lkml.kernel.org/r/20210810151945.1795567-1-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/array.c |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
---- a/arch/Kconfig~arch-kconfig-fix-spelling-mistake-seperate-separate
-+++ a/arch/Kconfig
-@@ -886,7 +886,7 @@ config HAVE_SOFTIRQ_ON_OWN_STACK
- 	bool
- 	help
- 	  Architecture provides a function to run __do_softirq() on a
--	  seperate stack.
-+	  separate stack.
+--- a/fs/proc/array.c~proc-stop-using-seq_get_buf-in-proc_task_name
++++ a/fs/proc/array.c
+@@ -98,27 +98,17 @@
  
- config PGTABLE_LEVELS
- 	int
+ void proc_task_name(struct seq_file *m, struct task_struct *p, bool escape)
+ {
+-	char *buf;
+-	size_t size;
+ 	char tcomm[64];
+-	int ret;
+ 
+ 	if (p->flags & PF_WQ_WORKER)
+ 		wq_worker_comm(tcomm, sizeof(tcomm), p);
+ 	else
+ 		__get_task_comm(tcomm, sizeof(tcomm), p);
+ 
+-	size = seq_get_buf(m, &buf);
+-	if (escape) {
+-		ret = string_escape_str(tcomm, buf, size,
+-					ESCAPE_SPACE | ESCAPE_SPECIAL, "\n\\");
+-		if (ret >= size)
+-			ret = -1;
+-	} else {
+-		ret = strscpy(buf, tcomm, size);
+-	}
+-
+-	seq_commit(m, ret);
++	if (escape)
++		seq_escape_str(m, tcomm, ESCAPE_SPACE | ESCAPE_SPECIAL, "\n\\");
++	else
++		seq_printf(m, "%.64s", tcomm);
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from hch@lst.de are
 
+mm-unexport-folio_memcg_unlock.patch
+mm-unexport-unlock_page_memcg.patch
 
