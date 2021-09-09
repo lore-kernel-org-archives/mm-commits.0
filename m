@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D576CC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2BB4C433F5
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD33A611B0
+	by mail.kernel.org (Postfix) with ESMTP id D346D611BF
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:00:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233573AbhIIVBh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S237492AbhIIVBh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 9 Sep 2021 17:01:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49632 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:49602 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245624AbhIIVBe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:01:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AFE1861179;
-        Thu,  9 Sep 2021 21:00:24 +0000 (UTC)
+        id S241083AbhIIVBc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:01:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ABA5161026;
+        Thu,  9 Sep 2021 21:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221225;
-        bh=i0zteznFRxZOv1hb9v8+t2ZMNGqweJVo+ILocPBevHE=;
+        s=korg; t=1631221223;
+        bh=uN2rcfQEMekEqeEiE5uijF3XZ2HI7p929uKv5cWK6Bg=;
         h=Date:From:To:Subject:From;
-        b=AqjFjt5DKFwWcbePUedA736ubmatbR/LfjFkQClum3Xi47Vbi9PN4xewxM8Y21oQh
-         nV2OeeARDcIgc3rCEY24kfBCRWLXk+G5+rJWhhZzx4iXw9uqyDufSBvBxlVg/sJL0Y
-         f2U8LAYQM8U7pCLafXHr0ONVXPeuebF2T4LUUt6Q=
-Date:   Thu, 09 Sep 2021 14:00:24 -0700
+        b=mGy+4lF40a/HsA7I5U+6ENHomTAHsaqlWgBP0TIkbGwhyhSrOyUcPIcNHZAPqyqEt
+         6NnOzgQs5ONEblAam7sisQ3bqb3ItyaXb3GJ/699HFv7cEIsmvk3ISQOLq268Ozxkj
+         jzZDFGHEZo/OZaL85LuoGgolK6hIiMi+AdUx8wn4=
+Date:   Thu, 09 Sep 2021 14:00:22 -0700
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
         efault@gmx.de, iamjoonsoo.kim@lge.com, jannh@google.com,
@@ -36,9 +36,9 @@ To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
         penberg@kernel.org, quic_qiancai@quicinc.com, rientjes@google.com,
         tglx@linutronix.de, vbabka@suse.cz
 Subject:  [merged]
- mm-slub-extract-get_partial-from-new_slab_objects.patch removed from -mm
- tree
-Message-ID: <20210909210024.Zd4TFtdBG%akpm@linux-foundation.org>
+ mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
+ removed from -mm tree
+Message-ID: <20210909210022.xctGJqwJM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,26 +47,33 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: extract get_partial() from new_slab_objects()
+     Subject: mm, slub: remove redundant unfreeze_partials() from put_cpu_partial()
 has been removed from the -mm tree.  Its filename was
-     mm-slub-extract-get_partial-from-new_slab_objects.patch
+     mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: extract get_partial() from new_slab_objects()
+Subject: mm, slub: remove redundant unfreeze_partials() from put_cpu_partial()
 
-The later patches will need more fine grained control over individual
-actions in ___slab_alloc(), the only caller of new_slab_objects(), so this
-is a first preparatory step with no functional change.
+Commit d6e0b7fa1186 ("slub: make dead caches discard free slabs
+immediately") introduced cpu partial flushing for kmemcg caches, based on
+setting the target cpu_partial to 0 and adding a flushing check in
+put_cpu_partial().  This code that sets cpu_partial to 0 was later moved
+by c9fc586403e7 ("slab: introduce __kmemcg_cache_deactivate()") and
+ultimately removed by 9855609bde03 ("mm: memcg/slab: use a single set of
+kmem_caches for all accounted allocations").  However the check and flush
+in put_cpu_partial() was never removed, although it's effectively a dead
+code.  So this patch removes it.
 
-This adds a goto label that appears unnecessary at this point, but will be
-useful for later changes.
+Note that d6e0b7fa1186 also added preempt_disable()/enable() to
+unfreeze_partials() which could be thus also considered unnecessary.  But
+further patches will rely on it, so keep it.
 
-Link: https://lkml.kernel.org/r/20210904105003.11688-7-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20210904105003.11688-6-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Jann Horn <jannh@google.com>
 Cc: Jesper Dangaard Brouer <brouer@redhat.com>
@@ -80,49 +87,25 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/slub.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/mm/slub.c~mm-slub-extract-get_partial-from-new_slab_objects
+--- a/mm/slub.c~mm-slub-remove-redundant-unfreeze_partials-from-put_cpu_partial
 +++ a/mm/slub.c
-@@ -2613,17 +2613,12 @@ slab_out_of_memory(struct kmem_cache *s,
- static inline void *new_slab_objects(struct kmem_cache *s, gfp_t flags,
- 			int node, struct kmem_cache_cpu **pc)
- {
--	void *freelist;
-+	void *freelist = NULL;
- 	struct kmem_cache_cpu *c = *pc;
- 	struct page *page;
+@@ -2466,13 +2466,6 @@ static void put_cpu_partial(struct kmem_
  
- 	WARN_ON_ONCE(s->ctor && (flags & __GFP_ZERO));
- 
--	freelist = get_partial(s, flags, node, c);
+ 	} while (this_cpu_cmpxchg(s->cpu_slab->partial, oldpage, page)
+ 								!= oldpage);
+-	if (unlikely(!slub_cpu_partial(s))) {
+-		unsigned long flags;
 -
--	if (freelist)
--		return freelist;
--
- 	page = new_slab(s, flags, node);
- 	if (page) {
- 		c = raw_cpu_ptr(s->cpu_slab);
-@@ -2787,6 +2782,10 @@ new_slab:
- 		goto redo;
- 	}
- 
-+	freelist = get_partial(s, gfpflags, node, c);
-+	if (freelist)
-+		goto check_new_page;
-+
- 	freelist = new_slab_objects(s, gfpflags, node, &c);
- 
- 	if (unlikely(!freelist)) {
-@@ -2794,6 +2793,7 @@ new_slab:
- 		return NULL;
- 	}
- 
-+check_new_page:
- 	page = c->page;
- 	if (likely(!kmem_cache_debug(s) && pfmemalloc_match(page, gfpflags)))
- 		goto load_freelist;
+-		local_irq_save(flags);
+-		unfreeze_partials(s, this_cpu_ptr(s->cpu_slab));
+-		local_irq_restore(flags);
+-	}
+ 	preempt_enable();
+ #endif	/* CONFIG_SLUB_CPU_PARTIAL */
+ }
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
