@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9951BC433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:38:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CC4C8C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:56:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7C1EA611AD
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:38:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A343A6103E
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 20:56:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245624AbhIIUjc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 16:39:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43704 "EHLO mail.kernel.org"
+        id S231572AbhIIU6G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 16:58:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48356 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245195AbhIIUjc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 16:39:32 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 141266113A;
-        Thu,  9 Sep 2021 20:38:22 +0000 (UTC)
+        id S233573AbhIIU6G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 16:58:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 221A16103D;
+        Thu,  9 Sep 2021 20:56:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631219902;
-        bh=tIRM0Op5mYl9J9KJhZyC7QRI+rA3pprat69hd4TsrtM=;
+        s=korg; t=1631221016;
+        bh=NhAkxdBLtReY+KpDJLQTdGLzLp2A7v33nc/fOIFg4sg=;
         h=Date:From:To:Subject:From;
-        b=dJJLpyyE0K8dIVtlHTKdTmuQc3itm10AkDRAzmMIIrn5gW4xw8FVkIQNZ7UR2Kh6w
-         bIJSCsEZHWYbtSpihGzvn+NDwnNn8KDNuogOKubEfLIeCw7vC+DpbLM2/QOT+qo5gN
-         GeIGRYyV10s1m33iSzY8lvonTiXDx7IusXL5o8WI=
-Date:   Thu, 09 Sep 2021 13:38:21 -0700
+        b=okhG4WpzKdhePYKde9g1Y49evxoglniNMyGScUB+QHXhlfwnIYIl371F9xkSJUExl
+         NvTGvKV6FOPZ+wSUvfGqym6dZ/30lByD3TUAyt3GjOX3KLX6b7CPjKFyVr9Cix/5+e
+         12b4GQ1iOKaVnQlP7Qre5iMEt5cUHjOwa6UzayMU=
+Date:   Thu, 09 Sep 2021 13:56:55 -0700
 From:   akpm@linux-foundation.org
-To:     borntraeger@de.ibm.com, gor@linux.ibm.com, hca@linux.ibm.com,
-        hch@lst.de, jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  [to-be-updated]
- mm-gup-remove-try_get_page-call-try_get_compound_head-directly.patch
- removed from -mm tree
-Message-ID: <20210909203821.l3lYZIcM4%akpm@linux-foundation.org>
+To:     David.Laight@aculab.com, drew@beagleboard.org, guoren@kernel.org,
+        hch@infradead.org, kernel@esmil.dk, mcroce@microsoft.com,
+        mick@ics.forth.gr, mm-commits@vger.kernel.org,
+        ndesaulniers@google.com, palmer@dabbelt.com
+Subject:  [to-be-updated] lib-string-optimized-memcpy.patch removed
+ from -mm tree
+Message-ID: <20210909205655.V1FtsBQA4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,118 +45,225 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: remove try_get_page(), call try_get_compound_head() directly
+     Subject: lib/string: optimized memcpy
 has been removed from the -mm tree.  Its filename was
-     mm-gup-remove-try_get_page-call-try_get_compound_head-directly.patch
+     lib-string-optimized-memcpy.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: remove try_get_page(), call try_get_compound_head() directly
+From: Matteo Croce <mcroce@microsoft.com>
+Subject: lib/string: optimized memcpy
 
-try_get_page() is very similar to try_get_compound_head(), and in fact
-try_get_page() has fallen a little behind in terms of maintenance:
-try_get_compound_head() handles speculative page references more
-thoroughly.
+Patch series "lib/string: optimized mem* functions", v2.
 
-There are only two try_get_page() callsites, so just call
-try_get_compound_head() directly from those, and remove try_get_page()
-entirely.
+Rewrite the generic mem{cpy,move,set} so that memory is accessed with the
+widest size possible, but without doing unaligned accesses.
 
-Also, seeing as how this changes try_get_compound_head() into a non-static
-function, provide some kerneldoc documentation for it.
+This was originally posted as C string functions for RISC-V[1], but as
+there was no specific RISC-V code, it was proposed for the generic
+lib/string.c implementation.
 
-Link: https://lkml.kernel.org/r/20210813044133.1536842-4-jhubbard@nvidia.com
-Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Heiko Carstens <hca@linux.ibm.com>
-Cc: Vasily Gorbik <gor@linux.ibm.com>
+Tested on RISC-V and on x86_64 by undefining __HAVE_ARCH_MEM{CPY,SET,MOVE}
+and HAVE_EFFICIENT_UNALIGNED_ACCESS.
+
+These are the performances of memcpy() and memset() of a RISC-V machine on
+a 32 mbyte buffer:
+
+memcpy:
+original aligned:	 75 Mb/s
+original unaligned:	 75 Mb/s
+new aligned:		114 Mb/s
+new unaligned:		107 Mb/s
+
+memset:
+original aligned:	140 Mb/s
+original unaligned:	140 Mb/s
+new aligned:		241 Mb/s
+new unaligned:		241 Mb/s
+
+The size increase is negligible:
+
+$ scripts/bloat-o-meter vmlinux.orig vmlinux
+add/remove: 0/0 grow/shrink: 4/1 up/down: 427/-6 (421)
+Function                                     old     new   delta
+memcpy                                        29     351    +322
+memset                                        29     117     +88
+strlcat                                       68      78     +10
+strlcpy                                       50      57      +7
+memmove                                       56      50      -6
+Total: Before=8556964, After=8557385, chg +0.00%
+
+These functions will be used for RISC-V initially.
+
+[1] https://lore.kernel.org/linux-riscv/20210617152754.17960-1-mcroce@linux.microsoft.com/
+
+The only architecture which will use all the three function will be riscv,
+while memmove() will be used by arc, h8300, hexagon, ia64, openrisc and
+parisc.
+
+Keep in mind that memmove() isn't anything special, it just calls memcpy()
+when possible (e.g.  buffers not overlapping), and fallbacks to the byte
+by byte copy otherwise.
+
+In future we can write two functions, one which copies forward and another
+one which copies backward, and call the right one depending on the buffers
+position.  Then, we could alias memcpy() and memmove(), as proposed by
+Linus: https://bugzilla.redhat.com/show_bug.cgi?id=638477#c132
+
+
+
+This patch (of 3):
+
+Rewrite the generic memcpy() to copy a word at time, without generating
+unaligned accesses.
+
+The procedure is made of three steps: First copy data one byte at time
+until the destination buffer is aligned to a long boundary.  Then copy the
+data one long at time shifting the current and the next long to compose a
+long at every cycle.  Finally, copy the remainder one byte at time.
+
+This is the improvement on RISC-V:
+
+original aligned:	 75 Mb/s
+original unaligned:	 75 Mb/s
+new aligned:		114 Mb/s
+new unaligned:		107 Mb/s
+
+and this the binary size increase according to bloat-o-meter:
+
+Function     old     new   delta
+memcpy        36     324    +288
+
+Link: https://lkml.kernel.org/r/20210702123153.14093-1-mcroce@linux.microsoft.com
+Link: https://lkml.kernel.org/r/20210702123153.14093-2-mcroce@linux.microsoft.com
+Signed-off-by: Matteo Croce <mcroce@microsoft.com>
+Cc: Nick Kossifidis <mick@ics.forth.gr>
+Cc: Guo Ren <guoren@kernel.org>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: David Laight <David.Laight@aculab.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Emil Renner Berthing <kernel@esmil.dk>
+Cc: Drew Fustini <drew@beagleboard.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/fault.c |    2 +-
- fs/pipe.c            |    2 +-
- include/linux/mm.h   |   10 +---------
- mm/gup.c             |   21 +++++++++++++++++----
- 4 files changed, 20 insertions(+), 15 deletions(-)
+ lib/string.c |   80 +++++++++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 77 insertions(+), 3 deletions(-)
 
---- a/arch/s390/mm/fault.c~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
-+++ a/arch/s390/mm/fault.c
-@@ -817,7 +817,7 @@ void do_secure_storage_access(struct pt_
- 		break;
- 	case KERNEL_FAULT:
- 		page = phys_to_page(addr);
--		if (unlikely(!try_get_page(page)))
-+		if (unlikely(!try_get_compound_head(page, 1)))
- 			break;
- 		rc = arch_make_page_accessible(page);
- 		put_page(page);
---- a/fs/pipe.c~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
-+++ a/fs/pipe.c
-@@ -191,7 +191,7 @@ EXPORT_SYMBOL(generic_pipe_buf_try_steal
+--- a/lib/string.c~lib-string-optimized-memcpy
++++ a/lib/string.c
+@@ -33,6 +33,23 @@
+ #include <asm/word-at-a-time.h>
+ #include <asm/page.h>
+ 
++#define BYTES_LONG	sizeof(long)
++#define WORD_MASK	(BYTES_LONG - 1)
++#define MIN_THRESHOLD	(BYTES_LONG * 2)
++
++/* convenience union to avoid cast between different pointer types */
++union types {
++	u8 *as_u8;
++	unsigned long *as_ulong;
++	uintptr_t as_uptr;
++};
++
++union const_types {
++	const u8 *as_u8;
++	const unsigned long *as_ulong;
++	uintptr_t as_uptr;
++};
++
+ #ifndef __HAVE_ARCH_STRNCASECMP
+ /**
+  * strncasecmp - Case insensitive, length-limited string comparison
+@@ -869,6 +886,13 @@ EXPORT_SYMBOL(memset64);
+ #endif
+ 
+ #ifndef __HAVE_ARCH_MEMCPY
++
++#ifdef __BIG_ENDIAN
++#define MERGE_UL(h, l, d) ((h) << ((d) * 8) | (l) >> ((BYTES_LONG - (d)) * 8))
++#else
++#define MERGE_UL(h, l, d) ((h) >> ((d) * 8) | (l) << ((BYTES_LONG - (d)) * 8))
++#endif
++
+ /**
+  * memcpy - Copy one area of memory to another
+  * @dest: Where to copy to
+@@ -880,14 +904,64 @@ EXPORT_SYMBOL(memset64);
   */
- bool generic_pipe_buf_get(struct pipe_inode_info *pipe, struct pipe_buffer *buf)
+ void *memcpy(void *dest, const void *src, size_t count)
  {
--	return try_get_page(buf->page);
-+	return try_get_compound_head(buf->page, 1);
+-	char *tmp = dest;
+-	const char *s = src;
++	union const_types s = { .as_u8 = src };
++	union types d = { .as_u8 = dest };
++	int distance = 0;
++
++	if (!IS_ENABLED(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)) {
++		if (count < MIN_THRESHOLD)
++			goto copy_remainder;
++
++		/* Copy a byte at time until destination is aligned. */
++		for (; d.as_uptr & WORD_MASK; count--)
++			*d.as_u8++ = *s.as_u8++;
++
++		distance = s.as_uptr & WORD_MASK;
++	}
++
++	if (distance) {
++		unsigned long last, next;
+ 
++		/*
++		 * s is distance bytes ahead of d, and d just reached
++		 * the alignment boundary. Move s backward to word align it
++		 * and shift data to compensate for distance, in order to do
++		 * word-by-word copy.
++		 */
++		s.as_u8 -= distance;
++
++		next = s.as_ulong[0];
++		for (; count >= BYTES_LONG; count -= BYTES_LONG) {
++			last = next;
++			next = s.as_ulong[1];
++
++			d.as_ulong[0] = MERGE_UL(last, next, distance);
++
++			d.as_ulong++;
++			s.as_ulong++;
++		}
++
++		/* Restore s with the original offset. */
++		s.as_u8 += distance;
++	} else {
++		/*
++		 * If the source and dest lower bits are the same, do a simple
++		 * 32/64 bit wide copy.
++		 */
++		for (; count >= BYTES_LONG; count -= BYTES_LONG)
++			*d.as_ulong++ = *s.as_ulong++;
++	}
++
++copy_remainder:
+ 	while (count--)
+-		*tmp++ = *s++;
++		*d.as_u8++ = *s.as_u8++;
++
+ 	return dest;
  }
- EXPORT_SYMBOL(generic_pipe_buf_get);
+ EXPORT_SYMBOL(memcpy);
++
++#undef MERGE_UL
++
+ #endif
  
---- a/include/linux/mm.h~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
-+++ a/include/linux/mm.h
-@@ -1217,15 +1217,7 @@ bool __must_check try_grab_page(struct p
- struct page *try_grab_compound_head(struct page *page, int refs,
- 				    unsigned int flags);
- 
--
--static inline __must_check bool try_get_page(struct page *page)
--{
--	page = compound_head(page);
--	if (WARN_ON_ONCE(page_ref_count(page) <= 0))
--		return false;
--	page_ref_inc(page);
--	return true;
--}
-+struct page *try_get_compound_head(struct page *page, int refs);
- 
- static inline void put_page(struct page *page)
- {
---- a/mm/gup.c~mm-gup-remove-try_get_page-call-try_get_compound_head-directly
-+++ a/mm/gup.c
-@@ -62,11 +62,24 @@ static void put_page_refs(struct page *p
- 	put_page(page);
- }
- 
--/*
-- * Return the compound head page with ref appropriately incremented,
-- * or NULL if that failed.
-+/**
-+ * try_get_compound_head() - return the compound head page with refcount
-+ * appropriately incremented, or NULL if that failed.
-+ *
-+ * This handles potential refcount overflow correctly. It also works correclty
-+ * for various lockless get_user_pages()-related callers, due to the use of
-+ * page_cache_add_speculative().
-+ *
-+ * Even though the name includes "compound_head", this function is still
-+ * appropriate for callers that have a non-compound @page to get.
-+ *
-+ * @page:  pointer to page to be gotten
-+ * @refs:  the value to add to the page's refcount
-+ *
-+ * Return: head page (with refcount appropriately incremented) for success, or
-+ * NULL upon failure.
-  */
--static inline struct page *try_get_compound_head(struct page *page, int refs)
-+struct page *try_get_compound_head(struct page *page, int refs)
- {
- 	struct page *head = compound_head(page);
- 
+ #ifndef __HAVE_ARCH_MEMMOVE
 _
 
-Patches currently in -mm which might be from jhubbard@nvidia.com are
+Patches currently in -mm which might be from mcroce@microsoft.com are
 
+lib-string-optimized-memmove.patch
+lib-string-optimized-memset.patch
 
