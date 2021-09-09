@@ -7,39 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84493C4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CA30C4321E
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F54E611B0
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 58F88611C4
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:04:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346024AbhIIVFg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:05:36 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54790 "EHLO mail.kernel.org"
+        id S1344885AbhIIVFi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:05:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54604 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347624AbhIIVEr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:04:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B2F2611CC;
-        Thu,  9 Sep 2021 21:03:37 +0000 (UTC)
+        id S244755AbhIIVEf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:04:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 69EFB6109F;
+        Thu,  9 Sep 2021 21:03:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221418;
-        bh=x7hHDIfhO05PREdA63A65yoYFR0hol592MpvpEt0B/E=;
+        s=korg; t=1631221405;
+        bh=AZI2pVmLZXITRDVJclTwS84gXnSQTXsdgoLBGctJ0pA=;
         h=Date:From:To:Subject:From;
-        b=NaZphm4n6i79OZ/Gs0a2YvL6gxgGVTEE7qgqjT3r8ExGpD/4+Ds+E3egqo1pJQkeS
-         c8Sb1MQvoP2Mb5/StzHnIPBrradaRgHJvMX/OtK6tzKNK9Q3Pwi7UZsfaT9g5Fk5vk
-         ELP80++jhGB0gdD0Mw5EInyT4kNjwqRk5bR+jj4s=
-Date:   Thu, 09 Sep 2021 14:03:37 -0700
+        b=rUq9n9jwf9oPZPK8QgvZKV5Uoa97H1j8e5mr/hAwySEojtBUDWEJymT7A6UYzhZ73
+         h1D5XgErsQb93ENiVS3msJKwMi9mcKRIrQx68vp4klPvZJWmFLDlDVqIOXGMSi8VQW
+         VR3gqOiOWdHNT3ixxQXHc6acPyHO3J8BYQZVruo8=
+Date:   Thu, 09 Sep 2021 14:03:25 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, ceggers@arri.de,
-        cw00.choi@samsung.com, daniel.lezcano@linaro.org, jic23@kernel.org,
-        Jonathan.Cameron@huawei.com, kyungmin.park@samsung.com,
-        lars@metafoo.de, linux@roeck-us.net, lukasz.luba@arm.com,
-        mcoquelin.stm32@gmail.com, miquel.raynal@bootlin.com,
-        mm-commits@vger.kernel.org, myungjoo.ham@samsung.com,
-        pmeerw@pmeerw.net, rafael@kernel.org, rui.zhang@intel.com
-Subject:  [merged]
- thermal-drivers-devfreq_cooling-use-hz-macros.patch removed from -mm tree
-Message-ID: <20210909210337.WakKh63kh%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, christian.brauner@ubuntu.com,
+        davem@davemloft.net, ebiederm@xmission.com, mingo@kernel.org,
+        mm-commits@vger.kernel.org, ohoono.kwon@samsung.com
+Subject:  [merged] connector-send-event-on-write-to-proc-comm.patch
+ removed from -mm tree
+Message-ID: <20210909210325.9XOFOkAKo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,61 +44,60 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thermal/drivers/devfreq_cooling: use HZ macros
+     Subject: connector: send event on write to /proc/[pid]/comm
 has been removed from the -mm tree.  Its filename was
-     thermal-drivers-devfreq_cooling-use-hz-macros.patch
+     connector-send-event-on-write-to-proc-comm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: thermal/drivers/devfreq_cooling: use HZ macros
+From: Ohhoon Kwon <ohoono.kwon@samsung.com>
+Subject: connector: send event on write to /proc/[pid]/comm
 
-HZ unit conversion macros are available in units.h, use them and remove
-the duplicate definition.
+While comm change event via prctl has been reported to proc connector by
+'commit f786ecba4158 ("connector: add comm change event report to proc
+connector")', connector listeners were missing comm changes by explicit
+writes on /proc/[pid]/comm.
 
-The new macro uses a unsigned long type which is already the type in the
-current code via the 'freq' variable.
+Let explicit writes on /proc/[pid]/comm report to proc connector.
 
-Link: https://lkml.kernel.org/r/20210816114732.1834145-4-daniel.lezcano@linaro.org
-Signed-off-by: Daniel Lezcano <daniel.lezcano@linaro.org>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Christian Eggers <ceggers@arri.de>
-Cc: Chanwoo Choi <cw00.choi@samsung.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Jonathan Cameron <jic23@kernel.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Lars-Peter Clausen <lars@metafoo.de>
-Cc: Lukasz Luba <lukasz.luba@arm.com>
-Cc: Maxime Coquelin <mcoquelin.stm32@gmail.com>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>
-Cc: MyungJoo Ham <myungjoo.ham@samsung.com>
-Cc: Peter Meerwald <pmeerw@pmeerw.net>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
+Link: https://lkml.kernel.org/r/20210701133458epcms1p68e9eb9bd0eee8903ba26679a37d9d960@epcms1p6
+Signed-off-by: Ohhoon Kwon <ohoono.kwon@samsung.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/thermal/devfreq_cooling.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/base.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/drivers/thermal/devfreq_cooling.c~thermal-drivers-devfreq_cooling-use-hz-macros
-+++ a/drivers/thermal/devfreq_cooling.c
-@@ -18,10 +18,10 @@
- #include <linux/pm_opp.h>
- #include <linux/pm_qos.h>
- #include <linux/thermal.h>
-+#include <linux/units.h>
+--- a/fs/proc/base.c~connector-send-event-on-write-to-proc-comm
++++ a/fs/proc/base.c
+@@ -95,6 +95,7 @@
+ #include <linux/posix-timers.h>
+ #include <linux/time_namespace.h>
+ #include <linux/resctrl.h>
++#include <linux/cn_proc.h>
+ #include <trace/events/oom.h>
+ #include "internal.h"
+ #include "fd.h"
+@@ -1674,8 +1675,10 @@ static ssize_t comm_write(struct file *f
+ 	if (!p)
+ 		return -ESRCH;
  
- #include <trace/events/thermal.h>
+-	if (same_thread_group(current, p))
++	if (same_thread_group(current, p)) {
+ 		set_task_comm(p, buffer);
++		proc_comm_connector(p);
++	}
+ 	else
+ 		count = -EINVAL;
  
--#define HZ_PER_KHZ		1000
- #define SCALE_ERROR_MITIGATION	100
- 
- /**
 _
 
-Patches currently in -mm which might be from daniel.lezcano@linaro.org are
+Patches currently in -mm which might be from ohoono.kwon@samsung.com are
 
 
