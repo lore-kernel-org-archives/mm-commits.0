@@ -7,38 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 43B52C4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DFB1C43217
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2D5DD611AD
+	by mail.kernel.org (Postfix) with ESMTP id 1DF6E6103D
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:01:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345899AbhIIVCf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1346217AbhIIVCf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 9 Sep 2021 17:02:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50830 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:50760 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345990AbhIIVCb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:02:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9308061179;
-        Thu,  9 Sep 2021 21:01:21 +0000 (UTC)
+        id S1345897AbhIIVC3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 17:02:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A38E61026;
+        Thu,  9 Sep 2021 21:01:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221282;
-        bh=N9dygt4jLBIxti9dbs7GWcPeqCspx04EK7quH5lnchU=;
+        s=korg; t=1631221279;
+        bh=l8rURialS/Ytr2Ybv5Y8qxQ3Gf4yNrHeiZ4ZJldBqXE=;
         h=Date:From:To:Subject:From;
-        b=sBtDd+Da3G8qU4dbAEgXfndPd3EU6lWCL5Y+PO8ES40Gen9QiY3+v77VYUbsSa/Mw
-         4L/TNNofk8rxgUX/TuNlM5bq8dBe6+dZpAAr1/qXxupRUm5Tf69HYCw+9+CoaQV2U0
-         klXtN6rAWByWSq17O3rX8ZodpS736WDIhJhz1fCI=
-Date:   Thu, 09 Sep 2021 14:01:21 -0700
+        b=DX+xR+AtTanCcjUiaM2J+UJ8Ea7SPcb2XRdc8e4NiSNuzt/uPH3QNJ8REiL8Ut/rL
+         OaoaDpu+DV1yC1gzGH+Vvc720uUzQyhmzFlyK6lXDihyf5RvKQFrtS/GmDSa7WlIac
+         Wk9wpfjE8BOZ0cgZ1w2jbrT8cit0zCbGIUIc03PM=
+Date:   Thu, 09 Sep 2021 14:01:19 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, corbet@lwn.net,
-        dave.hansen@linux.intel.com, david@redhat.com, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, pasha.tatashin@soleen.com, rppt@linux.ibm.com,
-        sfr@canb.auug.org.au, songmuchun@bytedance.com, willy@infradead.org
+To:     bigeasy@linutronix.de, brouer@redhat.com, cl@linux.com,
+        iamjoonsoo.kim@lge.com, jannh@google.com,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        penberg@kernel.org, quic_qiancai@quicinc.com, rientjes@google.com,
+        tglx@linutronix.de, vbabka@suse.cz
 Subject:  [merged]
- memory-hotplugrst-remove-locking-details-from-admin-guide.patch removed
- from -mm tree
-Message-ID: <20210909210121.uYLJ4mAhI%akpm@linux-foundation.org>
+ mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch removed from
+ -mm tree
+Message-ID: <20210909210119.aXEkO6nFH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,95 +47,447 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug.rst: remove locking details from admin-guide
+     Subject: mm, slub: convert kmem_cpu_slab protection to local_lock
 has been removed from the -mm tree.  Its filename was
-     memory-hotplugrst-remove-locking-details-from-admin-guide.patch
+     mm-slub-convert-kmem_cpu_slab-protection-to-local_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: memory-hotplug.rst: remove locking details from admin-guide
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, slub: convert kmem_cpu_slab protection to local_lock
 
-Patch series "memory-hotplug.rst: complete admin-guide overhaul", v3.
+Embed local_lock into struct kmem_cpu_slab and use the irq-safe versions
+of local_lock instead of plain local_irq_save/restore.  On !PREEMPT_RT
+that's equivalent, with better lockdep visibility.  On PREEMPT_RT that
+means better preemption.
 
+However, the cost on PREEMPT_RT is the loss of lockless fast paths which
+only work with cpu freelist.  Those are designed to detect and recover
+from being preempted by other conflicting operations (both fast or slow
+path), but the slow path operations assume they cannot be preempted by a
+fast path operation, which is guaranteed naturally with disabled irqs. 
+With local locks on PREEMPT_RT, the fast paths now also need to take the
+local lock to avoid races.
 
-This patch (of 2):
+In the allocation fastpath slab_alloc_node() we can just defer to the
+slowpath __slab_alloc() which also works with cpu freelist, but under the
+local lock.  In the free fastpath do_slab_free() we have to add a new
+local lock protected version of freeing to the cpu freelist, as the
+existing slowpath only works with the page freelist.
 
-We have the same content at Documentation/core-api/memory-hotplug.rst and
-it doesn't fit into the admin-guide.  The documentation was accidentially
-duplicated when merging.
+Also update the comment about locking scheme in SLUB to reflect changes
+done by this series.
 
-Link: https://lkml.kernel.org/r/20210707073205.3835-1-david@redhat.com
-Link: https://lkml.kernel.org/r/20210707073205.3835-2-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Mike Rapoport <rppt@linux.ibm.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+[ Mike Galbraith <efault@gmx.de>: use local_lock() without irq in PREEMPT_RT
+  scope; debugging of RT crashes resulting in put_cpu_partial() locking changes ]
+Link: https://lkml.kernel.org/r/20210904105003.11688-34-vbabka@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Qian Cai <quic_qiancai@quicinc.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/memory-hotplug.rst |   39 --------------
- 1 file changed, 39 deletions(-)
+ include/linux/slub_def.h |    6 +
+ mm/slub.c                |  146 ++++++++++++++++++++++++++++---------
+ 2 files changed, 117 insertions(+), 35 deletions(-)
 
---- a/Documentation/admin-guide/mm/memory-hotplug.rst~memory-hotplugrst-remove-locking-details-from-admin-guide
-+++ a/Documentation/admin-guide/mm/memory-hotplug.rst
-@@ -415,45 +415,6 @@ Need more implementation yet....
-  - Guard from remove if not yet.
+--- a/include/linux/slub_def.h~mm-slub-convert-kmem_cpu_slab-protection-to-local_lock
++++ a/include/linux/slub_def.h
+@@ -10,6 +10,7 @@
+ #include <linux/kfence.h>
+ #include <linux/kobject.h>
+ #include <linux/reciprocal_div.h>
++#include <linux/local_lock.h>
  
+ enum stat_item {
+ 	ALLOC_FASTPATH,		/* Allocation from cpu slab */
+@@ -40,6 +41,10 @@ enum stat_item {
+ 	CPU_PARTIAL_DRAIN,	/* Drain cpu partial to node partial */
+ 	NR_SLUB_STAT_ITEMS };
  
--Locking Internals
--=================
--
--When adding/removing memory that uses memory block devices (i.e. ordinary RAM),
--the device_hotplug_lock should be held to:
--
--- synchronize against online/offline requests (e.g. via sysfs). This way, memory
--  block devices can only be accessed (.online/.state attributes) by user
--  space once memory has been fully added. And when removing memory, we
--  know nobody is in critical sections.
--- synchronize against CPU hotplug and similar (e.g. relevant for ACPI and PPC)
--
--Especially, there is a possible lock inversion that is avoided using
--device_hotplug_lock when adding memory and user space tries to online that
--memory faster than expected:
--
--- device_online() will first take the device_lock(), followed by
--  mem_hotplug_lock
--- add_memory_resource() will first take the mem_hotplug_lock, followed by
--  the device_lock() (while creating the devices, during bus_add_device()).
--
--As the device is visible to user space before taking the device_lock(), this
--can result in a lock inversion.
--
--onlining/offlining of memory should be done via device_online()/
--device_offline() - to make sure it is properly synchronized to actions
--via sysfs. Holding device_hotplug_lock is advised (to e.g. protect online_type)
--
--When adding/removing/onlining/offlining memory or adding/removing
--heterogeneous/device memory, we should always hold the mem_hotplug_lock in
--write mode to serialise memory hotplug (e.g. access to global/zone
--variables).
--
--In addition, mem_hotplug_lock (in contrast to device_hotplug_lock) in read
--mode allows for a quite efficient get_online_mems/put_online_mems
--implementation, so code accessing memory can protect from that memory
--vanishing.
--
--
- Future Work
- ===========
++/*
++ * When changing the layout, make sure freelist and tid are still compatible
++ * with this_cpu_cmpxchg_double() alignment requirements.
++ */
+ struct kmem_cache_cpu {
+ 	void **freelist;	/* Pointer to next available object */
+ 	unsigned long tid;	/* Globally unique transaction id */
+@@ -47,6 +52,7 @@ struct kmem_cache_cpu {
+ #ifdef CONFIG_SLUB_CPU_PARTIAL
+ 	struct page *partial;	/* Partially allocated frozen slabs */
+ #endif
++	local_lock_t lock;	/* Protects the fields above */
+ #ifdef CONFIG_SLUB_STATS
+ 	unsigned stat[NR_SLUB_STAT_ITEMS];
+ #endif
+--- a/mm/slub.c~mm-slub-convert-kmem_cpu_slab-protection-to-local_lock
++++ a/mm/slub.c
+@@ -46,13 +46,21 @@
+ /*
+  * Lock order:
+  *   1. slab_mutex (Global Mutex)
+- *   2. node->list_lock
+- *   3. slab_lock(page) (Only on some arches and for debugging)
++ *   2. node->list_lock (Spinlock)
++ *   3. kmem_cache->cpu_slab->lock (Local lock)
++ *   4. slab_lock(page) (Only on some arches or for debugging)
++ *   5. object_map_lock (Only for debugging)
+  *
+  *   slab_mutex
+  *
+  *   The role of the slab_mutex is to protect the list of all the slabs
+  *   and to synchronize major metadata changes to slab cache structures.
++ *   Also synchronizes memory hotplug callbacks.
++ *
++ *   slab_lock
++ *
++ *   The slab_lock is a wrapper around the page lock, thus it is a bit
++ *   spinlock.
+  *
+  *   The slab_lock is only used for debugging and on arches that do not
+  *   have the ability to do a cmpxchg_double. It only protects:
+@@ -61,6 +69,8 @@
+  *	C. page->objects	-> Number of objects in page
+  *	D. page->frozen		-> frozen state
+  *
++ *   Frozen slabs
++ *
+  *   If a slab is frozen then it is exempt from list management. It is not
+  *   on any list except per cpu partial list. The processor that froze the
+  *   slab is the one who can perform list operations on the page. Other
+@@ -68,6 +78,8 @@
+  *   froze the slab is the only one that can retrieve the objects from the
+  *   page's freelist.
+  *
++ *   list_lock
++ *
+  *   The list_lock protects the partial and full list on each node and
+  *   the partial slab counter. If taken then no new slabs may be added or
+  *   removed from the lists nor make the number of partial slabs be modified.
+@@ -79,10 +91,36 @@
+  *   slabs, operations can continue without any centralized lock. F.e.
+  *   allocating a long series of objects that fill up slabs does not require
+  *   the list lock.
+- *   Interrupts are disabled during allocation and deallocation in order to
+- *   make the slab allocator safe to use in the context of an irq. In addition
+- *   interrupts are disabled to ensure that the processor does not change
+- *   while handling per_cpu slabs, due to kernel preemption.
++ *
++ *   cpu_slab->lock local lock
++ *
++ *   This locks protect slowpath manipulation of all kmem_cache_cpu fields
++ *   except the stat counters. This is a percpu structure manipulated only by
++ *   the local cpu, so the lock protects against being preempted or interrupted
++ *   by an irq. Fast path operations rely on lockless operations instead.
++ *   On PREEMPT_RT, the local lock does not actually disable irqs (and thus
++ *   prevent the lockless operations), so fastpath operations also need to take
++ *   the lock and are no longer lockless.
++ *
++ *   lockless fastpaths
++ *
++ *   The fast path allocation (slab_alloc_node()) and freeing (do_slab_free())
++ *   are fully lockless when satisfied from the percpu slab (and when
++ *   cmpxchg_double is possible to use, otherwise slab_lock is taken).
++ *   They also don't disable preemption or migration or irqs. They rely on
++ *   the transaction id (tid) field to detect being preempted or moved to
++ *   another cpu.
++ *
++ *   irq, preemption, migration considerations
++ *
++ *   Interrupts are disabled as part of list_lock or local_lock operations, or
++ *   around the slab_lock operation, in order to make the slab allocator safe
++ *   to use in the context of an irq.
++ *
++ *   In addition, preemption (or migration on PREEMPT_RT) is disabled in the
++ *   allocation slowpath, bulk allocation, and put_cpu_partial(), so that the
++ *   local cpu doesn't change in the process and e.g. the kmem_cache_cpu pointer
++ *   doesn't have to be revalidated in each section protected by the local lock.
+  *
+  * SLUB assigns one slab for allocation to each processor.
+  * Allocations only occur from these slabs called cpu slabs.
+@@ -2250,9 +2288,13 @@ static inline void note_cmpxchg_failure(
+ static void init_kmem_cache_cpus(struct kmem_cache *s)
+ {
+ 	int cpu;
++	struct kmem_cache_cpu *c;
  
+-	for_each_possible_cpu(cpu)
+-		per_cpu_ptr(s->cpu_slab, cpu)->tid = init_tid(cpu);
++	for_each_possible_cpu(cpu) {
++		c = per_cpu_ptr(s->cpu_slab, cpu);
++		local_lock_init(&c->lock);
++		c->tid = init_tid(cpu);
++	}
+ }
+ 
+ /*
+@@ -2463,10 +2505,10 @@ static void unfreeze_partials(struct kme
+ 	struct page *partial_page;
+ 	unsigned long flags;
+ 
+-	local_irq_save(flags);
++	local_lock_irqsave(&s->cpu_slab->lock, flags);
+ 	partial_page = this_cpu_read(s->cpu_slab->partial);
+ 	this_cpu_write(s->cpu_slab->partial, NULL);
+-	local_irq_restore(flags);
++	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 
+ 	if (partial_page)
+ 		__unfreeze_partials(s, partial_page);
+@@ -2499,7 +2541,7 @@ static void put_cpu_partial(struct kmem_
+ 	int pages = 0;
+ 	int pobjects = 0;
+ 
+-	local_irq_save(flags);
++	local_lock_irqsave(&s->cpu_slab->lock, flags);
+ 
+ 	oldpage = this_cpu_read(s->cpu_slab->partial);
+ 
+@@ -2527,7 +2569,7 @@ static void put_cpu_partial(struct kmem_
+ 
+ 	this_cpu_write(s->cpu_slab->partial, page);
+ 
+-	local_irq_restore(flags);
++	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 
+ 	if (page_to_unfreeze) {
+ 		__unfreeze_partials(s, page_to_unfreeze);
+@@ -2549,7 +2591,7 @@ static inline void flush_slab(struct kme
+ 	struct page *page;
+ 	void *freelist;
+ 
+-	local_irq_save(flags);
++	local_lock_irqsave(&s->cpu_slab->lock, flags);
+ 
+ 	page = c->page;
+ 	freelist = c->freelist;
+@@ -2558,7 +2600,7 @@ static inline void flush_slab(struct kme
+ 	c->freelist = NULL;
+ 	c->tid = next_tid(c->tid);
+ 
+-	local_irq_restore(flags);
++	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 
+ 	if (page) {
+ 		deactivate_slab(s, page, freelist);
+@@ -2780,8 +2822,6 @@ static inline bool pfmemalloc_match_unsa
+  * The page is still frozen if the return value is not NULL.
+  *
+  * If this function returns NULL then the page has been unfrozen.
+- *
+- * This function must be called with interrupt disabled.
+  */
+ static inline void *get_freelist(struct kmem_cache *s, struct page *page)
+ {
+@@ -2789,6 +2829,8 @@ static inline void *get_freelist(struct
+ 	unsigned long counters;
+ 	void *freelist;
+ 
++	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock));
++
+ 	do {
+ 		freelist = page->freelist;
+ 		counters = page->counters;
+@@ -2873,9 +2915,9 @@ redo:
+ 		goto deactivate_slab;
+ 
+ 	/* must check again c->page in case we got preempted and it changed */
+-	local_irq_save(flags);
++	local_lock_irqsave(&s->cpu_slab->lock, flags);
+ 	if (unlikely(page != c->page)) {
+-		local_irq_restore(flags);
++		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 		goto reread_page;
+ 	}
+ 	freelist = c->freelist;
+@@ -2886,7 +2928,7 @@ redo:
+ 
+ 	if (!freelist) {
+ 		c->page = NULL;
+-		local_irq_restore(flags);
++		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 		stat(s, DEACTIVATE_BYPASS);
+ 		goto new_slab;
+ 	}
+@@ -2895,7 +2937,7 @@ redo:
+ 
+ load_freelist:
+ 
+-	lockdep_assert_irqs_disabled();
++	lockdep_assert_held(this_cpu_ptr(&s->cpu_slab->lock));
+ 
+ 	/*
+ 	 * freelist is pointing to the list of objects to be used.
+@@ -2905,39 +2947,39 @@ load_freelist:
+ 	VM_BUG_ON(!c->page->frozen);
+ 	c->freelist = get_freepointer(s, freelist);
+ 	c->tid = next_tid(c->tid);
+-	local_irq_restore(flags);
++	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 	return freelist;
+ 
+ deactivate_slab:
+ 
+-	local_irq_save(flags);
++	local_lock_irqsave(&s->cpu_slab->lock, flags);
+ 	if (page != c->page) {
+-		local_irq_restore(flags);
++		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 		goto reread_page;
+ 	}
+ 	freelist = c->freelist;
+ 	c->page = NULL;
+ 	c->freelist = NULL;
+-	local_irq_restore(flags);
++	local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 	deactivate_slab(s, page, freelist);
+ 
+ new_slab:
+ 
+ 	if (slub_percpu_partial(c)) {
+-		local_irq_save(flags);
++		local_lock_irqsave(&s->cpu_slab->lock, flags);
+ 		if (unlikely(c->page)) {
+-			local_irq_restore(flags);
++			local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 			goto reread_page;
+ 		}
+ 		if (unlikely(!slub_percpu_partial(c))) {
+-			local_irq_restore(flags);
++			local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 			/* we were preempted and partial list got empty */
+ 			goto new_objects;
+ 		}
+ 
+ 		page = c->page = slub_percpu_partial(c);
+ 		slub_set_percpu_partial(c, page);
+-		local_irq_restore(flags);
++		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 		stat(s, CPU_PARTIAL_ALLOC);
+ 		goto redo;
+ 	}
+@@ -2990,7 +3032,7 @@ check_new_page:
+ 
+ retry_load_page:
+ 
+-	local_irq_save(flags);
++	local_lock_irqsave(&s->cpu_slab->lock, flags);
+ 	if (unlikely(c->page)) {
+ 		void *flush_freelist = c->freelist;
+ 		struct page *flush_page = c->page;
+@@ -2999,7 +3041,7 @@ retry_load_page:
+ 		c->freelist = NULL;
+ 		c->tid = next_tid(c->tid);
+ 
+-		local_irq_restore(flags);
++		local_unlock_irqrestore(&s->cpu_slab->lock, flags);
+ 
+ 		deactivate_slab(s, flush_page, flush_freelist);
+ 
+@@ -3118,7 +3160,15 @@ redo:
+ 
+ 	object = c->freelist;
+ 	page = c->page;
+-	if (unlikely(!object || !page || !node_match(page, node))) {
++	/*
++	 * We cannot use the lockless fastpath on PREEMPT_RT because if a
++	 * slowpath has taken the local_lock_irqsave(), it is not protected
++	 * against a fast path operation in an irq handler. So we need to take
++	 * the slow path which uses local_lock. It is still relatively fast if
++	 * there is a suitable cpu freelist.
++	 */
++	if (IS_ENABLED(CONFIG_PREEMPT_RT) ||
++	    unlikely(!object || !page || !node_match(page, node))) {
+ 		object = __slab_alloc(s, gfpflags, node, addr, c);
+ 	} else {
+ 		void *next_object = get_freepointer_safe(s, object);
+@@ -3378,6 +3428,7 @@ redo:
+ 	barrier();
+ 
+ 	if (likely(page == c->page)) {
++#ifndef CONFIG_PREEMPT_RT
+ 		void **freelist = READ_ONCE(c->freelist);
+ 
+ 		set_freepointer(s, tail_obj, freelist);
+@@ -3390,6 +3441,31 @@ redo:
+ 			note_cmpxchg_failure("slab_free", s, tid);
+ 			goto redo;
+ 		}
++#else /* CONFIG_PREEMPT_RT */
++		/*
++		 * We cannot use the lockless fastpath on PREEMPT_RT because if
++		 * a slowpath has taken the local_lock_irqsave(), it is not
++		 * protected against a fast path operation in an irq handler. So
++		 * we need to take the local_lock. We shouldn't simply defer to
++		 * __slab_free() as that wouldn't use the cpu freelist at all.
++		 */
++		void **freelist;
++
++		local_lock(&s->cpu_slab->lock);
++		c = this_cpu_ptr(s->cpu_slab);
++		if (unlikely(page != c->page)) {
++			local_unlock(&s->cpu_slab->lock);
++			goto redo;
++		}
++		tid = c->tid;
++		freelist = c->freelist;
++
++		set_freepointer(s, tail_obj, freelist);
++		c->freelist = head;
++		c->tid = next_tid(tid);
++
++		local_unlock(&s->cpu_slab->lock);
++#endif
+ 		stat(s, FREE_FASTPATH);
+ 	} else
+ 		__slab_free(s, page, head, tail_obj, cnt, addr);
+@@ -3568,7 +3644,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 	 * handlers invoking normal fastpath.
+ 	 */
+ 	c = slub_get_cpu_ptr(s->cpu_slab);
+-	local_irq_disable();
++	local_lock_irq(&s->cpu_slab->lock);
+ 
+ 	for (i = 0; i < size; i++) {
+ 		void *object = kfence_alloc(s, s->object_size, flags);
+@@ -3589,7 +3665,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 			 */
+ 			c->tid = next_tid(c->tid);
+ 
+-			local_irq_enable();
++			local_unlock_irq(&s->cpu_slab->lock);
+ 
+ 			/*
+ 			 * Invoking slow path likely have side-effect
+@@ -3603,7 +3679,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 			c = this_cpu_ptr(s->cpu_slab);
+ 			maybe_wipe_obj_freeptr(s, p[i]);
+ 
+-			local_irq_disable();
++			local_lock_irq(&s->cpu_slab->lock);
+ 
+ 			continue; /* goto for-loop */
+ 		}
+@@ -3612,7 +3688,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 		maybe_wipe_obj_freeptr(s, p[i]);
+ 	}
+ 	c->tid = next_tid(c->tid);
+-	local_irq_enable();
++	local_unlock_irq(&s->cpu_slab->lock);
+ 	slub_put_cpu_ptr(s->cpu_slab);
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
