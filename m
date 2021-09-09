@@ -7,34 +7,33 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DABFAC433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 034D9C4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFC4C611C2
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DDCB1611CB
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:03:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346787AbhIIVEW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:04:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52148 "EHLO mail.kernel.org"
+        id S1346848AbhIIVEX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 17:04:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53204 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347756AbhIIVDa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1348570AbhIIVDa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Thu, 9 Sep 2021 17:03:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6A8EF611C3;
-        Thu,  9 Sep 2021 21:02:12 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 788C7611C2;
+        Thu,  9 Sep 2021 21:02:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221332;
-        bh=c4qoy8odPrSbDkW6TnCEWvwV7sOAPCgWy8hDuOKYHRI=;
+        s=korg; t=1631221338;
+        bh=SyfnN2jcJ6OXRffKlZAz8AEvLABRyixl3iGeL/vZBY4=;
         h=Date:From:To:Subject:From;
-        b=ERcHnBE9msGnLnmvCrlARHk2OTOTHsndxXrkuitMc0ozF1w62+fOxTo86c30EhsxT
-         KyYELyhNnorkwUsQ0HGmJQpuRu5spC5wYGURdS73L2jjVcw3DzrjFJX+0w5+eR0q9U
-         p7NxhAqtAsep+XV52U0kvVrcPGarVhpiI3HSmXy4=
-Date:   Thu, 09 Sep 2021 14:02:12 -0700
+        b=V9igkY5CRKSvfwNCvy3o8dqwqRJbk79htM4AHP0viXsRTGagQ4KeeDTLJPFx06ltx
+         NDPU5qRqb55qM3A7hMnH2N/bBGmoleVfnl0/FxZFTsPKTbImeOjYVxW6Rc38Io2BQM
+         utSsxhH96vzB17dG38fKLs7/4yFqSDxrLZJrMLjo=
+Date:   Thu, 09 Sep 2021 14:02:18 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, mm-commits@vger.kernel.org, npiggin@gmail.com,
-        peterz@infradead.org
-Subject:  [merged] mm-dont-allow-executable-ioremap-mappings.patch
- removed from -mm tree
-Message-ID: <20210909210212.zwtyXEOY9%akpm@linux-foundation.org>
+To:     catalin.marinas@arm.com, changbin.du@gmail.com,
+        mm-commits@vger.kernel.org
+Subject:  [merged] mm-in_irq-cleanup.patch removed from -mm tree
+Message-ID: <20210909210218.1H6zHiMzN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,44 +42,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: don't allow executable ioremap mappings
+     Subject: mm: in_irq() cleanup
 has been removed from the -mm tree.  Its filename was
-     mm-dont-allow-executable-ioremap-mappings.patch
+     mm-in_irq-cleanup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: don't allow executable ioremap mappings
+From: Changbin Du <changbin.du@gmail.com>
+Subject: mm: in_irq() cleanup
 
-There is no need to execute from iomem (and most platforms it is
-impossible anyway), so add the pgprot_nx() call similar to vmap.
+Replace the obsolete and ambiguos macro in_irq() with new macro
+in_hardirq().
 
-Link: https://lkml.kernel.org/r/20210824091259.1324527-3-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20210813145245.86070-1-changbin.du@gmail.com
+Signed-off-by: Changbin Du <changbin.du@gmail.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>	[kmemleak]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/highmem.c  |    2 +-
+ mm/kmemleak.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmalloc.c~mm-dont-allow-executable-ioremap-mappings
-+++ a/mm/vmalloc.c
-@@ -316,7 +316,7 @@ int ioremap_page_range(unsigned long add
- {
- 	int err;
+--- a/mm/highmem.c~mm-in_irq-cleanup
++++ a/mm/highmem.c
+@@ -436,7 +436,7 @@ EXPORT_SYMBOL(zero_user_segments);
  
--	err = vmap_range_noflush(addr, end, phys_addr, prot,
-+	err = vmap_range_noflush(addr, end, phys_addr, pgprot_nx(prot),
- 				 ioremap_max_page_shift);
- 	flush_cache_vmap(addr, end);
- 	return err;
+ static inline int kmap_local_idx_push(void)
+ {
+-	WARN_ON_ONCE(in_irq() && !irqs_disabled());
++	WARN_ON_ONCE(in_hardirq() && !irqs_disabled());
+ 	current->kmap_ctrl.idx += KM_INCR;
+ 	BUG_ON(current->kmap_ctrl.idx >= KM_MAX_IDX);
+ 	return current->kmap_ctrl.idx - 1;
+--- a/mm/kmemleak.c~mm-in_irq-cleanup
++++ a/mm/kmemleak.c
+@@ -598,7 +598,7 @@ static struct kmemleak_object *create_ob
+ 	object->checksum = 0;
+ 
+ 	/* task information */
+-	if (in_irq()) {
++	if (in_hardirq()) {
+ 		object->pid = 0;
+ 		strncpy(object->comm, "hardirq", sizeof(object->comm));
+ 	} else if (in_serving_softirq()) {
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from changbin.du@gmail.com are
 
-mm-unexport-folio_memcg_unlock.patch
-mm-unexport-unlock_page_memcg.patch
 
