@@ -2,116 +2,89 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-5.2 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	USER_AGENT_SANE_1 autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,
+	MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham autolearn_force=no
+	version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5E9DC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 02:34:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB49DC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 03:09:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C505261153
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 02:34:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9CDAA610C8
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 03:09:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229611AbhIJCfb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 22:35:31 -0400
-Received: from mga11.intel.com ([192.55.52.93]:31844 "EHLO mga11.intel.com"
+        id S229785AbhIJDLA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 23:11:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48804 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229461AbhIJCfa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 22:35:30 -0400
-X-IronPort-AV: E=McAfee;i="6200,9189,10102"; a="217806030"
-X-IronPort-AV: E=Sophos;i="5.85,282,1624345200"; 
-   d="scan'208";a="217806030"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga102.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 09 Sep 2021 19:34:20 -0700
-X-ExtLoop1: 1
-X-IronPort-AV: E=Sophos;i="5.85,282,1624345200"; 
-   d="scan'208";a="540095773"
-Received: from shbuild999.sh.intel.com (HELO localhost) ([10.239.146.151])
-  by FMSMGA003.fm.intel.com with ESMTP; 09 Sep 2021 19:34:16 -0700
-Date:   Fri, 10 Sep 2021 10:34:15 +0800
-From:   Feng Tang <feng.tang@intel.com>
-To:     Shakeel Butt <shakeelb@google.com>
-Cc:     kernel test robot <oliver.sang@intel.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        0day robot <lkp@intel.com>,
-        Marek Szyprowski <m.szyprowski@samsung.com>,
-        Hillf Danton <hdanton@sina.com>,
-        Huang Ying <ying.huang@intel.com>,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        Michal Hocko <mhocko@kernel.org>,
-        Michal Koutn?? <mkoutny@suse.com>,
-        Muchun Song <songmuchun@bytedance.com>,
-        Roman Gushchin <guro@fb.com>, Tejun Heo <tj@kernel.org>,
-        LKML <linux-kernel@vger.kernel.org>, lkp@lists.01.org,
-        Xing Zhengjun <zhengjun.xing@linux.intel.com>,
-        Linux MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [memcg] 45208c9105: aim7.jobs-per-min -14.0% regression
-Message-ID: <20210910023415.GB94434@shbuild999.sh.intel.com>
-References: <20210902215504.dSSfDKJZu%akpm@linux-foundation.org>
- <20210905124439.GA15026@xsang-OptiPlex-9020>
- <CALvZod77aP7qdwc5FkaZJf4FikeD0NwSuoJB4N94Uf0yqZFQpQ@mail.gmail.com>
- <20210907033000.GA88160@shbuild999.sh.intel.com>
- <CALvZod6M_sySPM1KaWzb=tkLxXJksVDrSheckXaiBpMC3cNeqw@mail.gmail.com>
- <20210910010842.GA94434@shbuild999.sh.intel.com>
- <CALvZod5_L55RLzwOXh_5C+v9rjVQ4_FEaEB2QYS5+6kuHpHpQg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CALvZod5_L55RLzwOXh_5C+v9rjVQ4_FEaEB2QYS5+6kuHpHpQg@mail.gmail.com>
-User-Agent: Mutt/1.5.24 (2015-08-30)
+        id S229461AbhIJDK7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 23:10:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 558E7600CC;
+        Fri, 10 Sep 2021 03:09:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1631243389;
+        bh=k5M+dC02uZd8hljTHru4d+S3cHV/kZ2w8eoFWLMjwZA=;
+        h=Date:From:To:Cc:Subject:From;
+        b=Npl3RHghT6pjGFAT+JSTCAbRuw0mRwZSelVBPNGes/AWXVflqyb4xlO6kUtXGOJkT
+         mwYWep7txbqoCsqXTZyhNRaxWVSNXWDWbDM13MdRbPHvgkMXgzxBg0Smx2p6e3ZtTR
+         hV+jA9FJFm3cb0/VusAnJunP0pVl75AV3mU4muEk=
+Date:   Thu, 9 Sep 2021 20:09:48 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org
+Subject: incoming
+Message-Id: <20210909200948.090d4e213ca34b5ad1325a7e@linux-foundation.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Sep 09, 2021 at 06:19:06PM -0700, Shakeel Butt wrote:
-[...]
-> > > > > I am looking into this. I was hoping we have resolution for [1] as
-> > > > > these patches touch similar data structures.
-> > > > >
-> > > > > [1] https://lore.kernel.org/all/20210811031734.GA5193@xsang-OptiPlex-9020/T/#u
-> > > >
-> > > > I tried 2 debug methods for that 36.4% vm-scalability regression:
-> > > >
-> > > > 1. Disable the HW cache prefetcher, no effect on this case
-> > > > 2. relayout and add padding to 'struct cgroup_subsys_state', reduce
-> > > >    the regression to 3.1%
-> > > >
-> > >
-> > > Thanks Feng but it seems like the issue for this commit is different.
-> > > Rearranging the layout didn't help. Actually the cause of slowdown is
-> > > the call to queue_work() inside __mod_memcg_lruvec_state().
-> > >
-> > > At the moment, queue_work() is called after 32 updates. I changed it
-> > > to 128 and the slowdown of will-it-scale:page_fault[1|2|3] halved
-> > > (from around 10% to 5%). I am unable to run reaim or
-> > > will-it-scale:fallocate2 as I was getting weird errors.
-> > >
-> > > Feng, is it possible for you to run these benchmarks with the change
-> > > (basically changing MEMCG_CHARGE_BATCH to 128 in the if condition
-> > > before queue_work() inside __mod_memcg_lruvec_state())?
-> >
-> > When I checked this, I tried different changes, including this batch
-> > number change :), but it didn't recover the regression (the regression
-> > is slightly reduced to about 12%)
-[...]
-> 
-> Another change we can try is to remove this specific queue_work()
-> altogether because this is the only significant change for the
-> workload. That will give us the base performance number. If that also
-> has regression then there are more issues to debug. Thanks a lot for
-> your help.
 
-I just tested with patch removing the queue_work() in __mod_memcg_lruvec_state(),
-and the regression is gone.
+More post linux-next material.
 
-Also to avoid some duplication of debugging, here are some other tries
-I did:
-* add padding in 'struct lruvec' for 'lru_lock', no effect
-* add padding in 'mem_cgroup_per_node' between 'lruvec_stats_percpu' and
-  'lruvec_stats', no effect.
+9 patches, based on f154c806676ad7153c6e161f30c53a44855329d6.
 
-Thanks,
-Feng
+Subsystems affected by this patch series:
+
+  mm/slab-generic
+  rapidio
+  mm/debug
+
+Subsystem: mm/slab-generic
+
+    "Matthew Wilcox (Oracle)" <willy@infradead.org>:
+      mm: move kvmalloc-related functions to slab.h
+
+Subsystem: rapidio
+
+    Kees Cook <keescook@chromium.org>:
+      rapidio: avoid bogus __alloc_size warning
+
+Subsystem: mm/debug
+
+    Kees Cook <keescook@chromium.org>:
+    Patch series "Add __alloc_size() for better bounds checking", v2:
+      Compiler Attributes: add __alloc_size() for better bounds checking
+      checkpatch: add __alloc_size() to known $Attribute
+      slab: clean up function declarations
+      slab: add __alloc_size attributes for better bounds checking
+      mm/page_alloc: add __alloc_size attributes for better bounds checking
+      percpu: add __alloc_size attributes for better bounds checking
+      mm/vmalloc: add __alloc_size attributes for better bounds checking
+
+ Makefile                                 |   15 +++
+ drivers/of/kexec.c                       |    1 
+ drivers/rapidio/devices/rio_mport_cdev.c |    9 +-
+ include/linux/compiler_attributes.h      |    6 +
+ include/linux/gfp.h                      |    2 
+ include/linux/mm.h                       |   34 --------
+ include/linux/percpu.h                   |    3 
+ include/linux/slab.h                     |  122 ++++++++++++++++++++++---------
+ include/linux/vmalloc.h                  |   11 ++
+ scripts/checkpatch.pl                    |    3 
+ 10 files changed, 132 insertions(+), 74 deletions(-)
 
