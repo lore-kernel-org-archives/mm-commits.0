@@ -7,35 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 723F0C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 03:10:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E63DFC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 03:10:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 50E59610C8
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 03:10:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7F37610FF
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 03:10:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229684AbhIJDLa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 23:11:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49370 "EHLO mail.kernel.org"
+        id S229862AbhIJDLe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 23:11:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49480 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229461AbhIJDLa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 23:11:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0F4C5600CC;
-        Fri, 10 Sep 2021 03:10:20 +0000 (UTC)
+        id S229461AbhIJDLd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 23:11:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2EFAE610C8;
+        Fri, 10 Sep 2021 03:10:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631243420;
-        bh=hPD1l1wUuvNnQPDgwGPphhegJoVpEj3nxxZk0beiLsE=;
+        s=korg; t=1631243423;
+        bh=9PLXQmGiMYtEl2i3CBqUrO+hMQnh/6AOtl2HYoBQTyA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=OFUZcj1Bkkfgz7vXX3nRnhFISWzKVnkv5hCaFn1BejTsJNqvNeSnr2Fib3kvKOibs
-         RcBpZvnkZAYqljf9Eb+ryLAGyy7bKd0JrRez0nOvqDf+H/TeSlGZF3OF3KTOhZhu2L
-         PbskLR5Ne75Wr+hxV/wSsuDfyrOm4LIicS4k5M0M=
-Date:   Thu, 09 Sep 2021 20:10:19 -0700
+        b=1sGmiQN4DM1bE+wtgMF91VJnKwbWbiIoniT/99RqIWxbxHgCYElxv984Nsdbef79q
+         J9WWYtD3BpeoVSRjE1Sh+9M9fn/01/PP7u9FQSaIdTYsdMe6icCiTNQD6M1gl8z5k0
+         D0fWTuvVCPMK2UtV3eRN5/1rmVgsIss/AphRA57k=
+Date:   Thu, 09 Sep 2021 20:10:22 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz,
-        willy@infradead.org
-Subject:  [patch 1/9] mm: move kvmalloc-related functions to slab.h
-Message-ID: <20210910031019.juzhhYhMP%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, alex.bou9@gmail.com,
+        gustavoars@kernel.org, ira.weiny@intel.com, jhubbard@nvidia.com,
+        jingxiangfeng@huawei.com, jrdr.linux@gmail.com,
+        keescook@chromium.org, linux-mm@kvack.org, lkp@intel.com,
+        mm-commits@vger.kernel.org, mporter@kernel.crashing.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 2/9] rapidio: avoid bogus __alloc_size warning
+Message-ID: <20210910031022.kmBJ5voRH%akpm@linux-foundation.org>
 In-Reply-To: <20210909200948.090d4e213ca34b5ad1325a7e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,122 +45,90 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: move kvmalloc-related functions to slab.h
+From: Kees Cook <keescook@chromium.org>
+Subject: rapidio: avoid bogus __alloc_size warning
 
-Not all files in the kernel should include mm.h.  Migrating callers from
-kmalloc to kvmalloc is easier if the kvmalloc functions are in slab.h.
+GCC 9.3 (but not later) incorrectly evaluates the arguments to
+check_copy_size(), getting seemingly confused by the size being returned
+from array_size().  Instead, perform the calculation once, which both
+makes the code more readable and avoids the bug in GCC.
 
-[akpm@linux-foundation.org: move the new kvrealloc() also]
-Link: https://lkml.kernel.org/r/20210622215757.3525604-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Acked-by: Pekka Enberg <penberg@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+   In file included from arch/x86/include/asm/preempt.h:7,
+                    from include/linux/preempt.h:78,
+                    from include/linux/spinlock.h:55,
+                    from include/linux/mm_types.h:9,
+                    from include/linux/buildid.h:5,
+                    from include/linux/module.h:14,
+                    from drivers/rapidio/devices/rio_mport_cdev.c:13:
+   In function 'check_copy_size',
+       inlined from 'copy_from_user' at include/linux/uaccess.h:191:6,
+       inlined from 'rio_mport_transfer_ioctl' at drivers/rapidio/devices/rio_mport_cdev.c:983:6:
+   include/linux/thread_info.h:213:4: error: call to '__bad_copy_to' declared with attribute error: copy destination size is too small
+     213 |    __bad_copy_to();
+         |    ^~~~~~~~~~~~~~~
+
+But the allocation size and the copy size are identical:
+
+	transfer = vmalloc(array_size(sizeof(*transfer), transaction.count));
+	if (!transfer)
+		return -ENOMEM;
+
+	if (unlikely(copy_from_user(transfer,
+				    (void __user *)(uintptr_t)transaction.block,
+				    array_size(sizeof(*transfer), transaction.count)))) {
+
+Link: https://lkml.kernel.org/r/20210909161409.2250920-1-keescook@chromium.org
+Link: https://lore.kernel.org/linux-mm/202109091134.FHnRmRxu-lkp@intel.com/
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: kernel test robot <lkp@intel.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Alexandre Bounine <alex.bou9@gmail.com>
+Cc: Jing Xiangfeng <jingxiangfeng@huawei.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
+Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/of/kexec.c   |    1 +
- include/linux/mm.h   |   34 ----------------------------------
- include/linux/slab.h |   34 ++++++++++++++++++++++++++++++++++
- 3 files changed, 35 insertions(+), 34 deletions(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/drivers/of/kexec.c~mm-move-kvmalloc-related-functions-to-slabh
-+++ a/drivers/of/kexec.c
-@@ -16,6 +16,7 @@
- #include <linux/of.h>
- #include <linux/of_fdt.h>
- #include <linux/random.h>
-+#include <linux/slab.h>
- #include <linux/types.h>
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-avoid-bogus-__alloc_size-warning
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -965,6 +965,7 @@ static int rio_mport_transfer_ioctl(stru
+ 	struct rio_transfer_io *transfer;
+ 	enum dma_data_direction dir;
+ 	int i, ret = 0;
++	size_t size;
  
- #define RNG_SEED_SIZE		128
---- a/include/linux/mm.h~mm-move-kvmalloc-related-functions-to-slabh
-+++ a/include/linux/mm.h
-@@ -799,40 +799,6 @@ static inline int is_vmalloc_or_module_a
- }
- #endif
+ 	if (unlikely(copy_from_user(&transaction, arg, sizeof(transaction))))
+ 		return -EFAULT;
+@@ -976,13 +977,14 @@ static int rio_mport_transfer_ioctl(stru
+ 	     priv->md->properties.transfer_mode) == 0)
+ 		return -ENODEV;
  
--extern void *kvmalloc_node(size_t size, gfp_t flags, int node);
--static inline void *kvmalloc(size_t size, gfp_t flags)
--{
--	return kvmalloc_node(size, flags, NUMA_NO_NODE);
--}
--static inline void *kvzalloc_node(size_t size, gfp_t flags, int node)
--{
--	return kvmalloc_node(size, flags | __GFP_ZERO, node);
--}
--static inline void *kvzalloc(size_t size, gfp_t flags)
--{
--	return kvmalloc(size, flags | __GFP_ZERO);
--}
--
--static inline void *kvmalloc_array(size_t n, size_t size, gfp_t flags)
--{
--	size_t bytes;
--
--	if (unlikely(check_mul_overflow(n, size, &bytes)))
--		return NULL;
--
--	return kvmalloc(bytes, flags);
--}
--
--static inline void *kvcalloc(size_t n, size_t size, gfp_t flags)
--{
--	return kvmalloc_array(n, size, flags | __GFP_ZERO);
--}
--
--extern void *kvrealloc(const void *p, size_t oldsize, size_t newsize,
--		gfp_t flags);
--extern void kvfree(const void *addr);
--extern void kvfree_sensitive(const void *addr, size_t len);
--
- static inline int head_compound_mapcount(struct page *head)
- {
- 	return atomic_read(compound_mapcount_ptr(head)) + 1;
---- a/include/linux/slab.h~mm-move-kvmalloc-related-functions-to-slabh
-+++ a/include/linux/slab.h
-@@ -732,6 +732,40 @@ static inline void *kzalloc_node(size_t
- 	return kmalloc_node(size, flags | __GFP_ZERO, node);
- }
+-	transfer = vmalloc(array_size(sizeof(*transfer), transaction.count));
++	size = array_size(sizeof(*transfer), transaction.count);
++	transfer = vmalloc(size);
+ 	if (!transfer)
+ 		return -ENOMEM;
  
-+extern void *kvmalloc_node(size_t size, gfp_t flags, int node);
-+static inline void *kvmalloc(size_t size, gfp_t flags)
-+{
-+	return kvmalloc_node(size, flags, NUMA_NO_NODE);
-+}
-+static inline void *kvzalloc_node(size_t size, gfp_t flags, int node)
-+{
-+	return kvmalloc_node(size, flags | __GFP_ZERO, node);
-+}
-+static inline void *kvzalloc(size_t size, gfp_t flags)
-+{
-+	return kvmalloc(size, flags | __GFP_ZERO);
-+}
-+
-+static inline void *kvmalloc_array(size_t n, size_t size, gfp_t flags)
-+{
-+	size_t bytes;
-+
-+	if (unlikely(check_mul_overflow(n, size, &bytes)))
-+		return NULL;
-+
-+	return kvmalloc(bytes, flags);
-+}
-+
-+static inline void *kvcalloc(size_t n, size_t size, gfp_t flags)
-+{
-+	return kvmalloc_array(n, size, flags | __GFP_ZERO);
-+}
-+
-+extern void *kvrealloc(const void *p, size_t oldsize, size_t newsize,
-+		gfp_t flags);
-+extern void kvfree(const void *addr);
-+extern void kvfree_sensitive(const void *addr, size_t len);
-+
- unsigned int kmem_cache_size(struct kmem_cache *s);
- void __init kmem_cache_init_late(void);
+ 	if (unlikely(copy_from_user(transfer,
+ 				    (void __user *)(uintptr_t)transaction.block,
+-				    array_size(sizeof(*transfer), transaction.count)))) {
++				    size))) {
+ 		ret = -EFAULT;
+ 		goto out_free;
+ 	}
+@@ -994,8 +996,7 @@ static int rio_mport_transfer_ioctl(stru
+ 			transaction.sync, dir, &transfer[i]);
  
+ 	if (unlikely(copy_to_user((void __user *)(uintptr_t)transaction.block,
+-				  transfer,
+-				  array_size(sizeof(*transfer), transaction.count))))
++				  transfer, size)))
+ 		ret = -EFAULT;
+ 
+ out_free:
 _
