@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 73F77C43219
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:07:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDB75C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 00:55:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5E3C4611AF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Sep 2021 21:07:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D4558611C2
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 00:55:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345621AbhIIVIO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Sep 2021 17:08:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57066 "EHLO mail.kernel.org"
+        id S234043AbhIJA4t (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Sep 2021 20:56:49 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38776 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348070AbhIIVH0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 9 Sep 2021 17:07:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8957561179;
-        Thu,  9 Sep 2021 21:06:16 +0000 (UTC)
+        id S230371AbhIJAx4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 9 Sep 2021 20:53:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7ED05610C9;
+        Fri, 10 Sep 2021 00:52:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631221576;
-        bh=frFrDNgnF/1JzZd3xlc8776IQqqnh6G4SqmT1zvu15E=;
+        s=korg; t=1631235164;
+        bh=PcDVhZA7Iev6NA6rGPvFZy6f2y/lGgkOU7+zzASUph4=;
         h=Date:From:To:Subject:From;
-        b=qtvG4IBBdSB11TQnjhj+eK+CVgsEwJcKexy+8qjgKW1qrAYcvAb74Ud44dlF3BxQO
-         4l8HPbjWF2erh93MTcJnzT/3MYt6M+1uvFU4zRrq9D9TaFzIJETXIdOV+NN/WDjreo
-         97o9tjvzqTDJLG02Qtc9tkxFIO30UhAK+s7dMmdU=
-Date:   Thu, 09 Sep 2021 14:06:16 -0700
+        b=SpVHZ522WAo+2LYsH2ktJjJQWFHJg46I8D2LfwD3JZDkRoefxJTzTA84eNKR/m6jx
+         bkJsejJK30cA55UrOE+v4E4maazWZmPDnGeYKOec9wKLJXRFjoEptZRnXqH6zvR/zh
+         pF8kxF7L8sZ/IXJS4dJDX1lnKMN+SLMiog3zIoho=
+Date:   Thu, 09 Sep 2021 17:52:44 -0700
 From:   akpm@linux-foundation.org
-To:     Liam.Howlett@oracle.com, mm-commits@vger.kernel.org,
-        rostedt@goodmis.org, vbabka@suse.cz, walken.cr@gmail.com,
-        willy@infradead.org
-Subject:  [merged] mmap_lock-change-trace-and-locking-order.patch
+To:     keescook@chromium.org, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, sfr@canb.auug.org.au
+Subject:  [folded-merged]
+ compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
  removed from -mm tree
-Message-ID: <20210909210616.1U__20o4c%akpm@linux-foundation.org>
+Message-ID: <20210910005244.6cGfxyyiL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,72 +44,61 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmap_lock: change trace and locking order
+     Subject: Compiler Attributes: Add __alloc_size for better bounds checking fix
 has been removed from the -mm tree.  Its filename was
-     mmap_lock-change-trace-and-locking-order.patch
+     compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was folded into compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
 
 ------------------------------------------------------
-From: Liam Howlett <liam.howlett@oracle.com>
-Subject: mmap_lock: change trace and locking order
+From: Kees Cook <keescook@chromium.org>
+Subject: Compiler Attributes: Add __alloc_size for better bounds checking fix
 
-Print to the trace log before releasing the lock to avoid racing with
-other trace log printers of the same lock type.
+Adjust the warning logic to deal with pre-9.1 gcc behaviors.
 
-Link: https://lkml.kernel.org/r/20210903022041.1843024-1-Liam.Howlett@oracle.com
-Signed-off-by: Liam R. Howlett <Liam.Howlett@oracle.com>
-Suggested-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Michel Lespinasse <walken.cr@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20210827151327.2729736-1-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Tested-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmap_lock.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ Makefile |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- a/include/linux/mmap_lock.h~mmap_lock-change-trace-and-locking-order
-+++ a/include/linux/mmap_lock.h
-@@ -101,14 +101,14 @@ static inline bool mmap_write_trylock(st
+--- a/Makefile~compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix-2
++++ a/Makefile
+@@ -1094,8 +1094,17 @@ endif
  
- static inline void mmap_write_unlock(struct mm_struct *mm)
- {
--	up_write(&mm->mmap_lock);
- 	__mmap_lock_trace_released(mm, true);
-+	up_write(&mm->mmap_lock);
- }
+ ifdef CONFIG_CC_IS_GCC
+ # The allocators already balk at large sizes, so silence the compiler
+-# warnings for bounds checks involving those possible values.
+-KBUILD_CFLAGS += -Wno-alloc-size-larger-than
++# warnings for bounds checks involving those possible values. While
++# -Wno-alloc-size-larger-than would normally be used here, earlier versions
++# of gcc (<9.1) weirdly don't handle the option correctly when _other_
++# warnings are produced (?!). Using -Walloc-size-larger-than=SIZE_MAX
++# doesn't work (as it is documented to), silently resolving to "0" prior to
++# version 9.1 (and producing an error more recently). Numeric values larger
++# than PTRDIFF_MAX also don't work prior to version 9.1, which are silently
++# ignored, continuing to default to PTRDIFF_MAX. So, left with no other
++# choice, we must perform a versioned check to disable this warning.
++# https://lore.kernel.org/lkml/20210824115859.187f272f@canb.auug.org.au
++KBUILD_CFLAGS += $(call cc-ifversion, -ge, 0901, -Wno-alloc-size-larger-than)
+ endif
  
- static inline void mmap_write_downgrade(struct mm_struct *mm)
- {
--	downgrade_write(&mm->mmap_lock);
- 	__mmap_lock_trace_acquire_returned(mm, false, true);
-+	downgrade_write(&mm->mmap_lock);
- }
- 
- static inline void mmap_read_lock(struct mm_struct *mm)
-@@ -140,8 +140,8 @@ static inline bool mmap_read_trylock(str
- 
- static inline void mmap_read_unlock(struct mm_struct *mm)
- {
--	up_read(&mm->mmap_lock);
- 	__mmap_lock_trace_released(mm, false);
-+	up_read(&mm->mmap_lock);
- }
- 
- static inline bool mmap_read_trylock_non_owner(struct mm_struct *mm)
-@@ -155,8 +155,8 @@ static inline bool mmap_read_trylock_non
- 
- static inline void mmap_read_unlock_non_owner(struct mm_struct *mm)
- {
--	up_read_non_owner(&mm->mmap_lock);
- 	__mmap_lock_trace_released(mm, false);
-+	up_read_non_owner(&mm->mmap_lock);
- }
- 
- static inline void mmap_assert_locked(struct mm_struct *mm)
+ # disable invalid "can't wrap" optimizations for signed / pointers
 _
 
-Patches currently in -mm which might be from liam.howlett@oracle.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
+rapidio-avoid-bogus-__alloc_size-warning.patch
+compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
+checkpatch-add-__alloc_size-to-known-attribute.patch
+slab-clean-up-function-declarations.patch
+slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
+mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
+mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
 
