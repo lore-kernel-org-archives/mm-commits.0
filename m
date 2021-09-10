@@ -6,168 +6,120 @@ X-Spam-Status: No, score=-5.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,
 	SPF_HELO_NONE,SPF_PASS autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D7B0C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 18:48:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 562E5C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 19:24:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 36B0C6124E
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 18:48:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 348A461167
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Sep 2021 19:24:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232776AbhIJStT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Sep 2021 14:49:19 -0400
-Received: from terminus.zytor.com ([198.137.202.136]:43893 "EHLO
-        mail.zytor.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232347AbhIJStM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 10 Sep 2021 14:49:12 -0400
-X-Greylist: delayed 3622 seconds by postgrey-1.27 at vger.kernel.org; Fri, 10 Sep 2021 14:49:12 EDT
-Received: from [IPv6:::1] ([IPv6:2601:646:8600:3c71:7167:9908:f516:fd1e])
-        (authenticated bits=0)
-        by mail.zytor.com (8.16.1/8.15.2) with ESMTPSA id 18AHlLEC492080
-        (version=TLSv1.3 cipher=TLS_AES_128_GCM_SHA256 bits=128 verify=NO);
-        Fri, 10 Sep 2021 10:47:22 -0700
-DKIM-Filter: OpenDKIM Filter v2.11.0 mail.zytor.com 18AHlLEC492080
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=zytor.com;
-        s=2021083001; t=1631296043;
-        bh=MpGGLjb/ptKT8DnQ1zzPUTON7aybYk1GwKrqi1M7XVM=;
-        h=Date:From:To:CC:Subject:In-Reply-To:References:From;
-        b=gye2EPlTn4+vVaFA48NJNDZ7GLyirNPU2SAIKeBKDE3SKsy9HVJCJnwURN6+zEP15
-         fEZXkOYr/2bMnDMOQV8wHM0tzdiyFjPRl4XK/SA2RHBEpmkf9OOzjukeJlEjg0w3dU
-         tU5gMTTjOXq1LReALPYB6EZ0crvOsON4smMZUPqi3QfUjSCY+h0saQ41O11FEXSP7l
-         mXHmoh5Qu/rqitKtRjYfNgK33lAeGcPrkbnaJRr+aA/KI8C5WkSk/yItxw/SSNEM/C
-         F22OKyg58ncvReSmDeN3FbF6rqIjLym7C2RWgwOu8WT83U34ApULX69n9Ae8omiqO6
-         cmhNYcVFL3AtA==
-Date:   Fri, 10 Sep 2021 10:47:13 -0700
-From:   "H. Peter Anvin" <hpa@zytor.com>
-To:     Rasmus Villemoes <linux@rasmusvillemoes.dk>,
-        Luis Chamberlain <mcgrof@kernel.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Jessica Yu <jeyu@kernel.org>, Borislav Petkov <bp@suse.de>
-CC:     bgoncalv@redhat.com, egorenar@linux.ibm.com, hkallweit1@gmail.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject: =?US-ASCII?Q?Re=3A_=5Bpatch_128/147=5D_init=3A_move_usermo?= =?US-ASCII?Q?dehelper=5Fenable=28=29_to_populate=5Frootfs=28=29?=
-User-Agent: K-9 Mail for Android
-In-Reply-To: <04d237ff-9a52-a6ce-d184-ea5874c104dc@rasmusvillemoes.dk>
-References: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org> <20210908030003.WFvhfWzKJ%akpm@linux-foundation.org> <YTjadLYEhTRbwvRe@bombadil.infradead.org> <04d237ff-9a52-a6ce-d184-ea5874c104dc@rasmusvillemoes.dk>
-Message-ID: <3BCD005A-B983-48FF-B30F-486387853245@zytor.com>
+        id S230489AbhIJTZe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Sep 2021 15:25:34 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39508 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229546AbhIJTZd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Sep 2021 15:25:33 -0400
+Received: from mail-ej1-x62c.google.com (mail-ej1-x62c.google.com [IPv6:2a00:1450:4864:20::62c])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6F9E9C061574
+        for <mm-commits@vger.kernel.org>; Fri, 10 Sep 2021 12:24:21 -0700 (PDT)
+Received: by mail-ej1-x62c.google.com with SMTP id e21so6311799ejz.12
+        for <mm-commits@vger.kernel.org>; Fri, 10 Sep 2021 12:24:21 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=linux-foundation.org; s=google;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=QKo4Tdq4dmbNJOXszHMpLvxuG8B+UoHSQq7ZbUR792g=;
+        b=Mr6cvJJlBTrCWCrY7vfg81gJvM5lpccs29n3iDnmmnXzX7JfqRV63CjG9qEvfj6fmc
+         8+n/fSq+mBQB2vfi12kOGeo8yFanCMN4y0NPlfCyPP5heDaHIZN3eMlxWd7aCV+u+ySr
+         VN5quD/divWymKPTsLcSedC3KD9heDjMhth04=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=QKo4Tdq4dmbNJOXszHMpLvxuG8B+UoHSQq7ZbUR792g=;
+        b=B2v7UFuS8q1TgFxSj3GlvDGIblltCOqbns4TkIVuJWm7rNEJYYmS6KojYIZDcDX0UJ
+         RWiP1C7pCXpvUlHQSPdf/Dp8PQQTlUxgaSNrPZKZr/THDsqLYCl2KUdoTjC7FkNX2cpz
+         5hPBdHPXx/icjP/Xn/huIr9rNaSSnAh0Q18/HmLqxgqARdIAIAcQVYFtH9Ukda8WQlc0
+         8MUnroLAkAQaunEVXaew45jIJbWjm9aUNkaWFapi+GOIBFLycRMoiDn06pDoHlrk9OaT
+         I9wkIOYnseYz3UcQ6N+3tptHcPiUpotOJOysW9DG723Xez1ypIy8rbBvNiOet8iRYI2m
+         oSqg==
+X-Gm-Message-State: AOAM531ySJ03YwBFrVWCKmjJUkN3mhfSbS2YRqOX5cFNotoPvEt4yQTy
+        oJifTFTexmVijNcEwUn+3Tx5CGX/ChohmgzLL4M=
+X-Google-Smtp-Source: ABdhPJztDWnkGF60PExZPWhN/0U9sppClpH7UGWQdaYl5S9pACxqHW7pJuETmaOF/C4X6FuebOOoRA==
+X-Received: by 2002:a17:906:3798:: with SMTP id n24mr2647475ejc.116.1631301859828;
+        Fri, 10 Sep 2021 12:24:19 -0700 (PDT)
+Received: from mail-wr1-f41.google.com (mail-wr1-f41.google.com. [209.85.221.41])
+        by smtp.gmail.com with ESMTPSA id z6sm1531388ejj.13.2021.09.10.12.24.19
+        for <mm-commits@vger.kernel.org>
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Fri, 10 Sep 2021 12:24:19 -0700 (PDT)
+Received: by mail-wr1-f41.google.com with SMTP id v10so4089464wrd.4
+        for <mm-commits@vger.kernel.org>; Fri, 10 Sep 2021 12:24:19 -0700 (PDT)
+X-Received: by 2002:a05:6512:1112:: with SMTP id l18mr4994964lfg.402.1631301476401;
+ Fri, 10 Sep 2021 12:17:56 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+References: <20210909200948.090d4e213ca34b5ad1325a7e@linux-foundation.org>
+ <20210910031046.G76dQvPhV%akpm@linux-foundation.org> <CAHk-=wgfbSyW6QYd5rmhSHRoOQ=ZvV+jLn1U8U4nBDgBuaOAjQ@mail.gmail.com>
+ <202109101138.53FCADF5C@keescook>
+In-Reply-To: <202109101138.53FCADF5C@keescook>
+From:   Linus Torvalds <torvalds@linux-foundation.org>
+Date:   Fri, 10 Sep 2021 12:17:40 -0700
+X-Gmail-Original-Message-ID: <CAHk-=whHPPKunYcDmSAJ4--o7VddZW-SWmMqQkiYwA_kEyQVUQ@mail.gmail.com>
+Message-ID: <CAHk-=whHPPKunYcDmSAJ4--o7VddZW-SWmMqQkiYwA_kEyQVUQ@mail.gmail.com>
+Subject: Re: [patch 9/9] mm/vmalloc: add __alloc_size attributes for better
+ bounds checking
+To:     Kees Cook <keescook@chromium.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>, apw@canonical.com,
+        Christoph Lameter <cl@linux.com>,
+        Daniel Micay <danielmicay@gmail.com>,
+        Dennis Zhou <dennis@kernel.org>, dwaipayanray1@gmail.com,
+        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
+        Joe Perches <joe@perches.com>, Linux-MM <linux-mm@kvack.org>,
+        Lukas Bulwahn <lukas.bulwahn@gmail.com>,
+        mm-commits@vger.kernel.org, Nathan Chancellor <nathan@kernel.org>,
+        Nick Desaulniers <ndesaulniers@google.com>,
+        Miguel Ojeda <ojeda@kernel.org>,
+        Pekka Enberg <penberg@kernel.org>,
+        David Rientjes <rientjes@google.com>,
+        Tejun Heo <tj@kernel.org>, Vlastimil Babka <vbabka@suse.cz>
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-I feel there is a general problem with the way infrastructure improvements =
-are dealt with in the kernel =E2=80=93 basically it feels like the submitte=
-r of new infrastructure is expected to convert existing users or "what we h=
-ave now works=2E" This is a classic way of building tech debt=2E
+On Fri, Sep 10, 2021 at 11:43 AM Kees Cook <keescook@chromium.org> wrote:
+>
+> I had originally set out to do that, but the problem with merging with
+> __malloc is the bit in the docs about "and that the memory has undefined
+> content". So we can't do that for kmalloc() in the face of GFP_ZERO, as
+> well as a bunch of other helpers. I always get suspicious about "this
+> will improve optimization because we depend on claiming something is
+> 'undefined'". :|
 
-Maybe this might be a topic to discuss?
+Oh, I had entirely missed that historical subtlety of __malloc.
 
-On September 10, 2021 1:12:01 AM PDT, Rasmus Villemoes <linux@rasmusvillem=
-oes=2Edk> wrote:
->On 08/09/2021 17=2E44, Luis Chamberlain wrote:
->> On Tue, Sep 07, 2021 at 08:00:03PM -0700, Andrew Morton wrote:
->>> From: Rasmus Villemoes <linux@rasmusvillemoes=2Edk>
->>> Any call of wait_for_initramfs() done before the unpacking has been
->>> scheduled (i=2Ee=2E before rootfs_initcall time) must just return
->>> immediately [and let the caller find an empty file system] in order
->>> not to deadlock the machine=2E I mistakenly thought, and my limited
->>> testing confirmed, that there were no such calls, so I added a
->>> pr_warn_once() in wait_for_initramfs()=2E It turns out that one can
->>> indeed hit request_module() as well as kobject_uevent_env() during
->>> those early init calls, leading to a user-visible warning in the
->>> kernel log emitted consistently for certain configurations=2E
->>=20
->> Further proof that the semantics for init is still loose=2E Formalizing
->> dependencies on init is something we should strive to=2E Eventualy with=
- a
->> DAG=2E  The linker-tables work I had done years ago strived to get us
->> there which allows us to get a simple explicit DAG through the linker=
-=2E
->> Unfortunately that patch set fell through because folks were
->> more interested in questioning the alternative side benefits of
->> linker-tables, but the use-case for helping with init is still valid=2E
->>=20
->> If we *do* want to resurrect this folks should let me know=2E
->
->Heh, a while back I actually had some completely unrelated thing where
->I'd want to make use of the linker tables infrastructure - I remembered
->reading about it on LWN, and was quite surprised when I learnt that that
->work had never made it in=2E I don't quite remember the use case (I think
->it was for some test module infrastructure)=2E But if you do have time to
->resurrect those patches, I'd certainly be interested=2E
->
->> Since the kobject_uevent_env() interest here is for /sbin/hotplug and
->> that crap is deprecated, in practice the relevant calls we'd care about
->> are the request_module() calls=2E
->
->Yes - the first report I got about that pr_warn_once was indeed fixed by
->the reporter simply disabling CONFIG_UEVENT_HELPER
->(https://lore=2Ekernel=2Eorg/lkml/9849be80-cfe5-b33e-8224-590a4c451415@gm=
-ail=2Ecom/)=2E
->
->>> We could just remove the pr_warn_once(), but I think it's better to
->>> postpone enabling the usermodehelper framework until there is at least
->>> some chance of finding the executable=2E That is also a little more
->>> efficient in that a lot of work done in umh=2Ec will be elided=2E
->>=20
->> I *don't* think we were aware that such request_module() calls were
->> happening before the fs was even ready and failing silently with
->> -ENOENT=2E=20
->
->Probably not, no, otherwise somebody would have noticed=2E
->
->As such, although moving the usermodehelper_enable()
->> to right after scheduling populating the rootfs is the right thing,
->> we do loose on the opportunity to learn who were those odd callers
->> before=2E We could not care=2E=2E=2E but this is also a missed opportun=
-ity
->> in finding those=2E How important that is, is not clear to me as
->> this was silently failing before=2E=2E=2E
->>=20
->> If we wanted to keep a print for the above purpose though, we'd likely
->> want the full stack trace to see who the hell made the call=2E
->
->Well, yes, I have myself fallen into that trap not just once, but at
->least twice=2E The first time when I discovered this behaviour on one of
->the ppc targets I did this work for in the first place (before I came up
->with the CONFIG_MODPROBE_PATH patch)=2E The second when I asked a reporte=
-r
->to replace the pr_warn_once by WARN_ONCE:
->
->https://lore=2Ekernel=2Eorg/lkml/4434f245-db3b-c02a-36c4-0111a0dfb78d@ras=
-musvillemoes=2Edk/
->
->
->The problem is that request_module() just fires off some worker thread
->and then the original calling thread sits back and waits for that worker
->to return a result=2E
->
->
->>> However,
->>> it does change the error seen by those early callers from -ENOENT to
->>> -EBUSY, so there is a risk of a regression if any caller care about
->>> the exact error value=2E
->>=20
->> I'd see this as a welcomed evolution as it tells us more: we're saying
->> "it's coming, try again" or whatever=2E
->
->Indeed, and I don't think it's the end of the world if somebody notices
->some change due to that, because we'd learn more about where those early
->request_module() calls come from=2E
->
->> A debug option to allow us to get a full warning trace in the -EBUSY
->> case on early init would be nice to have=2E
->
->As noted above, that's difficult=2E We'd need a way to know which other
->task is waiting for us, then print the trace of that guy=2E
->
->I don't think anybody is gonna hear this tree falling, so let's not try
->to solve a problem before we know there is one=2E
->
->Rasmus
+Yeah, that would have been absolutely horrible. But it's not actually
+really true.
 
---=20
-Sent from my Android device with K-9 Mail=2E Please excuse my brevity=2E
+It seems that the gcc people actually realized the problem, and fixed
+the documentation:
+
+  "Attribute malloc indicates that a function is malloc-like, i.e.,
+that the pointer P returned by the function cannot alias any other
+pointer valid when the function returns, and moreover no pointers to
+valid objects occur in any storage addressed by P. In addition, the
+GCC predicts that a function with the attribute returns non-null in
+most cases"
+
+IOW, it is purely about aliasing guarantees. Basically the guarantee
+is that the memory that a "malloc" function returns can not alias
+(directly or indirectly) any other allocations.
+
+See
+
+    https://gcc.gnu.org/onlinedocs/gcc-11.2.0/gcc/Common-Function-Attributes.html#Common-Function-Attributes
+
+So I think it's ok, and your reaction was entirely correct, but came
+from looking at old documentation.
+
+             Linus
