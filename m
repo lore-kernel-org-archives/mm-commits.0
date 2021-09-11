@@ -2,116 +2,115 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.8 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY,URIBL_BLOCKED autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F6B3C433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 11 Sep 2021 05:36:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46C7FC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 11 Sep 2021 22:09:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 16DB1611C3
-	for <mm-commits@archiver.kernel.org>; Sat, 11 Sep 2021 05:36:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 13A68610C9
+	for <mm-commits@archiver.kernel.org>; Sat, 11 Sep 2021 22:09:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231474AbhIKFhZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 11 Sep 2021 01:37:25 -0400
-Received: from smtprelay0116.hostedemail.com ([216.40.44.116]:54288 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S230392AbhIKFhZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>);
-        Sat, 11 Sep 2021 01:37:25 -0400
-X-Greylist: delayed 403 seconds by postgrey-1.27 at vger.kernel.org; Sat, 11 Sep 2021 01:37:25 EDT
-Received: from smtprelay.hostedemail.com (10.5.19.251.rfc1918.com [10.5.19.251])
-        by smtpgrave04.hostedemail.com (Postfix) with ESMTP id 880D3180E36C5
-        for <mm-commits@vger.kernel.org>; Sat, 11 Sep 2021 05:29:30 +0000 (UTC)
-Received: from omf19.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay02.hostedemail.com (Postfix) with ESMTP id EB7B829DF1;
-        Sat, 11 Sep 2021 05:29:28 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf19.hostedemail.com (Postfix) with ESMTPA id D2EB520D758;
-        Sat, 11 Sep 2021 05:29:24 +0000 (UTC)
-Message-ID: <4028a9be304ae79d55d2ad099651c640f583df5d.camel@perches.com>
-Subject: Re: [patch 9/9] mm/vmalloc: add __alloc_size attributes for better
- bounds checking
-From:   Joe Perches <joe@perches.com>
-To:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Andrew Morton <akpm@linux-foundation.org>
-Cc:     apw@canonical.com, Christoph Lameter <cl@linux.com>,
-        Daniel Micay <danielmicay@gmail.com>,
-        Dennis Zhou <dennis@kernel.org>, dwaipayanray1@gmail.com,
-        Joonsoo Kim <iamjoonsoo.kim@lge.com>,
-        Kees Cook <keescook@chromium.org>,
-        Linux-MM <linux-mm@kvack.org>,
-        Lukas Bulwahn <lukas.bulwahn@gmail.com>,
-        mm-commits@vger.kernel.org, Nathan Chancellor <nathan@kernel.org>,
-        Nick Desaulniers <ndesaulniers@google.com>,
-        Miguel Ojeda <ojeda@kernel.org>,
-        Pekka Enberg <penberg@kernel.org>,
-        David Rientjes <rientjes@google.com>,
-        Tejun Heo <tj@kernel.org>, Vlastimil Babka <vbabka@suse.cz>
-Date:   Fri, 10 Sep 2021 22:29:23 -0700
-In-Reply-To: <CAHk-=wgfbSyW6QYd5rmhSHRoOQ=ZvV+jLn1U8U4nBDgBuaOAjQ@mail.gmail.com>
-References: <20210909200948.090d4e213ca34b5ad1325a7e@linux-foundation.org>
-         <20210910031046.G76dQvPhV%akpm@linux-foundation.org>
-         <CAHk-=wgfbSyW6QYd5rmhSHRoOQ=ZvV+jLn1U8U4nBDgBuaOAjQ@mail.gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-User-Agent: Evolution 3.40.0-1 
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-X-Rspamd-Server: rspamout01
-X-Rspamd-Queue-Id: D2EB520D758
-X-Stat-Signature: i91pz8j5jei8bzz71za3ieogfgs7zec9
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-Session-ID: U2FsdGVkX1+9w6GlThcpvVJijJed+sZKczcsjABR48o=
-X-HE-Tag: 1631338164-2999
+        id S230493AbhIKWKT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 11 Sep 2021 18:10:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50574 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229800AbhIKWKS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 11 Sep 2021 18:10:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DAA4360F5D;
+        Sat, 11 Sep 2021 22:09:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1631398145;
+        bh=d8H+wtoRDJwWri3fXk5z3mpU3ZEFt5AXVjy/BmDq/yc=;
+        h=Date:From:To:Subject:From;
+        b=G+ft/+6MZWbhcFjAgRqjjSR0ApbtsYXjA2Vqh7Tuigkx3BE5BZVU4koT8rqdgSlRa
+         78z4nly3FEmSa0r/qvKVQ9AzKCX88XlzADp77CFEtxfi1F8kWSTzqdYKPcU+n+VLg9
+         6qv4G3S+IjPARbCpoZPH2p6Y6UhE9Y0ceolTliTE=
+Date:   Sat, 11 Sep 2021 15:09:04 -0700
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, shakeelb@google.com, mhocko@kernel.org,
+        hannes@cmpxchg.org, vvs@virtuozzo.com
+Subject:  +
+ ipc-remove-memcg-accounting-for-sops-objects-in-do_semtimedop.patch added to
+ -mm tree
+Message-ID: <20210911220904.oZinO%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, 2021-09-10 at 10:23 -0700, Linus Torvalds wrote:
-> On Thu, Sep 9, 2021 at 8:10 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> > 
-> > +__alloc_size(1)
-> >  extern void *vmalloc(unsigned long size);
-[]
-> So wouldn't this all have looked much more natural as
-> 
->      void *vmalloc(unsigned long size) __malloc(1);
-> 
-> instead? Hmm?
 
-I think not as the __malloc attribute and in fact all the other function
-attributes are effectively uninteresting when it comes to grepping for
-function declarations.
+The patch titled
+     Subject: ipc: remove memcg accounting for sops objects in do_semtimedop()
+has been added to the -mm tree.  Its filename is
+     ipc-remove-memcg-accounting-for-sops-objects-in-do_semtimedop.patch
 
-Putting the attribute lists after the function arguments in many
-cases would just be visual noise.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/ipc-remove-memcg-accounting-for-sops-objects-in-do_semtimedop.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/ipc-remove-memcg-accounting-for-sops-objects-in-do_semtimedop.patch
 
-My preference would be for declarations to be mostly like:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-[optional attribute list[
-<return type> function(arguments);
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-Frequently there are multiline function declarations with many
-arguments similar to either of
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-[optional attribute list]
-<return type> function(type arg1,
-		       type arg2,
-		       etc...);
+------------------------------------------------------
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: ipc: remove memcg accounting for sops objects in do_semtimedop()
 
-or
+Linus proposes to revert an accounting for sops objects in do_semtimedop()
+because it's really just a temporary buffer for a single semtimedop()
+system call.
 
-[optional attribute list]
-<return type>
-function(type arg1,
-	 type arg2,
-	 etc...);
+This object can consume up to 2 pages, syscall is sleeping one, size and
+duration can be controlled by user, and this allocation can be repeated by
+many thread at the same time.
 
-which always makes grep rather difficult.
+However Shakeel Butt pointed that there are much more popular objects with
+the same life time and similar memory consumption, the accounting of which
+was decided to be rejected for performance reasons.
 
-And given the expansion is naming lengths there are more and more
-of these multiline argument lists.  It doesn't matter if the line
-length is increased above 80 columns or not.
+In addition, any usual task consumes much more accounted memory, so 2
+pages of this temporal buffer can be safely ignored.
 
+Link: https://patchwork.kernel.org/project/linux-fsdevel/patch/20171005222144.123797-1-shakeelb@google.com/
+Link: https://lkml.kernel.org/r/90e254df-0dfe-f080-011e-b7c53ee7fd20@virtuozzo.com
+Fixes: 18319498fdd4 ("memcg: enable accounting of ipc resources")
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ ipc/sem.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+--- a/ipc/sem.c~ipc-remove-memcg-accounting-for-sops-objects-in-do_semtimedop
++++ a/ipc/sem.c
+@@ -2005,8 +2005,7 @@ static long do_semtimedop(int semid, str
+ 	if (nsops > ns->sc_semopm)
+ 		return -E2BIG;
+ 	if (nsops > SEMOPM_FAST) {
+-		sops = kvmalloc_array(nsops, sizeof(*sops),
+-				      GFP_KERNEL_ACCOUNT);
++		sops = kvmalloc_array(nsops, sizeof(*sops), GFP_KERNEL);
+ 		if (sops == NULL)
+ 			return -ENOMEM;
+ 	}
+_
+
+Patches currently in -mm which might be from vvs@virtuozzo.com are
+
+ipc-remove-memcg-accounting-for-sops-objects-in-do_semtimedop.patch
 
