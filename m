@@ -7,40 +7,33 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19A93C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Sep 2021 02:57:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA645C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Sep 2021 03:09:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0640460F9F
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Sep 2021 02:57:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B64E16113E
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Sep 2021 03:09:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238438AbhINC6P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Sep 2021 22:58:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57794 "EHLO mail.kernel.org"
+        id S237777AbhINDK5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Sep 2021 23:10:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38384 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238425AbhINC6E (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Sep 2021 22:58:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E964360F6F;
-        Tue, 14 Sep 2021 02:56:46 +0000 (UTC)
+        id S237372AbhINDK4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Sep 2021 23:10:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C2F5560E90;
+        Tue, 14 Sep 2021 03:09:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631588207;
-        bh=O9HauAEZWB9VM0gGRlFRw/Hz1uheipRtS2Wggy6vIaM=;
+        s=korg; t=1631588979;
+        bh=rx9A4LgD63Pla7ojcpShPPVVGv2oDLyPe1QNbn1c+3U=;
         h=Date:From:To:Subject:From;
-        b=vjpyo0urH+1l5Onv8X8cZLW1Y++rUpySUla7fIp7ScMiV1VbWhwL52uHukd5lE3UY
-         FDPlQcQf26HdXVxVtlcShrbZoV2Px0Ht2pIWG/9lIBcWFmO2jM66WU/es79+5KLEta
-         aMXtw61TwDvi2yykositR8kfo/spGGjIeWa7oi4c=
-Date:   Mon, 13 Sep 2021 19:56:46 -0700
+        b=e1hABST+qjseDclKMkk6Dl2RdUOQO6bR7lyU/vrhOKVoPojnaPSjp+G9nHyd37Y9E
+         QC3Wh8uq33R8u7dRdyLfKXJV63PCUIKI50EWIZTp4Zkana8y3P36/w2ValJ5s0n/e7
+         jN6JGsEwmPJvXrRwDrumLonlOm/Vv/Oq0kAqDpqE=
+Date:   Mon, 13 Sep 2021 20:09:39 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, bigeasy@linutronix.de, dvyukov@google.com,
-        elver@google.com, glider@google.com, gustavoars@kernel.org,
-        jiangshanlai@gmail.com, mm-commits@vger.kernel.org,
-        ryabinin.a.a@gmail.com, skhan@linuxfoundation.org,
-        tarasmadan@google.com, tglx@linutronix.de, tj@kernel.org,
-        vinmenon@codeaurora.org, vjitta@codeaurora.org,
-        walter-zh.wu@mediatek.com
-Subject:  +
- workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch added to -mm
- tree
-Message-ID: <20210914025646.BSThYtr_B%akpm@linux-foundation.org>
+To:     liupeng256@huawei.com, mm-commits@vger.kernel.org
+Subject:  + mm-mmapc-fix-a-data-race-of-mm-total_vm.patch added to
+ -mm tree
+Message-ID: <20210914030939.1Uafb4-OV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: workqueue, kasan: avoid alloc_pages() when recording stack
+     Subject: mm/mmap.c: fix a data race of mm->total_vm
 has been added to the -mm tree.  Its filename is
-     workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
+     mm-mmapc-fix-a-data-race-of-mm-total_vm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mmapc-fix-a-data-race-of-mm-total_vm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mmapc-fix-a-data-race-of-mm-total_vm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,96 +63,85 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: workqueue, kasan: avoid alloc_pages() when recording stack
+From: Peng Liu <liupeng256@huawei.com>
+Subject: mm/mmap.c: fix a data race of mm->total_vm
 
-Shuah Khan reported:
+Variable mm->total_vm could be accessed concurrently during mmaping and
+system accounting as noticed by KCSAN,
 
- | When CONFIG_PROVE_RAW_LOCK_NESTING=y and CONFIG_KASAN are enabled,
- | kasan_record_aux_stack() runs into "BUG: Invalid wait context" when
- | it tries to allocate memory attempting to acquire spinlock in page
- | allocation code while holding workqueue pool raw_spinlock.
- |
- | There are several instances of this problem when block layer tries
- | to __queue_work(). Call trace from one of these instances is below:
- |
- |     kblockd_mod_delayed_work_on()
- |       mod_delayed_work_on()
- |         __queue_delayed_work()
- |           __queue_work() (rcu_read_lock, raw_spin_lock pool->lock held)
- |             insert_work()
- |               kasan_record_aux_stack()
- |                 kasan_save_stack()
- |                   stack_depot_save()
- |                     alloc_pages()
- |                       __alloc_pages()
- |                         get_page_from_freelist()
- |                           rm_queue()
- |                             rm_queue_pcplist()
- |                               local_lock_irqsave(&pagesets.lock, flags);
- |                               [ BUG: Invalid wait context triggered ]
+BUG: KCSAN: data-race in __acct_update_integrals / mmap_region
 
-The default kasan_record_aux_stack() calls stack_depot_save() with
-GFP_NOWAIT, which in turn can then call alloc_pages(GFP_NOWAIT, ...).  In
-general, however, it is not even possible to use either GFP_ATOMIC nor
-GFP_NOWAIT in certain non-preemptive contexts, including raw_spin_locks
-(see gfp.h and ab00db216c9c7).
+read-write to 0xffffa40267bd14c8 of 8 bytes by task 15609 on cpu 3:
+ mmap_region+0x6dc/0x1400
+ do_mmap+0x794/0xca0
+ vm_mmap_pgoff+0xdf/0x150
+ ksys_mmap_pgoff+0xe1/0x380
+ do_syscall_64+0x37/0x50
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-Fix it by instructing stackdepot to not expand stack storage via
-alloc_pages() in case it runs out by using
-kasan_record_aux_stack_noalloc().
+read to 0xffffa40267bd14c8 of 8 bytes by interrupt on cpu 2:
+ __acct_update_integrals+0x187/0x1d0
+ acct_account_cputime+0x3c/0x40
+ update_process_times+0x5c/0x150
+ tick_sched_timer+0x184/0x210
+ __run_hrtimer+0x119/0x3b0
+ hrtimer_interrupt+0x350/0xaa0
+ __sysvec_apic_timer_interrupt+0x7b/0x220
+ asm_call_irq_on_stack+0x12/0x20
+ sysvec_apic_timer_interrupt+0x4d/0x80
+ asm_sysvec_apic_timer_interrupt+0x12/0x20
+ smp_call_function_single+0x192/0x2b0
+ perf_install_in_context+0x29b/0x4a0
+ __se_sys_perf_event_open+0x1a98/0x2550
+ __x64_sys_perf_event_open+0x63/0x70
+ do_syscall_64+0x37/0x50
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-While there is an increased risk of failing to insert the stack trace,
-this is typically unlikely, especially if the same insertion had already
-succeeded previously (stack depot hit).  For frequent calls from the same
-location, it therefore becomes extremely unlikely that
-kasan_record_aux_stack_noalloc() fails.
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 2 PID: 15610 Comm: syz-executor.3 Not tainted 5.10.0+ #2
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS
+Ubuntu-1.8.2-1ubuntu1 04/01/2014
 
-Link: https://lkml.kernel.org/r/20210902200134.25603-1-skhan@linuxfoundation.org
-Link: https://lkml.kernel.org/r/20210913112609.2651084-7-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Shuah Khan <skhan@linuxfoundation.org>
-Tested-by: Shuah Khan <skhan@linuxfoundation.org>
-Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Tejun Heo <tj@kernel.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Taras Madan <tarasmadan@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Walter Wu <walter-zh.wu@mediatek.com>
+In vm_stat_account which called by mmap_region, increase total_vm, and
+__acct_update_integrals may read total_vm at the same time.  This will
+cause a data race which lead to undefined behaviour.  To avoid potential
+bad read/write, volatile property and barrier are both used to avoid
+undefined behaviour.
+
+Link: https://lkml.kernel.org/r/20210913105550.1569419-1-liupeng256@huawei.com
+Signed-off-by: Peng Liu <liupeng256@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/tsacct.c |    2 +-
+ mm/mmap.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/workqueue.c~workqueue-kasan-avoid-alloc_pages-when-recording-stack
-+++ a/kernel/workqueue.c
-@@ -1350,7 +1350,7 @@ static void insert_work(struct pool_work
- 	struct worker_pool *pool = pwq->pool;
+--- a/kernel/tsacct.c~mm-mmapc-fix-a-data-race-of-mm-total_vm
++++ a/kernel/tsacct.c
+@@ -137,7 +137,7 @@ static void __acct_update_integrals(stru
+ 	 * the rest of the math is done in xacct_add_tsk.
+ 	 */
+ 	tsk->acct_rss_mem1 += delta * get_mm_rss(tsk->mm) >> 10;
+-	tsk->acct_vm_mem1 += delta * tsk->mm->total_vm >> 10;
++	tsk->acct_vm_mem1 += delta * READ_ONCE(tsk->mm->total_vm) >> 10;
+ }
  
- 	/* record the work call stack in order to print it in KASAN reports */
--	kasan_record_aux_stack(work);
-+	kasan_record_aux_stack_noalloc(work);
+ /**
+--- a/mm/mmap.c~mm-mmapc-fix-a-data-race-of-mm-total_vm
++++ a/mm/mmap.c
+@@ -3332,7 +3332,7 @@ bool may_expand_vm(struct mm_struct *mm,
  
- 	/* we own @work, set data and link */
- 	set_work_pwq(work, pwq, extra_flags);
+ void vm_stat_account(struct mm_struct *mm, vm_flags_t flags, long npages)
+ {
+-	mm->total_vm += npages;
++	WRITE_ONCE(mm->total_vm, READ_ONCE(mm->total_vm)+npages);
+ 
+ 	if (is_exec_mapping(flags))
+ 		mm->exec_vm += npages;
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from liupeng256@huawei.com are
 
-kasan-fix-kconfig-check-of-cc_has_working_nosanitize_address.patch
-lib-stackdepot-include-gfph.patch
-lib-stackdepot-remove-unused-function-argument.patch
-lib-stackdepot-introduce-__stack_depot_save.patch
-kasan-common-provide-can_alloc-in-kasan_save_stack.patch
-kasan-generic-introduce-kasan_record_aux_stack_noalloc.patch
-workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
-mm-fix-data-race-in-pagepoisoned.patch
+mm-mmapc-fix-a-data-race-of-mm-total_vm.patch
 
