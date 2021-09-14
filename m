@@ -7,32 +7,37 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 609B6C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Sep 2021 01:16:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DA5EFC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Sep 2021 02:47:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 37CB16112D
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Sep 2021 01:16:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADBE46044F
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Sep 2021 02:47:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229502AbhINBRn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Sep 2021 21:17:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37750 "EHLO mail.kernel.org"
+        id S237098AbhINCsR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Sep 2021 22:48:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54634 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230131AbhINBRm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 13 Sep 2021 21:17:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1CE9A61108;
-        Tue, 14 Sep 2021 01:16:26 +0000 (UTC)
+        id S235956AbhINCsR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 13 Sep 2021 22:48:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 45A6B600D4;
+        Tue, 14 Sep 2021 02:47:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631582186;
-        bh=hQV9xnqx5z4e+wGz/81wpL9EeHSsNIiy6q7qDEc+UTk=;
+        s=korg; t=1631587620;
+        bh=WZIE6u90UOmCA7JCB1yz9nE5IF0cVVR4+jmVwj1A2xg=;
         h=Date:From:To:Subject:From;
-        b=IjMA5nEQ6R15GaRs8nsl23zlbbuZ1cy8piZYlTpfxH5zKomGaHdzAXucKyfGezk3o
-         eu5LgNfrmnqUoXZAOjz51V5LIPf9lRKSzbFr3a0mVnZdGW2kprag3GVoWOxTcQehhU
-         xuOF8FiKedkExq7bWQ7yaiFgQHaENCRiEXML42MU=
-Date:   Mon, 13 Sep 2021 18:16:25 -0700
+        b=G+4/Gv0BRUg8ol2sAmr63ejPw8r620NDzuznofsMmSv90UM9u+0hqwtdv6OMJk9Pv
+         O9gBx+l3AhEoSQpjvrA490WZCuLHFeyrABvSn+PmnljITGPak9ViqN5+4XvmRFsvlV
+         RqCDNMR23tyWiL13q72uO1XrxEvOzbKFQzDKJEPs=
+Date:   Mon, 13 Sep 2021 19:46:59 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20210914011625.FhN4MX82d%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, catalin.marinas@arm.com, elver@google.com,
+        eugenis@google.com, glider@google.com, mark.rutland@arm.com,
+        mm-commits@vger.kernel.org, pcc@google.com, robin.murphy@arm.com,
+        will@kernel.org
+Subject:  +
+ kasan-test-add-memcpy-test-that-avoids-out-of-bounds-write.patch added to
+ -mm tree
+Message-ID: <20210914024659.lC_kWdJiq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: kasan: test: add memcpy test that avoids out-of-bounds write
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     kasan-test-add-memcpy-test-that-avoids-out-of-bounds-write.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-test-add-memcpy-test-that-avoids-out-of-bounds-write.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-test-add-memcpy-test-that-avoids-out-of-bounds-write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,93 +67,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Peter Collingbourne <pcc@google.com>
+Subject: kasan: test: add memcpy test that avoids out-of-bounds write
 
+With HW tag-based KASAN, error checks are performed implicitly by the load
+and store instructions in the memcpy implementation.  A failed check
+results in tag checks being disabled and execution will keep going.  As a
+result, under HW tag-based KASAN, prior to commit 1b0668be62cf ("kasan:
+test: disable kmalloc_memmove_invalid_size for HW_TAGS"), this memcpy
+would end up corrupting memory until it hits an inaccessible page and
+causes a kernel panic.
+
+This is a pre-existing issue that was revealed by commit 285133040e6c
+("arm64: Import latest memcpy()/memmove() implementation") which changed
+the memcpy implementation from using signed comparisons (incorrectly,
+resulting in the memcpy being terminated early for negative sizes) to
+using unsigned comparisons.
+
+It is unclear how this could be handled by memcpy itself in a reasonable
+way.  One possibility would be to add an exception handler that would
+force memcpy to return if a tag check fault is detected -- this would make
+the behavior roughly similar to generic and SW tag-based KASAN.  However,
+this wouldn't solve the problem for asynchronous mode and also makes
+memcpy behavior inconsistent with manually copying data.
+
+This test was added as a part of a series that taught KASAN to detect
+negative sizes in memory operations, see commit 8cceeff48f23 ("kasan:
+detect negative size in memory operation function").  Therefore we should
+keep testing for negative sizes with generic and SW tag-based KASAN.  But
+there is some value in testing small memcpy overflows, so let's add
+another test with memcpy that does not destabilize the kernel by
+performing out-of-bounds writes, and run it in all modes.
+
+Link: https://linux-review.googlesource.com/id/I048d1e6a9aff766c4a53f989fb0c83de68923882
+Link: https://lkml.kernel.org/r/20210910211356.3603758-1-pcc@google.com
+Signed-off-by: Peter Collingbourne <pcc@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile                            |    3 ---
- include/linux/compiler-gcc.h        |    5 -----
- include/linux/compiler_attributes.h |    3 ---
- include/linux/compiler_types.h      |    8 --------
- 4 files changed, 19 deletions(-)
+ lib/test_kasan.c |   18 +++++++++++++++++-
+ 1 file changed, 17 insertions(+), 1 deletion(-)
 
---- a/include/linux/compiler_attributes.h~linux-next-git-rejects
-+++ a/include/linux/compiler_attributes.h
-@@ -21,8 +21,6 @@
-  */
+--- a/lib/test_kasan.c~kasan-test-add-memcpy-test-that-avoids-out-of-bounds-write
++++ a/lib/test_kasan.c
+@@ -493,7 +493,7 @@ static void kmalloc_oob_in_memset(struct
+ 	kfree(ptr);
+ }
  
- /*
--<<<<<<< HEAD
--=======
-  * __has_attribute is supported on gcc >= 5, clang >= 2.9 and icc >= 17.
-  * In the meantime, to support gcc < 5, we implement __has_attribute
-  * by hand.
-@@ -46,7 +44,6 @@
- #endif
+-static void kmalloc_memmove_invalid_size(struct kunit *test)
++static void kmalloc_memmove_negative_size(struct kunit *test)
+ {
+ 	char *ptr;
+ 	size_t size = 64;
+@@ -515,6 +515,21 @@ static void kmalloc_memmove_invalid_size
+ 	kfree(ptr);
+ }
  
- /*
-->>>>>>> linux-next/akpm-base
-  *   gcc: https://gcc.gnu.org/onlinedocs/gcc/Common-Function-Attributes.html#index-alias-function-attribute
-  */
- #define __alias(symbol)                 __attribute__((__alias__(#symbol)))
---- a/include/linux/compiler-gcc.h~linux-next-git-rejects
-+++ a/include/linux/compiler-gcc.h
-@@ -41,11 +41,6 @@
- 
- #define __UNIQUE_ID(prefix) __PASTE(__PASTE(__UNIQUE_ID_, prefix), __COUNTER__)
- 
--<<<<<<< HEAD
--#define __compiletime_object_size(obj) __builtin_object_size(obj, 0)
--
--=======
-->>>>>>> linux-next/akpm-base
- #if defined(LATENT_ENTROPY_PLUGIN) && !defined(__CHECKER__)
- #define __latent_entropy __attribute__((latent_entropy))
- #endif
---- a/include/linux/compiler_types.h~linux-next-git-rejects
-+++ a/include/linux/compiler_types.h
-@@ -295,14 +295,6 @@ struct ftrace_likely_data {
- 	(sizeof(t) == sizeof(char) || sizeof(t) == sizeof(short) || \
- 	 sizeof(t) == sizeof(int) || sizeof(t) == sizeof(long))
- 
--<<<<<<< HEAD
--/* Compile time object size, -1 for unknown */
--#ifndef __compiletime_object_size
--# define __compiletime_object_size(obj) -1
--#endif
--
--=======
-->>>>>>> linux-next/akpm-base
- #ifdef __OPTIMIZE__
- # define __compiletime_assert(condition, msg, prefix, suffix)		\
- 	do {								\
---- a/Makefile~linux-next-git-rejects
-+++ a/Makefile
-@@ -929,8 +929,6 @@ endif
- 
- DEBUG_CFLAGS	:=
- 
--<<<<<<< HEAD
--=======
- # Workaround for GCC versions < 5.0
- # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61801
- ifdef CONFIG_CC_IS_GCC
-@@ -939,7 +937,6 @@ endif
- 
- DEBUG_RUSTFLAGS :=
- 
-->>>>>>> linux-next/akpm-base
- ifdef CONFIG_DEBUG_INFO
- 
- ifdef CONFIG_DEBUG_INFO_SPLIT
++static void kmalloc_memmove_invalid_size(struct kunit *test)
++{
++	char *ptr;
++	size_t size = 64;
++	volatile size_t invalid_size = size;
++
++	ptr = kmalloc(size, GFP_KERNEL);
++	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
++
++	memset((char *)ptr, 0, 64);
++	KUNIT_EXPECT_KASAN_FAIL(test,
++		memmove((char *)ptr, (char *)ptr + 4, invalid_size));
++	kfree(ptr);
++}
++
+ static void kmalloc_uaf(struct kunit *test)
+ {
+ 	char *ptr;
+@@ -1129,6 +1144,7 @@ static struct kunit_case kasan_kunit_tes
+ 	KUNIT_CASE(kmalloc_oob_memset_4),
+ 	KUNIT_CASE(kmalloc_oob_memset_8),
+ 	KUNIT_CASE(kmalloc_oob_memset_16),
++	KUNIT_CASE(kmalloc_memmove_negative_size),
+ 	KUNIT_CASE(kmalloc_memmove_invalid_size),
+ 	KUNIT_CASE(kmalloc_uaf),
+ 	KUNIT_CASE(kmalloc_uaf_memset),
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from pcc@google.com are
 
-mm.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
+kasan-test-add-memcpy-test-that-avoids-out-of-bounds-write.patch
 
