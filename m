@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A17BC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 23:17:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18D64C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 23:44:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3DA3A610E8
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 23:17:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE19F610E8
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 23:44:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232749AbhIOXSp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Sep 2021 19:18:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44930 "EHLO mail.kernel.org"
+        id S232929AbhIOXqF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Sep 2021 19:46:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47958 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229538AbhIOXSp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Sep 2021 19:18:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A4320610A4;
-        Wed, 15 Sep 2021 23:17:25 +0000 (UTC)
+        id S232836AbhIOXqF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Sep 2021 19:46:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A950460F8F;
+        Wed, 15 Sep 2021 23:44:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631747845;
-        bh=3XaNBeEidGaugJ2Nn3LoI//cLoWIPNVEif1Drp0Gl+8=;
+        s=korg; t=1631749485;
+        bh=ceawZX0DgIQjWpZ7fk+e7HsUKfP0k6KDTM/8dADdbWM=;
         h=Date:From:To:Subject:From;
-        b=aFy+TAbs8IZq1Lm0xBhyToHH6GyblXZCPk7ZFpyV1ipFeDd/ZLtbXbPuteeM+rXs4
-         MWmRnEX0VmtWBzRj7FMWvpv3VkhfydXLZsrR3S4iHQy6Veilwe311E10l2ANXbZ1cp
-         LO/dud4SCYXTVEiXZc01amEZuXE+wHUWsX5+p0h0=
-Date:   Wed, 15 Sep 2021 16:17:25 -0700
+        b=Uz7bSAT6RGYENLI9cGjVULH/1uSOqwYE5VfHT9QLHdCj/3JVwYGMU35bHtK3WuG8w
+         ZMUTIcrhJIL2xrId0TFIyWzY7v9LhIIjcpmjDtrSAnKW8UypQORlrmmXVnHSHvq4JQ
+         5uJE1o/1vY1EBFogNJCaQhn8Y43jl0sOWBlBqbCg=
+Date:   Wed, 15 Sep 2021 16:44:45 -0700
 From:   akpm@linux-foundation.org
-To:     hch@lst.de, mm-commits@vger.kernel.org, urezki@gmail.com,
-        vvs@virtuozzo.com
-Subject:  +
- mm-vmalloc-repair-warn_allocs-in-__vmalloc_area_node.patch added to -mm
+To:     jaewon31.kim@samsung.com, minchan@kernel.org,
+        mm-commits@vger.kernel.org, ytk.lee@samsung.com
+Subject:  + zram_drv-allow-reclaim-on-bio_alloc.patch added to -mm
  tree
-Message-ID: <20210915231725.ZGGGYm78c%akpm@linux-foundation.org>
+Message-ID: <20210915234445.1d-QIxlXb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: repair warn_alloc()s in __vmalloc_area_node()
+     Subject: zram_drv: allow reclaim on bio_alloc
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-repair-warn_allocs-in-__vmalloc_area_node.patch
+     zram_drv-allow-reclaim-on-bio_alloc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-repair-warn_allocs-in-__vmalloc_area_node.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/zram_drv-allow-reclaim-on-bio_alloc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-repair-warn_allocs-in-__vmalloc_area_node.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/zram_drv-allow-reclaim-on-bio_alloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,66 +64,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: mm/vmalloc: repair warn_alloc()s in __vmalloc_area_node()
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: zram_drv: allow reclaim on bio_alloc
 
-Commit f255935b9767 ("mm: cleanup the gfp_mask handling in
-__vmalloc_area_node") added __GFP_NOWARN to gfp_mask unconditionally
-however it disabled all output inside warn_alloc() call.  This patch saves
-original gfp_mask and provides it to all warn_alloc() calls.
+The read_from_bdev_async is not called on atomic context.  So GFP_NOIO is
+available rather than GFP_ATOMIC.  If there were reclaimable pages with
+GFP_NOIO, we can avoid allocation failure and page fault failure.
 
-Link: https://lkml.kernel.org/r/f4f3187b-9684-e426-565d-827c2a9bbb0e@virtuozzo.com
-Fixes: f255935b9767 ("mm: cleanup the gfp_mask handling in __vmalloc_area_node")
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Reviewed-by: Christoph Hellwig <hch@lst.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Link: https://lkml.kernel.org/r/20210908005241.28062-1-jaewon31.kim@samsung.com
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Reported-by: Yong-Taek Lee <ytk.lee@samsung.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-repair-warn_allocs-in-__vmalloc_area_node
-+++ a/mm/vmalloc.c
-@@ -2884,6 +2884,7 @@ static void *__vmalloc_area_node(struct
- 				 int node)
+--- a/drivers/block/zram/zram_drv.c~zram_drv-allow-reclaim-on-bio_alloc
++++ a/drivers/block/zram/zram_drv.c
+@@ -587,7 +587,7 @@ static int read_from_bdev_async(struct z
  {
- 	const gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
-+	const gfp_t orig_gfp_mask = gfp_mask;
- 	unsigned long addr = (unsigned long)area->addr;
- 	unsigned long size = get_vm_area_size(area);
- 	unsigned long array_size;
-@@ -2904,7 +2905,7 @@ static void *__vmalloc_area_node(struct
- 	}
+ 	struct bio *bio;
  
- 	if (!area->pages) {
--		warn_alloc(gfp_mask, NULL,
-+		warn_alloc(orig_gfp_mask, NULL,
- 			"vmalloc error: size %lu, failed to allocated page array size %lu",
- 			nr_small_pages * PAGE_SIZE, array_size);
- 		free_vm_area(area);
-@@ -2924,7 +2925,7 @@ static void *__vmalloc_area_node(struct
- 	 * allocation request, free them via __vfree() if any.
- 	 */
- 	if (area->nr_pages != nr_small_pages) {
--		warn_alloc(gfp_mask, NULL,
-+		warn_alloc(orig_gfp_mask, NULL,
- 			"vmalloc error: size %lu, page order %u, failed to allocate pages",
- 			area->nr_pages * PAGE_SIZE, page_order);
- 		goto fail;
-@@ -2932,7 +2933,7 @@ static void *__vmalloc_area_node(struct
+-	bio = bio_alloc(GFP_ATOMIC, 1);
++	bio = bio_alloc(GFP_NOIO, 1);
+ 	if (!bio)
+ 		return -ENOMEM;
  
- 	if (vmap_pages_range(addr, addr + size, prot, area->pages,
- 			page_shift) < 0) {
--		warn_alloc(gfp_mask, NULL,
-+		warn_alloc(orig_gfp_mask, NULL,
- 			"vmalloc error: size %lu, failed to map pages",
- 			area->nr_pages * PAGE_SIZE);
- 		goto fail;
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
 
-memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks.patch
-mm-vmalloc-repair-warn_allocs-in-__vmalloc_area_node.patch
+zram_drv-allow-reclaim-on-bio_alloc.patch
 
