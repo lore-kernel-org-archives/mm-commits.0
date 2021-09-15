@@ -7,36 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E970CC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 03:46:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D916C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 03:52:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C13FD60F23
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 03:46:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F254A60F46
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 03:52:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230050AbhIODsQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Sep 2021 23:48:16 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37726 "EHLO mail.kernel.org"
+        id S236346AbhIODxi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Sep 2021 23:53:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40288 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229980AbhIODsQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Sep 2021 23:48:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A715E60F26;
-        Wed, 15 Sep 2021 03:46:57 +0000 (UTC)
+        id S236214AbhIODxh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Sep 2021 23:53:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ACFF760724;
+        Wed, 15 Sep 2021 03:52:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631677617;
-        bh=DnqgtBcqENgKACRwUUccdpASy7MNAX/UsLJDE5Zan/A=;
+        s=korg; t=1631677938;
+        bh=2IP6Kr0VDE8Z9ktNR2WaF2Vr7lxVSvAJ65vevojZjUw=;
         h=Date:From:To:Subject:From;
-        b=xSwVKoVaBBozFwmXaRqItbpbsoFEWSUc0L6pMLVtZyP1BUbtg00FHYMhXay2my8cH
-         xO4Kl92Oq4lXMv1S2sONMQDhJb9L1pRZAlHCgL8XtnL90NdpYItnHtkEWiXxwyPvtx
-         Azue9SqEk2n4eJbfEJ+BTtbvuBFY48+I390Y7x98=
-Date:   Tue, 14 Sep 2021 20:46:57 -0700
+        b=lQhH+/eXT95mdkHBHIFEidUS6IpmkF5d5DXA1NzTklyfLOTQwwWNMLN3Y31nQJe6L
+         8t7DwtLuAnjxqyV9v9PWeU00eYUrghTRd29QIQuaQLd4ypnPk2jMgh5JJx+kNbtEy2
+         dc+DQeBlqcBjRhwtkL2RUkgvr4r5SX4S10eaW8AM=
+Date:   Tue, 14 Sep 2021 20:52:18 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mhocko@kernel.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, penguin-kernel@I-love.SAKURA.ne.jp,
-        vdavydov.dev@gmail.com, vvs@virtuozzo.com
-Subject:  +
- memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks.patch added
- to -mm tree
-Message-ID: <20210915034657.ereM83NMv%akpm@linux-foundation.org>
+To:     hughd@google.com, kirill.shutemov@linux.intel.com,
+        liuyuntao10@huawei.com, mm-commits@vger.kernel.org,
+        wuxu.wu@huawei.com
+Subject:  + fix-judgment-error-in-shmem_is_huge.patch added to -mm
+ tree
+Message-ID: <20210915035218.YMfEKyj0p%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: prohibit unconditional exceeding the limit of dying tasks
+     Subject: mm/shmem.c: fix judgment error in shmem_is_huge()
 has been added to the -mm tree.  Its filename is
-     memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks.patch
+     fix-judgment-error-in-shmem_is_huge.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fix-judgment-error-in-shmem_is_huge.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fix-judgment-error-in-shmem_is_huge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,116 +65,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: prohibit unconditional exceeding the limit of dying tasks
+From: Liu Yuntao <liuyuntao10@huawei.com>
+Subject: mm/shmem.c: fix judgment error in shmem_is_huge()
 
-The kernel currently allows dying tasks to exceed the memcg limits.  The
-allocation is expected to be the last one and the occupied memory will be
-freed soon.
+In the case of SHMEM_HUGE_WITHIN_SIZE, the page index is not rounded up
+correctly.  When the page index points to the first page in a huge page,
+round_up() cannot bring it to the end of the huge page, but to the end of
+the previous one.
 
-This is not always true because it can be part of the huge vmalloc
-allocation.  Allowed once, they will repeat over and over again.  Moreover
-lifetime of the allocated object can differ from the lifetime of the dying
-task.
+An example:
 
-Multiple such allocations running concurrently can not only overuse the
-memcg limit, but can lead to a global out of memory and, in the worst
-case, cause the host to panic.
+HPAGE_PMD_NR on my machine is 512(2 MB huge page size).  After allcoating
+a 3000 KB buffer, I access it at location 2050 KB.  In shmem_is_huge(),
+the corresponding index happens to be 512.  After rounded up by
+HPAGE_PMD_NR, it will still be 512 which is smaller than i_size, and
+shmem_is_huge() will return true.  As a result, my buffer takes an
+additional huge page, and that shouldn't happen when shmem_enabled is set
+to within_size.
 
-This patch removes checks for exceeding of the memcg limit for dying
-tasks.  Also it breaks endless loop for tasks bypassed by the oom killer. 
-In addition, it renames should_force_charge() helper to task_is_dying()
-because now its use do not lead to the forced charge.
-
-Link: https://lkml.kernel.org/r/817a6ce2-4da9-72ac-c5b9-edd398d28a15@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Link: https://lkml.kernel.org/r/20210909032007.18353-1-liuyuntao10@huawei.com
+Fixes: f3f0e1d2150b2b ("khugepaged: add support of collapse for tmpfs/shmem pages")
+Signed-off-by: Liu Yuntao <liuyuntao10@huawei.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: wuxu.wu <wuxu.wu@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   27 ++++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+ mm/shmem.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks
-+++ a/mm/memcontrol.c
-@@ -242,7 +242,7 @@ enum res_type {
- 	     iter != NULL;				\
- 	     iter = mem_cgroup_iter(NULL, iter, NULL))
- 
--static inline bool should_force_charge(void)
-+static inline bool task_is_dying(void)
- {
- 	return tsk_is_oom_victim(current) || fatal_signal_pending(current) ||
- 		(current->flags & PF_EXITING);
-@@ -1580,7 +1580,7 @@ static bool mem_cgroup_out_of_memory(str
- 	 * A few threads which were not waiting at mutex_lock_killable() can
- 	 * fail to bail out. Therefore, check again after holding oom_lock.
- 	 */
--	ret = should_force_charge() || out_of_memory(&oc);
-+	ret = task_is_dying() || out_of_memory(&oc);
- 
- unlock:
- 	mutex_unlock(&oom_lock);
-@@ -2535,6 +2535,7 @@ static int try_charge_memcg(struct mem_c
- 	struct page_counter *counter;
- 	enum oom_status oom_status;
- 	unsigned long nr_reclaimed;
-+	bool passed_oom = false;
- 	bool may_swap = true;
- 	bool drained = false;
- 	unsigned long pflags;
-@@ -2570,15 +2571,6 @@ retry:
- 		goto force;
- 
- 	/*
--	 * Unlike in global OOM situations, memcg is not in a physical
--	 * memory shortage.  Allow dying and OOM-killed tasks to
--	 * bypass the last charges so that they can exit quickly and
--	 * free their memory.
--	 */
--	if (unlikely(should_force_charge()))
--		goto force;
--
--	/*
- 	 * Prevent unbounded recursion when reclaim operations need to
- 	 * allocate memory. This might exceed the limits temporarily,
- 	 * but we prefer facilitating memory reclaim and getting back
-@@ -2635,8 +2627,9 @@ retry:
- 	if (gfp_mask & __GFP_RETRY_MAYFAIL)
- 		goto nomem;
- 
--	if (fatal_signal_pending(current))
--		goto force;
-+	/* Avoid endless loop for tasks bypassed by the oom killer */
-+	if (passed_oom && task_is_dying())
-+		goto nomem;
- 
- 	/*
- 	 * keep retrying as long as the memcg oom killer is able to make
-@@ -2645,14 +2638,10 @@ retry:
- 	 */
- 	oom_status = mem_cgroup_oom(mem_over_limit, gfp_mask,
- 		       get_order(nr_pages * PAGE_SIZE));
--	switch (oom_status) {
--	case OOM_SUCCESS:
-+	if (oom_status == OOM_SUCCESS) {
-+		passed_oom = true;
- 		nr_retries = MAX_RECLAIM_RETRIES;
- 		goto retry;
--	case OOM_FAILED:
--		goto force;
--	default:
--		goto nomem;
- 	}
- nomem:
- 	if (!(gfp_mask & __GFP_NOFAIL))
+--- a/mm/shmem.c~fix-judgment-error-in-shmem_is_huge
++++ a/mm/shmem.c
+@@ -490,9 +490,9 @@ bool shmem_is_huge(struct vm_area_struct
+ 	case SHMEM_HUGE_ALWAYS:
+ 		return true;
+ 	case SHMEM_HUGE_WITHIN_SIZE:
+-		index = round_up(index, HPAGE_PMD_NR);
++		index = round_up(index + 1, HPAGE_PMD_NR);
+ 		i_size = round_up(i_size_read(inode), PAGE_SIZE);
+-		if (i_size >= HPAGE_PMD_SIZE && (i_size >> PAGE_SHIFT) >= index)
++		if (i_size >> PAGE_SHIFT >= index)
+ 			return true;
+ 		fallthrough;
+ 	case SHMEM_HUGE_ADVISE:
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from liuyuntao10@huawei.com are
 
-memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks.patch
+fix-judgment-error-in-shmem_is_huge.patch
 
