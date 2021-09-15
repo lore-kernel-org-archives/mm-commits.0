@@ -7,35 +7,38 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B58E7C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 01:44:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 342D5C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 01:58:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9D05C61244
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 01:44:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F47561242
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 01:58:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230408AbhIOBpx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Sep 2021 21:45:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37302 "EHLO mail.kernel.org"
+        id S233061AbhIOB73 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Sep 2021 21:59:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42964 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230322AbhIOBpx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Sep 2021 21:45:53 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 68FEE61211;
-        Wed, 15 Sep 2021 01:44:35 +0000 (UTC)
+        id S231979AbhIOB73 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Sep 2021 21:59:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 865956121E;
+        Wed, 15 Sep 2021 01:58:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631670275;
-        bh=7WBcSAQzBzEuw+M+soaopgYsI88NbYauV4NoFDEv98U=;
+        s=korg; t=1631671091;
+        bh=w3y6HyKA4HupirJDz/gqmRI4oFYQRS6kNblsp2JxyaE=;
         h=Date:From:To:Subject:From;
-        b=Zki1OpOsxd3m0a0avJy0vnUAiQVYQHRuBOq1gQg/U7kv5Ubvx7VM7UwviXwQY3WHE
-         Sh+AOYXFQZnllMJB0mfIypLTsDJwKKJYxolbnAE99sj/KZG1TpFZcpoB5JAp33nOR2
-         BRE5ttHY7A57weX7diLqBpuVlHAaqxswGui9C5C8=
-Date:   Tue, 14 Sep 2021 18:44:35 -0700
+        b=ca11fJLr/CBMrZo1r3aoSPxypRiR39DWYM1oQJS631C2qJXYMu/DhoaP13rO4RbVZ
+         r53OyoKh9SLC0D7dGt/NalEN2iHV8gFzwJiCXikxR9vjOZyPJB415nUQr6U6vTJmEs
+         IQuVwtCzKeXQzX81LwnQrz0P0i14nJDoklWDhpPA=
+Date:   Tue, 14 Sep 2021 18:58:09 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        shakeelb@google.com, vvs@virtuozzo.com
-Subject:  [merged]
- ipc-remove-memcg-accounting-for-sops-objects-in-do_semtimedop.patch removed
- from -mm tree
-Message-ID: <20210915014435.16EgxtbVG%akpm@linux-foundation.org>
+To:     airlied@linux.ie, andreyknvl@gmail.com, daniel@ffwll.ch,
+        dvyukov@google.com, geert@linux-m68k.org, glider@google.com,
+        imran.f.khan@oracle.com, maarten.lankhorst@linux.intel.com,
+        mm-commits@vger.kernel.org, mripard@kernel.org,
+        ryabinin.a.a@gmail.com, tzimmermann@suse.de, vbabka@suse.cz
+Subject:  +
+ lib-stackdepot-check-stackdepot-handle-before-accessing-slabs.patch added
+ to -mm tree
+Message-ID: <20210915015809.sdaEPVF_U%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,57 +47,92 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: remove memcg accounting for sops objects in do_semtimedop()
-has been removed from the -mm tree.  Its filename was
-     ipc-remove-memcg-accounting-for-sops-objects-in-do_semtimedop.patch
+     Subject: lib, stackdepot: check stackdepot handle before accessing slabs
+has been added to the -mm tree.  Its filename is
+     lib-stackdepot-check-stackdepot-handle-before-accessing-slabs.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-check-stackdepot-handle-before-accessing-slabs.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-check-stackdepot-handle-before-accessing-slabs.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: ipc: remove memcg accounting for sops objects in do_semtimedop()
+From: Imran Khan <imran.f.khan@oracle.com>
+Subject: lib, stackdepot: check stackdepot handle before accessing slabs
 
-Linus proposes to revert an accounting for sops objects in do_semtimedop()
-because it's really just a temporary buffer for a single semtimedop()
-system call.
+Patch series "lib, stackdepot: check stackdepot handle before accessing slabs".
 
-This object can consume up to 2 pages, syscall is sleeping one, size and
-duration can be controlled by user, and this allocation can be repeated by
-many thread at the same time.
+PATCH-1: Checks validity of a stackdepot handle before proceeding to
+access stackdepot slab/objects.
 
-However Shakeel Butt pointed that there are much more popular objects with
-the same life time and similar memory consumption, the accounting of which
-was decided to be rejected for performance reasons.
+PATCH-2: Adds a helper in stackdepot, to allow users to print stack
+entries just by specifying the stackdepot handle.  It also changes such
+users to use this new interface.  
 
-In addition, any usual task consumes much more accounted memory, so 2
-pages of this temporal buffer can be safely ignored.
+PATCH-3: Adds a helper in stackdepot, to allow users to print stack
+entries into buffers just by specifying the stackdepot handle and
+destination buffer.  It also changes such users to use this new interface.
 
-Link: https://patchwork.kernel.org/project/linux-fsdevel/patch/20171005222144.123797-1-shakeelb@google.com/
-Link: https://lkml.kernel.org/r/90e254df-0dfe-f080-011e-b7c53ee7fd20@virtuozzo.com
-Fixes: 18319498fdd4 ("memcg: enable accounting of ipc resources")
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+
+This patch (of 3):
+
+stack_depot_save allocates slabs that will be used for storing objects in
+future.If this slab allocation fails we may get to a situation where space
+allocation for a new stack_record fails, causing stack_depot_save to
+return 0 as handle.  If user of this handle ends up invoking
+stack_depot_fetch with this handle value, current implementation of
+stack_depot_fetch will end up using slab from wrong index.  To avoid this
+check handle value at the beginning.
+
+Link: https://lkml.kernel.org/r/20210915014806.3206938-1-imran.f.khan@oracle.com
+Link: https://lkml.kernel.org/r/20210915014806.3206938-2-imran.f.khan@oracle.com
+Signed-off-by: Imran Khan <imran.f.khan@oracle.com>
+Suggested-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Cc: Maxime Ripard <mripard@kernel.org>
+Cc: Thomas Zimmermann <tzimmermann@suse.de>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Daniel Vetter <daniel@ffwll.ch>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/stackdepot.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/ipc/sem.c~ipc-remove-memcg-accounting-for-sops-objects-in-do_semtimedop
-+++ a/ipc/sem.c
-@@ -2238,7 +2238,7 @@ static long do_semtimedop(int semid, str
- 		return -EINVAL;
+--- a/lib/stackdepot.c~lib-stackdepot-check-stackdepot-handle-before-accessing-slabs
++++ a/lib/stackdepot.c
+@@ -232,6 +232,9 @@ unsigned int stack_depot_fetch(depot_sta
+ 	struct stack_record *stack;
  
- 	if (nsops > SEMOPM_FAST) {
--		sops = kvmalloc_array(nsops, sizeof(*sops), GFP_KERNEL_ACCOUNT);
-+		sops = kvmalloc_array(nsops, sizeof(*sops), GFP_KERNEL);
- 		if (sops == NULL)
- 			return -ENOMEM;
- 	}
+ 	*entries = NULL;
++	if (!handle)
++		return 0;
++
+ 	if (parts.slabindex > depot_index) {
+ 		WARN(1, "slab index %d out of bounds (%d) for stack id %08x\n",
+ 			parts.slabindex, depot_index, handle);
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from imran.f.khan@oracle.com are
 
+lib-stackdepot-check-stackdepot-handle-before-accessing-slabs.patch
+lib-stackdepot-add-helper-to-print-stack-entries.patch
+lib-stackdepot-add-helper-to-print-stack-entries-into-buffer.patch
 
