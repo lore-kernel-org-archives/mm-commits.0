@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6E51C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 03:53:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5115C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 03:53:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BFDF460F3A
-	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 03:53:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D0D566103C
+	for <mm-commits@archiver.kernel.org>; Wed, 15 Sep 2021 03:53:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236217AbhIODyk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 14 Sep 2021 23:54:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40924 "EHLO mail.kernel.org"
+        id S236190AbhIODy5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 14 Sep 2021 23:54:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41072 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236431AbhIODyZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 14 Sep 2021 23:54:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 883BD60F25;
-        Wed, 15 Sep 2021 03:53:07 +0000 (UTC)
+        id S236435AbhIODyq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 14 Sep 2021 23:54:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B313360F25;
+        Wed, 15 Sep 2021 03:53:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631677987;
-        bh=k8mO4zY+saysO66sn8fucFzET3udxBRNzqij2Qc7WAA=;
+        s=korg; t=1631678007;
+        bh=u0d/OueFLB095aF76EMcGGoZBckMB4khOjR/Gp24840=;
         h=Date:From:To:Subject:From;
-        b=dUAft9dYcd7T4y06FUzB1WnuXVVgqJ5+k4fx3c6o0o3eAVqfctumatGIDhoSY8TU7
-         f/amV1rHO9C5coUVFY2EeJOoZI/kq9XiHLpqG4d+ytNnCpizlBkRRLOgPaAqRP53yr
-         QekJP+J38bfP2hcLNpGuv/4fppv0mdiSBwgonDKU=
-Date:   Tue, 14 Sep 2021 20:53:07 -0700
+        b=TXupcIgfVDJlS6VWpr9EhGXsaDHAhNHzpHv7nVs90CRhDKMPDYJWxNbCoWU/KS2C7
+         JhdKRFeZ0T5AzIBuRyPot3dwpe8VkmKZDCgA2Pp9J4fj1PLuWwcgOzJ7yLtp17qzr9
+         kGflWOaOOtkneV+7y2VG+tV3ZDthIsSR7FQbGDJ0=
+Date:   Tue, 14 Sep 2021 20:53:27 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ran.xiaokai@zte.com.cn
+To:     axboe@kernel.dk, ebiederm@xmission.com, krisman@collabora.com,
+        legion@kernel.org, mm-commits@vger.kernel.org,
+        peterz@infradead.org, ran.xiaokai@zte.com.cn
 Subject:  + unshare-use-swap-to-make-code-cleaner.patch added to
  -mm tree
-Message-ID: <20210915035307.D-pqFSGqK%akpm@linux-foundation.org>
+Message-ID: <20210915035327.38DUnaS_8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -70,6 +72,11 @@ Use swap() instead of reimplementing it.
 
 Link: https://lkml.kernel.org/r/20210909022046.8151-1-ran.xiaokai@zte.com.cn
 Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Cc: Gabriel Krisman Bertazi <krisman@collabora.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Alexey Gladkov <legion@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
