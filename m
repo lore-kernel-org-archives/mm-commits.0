@@ -7,35 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D06FBC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 03:31:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B8C9C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 03:31:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B0A8E611C8
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 03:31:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A7DE611CB
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 03:31:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234120AbhIPDcu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Sep 2021 23:32:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47276 "EHLO mail.kernel.org"
+        id S234121AbhIPDcw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Sep 2021 23:32:52 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234119AbhIPDct (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Sep 2021 23:32:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C9364611CB;
-        Thu, 16 Sep 2021 03:31:29 +0000 (UTC)
+        id S234119AbhIPDcv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Sep 2021 23:32:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DF2B9611C8;
+        Thu, 16 Sep 2021 03:31:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631763090;
-        bh=4xT7L+q12hgYhPDYDnRfEYIevAD09roAHACBZ1izKF0=;
+        s=korg; t=1631763092;
+        bh=VwmcqW8vxCcYtk1cfjsmiOhVqX9jNXRk+a16VVvsPKQ=;
         h=Date:From:To:Subject:From;
-        b=uwBL1m/dZCggBgtbYZPUYw7AOn0TZaKS+eOiFyGyMXP0LAFgrWE1fDQ7YdxcSJ0tZ
-         W5XFFjYvC8QGb9ki00mhKB9f1Du+BVbxlRiXDsVDwesn61wFx4FaHdDaKPYCe8tfIx
-         nYs4DUPNr4z9o8F8SAZ56NQKd1DsSjThZO/9GIT0=
-Date:   Wed, 15 Sep 2021 20:31:29 -0700
+        b=vKt/tRrr+E71plutWjQ7fFrwzRdqf9gcsRzu4+o9Bdva55LMInM4QJ0EaNi8Ddaup
+         lV4Tphmp7FJdCRV9L4kJ5xQ48XO0RWHvt6th/a1N/+skIhTKK0f96ji3ceEefJwUcc
+         XUBuaYJWwlgf0X4uvXe2Ef8V9Bwx1jqtR04k1t40=
+Date:   Wed, 15 Sep 2021 20:31:31 -0700
 From:   akpm@linux-foundation.org
 To:     david@redhat.com, linmiaohe@huawei.com,
         mgorman@techsingularity.net, mm-commits@vger.kernel.org,
         peterz@infradead.org, sfr@canb.auug.org.au, vbabka@suse.cz
-Subject:  + mm-page_allocc-use-helper-function-zone_spans_pfn.patch
+Subject:  +
+ mm-page_allocc-avoid-allocating-highmem-pages-via-alloc_pages_exact.patch
  added to -mm tree
-Message-ID: <20210916033129.9ScHc5qgL%akpm@linux-foundation.org>
+Message-ID: <20210916033131.JLAIc9MWE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: use helper function zone_spans_pfn()
+     Subject: mm/page_alloc.c: avoid allocating highmem pages via alloc_pages_exact[_nid]
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-use-helper-function-zone_spans_pfn.patch
+     mm-page_allocc-avoid-allocating-highmem-pages-via-alloc_pages_exact.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-use-helper-function-zone_spans_pfn.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-avoid-allocating-highmem-pages-via-alloc_pages_exact.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-use-helper-function-zone_spans_pfn.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-avoid-allocating-highmem-pages-via-alloc_pages_exact.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,35 +67,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/page_alloc.c: use helper function zone_spans_pfn()
+Subject: mm/page_alloc.c: avoid allocating highmem pages via alloc_pages_exact[_nid]
 
-Use helper function zone_spans_pfn() to check whether pfn is within a zone
-to simplify the code slightly.
+Don't use with __GFP_HIGHMEM because page_address() cannot represent
+highmem pages without kmap().  Newly allocated pages would leak as
+page_address() will return NULL for highmem pages here.  But It works now
+because the callers do not specify __GFP_HIGHMEM now.
 
-Link: https://lkml.kernel.org/r/20210902121242.41607-5-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210902121242.41607-6-linmiaohe@huawei.com
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-use-helper-function-zone_spans_pfn
+--- a/mm/page_alloc.c~mm-page_allocc-avoid-allocating-highmem-pages-via-alloc_pages_exact
 +++ a/mm/page_alloc.c
-@@ -1581,7 +1581,7 @@ static void __meminit init_reserved_page
- 	for (zid = 0; zid < MAX_NR_ZONES; zid++) {
- 		struct zone *zone = &pgdat->node_zones[zid];
+@@ -5604,8 +5604,8 @@ void *alloc_pages_exact(size_t size, gfp
+ 	unsigned int order = get_order(size);
+ 	unsigned long addr;
  
--		if (pfn >= zone->zone_start_pfn && pfn < zone_end_pfn(zone))
-+		if (zone_spans_pfn(zone, pfn))
- 			break;
- 	}
- 	__init_single_page(pfn_to_page(pfn), pfn, zid, nid);
+-	if (WARN_ON_ONCE(gfp_mask & __GFP_COMP))
+-		gfp_mask &= ~__GFP_COMP;
++	if (WARN_ON_ONCE(gfp_mask & (__GFP_COMP | __GFP_HIGHMEM)))
++		gfp_mask &= ~(__GFP_COMP | __GFP_HIGHMEM);
+ 
+ 	addr = __get_free_pages(gfp_mask, order);
+ 	return make_alloc_exact(addr, order, size);
+@@ -5629,8 +5629,8 @@ void * __meminit alloc_pages_exact_nid(i
+ 	unsigned int order = get_order(size);
+ 	struct page *p;
+ 
+-	if (WARN_ON_ONCE(gfp_mask & __GFP_COMP))
+-		gfp_mask &= ~__GFP_COMP;
++	if (WARN_ON_ONCE(gfp_mask & (__GFP_COMP | __GFP_HIGHMEM)))
++		gfp_mask &= ~(__GFP_COMP | __GFP_HIGHMEM);
+ 
+ 	p = alloc_pages_node(nid, gfp_mask, order);
+ 	if (!p)
 _
 
 Patches currently in -mm which might be from linmiaohe@huawei.com are
