@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F413C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 03:19:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 532DEC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 03:22:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EDF21611C4
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 03:19:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 27D7260296
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 03:22:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234049AbhIPDU5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 15 Sep 2021 23:20:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45148 "EHLO mail.kernel.org"
+        id S234141AbhIPDYD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 15 Sep 2021 23:24:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45700 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234037AbhIPDU4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 15 Sep 2021 23:20:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AABFB611C4;
-        Thu, 16 Sep 2021 03:19:36 +0000 (UTC)
+        id S234037AbhIPDYC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 15 Sep 2021 23:24:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BFE6A60F23;
+        Thu, 16 Sep 2021 03:22:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631762376;
-        bh=KZ3s24N0YLHloxaHIrXFmUYSdlVf6YuiTalCxv3laQw=;
+        s=korg; t=1631762563;
+        bh=Nn4kCYOP6+SbigDcdcy9E2qRkqLYD8kP33/Pjy99rO0=;
         h=Date:From:To:Subject:From;
-        b=l7fz1rCPtYO8U/hdSI3rA0Mzt56MbsrXUgTN+LNlSARTLjTQs+hEk5Pmt9fKVkWA8
-         EiSn4OQV7buRk0oXPqpAgXAIdWdepO2F4EoK1OUHBkNDzjwi8o35hEUFPqbPvQ1Um5
-         H0dSyTd+Zq6qVKPb6mNwP5kRCKS6Nn5s+unNmRO0=
-Date:   Wed, 15 Sep 2021 20:19:36 -0700
+        b=HUnm1OcdR3HhyJHKSySDvVPxXyqtjqm3Yg5haeXfOBjevOz9UASVxKQ3Seo1fQrci
+         bBEdCPz3+fwwTZ5JfMPddWa+EtqFkfhQ/wh/eiQ8ImFA+aCwcXTEtcHBpyifJo8jRY
+         +nWWHIk9vBpLALxy2nca+/qHAXIvU9JX9lCHMxv4=
+Date:   Wed, 15 Sep 2021 20:22:42 -0700
 From:   akpm@linux-foundation.org
-To:     colin.king@canonical.com, mm-commits@vger.kernel.org
-Subject:  +
- scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch added to -mm
- tree
-Message-ID: <20210916031936.Ox6_SYGjx%akpm@linux-foundation.org>
+To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
+        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
+        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
+        stable@vger.kernel.org, wen.gang.wang@oracle.com
+Subject:  + ocfs2-drop-acl-cache-for-directories-too.patch added to
+ -mm tree
+Message-ID: <20210916032242.v5I_Wzn6n%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add more spellings to spelling.txt
+     Subject: ocfs2: drop acl cache for directories too
 has been added to the -mm tree.  Its filename is
-     scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+     ocfs2-drop-acl-cache-for-directories-too.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-drop-acl-cache-for-directories-too.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-drop-acl-cache-for-directories-too.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,140 +66,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: scripts/spelling.txt: add more spellings to spelling.txt
+From: Wengang Wang <wen.gang.wang@oracle.com>
+Subject: ocfs2: drop acl cache for directories too
 
-Some of the more common spelling mistakes and typos that I've found
-while fixing up spelling mistakes in the kernel in the past few months.
+ocfs2_data_convert_worker() is currently dropping any cached acl info for
+FILE before down-converting meta lock.  It should also drop for DIRECTORY.
+Otherwise the second acl lookup returns the cached one (from VFS layer)
+which could be already stale.
 
-Link: https://lkml.kernel.org/r/20210907072941.7033-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
+The problem we are seeing is that the acl changes on one node doesn't get
+refreshed on other nodes in the following case:
+
+  Node 1                    Node 2
+--------------            ----------------
+getfacl dir1
+
+			  getfacl dir1    <-- this is OK
+
+setfacl -m u:user1:rwX dir1
+getfacl dir1   <-- see the change for user1
+
+			  getfacl dir1    <-- can't see change for user1
+
+Link: https://lkml.kernel.org/r/20210903012631.6099-1-wen.gang.wang@oracle.com
+Signed-off-by: Wengang Wang <wen.gang.wang@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ fs/ocfs2/dlmglue.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/scripts/spelling.txt~scripts-spellingtxt-add-more-spellings-to-spellingtxt
-+++ a/scripts/spelling.txt
-@@ -178,6 +178,7 @@ assum||assume
- assumtpion||assumption
- asuming||assuming
- asycronous||asynchronous
-+asychronous||asynchronous
- asynchnous||asynchronous
- asynchromous||asynchronous
- asymetric||asymmetric
-@@ -241,6 +242,7 @@ beter||better
- betweeen||between
- bianries||binaries
- bitmast||bitmask
-+bitwiedh||bitwidth
- boardcast||broadcast
- borad||board
- boundry||boundary
-@@ -265,7 +267,10 @@ calucate||calculate
- calulate||calculate
- cancelation||cancellation
- cancle||cancel
-+cant||can't
-+cant'||can't
- canot||cannot
-+cann't||can't
- capabilites||capabilities
- capabilties||capabilities
- capabilty||capability
-@@ -501,6 +506,7 @@ disble||disable
- disgest||digest
- disired||desired
- dispalying||displaying
-+dissable||disable
- diplay||display
- directon||direction
- direcly||directly
-@@ -595,6 +601,7 @@ exceded||exceeded
- exceds||exceeds
- exceeed||exceed
- excellant||excellent
-+exchnage||exchange
- execeeded||exceeded
- execeeds||exceeds
- exeed||exceed
-@@ -938,6 +945,7 @@ migrateable||migratable
- milliseonds||milliseconds
- minium||minimum
- minimam||minimum
-+minimun||minimum
- miniumum||minimum
- minumum||minimum
- misalinged||misaligned
-@@ -956,6 +964,7 @@ mmnemonic||mnemonic
- mnay||many
- modfiy||modify
- modifer||modifier
-+modul||module
- modulues||modules
- momery||memory
- memomry||memory
-@@ -1154,6 +1163,7 @@ programable||programmable
- programers||programmers
- programm||program
- programms||programs
-+progres||progress
- progresss||progress
- prohibitted||prohibited
- prohibitting||prohibiting
-@@ -1328,6 +1338,7 @@ servive||service
- setts||sets
- settting||setting
- shapshot||snapshot
-+shoft||shift
- shotdown||shutdown
- shoud||should
- shouldnt||shouldn't
-@@ -1439,6 +1450,7 @@ syfs||sysfs
- symetric||symmetric
- synax||syntax
- synchonized||synchronized
-+synchronization||synchronization
- synchronuously||synchronously
- syncronize||synchronize
- syncronized||synchronized
-@@ -1521,6 +1533,7 @@ unexpexted||unexpected
- unfortunatelly||unfortunately
- unifiy||unify
- uniterrupted||uninterrupted
-+uninterruptable||uninterruptible
- unintialized||uninitialized
- unitialized||uninitialized
- unkmown||unknown
-@@ -1553,6 +1566,7 @@ unuseful||useless
- unvalid||invalid
- upate||update
- upsupported||unsupported
-+useable||usable
- usefule||useful
- usefull||useful
- usege||usage
-@@ -1574,6 +1588,7 @@ varient||variant
- vaule||value
- verbse||verbose
- veify||verify
-+verfication||verification
- veriosn||version
- verisons||versions
- verison||version
-@@ -1586,6 +1601,7 @@ visiters||visitors
- vitual||virtual
- vunerable||vulnerable
- wakeus||wakeups
-+was't||wasn't
- wathdog||watchdog
- wating||waiting
- wiat||wait
+--- a/fs/ocfs2/dlmglue.c~ocfs2-drop-acl-cache-for-directories-too
++++ a/fs/ocfs2/dlmglue.c
+@@ -3951,7 +3951,7 @@ static int ocfs2_data_convert_worker(str
+ 		oi = OCFS2_I(inode);
+ 		oi->ip_dir_lock_gen++;
+ 		mlog(0, "generation: %u\n", oi->ip_dir_lock_gen);
+-		goto out;
++		goto out_forget;
+ 	}
+ 
+ 	if (!S_ISREG(inode->i_mode))
+@@ -3982,6 +3982,7 @@ static int ocfs2_data_convert_worker(str
+ 		filemap_fdatawait(mapping);
+ 	}
+ 
++out_forget:
+ 	forget_all_cached_acls(inode);
+ 
+ out:
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from wen.gang.wang@oracle.com are
 
-scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
+ocfs2-drop-acl-cache-for-directories-too.patch
 
