@@ -7,34 +7,38 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4B936C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:02:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5182AC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:05:19 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DC8461207
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:02:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 266B86121F
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:05:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234898AbhIPTDa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Sep 2021 15:03:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:49070 "EHLO mail.kernel.org"
+        id S241803AbhIPTGi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Sep 2021 15:06:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50018 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1344403AbhIPTDZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Sep 2021 15:03:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9392661207;
-        Thu, 16 Sep 2021 19:02:04 +0000 (UTC)
+        id S1344027AbhIPTGg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Sep 2021 15:06:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E961461207;
+        Thu, 16 Sep 2021 19:05:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631818924;
-        bh=SLTJkFYIhd6hh3Zi4e8gGTQ+bJwAlTM7Vz7PKzUmRbs=;
+        s=korg; t=1631819115;
+        bh=Yjr0w9Wjk4D0hMSaqCb4t9B/DpjaUjxaFAaLzDbCJqE=;
         h=Date:From:To:Subject:From;
-        b=UcpzbSIazKTuQxdamMHd9orSVXhd3Lt4RbP4Wj5i9NIwbksuniPnRhOVPgM+zJ9X/
-         3LTkMoNST/ofVyXcy/V8MXKrR2gHJFx3ZfE8+Ap73Pa+h5gmCXEjjl3x/MGv58CTey
-         NuwpjnkH837TkzzIQ3NKLtLGZXprsS/XLwVefSFs=
-Date:   Thu, 16 Sep 2021 12:02:04 -0700
+        b=YwcUzZbfjh7mtLavTjgp02vPI4eB4SGElWuLfHlKdKWNNpMgxnYHBrlsiuoq8eQxf
+         p7PW6wP+jefxw0DYznTXPomrRmZoTd5T+kDOJbCA83/eYRb0VCfelVcpvfZbDkKh4t
+         6CKiFfkeDKNU/UpILXXXJFO3KBSz3nmmdOrfaNxA=
+Date:   Thu, 16 Sep 2021 12:05:14 -0700
 From:   akpm@linux-foundation.org
-To:     dan.carpenter@oracle.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, senozhatsky@chromium.org
-Subject:  + zram-off-by-one-in-read_block_state.patch added to -mm
- tree
-Message-ID: <20210916190204.nUFsg15cS%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, bharata@linux.ibm.com, cl@linux.com,
+        faiyazm@codeaurora.org, gregkh@linuxfoundation.org, guro@fb.com,
+        iamjoonsoo.kim@lge.com, keescook@chromium.org,
+        linmiaohe@huawei.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, ryabinin.a.a@gmail.com,
+        thgarnie@google.com, vbabka@suse.cz
+Subject:  + mm-slub-fix-two-bugs-in-slab_debug_trace_open.patch
+ added to -mm tree
+Message-ID: <20210916190514.GHsk-cOfV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: off by one in read_block_state()
+     Subject: mm, slub: fix two bugs in slab_debug_trace_open()
 has been added to the -mm tree.  Its filename is
-     zram-off-by-one-in-read_block_state.patch
+     mm-slub-fix-two-bugs-in-slab_debug_trace_open.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/zram-off-by-one-in-read_block_state.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-two-bugs-in-slab_debug_trace_open.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/zram-off-by-one-in-read_block_state.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-two-bugs-in-slab_debug_trace_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,40 +68,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: zram: off by one in read_block_state()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm, slub: fix two bugs in slab_debug_trace_open()
 
-snprintf() returns the number of bytes it would have printed if there were
-space.  But it does not count the NUL terminator.  So that means that if
-"count == copied" then this has already overflowed by one character.
+Patch series "Fixups for slub".
 
-This bug likely isn't super harmful in real life.
+This series contains various bug fixes for slub.  We fix memoryleak,
+use-afer-free, NULL pointer dereferencing and so on in slub.  More details
+can be found in the respective changelogs.
 
-Link: https://lkml.kernel.org/r/20210916130404.GA25094@kili
-Fixes: c0265342bff4 ("zram: introduce zram memory tracking")
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+
+This patch (of 5):
+
+It's possible that __seq_open_private() will return NULL.  So we should
+check t before using lest dereferencing NULL pointer.  And in error paths,
+we forgot to release private buffer via seq_release_private().  Memory
+will leak in these paths.
+
+Link: https://lkml.kernel.org/r/20210916123920.48704-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20210916123920.48704-2-linmiaohe@huawei.com
+Fixes: 64dd68497be7 ("mm: slub: move sysfs slab alloc/free interfaces to debugfs")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Faiyaz Mohammed <faiyazm@codeaurora.org>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Thomas Garnier <thgarnie@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Bharata B Rao <bharata@linux.ibm.com>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-off-by-one-in-read_block_state
-+++ a/drivers/block/zram/zram_drv.c
-@@ -910,7 +910,7 @@ static ssize_t read_block_state(struct f
- 			zram_test_flag(zram, index, ZRAM_HUGE) ? 'h' : '.',
- 			zram_test_flag(zram, index, ZRAM_IDLE) ? 'i' : '.');
+--- a/mm/slub.c~mm-slub-fix-two-bugs-in-slab_debug_trace_open
++++ a/mm/slub.c
+@@ -6108,9 +6108,14 @@ static int slab_debug_trace_open(struct
+ 	struct kmem_cache *s = file_inode(filep)->i_private;
+ 	unsigned long *obj_map;
  
--		if (count < copied) {
-+		if (count <= copied) {
- 			zram_slot_unlock(zram, index);
- 			break;
- 		}
++	if (!t)
++		return -ENOMEM;
++
+ 	obj_map = bitmap_alloc(oo_objects(s->oo), GFP_KERNEL);
+-	if (!obj_map)
++	if (!obj_map) {
++		seq_release_private(inode, filep);
+ 		return -ENOMEM;
++	}
+ 
+ 	if (strcmp(filep->f_path.dentry->d_name.name, "alloc_traces") == 0)
+ 		alloc = TRACK_ALLOC;
+@@ -6119,6 +6124,7 @@ static int slab_debug_trace_open(struct
+ 
+ 	if (!alloc_loc_track(t, PAGE_SIZE / sizeof(struct location), GFP_KERNEL)) {
+ 		bitmap_free(obj_map);
++		seq_release_private(inode, filep);
+ 		return -ENOMEM;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-zram-off-by-one-in-read_block_state.patch
+mm-slub-fix-two-bugs-in-slab_debug_trace_open.patch
+mm-slub-fix-mismatch-between-reconstructed-freelist-depth-and-cnt.patch
+mm-slub-fix-potential-memoryleak-in-kmem_cache_open.patch
+mm-slub-fix-potential-use-after-free-in-slab_debugfs_fops.patch
+mm-slub-fix-incorrect-memcg-slab-count-for-bulk-free.patch
+mm-page_allocc-remove-meaningless-vm_bug_on-in-pindex_to_order.patch
+mm-page_allocc-simplify-the-code-by-using-macro-k.patch
+mm-page_allocc-fix-obsolete-comment-in-free_pcppages_bulk.patch
+mm-page_allocc-use-helper-function-zone_spans_pfn.patch
+mm-page_allocc-avoid-allocating-highmem-pages-via-alloc_pages_exact.patch
+mm-page_isolation-fix-potential-missing-call-to-unset_migratetype_isolate.patch
+mm-page_isolation-guard-against-possible-putback-unisolated-page.patch
+mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
+mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
+mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
 
