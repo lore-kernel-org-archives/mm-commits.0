@@ -7,28 +7,28 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF101C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:05:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F85AC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:05:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B10E76120F
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:05:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EE8F61209
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:05:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235276AbhIPTGt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Sep 2021 15:06:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50062 "EHLO mail.kernel.org"
+        id S1346358AbhIPTGz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Sep 2021 15:06:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50128 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1346358AbhIPTGj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Sep 2021 15:06:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C45306120D;
-        Thu, 16 Sep 2021 19:05:17 +0000 (UTC)
+        id S1343560AbhIPTGk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Sep 2021 15:06:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A6F4A61212;
+        Thu, 16 Sep 2021 19:05:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631819118;
-        bh=OTyCNaaZdr+c6F6yy0MlUd1rnNU/E+37ms/sxNq4URI=;
+        s=korg; t=1631819120;
+        bh=ZwSvnfckH3A2Qms9es4ZUZ4MK77Uhy88x9x0X2mmWUc=;
         h=Date:From:To:Subject:From;
-        b=nPiAd9Eb9o1hRjD84U6fKSe+T0bxyvoy1qvB9VdjssDAMwr7rXsiyFRI6dz19GIwc
-         V6gUAVHmjoDGf5zwRtkLNY2VdpMFyctRXIqeTwbdzc4L++8RPdWdmFbeAA57FwHi5J
-         9Icw97q3JYLg2+SKhdP1gZxEwMu/qtJtEEqWIEjM=
-Date:   Thu, 16 Sep 2021 12:05:17 -0700
+        b=DMF4mHiI9cBXqExqE8MLPCNTVQ9ngx/iI7QYYFWy5cPPTag3lh+g8EqEE9EcWCXVQ
+         dsUi4QZFvtNxg2Zh2jd0Ij8Xs3Yez2rPjDBXnZwWAMVGgfooCsrmlJo+hifpJ4KEzy
+         jriARkFxJ0/qVQd8qH5Hl0f8/h7qzxbNW0g5evu4=
+Date:   Thu, 16 Sep 2021 12:05:19 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, bharata@linux.ibm.com, cl@linux.com,
         faiyazm@codeaurora.org, gregkh@linuxfoundation.org, guro@fb.com,
@@ -37,9 +37,8 @@ To:     andreyknvl@gmail.com, bharata@linux.ibm.com, cl@linux.com,
         penberg@kernel.org, rientjes@google.com, ryabinin.a.a@gmail.com,
         thgarnie@google.com, vbabka@suse.cz
 Subject:  +
- mm-slub-fix-mismatch-between-reconstructed-freelist-depth-and-cnt.patch
- added to -mm tree
-Message-ID: <20210916190517.frHq64c6g%akpm@linux-foundation.org>
+ mm-slub-fix-potential-memoryleak-in-kmem_cache_open.patch added to -mm tree
+Message-ID: <20210916190519.Cf9tGA9Ku%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: fix mismatch between reconstructed freelist depth and cnt
+     Subject: mm, slub: fix potential memoryleak in kmem_cache_open()
 has been added to the -mm tree.  Its filename is
-     mm-slub-fix-mismatch-between-reconstructed-freelist-depth-and-cnt.patch
+     mm-slub-fix-potential-memoryleak-in-kmem_cache_open.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-mismatch-between-reconstructed-freelist-depth-and-cnt.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-potential-memoryleak-in-kmem_cache_open.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-mismatch-between-reconstructed-freelist-depth-and-cnt.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-potential-memoryleak-in-kmem_cache_open.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,16 +69,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm, slub: fix mismatch between reconstructed freelist depth and cnt
+Subject: mm, slub: fix potential memoryleak in kmem_cache_open()
 
-If object's reuse is delayed, it will be excluded from the reconstructed
-freelist.  But we forgot to adjust the cnt accordingly.  So there will be
-a mismatch between reconstructed freelist depth and cnt.  This will lead
-to free_debug_processing() complain about freelist count or a incorrect
-slub inuse count.
+In error path, the random_seq of slub cache might be leaked.  Fix this by
+using __kmem_cache_release() to release all the relevant resources.
 
-Link: https://lkml.kernel.org/r/20210916123920.48704-3-linmiaohe@huawei.com
-Fixes: c3895391df38 ("kasan, slub: fix handling of kasan_slab_free hook")
+Link: https://lkml.kernel.org/r/20210916123920.48704-4-linmiaohe@huawei.com
+Fixes: 210e7a43fa90 ("mm: SLUB freelist randomization")
 Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -97,41 +93,19 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slub-fix-mismatch-between-reconstructed-freelist-depth-and-cnt
+--- a/mm/slub.c~mm-slub-fix-potential-memoryleak-in-kmem_cache_open
 +++ a/mm/slub.c
-@@ -1701,7 +1701,8 @@ static __always_inline bool slab_free_ho
- }
+@@ -4210,8 +4210,8 @@ static int kmem_cache_open(struct kmem_c
+ 	if (alloc_kmem_cache_cpus(s))
+ 		return 0;
  
- static inline bool slab_free_freelist_hook(struct kmem_cache *s,
--					   void **head, void **tail)
-+					   void **head, void **tail,
-+					   int *cnt)
- {
- 
- 	void *object;
-@@ -1728,6 +1729,12 @@ static inline bool slab_free_freelist_ho
- 			*head = object;
- 			if (!*tail)
- 				*tail = object;
-+		} else {
-+			/*
-+			 * Adjust the reconstructed freelist depth
-+			 * accordingly if object's reuse is delayed.
-+			 */
-+			--(*cnt);
- 		}
- 	} while (object != old_tail);
- 
-@@ -3480,7 +3487,7 @@ static __always_inline void slab_free(st
- 	 * With KASAN enabled slab_free_freelist_hook modifies the freelist
- 	 * to remove objects, whose reuse must be delayed.
- 	 */
--	if (slab_free_freelist_hook(s, &head, &tail))
-+	if (slab_free_freelist_hook(s, &head, &tail, &cnt))
- 		do_slab_free(s, page, head, tail, cnt, addr);
+-	free_kmem_cache_nodes(s);
+ error:
++	__kmem_cache_release(s);
+ 	return -EINVAL;
  }
  
 _
