@@ -7,39 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 50D60C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:05:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79D4CC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:08:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A8516120D
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:05:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5F1696108F
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Sep 2021 19:08:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346681AbhIPTG6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Sep 2021 15:06:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50218 "EHLO mail.kernel.org"
+        id S235820AbhIPTJi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Sep 2021 15:09:38 -0400
+Received: from mail.kernel.org ([198.145.29.99]:51156 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S242895AbhIPTGo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 16 Sep 2021 15:06:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A83A461216;
-        Thu, 16 Sep 2021 19:05:23 +0000 (UTC)
+        id S239124AbhIPTJf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 16 Sep 2021 15:09:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9DFB5610D1;
+        Thu, 16 Sep 2021 19:08:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1631819124;
-        bh=EHfRzJtoOe68duHlnupkuLMfoEgCdv21Ffr764TWrks=;
+        s=korg; t=1631819294;
+        bh=RqwRgasF712K7qiD624iGVv+SFSUgXVxkkUbSikhSZk=;
         h=Date:From:To:Subject:From;
-        b=hH4pVx7c15i/5kXSAxcqFj9iB0z1TEM5Z2r2Jzn2+w+hzTOvBkq7DLwgKNlcaxsse
-         6B7727S/o6TQLUzQZTNykwn8s9Qc8lw5twnIbEZ/TPBYng8KkNGOUh59dTdUMSIKKW
-         Whi2povmfSnNCqr2yyYMoMUgrdU7tfaCbnVV0M5Q=
-Date:   Thu, 16 Sep 2021 12:05:23 -0700
+        b=PayhapaiaOGZLlUXKc87qqdBegNJzmy0ucR+hxoEjU9IRek/Ax3ArJWS+lDdhUB3H
+         stfHsycth4LA1FUFcl8QmMmtpHoy/H+GTo9134aKRyaczXqnG8lnLq9a4hvIOUNvQH
+         oht+FIoTbH8/HGEBa2ST87ZrN6aogaNY7ek7+MyY=
+Date:   Thu, 16 Sep 2021 12:08:14 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, bharata@linux.ibm.com, cl@linux.com,
-        faiyazm@codeaurora.org, gregkh@linuxfoundation.org, guro@fb.com,
-        iamjoonsoo.kim@lge.com, keescook@chromium.org,
-        linmiaohe@huawei.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com, ryabinin.a.a@gmail.com,
-        thgarnie@google.com, vbabka@suse.cz
-Subject:  +
- mm-slub-fix-incorrect-memcg-slab-count-for-bulk-free.patch added to -mm
- tree
-Message-ID: <20210916190523.zizQT4A9I%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, david@redhat.com, hch@lst.de,
+        keescook@chromium.org, mgorman@suse.de, mm-commits@vger.kernel.org,
+        peterz@infradead.org, urezki@gmail.com, will@kernel.org
+Subject:  + mm-vmalloc-dont-allow-vm_no_guard-on-vmap.patch added
+ to -mm tree
+Message-ID: <20210916190814.-GHDYCX75%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: fix incorrect memcg slab count for bulk free
+     Subject: mm/vmalloc: don't allow VM_NO_GUARD on vmap()
 has been added to the -mm tree.  Its filename is
-     mm-slub-fix-incorrect-memcg-slab-count-for-bulk-free.patch
+     mm-vmalloc-dont-allow-vm_no_guard-on-vmap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-fix-incorrect-memcg-slab-count-for-bulk-free.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-dont-allow-vm_no_guard-on-vmap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-fix-incorrect-memcg-slab-count-for-bulk-free.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-dont-allow-vm_no_guard-on-vmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,65 +65,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm, slub: fix incorrect memcg slab count for bulk free
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: mm/vmalloc: don't allow VM_NO_GUARD on vmap()
 
-kmem_cache_free_bulk() will call memcg_slab_free_hook() for all objects
-when doing bulk free.  So we shouldn't call memcg_slab_free_hook() again
-for bulk free to avoid incorrect memcg slab count.
+The vmalloc guard pages are added on top of each allocation, thereby
+isolating any two allocations from one another.  The top guard of the
+lower allocation is the bottom guard guard of the higher allocation etc.
 
-Link: https://lkml.kernel.org/r/20210916123920.48704-6-linmiaohe@huawei.com
-Fixes: d1b2cf6cb84a ("mm: memcg/slab: uncharge during kmem_cache_free_bulk()")
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Therefore VM_NO_GUARD is dangerous; it breaks the basic premise of
+isolating separate allocations.
+
+There are only two in-tree users of this flag, neither of which use it
+through the exported interface.  Ensure it stays this way.
+
+Link: https://lkml.kernel.org/r/YUMfdA36fuyZ+/xt@hirez.programming.kicks-ass.net
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Acked-by: Will Deacon <will@kernel.org>
+Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Bharata B Rao <bharata@linux.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Faiyaz Mohammed <faiyazm@codeaurora.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Thomas Garnier <thgarnie@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Uladzislau Rezki <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/vmalloc.h |    2 +-
+ mm/vmalloc.c            |    7 +++++++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
 
---- a/mm/slub.c~mm-slub-fix-incorrect-memcg-slab-count-for-bulk-free
-+++ a/mm/slub.c
-@@ -3420,7 +3420,9 @@ static __always_inline void do_slab_free
- 	struct kmem_cache_cpu *c;
- 	unsigned long tid;
+--- a/include/linux/vmalloc.h~mm-vmalloc-dont-allow-vm_no_guard-on-vmap
++++ a/include/linux/vmalloc.h
+@@ -22,7 +22,7 @@ struct notifier_block;		/* in notifier.h
+ #define VM_USERMAP		0x00000008	/* suitable for remap_vmalloc_range */
+ #define VM_DMA_COHERENT		0x00000010	/* dma_alloc_coherent */
+ #define VM_UNINITIALIZED	0x00000020	/* vm_struct is not fully initialized */
+-#define VM_NO_GUARD		0x00000040      /* don't add guard page */
++#define VM_NO_GUARD		0x00000040      /* ***DANGEROUS*** don't add guard page */
+ #define VM_KASAN		0x00000080      /* has allocated kasan shadow memory */
+ #define VM_FLUSH_RESET_PERMS	0x00000100	/* reset direct map and flush TLB on unmap, can't be freed in atomic context */
+ #define VM_MAP_PUT_PAGES	0x00000200	/* put pages and free array in vfree */
+--- a/mm/vmalloc.c~mm-vmalloc-dont-allow-vm_no_guard-on-vmap
++++ a/mm/vmalloc.c
+@@ -2743,6 +2743,13 @@ void *vmap(struct page **pages, unsigned
  
--	memcg_slab_free_hook(s, &head, 1);
-+	/* memcg_slab_free_hook() is already called for bulk free. */
-+	if (!tail)
-+		memcg_slab_free_hook(s, &head, 1);
- redo:
- 	/*
- 	 * Determine the currently cpus per cpu slab.
+ 	might_sleep();
+ 
++	/*
++	 * Your top guard is someone else's bottom guard. Not having a top
++	 * guard compromises someone else's mappings too.
++	 */
++	if (WARN_ON_ONCE(flags & VM_NO_GUARD))
++		flags &= ~VM_NO_GUARD;
++
+ 	if (count > totalram_pages())
+ 		return NULL;
+ 
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from peterz@infradead.org are
 
-mm-slub-fix-two-bugs-in-slab_debug_trace_open.patch
-mm-slub-fix-mismatch-between-reconstructed-freelist-depth-and-cnt.patch
-mm-slub-fix-potential-memoryleak-in-kmem_cache_open.patch
-mm-slub-fix-potential-use-after-free-in-slab_debugfs_fops.patch
-mm-slub-fix-incorrect-memcg-slab-count-for-bulk-free.patch
-mm-page_allocc-remove-meaningless-vm_bug_on-in-pindex_to_order.patch
-mm-page_allocc-simplify-the-code-by-using-macro-k.patch
-mm-page_allocc-fix-obsolete-comment-in-free_pcppages_bulk.patch
-mm-page_allocc-use-helper-function-zone_spans_pfn.patch
-mm-page_allocc-avoid-allocating-highmem-pages-via-alloc_pages_exact.patch
-mm-page_isolation-fix-potential-missing-call-to-unset_migratetype_isolate.patch
-mm-page_isolation-guard-against-possible-putback-unisolated-page.patch
-mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
-mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
-mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
+mm-vmalloc-dont-allow-vm_no_guard-on-vmap.patch
 
