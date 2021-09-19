@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16CC4C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:05:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C715AC433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:05:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E0A3D60E52
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:05:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ADF8B60E52
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:05:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230108AbhISXGh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Sep 2021 19:06:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39584 "EHLO mail.kernel.org"
+        id S230143AbhISXGj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 19 Sep 2021 19:06:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39616 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229778AbhISXGg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 19 Sep 2021 19:06:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5386261107;
-        Sun, 19 Sep 2021 23:05:10 +0000 (UTC)
+        id S229778AbhISXGj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 19 Sep 2021 19:06:39 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4B6D361183;
+        Sun, 19 Sep 2021 23:05:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632092710;
-        bh=QgDgUG5mxnLqXREZByMZti+vYh4bXdVj5OVBlsmpG+U=;
+        s=korg; t=1632092713;
+        bh=0eFuy6nj7w9bdmYaHHuaRa8xedowgb5LCSYl5zL0aRk=;
         h=Date:From:To:Subject:From;
-        b=yjAuy3PYBQAXl3dJQEHCHs7zRluRVXM95PdjQ/qFdCZ7WBjlx8oWrVdEZlkENCljR
-         26N16cyyjALLXgdt9cZeB7JTFgh9gczjjbTqKTbCR2NLWN7WoeB6u02bZWUyFE0wsF
-         lvidKCqre49OgLjmMUo3uGi7AIEJZI/V1YNuo+ao=
-Date:   Sun, 19 Sep 2021 16:05:09 -0700
+        b=pOa/9Por+IEAWxUyO4NOyAdrtJpRbAA74ULEGab/vh6p+t/rUj+xk6q5dPJbZXXC1
+         rBerDKt4/MDycIk77TIoHRnJZRB+2hG4778TVqZ8wh8Yljpgdqjc7/pgwslUHtfr2y
+         a485guQXU665M4zNcUwfW3TSzud9rPdLnH3tjIl0=
+Date:   Sun, 19 Sep 2021 16:05:12 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
         hughd@google.com, aarcange@redhat.com, peterx@redhat.com
-Subject:  + mm-smaps-fix-shmem-pte-hole-swap-calculation.patch added
- to -mm tree
-Message-ID: <20210919230509.MtjPn%akpm@linux-foundation.org>
+Subject:  +
+ mm-smaps-use-vma-vm_pgoff-directly-when-counting-partial-swap.patch added to
+ -mm tree
+Message-ID: <20210919230512.qAPO7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/smaps: fix shmem pte hole swap calculation
+     Subject: mm/smaps: use vma->vm_pgoff directly when counting partial swap
 has been added to the -mm tree.  Its filename is
-     mm-smaps-fix-shmem-pte-hole-swap-calculation.patch
+     mm-smaps-use-vma-vm_pgoff-directly-when-counting-partial-swap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-smaps-fix-shmem-pte-hole-swap-calculation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-smaps-use-vma-vm_pgoff-directly-when-counting-partial-swap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-smaps-fix-shmem-pte-hole-swap-calculation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-smaps-use-vma-vm_pgoff-directly-when-counting-partial-swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,89 +66,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/smaps: fix shmem pte hole swap calculation
+Subject: mm/smaps: use vma->vm_pgoff directly when counting partial swap
 
-Patch series "mm/smaps: Fixes and optimizations on shmem swap handling".
+As it's trying to cover the whole vma anyways, use direct vm_pgoff value
+and vma_pages() rather than linear_page_index.
 
-
-This patch (of 3):
-
-The shmem swap calculation on the privately writable mappings are using
-wrong parameters as spotted by Vlastimil.  Fix them.  That's introduced in
-commit 48131e03ca4e, when rework shmem_swap_usage to
-shmem_partial_swap_usage.
-
-Test program:
-
-==================
-
-void main(void)
-{
-    char *buffer, *p;
-    int i, fd;
-
-    fd = memfd_create("test", 0);
-    assert(fd > 0);
-
-    /* isize==2M*3, fill in pages, swap them out */
-    ftruncate(fd, SIZE_2M * 3);
-    buffer = mmap(NULL, SIZE_2M * 3, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    assert(buffer);
-    for (i = 0, p = buffer; i < SIZE_2M * 3 / 4096; i++) {
-        *p = 1;
-        p += 4096;
-    }
-    madvise(buffer, SIZE_2M * 3, MADV_PAGEOUT);
-    munmap(buffer, SIZE_2M * 3);
-
-    /*
-     * Remap with private+writtable mappings on partial of the inode (<= 2M*3),
-     * while the size must also be >= 2M*2 to make sure there's a none pmd so
-     * smaps_pte_hole will be triggered.
-     */
-    buffer = mmap(NULL, SIZE_2M * 2, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-    printf("pid=%d, buffer=%p
-", getpid(), buffer);
-
-    /* Check /proc/$PID/smap_rollup, should see 4MB swap */
-    sleep(1000000);
-}
-==================
-
-Before the patch, smaps_rollup shows <4MB swap and the number will be
-random depending on the alignment of the buffer of mmap() allocated. 
-After this patch, it'll show 4MB.
-
-Link: https://lkml.kernel.org/r/20210917164756.8586-1-peterx@redhat.com
-Link: https://lkml.kernel.org/r/20210917164756.8586-2-peterx@redhat.com
-Fixes: 48131e03ca4e ("mm, proc: reduce cost of /proc/pid/smaps for unpopulated shmem mappings")
+Link: https://lkml.kernel.org/r/20210917164756.8586-3-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/shmem.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
---- a/fs/proc/task_mmu.c~mm-smaps-fix-shmem-pte-hole-swap-calculation
-+++ a/fs/proc/task_mmu.c
-@@ -478,9 +478,11 @@ static int smaps_pte_hole(unsigned long
- 			  __always_unused int depth, struct mm_walk *walk)
- {
- 	struct mem_size_stats *mss = walk->private;
-+	struct vm_area_struct *vma = walk->vma;
+--- a/mm/shmem.c~mm-smaps-use-vma-vm_pgoff-directly-when-counting-partial-swap
++++ a/mm/shmem.c
+@@ -856,9 +856,8 @@ unsigned long shmem_swap_usage(struct vm
+ 		return swapped << PAGE_SHIFT;
  
--	mss->swap += shmem_partial_swap_usage(
--			walk->vma->vm_file->f_mapping, addr, end);
-+	mss->swap += shmem_partial_swap_usage(walk->vma->vm_file->f_mapping,
-+					      linear_page_index(vma, addr),
-+					      linear_page_index(vma, end));
- 
- 	return 0;
+ 	/* Here comes the more involved part */
+-	return shmem_partial_swap_usage(mapping,
+-			linear_page_index(vma, vma->vm_start),
+-			linear_page_index(vma, vma->vm_end));
++	return shmem_partial_swap_usage(mapping, vma->vm_pgoff,
++					vma->vm_pgoff + vma_pages(vma));
  }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
