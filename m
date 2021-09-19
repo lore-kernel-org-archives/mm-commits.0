@@ -7,34 +7,36 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1661FC433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:24:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D9A8C433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:43:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E811C60F9C
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:24:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 35A4761041
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:43:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231346AbhISXZu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Sep 2021 19:25:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43144 "EHLO mail.kernel.org"
+        id S233593AbhISXoe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 19 Sep 2021 19:44:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46704 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229517AbhISXZt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 19 Sep 2021 19:25:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D1EEA61028;
-        Sun, 19 Sep 2021 23:24:23 +0000 (UTC)
+        id S229517AbhISXod (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 19 Sep 2021 19:44:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2B98961004;
+        Sun, 19 Sep 2021 23:43:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632093864;
-        bh=kFtAT6XCYp4qtEMbZZrWb4CUKWP9e3KeesRDnF+MYw8=;
+        s=korg; t=1632094987;
+        bh=01qQkI7wR/OCNy+qAHgLzoGQpjwCvH1wIOaEnVfGecw=;
         h=Date:From:To:Subject:From;
-        b=kMjg7zv/HqKryVK3S3nkw3GnzBI0KiiCpQtLcFtnH01g8Z+2+IYb5gmAL9crVECv+
-         RgYw+lFaAigJ8cml6EX+fd8KmzHs/OfWEZIjX41aokKj7pPc4PSiPLNUEpI9HxlA2y
-         JGyw7i0cFM11S9rAYjbIYDkx3axIuyjjA6q8awr8=
-Date:   Sun, 19 Sep 2021 16:24:23 -0700
+        b=VYG1ymSM+vy4qFL9GUiG7/kDNFQ3F6cXn0zgyrFt+CWwde57CLhKpWLknarZ5Oxtr
+         ObPyvE6U9d24uBMwLiAfx0rmodiPVDz3Nr6Mr3jdwqYxFcr+bEpyQVHsTbgwMuPnQy
+         yoX45HKbWQtKFmxXHkn1EXDgGtDQOVG/HppJ7v8M=
+Date:   Sun, 19 Sep 2021 16:43:06 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vulab@iscas.ac.cn
+To:     mm-commits@vger.kernel.org, stefan.wahren@i2se.com,
+        paul.walmsley@sifive.com, palmer@dabbelt.com, mkubecek@suse.cz,
+        jszhang@kernel.org, aou@eecs.berkeley.edu, miles.chen@mediatek.com
 Subject:  +
- mm-swapfile-remove-needless-request_queue-null-pointer-check.patch added to
- -mm tree
-Message-ID: <20210919232423.5PUbI%akpm@linux-foundation.org>
+ scripts-sorttable-riscv-fix-undelcred-identifier-em_riscv-error.patch added
+ to -mm tree
+Message-ID: <20210919234306.Q3iwS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swapfile: remove needless request_queue NULL pointer check
+     Subject: scripts/sorttable: riscv: fix undelcred identifier 'EM_RISCV' error
 has been added to the -mm tree.  Its filename is
-     mm-swapfile-remove-needless-request_queue-null-pointer-check.patch
+     scripts-sorttable-riscv-fix-undelcred-identifier-em_riscv-error.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-swapfile-remove-needless-request_queue-null-pointer-check.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/scripts-sorttable-riscv-fix-undelcred-identifier-em_riscv-error.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-swapfile-remove-needless-request_queue-null-pointer-check.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-sorttable-riscv-fix-undelcred-identifier-em_riscv-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,34 +66,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xu Wang <vulab@iscas.ac.cn>
-Subject: mm/swapfile: remove needless request_queue NULL pointer check
+From: Miles Chen <miles.chen@mediatek.com>
+Subject: scripts/sorttable: riscv: fix undelcred identifier 'EM_RISCV' error
 
-The request_queue pointer returned from bdev_get_queue() shall never be
-NULL, so the null check is unnecessary, just remove it.
+Fix the following build break by adding a conditional definition of
+EM_RISCV in order to allow cross-compilation on machines which do not have
+EM_RISCV definition in their host.
 
-Link: https://lkml.kernel.org/r/20210917082111.33923-1-vulab@iscas.ac.cn
-Signed-off-by: Xu Wang <vulab@iscas.ac.cn>
+build break log from [1]:
+scripts/sorttable.c:352:7: error: use of undeclared identifier 'EM_RISCV'
+
+[1] https://lore.kernel.org/lkml/e8965b25-f15b-c7b4-748c-d207dda9c8e8@i2se.com/
+
+EM_RISCV was added to <elf.h> in glibc 2.24 so builds on systems with
+glibc headers < 2.24 should show this error.
+
+[mkubecek@suse.cz: changelog addition]
+Link: https://lkml.kernel.org/r/20210913030625.4525-1-miles.chen@mediatek.com
+Fixes: 54fed35fd393 ("riscv: Enable BUILDTIME_TABLE_SORT")
+Signed-off-by: Miles Chen <miles.chen@mediatek.com>
+Reported-by: Stefan Wahren <stefan.wahren@i2se.com>
+Tested-by: Stefan Wahren <stefan.wahren@i2se.com>
+Reviewed-by: Jisheng Zhang <jszhang@kernel.org>
+Cc: Michal Kubecek <mkubecek@suse.cz>
+Cc: Paul Walmsley <paul.walmsley@sifive.com>
+Cc: Palmer Dabbelt <palmer@dabbelt.com>
+Cc: Albert Ou <aou@eecs.berkeley.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/sorttable.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/swapfile.c~mm-swapfile-remove-needless-request_queue-null-pointer-check
-+++ a/mm/swapfile.c
-@@ -3118,7 +3118,7 @@ static bool swap_discardable(struct swap
- {
- 	struct request_queue *q = bdev_get_queue(si->bdev);
+--- a/scripts/sorttable.c~scripts-sorttable-riscv-fix-undelcred-identifier-em_riscv-error
++++ a/scripts/sorttable.c
+@@ -54,6 +54,10 @@
+ #define EM_ARCV2	195
+ #endif
  
--	if (!q || !blk_queue_discard(q))
-+	if (!blk_queue_discard(q))
- 		return false;
- 
- 	return true;
++#ifndef EM_RISCV
++#define EM_RISCV	243
++#endif
++
+ static uint32_t (*r)(const uint32_t *);
+ static uint16_t (*r2)(const uint16_t *);
+ static uint64_t (*r8)(const uint64_t *);
 _
 
-Patches currently in -mm which might be from vulab@iscas.ac.cn are
+Patches currently in -mm which might be from miles.chen@mediatek.com are
 
-mm-swapfile-remove-needless-request_queue-null-pointer-check.patch
+scripts-sorttable-riscv-fix-undelcred-identifier-em_riscv-error.patch
 
