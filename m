@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9828BC433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:47:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7C624C433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:48:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 678036101B
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:47:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A95361041
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:48:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230260AbhISXsd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Sep 2021 19:48:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48162 "EHLO mail.kernel.org"
+        id S233604AbhISXuS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 19 Sep 2021 19:50:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229517AbhISXsd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 19 Sep 2021 19:48:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EE48260FC2;
-        Sun, 19 Sep 2021 23:47:06 +0000 (UTC)
+        id S229517AbhISXuQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 19 Sep 2021 19:50:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3FB0961028;
+        Sun, 19 Sep 2021 23:48:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632095227;
-        bh=M2ZMeuQfp7Y2D8S/FoUNunvBSKgg7YeYv8rHYj0+J4s=;
+        s=korg; t=1632095331;
+        bh=9zvasA5pSQ2wx4yf2l9FzmFbogpd83sMXACrONqTEaA=;
         h=Date:From:To:Subject:From;
-        b=P5JbqlbMx7DDI5pZxsKFDXzhxDdaYsKgsIDUdQSI6h5oJYOGm1WE5U4CnorDYjfpF
-         S2Ty2fGyVu7TJKI55aartT3j/6bwI+J5RzsDvmjpc7twBObVgQqIYt+js8imVP3rtl
-         ny53uK1Vca2BgzuESIzgMae1YZtljy7axbk2iUFs=
-Date:   Sun, 19 Sep 2021 16:47:06 -0700
+        b=HVDLZDUPP0HgdGKdOfwG0zon5sSdahSHvmMw6Nl0ESMH4nbj9T2kDtEZdJGE5N3fA
+         nBdYNGmdkz6cWDSLHIViiqqcqELXMK18wq1EZv6r42He/9b9yZ4lLAhrdIY8CLPTi2
+         smMlwRzxDd2n1g+vhXuvOeywFqs5pawQknsRU2i8=
+Date:   Sun, 19 Sep 2021 16:48:49 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        songmuchun@bytedance.com, mhocko@kernel.org, hannes@cmpxchg.org,
-        david@redhat.com, peterx@redhat.com
-Subject:  + mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte.patch
+To:     mm-commits@vger.kernel.org, mhocko@suse.com, linux@armlinux.org.uk,
+        ebiederm@xmission.com, anthony.yznaga@oracle.com,
+        keescook@chromium.org
+Subject:  + binfmt_elf-reintroduce-using-map_fixed_noreplace.patch
  added to -mm tree
-Message-ID: <20210919234706.FCOys%akpm@linux-foundation.org>
+Message-ID: <20210919234849.si5I_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: drop swp_entry_t* in mc_handle_file_pte()
+     Subject: binfmt_elf: reintroduce using MAP_FIXED_NOREPLACE
 has been added to the -mm tree.  Its filename is
-     mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte.patch
+     binfmt_elf-reintroduce-using-map_fixed_noreplace.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/binfmt_elf-reintroduce-using-map_fixed_noreplace.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/binfmt_elf-reintroduce-using-map_fixed_noreplace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,56 +65,143 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/memcg: drop swp_entry_t* in mc_handle_file_pte()
+From: Kees Cook <keescook@chromium.org>
+Subject: binfmt_elf: reintroduce using MAP_FIXED_NOREPLACE
 
-After the rework of f5df8635c5a3 ("mm: use find_get_incore_page in memcontrol",
-2020-10-13) it's unused.
+Commit b212921b13bd ("elf: don't use MAP_FIXED_NOREPLACE for elf
+executable mappings") reverted back to using MAP_FIXED to map ELF LOAD
+segments because it was found that the segments in some binaries overlap
+and can cause MAP_FIXED_NOREPLACE to fail.
 
-Link: https://lkml.kernel.org/r/20210916193014.80129-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Matthew Wilcox <willy@infradead.org>
+The original intent of MAP_FIXED_NOREPLACE in the ELF loader was to
+prevent the silent clobbering of an existing mapping (e.g.  stack) by the
+ELF image, which could lead to exploitable conditions.  Quoting commit
+4ed28639519c ("fs, elf: drop MAP_FIXED usage from elf_map"), which
+originally introduced the use of MAP_FIXED_NOREPLACE in the loader:
+
+    Both load_elf_interp and load_elf_binary rely on elf_map to map
+    segments [to a specific] address and they use MAP_FIXED to enforce
+    that. This is however [a] dangerous thing prone to silent data
+    corruption which can be even exploitable.
+    ...
+    Let's take CVE-2017-1000253 as an example ... we could end up mapping
+    [the executable] over the existing stack ... The [stack layout] issue
+    has been fixed since then ... So we should be safe and any [similar]
+    attack should be impractical. On the other hand this is just too
+    subtle [an] assumption ... it can break quite easily and [be] hard to
+    spot.
+    ...
+    Address this [weakness] by changing MAP_FIXED to the newly added
+    MAP_FIXED_NOREPLACE. This will mean that mmap will fail if there is
+    an existing mapping clashing with the requested one [instead of
+    silently] clobbering it.
+
+Then processing ET_DYN binaries the loader already calculates a total size
+for the image when the first segment is mapped, maps the entire image, and
+then unmaps the remainder before the remaining segments are then
+individually mapped.  To avoid the earlier problems (legitimate
+overlapping LOAD segments specified in the ELF), apply the same logic to
+ET_EXEC binaries as well.  For both ET_EXEC and ET_DYN+INTERP use
+MAP_FIXED_NOREPLACE for the initial total size mapping and then use
+MAP_FIXED to build the final (possibly legitimately overlapping) mappings.
+For ET_DYN w/out INTERP, continue to map at a system-selected address in
+the mmap region.
+
+Link: https://lkml.kernel.org/r/20210916215947.3993776-1-keescook@chromium.org
+Link: https://lore.kernel.org/lkml/1595869887-23307-2-git-send-email-anthony.yznaga@oracle.com
+Signed-off-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+Co-developed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |   31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte
-+++ a/mm/memcontrol.c
-@@ -5555,7 +5555,7 @@ static struct page *mc_handle_swap_pte(s
- #endif
+--- a/fs/binfmt_elf.c~binfmt_elf-reintroduce-using-map_fixed_noreplace
++++ a/fs/binfmt_elf.c
+@@ -1074,20 +1074,26 @@ out_free_interp:
  
- static struct page *mc_handle_file_pte(struct vm_area_struct *vma,
--			unsigned long addr, pte_t ptent, swp_entry_t *entry)
-+			unsigned long addr, pte_t ptent)
- {
- 	if (!vma->vm_file) /* anonymous vma */
- 		return NULL;
-@@ -5728,7 +5728,7 @@ static enum mc_target_type get_mctgt_typ
- 	else if (is_swap_pte(ptent))
- 		page = mc_handle_swap_pte(vma, ptent, &ent);
- 	else if (pte_none(ptent))
--		page = mc_handle_file_pte(vma, addr, ptent, &ent);
-+		page = mc_handle_file_pte(vma, addr, ptent);
+ 		vaddr = elf_ppnt->p_vaddr;
+ 		/*
+-		 * If we are loading ET_EXEC or we have already performed
+-		 * the ET_DYN load_addr calculations, proceed normally.
++		 * The first time through the loop, load_addr_set is false:
++		 * layout will be calculated. Once set, use MAP_FIXED since
++		 * we know we've already safely mapped the entire region with
++		 * MAP_FIXED_NOREPLACE in the once-per-binary logic following.
+ 		 */
+-		if (elf_ex->e_type == ET_EXEC || load_addr_set) {
++		if (load_addr_set) {
+ 			elf_flags |= MAP_FIXED;
++		} else if (elf_ex->e_type == ET_EXEC) {
++			/*
++			 * This logic is run once for the first LOAD Program
++			 * Header for ET_EXEC binaries. No special handling
++			 * is needed.
++			 */
++			elf_flags |= MAP_FIXED_NOREPLACE;
+ 		} else if (elf_ex->e_type == ET_DYN) {
+ 			/*
+ 			 * This logic is run once for the first LOAD Program
+ 			 * Header for ET_DYN binaries to calculate the
+ 			 * randomization (load_bias) for all the LOAD
+-			 * Program Headers, and to calculate the entire
+-			 * size of the ELF mapping (total_size). (Note that
+-			 * load_addr_set is set to true later once the
+-			 * initial mapping is performed.)
++			 * Program Headers.
+ 			 *
+ 			 * There are effectively two types of ET_DYN
+ 			 * binaries: programs (i.e. PIE: ET_DYN with INTERP)
+@@ -1108,7 +1114,7 @@ out_free_interp:
+ 			 * Therefore, programs are loaded offset from
+ 			 * ELF_ET_DYN_BASE and loaders are loaded into the
+ 			 * independently randomized mmap region (0 load_bias
+-			 * without MAP_FIXED).
++			 * without MAP_FIXED nor MAP_FIXED_NOREPLACE).
+ 			 */
+ 			if (interpreter) {
+ 				load_bias = ELF_ET_DYN_BASE;
+@@ -1117,7 +1123,7 @@ out_free_interp:
+ 				alignment = maximum_alignment(elf_phdata, elf_ex->e_phnum);
+ 				if (alignment)
+ 					load_bias &= ~(alignment - 1);
+-				elf_flags |= MAP_FIXED;
++				elf_flags |= MAP_FIXED_NOREPLACE;
+ 			} else
+ 				load_bias = 0;
  
- 	if (!page && !ent.val)
- 		return ret;
+@@ -1129,7 +1135,14 @@ out_free_interp:
+ 			 * is then page aligned.
+ 			 */
+ 			load_bias = ELF_PAGESTART(load_bias - vaddr);
++		}
+ 
++		/*
++		 * Calculate the entire size of the ELF mapping (total_size).
++		 * (Note that load_addr_set is set to true later once the
++		 * initial mapping is performed.)
++		 */
++		if (!load_addr_set) {
+ 			total_size = total_mapping_size(elf_phdata,
+ 							elf_ex->e_phnum);
+ 			if (!total_size) {
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-mm-smaps-fix-shmem-pte-hole-swap-calculation.patch
-mm-smaps-use-vma-vm_pgoff-directly-when-counting-partial-swap.patch
-mm-smaps-simplify-shmem-handling-of-pte-holes.patch
-mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte.patch
-mm-shmem-unconditionally-set-pte-dirty-in-mfill_atomic_install_pte.patch
-mm-clear-vmf-pte-after-pte_unmap_same-returns.patch
-mm-drop-first_index-last_index-in-zap_details.patch
-mm-add-zap_skip_check_mapping-helper.patch
-mm-hugetlb-drop-__unmap_hugepage_range-definition-from-hugetlbh.patch
+compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
+compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix.patch
+checkpatch-add-__alloc_size-to-known-attribute.patch
+slab-clean-up-function-declarations.patch
+slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
+mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
+mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+rapidio-avoid-bogus-__alloc_size-warning.patch
+binfmt_elf-reintroduce-using-map_fixed_noreplace.patch
 
