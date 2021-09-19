@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A9617C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 22:51:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A5CEC433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 22:53:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8351861052
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 22:51:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 636B861051
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 22:53:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233097AbhISWwt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Sep 2021 18:52:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34762 "EHLO mail.kernel.org"
+        id S233130AbhISWy7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 19 Sep 2021 18:54:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35638 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230007AbhISWws (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 19 Sep 2021 18:52:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4E58661028;
-        Sun, 19 Sep 2021 22:51:22 +0000 (UTC)
+        id S233129AbhISWy7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 19 Sep 2021 18:54:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C74D61028;
+        Sun, 19 Sep 2021 22:53:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632091882;
-        bh=Q9VQAIPxoMO8orfkmsLrAxMXkZty3YtKgVv+RN5/Wfo=;
+        s=korg; t=1632092013;
+        bh=lTFcEA6dSA2BIEGY19qLKqpTVbzw3RoRspDOM/B0nL4=;
         h=Date:From:To:Subject:From;
-        b=ukYAkkOovyS6j8MZ5b3/2StpLyQa9/mqgfP+rSyaEAqaTebj7adduwYYQm2n9Mtz+
-         5WsHErEZ7j+Ojm/M3uP0mLZklA9nnnGVKPm/hMCTj5QIHsr3Pc15/hWCDvX0Vf58ss
-         e1uZLA7Jijarje3WhBcim1Ia6Zf6VMf16IUN0+lU=
-Date:   Sun, 19 Sep 2021 15:51:21 -0700
+        b=x1H9u/LVYOfgq/chBqQRJ4z5m1scTCFz95scppLbuReyETMmGk5nYc/xVb8GMAoaq
+         CJco17hOQDGbwE6cJ/lDSPLSCGym4ds2RIV6jHZPfoCN3DylszTpGmvvLPa1JOV+8p
+         T492Lf1GuiXv71N36ddDH+r9qd5Pnv7tm1pQfUjU=
+Date:   Sun, 19 Sep 2021 15:53:32 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, ebiederm@xmission.com, dbueso@suse.de,
-        manfred@colorfullife.com
+To:     mm-commits@vger.kernel.org, paulmck@kernel.org,
+        liushixin2@huawei.com
 Subject:  +
- ipc-ipc_sysctlc-remove-fallback-for-config_proc_sysctl.patch added to -mm
+ mm-vmstat-annotate-data-race-for-zone-free_areanr_free-fix.patch added to -mm
  tree
-Message-ID: <20210919225121._R86b%akpm@linux-foundation.org>
+Message-ID: <20210919225332.i522o%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/ipc_sysctl.c: remove fallback for !CONFIG_PROC_SYSCTL
+     Subject: mm-vmstat-annotate-data-race-for-zone-free_areanr_free-fix
 has been added to the -mm tree.  Its filename is
-     ipc-ipc_sysctlc-remove-fallback-for-config_proc_sysctl.patch
+     mm-vmstat-annotate-data-race-for-zone-free_areanr_free-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ipc-ipc_sysctlc-remove-fallback-for-config_proc_sysctl.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-annotate-data-race-for-zone-free_areanr_free-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ipc-ipc_sysctlc-remove-fallback-for-config_proc_sysctl.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-annotate-data-race-for-zone-free_areanr_free-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,65 +65,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/ipc_sysctl.c: remove fallback for !CONFIG_PROC_SYSCTL
+From: Liu Shixin <liushixin2@huawei.com>
+Subject: mm-vmstat-annotate-data-race-for-zone-free_areanr_free-fix
 
-Compilation of ipc/ipc_sysctl.c is controlled by
-obj-$(CONFIG_SYSVIPC_SYSCTL)
-[see ipc/Makefile]
+add comments
 
-And CONFIG_SYSVIPC_SYSCTL depends on SYSCTL
-[see init/Kconfig]
-
-An SYSCTL is selected by PROC_SYSCTL.
-[see fs/proc/Kconfig]
-
-Thus: #ifndef CONFIG_PROC_SYSCTL in ipc/ipc_sysctl.c is impossible, the
-fallback can be removed.
-
-Link: https://lkml.kernel.org/r/20210918145337.3369-1-manfred@colorfullife.com
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Link: https://lkml.kernel.org/r/20210918084655.2696522-1-liushixin2@huawei.com
+Signed-off-by: Liu Shixin <liushixin2@huawei.com>
+Cc: "Paul E . McKenney" <paulmck@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/ipc_sysctl.c |   13 -------------
- 1 file changed, 13 deletions(-)
+ mm/vmstat.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
---- a/ipc/ipc_sysctl.c~ipc-ipc_sysctlc-remove-fallback-for-config_proc_sysctl
-+++ a/ipc/ipc_sysctl.c
-@@ -23,7 +23,6 @@ static void *get_ipc(struct ctl_table *t
- 	return which;
- }
+--- a/mm/vmstat.c~mm-vmstat-annotate-data-race-for-zone-free_areanr_free-fix
++++ a/mm/vmstat.c
+@@ -1070,7 +1070,12 @@ static void fill_contig_page_info(struct
+ 	for (order = 0; order < MAX_ORDER; order++) {
+ 		unsigned long blocks;
  
--#ifdef CONFIG_PROC_SYSCTL
- static int proc_ipc_dointvec(struct ctl_table *table, int write,
- 		void *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -118,18 +117,6 @@ static int proc_ipc_dointvec_minmax_chec
- }
- #endif
+-		/* Count number of free blocks */
++		/*
++		 * Count number of free blocks.
++		 *
++		 * Access to nr_free is lockless as nr_free is used only for
++		 * diagnostic purposes. Use data_race to avoid KCSAN warning.
++		 */
+ 		blocks = data_race(zone->free_area[order].nr_free);
+ 		info->free_blocks_total += blocks;
  
--#else
--#define proc_ipc_doulongvec_minmax NULL
--#define proc_ipc_dointvec	   NULL
--#define proc_ipc_dointvec_minmax   NULL
--#define proc_ipc_dointvec_minmax_orphans   NULL
--#define proc_ipc_auto_msgmni	   NULL
--#define proc_ipc_sem_dointvec	   NULL
--#ifdef CONFIG_CHECKPOINT_RESTORE
--#define proc_ipc_dointvec_minmax_checkpoint_restore	NULL
--#endif	/* CONFIG_CHECKPOINT_RESTORE */
--#endif
--
- int ipc_mni = IPCMNI;
- int ipc_mni_shift = IPCMNI_SHIFT;
- int ipc_min_cycle = RADIX_TREE_MAP_SIZE;
+@@ -1445,6 +1450,10 @@ static void frag_show_print(struct seq_f
+ 
+ 	seq_printf(m, "Node %d, zone %8s ", pgdat->node_id, zone->name);
+ 	for (order = 0; order < MAX_ORDER; ++order)
++		/*
++		 * Access to nr_free is lockless as nr_free is used only for
++		 * printing purposes. Use data_race to avoid KCSAN warning.
++		 */
+ 		seq_printf(m, "%6lu ", data_race(zone->free_area[order].nr_free));
+ 	seq_putc(m, '\n');
+ }
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from liushixin2@huawei.com are
 
-ipc-ipc_sysctlc-remove-fallback-for-config_proc_sysctl.patch
+mm-vmstat-annotate-data-race-for-zone-free_areanr_free.patch
+mm-vmstat-annotate-data-race-for-zone-free_areanr_free-fix.patch
 
