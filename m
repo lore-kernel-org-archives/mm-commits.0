@@ -7,35 +7,34 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 105DCC433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:05:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1AC3C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:22:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6CAB61183
-	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:05:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C2F5960F93
+	for <mm-commits@archiver.kernel.org>; Sun, 19 Sep 2021 23:22:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230159AbhISXHR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 19 Sep 2021 19:07:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39734 "EHLO mail.kernel.org"
+        id S231239AbhISXYP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 19 Sep 2021 19:24:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42758 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229778AbhISXHQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 19 Sep 2021 19:07:16 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D0F0D61107;
-        Sun, 19 Sep 2021 23:05:50 +0000 (UTC)
+        id S229517AbhISXYP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 19 Sep 2021 19:24:15 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2576F60F36;
+        Sun, 19 Sep 2021 23:22:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632092751;
-        bh=mtlqk3LBDoLeZh96J005urvjhvZazcVNJejgdR/5Pfs=;
+        s=korg; t=1632093769;
+        bh=eh1v6Oy93iQ1Y8z1Ut9iQF04G8jhUmgpl8S5uy3BLj4=;
         h=Date:From:To:Subject:From;
-        b=RdRxWOMChQDYmi3Fzx83Ex17SROR72i162A4i2UUshk4CsjC3Ny+NqIL7n9252cb3
-         fpJRDxwYcDQJq8vF04Il3aHyfA6WPa1/8GW1Fka+IZZaZRTATD8uq85+ndZ3pSZyjV
-         GL+ZqKjdNixWl7M3wilTT/0ZP4BUS/iKdV/JGM0E=
-Date:   Sun, 19 Sep 2021 16:05:50 -0700
+        b=mjVgiBYCHxtvH69aW/TxLjK8v8++7xprk7/yyxjCuDWqmTmJZkCOxxDr1o95dhudP
+         6aSQqx4Lmx+UDv9go1Aqw0wHp1l+T0DeAvxIh/U9ueZcx/+jrCYSZboC6mzmQfS7Q5
+         NP9Tr5QZirgFIJw57k++bntD+NHikMBwn5AXmxsA=
+Date:   Sun, 19 Sep 2021 16:22:48 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        mike.kravetz@oracle.com, jhubbard@nvidia.com, peterx@redhat.com
-Subject:  +
- mm-hugetlb-drop-__unmap_hugepage_range-definition-from-hugetlbh.patch added
- to -mm tree
-Message-ID: <20210919230550.-SUWb%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, sjpark@amazon.de, corbet@lwn.net,
+        sj@kernel.org
+Subject:  + maintainers-update-seongjaes-email-address.patch added to
+ -mm tree
+Message-ID: <20210919232248.YHJcj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: drop __unmap_hugepage_range definition from hugetlb.h
+     Subject: MAINTAINERS: update SeongJae's email address
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-drop-__unmap_hugepage_range-definition-from-hugetlbh.patch
+     maintainers-update-seongjaes-email-address.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-drop-__unmap_hugepage_range-definition-from-hugetlbh.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-seongjaes-email-address.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-drop-__unmap_hugepage_range-definition-from-hugetlbh.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-seongjaes-email-address.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,76 +64,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Xu <peterx@redhat.com>
-Subject: mm/hugetlb: drop __unmap_hugepage_range definition from hugetlb.h
+From: SeongJae Park <sj@kernel.org>
+Subject: MAINTAINERS: update SeongJae's email address
 
-Remove __unmap_hugepage_range() from the header file, because it is only
-used in hugetlb.c.
+This commit updates SeongJae's email address in MAINTAINERS file to his
+preferred one.
 
-Link: https://lkml.kernel.org/r/20210917165108.9341-1-peterx@redhat.com
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20210917123958.3819-3-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: SeongJae Park <sjpark@amazon.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |   10 ----------
- mm/hugetlb.c            |    6 +++---
- 2 files changed, 3 insertions(+), 13 deletions(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/hugetlb.h~mm-hugetlb-drop-__unmap_hugepage_range-definition-from-hugetlbh
-+++ a/include/linux/hugetlb.h
-@@ -143,9 +143,6 @@ void __unmap_hugepage_range_final(struct
- 			  struct vm_area_struct *vma,
- 			  unsigned long start, unsigned long end,
- 			  struct page *ref_page);
--void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
--				unsigned long start, unsigned long end,
--				struct page *ref_page);
- void hugetlb_report_meminfo(struct seq_file *);
- int hugetlb_report_node_meminfo(char *buf, int len, int nid);
- void hugetlb_show_meminfo(void);
-@@ -382,13 +379,6 @@ static inline void __unmap_hugepage_rang
- 			struct vm_area_struct *vma, unsigned long start,
- 			unsigned long end, struct page *ref_page)
- {
--	BUG();
--}
--
--static inline void __unmap_hugepage_range(struct mmu_gather *tlb,
--			struct vm_area_struct *vma, unsigned long start,
--			unsigned long end, struct page *ref_page)
--{
- 	BUG();
- }
+--- a/MAINTAINERS~maintainers-update-seongjaes-email-address
++++ a/MAINTAINERS
+@@ -5155,7 +5155,7 @@ F:	net/ax25/ax25_timer.c
+ F:	net/ax25/sysctl_net_ax25.c
  
---- a/mm/hugetlb.c~mm-hugetlb-drop-__unmap_hugepage_range-definition-from-hugetlbh
-+++ a/mm/hugetlb.c
-@@ -4426,9 +4426,9 @@ again:
- 	return ret;
- }
- 
--void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
--			    unsigned long start, unsigned long end,
--			    struct page *ref_page)
-+static void __unmap_hugepage_range(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+				   unsigned long start, unsigned long end,
-+				   struct page *ref_page)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long address;
+ DATA ACCESS MONITOR
+-M:	SeongJae Park <sjpark@amazon.de>
++M:	SeongJae Park <sj@kernel.org>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	Documentation/admin-guide/mm/damon/
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-smaps-fix-shmem-pte-hole-swap-calculation.patch
-mm-smaps-use-vma-vm_pgoff-directly-when-counting-partial-swap.patch
-mm-smaps-simplify-shmem-handling-of-pte-holes.patch
-mm-shmem-unconditionally-set-pte-dirty-in-mfill_atomic_install_pte.patch
-mm-clear-vmf-pte-after-pte_unmap_same-returns.patch
-mm-drop-first_index-last_index-in-zap_details.patch
-mm-add-zap_skip_check_mapping-helper.patch
-mm-hugetlb-drop-__unmap_hugepage_range-definition-from-hugetlbh.patch
+maintainers-update-seongjaes-email-address.patch
+mm-damon-core-print-kdamond-start-log-in-debug-mode-only.patch
 
