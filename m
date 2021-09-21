@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-20.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,MENTIONS_GIT_HOSTING,SPF_HELO_NONE,SPF_PASS,
-	URIBL_BLOCKED autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
+	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0577C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Sep 2021 18:51:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1A43C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Sep 2021 18:59:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BCB9161242
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Sep 2021 18:51:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CE53660FDA
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Sep 2021 18:59:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231592AbhIUSwx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Sep 2021 14:52:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54778 "EHLO mail.kernel.org"
+        id S232631AbhIUTAu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Sep 2021 15:00:50 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57466 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231615AbhIUSwt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 21 Sep 2021 14:52:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AE9F961211;
-        Tue, 21 Sep 2021 18:51:20 +0000 (UTC)
+        id S232481AbhIUTAu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 21 Sep 2021 15:00:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C40861186;
+        Tue, 21 Sep 2021 18:59:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632250281;
-        bh=nrN1n9CIV0k6WVf82UgosvvEjmJ01KhXX2NHg/gl/nY=;
+        s=korg; t=1632250761;
+        bh=OStZou4S191qW6e6zSOPpyIPBX8RhYGiUdwMi+UqO3Y=;
         h=Date:From:To:Subject:From;
-        b=c63XjBNj0qmTAR4jJmLMJRqiAme4ZRJfLfyTalWlUlPVdUv4nJKBmmFGwG+vZVCEv
-         O48gw8jQQmhx3jvGujIYP6jGuC3y9YJ+Lr2vBNJHfAbxQ4chru8LzLA+5K2vXDFb79
-         ErSA35NWHA5zees89Bad6RfpiZYX8P30GaClTAd4=
-Date:   Tue, 21 Sep 2021 11:51:20 -0700
+        b=ekQHRGf7a2nTV9OGFvHNQPq8X2aNRyseCTDPsF1w/OMDGd/I9KFdStTu7mf3lyUAm
+         TJftsEmguGsEut9sOkjqBp3icVz5+oiZBrfyLy4KNLvY4I0uo2P8ds/HZddl9McAw9
+         Bl+kFrDwuY3Dhl5Jk+uqSlTn0apE8v/qOq6h24KY=
+Date:   Tue, 21 Sep 2021 11:59:21 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, jmorris@namei.org,
-        keescook@chromium.org, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com, serge@hallyn.com,
-        steve@sk2.org, vbabka@suse.cz
-Subject:  + mm-remove-hardened_usercopy_fallback.patch added to -mm
- tree
-Message-ID: <20210921185120.2LdWxQnjC%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, sjpark@amazon.de
+Subject:  +
+ documentation-vm-move-user-guides-to-admin-guide-mm.patch added to -mm tree
+Message-ID: <20210921185921.9Z1xfPaDM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove HARDENED_USERCOPY_FALLBACK
+     Subject: Documentation/vm: move user guides to admin-guide/mm/
 has been added to the -mm tree.  Its filename is
-     mm-remove-hardened_usercopy_fallback.patch
+     documentation-vm-move-user-guides-to-admin-guide-mm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-hardened_usercopy_fallback.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/documentation-vm-move-user-guides-to-admin-guide-mm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-hardened_usercopy_fallback.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/documentation-vm-move-user-guides-to-admin-guide-mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,157 +63,552 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Kitt <steve@sk2.org>
-Subject: mm: remove HARDENED_USERCOPY_FALLBACK
+From: SeongJae Park <sjpark@amazon.de>
+Subject: Documentation/vm: move user guides to admin-guide/mm/
 
-This has served its purpose and is no longer used.  All usercopy
-violations appear to have been handled by now, any remaining instances (or
-new bugs) will cause copies to be rejected.
+Most memory management user guide documents are in 'admin-guide/mm/', but
+two of those are in 'vm/'.  This commit moves the two docs into
+'admin-guide/mm' for easier documents finding.
 
-This isn't a direct revert of commit 2d891fbc3bb6 ("usercopy: Allow strict
-enforcement of whitelists"); since usercopy_fallback is effectively 0, the
-fallback handling is removed too.
-
-This also removes the usercopy_fallback module parameter on slab_common.
-
-Link: https://github.com/KSPP/linux/issues/153
-Link: https://lkml.kernel.org/r/20210921061149.1091163-1-steve@sk2.org
-Signed-off-by: Stephen Kitt <steve@sk2.org>
-Suggested-by: Kees Cook <keescook@chromium.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Serge E . Hallyn" <serge@hallyn.com>
+Link: https://lkml.kernel.org/r/20210917123958.3819-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sjpark@amazon.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/configs/skiroot_defconfig |    1 -
- include/linux/slab.h                   |    2 --
- mm/slab.c                              |   13 -------------
- mm/slab_common.c                       |    8 --------
- mm/slub.c                              |   14 --------------
- security/Kconfig                       |   14 --------------
- 6 files changed, 52 deletions(-)
+ Documentation/admin-guide/mm/index.rst     |    2 
+ Documentation/admin-guide/mm/swap_numa.rst |   80 ++++++++++
+ Documentation/admin-guide/mm/zswap.rst     |  152 +++++++++++++++++++
+ Documentation/vm/index.rst                 |   26 ---
+ Documentation/vm/swap_numa.rst             |   80 ----------
+ Documentation/vm/zswap.rst                 |  152 -------------------
+ 6 files changed, 239 insertions(+), 253 deletions(-)
 
---- a/arch/powerpc/configs/skiroot_defconfig~mm-remove-hardened_usercopy_fallback
-+++ a/arch/powerpc/configs/skiroot_defconfig
-@@ -275,7 +275,6 @@ CONFIG_NLS_UTF8=y
- CONFIG_ENCRYPTED_KEYS=y
- CONFIG_SECURITY=y
- CONFIG_HARDENED_USERCOPY=y
--# CONFIG_HARDENED_USERCOPY_FALLBACK is not set
- CONFIG_HARDENED_USERCOPY_PAGESPAN=y
- CONFIG_FORTIFY_SOURCE=y
- CONFIG_SECURITY_LOCKDOWN_LSM=y
---- a/include/linux/slab.h~mm-remove-hardened_usercopy_fallback
-+++ a/include/linux/slab.h
-@@ -142,8 +142,6 @@ struct mem_cgroup;
- void __init kmem_cache_init(void);
- bool slab_is_available(void);
+--- a/Documentation/admin-guide/mm/index.rst~documentation-vm-move-user-guides-to-admin-guide-mm
++++ a/Documentation/admin-guide/mm/index.rst
+@@ -37,5 +37,7 @@ the Linux memory management.
+    numaperf
+    pagemap
+    soft-dirty
++   swap_numa
+    transhuge
+    userfaultfd
++   zswap
+--- a/Documentation/vm/index.rst~documentation-vm-move-user-guides-to-admin-guide-mm
++++ a/Documentation/vm/index.rst
+@@ -3,27 +3,11 @@ Linux Memory Management Documentation
+ =====================================
  
--extern bool usercopy_fallback;
+ This is a collection of documents about the Linux memory management (mm)
+-subsystem.  If you are looking for advice on simply allocating memory,
+-see the :ref:`memory_allocation`.
 -
- struct kmem_cache *kmem_cache_create(const char *name, unsigned int size,
- 			unsigned int align, slab_flags_t flags,
- 			void (*ctor)(void *));
---- a/mm/slab.c~mm-remove-hardened_usercopy_fallback
-+++ a/mm/slab.c
-@@ -4207,19 +4207,6 @@ void __check_heap_object(const void *ptr
- 	    n <= cachep->useroffset - offset + cachep->usersize)
- 		return;
- 
--	/*
--	 * If the copy is still within the allocated object, produce
--	 * a warning instead of rejecting the copy. This is intended
--	 * to be a temporary method to find any missing usercopy
--	 * whitelists.
--	 */
--	if (usercopy_fallback &&
--	    offset <= cachep->object_size &&
--	    n <= cachep->object_size - offset) {
--		usercopy_warn("SLAB object", cachep->name, to_user, offset, n);
--		return;
--	}
+-User guides for MM features
+-===========================
 -
- 	usercopy_abort("SLAB object", cachep->name, to_user, offset, n);
- }
- #endif /* CONFIG_HARDENED_USERCOPY */
---- a/mm/slab_common.c~mm-remove-hardened_usercopy_fallback
-+++ a/mm/slab_common.c
-@@ -37,14 +37,6 @@ LIST_HEAD(slab_caches);
- DEFINE_MUTEX(slab_mutex);
- struct kmem_cache *kmem_cache;
- 
--#ifdef CONFIG_HARDENED_USERCOPY
--bool usercopy_fallback __ro_after_init =
--		IS_ENABLED(CONFIG_HARDENED_USERCOPY_FALLBACK);
--module_param(usercopy_fallback, bool, 0400);
--MODULE_PARM_DESC(usercopy_fallback,
--		"WARN instead of reject usercopy whitelist violations");
--#endif
+-The following documents provide guides for controlling and tuning
+-various features of the Linux memory management
 -
- static LIST_HEAD(slab_caches_to_rcu_destroy);
- static void slab_caches_to_rcu_destroy_workfn(struct work_struct *work);
- static DECLARE_WORK(slab_caches_to_rcu_destroy_work,
---- a/mm/slub.c~mm-remove-hardened_usercopy_fallback
-+++ a/mm/slub.c
-@@ -4466,7 +4466,6 @@ void __check_heap_object(const void *ptr
- {
- 	struct kmem_cache *s;
- 	unsigned int offset;
--	size_t object_size;
- 	bool is_kfence = is_kfence_address(ptr);
- 
- 	ptr = kasan_reset_tag(ptr);
-@@ -4499,19 +4498,6 @@ void __check_heap_object(const void *ptr
- 	    n <= s->useroffset - offset + s->usersize)
- 		return;
- 
--	/*
--	 * If the copy is still within the allocated object, produce
--	 * a warning instead of rejecting the copy. This is intended
--	 * to be a temporary method to find any missing usercopy
--	 * whitelists.
--	 */
--	object_size = slab_ksize(s);
--	if (usercopy_fallback &&
--	    offset <= object_size && n <= object_size - offset) {
--		usercopy_warn("SLUB object", s->name, to_user, offset, n);
--		return;
--	}
+-.. toctree::
+-   :maxdepth: 1
 -
- 	usercopy_abort("SLUB object", s->name, to_user, offset, n);
- }
- #endif /* CONFIG_HARDENED_USERCOPY */
---- a/security/Kconfig~mm-remove-hardened_usercopy_fallback
-+++ a/security/Kconfig
-@@ -163,20 +163,6 @@ config HARDENED_USERCOPY
- 	  or are part of the kernel text. This kills entire classes
- 	  of heap overflow exploits and similar kernel memory exposures.
- 
--config HARDENED_USERCOPY_FALLBACK
--	bool "Allow usercopy whitelist violations to fallback to object size"
--	depends on HARDENED_USERCOPY
--	default y
--	help
--	  This is a temporary option that allows missing usercopy whitelists
--	  to be discovered via a WARN() to the kernel log, instead of
--	  rejecting the copy, falling back to non-whitelisted hardened
--	  usercopy that checks the slab allocation size instead of the
--	  whitelist size. This option will be removed once it seems like
--	  all missing usercopy whitelists have been identified and fixed.
--	  Booting with "slab_common.usercopy_fallback=Y/N" can change
--	  this setting.
+-   swap_numa
+-   zswap
 -
- config HARDENED_USERCOPY_PAGESPAN
- 	bool "Refuse to copy allocations that span multiple pages"
- 	depends on HARDENED_USERCOPY
+-Kernel developers MM documentation
+-==================================
+-
+-The below documents describe MM internals with different level of
+-details ranging from notes and mailing list responses to elaborate
+-descriptions of data structures and algorithms.
++subsystem internals with different level of details ranging from notes and
++mailing list responses for elaborating descriptions of data structures and
++algorithms.  If you are looking for advice on simply allocating memory, see the
++:ref:`memory_allocation`.  For controlling and tuning guides, see the
++:doc:`admin guide <../admin-guide/mm/index>`.
+ 
+ .. toctree::
+    :maxdepth: 1
+--- a/Documentation/vm/swap_numa.rst
++++ /dev/null
+@@ -1,80 +0,0 @@
+-.. _swap_numa:
+-
+-===========================================
+-Automatically bind swap device to numa node
+-===========================================
+-
+-If the system has more than one swap device and swap device has the node
+-information, we can make use of this information to decide which swap
+-device to use in get_swap_pages() to get better performance.
+-
+-
+-How to use this feature
+-=======================
+-
+-Swap device has priority and that decides the order of it to be used. To make
+-use of automatically binding, there is no need to manipulate priority settings
+-for swap devices. e.g. on a 2 node machine, assume 2 swap devices swapA and
+-swapB, with swapA attached to node 0 and swapB attached to node 1, are going
+-to be swapped on. Simply swapping them on by doing::
+-
+-	# swapon /dev/swapA
+-	# swapon /dev/swapB
+-
+-Then node 0 will use the two swap devices in the order of swapA then swapB and
+-node 1 will use the two swap devices in the order of swapB then swapA. Note
+-that the order of them being swapped on doesn't matter.
+-
+-A more complex example on a 4 node machine. Assume 6 swap devices are going to
+-be swapped on: swapA and swapB are attached to node 0, swapC is attached to
+-node 1, swapD and swapE are attached to node 2 and swapF is attached to node3.
+-The way to swap them on is the same as above::
+-
+-	# swapon /dev/swapA
+-	# swapon /dev/swapB
+-	# swapon /dev/swapC
+-	# swapon /dev/swapD
+-	# swapon /dev/swapE
+-	# swapon /dev/swapF
+-
+-Then node 0 will use them in the order of::
+-
+-	swapA/swapB -> swapC -> swapD -> swapE -> swapF
+-
+-swapA and swapB will be used in a round robin mode before any other swap device.
+-
+-node 1 will use them in the order of::
+-
+-	swapC -> swapA -> swapB -> swapD -> swapE -> swapF
+-
+-node 2 will use them in the order of::
+-
+-	swapD/swapE -> swapA -> swapB -> swapC -> swapF
+-
+-Similaly, swapD and swapE will be used in a round robin mode before any
+-other swap devices.
+-
+-node 3 will use them in the order of::
+-
+-	swapF -> swapA -> swapB -> swapC -> swapD -> swapE
+-
+-
+-Implementation details
+-======================
+-
+-The current code uses a priority based list, swap_avail_list, to decide
+-which swap device to use and if multiple swap devices share the same
+-priority, they are used round robin. This change here replaces the single
+-global swap_avail_list with a per-numa-node list, i.e. for each numa node,
+-it sees its own priority based list of available swap devices. Swap
+-device's priority can be promoted on its matching node's swap_avail_list.
+-
+-The current swap device's priority is set as: user can set a >=0 value,
+-or the system will pick one starting from -1 then downwards. The priority
+-value in the swap_avail_list is the negated value of the swap device's
+-due to plist being sorted from low to high. The new policy doesn't change
+-the semantics for priority >=0 cases, the previous starting from -1 then
+-downwards now becomes starting from -2 then downwards and -1 is reserved
+-as the promoted value. So if multiple swap devices are attached to the same
+-node, they will all be promoted to priority -1 on that node's plist and will
+-be used round robin before any other swap devices.
+--- /dev/null
++++ a/Documentation/admin-guide/mm/swap_numa.rst
+@@ -0,0 +1,80 @@
++.. _swap_numa:
++
++===========================================
++Automatically bind swap device to numa node
++===========================================
++
++If the system has more than one swap device and swap device has the node
++information, we can make use of this information to decide which swap
++device to use in get_swap_pages() to get better performance.
++
++
++How to use this feature
++=======================
++
++Swap device has priority and that decides the order of it to be used. To make
++use of automatically binding, there is no need to manipulate priority settings
++for swap devices. e.g. on a 2 node machine, assume 2 swap devices swapA and
++swapB, with swapA attached to node 0 and swapB attached to node 1, are going
++to be swapped on. Simply swapping them on by doing::
++
++	# swapon /dev/swapA
++	# swapon /dev/swapB
++
++Then node 0 will use the two swap devices in the order of swapA then swapB and
++node 1 will use the two swap devices in the order of swapB then swapA. Note
++that the order of them being swapped on doesn't matter.
++
++A more complex example on a 4 node machine. Assume 6 swap devices are going to
++be swapped on: swapA and swapB are attached to node 0, swapC is attached to
++node 1, swapD and swapE are attached to node 2 and swapF is attached to node3.
++The way to swap them on is the same as above::
++
++	# swapon /dev/swapA
++	# swapon /dev/swapB
++	# swapon /dev/swapC
++	# swapon /dev/swapD
++	# swapon /dev/swapE
++	# swapon /dev/swapF
++
++Then node 0 will use them in the order of::
++
++	swapA/swapB -> swapC -> swapD -> swapE -> swapF
++
++swapA and swapB will be used in a round robin mode before any other swap device.
++
++node 1 will use them in the order of::
++
++	swapC -> swapA -> swapB -> swapD -> swapE -> swapF
++
++node 2 will use them in the order of::
++
++	swapD/swapE -> swapA -> swapB -> swapC -> swapF
++
++Similaly, swapD and swapE will be used in a round robin mode before any
++other swap devices.
++
++node 3 will use them in the order of::
++
++	swapF -> swapA -> swapB -> swapC -> swapD -> swapE
++
++
++Implementation details
++======================
++
++The current code uses a priority based list, swap_avail_list, to decide
++which swap device to use and if multiple swap devices share the same
++priority, they are used round robin. This change here replaces the single
++global swap_avail_list with a per-numa-node list, i.e. for each numa node,
++it sees its own priority based list of available swap devices. Swap
++device's priority can be promoted on its matching node's swap_avail_list.
++
++The current swap device's priority is set as: user can set a >=0 value,
++or the system will pick one starting from -1 then downwards. The priority
++value in the swap_avail_list is the negated value of the swap device's
++due to plist being sorted from low to high. The new policy doesn't change
++the semantics for priority >=0 cases, the previous starting from -1 then
++downwards now becomes starting from -2 then downwards and -1 is reserved
++as the promoted value. So if multiple swap devices are attached to the same
++node, they will all be promoted to priority -1 on that node's plist and will
++be used round robin before any other swap devices.
+--- a/Documentation/vm/zswap.rst
++++ /dev/null
+@@ -1,152 +0,0 @@
+-.. _zswap:
+-
+-=====
+-zswap
+-=====
+-
+-Overview
+-========
+-
+-Zswap is a lightweight compressed cache for swap pages. It takes pages that are
+-in the process of being swapped out and attempts to compress them into a
+-dynamically allocated RAM-based memory pool.  zswap basically trades CPU cycles
+-for potentially reduced swap I/O.  This trade-off can also result in a
+-significant performance improvement if reads from the compressed cache are
+-faster than reads from a swap device.
+-
+-.. note::
+-   Zswap is a new feature as of v3.11 and interacts heavily with memory
+-   reclaim.  This interaction has not been fully explored on the large set of
+-   potential configurations and workloads that exist.  For this reason, zswap
+-   is a work in progress and should be considered experimental.
+-
+-   Some potential benefits:
+-
+-* Desktop/laptop users with limited RAM capacities can mitigate the
+-  performance impact of swapping.
+-* Overcommitted guests that share a common I/O resource can
+-  dramatically reduce their swap I/O pressure, avoiding heavy handed I/O
+-  throttling by the hypervisor. This allows more work to get done with less
+-  impact to the guest workload and guests sharing the I/O subsystem
+-* Users with SSDs as swap devices can extend the life of the device by
+-  drastically reducing life-shortening writes.
+-
+-Zswap evicts pages from compressed cache on an LRU basis to the backing swap
+-device when the compressed pool reaches its size limit.  This requirement had
+-been identified in prior community discussions.
+-
+-Whether Zswap is enabled at the boot time depends on whether
+-the ``CONFIG_ZSWAP_DEFAULT_ON`` Kconfig option is enabled or not.
+-This setting can then be overridden by providing the kernel command line
+-``zswap.enabled=`` option, for example ``zswap.enabled=0``.
+-Zswap can also be enabled and disabled at runtime using the sysfs interface.
+-An example command to enable zswap at runtime, assuming sysfs is mounted
+-at ``/sys``, is::
+-
+-	echo 1 > /sys/module/zswap/parameters/enabled
+-
+-When zswap is disabled at runtime it will stop storing pages that are
+-being swapped out.  However, it will _not_ immediately write out or fault
+-back into memory all of the pages stored in the compressed pool.  The
+-pages stored in zswap will remain in the compressed pool until they are
+-either invalidated or faulted back into memory.  In order to force all
+-pages out of the compressed pool, a swapoff on the swap device(s) will
+-fault back into memory all swapped out pages, including those in the
+-compressed pool.
+-
+-Design
+-======
+-
+-Zswap receives pages for compression through the Frontswap API and is able to
+-evict pages from its own compressed pool on an LRU basis and write them back to
+-the backing swap device in the case that the compressed pool is full.
+-
+-Zswap makes use of zpool for the managing the compressed memory pool.  Each
+-allocation in zpool is not directly accessible by address.  Rather, a handle is
+-returned by the allocation routine and that handle must be mapped before being
+-accessed.  The compressed memory pool grows on demand and shrinks as compressed
+-pages are freed.  The pool is not preallocated.  By default, a zpool
+-of type selected in ``CONFIG_ZSWAP_ZPOOL_DEFAULT`` Kconfig option is created,
+-but it can be overridden at boot time by setting the ``zpool`` attribute,
+-e.g. ``zswap.zpool=zbud``. It can also be changed at runtime using the sysfs
+-``zpool`` attribute, e.g.::
+-
+-	echo zbud > /sys/module/zswap/parameters/zpool
+-
+-The zbud type zpool allocates exactly 1 page to store 2 compressed pages, which
+-means the compression ratio will always be 2:1 or worse (because of half-full
+-zbud pages).  The zsmalloc type zpool has a more complex compressed page
+-storage method, and it can achieve greater storage densities.  However,
+-zsmalloc does not implement compressed page eviction, so once zswap fills it
+-cannot evict the oldest page, it can only reject new pages.
+-
+-When a swap page is passed from frontswap to zswap, zswap maintains a mapping
+-of the swap entry, a combination of the swap type and swap offset, to the zpool
+-handle that references that compressed swap page.  This mapping is achieved
+-with a red-black tree per swap type.  The swap offset is the search key for the
+-tree nodes.
+-
+-During a page fault on a PTE that is a swap entry, frontswap calls the zswap
+-load function to decompress the page into the page allocated by the page fault
+-handler.
+-
+-Once there are no PTEs referencing a swap page stored in zswap (i.e. the count
+-in the swap_map goes to 0) the swap code calls the zswap invalidate function,
+-via frontswap, to free the compressed entry.
+-
+-Zswap seeks to be simple in its policies.  Sysfs attributes allow for one user
+-controlled policy:
+-
+-* max_pool_percent - The maximum percentage of memory that the compressed
+-  pool can occupy.
+-
+-The default compressor is selected in ``CONFIG_ZSWAP_COMPRESSOR_DEFAULT``
+-Kconfig option, but it can be overridden at boot time by setting the
+-``compressor`` attribute, e.g. ``zswap.compressor=lzo``.
+-It can also be changed at runtime using the sysfs "compressor"
+-attribute, e.g.::
+-
+-	echo lzo > /sys/module/zswap/parameters/compressor
+-
+-When the zpool and/or compressor parameter is changed at runtime, any existing
+-compressed pages are not modified; they are left in their own zpool.  When a
+-request is made for a page in an old zpool, it is uncompressed using its
+-original compressor.  Once all pages are removed from an old zpool, the zpool
+-and its compressor are freed.
+-
+-Some of the pages in zswap are same-value filled pages (i.e. contents of the
+-page have same value or repetitive pattern). These pages include zero-filled
+-pages and they are handled differently. During store operation, a page is
+-checked if it is a same-value filled page before compressing it. If true, the
+-compressed length of the page is set to zero and the pattern or same-filled
+-value is stored.
+-
+-Same-value filled pages identification feature is enabled by default and can be
+-disabled at boot time by setting the ``same_filled_pages_enabled`` attribute
+-to 0, e.g. ``zswap.same_filled_pages_enabled=0``. It can also be enabled and
+-disabled at runtime using the sysfs ``same_filled_pages_enabled``
+-attribute, e.g.::
+-
+-	echo 1 > /sys/module/zswap/parameters/same_filled_pages_enabled
+-
+-When zswap same-filled page identification is disabled at runtime, it will stop
+-checking for the same-value filled pages during store operation. However, the
+-existing pages which are marked as same-value filled pages remain stored
+-unchanged in zswap until they are either loaded or invalidated.
+-
+-To prevent zswap from shrinking pool when zswap is full and there's a high
+-pressure on swap (this will result in flipping pages in and out zswap pool
+-without any real benefit but with a performance drop for the system), a
+-special parameter has been introduced to implement a sort of hysteresis to
+-refuse taking pages into zswap pool until it has sufficient space if the limit
+-has been hit. To set the threshold at which zswap would start accepting pages
+-again after it became full, use the sysfs ``accept_threshold_percent``
+-attribute, e. g.::
+-
+-	echo 80 > /sys/module/zswap/parameters/accept_threshold_percent
+-
+-Setting this parameter to 100 will disable the hysteresis.
+-
+-A debugfs interface is provided for various statistic about pool size, number
+-of pages stored, same-value filled pages and various counters for the reasons
+-pages are rejected.
+--- /dev/null
++++ a/Documentation/admin-guide/mm/zswap.rst
+@@ -0,0 +1,152 @@
++.. _zswap:
++
++=====
++zswap
++=====
++
++Overview
++========
++
++Zswap is a lightweight compressed cache for swap pages. It takes pages that are
++in the process of being swapped out and attempts to compress them into a
++dynamically allocated RAM-based memory pool.  zswap basically trades CPU cycles
++for potentially reduced swap I/O.  This trade-off can also result in a
++significant performance improvement if reads from the compressed cache are
++faster than reads from a swap device.
++
++.. note::
++   Zswap is a new feature as of v3.11 and interacts heavily with memory
++   reclaim.  This interaction has not been fully explored on the large set of
++   potential configurations and workloads that exist.  For this reason, zswap
++   is a work in progress and should be considered experimental.
++
++   Some potential benefits:
++
++* Desktop/laptop users with limited RAM capacities can mitigate the
++  performance impact of swapping.
++* Overcommitted guests that share a common I/O resource can
++  dramatically reduce their swap I/O pressure, avoiding heavy handed I/O
++  throttling by the hypervisor. This allows more work to get done with less
++  impact to the guest workload and guests sharing the I/O subsystem
++* Users with SSDs as swap devices can extend the life of the device by
++  drastically reducing life-shortening writes.
++
++Zswap evicts pages from compressed cache on an LRU basis to the backing swap
++device when the compressed pool reaches its size limit.  This requirement had
++been identified in prior community discussions.
++
++Whether Zswap is enabled at the boot time depends on whether
++the ``CONFIG_ZSWAP_DEFAULT_ON`` Kconfig option is enabled or not.
++This setting can then be overridden by providing the kernel command line
++``zswap.enabled=`` option, for example ``zswap.enabled=0``.
++Zswap can also be enabled and disabled at runtime using the sysfs interface.
++An example command to enable zswap at runtime, assuming sysfs is mounted
++at ``/sys``, is::
++
++	echo 1 > /sys/module/zswap/parameters/enabled
++
++When zswap is disabled at runtime it will stop storing pages that are
++being swapped out.  However, it will _not_ immediately write out or fault
++back into memory all of the pages stored in the compressed pool.  The
++pages stored in zswap will remain in the compressed pool until they are
++either invalidated or faulted back into memory.  In order to force all
++pages out of the compressed pool, a swapoff on the swap device(s) will
++fault back into memory all swapped out pages, including those in the
++compressed pool.
++
++Design
++======
++
++Zswap receives pages for compression through the Frontswap API and is able to
++evict pages from its own compressed pool on an LRU basis and write them back to
++the backing swap device in the case that the compressed pool is full.
++
++Zswap makes use of zpool for the managing the compressed memory pool.  Each
++allocation in zpool is not directly accessible by address.  Rather, a handle is
++returned by the allocation routine and that handle must be mapped before being
++accessed.  The compressed memory pool grows on demand and shrinks as compressed
++pages are freed.  The pool is not preallocated.  By default, a zpool
++of type selected in ``CONFIG_ZSWAP_ZPOOL_DEFAULT`` Kconfig option is created,
++but it can be overridden at boot time by setting the ``zpool`` attribute,
++e.g. ``zswap.zpool=zbud``. It can also be changed at runtime using the sysfs
++``zpool`` attribute, e.g.::
++
++	echo zbud > /sys/module/zswap/parameters/zpool
++
++The zbud type zpool allocates exactly 1 page to store 2 compressed pages, which
++means the compression ratio will always be 2:1 or worse (because of half-full
++zbud pages).  The zsmalloc type zpool has a more complex compressed page
++storage method, and it can achieve greater storage densities.  However,
++zsmalloc does not implement compressed page eviction, so once zswap fills it
++cannot evict the oldest page, it can only reject new pages.
++
++When a swap page is passed from frontswap to zswap, zswap maintains a mapping
++of the swap entry, a combination of the swap type and swap offset, to the zpool
++handle that references that compressed swap page.  This mapping is achieved
++with a red-black tree per swap type.  The swap offset is the search key for the
++tree nodes.
++
++During a page fault on a PTE that is a swap entry, frontswap calls the zswap
++load function to decompress the page into the page allocated by the page fault
++handler.
++
++Once there are no PTEs referencing a swap page stored in zswap (i.e. the count
++in the swap_map goes to 0) the swap code calls the zswap invalidate function,
++via frontswap, to free the compressed entry.
++
++Zswap seeks to be simple in its policies.  Sysfs attributes allow for one user
++controlled policy:
++
++* max_pool_percent - The maximum percentage of memory that the compressed
++  pool can occupy.
++
++The default compressor is selected in ``CONFIG_ZSWAP_COMPRESSOR_DEFAULT``
++Kconfig option, but it can be overridden at boot time by setting the
++``compressor`` attribute, e.g. ``zswap.compressor=lzo``.
++It can also be changed at runtime using the sysfs "compressor"
++attribute, e.g.::
++
++	echo lzo > /sys/module/zswap/parameters/compressor
++
++When the zpool and/or compressor parameter is changed at runtime, any existing
++compressed pages are not modified; they are left in their own zpool.  When a
++request is made for a page in an old zpool, it is uncompressed using its
++original compressor.  Once all pages are removed from an old zpool, the zpool
++and its compressor are freed.
++
++Some of the pages in zswap are same-value filled pages (i.e. contents of the
++page have same value or repetitive pattern). These pages include zero-filled
++pages and they are handled differently. During store operation, a page is
++checked if it is a same-value filled page before compressing it. If true, the
++compressed length of the page is set to zero and the pattern or same-filled
++value is stored.
++
++Same-value filled pages identification feature is enabled by default and can be
++disabled at boot time by setting the ``same_filled_pages_enabled`` attribute
++to 0, e.g. ``zswap.same_filled_pages_enabled=0``. It can also be enabled and
++disabled at runtime using the sysfs ``same_filled_pages_enabled``
++attribute, e.g.::
++
++	echo 1 > /sys/module/zswap/parameters/same_filled_pages_enabled
++
++When zswap same-filled page identification is disabled at runtime, it will stop
++checking for the same-value filled pages during store operation. However, the
++existing pages which are marked as same-value filled pages remain stored
++unchanged in zswap until they are either loaded or invalidated.
++
++To prevent zswap from shrinking pool when zswap is full and there's a high
++pressure on swap (this will result in flipping pages in and out zswap pool
++without any real benefit but with a performance drop for the system), a
++special parameter has been introduced to implement a sort of hysteresis to
++refuse taking pages into zswap pool until it has sufficient space if the limit
++has been hit. To set the threshold at which zswap would start accepting pages
++again after it became full, use the sysfs ``accept_threshold_percent``
++attribute, e. g.::
++
++	echo 80 > /sys/module/zswap/parameters/accept_threshold_percent
++
++Setting this parameter to 100 will disable the hysteresis.
++
++A debugfs interface is provided for various statistic about pool size, number
++of pages stored, same-value filled pages and various counters for the reasons
++pages are rejected.
 _
 
-Patches currently in -mm which might be from steve@sk2.org are
+Patches currently in -mm which might be from sjpark@amazon.de are
 
-mm-remove-hardened_usercopy_fallback.patch
+documentation-vm-move-user-guides-to-admin-guide-mm.patch
+docs-vm-damon-remove-broken-reference.patch
+include-linux-damonh-fix-kernel-doc-comments-for-damon_callback.patch
 
