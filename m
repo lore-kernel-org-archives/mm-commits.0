@@ -7,33 +7,35 @@ X-Spam-Status: No, score=-15.7 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1A43C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Sep 2021 18:59:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07843C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Sep 2021 19:07:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CE53660FDA
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Sep 2021 18:59:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DE32361186
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Sep 2021 19:07:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232631AbhIUTAu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Sep 2021 15:00:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57466 "EHLO mail.kernel.org"
+        id S234125AbhIUTJS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Sep 2021 15:09:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34752 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232481AbhIUTAu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 21 Sep 2021 15:00:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C40861186;
-        Tue, 21 Sep 2021 18:59:21 +0000 (UTC)
+        id S231325AbhIUTJS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 21 Sep 2021 15:09:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B372461184;
+        Tue, 21 Sep 2021 19:07:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632250761;
-        bh=OStZou4S191qW6e6zSOPpyIPBX8RhYGiUdwMi+UqO3Y=;
+        s=korg; t=1632251269;
+        bh=VUAVh5aXLfTnbdvMFoSKskDVdWLijQsNCCb0APaPIlk=;
         h=Date:From:To:Subject:From;
-        b=ekQHRGf7a2nTV9OGFvHNQPq8X2aNRyseCTDPsF1w/OMDGd/I9KFdStTu7mf3lyUAm
-         TJftsEmguGsEut9sOkjqBp3icVz5+oiZBrfyLy4KNLvY4I0uo2P8ds/HZddl9McAw9
-         Bl+kFrDwuY3Dhl5Jk+uqSlTn0apE8v/qOq6h24KY=
-Date:   Tue, 21 Sep 2021 11:59:21 -0700
+        b=y29H4dLN2wzWhMH1JvfWRa+J/MZJ9TMc+MxXvWd6Kap5ZpejJ9czie+ggXeFH6O0U
+         liWhEVbGIZmlLRqSIu7urcWilQ0sBRtISkSgOLWixNEdIlCepBPWInIt97LuQ0as5i
+         /NILR2stD5Sk2/UNiqOtI1DvRtULJBZBlWaiy5z4=
+Date:   Tue, 21 Sep 2021 12:07:49 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sjpark@amazon.de
-Subject:  +
- documentation-vm-move-user-guides-to-admin-guide-mm.patch added to -mm tree
-Message-ID: <20210921185921.9Z1xfPaDM%akpm@linux-foundation.org>
+To:     cgoldswo@codeaurora.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org, oliver.sang@intel.com,
+        zhengjun.xing@intel.com
+Subject:  + mm-fs-invalidate-bh_lrus-for-only-cold-path.patch added
+ to -mm tree
+Message-ID: <20210921190749.ozpW0AaS_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/vm: move user guides to admin-guide/mm/
+     Subject: mm: fs: invalidate bh_lrus for only cold path
 has been added to the -mm tree.  Its filename is
-     documentation-vm-move-user-guides-to-admin-guide-mm.patch
+     mm-fs-invalidate-bh_lrus-for-only-cold-path.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/documentation-vm-move-user-guides-to-admin-guide-mm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fs-invalidate-bh_lrus-for-only-cold-path.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/documentation-vm-move-user-guides-to-admin-guide-mm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fs-invalidate-bh_lrus-for-only-cold-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,552 +65,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sjpark@amazon.de>
-Subject: Documentation/vm: move user guides to admin-guide/mm/
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: fs: invalidate bh_lrus for only cold path
 
-Most memory management user guide documents are in 'admin-guide/mm/', but
-two of those are in 'vm/'.  This commit moves the two docs into
-'admin-guide/mm' for easier documents finding.
+kernel test robot reported the regression of fio.write_iops[1] with [2].
 
-Link: https://lkml.kernel.org/r/20210917123958.3819-2-sj@kernel.org
-Signed-off-by: SeongJae Park <sjpark@amazon.de>
+Since lru_add_drain is called frequently, invalidate bh_lrus there could
+increase bh_lrus cache miss ratio, which needs more IO in the end.
+
+This patch moves the bh_lrus invalidation from the hot path( e.g.,
+zap_page_range, pagevec_release) to cold path(i.e., lru_add_drain_all,
+lru_cache_disable).
+
+"Xing, Zhengjun" confirmed 
+
+: I test the patch, the regression reduced to -2.9%.
+
+[1] https://lore.kernel.org/lkml/20210520083144.GD14190@xsang-OptiPlex-9020/
+[2] 8cc621d2f45d, mm: fs: invalidate BH LRU during page migration
+
+Link: https://lkml.kernel.org/r/20210907212347.1977686-1-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Reviewed-by: Chris Goldsworthy <cgoldswo@codeaurora.org>
+Tested-by: "Xing, Zhengjun" <zhengjun.xing@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/index.rst     |    2 
- Documentation/admin-guide/mm/swap_numa.rst |   80 ++++++++++
- Documentation/admin-guide/mm/zswap.rst     |  152 +++++++++++++++++++
- Documentation/vm/index.rst                 |   26 ---
- Documentation/vm/swap_numa.rst             |   80 ----------
- Documentation/vm/zswap.rst                 |  152 -------------------
- 6 files changed, 239 insertions(+), 253 deletions(-)
+ fs/buffer.c                 |    8 ++++++--
+ include/linux/buffer_head.h |    4 ++--
+ mm/swap.c                   |   19 ++++++++++++++++---
+ 3 files changed, 24 insertions(+), 7 deletions(-)
 
---- a/Documentation/admin-guide/mm/index.rst~documentation-vm-move-user-guides-to-admin-guide-mm
-+++ a/Documentation/admin-guide/mm/index.rst
-@@ -37,5 +37,7 @@ the Linux memory management.
-    numaperf
-    pagemap
-    soft-dirty
-+   swap_numa
-    transhuge
-    userfaultfd
-+   zswap
---- a/Documentation/vm/index.rst~documentation-vm-move-user-guides-to-admin-guide-mm
-+++ a/Documentation/vm/index.rst
-@@ -3,27 +3,11 @@ Linux Memory Management Documentation
- =====================================
+--- a/fs/buffer.c~mm-fs-invalidate-bh_lrus-for-only-cold-path
++++ a/fs/buffer.c
+@@ -1425,12 +1425,16 @@ void invalidate_bh_lrus(void)
+ }
+ EXPORT_SYMBOL_GPL(invalidate_bh_lrus);
  
- This is a collection of documents about the Linux memory management (mm)
--subsystem.  If you are looking for advice on simply allocating memory,
--see the :ref:`memory_allocation`.
--
--User guides for MM features
--===========================
--
--The following documents provide guides for controlling and tuning
--various features of the Linux memory management
--
--.. toctree::
--   :maxdepth: 1
--
--   swap_numa
--   zswap
--
--Kernel developers MM documentation
--==================================
--
--The below documents describe MM internals with different level of
--details ranging from notes and mailing list responses to elaborate
--descriptions of data structures and algorithms.
-+subsystem internals with different level of details ranging from notes and
-+mailing list responses for elaborating descriptions of data structures and
-+algorithms.  If you are looking for advice on simply allocating memory, see the
-+:ref:`memory_allocation`.  For controlling and tuning guides, see the
-+:doc:`admin guide <../admin-guide/mm/index>`.
+-void invalidate_bh_lrus_cpu(int cpu)
++/*
++ * It's called from workqueue context so we need a bh_lru_lock to close
++ * the race with preemption/irq.
++ */
++void invalidate_bh_lrus_cpu(void)
+ {
+ 	struct bh_lru *b;
  
- .. toctree::
-    :maxdepth: 1
---- a/Documentation/vm/swap_numa.rst
-+++ /dev/null
-@@ -1,80 +0,0 @@
--.. _swap_numa:
--
--===========================================
--Automatically bind swap device to numa node
--===========================================
--
--If the system has more than one swap device and swap device has the node
--information, we can make use of this information to decide which swap
--device to use in get_swap_pages() to get better performance.
--
--
--How to use this feature
--=======================
--
--Swap device has priority and that decides the order of it to be used. To make
--use of automatically binding, there is no need to manipulate priority settings
--for swap devices. e.g. on a 2 node machine, assume 2 swap devices swapA and
--swapB, with swapA attached to node 0 and swapB attached to node 1, are going
--to be swapped on. Simply swapping them on by doing::
--
--	# swapon /dev/swapA
--	# swapon /dev/swapB
--
--Then node 0 will use the two swap devices in the order of swapA then swapB and
--node 1 will use the two swap devices in the order of swapB then swapA. Note
--that the order of them being swapped on doesn't matter.
--
--A more complex example on a 4 node machine. Assume 6 swap devices are going to
--be swapped on: swapA and swapB are attached to node 0, swapC is attached to
--node 1, swapD and swapE are attached to node 2 and swapF is attached to node3.
--The way to swap them on is the same as above::
--
--	# swapon /dev/swapA
--	# swapon /dev/swapB
--	# swapon /dev/swapC
--	# swapon /dev/swapD
--	# swapon /dev/swapE
--	# swapon /dev/swapF
--
--Then node 0 will use them in the order of::
--
--	swapA/swapB -> swapC -> swapD -> swapE -> swapF
--
--swapA and swapB will be used in a round robin mode before any other swap device.
--
--node 1 will use them in the order of::
--
--	swapC -> swapA -> swapB -> swapD -> swapE -> swapF
--
--node 2 will use them in the order of::
--
--	swapD/swapE -> swapA -> swapB -> swapC -> swapF
--
--Similaly, swapD and swapE will be used in a round robin mode before any
--other swap devices.
--
--node 3 will use them in the order of::
--
--	swapF -> swapA -> swapB -> swapC -> swapD -> swapE
--
--
--Implementation details
--======================
--
--The current code uses a priority based list, swap_avail_list, to decide
--which swap device to use and if multiple swap devices share the same
--priority, they are used round robin. This change here replaces the single
--global swap_avail_list with a per-numa-node list, i.e. for each numa node,
--it sees its own priority based list of available swap devices. Swap
--device's priority can be promoted on its matching node's swap_avail_list.
--
--The current swap device's priority is set as: user can set a >=0 value,
--or the system will pick one starting from -1 then downwards. The priority
--value in the swap_avail_list is the negated value of the swap device's
--due to plist being sorted from low to high. The new policy doesn't change
--the semantics for priority >=0 cases, the previous starting from -1 then
--downwards now becomes starting from -2 then downwards and -1 is reserved
--as the promoted value. So if multiple swap devices are attached to the same
--node, they will all be promoted to priority -1 on that node's plist and will
--be used round robin before any other swap devices.
---- /dev/null
-+++ a/Documentation/admin-guide/mm/swap_numa.rst
-@@ -0,0 +1,80 @@
-+.. _swap_numa:
+ 	bh_lru_lock();
+-	b = per_cpu_ptr(&bh_lrus, cpu);
++	b = this_cpu_ptr(&bh_lrus);
+ 	__invalidate_bh_lrus(b);
+ 	bh_lru_unlock();
+ }
+--- a/include/linux/buffer_head.h~mm-fs-invalidate-bh_lrus-for-only-cold-path
++++ a/include/linux/buffer_head.h
+@@ -194,7 +194,7 @@ void __breadahead_gfp(struct block_devic
+ struct buffer_head *__bread_gfp(struct block_device *,
+ 				sector_t block, unsigned size, gfp_t gfp);
+ void invalidate_bh_lrus(void);
+-void invalidate_bh_lrus_cpu(int cpu);
++void invalidate_bh_lrus_cpu(void);
+ bool has_bh_in_lru(int cpu, void *dummy);
+ struct buffer_head *alloc_buffer_head(gfp_t gfp_flags);
+ void free_buffer_head(struct buffer_head * bh);
+@@ -408,7 +408,7 @@ static inline int inode_has_buffers(stru
+ static inline void invalidate_inode_buffers(struct inode *inode) {}
+ static inline int remove_inode_buffers(struct inode *inode) { return 1; }
+ static inline int sync_mapping_buffers(struct address_space *mapping) { return 0; }
+-static inline void invalidate_bh_lrus_cpu(int cpu) {}
++static inline void invalidate_bh_lrus_cpu(void) {}
+ static inline bool has_bh_in_lru(int cpu, void *dummy) { return false; }
+ #define buffer_heads_over_limit 0
+ 
+--- a/mm/swap.c~mm-fs-invalidate-bh_lrus-for-only-cold-path
++++ a/mm/swap.c
+@@ -620,7 +620,6 @@ void lru_add_drain_cpu(int cpu)
+ 		pagevec_lru_move_fn(pvec, lru_lazyfree_fn);
+ 
+ 	activate_page_drain(cpu);
+-	invalidate_bh_lrus_cpu(cpu);
+ }
+ 
+ /**
+@@ -703,6 +702,20 @@ void lru_add_drain(void)
+ 	local_unlock(&lru_pvecs.lock);
+ }
+ 
++/*
++ * It's called from per-cpu workqueue context in SMP case so
++ * lru_add_drain_cpu and invalidate_bh_lrus_cpu should run on
++ * the same cpu. It shouldn't be a problem in !SMP case since
++ * the core is only one and the locks will disable preemption.
++ */
++static void lru_add_and_bh_lrus_drain(void)
++{
++	local_lock(&lru_pvecs.lock);
++	lru_add_drain_cpu(smp_processor_id());
++	local_unlock(&lru_pvecs.lock);
++	invalidate_bh_lrus_cpu();
++}
 +
-+===========================================
-+Automatically bind swap device to numa node
-+===========================================
-+
-+If the system has more than one swap device and swap device has the node
-+information, we can make use of this information to decide which swap
-+device to use in get_swap_pages() to get better performance.
-+
-+
-+How to use this feature
-+=======================
-+
-+Swap device has priority and that decides the order of it to be used. To make
-+use of automatically binding, there is no need to manipulate priority settings
-+for swap devices. e.g. on a 2 node machine, assume 2 swap devices swapA and
-+swapB, with swapA attached to node 0 and swapB attached to node 1, are going
-+to be swapped on. Simply swapping them on by doing::
-+
-+	# swapon /dev/swapA
-+	# swapon /dev/swapB
-+
-+Then node 0 will use the two swap devices in the order of swapA then swapB and
-+node 1 will use the two swap devices in the order of swapB then swapA. Note
-+that the order of them being swapped on doesn't matter.
-+
-+A more complex example on a 4 node machine. Assume 6 swap devices are going to
-+be swapped on: swapA and swapB are attached to node 0, swapC is attached to
-+node 1, swapD and swapE are attached to node 2 and swapF is attached to node3.
-+The way to swap them on is the same as above::
-+
-+	# swapon /dev/swapA
-+	# swapon /dev/swapB
-+	# swapon /dev/swapC
-+	# swapon /dev/swapD
-+	# swapon /dev/swapE
-+	# swapon /dev/swapF
-+
-+Then node 0 will use them in the order of::
-+
-+	swapA/swapB -> swapC -> swapD -> swapE -> swapF
-+
-+swapA and swapB will be used in a round robin mode before any other swap device.
-+
-+node 1 will use them in the order of::
-+
-+	swapC -> swapA -> swapB -> swapD -> swapE -> swapF
-+
-+node 2 will use them in the order of::
-+
-+	swapD/swapE -> swapA -> swapB -> swapC -> swapF
-+
-+Similaly, swapD and swapE will be used in a round robin mode before any
-+other swap devices.
-+
-+node 3 will use them in the order of::
-+
-+	swapF -> swapA -> swapB -> swapC -> swapD -> swapE
-+
-+
-+Implementation details
-+======================
-+
-+The current code uses a priority based list, swap_avail_list, to decide
-+which swap device to use and if multiple swap devices share the same
-+priority, they are used round robin. This change here replaces the single
-+global swap_avail_list with a per-numa-node list, i.e. for each numa node,
-+it sees its own priority based list of available swap devices. Swap
-+device's priority can be promoted on its matching node's swap_avail_list.
-+
-+The current swap device's priority is set as: user can set a >=0 value,
-+or the system will pick one starting from -1 then downwards. The priority
-+value in the swap_avail_list is the negated value of the swap device's
-+due to plist being sorted from low to high. The new policy doesn't change
-+the semantics for priority >=0 cases, the previous starting from -1 then
-+downwards now becomes starting from -2 then downwards and -1 is reserved
-+as the promoted value. So if multiple swap devices are attached to the same
-+node, they will all be promoted to priority -1 on that node's plist and will
-+be used round robin before any other swap devices.
---- a/Documentation/vm/zswap.rst
-+++ /dev/null
-@@ -1,152 +0,0 @@
--.. _zswap:
--
--=====
--zswap
--=====
--
--Overview
--========
--
--Zswap is a lightweight compressed cache for swap pages. It takes pages that are
--in the process of being swapped out and attempts to compress them into a
--dynamically allocated RAM-based memory pool.  zswap basically trades CPU cycles
--for potentially reduced swap I/O.  This trade-off can also result in a
--significant performance improvement if reads from the compressed cache are
--faster than reads from a swap device.
--
--.. note::
--   Zswap is a new feature as of v3.11 and interacts heavily with memory
--   reclaim.  This interaction has not been fully explored on the large set of
--   potential configurations and workloads that exist.  For this reason, zswap
--   is a work in progress and should be considered experimental.
--
--   Some potential benefits:
--
--* Desktop/laptop users with limited RAM capacities can mitigate the
--  performance impact of swapping.
--* Overcommitted guests that share a common I/O resource can
--  dramatically reduce their swap I/O pressure, avoiding heavy handed I/O
--  throttling by the hypervisor. This allows more work to get done with less
--  impact to the guest workload and guests sharing the I/O subsystem
--* Users with SSDs as swap devices can extend the life of the device by
--  drastically reducing life-shortening writes.
--
--Zswap evicts pages from compressed cache on an LRU basis to the backing swap
--device when the compressed pool reaches its size limit.  This requirement had
--been identified in prior community discussions.
--
--Whether Zswap is enabled at the boot time depends on whether
--the ``CONFIG_ZSWAP_DEFAULT_ON`` Kconfig option is enabled or not.
--This setting can then be overridden by providing the kernel command line
--``zswap.enabled=`` option, for example ``zswap.enabled=0``.
--Zswap can also be enabled and disabled at runtime using the sysfs interface.
--An example command to enable zswap at runtime, assuming sysfs is mounted
--at ``/sys``, is::
--
--	echo 1 > /sys/module/zswap/parameters/enabled
--
--When zswap is disabled at runtime it will stop storing pages that are
--being swapped out.  However, it will _not_ immediately write out or fault
--back into memory all of the pages stored in the compressed pool.  The
--pages stored in zswap will remain in the compressed pool until they are
--either invalidated or faulted back into memory.  In order to force all
--pages out of the compressed pool, a swapoff on the swap device(s) will
--fault back into memory all swapped out pages, including those in the
--compressed pool.
--
--Design
--======
--
--Zswap receives pages for compression through the Frontswap API and is able to
--evict pages from its own compressed pool on an LRU basis and write them back to
--the backing swap device in the case that the compressed pool is full.
--
--Zswap makes use of zpool for the managing the compressed memory pool.  Each
--allocation in zpool is not directly accessible by address.  Rather, a handle is
--returned by the allocation routine and that handle must be mapped before being
--accessed.  The compressed memory pool grows on demand and shrinks as compressed
--pages are freed.  The pool is not preallocated.  By default, a zpool
--of type selected in ``CONFIG_ZSWAP_ZPOOL_DEFAULT`` Kconfig option is created,
--but it can be overridden at boot time by setting the ``zpool`` attribute,
--e.g. ``zswap.zpool=zbud``. It can also be changed at runtime using the sysfs
--``zpool`` attribute, e.g.::
--
--	echo zbud > /sys/module/zswap/parameters/zpool
--
--The zbud type zpool allocates exactly 1 page to store 2 compressed pages, which
--means the compression ratio will always be 2:1 or worse (because of half-full
--zbud pages).  The zsmalloc type zpool has a more complex compressed page
--storage method, and it can achieve greater storage densities.  However,
--zsmalloc does not implement compressed page eviction, so once zswap fills it
--cannot evict the oldest page, it can only reject new pages.
--
--When a swap page is passed from frontswap to zswap, zswap maintains a mapping
--of the swap entry, a combination of the swap type and swap offset, to the zpool
--handle that references that compressed swap page.  This mapping is achieved
--with a red-black tree per swap type.  The swap offset is the search key for the
--tree nodes.
--
--During a page fault on a PTE that is a swap entry, frontswap calls the zswap
--load function to decompress the page into the page allocated by the page fault
--handler.
--
--Once there are no PTEs referencing a swap page stored in zswap (i.e. the count
--in the swap_map goes to 0) the swap code calls the zswap invalidate function,
--via frontswap, to free the compressed entry.
--
--Zswap seeks to be simple in its policies.  Sysfs attributes allow for one user
--controlled policy:
--
--* max_pool_percent - The maximum percentage of memory that the compressed
--  pool can occupy.
--
--The default compressor is selected in ``CONFIG_ZSWAP_COMPRESSOR_DEFAULT``
--Kconfig option, but it can be overridden at boot time by setting the
--``compressor`` attribute, e.g. ``zswap.compressor=lzo``.
--It can also be changed at runtime using the sysfs "compressor"
--attribute, e.g.::
--
--	echo lzo > /sys/module/zswap/parameters/compressor
--
--When the zpool and/or compressor parameter is changed at runtime, any existing
--compressed pages are not modified; they are left in their own zpool.  When a
--request is made for a page in an old zpool, it is uncompressed using its
--original compressor.  Once all pages are removed from an old zpool, the zpool
--and its compressor are freed.
--
--Some of the pages in zswap are same-value filled pages (i.e. contents of the
--page have same value or repetitive pattern). These pages include zero-filled
--pages and they are handled differently. During store operation, a page is
--checked if it is a same-value filled page before compressing it. If true, the
--compressed length of the page is set to zero and the pattern or same-filled
--value is stored.
--
--Same-value filled pages identification feature is enabled by default and can be
--disabled at boot time by setting the ``same_filled_pages_enabled`` attribute
--to 0, e.g. ``zswap.same_filled_pages_enabled=0``. It can also be enabled and
--disabled at runtime using the sysfs ``same_filled_pages_enabled``
--attribute, e.g.::
--
--	echo 1 > /sys/module/zswap/parameters/same_filled_pages_enabled
--
--When zswap same-filled page identification is disabled at runtime, it will stop
--checking for the same-value filled pages during store operation. However, the
--existing pages which are marked as same-value filled pages remain stored
--unchanged in zswap until they are either loaded or invalidated.
--
--To prevent zswap from shrinking pool when zswap is full and there's a high
--pressure on swap (this will result in flipping pages in and out zswap pool
--without any real benefit but with a performance drop for the system), a
--special parameter has been introduced to implement a sort of hysteresis to
--refuse taking pages into zswap pool until it has sufficient space if the limit
--has been hit. To set the threshold at which zswap would start accepting pages
--again after it became full, use the sysfs ``accept_threshold_percent``
--attribute, e. g.::
--
--	echo 80 > /sys/module/zswap/parameters/accept_threshold_percent
--
--Setting this parameter to 100 will disable the hysteresis.
--
--A debugfs interface is provided for various statistic about pool size, number
--of pages stored, same-value filled pages and various counters for the reasons
--pages are rejected.
---- /dev/null
-+++ a/Documentation/admin-guide/mm/zswap.rst
-@@ -0,0 +1,152 @@
-+.. _zswap:
-+
-+=====
-+zswap
-+=====
-+
-+Overview
-+========
-+
-+Zswap is a lightweight compressed cache for swap pages. It takes pages that are
-+in the process of being swapped out and attempts to compress them into a
-+dynamically allocated RAM-based memory pool.  zswap basically trades CPU cycles
-+for potentially reduced swap I/O.  This trade-off can also result in a
-+significant performance improvement if reads from the compressed cache are
-+faster than reads from a swap device.
-+
-+.. note::
-+   Zswap is a new feature as of v3.11 and interacts heavily with memory
-+   reclaim.  This interaction has not been fully explored on the large set of
-+   potential configurations and workloads that exist.  For this reason, zswap
-+   is a work in progress and should be considered experimental.
-+
-+   Some potential benefits:
-+
-+* Desktop/laptop users with limited RAM capacities can mitigate the
-+  performance impact of swapping.
-+* Overcommitted guests that share a common I/O resource can
-+  dramatically reduce their swap I/O pressure, avoiding heavy handed I/O
-+  throttling by the hypervisor. This allows more work to get done with less
-+  impact to the guest workload and guests sharing the I/O subsystem
-+* Users with SSDs as swap devices can extend the life of the device by
-+  drastically reducing life-shortening writes.
-+
-+Zswap evicts pages from compressed cache on an LRU basis to the backing swap
-+device when the compressed pool reaches its size limit.  This requirement had
-+been identified in prior community discussions.
-+
-+Whether Zswap is enabled at the boot time depends on whether
-+the ``CONFIG_ZSWAP_DEFAULT_ON`` Kconfig option is enabled or not.
-+This setting can then be overridden by providing the kernel command line
-+``zswap.enabled=`` option, for example ``zswap.enabled=0``.
-+Zswap can also be enabled and disabled at runtime using the sysfs interface.
-+An example command to enable zswap at runtime, assuming sysfs is mounted
-+at ``/sys``, is::
-+
-+	echo 1 > /sys/module/zswap/parameters/enabled
-+
-+When zswap is disabled at runtime it will stop storing pages that are
-+being swapped out.  However, it will _not_ immediately write out or fault
-+back into memory all of the pages stored in the compressed pool.  The
-+pages stored in zswap will remain in the compressed pool until they are
-+either invalidated or faulted back into memory.  In order to force all
-+pages out of the compressed pool, a swapoff on the swap device(s) will
-+fault back into memory all swapped out pages, including those in the
-+compressed pool.
-+
-+Design
-+======
-+
-+Zswap receives pages for compression through the Frontswap API and is able to
-+evict pages from its own compressed pool on an LRU basis and write them back to
-+the backing swap device in the case that the compressed pool is full.
-+
-+Zswap makes use of zpool for the managing the compressed memory pool.  Each
-+allocation in zpool is not directly accessible by address.  Rather, a handle is
-+returned by the allocation routine and that handle must be mapped before being
-+accessed.  The compressed memory pool grows on demand and shrinks as compressed
-+pages are freed.  The pool is not preallocated.  By default, a zpool
-+of type selected in ``CONFIG_ZSWAP_ZPOOL_DEFAULT`` Kconfig option is created,
-+but it can be overridden at boot time by setting the ``zpool`` attribute,
-+e.g. ``zswap.zpool=zbud``. It can also be changed at runtime using the sysfs
-+``zpool`` attribute, e.g.::
-+
-+	echo zbud > /sys/module/zswap/parameters/zpool
-+
-+The zbud type zpool allocates exactly 1 page to store 2 compressed pages, which
-+means the compression ratio will always be 2:1 or worse (because of half-full
-+zbud pages).  The zsmalloc type zpool has a more complex compressed page
-+storage method, and it can achieve greater storage densities.  However,
-+zsmalloc does not implement compressed page eviction, so once zswap fills it
-+cannot evict the oldest page, it can only reject new pages.
-+
-+When a swap page is passed from frontswap to zswap, zswap maintains a mapping
-+of the swap entry, a combination of the swap type and swap offset, to the zpool
-+handle that references that compressed swap page.  This mapping is achieved
-+with a red-black tree per swap type.  The swap offset is the search key for the
-+tree nodes.
-+
-+During a page fault on a PTE that is a swap entry, frontswap calls the zswap
-+load function to decompress the page into the page allocated by the page fault
-+handler.
-+
-+Once there are no PTEs referencing a swap page stored in zswap (i.e. the count
-+in the swap_map goes to 0) the swap code calls the zswap invalidate function,
-+via frontswap, to free the compressed entry.
-+
-+Zswap seeks to be simple in its policies.  Sysfs attributes allow for one user
-+controlled policy:
-+
-+* max_pool_percent - The maximum percentage of memory that the compressed
-+  pool can occupy.
-+
-+The default compressor is selected in ``CONFIG_ZSWAP_COMPRESSOR_DEFAULT``
-+Kconfig option, but it can be overridden at boot time by setting the
-+``compressor`` attribute, e.g. ``zswap.compressor=lzo``.
-+It can also be changed at runtime using the sysfs "compressor"
-+attribute, e.g.::
-+
-+	echo lzo > /sys/module/zswap/parameters/compressor
-+
-+When the zpool and/or compressor parameter is changed at runtime, any existing
-+compressed pages are not modified; they are left in their own zpool.  When a
-+request is made for a page in an old zpool, it is uncompressed using its
-+original compressor.  Once all pages are removed from an old zpool, the zpool
-+and its compressor are freed.
-+
-+Some of the pages in zswap are same-value filled pages (i.e. contents of the
-+page have same value or repetitive pattern). These pages include zero-filled
-+pages and they are handled differently. During store operation, a page is
-+checked if it is a same-value filled page before compressing it. If true, the
-+compressed length of the page is set to zero and the pattern or same-filled
-+value is stored.
-+
-+Same-value filled pages identification feature is enabled by default and can be
-+disabled at boot time by setting the ``same_filled_pages_enabled`` attribute
-+to 0, e.g. ``zswap.same_filled_pages_enabled=0``. It can also be enabled and
-+disabled at runtime using the sysfs ``same_filled_pages_enabled``
-+attribute, e.g.::
-+
-+	echo 1 > /sys/module/zswap/parameters/same_filled_pages_enabled
-+
-+When zswap same-filled page identification is disabled at runtime, it will stop
-+checking for the same-value filled pages during store operation. However, the
-+existing pages which are marked as same-value filled pages remain stored
-+unchanged in zswap until they are either loaded or invalidated.
-+
-+To prevent zswap from shrinking pool when zswap is full and there's a high
-+pressure on swap (this will result in flipping pages in and out zswap pool
-+without any real benefit but with a performance drop for the system), a
-+special parameter has been introduced to implement a sort of hysteresis to
-+refuse taking pages into zswap pool until it has sufficient space if the limit
-+has been hit. To set the threshold at which zswap would start accepting pages
-+again after it became full, use the sysfs ``accept_threshold_percent``
-+attribute, e. g.::
-+
-+	echo 80 > /sys/module/zswap/parameters/accept_threshold_percent
-+
-+Setting this parameter to 100 will disable the hysteresis.
-+
-+A debugfs interface is provided for various statistic about pool size, number
-+of pages stored, same-value filled pages and various counters for the reasons
-+pages are rejected.
+ void lru_add_drain_cpu_zone(struct zone *zone)
+ {
+ 	local_lock(&lru_pvecs.lock);
+@@ -717,7 +730,7 @@ static DEFINE_PER_CPU(struct work_struct
+ 
+ static void lru_add_drain_per_cpu(struct work_struct *dummy)
+ {
+-	lru_add_drain();
++	lru_add_and_bh_lrus_drain();
+ }
+ 
+ /*
+@@ -858,7 +871,7 @@ void lru_cache_disable(void)
+ 	 */
+ 	__lru_add_drain_all(true);
+ #else
+-	lru_add_drain();
++	lru_add_and_bh_lrus_drain();
+ #endif
+ }
+ 
 _
 
-Patches currently in -mm which might be from sjpark@amazon.de are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-documentation-vm-move-user-guides-to-admin-guide-mm.patch
-docs-vm-damon-remove-broken-reference.patch
-include-linux-damonh-fix-kernel-doc-comments-for-damon_callback.patch
+mm-fs-invalidate-bh_lrus-for-only-cold-path.patch
 
