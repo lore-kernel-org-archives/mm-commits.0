@@ -2,34 +2,65 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-3.7 required=3.0 tests=BAYES_00,
-	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,
-	UNPARSEABLE_RELAY autolearn=no autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-2.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
+	DKIM_VALID,DKIM_VALID_AU,FREEMAIL_FORGED_FROMDOMAIN,FREEMAIL_FROM,
+	HEADER_FROM_DIFFERENT_DOMAINS,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS
+	autolearn=no autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 848E2C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 22 Sep 2021 04:24:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C287C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 22 Sep 2021 07:24:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 626F2611B0
-	for <mm-commits@archiver.kernel.org>; Wed, 22 Sep 2021 04:24:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 14AE561178
+	for <mm-commits@archiver.kernel.org>; Wed, 22 Sep 2021 07:24:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231366AbhIVEZl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Sep 2021 00:25:41 -0400
-Received: from smtprelay0151.hostedemail.com ([216.40.44.151]:48684 "EHLO
-        smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
-        by vger.kernel.org with ESMTP id S229495AbhIVEZl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 22 Sep 2021 00:25:41 -0400
-Received: from omf09.hostedemail.com (clb03-v110.bra.tucows.net [216.40.38.60])
-        by smtprelay04.hostedemail.com (Postfix) with ESMTP id D21BE180A5AF1;
-        Wed, 22 Sep 2021 04:24:10 +0000 (UTC)
-Received: from [HIDDEN] (Authenticated sender: joe@perches.com) by omf09.hostedemail.com (Postfix) with ESMTPA id 33A581E04D9;
-        Wed, 22 Sep 2021 04:24:06 +0000 (UTC)
-Message-ID: <0b1c78b395a7a198a089ba8f6283d8d10829720c.camel@perches.com>
-Subject: Re: function prototype element ordering
-From:   Joe Perches <joe@perches.com>
-To:     Kees Cook <keescook@chromium.org>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-kernel@vger.kernel.org,
+        id S233156AbhIVHZn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Sep 2021 03:25:43 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41752 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229697AbhIVHZm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Sep 2021 03:25:42 -0400
+Received: from mail-wr1-x42a.google.com (mail-wr1-x42a.google.com [IPv6:2a00:1450:4864:20::42a])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A7EC3C061574;
+        Wed, 22 Sep 2021 00:24:12 -0700 (PDT)
+Received: by mail-wr1-x42a.google.com with SMTP id q26so3851814wrc.7;
+        Wed, 22 Sep 2021 00:24:12 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:content-transfer-encoding:in-reply-to;
+        bh=ULwoOoLedOT4q7QVhiTfuMRJL+g42ZvtZLso5l9rgRY=;
+        b=mUlp7aX+AbdUf8t/iQV/vo+r+mLJL7e/qWLY5UNFxABQv07ML9RXYBeZJycroCNdrR
+         nYqG8tfJNFkuYOKW7WlHBnUezqqFkQm6K2/RL7B5j6WkSLS2dd9haJUPR7b68uFYvD7l
+         cf6CwkVU6sbzGdkiCGVfWCxXT+7Y7vrvJn2egaqCe8EZh/dIzwW49U7MAhoDlLDyFEa9
+         /Ei39y5F+UyjybB7Q9cpWd2Q6+0d9cb91L8CA8CmHMZjy9/vqoaBmYtJC/p07wHjP9YF
+         RYRsfAr2TTDhFqYCSbgbhUy4e7sfreV6a3CbA8FMQAjssbh8X1sBd2QpADRdQJk6wxdf
+         kdsQ==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:content-transfer-encoding
+         :in-reply-to;
+        bh=ULwoOoLedOT4q7QVhiTfuMRJL+g42ZvtZLso5l9rgRY=;
+        b=155DDb5nrqNj8KINtGqgJKJ0+f/OhHj4MrDstaaiEPfQgpEvqj/Oj9fiAhGgcBhM6q
+         xgNngNPfn3ytPpMq9uQ1uG/5gZNKytRjLl/qJz/StPzFNwgKdRT9xmNQBWRxkN1xtuH9
+         OkfQTVgD1ERLXOYazLi0fdV2j54bHKNdZatkskMjb9woTxkh2Ihf6hGhd/RImvDCRk1k
+         BHxm4cHqzHQdfBYmZX+zkMdBqe3sDkgUgIOA0XW3VbVZgHcUoLe+KsANNGGz132v22A0
+         JImTnABKF9M61iYxyIlGlv6zHiVymeKgCyiLcTI835vkAsvd3K9cN1cUFJGecpwFaWSG
+         cPpQ==
+X-Gm-Message-State: AOAM531lyuTCiCWte8jlj0s+fCVq0hFHSYwO4Gv7xgcYBQyAhnQs2sR1
+        /3+uyYPpLY6PxX4QW2VCkcRxSsRAXHy0
+X-Google-Smtp-Source: ABdhPJy7HsSVUaQeuyvJ6ZcmsmbeD912UQv/jB8HzcSjxN589QnfzOcYK9boFdHVuTUAqmqTwGDiZw==
+X-Received: by 2002:adf:a745:: with SMTP id e5mr28910852wrd.406.1632295451096;
+        Wed, 22 Sep 2021 00:24:11 -0700 (PDT)
+Received: from localhost.localdomain ([46.53.252.100])
+        by smtp.gmail.com with ESMTPSA id s10sm1309856wrg.42.2021.09.22.00.24.09
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 22 Sep 2021 00:24:10 -0700 (PDT)
+Date:   Wed, 22 Sep 2021 10:24:08 +0300
+From:   Alexey Dobriyan <adobriyan@gmail.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Joe Perches <joe@perches.com>,
         Andrew Morton <akpm@linux-foundation.org>, apw@canonical.com,
         Christoph Lameter <cl@linux.com>,
         Daniel Micay <danielmicay@gmail.com>,
@@ -44,37 +75,32 @@ Cc:     linux-kernel@vger.kernel.org,
         David Rientjes <rientjes@google.com>,
         Tejun Heo <tj@kernel.org>, Vlastimil Babka <vbabka@suse.cz>,
         linux-doc@vger.kernel.org
-Date:   Tue, 21 Sep 2021 21:24:04 -0700
-In-Reply-To: <202109211757.F38DF644@keescook>
+Subject: Re: function prototype element ordering
+Message-ID: <YUraGKetS+Tgc7y9@localhost.localdomain>
 References: <20210909200948.090d4e213ca34b5ad1325a7e@linux-foundation.org>
-         <20210910031046.G76dQvPhV%akpm@linux-foundation.org>
-         <CAHk-=wgfbSyW6QYd5rmhSHRoOQ=ZvV+jLn1U8U4nBDgBuaOAjQ@mail.gmail.com>
-         <202109211630.2D00627@keescook>
-         <af3c775a1515f97c8dbe6a6651bd6e4b6986e8cd.camel@perches.com>
-         <202109211757.F38DF644@keescook>
-Content-Type: text/plain; charset="ISO-8859-1"
-User-Agent: Evolution 3.40.0-1 
+ <20210910031046.G76dQvPhV%akpm@linux-foundation.org>
+ <CAHk-=wgfbSyW6QYd5rmhSHRoOQ=ZvV+jLn1U8U4nBDgBuaOAjQ@mail.gmail.com>
+ <202109211630.2D00627@keescook>
+ <af3c775a1515f97c8dbe6a6651bd6e4b6986e8cd.camel@perches.com>
+ <202109211757.F38DF644@keescook>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-X-Stat-Signature: 66kfrtcpa4oq76ewff9t1btep61h55mx
-X-Rspamd-Server: rspamout05
-X-Rspamd-Queue-Id: 33A581E04D9
-X-Session-Marker: 6A6F6540706572636865732E636F6D
-X-Session-ID: U2FsdGVkX1/uSb4yH+DYL9KIG9muU2DF8mmCwJIvhk8=
-X-HE-Tag: 1632284646-179228
+In-Reply-To: <202109211757.F38DF644@keescook>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, 2021-09-21 at 19:25 -0700, Kees Cook wrote:
+On Tue, Sep 21, 2021 at 07:25:53PM -0700, Kees Cook wrote:
 > On Tue, Sep 21, 2021 at 04:45:44PM -0700, Joe Perches wrote:
 > > On Tue, 2021-09-21 at 16:37 -0700, Kees Cook wrote:
 > > > On Fri, Sep 10, 2021 at 10:23:48AM -0700, Linus Torvalds wrote:
 > > > > On Thu, Sep 9, 2021 at 8:10 PM Andrew Morton <akpm@linux-foundation.org> wrote:
 > > > > > 
 > > > > > +__alloc_size(1)
-> > > > >  extern void *vmalloc(unsigned long size);
+> > > > > Â extern void *vmalloc(unsigned long size);
 > > > > [...]
 > > > > 
 > > > > All of these are added in the wrong place - inconsistent with the very
@@ -105,8 +131,8 @@ On Tue, 2021-09-21 at 19:25 -0700, Kees Cook wrote:
 > > > GCC is very angry:
 > > > 
 > > > ./include/linux/slab.h:519:1: error: attributes should be specified before the declarator in a function definition
-> > >   519 | static __always_inline void *kmalloc_large(size_t size, gfp_t flags) __alloc_size(1)
-> > >       | ^~~~~~
+> > > Â Â 519 | static __always_inline void *kmalloc_large(size_t size, gfp_t flags) __alloc_size(1)
+> > > Â Â Â Â Â Â | ^~~~~~
 > > > 
 > > > It's happy if I treat it as a "return type attribute" in the ordering,
 > > > though:
@@ -160,49 +186,40 @@ On Tue, 2021-09-21 at 19:25 -0700, Kees Cook wrote:
 > 
 > But it's clearly positioned like a return type attribute in most of the
 > tree. What's correct?
-
-Neither really.  'Correct' is such a difficult concept.
-'Preferred' might be better.
-
-btw: there are about another 100 other uses with '__init' as the
-initial attribute, mostly in trace.
-
-And I still think that return type attributes like __init, which is
-just a __section define, should go before the function storage class
-and ideally on a separate line to simplify the parsing of the actual
-function declaration.  Attributes like __section, __aligned, __cold,
-etc... don't have much value when looking up a function definition.
-
+> 
 > Regardless, given the constraints above, it seems like what Linus may
 > want is (on "one line", though it will get wrapped in pathological cases
 > like kmem_cache_alloc_node_trace):
-
-Pathological is pretty common these days as the function name length
-is rather longer now than earlier times.
- 
+> 
 > [storage class] [storage class attributes] [return type] [return type attributes] [function argument attributes] [name]([arg1type] [arg1name], ...) [function attributes]
 > 
 > Joe appears to want (on two lines):
 > 
 > [storage class attributes] [function attributes] [function argument attributes]
 > [storage class] [return type] [return type attributes] [name]([arg1type] [arg1name], ...)
-
-I would put [return type attributes] on the initial separate line
-even though that's not the most common use today.
-
+> 
 > I would just like to have an arrangement that won't get NAKed by
-> someone. ;)
+> someone. ;) And I'm willing to document it. :)
 
-Bikeshed building dreamer...
+Attributes should be on their own line, they can be quite lengthy.
 
-btw:
+	__attribute__((...))
+	[static] [inline] T f(A1 arg1, ...)
+	{
+		...
+	}
 
-Scouting through kernel code for frequency of use examples really
-should have some age of code checking associated to the use.
+There will be even more attributes in the future, both added by
+compilers and developers (const, pure, WUR), so let's make "prototype lane"
+for them.
 
-Older code was far more freeform than more recently written code.
+Same for structures:
 
-But IMO the desire here is to ask for a bit more uniformity, not
-require it.
+	__attribute__((packed))
+	struct S {
+	};
 
-
+Kernel practice of hiding attributes under defines (__ro_after_init)
+breaks ctags which parses the last identifier before semicolon as object
+name. Naturally, it is ctags bug, but placing attributes before
+declaration will autmatically unbreak such cases.
