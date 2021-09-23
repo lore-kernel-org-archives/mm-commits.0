@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5ED68C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 22:53:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1C96C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:17:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40C9F61090
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 22:53:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id ABF546124E
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:17:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243520AbhIWWyr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Sep 2021 18:54:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40724 "EHLO mail.kernel.org"
+        id S243577AbhIWXT3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Sep 2021 19:19:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243499AbhIWWyr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Sep 2021 18:54:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A348D61050;
-        Thu, 23 Sep 2021 22:53:14 +0000 (UTC)
+        id S243572AbhIWXT2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Sep 2021 19:19:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D315460E94;
+        Thu, 23 Sep 2021 23:17:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632437594;
-        bh=pNzYaGj/XjMBKInJt+PgW0M088CFuMTNRQm5POJoqmA=;
+        s=korg; t=1632439076;
+        bh=zC4WELt1aWat3HrF8eNtNwlfGZ/qu9o2nJhPeh5ymFM=;
         h=Date:From:To:Subject:From;
-        b=aex3Qe0yGcP+bVaVpj1KPQ5hpXdks5yy1iubmrKa19CCc23+v0Y8MfxfebYXXn+FP
-         ja4uepGT/p9d+GBnKmHrKTcCIh8ujdUp4ADP8nfEVOPPRJ3LPM3ytpDfJ/Xe0Vs/Yd
-         qMg7O6K1AmafYEgZk7RE9a+eN/6tzS0O40y7gnNc=
-Date:   Thu, 23 Sep 2021 15:53:14 -0700
+        b=H3Qp0i+V7xUIHNWgThLUDhW1xlSCx0hJB+84FOznSIDCi+vSnXmYvnCJhdHPxdm62
+         U9sFCc2vHPHdUiw6NcE0Xe1z9BoHqcKLk+3MRodCWFQZfxPvxW8o+DwBoqHrpQrUDU
+         5i6jxhVEUng1rMYZeM1rmnyMX+a5Hr9Ut2z+M32o=
+Date:   Thu, 23 Sep 2021 16:17:55 -0700
 From:   akpm@linux-foundation.org
-To:     bgeffon@google.com, corbet@lwn.net, jsbarnes@google.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org,
-        senozhatsky@chromium.org, suleiman@google.com
-Subject:  + zram-introduce-an-aged-idle-interface.patch added to
- -mm tree
-Message-ID: <20210923225314.T7GFLmeEh%akpm@linux-foundation.org>
+To:     david@redhat.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, songmuchun@bytedance.com,
+        zhengqi.arch@bytedance.com
+Subject:  + mm-memory_failure-fix-the-missing-pte_unmap-call.patch
+ added to -mm tree
+Message-ID: <20210923231755.9fkqpZykA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: introduce an aged idle interface
+     Subject: mm/memory_failure: fix the missing pte_unmap() call
 has been added to the -mm tree.  Its filename is
-     zram-introduce-an-aged-idle-interface.patch
+     mm-memory_failure-fix-the-missing-pte_unmap-call.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/zram-introduce-an-aged-idle-interface.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_failure-fix-the-missing-pte_unmap-call.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/zram-introduce-an-aged-idle-interface.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_failure-fix-the-missing-pte_unmap-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,137 +65,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Brian Geffon <bgeffon@google.com>
-Subject: zram: introduce an aged idle interface
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: mm/memory_failure: fix the missing pte_unmap() call
 
-This change introduces an aged idle interface to the existing idle sysfs
-file for zram.
+The paired pte_unmap() call is missing before the
+dev_pagemap_mapping_shift() returns.  So fix it.
 
-When CONFIG_ZRAM_MEMORY_TRACKING is enabled the idle file now also accepts
-an integer argument.  This integer is the age (in seconds) of pages to
-mark as idle.  The idle file still supports 'all' as it always has.  This
-new approach allows for much more control over which pages get marked as
-idle.
+Davidsaid "I guess this code never runs on 32bit / highmem, that's why we
+didn't notice so far".
 
-Link: https://lkml.kernel.org/r/20210923130115.1344361-1-bgeffon@google.com
-Signed-off-by: Brian Geffon <bgeffon@google.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Jesse Barnes <jsbarnes@google.com>
+Link: https://lkml.kernel.org/r/20210923122642.4999-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |    8 ++
- drivers/block/zram/zram_drv.c               |   60 +++++++++++++-----
- 2 files changed, 52 insertions(+), 16 deletions(-)
+ mm/memory-failure.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-introduce-an-aged-idle-interface
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -328,6 +328,14 @@ as idle::
- From now on, any pages on zram are idle pages. The idle mark
- will be removed until someone requests access of the block.
- IOW, unless there is access request, those pages are still idle pages.
-+Additionally, when CONFIG_ZRAM_MEMORY_TRACKING is enabled pages can be
-+marked as idle based on how long (in seconds) it's been since they were
-+last accessed::
-+
-+        echo 86400 > /sys/block/zramX/idle
-+
-+In this example all pages which haven't been accessed in more than 86400
-+seconds (one day) will be marked idle.
- 
- Admin can request writeback of those idle pages at right timing via::
- 
---- a/drivers/block/zram/zram_drv.c~zram-introduce-an-aged-idle-interface
-+++ a/drivers/block/zram/zram_drv.c
-@@ -291,22 +291,16 @@ static ssize_t mem_used_max_store(struct
- 	return len;
- }
- 
--static ssize_t idle_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+/*
-+ * Mark all pages which are older than or equal to cutoff as IDLE.
-+ * Callers should hold the zram init lock in read mode
-+ **/
-+static void mark_idle(struct zram *zram, ktime_t cutoff)
+--- a/mm/memory-failure.c~mm-memory_failure-fix-the-missing-pte_unmap-call
++++ a/mm/memory-failure.c
+@@ -306,6 +306,7 @@ static unsigned long dev_pagemap_mapping
+ 		struct vm_area_struct *vma)
  {
--	struct zram *zram = dev_to_zram(dev);
-+	int is_idle = 1;
- 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
- 	int index;
- 
--	if (!sysfs_streq(buf, "all"))
--		return -EINVAL;
--
--	down_read(&zram->init_lock);
--	if (!init_done(zram)) {
--		up_read(&zram->init_lock);
--		return -EINVAL;
--	}
--
- 	for (index = 0; index < nr_pages; index++) {
- 		/*
- 		 * Do not mark ZRAM_UNDER_WB slot as ZRAM_IDLE to close race.
-@@ -314,14 +308,48 @@ static ssize_t idle_store(struct device
- 		 */
- 		zram_slot_lock(zram, index);
- 		if (zram_allocated(zram, index) &&
--				!zram_test_flag(zram, index, ZRAM_UNDER_WB))
--			zram_set_flag(zram, index, ZRAM_IDLE);
-+				!zram_test_flag(zram, index, ZRAM_UNDER_WB)) {
-+#ifdef CONFIG_ZRAM_MEMORY_TRACKING
-+			is_idle = (!cutoff || ktime_after(cutoff, zram->table[index].ac_time));
-+#endif
-+			if (is_idle)
-+				zram_set_flag(zram, index, ZRAM_IDLE);
-+		}
- 		zram_slot_unlock(zram, index);
- 	}
-+}
- 
--	up_read(&zram->init_lock);
-+static ssize_t idle_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	struct zram *zram = dev_to_zram(dev);
-+	ktime_t cutoff_time = 0;
-+	ssize_t rv = -EINVAL;
- 
--	return len;
-+	if (!sysfs_streq(buf, "all")) {
-+#ifdef CONFIG_ZRAM_MEMORY_TRACKING
-+		u64 age_sec;
-+		/* If it did not parse as 'all' try to treat it as an integer */
-+		if (!kstrtoull(buf, 0, &age_sec))
-+			cutoff_time = ktime_sub(ktime_get_boottime(),
-+					ns_to_ktime(age_sec * NSEC_PER_SEC));
-+		else
-+#endif
-+			goto out;
-+	}
-+
-+	down_read(&zram->init_lock);
-+	if (!init_done(zram))
-+		goto out_unlock;
-+
-+	/* A age_sec of 0 marks everything as idle, this is the "all" behavior */
-+	mark_idle(zram, cutoff_time);
-+	rv = len;
-+
-+out_unlock:
-+	up_read(&zram->init_lock);
-+out:
-+	return rv;
+ 	unsigned long address = vma_address(page, vma);
++	unsigned long ret = 0;
+ 	pgd_t *pgd;
+ 	p4d_t *p4d;
+ 	pud_t *pud;
+@@ -330,10 +331,12 @@ static unsigned long dev_pagemap_mapping
+ 		return PMD_SHIFT;
+ 	pte = pte_offset_map(pmd, address);
+ 	if (!pte_present(*pte))
+-		return 0;
++		goto unmap;
+ 	if (pte_devmap(*pte))
+-		return PAGE_SHIFT;
+-	return 0;
++		ret = PAGE_SHIFT;
++unmap:
++	pte_unmap(pte);
++	return ret;
  }
  
- #ifdef CONFIG_ZRAM_WRITEBACK
+ /*
 _
 
-Patches currently in -mm which might be from bgeffon@google.com are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-zram-introduce-an-aged-idle-interface.patch
+mm-memory_failure-fix-the-missing-pte_unmap-call.patch
+mm-introduce-pmd_install-helper.patch
+mm-remove-redundant-smp_wmb.patch
 
