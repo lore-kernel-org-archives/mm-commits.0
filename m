@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D0F9C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:30:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 320C1C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:30:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 147B9611B0
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:30:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 199B361250
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:30:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243551AbhIWXcO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Sep 2021 19:32:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54756 "EHLO mail.kernel.org"
+        id S243381AbhIWXcQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Sep 2021 19:32:16 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235628AbhIWXcO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Sep 2021 19:32:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CF56560F6F;
-        Thu, 23 Sep 2021 23:30:41 +0000 (UTC)
+        id S235628AbhIWXcQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Sep 2021 19:32:16 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E30B96124E;
+        Thu, 23 Sep 2021 23:30:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632439842;
-        bh=SViQi0fAD5PRTBwxf3CbIQfQXOrICerpEInVSF+VaQM=;
+        s=korg; t=1632439844;
+        bh=M/t3TewfM98wI8x+F3OCd3fVDoomUnjyoL+ZZ43T+MQ=;
         h=Date:From:To:Subject:From;
-        b=nd/DcBpF9P67jJJNoaNgzShHv9KFXf6p9rYva3ZbHeqmKgY2dQ/FF75tkzi7uXGS6
-         KpIQQjS+pNkvZS3UiW9N/I/QMlOgTTf7su6hoQQhk5TOjtvWJCvr24eJ/HSHt8Uq/M
-         9QYYABCFx3E9PuJF6Rmf485x9dYF8qcjDZoCeyVs=
-Date:   Thu, 23 Sep 2021 16:30:41 -0700
+        b=o+76eYxcx5DWGeBKz26NwLL0ZRe0iJKoCg4Ha2iduihlHXgiafLDSOFMfGJgtCrUz
+         p2fZ+uHhMTtFm8gEBlHlljLgqwL03dDEWmmG3cKKkAgB7MNUWoZQM1pr2Cu2AAeJHi
+         QkLLnU7WlmDsSR7WHXLy3XKLQI475iqOmHR+viCg=
+Date:   Thu, 23 Sep 2021 16:30:43 -0700
 From:   akpm@linux-foundation.org
 To:     dvyukov@google.com, elver@google.com, glider@google.com,
         jannh@google.com, mm-commits@vger.kernel.org, nogikh@google.com,
         tarasmadan@google.com
 Subject:  +
- kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
+ kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
  added to -mm tree
-Message-ID: <20210923233041.zrXpNiY0Y%akpm@linux-foundation.org>
+Message-ID: <20210923233043.TJMUCurNm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: move saving stack trace of allocations into __kfence_alloc()
+     Subject: kfence: limit currently covered allocations when pool nearly full
 has been added to the -mm tree.  Its filename is
-     kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
+     kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,14 +67,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kfence: move saving stack trace of allocations into __kfence_alloc()
+Subject: kfence: limit currently covered allocations when pool nearly full
 
-Move the saving of the stack trace of allocations into __kfence_alloc(),
-so that the stack entries array can be used outside of
-kfence_guarded_alloc() and we avoid potentially unwinding the stack
-multiple times.
+One of KFENCE's main design principles is that with increasing uptime,
+allocation coverage increases sufficiently to detect previously undetected
+bugs.
 
-Link: https://lkml.kernel.org/r/20210923104803.2620285-3-elver@google.com
+We have observed that frequent long-lived allocations of the same source
+(e.g.  pagecache) tend to permanently fill up the KFENCE pool with
+increasing system uptime, thus breaking the above requirement.  The
+workaround thus far had been increasing the sample interval and/or
+increasing the KFENCE pool size, but is no reliable solution.
+
+To ensure diverse coverage of allocations, limit currently covered
+allocations of the same source once pool utilization reaches 75%
+(configurable via `kfence.skip_covered_thresh`) or above.  The effect is
+retaining reasonable allocation coverage when the pool is close to full.
+
+A side-effect is that this also limits frequent long-lived allocations of
+the same source filling up the pool permanently.
+
+Uniqueness of an allocation for coverage purposes is based on its
+(partial) allocation stack trace (the source).  A Counting Bloom filter is
+used to check if an allocation is covered; if the allocation is currently
+covered, the allocation is skipped by KFENCE.
+
+Testing was done using:
+
+	(a) a synthetic workload that performs frequent long-lived
+	    allocations (default config values; sample_interval=1;
+	    num_objects=63), and
+
+	(b) normal desktop workloads on an otherwise idle machine where
+	    the problem was first reported after a few days of uptime
+	    (default config values).
+
+In both test cases the sampled allocation rate no longer drops to zero at
+any point.  In the case of (b) we observe (after 2 days uptime) 15% unique
+allocations in the pool, 77% pool utilization, with 20% "skipped
+allocations (covered)".
+
+Link: https://lkml.kernel.org/r/20210923104803.2620285-4-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Acked-by: Alexander Potapenko <glider@google.com>
@@ -84,94 +117,213 @@ Cc: Taras Madan <tarasmadan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   35 ++++++++++++++++++++++++-----------
- 1 file changed, 24 insertions(+), 11 deletions(-)
+ mm/kfence/core.c   |  103 ++++++++++++++++++++++++++++++++++++++++++-
+ mm/kfence/kfence.h |    2 
+ 2 files changed, 103 insertions(+), 2 deletions(-)
 
---- a/mm/kfence/core.c~kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc
+--- a/mm/kfence/core.c~kfence-limit-currently-covered-allocations-when-pool-nearly-full
 +++ a/mm/kfence/core.c
-@@ -187,19 +187,26 @@ static inline unsigned long metadata_to_
-  * Update the object's metadata state, including updating the alloc/free stacks
-  * depending on the state transition.
-  */
--static noinline void metadata_update_state(struct kfence_metadata *meta,
--					   enum kfence_object_state next)
-+static noinline void
-+metadata_update_state(struct kfence_metadata *meta, enum kfence_object_state next,
-+		      unsigned long *stack_entries, size_t num_stack_entries)
- {
- 	struct kfence_track *track =
- 		next == KFENCE_OBJECT_FREED ? &meta->free_track : &meta->alloc_track;
+@@ -11,11 +11,13 @@
+ #include <linux/bug.h>
+ #include <linux/debugfs.h>
+ #include <linux/irq_work.h>
++#include <linux/jhash.h>
+ #include <linux/kcsan-checks.h>
+ #include <linux/kfence.h>
+ #include <linux/kmemleak.h>
+ #include <linux/list.h>
+ #include <linux/lockdep.h>
++#include <linux/log2.h>
+ #include <linux/memblock.h>
+ #include <linux/moduleparam.h>
+ #include <linux/random.h>
+@@ -82,6 +84,10 @@ static const struct kernel_param_ops sam
+ };
+ module_param_cb(sample_interval, &sample_interval_param_ops, &kfence_sample_interval, 0600);
  
- 	lockdep_assert_held(&meta->lock);
++/* Pool usage% threshold when currently covered allocations are skipped. */
++static unsigned long kfence_skip_covered_thresh __read_mostly = 75;
++module_param_named(skip_covered_thresh, kfence_skip_covered_thresh, ulong, 0644);
++
+ /* The pool of pages used for guard pages and objects. */
+ char *__kfence_pool __ro_after_init;
+ EXPORT_SYMBOL(__kfence_pool); /* Export for test modules. */
+@@ -105,6 +111,25 @@ DEFINE_STATIC_KEY_FALSE(kfence_allocatio
+ /* Gates the allocation, ensuring only one succeeds in a given period. */
+ atomic_t kfence_allocation_gate = ATOMIC_INIT(1);
  
--	/*
--	 * Skip over 1 (this) functions; noinline ensures we do not accidentally
--	 * skip over the caller by never inlining.
--	 */
--	track->num_stack_entries = stack_trace_save(track->stack_entries, KFENCE_STACK_DEPTH, 1);
-+	if (stack_entries) {
-+		memcpy(track->stack_entries, stack_entries,
-+		       num_stack_entries * sizeof(stack_entries[0]));
-+	} else {
-+		/*
-+		 * Skip over 1 (this) functions; noinline ensures we do not
-+		 * accidentally skip over the caller by never inlining.
-+		 */
-+		num_stack_entries = stack_trace_save(track->stack_entries, KFENCE_STACK_DEPTH, 1);
++/*
++ * A Counting Bloom filter of allocation coverage: limits currently covered
++ * allocations of the same source filling up the pool.
++ *
++ * Assuming a range of 15%-85% unique allocations in the pool at any point in
++ * time, the below parameters provide a probablity of 0.02-0.33 for false
++ * positive hits respectively:
++ *
++ *	P(alloc_traces) = (1 - e^(-HNUM * (alloc_traces / SIZE)) ^ HNUM
++ */
++#define ALLOC_COVERED_HNUM	2
++#define ALLOC_COVERED_SIZE	(1 << (const_ilog2(CONFIG_KFENCE_NUM_OBJECTS) + 2))
++#define ALLOC_COVERED_HNEXT(h)	(1664525 * (h) + 1013904223)
++#define ALLOC_COVERED_MASK	(ALLOC_COVERED_SIZE - 1)
++static atomic_t alloc_covered[ALLOC_COVERED_SIZE];
++
++/* Stack depth used to determine uniqueness of an allocation. */
++#define UNIQUE_ALLOC_STACK_DEPTH 8UL
++
+ /* Statistics counters for debugfs. */
+ enum kfence_counter_id {
+ 	KFENCE_COUNTER_ALLOCATED,
+@@ -114,6 +139,7 @@ enum kfence_counter_id {
+ 	KFENCE_COUNTER_BUGS,
+ 	KFENCE_COUNTER_SKIP_INCOMPAT,
+ 	KFENCE_COUNTER_SKIP_CAPACITY,
++	KFENCE_COUNTER_SKIP_COVERED,
+ 	KFENCE_COUNTER_COUNT,
+ };
+ static atomic_long_t counters[KFENCE_COUNTER_COUNT];
+@@ -125,11 +151,60 @@ static const char *const counter_names[]
+ 	[KFENCE_COUNTER_BUGS]		= "total bugs",
+ 	[KFENCE_COUNTER_SKIP_INCOMPAT]	= "skipped allocations (incompatible)",
+ 	[KFENCE_COUNTER_SKIP_CAPACITY]	= "skipped allocations (capacity)",
++	[KFENCE_COUNTER_SKIP_COVERED]	= "skipped allocations (covered)",
+ };
+ static_assert(ARRAY_SIZE(counter_names) == KFENCE_COUNTER_COUNT);
+ 
+ /* === Internals ============================================================ */
+ 
++static inline bool should_skip_covered(void)
++{
++	unsigned long thresh = (CONFIG_KFENCE_NUM_OBJECTS * kfence_skip_covered_thresh) / 100;
++
++	return atomic_long_read(&counters[KFENCE_COUNTER_ALLOCATED]) > thresh;
++}
++
++static u32 get_alloc_stack_hash(unsigned long *stack_entries, size_t num_entries)
++{
++	/* Some randomness across reboots / different machines. */
++	u32 seed = (u32)((unsigned long)__kfence_pool >> (BITS_PER_LONG - 32));
++
++	num_entries = min(num_entries, UNIQUE_ALLOC_STACK_DEPTH);
++	num_entries = filter_irq_stacks(stack_entries, num_entries);
++	return jhash(stack_entries, num_entries * sizeof(stack_entries[0]), seed);
++}
++
++/*
++ * Adds (or subtracts) count @val for allocation stack trace hash
++ * @alloc_stack_hash from Counting Bloom filter.
++ */
++static void alloc_covered_add(u32 alloc_stack_hash, int val)
++{
++	int i;
++
++	for (i = 0; i < ALLOC_COVERED_HNUM; i++) {
++		atomic_add(val, &alloc_covered[alloc_stack_hash & ALLOC_COVERED_MASK]);
++		alloc_stack_hash = ALLOC_COVERED_HNEXT(alloc_stack_hash);
 +	}
-+	track->num_stack_entries = num_stack_entries;
- 	track->pid = task_pid_nr(current);
- 	track->cpu = raw_smp_processor_id();
- 	track->ts_nsec = local_clock(); /* Same source as printk timestamps. */
-@@ -261,7 +268,8 @@ static __always_inline void for_each_can
- 	}
++}
++
++/*
++ * Returns true if the allocation stack trace hash @alloc_stack_hash is
++ * currently contained (non-zero count) in Counting Bloom filter.
++ */
++static bool alloc_covered_contains(u32 alloc_stack_hash)
++{
++	int i;
++
++	for (i = 0; i < ALLOC_COVERED_HNUM; i++) {
++		if (!atomic_read(&alloc_covered[alloc_stack_hash & ALLOC_COVERED_MASK]))
++			return false;
++		alloc_stack_hash = ALLOC_COVERED_HNEXT(alloc_stack_hash);
++	}
++
++	return true;
++}
++
+ static bool kfence_protect(unsigned long addr)
+ {
+ 	return !KFENCE_WARN_ON(!kfence_protect_page(ALIGN_DOWN(addr, PAGE_SIZE), true));
+@@ -269,7 +344,8 @@ static __always_inline void for_each_can
  }
  
--static void *kfence_guarded_alloc(struct kmem_cache *cache, size_t size, gfp_t gfp)
-+static void *kfence_guarded_alloc(struct kmem_cache *cache, size_t size, gfp_t gfp,
-+				  unsigned long *stack_entries, size_t num_stack_entries)
+ static void *kfence_guarded_alloc(struct kmem_cache *cache, size_t size, gfp_t gfp,
+-				  unsigned long *stack_entries, size_t num_stack_entries)
++				  unsigned long *stack_entries, size_t num_stack_entries,
++				  u32 alloc_stack_hash)
  {
  	struct kfence_metadata *meta = NULL;
  	unsigned long flags;
-@@ -320,7 +328,7 @@ static void *kfence_guarded_alloc(struct
- 	addr = (void *)meta->addr;
- 
- 	/* Update remaining metadata. */
--	metadata_update_state(meta, KFENCE_OBJECT_ALLOCATED);
-+	metadata_update_state(meta, KFENCE_OBJECT_ALLOCATED, stack_entries, num_stack_entries);
+@@ -332,6 +408,8 @@ static void *kfence_guarded_alloc(struct
  	/* Pairs with READ_ONCE() in kfence_shutdown_cache(). */
  	WRITE_ONCE(meta->cache, cache);
  	meta->size = size;
-@@ -400,7 +408,7 @@ static void kfence_guarded_free(void *ad
- 		memzero_explicit(addr, meta->size);
++	meta->alloc_stack_hash = alloc_stack_hash;
++
+ 	for_each_canary(meta, set_canary_byte);
  
- 	/* Mark the object as freed. */
--	metadata_update_state(meta, KFENCE_OBJECT_FREED);
-+	metadata_update_state(meta, KFENCE_OBJECT_FREED, NULL, 0);
+ 	/* Set required struct page fields. */
+@@ -344,6 +422,8 @@ static void *kfence_guarded_alloc(struct
  
  	raw_spin_unlock_irqrestore(&meta->lock, flags);
  
-@@ -742,6 +750,9 @@ void kfence_shutdown_cache(struct kmem_c
- 
- void *__kfence_alloc(struct kmem_cache *s, size_t size, gfp_t flags)
- {
-+	unsigned long stack_entries[KFENCE_STACK_DEPTH];
-+	size_t num_stack_entries;
++	alloc_covered_add(alloc_stack_hash, 1);
 +
+ 	/* Memory initialization. */
+ 
+ 	/*
+@@ -412,6 +492,8 @@ static void kfence_guarded_free(void *ad
+ 
+ 	raw_spin_unlock_irqrestore(&meta->lock, flags);
+ 
++	alloc_covered_add(meta->alloc_stack_hash, -1);
++
+ 	/* Protect to detect use-after-frees. */
+ 	kfence_protect((unsigned long)addr);
+ 
+@@ -752,6 +834,7 @@ void *__kfence_alloc(struct kmem_cache *
+ {
+ 	unsigned long stack_entries[KFENCE_STACK_DEPTH];
+ 	size_t num_stack_entries;
++	u32 alloc_stack_hash;
+ 
  	/*
  	 * Perform size check before switching kfence_allocation_gate, so that
- 	 * we don't disable KFENCE without making an allocation.
-@@ -786,7 +797,9 @@ void *__kfence_alloc(struct kmem_cache *
- 	if (!READ_ONCE(kfence_enabled))
- 		return NULL;
+@@ -799,7 +882,23 @@ void *__kfence_alloc(struct kmem_cache *
  
--	return kfence_guarded_alloc(s, size, flags);
-+	num_stack_entries = stack_trace_save(stack_entries, KFENCE_STACK_DEPTH, 0);
+ 	num_stack_entries = stack_trace_save(stack_entries, KFENCE_STACK_DEPTH, 0);
+ 
+-	return kfence_guarded_alloc(s, size, flags, stack_entries, num_stack_entries);
++	/*
++	 * Do expensive check for coverage of allocation in slow-path after
++	 * allocation_gate has already become non-zero, even though it might
++	 * mean not making any allocation within a given sample interval.
++	 *
++	 * This ensures reasonable allocation coverage when the pool is almost
++	 * full, including avoiding long-lived allocations of the same source
++	 * filling up the pool (e.g. pagecache allocations).
++	 */
++	alloc_stack_hash = get_alloc_stack_hash(stack_entries, num_stack_entries);
++	if (should_skip_covered() && alloc_covered_contains(alloc_stack_hash)) {
++		atomic_long_inc(&counters[KFENCE_COUNTER_SKIP_COVERED]);
++		return NULL;
++	}
 +
-+	return kfence_guarded_alloc(s, size, flags, stack_entries, num_stack_entries);
++	return kfence_guarded_alloc(s, size, flags, stack_entries, num_stack_entries,
++				    alloc_stack_hash);
  }
  
  size_t kfence_ksize(const void *addr)
+--- a/mm/kfence/kfence.h~kfence-limit-currently-covered-allocations-when-pool-nearly-full
++++ a/mm/kfence/kfence.h
+@@ -87,6 +87,8 @@ struct kfence_metadata {
+ 	/* Allocation and free stack information. */
+ 	struct kfence_track alloc_track;
+ 	struct kfence_track free_track;
++	/* For updating alloc_covered on frees. */
++	u32 alloc_stack_hash;
+ };
+ 
+ extern struct kfence_metadata kfence_metadata[CONFIG_KFENCE_NUM_OBJECTS];
 _
 
 Patches currently in -mm which might be from elver@google.com are
