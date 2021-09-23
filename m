@@ -7,34 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10385C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 21:59:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF2C7C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 22:04:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE1086124C
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 21:59:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9384E61241
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 22:04:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238632AbhIWWA4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Sep 2021 18:00:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60200 "EHLO mail.kernel.org"
+        id S234737AbhIWWGF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Sep 2021 18:06:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55934 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238517AbhIWWAz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Sep 2021 18:00:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1EA461241;
-        Thu, 23 Sep 2021 21:59:23 +0000 (UTC)
+        id S234844AbhIWWGF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Sep 2021 18:06:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F09E660F24;
+        Thu, 23 Sep 2021 22:04:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632434363;
-        bh=9X+kn7C4bT358JfDqaDrKP7jxl9KHOB7o/0KrAEmd9M=;
+        s=korg; t=1632434673;
+        bh=9KJHcg/402TVTF/ToY6IwxSlP6KXFvn6A+rvA8V/QN0=;
         h=Date:From:To:Subject:From;
-        b=z7zyFfOM1ACZkm3wdVN8WmzwKXbaAk5qFBhxsW4QS6koAKz8JzIAHi/iWXsry542W
-         mzoO7VABwa+OcUq4uSsOY0IAXMl7OxkbB6l5tVAaHEmm4A0/vCygKUsvpdd2+mOzrn
-         IE8dItcCtz7N2V4LrM4Nl6t9gT2T8bbesfHuwTs4=
-Date:   Thu, 23 Sep 2021 14:59:23 -0700
+        b=LZ1/ruqUssgcgOrB8olB0m0pSK2eDnSocqhtwH3IqpLSXbCV2p+4aIiN+GB9qVJXg
+         e4FY7cCP6uNO+FkLOabsssBlihWZgs/B6WkFBK/71LzMyjQOemtaYY3+uaDLTjP4jR
+         aXvajKKYR4t/UI67YyRjD5JBayPY17KDqwZRjuTo=
+Date:   Thu, 23 Sep 2021 15:04:32 -0700
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, minchan@kernel.org,
-        mm-commits@vger.kernel.org, tglx@linutronix.de
-Subject:  + mm-disable-zsmalloc-on-preempt_rt.patch added to -mm
- tree
-Message-ID: <20210923215923.kJRf8A0cI%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, bigeasy@linutronix.de, dvyukov@google.com,
+        elver@google.com, mm-commits@vger.kernel.org, rostedt@goodmis.org,
+        williams@redhat.com
+Subject:  + documentation-kcov-include-typesh-in-the-example.patch
+ added to -mm tree
+Message-ID: <20210923220432.MZ0oQBBUv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: disable zsmalloc on PREEMPT_RT
+     Subject: Documentation/kcov: include types.h in the example
 has been added to the -mm tree.  Its filename is
-     mm-disable-zsmalloc-on-preempt_rt.patch
+     documentation-kcov-include-typesh-in-the-example.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-disable-zsmalloc-on-preempt_rt.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/documentation-kcov-include-typesh-in-the-example.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-disable-zsmalloc-on-preempt_rt.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/documentation-kcov-include-typesh-in-the-example.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,58 +66,71 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: mm: disable zsmalloc on PREEMPT_RT
+Subject: Documentation/kcov: include types.h in the example
 
-For efficiency reasons, zsmalloc is using a slim `handle'.  The value is
-the address of a memory allocation of 4 or 8 bytes depending on the size
-of the long data type.  The lowest bit in that allocated memory is used as
-a bit spin lock.
+Patch series "kcov: PREEMPT_RT fixup + misc", v2.
 
-The usage of the bit spin lock is problematic because with the bit spin
-lock held zsmalloc acquires a rwlock_t and spinlock_t which are both
-sleeping locks on PREEMPT_RT and therefore must not be acquired with
-disabled preemption.
+The last patch in series is follow-up to address the PREEMPT_RT issue
+within in kcov reported by Clark [1].  Patches 1-3 are smaller things that
+I noticed while staring at it.  Patch 4 is small change which makes
+replacement in #5 simpler / more obvious.
 
-There is a patch which extends the handle on PREEMPT_RT so that a full
-spinlock_t fits (even with lockdep enabled) and then eliminates the bit
-spin lock.  I'm not sure how sensible zsmalloc on PREEMPT_RT is given that
-it is used to store compressed user memory.
+[1] https://lkml.kernel.org/r/20210809155909.333073de@theseus.lan
 
-Disable ZSMALLOC on PREEMPT_RT. If there is need for it, we can try to
-get it to work.
 
-Link: https://lkml.kernel.org/r/20210923170121.1860133-1-bigeasy@linutronix.de
+This patch (of 5):
+
+The first example code has includes at the top, the following two
+example share that part. The last example (remote coverage collection)
+requires the linux/types.h header file due its __aligned_u64 usage.
+
+Add the linux/types.h to the top most example and a comment that the
+header files from above are required as it is done in the second
+example.
+
+Link: https://lkml.kernel.org/r/20210923164741.1859522-1-bigeasy@linutronix.de
+Link: https://lore.kernel.org/r/20210830172627.267989-2-bigeasy@linutronix.de
+Link: https://lkml.kernel.org/r/20210923164741.1859522-2-bigeasy@linutronix.de
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Minchan Kim <minchan@kernel.org>
+Acked-by: Dmitry Vyukov <dvyukov@google.com>
+Acked-by: Marco Elver <elver@google.com>
+Tested-by: Marco Elver <elver@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Clark Williams <williams@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ Documentation/dev-tools/kcov.rst |    3 +++
+ 1 file changed, 3 insertions(+)
 
---- a/mm/Kconfig~mm-disable-zsmalloc-on-preempt_rt
-+++ a/mm/Kconfig
-@@ -640,6 +640,7 @@ config ZSWAP_ZPOOL_DEFAULT_Z3FOLD
+--- a/Documentation/dev-tools/kcov.rst~documentation-kcov-include-typesh-in-the-example
++++ a/Documentation/dev-tools/kcov.rst
+@@ -50,6 +50,7 @@ program using kcov:
+     #include <sys/mman.h>
+     #include <unistd.h>
+     #include <fcntl.h>
++    #include <linux/types.h>
  
- config ZSWAP_ZPOOL_DEFAULT_ZSMALLOC
- 	bool "zsmalloc"
-+	depends on !PREEMPT_RT
- 	select ZSMALLOC
- 	help
- 	  Use the zsmalloc allocator as the default allocator.
-@@ -690,7 +691,7 @@ config Z3FOLD
+     #define KCOV_INIT_TRACE			_IOR('c', 1, unsigned long)
+     #define KCOV_ENABLE			_IO('c', 100)
+@@ -251,6 +252,8 @@ selectively from different subsystems.
  
- config ZSMALLOC
- 	tristate "Memory allocator for compressed pages"
--	depends on MMU
-+	depends on MMU && !PREEMPT_RT
- 	help
- 	  zsmalloc is a slab-based memory allocator designed to store
- 	  compressed RAM pages.  zsmalloc uses virtual memory mapping
+ .. code-block:: c
+ 
++    /* Same includes and defines as above. */
++
+     struct kcov_remote_arg {
+ 	__u32		trace_mode;
+ 	__u32		area_size;
 _
 
 Patches currently in -mm which might be from bigeasy@linutronix.de are
 
 mm-disable-zsmalloc-on-preempt_rt.patch
+documentation-kcov-include-typesh-in-the-example.patch
+documentation-kcov-define-ip-in-the-example.patch
+kcov-allocate-per-cpu-memory-on-the-relevant-node.patch
+kcov-avoid-enabledisable-interrupts-if-in_task.patch
+kcov-replace-local_irq_save-with-a-local_lock_t.patch
 
