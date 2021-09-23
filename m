@@ -7,36 +7,36 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
 	autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BD20C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:30:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 78C9DC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:34:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 60E106124E
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:30:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 516C36124E
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:34:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243575AbhIWXcT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Sep 2021 19:32:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55044 "EHLO mail.kernel.org"
+        id S240661AbhIWXgO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Sep 2021 19:36:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36010 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243559AbhIWXcT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Sep 2021 19:32:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D3E0160F6F;
-        Thu, 23 Sep 2021 23:30:46 +0000 (UTC)
+        id S235628AbhIWXgO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Sep 2021 19:36:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C937A60F6F;
+        Thu, 23 Sep 2021 23:34:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632439847;
-        bh=Nov+TYzBmXcxv3JWIOH+74/EeWP4WgFLksab48pnjv8=;
+        s=korg; t=1632440082;
+        bh=qk8yIvzBXiMyTJ9b9aQefgz//raeM4fiGqNmMfLRFac=;
         h=Date:From:To:Subject:From;
-        b=NMtUGGs9hoZzSqnvs++SdEDJZR5TcneYXAhIkZA/IpR+yBeYJIAPoqwSEyozW31Pk
-         6/ORt+rf/iqxQctSMRm2ieacgrJylwnClmzT7o7lhxiV9/AWh70KVr3Y5VDez8sQZw
-         EiPDJxp0LS/gkyhPVf+8PYzqPBkFEH187bA4esZQ=
-Date:   Thu, 23 Sep 2021 16:30:46 -0700
+        b=wG77cFifzgSOcGCH2T8z+6OrWp+OAfpQhMhp5MLNYlDJvF8dEZWezjeNz1HHYB9dr
+         d3w7ZyrV9CzpbP6YyYt7RQRkNU+psqCK6VU8RpGj4atMTDGHKrqzBsC3qeHjh1GI/j
+         Llgp/IGSpvVM4dlhCOCUKrYfGjlQ6pEnD4LlspUM=
+Date:   Thu, 23 Sep 2021 16:34:41 -0700
 From:   akpm@linux-foundation.org
-To:     dvyukov@google.com, elver@google.com, glider@google.com,
-        jannh@google.com, mm-commits@vger.kernel.org, nogikh@google.com,
-        tarasmadan@google.com
+To:     carl.waldspurger@nutanix.com, corbet@lwn.net, david@redhat.com,
+        florian.schmidt@nutanix.com, ivan.teterevkov@nutanix.com,
+        jonathan.davies@nutanix.com, mm-commits@vger.kernel.org,
+        peterx@redhat.com, tiberiu.georgescu@nutanix.com
 Subject:  +
- kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
- added to -mm tree
-Message-ID: <20210923233046.E68s9Nt4n%akpm@linux-foundation.org>
+ documentation-update-pagemap-with-shmem-exceptions.patch added to -mm tree
+Message-ID: <20210923233441.IWccsreHa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: add note to documentation about skipping covered allocations
+     Subject: Documentation: update pagemap with shmem exceptions
 has been added to the -mm tree.  Its filename is
-     kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
+     documentation-update-pagemap-with-shmem-exceptions.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/documentation-update-pagemap-with-shmem-exceptions.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/documentation-update-pagemap-with-shmem-exceptions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,62 +66,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: add note to documentation about skipping covered allocations
+From: Tiberiu A Georgescu <tiberiu.georgescu@nutanix.com>
+Subject: Documentation: update pagemap with shmem exceptions
 
-Add a note briefly mentioning the new policy about "skipping currently
-covered allocations if pool close to full." Since this has a notable
-impact on KFENCE's bug-detection ability on systems with large uptimes, it
-is worth pointing out the feature.
+This patch follows the discussions on previous documentation patch threads
+[1][2].  It presents the exception case of shared memory management from
+the pagemap's point of view.  It briefly describes what is missing, why it
+is missing and alternatives to the pagemap for page info retrieval in user
+space.
 
-Link: https://lkml.kernel.org/r/20210923104803.2620285-5-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Alexander Potapenko <glider@google.com>
-Cc: Aleksandr Nogikh <nogikh@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Taras Madan <tarasmadan@google.com>
+In short, the kernel does not keep track of PTEs for swapped out shared
+pages within the processes that references them.  Thus, the
+proc/pid/pagemap tool cannot print the swap destination of the shared
+memory pages, instead setting the pagemap entry to zero for both
+non-allocated and swapped out pages.  This can create confusion for users
+who need information on swapped out pages.
+
+The reasons why maintaining the PTEs of all swapped out shared pages among
+all processes while maintaining similar performance is not a trivial task,
+or a desirable change, have been discussed extensively [1][3][4][5]. 
+There are also arguments for why this arguably missing information should
+eventually be exposed to the user in either a future pagemap patch, or by
+an alternative tool.
+
+[1]: https://marc.info/?m=162878395426774
+[2]: https://lore.kernel.org/lkml/20210920164931.175411-1-tiberiu.georgescu@nutanix.com/
+[3]: https://lore.kernel.org/lkml/20210730160826.63785-1-tiberiu.georgescu@nutanix.com/
+[4]: https://lore.kernel.org/lkml/20210807032521.7591-1-peterx@redhat.com/
+[5]: https://lore.kernel.org/lkml/20210715201651.212134-1-peterx@redhat.com/
+
+
+Mention the current missing information in the pagemap and alternatives on
+how to retrieve it, in case someone stumbles upon unexpected behaviour.
+
+Link: https://lkml.kernel.org/r/20210923064618.157046-1-tiberiu.georgescu@nutanix.com
+Link: https://lkml.kernel.org/r/20210923064618.157046-2-tiberiu.georgescu@nutanix.com
+Signed-off-by: Tiberiu A Georgescu <tiberiu.georgescu@nutanix.com>
+Reviewed-by: Ivan Teterevkov <ivan.teterevkov@nutanix.com>
+Reviewed-by: Florian Schmidt <florian.schmidt@nutanix.com>
+Reviewed-by: Carl Waldspurger <carl.waldspurger@nutanix.com>
+Reviewed-by: Jonathan Davies <jonathan.davies@nutanix.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kfence.rst |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ Documentation/admin-guide/mm/pagemap.rst |   22 +++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
---- a/Documentation/dev-tools/kfence.rst~kfence-add-note-to-documentation-about-skipping-covered-allocations
-+++ a/Documentation/dev-tools/kfence.rst
-@@ -269,6 +269,17 @@ tail of KFENCE's freelist, so that the l
- first, and the chances of detecting use-after-frees of recently freed objects
- is increased.
+--- a/Documentation/admin-guide/mm/pagemap.rst~documentation-update-pagemap-with-shmem-exceptions
++++ a/Documentation/admin-guide/mm/pagemap.rst
+@@ -196,6 +196,28 @@ you can go through every map in the proc
+ in kpagecount, and tally up the number of pages that are only referenced
+ once.
  
-+If pool utilization reaches 75% (default) or above, to reduce the risk of the
-+pool eventually being fully occupied by allocated objects yet ensure diverse
-+coverage of allocations, KFENCE limits currently covered allocations of the
-+same source from further filling up the pool. The "source" of an allocation is
-+based on its partial allocation stack trace. A side-effect is that this also
-+limits frequent long-lived allocations (e.g. pagecache) of the same source
-+filling up the pool permanently, which is the most common risk for the pool
-+becoming full and the sampled allocation rate dropping to zero. The threshold
-+at which to start limiting currently covered allocations can be configured via
-+the boot parameter ``kfence.skip_covered_thresh`` (pool usage%).
++Exceptions for Shared Memory
++============================
 +
- Interface
- ---------
++Page table entries for shared pages are cleared when the pages are zapped or
++swapped out. This makes swapped out pages indistinguishable from never-allocated
++ones.
++
++In kernel space, the swap location can still be retrieved from the page cache.
++However, values stored only on the normal PTE get lost irretrievably when the
++page is swapped out (i.e. SOFT_DIRTY).
++
++In user space, whether the page is present, swapped or none can be deduced with
++the help of lseek and/or mincore system calls.
++
++lseek() can differentiate between accessed pages (present or swapped out) and
++holes (none/non-allocated) by specifying the SEEK_DATA flag on the file where
++the pages are backed. For anonymous shared pages, the file can be found in
++``/proc/pid/map_files/``.
++
++mincore() can differentiate between pages in memory (present, including swap
++cache) and out of memory (swapped out or none/non-allocated).
++
+ Other notes
+ ===========
  
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from tiberiu.georgescu@nutanix.com are
 
-kasan-fix-kconfig-check-of-cc_has_working_nosanitize_address.patch
-lib-stackdepot-include-gfph.patch
-lib-stackdepot-remove-unused-function-argument.patch
-lib-stackdepot-introduce-__stack_depot_save.patch
-kasan-common-provide-can_alloc-in-kasan_save_stack.patch
-kasan-generic-introduce-kasan_record_aux_stack_noalloc.patch
-workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
-mm-fix-data-race-in-pagepoisoned.patch
-stacktrace-move-filter_irq_stacks-to-kernel-stacktracec.patch
-kfence-count-unexpectedly-skipped-allocations.patch
-kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
-kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
-kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
+documentation-update-pagemap-with-shmem-exceptions.patch
 
