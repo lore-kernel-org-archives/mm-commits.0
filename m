@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B44CAC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 19:57:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DB19C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 20:00:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97DB36103D
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 19:57:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 170BF6124B
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 20:00:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348268AbhIXT70 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Sep 2021 15:59:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42860 "EHLO mail.kernel.org"
+        id S1348329AbhIXUCZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Sep 2021 16:02:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43702 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348267AbhIXT7X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Sep 2021 15:59:23 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B2206610EA;
-        Fri, 24 Sep 2021 19:57:49 +0000 (UTC)
+        id S1348328AbhIXUCZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Sep 2021 16:02:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A90F461038;
+        Fri, 24 Sep 2021 20:00:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632513469;
-        bh=w1KPq8gGC/u5HGFPLvQaYKitO9FvffvLZVde3fxiMvM=;
+        s=korg; t=1632513651;
+        bh=pDWW1thxElOa3QBQZER8/7ESB5x65yGsj+sC2XazeTI=;
         h=Date:From:To:Subject:From;
-        b=WWDnA4V/mQnE7Vvy/vfthqzZrTq/sORr3wlTFBNTAZNLhDTorgwITo2KM+LR8Gx9d
-         u0GxDs0RTxJ0CBaGGbm0jj0x5BNc6ul47+5PFM7IE1ZXK69MD4ZAm135biM/YroYMs
-         8S5qBFCjjPcMgojtvxwoExNoCqedrYrdoAOCPj+0=
-Date:   Fri, 24 Sep 2021 12:57:49 -0700
+        b=jT3C/7N+6pKZJe/8VN32mdxBbCbX5n3Xc7A+hNPKHxIVyAz5HGahfsrrjibV9gE1w
+         5sELHUSi5rcPnDwhiRyj80ulzTvcSEQCaNv8Uf0V6nZzY5MTg87aUZEXCWTGH28o95
+         QIKQ/pFGbJ67o1R1WVzfw+9KhuIt1wgQzEM7eSQg=
+Date:   Fri, 24 Sep 2021 13:00:51 -0700
 From:   akpm@linux-foundation.org
-To:     benh@kernel.crashing.org, christophe.leroy@csgroup.eu,
-        gerald.schaefer@linux.ibm.com, mm-commits@vger.kernel.org,
-        paulus@ozlabs.org
+To:     dvyukov@google.com, elver@google.com, glider@google.com,
+        jannh@google.com, mm-commits@vger.kernel.org, nogikh@google.com,
+        tarasmadan@google.com
 Subject:  +
- s390-use-generic-version-of-arch_is_kernel_initmem_freed.patch added to -mm
- tree
-Message-ID: <20210924195749.kQAhnn6lj%akpm@linux-foundation.org>
+ kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
+ added to -mm tree
+Message-ID: <20210924200051.HUXk_iKsU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: use generic version of arch_is_kernel_initmem_freed()
+     Subject: kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix
 has been added to the -mm tree.  Its filename is
-     s390-use-generic-version-of-arch_is_kernel_initmem_freed.patch
+     kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/s390-use-generic-version-of-arch_is_kernel_initmem_freed.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/s390-use-generic-version-of-arch_is_kernel_initmem_freed.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,73 +61,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: s390: use generic version of arch_is_kernel_initmem_freed()
+From: Marco Elver <elver@google.com>
+Subject: kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix
 
-Generic version of arch_is_kernel_initmem_freed() now does the same as
-s390 version.
+* Simplify and just use hash_32().
+* Use more random stack_hash_seed.
 
-Remove the s390 version.
-
-Link: https://lkml.kernel.org/r/8e7f31b51ce62c9c495f71845f29a6d825d6e852.1632491308.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@ozlabs.org>
+Link: https://lkml.kernel.org/r/YU3MRGaCaJiYht5g@elver.google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Aleksandr Nogikh <nogikh@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Taras Madan <tarasmadan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/sections.h |   12 ------------
- arch/s390/mm/init.c              |    3 ---
- 2 files changed, 15 deletions(-)
+ mm/kfence/core.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
---- a/arch/s390/include/asm/sections.h~s390-use-generic-version-of-arch_is_kernel_initmem_freed
-+++ a/arch/s390/include/asm/sections.h
-@@ -2,20 +2,8 @@
- #ifndef _S390_SECTIONS_H
- #define _S390_SECTIONS_H
+--- a/mm/kfence/core.c~kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix
++++ a/mm/kfence/core.c
+@@ -10,6 +10,7 @@
+ #include <linux/atomic.h>
+ #include <linux/bug.h>
+ #include <linux/debugfs.h>
++#include <linux/hash.h>
+ #include <linux/irq_work.h>
+ #include <linux/jhash.h>
+ #include <linux/kcsan-checks.h>
+@@ -122,14 +123,21 @@ atomic_t kfence_allocation_gate = ATOMIC
+  *	P(alloc_traces) = (1 - e^(-HNUM * (alloc_traces / SIZE)) ^ HNUM
+  */
+ #define ALLOC_COVERED_HNUM	2
+-#define ALLOC_COVERED_SIZE	(1 << (const_ilog2(CONFIG_KFENCE_NUM_OBJECTS) + 2))
+-#define ALLOC_COVERED_HNEXT(h)	(1664525 * (h) + 1013904223)
++#define ALLOC_COVERED_ORDER	(const_ilog2(CONFIG_KFENCE_NUM_OBJECTS) + 2)
++#define ALLOC_COVERED_SIZE	(1 << ALLOC_COVERED_ORDER)
++#define ALLOC_COVERED_HNEXT(h)	hash_32(h, ALLOC_COVERED_ORDER)
+ #define ALLOC_COVERED_MASK	(ALLOC_COVERED_SIZE - 1)
+ static atomic_t alloc_covered[ALLOC_COVERED_SIZE];
  
--#define arch_is_kernel_initmem_freed arch_is_kernel_initmem_freed
--
- #include <asm-generic/sections.h>
+ /* Stack depth used to determine uniqueness of an allocation. */
+ #define UNIQUE_ALLOC_STACK_DEPTH 8UL
  
--extern bool initmem_freed;
++/*
++ * Randomness for stack hashes, making the same collisions across reboots and
++ * different machines less likely.
++ */
++static u32 stack_hash_seed __ro_after_init;
++
+ /* Statistics counters for debugfs. */
+ enum kfence_counter_id {
+ 	KFENCE_COUNTER_ALLOCATED,
+@@ -166,12 +174,9 @@ static inline bool should_skip_covered(v
+ 
+ static u32 get_alloc_stack_hash(unsigned long *stack_entries, size_t num_entries)
+ {
+-	/* Some randomness across reboots / different machines. */
+-	u32 seed = (u32)((unsigned long)__kfence_pool >> (BITS_PER_LONG - 32));
 -
--static inline int arch_is_kernel_initmem_freed(unsigned long addr)
--{
--	if (!initmem_freed)
--		return 0;
--	return addr >= (unsigned long)__init_begin &&
--	       addr < (unsigned long)__init_end;
--}
--
+ 	num_entries = min(num_entries, UNIQUE_ALLOC_STACK_DEPTH);
+ 	num_entries = filter_irq_stacks(stack_entries, num_entries);
+-	return jhash(stack_entries, num_entries * sizeof(stack_entries[0]), seed);
++	return jhash(stack_entries, num_entries * sizeof(stack_entries[0]), stack_hash_seed);
+ }
+ 
  /*
-  * .boot.data section contains variables "shared" between the decompressor and
-  * the decompressed kernel. The decompressor will store values in them, and
---- a/arch/s390/mm/init.c~s390-use-generic-version-of-arch_is_kernel_initmem_freed
-+++ a/arch/s390/mm/init.c
-@@ -58,8 +58,6 @@ unsigned long empty_zero_page, zero_page
- EXPORT_SYMBOL(empty_zero_page);
- EXPORT_SYMBOL(zero_page_mask);
+@@ -759,6 +764,7 @@ void __init kfence_init(void)
+ 	if (!kfence_sample_interval)
+ 		return;
  
--bool initmem_freed;
--
- static void __init setup_zero_pages(void)
- {
- 	unsigned int order;
-@@ -214,7 +212,6 @@ void __init mem_init(void)
- 
- void free_initmem(void)
- {
--	initmem_freed = true;
- 	__set_memory((unsigned long)_sinittext,
- 		     (unsigned long)(_einittext - _sinittext) >> PAGE_SHIFT,
- 		     SET_MEMORY_RW | SET_MEMORY_NX);
++	stack_hash_seed = (u32)random_get_entropy();
+ 	if (!kfence_init_pool()) {
+ 		pr_err("%s failed\n", __func__);
+ 		return;
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from elver@google.com are
 
-mm-make-generic-arch_is_kernel_initmem_freed-do-what-it-says.patch
-powerpc-use-generic-version-of-arch_is_kernel_initmem_freed.patch
-s390-use-generic-version-of-arch_is_kernel_initmem_freed.patch
+kasan-fix-kconfig-check-of-cc_has_working_nosanitize_address.patch
+lib-stackdepot-include-gfph.patch
+lib-stackdepot-remove-unused-function-argument.patch
+lib-stackdepot-introduce-__stack_depot_save.patch
+kasan-common-provide-can_alloc-in-kasan_save_stack.patch
+kasan-generic-introduce-kasan_record_aux_stack_noalloc.patch
+workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
+mm-fix-data-race-in-pagepoisoned.patch
+stacktrace-move-filter_irq_stacks-to-kernel-stacktracec.patch
+kfence-count-unexpectedly-skipped-allocations.patch
+kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
+kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
+kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
+kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
+kfence-test-use-kunit_skip-to-skip-tests.patch
 
