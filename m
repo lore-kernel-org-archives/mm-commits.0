@@ -7,35 +7,35 @@ X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
 	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74144C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 02:49:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE1B6C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 02:51:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52DA061100
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 02:49:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9464061090
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 02:51:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233314AbhIXCvB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Sep 2021 22:51:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55566 "EHLO mail.kernel.org"
+        id S243965AbhIXCwf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Sep 2021 22:52:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55852 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243928AbhIXCvA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Sep 2021 22:51:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A12E7610C9;
-        Fri, 24 Sep 2021 02:49:27 +0000 (UTC)
+        id S243955AbhIXCwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Sep 2021 22:52:35 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A7A79610C9;
+        Fri, 24 Sep 2021 02:51:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632451767;
-        bh=fX1ENSqmBB3VxrZWicxFu1Es20R/MaJUE4pTkkxrILw=;
+        s=korg; t=1632451862;
+        bh=FVAyD/jG7xLhj7K8yHOHPyMD1ERJ9rdpUvpCFaR+q4A=;
         h=Date:From:To:Subject:From;
-        b=lqY8NxJHHcsjeSg0OO7PoBtqRqNfAFDaRixi4OOc8ktYO3M5m5/7ulpsqVGn/BYMm
-         sayBPGWR7kK/AwUMWor9JptCCuwEshol2xSPR0oPz/eG58gJDray1P9wiPhWQTDBbz
-         sPmCVyLh9amwPMHbr/yqtiVn9ODD4u7ehl6O6lhA=
-Date:   Thu, 23 Sep 2021 19:49:27 -0700
+        b=Cv3QWdK8s+CQKxSjZ/2l2fbF3cUXEEVkwkPN+KfsmKKwfHI9kPXtdo0iG55XjxLRd
+         Pk5GNyIBnRh4FXiLBOC7MHrtgdlvUcYZ/lGMZbpbsp0XlbHkurdYwnlgqpegO0/aJK
+         P+U4H6iYm4Ns+vOWIHAjhf84sVCAX+sMhuy/9oT8=
+Date:   Thu, 23 Sep 2021 19:51:02 -0700
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, christophe.leroy@csgroup.eu,
-        gerald.schaefer@linux.ibm.com, gshan@redhat.com,
-        guoren@linux.alibaba.com, mm-commits@vger.kernel.org
-Subject:  + mm-debug_vm_pgtable-dont-use-__p000-directly.patch
- added to -mm tree
-Message-ID: <20210924024927.H1Aj2QSF3%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, liwang@redhat.com, mm-commits@vger.kernel.org,
+        namit@vmware.com, peterx@redhat.com, stable@vger.kernel.org
+Subject:  +
+ userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch added to
+ -mm tree
+Message-ID: <20210924025102.VpqO80l0_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: debug_vm_pgtable: Don't use __P000 directly
+     Subject: userfaultfd: fix a race between writeprotect and exit_mmap()
 has been added to the -mm tree.  Its filename is
-     mm-debug_vm_pgtable-dont-use-__p000-directly.patch
+     userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-dont-use-__p000-directly.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-dont-use-__p000-directly.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,51 +65,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guo Ren <guoren@linux.alibaba.com>
-Subject: mm: debug_vm_pgtable: Don't use __P000 directly
+From: Nadav Amit <namit@vmware.com>
+Subject: userfaultfd: fix a race between writeprotect and exit_mmap()
 
-The __Pxxx/__Sxxx macros are only for init protection_map[].  All usage of
-them in linux should come from protection_map array.
+A race is possible when a process exits, its VMAs are removed by
+exit_mmap() and at the same time userfaultfd_writeprotect() is called.
 
-Because a lot of architectures would re-initilize protection_map[] array,
-eg: x86-mem_encrypt, m68k-motorola, mips, arm, sparc.
+The race was detected by KASAN on a development kernel, but it appears to
+be possible on vanilla kernels as well.
 
-Using __P000 maybe won't cause bug because hw would deny access with
-PROT_NONE permission, but it's not rigorous.
+Use mmget_not_zero() to prevent the race as done in other userfaultfd
+operations.
 
-Link: https://lkml.kernel.org/r/20210921201815.284412-1-guoren@kernel.org
-Signed-off-by: Guo Ren <guoren@linux.alibaba.com>
-Cc: Gavin Shan <gshan@redhat.com>
-Cc: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Link: https://lkml.kernel.org/r/20210921200247.25749-1-namit@vmware.com
+Fixes: 63b2d4174c4ad ("userfaultfd: wp: add the writeprotect API to userfaultfd ioctl")
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Tested-by: Li  Wang <liwang@redhat.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_vm_pgtable.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/userfaultfd.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-dont-use-__p000-directly
-+++ a/mm/debug_vm_pgtable.c
-@@ -1104,13 +1104,13 @@ static int __init init_args(struct pgtab
- 	/*
- 	 * Initialize the debugging data.
- 	 *
--	 * __P000 (or even __S000) will help create page table entries with
-+	 * __P000 (protection_map[0]) will help create page table entries with
- 	 * PROT_NONE permission as required for pxx_protnone_tests().
- 	 */
- 	memset(args, 0, sizeof(*args));
- 	args->vaddr              = get_random_vaddr();
- 	args->page_prot          = vm_get_page_prot(VMFLAGS);
--	args->page_prot_none     = __P000;
-+	args->page_prot_none     = protection_map[0];
- 	args->is_contiguous_page = false;
- 	args->pud_pfn            = ULONG_MAX;
- 	args->pmd_pfn            = ULONG_MAX;
+--- a/fs/userfaultfd.c~userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap
++++ a/fs/userfaultfd.c
+@@ -1827,9 +1827,15 @@ static int userfaultfd_writeprotect(stru
+ 	if (mode_wp && mode_dontwake)
+ 		return -EINVAL;
+ 
+-	ret = mwriteprotect_range(ctx->mm, uffdio_wp.range.start,
+-				  uffdio_wp.range.len, mode_wp,
+-				  &ctx->mmap_changing);
++	if (mmget_not_zero(ctx->mm)) {
++		ret = mwriteprotect_range(ctx->mm, uffdio_wp.range.start,
++					  uffdio_wp.range.len, mode_wp,
++					  &ctx->mmap_changing);
++		mmput(ctx->mm);
++	} else {
++		return -ESRCH;
++	}
++
+ 	if (ret)
+ 		return ret;
+ 
 _
 
-Patches currently in -mm which might be from guoren@linux.alibaba.com are
+Patches currently in -mm which might be from namit@vmware.com are
 
-mm-debug_vm_pgtable-dont-use-__p000-directly.patch
+userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch
 
