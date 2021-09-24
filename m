@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63169C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 22:43:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42F25C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 22:43:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 498EF61260
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 22:43:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2ECBA61250
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 22:43:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236431AbhIXWoz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Sep 2021 18:44:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43136 "EHLO mail.kernel.org"
+        id S237796AbhIXWo6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Sep 2021 18:44:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43248 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229669AbhIXWoy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Sep 2021 18:44:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B8B1261019;
-        Fri, 24 Sep 2021 22:43:20 +0000 (UTC)
+        id S237268AbhIXWo5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Sep 2021 18:44:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D525E610C7;
+        Fri, 24 Sep 2021 22:43:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632523401;
-        bh=EvuUAlpzSYOcprBe/h8oX+QM5LFSXdkN/iEH877IZLQ=;
+        s=korg; t=1632523404;
+        bh=nScy0Wx1xgJfJ0hGOIXW7AMGpzIu1SOmolvT6N7GLtY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rQqDKBvc5cnaFSo5KzxDmskaGl6iBMXsjxz7PrSBZxRtfX8ojTjaz2i5Qu+pvQf29
-         ntYHj3dx17OcGwhgiux9nvRzgAtTFQTunvZgG7YlLvY4rebWC2wC5BjM6ZDnGELOup
-         VM3a/A4vS/C5HPuKPq7XiKiqTvugICZVGBN3JEU0=
-Date:   Fri, 24 Sep 2021 15:43:20 -0700
+        b=y/7E93H6/liobOGfgmFh5EhDlY61hgDSpYnP9VGeHQZBDmf4s1kkWcdoB/9BKdDZT
+         py7tD1ZaDBTOc+jxuVBUaMGZkpScOxG8Dm4m2nTplwdUnUTfQ+GglAHHuIDhAkkRUS
+         lZt+rGPL3PtISiAZR0z5oCMhCv04R+9wshZ+D0QU=
+Date:   Fri, 24 Sep 2021 15:43:23 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, shy828301@gmail.com, stable@vger.kernel.org,
-        tony.luck@intel.com, torvalds@linux-foundation.org
-Subject:  [patch 01/16] mm, hwpoison: add is_free_buddy_page() in
- HWPoisonHandlable()
-Message-ID: <20210924224320.S3vgzdWHO%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
+        dvyukov@google.com, elver@google.com, glider@google.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, nogikh@google.com,
+        ryabinin.a.a@gmail.com, tarasmadan@google.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 02/16] kasan: fix Kconfig check of
+ CC_HAS_WORKING_NOSANITIZE_ADDRESS
+Message-ID: <20210924224323.hVb3058Us%akpm@linux-foundation.org>
 In-Reply-To: <20210924154257.1dbf6699ab8d88c0460f924f@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,45 +40,47 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm, hwpoison: add is_free_buddy_page() in HWPoisonHandlable()
+From: Marco Elver <elver@google.com>
+Subject: kasan: fix Kconfig check of CC_HAS_WORKING_NOSANITIZE_ADDRESS
 
-commit fcc00621d88b ("mm/hwpoison: retry with shake_page() for unhandlable
-pages") changes the return value of __get_hwpoison_page() to retry for
-transiently unhandlable cases.  However, __get_hwpoison_page() currently
-fails to properly judge buddy pages as handlable, so hard/soft offline for
-buddy pages always fail as "unhandlable page".  This is totally
-regrettable.
+In the main KASAN config option CC_HAS_WORKING_NOSANITIZE_ADDRESS is
+checked for instrumentation-based modes.  However, if
+HAVE_ARCH_KASAN_HW_TAGS is true all modes may still be selected.
 
-So let's add is_free_buddy_page() in HWPoisonHandlable(), so that
-__get_hwpoison_page() returns different return values between buddy
-pages and unhandlable pages as intended.
+To fix, also make the software modes depend on
+CC_HAS_WORKING_NOSANITIZE_ADDRESS.
 
-Link: https://lkml.kernel.org/r/20210909004131.163221-1-naoya.horiguchi@linux.dev
-Fixes: fcc00621d88b ("mm/hwpoison: retry with shake_page() for unhandlable pages")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210910084240.1215803-1-elver@google.com
+Fixes: 6a63a63ff1ac ("kasan: introduce CONFIG_KASAN_HW_TAGS")
+Signed-off-by: Marco Elver <elver@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Aleksandr Nogikh <nogikh@google.com>
+Cc: Taras Madan <tarasmadan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/Kconfig.kasan |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/memory-failure.c~mm-hwpoison-add-is_free_buddy_page-in-hwpoisonhandlable
-+++ a/mm/memory-failure.c
-@@ -1126,7 +1126,7 @@ static int page_action(struct page_state
-  */
- static inline bool HWPoisonHandlable(struct page *page)
- {
--	return PageLRU(page) || __PageMovable(page);
-+	return PageLRU(page) || __PageMovable(page) || is_free_buddy_page(page);
- }
- 
- static int __get_hwpoison_page(struct page *page)
+--- a/lib/Kconfig.kasan~kasan-fix-kconfig-check-of-cc_has_working_nosanitize_address
++++ a/lib/Kconfig.kasan
+@@ -66,6 +66,7 @@ choice
+ config KASAN_GENERIC
+ 	bool "Generic mode"
+ 	depends on HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC
++	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
+ 	select SLUB_DEBUG if SLUB
+ 	select CONSTRUCTORS
+ 	help
+@@ -86,6 +87,7 @@ config KASAN_GENERIC
+ config KASAN_SW_TAGS
+ 	bool "Software tag-based mode"
+ 	depends on HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS
++	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
+ 	select SLUB_DEBUG if SLUB
+ 	select CONSTRUCTORS
+ 	help
 _
