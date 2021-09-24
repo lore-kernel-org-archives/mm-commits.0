@@ -2,118 +2,123 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 X-Spam-Level: 
-X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
-	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
-	autolearn_force=no version=3.4.0
+X-Spam-Status: No, score=-10.3 required=3.0 tests=BAYES_00,
+	HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,
+	SPF_PASS,USER_AGENT_SANE_1 autolearn=ham autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AE1B6C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 02:51:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA6B8C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 10:35:36 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9464061090
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 02:51:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9087360F70
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 10:35:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243965AbhIXCwf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Sep 2021 22:52:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55852 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243955AbhIXCwf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Sep 2021 22:52:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A7A79610C9;
-        Fri, 24 Sep 2021 02:51:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632451862;
-        bh=FVAyD/jG7xLhj7K8yHOHPyMD1ERJ9rdpUvpCFaR+q4A=;
-        h=Date:From:To:Subject:From;
-        b=Cv3QWdK8s+CQKxSjZ/2l2fbF3cUXEEVkwkPN+KfsmKKwfHI9kPXtdo0iG55XjxLRd
-         Pk5GNyIBnRh4FXiLBOC7MHrtgdlvUcYZ/lGMZbpbsp0XlbHkurdYwnlgqpegO0/aJK
-         P+U4H6iYm4Ns+vOWIHAjhf84sVCAX+sMhuy/9oT8=
-Date:   Thu, 23 Sep 2021 19:51:02 -0700
-From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, liwang@redhat.com, mm-commits@vger.kernel.org,
-        namit@vmware.com, peterx@redhat.com, stable@vger.kernel.org
-Subject:  +
- userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch added to
- -mm tree
-Message-ID: <20210924025102.VpqO80l0_%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S231774AbhIXKhI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Sep 2021 06:37:08 -0400
+Received: from jabberwock.ucw.cz ([46.255.230.98]:36808 "EHLO
+        jabberwock.ucw.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229495AbhIXKhI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Sep 2021 06:37:08 -0400
+Received: by jabberwock.ucw.cz (Postfix, from userid 1017)
+        id 60D5D1C0BA3; Fri, 24 Sep 2021 12:35:34 +0200 (CEST)
+Date:   Fri, 24 Sep 2021 12:35:33 +0200
+From:   Pavel Machek <pavel@denx.de>
+To:     linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Cc:     akpm@linux-foundation.org, konishi.ryusuke@gmail.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        thunder.leizhen@huawei.com, torvalds@linux-foundation.org
+Subject: Re: [patch 136/147] nilfs2: use refcount_dec_and_lock() to fix
+ potential UAF
+Message-ID: <20210924103533.GA22717@duo.ucw.cz>
+References: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
+ <20210908030026.2dLZCmkE4%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+        protocol="application/pgp-signature"; boundary="AqsLC8rIMeq19msA"
+Content-Disposition: inline
+In-Reply-To: <20210908030026.2dLZCmkE4%akpm@linux-foundation.org>
+User-Agent: Mutt/1.10.1 (2018-07-13)
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
-The patch titled
-     Subject: userfaultfd: fix a race between writeprotect and exit_mmap()
-has been added to the -mm tree.  Its filename is
-     userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch
+--AqsLC8rIMeq19msA
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch
+Hi!
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+> From: Zhen Lei <thunder.leizhen@huawei.com>
+> Subject: nilfs2: use refcount_dec_and_lock() to fix potential UAF
+>=20
+> When the refcount is decreased to 0, the resource reclamation branch is
+> entered.  Before CPU0 reaches the race point (1), CPU1 may obtain the
+> spinlock and traverse the rbtree to find 'root', see nilfs_lookup_root().=
+=20
+> Although CPU1 will call refcount_inc() to increase the refcount, it is
+> obviously too late.  CPU0 will release 'root' directly, CPU1 then accesses
+> 'root' and triggers UAF.
+>=20
+> Use refcount_dec_and_lock() to ensure that both the operations of decrease
+> refcount to 0 and link deletion are lock protected eliminates this risk.
+>=20
+>      CPU0                      CPU1
+> nilfs_put_root():
+> 			    <-------- (1)
+> spin_lock(&nilfs->ns_cptree_lock);
+> rb_erase(&root->rb_node, &nilfs->ns_cptree);
+> spin_unlock(&nilfs->ns_cptree_lock);
+>=20
+> kfree(root);
+> 			    <-------- use-after-free
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+> There is no reproduction program, and the above is only theoretical
+> analysis.
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+Ok, so we have a theoretical bug, and fix already on its way to
+stable. But ... is it correct?
 
-------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: userfaultfd: fix a race between writeprotect and exit_mmap()
+> +++ a/fs/nilfs2/the_nilfs.c
+> @@ -792,14 +792,13 @@ nilfs_find_or_create_root(struct the_nil
+> =20
+>  void nilfs_put_root(struct nilfs_root *root)
+>  {
+> -	if (refcount_dec_and_test(&root->count)) {
+> -		struct the_nilfs *nilfs =3D root->nilfs;
+> +	struct the_nilfs *nilfs =3D root->nilfs;
+> =20
+> -		nilfs_sysfs_delete_snapshot_group(root);
+> -
+> -		spin_lock(&nilfs->ns_cptree_lock);
+> +	if (refcount_dec_and_lock(&root->count, &nilfs->ns_cptree_lock)) {
+>  		rb_erase(&root->rb_node, &nilfs->ns_cptree);
+>  		spin_unlock(&nilfs->ns_cptree_lock);
+> +
+> +		nilfs_sysfs_delete_snapshot_group(root);
+>  		iput(root->ifile);
+> =20
+>  		kfree(root);
 
-A race is possible when a process exits, its VMAs are removed by
-exit_mmap() and at the same time userfaultfd_writeprotect() is called.
+spin_lock() is deleted, but spin_unlock() is not affected. This means
+unbalanced locking, right?
 
-The race was detected by KASAN on a development kernel, but it appears to
-be possible on vanilla kernels as well.
+Best regards,
+								Pavel
+--
+DENX Software Engineering GmbH,      Managing Director: Wolfgang Denk
+HRB 165235 Munich, Office: Kirchenstr.5, D-82194 Groebenzell, Germany
 
-Use mmget_not_zero() to prevent the race as done in other userfaultfd
-operations.
 
-Link: https://lkml.kernel.org/r/20210921200247.25749-1-namit@vmware.com
-Fixes: 63b2d4174c4ad ("userfaultfd: wp: add the writeprotect API to userfaultfd ioctl")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Tested-by: Li  Wang <liwang@redhat.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+--AqsLC8rIMeq19msA
+Content-Type: application/pgp-signature; name="signature.asc"
 
- fs/userfaultfd.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+-----BEGIN PGP SIGNATURE-----
 
---- a/fs/userfaultfd.c~userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap
-+++ a/fs/userfaultfd.c
-@@ -1827,9 +1827,15 @@ static int userfaultfd_writeprotect(stru
- 	if (mode_wp && mode_dontwake)
- 		return -EINVAL;
- 
--	ret = mwriteprotect_range(ctx->mm, uffdio_wp.range.start,
--				  uffdio_wp.range.len, mode_wp,
--				  &ctx->mmap_changing);
-+	if (mmget_not_zero(ctx->mm)) {
-+		ret = mwriteprotect_range(ctx->mm, uffdio_wp.range.start,
-+					  uffdio_wp.range.len, mode_wp,
-+					  &ctx->mmap_changing);
-+		mmput(ctx->mm);
-+	} else {
-+		return -ESRCH;
-+	}
-+
- 	if (ret)
- 		return ret;
- 
-_
+iF0EABECAB0WIQRPfPO7r0eAhk010v0w5/Bqldv68gUCYU2p9QAKCRAw5/Bqldv6
+8pEQAKDA9jl6m9R1pd/xcPllBCkOXDjUsQCfUaxkmFaw26oeFa3dtCAQPMQfQtg=
+=ui/9
+-----END PGP SIGNATURE-----
 
-Patches currently in -mm which might be from namit@vmware.com are
-
-userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch
-
+--AqsLC8rIMeq19msA--
