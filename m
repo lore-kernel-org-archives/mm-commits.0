@@ -2,109 +2,187 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B64F9C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 15:10:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E910AC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 19:42:01 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A2B060EB4
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 15:10:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA67361107
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 19:42:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346990AbhIXPLm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Sep 2021 11:11:42 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:47548 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346962AbhIXPLl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 24 Sep 2021 11:11:41 -0400
-Received: from mail-lf1-x12d.google.com (mail-lf1-x12d.google.com [IPv6:2a00:1450:4864:20::12d])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E1EFCC061571
-        for <mm-commits@vger.kernel.org>; Fri, 24 Sep 2021 08:10:07 -0700 (PDT)
-Received: by mail-lf1-x12d.google.com with SMTP id g41so41540600lfv.1
-        for <mm-commits@vger.kernel.org>; Fri, 24 Sep 2021 08:10:07 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=co3PmFuKCIcHsj3pvj/B4T/OiVu8R01Eai9WLfmdlq8=;
-        b=Bjrt0Rq7VPXOT3ycfENAR6ahmO3q368hhy2blwQAfkW0DIZ0c1pMsNlD5CtQitFJTx
-         qH/NIP2KVRQW/48QpCjbwvdM2YGK5V44JFKsFMNOQYzI8lvqjfYmbaYASvSGl5nUmPKl
-         gpWZXzPySuvTqio2vIERL174Lw61V3+jQaSsZp+2RSo8wixDGuZwkyd1Z1yYYf+DX/KA
-         yieEqFqnNF9lzDF2iQXD0OqSPVwsQypESDyxq8xhrkCWNNgCfVfzoTHvx+8pe7uPAyYi
-         +6kOP/AcGFryIPrl2D4MLYQ12sU1uO8ZInb9cYQqK0RZ88ePIrjJQTnFxxn1Cn5bfl1f
-         9QIQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=co3PmFuKCIcHsj3pvj/B4T/OiVu8R01Eai9WLfmdlq8=;
-        b=UJMTbEy2aKD4MFoFFiaFWbizZ+AfzVi3Xx2xCJpb7YD0/umrcyiDscgllrGrWbHz0F
-         7z/CIO+NMaJZ0aKpzO0Liv84DKFvUYgvyrIbz7sm+h/LlpU6chuaCBMQJUuV+NyzaiwM
-         KoHFTDTf4KQTCk3wdacFPl2ovSWjNM2A/jlbDZQVIAd7fY9hRJVJpzNEXZfw8onIXmb9
-         YN8Z0LOEiOWWYcCfPhgeQXrGSEkJSF64RHyzP5ODhzfqsGz8jcSQDcUNFn8hoW9dbFGf
-         yI3V4Fyh6c0iUTAzVwxP4AUkvCor/YMRraqdZI5XqQdphkg5jb8v3aWB3lHiGH+EjOmZ
-         TbhA==
-X-Gm-Message-State: AOAM531NagjbO2gTGyT8AMAdwKNe5p2mURWUcF9bz7ghaSkO7a8aBaJP
-        sFl1rr62i3w3gfo7jFtYoUwMlG+YXKajSNQoHzI8iVhjjKk=
-X-Google-Smtp-Source: ABdhPJz2O26v2suId4UxB1yb6OJ3KWGBnRKuzsLVAjf3+8tGobqu38rrwjzswt4hkyfnBvwFgETgvkj8GbimtYX5XTM=
-X-Received: by 2002:a05:6512:39d1:: with SMTP id k17mr220473lfu.390.1632496206181;
- Fri, 24 Sep 2021 08:10:06 -0700 (PDT)
-MIME-Version: 1.0
-References: <20210907195226.14b1d22a07c085b22968b933@linux-foundation.org>
- <20210908030026.2dLZCmkE4%akpm@linux-foundation.org> <YU3As8r6AY5vGTi5@casper.infradead.org>
-In-Reply-To: <YU3As8r6AY5vGTi5@casper.infradead.org>
-From:   Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Date:   Sat, 25 Sep 2021 00:09:54 +0900
-Message-ID: <CAKFNMokecmpFA16rqtzYc_5cT9wT2_FxUabF_fUYcH-p2-jYPw@mail.gmail.com>
-Subject: Re: [patch 136/147] nilfs2: use refcount_dec_and_lock() to fix
- potential UAF
-To:     Matthew Wilcox <willy@infradead.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, Zhen Lei <thunder.leizhen@huawei.com>,
-        Linus Torvalds <torvalds@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
+        id S1345858AbhIXTne (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Sep 2021 15:43:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36702 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231756AbhIXTne (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Sep 2021 15:43:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4144561050;
+        Fri, 24 Sep 2021 19:42:00 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1632512520;
+        bh=Y+TyksB0xyRH+4ENVFnVn8t8PijnIzbErwWAyVQ9kxU=;
+        h=Date:From:To:Subject:From;
+        b=ZetQqtswUWnlDxLA0qxvU1mfLpWXpTZ51DitNGQ9+U75zgO65qBMby5TQS6xs9tDc
+         880rxJxgnEfGg+e8pMpxgdj+UExTI40dsXUhO6Pi6YFa3co0ibZWK4/GvHr2z7xXRK
+         fZVAti1AhkHu+nx+8wumkx8zARBw9c97h6Dsf6QQ=
+Date:   Fri, 24 Sep 2021 12:41:59 -0700
+From:   akpm@linux-foundation.org
+To:     dan.j.williams@intel.com, dave.hansen@linux.intel.com,
+        david@redhat.com, gthelen@google.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, oliver.sang@intel.com,
+        osalvador@suse.de, rientjes@google.com, weixugc@google.com,
+        yang.shi@linux.alibaba.com, ying.huang@intel.com
+Subject:  +
+ mm-migrate-optimize-hotplug-time-demotion-order-updates.patch added to -mm
+ tree
+Message-ID: <20210924194159.dT6t9mE58%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi,
 
-On Fri, Sep 24, 2021 at 9:13 PM Matthew Wilcox <willy@infradead.org> wrote:
->
-> On Tue, Sep 07, 2021 at 08:00:26PM -0700, Andrew Morton wrote:
-> > From: Zhen Lei <thunder.leizhen@huawei.com>
-> > Subject: nilfs2: use refcount_dec_and_lock() to fix potential UAF
-> >
-> > When the refcount is decreased to 0, the resource reclamation branch is
-> > entered.  Before CPU0 reaches the race point (1), CPU1 may obtain the
-> > spinlock and traverse the rbtree to find 'root', see nilfs_lookup_root().
-> > Although CPU1 will call refcount_inc() to increase the refcount, it is
-> > obviously too late.  CPU0 will release 'root' directly, CPU1 then accesses
-> > 'root' and triggers UAF.
-> >
-> > Use refcount_dec_and_lock() to ensure that both the operations of decrease
-> > refcount to 0 and link deletion are lock protected eliminates this risk.
-> >
-> >      CPU0                      CPU1
-> > nilfs_put_root():
-> >                           <-------- (1)
-> > spin_lock(&nilfs->ns_cptree_lock);
-> > rb_erase(&root->rb_node, &nilfs->ns_cptree);
-> > spin_unlock(&nilfs->ns_cptree_lock);
-> >
-> > kfree(root);
-> >                           <-------- use-after-free
->
-> I don't know where this happened, but the leading whitespace has been
-> eaten at some point, making this description of the race completely
-> unreadable as everything appears to be done by CPU 0.
+The patch titled
+     Subject: mm/migrate: optimize hotplug-time demotion order updates
+has been added to the -mm tree.  Its filename is
+     mm-migrate-optimize-hotplug-time-demotion-order-updates.patch
 
-The diagram is the same as that in the original patch by author, and
-I approved it without any discomfort because these five operations
-(nilfs_put_root() ~ spin_lock(); rb_erase(); spin_unlock() ~ kfree() ) are
-all done by CPU0.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-optimize-hotplug-time-demotion-order-updates.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-optimize-hotplug-time-demotion-order-updates.patch
 
-But, yeah, an example of a function call might have been written on
-the CPU1 side as well, for instance, a nilfs_lookup_root() call etc, to
-clarify the race issue the message explains..
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Regards,
-Ryusuke Konishi
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: mm/migrate: optimize hotplug-time demotion order updates
+
+Patch series "mm/migrate: 5.15 fixes for automatic demotion", v2.
+
+This contains two fixes for the "automatic demotion" code which was
+merged into 5.15:
+
+ * Fix memory hotplug performance regression by watching
+   suppressing any real action on irrelevant hotplug events.
+ * Ensure CPU hotplug handler is registered when memory hotplug
+   is disabled.
+
+
+This patch (of 2):
+
+== tl;dr ==
+
+Automatic demotion opted for a simple, lazy approach to handling hotplug
+events.  This noticeably slows down memory hotplug[1].  Optimize away
+updates to the demotion order when memory hotplug events should have no
+effect.
+
+This has no effect on CPU hotplug.  There is no known problem on the CPU
+side and any work there will be in a separate series.
+
+== Background ==
+
+Automatic demotion is a memory migration strategy to ensure that new
+allocations have room in faster memory tiers on tiered memory systems. 
+The kernel maintains an array (node_demotion[]) to drive these migrations.
+
+The node_demotion[] path is calculated by starting at nodes with CPUs and
+then "walking" to nodes with memory.  Only hotplug events which online or
+offline a node with memory (N_ONLINE) or CPUs (N_CPU) will actually affect
+the migration order.
+
+== Problem ==
+
+However, the current code is lazy.  It completely regenerates the
+migration order on *any* CPU or memory hotplug event.  The logic was that
+these events are extremely rare and that the overhead from indiscriminate
+order regeneration is minimal.
+
+Part of the update logic involves a synchronize_rcu(), which is a pretty
+big hammer.  Its overhead was large enough to be detected by some 0day
+tests that watch memory hotplug performance[1].
+
+== Solution ==
+
+Add a new helper (node_demotion_topo_changed()) which can differentiate
+between superfluous and impactful hotplug events.  Skip the expensive
+update operation for superfluous events.
+
+== Aside: Locking ==
+
+It took me a few moments to declare the locking to be safe enough for
+node_demotion_topo_changed() to work.  It all hinges on the memory hotplug
+lock:
+
+During memory hotplug events, 'mem_hotplug_lock' is held for write.  This
+ensures that two memory hotplug events can not be called simultaneously.
+
+CPU hotplug has a similar lock (cpuhp_state_mutex) which also provides
+mutual exclusion between CPU hotplug events.  In addition, the demotion
+code acquire and hold the mem_hotplug_lock for read during its CPU hotplug
+handlers.  This provides mutual exclusion between the demotion memory
+hotplug callbacks and the CPU hotplug callbacks.
+
+This effectively allows treating the migration target generation code to
+act as if it is single-threaded.
+
+1. https://lore.kernel.org/all/20210905135932.GE15026@xsang-OptiPlex-9020/
+
+Link: https://lkml.kernel.org/r/20210924161251.093CCD06@davehans-spike.ostc.intel.com
+Link: https://lkml.kernel.org/r/20210924161253.D7673E31@davehans-spike.ostc.intel.com
+Fixes: 884a6e5d1f93 ("mm/migrate: update node demotion order on hotplug events")
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/migrate.c |   12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+--- a/mm/migrate.c~mm-migrate-optimize-hotplug-time-demotion-order-updates
++++ a/mm/migrate.c
+@@ -3239,8 +3239,18 @@ static int migration_offline_cpu(unsigne
+  * set_migration_target_nodes().
+  */
+ static int __meminit migrate_on_reclaim_callback(struct notifier_block *self,
+-						 unsigned long action, void *arg)
++						 unsigned long action, void *_arg)
+ {
++	struct memory_notify *arg = _arg;
++
++	/*
++	 * Only update the node migration order when a node is
++	 * changing status, like online->offline.  This avoids
++	 * the overhead of synchronize_rcu() in most cases.
++	 */
++	if (arg->status_change_nid < 0)
++		return notifier_from_errno(0);
++
+ 	switch (action) {
+ 	case MEM_GOING_OFFLINE:
+ 		/*
+_
+
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+
+mm-migrate-optimize-hotplug-time-demotion-order-updates.patch
+mm-migrate-add-cpu-hotplug-to-demotion-ifdef.patch
+
