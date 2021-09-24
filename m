@@ -2,37 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42F25C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 22:43:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C2AC8C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 22:43:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2ECBA61250
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 22:43:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A5129610C7
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 22:43:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237796AbhIXWo6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Sep 2021 18:44:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43248 "EHLO mail.kernel.org"
+        id S237813AbhIXWpF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Sep 2021 18:45:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43316 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237268AbhIXWo5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Sep 2021 18:44:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D525E610C7;
-        Fri, 24 Sep 2021 22:43:23 +0000 (UTC)
+        id S229669AbhIXWpA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Sep 2021 18:45:00 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CEC44610F7;
+        Fri, 24 Sep 2021 22:43:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632523404;
-        bh=nScy0Wx1xgJfJ0hGOIXW7AMGpzIu1SOmolvT6N7GLtY=;
+        s=korg; t=1632523407;
+        bh=uWwxeLdlOGjaTzqH97Y4wiX9ndCY9tuHs3E3OZZlPkg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=y/7E93H6/liobOGfgmFh5EhDlY61hgDSpYnP9VGeHQZBDmf4s1kkWcdoB/9BKdDZT
-         py7tD1ZaDBTOc+jxuVBUaMGZkpScOxG8Dm4m2nTplwdUnUTfQ+GglAHHuIDhAkkRUS
-         lZt+rGPL3PtISiAZR0z5oCMhCv04R+9wshZ+D0QU=
-Date:   Fri, 24 Sep 2021 15:43:23 -0700
+        b=iHNHVFG5aL3D8oguHZ8B1fUBb79iBGsZr3+BjfiMYx9nGNMANynZeUFjU27jQzwD7
+         dxInDa3XNdpuzczMnUCcujhOHbuzWHBYU2gxhVGJ3t8yUd6zAmMsQQdeDZnutRX6zF
+         rywYJKdF+wDy+gRe8BTmZTnVZI+ojb9ttQIpuGb8=
+Date:   Fri, 24 Sep 2021 15:43:26 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        dvyukov@google.com, elver@google.com, glider@google.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, nogikh@google.com,
-        ryabinin.a.a@gmail.com, tarasmadan@google.com,
+To:     akpm@linux-foundation.org, kilobyte@angband.pl, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, sj38.park@gmail.com,
         torvalds@linux-foundation.org
-Subject:  [patch 02/16] kasan: fix Kconfig check of
- CC_HAS_WORKING_NOSANITIZE_ADDRESS
-Message-ID: <20210924224323.hVb3058Us%akpm@linux-foundation.org>
+Subject:  [patch 03/16] mm/damon: don't use strnlen() with
+ known-bogus source length
+Message-ID: <20210924224326.LWI0zk_0G%akpm@linux-foundation.org>
 In-Reply-To: <20210924154257.1dbf6699ab8d88c0460f924f@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,47 +38,86 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Marco Elver <elver@google.com>
-Subject: kasan: fix Kconfig check of CC_HAS_WORKING_NOSANITIZE_ADDRESS
+From: Adam Borowski <kilobyte@angband.pl>
+Subject: mm/damon: don't use strnlen() with known-bogus source length
 
-In the main KASAN config option CC_HAS_WORKING_NOSANITIZE_ADDRESS is
-checked for instrumentation-based modes.  However, if
-HAVE_ARCH_KASAN_HW_TAGS is true all modes may still be selected.
+gcc knows the true length too, and rightfully complains.
 
-To fix, also make the software modes depend on
-CC_HAS_WORKING_NOSANITIZE_ADDRESS.
-
-Link: https://lkml.kernel.org/r/20210910084240.1215803-1-elver@google.com
-Fixes: 6a63a63ff1ac ("kasan: introduce CONFIG_KASAN_HW_TAGS")
-Signed-off-by: Marco Elver <elver@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Aleksandr Nogikh <nogikh@google.com>
-Cc: Taras Madan <tarasmadan@google.com>
+Link: https://lkml.kernel.org/r/20210912204447.10427-1-kilobyte@angband.pl
+Signed-off-by: Adam Borowski <kilobyte@angband.pl>
+Cc: SeongJae Park <sj38.park@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kasan |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/dbgfs-test.h |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/lib/Kconfig.kasan~kasan-fix-kconfig-check-of-cc_has_working_nosanitize_address
-+++ a/lib/Kconfig.kasan
-@@ -66,6 +66,7 @@ choice
- config KASAN_GENERIC
- 	bool "Generic mode"
- 	depends on HAVE_ARCH_KASAN && CC_HAS_KASAN_GENERIC
-+	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
- 	select SLUB_DEBUG if SLUB
- 	select CONSTRUCTORS
- 	help
-@@ -86,6 +87,7 @@ config KASAN_GENERIC
- config KASAN_SW_TAGS
- 	bool "Software tag-based mode"
- 	depends on HAVE_ARCH_KASAN_SW_TAGS && CC_HAS_KASAN_SW_TAGS
-+	depends on CC_HAS_WORKING_NOSANITIZE_ADDRESS
- 	select SLUB_DEBUG if SLUB
- 	select CONSTRUCTORS
- 	help
+--- a/mm/damon/dbgfs-test.h~mm-damon-dont-use-strnlen-with-known-bogus-source-length
++++ a/mm/damon/dbgfs-test.h
+@@ -20,27 +20,27 @@ static void damon_dbgfs_test_str_to_targ
+ 	ssize_t nr_integers = 0, i;
+ 
+ 	question = "123";
+-	answers = str_to_target_ids(question, strnlen(question, 128),
++	answers = str_to_target_ids(question, strlen(question),
+ 			&nr_integers);
+ 	KUNIT_EXPECT_EQ(test, (ssize_t)1, nr_integers);
+ 	KUNIT_EXPECT_EQ(test, 123ul, answers[0]);
+ 	kfree(answers);
+ 
+ 	question = "123abc";
+-	answers = str_to_target_ids(question, strnlen(question, 128),
++	answers = str_to_target_ids(question, strlen(question),
+ 			&nr_integers);
+ 	KUNIT_EXPECT_EQ(test, (ssize_t)1, nr_integers);
+ 	KUNIT_EXPECT_EQ(test, 123ul, answers[0]);
+ 	kfree(answers);
+ 
+ 	question = "a123";
+-	answers = str_to_target_ids(question, strnlen(question, 128),
++	answers = str_to_target_ids(question, strlen(question),
+ 			&nr_integers);
+ 	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
+ 	kfree(answers);
+ 
+ 	question = "12 35";
+-	answers = str_to_target_ids(question, strnlen(question, 128),
++	answers = str_to_target_ids(question, strlen(question),
+ 			&nr_integers);
+ 	KUNIT_EXPECT_EQ(test, (ssize_t)2, nr_integers);
+ 	for (i = 0; i < nr_integers; i++)
+@@ -48,7 +48,7 @@ static void damon_dbgfs_test_str_to_targ
+ 	kfree(answers);
+ 
+ 	question = "12 35 46";
+-	answers = str_to_target_ids(question, strnlen(question, 128),
++	answers = str_to_target_ids(question, strlen(question),
+ 			&nr_integers);
+ 	KUNIT_EXPECT_EQ(test, (ssize_t)3, nr_integers);
+ 	for (i = 0; i < nr_integers; i++)
+@@ -56,7 +56,7 @@ static void damon_dbgfs_test_str_to_targ
+ 	kfree(answers);
+ 
+ 	question = "12 35 abc 46";
+-	answers = str_to_target_ids(question, strnlen(question, 128),
++	answers = str_to_target_ids(question, strlen(question),
+ 			&nr_integers);
+ 	KUNIT_EXPECT_EQ(test, (ssize_t)2, nr_integers);
+ 	for (i = 0; i < 2; i++)
+@@ -64,13 +64,13 @@ static void damon_dbgfs_test_str_to_targ
+ 	kfree(answers);
+ 
+ 	question = "";
+-	answers = str_to_target_ids(question, strnlen(question, 128),
++	answers = str_to_target_ids(question, strlen(question),
+ 			&nr_integers);
+ 	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
+ 	kfree(answers);
+ 
+ 	question = "\n";
+-	answers = str_to_target_ids(question, strnlen(question, 128),
++	answers = str_to_target_ids(question, strlen(question),
+ 			&nr_integers);
+ 	KUNIT_EXPECT_EQ(test, (ssize_t)0, nr_integers);
+ 	kfree(answers);
 _
