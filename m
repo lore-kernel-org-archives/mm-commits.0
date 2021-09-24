@@ -4,39 +4,39 @@ X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 X-Spam-Level: 
 X-Spam-Status: No, score=-15.8 required=3.0 tests=BAYES_00,DKIM_SIGNED,
 	DKIM_VALID,DKIM_VALID_AU,HEADER_FROM_DIFFERENT_DOMAINS,INCLUDES_CR_TRAILER,
-	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS,URIBL_BLOCKED
-	autolearn=ham autolearn_force=no version=3.4.0
+	INCLUDES_PATCH,MAILING_LIST_MULTI,SPF_HELO_NONE,SPF_PASS autolearn=ham
+	autolearn_force=no version=3.4.0
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78C9DC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:34:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EEBD4C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 02:19:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 516C36124E
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Sep 2021 23:34:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D3ED4610F7
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 02:19:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240661AbhIWXgO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 23 Sep 2021 19:36:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36010 "EHLO mail.kernel.org"
+        id S232911AbhIXCV1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 23 Sep 2021 22:21:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47472 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235628AbhIWXgO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 23 Sep 2021 19:36:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C937A60F6F;
-        Thu, 23 Sep 2021 23:34:41 +0000 (UTC)
+        id S243863AbhIXCV1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 23 Sep 2021 22:21:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DA60C61039;
+        Fri, 24 Sep 2021 02:19:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632440082;
-        bh=qk8yIvzBXiMyTJ9b9aQefgz//raeM4fiGqNmMfLRFac=;
+        s=korg; t=1632449995;
+        bh=P4DFQiq303G1aONpTAkM+AmBbanoTbukwuAkgf+Z+oU=;
         h=Date:From:To:Subject:From;
-        b=wG77cFifzgSOcGCH2T8z+6OrWp+OAfpQhMhp5MLNYlDJvF8dEZWezjeNz1HHYB9dr
-         d3w7ZyrV9CzpbP6YyYt7RQRkNU+psqCK6VU8RpGj4atMTDGHKrqzBsC3qeHjh1GI/j
-         Llgp/IGSpvVM4dlhCOCUKrYfGjlQ6pEnD4LlspUM=
-Date:   Thu, 23 Sep 2021 16:34:41 -0700
+        b=ltX8yyfmgmVQ1Ba9AIn4bS8umDB6dT8DnIYbXGTA6FvaqaROQNOBa/oXWEJk14tyY
+         b4snrzxbRFTrrIFzS002wlLvbsP3mCW+T7P2PKDKzu3HphVsdzVC5viV0AAoWfwRt0
+         YVEKZMjj3HRdU/lPGmZM+Rjmlzq+O7KkVzlHJraY=
+Date:   Thu, 23 Sep 2021 19:19:54 -0700
 From:   akpm@linux-foundation.org
-To:     carl.waldspurger@nutanix.com, corbet@lwn.net, david@redhat.com,
-        florian.schmidt@nutanix.com, ivan.teterevkov@nutanix.com,
-        jonathan.davies@nutanix.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com, tiberiu.georgescu@nutanix.com
+To:     aarcange@redhat.com, axelrasmussen@google.com, liwan@redhat.com,
+        mm-commits@vger.kernel.org, nadav.amit@gmail.com,
+        peterx@redhat.com, stable@vger.kernel.org
 Subject:  +
- documentation-update-pagemap-with-shmem-exceptions.patch added to -mm tree
-Message-ID: <20210923233441.IWccsreHa%akpm@linux-foundation.org>
+ mm-userfaultfd-selftests-fix-memory-corruption-with-thp-enabled.patch added
+ to -mm tree
+Message-ID: <20210924021954.LeF2zWXJJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: update pagemap with shmem exceptions
+     Subject: mm/userfaultfd: selftests: fix memory corruption with thp enabled
 has been added to the -mm tree.  Its filename is
-     documentation-update-pagemap-with-shmem-exceptions.patch
+     mm-userfaultfd-selftests-fix-memory-corruption-with-thp-enabled.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/documentation-update-pagemap-with-shmem-exceptions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-userfaultfd-selftests-fix-memory-corruption-with-thp-enabled.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/documentation-update-pagemap-with-shmem-exceptions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-userfaultfd-selftests-fix-memory-corruption-with-thp-enabled.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,89 +66,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tiberiu A Georgescu <tiberiu.georgescu@nutanix.com>
-Subject: Documentation: update pagemap with shmem exceptions
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/userfaultfd: selftests: fix memory corruption with thp enabled
 
-This patch follows the discussions on previous documentation patch threads
-[1][2].  It presents the exception case of shared memory management from
-the pagemap's point of view.  It briefly describes what is missing, why it
-is missing and alternatives to the pagemap for page info retrieval in user
-space.
+In RHEL's gating selftests we've encountered memory corruption in the uffd
+event test even with upstream kernel:
 
-In short, the kernel does not keep track of PTEs for swapped out shared
-pages within the processes that references them.  Thus, the
-proc/pid/pagemap tool cannot print the swap destination of the shared
-memory pages, instead setting the pagemap entry to zero for both
-non-allocated and swapped out pages.  This can create confusion for users
-who need information on swapped out pages.
+        # ./userfaultfd anon 128 4
+        nr_pages: 32768, nr_pages_per_cpu: 32768
+        bounces: 3, mode: rnd racing read, userfaults: 6240 missing (6240) 14729 wp (14729)
+        bounces: 2, mode: racing read, userfaults: 1444 missing (1444) 28877 wp (28877)
+        bounces: 1, mode: rnd read, userfaults: 6055 missing (6055) 14699 wp (14699)
+        bounces: 0, mode: read, userfaults: 82 missing (82) 25196 wp (25196)
+        testing uffd-wp with pagemap (pgsize=4096): done
+        testing uffd-wp with pagemap (pgsize=2097152): done
+        testing events (fork, remap, remove): ERROR: nr 32427 memory corruption 0 1 (errno=0, line=963)
+        ERROR: faulting process failed (errno=0, line=1117)
 
-The reasons why maintaining the PTEs of all swapped out shared pages among
-all processes while maintaining similar performance is not a trivial task,
-or a desirable change, have been discussed extensively [1][3][4][5]. 
-There are also arguments for why this arguably missing information should
-eventually be exposed to the user in either a future pagemap patch, or by
-an alternative tool.
+It can be easily reproduced when global thp enabled, which is the default for
+RHEL.
 
-[1]: https://marc.info/?m=162878395426774
-[2]: https://lore.kernel.org/lkml/20210920164931.175411-1-tiberiu.georgescu@nutanix.com/
-[3]: https://lore.kernel.org/lkml/20210730160826.63785-1-tiberiu.georgescu@nutanix.com/
-[4]: https://lore.kernel.org/lkml/20210807032521.7591-1-peterx@redhat.com/
-[5]: https://lore.kernel.org/lkml/20210715201651.212134-1-peterx@redhat.com/
+It's also known as a side effect of commit 0db282ba2c12 ("selftest: use
+mmap instead of posix_memalign to allocate memory", 2021-07-23), which is
+imho right itself on using mmap() to make sure the addresses will be
+untagged even on arm.
 
+The problem is, for each test we allocate buffers using two
+allocate_area() calls.  We assumed these two buffers won't affect each
+other, however they could, because mmap() could have found that the two
+buffers are near each other and having the same VMA flags, so they got
+merged into one VMA.
 
-Mention the current missing information in the pagemap and alternatives on
-how to retrieve it, in case someone stumbles upon unexpected behaviour.
+It won't be a big problem if thp is not enabled, but when thp is
+agressively enabled it means when initializing the src buffer it could
+accidentally setup part of the dest buffer too when there's a shared THP
+that overlaps the two regions.  Then some of the dest buffer won't be able
+to be trapped by userfaultfd missing mode, then it'll cause memory
+corruption as described.
 
-Link: https://lkml.kernel.org/r/20210923064618.157046-1-tiberiu.georgescu@nutanix.com
-Link: https://lkml.kernel.org/r/20210923064618.157046-2-tiberiu.georgescu@nutanix.com
-Signed-off-by: Tiberiu A Georgescu <tiberiu.georgescu@nutanix.com>
-Reviewed-by: Ivan Teterevkov <ivan.teterevkov@nutanix.com>
-Reviewed-by: Florian Schmidt <florian.schmidt@nutanix.com>
-Reviewed-by: Carl Waldspurger <carl.waldspurger@nutanix.com>
-Reviewed-by: Jonathan Davies <jonathan.davies@nutanix.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+To fix it, do release_pages() after initializing the src buffer.
+
+Since the previous two release_pages() calls are after
+uffd_test_ctx_clear() which will unmap all the buffers anyway (which is
+stronger than release pages; as unmap() also tear town pgtables), drop
+them as they shouldn't really be anything useful.
+
+We can mark the Fixes tag upon 0db282ba2c12 as it's reported to only
+happen there, however the real "Fixes" IMHO should be 8ba6e8640844, as
+before that commit we'll always do explicit release_pages() before
+registration of uffd, and 8ba6e8640844 changed that logic by adding extra
+unmap/map and we didn't release the pages at the right place.  Meanwhile I
+don't have a solid glue anyway on whether posix_memalign() could always
+avoid triggering this bug, hence it's safer to attach this fix to commit
+8ba6e8640844.
+
+Link: https://lkml.kernel.org/r/20210923232512.210092-1-peterx@redhat.com
+Fixes: 8ba6e8640844 ("userfaultfd/selftests: reinitialize test context in each test")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Li Wang <liwan@redhat.com>
+Bugzilla: https://bugzilla.redhat.com/show_bug.cgi?id=1994931
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Nadav Amit <nadav.amit@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/pagemap.rst |   22 +++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ tools/testing/selftests/vm/userfaultfd.c |   23 ++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
---- a/Documentation/admin-guide/mm/pagemap.rst~documentation-update-pagemap-with-shmem-exceptions
-+++ a/Documentation/admin-guide/mm/pagemap.rst
-@@ -196,6 +196,28 @@ you can go through every map in the proc
- in kpagecount, and tally up the number of pages that are only referenced
- once.
+--- a/tools/testing/selftests/vm/userfaultfd.c~mm-userfaultfd-selftests-fix-memory-corruption-with-thp-enabled
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -414,9 +414,6 @@ static void uffd_test_ctx_init_ext(uint6
+ 	uffd_test_ops->allocate_area((void **)&area_src);
+ 	uffd_test_ops->allocate_area((void **)&area_dst);
  
-+Exceptions for Shared Memory
-+============================
-+
-+Page table entries for shared pages are cleared when the pages are zapped or
-+swapped out. This makes swapped out pages indistinguishable from never-allocated
-+ones.
-+
-+In kernel space, the swap location can still be retrieved from the page cache.
-+However, values stored only on the normal PTE get lost irretrievably when the
-+page is swapped out (i.e. SOFT_DIRTY).
-+
-+In user space, whether the page is present, swapped or none can be deduced with
-+the help of lseek and/or mincore system calls.
-+
-+lseek() can differentiate between accessed pages (present or swapped out) and
-+holes (none/non-allocated) by specifying the SEEK_DATA flag on the file where
-+the pages are backed. For anonymous shared pages, the file can be found in
-+``/proc/pid/map_files/``.
-+
-+mincore() can differentiate between pages in memory (present, including swap
-+cache) and out of memory (swapped out or none/non-allocated).
-+
- Other notes
- ===========
+-	uffd_test_ops->release_pages(area_src);
+-	uffd_test_ops->release_pages(area_dst);
+-
+ 	userfaultfd_open(features);
  
+ 	count_verify = malloc(nr_pages * sizeof(unsigned long long));
+@@ -437,6 +434,26 @@ static void uffd_test_ctx_init_ext(uint6
+ 		*(area_count(area_src, nr) + 1) = 1;
+ 	}
+ 
++	/*
++	 * After initialization of area_src, we must explicitly release pages
++	 * for area_dst to make sure it's fully empty.  Otherwise we could have
++	 * some area_dst pages be errornously initialized with zero pages,
++	 * hence we could hit memory corruption later in the test.
++	 *
++	 * One example is when THP is globally enabled, above allocate_area()
++	 * calls could have the two areas merged into a single VMA (as they
++	 * will have the same VMA flags so they're mergeable).  When we
++	 * initialize the area_src above, it's possible that some part of
++	 * area_dst could have been faulted in via one huge THP that will be
++	 * shared between area_src and area_dst.  It could cause some of the
++	 * area_dst won't be trapped by missing userfaults.
++	 *
++	 * This release_pages() will guarantee even if that happened, we'll
++	 * proactively split the thp and drop any accidentally initialized
++	 * pages within area_dst.
++	 */
++	uffd_test_ops->release_pages(area_dst);
++
+ 	pipefd = malloc(sizeof(int) * nr_cpus * 2);
+ 	if (!pipefd)
+ 		err("pipefd");
 _
 
-Patches currently in -mm which might be from tiberiu.georgescu@nutanix.com are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-documentation-update-pagemap-with-shmem-exceptions.patch
+mm-userfaultfd-selftests-fix-memory-corruption-with-thp-enabled.patch
+mm-smaps-fix-shmem-pte-hole-swap-calculation.patch
+mm-smaps-use-vma-vm_pgoff-directly-when-counting-partial-swap.patch
+mm-smaps-simplify-shmem-handling-of-pte-holes.patch
+mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte.patch
+mm-shmem-unconditionally-set-pte-dirty-in-mfill_atomic_install_pte.patch
+mm-clear-vmf-pte-after-pte_unmap_same-returns.patch
+mm-drop-first_index-last_index-in-zap_details.patch
+mm-add-zap_skip_check_mapping-helper.patch
+mm-hugetlb-drop-__unmap_hugepage_range-definition-from-hugetlbh.patch
 
