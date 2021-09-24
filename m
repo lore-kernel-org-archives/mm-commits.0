@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FB0CC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 20:44:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5D3BC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 20:46:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E322061242
-	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 20:44:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C61DB61250
+	for <mm-commits@archiver.kernel.org>; Fri, 24 Sep 2021 20:46:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232772AbhIXUqJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 24 Sep 2021 16:46:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38666 "EHLO mail.kernel.org"
+        id S237738AbhIXUrk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 24 Sep 2021 16:47:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39842 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229669AbhIXUqI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 24 Sep 2021 16:46:08 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 91987611C8;
-        Fri, 24 Sep 2021 20:44:34 +0000 (UTC)
+        id S237268AbhIXUrk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 24 Sep 2021 16:47:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 95A9F61242;
+        Fri, 24 Sep 2021 20:46:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632516274;
-        bh=MQSRvEi8kZ+L3iHbclXY5O6aJm9e9dFlYSV5fL5G3I8=;
+        s=korg; t=1632516366;
+        bh=UeVpeu0iVkvKriBh5XYXf165yQlJZLrYHxOSAsOM/Bg=;
         h=Date:From:To:Subject:From;
-        b=L+5TzJRevZePxTEbMLL8gWaGOcUN3NbBeGV6PwqdN1vYhq2Aju3C8UfhpKzX9LICa
-         Bht4yPrbi3xVZUCTPUwCN+QUVdqS4k1xjSph+VFftEeUR75wqFer666zFMQzXjj1+9
-         /C6D0qiylk5QBwQvWyrcBX0F6bYODEwIgov+YgFY=
-Date:   Fri, 24 Sep 2021 13:44:34 -0700
+        b=D+ZB7YO49zMwmPbMIu8M8e9IhzdweG0T/5PzhtoEHQOcReuIgml4mnHbrTdP2eGHR
+         lvJdRF5TuXHN/eL3D5TJ1m9FtD6M909mT1N5kuGZss5s/HITXAtSizqemOmjttyVjT
+         8Yd/5sEMdz4qaMGbg4ylr4xQffL+dP9ITN0jz5Ro=
+Date:   Fri, 24 Sep 2021 13:46:06 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        yangerkun@huawei.com
-Subject:  + ramfs-fix-mount-source-show-for-ramfs.patch added to
- -mm tree
-Message-ID: <20210924204434.4IOy6Z6z9%akpm@linux-foundation.org>
+To:     liangcaifan19@gmail.com, mm-commits@vger.kernel.org,
+        zhang.lyra@gmail.com
+Subject:  + mm-show-watermark_boost-of-zone-in-zoneinfo.patch added
+ to -mm tree
+Message-ID: <20210924204606.hWMzEzMB8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ramfs: fix mount source show for ramfs
+     Subject: mm/page_alloc.c: show watermark_boost of zone in zoneinfo
 has been added to the -mm tree.  Its filename is
-     ramfs-fix-mount-source-show-for-ramfs.patch
+     mm-show-watermark_boost-of-zone-in-zoneinfo.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ramfs-fix-mount-source-show-for-ramfs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-show-watermark_boost-of-zone-in-zoneinfo.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ramfs-fix-mount-source-show-for-ramfs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-show-watermark_boost-of-zone-in-zoneinfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,53 +59,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: yangerkun <yangerkun@huawei.com>
-Subject: ramfs: fix mount source show for ramfs
+From: Liangcai Fan <liangcaifan19@gmail.com>
+Subject: mm/page_alloc.c: show watermark_boost of zone in zoneinfo
 
-ramfs_parse_param does not parse key "source", and will convert -ENOPARAM
-to 0.  This will skip vfs_parse_fs_param_source in vfs_parse_fs_param,
-which lead always "none" mount source for ramfs.  Fix it by parse "source"
-in ramfs_parse_param like cgroup1_parse_param has do.
+min/low/high_wmark_pages(z) is defined as
+(z->_watermark[WMARK_MIN/LOW/HIGH] + z->watermark_boost).
+If kswapd is frequently waked up due to the increase of
+min/low/high_wmark_pages, printing watermark_boost can quickly locate
+whether watermark_boost or _watermark[WMARK_MIN/LOW/HIGH] caused
+min/low/high_wmark_pages to increase.
 
-Link: https://lkml.kernel.org/r/20210924091756.1906118-1-yangerkun@huawei.com
-Signed-off-by: yangerkun <yangerkun@huawei.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: https://lkml.kernel.org/r/1632472566-12246-1-git-send-email-liangcaifan19@gmail.com
+Signed-off-by: Liangcai Fan <liangcaifan19@gmail.com>
+Cc: Chunyan Zhang <zhang.lyra@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/inode.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |    2 ++
+ mm/vmstat.c     |    2 ++
+ 2 files changed, 4 insertions(+)
 
---- a/fs/ramfs/inode.c~ramfs-fix-mount-source-show-for-ramfs
-+++ a/fs/ramfs/inode.c
-@@ -203,17 +203,20 @@ static int ramfs_parse_param(struct fs_c
- 	int opt;
- 
- 	opt = fs_parse(fc, ramfs_fs_parameters, param, &result);
--	if (opt < 0) {
-+	if (opt == -ENOPARAM) {
-+		opt = vfs_parse_fs_param_source(fc, param);
-+		if (opt != -ENOPARAM)
-+			return opt;
- 		/*
- 		 * We might like to report bad mount options here;
- 		 * but traditionally ramfs has ignored all mount options,
- 		 * and as it is used as a !CONFIG_SHMEM simple substitute
- 		 * for tmpfs, better continue to ignore other mount options.
- 		 */
--		if (opt == -ENOPARAM)
--			opt = 0;
--		return opt;
-+		return 0;
+--- a/mm/page_alloc.c~mm-show-watermark_boost-of-zone-in-zoneinfo
++++ a/mm/page_alloc.c
+@@ -5987,6 +5987,7 @@ void show_free_areas(unsigned int filter
+ 		printk(KERN_CONT
+ 			"%s"
+ 			" free:%lukB"
++			" boost:%lukB"
+ 			" min:%lukB"
+ 			" low:%lukB"
+ 			" high:%lukB"
+@@ -6007,6 +6008,7 @@ void show_free_areas(unsigned int filter
+ 			"\n",
+ 			zone->name,
+ 			K(zone_page_state(zone, NR_FREE_PAGES)),
++			K(zone->watermark_boost),
+ 			K(min_wmark_pages(zone)),
+ 			K(low_wmark_pages(zone)),
+ 			K(high_wmark_pages(zone)),
+--- a/mm/vmstat.c~mm-show-watermark_boost-of-zone-in-zoneinfo
++++ a/mm/vmstat.c
+@@ -1656,6 +1656,7 @@ static void zoneinfo_show_print(struct s
  	}
-+	if (opt < 0)
-+		return opt;
- 
- 	switch (opt) {
- 	case Opt_mode:
+ 	seq_printf(m,
+ 		   "\n  pages free     %lu"
++		   "\n        boost    %lu"
+ 		   "\n        min      %lu"
+ 		   "\n        low      %lu"
+ 		   "\n        high     %lu"
+@@ -1664,6 +1665,7 @@ static void zoneinfo_show_print(struct s
+ 		   "\n        managed  %lu"
+ 		   "\n        cma      %lu",
+ 		   zone_page_state(zone, NR_FREE_PAGES),
++		   zone->watermark_boost,
+ 		   min_wmark_pages(zone),
+ 		   low_wmark_pages(zone),
+ 		   high_wmark_pages(zone),
 _
 
-Patches currently in -mm which might be from yangerkun@huawei.com are
+Patches currently in -mm which might be from liangcaifan19@gmail.com are
 
-ramfs-fix-mount-source-show-for-ramfs.patch
+mm-show-watermark_boost-of-zone-in-zoneinfo.patch
 
