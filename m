@@ -2,183 +2,97 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1615FC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Sep 2021 22:34:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1500CC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Sep 2021 22:49:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F00CA6139E
-	for <mm-commits@archiver.kernel.org>; Tue, 28 Sep 2021 22:34:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA0866138D
+	for <mm-commits@archiver.kernel.org>; Tue, 28 Sep 2021 22:49:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242929AbhI1WgD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Sep 2021 18:36:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57678 "EHLO mail.kernel.org"
+        id S243136AbhI1Wus (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 28 Sep 2021 18:50:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59356 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238632AbhI1WgC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Sep 2021 18:36:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 746A561391;
-        Tue, 28 Sep 2021 22:34:22 +0000 (UTC)
+        id S238632AbhI1Wur (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 28 Sep 2021 18:50:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2E0016101A;
+        Tue, 28 Sep 2021 22:49:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632868462;
-        bh=w2qBd4qXIj35frgTB6ja2V77s5q0rPO+9OCFULRWVW0=;
-        h=Date:From:To:Subject:From;
-        b=zVX5ToyX3IHffVqrM4sKUpw5cIlvOf6z1mXEdf6G5dcSrV/VKYy6CV0gT2LR0hP3B
-         EGthUvPjnHsOpRbA+dnfegvohwkoB/LCMaWpUsQF38ENzRE073X4UN8PDidLjFGpzl
-         /AAK3qkK7kZYFTBv0VkpuN019EgOjDB0N4lqM11M=
-Date:   Tue, 28 Sep 2021 15:34:22 -0700
-From:   akpm@linux-foundation.org
-To:     chenwandun@huawei.com, edumazet@google.com, guohanjun@huawei.com,
-        mm-commits@vger.kernel.org, npiggin@gmail.com,
-        wangkefeng.wang@huawei.com
-Subject:  +
- mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch added to -mm tree
-Message-ID: <20210928223422.yS1EGcHTC%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=korg; t=1632869347;
+        bh=nNy78tcaNGUVUjC0TAUSyNRCfV/i85E1LdIz1Wg8I20=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=TG5vi6kFW3ZMutNvgFOaRZi9sdFA9NGYf8598+f3OuJxN2KvitbE0otKivOEKqY3q
+         xe+3mQzomUtHSfQsRDiGKDpdPQYR1OVE0+l9GxfPer5dcihZKV+zugyr5XWRF/iW3O
+         UDCvdocGkUZAn03OAawwoI7/ZiQT/9EGfY1PqcRg=
+Date:   Tue, 28 Sep 2021 15:49:06 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     SeongJae Park <sj@kernel.org>
+Cc:     changbin.du@gmail.com, mm-commits@vger.kernel.org, sjpark@amazon.de
+Subject: Re: +
+ mm-damon-neednt-hold-kdamond_lock-to-print-pid-of-kdamond.patch added to
+ -mm tree
+Message-Id: <20210928154906.24a727916edc995b5d7bd25f@linux-foundation.org>
+In-Reply-To: <20210928073124.14874-1-sj@kernel.org>
+References: <20210928000911.YcLcDNX2u%akpm@linux-foundation.org>
+        <20210928073124.14874-1-sj@kernel.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Tue, 28 Sep 2021 07:31:24 +0000 SeongJae Park <sj@kernel.org> wrote:
 
-The patch titled
-     Subject: mm/vmalloc: fix numa spreading for large hash tables
-has been added to the -mm tree.  Its filename is
-     mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch
+> > Meanwhile, to be symmetrical make the 'starts' and 'finishes' logs both info
+> > level.
+> 
+> We want to log those consistently using 'pr_debug()'[1].  I guess Andrew has
+> already updated the patch to use 'pr_debug()', but didn't update this commit
+> message.
+> 
+> Andrew, could you please update above commit message?
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch
+Done, thanks.
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+From: Changbin Du <changbin.du@gmail.com>
+Subject: mm/damon: needn't hold kdamond_lock to print pid of kdamond
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+Just get the pid by 'current->pid'. Meanwhile, to be symmetrical make
+the 'starts' and 'finishes' logs both use debug level.
 
-------------------------------------------------------
-From: Chen Wandun <chenwandun@huawei.com>
-Subject: mm/vmalloc: fix numa spreading for large hash tables
-
-Eric Dumazet reported a strange numa spreading info in [1], and found
-commit 121e6f3258fe ("mm/vmalloc: hugepage vmalloc mappings") introduced
-this issue [2].
-
-Dig into the difference before and after this patch, page allocation has
-some difference:
-
-before:
-alloc_large_system_hash
-    __vmalloc
-        __vmalloc_node(..., NUMA_NO_NODE, ...)
-            __vmalloc_node_range
-                __vmalloc_area_node
-                    alloc_page /* because NUMA_NO_NODE, so choose alloc_page branch */
-                        alloc_pages_current
-                            alloc_page_interleave /* can be proved by print policy mode */
-
-after:
-alloc_large_system_hash
-    __vmalloc
-        __vmalloc_node(..., NUMA_NO_NODE, ...)
-            __vmalloc_node_range
-                __vmalloc_area_node
-                    alloc_pages_node /* choose nid by nuam_mem_id() */
-                        __alloc_pages_node(nid, ....)
-
-So after commit 121e6f3258fe ("mm/vmalloc: hugepage vmalloc mappings"),
-it will allocate memory in current node instead of interleaving allocate
-memory.
-
-[1]
-https://lore.kernel.org/linux-mm/CANn89iL6AAyWhfxdHO+jaT075iOa3XcYn9k6JJc7JR2XYn6k_Q@mail.gmail.com/
-
-[2]
-https://lore.kernel.org/linux-mm/CANn89iLofTR=AK-QOZY87RdUZENCZUT4O6a0hvhu3_EwRMerOg@mail.gmail.com/
-
-Link: https://lkml.kernel.org/r/20210928121040.2547407-1-chenwandun@huawei.com
-Fixes: 121e6f3258fe ("mm/vmalloc: hugepage vmalloc mappings")
-Signed-off-by: Chen Wandun <chenwandun@huawei.com>
-Reported-by: Eric Dumazet <edumazet@google.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>
+Link: https://lkml.kernel.org/r/20210927232432.17750-1-changbin.du@gmail.com
+Signed-off-by: Changbin Du <changbin.du@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   33 ++++++++++++++++++++++++++-------
- 1 file changed, 26 insertions(+), 7 deletions(-)
+ mm/damon/core.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-fix-numa-spreading-for-large-hash-tables
-+++ a/mm/vmalloc.c
-@@ -2816,6 +2816,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		unsigned int order, unsigned int nr_pages, struct page **pages)
- {
- 	unsigned int nr_allocated = 0;
-+	struct page *page;
-+	int i;
+--- a/mm/damon/core.c~mm-damon-neednt-hold-kdamond_lock-to-print-pid-of-kdamond
++++ a/mm/damon/core.c
+@@ -652,9 +652,7 @@ static int kdamond_fn(void *data)
+ 	unsigned int max_nr_accesses = 0;
+ 	unsigned long sz_limit = 0;
  
- 	/*
- 	 * For order-0 pages we make use of bulk allocator, if
-@@ -2826,6 +2828,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 	if (!order) {
- 		while (nr_allocated < nr_pages) {
- 			unsigned int nr, nr_pages_request;
-+			page = NULL;
+-	mutex_lock(&ctx->kdamond_lock);
+-	pr_debug("kdamond (%d) starts\n", ctx->kdamond->pid);
+-	mutex_unlock(&ctx->kdamond_lock);
++	pr_debug("kdamond (%d) starts\n", current->pid);
  
- 			/*
- 			 * A maximum allowed request is hard-coded and is 100
-@@ -2835,9 +2838,23 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 			 */
- 			nr_pages_request = min(100U, nr_pages - nr_allocated);
+ 	if (ctx->primitive.init)
+ 		ctx->primitive.init(ctx);
+@@ -705,7 +703,7 @@ static int kdamond_fn(void *data)
+ 	if (ctx->primitive.cleanup)
+ 		ctx->primitive.cleanup(ctx);
  
--			nr = alloc_pages_bulk_array_node(gfp, nid,
--				nr_pages_request, pages + nr_allocated);
--
-+			if (nid == NUMA_NO_NODE) {
-+				for (i = 0; i < nr_pages_request; i++) {
-+					page = alloc_page(gfp);
-+					if (page)
-+						pages[nr_allocated + i] = page;
-+					else {
-+						nr = i;
-+						break;
-+					}
-+				}
-+				if (i >= nr_pages_request)
-+					nr = nr_pages_request;
-+			} else {
-+				nr = alloc_pages_bulk_array_node(gfp, nid,
-+							nr_pages_request,
-+							pages + nr_allocated);
-+			}
- 			nr_allocated += nr;
- 			cond_resched();
- 
-@@ -2856,11 +2873,13 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		gfp |= __GFP_COMP;
- 
- 	/* High-order pages or fallback path if "bulk" fails. */
--	while (nr_allocated < nr_pages) {
--		struct page *page;
--		int i;
- 
--		page = alloc_pages_node(nid, gfp, order);
-+	page = NULL;
-+	while (nr_allocated < nr_pages) {
-+		if (nid == NUMA_NO_NODE)
-+			page = alloc_pages(gfp, order);
-+		else
-+			page = alloc_pages_node(nid, gfp, order);
- 		if (unlikely(!page))
- 			break;
- 
+-	pr_debug("kdamond (%d) finishes\n", ctx->kdamond->pid);
++	pr_debug("kdamond (%d) finishes\n", current->pid);
+ 	mutex_lock(&ctx->kdamond_lock);
+ 	ctx->kdamond = NULL;
+ 	mutex_unlock(&ctx->kdamond_lock);
 _
-
-Patches currently in -mm which might be from chenwandun@huawei.com are
-
-mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch
 
