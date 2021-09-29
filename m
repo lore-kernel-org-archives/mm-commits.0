@@ -2,117 +2,92 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2D80BC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Sep 2021 03:31:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED917C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Sep 2021 04:19:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 18D5F613E6
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Sep 2021 03:31:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BD4C7613DB
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Sep 2021 04:19:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239831AbhI2DdD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 28 Sep 2021 23:33:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43710 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S244031AbhI2DdB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 28 Sep 2021 23:33:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9CC9D613E8;
-        Wed, 29 Sep 2021 03:31:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632886280;
-        bh=V/bIFKrgoqtyILuqfk9OX3dB9pnYH67MUrTz4LB9oIY=;
-        h=Date:From:To:Subject:From;
-        b=Kjp/vG0p5bEZ83D2Fqb3Vwkry8mmZ8m+8EKPSq3lpwYrHorAJ5J/O4rJAbvEi9FwL
-         9eEDavPQIxkVN2iwPRN1Z4PTA6eYDAL6bce07V0r3eMSa/+gvZ2bsEzPbjgf/Ywq1P
-         FZW2s0/w+NQLbXkA6IeWc4JJn1nuN9LbIe1mJ76Y=
-Date:   Tue, 28 Sep 2021 20:31:20 -0700
-From:   akpm@linux-foundation.org
-To:     benh@kernel.crashing.org, christophe.leroy@csgroup.eu,
+        id S243856AbhI2EVG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Sep 2021 00:21:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45376 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240067AbhI2EVF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Sep 2021 00:21:05 -0400
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [IPv6:2404:9400:2:0:216:3eff:fee2:21ea])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DA679C061745
+        for <mm-commits@vger.kernel.org>; Tue, 28 Sep 2021 21:19:20 -0700 (PDT)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4HK36Y4dvFz4xLs;
+        Wed, 29 Sep 2021 14:19:17 +1000 (AEST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+        s=201702; t=1632889158;
+        bh=bbiaIZ9jckrVjNc2csoOwZjID/b8lQbiogm6i8p11PQ=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=m/84Q3HTsfbOD7AqRzzXpFX85SyjI0v2CUbbZFeuppkIIlzddMLRovgUt9Wu0nUUp
+         JsTrJSMUTFGf9kHj7xzz3ZDzQrZ3TXNKLXB0o1DEaAB2Ie24dsYnumbykNYHrmjqRo
+         x5yQPix0M1MvB/wzn/TfZT1e3SKh96ENmGIQ/VxFd4/0BvpnFJYc/BCRIQjeNRJ7CO
+         CB4v3tgJKSAL2X9vlQUYNRz5057KluZt7NkPTSq9WoWQVHUdrJblZ8A15nzB4WFJ49
+         rE8V1fM64jzi6aj67ybMM/sqDT2wHMGkv1LhEYAyiEI4afK0IJt5TcNS+keqpUialT
+         /CX1NeAH6v8gQ==
+Date:   Wed, 29 Sep 2021 14:19:16 +1000
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     akpm@linux-foundation.org
+Cc:     benh@kernel.crashing.org, christophe.leroy@csgroup.eu,
         gerald.schaefer@linux.ibm.com, hca@linux.ibm.com,
-        mm-commits@vger.kernel.org, paulus@ozlabs.org, sfr@canb.auug.org.au
-Subject:  [to-be-updated]
- s390-use-generic-version-of-arch_is_kernel_initmem_freed.patch removed from
+        mm-commits@vger.kernel.org, paulus@ozlabs.org
+Subject: Re: [to-be-updated]
+ mm-create-a-new-system-state-and-fix-core_kernel_text.patch removed from
  -mm tree
-Message-ID: <20210929033120.MCtv4Z5nF%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+Message-ID: <20210929141916.776c72e8@canb.auug.org.au>
+In-Reply-To: <20210929033113.cyzBvlSDR%akpm@linux-foundation.org>
+References: <20210929033113.cyzBvlSDR%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="Sig_/v8Sm2fKmkWLnrDvG3RoT7Mo";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+--Sig_/v8Sm2fKmkWLnrDvG3RoT7Mo
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The patch titled
-     Subject: s390: use generic version of arch_is_kernel_initmem_freed()
-has been removed from the -mm tree.  Its filename was
-     s390-use-generic-version-of-arch_is_kernel_initmem_freed.patch
+Hi Andrew,
 
-This patch was dropped because an updated version will be merged
+On Tue, 28 Sep 2021 20:31:13 -0700 akpm@linux-foundation.org wrote:
+>
+> The patch titled
+>      Subject: mm: create a new system state and fix core_kernel_text()
+> has been removed from the -mm tree.  Its filename was
+>      mm-create-a-new-system-state-and-fix-core_kernel_text.patch
+>=20
+> This patch was dropped because an updated version will be merged
 
-------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: s390: use generic version of arch_is_kernel_initmem_freed()
+I have dropped all 4 patches from linux-next.
 
-Generic version of arch_is_kernel_initmem_freed() now does the same as
-s390 version.
+--=20
+Cheers,
+Stephen Rothwell
 
-Remove the s390 version.
+--Sig_/v8Sm2fKmkWLnrDvG3RoT7Mo
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-Link: https://lkml.kernel.org/r/d4a15dc0e699e6a60858bff4d183a9b1aea90433.1632813331.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Acked-by: Heiko Carstens <hca@linux.ibm.com>
-Cc: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@ozlabs.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+-----BEGIN PGP SIGNATURE-----
 
- arch/s390/include/asm/sections.h |   12 ------------
- arch/s390/mm/init.c              |    3 ---
- 2 files changed, 15 deletions(-)
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmFT6UQACgkQAVBC80lX
+0GzfcAf+Ppy1IGGkADRt/jgl0OjtRjbB4FAKuEEjZ/gCs4kA7R3F4Y88alQc4JuN
+FGdKnU7gPkAlhjHkQIR0f0y3U5atRSmtYI8XNaxHV4TwQqxmtrkkcb+5a/rNdv8g
+GuFXwJ0AiJpAafI38cmQUHNVTWf2lu82y6isF8u6h53setnPg4+Cd/0yuz0FoJDB
+VP1J1MdSabAJdiMrFFWvlOMShbWxDzvEWsvq4gHVfwPs2ArjHIm962SVDtezY5BD
+siQEbVQeRnENCJHJX+5x46H1snjGJ8g6whHB5d84iVKn7Jxj37wYyy52OCGT3S6+
+rg7bkI9B2On1iU+r1c6KhkkzEIgnvA==
+=iGo+
+-----END PGP SIGNATURE-----
 
---- a/arch/s390/include/asm/sections.h~s390-use-generic-version-of-arch_is_kernel_initmem_freed
-+++ a/arch/s390/include/asm/sections.h
-@@ -2,20 +2,8 @@
- #ifndef _S390_SECTIONS_H
- #define _S390_SECTIONS_H
- 
--#define arch_is_kernel_initmem_freed arch_is_kernel_initmem_freed
--
- #include <asm-generic/sections.h>
- 
--extern bool initmem_freed;
--
--static inline int arch_is_kernel_initmem_freed(unsigned long addr)
--{
--	if (!initmem_freed)
--		return 0;
--	return addr >= (unsigned long)__init_begin &&
--	       addr < (unsigned long)__init_end;
--}
--
- /*
-  * .boot.data section contains variables "shared" between the decompressor and
-  * the decompressed kernel. The decompressor will store values in them, and
---- a/arch/s390/mm/init.c~s390-use-generic-version-of-arch_is_kernel_initmem_freed
-+++ a/arch/s390/mm/init.c
-@@ -58,8 +58,6 @@ unsigned long empty_zero_page, zero_page
- EXPORT_SYMBOL(empty_zero_page);
- EXPORT_SYMBOL(zero_page_mask);
- 
--bool initmem_freed;
--
- static void __init setup_zero_pages(void)
- {
- 	unsigned int order;
-@@ -214,7 +212,6 @@ void __init mem_init(void)
- 
- void free_initmem(void)
- {
--	initmem_freed = true;
- 	__set_memory((unsigned long)_sinittext,
- 		     (unsigned long)(_einittext - _sinittext) >> PAGE_SHIFT,
- 		     SET_MEMORY_RW | SET_MEMORY_NX);
-_
-
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
-
-
+--Sig_/v8Sm2fKmkWLnrDvG3RoT7Mo--
