@@ -2,125 +2,75 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6285C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Sep 2021 23:46:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11C1BC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 00:34:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97F6E61353
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Sep 2021 23:46:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBD3661502
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 00:34:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347702AbhI2Xsd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 29 Sep 2021 19:48:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:55662 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347701AbhI2Xsd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 29 Sep 2021 19:48:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 97E2460F12;
-        Wed, 29 Sep 2021 23:46:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1632959211;
-        bh=wuOzYneqRX4yCL/e8JoMnZjsTFyhZm3DMLx6Tt7Ip0w=;
-        h=Date:From:To:Subject:From;
-        b=0IOxDVyA3InhzsPu9+VwXEGXrXmieIrMW2dilkjY/0vixDd/11UsXF5V9B17wycwT
-         4gbBC1CbxXiX6nGNPHTtDIq476lTXqgcGW5zfl1rBinKEODmdlk+y/1CZqnXD+2PH5
-         G8AjcAjbWC4SDnj1IkAqj3ViihVDavhbmyuhv5ho=
-Date:   Wed, 29 Sep 2021 16:46:51 -0700
-From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, elver@google.com,
-        mm-commits@vger.kernel.org
-Subject:  +
- =?US-ASCII?Q?kfence-limit-currently-covered-allocations-when-pool-nearl?=
- =?US-ASCII?Q?y-full-fix-fix.patch?= added to -mm tree
-Message-ID: <20210929234651.R5tEK4Art%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S1343924AbhI3Aga (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Sep 2021 20:36:30 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42034 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233113AbhI3Aga (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Sep 2021 20:36:30 -0400
+Received: from mail-pj1-x1032.google.com (mail-pj1-x1032.google.com [IPv6:2607:f8b0:4864:20::1032])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0BAB4C06161C
+        for <mm-commits@vger.kernel.org>; Wed, 29 Sep 2021 17:34:49 -0700 (PDT)
+Received: by mail-pj1-x1032.google.com with SMTP id rm6-20020a17090b3ec600b0019ece2bdd20so3406762pjb.1
+        for <mm-commits@vger.kernel.org>; Wed, 29 Sep 2021 17:34:49 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=LAMxImEvoR9zgpeQhNnpHNqQhvsq2PQwkw3Ht2soJt0=;
+        b=nebmldPsc+nhqbbQYjR5VOuae3wuzOpINnE2kNShkfseBOZoIM426BN+r+/FOmAKUk
+         E7Olak8yf7DJoWB1tJ32LKeRTdk0G028KK1xTrSLGwKSUnp/9EVP8DSijdE0yowIq/ft
+         xGff5L0wpjF+/K4yfptu1RVo1aBwm7/pdjAxs=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=LAMxImEvoR9zgpeQhNnpHNqQhvsq2PQwkw3Ht2soJt0=;
+        b=C8STUTgJeB78IM9qHBMGLO9KdymWld0vnBGDCSvHceRE40cMst7NEgzUAxiEdG8901
+         NbYshPp/nhhJf7gM02m5KOausOQEkmtYrt0Jhdc7bnwv1mp45Q/m9M7dd1VnbUA+8sTB
+         U0D8HB959XJAWxaea0gihFYq+aX2aF8BFxptjTAUGxg3/6GLXEEwIui6d4HBL9H74wwm
+         y3sxttSiwpGoxLiQzTeD7JdL+vILds+s16KnqnShLz/L5m0v4ggL+OtirY0EYgWMDtCA
+         wwYhSzqffbEeFthCoSoYESOjc4f46XMrneY5RFU8GWfR5DpG7lZJ7HSV5jxMs3YtMlgX
+         8kIQ==
+X-Gm-Message-State: AOAM531J0FZLP/oLszoso1sHR/LcrcMGVglmANrpQUoxvXr4YY/DeGND
+        DniWBWW+68gXJMF2NlpGAH3ehw==
+X-Google-Smtp-Source: ABdhPJz1EKn6AdiBgGnftnt4RvSQb8q1Hu2n8HR41tEUVMGuPoSjTD7/4OsD/RoRRn8d41Rc67nXpw==
+X-Received: by 2002:a17:90b:1102:: with SMTP id gi2mr2978289pjb.43.1632962088443;
+        Wed, 29 Sep 2021 17:34:48 -0700 (PDT)
+Received: from google.com ([2409:10:2e40:5100:f25e:9ab:ea46:1e61])
+        by smtp.gmail.com with ESMTPSA id z4sm871251pfz.99.2021.09.29.17.34.46
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Wed, 29 Sep 2021 17:34:48 -0700 (PDT)
+Date:   Thu, 30 Sep 2021 09:34:39 +0900
+From:   Sergey Senozhatsky <senozhatsky@chromium.org>
+To:     akpm@linux-foundation.org
+Cc:     bgeffon@google.com, minchan@kernel.org, mm-commits@vger.kernel.org,
+        senozhatsky@chromium.org
+Subject: Re: + zram-introduce-an-aged-idle-interface-v6.patch added to -mm
+ tree
+Message-ID: <YVUGH89NaRujCfKW@google.com>
+References: <20210929234334.qZxwN3qB4%akpm@linux-foundation.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210929234334.qZxwN3qB4%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On (21/09/29 16:43), akpm@linux-foundation.org wrote:
+> Sergey's cleanup suggestions
+> 
+> Link: https://lkml.kernel.org/r/20210929143056.13067-1-bgeffon@google.com
+> Signed-off-by: Brian Geffon <bgeffon@google.com>
+> Acked-by: Minchan Kim <minchan@kernel.org>
+> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 
-The patch titled
-     Subject: fixup! kfence: limit currently covered allocations when pool nearly full
-has been added to the -mm tree.  Its filename is
-     kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix.patch
-
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: fixup! kfence: limit currently covered allocations when pool nearly full
-
-Fix 32 bit. size_t is UL on 64-bit only; just cast it to size_t
-
-mm/kfence/core.c: In function `get_alloc_stack_hash':
-./include/linux/minmax.h:20:28: warning: comparison of distinct pointer types lacks a cast
-   20 |  (!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
-      |                            ^~
-./include/linux/minmax.h:26:4: note: in expansion of macro `__typecheck'
-   26 |   (__typecheck(x, y) && __no_side_effects(x, y))
-      |    ^~~~~~~~~~~
-./include/linux/minmax.h:36:24: note: in expansion of macro `__safe_cmp'
-   36 |  __builtin_choose_expr(__safe_cmp(x, y), \
-      |                        ^~~~~~~~~~
-./include/linux/minmax.h:45:19: note: in expansion of macro `__careful_cmp'
-   45 | #define min(x, y) __careful_cmp(x, y, <)
-      |                   ^~~~~~~~~~~~~
-mm/kfence/core.c:177:16: note: in expansion of macro `min'
-  177 |  num_entries = min(num_entries, UNIQUE_ALLOC_STACK_DEPTH);
-      |                ^~~
-
-Link: https://lkml.kernel.org/r/YVQ0fE4Yil2EX8FI@elver.google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/kfence/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/mm/kfence/core.c~kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix
-+++ a/mm/kfence/core.c
-@@ -130,7 +130,7 @@ atomic_t kfence_allocation_gate = ATOMIC
- static atomic_t alloc_covered[ALLOC_COVERED_SIZE];
- 
- /* Stack depth used to determine uniqueness of an allocation. */
--#define UNIQUE_ALLOC_STACK_DEPTH 8UL
-+#define UNIQUE_ALLOC_STACK_DEPTH ((size_t)8)
- 
- /*
-  * Randomness for stack hashes, making the same collisions across reboots and
-_
-
-Patches currently in -mm which might be from elver@google.com are
-
-lib-stackdepot-include-gfph.patch
-lib-stackdepot-remove-unused-function-argument.patch
-lib-stackdepot-introduce-__stack_depot_save.patch
-kasan-common-provide-can_alloc-in-kasan_save_stack.patch
-kasan-generic-introduce-kasan_record_aux_stack_noalloc.patch
-workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
-mm-fix-data-race-in-pagepoisoned.patch
-stacktrace-move-filter_irq_stacks-to-kernel-stacktracec.patch
-kfence-count-unexpectedly-skipped-allocations.patch
-kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
-kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
-kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
-kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix.patch
-kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
-kfence-test-use-kunit_skip-to-skip-tests.patch
-
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
