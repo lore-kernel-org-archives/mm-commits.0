@@ -2,37 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 57763C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:14:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26201C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:21:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 34D0C61A0B
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:14:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F5B661A08
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:21:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348761AbhI3VQD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 17:16:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60288 "EHLO mail.kernel.org"
+        id S1348770AbhI3VXe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Sep 2021 17:23:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35764 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1348652AbhI3VQD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 17:16:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C42B461881;
-        Thu, 30 Sep 2021 21:14:19 +0000 (UTC)
+        id S245695AbhI3VXe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Sep 2021 17:23:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4911161284;
+        Thu, 30 Sep 2021 21:21:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633036460;
-        bh=Tq0eF1lqwfYLNXCCO1mKQ0ZjBQW34zQrHOVBFrdobu4=;
+        s=korg; t=1633036911;
+        bh=Kb2O/gRXZpP0sykNpwmSapwCdBnC/UqyPMe0PE9h/Pg=;
         h=Date:From:To:Subject:From;
-        b=xkdt+INrH1cDeBL1H9IboNObVoRdDCzMe6NcXHYieOCDQPKb2dISqtXOEtbtCRJuq
-         FBJjnt3IxS+kfxvC9DHf5IRJ5QFRK1wRKnWk6jST0yJeS5OjBGp4ur6VmB++Yb2qAM
-         rJk585n5KpTmjHfv+971niraFiyOVXThvf/4b/6Q=
-Date:   Thu, 30 Sep 2021 14:14:19 -0700
+        b=AApkO27w17qVYKA1ebZGsNARqxM8B6ff7C1hw/FXhW7MtaVRZlBo2oJg+dpBkKKLc
+         CLOSEWW4fhg+8zL14Ml3Fdx1WCZ4x6/hAjP8511uJXNTcTmGi6e+A1BW4ri5q4XyC3
+         NAkBhUprCUhRaDX+UKz5qcgL6bSOX9LnBnJU8gts=
+Date:   Thu, 30 Sep 2021 14:21:49 -0700
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jack@suse.cz,
-        jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
-        stable@vger.kernel.org
-Subject:  +
- ocfs2-fix-data-corruption-after-conversion-from-inline-format.patch added
- to -mm tree
-Message-ID: <20210930211419.EV9dUOp7i%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, arnd@arndb.de, ast@kernel.org,
+        benh@kernel.crashing.org, bp@alien8.de,
+        christophe.leroy@csgroup.eu, davem@davemloft.net,
+        dvyukov@google.com, glider@google.com, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org,
+        monstr@monstr.eu, mpe@ellerman.id.au, paulus@samba.org,
+        pmladek@suse.com, rostedt@goodmis.org, rth@twiddle.net,
+        ryabinin.a.a@gmail.com, senozhatsky@chromium.org,
+        tglx@linutronix.de, wangkefeng.wang@huawei.com
+Subject:  + kallsyms-remove-arch-specific-text-and-data-check.patch
+ added to -mm tree
+Message-ID: <20210930212149.TDvMQI9fl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: Fix data corruption after conversion from inline format
+     Subject: kallsyms: remove arch specific text and data check
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-data-corruption-after-conversion-from-inline-format.patch
+     kallsyms-remove-arch-specific-text-and-data-check.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-data-corruption-after-conversion-from-inline-format.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kallsyms-remove-arch-specific-text-and-data-check.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-data-corruption-after-conversion-from-inline-format.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kallsyms-remove-arch-specific-text-and-data-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,178 +66,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: Fix data corruption after conversion from inline format
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: kallsyms: remove arch specific text and data check
 
-Commit 6dbf7bb55598 ("fs: Don't invalidate page buffers in
-block_write_full_page()") uncovered a latent bug in ocfs2 conversion
-from inline inode format to a normal inode format.
+Patch series "sections: Unify kernel sections range check and use", v4.
 
-The code in
-ocfs2_convert_inline_data_to_extents() attempts to zero out the whole
-cluster allocated for file data by grabbing, zeroing, and dirtying all
-pages covering this cluster. However these pages are beyond i_size, thus
-writeback code generally ignores these dirty pages and no blocks were
-ever actually zeroed on the disk.
+There are three head files(kallsyms.h, kernel.h and sections.h) which
+include the kernel sections range check, let's make some cleanup and unify
+them.
 
-This oversight was fixed by commit 693c241a5f6a ("ocfs2: No need to zero
-pages past i_size.") for standard ocfs2 write path, inline conversion path
-was apparently forgotten; the commit log also has a reasoning why the
-zeroing actually is not needed.
+1. cleanup arch specific text/data check and fix address boundary check
+   in kallsyms.h
 
-After commit 6dbf7bb55598, things became worse as writeback code stopped
-invalidating buffers on pages beyond i_size and thus these pages end up
-with clean PageDirty bit but with buffers attached to these pages being
-still dirty.  So when a file is converted from inline format, then
-writeback triggers, and then the file is grown so that these pages become
-valid, the invalid dirtiness state is preserved, mark_buffer_dirty() does
-nothing on these pages (buffers are already dirty) but page is never
-written back because it is clean.  So data written to these pages is lost
-once pages are reclaimed.
+2. make all the basic/core kernel range check function into sections.h
 
-Simple reproducer for the problem is:
+3. update all the callers, and use the helper in sections.h to simplify
+   the code
 
-xfs_io -f -c "pwrite 0 2000" -c "pwrite 2000 2000" -c "fsync" \
-  -c "pwrite 4000 2000" ocfs2_file
+After this series, we have 5 APIs about kernel sections range check in
+sections.h
 
-After unmounting and mounting the fs again, you can observe that end of
-'ocfs2_file' has lost its contents.
+ * is_kernel_rodata()		--- already in sections.h
+ * is_kernel_core_data()	--- come from core_kernel_data() in kernel.h
+ * is_kernel_inittext()		--- come from kernel.h and kallsyms.h
+ * __is_kernel_text()		--- add new internal helper
+ * __is_kernel()		--- add new internal helper
 
-Fix the problem by not doing the pointless zeroing during conversion
-from inline format similarly as in the standard write path.
+Note: For the last two helpers, people should not use directly, consider to
+      use corresponding function in kallsyms.h.
 
-Link: https://lkml.kernel.org/r/20210930095405.21433-1-jack@suse.cz
-Fixes: 6dbf7bb55598 ("fs: Don't invalidate page buffers in block_write_full_page()")
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+
+This patch (of 11):
+
+Remove arch specific text and data check after commit 4ba66a976072 ("arch:
+remove blackfin port"), no need arch-specific text/data check.
+
+Link: https://lkml.kernel.org/r/20210930071143.63410-1-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210930071143.63410-2-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Alexei Starovoitov <ast@kernel.org>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   46 +++++++++++----------------------------------
- 1 file changed, 12 insertions(+), 34 deletions(-)
+ include/asm-generic/sections.h |   16 ----------------
+ include/linux/kallsyms.h       |    3 +--
+ kernel/locking/lockdep.c       |    3 ---
+ 3 files changed, 1 insertion(+), 21 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-fix-data-corruption-after-conversion-from-inline-format
-+++ a/fs/ocfs2/alloc.c
-@@ -7045,7 +7045,7 @@ void ocfs2_set_inode_data_inline(struct
- int ocfs2_convert_inline_data_to_extents(struct inode *inode,
- 					 struct buffer_head *di_bh)
+--- a/include/asm-generic/sections.h~kallsyms-remove-arch-specific-text-and-data-check
++++ a/include/asm-generic/sections.h
+@@ -64,22 +64,6 @@ extern __visible const void __nosave_beg
+ #define dereference_kernel_function_descriptor(p) ((void *)(p))
+ #endif
+ 
+-/* random extra sections (if any).  Override
+- * in asm/sections.h */
+-#ifndef arch_is_kernel_text
+-static inline int arch_is_kernel_text(unsigned long addr)
+-{
+-	return 0;
+-}
+-#endif
+-
+-#ifndef arch_is_kernel_data
+-static inline int arch_is_kernel_data(unsigned long addr)
+-{
+-	return 0;
+-}
+-#endif
+-
+ /**
+  * memory_contains - checks if an object is contained within a memory region
+  * @begin: virtual address of the beginning of the memory region
+--- a/include/linux/kallsyms.h~kallsyms-remove-arch-specific-text-and-data-check
++++ a/include/linux/kallsyms.h
+@@ -34,8 +34,7 @@ static inline int is_kernel_inittext(uns
+ 
+ static inline int is_kernel_text(unsigned long addr)
  {
--	int ret, i, has_data, num_pages = 0;
-+	int ret,has_data, num_pages = 0;
- 	int need_free = 0;
- 	u32 bit_off, num;
- 	handle_t *handle;
-@@ -7054,26 +7054,17 @@ int ocfs2_convert_inline_data_to_extents
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)di_bh->b_data;
- 	struct ocfs2_alloc_context *data_ac = NULL;
--	struct page **pages = NULL;
--	loff_t end = osb->s_clustersize;
-+	struct page *page = NULL;
- 	struct ocfs2_extent_tree et;
- 	int did_quota = 0;
- 
- 	has_data = i_size_read(inode) ? 1 : 0;
- 
- 	if (has_data) {
--		pages = kcalloc(ocfs2_pages_per_cluster(osb->sb),
--				sizeof(struct page *), GFP_NOFS);
--		if (pages == NULL) {
--			ret = -ENOMEM;
--			mlog_errno(ret);
--			return ret;
--		}
--
- 		ret = ocfs2_reserve_clusters(osb, 1, &data_ac);
- 		if (ret) {
- 			mlog_errno(ret);
--			goto free_pages;
-+			goto out;
- 		}
- 	}
- 
-@@ -7093,7 +7084,8 @@ int ocfs2_convert_inline_data_to_extents
- 	}
- 
- 	if (has_data) {
--		unsigned int page_end;
-+		unsigned int page_end = min_t(unsigned, PAGE_SIZE,
-+							osb->s_clustersize);
- 		u64 phys;
- 
- 		ret = dquot_alloc_space_nodirty(inode,
-@@ -7117,15 +7109,8 @@ int ocfs2_convert_inline_data_to_extents
- 		 */
- 		block = phys = ocfs2_clusters_to_blocks(inode->i_sb, bit_off);
- 
--		/*
--		 * Non sparse file systems zero on extend, so no need
--		 * to do that now.
--		 */
--		if (!ocfs2_sparse_alloc(osb) &&
--		    PAGE_SIZE < osb->s_clustersize)
--			end = PAGE_SIZE;
--
--		ret = ocfs2_grab_eof_pages(inode, 0, end, pages, &num_pages);
-+		ret = ocfs2_grab_eof_pages(inode, 0, page_end, &page,
-+					   &num_pages);
- 		if (ret) {
- 			mlog_errno(ret);
- 			need_free = 1;
-@@ -7136,20 +7121,15 @@ int ocfs2_convert_inline_data_to_extents
- 		 * This should populate the 1st page for us and mark
- 		 * it up to date.
- 		 */
--		ret = ocfs2_read_inline_data(inode, pages[0], di_bh);
-+		ret = ocfs2_read_inline_data(inode, page, di_bh);
- 		if (ret) {
- 			mlog_errno(ret);
- 			need_free = 1;
- 			goto out_unlock;
- 		}
- 
--		page_end = PAGE_SIZE;
--		if (PAGE_SIZE > osb->s_clustersize)
--			page_end = osb->s_clustersize;
--
--		for (i = 0; i < num_pages; i++)
--			ocfs2_map_and_dirty_page(inode, handle, 0, page_end,
--						 pages[i], i > 0, &phys);
-+		ocfs2_map_and_dirty_page(inode, handle, 0, page_end, page, 0,
-+					 &phys);
- 	}
- 
- 	spin_lock(&oi->ip_lock);
-@@ -7180,8 +7160,8 @@ int ocfs2_convert_inline_data_to_extents
- 	}
- 
- out_unlock:
--	if (pages)
--		ocfs2_unlock_and_free_pages(pages, num_pages);
-+	if (page)
-+		ocfs2_unlock_and_free_pages(&page, num_pages);
- 
- out_commit:
- 	if (ret < 0 && did_quota)
-@@ -7205,8 +7185,6 @@ out_commit:
- out:
- 	if (data_ac)
- 		ocfs2_free_alloc_context(data_ac);
--free_pages:
--	kfree(pages);
- 	return ret;
+-	if ((addr >= (unsigned long)_stext && addr <= (unsigned long)_etext) ||
+-	    arch_is_kernel_text(addr))
++	if ((addr >= (unsigned long)_stext && addr <= (unsigned long)_etext))
+ 		return 1;
+ 	return in_gate_area_no_mm(addr);
  }
+--- a/kernel/locking/lockdep.c~kallsyms-remove-arch-specific-text-and-data-check
++++ a/kernel/locking/lockdep.c
+@@ -818,9 +818,6 @@ static int static_obj(const void *obj)
+ 	if ((addr >= start) && (addr < end))
+ 		return 1;
  
+-	if (arch_is_kernel_data(addr))
+-		return 1;
+-
+ 	/*
+ 	 * in-kernel percpu var?
+ 	 */
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-ocfs2-fix-data-corruption-after-conversion-from-inline-format.patch
+slub-add-back-check-for-free-nonslab-objects.patch
+mm-nommu-kill-arch_get_unmapped_area.patch
+kallsyms-remove-arch-specific-text-and-data-check.patch
+kallsyms-fix-address-checks-for-kernel-related-range.patch
+sections-move-and-rename-core_kernel_data-to-is_kernel_core_data.patch
+sections-move-is_kernel_inittext-into-sectionsh.patch
+x86-mm-rename-__is_kernel_text-to-is_x86_32_kernel_text.patch
+sections-provide-internal-__is_kernel-and-__is_kernel_text-helper.patch
+mm-kasan-use-is_kernel-helper.patch
+extable-use-is_kernel_text-helper.patch
+powerpc-mm-use-core_kernel_text-helper.patch
+microblaze-use-is_kernel_text-helper.patch
+alpha-use-is_kernel_text-helper.patch
 
