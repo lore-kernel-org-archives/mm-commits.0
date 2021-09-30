@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5B6ACC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:29:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3FAF5C433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:29:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 39C6461A40
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:29:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2670B61A40
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:29:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229806AbhI3Vaq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 17:30:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41946 "EHLO mail.kernel.org"
+        id S244917AbhI3Vas (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Sep 2021 17:30:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42036 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229682AbhI3Vaq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 17:30:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DE116615A2;
-        Thu, 30 Sep 2021 21:29:02 +0000 (UTC)
+        id S229682AbhI3Vas (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Sep 2021 17:30:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CB2A961A02;
+        Thu, 30 Sep 2021 21:29:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633037343;
-        bh=Ps65yGeuTHPTZe7Ry/9j9ZszIkoXKC2rSjPZwCTH2M4=;
+        s=korg; t=1633037345;
+        bh=ggIXb6zJocPN3pcjnHzqR5kf7pB1wP8FCW8UDPgaRmg=;
         h=Date:From:To:Subject:From;
-        b=ENB12MQuvlaI1kxCmpkq57xzfuG2slWkWPsJKzAcmJJpTJfjii9QsGheTUWLc++qB
-         FqUBYVAjO5USoEcQvazot7ncTFgMqgy26DffswZOX63RG0uy2garXEbfkPiso7Be6Q
-         7KlJXe+qJVtsD1V8ztdmTi3FSIcB5YcFAB5z9MPY=
-Date:   Thu, 30 Sep 2021 14:29:02 -0700
+        b=O03WHk+ivYcUY+iWPvLjYBmZIoe3WGPNI1KljRnM/Cvikfdl1dYrlMtLeB/N9e4Ja
+         z5NnSZI/p0NXtc4V0NsHS+ZFrkI53hjJhXhGV38ylVYJjFmjT8wo2T4uMTJzW88w6g
+         kaBucA7cuywUGRnMDH7rxQK4NZXDJIgKGKviAMZM=
+Date:   Thu, 30 Sep 2021 14:29:04 -0700
 From:   akpm@linux-foundation.org
 To:     hannes@cmpxchg.org, mhocko@kernel.org, mkoutny@suse.com,
         mm-commits@vger.kernel.org, shakeelb@google.com
-Subject:  + memcg-flush-stats-only-if-updated.patch added to -mm
- tree
-Message-ID: <20210930212902.1Mvz1PuoQ%akpm@linux-foundation.org>
+Subject:  + memcg-unify-memcg-stat-flushing.patch added to -mm tree
+Message-ID: <20210930212904.ElgfC9RYp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
@@ -41,16 +40,16 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: flush stats only if updated
+     Subject: memcg: unify memcg stat flushing
 has been added to the -mm tree.  Its filename is
-     memcg-flush-stats-only-if-updated.patch
+     memcg-unify-memcg-stat-flushing.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-flush-stats-only-if-upd=
-ated.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-unify-memcg-stat-flushi=
+ng.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-flush-stats-only-if-upd=
-ated.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-unify-memcg-stat-flushi=
+ng.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,124 +65,102 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: flush stats only if updated
+Subject: memcg: unify memcg stat flushing
 
-At the moment, the kernel flushes the memcg stats on every refault and
-also on every reclaim iteration.  Although rstat maintains per-cpu update
-tree but on the flush the kernel still has to go through all the cpu rstat
-update tree to check if there is anything to flush.  This patch adds the
-tracking on the stats update side to make flush side more clever by
-skipping the flush if there is no update.
+The memcg stats can be flushed in multiple context and potentially in
+parallel too.  For example multiple parallel user space readers for memcg
+stats will contend on the rstat locks with each other.  There is no need
+for that.  We just need one flusher and everyone else can benefit.  In
+addition after aa48e47e3906 ("memcg: infrastructure to flush memcg stats")
+the kernel periodically flush the memcg stats from the root, so, the other
+flushers will potentially have much less work to do.
 
-The stats update codepath is very sensitive performance wise for many
-workloads and benchmarks.  So, we can not follow what the commit
-aa48e47e3906 ("memcg: infrastructure to flush memcg stats") did which was
-triggering async flush through queue_work() and caused a lot performance
-regression reports.  That got reverted by the commit 1f828223b799 ("memcg:
-flush lruvec stats in the refault").
-
-In this patch we kept the stats update codepath very minimal and let the
-stats reader side to flush the stats only when the updates are over a
-specific threshold.  For now the threshold is (nr_cpus * CHARGE_BATCH).
-
-To evaluate the impact of this patch, an 8 GiB tmpfs file is created on a
-system with swap-on-zram and the file was pushed to swap through
-memory.force_empty interface.  On reading the whole file, the memcg stat
-flush in the refault code path is triggered.  With this patch, we bserved
-63% reduction in the read time of 8 GiB file.
-
-Link: https://lkml.kernel.org/r/20210930044711.2892660-1-shakeelb@google.com
+Link: https://lkml.kernel.org/r/20210930044711.2892660-2-shakeelb@google.com
 Signed-off-by: Shakeel Butt <shakeelb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: "Michal Koutn=C3=BD" <mkoutny@suse.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   26 ++++++++++++++++++++++----
- 1 file changed, 22 insertions(+), 4 deletions(-)
+ mm/memcontrol.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
---- a/mm/memcontrol.c~memcg-flush-stats-only-if-updated
+--- a/mm/memcontrol.c~memcg-unify-memcg-stat-flushing
 +++ a/mm/memcontrol.c
-@@ -107,6 +107,8 @@ static bool do_memsw_account(void)
- static void flush_memcg_stats_dwork(struct work_struct *w);
- static DECLARE_DEFERRABLE_WORK(stats_flush_dwork, flush_memcg_stats_dwork);
- static DEFINE_SPINLOCK(stats_flush_lock);
-+static DEFINE_PER_CPU(unsigned int, stats_updates);
-+static atomic_t stats_flush_threshold =3D ATOMIC_INIT(0);
+@@ -1425,7 +1425,7 @@ static char *memory_stat_format(struct m
+ 	 *
+ 	 * Current memory state:
+ 	 */
+-	cgroup_rstat_flush(memcg->css.cgroup);
++	mem_cgroup_flush_stats();
 =20
- #define THRESHOLDS_EVENTS_TARGET 128
- #define SOFTLIMIT_EVENTS_TARGET 1024
-@@ -635,6 +637,13 @@ mem_cgroup_largest_soft_limit_node(struc
- 	return mz;
- }
+ 	for (i =3D 0; i < ARRAY_SIZE(memory_stats); i++) {
+ 		u64 size;
+@@ -3529,8 +3529,7 @@ static unsigned long mem_cgroup_usage(st
+ 	unsigned long val;
 =20
-+static inline void memcg_rstat_updated(struct mem_cgroup *memcg)
-+{
-+	cgroup_rstat_updated(memcg->css.cgroup, smp_processor_id());
-+	if (!(__this_cpu_inc_return(stats_updates) % MEMCG_CHARGE_BATCH))
-+		atomic_inc(&stats_flush_threshold);
-+}
-+
- /**
-  * __mod_memcg_state - update cgroup memory statistics
-  * @memcg: the memory cgroup
-@@ -647,7 +656,7 @@ void __mod_memcg_state(struct mem_cgroup
- 		return;
+ 	if (mem_cgroup_is_root(memcg)) {
+-		/* mem_cgroup_threshold() calls here from irqsafe context */
+-		cgroup_rstat_flush_irqsafe(memcg->css.cgroup);
++		mem_cgroup_flush_stats();
+ 		val =3D memcg_page_state(memcg, NR_FILE_PAGES) +
+ 			memcg_page_state(memcg, NR_ANON_MAPPED);
+ 		if (swap)
+@@ -3911,7 +3910,7 @@ static int memcg_numa_stat_show(struct s
+ 	int nid;
+ 	struct mem_cgroup *memcg =3D mem_cgroup_from_seq(m);
 =20
- 	__this_cpu_add(memcg->vmstats_percpu->state[idx], val);
--	cgroup_rstat_updated(memcg->css.cgroup, smp_processor_id());
-+	memcg_rstat_updated(memcg);
- }
+-	cgroup_rstat_flush(memcg->css.cgroup);
++	mem_cgroup_flush_stats();
 =20
- /* idx can be of type enum memcg_stat_item or node_stat_item. */
-@@ -675,10 +684,12 @@ void __mod_memcg_lruvec_state(struct lru
- 	memcg =3D pn->memcg;
+ 	for (stat =3D stats; stat < stats + ARRAY_SIZE(stats); stat++) {
+ 		seq_printf(m, "%s=3D%lu", stat->name,
+@@ -3983,7 +3982,7 @@ static int memcg_stat_show(struct seq_fi
 =20
- 	/* Update memcg */
--	__mod_memcg_state(memcg, idx, val);
-+	__this_cpu_add(memcg->vmstats_percpu->state[idx], val);
+ 	BUILD_BUG_ON(ARRAY_SIZE(memcg1_stat_names) !=3D ARRAY_SIZE(memcg1_stats));
 =20
- 	/* Update lruvec */
- 	__this_cpu_add(pn->lruvec_stats_percpu->state[idx], val);
-+
-+	memcg_rstat_updated(memcg);
- }
+-	cgroup_rstat_flush(memcg->css.cgroup);
++	mem_cgroup_flush_stats();
 =20
- /**
-@@ -780,7 +791,7 @@ void __count_memcg_events(struct mem_cgr
- 		return;
+ 	for (i =3D 0; i < ARRAY_SIZE(memcg1_stats); i++) {
+ 		unsigned long nr;
+@@ -4486,7 +4485,7 @@ void mem_cgroup_wb_stats(struct bdi_writ
+ 	struct mem_cgroup *memcg =3D mem_cgroup_from_css(wb->memcg_css);
+ 	struct mem_cgroup *parent;
 =20
- 	__this_cpu_add(memcg->vmstats_percpu->events[idx], count);
--	cgroup_rstat_updated(memcg->css.cgroup, smp_processor_id());
-+	memcg_rstat_updated(memcg);
- }
+-	cgroup_rstat_flush_irqsafe(memcg->css.cgroup);
++	mem_cgroup_flush_stats();
 =20
- static unsigned long memcg_events(struct mem_cgroup *memcg, int event)
-@@ -5341,15 +5352,22 @@ static void mem_cgroup_css_reset(struct
- 	memcg_wb_domain_size_changed(memcg);
- }
+ 	*pdirty =3D memcg_page_state(memcg, NR_FILE_DIRTY);
+ 	*pwriteback =3D memcg_page_state(memcg, NR_WRITEBACK);
+@@ -5354,12 +5353,14 @@ static void mem_cgroup_css_reset(struct
 =20
--void mem_cgroup_flush_stats(void)
-+static void __mem_cgroup_flush_stats(void)
+ static void __mem_cgroup_flush_stats(void)
  {
- 	if (!spin_trylock(&stats_flush_lock))
+-	if (!spin_trylock(&stats_flush_lock))
++	unsigned long flag;
++
++	if (!spin_trylock_irqsave(&stats_flush_lock, flag))
  		return;
 =20
  	cgroup_rstat_flush_irqsafe(root_mem_cgroup->css.cgroup);
-+	atomic_set(&stats_flush_threshold, 0);
- 	spin_unlock(&stats_flush_lock);
+ 	atomic_set(&stats_flush_threshold, 0);
+-	spin_unlock(&stats_flush_lock);
++	spin_unlock_irqrestore(&stats_flush_lock, flag);
  }
 =20
-+void mem_cgroup_flush_stats(void)
-+{
-+	if (atomic_read(&stats_flush_threshold) > num_online_cpus())
-+		__mem_cgroup_flush_stats();
-+}
-+
- static void flush_memcg_stats_dwork(struct work_struct *w)
- {
- 	mem_cgroup_flush_stats();
+ void mem_cgroup_flush_stats(void)
+@@ -6391,7 +6392,7 @@ static int memory_numa_stat_show(struct
+ 	int i;
+ 	struct mem_cgroup *memcg =3D mem_cgroup_from_seq(m);
+=20
+-	cgroup_rstat_flush(memcg->css.cgroup);
++	mem_cgroup_flush_stats();
+=20
+ 	for (i =3D 0; i < ARRAY_SIZE(memory_stats); i++) {
+ 		int nid;
 _
 
 Patches currently in -mm which might be from shakeelb@google.com are
