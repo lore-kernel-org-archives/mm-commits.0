@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 35807C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA6D2C433FE
 	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:22:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1A8A861A6E
+	by mail.kernel.org (Postfix) with ESMTP id 951DF61A6F
 	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:22:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349722AbhI3VYI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1349648AbhI3VYI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 30 Sep 2021 17:24:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36546 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:36588 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1349648AbhI3VYA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 17:24:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 145E961A08;
-        Thu, 30 Sep 2021 21:22:17 +0000 (UTC)
+        id S1349614AbhI3VYD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Sep 2021 17:24:03 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1563E61A6C;
+        Thu, 30 Sep 2021 21:22:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633036937;
-        bh=IzmywyZMDZXduTve2xHfI10+xwUbrIAHvnJBQ/6y3Ck=;
+        s=korg; t=1633036940;
+        bh=maMe0i3QBae6zIuHsA9yXhbjJS2Bo2zKo12xYPzNzB8=;
         h=Date:From:To:Subject:From;
-        b=VYGQdc2aJeNxH3UgFq8bdb9aIH4Xh1mZfP+Copv1armMNknYkXB7Ynl7J1KbiGo+T
-         535t5/CERWEC6eiSjOOAWo85u3TDe+E4RSamEq5qNtK175fV5Wmo+gx6KVttj28ncS
-         YmUDBJbK8BXIsDEdbPDgglHTQq485QHfFy8imiKE=
-Date:   Thu, 30 Sep 2021 14:22:16 -0700
+        b=SeCrAWAwGhV1jr1s8QqSEO0jIJ+28xstC5UE84IrWikYCFK5viqtwxHWd+mKDKdP/
+         onDOEgwBJfG++X1SBoVoNcETxk4LLOE+DPhPtOZBuFqxuN+7u5HxWuG7x2Su5qTcU5
+         bT39csSd1bLS9Sjn9fuw3dP0QV+DQ9jROteaGicE=
+Date:   Thu, 30 Sep 2021 14:22:19 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, arnd@arndb.de, ast@kernel.org,
         benh@kernel.crashing.org, bp@alien8.de,
         christophe.leroy@csgroup.eu, davem@davemloft.net,
         dvyukov@google.com, glider@google.com, ink@jurassic.park.msu.ru,
-        mattst88@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org,
-        monstr@monstr.eu, mpe@ellerman.id.au, paulus@samba.org,
+        mattst88@gmail.com, michal.simek@xilinx.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org,
         pmladek@suse.com, rostedt@goodmis.org, rth@twiddle.net,
         ryabinin.a.a@gmail.com, senozhatsky@chromium.org,
         tglx@linutronix.de, wangkefeng.wang@huawei.com
-Subject:  + powerpc-mm-use-core_kernel_text-helper.patch added to
- -mm tree
-Message-ID: <20210930212216.eUotpqY7_%akpm@linux-foundation.org>
+Subject:  + microblaze-use-is_kernel_text-helper.patch added to -mm
+ tree
+Message-ID: <20210930212219.FHQWabaKp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: use core_kernel_text() helper
+     Subject: microblaze: use is_kernel_text() helper
 has been added to the -mm tree.  Its filename is
-     powerpc-mm-use-core_kernel_text-helper.patch
+     microblaze-use-is_kernel_text-helper.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-use-core_kernel_text-helper.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/microblaze-use-is_kernel_text-helper.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-use-core_kernel_text-helper.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/microblaze-use-is_kernel_text-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,29 +67,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: powerpc/mm: use core_kernel_text() helper
+Subject: microblaze: use is_kernel_text() helper
 
-Use core_kernel_text() helper to simplify code, also drop etext, _stext,
-_sinittext, _einittext declaration which already declared in section.h.
+Use is_kernel_text() helper to simplify code.
 
-Link: https://lkml.kernel.org/r/20210930071143.63410-10-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210930071143.63410-11-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Acked-by: Michal Simek <michal.simek@xilinx.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Alexei Starovoitov <ast@kernel.org>
 Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Borislav Petkov <bp@alien8.de>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
 Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Ingo Molnar <mingo@redhat.com>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Matt Turner <mattst88@gmail.com>
-Cc: Michal Simek <monstr@monstr.eu>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Paul Mackerras <paulus@samba.org>
 Cc: Petr Mladek <pmladek@suse.com>
 Cc: Richard Henderson <rth@twiddle.net>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
@@ -98,37 +97,28 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/pgtable_32.c |    7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ arch/microblaze/mm/pgtable.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/arch/powerpc/mm/pgtable_32.c~powerpc-mm-use-core_kernel_text-helper
-+++ a/arch/powerpc/mm/pgtable_32.c
-@@ -33,8 +33,6 @@
+--- a/arch/microblaze/mm/pgtable.c~microblaze-use-is_kernel_text-helper
++++ a/arch/microblaze/mm/pgtable.c
+@@ -34,6 +34,7 @@
+ #include <linux/mm_types.h>
+ #include <linux/pgtable.h>
+ #include <linux/memblock.h>
++#include <linux/kallsyms.h>
  
- #include <mm/mmu_decl.h>
- 
--extern char etext[], _stext[], _sinittext[], _einittext[];
--
- static u8 early_fixmap_pagetable[FIXMAP_PTE_SIZE] __page_aligned_data;
- 
- notrace void __init early_ioremap_init(void)
-@@ -104,14 +102,13 @@ static void __init __mapin_ram_chunk(uns
- {
- 	unsigned long v, s;
- 	phys_addr_t p;
--	int ktext;
-+	bool ktext;
- 
- 	s = offset;
- 	v = PAGE_OFFSET + s;
- 	p = memstart_addr + s;
- 	for (; s < top; s += PAGE_SIZE) {
--		ktext = ((char *)v >= _stext && (char *)v < etext) ||
--			((char *)v >= _sinittext && (char *)v < _einittext);
-+		ktext = core_kernel_text(v);
- 		map_kernel_page(v, p, ktext ? PAGE_KERNEL_TEXT : PAGE_KERNEL);
- 		v += PAGE_SIZE;
- 		p += PAGE_SIZE;
+ #include <asm/pgalloc.h>
+ #include <linux/io.h>
+@@ -171,7 +172,7 @@ void __init mapin_ram(void)
+ 	for (s = 0; s < lowmem_size; s += PAGE_SIZE) {
+ 		f = _PAGE_PRESENT | _PAGE_ACCESSED |
+ 				_PAGE_SHARED | _PAGE_HWEXEC;
+-		if ((char *) v < _stext || (char *) v >= _etext)
++		if (!is_kernel_text(v))
+ 			f |= _PAGE_WRENABLE;
+ 		else
+ 			/* On the MicroBlaze, no user access
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
