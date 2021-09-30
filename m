@@ -2,41 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA6D2C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:22:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 72DE3C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:27:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 951DF61A6F
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:22:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3C9AA61A02
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 21:27:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1349648AbhI3VYI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 17:24:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36588 "EHLO mail.kernel.org"
+        id S229828AbhI3V2z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Sep 2021 17:28:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1349614AbhI3VYD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 17:24:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1563E61A6C;
-        Thu, 30 Sep 2021 21:22:20 +0000 (UTC)
+        id S229806AbhI3V2z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Sep 2021 17:28:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BE360615A2;
+        Thu, 30 Sep 2021 21:27:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633036940;
-        bh=maMe0i3QBae6zIuHsA9yXhbjJS2Bo2zKo12xYPzNzB8=;
+        s=korg; t=1633037232;
+        bh=qmwTXTMNVXvvqDYnuJ0QZZWCOVzNqcAbgxnIzcg4+Ug=;
         h=Date:From:To:Subject:From;
-        b=SeCrAWAwGhV1jr1s8QqSEO0jIJ+28xstC5UE84IrWikYCFK5viqtwxHWd+mKDKdP/
-         onDOEgwBJfG++X1SBoVoNcETxk4LLOE+DPhPtOZBuFqxuN+7u5HxWuG7x2Su5qTcU5
-         bT39csSd1bLS9Sjn9fuw3dP0QV+DQ9jROteaGicE=
-Date:   Thu, 30 Sep 2021 14:22:19 -0700
+        b=pWHuaNBzDYAbk+YaLeWOLXQOQRDsObFvMOy1GQb9zIhHWhVcXhsliqy1frg80dTVa
+         c65s6W6H05Eg8y/7Z8EtaWPnbMG2rQuua4WtgYielvcROrQ9AfrgaUv/i/VSgh8Fhm
+         go5bXDWKXIN38TOSECFKl+HkrBqXhN2Rtfmo5F8k=
+Date:   Thu, 30 Sep 2021 14:27:11 -0700
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, arnd@arndb.de, ast@kernel.org,
-        benh@kernel.crashing.org, bp@alien8.de,
-        christophe.leroy@csgroup.eu, davem@davemloft.net,
-        dvyukov@google.com, glider@google.com, ink@jurassic.park.msu.ru,
-        mattst88@gmail.com, michal.simek@xilinx.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mpe@ellerman.id.au, paulus@samba.org,
-        pmladek@suse.com, rostedt@goodmis.org, rth@twiddle.net,
-        ryabinin.a.a@gmail.com, senozhatsky@chromium.org,
-        tglx@linutronix.de, wangkefeng.wang@huawei.com
-Subject:  + microblaze-use-is_kernel_text-helper.patch added to -mm
- tree
-Message-ID: <20210930212219.FHQWabaKp%akpm@linux-foundation.org>
+To:     cl@linux.com, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org,
+        penberg@kernel.org, rientjes@google.com, shakeelb@google.com,
+        vbabka@suse.cz, wangkefeng.wang@huawei.com, willy@infradead.org
+Subject:  + slub-add-back-check-for-free-nonslab-objects.patch
+ added to -mm tree
+Message-ID: <20210930212711.RLqzKyaA-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: microblaze: use is_kernel_text() helper
+     Subject: slub: add back check for free nonslab objects
 has been added to the -mm tree.  Its filename is
-     microblaze-use-is_kernel_text-helper.patch
+     slub-add-back-check-for-free-nonslab-objects.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/microblaze-use-is_kernel_text-helper.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/slub-add-back-check-for-free-nonslab-objects.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/microblaze-use-is_kernel_text-helper.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/slub-add-back-check-for-free-nonslab-objects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,58 +61,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: microblaze: use is_kernel_text() helper
+Subject: slub: add back check for free nonslab objects
 
-Use is_kernel_text() helper to simplify code.
+After commit ("f227f0faf63b slub: fix unreclaimable slab stat for bulk
+free"), the check for free nonslab page is replaced by VM_BUG_ON_PAGE,
+which only check with CONFIG_DEBUG_VM enabled, but this config may impact
+performance, so it only for debug.
 
-Link: https://lkml.kernel.org/r/20210930071143.63410-11-wangkefeng.wang@huawei.com
+Commit ("0937502af7c9 slub: Add check for kfree() of non slab objects.")
+add the ability, which should be needed in any configs to catch the
+invalid free, they even could be potential issue, eg, memory corruption,
+use after free and double free, so replace VM_BUG_ON_PAGE to WARN_ON_ONCE,
+add object address printing to help use to debug the issue.
+
+Link: https://lkml.kernel.org/r/20210930070214.61499-1-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Acked-by: Michal Simek <michal.simek@xilinx.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rienjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/microblaze/mm/pgtable.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/slub.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/microblaze/mm/pgtable.c~microblaze-use-is_kernel_text-helper
-+++ a/arch/microblaze/mm/pgtable.c
-@@ -34,6 +34,7 @@
- #include <linux/mm_types.h>
- #include <linux/pgtable.h>
- #include <linux/memblock.h>
-+#include <linux/kallsyms.h>
+--- a/mm/slub.c~slub-add-back-check-for-free-nonslab-objects
++++ a/mm/slub.c
+@@ -3522,7 +3522,9 @@ static inline void free_nonslab_page(str
+ {
+ 	unsigned int order = compound_order(page);
  
- #include <asm/pgalloc.h>
- #include <linux/io.h>
-@@ -171,7 +172,7 @@ void __init mapin_ram(void)
- 	for (s = 0; s < lowmem_size; s += PAGE_SIZE) {
- 		f = _PAGE_PRESENT | _PAGE_ACCESSED |
- 				_PAGE_SHARED | _PAGE_HWEXEC;
--		if ((char *) v < _stext || (char *) v >= _etext)
-+		if (!is_kernel_text(v))
- 			f |= _PAGE_WRENABLE;
- 		else
- 			/* On the MicroBlaze, no user access
+-	VM_BUG_ON_PAGE(!PageCompound(page), page);
++	if (WARN_ON_ONCE(!PageCompound(page)))
++		pr_warn_once("object pointer: 0x%p\n", object);
++
+ 	kfree_hook(object);
+ 	mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B, -(PAGE_SIZE << order));
+ 	__free_pages(page, order);
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
