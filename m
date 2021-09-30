@@ -2,34 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D7ABC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:23:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0915C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:30:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D678B61A53
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:23:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 97EEF619E7
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:30:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229948AbhI3WYs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 18:24:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36034 "EHLO mail.kernel.org"
+        id S230145AbhI3Wc2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Sep 2021 18:32:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39102 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229908AbhI3WYr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 18:24:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AC64E61A4F;
-        Thu, 30 Sep 2021 22:23:04 +0000 (UTC)
+        id S229836AbhI3Wc2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Sep 2021 18:32:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D44F361881;
+        Thu, 30 Sep 2021 22:30:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633040584;
-        bh=/xG39mGgK8Yvl1Q7YqqrTFb8W0wlRD7vixJfh8EoilA=;
+        s=korg; t=1633041045;
+        bh=+EX9VfKKSCzzbFHjEueLvJAebkCEDwVb/N+qK6OHbT4=;
         h=Date:From:To:Subject:From;
-        b=o3nAC/dY+oQK8cvgoeLU5lIazSFeZQP9YJ1A4j3aX0TgH15JIhPowkraanG2xTCvc
-         Yxp1iJdX+EpTjQ2c3t9gDRAvigw/34CNLUAIMM4jOnYrsjRrF/w/yWTJM16P/29fm2
-         3tbDZVi6eSVh103b0+yAiK9kYtQMgAfrK00oS8ek=
-Date:   Thu, 30 Sep 2021 15:23:04 -0700
+        b=mSPEfaqx6J8ANxumYYjldTe5QF92WzC8BT5ZS1zs3VeKMbbwa4JAcqp0VGgbF7Qp9
+         bOLz8G2LTPXAc6zB6Pxn3W5pVMak2cjth14hgU5/MTkHHnRk5poPFeTYycG3VDWrE2
+         AGqYLbeMwm9dALc0izWBvf7e6s0HHtVy4eUbrVf4=
+Date:   Thu, 30 Sep 2021 15:30:44 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, geert+renesas@glider.be,
-        mm-commits@vger.kernel.org, peng.fan@nxp.com, rppt@kernel.org
-Subject:  + memblock-check-memory-total_size.patch added to -mm
- tree
-Message-ID: <20210930222304.--OL_47EE%akpm@linux-foundation.org>
+To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
+        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
+        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
+        stable@vger.kernel.org, vvidic@valentin-vidic.from.hr
+Subject:  + ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
+ added to -mm tree
+Message-ID: <20210930223044.KchedDq_r%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: check memory total_size
+     Subject: ocfs2: mount fails with buffer overflow in strlen
 has been added to the -mm tree.  Its filename is
-     memblock-check-memory-total_size.patch
+     ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memblock-check-memory-total_size.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memblock-check-memory-total_size.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,40 +61,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peng Fan <peng.fan@nxp.com>
-Subject: memblock: check memory total_size
+From: Valentin Vidic <vvidic@valentin-vidic.from.hr>
+Subject: ocfs2: mount fails with buffer overflow in strlen
 
-mem=[X][G|M] is broken on ARM64 platform, there are cases that even
-type.cnt is 1, but total_size is not 0 because regions are merged into 1. 
-So only check 'cnt' is not enough, total_size should be used, othersize
-bootargs 'mem=[X][G|B]' not work anymore.
+Starting with kernel 5.11 built with CONFIG_FORTIFY_SOURCE mouting an
+ocfs2 filesystem with either o2cb or pcmk cluster stack fails with the
+trace below.  Problem seems to be that strings for cluster stack and
+cluster name are not guaranteed to be null terminated in the disk
+representation, while strlcpy assumes that the source string is always
+null terminated.  This causes a read outside of the source string
+triggering the buffer overflow detection.
 
-Link: https://lkml.kernel.org/r/20210930024437.32598-1-peng.fan@oss.nxp.com
-Fixes: e888fa7bb882 ("memblock: Check memory add/cap ordering")
-Signed-off-by: Peng Fan <peng.fan@nxp.com>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: David Hildenbrand <david@redhat.com>
+detected buffer overflow in strlen
+------------[ cut here ]------------
+kernel BUG at lib/string.c:1149!
+invalid opcode: 0000 [#1] SMP PTI
+CPU: 1 PID: 910 Comm: mount.ocfs2 Not tainted 5.14.0-1-amd64 #1
+  Debian 5.14.6-2
+RIP: 0010:fortify_panic+0xf/0x11
+...
+Call Trace:
+ ocfs2_initialize_super.isra.0.cold+0xc/0x18 [ocfs2]
+ ocfs2_fill_super+0x359/0x19b0 [ocfs2]
+ mount_bdev+0x185/0x1b0
+ ? ocfs2_remount+0x440/0x440 [ocfs2]
+ legacy_get_tree+0x27/0x40
+ vfs_get_tree+0x25/0xb0
+ path_mount+0x454/0xa20
+ __x64_sys_mount+0x103/0x140
+ do_syscall_64+0x3b/0xc0
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+
+Link: https://lkml.kernel.org/r/20210929180654.32460-1-vvidic@valentin-vidic.from.hr
+Signed-off-by: Valentin Vidic <vvidic@valentin-vidic.from.hr>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/super.c |   14 ++++++++++----
+ 1 file changed, 10 insertions(+), 4 deletions(-)
 
---- a/mm/memblock.c~memblock-check-memory-total_size
-+++ a/mm/memblock.c
-@@ -1687,7 +1687,7 @@ void __init memblock_cap_memory_range(ph
- 	if (!size)
- 		return;
- 
--	if (memblock.memory.cnt <= 1) {
-+	if (!memblock_memory->total_size) {
- 		pr_warn("%s: No memory registered yet\n", __func__);
- 		return;
+--- a/fs/ocfs2/super.c~ocfs2-mount-fails-with-buffer-overflow-in-strlen
++++ a/fs/ocfs2/super.c
+@@ -2167,11 +2167,17 @@ static int ocfs2_initialize_super(struct
  	}
+ 
+ 	if (ocfs2_clusterinfo_valid(osb)) {
++		/*
++		 * ci_stack and ci_cluster in ocfs2_cluster_info may not be null
++		 * terminated, so make sure no overflow happens here by using
++		 * memcpy. Destination strings will always be null terminated
++		 * because osb is allocated using kzalloc.
++		 */
+ 		osb->osb_stackflags =
+ 			OCFS2_RAW_SB(di)->s_cluster_info.ci_stackflags;
+-		strlcpy(osb->osb_cluster_stack,
++		memcpy(osb->osb_cluster_stack,
+ 		       OCFS2_RAW_SB(di)->s_cluster_info.ci_stack,
+-		       OCFS2_STACK_LABEL_LEN + 1);
++		       OCFS2_STACK_LABEL_LEN);
+ 		if (strlen(osb->osb_cluster_stack) != OCFS2_STACK_LABEL_LEN) {
+ 			mlog(ML_ERROR,
+ 			     "couldn't mount because of an invalid "
+@@ -2180,9 +2186,9 @@ static int ocfs2_initialize_super(struct
+ 			status = -EINVAL;
+ 			goto bail;
+ 		}
+-		strlcpy(osb->osb_cluster_name,
++		memcpy(osb->osb_cluster_name,
+ 			OCFS2_RAW_SB(di)->s_cluster_info.ci_cluster,
+-			OCFS2_CLUSTER_NAME_LEN + 1);
++			OCFS2_CLUSTER_NAME_LEN);
+ 	} else {
+ 		/* The empty string is identical with classic tools that
+ 		 * don't know about s_cluster_info. */
 _
 
-Patches currently in -mm which might be from peng.fan@nxp.com are
+Patches currently in -mm which might be from vvidic@valentin-vidic.from.hr are
 
-memblock-check-memory-total_size.patch
+ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
 
