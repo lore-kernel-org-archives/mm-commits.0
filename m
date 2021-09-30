@@ -2,35 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42390C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 20:32:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F903C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 20:34:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11CF061A50
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 20:32:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 67E8361A54
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 20:34:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347892AbhI3UeH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 16:34:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44078 "EHLO mail.kernel.org"
+        id S1348028AbhI3Uga (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Sep 2021 16:36:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45124 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347824AbhI3UeG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 16:34:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B24DB61994;
-        Thu, 30 Sep 2021 20:32:23 +0000 (UTC)
+        id S1347824AbhI3Uga (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Sep 2021 16:36:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0CFF561994;
+        Thu, 30 Sep 2021 20:34:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633033943;
-        bh=0/euYZKEkxk4v9x2Rb1qG/zGpq4KrcO4dIzGNxQ1b+U=;
+        s=korg; t=1633034087;
+        bh=SjkNB4Z1KThQUsM4E9ksoo4YjfCq1z4x1sjOpb6hU3Y=;
         h=Date:From:To:Subject:From;
-        b=Xqmsxw5uWAJPLcbB7SCMEGWm8fssGMNbf794FbVUMKqJb52Q1Jl+/CLv65qn3kLoN
-         8T3eC0vC13yP1Z5GItC9W/6ivvuJTDrwi4xv4WGIGKn5E0Vm9c1XB33A5vmLXsvI9J
-         3ag6qD8NcvWvwR/b7iVgFWbnhFX0+vVs5zxom4Vk=
-Date:   Thu, 30 Sep 2021 13:32:23 -0700
+        b=O1LtVVQF2NCyjmJo/BB5zwTE2ARVT1Ot66WOeR5GTda5R3NJEf6SgplbugtvaoEqO
+         bvh9Bz8zIfn1R/OGFFYre5dUgEOs7jd1mvISyMw+bhIV4kCq2zhZHgroB7yLb4E8oh
+         feSplW345zKMo+vZEg/GQeL0gDoyM2TIXEUhnLCE=
+Date:   Thu, 30 Sep 2021 13:34:46 -0700
 From:   akpm@linux-foundation.org
-To:     dvyukov@google.com, elver@google.com, glider@google.com,
-        jannh@google.com, mm-commits@vger.kernel.org
-Subject:  + kfence-shorten-critical-sections-of-alloc-free.patch
- added to -mm tree
-Message-ID: <20210930203223.hNlqVlcry%akpm@linux-foundation.org>
+To:     corbet@lwn.net, david@redhat.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de, rppt@kernel.org
+Subject:  +
+ =?US-ASCII?Q?memory-hotplugrst-fix-two-instances-of-movablecore-that-shou?=
+ =?US-ASCII?Q?ld-be-movable=5Fnode.patch?= added to -mm tree
+Message-ID: <20210930203446.4GMDlhAnh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -38,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: shorten critical sections of alloc/free
+     Subject: memory-hotplug.rst: fix two instances of "movablecore" that should be "movable_node"
 has been added to the -mm tree.  Its filename is
-     kfence-shorten-critical-sections-of-alloc-free.patch
+     memory-hotplugrst-fix-two-instances-of-movablecore-that-should-be-movable_node.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kfence-shorten-critical-sections-of-alloc-free.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memory-hotplugrst-fix-two-instances-of-movablecore-that-should-be-movable_node.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-shorten-critical-sections-of-alloc-free.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplugrst-fix-two-instances-of-movablecore-that-should-be-movable_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,149 +62,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kfence: shorten critical sections of alloc/free
+From: David Hildenbrand <david@redhat.com>
+Subject: memory-hotplug.rst: fix two instances of "movablecore" that should be "movable_node"
 
-Initializing memory and setting/checking the canary bytes is relatively
-expensive, and doing so in the meta->lock critical sections extends the
-duration with preemption and interrupts disabled unnecessarily.
+Pach series "memory-hotplug.rst: document the "auto-movable" online policy".
 
-Any reads to meta->addr and meta->size in kfence_guarded_alloc() and
-kfence_guarded_free() don't require locking meta->lock as long as the
-object is removed from the freelist: only kfence_guarded_alloc() sets
-meta->addr and meta->size after removing it from the freelist, which
-requires a preceding kfence_guarded_free() returning it to the list or the
-initial state.
+Now that the memory-hotplug.rst overhaul is upstream, proper documentation
+for the "auto-movable" online policy, documenting all new toggles and
+options.  Along, two fixes for the original overhaul.
 
-Therefore move reads to meta->addr and meta->size, including expensive
-memory initialization using them, out of meta->lock critical sections.
 
-Link: https://lkml.kernel.org/r/20210930153706.2105471-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Acked-by: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Jann Horn <jannh@google.com>
+This patch (of 3):
+
+We really want to refer to the "movable_node" kernel command line
+parameter here.
+
+Link: https://lkml.kernel.org/r/20210930144117.23641-2-david@redhat.com
+Fixes: ac3332c44767 ("memory-hotplug.rst: complete admin-guide overhaul")
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   38 +++++++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 17 deletions(-)
+ Documentation/admin-guide/mm/memory-hotplug.rst |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/kfence/core.c~kfence-shorten-critical-sections-of-alloc-free
-+++ a/mm/kfence/core.c
-@@ -309,12 +309,19 @@ static inline bool set_canary_byte(u8 *a
- /* Check canary byte at @addr. */
- static inline bool check_canary_byte(u8 *addr)
- {
-+	struct kfence_metadata *meta;
-+	unsigned long flags;
-+
- 	if (likely(*addr == KFENCE_CANARY_PATTERN(addr)))
- 		return true;
+--- a/Documentation/admin-guide/mm/memory-hotplug.rst~memory-hotplugrst-fix-two-instances-of-movablecore-that-should-be-movable_node
++++ a/Documentation/admin-guide/mm/memory-hotplug.rst
+@@ -166,7 +166,7 @@ Or alternatively::
+ 	% echo 1 > /sys/devices/system/memory/memoryXXX/online
  
- 	atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
--	kfence_report_error((unsigned long)addr, false, NULL, addr_to_metadata((unsigned long)addr),
--			    KFENCE_ERROR_CORRUPTION);
-+
-+	meta = addr_to_metadata((unsigned long)addr);
-+	raw_spin_lock_irqsave(&meta->lock, flags);
-+	kfence_report_error((unsigned long)addr, false, NULL, meta, KFENCE_ERROR_CORRUPTION);
-+	raw_spin_unlock_irqrestore(&meta->lock, flags);
-+
- 	return false;
- }
+ The kernel will select the target zone automatically, usually defaulting to
+-``ZONE_NORMAL`` unless ``movablecore=1`` has been specified on the kernel
++``ZONE_NORMAL`` unless ``movable_node`` has been specified on the kernel
+ command line or if the memory block would intersect the ZONE_MOVABLE already.
  
-@@ -324,8 +331,6 @@ static __always_inline void for_each_can
- 	const unsigned long pageaddr = ALIGN_DOWN(meta->addr, PAGE_SIZE);
- 	unsigned long addr;
- 
--	lockdep_assert_held(&meta->lock);
--
- 	/*
- 	 * We'll iterate over each canary byte per-side until fn() returns
- 	 * false. However, we'll still iterate over the canary bytes to the
-@@ -414,8 +419,9 @@ static void *kfence_guarded_alloc(struct
- 	WRITE_ONCE(meta->cache, cache);
- 	meta->size = size;
- 	meta->alloc_stack_hash = alloc_stack_hash;
-+	raw_spin_unlock_irqrestore(&meta->lock, flags);
- 
--	for_each_canary(meta, set_canary_byte);
-+	alloc_covered_add(alloc_stack_hash, 1);
- 
- 	/* Set required struct page fields. */
- 	page = virt_to_page(meta->addr);
-@@ -425,11 +431,8 @@ static void *kfence_guarded_alloc(struct
- 	if (IS_ENABLED(CONFIG_SLAB))
- 		page->s_mem = addr;
- 
--	raw_spin_unlock_irqrestore(&meta->lock, flags);
--
--	alloc_covered_add(alloc_stack_hash, 1);
--
- 	/* Memory initialization. */
-+	for_each_canary(meta, set_canary_byte);
- 
- 	/*
- 	 * We check slab_want_init_on_alloc() ourselves, rather than letting
-@@ -454,6 +457,7 @@ static void kfence_guarded_free(void *ad
- {
- 	struct kcsan_scoped_access assert_page_exclusive;
- 	unsigned long flags;
-+	bool init;
- 
- 	raw_spin_lock_irqsave(&meta->lock, flags);
- 
-@@ -481,6 +485,13 @@ static void kfence_guarded_free(void *ad
- 		meta->unprotected_page = 0;
- 	}
- 
-+	/* Mark the object as freed. */
-+	metadata_update_state(meta, KFENCE_OBJECT_FREED, NULL, 0);
-+	init = slab_want_init_on_free(meta->cache);
-+	raw_spin_unlock_irqrestore(&meta->lock, flags);
-+
-+	alloc_covered_add(meta->alloc_stack_hash, -1);
-+
- 	/* Check canary bytes for memory corruption. */
- 	for_each_canary(meta, check_canary_byte);
- 
-@@ -489,16 +500,9 @@ static void kfence_guarded_free(void *ad
- 	 * data is still there, and after a use-after-free is detected, we
- 	 * unprotect the page, so the data is still accessible.
- 	 */
--	if (!zombie && unlikely(slab_want_init_on_free(meta->cache)))
-+	if (!zombie && unlikely(init))
- 		memzero_explicit(addr, meta->size);
- 
--	/* Mark the object as freed. */
--	metadata_update_state(meta, KFENCE_OBJECT_FREED, NULL, 0);
--
--	raw_spin_unlock_irqrestore(&meta->lock, flags);
--
--	alloc_covered_add(meta->alloc_stack_hash, -1);
--
- 	/* Protect to detect use-after-frees. */
- 	kfence_protect((unsigned long)addr);
- 
+ One can explicitly request to associate an offline memory block with
+@@ -393,7 +393,7 @@ command line parameters are relevant:
+ ======================== =======================================================
+ ``memhp_default_state``	 configure auto-onlining by essentially setting
+                          ``/sys/devices/system/memory/auto_online_blocks``.
+-``movablecore``		 configure automatic zone selection of the kernel. When
++``movable_node``	 configure automatic zone selection in the kernel. When
+ 			 set, the kernel will default to ZONE_MOVABLE, unless
+ 			 other zones can be kept contiguous.
+ ======================== =======================================================
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-lib-stackdepot-include-gfph.patch
-lib-stackdepot-remove-unused-function-argument.patch
-lib-stackdepot-introduce-__stack_depot_save.patch
-kasan-common-provide-can_alloc-in-kasan_save_stack.patch
-kasan-generic-introduce-kasan_record_aux_stack_noalloc.patch
-workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
-mm-fix-data-race-in-pagepoisoned.patch
-stacktrace-move-filter_irq_stacks-to-kernel-stacktracec.patch
-kfence-count-unexpectedly-skipped-allocations.patch
-kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
-kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
-kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
-kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix.patch
-kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
-kfence-test-use-kunit_skip-to-skip-tests.patch
-kfence-shorten-critical-sections-of-alloc-free.patch
+memory-hotplugrst-fix-two-instances-of-movablecore-that-should-be-movable_node.patch
+memory-hotplugrst-fix-wrong-sys-module-memory_hotplug-parameters-path.patch
+memory-hotplugrst-document-the-auto-movable-online-policy.patch
+kernel-resource-clean-up-and-optimize-iomem_is_exclusive.patch
+kernel-resource-disallow-access-to-exclusive-system-ram-regions.patch
+virtio-mem-disallow-mapping-virtio-mem-memory-via-dev-mem.patch
 
