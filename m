@@ -2,37 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0915C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:30:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C885C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:33:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 97EEF619E7
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:30:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6EA6461A54
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:33:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230145AbhI3Wc2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 18:32:28 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39102 "EHLO mail.kernel.org"
+        id S1345059AbhI3WfX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Sep 2021 18:35:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229836AbhI3Wc2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 18:32:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D44F361881;
-        Thu, 30 Sep 2021 22:30:44 +0000 (UTC)
+        id S1348158AbhI3WfW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Sep 2021 18:35:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 36614619E7;
+        Thu, 30 Sep 2021 22:33:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633041045;
-        bh=+EX9VfKKSCzzbFHjEueLvJAebkCEDwVb/N+qK6OHbT4=;
+        s=korg; t=1633041218;
+        bh=gxB6aNAGao1pNPr3kTzeDASqPJ/XzVN3n/JZWdUtL20=;
         h=Date:From:To:Subject:From;
-        b=mSPEfaqx6J8ANxumYYjldTe5QF92WzC8BT5ZS1zs3VeKMbbwa4JAcqp0VGgbF7Qp9
-         bOLz8G2LTPXAc6zB6Pxn3W5pVMak2cjth14hgU5/MTkHHnRk5poPFeTYycG3VDWrE2
-         AGqYLbeMwm9dALc0izWBvf7e6s0HHtVy4eUbrVf4=
-Date:   Thu, 30 Sep 2021 15:30:44 -0700
+        b=ssY2Q6xkre8mihuwyQL3jhQBBnkw2yZvJNWoPD9tMVSz+scjs3Opo+E96L5IjI+2R
+         3TEfHc3vzcE09NLRGJsIj1O4SHNyb6ksBxJeYteMvSEdMgqdAkoI7oQCElk0VzQ4bd
+         v0XnSuJ+1Bln8ihtNHBc6LSmz7/9v0FRjDKVvA+Y=
+Date:   Thu, 30 Sep 2021 15:33:37 -0700
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
-        stable@vger.kernel.org, vvidic@valentin-vidic.from.hr
-Subject:  + ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
- added to -mm tree
-Message-ID: <20210930223044.KchedDq_r%akpm@linux-foundation.org>
+To:     alexs@kernel.org, benh@kernel.crashing.org, bp@alien8.de,
+        corbet@lwn.net, dave.hansen@linux.intel.com, david@redhat.com,
+        gregkh@linuxfoundation.org, hpa@zytor.com, jasowang@redhat.com,
+        luto@kernel.org, mhocko@suse.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, mpe@ellerman.id.au, mst@redhat.com,
+        osalvador@suse.de, paulus@samba.org, peterz@infradead.org,
+        rafael@kernel.org, rppt@kernel.org, shuah@kernel.org,
+        tglx@linutronix.de
+Subject:  +
+ =?US-ASCII?Q?mm-memory=5Fhotplug-remove-config=5Fx86=5F64=5Facpi=5Fnuma?=
+ =?US-ASCII?Q?-dependency-from-config=5Fmemory=5Fhotplug.patch?= added to
+ -mm tree
+Message-ID: <20210930223337.MwzwjvF3_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: mount fails with buffer overflow in strlen
+     Subject: mm/memory_hotplug: remove CONFIG_X86_64_ACPI_NUMA dependency from CONFIG_MEMORY_HOTPLUG
 has been added to the -mm tree.  Its filename is
-     ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
+     mm-memory_hotplug-remove-config_x86_64_acpi_numa-dependency-from-config_memory_hotplug.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-remove-config_x86_64_acpi_numa-dependency-from-config_memory_hotplug.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-remove-config_x86_64_acpi_numa-dependency-from-config_memory_hotplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,90 +69,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Valentin Vidic <vvidic@valentin-vidic.from.hr>
-Subject: ocfs2: mount fails with buffer overflow in strlen
+From: David Hildenbrand <david@redhat.com>
+Subject: mm/memory_hotplug: remove CONFIG_X86_64_ACPI_NUMA dependency from CONFIG_MEMORY_HOTPLUG
 
-Starting with kernel 5.11 built with CONFIG_FORTIFY_SOURCE mouting an
-ocfs2 filesystem with either o2cb or pcmk cluster stack fails with the
-trace below.  Problem seems to be that strings for cluster stack and
-cluster name are not guaranteed to be null terminated in the disk
-representation, while strlcpy assumes that the source string is always
-null terminated.  This causes a read outside of the source string
-triggering the buffer overflow detection.
+Patch series "mm/memory_hotplug: Kconfig and 32 bit cleanups".
 
-detected buffer overflow in strlen
-------------[ cut here ]------------
-kernel BUG at lib/string.c:1149!
-invalid opcode: 0000 [#1] SMP PTI
-CPU: 1 PID: 910 Comm: mount.ocfs2 Not tainted 5.14.0-1-amd64 #1
-  Debian 5.14.6-2
-RIP: 0010:fortify_panic+0xf/0x11
-...
-Call Trace:
- ocfs2_initialize_super.isra.0.cold+0xc/0x18 [ocfs2]
- ocfs2_fill_super+0x359/0x19b0 [ocfs2]
- mount_bdev+0x185/0x1b0
- ? ocfs2_remount+0x440/0x440 [ocfs2]
- legacy_get_tree+0x27/0x40
- vfs_get_tree+0x25/0xb0
- path_mount+0x454/0xa20
- __x64_sys_mount+0x103/0x140
- do_syscall_64+0x3b/0xc0
- entry_SYSCALL_64_after_hwframe+0x44/0xae
+Some cleanups around CONFIG_MEMORY_HOTPLUG, including removing 32 bit
+leftovers of memory hotplug support.
 
-Link: https://lkml.kernel.org/r/20210929180654.32460-1-vvidic@valentin-vidic.from.hr
-Signed-off-by: Valentin Vidic <vvidic@valentin-vidic.from.hr>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+
+This patch (of 6):
+
+SPARSEMEM is the only possible memory model for x86-64, FLATMEM is not
+possible:
+	config ARCH_FLATMEM_ENABLE
+		def_bool y
+		depends on X86_32 && !NUMA
+
+And X86_64_ACPI_NUMA (obviously) only supports x86-64:
+	config X86_64_ACPI_NUMA
+		def_bool y
+		depends on X86_64 && NUMA && ACPI && PCI
+
+Let's just remove the CONFIG_X86_64_ACPI_NUMA dependency, as it does no
+longer make sense.
+
+Link: https://lkml.kernel.org/r/20210929143600.49379-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Jason Wang <jasowang@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/super.c~ocfs2-mount-fails-with-buffer-overflow-in-strlen
-+++ a/fs/ocfs2/super.c
-@@ -2167,11 +2167,17 @@ static int ocfs2_initialize_super(struct
- 	}
- 
- 	if (ocfs2_clusterinfo_valid(osb)) {
-+		/*
-+		 * ci_stack and ci_cluster in ocfs2_cluster_info may not be null
-+		 * terminated, so make sure no overflow happens here by using
-+		 * memcpy. Destination strings will always be null terminated
-+		 * because osb is allocated using kzalloc.
-+		 */
- 		osb->osb_stackflags =
- 			OCFS2_RAW_SB(di)->s_cluster_info.ci_stackflags;
--		strlcpy(osb->osb_cluster_stack,
-+		memcpy(osb->osb_cluster_stack,
- 		       OCFS2_RAW_SB(di)->s_cluster_info.ci_stack,
--		       OCFS2_STACK_LABEL_LEN + 1);
-+		       OCFS2_STACK_LABEL_LEN);
- 		if (strlen(osb->osb_cluster_stack) != OCFS2_STACK_LABEL_LEN) {
- 			mlog(ML_ERROR,
- 			     "couldn't mount because of an invalid "
-@@ -2180,9 +2186,9 @@ static int ocfs2_initialize_super(struct
- 			status = -EINVAL;
- 			goto bail;
- 		}
--		strlcpy(osb->osb_cluster_name,
-+		memcpy(osb->osb_cluster_name,
- 			OCFS2_RAW_SB(di)->s_cluster_info.ci_cluster,
--			OCFS2_CLUSTER_NAME_LEN + 1);
-+			OCFS2_CLUSTER_NAME_LEN);
- 	} else {
- 		/* The empty string is identical with classic tools that
- 		 * don't know about s_cluster_info. */
+--- a/mm/Kconfig~mm-memory_hotplug-remove-config_x86_64_acpi_numa-dependency-from-config_memory_hotplug
++++ a/mm/Kconfig
+@@ -123,7 +123,7 @@ config ARCH_ENABLE_MEMORY_HOTPLUG
+ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
+ 	select MEMORY_ISOLATION
+-	depends on SPARSEMEM || X86_64_ACPI_NUMA
++	depends on SPARSEMEM
+ 	depends on ARCH_ENABLE_MEMORY_HOTPLUG
+ 	depends on 64BIT || BROKEN
+ 	select NUMA_KEEP_MEMINFO if NUMA
 _
 
-Patches currently in -mm which might be from vvidic@valentin-vidic.from.hr are
+Patches currently in -mm which might be from david@redhat.com are
 
-ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
+memory-hotplugrst-fix-two-instances-of-movablecore-that-should-be-movable_node.patch
+memory-hotplugrst-fix-wrong-sys-module-memory_hotplug-parameters-path.patch
+memory-hotplugrst-document-the-auto-movable-online-policy.patch
+mm-memory_hotplug-remove-config_x86_64_acpi_numa-dependency-from-config_memory_hotplug.patch
+mm-memory_hotplug-remove-config_memory_hotplug_sparse.patch
+mm-memory_hotplug-restrict-config_memory_hotplug-to-64-bit.patch
+mm-memory_hotplug-remove-highmem-leftovers.patch
+mm-memory_hotplug-remove-stale-function-declarations.patch
+x86-remove-memory-hotplug-support-on-x86_32.patch
+kernel-resource-clean-up-and-optimize-iomem_is_exclusive.patch
+kernel-resource-disallow-access-to-exclusive-system-ram-regions.patch
+virtio-mem-disallow-mapping-virtio-mem-memory-via-dev-mem.patch
 
