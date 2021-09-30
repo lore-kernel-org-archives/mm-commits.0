@@ -2,38 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 76231C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:37:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C81AEC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:42:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C12E61A51
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:37:38 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A9DB66109E
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:42:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240574AbhI3WjU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 18:39:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41716 "EHLO mail.kernel.org"
+        id S1343554AbhI3WoH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Sep 2021 18:44:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43336 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229759AbhI3WjU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 18:39:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D2F9461882;
-        Thu, 30 Sep 2021 22:37:36 +0000 (UTC)
+        id S229974AbhI3WoG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Sep 2021 18:44:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 70EE8611EF;
+        Thu, 30 Sep 2021 22:42:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633041457;
-        bh=NnF9DroFTDITyBc/BzCKIOxlQKvmJ0hv4SkSyvrmS28=;
+        s=korg; t=1633041743;
+        bh=Tjh5edrwXp9KaUPel/iK0qb1i/z/VOFjR7jj3Qkdk6c=;
         h=Date:From:To:Subject:From;
-        b=pOoytRTWmc0eSjq2GiTOtWtud299ni4rQeYJNY1fV05ujYlD34vcrTNpUrLxdwy8q
-         DUDp6CNrwrbfp1H/5zJduMrqxgJqaxMgFXRtDNCdcW6ZBwi1zi23zvmM0YSgvq1x8y
-         33ETZ3ElFk0/h7x4PE5lnyhw5Wg+a18UZc7qYMNY=
-Date:   Thu, 30 Sep 2021 15:37:36 -0700
+        b=hnR37DEgdHpnBCDAETqHTBjqB0qi8VfYjgyy/9+5joiYGTKPX79jKcATD8k9VLme3
+         /dHa+xGaLz1zC1jLkhcaU6pIpET1O5emSD1ZLg3UiQss3fUGdaqke8K3AOixR0AGjV
+         CgcJwAAarYTqQBER+avigCMkw19/zGKJgcoYn5+E=
+Date:   Thu, 30 Sep 2021 15:42:22 -0700
 From:   akpm@linux-foundation.org
-To:     dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        david@redhat.com, gthelen@google.com, kbusch@kernel.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
-        rientjes@google.com, shy828301@gmail.com, tglx@linutronix.de,
-        weixugc@google.com, ying.huang@intel.com, ziy@nvidia.com
-Subject:  +
- mm-migrate-fix-cpuhp-state-to-update-node-demotion-order.patch added to -mm
+To:     joe@perches.com, mm-commits@vger.kernel.org, rppt@kernel.org
+Subject:  [nacked] memblock-neaten-logging.patch removed from -mm
  tree
-Message-ID: <20210930223736.pIKngk3hC%akpm@linux-foundation.org>
+Message-ID: <20210930224222.MuiGB-xPR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,130 +37,200 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: fix CPUHP state to update node demotion order
-has been added to the -mm tree.  Its filename is
-     mm-migrate-fix-cpuhp-state-to-update-node-demotion-order.patch
+     Subject: memblock: neaten logging
+has been removed from the -mm tree.  Its filename was
+     memblock-neaten-logging.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-fix-cpuhp-state-to-update-node-demotion-order.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-fix-cpuhp-state-to-update-node-demotion-order.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/migrate: fix CPUHP state to update node demotion order
+From: Joe Perches <joe@perches.com>
+Subject: memblock: neaten logging
 
-The node demotion order needs to be updated during CPU hotplug.  Because
-whether a NUMA node has CPU may influence the demotion order.  The update
-function should be called during CPU online/offline after the
-node_states[N_CPU] has been updated.  That is done in CPUHP_AP_ONLINE_DYN
-during CPU online and in CPUHP_MM_VMSTAT_DEAD during CPU offline.  But in
-commit 884a6e5d1f93 ("mm/migrate: update node demotion order on hotplug
-events"), the function to update node demotion order is called in
-CPUHP_AP_ONLINE_DYN during CPU online/offline.  This doesn't satisfy the
-order requirement.
+Use more typical kernel logging styles.
 
-For example, there are 4 CPUs (P0, P1, P2, P3) in 2 sockets (P0, P1 in S0
-and P2, P3 in S1), the demotion order is
+o Add and use #define pr_fmt KBUILD_MODNAME ": " fmt
+o Neaten memblock_dbg to use %s: %pS: to output __func__ and caller
+o Convert existing uses of pr_<level> and memblock_dbg appropriately
 
-- S0 -> NUMA_NO_NODE
-- S1 -> NUMA_NO_NODE
+Logging output is now always prefixed with 'memblock: '
+Debugging output is now prefixed with 'memblock: ', function and caller
 
-After P2 and P3 is offlined, because S1 has no CPU now, the demotion
-order should have been changed to
-
-- S0 -> S1
-- S1 -> NO_NODE
-
-but it isn't changed, because the order updating callback for CPU hotplug
-doesn't see the new nodemask.  After that, if P1 is offlined, the demotion
-order is changed to the expected order as above.
-
-So in this patch, we added CPUHP_AP_MM_DEMOTION_ONLINE and
-CPUHP_MM_DEMOTION_DEAD to be called after CPUHP_AP_ONLINE_DYN and
-CPUHP_MM_VMSTAT_DEAD during CPU online and offline, and register the
-update function on them.
-
-Link: https://lkml.kernel.org/r/20210929060351.7293-1-ying.huang@intel.com
-Fixes: 884a6e5d1f93 ("mm/migrate: update node demotion order on hotplug events")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Keith Busch <kbusch@kernel.org>
+Link: https://lkml.kernel.org/r/623750dd31aa3fe5e45c416be98ab37707e2c45d.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuhotplug.h |    4 ++++
- mm/migrate.c               |    8 +++++---
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ mm/memblock.c |   59 +++++++++++++++++++++---------------------------
+ 1 file changed, 26 insertions(+), 33 deletions(-)
 
---- a/include/linux/cpuhotplug.h~mm-migrate-fix-cpuhp-state-to-update-node-demotion-order
-+++ a/include/linux/cpuhotplug.h
-@@ -72,6 +72,8 @@ enum cpuhp_state {
- 	CPUHP_SLUB_DEAD,
- 	CPUHP_DEBUG_OBJ_DEAD,
- 	CPUHP_MM_WRITEBACK_DEAD,
-+	/* Must be after CPUHP_MM_VMSTAT_DEAD */
-+	CPUHP_MM_DEMOTION_DEAD,
- 	CPUHP_MM_VMSTAT_DEAD,
- 	CPUHP_SOFTIRQ_DEAD,
- 	CPUHP_NET_MVNETA_DEAD,
-@@ -240,6 +242,8 @@ enum cpuhp_state {
- 	CPUHP_AP_BASE_CACHEINFO_ONLINE,
- 	CPUHP_AP_ONLINE_DYN,
- 	CPUHP_AP_ONLINE_DYN_END		= CPUHP_AP_ONLINE_DYN + 30,
-+	/* Must be after CPUHP_AP_ONLINE_DYN for node_states[N_CPU] update */
-+	CPUHP_AP_MM_DEMOTION_ONLINE,
- 	CPUHP_AP_X86_HPET_ONLINE,
- 	CPUHP_AP_X86_KVM_CLK_ONLINE,
- 	CPUHP_AP_DTPM_CPU_ONLINE,
---- a/mm/migrate.c~mm-migrate-fix-cpuhp-state-to-update-node-demotion-order
-+++ a/mm/migrate.c
-@@ -3291,9 +3291,8 @@ static int __init migrate_on_reclaim_ini
- {
- 	int ret;
+--- a/mm/memblock.c~memblock-neaten-logging
++++ a/mm/memblock.c
+@@ -6,6 +6,8 @@
+  * Copyright (C) 2001 Peter Bergner.
+  */
  
--	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "migrate on reclaim",
--				migration_online_cpu,
--				migration_offline_cpu);
-+	ret = cpuhp_setup_state_nocalls(CPUHP_MM_DEMOTION_DEAD, "mm/demotion:offline",
-+					NULL, migration_offline_cpu);
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+@@ -146,10 +148,12 @@ static __refdata struct memblock_type *m
+ 	     i++, rgn = &memblock_type->regions[i])
+ 
+ #define memblock_dbg(fmt, ...)						\
+-	do {								\
+-		if (memblock_debug)					\
+-			pr_info(fmt, ##__VA_ARGS__);			\
+-	} while (0)
++do {									\
++	if (memblock_debug)						\
++		pr_info("%s: %pS: " fmt,				\
++			__func__, __builtin_return_address(0),		\
++			##__VA_ARGS__);					\
++} while (0)
+ 
+ static int memblock_debug __initdata_memblock;
+ static bool system_has_some_mirror __initdata_memblock = false;
+@@ -447,14 +451,14 @@ static int __init_memblock memblock_doub
+ 		new_array = addr ? __va(addr) : NULL;
+ 	}
+ 	if (!addr) {
+-		pr_err("memblock: Failed to double %s array from %ld to %ld entries !\n",
++		pr_err("Failed to double %s array from %ld to %ld entries !\n",
+ 		       type->name, type->max, type->max * 2);
+ 		return -1;
+ 	}
+ 
+ 	new_end = addr + new_size - 1;
+-	memblock_dbg("memblock: %s is doubled to %ld at [%pa-%pa]",
+-			type->name, type->max * 2, &addr, &new_end);
++	memblock_dbg("%s is doubled to %ld at [%pa-%pa]\n",
++		     type->name, type->max * 2, &addr, &new_end);
+ 
  	/*
- 	 * In the unlikely case that this fails, the automatic
- 	 * migration targets may become suboptimal for nodes
-@@ -3301,6 +3300,9 @@ static int __init migrate_on_reclaim_ini
- 	 * rare case, do not bother trying to do anything special.
- 	 */
- 	WARN_ON(ret < 0);
-+	ret = cpuhp_setup_state(CPUHP_AP_MM_DEMOTION_ONLINE, "mm/demotion:online",
-+				migration_online_cpu, NULL);
-+	WARN_ON(ret < 0);
+ 	 * Found space, we now need to move the array over before we add the
+@@ -667,8 +671,7 @@ int __init_memblock memblock_add_node(ph
+ {
+ 	phys_addr_t end = base + size - 1;
  
- 	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
- 	return 0;
+-	memblock_dbg("%s: [%pa-%pa] nid=%d %pS\n", __func__,
+-		     &base, &end, nid, (void *)_RET_IP_);
++	memblock_dbg("[%pa-%pa] nid=%d\n", &base, &end, nid);
+ 
+ 	return memblock_add_range(&memblock.memory, base, size, nid, 0);
+ }
+@@ -688,8 +691,7 @@ int __init_memblock memblock_add(phys_ad
+ {
+ 	phys_addr_t end = base + size - 1;
+ 
+-	memblock_dbg("%s: [%pa-%pa] %pS\n", __func__,
+-		     &base, &end, (void *)_RET_IP_);
++	memblock_dbg("[%pa-%pa]\n", &base, &end);
+ 
+ 	return memblock_add_range(&memblock.memory, base, size, MAX_NUMNODES, 0);
+ }
+@@ -789,8 +791,7 @@ int __init_memblock memblock_remove(phys
+ {
+ 	phys_addr_t end = base + size - 1;
+ 
+-	memblock_dbg("%s: [%pa-%pa] %pS\n", __func__,
+-		     &base, &end, (void *)_RET_IP_);
++	memblock_dbg("[%pa-%pa]\n", &base, &end);
+ 
+ 	return memblock_remove_range(&memblock.memory, base, size);
+ }
+@@ -821,8 +822,7 @@ int __init_memblock memblock_phys_free(p
+ {
+ 	phys_addr_t end = base + size - 1;
+ 
+-	memblock_dbg("%s: [%pa-%pa] %pS\n", __func__,
+-		     &base, &end, (void *)_RET_IP_);
++	memblock_dbg("[%pa-%pa]\n", &base, &end);
+ 
+ 	kmemleak_free_part_phys(base, size);
+ 	return memblock_remove_range(&memblock.reserved, base, size);
+@@ -832,8 +832,7 @@ int __init_memblock memblock_reserve(phy
+ {
+ 	phys_addr_t end = base + size - 1;
+ 
+-	memblock_dbg("%s: [%pa-%pa] %pS\n", __func__,
+-		     &base, &end, (void *)_RET_IP_);
++	memblock_dbg("[%pa-%pa]\n", &base, &end);
+ 
+ 	return memblock_add_range(&memblock.reserved, base, size, MAX_NUMNODES, 0);
+ }
+@@ -843,8 +842,7 @@ int __init_memblock memblock_physmem_add
+ {
+ 	phys_addr_t end = base + size - 1;
+ 
+-	memblock_dbg("%s: [%pa-%pa] %pS\n", __func__,
+-		     &base, &end, (void *)_RET_IP_);
++	memblock_dbg("[%pa-%pa]\n", &base, &end);
+ 
+ 	return memblock_add_range(&physmem, base, size, MAX_NUMNODES, 0);
+ }
+@@ -1409,9 +1407,8 @@ phys_addr_t __init memblock_phys_alloc_r
+ 					     phys_addr_t start,
+ 					     phys_addr_t end)
+ {
+-	memblock_dbg("%s: %llu bytes align=0x%llx from=%pa max_addr=%pa %pS\n",
+-		     __func__, (u64)size, (u64)align, &start, &end,
+-		     (void *)_RET_IP_);
++	memblock_dbg("%llu bytes align=0x%llx from=%pa max_addr=%pa\n",
++		     (u64)size, (u64)align, &start, &end);
+ 	return memblock_alloc_range_nid(size, align, start, end, NUMA_NO_NODE,
+ 					false);
+ }
+@@ -1510,9 +1507,8 @@ void * __init memblock_alloc_exact_nid_r
+ 			phys_addr_t min_addr, phys_addr_t max_addr,
+ 			int nid)
+ {
+-	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa %pS\n",
+-		     __func__, (u64)size, (u64)align, nid, &min_addr,
+-		     &max_addr, (void *)_RET_IP_);
++	memblock_dbg("%llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa\n",
++		     (u64)size, (u64)align, nid, &min_addr, &max_addr);
+ 
+ 	return memblock_alloc_internal(size, align, min_addr, max_addr, nid,
+ 				       true);
+@@ -1542,9 +1538,8 @@ void * __init memblock_alloc_try_nid_raw
+ 			phys_addr_t min_addr, phys_addr_t max_addr,
+ 			int nid)
+ {
+-	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa %pS\n",
+-		     __func__, (u64)size, (u64)align, nid, &min_addr,
+-		     &max_addr, (void *)_RET_IP_);
++	memblock_dbg("%llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa\n",
++		     (u64)size, (u64)align, nid, &min_addr, &max_addr);
+ 
+ 	return memblock_alloc_internal(size, align, min_addr, max_addr, nid,
+ 				       false);
+@@ -1574,9 +1569,8 @@ void * __init memblock_alloc_try_nid(
+ {
+ 	void *ptr;
+ 
+-	memblock_dbg("%s: %llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa %pS\n",
+-		     __func__, (u64)size, (u64)align, nid, &min_addr,
+-		     &max_addr, (void *)_RET_IP_);
++	memblock_dbg("%llu bytes align=0x%llx nid=%d from=%pa max_addr=%pa\n",
++		     (u64)size, (u64)align, nid, &min_addr, &max_addr);
+ 	ptr = memblock_alloc_internal(size, align,
+ 					   min_addr, max_addr, nid, false);
+ 	if (ptr)
+@@ -1599,8 +1593,7 @@ void __init memblock_free_late(phys_addr
+ 	phys_addr_t cursor, end;
+ 
+ 	end = base + size - 1;
+-	memblock_dbg("%s: [%pa-%pa] %pS\n",
+-		     __func__, &base, &end, (void *)_RET_IP_);
++	memblock_dbg("[%pa-%pa]\n", &base, &end);
+ 	kmemleak_free_part_phys(base, size);
+ 	cursor = PFN_UP(base);
+ 	end = PFN_DOWN(base + size);
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-migrate-fix-cpuhp-state-to-update-node-demotion-order.patch
 
