@@ -2,36 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 996FAC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 20:30:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42390C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 20:32:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8025A61A52
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 20:30:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 11CF061A50
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 20:32:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347921AbhI3UcW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 16:32:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43530 "EHLO mail.kernel.org"
+        id S1347892AbhI3UeH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Sep 2021 16:34:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44078 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347824AbhI3UcW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 16:32:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1488F61994;
-        Thu, 30 Sep 2021 20:30:39 +0000 (UTC)
+        id S1347824AbhI3UeG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 30 Sep 2021 16:34:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B24DB61994;
+        Thu, 30 Sep 2021 20:32:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633033839;
-        bh=nef2upZ8/NSbOlTfkgbUhPvG+MmXYwN72K6e/uNO+0g=;
+        s=korg; t=1633033943;
+        bh=0/euYZKEkxk4v9x2Rb1qG/zGpq4KrcO4dIzGNxQ1b+U=;
         h=Date:From:To:Subject:From;
-        b=Sj4/i86nAzCJK5gBJg7bGiRmE5S+CQQlrCc+8OCBmULaG+aA/lWieNAA65KDhP3jw
-         pY9s4dS9wQMGkirjdAAX8wfF9uf7Z29Mljq69mJFik7r32CB0iCScVv9ybAQTmNZ7W
-         rWSHTF53joMsz+TE4OGz5BdMM8B/HRKJMejte3qE=
-Date:   Thu, 30 Sep 2021 13:30:38 -0700
+        b=Xqmsxw5uWAJPLcbB7SCMEGWm8fssGMNbf794FbVUMKqJb52Q1Jl+/CLv65qn3kLoN
+         8T3eC0vC13yP1Z5GItC9W/6ivvuJTDrwi4xv4WGIGKn5E0Vm9c1XB33A5vmLXsvI9J
+         3ag6qD8NcvWvwR/b7iVgFWbnhFX0+vVs5zxom4Vk=
+Date:   Thu, 30 Sep 2021 13:32:23 -0700
 From:   akpm@linux-foundation.org
-To:     christophe.leroy@csgroup.eu, jgross@suse.com,
-        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
-        Shahab.Vahedi@synopsys.com
-Subject:  +
- memblock-use-memblock_free-for-freeing-virtual-pointers.patch added to -mm
- tree
-Message-ID: <20210930203038.JVZMElESl%akpm@linux-foundation.org>
+To:     dvyukov@google.com, elver@google.com, glider@google.com,
+        jannh@google.com, mm-commits@vger.kernel.org
+Subject:  + kfence-shorten-critical-sections-of-alloc-free.patch
+ added to -mm tree
+Message-ID: <20210930203223.hNlqVlcry%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: use memblock_free for freeing virtual pointers
+     Subject: kfence: shorten critical sections of alloc/free
 has been added to the -mm tree.  Its filename is
-     memblock-use-memblock_free-for-freeing-virtual-pointers.patch
+     kfence-shorten-critical-sections-of-alloc-free.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memblock-use-memblock_free-for-freeing-virtual-pointers.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kfence-shorten-critical-sections-of-alloc-free.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memblock-use-memblock_free-for-freeing-virtual-pointers.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-shorten-critical-sections-of-alloc-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,472 +59,149 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: memblock: use memblock_free for freeing virtual pointers
+From: Marco Elver <elver@google.com>
+Subject: kfence: shorten critical sections of alloc/free
 
-Rename memblock_free_ptr() to memblock_free() and use memblock_free() when
-freeing a virtual pointer so that memblock_free() will be a counterpart of
-memblock_alloc()
+Initializing memory and setting/checking the canary bytes is relatively
+expensive, and doing so in the meta->lock critical sections extends the
+duration with preemption and interrupts disabled unnecessarily.
 
-The callers are updated with the below semantic patch and manual addition
-of (void *) casting to pointers that are represented by unsigned long
-variables.
+Any reads to meta->addr and meta->size in kfence_guarded_alloc() and
+kfence_guarded_free() don't require locking meta->lock as long as the
+object is removed from the freelist: only kfence_guarded_alloc() sets
+meta->addr and meta->size after removing it from the freelist, which
+requires a preceding kfence_guarded_free() returning it to the list or the
+initial state.
 
-@@
-identifier vaddr;
-expression size;
-@@
-(
-- memblock_phys_free(__pa(vaddr), size);
-+ memblock_free(vaddr, size);
-|
-- memblock_free_ptr(vaddr, size);
-+ memblock_free(vaddr, size);
-)
+Therefore move reads to meta->addr and meta->size, including expensive
+memory initialization using them, out of meta->lock critical sections.
 
-Link: https://lkml.kernel.org/r/20210930185031.18648-7-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Shahab Vahedi <Shahab.Vahedi@synopsys.com>
+Link: https://lkml.kernel.org/r/20210930153706.2105471-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/core_irongate.c         |    3 +--
- arch/mips/mm/init.c                       |    2 +-
- arch/powerpc/kernel/dt_cpu_ftrs.c         |    4 ++--
- arch/powerpc/kernel/setup-common.c        |    2 +-
- arch/powerpc/kernel/setup_64.c            |    2 +-
- arch/powerpc/platforms/powernv/pci-ioda.c |    2 +-
- arch/powerpc/platforms/pseries/svm.c      |    3 +--
- arch/riscv/kernel/setup.c                 |    5 ++---
- arch/sparc/kernel/smp_64.c                |    2 +-
- arch/um/kernel/mem.c                      |    2 +-
- arch/x86/kernel/setup_percpu.c            |    2 +-
- arch/x86/mm/kasan_init_64.c               |    4 ++--
- arch/x86/mm/numa.c                        |    2 +-
- arch/x86/mm/numa_emulation.c              |    2 +-
- arch/x86/xen/mmu_pv.c                     |    2 +-
- arch/x86/xen/p2m.c                        |    2 +-
- drivers/base/arch_numa.c                  |    4 ++--
- drivers/macintosh/smu.c                   |    2 +-
- drivers/xen/swiotlb-xen.c                 |    2 +-
- include/linux/memblock.h                  |    2 +-
- init/initramfs.c                          |    2 +-
- init/main.c                               |    2 +-
- kernel/dma/swiotlb.c                      |    2 +-
- kernel/printk/printk.c                    |    4 ++--
- lib/bootconfig.c                          |    2 +-
- lib/cpumask.c                             |    2 +-
- mm/memblock.c                             |    6 +++---
- mm/percpu.c                               |    8 ++++----
- mm/sparse.c                               |    2 +-
- 29 files changed, 39 insertions(+), 42 deletions(-)
+ mm/kfence/core.c |   38 +++++++++++++++++++++-----------------
+ 1 file changed, 21 insertions(+), 17 deletions(-)
 
---- a/arch/alpha/kernel/core_irongate.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/alpha/kernel/core_irongate.c
-@@ -233,8 +233,7 @@ albacore_init_arch(void)
- 			unsigned long size;
- 
- 			size = initrd_end - initrd_start;
--			memblock_phys_free(__pa(initrd_start),
--					   PAGE_ALIGN(size));
-+			memblock_free((void *)initrd_start, PAGE_ALIGN(size));
- 			if (!move_initrd(pci_mem))
- 				printk("irongate_init_arch: initrd too big "
- 				       "(%ldK)\ndisabling initrd\n",
---- a/arch/mips/mm/init.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/mips/mm/init.c
-@@ -529,7 +529,7 @@ static void * __init pcpu_fc_alloc(unsig
- 
- static void __init pcpu_fc_free(void *ptr, size_t size)
+--- a/mm/kfence/core.c~kfence-shorten-critical-sections-of-alloc-free
++++ a/mm/kfence/core.c
+@@ -309,12 +309,19 @@ static inline bool set_canary_byte(u8 *a
+ /* Check canary byte at @addr. */
+ static inline bool check_canary_byte(u8 *addr)
  {
--	memblock_phys_free(__pa(ptr), size);
-+	memblock_free(ptr, size);
++	struct kfence_metadata *meta;
++	unsigned long flags;
++
+ 	if (likely(*addr == KFENCE_CANARY_PATTERN(addr)))
+ 		return true;
+ 
+ 	atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
+-	kfence_report_error((unsigned long)addr, false, NULL, addr_to_metadata((unsigned long)addr),
+-			    KFENCE_ERROR_CORRUPTION);
++
++	meta = addr_to_metadata((unsigned long)addr);
++	raw_spin_lock_irqsave(&meta->lock, flags);
++	kfence_report_error((unsigned long)addr, false, NULL, meta, KFENCE_ERROR_CORRUPTION);
++	raw_spin_unlock_irqrestore(&meta->lock, flags);
++
+ 	return false;
  }
  
- void __init setup_per_cpu_areas(void)
---- a/arch/powerpc/kernel/dt_cpu_ftrs.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/powerpc/kernel/dt_cpu_ftrs.c
-@@ -1095,8 +1095,8 @@ static int __init dt_cpu_ftrs_scan_callb
+@@ -324,8 +331,6 @@ static __always_inline void for_each_can
+ 	const unsigned long pageaddr = ALIGN_DOWN(meta->addr, PAGE_SIZE);
+ 	unsigned long addr;
  
- 	cpufeatures_setup_finished();
+-	lockdep_assert_held(&meta->lock);
+-
+ 	/*
+ 	 * We'll iterate over each canary byte per-side until fn() returns
+ 	 * false. However, we'll still iterate over the canary bytes to the
+@@ -414,8 +419,9 @@ static void *kfence_guarded_alloc(struct
+ 	WRITE_ONCE(meta->cache, cache);
+ 	meta->size = size;
+ 	meta->alloc_stack_hash = alloc_stack_hash;
++	raw_spin_unlock_irqrestore(&meta->lock, flags);
  
--	memblock_phys_free(__pa(dt_cpu_features),
--			   sizeof(struct dt_cpu_feature) * nr_dt_cpu_features);
-+	memblock_free(dt_cpu_features,
-+		      sizeof(struct dt_cpu_feature) * nr_dt_cpu_features);
+-	for_each_canary(meta, set_canary_byte);
++	alloc_covered_add(alloc_stack_hash, 1);
  
- 	return 0;
- }
---- a/arch/powerpc/kernel/setup_64.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/powerpc/kernel/setup_64.c
-@@ -812,7 +812,7 @@ static void * __init pcpu_alloc_bootmem(
+ 	/* Set required struct page fields. */
+ 	page = virt_to_page(meta->addr);
+@@ -425,11 +431,8 @@ static void *kfence_guarded_alloc(struct
+ 	if (IS_ENABLED(CONFIG_SLAB))
+ 		page->s_mem = addr;
  
- static void __init pcpu_free_bootmem(void *ptr, size_t size)
- {
--	memblock_phys_free(__pa(ptr), size);
-+	memblock_free(ptr, size);
- }
- 
- static int pcpu_cpu_distance(unsigned int from, unsigned int to)
---- a/arch/powerpc/kernel/setup-common.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/powerpc/kernel/setup-common.c
-@@ -825,7 +825,7 @@ static void __init smp_setup_pacas(void)
- 		set_hard_smp_processor_id(cpu, cpu_to_phys_id[cpu]);
- 	}
- 
--	memblock_phys_free(__pa(cpu_to_phys_id), nr_cpu_ids * sizeof(u32));
-+	memblock_free(cpu_to_phys_id, nr_cpu_ids * sizeof(u32));
- 	cpu_to_phys_id = NULL;
- }
- #endif
---- a/arch/powerpc/platforms/powernv/pci-ioda.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/powerpc/platforms/powernv/pci-ioda.c
-@@ -2981,7 +2981,7 @@ static void __init pnv_pci_init_ioda_phb
- 	if (!phb->hose) {
- 		pr_err("  Can't allocate PCI controller for %pOF\n",
- 		       np);
--		memblock_phys_free(__pa(phb), sizeof(struct pnv_phb));
-+		memblock_free(phb, sizeof(struct pnv_phb));
- 		return;
- 	}
- 
---- a/arch/powerpc/platforms/pseries/svm.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/powerpc/platforms/pseries/svm.c
-@@ -56,8 +56,7 @@ void __init svm_swiotlb_init(void)
- 		return;
- 
- 
--	memblock_phys_free(__pa(vstart),
--			   PAGE_ALIGN(io_tlb_nslabs << IO_TLB_SHIFT));
-+	memblock_free(vstart, PAGE_ALIGN(io_tlb_nslabs << IO_TLB_SHIFT));
- 	panic("SVM: Cannot allocate SWIOTLB buffer");
- }
- 
---- a/arch/riscv/kernel/setup.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/riscv/kernel/setup.c
-@@ -230,14 +230,13 @@ static void __init init_resources(void)
- 
- 	/* Clean-up any unused pre-allocated resources */
- 	if (res_idx >= 0)
--		memblock_phys_free(__pa(mem_res),
--				   (res_idx + 1) * sizeof(*mem_res));
-+		memblock_free(mem_res, (res_idx + 1) * sizeof(*mem_res));
- 	return;
- 
-  error:
- 	/* Better an empty resource tree than an inconsistent one */
- 	release_child_resources(&iomem_resource);
--	memblock_phys_free(__pa(mem_res), mem_res_sz);
-+	memblock_free(mem_res, mem_res_sz);
- }
- 
- 
---- a/arch/sparc/kernel/smp_64.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/sparc/kernel/smp_64.c
-@@ -1567,7 +1567,7 @@ static void * __init pcpu_alloc_bootmem(
- 
- static void __init pcpu_free_bootmem(void *ptr, size_t size)
- {
--	memblock_phys_free(__pa(ptr), size);
-+	memblock_free(ptr, size);
- }
- 
- static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
---- a/arch/um/kernel/mem.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/um/kernel/mem.c
-@@ -47,7 +47,7 @@ void __init mem_init(void)
- 	 */
- 	brk_end = (unsigned long) UML_ROUND_UP(sbrk(0));
- 	map_memory(brk_end, __pa(brk_end), uml_reserved - brk_end, 1, 1, 0);
--	memblock_phys_free(__pa(brk_end), uml_reserved - brk_end);
-+	memblock_free((void *)brk_end, uml_reserved - brk_end);
- 	uml_reserved = brk_end;
- 
- 	/* this will put all low memory onto the freelists */
---- a/arch/x86/kernel/setup_percpu.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/kernel/setup_percpu.c
-@@ -135,7 +135,7 @@ static void * __init pcpu_fc_alloc(unsig
- 
- static void __init pcpu_fc_free(void *ptr, size_t size)
- {
--	memblock_free_ptr(ptr, size);
-+	memblock_free(ptr, size);
- }
- 
- static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
---- a/arch/x86/mm/kasan_init_64.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/mm/kasan_init_64.c
-@@ -49,7 +49,7 @@ static void __init kasan_populate_pmd(pm
- 			p = early_alloc(PMD_SIZE, nid, false);
- 			if (p && pmd_set_huge(pmd, __pa(p), PAGE_KERNEL))
- 				return;
--			memblock_free_ptr(p, PMD_SIZE);
-+			memblock_free(p, PMD_SIZE);
- 		}
- 
- 		p = early_alloc(PAGE_SIZE, nid, true);
-@@ -85,7 +85,7 @@ static void __init kasan_populate_pud(pu
- 			p = early_alloc(PUD_SIZE, nid, false);
- 			if (p && pud_set_huge(pud, __pa(p), PAGE_KERNEL))
- 				return;
--			memblock_free_ptr(p, PUD_SIZE);
-+			memblock_free(p, PUD_SIZE);
- 		}
- 
- 		p = early_alloc(PAGE_SIZE, nid, true);
---- a/arch/x86/mm/numa.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/mm/numa.c
-@@ -355,7 +355,7 @@ void __init numa_reset_distance(void)
- 
- 	/* numa_distance could be 1LU marking allocation failure, test cnt */
- 	if (numa_distance_cnt)
--		memblock_free_ptr(numa_distance, size);
-+		memblock_free(numa_distance, size);
- 	numa_distance_cnt = 0;
- 	numa_distance = NULL;	/* enable table creation */
- }
---- a/arch/x86/mm/numa_emulation.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/mm/numa_emulation.c
-@@ -517,7 +517,7 @@ void __init numa_emulation(struct numa_m
- 	}
- 
- 	/* free the copied physical distance table */
--	memblock_free_ptr(phys_dist, phys_size);
-+	memblock_free(phys_dist, phys_size);
- 	return;
- 
- no_emu:
---- a/arch/x86/xen/mmu_pv.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/xen/mmu_pv.c
-@@ -1151,7 +1151,7 @@ static void __init xen_pagetable_p2m_fre
- 		xen_cleanhighmap(addr, addr + size);
- 		size = PAGE_ALIGN(xen_start_info->nr_pages *
- 				  sizeof(unsigned long));
--		memblock_phys_free(__pa(addr), size);
-+		memblock_free((void *)addr, size);
- 	} else {
- 		xen_cleanmfnmap(addr);
- 	}
---- a/arch/x86/xen/p2m.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/xen/p2m.c
-@@ -197,7 +197,7 @@ static void * __ref alloc_p2m_page(void)
- static void __ref free_p2m_page(void *p)
- {
- 	if (unlikely(!slab_is_available())) {
--		memblock_free_ptr(p, PAGE_SIZE);
-+		memblock_free(p, PAGE_SIZE);
- 		return;
- 	}
- 
---- a/drivers/base/arch_numa.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/drivers/base/arch_numa.c
-@@ -165,7 +165,7 @@ static void * __init pcpu_fc_alloc(unsig
- 
- static void __init pcpu_fc_free(void *ptr, size_t size)
- {
--	memblock_phys_free(__pa(ptr), size);
-+	memblock_free(ptr, size);
- }
- 
- void __init setup_per_cpu_areas(void)
-@@ -264,7 +264,7 @@ void __init numa_free_distance(void)
- 	size = numa_distance_cnt * numa_distance_cnt *
- 		sizeof(numa_distance[0]);
- 
--	memblock_free_ptr(numa_distance, size);
-+	memblock_free(numa_distance, size);
- 	numa_distance_cnt = 0;
- 	numa_distance = NULL;
- }
---- a/drivers/macintosh/smu.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/drivers/macintosh/smu.c
-@@ -570,7 +570,7 @@ fail_msg_node:
- fail_db_node:
- 	of_node_put(smu->db_node);
- fail_bootmem:
--	memblock_free_ptr(smu, sizeof(struct smu_device));
-+	memblock_free(smu, sizeof(struct smu_device));
- 	smu = NULL;
- fail_np:
- 	of_node_put(np);
---- a/drivers/xen/swiotlb-xen.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/drivers/xen/swiotlb-xen.c
-@@ -241,7 +241,7 @@ retry:
- 	 */
- 	rc = xen_swiotlb_fixup(start, nslabs);
- 	if (rc) {
--		memblock_phys_free(__pa(start), PAGE_ALIGN(bytes));
-+		memblock_free(start, PAGE_ALIGN(bytes));
- 		if (nslabs > 1024 && repeat--) {
- 			/* Min is 2MB */
- 			nslabs = max(1024UL, ALIGN(nslabs >> 1, IO_TLB_SEGSIZE));
---- a/include/linux/memblock.h~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/include/linux/memblock.h
-@@ -118,7 +118,7 @@ int memblock_mark_nomap(phys_addr_t base
- int memblock_clear_nomap(phys_addr_t base, phys_addr_t size);
- 
- void memblock_free_all(void);
--void memblock_free_ptr(void *ptr, size_t size);
-+void memblock_free(void *ptr, size_t size);
- void reset_node_managed_pages(pg_data_t *pgdat);
- void reset_all_zones_managed_pages(void);
- 
---- a/init/initramfs.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/init/initramfs.c
-@@ -607,7 +607,7 @@ void __weak __init free_initrd_mem(unsig
- 	unsigned long aligned_start = ALIGN_DOWN(start, PAGE_SIZE);
- 	unsigned long aligned_end = ALIGN(end, PAGE_SIZE);
- 
--	memblock_phys_free(__pa(aligned_start), aligned_end - aligned_start);
-+	memblock_free((void *)aligned_start, aligned_end - aligned_start);
- #endif
- 
- 	free_reserved_area((void *)start, (void *)end, POISON_FREE_INITMEM,
---- a/init/main.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/init/main.c
-@@ -924,7 +924,7 @@ static void __init print_unknown_bootopt
- 		end += sprintf(end, " %s", *p);
- 
- 	pr_notice("Unknown command line parameters:%s\n", unknown_options);
--	memblock_free_ptr(unknown_options, len);
-+	memblock_free(unknown_options, len);
- }
- 
- asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
---- a/kernel/dma/swiotlb.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/kernel/dma/swiotlb.c
-@@ -247,7 +247,7 @@ swiotlb_init(int verbose)
- 	return;
- 
- fail_free_mem:
--	memblock_phys_free(__pa(tlb), bytes);
-+	memblock_free(tlb, bytes);
- fail:
- 	pr_warn("Cannot allocate buffer");
- }
---- a/kernel/printk/printk.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/kernel/printk/printk.c
-@@ -1166,9 +1166,9 @@ void __init setup_log_buf(int early)
- 	return;
- 
- err_free_descs:
--	memblock_free_ptr(new_descs, new_descs_size);
-+	memblock_free(new_descs, new_descs_size);
- err_free_log_buf:
--	memblock_free_ptr(new_log_buf, new_log_buf_len);
-+	memblock_free(new_log_buf, new_log_buf_len);
- }
- 
- static bool __read_mostly ignore_loglevel;
---- a/lib/bootconfig.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/lib/bootconfig.c
-@@ -792,7 +792,7 @@ void __init xbc_destroy_all(void)
- 	xbc_data = NULL;
- 	xbc_data_size = 0;
- 	xbc_node_num = 0;
--	memblock_free_ptr(xbc_nodes, sizeof(struct xbc_node) * XBC_NODE_MAX);
-+	memblock_free(xbc_nodes, sizeof(struct xbc_node) * XBC_NODE_MAX);
- 	xbc_nodes = NULL;
- 	brace_index = 0;
- }
---- a/lib/cpumask.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/lib/cpumask.c
-@@ -188,7 +188,7 @@ EXPORT_SYMBOL(free_cpumask_var);
-  */
- void __init free_bootmem_cpumask_var(cpumask_var_t mask)
- {
--	memblock_phys_free(__pa(mask), cpumask_size());
-+	memblock_free(mask, cpumask_size());
- }
- #endif
- 
---- a/mm/memblock.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/mm/memblock.c
-@@ -472,7 +472,7 @@ static int __init_memblock memblock_doub
- 		kfree(old_array);
- 	else if (old_array != memblock_memory_init_regions &&
- 		 old_array != memblock_reserved_init_regions)
--		memblock_free_ptr(old_array, old_alloc_size);
-+		memblock_free(old_array, old_alloc_size);
+-	raw_spin_unlock_irqrestore(&meta->lock, flags);
+-
+-	alloc_covered_add(alloc_stack_hash, 1);
+-
+ 	/* Memory initialization. */
++	for_each_canary(meta, set_canary_byte);
  
  	/*
- 	 * Reserve the new array if that comes from the memblock.  Otherwise, we
-@@ -796,14 +796,14 @@ int __init_memblock memblock_remove(phys
- }
- 
- /**
-- * memblock_free_ptr - free boot memory allocation
-+ * memblock_free - free boot memory allocation
-  * @ptr: starting address of the  boot memory allocation
-  * @size: size of the boot memory block in bytes
-  *
-  * Free boot memory block previously allocated by memblock_alloc_xx() API.
-  * The freeing memory will not be released to the buddy allocator.
-  */
--void __init_memblock memblock_free_ptr(void *ptr, size_t size)
-+void __init_memblock memblock_free(void *ptr, size_t size)
+ 	 * We check slab_want_init_on_alloc() ourselves, rather than letting
+@@ -454,6 +457,7 @@ static void kfence_guarded_free(void *ad
  {
- 	if (ptr)
- 		memblock_phys_free(__pa(ptr), size);
---- a/mm/percpu.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/mm/percpu.c
-@@ -2472,7 +2472,7 @@ struct pcpu_alloc_info * __init pcpu_all
-  */
- void __init pcpu_free_alloc_info(struct pcpu_alloc_info *ai)
- {
--	memblock_phys_free(__pa(ai), ai->__ai_size);
-+	memblock_free(ai, ai->__ai_size);
- }
+ 	struct kcsan_scoped_access assert_page_exclusive;
+ 	unsigned long flags;
++	bool init;
  
- /**
-@@ -3134,7 +3134,7 @@ out_free_areas:
- out_free:
- 	pcpu_free_alloc_info(ai);
- 	if (areas)
--		memblock_phys_free(__pa(areas), areas_size);
-+		memblock_free(areas, areas_size);
- 	return rc;
- }
- #endif /* BUILD_EMBED_FIRST_CHUNK */
-@@ -3256,7 +3256,7 @@ enomem:
- 		free_fn(page_address(pages[j]), PAGE_SIZE);
- 	rc = -ENOMEM;
- out_free_ar:
--	memblock_phys_free(__pa(pages), pages_size);
-+	memblock_free(pages, pages_size);
- 	pcpu_free_alloc_info(ai);
- 	return rc;
- }
-@@ -3286,7 +3286,7 @@ static void * __init pcpu_dfl_fc_alloc(u
+ 	raw_spin_lock_irqsave(&meta->lock, flags);
  
- static void __init pcpu_dfl_fc_free(void *ptr, size_t size)
- {
--	memblock_phys_free(__pa(ptr), size);
-+	memblock_free(ptr, size);
- }
+@@ -481,6 +485,13 @@ static void kfence_guarded_free(void *ad
+ 		meta->unprotected_page = 0;
+ 	}
  
- void __init setup_per_cpu_areas(void)
---- a/mm/sparse.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/mm/sparse.c
-@@ -451,7 +451,7 @@ static void *sparsemap_buf_end __meminit
- static inline void __meminit sparse_buffer_free(unsigned long size)
- {
- 	WARN_ON(!sparsemap_buf || size == 0);
--	memblock_phys_free(__pa(sparsemap_buf), size);
-+	memblock_free(sparsemap_buf, size);
- }
++	/* Mark the object as freed. */
++	metadata_update_state(meta, KFENCE_OBJECT_FREED, NULL, 0);
++	init = slab_want_init_on_free(meta->cache);
++	raw_spin_unlock_irqrestore(&meta->lock, flags);
++
++	alloc_covered_add(meta->alloc_stack_hash, -1);
++
+ 	/* Check canary bytes for memory corruption. */
+ 	for_each_canary(meta, check_canary_byte);
  
- static void __init sparse_buffer_init(unsigned long size, int nid)
+@@ -489,16 +500,9 @@ static void kfence_guarded_free(void *ad
+ 	 * data is still there, and after a use-after-free is detected, we
+ 	 * unprotect the page, so the data is still accessible.
+ 	 */
+-	if (!zombie && unlikely(slab_want_init_on_free(meta->cache)))
++	if (!zombie && unlikely(init))
+ 		memzero_explicit(addr, meta->size);
+ 
+-	/* Mark the object as freed. */
+-	metadata_update_state(meta, KFENCE_OBJECT_FREED, NULL, 0);
+-
+-	raw_spin_unlock_irqrestore(&meta->lock, flags);
+-
+-	alloc_covered_add(meta->alloc_stack_hash, -1);
+-
+ 	/* Protect to detect use-after-frees. */
+ 	kfence_protect((unsigned long)addr);
+ 
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from elver@google.com are
 
-arch_numa-simplify-numa_distance-allocation.patch
-xen-x86-free_p2m_page-use-memblock_free_ptr-to-free-a-virtual-pointer.patch
-memblock-drop-memblock_free_early_nid-and-memblock_free_early.patch
-memblock-stop-aliasing-__memblock_free_late-with-memblock_free_late.patch
-memblock-rename-memblock_free-to-memblock_phys_free.patch
-memblock-use-memblock_free-for-freeing-virtual-pointers.patch
+lib-stackdepot-include-gfph.patch
+lib-stackdepot-remove-unused-function-argument.patch
+lib-stackdepot-introduce-__stack_depot_save.patch
+kasan-common-provide-can_alloc-in-kasan_save_stack.patch
+kasan-generic-introduce-kasan_record_aux_stack_noalloc.patch
+workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
+mm-fix-data-race-in-pagepoisoned.patch
+stacktrace-move-filter_irq_stacks-to-kernel-stacktracec.patch
+kfence-count-unexpectedly-skipped-allocations.patch
+kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
+kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
+kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
+kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix.patch
+kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
+kfence-test-use-kunit_skip-to-skip-tests.patch
+kfence-shorten-critical-sections-of-alloc-free.patch
 
