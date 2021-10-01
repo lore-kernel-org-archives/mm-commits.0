@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C12ECC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 737C6C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9797061AEE
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 56C9761ACE
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230474AbhJAXf1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Oct 2021 19:35:27 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43774 "EHLO mail.kernel.org"
+        id S231289AbhJAXf2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Oct 2021 19:35:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43814 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230368AbhJAXf0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 Oct 2021 19:35:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 26CDB61A6F;
-        Fri,  1 Oct 2021 23:33:40 +0000 (UTC)
+        id S230368AbhJAXf2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 Oct 2021 19:35:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C847D61AAB;
+        Fri,  1 Oct 2021 23:33:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633131220;
-        bh=FIuuh2IVpk4mVWpk033+x3fo+UTYbB0V2hwM7hZCSCQ=;
+        s=korg; t=1633131223;
+        bh=ZSDxD2UpSVoMkhJu2yZkjoATEYfaR06GqvHzVVOcYik=;
         h=Date:From:To:Subject:From;
-        b=blup/+tTs+Xh5z5YsOwzeHU13xS7DrblisOylPKq1XuiDAenuktHq/ycYlZ2UhCgu
-         7g+bJgheya6u2tn2SyL1MC6SKcD1yjRc1u0SrHRd+A3GsSZ6HF900labiqa8NaGxIX
-         OW4A7Tw4rnO0VSrbKLwNEJrI/sPh4Qy0Rij/e9B8=
-Date:   Fri, 01 Oct 2021 16:33:39 -0700
+        b=oGvUI27uBS6IXAL6oC95IOvcQ5fCJbz2Nd0Z/TkfaeT4oBH3su0e4cEVBeoM1iMnP
+         CaUb/MLLOOWx95t77qxBEOwgzVulJi+V78nK8cnJ47+Iwas/WXH5tFQwxdVccf+oUS
+         xy1mqLDZEK5Dg2C/xbLQCXChflPpRt6ChabPIuTs=
+Date:   Fri, 01 Oct 2021 16:33:42 -0700
 From:   akpm@linux-foundation.org
 To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         david@redhat.com, dwmw@amazon.com, elver@google.com,
@@ -31,9 +31,10 @@ To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         Jonathan.Cameron@huawei.com, markubo@amazon.de,
         mm-commits@vger.kernel.org, rientjes@google.com,
         shakeelb@google.com, shuah@kernel.org, sj@kernel.org
-Subject:  + mm-damon-core-account-age-of-target-regions.patch added
- to -mm tree
-Message-ID: <20211001233339.SV5JeiSqb%akpm@linux-foundation.org>
+Subject:  +
+ mm-damon-core-implement-damon-based-operation-schemes-damos.patch added to
+ -mm tree
+Message-ID: <20211001233342.UAugmRvJ5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: account age of target regions
+     Subject: mm/damon/core: implement DAMON-based Operation Schemes (DAMOS)
 has been added to the -mm tree.  Its filename is
-     mm-damon-core-account-age-of-target-regions.patch
+     mm-damon-core-implement-damon-based-operation-schemes-damos.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-core-account-age-of-target-regions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-core-implement-damon-based-operation-schemes-damos.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-core-account-age-of-target-regions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-core-implement-damon-based-operation-schemes-damos.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,197 +65,357 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: account age of target regions
+Subject: mm/damon/core: implement DAMON-based Operation Schemes (DAMOS)
 
-Patch series "Implement Data Access Monitoring-based Memory Operation Schemes".
-
-Introduction
-============
-
-DAMON[1] can be used as a primitive for data access aware memory
-management optimizations.  For that, users who want such optimizations
-should run DAMON, read the monitoring results, analyze it, plan a new
-memory management scheme, and apply the new scheme by themselves.  Such
-efforts will be inevitable for some complicated optimizations.
-
-However, in many other cases, the users would simply want the system to
-apply a memory management action to a memory region of a specific size
-having a specific access frequency for a specific time.  For example,
-"page out a memory region larger than 100 MiB keeping only rare accesses
-more than 2 minutes", or "Do not use THP for a memory region larger than 2
-MiB rarely accessed for more than 1 seconds".
-
-To make the works easier and non-redundant, this patchset implements a new
-feature of DAMON, which is called Data Access Monitoring-based Operation
-Schemes (DAMOS).  Using the feature, users can describe the normal schemes
-in a simple way and ask DAMON to execute those on its own.
-
-[1] https://damonitor.github.io
-
-Evaluations
-===========
-
-DAMOS is accurate and useful for memory management optimizations.  An
-experimental DAMON-based operation scheme for THP, 'ethp', removes 76.15%
-of THP memory overheads while preserving 51.25% of THP speedup.  Another
-experimental DAMON-based 'proactive reclamation' implementation, 'prcl',
-reduces 93.38% of residential sets and 23.63% of system memory footprint
-while incurring only 1.22% runtime overhead in the best case
-(parsec3/freqmine).
-
-NOTE that the experimental THP optimization and proactive reclamation are
-not for production but only for proof of concepts.
-
-Please refer to the showcase web site's evaluation document[1] for
-detailed evaluation setup and results.
-
-[1] https://damonitor.github.io/doc/html/v34/vm/damon/eval.html
-
-Long-term Support Trees
------------------------
-
-For people who want to test DAMON but using LTS kernels, there are another
-couple of trees based on two latest LTS kernels respectively and containing the
-'damon/master' backports.
-
-- For v5.4.y: https://git.kernel.org/sj/h/damon/for-v5.4.y
-- For v5.10.y: https://git.kernel.org/sj/h/damon/for-v5.10.y
-
-Sequence Of Patches
-===================
-
-The 1st patch accounts age of each region.  The 2nd patch implements the
-core of the DAMON-based operation schemes feature.  The 3rd patch makes
-the default monitoring primitives for virtual address spaces to support
-the schemes.  From this point, the kernel space users can use DAMOS.  The
-4th patch exports the feature to the user space via the debugfs interface.
-The 5th patch implements schemes statistics feature for easier tuning of
-the schemes and runtime access pattern analysis, and the 6th patch adds
-selftests for these changes.  Finally, the 7th patch documents this new
-feature.
-
-
-This patch (of 7):
-
-DAMON can be used for data access pattern aware memory management
-optimizations.  For that, users should run DAMON, read the monitoring
-results, analyze it, plan a new memory management scheme, and apply the
-new scheme by themselves.  It would not be too hard, but still require
-some level of effort.  For complicated cases, this effort is inevitable.
-
-That said, in many cases, users would simply want to apply an actions to a
-memory region of a specific size having a specific access frequency for a
+In many cases, users might use DAMON for simple data access aware memory
+management optimizations such as applying an operation scheme to a memory
+region of a specific size having a specific access frequency for a
 specific time.  For example, "page out a memory region larger than 100 MiB
 but having a low access frequency more than 10 minutes", or "Use THP for a
 memory region larger than 2 MiB having a high access frequency for more
 than 2 seconds".
 
-For such optimizations, users will need to first account the age of each
-region themselves.  To reduce such efforts, this commit implements a
-simple age account of each region in DAMON.  For each aggregation step,
-DAMON compares the access frequency with that from last aggregation and
-reset the age of the region if the change is significant.  Else, the age
-is incremented.  Also, in case of the merge of regions, the region
-size-weighted average of the ages is set as the age of merged new region.
+Most simple form of the solution would be doing offline data access
+pattern profiling using DAMON and modifying the application source code or
+system configuration based on the profiling results.  Or, developing a
+daemon constructed with two modules (one for access monitoring and the
+other for applying memory management actions via mlock(), madvise(),
+sysctl, etc) is imaginable.
 
-Link: https://lkml.kernel.org/r/20211001125604.29660-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20211001125604.29660-2-sj@kernel.org
+To avoid users spending their time for implementation of such simple data
+access monitoring-based operation schemes, this commit makes DAMON to
+handle such schemes directly.  With this commit, users can simply specify
+their desired schemes to DAMON.  Then, DAMON will automatically apply the
+schemes to the user-specified target processes.
+
+Each of the schemes is composed with conditions for filtering of the
+target memory regions and desired memory management action for the target.
+Specifically, the format is::
+
+    <min/max size> <min/max access frequency> <min/max age> <action>
+
+The filtering conditions are size of memory region, number of accesses to
+the region monitored by DAMON, and the age of the region.  The age of
+region is incremented periodically but reset when its addresses or access
+frequency has significantly changed or the action of a scheme was applied.
+For the action, current implementation supports a few of madvise()-like
+hints, ``WILLNEED``, ``COLD``, ``PAGEOUT``, ``HUGEPAGE``, and
+``NOHUGEPAGE``.
+
+Because DAMON supports various address spaces and application of the
+actions to a monitoring target region is dependent to the type of the
+target address space, the application code should be implemented by each
+primitives and registered to the framework.  Note that this commit only
+implements the framework part.  Following commit will implement the action
+applications for virtual address spaces primitives.
+
+Link: https://lkml.kernel.org/r/20211001125604.29660-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Woodhouse <dwmw@amazon.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Leonard Foerster <foersleo@amazon.de>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Markus Boehme <markubo@amazon.de>
 Cc: David Rienjes <rientjes@google.com>
+Cc: David Woodhouse <dwmw@amazon.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Leonard Foerster <foersleo@amazon.de>
+Cc: Marco Elver <elver@google.com>
+Cc: Markus Boehme <markubo@amazon.de>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   10 ++++++++++
- mm/damon/core.c       |   13 +++++++++++++
- 2 files changed, 23 insertions(+)
+ include/linux/damon.h |   66 ++++++++++++++++++++++++
+ mm/damon/core.c       |  109 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 175 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-core-account-age-of-target-regions
+--- a/include/linux/damon.h~mm-damon-core-implement-damon-based-operation-schemes-damos
 +++ a/include/linux/damon.h
-@@ -31,12 +31,22 @@ struct damon_addr_range {
-  * @sampling_addr:	Address of the sample for the next access check.
-  * @nr_accesses:	Access frequency of this region.
-  * @list:		List head for siblings.
-+ * @age:		Age of this region.
-+ *
-+ * @age is initially zero, increased for each aggregation interval, and reset
-+ * to zero again if the access frequency is significantly changed.  If two
-+ * regions are merged into a new region, both @nr_accesses and @age of the new
-+ * region are set as region size-weighted average of those of the two regions.
-  */
- struct damon_region {
- 	struct damon_addr_range ar;
- 	unsigned long sampling_addr;
- 	unsigned int nr_accesses;
+@@ -69,6 +69,48 @@ struct damon_target {
  	struct list_head list;
-+
-+	unsigned int age;
-+/* private: Internal value for age calculation. */
-+	unsigned int last_nr_accesses;
  };
  
++/**
++ * enum damos_action - Represents an action of a Data Access Monitoring-based
++ * Operation Scheme.
++ *
++ * @DAMOS_WILLNEED:	Call ``madvise()`` for the region with MADV_WILLNEED.
++ * @DAMOS_COLD:		Call ``madvise()`` for the region with MADV_COLD.
++ * @DAMOS_PAGEOUT:	Call ``madvise()`` for the region with MADV_PAGEOUT.
++ * @DAMOS_HUGEPAGE:	Call ``madvise()`` for the region with MADV_HUGEPAGE.
++ * @DAMOS_NOHUGEPAGE:	Call ``madvise()`` for the region with MADV_NOHUGEPAGE.
++ */
++enum damos_action {
++	DAMOS_WILLNEED,
++	DAMOS_COLD,
++	DAMOS_PAGEOUT,
++	DAMOS_HUGEPAGE,
++	DAMOS_NOHUGEPAGE,
++};
++
++/**
++ * struct damos - Represents a Data Access Monitoring-based Operation Scheme.
++ * @min_sz_region:	Minimum size of target regions.
++ * @max_sz_region:	Maximum size of target regions.
++ * @min_nr_accesses:	Minimum ``->nr_accesses`` of target regions.
++ * @max_nr_accesses:	Maximum ``->nr_accesses`` of target regions.
++ * @min_age_region:	Minimum age of target regions.
++ * @max_age_region:	Maximum age of target regions.
++ * @action:		&damo_action to be applied to the target regions.
++ * @list:		List head for siblings.
++ *
++ * Note that both the minimums and the maximums are inclusive.
++ */
++struct damos {
++	unsigned long min_sz_region;
++	unsigned long max_sz_region;
++	unsigned int min_nr_accesses;
++	unsigned int max_nr_accesses;
++	unsigned int min_age_region;
++	unsigned int max_age_region;
++	enum damos_action action;
++	struct list_head list;
++};
++
+ struct damon_ctx;
+ 
  /**
---- a/mm/damon/core.c~mm-damon-core-account-age-of-target-regions
+@@ -79,6 +121,7 @@ struct damon_ctx;
+  * @prepare_access_checks:	Prepare next access check of target regions.
+  * @check_accesses:		Check the accesses to target regions.
+  * @reset_aggregated:		Reset aggregated accesses monitoring results.
++ * @apply_scheme:		Apply a DAMON-based operation scheme.
+  * @target_valid:		Determine if the target is valid.
+  * @cleanup:			Clean up the context.
+  *
+@@ -104,6 +147,9 @@ struct damon_ctx;
+  * of its update.  The value will be used for regions adjustment threshold.
+  * @reset_aggregated should reset the access monitoring results that aggregated
+  * by @check_accesses.
++ * @apply_scheme is called from @kdamond when a region for user provided
++ * DAMON-based operation scheme is found.  It should apply the scheme's action
++ * to the region.  This is not used for &DAMON_ARBITRARY_TARGET case.
+  * @target_valid should check whether the target is still valid for the
+  * monitoring.
+  * @cleanup is called from @kdamond just before its termination.
+@@ -114,6 +160,8 @@ struct damon_primitive {
+ 	void (*prepare_access_checks)(struct damon_ctx *context);
+ 	unsigned int (*check_accesses)(struct damon_ctx *context);
+ 	void (*reset_aggregated)(struct damon_ctx *context);
++	int (*apply_scheme)(struct damon_ctx *context, struct damon_target *t,
++			struct damon_region *r, struct damos *scheme);
+ 	bool (*target_valid)(void *target);
+ 	void (*cleanup)(struct damon_ctx *context);
+ };
+@@ -192,6 +240,7 @@ struct damon_callback {
+  * @min_nr_regions:	The minimum number of adaptive monitoring regions.
+  * @max_nr_regions:	The maximum number of adaptive monitoring regions.
+  * @adaptive_targets:	Head of monitoring targets (&damon_target) list.
++ * @schemes:		Head of schemes (&damos) list.
+  */
+ struct damon_ctx {
+ 	unsigned long sample_interval;
+@@ -213,6 +262,7 @@ struct damon_ctx {
+ 	unsigned long min_nr_regions;
+ 	unsigned long max_nr_regions;
+ 	struct list_head adaptive_targets;
++	struct list_head schemes;
+ };
+ 
+ #define damon_next_region(r) \
+@@ -233,6 +283,12 @@ struct damon_ctx {
+ #define damon_for_each_target_safe(t, next, ctx)	\
+ 	list_for_each_entry_safe(t, next, &(ctx)->adaptive_targets, list)
+ 
++#define damon_for_each_scheme(s, ctx) \
++	list_for_each_entry(s, &(ctx)->schemes, list)
++
++#define damon_for_each_scheme_safe(s, next, ctx) \
++	list_for_each_entry_safe(s, next, &(ctx)->schemes, list)
++
+ #ifdef CONFIG_DAMON
+ 
+ struct damon_region *damon_new_region(unsigned long start, unsigned long end);
+@@ -242,6 +298,14 @@ inline void damon_insert_region(struct d
+ void damon_add_region(struct damon_region *r, struct damon_target *t);
+ void damon_destroy_region(struct damon_region *r, struct damon_target *t);
+ 
++struct damos *damon_new_scheme(
++		unsigned long min_sz_region, unsigned long max_sz_region,
++		unsigned int min_nr_accesses, unsigned int max_nr_accesses,
++		unsigned int min_age_region, unsigned int max_age_region,
++		enum damos_action action);
++void damon_add_scheme(struct damon_ctx *ctx, struct damos *s);
++void damon_destroy_scheme(struct damos *s);
++
+ struct damon_target *damon_new_target(unsigned long id);
+ void damon_add_target(struct damon_ctx *ctx, struct damon_target *t);
+ void damon_free_target(struct damon_target *t);
+@@ -255,6 +319,8 @@ int damon_set_targets(struct damon_ctx *
+ int damon_set_attrs(struct damon_ctx *ctx, unsigned long sample_int,
+ 		unsigned long aggr_int, unsigned long primitive_upd_int,
+ 		unsigned long min_nr_reg, unsigned long max_nr_reg);
++int damon_set_schemes(struct damon_ctx *ctx,
++			struct damos **schemes, ssize_t nr_schemes);
+ int damon_nr_running_ctxs(void);
+ 
+ int damon_start(struct damon_ctx **ctxs, int nr_ctxs);
+--- a/mm/damon/core.c~mm-damon-core-implement-damon-based-operation-schemes-damos
 +++ a/mm/damon/core.c
-@@ -45,6 +45,9 @@ struct damon_region *damon_new_region(un
- 	region->nr_accesses = 0;
- 	INIT_LIST_HEAD(&region->list);
- 
-+	region->age = 0;
-+	region->last_nr_accesses = 0;
-+
- 	return region;
+@@ -85,6 +85,50 @@ void damon_destroy_region(struct damon_r
+ 	damon_free_region(r);
  }
  
-@@ -444,6 +447,7 @@ static void kdamond_reset_aggregated(str
++struct damos *damon_new_scheme(
++		unsigned long min_sz_region, unsigned long max_sz_region,
++		unsigned int min_nr_accesses, unsigned int max_nr_accesses,
++		unsigned int min_age_region, unsigned int max_age_region,
++		enum damos_action action)
++{
++	struct damos *scheme;
++
++	scheme = kmalloc(sizeof(*scheme), GFP_KERNEL);
++	if (!scheme)
++		return NULL;
++	scheme->min_sz_region = min_sz_region;
++	scheme->max_sz_region = max_sz_region;
++	scheme->min_nr_accesses = min_nr_accesses;
++	scheme->max_nr_accesses = max_nr_accesses;
++	scheme->min_age_region = min_age_region;
++	scheme->max_age_region = max_age_region;
++	scheme->action = action;
++	INIT_LIST_HEAD(&scheme->list);
++
++	return scheme;
++}
++
++void damon_add_scheme(struct damon_ctx *ctx, struct damos *s)
++{
++	list_add_tail(&s->list, &ctx->schemes);
++}
++
++static void damon_del_scheme(struct damos *s)
++{
++	list_del(&s->list);
++}
++
++static void damon_free_scheme(struct damos *s)
++{
++	kfree(s);
++}
++
++void damon_destroy_scheme(struct damos *s)
++{
++	damon_del_scheme(s);
++	damon_free_scheme(s);
++}
++
+ /*
+  * Construct a damon_target struct
+  *
+@@ -156,6 +200,7 @@ struct damon_ctx *damon_new_ctx(void)
+ 	ctx->max_nr_regions = 1000;
  
- 		damon_for_each_region(r, t) {
- 			trace_damon_aggregated(t, r, damon_nr_regions(t));
-+			r->last_nr_accesses = r->nr_accesses;
- 			r->nr_accesses = 0;
- 		}
+ 	INIT_LIST_HEAD(&ctx->adaptive_targets);
++	INIT_LIST_HEAD(&ctx->schemes);
+ 
+ 	return ctx;
+ }
+@@ -175,7 +220,13 @@ static void damon_destroy_targets(struct
+ 
+ void damon_destroy_ctx(struct damon_ctx *ctx)
+ {
++	struct damos *s, *next_s;
++
+ 	damon_destroy_targets(ctx);
++
++	damon_for_each_scheme_safe(s, next_s, ctx)
++		damon_destroy_scheme(s);
++
+ 	kfree(ctx);
+ }
+ 
+@@ -251,6 +302,30 @@ int damon_set_attrs(struct damon_ctx *ct
+ }
+ 
+ /**
++ * damon_set_schemes() - Set data access monitoring based operation schemes.
++ * @ctx:	monitoring context
++ * @schemes:	array of the schemes
++ * @nr_schemes:	number of entries in @schemes
++ *
++ * This function should not be called while the kdamond of the context is
++ * running.
++ *
++ * Return: 0 if success, or negative error code otherwise.
++ */
++int damon_set_schemes(struct damon_ctx *ctx, struct damos **schemes,
++			ssize_t nr_schemes)
++{
++	struct damos *s, *next;
++	ssize_t i;
++
++	damon_for_each_scheme_safe(s, next, ctx)
++		damon_destroy_scheme(s);
++	for (i = 0; i < nr_schemes; i++)
++		damon_add_scheme(ctx, schemes[i]);
++	return 0;
++}
++
++/**
+  * damon_nr_running_ctxs() - Return number of currently running contexts.
+  */
+ int damon_nr_running_ctxs(void)
+@@ -453,6 +528,39 @@ static void kdamond_reset_aggregated(str
  	}
-@@ -461,6 +465,7 @@ static void damon_merge_two_regions(stru
- 
- 	l->nr_accesses = (l->nr_accesses * sz_l + r->nr_accesses * sz_r) /
- 			(sz_l + sz_r);
-+	l->age = (l->age * sz_l + r->age * sz_r) / (sz_l + sz_r);
- 	l->ar.end = r->ar.end;
- 	damon_destroy_region(r, t);
- }
-@@ -480,6 +485,11 @@ static void damon_merge_regions_of(struc
- 	struct damon_region *r, *prev = NULL, *next;
- 
- 	damon_for_each_region_safe(r, next, t) {
-+		if (diff_of(r->nr_accesses, r->last_nr_accesses) > thres)
-+			r->age = 0;
-+		else
-+			r->age++;
-+
- 		if (prev && prev->ar.end == r->ar.start &&
- 		    diff_of(prev->nr_accesses, r->nr_accesses) <= thres &&
- 		    sz_damon_region(prev) + sz_damon_region(r) <= sz_limit)
-@@ -527,6 +537,9 @@ static void damon_split_region_at(struct
- 
- 	r->ar.end = new->ar.start;
- 
-+	new->age = r->age;
-+	new->last_nr_accesses = r->last_nr_accesses;
-+
- 	damon_insert_region(new, r, damon_next_region(r), t);
  }
  
++static void damon_do_apply_schemes(struct damon_ctx *c,
++				   struct damon_target *t,
++				   struct damon_region *r)
++{
++	struct damos *s;
++	unsigned long sz;
++
++	damon_for_each_scheme(s, c) {
++		sz = r->ar.end - r->ar.start;
++		if (sz < s->min_sz_region || s->max_sz_region < sz)
++			continue;
++		if (r->nr_accesses < s->min_nr_accesses ||
++				s->max_nr_accesses < r->nr_accesses)
++			continue;
++		if (r->age < s->min_age_region || s->max_age_region < r->age)
++			continue;
++		if (c->primitive.apply_scheme)
++			c->primitive.apply_scheme(c, t, r, s);
++		r->age = 0;
++	}
++}
++
++static void kdamond_apply_schemes(struct damon_ctx *c)
++{
++	struct damon_target *t;
++	struct damon_region *r;
++
++	damon_for_each_target(t, c) {
++		damon_for_each_region(r, t)
++			damon_do_apply_schemes(c, t, r);
++	}
++}
++
+ #define sz_damon_region(r) (r->ar.end - r->ar.start)
+ 
+ /*
+@@ -693,6 +801,7 @@ static int kdamond_fn(void *data)
+ 			if (ctx->callback.after_aggregation &&
+ 					ctx->callback.after_aggregation(ctx))
+ 				set_kdamond_stop(ctx);
++			kdamond_apply_schemes(ctx);
+ 			kdamond_reset_aggregated(ctx);
+ 			kdamond_split_regions(ctx);
+ 			if (ctx->primitive.reset_aggregated)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
