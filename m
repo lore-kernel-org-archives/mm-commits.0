@@ -2,309 +2,190 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D204C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 02:37:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E12EC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 22:50:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 001AC61206
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 02:37:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30ED261AF7
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 22:50:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230342AbhJACis (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 22:38:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38082 "EHLO mail.kernel.org"
+        id S1356088AbhJAWw3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Oct 2021 18:52:29 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35574 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230260AbhJACis (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 22:38:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6151660FF2;
-        Fri,  1 Oct 2021 02:37:04 +0000 (UTC)
+        id S1356089AbhJAWw2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 Oct 2021 18:52:28 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C3ACD61B03;
+        Fri,  1 Oct 2021 22:50:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633055824;
-        bh=EO+51TOemQDKQ9qxT7hE/emtGmszbsBeb0pxyH0iw3U=;
+        s=korg; t=1633128644;
+        bh=rv+1BDFDs5g1B1ynqbt2oV/WYEiLzamQaoTiMAvNoOc=;
         h=Date:From:To:Subject:From;
-        b=HAHluVgKyLYSVinc+arGNaeRATsuhAA60FEN7UXKKXsRRjePGHe9KGVoTvZUCYIwi
-         W1WJetOxJqfgWCsn9mLE8UPDxctrtT5BdsTKCg0r7K0f7QRFmowv7at5iTvL08tFKj
-         D+Hx8CS21EqUsEtTsxOWh7kPTSElkcN8ip+B0tSM=
-Date:   Thu, 30 Sep 2021 19:37:03 -0700
+        b=gCqZhbfSTnA8B16no89+m58Gjfy2hXpfITdX85pgQ87A9660Vvf8WvFexRXssNDf8
+         Dem2yRSrhBkJGZjEQyeLmckQHnNaR8YIr3ln+JguwOcm1F9I92h4QLL3HMxCD3c61K
+         F2xYhfYCB2+0HUO7oSkc1+ww6eHZ2zz0uJbH2pks=
+Date:   Fri, 01 Oct 2021 15:50:43 -0700
 From:   akpm@linux-foundation.org
-To:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject:  mmotm 2021-09-30-19-36 uploaded
-Message-ID: <20211001023703.54h-iZdWT%akpm@linux-foundation.org>
+To:     edumazet@google.com, mgorman@suse.de, mm-commits@vger.kernel.org,
+        syzkaller@googlegroups.com, ying.huang@intel.com
+Subject:  +
+ =?US-ASCII?Q?mm-mempolicy-do-not-allow-illegal-mpol=5Ff=5Fnuma=5Fbalanci?=
+ =?US-ASCII?Q?ng-mpol=5Flocal-in-mbind.patch?= added to -mm tree
+Message-ID: <20211001225043.TfQYALm7E%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-The mm-of-the-moment snapshot 2021-09-30-19-36 has been uploaded to
 
-   https://www.ozlabs.org/~akpm/mmotm/
+The patch titled
+     Subject: mm/mempolicy: do not allow illegal MPOL_F_NUMA_BALANCING | MPOL_LOCAL in mbind()
+has been added to the -mm tree.  Its filename is
+     mm-mempolicy-do-not-allow-illegal-mpol_f_numa_balancing-mpol_local-in-mbind.patch
 
-mmotm-readme.txt says
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-do-not-allow-illegal-mpol_f_numa_balancing-mpol_local-in-mbind.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-do-not-allow-illegal-mpol_f_numa_balancing-mpol_local-in-mbind.patch
 
-README for mm-of-the-moment:
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-https://www.ozlabs.org/~akpm/mmotm/
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-You will need quilt to apply these patches to the latest Linus release (5.x
-or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-https://ozlabs.org/~akpm/mmotm/series
+------------------------------------------------------
+From: Eric Dumazet <edumazet@google.com>
+Subject: mm/mempolicy: do not allow illegal MPOL_F_NUMA_BALANCING | MPOL_LOCAL in mbind()
 
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
+syzbot reported access to unitialized memory in mbind() [1]
 
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
+Issue came with commit bda420b98505 ("numa balancing: migrate on fault
+among multiple bound nodes")
 
+This commit added a new bit in MPOL_MODE_FLAGS, but only checked valid
+combination (MPOL_F_NUMA_BALANCING can only be used with MPOL_BIND) in
+do_set_mempolicy()
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+This patch moves the check in sanitize_mpol_flags() so that it is also
+used by mbind()
 
-	https://github.com/hnaz/linux-mm
+[1]
+BUG: KMSAN: uninit-value in __mpol_equal+0x567/0x590 mm/mempolicy.c:2260
+ __mpol_equal+0x567/0x590 mm/mempolicy.c:2260
+ mpol_equal include/linux/mempolicy.h:105 [inline]
+ vma_merge+0x4a1/0x1e60 mm/mmap.c:1190
+ mbind_range+0xcc8/0x1e80 mm/mempolicy.c:811
+ do_mbind+0xf42/0x15f0 mm/mempolicy.c:1333
+ kernel_mbind mm/mempolicy.c:1483 [inline]
+ __do_sys_mbind mm/mempolicy.c:1490 [inline]
+ __se_sys_mbind+0x437/0xb80 mm/mempolicy.c:1486
+ __x64_sys_mbind+0x19d/0x200 mm/mempolicy.c:1486
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
 
-The directory https://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+Uninit was created at:
+ slab_alloc_node mm/slub.c:3221 [inline]
+ slab_alloc mm/slub.c:3230 [inline]
+ kmem_cache_alloc+0x751/0xff0 mm/slub.c:3235
+ mpol_new mm/mempolicy.c:293 [inline]
+ do_mbind+0x912/0x15f0 mm/mempolicy.c:1289
+ kernel_mbind mm/mempolicy.c:1483 [inline]
+ __do_sys_mbind mm/mempolicy.c:1490 [inline]
+ __se_sys_mbind+0x437/0xb80 mm/mempolicy.c:1486
+ __x64_sys_mbind+0x19d/0x200 mm/mempolicy.c:1486
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+=====================================================
+Kernel panic - not syncing: panic_on_kmsan set ...
+CPU: 0 PID: 15049 Comm: syz-executor.0 Tainted: G    B             5.15.0-rc2-syzkaller #0
+Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 01/01/2011
+Call Trace:
+ __dump_stack lib/dump_stack.c:88 [inline]
+ dump_stack_lvl+0x1ff/0x28e lib/dump_stack.c:106
+ dump_stack+0x25/0x28 lib/dump_stack.c:113
+ panic+0x44f/0xdeb kernel/panic.c:232
+ kmsan_report+0x2ee/0x300 mm/kmsan/report.c:186
+ __msan_warning+0xd7/0x150 mm/kmsan/instrumentation.c:208
+ __mpol_equal+0x567/0x590 mm/mempolicy.c:2260
+ mpol_equal include/linux/mempolicy.h:105 [inline]
+ vma_merge+0x4a1/0x1e60 mm/mmap.c:1190
+ mbind_range+0xcc8/0x1e80 mm/mempolicy.c:811
+ do_mbind+0xf42/0x15f0 mm/mempolicy.c:1333
+ kernel_mbind mm/mempolicy.c:1483 [inline]
+ __do_sys_mbind mm/mempolicy.c:1490 [inline]
+ __se_sys_mbind+0x437/0xb80 mm/mempolicy.c:1486
+ __x64_sys_mbind+0x19d/0x200 mm/mempolicy.c:1486
+ do_syscall_x64 arch/x86/entry/common.c:51 [inline]
+ do_syscall_64+0x54/0xd0 arch/x86/entry/common.c:82
+ entry_SYSCALL_64_after_hwframe+0x44/0xae
+RIP: 0033:0x7f4a41b2c709
+Code: ff ff c3 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 40 00 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 c7 c1 bc ff ff ff f7 d8 64 89 01 48
+RSP: 002b:00007f4a3f0a3188 EFLAGS: 00000246 ORIG_RAX: 00000000000000ed
+RAX: ffffffffffffffda RBX: 00007f4a41c30f60 RCX: 00007f4a41b2c709
+RDX: 0000000000002001 RSI: 0000000000c00007 RDI: 0000000020012000
+RBP: 00007f4a41b86cb4 R08: 0000000000000000 R09: 0000010000000002
+R10: 0000000000000000 R11: 0000000000000246 R12: 0000000000000000
+R13: 00007f4a42164b2f R14: 00007f4a3f0a3300 R15: 0000000000022000
 
-A git copy of this tree is also available at
+Link: https://lkml.kernel.org/r/20211001215630.810592-1-eric.dumazet@gmail.com
+Fixes: bda420b98505 ("numa balancing: migrate on fault among multiple bound nodes")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Reported-by: syzbot <syzkaller@googlegroups.com>
+Cc: "Huang, Ying" <ying.huang@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-	https://github.com/hnaz/linux-mm
+ mm/mempolicy.c |   16 +++++-----------
+ 1 file changed, 5 insertions(+), 11 deletions(-)
 
+--- a/mm/mempolicy.c~mm-mempolicy-do-not-allow-illegal-mpol_f_numa_balancing-mpol_local-in-mbind
++++ a/mm/mempolicy.c
+@@ -856,16 +856,6 @@ static long do_set_mempolicy(unsigned sh
+ 		goto out;
+ 	}
+ 
+-	if (flags & MPOL_F_NUMA_BALANCING) {
+-		if (new && new->mode == MPOL_BIND) {
+-			new->flags |= (MPOL_F_MOF | MPOL_F_MORON);
+-		} else {
+-			ret = -EINVAL;
+-			mpol_put(new);
+-			goto out;
+-		}
+-	}
+-
+ 	ret = mpol_set_nodemask(new, nodes, scratch);
+ 	if (ret) {
+ 		mpol_put(new);
+@@ -1458,7 +1448,11 @@ static inline int sanitize_mpol_flags(in
+ 		return -EINVAL;
+ 	if ((*flags & MPOL_F_STATIC_NODES) && (*flags & MPOL_F_RELATIVE_NODES))
+ 		return -EINVAL;
+-
++	if (*flags & MPOL_F_NUMA_BALANCING) {
++		if (*mode != MPOL_BIND)
++			return -EINVAL;
++		*flags |= (MPOL_F_MOF | MPOL_F_MORON);
++	}
+ 	return 0;
+ }
+ 
+_
 
+Patches currently in -mm which might be from edumazet@google.com are
 
-This mmotm tree contains the following patches against 5.15-rc3:
-(patches marked "*" will be included in linux-next)
+mm-mempolicy-do-not-allow-illegal-mpol_f_numa_balancing-mpol_local-in-mbind.patch
+mm-large-system-hash-avoid-possible-null-deref-in-alloc_large_system_hash.patch
+mm-do-not-acquire-zone-lock-in-is_free_buddy_page.patch
 
-  origin.patch
-* mm-userfaultfd-selftests-fix-memory-corruption-with-thp-enabled.patch
-* userfaultfd-fix-a-race-between-writeprotect-and-exit_mmap.patch
-* mm-migrate-optimize-hotplug-time-demotion-order-updates.patch
-* mm-migrate-add-cpu-hotplug-to-demotion-ifdef.patch
-* mm-migrate-fix-cpuhp-state-to-update-node-demotion-order.patch
-* mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch
-* ocfs2-fix-data-corruption-after-conversion-from-inline-format.patch
-* ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
-* memblock-check-memory-total_size.patch
-* proc-kpageflags-prevent-an-integer-overflow-in-stable_page_flags.patch
-* proc-kpageflags-do-not-use-uninitialized-struct-pages.patch
-* procfs-prevent-unpriveleged-processes-accessing-fdinfo-dir.patch
-* scripts-spellingtxt-add-more-spellings-to-spellingtxt.patch
-* scripts-spellingtxt-fix-mistake-version-of-synchronization.patch
-* ocfs2-fix-handle-refcount-leak-in-two-exception-handling-paths.patch
-* ocfs2-reflink-deadlock-when-clone-file-to-the-same-directory-simultaneously.patch
-* ocfs2-clear-links-count-in-ocfs2_mknod-if-an-error-occurs.patch
-* ocfs2-fix-ocfs2-corrupt-when-iputting-an-inode.patch
-* posix-acl-avoid-wempty-body-warning.patch
-  mm.patch
-* mm-move-kvmalloc-related-functions-to-slabh.patch
-* mm-remove-useless-lines-in-enable_cpucache.patch
-* mm-slub-fix-two-bugs-in-slab_debug_trace_open.patch
-* mm-slub-fix-mismatch-between-reconstructed-freelist-depth-and-cnt.patch
-* mm-slub-fix-potential-memoryleak-in-kmem_cache_open.patch
-* mm-slub-fix-potential-use-after-free-in-slab_debugfs_fops.patch
-* mm-slub-fix-incorrect-memcg-slab-count-for-bulk-free.patch
-* slub-add-back-check-for-free-nonslab-objects.patch
-* mm-dont-include-linux-daxh-in-linux-mempolicyh.patch
-* compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
-* compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix.patch
-* checkpatch-add-__alloc_size-to-known-attribute.patch
-* slab-clean-up-function-declarations.patch
-* slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
-* mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
-* percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
-* mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
-* rapidio-avoid-bogus-__alloc_size-warning.patch
-* mm-smaps-fix-shmem-pte-hole-swap-calculation.patch
-* mm-smaps-use-vma-vm_pgoff-directly-when-counting-partial-swap.patch
-* mm-smaps-simplify-shmem-handling-of-pte-holes.patch
-* mm-debug_vm_pgtable-dont-use-__p000-directly.patch
-* mm-remove-bogus-vm_bug_on.patch
-* vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
-* mm-gup-further-simplify-__gup_device_huge.patch
-* mm-swapfile-remove-needless-request_queue-null-pointer-check.patch
-* mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte.patch
-* memcg-flush-stats-only-if-updated.patch
-* memcg-unify-memcg-stat-flushing.patch
-* memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks.patch
-* mm-mmapc-fix-a-data-race-of-mm-total_vm.patch
-* mm-use-__pfn_to_section-instead-of-open-coding-it.patch
-* mm-memory-avoid-unnecessary-kernel-user-pointer-conversion.patch
-* mm-shmem-unconditionally-set-pte-dirty-in-mfill_atomic_install_pte.patch
-* mm-clear-vmf-pte-after-pte_unmap_same-returns.patch
-* mm-drop-first_index-last_index-in-zap_details.patch
-* mm-add-zap_skip_check_mapping-helper.patch
-* mm-introduce-pmd_install-helper.patch
-* mm-remove-redundant-smp_wmb.patch
-* documentation-update-pagemap-with-shmem-exceptions.patch
-* lazy-tlb-introduce-lazy-mm-refcount-helper-functions.patch
-* lazy-tlb-allow-lazy-tlb-mm-refcounting-to-be-configurable.patch
-* lazy-tlb-shoot-lazies-a-non-refcounting-lazy-tlb-option.patch
-* powerpc-64s-enable-mmu_lazy_tlb_shootdown.patch
-* mm-mremap-dont-account-pages-in-vma_to_resize.patch
-* mm-vmalloc-repair-warn_allocs-in-__vmalloc_area_node.patch
-* mm-vmalloc-dont-allow-vm_no_guard-on-vmap.patch
-* kasan-test-add-memcpy-test-that-avoids-out-of-bounds-write.patch
-* lib-stackdepot-include-gfph.patch
-* lib-stackdepot-remove-unused-function-argument.patch
-* lib-stackdepot-introduce-__stack_depot_save.patch
-* kasan-common-provide-can_alloc-in-kasan_save_stack.patch
-* kasan-generic-introduce-kasan_record_aux_stack_noalloc.patch
-* workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
-* mm-large-system-hash-avoid-possible-null-deref-in-alloc_large_system_hash.patch
-* mm-page_allocc-remove-meaningless-vm_bug_on-in-pindex_to_order.patch
-* mm-page_allocc-simplify-the-code-by-using-macro-k.patch
-* mm-page_allocc-fix-obsolete-comment-in-free_pcppages_bulk.patch
-* mm-page_allocc-use-helper-function-zone_spans_pfn.patch
-* mm-page_allocc-avoid-allocating-highmem-pages-via-alloc_pages_exact.patch
-* mm-page_alloc-print-node-fallback-order.patch
-* mm-page_alloc-use-accumulated-load-when-building-node-fallback-list.patch
-* mm-move-node_reclaim_distance-to-fix-numa-without-smp.patch
-* mm-move-fold_vm_numa_events-to-fix-numa-without-smp.patch
-* mm-do-not-acquire-zone-lock-in-is_free_buddy_page.patch
-* mm-page_alloc-detect-allocation-forbidden-by-cpuset-and-bail-out-early.patch
-* mm-show-watermark_boost-of-zone-in-zoneinfo.patch
-* mm-create-a-new-system-state-and-fix-core_kernel_text.patch
-* mm-make-generic-arch_is_kernel_initmem_freed-do-what-it-says.patch
-* powerpc-use-generic-version-of-arch_is_kernel_initmem_freed.patch
-* s390-use-generic-version-of-arch_is_kernel_initmem_freed.patch
-* mm-fix-data-race-in-pagepoisoned.patch
-* mm-hugetlb-drop-__unmap_hugepage_range-definition-from-hugetlbh.patch
-* hugetlb-add-demote-hugetlb-page-sysfs-interfaces.patch
-* hugetlb-add-hpagecma-flag-and-code-to-free-non-gigantic-pages-in-cma.patch
-* hugetlb-add-demote-bool-to-gigantic-page-routines.patch
-* hugetlb-add-hugetlb-demote-page-support.patch
-* userfaultfd-selftests-fix-feature-support-detection.patch
-* userfaultfd-selftests-fix-calculation-of-expected-ioctls.patch
-* userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
-* mm-page_isolation-fix-potential-missing-call-to-unset_migratetype_isolate.patch
-* mm-page_isolation-guard-against-possible-putback-unisolated-page.patch
-* mm-vmscanc-fix-wunused-but-set-variable-warning.patch
-* tools-vm-page_owner_sortc-count-and-sort-by-mem.patch
-* mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt.patch
-* mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-* arch_numa-simplify-numa_distance-allocation.patch
-* xen-x86-free_p2m_page-use-memblock_free_ptr-to-free-a-virtual-pointer.patch
-* memblock-drop-memblock_free_early_nid-and-memblock_free_early.patch
-* memblock-stop-aliasing-__memblock_free_late-with-memblock_free_late.patch
-* memblock-rename-memblock_free-to-memblock_phys_free.patch
-* memblock-use-memblock_free-for-freeing-virtual-pointers.patch
-* mm-mark-the-oom-reaper-thread-as-freezable.patch
-* oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage.patch
-* mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb.patch
-* hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation.patch
-* hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation-fix.patch
-* mm-migrate-de-duplicate-migrate_reason-strings.patch
-* mm-nommu-kill-arch_get_unmapped_area.patch
-* selftest-vm-fix-ksm-selftest-to-run-with-different-numa-topologies.patch
-* mm-vmstat-annotate-data-race-for-zone-free_areanr_free.patch
-* mm-vmstat-annotate-data-race-for-zone-free_areanr_free-fix.patch
-* mm-memory_hotplug-add-static-qualifier-for-online_policy_to_str.patch
-* memory-hotplugrst-fix-two-instances-of-movablecore-that-should-be-movable_node.patch
-* memory-hotplugrst-fix-wrong-sys-module-memory_hotplug-parameters-path.patch
-* memory-hotplugrst-document-the-auto-movable-online-policy.patch
-* mm-memory_hotplug-remove-config_x86_64_acpi_numa-dependency-from-config_memory_hotplug.patch
-* mm-memory_hotplug-remove-config_memory_hotplug_sparse.patch
-* mm-memory_hotplug-restrict-config_memory_hotplug-to-64-bit.patch
-* mm-memory_hotplug-remove-highmem-leftovers.patch
-* mm-memory_hotplug-remove-stale-function-declarations.patch
-* x86-remove-memory-hotplug-support-on-x86_32.patch
-* mm-memory_hotplug-make-hwpoisoned-dirty-swapcache-pages-unmovable.patch
-* mm-rmap-convert-from-atomic_t-to-refcount_t-on-anon_vma-refcount.patch
-* mm-disable-zsmalloc-on-preempt_rt.patch
-* mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration.patch
-* mm-zsmallocc-combine-two-atomic-ops-in-zs_pool_dec_isolated.patch
-* mm-highmem-remove-deprecated-kmap_atomic.patch
-* zram_drv-allow-reclaim-on-bio_alloc.patch
-* zram-off-by-one-in-read_block_state.patch
-* zram-introduce-an-aged-idle-interface.patch
-* zram-introduce-an-aged-idle-interface-v5.patch
-* zram-introduce-an-aged-idle-interface-v6.patch
-* mm-remove-hardened_usercopy_fallback.patch
-* include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh.patch
-* stacktrace-move-filter_irq_stacks-to-kernel-stacktracec.patch
-* kfence-count-unexpectedly-skipped-allocations.patch
-* kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
-* kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
-* kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
-* kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix.patch
-* kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
-* kfence-test-use-kunit_skip-to-skip-tests.patch
-* kfence-shorten-critical-sections-of-alloc-free.patch
-* mm-damon-grammar-s-works-work.patch
-* documentation-vm-move-user-guides-to-admin-guide-mm.patch
-* maintainers-update-seongjaes-email-address.patch
-* docs-vm-damon-remove-broken-reference.patch
-* include-linux-damonh-fix-kernel-doc-comments-for-damon_callback.patch
-* mm-damon-core-print-kdamond-start-log-in-debug-mode-only.patch
-* mm-damon-remove-unnecessary-do_exit-from-kdamond.patch
-* mm-damon-neednt-hold-kdamond_lock-to-print-pid-of-kdamond.patch
-* mm-damon-core-nullify-pointer-ctx-kdamond-with-a-null.patch
-* info-task-hung-in-generic_file_write_iter.patch
-* info-task-hung-in-generic_file_write-fix.patch
-* kernel-hung_taskc-monitor-killed-tasks.patch
-* procfs-do-not-list-tid-0-in-proc-pid-task.patch
-* procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
-* proc-sysctl-make-protected_-world-readable.patch
-* lib-stackdepot-check-stackdepot-handle-before-accessing-slabs.patch
-* lib-stackdepot-add-helper-to-print-stack-entries.patch
-* lib-stackdepot-add-helper-to-print-stack-entries-into-buffer.patch
-* lib-stackdepot-add-helper-to-print-stack-entries-into-buffer-v2.patch
-* lib-stackdepot-add-helper-to-print-stack-entries-into-buffer-v3.patch
-* const_structscheckpatch-add-a-few-sound-ops-structs.patch
-* binfmt_elf-reintroduce-using-map_fixed_noreplace.patch
-* kallsyms-remove-arch-specific-text-and-data-check.patch
-* kallsyms-fix-address-checks-for-kernel-related-range.patch
-* sections-move-and-rename-core_kernel_data-to-is_kernel_core_data.patch
-* sections-move-is_kernel_inittext-into-sectionsh.patch
-* x86-mm-rename-__is_kernel_text-to-is_x86_32_kernel_text.patch
-* sections-provide-internal-__is_kernel-and-__is_kernel_text-helper.patch
-* mm-kasan-use-is_kernel-helper.patch
-* extable-use-is_kernel_text-helper.patch
-* powerpc-mm-use-core_kernel_text-helper.patch
-* microblaze-use-is_kernel_text-helper.patch
-* alpha-use-is_kernel_text-helper.patch
-* ramfs-fix-mount-source-show-for-ramfs.patch
-* init-mainc-silence-some-wunused-parameter-warnings.patch
-* coda-avoid-null-pointer-dereference-from-a-bad-inode.patch
-* coda-check-for-async-upcall-request-using-local-state.patch
-* coda-remove-err-which-no-one-care.patch
-* coda-avoid-flagging-null-inodes.patch
-* coda-avoid-hidden-code-duplication-in-rename.patch
-* coda-avoid-doing-bad-things-on-inode-type-changes-during-revalidation.patch
-* coda-convert-from-atomic_t-to-refcount_t-on-coda_vm_ops-refcnt.patch
-* coda-use-vmemdup_user-to-replace-the-open-code.patch
-* coda-bump-module-version-to-72.patch
-* hfs-hfsplus-use-warn_on-for-sanity-check.patch
-* hfsplus-fix-out-of-bounds-warnings-in-__hfsplus_setxattr.patch
-* unshare-use-swap-to-make-code-cleaner.patch
-* sysv-use-build_bug_on-instead-of-runtime-check.patch
-* documentation-kcov-include-typesh-in-the-example.patch
-* documentation-kcov-define-ip-in-the-example.patch
-* kcov-allocate-per-cpu-memory-on-the-relevant-node.patch
-* kcov-avoid-enabledisable-interrupts-if-in_task.patch
-* kcov-replace-local_irq_save-with-a-local_lock_t.patch
-* kernel-resource-clean-up-and-optimize-iomem_is_exclusive.patch
-* kernel-resource-disallow-access-to-exclusive-system-ram-regions.patch
-* virtio-mem-disallow-mapping-virtio-mem-memory-via-dev-mem.patch
-* ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files.patch
-* ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
-* ipc-ipc_sysctlc-remove-fallback-for-config_proc_sysctl.patch
-  linux-next.patch
-* mm-migrate-simplify-the-file-backed-pages-validation-when-migrating-its-mapping.patch
-* mm-unexport-folio_memcg_unlock.patch
-* mm-unexport-unlock_page_memcg.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  mutex-subsystem-synchro-test-module.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  workaround-for-a-pci-restoring-bug.patch
