@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47411C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98071C433EF
 	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:55:49 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2926461ACE
+	by mail.kernel.org (Postfix) with ESMTP id 8452C61ACE
 	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:55:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232217AbhJAX5c (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Oct 2021 19:57:32 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46898 "EHLO mail.kernel.org"
+        id S229574AbhJAX5d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Oct 2021 19:57:33 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47000 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232138AbhJAX50 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 Oct 2021 19:57:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 198B561AA4;
-        Fri,  1 Oct 2021 23:55:41 +0000 (UTC)
+        id S229976AbhJAX5c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 Oct 2021 19:57:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 26F6261AA9;
+        Fri,  1 Oct 2021 23:55:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633132541;
-        bh=j4Sv1xDRpZOX58YtZS+ebBcCIgaiekP7Rksp8cJ3q+U=;
+        s=korg; t=1633132547;
+        bh=8rltrVq81lFU8tMA5aEp7D+evJllmG1KjffA06Cid0A=;
         h=Date:From:To:Subject:From;
-        b=MyKNlHi1JNFpg4vpX7jH6j3tGb6H2EpzwGZf1gFdWDN9jcRv141MqMOlovnAGInhb
-         er27osHxD8C5IFCfq4YUqeGIffogL+kROluyOkYMgw20pP/Q37OuJ646Yb4Dcrflcn
-         C2Gi0Fb8TxsXbvQG94BWZWoaV2iVoqAWEc674gIQ=
-Date:   Fri, 01 Oct 2021 16:55:40 -0700
+        b=IPFZflkOM/PqAspHmKSKU5EaoiQcdNI6SQtLOeRooiwJr7S9yDtRZX++RriofRDZI
+         URZFBGA6qKNOY+fBQZjA44gl3Q6lbQ5GQSygp9Dy9MrPbywa1CQbWcoLV61OTkOlSP
+         1QfHAGX4hszsuWFLCjTzcSN8BOdeKUJjMd4OJ/EY=
+Date:   Fri, 01 Oct 2021 16:55:46 -0700
 From:   akpm@linux-foundation.org
 To:     alex.bou9@gmail.com, apw@canonical.com, cl@linux.com,
         danielmicay@gmail.com, dennis@kernel.org, dwaipayanray1@gmail.com,
@@ -36,9 +36,9 @@ To:     alex.bou9@gmail.com, apw@canonical.com, cl@linux.com,
         rdunlap@infradead.org, rientjes@google.com, tj@kernel.org,
         vbabka@suse.cz
 Subject:  +
- mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
- added to -mm tree
-Message-ID: <20211001235540.fPxPjRHQu%akpm@linux-foundation.org>
+ percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch added
+ to -mm tree
+Message-ID: <20211001235546.jO9I2LHXp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: add __alloc_size attributes for better bounds checking
+     Subject: percpu: add __alloc_size attributes for better bounds checking
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+     percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,21 +69,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: mm/vmalloc: add __alloc_size attributes for better bounds checking
+Subject: percpu: add __alloc_size attributes for better bounds checking
 
 As already done in GrapheneOS, add the __alloc_size attribute for
-appropriate vmalloc allocator interfaces, to provide additional hinting
-for better bounds checking, assisting CONFIG_FORTIFY_SOURCE and other
-compiler optimizations.
+appropriate percpu allocator interfaces, to provide additional hinting for
+better bounds checking, assisting CONFIG_FORTIFY_SOURCE and other compiler
+optimizations.
 
-Link: https://lkml.kernel.org/r/20210930222704.2631604-7-keescook@chromium.org
+Note that due to the implementation of the percpu API, this is unlikely to
+ever actually provide compile-time checking beyond very simple non-SMP
+builds.  But, since they are technically allocators, mark them as such.
+
+Link: https://lkml.kernel.org/r/20210930222704.2631604-9-keescook@chromium.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Co-developed-by: Daniel Micay <danielmicay@gmail.com>
 Signed-off-by: Daniel Micay <danielmicay@gmail.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Acked-by: Dennis Zhou <dennis@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Cc: Christoph Lameter <cl@linux.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
 Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
 Cc: Joe Perches <joe@perches.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -92,7 +97,6 @@ Cc: Miguel Ojeda <ojeda@kernel.org>
 Cc: Nathan Chancellor <nathan@kernel.org>
 Cc: Nick Desaulniers <ndesaulniers@google.com>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Alexandre Bounine <alex.bou9@gmail.com>
 Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
@@ -106,44 +110,31 @@ Cc: Souptick Joarder <jrdr.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ include/linux/percpu.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking
-+++ a/include/linux/vmalloc.h
-@@ -136,21 +136,21 @@ static inline void vmalloc_init(void)
- static inline unsigned long vmalloc_nr_pages(void) { return 0; }
+--- a/include/linux/percpu.h~percpu-add-__alloc_size-attributes-for-better-bounds-checking
++++ a/include/linux/percpu.h
+@@ -123,7 +123,7 @@ extern int __init pcpu_page_first_chunk(
+ 				pcpu_fc_populate_pte_fn_t populate_pte_fn);
  #endif
  
--extern void *vmalloc(unsigned long size);
--extern void *vzalloc(unsigned long size);
--extern void *vmalloc_user(unsigned long size);
--extern void *vmalloc_node(unsigned long size, int node);
--extern void *vzalloc_node(unsigned long size, int node);
--extern void *vmalloc_32(unsigned long size);
--extern void *vmalloc_32_user(unsigned long size);
--extern void *__vmalloc(unsigned long size, gfp_t gfp_mask);
-+extern void *vmalloc(unsigned long size) __alloc_size(1);
-+extern void *vzalloc(unsigned long size) __alloc_size(1);
-+extern void *vmalloc_user(unsigned long size) __alloc_size(1);
-+extern void *vmalloc_node(unsigned long size, int node) __alloc_size(1);
-+extern void *vzalloc_node(unsigned long size, int node) __alloc_size(1);
-+extern void *vmalloc_32(unsigned long size) __alloc_size(1);
-+extern void *vmalloc_32_user(unsigned long size) __alloc_size(1);
-+extern void *__vmalloc(unsigned long size, gfp_t gfp_mask) __alloc_size(1);
- extern void *__vmalloc_node_range(unsigned long size, unsigned long align,
- 			unsigned long start, unsigned long end, gfp_t gfp_mask,
- 			pgprot_t prot, unsigned long vm_flags, int node,
--			const void *caller);
-+			const void *caller) __alloc_size(1);
- void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
--		int node, const void *caller);
--void *vmalloc_no_huge(unsigned long size);
-+		int node, const void *caller) __alloc_size(1);
-+void *vmalloc_no_huge(unsigned long size) __alloc_size(1);
+-extern void __percpu *__alloc_reserved_percpu(size_t size, size_t align);
++extern void __percpu *__alloc_reserved_percpu(size_t size, size_t align) __alloc_size(1);
+ extern bool __is_kernel_percpu_address(unsigned long addr, unsigned long *can_addr);
+ extern bool is_kernel_percpu_address(unsigned long addr);
  
- extern void vfree(const void *addr);
- extern void vfree_atomic(const void *addr);
+@@ -131,8 +131,8 @@ extern bool is_kernel_percpu_address(uns
+ extern void __init setup_per_cpu_areas(void);
+ #endif
+ 
+-extern void __percpu *__alloc_percpu_gfp(size_t size, size_t align, gfp_t gfp);
+-extern void __percpu *__alloc_percpu(size_t size, size_t align);
++extern void __percpu *__alloc_percpu_gfp(size_t size, size_t align, gfp_t gfp) __alloc_size(1);
++extern void __percpu *__alloc_percpu(size_t size, size_t align) __alloc_size(1);
+ extern void free_percpu(void __percpu *__pdata);
+ extern phys_addr_t per_cpu_ptr_to_phys(void *addr);
+ 
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
