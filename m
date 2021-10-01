@@ -2,35 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3301C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:28:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C12ECC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 969E961AD0
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:28:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9797061AEE
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231800AbhJAXaC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Oct 2021 19:30:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43034 "EHLO mail.kernel.org"
+        id S230474AbhJAXf1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Oct 2021 19:35:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43774 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231499AbhJAXaC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 Oct 2021 19:30:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9ECBE6136A;
-        Fri,  1 Oct 2021 23:28:17 +0000 (UTC)
+        id S230368AbhJAXf0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 Oct 2021 19:35:26 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 26CDB61A6F;
+        Fri,  1 Oct 2021 23:33:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633130897;
-        bh=3dABtM3iKM/9oYxiM58ZKsbPHjMCwN3Q/vpK3R/X/Kg=;
+        s=korg; t=1633131220;
+        bh=FIuuh2IVpk4mVWpk033+x3fo+UTYbB0V2hwM7hZCSCQ=;
         h=Date:From:To:Subject:From;
-        b=0qbpKDe5v1JL94URxWtYmkIJ4TF4YayxBmxdVSMzOoDZU6GVxQLVQStGRAjxuM+KQ
-         cKm6xwun0qy0oNVA8LYzy1M+PNqtSYCHnBZhUzRSNVb0ATwCRbWLj8f9PxOULyp4ld
-         P86Dmufd3Wk2AGdfmXgPlKsf7x/ShetJIzNO3yfA=
-Date:   Fri, 01 Oct 2021 16:28:17 -0700
+        b=blup/+tTs+Xh5z5YsOwzeHU13xS7DrblisOylPKq1XuiDAenuktHq/ycYlZ2UhCgu
+         7g+bJgheya6u2tn2SyL1MC6SKcD1yjRc1u0SrHRd+A3GsSZ6HF900labiqa8NaGxIX
+         OW4A7Tw4rnO0VSrbKLwNEJrI/sPh4Qy0Rij/e9B8=
+Date:   Fri, 01 Oct 2021 16:33:39 -0700
 From:   akpm@linux-foundation.org
-To:     edumazet@google.com, lpf.vector@gmail.com,
-        mm-commits@vger.kernel.org, urezki@gmail.com
-Subject:  +
- mm-vmalloc-make-sure-to-dump-unpurged-areas-in-proc-vmallocinfo.patch added
+To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
+        david@redhat.com, dwmw@amazon.com, elver@google.com,
+        foersleo@amazon.de, gthelen@google.com,
+        Jonathan.Cameron@huawei.com, markubo@amazon.de,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        shakeelb@google.com, shuah@kernel.org, sj@kernel.org
+Subject:  + mm-damon-core-account-age-of-target-regions.patch added
  to -mm tree
-Message-ID: <20211001232817.H6gJXyL3K%akpm@linux-foundation.org>
+Message-ID: <20211001233339.SV5JeiSqb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: make sure to dump unpurged areas in /proc/vmallocinfo
+     Subject: mm/damon/core: account age of target regions
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-make-sure-to-dump-unpurged-areas-in-proc-vmallocinfo.patch
+     mm-damon-core-account-age-of-target-regions.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-make-sure-to-dump-unpurged-areas-in-proc-vmallocinfo.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-core-account-age-of-target-regions.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-make-sure-to-dump-unpurged-areas-in-proc-vmallocinfo.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-core-account-age-of-target-regions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,50 +63,209 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: mm/vmalloc: make sure to dump unpurged areas in /proc/vmallocinfo
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: account age of target regions
 
-If last va found in vmap_area_list does not have a vm pointer,
-vmallocinfo.s_show() returns 0, and show_purge_info() is not called as it
-should.
+Patch series "Implement Data Access Monitoring-based Memory Operation Schemes".
 
-Link: https://lkml.kernel.org/r/20211001170815.73321-1-eric.dumazet@gmail.com
-Fixes: dd3b8353bae7 ("mm/vmalloc: do not keep unpurged areas in the busy tree")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Pengfei Li <lpf.vector@gmail.com>
+Introduction
+============
+
+DAMON[1] can be used as a primitive for data access aware memory
+management optimizations.  For that, users who want such optimizations
+should run DAMON, read the monitoring results, analyze it, plan a new
+memory management scheme, and apply the new scheme by themselves.  Such
+efforts will be inevitable for some complicated optimizations.
+
+However, in many other cases, the users would simply want the system to
+apply a memory management action to a memory region of a specific size
+having a specific access frequency for a specific time.  For example,
+"page out a memory region larger than 100 MiB keeping only rare accesses
+more than 2 minutes", or "Do not use THP for a memory region larger than 2
+MiB rarely accessed for more than 1 seconds".
+
+To make the works easier and non-redundant, this patchset implements a new
+feature of DAMON, which is called Data Access Monitoring-based Operation
+Schemes (DAMOS).  Using the feature, users can describe the normal schemes
+in a simple way and ask DAMON to execute those on its own.
+
+[1] https://damonitor.github.io
+
+Evaluations
+===========
+
+DAMOS is accurate and useful for memory management optimizations.  An
+experimental DAMON-based operation scheme for THP, 'ethp', removes 76.15%
+of THP memory overheads while preserving 51.25% of THP speedup.  Another
+experimental DAMON-based 'proactive reclamation' implementation, 'prcl',
+reduces 93.38% of residential sets and 23.63% of system memory footprint
+while incurring only 1.22% runtime overhead in the best case
+(parsec3/freqmine).
+
+NOTE that the experimental THP optimization and proactive reclamation are
+not for production but only for proof of concepts.
+
+Please refer to the showcase web site's evaluation document[1] for
+detailed evaluation setup and results.
+
+[1] https://damonitor.github.io/doc/html/v34/vm/damon/eval.html
+
+Long-term Support Trees
+-----------------------
+
+For people who want to test DAMON but using LTS kernels, there are another
+couple of trees based on two latest LTS kernels respectively and containing the
+'damon/master' backports.
+
+- For v5.4.y: https://git.kernel.org/sj/h/damon/for-v5.4.y
+- For v5.10.y: https://git.kernel.org/sj/h/damon/for-v5.10.y
+
+Sequence Of Patches
+===================
+
+The 1st patch accounts age of each region.  The 2nd patch implements the
+core of the DAMON-based operation schemes feature.  The 3rd patch makes
+the default monitoring primitives for virtual address spaces to support
+the schemes.  From this point, the kernel space users can use DAMOS.  The
+4th patch exports the feature to the user space via the debugfs interface.
+The 5th patch implements schemes statistics feature for easier tuning of
+the schemes and runtime access pattern analysis, and the 6th patch adds
+selftests for these changes.  Finally, the 7th patch documents this new
+feature.
+
+
+This patch (of 7):
+
+DAMON can be used for data access pattern aware memory management
+optimizations.  For that, users should run DAMON, read the monitoring
+results, analyze it, plan a new memory management scheme, and apply the
+new scheme by themselves.  It would not be too hard, but still require
+some level of effort.  For complicated cases, this effort is inevitable.
+
+That said, in many cases, users would simply want to apply an actions to a
+memory region of a specific size having a specific access frequency for a
+specific time.  For example, "page out a memory region larger than 100 MiB
+but having a low access frequency more than 10 minutes", or "Use THP for a
+memory region larger than 2 MiB having a high access frequency for more
+than 2 seconds".
+
+For such optimizations, users will need to first account the age of each
+region themselves.  To reduce such efforts, this commit implements a
+simple age account of each region in DAMON.  For each aggregation step,
+DAMON compares the access frequency with that from last aggregation and
+reset the age of the region if the change is significant.  Else, the age
+is incremented.  Also, in case of the merge of regions, the region
+size-weighted average of the ages is set as the age of merged new region.
+
+Link: https://lkml.kernel.org/r/20211001125604.29660-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211001125604.29660-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Amit Shah <amit@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Woodhouse <dwmw@amazon.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Leonard Foerster <foersleo@amazon.de>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Markus Boehme <markubo@amazon.de>
+Cc: David Rienjes <rientjes@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/damon.h |   10 ++++++++++
+ mm/damon/core.c       |   13 +++++++++++++
+ 2 files changed, 23 insertions(+)
 
---- a/mm/vmalloc.c~mm-vmalloc-make-sure-to-dump-unpurged-areas-in-proc-vmallocinfo
-+++ a/mm/vmalloc.c
-@@ -3929,7 +3929,7 @@ static int s_show(struct seq_file *m, vo
- 			(void *)va->va_start, (void *)va->va_end,
- 			va->va_end - va->va_start);
+--- a/include/linux/damon.h~mm-damon-core-account-age-of-target-regions
++++ a/include/linux/damon.h
+@@ -31,12 +31,22 @@ struct damon_addr_range {
+  * @sampling_addr:	Address of the sample for the next access check.
+  * @nr_accesses:	Access frequency of this region.
+  * @list:		List head for siblings.
++ * @age:		Age of this region.
++ *
++ * @age is initially zero, increased for each aggregation interval, and reset
++ * to zero again if the access frequency is significantly changed.  If two
++ * regions are merged into a new region, both @nr_accesses and @age of the new
++ * region are set as region size-weighted average of those of the two regions.
+  */
+ struct damon_region {
+ 	struct damon_addr_range ar;
+ 	unsigned long sampling_addr;
+ 	unsigned int nr_accesses;
+ 	struct list_head list;
++
++	unsigned int age;
++/* private: Internal value for age calculation. */
++	unsigned int last_nr_accesses;
+ };
  
--		return 0;
-+		goto final;
+ /**
+--- a/mm/damon/core.c~mm-damon-core-account-age-of-target-regions
++++ a/mm/damon/core.c
+@@ -45,6 +45,9 @@ struct damon_region *damon_new_region(un
+ 	region->nr_accesses = 0;
+ 	INIT_LIST_HEAD(&region->list);
+ 
++	region->age = 0;
++	region->last_nr_accesses = 0;
++
+ 	return region;
+ }
+ 
+@@ -444,6 +447,7 @@ static void kdamond_reset_aggregated(str
+ 
+ 		damon_for_each_region(r, t) {
+ 			trace_damon_aggregated(t, r, damon_nr_regions(t));
++			r->last_nr_accesses = r->nr_accesses;
+ 			r->nr_accesses = 0;
+ 		}
  	}
+@@ -461,6 +465,7 @@ static void damon_merge_two_regions(stru
  
- 	v = va->vm;
-@@ -3970,6 +3970,7 @@ static int s_show(struct seq_file *m, vo
- 	/*
- 	 * As a final step, dump "unpurged" areas.
- 	 */
-+final:
- 	if (list_is_last(&va->list, &vmap_area_list))
- 		show_purge_info(m);
+ 	l->nr_accesses = (l->nr_accesses * sz_l + r->nr_accesses * sz_r) /
+ 			(sz_l + sz_r);
++	l->age = (l->age * sz_l + r->age * sz_r) / (sz_l + sz_r);
+ 	l->ar.end = r->ar.end;
+ 	damon_destroy_region(r, t);
+ }
+@@ -480,6 +485,11 @@ static void damon_merge_regions_of(struc
+ 	struct damon_region *r, *prev = NULL, *next;
+ 
+ 	damon_for_each_region_safe(r, next, t) {
++		if (diff_of(r->nr_accesses, r->last_nr_accesses) > thres)
++			r->age = 0;
++		else
++			r->age++;
++
+ 		if (prev && prev->ar.end == r->ar.start &&
+ 		    diff_of(prev->nr_accesses, r->nr_accesses) <= thres &&
+ 		    sz_damon_region(prev) + sz_damon_region(r) <= sz_limit)
+@@ -527,6 +537,9 @@ static void damon_split_region_at(struct
+ 
+ 	r->ar.end = new->ar.start;
+ 
++	new->age = r->age;
++	new->last_nr_accesses = r->last_nr_accesses;
++
+ 	damon_insert_region(new, r, damon_next_region(r), t);
+ }
  
 _
 
-Patches currently in -mm which might be from edumazet@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-mempolicy-do-not-allow-illegal-mpol_f_numa_balancing-mpol_local-in-mbind.patch
-mm-vmalloc-make-show_numa_info-aware-of-hugepage-mappings.patch
-mm-vmalloc-make-sure-to-dump-unpurged-areas-in-proc-vmallocinfo.patch
-mm-large-system-hash-avoid-possible-null-deref-in-alloc_large_system_hash.patch
-mm-do-not-acquire-zone-lock-in-is_free_buddy_page.patch
+maintainers-update-seongjaes-email-address.patch
+mm-damon-core-print-kdamond-start-log-in-debug-mode-only.patch
+mm-damon-core-account-age-of-target-regions.patch
+mm-damon-core-implement-damon-based-operation-schemes-damos.patch
+mm-damon-vaddr-support-damon-based-operation-schemes.patch
+mm-damon-dbgfs-support-damon-based-operation-schemes.patch
+mm-damon-schemes-implement-statistics-feature.patch
+selftests-damon-add-schemes-debugfs-tests.patch
+docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
 
