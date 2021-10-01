@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02FB9C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:55:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B35EFC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:55:40 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D6B2361AD0
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:55:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9AC3261AA4
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:55:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232110AbhJAX5V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Oct 2021 19:57:21 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46790 "EHLO mail.kernel.org"
+        id S232119AbhJAX5Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Oct 2021 19:57:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46842 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229574AbhJAX5U (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 Oct 2021 19:57:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D1E061AA4;
-        Fri,  1 Oct 2021 23:55:35 +0000 (UTC)
+        id S229574AbhJAX5X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 Oct 2021 19:57:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 245BF61AA9;
+        Fri,  1 Oct 2021 23:55:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633132535;
-        bh=Hhp7vuAH5mlOTPJn8H2zZTkrVSxu/Y4hd2XG4BAK6kc=;
+        s=korg; t=1633132538;
+        bh=lBZDN4Sxg/+vraNANhJeKqJ4ZBprGTnn5rUKZjS2oLc=;
         h=Date:From:To:Subject:From;
-        b=0e09PFL8xoqs6HPDFVM7TqM6cMKITG9u5duuUD/2Xo2yBqCf6MDXmPaWJJ+UzkTME
-         lKTYYRRGSmrbdDR/U2rvp72Z3VE0y0Mgpdw4jxTlflKFSMFNI5nRKrlTY1JK+dx443
-         +Ri7oo85z7KLdvDepkreBWFT3eZjM4/2kB3AV/Wo=
-Date:   Fri, 01 Oct 2021 16:55:34 -0700
+        b=pZs477C8AR//IKtLWYZR6JujL0sCB8z/k2X7LpWZ83vyE7opzCabsSxVTiwQuHXtf
+         kL3Y2UXoHighNt1hpYfBjBt+3/47OBByeN2U+xajV2Gpp12lLzz5+ZxzWX1mssfUkt
+         BNZa4gc3L+rG+FU3aldSo3UWWuEHevwyhjXnDyS0=
+Date:   Fri, 01 Oct 2021 16:55:37 -0700
 From:   akpm@linux-foundation.org
 To:     alex.bou9@gmail.com, apw@canonical.com, cl@linux.com,
         danielmicay@gmail.com, dennis@kernel.org, dwaipayanray1@gmail.com,
@@ -36,9 +36,9 @@ To:     alex.bou9@gmail.com, apw@canonical.com, cl@linux.com,
         rdunlap@infradead.org, rientjes@google.com, tj@kernel.org,
         vbabka@suse.cz
 Subject:  +
- slab-add-__alloc_size-attributes-for-better-bounds-checking.patch added to
- -mm tree
-Message-ID: <20211001235534.e2sgL11I4%akpm@linux-foundation.org>
+ mm-kvmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+ added to -mm tree
+Message-ID: <20211001235537.dL6WTRJa6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: add __alloc_size attributes for better bounds checking
+     Subject: mm/kvmalloc: add __alloc_size attributes for better bounds checking
 has been added to the -mm tree.  Its filename is
-     slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
+     mm-kvmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-kvmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kvmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,14 +69,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: slab: add __alloc_size attributes for better bounds checking
+Subject: mm/kvmalloc: add __alloc_size attributes for better bounds checking
 
 As already done in GrapheneOS, add the __alloc_size attribute for regular
-kmalloc interfaces, to provide additional hinting for better bounds
+kvmalloc interfaces, to provide additional hinting for better bounds
 checking, assisting CONFIG_FORTIFY_SOURCE and other compiler
 optimizations.
 
-Link: https://lkml.kernel.org/r/20210930222704.2631604-5-keescook@chromium.org
+Link: https://lkml.kernel.org/r/20210930222704.2631604-6-keescook@chromium.org
 Signed-off-by: Kees Cook <keescook@chromium.org>
 Co-developed-by: Daniel Micay <danielmicay@gmail.com>
 Signed-off-by: Daniel Micay <danielmicay@gmail.com>
@@ -106,202 +106,55 @@ Cc: Souptick Joarder <jrdr.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |   61 ++++++++++++++++++++++-------------------
- 1 file changed, 33 insertions(+), 28 deletions(-)
+ include/linux/slab.h |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
---- a/include/linux/slab.h~slab-add-__alloc_size-attributes-for-better-bounds-checking
+--- a/include/linux/slab.h~mm-kvmalloc-add-__alloc_size-attributes-for-better-bounds-checking
 +++ a/include/linux/slab.h
-@@ -181,7 +181,7 @@ int kmem_cache_shrink(struct kmem_cache
- /*
-  * Common kmalloc functions provided by all allocators
-  */
--void * __must_check krealloc(const void *objp, size_t new_size, gfp_t flags);
-+void * __must_check krealloc(const void *objp, size_t new_size, gfp_t flags) __alloc_size(2);
- void kfree(const void *objp);
- void kfree_sensitive(const void *objp);
- size_t __ksize(const void *objp);
-@@ -425,7 +425,7 @@ static __always_inline unsigned int __km
- #define kmalloc_index(s) __kmalloc_index(s, true)
- #endif /* !CONFIG_SLOB */
- 
--void *__kmalloc(size_t size, gfp_t flags) __assume_kmalloc_alignment __malloc;
-+void *__kmalloc(size_t size, gfp_t flags) __assume_kmalloc_alignment __alloc_size(1);
- void *kmem_cache_alloc(struct kmem_cache *s, gfp_t flags) __assume_slab_alignment __malloc;
- void kmem_cache_free(struct kmem_cache *s, void *objp);
- 
-@@ -449,11 +449,12 @@ static __always_inline void kfree_bulk(s
- }
- 
- #ifdef CONFIG_NUMA
--void *__kmalloc_node(size_t size, gfp_t flags, int node) __assume_kmalloc_alignment __malloc;
-+void *__kmalloc_node(size_t size, gfp_t flags, int node) __assume_kmalloc_alignment
-+							 __alloc_size(1);
- void *kmem_cache_alloc_node(struct kmem_cache *s, gfp_t flags, int node) __assume_slab_alignment
- 									 __malloc;
- #else
--static __always_inline void *__kmalloc_node(size_t size, gfp_t flags, int node)
-+static __always_inline __alloc_size(1) void *__kmalloc_node(size_t size, gfp_t flags, int node)
- {
- 	return __kmalloc(size, flags);
- }
-@@ -466,23 +467,23 @@ static __always_inline void *kmem_cache_
- 
- #ifdef CONFIG_TRACING
- extern void *kmem_cache_alloc_trace(struct kmem_cache *s, gfp_t flags, size_t size)
--				   __assume_slab_alignment __malloc;
-+				   __assume_slab_alignment __alloc_size(3);
- 
- #ifdef CONFIG_NUMA
- extern void *kmem_cache_alloc_node_trace(struct kmem_cache *s, gfp_t gfpflags,
--					 int node, size_t size) __assume_slab_alignment __malloc;
-+					 int node, size_t size) __assume_slab_alignment
-+								__alloc_size(4);
- #else
--static __always_inline void *kmem_cache_alloc_node_trace(struct kmem_cache *s,
--							 gfp_t gfpflags, int node,
--							 size_t size)
-+static __always_inline __alloc_size(4) void *kmem_cache_alloc_node_trace(struct kmem_cache *s,
-+						 gfp_t gfpflags, int node, size_t size)
- {
- 	return kmem_cache_alloc_trace(s, gfpflags, size);
- }
- #endif /* CONFIG_NUMA */
- 
- #else /* CONFIG_TRACING */
--static __always_inline void *kmem_cache_alloc_trace(struct kmem_cache *s, gfp_t flags,
--						    size_t size)
-+static __always_inline __alloc_size(3) void *kmem_cache_alloc_trace(struct kmem_cache *s,
-+								    gfp_t flags, size_t size)
- {
- 	void *ret = kmem_cache_alloc(s, flags);
- 
-@@ -501,19 +502,20 @@ static __always_inline void *kmem_cache_
- #endif /* CONFIG_TRACING */
- 
- extern void *kmalloc_order(size_t size, gfp_t flags, unsigned int order) __assume_page_alignment
--									 __malloc;
-+									 __alloc_size(1);
- 
- #ifdef CONFIG_TRACING
- extern void *kmalloc_order_trace(size_t size, gfp_t flags, unsigned int order)
--				__assume_page_alignment __malloc;
-+				__assume_page_alignment __alloc_size(1);
- #else
--static __always_inline void *kmalloc_order_trace(size_t size, gfp_t flags, unsigned int order)
-+static __always_inline __alloc_size(1) void *kmalloc_order_trace(size_t size, gfp_t flags,
-+								 unsigned int order)
- {
- 	return kmalloc_order(size, flags, order);
- }
- #endif
- 
--static __always_inline void *kmalloc_large(size_t size, gfp_t flags)
-+static __always_inline __alloc_size(1) void *kmalloc_large(size_t size, gfp_t flags)
- {
- 	unsigned int order = get_order(size);
- 	return kmalloc_order_trace(size, flags, order);
-@@ -573,7 +575,7 @@ static __always_inline void *kmalloc_lar
-  *	Try really hard to succeed the allocation but fail
-  *	eventually.
-  */
--static __always_inline void *kmalloc(size_t size, gfp_t flags)
-+static __always_inline __alloc_size(1) void *kmalloc(size_t size, gfp_t flags)
- {
- 	if (__builtin_constant_p(size)) {
- #ifndef CONFIG_SLOB
-@@ -595,7 +597,7 @@ static __always_inline void *kmalloc(siz
- 	return __kmalloc(size, flags);
- }
- 
--static __always_inline void *kmalloc_node(size_t size, gfp_t flags, int node)
-+static __always_inline __alloc_size(1) void *kmalloc_node(size_t size, gfp_t flags, int node)
- {
- #ifndef CONFIG_SLOB
- 	if (__builtin_constant_p(size) &&
-@@ -619,7 +621,7 @@ static __always_inline void *kmalloc_nod
-  * @size: element size.
-  * @flags: the type of memory to allocate (see kmalloc).
-  */
--static inline void *kmalloc_array(size_t n, size_t size, gfp_t flags)
-+static inline __alloc_size(1, 2) void *kmalloc_array(size_t n, size_t size, gfp_t flags)
- {
- 	size_t bytes;
- 
-@@ -637,8 +639,10 @@ static inline void *kmalloc_array(size_t
-  * @new_size: new size of a single member of the array
-  * @flags: the type of memory to allocate (see kmalloc)
-  */
--static inline void * __must_check krealloc_array(void *p, size_t new_n, size_t new_size,
--						 gfp_t flags)
-+static inline __alloc_size(2, 3) void * __must_check krealloc_array(void *p,
-+								    size_t new_n,
-+								    size_t new_size,
-+								    gfp_t flags)
- {
- 	size_t bytes;
- 
-@@ -654,7 +658,7 @@ static inline void * __must_check kreall
-  * @size: element size.
-  * @flags: the type of memory to allocate (see kmalloc).
-  */
--static inline void *kcalloc(size_t n, size_t size, gfp_t flags)
-+static inline __alloc_size(1, 2) void *kcalloc(size_t n, size_t size, gfp_t flags)
- {
- 	return kmalloc_array(n, size, flags | __GFP_ZERO);
- }
-@@ -667,12 +671,13 @@ static inline void *kcalloc(size_t n, si
-  * allocator where we care about the real place the memory allocation
-  * request comes from.
-  */
--extern void *__kmalloc_track_caller(size_t size, gfp_t flags, unsigned long caller);
-+extern void *__kmalloc_track_caller(size_t size, gfp_t flags, unsigned long caller)
-+				   __alloc_size(1);
- #define kmalloc_track_caller(size, flags) \
- 	__kmalloc_track_caller(size, flags, _RET_IP_)
- 
--static inline void *kmalloc_array_node(size_t n, size_t size, gfp_t flags,
--				       int node)
-+static inline __alloc_size(1, 2) void *kmalloc_array_node(size_t n, size_t size, gfp_t flags,
-+							  int node)
- {
- 	size_t bytes;
- 
-@@ -683,7 +688,7 @@ static inline void *kmalloc_array_node(s
- 	return __kmalloc_node(bytes, flags, node);
- }
- 
--static inline void *kcalloc_node(size_t n, size_t size, gfp_t flags, int node)
-+static inline __alloc_size(1, 2) void *kcalloc_node(size_t n, size_t size, gfp_t flags, int node)
- {
- 	return kmalloc_array_node(n, size, flags | __GFP_ZERO, node);
- }
-@@ -691,7 +696,7 @@ static inline void *kcalloc_node(size_t
- 
- #ifdef CONFIG_NUMA
- extern void *__kmalloc_node_track_caller(size_t size, gfp_t flags, int node,
--					 unsigned long caller);
-+					 unsigned long caller) __alloc_size(1);
- #define kmalloc_node_track_caller(size, flags, node) \
- 	__kmalloc_node_track_caller(size, flags, node, \
- 			_RET_IP_)
-@@ -716,7 +721,7 @@ static inline void *kmem_cache_zalloc(st
-  * @size: how many bytes of memory are required.
-  * @flags: the type of memory to allocate (see kmalloc).
-  */
--static inline void *kzalloc(size_t size, gfp_t flags)
-+static inline __alloc_size(1) void *kzalloc(size_t size, gfp_t flags)
- {
- 	return kmalloc(size, flags | __GFP_ZERO);
- }
-@@ -727,7 +732,7 @@ static inline void *kzalloc(size_t size,
-  * @flags: the type of memory to allocate (see kmalloc).
-  * @node: memory node from which to allocate
-  */
--static inline void *kzalloc_node(size_t size, gfp_t flags, int node)
-+static inline __alloc_size(1) void *kzalloc_node(size_t size, gfp_t flags, int node)
- {
+@@ -737,21 +737,21 @@ static inline __alloc_size(1) void *kzal
  	return kmalloc_node(size, flags | __GFP_ZERO, node);
  }
+ 
+-extern void *kvmalloc_node(size_t size, gfp_t flags, int node);
+-static inline void *kvmalloc(size_t size, gfp_t flags)
++extern void *kvmalloc_node(size_t size, gfp_t flags, int node) __alloc_size(1);
++static inline __alloc_size(1) void *kvmalloc(size_t size, gfp_t flags)
+ {
+ 	return kvmalloc_node(size, flags, NUMA_NO_NODE);
+ }
+-static inline void *kvzalloc_node(size_t size, gfp_t flags, int node)
++static inline __alloc_size(1) void *kvzalloc_node(size_t size, gfp_t flags, int node)
+ {
+ 	return kvmalloc_node(size, flags | __GFP_ZERO, node);
+ }
+-static inline void *kvzalloc(size_t size, gfp_t flags)
++static inline __alloc_size(1) void *kvzalloc(size_t size, gfp_t flags)
+ {
+ 	return kvmalloc(size, flags | __GFP_ZERO);
+ }
+ 
+-static inline void *kvmalloc_array(size_t n, size_t size, gfp_t flags)
++static inline __alloc_size(1, 2) void *kvmalloc_array(size_t n, size_t size, gfp_t flags)
+ {
+ 	size_t bytes;
+ 
+@@ -761,13 +761,13 @@ static inline void *kvmalloc_array(size_
+ 	return kvmalloc(bytes, flags);
+ }
+ 
+-static inline void *kvcalloc(size_t n, size_t size, gfp_t flags)
++static inline __alloc_size(1, 2) void *kvcalloc(size_t n, size_t size, gfp_t flags)
+ {
+ 	return kvmalloc_array(n, size, flags | __GFP_ZERO);
+ }
+ 
+-extern void *kvrealloc(const void *p, size_t oldsize, size_t newsize,
+-		gfp_t flags);
++extern void *kvrealloc(const void *p, size_t oldsize, size_t newsize, gfp_t flags)
++		      __alloc_size(3);
+ extern void kvfree(const void *addr);
+ extern void kvfree_sensitive(const void *addr, size_t len);
+ 
 _
 
 Patches currently in -mm which might be from keescook@chromium.org are
