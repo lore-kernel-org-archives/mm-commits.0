@@ -2,114 +2,85 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6525BC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:53:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 90DD8C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 00:48:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44498619E7
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Sep 2021 22:53:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6E22761A4F
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 00:48:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344107AbhI3WzE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 18:55:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45250 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230104AbhI3WzE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 18:55:04 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D7315619E2;
-        Thu, 30 Sep 2021 22:53:20 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
-        s=k20201202; t=1633042400;
-        bh=e5hz9QpxJ28/RqCbSNL8eFdj7nhWUsYjbMOcxLE+qgE=;
-        h=Date:From:To:Cc:Subject:References:In-Reply-To:From;
-        b=grpAD0tPsIO/cEDyjQjekW+2kDa7hc2KlSFFmF84dvxvF01srmwTw9fjDGDLklGJg
-         DMJHuBr7zd0bAUaZLy+f0MgbtIYrMXzySnE4QqUTTI9S5SyivX6ryA4gb0qG97lb2+
-         Y2PAGcXhU9Q/8IuzGhWFvW/titA8TvDNb+1Bke6DiDsqlBphXrFScV3WwfzCf4fz8w
-         QCCsVkMQcj3zAY35NZF6WmOrB20cCasos28Tl4PbNCMkC97/TI5pWrkYJ33ywTK//7
-         On9QooHVqm8LrAdmx+kulqJvumCZlzlgp6uGOeNxSQLIkYT6PZ2TwGWJnIpGY/U2Zr
-         ElzCjI7+144rg==
-Date:   Thu, 30 Sep 2021 15:53:19 -0700
-From:   Mike Rapoport <rppt@kernel.org>
+        id S1350830AbhJAAtx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Sep 2021 20:49:53 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37086 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1349760AbhJAAtw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Sep 2021 20:49:52 -0400
+Received: from mail-pl1-x635.google.com (mail-pl1-x635.google.com [IPv6:2607:f8b0:4864:20::635])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D31BC06176A
+        for <mm-commits@vger.kernel.org>; Thu, 30 Sep 2021 17:48:09 -0700 (PDT)
+Received: by mail-pl1-x635.google.com with SMTP id bb10so5227079plb.2
+        for <mm-commits@vger.kernel.org>; Thu, 30 Sep 2021 17:48:09 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=4VFDlYLCDJyTdCozdBjGZHP23jhQYYCHK/pXcPk42S0=;
+        b=gYFLz3LdgLYwFnwXA1Eedz+KfOBoOx99Oh+oQknZE6PQsZSDxBJaNwh5FsEXDEDXsT
+         j/PglNgseNhuwOLnAsJuRodyx0yjrplOktcZZxb8dXG+w77lvmJnI6oF3vTyi66lER/6
+         RvcFhWRBskx6vZqLULnRZHdktA0AR9dD5dcPQ=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=4VFDlYLCDJyTdCozdBjGZHP23jhQYYCHK/pXcPk42S0=;
+        b=qvYMp7AetHM4iRFcOpOv7ZXcN1Vvz6ygorDxSdMs2Y/Q+JpYX9VI3imid5JmmgXM6y
+         C96RJIo3CNTdGEmGcvLCGj0ki8Qv/bFwJG6NaCL1/rzBf1k2IS+IWddHcbZ0vl6uE7tz
+         pWfzGXk5f8PiI7EksjqNuzASG/M4GBCwr3kR2qIvpb4L/UZs0bxs1rN3PIgSWIy7rG+r
+         IbAPBFaxn16uJUEPUpkdgKCx/2jVtHY6vWyqqRpOx5vZBBYbQ8u7nZhKtRLEbd0gA2N/
+         H8vie4DRiny25gwN3YiHY2sNsaJq/XCI9c3E9pZlO95BUi4JWOvMtg82x+HB0pvvLhJ+
+         FSbQ==
+X-Gm-Message-State: AOAM533lop+B0VmKn/ZDTbe2YuYG8LR9e2NqSThcRT3JF5i4KfhsUm/L
+        pLF7BuM0ry75W69JMd7XD2/o8Q==
+X-Google-Smtp-Source: ABdhPJxE1DlPGDTRxe6wL6rnFcH0YtVkmNvPTNX/VMYKVLXHUvgJ1DvUmwTYM47KUX1og/S6U0LoFQ==
+X-Received: by 2002:a17:90a:10:: with SMTP id 16mr9849106pja.50.1633049288896;
+        Thu, 30 Sep 2021 17:48:08 -0700 (PDT)
+Received: from google.com ([2409:10:2e40:5100:159f:3ab6:88f:1129])
+        by smtp.gmail.com with ESMTPSA id l14sm6307358pjq.13.2021.09.30.17.48.03
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 30 Sep 2021 17:48:08 -0700 (PDT)
+Date:   Fri, 1 Oct 2021 09:47:59 +0900
+From:   Sergey Senozhatsky <senozhatsky@chromium.org>
 To:     akpm@linux-foundation.org
-Cc:     david@redhat.com, geert+renesas@glider.be,
-        mm-commits@vger.kernel.org, peng.fan@nxp.com
-Subject: Re: + memblock-check-memory-total_size.patch added to -mm tree
-Message-ID: <YVY/3zdc6ZYmsq6j@kernel.org>
-References: <20210930222304.--OL_47EE%akpm@linux-foundation.org>
+Cc:     andreyknvl@gmail.com, arnd@arndb.de, ast@kernel.org,
+        benh@kernel.crashing.org, bp@alien8.de,
+        christophe.leroy@csgroup.eu, davem@davemloft.net,
+        dvyukov@google.com, glider@google.com, ink@jurassic.park.msu.ru,
+        mattst88@gmail.com, mingo@redhat.com, mm-commits@vger.kernel.org,
+        monstr@monstr.eu, mpe@ellerman.id.au, paulus@samba.org,
+        pmladek@suse.com, rostedt@goodmis.org, rth@twiddle.net,
+        ryabinin.a.a@gmail.com, senozhatsky@chromium.org,
+        tglx@linutronix.de, wangkefeng.wang@huawei.com
+Subject: Re: + kallsyms-remove-arch-specific-text-and-data-check.patch added
+ to -mm tree
+Message-ID: <YVZav3rnb3+A9bHz@google.com>
+References: <20210930212149.TDvMQI9fl%akpm@linux-foundation.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20210930222304.--OL_47EE%akpm@linux-foundation.org>
+In-Reply-To: <20210930212149.TDvMQI9fl%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Thu, Sep 30, 2021 at 03:23:04PM -0700, akpm@linux-foundation.org wrote:
-> 
-> The patch titled
->      Subject: memblock: check memory total_size
-> has been added to the -mm tree.  Its filename is
->      memblock-check-memory-total_size.patch
-> 
-> This patch should soon appear at
->     https://ozlabs.org/~akpm/mmots/broken-out/memblock-check-memory-total_size.patch
-> and later at
->     https://ozlabs.org/~akpm/mmotm/broken-out/memblock-check-memory-total_size.patch
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
-> 
-> ------------------------------------------------------
-> From: Peng Fan <peng.fan@nxp.com>
-> Subject: memblock: check memory total_size
-> 
-> mem=[X][G|M] is broken on ARM64 platform, there are cases that even
-> type.cnt is 1, but total_size is not 0 because regions are merged into 1. 
-> So only check 'cnt' is not enough, total_size should be used, othersize
-> bootargs 'mem=[X][G|B]' not work anymore.
-> 
-> Link: https://lkml.kernel.org/r/20210930024437.32598-1-peng.fan@oss.nxp.com
-> Fixes: e888fa7bb882 ("memblock: Check memory add/cap ordering")
-> Signed-off-by: Peng Fan <peng.fan@nxp.com>
-> Cc: Mike Rapoport <rppt@kernel.org>
-> Cc: Geert Uytterhoeven <geert+renesas@glider.be>
-> Cc: David Hildenbrand <david@redhat.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-
-I was planing to take it via memblock tree but since it's already in mmotm:
-
-Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
-
-> ---
-> 
->  mm/memblock.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> --- a/mm/memblock.c~memblock-check-memory-total_size
-> +++ a/mm/memblock.c
-> @@ -1687,7 +1687,7 @@ void __init memblock_cap_memory_range(ph
->  	if (!size)
->  		return;
+On (21/09/30 14:21), akpm@linux-foundation.org wrote:
+> +++ a/include/linux/kallsyms.h
+> @@ -34,8 +34,7 @@ static inline int is_kernel_inittext(uns
 >  
-> -	if (memblock.memory.cnt <= 1) {
-> +	if (!memblock_memory->total_size) {
->  		pr_warn("%s: No memory registered yet\n", __func__);
->  		return;
->  	}
-> _
-> 
-> Patches currently in -mm which might be from peng.fan@nxp.com are
-> 
-> memblock-check-memory-total_size.patch
-> 
+>  static inline int is_kernel_text(unsigned long addr)
+>  {
+> -	if ((addr >= (unsigned long)_stext && addr <= (unsigned long)_etext) ||
+> -	    arch_is_kernel_text(addr))
+> +	if ((addr >= (unsigned long)_stext && addr <= (unsigned long)_etext))
+>  		return 1;
 
--- 
-Sincerely yours,
-Mike.
+Does this need to include _etext or should it be '< _etext'?
