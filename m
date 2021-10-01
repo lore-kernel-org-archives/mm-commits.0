@@ -2,39 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F059DC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AA1AC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:42:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DBC5561AD0
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 22AED61A8D
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:42:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231470AbhJAXfn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Oct 2021 19:35:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44064 "EHLO mail.kernel.org"
+        id S231642AbhJAXoP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Oct 2021 19:44:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45104 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230368AbhJAXfn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 Oct 2021 19:35:43 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3BEF961A8E;
-        Fri,  1 Oct 2021 23:33:58 +0000 (UTC)
+        id S230368AbhJAXoO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 Oct 2021 19:44:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B783661054;
+        Fri,  1 Oct 2021 23:42:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633131238;
-        bh=rN/OtuPdmTfHdxL5Q3n1kKNWLqnEmJ09o6DMW+rn/N8=;
+        s=korg; t=1633131750;
+        bh=Akl7kw2TPurP19cKe1W9k313VOTml8EKP5oWyRwhUgk=;
         h=Date:From:To:Subject:From;
-        b=lddrTpufpcdlzBAgIjtCpw50xtAl6WyxD+9FaBft3C9nd0ug/4EKZonZ6NH+lLcdw
-         QFUPaoKaBqW7BXQenNGDsDKuVKFO5ACFarGsD/PzgaoIao8igQGv8fvTffFALh4fbw
-         e/hP58CSCEmECpKPP+oOLFXV/+bI88faJIljHMw0=
-Date:   Fri, 01 Oct 2021 16:33:57 -0700
+        b=YUJRXCxAhRwVSsNoC9LRDhFcbs2PHzAmmxRqSGkZ1fuxjjva/Ll+9nbjXTr4Hq3Hc
+         FdEe2TFmEqNHpO6IcMgitRu4KZlBlN7Ug+LkuYfar+bUgtMvHrLYMGKPToUXoJC5E9
+         ZrJuxVn5rreKYr1jlZPbLUWOQ5uHlbcHkJKK/LUw=
+Date:   Fri, 01 Oct 2021 16:42:29 -0700
 From:   akpm@linux-foundation.org
-To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
-        david@redhat.com, dwmw@amazon.com, elver@google.com,
-        foersleo@amazon.de, gthelen@google.com,
-        Jonathan.Cameron@huawei.com, markubo@amazon.de,
-        mm-commits@vger.kernel.org, rientjes@google.com,
-        shakeelb@google.com, shuah@kernel.org, sj@kernel.org
+To:     andreyknvl@gmail.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, mm-commits@vger.kernel.org,
+        ryabinin.a.a@gmail.com, willy@infradead.org
 Subject:  +
- docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
- added to -mm tree
-Message-ID: <20211001233357.hhyaVG6hl%akpm@linux-foundation.org>
+ kasan-fix-tag-for-large-allocations-when-using-config_slab.patch added to
+ -mm tree
+Message-ID: <20211001234229.5YjGd2IyZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon: document DAMON-based Operation Schemes
+     Subject: kasan: fix tag for large allocations when using CONFIG_SLAB
 has been added to the -mm tree.  Its filename is
-     docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
+     kasan-fix-tag-for-large-allocations-when-using-config_slab.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-tag-for-large-allocations-when-using-config_slab.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-tag-for-large-allocations-when-using-config_slab.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,132 +61,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon: document DAMON-based Operation Schemes
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: kasan: fix tag for large allocations when using CONFIG_SLAB
 
-This commit add description of DAMON-based operation schemes in the DAMON
-documents.
+If an object is allocated on a tail page of a multi-page slab, kasan will
+get the wrong tag because page->s_mem is NULL for tail pages.  I'm not
+quite sure what the user-visible effect of this might be.
 
-Link: https://lkml.kernel.org/r/20211001125604.29660-8-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Amit Shah <amit@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rienjes <rientjes@google.com>
-Cc: David Woodhouse <dwmw@amazon.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Leonard Foerster <foersleo@amazon.de>
-Cc: Marco Elver <elver@google.com>
-Cc: Markus Boehme <markubo@amazon.de>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20211001024105.3217339-1-willy@infradead.org
+Fixes: 7f94ffbc4c6a ("kasan: add hooks implementation for tag-based mode")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/start.rst |   11 +++
- Documentation/admin-guide/mm/damon/usage.rst |   51 ++++++++++++++++-
- 2 files changed, 60 insertions(+), 2 deletions(-)
+ mm/kasan/common.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-document-damon-based-operation-schemes
-+++ a/Documentation/admin-guide/mm/damon/start.rst
-@@ -108,6 +108,17 @@ the results as separate image files. ::
- You can view the visualizations of this example workload at [1]_.
- Visualizations of other realistic workloads are available at [2]_ [3]_ [4]_.
- 
-+
-+Data Access Pattern Aware Memory Management
-+===========================================
-+
-+Below three commands make every memory region of size >=4K that doesn't
-+accessed for >=60 seconds in your workload to be swapped out. ::
-+
-+    $ echo "#min-size max-size min-acc max-acc min-age max-age action" > scheme
-+    $ echo "4K        max      0       0       60s     max     pageout" >> scheme
-+    $ damo schemes -c my_thp_scheme <pid of your workload>
-+
- .. [1] https://damonitor.github.io/doc/html/v17/admin-guide/mm/damon/start.html#visualizing-recorded-patterns
- .. [2] https://damonitor.github.io/test/result/visual/latest/rec.heatmap.1.png.html
- .. [3] https://damonitor.github.io/test/result/visual/latest/rec.wss_sz.png.html
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-document-damon-based-operation-schemes
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -34,8 +34,8 @@ the reason, this document describes only
- debugfs Interface
- =================
- 
--DAMON exports three files, ``attrs``, ``target_ids``, and ``monitor_on`` under
--its debugfs directory, ``<debugfs>/damon/``.
-+DAMON exports four files, ``attrs``, ``target_ids``, ``schemes`` and
-+``monitor_on`` under its debugfs directory, ``<debugfs>/damon/``.
- 
- 
- Attributes
-@@ -74,6 +74,53 @@ check it again::
- Note that setting the target ids doesn't start the monitoring.
- 
- 
-+Schemes
-+-------
-+
-+For usual DAMON-based data access aware memory management optimizations, users
-+would simply want the system to apply a memory management action to a memory
-+region of a specific size having a specific access frequency for a specific
-+time.  DAMON receives such formalized operation schemes from the user and
-+applies those to the target processes.  It also counts the total number and
-+size of regions that each scheme is applied.  This statistics can be used for
-+online analysis or tuning of the schemes.
-+
-+Users can get and set the schemes by reading from and writing to ``schemes``
-+debugfs file.  Reading the file also shows the statistics of each scheme.  To
-+the file, each of the schemes should be represented in each line in below form:
-+
-+    min-size max-size min-acc max-acc min-age max-age action
-+
-+Note that the ranges are closed interval.  Bytes for the size of regions
-+(``min-size`` and ``max-size``), number of monitored accesses per aggregate
-+interval for access frequency (``min-acc`` and ``max-acc``), number of
-+aggregate intervals for the age of regions (``min-age`` and ``max-age``), and a
-+predefined integer for memory management actions should be used.  The supported
-+numbers and their meanings are as below.
-+
-+ - 0: Call ``madvise()`` for the region with ``MADV_WILLNEED``
-+ - 1: Call ``madvise()`` for the region with ``MADV_COLD``
-+ - 2: Call ``madvise()`` for the region with ``MADV_PAGEOUT``
-+ - 3: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``
-+ - 4: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``
-+ - 5: Do nothing but count the statistics
-+
-+You can disable schemes by simply writing an empty string to the file.  For
-+example, below commands applies a scheme saying "If a memory region of size in
-+[4KiB, 8KiB] is showing accesses per aggregate interval in [0, 5] for aggregate
-+interval in [10, 20], page out the region", check the entered scheme again, and
-+finally remove the scheme. ::
-+
-+    # cd <debugfs>/damon
-+    # echo "4096 8192    0 5    10 20    2" > schemes
-+    # cat schemes
-+    4096 8192 0 5 10 20 2 0 0
-+    # echo > schemes
-+
-+The last two integers in the 4th line of above example is the total number and
-+the total size of the regions that the scheme is applied.
-+
-+
- Turning On/Off
- --------------
- 
+--- a/mm/kasan/common.c~kasan-fix-tag-for-large-allocations-when-using-config_slab
++++ a/mm/kasan/common.c
+@@ -298,7 +298,7 @@ static inline u8 assign_tag(struct kmem_
+ 	/* For caches that either have a constructor or SLAB_TYPESAFE_BY_RCU: */
+ #ifdef CONFIG_SLAB
+ 	/* For SLAB assign tags based on the object index in the freelist. */
+-	return (u8)obj_to_index(cache, virt_to_page(object), (void *)object);
++	return (u8)obj_to_index(cache, virt_to_head_page(object), (void *)object);
+ #else
+ 	/*
+ 	 * For SLUB assign a random tag during slab creation, otherwise reuse
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-maintainers-update-seongjaes-email-address.patch
-mm-damon-core-print-kdamond-start-log-in-debug-mode-only.patch
-mm-damon-core-account-age-of-target-regions.patch
-mm-damon-core-implement-damon-based-operation-schemes-damos.patch
-mm-damon-vaddr-support-damon-based-operation-schemes.patch
-mm-damon-dbgfs-support-damon-based-operation-schemes.patch
-mm-damon-schemes-implement-statistics-feature.patch
-selftests-damon-add-schemes-debugfs-tests.patch
-docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
+mm-move-kvmalloc-related-functions-to-slabh.patch
+mm-remove-bogus-vm_bug_on.patch
+kasan-fix-tag-for-large-allocations-when-using-config_slab.patch
 
