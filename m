@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8E84C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:26:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE0AFC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:26:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A36361AD0
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:26:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 89C5E61AAB
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:26:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231203AbhJAX2I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Oct 2021 19:28:08 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42422 "EHLO mail.kernel.org"
+        id S231395AbhJAX2P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Oct 2021 19:28:15 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42460 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230479AbhJAX2H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 Oct 2021 19:28:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E7E6061AAB;
-        Fri,  1 Oct 2021 23:26:21 +0000 (UTC)
+        id S230479AbhJAX2K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 Oct 2021 19:28:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EB53761A7B;
+        Fri,  1 Oct 2021 23:26:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633130782;
-        bh=hzbQz83V7HN1ZZzU5MyeRzc4MLutyXAuc4RIMcSWrHg=;
+        s=korg; t=1633130785;
+        bh=HmzWyQ2v62HqW1TqcIs/vJi1dWM6XPm9GXFIu13eZnM=;
         h=Date:From:To:Subject:From;
-        b=v8YRm6Qi3qukSVrh71QHg2QaLZsZV25MKNWdhTMN7KBwhUGwNAr7jRthM0Jv8aELM
-         JTPrWWTSph2UqtLBFXZ3LX81TSgbdeLJXIzvv9oYFKRZ1ZANZMVAg2L0jWOMsbvjXz
-         keDw5hRW2yKs5/cSHIsPYgNQEPEOgOBU5P2schbw=
-Date:   Fri, 01 Oct 2021 16:26:21 -0700
+        b=yUAHlzUuMI5ejfmJPB5eLPzbhJd5QwFUBrjlN/qM/AIPWJTFBuCEKZdOp4KCEzQii
+         /qgnTp9G9aXI3cPEdmr54KXeyXPmBkngFhx4/BrzurLfRqh+HZ9Gawv32RkXODuJBE
+         upxJupq4ZjLDx4GoHqq8yiU5UYe4ldPd8d22k/cg=
+Date:   Fri, 01 Oct 2021 16:26:24 -0700
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, david@redhat.com, mhocko@suse.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         naoya.horiguchi@linux.dev, osalvador@suse.de, rientjes@google.com,
         songmuchun@bytedance.com, ziy@nvidia.com
-Subject:  +
- mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma.patch added to
- -mm tree
-Message-ID: <20211001232621.1tGFLOsYY%akpm@linux-foundation.org>
+Subject:  + hugetlb-be-sure-to-free-demoted-cma-pages-to-cma.patch
+ added to -mm tree
+Message-ID: <20211001232624.aX9AYBAAv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma: add cma_pages_valid to determine if pages are in CMA
+     Subject: hugetlb: be sure to free demoted CMA pages to CMA
 has been added to the -mm tree.  Its filename is
-     mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma.patch
+     hugetlb-be-sure-to-free-demoted-cma-pages-to-cma.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-be-sure-to-free-demoted-cma-pages-to-cma.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-be-sure-to-free-demoted-cma-pages-to-cma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,13 +62,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/cma: add cma_pages_valid to determine if pages are in CMA
+Subject: hugetlb: be sure to free demoted CMA pages to CMA
 
-Add new interface cma_pages_valid() which indicates if the specified pages
-are part of a CMA region.  This interface will be used in a subsequent
-patch by hugetlb code.
+When huge page demotion is fully implemented, gigantic pages can be
+demoted to a smaller huge page size.  For example, on x86 a 1G page can be
+demoted to 512 2M pages.  However, gigantic pages can potentially be
+allocated from CMA.  If a gigantic page which was allocated from CMA is
+demoted, the corresponding demoted pages needs to be returned to CMA.
 
-Link: https://lkml.kernel.org/r/20211001175210.45968-3-mike.kravetz@oracle.com
+Use the new interface cma_pages_valid() to determine if a non-gigantic
+hugetlb page should be freed to CMA.  Also, clear mapping field of these
+pages as expected by cma_release.
+
+This also requires a change to CMA reservations for gigantic pages. 
+Currently, the 'order_per_bit' is set to the gigantic page size.  However,
+if gigantic pages can be demoted this needs to be set to the order of the
+smallest huge page.  At CMA reservation time we do not know the size of
+the smallest huge page size, so use HUGETLB_PAGE_ORDER.  Also, prohibit
+demotion to huge page sizes smaller than HUGETLB_PAGE_ORDER.
+
+Link: https://lkml.kernel.org/r/20211001175210.45968-4-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -82,63 +94,85 @@ Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cma.h |    1 +
- mm/cma.c            |   21 +++++++++++++++++----
- 2 files changed, 18 insertions(+), 4 deletions(-)
+ mm/hugetlb.c |   32 +++++++++++++++++++++++++++++---
+ 1 file changed, 29 insertions(+), 3 deletions(-)
 
---- a/include/linux/cma.h~mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma
-+++ a/include/linux/cma.h
-@@ -46,6 +46,7 @@ extern int cma_init_reserved_mem(phys_ad
- 					struct cma **res_cma);
- extern struct page *cma_alloc(struct cma *cma, unsigned long count, unsigned int align,
- 			      bool no_warn);
-+extern bool cma_pages_valid(struct cma *cma, const struct page *pages, unsigned long count);
- extern bool cma_release(struct cma *cma, const struct page *pages, unsigned long count);
+--- a/mm/hugetlb.c~hugetlb-be-sure-to-free-demoted-cma-pages-to-cma
++++ a/mm/hugetlb.c
+@@ -50,6 +50,16 @@ struct hstate hstates[HUGE_MAX_HSTATE];
  
- extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
---- a/mm/cma.c~mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma
-+++ a/mm/cma.c
-@@ -524,6 +524,22 @@ out:
- 	return page;
- }
- 
-+bool cma_pages_valid(struct cma *cma, const struct page *pages,
-+		     unsigned long count)
+ #ifdef CONFIG_CMA
+ static struct cma *hugetlb_cma[MAX_NUMNODES];
++static bool hugetlb_cma_page(struct page *page, unsigned int order)
 +{
-+	unsigned long pfn;
-+
-+	if (!cma || !pages)
-+		return false;
-+
-+	pfn = page_to_pfn(pages);
-+
-+	if (pfn < cma->base_pfn || pfn >= cma->base_pfn + cma->count)
-+		return false;
-+
-+	return true;
++	return cma_pages_valid(hugetlb_cma[page_to_nid(page)], page,
++				1 << order);
 +}
++#else
++static bool hugetlb_cma_page(struct page *page, unsigned int order)
++{
++	return false;
++}
+ #endif
+ static unsigned long hugetlb_cma_size __initdata;
+ 
+@@ -1272,6 +1282,7 @@ static void destroy_compound_gigantic_pa
+ 	atomic_set(compound_pincount_ptr(page), 0);
+ 
+ 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
++		p->mapping = NULL;
+ 		clear_compound_head(p);
+ 		set_page_refcounted(p);
+ 	}
+@@ -1476,7 +1487,13 @@ static void __update_and_free_page(struc
+ 				1 << PG_active | 1 << PG_private |
+ 				1 << PG_writeback);
+ 	}
+-	if (hstate_is_gigantic(h)) {
 +
- /**
-  * cma_release() - release allocated pages
-  * @cma:   Contiguous memory region for which the allocation is performed.
-@@ -539,16 +555,13 @@ bool cma_release(struct cma *cma, const
- {
- 	unsigned long pfn;
++	/*
++	 * Non-gigantic pages demoted from CMA allocated gigantic pages
++	 * need to be given back to CMA in free_gigantic_page.
++	 */
++	if (hstate_is_gigantic(h) ||
++	    hugetlb_cma_page(page, huge_page_order(h))) {
+ 		destroy_compound_gigantic_page(page, huge_page_order(h));
+ 		free_gigantic_page(page, huge_page_order(h));
+ 	} else {
+@@ -3003,7 +3020,8 @@ static void __init hugetlb_init_hstates(
+ 		 *   is not supported.
+ 		 */
+ 		if (!hstate_is_gigantic(h) ||
+-		    gigantic_page_runtime_supported()) {
++		    gigantic_page_runtime_supported() ||
++		    !hugetlb_cma_size || !(h->order <= HUGETLB_PAGE_ORDER)) {
+ 			for_each_hstate(h2) {
+ 				if (h2 == h)
+ 					continue;
+@@ -3555,6 +3573,8 @@ static ssize_t demote_size_store(struct
+ 	if (!t_hstate)
+ 		return -EINVAL;
+ 	demote_order = t_hstate->order;
++	if (demote_order < HUGETLB_PAGE_ORDER)
++		return -EINVAL;
  
--	if (!cma || !pages)
-+	if (!cma_pages_valid(cma, pages, count))
- 		return false;
+ 	/* demote order must be smaller hstate order */
+ 	h = kobj_to_hstate(kobj, &nid);
+@@ -6563,7 +6583,13 @@ void __init hugetlb_cma_reserve(int orde
+ 		size = round_up(size, PAGE_SIZE << order);
  
- 	pr_debug("%s(page %p, count %lu)\n", __func__, (void *)pages, count);
- 
- 	pfn = page_to_pfn(pages);
- 
--	if (pfn < cma->base_pfn || pfn >= cma->base_pfn + cma->count)
--		return false;
--
- 	VM_BUG_ON(pfn + count > cma->base_pfn + cma->count);
- 
- 	free_contig_range(pfn, count);
+ 		snprintf(name, sizeof(name), "hugetlb%d", nid);
+-		res = cma_declare_contiguous_nid(0, size, 0, PAGE_SIZE << order,
++		/*
++		 * Note that 'order per bit' is based on smallest size that
++		 * may be returned to CMA allocator in the case of
++		 * huge page demotion.
++		 */
++		res = cma_declare_contiguous_nid(0, size, 0,
++						PAGE_SIZE << HUGETLB_PAGE_ORDER,
+ 						 0, false, name,
+ 						 &hugetlb_cma[nid], nid);
+ 		if (res) {
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
