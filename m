@@ -2,43 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34EC7C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:57:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AA40C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:58:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0D584610A2
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:57:30 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2E45961AED
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:58:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229976AbhJAX7O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Oct 2021 19:59:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46948 "EHLO mail.kernel.org"
+        id S230507AbhJBAAe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Oct 2021 20:00:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47386 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232213AbhJAX53 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 Oct 2021 19:57:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 266B561075;
-        Fri,  1 Oct 2021 23:55:44 +0000 (UTC)
+        id S229794AbhJBAAd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 Oct 2021 20:00:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D83F861AAB;
+        Fri,  1 Oct 2021 23:58:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633132544;
-        bh=FtBDHedcTcymmaRwgeB9JOtXhSgetXJNaDo7lHCIHfY=;
+        s=korg; t=1633132729;
+        bh=+gvCylDTFiOB+6DIyxXYGiZLCZrLdle0nPEEc0n0ikw=;
         h=Date:From:To:Subject:From;
-        b=hSkqhw6DmUxlrJYODi+6VKMyHwsQN4DIqD1QeHtsYv0iGAIDNkeg32+hJrHv/Z2GB
-         06A2qZm7PWCsBZWij1woHt7gJWmi5qsRFuC5zKJd/XH5ubsCzeFkYjl6KFeRnwF9FQ
-         F9Iqe6ZgQV2flhW4zCeLgURXN9lqdN9DIwlFDFU0=
-Date:   Fri, 01 Oct 2021 16:55:43 -0700
+        b=knxDK97VCS9NWJ7b6M9MuHAsENhbaAJW52LWWMPiV5hTv2vd9eOYALM6X9fr4xYSa
+         RAS581JgSMxMCwyWIWt3KQoZCuGSa5rZghs6E1aIusiIiPNdEfL8rxQ09zTNhaYMVP
+         s/iluXwXr70LFivI5dnTZXY03AdauTyoR+6sKUow=
+Date:   Fri, 01 Oct 2021 16:58:48 -0700
 From:   akpm@linux-foundation.org
-To:     alex.bou9@gmail.com, apw@canonical.com, cl@linux.com,
-        danielmicay@gmail.com, dennis@kernel.org, dwaipayanray1@gmail.com,
-        gustavoars@kernel.org, iamjoonsoo.kim@lge.com, ira.weiny@intel.com,
-        jhubbard@nvidia.com, jingxiangfeng@huawei.com, joe@perches.com,
-        jrdr.linux@gmail.com, keescook@chromium.org, lkp@intel.com,
-        lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org,
-        mporter@kernel.crashing.org, nathan@kernel.org,
-        ndesaulniers@google.com, ojeda@kernel.org, penberg@kernel.org,
-        rdunlap@infradead.org, rientjes@google.com, tj@kernel.org,
-        vbabka@suse.cz
+To:     axelrasmussen@google.com, mm-commits@vger.kernel.org,
+        peterx@redhat.com, shuah@kernel.org
 Subject:  +
- mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+ userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
  added to -mm tree
-Message-ID: <20211001235543.BwFennCVH%akpm@linux-foundation.org>
+Message-ID: <20211001235848.DW3rmgeIW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: add __alloc_size attributes for better bounds checking
+     Subject: userfaultfd/selftests: don't rely on GNU extensions for random numbers
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+     userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,72 +60,91 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm/page_alloc: add __alloc_size attributes for better bounds checking
+From: Axel Rasmussen <axelrasmussen@google.com>
+Subject: userfaultfd/selftests: don't rely on GNU extensions for random numbers
 
-As already done in GrapheneOS, add the __alloc_size attribute for
-appropriate page allocator interfaces, to provide additional hinting for
-better bounds checking, assisting CONFIG_FORTIFY_SOURCE and other compiler
-optimizations.
+Patch series "Small userfaultfd selftest fixups", v2.
 
-Link: https://lkml.kernel.org/r/20210930222704.2631604-8-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Co-developed-by: Daniel Micay <danielmicay@gmail.com>
-Signed-off-by: Daniel Micay <danielmicay@gmail.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jing Xiangfeng <jingxiangfeng@huawei.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
+
+This patch (of 3):
+
+Two arguments for doing this:
+
+First, and maybe most importantly, the resulting code is significantly
+shorter / simpler.
+
+Then, we avoid using GNU libc extensions.  Why does this matter?  It makes
+testing userfaultfd with the selftest easier e.g.  on distros which use
+something other than glibc (e.g., Alpine, which uses musl); basically, it
+makes the test more portable.
+
+Link: https://lkml.kernel.org/r/20210930212309.4001967-2-axelrasmussen@google.com
+Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
+Reviewed-by: Peter Xu <peterx@redhat.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   26 +++------------------
+ 1 file changed, 4 insertions(+), 22 deletions(-)
 
---- a/include/linux/gfp.h~mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking
-+++ a/include/linux/gfp.h
-@@ -608,9 +608,9 @@ static inline struct page *alloc_pages(g
- extern unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order);
- extern unsigned long get_zeroed_page(gfp_t gfp_mask);
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -57,6 +57,7 @@
+ #include <assert.h>
+ #include <inttypes.h>
+ #include <stdint.h>
++#include <sys/random.h>
  
--void *alloc_pages_exact(size_t size, gfp_t gfp_mask);
-+void *alloc_pages_exact(size_t size, gfp_t gfp_mask) __alloc_size(1);
- void free_pages_exact(void *virt, size_t size);
--void * __meminit alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask);
-+__meminit void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask) __alloc_size(1);
+ #include "../kselftest.h"
  
- #define __get_free_page(gfp_mask) \
- 		__get_free_pages((gfp_mask), 0)
+@@ -518,22 +519,10 @@ static void continue_range(int ufd, __u6
+ static void *locking_thread(void *arg)
+ {
+ 	unsigned long cpu = (unsigned long) arg;
+-	struct random_data rand;
+ 	unsigned long page_nr = *(&(page_nr)); /* uninitialized warning */
+-	int32_t rand_nr;
+ 	unsigned long long count;
+-	char randstate[64];
+-	unsigned int seed;
+ 
+-	if (bounces & BOUNCE_RANDOM) {
+-		seed = (unsigned int) time(NULL) - bounces;
+-		if (!(bounces & BOUNCE_RACINGFAULTS))
+-			seed += cpu;
+-		bzero(&rand, sizeof(rand));
+-		bzero(&randstate, sizeof(randstate));
+-		if (initstate_r(seed, randstate, sizeof(randstate), &rand))
+-			err("initstate_r failed");
+-	} else {
++	if (!(bounces & BOUNCE_RANDOM)) {
+ 		page_nr = -bounces;
+ 		if (!(bounces & BOUNCE_RACINGFAULTS))
+ 			page_nr += cpu * nr_pages_per_cpu;
+@@ -541,15 +530,8 @@ static void *locking_thread(void *arg)
+ 
+ 	while (!finished) {
+ 		if (bounces & BOUNCE_RANDOM) {
+-			if (random_r(&rand, &rand_nr))
+-				err("random_r failed");
+-			page_nr = rand_nr;
+-			if (sizeof(page_nr) > sizeof(rand_nr)) {
+-				if (random_r(&rand, &rand_nr))
+-					err("random_r failed");
+-				page_nr |= (((unsigned long) rand_nr) << 16) <<
+-					   16;
+-			}
++			if (getrandom(&page_nr, sizeof(page_nr), 0) != sizeof(page_nr))
++				err("getrandom failed");
+ 		} else
+ 			page_nr += 1;
+ 		page_nr %= nr_pages;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from axelrasmussen@google.com are
 
-rapidio-avoid-bogus-__alloc_size-warning.patch
-compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
-slab-clean-up-function-prototypes.patch
-slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
-mm-kvmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
-mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
-mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
-percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
-binfmt_elf-reintroduce-using-map_fixed_noreplace.patch
+userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
+userfaultfd-selftests-fix-feature-support-detection.patch
+userfaultfd-selftests-fix-calculation-of-expected-ioctls.patch
 
