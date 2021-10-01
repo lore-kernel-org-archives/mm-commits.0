@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6640BC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:20:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30BE9C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:22:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 44B3B61AF9
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:20:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1293061A6F
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:22:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231247AbhJAXWC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Oct 2021 19:22:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41046 "EHLO mail.kernel.org"
+        id S231400AbhJAXXx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Oct 2021 19:23:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41482 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230479AbhJAXWA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 Oct 2021 19:22:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0CDE761A7B;
-        Fri,  1 Oct 2021 23:20:15 +0000 (UTC)
+        id S231168AbhJAXXx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 Oct 2021 19:23:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D1C361242;
+        Fri,  1 Oct 2021 23:22:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633130415;
-        bh=0HMI7wUbCkF9B17QQI8e6e11iBg1S5Q+myMrjpJ4Efo=;
+        s=korg; t=1633130528;
+        bh=JzvD9zUGfVF6S8Qt3K4dnW4Y8cOggloWjicKboxDOrk=;
         h=Date:From:To:Subject:From;
-        b=XIlDIuLi2qI0ctyPwQplOkenodz677LV7QN9wezXqLYJGyoRJITBB6hRO0SXhmMQW
-         MQLCXqTuOPQfSO5bEKSMAzk7aOGnMvJA8psX+c37Tz3jmtRVvS/uBbN5ft9rGoP5j8
-         RcqR5NpW/OfnnKw3h2AXHCycotdP0Yg7Uy4lAOy0=
-Date:   Fri, 01 Oct 2021 16:20:14 -0700
+        b=ZXVGvL5YpHrWDf18AbsjWge5u2HQpoXVYXWmu6K4C09RT9K8Oe+7n0mgjdQp3ORs+
+         3L4h/rwLVyFKtM0ZXPPgOy/eYTY+6v6p4uaRIv68mqZuR0PcoUWXwan5vsaG+iPQKT
+         6Pix6sKcjGhdkPTLHtfU3Wd54Nv2vWrcdlwJx22A=
+Date:   Fri, 01 Oct 2021 16:22:08 -0700
 From:   akpm@linux-foundation.org
-To:     hannes@cmpxchg.org, mhocko@kernel.org, mkoutny@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com
-Subject:  + memcg-flush-stats-only-if-updated.patch added to -mm
- tree
-Message-ID: <20211001232014.09ZvDL-4j%akpm@linux-foundation.org>
+To:     bgeffon@google.com, corbet@lwn.net, jsbarnes@google.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org, ngupta@vflare.org,
+        senozhatsky@chromium.org, suleiman@google.com
+Subject:  +
+ zram-allow-backing-device-to-be-assigned-after-init.patch added to -mm tree
+Message-ID: <20211001232208.U-I36vLyD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,16 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: flush stats only if updated
+     Subject: zram: allow backing device to be assigned after init
 has been added to the -mm tree.  Its filename is
-     memcg-flush-stats-only-if-updated.patch
+     zram-allow-backing-device-to-be-assigned-after-init.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-flush-stats-only-if-upd=
-ated.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/zram-allow-backing-device-to-be-assigned-after-init.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-flush-stats-only-if-upd=
-ated.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/zram-allow-backing-device-to-be-assigned-after-init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,187 +54,57 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: flush stats only if updated
+From: Brian Geffon <bgeffon@google.com>
+Subject: zram: allow backing device to be assigned after init
 
-At the moment, the kernel flushes the memcg stats on every refault and
-also on every reclaim iteration.  Although rstat maintains per-cpu update
-tree but on the flush the kernel still has to go through all the cpu rstat
-update tree to check if there is anything to flush.  This patch adds the
-tracking on the stats update side to make flush side more clever by
-skipping the flush if there is no update.
+There does not appear to be a technical reason to not allow the zram
+backing device to be assigned after the zram device is initialized.
 
-The stats update codepath is very sensitive performance wise for many
-workloads and benchmarks.  So, we can not follow what the commit
-aa48e47e3906 ("memcg: infrastructure to flush memcg stats") did which was
-triggering async flush through queue_work() and caused a lot performance
-regression reports.  That got reverted by the commit 1f828223b799 ("memcg:
-flush lruvec stats in the refault").
+This change will allow for the backing device to be assigned as long as no
+backing device is already assigned.  In that event backing_dev would
+return -EEXIST.
 
-In this patch we kept the stats update codepath very minimal and let the
-stats reader side to flush the stats only when the updates are over a
-specific threshold.  For now the threshold is (nr_cpus * CHARGE_BATCH).
-
-To evaluate the impact of this patch, an 8 GiB tmpfs file is created on a
-system with swap-on-zram and the file was pushed to swap through
-memory.force_empty interface.  On reading the whole file, the memcg stat
-flush in the refault code path is triggered.  With this patch, we observed
-63% reduction in the read time of 8 GiB file.
-
-Link: https://lkml.kernel.org/r/20211001190040.48086-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: "Michal Koutn=C3=BD" <mkoutny@suse.com>
+Link: https://lkml.kernel.org/r/20211001181627.394921-1-bgeffon@google.com
+Signed-off-by: Brian Geffon <bgeffon@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Nitin Gupta <ngupta@vflare.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Suleiman Souhlal <suleiman@google.com>
+Cc: Jesse Barnes <jsbarnes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   78 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 55 insertions(+), 23 deletions(-)
+ drivers/block/zram/zram_drv.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~memcg-flush-stats-only-if-updated
-+++ a/mm/memcontrol.c
-@@ -103,11 +103,6 @@ static bool do_memsw_account(void)
- 	return !cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_noswap;
- }
-=20
--/* memcg and lruvec stats flushing */
--static void flush_memcg_stats_dwork(struct work_struct *w);
--static DECLARE_DEFERRABLE_WORK(stats_flush_dwork, flush_memcg_stats_dwork);
--static DEFINE_SPINLOCK(stats_flush_lock);
--
- #define THRESHOLDS_EVENTS_TARGET 128
- #define SOFTLIMIT_EVENTS_TARGET 1024
-=20
-@@ -635,6 +630,56 @@ mem_cgroup_largest_soft_limit_node(struc
- 	return mz;
- }
-=20
-+/*
-+ * memcg and lruvec stats flushing
-+ *
-+ * Many codepaths leading to stats update or read are performance sensitiv=
-e and
-+ * adding stats flushing in such codepaths is not desirable. So, to optimi=
-ze the
-+ * flushing the kernel does:
-+ *
-+ * 1) Periodically and asynchronously flush the stats every 2 seconds to n=
-ot let
-+ *    rstat update tree grow unbounded.
-+ *
-+ * 2) Flush the stats synchronously on reader side only when there are mor=
-e than
-+ *    (MEMCG_CHARGE_BATCH * nr_cpus) update events. Though this optimizati=
-on
-+ *    will let stats be out of sync by atmost (MEMCG_CHARGE_BATCH * nr_cpu=
-s) but
-+ *    only for 2 seconds due to (1).
-+ */
-+static void flush_memcg_stats_dwork(struct work_struct *w);
-+static DECLARE_DEFERRABLE_WORK(stats_flush_dwork, flush_memcg_stats_dwork);
-+static DEFINE_SPINLOCK(stats_flush_lock);
-+static DEFINE_PER_CPU(unsigned int, stats_updates);
-+static atomic_t stats_flush_threshold =3D ATOMIC_INIT(0);
-+
-+static inline void memcg_rstat_updated(struct mem_cgroup *memcg)
-+{
-+	cgroup_rstat_updated(memcg->css.cgroup, smp_processor_id());
-+	if (!(__this_cpu_inc_return(stats_updates) % MEMCG_CHARGE_BATCH))
-+		atomic_inc(&stats_flush_threshold);
-+}
-+
-+static void __mem_cgroup_flush_stats(void)
-+{
-+	if (!spin_trylock(&stats_flush_lock))
-+		return;
-+
-+	cgroup_rstat_flush_irqsafe(root_mem_cgroup->css.cgroup);
-+	atomic_set(&stats_flush_threshold, 0);
-+	spin_unlock(&stats_flush_lock);
-+}
-+
-+void mem_cgroup_flush_stats(void)
-+{
-+	if (atomic_read(&stats_flush_threshold) > num_online_cpus())
-+		__mem_cgroup_flush_stats();
-+}
-+
-+static void flush_memcg_stats_dwork(struct work_struct *w)
-+{
-+	mem_cgroup_flush_stats();
-+	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, 2UL*HZ);
-+}
-+
- /**
-  * __mod_memcg_state - update cgroup memory statistics
-  * @memcg: the memory cgroup
-@@ -647,7 +692,7 @@ void __mod_memcg_state(struct mem_cgroup
- 		return;
-=20
- 	__this_cpu_add(memcg->vmstats_percpu->state[idx], val);
--	cgroup_rstat_updated(memcg->css.cgroup, smp_processor_id());
-+	memcg_rstat_updated(memcg);
- }
-=20
- /* idx can be of type enum memcg_stat_item or node_stat_item. */
-@@ -675,10 +720,12 @@ void __mod_memcg_lruvec_state(struct lru
- 	memcg =3D pn->memcg;
-=20
- 	/* Update memcg */
--	__mod_memcg_state(memcg, idx, val);
-+	__this_cpu_add(memcg->vmstats_percpu->state[idx], val);
-=20
- 	/* Update lruvec */
- 	__this_cpu_add(pn->lruvec_stats_percpu->state[idx], val);
-+
-+	memcg_rstat_updated(memcg);
- }
-=20
- /**
-@@ -780,7 +827,7 @@ void __count_memcg_events(struct mem_cgr
- 		return;
-=20
- 	__this_cpu_add(memcg->vmstats_percpu->events[idx], count);
--	cgroup_rstat_updated(memcg->css.cgroup, smp_processor_id());
-+	memcg_rstat_updated(memcg);
- }
-=20
- static unsigned long memcg_events(struct mem_cgroup *memcg, int event)
-@@ -5341,21 +5388,6 @@ static void mem_cgroup_css_reset(struct
- 	memcg_wb_domain_size_changed(memcg);
- }
-=20
--void mem_cgroup_flush_stats(void)
--{
--	if (!spin_trylock(&stats_flush_lock))
--		return;
--
--	cgroup_rstat_flush_irqsafe(root_mem_cgroup->css.cgroup);
--	spin_unlock(&stats_flush_lock);
--}
--
--static void flush_memcg_stats_dwork(struct work_struct *w)
--{
--	mem_cgroup_flush_stats();
--	queue_delayed_work(system_unbound_wq, &stats_flush_dwork, 2UL*HZ);
--}
--
- static void mem_cgroup_css_rstat_flush(struct cgroup_subsys_state *css, in=
-t cpu)
- {
- 	struct mem_cgroup *memcg =3D mem_cgroup_from_css(css);
+--- a/drivers/block/zram/zram_drv.c~zram-allow-backing-device-to-be-assigned-after-init
++++ a/drivers/block/zram/zram_drv.c
+@@ -492,9 +492,9 @@ static ssize_t backing_dev_store(struct
+ 		return -ENOMEM;
+ 
+ 	down_write(&zram->init_lock);
+-	if (init_done(zram)) {
+-		pr_info("Can't setup backing device for initialized device\n");
+-		err = -EBUSY;
++	if (zram->backing_dev) {
++		pr_info("Backing device is already assigned\n");
++		err = -EEXIST;
+ 		goto out;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from bgeffon@google.com are
 
-memcg-flush-stats-only-if-updated.patch
-memcg-unify-memcg-stat-flushing.patch
+zram-introduce-an-aged-idle-interface.patch
+zram-introduce-an-aged-idle-interface-v5.patch
+zram-introduce-an-aged-idle-interface-v6.patch
+zram-allow-backing-device-to-be-assigned-after-init.patch
 
