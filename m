@@ -2,30 +2,55 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12363C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 01:01:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E572C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 01:20:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB55361269
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 01:01:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DADC761452
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 01:20:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350754AbhJABDP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Sep 2021 21:03:15 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48286 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230208AbhJABDO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 30 Sep 2021 21:03:14 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E097F61994;
-        Fri,  1 Oct 2021 01:01:30 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633050091;
-        bh=a0yDTLgtCJjbtnPSnD85IptyDVpixFGh2mLyEeGndDk=;
-        h=Date:From:To:Subject:From;
-        b=LWjOp6M2hwW31H85lsYY1NdYg7M1qGZ0K9dGi02dJlVxlBncjDgPFPUjj4XW9tphi
-         OMCGLBAU4DdbEXTUmBAZSewr6hUs8zuR08Ih4agdgeuMpiQspRtNF2P9whuYSMsA7c
-         TOwb0vcwM8PQqGkPgM0n5Yh/7j4GGJmrj9mslOCU=
-Date:   Thu, 30 Sep 2021 18:01:30 -0700
-From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, arnd@arndb.de, ast@kernel.org,
+        id S1351058AbhJABWG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Sep 2021 21:22:06 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44010 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1351046AbhJABWF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Sep 2021 21:22:05 -0400
+Received: from mail-pj1-x102b.google.com (mail-pj1-x102b.google.com [IPv6:2607:f8b0:4864:20::102b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87B80C06176A
+        for <mm-commits@vger.kernel.org>; Thu, 30 Sep 2021 18:20:22 -0700 (PDT)
+Received: by mail-pj1-x102b.google.com with SMTP id r7so5407772pjo.3
+        for <mm-commits@vger.kernel.org>; Thu, 30 Sep 2021 18:20:22 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=chromium.org; s=google;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=vzZD7IbKAWrZBsdMe7z6WICsVxtPRDHvZiXRvokqaZM=;
+        b=CBm6h309mVYmsDzAMzFRMd1ClkxMWuw34fgVHFRpmL7khpHOa2HMZMQnf9axzGuw53
+         zfSbzClcR/RZsQEhPY7Hs66/SPqFlLb9jjHqeOBp3q/xdu0zMPMY0STW5e4VU2UVYGOn
+         /0ZZYLm3AytVLY08LjVsMi4f9SW4b5NjLh4/M=
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=vzZD7IbKAWrZBsdMe7z6WICsVxtPRDHvZiXRvokqaZM=;
+        b=BAC5wAcBq6XLzh+Yd7Yhwg/lpLOPlp1e9J9a3+PdXP07prD65vYe0EcBXf2s22wWN0
+         6qO4mR/uasgkFFvotIMDicFGPw7IR6MzWtLU/11m1VsygBYRK/cndsvFu/7XDKkZC80X
+         LaM3LMk6ygg3kP8r7HaWWIl+PppQM9XQocCmujmXsAX8W1oOSJn9CyWO3agLQplMxT2B
+         4umGr9n6wlpxRl0RrNPiH8Mp3oFsY/AsuH++O6PDPsQ4B3rBt7VDCaSxe2mB/1VOGyWs
+         TznI/hTtkb/54s8SCdb6dflI7QSbJ5Sd8HSWB2cYnXe1rN18tPymf1yboBTTgVeR6kUv
+         RNCQ==
+X-Gm-Message-State: AOAM533s5EjCcWXxkfKZweXXHMkROLrHjVoMZYhG44kVFYoYhxUkw8aG
+        nTSO7mJvrifCSLItdoH0BpHGH2Pw2aF/dg==
+X-Google-Smtp-Source: ABdhPJxpIAzgsStZTzdo5FSm94LfIkxsr1OBmzed/IAjqEoxkY/ZjOLuPXhjj3UgilrVVl6W2Z02zg==
+X-Received: by 2002:a17:90b:1d04:: with SMTP id on4mr9962928pjb.48.1633051222113;
+        Thu, 30 Sep 2021 18:20:22 -0700 (PDT)
+Received: from google.com ([2409:10:2e40:5100:159f:3ab6:88f:1129])
+        by smtp.gmail.com with ESMTPSA id s13sm4436684pfg.125.2021.09.30.18.20.16
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 30 Sep 2021 18:20:21 -0700 (PDT)
+Date:   Fri, 1 Oct 2021 10:20:14 +0900
+From:   Sergey Senozhatsky <senozhatsky@chromium.org>
+To:     akpm@linux-foundation.org
+Cc:     andreyknvl@gmail.com, arnd@arndb.de, ast@kernel.org,
         benh@kernel.crashing.org, bp@alien8.de,
         christophe.leroy@csgroup.eu, davem@davemloft.net,
         dvyukov@google.com, glider@google.com, ink@jurassic.park.msu.ru,
@@ -34,99 +59,47 @@ To:     andreyknvl@gmail.com, arnd@arndb.de, ast@kernel.org,
         pmladek@suse.com, rostedt@goodmis.org, rth@twiddle.net,
         ryabinin.a.a@gmail.com, senozhatsky@chromium.org,
         tglx@linutronix.de, wangkefeng.wang@huawei.com
-Subject:  + alpha-use-is_kernel_text-helper.patch added to -mm tree
-Message-ID: <20211001010130.yaSemFXBU%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+Subject: Re: + kallsyms-remove-arch-specific-text-and-data-check.patch added
+ to -mm tree
+Message-ID: <YVZiTtYbBsOzdQbH@google.com>
+References: <20210930212149.TDvMQI9fl%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20210930212149.TDvMQI9fl%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On (21/09/30 14:21), akpm@linux-foundation.org wrote:
+> 
+> Patch series "sections: Unify kernel sections range check and use", v4.
+> 
+> There are three head files(kallsyms.h, kernel.h and sections.h) which
+> include the kernel sections range check, let's make some cleanup and unify
+> them.
+> 
+> 1. cleanup arch specific text/data check and fix address boundary check
+>    in kallsyms.h
+> 
+> 2. make all the basic/core kernel range check function into sections.h
+> 
+> 3. update all the callers, and use the helper in sections.h to simplify
+>    the code
+> 
+> After this series, we have 5 APIs about kernel sections range check in
+> sections.h
+> 
+>  * is_kernel_rodata()		--- already in sections.h
+>  * is_kernel_core_data()	--- come from core_kernel_data() in kernel.h
+>  * is_kernel_inittext()		--- come from kernel.h and kallsyms.h
+>  * __is_kernel_text()		--- add new internal helper
+>  * __is_kernel()		--- add new internal helper
+> 
+> Note: For the last two helpers, people should not use directly, consider to
+>       use corresponding function in kallsyms.h.
 
-The patch titled
-     Subject: alpha: use is_kernel_text() helper
-has been added to the -mm tree.  Its filename is
-     alpha-use-is_kernel_text-helper.patch
+FWIW, Andrew, feel free to add (to the series)
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/alpha-use-is_kernel_text-helper.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/alpha-use-is_kernel_text-helper.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: alpha: use is_kernel_text() helper
-
-Use is_kernel_text() helper to simplify code.
-
-Link: https://lkml.kernel.org/r/20210930071143.63410-12-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Alexei Starovoitov <ast@kernel.org>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/alpha/kernel/traps.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
-
---- a/arch/alpha/kernel/traps.c~alpha-use-is_kernel_text-helper
-+++ a/arch/alpha/kernel/traps.c
-@@ -129,9 +129,7 @@ dik_show_trace(unsigned long *sp, const
- 		extern char _stext[], _etext[];
- 		unsigned long tmp = *sp;
- 		sp++;
--		if (tmp < (unsigned long) &_stext)
--			continue;
--		if (tmp >= (unsigned long) &_etext)
-+		if (!is_kernel_text(tmp))
- 			continue;
- 		printk("%s[<%lx>] %pSR\n", loglvl, tmp, (void *)tmp);
- 		if (i > 40) {
-_
-
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
-
-slub-add-back-check-for-free-nonslab-objects.patch
-mm-nommu-kill-arch_get_unmapped_area.patch
-kallsyms-remove-arch-specific-text-and-data-check.patch
-kallsyms-fix-address-checks-for-kernel-related-range.patch
-sections-move-and-rename-core_kernel_data-to-is_kernel_core_data.patch
-sections-move-is_kernel_inittext-into-sectionsh.patch
-x86-mm-rename-__is_kernel_text-to-is_x86_32_kernel_text.patch
-sections-provide-internal-__is_kernel-and-__is_kernel_text-helper.patch
-mm-kasan-use-is_kernel-helper.patch
-extable-use-is_kernel_text-helper.patch
-powerpc-mm-use-core_kernel_text-helper.patch
-microblaze-use-is_kernel_text-helper.patch
-alpha-use-is_kernel_text-helper.patch
-
+Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
