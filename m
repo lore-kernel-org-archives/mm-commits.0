@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 88B4AC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F059DC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:59 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 69B0661A8E
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DBC5561AD0
+	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:33:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231337AbhJAXfk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Oct 2021 19:35:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44010 "EHLO mail.kernel.org"
+        id S231470AbhJAXfn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 1 Oct 2021 19:35:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44064 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230368AbhJAXfk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 Oct 2021 19:35:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E4A8761A6F;
-        Fri,  1 Oct 2021 23:33:54 +0000 (UTC)
+        id S230368AbhJAXfn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 1 Oct 2021 19:35:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3BEF961A8E;
+        Fri,  1 Oct 2021 23:33:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633131235;
-        bh=GZWv35v/2rMqCBBX/myl8tb0JA4KFFXqwUsCGFMZ2Lw=;
+        s=korg; t=1633131238;
+        bh=rN/OtuPdmTfHdxL5Q3n1kKNWLqnEmJ09o6DMW+rn/N8=;
         h=Date:From:To:Subject:From;
-        b=pDNig4x6JYp4D1aI91zKSitidS5V08W8Lw6GZ4zdRb1RKlUiLb5+abIL1EUyuuAxu
-         RIGkofe3ElnO6OTo7IymVHa3aqDrHBerVFiS0xyYEDyh26rbM7deOg7MVXgaIAx47f
-         7ZzSffdv1B9GnEgPMHiV7xAwF9HYpwiTA4WVVDAw=
-Date:   Fri, 01 Oct 2021 16:33:54 -0700
+        b=lddrTpufpcdlzBAgIjtCpw50xtAl6WyxD+9FaBft3C9nd0ug/4EKZonZ6NH+lLcdw
+         QFUPaoKaBqW7BXQenNGDsDKuVKFO5ACFarGsD/PzgaoIao8igQGv8fvTffFALh4fbw
+         e/hP58CSCEmECpKPP+oOLFXV/+bI88faJIljHMw0=
+Date:   Fri, 01 Oct 2021 16:33:57 -0700
 From:   akpm@linux-foundation.org
 To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         david@redhat.com, dwmw@amazon.com, elver@google.com,
@@ -31,9 +31,10 @@ To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         Jonathan.Cameron@huawei.com, markubo@amazon.de,
         mm-commits@vger.kernel.org, rientjes@google.com,
         shakeelb@google.com, shuah@kernel.org, sj@kernel.org
-Subject:  + selftests-damon-add-schemes-debugfs-tests.patch added
- to -mm tree
-Message-ID: <20211001233354.C-eN0-mpg%akpm@linux-foundation.org>
+Subject:  +
+ docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
+ added to -mm tree
+Message-ID: <20211001233357.hhyaVG6hl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/damon: add 'schemes' debugfs tests
+     Subject: Docs/admin-guide/mm/damon: document DAMON-based Operation Schemes
 has been added to the -mm tree.  Its filename is
-     selftests-damon-add-schemes-debugfs-tests.patch
+     docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-damon-add-schemes-debugfs-tests.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-damon-add-schemes-debugfs-tests.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,11 +65,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: add 'schemes' debugfs tests
+Subject: Docs/admin-guide/mm/damon: document DAMON-based Operation Schemes
 
-This commit adds simple selftets for 'schemes' debugfs file of DAMON.
+This commit add description of DAMON-based operation schemes in the DAMON
+documents.
 
-Link: https://lkml.kernel.org/r/20211001125604.29660-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211001125604.29660-8-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -86,30 +88,96 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/debugfs_attrs.sh |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ Documentation/admin-guide/mm/damon/start.rst |   11 +++
+ Documentation/admin-guide/mm/damon/usage.rst |   51 ++++++++++++++++-
+ 2 files changed, 60 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/damon/debugfs_attrs.sh~selftests-damon-add-schemes-debugfs-tests
-+++ a/tools/testing/selftests/damon/debugfs_attrs.sh
-@@ -57,6 +57,19 @@ test_write_fail "$file" "1 2 3 5 4" "$or
- test_content "$file" "$orig_content" "1 2 3 4 5" "successfully written"
- echo "$orig_content" > "$file"
+--- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-document-damon-based-operation-schemes
++++ a/Documentation/admin-guide/mm/damon/start.rst
+@@ -108,6 +108,17 @@ the results as separate image files. ::
+ You can view the visualizations of this example workload at [1]_.
+ Visualizations of other realistic workloads are available at [2]_ [3]_ [4]_.
  
-+# Test schemes file
-+# =================
 +
-+file="$DBGFS/schemes"
-+orig_content=$(cat "$file")
++Data Access Pattern Aware Memory Management
++===========================================
 +
-+test_write_succ "$file" "1 2 3 4 5 6 4" \
-+	"$orig_content" "valid input"
-+test_write_fail "$file" "1 2
-+3 4 5 6 3" "$orig_content" "multi lines"
-+test_write_succ "$file" "" "$orig_content" "disabling"
-+echo "$orig_content" > "$file"
++Below three commands make every memory region of size >=4K that doesn't
++accessed for >=60 seconds in your workload to be swapped out. ::
 +
- # Test target_ids file
- # ====================
++    $ echo "#min-size max-size min-acc max-acc min-age max-age action" > scheme
++    $ echo "4K        max      0       0       60s     max     pageout" >> scheme
++    $ damo schemes -c my_thp_scheme <pid of your workload>
++
+ .. [1] https://damonitor.github.io/doc/html/v17/admin-guide/mm/damon/start.html#visualizing-recorded-patterns
+ .. [2] https://damonitor.github.io/test/result/visual/latest/rec.heatmap.1.png.html
+ .. [3] https://damonitor.github.io/test/result/visual/latest/rec.wss_sz.png.html
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-document-damon-based-operation-schemes
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -34,8 +34,8 @@ the reason, this document describes only
+ debugfs Interface
+ =================
+ 
+-DAMON exports three files, ``attrs``, ``target_ids``, and ``monitor_on`` under
+-its debugfs directory, ``<debugfs>/damon/``.
++DAMON exports four files, ``attrs``, ``target_ids``, ``schemes`` and
++``monitor_on`` under its debugfs directory, ``<debugfs>/damon/``.
+ 
+ 
+ Attributes
+@@ -74,6 +74,53 @@ check it again::
+ Note that setting the target ids doesn't start the monitoring.
+ 
+ 
++Schemes
++-------
++
++For usual DAMON-based data access aware memory management optimizations, users
++would simply want the system to apply a memory management action to a memory
++region of a specific size having a specific access frequency for a specific
++time.  DAMON receives such formalized operation schemes from the user and
++applies those to the target processes.  It also counts the total number and
++size of regions that each scheme is applied.  This statistics can be used for
++online analysis or tuning of the schemes.
++
++Users can get and set the schemes by reading from and writing to ``schemes``
++debugfs file.  Reading the file also shows the statistics of each scheme.  To
++the file, each of the schemes should be represented in each line in below form:
++
++    min-size max-size min-acc max-acc min-age max-age action
++
++Note that the ranges are closed interval.  Bytes for the size of regions
++(``min-size`` and ``max-size``), number of monitored accesses per aggregate
++interval for access frequency (``min-acc`` and ``max-acc``), number of
++aggregate intervals for the age of regions (``min-age`` and ``max-age``), and a
++predefined integer for memory management actions should be used.  The supported
++numbers and their meanings are as below.
++
++ - 0: Call ``madvise()`` for the region with ``MADV_WILLNEED``
++ - 1: Call ``madvise()`` for the region with ``MADV_COLD``
++ - 2: Call ``madvise()`` for the region with ``MADV_PAGEOUT``
++ - 3: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``
++ - 4: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``
++ - 5: Do nothing but count the statistics
++
++You can disable schemes by simply writing an empty string to the file.  For
++example, below commands applies a scheme saying "If a memory region of size in
++[4KiB, 8KiB] is showing accesses per aggregate interval in [0, 5] for aggregate
++interval in [10, 20], page out the region", check the entered scheme again, and
++finally remove the scheme. ::
++
++    # cd <debugfs>/damon
++    # echo "4096 8192    0 5    10 20    2" > schemes
++    # cat schemes
++    4096 8192 0 5 10 20 2 0 0
++    # echo > schemes
++
++The last two integers in the 4th line of above example is the total number and
++the total size of the regions that the scheme is applied.
++
++
+ Turning On/Off
+ --------------
  
 _
 
