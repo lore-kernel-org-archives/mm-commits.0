@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 96527C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:58:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 35DE6C433F5
+	for <mm-commits@archiver.kernel.org>; Sat,  2 Oct 2021 17:39:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7946D61AED
-	for <mm-commits@archiver.kernel.org>; Fri,  1 Oct 2021 23:58:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 05637615A4
+	for <mm-commits@archiver.kernel.org>; Sat,  2 Oct 2021 17:39:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229794AbhJBAAj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 1 Oct 2021 20:00:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47432 "EHLO mail.kernel.org"
+        id S233741AbhJBRlO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 2 Oct 2021 13:41:14 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48130 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232089AbhJBAAh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 1 Oct 2021 20:00:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C8CE961AA4;
-        Fri,  1 Oct 2021 23:58:52 +0000 (UTC)
+        id S232043AbhJBRlN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 2 Oct 2021 13:41:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C2F50615A4;
+        Sat,  2 Oct 2021 17:39:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633132733;
-        bh=NZ1WAVh/hnh+tLExJg+d+x9v42hHgPotFeVuYrKRAkE=;
+        s=korg; t=1633196365;
+        bh=d51DIKW7emsQw1H5o4FsiOn4LtLW9AVwgL89sJaaibo=;
         h=Date:From:To:Subject:From;
-        b=uzDzG8AVbUDe4vMNwblXNz6JW8LNyLRsWB4yp/SWdJZ7aA1wjxjuC5XrxKOaz6UZq
-         gRrrw+HEWcpgZGfy0mh9OJz3CFt6doOpqY0V80yB2hXTKu1/rDTBK796q/7DIJIi9c
-         Qdeepkpdi7vQJPb2Wwu+JTTIxFEwnXhkpvBLEu1s=
-Date:   Fri, 01 Oct 2021 16:58:52 -0700
+        b=dhZE0Vx7QD6xLMr++kCMYsaA53JIWRw76gmGRjawG941DWPDUsiFYaFem5cZtEVJJ
+         ilakBDPtS4m2/d09wQunSoqAcNo/oMMAiuMk3/2D2Eu7HDAtC/N9uzIxA7nQYsaQrS
+         nfBuumpd6O2rb6I8DlzH8vRegyt5Gwz/pcn6k3B8=
+Date:   Sat, 02 Oct 2021 10:39:25 -0700
 From:   akpm@linux-foundation.org
-To:     axelrasmussen@google.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com, shuah@kernel.org
-Subject:  +
- userfaultfd-selftests-fix-calculation-of-expected-ioctls.patch added to -mm
+To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+Subject:  + seq_file-move-seq_escape-to-a-header.patch added to -mm
  tree
-Message-ID: <20211001235852.-LRkMthwZ%akpm@linux-foundation.org>
+Message-ID: <20211002173925.sMnMTn4eL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: fix calculation of expected ioctls
+     Subject: seq_file: move seq_escape() to a header
 has been added to the -mm tree.  Its filename is
-     userfaultfd-selftests-fix-calculation-of-expected-ioctls.patch
+     seq_file-move-seq_escape-to-a-header.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftests-fix-calculation-of-expected-ioctls.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/seq_file-move-seq_escape-to-a-header.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftests-fix-calculation-of-expected-ioctls.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/seq_file-move-seq_escape-to-a-header.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,237 +58,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: fix calculation of expected ioctls
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: seq_file: move seq_escape() to a header
 
-Today, we assert that the ioctls the kernel reports as supported for a
-registration match a precomputed list.  We decide which ioctls are
-supported by examining the memory type.  Then, in several locations we
-"fix up" this list by adding or removing things this initial decision got
-wrong.
+Move seq_escape() to the header as inliner, for a small kernel text size
+reduction.
 
-What ioctls the kernel reports is actually a function of several things:
-- The memory type
-- Kernel feature support (e.g., no writeprotect on aarch64)
-- The registration type (e.g., CONTINUE only supported for MINOR mode)
-
-So, we can't fully compute this at the start, in set_test_type.  It varies
-per test, depending on what registration mode(s) those tests use.
-
-Instead, introduce a new function which computes the correct list.  This
-centralizes the add/remove of ioctls depending on these function inputs in
-one place, so we don't have to repeat ourselves in various tests.
-
-Not only is the resulting code a bit shorter, but it fixes a real bug in
-the existing code: previously, we would incorrectly require the
-writeprotect ioctl to be present on aarch64, where it isn't actually
-supported.
-
-Link: https://lkml.kernel.org/r/20210930212309.4001967-4-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20211001122917.67228-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   77 ++++++++++-----------
- 1 file changed, 38 insertions(+), 39 deletions(-)
+ fs/seq_file.c            |   16 ----------------
+ include/linux/seq_file.h |   17 ++++++++++++++++-
+ 2 files changed, 16 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-fix-calculation-of-expected-ioctls
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -308,37 +308,24 @@ static void shmem_alias_mapping(__u64 *s
+--- a/fs/seq_file.c~seq_file-move-seq_escape-to-a-header
++++ a/fs/seq_file.c
+@@ -383,22 +383,6 @@ void seq_escape_mem(struct seq_file *m,
+ }
+ EXPORT_SYMBOL(seq_escape_mem);
+ 
+-/**
+- *	seq_escape -	print string into buffer, escaping some characters
+- *	@m:	target buffer
+- *	@s:	string
+- *	@esc:	set of characters that need escaping
+- *
+- *	Puts string into buffer, replacing each occurrence of character from
+- *	@esc with usual octal escape.
+- *	Use seq_has_overflowed() to check for errors.
+- */
+-void seq_escape(struct seq_file *m, const char *s, const char *esc)
+-{
+-	seq_escape_str(m, s, ESCAPE_OCTAL, esc);
+-}
+-EXPORT_SYMBOL(seq_escape);
+-
+ void seq_vprintf(struct seq_file *m, const char *f, va_list args)
+ {
+ 	int len;
+--- a/include/linux/seq_file.h~seq_file-move-seq_escape-to-a-header
++++ a/include/linux/seq_file.h
+@@ -4,6 +4,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/string.h>
++#include <linux/string_helpers.h>
+ #include <linux/bug.h>
+ #include <linux/mutex.h>
+ #include <linux/cpumask.h>
+@@ -135,7 +136,21 @@ static inline void seq_escape_str(struct
+ 	seq_escape_mem(m, src, strlen(src), flags, esc);
  }
  
- struct uffd_test_ops {
--	unsigned long expected_ioctls;
- 	void (*allocate_area)(void **alloc_area);
- 	void (*release_pages)(char *rel_area);
- 	void (*alias_mapping)(__u64 *start, size_t len, unsigned long offset);
- };
- 
--#define SHMEM_EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
--					 (1 << _UFFDIO_COPY) | \
--					 (1 << _UFFDIO_ZEROPAGE))
--
--#define ANON_EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
--					 (1 << _UFFDIO_COPY) | \
--					 (1 << _UFFDIO_ZEROPAGE) | \
--					 (1 << _UFFDIO_WRITEPROTECT))
--
- static struct uffd_test_ops anon_uffd_test_ops = {
--	.expected_ioctls = ANON_EXPECTED_IOCTLS,
- 	.allocate_area	= anon_allocate_area,
- 	.release_pages	= anon_release_pages,
- 	.alias_mapping = noop_alias_mapping,
- };
- 
- static struct uffd_test_ops shmem_uffd_test_ops = {
--	.expected_ioctls = SHMEM_EXPECTED_IOCTLS,
- 	.allocate_area	= shmem_allocate_area,
- 	.release_pages	= shmem_release_pages,
- 	.alias_mapping = shmem_alias_mapping,
- };
- 
- static struct uffd_test_ops hugetlb_uffd_test_ops = {
--	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC & ~(1 << _UFFDIO_CONTINUE),
- 	.allocate_area	= hugetlb_allocate_area,
- 	.release_pages	= hugetlb_release_pages,
- 	.alias_mapping = hugetlb_alias_mapping,
-@@ -356,6 +343,33 @@ static inline uint64_t uffd_minor_featur
- 		return 0;
- }
- 
-+static uint64_t get_expected_ioctls(uint64_t mode)
+-void seq_escape(struct seq_file *m, const char *s, const char *esc);
++/**
++ * seq_escape - print string into buffer, escaping some characters
++ * @m: target buffer
++ * @s: NULL-terminated string
++ * @esc: set of characters that need escaping
++ *
++ * Puts string into buffer, replacing each occurrence of character from
++ * @esc with usual octal escape.
++ *
++ * Use seq_has_overflowed() to check for errors.
++ */
++static inline void seq_escape(struct seq_file *m, const char *s, const char *esc)
 +{
-+	uint64_t ioctls = UFFD_API_RANGE_IOCTLS;
-+
-+	if (test_type == TEST_HUGETLB)
-+		ioctls &= ~(1 << _UFFDIO_ZEROPAGE);
-+
-+	if (!((mode & UFFDIO_REGISTER_MODE_WP) && test_uffdio_wp))
-+		ioctls &= ~(1 << _UFFDIO_WRITEPROTECT);
-+
-+	if (!((mode & UFFDIO_REGISTER_MODE_MINOR) && test_uffdio_minor))
-+		ioctls &= ~(1 << _UFFDIO_CONTINUE);
-+
-+	return ioctls;
++	seq_escape_str(m, s, ESCAPE_OCTAL, esc);
 +}
-+
-+static void assert_expected_ioctls_present(uint64_t mode, uint64_t ioctls)
-+{
-+	uint64_t expected = get_expected_ioctls(mode);
-+	uint64_t actual = ioctls & expected;
-+
-+	if (actual != expected) {
-+		err("missing ioctl(s): expected %"PRIx64" actual: %"PRIx64,
-+		    expected, actual);
-+	}
-+}
-+
- static void userfaultfd_open(uint64_t *features)
- {
- 	struct uffdio_api uffdio_api;
-@@ -1017,11 +1031,9 @@ static int __uffdio_zeropage(int ufd, un
- {
- 	struct uffdio_zeropage uffdio_zeropage;
- 	int ret;
--	unsigned long has_zeropage;
-+	bool has_zeropage = get_expected_ioctls(0) & (1 << _UFFDIO_ZEROPAGE);
- 	__s64 res;
  
--	has_zeropage = uffd_test_ops->expected_ioctls & (1 << _UFFDIO_ZEROPAGE);
--
- 	if (offset >= nr_pages * page_size)
- 		err("unexpected offset %lu", offset);
- 	uffdio_zeropage.range.start = (unsigned long) area_dst + offset;
-@@ -1061,7 +1073,6 @@ static int uffdio_zeropage(int ufd, unsi
- static int userfaultfd_zeropage_test(void)
- {
- 	struct uffdio_register uffdio_register;
--	unsigned long expected_ioctls;
- 
- 	printf("testing UFFDIO_ZEROPAGE: ");
- 	fflush(stdout);
-@@ -1076,9 +1087,8 @@ static int userfaultfd_zeropage_test(voi
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		err("register failure");
- 
--	expected_ioctls = uffd_test_ops->expected_ioctls;
--	if ((uffdio_register.ioctls & expected_ioctls) != expected_ioctls)
--		err("unexpected missing ioctl for anon memory");
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
- 
- 	if (uffdio_zeropage(uffd, 0))
- 		if (my_bcmp(area_dst, zeropage, page_size))
-@@ -1091,7 +1101,6 @@ static int userfaultfd_zeropage_test(voi
- static int userfaultfd_events_test(void)
- {
- 	struct uffdio_register uffdio_register;
--	unsigned long expected_ioctls;
- 	pthread_t uffd_mon;
- 	int err, features;
- 	pid_t pid;
-@@ -1115,9 +1124,8 @@ static int userfaultfd_events_test(void)
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		err("register failure");
- 
--	expected_ioctls = uffd_test_ops->expected_ioctls;
--	if ((uffdio_register.ioctls & expected_ioctls) != expected_ioctls)
--		err("unexpected missing ioctl for anon memory");
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
- 
- 	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
- 		err("uffd_poll_thread create");
-@@ -1145,7 +1153,6 @@ static int userfaultfd_events_test(void)
- static int userfaultfd_sig_test(void)
- {
- 	struct uffdio_register uffdio_register;
--	unsigned long expected_ioctls;
- 	unsigned long userfaults;
- 	pthread_t uffd_mon;
- 	int err, features;
-@@ -1169,9 +1176,8 @@ static int userfaultfd_sig_test(void)
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		err("register failure");
- 
--	expected_ioctls = uffd_test_ops->expected_ioctls;
--	if ((uffdio_register.ioctls & expected_ioctls) != expected_ioctls)
--		err("unexpected missing ioctl for anon memory");
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
- 
- 	if (faulting_process(1))
- 		err("faulting process failed");
-@@ -1206,7 +1212,6 @@ static int userfaultfd_sig_test(void)
- static int userfaultfd_minor_test(void)
- {
- 	struct uffdio_register uffdio_register;
--	unsigned long expected_ioctls;
- 	unsigned long p;
- 	pthread_t uffd_mon;
- 	uint8_t expected_byte;
-@@ -1228,10 +1233,8 @@ static int userfaultfd_minor_test(void)
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		err("register failure");
- 
--	expected_ioctls = uffd_test_ops->expected_ioctls;
--	expected_ioctls |= 1 << _UFFDIO_CONTINUE;
--	if ((uffdio_register.ioctls & expected_ioctls) != expected_ioctls)
--		err("unexpected missing ioctl(s)");
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
- 
- 	/*
- 	 * After registering with UFFD, populate the non-UFFD-registered side of
-@@ -1428,8 +1431,6 @@ static int userfaultfd_stress(void)
- 	pthread_attr_setstacksize(&attr, 16*1024*1024);
- 
- 	while (bounces--) {
--		unsigned long expected_ioctls;
--
- 		printf("bounces: %d, mode:", bounces);
- 		if (bounces & BOUNCE_RANDOM)
- 			printf(" rnd");
-@@ -1457,10 +1458,8 @@ static int userfaultfd_stress(void)
- 			uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
- 		if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 			err("register failure");
--		expected_ioctls = uffd_test_ops->expected_ioctls;
--		if ((uffdio_register.ioctls & expected_ioctls) !=
--		    expected_ioctls)
--			err("unexpected missing ioctl for anon memory");
-+		assert_expected_ioctls_present(
-+			uffdio_register.mode, uffdio_register.ioctls);
- 
- 		if (area_dst_alias) {
- 			uffdio_register.range.start = (unsigned long)
+ void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
+ 		  int rowsize, int groupsize, const void *buf, size_t len,
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
-userfaultfd-selftests-fix-feature-support-detection.patch
-userfaultfd-selftests-fix-calculation-of-expected-ioctls.patch
+seq_file-move-seq_escape-to-a-header.patch
 
