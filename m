@@ -2,35 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 478A3C433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 23:25:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1946C433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 23:33:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 260BC61222
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 23:25:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 900756124C
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 23:33:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236799AbhJEX1H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Oct 2021 19:27:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52716 "EHLO mail.kernel.org"
+        id S236955AbhJEXfh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Oct 2021 19:35:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53568 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233540AbhJEX1H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 Oct 2021 19:27:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C9ABB611C6;
-        Tue,  5 Oct 2021 23:25:15 +0000 (UTC)
+        id S231304AbhJEXfg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 Oct 2021 19:35:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C6ABF610A8;
+        Tue,  5 Oct 2021 23:33:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633476316;
-        bh=YBcpm/gWhWC7F/TWT8Rh8sgc3ccQu3v506v8E4aoQ+4=;
+        s=korg; t=1633476825;
+        bh=8NiC9kOxuaHlxlf7fhixb5eL+v7hzE6tdmIqU1HktDk=;
         h=Date:From:To:Subject:From;
-        b=yuVwQ11NqSYxcTbQommhbXb0ZkznzOh75q9C/Fu7vQEaoYW/0tsvahMFPZbQerwaX
-         PcDfPOc56AycnQVMCz/DbadifYb95liDorxrr0kFq3nScZV9WgSUgoRrfnXwzvrE2C
-         1Ts9hNf8dJQDmduGh+wvMuL0KsuiAf32qLe7wjHw=
-Date:   Tue, 05 Oct 2021 16:25:15 -0700
+        b=PY+j04u1meUhES+ziLUIZSmWAulX28z4FbIk5tbTXzhqOoFfbvkr/+IyScPhL5V84
+         RIH099vVRAblYxgObe9LASrXvi8GAVD0oW9bwEUFrFX2MHozWi1NtIYylUpsr/63Sd
+         yGRRDc5KOA75ogp2R0Ho+mMIw+macyDaTcD7mgNg=
+Date:   Tue, 05 Oct 2021 16:33:44 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, konrad.wilk@oracle.com,
-        mm-commits@vger.kernel.org, stephen.s.brennan@oracle.com,
-        viro@zeniv.linux.org.uk, willy@infradead.org
-Subject:  + proc-allow-pid_revalidate-during-lookup_rcu.patch added
+To:     david@redhat.com, hch@infradead.org, hdanton@sina.com,
+        mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org,
+        npiggin@gmail.com, oleksiy.avramchenko@sonymobile.com,
+        pifang@redhat.com, rostedt@goodmis.org, urezki@gmail.com,
+        willy@infradead.org
+Subject:  +
+ mm-vmalloc-do-not-adjust-the-search-size-for-alignment-overhead.patch added
  to -mm tree
-Message-ID: <20211005232515.9Q6QzBHv2%akpm@linux-foundation.org>
+Message-ID: <20211005233344.bT4r4xuwr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: allow pid_revalidate() during LOOKUP_RCU
+     Subject: mm/vmalloc: do not adjust the search size for alignment overhead
 has been added to the -mm tree.  Its filename is
-     proc-allow-pid_revalidate-during-lookup_rcu.patch
+     mm-vmalloc-do-not-adjust-the-search-size-for-alignment-overhead.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-allow-pid_revalidate-during-lookup_rcu.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-do-not-adjust-the-search-size-for-alignment-overhead.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-allow-pid_revalidate-during-lookup_rcu.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-do-not-adjust-the-search-size-for-alignment-overhead.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,161 +63,130 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Brennan <stephen.s.brennan@oracle.com>
-Subject: proc: allow pid_revalidate() during LOOKUP_RCU
+From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
+Subject: mm/vmalloc: do not adjust the search size for alignment overhead
 
-Problem Description:
+We used to include an alignment overhead into a search length, in that
+case we guarantee that a found area will definitely fit after applying a
+specific alignment that user specifies.  From the other hand we do not
+guarantee that an area has the lowest address if an alignment is >=
+PAGE_SIZE.
 
-When running running ~128 parallel instances of "TZ=/etc/localtime ps -fe
->/dev/null" on a 128CPU machine, the %sys utilization reaches 97%, and
-perf shows the following code path as being responsible for heavy
-contention on the d_lockref spinlock:
+It means that, when a user specifies a special alignment together with a
+range that corresponds to an exact requested size then an allocation will
+fail.  This is what happens to KASAN, it wants the free block that exactly
+matches a specified range during onlining memory banks:
 
-      walk_component()
-        lookup_fast()
-          d_revalidate()
-            pid_revalidate() // returns -ECHILD
-          unlazy_child()
-            lockref_get_not_dead(&nd->path.dentry->d_lockref) <-- contention
+[root@vm-0 fedora]# echo online > /sys/devices/system/memory/memory82/state
+[root@vm-0 fedora]# echo online > /sys/devices/system/memory/memory83/state
+[root@vm-0 fedora]# echo online > /sys/devices/system/memory/memory85/state
+[root@vm-0 fedora]# echo online > /sys/devices/system/memory/memory84/state
+[  223.858115] vmap allocation for size 16777216 failed: use vmalloc=<size> to increase size
+[  223.859415] bash: vmalloc: allocation failure: 16777216 bytes, mode:0x6000c0(GFP_KERNEL), nodemask=(null),cpuset=/,mems_allowed=0
+[  223.860992] CPU: 4 PID: 1644 Comm: bash Kdump: loaded Not tainted 4.18.0-339.el8.x86_64+debug #1
+[  223.862149] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.14.0-0-g155821a1990b-prebuilt.qemu.org 04/01/2014
+[  223.863580] Call Trace:
+[  223.863946]  dump_stack+0x8e/0xd0
+[  223.864420]  warn_alloc.cold.90+0x8a/0x1b2
+[  223.864990]  ? zone_watermark_ok_safe+0x300/0x300
+[  223.865626]  ? slab_free_freelist_hook+0x85/0x1a0
+[  223.866264]  ? __get_vm_area_node+0x240/0x2c0
+[  223.866858]  ? kfree+0xdd/0x570
+[  223.867309]  ? kmem_cache_alloc_node_trace+0x157/0x230
+[  223.868028]  ? notifier_call_chain+0x90/0x160
+[  223.868625]  __vmalloc_node_range+0x465/0x840
+[  223.869230]  ? mark_held_locks+0xb7/0x120
 
-The reason is that pid_revalidate() is triggering a drop from RCU to ref
-path walk mode.  All concurrent path lookups thus try to grab a reference
-to the dentry for /proc/, before re-executing pid_revalidate() and then
-stepping into the /proc/$pid directory.  Thus there is huge spinlock
-contention.  This patch allows pid_revalidate() to execute in RCU mode,
-meaning that the path lookup can successfully enter the /proc/$pid
-directory while still in RCU mode.  Later on, the path lookup may still
-drop into ref mode, but the contention will be much reduced at this point.
+Fix it by making sure that find_vmap_lowest_match() returns lowest start
+address with any given alignment value, i.e.  for alignments bigger then
+PAGE_SIZE the algorithm rolls back toward parent nodes checking right
+sub-trees if the most left free block did not fit due to alignment
+overhead.
 
-By applying this patch, %sys utilization falls to around 85% under the
-same workload, and the number of ps processes executed per unit time
-increases by 3x-4x.  Although this particular workload is a bit contrived,
-we have seen some large collections of eager monitoring scripts which
-produced similarly high %sys time due to contention in the /proc
-directory.
-
-As a result this patch, Al noted that several procfs methods which were
-only called in ref-walk mode could now be called from RCU mode.  To ensure
-that this patch is safe, I audited all the inode get_link and permission()
-implementations, as well as dentry d_revalidate() implementations, in
-fs/proc.  The purpose here is to ensure that they either are safe to call
-in RCU (i.e.  don't sleep) or correctly bail out of RCU mode if they don't
-support it.  My analysis shows that all at-risk procfs methods are safe to
-call under RCU, and thus this patch is safe.
-
-Procfs RCU-walk Analysis:
-
-This analysis is up-to-date with 5.15-rc3.  When called under RCU mode,
-these functions have arguments as follows:
-
-* get_link() receives a NULL dentry pointer when called in RCU mode.
-* permission() receives MAY_NOT_BLOCK in the mode parameter when called
-  from RCU.
-* d_revalidate() receives LOOKUP_RCU in flags.
-
-For the following functions, either they are trivially RCU safe, or they
-explicitly bail at the beginning of the function when they run:
-
-proc_ns_get_link       (bails out)
-proc_get_link          (RCU safe)
-proc_pid_get_link      (bails out)
-map_files_d_revalidate (bails out)
-map_misc_d_revalidate  (bails out)
-proc_net_d_revalidate  (RCU safe)
-proc_sys_revalidate    (bails out, also not under /proc/$pid)
-tid_fd_revalidate      (bails out)
-proc_sys_permission    (not under /proc/$pid)
-
-The remainder of the functions require a bit more detail:
-
-* proc_fd_permission: RCU safe. All of the body of this function is
-  under rcu_read_lock(), except generic_permission() which declares
-  itself RCU safe in its documentation string.
-* proc_self_get_link uses GFP_ATOMIC in the RCU case, so it is RCU aware
-  and otherwise looks safe. The same is true of proc_thread_self_get_link.
-* proc_map_files_get_link: calls ns_capable, which calls capable(), and
-  thus calls into the audit code (see note #1 below). The remainder is
-  just a call to the trivially safe proc_pid_get_link().
-* proc_pid_permission: calls ptrace_may_access(), which appears RCU
-  safe, although it does call into the "security_ptrace_access_check()"
-  hook, which looks safe under smack and selinux. Just the audit code is
-  of concern. Also uses get_task_struct() and put_task_struct(), see
-  note #2 below.
-* proc_tid_comm_permission: Appears safe, though calls put_task_struct
-  (see note #2 below).
-
-Note #1:
-  Most of the concern of RCU safety has centered around the audit code.
-  However, since b17ec22fb339 ("selinux: slow_avc_audit has become
-  non-blocking"), it's safe to call this code under RCU. So all of the
-  above are safe by my estimation.
-
-Note #2: get_task_struct() and put_task_struct():
-  The majority of get_task_struct() is under RCU read lock, and in any
-  case it is a simple increment. But put_task_struct() is complex, given
-  that it could at some point free the task struct, and this process has
-  many steps which I couldn't manually verify. However, several other
-  places call put_task_struct() under RCU, so it appears safe to use
-  here too (see kernel/hung_task.c:165 or rcu/tree-stall.h:296)
-
-Patch description:
-
-pid_revalidate() drops from RCU into REF lookup mode.  When many threads
-are resolving paths within /proc in parallel, this can result in heavy
-spinlock contention on d_lockref as each thread tries to grab a reference
-to the /proc dentry (and drop it shortly thereafter).
-
-Investigation indicates that it is not necessary to drop RCU in
-pid_revalidate(), as no RCU data is modified and the function never
-sleeps.  So, remove the LOOKUP_RCU check.
-
-Link: https://lkml.kernel.org/r/20211004175629.292270-2-stephen.s.brennan@oracle.com
-Signed-off-by: Stephen Brennan <stephen.s.brennan@oracle.com>
-Cc: Konrad Wilk <konrad.wilk@oracle.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Link: https://lkml.kernel.org/r/20211004142829.22222-1-urezki@gmail.com
+Fixes: 68ad4a330433 ("mm/vmalloc.c: keep track of free blocks for vmap allocation")
+Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Reported-by: Ping Fang <pifang@redhat.com>
+Tested-by: David Hildenbrand <david@redhat.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Christoph Hellwig <hch@infradead.org>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Hillf Danton <hdanton@sina.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ mm/vmalloc.c |   22 +++++++++++++---------
+ 1 file changed, 13 insertions(+), 9 deletions(-)
 
---- a/fs/proc/base.c~proc-allow-pid_revalidate-during-lookup_rcu
-+++ a/fs/proc/base.c
-@@ -1979,19 +1979,21 @@ static int pid_revalidate(struct dentry
+--- a/mm/vmalloc.c~mm-vmalloc-do-not-adjust-the-search-size-for-alignment-overhead
++++ a/mm/vmalloc.c
+@@ -1195,18 +1195,14 @@ find_vmap_lowest_match(unsigned long siz
  {
- 	struct inode *inode;
- 	struct task_struct *task;
-+	int ret = 0;
+ 	struct vmap_area *va;
+ 	struct rb_node *node;
+-	unsigned long length;
  
--	if (flags & LOOKUP_RCU)
--		return -ECHILD;
+ 	/* Start from the root. */
+ 	node = free_vmap_area_root.rb_node;
+ 
+-	/* Adjust the search size for alignment overhead. */
+-	length = size + align - 1;
 -
--	inode = d_inode(dentry);
--	task = get_proc_task(inode);
-+	rcu_read_lock();
-+	inode = d_inode_rcu(dentry);
-+	if (!inode)
-+		goto out;
-+	task = pid_task(proc_pid(inode), PIDTYPE_PID);
+ 	while (node) {
+ 		va = rb_entry(node, struct vmap_area, rb_node);
  
- 	if (task) {
- 		pid_update_inode(task, inode);
--		put_task_struct(task);
--		return 1;
-+		ret = 1;
- 	}
--	return 0;
-+out:
-+	rcu_read_unlock();
-+	return ret;
- }
+-		if (get_subtree_max_size(node->rb_left) >= length &&
++		if (get_subtree_max_size(node->rb_left) >= size &&
+ 				vstart < va->va_start) {
+ 			node = node->rb_left;
+ 		} else {
+@@ -1216,9 +1212,9 @@ find_vmap_lowest_match(unsigned long siz
+ 			/*
+ 			 * Does not make sense to go deeper towards the right
+ 			 * sub-tree if it does not have a free block that is
+-			 * equal or bigger to the requested search length.
++			 * equal or bigger to the requested search size.
+ 			 */
+-			if (get_subtree_max_size(node->rb_right) >= length) {
++			if (get_subtree_max_size(node->rb_right) >= size) {
+ 				node = node->rb_right;
+ 				continue;
+ 			}
+@@ -1226,15 +1222,23 @@ find_vmap_lowest_match(unsigned long siz
+ 			/*
+ 			 * OK. We roll back and find the first right sub-tree,
+ 			 * that will satisfy the search criteria. It can happen
+-			 * only once due to "vstart" restriction.
++			 * due to "vstart" restriction or an alignment overhead
++			 * that is bigger then PAGE_SIZE.
+ 			 */
+ 			while ((node = rb_parent(node))) {
+ 				va = rb_entry(node, struct vmap_area, rb_node);
+ 				if (is_within_this_va(va, size, align, vstart))
+ 					return va;
  
- static inline bool proc_inode_is_dead(struct inode *inode)
+-				if (get_subtree_max_size(node->rb_right) >= length &&
++				if (get_subtree_max_size(node->rb_right) >= size &&
+ 						vstart <= va->va_start) {
++					/*
++					 * Shift the vstart forward. Please note, we update it with
++					 * parent's start address adding "1" because we do not want
++					 * to enter same sub-tree after it has already been checked
++					 * and no suitable free block found there.
++					 */
++					vstart = va->va_start + 1;
+ 					node = node->rb_right;
+ 					break;
+ 				}
 _
 
-Patches currently in -mm which might be from stephen.s.brennan@oracle.com are
+Patches currently in -mm which might be from urezki@gmail.com are
 
-proc-allow-pid_revalidate-during-lookup_rcu.patch
+mm-vmalloc-do-not-adjust-the-search-size-for-alignment-overhead.patch
+mm-vmalloc-check-various-alignments-when-debugging.patch
 
