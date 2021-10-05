@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C0CBC433EF
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 21:31:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C2D0C433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 22:06:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 528C9615E3
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 21:31:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 45AD761207
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 22:06:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236042AbhJEVdK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Oct 2021 17:33:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51382 "EHLO mail.kernel.org"
+        id S230477AbhJEWIS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Oct 2021 18:08:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236641AbhJEVdH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 Oct 2021 17:33:07 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 20F3F611CA;
-        Tue,  5 Oct 2021 21:31:16 +0000 (UTC)
+        id S229974AbhJEWIS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 Oct 2021 18:08:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C4C996120C;
+        Tue,  5 Oct 2021 22:06:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633469476;
-        bh=h3YRupLR1Zt4880/ntcxC7HDIWpcE27S/Sa5zZz5Uic=;
+        s=korg; t=1633471587;
+        bh=p1jgFd+O6E4QVcFlsI3c543CFNhdnSkuzzjbaj7gwb0=;
         h=Date:From:To:Subject:From;
-        b=KPiBMhrTiekQR55f48HppEsThUHTMBAfHrihzMb4XrJH2gAhRYMeFgSILwT2O7WqL
-         vvShS3X3LllSWnuq4YI1jkeRwb9ZcX9u2lmM8vwuebRPpEsDyorZm+2Es8JpfDT5gl
-         xkIDp3Szf/aCkijhihZYq0uH6hiyRGlAn+Ts43AY=
-Date:   Tue, 05 Oct 2021 14:31:15 -0700
+        b=eYpxuH9jWP/92pvYDEXi8LRd2sFCfGay+hOx1DXnkKcOU4A8CC4lTKYCdZfKGyC6N
+         Lj+ZydD1nShU/HnyVmZWqBcI9MCzKLN8gMnwCcnYXceg21SSM7lt6uPTHNtvenSWj0
+         +2iHkOsmW4HLw//QEKM+Iov/FXvly7921AZpRKqQ=
+Date:   Tue, 05 Oct 2021 15:06:26 -0700
 From:   akpm@linux-foundation.org
-To:     bhe@redhat.com, boris.ostrovsky@oracle.com,
-        boris.ostrvsky@oracle.com, bp@alien8.de, david@redhat.com,
-        dyoung@redhat.com, hpa@zytor.com, jasowang@redhat.com,
-        jgross@suse.com, mhocko@suse.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, mst@redhat.com, osalvador@suse.de,
-        rafael.j.wysocki@intel.com, rppt@kernel.org,
-        sstabellini@kernel.org, tglx@linutronix.de, vgoyal@redhat.com
+To:     benh@kernel.crashing.org, corbet@lwn.net, dan.carpenter@oracle.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, nathan@kernel.org, paulus@samba.org,
+        rppt@kernel.org, willy@infradead.org, yaozhenguo1@gmail.com
 Subject:  +
- virtio-mem-kdump-mode-to-sanitize-proc-vmcore-access.patch added to -mm
- tree
-Message-ID: <20211005213115.yrwzMBKNq%akpm@linux-foundation.org>
+ =?US-ASCII?Q?hugetlbfs-extend-the-definition-of-hugepages-parameter-to-s?=
+ =?US-ASCII?Q?upport-node-allocation.patch?= added to -mm tree
+Message-ID: <20211005220626.xSGA6hu6p%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: virtio-mem: kdump mode to sanitize /proc/vmcore access
+     Subject: hugetlbfs: extend the definition of hugepages parameter to support node allocation
 has been added to the -mm tree.  Its filename is
-     virtio-mem-kdump-mode-to-sanitize-proc-vmcore-access.patch
+     hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/virtio-mem-kdump-mode-to-sanitize-proc-vmcore-access.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/virtio-mem-kdump-mode-to-sanitize-proc-vmcore-access.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,316 +64,400 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: virtio-mem: kdump mode to sanitize /proc/vmcore access
+From: Zhenguo Yao <yaozhenguo1@gmail.com>
+Subject: hugetlbfs: extend the definition of hugepages parameter to support node allocation
 
-Although virtio-mem currently supports reading unplugged memory in the
-hypervisor, this will change in the future, indicated to the device via a
-new feature flag.  We similarly sanitized /proc/kcore access recently. 
-[1]
+We can specify the number of hugepages to allocate at boot.  But the
+hugepages is balanced in all nodes at present.  In some scenarios, we only
+need hugepages in one node.  For example: DPDK needs hugepages which are
+in the same node as NIC.
 
-Let's register a vmcore callback, to allow vmcore code to check if a PFN
-belonging to a virtio-mem device is either currently plugged and should be
-dumped or is currently unplugged and should not be accessed, instead
-mapping the shared zeropage or returning zeroes when reading.
+If DPDK needs four hugepages of 1G size in node1 and system has 16 numa
+nodes we must reserve 64 hugepages on the kernel cmdline.  But only four
+hugepages are used.  The others should be free after boot.  If the system
+memory is low(for example: 64G), it will be an impossible task.
 
-This is important when not capturing /proc/vmcore via tools like
-"makedumpfile" that can identify logically unplugged virtio-mem memory via
-PG_offline in the memmap, but simply by e.g., copying the file.
+So extend the hugepages parameter to support specifying hugepages on a
+specific node.  For example add following parameter:
 
-Distributions that support virtio-mem+kdump have to make sure that the
-virtio_mem module will be part of the kdump kernel or the kdump initrd;
-dracut was recently [2] extended to include virtio-mem in the generated
-initrd.  As long as no special kdump kernels are used, this will
-automatically make sure that virtio-mem will be around in the kdump initrd
-and sanitize /proc/vmcore access -- with dracut.
+hugepagesz=1G hugepages=0:1,1:3
 
-With this series, we'll send one virtio-mem state request for every ~2 MiB
-chunk of virtio-mem memory indicated in the vmcore that we intend to
-read/map.
+It will allocate 1 hugepage in node0 and 3 hugepages in node1.
 
-In the future, we might want to allow building virtio-mem for kdump mode
-only, even without CONFIG_MEMORY_HOTPLUG and friends: this way, we could
-support special stripped-down kdump kernels that have many other config
-options disabled; we'll tackle that once required.  Further, we might want
-to try sensing bigger blocks (e.g., memory sections) first before falling
-back to device blocks on demand.
-
-Tested with Fedora rawhide, which contains a recent kexec-tools version
-(considering "System RAM (virtio_mem)" when creating the vmcore header)
-and a recent dracut version (including the virtio_mem module in the kdump
-initrd).
-
-[1] https://lkml.kernel.org/r/20210526093041.8800-1-david@redhat.com
-[2] https://github.com/dracutdevs/dracut/pull/1157
-
-Link: https://lkml.kernel.org/r/20211005121430.30136-10-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Boris Ostrovsky <boris.ostrvsky@oracle.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20211005054729.86457-1-yaozhenguo1@gmail.com
+Signed-off-by: Zhenguo Yao <yaozhenguo1@gmail.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Stefano Stabellini <sstabellini@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/virtio/virtio_mem.c |  136 +++++++++++++++++++++++++++++++---
- 1 file changed, 124 insertions(+), 12 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    8 
+ Documentation/admin-guide/mm/hugetlbpage.rst    |   12 +
+ arch/powerpc/mm/hugetlbpage.c                   |    9 
+ include/linux/hugetlb.h                         |    6 
+ mm/hugetlb.c                                    |  153 +++++++++++---
+ 5 files changed, 155 insertions(+), 33 deletions(-)
 
---- a/drivers/virtio/virtio_mem.c~virtio-mem-kdump-mode-to-sanitize-proc-vmcore-access
-+++ a/drivers/virtio/virtio_mem.c
-@@ -223,6 +223,9 @@ struct virtio_mem {
- 	 * When this lock is held the pointers can't change, ONLINE and
- 	 * OFFLINE blocks can't change the state and no subblocks will get
- 	 * plugged/unplugged.
-+	 *
-+	 * In kdump mode, used to serialize requests, last_block_addr and
-+	 * last_block_plugged.
- 	 */
- 	struct mutex hotplug_mutex;
- 	bool hotplug_active;
-@@ -230,6 +233,9 @@ struct virtio_mem {
- 	/* An error occurred we cannot handle - stop processing requests. */
- 	bool broken;
- 
-+	/* Cached valued of is_kdump_kernel() when the device was probed. */
-+	bool in_kdump;
+--- a/arch/powerpc/mm/hugetlbpage.c~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -229,17 +229,22 @@ static int __init pseries_alloc_bootmem_
+ 	m->hstate = hstate;
+ 	return 1;
+ }
 +
- 	/* The driver is being removed. */
- 	spinlock_t removal_lock;
- 	bool removing;
-@@ -243,6 +249,13 @@ struct virtio_mem {
- 	/* Memory notifier (online/offline events). */
- 	struct notifier_block memory_notifier;
++bool __init hugetlb_node_alloc_supported(void)
++{
++	return false;
++}
+ #endif
  
-+#ifdef CONFIG_PROC_VMCORE
-+	/* vmcore callback for /proc/vmcore handling in kdump mode */
-+	struct vmcore_cb vmcore_cb;
-+	uint64_t last_block_addr;
-+	bool last_block_plugged;
-+#endif /* CONFIG_PROC_VMCORE */
-+
- 	/* Next device in the list of virtio-mem devices. */
- 	struct list_head next;
- };
-@@ -2293,6 +2306,12 @@ static void virtio_mem_run_wq(struct wor
- 	uint64_t diff;
- 	int rc;
  
-+	if (unlikely(vm->in_kdump)) {
-+		dev_warn_once(&vm->vdev->dev,
-+			     "unexpected workqueue run in kdump kernel\n");
-+		return;
-+	}
-+
- 	hrtimer_cancel(&vm->retry_timer);
+-int __init alloc_bootmem_huge_page(struct hstate *h)
++int __init alloc_bootmem_huge_page(struct hstate *h, int nid)
+ {
  
- 	if (vm->broken)
-@@ -2521,6 +2540,86 @@ out_del_resource:
- 	return rc;
+ #ifdef CONFIG_PPC_BOOK3S_64
+ 	if (firmware_has_feature(FW_FEATURE_LPAR) && !radix_enabled())
+ 		return pseries_alloc_bootmem_huge_page(h);
+ #endif
+-	return __alloc_bootmem_huge_page(h);
++	return __alloc_bootmem_huge_page(h, nid);
  }
  
-+#ifdef CONFIG_PROC_VMCORE
-+static int virtio_mem_send_state_request(struct virtio_mem *vm, uint64_t addr,
-+					 uint64_t size)
-+{
-+	const uint64_t nb_vm_blocks = size / vm->device_block_size;
-+	const struct virtio_mem_req req = {
-+		.type = cpu_to_virtio16(vm->vdev, VIRTIO_MEM_REQ_STATE),
-+		.u.state.addr = cpu_to_virtio64(vm->vdev, addr),
-+		.u.state.nb_blocks = cpu_to_virtio16(vm->vdev, nb_vm_blocks),
-+	};
-+	int rc = -ENOMEM;
-+
-+	dev_dbg(&vm->vdev->dev, "requesting state: 0x%llx - 0x%llx\n", addr,
-+		addr + size - 1);
-+
-+	switch (virtio_mem_send_request(vm, &req)) {
-+	case VIRTIO_MEM_RESP_ACK:
-+		return virtio16_to_cpu(vm->vdev, vm->resp.u.state.state);
-+	case VIRTIO_MEM_RESP_ERROR:
-+		rc = -EINVAL;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	dev_dbg(&vm->vdev->dev, "requesting state failed: %d\n", rc);
-+	return rc;
-+}
-+
-+static bool virtio_mem_vmcore_pfn_is_ram(struct vmcore_cb *cb,
-+					 unsigned long pfn)
-+{
-+	struct virtio_mem *vm = container_of(cb, struct virtio_mem,
-+					     vmcore_cb);
-+	uint64_t addr = PFN_PHYS(pfn);
-+	bool is_ram;
-+	int rc;
-+
-+	if (!virtio_mem_contains_range(vm, addr, PAGE_SIZE))
-+		return true;
-+	if (!vm->plugged_size)
-+		return false;
-+
-+	/*
-+	 * We have to serialize device requests and access to the information
-+	 * about the block queried last.
-+	 */
-+	mutex_lock(&vm->hotplug_mutex);
-+
-+	addr = ALIGN_DOWN(addr, vm->device_block_size);
-+	if (addr != vm->last_block_addr) {
-+		rc = virtio_mem_send_state_request(vm, addr,
-+						   vm->device_block_size);
-+		/* On any kind of error, we're going to signal !ram. */
-+		if (rc == VIRTIO_MEM_STATE_PLUGGED)
-+			vm->last_block_plugged = true;
-+		else
-+			vm->last_block_plugged = false;
-+		vm->last_block_addr = addr;
-+	}
-+
-+	is_ram = vm->last_block_plugged;
-+	mutex_unlock(&vm->hotplug_mutex);
-+	return is_ram;
-+}
-+#endif /* CONFIG_PROC_VMCORE */
-+
-+static int virtio_mem_init_kdump(struct virtio_mem *vm)
-+{
-+#ifdef CONFIG_PROC_VMCORE
-+	dev_info(&vm->vdev->dev, "memory hot(un)plug disabled in kdump kernel\n");
-+	vm->vmcore_cb.pfn_is_ram = virtio_mem_vmcore_pfn_is_ram;
-+	register_vmcore_cb(&vm->vmcore_cb);
-+	return 0;
-+#else /* CONFIG_PROC_VMCORE */
-+	dev_warn(&vm->vdev->dev, "disabled in kdump kernel without vmcore\n");
-+	return -EBUSY;
-+#endif /* CONFIG_PROC_VMCORE */
-+}
-+
- static int virtio_mem_init(struct virtio_mem *vm)
- {
- 	uint16_t node_id;
-@@ -2530,15 +2629,6 @@ static int virtio_mem_init(struct virtio
- 		return -EINVAL;
- 	}
+ #ifndef CONFIG_PPC_BOOK3S_64
+--- a/Documentation/admin-guide/kernel-parameters.txt~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1599,9 +1599,11 @@
+ 			the number of pages of hugepagesz to be allocated.
+ 			If this is the first HugeTLB parameter on the command
+ 			line, it specifies the number of pages to allocate for
+-			the default huge page size.  See also
+-			Documentation/admin-guide/mm/hugetlbpage.rst.
+-			Format: <integer>
++			the default huge page size. If using node format, the
++			number of pages to allocate per-node can be specified.
++			See also Documentation/admin-guide/mm/hugetlbpage.rst.
++			Format: <integer> or (node format)
++				<node>:<integer>[,<node>:<integer>]
  
--	/*
--	 * We don't want to (un)plug or reuse any memory when in kdump. The
--	 * memory is still accessible (but not mapped).
--	 */
--	if (is_kdump_kernel()) {
--		dev_warn(&vm->vdev->dev, "disabled in kdump kernel\n");
--		return -EBUSY;
--	}
+ 	hugepagesz=
+ 			[HW] The size of the HugeTLB pages.  This is used in
+--- a/Documentation/admin-guide/mm/hugetlbpage.rst~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
++++ a/Documentation/admin-guide/mm/hugetlbpage.rst
+@@ -128,7 +128,9 @@ hugepages
+ 	implicitly specifies the number of huge pages of default size to
+ 	allocate.  If the number of huge pages of default size is implicitly
+ 	specified, it can not be overwritten by a hugepagesz,hugepages
+-	parameter pair for the default size.
++	parameter pair for the default size.  This parameter also has a
++	node format.  The node format specifies the number of huge pages
++	to allocate on specific nodes.
+ 
+ 	For example, on an architecture with 2M default huge page size::
+ 
+@@ -138,6 +140,14 @@ hugepages
+ 	indicating that the hugepages=512 parameter is ignored.  If a hugepages
+ 	parameter is preceded by an invalid hugepagesz parameter, it will
+ 	be ignored.
++
++	Node format example::
++
++		hugepagesz=2M hugepages=0:1,1:2
++
++	It will allocate 1 2M hugepage on node0 and 2 2M hugepages on node1.
++	If the node number is invalid,  the parameter will be ignored.
++
+ default_hugepagesz
+ 	Specify the default huge page size.  This parameter can
+ 	only be specified once on the command line.  default_hugepagesz can
+--- a/include/linux/hugetlb.h~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
++++ a/include/linux/hugetlb.h
+@@ -596,6 +596,7 @@ struct hstate {
+ 	unsigned long nr_overcommit_huge_pages;
+ 	struct list_head hugepage_activelist;
+ 	struct list_head hugepage_freelists[MAX_NUMNODES];
++	unsigned int max_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int free_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+@@ -628,8 +629,9 @@ void restore_reserve_on_error(struct hst
+ 				unsigned long address, struct page *page);
+ 
+ /* arch callback */
+-int __init __alloc_bootmem_huge_page(struct hstate *h);
+-int __init alloc_bootmem_huge_page(struct hstate *h);
++int __init __alloc_bootmem_huge_page(struct hstate *h, int nid);
++int __init alloc_bootmem_huge_page(struct hstate *h, int nid);
++bool __init hugetlb_node_alloc_supported(void);
+ 
+ void __init hugetlb_add_hstate(unsigned order);
+ bool __init arch_hugetlb_valid_size(unsigned long size);
+--- a/mm/hugetlb.c~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
++++ a/mm/hugetlb.c
+@@ -76,6 +76,7 @@ static struct hstate * __initdata parsed
+ static unsigned long __initdata default_hstate_max_huge_pages;
+ static bool __initdata parsed_valid_hugepagesz = true;
+ static bool __initdata parsed_default_hugepagesz;
++static unsigned int default_hugepages_in_node[MAX_NUMNODES] __initdata;
+ 
+ /*
+  * Protects updates to hugepage_freelists, hugepage_activelist, nr_huge_pages,
+@@ -2936,33 +2937,39 @@ out_subpool_put:
+ 	return ERR_PTR(-ENOSPC);
+ }
+ 
+-int alloc_bootmem_huge_page(struct hstate *h)
++int alloc_bootmem_huge_page(struct hstate *h, int nid)
+ 	__attribute__ ((weak, alias("__alloc_bootmem_huge_page")));
+-int __alloc_bootmem_huge_page(struct hstate *h)
++int __alloc_bootmem_huge_page(struct hstate *h, int nid)
+ {
+-	struct huge_bootmem_page *m;
++	struct huge_bootmem_page *m = NULL; /* initialize for clang */
+ 	int nr_nodes, node;
+ 
++	if (nid >= nr_online_nodes)
++		return 0;
++	/* do node specific alloc */
++	if (nid != NUMA_NO_NODE) {
++		m = memblock_alloc_try_nid_raw(huge_page_size(h), huge_page_size(h),
++				0, MEMBLOCK_ALLOC_ACCESSIBLE, nid);
++		if (!m)
++			return 0;
++		goto found;
++	}
++	/* allocate from next node when distributing huge pages */
+ 	for_each_node_mask_to_alloc(h, nr_nodes, node, &node_states[N_MEMORY]) {
+-		void *addr;
 -
- 	/* Fetch all properties that can't change. */
- 	virtio_cread_le(vm->vdev, struct virtio_mem_config, plugged_size,
- 			&vm->plugged_size);
-@@ -2562,6 +2652,12 @@ static int virtio_mem_init(struct virtio
- 	if (vm->nid != NUMA_NO_NODE && IS_ENABLED(CONFIG_NUMA))
- 		dev_info(&vm->vdev->dev, "nid: %d", vm->nid);
+-		addr = memblock_alloc_try_nid_raw(
++		m = memblock_alloc_try_nid_raw(
+ 				huge_page_size(h), huge_page_size(h),
+ 				0, MEMBLOCK_ALLOC_ACCESSIBLE, node);
+-		if (addr) {
+-			/*
+-			 * Use the beginning of the huge page to store the
+-			 * huge_bootmem_page struct (until gather_bootmem
+-			 * puts them into the mem_map).
+-			 */
+-			m = addr;
+-			goto found;
+-		}
++		/*
++		 * Use the beginning of the huge page to store the
++		 * huge_bootmem_page struct (until gather_bootmem
++		 * puts them into the mem_map).
++		 */
++		if (!m)
++			return 0;
++		goto found;
+ 	}
+-	return 0;
  
-+	/*
-+	 * We don't want to (un)plug or reuse any memory when in kdump. The
-+	 * memory is still accessible (but not exposed to Linux).
-+	 */
-+	if (vm->in_kdump)
-+		return virtio_mem_init_kdump(vm);
- 	return virtio_mem_init_hotplug(vm);
- }
- 
-@@ -2640,6 +2736,7 @@ static int virtio_mem_probe(struct virti
- 	hrtimer_init(&vm->retry_timer, CLOCK_MONOTONIC, HRTIMER_MODE_REL);
- 	vm->retry_timer.function = virtio_mem_timer_expired;
- 	vm->retry_timer_ms = VIRTIO_MEM_RETRY_TIMER_MIN_MS;
-+	vm->in_kdump = is_kdump_kernel();
- 
- 	/* register the virtqueue */
- 	rc = virtio_mem_init_vq(vm);
-@@ -2654,8 +2751,10 @@ static int virtio_mem_probe(struct virti
- 	virtio_device_ready(vdev);
- 
- 	/* trigger a config update to start processing the requested_size */
--	atomic_set(&vm->config_changed, 1);
--	queue_work(system_freezable_wq, &vm->wq);
-+	if (!vm->in_kdump) {
-+		atomic_set(&vm->config_changed, 1);
-+		queue_work(system_freezable_wq, &vm->wq);
-+	}
- 
- 	return 0;
- out_del_vq:
-@@ -2732,11 +2831,21 @@ static void virtio_mem_deinit_hotplug(st
+ found:
+-	BUG_ON(!IS_ALIGNED(virt_to_phys(m), huge_page_size(h)));
+ 	/* Put them into a private list first because mem_map is not up yet */
+ 	INIT_LIST_HEAD(&m->list);
+ 	list_add(&m->list, &huge_boot_pages);
+@@ -3002,12 +3009,61 @@ static void __init gather_bootmem_preall
+ 		cond_resched();
  	}
  }
- 
-+static void virtio_mem_deinit_kdump(struct virtio_mem *vm)
++static void __init hugetlb_hstate_alloc_pages_onenode(struct hstate *h, int nid)
 +{
-+#ifdef CONFIG_PROC_VMCORE
-+	unregister_vmcore_cb(&vm->vmcore_cb);
-+#endif /* CONFIG_PROC_VMCORE */
-+}
++	unsigned long i;
++	char buf[32];
 +
- static void virtio_mem_remove(struct virtio_device *vdev)
- {
- 	struct virtio_mem *vm = vdev->priv;
- 
--	virtio_mem_deinit_hotplug(vm);
-+	if (vm->in_kdump)
-+		virtio_mem_deinit_kdump(vm);
-+	else
-+		virtio_mem_deinit_hotplug(vm);
- 
- 	/* reset the device and cleanup the queues */
- 	vdev->config->reset(vdev);
-@@ -2750,6 +2859,9 @@ static void virtio_mem_config_changed(st
- {
- 	struct virtio_mem *vm = vdev->priv;
- 
-+	if (unlikely(vm->in_kdump))
++	for (i = 0; i < h->max_huge_pages_node[nid]; ++i) {
++		if (hstate_is_gigantic(h)) {
++			if (!alloc_bootmem_huge_page(h, nid))
++				break;
++		} else {
++			struct page *page;
++			gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
++
++			page = alloc_fresh_huge_page(h, gfp_mask, nid,
++					&node_states[N_MEMORY], NULL);
++			if (!page)
++				break;
++			put_page(page); /* free it into the hugepage allocator */
++		}
++		cond_resched();
++	}
++	if (i == h->max_huge_pages_node[nid])
 +		return;
 +
- 	atomic_set(&vm->config_changed, 1);
- 	virtio_mem_retry(vm);
++	string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
++	pr_warn("HugeTLB: allocating %u of page size %s failed node%d.  Only allocated %lu hugepages.\n",
++		h->max_huge_pages_node[nid], buf, nid, i);
++	h->max_huge_pages -= (h->max_huge_pages_node[nid] - i);
++	h->max_huge_pages_node[nid] = i;
++}
+ 
+ static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
+ {
+ 	unsigned long i;
+ 	nodemask_t *node_alloc_noretry;
++	bool node_specific_alloc = false;
++
++	/* skip gigantic hugepages allocation if hugetlb_cma enabled */
++	if (hstate_is_gigantic(h) && hugetlb_cma_size) {
++		pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
++		return;
++	}
++
++	/* do node specific alloc */
++	for (i = 0; i < nr_online_nodes; i++) {
++		if (h->max_huge_pages_node[i] > 0) {
++			hugetlb_hstate_alloc_pages_onenode(h, i);
++			node_specific_alloc = true;
++		}
++	}
+ 
++	if (node_specific_alloc)
++		return;
++
++	/* below will do all node balanced alloc */
+ 	if (!hstate_is_gigantic(h)) {
+ 		/*
+ 		 * Bit mask controlling how hard we retry per-node allocations.
+@@ -3028,11 +3084,7 @@ static void __init hugetlb_hstate_alloc_
+ 
+ 	for (i = 0; i < h->max_huge_pages; ++i) {
+ 		if (hstate_is_gigantic(h)) {
+-			if (hugetlb_cma_size) {
+-				pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
+-				goto free;
+-			}
+-			if (!alloc_bootmem_huge_page(h))
++			if (!alloc_bootmem_huge_page(h, NUMA_NO_NODE))
+ 				break;
+ 		} else if (!alloc_pool_huge_page(h,
+ 					 &node_states[N_MEMORY],
+@@ -3048,7 +3100,6 @@ static void __init hugetlb_hstate_alloc_
+ 			h->max_huge_pages, buf, i);
+ 		h->max_huge_pages = i;
+ 	}
+-free:
+ 	kfree(node_alloc_noretry);
  }
+ 
+@@ -3942,6 +3993,10 @@ static int __init hugetlb_init(void)
+ 			}
+ 			default_hstate.max_huge_pages =
+ 				default_hstate_max_huge_pages;
++
++			for (i = 0; i < nr_online_nodes; i++)
++				default_hstate.max_huge_pages_node[i] =
++					default_hugepages_in_node[i];
+ 		}
+ 	}
+ 
+@@ -4002,6 +4057,10 @@ void __init hugetlb_add_hstate(unsigned
+ 	parsed_hstate = h;
+ }
+ 
++bool __init __weak hugetlb_node_alloc_supported(void)
++{
++	return true;
++}
+ /*
+  * hugepages command line processing
+  * hugepages normally follows a valid hugepagsz or default_hugepagsz
+@@ -4013,6 +4072,10 @@ static int __init hugepages_setup(char *
+ {
+ 	unsigned long *mhp;
+ 	static unsigned long *last_mhp;
++	int node = NUMA_NO_NODE;
++	int count;
++	unsigned long tmp;
++	char *p = s;
+ 
+ 	if (!parsed_valid_hugepagesz) {
+ 		pr_warn("HugeTLB: hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
+@@ -4036,8 +4099,40 @@ static int __init hugepages_setup(char *
+ 		return 0;
+ 	}
+ 
+-	if (sscanf(s, "%lu", mhp) <= 0)
+-		*mhp = 0;
++	while (*p) {
++		count = 0;
++		if (sscanf(p, "%lu%n", &tmp, &count) != 1)
++			goto invalid;
++		/* Parameter is node format */
++		if (p[count] == ':') {
++			if (!hugetlb_node_alloc_supported()) {
++				pr_warn("HugeTLB: architecture can't support node specific alloc, ignoring!\n");
++				return 0;
++			}
++			node = tmp;
++			p += count + 1;
++			if (node < 0 || node >= nr_online_nodes)
++				goto invalid;
++			/* Parse hugepages */
++			if (sscanf(p, "%lu%n", &tmp, &count) != 1)
++				goto invalid;
++			if (!hugetlb_max_hstate)
++				default_hugepages_in_node[node] = tmp;
++			else
++				parsed_hstate->max_huge_pages_node[node] = tmp;
++			*mhp += tmp;
++			/* Go to parse next node*/
++			if (p[count] == ',')
++				p += count + 1;
++			else
++				break;
++		} else {
++			if (p != s)
++				goto invalid;
++			*mhp = tmp;
++			break;
++		}
++	}
+ 
+ 	/*
+ 	 * Global state is always initialized later in hugetlb_init.
+@@ -4050,6 +4145,10 @@ static int __init hugepages_setup(char *
+ 	last_mhp = mhp;
+ 
+ 	return 1;
++
++invalid:
++	pr_warn("HugeTLB: Invalid hugepages parameter %s\n", p);
++	return 0;
+ }
+ __setup("hugepages=", hugepages_setup);
+ 
+@@ -4111,6 +4210,7 @@ __setup("hugepagesz=", hugepagesz_setup)
+ static int __init default_hugepagesz_setup(char *s)
+ {
+ 	unsigned long size;
++	int i;
+ 
+ 	parsed_valid_hugepagesz = false;
+ 	if (parsed_default_hugepagesz) {
+@@ -4139,6 +4239,9 @@ static int __init default_hugepagesz_set
+ 	 */
+ 	if (default_hstate_max_huge_pages) {
+ 		default_hstate.max_huge_pages = default_hstate_max_huge_pages;
++		for (i = 0; i < nr_online_nodes; i++)
++			default_hstate.max_huge_pages_node[i] =
++				default_hugepages_in_node[i];
+ 		if (hstate_is_gigantic(&default_hstate))
+ 			hugetlb_hstate_alloc_pages(&default_hstate);
+ 		default_hstate_max_huge_pages = 0;
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from yaozhenguo1@gmail.com are
 
-memory-hotplugrst-fix-two-instances-of-movablecore-that-should-be-movable_node.patch
-memory-hotplugrst-fix-wrong-sys-module-memory_hotplug-parameters-path.patch
-memory-hotplugrst-document-the-auto-movable-online-policy.patch
-mm-memory_hotplug-remove-config_x86_64_acpi_numa-dependency-from-config_memory_hotplug.patch
-mm-memory_hotplug-remove-config_memory_hotplug_sparse.patch
-mm-memory_hotplug-restrict-config_memory_hotplug-to-64-bit.patch
-mm-memory_hotplug-remove-highmem-leftovers.patch
-mm-memory_hotplug-remove-stale-function-declarations.patch
-x86-remove-memory-hotplug-support-on-x86_32.patch
-x86-xen-update-xen_oldmem_pfn_is_ram-documentation.patch
-x86-xen-simplify-xen_oldmem_pfn_is_ram.patch
-x86-xen-print-a-warning-when-hvmop_get_mem_type-fails.patch
-proc-vmcore-let-pfn_is_ram-return-a-bool.patch
-proc-vmcore-convert-oldmem_pfn_is_ram-callback-to-more-generic-vmcore-callbacks.patch
-virtio-mem-factor-out-hotplug-specifics-from-virtio_mem_init-into-virtio_mem_init_hotplug.patch
-virtio-mem-factor-out-hotplug-specifics-from-virtio_mem_probe-into-virtio_mem_init_hotplug.patch
-virtio-mem-factor-out-hotplug-specifics-from-virtio_mem_remove-into-virtio_mem_deinit_hotplug.patch
-virtio-mem-kdump-mode-to-sanitize-proc-vmcore-access.patch
-kernel-resource-clean-up-and-optimize-iomem_is_exclusive.patch
-kernel-resource-disallow-access-to-exclusive-system-ram-regions.patch
-virtio-mem-disallow-mapping-virtio-mem-memory-via-dev-mem.patch
+hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation.patch
 
