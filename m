@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8D40C433EF
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 21:30:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 918E2C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 21:30:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7ABB613AC
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 21:30:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D795611CA
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 21:30:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235957AbhJEVcq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Oct 2021 17:32:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:50880 "EHLO mail.kernel.org"
+        id S235994AbhJEVcs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Oct 2021 17:32:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50940 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235679AbhJEVcp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 Oct 2021 17:32:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 055BB6128A;
-        Tue,  5 Oct 2021 21:30:53 +0000 (UTC)
+        id S235679AbhJEVcs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 Oct 2021 17:32:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EE692613A9;
+        Tue,  5 Oct 2021 21:30:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633469454;
-        bh=HZRVAqQRmlzEozsCpeDLZcA3LmycAf9zodac1WHha6s=;
+        s=korg; t=1633469457;
+        bh=FenLqaJ51O1u2XMcyuu1sxLt1DY5iSHhHQmvO3NhkOo=;
         h=Date:From:To:Subject:From;
-        b=mOga4GuEKK695RHbCxQVtV8eo2JA4RKnWthdhNjXeX4mR2N35zLEmPyq9a15ProU9
-         5XBSXh50R8h2Kk5pSM0/5vtZSuCsoCWPuw94FoinZkCCVcC/wzanPFugeDOG8fbByS
-         b6MC6LWHtEIBJW7C1HNt+a6Gdg1VYdHcnOMHDt6M=
-Date:   Tue, 05 Oct 2021 14:30:53 -0700
+        b=pg2wvHSbuDU930lLC1PLvVl6/Uc/2GcuFTIz5pwzKAEF9S8AxK5irq29XPfR+z8UR
+         U3wt/wkGWMA+RU+SVXjNt4gEymg0QeYaGputMp/pq9KoOIG/K2QjIsFTQ9m0HpDZX4
+         pE5ooUbl80WAud92g3XlUu1UU/s91OpuR50P1AuY=
+Date:   Tue, 05 Oct 2021 14:30:56 -0700
 From:   akpm@linux-foundation.org
 To:     bhe@redhat.com, boris.ostrovsky@oracle.com,
         boris.ostrvsky@oracle.com, bp@alien8.de, david@redhat.com,
@@ -32,9 +32,10 @@ To:     bhe@redhat.com, boris.ostrovsky@oracle.com,
         mm-commits@vger.kernel.org, mst@redhat.com, osalvador@suse.de,
         rafael.j.wysocki@intel.com, rppt@kernel.org,
         sstabellini@kernel.org, tglx@linutronix.de, vgoyal@redhat.com
-Subject:  + x86-xen-simplify-xen_oldmem_pfn_is_ram.patch added to
- -mm tree
-Message-ID: <20211005213053.AEyA3mN85%akpm@linux-foundation.org>
+Subject:  +
+ x86-xen-print-a-warning-when-hvmop_get_mem_type-fails.patch added to -mm
+ tree
+Message-ID: <20211005213056.rN6BT9D-x%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/xen: simplify xen_oldmem_pfn_is_ram()
+     Subject: x86/xen: print a warning when HVMOP_get_mem_type fails
 has been added to the -mm tree.  Its filename is
-     x86-xen-simplify-xen_oldmem_pfn_is_ram.patch
+     x86-xen-print-a-warning-when-hvmop_get_mem_type-fails.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/x86-xen-simplify-xen_oldmem_pfn_is_ram.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/x86-xen-print-a-warning-when-hvmop_get_mem_type-fails.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/x86-xen-simplify-xen_oldmem_pfn_is_ram.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/x86-xen-print-a-warning-when-hvmop_get_mem_type-fails.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,15 +66,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: x86/xen: simplify xen_oldmem_pfn_is_ram()
+Subject: x86/xen: print a warning when HVMOP_get_mem_type fails
 
-Let's simplify return handling.
+HVMOP_get_mem_type is not expected to fail, "This call failing is
+indication of something going quite wrong and it would be good to know
+about this." [1]
 
-Link: https://lkml.kernel.org/r/20211005121430.30136-3-david@redhat.com
+Let's add a pr_warn_once().
+
+[1] https://lkml.kernel.org/r/3b935aa0-6d85-0bcd-100e-15098add3c4c@oracle.com
+
+Link: https://lkml.kernel.org/r/20211005121430.30136-4-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
+Suggested-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Baoquan He <bhe@redhat.com>
 Cc: Borislav Petkov <bp@alien8.de>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Cc: Boris Ostrovsky <boris.ostrvsky@oracle.com>
 Cc: Dave Young <dyoung@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -91,36 +98,23 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/mmu_hvm.c |   15 +--------------
- 1 file changed, 1 insertion(+), 14 deletions(-)
+ arch/x86/xen/mmu_hvm.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/arch/x86/xen/mmu_hvm.c~x86-xen-simplify-xen_oldmem_pfn_is_ram
+--- a/arch/x86/xen/mmu_hvm.c~x86-xen-print-a-warning-when-hvmop_get_mem_type-fails
 +++ a/arch/x86/xen/mmu_hvm.c
-@@ -21,23 +21,10 @@ static int xen_oldmem_pfn_is_ram(unsigne
- 		.domid = DOMID_SELF,
+@@ -22,8 +22,10 @@ static int xen_oldmem_pfn_is_ram(unsigne
  		.pfn = pfn,
  	};
--	int ram;
  
- 	if (HYPERVISOR_hvm_op(HVMOP_get_mem_type, &a))
+-	if (HYPERVISOR_hvm_op(HVMOP_get_mem_type, &a))
++	if (HYPERVISOR_hvm_op(HVMOP_get_mem_type, &a)) {
++		pr_warn_once("Unexpected HVMOP_get_mem_type failure\n");
  		return -ENXIO;
--
--	switch (a.mem_type) {
--	case HVMMEM_mmio_dm:
--		ram = 0;
--		break;
--	case HVMMEM_ram_rw:
--	case HVMMEM_ram_ro:
--	default:
--		ram = 1;
--		break;
--	}
--
--	return ram;
-+	return a.mem_type != HVMMEM_mmio_dm;
++	}
+ 	return a.mem_type != HVMMEM_mmio_dm;
  }
  #endif
- 
 _
 
 Patches currently in -mm which might be from david@redhat.com are
