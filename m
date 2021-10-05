@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D64ABC433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 23:22:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 478A3C433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 23:25:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B6AC0611C6
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 23:22:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 260BC61222
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 23:25:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236906AbhJEXYA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Oct 2021 19:24:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52460 "EHLO mail.kernel.org"
+        id S236799AbhJEX1H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Oct 2021 19:27:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52716 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236855AbhJEXX7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 Oct 2021 19:23:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 92FDC611C6;
-        Tue,  5 Oct 2021 23:22:08 +0000 (UTC)
+        id S233540AbhJEX1H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 Oct 2021 19:27:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C9ABB611C6;
+        Tue,  5 Oct 2021 23:25:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633476128;
-        bh=uJqQQAjMQjnhIE+rBahMo2y+2krsF3YiJwsFL4Xf8lA=;
+        s=korg; t=1633476316;
+        bh=YBcpm/gWhWC7F/TWT8Rh8sgc3ccQu3v506v8E4aoQ+4=;
         h=Date:From:To:Subject:From;
-        b=x7qIXZY4jYn9sjtFgKGy8TISFMXu/JN6LH7+2ismjADYUo+REG0bcv5y2yez/obxn
-         /vfGEdIBtjkAGY9omQeaDwgiqhNPUPL+UyY2cmUdrgAsCr5tUzsIepB/q0KwxjbEmf
-         FmXwTAMBnbe9FWqsgBeH4V8I5s8sEZHJpTgyEhCo=
-Date:   Tue, 05 Oct 2021 16:22:08 -0700
+        b=yuVwQ11NqSYxcTbQommhbXb0ZkznzOh75q9C/Fu7vQEaoYW/0tsvahMFPZbQerwaX
+         PcDfPOc56AycnQVMCz/DbadifYb95liDorxrr0kFq3nScZV9WgSUgoRrfnXwzvrE2C
+         1Ts9hNf8dJQDmduGh+wvMuL0KsuiAf32qLe7wjHw=
+Date:   Tue, 05 Oct 2021 16:25:15 -0700
 From:   akpm@linux-foundation.org
-To:     lucas.demarchi@intel.com, mm-commits@vger.kernel.org
-Subject:  + lib-string_helpers-add-linux-stringh-for-strlen.patch
- added to -mm tree
-Message-ID: <20211005232208.iGesihLx6%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, konrad.wilk@oracle.com,
+        mm-commits@vger.kernel.org, stephen.s.brennan@oracle.com,
+        viro@zeniv.linux.org.uk, willy@infradead.org
+Subject:  + proc-allow-pid_revalidate-during-lookup_rcu.patch added
+ to -mm tree
+Message-ID: <20211005232515.9Q6QzBHv2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -37,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/string_helpers.h: add linux/string.h for strlen()
+     Subject: proc: allow pid_revalidate() during LOOKUP_RCU
 has been added to the -mm tree.  Its filename is
-     lib-string_helpers-add-linux-stringh-for-strlen.patch
+     proc-allow-pid_revalidate-during-lookup_rcu.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-string_helpers-add-linux-stringh-for-strlen.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc-allow-pid_revalidate-during-lookup_rcu.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-string_helpers-add-linux-stringh-for-strlen.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc-allow-pid_revalidate-during-lookup_rcu.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,34 +60,161 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lucas De Marchi <lucas.demarchi@intel.com>
-Subject: include/linux/string_helpers.h: add linux/string.h for strlen()
+From: Stephen Brennan <stephen.s.brennan@oracle.com>
+Subject: proc: allow pid_revalidate() during LOOKUP_RCU
 
-linux/string_helpers.h uses strlen(), so include the correponding header. 
-Otherwise we get a compilation error if it's not also included by whoever
-included the helper.
+Problem Description:
 
-Link: https://lkml.kernel.org/r/20211005212634.3223113-1-lucas.demarchi@intel.com
-Signed-off-by: Lucas De Marchi <lucas.demarchi@intel.com>
+When running running ~128 parallel instances of "TZ=/etc/localtime ps -fe
+>/dev/null" on a 128CPU machine, the %sys utilization reaches 97%, and
+perf shows the following code path as being responsible for heavy
+contention on the d_lockref spinlock:
+
+      walk_component()
+        lookup_fast()
+          d_revalidate()
+            pid_revalidate() // returns -ECHILD
+          unlazy_child()
+            lockref_get_not_dead(&nd->path.dentry->d_lockref) <-- contention
+
+The reason is that pid_revalidate() is triggering a drop from RCU to ref
+path walk mode.  All concurrent path lookups thus try to grab a reference
+to the dentry for /proc/, before re-executing pid_revalidate() and then
+stepping into the /proc/$pid directory.  Thus there is huge spinlock
+contention.  This patch allows pid_revalidate() to execute in RCU mode,
+meaning that the path lookup can successfully enter the /proc/$pid
+directory while still in RCU mode.  Later on, the path lookup may still
+drop into ref mode, but the contention will be much reduced at this point.
+
+By applying this patch, %sys utilization falls to around 85% under the
+same workload, and the number of ps processes executed per unit time
+increases by 3x-4x.  Although this particular workload is a bit contrived,
+we have seen some large collections of eager monitoring scripts which
+produced similarly high %sys time due to contention in the /proc
+directory.
+
+As a result this patch, Al noted that several procfs methods which were
+only called in ref-walk mode could now be called from RCU mode.  To ensure
+that this patch is safe, I audited all the inode get_link and permission()
+implementations, as well as dentry d_revalidate() implementations, in
+fs/proc.  The purpose here is to ensure that they either are safe to call
+in RCU (i.e.  don't sleep) or correctly bail out of RCU mode if they don't
+support it.  My analysis shows that all at-risk procfs methods are safe to
+call under RCU, and thus this patch is safe.
+
+Procfs RCU-walk Analysis:
+
+This analysis is up-to-date with 5.15-rc3.  When called under RCU mode,
+these functions have arguments as follows:
+
+* get_link() receives a NULL dentry pointer when called in RCU mode.
+* permission() receives MAY_NOT_BLOCK in the mode parameter when called
+  from RCU.
+* d_revalidate() receives LOOKUP_RCU in flags.
+
+For the following functions, either they are trivially RCU safe, or they
+explicitly bail at the beginning of the function when they run:
+
+proc_ns_get_link       (bails out)
+proc_get_link          (RCU safe)
+proc_pid_get_link      (bails out)
+map_files_d_revalidate (bails out)
+map_misc_d_revalidate  (bails out)
+proc_net_d_revalidate  (RCU safe)
+proc_sys_revalidate    (bails out, also not under /proc/$pid)
+tid_fd_revalidate      (bails out)
+proc_sys_permission    (not under /proc/$pid)
+
+The remainder of the functions require a bit more detail:
+
+* proc_fd_permission: RCU safe. All of the body of this function is
+  under rcu_read_lock(), except generic_permission() which declares
+  itself RCU safe in its documentation string.
+* proc_self_get_link uses GFP_ATOMIC in the RCU case, so it is RCU aware
+  and otherwise looks safe. The same is true of proc_thread_self_get_link.
+* proc_map_files_get_link: calls ns_capable, which calls capable(), and
+  thus calls into the audit code (see note #1 below). The remainder is
+  just a call to the trivially safe proc_pid_get_link().
+* proc_pid_permission: calls ptrace_may_access(), which appears RCU
+  safe, although it does call into the "security_ptrace_access_check()"
+  hook, which looks safe under smack and selinux. Just the audit code is
+  of concern. Also uses get_task_struct() and put_task_struct(), see
+  note #2 below.
+* proc_tid_comm_permission: Appears safe, though calls put_task_struct
+  (see note #2 below).
+
+Note #1:
+  Most of the concern of RCU safety has centered around the audit code.
+  However, since b17ec22fb339 ("selinux: slow_avc_audit has become
+  non-blocking"), it's safe to call this code under RCU. So all of the
+  above are safe by my estimation.
+
+Note #2: get_task_struct() and put_task_struct():
+  The majority of get_task_struct() is under RCU read lock, and in any
+  case it is a simple increment. But put_task_struct() is complex, given
+  that it could at some point free the task struct, and this process has
+  many steps which I couldn't manually verify. However, several other
+  places call put_task_struct() under RCU, so it appears safe to use
+  here too (see kernel/hung_task.c:165 or rcu/tree-stall.h:296)
+
+Patch description:
+
+pid_revalidate() drops from RCU into REF lookup mode.  When many threads
+are resolving paths within /proc in parallel, this can result in heavy
+spinlock contention on d_lockref as each thread tries to grab a reference
+to the /proc dentry (and drop it shortly thereafter).
+
+Investigation indicates that it is not necessary to drop RCU in
+pid_revalidate(), as no RCU data is modified and the function never
+sleeps.  So, remove the LOOKUP_RCU check.
+
+Link: https://lkml.kernel.org/r/20211004175629.292270-2-stephen.s.brennan@oracle.com
+Signed-off-by: Stephen Brennan <stephen.s.brennan@oracle.com>
+Cc: Konrad Wilk <konrad.wilk@oracle.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string_helpers.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/base.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
---- a/include/linux/string_helpers.h~lib-string_helpers-add-linux-stringh-for-strlen
-+++ a/include/linux/string_helpers.h
-@@ -4,6 +4,7 @@
+--- a/fs/proc/base.c~proc-allow-pid_revalidate-during-lookup_rcu
++++ a/fs/proc/base.c
+@@ -1979,19 +1979,21 @@ static int pid_revalidate(struct dentry
+ {
+ 	struct inode *inode;
+ 	struct task_struct *task;
++	int ret = 0;
  
- #include <linux/bits.h>
- #include <linux/ctype.h>
-+#include <linux/string.h>
- #include <linux/types.h>
+-	if (flags & LOOKUP_RCU)
+-		return -ECHILD;
+-
+-	inode = d_inode(dentry);
+-	task = get_proc_task(inode);
++	rcu_read_lock();
++	inode = d_inode_rcu(dentry);
++	if (!inode)
++		goto out;
++	task = pid_task(proc_pid(inode), PIDTYPE_PID);
  
- struct file;
+ 	if (task) {
+ 		pid_update_inode(task, inode);
+-		put_task_struct(task);
+-		return 1;
++		ret = 1;
+ 	}
+-	return 0;
++out:
++	rcu_read_unlock();
++	return ret;
+ }
+ 
+ static inline bool proc_inode_is_dead(struct inode *inode)
 _
 
-Patches currently in -mm which might be from lucas.demarchi@intel.com are
+Patches currently in -mm which might be from stephen.s.brennan@oracle.com are
 
-lib-string_helpers-add-linux-stringh-for-strlen.patch
+proc-allow-pid_revalidate-during-lookup_rcu.patch
 
