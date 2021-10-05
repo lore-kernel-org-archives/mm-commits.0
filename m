@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6C2D0C433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 22:06:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E48F3C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 22:24:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 45AD761207
-	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 22:06:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BA89B61100
+	for <mm-commits@archiver.kernel.org>; Tue,  5 Oct 2021 22:24:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230477AbhJEWIS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Oct 2021 18:08:18 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33526 "EHLO mail.kernel.org"
+        id S229974AbhJEW0Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Oct 2021 18:26:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37946 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229974AbhJEWIS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 Oct 2021 18:08:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C4C996120C;
-        Tue,  5 Oct 2021 22:06:26 +0000 (UTC)
+        id S229831AbhJEW0X (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 Oct 2021 18:26:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 345E86108F;
+        Tue,  5 Oct 2021 22:24:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633471587;
-        bh=p1jgFd+O6E4QVcFlsI3c543CFNhdnSkuzzjbaj7gwb0=;
+        s=korg; t=1633472672;
+        bh=PZoXKj1ngxmpt1KpXOFvBQOOzjZOptaiN2vP+4LRnik=;
         h=Date:From:To:Subject:From;
-        b=eYpxuH9jWP/92pvYDEXi8LRd2sFCfGay+hOx1DXnkKcOU4A8CC4lTKYCdZfKGyC6N
-         Lj+ZydD1nShU/HnyVmZWqBcI9MCzKLN8gMnwCcnYXceg21SSM7lt6uPTHNtvenSWj0
-         +2iHkOsmW4HLw//QEKM+Iov/FXvly7921AZpRKqQ=
-Date:   Tue, 05 Oct 2021 15:06:26 -0700
+        b=wjYZmQKkoBe08FQZn3AuvFTJzRidxvzph4pOfBjoneiPiLMamGo0DiBlOyo7kwlQb
+         AKLCLYynIXVOvl40ieEAlfjM8/mvt3KeJNQcS/Q2fW8is4GJONCiQ3FsjQdfmHM0E/
+         nTcQ07ff8x+25MUC7yh19EA8By2zsV5jPbwZQjhk=
+Date:   Tue, 05 Oct 2021 15:24:31 -0700
 From:   akpm@linux-foundation.org
-To:     benh@kernel.crashing.org, corbet@lwn.net, dan.carpenter@oracle.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, nathan@kernel.org, paulus@samba.org,
-        rppt@kernel.org, willy@infradead.org, yaozhenguo1@gmail.com
-Subject:  +
- =?US-ASCII?Q?hugetlbfs-extend-the-definition-of-hugepages-parameter-to-s?=
- =?US-ASCII?Q?upport-node-allocation.patch?= added to -mm tree
-Message-ID: <20211005220626.xSGA6hu6p%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, aryabinin@virtuozzo.com,
+        branislav.rankov@arm.com, catalin.marinas@arm.com,
+        dvyukov@google.com, elver@google.com, eugenis@google.com,
+        glider@google.com, lorenzo.pieralisi@arm.com,
+        mm-commits@vger.kernel.org, suzuki.poulose@arm.com,
+        vincenzo.frascino@arm.com, will@kernel.org
+Subject:  + kasan-remove-duplicate-of-kasan_flag_async.patch added
+ to -mm tree
+Message-ID: <20211005222431.xUUm8AOT7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlbfs: extend the definition of hugepages parameter to support node allocation
+     Subject: kasan: remove duplicate of kasan_flag_async
 has been added to the -mm tree.  Its filename is
-     hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation.patch
+     kasan-remove-duplicate-of-kasan_flag_async.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-remove-duplicate-of-kasan_flag_async.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-remove-duplicate-of-kasan_flag_async.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,400 +63,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhenguo Yao <yaozhenguo1@gmail.com>
-Subject: hugetlbfs: extend the definition of hugepages parameter to support node allocation
+From: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Subject: kasan: remove duplicate of kasan_flag_async
 
-We can specify the number of hugepages to allocate at boot.  But the
-hugepages is balanced in all nodes at present.  In some scenarios, we only
-need hugepages in one node.  For example: DPDK needs hugepages which are
-in the same node as NIC.
+Patch series "arm64: ARMv8.7-A: MTE: Add asymm in-kernel support", v2.
 
-If DPDK needs four hugepages of 1G size in node1 and system has 16 numa
-nodes we must reserve 64 hugepages on the kernel cmdline.  But only four
-hugepages are used.  The others should be free after boot.  If the system
-memory is low(for example: 64G), it will be an impossible task.
+This series implements the in-kernel asymmetric mode support for ARMv8.7-A
+Memory Tagging Extension (MTE), which is a debugging feature that allows
+to detect with the help of the architecture the C and C++ programmatic
+memory errors like buffer overflow, use-after-free, use-after-return, etc.
 
-So extend the hugepages parameter to support specifying hugepages on a
-specific node.  For example add following parameter:
+MTE is built on top of the AArch64 v8.0 virtual address tagging TBI (Top
+Byte Ignore) feature and allows a task to set a 4 bit tag on any subset of
+its address space that is multiple of a 16 bytes granule.  MTE is based on
+a lock-key mechanism where the lock is the tag associated to the physical
+memory and the key is the tag associated to the virtual address.
 
-hugepagesz=1G hugepages=0:1,1:3
+When MTE is enabled and tags are set for ranges of address space of a
+task, the PE will compare the tag related to the physical memory with the
+tag related to the virtual address (tag check operation).  Access to the
+memory is granted only if the two tags match.  In case of mismatch the PE
+will raise an exception.
 
-It will allocate 1 hugepage in node0 and 3 hugepages in node1.
+When asymmetric mode is present, the CPU triggers a fault on a tag
+mismatch during a load operation and asynchronously updates a register
+when a tag mismatch is detected during a store operation.
 
-Link: https://lkml.kernel.org/r/20211005054729.86457-1-yaozhenguo1@gmail.com
-Signed-off-by: Zhenguo Yao <yaozhenguo1@gmail.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Note: The userspace support will be sent with a future patch series.
+
+
+This patch (of 5):
+
+After merging async mode for KASAN_HW_TAGS a duplicate of the
+kasan_flag_async flag was left erroneously inside the code.
+
+Remove the duplicate.
+
+Note: This change does not bring functional changes to the code
+base.
+
+Link: https://lkml.kernel.org/r/20211004202253.27857-1-vincenzo.frascino@arm.com
+Link: https://lkml.kernel.org/r/20211004202253.27857-2-vincenzo.frascino@arm.com
+Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Evgenii Stepanov <eugenis@google.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Branislav Rankov <branislav.rankov@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Suzuki K Poulose <suzuki.poulose@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    8 
- Documentation/admin-guide/mm/hugetlbpage.rst    |   12 +
- arch/powerpc/mm/hugetlbpage.c                   |    9 
- include/linux/hugetlb.h                         |    6 
- mm/hugetlb.c                                    |  153 +++++++++++---
- 5 files changed, 155 insertions(+), 33 deletions(-)
+ mm/kasan/kasan.h |    2 --
+ 1 file changed, 2 deletions(-)
 
---- a/arch/powerpc/mm/hugetlbpage.c~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
-+++ a/arch/powerpc/mm/hugetlbpage.c
-@@ -229,17 +229,22 @@ static int __init pseries_alloc_bootmem_
- 	m->hstate = hstate;
- 	return 1;
- }
-+
-+bool __init hugetlb_node_alloc_supported(void)
-+{
-+	return false;
-+}
+--- a/mm/kasan/kasan.h~kasan-remove-duplicate-of-kasan_flag_async
++++ a/mm/kasan/kasan.h
+@@ -38,8 +38,6 @@ static inline bool kasan_async_mode_enab
+ 
  #endif
  
- 
--int __init alloc_bootmem_huge_page(struct hstate *h)
-+int __init alloc_bootmem_huge_page(struct hstate *h, int nid)
- {
- 
- #ifdef CONFIG_PPC_BOOK3S_64
- 	if (firmware_has_feature(FW_FEATURE_LPAR) && !radix_enabled())
- 		return pseries_alloc_bootmem_huge_page(h);
- #endif
--	return __alloc_bootmem_huge_page(h);
-+	return __alloc_bootmem_huge_page(h, nid);
- }
- 
- #ifndef CONFIG_PPC_BOOK3S_64
---- a/Documentation/admin-guide/kernel-parameters.txt~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1599,9 +1599,11 @@
- 			the number of pages of hugepagesz to be allocated.
- 			If this is the first HugeTLB parameter on the command
- 			line, it specifies the number of pages to allocate for
--			the default huge page size.  See also
--			Documentation/admin-guide/mm/hugetlbpage.rst.
--			Format: <integer>
-+			the default huge page size. If using node format, the
-+			number of pages to allocate per-node can be specified.
-+			See also Documentation/admin-guide/mm/hugetlbpage.rst.
-+			Format: <integer> or (node format)
-+				<node>:<integer>[,<node>:<integer>]
- 
- 	hugepagesz=
- 			[HW] The size of the HugeTLB pages.  This is used in
---- a/Documentation/admin-guide/mm/hugetlbpage.rst~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
-+++ a/Documentation/admin-guide/mm/hugetlbpage.rst
-@@ -128,7 +128,9 @@ hugepages
- 	implicitly specifies the number of huge pages of default size to
- 	allocate.  If the number of huge pages of default size is implicitly
- 	specified, it can not be overwritten by a hugepagesz,hugepages
--	parameter pair for the default size.
-+	parameter pair for the default size.  This parameter also has a
-+	node format.  The node format specifies the number of huge pages
-+	to allocate on specific nodes.
- 
- 	For example, on an architecture with 2M default huge page size::
- 
-@@ -138,6 +140,14 @@ hugepages
- 	indicating that the hugepages=512 parameter is ignored.  If a hugepages
- 	parameter is preceded by an invalid hugepagesz parameter, it will
- 	be ignored.
-+
-+	Node format example::
-+
-+		hugepagesz=2M hugepages=0:1,1:2
-+
-+	It will allocate 1 2M hugepage on node0 and 2 2M hugepages on node1.
-+	If the node number is invalid,  the parameter will be ignored.
-+
- default_hugepagesz
- 	Specify the default huge page size.  This parameter can
- 	only be specified once on the command line.  default_hugepagesz can
---- a/include/linux/hugetlb.h~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
-+++ a/include/linux/hugetlb.h
-@@ -596,6 +596,7 @@ struct hstate {
- 	unsigned long nr_overcommit_huge_pages;
- 	struct list_head hugepage_activelist;
- 	struct list_head hugepage_freelists[MAX_NUMNODES];
-+	unsigned int max_huge_pages_node[MAX_NUMNODES];
- 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
- 	unsigned int free_huge_pages_node[MAX_NUMNODES];
- 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
-@@ -628,8 +629,9 @@ void restore_reserve_on_error(struct hst
- 				unsigned long address, struct page *page);
- 
- /* arch callback */
--int __init __alloc_bootmem_huge_page(struct hstate *h);
--int __init alloc_bootmem_huge_page(struct hstate *h);
-+int __init __alloc_bootmem_huge_page(struct hstate *h, int nid);
-+int __init alloc_bootmem_huge_page(struct hstate *h, int nid);
-+bool __init hugetlb_node_alloc_supported(void);
- 
- void __init hugetlb_add_hstate(unsigned order);
- bool __init arch_hugetlb_valid_size(unsigned long size);
---- a/mm/hugetlb.c~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
-+++ a/mm/hugetlb.c
-@@ -76,6 +76,7 @@ static struct hstate * __initdata parsed
- static unsigned long __initdata default_hstate_max_huge_pages;
- static bool __initdata parsed_valid_hugepagesz = true;
- static bool __initdata parsed_default_hugepagesz;
-+static unsigned int default_hugepages_in_node[MAX_NUMNODES] __initdata;
- 
- /*
-  * Protects updates to hugepage_freelists, hugepage_activelist, nr_huge_pages,
-@@ -2936,33 +2937,39 @@ out_subpool_put:
- 	return ERR_PTR(-ENOSPC);
- }
- 
--int alloc_bootmem_huge_page(struct hstate *h)
-+int alloc_bootmem_huge_page(struct hstate *h, int nid)
- 	__attribute__ ((weak, alias("__alloc_bootmem_huge_page")));
--int __alloc_bootmem_huge_page(struct hstate *h)
-+int __alloc_bootmem_huge_page(struct hstate *h, int nid)
- {
--	struct huge_bootmem_page *m;
-+	struct huge_bootmem_page *m = NULL; /* initialize for clang */
- 	int nr_nodes, node;
- 
-+	if (nid >= nr_online_nodes)
-+		return 0;
-+	/* do node specific alloc */
-+	if (nid != NUMA_NO_NODE) {
-+		m = memblock_alloc_try_nid_raw(huge_page_size(h), huge_page_size(h),
-+				0, MEMBLOCK_ALLOC_ACCESSIBLE, nid);
-+		if (!m)
-+			return 0;
-+		goto found;
-+	}
-+	/* allocate from next node when distributing huge pages */
- 	for_each_node_mask_to_alloc(h, nr_nodes, node, &node_states[N_MEMORY]) {
--		void *addr;
+-extern bool kasan_flag_async __ro_after_init;
 -
--		addr = memblock_alloc_try_nid_raw(
-+		m = memblock_alloc_try_nid_raw(
- 				huge_page_size(h), huge_page_size(h),
- 				0, MEMBLOCK_ALLOC_ACCESSIBLE, node);
--		if (addr) {
--			/*
--			 * Use the beginning of the huge page to store the
--			 * huge_bootmem_page struct (until gather_bootmem
--			 * puts them into the mem_map).
--			 */
--			m = addr;
--			goto found;
--		}
-+		/*
-+		 * Use the beginning of the huge page to store the
-+		 * huge_bootmem_page struct (until gather_bootmem
-+		 * puts them into the mem_map).
-+		 */
-+		if (!m)
-+			return 0;
-+		goto found;
- 	}
--	return 0;
- 
- found:
--	BUG_ON(!IS_ALIGNED(virt_to_phys(m), huge_page_size(h)));
- 	/* Put them into a private list first because mem_map is not up yet */
- 	INIT_LIST_HEAD(&m->list);
- 	list_add(&m->list, &huge_boot_pages);
-@@ -3002,12 +3009,61 @@ static void __init gather_bootmem_preall
- 		cond_resched();
- 	}
- }
-+static void __init hugetlb_hstate_alloc_pages_onenode(struct hstate *h, int nid)
-+{
-+	unsigned long i;
-+	char buf[32];
-+
-+	for (i = 0; i < h->max_huge_pages_node[nid]; ++i) {
-+		if (hstate_is_gigantic(h)) {
-+			if (!alloc_bootmem_huge_page(h, nid))
-+				break;
-+		} else {
-+			struct page *page;
-+			gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
-+
-+			page = alloc_fresh_huge_page(h, gfp_mask, nid,
-+					&node_states[N_MEMORY], NULL);
-+			if (!page)
-+				break;
-+			put_page(page); /* free it into the hugepage allocator */
-+		}
-+		cond_resched();
-+	}
-+	if (i == h->max_huge_pages_node[nid])
-+		return;
-+
-+	string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
-+	pr_warn("HugeTLB: allocating %u of page size %s failed node%d.  Only allocated %lu hugepages.\n",
-+		h->max_huge_pages_node[nid], buf, nid, i);
-+	h->max_huge_pages -= (h->max_huge_pages_node[nid] - i);
-+	h->max_huge_pages_node[nid] = i;
-+}
- 
- static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
- {
- 	unsigned long i;
- 	nodemask_t *node_alloc_noretry;
-+	bool node_specific_alloc = false;
-+
-+	/* skip gigantic hugepages allocation if hugetlb_cma enabled */
-+	if (hstate_is_gigantic(h) && hugetlb_cma_size) {
-+		pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
-+		return;
-+	}
-+
-+	/* do node specific alloc */
-+	for (i = 0; i < nr_online_nodes; i++) {
-+		if (h->max_huge_pages_node[i] > 0) {
-+			hugetlb_hstate_alloc_pages_onenode(h, i);
-+			node_specific_alloc = true;
-+		}
-+	}
- 
-+	if (node_specific_alloc)
-+		return;
-+
-+	/* below will do all node balanced alloc */
- 	if (!hstate_is_gigantic(h)) {
- 		/*
- 		 * Bit mask controlling how hard we retry per-node allocations.
-@@ -3028,11 +3084,7 @@ static void __init hugetlb_hstate_alloc_
- 
- 	for (i = 0; i < h->max_huge_pages; ++i) {
- 		if (hstate_is_gigantic(h)) {
--			if (hugetlb_cma_size) {
--				pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
--				goto free;
--			}
--			if (!alloc_bootmem_huge_page(h))
-+			if (!alloc_bootmem_huge_page(h, NUMA_NO_NODE))
- 				break;
- 		} else if (!alloc_pool_huge_page(h,
- 					 &node_states[N_MEMORY],
-@@ -3048,7 +3100,6 @@ static void __init hugetlb_hstate_alloc_
- 			h->max_huge_pages, buf, i);
- 		h->max_huge_pages = i;
- 	}
--free:
- 	kfree(node_alloc_noretry);
- }
- 
-@@ -3942,6 +3993,10 @@ static int __init hugetlb_init(void)
- 			}
- 			default_hstate.max_huge_pages =
- 				default_hstate_max_huge_pages;
-+
-+			for (i = 0; i < nr_online_nodes; i++)
-+				default_hstate.max_huge_pages_node[i] =
-+					default_hugepages_in_node[i];
- 		}
- 	}
- 
-@@ -4002,6 +4057,10 @@ void __init hugetlb_add_hstate(unsigned
- 	parsed_hstate = h;
- }
- 
-+bool __init __weak hugetlb_node_alloc_supported(void)
-+{
-+	return true;
-+}
- /*
-  * hugepages command line processing
-  * hugepages normally follows a valid hugepagsz or default_hugepagsz
-@@ -4013,6 +4072,10 @@ static int __init hugepages_setup(char *
- {
- 	unsigned long *mhp;
- 	static unsigned long *last_mhp;
-+	int node = NUMA_NO_NODE;
-+	int count;
-+	unsigned long tmp;
-+	char *p = s;
- 
- 	if (!parsed_valid_hugepagesz) {
- 		pr_warn("HugeTLB: hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
-@@ -4036,8 +4099,40 @@ static int __init hugepages_setup(char *
- 		return 0;
- 	}
- 
--	if (sscanf(s, "%lu", mhp) <= 0)
--		*mhp = 0;
-+	while (*p) {
-+		count = 0;
-+		if (sscanf(p, "%lu%n", &tmp, &count) != 1)
-+			goto invalid;
-+		/* Parameter is node format */
-+		if (p[count] == ':') {
-+			if (!hugetlb_node_alloc_supported()) {
-+				pr_warn("HugeTLB: architecture can't support node specific alloc, ignoring!\n");
-+				return 0;
-+			}
-+			node = tmp;
-+			p += count + 1;
-+			if (node < 0 || node >= nr_online_nodes)
-+				goto invalid;
-+			/* Parse hugepages */
-+			if (sscanf(p, "%lu%n", &tmp, &count) != 1)
-+				goto invalid;
-+			if (!hugetlb_max_hstate)
-+				default_hugepages_in_node[node] = tmp;
-+			else
-+				parsed_hstate->max_huge_pages_node[node] = tmp;
-+			*mhp += tmp;
-+			/* Go to parse next node*/
-+			if (p[count] == ',')
-+				p += count + 1;
-+			else
-+				break;
-+		} else {
-+			if (p != s)
-+				goto invalid;
-+			*mhp = tmp;
-+			break;
-+		}
-+	}
- 
- 	/*
- 	 * Global state is always initialized later in hugetlb_init.
-@@ -4050,6 +4145,10 @@ static int __init hugepages_setup(char *
- 	last_mhp = mhp;
- 
- 	return 1;
-+
-+invalid:
-+	pr_warn("HugeTLB: Invalid hugepages parameter %s\n", p);
-+	return 0;
- }
- __setup("hugepages=", hugepages_setup);
- 
-@@ -4111,6 +4210,7 @@ __setup("hugepagesz=", hugepagesz_setup)
- static int __init default_hugepagesz_setup(char *s)
- {
- 	unsigned long size;
-+	int i;
- 
- 	parsed_valid_hugepagesz = false;
- 	if (parsed_default_hugepagesz) {
-@@ -4139,6 +4239,9 @@ static int __init default_hugepagesz_set
- 	 */
- 	if (default_hstate_max_huge_pages) {
- 		default_hstate.max_huge_pages = default_hstate_max_huge_pages;
-+		for (i = 0; i < nr_online_nodes; i++)
-+			default_hstate.max_huge_pages_node[i] =
-+				default_hugepages_in_node[i];
- 		if (hstate_is_gigantic(&default_hstate))
- 			hugetlb_hstate_alloc_pages(&default_hstate);
- 		default_hstate_max_huge_pages = 0;
+ #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
+ #define KASAN_GRANULE_SIZE	(1UL << KASAN_SHADOW_SCALE_SHIFT)
+ #else
 _
 
-Patches currently in -mm which might be from yaozhenguo1@gmail.com are
+Patches currently in -mm which might be from vincenzo.frascino@arm.com are
 
-hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation.patch
+kasan-remove-duplicate-of-kasan_flag_async.patch
+arm64-mte-bitfield-definitions-for-asymm-mte.patch
+arm64-mte-cpu-feature-detection-for-asymm-mte.patch
+arm64-mte-add-asymmetric-mode-support.patch
+kasan-extend-kasan-mode-kernel-parameter.patch
 
