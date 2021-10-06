@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 31024C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Oct 2021 00:18:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1AE93C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Oct 2021 00:21:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0E35661130
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Oct 2021 00:18:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EBFB260F6B
+	for <mm-commits@archiver.kernel.org>; Wed,  6 Oct 2021 00:21:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231582AbhJFAUb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 5 Oct 2021 20:20:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33652 "EHLO mail.kernel.org"
+        id S236969AbhJFAX2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 5 Oct 2021 20:23:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34384 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231373AbhJFAUb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 5 Oct 2021 20:20:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EB1C6611C0;
-        Wed,  6 Oct 2021 00:18:39 +0000 (UTC)
+        id S236953AbhJFAX1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 5 Oct 2021 20:23:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8568061130;
+        Wed,  6 Oct 2021 00:21:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633479520;
-        bh=7eGFXYwFc7VCJLITFhL1Zdi6rFXwXi2BZM6LopULWgg=;
+        s=korg; t=1633479696;
+        bh=DmN+aRv7tnwPQBpkv6S1uzVN5oEOP8NxKqgon033h8Y=;
         h=Date:From:To:Subject:From;
-        b=Af/2VJA6xheLxPUTlJAv2k1lo2cCHmt8AHN2HufG48+2zvlhvHDzWajvcVO4PM0wt
-         vcKx4YmQnTcQESCjpQEx7cIAC8FMY+al7W3aJAV182KCA8OuRU0YnjyjtD/QBiKfF2
-         LDRiecIxDxb9GaAJnDyV3/oXlletT1W5cNPMjG0g=
-Date:   Tue, 05 Oct 2021 17:18:39 -0700
+        b=Z1SkYzESNzAsJVv9BNC2SSnRs12rwiB/X3w6PrvLTRPWndzUWNbBxWeYFAxv53pc5
+         ELBio4AQOCG9I2AI9LVi6T0YfVAKmIwzhSueDcQH9z77pSz8nQnns7/jOM9AXCfeWd
+         gw5rZ1VVWfAOw6v9P5ZKCrkt8cwxsDTIrwhQHC7A=
+Date:   Tue, 05 Oct 2021 17:21:36 -0700
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, mm-commits@vger.kernel.org,
-        rf@opensource.cirrus.com
-Subject:  + lib-uninline-simple_strntoull-as-well.patch added to
- -mm tree
-Message-ID: <20211006001839.S8UrOINNB%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, keescook@chromium.org,
+        mm-commits@vger.kernel.org
+Subject:  +
+ elf-fix-overflow-in-total-mapping-size-calculation.patch added to -mm tree
+Message-ID: <20211006002136.jm0YH3WLq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: uninline simple_strntoull() as well
+     Subject: ELF: fix overflow in total mapping size calculation
 has been added to the -mm tree.  Its filename is
-     lib-uninline-simple_strntoull-as-well.patch
+     elf-fix-overflow-in-total-mapping-size-calculation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-uninline-simple_strntoull-as-well.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/elf-fix-overflow-in-total-mapping-size-calculation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-uninline-simple_strntoull-as-well.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/elf-fix-overflow-in-total-mapping-size-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,41 +60,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: lib: uninline simple_strntoull() as well
+Subject: ELF: fix overflow in total mapping size calculation
 
-Codegen become bloated again after simple_strntoull() introduction
+Kernel assumes that ELF program headers are ordered by mapping address,
+but doesn't enforce it.  It is possible to make mapping size extremely
+huge by simply shuffling first and last PT_LOAD segments.
 
-	add/remove: 0/0 grow/shrink: 0/4 up/down: 0/-224 (-224)
-	Function                                     old     new   delta
-	simple_strtoul                                 5       2      -3
-	simple_strtol                                 23      20      -3
-	simple_strtoull                              119      15    -104
-	simple_strtoll                               155      41    -114
+As long as PT_LOAD segments do not overlap, it is silly to require sorting
+by v_addr anyway because mmap() doesn't care.
 
-Link: https://lkml.kernel.org/r/YVmlB9yY4lvbNKYt@localhost.localdomain
+Don't assume PT_LOAD segments are sorted and calculate min and max
+addresses correctly.
+
+Link: https://lkml.kernel.org/r/YVmd7D0M6G/DcP4O@localhost.localdomain
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Richard Fitzgerald <rf@opensource.cirrus.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/binfmt_elf.c |   23 +++++++++++------------
+ 1 file changed, 11 insertions(+), 12 deletions(-)
 
---- a/lib/vsprintf.c~lib-uninline-simple_strntoull-as-well
-+++ a/lib/vsprintf.c
-@@ -53,8 +53,7 @@
- #include <linux/string_helpers.h>
- #include "kstrtox.h"
+--- a/fs/binfmt_elf.c~elf-fix-overflow-in-total-mapping-size-calculation
++++ a/fs/binfmt_elf.c
+@@ -93,7 +93,7 @@ static int elf_core_dump(struct coredump
+ #define ELF_CORE_EFLAGS	0
+ #endif
  
--static unsigned long long simple_strntoull(const char *startp, size_t max_chars,
--					   char **endp, unsigned int base)
-+static noinline unsigned long long simple_strntoull(const char *startp, size_t max_chars, char **endp, unsigned int base)
+-#define ELF_PAGESTART(_v) ((_v) & ~(unsigned long)(ELF_MIN_ALIGN-1))
++#define ELF_PAGESTART(_v) ((_v) & ~(int)(ELF_MIN_ALIGN-1))
+ #define ELF_PAGEOFFSET(_v) ((_v) & (ELF_MIN_ALIGN-1))
+ #define ELF_PAGEALIGN(_v) (((_v) + ELF_MIN_ALIGN - 1) & ~(ELF_MIN_ALIGN - 1))
+ 
+@@ -399,22 +399,21 @@ static unsigned long elf_map(struct file
+ 	return(map_addr);
+ }
+ 
+-static unsigned long total_mapping_size(const struct elf_phdr *cmds, int nr)
++static unsigned long total_mapping_size(const struct elf_phdr *phdr, int nr)
  {
- 	const char *cp;
- 	unsigned long long result = 0ULL;
+-	int i, first_idx = -1, last_idx = -1;
++	elf_addr_t min_addr = -1;
++	elf_addr_t max_addr = 0;
++	bool pt_load = false;
++	int i;
+ 
+ 	for (i = 0; i < nr; i++) {
+-		if (cmds[i].p_type == PT_LOAD) {
+-			last_idx = i;
+-			if (first_idx == -1)
+-				first_idx = i;
++		if (phdr[i].p_type == PT_LOAD) {
++			min_addr = min(min_addr, ELF_PAGESTART(phdr[i].p_vaddr));
++			max_addr = max(max_addr, phdr[i].p_vaddr + phdr[i].p_memsz);
++			pt_load = true;
+ 		}
+ 	}
+-	if (first_idx == -1)
+-		return 0;
+-
+-	return cmds[last_idx].p_vaddr + cmds[last_idx].p_memsz -
+-				ELF_PAGESTART(cmds[first_idx].p_vaddr);
++	return pt_load ? (max_addr - min_addr) : 0;
+ }
+ 
+ static int elf_read(struct file *file, void *buf, size_t len, loff_t pos)
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
 
 lib-uninline-simple_strntoull-as-well.patch
+elf-fix-overflow-in-total-mapping-size-calculation.patch
 
