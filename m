@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F55CC433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 00:58:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A54BCC433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 01:01:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0DBC661152
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 00:58:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8578B6113E
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 01:01:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240149AbhJGA7w (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Oct 2021 20:59:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38170 "EHLO mail.kernel.org"
+        id S231279AbhJGBDF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Oct 2021 21:03:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39004 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240107AbhJGA7v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 6 Oct 2021 20:59:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A31076113E;
-        Thu,  7 Oct 2021 00:57:58 +0000 (UTC)
+        id S240114AbhJGBDE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 6 Oct 2021 21:03:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 81A8861152;
+        Thu,  7 Oct 2021 01:01:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633568278;
-        bh=CNly1xY8zFxdamrbIgx3E0GxH18/+5wSfPanZ5ny/4E=;
+        s=korg; t=1633568471;
+        bh=MTQaBEv84SuwALXF2633R4RcHrYsSAUNuWrFgYAxH1s=;
         h=Date:From:To:Subject:From;
-        b=qyE3OcJJDVeL3QaheIJMeGcE6Y4eppUY/x2Gwk3+qCYTXUzgEmPBEnCQsArFz5PZN
-         u0OhuO51+bSciiwDPgncqIvbCNYz3foTeHCSmVTy6DqcBbYwyzAGgiM/n5sSi0dS5A
-         StaqC0B289yOiSsGFvLcxCO7CkzGs+uNUxx3qA1M=
-Date:   Wed, 06 Oct 2021 17:57:58 -0700
+        b=j1Ov1MejkiwfLBAcG82yigpldQ5IP/M19SPS5+DwWwhy8Xa2jsOdOHrCeXUbXVZbQ
+         y83VRCEdNaTH+Ud/OOmEpRoYyazFupPNgzmpm75XTLLQitPbYSudm28yV3Xc9QXVSF
+         LtyKyMZFcmRB07xz2INcNg8BIWBCPFEwTzFaDXH0=
+Date:   Wed, 06 Oct 2021 18:01:11 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, brho@google.com, catalin.marinas@arm.com,
-        lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org,
-        nathan@kernel.org, ndesaulniers@google.com, stable@vger.kernel.org
-Subject:  + elfcore-correct-reference-to-config_uml.patch added to
- -mm tree
-Message-ID: <20211007005758.YOU3TAhWN%akpm@linux-foundation.org>
+To:     ebiederm@xmission.com, keescook@chromium.org,
+        mm-commits@vger.kernel.org
+Subject:  +
+ maintainers-add-exec-binfmt-section-with-myself-and-eric.patch added to -mm
+ tree
+Message-ID: <20211007010111.-tq8rNB8n%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: elfcore: correct reference to CONFIG_UML
+     Subject: MAINTAINERS: add "exec & binfmt" section with myself and Eric
 has been added to the -mm tree.  Its filename is
-     elfcore-correct-reference-to-config_uml.patch
+     maintainers-add-exec-binfmt-section-with-myself-and-eric.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/elfcore-correct-reference-to-config_uml.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-exec-binfmt-section-with-myself-and-eric.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/elfcore-correct-reference-to-config_uml.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-exec-binfmt-section-with-myself-and-eric.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,54 +60,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: elfcore: correct reference to CONFIG_UML
+From: Kees Cook <keescook@chromium.org>
+Subject: MAINTAINERS: add "exec & binfmt" section with myself and Eric
 
-Commit 6e7b64b9dd6d ("elfcore: fix building with clang") introduces
-special handling for two architectures, ia64 and User Mode Linux. 
-However, the wrong name, i.e., CONFIG_UM, for the intended Kconfig symbol
-for User-Mode Linux was used.
+I'd like more continuity of review for the exec and binfmt (and ELF)
+stuff.  Eric and I have been the most active lately, so list us as
+reviewers.
 
-Although the directory for User Mode Linux is ./arch/um; the Kconfig
-symbol for this architecture is called CONFIG_UML.
-
-Luckily, ./scripts/checkkconfigsymbols.py warns on non-existing configs:
-
-UM
-Referencing files: include/linux/elfcore.h
-Similar symbols: UML, NUMA
-
-Correct the name of the config to the intended one.
-
-Link: https://lkml.kernel.org/r/20211006082209.417-1-lukas.bulwahn@gmail.com
-Fixes: 6e7b64b9dd6d ("elfcore: fix building with clang")
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Barret Rhoden <brho@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20211006180200.1178142-1-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/elfcore.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/include/linux/elfcore.h~elfcore-correct-reference-to-config_uml
-+++ a/include/linux/elfcore.h
-@@ -109,7 +109,7 @@ static inline int elf_core_copy_task_fpr
- #endif
- }
+--- a/MAINTAINERS~maintainers-add-exec-binfmt-section-with-myself-and-eric
++++ a/MAINTAINERS
+@@ -7020,6 +7020,20 @@ F:	include/trace/events/mdio.h
+ F:	include/uapi/linux/mdio.h
+ F:	include/uapi/linux/mii.h
  
--#if defined(CONFIG_UM) || defined(CONFIG_IA64)
-+#if defined(CONFIG_UML) || defined(CONFIG_IA64)
- /*
-  * These functions parameterize elf_core_dump in fs/binfmt_elf.c to write out
-  * extra segments containing the gate DSO contents.  Dumping its
++EXEC & BINFMT API
++R:	Eric Biederman <ebiederm@xmission.com>
++R:	Kees Cook <keescook@chromium.org>
++F:	arch/alpha/kernel/binfmt_loader.c
++F:	arch/x86/ia32/ia32_aout.c
++F:	fs/*binfmt_*.c
++F:	fs/exec.c
++F:	include/linux/binfmts.h
++F:	include/linux/elf.h
++F:	include/uapi/linux/binfmts.h
++F:	tools/testing/selftests/exec/
++N:	asm/elf.h
++N:	binfmt
++
+ EXFAT FILE SYSTEM
+ M:	Namjae Jeon <linkinjeon@kernel.org>
+ M:	Sungjong Seo <sj1557.seo@samsung.com>
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-elfcore-correct-reference-to-config_uml.patch
+kasan-test-bypass-__alloc_size-checks.patch
+rapidio-avoid-bogus-__alloc_size-warning.patch
+compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
+slab-clean-up-function-prototypes.patch
+slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
+mm-kvmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
+percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
+maintainers-add-exec-binfmt-section-with-myself-and-eric.patch
+binfmt_elf-reintroduce-using-map_fixed_noreplace.patch
 
