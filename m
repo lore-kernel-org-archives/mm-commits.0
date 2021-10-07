@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16FA2C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 21:05:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38030C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 23:13:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6AED61058
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 21:05:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 179746137F
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 23:13:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233206AbhJGVH0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Oct 2021 17:07:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39226 "EHLO mail.kernel.org"
+        id S234163AbhJGXPS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Oct 2021 19:15:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46912 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233176AbhJGVHY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 Oct 2021 17:07:24 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EE1BA61058;
-        Thu,  7 Oct 2021 21:05:29 +0000 (UTC)
+        id S233133AbhJGXPS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 Oct 2021 19:15:18 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BC98C61212;
+        Thu,  7 Oct 2021 23:13:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633640730;
-        bh=nD6BPOzXh7cySGPbqC3PorzVDZK9zkQ9SP4Tq6LOtE8=;
+        s=korg; t=1633648404;
+        bh=kmg5vcQlK9/G5lvRhCDWhfUU1nTblXYM7AsOwThfvOs=;
         h=Date:From:To:Subject:From;
-        b=psJeOPUMnor+pn/hie/utAE+qy81JLvE1A+2lPMD2FFD/bXns4mAA0Hn3zbMvBM6R
-         wphoVjh8fUfNjMqAQcLGw/dVOLWiOGdKtEwXeynt2YnI9dbgkGqIl/8PTqLQJJkVOf
-         VZBwP3uU2Z58c4xieUGMSidQP9M9X0P9IrV7+dFA=
-Date:   Thu, 07 Oct 2021 14:05:29 -0700
+        b=Reh5uARHfp+hXXDcLdD0FBlRELjEQep1r87Fy6lcfYjc+AK6+uw0DQK8u39ZMjVgl
+         LrALjlQNdZDEmYbv7rJGkt3FUiKb52PbdtCDXU1SsarP1cX/1XWlBCJW02JoYXa27j
+         AVThLiZPU2PHts992ps5un8kiq62LrODm2uqxh4U=
+Date:   Thu, 07 Oct 2021 16:13:23 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, arnd@arndb.de, brho@google.com,
-        catalin.marinas@arm.com, lukas.bulwahn@gmail.com,
-        mm-commits@vger.kernel.org, nathan@kernel.org,
-        ndesaulniers@google.com
-Subject:  + elfcore-correct-reference-to-config_uml-fix.patch added
- to -mm tree
-Message-ID: <20211007210529.WB5DLxK7H%akpm@linux-foundation.org>
+To:     keescook@chromium.org, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, sunhao.th@gmail.com,
+        viro@zeniv.linux.org.uk, willy@infradead.org, zohar@linux.ibm.com
+Subject:  +
+ vfs-check-fd-has-read-access-in-kernel_read_file_from_fd.patch added to -mm
+ tree
+Message-ID: <20211007231323.DvjVgT6QM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: elfcore-correct-reference-to-config_uml-fix
+     Subject: vfs: check fd has read access in kernel_read_file_from_fd()
 has been added to the -mm tree.  Its filename is
-     elfcore-correct-reference-to-config_uml-fix.patch
+     vfs-check-fd-has-read-access-in-kernel_read_file_from_fd.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/elfcore-correct-reference-to-config_uml-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/vfs-check-fd-has-read-access-in-kernel_read_file_from_fd.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/elfcore-correct-reference-to-config_uml-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/vfs-check-fd-has-read-access-in-kernel_read_file_from_fd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,45 +61,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: elfcore-correct-reference-to-config_uml-fix
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: vfs: check fd has read access in kernel_read_file_from_fd()
 
-fix um/x86_64, per Catalin
+If we open a file without read access and then pass the fd to a syscall
+whose implementation calls kernel_read_file_from_fd(), we get a warning
+from __kernel_read():
 
-Link: https://lkml.kernel.org/r/20211006181119.2851441-1-catalin.marinas@arm.com
-Link: https://lkml.kernel.org/r/YV6pejGzLy5ppEpt@arm.com
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Barret Rhoden <brho@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
+        if (WARN_ON_ONCE(!(file->f_mode & FMODE_READ)))
+
+This currently affects both finit_module() and kexec_file_load(), but it
+could affect other syscalls in the future.
+
+Link: https://lkml.kernel.org/r/20211007220110.600005-1-willy@infradead.org
+Fixes: b844f0ecbc56 ("vfs: define kernel_copy_file_from_fd()")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Hao Sun <sunhao.th@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Mimi Zohar <zohar@linux.ibm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/elfcore.h |    2 +-
+ fs/kernel_read_file.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/elfcore.h~elfcore-correct-reference-to-config_uml-fix
-+++ a/include/linux/elfcore.h
-@@ -109,7 +109,7 @@ static inline int elf_core_copy_task_fpr
- #endif
- }
+--- a/fs/kernel_read_file.c~vfs-check-fd-has-read-access-in-kernel_read_file_from_fd
++++ a/fs/kernel_read_file.c
+@@ -178,7 +178,7 @@ int kernel_read_file_from_fd(int fd, lof
+ 	struct fd f = fdget(fd);
+ 	int ret = -EBADF;
  
--#if defined(CONFIG_UML) || defined(CONFIG_IA64)
-+#if (defined(CONFIG_UML) && defined(CONFIG_X86_32)) || defined(CONFIG_IA64)
- /*
-  * These functions parameterize elf_core_dump in fs/binfmt_elf.c to write out
-  * extra segments containing the gate DSO contents.  Dumping its
+-	if (!f.file)
++	if (!f.file || !(f.file->f_mode & FMODE_READ))
+ 		goto out;
+ 
+ 	ret = kernel_read_file(f.file, offset, buf, buf_size, file_size, id);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from willy@infradead.org are
 
-elfcore-correct-reference-to-config_uml-fix.patch
-mm.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
-ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+vfs-check-fd-has-read-access-in-kernel_read_file_from_fd.patch
+mm-move-kvmalloc-related-functions-to-slabh.patch
+mm-remove-bogus-vm_bug_on.patch
+mm-optimise-put_pages_list.patch
+kasan-fix-tag-for-large-allocations-when-using-config_slab.patch
 
