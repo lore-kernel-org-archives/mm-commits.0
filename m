@@ -2,104 +2,230 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 51980C433FE
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Oct 2021 18:05:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ACD2C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 00:09:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D2A26103B
-	for <mm-commits@archiver.kernel.org>; Wed,  6 Oct 2021 18:05:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4E258611AE
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 00:09:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239331AbhJFSHn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 6 Oct 2021 14:07:43 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60990 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239342AbhJFSHk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 6 Oct 2021 14:07:40 -0400
-Received: from bombadil.infradead.org (unknown [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10FBCC061766;
-        Wed,  6 Oct 2021 11:05:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Content-Transfer-Encoding:
-        Content-Type:In-Reply-To:MIME-Version:Date:Message-ID:From:References:Cc:To:
-        Subject:Sender:Reply-To:Content-ID:Content-Description;
-        bh=UXOqw6LYYO+wVibxP4e/orAi9rkc97L/HWtRElWnpJY=; b=462AX6p5/pblPwzDuTNTIoQdTm
-        55fDtkidx88LFDHJd7iCL4sfa4X9pd49aIkLbRrrkT/4J+lPF2CIVkSNPC2uiWVCkmX0nrzfkrvP/
-        hItmXQl9oeHxbtulFkxUSI/W0+fpAp++iKDSXmK0+gQRKj8fkCEQaMA36uBHA+DB6OykHj4mSmjk+
-        dz1y7uErtG4BPtMRBq6TV3zWJJYGZEstq7GU3u7NYnYLpwifW4etczK1+qIIiU8EvXM/FaCATw7SE
-        PBawL4Gskhv9VpWxkS4KW4rahq55RR5E3I0GyQOqQizeMF78ZUfKF7+LTMZml0Kdz5cXFy9UGOXLJ
-        +3MlZq2Q==;
-Received: from [2601:1c0:6280:3f0::aa0b]
-        by bombadil.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1mYBIV-00FILd-UO; Wed, 06 Oct 2021 18:05:44 +0000
-Subject: Re: mmotm 2021-10-05-19-53 uploaded
- (drivers/gpu/drm/msm/hdmi/hdmi_phy.o)
-To:     =?UTF-8?Q?Christian_K=c3=b6nig?= <christian.koenig@amd.com>,
-        Stephen Rothwell <sfr@canb.auug.org.au>
-Cc:     akpm@linux-foundation.org, broonie@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, Rob Clark <robdclark@gmail.com>,
-        Sean Paul <sean@poorly.run>, linux-arm-msm@vger.kernel.org,
-        freedreno@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Intel Graphics <intel-gfx@lists.freedesktop.org>,
-        DRI <dri-devel@lists.freedesktop.org>
-References: <20211006025350.a5PczFZP4%akpm@linux-foundation.org>
- <58fbf2ff-b367-2137-aa77-fcde6c46bbb7@infradead.org>
- <20211006182052.6ecc17cf@canb.auug.org.au>
- <f877a1c9-1898-23f3-bba3-3442dc1f3979@amd.com>
-From:   Randy Dunlap <rdunlap@infradead.org>
-Message-ID: <34c2f6ab-3982-a031-1af6-5ed482b5c344@infradead.org>
-Date:   Wed, 6 Oct 2021 11:05:41 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.13.0
-MIME-Version: 1.0
-In-Reply-To: <f877a1c9-1898-23f3-bba3-3442dc1f3979@amd.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 8bit
+        id S239980AbhJGALr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 6 Oct 2021 20:11:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43458 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S239971AbhJGALp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 6 Oct 2021 20:11:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A135E60F5D;
+        Thu,  7 Oct 2021 00:09:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1633565391;
+        bh=JNFoPK+jYMhqJtgKEEYFXIZ9AN69LIQN8E3HEFXRG5E=;
+        h=Date:From:To:Subject:From;
+        b=ncgpuCO9wIcChVsyePqveaWRUZ8fbv+IiunjiWXXryqmPS+9otiNYLSb3j1PeZgcJ
+         OXPYU0Xy1cz8EisOXeYkqGEVJcjAqKpGzhoSHSKzotv3o4rBtjimdTOedscHdirNRO
+         ooJFyq+Z0abtJzCkGri+rUi543pnx0o7wS6uAgd0=
+Date:   Wed, 06 Oct 2021 17:09:51 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20211007000951.qUyZ3tV23%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 10/6/21 12:24 AM, Christian König wrote:
-> 
-> 
-> Am 06.10.21 um 09:20 schrieb Stephen Rothwell:
->> Hi Randy,
->>
->> On Tue, 5 Oct 2021 22:48:03 -0700 Randy Dunlap <rdunlap@infradead.org> wrote:
->>> on i386:
->>>
->>> ld: drivers/gpu/drm/msm/hdmi/hdmi_phy.o:(.rodata+0x3f0): undefined reference to `msm_hdmi_phy_8996_cfg'
->>>
->>>
->>> Full randconfig fle is attached.
->> This would be because CONFIG_DRM_MSM is set but CONFIG_COMMON_CLOCK is
->> not and has been exposed by commit
->>
->>    b3ed524f84f5 ("drm/msm: allow compile_test on !ARM")
->>
->> from the drm-misc tree.
-> 
-> Good point, how about this change:
-> 
-> diff --git a/drivers/gpu/drm/msm/Kconfig b/drivers/gpu/drm/msm/Kconfig
-> index 5879f67bc88c..d9879b011fb0 100644
-> --- a/drivers/gpu/drm/msm/Kconfig
-> +++ b/drivers/gpu/drm/msm/Kconfig
-> @@ -5,7 +5,7 @@ config DRM_MSM
->          depends on DRM
->          depends on ARCH_QCOM || SOC_IMX5 || COMPILE_TEST
->          depends on IOMMU_SUPPORT
-> -       depends on (OF && COMMON_CLK) || COMPILE_TEST
-> +       depends on (OF || COMPILE_TEST) && COMMON_CLK
->          depends on QCOM_OCMEM || QCOM_OCMEM=n
->          depends on QCOM_LLCC || QCOM_LLCC=n
->          depends on QCOM_COMMAND_DB || QCOM_COMMAND_DB=n
 
-WorksForMe. Thanks.
-(other than the whitespace damage)
+The patch titled
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
--- 
-~Randy
+This patch was dropped because it is obsolete
+
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
+
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/9p/cache.c    |  140 ---------------------------------------------
+ fs/9p/vfs_addr.c |    7 --
+ 2 files changed, 147 deletions(-)
+
+--- a/fs/9p/cache.c~linux-next-git-rejects
++++ a/fs/9p/cache.c
+@@ -199,143 +199,3 @@ void v9fs_cache_inode_reset_cookie(struc
+ 
+ 	mutex_unlock(&v9inode->fscache_lock);
+ }
+-<<<<<<< HEAD
+-
+-int __v9fs_fscache_release_page(struct page *page, gfp_t gfp)
+-{
+-	struct inode *inode = page->mapping->host;
+-	struct v9fs_inode *v9inode = V9FS_I(inode);
+-
+-	BUG_ON(!v9inode->fscache);
+-
+-	return fscache_maybe_release_page(v9inode->fscache, page, gfp);
+-}
+-
+-void __v9fs_fscache_invalidate_page(struct page *page)
+-{
+-	struct inode *inode = page->mapping->host;
+-	struct v9fs_inode *v9inode = V9FS_I(inode);
+-
+-	BUG_ON(!v9inode->fscache);
+-
+-	if (PageFsCache(page)) {
+-		fscache_wait_on_page_write(v9inode->fscache, page);
+-		BUG_ON(!PageLocked(page));
+-		fscache_uncache_page(v9inode->fscache, page);
+-	}
+-}
+-
+-static void v9fs_vfs_readpage_complete(struct page *page, void *data,
+-				       int error)
+-{
+-	if (!error)
+-		SetPageUptodate(page);
+-
+-	unlock_page(page);
+-}
+-
+-/*
+- * __v9fs_readpage_from_fscache - read a page from cache
+- *
+- * Returns 0 if the pages are in cache and a BIO is submitted,
+- * 1 if the pages are not in cache and -error otherwise.
+- */
+-
+-int __v9fs_readpage_from_fscache(struct inode *inode, struct page *page)
+-{
+-	int ret;
+-	const struct v9fs_inode *v9inode = V9FS_I(inode);
+-
+-	p9_debug(P9_DEBUG_FSC, "inode %p page %p\n", inode, page);
+-	if (!v9inode->fscache)
+-		return -ENOBUFS;
+-
+-	ret = fscache_read_or_alloc_page(v9inode->fscache,
+-					 page,
+-					 v9fs_vfs_readpage_complete,
+-					 NULL,
+-					 GFP_KERNEL);
+-	switch (ret) {
+-	case -ENOBUFS:
+-	case -ENODATA:
+-		p9_debug(P9_DEBUG_FSC, "page/inode not in cache %d\n", ret);
+-		return 1;
+-	case 0:
+-		p9_debug(P9_DEBUG_FSC, "BIO submitted\n");
+-		return ret;
+-	default:
+-		p9_debug(P9_DEBUG_FSC, "ret %d\n", ret);
+-		return ret;
+-	}
+-}
+-
+-/*
+- * __v9fs_readpages_from_fscache - read multiple pages from cache
+- *
+- * Returns 0 if the pages are in cache and a BIO is submitted,
+- * 1 if the pages are not in cache and -error otherwise.
+- */
+-
+-int __v9fs_readpages_from_fscache(struct inode *inode,
+-				  struct address_space *mapping,
+-				  struct list_head *pages,
+-				  unsigned *nr_pages)
+-{
+-	int ret;
+-	const struct v9fs_inode *v9inode = V9FS_I(inode);
+-
+-	p9_debug(P9_DEBUG_FSC, "inode %p pages %u\n", inode, *nr_pages);
+-	if (!v9inode->fscache)
+-		return -ENOBUFS;
+-
+-	ret = fscache_read_or_alloc_pages(v9inode->fscache,
+-					  mapping, pages, nr_pages,
+-					  v9fs_vfs_readpage_complete,
+-					  NULL,
+-					  mapping_gfp_mask(mapping));
+-	switch (ret) {
+-	case -ENOBUFS:
+-	case -ENODATA:
+-		p9_debug(P9_DEBUG_FSC, "pages/inodes not in cache %d\n", ret);
+-		return 1;
+-	case 0:
+-		BUG_ON(!list_empty(pages));
+-		BUG_ON(*nr_pages != 0);
+-		p9_debug(P9_DEBUG_FSC, "BIO submitted\n");
+-		return ret;
+-	default:
+-		p9_debug(P9_DEBUG_FSC, "ret %d\n", ret);
+-		return ret;
+-	}
+-}
+-
+-/*
+- * __v9fs_readpage_to_fscache - write a page to the cache
+- *
+- */
+-
+-void __v9fs_readpage_to_fscache(struct inode *inode, struct page *page)
+-{
+-	int ret;
+-	const struct v9fs_inode *v9inode = V9FS_I(inode);
+-
+-	p9_debug(P9_DEBUG_FSC, "inode %p page %p\n", inode, page);
+-	ret = fscache_write_page(v9inode->fscache, page,
+-				 i_size_read(&v9inode->vfs_inode), GFP_KERNEL);
+-	p9_debug(P9_DEBUG_FSC, "ret =  %d\n", ret);
+-	if (ret != 0)
+-		v9fs_uncache_page(inode, page);
+-}
+-
+-/*
+- * wait for a page to complete writing to the cache
+- */
+-void __v9fs_fscache_wait_on_page_write(struct inode *inode, struct page *page)
+-{
+-	const struct v9fs_inode *v9inode = V9FS_I(inode);
+-	p9_debug(P9_DEBUG_FSC, "inode %p page %p\n", inode, page);
+-	if (PageFsCache(page))
+-		fscache_wait_on_page_write(v9inode->fscache, page);
+-}
+-=======
+->>>>>>> linux-next/akpm-base
+--- a/fs/9p/vfs_addr.c~linux-next-git-rejects
++++ a/fs/9p/vfs_addr.c
+@@ -29,15 +29,8 @@
+ #include "fid.h"
+ 
+ /**
+-<<<<<<< HEAD
+- * v9fs_fid_readpage - read an entire page in from 9P
+- * @data: Opaque pointer to the fid being read
+- * @page: structure to page
+- *
+-=======
+  * v9fs_req_issue_op - Issue a read from 9P
+  * @subreq: The read to make
+->>>>>>> linux-next/akpm-base
+  */
+ static void v9fs_req_issue_op(struct netfs_read_subrequest *subreq)
+ {
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm.patch
+mm-dont-call-should_failslab-for-config_failslab-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
+ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+
