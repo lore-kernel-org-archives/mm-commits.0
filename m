@@ -2,126 +2,106 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97E67C4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 09:28:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F475C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 18:12:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7E06361139
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 09:28:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E99B861261
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 18:12:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240650AbhJGJaN convert rfc822-to-8bit (ORCPT
-        <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Oct 2021 05:30:13 -0400
-Received: from mail-vk1-f176.google.com ([209.85.221.176]:34727 "EHLO
-        mail-vk1-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240592AbhJGJaN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2021 05:30:13 -0400
-Received: by mail-vk1-f176.google.com with SMTP id z202so2461191vkd.1;
-        Thu, 07 Oct 2021 02:28:19 -0700 (PDT)
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc:content-transfer-encoding;
-        bh=hzHW72Ay3gWV8fEJFQ+iu6g37baZLnF8PQ8Ot4oxoaI=;
-        b=qeBLCc16D7buQsBfZGYlmXCUZ/w243AJOQ/U9QHKzS8K+xLM2qCRhGiy46ZP6fUfXE
-         wflMWuY4ySLkJOr0B63wuuO2a8BwGCV9e7qkaAw8/ZzB6DGcWaNnDahpcn0Cx6v/WT38
-         tl0HznkRYarmgx8JI4FdafIVXuuU+20dVaKn1V/MmTuiYsu55hcreNXyCb3QN/aM9c0A
-         kuZ2YnarftLtP1i7yn0yi3TrmD4ONGm2T4j79mvyRLDPq2oFYmFZ5T9ez1TY4G7yB6p/
-         ZOp0dvUxO+6NwVfsKTDsuyE3PimfpBpPL/9L1Hsni9KkFg1/hf7a2I/vIhT7fxNR6kqN
-         ndlA==
-X-Gm-Message-State: AOAM533Vo9TjIYD9FhXlfUCQ9Tn+xG8GOvKlU+BaMXSXQZYc0gGzJqbF
-        g9wCorUjRUnV5b8xxQJXpfXLpcIb//4VbUO93xE=
-X-Google-Smtp-Source: ABdhPJxa3fwE1gntWrjljDsvFH6UlsS62TRi8FeltjZ+YAQFTMpawuIEL6cDelrBaNePH9pbfBWO3F+KAs1dSlBCJEY=
-X-Received: by 2002:a1f:3a4b:: with SMTP id h72mr2286297vka.19.1633598898975;
- Thu, 07 Oct 2021 02:28:18 -0700 (PDT)
-MIME-Version: 1.0
-References: <20211006025350.a5PczFZP4%akpm@linux-foundation.org>
- <58fbf2ff-b367-2137-aa77-fcde6c46bbb7@infradead.org> <20211006182052.6ecc17cf@canb.auug.org.au>
- <f877a1c9-1898-23f3-bba3-3442dc1f3979@amd.com>
-In-Reply-To: <f877a1c9-1898-23f3-bba3-3442dc1f3979@amd.com>
-From:   Geert Uytterhoeven <geert@linux-m68k.org>
-Date:   Thu, 7 Oct 2021 11:28:07 +0200
-Message-ID: <CAMuHMdV3eMchpgUasU6BBHrDQyjCc2TrqJ+zJgFhgAySpqVGfw@mail.gmail.com>
-Subject: Re: mmotm 2021-10-05-19-53 uploaded (drivers/gpu/drm/msm/hdmi/hdmi_phy.o)
-To:     =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>
-Cc:     Stephen Rothwell <sfr@canb.auug.org.au>,
-        Randy Dunlap <rdunlap@infradead.org>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        Mark Brown <broonie@kernel.org>,
-        Linux FS Devel <linux-fsdevel@vger.kernel.org>,
-        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-        Linux MM <linux-mm@kvack.org>,
-        Linux-Next <linux-next@vger.kernel.org>,
-        Michal Hocko <mhocko@suse.cz>, mm-commits@vger.kernel.org,
-        Rob Clark <robdclark@gmail.com>, Sean Paul <sean@poorly.run>,
-        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
-        freedreno@lists.freedesktop.org,
-        Daniel Vetter <daniel.vetter@ffwll.ch>,
-        Intel Graphics <intel-gfx@lists.freedesktop.org>,
-        DRI <dri-devel@lists.freedesktop.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+        id S233744AbhJGSOq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Oct 2021 14:14:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47182 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S243487AbhJGSOp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 7 Oct 2021 14:14:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A8B161260;
+        Thu,  7 Oct 2021 18:12:51 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1633630371;
+        bh=WNv9v5k97PDczsvvQIBKyLkM/f16yKmJ5oMyX297hyI=;
+        h=Date:From:To:Subject:From;
+        b=qTTNSzb6IXkIEr8U8zXHYhhZ2fO4mBfVUixOTeeosE46WiVqJNcRq2T6A2Y/na29r
+         jkoMmQOfNHsittzTbVsHCoth1j5Aww/vRMxGc+1I/Z/ImIbO4fksukboRIr47NX3+k
+         75jflknvHKlMZ3S2fdtrX9SGhznSD1PpysT/tKiI=
+Date:   Thu, 07 Oct 2021 11:12:50 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-rejects.patch added to -mm tree
+Message-ID: <20211007181250.Ex4Yi78iS%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Hi Christian,
 
-On Wed, Oct 6, 2021 at 9:28 AM Christian König <christian.koenig@amd.com> wrote:
-> Am 06.10.21 um 09:20 schrieb Stephen Rothwell:
-> > On Tue, 5 Oct 2021 22:48:03 -0700 Randy Dunlap <rdunlap@infradead.org> wrote:
-> >> on i386:
-> >>
-> >> ld: drivers/gpu/drm/msm/hdmi/hdmi_phy.o:(.rodata+0x3f0): undefined reference to `msm_hdmi_phy_8996_cfg'
-> >>
-> >>
-> >> Full randconfig fle is attached.
-> > This would be because CONFIG_DRM_MSM is set but CONFIG_COMMON_CLOCK is
-> > not and has been exposed by commit
-> >
-> >    b3ed524f84f5 ("drm/msm: allow compile_test on !ARM")
-> >
-> > from the drm-misc tree.
->
-> Good point, how about this change:
->
-> diff --git a/drivers/gpu/drm/msm/Kconfig b/drivers/gpu/drm/msm/Kconfig
-> index 5879f67bc88c..d9879b011fb0 100644
-> --- a/drivers/gpu/drm/msm/Kconfig
-> +++ b/drivers/gpu/drm/msm/Kconfig
-> @@ -5,7 +5,7 @@ config DRM_MSM
->          depends on DRM
->          depends on ARCH_QCOM || SOC_IMX5 || COMPILE_TEST
->          depends on IOMMU_SUPPORT
-> -       depends on (OF && COMMON_CLK) || COMPILE_TEST
-> +       depends on (OF || COMPILE_TEST) && COMMON_CLK
+The patch titled
+     Subject: linux-next-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-rejects.patch
 
-I'd make that:
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
-    -        depends on DRM
-    +       depends on COMMON_CLK && DRM && IOMMU_SUPPORT
-            depends on ARCH_QCOM || SOC_IMX5 || COMPILE_TEST
-    -        depends on IOMMU_SUPPORT
-    -       depends on (OF && COMMON_CLK) || COMPILE_TEST
-    +       depends on OF || COMPILE_TEST
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-to keep a better separation between hard and soft dependencies.
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-Note that the "depends on OF || COMPILE_TEST" can even be
-deleted, as the dependency on ARCH_QCOM || SOC_IMX5 implies OF.
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
->          depends on QCOM_OCMEM || QCOM_OCMEM=n
->          depends on QCOM_LLCC || QCOM_LLCC=n
->          depends on QCOM_COMMAND_DB || QCOM_COMMAND_DB=n
->
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-Gr{oetje,eeting}s,
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-                        Geert
+ include/linux/sched/mm.h |    2 +-
+ kernel/sched/core.c      |    6 ------
+ 2 files changed, 1 insertion(+), 7 deletions(-)
 
--- 
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+--- a/include/linux/sched/mm.h~linux-next-rejects
++++ a/include/linux/sched/mm.h
+@@ -59,7 +59,7 @@ static inline void mmgrab_lazy_tlb(struc
+ static inline void mmdrop_lazy_tlb(struct mm_struct *mm)
+ {
+ 	if (IS_ENABLED(CONFIG_MMU_LAZY_TLB_REFCOUNT)) {
+-		mmdrop(mm);
++		mmdrop_sched(mm);
+ 	} else {
+ 		/*
+ 		 * mmdrop_lazy_tlb must provide a full memory barrier, see the
+--- a/kernel/sched/core.c~linux-next-rejects
++++ a/kernel/sched/core.c
+@@ -4850,12 +4850,6 @@ static struct rq *finish_task_switch(str
+ 		if (prev->sched_class->task_dead)
+ 			prev->sched_class->task_dead(prev);
+ 
+-		/*
+-		 * Remove function-return probe instances associated with this
+-		 * task and put them back on the free list.
+-		 */
+-		kprobe_flush_task(prev);
+-
+ 		/* Task is done with its stack. */
+ 		put_task_stack(prev);
+ 
+_
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+mm.patch
+mm-dont-call-should_failslab-for-config_failslab-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
+ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
+linux-next-rejects.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+
