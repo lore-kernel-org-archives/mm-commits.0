@@ -2,106 +2,78 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1F475C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 18:12:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 102DFC433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 18:28:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E99B861261
-	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 18:12:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5B4160F6F
+	for <mm-commits@archiver.kernel.org>; Thu,  7 Oct 2021 18:28:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233744AbhJGSOq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 7 Oct 2021 14:14:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47182 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243487AbhJGSOp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 7 Oct 2021 14:14:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A8B161260;
-        Thu,  7 Oct 2021 18:12:51 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633630371;
-        bh=WNv9v5k97PDczsvvQIBKyLkM/f16yKmJ5oMyX297hyI=;
-        h=Date:From:To:Subject:From;
-        b=qTTNSzb6IXkIEr8U8zXHYhhZ2fO4mBfVUixOTeeosE46WiVqJNcRq2T6A2Y/na29r
-         jkoMmQOfNHsittzTbVsHCoth1j5Aww/vRMxGc+1I/Z/ImIbO4fksukboRIr47NX3+k
-         75jflknvHKlMZ3S2fdtrX9SGhznSD1PpysT/tKiI=
-Date:   Thu, 07 Oct 2021 11:12:50 -0700
-From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-rejects.patch added to -mm tree
-Message-ID: <20211007181250.Ex4Yi78iS%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S236833AbhJGSaY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 7 Oct 2021 14:30:24 -0400
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57170 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231340AbhJGSaY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 7 Oct 2021 14:30:24 -0400
+Received: from mail-ed1-x530.google.com (mail-ed1-x530.google.com [IPv6:2a00:1450:4864:20::530])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C503C061570
+        for <mm-commits@vger.kernel.org>; Thu,  7 Oct 2021 11:28:30 -0700 (PDT)
+Received: by mail-ed1-x530.google.com with SMTP id l7so26691671edq.3
+        for <mm-commits@vger.kernel.org>; Thu, 07 Oct 2021 11:28:30 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=bNsBpyB/Z8Q4Y+w/HCZCltZQE/gelZrKkTlPqUXS6kk=;
+        b=RDt2L4i2CSEXQXuLi+cmYfymfWyucj++vb8o3+RCGyYhUeNGzPHiGVDduDnjVZtHVG
+         gvWHTNtXbpW3WBGUnrXALD3ji+dWXOi03gZp9QyQfqgxu8wrt/SvNQrGcBksuLhNrWlk
+         TKdfvNl347fOps3hWz+Qzp5/jOqi927z5cFv71yd9etratkby/fEGJdZ4qaJxM51Uz1I
+         l5hjMw4+RLasadpMBLrvyL/10acGZ+Gsa+xwKtCyvvxOaSVCM0YbiGI5iOjizyeTEfYY
+         S0DLJkw+6vmJ/K8KpEob7sCxeXe0AY5KPRL/QkN5UwpiaW+aB9XY45/GCpos4GsAAiVj
+         6wpA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=bNsBpyB/Z8Q4Y+w/HCZCltZQE/gelZrKkTlPqUXS6kk=;
+        b=0Gl76Xzlp33y+JW0bAmtSzROvNvWifcHhMh3ov9Mz6TGIowABze6F+AFPm16Rk/t7l
+         OGvOZzFnzhXTixpmX2cCzfClWhO9Pi+TaRHIzj2umO19V7am4Ipxb4I4fnD4CoJimkqA
+         2ns860Qr9+YRP4MhL0da8hWgWa9YatlhYPmX+tuv6XA26IiGogotNYr15mfkPk0bHZcH
+         00W2D+iXmsOO3XWqRyzyQFsR03266owuQ6PKVYLJjwtb9TdG516BMWZzp56xUkmmPOQf
+         HblRVQHlfqYTyu1IgqvJuhvfewabjWI5kMRDs/j1PIXaWu5iACbcasR4Xn7NaeA0ZOCm
+         jVQg==
+X-Gm-Message-State: AOAM53276+hNH0jDhh6/iorX0O4uBMQMkfSPz86jHK98Q/7EBV+ermeO
+        1NMRFF1SPnKJDVrIO9LG7w==
+X-Google-Smtp-Source: ABdhPJy2UouizwjS3Odr/FV8ny0llMvkWNaBrXraFbyvnET9vyiYbSOUykJCwnqmyniOG5fsAuT1/w==
+X-Received: by 2002:a17:906:5590:: with SMTP id y16mr7507058ejp.286.1633631308797;
+        Thu, 07 Oct 2021 11:28:28 -0700 (PDT)
+Received: from localhost.localdomain ([46.53.254.50])
+        by smtp.gmail.com with ESMTPSA id g21sm94550edr.7.2021.10.07.11.28.27
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Thu, 07 Oct 2021 11:28:28 -0700 (PDT)
+Date:   Thu, 7 Oct 2021 21:28:26 +0300
+From:   Alexey Dobriyan <adobriyan@gmail.com>
+To:     akpm@linux-foundation.org
+Cc:     christian.brauner@ubuntu.com, ebiederm@xmission.com,
+        fweimer@redhat.com, keescook@chromium.org,
+        mm-commits@vger.kernel.org
+Subject: Re: + procfs-do-not-list-tid-0-in-proc-pid-task.patch added to -mm
+ tree
+Message-ID: <YV88Sqq7uMgziYwK@localhost.localdomain>
+References: <20210929232038.o0_ct-q8J%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20210929232038.o0_ct-q8J%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Wed, Sep 29, 2021 at 04:20:38PM -0700, akpm@linux-foundation.org wrote:
+> Subject: procfs: do not list TID 0 in /proc/<pid>/task
+> 
+> If a task exits concurrently, task_pid_nr_ns may return 0.
 
-The patch titled
-     Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+So easy to reproduce, wonder why didn't anyone report it earlier.
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
-
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/sched/mm.h |    2 +-
- kernel/sched/core.c      |    6 ------
- 2 files changed, 1 insertion(+), 7 deletions(-)
-
---- a/include/linux/sched/mm.h~linux-next-rejects
-+++ a/include/linux/sched/mm.h
-@@ -59,7 +59,7 @@ static inline void mmgrab_lazy_tlb(struc
- static inline void mmdrop_lazy_tlb(struct mm_struct *mm)
- {
- 	if (IS_ENABLED(CONFIG_MMU_LAZY_TLB_REFCOUNT)) {
--		mmdrop(mm);
-+		mmdrop_sched(mm);
- 	} else {
- 		/*
- 		 * mmdrop_lazy_tlb must provide a full memory barrier, see the
---- a/kernel/sched/core.c~linux-next-rejects
-+++ a/kernel/sched/core.c
-@@ -4850,12 +4850,6 @@ static struct rq *finish_task_switch(str
- 		if (prev->sched_class->task_dead)
- 			prev->sched_class->task_dead(prev);
- 
--		/*
--		 * Remove function-return probe instances associated with this
--		 * task and put them back on the free list.
--		 */
--		kprobe_flush_task(prev);
--
- 		/* Task is done with its stack. */
- 		put_task_stack(prev);
- 
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm.patch
-mm-dont-call-should_failslab-for-config_failslab-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
-ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-
+Reviewed-by: Alexey Dobriyan <adobriyan@gmail.com>
