@@ -2,36 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 148F2C433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 10 Oct 2021 20:50:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25F76C433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 10 Oct 2021 20:52:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE93260F55
-	for <mm-commits@archiver.kernel.org>; Sun, 10 Oct 2021 20:50:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E90960E76
+	for <mm-commits@archiver.kernel.org>; Sun, 10 Oct 2021 20:52:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230271AbhJJUwk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 10 Oct 2021 16:52:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45682 "EHLO mail.kernel.org"
+        id S231383AbhJJUyF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 10 Oct 2021 16:54:05 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45926 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229684AbhJJUwj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 10 Oct 2021 16:52:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AAAD460F4B;
-        Sun, 10 Oct 2021 20:50:40 +0000 (UTC)
+        id S231266AbhJJUyE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 10 Oct 2021 16:54:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6C01F60C49;
+        Sun, 10 Oct 2021 20:52:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633899041;
-        bh=eC0lvg6bNKwdH6WzE+TyR7lruLkE+vKxFitxh9PPdIs=;
+        s=korg; t=1633899125;
+        bh=TtAEtAXTlcYExzKwT6ZTIr0IHl+1kLO//zAnj3OG4JA=;
         h=Date:From:To:Subject:From;
-        b=DcKaMFicmrtrYla4lgrRdoEVEInr+8ax9TtjkXjkt9OPCrrElROD8nLoVcxRatCQH
-         QIyR++Z4L4JXzBbjFc2eWzXe0FXmvkAxww+mGal9oKcQOJymAHJLLRkDd4R+B0qWFU
-         DvoAnqphKEi1Eh7EIBeG/1Dg4jCGw4UeAXJem4uM=
-Date:   Sun, 10 Oct 2021 13:50:40 -0700
+        b=fdeps3lYB/lN3aidmOmuRMToT89mV5mx5aUgYREDA09xLqraNIQOpNpSYugT+OytI
+         94jH64rGB6jjSNBL2CcO5Hnd9TgkzPIp6mqiLfHYMo7KBf8jRc9w6gPRuKaDVrPhN+
+         E4KYccs9fEBq8MdTssEp/fye68ogNXKJAuVXYfC0=
+Date:   Sun, 10 Oct 2021 13:52:04 -0700
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
-        vvidic@valentin-vidic.from.hr
-Subject:  + ocfs2-cleanup-journal-init-and-shutdown.patch added to
- -mm tree
-Message-ID: <20211010205040.PlW_nIp-q%akpm@linux-foundation.org>
+To:     alan@lxorguk.ukuu.org.uk, angus@akkea.ca, david@fubar.dk,
+        gregkh@linuxfoundation.org, hirofumi@mail.parknet.co.jp,
+        kay.sievers@vrfy.org, lennart@poettering.net, martink@posteo.de,
+        mm-commits@vger.kernel.org, tytso@mit.edu
+Subject:  [to-be-updated]
+ fs-fat-make-the-volume-label-writable-when-mounted.patch removed from -mm
+ tree
+Message-ID: <20211010205204.SF1RvgB5P%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,229 +41,363 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: cleanup journal init and shutdown
-has been added to the -mm tree.  Its filename is
-     ocfs2-cleanup-journal-init-and-shutdown.patch
+     Subject: fs: fat: make the volume label writable when mounted
+has been removed from the -mm tree.  Its filename was
+     fs-fat-make-the-volume-label-writable-when-mounted.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-cleanup-journal-init-and-shutdown.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-cleanup-journal-init-and-shutdown.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Valentin Vidic <vvidic@valentin-vidic.from.hr>
-Subject: ocfs2: cleanup journal init and shutdown
+From: Martin Kepplinger <martink@posteo.de>
+Subject: fs: fat: make the volume label writable when mounted
 
-Allocate and free struct ocfs2_journal in ocfs2_journal_init and
-ocfs2_journal_shutdown.  Init and release of system inodes references the
-journal so reorder calls to make sure they work correctly.
+The motivation for this change (probably) has its origin in a whishlist
+for the kernel that popped up in 2011, see
+https://lore.kernel.org/lkml/1319135973.1020.9.camel@mop/
 
-Link: https://lkml.kernel.org/r/20211009145006.3478-1-vvidic@valentin-vidic.from.hr
-Signed-off-by: Valentin Vidic <vvidic@valentin-vidic.from.hr>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Subsequently the "eudyptula programming challenge", see
+http://eudyptula-challenge.org/ included the task of making a mounted FAT
+filesystems' label writable.  That's where it found its way to me in 2014.
+
+During the following years I was asked not to publish this in order to
+help the challenge be successful.  Time has passed and I'm not asked to
+keep it secret anymore.
+
+As for the API, I'm sending the original implementation as an ioctl() and
+the example program that I've occasionally used over the years.  Based on
+the previous discussions, it might be less controversal to create a
+debugfs dir for the fs and make the label a file there.  I'm happy for
+acceptable ideas and all feedback:
+
+We add
+
+	#define VFAT_IOCTL_SET_LABEL _IOW('r', 0x14, __u32)
+
+for users to assign a new FAT volume label while the fat volume is mounted
+(it works on the mountpoint).
+
+* A pointer to a string as it's attribute changes the label.
+* A nullpointer prints the current label strings to the kernel log.
+* An empty string clears the label to "NO NAME    ". (I at least found this
+  in the FAT16 spec)
+
+I simply dump a test app here for completeness:
+
+	#include <stdio.h>
+	#include <stdint.h>
+	#include <sys/ioctl.h>
+	#include <fcntl.h>
+	#include <unistd.h>
+	#include <errno.h>
+	#include <linux/msdos_fs.h>
+	#include <string.h>
+	#include <limits.h>
+
+	#ifndef VFAT_IOCTL_SET_LABEL
+	#define VFAT_IOCTL_SET_LABEL _IOW('r', 0x14, __u32)
+	#endif
+
+	int main(int argc, char **argv)
+	{
+		int fd;
+		char path[LINE_MAX];
+		char mylabel[MSDOS_NAME];
+		char *label = mylabel;
+
+		if (argc < 2 || argc > 3) {
+			printf("Change label:
+   %s [MOUNTPOINT] [LABEL]
+", argv[0]);
+			printf("Show label in kernel logs:
+   %s [MOUNTPOINT]
+
+", argv[0]);
+			printf("Available filesystems and their mountpoints are:
+");
+			printf("   df --output=source,fstype,target | grep -E 'msdos|fat'
+");
+			return -EINVAL;
+		}
+		if (strlen(argv[1]) >= LINE_MAX) {
+			printf("Path to mountpoint too long");
+			return -EINVAL;
+		}
+
+		strcpy(path, argv[1]);
+		if (argc == 3) {
+			#pragma GCC diagnostic push
+			#pragma GCC diagnostic ignored "-Wstringop-truncation"
+			strncpy(label, argv[2], MSDOS_NAME);
+			#pragma GCC diagnostic pop
+		}
+		if (argc == 2)
+			label = NULL;
+
+		fd = open(path, O_RDONLY);
+		if (fd < 0)
+			goto err;
+
+		ioctl(fd, VFAT_IOCTL_SET_LABEL, label);
+
+		close(fd);
+	err:
+		perror(NULL);
+		return errno;
+	}
+
+Link: https://lkml.kernel.org/r/20211007095639.5002-1-martink@posteo.de
+Signed-off-by: Martin Kepplinger <martink@posteo.de>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Cc: Angus Ainslie <angus@akkea.ca>
+Cc: Kay Sievers <kay.sievers@vrfy.org>
+Cc: Lennart Poettering <lennart@poettering.net>
+Cc: Harald Hoyer harald@redhat.com
+Cc: David Zeuthen <david@fubar.dk>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: Martin Kepplinger <martink@posteo.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c   |    4 ++--
- fs/ocfs2/journal.c |   28 ++++++++++++++++++++++------
- fs/ocfs2/journal.h |    3 +--
- fs/ocfs2/super.c   |   40 +++-------------------------------------
- 4 files changed, 28 insertions(+), 47 deletions(-)
+ fs/fat/dir.c                  |   22 ++++
+ fs/fat/fat.h                  |    3 
+ fs/fat/file.c                 |  164 ++++++++++++++++++++++++++++++++
+ include/uapi/linux/msdos_fs.h |    1 
+ 4 files changed, 190 insertions(+)
 
---- a/fs/ocfs2/inode.c~ocfs2-cleanup-journal-init-and-shutdown
-+++ a/fs/ocfs2/inode.c
-@@ -125,7 +125,6 @@ struct inode *ocfs2_iget(struct ocfs2_su
- 	struct inode *inode = NULL;
- 	struct super_block *sb = osb->sb;
- 	struct ocfs2_find_inode_args args;
--	journal_t *journal = OCFS2_SB(sb)->journal->j_journal;
- 
- 	trace_ocfs2_iget_begin((unsigned long long)blkno, flags,
- 			       sysfile_type);
-@@ -172,10 +171,11 @@ struct inode *ocfs2_iget(struct ocfs2_su
- 	 * part of the transaction - the inode could have been reclaimed and
- 	 * now it is reread from disk.
- 	 */
--	if (journal) {
-+	if (osb->journal) {
- 		transaction_t *transaction;
- 		tid_t tid;
- 		struct ocfs2_inode_info *oi = OCFS2_I(inode);
-+		journal_t *journal = osb->journal->j_journal;
- 
- 		read_lock(&journal->j_state_lock);
- 		if (journal->j_running_transaction)
---- a/fs/ocfs2/journal.c~ocfs2-cleanup-journal-init-and-shutdown
-+++ a/fs/ocfs2/journal.c
-@@ -810,19 +810,34 @@ void ocfs2_set_journal_params(struct ocf
- 	write_unlock(&journal->j_state_lock);
+--- a/fs/fat/dir.c~fs-fat-make-the-volume-label-writable-when-mounted
++++ a/fs/fat/dir.c
+@@ -1412,3 +1412,25 @@ error_remove:
+ 	return err;
  }
- 
--int ocfs2_journal_init(struct ocfs2_journal *journal, int *dirty)
-+int ocfs2_journal_init(struct ocfs2_super *osb, int *dirty)
- {
- 	int status = -1;
- 	struct inode *inode = NULL; /* the journal inode */
- 	journal_t *j_journal = NULL;
-+	struct ocfs2_journal *journal = NULL;
- 	struct ocfs2_dinode *di = NULL;
- 	struct buffer_head *bh = NULL;
--	struct ocfs2_super *osb;
- 	int inode_lock = 0;
- 
--	BUG_ON(!journal);
--
--	osb = journal->j_osb;
-+	/* initialize our journal structure */
-+	journal = kzalloc(sizeof(struct ocfs2_journal), GFP_KERNEL);
-+	if (!journal) {
-+		mlog(ML_ERROR, "unable to alloc journal\n");
-+		status = -ENOMEM;
-+		goto done;
+ EXPORT_SYMBOL_GPL(fat_add_entries);
++
++/* found at https://lwn.net/Articles/343565/ */
++int fat_get_label_entry(struct inode *root_inode, struct buffer_head **bh,
++			struct msdos_dir_entry **de)
++{
++	loff_t pos;
++
++	if (WARN_ON(root_inode->i_ino != MSDOS_ROOT_INO))
++		return -EINVAL;
++
++	pos = 0;
++	*bh = NULL;
++	while (fat_get_entry(root_inode, &pos, bh, de) >= 0) {
++		/* volume label: note that it is not enough to check only
++		 * whether the ATTR_VOLUME bit is set, since this would yield
++		 * true on any vfat extended entry.
++		 */
++		if ((*de)->attr != ATTR_EXT && ((*de)->attr & ATTR_VOLUME))
++			return 0;
 +	}
-+	osb->journal = journal;
-+	journal->j_osb = osb;
-+
-+	atomic_set(&journal->j_num_trans, 0);
-+	init_rwsem(&journal->j_trans_barrier);
-+	init_waitqueue_head(&journal->j_checkpointed);
-+	spin_lock_init(&journal->j_lock);
-+	journal->j_trans_id = 1UL;
-+	INIT_LIST_HEAD(&journal->j_la_cleanups);
-+	INIT_WORK(&journal->j_recovery_work, ocfs2_complete_recovery);
-+	journal->j_state = OCFS2_JOURNAL_FREE;
++	return -ENOENT;
++}
+--- a/fs/fat/fat.h~fs-fat-make-the-volume-label-writable-when-mounted
++++ a/fs/fat/fat.h
+@@ -336,6 +336,9 @@ extern int fat_alloc_new_dir(struct inod
+ extern int fat_add_entries(struct inode *dir, void *slots, int nr_slots,
+ 			   struct fat_slot_info *sinfo);
+ extern int fat_remove_entries(struct inode *dir, struct fat_slot_info *sinfo);
++extern int fat_get_label_entry(struct inode *root_inode,
++			       struct buffer_head **bh,
++			       struct msdos_dir_entry **de);
  
- 	/* already have the inode for our journal */
- 	inode = ocfs2_get_system_file_inode(osb, JOURNAL_SYSTEM_INODE,
-@@ -1028,9 +1043,10 @@ void ocfs2_journal_shutdown(struct ocfs2
- 
- 	journal->j_state = OCFS2_JOURNAL_FREE;
- 
--//	up_write(&journal->j_trans_barrier);
- done:
- 	iput(inode);
-+	kfree(journal);
-+	osb->journal = NULL;
+ /* fat/fatent.c */
+ struct fat_entry {
+--- a/fs/fat/file.c~fs-fat-make-the-volume-label-writable-when-mounted
++++ a/fs/fat/file.c
+@@ -153,6 +153,168 @@ static int fat_ioctl_fitrim(struct inode
+ 	return 0;
  }
  
- static void ocfs2_clear_journal_error(struct super_block *sb,
---- a/fs/ocfs2/journal.h~ocfs2-cleanup-journal-init-and-shutdown
-+++ a/fs/ocfs2/journal.h
-@@ -167,8 +167,7 @@ int ocfs2_compute_replay_slots(struct oc
-  *  ocfs2_start_checkpoint - Kick the commit thread to do a checkpoint.
-  */
- void   ocfs2_set_journal_params(struct ocfs2_super *osb);
--int    ocfs2_journal_init(struct ocfs2_journal *journal,
--			  int *dirty);
-+int    ocfs2_journal_init(struct ocfs2_super *osb, int *dirty);
- void   ocfs2_journal_shutdown(struct ocfs2_super *osb);
- int    ocfs2_journal_wipe(struct ocfs2_journal *journal,
- 			  int full);
---- a/fs/ocfs2/super.c~ocfs2-cleanup-journal-init-and-shutdown
-+++ a/fs/ocfs2/super.c
-@@ -1894,8 +1894,6 @@ static void ocfs2_dismount_volume(struct
- 	/* This will disable recovery and flush any recovery work. */
- 	ocfs2_recovery_exit(osb);
- 
--	ocfs2_journal_shutdown(osb);
--
- 	ocfs2_sync_blockdev(sb);
- 
- 	ocfs2_purge_refcount_trees(osb);
-@@ -1918,6 +1916,8 @@ static void ocfs2_dismount_volume(struct
- 
- 	ocfs2_release_system_inodes(osb);
- 
-+	ocfs2_journal_shutdown(osb);
++/* protect access to the FAT fs label */
++DEFINE_MUTEX(label_mutex);
 +
- 	/*
- 	 * If we're dismounting due to mount error, mount.ocfs2 will clean
- 	 * up heartbeat.  If we're a local mount, there is no heartbeat.
-@@ -2016,7 +2016,6 @@ static int ocfs2_initialize_super(struct
- 	int i, cbits, bbits;
- 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)bh->b_data;
- 	struct inode *inode = NULL;
--	struct ocfs2_journal *journal;
- 	struct ocfs2_super *osb;
- 	u64 total_blocks;
++static int fat_set_directory_volume_label(struct file *file, char *label)
++{
++	struct msdos_dir_entry *de;
++	struct buffer_head *bh;
++	struct inode *root_inode = file_inode(file);
++	struct super_block *sb = root_inode->i_sb;
++	struct msdos_sb_info *sbi = MSDOS_SB(sb);
++	int err;
++	int offset;
++	sector_t blocknr;
++	loff_t i_pos;
++
++	err = 0;
++	i_pos = fat_i_pos_read(sbi, root_inode);
++	if (!i_pos)
++		return 0;
++
++	/* code found in inode.c */
++	fat_get_blknr_offset(sbi, i_pos, &blocknr, &offset);
++	bh = sb_bread(sb, blocknr);
++	if (!bh) {
++		fat_msg(sb, KERN_ERR,
++			"unable to read inode block for updating (i_pos %lld)",
++			i_pos);
++		return -EIO;
++	}
++
++	de = NULL;
++	err = fat_get_label_entry(root_inode, &bh, &de);
++	if (err)
++		return err;
++
++	if (label) {
++		fat_msg(sb, KERN_INFO,
++			"rename directory label from %.11s to %.11s",
++			de->name, label);
++		mutex_lock(&label_mutex);
++		strncpy(de->name, label, MSDOS_NAME);
++		mark_buffer_dirty(bh);
++		sync_dirty_buffer(bh);
++		brelse(bh);
++		mutex_unlock(&label_mutex);
++	} else {
++		fat_msg(sb, KERN_INFO, "directory label is %.11s", de->name);
++	}
++
++	return 0;
++}
++
++static int fat_set_partition_volume_label(struct file *file, char *label)
++{
++	struct fat_boot_sector *b;
++	struct buffer_head *bh;
++	struct inode *inode = file_inode(file);
++	struct super_block *sb = inode->i_sb;
++	struct msdos_sb_info *sbi = inode->i_sb->s_fs_info;
++
++	bh = sb_bread(sb, 0);
++	if (!bh) {
++		fat_msg(sb, KERN_ERR, "unable to read boot sector\n");
++		return -EIO;
++	}
++	b = (struct fat_boot_sector *)bh->b_data;
++
++	if (sbi->fat_bits == 32) {
++		if (label) {
++			fat_msg(sb, KERN_INFO,
++				"rename partition label from %.11s to %.11s",
++				b->fat32.vol_label, label);
++
++			mutex_lock(&MSDOS_SB(sb)->s_lock);
++			b->fat32.state |= FAT_STATE_DIRTY;
++			memcpy(b->fat32.vol_label, label, MSDOS_NAME);
++			mutex_unlock(&MSDOS_SB(sb)->s_lock);
++		} else {
++			b->fat32.state &= ~FAT_STATE_DIRTY;
++			fat_msg(sb, KERN_INFO, "partition label is %.11s",
++				b->fat32.vol_label);
++		}
++	} else {
++		if (label) {
++			fat_msg(sb, KERN_INFO,
++				"rename partition label from %.11s to %.11s ",
++				b->fat16.vol_label, label);
++
++			mutex_lock(&MSDOS_SB(sb)->s_lock);
++			b->fat32.state |= FAT_STATE_DIRTY;
++			memcpy(b->fat32.vol_label, label, MSDOS_NAME);
++			mutex_unlock(&MSDOS_SB(sb)->s_lock);
++		} else {
++			b->fat32.state &= ~FAT_STATE_DIRTY;
++			fat_msg(sb, KERN_INFO, "partition label is %.11s",
++				b->fat16.vol_label);
++		}
++	}
++	mark_buffer_dirty(bh);
++	sync_dirty_buffer(bh);
++	brelse(bh);
++
++	return 0;
++}
++
++static int fat_ioctl_set_label(struct file *file, u32 __user *user_attr)
++{
++	struct inode *inode = file_inode(file);
++	struct super_block *sb = inode->i_sb;
++	unsigned char newlabel[MSDOS_NAME + 1];
++	char *label;
++	int err;
++	int i;
++	int len;
++	unsigned char c;
++
++	if (!user_attr) {
++		label = NULL;
++		goto print_only;
++	}
++
++	label = newlabel;
++	err = copy_from_user(label, (void *)user_attr, MSDOS_NAME);
++	if (err) {
++		fat_msg(sb, KERN_ERR,
++			"copy_from_user failed %d bytes not copied\n", err);
++		return -EFAULT;
++	}
++	label[MSDOS_NAME] = '\0';
++	len = strlen(label);
++
++	if (len == 0) {
++		strncpy(label, "NO NAME    ", MSDOS_NAME);
++	} else {
++		for (i = 0; i < len; i++) {
++			c = label[i];
++			if ((c < 'a' || c > 'z') && (c < 'A' || c > 'Z')) {
++				if ((c < '0' || c > '9') && c != 0x20)
++					return -EINVAL;
++			}
++		}
++	}
++
++print_only:
++	err = fat_set_directory_volume_label(file, label);
++	if (err == -ENOENT) {
++		fat_msg(sb, KERN_ERR, "no label entry. please reformat\n");
++		strncpy(label, "NO NAME    ", MSDOS_NAME);
++	} else if (err) {
++		fat_msg(sb, KERN_ERR, "error setting directory label\n");
++		return err;
++	}
++
++	err = fat_set_partition_volume_label(file, label);
++	if (err) {
++		fat_msg(sb, KERN_ERR, "error setting partition label\n");
++		return err;
++	}
++
++	return 0;
++}
++
+ long fat_generic_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ {
+ 	struct inode *inode = file_inode(filp);
+@@ -167,6 +329,8 @@ long fat_generic_ioctl(struct file *filp
+ 		return fat_ioctl_get_volume_id(inode, user_attr);
+ 	case FITRIM:
+ 		return fat_ioctl_fitrim(inode, arg);
++	case VFAT_IOCTL_SET_LABEL:
++		return fat_ioctl_set_label(filp, user_attr);
+ 	default:
+ 		return -ENOTTY;	/* Inappropriate ioctl for device */
+ 	}
+--- a/include/uapi/linux/msdos_fs.h~fs-fat-make-the-volume-label-writable-when-mounted
++++ a/include/uapi/linux/msdos_fs.h
+@@ -104,6 +104,7 @@ struct __fat_dirent {
+ #define FAT_IOCTL_SET_ATTRIBUTES	_IOW('r', 0x11, __u32)
+ /*Android kernel has used 0x12, so we use 0x13*/
+ #define FAT_IOCTL_GET_VOLUME_ID		_IOR('r', 0x13, __u32)
++#define VFAT_IOCTL_SET_LABEL		_IOW('r', 0x14, __u32)
  
-@@ -2197,33 +2196,6 @@ static int ocfs2_initialize_super(struct
- 
- 	get_random_bytes(&osb->s_next_generation, sizeof(u32));
- 
--	/* FIXME
--	 * This should be done in ocfs2_journal_init(), but unknown
--	 * ordering issues will cause the filesystem to crash.
--	 * If anyone wants to figure out what part of the code
--	 * refers to osb->journal before ocfs2_journal_init() is run,
--	 * be my guest.
--	 */
--	/* initialize our journal structure */
--
--	journal = kzalloc(sizeof(struct ocfs2_journal), GFP_KERNEL);
--	if (!journal) {
--		mlog(ML_ERROR, "unable to alloc journal\n");
--		status = -ENOMEM;
--		goto bail;
--	}
--	osb->journal = journal;
--	journal->j_osb = osb;
--
--	atomic_set(&journal->j_num_trans, 0);
--	init_rwsem(&journal->j_trans_barrier);
--	init_waitqueue_head(&journal->j_checkpointed);
--	spin_lock_init(&journal->j_lock);
--	journal->j_trans_id = (unsigned long) 1;
--	INIT_LIST_HEAD(&journal->j_la_cleanups);
--	INIT_WORK(&journal->j_recovery_work, ocfs2_complete_recovery);
--	journal->j_state = OCFS2_JOURNAL_FREE;
--
- 	INIT_WORK(&osb->dquot_drop_work, ocfs2_drop_dquot_refs);
- 	init_llist_head(&osb->dquot_drop_list);
- 
-@@ -2404,7 +2376,7 @@ static int ocfs2_check_volume(struct ocf
- 						  * ourselves. */
- 
- 	/* Init our journal object. */
--	status = ocfs2_journal_init(osb->journal, &dirty);
-+	status = ocfs2_journal_init(osb, &dirty);
- 	if (status < 0) {
- 		mlog(ML_ERROR, "Could not initialize journal!\n");
- 		goto finally;
-@@ -2513,12 +2485,6 @@ static void ocfs2_delete_osb(struct ocfs
- 
- 	kfree(osb->osb_orphan_wipes);
- 	kfree(osb->slot_recovery_generations);
--	/* FIXME
--	 * This belongs in journal shutdown, but because we have to
--	 * allocate osb->journal at the start of ocfs2_initialize_osb(),
--	 * we free it here.
--	 */
--	kfree(osb->journal);
- 	kfree(osb->local_alloc_copy);
- 	kfree(osb->uuid_str);
- 	kfree(osb->vol_label);
+ struct fat_boot_sector {
+ 	__u8	ignored[3];	/* Boot strap short or near jump */
 _
 
-Patches currently in -mm which might be from vvidic@valentin-vidic.from.hr are
+Patches currently in -mm which might be from martink@posteo.de are
 
-ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
-ocfs2-cleanup-journal-init-and-shutdown.patch
 
