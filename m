@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0986C433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 10 Oct 2021 21:37:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D97B3C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 10 Oct 2021 21:37:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8F84360F24
-	for <mm-commits@archiver.kernel.org>; Sun, 10 Oct 2021 21:37:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AECD8610C7
+	for <mm-commits@archiver.kernel.org>; Sun, 10 Oct 2021 21:37:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232631AbhJJVjU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 10 Oct 2021 17:39:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59466 "EHLO mail.kernel.org"
+        id S232590AbhJJVjX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 10 Oct 2021 17:39:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59492 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230271AbhJJVjU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Sun, 10 Oct 2021 17:39:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id ED5B760E74;
-        Sun, 10 Oct 2021 21:37:20 +0000 (UTC)
+        id S230271AbhJJVjX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sun, 10 Oct 2021 17:39:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1AB5F60F24;
+        Sun, 10 Oct 2021 21:37:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633901841;
-        bh=/at2Qmg7wadSfU39N7dkYAlRTm5cAUCOr/6oBSWrFEI=;
+        s=korg; t=1633901844;
+        bh=3xLirvN6ieuft6FsJv5hFCSpbNH81dsVzFGYR+RJWZE=;
         h=Date:From:To:Subject:From;
-        b=GgO/1+vJPnNXp3jI33iVyPN3AETkWBHNIU7sI80JdS8PHRuRhkIko+NX/5UD1+Rlk
-         mfLDVJ7tlSjBlVPwUZactm9AHhrggyViMqQ44j1R8MuW0XYU4vLwzHnpUscG8Tzri6
-         gOHRgVkMYNkcFjqSJX1NayzINT98zwOkx8AFgvOg=
-Date:   Sun, 10 Oct 2021 14:37:20 -0700
+        b=d0zdHgg3/uFgM+Mjt6mM7ME1JD2v9sURoUqpsGjRlelwzzwbRrGn/+n6ULOI1ld2u
+         7z1GqwUinud+clQHeqiuZAFvc3z2nJUqjupfn5eDvL8s/VBhEBhA/nuGtRVe2r6FHH
+         adpWuP/SpXp+tfY7UqugKZoTZXrpDJUhP/Y5hngA=
+Date:   Sun, 10 Oct 2021 14:37:23 -0700
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, gregkh@linuxfoundation.org,
         mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
         wangkefeng.wang@huawei.com, will@kernel.org
 Subject:  +
- arm64-support-page-mapping-percpu-first-chunk-allocator.patch added to -mm
- tree
-Message-ID: <20211010213720.dmzKRLFf4%akpm@linux-foundation.org>
+ kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc.patch added
+ to -mm tree
+Message-ID: <20211010213723.h0vWxYv06%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: support page mapping percpu first chunk allocator
+     Subject: kasan: arm64: fix pcpu_page_first_chunk crash with KASAN_VMALLOC
 has been added to the -mm tree.  Its filename is
-     arm64-support-page-mapping-percpu-first-chunk-allocator.patch
+     kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/arm64-support-page-mapping-percpu-first-chunk-allocator.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/arm64-support-page-mapping-percpu-first-chunk-allocator.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,153 +63,122 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: arm64: support page mapping percpu first chunk allocator
+Subject: kasan: arm64: fix pcpu_page_first_chunk crash with KASAN_VMALLOC
 
-Percpu embedded first chunk allocator is the firstly option, but it
-could fails on ARM64, eg,
-  "percpu: max_distance=0x5fcfdc640000 too large for vmalloc space 0x781fefff0000"
-  "percpu: max_distance=0x600000540000 too large for vmalloc space 0x7dffb7ff0000"
-  "percpu: max_distance=0x5fff9adb0000 too large for vmalloc space 0x5dffb7ff0000"
+With KASAN_VMALLOC and NEED_PER_CPU_PAGE_FIRST_CHUNK, it crashes,
 
-then we could meet "WARNING: CPU: 15 PID: 461 at vmalloc.c:3087
-pcpu_get_vm_areas+0x488/0x838" and the system could not boot successfully.
+Unable to handle kernel paging request at virtual address ffff7000028f2000
+...
+swapper pgtable: 64k pages, 48-bit VAs, pgdp=0000000042440000
+[ffff7000028f2000] pgd=000000063e7c0003, p4d=000000063e7c0003, pud=000000063e7c0003, pmd=000000063e7b0003, pte=0000000000000000
+Internal error: Oops: 96000007 [#1] PREEMPT SMP
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper Not tainted 5.13.0-rc4-00003-gc6e6e28f3f30-dirty #62
+Hardware name: linux,dummy-virt (DT)
+pstate: 200000c5 (nzCv daIF -PAN -UAO -TCO BTYPE=--)
+pc : kasan_check_range+0x90/0x1a0
+lr : memcpy+0x88/0xf4
+sp : ffff80001378fe20
+...
+Call trace:
+ kasan_check_range+0x90/0x1a0
+ pcpu_page_first_chunk+0x3f0/0x568
+ setup_per_cpu_areas+0xb8/0x184
+ start_kernel+0x8c/0x328
 
-Let's implement page mapping percpu first chunk allocator as a fallback to
-the embedding allocator to increase the robustness of the system.
+The vm area used in vm_area_register_early() has no kasan shadow memory,
+Let's add a new kasan_populate_early_vm_area_shadow() function to populate
+the vm area shadow memory to fix the issue.
 
-Link: https://lkml.kernel.org/r/20210910053354.26721-3-wangkefeng.wang@huawei.com
+Link: https://lkml.kernel.org/r/20210910053354.26721-4-wangkefeng.wang@huawei.com
 Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Acked-by: Marco Elver <elver@google.com> (for KASAN parts)
+Acked-by: Andrey Konovalov <andreyknvl@gmail.com> (for KASAN parts)
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Marco Elver <elver@google.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig       |    4 +
- drivers/base/arch_numa.c |   82 ++++++++++++++++++++++++++++++++-----
- 2 files changed, 76 insertions(+), 10 deletions(-)
+ arch/arm64/mm/kasan_init.c |   16 ++++++++++++++++
+ include/linux/kasan.h      |    6 ++++++
+ mm/kasan/init.c            |    5 +++++
+ mm/vmalloc.c               |    1 +
+ 4 files changed, 28 insertions(+)
 
---- a/arch/arm64/Kconfig~arm64-support-page-mapping-percpu-first-chunk-allocator
-+++ a/arch/arm64/Kconfig
-@@ -1042,6 +1042,10 @@ config NEED_PER_CPU_EMBED_FIRST_CHUNK
- 	def_bool y
- 	depends on NUMA
- 
-+config NEED_PER_CPU_PAGE_FIRST_CHUNK
-+	def_bool y
-+	depends on NUMA
-+
- source "kernel/Kconfig.hz"
- 
- config ARCH_SPARSEMEM_ENABLE
---- a/drivers/base/arch_numa.c~arm64-support-page-mapping-percpu-first-chunk-allocator
-+++ a/drivers/base/arch_numa.c
-@@ -14,6 +14,7 @@
- #include <linux/of.h>
- 
- #include <asm/sections.h>
-+#include <asm/pgalloc.h>
- 
- struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
- EXPORT_SYMBOL(node_data);
-@@ -168,22 +169,83 @@ static void __init pcpu_fc_free(void *pt
- 	memblock_free_early(__pa(ptr), size);
+--- a/arch/arm64/mm/kasan_init.c~kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc
++++ a/arch/arm64/mm/kasan_init.c
+@@ -287,6 +287,22 @@ static void __init kasan_init_depth(void
+ 	init_task.kasan_depth = 0;
  }
  
-+#ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
-+static void __init pcpu_populate_pte(unsigned long addr)
++#ifdef CONFIG_KASAN_VMALLOC
++void __init kasan_populate_early_vm_area_shadow(void *start, unsigned long size)
 +{
-+	pgd_t *pgd = pgd_offset_k(addr);
-+	p4d_t *p4d;
-+	pud_t *pud;
-+	pmd_t *pmd;
++	unsigned long shadow_start, shadow_end;
 +
-+	p4d = p4d_offset(pgd, addr);
-+	if (p4d_none(*p4d)) {
-+		pud_t *new;
++	if (!is_vmalloc_or_module_addr(start))
++		return;
 +
-+		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		p4d_populate(&init_mm, p4d, new);
-+	}
-+
-+	pud = pud_offset(p4d, addr);
-+	if (pud_none(*pud)) {
-+		pmd_t *new;
-+
-+		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		pud_populate(&init_mm, pud, new);
-+	}
-+
-+	pmd = pmd_offset(pud, addr);
-+	if (!pmd_present(*pmd)) {
-+		pte_t *new;
-+
-+		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		pmd_populate_kernel(&init_mm, pmd, new);
-+	}
-+
-+	return;
-+
-+err_alloc:
-+	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
-+	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
++	shadow_start = (unsigned long)kasan_mem_to_shadow(start);
++	shadow_start = ALIGN_DOWN(shadow_start, PAGE_SIZE);
++	shadow_end = (unsigned long)kasan_mem_to_shadow(start + size);
++	shadow_end = ALIGN(shadow_end, PAGE_SIZE);
++	kasan_map_populate(shadow_start, shadow_end, NUMA_NO_NODE);
 +}
 +#endif
 +
- void __init setup_per_cpu_areas(void)
+ void __init kasan_init(void)
  {
- 	unsigned long delta;
- 	unsigned int cpu;
--	int rc;
-+	int rc = -EINVAL;
+ 	kasan_init_shadow();
+--- a/include/linux/kasan.h~kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc
++++ a/include/linux/kasan.h
+@@ -434,6 +434,8 @@ void kasan_release_vmalloc(unsigned long
+ 			   unsigned long free_region_start,
+ 			   unsigned long free_region_end);
  
--	/*
--	 * Always reserve area for module percpu variables.  That's
--	 * what the legacy allocator did.
--	 */
--	rc = pcpu_embed_first_chunk(PERCPU_MODULE_RESERVE,
--				    PERCPU_DYNAMIC_RESERVE, PAGE_SIZE,
--				    pcpu_cpu_distance,
--				    pcpu_fc_alloc, pcpu_fc_free);
-+	if (pcpu_chosen_fc != PCPU_FC_PAGE) {
-+		/*
-+		 * Always reserve area for module percpu variables.  That's
-+		 * what the legacy allocator did.
-+		 */
-+		rc = pcpu_embed_first_chunk(PERCPU_MODULE_RESERVE,
-+					    PERCPU_DYNAMIC_RESERVE, PAGE_SIZE,
-+					    pcpu_cpu_distance,
-+					    pcpu_fc_alloc, pcpu_fc_free);
-+#ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
-+		if (rc < 0)
-+			pr_warn("PERCPU: %s allocator failed (%d), falling back to page size\n",
-+				   pcpu_fc_names[pcpu_chosen_fc], rc);
-+#endif
-+	}
++void kasan_populate_early_vm_area_shadow(void *start, unsigned long size);
 +
-+#ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
-+	if (rc < 0)
-+		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE,
-+					   pcpu_fc_alloc,
-+					   pcpu_fc_free,
-+					   pcpu_populate_pte);
-+#endif
- 	if (rc < 0)
--		panic("Failed to initialize percpu areas.");
-+		panic("Failed to initialize percpu areas (err=%d).", rc);
+ #else /* CONFIG_KASAN_VMALLOC */
  
- 	delta = (unsigned long)pcpu_base_addr - (unsigned long)__per_cpu_start;
- 	for_each_possible_cpu(cpu)
+ static inline int kasan_populate_vmalloc(unsigned long start,
+@@ -451,6 +453,10 @@ static inline void kasan_release_vmalloc
+ 					 unsigned long free_region_start,
+ 					 unsigned long free_region_end) {}
+ 
++static inline void kasan_populate_early_vm_area_shadow(void *start,
++						       unsigned long size)
++{ }
++
+ #endif /* CONFIG_KASAN_VMALLOC */
+ 
+ #if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
+--- a/mm/kasan/init.c~kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc
++++ a/mm/kasan/init.c
+@@ -279,6 +279,11 @@ int __ref kasan_populate_early_shadow(co
+ 	return 0;
+ }
+ 
++void __init __weak kasan_populate_early_vm_area_shadow(void *start,
++						       unsigned long size)
++{
++}
++
+ static void kasan_free_pte(pte_t *pte_start, pmd_t *pmd)
+ {
+ 	pte_t *pte;
+--- a/mm/vmalloc.c~kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc
++++ a/mm/vmalloc.c
+@@ -2291,6 +2291,7 @@ void __init vm_area_register_early(struc
+ 	vm->addr = (void *)addr;
+ 	vm->next = *p;
+ 	*p = vm;
++	kasan_populate_early_vm_area_shadow(vm->addr, vm->size);
+ }
+ 
+ static void vmap_init_free_space(void)
 _
 
 Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
