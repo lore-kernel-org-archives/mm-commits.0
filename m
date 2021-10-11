@@ -2,33 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BFAEAC433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 19:18:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFF6EC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 20:56:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9B7DD60F57
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 19:18:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C053060F4B
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 20:56:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234564AbhJKTUt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Oct 2021 15:20:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56198 "EHLO mail.kernel.org"
+        id S234022AbhJKU6o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Oct 2021 16:58:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33328 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234610AbhJKTUt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 11 Oct 2021 15:20:49 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A5E9160C4A;
-        Mon, 11 Oct 2021 19:18:48 +0000 (UTC)
+        id S230299AbhJKU6o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 Oct 2021 16:58:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6879560F23;
+        Mon, 11 Oct 2021 20:56:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633979928;
-        bh=iiR3LTg0vH6HV/+wOuhz0qgfiWgnBFe99zrqYgCNK3o=;
+        s=korg; t=1633985803;
+        bh=QHg8dz17yvMiSSCNB6SzSvs+To0LgSwYmj27tfIeMjs=;
         h=Date:From:To:Subject:From;
-        b=fBFn1ZYLrTyLJsXl2yTEa1/0WBJx4wHNBDfffOuy4u70veX5y3/laYnyeqCkv+eCk
-         bnhwZeHw7pE5p40sa1wdhoGGnEfzWkdYdLCF8GDZR3235Q11ZvVNfwU1mMQd0pgkoj
-         5s3J/lkqBof7uqW+jJGWUc1ZFaCwDx/e2oxrH0/Q=
-Date:   Mon, 11 Oct 2021 12:18:47 -0700
+        b=hzpJqf5lMaeaWP/QLA9qw2+y4wKhby3+5Ir3suA+xd/cCJAqiv1rcgNL5IJG+oHnZ
+         GsKlvPAAVLYlkiWIzTq9WcYMym/6dOY2cbixlFKKvZ4lvNyOIHYu3l0fz9hJg83KhP
+         AWKPonaaOPyXE4vRdnYhRWm4sKCkmWB5n9JfAnTU=
+Date:   Mon, 11 Oct 2021 13:56:42 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
- tree
-Message-ID: <20211011191847.kjSoqxMgd%akpm@linux-foundation.org>
+To:     catalin.marinas@arm.com, dvyukov@google.com, lkft@linaro.org,
+        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        ryabinin.a.a@gmail.com, sfr@canb.auug.org.au,
+        wangkefeng.wang@huawei.com
+Subject:  +
+ kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
+ added to -mm tree
+Message-ID: <20211011205642.MrLcZAmUS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -37,260 +41,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm: kasan: fix redefinition of 'kasan_populate_early_vm_area_shadow'
+has been added to the -mm tree.  Its filename is
+     kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: kasan: fix redefinition of 'kasan_populate_early_vm_area_shadow'
 
+Move kasan_populate_early_vm_area_shadow() from mm/kasan/init.c to
+mm/kasan/shadow.c, make it under CONFIG_KASAN_VMALLOC to fix the
+redefinition issue.
+
+Link: https://lkml.kernel.org/r/20211011123211.3936196-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: resh Kamboju <naresh.kamboju@linaro.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/riscv/Kconfig                |    3 -
- arch/riscv/include/asm/vdso.h     |    4 -
- arch/riscv/kernel/vdso.c          |   70 ----------------------------
- arch/riscv/kernel/vdso/vdso.lds.S |    3 -
- arch/x86/kernel/fpu/signal.c      |   11 ----
- tools/objtool/check.c             |    4 -
- 6 files changed, 95 deletions(-)
+ mm/kasan/init.c   |    5 -----
+ mm/kasan/shadow.c |    5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/arch/riscv/include/asm/vdso.h~linux-next-git-rejects
-+++ a/arch/riscv/include/asm/vdso.h
-@@ -22,11 +22,7 @@
-  */
- #ifdef CONFIG_MMU
- 
--<<<<<<< HEAD
--#define __VVAR_PAGES    1
--=======
- #define __VVAR_PAGES    2
-->>>>>>> linux-next/akpm-base
- 
- #ifndef __ASSEMBLY__
- #include <generated/vdso-offsets.h>
---- a/arch/riscv/Kconfig~linux-next-git-rejects
-+++ a/arch/riscv/Kconfig
-@@ -562,8 +562,5 @@ menu "Power management options"
- source "kernel/power/Kconfig"
- 
- endmenu
--<<<<<<< HEAD
--=======
- 
- source "arch/riscv/kvm/Kconfig"
-->>>>>>> linux-next/akpm-base
---- a/arch/riscv/kernel/vdso.c~linux-next-git-rejects
-+++ a/arch/riscv/kernel/vdso.c
-@@ -13,10 +13,7 @@
- #include <linux/err.h>
- #include <asm/page.h>
- #include <asm/vdso.h>
--<<<<<<< HEAD
--=======
- #include <linux/time_namespace.h>
-->>>>>>> linux-next/akpm-base
- 
- #ifdef CONFIG_GENERIC_TIME_VSYSCALL
- #include <vdso/datapage.h>
-@@ -29,20 +26,11 @@ extern char vdso_start[], vdso_end[];
- 
- enum vvar_pages {
- 	VVAR_DATA_PAGE_OFFSET,
--<<<<<<< HEAD
--=======
- 	VVAR_TIMENS_PAGE_OFFSET,
-->>>>>>> linux-next/akpm-base
- 	VVAR_NR_PAGES,
- };
- 
- #define VVAR_SIZE  (VVAR_NR_PAGES << PAGE_SHIFT)
--<<<<<<< HEAD
--
--static unsigned int vdso_pages __ro_after_init;
--static struct page **vdso_pagelist __ro_after_init;
--=======
-->>>>>>> linux-next/akpm-base
- 
- /*
-  * The vDSO data page.
-@@ -84,18 +72,9 @@ static int __init __vdso_init(void)
- 	struct page **vdso_pagelist;
- 	unsigned long pfn;
- 
--<<<<<<< HEAD
--	vdso_pages = (vdso_end - vdso_start) >> PAGE_SHIFT;
--	vdso_pagelist =
--		kcalloc(vdso_pages + VVAR_NR_PAGES, sizeof(struct page *), GFP_KERNEL);
--	if (unlikely(vdso_pagelist == NULL)) {
--		pr_err("vdso: pagelist allocation failed\n");
--		return -ENOMEM;
--=======
- 	if (memcmp(vdso_info.vdso_code_start, "\177ELF", 4)) {
- 		pr_err("vDSO is not a valid ELF object!\n");
- 		return -EINVAL;
-->>>>>>> linux-next/akpm-base
- 	}
- 
- 	vdso_info.vdso_pages = (
-@@ -242,67 +221,28 @@ static int __setup_additional_pages(stru
- 
- 	BUILD_BUG_ON(VVAR_NR_PAGES != __VVAR_PAGES);
- 
--<<<<<<< HEAD
--	BUILD_BUG_ON(VVAR_NR_PAGES != __VVAR_PAGES);
--
--	vdso_len = (vdso_pages + VVAR_NR_PAGES) << PAGE_SHIFT;
--
--	if (mmap_write_lock_killable(mm))
--		return -EINTR;
--
--	vdso_base = get_unmapped_area(NULL, 0, vdso_len, 0, 0);
--=======
- 	vdso_text_len = vdso_info.vdso_pages << PAGE_SHIFT;
- 	/* Be sure to map the data page */
- 	vdso_mapping_len = vdso_text_len + VVAR_SIZE;
- 
- 	vdso_base = get_unmapped_area(NULL, 0, vdso_mapping_len, 0, 0);
-->>>>>>> linux-next/akpm-base
- 	if (IS_ERR_VALUE(vdso_base)) {
- 		ret = ERR_PTR(vdso_base);
- 		goto up_fail;
- 	}
- 
--<<<<<<< HEAD
--	mm->context.vdso = NULL;
--	ret = install_special_mapping(mm, vdso_base, VVAR_SIZE,
--		(VM_READ | VM_MAYREAD), &vdso_pagelist[vdso_pages]);
--	if (unlikely(ret))
--		goto end;
--=======
- 	ret = _install_special_mapping(mm, vdso_base, VVAR_SIZE,
- 		(VM_READ | VM_MAYREAD | VM_PFNMAP), vdso_info.dm);
- 	if (IS_ERR(ret))
- 		goto up_fail;
-->>>>>>> linux-next/akpm-base
- 
- 	vdso_base += VVAR_SIZE;
- 	mm->context.vdso = (void *)vdso_base;
- 	ret =
--<<<<<<< HEAD
--	   install_special_mapping(mm, vdso_base + VVAR_SIZE,
--		vdso_pages << PAGE_SHIFT,
--=======
- 	   _install_special_mapping(mm, vdso_base, vdso_text_len,
-->>>>>>> linux-next/akpm-base
- 		(VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC),
- 		vdso_info.cm);
- 
--<<<<<<< HEAD
--	if (unlikely(ret))
--		goto end;
--
--	/*
--	 * Put vDSO base into mm struct. We need to do this before calling
--	 * install_special_mapping or the perf counter mmap tracking code
--	 * will fail to recognise it as a vDSO (since arch_vma_name fails).
--	 */
--	mm->context.vdso = (void *)vdso_base + VVAR_SIZE;
--
--end:
--	mmap_write_unlock(mm);
--	return ret;
--=======
- 	if (IS_ERR(ret))
- 		goto up_fail;
- 
-@@ -311,19 +251,10 @@ end:
- up_fail:
- 	mm->context.vdso = NULL;
- 	return PTR_ERR(ret);
-->>>>>>> linux-next/akpm-base
+--- a/mm/kasan/init.c~kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix
++++ a/mm/kasan/init.c
+@@ -279,11 +279,6 @@ int __ref kasan_populate_early_shadow(co
+ 	return 0;
  }
  
- int arch_setup_additional_pages(struct linux_binprm *bprm, int uses_interp)
+-void __init __weak kasan_populate_early_vm_area_shadow(void *start,
+-						       unsigned long size)
+-{
+-}
+-
+ static void kasan_free_pte(pte_t *pte_start, pmd_t *pmd)
  {
--<<<<<<< HEAD
--	if (vma->vm_mm && (vma->vm_start == (long)vma->vm_mm->context.vdso))
--		return "[vdso]";
--	if (vma->vm_mm && (vma->vm_start ==
--			   (long)vma->vm_mm->context.vdso - VVAR_SIZE))
--		return "[vdso_data]";
--	return NULL;
--=======
- 	struct mm_struct *mm = current->mm;
- 	int ret;
+ 	pte_t *pte;
+--- a/mm/kasan/shadow.c~kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix
++++ a/mm/kasan/shadow.c
+@@ -254,6 +254,11 @@ core_initcall(kasan_memhotplug_init);
  
-@@ -334,5 +265,4 @@ int arch_setup_additional_pages(struct l
- 	mmap_write_unlock(mm);
+ #ifdef CONFIG_KASAN_VMALLOC
  
- 	return ret;
-->>>>>>> linux-next/akpm-base
- }
---- a/arch/riscv/kernel/vdso/vdso.lds.S~linux-next-git-rejects
-+++ a/arch/riscv/kernel/vdso/vdso.lds.S
-@@ -10,12 +10,9 @@ OUTPUT_ARCH(riscv)
- SECTIONS
++void __init __weak kasan_populate_early_vm_area_shadow(void *start,
++						       unsigned long size)
++{
++}
++
+ static int kasan_populate_vmalloc_pte(pte_t *ptep, unsigned long addr,
+ 				      void *unused)
  {
- 	PROVIDE(_vdso_data = . - __VVAR_PAGES * PAGE_SIZE);
--<<<<<<< HEAD
--=======
- #ifdef CONFIG_TIME_NS
- 	PROVIDE(_timens_data = _vdso_data + PAGE_SIZE);
- #endif
-->>>>>>> linux-next/akpm-base
- 	. = SIZEOF_HEADERS;
- 
- 	.hash		: { *(.hash) }			:text
---- a/arch/x86/kernel/fpu/signal.c~linux-next-git-rejects
-+++ a/arch/x86/kernel/fpu/signal.c
-@@ -384,19 +384,8 @@ static bool __fpu_restore_sig(void __use
- 				     sizeof(fpu->state.fxsave)))
- 			return false;
- 
--<<<<<<< HEAD
--		if (IS_ENABLED(CONFIG_X86_64)) {
--			/* Reject invalid MXCSR values. */
--			if (fpu->state.fxsave.mxcsr & ~mxcsr_feature_mask)
--				return -EINVAL;
--		} else {
--			/* Mask invalid bits out for historical reasons (broken hardware). */
--			fpu->state.fxsave.mxcsr &= ~mxcsr_feature_mask;
--		}
--=======
- 		/* Mask out reserved MXCSR bits. */
- 		fpu->state.fxsave.mxcsr &= mxcsr_feature_mask;
-->>>>>>> linux-next/akpm-base
- 
- 		/* Enforce XFEATURE_MASK_FPSSE when XSAVE is enabled */
- 		if (use_xsave())
---- a/tools/objtool/check.c~linux-next-git-rejects
-+++ a/tools/objtool/check.c
-@@ -382,11 +382,7 @@ static int decode_instructions(struct ob
- 			insn->sec = sec;
- 			insn->offset = offset;
- 
--<<<<<<< HEAD
--			ret = arch_decode_instruction(file->elf, sec, offset,
--=======
- 			ret = arch_decode_instruction(file, sec, offset,
-->>>>>>> linux-next/akpm-base
- 						      sec->sh.sh_size - offset,
- 						      &insn->len, &insn->type,
- 						      &insn->immediate,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-ocfs2-fix-data-corruption-after-conversion-from-inline-format-fix.patch
-elfcore-correct-reference-to-config_uml-fix.patch
-mm.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
-ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+slub-add-back-check-for-free-nonslab-objects.patch
+vmalloc-choose-a-better-start-address-in-vm_area_register_early.patch
+arm64-support-page-mapping-percpu-first-chunk-allocator.patch
+kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc.patch
+kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
+mm-nommu-kill-arch_get_unmapped_area.patch
+kallsyms-remove-arch-specific-text-and-data-check.patch
+kallsyms-fix-address-checks-for-kernel-related-range.patch
+sections-move-and-rename-core_kernel_data-to-is_kernel_core_data.patch
+sections-move-is_kernel_inittext-into-sectionsh.patch
+x86-mm-rename-__is_kernel_text-to-is_x86_32_kernel_text.patch
+sections-provide-internal-__is_kernel-and-__is_kernel_text-helper.patch
+mm-kasan-use-is_kernel-helper.patch
+extable-use-is_kernel_text-helper.patch
+powerpc-mm-use-core_kernel_text-helper.patch
+microblaze-use-is_kernel_text-helper.patch
+alpha-use-is_kernel_text-helper.patch
 
