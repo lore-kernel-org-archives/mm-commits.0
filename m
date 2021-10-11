@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C136C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 22:54:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 17BFBC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 22:57:25 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7370660F22
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 22:54:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E9C0B60E9C
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 22:57:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229677AbhJKW47 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Oct 2021 18:56:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37668 "EHLO mail.kernel.org"
+        id S229590AbhJKW7Y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Oct 2021 18:59:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38730 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229576AbhJKW46 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 11 Oct 2021 18:56:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BE44960F3A;
-        Mon, 11 Oct 2021 22:54:57 +0000 (UTC)
+        id S229576AbhJKW7Y (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 Oct 2021 18:59:24 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF674604D2;
+        Mon, 11 Oct 2021 22:57:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633992897;
-        bh=IYft3san32/y2cuuJezw0CM1fs1OzTHbLySopcoRv08=;
+        s=korg; t=1633993043;
+        bh=sQSpxIvR7QOMs3Zbj477jj933R9EFT9F06JA0W4bxzU=;
         h=Date:From:To:Subject:From;
-        b=BVK/km3/4kxgv/GB8HND0HTqIVngwJa2tgSK0n0pzfABHybFGxAH6z9e3h498uFgj
-         EXJ0O5f/omnpX4kNmw/8VN9UlFgVDye/HNDKbC9sjd02GG8Hp9Z/JfOnVyvUilS5BF
-         Bufn/zSQC8B1gxE4DcLrCmQJ6pmTVR8oChnr48vU=
-Date:   Mon, 11 Oct 2021 15:54:57 -0700
+        b=OPhD3gEEIcRr97+IIZs8XDqW32wuvEeJWvWRoqi6ep4njW4K//mzIQ+jcWLvtPwM+
+         yzTb0C4zRZciZC1ITCz8yzjvxGHBHyinhTCta+z90TtpDMqfVy/dZfgyQjC2tFXvcs
+         WOjtwddMXqYleOA1cNd6DzyVm1Q8xmnfmvbKCDnc=
+Date:   Mon, 11 Oct 2021 15:57:23 -0700
 From:   akpm@linux-foundation.org
-To:     liangcaifan19@gmail.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, zhang.lyra@gmail.com
-Subject:  +
- mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged.patch
+To:     mm-commits@vger.kernel.org, pedrodemargomes@gmail.com,
+        zhansayabagdaulet@gmail.com
+Subject:  + selftests-vm-add-ksm-huge-pages-merging-time-test.patch
  added to -mm tree
-Message-ID: <20211011225457.kLPNOS88m%akpm@linux-foundation.org>
+Message-ID: <20211011225723.YhCOF6CGs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: khugepaged: Recalculate min_free_kbytes after stopping khugepaged
+     Subject: selftests: vm: add KSM huge pages merging time test
 has been added to the -mm tree.  Its filename is
-     mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged.patch
+     selftests-vm-add-ksm-huge-pages-merging-time-test.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-add-ksm-huge-pages-merging-time-test.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-add-ksm-huge-pages-merging-time-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,100 +59,162 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liangcai Fan <liangcaifan19@gmail.com>
-Subject: mm: khugepaged: Recalculate min_free_kbytes after stopping khugepaged
+From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Subject: selftests: vm: add KSM huge pages merging time test
 
-When initializing transparent huge pages, min_free_kbytes would be
-calculated according to what khugepaged expected.
-So when disable transparent huge pages, min_free_kbytes should be
-recalculated instead of the higher value set by khugepaged.
-
-Link: https://lkml.kernel.org/r/1633937809-16558-1-git-send-email-liangcaifan19@gmail.com
-Signed-off-by: Liangcai Fan <liangcaifan19@gmail.com>
-Signed-off-by: Chunyan Zhang <zhang.lyra@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20211011055908.87140-1-pedrodemargomes@gmail.com
+Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Cc: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- mm/khugepaged.c    |   10 ++++++++--
- mm/page_alloc.c    |    7 ++++++-
- 3 files changed, 15 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/ksm_tests.c |   40 +++++++++++++++++------
+ 1 file changed, 30 insertions(+), 10 deletions(-)
 
---- a/include/linux/mm.h~mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged
-+++ a/include/linux/mm.h
-@@ -2453,6 +2453,7 @@ extern void memmap_init_range(unsigned l
- 		unsigned long, unsigned long, enum meminit_context,
- 		struct vmem_altmap *, int migratetype);
- extern void setup_per_zone_wmarks(void);
-+extern void calculate_min_free_kbytes(void);
- extern int __meminit init_per_zone_wmark_min(void);
- extern void mem_init(void);
- extern void __init mmap_init(void);
---- a/mm/khugepaged.c~mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged
-+++ a/mm/khugepaged.c
-@@ -2291,6 +2291,11 @@ static void set_recommended_min_free_kby
- 	int nr_zones = 0;
- 	unsigned long recommended_min;
+--- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-add-ksm-huge-pages-merging-time-test
++++ a/tools/testing/selftests/vm/ksm_tests.c
+@@ -5,6 +5,7 @@
+ #include <time.h>
+ #include <string.h>
+ #include <numa.h>
++#include <err.h>
  
-+	if (!khugepaged_enabled()) {
-+		calculate_min_free_kbytes();
-+		goto update_wmarks;
-+	}
-+
- 	for_each_populated_zone(zone) {
- 		/*
- 		 * We don't need to worry about fragmentation of
-@@ -2326,6 +2331,8 @@ static void set_recommended_min_free_kby
+ #include "../kselftest.h"
+ #include "../../../../include/vdso/time64.h"
+@@ -34,7 +35,8 @@ enum ksm_test_name {
+ 	CHECK_KSM_ZERO_PAGE_MERGE,
+ 	CHECK_KSM_NUMA_MERGE,
+ 	KSM_MERGE_TIME,
+-	KSM_COW_TIME
++	KSM_COW_TIME,
++	KSM_MERGE_TIME_HUGE_PAGES
+ };
  
- 		min_free_kbytes = recommended_min;
- 	}
-+
-+update_wmarks:
- 	setup_per_zone_wmarks();
+ static int ksm_write_sysfs(const char *file_path, unsigned long val)
+@@ -100,6 +102,9 @@ static void print_help(void)
+ 	       " -P evaluate merging time and speed.\n"
+ 	       "    For this test, the size of duplicated memory area (in MiB)\n"
+ 	       "    must be provided using -s option\n"
++		   " -H evaluate merging time and speed of huge pages.\n"
++	       "    For this test, the size of duplicated memory area (in MiB)\n"
++	       "    must be provided using -s option\n"
+ 	       " -C evaluate the time required to break COW of merged pages.\n\n");
+ 
+ 	printf(" -a: specify the access protections of pages.\n"
+@@ -118,10 +123,14 @@ static void print_help(void)
+ 	exit(0);
  }
  
-@@ -2347,12 +2354,11 @@ int start_stop_khugepaged(void)
- 
- 		if (!list_empty(&khugepaged_scan.mm_head))
- 			wake_up_interruptible(&khugepaged_wait);
--
--		set_recommended_min_free_kbytes();
- 	} else if (khugepaged_thread) {
- 		kthread_stop(khugepaged_thread);
- 		khugepaged_thread = NULL;
- 	}
-+	set_recommended_min_free_kbytes();
- fail:
- 	mutex_unlock(&khugepaged_mutex);
- 	return err;
---- a/mm/page_alloc.c~mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged
-+++ a/mm/page_alloc.c
-@@ -8463,7 +8463,7 @@ void setup_per_zone_wmarks(void)
-  * 8192MB:	11584k
-  * 16384MB:	16384k
-  */
--int __meminit init_per_zone_wmark_min(void)
-+void calculate_min_free_kbytes(void)
+-static void  *allocate_memory(void *ptr, int prot, int mapping, char data, size_t map_size)
++static void  *allocate_memory(void *ptr, int prot, int mapping, char data, size_t map_size,
++				 bool huge_page)
  {
- 	unsigned long lowmem_kbytes;
- 	int new_min_free_kbytes;
-@@ -8481,6 +8481,11 @@ int __meminit init_per_zone_wmark_min(vo
- 		pr_warn("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
- 				new_min_free_kbytes, user_min_free_kbytes);
- 	}
-+}
+ 	void *map_ptr = mmap(ptr, map_size, PROT_WRITE, mapping, -1, 0);
+ 
++	if (huge_page && madvise(map_ptr, map_size, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
 +
-+int __meminit init_per_zone_wmark_min(void)
-+{
-+	calculate_min_free_kbytes();
- 	setup_per_zone_wmarks();
- 	refresh_zone_stat_thresholds();
- 	setup_per_zone_lowmem_reserve();
+ 	if (!map_ptr) {
+ 		perror("mmap");
+ 		return NULL;
+@@ -250,7 +259,7 @@ static int check_ksm_merge(int mapping,
+ 	}
+ 
+ 	/* fill pages with the same data and merge them */
+-	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
++	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count, false);
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+@@ -282,7 +291,7 @@ static int check_ksm_unmerge(int mapping
+ 	}
+ 
+ 	/* fill pages with the same data and merge them */
+-	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
++	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count, false);
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+@@ -325,7 +334,7 @@ static int check_ksm_zero_page_merge(int
+ 		return KSFT_FAIL;
+ 
+ 	/* fill pages with zero and try to merge them */
+-	map_ptr = allocate_memory(NULL, prot, mapping, 0, page_size * page_count);
++	map_ptr = allocate_memory(NULL, prot, mapping, 0, page_size * page_count, false);
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+@@ -439,7 +448,7 @@ err_out:
+ 	return KSFT_FAIL;
+ }
+ 
+-static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size)
++static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size, bool huge_page)
+ {
+ 	void *map_ptr;
+ 	struct timespec start_time, end_time;
+@@ -447,7 +456,7 @@ static int ksm_merge_time(int mapping, i
+ 
+ 	map_size *= MB;
+ 
+-	map_ptr = allocate_memory(NULL, prot, mapping, '*', map_size);
++	map_ptr = allocate_memory(NULL, prot, mapping, '*', map_size, huge_page);
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+@@ -489,7 +498,7 @@ static int ksm_cow_time(int mapping, int
+ 	/* page_count must be less than 2*page_size */
+ 	size_t page_count = 4000;
+ 
+-	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
++	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count, false);
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+@@ -564,7 +573,7 @@ int main(int argc, char *argv[])
+ 	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
+ 	long size_MB = 0;
+ 
+-	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPC")) != -1) {
++	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPCH")) != -1) {
+ 		switch (opt) {
+ 		case 'a':
+ 			prot = str_to_prot(optarg);
+@@ -621,6 +630,9 @@ int main(int argc, char *argv[])
+ 		case 'C':
+ 			test_name = KSM_COW_TIME;
+ 			break;
++		case 'H':
++			test_name = KSM_MERGE_TIME_HUGE_PAGES;
++			break;
+ 		default:
+ 			return KSFT_FAIL;
+ 		}
+@@ -668,12 +680,20 @@ int main(int argc, char *argv[])
+ 			return KSFT_FAIL;
+ 		}
+ 		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+-				     size_MB);
++				     size_MB, false);
+ 		break;
+ 	case KSM_COW_TIME:
+ 		ret = ksm_cow_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+ 				   page_size);
+ 		break;
++	case KSM_MERGE_TIME_HUGE_PAGES:
++		if (size_MB == 0) {
++			printf("Option '-s' is required.\n");
++			return KSFT_FAIL;
++		}
++		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
++				     size_MB, true);
++		break;
+ 	}
+ 
+ 	if (ksm_restore(&ksm_sysfs_old)) {
 _
 
-Patches currently in -mm which might be from liangcaifan19@gmail.com are
+Patches currently in -mm which might be from pedrodemargomes@gmail.com are
 
-mm-show-watermark_boost-of-zone-in-zoneinfo.patch
-mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged.patch
+selftests-vm-add-ksm-huge-pages-merging-time-test.patch
 
