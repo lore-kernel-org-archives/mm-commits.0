@@ -2,37 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFF6EC433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 20:56:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 64AE6C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 21:15:32 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C053060F4B
-	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 20:56:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 47FB060F3A
+	for <mm-commits@archiver.kernel.org>; Mon, 11 Oct 2021 21:15:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234022AbhJKU6o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 11 Oct 2021 16:58:44 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33328 "EHLO mail.kernel.org"
+        id S235122AbhJKVRb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 11 Oct 2021 17:17:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41932 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230299AbhJKU6o (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 11 Oct 2021 16:58:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6879560F23;
-        Mon, 11 Oct 2021 20:56:43 +0000 (UTC)
+        id S231718AbhJKVRa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 11 Oct 2021 17:17:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B7D3D60E78;
+        Mon, 11 Oct 2021 21:15:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1633985803;
-        bh=QHg8dz17yvMiSSCNB6SzSvs+To0LgSwYmj27tfIeMjs=;
+        s=korg; t=1633986929;
+        bh=rrRgVZITArk1DTsXf4xXbzbNpxo1kgTlds6MO9lvqmU=;
         h=Date:From:To:Subject:From;
-        b=hzpJqf5lMaeaWP/QLA9qw2+y4wKhby3+5Ir3suA+xd/cCJAqiv1rcgNL5IJG+oHnZ
-         GsKlvPAAVLYlkiWIzTq9WcYMym/6dOY2cbixlFKKvZ4lvNyOIHYu3l0fz9hJg83KhP
-         AWKPonaaOPyXE4vRdnYhRWm4sKCkmWB5n9JfAnTU=
-Date:   Mon, 11 Oct 2021 13:56:42 -0700
+        b=QCU69A9e1p+wCLlF/7YLQeP4baih0XxcNzUARLyPmcfmNi/Afd5dXRankDDwMO5vE
+         yERJ6xdD2sLzCuO6u3NPYZnxtH+sD3fcrrlkS8JE1g8q8todHQB4TedTJ0qrAH0Gdh
+         3vDfvO1zrdKobPTS+ang5NQsO1XRguQBWEc3DZXU=
+Date:   Mon, 11 Oct 2021 14:15:29 -0700
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, dvyukov@google.com, lkft@linaro.org,
-        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
-        ryabinin.a.a@gmail.com, sfr@canb.auug.org.au,
-        wangkefeng.wang@huawei.com
+To:     corbet@lwn.net, david@redhat.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de, rppt@linux.ibm.com
 Subject:  +
- kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
- added to -mm tree
-Message-ID: <20211011205642.MrLcZAmUS%akpm@linux-foundation.org>
+ memory-hotplugrst-document-the-auto-movable-online-policy-v2.patch added to
+ -mm tree
+Message-ID: <20211011211529.qgMhhbEd8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kasan: fix redefinition of 'kasan_populate_early_vm_area_shadow'
+     Subject: memory-hotplug.rst: document the "auto-movable" online policy
 has been added to the -mm tree.  Its filename is
-     kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
+     memory-hotplugrst-document-the-auto-movable-online-policy-v2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memory-hotplugrst-document-the-auto-movable-online-policy-v2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplugrst-document-the-auto-movable-online-policy-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,75 +60,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: kasan: fix redefinition of 'kasan_populate_early_vm_area_shadow'
+From: David Hildenbrand <david@redhat.com>
+Subject: memory-hotplug.rst: document the "auto-movable" online policy
 
-Move kasan_populate_early_vm_area_shadow() from mm/kasan/init.c to
-mm/kasan/shadow.c, make it under CONFIG_KASAN_VMALLOC to fix the
-redefinition issue.
+- "memory-hotplug.rst: document the "auto-movable" online policy"
+-- Add a pointer to generic command line parameter documentation
+-- Explain relationship of "auto-movable" and "movable_node" command
+   line parameter, also indicating in which setups "auto-movable" doesn't
+   really make sense.
 
-Link: https://lkml.kernel.org/r/20211011123211.3936196-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: resh Kamboju <naresh.kamboju@linaro.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20211011082058.6076-4-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/init.c   |    5 -----
- mm/kasan/shadow.c |    5 +++++
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ Documentation/admin-guide/mm/memory-hotplug.rst |   15 +++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
---- a/mm/kasan/init.c~kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix
-+++ a/mm/kasan/init.c
-@@ -279,11 +279,6 @@ int __ref kasan_populate_early_shadow(co
- 	return 0;
- }
+--- a/Documentation/admin-guide/mm/memory-hotplug.rst~memory-hotplugrst-document-the-auto-movable-online-policy-v2
++++ a/Documentation/admin-guide/mm/memory-hotplug.rst
+@@ -402,6 +402,9 @@ command line parameters are relevant:
+ 			 contiguous.
+ ======================== =======================================================
  
--void __init __weak kasan_populate_early_vm_area_shadow(void *start,
--						       unsigned long size)
--{
--}
--
- static void kasan_free_pte(pte_t *pte_start, pmd_t *pmd)
- {
- 	pte_t *pte;
---- a/mm/kasan/shadow.c~kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix
-+++ a/mm/kasan/shadow.c
-@@ -254,6 +254,11 @@ core_initcall(kasan_memhotplug_init);
- 
- #ifdef CONFIG_KASAN_VMALLOC
- 
-+void __init __weak kasan_populate_early_vm_area_shadow(void *start,
-+						       unsigned long size)
-+{
-+}
++See Documentation/admin-guide/kernel-parameters.txt for a more generic
++description of these command line parameters.
 +
- static int kasan_populate_vmalloc_pte(pte_t *ptep, unsigned long addr,
- 				      void *unused)
- {
+ Module Parameters
+ ------------------
+ 
+@@ -457,7 +460,17 @@ The following module parameters are curr
+ 				 hotplugging a lot of memory later and still
+ 				 wanting to be able to hotunplug as much as
+ 				 possible reliably, very desirable in
+-				 virtualized environments. As one example, a
++				 virtualized environments. This policy ignores
++				 the ``movable_node`` kernel command line
++				 parameter and isn't really applicable in
++				 environments that require it (e.g., bare metal
++				 with hotunpluggable nodes) where hotplugged
++				 memory might be exposed via the
++				 firmware-provided memory map early during boot
++				 to the system instead of getting detected,
++				 added and onlined  later during boot (such as
++				 done by virtio-mem or by some hypervisors
++				 implementing emulated DIMMs). As one example, a
+ 				 hotplugged DIMM will be onlined either
+ 				 completely to ZONE_MOVABLE or completely to
+ 				 ZONE_NORMAL, not a mixture.
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-slub-add-back-check-for-free-nonslab-objects.patch
-vmalloc-choose-a-better-start-address-in-vm_area_register_early.patch
-arm64-support-page-mapping-percpu-first-chunk-allocator.patch
-kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc.patch
-kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
-mm-nommu-kill-arch_get_unmapped_area.patch
-kallsyms-remove-arch-specific-text-and-data-check.patch
-kallsyms-fix-address-checks-for-kernel-related-range.patch
-sections-move-and-rename-core_kernel_data-to-is_kernel_core_data.patch
-sections-move-is_kernel_inittext-into-sectionsh.patch
-x86-mm-rename-__is_kernel_text-to-is_x86_32_kernel_text.patch
-sections-provide-internal-__is_kernel-and-__is_kernel_text-helper.patch
-mm-kasan-use-is_kernel-helper.patch
-extable-use-is_kernel_text-helper.patch
-powerpc-mm-use-core_kernel_text-helper.patch
-microblaze-use-is_kernel_text-helper.patch
-alpha-use-is_kernel_text-helper.patch
+memory-hotplugrst-fix-two-instances-of-movablecore-that-should-be-movable_node.patch
+memory-hotplugrst-fix-wrong-sys-module-memory_hotplug-parameters-path.patch
+memory-hotplugrst-document-the-auto-movable-online-policy.patch
+memory-hotplugrst-document-the-auto-movable-online-policy-v2.patch
+mm-memory_hotplug-remove-config_x86_64_acpi_numa-dependency-from-config_memory_hotplug.patch
+mm-memory_hotplug-remove-config_memory_hotplug_sparse.patch
+mm-memory_hotplug-restrict-config_memory_hotplug-to-64-bit.patch
+mm-memory_hotplug-remove-highmem-leftovers.patch
+mm-memory_hotplug-remove-stale-function-declarations.patch
+x86-remove-memory-hotplug-support-on-x86_32.patch
+mm-memory_hotplug-handle-memblock_add_node-failures-in-add_memory_resource.patch
+memblock-improve-memblock_hotplug-documentation.patch
+memblock-allow-to-specify-flags-with-memblock_add_node.patch
+memblock-add-memblock_driver_managed-to-mimic-ioresource_sysram_driver_managed.patch
+mm-memory_hotplug-indicate-memblock_driver_managed-with-ioresource_sysram_driver_managed.patch
+x86-xen-update-xen_oldmem_pfn_is_ram-documentation.patch
+x86-xen-simplify-xen_oldmem_pfn_is_ram.patch
+x86-xen-print-a-warning-when-hvmop_get_mem_type-fails.patch
+proc-vmcore-let-pfn_is_ram-return-a-bool.patch
+proc-vmcore-convert-oldmem_pfn_is_ram-callback-to-more-generic-vmcore-callbacks.patch
+virtio-mem-factor-out-hotplug-specifics-from-virtio_mem_init-into-virtio_mem_init_hotplug.patch
+virtio-mem-factor-out-hotplug-specifics-from-virtio_mem_probe-into-virtio_mem_init_hotplug.patch
+virtio-mem-factor-out-hotplug-specifics-from-virtio_mem_remove-into-virtio_mem_deinit_hotplug.patch
+virtio-mem-kdump-mode-to-sanitize-proc-vmcore-access.patch
+kernel-resource-clean-up-and-optimize-iomem_is_exclusive.patch
+kernel-resource-disallow-access-to-exclusive-system-ram-regions.patch
+virtio-mem-disallow-mapping-virtio-mem-memory-via-dev-mem.patch
 
