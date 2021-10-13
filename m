@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EBE30C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 22:23:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 135A2C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 22:23:55 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CD73A610CC
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 22:23:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCE3B610CC
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 22:23:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231187AbhJMWZR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Oct 2021 18:25:17 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46944 "EHLO mail.kernel.org"
+        id S230320AbhJMWZ5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Oct 2021 18:25:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:47036 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230507AbhJMWZR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 Oct 2021 18:25:17 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9007B610CC;
-        Wed, 13 Oct 2021 22:23:13 +0000 (UTC)
+        id S230471AbhJMWZ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 Oct 2021 18:25:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 96E6F610F9;
+        Wed, 13 Oct 2021 22:23:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634163793;
-        bh=85z5gdGuUnzGWfBeSFKxgULjlKVZEccVPdQ15w/rryo=;
+        s=korg; t=1634163833;
+        bh=58wxKa7LauAi+b7CUMqvfXDYKTwInTYs5C6OS+wTcJU=;
         h=Date:From:To:Subject:From;
-        b=gLsADeUksBWnizGmIrEK038cVrnRDD48fJsHnqUD4Gqk/pUY0AfxkYBZkqnTok2JW
-         aDAqdlf7dQIdGJqMSWWsXTJ0dBrCuclXOUfwMbKMOmm9fSvGW8acfDBtJ8GbVe+/PJ
-         hy8ujWPPXukrQe4ehayQfdW8n6iHcsWJYRIEpz1U=
-Date:   Wed, 13 Oct 2021 15:23:13 -0700
+        b=tzJUL0UUB+TI+RYuMo2IzCnQ4YDmkPcuFupToRULYPk5ii3r4Jk/1krLgm9R3NJoE
+         20SVPiubyw19E+f59doMDu00lcQN7u0XsbmoUUxyUI4EcvKaBqFZRLHKxgVTvrvYoS
+         Y/teXaIxbuDR/PEuyIdpF+GOkKk7q/478NaOsRxw=
+Date:   Wed, 13 Oct 2021 15:23:53 -0700
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, pedrodemargomes@gmail.com,
         zhansayabagdaulet@gmail.com
-Subject:  [to-be-updated]
- selftests-vm-add-ksm-huge-pages-merging-time-test.patch removed from -mm
- tree
-Message-ID: <20211013222313.9PWAnXhGf%akpm@linux-foundation.org>
+Subject:  + selftests-vm-add-ksm-huge-pages-merging-time-test.patch
+ added to -mm tree
+Message-ID: <20211013222353.PwmMRIaKN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,125 +39,190 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: selftests: vm: add KSM huge pages merging time test
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      selftests-vm-add-ksm-huge-pages-merging-time-test.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-add-ksm-huge-pages-merging-time-test.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-add-ksm-huge-pages-merging-time-test.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
 Subject: selftests: vm: add KSM huge pages merging time test
 
-Link: https://lkml.kernel.org/r/20211011055908.87140-1-pedrodemargomes@gmail.com
+Add test case of KSM merging time using mostly huge pages
+
+Link: https://lkml.kernel.org/r/20211013044045.360251-1-pedrodemargomes@gmail.com
 Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
 Cc: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/ksm_tests.c |   40 +++++++++++++++++------
- 1 file changed, 30 insertions(+), 10 deletions(-)
+ tools/testing/selftests/vm/ksm_tests.c |  125 ++++++++++++++++++++++-
+ 1 file changed, 124 insertions(+), 1 deletion(-)
 
 --- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-add-ksm-huge-pages-merging-time-test
 +++ a/tools/testing/selftests/vm/ksm_tests.c
-@@ -5,6 +5,7 @@
+@@ -5,6 +5,10 @@
  #include <time.h>
  #include <string.h>
  #include <numa.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <stdint.h>
 +#include <err.h>
  
  #include "../kselftest.h"
  #include "../../../../include/vdso/time64.h"
-@@ -34,7 +35,8 @@ enum ksm_test_name {
+@@ -18,6 +22,15 @@
+ #define KSM_MERGE_ACROSS_NODES_DEFAULT true
+ #define MB (1ul << 20)
+ 
++#define PAGE_SHIFT 12
++#define HPAGE_SHIFT 21
++
++#define PAGE_SIZE (1 << PAGE_SHIFT)
++#define HPAGE_SIZE (1 << HPAGE_SHIFT)
++
++#define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
++#define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
++
+ struct ksm_sysfs {
+ 	unsigned long max_page_sharing;
+ 	unsigned long merge_across_nodes;
+@@ -34,6 +47,7 @@ enum ksm_test_name {
  	CHECK_KSM_ZERO_PAGE_MERGE,
  	CHECK_KSM_NUMA_MERGE,
  	KSM_MERGE_TIME,
--	KSM_COW_TIME
-+	KSM_COW_TIME,
-+	KSM_MERGE_TIME_HUGE_PAGES
++	KSM_MERGE_TIME_HUGE_PAGES,
+ 	KSM_COW_TIME
  };
  
- static int ksm_write_sysfs(const char *file_path, unsigned long val)
-@@ -100,6 +102,9 @@ static void print_help(void)
+@@ -100,6 +114,9 @@ static void print_help(void)
  	       " -P evaluate merging time and speed.\n"
  	       "    For this test, the size of duplicated memory area (in MiB)\n"
  	       "    must be provided using -s option\n"
-+		   " -H evaluate merging time and speed of huge pages.\n"
++				 " -H evaluate merging time and speed of area allocated mostly with huge pages\n"
 +	       "    For this test, the size of duplicated memory area (in MiB)\n"
 +	       "    must be provided using -s option\n"
  	       " -C evaluate the time required to break COW of merged pages.\n\n");
  
  	printf(" -a: specify the access protections of pages.\n"
-@@ -118,10 +123,14 @@ static void print_help(void)
- 	exit(0);
- }
- 
--static void  *allocate_memory(void *ptr, int prot, int mapping, char data, size_t map_size)
-+static void  *allocate_memory(void *ptr, int prot, int mapping, char data, size_t map_size,
-+				 bool huge_page)
- {
- 	void *map_ptr = mmap(ptr, map_size, PROT_WRITE, mapping, -1, 0);
- 
-+	if (huge_page && madvise(map_ptr, map_size, MADV_HUGEPAGE))
-+		err(2, "MADV_HUGEPAGE");
-+
- 	if (!map_ptr) {
- 		perror("mmap");
- 		return NULL;
-@@ -250,7 +259,7 @@ static int check_ksm_merge(int mapping,
- 	}
- 
- 	/* fill pages with the same data and merge them */
--	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
-+	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count, false);
- 	if (!map_ptr)
- 		return KSFT_FAIL;
- 
-@@ -282,7 +291,7 @@ static int check_ksm_unmerge(int mapping
- 	}
- 
- 	/* fill pages with the same data and merge them */
--	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
-+	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count, false);
- 	if (!map_ptr)
- 		return KSFT_FAIL;
- 
-@@ -325,7 +334,7 @@ static int check_ksm_zero_page_merge(int
- 		return KSFT_FAIL;
- 
- 	/* fill pages with zero and try to merge them */
--	map_ptr = allocate_memory(NULL, prot, mapping, 0, page_size * page_count);
-+	map_ptr = allocate_memory(NULL, prot, mapping, 0, page_size * page_count, false);
- 	if (!map_ptr)
- 		return KSFT_FAIL;
- 
-@@ -439,7 +448,7 @@ err_out:
+@@ -439,6 +456,101 @@ err_out:
  	return KSFT_FAIL;
  }
  
--static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size)
-+static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size, bool huge_page)
++int64_t allocate_transhuge(void *ptr, int pagemap_fd)
++{
++	uint64_t ent[2];
++
++	/* drop pmd */
++	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
++				MAP_FIXED | MAP_ANONYMOUS |
++				MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
++		errx(2, "mmap transhuge");
++
++	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
++
++	/* allocate transparent huge page */
++	*(volatile void **)ptr = ptr;
++
++	if (pread(pagemap_fd, ent, sizeof(ent),
++			(uintptr_t)ptr >> (PAGE_SHIFT - 3)) != sizeof(ent))
++		err(2, "read pagemap");
++
++	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
++	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
++	    !(PAGEMAP_PFN(ent[0]) & ((1 << (HPAGE_SHIFT - PAGE_SHIFT)) - 1)))
++		return PAGEMAP_PFN(ent[0]);
++
++	return -1;
++}
++
++static int ksm_merge_hugepages_time(int mapping, int prot, int timeout, size_t map_size)
++{
++	void *map_ptr, *map_ptr_orig;
++	struct timespec start_time, end_time;
++	unsigned long scan_time_ns;
++	int pagemap_fd, n_normal_pages, n_huge_pages;
++
++	map_size *= MB;
++	size_t len = map_size;
++
++	len -= len % HPAGE_SIZE;
++	map_ptr_orig = mmap(NULL, len + HPAGE_SIZE, PROT_READ | PROT_WRITE,
++			MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE, -1, 0);
++	map_ptr = map_ptr_orig + HPAGE_SIZE - (uintptr_t)map_ptr_orig % HPAGE_SIZE;
++
++	if (map_ptr_orig == MAP_FAILED)
++		err(2, "initial mmap");
++
++	if (madvise(map_ptr, len + HPAGE_SIZE, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
++
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		err(2, "open pagemap");
++
++	n_normal_pages = 0;
++	n_huge_pages = 0;
++	for (void *p = map_ptr; p < map_ptr + len; p += HPAGE_SIZE) {
++		if (allocate_transhuge(p, pagemap_fd) < 0)
++			n_normal_pages++;
++		else
++			n_huge_pages++;
++	}
++	printf("Number of normal pages:    %d\n", n_normal_pages);
++	printf("Number of huge pages:    %d\n", n_huge_pages);
++
++	memset(map_ptr, '*', len);
++
++	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
++		perror("clock_gettime");
++		goto err_out;
++	}
++	if (ksm_merge_pages(map_ptr, map_size, start_time, timeout))
++		goto err_out;
++	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
++		perror("clock_gettime");
++		goto err_out;
++	}
++
++	scan_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
++		       (end_time.tv_nsec - start_time.tv_nsec);
++
++	printf("Total size:    %lu MiB\n", map_size / MB);
++	printf("Total time:    %ld.%09ld s\n", scan_time_ns / NSEC_PER_SEC,
++	       scan_time_ns % NSEC_PER_SEC);
++	printf("Average speed:  %.3f MiB/s\n", (map_size / MB) /
++					       ((double)scan_time_ns / NSEC_PER_SEC));
++
++	munmap(map_ptr_orig, len + HPAGE_SIZE);
++	return KSFT_PASS;
++
++err_out:
++	printf("Not OK\n");
++	munmap(map_ptr_orig, len + HPAGE_SIZE);
++	return KSFT_FAIL;
++}
++
+ static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size)
  {
  	void *map_ptr;
- 	struct timespec start_time, end_time;
-@@ -447,7 +456,7 @@ static int ksm_merge_time(int mapping, i
- 
- 	map_size *= MB;
- 
--	map_ptr = allocate_memory(NULL, prot, mapping, '*', map_size);
-+	map_ptr = allocate_memory(NULL, prot, mapping, '*', map_size, huge_page);
- 	if (!map_ptr)
- 		return KSFT_FAIL;
- 
-@@ -489,7 +498,7 @@ static int ksm_cow_time(int mapping, int
- 	/* page_count must be less than 2*page_size */
- 	size_t page_count = 4000;
- 
--	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
-+	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count, false);
- 	if (!map_ptr)
- 		return KSFT_FAIL;
- 
-@@ -564,7 +573,7 @@ int main(int argc, char *argv[])
+@@ -564,7 +676,7 @@ int main(int argc, char *argv[])
  	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
  	long size_MB = 0;
  
@@ -167,40 +231,34 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		switch (opt) {
  		case 'a':
  			prot = str_to_prot(optarg);
-@@ -621,6 +630,9 @@ int main(int argc, char *argv[])
- 		case 'C':
- 			test_name = KSM_COW_TIME;
+@@ -618,6 +730,9 @@ int main(int argc, char *argv[])
+ 		case 'P':
+ 			test_name = KSM_MERGE_TIME;
  			break;
 +		case 'H':
 +			test_name = KSM_MERGE_TIME_HUGE_PAGES;
 +			break;
- 		default:
- 			return KSFT_FAIL;
- 		}
-@@ -668,12 +680,20 @@ int main(int argc, char *argv[])
- 			return KSFT_FAIL;
- 		}
+ 		case 'C':
+ 			test_name = KSM_COW_TIME;
+ 			break;
+@@ -670,6 +785,14 @@ int main(int argc, char *argv[])
  		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
--				     size_MB);
-+				     size_MB, false);
- 		break;
- 	case KSM_COW_TIME:
- 		ret = ksm_cow_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
- 				   page_size);
+ 				     size_MB);
  		break;
 +	case KSM_MERGE_TIME_HUGE_PAGES:
 +		if (size_MB == 0) {
 +			printf("Option '-s' is required.\n");
 +			return KSFT_FAIL;
 +		}
-+		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
-+				     size_MB, true);
++		ret = ksm_merge_hugepages_time(MAP_PRIVATE | MAP_ANONYMOUS, prot,
++				ksm_scan_limit_sec, size_MB);
 +		break;
- 	}
- 
- 	if (ksm_restore(&ksm_sysfs_old)) {
+ 	case KSM_COW_TIME:
+ 		ret = ksm_cow_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+ 				   page_size);
 _
 
 Patches currently in -mm which might be from pedrodemargomes@gmail.com are
 
+selftests-vm-add-ksm-huge-pages-merging-time-test.patch
 
