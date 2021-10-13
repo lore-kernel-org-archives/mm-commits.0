@@ -2,90 +2,123 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97BC3C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Oct 2021 21:05:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09702C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 10:55:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6D77C610A2
-	for <mm-commits@archiver.kernel.org>; Tue, 12 Oct 2021 21:05:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E9A5A610C9
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 10:55:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232829AbhJLVHk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 12 Oct 2021 17:07:40 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38550 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232418AbhJLVHj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 12 Oct 2021 17:07:39 -0400
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [IPv6:2404:9400:2:0:216:3eff:fee2:21ea])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6FD8DC061570
-        for <mm-commits@vger.kernel.org>; Tue, 12 Oct 2021 14:05:37 -0700 (PDT)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4HTSqb528bz4xbR;
-        Wed, 13 Oct 2021 08:05:31 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-        s=201702; t=1634072732;
-        bh=s1y1zLagvkddajPku+x5fQBOOCoBs3xagm98wRY4BuI=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=f6i5zdR3PpGr6//k5t3zYYY9jxnK7Z+JPpq6BNB4Rme54ZXvnv4R1IS/uCyOU6vie
-         M4yOWTUpR7RztQkU7b5WZmsejjSls+IJ216kag/tEFHiADMfa6+a4AjmHRqbJvvEHt
-         I39e6EVmckmeC+k+K5mRJ4fluWLue+whENF0RHDepe0UFJz6uIvyBItA+MyzQ9B3UL
-         3BPMRL5hHMmJc1ncgOd0qBndmA11MfHA4VctZ6IS6mks7VCa4BQ/kaooaGkthS+Oe1
-         TrDE+YGpsOAkKwWuzbheEBxhdXHzsGjzRVvCiJyd4k+20OPPsFTKmxFbNTdFJkVVXG
-         cudb6v4BNXCbg==
-Date:   Wed, 13 Oct 2021 08:05:25 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     keescook@chromium.org, mm-commits@vger.kernel.org,
-        Jonathan Corbet <corbet@lwn.net>, willy@infradead.org
-Subject: Re: +
- compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix.patch
- added to -mm tree
-Message-ID: <20211013080525.68d46e3a@canb.auug.org.au>
-In-Reply-To: <20211012205610.Os8RABpiO%akpm@linux-foundation.org>
-References: <20211012205610.Os8RABpiO%akpm@linux-foundation.org>
+        id S230054AbhJMK5I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Oct 2021 06:57:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55694 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229602AbhJMK5H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 Oct 2021 06:57:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B3886610D1;
+        Wed, 13 Oct 2021 10:55:04 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=kernel.org;
+        s=k20201202; t=1634122504;
+        bh=cHJwlE/4hKjsg8N9PIPkUgBxfg4CYIeT2a/7mtQ0gV4=;
+        h=References:In-Reply-To:From:Date:Subject:To:Cc:From;
+        b=Gvd6nNUOzZ1UK/F83pyQaR5TauDo53BnYMnJejta47hA700Gc4nEjGIFnHwmjOADo
+         AKNy+aONpGH/0IsqLm0Dcpm6wjEJavnew940SDLuN/5a6FYUw3ELyYcU0A3Q/NRQek
+         QfoThQlCQv7p+iOVnXWOAHkCznwBtAwOy+ujza96o7WAaFxFjrC8XZ1wckA/fZVTbk
+         VwI4mJWJKdlfyh1Lt6ftM0G3FhFyxA8FUoE+m7e14+8RRL2PlJvv9hf7Oz7NJ/FAwC
+         wgr7gidywOLH4DV+TxM46MeGP/by3gM7M3FjX3pF1U7UjvwkkKAPLPGpJwUDxBDIsM
+         sv3E+u1PeyN3A==
+Received: by mail-wr1-f45.google.com with SMTP id o20so6930614wro.3;
+        Wed, 13 Oct 2021 03:55:04 -0700 (PDT)
+X-Gm-Message-State: AOAM530iZXvF4GxMweqi4kkfiz7ZUk97vL95SLqNn2ulZn679H1I9FS6
+        nYyJQLDddw3zeAFg/BNgI5e/wVU24xPXuOhmPUE=
+X-Google-Smtp-Source: ABdhPJzW6QwF+fpri3xax3BToB6ExyXZ9H+Kw/HXMbby5km4lbFfKsXJq/EA3ZMCLu9RmweZx7YA8FnfMM0PPRf9Pg4=
+X-Received: by 2002:a05:600c:4f42:: with SMTP id m2mr9273874wmq.82.1634122503094;
+ Wed, 13 Oct 2021 03:55:03 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/2Sh4TM+JDpUYVrtBySaH8za";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+References: <20211006025350.a5PczFZP4%akpm@linux-foundation.org>
+ <58fbf2ff-b367-2137-aa77-fcde6c46bbb7@infradead.org> <20211006182052.6ecc17cf@canb.auug.org.au>
+ <f877a1c9-1898-23f3-bba3-3442dc1f3979@amd.com> <CAMuHMdV3eMchpgUasU6BBHrDQyjCc2TrqJ+zJgFhgAySpqVGfw@mail.gmail.com>
+In-Reply-To: <CAMuHMdV3eMchpgUasU6BBHrDQyjCc2TrqJ+zJgFhgAySpqVGfw@mail.gmail.com>
+From:   Arnd Bergmann <arnd@kernel.org>
+Date:   Wed, 13 Oct 2021 12:54:47 +0200
+X-Gmail-Original-Message-ID: <CAK8P3a1LLABstZ2rPYpsXRTxMdbSTrh0y753vrfGbRovv9fS8A@mail.gmail.com>
+Message-ID: <CAK8P3a1LLABstZ2rPYpsXRTxMdbSTrh0y753vrfGbRovv9fS8A@mail.gmail.com>
+Subject: Re: mmotm 2021-10-05-19-53 uploaded (drivers/gpu/drm/msm/hdmi/hdmi_phy.o)
+To:     Geert Uytterhoeven <geert@linux-m68k.org>
+Cc:     =?UTF-8?Q?Christian_K=C3=B6nig?= <christian.koenig@amd.com>,
+        Stephen Rothwell <sfr@canb.auug.org.au>,
+        Randy Dunlap <rdunlap@infradead.org>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Mark Brown <broonie@kernel.org>,
+        Linux FS Devel <linux-fsdevel@vger.kernel.org>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+        Linux MM <linux-mm@kvack.org>,
+        Linux-Next <linux-next@vger.kernel.org>,
+        Michal Hocko <mhocko@suse.cz>, mm-commits@vger.kernel.org,
+        Rob Clark <robdclark@gmail.com>, Sean Paul <sean@poorly.run>,
+        linux-arm-msm <linux-arm-msm@vger.kernel.org>,
+        freedreno <freedreno@lists.freedesktop.org>,
+        Daniel Vetter <daniel.vetter@ffwll.ch>,
+        Intel Graphics <intel-gfx@lists.freedesktop.org>,
+        DRI <dri-devel@lists.freedesktop.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/2Sh4TM+JDpUYVrtBySaH8za
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+On Thu, Oct 7, 2021 at 11:51 AM Geert Uytterhoeven <geert@linux-m68k.org> w=
+rote:
+> On Wed, Oct 6, 2021 at 9:28 AM Christian K=C3=B6nig <christian.koenig@amd=
+.com> wrote:
+> > Am 06.10.21 um 09:20 schrieb Stephen Rothwell:
+> > > On Tue, 5 Oct 2021 22:48:03 -0700 Randy Dunlap <rdunlap@infradead.org=
+> wrote:
+> > >> on i386:
+> > >>
+> > >> ld: drivers/gpu/drm/msm/hdmi/hdmi_phy.o:(.rodata+0x3f0): undefined r=
+eference to `msm_hdmi_phy_8996_cfg'
 
-Hi Andrew,
-
-On Tue, 12 Oct 2021 13:56:10 -0700 akpm@linux-foundation.org wrote:
+I ran into the same thing now as well.
+E_TEST) && COMMON_CLK
 >
-> The patch titled
->      Subject: scripts: kernel-doc: Ignore __alloc_size() attribute
-> has been added to the -mm tree.  Its filename is
->      compiler-attributes-add-__alloc_size-for-better-bounds-checking-fix.=
-patch
+> I'd make that:
+>
+>     -        depends on DRM
+>     +       depends on COMMON_CLK && DRM && IOMMU_SUPPORT
+>             depends on ARCH_QCOM || SOC_IMX5 || COMPILE_TEST
+>     -        depends on IOMMU_SUPPORT
+>     -       depends on (OF && COMMON_CLK) || COMPILE_TEST
+>     +       depends on OF || COMPILE_TEST
+>
+> to keep a better separation between hard and soft dependencies.
+>
+> Note that the "depends on OF || COMPILE_TEST" can even be
+> deleted, as the dependency on ARCH_QCOM || SOC_IMX5 implies OF.
 
-This patch has been added to Jon Corbet's tree today.
+Looks good to me, I would also drop that last line in this case, and maybe
+add this change as building without COMMON_CLK is no longer possible:
 
---=20
-Cheers,
-Stephen Rothwell
+diff --git a/drivers/gpu/drm/msm/Makefile b/drivers/gpu/drm/msm/Makefile
+index 904535eda0c4..a5d87e03812f 100644
+--- a/drivers/gpu/drm/msm/Makefile
++++ b/drivers/gpu/drm/msm/Makefile
+@@ -116,10 +116,10 @@ msm-$(CONFIG_DRM_MSM_DP)+=3D dp/dp_aux.o \
+  dp/dp_power.o \
+  dp/dp_audio.o
 
---Sig_/2Sh4TM+JDpUYVrtBySaH8za
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+-msm-$(CONFIG_DRM_FBDEV_EMULATION) +=3D msm_fbdev.o
+-msm-$(CONFIG_COMMON_CLK) +=3D disp/mdp4/mdp4_lvds_pll.o
+-msm-$(CONFIG_COMMON_CLK) +=3D hdmi/hdmi_pll_8960.o
+-msm-$(CONFIG_COMMON_CLK) +=3D hdmi/hdmi_phy_8996.o
++msm-$(CONFIG_DRM_FBDEV_EMULATION) +=3D msm_fbdev.o \
++ disp/mdp4/mdp4_lvds_pll.o \
++ hdmi/hdmi_pll_8960.o \
++ hdmi/hdmi_phy_8996.o
 
------BEGIN PGP SIGNATURE-----
+ msm-$(CONFIG_DRM_MSM_HDMI_HDCP) +=3D hdmi/hdmi_hdcp.o
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmFl+JUACgkQAVBC80lX
-0Gzmagf/U2JDc9Flqz2BSUWg0VUdcko5kCdlBeiWHd+xq3OnAuZ1hifADge7IUgc
-W8B81NOcAJgYrhZ1HkLVurli8s1bDjy55WkQrX1r/aMg4wnJCSgfAAB8+BO58k2n
-6mLdtaFc6eIe5mqTw2SerIM0smyiG/8Vy2JjX04V6qLIj89hy0eeTNSsOvVV9WQ2
-sZTsdbAWoLeqGBz6iIaCAcEgdX3wa0l9oxTp5IznU0bIX5MhU2ykT7VQMcDiamkK
-AbRBHz+FMf+PuWPxSARQQ4/kfYsHATJP9uQyqfNazzJiM6uAsmE61hrNClZv5lnL
-NSw3AAURBB5IJtInNP06yIjvR6gIXA==
-=G1D8
------END PGP SIGNATURE-----
+Has anyone submitted a patch already, or should I send the version
+that I am using locally now?
 
---Sig_/2Sh4TM+JDpUYVrtBySaH8za--
+        Arnd
