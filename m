@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F6BCC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 21:39:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6539FC433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 21:45:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E4D11611B0
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 21:39:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4F6E2611C5
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 21:45:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229608AbhJMVlX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Oct 2021 17:41:23 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56602 "EHLO mail.kernel.org"
+        id S229641AbhJMVr4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Oct 2021 17:47:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59814 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229588AbhJMVlW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 Oct 2021 17:41:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DFE6B611AE;
-        Wed, 13 Oct 2021 21:39:18 +0000 (UTC)
+        id S229631AbhJMVr4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 Oct 2021 17:47:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E6EB7611C3;
+        Wed, 13 Oct 2021 21:45:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634161159;
-        bh=n7QJ2Ht2Ntr/0A6eHmCYBWyhVi7oQHpoMR2Vxzcs96k=;
+        s=korg; t=1634161552;
+        bh=cH1kH3P2KxDqq+oBShn4SrYBNAxCL4bkcgXhBNDT9Xs=;
         h=Date:From:To:Subject:From;
-        b=HVI762snAbOCTHhTSz/CYCPNzCH5AfA3ZxszF4tgoVVp4VaAMWfUbgaHHQP4by+ct
-         IwWNYOF+MOtKhDydd/+heklGT2+tQ4SZEPaPzf+63cnwgIc0/rPT8ZDcj7f/kRtXNd
-         FwDsPDStJt+HVHD5P39274ngBY71w2I0/eX779/A=
-Date:   Wed, 13 Oct 2021 14:39:18 -0700
+        b=pSyy1alfMiA3C4CYlv8usCn8a6nyirUAOI2zP+gH0pYLMTY4sa2I7ZpX7cLZb1+z6
+         PfZ8v1FM1YD2mFactulIuywHRQjlfZ4kcc5N33FoQyL11XkNyUGF/iIrsmS8O5rJbx
+         A9kAHA+symHk3xj34qPrmlRb4Jc6j28x3WsY/928=
+Date:   Wed, 13 Oct 2021 14:45:51 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, arnd@arndb.de,
-        mm-commits@vger.kernel.org
-Subject:  +
- kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch added to
- -mm tree
-Message-ID: <20211013213918.HApP8Ttry%akpm@linux-foundation.org>
+To:     arnd@arndb.de, cl@linux.com, dave.hansen@linux.intel.com,
+        david@redhat.com, iamjoonsoo.kim@lge.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de, penberg@kernel.org,
+        rientjes@google.com, sfr@canb.auug.org.au, vbabka@suse.cz
+Subject:  + mm-migrate-rework-hotplug_memory_notifier-stub.patch
+ added to -mm tree
+Message-ID: <20211013214551.vedG60Ndz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-test-use-underlying-string-helpers-checkpatch-fixes
+     Subject: mm/migrate: rework hotplug_memory_notifier() stub
 has been added to the -mm tree.  Its filename is
-     kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
+     mm-migrate-rework-hotplug_memory_notifier-stub.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-rework-hotplug_memory_notifier-stub.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-rework-hotplug_memory_notifier-stub.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,54 +61,143 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kasan-test-use-underlying-string-helpers-checkpatch-fixes
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm/migrate: rework hotplug_memory_notifier() stub
 
-WARNING: Block comments use a trailing */ on a separate line
-#49: FILE: lib/test_kasan.c:837:
-+ * */
+The previous change added a compile time warning for the
+CONFIG_MEMORY_HOTPLUG=n case:
 
-total: 0 errors, 1 warnings, 37 lines checked
+mm/migrate.c:3216:22: error: 'migrate_on_reclaim_callback' defined but not used [-Werror=unused-function]
+ 3216 | static int __meminit migrate_on_reclaim_callback(struct notifier_block *self,
+      |                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+mm/migrate.c:3197:13: error: 'set_migration_target_nodes' defined but not used [-Werror=unused-function]
+ 3197 | static void set_migration_target_nodes(void)
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+Rework the hotplug_memory_notifier() stub implementation into an inline
+function so it always references its argument but ignores it, leading the
+compiler to silently drop the hotplug memory notifier function and further
+code referenced from it.
 
-./patches/kasan-test-use-underlying-string-helpers.patch has style problems, please review.
+To do this, the #ifdef around those functions need to be removed as well,
+but this tends to help with readability and build coverage.
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/20211013144029.2154629-1-arnd@kernel.org
+Fixes: dd3e24b84bc1 ("mm/migrate: add CPU hotplug to demotion #ifdef")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memory.h |    5 ++++-
+ mm/migrate.c           |    6 +-----
+ mm/page_ext.c          |    4 +---
+ mm/slab.c              |    4 ++--
+ 4 files changed, 8 insertions(+), 11 deletions(-)
 
---- a/lib/test_kasan.c~kasan-test-use-underlying-string-helpers-checkpatch-fixes
-+++ a/lib/test_kasan.c
-@@ -834,7 +834,7 @@ static void kmem_cache_invalid_free(stru
- /*
-  * noinline wrappers to prevent the compiler from noticing the overflow
-  * at compile time rather than having kasan catch it.
-- * */
-+ */
- static noinline void *__kasan_memchr(const void *s, int c, size_t n)
+--- a/include/linux/memory.h~mm-migrate-rework-hotplug_memory_notifier-stub
++++ a/include/linux/memory.h
+@@ -160,7 +160,10 @@ int walk_dynamic_memory_groups(int nid,
+ #define register_hotmemory_notifier(nb)		register_memory_notifier(nb)
+ #define unregister_hotmemory_notifier(nb) 	unregister_memory_notifier(nb)
+ #else
+-#define hotplug_memory_notifier(fn, pri)	({ 0; })
++static inline int hotplug_memory_notifier(notifier_fn_t fn, int pri)
++{
++	return 0;
++}
+ /* These aren't inline functions due to a GCC bug. */
+ #define register_hotmemory_notifier(nb)    ({ (void)(nb); 0; })
+ #define unregister_hotmemory_notifier(nb)  ({ (void)(nb); })
+--- a/mm/migrate.c~mm-migrate-rework-hotplug_memory_notifier-stub
++++ a/mm/migrate.c
+@@ -3066,7 +3066,7 @@ void migrate_vma_finalize(struct migrate
+ EXPORT_SYMBOL(migrate_vma_finalize);
+ #endif /* CONFIG_DEVICE_PRIVATE */
+ 
+-#if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_HOTPLUG_CPU)
++#if defined(CONFIG_HOTPLUG_CPU)
+ /* Disable reclaim-based migration. */
+ static void __disable_all_migrate_targets(void)
  {
- 	return memchr(s, c, n);
+@@ -3208,7 +3208,6 @@ static void set_migration_target_nodes(v
+ 	put_online_mems();
+ }
+ 
+-#if defined(CONFIG_MEMORY_HOTPLUG)
+ /*
+  * This leaves migrate-on-reclaim transiently disabled between
+  * the MEM_GOING_OFFLINE and MEM_OFFLINE events.  This runs
+@@ -3265,9 +3264,7 @@ static int __meminit migrate_on_reclaim_
+ 
+ 	return notifier_from_errno(0);
+ }
+-#endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+-#ifdef CONFIG_HOTPLUG_CPU
+ /*
+  * React to hotplug events that might affect the migration targets
+  * like events that online or offline NUMA nodes.
+@@ -3309,4 +3306,3 @@ static int __init migrate_on_reclaim_ini
+ }
+ late_initcall(migrate_on_reclaim_init);
+ #endif /* CONFIG_HOTPLUG_CPU */
+-#endif /* CONFIG_MEMORY_HOTPLUG || CONFIG_HOTPLUG_CPU */
+--- a/mm/page_ext.c~mm-migrate-rework-hotplug_memory_notifier-stub
++++ a/mm/page_ext.c
+@@ -269,7 +269,7 @@ static int __meminit init_section_page_e
+ 	total_usage += table_size;
+ 	return 0;
+ }
+-#ifdef CONFIG_MEMORY_HOTPLUG
++
+ static void free_page_ext(void *addr)
+ {
+ 	if (is_vmalloc_addr(addr)) {
+@@ -374,8 +374,6 @@ static int __meminit page_ext_callback(s
+ 	return notifier_from_errno(ret);
+ }
+ 
+-#endif
+-
+ void __init page_ext_init(void)
+ {
+ 	unsigned long pfn;
+--- a/mm/slab.c~mm-migrate-rework-hotplug_memory_notifier-stub
++++ a/mm/slab.c
+@@ -1095,7 +1095,7 @@ static int slab_offline_cpu(unsigned int
+ 	return 0;
+ }
+ 
+-#if defined(CONFIG_NUMA) && defined(CONFIG_MEMORY_HOTPLUG)
++#if defined(CONFIG_NUMA)
+ /*
+  * Drains freelist for a node on each slab cache, used for memory hot-remove.
+  * Returns -EBUSY if all objects cannot be drained so that the node is not
+@@ -1157,7 +1157,7 @@ static int __meminit slab_memory_callbac
+ out:
+ 	return notifier_from_errno(ret);
+ }
+-#endif /* CONFIG_NUMA && CONFIG_MEMORY_HOTPLUG */
++#endif /* CONFIG_NUMA */
+ 
+ /*
+  * swap the static kmem_cache_node with kmalloced memory
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-ocfs2-fix-data-corruption-after-conversion-from-inline-format-fix.patch
-elfcore-correct-reference-to-config_uml-fix.patch
-kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
-mm.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
-ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
-linux-next-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-migrate-rework-hotplug_memory_notifier-stub.patch
+kasan-test-use-underlying-string-helpers.patch
+posix-acl-avoid-wempty-body-warning.patch
+hfs-hfsplus-use-warn_on-for-sanity-check.patch
 
