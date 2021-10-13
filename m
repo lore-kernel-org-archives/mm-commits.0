@@ -2,34 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 135A2C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 22:23:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4ED6FC433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 22:52:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DCE3B610CC
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 22:23:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 26A8B6109E
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 22:52:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230320AbhJMWZ5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Oct 2021 18:25:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47036 "EHLO mail.kernel.org"
+        id S230141AbhJMWyS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Oct 2021 18:54:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:55910 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230471AbhJMWZ5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 Oct 2021 18:25:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 96E6F610F9;
-        Wed, 13 Oct 2021 22:23:53 +0000 (UTC)
+        id S229930AbhJMWyR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 Oct 2021 18:54:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3E6146101E;
+        Wed, 13 Oct 2021 22:52:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634163833;
-        bh=58wxKa7LauAi+b7CUMqvfXDYKTwInTYs5C6OS+wTcJU=;
+        s=korg; t=1634165533;
+        bh=zWQp0lVcHmvTqvQDltCdy0Huj56Dz2BTnnn24AtZGL4=;
         h=Date:From:To:Subject:From;
-        b=tzJUL0UUB+TI+RYuMo2IzCnQ4YDmkPcuFupToRULYPk5ii3r4Jk/1krLgm9R3NJoE
-         20SVPiubyw19E+f59doMDu00lcQN7u0XsbmoUUxyUI4EcvKaBqFZRLHKxgVTvrvYoS
-         Y/teXaIxbuDR/PEuyIdpF+GOkKk7q/478NaOsRxw=
-Date:   Wed, 13 Oct 2021 15:23:53 -0700
+        b=OyGnxaqHTJkP/IyAUIcG5/ZNknHUo26cwFX6NmvKfJYZquXtxi+jICCUz9/wgOupX
+         oBl2mywRpdjSaOWmAkeAU7AqS0czM7k7x5q44LBNTN05F2Lw+dZcuiqWDdCSR+hL6X
+         CbJtpXO+/k1LsUmuDLBPHSKVQVq4sSqPGtEEilZo=
+Date:   Wed, 13 Oct 2021 15:52:12 -0700
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, pedrodemargomes@gmail.com,
-        zhansayabagdaulet@gmail.com
-Subject:  + selftests-vm-add-ksm-huge-pages-merging-time-test.patch
+To:     amit@kernel.org, benh@kernel.crashing.org,
+        brendanhiggins@google.com, corbet@lwn.net, david@redhat.com,
+        dwmw@amazon.com, elver@google.com, foersleo@amazon.de,
+        gthelen@google.com, Jonathan.Cameron@huawei.com, markubo@amazon.de,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        shakeelb@google.com, shuah@kernel.org, sj@kernel.org
+Subject:  +
+ mm-damon-dbgfs-allow-users-to-set-initial-monitoring-target-regions.patch
  added to -mm tree
-Message-ID: <20211013222353.PwmMRIaKN%akpm@linux-foundation.org>
+Message-ID: <20211013225212.z3fxBSWbB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: add KSM huge pages merging time test
+     Subject: mm/damon/dbgfs: allow users to set initial monitoring target regions
 has been added to the -mm tree.  Its filename is
-     selftests-vm-add-ksm-huge-pages-merging-time-test.patch
+     mm-damon-dbgfs-allow-users-to-set-initial-monitoring-target-regions.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-add-ksm-huge-pages-merging-time-test.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-dbgfs-allow-users-to-set-initial-monitoring-target-regions.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-add-ksm-huge-pages-merging-time-test.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-dbgfs-allow-users-to-set-initial-monitoring-target-regions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,206 +64,269 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Subject: selftests: vm: add KSM huge pages merging time test
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/dbgfs: allow users to set initial monitoring target regions
 
-Add test case of KSM merging time using mostly huge pages
+Patch series "DAMON: Support Physical Memory Address Space Monitoring:.
 
-Link: https://lkml.kernel.org/r/20211013044045.360251-1-pedrodemargomes@gmail.com
-Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
-Cc: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
+DAMON currently supports only virtual address spaces monitoring.  It can
+be easily extended for various use cases and address spaces by configuring
+its monitoring primitives layer to use appropriate primitives
+implementations, though.  This patchset implements monitoring primitives
+for the physical address space monitoring using the structure.
+
+The first 3 patches allow the user space users manually set the monitoring
+regions.  The 1st patch implements the feature in the 'damon-dbgfs'. 
+Then, patches for adding a unit tests (the 2nd patch) and updating the
+documentation (the 3rd patch) follow.
+
+Following 4 patches implement the physical address space monitoring
+primitives.  The 4th patch makes some primitive functions for the virtual
+address spaces primitives reusable.  The 5th patch implements the physical
+address space monitoring primitives.  The 6th patch links the primitives
+to the 'damon-dbgfs'.  Finally, 7th patch documents this new features.
+
+
+This patch (of 7):
+
+Some 'damon-dbgfs' users would want to monitor only a part of the entire
+virtual memory address space.  The program interface users in the kernel
+space could use '->before_start()' callback or set the regions inside the
+context struct as they want, but 'damon-dbgfs' users cannot.
+
+For the reason, this commit introduces a new debugfs file called
+'init_region'.  'damon-dbgfs' users can specify which initial monitoring
+target address regions they want by writing special input to the file. 
+The input should describe each region in each line in the below form:
+
+    <pid> <start address> <end address>
+
+Note that the regions will be updated to cover entire memory mapped
+regions after a 'regions update interval' is passed.  If you want the
+regions to not be updated after the initial setting, you could set the
+interval as a very long time, say, a few decades.
+
+Link: https://lkml.kernel.org/r/20211012205711.29216-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211012205711.29216-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Amit Shah <amit@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Woodhouse <dwmw@amazon.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Leonard Foerster <foersleo@amazon.de>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Markus Boehme <markubo@amazon.de>
+Cc: David Rienjes <rientjes@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/ksm_tests.c |  125 ++++++++++++++++++++++-
- 1 file changed, 124 insertions(+), 1 deletion(-)
+ mm/damon/dbgfs.c |  156 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 154 insertions(+), 2 deletions(-)
 
---- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-add-ksm-huge-pages-merging-time-test
-+++ a/tools/testing/selftests/vm/ksm_tests.c
-@@ -5,6 +5,10 @@
- #include <time.h>
- #include <string.h>
- #include <numa.h>
-+#include <unistd.h>
-+#include <fcntl.h>
-+#include <stdint.h>
-+#include <err.h>
- 
- #include "../kselftest.h"
- #include "../../../../include/vdso/time64.h"
-@@ -18,6 +22,15 @@
- #define KSM_MERGE_ACROSS_NODES_DEFAULT true
- #define MB (1ul << 20)
- 
-+#define PAGE_SHIFT 12
-+#define HPAGE_SHIFT 21
-+
-+#define PAGE_SIZE (1 << PAGE_SHIFT)
-+#define HPAGE_SIZE (1 << HPAGE_SHIFT)
-+
-+#define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
-+#define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
-+
- struct ksm_sysfs {
- 	unsigned long max_page_sharing;
- 	unsigned long merge_across_nodes;
-@@ -34,6 +47,7 @@ enum ksm_test_name {
- 	CHECK_KSM_ZERO_PAGE_MERGE,
- 	CHECK_KSM_NUMA_MERGE,
- 	KSM_MERGE_TIME,
-+	KSM_MERGE_TIME_HUGE_PAGES,
- 	KSM_COW_TIME
- };
- 
-@@ -100,6 +114,9 @@ static void print_help(void)
- 	       " -P evaluate merging time and speed.\n"
- 	       "    For this test, the size of duplicated memory area (in MiB)\n"
- 	       "    must be provided using -s option\n"
-+				 " -H evaluate merging time and speed of area allocated mostly with huge pages\n"
-+	       "    For this test, the size of duplicated memory area (in MiB)\n"
-+	       "    must be provided using -s option\n"
- 	       " -C evaluate the time required to break COW of merged pages.\n\n");
- 
- 	printf(" -a: specify the access protections of pages.\n"
-@@ -439,6 +456,101 @@ err_out:
- 	return KSFT_FAIL;
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-allow-users-to-set-initial-monitoring-target-regions
++++ a/mm/damon/dbgfs.c
+@@ -394,6 +394,152 @@ out:
+ 	return ret;
  }
  
-+int64_t allocate_transhuge(void *ptr, int pagemap_fd)
++static ssize_t sprint_init_regions(struct damon_ctx *c, char *buf, ssize_t len)
 +{
-+	uint64_t ent[2];
++	struct damon_target *t;
++	struct damon_region *r;
++	int written = 0;
++	int rc;
 +
-+	/* drop pmd */
-+	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
-+				MAP_FIXED | MAP_ANONYMOUS |
-+				MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
-+		errx(2, "mmap transhuge");
-+
-+	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
-+		err(2, "MADV_HUGEPAGE");
-+
-+	/* allocate transparent huge page */
-+	*(volatile void **)ptr = ptr;
-+
-+	if (pread(pagemap_fd, ent, sizeof(ent),
-+			(uintptr_t)ptr >> (PAGE_SHIFT - 3)) != sizeof(ent))
-+		err(2, "read pagemap");
-+
-+	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
-+	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
-+	    !(PAGEMAP_PFN(ent[0]) & ((1 << (HPAGE_SHIFT - PAGE_SHIFT)) - 1)))
-+		return PAGEMAP_PFN(ent[0]);
-+
-+	return -1;
-+}
-+
-+static int ksm_merge_hugepages_time(int mapping, int prot, int timeout, size_t map_size)
-+{
-+	void *map_ptr, *map_ptr_orig;
-+	struct timespec start_time, end_time;
-+	unsigned long scan_time_ns;
-+	int pagemap_fd, n_normal_pages, n_huge_pages;
-+
-+	map_size *= MB;
-+	size_t len = map_size;
-+
-+	len -= len % HPAGE_SIZE;
-+	map_ptr_orig = mmap(NULL, len + HPAGE_SIZE, PROT_READ | PROT_WRITE,
-+			MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE, -1, 0);
-+	map_ptr = map_ptr_orig + HPAGE_SIZE - (uintptr_t)map_ptr_orig % HPAGE_SIZE;
-+
-+	if (map_ptr_orig == MAP_FAILED)
-+		err(2, "initial mmap");
-+
-+	if (madvise(map_ptr, len + HPAGE_SIZE, MADV_HUGEPAGE))
-+		err(2, "MADV_HUGEPAGE");
-+
-+	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
-+	if (pagemap_fd < 0)
-+		err(2, "open pagemap");
-+
-+	n_normal_pages = 0;
-+	n_huge_pages = 0;
-+	for (void *p = map_ptr; p < map_ptr + len; p += HPAGE_SIZE) {
-+		if (allocate_transhuge(p, pagemap_fd) < 0)
-+			n_normal_pages++;
-+		else
-+			n_huge_pages++;
-+	}
-+	printf("Number of normal pages:    %d\n", n_normal_pages);
-+	printf("Number of huge pages:    %d\n", n_huge_pages);
-+
-+	memset(map_ptr, '*', len);
-+
-+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
-+		perror("clock_gettime");
-+		goto err_out;
-+	}
-+	if (ksm_merge_pages(map_ptr, map_size, start_time, timeout))
-+		goto err_out;
-+	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
-+		perror("clock_gettime");
-+		goto err_out;
-+	}
-+
-+	scan_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
-+		       (end_time.tv_nsec - start_time.tv_nsec);
-+
-+	printf("Total size:    %lu MiB\n", map_size / MB);
-+	printf("Total time:    %ld.%09ld s\n", scan_time_ns / NSEC_PER_SEC,
-+	       scan_time_ns % NSEC_PER_SEC);
-+	printf("Average speed:  %.3f MiB/s\n", (map_size / MB) /
-+					       ((double)scan_time_ns / NSEC_PER_SEC));
-+
-+	munmap(map_ptr_orig, len + HPAGE_SIZE);
-+	return KSFT_PASS;
-+
-+err_out:
-+	printf("Not OK\n");
-+	munmap(map_ptr_orig, len + HPAGE_SIZE);
-+	return KSFT_FAIL;
-+}
-+
- static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size)
- {
- 	void *map_ptr;
-@@ -564,7 +676,7 @@ int main(int argc, char *argv[])
- 	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
- 	long size_MB = 0;
- 
--	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPC")) != -1) {
-+	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPCH")) != -1) {
- 		switch (opt) {
- 		case 'a':
- 			prot = str_to_prot(optarg);
-@@ -618,6 +730,9 @@ int main(int argc, char *argv[])
- 		case 'P':
- 			test_name = KSM_MERGE_TIME;
- 			break;
-+		case 'H':
-+			test_name = KSM_MERGE_TIME_HUGE_PAGES;
-+			break;
- 		case 'C':
- 			test_name = KSM_COW_TIME;
- 			break;
-@@ -670,6 +785,14 @@ int main(int argc, char *argv[])
- 		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
- 				     size_MB);
- 		break;
-+	case KSM_MERGE_TIME_HUGE_PAGES:
-+		if (size_MB == 0) {
-+			printf("Option '-s' is required.\n");
-+			return KSFT_FAIL;
++	damon_for_each_target(t, c) {
++		damon_for_each_region(r, t) {
++			rc = scnprintf(&buf[written], len - written,
++					"%lu %lu %lu\n",
++					t->id, r->ar.start, r->ar.end);
++			if (!rc)
++				return -ENOMEM;
++			written += rc;
 +		}
-+		ret = ksm_merge_hugepages_time(MAP_PRIVATE | MAP_ANONYMOUS, prot,
-+				ksm_scan_limit_sec, size_MB);
-+		break;
- 	case KSM_COW_TIME:
- 		ret = ksm_cow_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
- 				   page_size);
++	}
++	return written;
++}
++
++static ssize_t dbgfs_init_regions_read(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	struct damon_ctx *ctx = file->private_data;
++	char *kbuf;
++	ssize_t len;
++
++	kbuf = kmalloc(count, GFP_KERNEL);
++	if (!kbuf)
++		return -ENOMEM;
++
++	mutex_lock(&ctx->kdamond_lock);
++	if (ctx->kdamond) {
++		mutex_unlock(&ctx->kdamond_lock);
++		len = -EBUSY;
++		goto out;
++	}
++
++	len = sprint_init_regions(ctx, kbuf, count);
++	mutex_unlock(&ctx->kdamond_lock);
++	if (len < 0)
++		goto out;
++	len = simple_read_from_buffer(buf, count, ppos, kbuf, len);
++
++out:
++	kfree(kbuf);
++	return len;
++}
++
++static int add_init_region(struct damon_ctx *c,
++			 unsigned long target_id, struct damon_addr_range *ar)
++{
++	struct damon_target *t;
++	struct damon_region *r, *prev;
++	unsigned long id;
++	int rc = -EINVAL;
++
++	if (ar->start >= ar->end)
++		return -EINVAL;
++
++	damon_for_each_target(t, c) {
++		id = t->id;
++		if (targetid_is_pid(c))
++			id = (unsigned long)pid_vnr((struct pid *)id);
++		if (id == target_id) {
++			r = damon_new_region(ar->start, ar->end);
++			if (!r)
++				return -ENOMEM;
++			damon_add_region(r, t);
++			if (damon_nr_regions(t) > 1) {
++				prev = damon_prev_region(r);
++				if (prev->ar.end > r->ar.start) {
++					damon_destroy_region(r, t);
++					return -EINVAL;
++				}
++			}
++			rc = 0;
++		}
++	}
++	return rc;
++}
++
++static int set_init_regions(struct damon_ctx *c, const char *str, ssize_t len)
++{
++	struct damon_target *t;
++	struct damon_region *r, *next;
++	int pos = 0, parsed, ret;
++	unsigned long target_id;
++	struct damon_addr_range ar;
++	int err;
++
++	damon_for_each_target(t, c) {
++		damon_for_each_region_safe(r, next, t)
++			damon_destroy_region(r, t);
++	}
++
++	while (pos < len) {
++		ret = sscanf(&str[pos], "%lu %lu %lu%n",
++				&target_id, &ar.start, &ar.end, &parsed);
++		if (ret != 3)
++			break;
++		err = add_init_region(c, target_id, &ar);
++		if (err)
++			goto fail;
++		pos += parsed;
++	}
++
++	return 0;
++
++fail:
++	damon_for_each_target(t, c) {
++		damon_for_each_region_safe(r, next, t)
++			damon_destroy_region(r, t);
++	}
++	return err;
++}
++
++static ssize_t dbgfs_init_regions_write(struct file *file,
++					  const char __user *buf, size_t count,
++					  loff_t *ppos)
++{
++	struct damon_ctx *ctx = file->private_data;
++	char *kbuf;
++	ssize_t ret = count;
++	int err;
++
++	kbuf = user_input_str(buf, count, ppos);
++	if (IS_ERR(kbuf))
++		return PTR_ERR(kbuf);
++
++	mutex_lock(&ctx->kdamond_lock);
++	if (ctx->kdamond) {
++		ret = -EBUSY;
++		goto unlock_out;
++	}
++
++	err = set_init_regions(ctx, kbuf, ret);
++	if (err)
++		ret = err;
++
++unlock_out:
++	mutex_unlock(&ctx->kdamond_lock);
++	kfree(kbuf);
++	return ret;
++}
++
+ static ssize_t dbgfs_kdamond_pid_read(struct file *file,
+ 		char __user *buf, size_t count, loff_t *ppos)
+ {
+@@ -445,6 +591,12 @@ static const struct file_operations targ
+ 	.write = dbgfs_target_ids_write,
+ };
+ 
++static const struct file_operations init_regions_fops = {
++	.open = damon_dbgfs_open,
++	.read = dbgfs_init_regions_read,
++	.write = dbgfs_init_regions_write,
++};
++
+ static const struct file_operations kdamond_pid_fops = {
+ 	.open = damon_dbgfs_open,
+ 	.read = dbgfs_kdamond_pid_read,
+@@ -453,9 +605,9 @@ static const struct file_operations kdam
+ static void dbgfs_fill_ctx_dir(struct dentry *dir, struct damon_ctx *ctx)
+ {
+ 	const char * const file_names[] = {"attrs", "schemes", "target_ids",
+-		"kdamond_pid"};
++		"init_regions", "kdamond_pid"};
+ 	const struct file_operations *fops[] = {&attrs_fops, &schemes_fops,
+-		&target_ids_fops, &kdamond_pid_fops};
++		&target_ids_fops, &init_regions_fops, &kdamond_pid_fops};
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(file_names); i++)
 _
 
-Patches currently in -mm which might be from pedrodemargomes@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-selftests-vm-add-ksm-huge-pages-merging-time-test.patch
+maintainers-update-seongjaes-email-address.patch
+mm-damon-core-print-kdamond-start-log-in-debug-mode-only.patch
+mm-damon-core-account-age-of-target-regions.patch
+mm-damon-core-implement-damon-based-operation-schemes-damos.patch
+mm-damon-vaddr-support-damon-based-operation-schemes.patch
+mm-damon-dbgfs-support-damon-based-operation-schemes.patch
+mm-damon-schemes-implement-statistics-feature.patch
+selftests-damon-add-schemes-debugfs-tests.patch
+docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
+mm-damon-dbgfs-allow-users-to-set-initial-monitoring-target-regions.patch
+mm-damon-dbgfs-test-add-a-unit-test-case-for-init_regions.patch
+docs-admin-guide-mm-damon-document-init_regions-feature.patch
+mm-damon-vaddr-separate-commonly-usable-functions.patch
+mm-damon-implement-primitives-for-physical-address-space-monitoring.patch
+mm-damon-dbgfs-support-physical-memory-monitoring.patch
+docs-damon-document-physical-memory-monitoring-support.patch
 
