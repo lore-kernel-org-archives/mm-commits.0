@@ -2,36 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6539FC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 21:45:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBE30C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 22:23:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4F6E2611C5
-	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 21:45:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD73A610CC
+	for <mm-commits@archiver.kernel.org>; Wed, 13 Oct 2021 22:23:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229641AbhJMVr4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 13 Oct 2021 17:47:56 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59814 "EHLO mail.kernel.org"
+        id S231187AbhJMWZR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 13 Oct 2021 18:25:17 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46944 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229631AbhJMVr4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 13 Oct 2021 17:47:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E6EB7611C3;
-        Wed, 13 Oct 2021 21:45:51 +0000 (UTC)
+        id S230507AbhJMWZR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 13 Oct 2021 18:25:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9007B610CC;
+        Wed, 13 Oct 2021 22:23:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634161552;
-        bh=cH1kH3P2KxDqq+oBShn4SrYBNAxCL4bkcgXhBNDT9Xs=;
+        s=korg; t=1634163793;
+        bh=85z5gdGuUnzGWfBeSFKxgULjlKVZEccVPdQ15w/rryo=;
         h=Date:From:To:Subject:From;
-        b=pSyy1alfMiA3C4CYlv8usCn8a6nyirUAOI2zP+gH0pYLMTY4sa2I7ZpX7cLZb1+z6
-         PfZ8v1FM1YD2mFactulIuywHRQjlfZ4kcc5N33FoQyL11XkNyUGF/iIrsmS8O5rJbx
-         A9kAHA+symHk3xj34qPrmlRb4Jc6j28x3WsY/928=
-Date:   Wed, 13 Oct 2021 14:45:51 -0700
+        b=gLsADeUksBWnizGmIrEK038cVrnRDD48fJsHnqUD4Gqk/pUY0AfxkYBZkqnTok2JW
+         aDAqdlf7dQIdGJqMSWWsXTJ0dBrCuclXOUfwMbKMOmm9fSvGW8acfDBtJ8GbVe+/PJ
+         hy8ujWPPXukrQe4ehayQfdW8n6iHcsWJYRIEpz1U=
+Date:   Wed, 13 Oct 2021 15:23:13 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, cl@linux.com, dave.hansen@linux.intel.com,
-        david@redhat.com, iamjoonsoo.kim@lge.com, mhocko@suse.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de, penberg@kernel.org,
-        rientjes@google.com, sfr@canb.auug.org.au, vbabka@suse.cz
-Subject:  + mm-migrate-rework-hotplug_memory_notifier-stub.patch
- added to -mm tree
-Message-ID: <20211013214551.vedG60Ndz%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, pedrodemargomes@gmail.com,
+        zhansayabagdaulet@gmail.com
+Subject:  [to-be-updated]
+ selftests-vm-add-ksm-huge-pages-merging-time-test.patch removed from -mm
+ tree
+Message-ID: <20211013222313.9PWAnXhGf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,164 +39,168 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: rework hotplug_memory_notifier() stub
-has been added to the -mm tree.  Its filename is
-     mm-migrate-rework-hotplug_memory_notifier-stub.patch
+     Subject: selftests: vm: add KSM huge pages merging time test
+has been removed from the -mm tree.  Its filename was
+     selftests-vm-add-ksm-huge-pages-merging-time-test.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-rework-hotplug_memory_notifier-stub.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-rework-hotplug_memory_notifier-stub.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm/migrate: rework hotplug_memory_notifier() stub
+From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Subject: selftests: vm: add KSM huge pages merging time test
 
-The previous change added a compile time warning for the
-CONFIG_MEMORY_HOTPLUG=n case:
-
-mm/migrate.c:3216:22: error: 'migrate_on_reclaim_callback' defined but not used [-Werror=unused-function]
- 3216 | static int __meminit migrate_on_reclaim_callback(struct notifier_block *self,
-      |                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-mm/migrate.c:3197:13: error: 'set_migration_target_nodes' defined but not used [-Werror=unused-function]
- 3197 | static void set_migration_target_nodes(void)
-      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Rework the hotplug_memory_notifier() stub implementation into an inline
-function so it always references its argument but ignores it, leading the
-compiler to silently drop the hotplug memory notifier function and further
-code referenced from it.
-
-To do this, the #ifdef around those functions need to be removed as well,
-but this tends to help with readability and build coverage.
-
-Link: https://lkml.kernel.org/r/20211013144029.2154629-1-arnd@kernel.org
-Fixes: dd3e24b84bc1 ("mm/migrate: add CPU hotplug to demotion #ifdef")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/20211011055908.87140-1-pedrodemargomes@gmail.com
+Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Cc: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory.h |    5 ++++-
- mm/migrate.c           |    6 +-----
- mm/page_ext.c          |    4 +---
- mm/slab.c              |    4 ++--
- 4 files changed, 8 insertions(+), 11 deletions(-)
+ tools/testing/selftests/vm/ksm_tests.c |   40 +++++++++++++++++------
+ 1 file changed, 30 insertions(+), 10 deletions(-)
 
---- a/include/linux/memory.h~mm-migrate-rework-hotplug_memory_notifier-stub
-+++ a/include/linux/memory.h
-@@ -160,7 +160,10 @@ int walk_dynamic_memory_groups(int nid,
- #define register_hotmemory_notifier(nb)		register_memory_notifier(nb)
- #define unregister_hotmemory_notifier(nb) 	unregister_memory_notifier(nb)
- #else
--#define hotplug_memory_notifier(fn, pri)	({ 0; })
-+static inline int hotplug_memory_notifier(notifier_fn_t fn, int pri)
-+{
-+	return 0;
-+}
- /* These aren't inline functions due to a GCC bug. */
- #define register_hotmemory_notifier(nb)    ({ (void)(nb); 0; })
- #define unregister_hotmemory_notifier(nb)  ({ (void)(nb); })
---- a/mm/migrate.c~mm-migrate-rework-hotplug_memory_notifier-stub
-+++ a/mm/migrate.c
-@@ -3066,7 +3066,7 @@ void migrate_vma_finalize(struct migrate
- EXPORT_SYMBOL(migrate_vma_finalize);
- #endif /* CONFIG_DEVICE_PRIVATE */
+--- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-add-ksm-huge-pages-merging-time-test
++++ a/tools/testing/selftests/vm/ksm_tests.c
+@@ -5,6 +5,7 @@
+ #include <time.h>
+ #include <string.h>
+ #include <numa.h>
++#include <err.h>
  
--#if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_HOTPLUG_CPU)
-+#if defined(CONFIG_HOTPLUG_CPU)
- /* Disable reclaim-based migration. */
- static void __disable_all_migrate_targets(void)
+ #include "../kselftest.h"
+ #include "../../../../include/vdso/time64.h"
+@@ -34,7 +35,8 @@ enum ksm_test_name {
+ 	CHECK_KSM_ZERO_PAGE_MERGE,
+ 	CHECK_KSM_NUMA_MERGE,
+ 	KSM_MERGE_TIME,
+-	KSM_COW_TIME
++	KSM_COW_TIME,
++	KSM_MERGE_TIME_HUGE_PAGES
+ };
+ 
+ static int ksm_write_sysfs(const char *file_path, unsigned long val)
+@@ -100,6 +102,9 @@ static void print_help(void)
+ 	       " -P evaluate merging time and speed.\n"
+ 	       "    For this test, the size of duplicated memory area (in MiB)\n"
+ 	       "    must be provided using -s option\n"
++		   " -H evaluate merging time and speed of huge pages.\n"
++	       "    For this test, the size of duplicated memory area (in MiB)\n"
++	       "    must be provided using -s option\n"
+ 	       " -C evaluate the time required to break COW of merged pages.\n\n");
+ 
+ 	printf(" -a: specify the access protections of pages.\n"
+@@ -118,10 +123,14 @@ static void print_help(void)
+ 	exit(0);
+ }
+ 
+-static void  *allocate_memory(void *ptr, int prot, int mapping, char data, size_t map_size)
++static void  *allocate_memory(void *ptr, int prot, int mapping, char data, size_t map_size,
++				 bool huge_page)
  {
-@@ -3208,7 +3208,6 @@ static void set_migration_target_nodes(v
- 	put_online_mems();
- }
+ 	void *map_ptr = mmap(ptr, map_size, PROT_WRITE, mapping, -1, 0);
  
--#if defined(CONFIG_MEMORY_HOTPLUG)
- /*
-  * This leaves migrate-on-reclaim transiently disabled between
-  * the MEM_GOING_OFFLINE and MEM_OFFLINE events.  This runs
-@@ -3265,9 +3264,7 @@ static int __meminit migrate_on_reclaim_
- 
- 	return notifier_from_errno(0);
- }
--#endif /* CONFIG_MEMORY_HOTPLUG */
- 
--#ifdef CONFIG_HOTPLUG_CPU
- /*
-  * React to hotplug events that might affect the migration targets
-  * like events that online or offline NUMA nodes.
-@@ -3309,4 +3306,3 @@ static int __init migrate_on_reclaim_ini
- }
- late_initcall(migrate_on_reclaim_init);
- #endif /* CONFIG_HOTPLUG_CPU */
--#endif /* CONFIG_MEMORY_HOTPLUG || CONFIG_HOTPLUG_CPU */
---- a/mm/page_ext.c~mm-migrate-rework-hotplug_memory_notifier-stub
-+++ a/mm/page_ext.c
-@@ -269,7 +269,7 @@ static int __meminit init_section_page_e
- 	total_usage += table_size;
- 	return 0;
- }
--#ifdef CONFIG_MEMORY_HOTPLUG
++	if (huge_page && madvise(map_ptr, map_size, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
 +
- static void free_page_ext(void *addr)
+ 	if (!map_ptr) {
+ 		perror("mmap");
+ 		return NULL;
+@@ -250,7 +259,7 @@ static int check_ksm_merge(int mapping,
+ 	}
+ 
+ 	/* fill pages with the same data and merge them */
+-	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
++	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count, false);
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+@@ -282,7 +291,7 @@ static int check_ksm_unmerge(int mapping
+ 	}
+ 
+ 	/* fill pages with the same data and merge them */
+-	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
++	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count, false);
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+@@ -325,7 +334,7 @@ static int check_ksm_zero_page_merge(int
+ 		return KSFT_FAIL;
+ 
+ 	/* fill pages with zero and try to merge them */
+-	map_ptr = allocate_memory(NULL, prot, mapping, 0, page_size * page_count);
++	map_ptr = allocate_memory(NULL, prot, mapping, 0, page_size * page_count, false);
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+@@ -439,7 +448,7 @@ err_out:
+ 	return KSFT_FAIL;
+ }
+ 
+-static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size)
++static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size, bool huge_page)
  {
- 	if (is_vmalloc_addr(addr)) {
-@@ -374,8 +374,6 @@ static int __meminit page_ext_callback(s
- 	return notifier_from_errno(ret);
- }
+ 	void *map_ptr;
+ 	struct timespec start_time, end_time;
+@@ -447,7 +456,7 @@ static int ksm_merge_time(int mapping, i
  
--#endif
--
- void __init page_ext_init(void)
- {
- 	unsigned long pfn;
---- a/mm/slab.c~mm-migrate-rework-hotplug_memory_notifier-stub
-+++ a/mm/slab.c
-@@ -1095,7 +1095,7 @@ static int slab_offline_cpu(unsigned int
- 	return 0;
- }
+ 	map_size *= MB;
  
--#if defined(CONFIG_NUMA) && defined(CONFIG_MEMORY_HOTPLUG)
-+#if defined(CONFIG_NUMA)
- /*
-  * Drains freelist for a node on each slab cache, used for memory hot-remove.
-  * Returns -EBUSY if all objects cannot be drained so that the node is not
-@@ -1157,7 +1157,7 @@ static int __meminit slab_memory_callbac
- out:
- 	return notifier_from_errno(ret);
- }
--#endif /* CONFIG_NUMA && CONFIG_MEMORY_HOTPLUG */
-+#endif /* CONFIG_NUMA */
+-	map_ptr = allocate_memory(NULL, prot, mapping, '*', map_size);
++	map_ptr = allocate_memory(NULL, prot, mapping, '*', map_size, huge_page);
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
  
- /*
-  * swap the static kmem_cache_node with kmalloced memory
+@@ -489,7 +498,7 @@ static int ksm_cow_time(int mapping, int
+ 	/* page_count must be less than 2*page_size */
+ 	size_t page_count = 4000;
+ 
+-	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count);
++	map_ptr = allocate_memory(NULL, prot, mapping, '*', page_size * page_count, false);
+ 	if (!map_ptr)
+ 		return KSFT_FAIL;
+ 
+@@ -564,7 +573,7 @@ int main(int argc, char *argv[])
+ 	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
+ 	long size_MB = 0;
+ 
+-	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPC")) != -1) {
++	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPCH")) != -1) {
+ 		switch (opt) {
+ 		case 'a':
+ 			prot = str_to_prot(optarg);
+@@ -621,6 +630,9 @@ int main(int argc, char *argv[])
+ 		case 'C':
+ 			test_name = KSM_COW_TIME;
+ 			break;
++		case 'H':
++			test_name = KSM_MERGE_TIME_HUGE_PAGES;
++			break;
+ 		default:
+ 			return KSFT_FAIL;
+ 		}
+@@ -668,12 +680,20 @@ int main(int argc, char *argv[])
+ 			return KSFT_FAIL;
+ 		}
+ 		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+-				     size_MB);
++				     size_MB, false);
+ 		break;
+ 	case KSM_COW_TIME:
+ 		ret = ksm_cow_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+ 				   page_size);
+ 		break;
++	case KSM_MERGE_TIME_HUGE_PAGES:
++		if (size_MB == 0) {
++			printf("Option '-s' is required.\n");
++			return KSFT_FAIL;
++		}
++		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
++				     size_MB, true);
++		break;
+ 	}
+ 
+ 	if (ksm_restore(&ksm_sysfs_old)) {
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from pedrodemargomes@gmail.com are
 
-mm-migrate-rework-hotplug_memory_notifier-stub.patch
-kasan-test-use-underlying-string-helpers.patch
-posix-acl-avoid-wempty-body-warning.patch
-hfs-hfsplus-use-warn_on-for-sanity-check.patch
 
