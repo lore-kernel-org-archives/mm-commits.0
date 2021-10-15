@@ -2,36 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C2F77C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 19:35:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2AF41C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 19:38:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A206561151
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 19:35:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0635B61151
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 19:38:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242709AbhJOThW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Oct 2021 15:37:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44412 "EHLO mail.kernel.org"
+        id S238220AbhJOTk2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Oct 2021 15:40:28 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45024 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238544AbhJOThW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 15 Oct 2021 15:37:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A0E1161164;
-        Fri, 15 Oct 2021 19:35:07 +0000 (UTC)
+        id S235167AbhJOTk1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 15 Oct 2021 15:40:27 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B79A060FE3;
+        Fri, 15 Oct 2021 19:38:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634326507;
-        bh=PjvkYxUp4GnXY1kQtsFWAcXguqc6dh6Gmy99pzrEEoo=;
+        s=korg; t=1634326700;
+        bh=MLXTGkG42o4dGk2RGBEnuoIeA0VY3yYyEDcW6EWiwpU=;
         h=Date:From:To:Subject:From;
-        b=wGYlJ7DYQw1rvk70lsxfnNK9+GAWor/pz8Uf0kKU9nzKXvgwfzKG7KCxs5xinhlun
-         JwiEj0AEJD4IZ3uC8+OtqXfUv6vSoTl3elr+1kNNO9ejmTtOrItiNvauZL8P8XMz/g
-         sWHGLtYLiEaoaYQR0H4cQii8z88Fecm2pTDHlJhQ=
-Date:   Fri, 15 Oct 2021 12:35:07 -0700
+        b=peGflnwpGYH4KbPfjYaYkSczUXD+6ICq75t1FhWZRqQvRCWpWKuUgcwq+rwbFfW0G
+         Xn2danKOyZvwNFeorl7cX2M/VBebWMx93u4c26w8aw2Mhk6AL/DgIv7E3vSUb6BghO
+         iDhrGc1XInJaBp1mmSDlvTpxKKBB0Twxglhi7xsk=
+Date:   Fri, 15 Oct 2021 12:38:20 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk,
-        mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        ojeda@kernel.org
-Subject:  + linux-container_ofh-switch-to-static_assert.patch added
- to -mm tree
-Message-ID: <20211015193507.XCWTkd9OB%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, oliver.sang@intel.com, rppt@kernel.org,
+        sfr@canb.auug.org.au, vbabka@suse.cz
+Subject:  +
+ =?US-ASCII?Q?lib-stackdepot-allow-optional-init-and-stack=5Ftable-alloca?=
+ =?US-ASCII?Q?tion-by-kvmalloc-fix-2.patch?= added to -mm tree
+Message-ID: <20211015193820.30ckKZwGM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/container_of.h: switch to static_assert
+     Subject: lib/stackdepot: allow optional init and stack_table allocation by kvmalloc() - fixup
 has been added to the -mm tree.  Its filename is
-     linux-container_ofh-switch-to-static_assert.patch
+     lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc-fix-2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-container_ofh-switch-to-static_assert.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc-fix-2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-container_ofh-switch-to-static_assert.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,72 +62,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: linux/container_of.h: switch to static_assert
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: lib/stackdepot: allow optional init and stack_table allocation by kvmalloc() - fixup
 
-_Static_assert() is evaluated already in the compiler's frontend, and
-gives a somehat more to-the-point error, compared to the BUILD_BUG_ON
-macro, which only fires after the optimizer has had a chance to eliminate
-calls to functions marked with __attribute__((error)).  In theory, this
-might make builds a tiny bit faster.
+On FLATMEM, we call page_ext_init_flatmem_late() just before
+kmem_cache_init() which means stack_depot_init() (called by page owner
+init) will not recognize properly it should use kvmalloc() and not
+memblock_alloc().  memblock_alloc() will also not issue a warning and
+return a block memory that can be invalid and cause kernel page fault when
+saving stacks, as reported by the kernel test robot [1].
 
-There's also a little less gunk in the error message emitted:
+Fix this by moving page_ext_init_flatmem_late() below kmem_cache_init() so
+that slab_is_available() is true during stack_depot_init().  SPARSEMEM
+doesn't have this issue, as it doesn't do page_ext_init_flatmem_late(),
+but a different page_ext_init() even later in the boot process.
 
-lib/sort.c: In function `foo':
-./include/linux/build_bug.h:78:41: error: static assertion failed: "pointer type mismatch in container_of()"
-   78 | #define __static_assert(expr, msg, ...) _Static_assert(expr, msg)
+Thanks to Mike Rapoport for pointing out the FLATMEM init ordering issue.
 
-compared to
+While at it, also actually resolve a checkpatch warning in stack_depot_init()
+from DRM CI, which was supposed to be in the original patch already.
 
-lib/sort.c: In function `foo':
-././include/linux/compiler_types.h:322:38: error: call to `__compiletime_assert_2' declared with attribute error: pointer type mismatch in container_of()
-  322 |  _compiletime_assert(condition, msg, __compiletime_assert_, __COUNTER__)
+[1] https://lore.kernel.org/all/20211014085450.GC18719@xsang-OptiPlex-9020/
 
-While at it, fix the copy-pasto in container_of_safe().
-
-Link: https://lkml.kernel.org/r/20211015090530.2774079-1-linux@rasmusvillemoes.dk
-Link: https://lore.kernel.org/lkml/20211014132331.GA4811@kernel.org/T/
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reviewed-by: Miguel Ojeda <ojeda@kernel.org>
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
+Link: https://lkml.kernel.org/r/6abd9213-19a9-6d58-cedc-2414386d2d81@suse.cz
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: kernel test robot <oliver.sang@intel.com>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container_of.h |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ init/main.c      |    7 +++++--
+ lib/stackdepot.c |    2 +-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
---- a/include/linux/container_of.h~linux-container_ofh-switch-to-static_assert
-+++ a/include/linux/container_of.h
-@@ -16,9 +16,9 @@
-  */
- #define container_of(ptr, type, member) ({				\
- 	void *__mptr = (void *)(ptr);					\
--	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
--			 !__same_type(*(ptr), void),			\
--			 "pointer type mismatch in container_of()");	\
-+	static_assert(__same_type(*(ptr), ((type *)0)->member) ||	\
-+		      __same_type(*(ptr), void),			\
-+		      "pointer type mismatch in container_of()");	\
- 	((type *)(__mptr - offsetof(type, member))); })
+--- a/init/main.c~lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc-fix-2
++++ a/init/main.c
+@@ -845,9 +845,12 @@ static void __init mm_init(void)
+ 	stack_depot_early_init();
+ 	mem_init();
+ 	mem_init_print_info();
+-	/* page_owner must be initialized after buddy is ready */
+-	page_ext_init_flatmem_late();
+ 	kmem_cache_init();
++	/*
++	 * page_owner must be initialized after buddy is ready, and also after
++	 * slab is ready so that stack_depot_init() works properly
++	 */
++	page_ext_init_flatmem_late();
+ 	kmemleak_init();
+ 	pgtable_init();
+ 	debug_objects_mem_init();
+--- a/lib/stackdepot.c~lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc-fix-2
++++ a/lib/stackdepot.c
+@@ -171,7 +171,7 @@ __ref int stack_depot_init(void)
+ 	static DEFINE_MUTEX(stack_depot_init_mutex);
  
- /**
-@@ -31,9 +31,9 @@
-  */
- #define container_of_safe(ptr, type, member) ({				\
- 	void *__mptr = (void *)(ptr);					\
--	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
--			 !__same_type(*(ptr), void),			\
--			 "pointer type mismatch in container_of()");	\
-+	static_assert(__same_type(*(ptr), ((type *)0)->member) ||	\
-+		      __same_type(*(ptr), void),			\
-+		      "pointer type mismatch in container_of_safe()");	\
- 	IS_ERR_OR_NULL(__mptr) ? ERR_CAST(__mptr) :			\
- 		((type *)(__mptr - offsetof(type, member))); })
+ 	mutex_lock(&stack_depot_init_mutex);
+-	if (!stack_depot_disable && stack_table == NULL) {
++	if (!stack_depot_disable && !stack_table) {
+ 		size_t size = (STACK_HASH_SIZE * sizeof(struct stack_record *));
+ 		int i;
  
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-linux-container_ofh-switch-to-static_assert.patch
+lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc.patch
+lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc-fix-2.patch
 
