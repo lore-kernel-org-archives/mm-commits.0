@@ -2,36 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 737EDC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 20:26:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CC2FC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 20:26:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5A8866120A
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 20:26:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 737646120D
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 20:26:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238575AbhJOU2f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Oct 2021 16:28:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58814 "EHLO mail.kernel.org"
+        id S242952AbhJOU2h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Oct 2021 16:28:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58850 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238545AbhJOU2f (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 15 Oct 2021 16:28:35 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EF7B561205;
-        Fri, 15 Oct 2021 20:26:27 +0000 (UTC)
+        id S238545AbhJOU2h (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 15 Oct 2021 16:28:37 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F046C611EE;
+        Fri, 15 Oct 2021 20:26:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634329588;
-        bh=AqtJ+zIeiEafEkd24bXSWeabwUtxtCrJKAjfeR1/QGQ=;
+        s=korg; t=1634329590;
+        bh=kW2GP//Sjw2a6Zj11sZs+bHEcu6i17ayt6hcrX5uqUU=;
         h=Date:From:To:Subject:From;
-        b=sam0H+diDs/5+3QKPY5NTUJr2sI/9IjF3V6Ainghe0T5RQXDFjZAKppZneEb3xG3P
-         41EZltXwaBPo1ygk9+EuEZ0gSTboWztOXq0LBGPHvtMqWsWlpu5+m/9+RlslKrPIca
-         bx72rjX6DN2M/61qopHjRGRsMBvcc+4L2vdHr6YI=
-Date:   Fri, 15 Oct 2021 13:26:27 -0700
+        b=I9Xy3uggF5nPmNfK5zUu1gKAWKkLxB5gXxmnsQz58VBFVR0ewE66sMfuWwlqSUhrl
+         00A3C1LlKiWdDXq2+0JRu/iEr+KvJNI/h/ExiqWtxyNTNlZBrGba/h+eZVz3iQapK/
+         79FOLSu+8Do5TNO671DZmiCcWgklABR13dQIdSdo=
+Date:   Fri, 15 Oct 2021 13:26:29 -0700
 From:   akpm@linux-foundation.org
 To:     hughd@google.com, kirill.shutemov@linux.intel.com,
         mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         osalvador@suse.de, peterx@redhat.com, shy828301@gmail.com,
         willy@infradead.org
-Subject:  + mm-hwpoison-refactor-refcount-check-handling.patch
- added to -mm tree
-Message-ID: <20211015202627.6vbtnxPJ4%akpm@linux-foundation.org>
+Subject:  +
+ mm-shmem-dont-truncate-page-if-memory-failure-happens.patch added to -mm
+ tree
+Message-ID: <20211015202629.HVr6yZ4nF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hwpoison: refactor refcount check handling
+     Subject: mm: shmem: don't truncate page if memory failure happens
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-refactor-refcount-check-handling.patch
+     mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-refactor-refcount-check-handling.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-refactor-refcount-check-handling.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,241 +63,186 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: hwpoison: refactor refcount check handling
+Subject: mm: shmem: don't truncate page if memory failure happens
 
-Memory failure will report failure if the page still has extra pinned
-refcount other than from hwpoison after the handler is done.  Actually the
-check is not necessary for all handlers, so move the check into specific
-handlers.  This would make the following keeping shmem page in page cache
-patch easier.
+The current behavior of memory failure is to truncate the page cache
+regardless of dirty or clean.  If the page is dirty the later access will
+get the obsolete data from disk without any notification to the users. 
+This may cause silent data loss.  It is even worse for shmem since shmem
+is in-memory filesystem, truncating page cache means discarding data
+blocks.  The later read would return all zero.
 
-There may be expected extra pin for some cases, for example, when the page
-is dirty and in swapcache.
+The right approach is to keep the corrupted page in page cache, any later
+access would return error for syscalls or SIGBUS for page fault, until the
+file is truncated, hole punched or removed.  The regular storage backed
+filesystems would be more complicated so this patch is focused on shmem. 
+This also unblock the support for soft offlining shmem THP.
 
-Link: https://lkml.kernel.org/r/20211014191615.6674-5-shy828301@gmail.com
-Suggested-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/20211014191615.6674-6-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   93 ++++++++++++++++++++++++++++--------------
- 1 file changed, 64 insertions(+), 29 deletions(-)
+ mm/memory-failure.c |   10 +++++++++-
+ mm/shmem.c          |   37 ++++++++++++++++++++++++++++++++++---
+ mm/userfaultfd.c    |    5 +++++
+ 3 files changed, 48 insertions(+), 4 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-refactor-refcount-check-handling
+--- a/mm/memory-failure.c~mm-shmem-dont-truncate-page-if-memory-failure-happens
 +++ a/mm/memory-failure.c
-@@ -807,12 +807,44 @@ static int truncate_error_page(struct pa
- 	return ret;
- }
+@@ -58,6 +58,7 @@
+ #include <linux/ratelimit.h>
+ #include <linux/page-isolation.h>
+ #include <linux/pagewalk.h>
++#include <linux/shmem_fs.h>
+ #include "internal.h"
+ #include "ras/ras_event.h"
  
-+struct page_state {
-+	unsigned long mask;
-+	unsigned long res;
-+	enum mf_action_page_type type;
-+
-+	/* Callback ->action() has to unlock the relevant page inside it. */
-+	int (*action)(struct page_state *ps, struct page *p);
-+};
-+
-+/*
-+ * Return true if page is still referenced by others, otherwise return
-+ * false.
-+ *
-+ * The extra_pins is true when one extra refcount is expected.
-+ */
-+static bool has_extra_refcount(struct page_state *ps, struct page *p,
-+			       bool extra_pins)
-+{
-+	int count = page_count(p) - 1;
-+
-+	if (extra_pins)
-+		count -= 1;
-+
-+	if (count > 0) {
-+		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
-+		       page_to_pfn(p), action_page_types[ps->type], count);
-+		return true;
-+	}
-+
-+	return false;
-+}
-+
- /*
-  * Error hit kernel page.
-  * Do nothing, try to be lucky and not touch this instead. For a few cases we
-  * could be more sophisticated.
-  */
--static int me_kernel(struct page *p, unsigned long pfn)
-+static int me_kernel(struct page_state *ps, struct page *p)
- {
- 	unlock_page(p);
- 	return MF_IGNORED;
-@@ -821,9 +853,9 @@ static int me_kernel(struct page *p, uns
- /*
-  * Page in unknown state. Do nothing.
-  */
--static int me_unknown(struct page *p, unsigned long pfn)
-+static int me_unknown(struct page_state *ps, struct page *p)
- {
--	pr_err("Memory failure: %#lx: Unknown page state\n", pfn);
-+	pr_err("Memory failure: %#lx: Unknown page state\n", page_to_pfn(p));
- 	unlock_page(p);
- 	return MF_FAILED;
- }
-@@ -831,7 +863,7 @@ static int me_unknown(struct page *p, un
- /*
-  * Clean (or cleaned) page cache page.
-  */
--static int me_pagecache_clean(struct page *p, unsigned long pfn)
-+static int me_pagecache_clean(struct page_state *ps, struct page *p)
+@@ -867,6 +868,7 @@ static int me_pagecache_clean(struct pag
  {
  	int ret;
  	struct address_space *mapping;
-@@ -868,9 +900,13 @@ static int me_pagecache_clean(struct pag
++	bool extra_pins;
+ 
+ 	delete_from_lru_cache(p);
+ 
+@@ -896,6 +898,12 @@ static int me_pagecache_clean(struct pag
+ 	}
+ 
+ 	/*
++	 * The shmem page is kept in page cache instead of truncating
++	 * so is expected to have an extra refcount after error-handling.
++	 */
++	extra_pins = shmem_mapping(mapping);
++
++	/*
+ 	 * Truncation is a bit tricky. Enable it per file system for now.
  	 *
  	 * Open: to take i_rwsem or not for this? Right now we don't.
- 	 */
--	ret = truncate_error_page(p, pfn, mapping);
-+	ret = truncate_error_page(p, page_to_pfn(p), mapping);
+@@ -904,7 +912,7 @@ static int me_pagecache_clean(struct pag
  out:
  	unlock_page(p);
-+
-+	if (has_extra_refcount(ps, p, false))
-+		ret = MF_FAILED;
-+
- 	return ret;
- }
  
-@@ -879,7 +915,7 @@ out:
-  * Issues: when the error hit a hole page the error is not properly
-  * propagated.
-  */
--static int me_pagecache_dirty(struct page *p, unsigned long pfn)
-+static int me_pagecache_dirty(struct page_state *ps, struct page *p)
- {
- 	struct address_space *mapping = page_mapping(p);
- 
-@@ -923,7 +959,7 @@ static int me_pagecache_dirty(struct pag
- 		mapping_set_error(mapping, -EIO);
- 	}
- 
--	return me_pagecache_clean(p, pfn);
-+	return me_pagecache_clean(ps, p);
- }
- 
- /*
-@@ -945,9 +981,10 @@ static int me_pagecache_dirty(struct pag
-  * Clean swap cache pages can be directly isolated. A later page fault will
-  * bring in the known good data from disk.
-  */
--static int me_swapcache_dirty(struct page *p, unsigned long pfn)
-+static int me_swapcache_dirty(struct page_state *ps, struct page *p)
- {
- 	int ret;
-+	bool extra_pins = false;
- 
- 	ClearPageDirty(p);
- 	/* Trigger EIO in shmem: */
-@@ -955,10 +992,17 @@ static int me_swapcache_dirty(struct pag
- 
- 	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_DELAYED;
- 	unlock_page(p);
-+
-+	if (ret == MF_DELAYED)
-+		extra_pins = true;
-+
+-	if (has_extra_refcount(ps, p, false))
 +	if (has_extra_refcount(ps, p, extra_pins))
-+		ret = MF_FAILED;
-+
+ 		ret = MF_FAILED;
+ 
  	return ret;
- }
+--- a/mm/shmem.c~mm-shmem-dont-truncate-page-if-memory-failure-happens
++++ a/mm/shmem.c
+@@ -2454,6 +2454,7 @@ shmem_write_begin(struct file *file, str
+ 	struct inode *inode = mapping->host;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	pgoff_t index = pos >> PAGE_SHIFT;
++	int ret = 0;
  
--static int me_swapcache_clean(struct page *p, unsigned long pfn)
-+static int me_swapcache_clean(struct page_state *ps, struct page *p)
- {
- 	int ret;
- 
-@@ -966,6 +1010,10 @@ static int me_swapcache_clean(struct pag
- 
- 	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_RECOVERED;
- 	unlock_page(p);
-+
-+	if (has_extra_refcount(ps, p, false))
-+		ret = MF_FAILED;
-+
- 	return ret;
- }
- 
-@@ -975,7 +1023,7 @@ static int me_swapcache_clean(struct pag
-  * - Error on hugepage is contained in hugepage unit (not in raw page unit.)
-  *   To narrow down kill region to one page, we need to break up pmd.
-  */
--static int me_huge_page(struct page *p, unsigned long pfn)
-+static int me_huge_page(struct page_state *ps, struct page *p)
- {
- 	int res;
- 	struct page *hpage = compound_head(p);
-@@ -986,7 +1034,7 @@ static int me_huge_page(struct page *p,
- 
- 	mapping = page_mapping(hpage);
- 	if (mapping) {
--		res = truncate_error_page(hpage, pfn, mapping);
-+		res = truncate_error_page(hpage, page_to_pfn(p), mapping);
- 		unlock_page(hpage);
- 	} else {
- 		res = MF_FAILED;
-@@ -1004,6 +1052,9 @@ static int me_huge_page(struct page *p,
- 		}
+ 	/* i_rwsem is held by caller */
+ 	if (unlikely(info->seals & (F_SEAL_GROW |
+@@ -2464,7 +2465,15 @@ shmem_write_begin(struct file *file, str
+ 			return -EPERM;
  	}
  
-+	if (has_extra_refcount(ps, p, false))
-+		res = MF_FAILED;
+-	return shmem_getpage(inode, index, pagep, SGP_WRITE);
++	ret = shmem_getpage(inode, index, pagep, SGP_WRITE);
 +
- 	return res;
++	if (*pagep && PageHWPoison(*pagep)) {
++		unlock_page(*pagep);
++		put_page(*pagep);
++		ret = -EIO;
++	}
++
++	return ret;
  }
  
-@@ -1029,14 +1080,7 @@ static int me_huge_page(struct page *p,
- #define slab		(1UL << PG_slab)
- #define reserved	(1UL << PG_reserved)
+ static int
+@@ -2553,6 +2562,11 @@ static ssize_t shmem_file_read_iter(stru
+ 			unlock_page(page);
+ 		}
  
--static struct page_state {
--	unsigned long mask;
--	unsigned long res;
--	enum mf_action_page_type type;
--
--	/* Callback ->action() has to unlock the relevant page inside it. */
--	int (*action)(struct page *p, unsigned long pfn);
--} error_states[] = {
-+static struct page_state error_states[] = {
- 	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
++		if (page && PageHWPoison(page)) {
++			error = -EIO;
++			break;
++		}
++
+ 		/*
+ 		 * We must evaluate after, since reads (unlike writes)
+ 		 * are called without i_rwsem protection against truncate
+@@ -3112,7 +3126,8 @@ static const char *shmem_get_link(struct
+ 		page = find_get_page(inode->i_mapping, 0);
+ 		if (!page)
+ 			return ERR_PTR(-ECHILD);
+-		if (!PageUptodate(page)) {
++		if (PageHWPoison(page) ||
++		    !PageUptodate(page)) {
+ 			put_page(page);
+ 			return ERR_PTR(-ECHILD);
+ 		}
+@@ -3120,6 +3135,11 @@ static const char *shmem_get_link(struct
+ 		error = shmem_getpage(inode, 0, &page, SGP_READ);
+ 		if (error)
+ 			return ERR_PTR(error);
++		if (page && PageHWPoison(page)) {
++			unlock_page(page);
++			put_page(page);
++			return ERR_PTR(-ECHILD);
++		}
+ 		unlock_page(page);
+ 	}
+ 	set_delayed_call(done, shmem_put_link, page);
+@@ -3770,6 +3790,13 @@ static void shmem_destroy_inodecache(voi
+ 	kmem_cache_destroy(shmem_inode_cachep);
+ }
+ 
++/* Keep the page in page cache instead of truncating it */
++static int shmem_error_remove_page(struct address_space *mapping,
++				   struct page *page)
++{
++	return 0;
++}
++
+ const struct address_space_operations shmem_aops = {
+ 	.writepage	= shmem_writepage,
+ 	.set_page_dirty	= __set_page_dirty_no_writeback,
+@@ -3780,7 +3807,7 @@ const struct address_space_operations sh
+ #ifdef CONFIG_MIGRATION
+ 	.migratepage	= migrate_page,
+ #endif
+-	.error_remove_page = generic_error_remove_page,
++	.error_remove_page = shmem_error_remove_page,
+ };
+ EXPORT_SYMBOL(shmem_aops);
+ 
+@@ -4191,6 +4218,10 @@ struct page *shmem_read_mapping_page_gfp
+ 		page = ERR_PTR(error);
+ 	else
+ 		unlock_page(page);
++
++	if (PageHWPoison(page))
++		page = ERR_PTR(-EIO);
++
+ 	return page;
+ #else
  	/*
- 	 * free pages are specially detected outside this table:
-@@ -1096,19 +1140,10 @@ static int page_action(struct page_state
- 			unsigned long pfn)
- {
- 	int result;
--	int count;
+--- a/mm/userfaultfd.c~mm-shmem-dont-truncate-page-if-memory-failure-happens
++++ a/mm/userfaultfd.c
+@@ -232,6 +232,11 @@ static int mcontinue_atomic_pte(struct m
+ 		goto out;
+ 	}
  
- 	/* page p should be unlocked after returning from ps->action().  */
--	result = ps->action(p, pfn);
-+	result = ps->action(ps, p);
- 
--	count = page_count(p) - 1;
--	if (ps->action == me_swapcache_dirty && result == MF_DELAYED)
--		count--;
--	if (count > 0) {
--		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
--		       pfn, action_page_types[ps->type], count);
--		result = MF_FAILED;
--	}
- 	action_result(pfn, ps->type, result);
- 
- 	/* Could do more checks here if page looks ok */
++	if (PageHWPoison(page)) {
++		ret = -EIO;
++		goto out_release;
++	}
++
+ 	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
+ 				       page, false, wp_copy);
+ 	if (ret)
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
