@@ -2,36 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2448DC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 21:02:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5201C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 21:12:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 02D8B6120A
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 21:02:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4F40611CE
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 21:12:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235398AbhJOVEv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Oct 2021 17:04:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34436 "EHLO mail.kernel.org"
+        id S243019AbhJOVOX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Oct 2021 17:14:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35496 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232377AbhJOVEu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 15 Oct 2021 17:04:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CCBA060E0B;
-        Fri, 15 Oct 2021 21:02:43 +0000 (UTC)
+        id S234257AbhJOVOU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 15 Oct 2021 17:14:20 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C9B5761151;
+        Fri, 15 Oct 2021 21:12:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634331764;
-        bh=rf3Jtu4F9r7xWpF3g7/U6JAeAscEVtWPCxKpp20hN1U=;
+        s=korg; t=1634332334;
+        bh=G+MXG6zFsgS81JrNIJC6gxZk1V1zaIFRxoYiY1zg8QM=;
         h=Date:From:To:Subject:From;
-        b=o9lO/5rHnmweCpswYGL53izWYtKS6I8e9k+3nMPupJuvgyvBo4EH5gmHNvvAuhruY
-         WTOOCa8uZ6ylRDXP7Q37xtDO54MA9s5U5jbD6w3UqFC7HY4pGlJYWBgcgCXSGyle5p
-         /mO1FKdp14HPqRYaVooeD3al8J5A7vv0Pyh/uNMg=
-Date:   Fri, 15 Oct 2021 14:02:43 -0700
+        b=z0+FZF58ZOomiMID2x3DBpVtqJPm7+COjdvDvnUNvZd+2cIDe/mOM8lM7ruTl5oeD
+         yr3g3nlLe6Uy1BajMzAvpkW3lH7BNmUKJFJShU0pIMHLk/qo3sLpEdPEHeLQao5diy
+         q64zqXLYowpH6c3aZ30wcup8tXhiq9opBV7lTNRU=
+Date:   Fri, 15 Oct 2021 14:12:13 -0700
 From:   akpm@linux-foundation.org
-To:     broonie@kernel.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, sfr@canb.auug.org.au, sj@kernel.org
+To:     chenwandun@huawei.com, edumazet@google.com, guohanjun@huawei.com,
+        mm-commits@vger.kernel.org, npiggin@gmail.com, shakeelb@google.com,
+        urezki@gmail.com, wangkefeng.wang@huawei.com
 Subject:  +
- mm-damon-vaddr-separate-commonly-usable-functions-fix.patch added to -mm
- tree
-Message-ID: <20211015210243.eeCjoe7dZ%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-vmalloc-introduce-alloc=5Fpages=5Fbulk=5Farray=5Fmempoli?=
+ =?US-ASCII?Q?cy-to-accelerate-memory-allocation.patch?= added to -mm tree
+Message-ID: <20211015211213.0HGunDuS2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/vaddr: include 'highmem.h' to fix a build failure
+     Subject: mm/vmalloc: introduce alloc_pages_bulk_array_mempolicy to accelerate memory allocation
 has been added to the -mm tree.  Its filename is
-     mm-damon-vaddr-separate-commonly-usable-functions-fix.patch
+     mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-vaddr-separate-commonly-usable-functions-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-vaddr-separate-commonly-usable-functions-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,100 +63,178 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/vaddr: include 'highmem.h' to fix a build failure
+From: Chen Wandun <chenwandun@huawei.com>
+Subject: mm/vmalloc: introduce alloc_pages_bulk_array_mempolicy to accelerate memory allocation
 
-Commit 0ff28922686c ("mm/damon/vaddr: separate commonly usable functions")
-in -mm tree[1] moves include of 'highmem.h' from 'vaddr.c' to
-'prmtv-common.c', though the code for the header is still in 'vaddr.c'. 
-As a result, build with 'CONFIG_HIGHPTE' fails as below:
+It will cause significant performance regressions in some situations as
+Andrew mentioned in [1].  The main situation is vmalloc, vmalloc will
+allocate pages with NUMA_NO_NODE by default, that will result in alloc
+page one by one;
 
-    In file included from ../include/linux/mm.h:33:0,
-                      from ../include/linux/kallsyms.h:13,
-                      from ../include/linux/bpf.h:20,
-                      from ../include/linux/bpf-cgroup.h:5,
-                      from ../include/linux/cgroup-defs.h:22,
-                      from ../include/linux/cgroup.h:28,
-                      from ../include/linux/hugetlb.h:9,
-                      from ../mm/damon/vaddr.c:11:
-    ../mm/damon/vaddr.c: In function `damon_mkold_pmd_entry':
-    ../include/linux/pgtable.h:97:12: error: implicit declaration of function `kmap_atomic'; did you mean `mcopy_atomic'? [-Werror=implicit-function-declaration]
-       ((pte_t *)kmap_atomic(pmd_page(*(dir))) +  \
-                 ^
-    ../include/linux/mm.h:2376:17: note: in expansion of macro `pte_offset_map'
-       pte_t *__pte = pte_offset_map(pmd, address); \
-                      ^~~~~~~~~~~~~~
-    ../mm/damon/vaddr.c:387:8: note: in expansion of macro `pte_offset_map_lock'
-       pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
-             ^~~~~~~~~~~~~~~~~~~
-    ../include/linux/pgtable.h:99:24: error: implicit declaration of function `kunmap_atomic'; did you mean `in_atomic'? [-Werror=implicit-function-declaration]
-      #define pte_unmap(pte) kunmap_atomic((pte))
-                             ^
-    ../include/linux/mm.h:2384:2: note: in expansion of macro `pte_unmap'
-       pte_unmap(pte);     \
-       ^~~~~~~~~
-    ../mm/damon/vaddr.c:392:2: note: in expansion of macro `pte_unmap_unlock'
-       pte_unmap_unlock(pte, ptl);
-       ^~~~~~~~~~~~~~~~
+In order to solve this, __alloc_pages_bulk and mempolicy should be
+considered at the same time.
 
-This commit fixes the issue by moving the include back to 'vaddr.c'.
+1) If node is specified in memory allocation request, it will alloc all
+   pages by __alloc_pages_bulk.
 
-[1] https://github.com/hnaz/linux-mm/commit/0ff28922686c
+2) If interleaving allocate memory, it will cauculate how many pages
+   should be allocated in each node, and use __alloc_pages_bulk to alloc
+   pages in each node.
 
-Link: https://lkml.kernel.org/r/20211014110848.5204-1-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Michal Hocko <mhocko@kernel.org>
+Based on "[PATCH] mm/vmalloc: fix numa spreading for large hash
+   tables".
+
+[1]: https://lore.kernel.org/lkml/CALvZod4G3SzP3kWxQYn0fj+VgG-G3yWXz=gz17+3N57ru1iajw@mail.gmail.com/t/#m750c8e3231206134293b089feaa090590afa0f60
+
+Link: https://lkml.kernel.org/r/20211014092952.1500982-1-chenwandun@huawei.com
+Signed-off-by: Chen Wandun <chenwandun@huawei.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Eric Dumazet <edumazet@google.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Hanjun Guo <guohanjun@huawei.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/prmtv-common.c |    1 -
- mm/damon/vaddr.c        |    1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ include/linux/gfp.h |    4 ++
+ mm/mempolicy.c      |   76 ++++++++++++++++++++++++++++++++++++++++++
+ mm/vmalloc.c        |   19 ++--------
+ 3 files changed, 85 insertions(+), 14 deletions(-)
 
---- a/mm/damon/prmtv-common.c~mm-damon-vaddr-separate-commonly-usable-functions-fix
-+++ a/mm/damon/prmtv-common.c
-@@ -5,7 +5,6 @@
-  * Author: SeongJae Park <sj@kernel.org>
-  */
+--- a/include/linux/gfp.h~mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation
++++ a/include/linux/gfp.h
+@@ -535,6 +535,10 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 				struct list_head *page_list,
+ 				struct page **page_array);
  
--#include <linux/highmem.h>
- #include <linux/mmu_notifier.h>
- #include <linux/page_idle.h>
- #include <linux/pagemap.h>
---- a/mm/damon/vaddr.c~mm-damon-vaddr-separate-commonly-usable-functions-fix
-+++ a/mm/damon/vaddr.c
-@@ -8,6 +8,7 @@
- #define pr_fmt(fmt) "damon-va: " fmt
++unsigned long alloc_pages_bulk_array_mempolicy(gfp_t gfp,
++				unsigned long nr_pages,
++				struct page **page_array);
++
+ /* Bulk allocate order-0 pages */
+ static inline unsigned long
+ alloc_pages_bulk_list(gfp_t gfp, unsigned long nr_pages, struct list_head *list)
+--- a/mm/mempolicy.c~mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation
++++ a/mm/mempolicy.c
+@@ -2196,6 +2196,82 @@ struct page *alloc_pages(gfp_t gfp, unsi
+ }
+ EXPORT_SYMBOL(alloc_pages);
  
- #include <asm-generic/mman-common.h>
-+#include <linux/highmem.h>
- #include <linux/hugetlb.h>
- #include <linux/mmu_notifier.h>
- #include <linux/page_idle.h>
++unsigned long alloc_pages_bulk_array_interleave(gfp_t gfp,
++		struct mempolicy *pol, unsigned long nr_pages,
++		struct page **page_array)
++{
++	int nodes;
++	unsigned long nr_pages_per_node;
++	int delta;
++	int i;
++	unsigned long nr_allocated;
++	unsigned long total_allocated = 0;
++
++	nodes = nodes_weight(pol->nodes);
++	nr_pages_per_node = nr_pages / nodes;
++	delta = nr_pages - nodes * nr_pages_per_node;
++
++	for (i = 0; i < nodes; i++) {
++		if (delta) {
++			nr_allocated = __alloc_pages_bulk(gfp,
++					interleave_nodes(pol), NULL,
++					nr_pages_per_node + 1, NULL,
++					page_array);
++			delta--;
++		} else {
++			nr_allocated = __alloc_pages_bulk(gfp,
++					interleave_nodes(pol), NULL,
++					nr_pages_per_node, NULL, page_array);
++		}
++
++		page_array += nr_allocated;
++		total_allocated += nr_allocated;
++	}
++
++	return total_allocated;
++}
++
++unsigned long alloc_pages_bulk_array_preferred_many(gfp_t gfp, int nid,
++		struct mempolicy *pol, unsigned long nr_pages,
++		struct page **page_array)
++{
++	gfp_t preferred_gfp;
++	unsigned long nr_allocated = 0;
++
++	preferred_gfp = gfp | __GFP_NOWARN;
++	preferred_gfp &= ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
++
++	nr_allocated  = __alloc_pages_bulk(preferred_gfp, nid, &pol->nodes,
++					   nr_pages, NULL, page_array);
++
++	if (nr_allocated < nr_pages)
++		nr_allocated += __alloc_pages_bulk(gfp, numa_node_id(), NULL,
++				nr_pages - nr_allocated, NULL,
++				page_array + nr_allocated);
++	return nr_allocated;
++}
++
++unsigned long alloc_pages_bulk_array_mempolicy(gfp_t gfp,
++		unsigned long nr_pages, struct page **page_array)
++{
++	struct mempolicy *pol = &default_policy;
++
++	if (!in_interrupt() && !(gfp & __GFP_THISNODE))
++		pol = get_task_policy(current);
++
++	if (pol->mode == MPOL_INTERLEAVE)
++		return alloc_pages_bulk_array_interleave(gfp, pol,
++							 nr_pages, page_array);
++
++	if (pol->mode == MPOL_PREFERRED_MANY)
++		return alloc_pages_bulk_array_preferred_many(gfp,
++				numa_node_id(), pol, nr_pages, page_array);
++
++	return __alloc_pages_bulk(gfp, policy_node(gfp, pol, numa_node_id()),
++				  policy_nodemask(gfp, pol), nr_pages, NULL,
++				  page_array);
++}
++
+ int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
+ {
+ 	struct mempolicy *pol = mpol_dup(vma_policy(src));
+--- a/mm/vmalloc.c~mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation
++++ a/mm/vmalloc.c
+@@ -2856,23 +2856,14 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 			 */
+ 			nr_pages_request = min(100U, nr_pages - nr_allocated);
+ 
+-			if (nid == NUMA_NO_NODE) {
+-				for (i = 0; i < nr_pages_request; i++) {
+-					page = alloc_page(gfp);
+-					if (page)
+-						pages[nr_allocated + i] = page;
+-					else {
+-						nr = i;
+-						break;
+-					}
+-				}
+-				if (i >= nr_pages_request)
+-					nr = nr_pages_request;
+-			} else {
++			if (nid == NUMA_NO_NODE)
++				nr = alloc_pages_bulk_array_mempolicy(gfp,
++							nr_pages_request,
++							pages + nr_allocated);
++			else
+ 				nr = alloc_pages_bulk_array_node(gfp, nid,
+ 							nr_pages_request,
+ 							pages + nr_allocated);
+-			}
+ 			nr_allocated += nr;
+ 			cond_resched();
+ 
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from chenwandun@huawei.com are
 
-maintainers-update-seongjaes-email-address.patch
-mm-damon-core-print-kdamond-start-log-in-debug-mode-only.patch
-mm-damon-core-account-age-of-target-regions.patch
-mm-damon-core-implement-damon-based-operation-schemes-damos.patch
-mm-damon-vaddr-support-damon-based-operation-schemes.patch
-mm-damon-dbgfs-support-damon-based-operation-schemes.patch
-mm-damon-schemes-implement-statistics-feature.patch
-selftests-damon-add-schemes-debugfs-tests.patch
-docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
-mm-damon-dbgfs-allow-users-to-set-initial-monitoring-target-regions.patch
-mm-damon-dbgfs-test-add-a-unit-test-case-for-init_regions.patch
-docs-admin-guide-mm-damon-document-init_regions-feature.patch
-mm-damon-vaddr-separate-commonly-usable-functions.patch
-mm-damon-vaddr-separate-commonly-usable-functions-fix.patch
-mm-damon-implement-primitives-for-physical-address-space-monitoring.patch
-mm-damon-dbgfs-support-physical-memory-monitoring.patch
-docs-damon-document-physical-memory-monitoring-support.patch
+mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch
+mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation.patch
 
