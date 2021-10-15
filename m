@@ -2,38 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 24C72C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 22:41:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E4A5C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 22:51:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 009CD611EE
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 22:41:13 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 30E136120D
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 22:51:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235908AbhJOWnU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Oct 2021 18:43:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:47926 "EHLO mail.kernel.org"
+        id S243402AbhJOWxr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Oct 2021 18:53:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53064 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234009AbhJOWnT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 15 Oct 2021 18:43:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C51E7611C2;
-        Fri, 15 Oct 2021 22:41:12 +0000 (UTC)
+        id S243388AbhJOWxn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 15 Oct 2021 18:53:43 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9C8E06108E;
+        Fri, 15 Oct 2021 22:51:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634337672;
-        bh=4wN+Mb6Q95dHNEveelOwhcbJcV3FJe/+ZkVkxuKWYcI=;
+        s=korg; t=1634338296;
+        bh=82B8sO5SLGlExaFAUZW6NkdhxgLQT7m059EJ+KcJ+tw=;
         h=Date:From:To:Subject:From;
-        b=mSZhDgzafBXAp8fY5vUWbZ84w1Sn0zl/ujwDHI/qzy0c9t7s0r/oAKkWug3La+c06
-         uBC4NCYjZmRdmepkytW8EypxOmO4pP2o10UXmtglebWEce4z9DGlqTR4jp5aAyyVRF
-         /eVLtyUzWmC07dJ6KJmU6JQaHXwGTVHFnGvu5mgs=
-Date:   Fri, 15 Oct 2021 15:41:12 -0700
+        b=RAj8RlDChknx/TiRG9dgJylmcQe32ngm5M561TPg6w0nKYSEa59fba1z2MPTqJgol
+         Xjb6kfO/RXNF9TqCLhCw7f7FtzkefH/HfTMMgQx0GC8Va8zMFi+X2ibwKzKQ7yRWXy
+         0B5/bYA0w/G9uXYwvER4Tlpzm3wGzjC+YoMJ/X1Y=
+Date:   Fri, 15 Oct 2021 15:51:36 -0700
 From:   akpm@linux-foundation.org
-To:     joe@perches.com, mm-commits@vger.kernel.org,
-        peter.ujfalusi@linux.intel.com
-Subject:  +
- =?US-ASCII?Q?checkpatch-get-default-codespell-dictionary-path-from-packag?=
- =?US-ASCII?Q?e-location.patch?= added to -mm tree
-Message-ID: <20211015224112.GeJwUAwHG%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, rongwei.wang@linux.alibaba.com,
+        sj@kernel.org
+Subject:  + mm-damon-dbgfs-remove-unnecessary-variables.patch added
+ to -mm tree
+Message-ID: <20211015225136.EbMNwLuM9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: get default codespell dictionary path from package location
+     Subject: mm/damon/dbgfs: remove unnecessary variables
 has been added to the -mm tree.  Its filename is
-     checkpatch-get-default-codespell-dictionary-path-from-package-location.patch
+     mm-damon-dbgfs-remove-unnecessary-variables.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-get-default-codespell-dictionary-path-from-package-location.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-dbgfs-remove-unnecessary-variables.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-get-default-codespell-dictionary-path-from-package-location.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-dbgfs-remove-unnecessary-variables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,95 +59,197 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Peter Ujfalusi <peter.ujfalusi@linux.intel.com>
-Subject: checkpatch: get default codespell dictionary path from package location
+From: Rongwei Wang <rongwei.wang@linux.alibaba.com>
+Subject: mm/damon/dbgfs: remove unnecessary variables
 
-The standard location of dictionary.txt is under codespell's package, on
-my machine atm (codespell 2.1, Artix Linux):
-/usr/lib/python3.9/site-packages/codespell_lib/data/dictionary.txt
+In some functions, it's unnecessary to declare 'err' and 'ret' variables
+at the same time.  This patch mainly to simplify the issue of such
+declarations by reusing one variable.
 
-Since we enable the codespell by default for SOF I have constant:
-No codespell typos will be found - \
-file '/usr/share/codespell/dictionary.txt': No such file or directory
-
-The patch proposes to try to fix up the path following the recommendation
-found here: https://github.com/codespell-project/codespell/issues/1540
-
-Link: https://lkml.kernel.org/r/29e25d1364c8ad7f7657cc0660f60c568074d438.camel@perches.com
-Signed-off-by: Peter Ujfalusi <peter.ujfalusi@linux.intel.com>
-Acked-by: Joe Perches <joe@perches.com>
+Link: https://lkml.kernel.org/r/20211014073014.35754-1-sj@kernel.org
+Signed-off-by: Rongwei Wang <rongwei.wang@linux.alibaba.com>
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   32 ++++++++++++++++++++++++++++----
- 1 file changed, 28 insertions(+), 4 deletions(-)
+ mm/damon/dbgfs.c |   66 +++++++++++++++++++++------------------------
+ 1 file changed, 31 insertions(+), 35 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-get-default-codespell-dictionary-path-from-package-location
-+++ a/scripts/checkpatch.pl
-@@ -63,6 +63,7 @@ my $min_conf_desc_length = 4;
- my $spelling_file = "$D/spelling.txt";
- my $codespell = 0;
- my $codespellfile = "/usr/share/codespell/dictionary.txt";
-+my $user_codespellfile = "";
- my $conststructsfile = "$D/const_structs.checkpatch";
- my $docsfile = "$D/../Documentation/dev-tools/checkpatch.rst";
- my $typedefsfile;
-@@ -130,7 +131,7 @@ Options:
-   --ignore-perl-version      override checking of perl version.  expect
-                              runtime errors.
-   --codespell                Use the codespell dictionary for spelling/typos
--                             (default:/usr/share/codespell/dictionary.txt)
-+                             (default:$codespellfile)
-   --codespellfile            Use this codespell dictionary
-   --typedefsfile             Read additional types from this file
-   --color[=WHEN]             Use colors 'always', 'never', or only when output
-@@ -317,7 +318,7 @@ GetOptions(
- 	'debug=s'	=> \%debug,
- 	'test-only=s'	=> \$tst_only,
- 	'codespell!'	=> \$codespell,
--	'codespellfile=s'	=> \$codespellfile,
-+	'codespellfile=s'	=> \$user_codespellfile,
- 	'typedefsfile=s'	=> \$typedefsfile,
- 	'color=s'	=> \$color,
- 	'no-color'	=> \$color,	#keep old behaviors of -nocolor
-@@ -325,9 +326,32 @@ GetOptions(
- 	'kconfig-prefix=s'	=> \${CONFIG_},
- 	'h|help'	=> \$help,
- 	'version'	=> \$help
--) or help(1);
-+) or $help = 2;
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-remove-unnecessary-variables
++++ a/mm/damon/dbgfs.c
+@@ -69,8 +69,7 @@ static ssize_t dbgfs_attrs_write(struct
+ 	struct damon_ctx *ctx = file->private_data;
+ 	unsigned long s, a, r, minr, maxr;
+ 	char *kbuf;
+-	ssize_t ret = count;
+-	int err;
++	ssize_t ret;
  
--help(0) if ($help);
-+if ($user_codespellfile) {
-+	# Use the user provided codespell file unconditionally
-+	$codespellfile = $user_codespellfile;
-+} elsif (!(-f $codespellfile)) {
-+	# If /usr/share/codespell/dictionary.txt is not present, try to find it
-+	# under codespell's install directory: <codespell_root>/data/dictionary.txt
-+	if (($codespell || $help) && which("codespell") ne "" && which("python") ne "") {
-+		my $python_codespell_dict = << "EOF";
-+
-+import os.path as op
-+import codespell_lib
-+codespell_dir = op.dirname(codespell_lib.__file__)
-+codespell_file = op.join(codespell_dir, 'data', 'dictionary.txt')
-+print(codespell_file, end='')
-+EOF
-+
-+		my $codespell_dict = `python -c "$python_codespell_dict" 2> /dev/null`;
-+		$codespellfile = $codespell_dict if (-f $codespell_dict);
+ 	kbuf = user_input_str(buf, count, ppos);
+ 	if (IS_ERR(kbuf))
+@@ -88,9 +87,9 @@ static ssize_t dbgfs_attrs_write(struct
+ 		goto unlock_out;
+ 	}
+ 
+-	err = damon_set_attrs(ctx, s, a, r, minr, maxr);
+-	if (err)
+-		ret = err;
++	ret = damon_set_attrs(ctx, s, a, r, minr, maxr);
++	if (!ret)
++		ret = count;
+ unlock_out:
+ 	mutex_unlock(&ctx->kdamond_lock);
+ out:
+@@ -220,14 +219,13 @@ static ssize_t dbgfs_schemes_write(struc
+ 	struct damon_ctx *ctx = file->private_data;
+ 	char *kbuf;
+ 	struct damos **schemes;
+-	ssize_t nr_schemes = 0, ret = count;
+-	int err;
++	ssize_t nr_schemes = 0, ret;
+ 
+ 	kbuf = user_input_str(buf, count, ppos);
+ 	if (IS_ERR(kbuf))
+ 		return PTR_ERR(kbuf);
+ 
+-	schemes = str_to_schemes(kbuf, ret, &nr_schemes);
++	schemes = str_to_schemes(kbuf, count, &nr_schemes);
+ 	if (!schemes) {
+ 		ret = -EINVAL;
+ 		goto out;
+@@ -239,11 +237,12 @@ static ssize_t dbgfs_schemes_write(struc
+ 		goto unlock_out;
+ 	}
+ 
+-	err = damon_set_schemes(ctx, schemes, nr_schemes);
+-	if (err)
+-		ret = err;
+-	else
++	ret = damon_set_schemes(ctx, schemes, nr_schemes);
++	if (!ret) {
++		ret = count;
+ 		nr_schemes = 0;
 +	}
-+}
 +
-+# $help is 1 if either -h, --help or --version is passed as option - exitcode: 0
-+# $help is 2 if invalid option is passed - exitcode: 1
-+help($help - 1) if ($help);
+ unlock_out:
+ 	mutex_unlock(&ctx->kdamond_lock);
+ 	free_schemes_arr(schemes, nr_schemes);
+@@ -343,9 +342,8 @@ static ssize_t dbgfs_target_ids_write(st
+ 	char *kbuf, *nrs;
+ 	unsigned long *targets;
+ 	ssize_t nr_targets;
+-	ssize_t ret = count;
++	ssize_t ret;
+ 	int i;
+-	int err;
  
- die "$P: --git cannot be used with --file or --fix\n" if ($git && ($file || $fix));
- die "$P: --verbose cannot be used with --terse\n" if ($verbose && $terse);
+ 	kbuf = user_input_str(buf, count, ppos);
+ 	if (IS_ERR(kbuf))
+@@ -358,7 +356,7 @@ static ssize_t dbgfs_target_ids_write(st
+ 		scnprintf(kbuf, count, "42    ");
+ 	}
+ 
+-	targets = str_to_target_ids(nrs, ret, &nr_targets);
++	targets = str_to_target_ids(nrs, count, &nr_targets);
+ 	if (!targets) {
+ 		ret = -ENOMEM;
+ 		goto out;
+@@ -393,11 +391,12 @@ static ssize_t dbgfs_target_ids_write(st
+ 	else
+ 		damon_pa_set_primitives(ctx);
+ 
+-	err = damon_set_targets(ctx, targets, nr_targets);
+-	if (err) {
++	ret = damon_set_targets(ctx, targets, nr_targets);
++	if (ret) {
+ 		if (id_is_pid)
+ 			dbgfs_put_pids(targets, nr_targets);
+-		ret = err;
++	} else {
++		ret = count;
+ 	}
+ 
+ unlock_out:
+@@ -715,8 +714,7 @@ static ssize_t dbgfs_mk_context_write(st
+ {
+ 	char *kbuf;
+ 	char *ctx_name;
+-	ssize_t ret = count;
+-	int err;
++	ssize_t ret;
+ 
+ 	kbuf = user_input_str(buf, count, ppos);
+ 	if (IS_ERR(kbuf))
+@@ -734,9 +732,9 @@ static ssize_t dbgfs_mk_context_write(st
+ 	}
+ 
+ 	mutex_lock(&damon_dbgfs_lock);
+-	err = dbgfs_mk_context(ctx_name);
+-	if (err)
+-		ret = err;
++	ret = dbgfs_mk_context(ctx_name);
++	if (!ret)
++		ret = count;
+ 	mutex_unlock(&damon_dbgfs_lock);
+ 
+ out:
+@@ -805,8 +803,7 @@ static ssize_t dbgfs_rm_context_write(st
+ 		const char __user *buf, size_t count, loff_t *ppos)
+ {
+ 	char *kbuf;
+-	ssize_t ret = count;
+-	int err;
++	ssize_t ret;
+ 	char *ctx_name;
+ 
+ 	kbuf = user_input_str(buf, count, ppos);
+@@ -825,9 +822,9 @@ static ssize_t dbgfs_rm_context_write(st
+ 	}
+ 
+ 	mutex_lock(&damon_dbgfs_lock);
+-	err = dbgfs_rm_context(ctx_name);
+-	if (err)
+-		ret = err;
++	ret = dbgfs_rm_context(ctx_name);
++	if (!ret)
++		ret = count;
+ 	mutex_unlock(&damon_dbgfs_lock);
+ 
+ out:
+@@ -851,9 +848,8 @@ static ssize_t dbgfs_monitor_on_read(str
+ static ssize_t dbgfs_monitor_on_write(struct file *file,
+ 		const char __user *buf, size_t count, loff_t *ppos)
+ {
+-	ssize_t ret = count;
++	ssize_t ret;
+ 	char *kbuf;
+-	int err;
+ 
+ 	kbuf = user_input_str(buf, count, ppos);
+ 	if (IS_ERR(kbuf))
+@@ -866,14 +862,14 @@ static ssize_t dbgfs_monitor_on_write(st
+ 	}
+ 
+ 	if (!strncmp(kbuf, "on", count))
+-		err = damon_start(dbgfs_ctxs, dbgfs_nr_ctxs);
++		ret = damon_start(dbgfs_ctxs, dbgfs_nr_ctxs);
+ 	else if (!strncmp(kbuf, "off", count))
+-		err = damon_stop(dbgfs_ctxs, dbgfs_nr_ctxs);
++		ret = damon_stop(dbgfs_ctxs, dbgfs_nr_ctxs);
+ 	else
+-		err = -EINVAL;
++		ret = -EINVAL;
+ 
+-	if (err)
+-		ret = err;
++	if (!ret)
++		ret = count;
+ 	kfree(kbuf);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from peter.ujfalusi@linux.intel.com are
+Patches currently in -mm which might be from rongwei.wang@linux.alibaba.com are
 
-checkpatch-get-default-codespell-dictionary-path-from-package-location.patch
+mm-damon-dbgfs-remove-unnecessary-variables.patch
 
