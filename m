@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A707CC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 20:26:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32E63C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 20:26:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8090161205
-	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 20:26:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D9776120A
+	for <mm-commits@archiver.kernel.org>; Fri, 15 Oct 2021 20:26:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232768AbhJOU23 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 15 Oct 2021 16:28:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58750 "EHLO mail.kernel.org"
+        id S238616AbhJOU2f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 15 Oct 2021 16:28:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238545AbhJOU23 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 15 Oct 2021 16:28:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 15487611CE;
-        Fri, 15 Oct 2021 20:26:22 +0000 (UTC)
+        id S238575AbhJOU2d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 15 Oct 2021 16:28:33 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B1C1D611F0;
+        Fri, 15 Oct 2021 20:26:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634329582;
-        bh=jHNM+yFu8c1iVu49R/BDJ07kVz8/cPU8f7xECeeLThU=;
+        s=korg; t=1634329586;
+        bh=MDw+2SfOI7hRzl8ENmSIU4hhscUTQy8hEw5+Ef5gTSg=;
         h=Date:From:To:Subject:From;
-        b=gV05pVldXtSB/DSn4OrpkU0znCMB4Bp9YjIuwpMQcgaYzBYIi5qnDo8UVwjQ2rza5
-         Jr/Q780z2DcZlcoF6IkLG8SyKngu2EVuPtOMlXy7gYGO8ZOQcsyuOxR6XzOqsdUeIr
-         HgkP8i6e6q+g363LMX3MLD27iuNuTbY5NHGqqj7c=
-Date:   Fri, 15 Oct 2021 13:26:21 -0700
+        b=Lpy7s/3xDWThw/+k5+WFpJiT1f8idxsKEU5JUvfoX061VtPSbqwEkcQGgtDOqmT5k
+         seKQ4kzhjB9rJoQJR9xP39kGJmT3MWPnWMfvN3J8/Twz8p77faRR6/ip6R7LlOqkIa
+         RYPbaFSSAl6PpmUgd3CRGg4hCFwBesWMTd1Veg+A=
+Date:   Fri, 15 Oct 2021 13:26:25 -0700
 From:   akpm@linux-foundation.org
 To:     hughd@google.com, kirill.shutemov@linux.intel.com,
         mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         osalvador@suse.de, peterx@redhat.com, shy828301@gmail.com,
-        stable@vger.kernel.org, willy@infradead.org
+        willy@infradead.org
 Subject:  +
- mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
- added to -mm tree
-Message-ID: <20211015202621.eJw9xxdY0%akpm@linux-foundation.org>
+ mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch added to -mm tree
+Message-ID: <20211015202625.QOGHF-oOd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: filemap: check if THP has hwpoisoned subpage for PMD page fault
+     Subject: mm: filemap: coding style cleanup for filemap_map_pmd()
 has been added to the -mm tree.  Its filename is
-     mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
+     mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,160 +62,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: filemap: check if THP has hwpoisoned subpage for PMD page fault
+Subject: mm: filemap: coding style cleanup for filemap_map_pmd()
 
-When handling shmem page fault the THP with corrupted subpage could be PMD
-mapped if certain conditions are satisfied.  But kernel is supposed to
-send SIGBUS when trying to map hwpoisoned page.
+A minor cleanup to the indent.
 
-There are two paths which may do PMD map: fault around and regular fault.
-
-Before commit f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault()
-codepaths") the thing was even worse in fault around path.  The THP could
-be PMD mapped as long as the VMA fits regardless what subpage is accessed
-and corrupted.  After this commit as long as head page is not corrupted
-the THP could be PMD mapped.
-
-In the regular fault path the THP could be PMD mapped as long as the
-corrupted page is not accessed and the VMA fits.
-
-This loophole could be fixed by iterating every subpage to check if any of
-them is hwpoisoned or not, but it is somewhat costly in page fault path.
-
-So introduce a new page flag called HasHWPoisoned on the first tail page. 
-It indicates the THP has hwpoisoned subpage(s).  It is set if any subpage
-of THP is found hwpoisoned by memory failure and after the refcount is
-bumped successfully, then cleared when the THP is freed or split.
-
-The soft offline path doesn't need this since soft offline handler just
-marks a subpage hwpoisoned when the subpage is migrated successfully.  But
-shmem THP didn't get split then migrated at all.
-
-Link: https://lkml.kernel.org/r/20211014191615.6674-3-shy828301@gmail.com
-Fixes: 800d8c63b2e9 ("shmem: add huge pages support")
-Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Link: https://lkml.kernel.org/r/20211014191615.6674-4-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   23 +++++++++++++++++++++++
- mm/huge_memory.c           |    2 ++
- mm/memory-failure.c        |   14 ++++++++++++++
- mm/memory.c                |    9 +++++++++
- mm/page_alloc.c            |    4 +++-
- 5 files changed, 51 insertions(+), 1 deletion(-)
+ mm/filemap.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/page-flags.h~mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault
-+++ a/include/linux/page-flags.h
-@@ -171,6 +171,15 @@ enum pageflags {
- 	/* Compound pages. Stored in first tail page's flags */
- 	PG_double_map = PG_workingset,
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+	/*
-+	 * Compound pages. Stored in first tail page's flags.
-+	 * Indicates that at least one subpage is hwpoisoned in the
-+	 * THP.
-+	 */
-+	PG_has_hwpoisoned = PG_mappedtodisk,
-+#endif
-+
- 	/* non-lru isolated movable page */
- 	PG_isolated = PG_reclaim,
- 
-@@ -668,6 +677,20 @@ PAGEFLAG_FALSE(DoubleMap)
- 	TESTSCFLAG_FALSE(DoubleMap)
- #endif
- 
-+#if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
-+/*
-+ * PageHasHWPoisoned indicates that at least on subpage is hwpoisoned in the
-+ * compound page.
-+ *
-+ * This flag is set by hwpoison handler.  Cleared by THP split or free page.
-+ */
-+PAGEFLAG(HasHWPoisoned, has_hwpoisoned, PF_SECOND)
-+	TESTSCFLAG(HasHWPoisoned, has_hwpoisoned, PF_SECOND)
-+#else
-+PAGEFLAG_FALSE(HasHWPoisoned)
-+	TESTSCFLAG_FALSE(HasHWPoisoned)
-+#endif
-+
- /*
-  * Check if a page is currently marked HWPoisoned. Note that this check is
-  * best effort only and inherently racy: there is no way to synchronize with
---- a/mm/huge_memory.c~mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault
-+++ a/mm/huge_memory.c
-@@ -2426,6 +2426,8 @@ static void __split_huge_page(struct pag
- 	/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
- 	lruvec = lock_page_lruvec(head);
- 
-+	ClearPageHasHWPoisoned(head);
-+
- 	for (i = nr - 1; i >= 1; i--) {
- 		__split_huge_page_tail(head, i, lruvec, list);
- 		/* Some pages can be beyond EOF: drop them from page cache */
---- a/mm/memory.c~mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault
-+++ a/mm/memory.c
-@@ -3897,6 +3897,15 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 		return ret;
- 
- 	/*
-+	 * Just backoff if any subpage of a THP is corrupted otherwise
-+	 * the corrupted page may mapped by PMD silently to escape the
-+	 * check.  This kind of THP just can be PTE mapped.  Access to
-+	 * the corrupted subpage should trigger SIGBUS as expected.
-+	 */
-+	if (unlikely(PageHasHWPoisoned(page)))
-+		return ret;
-+
-+	/*
- 	 * Archs like ppc64 need additional space to store information
- 	 * related to pte entry. Use the preallocated table for that.
- 	 */
---- a/mm/memory-failure.c~mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault
-+++ a/mm/memory-failure.c
-@@ -1695,6 +1695,20 @@ try_again:
+--- a/mm/filemap.c~mm-filemap-coding-style-cleanup-for-filemap_map_pmd
++++ a/mm/filemap.c
+@@ -3202,12 +3202,12 @@ static bool filemap_map_pmd(struct vm_fa
  	}
  
- 	if (PageTransHuge(hpage)) {
-+		/*
-+		 * The flag must be set after the refcount is bumpped
-+		 * otherwise it may race with THP split.
-+		 * And the flag can't be set in get_hwpoison_page() since
-+		 * it is called by soft offline too and it is just called
-+		 * for !MF_COUNT_INCREASE.  So here seems to be the best
-+		 * place.
-+		 *
-+		 * Don't need care about the above error handling paths for
-+		 * get_hwpoison_page() since they handle either free page
-+		 * or unhandlable page.  The refcount is bumpped iff the
-+		 * page is a valid handlable page.
-+		 */
-+		SetPageHasHWPoisoned(hpage);
- 		if (try_to_split_thp_page(p, "Memory Failure") < 0) {
- 			action_result(pfn, MF_MSG_UNSPLIT_THP, MF_IGNORED);
- 			res = -EBUSY;
---- a/mm/page_alloc.c~mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault
-+++ a/mm/page_alloc.c
-@@ -1310,8 +1310,10 @@ static __always_inline bool free_pages_p
- 
- 		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
- 
--		if (compound)
-+		if (compound) {
- 			ClearPageDoubleMap(page);
-+			ClearPageHasHWPoisoned(page);
+ 	if (pmd_none(*vmf->pmd) && PageTransHuge(page)) {
+-	    vm_fault_t ret = do_set_pmd(vmf, page);
+-	    if (!ret) {
+-		    /* The page is mapped successfully, reference consumed. */
+-		    unlock_page(page);
+-		    return true;
+-	    }
++		vm_fault_t ret = do_set_pmd(vmf, page);
++		if (!ret) {
++			/* The page is mapped successfully, reference consumed. */
++			unlock_page(page);
++			return true;
 +		}
- 		for (i = 1; i < (1 << order); i++) {
- 			if (compound)
- 				bad += free_tail_pages_check(page, page + i);
+ 	}
+ 
+ 	if (pmd_none(*vmf->pmd))
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
