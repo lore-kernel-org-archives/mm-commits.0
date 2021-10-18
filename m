@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5BEC1C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 18:09:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15DC8C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 18:46:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 36DF561077
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 18:09:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E29E76127B
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 18:46:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230266AbhJRSLT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Oct 2021 14:11:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:48602 "EHLO mail.kernel.org"
+        id S231590AbhJRSsk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Oct 2021 14:48:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59984 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229696AbhJRSLT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 Oct 2021 14:11:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC81A60F44;
-        Mon, 18 Oct 2021 18:09:07 +0000 (UTC)
+        id S229696AbhJRSsk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 Oct 2021 14:48:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BBAEB61263;
+        Mon, 18 Oct 2021 18:46:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634580548;
-        bh=gHc4knVVhBdGa9cT+0+chJjFCU1Pw9rCoq/ghOYUPoM=;
+        s=korg; t=1634582788;
+        bh=BpLtL2+7znH7MYQq6wZ9C/1yfwPXvbsFitY9gKPTrZs=;
         h=Date:From:To:Subject:From;
-        b=VO9QbxbffhIkzSup9kfBoId6krpIx17Ujt6OGMrW6AsQVwWahpETMOPyQxxHnwNNa
-         k0YqagtpEe1z/JS16EkH4DFAkeu0Zkk9Y4bBFTjDOF2ebXTiwZ6fPtKqOeOHXuJPir
-         GJBLvRFjpLOMfaSj/L3gteccnx1Aqpxn8TeXamxo=
-Date:   Mon, 18 Oct 2021 11:09:07 -0700
+        b=qlmMz7/cHJpQoLuUTZunMbFnQh2RIjT1AkrFCl/tE3+I3hl5XVnWpgYidoLUceb+8
+         yse4sA9L3+3Z9BH89f9zdpgLQ6FfkuXjweJ0gJ7jpGJ5MxEJ2/u63v5kPmas6BBp8S
+         yMKtwYWrCsrWbOhddaeJNpyEmLNL/KRrHQe54P1U=
+Date:   Mon, 18 Oct 2021 11:46:28 -0700
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, jglisse@redhat.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com
+To:     gustavoars@kernel.org, keescook@chromium.org, len.baker@gmx.com,
+        mm-commits@vger.kernel.org
 Subject:  +
- mm-rmapc-avoid-double-faults-migrating-device-private-pages.patch added to
+ mm-list_lruc-prefer-struct_size-over-open-coded-arithmetic.patch added to
  -mm tree
-Message-ID: <20211018180907.9sYSO2r4w%akpm@linux-foundation.org>
+Message-ID: <20211018184628.4_0HhF7Sc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/rmap.c: avoid double faults migrating device private pages
+     Subject: mm/list_lru.c: prefer struct_size over open coded arithmetic
 has been added to the -mm tree.  Its filename is
-     mm-rmapc-avoid-double-faults-migrating-device-private-pages.patch
+     mm-list_lruc-prefer-struct_size-over-open-coded-arithmetic.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-rmapc-avoid-double-faults-migrating-device-private-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-list_lruc-prefer-struct_size-over-open-coded-arithmetic.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-rmapc-avoid-double-faults-migrating-device-private-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-list_lruc-prefer-struct_size-over-open-coded-arithmetic.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,65 +60,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/rmap.c: avoid double faults migrating device private pages
+From: Len Baker <len.baker@gmx.com>
+Subject: mm/list_lru.c: prefer struct_size over open coded arithmetic
 
-During migration special page table entries are installed for each page
-being migrated.  These entries store the pfn and associated permissions of
-ptes mapping the page being migarted.
+As noted in the "Deprecated Interfaces, Language Features, Attributes, and
+Conventions" documentation [1], size calculations (especially
+multiplication) should not be performed in memory allocator (or similar)
+function arguments due to the risk of them overflowing.  This could lead
+to values wrapping around and a smaller allocation being made than the
+caller was expecting.  Using those allocations could lead to linear
+overflows of heap memory and other misbehaviors.
 
-Device-private pages use special swap pte entries to distinguish read-only
-vs.  writeable pages which the migration code checks when creating
-migration entries.  Normally this follows a fast path in
-migrate_vma_collect_pmd() which correctly copies the permissions of
-device-private pages over to migration entries when migrating pages back
-to the CPU.
+So, use the struct_size() helper to do the arithmetic instead of the
+argument "size + count * size" in the kvmalloc() functions.
 
-However the slow-path falls back to using try_to_migrate() which
-unconditionally creates read-only migration entries for device-private
-pages.  This leads to unnecessary double faults on the CPU as the new
-pages are always mapped read-only even when they could be mapped
-writeable.  Fix this by correctly copying device-private permissions in
-try_to_migrate_one().
+Also, take the opportunity to refactor the memcpy() call to use the
+flex_array_size() helper.
 
-Link: https://lkml.kernel.org/r/20211018045247.3128058-1-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reported-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
+This code was detected with the help of Coccinelle and audited and fixed
+manually.
+
+[1] https://www.kernel.org/doc/html/latest/process/deprecated.html#open-co=
+ded-arithmetic-in-allocator-arguments
+
+Link: https://lkml.kernel.org/r/20211017105929.9284-1-len.baker@gmx.com
+Signed-off-by: Len Baker <len.baker@gmx.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/list_lru.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/rmap.c~mm-rmapc-avoid-double-faults-migrating-device-private-pages
-+++ a/mm/rmap.c
-@@ -1807,6 +1807,7 @@ static bool try_to_migrate_one(struct pa
- 		update_hiwater_rss(mm);
+--- a/mm/list_lru.c~mm-list_lruc-prefer-struct_size-over-open-coded-arithmetic
++++ a/mm/list_lru.c
+@@ -354,8 +354,7 @@ static int memcg_init_list_lru_node(stru
+ 	struct list_lru_memcg *memcg_lrus;
+ 	int size = memcg_nr_cache_ids;
  
- 		if (is_zone_device_page(page)) {
-+			unsigned long pfn = page_to_pfn(page);
- 			swp_entry_t entry;
- 			pte_t swp_pte;
+-	memcg_lrus = kvmalloc(sizeof(*memcg_lrus) +
+-			      size * sizeof(void *), GFP_KERNEL);
++	memcg_lrus = kvmalloc(struct_size(memcg_lrus, lru, size), GFP_KERNEL);
+ 	if (!memcg_lrus)
+ 		return -ENOMEM;
  
-@@ -1815,8 +1816,11 @@ static bool try_to_migrate_one(struct pa
- 			 * pte. do_swap_page() will wait until the migration
- 			 * pte is removed and then restart fault handling.
- 			 */
--			entry = make_readable_migration_entry(
--							page_to_pfn(page));
-+			entry = pte_to_swp_entry(pteval);
-+			if (is_writable_device_private_entry(entry))
-+				entry = make_writable_migration_entry(pfn);
-+			else
-+				entry = make_readable_migration_entry(pfn);
- 			swp_pte = swp_entry_to_pte(entry);
+@@ -389,7 +388,7 @@ static int memcg_update_list_lru_node(st
  
- 			/*
+ 	old = rcu_dereference_protected(nlru->memcg_lrus,
+ 					lockdep_is_held(&list_lrus_mutex));
+-	new = kvmalloc(sizeof(*new) + new_size * sizeof(void *), GFP_KERNEL);
++	new = kvmalloc(struct_size(new, lru, new_size), GFP_KERNEL);
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+@@ -398,7 +397,7 @@ static int memcg_update_list_lru_node(st
+ 		return -ENOMEM;
+ 	}
+ 
+-	memcpy(&new->lru, &old->lru, old_size * sizeof(void *));
++	memcpy(&new->lru, &old->lru, flex_array_size(new, lru, old_size));
+ 
+ 	/*
+ 	 * The locking below allows readers that hold nlru->lock avoid taking
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from len.baker@gmx.com are
 
-mm-rmapc-avoid-double-faults-migrating-device-private-pages.patch
+mm-list_lruc-prefer-struct_size-over-open-coded-arithmetic.patch
 
