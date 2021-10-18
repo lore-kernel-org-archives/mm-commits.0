@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47A35C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 19:56:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E31D3C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 19:56:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 29E206108E
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 19:56:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BF2DA6108E
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 19:56:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233326AbhJRT6r (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Oct 2021 15:58:47 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40612 "EHLO mail.kernel.org"
+        id S233555AbhJRT7H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Oct 2021 15:59:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230159AbhJRT6q (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 Oct 2021 15:58:46 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F62961002;
-        Mon, 18 Oct 2021 19:56:34 +0000 (UTC)
+        id S233096AbhJRT7G (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 Oct 2021 15:59:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2D71161002;
+        Mon, 18 Oct 2021 19:56:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634586994;
-        bh=rUcFilwYIp4x+Dq6hPapF+ZY2z+BwZLBdKnH7/pfdYs=;
+        s=korg; t=1634587015;
+        bh=nCRmbEVdguTgxi/pcJWSBqtCSiKOonc7VUO+wZ5Bd6M=;
         h=Date:From:To:Subject:From;
-        b=mUY3eii6Mnr6/wU6uA6CdVso4hhZ1EW7NvgPj7yUn1BFMwFvZWHwZPMYy7ylJWwKU
-         Au0WZJ0SFnGgQRm9RssjySlyz7jgKi8KOM9sUCSQNj5Kj5UKEVbdsqXZmakazS4hmW
-         Xw5ksVsUd9iQHTGKYRlNJ1bgTB2mHeZbpc/2tsGw=
-Date:   Mon, 18 Oct 2021 12:56:34 -0700
+        b=M7xTBQi7eHj1nc5ouT/aMz9DI82xpGhQrvlESCeMqowZ+DdvdBr6AdxZ2FvUp7Cuf
+         pbwZp0DjQVKSD2f9WSYFZGO21OYwIzk26Jjj2s7dNbmh37WI9MsCJL1OA8dW1ITCEV
+         irO4lElSNEmAUzt9AZ6OXTwC4KMnHYNiunzKGkp0=
+Date:   Mon, 18 Oct 2021 12:56:54 -0700
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, mingo@kernel.org,
-        mm-commits@vger.kernel.org, tglx@linutronix.de
+To:     bigeasy@linutronix.de, cl@linux.com, iamjoonsoo.kim@lge.com,
+        mingo@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, tglx@linutronix.de, vbabka@suse.cz
 Subject:  + mm-allow-only-slub-on-preempt_rt.patch added to -mm
  tree
-Message-ID: <20211018195634._iTFujKyL%akpm@linux-foundation.org>
+Message-ID: <20211018195654.goC_YyFTU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -85,6 +86,11 @@ Link: https://lkml.kernel.org/r/20211015210336.gen3tib33ig5q2md@linutronix.de
 Signed-off-by: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
