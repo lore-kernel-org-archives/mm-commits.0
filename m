@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DDC3C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 19:43:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D874C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 19:45:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E5E4610C9
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 19:43:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E836661350
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 19:45:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233178AbhJRTqG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Oct 2021 15:46:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33202 "EHLO mail.kernel.org"
+        id S232730AbhJRTro (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Oct 2021 15:47:44 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35112 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231787AbhJRTqG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 Oct 2021 15:46:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C261460F57;
-        Mon, 18 Oct 2021 19:43:54 +0000 (UTC)
+        id S232405AbhJRTro (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 Oct 2021 15:47:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 677DA6112D;
+        Mon, 18 Oct 2021 19:45:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634586235;
-        bh=KFHXNVSTeB3Sgxu/2aGuuhwLAxHcn0HG2NQHXsnxc8k=;
+        s=korg; t=1634586332;
+        bh=a5MuhLhxRBRik43R3XKbsPDiH4hO4fDK/HOeDaIgMeo=;
         h=Date:From:To:Subject:From;
-        b=cdjSUx8RcRUQF8nNkXn2HP59gawt4aOv2krF70z2Z+scRoQn/uQmbr3tojQvcMLgo
-         q7MHmmsLOEOBK1StndAgTfyfWcfHd9uxjdNXvu0IwwEY8pXvHy4iKbUuQF1t+XvPRU
-         IS6+sWn3RX9i55iZqTvusMZp1pkbzxXEnN07Eydw=
-Date:   Mon, 18 Oct 2021 12:43:54 -0700
+        b=xAmVpKtDACOULrezciALJNMzyHN7AMnwfaoggPvCKuy+oKk/lm3GkmKxwHFPr34dD
+         GkVsTFSXy4gsbTNCkcQaAV15ZEmPdpzx/FQDyUKzD+XN7aBxMd4Uxg4sxDmHvIcN/e
+         TKU84s7EOPTic8fr2L+YxmVYgMIDjK6vXP9ig0vE=
+Date:   Mon, 18 Oct 2021 12:45:31 -0700
 From:   akpm@linux-foundation.org
-To:     42.hyeyoo@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  + mm-slub-use-prefetchw-instead-of-prefetch.patch added
- to -mm tree
-Message-ID: <20211018194354.ChLoUfuMp%akpm@linux-foundation.org>
+To:     david@redhat.com, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        vvs@virtuozzo.com
+Subject:  [alternative-merged]
+ memcg-enable-memory-accounting-in-__alloc_pages_bulk.patch removed from -mm
+ tree
+Message-ID: <20211018194531.p7nILd93Z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,127 +40,162 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: use prefetchw instead of prefetch
-has been added to the -mm tree.  Its filename is
-     mm-slub-use-prefetchw-instead-of-prefetch.patch
+     Subject: memcg: enable memory accounting in __alloc_pages_bulk
+has been removed from the -mm tree.  Its filename was
+     memcg-enable-memory-accounting-in-__alloc_pages_bulk.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-slub-use-prefetchw-instead-of-prefetch.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-use-prefetchw-instead-of-prefetch.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm, slub: use prefetchw instead of prefetch
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: memcg: enable memory accounting in __alloc_pages_bulk
 
-commit 0ad9500e16fe ("slub: prefetch next freelist pointer in
-slab_alloc()") introduced prefetch_freepointer() because when other cpu(s)
-freed objects into a page that current cpu owns, the freelist link is hot
-on cpu(s) which freed objects and possibly very cold on current cpu.
+Bulk page allocator is used in vmalloc where it can be called
+with __GFP_ACCOUNT and must charge allocated pages into memory cgroup.
 
-But if freelist link chain is hot on cpu(s) which freed objects,
-it's better to invalidate that chain because they're not going to access
-again within a short time.
-
-So use prefetchw instead of prefetch. On supported architectures like x86
-and arm, it invalidates other copied instances of a cache line when
-prefetching it.
-
-Before:
-
-Time: 91.677
-
- Performance counter stats for 'hackbench -g 100 -l 10000':
-        1462938.07 msec cpu-clock                 #   15.908 CPUs utilized
-          18072550      context-switches          #   12.354 K/sec
-           1018814      cpu-migrations            #  696.416 /sec
-            104558      page-faults               #   71.471 /sec
-     1580035699271      cycles                    #    1.080 GHz                      (54.51%)
-     2003670016013      instructions              #    1.27  insn per cycle           (54.31%)
-        5702204863      branch-misses                                                 (54.28%)
-      643368500985      cache-references          #  439.778 M/sec                    (54.26%)
-       18475582235      cache-misses              #    2.872 % of all cache refs      (54.28%)
-      642206796636      L1-dcache-loads           #  438.984 M/sec                    (46.87%)
-       18215813147      L1-dcache-load-misses     #    2.84% of all L1-dcache accesses  (46.83%)
-      653842996501      dTLB-loads                #  446.938 M/sec                    (46.63%)
-        3227179675      dTLB-load-misses          #    0.49% of all dTLB cache accesses  (46.85%)
-      537531951350      iTLB-loads                #  367.433 M/sec                    (54.33%)
-         114750630      iTLB-load-misses          #    0.02% of all iTLB cache accesses  (54.37%)
-      630135543177      L1-icache-loads           #  430.733 M/sec                    (46.80%)
-       22923237620      L1-icache-load-misses     #    3.64% of all L1-icache accesses  (46.76%)
-
-      91.964452802 seconds time elapsed
-
-      43.416742000 seconds user
-    1422.441123000 seconds sys
-
-After:
-
-Time: 90.220
-
- Performance counter stats for 'hackbench -g 100 -l 10000':
-        1437418.48 msec cpu-clock                 #   15.880 CPUs utilized
-          17694068      context-switches          #   12.310 K/sec
-            958257      cpu-migrations            #  666.651 /sec
-            100604      page-faults               #   69.989 /sec
-     1583259429428      cycles                    #    1.101 GHz                      (54.57%)
-     2004002484935      instructions              #    1.27  insn per cycle           (54.37%)
-        5594202389      branch-misses                                                 (54.36%)
-      643113574524      cache-references          #  447.409 M/sec                    (54.39%)
-       18233791870      cache-misses              #    2.835 % of all cache refs      (54.37%)
-      640205852062      L1-dcache-loads           #  445.386 M/sec                    (46.75%)
-       17968160377      L1-dcache-load-misses     #    2.81% of all L1-dcache accesses  (46.79%)
-      651747432274      dTLB-loads                #  453.415 M/sec                    (46.59%)
-        3127124271      dTLB-load-misses          #    0.48% of all dTLB cache accesses  (46.75%)
-      535395273064      iTLB-loads                #  372.470 M/sec                    (54.38%)
-         113500056      iTLB-load-misses          #    0.02% of all iTLB cache accesses  (54.35%)
-      628871845924      L1-icache-loads           #  437.501 M/sec                    (46.80%)
-       22585641203      L1-icache-load-misses     #    3.59% of all L1-icache accesses  (46.79%)
-
-      90.514819303 seconds time elapsed
-
-      43.877656000 seconds user
-    1397.176001000 seconds sys
-
-Link: https://lkml.org/lkml/2021/10/8/598=20
-Link: https://lkml.kernel.org/r/20211011144331.70084-1-42.hyeyoo@gmail.com
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/65c1afaf-7947-ce28-55b7-06bde7aeb278@virtuozzo.com
+Fixes: 387ba26fb1cb ("mm/page_alloc: add a bulk page allocator")
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    9 ++++++
+ mm/memcontrol.c            |   50 +++++++++++++++++++++++++++++++++++
+ mm/page_alloc.c            |   12 +++++++-
+ 3 files changed, 69 insertions(+), 2 deletions(-)
 
---- a/mm/slub.c~mm-slub-use-prefetchw-instead-of-prefetch
-+++ a/mm/slub.c
-@@ -354,7 +354,7 @@ static inline void *get_freepointer(stru
+--- a/include/linux/memcontrol.h~memcg-enable-memory-accounting-in-__alloc_pages_bulk
++++ a/include/linux/memcontrol.h
+@@ -1692,6 +1692,9 @@ static inline int memcg_cache_id(struct
  
- static void prefetch_freepointer(const struct kmem_cache *s, void *object)
+ struct mem_cgroup *mem_cgroup_from_obj(void *p);
+ 
++int memcg_charge_bulk_pages(gfp_t gfp, int nr_pages,
++			    struct list_head *page_list,
++			    struct page **page_array);
+ #else
+ static inline bool mem_cgroup_kmem_disabled(void)
  {
--	prefetch(object + s->offset);
-+	prefetchw(object + s->offset);
+@@ -1744,6 +1747,12 @@ static inline struct mem_cgroup *mem_cgr
+        return NULL;
  }
  
- static inline void *get_freepointer_safe(struct kmem_cache *s, void *object)
++int memcg_charge_bulk_pages(gfp_t gfp, int nr_pages,
++			    struct list_head *page_list,
++			    struct page **page_array)
++{
++	return 0;
++}
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+--- a/mm/memcontrol.c~memcg-enable-memory-accounting-in-__alloc_pages_bulk
++++ a/mm/memcontrol.c
+@@ -3288,6 +3288,56 @@ void obj_cgroup_uncharge(struct obj_cgro
+ 	refill_obj_stock(objcg, size, true);
+ }
+ 
++/*
++ * memcg_charge_bulk_pages - Charge pages allocated by bulk allocator
++ * @gfp: GFP flags for the allocation
++ * @nr_pages: The number of pages added into the list or array
++ * @page_list: Optional list of allocated pages
++ * @page_array: Optional array of allocated pages
++ *
++ * Walks through array or list of allocated pages.
++ * For each page tries to charge it.
++ * If charge fails removes page from of array/list, frees it,
++ * and repeat it till end of array/list
++ *
++ * Returns the number of freed pages.
++ */
++int memcg_charge_bulk_pages(gfp_t gfp, int nr_pages,
++			    struct list_head *page_list,
++			    struct page **page_array)
++{
++	struct page *page, *np = NULL;
++	bool charge = true;
++	int i, nr_freed = 0;
++
++	if (page_list)
++		page = list_first_entry(page_list, struct page, lru);
++
++	for (i = 0; i < nr_pages; i++) {
++		if (page_list) {
++			if (np)
++				page = np;
++			np = list_next_entry(page, lru);
++		} else {
++			page = page_array[i];
++		}
++		/* some pages in incoming array can be charged already */
++		if (!page->memcg_data) {
++			if (charge && __memcg_kmem_charge_page(page, gfp, 0))
++				charge = false;
++
++			if (!charge) {
++				if (page_list)
++					list_del(&page->lru);
++				else
++					page_array[i] = NULL;
++				__free_pages(page, 0);
++				nr_freed++;
++			}
++		}
++	}
++	return nr_freed;
++}
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+ /*
+--- a/mm/page_alloc.c~memcg-enable-memory-accounting-in-__alloc_pages_bulk
++++ a/mm/page_alloc.c
+@@ -5203,10 +5203,11 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 	struct zoneref *z;
+ 	struct per_cpu_pages *pcp;
+ 	struct list_head *pcp_list;
++	LIST_HEAD(tpl);
+ 	struct alloc_context ac;
+ 	gfp_t alloc_gfp;
+ 	unsigned int alloc_flags = ALLOC_WMARK_LOW;
+-	int nr_populated = 0, nr_account = 0;
++	int nr_populated = 0, nr_account = 0, nr_freed = 0;
+ 
+ 	/*
+ 	 * Skip populated array elements to determine if any pages need
+@@ -5300,7 +5301,7 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 
+ 		prep_new_page(page, 0, gfp, 0);
+ 		if (page_list)
+-			list_add(&page->lru, page_list);
++			list_add(&page->lru, &tpl);
+ 		else
+ 			page_array[nr_populated] = page;
+ 		nr_populated++;
+@@ -5308,6 +5309,13 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 
+ 	local_unlock_irqrestore(&pagesets.lock, flags);
+ 
++	if (memcg_kmem_enabled() && (gfp & __GFP_ACCOUNT) && nr_account)
++       		nr_freed = memcg_charge_bulk_pages(gfp, nr_populated,
++						   page_list ? &tpl : NULL,
++						   page_array);
++	nr_account -= nr_freed;
++	nr_populated -= nr_freed;
++	list_splice(&tpl, page_list);
+ 	__count_zid_vm_events(PGALLOC, zone_idx(zone), nr_account);
+ 	zone_statistics(ac.preferred_zoneref->zone, zone, nr_account);
+ 
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from vvs@virtuozzo.com are
 
-mm-slub-use-prefetchw-instead-of-prefetch.patch
+memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks.patch
+mm-vmalloc-repair-warn_allocs-in-__vmalloc_area_node.patch
+vmalloc-back-off-when-the-current-task-is-oom-killed.patch
 
