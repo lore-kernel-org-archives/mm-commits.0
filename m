@@ -2,34 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6FFE3C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 20:09:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E68EEC433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 21:57:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5549361206
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 20:09:56 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id CD47460F9F
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 21:57:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231775AbhJRUMH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Oct 2021 16:12:07 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44976 "EHLO mail.kernel.org"
+        id S230016AbhJRV7k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Oct 2021 17:59:40 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231246AbhJRUMG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 Oct 2021 16:12:06 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1B384611EF;
-        Mon, 18 Oct 2021 20:09:55 +0000 (UTC)
+        id S229524AbhJRV7k (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 Oct 2021 17:59:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5C2F860E78;
+        Mon, 18 Oct 2021 21:57:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634587795;
-        bh=WCSi9dS/JwbxS2a/7pyq5s1pfK4YHyGWQJ80XLoMNfg=;
+        s=korg; t=1634594248;
+        bh=xPmopkIka0SiV/DpoWolXDCSgcZQc45uZ/7t2XYDYMI=;
         h=Date:From:To:Subject:From;
-        b=fR9ANd5NHTFUx3Rrd1E9IGKXaUlYSA/baylwNoa2VRJ1KWbQtDF+kPUp9B30Bh4G2
-         xsnynrIQDwR0+mXleppJ/IPgX6PRoGYAwFSbtihsJwgkwmBljAkZHR1fmuFSQU5J3O
-         1Y/dAKOPeRHl8tp6kL7JeRtUtvGZ89AmZgAg3E2o=
-Date:   Mon, 18 Oct 2021 13:09:54 -0700
+        b=pR0EZoR4xD5ct4fUrsMfs2bT3YSBtGA0PSS6f2PM1vo4RKdQ8GQsWvsLLFJhs3sEN
+         7YkAXZM2/TrpnmvCKIpUAzmLxsvr1AkJNH2x7HB3nzV5L7FvFZsb+SxccbNzBePaqY
+         z+XbOAVQDM96A2rP7L1JJLthMGFV1Mx3MexEJwb4=
+Date:   Mon, 18 Oct 2021 14:57:27 -0700
 From:   akpm@linux-foundation.org
-To:     jiasheng@iscas.ac.cn, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  [nacked] xarray-fix-xa_to_node-by-adding-xa_is_node.patch
- removed from -mm tree
-Message-ID: <20211018200954.IGhCIWg0o%akpm@linux-foundation.org>
+To:     arnd@arndb.de, cl@linux.com, dave.hansen@linux.intel.com,
+        david@redhat.com, iamjoonsoo.kim@lge.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de, penberg@kernel.org,
+        rientjes@google.com, sfr@canb.auug.org.au, vbabka@suse.cz
+Subject:  [folded-merged]
+ mm-migrate-add-cpu-hotplug-to-demotion-ifdef-fix.patch removed from -mm
+ tree
+Message-ID: <20211018215727.5yY-647vV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,47 +41,150 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: XArray: fix xa_to_node by adding xa_is_node
+     Subject: mm/migrate: rework hotplug_memory_notifier() stub
 has been removed from the -mm tree.  Its filename was
-     xarray-fix-xa_to_node-by-adding-xa_is_node.patch
+     mm-migrate-add-cpu-hotplug-to-demotion-ifdef-fix.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was folded into mm-migrate-add-cpu-hotplug-to-demotion-ifdef.patch
 
 ------------------------------------------------------
-From: Jiasheng Jiang <jiasheng@iscas.ac.cn>
-Subject: XArray: fix xa_to_node by adding xa_is_node
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm/migrate: rework hotplug_memory_notifier() stub
 
-Directly using xa_to_node may lead to the compulsory type conversion of
-unknown type,which is unsafe.  So it might be better that adding
-xa_is_node before.
+The previous change added a compile time warning for the
+CONFIG_MEMORY_HOTPLUG=n case:
 
-Link: https://lkml.kernel.org/r/1634028170-1753612-1-git-send-email-jiasheng@iscas.ac.cn
-Fixes: 58d6ea3 ("xarray: Add XArray unconditional store operations")
-Signed-off-by: Jiasheng Jiang <jiasheng@iscas.ac.cn>
-Cc: Matthew Wilcox <willy@infradead.org>
+mm/migrate.c:3216:22: error: 'migrate_on_reclaim_callback' defined but not used [-Werror=unused-function]
+ 3216 | static int __meminit migrate_on_reclaim_callback(struct notifier_block *self,
+      |                      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+mm/migrate.c:3197:13: error: 'set_migration_target_nodes' defined but not used [-Werror=unused-function]
+ 3197 | static void set_migration_target_nodes(void)
+      |             ^~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Rework the hotplug_memory_notifier() stub implementation into an inline
+function so it always references its argument but ignores it, leading the
+compiler to silently drop the hotplug memory notifier function and further
+code referenced from it.
+
+To do this, the #ifdef around those functions need to be removed as well,
+but this tends to help with readability and build coverage.
+
+Link: https://lkml.kernel.org/r/20211013144029.2154629-1-arnd@kernel.org
+Fixes: dd3e24b84bc1 ("mm/migrate: add CPU hotplug to demotion #ifdef")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_xarray.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ include/linux/memory.h |    5 ++++-
+ mm/migrate.c           |    6 +-----
+ mm/page_ext.c          |    4 +---
+ mm/slab.c              |    4 ++--
+ 4 files changed, 8 insertions(+), 11 deletions(-)
 
---- a/lib/test_xarray.c~xarray-fix-xa_to_node-by-adding-xa_is_node
-+++ a/lib/test_xarray.c
-@@ -606,8 +606,10 @@ static noinline void check_multi_store(s
- 	XA_BUG_ON(xa, xa_load(xa, 1) != xa_mk_value(0));
- 	XA_BUG_ON(xa, xa_load(xa, 2) != NULL);
- 	rcu_read_lock();
--	XA_BUG_ON(xa, xa_to_node(xa_head(xa))->count != 2);
--	XA_BUG_ON(xa, xa_to_node(xa_head(xa))->nr_values != 2);
-+	if (xa_is_node(xa_head(xa))) {
-+		XA_BUG_ON(xa, xa_to_node(xa_head(xa))->count != 2);
-+		XA_BUG_ON(xa, xa_to_node(xa_head(xa))->nr_values != 2);
-+	}
- 	rcu_read_unlock();
+--- a/include/linux/memory.h~mm-migrate-add-cpu-hotplug-to-demotion-ifdef-fix
++++ a/include/linux/memory.h
+@@ -160,7 +160,10 @@ int walk_dynamic_memory_groups(int nid,
+ #define register_hotmemory_notifier(nb)		register_memory_notifier(nb)
+ #define unregister_hotmemory_notifier(nb) 	unregister_memory_notifier(nb)
+ #else
+-#define hotplug_memory_notifier(fn, pri)	({ 0; })
++static inline int hotplug_memory_notifier(notifier_fn_t fn, int pri)
++{
++	return 0;
++}
+ /* These aren't inline functions due to a GCC bug. */
+ #define register_hotmemory_notifier(nb)    ({ (void)(nb); 0; })
+ #define unregister_hotmemory_notifier(nb)  ({ (void)(nb); })
+--- a/mm/migrate.c~mm-migrate-add-cpu-hotplug-to-demotion-ifdef-fix
++++ a/mm/migrate.c
+@@ -3066,7 +3066,7 @@ void migrate_vma_finalize(struct migrate
+ EXPORT_SYMBOL(migrate_vma_finalize);
+ #endif /* CONFIG_DEVICE_PRIVATE */
  
- 	/* Storing adjacent to the value does not alter the value */
+-#if defined(CONFIG_MEMORY_HOTPLUG) || defined(CONFIG_HOTPLUG_CPU)
++#if defined(CONFIG_HOTPLUG_CPU)
+ /* Disable reclaim-based migration. */
+ static void __disable_all_migrate_targets(void)
+ {
+@@ -3208,7 +3208,6 @@ static void set_migration_target_nodes(v
+ 	put_online_mems();
+ }
+ 
+-#if defined(CONFIG_MEMORY_HOTPLUG)
+ /*
+  * This leaves migrate-on-reclaim transiently disabled between
+  * the MEM_GOING_OFFLINE and MEM_OFFLINE events.  This runs
+@@ -3265,9 +3264,7 @@ static int __meminit migrate_on_reclaim_
+ 
+ 	return notifier_from_errno(0);
+ }
+-#endif /* CONFIG_MEMORY_HOTPLUG */
+ 
+-#ifdef CONFIG_HOTPLUG_CPU
+ /*
+  * React to hotplug events that might affect the migration targets
+  * like events that online or offline NUMA nodes.
+@@ -3307,4 +3304,3 @@ static int __init migrate_on_reclaim_ini
+ }
+ late_initcall(migrate_on_reclaim_init);
+ #endif /* CONFIG_HOTPLUG_CPU */
+-#endif /* CONFIG_MEMORY_HOTPLUG || CONFIG_HOTPLUG_CPU */
+--- a/mm/page_ext.c~mm-migrate-add-cpu-hotplug-to-demotion-ifdef-fix
++++ a/mm/page_ext.c
+@@ -269,7 +269,7 @@ static int __meminit init_section_page_e
+ 	total_usage += table_size;
+ 	return 0;
+ }
+-#ifdef CONFIG_MEMORY_HOTPLUG
++
+ static void free_page_ext(void *addr)
+ {
+ 	if (is_vmalloc_addr(addr)) {
+@@ -374,8 +374,6 @@ static int __meminit page_ext_callback(s
+ 	return notifier_from_errno(ret);
+ }
+ 
+-#endif
+-
+ void __init page_ext_init(void)
+ {
+ 	unsigned long pfn;
+--- a/mm/slab.c~mm-migrate-add-cpu-hotplug-to-demotion-ifdef-fix
++++ a/mm/slab.c
+@@ -1095,7 +1095,7 @@ static int slab_offline_cpu(unsigned int
+ 	return 0;
+ }
+ 
+-#if defined(CONFIG_NUMA) && defined(CONFIG_MEMORY_HOTPLUG)
++#if defined(CONFIG_NUMA)
+ /*
+  * Drains freelist for a node on each slab cache, used for memory hot-remove.
+  * Returns -EBUSY if all objects cannot be drained so that the node is not
+@@ -1157,7 +1157,7 @@ static int __meminit slab_memory_callbac
+ out:
+ 	return notifier_from_errno(ret);
+ }
+-#endif /* CONFIG_NUMA && CONFIG_MEMORY_HOTPLUG */
++#endif /* CONFIG_NUMA */
+ 
+ /*
+  * swap the static kmem_cache_node with kmalloced memory
 _
 
-Patches currently in -mm which might be from jiasheng@iscas.ac.cn are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+mm-migrate-add-cpu-hotplug-to-demotion-ifdef.patch
+kasan-test-use-underlying-string-helpers.patch
+posix-acl-avoid-wempty-body-warning.patch
+hfs-hfsplus-use-warn_on-for-sanity-check.patch
 
