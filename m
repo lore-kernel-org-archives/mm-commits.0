@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F3D2C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 22:15:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1F3CC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 22:15:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7940061186
-	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 22:15:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id BC3AB60F57
+	for <mm-commits@archiver.kernel.org>; Mon, 18 Oct 2021 22:15:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233178AbhJRWRu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Oct 2021 18:17:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36792 "EHLO mail.kernel.org"
+        id S233181AbhJRWRx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 18 Oct 2021 18:17:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36870 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229524AbhJRWRs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 Oct 2021 18:17:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6279060F57;
-        Mon, 18 Oct 2021 22:15:36 +0000 (UTC)
+        id S229524AbhJRWRv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 18 Oct 2021 18:17:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DE80D6112D;
+        Mon, 18 Oct 2021 22:15:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634595336;
-        bh=dvxKYyNw6OAaNAtgbWlm3OCQJSzR0KJYlqj9LZpzI7I=;
+        s=korg; t=1634595340;
+        bh=hueLNYj98ZKaYwELlNhSnvgesoXLZzWOy/TnCQXvhZY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vl5AzZoTKoo/K3VfrYGS4J3fOuGGGdgPzSB7rysbEekDqd8pfo8ww9IaWwskU9zqv
-         5uZi+HVhVN6XguUL9CuXpjOX1y4UJzrNsVeNIIftfpczbIPT1wOxDKH5c/4Byo6Xq0
-         D1+BrdOUKS0SsWKO45gbYPAdsxpzsvkhCHtJzNbo=
-Date:   Mon, 18 Oct 2021 15:15:35 -0700
+        b=M+v9hQGU07kgX+UNGNagMcmZN208Rjjn3NVpKwmp4EcDNDJWtOPnsmbTKQdpslrGJ
+         fktTZNvuHfhRWJrM091WyGyy1We/J70sl0FDHxteQcZ+ACu2qUzy1DLmSZZcfPo+5g
+         Ntah3ExPOT/PkGq7oLQIYx8s6gBeb7UdKQVgqqxo=
+Date:   Mon, 18 Oct 2021 15:15:39 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
-        dave.hansen@linux.intel.com, david@redhat.com, gthelen@google.com,
-        kbusch@kernel.org, linux-mm@kvack.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de, rientjes@google.com,
-        shy828301@gmail.com, tglx@linutronix.de,
-        torvalds@linux-foundation.org, weixugc@google.com,
-        ying.huang@intel.com, ziy@nvidia.com
-Subject:  [patch 05/19] mm/migrate: fix CPUHP state to update node
- demotion order
-Message-ID: <20211018221535.8ljd1xMT1%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, gechangwei@live.cn, ghe@suse.com,
+        jack@suse.cz, jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
+        junxiao.bi@oracle.com, linux-mm@kvack.org, mark@fasheh.com,
+        Markov.Andrey@Dell.com, mm-commits@vger.kernel.org,
+        piaojun@huawei.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 06/19] ocfs2: fix data corruption after conversion
+ from inline format
+Message-ID: <20211018221539.A9JVM0ye7%akpm@linux-foundation.org>
 In-Reply-To: <20211018151438.f2246e2656c041b6753a8bdd@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,104 +41,176 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/migrate: fix CPUHP state to update node demotion order
+From: Jan Kara <jack@suse.cz>
+Subject: ocfs2: fix data corruption after conversion from inline format
 
-The node demotion order needs to be updated during CPU hotplug.  Because
-whether a NUMA node has CPU may influence the demotion order.  The update
-function should be called during CPU online/offline after the
-node_states[N_CPU] has been updated.  That is done in CPUHP_AP_ONLINE_DYN
-during CPU online and in CPUHP_MM_VMSTAT_DEAD during CPU offline.  But in
-commit 884a6e5d1f93 ("mm/migrate: update node demotion order on hotplug
-events"), the function to update node demotion order is called in
-CPUHP_AP_ONLINE_DYN during CPU online/offline.  This doesn't satisfy the
-order requirement.
+Commit 6dbf7bb55598 ("fs: Don't invalidate page buffers in
+block_write_full_page()") uncovered a latent bug in ocfs2 conversion
+from inline inode format to a normal inode format.
 
-For example, there are 4 CPUs (P0, P1, P2, P3) in 2 sockets (P0, P1 in S0
-and P2, P3 in S1), the demotion order is
+The code in
+ocfs2_convert_inline_data_to_extents() attempts to zero out the whole
+cluster allocated for file data by grabbing, zeroing, and dirtying all
+pages covering this cluster. However these pages are beyond i_size, thus
+writeback code generally ignores these dirty pages and no blocks were
+ever actually zeroed on the disk.
 
-- S0 -> NUMA_NO_NODE
-- S1 -> NUMA_NO_NODE
+This oversight was fixed by commit 693c241a5f6a ("ocfs2: No need to zero
+pages past i_size.") for standard ocfs2 write path, inline conversion path
+was apparently forgotten; the commit log also has a reasoning why the
+zeroing actually is not needed.
 
-After P2 and P3 is offlined, because S1 has no CPU now, the demotion
-order should have been changed to
+After commit 6dbf7bb55598, things became worse as writeback code stopped
+invalidating buffers on pages beyond i_size and thus these pages end up
+with clean PageDirty bit but with buffers attached to these pages being
+still dirty.  So when a file is converted from inline format, then
+writeback triggers, and then the file is grown so that these pages become
+valid, the invalid dirtiness state is preserved, mark_buffer_dirty() does
+nothing on these pages (buffers are already dirty) but page is never
+written back because it is clean.  So data written to these pages is lost
+once pages are reclaimed.
 
-- S0 -> S1
-- S1 -> NO_NODE
+Simple reproducer for the problem is:
 
-but it isn't changed, because the order updating callback for CPU hotplug
-doesn't see the new nodemask.  After that, if P1 is offlined, the demotion
-order is changed to the expected order as above.
+xfs_io -f -c "pwrite 0 2000" -c "pwrite 2000 2000" -c "fsync" \
+  -c "pwrite 4000 2000" ocfs2_file
 
-So in this patch, we added CPUHP_AP_MM_DEMOTION_ONLINE and
-CPUHP_MM_DEMOTION_DEAD to be called after CPUHP_AP_ONLINE_DYN and
-CPUHP_MM_VMSTAT_DEAD during CPU online and offline, and register the
-update function on them.
+After unmounting and mounting the fs again, you can observe that end of
+'ocfs2_file' has lost its contents.
 
-Link: https://lkml.kernel.org/r/20210929060351.7293-1-ying.huang@intel.com
-Fixes: 884a6e5d1f93 ("mm/migrate: update node demotion order on hotplug events")
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Keith Busch <kbusch@kernel.org>
+Fix the problem by not doing the pointless zeroing during conversion
+from inline format similarly as in the standard write path.
+
+[akpm@linux-foundation.org: fix whitespace, per Joseph]
+Link: https://lkml.kernel.org/r/20210930095405.21433-1-jack@suse.cz
+Fixes: 6dbf7bb55598 ("fs: Don't invalidate page buffers in block_write_full_page()")
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Tested-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Acked-by: Gang He <ghe@suse.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Jun Piao <piaojun@huawei.com>
+Cc: "Markov, Andrey" <Markov.Andrey@Dell.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpuhotplug.h |    4 ++++
- mm/migrate.c               |    8 +++++---
- 2 files changed, 9 insertions(+), 3 deletions(-)
+ fs/ocfs2/alloc.c |   46 +++++++++++----------------------------------
+ 1 file changed, 12 insertions(+), 34 deletions(-)
 
---- a/include/linux/cpuhotplug.h~mm-migrate-fix-cpuhp-state-to-update-node-demotion-order
-+++ a/include/linux/cpuhotplug.h
-@@ -72,6 +72,8 @@ enum cpuhp_state {
- 	CPUHP_SLUB_DEAD,
- 	CPUHP_DEBUG_OBJ_DEAD,
- 	CPUHP_MM_WRITEBACK_DEAD,
-+	/* Must be after CPUHP_MM_VMSTAT_DEAD */
-+	CPUHP_MM_DEMOTION_DEAD,
- 	CPUHP_MM_VMSTAT_DEAD,
- 	CPUHP_SOFTIRQ_DEAD,
- 	CPUHP_NET_MVNETA_DEAD,
-@@ -240,6 +242,8 @@ enum cpuhp_state {
- 	CPUHP_AP_BASE_CACHEINFO_ONLINE,
- 	CPUHP_AP_ONLINE_DYN,
- 	CPUHP_AP_ONLINE_DYN_END		= CPUHP_AP_ONLINE_DYN + 30,
-+	/* Must be after CPUHP_AP_ONLINE_DYN for node_states[N_CPU] update */
-+	CPUHP_AP_MM_DEMOTION_ONLINE,
- 	CPUHP_AP_X86_HPET_ONLINE,
- 	CPUHP_AP_X86_KVM_CLK_ONLINE,
- 	CPUHP_AP_DTPM_CPU_ONLINE,
---- a/mm/migrate.c~mm-migrate-fix-cpuhp-state-to-update-node-demotion-order
-+++ a/mm/migrate.c
-@@ -3288,9 +3288,8 @@ static int __init migrate_on_reclaim_ini
+--- a/fs/ocfs2/alloc.c~ocfs2-fix-data-corruption-after-conversion-from-inline-format
++++ a/fs/ocfs2/alloc.c
+@@ -7045,7 +7045,7 @@ void ocfs2_set_inode_data_inline(struct
+ int ocfs2_convert_inline_data_to_extents(struct inode *inode,
+ 					 struct buffer_head *di_bh)
  {
- 	int ret;
+-	int ret, i, has_data, num_pages = 0;
++	int ret, has_data, num_pages = 0;
+ 	int need_free = 0;
+ 	u32 bit_off, num;
+ 	handle_t *handle;
+@@ -7054,26 +7054,17 @@ int ocfs2_convert_inline_data_to_extents
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)di_bh->b_data;
+ 	struct ocfs2_alloc_context *data_ac = NULL;
+-	struct page **pages = NULL;
+-	loff_t end = osb->s_clustersize;
++	struct page *page = NULL;
+ 	struct ocfs2_extent_tree et;
+ 	int did_quota = 0;
  
--	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "migrate on reclaim",
--				migration_online_cpu,
--				migration_offline_cpu);
-+	ret = cpuhp_setup_state_nocalls(CPUHP_MM_DEMOTION_DEAD, "mm/demotion:offline",
-+					NULL, migration_offline_cpu);
- 	/*
- 	 * In the unlikely case that this fails, the automatic
- 	 * migration targets may become suboptimal for nodes
-@@ -3298,6 +3297,9 @@ static int __init migrate_on_reclaim_ini
- 	 * rare case, do not bother trying to do anything special.
- 	 */
- 	WARN_ON(ret < 0);
-+	ret = cpuhp_setup_state(CPUHP_AP_MM_DEMOTION_ONLINE, "mm/demotion:online",
-+				migration_online_cpu, NULL);
-+	WARN_ON(ret < 0);
+ 	has_data = i_size_read(inode) ? 1 : 0;
  
- 	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
- 	return 0;
+ 	if (has_data) {
+-		pages = kcalloc(ocfs2_pages_per_cluster(osb->sb),
+-				sizeof(struct page *), GFP_NOFS);
+-		if (pages == NULL) {
+-			ret = -ENOMEM;
+-			mlog_errno(ret);
+-			return ret;
+-		}
+-
+ 		ret = ocfs2_reserve_clusters(osb, 1, &data_ac);
+ 		if (ret) {
+ 			mlog_errno(ret);
+-			goto free_pages;
++			goto out;
+ 		}
+ 	}
+ 
+@@ -7093,7 +7084,8 @@ int ocfs2_convert_inline_data_to_extents
+ 	}
+ 
+ 	if (has_data) {
+-		unsigned int page_end;
++		unsigned int page_end = min_t(unsigned, PAGE_SIZE,
++							osb->s_clustersize);
+ 		u64 phys;
+ 
+ 		ret = dquot_alloc_space_nodirty(inode,
+@@ -7117,15 +7109,8 @@ int ocfs2_convert_inline_data_to_extents
+ 		 */
+ 		block = phys = ocfs2_clusters_to_blocks(inode->i_sb, bit_off);
+ 
+-		/*
+-		 * Non sparse file systems zero on extend, so no need
+-		 * to do that now.
+-		 */
+-		if (!ocfs2_sparse_alloc(osb) &&
+-		    PAGE_SIZE < osb->s_clustersize)
+-			end = PAGE_SIZE;
+-
+-		ret = ocfs2_grab_eof_pages(inode, 0, end, pages, &num_pages);
++		ret = ocfs2_grab_eof_pages(inode, 0, page_end, &page,
++					   &num_pages);
+ 		if (ret) {
+ 			mlog_errno(ret);
+ 			need_free = 1;
+@@ -7136,20 +7121,15 @@ int ocfs2_convert_inline_data_to_extents
+ 		 * This should populate the 1st page for us and mark
+ 		 * it up to date.
+ 		 */
+-		ret = ocfs2_read_inline_data(inode, pages[0], di_bh);
++		ret = ocfs2_read_inline_data(inode, page, di_bh);
+ 		if (ret) {
+ 			mlog_errno(ret);
+ 			need_free = 1;
+ 			goto out_unlock;
+ 		}
+ 
+-		page_end = PAGE_SIZE;
+-		if (PAGE_SIZE > osb->s_clustersize)
+-			page_end = osb->s_clustersize;
+-
+-		for (i = 0; i < num_pages; i++)
+-			ocfs2_map_and_dirty_page(inode, handle, 0, page_end,
+-						 pages[i], i > 0, &phys);
++		ocfs2_map_and_dirty_page(inode, handle, 0, page_end, page, 0,
++					 &phys);
+ 	}
+ 
+ 	spin_lock(&oi->ip_lock);
+@@ -7180,8 +7160,8 @@ int ocfs2_convert_inline_data_to_extents
+ 	}
+ 
+ out_unlock:
+-	if (pages)
+-		ocfs2_unlock_and_free_pages(pages, num_pages);
++	if (page)
++		ocfs2_unlock_and_free_pages(&page, num_pages);
+ 
+ out_commit:
+ 	if (ret < 0 && did_quota)
+@@ -7205,8 +7185,6 @@ out_commit:
+ out:
+ 	if (data_ac)
+ 		ocfs2_free_alloc_context(data_ac);
+-free_pages:
+-	kfree(pages);
+ 	return ret;
+ }
+ 
 _
