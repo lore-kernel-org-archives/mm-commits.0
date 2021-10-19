@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45C9FC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 02:48:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3447DC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 18:38:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1F0AF60FF2
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 02:48:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 18D6661038
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 18:38:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230287AbhJSCui (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 18 Oct 2021 22:50:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34340 "EHLO mail.kernel.org"
+        id S233102AbhJSSlB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Oct 2021 14:41:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52016 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230016AbhJSCui (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 18 Oct 2021 22:50:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 41861610C7;
-        Tue, 19 Oct 2021 02:48:26 +0000 (UTC)
+        id S234526AbhJSSlB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Oct 2021 14:41:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EE217610E5;
+        Tue, 19 Oct 2021 18:38:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634611706;
-        bh=yA8r4M4CVj8c9YVtMtunD61Lg1+hR/8kbcsF4dg7uc0=;
+        s=korg; t=1634668728;
+        bh=zUxOUIhc43TmNJ6JjeWAjlh3LYw4564DoLYn1IqZ7JQ=;
         h=Date:From:To:Subject:From;
-        b=ko8zQL62ZzGYjfxyjcRpW7fNxtppQ+8kP8NIFNCtPSRSMmZcncX+3AtkPZ979D+NF
-         dZfmLcJ78jpay0VhjrtNz8wCnJqOzgfq8EPH0A3xvxZhgSvSyZw6j2RPFRgtI4vGMJ
-         VAaZifS8QTMSrPJnWe1NINgpbvCyh41veJO5livA=
-Date:   Mon, 18 Oct 2021 19:48:25 -0700
+        b=Kb8SJVjFVEHla2j1SycjmfY7oWwpfkDzz3uCQWeTeg2+e3PsdZroF22vzrGshYc8h
+         OHHI8Ak86mNu8qZcJ0GW7Lh+z4TNTDaeWDvJaIVVycujeTj2206aX+A/Eq8/yFfxu4
+         CcxrXXYEWL0QOkzkc5UXi//yG5dmSekYq+JIwx6A=
+Date:   Tue, 19 Oct 2021 11:38:47 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, faiyazm@codeaurora.org, guptap@codeaurora.org,
-        mm-commits@vger.kernel.org, rppt@kernel.org
-Subject:  [failures]
- mm-page_alloc-add-debug-log-in-free_reserved_area-for-static-memory.patch
- removed from -mm tree
-Message-ID: <20211019024825.H6KrmNPW_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20211019183847.fkBFZ7DP0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,69 +37,164 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_alloc: add debug log in free_reserved_area for static memory
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-add-debug-log-in-free_reserved_area-for-static-memory.patch
+     linux-next-git-rejects.patch
 
-This patch was dropped because it had testing failures
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Faiyaz Mohammed <faiyazm@codeaurora.org>
-Subject: mm: page_alloc: add debug log in free_reserved_area for static memory
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-For INITRD and initmem memory is reserved through "memblock_reserve"
-during boot up but it is free via "free_reserved_area" instead of
-"memblock_free".
-
-For example:
-[    0.294848] Freeing initrd memory: 12K.
-[    0.696688] Freeing unused kernel memory: 4096K.
-
-To get the start and end address of the above freed memory and to account
-proper memblock added pr_debug log in "free_reserved_area".  After adding
-log:
-
-[    0.294848] Freeing initrd memory: 12K.
-[    0.294837] 0x00000083600000-0x00000083603000 free_initrd_mem+0x20/0x28
-[    0.696688] Freeing unused kernel memory: 4096K.
-[    0.695246] 0x00000081600000-0x00000081a00000 free_initmem+0x70/0xc8
-
-Link: https://lkml.kernel.org/r/1634540053-23304-1-git-send-email-faiyazm@codeaurora.org
-Signed-off-by: Faiyaz Mohammed <faiyazm@codeaurora.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Prakash Gupta <guptap@codeaurora.org>
-Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ block/blk-core.c                    |   32 --------------------------
+ drivers/iio/accel/fxls8962af-core.c |    3 --
+ drivers/iio/adc/aspeed_adc.c        |    3 --
+ 3 files changed, 38 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-add-debug-log-in-free_reserved_area-for-static-memory
-+++ a/mm/page_alloc.c
-@@ -8118,6 +8118,8 @@ EXPORT_SYMBOL(adjust_managed_page_count)
+--- a/block/blk-core.c~linux-next-git-rejects
++++ a/block/blk-core.c
+@@ -50,11 +50,8 @@
+ #include "blk-mq.h"
+ #include "blk-mq-sched.h"
+ #include "blk-pm.h"
+-<<<<<<< HEAD
+-=======
+ #include "blk-rq-qos.h"
+ #include "blk-throttle.h"
+->>>>>>> linux-next/akpm-base
  
- unsigned long free_reserved_area(void *start, void *end, int poison, const char *s)
+ struct dentry *blk_debugfs_root;
+ 
+@@ -476,14 +473,8 @@ int blk_queue_enter(struct request_queue
+ 
+ static inline int bio_queue_enter(struct bio *bio)
  {
-+	const phys_addr_t pstart = __pa(start);
-+	const phys_addr_t pend = __pa(end);
- 	void *pos;
- 	unsigned long pages = 0;
+-<<<<<<< HEAD
+ 	struct gendisk *disk = bio->bi_bdev->bd_disk;
+-	struct request_queue *q = disk->queue;
+-=======
+ 	struct request_queue *q = bdev_get_queue(bio->bi_bdev);
+-	bool nowait = bio->bi_opf & REQ_NOWAIT;
+-	int ret;
+->>>>>>> linux-next/akpm-base
  
-@@ -8146,8 +8148,10 @@ unsigned long free_reserved_area(void *s
- 		free_reserved_page(page);
+ 	while (!blk_try_enter_queue(q, false)) {
+ 		if (bio->bi_opf & REQ_NOWAIT) {
+@@ -929,27 +920,15 @@ static void __submit_bio(struct bio *bio
+ {
+ 	struct gendisk *disk = bio->bi_bdev->bd_disk;
+ 
+-<<<<<<< HEAD
+-	if (unlikely(bio_queue_enter(bio) != 0))
+-		return BLK_QC_T_NONE;
+-
+-	if (!submit_bio_checks(bio) || !blk_crypto_bio_prep(&bio))
+-		goto queue_exit;
+-	if (disk->fops->submit_bio) {
+-		ret = disk->fops->submit_bio(bio);
+-		goto queue_exit;
+-=======
+ 	if (blk_crypto_bio_prep(&bio)) {
+ 		if (!disk->fops->submit_bio) {
+ 			blk_mq_submit_bio(bio);
+ 			return;
+ 		}
+ 		disk->fops->submit_bio(bio);
+->>>>>>> linux-next/akpm-base
  	}
+ 	return blk_mq_submit_bio(bio);
  
--	if (pages && s)
-+	if (pages && s) {
- 		pr_info("Freeing %s memory: %ldK\n", s, K(pages));
-+		pr_debug("[%pa-%pa] %pS\n", &pstart, &pend, (void *)_RET_IP_);
-+	}
- 
- 	return pages;
+-queue_exit:
+ 	blk_queue_exit(disk->queue);
  }
+ 
+@@ -1019,17 +998,10 @@ static void __submit_bio_noacct(struct b
+ static void __submit_bio_noacct_mq(struct bio *bio)
+ {
+ 	struct bio_list bio_list[2] = { };
+-<<<<<<< HEAD
+-	blk_qc_t ret;
+-=======
+->>>>>>> linux-next/akpm-base
+ 
+ 	current->bio_list = bio_list;
+ 
+ 	do {
+-<<<<<<< HEAD
+-		ret = __submit_bio(bio);
+-=======
+ 		struct gendisk *disk = bio->bi_bdev->bd_disk;
+ 
+ 		if (unlikely(bio_queue_enter(bio) != 0))
+@@ -1041,7 +1013,6 @@ static void __submit_bio_noacct_mq(struc
+ 		}
+ 
+ 		blk_mq_submit_bio(bio);
+->>>>>>> linux-next/akpm-base
+ 	} while ((bio = bio_list_pop(&bio_list[0])));
+ 
+ 	current->bio_list = NULL;
+@@ -1058,12 +1029,9 @@ static void __submit_bio_noacct_mq(struc
+  */
+ void submit_bio_noacct(struct bio *bio)
+ {
+-<<<<<<< HEAD
+-=======
+ 	if (!submit_bio_checks(bio))
+ 		return;
+ 
+->>>>>>> linux-next/akpm-base
+ 	/*
+ 	 * We only want one ->submit_bio to be active at a time, else stack
+ 	 * usage with stacked devices could be a problem.  Use current->bio_list
+--- a/drivers/iio/accel/fxls8962af-core.c~linux-next-git-rejects
++++ a/drivers/iio/accel/fxls8962af-core.c
+@@ -1027,8 +1027,6 @@ static irqreturn_t fxls8962af_interrupt(
+ 	if (reg & FXLS8962AF_INT_STATUS_SRC_BUF) {
+ 		ret = fxls8962af_fifo_flush(indio_dev);
+ 		if (ret < 0)
+-<<<<<<< HEAD
+-=======
+ 			return IRQ_NONE;
+ 
+ 		return IRQ_HANDLED;
+@@ -1037,7 +1035,6 @@ static irqreturn_t fxls8962af_interrupt(
+ 	if (reg & FXLS8962AF_INT_STATUS_SRC_SDCD_OT) {
+ 		ret = fxls8962af_event_interrupt(indio_dev);
+ 		if (ret < 0)
+->>>>>>> linux-next/akpm-base
+ 			return IRQ_NONE;
+ 
+ 		return IRQ_HANDLED;
+--- a/drivers/iio/adc/aspeed_adc.c~linux-next-git-rejects
++++ a/drivers/iio/adc/aspeed_adc.c
+@@ -493,10 +493,7 @@ static int aspeed_adc_probe(struct platf
+ 	data = iio_priv(indio_dev);
+ 	data->dev = &pdev->dev;
+ 	platform_set_drvdata(pdev, indio_dev);
+-<<<<<<< HEAD
+-=======
+ 	data->model_data = of_device_get_match_data(&pdev->dev);
+->>>>>>> linux-next/akpm-base
+ 
+ 	data->base = devm_platform_ioremap_resource(pdev, 0);
+ 	if (IS_ERR(data->base))
 _
 
-Patches currently in -mm which might be from faiyazm@codeaurora.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
+mm.patch
+mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-fix.patch
+mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-fix-2.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
+ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
+linux-next-rejects.patch
+mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault-vs-folios.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
