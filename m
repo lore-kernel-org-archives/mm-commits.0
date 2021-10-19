@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B10DFC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 21:31:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D164BC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 21:31:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9390461373
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 21:31:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B9F9C6101A
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 21:31:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229570AbhJSVeG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Oct 2021 17:34:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40142 "EHLO mail.kernel.org"
+        id S229602AbhJSVeJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Oct 2021 17:34:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40190 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229546AbhJSVeD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Oct 2021 17:34:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 148886101A;
-        Tue, 19 Oct 2021 21:31:50 +0000 (UTC)
+        id S229546AbhJSVeG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Oct 2021 17:34:06 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 087816135E;
+        Tue, 19 Oct 2021 21:31:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634679110;
-        bh=VaOOHnL9/xux+3tPL5ryR5CiP+t4Dsh+dSVuvD/vNjQ=;
+        s=korg; t=1634679113;
+        bh=czoLlbQayLUTbR+CDs123/0s6/Y43Uohtm1CdvWCwBQ=;
         h=Date:From:To:Subject:From;
-        b=A5McZ/6W2nZY+K9Ar2hmlFQDLHXBtpGykmUtnj8t0liQLS/rMP/qxgH85CqUwHwvi
-         IPY/NFeUpM0+YH+Yi8+XAAruk5NT108U3vsbXcM6KYLoVS1tAimTkaTNZHGid20i4F
-         19Y6FRgPEcVNf4fW88r/h0CTRHyY5MGE0X8sco8I=
-Date:   Tue, 19 Oct 2021 14:31:49 -0700
+        b=2ChAlRBulbhTvsxy+i6/HuERZVSQt3mJsYVZ1eIeXvRBWzYb3nLDhmy78WI5rKDM5
+         3fQwyxVVc8dPXK2sK5nULkYmMXPVzDEeTgW24bRdz2qwTM3ql3ot3N+8V0svqgF5k8
+         yrPSPXMaqn9LCj7DH9zlt6CNQ/nrzIrMxbHIlh04=
+Date:   Tue, 19 Oct 2021 14:31:52 -0700
 From:   akpm@linux-foundation.org
 To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         david@redhat.com, dwmw@amazon.com, elver@google.com,
@@ -31,9 +31,9 @@ To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         Jonathan.Cameron@huawei.com, markubo@amazon.de,
         mm-commits@vger.kernel.org, rientjes@google.com,
         shakeelb@google.com, shuah@kernel.org, sj@kernel.org
-Subject:  + mm-damon-dbgfs-support-quotas-of-schemes.patch added to
- -mm tree
-Message-ID: <20211019213149.h-5gH6nqq%akpm@linux-foundation.org>
+Subject:  + mm-damon-selftests-support-schemes-quotas.patch added
+ to -mm tree
+Message-ID: <20211019213152.7euYeeZkK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/dbgfs: support quotas of schemes
+     Subject: mm/damon/selftests: support schemes quotas
 has been added to the -mm tree.  Its filename is
-     mm-damon-dbgfs-support-quotas-of-schemes.patch
+     mm-damon-selftests-support-schemes-quotas.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-dbgfs-support-quotas-of-schemes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-selftests-support-schemes-quotas.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-dbgfs-support-quotas-of-schemes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-selftests-support-schemes-quotas.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,12 +64,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/dbgfs: support quotas of schemes
+Subject: mm/damon/selftests: support schemes quotas
 
-This commit makes the debugfs interface of DAMON support the scheme quotas
-by chaning the format of the input for the schemes file.
+This commit updates DAMON selftests to support updated schemes debugfs
+file format for the quotas.
 
-Link: https://lkml.kernel.org/r/20211019150731.16699-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211019150731.16699-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -87,43 +87,24 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |   14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
+ tools/testing/selftests/damon/debugfs_attrs.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-support-quotas-of-schemes
-+++ a/mm/damon/dbgfs.c
-@@ -105,11 +105,14 @@ static ssize_t sprint_schemes(struct dam
+--- a/tools/testing/selftests/damon/debugfs_attrs.sh~mm-damon-selftests-support-schemes-quotas
++++ a/tools/testing/selftests/damon/debugfs_attrs.sh
+@@ -63,10 +63,10 @@ echo "$orig_content" > "$file"
+ file="$DBGFS/schemes"
+ orig_content=$(cat "$file")
  
- 	damon_for_each_scheme(s, c) {
- 		rc = scnprintf(&buf[written], len - written,
--				"%lu %lu %u %u %u %u %d %lu %lu\n",
-+				"%lu %lu %u %u %u %u %d %lu %lu %lu %lu %lu\n",
- 				s->min_sz_region, s->max_sz_region,
- 				s->min_nr_accesses, s->max_nr_accesses,
- 				s->min_age_region, s->max_age_region,
--				s->action, s->stat_count, s->stat_sz);
-+				s->action,
-+				s->quota.ms, s->quota.sz,
-+				s->quota.reset_interval,
-+				s->stat_count, s->stat_sz);
- 		if (!rc)
- 			return -ENOMEM;
+-test_write_succ "$file" "1 2 3 4 5 6 4" \
++test_write_succ "$file" "1 2 3 4 5 6 4 0 0 0" \
+ 	"$orig_content" "valid input"
+ test_write_fail "$file" "1 2
+-3 4 5 6 3" "$orig_content" "multi lines"
++3 4 5 6 3 0 0 0" "$orig_content" "multi lines"
+ test_write_succ "$file" "" "$orig_content" "disabling"
+ echo "$orig_content" > "$file"
  
-@@ -190,10 +193,11 @@ static struct damos **str_to_schemes(con
- 	while (pos < len && *nr_schemes < max_nr_schemes) {
- 		struct damos_quota quota = {};
- 
--		ret = sscanf(&str[pos], "%lu %lu %u %u %u %u %u%n",
-+		ret = sscanf(&str[pos], "%lu %lu %u %u %u %u %u %lu %lu %lu%n",
- 				&min_sz, &max_sz, &min_nr_a, &max_nr_a,
--				&min_age, &max_age, &action, &parsed);
--		if (ret != 7)
-+				&min_age, &max_age, &action, &quota.ms,
-+				&quota.sz, &quota.reset_interval, &parsed);
-+		if (ret != 10)
- 			break;
- 		if (!damos_action_valid(action)) {
- 			pr_err("wrong action %d\n", action);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
