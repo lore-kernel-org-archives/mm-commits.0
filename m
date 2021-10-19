@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 67CB6C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 21:31:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A2CCAC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 21:31:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 47D8D6136A
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 21:31:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 815A36136A
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 21:31:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229533AbhJSVdx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Oct 2021 17:33:53 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39918 "EHLO mail.kernel.org"
+        id S229544AbhJSVdz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Oct 2021 17:33:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39970 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229483AbhJSVdw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Oct 2021 17:33:52 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8202A6134F;
-        Tue, 19 Oct 2021 21:31:38 +0000 (UTC)
+        id S229483AbhJSVdz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Oct 2021 17:33:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1D5C061355;
+        Tue, 19 Oct 2021 21:31:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634679099;
-        bh=mYrsr4L83GPKexZb/PssqfqqxHiQ8dLUirzDM5WyV9g=;
+        s=korg; t=1634679101;
+        bh=wxlikA5bNP1NIdzDXiGUvBiK41JgyYJlEQktgXrDRS4=;
         h=Date:From:To:Subject:From;
-        b=Z2m+p0zYqlnXrw4yNYPxQ770JQd8xBnLQgHm1dqyk8zB1cQNL9Q5EEzIe5vxExhCV
-         7hUnaVWZUbDpVj5evMaLjmPnpnxW2URg+9vXsd+6eTBHHsTkkC4H24ZZzI3N9RZ6lg
-         5ljo0v8sr9kWxJFa3q+DdOmRW5w5LdI4PBl/ckf0=
-Date:   Tue, 19 Oct 2021 14:31:37 -0700
+        b=XS9Lm620TuUgCkQ/Pf9vJ76K1iamBd33lR5lc1lH8dVa4srcUEd0vLuV1Q2ZaAcpV
+         HP5ndqkm5TiQAsQGBtacTLLc1TVCuEj09LM1kJzity9CtfXiDZpL/SUtJRhOmNQHb0
+         Vy/2QatLUdzpfFzrxyfBiZMmNjQxQIZtitKvVv4o=
+Date:   Tue, 19 Oct 2021 14:31:40 -0700
 From:   akpm@linux-foundation.org
 To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         david@redhat.com, dwmw@amazon.com, elver@google.com,
@@ -31,10 +31,13 @@ To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         Jonathan.Cameron@huawei.com, markubo@amazon.de,
         mm-commits@vger.kernel.org, rientjes@google.com,
         shakeelb@google.com, shuah@kernel.org, sj@kernel.org
-Subject:  + mm-damon-paddr-support-the-pageout-scheme.patch added
- to -mm tree
-Message-ID: <20211019213137.91_rr1GrX%akpm@linux-foundation.org>
+Subject:  +
+ =?US-ASCII?Q?mm-damon-schemes-implement-size-quota-for-schemes-applica?=
+ =?US-ASCII?Q?tion-speed-control.patch?= added to -mm tree
+Message-ID: <20211019213140.Tyo9xk5hK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/paddr: support the pageout scheme
+     Subject: mm/damon/schemes: implement size quota for schemes application speed control
 has been added to the -mm tree.  Its filename is
-     mm-damon-paddr-support-the-pageout-scheme.patch
+     mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-paddr-support-the-pageout-scheme.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-paddr-support-the-pageout-scheme.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,333 +67,236 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/paddr: support the pageout scheme
+Subject: mm/damon/schemes: implement size quota for schemes application speed control
 
-Introduction
-============
+There could be arbitrarily large memory regions fulfilling the target data
+access pattern of a DAMON-based operation scheme.  In the case, applying
+the action of the scheme could incur too high overhead.  To provide an
+intuitive way for avoiding it, this commit implements a feature called
+size quota.  If the quota is set, DAMON tries to apply the action only up
+to the given amount of memory regions within a given time window.
 
-This patchset 1) makes the engine for general data access pattern-oriented
-memory management (DAMOS) be more useful for production environments, and
-2) implements a static kernel module for lightweight proactive reclamation
-using the engine.
-
-Proactive Reclamation
----------------------
-
-On general memory over-committed systems, proactively reclaiming cold
-pages helps saving memory and reducing latency spikes that incurred by the
-direct reclaim or the CPU consumption of kswapd, while incurring only
-minimal performance degradation[2].
-
-A Free Pages Reporting[8] based memory over-commit virtualization system
-would be one more specific use case.  In the system, the guest VMs reports
-their free memory to host, and the host reallocates the reported memory to
-other guests.  As a result, the system's memory utilization can be
-maximized.  However, the guests could be not so memory-frugal, because
-some kernel subsystems and user-space applications are designed to use as
-much memory as available.  Then, guests would report only small amount of
-free memory to host, results in poor memory utilization.  Running the
-proactive reclamation in such guests could help mitigating this problem.
-
-Google has also implemented this idea and using it in their data center. 
-They further proposed upstreaming it in LSFMM'19, and "the general
-consensus was that, while this sort of proactive reclaim would be useful
-for a number of users, the cost of this particular solution was too high
-to consider merging it upstream"[3].  The cost mainly comes from the
-coldness tracking.  Roughly speaking, the implementation periodically
-scans the 'Accessed' bit of each page.  For the reason, the overhead
-linearly increases as the size of the memory and the scanning frequency
-grows.  As a result, Google is known to dedicating one CPU for the work. 
-That's a reasonable option to someone like Google, but it wouldn't be so
-to some others.
-
-DAMON and DAMOS: An engine for data access pattern-oriented memory management
------------------------------------------------------------------------------
-
-DAMON[4] is a framework for general data access monitoring.  Its adaptive
-monitoring overhead control feature minimizes its monitoring overhead.  It
-also let the upper-bound of the overhead be configurable by clients,
-regardless of the size of the monitoring target memory.  While monitoring
-70 GiB memory of a production system every 5 milliseconds, it consumes
-less than 1% single CPU time.  For this, it could sacrify some of the
-quality of the monitoring results.  Nevertheless, the lower-bound of the
-quality is configurable, and it uses a best-effort algorithm for better
-quality.  Our test results[5] show the quality is practical enough.  From
-the production system monitoring, we were able to find a 4 KiB region in
-the 70 GiB memory that shows highest access frequency.
-
-We normally don't monitor the data access pattern just for fun but to
-improve something like memory management.  Proactive reclamation is one
-such usage.  For such general cases, DAMON provides a feature called
-DAMon-based Operation Schemes (DAMOS)[6].  It makes DAMON an engine for
-general data access pattern oriented memory management.  Using this,
-clients can ask DAMON to find memory regions of specific data access
-pattern and apply some memory management action (e.g., page out, move to
-head of the LRU list, use huge page, ...).  We call the request 'scheme'.
-
-Proactive Reclamation on top of DAMON/DAMOS
--------------------------------------------
-
-Therefore, by using DAMON for the cold pages detection, the proactive
-reclamation's monitoring overhead issue can be solved.  Actually, we
-previously implemented a version of proactive reclamation using DAMOS and
-achieved noticeable improvements with our evaluation setup[5]. 
-Nevertheless, it more for a proof-of-concept, rather than production uses.
-It supports only virtual address spaces of processes, and require
-additional tuning efforts for given workloads and the hardware.  For the
-tuning, we introduced a simple auto-tuning user space tool[8].  Google is
-also known to using a ML-based similar approach for their fleets[2].  But,
-making it just works with intuitive knobs in the kernel would be helpful
-for general users.
-
-To this end, this patchset improves DAMOS to be ready for such production
-usages, and implements another version of the proactive reclamation,
-namely DAMON_RECLAIM, on top of it.
-
-DAMOS Improvements: Aggressiveness Control, Prioritization, and Watermarks
---------------------------------------------------------------------------
-
-First of all, the current version of DAMOS supports only virtual address
-spaces.  This patchset makes it supports the physical address space for
-the page out action.
-
-Next major problem of the current version of DAMOS is the lack of the
-aggressiveness control, which can results in arbitrary overhead.  For
-example, if huge memory regions having the data access pattern of interest
-are found, applying the requested action to all of the regions could incur
-significant overhead.  It can be controlled by tuning the target data
-access pattern with manual or automated approaches[2,7].  But, some people
-would prefer the kernel to just work with only intuitive tuning or default
-values.
-
-For such cases, this patchset implements a safeguard, namely time/size
-quota.  Using this, the clients can specify up to how much time can be
-used for applying the action, and/or up to how much memory regions the
-action can be applied within a user-specified time duration.  A followup
-question is, to which memory regions should the action applied within the
-limits?  We implement a simple regions prioritization mechanism for each
-action and make DAMOS to apply the action to high priority regions first. 
-It also allows clients tune the prioritization mechanism to use different
-weights for size, access frequency, and age of memory regions.  This means
-we could use not only LRU but also LFU or some fancy algorithms like
-CAR[9] with lightweight overhead.
-
-Though DAMON is lightweight, someone would want to remove even the cold
-pages monitoring overhead when it is unnecessary.  Currently, it should
-manually turned on and off by clients, but some clients would simply want
-to turn it on and off based on some metrics like free memory ratio or
-memory fragmentation.  For such cases, this patchset implements a
-watermarks-based automatic activation feature.  It allows the clients
-configure the metric of their interest, and three watermarks of the
-metric.  If the metric is higher than the high watermark or lower than the
-low watermark, the scheme is deactivated.  If the metric is lower than the
-mid watermark but higher than the low watermark, the scheme is activated.
-
-DAMON-based Reclaim
--------------------
-
-Using the improved version of DAMOS, this patchset implements a static
-kernel module called 'damon_reclaim'.  It finds memory regions that didn't
-accessed for specific time duration and page out.  Consuming too much CPU
-for the paging out operations, or doing pageout too frequently can be
-critical for systems configuring their swap devices with software-defined
-in-memory block devices like zram/zswap or total number of writes limited
-devices like SSDs, respectively.  To avoid the problems, the time/size
-quotas can be configured.  Under the quotas, it pages out memory regions
-that didn't accessed longer first.  Also, to remove the monitoring
-overhead under peaceful situation, and to fall back to the LRU-list based
-page granularity reclamation when it doesn't make progress, the three
-watermarks based activation mechanism is used, with the free memory ratio
-as the watermark metric.
-
-For convenient configurations, it provides several module parameters. 
-Using these, sysadmins can enable/disable it, and tune its parameters
-including the coldness identification time threshold, the time/size quotas
-and the three watermarks.
-
-Evaluation
-==========
-
-In short, DAMON_RECLAIM with 50ms/s time quota and regions prioritization
-on v5.15-rc5 Linux kernel with ZRAM swap device achieves 38.58% memory
-saving with only 1.94% runtime overhead.  For this, DAMON_RECLAIM consumes
-only 4.97% of single CPU time.
-
-Setup
------
-
-We evaluate DAMON_RECLAIM to show how each of the DAMOS improvements make
-effect.  For this, we measure DAMON_RECLAIM's CPU consumption, entire
-system memory footprint, total number of major page faults, and runtime of
-24 realistic workloads in PARSEC3 and SPLASH-2X benchmark suites on my
-QEMU/KVM based virtual machine.  The virtual machine runs on an i3.metal
-AWS instance, has 130GiB memory, and runs a linux kernel built on latest
--mm tree[1] plus this patchset.  It also utilizes a 4 GiB ZRAM swap
-device.  We repeats the measurement 5 times and use averages.
-
-[1] https://github.com/hnaz/linux-mm/tree/v5.15-rc5-mmots-2021-10-13-19-55
-
-Detailed Results
-----------------
-
-The results are summarized in the below table.
-
-With coldness identification threshold of 5 seconds, DAMON_RECLAIM without
-the time quota-based speed limit achieves 47.21% memory saving, but incur
-4.59% runtime slowdown to the workloads on average.  For this,
-DAMON_RECLAIM consumes about 11.28% single CPU time.
-
-Applying time quotas of 200ms/s, 50ms/s, and 10ms/s without the regions
-prioritization reduces the slowdown to 4.89%, 2.65%, and 1.5%,
-respectively.  Time quota of 200ms/s (20%) makes no real change compared
-to the quota unapplied version, because the quota unapplied version
-consumes only 11.28% CPU time.  DAMON_RECLAIM's CPU utilization also
-similarly reduced: 11.24%, 5.51%, and 2.01% of single CPU time.  That is,
-the overhead is proportional to the speed limit.  Nevertheless, it also
-reduces the memory saving because it becomes less aggressive.  In detail,
-the three variants show 48.76%, 37.83%, and 7.85% memory saving,
-respectively.
-
-Applying the regions prioritization (page out regions that not accessed
-longer first within the time quota) further reduces the performance
-degradation.  Runtime slowdowns and total number of major page faults
-increase has been 4.89%/218,690% -> 4.39%/166,136% (200ms/s),
-2.65%/111,886% -> 1.94%/59,053% (50ms/s), and 1.5%/34,973.40% ->
-2.08%/8,781.75% (10ms/s).  The runtime under 10ms/s time quota has
-increased with prioritization, but apparently that's under the margin of
-error.
-
-    time quota   prioritization  memory_saving  cpu_util  slowdown  pgmajfaults overhead
-    N            N               47.21%         11.28%    4.59%     194,802%
-    200ms/s      N               48.76%         11.24%    4.89%     218,690%
-    50ms/s       N               37.83%         5.51%     2.65%     111,886%
-    10ms/s       N               7.85%          2.01%     1.5%      34,793.40%
-    200ms/s      Y               50.08%         10.38%    4.39%     166,136%
-    50ms/s       Y               38.58%         4.97%     1.94%     59,053%
-    10ms/s       Y               3.63%          1.73%     2.08%     8,781.75%
-
-Baseline and Complete Git Trees
-===============================
-
-The patches are based on the latest -mm tree
-(v5.15-rc5-mmots-2021-10-13-19-55).  You can also clone the complete git tree
-from:
-
-    $ git clone git://github.com/sjp38/linux -b damon_reclaim/patches/v1
-
-The web is also available:
-https://git.kernel.org/pub/scm/linux/kernel/git/sj/linux.git/tag/?h=damon_reclaim/patches/v1
-
-Sequence Of Patches
-===================
-
-The first patch makes DAMOS support the physical address space for the page out
-action.  Following five patches (patches 2-6) implement the time/size quotas.
-Next four patches (patches 7-10) implement the memory regions prioritization
-within the limit.  Then, three following patches (patches 11-13) implement the
-watermarks-based schemes activation.  Finally, the last two patches (patches
-14-15) implement and document the DAMON-based reclamation using the advanced
-DAMOS.
-
-[1] https://www.kernel.org/doc/html/v5.15-rc1/vm/damon/index.html
-[2] https://research.google/pubs/pub48551/
-[3] https://lwn.net/Articles/787611/
-[4] https://damonitor.github.io
-[5] https://damonitor.github.io/doc/html/latest/vm/damon/eval.html
-[6] https://lore.kernel.org/linux-mm/20211001125604.29660-1-sj@kernel.org/
-[7] https://github.com/awslabs/damoos
-[8] https://www.kernel.org/doc/html/latest/vm/free_page_reporting.html
-[9] https://www.usenix.org/conference/fast-04/car-clock-adaptive-replacement
-
-
-This patch (of 15):
-
-This commit makes the DAMON primitives for physical address space support
-the pageout action for DAMON-based Operation Schemes.  With this commit,
-hence, users can easily implement system-level data access-aware
-reclamations using DAMOS.
-
-Link: https://lkml.kernel.org/r/20211019150731.16699-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20211019150731.16699-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211019150731.16699-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: David Hildenbrand <david@redhat.com>
-Cc: David Woodhouse <dwmw@amazon.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Leonard Foerster <foersleo@amazon.de>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Markus Boehme <markubo@amazon.de>
 Cc: David Rientjes <rientjes@google.com>
+Cc: David Woodhouse <dwmw@amazon.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Leonard Foerster <foersleo@amazon.de>
+Cc: Marco Elver <elver@google.com>
+Cc: Markus Boehme <markubo@amazon.de>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/paddr.c |   37 ++++++++++++++++++++++++++++++++++++-
- 1 file changed, 36 insertions(+), 1 deletion(-)
+ include/linux/damon.h |   36 +++++++++++++++++++++---
+ mm/damon/core.c       |   60 ++++++++++++++++++++++++++++++++++------
+ mm/damon/dbgfs.c      |    4 ++
+ 3 files changed, 87 insertions(+), 13 deletions(-)
 
---- a/mm/damon/paddr.c~mm-damon-paddr-support-the-pageout-scheme
-+++ a/mm/damon/paddr.c
-@@ -11,7 +11,9 @@
- #include <linux/page_idle.h>
- #include <linux/pagemap.h>
- #include <linux/rmap.h>
-+#include <linux/swap.h>
+--- a/include/linux/damon.h~mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control
++++ a/include/linux/damon.h
+@@ -90,6 +90,26 @@ enum damos_action {
+ };
  
-+#include "../internal.h"
- #include "prmtv-common.h"
+ /**
++ * struct damos_quota - Controls the aggressiveness of the given scheme.
++ * @sz:			Maximum bytes of memory that the action can be applied.
++ * @reset_interval:	Charge reset interval in milliseconds.
++ *
++ * To avoid consuming too much CPU time or IO resources for applying the
++ * &struct damos->action to large memory, DAMON allows users to set a size
++ * quota.  The quota can be set by writing non-zero values to &sz.  If the size
++ * quota is set, DAMON tries to apply the action only up to &sz bytes within
++ * &reset_interval.
++ */
++struct damos_quota {
++	unsigned long sz;
++	unsigned long reset_interval;
++
++/* private: For charging the quota */
++	unsigned long charged_sz;
++	unsigned long charged_from;
++};
++
++/**
+  * struct damos - Represents a Data Access Monitoring-based Operation Scheme.
+  * @min_sz_region:	Minimum size of target regions.
+  * @max_sz_region:	Maximum size of target regions.
+@@ -98,13 +118,20 @@ enum damos_action {
+  * @min_age_region:	Minimum age of target regions.
+  * @max_age_region:	Maximum age of target regions.
+  * @action:		&damo_action to be applied to the target regions.
++ * @quota:		Control the aggressiveness of this scheme.
+  * @stat_count:		Total number of regions that this scheme is applied.
+  * @stat_sz:		Total size of regions that this scheme is applied.
+  * @list:		List head for siblings.
+  *
+- * For each aggregation interval, DAMON applies @action to monitoring target
+- * regions fit in the condition and updates the statistics.  Note that both
+- * the minimums and the maximums are inclusive.
++ * For each aggregation interval, DAMON finds regions which fit in the
++ * condition (&min_sz_region, &max_sz_region, &min_nr_accesses,
++ * &max_nr_accesses, &min_age_region, &max_age_region) and applies &action to
++ * those.  To avoid consuming too much CPU time or IO resources for the
++ * &action, &quota is used.
++ *
++ * After applying the &action to each region, &stat_count and &stat_sz is
++ * updated to reflect the number of regions and total size of regions that the
++ * &action is applied.
+  */
+ struct damos {
+ 	unsigned long min_sz_region;
+@@ -114,6 +141,7 @@ struct damos {
+ 	unsigned int min_age_region;
+ 	unsigned int max_age_region;
+ 	enum damos_action action;
++	struct damos_quota quota;
+ 	unsigned long stat_count;
+ 	unsigned long stat_sz;
+ 	struct list_head list;
+@@ -310,7 +338,7 @@ struct damos *damon_new_scheme(
+ 		unsigned long min_sz_region, unsigned long max_sz_region,
+ 		unsigned int min_nr_accesses, unsigned int max_nr_accesses,
+ 		unsigned int min_age_region, unsigned int max_age_region,
+-		enum damos_action action);
++		enum damos_action action, struct damos_quota *quota);
+ void damon_add_scheme(struct damon_ctx *ctx, struct damos *s);
+ void damon_destroy_scheme(struct damos *s);
  
- static bool __damon_pa_mkold(struct page *page, struct vm_area_struct *vma,
-@@ -211,6 +213,39 @@ bool damon_pa_target_valid(void *t)
- 	return true;
+--- a/mm/damon/core.c~mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control
++++ a/mm/damon/core.c
+@@ -89,7 +89,7 @@ struct damos *damon_new_scheme(
+ 		unsigned long min_sz_region, unsigned long max_sz_region,
+ 		unsigned int min_nr_accesses, unsigned int max_nr_accesses,
+ 		unsigned int min_age_region, unsigned int max_age_region,
+-		enum damos_action action)
++		enum damos_action action, struct damos_quota *quota)
+ {
+ 	struct damos *scheme;
+ 
+@@ -107,6 +107,11 @@ struct damos *damon_new_scheme(
+ 	scheme->stat_sz = 0;
+ 	INIT_LIST_HEAD(&scheme->list);
+ 
++	scheme->quota.sz = quota->sz;
++	scheme->quota.reset_interval = quota->reset_interval;
++	scheme->quota.charged_sz = 0;
++	scheme->quota.charged_from = 0;
++
+ 	return scheme;
  }
  
-+int damon_pa_apply_scheme(struct damon_ctx *ctx, struct damon_target *t,
-+		struct damon_region *r, struct damos *scheme)
-+{
-+	unsigned long addr;
-+	LIST_HEAD(page_list);
+@@ -530,15 +535,25 @@ static void kdamond_reset_aggregated(str
+ 	}
+ }
+ 
++static void damon_split_region_at(struct damon_ctx *ctx,
++		struct damon_target *t, struct damon_region *r,
++		unsigned long sz_r);
 +
-+	if (scheme->action != DAMOS_PAGEOUT)
-+		return -EINVAL;
+ static void damon_do_apply_schemes(struct damon_ctx *c,
+ 				   struct damon_target *t,
+ 				   struct damon_region *r)
+ {
+ 	struct damos *s;
+-	unsigned long sz;
+ 
+ 	damon_for_each_scheme(s, c) {
+-		sz = r->ar.end - r->ar.start;
++		struct damos_quota *quota = &s->quota;
++		unsigned long sz = r->ar.end - r->ar.start;
 +
-+	for (addr = r->ar.start; addr < r->ar.end; addr += PAGE_SIZE) {
-+		struct page *page = damon_get_page(PHYS_PFN(addr));
-+
-+		if (!page)
++		/* Check the quota */
++		if (quota->sz && quota->charged_sz >= quota->sz)
 +			continue;
 +
-+		ClearPageReferenced(page);
-+		test_and_clear_page_young(page);
-+		if (isolate_lru_page(page)) {
-+			put_page(page);
-+			continue;
++		/* Check the target regions condition */
+ 		if (sz < s->min_sz_region || s->max_sz_region < sz)
+ 			continue;
+ 		if (r->nr_accesses < s->min_nr_accesses ||
+@@ -546,22 +561,51 @@ static void damon_do_apply_schemes(struc
+ 			continue;
+ 		if (r->age < s->min_age_region || s->max_age_region < r->age)
+ 			continue;
+-		s->stat_count++;
+-		s->stat_sz += sz;
+-		if (c->primitive.apply_scheme)
++
++		/* Apply the scheme */
++		if (c->primitive.apply_scheme) {
++			if (quota->sz && quota->charged_sz + sz > quota->sz) {
++				sz = ALIGN_DOWN(quota->sz - quota->charged_sz,
++						DAMON_MIN_REGION);
++				if (!sz)
++					goto update_stat;
++				damon_split_region_at(c, t, r, sz);
++			}
+ 			c->primitive.apply_scheme(c, t, r, s);
++			quota->charged_sz += sz;
 +		}
-+		if (PageUnevictable(page)) {
-+			putback_lru_page(page);
-+		} else {
-+			list_add(&page->lru, &page_list);
-+			put_page(page);
+ 		if (s->action != DAMOS_STAT)
+ 			r->age = 0;
++
++update_stat:
++		s->stat_count++;
++		s->stat_sz += sz;
+ 	}
+ }
+ 
+ static void kdamond_apply_schemes(struct damon_ctx *c)
+ {
+ 	struct damon_target *t;
+-	struct damon_region *r;
++	struct damon_region *r, *next_r;
++	struct damos *s;
++
++	damon_for_each_scheme(s, c) {
++		struct damos_quota *quota = &s->quota;
++
++		if (!quota->sz)
++			continue;
++
++		/* New charge window starts */
++		if (time_after_eq(jiffies, quota->charged_from +
++					msecs_to_jiffies(
++						quota->reset_interval))) {
++			quota->charged_from = jiffies;
++			quota->charged_sz = 0;
 +		}
 +	}
-+	reclaim_pages(&page_list);
-+	cond_resched();
-+	return 0;
-+}
-+
- void damon_pa_set_primitives(struct damon_ctx *ctx)
- {
- 	ctx->primitive.init = NULL;
-@@ -220,5 +255,5 @@ void damon_pa_set_primitives(struct damo
- 	ctx->primitive.reset_aggregated = NULL;
- 	ctx->primitive.target_valid = damon_pa_target_valid;
- 	ctx->primitive.cleanup = NULL;
--	ctx->primitive.apply_scheme = NULL;
-+	ctx->primitive.apply_scheme = damon_pa_apply_scheme;
+ 
+ 	damon_for_each_target(t, c) {
+-		damon_for_each_region(r, t)
++		damon_for_each_region_safe(r, next_r, t)
+ 			damon_do_apply_schemes(c, t, r);
+ 	}
  }
+--- a/mm/damon/dbgfs.c~mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control
++++ a/mm/damon/dbgfs.c
+@@ -188,6 +188,8 @@ static struct damos **str_to_schemes(con
+ 
+ 	*nr_schemes = 0;
+ 	while (pos < len && *nr_schemes < max_nr_schemes) {
++		struct damos_quota quota = {};
++
+ 		ret = sscanf(&str[pos], "%lu %lu %u %u %u %u %u%n",
+ 				&min_sz, &max_sz, &min_nr_a, &max_nr_a,
+ 				&min_age, &max_age, &action, &parsed);
+@@ -200,7 +202,7 @@ static struct damos **str_to_schemes(con
+ 
+ 		pos += parsed;
+ 		scheme = damon_new_scheme(min_sz, max_sz, min_nr_a, max_nr_a,
+-				min_age, max_age, action);
++				min_age, max_age, action, &quota);
+ 		if (!scheme)
+ 			goto fail;
+ 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
