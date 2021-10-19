@@ -2,37 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1279CC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 18:39:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 710C0C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 18:39:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E6B7C6128B
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 18:39:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 59BE86115B
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 18:39:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234738AbhJSSlT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Oct 2021 14:41:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52254 "EHLO mail.kernel.org"
+        id S234665AbhJSSlX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Oct 2021 14:41:23 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52304 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234665AbhJSSlS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Oct 2021 14:41:18 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A26A96115B;
-        Tue, 19 Oct 2021 18:39:04 +0000 (UTC)
+        id S234124AbhJSSlV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Oct 2021 14:41:21 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D2094611AD;
+        Tue, 19 Oct 2021 18:39:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634668745;
-        bh=nHE5PL+ue9G9qALkpfJlkY4CSqoTslOfUiNdWmEyjMc=;
+        s=korg; t=1634668748;
+        bh=2fnz1eAkQ3T2s4cBZnxzwntxe7xDl1c1UaapDzEEPqs=;
         h=Date:From:To:Subject:From;
-        b=PPBE3sRqvGuEsZUvE1FJg63egpWYkqlFuvbAmfydan1rnTDA7HbRShYcOta3M51zL
-         fARN1/fBmy6jEtg2c1lXtDqBh6MzUHq6OIfcVsC2ibcW3tisQsLcvX76GQNMfgM8CB
-         sQYWIrV7ozDoBPAZqA3c/uBKotZMTKH1CuUgtiLE=
-Date:   Tue, 19 Oct 2021 11:39:04 -0700
+        b=fDl8/yjDiClwruwk4n71o+9wSG1x+VzVVR0NhkgiFf55bmN0cnXTasFhwilqJFOSl
+         93AxtG3m1fl3p9O93cV3jOrLSQLqWouL4jAVongS1BtZsGLHOryRhHsOiOH1CHMOyM
+         PtcSZKC6vHQZrKbwwNcNkf7IJ66+OH9xs6ZXFhkI=
+Date:   Tue, 19 Oct 2021 11:39:07 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, dan.j.williams@intel.com,
-        dave.hansen@linux.intel.com, david@redhat.com, gthelen@google.com,
+To:     dan.j.williams@intel.com, dave.hansen@linux.intel.com,
+        david@redhat.com, gthelen@google.com, kbusch@kernel.org,
         mhocko@suse.com, mm-commits@vger.kernel.org, osalvador@suse.de,
-        rientjes@google.com, weixugc@google.com,
-        yang.shi@linux.alibaba.com, ying.huang@intel.com
+        rientjes@google.com, shy828301@gmail.com, tglx@linutronix.de,
+        weixugc@google.com, ying.huang@intel.com, ziy@nvidia.com
 Subject:  [merged]
- mm-migrate-add-cpu-hotplug-to-demotion-ifdef.patch removed from -mm tree
-Message-ID: <20211019183904.PSlDFdW_J%akpm@linux-foundation.org>
+ mm-migrate-fix-cpuhp-state-to-update-node-demotion-order.patch removed from
+ -mm tree
+Message-ID: <20211019183907.0T0rsLA01%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,34 +42,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: add CPU hotplug to demotion #ifdef
+     Subject: mm/migrate: fix CPUHP state to update node demotion order
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-add-cpu-hotplug-to-demotion-ifdef.patch
+     mm-migrate-fix-cpuhp-state-to-update-node-demotion-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm/migrate: add CPU hotplug to demotion #ifdef
+From: Huang Ying <ying.huang@intel.com>
+Subject: mm/migrate: fix CPUHP state to update node demotion order
 
-Once upon a time, the node demotion updates were driven solely by memory
-hotplug events.  But now, there are handlers for both CPU and memory
-hotplug.
+The node demotion order needs to be updated during CPU hotplug.  Because
+whether a NUMA node has CPU may influence the demotion order.  The update
+function should be called during CPU online/offline after the
+node_states[N_CPU] has been updated.  That is done in CPUHP_AP_ONLINE_DYN
+during CPU online and in CPUHP_MM_VMSTAT_DEAD during CPU offline.  But in
+commit 884a6e5d1f93 ("mm/migrate: update node demotion order on hotplug
+events"), the function to update node demotion order is called in
+CPUHP_AP_ONLINE_DYN during CPU online/offline.  This doesn't satisfy the
+order requirement.
 
-However, the #ifdef around the code checks only memory hotplug.  A system
-that has HOTPLUG_CPU=y but MEMORY_HOTPLUG=n would miss CPU hotplug events.
+For example, there are 4 CPUs (P0, P1, P2, P3) in 2 sockets (P0, P1 in S0
+and P2, P3 in S1), the demotion order is
 
-Update the #ifdef around the common code.  Add memory and CPU-specific
-#ifdefs for their handlers.  These memory/CPU #ifdefs avoid unused
-function warnings when their Kconfig option is off.
+- S0 -> NUMA_NO_NODE
+- S1 -> NUMA_NO_NODE
 
-[arnd@arndb.de: rework hotplug_memory_notifier() stub]
-  Link: https://lkml.kernel.org/r/20211013144029.2154629-1-arnd@kernel.org
-Link: https://lkml.kernel.org/r/20210924161255.E5FE8F7E@davehans-spike.ostc.intel.com
+After P2 and P3 is offlined, because S1 has no CPU now, the demotion
+order should have been changed to
+
+- S0 -> S1
+- S1 -> NO_NODE
+
+but it isn't changed, because the order updating callback for CPU hotplug
+doesn't see the new nodemask.  After that, if P1 is offlined, the demotion
+order is changed to the expected order as above.
+
+So in this patch, we added CPUHP_AP_MM_DEMOTION_ONLINE and
+CPUHP_MM_DEMOTION_DEAD to be called after CPUHP_AP_ONLINE_DYN and
+CPUHP_MM_VMSTAT_DEAD during CPU online and offline, and register the
+update function on them.
+
+Link: https://lkml.kernel.org/r/20210929060351.7293-1-ying.huang@intel.com
 Fixes: 884a6e5d1f93 ("mm/migrate: update node demotion order on hotplug events")
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: "Huang, Ying" <ying.huang@intel.com>
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Wei Xu <weixugc@google.com>
 Cc: Oscar Salvador <osalvador@suse.de>
@@ -76,141 +97,60 @@ Cc: David Rientjes <rientjes@google.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: Greg Thelen <gthelen@google.com>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Keith Busch <kbusch@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory.h |    5 +++-
- mm/migrate.c           |   42 +++++++++++++++++++--------------------
- mm/page_ext.c          |    4 ---
- mm/slab.c              |    4 +--
- 4 files changed, 28 insertions(+), 27 deletions(-)
+ include/linux/cpuhotplug.h |    4 ++++
+ mm/migrate.c               |    8 +++++---
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
---- a/include/linux/memory.h~mm-migrate-add-cpu-hotplug-to-demotion-ifdef
-+++ a/include/linux/memory.h
-@@ -160,7 +160,10 @@ int walk_dynamic_memory_groups(int nid,
- #define register_hotmemory_notifier(nb)		register_memory_notifier(nb)
- #define unregister_hotmemory_notifier(nb) 	unregister_memory_notifier(nb)
- #else
--#define hotplug_memory_notifier(fn, pri)	({ 0; })
-+static inline int hotplug_memory_notifier(notifier_fn_t fn, int pri)
-+{
-+	return 0;
-+}
- /* These aren't inline functions due to a GCC bug. */
- #define register_hotmemory_notifier(nb)    ({ (void)(nb); 0; })
- #define unregister_hotmemory_notifier(nb)  ({ (void)(nb); })
---- a/mm/migrate.c~mm-migrate-add-cpu-hotplug-to-demotion-ifdef
+--- a/include/linux/cpuhotplug.h~mm-migrate-fix-cpuhp-state-to-update-node-demotion-order
++++ a/include/linux/cpuhotplug.h
+@@ -72,6 +72,8 @@ enum cpuhp_state {
+ 	CPUHP_SLUB_DEAD,
+ 	CPUHP_DEBUG_OBJ_DEAD,
+ 	CPUHP_MM_WRITEBACK_DEAD,
++	/* Must be after CPUHP_MM_VMSTAT_DEAD */
++	CPUHP_MM_DEMOTION_DEAD,
+ 	CPUHP_MM_VMSTAT_DEAD,
+ 	CPUHP_SOFTIRQ_DEAD,
+ 	CPUHP_NET_MVNETA_DEAD,
+@@ -240,6 +242,8 @@ enum cpuhp_state {
+ 	CPUHP_AP_BASE_CACHEINFO_ONLINE,
+ 	CPUHP_AP_ONLINE_DYN,
+ 	CPUHP_AP_ONLINE_DYN_END		= CPUHP_AP_ONLINE_DYN + 30,
++	/* Must be after CPUHP_AP_ONLINE_DYN for node_states[N_CPU] update */
++	CPUHP_AP_MM_DEMOTION_ONLINE,
+ 	CPUHP_AP_X86_HPET_ONLINE,
+ 	CPUHP_AP_X86_KVM_CLK_ONLINE,
+ 	CPUHP_AP_DTPM_CPU_ONLINE,
+--- a/mm/migrate.c~mm-migrate-fix-cpuhp-state-to-update-node-demotion-order
 +++ a/mm/migrate.c
-@@ -3066,7 +3066,7 @@ void migrate_vma_finalize(struct migrate
- EXPORT_SYMBOL(migrate_vma_finalize);
- #endif /* CONFIG_DEVICE_PRIVATE */
- 
--#if defined(CONFIG_MEMORY_HOTPLUG)
-+#if defined(CONFIG_HOTPLUG_CPU)
- /* Disable reclaim-based migration. */
- static void __disable_all_migrate_targets(void)
- {
-@@ -3209,25 +3209,6 @@ static void set_migration_target_nodes(v
- }
- 
- /*
-- * React to hotplug events that might affect the migration targets
-- * like events that online or offline NUMA nodes.
-- *
-- * The ordering is also currently dependent on which nodes have
-- * CPUs.  That means we need CPU on/offline notification too.
-- */
--static int migration_online_cpu(unsigned int cpu)
--{
--	set_migration_target_nodes();
--	return 0;
--}
--
--static int migration_offline_cpu(unsigned int cpu)
--{
--	set_migration_target_nodes();
--	return 0;
--}
--
--/*
-  * This leaves migrate-on-reclaim transiently disabled between
-  * the MEM_GOING_OFFLINE and MEM_OFFLINE events.  This runs
-  * whether reclaim-based migration is enabled or not, which
-@@ -3284,6 +3265,25 @@ static int __meminit migrate_on_reclaim_
- 	return notifier_from_errno(0);
- }
- 
-+/*
-+ * React to hotplug events that might affect the migration targets
-+ * like events that online or offline NUMA nodes.
-+ *
-+ * The ordering is also currently dependent on which nodes have
-+ * CPUs.  That means we need CPU on/offline notification too.
-+ */
-+static int migration_online_cpu(unsigned int cpu)
-+{
-+	set_migration_target_nodes();
-+	return 0;
-+}
-+
-+static int migration_offline_cpu(unsigned int cpu)
-+{
-+	set_migration_target_nodes();
-+	return 0;
-+}
-+
- static int __init migrate_on_reclaim_init(void)
+@@ -3288,9 +3288,8 @@ static int __init migrate_on_reclaim_ini
  {
  	int ret;
-@@ -3303,4 +3303,4 @@ static int __init migrate_on_reclaim_ini
- 	return 0;
- }
- late_initcall(migrate_on_reclaim_init);
--#endif /* CONFIG_MEMORY_HOTPLUG */
-+#endif /* CONFIG_HOTPLUG_CPU */
---- a/mm/page_ext.c~mm-migrate-add-cpu-hotplug-to-demotion-ifdef
-+++ a/mm/page_ext.c
-@@ -269,7 +269,7 @@ static int __meminit init_section_page_e
- 	total_usage += table_size;
- 	return 0;
- }
--#ifdef CONFIG_MEMORY_HOTPLUG
-+
- static void free_page_ext(void *addr)
- {
- 	if (is_vmalloc_addr(addr)) {
-@@ -374,8 +374,6 @@ static int __meminit page_ext_callback(s
- 	return notifier_from_errno(ret);
- }
  
--#endif
--
- void __init page_ext_init(void)
- {
- 	unsigned long pfn;
---- a/mm/slab.c~mm-migrate-add-cpu-hotplug-to-demotion-ifdef
-+++ a/mm/slab.c
-@@ -1095,7 +1095,7 @@ static int slab_offline_cpu(unsigned int
+-	ret = cpuhp_setup_state(CPUHP_AP_ONLINE_DYN, "migrate on reclaim",
+-				migration_online_cpu,
+-				migration_offline_cpu);
++	ret = cpuhp_setup_state_nocalls(CPUHP_MM_DEMOTION_DEAD, "mm/demotion:offline",
++					NULL, migration_offline_cpu);
+ 	/*
+ 	 * In the unlikely case that this fails, the automatic
+ 	 * migration targets may become suboptimal for nodes
+@@ -3298,6 +3297,9 @@ static int __init migrate_on_reclaim_ini
+ 	 * rare case, do not bother trying to do anything special.
+ 	 */
+ 	WARN_ON(ret < 0);
++	ret = cpuhp_setup_state(CPUHP_AP_MM_DEMOTION_ONLINE, "mm/demotion:online",
++				migration_online_cpu, NULL);
++	WARN_ON(ret < 0);
+ 
+ 	hotplug_memory_notifier(migrate_on_reclaim_callback, 100);
  	return 0;
- }
- 
--#if defined(CONFIG_NUMA) && defined(CONFIG_MEMORY_HOTPLUG)
-+#if defined(CONFIG_NUMA)
- /*
-  * Drains freelist for a node on each slab cache, used for memory hot-remove.
-  * Returns -EBUSY if all objects cannot be drained so that the node is not
-@@ -1157,7 +1157,7 @@ static int __meminit slab_memory_callbac
- out:
- 	return notifier_from_errno(ret);
- }
--#endif /* CONFIG_NUMA && CONFIG_MEMORY_HOTPLUG */
-+#endif /* CONFIG_NUMA */
- 
- /*
-  * swap the static kmem_cache_node with kmalloced memory
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
 
