@@ -2,37 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E8EBFC433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 18:39:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47339C4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 18:39:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D5565611AE
-	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 18:39:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3348C6128B
+	for <mm-commits@archiver.kernel.org>; Tue, 19 Oct 2021 18:39:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234531AbhJSSlb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 19 Oct 2021 14:41:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:52404 "EHLO mail.kernel.org"
+        id S234715AbhJSSlc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 19 Oct 2021 14:41:32 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52436 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234715AbhJSSl1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 19 Oct 2021 14:41:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C1CE06115B;
-        Tue, 19 Oct 2021 18:39:13 +0000 (UTC)
+        id S234124AbhJSSl3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 19 Oct 2021 14:41:29 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A1410610E5;
+        Tue, 19 Oct 2021 18:39:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634668754;
-        bh=2rotFnBvxRP4G/kGYg+46+V2/sKVJAFM4JBUeRvjuPI=;
+        s=korg; t=1634668756;
+        bh=FBMCkHYuR68XY7av8mjXRpsPW9EWgSPbC7bVSdmPwNs=;
         h=Date:From:To:Subject:From;
-        b=tFucLAGawzZIfGw/VPJd9eb84WiRDzVdz3oI44LpfOBDUjFBBwRWrQJGy9UTWb4TM
-         ZFnwCbS07nVaeIJsA2MzKFYQatJMOFro688ISy+jOE64QsgC8CkJYkUVPJxH6dQI4i
-         hUt7oGsO0+gXWWYE3tpZgc0Uzrtv36wTJVTiZIvA=
-Date:   Tue, 19 Oct 2021 11:39:13 -0700
+        b=2eNbom1RHVVDtMTCARIIHBLOugfZPeyyfhcdQLo7kWSDewFPXwzYFOjOEvc7q30pL
+         LrazaCm7qxOgKy+lDyeCf8NIfCwu+vMKtlyBVroZ7IcqOQYwp5UO1bo13UBJLxl4me
+         zkD/04ivopyWbMU+2nYE0KEpPxSrz43AnW848ss0=
+Date:   Tue, 19 Oct 2021 11:39:16 -0700
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
-        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
-        stable@vger.kernel.org, vvidic@valentin-vidic.from.hr
-Subject:  [merged]
- ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch removed from -mm
- tree
-Message-ID: <20211019183913.MLejtGF6V%akpm@linux-foundation.org>
+To:     david@redhat.com, geert+renesas@glider.be,
+        mm-commits@vger.kernel.org, peng.fan@nxp.com, rppt@linux.ibm.com
+Subject:  [merged] memblock-check-memory-total_size.patch removed
+ from -mm tree
+Message-ID: <20211019183916.caww4l0C2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,97 +38,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: mount fails with buffer overflow in strlen
+     Subject: memblock: check memory total_size
 has been removed from the -mm tree.  Its filename was
-     ocfs2-mount-fails-with-buffer-overflow-in-strlen.patch
+     memblock-check-memory-total_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Valentin Vidic <vvidic@valentin-vidic.from.hr>
-Subject: ocfs2: mount fails with buffer overflow in strlen
+From: Peng Fan <peng.fan@nxp.com>
+Subject: memblock: check memory total_size
 
-Starting with kernel 5.11 built with CONFIG_FORTIFY_SOURCE mouting an
-ocfs2 filesystem with either o2cb or pcmk cluster stack fails with the
-trace below.  Problem seems to be that strings for cluster stack and
-cluster name are not guaranteed to be null terminated in the disk
-representation, while strlcpy assumes that the source string is always
-null terminated.  This causes a read outside of the source string
-triggering the buffer overflow detection.
+mem=[X][G|M] is broken on ARM64 platform, there are cases that even
+type.cnt is 1, but total_size is not 0 because regions are merged into 1. 
+So only check 'cnt' is not enough, total_size should be used, othersize
+bootargs 'mem=[X][G|B]' not work anymore.
 
-detected buffer overflow in strlen
-------------[ cut here ]------------
-kernel BUG at lib/string.c:1149!
-invalid opcode: 0000 [#1] SMP PTI
-CPU: 1 PID: 910 Comm: mount.ocfs2 Not tainted 5.14.0-1-amd64 #1
-  Debian 5.14.6-2
-RIP: 0010:fortify_panic+0xf/0x11
-...
-Call Trace:
- ocfs2_initialize_super.isra.0.cold+0xc/0x18 [ocfs2]
- ocfs2_fill_super+0x359/0x19b0 [ocfs2]
- mount_bdev+0x185/0x1b0
- ? ocfs2_remount+0x440/0x440 [ocfs2]
- legacy_get_tree+0x27/0x40
- vfs_get_tree+0x25/0xb0
- path_mount+0x454/0xa20
- __x64_sys_mount+0x103/0x140
- do_syscall_64+0x3b/0xc0
- entry_SYSCALL_64_after_hwframe+0x44/0xae
-
-Link: https://lkml.kernel.org/r/20210929180654.32460-1-vvidic@valentin-vidic.from.hr
-Signed-off-by: Valentin Vidic <vvidic@valentin-vidic.from.hr>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210930024437.32598-1-peng.fan@oss.nxp.com
+Fixes: e888fa7bb882 ("memblock: Check memory add/cap ordering")
+Signed-off-by: Peng Fan <peng.fan@nxp.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ mm/memblock.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/super.c~ocfs2-mount-fails-with-buffer-overflow-in-strlen
-+++ a/fs/ocfs2/super.c
-@@ -2167,11 +2167,17 @@ static int ocfs2_initialize_super(struct
- 	}
+--- a/mm/memblock.c~memblock-check-memory-total_size
++++ a/mm/memblock.c
+@@ -1692,7 +1692,7 @@ void __init memblock_cap_memory_range(ph
+ 	if (!size)
+ 		return;
  
- 	if (ocfs2_clusterinfo_valid(osb)) {
-+		/*
-+		 * ci_stack and ci_cluster in ocfs2_cluster_info may not be null
-+		 * terminated, so make sure no overflow happens here by using
-+		 * memcpy. Destination strings will always be null terminated
-+		 * because osb is allocated using kzalloc.
-+		 */
- 		osb->osb_stackflags =
- 			OCFS2_RAW_SB(di)->s_cluster_info.ci_stackflags;
--		strlcpy(osb->osb_cluster_stack,
-+		memcpy(osb->osb_cluster_stack,
- 		       OCFS2_RAW_SB(di)->s_cluster_info.ci_stack,
--		       OCFS2_STACK_LABEL_LEN + 1);
-+		       OCFS2_STACK_LABEL_LEN);
- 		if (strlen(osb->osb_cluster_stack) != OCFS2_STACK_LABEL_LEN) {
- 			mlog(ML_ERROR,
- 			     "couldn't mount because of an invalid "
-@@ -2180,9 +2186,9 @@ static int ocfs2_initialize_super(struct
- 			status = -EINVAL;
- 			goto bail;
- 		}
--		strlcpy(osb->osb_cluster_name,
-+		memcpy(osb->osb_cluster_name,
- 			OCFS2_RAW_SB(di)->s_cluster_info.ci_cluster,
--			OCFS2_CLUSTER_NAME_LEN + 1);
-+			OCFS2_CLUSTER_NAME_LEN);
- 	} else {
- 		/* The empty string is identical with classic tools that
- 		 * don't know about s_cluster_info. */
+-	if (memblock.memory.cnt <= 1) {
++	if (!memblock_memory->total_size) {
+ 		pr_warn("%s: No memory registered yet\n", __func__);
+ 		return;
+ 	}
 _
 
-Patches currently in -mm which might be from vvidic@valentin-vidic.from.hr are
+Patches currently in -mm which might be from peng.fan@nxp.com are
 
-ocfs2-cleanup-journal-init-and-shutdown.patch
 
