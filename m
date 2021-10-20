@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 26F5BC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 20 Oct 2021 22:13:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AD3C7C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 20 Oct 2021 22:16:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A72861354
-	for <mm-commits@archiver.kernel.org>; Wed, 20 Oct 2021 22:13:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9212C611EF
+	for <mm-commits@archiver.kernel.org>; Wed, 20 Oct 2021 22:16:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231256AbhJTWPO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 20 Oct 2021 18:15:14 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33542 "EHLO mail.kernel.org"
+        id S229842AbhJTWTE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 20 Oct 2021 18:19:04 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33808 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229695AbhJTWPN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 20 Oct 2021 18:15:13 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3796F611CB;
-        Wed, 20 Oct 2021 22:12:58 +0000 (UTC)
+        id S229695AbhJTWTE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 20 Oct 2021 18:19:04 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2728C611CB;
+        Wed, 20 Oct 2021 22:16:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634767978;
-        bh=Pnazm6vzoxBoRhi90VZ9nbgyInTSLd3Cd4Z1GBRwVus=;
+        s=korg; t=1634768209;
+        bh=lXz/d0rlq/Jt586D9lHg7yr1iiJBgcy5JBCkVfLVXhw=;
         h=Date:From:To:Subject:From;
-        b=xgi39QzkOZVAef/JKeRYtH/mZFmPXfuss/FWEO3h1p2GB0+DOI/JuSXolmDi/MwYd
-         aW4eOUnOgVH3S26y2v0qPElOvUg8v6gstQD97H7+6txwt+bx3466ipot+zxp2z5rK0
-         SzYBtE5eoaPV2W5qsaF7b6rW/ZrjI1VjI3UtTh4g=
-Date:   Wed, 20 Oct 2021 15:12:57 -0700
+        b=L5X/AO4s0QZsPXVH2KYZ+nroCR+h88bkUK+8M7if36f8M4Gt09Hg7EGK1PXLBzm2e
+         OWsaiZ2HjNNTWUMB+tIJ/WKCec16lZ9NVa/w7ocKRGOFbToy5OqG7oSFZBn2eHQbFA
+         OucHtis7HSrkSDF9sAjZhgijEbOYl4R+7rvgHpmw=
+Date:   Wed, 20 Oct 2021 15:16:48 -0700
 From:   akpm@linux-foundation.org
 To:     hughd@google.com, kirill.shutemov@linux.intel.com,
         mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         osalvador@suse.de, peterx@redhat.com, shy828301@gmail.com,
-        stable@vger.kernel.org, willy@infradead.org
+        willy@infradead.org
 Subject:  +
- mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
- added to -mm tree
-Message-ID: <20211020221257.HnKnHyLo_%akpm@linux-foundation.org>
+ mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch added to -mm tree
+Message-ID: <20211020221648.b02k9A3Nh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: filemap: check if THP has hwpoisoned subpage for PMD page fault
+     Subject: mm: filemap: coding style cleanup for filemap_map_pmd()
 has been added to the -mm tree.  Its filename is
-     mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
+     mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,169 +62,144 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: filemap: check if THP has hwpoisoned subpage for PMD page fault
+Subject: mm: filemap: coding style cleanup for filemap_map_pmd()
 
-When handling shmem page fault the THP with corrupted subpage could be PMD
-mapped if certain conditions are satisfied.  But kernel is supposed to
-send SIGBUS when trying to map hwpoisoned page.
+Patch series "Solve silent data loss caused by poisoned page cache (shmem/tmpfs)", v5.
 
-There are two paths which may do PMD map: fault around and regular fault.
+When discussing the patch that splits page cache THP in order to offline
+the poisoned page, Noaya mentioned there is a bigger problem [1] that
+prevents this from working since the page cache page will be truncated if
+uncorrectable errors happen.  By looking this deeper it turns out this
+approach (truncating poisoned page) may incur silent data loss for all
+non-readonly filesystems if the page is dirty.  It may be worse for
+in-memory filesystem, e.g.  shmem/tmpfs since the data blocks are actually
+gone.
 
-Before commit f9ce0be71d1f ("mm: Cleanup faultaround and finish_fault()
-codepaths") the thing was even worse in fault around path.  The THP could
-be PMD mapped as long as the VMA fits regardless what subpage is accessed
-and corrupted.  After this commit as long as head page is not corrupted
-the THP could be PMD mapped.
+To solve this problem we could keep the poisoned dirty page in page cache
+then notify the users on any later access, e.g.  page fault, read/write,
+etc.  The clean page could be truncated as is since they can be reread
+from disk later on.
 
-In the regular fault path the THP could be PMD mapped as long as the
-corrupted page is not accessed and the VMA fits.
+The consequence is the filesystems may find poisoned page and manipulate
+it as healthy page since all the filesystems actually don't check if the
+page is poisoned or not in all the relevant paths except page fault.  In
+general, we need make the filesystems be aware of poisoned page before we
+could keep the poisoned page in page cache in order to solve the data loss
+problem.
 
-This loophole could be fixed by iterating every subpage to check if any of
-them is hwpoisoned or not, but it is somewhat costly in page fault path.
+To make filesystems be aware of poisoned page we should consider:
+- The page should be not written back: clearing dirty flag could prevent from
+  writeback.
+- The page should not be dropped (it shows as a clean page) by drop caches or
+  other callers: the refcount pin from hwpoison could prevent from invalidating
+  (called by cache drop, inode cache shrinking, etc), but it doesn't avoid
+  invalidation in DIO path.
+- The page should be able to get truncated/hole punched/unlinked: it works as it
+  is.
+- Notify users when the page is accessed, e.g. read/write, page fault and other
+  paths (compression, encryption, etc).
 
-So introduce a new page flag called HasHWPoisoned on the first tail page. 
-It indicates the THP has hwpoisoned subpage(s).  It is set if any subpage
-of THP is found hwpoisoned by memory failure and after the refcount is
-bumped successfully, then cleared when the THP is freed or split.
+The scope of the last one is huge since almost all filesystems need do it
+once a page is returned from page cache lookup.  There are a couple of
+options to do it:
 
-The soft offline path doesn't need this since soft offline handler just
-marks a subpage hwpoisoned when the subpage is migrated successfully.  But
-shmem THP didn't get split then migrated at all.
+1. Check hwpoison flag for every path, the most straightforward way.
+2. Return NULL for poisoned page from page cache lookup, the most callsites
+   check if NULL is returned, this should have least work I think.  But the
+   error handling in filesystems just return -ENOMEM, the error code will incur
+   confusion to the users obviously.
+3. To improve #2, we could return error pointer, e.g. ERR_PTR(-EIO), but this
+   will involve significant amount of code change as well since all the paths
+   need check if the pointer is ERR or not just like option #1.
 
-Link: https://lkml.kernel.org/r/20211020210755.23964-3-shy828301@gmail.com
-Fixes: 800d8c63b2e9 ("shmem: add huge pages support")
+I did prototype for both #1 and #3, but it seems #3 may require more
+changes than #1.  For #3 ERR_PTR will be returned so all the callers need
+to check the return value otherwise invalid pointer may be dereferenced,
+but not all callers really care about the content of the page, for
+example, partial truncate which just sets the truncated range in one page
+to 0.  So for such paths it needs additional modification if ERR_PTR is
+returned.  And if the callers have their own way to handle the problematic
+pages we need to add a new FGP flag to tell FGP functions to return the
+pointer to the page.
+
+It may happen very rarely, but once it happens the consequence (data
+corruption) could be very bad and it is very hard to debug.  It seems this
+problem had been slightly discussed before, but seems no action was taken
+at that time.  [2]
+
+As the aforementioned investigation, it needs huge amount of work to solve
+the potential data loss for all filesystems.  But it is much easier for
+in-memory filesystems and such filesystems actually suffer more than
+others since even the data blocks are gone due to truncating.  So this
+patchset starts from shmem/tmpfs by taking option #1.
+
+TODO:
+* The unpoison has been broken since commit 0ed950d1f281 ("mm,hwpoison: make
+  get_hwpoison_page() call get_any_page()"), and this patch series make
+  refcount check for unpoisoning shmem page fail.
+* Expand to other filesystems.  But I haven't heard feedback from filesystem
+  developers yet.
+
+Patch breakdown:
+Patch #1: cleanup, depended by patch #2
+Patch #2: fix THP with hwpoisoned subpage(s) PMD map bug
+Patch #3: coding style cleanup
+Patch #4: refactor and preparation.
+Patch #5: keep the poisoned page in page cache and handle such case for all
+          the paths.
+Patch #6: the previous patches unblock page cache THP split, so this patch
+          add page cache THP split support.
+
+
+This patch (of 4):
+
+A minor cleanup to the indent.
+
+Link: https://lkml.kernel.org/r/20211020210755.23964-1-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20211020210755.23964-4-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
 Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Suggested-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   23 +++++++++++++++++++++++
- mm/huge_memory.c           |    2 ++
- mm/memory-failure.c        |   14 ++++++++++++++
- mm/memory.c                |    9 +++++++++
- mm/page_alloc.c            |    4 +++-
- 5 files changed, 51 insertions(+), 1 deletion(-)
+ mm/filemap.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/page-flags.h~mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault
-+++ a/include/linux/page-flags.h
-@@ -171,6 +171,15 @@ enum pageflags {
- 	/* Compound pages. Stored in first tail page's flags */
- 	PG_double_map = PG_workingset,
- 
-+#ifdef CONFIG_MEMORY_FAILURE
-+	/*
-+	 * Compound pages. Stored in first tail page's flags.
-+	 * Indicates that at least one subpage is hwpoisoned in the
-+	 * THP.
-+	 */
-+	PG_has_hwpoisoned = PG_mappedtodisk,
-+#endif
-+
- 	/* non-lru isolated movable page */
- 	PG_isolated = PG_reclaim,
- 
-@@ -668,6 +677,20 @@ PAGEFLAG_FALSE(DoubleMap)
- 	TESTSCFLAG_FALSE(DoubleMap)
- #endif
- 
-+#if defined(CONFIG_MEMORY_FAILURE) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
-+/*
-+ * PageHasHWPoisoned indicates that at least one subpage is hwpoisoned in the
-+ * compound page.
-+ *
-+ * This flag is set by hwpoison handler.  Cleared by THP split or free page.
-+ */
-+PAGEFLAG(HasHWPoisoned, has_hwpoisoned, PF_SECOND)
-+	TESTSCFLAG(HasHWPoisoned, has_hwpoisoned, PF_SECOND)
-+#else
-+PAGEFLAG_FALSE(HasHWPoisoned)
-+	TESTSCFLAG_FALSE(HasHWPoisoned)
-+#endif
-+
- /*
-  * Check if a page is currently marked HWPoisoned. Note that this check is
-  * best effort only and inherently racy: there is no way to synchronize with
---- a/mm/huge_memory.c~mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault
-+++ a/mm/huge_memory.c
-@@ -2426,6 +2426,8 @@ static void __split_huge_page(struct pag
- 	/* lock lru list/PageCompound, ref frozen by page_ref_freeze */
- 	lruvec = lock_page_lruvec(head);
- 
-+	ClearPageHasHWPoisoned(head);
-+
- 	for (i = nr - 1; i >= 1; i--) {
- 		__split_huge_page_tail(head, i, lruvec, list);
- 		/* Some pages can be beyond EOF: drop them from page cache */
---- a/mm/memory.c~mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault
-+++ a/mm/memory.c
-@@ -3907,6 +3907,15 @@ vm_fault_t do_set_pmd(struct vm_fault *v
- 		return ret;
- 
- 	/*
-+	 * Just backoff if any subpage of a THP is corrupted otherwise
-+	 * the corrupted page may mapped by PMD silently to escape the
-+	 * check.  This kind of THP just can be PTE mapped.  Access to
-+	 * the corrupted subpage should trigger SIGBUS as expected.
-+	 */
-+	if (unlikely(PageHasHWPoisoned(page)))
-+		return ret;
-+
-+	/*
- 	 * Archs like ppc64 need additional space to store information
- 	 * related to pte entry. Use the preallocated table for that.
- 	 */
---- a/mm/memory-failure.c~mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault
-+++ a/mm/memory-failure.c
-@@ -1694,6 +1694,20 @@ try_again:
+--- a/mm/filemap.c~mm-filemap-coding-style-cleanup-for-filemap_map_pmd
++++ a/mm/filemap.c
+@@ -3202,12 +3202,12 @@ static bool filemap_map_pmd(struct vm_fa
  	}
  
- 	if (PageTransHuge(hpage)) {
-+		/*
-+		 * The flag must be set after the refcount is bumped
-+		 * otherwise it may race with THP split.
-+		 * And the flag can't be set in get_hwpoison_page() since
-+		 * it is called by soft offline too and it is just called
-+		 * for !MF_COUNT_INCREASE.  So here seems to be the best
-+		 * place.
-+		 *
-+		 * Don't need care about the above error handling paths for
-+		 * get_hwpoison_page() since they handle either free page
-+		 * or unhandlable page.  The refcount is bumped iff the
-+		 * page is a valid handlable page.
-+		 */
-+		SetPageHasHWPoisoned(hpage);
- 		if (try_to_split_thp_page(p, "Memory Failure") < 0) {
- 			action_result(pfn, MF_MSG_UNSPLIT_THP, MF_IGNORED);
- 			res = -EBUSY;
---- a/mm/page_alloc.c~mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault
-+++ a/mm/page_alloc.c
-@@ -1312,8 +1312,10 @@ static __always_inline bool free_pages_p
- 
- 		VM_BUG_ON_PAGE(compound && compound_order(page) != order, page);
- 
--		if (compound)
-+		if (compound) {
- 			ClearPageDoubleMap(page);
-+			ClearPageHasHWPoisoned(page);
+ 	if (pmd_none(*vmf->pmd) && PageTransHuge(page)) {
+-	    vm_fault_t ret = do_set_pmd(vmf, page);
+-	    if (!ret) {
+-		    /* The page is mapped successfully, reference consumed. */
+-		    unlock_page(page);
+-		    return true;
+-	    }
++		vm_fault_t ret = do_set_pmd(vmf, page);
++		if (!ret) {
++			/* The page is mapped successfully, reference consumed. */
++			unlock_page(page);
++			return true;
 +		}
- 		for (i = 1; i < (1 << order); i++) {
- 			if (compound)
- 				bad += free_tail_pages_check(page, page + i);
+ 	}
+ 
+ 	if (pmd_none(*vmf->pmd))
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
 
 mm-hwpoison-remove-the-unnecessary-thp-check.patch
 mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
-mm-migrate-make-demotion-knob-depend-on-migration.patch
 mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
 mm-hwpoison-refactor-refcount-check-handling.patch
 mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
 mm-hwpoison-handle-non-anonymous-thp-correctly.patch
+mm-migrate-make-demotion-knob-depend-on-migration.patch
 
