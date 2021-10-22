@@ -2,36 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B5FCC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 02:52:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D79FEC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 02:57:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A79E60E09
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 02:52:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B0F876142A
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 02:57:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232585AbhJVCyn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Oct 2021 22:54:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33206 "EHLO mail.kernel.org"
+        id S232643AbhJVC76 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Oct 2021 22:59:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33890 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232520AbhJVCym (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 Oct 2021 22:54:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D232A6058D;
-        Fri, 22 Oct 2021 02:52:25 +0000 (UTC)
+        id S232590AbhJVC76 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 Oct 2021 22:59:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E8B861425;
+        Fri, 22 Oct 2021 02:57:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634871146;
-        bh=8D4R/P2YZUAbGMaBfQ5HcK9p1FFkmq22HAe9oMkeN4U=;
+        s=korg; t=1634871461;
+        bh=g1P+JGbubHsuVqLKigWOcZdJXuQGJKVDY7k5BrYPXLU=;
         h=Date:From:To:Subject:From;
-        b=0GLlsZ5/VhEQrlrBCZzS6F5SsxtBiMy+Udl+FtkQ9MsK6lDX1fk49AJNWdsK6IpLC
-         19OtEvLZ/qkKK9/kBQBKLQ4Bb9ollGqiIAEBNASZX1ou3nt/QoQ4VyiJZ5XtfybVL8
-         FqHp+MR04SgxdpK+S/xpt3QEfJSOD21GqNmRH87w=
-Date:   Thu, 21 Oct 2021 19:52:25 -0700
+        b=QAzVyJSBhUw9v97KdOwUMV6XkEzC4EoV93a5ToKce9vo1DmMKZ8ky3wPOkd/JZUIw
+         55BHfRIG1uPzXGsejgIMuXbsOl6Pgpn/53r8Mwx1ftw0YunaNXpWoYQXaUbv2F/1XG
+         Gz+NNGcPZeC8f4BTfftOpfrchEIa5z7/0kNW2ejY=
+Date:   Thu, 21 Oct 2021 19:57:40 -0700
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, dvyukov@google.com, jordy@pwning.systems,
-        keescook@chromium.org, mm-commits@vger.kernel.org, rppt@kernel.org,
-        stable@vger.kernel.org
-Subject:  +
- mm-secretmem-avoid-letting-secretmem_users-drop-to-zero.patch added to -mm
- tree
-Message-ID: <20211022025225.aMPRKX0sS%akpm@linux-foundation.org>
+To:     hch@lst.de, jack@suse.cz, miquel.raynal@bootlin.com,
+        mm-commits@vger.kernel.org, richard@nod.at, vigneshr@ti.com
+Subject:  + mm-export-bdi_unregister.patch added to -mm tree
+Message-ID: <20211022025740.Fyt2qALcf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/secretmem: avoid letting secretmem_users drop to zero
+     Subject: mm: export bdi_unregister
 has been added to the -mm tree.  Its filename is
-     mm-secretmem-avoid-letting-secretmem_users-drop-to-zero.patch
+     mm-export-bdi_unregister.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-secretmem-avoid-letting-secretmem_users-drop-to-zero.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-export-bdi_unregister.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-secretmem-avoid-letting-secretmem_users-drop-to-zero.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-export-bdi_unregister.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,68 +58,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm/secretmem: avoid letting secretmem_users drop to zero
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: export bdi_unregister
 
-Quoting Dmitry: "refcount_inc() needs to be done before fd_install(). 
-After fd_install() finishes, the fd can be used by userspace and we can
-have secret data in memory before the refcount_inc().
+Patch series "simplify bdi unregistation".
 
-A straightforward misuse where a user will predict the returned fd in
-another thread before the syscall returns and will use it to store secret
-data is somewhat dubious because such a user just shoots themself in the
-foot.
+This series simplifies the BDI code to get rid of the magic
+auto-unregister feature that hid a recent block layer refcounting bug.
 
-But a more interesting misuse would be to close the predicted fd and
-decrement the refcount before the corresponding refcount_inc, this way one
-can briefly drop the refcount to zero while there are other users of
-secretmem."
 
-Move fd_install() after refcount_inc().
+This patch (of 5):
 
-Link: https://lkml.kernel.org/r/20211021154046.880251-1-keescook@chromium.org
-Link: https://lore.kernel.org/lkml/CACT4Y+b1sW6-Hkn8HQYw_SsT7X3tp-CJNh2ci0wG3ZnQz9jjig@mail.gmail.com
-Fixes: 9a436f8ff631 ("PM: hibernate: disable when there are active secretmem users")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Jordy Zomer <jordy@pwning.systems>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: <stable@vger.kernel.org>
+To wind down the magic auto-unregister semantics we'll need to push this
+into modular code.
+
+Link: https://lkml.kernel.org/r/20211021124441.668816-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20211021124441.668816-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Miquel Raynal <miquel.raynal@bootlin.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/secretmem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/backing-dev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/secretmem.c~mm-secretmem-avoid-letting-secretmem_users-drop-to-zero
-+++ a/mm/secretmem.c
-@@ -217,8 +217,8 @@ SYSCALL_DEFINE1(memfd_secret, unsigned i
+--- a/mm/backing-dev.c~mm-export-bdi_unregister
++++ a/mm/backing-dev.c
+@@ -965,6 +965,7 @@ void bdi_unregister(struct backing_dev_i
+ 		bdi->owner = NULL;
+ 	}
+ }
++EXPORT_SYMBOL(bdi_unregister);
  
- 	file->f_flags |= O_LARGEFILE;
- 
--	fd_install(fd, file);
- 	refcount_inc(&secretmem_users);
-+	fd_install(fd, file);
- 	return fd;
- 
- err_put_fd:
+ static void release_bdi(struct kref *ref)
+ {
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-secretmem-avoid-letting-secretmem_users-drop-to-zero.patch
-kasan-test-bypass-__alloc_size-checks.patch
-rapidio-avoid-bogus-__alloc_size-warning.patch
-compiler-attributes-add-__alloc_size-for-better-bounds-checking.patch
-slab-clean-up-function-prototypes.patch
-slab-add-__alloc_size-attributes-for-better-bounds-checking.patch
-mm-kvmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
-mm-vmalloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
-mm-page_alloc-add-__alloc_size-attributes-for-better-bounds-checking.patch
-percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
-kasan-test-consolidate-workarounds-for-unwanted-__alloc_size-protection.patch
-maintainers-add-exec-binfmt-section-with-myself-and-eric.patch
-binfmt_elf-reintroduce-using-map_fixed_noreplace.patch
+mm-dont-include-linux-daxh-in-linux-mempolicyh.patch
+mm-export-bdi_unregister.patch
+mtd-call-bdi_unregister-explicitly.patch
+fs-explicitly-unregister-per-superblock-bdis.patch
+mm-dont-automatically-unregister-bdis.patch
+mm-simplify-bdi-refcounting.patch
+mm-unexport-folio_memcg_unlock.patch
+mm-unexport-unlock_page_memcg.patch
 
