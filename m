@@ -2,96 +2,223 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 78055C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 06:55:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DEA0C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 18:01:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 51CCF61037
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 06:55:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 562A161248
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 18:01:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231334AbhJVG5T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 22 Oct 2021 02:57:19 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36534 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230428AbhJVG5T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 22 Oct 2021 02:57:19 -0400
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [IPv6:2404:9400:2:0:216:3eff:fee2:21ea])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 192A3C061764
-        for <mm-commits@vger.kernel.org>; Thu, 21 Oct 2021 23:55:02 -0700 (PDT)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4HbFTV5jkfz4xbP;
-        Fri, 22 Oct 2021 17:54:54 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-        s=201702; t=1634885699;
-        bh=LNKVs7AFifokPyFWFa8TKJjA78tjmPUhrm55qZBu/dE=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=TSKt0uNWY0gtZQw+Yq6jsjw0S93TqEZoAVUqPHJ5OxO6yQwtsmKatkr7iRId74Xl5
-         2jFyMpL9Ugo+xyvrjIIVVLVEHNrFkdqh1CyT2h56uXdKhAZyPlTNhTXyMZkLDBPd8L
-         zk2XrxHZyWQza1xN6Zxl+9IwiXXpCyX0RuV6g5NjQ6B/H9wQzxCQm638INFm+OQ7i7
-         sSHzy/9KuEMKWC77vkLa4LSoc1LdTXePMLSJ8fBPviR48STXnYSBTMneJmlZTFr0AZ
-         N5HuXx33mMJXVSdnlMumsze1S4BjXfxeQ0IIrR07BXtfb9yWoKgX//caDFT1t+rRTY
-         RpCybDvfd3KHQ==
-Date:   Fri, 22 Oct 2021 17:54:53 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     airlied@linux.ie, andreyknvl@gmail.com, daniel@ffwll.ch,
-        dvyukov@google.com, elver@google.com, geert@linux-m68k.org,
-        glider@google.com, glittao@gmail.com, imran.f.khan@oracle.com,
-        jani.nikula@intel.com, maarten.lankhorst@linux.intel.com,
-        mm-commits@vger.kernel.org, mripard@kernel.org,
-        naresh.kamboju@linaro.org, ryabinin.a.a@gmail.com,
-        tzimmermann@suse.de, vbabka@suse.cz, vjitta@codeaurora.org
-Subject: Re: +
- lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc-fixup3.patch
- added to -mm tree
-Message-ID: <20211022175453.078cfa07@canb.auug.org.au>
-In-Reply-To: <20211022033904.5G4B3GgXM%akpm@linux-foundation.org>
-References: <20211022033904.5G4B3GgXM%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/+zyQUz=nA4nAq0KkJnTcmO9";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        id S233637AbhJVSDr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 22 Oct 2021 14:03:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:49238 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233380AbhJVSDr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 22 Oct 2021 14:03:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3BDD561073;
+        Fri, 22 Oct 2021 18:01:29 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1634925689;
+        bh=VLD9qi3xc7fGc0Xvy7A+xAtp8W1NlLrd5y/utqVEWxo=;
+        h=Date:From:To:Subject:From;
+        b=hlDZXwILt9vD3vYE9BJ5SHwL9w+oKAbkbL82qyRnL1XOI6GjCjsAKk9ockyEpYAvA
+         ScBe45g59yMtDb+fguKFZx3TsG5NDrSLmkTG6vpXAmhsLgOkZ7p+P29di1AIjYYSVs
+         CyC2Qs/n0XZzhAygAk1srew62e9Q9K32mqx0WzAM=
+Date:   Fri, 22 Oct 2021 11:01:28 -0700
+From:   akpm@linux-foundation.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-git-rejects.patch added to -mm tree
+Message-ID: <20211022180128._zPoDImPI%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/+zyQUz=nA4nAq0KkJnTcmO9
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+The patch titled
+     Subject: linux-next-git-rejects
+has been added to the -mm tree.  Its filename is
+     linux-next-git-rejects.patch
 
-On Thu, 21 Oct 2021 20:39:04 -0700 akpm@linux-foundation.org wrote:
->
-> The patch titled
->      Subject: lib/stackdepot: allow optional init and stack_table allocat=
-ion by kvmalloc() - fixup3
-> has been added to the -mm tree.  Its filename is
->      lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvm=
-alloc-fixup3.patch
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
-Added to linux-next today (in the post linux-next part of the akpm
-tree).
---=20
-Cheers,
-Stephen Rothwell
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---Sig_/+zyQUz=nA4nAq0KkJnTcmO9
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
------BEGIN PGP SIGNATURE-----
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmFyYD4ACgkQAVBC80lX
-0Gzn+QgAgz3R8xulmdFpGunPNdJ7RM+8d8X9G3j3HbvkW+usJxwVAKc8KEBMNCKU
-qNELIDH6WV6tPhq41KLZd1qGbp2Dtg65cCctHwrFdUGt13eEm1EOyptbyHqsfFB/
-CTlK1Tkus4OrbyJa6gIswYfWrsmaAxQ/ibrrBvRKmV+CtzXhxvaIWzswKz46yG1b
-UTx12TRz82UjPAnJUUex805uleYLyZ2MP3bTLe4EB1n23YmMuyjFu09YITQNXMLe
-NQJL8GagyfQPy6yD7y11ox6HQiDlCv35VNNMgzpQhk89/NCk2eGVbQfVEBPIk/K+
-7WTR1cQiuDQafNGAOBfEbDGXLle/wg==
-=Q0ae
------END PGP SIGNATURE-----
+------------------------------------------------------
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
---Sig_/+zyQUz=nA4nAq0KkJnTcmO9--
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/net/ethernet/intel/ice/ice_devids.h                     |    3 ---
+ drivers/net/ethernet/intel/ice/ice_devlink.c                    |    5 -----
+ drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c             |    5 -----
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c                 |    5 -----
+ kernel/cred.c                                                   |    5 -----
+ kernel/ucount.c                                                 |    8 --------
+ net/netfilter/ipvs/ip_vs_ctl.c                                  |    3 ---
+ tools/testing/selftests/net/forwarding/forwarding.config.sample |    3 ---
+ 8 files changed, 37 deletions(-)
+
+--- a/drivers/net/ethernet/intel/ice/ice_devids.h~linux-next-git-rejects
++++ a/drivers/net/ethernet/intel/ice/ice_devids.h
+@@ -21,11 +21,8 @@
+ #define ICE_DEV_ID_E810C_QSFP		0x1592
+ /* Intel(R) Ethernet Controller E810-C for SFP */
+ #define ICE_DEV_ID_E810C_SFP		0x1593
+-<<<<<<< HEAD
+-=======
+ #define ICE_SUBDEV_ID_E810T		0x000E
+ #define ICE_SUBDEV_ID_E810T2		0x000F
+->>>>>>> linux-next/akpm-base
+ /* Intel(R) Ethernet Controller E810-XXV for backplane */
+ #define ICE_DEV_ID_E810_XXV_BACKPLANE	0x1599
+ /* Intel(R) Ethernet Controller E810-XXV for QSFP */
+--- a/drivers/net/ethernet/intel/ice/ice_devlink.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/intel/ice/ice_devlink.c
+@@ -62,11 +62,6 @@ static void ice_info_fw_api(struct ice_p
+ 
+ 	snprintf(ctx->buf, sizeof(ctx->buf), "%u.%u.%u", hw->api_maj_ver,
+ 		 hw->api_min_ver, hw->api_patch);
+-<<<<<<< HEAD
+-
+-	return 0;
+-=======
+->>>>>>> linux-next/akpm-base
+ }
+ 
+ static void ice_info_fw_build(struct ice_pf *pf, struct ice_info_ctx *ctx)
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -68,13 +68,8 @@
+ #include "lib/fs_chains.h"
+ #include "diag/en_tc_tracepoint.h"
+ #include <asm/div64.h>
+-<<<<<<< HEAD
+-#include "lag.h"
+-#include "lag_mp.h"
+-=======
+ #include "lag/lag.h"
+ #include "lag/mp.h"
+->>>>>>> linux-next/akpm-base
+ 
+ #define nic_chains(priv) ((priv)->fs.tc.chains)
+ #define MLX5_MH_ACT_SZ MLX5_UN_SZ_BYTES(set_add_copy_action_in_auto)
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
+@@ -10,13 +10,8 @@
+ #include "en_tc.h"
+ #include "rep/tc.h"
+ #include "rep/neigh.h"
+-<<<<<<< HEAD
+-#include "lag.h"
+-#include "lag_mp.h"
+-=======
+ #include "lag/lag.h"
+ #include "lag/mp.h"
+->>>>>>> linux-next/akpm-base
+ 
+ struct mlx5e_tc_tun_route_attr {
+ 	struct net_device *out_dev;
+--- a/kernel/cred.c~linux-next-git-rejects
++++ a/kernel/cred.c
+@@ -683,12 +683,7 @@ int set_cred_ucounts(struct cred *new)
+ 		return -EAGAIN;
+ 
+ 	new->ucounts = new_ucounts;
+-<<<<<<< HEAD
+-	if (old_ucounts)
+-		put_ucounts(old_ucounts);
+-=======
+ 	put_ucounts(old_ucounts);
+->>>>>>> linux-next/akpm-base
+ 
+ 	return 0;
+ }
+--- a/kernel/ucount.c~linux-next-git-rejects
++++ a/kernel/ucount.c
+@@ -295,11 +295,7 @@ static void do_dec_rlimit_put_ucounts(st
+ {
+ 	struct ucounts *iter, *next;
+ 	for (iter = ucounts; iter != last; iter = next) {
+-<<<<<<< HEAD
+-		long dec = atomic_long_add_return(-1, &iter->ucount[type]);
+-=======
+ 		long dec = atomic_long_sub_return(1, &iter->ucount[type]);
+->>>>>>> linux-next/akpm-base
+ 		WARN_ON_ONCE(dec < 0);
+ 		next = iter->ns->ucounts;
+ 		if (dec == 0)
+@@ -336,11 +332,7 @@ long inc_rlimit_get_ucounts(struct ucoun
+ 	}
+ 	return ret;
+ dec_unwind:
+-<<<<<<< HEAD
+-	dec = atomic_long_add_return(-1, &iter->ucount[type]);
+-=======
+ 	dec = atomic_long_sub_return(1, &iter->ucount[type]);
+->>>>>>> linux-next/akpm-base
+ 	WARN_ON_ONCE(dec < 0);
+ unwind:
+ 	do_dec_rlimit_put_ucounts(ucounts, iter, type);
+--- a/net/netfilter/ipvs/ip_vs_ctl.c~linux-next-git-rejects
++++ a/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -4095,11 +4095,8 @@ static int __net_init ip_vs_control_net_
+ 	tbl[idx++].data = &ipvs->sysctl_conn_reuse_mode;
+ 	tbl[idx++].data = &ipvs->sysctl_schedule_icmp;
+ 	tbl[idx++].data = &ipvs->sysctl_ignore_tunneled;
+-<<<<<<< HEAD
+-=======
+ 	ipvs->sysctl_run_estimation = 1;
+ 	tbl[idx++].data = &ipvs->sysctl_run_estimation;
+->>>>>>> linux-next/akpm-base
+ #ifdef CONFIG_IP_VS_DEBUG
+ 	/* Global sysctls must be ro in non-init netns */
+ 	if (!net_eq(net, &init_net))
+--- a/tools/testing/selftests/net/forwarding/forwarding.config.sample~linux-next-git-rejects
++++ a/tools/testing/selftests/net/forwarding/forwarding.config.sample
+@@ -41,9 +41,6 @@ NETIF_CREATE=yes
+ PING_TIMEOUT=5
+ # IPv6 traceroute utility name.
+ TROUTE6=traceroute6
+-<<<<<<< HEAD
+-=======
+ # Flag for tc match, supposed to be skip_sw/skip_hw which means do not process
+ # filter by software/hardware
+ TC_FLAG=skip_hw
+->>>>>>> linux-next/akpm-base
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
+mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
+mm.patch
+mm-page_ownerc-modify-the-type-of-argument-order-in-some-functions-fix.patch
+memcg-kmem-further-deprecate-kmemlimit_in_bytes-checkpatch-fixes.patch
+mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-checkpatch-fixes.patch
+mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-fix.patch
+mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-fix-2.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
+ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
+revert-acct_reclaim_writeback-for-next.patch
+linux-next-rejects.patch
+restore-acct_reclaim_writeback-for-folio.patch
+mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault-vs-folios.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+linux-next-git-rejects.patch
+
