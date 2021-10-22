@@ -2,36 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 18E8CC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 03:18:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7554C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 03:21:41 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E876960F5D
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 03:18:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7DE1E61440
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 03:21:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230349AbhJVDU5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Oct 2021 23:20:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38716 "EHLO mail.kernel.org"
+        id S230425AbhJVDX5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Oct 2021 23:23:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39196 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232464AbhJVDU4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 Oct 2021 23:20:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D9B3E6103E;
-        Fri, 22 Oct 2021 03:18:38 +0000 (UTC)
+        id S230393AbhJVDX4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 Oct 2021 23:23:56 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BDC286197A;
+        Fri, 22 Oct 2021 03:21:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634872719;
-        bh=d0Suor0MRREv4bMGFUR3N67BCtwcmusPWIZ2/esHzyk=;
+        s=korg; t=1634872900;
+        bh=hM1BU1PXowJ8FLof/f3MB6NEM/SiVOHKyVseXbe2n8I=;
         h=Date:From:To:Subject:From;
-        b=Jth6iDJNlibEt+QFnBUkunn3ClEsMPX++R21r9forP3ShLFsMK2tpcrAqEkBKPpBf
-         /NdbyA+1tHBd1tZC7uoHCG5G2QjD3tTP8/o0sOM/nnGcXBPDtoWvJzN6CnKITWyxeL
-         ha5i9A2aJTcw+x25qtieJrDKpKcOwlx8ShVYbUAw=
-Date:   Thu, 21 Oct 2021 20:18:38 -0700
+        b=JEB5g1DKfLlhbVm3JIv4zH7cZ3JE06a+2OJ1WHYJaHZKzUedy0xi5Oyj9+pNBfH6x
+         NqcMbWe4Anzb3WKFy98YDtueeiIywLbU/a85HQqqlX9FYJ27Fd6kJZAAGkeUYaSQa4
+         wxifRk8GcSpSYqFRNt0Jg5DZ2nzp89GfoQBhvd8k=
+Date:   Thu, 21 Oct 2021 20:21:39 -0700
 From:   akpm@linux-foundation.org
 To:     chenwandun@huawei.com, edumazet@google.com, guohanjun@huawei.com,
-        mm-commits@vger.kernel.org, npiggin@gmail.com, shakeelb@google.com,
-        urezki@gmail.com, wangkefeng.wang@huawei.com
-Subject:  +
- mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch added to -mm tree
-Message-ID: <20211022031838.aMSchDCg0%akpm@linux-foundation.org>
+        mm-commits@vger.kernel.org, npiggin@gmail.com, urezki@gmail.com,
+        wangkefeng.wang@huawei.com
+Subject:  [to-be-updated]
+ =?US-ASCII?Q?mm-vmalloc-introduce-alloc=5Fpages=5Fbulk=5Farray=5Fmempoli?=
+ =?US-ASCII?Q?cy-to-accelerate-memory-allocation.patch?= removed from -mm
+ tree
+Message-ID: <20211022032139.Hbjc8aN1n%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,131 +43,183 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: fix numa spreading for large hash tables
-has been added to the -mm tree.  Its filename is
-     mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch
+     Subject: mm/vmalloc: introduce alloc_pages_bulk_array_mempolicy to accelerate memory allocation
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Chen Wandun <chenwandun@huawei.com>
-Subject: mm/vmalloc: fix numa spreading for large hash tables
+Subject: mm/vmalloc: introduce alloc_pages_bulk_array_mempolicy to accelerate memory allocation
 
-Eric Dumazet reported a strange numa spreading info in [1], and found
-commit 121e6f3258fe ("mm/vmalloc: hugepage vmalloc mappings") introduced
-this issue [2].
+It will cause significant performance regressions in some situations as
+Andrew mentioned in [1].  The main situation is vmalloc, vmalloc will
+allocate pages with NUMA_NO_NODE by default, that will result in alloc
+page one by one;
 
-Dig into the difference before and after this patch, page allocation has
-some difference:
+In order to solve this, __alloc_pages_bulk and mempolicy should be
+considered at the same time.
 
-before:
-alloc_large_system_hash
-    __vmalloc
-        __vmalloc_node(..., NUMA_NO_NODE, ...)
-            __vmalloc_node_range
-                __vmalloc_area_node
-                    alloc_page /* because NUMA_NO_NODE, so choose alloc_page branch */
-                        alloc_pages_current
-                            alloc_page_interleave /* can be proved by print policy mode */
+1) If node is specified in memory allocation request, it will alloc all
+   pages by __alloc_pages_bulk.
 
-after:
-alloc_large_system_hash
-    __vmalloc
-        __vmalloc_node(..., NUMA_NO_NODE, ...)
-            __vmalloc_node_range
-                __vmalloc_area_node
-                    alloc_pages_node /* choose nid by nuam_mem_id() */
-                        __alloc_pages_node(nid, ....)
+2) If interleaving allocate memory, it will cauculate how many pages
+   should be allocated in each node, and use __alloc_pages_bulk to alloc
+   pages in each node.
 
-So after commit 121e6f3258fe ("mm/vmalloc: hugepage vmalloc mappings"), it
-will allocate memory in current node instead of interleaving allocate
-memory.
+Based on "[PATCH] mm/vmalloc: fix numa spreading for large hash
+   tables".
 
-[1]
-https://lore.kernel.org/linux-mm/CANn89iL6AAyWhfxdHO+jaT075iOa3XcYn9k6JJc7JR2XYn6k_Q@mail.gmail.com/
+[1]: https://lore.kernel.org/lkml/CALvZod4G3SzP3kWxQYn0fj+VgG-G3yWXz=gz17+3N57ru1iajw@mail.gmail.com/t/#m750c8e3231206134293b089feaa090590afa0f60
 
-[2]
-https://lore.kernel.org/linux-mm/CANn89iLofTR=AK-QOZY87RdUZENCZUT4O6a0hvhu3_EwRMerOg@mail.gmail.com/
-
-Link: https://lkml.kernel.org/r/20211021080744.874701-2-chenwandun@huawei.com
-Fixes: 121e6f3258fe ("mm/vmalloc: hugepage vmalloc mappings")
+Link: https://lkml.kernel.org/r/20211014092952.1500982-1-chenwandun@huawei.com
 Signed-off-by: Chen Wandun <chenwandun@huawei.com>
-Reported-by: Eric Dumazet <edumazet@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Cc: Nicholas Piggin <npiggin@gmail.com>
+Cc: Eric Dumazet <edumazet@google.com>
 Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
 Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Uladzislau Rezki <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+ include/linux/gfp.h |    4 ++
+ mm/mempolicy.c      |   76 ++++++++++++++++++++++++++++++++++++++++++
+ mm/vmalloc.c        |   19 ++--------
+ 3 files changed, 85 insertions(+), 14 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-fix-numa-spreading-for-large-hash-tables
-+++ a/mm/vmalloc.c
-@@ -2816,6 +2816,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		unsigned int order, unsigned int nr_pages, struct page **pages)
- {
- 	unsigned int nr_allocated = 0;
-+	struct page *page;
+--- a/include/linux/gfp.h~mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation
++++ a/include/linux/gfp.h
+@@ -535,6 +535,10 @@ unsigned long __alloc_pages_bulk(gfp_t g
+ 				struct list_head *page_list,
+ 				struct page **page_array);
+ 
++unsigned long alloc_pages_bulk_array_mempolicy(gfp_t gfp,
++				unsigned long nr_pages,
++				struct page **page_array);
++
+ /* Bulk allocate order-0 pages */
+ static inline unsigned long
+ alloc_pages_bulk_list(gfp_t gfp, unsigned long nr_pages, struct list_head *list)
+--- a/mm/mempolicy.c~mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation
++++ a/mm/mempolicy.c
+@@ -2196,6 +2196,82 @@ struct page *alloc_pages(gfp_t gfp, unsi
+ }
+ EXPORT_SYMBOL(alloc_pages);
+ 
++unsigned long alloc_pages_bulk_array_interleave(gfp_t gfp,
++		struct mempolicy *pol, unsigned long nr_pages,
++		struct page **page_array)
++{
++	int nodes;
++	unsigned long nr_pages_per_node;
++	int delta;
 +	int i;
++	unsigned long nr_allocated;
++	unsigned long total_allocated = 0;
++
++	nodes = nodes_weight(pol->nodes);
++	nr_pages_per_node = nr_pages / nodes;
++	delta = nr_pages - nodes * nr_pages_per_node;
++
++	for (i = 0; i < nodes; i++) {
++		if (delta) {
++			nr_allocated = __alloc_pages_bulk(gfp,
++					interleave_nodes(pol), NULL,
++					nr_pages_per_node + 1, NULL,
++					page_array);
++			delta--;
++		} else {
++			nr_allocated = __alloc_pages_bulk(gfp,
++					interleave_nodes(pol), NULL,
++					nr_pages_per_node, NULL, page_array);
++		}
++
++		page_array += nr_allocated;
++		total_allocated += nr_allocated;
++	}
++
++	return total_allocated;
++}
++
++unsigned long alloc_pages_bulk_array_preferred_many(gfp_t gfp, int nid,
++		struct mempolicy *pol, unsigned long nr_pages,
++		struct page **page_array)
++{
++	gfp_t preferred_gfp;
++	unsigned long nr_allocated = 0;
++
++	preferred_gfp = gfp | __GFP_NOWARN;
++	preferred_gfp &= ~(__GFP_DIRECT_RECLAIM | __GFP_NOFAIL);
++
++	nr_allocated  = __alloc_pages_bulk(preferred_gfp, nid, &pol->nodes,
++					   nr_pages, NULL, page_array);
++
++	if (nr_allocated < nr_pages)
++		nr_allocated += __alloc_pages_bulk(gfp, numa_node_id(), NULL,
++				nr_pages - nr_allocated, NULL,
++				page_array + nr_allocated);
++	return nr_allocated;
++}
++
++unsigned long alloc_pages_bulk_array_mempolicy(gfp_t gfp,
++		unsigned long nr_pages, struct page **page_array)
++{
++	struct mempolicy *pol = &default_policy;
++
++	if (!in_interrupt() && !(gfp & __GFP_THISNODE))
++		pol = get_task_policy(current);
++
++	if (pol->mode == MPOL_INTERLEAVE)
++		return alloc_pages_bulk_array_interleave(gfp, pol,
++							 nr_pages, page_array);
++
++	if (pol->mode == MPOL_PREFERRED_MANY)
++		return alloc_pages_bulk_array_preferred_many(gfp,
++				numa_node_id(), pol, nr_pages, page_array);
++
++	return __alloc_pages_bulk(gfp, policy_node(gfp, pol, numa_node_id()),
++				  policy_nodemask(gfp, pol), nr_pages, NULL,
++				  page_array);
++}
++
+ int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst)
+ {
+ 	struct mempolicy *pol = mpol_dup(vma_policy(src));
+--- a/mm/vmalloc.c~mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation
++++ a/mm/vmalloc.c
+@@ -2856,23 +2856,14 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
+ 			 */
+ 			nr_pages_request = min(100U, nr_pages - nr_allocated);
  
- 	/*
- 	 * For order-0 pages we make use of bulk allocator, if
-@@ -2823,7 +2825,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 	 * to fails, fallback to a single page allocator that is
- 	 * more permissive.
- 	 */
--	if (!order) {
-+	if (!order && nid != NUMA_NO_NODE) {
- 		while (nr_allocated < nr_pages) {
- 			unsigned int nr, nr_pages_request;
- 
-@@ -2848,7 +2850,7 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 			if (nr != nr_pages_request)
- 				break;
- 		}
--	} else
-+	} else if (order)
- 		/*
- 		 * Compound pages required for remap_vmalloc_page if
- 		 * high-order pages.
-@@ -2856,11 +2858,12 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 		gfp |= __GFP_COMP;
- 
- 	/* High-order pages or fallback path if "bulk" fails. */
--	while (nr_allocated < nr_pages) {
--		struct page *page;
--		int i;
- 
--		page = alloc_pages_node(nid, gfp, order);
-+	while (nr_allocated < nr_pages) {
-+		if (nid == NUMA_NO_NODE)
-+			page = alloc_pages(gfp, order);
-+		else
-+			page = alloc_pages_node(nid, gfp, order);
- 		if (unlikely(!page))
- 			break;
+-			if (nid == NUMA_NO_NODE) {
+-				for (i = 0; i < nr_pages_request; i++) {
+-					page = alloc_page(gfp);
+-					if (page)
+-						pages[nr_allocated + i] = page;
+-					else {
+-						nr = i;
+-						break;
+-					}
+-				}
+-				if (i >= nr_pages_request)
+-					nr = nr_pages_request;
+-			} else {
++			if (nid == NUMA_NO_NODE)
++				nr = alloc_pages_bulk_array_mempolicy(gfp,
++							nr_pages_request,
++							pages + nr_allocated);
++			else
+ 				nr = alloc_pages_bulk_array_node(gfp, nid,
+ 							nr_pages_request,
+ 							pages + nr_allocated);
+-			}
+ 			nr_allocated += nr;
+ 			cond_resched();
  
 _
 
 Patches currently in -mm which might be from chenwandun@huawei.com are
 
 mm-vmalloc-fix-numa-spreading-for-large-hash-tables.patch
-mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation.patch
 
