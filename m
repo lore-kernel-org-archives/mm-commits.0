@@ -2,34 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C118DC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 02:59:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 552A5C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 03:09:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9EC28615E3
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 02:59:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E56C6154B
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 03:09:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232745AbhJVDBt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Oct 2021 23:01:49 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34560 "EHLO mail.kernel.org"
+        id S232271AbhJVDLv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Oct 2021 23:11:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36776 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232730AbhJVDBr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 Oct 2021 23:01:47 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AEDF660E96;
-        Fri, 22 Oct 2021 02:59:30 +0000 (UTC)
+        id S230349AbhJVDLu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 Oct 2021 23:11:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E248E613B1;
+        Fri, 22 Oct 2021 03:07:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634871570;
-        bh=Hh71kCB5nXdxE3YjiATL8riA4/MW5ZeBPFPD4GL/SbI=;
+        s=korg; t=1634872061;
+        bh=KBlICRULSAvos+s1klr9NW+EsPupor6b6qJpdSsr+3Y=;
         h=Date:From:To:Subject:From;
-        b=ZNtAEJEr1Skx1wbvQaw+RmDXa2/4qNKGU5TVzTBa3nqpSOsXVzA0j5mUWX4aR8KRK
-         WVt+S+SribkVBzpSdMDbqn2p5R6vO0JQoeKghs1f22742tueMhYO2pyRHA6Bsxc7Bq
-         I8BAJoR98mZvcPIt6d9VymaNKKcT7eyLYE/xzr7A=
-Date:   Thu, 21 Oct 2021 19:59:30 -0700
+        b=nhI92Z66GG/SpoqLm4RRWWS3MFcFkHfOkchUa89CU4wUt5KtvCRNk0yrs19esABFt
+         nDmzGRfLviauaDaF2+PLJ9k47QXDFvolX3mLPS1ssD/pukY3N3rmOjF/0NWYrG1Saz
+         b8x4HpELLgvNhsnbrOtPxLvzo/Mwysza4ThIoeFA=
+Date:   Thu, 21 Oct 2021 20:07:40 -0700
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, mm-commits@vger.kernel.org,
-        wanjiabing@vivo.com
-Subject:  + mm-hugepages-add-hugetlb-vma-mremap-test-v8-fix.patch
+To:     aarcange@redhat.com, andrew.cooper3@citrix.com,
+        dave.hansen@linux.intel.com, luto@kernel.org,
+        mm-commits@vger.kernel.org, namit@vmware.com, npiggin@gmail.com,
+        peterz@infradead.org, tglx@linutronix.de, will@kernel.org,
+        yuzhao@google.com
+Subject:  + mm-use-correct-vma-flags-when-freeing-page-tables.patch
  added to -mm tree
-Message-ID: <20211022025930.OJ3Iv-WzU%akpm@linux-foundation.org>
+Message-ID: <20211022030740.FBNXKAygo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: remove duplicated include in hugepage-mremap
+     Subject: mm/memory.c: use correct VMA flags when freeing page-tables
 has been added to the -mm tree.  Its filename is
-     mm-hugepages-add-hugetlb-vma-mremap-test-v8-fix.patch
+     mm-use-correct-vma-flags-when-freeing-page-tables.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugepages-add-hugetlb-vma-mremap-test-v8-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-use-correct-vma-flags-when-freeing-page-tables.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugepages-add-hugetlb-vma-mremap-test-v8-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-use-correct-vma-flags-when-freeing-page-tables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,35 +62,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wan Jiabing <wanjiabing@vivo.com>
-Subject: selftests: vm: remove duplicated include in hugepage-mremap
+From: Nadav Amit <namit@vmware.com>
+Subject: mm/memory.c: use correct VMA flags when freeing page-tables
 
-Fix following checkinclude.pl warning:
-./tools/testing/selftests/vm/hugepage-mremap.c: fcntl.h is included
-more than once.
+Consistent use of the mmu_gather interface requires a call to
+tlb_start_vma() and tlb_end_vma() for each VMA.  free_pgtables() does not
+follow this pattern.
 
-Link: https://lkml.kernel.org/r/20211021122944.8857-1-wanjiabing@vivo.com
-Signed-off-by: Wan Jiabing <wanjiabing@vivo.com>
-Cc: Mina Almasry <almasrymina@google.com>
+Certain architectures need tlb_start_vma() to be called in order for
+tlb_update_vma_flags() to update the VMA flags (tlb->vma_exec and
+tlb->vma_huge), which are later used for the proper TLB flush to be
+issued.  Since tlb_start_vma() is not called, this can lead to the wrong
+VMA flags being used when the flush is performed.
+
+Specifically, the munmap syscall would call unmap_region(), which unmaps
+the VMAs and then frees the page-tables.  A flush is needed after the
+page-tables are removed to prevent page-walk caches from holding stale
+entries, but this flush would use the flags of the VMA flags of the last
+VMA that was flushed.  This does not appear to be right.
+
+Use tlb_start_vma() and tlb_end_vma() to prevent this from happening. 
+This might lead to unnecessary calls to flush_cache_range() on certain
+arch's.  If needed, a new flag can be added to mmu_gather to indicate that
+the flush is not needed.
+
+Link: https://lkml.kernel.org/r/20211021122322.592822-1-namit@vmware.com
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrew Cooper <andrew.cooper3@citrix.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will@kernel.org>
+Cc: Yu Zhao <yuzhao@google.com>
+Cc: Nick Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hugepage-mremap.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/memory.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/tools/testing/selftests/vm/hugepage-mremap.c~mm-hugepages-add-hugetlb-vma-mremap-test-v8-fix
-+++ a/tools/testing/selftests/vm/hugepage-mremap.c
-@@ -12,7 +12,6 @@
- #include <stdio.h>
- #include <unistd.h>
- #include <sys/mman.h>
--#include <fcntl.h>
- #include <errno.h>
- #include <fcntl.h> /* Definition of O_* constants */
- #include <sys/syscall.h> /* Definition of SYS_* constants */
+--- a/mm/memory.c~mm-use-correct-vma-flags-when-freeing-page-tables
++++ a/mm/memory.c
+@@ -412,6 +412,8 @@ void free_pgtables(struct mmu_gather *tl
+ 		unlink_anon_vmas(vma);
+ 		unlink_file_vma(vma);
+ 
++		tlb_start_vma(tlb, vma);
++
+ 		if (is_vm_hugetlb_page(vma)) {
+ 			hugetlb_free_pgd_range(tlb, addr, vma->vm_end,
+ 				floor, next ? next->vm_start : ceiling);
+@@ -429,6 +431,8 @@ void free_pgtables(struct mmu_gather *tl
+ 			free_pgd_range(tlb, addr, vma->vm_end,
+ 				floor, next ? next->vm_start : ceiling);
+ 		}
++
++		tlb_end_vma(tlb, vma);
+ 		vma = next;
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from wanjiabing@vivo.com are
+Patches currently in -mm which might be from namit@vmware.com are
 
-mm-hugepages-add-hugetlb-vma-mremap-test-v8-fix.patch
+mm-use-correct-vma-flags-when-freeing-page-tables.patch
 
