@@ -2,41 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E1B48C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 02:32:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74BDAC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 02:35:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BD319613B3
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 02:32:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5676D613AD
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 02:35:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232353AbhJVCfJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 21 Oct 2021 22:35:09 -0400
-Received: from mail.kernel.org ([198.145.29.99]:58114 "EHLO mail.kernel.org"
+        id S232398AbhJVChr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 21 Oct 2021 22:37:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:58776 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232142AbhJVCfJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 21 Oct 2021 22:35:09 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F101B613AD;
-        Fri, 22 Oct 2021 02:32:51 +0000 (UTC)
+        id S231887AbhJVChq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 21 Oct 2021 22:37:46 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CF98A6128E;
+        Fri, 22 Oct 2021 02:35:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634869972;
-        bh=hwfxxGOEuBg8Kpr5SMndFd29rU94R0xwhBCSNcmFITY=;
+        s=korg; t=1634870130;
+        bh=tv9HOK1r6q1H4gIOJYN/4wH9mbDfsx9S31hvQBlw69c=;
         h=Date:From:To:Subject:From;
-        b=g1bPWjDu+1kseBvFORnUCN/QvPO8NGNtLTf20a2xQo6hfTmqhzQujIpafFzY8AKLz
-         IGdXzGgACkmu2eXjbfJig6YQx+yEPRqvOasdI/yHB1IV41TxBK38bYXbno+a7XiiaS
-         iypbFQ7v7dgKHGCkcsUn2q2CpB5BlaPocqpXJbZU=
-Date:   Thu, 21 Oct 2021 19:32:51 -0700
+        b=pvcVoep25dEGvs97OEhlV8o79wfh5+DYnyOvl2xJ5jObn4NVZzTYJphKomQ4kY1tV
+         6Rc6h23pgKho3+v0dEsgXiPdHKLKetdQ7khfJyT4BG4XDmZPee32+vqSdC9crLf9Lh
+         8lViXKINEuxu9UvaKbKLUCggzwHQ1nUFqoZaxPPE=
+Date:   Thu, 21 Oct 2021 19:35:29 -0700
 From:   akpm@linux-foundation.org
-To:     gautham.ananthakrishna@oracle.com, gechangwei@live.cn,
-        ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
-        junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org,
-        piaojun@huawei.com, rajesh.sivaramasubramaniom@oracle.com,
-        stable@vger.kernel.org
+To:     bot@kernelci.org, mm-commits@vger.kernel.org, nathan@kernel.org,
+        sfr@canb.auug.org.au, shy828301@gmail.com
 Subject:  +
- =?US-ASCII?Q?ocfs2-race-between-searching-chunks-and-release-journal?=
- =?US-ASCII?Q?=5Fhead-from-buffer=5Fhead.patch?= added to -mm tree
-Message-ID: <20211022023251.MGrMk7tNh%akpm@linux-foundation.org>
+ mm-shmem-dont-truncate-page-if-memory-failure-happens-fix.patch added to
+ -mm tree
+Message-ID: <20211022023529.rGwWR0IKz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: race between searching chunks and release journal_head from buffer_head
+     Subject: mm/memory_failure: initialize extra_pins in me_pagecache_clean()
 has been added to the -mm tree.  Its filename is
-     ocfs2-race-between-searching-chunks-and-release-journal_head-from-buffer_head.patch
+     mm-shmem-dont-truncate-page-if-memory-failure-happens-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-race-between-searching-chunks-and-release-journal_head-from-buffer_head.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-dont-truncate-page-if-memory-failure-happens-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-race-between-searching-chunks-and-release-journal_head-from-buffer_head.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-dont-truncate-page-if-memory-failure-happens-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,113 +60,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gautham Ananthakrishna <gautham.ananthakrishna@oracle.com>
-Subject: ocfs2: race between searching chunks and release journal_head from buffer_head
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: mm/memory_failure: initialize extra_pins in me_pagecache_clean()
 
-Encountered a race between ocfs2_test_bg_bit_allocatable() and
-jbd2_journal_put_journal_head() resulting in the below vmcore.
+Clang warns:
 
-PID: 106879  TASK: ffff880244ba9c00  CPU: 2   COMMAND: "loop3"
- 0 [ffff8802435ff1c0] panic at ffffffff816ed175
- 1 [ffff8802435ff240] oops_end at ffffffff8101a7c9
- 2 [ffff8802435ff270] no_context at ffffffff8106eccf
- 3 [ffff8802435ff2e0] __bad_area_nosemaphore at ffffffff8106ef9d
- 4 [ffff8802435ff330] bad_area_nosemaphore at ffffffff8106f143
- 5 [ffff8802435ff340] __do_page_fault at ffffffff8106f80b
- 6 [ffff8802435ff3a0] do_page_fault at ffffffff8106fc2f
- 7 [ffff8802435ff3e0] page_fault at ffffffff816fd667
-    [exception RIP: ocfs2_block_group_find_clear_bits+316]
-    RIP: ffffffffc11ef6fc  RSP: ffff8802435ff498  RFLAGS: 00010206
-    RAX: 0000000000003918  RBX: 0000000000000001  RCX: 0000000000000018
-    RDX: 0000000000003918  RSI: 0000000000000000  RDI: ffff880060194040
-    RBP: ffff8802435ff4f8   R8: ffffffffff000000   R9: ffffffffffffffff
-    R10: ffff8802435ff730  R11: ffff8802a94e5800  R12: 0000000000000007
-    R13: 0000000000007e00  R14: 0000000000003918  R15: ffff88017c973a28
-    ORIG_RAX: ffffffffffffffff  CS: e030  SS: e02b
- 8 [ffff8802435ff490] ocfs2_block_group_find_clear_bits at ffffffffc11ef680 [ocfs2]
- 9 [ffff8802435ff500] ocfs2_cluster_group_search at ffffffffc11ef916 [ocfs2]
-10 [ffff8802435ff580] ocfs2_search_chain at ffffffffc11f0fb6 [ocfs2]
-11 [ffff8802435ff660] ocfs2_claim_suballoc_bits at ffffffffc11f1b1b [ocfs2]
-12 [ffff8802435ff6f0] __ocfs2_claim_clusters at ffffffffc11f32cb [ocfs2]
-13 [ffff8802435ff770] ocfs2_claim_clusters at ffffffffc11f5caf [ocfs2]
-14 [ffff8802435ff780] ocfs2_local_alloc_slide_window at ffffffffc11cc0db [ocfs2]
-15 [ffff8802435ff820] ocfs2_reserve_local_alloc_bits at ffffffffc11ce53f [ocfs2]
-16 [ffff8802435ff890] ocfs2_reserve_clusters_with_limit at ffffffffc11f59b5 [ocfs2]
-17 [ffff8802435ff8e0] ocfs2_reserve_clusters at ffffffffc11f5c88 [ocfs2]
-18 [ffff8802435ff8f0] ocfs2_lock_refcount_allocators at ffffffffc11dc169 [ocfs2]
-19 [ffff8802435ff960] ocfs2_make_clusters_writable at ffffffffc11e4274 [ocfs2]
-20 [ffff8802435ffa50] ocfs2_replace_cow at ffffffffc11e4df1 [ocfs2]
-21 [ffff8802435ffac0] ocfs2_refcount_cow at ffffffffc11e54b1 [ocfs2]
-22 [ffff8802435ffb80] ocfs2_file_write_iter at ffffffffc11bf8f4 [ocfs2]
-23 [ffff8802435ffcd0] lo_rw_aio at ffffffff814a1b5d
-24 [ffff8802435ffd80] loop_queue_work at ffffffff814a2802
-25 [ffff8802435ffe60] kthread_worker_fn at ffffffff810a80d2
-26 [ffff8802435ffec0] kthread at ffffffff810a7afb
-27 [ffff8802435fff50] ret_from_fork at ffffffff816f7da1
+mm/memory-failure.c:892:6: error: variable 'extra_pins' is used uninitialized whenever 'if' condition is true [-Werror,-Wsometimes-uninitialized]
+        if (!mapping) {
+            ^~~~~~~~
+mm/memory-failure.c:915:32: note: uninitialized use occurs here
+        if (has_extra_refcount(ps, p, extra_pins))
+                                      ^~~~~~~~~~
+mm/memory-failure.c:892:2: note: remove the 'if' if its condition is always false
+        if (!mapping) {
+        ^~~~~~~~~~~~~~~
+mm/memory-failure.c:879:6: error: variable 'extra_pins' is used uninitialized whenever 'if' condition is true [-Werror,-Wsometimes-uninitialized]
+        if (PageAnon(p)) {
+            ^~~~~~~~~~~
+mm/memory-failure.c:915:32: note: uninitialized use occurs here
+        if (has_extra_refcount(ps, p, extra_pins))
+                                      ^~~~~~~~~~
+mm/memory-failure.c:879:2: note: remove the 'if' if its condition is always false
+        if (PageAnon(p)) {
+        ^~~~~~~~~~~~~~~~~~
+mm/memory-failure.c:871:17: note: initialize the variable 'extra_pins' to silence this warning
+        bool extra_pins;
+                       ^
+                        = 0
+2 errors generated.
 
-When ocfs2_test_bg_bit_allocatable() called bh2jh(bg_bh), the
-bg_bh->b_private NULL as jbd2_journal_put_journal_head() raced and
-released the jounal head from the buffer head.  Needed to take bit lock
-for the bit 'BH_JournalHead' to fix this race.
+Initialize extra_pins to false so that it is not used uninitialized.
 
-Link: https://lkml.kernel.org/r/1634820718-6043-1-git-send-email-gautham.ananthakrishna@oracle.com
-Signed-off-by: Gautham Ananthakrishna <gautham.ananthakrishna@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: <rajesh.sivaramasubramaniom@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20211021180336.2328086-1-nathan@kernel.org
+Fixes: d882a43a0011 ("mm: shmem: don't truncate page if memory failure happens")
+Link: https://github.com/ClangBuiltLinux/linux/issues/1487
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Reported-by: "kernelci.org bot" <bot@kernelci.org>
+Acked-by: Yang Shi <shy828301@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/suballoc.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/ocfs2/suballoc.c~ocfs2-race-between-searching-chunks-and-release-journal_head-from-buffer_head
-+++ a/fs/ocfs2/suballoc.c
-@@ -1251,7 +1251,7 @@ static int ocfs2_test_bg_bit_allocatable
+--- a/mm/memory-failure.c~mm-shmem-dont-truncate-page-if-memory-failure-happens-fix
++++ a/mm/memory-failure.c
+@@ -868,7 +868,7 @@ static int me_pagecache_clean(struct pag
  {
- 	struct ocfs2_group_desc *bg = (struct ocfs2_group_desc *) bg_bh->b_data;
- 	struct journal_head *jh;
--	int ret;
-+	int ret = 1;
+ 	int ret;
+ 	struct address_space *mapping;
+-	bool extra_pins;
++	bool extra_pins = false;
  
- 	if (ocfs2_test_bit(nr, (unsigned long *)bg->bg_bitmap))
- 		return 0;
-@@ -1259,14 +1259,18 @@ static int ocfs2_test_bg_bit_allocatable
- 	if (!buffer_jbd(bg_bh))
- 		return 1;
+ 	delete_from_lru_cache(p);
  
--	jh = bh2jh(bg_bh);
--	spin_lock(&jh->b_state_lock);
--	bg = (struct ocfs2_group_desc *) jh->b_committed_data;
--	if (bg)
--		ret = !ocfs2_test_bit(nr, (unsigned long *)bg->bg_bitmap);
--	else
--		ret = 1;
--	spin_unlock(&jh->b_state_lock);
-+	jbd_lock_bh_journal_head(bg_bh);
-+	if (buffer_jbd(bg_bh)) {
-+		jh = bh2jh(bg_bh);
-+		spin_lock(&jh->b_state_lock);
-+		bg = (struct ocfs2_group_desc *) jh->b_committed_data;
-+		if (bg)
-+			ret = !ocfs2_test_bit(nr, (unsigned long *)bg->bg_bitmap);
-+		else
-+			ret = 1;
-+		spin_unlock(&jh->b_state_lock);
-+	}
-+	jbd_unlock_bh_journal_head(bg_bh);
- 
- 	return ret;
- }
 _
 
-Patches currently in -mm which might be from gautham.ananthakrishna@oracle.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-ocfs2-race-between-searching-chunks-and-release-journal_head-from-buffer_head.patch
+mm-shmem-dont-truncate-page-if-memory-failure-happens-fix.patch
 
