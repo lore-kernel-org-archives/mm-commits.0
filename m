@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8001EC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 21:54:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E9E6C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 21:56:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 510CC6103E
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 21:54:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7430E61040
+	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 21:56:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231820AbhJVV4d (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 22 Oct 2021 17:56:33 -0400
-Received: from mail.kernel.org ([198.145.29.99]:56978 "EHLO mail.kernel.org"
+        id S232145AbhJVV6T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 22 Oct 2021 17:58:19 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57210 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231363AbhJVV4d (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 22 Oct 2021 17:56:33 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 071C360F45;
-        Fri, 22 Oct 2021 21:54:14 +0000 (UTC)
+        id S231363AbhJVV6T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 22 Oct 2021 17:58:19 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EC2236103E;
+        Fri, 22 Oct 2021 21:56:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634939655;
-        bh=Rb1fIvJvsOPCePZErehYjjgA22mXY4wm9btLtPrc4rk=;
+        s=korg; t=1634939761;
+        bh=GUImW+n04J15KaTLxtkrXf6ppVjzmKXEE0P5jRz1K0w=;
         h=Date:From:To:Subject:From;
-        b=XezOwCZgL18245ePaUy9Lyt665EHP/92Ut0sptHJZYmZ5WWp/O6+9A12IKERSuXIO
-         30SqgDS9Wc1DHvZPVlLc1DgB1/o3aV4aenljKQMBtjWxSBxPNBB9+ar+SJi5V61ifT
-         64rdSZthiU3E7OvkjDw5km5tgzu343nztrTr9bCo=
-Date:   Fri, 22 Oct 2021 14:54:14 -0700
+        b=Vc+4w6Lb3E3gbSJUXv7Om4QYxO58pJ6CdYygSz9avZCLO6TMj+EJUyxzO5VAUkNRG
+         14ojbE9Y7ThVSb3o5aBdgn9TJ/eUNyNpi4zA22rfSc9NUr7+CRaSlMzaMfqNUEGjbt
+         z+mVIg42iZJaFXkCJkCR2E23LE94E7lvgegjpbDc=
+Date:   Fri, 22 Oct 2021 14:56:00 -0700
 From:   akpm@linux-foundation.org
-To:     bot@kernelci.org, mm-commits@vger.kernel.org, nathan@kernel.org,
+To:     arnd@arndb.de, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, nathan@kernel.org, osalvador@suse.de,
         sfr@canb.auug.org.au, shy828301@gmail.com
-Subject:  [alternative-merged]
- mm-shmem-dont-truncate-page-if-memory-failure-happens-fix.patch removed
- from -mm tree
-Message-ID: <20211022215414.h7hp4CtgN%akpm@linux-foundation.org>
+Subject:  +
+ mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch added to
+ -mm tree
+Message-ID: <20211022215600.xi75zdmaM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,17 +40,31 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_failure: initialize extra_pins in me_pagecache_clean()
-has been removed from the -mm tree.  Its filename was
-     mm-shmem-dont-truncate-page-if-memory-failure-happens-fix.patch
+     Subject: mm: shmem: fix uninitialized variable use in me_pagecache_clean()
+has been added to the -mm tree.  Its filename is
+     mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: mm/memory_failure: initialize extra_pins in me_pagecache_clean()
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: shmem: fix uninitialized variable use in me_pagecache_clean()
 
-Clang warns:
+It appears that the has_extra_refcount() is now in the wrong place:
 
 mm/memory-failure.c:892:6: error: variable 'extra_pins' is used uninitialized whenever 'if' condition is true [-Werror,-Wsometimes-uninitialized]
         if (!mapping) {
@@ -73,36 +88,50 @@ mm/memory-failure.c:871:17: note: initialize the variable 'extra_pins' to silenc
         bool extra_pins;
                        ^
                         = 0
-2 errors generated.
 
-Initialize extra_pins to false so that it is not used uninitialized.
+In both of those cases, we already set an error code and don't
+need to override that one.
 
-Link: https://lkml.kernel.org/r/20211021180336.2328086-1-nathan@kernel.org
+Link: https://lkml.kernel.org/r/20211022064748.4173718-1-arnd@kernel.org
 Fixes: d882a43a0011 ("mm: shmem: don't truncate page if memory failure happens")
-Link: https://github.com/ClangBuiltLinux/linux/issues/1487
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Reported-by: "kernelci.org bot" <bot@kernelci.org>
-Acked-by: Yang Shi <shy828301@gmail.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory-failure.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/memory-failure.c~mm-shmem-dont-truncate-page-if-memory-failure-happens-fix
+--- a/mm/memory-failure.c~mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2
 +++ a/mm/memory-failure.c
-@@ -868,7 +868,7 @@ static int me_pagecache_clean(struct pag
- {
- 	int ret;
- 	struct address_space *mapping;
--	bool extra_pins;
-+	bool extra_pins = false;
+@@ -909,12 +909,12 @@ static int me_pagecache_clean(struct pag
+ 	 * Open: to take i_rwsem or not for this? Right now we don't.
+ 	 */
+ 	ret = truncate_error_page(p, page_to_pfn(p), mapping);
+-out:
+-	unlock_page(p);
+-
+ 	if (has_extra_refcount(ps, p, extra_pins))
+ 		ret = MF_FAILED;
  
- 	delete_from_lru_cache(p);
++out:
++	unlock_page(p);
++
+ 	return ret;
+ }
  
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
+kasan-test-use-underlying-string-helpers.patch
+posix-acl-avoid-wempty-body-warning.patch
+memcg-kmem-further-deprecate-kmemlimit_in_bytes-fix.patch
+mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch
+hfs-hfsplus-use-warn_on-for-sanity-check.patch
 
