@@ -2,36 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E9E6C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 21:56:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF402C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Oct 2021 19:59:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7430E61040
-	for <mm-commits@archiver.kernel.org>; Fri, 22 Oct 2021 21:56:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9717D60C4B
+	for <mm-commits@archiver.kernel.org>; Mon, 25 Oct 2021 19:59:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232145AbhJVV6T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 22 Oct 2021 17:58:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:57210 "EHLO mail.kernel.org"
+        id S239136AbhJYUBj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 25 Oct 2021 16:01:39 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46640 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231363AbhJVV6T (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 22 Oct 2021 17:58:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EC2236103E;
-        Fri, 22 Oct 2021 21:56:00 +0000 (UTC)
+        id S236038AbhJYT7c (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 25 Oct 2021 15:59:32 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AAB9560E75;
+        Mon, 25 Oct 2021 19:57:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1634939761;
-        bh=GUImW+n04J15KaTLxtkrXf6ppVjzmKXEE0P5jRz1K0w=;
+        s=korg; t=1635191829;
+        bh=XTIFmcTrXxhdnqukHwIp8jXxYe64HW/ekenMQ7cP/ok=;
         h=Date:From:To:Subject:From;
-        b=Vc+4w6Lb3E3gbSJUXv7Om4QYxO58pJ6CdYygSz9avZCLO6TMj+EJUyxzO5VAUkNRG
-         14ojbE9Y7ThVSb3o5aBdgn9TJ/eUNyNpi4zA22rfSc9NUr7+CRaSlMzaMfqNUEGjbt
-         z+mVIg42iZJaFXkCJkCR2E23LE94E7lvgegjpbDc=
-Date:   Fri, 22 Oct 2021 14:56:00 -0700
+        b=dj3sh7X7jYqEWQDKLZATHYQod/9Utlp83h3cmQ42k38+7FmAGQ98mRf9zOeAyaHMJ
+         a/UNJ+1cHvbAiIyYdMDBBgVA/xWUuEAlmRFIcxzjBBOhdC9ZUkEZ82Un87vCjO9Njv
+         sV60z7D7C4Q0WZPxpPZKLktleNCGCNyEOFEISUKw=
+Date:   Mon, 25 Oct 2021 12:57:08 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, nathan@kernel.org, osalvador@suse.de,
-        sfr@canb.auug.org.au, shy828301@gmail.com
-Subject:  +
- mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch added to
- -mm tree
-Message-ID: <20211022215600.xi75zdmaM%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
+ tree
+Message-ID: <20211025195708.HkS8_Qd4E%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,98 +37,174 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shmem: fix uninitialized variable use in me_pagecache_clean()
-has been added to the -mm tree.  Its filename is
-     mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: shmem: fix uninitialized variable use in me_pagecache_clean()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-It appears that the has_extra_refcount() is now in the wrong place:
-
-mm/memory-failure.c:892:6: error: variable 'extra_pins' is used uninitialized whenever 'if' condition is true [-Werror,-Wsometimes-uninitialized]
-        if (!mapping) {
-            ^~~~~~~~
-mm/memory-failure.c:915:32: note: uninitialized use occurs here
-        if (has_extra_refcount(ps, p, extra_pins))
-                                      ^~~~~~~~~~
-mm/memory-failure.c:892:2: note: remove the 'if' if its condition is always false
-        if (!mapping) {
-        ^~~~~~~~~~~~~~~
-mm/memory-failure.c:879:6: error: variable 'extra_pins' is used uninitialized whenever 'if' condition is true [-Werror,-Wsometimes-uninitialized]
-        if (PageAnon(p)) {
-            ^~~~~~~~~~~
-mm/memory-failure.c:915:32: note: uninitialized use occurs here
-        if (has_extra_refcount(ps, p, extra_pins))
-                                      ^~~~~~~~~~
-mm/memory-failure.c:879:2: note: remove the 'if' if its condition is always false
-        if (PageAnon(p)) {
-        ^~~~~~~~~~~~~~~~~~
-mm/memory-failure.c:871:17: note: initialize the variable 'extra_pins' to silence this warning
-        bool extra_pins;
-                       ^
-                        = 0
-
-In both of those cases, we already set an error code and don't
-need to override that one.
-
-Link: https://lkml.kernel.org/r/20211022064748.4173718-1-arnd@kernel.org
-Fixes: d882a43a0011 ("mm: shmem: don't truncate page if memory failure happens")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/net/ethernet/intel/ice/ice_devids.h                     |    3 ---
+ drivers/net/ethernet/intel/ice/ice_devlink.c                    |    5 -----
+ drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c             |    5 -----
+ drivers/net/ethernet/mellanox/mlx5/core/en_tc.c                 |    5 -----
+ kernel/cred.c                                                   |    5 -----
+ kernel/ucount.c                                                 |    8 --------
+ net/netfilter/ipvs/ip_vs_ctl.c                                  |    3 ---
+ tools/testing/selftests/net/forwarding/forwarding.config.sample |    3 ---
+ 8 files changed, 37 deletions(-)
 
---- a/mm/memory-failure.c~mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2
-+++ a/mm/memory-failure.c
-@@ -909,12 +909,12 @@ static int me_pagecache_clean(struct pag
- 	 * Open: to take i_rwsem or not for this? Right now we don't.
- 	 */
- 	ret = truncate_error_page(p, page_to_pfn(p), mapping);
--out:
--	unlock_page(p);
--
- 	if (has_extra_refcount(ps, p, extra_pins))
- 		ret = MF_FAILED;
+--- a/drivers/net/ethernet/intel/ice/ice_devids.h~linux-next-git-rejects
++++ a/drivers/net/ethernet/intel/ice/ice_devids.h
+@@ -21,11 +21,8 @@
+ #define ICE_DEV_ID_E810C_QSFP		0x1592
+ /* Intel(R) Ethernet Controller E810-C for SFP */
+ #define ICE_DEV_ID_E810C_SFP		0x1593
+-<<<<<<< HEAD
+-=======
+ #define ICE_SUBDEV_ID_E810T		0x000E
+ #define ICE_SUBDEV_ID_E810T2		0x000F
+->>>>>>> linux-next/akpm-base
+ /* Intel(R) Ethernet Controller E810-XXV for backplane */
+ #define ICE_DEV_ID_E810_XXV_BACKPLANE	0x1599
+ /* Intel(R) Ethernet Controller E810-XXV for QSFP */
+--- a/drivers/net/ethernet/intel/ice/ice_devlink.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/intel/ice/ice_devlink.c
+@@ -62,11 +62,6 @@ static void ice_info_fw_api(struct ice_p
  
-+out:
-+	unlock_page(p);
-+
- 	return ret;
+ 	snprintf(ctx->buf, sizeof(ctx->buf), "%u.%u.%u", hw->api_maj_ver,
+ 		 hw->api_min_ver, hw->api_patch);
+-<<<<<<< HEAD
+-
+-	return 0;
+-=======
+->>>>>>> linux-next/akpm-base
  }
  
+ static void ice_info_fw_build(struct ice_pf *pf, struct ice_info_ctx *ctx)
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+@@ -68,13 +68,8 @@
+ #include "lib/fs_chains.h"
+ #include "diag/en_tc_tracepoint.h"
+ #include <asm/div64.h>
+-<<<<<<< HEAD
+-#include "lag.h"
+-#include "lag_mp.h"
+-=======
+ #include "lag/lag.h"
+ #include "lag/mp.h"
+->>>>>>> linux-next/akpm-base
+ 
+ #define nic_chains(priv) ((priv)->fs.tc.chains)
+ #define MLX5_MH_ACT_SZ MLX5_UN_SZ_BYTES(set_add_copy_action_in_auto)
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c~linux-next-git-rejects
++++ a/drivers/net/ethernet/mellanox/mlx5/core/en/tc_tun.c
+@@ -10,13 +10,8 @@
+ #include "en_tc.h"
+ #include "rep/tc.h"
+ #include "rep/neigh.h"
+-<<<<<<< HEAD
+-#include "lag.h"
+-#include "lag_mp.h"
+-=======
+ #include "lag/lag.h"
+ #include "lag/mp.h"
+->>>>>>> linux-next/akpm-base
+ 
+ struct mlx5e_tc_tun_route_attr {
+ 	struct net_device *out_dev;
+--- a/kernel/cred.c~linux-next-git-rejects
++++ a/kernel/cred.c
+@@ -683,12 +683,7 @@ int set_cred_ucounts(struct cred *new)
+ 		return -EAGAIN;
+ 
+ 	new->ucounts = new_ucounts;
+-<<<<<<< HEAD
+-	if (old_ucounts)
+-		put_ucounts(old_ucounts);
+-=======
+ 	put_ucounts(old_ucounts);
+->>>>>>> linux-next/akpm-base
+ 
+ 	return 0;
+ }
+--- a/kernel/ucount.c~linux-next-git-rejects
++++ a/kernel/ucount.c
+@@ -295,11 +295,7 @@ static void do_dec_rlimit_put_ucounts(st
+ {
+ 	struct ucounts *iter, *next;
+ 	for (iter = ucounts; iter != last; iter = next) {
+-<<<<<<< HEAD
+-		long dec = atomic_long_add_return(-1, &iter->ucount[type]);
+-=======
+ 		long dec = atomic_long_sub_return(1, &iter->ucount[type]);
+->>>>>>> linux-next/akpm-base
+ 		WARN_ON_ONCE(dec < 0);
+ 		next = iter->ns->ucounts;
+ 		if (dec == 0)
+@@ -336,11 +332,7 @@ long inc_rlimit_get_ucounts(struct ucoun
+ 	}
+ 	return ret;
+ dec_unwind:
+-<<<<<<< HEAD
+-	dec = atomic_long_add_return(-1, &iter->ucount[type]);
+-=======
+ 	dec = atomic_long_sub_return(1, &iter->ucount[type]);
+->>>>>>> linux-next/akpm-base
+ 	WARN_ON_ONCE(dec < 0);
+ unwind:
+ 	do_dec_rlimit_put_ucounts(ucounts, iter, type);
+--- a/net/netfilter/ipvs/ip_vs_ctl.c~linux-next-git-rejects
++++ a/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -4095,11 +4095,8 @@ static int __net_init ip_vs_control_net_
+ 	tbl[idx++].data = &ipvs->sysctl_conn_reuse_mode;
+ 	tbl[idx++].data = &ipvs->sysctl_schedule_icmp;
+ 	tbl[idx++].data = &ipvs->sysctl_ignore_tunneled;
+-<<<<<<< HEAD
+-=======
+ 	ipvs->sysctl_run_estimation = 1;
+ 	tbl[idx++].data = &ipvs->sysctl_run_estimation;
+->>>>>>> linux-next/akpm-base
+ #ifdef CONFIG_IP_VS_DEBUG
+ 	/* Global sysctls must be ro in non-init netns */
+ 	if (!net_eq(net, &init_net))
+--- a/tools/testing/selftests/net/forwarding/forwarding.config.sample~linux-next-git-rejects
++++ a/tools/testing/selftests/net/forwarding/forwarding.config.sample
+@@ -41,9 +41,6 @@ NETIF_CREATE=yes
+ PING_TIMEOUT=5
+ # IPv6 traceroute utility name.
+ TROUTE6=traceroute6
+-<<<<<<< HEAD
+-=======
+ # Flag for tc match, supposed to be skip_sw/skip_hw which means do not process
+ # filter by software/hardware
+ TC_FLAG=skip_hw
+->>>>>>> linux-next/akpm-base
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kasan-test-use-underlying-string-helpers.patch
-posix-acl-avoid-wempty-body-warning.patch
-memcg-kmem-further-deprecate-kmemlimit_in_bytes-fix.patch
-mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch
-hfs-hfsplus-use-warn_on-for-sanity-check.patch
+kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
+mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
+mm.patch
+mm-page_ownerc-modify-the-type-of-argument-order-in-some-functions-fix.patch
+memcg-kmem-further-deprecate-kmemlimit_in_bytes-checkpatch-fixes.patch
+mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-checkpatch-fixes.patch
+mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-fix.patch
+mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-fix-2.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
+ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
+revert-acct_reclaim_writeback-for-next.patch
+linux-next-rejects.patch
+restore-acct_reclaim_writeback-for-folio.patch
+mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault-vs-folios.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
