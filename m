@@ -2,35 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A6BEC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:32:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1025C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:47:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3FB8660ED4
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:32:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B7D8661040
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:47:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231890AbhJ0Ueh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 16:34:37 -0400
-Received: from mail.kernel.org ([198.145.29.99]:37460 "EHLO mail.kernel.org"
+        id S238694AbhJ0Utv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 16:49:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44224 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230494AbhJ0Ueg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 16:34:36 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B7E2C60EB4;
-        Wed, 27 Oct 2021 20:32:10 +0000 (UTC)
+        id S234080AbhJ0Utv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 16:49:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2722260462;
+        Wed, 27 Oct 2021 20:47:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635366730;
-        bh=kqweQG3FOTMAbxxkrKSxveWvZxxk0fVnRMcqFVMxnrg=;
+        s=korg; t=1635367645;
+        bh=Y5KO5xBYOp70/uIRjkekTlWowPLE8YwDo9CYE1UKgQ4=;
         h=Date:From:To:Subject:From;
-        b=MvCMZsqT06L1alM16DRLV/yGnRM+FSj+mbyQm5J4il5/ilWJ0Ci/oTTr7/fzSWTfI
-         c32UwMqaiZmy6MTSeS2BXm1i7PTIBWaLYoSvGZMW1m27j3KG0H8ez0eZ9kC/+5yFkf
-         3MI+DaqGAZiKmYvXjw08BGEqFC37B6YBPtHuZLFw=
-Date:   Wed, 27 Oct 2021 13:32:10 -0700
+        b=aeIHlI3T6u91dlXZ4QOrvBNY5SLvxZVKgzuwIsDXTysvRla/NIYUNNKJ930PQCUnU
+         ErroRBRAbh0U+EK27l+6T4VYCsGG0B68fXPNychP6ETO47+IvZx0qajjlv8XImP5zw
+         aClafbiXfeYk1DlhA9kI1rlyvn54ADG5H+4+q2hE=
+Date:   Wed, 27 Oct 2021 13:47:24 -0700
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, justin.he@arm.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        viro@zeniv.linux.org.uk
-Subject:  + d_path-fix-kernel-doc-validator-complaining.patch added
- to -mm tree
-Message-ID: <20211027203210.-1mSh6ss0%akpm@linux-foundation.org>
+To:     andrea.righi@canonical.com, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        shy828301@gmail.com, songliubraving@fb.com, stable@vger.kernel.org,
+        sunhao.th@gmail.com, willy@infradead.org
+Subject:  [to-be-updated]
+ mm-khugepaged-skip-huge-page-collapse-for-special-files.patch removed from
+ -mm tree
+Message-ID: <20211027204724.BCa_q0orl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,73 +41,90 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: d_path: fix Kernel doc validator complaining
-has been added to the -mm tree.  Its filename is
-     d_path-fix-kernel-doc-validator-complaining.patch
+     Subject: mm: khugepaged: skip huge page collapse for special files
+has been removed from the -mm tree.  Its filename was
+     mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/d_path-fix-kernel-doc-validator-complaining.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/d_path-fix-kernel-doc-validator-complaining.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Jia He <justin.he@arm.com>
-Subject: d_path: fix Kernel doc validator complaining
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: khugepaged: skip huge page collapse for special files
 
-Kernel doc validator complains:
-  Function parameter or member 'p' not described in 'prepend_name'
-  Excess function parameter 'buffer' description in 'prepend_name'
+The read-only THP for filesystems will collapse THP for files opened
+readonly and mapped with VM_EXEC.  The intended usecase is to avoid TLB
+misses for large text segments.  But it doesn't restrict the file types so
+a THP could be collapsed for a non-regular file, for example, block
+device, if it is opened readonly and mapped with EXEC permission.  This
+may cause bugs, like [1] and [2].
 
-Link: https://lkml.kernel.org/r/20211011005614.26189-1-justin.he@arm.com
-Fixes: ad08ae586586 ("d_path: introduce struct prepend_buffer")
-Signed-off-by: Jia He <justin.he@arm.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+This is definitely not the intended usecase, so just collapse THP for
+regular files in order to close the attack surface.
+
+[1] https://lore.kernel.org/lkml/CACkBjsYwLYLRmX8GpsDpMthagWOjWWrNxqY6ZLNQVr6yx+f5vA@mail.gmail.com/
+[2] https://lore.kernel.org/linux-mm/000000000000c6a82505ce284e4c@google.com/
+
+Link: https://lkml.kernel.org/r/20211027195221.3825-1-shy828301@gmail.com
+Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reported-by: Hao Sun <sunhao.th@gmail.com>
+Reported-by: syzbot+aae069be1de40fb11825@syzkaller.appspotmail.com
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Andrea Righi <andrea.righi@canonical.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/d_path.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/khugepaged.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
---- a/fs/d_path.c~d_path-fix-kernel-doc-validator-complaining
-+++ a/fs/d_path.c
-@@ -77,9 +77,8 @@ static bool prepend(struct prepend_buffe
+--- a/mm/khugepaged.c~mm-khugepaged-skip-huge-page-collapse-for-special-files
++++ a/mm/khugepaged.c
+@@ -445,22 +445,25 @@ static bool hugepage_vma_check(struct vm
+ 	if (!transhuge_vma_enabled(vma, vm_flags))
+ 		return false;
  
- /**
-  * prepend_name - prepend a pathname in front of current buffer pointer
-- * @buffer: buffer pointer
-- * @buflen: allocated length of the buffer
-- * @name:   name string and length qstr structure
-+ * @p: prepend buffer which contains buffer pointer and allocated length
-+ * @name: name string and length qstr structure
-  *
-  * With RCU path tracing, it may race with d_move(). Use READ_ONCE() to
-  * make sure that either the old or the new name pointer and length are
-@@ -141,8 +140,7 @@ static int __prepend_path(const struct d
-  * prepend_path - Prepend path string to a buffer
-  * @path: the dentry/vfsmount to report
-  * @root: root vfsmnt/dentry
-- * @buffer: pointer to the end of the buffer
-- * @buflen: pointer to buffer length
-+ * @p: prepend buffer which contains buffer pointer and allocated length
-  *
-  * The function will first try to write out the pathname without taking any
-  * lock other than the RCU read lock to make sure that dentries won't go away.
+-	/* Enabled via shmem mount options or sysfs settings. */
+-	if (shmem_file(vma->vm_file) && shmem_huge_enabled(vma)) {
++	if (vma->vm_file)
+ 		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
+ 				HPAGE_PMD_NR);
+-	}
++
++	/* Enabled via shmem mount options or sysfs settings. */
++	if (shmem_file(vma->vm_file))
++		return shmem_huge_enabled(vma);
+ 
+ 	/* THP settings require madvise. */
+ 	if (!(vm_flags & VM_HUGEPAGE) && !khugepaged_always())
+ 		return false;
+ 
+-	/* Read-only file mappings need to be aligned for THP to work. */
++	/* Only regular file is valid */
+ 	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && vma->vm_file &&
+-	    !inode_is_open_for_write(vma->vm_file->f_inode) &&
+ 	    (vm_flags & VM_EXEC)) {
+-		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
+-				HPAGE_PMD_NR);
++		struct inode *inode = vma->vm_file->f_inode;
++
++		return !inode_is_open_for_write(inode) &&
++			S_ISREG(inode->i_mode);
+ 	}
+ 
+ 	if (!vma->anon_vma || vma->vm_ops)
 _
 
-Patches currently in -mm which might be from justin.he@arm.com are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-d_path-fix-kernel-doc-validator-complaining.patch
+mm-hwpoison-remove-the-unnecessary-thp-check.patch
+mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
+mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
+mm-hwpoison-refactor-refcount-check-handling.patch
+mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
+mm-hwpoison-handle-non-anonymous-thp-correctly.patch
+mm-migrate-make-demotion-knob-depend-on-migration.patch
 
