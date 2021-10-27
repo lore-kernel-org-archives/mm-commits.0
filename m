@@ -2,37 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DD88C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:08:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 29855C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:15:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C65E60FC0
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:08:33 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F88F610A0
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:15:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240477AbhJ0UK6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 16:10:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53554 "EHLO mail.kernel.org"
+        id S236779AbhJ0USD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 16:18:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:57714 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238558AbhJ0UK5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 16:10:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DD5876023F;
-        Wed, 27 Oct 2021 20:08:31 +0000 (UTC)
+        id S236554AbhJ0USC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 16:18:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8DCA60EC0;
+        Wed, 27 Oct 2021 20:15:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635365312;
-        bh=VSRBlqm0ZaQBToR1GKMJIHCreMFIz+Kp4SYPvtsdJHM=;
+        s=korg; t=1635365736;
+        bh=NeNNdE2MgvYsN1PSVUQswocS+dX9T+Nf2n4NewUBSg4=;
         h=Date:From:To:Subject:From;
-        b=MaQHkbLr9K2+uaj0shjBV0qrRzE2pmwN9VgEDA7xjnOXR/FaeG8urEnPeeR7J8agU
-         cGJQL6yWh/b1T3fNpbk1SiN9ZjT2gOb4nDlJkckRiraE7p0Z9J1XgmWH7AnBEmcQt7
-         mvQ7VlUTeIfqvDbfN810JBPMvneXjmgefA67jtuo=
-Date:   Wed, 27 Oct 2021 13:08:31 -0700
+        b=mOTgPHV2mrEpgWeWnLOiwD82WUNuB3HUR9Brv2sKotcqI0nloQGDuDWv4YrrT/0k9
+         9LLdzzxUCAtkkRWOSPs1HRp2JZp7Icl8wVUtCU6m/MuLhLdeQSar1pZ8WwfVJKbje2
+         S8899Dv4IxByG0UMfedvNQin9PtHUc+u3ff0IOmo=
+Date:   Wed, 27 Oct 2021 13:15:36 -0700
 From:   akpm@linux-foundation.org
-To:     andrea.righi@canonical.com, hughd@google.com,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        shy828301@gmail.com, songliubraving@fb.com, stable@vger.kernel.org,
-        sunhao.th@gmail.com, willy@infradead.org
-Subject:  +
- mm-khugepaged-skip-huge-page-collapse-for-special-files.patch added to -mm
- tree
-Message-ID: <20211027200831.Vl86m8C8a%akpm@linux-foundation.org>
+To:     asml.silence@gmail.com, axboe@kernel.dk, clm@fb.com,
+        david@fromorbit.com, jack@suse.cz, josef@redhat.com,
+        mm-commits@vger.kernel.org
+Subject:  + mm-dont-read-i_size-of-inode-unless-we-need-it.patch
+ added to -mm tree
+Message-ID: <20211027201536.Y_pPgGyw-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: khugepaged: skip huge page collapse for special files
+     Subject: mm: don't read i_size of inode unless we need it
 has been added to the -mm tree.  Its filename is
-     mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
+     mm-dont-read-i_size-of-inode-unless-we-need-it.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-dont-read-i_size-of-inode-unless-we-need-it.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-read-i_size-of-inode-unless-we-need-it.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,84 +60,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: khugepaged: skip huge page collapse for special files
+From: Jens Axboe <axboe@kernel.dk>
+Subject: mm: don't read i_size of inode unless we need it
 
-The read-only THP for filesystems will collapse THP for files opened
-readonly and mapped with VM_EXEC.  The intended usecase is to avoid TLB
-misses for large text segments.  But it doesn't restrict the file types so
-a THP could be collapsed for a non-regular file, for example, block
-device, if it is opened readonly and mapped with EXEC permission.  This
-may cause bugs, like [1] and [2].
+We always go through i_size_read(), and we rarely end up needing it. Push
+the read to down where we need to check it, which avoids it for most
+cases.
 
-This is definitely not the intended usecase, so just collapse THP for
-regular files in order to close the attack surface.
+It looks like we can even remove this check entirely, which might be
+worth pursuing. But at least this takes it out of the hot path.
 
-[1] https://lore.kernel.org/lkml/CACkBjsYwLYLRmX8GpsDpMthagWOjWWrNxqY6ZLNQVr6yx+f5vA@mail.gmail.com/
-[2] https://lore.kernel.org/linux-mm/000000000000c6a82505ce284e4c@google.com/
-
-Link: https://lkml.kernel.org/r/20211027195221.3825-1-shy828301@gmail.com
-Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reported-by: Hao Sun <sunhao.th@gmail.com>
-Reported-by: syzbot+aae069be1de40fb11825@syzkaller.appspotmail.com
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Andrea Righi <andrea.righi@canonical.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/6b67981f-57d4-c80e-bc07-6020aa601381@kernel.dk
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Acked-by: Chris Mason <clm@fb.com>
+Cc: Josef Bacik <josef@redhat.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Pavel Begunkov <asml.silence@gmail.com>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+ mm/filemap.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-skip-huge-page-collapse-for-special-files
-+++ a/mm/khugepaged.c
-@@ -445,22 +445,25 @@ static bool hugepage_vma_check(struct vm
- 	if (!transhuge_vma_enabled(vma, vm_flags))
- 		return false;
+--- a/mm/filemap.c~mm-dont-read-i_size-of-inode-unless-we-need-it
++++ a/mm/filemap.c
+@@ -2740,9 +2740,7 @@ generic_file_read_iter(struct kiocb *ioc
+ 		struct file *file = iocb->ki_filp;
+ 		struct address_space *mapping = file->f_mapping;
+ 		struct inode *inode = mapping->host;
+-		loff_t size;
  
--	/* Enabled via shmem mount options or sysfs settings. */
--	if (shmem_file(vma->vm_file) && shmem_huge_enabled(vma)) {
-+	if (vma->vm_file)
- 		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
- 				HPAGE_PMD_NR);
--	}
-+
-+	/* Enabled via shmem mount options or sysfs settings. */
-+	if (shmem_file(vma->vm_file))
-+		return shmem_huge_enabled(vma);
- 
- 	/* THP settings require madvise. */
- 	if (!(vm_flags & VM_HUGEPAGE) && !khugepaged_always())
- 		return false;
- 
--	/* Read-only file mappings need to be aligned for THP to work. */
-+	/* Only regular file is valid */
- 	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && vma->vm_file &&
--	    !inode_is_open_for_write(vma->vm_file->f_inode) &&
- 	    (vm_flags & VM_EXEC)) {
--		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
--				HPAGE_PMD_NR);
-+		struct inode *inode = vma->vm_file->f_inode;
-+
-+		return !inode_is_open_for_write(inode) &&
-+			S_ISREG(inode->i_mode);
+-		size = i_size_read(inode);
+ 		if (iocb->ki_flags & IOCB_NOWAIT) {
+ 			if (filemap_range_needs_writeback(mapping, iocb->ki_pos,
+ 						iocb->ki_pos + count - 1))
+@@ -2774,8 +2772,9 @@ generic_file_read_iter(struct kiocb *ioc
+ 		 * the rest of the read.  Buffered reads will not work for
+ 		 * DAX files, so don't bother trying.
+ 		 */
+-		if (retval < 0 || !count || iocb->ki_pos >= size ||
+-		    IS_DAX(inode))
++		if (retval < 0 || !count || IS_DAX(inode))
++			return retval;
++		if (iocb->ki_pos >= i_size_read(inode))
+ 			return retval;
  	}
  
- 	if (!vma->anon_vma || vma->vm_ops)
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from axboe@kernel.dk are
 
-mm-hwpoison-remove-the-unnecessary-thp-check.patch
-mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
-mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
-mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
-mm-hwpoison-refactor-refcount-check-handling.patch
-mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
-mm-hwpoison-handle-non-anonymous-thp-correctly.patch
-mm-migrate-make-demotion-knob-depend-on-migration.patch
+mm-dont-read-i_size-of-inode-unless-we-need-it.patch
+mm-move-more-expensive-part-of-xa-setup-out-of-mapping-check.patch
 
