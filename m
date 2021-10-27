@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02DAEC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 23:03:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7919DC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 23:43:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DB540610CB
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 23:03:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4A6D1610CB
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 23:43:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230125AbhJ0XFl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 19:05:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:59752 "EHLO mail.kernel.org"
+        id S229447AbhJ0Xpz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 19:45:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43170 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229987AbhJ0XFk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 19:05:40 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1E5360E54;
-        Wed, 27 Oct 2021 23:03:14 +0000 (UTC)
+        id S229437AbhJ0Xpz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 19:45:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DF0C761073;
+        Wed, 27 Oct 2021 23:43:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635375794;
-        bh=fwI6QzSRVClUJEgBbZwvtVyg4ZInMhvP3I3Z3xQbkT0=;
+        s=korg; t=1635378209;
+        bh=w32BuWTOyJTAkLe1CCwIJVxEDQizfL0Gg1wVSRKRMxM=;
         h=Date:From:To:Subject:From;
-        b=aNGoYoVzWd08DjX5E/DkwUX+5efiMgZUSv4BgttO8zj+5uHWOvJIVQtu+Zm1jJ201
-         9FUeMR5CiQCtdeOXNrzhGg1D/sM6jPGYMFrh3L5MswTuufvb7RhiRozv6jTFSRLcWv
-         Npr1aVrFyp38F9D56+9bazFfWG2TWBcuL/Fudgms=
-Date:   Wed, 27 Oct 2021 16:03:14 -0700
+        b=ZY/CYfoSkxsvQMwDvxLpp5cZckAnz6wJpXYr6B5q/ig4UpIXyA8zgOLGhpaylLEsl
+         e13PLfgS08I8HwWE3t12eNAAaGKbr62Hd9fKcvoyo5vybsH2Z4W3rgJdP5AzktaPw9
+         SdVrcNb3UnAO30DcGK5uC/zPlsrg5PAzm2PzW22c=
+Date:   Wed, 27 Oct 2021 16:43:28 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
-        mm-commits@vger.kernel.org
+        lkp@intel.com, mm-commits@vger.kernel.org
 Subject:  +
- generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix.patch
- added to -mm tree
-Message-ID: <20211027230314.dhMEdjjwa%akpm@linux-foundation.org>
+ delay-replace-kernelh-with-the-necessary-inclusions-fix.patch added to -mm
+ tree
+Message-ID: <20211027234328.x1aWWVi-e%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix
+     Subject: delay-replace-kernelh-with-the-necessary-inclusions-fix
 has been added to the -mm tree.  Its filename is
-     generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix.patch
+     delay-replace-kernelh-with-the-necessary-inclusions-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/delay-replace-kernelh-with-the-necessary-inclusions-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/delay-replace-kernelh-with-the-necessary-inclusions-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,27 +61,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix
+Subject: delay-replace-kernelh-with-the-necessary-inclusions-fix
 
-include math.h for round_up()
+drivers/media/dvb-frontends/cxd2880/cxd2880_common.h needs bits.h for GENMASK()
 
+Reported-by: kernel test robot <lkp@intel.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/generic-radix-tree.h |    1 +
+ drivers/media/dvb-frontends/cxd2880/cxd2880_common.h |    1 +
  1 file changed, 1 insertion(+)
 
---- a/include/linux/generic-radix-tree.h~generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix
-+++ a/include/linux/generic-radix-tree.h
-@@ -39,6 +39,7 @@
- #include <asm/page.h>
- #include <linux/bug.h>
- #include <linux/log2.h>
-+#include <linux/math.h>
+--- a/drivers/media/dvb-frontends/cxd2880/cxd2880_common.h~delay-replace-kernelh-with-the-necessary-inclusions-fix
++++ a/drivers/media/dvb-frontends/cxd2880/cxd2880_common.h
+@@ -12,6 +12,7 @@
  #include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/delay.h>
++#include <linux/bits.h>
+ #include <linux/string.h>
  
- struct genradix_root;
+ int cxd2880_convert2s_complement(u32 value, u32 bitlen);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,4 +105,5 @@ linux-next-rejects.patch
 restore-acct_reclaim_writeback-for-folio.patch
 mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault-vs-folios.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
+delay-replace-kernelh-with-the-necessary-inclusions-fix.patch
 
