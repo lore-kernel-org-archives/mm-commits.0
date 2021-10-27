@@ -2,34 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 41844C433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:33:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8F5DC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:45:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2394A610C7
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:33:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7A9CF610CA
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:45:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230494AbhJ0Vfw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 17:35:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41164 "EHLO mail.kernel.org"
+        id S229521AbhJ0VsK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 17:48:10 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42924 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231623AbhJ0Vfs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 17:35:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1B4CA61073;
-        Wed, 27 Oct 2021 21:33:22 +0000 (UTC)
+        id S229437AbhJ0VsK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 17:48:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DFFDB610A6;
+        Wed, 27 Oct 2021 21:45:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635370402;
-        bh=ROaLZ9hREgHzs4Ln+FuCKnrZttSyS/G0vVUGm9mPEcg=;
+        s=korg; t=1635371144;
+        bh=VX2BSQk1y8AIVXycK+SwWvz+3BdvTHkfWfnAwozD1Q0=;
         h=Date:From:To:Subject:From;
-        b=iuGmhjM+HcWHX25agSPOrFmYVj3Yej1visPUcwGLe3g3j/MLBrjIQ2DVBM9LBsDN/
-         RofuiAQ56AvLmT/FBKzA1Vx6xCvavqizdPA24u3puhaiY/RVIMm3iAuYkiovweuSOj
-         wOuLH9lsO+FrYFWNLR+m1EnLupTHnwD+VoW+EtgM=
-Date:   Wed, 27 Oct 2021 14:33:21 -0700
+        b=EGw8q+myT52qo1pexlaTtB6Un8RvufPscX7EE3WtNLbmof3/CihWLOsZCT068sDxN
+         HuUEBofQoRSc9FtGkPgyJEueDcbQhC9597Ju2N6G8UdxOpAxQ2UKCaeIdd0rKjI44s
+         DMOgvw+O07y/v/7MWea/49ypEHWftdbpOARKWytI=
+Date:   Wed, 27 Oct 2021 14:45:43 -0700
 From:   akpm@linux-foundation.org
-To:     konishi.ryusuke@gmail.com, mm-commits@vger.kernel.org,
-        wangqing@vivo.com
-Subject:  + nilfs2-remove-filenames-from-file-comments.patch added
- to -mm tree
-Message-ID: <20211027213321._HAsTcZzO%akpm@linux-foundation.org>
+To:     alexs@kernel.org, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
+        shakeelb@google.com, songmuchun@bytedance.com,
+        songyuanzheng@huawei.com, willy@infradead.org
+Subject:  +
+ mm-vmpressure-fix-data-race-with-memcg-socket_pressure.patch added to -mm
+ tree
+Message-ID: <20211027214543.HTqOeebpa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: remove filenames from file comments
+     Subject: mm/vmpressure: fix data-race with memcg->socket_pressure
 has been added to the -mm tree.  Its filename is
-     nilfs2-remove-filenames-from-file-comments.patch
+     mm-vmpressure-fix-data-race-with-memcg-socket_pressure.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/nilfs2-remove-filenames-from-file-comments.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmpressure-fix-data-race-with-memcg-socket_pressure.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-remove-filenames-from-file-comments.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmpressure-fix-data-race-with-memcg-socket_pressure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -59,453 +62,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Subject: nilfs2: remove filenames from file comments
+From: Yuanzheng Song <songyuanzheng@huawei.com>
+Subject: mm/vmpressure: fix data-race with memcg->socket_pressure
 
-Remove filenames that are not particularly useful in file comments, and
-suppress checkpatch warnings "WARNING: It's generally not useful to have
-the filename in the file".
+BUG: KCSAN: data-race in __sk_mem_reduce_allocated / vmpressure
 
-Link: https://lkml.kernel.org/r/1635151862-11547-3-git-send-email-konishi.ryusuke@gmail.com
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
-Cc: Qing Wang <wangqing@vivo.com>
+write to 0xffff8881286f4938 of 8 bytes by task 24550 on cpu 3:
+ vmpressure+0x218/0x230 mm/vmpressure.c:307
+ shrink_node_memcgs+0x2b9/0x410 mm/vmscan.c:2658
+ shrink_node+0x9d2/0x11d0 mm/vmscan.c:2769
+ shrink_zones+0x29f/0x470 mm/vmscan.c:2972
+ do_try_to_free_pages+0x193/0x6e0 mm/vmscan.c:3027
+ try_to_free_mem_cgroup_pages+0x1c0/0x3f0 mm/vmscan.c:3345
+ reclaim_high mm/memcontrol.c:2440 [inline]
+ mem_cgroup_handle_over_high+0x18b/0x4d0 mm/memcontrol.c:2624
+ tracehook_notify_resume include/linux/tracehook.h:197 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:164 [inline]
+ exit_to_user_mode_prepare+0x110/0x170 kernel/entry/common.c:191
+ syscall_exit_to_user_mode+0x16/0x30 kernel/entry/common.c:266
+ ret_from_fork+0x15/0x30 arch/x86/entry/entry_64.S:289
+
+read to 0xffff8881286f4938 of 8 bytes by interrupt on cpu 1:
+ mem_cgroup_under_socket_pressure include/linux/memcontrol.h:1483 [inline]
+ sk_under_memory_pressure include/net/sock.h:1314 [inline]
+ __sk_mem_reduce_allocated+0x1d2/0x270 net/core/sock.c:2696
+ __sk_mem_reclaim+0x44/0x50 net/core/sock.c:2711
+ sk_mem_reclaim include/net/sock.h:1490 [inline]
+ ......
+ net_rx_action+0x17a/0x480 net/core/dev.c:6864
+ __do_softirq+0x12c/0x2af kernel/softirq.c:298
+ run_ksoftirqd+0x13/0x20 kernel/softirq.c:653
+ smpboot_thread_fn+0x33f/0x510 kernel/smpboot.c:165
+ kthread+0x1fc/0x220 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+When reading memcg->socket_pressure in mem_cgroup_under_socket_pressure()
+and writing memcg->socket_pressure in vmpressure() at the same time,
+the data-race occurs.
+
+So fix it by using READ_ONCE() and WRITE_ONCE() to read and write
+memcg->socket_pressure.
+
+Link: https://lkml.kernel.org/r/20211025082843.671690-1-songyuanzheng@huawei.com
+Signed-off-by: Yuanzheng Song <songyuanzheng@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/alloc.c     |    2 +-
- fs/nilfs2/alloc.h     |    2 +-
- fs/nilfs2/bmap.c      |    2 +-
- fs/nilfs2/bmap.h      |    2 +-
- fs/nilfs2/btnode.c    |    2 +-
- fs/nilfs2/btnode.h    |    2 +-
- fs/nilfs2/btree.c     |    2 +-
- fs/nilfs2/btree.h     |    2 +-
- fs/nilfs2/cpfile.c    |    2 +-
- fs/nilfs2/cpfile.h    |    2 +-
- fs/nilfs2/dat.c       |    2 +-
- fs/nilfs2/dat.h       |    2 +-
- fs/nilfs2/dir.c       |    2 +-
- fs/nilfs2/direct.c    |    2 +-
- fs/nilfs2/direct.h    |    2 +-
- fs/nilfs2/file.c      |    2 +-
- fs/nilfs2/gcinode.c   |    2 +-
- fs/nilfs2/ifile.c     |    2 +-
- fs/nilfs2/ifile.h     |    2 +-
- fs/nilfs2/inode.c     |    2 +-
- fs/nilfs2/ioctl.c     |    2 +-
- fs/nilfs2/mdt.c       |    2 +-
- fs/nilfs2/mdt.h       |    2 +-
- fs/nilfs2/namei.c     |    2 +-
- fs/nilfs2/nilfs.h     |    2 +-
- fs/nilfs2/page.c      |    2 +-
- fs/nilfs2/page.h      |    2 +-
- fs/nilfs2/recovery.c  |    2 +-
- fs/nilfs2/segbuf.c    |    2 +-
- fs/nilfs2/segbuf.h    |    2 +-
- fs/nilfs2/segment.c   |    2 +-
- fs/nilfs2/segment.h   |    2 +-
- fs/nilfs2/sufile.c    |    2 +-
- fs/nilfs2/sufile.h    |    2 +-
- fs/nilfs2/super.c     |    2 +-
- fs/nilfs2/sysfs.c     |    2 +-
- fs/nilfs2/sysfs.h     |    2 +-
- fs/nilfs2/the_nilfs.c |    2 +-
- fs/nilfs2/the_nilfs.h |    2 +-
- 39 files changed, 39 insertions(+), 39 deletions(-)
+ include/linux/memcontrol.h |    2 +-
+ mm/vmpressure.c            |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/nilfs2/alloc.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/alloc.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * alloc.c - NILFS dat/inode allocator
-+ * NILFS dat/inode allocator
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/alloc.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/alloc.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * alloc.h - persistent object (dat entry/disk inode) allocator/deallocator
-+ * Persistent object (dat entry/disk inode) allocator/deallocator
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/bmap.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/bmap.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * bmap.c - NILFS block mapping.
-+ * NILFS block mapping.
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/bmap.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/bmap.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * bmap.h - NILFS block mapping.
-+ * NILFS block mapping.
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/btnode.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/btnode.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * btnode.c - NILFS B-tree node cache
-+ * NILFS B-tree node cache
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/btnode.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/btnode.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * btnode.h - NILFS B-tree node cache
-+ * NILFS B-tree node cache
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/btree.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/btree.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * btree.c - NILFS B-tree.
-+ * NILFS B-tree.
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/btree.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/btree.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * btree.h - NILFS B-tree.
-+ * NILFS B-tree.
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/cpfile.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/cpfile.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * cpfile.c - NILFS checkpoint file.
-+ * NILFS checkpoint file.
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/cpfile.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/cpfile.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * cpfile.h - NILFS checkpoint file.
-+ * NILFS checkpoint file.
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/dat.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/dat.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * dat.c - NILFS disk address translation.
-+ * NILFS disk address translation.
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/dat.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/dat.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * dat.h - NILFS disk address translation.
-+ * NILFS disk address translation.
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/dir.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/dir.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * dir.c - NILFS directory entry operations
-+ * NILFS directory entry operations
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/direct.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/direct.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * direct.c - NILFS direct block pointer.
-+ * NILFS direct block pointer.
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/direct.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/direct.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * direct.h - NILFS direct block pointer.
-+ * NILFS direct block pointer.
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/file.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/file.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * file.c - NILFS regular file handling primitives including fsync().
-+ * NILFS regular file handling primitives including fsync().
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/gcinode.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/gcinode.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * gcinode.c - dummy inodes to buffer blocks for garbage collection
-+ * Dummy inodes to buffer blocks for garbage collection
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/ifile.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/ifile.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * ifile.c - NILFS inode file
-+ * NILFS inode file
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/ifile.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/ifile.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * ifile.h - NILFS inode file
-+ * NILFS inode file
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/inode.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/inode.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * inode.c - NILFS inode operations.
-+ * NILFS inode operations.
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/ioctl.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/ioctl.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * ioctl.c - NILFS ioctl operations.
-+ * NILFS ioctl operations.
-  *
-  * Copyright (C) 2007, 2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/mdt.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/mdt.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * mdt.c - meta data file for NILFS
-+ * Meta data file for NILFS
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/mdt.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/mdt.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * mdt.h - NILFS meta data file prototype and definitions
-+ * NILFS meta data file prototype and definitions
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/namei.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/namei.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * namei.c - NILFS pathname lookup operations.
-+ * NILFS pathname lookup operations.
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/nilfs.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/nilfs.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * nilfs.h - NILFS local header file.
-+ * NILFS local header file.
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/page.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/page.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * page.c - buffer/page management specific to NILFS
-+ * Buffer/page management specific to NILFS
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/page.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/page.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * page.h - buffer/page management specific to NILFS
-+ * Buffer/page management specific to NILFS
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/recovery.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/recovery.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * recovery.c - NILFS recovery logic
-+ * NILFS recovery logic
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/segbuf.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/segbuf.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * segbuf.c - NILFS segment buffer
-+ * NILFS segment buffer
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/segbuf.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/segbuf.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * segbuf.h - NILFS Segment buffer prototypes and definitions
-+ * NILFS Segment buffer prototypes and definitions
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/segment.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/segment.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * segment.c - NILFS segment constructor.
-+ * NILFS segment constructor.
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/segment.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/segment.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * segment.h - NILFS Segment constructor prototypes and definitions
-+ * NILFS Segment constructor prototypes and definitions
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/sufile.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/sufile.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * sufile.c - NILFS segment usage file.
-+ * NILFS segment usage file.
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/sufile.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/sufile.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * sufile.h - NILFS segment usage file.
-+ * NILFS segment usage file.
-  *
-  * Copyright (C) 2006-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/super.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/super.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * super.c - NILFS module and super block management.
-+ * NILFS module and super block management.
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/sysfs.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/sysfs.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * sysfs.c - sysfs support implementation.
-+ * Sysfs support implementation.
-  *
-  * Copyright (C) 2005-2014 Nippon Telegraph and Telephone Corporation.
-  * Copyright (C) 2014 HGST, Inc., a Western Digital Company.
---- a/fs/nilfs2/sysfs.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/sysfs.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * sysfs.h - sysfs support declarations.
-+ * Sysfs support declarations.
-  *
-  * Copyright (C) 2005-2014 Nippon Telegraph and Telephone Corporation.
-  * Copyright (C) 2014 HGST, Inc., a Western Digital Company.
---- a/fs/nilfs2/the_nilfs.c~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/the_nilfs.c
-@@ -1,6 +1,6 @@
- // SPDX-License-Identifier: GPL-2.0+
- /*
-- * the_nilfs.c - the_nilfs shared structure.
-+ * the_nilfs shared structure.
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
---- a/fs/nilfs2/the_nilfs.h~nilfs2-remove-filenames-from-file-comments
-+++ a/fs/nilfs2/the_nilfs.h
-@@ -1,6 +1,6 @@
- /* SPDX-License-Identifier: GPL-2.0+ */
- /*
-- * the_nilfs.h - the_nilfs shared structure.
-+ * the_nilfs shared structure.
-  *
-  * Copyright (C) 2005-2008 Nippon Telegraph and Telephone Corporation.
-  *
+--- a/include/linux/memcontrol.h~mm-vmpressure-fix-data-race-with-memcg-socket_pressure
++++ a/include/linux/memcontrol.h
+@@ -1606,7 +1606,7 @@ static inline bool mem_cgroup_under_sock
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && memcg->tcpmem_pressure)
+ 		return true;
+ 	do {
+-		if (time_before(jiffies, memcg->socket_pressure))
++		if (time_before(jiffies, READ_ONCE(memcg->socket_pressure)))
+ 			return true;
+ 	} while ((memcg = parent_mem_cgroup(memcg)));
+ 	return false;
+--- a/mm/vmpressure.c~mm-vmpressure-fix-data-race-with-memcg-socket_pressure
++++ a/mm/vmpressure.c
+@@ -308,7 +308,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
+ 			 * asserted for a second in which subsequent
+ 			 * pressure events can occur.
+ 			 */
+-			memcg->socket_pressure = jiffies + HZ;
++			WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
+ 		}
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@gmail.com are
+Patches currently in -mm which might be from songyuanzheng@huawei.com are
 
-nilfs2-remove-filenames-from-file-comments.patch
+mm-vmpressure-fix-data-race-with-memcg-socket_pressure.patch
 
