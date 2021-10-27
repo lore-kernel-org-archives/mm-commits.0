@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C50E6C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:01:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D7900C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:03:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A92EC610A5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:01:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C430C60C40
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:03:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237180AbhJ0IDz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 04:03:55 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43432 "EHLO mail.kernel.org"
+        id S234301AbhJ0IF1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 04:05:27 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43740 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240720AbhJ0ID2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 04:03:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B94E8610C7;
-        Wed, 27 Oct 2021 08:00:59 +0000 (UTC)
+        id S239154AbhJ0IFN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 04:05:13 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9DB4360C40;
+        Wed, 27 Oct 2021 08:02:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635321660;
-        bh=cEssAW37YtkuEpLU4KqkNgbKVkzjWnpUsE8WU4JIRGs=;
+        s=korg; t=1635321767;
+        bh=ubyLsULGZxamZTzRYkdIy0HE/z7GRO3T9rEqAdtR54c=;
         h=Date:From:To:Subject:From;
-        b=b0Laic6N5sMghSah0TO/q3vWYtsru6lDEIBZ+X9AGT2xabqCmETorkhU/DVGsVxj0
-         qHjM7d03bhhCA5YKl0HVTZBnxcOy6Mi7XxHiLxtvjJEnDJ9LesR8HLkrRvSERbILIL
-         CCd9h53s6ARdxVo4gmkSUy6Bf0ZEE1oieOo0ne6o=
-Date:   Wed, 27 Oct 2021 01:00:59 -0700
+        b=g3UWE2CV7zdydzIPukH2YBGM1fpdR9K4q3TyHRykuhiFWg82klwaIR/+m9LLv44LR
+         ocU4WZWEHG15UKPf8ELGCMVVyN+zLKlMXNf9GHwSc50gDiLsT/QY/yHWh0+SID5nFD
+         DTs1y+9uq9/5vzPeXOqCN0knx1JnJ77VeMnsTs2c=
+Date:   Wed, 27 Oct 2021 01:02:47 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, hch@lst.de, jack@suse.cz,
-        miquel.raynal@bootlin.com, mm-commits@vger.kernel.org,
-        richard@nod.at, vigneshr@ti.com
-Subject:  + mm-simplify-bdi-refcounting-fix-fix.patch added to -mm
- tree
-Message-ID: <20211027080059.CtdAIcwQw%akpm@linux-foundation.org>
+To:     axboe@kernel.dk, mm-commits@vger.kernel.org, willy@infradead.org
+Subject:  +
+ mm-move-more-expensive-part-of-xa-setup-out-of-mapping-check.patch added to
+ -mm tree
+Message-ID: <20211027080247.9EZzaVaOG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-simplify-bdi-refcounting-fix-fix
+     Subject: mm: move more expensive part of XA setup out of mapping check
 has been added to the -mm tree.  Its filename is
-     mm-simplify-bdi-refcounting-fix-fix.patch
+     mm-move-more-expensive-part-of-xa-setup-out-of-mapping-check.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-bdi-refcounting-fix-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-more-expensive-part-of-xa-setup-out-of-mapping-check.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-bdi-refcounting-fix-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-more-expensive-part-of-xa-setup-out-of-mapping-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,52 +59,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-simplify-bdi-refcounting-fix-fix
+From: Jens Axboe <axboe@kernel.dk>
+Subject: mm: move more expensive part of XA setup out of mapping check
 
-fix typo
+The fast path here is not needing any writeback, yet we spend time setting
+up the xarray lookup data upfront.  Move the part that actually needs to
+iterate the address space mapping into a separate helper, saving ~30% of
+the time here.
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Miquel Raynal <miquel.raynal@bootlin.com>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: Vignesh Raghavendra <vigneshr@ti.com>
+Link: https://lkml.kernel.org/r/49f67983-b802-8929-edab-d807f745c9ca@kernel.dk
+Signed-off-by: Jens Axboe <axboe@kernel.dk>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/backing-dev-defs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |   43 +++++++++++++++++++++++++------------------
+ 1 file changed, 25 insertions(+), 18 deletions(-)
 
---- a/include/linux/backing-dev-defs.h~mm-simplify-bdi-refcounting-fix-fix
-+++ a/include/linux/backing-dev-defs.h
-@@ -104,7 +104,7 @@ struct wb_completion {
-  * is tested for blkcg after lookup and removed from index on mismatch so
-  * that a new wb for the combination can be created.
-  *
-- * Each bdi_writeback that is no embedded into the backing_dev_info must hold
-+ * Each bdi_writeback that is not embedded into the backing_dev_info must hold
-  * a reference to the parent backing_dev_info.  See cgwb_create() for details.
-  */
- struct bdi_writeback {
+--- a/mm/filemap.c~mm-move-more-expensive-part-of-xa-setup-out-of-mapping-check
++++ a/mm/filemap.c
+@@ -639,6 +639,30 @@ static bool mapping_needs_writeback(stru
+ 	return mapping->nrpages;
+ }
+ 
++static bool filemap_range_has_writeback(struct address_space *mapping,
++					loff_t start_byte, loff_t end_byte)
++{
++	XA_STATE(xas, &mapping->i_pages, start_byte >> PAGE_SHIFT);
++	pgoff_t max = end_byte >> PAGE_SHIFT;
++	struct page *page;
++
++	if (end_byte < start_byte)
++		return false;
++
++	rcu_read_lock();
++	xas_for_each(&xas, page, max) {
++		if (xas_retry(&xas, page))
++			continue;
++		if (xa_is_value(page))
++			continue;
++		if (PageDirty(page) || PageLocked(page) || PageWriteback(page))
++			break;
++	}
++	rcu_read_unlock();
++	return page != NULL;
++
++}
++
+ /**
+  * filemap_range_needs_writeback - check if range potentially needs writeback
+  * @mapping:           address space within which to check
+@@ -656,29 +680,12 @@ static bool mapping_needs_writeback(stru
+ bool filemap_range_needs_writeback(struct address_space *mapping,
+ 				   loff_t start_byte, loff_t end_byte)
+ {
+-	XA_STATE(xas, &mapping->i_pages, start_byte >> PAGE_SHIFT);
+-	pgoff_t max = end_byte >> PAGE_SHIFT;
+-	struct page *page;
+-
+ 	if (!mapping_needs_writeback(mapping))
+ 		return false;
+ 	if (!mapping_tagged(mapping, PAGECACHE_TAG_DIRTY) &&
+ 	    !mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK))
+ 		return false;
+-	if (end_byte < start_byte)
+-		return false;
+-
+-	rcu_read_lock();
+-	xas_for_each(&xas, page, max) {
+-		if (xas_retry(&xas, page))
+-			continue;
+-		if (xa_is_value(page))
+-			continue;
+-		if (PageDirty(page) || PageLocked(page) || PageWriteback(page))
+-			break;
+-	}
+-	rcu_read_unlock();
+-	return page != NULL;
++	return filemap_range_has_writeback(mapping, start_byte, end_byte);
+ }
+ EXPORT_SYMBOL_GPL(filemap_range_needs_writeback);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from axboe@kernel.dk are
 
-kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
-mm.patch
-mm-page_ownerc-modify-the-type-of-argument-order-in-some-functions-fix.patch
-mm-simplify-bdi-refcounting-fix-fix.patch
-memcg-kmem-further-deprecate-kmemlimit_in_bytes-checkpatch-fixes.patch
-mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-checkpatch-fixes.patch
-mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-fix.patch
-mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-fix-2.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
-ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
-revert-acct_reclaim_writeback-for-next.patch
-linux-next-rejects.patch
-restore-acct_reclaim_writeback-for-folio.patch
-mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault-vs-folios.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-move-more-expensive-part-of-xa-setup-out-of-mapping-check.patch
 
