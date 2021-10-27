@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1025C433FE
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:47:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85988C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:56:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7D8661040
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:47:28 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6C9A9610C7
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:56:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238694AbhJ0Utv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 16:49:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44224 "EHLO mail.kernel.org"
+        id S240810AbhJ0U7I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 16:59:08 -0400
+Received: from mail.kernel.org ([198.145.29.99]:50362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234080AbhJ0Utv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 16:49:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2722260462;
-        Wed, 27 Oct 2021 20:47:25 +0000 (UTC)
+        id S234080AbhJ0U7I (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 16:59:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0D02B60720;
+        Wed, 27 Oct 2021 20:56:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635367645;
-        bh=Y5KO5xBYOp70/uIRjkekTlWowPLE8YwDo9CYE1UKgQ4=;
+        s=korg; t=1635368202;
+        bh=i66Gt8WNoXAI44A7TNM7eeizqI0+/HC02kO5gbjJpSo=;
         h=Date:From:To:Subject:From;
-        b=aeIHlI3T6u91dlXZ4QOrvBNY5SLvxZVKgzuwIsDXTysvRla/NIYUNNKJ930PQCUnU
-         ErroRBRAbh0U+EK27l+6T4VYCsGG0B68fXPNychP6ETO47+IvZx0qajjlv8XImP5zw
-         aClafbiXfeYk1DlhA9kI1rlyvn54ADG5H+4+q2hE=
-Date:   Wed, 27 Oct 2021 13:47:24 -0700
+        b=EYgldAQykcLV87i4EnYfTyeaxvZe5mq8bFzRd3JK9xoiROgLErkh/tkqtfZXqYkKg
+         CJgNRiHGzGQMT02fpW7lhDu3JomyS65AYnS0uQI+h8LMKZJ6Fp1CVna7LUfq5srtBs
+         AQtPNLiFbXNcY+Unya3wg9hzDcFTWqEAWRcdyk4I=
+Date:   Wed, 27 Oct 2021 13:56:41 -0700
 From:   akpm@linux-foundation.org
 To:     andrea.righi@canonical.com, hughd@google.com,
         kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
         shy828301@gmail.com, songliubraving@fb.com, stable@vger.kernel.org,
         sunhao.th@gmail.com, willy@infradead.org
-Subject:  [to-be-updated]
- mm-khugepaged-skip-huge-page-collapse-for-special-files.patch removed from
- -mm tree
-Message-ID: <20211027204724.BCa_q0orl%akpm@linux-foundation.org>
+Subject:  +
+ mm-khugepaged-skip-huge-page-collapse-for-special-files.patch added to -mm
+ tree
+Message-ID: <20211027205641.f7NuUnodc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,10 +42,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm: khugepaged: skip huge page collapse for special files
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
@@ -122,6 +136,8 @@ Patches currently in -mm which might be from shy828301@gmail.com are
 
 mm-hwpoison-remove-the-unnecessary-thp-check.patch
 mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
+mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
+mm-khugepaged-skip-huge-page-collapse-for-special-files-fix.patch
 mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
 mm-hwpoison-refactor-refcount-check-handling.patch
 mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
