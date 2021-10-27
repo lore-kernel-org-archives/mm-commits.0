@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16E26C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:26:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FF79C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:26:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ECA936103C
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:26:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EC5BE610A0
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:26:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239510AbhJ0U23 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 16:28:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36298 "EHLO mail.kernel.org"
+        id S239552AbhJ0U2b (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 16:28:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239500AbhJ0U22 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 16:28:28 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C558E610A0;
-        Wed, 27 Oct 2021 20:26:02 +0000 (UTC)
+        id S239500AbhJ0U2a (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 16:28:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CE1386103C;
+        Wed, 27 Oct 2021 20:26:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635366362;
-        bh=003K7EaON8oZ5D8GeOoMFr8j2vET0DuADimpaXxjMuI=;
+        s=korg; t=1635366364;
+        bh=LyzZfGmpXuWDzAjd0M7N+sv0feMdrkV7HBSweaUJhV8=;
         h=Date:From:To:Subject:From;
-        b=ddB+8wbNTTCwb2p02s2bQyP3DGtFAZPsNrZsZrPkztaZ/pNlUQTs2QBUTnCBKk//y
-         3SRc81Vw/ZZUwyxAfmy0FJ+OLSaoo2BR6YcpUw89FB9qQkgfR0R9YZu5zB+xca03rV
-         Bc8ID3FoOfHafl3Gwk+iTxrYGzLhnOTE9lNrMBp4=
-Date:   Wed, 27 Oct 2021 13:26:02 -0700
+        b=SgTzPGM/5UD7VOixD69zxez0BWFPeQSc/4K5gkaxaooI0zMiSJtn39x0MSsrxIvrr
+         vvQk9WBYv9KCzShkr8t7Azmd/KfIvfy5XekQ/sedJD9JVUoFtx2lTEe5OzeGpuYssw
+         XlUUy8XDCMoTyUOFDFFos5LtU0LB3UZmLfz9Jx/c=
+Date:   Wed, 27 Oct 2021 13:26:04 -0700
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 Subject:  +
- sbitmap-replace-kernelh-with-the-necessary-inclusions.patch added to -mm
+ radix-tree-replace-kernelh-with-the-necessary-inclusions.patch added to -mm
  tree
-Message-ID: <20211027202602.XA4vL-WrA%akpm@linux-foundation.org>
+Message-ID: <20211027202604.YDqFlGrh3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/sbitmap.h: replace kernel.h with the necessary inclusions
+     Subject: include/linux/radix-tree.h: replace kernel.h with the necessary inclusions
 has been added to the -mm tree.  Its filename is
-     sbitmap-replace-kernelh-with-the-necessary-inclusions.patch
+     radix-tree-replace-kernelh-with-the-necessary-inclusions.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/sbitmap-replace-kernelh-with-the-necessary-inclusions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/radix-tree-replace-kernelh-with-the-necessary-inclusions.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/sbitmap-replace-kernelh-with-the-necessary-inclusions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-replace-kernelh-with-the-necessary-inclusions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,42 +60,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: include/linux/sbitmap.h: replace kernel.h with the necessary inclusions
+Subject: include/linux/radix-tree.h: replace kernel.h with the necessary inclusions
 
 When kernel.h is used in the headers it adds a lot into dependency hell,
 especially when there are circular dependencies are involved.
 
 Replace kernel.h inclusion with the list of what is really being used.
 
-Link: https://lkml.kernel.org/r/20211027150437.79921-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20211027150528.80003-1-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sbitmap.h |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ include/linux/radix-tree.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/include/linux/sbitmap.h~sbitmap-replace-kernelh-with-the-necessary-inclusions
-+++ a/include/linux/sbitmap.h
-@@ -9,8 +9,17 @@
- #ifndef __LINUX_SCALE_BITMAP_H
- #define __LINUX_SCALE_BITMAP_H
+--- a/include/linux/radix-tree.h~radix-tree-replace-kernelh-with-the-necessary-inclusions
++++ a/include/linux/radix-tree.h
+@@ -9,8 +9,10 @@
+ #define _LINUX_RADIX_TREE_H
  
+ #include <linux/bitops.h>
 -#include <linux/kernel.h>
-+#include <linux/atomic.h>
-+#include <linux/bitops.h>
-+#include <linux/cache.h>
-+#include <linux/list.h>
-+#include <linux/log2.h>
-+#include <linux/minmax.h>
-+#include <linux/percpu.h>
- #include <linux/slab.h>
-+#include <linux/smp.h>
-+#include <linux/types.h>
-+#include <linux/wait.h>
- 
- struct seq_file;
- 
++#include <linux/gfp.h>
+ #include <linux/list.h>
++#include <linux/lockdep.h>
++#include <linux/math.h>
+ #include <linux/percpu.h>
+ #include <linux/preempt.h>
+ #include <linux/rcupdate.h>
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
