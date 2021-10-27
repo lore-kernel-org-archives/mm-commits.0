@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71224C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:06:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A249DC433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:06:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5911A610CB
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:06:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 847B9610CB
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:06:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240689AbhJ0IIZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 04:08:25 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44636 "EHLO mail.kernel.org"
+        id S239224AbhJ0II0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 04:08:26 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44696 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240718AbhJ0IIT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 04:08:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E75D960C40;
-        Wed, 27 Oct 2021 08:05:53 +0000 (UTC)
+        id S239236AbhJ0IIW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 04:08:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F27C661075;
+        Wed, 27 Oct 2021 08:05:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635321954;
-        bh=tiTYt0isk4aCpDWxERbChWOw0HZ1DxuU06kcEgZrtus=;
+        s=korg; t=1635321957;
+        bh=iWhthtDmp6gnLsc1iauQssod61FhsDqVB5fHikOozhg=;
         h=Date:From:To:Subject:From;
-        b=F8xLAq2RmmwmhHFSweCSlKZWfAGME3M+ipQZUBWqueNI6/s2B34gVF8V1U0u9Zo6s
-         OOCcmjSJf5J0Nt7CMJckvk04nJuHXs1GEtikMTxlXGxBq3iSM/mtGz0fcvM/s06HKh
-         3jq9BmiYvow3yF2aT6qBtSWbP8eWElz13nos6SrQ=
-Date:   Wed, 27 Oct 2021 01:05:53 -0700
+        b=OerR3kbMEGjWBTytG3lNmzzf5+bkOTLUfBHBpIfgJyE4xf39l8HtlMnPOs2iGH08Y
+         XsSWRle/MXFfdceAhmWhqE7DKGr8IOHuEpFoBzLot1uDNjXZHJXAgkVFF6JPX4ShtK
+         u0tk4Rc+kT05tcsh/SfzsQdIEsFgrunDppu5xMEI=
+Date:   Wed, 27 Oct 2021 01:05:56 -0700
 From:   akpm@linux-foundation.org
 To:     anitha.chrisanthus@intel.com, chenyu56@huawei.com,
         edmund.j.dea@intel.com, gregkh@linuxfoundation.org,
@@ -33,9 +33,9 @@ To:     anitha.chrisanthus@intel.com, chenyu56@huawei.com,
         ralf.ramsauer@oth-regensburg.de, robh+dt@kernel.org,
         sam@ravnborg.org, wilken.gottwalt@posteo.net
 Subject:  +
- maintainers-rectify-entry-for-hikey960-onboard-usb-gpio-hub-driver.patch
- added to -mm tree
-Message-ID: <20211027080553.Q0lU6y6Fw%akpm@linux-foundation.org>
+ maintainers-rectify-entry-for-intel-keem-bay-drm-driver.patch added to -mm
+ tree
+Message-ID: <20211027080556.wO1nol12n%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: rectify entry for HIKEY960 ONBOARD USB GPIO HUB DRIVER
+     Subject: MAINTAINERS: rectify entry for INTEL KEEM BAY DRM DRIVER
 has been added to the -mm tree.  Its filename is
-     maintainers-rectify-entry-for-hikey960-onboard-usb-gpio-hub-driver.patch
+     maintainers-rectify-entry-for-intel-keem-bay-drm-driver.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-rectify-entry-for-hikey960-onboard-usb-gpio-hub-driver.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-rectify-entry-for-intel-keem-bay-drm-driver.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-rectify-entry-for-hikey960-onboard-usb-gpio-hub-driver.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-rectify-entry-for-intel-keem-bay-drm-driver.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,18 +66,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: MAINTAINERS: rectify entry for HIKEY960 ONBOARD USB GPIO HUB DRIVER
+Subject: MAINTAINERS: rectify entry for INTEL KEEM BAY DRM DRIVER
 
-Commit 7a6ff4c4cbc3 ("misc: hisi_hikey_usb: Driver to support onboard USB
-gpio hub on Hikey960") refers to the non-existing file
-./Documentation/devicetree/bindings/misc/hisilicon-hikey-usb.yaml, but
-this commit's patch series does not add any related devicetree binding in
-misc.
+Commit ed794057b052 ("drm/kmb: Build files for KeemBay Display driver")
+refers to the non-existing file intel,kmb_display.yaml in
+./Documentation/devicetree/bindings/display/.
 
-So, just drop this file reference in HIKEY960 ONBOARD USB GPIO HUB DRIVER.
+Commit 5a76b1ed73b9 ("dt-bindings: display: Add support for Intel KeemBay
+Display") originating from the same patch series however adds the file
+intel,keembay-display.yaml in that directory instead.
 
-Link: https://lkml.kernel.org/r/20211026141902.4865-3-lukas.bulwahn@gmail.com
-Fixes: 7a6ff4c4cbc3 ("misc: hisi_hikey_usb: Driver to support onboard USB gpio hub on Hikey960")
+So, refer to intel,keembay-display.yaml in the INTEL KEEM BAY DRM DRIVER
+section instead.
+
+Link: https://lkml.kernel.org/r/20211026141902.4865-4-lukas.bulwahn@gmail.com
+Fixes: ed794057b052 ("drm/kmb: Build files for KeemBay Display driver")
 Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Cc: Anitha Chrisanthus <anitha.chrisanthus@intel.com>
 Cc: Edmund Dea <edmund.j.dea@intel.com>
@@ -95,19 +98,20 @@ Cc: Yu Chen <chenyu56@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-rectify-entry-for-hikey960-onboard-usb-gpio-hub-driver
+--- a/MAINTAINERS~maintainers-rectify-entry-for-intel-keem-bay-drm-driver
 +++ a/MAINTAINERS
-@@ -8471,7 +8471,6 @@ M:	John Stultz <john.stultz@linaro.org>
- L:	linux-kernel@vger.kernel.org
+@@ -9518,7 +9518,7 @@ INTEL KEEM BAY DRM DRIVER
+ M:	Anitha Chrisanthus <anitha.chrisanthus@intel.com>
+ M:	Edmund Dea <edmund.j.dea@intel.com>
  S:	Maintained
- F:	drivers/misc/hisi_hikey_usb.c
--F:	Documentation/devicetree/bindings/misc/hisilicon-hikey-usb.yaml
+-F:	Documentation/devicetree/bindings/display/intel,kmb_display.yaml
++F:	Documentation/devicetree/bindings/display/intel,keembay-display.yaml
+ F:	drivers/gpu/drm/kmb/
  
- HISILICON PMU DRIVER
- M:	Shaokun Zhang <zhangshaokun@hisilicon.com>
+ INTEL KEEM BAY OCS AES/SM4 CRYPTO DRIVER
 _
 
 Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
