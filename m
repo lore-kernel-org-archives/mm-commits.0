@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A249DC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:06:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1A51C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:06:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 847B9610CB
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:06:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id AC89F610F8
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:06:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239224AbhJ0II0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 04:08:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44696 "EHLO mail.kernel.org"
+        id S239069AbhJ0IIa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 04:08:30 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44734 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239236AbhJ0IIW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 04:08:22 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F27C661075;
-        Wed, 27 Oct 2021 08:05:56 +0000 (UTC)
+        id S240647AbhJ0IIZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 04:08:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1D95F610A5;
+        Wed, 27 Oct 2021 08:06:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635321957;
-        bh=iWhthtDmp6gnLsc1iauQssod61FhsDqVB5fHikOozhg=;
+        s=korg; t=1635321960;
+        bh=fhb6YU9+CHqmtcm8rkahS+wZ6+LOTQ5gs85oUiDniMQ=;
         h=Date:From:To:Subject:From;
-        b=OerR3kbMEGjWBTytG3lNmzzf5+bkOTLUfBHBpIfgJyE4xf39l8HtlMnPOs2iGH08Y
-         XsSWRle/MXFfdceAhmWhqE7DKGr8IOHuEpFoBzLot1uDNjXZHJXAgkVFF6JPX4ShtK
-         u0tk4Rc+kT05tcsh/SfzsQdIEsFgrunDppu5xMEI=
-Date:   Wed, 27 Oct 2021 01:05:56 -0700
+        b=oj8aPtc3E+FLW72VjPSCy5qxuA+JMLEHokcx3RGaFBK3txmeu+/z2IQxxuGXizuYs
+         vKYi3ZgDy0wxbp+DF5+VmSWgJe9sdRpf7zi7gKJl2bjEOB9OxDJwj1EeWydWTpeYEv
+         L9UHw+/qUsO2mW2KBdwAdhp3CdxmBnxY6opDaFaI=
+Date:   Wed, 27 Oct 2021 01:05:59 -0700
 From:   akpm@linux-foundation.org
 To:     anitha.chrisanthus@intel.com, chenyu56@huawei.com,
         edmund.j.dea@intel.com, gregkh@linuxfoundation.org,
@@ -33,9 +33,9 @@ To:     anitha.chrisanthus@intel.com, chenyu56@huawei.com,
         ralf.ramsauer@oth-regensburg.de, robh+dt@kernel.org,
         sam@ravnborg.org, wilken.gottwalt@posteo.net
 Subject:  +
- maintainers-rectify-entry-for-intel-keem-bay-drm-driver.patch added to -mm
- tree
-Message-ID: <20211027080556.wO1nol12n%akpm@linux-foundation.org>
+ maintainers-rectify-entry-for-allwinner-hardware-spinlock-support.patch
+ added to -mm tree
+Message-ID: <20211027080559.CbCQ5mGCs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: rectify entry for INTEL KEEM BAY DRM DRIVER
+     Subject: MAINTAINERS: rectify entry for ALLWINNER HARDWARE SPINLOCK SUPPORT
 has been added to the -mm tree.  Its filename is
-     maintainers-rectify-entry-for-intel-keem-bay-drm-driver.patch
+     maintainers-rectify-entry-for-allwinner-hardware-spinlock-support.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-rectify-entry-for-intel-keem-bay-drm-driver.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-rectify-entry-for-allwinner-hardware-spinlock-support.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-rectify-entry-for-intel-keem-bay-drm-driver.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-rectify-entry-for-allwinner-hardware-spinlock-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,21 +66,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: MAINTAINERS: rectify entry for INTEL KEEM BAY DRM DRIVER
+Subject: MAINTAINERS: rectify entry for ALLWINNER HARDWARE SPINLOCK SUPPORT
 
-Commit ed794057b052 ("drm/kmb: Build files for KeemBay Display driver")
-refers to the non-existing file intel,kmb_display.yaml in
-./Documentation/devicetree/bindings/display/.
+Commit f9e784dcb63f ("dt-bindings: hwlock: add sun6i_hwspinlock") adds
+Documentation/devicetree/bindings/hwlock/allwinner,sun6i-a31-hwspinlock.yaml,
+but the related commit 3c881e05c814 ("hwspinlock: add sun6i hardware
+spinlock support") adds a file reference to
+allwinner,sun6i-hwspinlock.yaml instead.
 
-Commit 5a76b1ed73b9 ("dt-bindings: display: Add support for Intel KeemBay
-Display") originating from the same patch series however adds the file
-intel,keembay-display.yaml in that directory instead.
+Hence, ./scripts/get_maintainer.pl --self-test=patterns complains:
 
-So, refer to intel,keembay-display.yaml in the INTEL KEEM BAY DRM DRIVER
-section instead.
+  warning: no file matches  F:  Documentation/devicetree/bindings/hwlock/allwinner,sun6i-hwspinlock.yaml
 
-Link: https://lkml.kernel.org/r/20211026141902.4865-4-lukas.bulwahn@gmail.com
-Fixes: ed794057b052 ("drm/kmb: Build files for KeemBay Display driver")
+Rectify this file reference in ALLWINNER HARDWARE SPINLOCK SUPPORT.
+
+Link: https://lkml.kernel.org/r/20211026141902.4865-5-lukas.bulwahn@gmail.com
+Reviewed-by: Wilken Gottwalt <wilken.gottwalt@posteo.net>
 Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Cc: Anitha Chrisanthus <anitha.chrisanthus@intel.com>
 Cc: Edmund Dea <edmund.j.dea@intel.com>
@@ -93,7 +94,6 @@ Cc: Punit Agrawal <punit1.agrawal@toshiba.co.jp>
 Cc: Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
 Cc: Rob Herring <robh+dt@kernel.org>
 Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Wilken Gottwalt <wilken.gottwalt@posteo.net>
 Cc: Yu Chen <chenyu56@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
@@ -101,17 +101,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-rectify-entry-for-intel-keem-bay-drm-driver
+--- a/MAINTAINERS~maintainers-rectify-entry-for-allwinner-hardware-spinlock-support
 +++ a/MAINTAINERS
-@@ -9518,7 +9518,7 @@ INTEL KEEM BAY DRM DRIVER
- M:	Anitha Chrisanthus <anitha.chrisanthus@intel.com>
- M:	Edmund Dea <edmund.j.dea@intel.com>
+@@ -761,7 +761,7 @@ F:	drivers/crypto/allwinner/
+ ALLWINNER HARDWARE SPINLOCK SUPPORT
+ M:	Wilken Gottwalt <wilken.gottwalt@posteo.net>
  S:	Maintained
--F:	Documentation/devicetree/bindings/display/intel,kmb_display.yaml
-+F:	Documentation/devicetree/bindings/display/intel,keembay-display.yaml
- F:	drivers/gpu/drm/kmb/
+-F:	Documentation/devicetree/bindings/hwlock/allwinner,sun6i-hwspinlock.yaml
++F:	Documentation/devicetree/bindings/hwlock/allwinner,sun6i-a31-hwspinlock.yaml
+ F:	drivers/hwspinlock/sun6i_hwspinlock.c
  
- INTEL KEEM BAY OCS AES/SM4 CRYPTO DRIVER
+ ALLWINNER THERMAL DRIVER
 _
 
 Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
