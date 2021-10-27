@@ -2,98 +2,112 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80BDCC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 05:37:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 79FD7C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 07:51:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 66EED6103B
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 05:37:48 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 523B660EB4
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 07:51:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239593AbhJ0FkL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 01:40:11 -0400
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35060 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239564AbhJ0FkL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 27 Oct 2021 01:40:11 -0400
-Received: from mail-pg1-x532.google.com (mail-pg1-x532.google.com [IPv6:2607:f8b0:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 93DC5C061570
-        for <mm-commits@vger.kernel.org>; Tue, 26 Oct 2021 22:37:46 -0700 (PDT)
-Received: by mail-pg1-x532.google.com with SMTP id r28so1909373pga.0
-        for <mm-commits@vger.kernel.org>; Tue, 26 Oct 2021 22:37:46 -0700 (PDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:from:date:message-id:subject:to
-         :content-transfer-encoding;
-        bh=RX2GNYu8TK9twAN2Lh7LQrNQzOMDZSFdqrZtavC3pao=;
-        b=leOdfHqFIEYjc7RcksxJzZPM4hRhMivChxi9yOh3eXPEJc/bDA1l9+o8zPHANtztYt
-         oEMbAmLb4+JsCzfOqThTsImq5Lm1qHv6FxKj5oOfrOHfBOWbT2QQHZrU3Bn/RgncBDEG
-         FegV7Lhsrf16F+bCPKmqFziVb/nAcj0OkKhuiglOTVdjGxDNsZO/hHZmm0UqYhgnG09x
-         ks14/pOF6c4ERBxS4GQ/96Lv5hjZYkpaWCoSO7NCKCq19/TBhp4j2QJ/p1EB5HZQviwl
-         qc2GOK5Tc5ADJE7oILD5B8TRk0gC2Ii99K2siTq+S0pE2s9k+0TEmuK1H/O2H29/62vg
-         qRcg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:from:date:message-id:subject:to
-         :content-transfer-encoding;
-        bh=RX2GNYu8TK9twAN2Lh7LQrNQzOMDZSFdqrZtavC3pao=;
-        b=ttcGZBN/RPlSSXJrTCkcov0oN9xZy4tD1kyhfQp0vYb1ZCyRyr6GMKIUPvZjlK1JOf
-         gJcmYUf7cvBriBXaOGP06TOLkj7wcMkxgzkgf58bHUOh6tfSHeCMLbFJ9TvolviwWm8Z
-         2ZghYnxiD8nSw6Ojvy0sINtxNarPq+V8kFI9tA2QjefYukfcUnvwUwEzes9vVPTbrNhP
-         tvh/x6Yzgk7KSKx/E8GxRkAaiV19suJdJR2qiSpuJ6UFO6RTqjJPjpQ2lBGxPCN858T/
-         IUNtrAGnkb75I9IG/jrknN68koHdZ/fZEhIjNXNP8AnTZOO6Ru1jfIb4yr5u/43olnZp
-         p9+A==
-X-Gm-Message-State: AOAM532lALyeXljvJNZkk3LleTsLZmkppL8ny/k0T9laqED166gGw7Kt
-        rB2DxcuGYjCKvm0yYZXxct9PfOwv40PuUHrcZS7kDrHy/us=
-X-Google-Smtp-Source: ABdhPJwtkehYKxSAauZXgAX9mmJZbcUmXNaVkDiadjgldkZm18VdoW2uL2cuTMZOhmvRQXSZGXh6J/menfzP6ub4Euw=
-X-Received: by 2002:a05:6a00:851:b0:47c:288c:88f7 with SMTP id
- q17-20020a056a00085100b0047c288c88f7mr3114322pfk.29.1635313065942; Tue, 26
- Oct 2021 22:37:45 -0700 (PDT)
+        id S237112AbhJ0HxY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 03:53:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41176 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S240676AbhJ0HxO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 03:53:14 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BF88961039;
+        Wed, 27 Oct 2021 07:50:49 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1635321050;
+        bh=83y1SJUmyP4TAP5EHxUego+TlD5JWrm3R7NYeOQlRCQ=;
+        h=Date:From:To:Subject:From;
+        b=qQCJmHEBt3qGqo5gZvJPQfqAuIIdau4hYofb4DinTZbMp/dajwHWe18BYnhAGcph9
+         zSotMLiU4eqSgWvRrrxptH/YAKpoZg+tIKkUo3NIvAfU3zMYsADeWlSxhaeAR5vzlb
+         FffmP3Didp6+6/gyWlDAqqCSsQm3HALHZtAe99Uk=
+Date:   Wed, 27 Oct 2021 00:50:49 -0700
+From:   akpm@linux-foundation.org
+To:     mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        osalvador@suse.de, pasha.tatashin@soleen.com,
+        songmuchun@bytedance.com, willy@infradead.org
+Subject:  +
+ =?US-ASCII?Q?hugetlb-remove-unnecessary-set=5Fpage=5Fcount-in-prep=5Fcomp?=
+ =?US-ASCII?Q?ound=5Fgigantic=5Fpage.patch?= added to -mm tree
+Message-ID: <20211027075049.3mo_ydyDe%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
-From:   yunhua li <yunhual@gmail.com>
-Date:   Tue, 26 Oct 2021 22:37:35 -0700
-Message-ID: <CAMqbrUgDCpwXTV871R-13VHgKg5RiTuogSpFGM=cyfowwFCnhg@mail.gmail.com>
-Subject: Does shrink_page_list also drop Readonly page?
-To:     mm-commits@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-1. I don=E2=80=99t have  swap partition
-2. My application use lots of memory, and use mlockall to locked lots
-of physical page.
 
-I guess when the free pages get really low, kernel doesn=E2=80=99t have oth=
-er
-option, as lots of pages are locked(mallocall) and dirty.
-The only option is to drop some read only data,  as I cat
-/proc/$PID/smaps, I found Some .so file. Rss is much. smaller than the
-actual size, and sometimes my application got unexpected ReadIO and
-latency. I guess that's because the code segment dropped, then it
-needed to be read back.
+The patch titled
+     Subject: hugetlb: remove unnecessary set_page_count in prep_compound_gigantic_page
+has been added to the -mm tree.  Its filename is
+     hugetlb-remove-unnecessary-set_page_count-in-prep_compound_gigantic_page.patch
 
-7f9bf0faa000-7f9bf11a9000 ---p 00037000 103:01 51781261
-  /usr/lib/x86_64-linux-gnu/libxxx.so
-23784 Size:                            2044 kB
-23785 KernelPageSize:         4 kB
-23786 MMUPageSize:           4 kB
-23787 Rss:                             0 kB
-23788 Pss:                             0 kB
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlb-remove-unnecessary-set_page_count-in-prep_compound_gigantic_page.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-remove-unnecessary-set_page_count-in-prep_compound_gigantic_page.patch
 
-My question is: which code will drop the readonly page? For dirty page
-I can find it in mm/vmscan.c shrink_page_list -> pageout
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-https://elixir.bootlin.com/linux/latest/source/mm/vmscan.c#L1553
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-As pageout function call guards by
-if (PageDirty(page)) {
-   =E2=80=A6
-   pageout(page, mapping);
-}
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
-Can anyone tell me where the code is located to drop the read only
-pages?  Such as the elf/.so code segment. Thanks.
+------------------------------------------------------
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: remove unnecessary set_page_count in prep_compound_gigantic_page
 
-Regards
-Yunhua
+In commit 7118fc2906e29 ("hugetlb: address ref count racing in
+prep_compound_gigantic_page"), page_ref_freeze is used to atomically zero
+the ref count of tail pages iff they are 1.  The unconditional call to
+set_page_count(0) was left in the code.  This call is after
+page_ref_freeze so it is really a noop.
+
+Remove redundant and unnecessary set_page_count call.
+
+Link: https://lkml.kernel.org/r/20211026220635.35187-1-mike.kravetz@oracle.com
+Fixes: 7118fc2906e29 ("hugetlb: address ref count racing in prep_compound_gigantic_page")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/hugetlb.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/mm/hugetlb.c~hugetlb-remove-unnecessary-set_page_count-in-prep_compound_gigantic_page
++++ a/mm/hugetlb.c
+@@ -1792,7 +1792,6 @@ static bool __prep_compound_gigantic_pag
+ 		} else {
+ 			VM_BUG_ON_PAGE(page_count(p), p);
+ 		}
+-		set_page_count(p, 0);
+ 		set_compound_head(p, page);
+ 	}
+ 	atomic_set(compound_mapcount_ptr(page), -1);
+_
+
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
+
+hugetlb-add-demote-hugetlb-page-sysfs-interfaces.patch
+hugetlb-add-demote-hugetlb-page-sysfs-interfaces-fix.patch
+mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma.patch
+hugetlb-be-sure-to-free-demoted-cma-pages-to-cma.patch
+hugetlb-add-demote-bool-to-gigantic-page-routines.patch
+hugetlb-add-hugetlb-demote-page-support.patch
+hugetlb-add-hugetlb-demote-page-support-v4.patch
+hugetlb-remove-unnecessary-set_page_count-in-prep_compound_gigantic_page.patch
+
