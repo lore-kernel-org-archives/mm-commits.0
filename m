@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87768C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:29:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A6BEC433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:32:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5ED3F60C40
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:29:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3FB8660ED4
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:32:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240823AbhJ0UcG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 16:32:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36952 "EHLO mail.kernel.org"
+        id S231890AbhJ0Ueh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 16:34:37 -0400
+Received: from mail.kernel.org ([198.145.29.99]:37460 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240753AbhJ0UcF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 16:32:05 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BF34D60F39;
-        Wed, 27 Oct 2021 20:29:39 +0000 (UTC)
+        id S230494AbhJ0Ueg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 16:34:36 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B7E2C60EB4;
+        Wed, 27 Oct 2021 20:32:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635366579;
-        bh=Tn3PQKIZEZXG0o/LQfGbqpIbPo29l57343fu6BbGYoE=;
+        s=korg; t=1635366730;
+        bh=kqweQG3FOTMAbxxkrKSxveWvZxxk0fVnRMcqFVMxnrg=;
         h=Date:From:To:Subject:From;
-        b=eC60MsE4waZmscaVXGeHLzoRaXKKjiR4PWddQ62SuuFqc96noRzPLirGRp8LE3nt0
-         FddUHAc4cSOxXczdaDk0DOxYB45Sx1zmDV6u+D+pkMbJZ9idi2tLhcpEkANCPU811u
-         vPjq3t9CvJ4Np9coaMPu8jIktPQp4w6suoATs3Ec=
-Date:   Wed, 27 Oct 2021 13:29:39 -0700
+        b=MvCMZsqT06L1alM16DRLV/yGnRM+FSj+mbyQm5J4il5/ilWJ0Ci/oTTr7/fzSWTfI
+         c32UwMqaiZmy6MTSeS2BXm1i7PTIBWaLYoSvGZMW1m27j3KG0H8ez0eZ9kC/+5yFkf
+         3MI+DaqGAZiKmYvXjw08BGEqFC37B6YBPtHuZLFw=
+Date:   Wed, 27 Oct 2021 13:32:10 -0700
 From:   akpm@linux-foundation.org
-To:     changbin.du@gmail.com, mm-commits@vger.kernel.org, sj@kernel.org
-Subject:  + mm-damon-simplify-stop-mechanism.patch added to -mm
- tree
-Message-ID: <20211027202939.hIh606sGx%akpm@linux-foundation.org>
+To:     andriy.shevchenko@linux.intel.com, justin.he@arm.com,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        viro@zeniv.linux.org.uk
+Subject:  + d_path-fix-kernel-doc-validator-complaining.patch added
+ to -mm tree
+Message-ID: <20211027203210.-1mSh6ss0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -37,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: simplify stop mechanism
+     Subject: d_path: fix Kernel doc validator complaining
 has been added to the -mm tree.  Its filename is
-     mm-damon-simplify-stop-mechanism.patch
+     d_path-fix-kernel-doc-validator-complaining.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-simplify-stop-mechanism.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/d_path-fix-kernel-doc-validator-complaining.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-simplify-stop-mechanism.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/d_path-fix-kernel-doc-validator-complaining.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -58,166 +60,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Changbin Du <changbin.du@gmail.com>
-Subject: mm/damon: simplify stop mechanism
+From: Jia He <justin.he@arm.com>
+Subject: d_path: fix Kernel doc validator complaining
 
-A kernel thread can exit gracefully with kthread_stop().  So we don't need
-a new flag 'kdamond_stop'.  And to make sure the task struct is not freed
-when accessing it, get reference to it before termination.
+Kernel doc validator complains:
+  Function parameter or member 'p' not described in 'prepend_name'
+  Excess function parameter 'buffer' description in 'prepend_name'
 
-Link: https://lkml.kernel.org/r/20211027130517.4404-1-changbin.du@gmail.com
-Signed-off-by: Changbin Du <changbin.du@gmail.com>
-Cc: SeongJae Park <sj@kernel.org>
+Link: https://lkml.kernel.org/r/20211011005614.26189-1-justin.he@arm.com
+Fixes: ad08ae586586 ("d_path: introduce struct prepend_buffer")
+Signed-off-by: Jia He <justin.he@arm.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    1 
- mm/damon/core.c       |   51 +++++++++++-----------------------------
- 2 files changed, 15 insertions(+), 37 deletions(-)
+ fs/d_path.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-simplify-stop-mechanism
-+++ a/include/linux/damon.h
-@@ -381,7 +381,6 @@ struct damon_ctx {
+--- a/fs/d_path.c~d_path-fix-kernel-doc-validator-complaining
++++ a/fs/d_path.c
+@@ -77,9 +77,8 @@ static bool prepend(struct prepend_buffe
  
- /* public: */
- 	struct task_struct *kdamond;
--	bool kdamond_stop;
- 	struct mutex kdamond_lock;
- 
- 	struct damon_primitive primitive;
---- a/mm/damon/core.c~mm-damon-simplify-stop-mechanism
-+++ a/mm/damon/core.c
-@@ -390,17 +390,6 @@ static unsigned long damon_region_sz_lim
- 	return sz;
- }
- 
--static bool damon_kdamond_running(struct damon_ctx *ctx)
--{
--	bool running;
--
--	mutex_lock(&ctx->kdamond_lock);
--	running = ctx->kdamond != NULL;
--	mutex_unlock(&ctx->kdamond_lock);
--
--	return running;
--}
--
- static int kdamond_fn(void *data);
- 
- /*
-@@ -418,7 +407,6 @@ static int __damon_start(struct damon_ct
- 	mutex_lock(&ctx->kdamond_lock);
- 	if (!ctx->kdamond) {
- 		err = 0;
--		ctx->kdamond_stop = false;
- 		ctx->kdamond = kthread_run(kdamond_fn, ctx, "kdamond.%d",
- 				nr_running_ctxs);
- 		if (IS_ERR(ctx->kdamond)) {
-@@ -474,13 +462,15 @@ int damon_start(struct damon_ctx **ctxs,
-  */
- static int __damon_stop(struct damon_ctx *ctx)
- {
-+	struct task_struct *tsk;
-+
- 	mutex_lock(&ctx->kdamond_lock);
--	if (ctx->kdamond) {
--		ctx->kdamond_stop = true;
-+	tsk = ctx->kdamond;
-+	if (tsk) {
-+		get_task_struct(tsk);
- 		mutex_unlock(&ctx->kdamond_lock);
--		while (damon_kdamond_running(ctx))
--			usleep_range(ctx->sample_interval,
--					ctx->sample_interval * 2);
-+		kthread_stop(tsk);
-+		put_task_struct(tsk);
- 		return 0;
- 	}
- 	mutex_unlock(&ctx->kdamond_lock);
-@@ -925,12 +915,8 @@ static bool kdamond_need_update_primitiv
- static bool kdamond_need_stop(struct damon_ctx *ctx)
- {
- 	struct damon_target *t;
--	bool stop;
- 
--	mutex_lock(&ctx->kdamond_lock);
--	stop = ctx->kdamond_stop;
--	mutex_unlock(&ctx->kdamond_lock);
--	if (stop)
-+	if (kthread_should_stop())
- 		return true;
- 
- 	if (!ctx->primitive.target_valid)
-@@ -1021,13 +1007,6 @@ static int kdamond_wait_activation(struc
- 	return -EBUSY;
- }
- 
--static void set_kdamond_stop(struct damon_ctx *ctx)
--{
--	mutex_lock(&ctx->kdamond_lock);
--	ctx->kdamond_stop = true;
--	mutex_unlock(&ctx->kdamond_lock);
--}
--
- /*
-  * The monitoring daemon that runs as a kernel thread
-  */
-@@ -1038,17 +1017,18 @@ static int kdamond_fn(void *data)
- 	struct damon_region *r, *next;
- 	unsigned int max_nr_accesses = 0;
- 	unsigned long sz_limit = 0;
-+	bool done = false;
- 
- 	pr_debug("kdamond (%d) starts\n", current->pid);
- 
- 	if (ctx->primitive.init)
- 		ctx->primitive.init(ctx);
- 	if (ctx->callback.before_start && ctx->callback.before_start(ctx))
--		set_kdamond_stop(ctx);
-+		done = true;
- 
- 	sz_limit = damon_region_sz_limit(ctx);
- 
--	while (!kdamond_need_stop(ctx)) {
-+	while (!kdamond_need_stop(ctx) && !done) {
- 		if (kdamond_wait_activation(ctx))
- 			continue;
- 
-@@ -1056,7 +1036,7 @@ static int kdamond_fn(void *data)
- 			ctx->primitive.prepare_access_checks(ctx);
- 		if (ctx->callback.after_sampling &&
- 				ctx->callback.after_sampling(ctx))
--			set_kdamond_stop(ctx);
-+			done = true;
- 
- 		usleep_range(ctx->sample_interval, ctx->sample_interval + 1);
- 
-@@ -1069,7 +1049,7 @@ static int kdamond_fn(void *data)
- 					sz_limit);
- 			if (ctx->callback.after_aggregation &&
- 					ctx->callback.after_aggregation(ctx))
--				set_kdamond_stop(ctx);
-+				done = true;
- 			kdamond_apply_schemes(ctx);
- 			kdamond_reset_aggregated(ctx);
- 			kdamond_split_regions(ctx);
-@@ -1088,9 +1068,8 @@ static int kdamond_fn(void *data)
- 			damon_destroy_region(r, t);
- 	}
- 
--	if (ctx->callback.before_terminate &&
--			ctx->callback.before_terminate(ctx))
--		set_kdamond_stop(ctx);
-+	if (ctx->callback.before_terminate)
-+		ctx->callback.before_terminate(ctx);
- 	if (ctx->primitive.cleanup)
- 		ctx->primitive.cleanup(ctx);
- 
+ /**
+  * prepend_name - prepend a pathname in front of current buffer pointer
+- * @buffer: buffer pointer
+- * @buflen: allocated length of the buffer
+- * @name:   name string and length qstr structure
++ * @p: prepend buffer which contains buffer pointer and allocated length
++ * @name: name string and length qstr structure
+  *
+  * With RCU path tracing, it may race with d_move(). Use READ_ONCE() to
+  * make sure that either the old or the new name pointer and length are
+@@ -141,8 +140,7 @@ static int __prepend_path(const struct d
+  * prepend_path - Prepend path string to a buffer
+  * @path: the dentry/vfsmount to report
+  * @root: root vfsmnt/dentry
+- * @buffer: pointer to the end of the buffer
+- * @buflen: pointer to buffer length
++ * @p: prepend buffer which contains buffer pointer and allocated length
+  *
+  * The function will first try to write out the pathname without taking any
+  * lock other than the RCU read lock to make sure that dentries won't go away.
 _
 
-Patches currently in -mm which might be from changbin.du@gmail.com are
+Patches currently in -mm which might be from justin.he@arm.com are
 
-mm-damon-remove-unnecessary-do_exit-from-kdamond.patch
-mm-damon-neednt-hold-kdamond_lock-to-print-pid-of-kdamond.patch
-mm-damon-simplify-stop-mechanism.patch
+d_path-fix-kernel-doc-validator-complaining.patch
 
