@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11A0AC4332F
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:16:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB864C43219
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:18:42 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EED5F610C7
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:16:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C28DB610EA
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:18:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244254AbhJ0VSq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 17:18:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60250 "EHLO mail.kernel.org"
+        id S244342AbhJ0VVH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 17:21:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60998 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S244290AbhJ0VSa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 17:18:30 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C10E96109F;
-        Wed, 27 Oct 2021 21:15:59 +0000 (UTC)
+        id S244344AbhJ0VUe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 17:20:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E2783610A6;
+        Wed, 27 Oct 2021 21:18:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635369360;
-        bh=14C5aiuZgAudS2jroHDp/Ziy7eFVD+1WNGLTFoBv+6Q=;
+        s=korg; t=1635369488;
+        bh=X5gplo2i7piM7AtOoX1LwFxp3+o+v/BvexaOn0NLlPQ=;
         h=Date:From:To:Subject:From;
-        b=eoRUXkY7pGY6Zq9opv7ol8rKu+H4hlRmkHKk1c55pFt3Jxp6iWwCCw5ZMjMi9K8a9
-         +46e9ZlyD4HT9U+yRX/OARzYcX9G8bPUQ4QTrB7kBmVg+dxMqYT8i8RpPxLHvlYe/1
-         Y8xxQndVtYPBW0PnsaEEXT81rMm6PdZM9rF2GcIA=
-Date:   Wed, 27 Oct 2021 14:15:59 -0700
+        b=FMOQ0hWfAvJIodDBnfsqOmYDZQMLcY8VO0S2kD1wF5FXS3EbSQJrVZlV6aKyyhZ9L
+         Pocv6WVTLuO8k8TzroH7ev4zN1yzJ8BLqw0h9UqOIYZeZIbVUUOiXAo9tZVs08IGkc
+         6AdXorwdlIAH9QJ39mWYxbyJ39PactznEjYlfFV0=
+Date:   Wed, 27 Oct 2021 14:18:07 -0700
 From:   akpm@linux-foundation.org
 To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
         mm-commits@vger.kernel.org, shakeelb@google.com,
         songmuchun@bytedance.com, willy@infradead.org
-Subject:  + mm-memcontrol-remove-the-kmem-states.patch added to -mm
+Subject:  + mm-list_lru-remove-holding-lru-lock.patch added to -mm
  tree
-Message-ID: <20211027211559.5Y6I0pYKU%akpm@linux-foundation.org>
+Message-ID: <20211027211807.38d9EoZiF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: remove the kmem states
+     Subject: mm: list_lru: remove holding lru lock
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-remove-the-kmem-states.patch
+     mm-list_lru-remove-holding-lru-lock.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-the-kmem-states.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-list_lru-remove-holding-lru-lock.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-the-kmem-states.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-list_lru-remove-holding-lru-lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,91 +61,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: remove the kmem states
+Subject: mm: list_lru: remove holding lru lock
 
-Now the kmem states is only used to indicate whether the kmem is offline. 
-However, we can set ->kmemcg_id to -1 to indicate whether the kmem is
-offline.  Finally, we can remove the kmem states to simplify the code.
+Since commit e5bc3af7734f ("rcu: Consolidate PREEMPT and !PREEMPT
+synchronize_rcu()"), the critical section of spin lock can serve as an
+RCU read-side critical section which already allows readers that hold
+nlru->lock to avoid taking rcu lock.  So just remove holding lock.
 
-Link: https://lkml.kernel.org/r/20211025125259.56624-1-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20211025124534.56345-1-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 -------
- mm/memcontrol.c            |    7 ++-----
- 2 files changed, 2 insertions(+), 12 deletions(-)
+ mm/list_lru.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcontrol-remove-the-kmem-states
-+++ a/include/linux/memcontrol.h
-@@ -180,12 +180,6 @@ struct mem_cgroup_thresholds {
- 	struct mem_cgroup_threshold_ary *spare;
- };
+--- a/mm/list_lru.c~mm-list_lru-remove-holding-lru-lock
++++ a/mm/list_lru.c
+@@ -398,18 +398,7 @@ static int memcg_update_list_lru_node(st
+ 	}
  
--enum memcg_kmem_state {
--	KMEM_NONE,
--	KMEM_ALLOCATED,
--	KMEM_ONLINE,
--};
+ 	memcpy(&new->lru, &old->lru, flex_array_size(new, lru, old_size));
 -
- #if defined(CONFIG_SMP)
- struct memcg_padding {
- 	char x[0];
-@@ -318,7 +312,6 @@ struct mem_cgroup {
- 
- #ifdef CONFIG_MEMCG_KMEM
- 	int kmemcg_id;
--	enum memcg_kmem_state kmem_state;
- 	struct obj_cgroup __rcu *objcg;
- 	struct list_head objcg_list; /* list of inherited objcgs */
- #endif
---- a/mm/memcontrol.c~mm-memcontrol-remove-the-kmem-states
-+++ a/mm/memcontrol.c
-@@ -3626,7 +3626,6 @@ static int memcg_online_kmem(struct mem_
- 		return 0;
- 
- 	BUG_ON(memcg->kmemcg_id >= 0);
--	BUG_ON(memcg->kmem_state);
- 
- 	memcg_id = memcg_alloc_cache_id();
- 	if (memcg_id < 0)
-@@ -3643,7 +3642,6 @@ static int memcg_online_kmem(struct mem_
- 	static_branch_enable(&memcg_kmem_enabled_key);
- 
- 	memcg->kmemcg_id = memcg_id;
--	memcg->kmem_state = KMEM_ONLINE;
- 
+-	/*
+-	 * The locking below allows readers that hold nlru->lock avoid taking
+-	 * rcu_read_lock (see list_lru_from_memcg_idx).
+-	 *
+-	 * Since list_lru_{add,del} may be called under an IRQ-safe lock,
+-	 * we have to use IRQ-safe primitives here to avoid deadlock.
+-	 */
+-	spin_lock_irq(&nlru->lock);
+ 	rcu_assign_pointer(nlru->memcg_lrus, new);
+-	spin_unlock_irq(&nlru->lock);
+-
+ 	kvfree_rcu(old, rcu);
  	return 0;
  }
-@@ -3654,11 +3652,9 @@ static void memcg_offline_kmem(struct me
- 	struct mem_cgroup *parent, *child;
- 	int kmemcg_id;
- 
--	if (memcg->kmem_state != KMEM_ONLINE)
-+	if (memcg->kmemcg_id == -1)
- 		return;
- 
--	memcg->kmem_state = KMEM_ALLOCATED;
--
- 	parent = parent_mem_cgroup(memcg);
- 	if (!parent)
- 		parent = root_mem_cgroup;
-@@ -3687,6 +3683,7 @@ static void memcg_offline_kmem(struct me
- 	memcg_drain_all_list_lrus(kmemcg_id, parent);
- 
- 	memcg_free_cache_id(kmemcg_id);
-+	memcg->kmemcg_id = -1;
- }
- #else
- static int memcg_online_kmem(struct mem_cgroup *memcg)
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
 
+mm-list_lru-remove-holding-lru-lock.patch
+mm-list_lru-fix-the-return-value-of-list_lru_count_one.patch
+mm-memcontrol-remove-kmemcg_id-reparenting.patch
 mm-memcontrol-remove-the-kmem-states.patch
 
