@@ -2,40 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1A51C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:06:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7DD88C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:08:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AC89F610F8
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 08:06:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5C65E60FC0
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 20:08:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239069AbhJ0IIa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 04:08:30 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44734 "EHLO mail.kernel.org"
+        id S240477AbhJ0UK6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 16:10:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53554 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240647AbhJ0IIZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 04:08:25 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1D95F610A5;
-        Wed, 27 Oct 2021 08:06:00 +0000 (UTC)
+        id S238558AbhJ0UK5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 16:10:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DD5876023F;
+        Wed, 27 Oct 2021 20:08:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635321960;
-        bh=fhb6YU9+CHqmtcm8rkahS+wZ6+LOTQ5gs85oUiDniMQ=;
+        s=korg; t=1635365312;
+        bh=VSRBlqm0ZaQBToR1GKMJIHCreMFIz+Kp4SYPvtsdJHM=;
         h=Date:From:To:Subject:From;
-        b=oj8aPtc3E+FLW72VjPSCy5qxuA+JMLEHokcx3RGaFBK3txmeu+/z2IQxxuGXizuYs
-         vKYi3ZgDy0wxbp+DF5+VmSWgJe9sdRpf7zi7gKJl2bjEOB9OxDJwj1EeWydWTpeYEv
-         L9UHw+/qUsO2mW2KBdwAdhp3CdxmBnxY6opDaFaI=
-Date:   Wed, 27 Oct 2021 01:05:59 -0700
+        b=MaQHkbLr9K2+uaj0shjBV0qrRzE2pmwN9VgEDA7xjnOXR/FaeG8urEnPeeR7J8agU
+         cGJQL6yWh/b1T3fNpbk1SiN9ZjT2gOb4nDlJkckRiraE7p0Z9J1XgmWH7AnBEmcQt7
+         mvQ7VlUTeIfqvDbfN810JBPMvneXjmgefA67jtuo=
+Date:   Wed, 27 Oct 2021 13:08:31 -0700
 From:   akpm@linux-foundation.org
-To:     anitha.chrisanthus@intel.com, chenyu56@huawei.com,
-        edmund.j.dea@intel.com, gregkh@linuxfoundation.org,
-        joe@perches.com, john.stultz@linaro.org, lukas.bulwahn@gmail.com,
-        mchehab+huawei@kernel.org, mm-commits@vger.kernel.org,
-        nobuhiro1.iwamatsu@toshiba.co.jp, punit1.agrawal@toshiba.co.jp,
-        ralf.ramsauer@oth-regensburg.de, robh+dt@kernel.org,
-        sam@ravnborg.org, wilken.gottwalt@posteo.net
+To:     andrea.righi@canonical.com, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        shy828301@gmail.com, songliubraving@fb.com, stable@vger.kernel.org,
+        sunhao.th@gmail.com, willy@infradead.org
 Subject:  +
- maintainers-rectify-entry-for-allwinner-hardware-spinlock-support.patch
- added to -mm tree
-Message-ID: <20211027080559.CbCQ5mGCs%akpm@linux-foundation.org>
+ mm-khugepaged-skip-huge-page-collapse-for-special-files.patch added to -mm
+ tree
+Message-ID: <20211027200831.Vl86m8C8a%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: rectify entry for ALLWINNER HARDWARE SPINLOCK SUPPORT
+     Subject: mm: khugepaged: skip huge page collapse for special files
 has been added to the -mm tree.  Its filename is
-     maintainers-rectify-entry-for-allwinner-hardware-spinlock-support.patch
+     mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/maintainers-rectify-entry-for-allwinner-hardware-spinlock-support.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/maintainers-rectify-entry-for-allwinner-hardware-spinlock-support.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,60 +62,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: MAINTAINERS: rectify entry for ALLWINNER HARDWARE SPINLOCK SUPPORT
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: khugepaged: skip huge page collapse for special files
 
-Commit f9e784dcb63f ("dt-bindings: hwlock: add sun6i_hwspinlock") adds
-Documentation/devicetree/bindings/hwlock/allwinner,sun6i-a31-hwspinlock.yaml,
-but the related commit 3c881e05c814 ("hwspinlock: add sun6i hardware
-spinlock support") adds a file reference to
-allwinner,sun6i-hwspinlock.yaml instead.
+The read-only THP for filesystems will collapse THP for files opened
+readonly and mapped with VM_EXEC.  The intended usecase is to avoid TLB
+misses for large text segments.  But it doesn't restrict the file types so
+a THP could be collapsed for a non-regular file, for example, block
+device, if it is opened readonly and mapped with EXEC permission.  This
+may cause bugs, like [1] and [2].
 
-Hence, ./scripts/get_maintainer.pl --self-test=patterns complains:
+This is definitely not the intended usecase, so just collapse THP for
+regular files in order to close the attack surface.
 
-  warning: no file matches  F:  Documentation/devicetree/bindings/hwlock/allwinner,sun6i-hwspinlock.yaml
+[1] https://lore.kernel.org/lkml/CACkBjsYwLYLRmX8GpsDpMthagWOjWWrNxqY6ZLNQVr6yx+f5vA@mail.gmail.com/
+[2] https://lore.kernel.org/linux-mm/000000000000c6a82505ce284e4c@google.com/
 
-Rectify this file reference in ALLWINNER HARDWARE SPINLOCK SUPPORT.
-
-Link: https://lkml.kernel.org/r/20211026141902.4865-5-lukas.bulwahn@gmail.com
-Reviewed-by: Wilken Gottwalt <wilken.gottwalt@posteo.net>
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Anitha Chrisanthus <anitha.chrisanthus@intel.com>
-Cc: Edmund Dea <edmund.j.dea@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
-Cc: Nobuhiro Iwamatsu <nobuhiro1.iwamatsu@toshiba.co.jp>
-Cc: Punit Agrawal <punit1.agrawal@toshiba.co.jp>
-Cc: Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Yu Chen <chenyu56@huawei.com>
+Link: https://lkml.kernel.org/r/20211027195221.3825-1-shy828301@gmail.com
+Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reported-by: Hao Sun <sunhao.th@gmail.com>
+Reported-by: syzbot+aae069be1de40fb11825@syzkaller.appspotmail.com
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Song Liu <songliubraving@fb.com>
+Cc: Andrea Righi <andrea.righi@canonical.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/khugepaged.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
---- a/MAINTAINERS~maintainers-rectify-entry-for-allwinner-hardware-spinlock-support
-+++ a/MAINTAINERS
-@@ -761,7 +761,7 @@ F:	drivers/crypto/allwinner/
- ALLWINNER HARDWARE SPINLOCK SUPPORT
- M:	Wilken Gottwalt <wilken.gottwalt@posteo.net>
- S:	Maintained
--F:	Documentation/devicetree/bindings/hwlock/allwinner,sun6i-hwspinlock.yaml
-+F:	Documentation/devicetree/bindings/hwlock/allwinner,sun6i-a31-hwspinlock.yaml
- F:	drivers/hwspinlock/sun6i_hwspinlock.c
+--- a/mm/khugepaged.c~mm-khugepaged-skip-huge-page-collapse-for-special-files
++++ a/mm/khugepaged.c
+@@ -445,22 +445,25 @@ static bool hugepage_vma_check(struct vm
+ 	if (!transhuge_vma_enabled(vma, vm_flags))
+ 		return false;
  
- ALLWINNER THERMAL DRIVER
+-	/* Enabled via shmem mount options or sysfs settings. */
+-	if (shmem_file(vma->vm_file) && shmem_huge_enabled(vma)) {
++	if (vma->vm_file)
+ 		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
+ 				HPAGE_PMD_NR);
+-	}
++
++	/* Enabled via shmem mount options or sysfs settings. */
++	if (shmem_file(vma->vm_file))
++		return shmem_huge_enabled(vma);
+ 
+ 	/* THP settings require madvise. */
+ 	if (!(vm_flags & VM_HUGEPAGE) && !khugepaged_always())
+ 		return false;
+ 
+-	/* Read-only file mappings need to be aligned for THP to work. */
++	/* Only regular file is valid */
+ 	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && vma->vm_file &&
+-	    !inode_is_open_for_write(vma->vm_file->f_inode) &&
+ 	    (vm_flags & VM_EXEC)) {
+-		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
+-				HPAGE_PMD_NR);
++		struct inode *inode = vma->vm_file->f_inode;
++
++		return !inode_is_open_for_write(inode) &&
++			S_ISREG(inode->i_mode);
+ 	}
+ 
+ 	if (!vma->anon_vma || vma->vm_ops)
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from shy828301@gmail.com are
 
-memory-remove-unused-config_mem_block_size.patch
-maintainers-rectify-entry-for-arm-toshiba-visconti-architecture.patch
-maintainers-rectify-entry-for-hikey960-onboard-usb-gpio-hub-driver.patch
-maintainers-rectify-entry-for-intel-keem-bay-drm-driver.patch
-maintainers-rectify-entry-for-allwinner-hardware-spinlock-support.patch
+mm-hwpoison-remove-the-unnecessary-thp-check.patch
+mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault.patch
+mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
+mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
+mm-hwpoison-refactor-refcount-check-handling.patch
+mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
+mm-hwpoison-handle-non-anonymous-thp-correctly.patch
+mm-migrate-make-demotion-knob-depend-on-migration.patch
 
