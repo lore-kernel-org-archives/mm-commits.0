@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D759C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:02:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11A0AC4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:16:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 575316109F
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:02:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EED5F610C7
+	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 21:16:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240980AbhJ0VEu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 17:04:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53468 "EHLO mail.kernel.org"
+        id S244254AbhJ0VSq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 17:18:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60250 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S244156AbhJ0VEu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 17:04:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E130460E78;
-        Wed, 27 Oct 2021 21:02:23 +0000 (UTC)
+        id S244290AbhJ0VSa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 17:18:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C10E96109F;
+        Wed, 27 Oct 2021 21:15:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635368544;
-        bh=7QEsG/68tF1PsMXy4xj1uWMVzrQKG8MvJQe5VRBoHFs=;
+        s=korg; t=1635369360;
+        bh=14C5aiuZgAudS2jroHDp/Ziy7eFVD+1WNGLTFoBv+6Q=;
         h=Date:From:To:Subject:From;
-        b=KB5Kk/rD5Lhwo0K1xUtf/9GYyYSzDU4qP8PhakTQ5/qbRxWbYYftyCYzYStMhMoBr
-         ce5EArbvuz6j/9+hRbyp6/4Fc/q7ug4GBIcgDu5sSx5tzc1QyWhzQXYA5TdTXiPcHR
-         bw+m8pkroXH5c7cKze9HGN6E4xdzqA/upEj+jdro=
-Date:   Wed, 27 Oct 2021 14:02:23 -0700
+        b=eoRUXkY7pGY6Zq9opv7ol8rKu+H4hlRmkHKk1c55pFt3Jxp6iWwCCw5ZMjMi9K8a9
+         +46e9ZlyD4HT9U+yRX/OARzYcX9G8bPUQ4QTrB7kBmVg+dxMqYT8i8RpPxLHvlYe/1
+         Y8xxQndVtYPBW0PnsaEEXT81rMm6PdZM9rF2GcIA=
+Date:   Wed, 27 Oct 2021 14:15:59 -0700
 From:   akpm@linux-foundation.org
-To:     gechangwei@live.cn, ghe@suse.com, jack@suse.cz,
-        jiangqi903@gmail.com, jlbec@evilplan.org, junxiao.bi@oracle.com,
-        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com
-Subject:  + ocfs2-do-not-zero-pages-beyond-i_size.patch added to
- -mm tree
-Message-ID: <20211027210223.HJIuhmPHY%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        songmuchun@bytedance.com, willy@infradead.org
+Subject:  + mm-memcontrol-remove-the-kmem-states.patch added to -mm
+ tree
+Message-ID: <20211027211559.5Y6I0pYKU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: do not zero pages beyond i_size
+     Subject: mm: memcontrol: remove the kmem states
 has been added to the -mm tree.  Its filename is
-     ocfs2-do-not-zero-pages-beyond-i_size.patch
+     mm-memcontrol-remove-the-kmem-states.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-zero-pages-beyond-i_size.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-the-kmem-states.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-zero-pages-beyond-i_size.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-the-kmem-states.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,78 +60,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: do not zero pages beyond i_size
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: remove the kmem states
 
-ocfs2_zero_range_for_truncate() can try to zero pages beyond current inode
-size despite the fact that underlying blocks should be already zeroed out
-and writeback will skip writing such pages anyway.  Avoid the pointless
-work.
+Now the kmem states is only used to indicate whether the kmem is offline. 
+However, we can set ->kmemcg_id to -1 to indicate whether the kmem is
+offline.  Finally, we can remove the kmem states to simplify the code.
 
-Link: https://lkml.kernel.org/r/20211025151332.11301-2-jack@suse.cz
-Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <jiangqi903@gmail.com>
-Cc: Jun Piao <piaojun@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mark@fasheh.com>
+Link: https://lkml.kernel.org/r/20211025125259.56624-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |    7 -------
+ mm/memcontrol.c            |    7 ++-----
+ 2 files changed, 2 insertions(+), 12 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-do-not-zero-pages-beyond-i_size
-+++ a/fs/ocfs2/alloc.c
-@@ -6923,13 +6923,12 @@ static int ocfs2_grab_eof_pages(struct i
- }
+--- a/include/linux/memcontrol.h~mm-memcontrol-remove-the-kmem-states
++++ a/include/linux/memcontrol.h
+@@ -180,12 +180,6 @@ struct mem_cgroup_thresholds {
+ 	struct mem_cgroup_threshold_ary *spare;
+ };
  
- /*
-- * Zero the area past i_size but still within an allocated
-- * cluster. This avoids exposing nonzero data on subsequent file
-- * extends.
-+ * Zero partial cluster for a hole punch or truncate. This avoids exposing
-+ * nonzero data on subsequent file extends.
-  *
-  * We need to call this before i_size is updated on the inode because
-  * otherwise block_write_full_page() will skip writeout of pages past
-- * i_size. The new_i_size parameter is passed for this reason.
-+ * i_size.
-  */
- int ocfs2_zero_range_for_truncate(struct inode *inode, handle_t *handle,
- 				  u64 range_start, u64 range_end)
-@@ -6947,6 +6946,15 @@ int ocfs2_zero_range_for_truncate(struct
- 	if (!ocfs2_sparse_alloc(OCFS2_SB(sb)))
+-enum memcg_kmem_state {
+-	KMEM_NONE,
+-	KMEM_ALLOCATED,
+-	KMEM_ONLINE,
+-};
+-
+ #if defined(CONFIG_SMP)
+ struct memcg_padding {
+ 	char x[0];
+@@ -318,7 +312,6 @@ struct mem_cgroup {
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+ 	int kmemcg_id;
+-	enum memcg_kmem_state kmem_state;
+ 	struct obj_cgroup __rcu *objcg;
+ 	struct list_head objcg_list; /* list of inherited objcgs */
+ #endif
+--- a/mm/memcontrol.c~mm-memcontrol-remove-the-kmem-states
++++ a/mm/memcontrol.c
+@@ -3626,7 +3626,6 @@ static int memcg_online_kmem(struct mem_
  		return 0;
  
-+	/*
-+	 * Avoid zeroing pages fully beyond current i_size. It is pointless as
-+	 * underlying blocks of those pages should be already zeroed out and
-+	 * page writeback will skip them anyway.
-+	 */
-+	range_end = min_t(u64, range_end, i_size_read(inode));
-+	if (range_start >= range_end)
-+		return 0;
-+
- 	pages = kcalloc(ocfs2_pages_per_cluster(sb),
- 			sizeof(struct page *), GFP_NOFS);
- 	if (pages == NULL) {
-@@ -6955,9 +6963,6 @@ int ocfs2_zero_range_for_truncate(struct
- 		goto out;
- 	}
+ 	BUG_ON(memcg->kmemcg_id >= 0);
+-	BUG_ON(memcg->kmem_state);
  
--	if (range_start == range_end)
--		goto out;
+ 	memcg_id = memcg_alloc_cache_id();
+ 	if (memcg_id < 0)
+@@ -3643,7 +3642,6 @@ static int memcg_online_kmem(struct mem_
+ 	static_branch_enable(&memcg_kmem_enabled_key);
+ 
+ 	memcg->kmemcg_id = memcg_id;
+-	memcg->kmem_state = KMEM_ONLINE;
+ 
+ 	return 0;
+ }
+@@ -3654,11 +3652,9 @@ static void memcg_offline_kmem(struct me
+ 	struct mem_cgroup *parent, *child;
+ 	int kmemcg_id;
+ 
+-	if (memcg->kmem_state != KMEM_ONLINE)
++	if (memcg->kmemcg_id == -1)
+ 		return;
+ 
+-	memcg->kmem_state = KMEM_ALLOCATED;
 -
- 	ret = ocfs2_extent_map_get_blocks(inode,
- 					  range_start >> sb->s_blocksize_bits,
- 					  &phys, NULL, &ext_flags);
+ 	parent = parent_mem_cgroup(memcg);
+ 	if (!parent)
+ 		parent = root_mem_cgroup;
+@@ -3687,6 +3683,7 @@ static void memcg_offline_kmem(struct me
+ 	memcg_drain_all_list_lrus(kmemcg_id, parent);
+ 
+ 	memcg_free_cache_id(kmemcg_id);
++	memcg->kmemcg_id = -1;
+ }
+ #else
+ static int memcg_online_kmem(struct mem_cgroup *memcg)
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
-ocfs2-fix-data-corruption-on-truncate.patch
-ocfs2-do-not-zero-pages-beyond-i_size.patch
+mm-memcontrol-remove-the-kmem-states.patch
 
