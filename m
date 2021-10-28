@@ -2,34 +2,32 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 153E1C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 23:58:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10F19C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Oct 2021 00:10:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D6539610C8
-	for <mm-commits@archiver.kernel.org>; Wed, 27 Oct 2021 23:58:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D9FC0610C7
+	for <mm-commits@archiver.kernel.org>; Thu, 28 Oct 2021 00:10:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229484AbhJ1AAf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 27 Oct 2021 20:00:35 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45948 "EHLO mail.kernel.org"
+        id S229469AbhJ1ANS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 27 Oct 2021 20:13:18 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52530 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229437AbhJ1AAe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 27 Oct 2021 20:00:34 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AA8DB600D3;
-        Wed, 27 Oct 2021 23:58:08 +0000 (UTC)
+        id S229437AbhJ1ANR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 27 Oct 2021 20:13:17 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B062C610C7;
+        Thu, 28 Oct 2021 00:10:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635379088;
-        bh=CDpomQADm/+mEGGvWXKJkPuGOcL/VLpu4PjQOUXTXzY=;
+        s=korg; t=1635379851;
+        bh=llB2x4PumpxJH1M+y8/KWq0x9mbCYt6zSP4hXxrT3Sc=;
         h=Date:From:To:Subject:From;
-        b=tSYj5uuFTB1/TUeZnVfnaGXLlQD9lz7V6hCXP8cLHKiYLFjyHlOD9nrSMyxyU12h3
-         kQPaPBChlG5TfTaw/nYyEaYm/jQaDBTYPFut3fbj9w5lXAFZwqMqyIyTUpjHwKg+DC
-         HfeGcnco5xjXg2ltZ8tK/sW7by4VfwuUCvGvk/t4=
-Date:   Wed, 27 Oct 2021 16:58:08 -0700
+        b=0Y2lQyuJ7rujlSKRxhukHT2Sv2FkNEFBU+SVvg1RDsuXDmWAT21QEwhvmZLou/GXe
+         6xzAPQLfIjXOvl87iaheTD0s4C+BxEZdqeEmLJkBbsnPiStcK3/KYPW+tWe0xVyetv
+         cW4pXTAYuwOqY+jC298lyPMai+k/b2riKj8DK+1g=
+Date:   Wed, 27 Oct 2021 17:10:51 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        willy@infradead.org
-Subject:  + mm-move-kvmalloc-related-functions-to-slabh-fix.patch
- added to -mm tree
-Message-ID: <20211027235808.9SeLNrXoU%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + linux-next-rejects-fix.patch added to -mm tree
+Message-ID: <20211028001051.wlG-XE8Mh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/hwmon/occ/p9_sbe.c needs slab.h
+     Subject: linux-next-rejects-fix
 has been added to the -mm tree.  Its filename is
-     mm-move-kvmalloc-related-functions-to-slabh-fix.patch
+     linux-next-rejects-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-kvmalloc-related-functions-to-slabh-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-kvmalloc-related-functions-to-slabh-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,29 +58,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/hwmon/occ/p9_sbe.c needs slab.h
+Subject: linux-next-rejects-fix
 
-for kvmalloc/kvfree
 
-(only needed after pending linux-next patches are included)
-
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwmon/occ/p9_sbe.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/bootconfig.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/hwmon/occ/p9_sbe.c~mm-move-kvmalloc-related-functions-to-slabh-fix
-+++ a/drivers/hwmon/occ/p9_sbe.c
-@@ -3,6 +3,7 @@
+--- a/lib/bootconfig.c~linux-next-rejects-fix
++++ a/lib/bootconfig.c
+@@ -50,7 +50,7 @@ static inline void * __init xbc_alloc_me
  
- #include <linux/device.h>
- #include <linux/errno.h>
-+#include <linux/slab.h>
- #include <linux/fsi-occ.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
+ static inline void __init xbc_free_mem(void *addr, size_t size)
+ {
+-	memblock_free_ptr(addr, size);
++	memblock_free(addr, size);
+ }
+ 
+ #else /* !__KERNEL__ */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -104,8 +99,8 @@ generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix.patch
 ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
 revert-acct_reclaim_writeback-for-next.patch
 linux-next-rejects.patch
+linux-next-rejects-fix.patch
 restore-acct_reclaim_writeback-for-folio.patch
 mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault-vs-folios.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-rejects-fix.patch
 
