@@ -2,37 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2273C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Nov 2021 18:25:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02557C43219
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Nov 2021 18:25:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D7D1B60F24
-	for <mm-commits@archiver.kernel.org>; Mon,  1 Nov 2021 18:25:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7468610FD
+	for <mm-commits@archiver.kernel.org>; Mon,  1 Nov 2021 18:25:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232024AbhKAS1K (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 1 Nov 2021 14:27:10 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45458 "EHLO mail.kernel.org"
+        id S231983AbhKAS1e (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 1 Nov 2021 14:27:34 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231970AbhKAS0z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 1 Nov 2021 14:26:55 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 82A8060F58;
-        Mon,  1 Nov 2021 18:24:21 +0000 (UTC)
+        id S232001AbhKAS1K (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 1 Nov 2021 14:27:10 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 918B860F70;
+        Mon,  1 Nov 2021 18:24:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635791061;
-        bh=DOMQc7fTfwhWvw0H4+z9TjfMDeBu4rpyDjWmccSsfYY=;
+        s=korg; t=1635791064;
+        bh=Ubi1z7k59QwQo/PD6WxOzYXnhR+29kW0ZuDag1+2hY8=;
         h=Date:From:To:Subject:From;
-        b=sKEzpgNWX5eiYAlybeqcp27UKsZpGhzyXBjyduuOJD4AulCvdnbQx04xjjvqu+bRc
-         F9bISVVlNyXdgLmZDnFlpXLHyzEBLTxCkwezbaXhh6dVaxmdvTLVHvFLrxgQqIKGAA
-         PQX9Ql/TkPqg7o4bffnVtGbT7Zi8zt7q5ehHc5hc=
-Date:   Mon, 01 Nov 2021 11:24:21 -0700
+        b=Q67f0IvVKt/zUAP1Fr/LN4vNG2srZHsZtwqO5djg96GENbLPmpqOyg4auYgBAujSM
+         0IoPMzlt3BzjfMY6dwTt5iuPd0kMU6Xg/5d8QtAGlrOK/otzYqy1WgXlxHbQe6OE8B
+         xbzPtwfK1gajFeH3Fg4JON64RZDIhyg0zQQj80M8=
+Date:   Mon, 01 Nov 2021 11:24:24 -0700
 From:   akpm@linux-foundation.org
-To:     andrea.righi@canonical.com, hughd@google.com,
-        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
-        shy828301@gmail.com, songliubraving@fb.com, stable@vger.kernel.org,
-        sunhao.th@gmail.com, willy@infradead.org
+To:     mm-commits@vger.kernel.org, sj@kernel.org
 Subject:  [merged]
- mm-khugepaged-skip-huge-page-collapse-for-special-files.patch removed from
- -mm tree
-Message-ID: <20211101182421.8Vh6aroHS%akpm@linux-foundation.org>
+ mm-damon-core-test-fix-wrong-expectations-for-damon_split_regions_of.patch
+ removed from -mm tree
+Message-ID: <20211101182424.L5Jqxm452%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,91 +38,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: khugepaged: skip huge page collapse for special files
+     Subject: mm/damon/core-test: fix wrong expectations for 'damon_split_regions_of()'
 has been removed from the -mm tree.  Its filename was
-     mm-khugepaged-skip-huge-page-collapse-for-special-files.patch
+     mm-damon-core-test-fix-wrong-expectations-for-damon_split_regions_of.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: khugepaged: skip huge page collapse for special files
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core-test: fix wrong expectations for 'damon_split_regions_of()'
 
-The read-only THP for filesystems will collapse THP for files opened
-readonly and mapped with VM_EXEC.  The intended usecase is to avoid TLB
-misses for large text segments.  But it doesn't restrict the file types so
-a THP could be collapsed for a non-regular file, for example, block
-device, if it is opened readonly and mapped with EXEC permission.  This
-may cause bugs, like [1] and [2].
+Kunit test cases for 'damon_split_regions_of()' expects the number of
+regions after calling the function will be same to their request
+('nr_sub').  However, the requested number is just an upper-limit, because
+the function randomly decides the size of each sub-region.  This commit
+fixes the wrong expectation.
 
-This is definitely not the intended usecase, so just collapse THP for
-regular files in order to close the attack surface.
-
-[1] https://lore.kernel.org/lkml/CACkBjsYwLYLRmX8GpsDpMthagWOjWWrNxqY6ZLNQVr6yx+f5vA@mail.gmail.com/
-[2] https://lore.kernel.org/linux-mm/000000000000c6a82505ce284e4c@google.com/
-
-[shy828301@gmail.com: fix vm_file check]
-  Link: https://lkml.kernel.org/r/CAHbLzkqTW9U3VvTu1Ki5v_cLRC9gHW+znBukg_ycergE0JWj-A@mail.gmail.com
-Link: https://lkml.kernel.org/r/20211027195221.3825-1-shy828301@gmail.com
-Fixes: 99cb0dbd47a1 ("mm,thp: add read-only THP support for (non-shmem) FS")
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reported-by: Hao Sun <sunhao.th@gmail.com>
-Reported-by: syzbot+aae069be1de40fb11825@syzkaller.appspotmail.com
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Song Liu <songliubraving@fb.com>
-Cc: Andrea Righi <andrea.righi@canonical.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20211028090628.14948-1-sj@kernel.org
+Fixes: 17ccae8bb5c9 ("mm/damon: add kunit tests")
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ mm/damon/core-test.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/khugepaged.c~mm-khugepaged-skip-huge-page-collapse-for-special-files
-+++ a/mm/khugepaged.c
-@@ -445,22 +445,25 @@ static bool hugepage_vma_check(struct vm
- 	if (!transhuge_vma_enabled(vma, vm_flags))
- 		return false;
+--- a/mm/damon/core-test.h~mm-damon-core-test-fix-wrong-expectations-for-damon_split_regions_of
++++ a/mm/damon/core-test.h
+@@ -219,14 +219,14 @@ static void damon_test_split_regions_of(
+ 	r = damon_new_region(0, 22);
+ 	damon_add_region(r, t);
+ 	damon_split_regions_of(c, t, 2);
+-	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 2u);
++	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 2u);
+ 	damon_free_target(t);
  
-+	if (vma->vm_file && !IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) -
-+				vma->vm_pgoff, HPAGE_PMD_NR))
-+		return false;
-+
- 	/* Enabled via shmem mount options or sysfs settings. */
--	if (shmem_file(vma->vm_file) && shmem_huge_enabled(vma)) {
--		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
--				HPAGE_PMD_NR);
--	}
-+	if (shmem_file(vma->vm_file))
-+		return shmem_huge_enabled(vma);
- 
- 	/* THP settings require madvise. */
- 	if (!(vm_flags & VM_HUGEPAGE) && !khugepaged_always())
- 		return false;
- 
--	/* Read-only file mappings need to be aligned for THP to work. */
-+	/* Only regular file is valid */
- 	if (IS_ENABLED(CONFIG_READ_ONLY_THP_FOR_FS) && vma->vm_file &&
--	    !inode_is_open_for_write(vma->vm_file->f_inode) &&
- 	    (vm_flags & VM_EXEC)) {
--		return IS_ALIGNED((vma->vm_start >> PAGE_SHIFT) - vma->vm_pgoff,
--				HPAGE_PMD_NR);
-+		struct inode *inode = vma->vm_file->f_inode;
-+
-+		return !inode_is_open_for_write(inode) &&
-+			S_ISREG(inode->i_mode);
- 	}
- 
- 	if (!vma->anon_vma || vma->vm_ops)
+ 	t = damon_new_target(42);
+ 	r = damon_new_region(0, 220);
+ 	damon_add_region(r, t);
+ 	damon_split_regions_of(c, t, 4);
+-	KUNIT_EXPECT_EQ(test, damon_nr_regions(t), 4u);
++	KUNIT_EXPECT_LE(test, damon_nr_regions(t), 4u);
+ 	damon_free_target(t);
+ 	damon_destroy_ctx(c);
+ }
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
-mm-hwpoison-refactor-refcount-check-handling.patch
-mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
-mm-hwpoison-handle-non-anonymous-thp-correctly.patch
-mm-migrate-make-demotion-knob-depend-on-migration.patch
+maintainers-update-seongjaes-email-address.patch
+mm-damon-core-print-kdamond-start-log-in-debug-mode-only.patch
+mm-damon-core-account-age-of-target-regions.patch
+mm-damon-core-implement-damon-based-operation-schemes-damos.patch
+mm-damon-vaddr-support-damon-based-operation-schemes.patch
+mm-damon-dbgfs-support-damon-based-operation-schemes.patch
+mm-damon-schemes-implement-statistics-feature.patch
+selftests-damon-add-schemes-debugfs-tests.patch
+docs-admin-guide-mm-damon-document-damon-based-operation-schemes.patch
+mm-damon-dbgfs-allow-users-to-set-initial-monitoring-target-regions.patch
+mm-damon-dbgfs-test-add-a-unit-test-case-for-init_regions.patch
+docs-admin-guide-mm-damon-document-init_regions-feature.patch
+mm-damon-vaddr-separate-commonly-usable-functions.patch
+mm-damon-vaddr-separate-commonly-usable-functions-fix.patch
+mm-damon-implement-primitives-for-physical-address-space-monitoring.patch
+mm-damon-dbgfs-support-physical-memory-monitoring.patch
+docs-damon-document-physical-memory-monitoring-support.patch
+mm-damon-paddr-support-the-pageout-scheme.patch
+mm-damon-paddr-support-the-pageout-scheme-fix.patch
+mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control.patch
+mm-damon-schemes-skip-already-charged-targets-and-regions.patch
+mm-damon-schemes-implement-time-quota.patch
+mm-damon-dbgfs-support-quotas-of-schemes.patch
+mm-damon-selftests-support-schemes-quotas.patch
+mm-damon-schemes-prioritize-regions-within-the-quotas.patch
+mm-damon-vaddrpaddr-support-pageout-prioritization.patch
+mm-damon-dbgfs-support-prioritization-weights.patch
+tools-selftests-damon-update-for-regions-prioritization-of-schemes.patch
+mm-damon-schemes-activate-schemes-based-on-a-watermarks-mechanism.patch
+mm-damon-dbgfs-support-watermarks.patch
+selftests-damon-support-watermarks.patch
+mm-damon-introduce-damon-based-reclamation-damon_reclaim.patch
+documentation-admin-guide-mm-damon-add-a-document-for-damon_reclaim.patch
+docs-admin-guide-mm-damon-start-fix-wrong-example-commands.patch
+docs-admin-guide-mm-damon-start-fix-a-wrong-link.patch
+docs-admin-guide-mm-damon-start-simplify-the-content.patch
+docs-admin-guide-mm-pagemap-wordsmith-page-flags-descriptions.patch
 
