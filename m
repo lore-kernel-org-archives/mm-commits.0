@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3FDDC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 01:48:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CDCFC433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 21:54:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BA779611CE
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 01:48:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 752046124A
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 21:54:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231206AbhKDBuk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Nov 2021 21:50:40 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39638 "EHLO mail.kernel.org"
+        id S232207AbhKDV44 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 4 Nov 2021 17:56:56 -0400
+Received: from mail.kernel.org ([198.145.29.99]:59694 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232912AbhKDBuj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Nov 2021 21:50:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7936361186;
-        Thu,  4 Nov 2021 01:48:02 +0000 (UTC)
+        id S229924AbhKDV4z (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 4 Nov 2021 17:56:55 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 15E446109F;
+        Thu,  4 Nov 2021 21:54:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635990482;
-        bh=ysQTa0ol4+fSQGx2u129MLrtqEeyPkv/7Hqqe8YTGBg=;
+        s=korg; t=1636062857;
+        bh=goF+RVwTBpu9VaY4hrIAMUdvBGhq5GUD7Bw5kAr2TCs=;
         h=Date:From:To:Subject:From;
-        b=jU/4Dbfmorocw0H+12FnV6q+2c4OF+1tgIn001OW/514Sf50dn/NMKQbhfUo0jfA5
-         UbsBS6IiJtnt2qWYfHFGtmYV69uh/PoYUXGDCfNpkcj3W0esT2S04tVRjPKQteufvN
-         EfkTuE+70glY5qeapKJT5t2LJhF9ak6uat8bwjsE=
-Date:   Wed, 03 Nov 2021 18:48:02 -0700
+        b=RJ6yQa80EdpCEp5Lu0Uk8WPdiRYTpCCcrI6wj85mCy3v9UCh5VdDbKSxDgGs4aknn
+         859vZEQ0nWSkdL3BCFR0L/qx0rc+UuY2paKn4vxl2HQRI47Cfa0745H7zxT/IGgLZu
+         /yaK0Y4mluz54Mk0BUbETE2FrK5ii8xceTbYQ7LU=
+Date:   Thu, 04 Nov 2021 14:54:16 -0700
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mgorman@techsingularity.net,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        willy@infradead.org
-Subject:  [obsolete] restore-acct_reclaim_writeback-for-folio.patch
+To:     cminyard@mvista.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        rientjes@google.com
+Subject:  [nacked]
+ oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage.patch
  removed from -mm tree
-Message-ID: <20211104014802.Y5gsWrnc9%akpm@linux-foundation.org>
+Message-ID: <20211104215416.VupfEn1k6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,58 +39,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: restore-acct_reclaim_writeback-for-folio
+     Subject: oom_kill: oom_score_adj broken for processes with small memory usage
 has been removed from the -mm tree.  Its filename was
-     restore-acct_reclaim_writeback-for-folio.patch
+     oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: restore-acct_reclaim_writeback-for-folio
+From: Corey Minyard <cminyard@mvista.com>
+Subject: oom_kill: oom_score_adj broken for processes with small memory usage
 
-Make Mel's "mm/vmscan: throttle reclaim and compaction when too may pages
-are isolated" work for folio changes.
+If you have a process with less than 1000 totalpages, the calculation:
 
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+  adj = (long)p->signal->oom_score_adj;
+  ...
+  adj *= totalpages / 1000;
+
+will always result in adj being zero no matter what oom_score_adj is,
+which could result in the wrong process being picked for killing.
+
+Fix by adding 1000 to totalpages before dividing.
+
+
+I ran across this trying to diagnose another problem where I set up a
+cgroup with a small amount of memory and couldn't get a test program to
+work right.
+
+I'm not sure this is quite right, to keep closer to the current behavior
+you could do:
+
+	if (totalpages >= 1000) adj *= totalpages / 1000;
+
+but that would map 0-1999 to the same value.  But this at least shows the
+issue.  I can provide a test program the shows the issue, but I think it's
+pretty obvious from the code.  
+
+Link: https://lkml.kernel.org/r/20210701125430.836308-1-minyard@acm.org
+Signed-off-by: Corey Minyard <cminyard@mvista.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/oom_kill.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/mm/filemap.c~restore-acct_reclaim_writeback-for-folio
-+++ a/mm/filemap.c
-@@ -1607,6 +1607,7 @@ void folio_end_writeback(struct folio *f
+--- a/mm/oom_kill.c~oom_kill-oom_score_adj-broken-for-processes-with-small-memory-usage
++++ a/mm/oom_kill.c
+@@ -234,8 +234,11 @@ long oom_badness(struct task_struct *p,
+ 		mm_pgtables_bytes(p->mm) / PAGE_SIZE;
+ 	task_unlock(p);
  
- 	smp_mb__after_atomic();
- 	folio_wake(folio, PG_writeback);
-+	acct_reclaim_writeback(folio_page(folio, 0));
- 	folio_put(folio);
- }
- EXPORT_SYMBOL(folio_end_writeback);
+-	/* Normalize to oom_score_adj units */
+-	adj *= totalpages / 1000;
++	/*
++	 * Normalize to oom_score_adj units.  You should never
++	 * multiply by zero here, or oom_score_adj will not work.
++	 */
++	adj *= (totalpages + 1000) / 1000;
+ 	points += adj;
+ 
+ 	return points;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cminyard@mvista.com are
 
-kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
-mm.patch
-mm-move-kvmalloc-related-functions-to-slabh-fix.patch
-mm-simplify-bdi-refcounting-fix-fix.patch
-memcg-kmem-further-deprecate-kmemlimit_in_bytes-checkpatch-fixes.patch
-mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-checkpatch-fixes.patch
-mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-fix.patch
-mm-vmalloc-introduce-alloc_pages_bulk_array_mempolicy-to-accelerate-memory-allocation-fix-2.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-procfs-do-not-list-tid-0-in-proc-pid-task-fix.patch
-delay-replace-kernelh-with-the-necessary-inclusions-fix.patch
-generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix.patch
-ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
-revert-acct_reclaim_writeback-for-next.patch
-mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault-vs-folios.patch
-mm-page_ownerc-modify-the-type-of-argument-order-in-some-functions-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
