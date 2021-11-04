@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 75EC4C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 01:47:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AA245C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 01:47:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5533B61186
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 01:47:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 90C5161186
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 01:47:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232877AbhKDBu0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Nov 2021 21:50:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39550 "EHLO mail.kernel.org"
+        id S232399AbhKDBub (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Nov 2021 21:50:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232399AbhKDBu0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Nov 2021 21:50:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D6430611C8;
-        Thu,  4 Nov 2021 01:47:48 +0000 (UTC)
+        id S231206AbhKDBua (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Nov 2021 21:50:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7298B61186;
+        Thu,  4 Nov 2021 01:47:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635990468;
-        bh=KM3euH/F4Iv4p12CZfnop15yyTJoSvrNqzvD5DwbGrM=;
+        s=korg; t=1635990473;
+        bh=IYR+KJ/VEC8yDcSyAVkTnpgX5RiQGxTNzgCCenBYDX0=;
         h=Date:From:To:Subject:From;
-        b=JAKOl4RJa0YCvs9CQVLu+BUI+2F3dG93u3YnX1rDGt3jDftWtf9OHoMSYQSulZJaY
-         lNbV4fQrij59NG2JRoH/nLxG9z0uyWj9Ead4lg7ljoQjuigUiQ4mIIi8Kxm0bn+Gdh
-         vmbYhKPrAFGlDplnUe+bjzLZ08mogZKIzCEVkyms=
-Date:   Wed, 03 Nov 2021 18:47:48 -0700
+        b=a6ArQsZh6AiWBGjR+R23Bt3HX62bwfwC2cIu/1wyW6htb9MDU5p3WEG9nk5UjpIhB
+         DJLPGBGh/vhWnhmtpYdBmA0oENizw7OcC/usStZAQMuHveAFXUvMdjGAnb0qLlDCik
+         +Cb5H/kkzfc7duQKTFS5Vlou0YF2wbVedyZRGahE=
+Date:   Wed, 03 Nov 2021 18:47:53 -0700
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete] linux-next-rejects-fix.patch removed from -mm
+Subject:  [obsolete] linux-next-git-rejects.patch removed from -mm
  tree
-Message-ID: <20211104014748.8eLh96GIm%akpm@linux-foundation.org>
+Message-ID: <20211104014753.OY90qeSUi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -37,34 +37,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects-fix
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects-fix.patch
+     linux-next-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects-fix
-
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bootconfig.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/net/sock.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/lib/bootconfig.c~linux-next-rejects-fix
-+++ a/lib/bootconfig.c
-@@ -50,7 +50,7 @@ static inline void * __init xbc_alloc_me
+--- a/include/net/sock.h~linux-next-git-rejects
++++ a/include/net/sock.h
+@@ -2840,21 +2840,14 @@ void sock_set_sndtimeo(struct sock *sk,
  
- static inline void __init xbc_free_mem(void *addr, size_t size)
+ int sock_bind_add(struct sock *sk, struct sockaddr *addr, int addr_len);
+ 
+-<<<<<<< HEAD
+-=======
+ int sock_get_timeout(long timeo, void *optval, bool old_timeval);
+ int sock_copy_user_timeval(struct __kernel_sock_timeval *tv,
+ 			   sockptr_t optval, int optlen, bool old_timeval);
+ 
+->>>>>>> linux-next/akpm-base
+ static inline bool sk_is_readable(struct sock *sk)
  {
--	memblock_free_ptr(addr, size);
-+	memblock_free(addr, size);
+ 	if (sk->sk_prot->sock_is_readable)
+ 		return sk->sk_prot->sock_is_readable(sk);
+ 	return false;
  }
- 
- #else /* !__KERNEL__ */
+-<<<<<<< HEAD
+-=======
+-
+->>>>>>> linux-next/akpm-base
+ #endif	/* _SOCK_H */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,7 +96,6 @@ delay-replace-kernelh-with-the-necessary-inclusions-fix.patch
 generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix.patch
 ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
 revert-acct_reclaim_writeback-for-next.patch
-linux-next-git-rejects.patch
 restore-acct_reclaim_writeback-for-folio.patch
 mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault-vs-folios.patch
 mm-page_ownerc-modify-the-type-of-argument-order-in-some-functions-fix.patch
