@@ -2,39 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B94EC433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 01:40:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 327E9C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 01:42:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 826A26120E
-	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 01:40:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0F32F60E9C
+	for <mm-commits@archiver.kernel.org>; Thu,  4 Nov 2021 01:42:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232950AbhKDBn0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 3 Nov 2021 21:43:26 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35046 "EHLO mail.kernel.org"
+        id S232286AbhKDBop (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 3 Nov 2021 21:44:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232937AbhKDBn0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 3 Nov 2021 21:43:26 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0426360F70;
-        Thu,  4 Nov 2021 01:40:48 +0000 (UTC)
+        id S231206AbhKDBop (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 3 Nov 2021 21:44:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B065560FC2;
+        Thu,  4 Nov 2021 01:42:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1635990049;
-        bh=fAOJRfoQg4gIm43GEaLrzDTnpx4T3SfVPJ77N87uQkU=;
+        s=korg; t=1635990127;
+        bh=PLFrK2nVYpRB5h0bqn6qVfS7LpgqzyL80OIsJ6M9MHM=;
         h=Date:From:To:Subject:From;
-        b=SbUU417iZ7EYNBzwSTuPamPg+oAQTgb1S9HZJu3jS8qwzYeijMKNeIyJAgvh3YHsl
-         7oX4Fy6nxKvsDQirODLRGsMOiAJXhavkd3CHmvf3zN4ZVIEbRZriq2US8GvHwqzSc8
-         tyfNrNxgtni61+36MgYZuL8QWJSD3Mw6oraJ/xuY=
-Date:   Wed, 03 Nov 2021 18:40:48 -0700
+        b=kellQbD8zvsGiLLjwDsEz5HDsQiT109qfh9G8yXGZ6hq2oVOXEFhjdK9VqjfoktAq
+         nLrK7vNHGb3trX9/9NsoB8r5rQm5lVAFmRU3h8ngnv6B2RUlGMaS2QARGIs5XzXtFW
+         DylcNjNKBtEhVxNZxvhdpU6jx9lVaai+R3rGcmqQ=
+Date:   Wed, 03 Nov 2021 18:42:07 -0700
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz, yeyunfeng@huawei.com
-Subject:  +
- =?US-ASCII?Q?mm-emit-the-free-trace-report-before-freeing-memory-in-k?=
- =?US-ASCII?Q?mem=5Fcache=5Ffree.patch?= added to -mm tree
-Message-ID: <20211104014048.tmAeHseJ5%akpm@linux-foundation.org>
+To:     colin.i.king@gmail.com, colin.i.king@googlemail.com,
+        mm-commits@vger.kernel.org
+Subject:  + mailmap-update-email-address-for-colin-king.patch added
+ to -mm tree
+Message-ID: <20211104014207.fXg1yJ7lb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: emit the "free" trace report before freeing memory in kmem_cache_free()
+     Subject: mailmap: update email address for Colin King
 has been added to the -mm tree.  Its filename is
-     mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free.patch
+     mailmap-update-email-address-for-colin-king.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mailmap-update-email-address-for-colin-king.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mailmap-update-email-address-for-colin-king.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,107 +59,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yunfeng Ye <yeyunfeng@huawei.com>
-Subject: mm: emit the "free" trace report before freeing memory in kmem_cache_free()
+From: Colin Ian King <colin.i.king@googlemail.com>
+Subject: mailmap: update email address for Colin King
 
-After the memory is freed, it can be immediately allocated by other CPUs,
-before the "free" trace report has been emitted.  This causes inaccurate
-traces.
+Colin King has moved to Intel to update gmail and Canonical email
+addresses.
 
-For example, if the following sequence of events occurs:
-
-    CPU 0                 CPU 1
-
-  (1) alloc xxxxxx
-  (2) free  xxxxxx
-                         (3) alloc xxxxxx
-                         (4) free  xxxxxx
-
-Then they will be inaccurately reported via tracing, so that they appear
-to have happened in this order:
-
-    CPU 0                 CPU 1
-
-  (1) alloc xxxxxx
-                         (2) alloc xxxxxx
-  (3) free  xxxxxx
-                         (4) free  xxxxxx
-
-This makes it look like CPU 1 somehow managed to allocate memory that CPU
-0 still had allocated for itself.
-
-In order to avoid this, emit the "free xxxxxx" tracing report just before
-the actual call to free the memory, instead of just after it.
-
-Link: https://lkml.kernel.org/r/374eb75d-7404-8721-4e1e-65b0e5b17279@huawei.com
-Signed-off-by: Yunfeng Ye <yeyunfeng@huawei.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20211102231617.78569-1-colin.i.king@gmail.com
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    3 +--
- mm/slob.c |    3 +--
- mm/slub.c |    2 +-
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ .mailmap |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/slab.c~mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free
-+++ a/mm/slab.c
-@@ -3733,14 +3733,13 @@ void kmem_cache_free(struct kmem_cache *
- 	if (!cachep)
- 		return;
- 
-+	trace_kmem_cache_free(_RET_IP_, objp, cachep->name);
- 	local_irq_save(flags);
- 	debug_check_no_locks_freed(objp, cachep->object_size);
- 	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
- 		debug_check_no_obj_freed(objp, cachep->object_size);
- 	__cache_free(cachep, objp, _RET_IP_);
- 	local_irq_restore(flags);
--
--	trace_kmem_cache_free(_RET_IP_, objp, cachep->name);
- }
- EXPORT_SYMBOL(kmem_cache_free);
- 
---- a/mm/slob.c~mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free
-+++ a/mm/slob.c
-@@ -666,6 +666,7 @@ static void kmem_rcu_free(struct rcu_hea
- void kmem_cache_free(struct kmem_cache *c, void *b)
- {
- 	kmemleak_free_recursive(b, c->flags);
-+	trace_kmem_cache_free(_RET_IP_, b, c->name);
- 	if (unlikely(c->flags & SLAB_TYPESAFE_BY_RCU)) {
- 		struct slob_rcu *slob_rcu;
- 		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
-@@ -674,8 +675,6 @@ void kmem_cache_free(struct kmem_cache *
- 	} else {
- 		__kmem_cache_free(b, c->size);
- 	}
--
--	trace_kmem_cache_free(_RET_IP_, b, c->name);
- }
- EXPORT_SYMBOL(kmem_cache_free);
- 
---- a/mm/slub.c~mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free
-+++ a/mm/slub.c
-@@ -3505,8 +3505,8 @@ void kmem_cache_free(struct kmem_cache *
- 	s = cache_from_obj(s, x);
- 	if (!s)
- 		return;
--	slab_free(s, virt_to_head_page(x), x, NULL, 1, _RET_IP_);
- 	trace_kmem_cache_free(_RET_IP_, x, s->name);
-+	slab_free(s, virt_to_head_page(x), x, NULL, 1, _RET_IP_);
- }
- EXPORT_SYMBOL(kmem_cache_free);
- 
+--- a/.mailmap~mailmap-update-email-address-for-colin-king
++++ a/.mailmap
+@@ -73,6 +73,8 @@ Chris Chiu <chris.chiu@canonical.com> <c
+ Chris Chiu <chris.chiu@canonical.com> <chiu@endlessos.org>
+ Christophe Ricard <christophe.ricard@gmail.com>
+ Christoph Hellwig <hch@lst.de>
++Colin Ian King <colin.king@intel.com> <colin.king@canonical.com>
++Colin Ian King <colin.king@intel.com> <colin.i.king@gmail.com>
+ Corey Minyard <minyard@acm.org>
+ Damian Hobson-Garcia <dhobsong@igel.co.jp>
+ Daniel Borkmann <daniel@iogearbox.net> <danborkmann@googlemail.com>
 _
 
-Patches currently in -mm which might be from yeyunfeng@huawei.com are
+Patches currently in -mm which might be from colin.i.king@googlemail.com are
 
-mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free.patch
+mm-damon-fix-a-few-spelling-mistakes-in-comments-and-a-pr_debug-message.patch
+mailmap-update-email-address-for-colin-king.patch
 
