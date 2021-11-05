@@ -2,34 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ABAF2C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:46:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D5CC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:47:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 90D9561186
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:46:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 96E2E611C0
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:47:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232944AbhKEStB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 14:49:01 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53570 "EHLO mail.kernel.org"
+        id S230285AbhKESt5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 14:49:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54034 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231904AbhKEStB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 14:49:01 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3871F611C0;
-        Fri,  5 Nov 2021 18:46:21 +0000 (UTC)
+        id S230063AbhKESt5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 14:49:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4E5BA6023D;
+        Fri,  5 Nov 2021 18:47:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636137981;
-        bh=9nuqn4ZKQjW3VbXKxueRKkkTRxoaTwsyJ3TH6/l2+D8=;
+        s=korg; t=1636138037;
+        bh=S+iBBcbCNsbpUL+MFPVuv/Ei3I1TjEkvg93ds1IT9Dg=;
         h=Date:From:To:Subject:From;
-        b=ur6fgUrF310HUMCutfO22GzuLqCpCWGigBYQGjS+L6EMAAEf9xVlLLYWgjEcs85K2
-         YWapyHSe2H/eFJ/54IomaDK6l7YpMzVw8ISWhPL/Dr9HzAoMcaiggV8SVi8q8+oqMh
-         1PWXcW/VFx4HmP+KEc0whbxn5/wvx7jMvYaRiIXI=
-Date:   Fri, 05 Nov 2021 11:46:20 -0700
+        b=L0q2s9zP35oupzF2gI0VcetljPmSvbmEt2n0dA3npbE/e4EwoLut7eGXy9mC2ogEc
+         jjfYNMdke7KCUrekssnf6sGFjur5qkolBRIsN4qcQmpqYfrLp5l3xNq1FKA4/LBtgx
+         4xRVMk+UeyDvcj8pBNHCXpOixoHzH9AQGDeMsu7I=
+Date:   Fri, 05 Nov 2021 11:47:16 -0700
 From:   akpm@linux-foundation.org
-To:     bgeffon@google.com, minchan@kernel.org, mm-commits@vger.kernel.org,
-        senozhatsky@chromium.org
+To:     dvyukov@google.com, elver@google.com, glider@google.com,
+        jannh@google.com, mm-commits@vger.kernel.org, nogikh@google.com,
+        tarasmadan@google.com
 Subject:  [folded-merged]
- zram-introduce-an-aged-idle-interface-v6.patch removed from -mm tree
-Message-ID: <20211105184620.3531q1N3b%akpm@linux-foundation.org>
+ kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
+ removed from -mm tree
+Message-ID: <20211105184716.hGk0tJqs5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,59 +40,107 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: Introduce an aged idle interface
+     Subject: kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix
 has been removed from the -mm tree.  Its filename was
-     zram-introduce-an-aged-idle-interface-v6.patch
+     kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
 
-This patch was dropped because it was folded into zram-introduce-an-aged-idle-interface.patch
+This patch was dropped because it was folded into kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
 
 ------------------------------------------------------
-From: Brian Geffon <bgeffon@google.com>
-Subject: zram: Introduce an aged idle interface
+From: Marco Elver <elver@google.com>
+Subject: kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix
 
-Sergey's cleanup suggestions
+* Simplify and just use hash_32().
+* Use more random stack_hash_seed.
 
-Link: https://lkml.kernel.org/r/20210929143056.13067-1-bgeffon@google.com
-Signed-off-by: Brian Geffon <bgeffon@google.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
+Link: https://lkml.kernel.org/r/YU3MRGaCaJiYht5g@elver.google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Aleksandr Nogikh <nogikh@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Taras Madan <tarasmadan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/kfence/core.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
---- a/drivers/block/zram/zram_drv.c~zram-introduce-an-aged-idle-interface-v6
-+++ a/drivers/block/zram/zram_drv.c
-@@ -310,7 +310,7 @@ static void mark_idle(struct zram *zram,
- 		if (zram_allocated(zram, index) &&
- 				!zram_test_flag(zram, index, ZRAM_UNDER_WB)) {
- #ifdef CONFIG_ZRAM_MEMORY_TRACKING
--				is_idle = (!cutoff || ktime_after(cutoff, zram->table[index].ac_time));
-+			is_idle = !cutoff || ktime_after(cutoff, zram->table[index].ac_time);
- #endif
- 			if (is_idle)
- 				zram_set_flag(zram, index, ZRAM_IDLE);
-@@ -332,6 +332,7 @@ static ssize_t idle_store(struct device
- 		 * we have memory tracking enabled.
- 		 */
- 		u64 age_sec;
+--- a/mm/kfence/core.c~kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix
++++ a/mm/kfence/core.c
+@@ -10,6 +10,7 @@
+ #include <linux/atomic.h>
+ #include <linux/bug.h>
+ #include <linux/debugfs.h>
++#include <linux/hash.h>
+ #include <linux/irq_work.h>
+ #include <linux/jhash.h>
+ #include <linux/kcsan-checks.h>
+@@ -122,14 +123,21 @@ atomic_t kfence_allocation_gate = ATOMIC
+  *	P(alloc_traces) = (1 - e^(-HNUM * (alloc_traces / SIZE)) ^ HNUM
+  */
+ #define ALLOC_COVERED_HNUM	2
+-#define ALLOC_COVERED_SIZE	(1 << (const_ilog2(CONFIG_KFENCE_NUM_OBJECTS) + 2))
+-#define ALLOC_COVERED_HNEXT(h)	(1664525 * (h) + 1013904223)
++#define ALLOC_COVERED_ORDER	(const_ilog2(CONFIG_KFENCE_NUM_OBJECTS) + 2)
++#define ALLOC_COVERED_SIZE	(1 << ALLOC_COVERED_ORDER)
++#define ALLOC_COVERED_HNEXT(h)	hash_32(h, ALLOC_COVERED_ORDER)
+ #define ALLOC_COVERED_MASK	(ALLOC_COVERED_SIZE - 1)
+ static atomic_t alloc_covered[ALLOC_COVERED_SIZE];
+ 
+ /* Stack depth used to determine uniqueness of an allocation. */
+ #define UNIQUE_ALLOC_STACK_DEPTH 8UL
+ 
++/*
++ * Randomness for stack hashes, making the same collisions across reboots and
++ * different machines less likely.
++ */
++static u32 stack_hash_seed __ro_after_init;
 +
- 		if (IS_ENABLED(CONFIG_ZRAM_MEMORY_TRACKING) && !kstrtoull(buf, 0, &age_sec))
- 			cutoff_time = ktime_sub(ktime_get_boottime(),
- 					ns_to_ktime(age_sec * NSEC_PER_SEC));
-@@ -343,7 +344,7 @@ static ssize_t idle_store(struct device
- 	if (!init_done(zram))
- 		goto out_unlock;
+ /* Statistics counters for debugfs. */
+ enum kfence_counter_id {
+ 	KFENCE_COUNTER_ALLOCATED,
+@@ -166,12 +174,9 @@ static inline bool should_skip_covered(v
  
--	/* A age_sec of 0 marks everything as idle, this is the "all" behavior */
-+	/* A cutoff_time of 0 marks everything as idle, this is the "all" behavior */
- 	mark_idle(zram, cutoff_time);
- 	rv = len;
+ static u32 get_alloc_stack_hash(unsigned long *stack_entries, size_t num_entries)
+ {
+-	/* Some randomness across reboots / different machines. */
+-	u32 seed = (u32)((unsigned long)__kfence_pool >> (BITS_PER_LONG - 32));
+-
+ 	num_entries = min(num_entries, UNIQUE_ALLOC_STACK_DEPTH);
+ 	num_entries = filter_irq_stacks(stack_entries, num_entries);
+-	return jhash(stack_entries, num_entries * sizeof(stack_entries[0]), seed);
++	return jhash(stack_entries, num_entries * sizeof(stack_entries[0]), stack_hash_seed);
+ }
  
+ /*
+@@ -759,6 +764,7 @@ void __init kfence_init(void)
+ 	if (!kfence_sample_interval)
+ 		return;
+ 
++	stack_hash_seed = (u32)random_get_entropy();
+ 	if (!kfence_init_pool()) {
+ 		pr_err("%s failed\n", __func__);
+ 		return;
 _
 
-Patches currently in -mm which might be from bgeffon@google.com are
+Patches currently in -mm which might be from elver@google.com are
 
-zram-introduce-an-aged-idle-interface.patch
+lib-stackdepot-include-gfph.patch
+lib-stackdepot-remove-unused-function-argument.patch
+lib-stackdepot-introduce-__stack_depot_save.patch
+kasan-common-provide-can_alloc-in-kasan_save_stack.patch
+kasan-generic-introduce-kasan_record_aux_stack_noalloc.patch
+workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
+mm-fix-data-race-in-pagepoisoned.patch
+stacktrace-move-filter_irq_stacks-to-kernel-stacktracec.patch
+kfence-count-unexpectedly-skipped-allocations.patch
+kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
+kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
+kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix.patch
+kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
+kfence-test-use-kunit_skip-to-skip-tests.patch
+kfence-shorten-critical-sections-of-alloc-free.patch
+kfence-always-use-static-branches-to-guard-kfence_alloc.patch
+kfence-default-to-dynamic-branch-instead-of-static-keys-mode.patch
 
