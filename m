@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D150C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AF9B5C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3815061279
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94F0561279
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232476AbhKEUlT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:41:19 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36070 "EHLO mail.kernel.org"
+        id S233293AbhKEUlW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:41:22 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36132 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233293AbhKEUlT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:41:19 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B011C6056B;
-        Fri,  5 Nov 2021 20:38:38 +0000 (UTC)
+        id S232810AbhKEUlW (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:41:22 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F059E611C4;
+        Fri,  5 Nov 2021 20:38:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144719;
-        bh=TO7fQlFAUIMUtuvraGiofhQAac+hReuX+JTU+yDcl9Q=;
+        s=korg; t=1636144722;
+        bh=S4N4QLiF/9emJ6Vh5KF8q2lQz32gWn0CCQ7ZowG4u8g=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=af2C+O++JVJl5mi5WysOFszD3BcxsWyGnEsovuUNXlogqS6c5Idtf4/ZVKBa8lG+x
-         guMFeDs7Skw3nVTlO5uk8zkQ5gR7tJYQ4bcSFw3/N4UCqcQcTPa0MJIh3Q6ndq8qJL
-         N+BX83gmPECzSUvdCHLZP0DJUrElfFSb8pzgX5p0=
-Date:   Fri, 05 Nov 2021 13:38:38 -0700
+        b=XP9MhSCsqUP4fC62Sid088hIskoH1zYJKj+Q1SKkyShMWBc82rdoAN4GYYitIS3SV
+         v5BZrZOLbLeeNUMwFuKXIc9/jL3F3VFBiTPqIbra+7aJWlyYxC31vqjkqmHIEVwMwO
+         1wQiSb7hb+pGtfXXv1wHFQOHZw3Znj2Mq4JEXjDk=
+Date:   Fri, 05 Nov 2021 13:38:41 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, david@redhat.com, hannes@cmpxchg.org,
         kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
@@ -31,8 +31,8 @@ To:     akpm@linux-foundation.org, david@redhat.com, hannes@cmpxchg.org,
         mm-commits@vger.kernel.org, songmuchun@bytedance.com,
         tglx@linutronix.de, torvalds@linux-foundation.org, vbabka@suse.cz,
         vdavydov.dev@gmail.com, zhengqi.arch@bytedance.com
-Subject:  [patch 076/262] mm: introduce pmd_install() helper
-Message-ID: <20211105203838.xYsnl2UZw%akpm@linux-foundation.org>
+Subject:  [patch 077/262] mm: remove redundant smp_wmb()
+Message-ID: <20211105203841.NJQh4O_0B%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,124 +41,179 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Qi Zheng <zhengqi.arch@bytedance.com>
-Subject: mm: introduce pmd_install() helper
+Subject: mm: remove redundant smp_wmb()
 
-Patch series "Do some code cleanups related to mm", v3.
+The smp_wmb() which is in the __pte_alloc() is used to ensure all ptes
+setup is visible before the pte is made visible to other CPUs by being put
+into page tables.  We only need this when the pte is actually populated,
+so move it to pmd_install().  __pte_alloc_kernel(), __p4d_alloc(),
+__pud_alloc() and __pmd_alloc() are similar to this case.
 
+We can also defer smp_wmb() to the place where the pmd entry is really
+populated by preallocated pte.  There are two kinds of user of
+preallocated pte, one is filemap & finish_fault(), another is THP.  The
+former does not need another smp_wmb() because the smp_wmb() has been done
+by pmd_install().  Fortunately, the latter also does not need another
+smp_wmb() because there is already a smp_wmb() before populating the new
+pte when the THP uses a preallocated pte to split a huge pmd.
 
-This patch (of 2):
-
-Currently we have three times the same few lines repeated in the code. 
-Deduplicate them by newly introduced pmd_install() helper.
-
-Link: https://lkml.kernel.org/r/20210901102722.47686-1-zhengqi.arch@bytedance.com
-Link: https://lkml.kernel.org/r/20210901102722.47686-2-zhengqi.arch@bytedance.com
+Link: https://lkml.kernel.org/r/20210901102722.47686-3-zhengqi.arch@bytedance.com
 Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Mika Penttila <mika.penttila@nextfour.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c  |   11 ++---------
- mm/internal.h |    1 +
- mm/memory.c   |   34 ++++++++++++++++------------------
- 3 files changed, 19 insertions(+), 27 deletions(-)
+ mm/memory.c         |   52 ++++++++++++++++++------------------------
+ mm/sparse-vmemmap.c |    2 -
+ 2 files changed, 24 insertions(+), 30 deletions(-)
 
---- a/mm/filemap.c~mm-introduce-pmd_install-helper
-+++ a/mm/filemap.c
-@@ -3211,15 +3211,8 @@ static bool filemap_map_pmd(struct vm_fa
- 	    }
- 	}
- 
--	if (pmd_none(*vmf->pmd)) {
--		vmf->ptl = pmd_lock(mm, vmf->pmd);
--		if (likely(pmd_none(*vmf->pmd))) {
--			mm_inc_nr_ptes(mm);
--			pmd_populate(mm, vmf->pmd, vmf->prealloc_pte);
--			vmf->prealloc_pte = NULL;
--		}
--		spin_unlock(vmf->ptl);
--	}
-+	if (pmd_none(*vmf->pmd))
-+		pmd_install(mm, vmf->pmd, &vmf->prealloc_pte);
- 
- 	/* See comment in handle_pte_fault() */
- 	if (pmd_devmap_trans_unstable(vmf->pmd)) {
---- a/mm/internal.h~mm-introduce-pmd_install-helper
-+++ a/mm/internal.h
-@@ -38,6 +38,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 
- void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
- 		unsigned long floor, unsigned long ceiling);
-+void pmd_install(struct mm_struct *mm, pmd_t *pmd, pgtable_t *pte);
- 
- static inline bool can_madv_lru_vma(struct vm_area_struct *vma)
- {
---- a/mm/memory.c~mm-introduce-pmd_install-helper
+--- a/mm/memory.c~mm-remove-redundant-smp_wmb
 +++ a/mm/memory.c
-@@ -437,9 +437,20 @@ void free_pgtables(struct mmu_gather *tl
- 	}
- }
+@@ -443,6 +443,20 @@ void pmd_install(struct mm_struct *mm, p
  
-+void pmd_install(struct mm_struct *mm, pmd_t *pmd, pgtable_t *pte)
-+{
-+	spinlock_t *ptl = pmd_lock(mm, pmd);
-+
-+	if (likely(pmd_none(*pmd))) {	/* Has another populated it ? */
-+		mm_inc_nr_ptes(mm);
-+		pmd_populate(mm, pmd, *pte);
-+		*pte = NULL;
-+	}
-+	spin_unlock(ptl);
-+}
-+
- int __pte_alloc(struct mm_struct *mm, pmd_t *pmd)
- {
--	spinlock_t *ptl;
- 	pgtable_t new = pte_alloc_one(mm);
+ 	if (likely(pmd_none(*pmd))) {	/* Has another populated it ? */
+ 		mm_inc_nr_ptes(mm);
++		/*
++		 * Ensure all pte setup (eg. pte page lock and page clearing) are
++		 * visible before the pte is made visible to other CPUs by being
++		 * put into page tables.
++		 *
++		 * The other side of the story is the pointer chasing in the page
++		 * table walking code (when walking the page table without locking;
++		 * ie. most of the time). Fortunately, these data accesses consist
++		 * of a chain of data-dependent loads, meaning most CPUs (alpha
++		 * being the notable exception) will already guarantee loads are
++		 * seen in-order. See the alpha page table accessors for the
++		 * smp_rmb() barriers in page table walking code.
++		 */
++		smp_wmb(); /* Could be smp_wmb__xxx(before|after)_spin_lock */
+ 		pmd_populate(mm, pmd, *pte);
+ 		*pte = NULL;
+ 	}
+@@ -455,21 +469,6 @@ int __pte_alloc(struct mm_struct *mm, pm
  	if (!new)
  		return -ENOMEM;
-@@ -459,13 +470,7 @@ int __pte_alloc(struct mm_struct *mm, pm
- 	 */
- 	smp_wmb(); /* Could be smp_wmb__xxx(before|after)_spin_lock */
  
--	ptl = pmd_lock(mm, pmd);
--	if (likely(pmd_none(*pmd))) {	/* Has another populated it ? */
--		mm_inc_nr_ptes(mm);
--		pmd_populate(mm, pmd, new);
--		new = NULL;
--	}
--	spin_unlock(ptl);
-+	pmd_install(mm, pmd, &new);
+-	/*
+-	 * Ensure all pte setup (eg. pte page lock and page clearing) are
+-	 * visible before the pte is made visible to other CPUs by being
+-	 * put into page tables.
+-	 *
+-	 * The other side of the story is the pointer chasing in the page
+-	 * table walking code (when walking the page table without locking;
+-	 * ie. most of the time). Fortunately, these data accesses consist
+-	 * of a chain of data-dependent loads, meaning most CPUs (alpha
+-	 * being the notable exception) will already guarantee loads are
+-	 * seen in-order. See the alpha page table accessors for the
+-	 * smp_rmb() barriers in page table walking code.
+-	 */
+-	smp_wmb(); /* Could be smp_wmb__xxx(before|after)_spin_lock */
+-
+ 	pmd_install(mm, pmd, &new);
  	if (new)
  		pte_free(mm, new);
- 	return 0;
-@@ -4028,17 +4033,10 @@ vm_fault_t finish_fault(struct vm_fault
- 				return ret;
- 		}
+@@ -482,10 +481,9 @@ int __pte_alloc_kernel(pmd_t *pmd)
+ 	if (!new)
+ 		return -ENOMEM;
  
--		if (vmf->prealloc_pte) {
--			vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
--			if (likely(pmd_none(*vmf->pmd))) {
--				mm_inc_nr_ptes(vma->vm_mm);
--				pmd_populate(vma->vm_mm, vmf->pmd, vmf->prealloc_pte);
--				vmf->prealloc_pte = NULL;
--			}
--			spin_unlock(vmf->ptl);
--		} else if (unlikely(pte_alloc(vma->vm_mm, vmf->pmd))) {
-+		if (vmf->prealloc_pte)
-+			pmd_install(vma->vm_mm, vmf->pmd, &vmf->prealloc_pte);
-+		else if (unlikely(pte_alloc(vma->vm_mm, vmf->pmd)))
+-	smp_wmb(); /* See comment in __pte_alloc */
+-
+ 	spin_lock(&init_mm.page_table_lock);
+ 	if (likely(pmd_none(*pmd))) {	/* Has another populated it ? */
++		smp_wmb(); /* See comment in pmd_install() */
+ 		pmd_populate_kernel(&init_mm, pmd, new);
+ 		new = NULL;
+ 	}
+@@ -3849,7 +3847,6 @@ static vm_fault_t __do_fault(struct vm_f
+ 		vmf->prealloc_pte = pte_alloc_one(vma->vm_mm);
+ 		if (!vmf->prealloc_pte)
  			return VM_FAULT_OOM;
--		}
+-		smp_wmb(); /* See comment in __pte_alloc() */
  	}
  
- 	/* See comment in handle_pte_fault() */
+ 	ret = vma->vm_ops->fault(vmf);
+@@ -3920,7 +3917,6 @@ vm_fault_t do_set_pmd(struct vm_fault *v
+ 		vmf->prealloc_pte = pte_alloc_one(vma->vm_mm);
+ 		if (!vmf->prealloc_pte)
+ 			return VM_FAULT_OOM;
+-		smp_wmb(); /* See comment in __pte_alloc() */
+ 	}
+ 
+ 	vmf->ptl = pmd_lock(vma->vm_mm, vmf->pmd);
+@@ -4145,7 +4141,6 @@ static vm_fault_t do_fault_around(struct
+ 		vmf->prealloc_pte = pte_alloc_one(vmf->vma->vm_mm);
+ 		if (!vmf->prealloc_pte)
+ 			return VM_FAULT_OOM;
+-		smp_wmb(); /* See comment in __pte_alloc() */
+ 	}
+ 
+ 	return vmf->vma->vm_ops->map_pages(vmf, start_pgoff, end_pgoff);
+@@ -4819,13 +4814,13 @@ int __p4d_alloc(struct mm_struct *mm, pg
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+-	smp_wmb(); /* See comment in __pte_alloc */
+-
+ 	spin_lock(&mm->page_table_lock);
+-	if (pgd_present(*pgd))		/* Another has populated it */
++	if (pgd_present(*pgd)) {	/* Another has populated it */
+ 		p4d_free(mm, new);
+-	else
++	} else {
++		smp_wmb(); /* See comment in pmd_install() */
+ 		pgd_populate(mm, pgd, new);
++	}
+ 	spin_unlock(&mm->page_table_lock);
+ 	return 0;
+ }
+@@ -4842,11 +4837,10 @@ int __pud_alloc(struct mm_struct *mm, p4
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+-	smp_wmb(); /* See comment in __pte_alloc */
+-
+ 	spin_lock(&mm->page_table_lock);
+ 	if (!p4d_present(*p4d)) {
+ 		mm_inc_nr_puds(mm);
++		smp_wmb(); /* See comment in pmd_install() */
+ 		p4d_populate(mm, p4d, new);
+ 	} else	/* Another has populated it */
+ 		pud_free(mm, new);
+@@ -4867,14 +4861,14 @@ int __pmd_alloc(struct mm_struct *mm, pu
+ 	if (!new)
+ 		return -ENOMEM;
+ 
+-	smp_wmb(); /* See comment in __pte_alloc */
+-
+ 	ptl = pud_lock(mm, pud);
+ 	if (!pud_present(*pud)) {
+ 		mm_inc_nr_pmds(mm);
++		smp_wmb(); /* See comment in pmd_install() */
+ 		pud_populate(mm, pud, new);
+-	} else	/* Another has populated it */
++	} else {	/* Another has populated it */
+ 		pmd_free(mm, new);
++	}
+ 	spin_unlock(ptl);
+ 	return 0;
+ }
+--- a/mm/sparse-vmemmap.c~mm-remove-redundant-smp_wmb
++++ a/mm/sparse-vmemmap.c
+@@ -76,7 +76,7 @@ static int split_vmemmap_huge_pmd(pmd_t
+ 		set_pte_at(&init_mm, addr, pte, entry);
+ 	}
+ 
+-	/* Make pte visible before pmd. See comment in __pte_alloc(). */
++	/* Make pte visible before pmd. See comment in pmd_install(). */
+ 	smp_wmb();
+ 	pmd_populate_kernel(&init_mm, pmd, pgtable);
+ 
 _
