@@ -2,35 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 10CCDC4332F
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:42:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A85F3C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:42:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ED2DF61212
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:42:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 94DD561212
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:42:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233694AbhKEUon (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:44:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:39460 "EHLO mail.kernel.org"
+        id S232537AbhKEUoq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:44:46 -0400
+Received: from mail.kernel.org ([198.145.29.99]:39516 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233691AbhKEUol (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:44:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 92D7561262;
-        Fri,  5 Nov 2021 20:42:01 +0000 (UTC)
+        id S233691AbhKEUoo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:44:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 99AFD60C51;
+        Fri,  5 Nov 2021 20:42:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144921;
-        bh=2ID/AI5rqphJTJ7DPV8bsvOzveeYczPqGUWG3G1vemM=;
+        s=korg; t=1636144924;
+        bh=8ufgrQ8+aTEw9uSx7Wtbtnkk0TlAQG3cvFwm+N7yYww=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=k5Kkc13nw9hhpAiYr4+j0JWsfbRXNkc+0ODdEot8VVFVG/oX9PAlKb0Gel0N7T8Sd
-         r2TcF2cwW7hI8IRasrG7jP+8IqzxUS8gmZMsZ7uG9ltLqA/sSzlStxBJsjlVNJzYsS
-         5D+jDuoUZmCnZlh+qme2ib6TICzDHQewsQheBJWU=
-Date:   Fri, 05 Nov 2021 13:42:01 -0700
+        b=cH/82wZt0IT1E2p55BmpvE25b0Cu3JGsbZFmq7CpsnwIzrO3xCvh/1cBvBmMZUDBm
+         7FwiSFRfs15VMI/6iJqxQxEKeVlMc3VLelqpD8WCxq8+68tq5igqmve34KIPRisn6y
+         D9A+uoxCa2Yf8+L8/9ttuxdoLFWZrplJAJeMEAyE=
+Date:   Fri, 05 Nov 2021 13:42:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, baolin.wang@linux.alibaba.com,
-        linux-mm@kvack.org, mhocko@kernel.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 141/262] hugetlb: remove redundant VM_BUG_ON() in
- add_reservation_in_range()
-Message-ID: <20211105204201.Udvk59sOV%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        osalvador@suse.de, pasha.tatashin@soleen.com,
+        songmuchun@bytedance.com, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject:  [patch 142/262] hugetlb: remove unnecessary
+ set_page_count in prep_compound_gigantic_page
+Message-ID: <20211105204204.OdjvHE3wI%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -38,31 +40,39 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: hugetlb: remove redundant VM_BUG_ON() in add_reservation_in_range()
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: hugetlb: remove unnecessary set_page_count in prep_compound_gigantic_page
 
-When calling hugetlb_resv_map_add(), we've guaranteed that the parameter
-'to' is always larger than 'from', so it never returns a negative value
-from hugetlb_resv_map_add().  Thus remove the redundant VM_BUG_ON().
+In commit 7118fc2906e29 ("hugetlb: address ref count racing in
+prep_compound_gigantic_page"), page_ref_freeze is used to atomically zero
+the ref count of tail pages iff they are 1.  The unconditional call to
+set_page_count(0) was left in the code.  This call is after
+page_ref_freeze so it is really a noop.
 
-Link: https://lkml.kernel.org/r/2b565552f3d06753da1e8dda439c0d96d6d9a5a3.1634797639.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Remove redundant and unnecessary set_page_count call.
+
+Link: https://lkml.kernel.org/r/20211026220635.35187-1-mike.kravetz@oracle.com
+Fixes: 7118fc2906e29 ("hugetlb: address ref count racing in prep_compound_gigantic_page")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Suggested-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/hugetlb.c |    1 -
  1 file changed, 1 deletion(-)
 
---- a/mm/hugetlb.c~hugetlb-remove-redundant-vm_bug_on-in-add_reservation_in_range
+--- a/mm/hugetlb.c~hugetlb-remove-unnecessary-set_page_count-in-prep_compound_gigantic_page
 +++ a/mm/hugetlb.c
-@@ -445,7 +445,6 @@ static long add_reservation_in_range(str
- 		add += hugetlb_resv_map_add(resv, rg, last_accounted_offset,
- 					    t, h, h_cg, regions_needed);
- 
--	VM_BUG_ON(add < 0);
- 	return add;
- }
- 
+@@ -1792,7 +1792,6 @@ static bool __prep_compound_gigantic_pag
+ 		} else {
+ 			VM_BUG_ON_PAGE(page_count(p), p);
+ 		}
+-		set_page_count(p, 0);
+ 		set_compound_head(p, page);
+ 	}
+ 	atomic_set(compound_mapcount_ptr(page), -1);
 _
