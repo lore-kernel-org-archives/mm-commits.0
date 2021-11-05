@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF57FC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 054A3C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9886C611C0
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E5A326126A
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232246AbhKEUh6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:37:58 -0400
-Received: from mail.kernel.org ([198.145.29.99]:32782 "EHLO mail.kernel.org"
+        id S232258AbhKEUiB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:38:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:32828 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232002AbhKEUh6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:37:58 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 0366B61242;
-        Fri,  5 Nov 2021 20:35:17 +0000 (UTC)
+        id S232002AbhKEUiB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:38:01 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4002B611C0;
+        Fri,  5 Nov 2021 20:35:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144518;
-        bh=r+rOVlDuZFH89DBSvCSq623tdfXh5HZE2Pri2pUwdx0=;
+        s=korg; t=1636144521;
+        bh=BFrRHDItB033KGMI0DsbXXAPXn9nInuCSxGMm1myxbE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=kazDEnq4UE6urEDotHbh9urj4l82xxaY1yCKmuSmHm6pAfVRAzttf8z2zwTefPVww
-         4eqO4EhmUpH5JtHpt6sFaY10cWr8DCk0bUOtcIYMNTPQHp1DCezCpLz2TzvpRVXIm0
-         fh7Io6TslE2cjEDziFynHd5mMDEtCMInofO+ubYY=
-Date:   Fri, 05 Nov 2021 13:35:17 -0700
+        b=EXlsT492wsfhEbZ0AHTE9uYvWR6tXaHE8ux+ob+fhZCBXdmSz+evmGHDv8V+XWhEp
+         e65KzXtme/bJUxW96oF3Idoh/Xi4HKVdP4aSTjkfXBZcL5r2mJFA3JzG3pggxzlMry
+         k8gV3EpLwGVqZTcu+sF8f3ibmn91kjVkLargTAe0=
+Date:   Fri, 05 Nov 2021 13:35:20 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cl@linux.com, guro@fb.com,
         iamjoonsoo.kim@lge.com, jannh@google.com, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, penberg@kernel.org,
         rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 014/262] mm, slub: change percpu partial
- accounting from objects to pages
-Message-ID: <20211105203517.sQ2746FAk%akpm@linux-foundation.org>
+Subject:  [patch 015/262] mm/slub: increase default cpu partial
+ list sizes
+Message-ID: <20211105203520.Q1wOR3Iwr%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,558 +40,150 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, slub: change percpu partial accounting from objects to pages
+Subject: mm/slub: increase default cpu partial list sizes
 
-With CONFIG_SLUB_CPU_PARTIAL enabled, SLUB keeps a percpu list of partial
-slabs that can be promoted to cpu slab when the previous one is depleted,
-without accessing the shared partial list.  A slab can be added to this
-list by 1) refill of an empty list from get_partial_node() - once we
-really have to access the shared partial list, we acquire multiple slabs
-to amortize the cost of locking, and 2) first free to a previously full
-slab - instead of putting the slab on a shared partial list, we can more
-cheaply freeze it and put it on the per-cpu list.
+The defaults are determined based on object size and can go up to 30 for
+objects smaller than 256 bytes.  Before the previous patch changed the
+accounting, this could have made cpu partial list contain up to 30 pages. 
+After that patch, only up to 2 pages with default allocation order.
 
-To control how large a percpu partial list can grow for a kmem cache,
-set_cpu_partial() calculates a target number of free objects on each cpu's
-percpu partial list, and this can be also set by the sysfs file
-cpu_partial.
+Very short lists limit the usefulness of the whole concept of cpu partial
+lists, so this patch aims at a more reasonable default under the new
+accounting.  The defaults are quadrupled, except for object size >=
+PAGE_SIZE where it's doubled.  This makes the lists grow up to 10 pages in
+practice.
 
-However, the tracking of actual number of objects is imprecise, in order
-to limit overhead from cpu X freeing an objects to a slab on percpu
-partial list of cpu Y.  Basically, the percpu partial slabs form a single
-linked list, and when we add a new slab to the list with current head
-"oldpage", we set in the struct page of the slab we're adding:
+A quick test of booting a kernel under virtme with 4GB RAM and 8 vcpus
+shows the following slab memory usage after boot:
 
-page->pages = oldpage->pages + 1; // this is precise
-page->pobjects = oldpage->pobjects + (page->objects - page->inuse);
-page->next = oldpage;
+Before previous patch (using page->pobjects):
+Slab:              36732 kB
+SReclaimable:      14836 kB
+SUnreclaim:        21896 kB
 
-Thus the real number of free objects in the slab (objects - inuse) is only
-determined at the moment of adding the slab to the percpu partial list,
-and further freeing doesn't update the pobjects counter nor propagate it
-to the current list head.  As Jann reports [1], this can easily lead to
-large inaccuracies, where the target number of objects (up to 30 by
-default) can translate to the same number of (empty) slab pages on the
-list.  In case 2) above, we put a slab with 1 free object on the list,
-thus only increase page->pobjects by 1, even if there are subsequent frees
-on the same slab.  Jann has noticed this in practice and so did we [2]
-when investigating significant increase of kmemcg usage after switching
-from SLAB to SLUB.
+After previous patch (using page->pages):
+Slab:              34720 kB
+SReclaimable:      13716 kB
+SUnreclaim:        21004 kB
 
-While this is no longer a problem in kmemcg context thanks to the
-accounting rewrite in 5.9, the memory waste is still not ideal and it's
-questionable whether it makes sense to perform free object count based
-control when object counts can easily become so much inaccurate.  So this
-patch converts the accounting to be based on number of pages only (which
-is precise) and removes the page->pobjects field completely.  This is also
-ultimately simpler.
+After this patch (using page->pages, higher defaults):
+Slab:              35252 kB
+SReclaimable:      13944 kB
+SUnreclaim:        21308 kB
 
-To retain the existing set_cpu_partial() heuristic, first calculate the
-target number of objects as previously, but then convert it to target
-number of pages by assuming the pages will be half-filled on average. 
-This assumption might obviously also be inaccurate in practice, but cannot
-degrade to actual number of pages being equal to the target number of
-objects.
+In the same setup, I also ran 5 times:
+hackbench -l 16000 -g 16
 
-We could also skip the intermediate step with target number of objects and
-rewrite the heuristic in terms of pages.  However we still have the sysfs
-file cpu_partial which uses number of objects and could break existing
-users if it suddenly becomes number of pages, so this patch doesn't do
-that.
+Differences in time were in the noise, we can compare slub stats as given
+by slabinfo -r skbuff_head_cache (the other cache heavily used by
+hackbench, kmalloc-cg-512 looks similar).  Negligible stats left out for
+brevity.
 
-In practice, after this patch the heuristics limit the size of percpu
-partial list up to 2 pages.  In case of a reported regression (which would
-mean some workload has benefited from the previous imprecise object based
-counting), we can tune the heuristics to get a better compromise within
-the new scheme, while still avoid the unexpectedly long percpu partial
-lists.
+Before previous patch (using page->pobjects):
 
-[1] https://lore.kernel.org/linux-mm/CAG48ez2Qx5K1Cab-m8BdSibp6wLTip6ro4=-umR7BLsEgjEYzA@mail.gmail.com/
-[2] https://lore.kernel.org/all/2f0f46e8-2535-410a-1859-e9cfa4e57c18@suse.cz/
+Objects: 1408, Memory Total:  401408 Used :  304128
 
-==========
-Evaluation
-==========
+Slab Perf Counter       Alloc     Free %Al %Fr
+--------------------------------------------------
+Fastpath             469952498  5946606  91   1
+Slowpath             42053573 506059465   8  98
+Page Alloc              41093    41044   0   0
+Add partial                18 21229327   0   4
+Remove partial       20039522    36051   3   0
+Cpu partial list      4686640 24767229   0   4
+RemoteObj/SlabFrozen       16 124027841   0  24
+Total                512006071 512006071
+Flushes       18
 
-Mel was kind enough to run v1 through mmtests machinery for netperf
-(localhost) and hackbench and, for most significant results see below.  So
-there are some apparent regressions, especially with hackbench, which I
-think ultimately boils down to having shorter percpu partial lists on
-average and some benchmarks benefiting from longer ones.  Monitoring slab
-usage also indicated less memory usage by slab.  Based on that, the
-following patch will bump the defaults to allow longer percpu partial
-lists than after this patch.
+Slab Deactivation             Occurrences %
+-------------------------------------------------
+Slab empty                       4993    0%
+Deactivation bypass           24767229   99%
+Refilled from foreign frees   21972674   88%
 
-However the goal is certainly not such that we would limit the percpu
-partial lists to 30 pages just because previously a specific alloc/free
-pattern could lead to the limit of 30 objects translate to a limit to 30
-pages - that would make little sense.  This is a correctness patch, and if
-a workload benefits from larger lists, the sysfs tuning knobs are still
-there to allow that.
+After previous patch (using page->pages):
 
-Netperf
+Objects: 480, Memory Total:  131072 Used :  103680
 
-2-socket Intel(R) Xeon(R) Gold 5218R CPU @ 2.10GHz (20 cores, 40 threads
-per socket), 384GB RAM
-TCP-RR:
-hmean before 127045.79 after 121092.94 (-4.69%, worse)
-stddev before  2634.37 after   1254.08
-UDP-RR:
-hmean before 166985.45 after 160668.94 ( -3.78%, worse)
-stddev before 4059.69 after 1943.63
+Slab Perf Counter       Alloc     Free %Al %Fr
+--------------------------------------------------
+Fastpath             473016294  5405653  92   1
+Slowpath             38989777 506600418   7  98
+Page Alloc              32717    32701   0   0
+Add partial                 3 22749164   0   4
+Remove partial       11371127    32474   2   0
+Cpu partial list     11686226 23090059   2   4
+RemoteObj/SlabFrozen        2 67541803   0  13
+Total                512006071 512006071
+Flushes        3
 
-2-socket Intel(R) Xeon(R) CPU E5-2698 v4 @ 2.20GHz (20 cores, 40 threads
-per socket), 512GB RAM
-TCP-RR:
-hmean before 84173.25 after 76914.72 ( -8.62%, worse)
-UDP-RR:
-hmean before 93571.12 after 96428.69 ( 3.05%, better)
-stddev before 23118.54 after 16828.14
+Slab Deactivation             Occurrences %
+-------------------------------------------------
+Slab empty                        227    0%
+Deactivation bypass           23090059   99%
+Refilled from foreign frees   27585695  119%
 
-2-socket Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz (12 cores, 24 threads
-per socket), 64GB RAM
-TCP-RR:
-hmean before 49984.92 after 48922.27 ( -2.13%, worse)
-stddev before 6248.15 after 4740.51
-UDP-RR:
-hmean before 61854.31 after 68761.81 ( 11.17%, better)
-stddev before 4093.54 after 5898.91
+After this patch (using page->pages, higher defaults):
 
-other machines - within 2%
+Objects: 896, Memory Total:  229376 Used :  193536
 
-Hackbench
+Slab Perf Counter       Alloc     Free %Al %Fr
+--------------------------------------------------
+Fastpath             473799295  4980278  92   0
+Slowpath             38206776 507025793   7  99
+Page Alloc              32295    32267   0   0
+Add partial                11 23291143   0   4
+Remove partial        5815764    31278   1   0
+Cpu partial list     18119280 23967320   3   4
+RemoteObj/SlabFrozen       10 76974794   0  15
+Total                512006071 512006071
+Flushes       11
 
-(results before and after the patch, negative % means worse)
+Slab Deactivation             Occurrences %
+-------------------------------------------------
+Slab empty                        989    0%
+Deactivation bypass           23967320   99%
+Refilled from foreign frees   32358473  135%
 
-2-socket AMD EPYC 7713 (64 cores, 128 threads per core), 256GB RAM
-hackbench-process-sockets
-Amean 	1 	0.5380	0.5583	( -3.78%)
-Amean 	4 	0.7510	0.8150	( -8.52%)
-Amean 	7 	0.7930	0.9533	( -20.22%)
-Amean 	12 	0.7853	1.1313	( -44.06%)
-Amean 	21 	1.1520	1.4993	( -30.15%)
-Amean 	30 	1.6223	1.9237	( -18.57%)
-Amean 	48 	2.6767	2.9903	( -11.72%)
-Amean 	79 	4.0257	5.1150	( -27.06%)
-Amean 	110	5.5193	7.4720	( -35.38%)
-Amean 	141	7.2207	9.9840	( -38.27%)
-Amean 	172	8.4770	12.1963	( -43.88%)
-Amean 	203	9.6473	14.3137	( -48.37%)
-Amean 	234	11.3960	18.7917	( -64.90%)
-Amean 	265	13.9627	22.4607	( -60.86%)
-Amean 	296	14.9163	26.0483	( -74.63%)
+As expected, memory usage dropped significantly with change of accounting,
+increasing the defaults increased it, but not as much.  The number of page
+allocation/frees dropped significantly with the new accounting, but didn't
+increase with the higher defaults.  Interestingly, the number of fasthpath
+allocations increased, as well as allocations from the cpu partial list,
+even though it's shorter.
 
-hackbench-thread-sockets
-Amean 	1 	0.5597	0.5877	( -5.00%)
-Amean 	4 	0.7913	0.8960	( -13.23%)
-Amean 	7 	0.8190	1.0017	( -22.30%)
-Amean 	12 	0.9560	1.1727	( -22.66%)
-Amean 	21 	1.7587	1.5660	( 10.96%)
-Amean 	30 	2.4477	1.9807	( 19.08%)
-Amean 	48 	3.4573	3.0630	( 11.41%)
-Amean 	79 	4.7903	5.1733	( -8.00%)
-Amean 	110	6.1370	7.4220	( -20.94%)
-Amean 	141	7.5777	9.2617	( -22.22%)
-Amean 	172	9.2280	11.0907	( -20.18%)
-Amean 	203	10.2793	13.3470	( -29.84%)
-Amean 	234	11.2410	17.1070	( -52.18%)
-Amean 	265	12.5970	23.3323	( -85.22%)
-Amean 	296	17.1540	24.2857	( -41.57%)
-
-2-socket Intel(R) Xeon(R) Gold 5218R CPU @ 2.10GHz (20 cores, 40 threads
-per socket), 384GB RAM
-hackbench-process-sockets
-Amean 	1 	0.5760	0.4793	( 16.78%)
-Amean 	4 	0.9430	0.9707	( -2.93%)
-Amean 	7 	1.5517	1.8843	( -21.44%)
-Amean 	12 	2.4903	2.7267	( -9.49%)
-Amean 	21 	3.9560	4.2877	( -8.38%)
-Amean 	30 	5.4613	5.8343	( -6.83%)
-Amean 	48 	8.5337	9.2937	( -8.91%)
-Amean 	79 	14.0670	15.2630	( -8.50%)
-Amean 	110	19.2253	21.2467	( -10.51%)
-Amean 	141	23.7557	25.8550	( -8.84%)
-Amean 	172	28.4407	29.7603	( -4.64%)
-Amean 	203	33.3407	33.9927	( -1.96%)
-Amean 	234	38.3633	39.1150	( -1.96%)
-Amean 	265	43.4420	43.8470	( -0.93%)
-Amean 	296	48.3680	48.9300	( -1.16%)
-
-hackbench-thread-sockets
-Amean 	1 	0.6080	0.6493	( -6.80%)
-Amean 	4 	1.0000	1.0513	( -5.13%)
-Amean 	7 	1.6607	2.0260	( -22.00%)
-Amean 	12 	2.7637	2.9273	( -5.92%)
-Amean 	21 	5.0613	4.5153	( 10.79%)
-Amean 	30 	6.3340	6.1140	( 3.47%)
-Amean 	48 	9.0567	9.5577	( -5.53%)
-Amean 	79 	14.5657	15.7983	( -8.46%)
-Amean 	110	19.6213	21.6333	( -10.25%)
-Amean 	141	24.1563	26.2697	( -8.75%)
-Amean 	172	28.9687	30.2187	( -4.32%)
-Amean 	203	33.9763	34.6970	( -2.12%)
-Amean 	234	38.8647	39.3207	( -1.17%)
-Amean 	265	44.0813	44.1507	( -0.16%)
-Amean 	296	49.2040	49.4330	( -0.47%)
-
-2-socket Intel(R) Xeon(R) CPU E5-2698 v4 @ 2.20GHz (20 cores, 40 threads
-per socket), 512GB RAM
-hackbench-process-sockets
-Amean 	1 	0.5027	0.5017	( 0.20%)
-Amean 	4 	1.1053	1.2033	( -8.87%)
-Amean 	7 	1.8760	2.1820	( -16.31%)
-Amean 	12 	2.9053	3.1810	( -9.49%)
-Amean 	21 	4.6777	4.9920	( -6.72%)
-Amean 	30 	6.5180	6.7827	( -4.06%)
-Amean 	48 	10.0710	10.5227	( -4.48%)
-Amean 	79 	16.4250	17.5053	( -6.58%)
-Amean 	110	22.6203	24.4617	( -8.14%)
-Amean 	141	28.0967	31.0363	( -10.46%)
-Amean 	172	34.4030	36.9233	( -7.33%)
-Amean 	203	40.5933	43.0850	( -6.14%)
-Amean 	234	46.6477	48.7220	( -4.45%)
-Amean 	265	53.0530	53.9597	( -1.71%)
-Amean 	296	59.2760	59.9213	( -1.09%)
-
-hackbench-thread-sockets
-Amean 	1 	0.5363	0.5330	( 0.62%)
-Amean 	4 	1.1647	1.2157	( -4.38%)
-Amean 	7 	1.9237	2.2833	( -18.70%)
-Amean 	12 	2.9943	3.3110	( -10.58%)
-Amean 	21 	4.9987	5.1880	( -3.79%)
-Amean 	30 	6.7583	7.0043	( -3.64%)
-Amean 	48 	10.4547	10.8353	( -3.64%)
-Amean 	79 	16.6707	17.6790	( -6.05%)
-Amean 	110	22.8207	24.4403	( -7.10%)
-Amean 	141	28.7090	31.0533	( -8.17%)
-Amean 	172	34.9387	36.8260	( -5.40%)
-Amean 	203	41.1567	43.0450	( -4.59%)
-Amean 	234	47.3790	48.5307	( -2.43%)
-Amean 	265	53.9543	54.6987	( -1.38%)
-Amean 	296	60.0820	60.2163	( -0.22%)
-
-1-socket Intel(R) Xeon(R) CPU E3-1240 v5 @ 3.50GHz (4 cores, 8 threads),
-32 GB RAM
-hackbench-process-sockets
-Amean 	1 	1.4760	1.5773	( -6.87%)
-Amean 	3 	3.9370	4.0910	( -3.91%)
-Amean 	5 	6.6797	6.9357	( -3.83%)
-Amean 	7 	9.3367	9.7150	( -4.05%)
-Amean 	12	15.7627	16.1400	( -2.39%)
-Amean 	18	23.5360	23.6890	( -0.65%)
-Amean 	24	31.0663	31.3137	( -0.80%)
-Amean 	30	38.7283	39.0037	( -0.71%)
-Amean 	32	41.3417	41.6097	( -0.65%)
-
-hackbench-thread-sockets
-Amean 	1 	1.5250	1.6043	( -5.20%)
-Amean 	3 	4.0897	4.2603	( -4.17%)
-Amean 	5 	6.7760	7.0933	( -4.68%)
-Amean 	7 	9.4817	9.9157	( -4.58%)
-Amean 	12	15.9610	16.3937	( -2.71%)
-Amean 	18	23.9543	24.3417	( -1.62%)
-Amean 	24	31.4400	31.7217	( -0.90%)
-Amean 	30	39.2457	39.5467	( -0.77%)
-Amean 	32	41.8267	42.1230	( -0.71%)
-
-2-socket Intel(R) Xeon(R) CPU E5-2670 v3 @ 2.30GHz (12 cores, 24 threads
-per socket), 64GB RAM
-hackbench-process-sockets
-Amean 	1 	1.0347	1.0880	( -5.15%)
-Amean 	4 	1.7267	1.8527	( -7.30%)
-Amean 	7 	2.6707	2.8110	( -5.25%)
-Amean 	12 	4.1617	4.3383	( -4.25%)
-Amean 	21 	7.0070	7.2600	( -3.61%)
-Amean 	30 	9.9187	10.2397	( -3.24%)
-Amean 	48 	15.6710	16.3923	( -4.60%)
-Amean 	79 	24.7743	26.1247	( -5.45%)
-Amean 	110	34.3000	35.9307	( -4.75%)
-Amean 	141	44.2043	44.8010	( -1.35%)
-Amean 	172	54.2430	54.7260	( -0.89%)
-Amean 	192	60.6557	60.9777	( -0.53%)
-
-hackbench-thread-sockets
-Amean 	1 	1.0610	1.1353	( -7.01%)
-Amean 	4 	1.7543	1.9140	( -9.10%)
-Amean 	7 	2.7840	2.9573	( -6.23%)
-Amean 	12 	4.3813	4.4937	( -2.56%)
-Amean 	21 	7.3460	7.5350	( -2.57%)
-Amean 	30 	10.2313	10.5190	( -2.81%)
-Amean 	48 	15.9700	16.5940	( -3.91%)
-Amean 	79 	25.3973	26.6637	( -4.99%)
-Amean 	110	35.1087	36.4797	( -3.91%)
-Amean 	141	45.8220	46.3053	( -1.05%)
-Amean 	172	55.4917	55.7320	( -0.43%)
-Amean 	192	62.7490	62.5410	( 0.33%)
-
-Link: https://lkml.kernel.org/r/20211012134651.11258-1-vbabka@suse.cz
+Link: https://lkml.kernel.org/r/20211012134651.11258-2-vbabka@suse.cz
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Jann Horn <jannh@google.com>
-Cc: Roman Gushchin <guro@fb.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Jann Horn <jannh@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    2 
- include/linux/slub_def.h |   13 -----
- mm/slub.c                |   89 ++++++++++++++++++++++++-------------
- 3 files changed, 61 insertions(+), 43 deletions(-)
+ mm/slub.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/include/linux/mm_types.h~mm-slub-change-percpu-partial-accounting-from-objects-to-pages
-+++ a/include/linux/mm_types.h
-@@ -124,10 +124,8 @@ struct page {
- 					struct page *next;
- #ifdef CONFIG_64BIT
- 					int pages;	/* Nr of pages left */
--					int pobjects;	/* Approximate count */
- #else
- 					short int pages;
--					short int pobjects;
- #endif
- 				};
- 			};
---- a/include/linux/slub_def.h~mm-slub-change-percpu-partial-accounting-from-objects-to-pages
-+++ a/include/linux/slub_def.h
-@@ -99,6 +99,8 @@ struct kmem_cache {
- #ifdef CONFIG_SLUB_CPU_PARTIAL
- 	/* Number of per cpu partial objects to keep around */
- 	unsigned int cpu_partial;
-+	/* Number of per cpu partial pages to keep around */
-+	unsigned int cpu_partial_pages;
- #endif
- 	struct kmem_cache_order_objects oo;
- 
-@@ -141,17 +143,6 @@ struct kmem_cache {
- 	struct kmem_cache_node *node[MAX_NUMNODES];
- };
- 
--#ifdef CONFIG_SLUB_CPU_PARTIAL
--#define slub_cpu_partial(s)		((s)->cpu_partial)
--#define slub_set_cpu_partial(s, n)		\
--({						\
--	slub_cpu_partial(s) = (n);		\
--})
--#else
--#define slub_cpu_partial(s)		(0)
--#define slub_set_cpu_partial(s, n)
--#endif /* CONFIG_SLUB_CPU_PARTIAL */
--
- #ifdef CONFIG_SYSFS
- #define SLAB_SUPPORTS_SYSFS
- void sysfs_slab_unlink(struct kmem_cache *);
---- a/mm/slub.c~mm-slub-change-percpu-partial-accounting-from-objects-to-pages
+--- a/mm/slub.c~mm-slub-increase-default-cpu-partial-list-sizes
 +++ a/mm/slub.c
-@@ -414,6 +414,29 @@ static inline unsigned int oo_objects(st
- 	return x.x & OO_MASK;
- }
- 
-+#ifdef CONFIG_SLUB_CPU_PARTIAL
-+static void slub_set_cpu_partial(struct kmem_cache *s, unsigned int nr_objects)
-+{
-+	unsigned int nr_pages;
-+
-+	s->cpu_partial = nr_objects;
-+
-+	/*
-+	 * We take the number of objects but actually limit the number of
-+	 * pages on the per cpu partial list, in order to limit excessive
-+	 * growth of the list. For simplicity we assume that the pages will
-+	 * be half-full.
-+	 */
-+	nr_pages = DIV_ROUND_UP(nr_objects * 2, oo_objects(s->oo));
-+	s->cpu_partial_pages = nr_pages;
-+}
-+#else
-+static inline void
-+slub_set_cpu_partial(struct kmem_cache *s, unsigned int nr_objects)
-+{
-+}
-+#endif /* CONFIG_SLUB_CPU_PARTIAL */
-+
- /*
-  * Per slab locking using the pagelock
-  */
-@@ -2052,7 +2075,7 @@ static inline void remove_partial(struct
-  */
- static inline void *acquire_slab(struct kmem_cache *s,
- 		struct kmem_cache_node *n, struct page *page,
--		int mode, int *objects)
-+		int mode)
- {
- 	void *freelist;
- 	unsigned long counters;
-@@ -2068,7 +2091,6 @@ static inline void *acquire_slab(struct
- 	freelist = page->freelist;
- 	counters = page->counters;
- 	new.counters = counters;
--	*objects = new.objects - new.inuse;
- 	if (mode) {
- 		new.inuse = page->objects;
- 		new.freelist = NULL;
-@@ -2106,9 +2128,8 @@ static void *get_partial_node(struct kme
- {
- 	struct page *page, *page2;
- 	void *object = NULL;
--	unsigned int available = 0;
- 	unsigned long flags;
--	int objects;
-+	unsigned int partial_pages = 0;
- 
- 	/*
- 	 * Racy check. If we mistakenly see no partial slabs then we
-@@ -2126,11 +2147,10 @@ static void *get_partial_node(struct kme
- 		if (!pfmemalloc_match(page, gfpflags))
- 			continue;
- 
--		t = acquire_slab(s, n, page, object == NULL, &objects);
-+		t = acquire_slab(s, n, page, object == NULL);
- 		if (!t)
- 			break;
- 
--		available += objects;
- 		if (!object) {
- 			*ret_page = page;
- 			stat(s, ALLOC_FROM_PARTIAL);
-@@ -2138,10 +2158,15 @@ static void *get_partial_node(struct kme
- 		} else {
- 			put_cpu_partial(s, page, 0);
- 			stat(s, CPU_PARTIAL_NODE);
-+			partial_pages++;
- 		}
-+#ifdef CONFIG_SLUB_CPU_PARTIAL
- 		if (!kmem_cache_has_cpu_partial(s)
--			|| available > slub_cpu_partial(s) / 2)
-+			|| partial_pages > s->cpu_partial_pages / 2)
- 			break;
-+#else
-+		break;
-+#endif
- 
- 	}
- 	spin_unlock_irqrestore(&n->list_lock, flags);
-@@ -2546,14 +2571,13 @@ static void put_cpu_partial(struct kmem_
- 	struct page *page_to_unfreeze = NULL;
- 	unsigned long flags;
- 	int pages = 0;
--	int pobjects = 0;
- 
- 	local_lock_irqsave(&s->cpu_slab->lock, flags);
- 
- 	oldpage = this_cpu_read(s->cpu_slab->partial);
- 
- 	if (oldpage) {
--		if (drain && oldpage->pobjects > slub_cpu_partial(s)) {
-+		if (drain && oldpage->pages >= s->cpu_partial_pages) {
- 			/*
- 			 * Partial array is full. Move the existing set to the
- 			 * per node partial list. Postpone the actual unfreezing
-@@ -2562,16 +2586,13 @@ static void put_cpu_partial(struct kmem_
- 			page_to_unfreeze = oldpage;
- 			oldpage = NULL;
- 		} else {
--			pobjects = oldpage->pobjects;
- 			pages = oldpage->pages;
- 		}
- 	}
- 
- 	pages++;
--	pobjects += page->objects - page->inuse;
- 
- 	page->pages = pages;
--	page->pobjects = pobjects;
- 	page->next = oldpage;
- 
- 	this_cpu_write(s->cpu_slab->partial, page);
-@@ -3991,6 +4012,8 @@ static void set_min_partial(struct kmem_
- static void set_cpu_partial(struct kmem_cache *s)
- {
- #ifdef CONFIG_SLUB_CPU_PARTIAL
-+	unsigned int nr_objects;
-+
- 	/*
- 	 * cpu_partial determined the maximum number of objects kept in the
- 	 * per cpu partial lists of a processor.
-@@ -4000,24 +4023,22 @@ static void set_cpu_partial(struct kmem_
- 	 * filled up again with minimal effort. The slab will never hit the
- 	 * per node partial lists and therefore no locking will be required.
- 	 *
--	 * This setting also determines
--	 *
--	 * A) The number of objects from per cpu partial slabs dumped to the
--	 *    per node list when we reach the limit.
--	 * B) The number of objects in cpu partial slabs to extract from the
--	 *    per node list when we run out of per cpu objects. We only fetch
--	 *    50% to keep some capacity around for frees.
-+	 * For backwards compatibility reasons, this is determined as number
-+	 * of objects, even though we now limit maximum number of pages, see
-+	 * slub_set_cpu_partial()
- 	 */
+@@ -4030,13 +4030,13 @@ static void set_cpu_partial(struct kmem_
  	if (!kmem_cache_has_cpu_partial(s))
--		slub_set_cpu_partial(s, 0);
-+		nr_objects = 0;
+ 		nr_objects = 0;
  	else if (s->size >= PAGE_SIZE)
--		slub_set_cpu_partial(s, 2);
-+		nr_objects = 2;
- 	else if (s->size >= 1024)
--		slub_set_cpu_partial(s, 6);
-+		nr_objects = 6;
+-		nr_objects = 2;
+-	else if (s->size >= 1024)
+ 		nr_objects = 6;
++	else if (s->size >= 1024)
++		nr_objects = 24;
  	else if (s->size >= 256)
--		slub_set_cpu_partial(s, 13);
-+		nr_objects = 13;
+-		nr_objects = 13;
++		nr_objects = 52;
  	else
--		slub_set_cpu_partial(s, 30);
-+		nr_objects = 30;
-+
-+	slub_set_cpu_partial(s, nr_objects);
+-		nr_objects = 30;
++		nr_objects = 120;
+ 
+ 	slub_set_cpu_partial(s, nr_objects);
  #endif
- }
- 
-@@ -5392,7 +5413,12 @@ SLAB_ATTR(min_partial);
- 
- static ssize_t cpu_partial_show(struct kmem_cache *s, char *buf)
- {
--	return sysfs_emit(buf, "%u\n", slub_cpu_partial(s));
-+	unsigned int nr_partial = 0;
-+#ifdef CONFIG_SLUB_CPU_PARTIAL
-+	nr_partial = s->cpu_partial;
-+#endif
-+
-+	return sysfs_emit(buf, "%u\n", nr_partial);
- }
- 
- static ssize_t cpu_partial_store(struct kmem_cache *s, const char *buf,
-@@ -5463,12 +5489,12 @@ static ssize_t slabs_cpu_partial_show(st
- 
- 		page = slub_percpu_partial(per_cpu_ptr(s->cpu_slab, cpu));
- 
--		if (page) {
-+		if (page)
- 			pages += page->pages;
--			objects += page->pobjects;
--		}
- 	}
- 
-+	/* Approximate half-full pages , see slub_set_cpu_partial() */
-+	objects = (pages * oo_objects(s->oo)) / 2;
- 	len += sysfs_emit_at(buf, len, "%d(%d)", objects, pages);
- 
- #ifdef CONFIG_SMP
-@@ -5476,9 +5502,12 @@ static ssize_t slabs_cpu_partial_show(st
- 		struct page *page;
- 
- 		page = slub_percpu_partial(per_cpu_ptr(s->cpu_slab, cpu));
--		if (page)
-+		if (page) {
-+			pages = READ_ONCE(page->pages);
-+			objects = (pages * oo_objects(s->oo)) / 2;
- 			len += sysfs_emit_at(buf, len, " C%d=%d(%d)",
--					     cpu, page->pobjects, page->pages);
-+					     cpu, objects, pages);
-+		}
- 	}
- #endif
- 	len += sysfs_emit_at(buf, len, "\n");
 _
