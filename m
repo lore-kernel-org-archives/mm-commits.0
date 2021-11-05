@@ -2,36 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB589C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DAEDAC4332F
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:15 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D641E6127B
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C89AA6127B
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232084AbhKEUhw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:37:52 -0400
-Received: from mail.kernel.org ([198.145.29.99]:60912 "EHLO mail.kernel.org"
+        id S232129AbhKEUhz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:37:55 -0400
+Received: from mail.kernel.org ([198.145.29.99]:60964 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232002AbhKEUhv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:37:51 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5E2A46125F;
-        Fri,  5 Nov 2021 20:35:11 +0000 (UTC)
+        id S232002AbhKEUhy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:37:54 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6CEDF61252;
+        Fri,  5 Nov 2021 20:35:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144511;
-        bh=DCh7yJy6z4y7qRQcZROwHfmik69LdedH9RpmhvtpYrE=;
+        s=korg; t=1636144514;
+        bh=zOIB/S9H+ITionS7Amebd4LYXa7vQtVFbpQay9Vx7tk=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=EDyQkK1xNAfJDzrAKp3XAnJgA9PLBfou5PIVij6W6cAn134gCZrfJRGgw2/o5+c6b
-         BMYx0DNHD94rH6XbS9o7Cau55JjY3YvkmlTzyft3W8cHK+txx9Suf8E74YW9XG6aYZ
-         NIUn9MQzhhMrlBwntJTW+QyG4hYorWPB2pSGFLag=
-Date:   Fri, 05 Nov 2021 13:35:10 -0700
+        b=lRbualA7B2zEAnD1pjQySBJD15PL+I/enRD46ryjWe/P+FFg4zRwtjsjEoBu18No5
+         +OeyWFAXqOtr4DITg9ztkZxsCB/ue8Rco4TIMvV3YNjtAIqui7Fh/chHAtoq+9zSAB
+         t/OA6qWrEdt0MDroIo6ZFOZlMyYJvFJOwsQcMZc8=
+Date:   Fri, 05 Nov 2021 13:35:14 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, shi_lei@massclouds.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 012/262] mm/slab.c: remove useless lines in
- enable_cpucache()
-Message-ID: <20211105203510.kUPi_1np4%akpm@linux-foundation.org>
+        rientjes@google.com, shakeelb@google.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz,
+        wangkefeng.wang@huawei.com, willy@infradead.org
+Subject:  [patch 013/262] slub: add back check for free nonslab
+ objects
+Message-ID: <20211105203514.l8x6qswFB%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,42 +40,46 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Shi Lei <shi_lei@massclouds.com>
-Subject: mm/slab.c: remove useless lines in enable_cpucache()
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: slub: add back check for free nonslab objects
 
-These lines are useless, so remove them.
+After commit ("f227f0faf63b slub: fix unreclaimable slab stat for bulk
+free"), the check for free nonslab page is replaced by VM_BUG_ON_PAGE,
+which only check with CONFIG_DEBUG_VM enabled, but this config may impact
+performance, so it only for debug.
 
-Link: https://lkml.kernel.org/r/20210930034845.2539-1-shi_lei@massclouds.com
-Fixes: 10befea91b61 ("mm: memcg/slab: use a single set of kmem_caches for all allocations")
-Signed-off-by: Shi Lei <shi_lei@massclouds.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
+Commit ("0937502af7c9 slub: Add check for kfree() of non slab objects.")
+add the ability, which should be needed in any configs to catch the
+invalid free, they even could be potential issue, eg, memory corruption,
+use after free and double free, so replace VM_BUG_ON_PAGE to WARN_ON_ONCE,
+add object address printing to help use to debug the issue.
+
+Link: https://lkml.kernel.org/r/20210930070214.61499-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rienjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/slub.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/mm/slab.c~mm-remove-useless-lines-in-enable_cpucache
-+++ a/mm/slab.c
-@@ -3900,8 +3900,6 @@ static int enable_cpucache(struct kmem_c
- 	if (err)
- 		goto end;
+--- a/mm/slub.c~slub-add-back-check-for-free-nonslab-objects
++++ a/mm/slub.c
+@@ -3522,7 +3522,9 @@ static inline void free_nonslab_page(str
+ {
+ 	unsigned int order = compound_order(page);
  
--	if (limit && shared && batchcount)
--		goto skip_setup;
- 	/*
- 	 * The head array serves three purposes:
- 	 * - create a LIFO ordering, i.e. return objects that are cache-warm
-@@ -3944,7 +3942,6 @@ static int enable_cpucache(struct kmem_c
- 		limit = 32;
- #endif
- 	batchcount = (limit + 1) / 2;
--skip_setup:
- 	err = do_tune_cpucache(cachep, limit, batchcount, shared, gfp);
- end:
- 	if (err)
+-	VM_BUG_ON_PAGE(!PageCompound(page), page);
++	if (WARN_ON_ONCE(!PageCompound(page)))
++		pr_warn_once("object pointer: 0x%p\n", object);
++
+ 	kfree_hook(object);
+ 	mod_lruvec_page_state(page, NR_SLAB_UNRECLAIMABLE_B, -(PAGE_SIZE << order));
+ 	__free_pages(page, order);
 _
