@@ -2,36 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C1E59C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:39:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F6FCC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:39:21 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A2CE361262
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:39:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E90BE6126A
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:39:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232810AbhKEUl5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:41:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36688 "EHLO mail.kernel.org"
+        id S233431AbhKEUmA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:42:00 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36738 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233429AbhKEUl4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:41:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D73961252;
-        Fri,  5 Nov 2021 20:39:16 +0000 (UTC)
+        id S233429AbhKEUl7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:41:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8686C611C0;
+        Fri,  5 Nov 2021 20:39:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144756;
-        bh=t2MGmxM33Ivo+QEkc8LhpU9OZll/v//8O0tpkrCJWaQ=;
+        s=korg; t=1636144759;
+        bh=aBcUhrqpaJfBMDAJwgABLlQ6kUsrlKOTpt0nhKo1fx0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ysWuXp0/FCL1LrSCPabwIQqJfRPescr8nmqA1GDlfvW+ZUK6D9DgXQ4DUVheSh0aQ
-         hLuDkL3W23mcY/LTxnI0czSjgk659X9HpYpCueaYG9ggSK8OiEQGqjh6k13R3cfqQe
-         7o6ehGLKa/C13I7AWilCWXn1csp+ewd7ZzQLNCwk=
-Date:   Fri, 05 Nov 2021 13:39:16 -0700
+        b=Y0MQvbuGHcRN6vld3QDLCbDu1mu3cq2sDehCX0Y7bZbjkklgJtlhWwxPn60laXbBn
+         1FaxwcRTa3T0xvm+OY4fTmHbIQk8aZKnYjT381aJrMjNjvSEFmdux6oiTDsQpJyeS2
+         6c3cRPxEOYYygiXcKOoOKO996oXhPb92vHVI40C4=
+Date:   Fri, 05 Nov 2021 13:39:19 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, axelrasmussen@google.com,
-        ligang.bdlg@bytedance.com, linux-mm@kvack.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, rostedt@goodmis.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 088/262] mm: mmap_lock: use DECLARE_EVENT_CLASS
- and DEFINE_EVENT_FN
-Message-ID: <20211105203916.x6uvI3JuF%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hch@lst.de, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        torvalds@linux-foundation.org, urezki@gmail.com, vvs@virtuozzo.com
+Subject:  [patch 089/262] mm/vmalloc: repair warn_alloc()s in
+ __vmalloc_area_node()
+Message-ID: <20211105203919.fOpfiPRMV%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,91 +38,61 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Gang Li <ligang.bdlg@bytedance.com>
-Subject: mm: mmap_lock: use DECLARE_EVENT_CLASS and DEFINE_EVENT_FN
+From: Vasily Averin <vvs@virtuozzo.com>
+Subject: mm/vmalloc: repair warn_alloc()s in __vmalloc_area_node()
 
-By using DECLARE_EVENT_CLASS and TRACE_EVENT_FN, we can save a lot of
-space from duplicate code.
+Commit f255935b9767 ("mm: cleanup the gfp_mask handling in
+__vmalloc_area_node") added __GFP_NOWARN to gfp_mask unconditionally
+however it disabled all output inside warn_alloc() call.  This patch saves
+original gfp_mask and provides it to all warn_alloc() calls.
 
-Link: https://lkml.kernel.org/r/20211009071243.70286-1-ligang.bdlg@bytedance.com
-Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Link: https://lkml.kernel.org/r/f4f3187b-9684-e426-565d-827c2a9bbb0e@virtuozzo.com
+Fixes: f255935b9767 ("mm: cleanup the gfp_mask handling in __vmalloc_area_node")
+Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/mmap_lock.h |   44 +++++++----------------------
- 1 file changed, 12 insertions(+), 32 deletions(-)
+ mm/vmalloc.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/trace/events/mmap_lock.h~mm-mmap_lock-use-declare_event_class-and-define_event_fn
-+++ a/include/trace/events/mmap_lock.h
-@@ -13,7 +13,7 @@ struct mm_struct;
- extern int trace_mmap_lock_reg(void);
- extern void trace_mmap_lock_unreg(void);
+--- a/mm/vmalloc.c~mm-vmalloc-repair-warn_allocs-in-__vmalloc_area_node
++++ a/mm/vmalloc.c
+@@ -2887,6 +2887,7 @@ static void *__vmalloc_area_node(struct
+ 				 int node)
+ {
+ 	const gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
++	const gfp_t orig_gfp_mask = gfp_mask;
+ 	unsigned long addr = (unsigned long)area->addr;
+ 	unsigned long size = get_vm_area_size(area);
+ 	unsigned long array_size;
+@@ -2907,7 +2908,7 @@ static void *__vmalloc_area_node(struct
+ 	}
  
--TRACE_EVENT_FN(mmap_lock_start_locking,
-+DECLARE_EVENT_CLASS(mmap_lock,
+ 	if (!area->pages) {
+-		warn_alloc(gfp_mask, NULL,
++		warn_alloc(orig_gfp_mask, NULL,
+ 			"vmalloc error: size %lu, failed to allocated page array size %lu",
+ 			nr_small_pages * PAGE_SIZE, array_size);
+ 		free_vm_area(area);
+@@ -2927,7 +2928,7 @@ static void *__vmalloc_area_node(struct
+ 	 * allocation request, free them via __vfree() if any.
+ 	 */
+ 	if (area->nr_pages != nr_small_pages) {
+-		warn_alloc(gfp_mask, NULL,
++		warn_alloc(orig_gfp_mask, NULL,
+ 			"vmalloc error: size %lu, page order %u, failed to allocate pages",
+ 			area->nr_pages * PAGE_SIZE, page_order);
+ 		goto fail;
+@@ -2935,7 +2936,7 @@ static void *__vmalloc_area_node(struct
  
- 	TP_PROTO(struct mm_struct *mm, const char *memcg_path, bool write),
- 
-@@ -36,11 +36,19 @@ TRACE_EVENT_FN(mmap_lock_start_locking,
- 		__entry->mm,
- 		__get_str(memcg_path),
- 		__entry->write ? "true" : "false"
--	),
--
--	trace_mmap_lock_reg, trace_mmap_lock_unreg
-+	)
- );
- 
-+#define DEFINE_MMAP_LOCK_EVENT(name)                                    \
-+	DEFINE_EVENT_FN(mmap_lock, name,                                \
-+		TP_PROTO(struct mm_struct *mm, const char *memcg_path,  \
-+			bool write),                                    \
-+		TP_ARGS(mm, memcg_path, write),                         \
-+		trace_mmap_lock_reg, trace_mmap_lock_unreg)
-+
-+DEFINE_MMAP_LOCK_EVENT(mmap_lock_start_locking);
-+DEFINE_MMAP_LOCK_EVENT(mmap_lock_released);
-+
- TRACE_EVENT_FN(mmap_lock_acquire_returned,
- 
- 	TP_PROTO(struct mm_struct *mm, const char *memcg_path, bool write,
-@@ -71,34 +79,6 @@ TRACE_EVENT_FN(mmap_lock_acquire_returne
- 	),
- 
- 	trace_mmap_lock_reg, trace_mmap_lock_unreg
--);
--
--TRACE_EVENT_FN(mmap_lock_released,
--
--	TP_PROTO(struct mm_struct *mm, const char *memcg_path, bool write),
--
--	TP_ARGS(mm, memcg_path, write),
--
--	TP_STRUCT__entry(
--		__field(struct mm_struct *, mm)
--		__string(memcg_path, memcg_path)
--		__field(bool, write)
--	),
--
--	TP_fast_assign(
--		__entry->mm = mm;
--		__assign_str(memcg_path, memcg_path);
--		__entry->write = write;
--	),
--
--	TP_printk(
--		"mm=%p memcg_path=%s write=%s",
--		__entry->mm,
--		__get_str(memcg_path),
--		__entry->write ? "true" : "false"
--	),
--
--	trace_mmap_lock_reg, trace_mmap_lock_unreg
- );
- 
- #endif /* _TRACE_MMAP_LOCK_H */
+ 	if (vmap_pages_range(addr, addr + size, prot, area->pages,
+ 			page_shift) < 0) {
+-		warn_alloc(gfp_mask, NULL,
++		warn_alloc(orig_gfp_mask, NULL,
+ 			"vmalloc error: size %lu, failed to map pages",
+ 			area->nr_pages * PAGE_SIZE);
+ 		goto fail;
 _
