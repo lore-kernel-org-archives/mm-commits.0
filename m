@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DFD60C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FFF0C4321E
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CC22361357
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6A3B56135A
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233778AbhKEUtE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:49:04 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44126 "EHLO mail.kernel.org"
+        id S233788AbhKEUtH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:49:07 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44204 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233782AbhKEUtD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:49:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CEB5B61288;
-        Fri,  5 Nov 2021 20:46:22 +0000 (UTC)
+        id S233780AbhKEUtH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:49:07 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 489FE61357;
+        Fri,  5 Nov 2021 20:46:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145183;
-        bh=9V0eb5QqQoKtGcihqckm2W6CG5Yvlezrz3F8KXc895M=;
+        s=korg; t=1636145186;
+        bh=6J4MTwLxORuqJZBB6UwiJPJwGRtEupa/QMnQOxGNzxQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ovnfW0b691xxGhMCFtM9bZW1uyhUvaAzdY4l5SLI8Tssy/vYscPHH7MsPzhD7SHvA
-         GMD352y7E2eEsEw2VHFM5M3O1ShobYLZotiO+TWy2wroAFU8XnWuRXJVU8IeyUW3rW
-         wfGHG9QNZv876MGS0RpfeD/JTCYqgkMFocntycok=
-Date:   Fri, 05 Nov 2021 13:46:22 -0700
+        b=zbr0Nxi65yEl5M+kX0lGvPeddFtdDzZ9VdHlKMR+XRX6uE6OxLykQj8qa6m6/FK9U
+         /6b98ijik+ulUqmGGsARkmjw2gzOjmfoSHDM1mIeLcUS2DJtkXf40y5WAH8jDub3Xu
+         43N3JGikE1SK+yj7msLLCfCdmJdw5qDX/7SHilro=
+Date:   Fri, 05 Nov 2021 13:46:25 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, amit@kernel.org,
         benh@kernel.crashing.org, corbet@lwn.net, david@redhat.com,
@@ -32,9 +32,9 @@ To:     akpm@linux-foundation.org, amit@kernel.org,
         linux-mm@kvack.org, markubo@amazon.de, mm-commits@vger.kernel.org,
         rientjes@google.com, shakeelb@google.com, shuah@kernel.org,
         sj@kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 224/262] mm/damon/core: implement DAMON-based
- Operation Schemes (DAMOS)
-Message-ID: <20211105204622.GKwY0kwNC%akpm@linux-foundation.org>
+Subject:  [patch 225/262] mm/damon/vaddr: support DAMON-based
+ Operation Schemes
+Message-ID: <20211105204625.Q_yfBYv9Z%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,51 +43,19 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: implement DAMON-based Operation Schemes (DAMOS)
+Subject: mm/damon/vaddr: support DAMON-based Operation Schemes
 
-In many cases, users might use DAMON for simple data access aware memory
-management optimizations such as applying an operation scheme to a memory
-region of a specific size having a specific access frequency for a
-specific time.  For example, "page out a memory region larger than 100 MiB
-but having a low access frequency more than 10 minutes", or "Use THP for a
-memory region larger than 2 MiB having a high access frequency for more
-than 2 seconds".
+This commit makes DAMON's default primitives for virtual address spaces to
+support DAMON-based Operation Schemes (DAMOS) by implementing actions
+application functions and registering it to the monitoring context.  The
+implementation simply links 'madvise()' for related DAMOS actions.  That
+is, 'madvise(MADV_WILLNEED)' is called for 'WILLNEED' DAMOS action and
+similar for other actions ('COLD', 'PAGEOUT', 'HUGEPAGE', 'NOHUGEPAGE').
 
-Most simple form of the solution would be doing offline data access
-pattern profiling using DAMON and modifying the application source code or
-system configuration based on the profiling results.  Or, developing a
-daemon constructed with two modules (one for access monitoring and the
-other for applying memory management actions via mlock(), madvise(),
-sysctl, etc) is imaginable.
+So, the kernel space DAMON users can now use the DAMON-based optimizations
+with only small amount of code.
 
-To avoid users spending their time for implementation of such simple data
-access monitoring-based operation schemes, this commit makes DAMON to
-handle such schemes directly.  With this commit, users can simply specify
-their desired schemes to DAMON.  Then, DAMON will automatically apply the
-schemes to the user-specified target processes.
-
-Each of the schemes is composed with conditions for filtering of the
-target memory regions and desired memory management action for the target.
-Specifically, the format is::
-
-    <min/max size> <min/max access frequency> <min/max age> <action>
-
-The filtering conditions are size of memory region, number of accesses to
-the region monitored by DAMON, and the age of the region.  The age of
-region is incremented periodically but reset when its addresses or access
-frequency has significantly changed or the action of a scheme was applied.
-For the action, current implementation supports a few of madvise()-like
-hints, ``WILLNEED``, ``COLD``, ``PAGEOUT``, ``HUGEPAGE``, and
-``NOHUGEPAGE``.
-
-Because DAMON supports various address spaces and application of the
-actions to a monitoring target region is dependent to the type of the
-target address space, the application code should be implemented by each
-primitives and registered to the framework.  Note that this commit only
-implements the framework part.  Following commit will implement the action
-applications for virtual address spaces primitives.
-
-Link: https://lkml.kernel.org/r/20211001125604.29660-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211001125604.29660-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -105,293 +73,98 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   66 ++++++++++++++++++++++++
- mm/damon/core.c       |  109 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 175 insertions(+)
+ include/linux/damon.h |    2 +
+ mm/damon/vaddr.c      |   56 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 58 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-core-implement-damon-based-operation-schemes-damos
+--- a/include/linux/damon.h~mm-damon-vaddr-support-damon-based-operation-schemes
 +++ a/include/linux/damon.h
-@@ -69,6 +69,48 @@ struct damon_target {
- 	struct list_head list;
- };
+@@ -337,6 +337,8 @@ void damon_va_prepare_access_checks(stru
+ unsigned int damon_va_check_accesses(struct damon_ctx *ctx);
+ bool damon_va_target_valid(void *t);
+ void damon_va_cleanup(struct damon_ctx *ctx);
++int damon_va_apply_scheme(struct damon_ctx *context, struct damon_target *t,
++		struct damon_region *r, struct damos *scheme);
+ void damon_va_set_primitives(struct damon_ctx *ctx);
  
-+/**
-+ * enum damos_action - Represents an action of a Data Access Monitoring-based
-+ * Operation Scheme.
-+ *
-+ * @DAMOS_WILLNEED:	Call ``madvise()`` for the region with MADV_WILLNEED.
-+ * @DAMOS_COLD:		Call ``madvise()`` for the region with MADV_COLD.
-+ * @DAMOS_PAGEOUT:	Call ``madvise()`` for the region with MADV_PAGEOUT.
-+ * @DAMOS_HUGEPAGE:	Call ``madvise()`` for the region with MADV_HUGEPAGE.
-+ * @DAMOS_NOHUGEPAGE:	Call ``madvise()`` for the region with MADV_NOHUGEPAGE.
-+ */
-+enum damos_action {
-+	DAMOS_WILLNEED,
-+	DAMOS_COLD,
-+	DAMOS_PAGEOUT,
-+	DAMOS_HUGEPAGE,
-+	DAMOS_NOHUGEPAGE,
-+};
-+
-+/**
-+ * struct damos - Represents a Data Access Monitoring-based Operation Scheme.
-+ * @min_sz_region:	Minimum size of target regions.
-+ * @max_sz_region:	Maximum size of target regions.
-+ * @min_nr_accesses:	Minimum ``->nr_accesses`` of target regions.
-+ * @max_nr_accesses:	Maximum ``->nr_accesses`` of target regions.
-+ * @min_age_region:	Minimum age of target regions.
-+ * @max_age_region:	Maximum age of target regions.
-+ * @action:		&damo_action to be applied to the target regions.
-+ * @list:		List head for siblings.
-+ *
-+ * Note that both the minimums and the maximums are inclusive.
-+ */
-+struct damos {
-+	unsigned long min_sz_region;
-+	unsigned long max_sz_region;
-+	unsigned int min_nr_accesses;
-+	unsigned int max_nr_accesses;
-+	unsigned int min_age_region;
-+	unsigned int max_age_region;
-+	enum damos_action action;
-+	struct list_head list;
-+};
-+
- struct damon_ctx;
+ #endif	/* CONFIG_DAMON_VADDR */
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-support-damon-based-operation-schemes
++++ a/mm/damon/vaddr.c
+@@ -7,6 +7,7 @@
  
- /**
-@@ -79,6 +121,7 @@ struct damon_ctx;
-  * @prepare_access_checks:	Prepare next access check of target regions.
-  * @check_accesses:		Check the accesses to target regions.
-  * @reset_aggregated:		Reset aggregated accesses monitoring results.
-+ * @apply_scheme:		Apply a DAMON-based operation scheme.
-  * @target_valid:		Determine if the target is valid.
-  * @cleanup:			Clean up the context.
-  *
-@@ -104,6 +147,9 @@ struct damon_ctx;
-  * of its update.  The value will be used for regions adjustment threshold.
-  * @reset_aggregated should reset the access monitoring results that aggregated
-  * by @check_accesses.
-+ * @apply_scheme is called from @kdamond when a region for user provided
-+ * DAMON-based operation scheme is found.  It should apply the scheme's action
-+ * to the region.  This is not used for &DAMON_ARBITRARY_TARGET case.
-  * @target_valid should check whether the target is still valid for the
-  * monitoring.
-  * @cleanup is called from @kdamond just before its termination.
-@@ -114,6 +160,8 @@ struct damon_primitive {
- 	void (*prepare_access_checks)(struct damon_ctx *context);
- 	unsigned int (*check_accesses)(struct damon_ctx *context);
- 	void (*reset_aggregated)(struct damon_ctx *context);
-+	int (*apply_scheme)(struct damon_ctx *context, struct damon_target *t,
-+			struct damon_region *r, struct damos *scheme);
- 	bool (*target_valid)(void *target);
- 	void (*cleanup)(struct damon_ctx *context);
- };
-@@ -192,6 +240,7 @@ struct damon_callback {
-  * @min_nr_regions:	The minimum number of adaptive monitoring regions.
-  * @max_nr_regions:	The maximum number of adaptive monitoring regions.
-  * @adaptive_targets:	Head of monitoring targets (&damon_target) list.
-+ * @schemes:		Head of schemes (&damos) list.
-  */
- struct damon_ctx {
- 	unsigned long sample_interval;
-@@ -213,6 +262,7 @@ struct damon_ctx {
- 	unsigned long min_nr_regions;
- 	unsigned long max_nr_regions;
- 	struct list_head adaptive_targets;
-+	struct list_head schemes;
- };
+ #define pr_fmt(fmt) "damon-va: " fmt
  
- #define damon_next_region(r) \
-@@ -233,6 +283,12 @@ struct damon_ctx {
- #define damon_for_each_target_safe(t, next, ctx)	\
- 	list_for_each_entry_safe(t, next, &(ctx)->adaptive_targets, list)
- 
-+#define damon_for_each_scheme(s, ctx) \
-+	list_for_each_entry(s, &(ctx)->schemes, list)
-+
-+#define damon_for_each_scheme_safe(s, next, ctx) \
-+	list_for_each_entry_safe(s, next, &(ctx)->schemes, list)
-+
- #ifdef CONFIG_DAMON
- 
- struct damon_region *damon_new_region(unsigned long start, unsigned long end);
-@@ -242,6 +298,14 @@ inline void damon_insert_region(struct d
- void damon_add_region(struct damon_region *r, struct damon_target *t);
- void damon_destroy_region(struct damon_region *r, struct damon_target *t);
- 
-+struct damos *damon_new_scheme(
-+		unsigned long min_sz_region, unsigned long max_sz_region,
-+		unsigned int min_nr_accesses, unsigned int max_nr_accesses,
-+		unsigned int min_age_region, unsigned int max_age_region,
-+		enum damos_action action);
-+void damon_add_scheme(struct damon_ctx *ctx, struct damos *s);
-+void damon_destroy_scheme(struct damos *s);
-+
- struct damon_target *damon_new_target(unsigned long id);
- void damon_add_target(struct damon_ctx *ctx, struct damon_target *t);
- void damon_free_target(struct damon_target *t);
-@@ -255,6 +319,8 @@ int damon_set_targets(struct damon_ctx *
- int damon_set_attrs(struct damon_ctx *ctx, unsigned long sample_int,
- 		unsigned long aggr_int, unsigned long primitive_upd_int,
- 		unsigned long min_nr_reg, unsigned long max_nr_reg);
-+int damon_set_schemes(struct damon_ctx *ctx,
-+			struct damos **schemes, ssize_t nr_schemes);
- int damon_nr_running_ctxs(void);
- 
- int damon_start(struct damon_ctx **ctxs, int nr_ctxs);
---- a/mm/damon/core.c~mm-damon-core-implement-damon-based-operation-schemes-damos
-+++ a/mm/damon/core.c
-@@ -85,6 +85,50 @@ void damon_destroy_region(struct damon_r
- 	damon_free_region(r);
++#include <asm-generic/mman-common.h>
+ #include <linux/damon.h>
+ #include <linux/hugetlb.h>
+ #include <linux/mm.h>
+@@ -658,6 +659,60 @@ bool damon_va_target_valid(void *target)
+ 	return false;
  }
  
-+struct damos *damon_new_scheme(
-+		unsigned long min_sz_region, unsigned long max_sz_region,
-+		unsigned int min_nr_accesses, unsigned int max_nr_accesses,
-+		unsigned int min_age_region, unsigned int max_age_region,
-+		enum damos_action action)
++#ifndef CONFIG_ADVISE_SYSCALLS
++static int damos_madvise(struct damon_target *target, struct damon_region *r,
++			int behavior)
 +{
-+	struct damos *scheme;
++	return -EINVAL;
++}
++#else
++static int damos_madvise(struct damon_target *target, struct damon_region *r,
++			int behavior)
++{
++	struct mm_struct *mm;
++	int ret = -ENOMEM;
 +
-+	scheme = kmalloc(sizeof(*scheme), GFP_KERNEL);
-+	if (!scheme)
-+		return NULL;
-+	scheme->min_sz_region = min_sz_region;
-+	scheme->max_sz_region = max_sz_region;
-+	scheme->min_nr_accesses = min_nr_accesses;
-+	scheme->max_nr_accesses = max_nr_accesses;
-+	scheme->min_age_region = min_age_region;
-+	scheme->max_age_region = max_age_region;
-+	scheme->action = action;
-+	INIT_LIST_HEAD(&scheme->list);
++	mm = damon_get_mm(target);
++	if (!mm)
++		goto out;
 +
-+	return scheme;
++	ret = do_madvise(mm, PAGE_ALIGN(r->ar.start),
++			PAGE_ALIGN(r->ar.end - r->ar.start), behavior);
++	mmput(mm);
++out:
++	return ret;
++}
++#endif	/* CONFIG_ADVISE_SYSCALLS */
++
++int damon_va_apply_scheme(struct damon_ctx *ctx, struct damon_target *t,
++		struct damon_region *r, struct damos *scheme)
++{
++	int madv_action;
++
++	switch (scheme->action) {
++	case DAMOS_WILLNEED:
++		madv_action = MADV_WILLNEED;
++		break;
++	case DAMOS_COLD:
++		madv_action = MADV_COLD;
++		break;
++	case DAMOS_PAGEOUT:
++		madv_action = MADV_PAGEOUT;
++		break;
++	case DAMOS_HUGEPAGE:
++		madv_action = MADV_HUGEPAGE;
++		break;
++	case DAMOS_NOHUGEPAGE:
++		madv_action = MADV_NOHUGEPAGE;
++		break;
++	default:
++		pr_warn("Wrong action %d\n", scheme->action);
++		return -EINVAL;
++	}
++
++	return damos_madvise(t, r, madv_action);
 +}
 +
-+void damon_add_scheme(struct damon_ctx *ctx, struct damos *s)
-+{
-+	list_add_tail(&s->list, &ctx->schemes);
-+}
-+
-+static void damon_del_scheme(struct damos *s)
-+{
-+	list_del(&s->list);
-+}
-+
-+static void damon_free_scheme(struct damos *s)
-+{
-+	kfree(s);
-+}
-+
-+void damon_destroy_scheme(struct damos *s)
-+{
-+	damon_del_scheme(s);
-+	damon_free_scheme(s);
-+}
-+
- /*
-  * Construct a damon_target struct
-  *
-@@ -156,6 +200,7 @@ struct damon_ctx *damon_new_ctx(void)
- 	ctx->max_nr_regions = 1000;
- 
- 	INIT_LIST_HEAD(&ctx->adaptive_targets);
-+	INIT_LIST_HEAD(&ctx->schemes);
- 
- 	return ctx;
- }
-@@ -175,7 +220,13 @@ static void damon_destroy_targets(struct
- 
- void damon_destroy_ctx(struct damon_ctx *ctx)
+ void damon_va_set_primitives(struct damon_ctx *ctx)
  {
-+	struct damos *s, *next_s;
-+
- 	damon_destroy_targets(ctx);
-+
-+	damon_for_each_scheme_safe(s, next_s, ctx)
-+		damon_destroy_scheme(s);
-+
- 	kfree(ctx);
+ 	ctx->primitive.init = damon_va_init;
+@@ -667,6 +722,7 @@ void damon_va_set_primitives(struct damo
+ 	ctx->primitive.reset_aggregated = NULL;
+ 	ctx->primitive.target_valid = damon_va_target_valid;
+ 	ctx->primitive.cleanup = NULL;
++	ctx->primitive.apply_scheme = damon_va_apply_scheme;
  }
  
-@@ -251,6 +302,30 @@ int damon_set_attrs(struct damon_ctx *ct
- }
- 
- /**
-+ * damon_set_schemes() - Set data access monitoring based operation schemes.
-+ * @ctx:	monitoring context
-+ * @schemes:	array of the schemes
-+ * @nr_schemes:	number of entries in @schemes
-+ *
-+ * This function should not be called while the kdamond of the context is
-+ * running.
-+ *
-+ * Return: 0 if success, or negative error code otherwise.
-+ */
-+int damon_set_schemes(struct damon_ctx *ctx, struct damos **schemes,
-+			ssize_t nr_schemes)
-+{
-+	struct damos *s, *next;
-+	ssize_t i;
-+
-+	damon_for_each_scheme_safe(s, next, ctx)
-+		damon_destroy_scheme(s);
-+	for (i = 0; i < nr_schemes; i++)
-+		damon_add_scheme(ctx, schemes[i]);
-+	return 0;
-+}
-+
-+/**
-  * damon_nr_running_ctxs() - Return number of currently running contexts.
-  */
- int damon_nr_running_ctxs(void)
-@@ -453,6 +528,39 @@ static void kdamond_reset_aggregated(str
- 	}
- }
- 
-+static void damon_do_apply_schemes(struct damon_ctx *c,
-+				   struct damon_target *t,
-+				   struct damon_region *r)
-+{
-+	struct damos *s;
-+	unsigned long sz;
-+
-+	damon_for_each_scheme(s, c) {
-+		sz = r->ar.end - r->ar.start;
-+		if (sz < s->min_sz_region || s->max_sz_region < sz)
-+			continue;
-+		if (r->nr_accesses < s->min_nr_accesses ||
-+				s->max_nr_accesses < r->nr_accesses)
-+			continue;
-+		if (r->age < s->min_age_region || s->max_age_region < r->age)
-+			continue;
-+		if (c->primitive.apply_scheme)
-+			c->primitive.apply_scheme(c, t, r, s);
-+		r->age = 0;
-+	}
-+}
-+
-+static void kdamond_apply_schemes(struct damon_ctx *c)
-+{
-+	struct damon_target *t;
-+	struct damon_region *r;
-+
-+	damon_for_each_target(t, c) {
-+		damon_for_each_region(r, t)
-+			damon_do_apply_schemes(c, t, r);
-+	}
-+}
-+
- #define sz_damon_region(r) (r->ar.end - r->ar.start)
- 
- /*
-@@ -693,6 +801,7 @@ static int kdamond_fn(void *data)
- 			if (ctx->callback.after_aggregation &&
- 					ctx->callback.after_aggregation(ctx))
- 				set_kdamond_stop(ctx);
-+			kdamond_apply_schemes(ctx);
- 			kdamond_reset_aggregated(ctx);
- 			kdamond_split_regions(ctx);
- 			if (ctx->primitive.reset_aggregated)
+ #include "vaddr-test.h"
 _
