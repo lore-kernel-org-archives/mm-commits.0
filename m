@@ -2,36 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA2A2C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:41:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F532C43217
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:41:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D35456127A
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:41:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8BA7561279
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:41:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232537AbhKEUnn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:43:43 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38404 "EHLO mail.kernel.org"
+        id S233537AbhKEUnp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:43:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38456 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233226AbhKEUnm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:43:42 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DE1F86126A;
-        Fri,  5 Nov 2021 20:41:01 +0000 (UTC)
+        id S233501AbhKEUnp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:43:45 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 13E1E61262;
+        Fri,  5 Nov 2021 20:41:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144862;
-        bh=jOuwn8Guu8VA46qSiznSZUNIlcH+vRKwNXz6m3zXcJw=;
+        s=korg; t=1636144865;
+        bh=JqSLIBsH1Cz2U9q66HxhbRVhkxNwgyS7ZboI8qEI7mA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Vvk+XD7m9HKDmD0xTclQgKcVv8ETRrKeaW6DWXXyDdTyMlxCxsZiphnvxQc/9Acza
-         iQ7sE/a4LmuBdEAsProEjcF9jp2WqgV7+hDu0CEyXhp5Q2UhEOmrgDdH88mgFtPmHQ
-         YiDUd8xBjWvPcwe3AvF+yGFp56GB/ITEmnitkOKY=
-Date:   Fri, 05 Nov 2021 13:41:01 -0700
+        b=tg8QQgqn9FhxYam80qz2rmcJY7SQ8VNnmUi8Y2gMwLuFZ+x4G2cRRoD/iz3s6pmEg
+         mpdX194ICo3i58hTtfRLtPGJBFSLshDREyp+9Avi3hMI4ivpjvdq8aFhLKVgmACylC
+         2laaOKW6AlaJcnzxtZvrTTtOdBAF9EkryQFYMOjA=
+Date:   Fri, 05 Nov 2021 13:41:04 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, rikard.falkeborn@gmail.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 122/262] mm/memory_failure: constify static
- mm_walk_ops
-Message-ID: <20211105204101.8OnxznkNy%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hughd@google.com,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, peterx@redhat.com, shy828301@gmail.com,
+        torvalds@linux-foundation.org, willy@infradead.org
+Subject:  [patch 123/262] mm: filemap: coding style cleanup for
+ filemap_map_pmd()
+Message-ID: <20211105204104.BrlKrYlIS%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,32 +40,134 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
-Subject: mm/memory_failure: constify static mm_walk_ops
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: filemap: coding style cleanup for filemap_map_pmd()
 
-The only usage of hwp_walk_ops is to pass its address to walk_page_range()
-which takes a pointer to const mm_walk_ops as argument.  Make it const to
-allow the compiler to put it in read-only memory.
+Patch series "Solve silent data loss caused by poisoned page cache (shmem/tmpfs)", v5.
 
-Link: https://lkml.kernel.org/r/20211014075042.17174-3-rikard.falkeborn@gmail.com
-Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
+When discussing the patch that splits page cache THP in order to offline
+the poisoned page, Noaya mentioned there is a bigger problem [1] that
+prevents this from working since the page cache page will be truncated if
+uncorrectable errors happen.  By looking this deeper it turns out this
+approach (truncating poisoned page) may incur silent data loss for all
+non-readonly filesystems if the page is dirty.  It may be worse for
+in-memory filesystem, e.g.  shmem/tmpfs since the data blocks are actually
+gone.
+
+To solve this problem we could keep the poisoned dirty page in page cache
+then notify the users on any later access, e.g.  page fault, read/write,
+etc.  The clean page could be truncated as is since they can be reread
+from disk later on.
+
+The consequence is the filesystems may find poisoned page and manipulate
+it as healthy page since all the filesystems actually don't check if the
+page is poisoned or not in all the relevant paths except page fault.  In
+general, we need make the filesystems be aware of poisoned page before we
+could keep the poisoned page in page cache in order to solve the data loss
+problem.
+
+To make filesystems be aware of poisoned page we should consider:
+- The page should be not written back: clearing dirty flag could prevent from
+  writeback.
+- The page should not be dropped (it shows as a clean page) by drop caches or
+  other callers: the refcount pin from hwpoison could prevent from invalidating
+  (called by cache drop, inode cache shrinking, etc), but it doesn't avoid
+  invalidation in DIO path.
+- The page should be able to get truncated/hole punched/unlinked: it works as it
+  is.
+- Notify users when the page is accessed, e.g. read/write, page fault and other
+  paths (compression, encryption, etc).
+
+The scope of the last one is huge since almost all filesystems need do it
+once a page is returned from page cache lookup.  There are a couple of
+options to do it:
+
+1. Check hwpoison flag for every path, the most straightforward way.
+2. Return NULL for poisoned page from page cache lookup, the most callsites
+   check if NULL is returned, this should have least work I think.  But the
+   error handling in filesystems just return -ENOMEM, the error code will incur
+   confusion to the users obviously.
+3. To improve #2, we could return error pointer, e.g. ERR_PTR(-EIO), but this
+   will involve significant amount of code change as well since all the paths
+   need check if the pointer is ERR or not just like option #1.
+
+I did prototype for both #1 and #3, but it seems #3 may require more
+changes than #1.  For #3 ERR_PTR will be returned so all the callers need
+to check the return value otherwise invalid pointer may be dereferenced,
+but not all callers really care about the content of the page, for
+example, partial truncate which just sets the truncated range in one page
+to 0.  So for such paths it needs additional modification if ERR_PTR is
+returned.  And if the callers have their own way to handle the problematic
+pages we need to add a new FGP flag to tell FGP functions to return the
+pointer to the page.
+
+It may happen very rarely, but once it happens the consequence (data
+corruption) could be very bad and it is very hard to debug.  It seems this
+problem had been slightly discussed before, but seems no action was taken
+at that time.  [2]
+
+As the aforementioned investigation, it needs huge amount of work to solve
+the potential data loss for all filesystems.  But it is much easier for
+in-memory filesystems and such filesystems actually suffer more than
+others since even the data blocks are gone due to truncating.  So this
+patchset starts from shmem/tmpfs by taking option #1.
+
+TODO:
+* The unpoison has been broken since commit 0ed950d1f281 ("mm,hwpoison: make
+  get_hwpoison_page() call get_any_page()"), and this patch series make
+  refcount check for unpoisoning shmem page fail.
+* Expand to other filesystems.  But I haven't heard feedback from filesystem
+  developers yet.
+
+Patch breakdown:
+Patch #1: cleanup, depended by patch #2
+Patch #2: fix THP with hwpoisoned subpage(s) PMD map bug
+Patch #3: coding style cleanup
+Patch #4: refactor and preparation.
+Patch #5: keep the poisoned page in page cache and handle such case for all
+          the paths.
+Patch #6: the previous patches unblock page cache THP split, so this patch
+          add page cache THP split support.
+
+
+This patch (of 4):
+
+A minor cleanup to the indent.
+
+Link: https://lkml.kernel.org/r/20211020210755.23964-1-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20211020210755.23964-4-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/memory-failure.c~mm-memory_failure-constify-static-mm_walk_ops
-+++ a/mm/memory-failure.c
-@@ -674,7 +674,7 @@ static int hwpoison_hugetlb_range(pte_t
- #define hwpoison_hugetlb_range	NULL
- #endif
+--- a/mm/filemap.c~mm-filemap-coding-style-cleanup-for-filemap_map_pmd
++++ a/mm/filemap.c
+@@ -3203,12 +3203,12 @@ static bool filemap_map_pmd(struct vm_fa
+ 	}
  
--static struct mm_walk_ops hwp_walk_ops = {
-+static const struct mm_walk_ops hwp_walk_ops = {
- 	.pmd_entry = hwpoison_pte_range,
- 	.hugetlb_entry = hwpoison_hugetlb_range,
- };
+ 	if (pmd_none(*vmf->pmd) && PageTransHuge(page)) {
+-	    vm_fault_t ret = do_set_pmd(vmf, page);
+-	    if (!ret) {
+-		    /* The page is mapped successfully, reference consumed. */
+-		    unlock_page(page);
+-		    return true;
+-	    }
++		vm_fault_t ret = do_set_pmd(vmf, page);
++		if (!ret) {
++			/* The page is mapped successfully, reference consumed. */
++			unlock_page(page);
++			return true;
++		}
+ 	}
+ 
+ 	if (pmd_none(*vmf->pmd))
 _
