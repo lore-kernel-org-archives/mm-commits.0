@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D6384C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:48:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB029C433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:48:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C4E486126A
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:48:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C164F60FBF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:48:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233838AbhKEUuv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:50:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46144 "EHLO mail.kernel.org"
+        id S233844AbhKEUu5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:50:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46188 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233740AbhKEUuu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:50:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B3B136120A;
-        Fri,  5 Nov 2021 20:48:10 +0000 (UTC)
+        id S233740AbhKEUux (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:50:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9688560FBF;
+        Fri,  5 Nov 2021 20:48:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145290;
-        bh=qu2rlHwySO0EP1Ru+ktgVkit7Y4aha8BJc6JMSG9pH8=;
+        s=korg; t=1636145293;
+        bh=WYYjCw+9p5AVStszW+MdgDmdHCd9cLV2dMuI+dseqgU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=C1cOudhPy+P2wf4Mppkwu3UDePA9tf4tHRHeOi4/b7iIEMt1gVosshttioxZ+vaQO
-         UBNS0HEWyOEWGVj7lzCD4gXeC7jFLMX6DrnzADeoYI55TDgd0+90DdOVCnAJ9FDk+X
-         34EnUkJwMvjTLfhLr8t32s8U/oZR99e7VAxB4hIU=
-Date:   Fri, 05 Nov 2021 13:48:10 -0700
+        b=yjboW2SCyIqZfWSLJaJCfXlKdpH8c5AhvRVLnqE4jhTUTwWP9RDxZ1DVjCm7OmWt8
+         tfl19TuETII5gCgm6cjD+a1RkLsOJv6j4D5RoSjK08QaPVlZ3keom/U9XRYJyv4m7a
+         IkSxTG/SgHLjtg1bHy6AE8eACG4R7hSK4eHyJF7U=
+Date:   Fri, 05 Nov 2021 13:48:13 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, corbet@lwn.net, linux-mm@kvack.org,
         mm-commits@vger.kernel.org, peterx@redhat.com, sj@kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 256/262] Docs/admin-guide/mm/damon/start: fix
- wrong example commands
-Message-ID: <20211105204810.2vA7rsIAo%akpm@linux-foundation.org>
+Subject:  [patch 257/262] Docs/admin-guide/mm/damon/start: fix a
+ wrong link
+Message-ID: <20211105204813.v-9etVvIl%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,64 +39,33 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/start: fix wrong example commands
+Subject: Docs/admin-guide/mm/damon/start: fix a wrong link
 
-Patch series "Fix trivial nits in Documentation/admin-guide/mm".
+The 'Getting Started' of DAMON is providing a link to DAMON's user
+interface document while saying about its user space tool's detailed
+usages.  This commit fixes the link.
 
-This patchset fixes trivial nits in admin guide documents for DAMON and
-pagemap.
-
-
-This patch (of 4):
-
-Some of the example commands in DAMON getting started guide are
-outdated, missing sudo, or just wrong.  This commit fixes those.
-
-Link: https://lkml.kernel.org/r/20211022090311.3856-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211022090311.3856-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/start.rst |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ Documentation/admin-guide/mm/damon/start.rst |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-start-fix-wrong-example-commands
+--- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-start-fix-a-wrong-link
 +++ a/Documentation/admin-guide/mm/damon/start.rst
-@@ -19,7 +19,7 @@ your workload. ::
-     # mount -t debugfs none /sys/kernel/debug/
-     # git clone https://github.com/awslabs/damo
-     # ./damo/damo record $(pidof <your workload>)
--    # ./damo/damo report heat --plot_ascii
-+    # ./damo/damo report heats --heatmap stdout
+@@ -6,7 +6,9 @@ Getting Started
  
- The final command draws the access heatmap of ``<your workload>``.  The heatmap
- shows which memory region (x-axis) is accessed when (y-axis) and how frequently
-@@ -94,9 +94,9 @@ Visualizing Recorded Patterns
- The following three commands visualize the recorded access patterns and save
- the results as separate image files. ::
+ This document briefly describes how you can use DAMON by demonstrating its
+ default user space tool.  Please note that this document describes only a part
+-of its features for brevity.  Please refer to :doc:`usage` for more details.
++of its features for brevity.  Please refer to the usage `doc
++<https://github.com/awslabs/damo/blob/next/USAGE.md>`_ of the tool for more
++details.
  
--    $ damo report heats --heatmap access_pattern_heatmap.png
--    $ damo report wss --range 0 101 1 --plot wss_dist.png
--    $ damo report wss --range 0 101 1 --sortby time --plot wss_chron_change.png
-+    $ sudo damo report heats --heatmap access_pattern_heatmap.png
-+    $ sudo damo report wss --range 0 101 1 --plot wss_dist.png
-+    $ sudo damo report wss --range 0 101 1 --sortby time --plot wss_chron_change.png
  
- - ``access_pattern_heatmap.png`` will visualize the data access pattern in a
-   heatmap, showing which memory region (y-axis) got accessed when (x-axis)
-@@ -115,9 +115,9 @@ Data Access Pattern Aware Memory Managem
- Below three commands make every memory region of size >=4K that doesn't
- accessed for >=60 seconds in your workload to be swapped out. ::
- 
--    $ echo "#min-size max-size min-acc max-acc min-age max-age action" > scheme
--    $ echo "4K        max      0       0       60s     max     pageout" >> scheme
--    $ damo schemes -c my_thp_scheme <pid of your workload>
-+    $ echo "#min-size max-size min-acc max-acc min-age max-age action" > test_scheme
-+    $ echo "4K        max      0       0       60s     max     pageout" >> test_scheme
-+    $ damo schemes -c test_scheme <pid of your workload>
- 
- .. [1] https://damonitor.github.io/doc/html/v17/admin-guide/mm/damon/start.html#visualizing-recorded-patterns
- .. [2] https://damonitor.github.io/test/result/visual/latest/rec.heatmap.1.png.html
+ TL; DR
 _
