@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0BB85C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:47:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 537F0C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:47:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EE9B960FBF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:47:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3E65260240
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:47:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233821AbhKEUuW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:50:22 -0400
-Received: from mail.kernel.org ([198.145.29.99]:45526 "EHLO mail.kernel.org"
+        id S233822AbhKEUuZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:50:25 -0400
+Received: from mail.kernel.org ([198.145.29.99]:45594 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233712AbhKEUuV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:50:21 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 2175C60174;
-        Fri,  5 Nov 2021 20:47:41 +0000 (UTC)
+        id S233712AbhKEUuZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:50:25 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C4EB6120A;
+        Fri,  5 Nov 2021 20:47:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145261;
-        bh=R7pz+DGQP3/Gs78g52C3nu9K6Pi5OhRxNJqhGYfmBl8=;
+        s=korg; t=1636145265;
+        bh=R4r/odyeX8hiRT8ZlOOfKeCMIVXfEblvWhWF7Ydjfe0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=G083ygnnRA/IVuoM0rcb5br+ZN6nCwYQrUvNyIz5FcRhZqsDMxYUnkJrJlXm2niFW
-         FtqXAUq1WKJjtkbmstOuS492df27fZdJWwc6hUoPIvvCFys4s+4+didNo2obbpUA24
-         8AnOKQZFU/MhXhA1is3hj402GI2l0e03pR81lwA4=
-Date:   Fri, 05 Nov 2021 13:47:40 -0700
+        b=Xy3ys5cRWOtOqYCkhzhGTK803N/1njMPhcUgDiTbxBJ/Ifj8SOTy7r56rsokiEd7c
+         yi4bdjmIPyCgHd/C8cgFMCH63A2YB81XHcwGzxMqO6Gqkt9ilfU+37ybBt1YzazBdW
+         UmcYyhc6uPoHsEpnCe/d0ZfFEDHciFl1hzyw4AJA=
+Date:   Fri, 05 Nov 2021 13:47:44 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, amit@kernel.org,
         benh@kernel.crashing.org, corbet@lwn.net, david@redhat.com,
@@ -32,9 +32,9 @@ To:     akpm@linux-foundation.org, amit@kernel.org,
         linux-mm@kvack.org, markubo@amazon.de, mm-commits@vger.kernel.org,
         rientjes@google.com, shakeelb@google.com, shuah@kernel.org,
         sj@kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 247/262] mm/damon/dbgfs: support prioritization
- weights
-Message-ID: <20211105204740.8BGnsIb__%akpm@linux-foundation.org>
+Subject:  [patch 248/262] tools/selftests/damon: update for regions
+ prioritization of schemes
+Message-ID: <20211105204744.xk_yNocPQ%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,12 +43,12 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/dbgfs: support prioritization weights
+Subject: tools/selftests/damon: update for regions prioritization of schemes
 
-This commit allows DAMON debugfs interface users set the prioritization
-weights by putting three more numbers to the 'schemes' file.
+This commit updates the DAMON selftests for 'schemes' debugfs file, as the
+file format is updated.
 
-Link: https://lkml.kernel.org/r/20211019150731.16699-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211019150731.16699-11-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -66,45 +66,22 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ tools/testing/selftests/damon/debugfs_attrs.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-support-prioritization-weights
-+++ a/mm/damon/dbgfs.c
-@@ -105,13 +105,16 @@ static ssize_t sprint_schemes(struct dam
+--- a/tools/testing/selftests/damon/debugfs_attrs.sh~tools-selftests-damon-update-for-regions-prioritization-of-schemes
++++ a/tools/testing/selftests/damon/debugfs_attrs.sh
+@@ -63,10 +63,10 @@ echo "$orig_content" > "$file"
+ file="$DBGFS/schemes"
+ orig_content=$(cat "$file")
  
- 	damon_for_each_scheme(s, c) {
- 		rc = scnprintf(&buf[written], len - written,
--				"%lu %lu %u %u %u %u %d %lu %lu %lu %lu %lu\n",
-+				"%lu %lu %u %u %u %u %d %lu %lu %lu %u %u %u %lu %lu\n",
- 				s->min_sz_region, s->max_sz_region,
- 				s->min_nr_accesses, s->max_nr_accesses,
- 				s->min_age_region, s->max_age_region,
- 				s->action,
- 				s->quota.ms, s->quota.sz,
- 				s->quota.reset_interval,
-+				s->quota.weight_sz,
-+				s->quota.weight_nr_accesses,
-+				s->quota.weight_age,
- 				s->stat_count, s->stat_sz);
- 		if (!rc)
- 			return -ENOMEM;
-@@ -193,11 +196,14 @@ static struct damos **str_to_schemes(con
- 	while (pos < len && *nr_schemes < max_nr_schemes) {
- 		struct damos_quota quota = {};
+-test_write_succ "$file" "1 2 3 4 5 6 4 0 0 0" \
++test_write_succ "$file" "1 2 3 4 5 6 4 0 0 0 1 2 3" \
+ 	"$orig_content" "valid input"
+ test_write_fail "$file" "1 2
+-3 4 5 6 3 0 0 0" "$orig_content" "multi lines"
++3 4 5 6 3 0 0 0 1 2 3" "$orig_content" "multi lines"
+ test_write_succ "$file" "" "$orig_content" "disabling"
+ echo "$orig_content" > "$file"
  
--		ret = sscanf(&str[pos], "%lu %lu %u %u %u %u %u %lu %lu %lu%n",
-+		ret = sscanf(&str[pos],
-+				"%lu %lu %u %u %u %u %u %lu %lu %lu %u %u %u%n",
- 				&min_sz, &max_sz, &min_nr_a, &max_nr_a,
- 				&min_age, &max_age, &action, &quota.ms,
--				&quota.sz, &quota.reset_interval, &parsed);
--		if (ret != 10)
-+				&quota.sz, &quota.reset_interval,
-+				&quota.weight_sz, &quota.weight_nr_accesses,
-+				&quota.weight_age, &parsed);
-+		if (ret != 13)
- 			break;
- 		if (!damos_action_valid(action)) {
- 			pr_err("wrong action %d\n", action);
 _
