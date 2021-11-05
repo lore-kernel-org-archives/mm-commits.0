@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2725BC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AAC1C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 11FE66135A
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:07 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E589161357
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233715AbhKEUpq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:45:46 -0400
-Received: from mail.kernel.org ([198.145.29.99]:40722 "EHLO mail.kernel.org"
+        id S233714AbhKEUps (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:45:48 -0400
+Received: from mail.kernel.org ([198.145.29.99]:40788 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233648AbhKEUpp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:45:45 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 540D261355;
-        Fri,  5 Nov 2021 20:43:05 +0000 (UTC)
+        id S233648AbhKEUps (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:45:48 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5FACF61351;
+        Fri,  5 Nov 2021 20:43:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144985;
-        bh=I2DItkYvN5bnUgDVb2gxsHA4B4GOX2xKFZqeBeAEkHY=;
+        s=korg; t=1636144988;
+        bh=WOVh97OTdGCAQNLoT+0RB6o5sJyaUskNsPPKcjdv91Y=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=h5GqdKZ6A6sZ8rn+RoZMkM1IUptaslU9dd0bDvYFp4Czxkg5mPZpmGOWCqwTWWxl0
-         O+9qBz5eLWztDvhWstGtsfdZPonJaj31MutEneDNRhjTg/U0+MNALbqWxOy6RxvOxu
-         1YKMDQLXtccMuRAmb+/tl9YL7q1QXgrHmzeSZRKs=
-Date:   Fri, 05 Nov 2021 13:43:04 -0700
+        b=ZBdyRlzE+tDCzJUVU+Y1MAz6wl7B6dsaoROHbE2zUiINFnkTqf52lmM1Fd8U9XKSR
+         0P9iL4wvz5RDQnnurEFChIIsteGb4cx4JS6oJMgpKseISesyaV+BDf68TGKJj5EPfl
+         9lwWIBDs+K4epUz2qiwvOkb7ROOLxkv0M/v1JLfk=
+Date:   Fri, 05 Nov 2021 13:43:07 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, changbin.du@intel.com,
-        chansen3@cisco.com, koct9i@gmail.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        torvalds@linux-foundation.org, wangbin224@huawei.com
-Subject:  [patch 161/262] tools/vm/page-types.c: print file offset
- in hexadecimal
-Message-ID: <20211105204304.q6OqMQ7kF%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, christophe.leroy@csgroup.eu,
+        jgross@suse.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        rppt@linux.ibm.com, Shahab.Vahedi@synopsys.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 162/262] arch_numa: simplify numa_distance
+ allocation
+Message-ID: <20211105204307.tnUYssaTr%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,43 +39,59 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: tools/vm/page-types.c: print file offset in hexadecimal
+From: Mike Rapoport <rppt@linux.ibm.com>
+Subject: arch_numa: simplify numa_distance allocation
 
-In page list mode (with -l and -L option), virtual address and physical
-address are printed in hexadecimal, but file offset is not, which is
-confusing, so let's align it.
+Patch series "memblock: cleanup memblock_free interface", v2.
 
-Link: https://lkml.kernel.org/r/20211004061325.1525902-4-naoya.horiguchi@linux.dev
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: Bin Wang <wangbin224@huawei.com>
-Cc: Changbin Du <changbin.du@intel.com>
-Cc: Christian Hansen <chansen3@cisco.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+This is the fix for memblock freeing APIs mismatch [1].
+
+The first patch is a cleanup of numa_distance allocation in arch_numa I've
+spotted during the conversion.  The second patch is a fix for Xen memory
+freeing on some of the error paths.
+
+[1] https://lore.kernel.org/all/CAHk-=wj9k4LZTz+svCxLYs5Y1=+yKrbAUArH1+ghyG3OLd8VVg@mail.gmail.com
+
+
+This patch (of 6):
+
+Memory allocation of numa_distance uses memblock_phys_alloc_range()
+without actual range limits, converts the returned physical address to
+virtual and then only uses the virtual address for further initialization.
+
+Simplify this by replacing memblock_phys_alloc_range() with
+memblock_alloc().
+
+Link: https://lkml.kernel.org/r/20210930185031.18648-1-rppt@kernel.org
+Link: https://lkml.kernel.org/r/20210930185031.18648-2-rppt@kernel.org
+Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
+Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Shahab Vahedi <Shahab.Vahedi@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page-types.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/base/arch_numa.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/tools/vm/page-types.c~tools-vm-page-typesc-print-file-offset-in-hexadecimal
-+++ a/tools/vm/page-types.c
-@@ -390,7 +390,7 @@ static void show_page_range(unsigned lon
- 		if (opt_pid)
- 			printf("%lx\t", voff);
- 		if (opt_file)
--			printf("%lu\t", voff);
-+			printf("%lx\t", voff);
- 		if (opt_list_cgroup)
- 			printf("@%llu\t", (unsigned long long)cgroup0);
- 		if (opt_list_mapcnt)
-@@ -418,7 +418,7 @@ static void show_page(unsigned long voff
- 	if (opt_pid)
- 		printf("%lx\t", voffset);
- 	if (opt_file)
--		printf("%lu\t", voffset);
-+		printf("%lx\t", voffset);
- 	if (opt_list_cgroup)
- 		printf("@%llu\t", (unsigned long long)cgroup);
- 	if (opt_list_mapcnt)
+--- a/drivers/base/arch_numa.c~arch_numa-simplify-numa_distance-allocation
++++ a/drivers/base/arch_numa.c
+@@ -337,15 +337,13 @@ void __init numa_free_distance(void)
+ static int __init numa_alloc_distance(void)
+ {
+ 	size_t size;
+-	u64 phys;
+ 	int i, j;
+ 
+ 	size = nr_node_ids * nr_node_ids * sizeof(numa_distance[0]);
+-	phys = memblock_phys_alloc_range(size, PAGE_SIZE, 0, PFN_PHYS(max_pfn));
+-	if (WARN_ON(!phys))
++	numa_distance = memblock_alloc(size, PAGE_SIZE);
++	if (WARN_ON(!numa_distance))
+ 		return -ENOMEM;
+ 
+-	numa_distance = __va(phys);
+ 	numa_distance_cnt = nr_node_ids;
+ 
+ 	/* fill with the default distances */
 _
