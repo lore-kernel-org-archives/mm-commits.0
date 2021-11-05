@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B49E2C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:44:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7028AC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:44:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9E3BC61372
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:44:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5A98A61372
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:44:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233648AbhKEUrU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:47:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42364 "EHLO mail.kernel.org"
+        id S233676AbhKEUrY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:47:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42440 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232537AbhKEUrU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:47:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 704786128E;
-        Fri,  5 Nov 2021 20:44:39 +0000 (UTC)
+        id S232537AbhKEUrX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:47:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3A8B861362;
+        Fri,  5 Nov 2021 20:44:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145080;
-        bh=o1ufznwnjDUUvGC62OCbSNe4ZqKRKpd6DpUBq68ilCA=;
+        s=korg; t=1636145083;
+        bh=j83n6yVFIQx4Yb2IDvFFc3Wk9vLnKLD6aw+p2WAF1d4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Q1Cfq/BUdFaZIvkgm8h9cT7RT7KSyjOslPeR9wM0R6k5lgnSgGgmDyy3TJdu349Dx
-         ZdY/RnuL+AGAeRTR/z3+P1dKXH3QwA4432lg7hZpDH4kS+YWmTEN3+gxPbUWTp6UHP
-         vQPr1ZWYLoGknFJzMjrmsCWJTAE3gJFFsICoLhOE=
-Date:   Fri, 05 Nov 2021 13:44:39 -0700
+        b=bOvWEKW4c3GykJUoLRVQsi4WYHUPZ3UAEXMlelbjm2TBHkO4pMfHd3sB6STeOxJyh
+         6z4ul6POovpL7/Kx8fF6FP8KxWVspl8l7oq7XicWWtmzhIez38UnkJ57EYhC7NMXeT
+         1+6eUV21595jFXo+ovG3qP1PgixjHiTWZZcGa2yQ=
+Date:   Fri, 05 Nov 2021 13:44:42 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alexs@kernel.org,
-        benh@kernel.crashing.org, bp@alien8.de, corbet@lwn.net,
-        dave.hansen@linux.intel.com, david@redhat.com,
-        gregkh@linuxfoundation.org, hpa@zytor.com, jasowang@redhat.com,
-        linux-mm@kvack.org, luto@kernel.org, mhocko@suse.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, mpe@ellerman.id.au,
-        mst@redhat.com, osalvador@suse.de, paulus@samba.org,
-        peterz@infradead.org, rafael@kernel.org, rppt@kernel.org,
-        shuah@kernel.org, tglx@linutronix.de, torvalds@linux-foundation.org
-Subject:  [patch 191/262] x86: remove memory hotplug support on
- X86_32
-Message-ID: <20211105204439.BdMlAxnGp%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
+        arnd@arndb.de, borntraeger@de.ibm.com, chenhuacai@kernel.org,
+        david@redhat.com, ebiederm@xmission.com, geert@linux-m68k.org,
+        gor@linux.ibm.com, hca@linux.ibm.com, Jianyong.Wu@arm.com,
+        jiaxun.yang@flygoat.com, linux-mm@kvack.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de, rppt@kernel.org,
+        shahab@synopsys.com, torvalds@linux-foundation.org,
+        tsbogend@alpha.franken.de, vgupta@kernel.org
+Subject:  [patch 192/262] mm/memory_hotplug: handle
+ memblock_add_node() failures in add_memory_resource()
+Message-ID: <20211105204442.CRZzL-cG-%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,108 +44,80 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: David Hildenbrand <david@redhat.com>
-Subject: x86: remove memory hotplug support on X86_32
+Subject: mm/memory_hotplug: handle memblock_add_node() failures in add_memory_resource()
 
-CONFIG_MEMORY_HOTPLUG was marked BROKEN over one year and we just
-restricted it to 64 bit.  Let's remove the unused x86 32bit implementation
-and simplify the Kconfig.
+Patch series "mm/memory_hotplug: full support for add_memory_driver_managed() with CONFIG_ARCH_KEEP_MEMBLOCK", v2.
 
-Link: https://lkml.kernel.org/r/20210929143600.49379-7-david@redhat.com
+Architectures that require CONFIG_ARCH_KEEP_MEMBLOCK=y, such as arm64,
+don't cleanly support add_memory_driver_managed() yet.  Most prominently,
+kexec_file can still end up placing kexec images on such driver-managed
+memory, resulting in undesired behavior, for example, having kexec images
+located on memory not part of the firmware-provided memory map.
+
+Teaching kexec to not place images on driver-managed memory is especially
+relevant for virtio-mem.  Details can be found in commit 7b7b27214bba
+("mm/memory_hotplug: introduce add_memory_driver_managed()").
+
+Extend memblock with a new flag and set it from memory hotplug code when
+applicable.  This is required to fully support virtio-mem on arm64, making
+also kexec_file behave like on x86-64.
+
+
+This patch (of 2):
+
+If memblock_add_node() fails, we're most probably running out of memory. 
+While this is unlikely to happen, it can happen and having memory added
+without a memblock can be problematic for architectures that use memblock
+to detect valid memory.  Let's fail in a nice way instead of silently
+ignoring the error.
+
+Link: https://lkml.kernel.org/r/20211004093605.5830-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20211004093605.5830-2-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Wang <jasowang@redhat.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Jianyong Wu <Jianyong.Wu@arm.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Cc: Vineet Gupta <vgupta@kernel.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Huacai Chen <chenhuacai@kernel.org>
+Cc: Jiaxun Yang <jiaxun.yang@flygoat.com>
+Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
+Cc: Heiko Carstens <hca@linux.ibm.com>
+Cc: Vasily Gorbik <gor@linux.ibm.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Shahab Vahedi <shahab@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig      |    6 +++---
- arch/x86/mm/init_32.c |   31 -------------------------------
- 2 files changed, 3 insertions(+), 34 deletions(-)
+ mm/memory_hotplug.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
---- a/arch/x86/Kconfig~x86-remove-memory-hotplug-support-on-x86_32
-+++ a/arch/x86/Kconfig
-@@ -62,7 +62,7 @@ config X86
- 	select ARCH_32BIT_OFF_T			if X86_32
- 	select ARCH_CLOCKSOURCE_INIT
- 	select ARCH_ENABLE_HUGEPAGE_MIGRATION if X86_64 && HUGETLB_PAGE && MIGRATION
--	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64 || (X86_32 && HIGHMEM)
-+	select ARCH_ENABLE_MEMORY_HOTPLUG if X86_64
- 	select ARCH_ENABLE_MEMORY_HOTREMOVE if MEMORY_HOTPLUG
- 	select ARCH_ENABLE_SPLIT_PMD_PTLOCK if (PGTABLE_LEVELS > 2) && (X86_64 || X86_PAE)
- 	select ARCH_ENABLE_THP_MIGRATION if X86_64 && TRANSPARENT_HUGEPAGE
-@@ -1614,7 +1614,7 @@ config ARCH_SELECT_MEMORY_MODEL
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-handle-memblock_add_node-failures-in-add_memory_resource
++++ a/mm/memory_hotplug.c
+@@ -1369,8 +1369,11 @@ int __ref add_memory_resource(int nid, s
  
- config ARCH_MEMORY_PROBE
- 	bool "Enable sysfs memory/probe interface"
--	depends on X86_64 && MEMORY_HOTPLUG
-+	depends on MEMORY_HOTPLUG
- 	help
- 	  This option enables a sysfs memory/probe interface for testing.
- 	  See Documentation/admin-guide/mm/memory-hotplug.rst for more information.
-@@ -2394,7 +2394,7 @@ endmenu
+ 	mem_hotplug_begin();
  
- config ARCH_HAS_ADD_PAGES
- 	def_bool y
--	depends on X86_64 && ARCH_ENABLE_MEMORY_HOTPLUG
-+	depends on ARCH_ENABLE_MEMORY_HOTPLUG
+-	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
+-		memblock_add_node(start, size, nid);
++	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK)) {
++		ret = memblock_add_node(start, size, nid);
++		if (ret)
++			goto error_mem_hotplug_end;
++	}
  
- config ARCH_MHP_MEMMAP_ON_MEMORY_ENABLE
- 	def_bool y
---- a/arch/x86/mm/init_32.c~x86-remove-memory-hotplug-support-on-x86_32
-+++ a/arch/x86/mm/init_32.c
-@@ -779,37 +779,6 @@ void __init mem_init(void)
- 	test_wp_bit();
+ 	ret = __try_online_node(nid, false);
+ 	if (ret < 0)
+@@ -1443,6 +1446,7 @@ error:
+ 		rollback_node_hotadd(nid);
+ 	if (IS_ENABLED(CONFIG_ARCH_KEEP_MEMBLOCK))
+ 		memblock_remove(start, size);
++error_mem_hotplug_end:
+ 	mem_hotplug_done();
+ 	return ret;
  }
- 
--#ifdef CONFIG_MEMORY_HOTPLUG
--int arch_add_memory(int nid, u64 start, u64 size,
--		    struct mhp_params *params)
--{
--	unsigned long start_pfn = start >> PAGE_SHIFT;
--	unsigned long nr_pages = size >> PAGE_SHIFT;
--	int ret;
--
--	/*
--	 * The page tables were already mapped at boot so if the caller
--	 * requests a different mapping type then we must change all the
--	 * pages with __set_memory_prot().
--	 */
--	if (params->pgprot.pgprot != PAGE_KERNEL.pgprot) {
--		ret = __set_memory_prot(start, nr_pages, params->pgprot);
--		if (ret)
--			return ret;
--	}
--
--	return __add_pages(nid, start_pfn, nr_pages, params);
--}
--
--void arch_remove_memory(u64 start, u64 size, struct vmem_altmap *altmap)
--{
--	unsigned long start_pfn = start >> PAGE_SHIFT;
--	unsigned long nr_pages = size >> PAGE_SHIFT;
--
--	__remove_pages(start_pfn, nr_pages, altmap);
--}
--#endif
--
- int kernel_set_to_readonly __read_mostly;
- 
- static void mark_nxdata_nx(void)
 _
