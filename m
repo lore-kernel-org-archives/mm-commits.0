@@ -2,34 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C397FC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 40251C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ADA246136A
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2CA616136F
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233692AbhKEUqb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:46:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41430 "EHLO mail.kernel.org"
+        id S233695AbhKEUqf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:46:35 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41466 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233055AbhKEUqb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:46:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 17CA961360;
-        Fri,  5 Nov 2021 20:43:51 +0000 (UTC)
+        id S233694AbhKEUqe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:46:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2B6E861360;
+        Fri,  5 Nov 2021 20:43:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145031;
-        bh=W5xUEmp0/AmZRI/AUD9aU2KG3gvz5TSEBKt6VoBvGcQ=;
+        s=korg; t=1636145034;
+        bh=ldbdqgySLyV6aEtd+JWP45gJRv0VXjxE+LXHchfO3L4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2SvDvKEuGg6DvyT2JzWawYZOubDXe37ZeF6X2LLjFs0v1uLgJnYEedF40n9KkpiYJ
-         iIaAO3RXp6o/cdWi+T2qTxBMSQ2/tW84ZqnFUlbe9C+0Md71EFiTEiY7OA4dx5Ojr5
-         nNzSvHffXX0QM4X2/E2/yh4BOioOfgeH2BKM3ghQ=
-Date:   Fri, 05 Nov 2021 13:43:50 -0700
+        b=l3dOgDYTi8qwKON5BElbkFNbg3jzzq2rUlb3ZFbBEYGK6J9K4SQy1BUQ9dfKT/HJq
+         VLow75tyO/Qqm6R68wibywYQ1zHrLNo8QNr817ujFm2f1YIGMxb39fJ/ukao+0Jt8J
+         aYawter3KoDDPTubd7zFN1BOYTEp5aAa2/cmNs+U=
+Date:   Fri, 05 Nov 2021 13:43:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        wangkefeng.wang@huawei.com
-Subject:  [patch 176/262] mm: nommu: kill arch_get_unmapped_area()
-Message-ID: <20211105204350.YecbdIUJT%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aneesh.kumar@linux.ibm.com,
+        hughd@google.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        pasha.tatashin@soleen.com, shuah@kernel.org,
+        torvalds@linux-foundation.org, tyhicks@linux.microsoft.com,
+        zhansayabagdaulet@gmail.com
+Subject:  [patch 177/262] selftest/vm: fix ksm selftest to run with
+ different NUMA topologies
+Message-ID: <20211105204353.rj6UONMEl%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -37,32 +40,101 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: nommu: kill arch_get_unmapped_area()
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: selftest/vm: fix ksm selftest to run with different NUMA topologies
 
-When nommu, the arch_get_unmapped_area() will not be called, just kill it.
+Platforms can have non-contiguous NUMA nodes like below
 
-Link: https://lkml.kernel.org/r/20210910061906.36299-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+ #numactl  -H
+available: 2 nodes (0,8)
+.....
+node distances:
+node   0   8
+  0:  10  40
+  8:  40  10
+
+ #numactl  -H
+available: 1 nodes (1)
+....
+node distances:
+node   1
+  1:  10
+
+Hence update the test to not assume the presence of Node 0 and 1 and also
+use numa_num_configured_nodes() instead of numa_max_node for finding
+whether to skip the test.
+
+Link: https://lkml.kernel.org/r/20210914141414.350759-1-aneesh.kumar@linux.ibm.com
+Fixes: 82e717ad3501 ("selftests: vm: add KSM merging across nodes test")
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
+Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
+Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/nommu.c |    6 ------
- 1 file changed, 6 deletions(-)
+ tools/testing/selftests/vm/ksm_tests.c |   29 ++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
 
---- a/mm/nommu.c~mm-nommu-kill-arch_get_unmapped_area
-+++ a/mm/nommu.c
-@@ -1639,12 +1639,6 @@ int remap_vmalloc_range(struct vm_area_s
+--- a/tools/testing/selftests/vm/ksm_tests.c~selftest-vm-fix-ksm-selftest-to-run-with-different-numa-topologies
++++ a/tools/testing/selftests/vm/ksm_tests.c
+@@ -354,12 +354,34 @@ err_out:
+ 	return KSFT_FAIL;
  }
- EXPORT_SYMBOL(remap_vmalloc_range);
  
--unsigned long arch_get_unmapped_area(struct file *file, unsigned long addr,
--	unsigned long len, unsigned long pgoff, unsigned long flags)
--{
--	return -ENOMEM;
--}
--
- vm_fault_t filemap_fault(struct vm_fault *vmf)
++static int get_next_mem_node(int node)
++{
++
++	long node_size;
++	int mem_node = 0;
++	int i, max_node = numa_max_node();
++
++	for (i = node + 1; i <= max_node + node; i++) {
++		mem_node = i % (max_node + 1);
++		node_size = numa_node_size(mem_node, NULL);
++		if (node_size > 0)
++			break;
++	}
++	return mem_node;
++}
++
++static int get_first_mem_node(void)
++{
++	return get_next_mem_node(numa_max_node());
++}
++
+ static int check_ksm_numa_merge(int mapping, int prot, int timeout, bool merge_across_nodes,
+ 				size_t page_size)
  {
- 	BUG();
+ 	void *numa1_map_ptr, *numa2_map_ptr;
+ 	struct timespec start_time;
+ 	int page_count = 2;
++	int first_node;
+ 
+ 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
+ 		perror("clock_gettime");
+@@ -370,7 +392,7 @@ static int check_ksm_numa_merge(int mapp
+ 		perror("NUMA support not enabled");
+ 		return KSFT_SKIP;
+ 	}
+-	if (numa_max_node() < 1) {
++	if (numa_num_configured_nodes() <= 1) {
+ 		printf("At least 2 NUMA nodes must be available\n");
+ 		return KSFT_SKIP;
+ 	}
+@@ -378,8 +400,9 @@ static int check_ksm_numa_merge(int mapp
+ 		return KSFT_FAIL;
+ 
+ 	/* allocate 2 pages in 2 different NUMA nodes and fill them with the same data */
+-	numa1_map_ptr = numa_alloc_onnode(page_size, 0);
+-	numa2_map_ptr = numa_alloc_onnode(page_size, 1);
++	first_node = get_first_mem_node();
++	numa1_map_ptr = numa_alloc_onnode(page_size, first_node);
++	numa2_map_ptr = numa_alloc_onnode(page_size, get_next_mem_node(first_node));
+ 	if (!numa1_map_ptr || !numa2_map_ptr) {
+ 		perror("numa_alloc_onnode");
+ 		return KSFT_FAIL;
 _
