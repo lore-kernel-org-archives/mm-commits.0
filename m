@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF64DC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2674BC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E040861373
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 119766136F
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233709AbhKEUsD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:48:03 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43084 "EHLO mail.kernel.org"
+        id S233650AbhKEUsG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:48:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43134 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233702AbhKEUsC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:48:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 47A2761362;
-        Fri,  5 Nov 2021 20:45:22 +0000 (UTC)
+        id S233536AbhKEUsF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:48:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 76A1961288;
+        Fri,  5 Nov 2021 20:45:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145122;
-        bh=tcauLH4ijKH/o2arIcCMmtzCCODlg33d8vndq8P6M8Q=;
+        s=korg; t=1636145125;
+        bh=t9AJWdeuoV/panzK5rsoQ9jN8YuQ9jkqzEFSK7xh5t8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=lCRW1DGlPoD+eHOIJ2FbuqBVVl2vxXXsGyUEE3F2AOkGKDAQCix7guSOpkRYY2MBP
-         lGnd5MitopV48RxohUejxhgQSmWJwqM6ysVSjaZ54VPyOBvSIskklSbcIwqogOEYBZ
-         ypDgK30GIWSmVhl6LQ9zbnUzSfyDhFkPKdiKtJYk=
-Date:   Fri, 05 Nov 2021 13:45:21 -0700
+        b=BEWZUCgSgOhTnoAUlT/WYeDNlcRfK40hFn1b4VhmggJodfXiVU5cqqCe7dWAUMRnG
+         x9vASEibGgovpQTxyfuRm2GidKJghux3BvIl2W+6XhGNUQ581gBJ6u+cCW7YcI9LKw
+         BoKq1C6i76NY1sJU1poQvi1y76UTW3B5bVSnwdvY=
+Date:   Fri, 05 Nov 2021 13:45:25 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, davem@davemloft.net, horms@verge.net.au,
-        kuba@kernel.org, linux-mm@kvack.org, liumh1@shanghaitech.edu.cn,
-        marcelo.leitner@gmail.com, mm-commits@vger.kernel.org,
-        pshelar@ovn.org, torvalds@linux-foundation.org,
-        ulf.hansson@linaro.org, vyasevich@gmail.com, willy@infradead.org
-Subject:  [patch 204/262] include/linux/mm.h: move
- nr_free_buffer_pages from swap.h to mm.h
-Message-ID: <20211105204521.CXrs5KDI0%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dvyukov@google.com, elver@google.com,
+        glider@google.com, jannh@google.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, nogikh@google.com,
+        tarasmadan@google.com, torvalds@linux-foundation.org
+Subject:  [patch 205/262] stacktrace: move filter_irq_stacks() to
+ kernel/stacktrace.c
+Message-ID: <20211105204525.6a059SKtu%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,123 +39,135 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mianhan Liu <liumh1@shanghaitech.edu.cn>
-Subject: include/linux/mm.h: move nr_free_buffer_pages from swap.h to mm.h
+From: Marco Elver <elver@google.com>
+Subject: stacktrace: move filter_irq_stacks() to kernel/stacktrace.c
 
-nr_free_buffer_pages could be exposed through mm.h instead of swap.h.  The
-advantage of this change is that it can reduce the obsolete includes.  For
-example, net/ipv4/tcp.c wouldn't need swap.h any more since it has already
-included mm.h.  Similarly, after checking all the other files, it comes
-that tcp.c, udp.c meter.c ,...  follow the same rule, so these files can
-have swap.h removed too.
+filter_irq_stacks() has little to do with the stackdepot implementation,
+except that it is usually used by users (such as KASAN) of stackdepot to
+reduce the stack trace.
 
-Moreover, after preprocessing all the files that use nr_free_buffer_pages,
-it turns out that those files have already included mm.h.Thus, we can move
-nr_free_buffer_pages from swap.h to mm.h safely.  This change will not
-affect the compilation of other files.
+However, filter_irq_stacks() itself is not useful without a stack trace as
+obtained by stack_trace_save() and friends.
 
-Link: https://lkml.kernel.org/r/20210912133640.1624-1-liumh1@shanghaitech.edu.cn
-Signed-off-by: Mianhan Liu <liumh1@shanghaitech.edu.cn>
-Cc: Jakub Kicinski <kuba@kernel.org>
-CC: Ulf Hansson <ulf.hansson@linaro.org>
-Cc: "David S . Miller" <davem@davemloft.net>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Pravin B Shelar <pshelar@ovn.org>
-Cc: Vlad Yasevich <vyasevich@gmail.com>
-Cc: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
-Cc: Matthew Wilcox <willy@infradead.org>
+Therefore, move filter_irq_stacks() to kernel/stacktrace.c, so that new
+users of filter_irq_stacks() do not have to start depending on STACKDEPOT
+only for filter_irq_stacks().
+
+Link: https://lkml.kernel.org/r/20210923104803.2620285-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Acked-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Aleksandr Nogikh <nogikh@google.com>
+Cc: Taras Madan <tarasmadan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mmc/core/mmc_test.c    |    1 -
- include/linux/mm.h             |    2 ++
- include/linux/swap.h           |    1 -
- net/ipv4/tcp.c                 |    1 -
- net/ipv4/udp.c                 |    1 -
- net/netfilter/ipvs/ip_vs_ctl.c |    1 -
- net/openvswitch/meter.c        |    1 -
- net/sctp/protocol.c            |    1 -
- 8 files changed, 2 insertions(+), 7 deletions(-)
+ include/linux/stackdepot.h |    2 --
+ include/linux/stacktrace.h |    1 +
+ kernel/stacktrace.c        |   30 ++++++++++++++++++++++++++++++
+ lib/stackdepot.c           |   24 ------------------------
+ 4 files changed, 31 insertions(+), 26 deletions(-)
 
---- a/drivers/mmc/core/mmc_test.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
-+++ a/drivers/mmc/core/mmc_test.c
-@@ -10,7 +10,6 @@
- #include <linux/slab.h>
+--- a/include/linux/stackdepot.h~stacktrace-move-filter_irq_stacks-to-kernel-stacktracec
++++ a/include/linux/stackdepot.h
+@@ -25,8 +25,6 @@ depot_stack_handle_t stack_depot_save(un
+ unsigned int stack_depot_fetch(depot_stack_handle_t handle,
+ 			       unsigned long **entries);
  
- #include <linux/scatterlist.h>
--#include <linux/swap.h>		/* For nr_free_buffer_pages() */
- #include <linux/list.h>
+-unsigned int filter_irq_stacks(unsigned long *entries, unsigned int nr_entries);
+-
+ #ifdef CONFIG_STACKDEPOT
+ int stack_depot_init(void);
+ #else
+--- a/include/linux/stacktrace.h~stacktrace-move-filter_irq_stacks-to-kernel-stacktracec
++++ a/include/linux/stacktrace.h
+@@ -21,6 +21,7 @@ unsigned int stack_trace_save_tsk(struct
+ unsigned int stack_trace_save_regs(struct pt_regs *regs, unsigned long *store,
+ 				   unsigned int size, unsigned int skipnr);
+ unsigned int stack_trace_save_user(unsigned long *store, unsigned int size);
++unsigned int filter_irq_stacks(unsigned long *entries, unsigned int nr_entries);
  
- #include <linux/debugfs.h>
---- a/include/linux/mm.h~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
-+++ a/include/linux/mm.h
-@@ -875,6 +875,8 @@ void put_pages_list(struct list_head *pa
- void split_page(struct page *page, unsigned int order);
- void copy_huge_page(struct page *dst, struct page *src);
+ /* Internal interfaces. Do not use in generic code */
+ #ifdef CONFIG_ARCH_STACKWALK
+--- a/kernel/stacktrace.c~stacktrace-move-filter_irq_stacks-to-kernel-stacktracec
++++ a/kernel/stacktrace.c
+@@ -13,6 +13,7 @@
+ #include <linux/export.h>
+ #include <linux/kallsyms.h>
+ #include <linux/stacktrace.h>
++#include <linux/interrupt.h>
  
-+unsigned long nr_free_buffer_pages(void);
+ /**
+  * stack_trace_print - Print the entries in the stack trace
+@@ -373,3 +374,32 @@ unsigned int stack_trace_save_user(unsig
+ #endif /* CONFIG_USER_STACKTRACE_SUPPORT */
+ 
+ #endif /* !CONFIG_ARCH_STACKWALK */
 +
- /*
-  * Compound pages have a destructor function.  Provide a
-  * prototype for that function and accessor functions.
---- a/include/linux/swap.h~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
-+++ a/include/linux/swap.h
-@@ -335,7 +335,6 @@ void workingset_update_node(struct xa_no
++static inline bool in_irqentry_text(unsigned long ptr)
++{
++	return (ptr >= (unsigned long)&__irqentry_text_start &&
++		ptr < (unsigned long)&__irqentry_text_end) ||
++		(ptr >= (unsigned long)&__softirqentry_text_start &&
++		 ptr < (unsigned long)&__softirqentry_text_end);
++}
++
++/**
++ * filter_irq_stacks - Find first IRQ stack entry in trace
++ * @entries:	Pointer to stack trace array
++ * @nr_entries:	Number of entries in the storage array
++ *
++ * Return: Number of trace entries until IRQ stack starts.
++ */
++unsigned int filter_irq_stacks(unsigned long *entries, unsigned int nr_entries)
++{
++	unsigned int i;
++
++	for (i = 0; i < nr_entries; i++) {
++		if (in_irqentry_text(entries[i])) {
++			/* Include the irqentry function into the stack. */
++			return i + 1;
++		}
++	}
++	return nr_entries;
++}
++EXPORT_SYMBOL_GPL(filter_irq_stacks);
+--- a/lib/stackdepot.c~stacktrace-move-filter_irq_stacks-to-kernel-stacktracec
++++ a/lib/stackdepot.c
+@@ -20,7 +20,6 @@
+  */
  
- /* linux/mm/page_alloc.c */
- extern unsigned long totalreserve_pages;
--extern unsigned long nr_free_buffer_pages(void);
- 
- /* Definition of global_zone_page_state not available yet */
- #define nr_free_pages() global_zone_page_state(NR_FREE_PAGES)
---- a/net/ipv4/tcp.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
-+++ a/net/ipv4/tcp.c
-@@ -260,7 +260,6 @@
- #include <linux/random.h>
- #include <linux/memblock.h>
- #include <linux/highmem.h>
--#include <linux/swap.h>
- #include <linux/cache.h>
- #include <linux/err.h>
- #include <linux/time.h>
---- a/net/ipv4/udp.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
-+++ a/net/ipv4/udp.c
-@@ -78,7 +78,6 @@
- #include <asm/ioctls.h>
- #include <linux/memblock.h>
- #include <linux/highmem.h>
--#include <linux/swap.h>
- #include <linux/types.h>
- #include <linux/fcntl.h>
- #include <linux/module.h>
---- a/net/netfilter/ipvs/ip_vs_ctl.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
-+++ a/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -24,7 +24,6 @@
- #include <linux/sysctl.h>
- #include <linux/proc_fs.h>
- #include <linux/workqueue.h>
--#include <linux/swap.h>
- #include <linux/seq_file.h>
- #include <linux/slab.h>
- 
---- a/net/openvswitch/meter.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
-+++ a/net/openvswitch/meter.c
-@@ -12,7 +12,6 @@
- #include <linux/openvswitch.h>
- #include <linux/netlink.h>
- #include <linux/rculist.h>
--#include <linux/swap.h>
- 
- #include <net/netlink.h>
- #include <net/genetlink.h>
---- a/net/sctp/protocol.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
-+++ a/net/sctp/protocol.c
-@@ -33,7 +33,6 @@
- #include <linux/seq_file.h>
- #include <linux/memblock.h>
- #include <linux/highmem.h>
--#include <linux/swap.h>
- #include <linux/slab.h>
- #include <net/net_namespace.h>
- #include <net/protocol.h>
+ #include <linux/gfp.h>
+-#include <linux/interrupt.h>
+ #include <linux/jhash.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+@@ -371,26 +370,3 @@ depot_stack_handle_t stack_depot_save(un
+ 	return __stack_depot_save(entries, nr_entries, alloc_flags, true);
+ }
+ EXPORT_SYMBOL_GPL(stack_depot_save);
+-
+-static inline int in_irqentry_text(unsigned long ptr)
+-{
+-	return (ptr >= (unsigned long)&__irqentry_text_start &&
+-		ptr < (unsigned long)&__irqentry_text_end) ||
+-		(ptr >= (unsigned long)&__softirqentry_text_start &&
+-		 ptr < (unsigned long)&__softirqentry_text_end);
+-}
+-
+-unsigned int filter_irq_stacks(unsigned long *entries,
+-					     unsigned int nr_entries)
+-{
+-	unsigned int i;
+-
+-	for (i = 0; i < nr_entries; i++) {
+-		if (in_irqentry_text(entries[i])) {
+-			/* Include the irqentry function into the stack. */
+-			return i + 1;
+-		}
+-	}
+-	return nr_entries;
+-}
+-EXPORT_SYMBOL_GPL(filter_irq_stacks);
 _
