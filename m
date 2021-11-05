@@ -2,35 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 23394C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EF65C4332F
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 136C36136F
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:19 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 902C961371
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233724AbhKEUs5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:48:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43972 "EHLO mail.kernel.org"
+        id S233702AbhKEUtB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:49:01 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44048 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233762AbhKEUs4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:48:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 348D261288;
-        Fri,  5 Nov 2021 20:46:16 +0000 (UTC)
+        id S233768AbhKEUs7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:48:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 63A6F6135A;
+        Fri,  5 Nov 2021 20:46:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145176;
-        bh=zlvH2jY7naVEqZ/kfzMKr2KBE+X/tSwBozn9f+5T/R0=;
+        s=korg; t=1636145179;
+        bh=q82RoE9izSEsXms1RkG5GEtUpT2Gy2iCl4EoOF7jce0=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wLTEs5XeCgXNx5pzdy5f6hxbKsDlP9iO698eXSHWF7TKFGe1HgsfoF83+vJSqwyqX
-         GMzrgCnDIHLSu4Txd+JrAnOCFgzCtgO/P3nefiSJviIZoC0HgHDOcmmYIzQmX/nSMK
-         Rxf+o3+JstepaeO//p/8yFWWf84eszINy3NP5qm8=
-Date:   Fri, 05 Nov 2021 13:46:15 -0700
+        b=1MQUy3dDOOJo2wJ8C+JuKjEFS+gGdiBKmu/MM3U+eQWeYV3ku133mCFjariicQ6sy
+         qLNP83e/b5kZaSpVEVxIQBd3Cbw7PYrHlrXHIHMZsaM8ndfaKcY7Jgzz4QrpU4YUIq
+         /4BLBqhpX2Q6afV0Mn13PTwISq0k5iAn6+5BsmMU=
+Date:   Fri, 05 Nov 2021 13:46:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, colin.king@canonical.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, sj@kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 222/262] mm/damon/core: nullify pointer
- ctx->kdamond with a NULL
-Message-ID: <20211105204615.IkBgRaxHP%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, amit@kernel.org,
+        benh@kernel.crashing.org, corbet@lwn.net, david@redhat.com,
+        dwmw@amazon.com, elver@google.com, foersleo@amazon.de,
+        gthelen@google.com, Jonathan.Cameron@huawei.com,
+        linux-mm@kvack.org, markubo@amazon.de, mm-commits@vger.kernel.org,
+        rientjes@google.com, shakeelb@google.com, shuah@kernel.org,
+        sj@kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 223/262] mm/damon/core: account age of target
+ regions
+Message-ID: <20211105204618.Vn7J7CSp_%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -38,32 +42,196 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
-Subject: mm/damon/core: nullify pointer ctx->kdamond with a NULL
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: account age of target regions
 
-Currently a plain integer is being used to nullify the pointer
-ctx->kdamond.  Use NULL instead.  Cleans up sparse warning:
+Patch series "Implement Data Access Monitoring-based Memory Operation Schemes".
 
-mm/damon/core.c:317:40: warning: Using plain integer as NULL pointer
+Introduction
+============
 
-Link: https://lkml.kernel.org/r/20210925215908.181226-1-colin.king@canonical.com
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+DAMON[1] can be used as a primitive for data access aware memory
+management optimizations.  For that, users who want such optimizations
+should run DAMON, read the monitoring results, analyze it, plan a new
+memory management scheme, and apply the new scheme by themselves.  Such
+efforts will be inevitable for some complicated optimizations.
+
+However, in many other cases, the users would simply want the system to
+apply a memory management action to a memory region of a specific size
+having a specific access frequency for a specific time.  For example,
+"page out a memory region larger than 100 MiB keeping only rare accesses
+more than 2 minutes", or "Do not use THP for a memory region larger than 2
+MiB rarely accessed for more than 1 seconds".
+
+To make the works easier and non-redundant, this patchset implements a new
+feature of DAMON, which is called Data Access Monitoring-based Operation
+Schemes (DAMOS).  Using the feature, users can describe the normal schemes
+in a simple way and ask DAMON to execute those on its own.
+
+[1] https://damonitor.github.io
+
+Evaluations
+===========
+
+DAMOS is accurate and useful for memory management optimizations.  An
+experimental DAMON-based operation scheme for THP, 'ethp', removes 76.15%
+of THP memory overheads while preserving 51.25% of THP speedup.  Another
+experimental DAMON-based 'proactive reclamation' implementation, 'prcl',
+reduces 93.38% of residential sets and 23.63% of system memory footprint
+while incurring only 1.22% runtime overhead in the best case
+(parsec3/freqmine).
+
+NOTE that the experimental THP optimization and proactive reclamation are
+not for production but only for proof of concepts.
+
+Please refer to the showcase web site's evaluation document[1] for
+detailed evaluation setup and results.
+
+[1] https://damonitor.github.io/doc/html/v34/vm/damon/eval.html
+
+Long-term Support Trees
+-----------------------
+
+For people who want to test DAMON but using LTS kernels, there are another
+couple of trees based on two latest LTS kernels respectively and containing the
+'damon/master' backports.
+
+- For v5.4.y: https://git.kernel.org/sj/h/damon/for-v5.4.y
+- For v5.10.y: https://git.kernel.org/sj/h/damon/for-v5.10.y
+
+Sequence Of Patches
+===================
+
+The 1st patch accounts age of each region.  The 2nd patch implements the
+core of the DAMON-based operation schemes feature.  The 3rd patch makes
+the default monitoring primitives for virtual address spaces to support
+the schemes.  From this point, the kernel space users can use DAMOS.  The
+4th patch exports the feature to the user space via the debugfs interface.
+The 5th patch implements schemes statistics feature for easier tuning of
+the schemes and runtime access pattern analysis, and the 6th patch adds
+selftests for these changes.  Finally, the 7th patch documents this new
+feature.
+
+
+This patch (of 7):
+
+DAMON can be used for data access pattern aware memory management
+optimizations.  For that, users should run DAMON, read the monitoring
+results, analyze it, plan a new memory management scheme, and apply the
+new scheme by themselves.  It would not be too hard, but still require
+some level of effort.  For complicated cases, this effort is inevitable.
+
+That said, in many cases, users would simply want to apply an actions to a
+memory region of a specific size having a specific access frequency for a
+specific time.  For example, "page out a memory region larger than 100 MiB
+but having a low access frequency more than 10 minutes", or "Use THP for a
+memory region larger than 2 MiB having a high access frequency for more
+than 2 seconds".
+
+For such optimizations, users will need to first account the age of each
+region themselves.  To reduce such efforts, this commit implements a
+simple age account of each region in DAMON.  For each aggregation step,
+DAMON compares the access frequency with that from last aggregation and
+reset the age of the region if the change is significant.  Else, the age
+is incremented.  Also, in case of the merge of regions, the region
+size-weighted average of the ages is set as the age of merged new region.
+
+Link: https://lkml.kernel.org/r/20211001125604.29660-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211001125604.29660-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
+Cc: Amit Shah <amit@kernel.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Woodhouse <dwmw@amazon.com>
+Cc: Marco Elver <elver@google.com>
+Cc: Leonard Foerster <foersleo@amazon.de>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Markus Boehme <markubo@amazon.de>
+Cc: David Rienjes <rientjes@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/damon.h |   10 ++++++++++
+ mm/damon/core.c       |   13 +++++++++++++
+ 2 files changed, 23 insertions(+)
 
---- a/mm/damon/core.c~mm-damon-core-nullify-pointer-ctx-kdamond-with-a-null
+--- a/include/linux/damon.h~mm-damon-core-account-age-of-target-regions
++++ a/include/linux/damon.h
+@@ -31,12 +31,22 @@ struct damon_addr_range {
+  * @sampling_addr:	Address of the sample for the next access check.
+  * @nr_accesses:	Access frequency of this region.
+  * @list:		List head for siblings.
++ * @age:		Age of this region.
++ *
++ * @age is initially zero, increased for each aggregation interval, and reset
++ * to zero again if the access frequency is significantly changed.  If two
++ * regions are merged into a new region, both @nr_accesses and @age of the new
++ * region are set as region size-weighted average of those of the two regions.
+  */
+ struct damon_region {
+ 	struct damon_addr_range ar;
+ 	unsigned long sampling_addr;
+ 	unsigned int nr_accesses;
+ 	struct list_head list;
++
++	unsigned int age;
++/* private: Internal value for age calculation. */
++	unsigned int last_nr_accesses;
+ };
+ 
+ /**
+--- a/mm/damon/core.c~mm-damon-core-account-age-of-target-regions
 +++ a/mm/damon/core.c
-@@ -314,7 +314,7 @@ static int __damon_start(struct damon_ct
- 				nr_running_ctxs);
- 		if (IS_ERR(ctx->kdamond)) {
- 			err = PTR_ERR(ctx->kdamond);
--			ctx->kdamond = 0;
-+			ctx->kdamond = NULL;
+@@ -45,6 +45,9 @@ struct damon_region *damon_new_region(un
+ 	region->nr_accesses = 0;
+ 	INIT_LIST_HEAD(&region->list);
+ 
++	region->age = 0;
++	region->last_nr_accesses = 0;
++
+ 	return region;
+ }
+ 
+@@ -444,6 +447,7 @@ static void kdamond_reset_aggregated(str
+ 
+ 		damon_for_each_region(r, t) {
+ 			trace_damon_aggregated(t, r, damon_nr_regions(t));
++			r->last_nr_accesses = r->nr_accesses;
+ 			r->nr_accesses = 0;
  		}
  	}
- 	mutex_unlock(&ctx->kdamond_lock);
+@@ -461,6 +465,7 @@ static void damon_merge_two_regions(stru
+ 
+ 	l->nr_accesses = (l->nr_accesses * sz_l + r->nr_accesses * sz_r) /
+ 			(sz_l + sz_r);
++	l->age = (l->age * sz_l + r->age * sz_r) / (sz_l + sz_r);
+ 	l->ar.end = r->ar.end;
+ 	damon_destroy_region(r, t);
+ }
+@@ -480,6 +485,11 @@ static void damon_merge_regions_of(struc
+ 	struct damon_region *r, *prev = NULL, *next;
+ 
+ 	damon_for_each_region_safe(r, next, t) {
++		if (diff_of(r->nr_accesses, r->last_nr_accesses) > thres)
++			r->age = 0;
++		else
++			r->age++;
++
+ 		if (prev && prev->ar.end == r->ar.start &&
+ 		    diff_of(prev->nr_accesses, r->nr_accesses) <= thres &&
+ 		    sz_damon_region(prev) + sz_damon_region(r) <= sz_limit)
+@@ -527,6 +537,9 @@ static void damon_split_region_at(struct
+ 
+ 	r->ar.end = new->ar.start;
+ 
++	new->age = r->age;
++	new->last_nr_accesses = r->last_nr_accesses;
++
+ 	damon_insert_region(new, r, damon_next_region(r), t);
+ }
+ 
 _
