@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD4EEC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BC74EC433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BBF4C61371
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9BFD661371
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233197AbhKEUr5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:47:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42962 "EHLO mail.kernel.org"
+        id S233701AbhKEUr7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:47:59 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43018 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233705AbhKEUr4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:47:56 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D4DF461288;
-        Fri,  5 Nov 2021 20:45:15 +0000 (UTC)
+        id S233650AbhKEUr7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:47:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 054396128E;
+        Fri,  5 Nov 2021 20:45:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145116;
-        bh=Yw70Ucs/ZjatnKrr0B15kFgciDVcpS1J3rJ+Og08Ccs=;
+        s=korg; t=1636145119;
+        bh=PpQE9hHEwJ4f9NZ2iMF+besnDDOA/dbnQt7+H/4lGQs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=umn73TcQUnhrbx0dyAjTuagXnUm9MLZgVmcvHMcHzKHs+63snX1bXuCIHWmQDuIgP
-         08vUuWPdVg7UojxhrUzyNVhe1VIZEvA5P51rV5yTIpEm8ffai8T0k04Tbg4FQqb2XC
-         HmqwfOjLRb2xMET2boZpEk3CZl+1RY44jSVYntzY=
-Date:   Fri, 05 Nov 2021 13:45:15 -0700
+        b=J9F/GR44Qqgs49sG1OiZlUYa1hrqdmnPINSKBFOMivBnqVuDRduluvsnp4Pb4nbEw
+         bxWC4URUJp175TUAzYaeiojQsepuRJlu03ClJwZXdDBGUveJDuivPb/Sszvt3wzHsb
+         HTM91QfHLHk0gm8vtKGyFhPMzygMwuF6LAcxFInc=
+Date:   Fri, 05 Nov 2021 13:45:18 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bgeffon@google.com, corbet@lwn.net,
-        jsbarnes@google.com, linux-mm@kvack.org, minchan@kernel.org,
-        mm-commits@vger.kernel.org, ngupta@vflare.org,
-        senozhatsky@chromium.org, suleiman@google.com,
-        torvalds@linux-foundation.org
-Subject:  [patch 202/262] zram: introduce an aged idle interface
-Message-ID: <20211105204515.5k1FyKyar%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
+        jmorris@namei.org, joel@jms.id.au, keescook@chromium.org,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, serge@hallyn.com, steve@sk2.org,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 203/262] mm: remove HARDENED_USERCOPY_FALLBACK
+Message-ID: <20211105204518._op8lD-Ug%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,138 +39,154 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Brian Geffon <bgeffon@google.com>
-Subject: zram: introduce an aged idle interface
+From: Stephen Kitt <steve@sk2.org>
+Subject: mm: remove HARDENED_USERCOPY_FALLBACK
 
-This change introduces an aged idle interface to the existing idle sysfs
-file for zram.
+This has served its purpose and is no longer used.  All usercopy
+violations appear to have been handled by now, any remaining instances (or
+new bugs) will cause copies to be rejected.
 
-When CONFIG_ZRAM_MEMORY_TRACKING is enabled the idle file now also accepts
-an integer argument.  This integer is the age (in seconds) of pages to
-mark as idle.  The idle file still supports 'all' as it always has.  This
-new approach allows for much more control over which pages get marked as
-idle.
+This isn't a direct revert of commit 2d891fbc3bb6 ("usercopy: Allow strict
+enforcement of whitelists"); since usercopy_fallback is effectively 0, the
+fallback handling is removed too.
 
-[bgeffon@google.com: use IS_ENABLED and cleanup comment]
-  Link: https://lkml.kernel.org/r/20210924161128.1508015-1-bgeffon@google.com
-[bgeffon@google.com: Sergey's cleanup suggestions]
-  Link: https://lkml.kernel.org/r/20210929143056.13067-1-bgeffon@google.com
-Link: https://lkml.kernel.org/r/20210923130115.1344361-1-bgeffon@google.com
-Signed-off-by: Brian Geffon <bgeffon@google.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Nitin Gupta <ngupta@vflare.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Suleiman Souhlal <suleiman@google.com>
-Cc: Jesse Barnes <jsbarnes@google.com>
+This also removes the usercopy_fallback module parameter on slab_common.
+
+Link: https://github.com/KSPP/linux/issues/153
+Link: https://lkml.kernel.org/r/20210921061149.1091163-1-steve@sk2.org
+Signed-off-by: Stephen Kitt <steve@sk2.org>
+Suggested-by: Kees Cook <keescook@chromium.org>
+Acked-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Joel Stanley <joel@jms.id.au>	[defconfig change]
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: James Morris <jmorris@namei.org>
+Cc: "Serge E . Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/blockdev/zram.rst |    8 ++
- drivers/block/zram/zram_drv.c               |   62 +++++++++++++-----
- 2 files changed, 54 insertions(+), 16 deletions(-)
+ arch/powerpc/configs/skiroot_defconfig |    1 -
+ include/linux/slab.h                   |    2 --
+ mm/slab.c                              |   13 -------------
+ mm/slab_common.c                       |    8 --------
+ mm/slub.c                              |   14 --------------
+ security/Kconfig                       |   14 --------------
+ 6 files changed, 52 deletions(-)
 
---- a/Documentation/admin-guide/blockdev/zram.rst~zram-introduce-an-aged-idle-interface
-+++ a/Documentation/admin-guide/blockdev/zram.rst
-@@ -328,6 +328,14 @@ as idle::
- From now on, any pages on zram are idle pages. The idle mark
- will be removed until someone requests access of the block.
- IOW, unless there is access request, those pages are still idle pages.
-+Additionally, when CONFIG_ZRAM_MEMORY_TRACKING is enabled pages can be
-+marked as idle based on how long (in seconds) it's been since they were
-+last accessed::
-+
-+        echo 86400 > /sys/block/zramX/idle
-+
-+In this example all pages which haven't been accessed in more than 86400
-+seconds (one day) will be marked idle.
+--- a/arch/powerpc/configs/skiroot_defconfig~mm-remove-hardened_usercopy_fallback
++++ a/arch/powerpc/configs/skiroot_defconfig
+@@ -275,7 +275,6 @@ CONFIG_NLS_UTF8=y
+ CONFIG_ENCRYPTED_KEYS=y
+ CONFIG_SECURITY=y
+ CONFIG_HARDENED_USERCOPY=y
+-# CONFIG_HARDENED_USERCOPY_FALLBACK is not set
+ CONFIG_HARDENED_USERCOPY_PAGESPAN=y
+ CONFIG_FORTIFY_SOURCE=y
+ CONFIG_SECURITY_LOCKDOWN_LSM=y
+--- a/include/linux/slab.h~mm-remove-hardened_usercopy_fallback
++++ a/include/linux/slab.h
+@@ -142,8 +142,6 @@ struct mem_cgroup;
+ void __init kmem_cache_init(void);
+ bool slab_is_available(void);
  
- Admin can request writeback of those idle pages at right timing via::
- 
---- a/drivers/block/zram/zram_drv.c~zram-introduce-an-aged-idle-interface
-+++ a/drivers/block/zram/zram_drv.c
-@@ -291,22 +291,16 @@ static ssize_t mem_used_max_store(struct
- 	return len;
- }
- 
--static ssize_t idle_store(struct device *dev,
--		struct device_attribute *attr, const char *buf, size_t len)
-+/*
-+ * Mark all pages which are older than or equal to cutoff as IDLE.
-+ * Callers should hold the zram init lock in read mode
-+ */
-+static void mark_idle(struct zram *zram, ktime_t cutoff)
- {
--	struct zram *zram = dev_to_zram(dev);
-+	int is_idle = 1;
- 	unsigned long nr_pages = zram->disksize >> PAGE_SHIFT;
- 	int index;
- 
--	if (!sysfs_streq(buf, "all"))
--		return -EINVAL;
+-extern bool usercopy_fallback;
 -
--	down_read(&zram->init_lock);
--	if (!init_done(zram)) {
--		up_read(&zram->init_lock);
--		return -EINVAL;
+ struct kmem_cache *kmem_cache_create(const char *name, unsigned int size,
+ 			unsigned int align, slab_flags_t flags,
+ 			void (*ctor)(void *));
+--- a/mm/slab.c~mm-remove-hardened_usercopy_fallback
++++ a/mm/slab.c
+@@ -4204,19 +4204,6 @@ void __check_heap_object(const void *ptr
+ 	    n <= cachep->useroffset - offset + cachep->usersize)
+ 		return;
+ 
+-	/*
+-	 * If the copy is still within the allocated object, produce
+-	 * a warning instead of rejecting the copy. This is intended
+-	 * to be a temporary method to find any missing usercopy
+-	 * whitelists.
+-	 */
+-	if (usercopy_fallback &&
+-	    offset <= cachep->object_size &&
+-	    n <= cachep->object_size - offset) {
+-		usercopy_warn("SLAB object", cachep->name, to_user, offset, n);
+-		return;
 -	}
 -
- 	for (index = 0; index < nr_pages; index++) {
- 		/*
- 		 * Do not mark ZRAM_UNDER_WB slot as ZRAM_IDLE to close race.
-@@ -314,14 +308,50 @@ static ssize_t idle_store(struct device
- 		 */
- 		zram_slot_lock(zram, index);
- 		if (zram_allocated(zram, index) &&
--				!zram_test_flag(zram, index, ZRAM_UNDER_WB))
--			zram_set_flag(zram, index, ZRAM_IDLE);
-+				!zram_test_flag(zram, index, ZRAM_UNDER_WB)) {
-+#ifdef CONFIG_ZRAM_MEMORY_TRACKING
-+			is_idle = !cutoff || ktime_after(cutoff, zram->table[index].ac_time);
-+#endif
-+			if (is_idle)
-+				zram_set_flag(zram, index, ZRAM_IDLE);
-+		}
- 		zram_slot_unlock(zram, index);
- 	}
-+}
- 
--	up_read(&zram->init_lock);
-+static ssize_t idle_store(struct device *dev,
-+		struct device_attribute *attr, const char *buf, size_t len)
-+{
-+	struct zram *zram = dev_to_zram(dev);
-+	ktime_t cutoff_time = 0;
-+	ssize_t rv = -EINVAL;
- 
--	return len;
-+	if (!sysfs_streq(buf, "all")) {
-+		/*
-+		 * If it did not parse as 'all' try to treat it as an integer when
-+		 * we have memory tracking enabled.
-+		 */
-+		u64 age_sec;
-+
-+		if (IS_ENABLED(CONFIG_ZRAM_MEMORY_TRACKING) && !kstrtoull(buf, 0, &age_sec))
-+			cutoff_time = ktime_sub(ktime_get_boottime(),
-+					ns_to_ktime(age_sec * NSEC_PER_SEC));
-+		else
-+			goto out;
-+	}
-+
-+	down_read(&zram->init_lock);
-+	if (!init_done(zram))
-+		goto out_unlock;
-+
-+	/* A cutoff_time of 0 marks everything as idle, this is the "all" behavior */
-+	mark_idle(zram, cutoff_time);
-+	rv = len;
-+
-+out_unlock:
-+	up_read(&zram->init_lock);
-+out:
-+	return rv;
+ 	usercopy_abort("SLAB object", cachep->name, to_user, offset, n);
  }
+ #endif /* CONFIG_HARDENED_USERCOPY */
+--- a/mm/slab_common.c~mm-remove-hardened_usercopy_fallback
++++ a/mm/slab_common.c
+@@ -37,14 +37,6 @@ LIST_HEAD(slab_caches);
+ DEFINE_MUTEX(slab_mutex);
+ struct kmem_cache *kmem_cache;
  
- #ifdef CONFIG_ZRAM_WRITEBACK
+-#ifdef CONFIG_HARDENED_USERCOPY
+-bool usercopy_fallback __ro_after_init =
+-		IS_ENABLED(CONFIG_HARDENED_USERCOPY_FALLBACK);
+-module_param(usercopy_fallback, bool, 0400);
+-MODULE_PARM_DESC(usercopy_fallback,
+-		"WARN instead of reject usercopy whitelist violations");
+-#endif
+-
+ static LIST_HEAD(slab_caches_to_rcu_destroy);
+ static void slab_caches_to_rcu_destroy_workfn(struct work_struct *work);
+ static DECLARE_WORK(slab_caches_to_rcu_destroy_work,
+--- a/mm/slub.c~mm-remove-hardened_usercopy_fallback
++++ a/mm/slub.c
+@@ -4489,7 +4489,6 @@ void __check_heap_object(const void *ptr
+ {
+ 	struct kmem_cache *s;
+ 	unsigned int offset;
+-	size_t object_size;
+ 	bool is_kfence = is_kfence_address(ptr);
+ 
+ 	ptr = kasan_reset_tag(ptr);
+@@ -4522,19 +4521,6 @@ void __check_heap_object(const void *ptr
+ 	    n <= s->useroffset - offset + s->usersize)
+ 		return;
+ 
+-	/*
+-	 * If the copy is still within the allocated object, produce
+-	 * a warning instead of rejecting the copy. This is intended
+-	 * to be a temporary method to find any missing usercopy
+-	 * whitelists.
+-	 */
+-	object_size = slab_ksize(s);
+-	if (usercopy_fallback &&
+-	    offset <= object_size && n <= object_size - offset) {
+-		usercopy_warn("SLUB object", s->name, to_user, offset, n);
+-		return;
+-	}
+-
+ 	usercopy_abort("SLUB object", s->name, to_user, offset, n);
+ }
+ #endif /* CONFIG_HARDENED_USERCOPY */
+--- a/security/Kconfig~mm-remove-hardened_usercopy_fallback
++++ a/security/Kconfig
+@@ -163,20 +163,6 @@ config HARDENED_USERCOPY
+ 	  or are part of the kernel text. This kills entire classes
+ 	  of heap overflow exploits and similar kernel memory exposures.
+ 
+-config HARDENED_USERCOPY_FALLBACK
+-	bool "Allow usercopy whitelist violations to fallback to object size"
+-	depends on HARDENED_USERCOPY
+-	default y
+-	help
+-	  This is a temporary option that allows missing usercopy whitelists
+-	  to be discovered via a WARN() to the kernel log, instead of
+-	  rejecting the copy, falling back to non-whitelisted hardened
+-	  usercopy that checks the slab allocation size instead of the
+-	  whitelist size. This option will be removed once it seems like
+-	  all missing usercopy whitelists have been identified and fixed.
+-	  Booting with "slab_common.usercopy_fallback=Y/N" can change
+-	  this setting.
+-
+ config HARDENED_USERCOPY_PAGESPAN
+ 	bool "Refuse to copy allocations that span multiple pages"
+ 	depends on HARDENED_USERCOPY
 _
