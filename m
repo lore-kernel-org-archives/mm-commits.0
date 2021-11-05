@@ -2,36 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 98ECAC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3E7C4C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 831A76135A
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:27 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2872761360
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:43:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232537AbhKEUqG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:46:06 -0400
-Received: from mail.kernel.org ([198.145.29.99]:41034 "EHLO mail.kernel.org"
+        id S233536AbhKEUqM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:46:12 -0400
+Received: from mail.kernel.org ([198.145.29.99]:41124 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233536AbhKEUqD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:46:03 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4E57061357;
-        Fri,  5 Nov 2021 20:43:23 +0000 (UTC)
+        id S232810AbhKEUqJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:46:09 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5120A6135A;
+        Fri,  5 Nov 2021 20:43:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145003;
-        bh=Ik5DIXWDhYSn16+wbSqIiEbsj37oyXYJUYcZWjW86qQ=;
+        s=korg; t=1636145009;
+        bh=eHuZNUSxL5XVjdMVR+BFeUHDNtcM1afJd8NqYHx/rOQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=ax9PJzqlC5KqeYbiJGnCAOvAoCGyEuxPA+DhYUst1OmQUBLib3oDw3oIr10OwzHBy
-         pmVpTdkWIFqPRes9rwkzsuLxhZIREfIqFAFjYd/UVkJTMc6VFhYRrZDDPriq+fBfGN
-         1fdERJH9d2Yw46VXGMYJHjYRxinootDpWlaLPsZI=
-Date:   Fri, 05 Nov 2021 13:43:22 -0700
+        b=wHbF6HRYDYksrcSi/5LYrlICPb9Gx/iFE+nJm7mGYuodmb0ZifHumugXISvYRER4z
+         E2pNqUKpFNPz1NXmR4jO2GTGw0WZZC/Lu8pRMcj5dzXalGFfOo87sDgZK/0c2pzrt4
+         BjU4qs4Hcy51sBEgLkARtWuad63G+wVXboAecnng=
+Date:   Fri, 05 Nov 2021 13:43:28 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, christophe.leroy@csgroup.eu,
-        jgross@suse.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com, sfr@canb.auug.org.au,
-        Shahab.Vahedi@synopsys.com, torvalds@linux-foundation.org
-Subject:  [patch 167/262] memblock: use memblock_free for freeing
- virtual pointers
-Message-ID: <20211105204322.Xml2PUq-V%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, benh@kernel.crashing.org,
+        corbet@lwn.net, dan.carpenter@oracle.com, linux-mm@kvack.org,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        mpe@ellerman.id.au, nathan@kernel.org, paulus@samba.org,
+        rppt@kernel.org, torvalds@linux-foundation.org,
+        willy@infradead.org, yaozhenguo1@gmail.com
+Subject:  [patch 169/262] hugetlbfs: extend the definition of
+ hugepages parameter to support node allocation
+Message-ID: <20211105204328.Cn_I_2Bho%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,474 +41,395 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: memblock: use memblock_free for freeing virtual pointers
+From: Zhenguo Yao <yaozhenguo1@gmail.com>
+Subject: hugetlbfs: extend the definition of hugepages parameter to support node allocation
 
-Rename memblock_free_ptr() to memblock_free() and use memblock_free() when
-freeing a virtual pointer so that memblock_free() will be a counterpart of
-memblock_alloc()
+We can specify the number of hugepages to allocate at boot.  But the
+hugepages is balanced in all nodes at present.  In some scenarios, we only
+need hugepages in one node.  For example: DPDK needs hugepages which are
+in the same node as NIC.
 
-The callers are updated with the below semantic patch and manual addition
-of (void *) casting to pointers that are represented by unsigned long
-variables.
+If DPDK needs four hugepages of 1G size in node1 and system has 16 numa
+nodes we must reserve 64 hugepages on the kernel cmdline.  But only four
+hugepages are used.  The others should be free after boot.  If the system
+memory is low(for example: 64G), it will be an impossible task.
 
-@@
-identifier vaddr;
-expression size;
-@@
-(
-- memblock_phys_free(__pa(vaddr), size);
-+ memblock_free(vaddr, size);
-|
-- memblock_free_ptr(vaddr, size);
-+ memblock_free(vaddr, size);
-)
+So extend the hugepages parameter to support specifying hugepages on a
+specific node.  For example add following parameter:
 
-[sfr@canb.auug.org.au: fixup]
-  Link: https://lkml.kernel.org/r/20211018192940.3d1d532f@canb.auug.org.au
-Link: https://lkml.kernel.org/r/20210930185031.18648-7-rppt@kernel.org
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Shahab Vahedi <Shahab.Vahedi@synopsys.com>
+hugepagesz=1G hugepages=0:1,1:3
+
+It will allocate 1 hugepage in node0 and 3 hugepages in node1.
+
+Link: https://lkml.kernel.org/r/20211005054729.86457-1-yaozhenguo1@gmail.com
+Signed-off-by: Zhenguo Yao <yaozhenguo1@gmail.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Zhenguo Yao <yaozhenguo1@gmail.com>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/kernel/core_irongate.c         |    3 +--
- arch/mips/mm/init.c                       |    2 +-
- arch/powerpc/kernel/dt_cpu_ftrs.c         |    4 ++--
- arch/powerpc/kernel/setup-common.c        |    2 +-
- arch/powerpc/kernel/setup_64.c            |    2 +-
- arch/powerpc/platforms/powernv/pci-ioda.c |    2 +-
- arch/powerpc/platforms/pseries/svm.c      |    3 +--
- arch/riscv/kernel/setup.c                 |    5 ++---
- arch/sparc/kernel/smp_64.c                |    2 +-
- arch/um/kernel/mem.c                      |    2 +-
- arch/x86/kernel/setup_percpu.c            |    2 +-
- arch/x86/mm/kasan_init_64.c               |    4 ++--
- arch/x86/mm/numa.c                        |    2 +-
- arch/x86/mm/numa_emulation.c              |    2 +-
- arch/x86/xen/mmu_pv.c                     |    2 +-
- arch/x86/xen/p2m.c                        |    2 +-
- drivers/base/arch_numa.c                  |    4 ++--
- drivers/macintosh/smu.c                   |    2 +-
- drivers/xen/swiotlb-xen.c                 |    2 +-
- include/linux/memblock.h                  |    2 +-
- init/initramfs.c                          |    2 +-
- init/main.c                               |    4 ++--
- kernel/dma/swiotlb.c                      |    2 +-
- kernel/printk/printk.c                    |    4 ++--
- lib/bootconfig.c                          |    2 +-
- lib/cpumask.c                             |    2 +-
- mm/memblock.c                             |    6 +++---
- mm/percpu.c                               |    8 ++++----
- mm/sparse.c                               |    2 +-
- 29 files changed, 40 insertions(+), 43 deletions(-)
+ Documentation/admin-guide/kernel-parameters.txt |    8 
+ Documentation/admin-guide/mm/hugetlbpage.rst    |   12 +
+ arch/powerpc/mm/hugetlbpage.c                   |    9 
+ include/linux/hugetlb.h                         |    6 
+ mm/hugetlb.c                                    |  153 +++++++++++---
+ 5 files changed, 155 insertions(+), 33 deletions(-)
 
---- a/arch/alpha/kernel/core_irongate.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/alpha/kernel/core_irongate.c
-@@ -233,8 +233,7 @@ albacore_init_arch(void)
- 			unsigned long size;
- 
- 			size = initrd_end - initrd_start;
--			memblock_phys_free(__pa(initrd_start),
--					   PAGE_ALIGN(size));
-+			memblock_free((void *)initrd_start, PAGE_ALIGN(size));
- 			if (!move_initrd(pci_mem))
- 				printk("irongate_init_arch: initrd too big "
- 				       "(%ldK)\ndisabling initrd\n",
---- a/arch/mips/mm/init.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/mips/mm/init.c
-@@ -529,7 +529,7 @@ static void * __init pcpu_fc_alloc(unsig
- 
- static void __init pcpu_fc_free(void *ptr, size_t size)
- {
--	memblock_phys_free(__pa(ptr), size);
-+	memblock_free(ptr, size);
+--- a/arch/powerpc/mm/hugetlbpage.c~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
++++ a/arch/powerpc/mm/hugetlbpage.c
+@@ -229,17 +229,22 @@ static int __init pseries_alloc_bootmem_
+ 	m->hstate = hstate;
+ 	return 1;
  }
- 
- void __init setup_per_cpu_areas(void)
---- a/arch/powerpc/kernel/dt_cpu_ftrs.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/powerpc/kernel/dt_cpu_ftrs.c
-@@ -1095,8 +1095,8 @@ static int __init dt_cpu_ftrs_scan_callb
- 
- 	cpufeatures_setup_finished();
- 
--	memblock_phys_free(__pa(dt_cpu_features),
--			   sizeof(struct dt_cpu_feature) * nr_dt_cpu_features);
-+	memblock_free(dt_cpu_features,
-+		      sizeof(struct dt_cpu_feature) * nr_dt_cpu_features);
- 
- 	return 0;
- }
---- a/arch/powerpc/kernel/setup_64.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/powerpc/kernel/setup_64.c
-@@ -812,7 +812,7 @@ static void * __init pcpu_alloc_bootmem(
- 
- static void __init pcpu_free_bootmem(void *ptr, size_t size)
- {
--	memblock_phys_free(__pa(ptr), size);
-+	memblock_free(ptr, size);
- }
- 
- static int pcpu_cpu_distance(unsigned int from, unsigned int to)
---- a/arch/powerpc/kernel/setup-common.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/powerpc/kernel/setup-common.c
-@@ -825,7 +825,7 @@ static void __init smp_setup_pacas(void)
- 		set_hard_smp_processor_id(cpu, cpu_to_phys_id[cpu]);
- 	}
- 
--	memblock_phys_free(__pa(cpu_to_phys_id), nr_cpu_ids * sizeof(u32));
-+	memblock_free(cpu_to_phys_id, nr_cpu_ids * sizeof(u32));
- 	cpu_to_phys_id = NULL;
- }
++
++bool __init hugetlb_node_alloc_supported(void)
++{
++	return false;
++}
  #endif
---- a/arch/powerpc/platforms/powernv/pci-ioda.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/powerpc/platforms/powernv/pci-ioda.c
-@@ -2981,7 +2981,7 @@ static void __init pnv_pci_init_ioda_phb
- 	if (!phb->hose) {
- 		pr_err("  Can't allocate PCI controller for %pOF\n",
- 		       np);
--		memblock_phys_free(__pa(phb), sizeof(struct pnv_phb));
-+		memblock_free(phb, sizeof(struct pnv_phb));
- 		return;
+ 
+ 
+-int __init alloc_bootmem_huge_page(struct hstate *h)
++int __init alloc_bootmem_huge_page(struct hstate *h, int nid)
+ {
+ 
+ #ifdef CONFIG_PPC_BOOK3S_64
+ 	if (firmware_has_feature(FW_FEATURE_LPAR) && !radix_enabled())
+ 		return pseries_alloc_bootmem_huge_page(h);
+ #endif
+-	return __alloc_bootmem_huge_page(h);
++	return __alloc_bootmem_huge_page(h, nid);
+ }
+ 
+ #ifndef CONFIG_PPC_BOOK3S_64
+--- a/Documentation/admin-guide/kernel-parameters.txt~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1601,9 +1601,11 @@
+ 			the number of pages of hugepagesz to be allocated.
+ 			If this is the first HugeTLB parameter on the command
+ 			line, it specifies the number of pages to allocate for
+-			the default huge page size.  See also
+-			Documentation/admin-guide/mm/hugetlbpage.rst.
+-			Format: <integer>
++			the default huge page size. If using node format, the
++			number of pages to allocate per-node can be specified.
++			See also Documentation/admin-guide/mm/hugetlbpage.rst.
++			Format: <integer> or (node format)
++				<node>:<integer>[,<node>:<integer>]
+ 
+ 	hugepagesz=
+ 			[HW] The size of the HugeTLB pages.  This is used in
+--- a/Documentation/admin-guide/mm/hugetlbpage.rst~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
++++ a/Documentation/admin-guide/mm/hugetlbpage.rst
+@@ -128,7 +128,9 @@ hugepages
+ 	implicitly specifies the number of huge pages of default size to
+ 	allocate.  If the number of huge pages of default size is implicitly
+ 	specified, it can not be overwritten by a hugepagesz,hugepages
+-	parameter pair for the default size.
++	parameter pair for the default size.  This parameter also has a
++	node format.  The node format specifies the number of huge pages
++	to allocate on specific nodes.
+ 
+ 	For example, on an architecture with 2M default huge page size::
+ 
+@@ -138,6 +140,14 @@ hugepages
+ 	indicating that the hugepages=512 parameter is ignored.  If a hugepages
+ 	parameter is preceded by an invalid hugepagesz parameter, it will
+ 	be ignored.
++
++	Node format example::
++
++		hugepagesz=2M hugepages=0:1,1:2
++
++	It will allocate 1 2M hugepage on node0 and 2 2M hugepages on node1.
++	If the node number is invalid,  the parameter will be ignored.
++
+ default_hugepagesz
+ 	Specify the default huge page size.  This parameter can
+ 	only be specified once on the command line.  default_hugepagesz can
+--- a/include/linux/hugetlb.h~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
++++ a/include/linux/hugetlb.h
+@@ -615,6 +615,7 @@ struct hstate {
+ 	unsigned long nr_overcommit_huge_pages;
+ 	struct list_head hugepage_activelist;
+ 	struct list_head hugepage_freelists[MAX_NUMNODES];
++	unsigned int max_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int nr_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int free_huge_pages_node[MAX_NUMNODES];
+ 	unsigned int surplus_huge_pages_node[MAX_NUMNODES];
+@@ -647,8 +648,9 @@ void restore_reserve_on_error(struct hst
+ 				unsigned long address, struct page *page);
+ 
+ /* arch callback */
+-int __init __alloc_bootmem_huge_page(struct hstate *h);
+-int __init alloc_bootmem_huge_page(struct hstate *h);
++int __init __alloc_bootmem_huge_page(struct hstate *h, int nid);
++int __init alloc_bootmem_huge_page(struct hstate *h, int nid);
++bool __init hugetlb_node_alloc_supported(void);
+ 
+ void __init hugetlb_add_hstate(unsigned order);
+ bool __init arch_hugetlb_valid_size(unsigned long size);
+--- a/mm/hugetlb.c~hugetlbfs-extend-the-definition-of-hugepages-parameter-to-support-node-allocation
++++ a/mm/hugetlb.c
+@@ -77,6 +77,7 @@ static struct hstate * __initdata parsed
+ static unsigned long __initdata default_hstate_max_huge_pages;
+ static bool __initdata parsed_valid_hugepagesz = true;
+ static bool __initdata parsed_default_hugepagesz;
++static unsigned int default_hugepages_in_node[MAX_NUMNODES] __initdata;
+ 
+ /*
+  * Protects updates to hugepage_freelists, hugepage_activelist, nr_huge_pages,
+@@ -2963,33 +2964,39 @@ out_subpool_put:
+ 	return ERR_PTR(-ENOSPC);
+ }
+ 
+-int alloc_bootmem_huge_page(struct hstate *h)
++int alloc_bootmem_huge_page(struct hstate *h, int nid)
+ 	__attribute__ ((weak, alias("__alloc_bootmem_huge_page")));
+-int __alloc_bootmem_huge_page(struct hstate *h)
++int __alloc_bootmem_huge_page(struct hstate *h, int nid)
+ {
+-	struct huge_bootmem_page *m;
++	struct huge_bootmem_page *m = NULL; /* initialize for clang */
+ 	int nr_nodes, node;
+ 
++	if (nid >= nr_online_nodes)
++		return 0;
++	/* do node specific alloc */
++	if (nid != NUMA_NO_NODE) {
++		m = memblock_alloc_try_nid_raw(huge_page_size(h), huge_page_size(h),
++				0, MEMBLOCK_ALLOC_ACCESSIBLE, nid);
++		if (!m)
++			return 0;
++		goto found;
++	}
++	/* allocate from next node when distributing huge pages */
+ 	for_each_node_mask_to_alloc(h, nr_nodes, node, &node_states[N_MEMORY]) {
+-		void *addr;
+-
+-		addr = memblock_alloc_try_nid_raw(
++		m = memblock_alloc_try_nid_raw(
+ 				huge_page_size(h), huge_page_size(h),
+ 				0, MEMBLOCK_ALLOC_ACCESSIBLE, node);
+-		if (addr) {
+-			/*
+-			 * Use the beginning of the huge page to store the
+-			 * huge_bootmem_page struct (until gather_bootmem
+-			 * puts them into the mem_map).
+-			 */
+-			m = addr;
+-			goto found;
+-		}
++		/*
++		 * Use the beginning of the huge page to store the
++		 * huge_bootmem_page struct (until gather_bootmem
++		 * puts them into the mem_map).
++		 */
++		if (!m)
++			return 0;
++		goto found;
  	}
+-	return 0;
  
---- a/arch/powerpc/platforms/pseries/svm.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/powerpc/platforms/pseries/svm.c
-@@ -56,8 +56,7 @@ void __init svm_swiotlb_init(void)
- 		return;
- 
- 
--	memblock_phys_free(__pa(vstart),
--			   PAGE_ALIGN(io_tlb_nslabs << IO_TLB_SHIFT));
-+	memblock_free(vstart, PAGE_ALIGN(io_tlb_nslabs << IO_TLB_SHIFT));
- 	panic("SVM: Cannot allocate SWIOTLB buffer");
+ found:
+-	BUG_ON(!IS_ALIGNED(virt_to_phys(m), huge_page_size(h)));
+ 	/* Put them into a private list first because mem_map is not up yet */
+ 	INIT_LIST_HEAD(&m->list);
+ 	list_add(&m->list, &huge_boot_pages);
+@@ -3029,12 +3036,61 @@ static void __init gather_bootmem_preall
+ 		cond_resched();
+ 	}
  }
++static void __init hugetlb_hstate_alloc_pages_onenode(struct hstate *h, int nid)
++{
++	unsigned long i;
++	char buf[32];
++
++	for (i = 0; i < h->max_huge_pages_node[nid]; ++i) {
++		if (hstate_is_gigantic(h)) {
++			if (!alloc_bootmem_huge_page(h, nid))
++				break;
++		} else {
++			struct page *page;
++			gfp_t gfp_mask = htlb_alloc_mask(h) | __GFP_THISNODE;
++
++			page = alloc_fresh_huge_page(h, gfp_mask, nid,
++					&node_states[N_MEMORY], NULL);
++			if (!page)
++				break;
++			put_page(page); /* free it into the hugepage allocator */
++		}
++		cond_resched();
++	}
++	if (i == h->max_huge_pages_node[nid])
++		return;
++
++	string_get_size(huge_page_size(h), 1, STRING_UNITS_2, buf, 32);
++	pr_warn("HugeTLB: allocating %u of page size %s failed node%d.  Only allocated %lu hugepages.\n",
++		h->max_huge_pages_node[nid], buf, nid, i);
++	h->max_huge_pages -= (h->max_huge_pages_node[nid] - i);
++	h->max_huge_pages_node[nid] = i;
++}
  
---- a/arch/riscv/kernel/setup.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/riscv/kernel/setup.c
-@@ -230,14 +230,13 @@ static void __init init_resources(void)
- 
- 	/* Clean-up any unused pre-allocated resources */
- 	if (res_idx >= 0)
--		memblock_phys_free(__pa(mem_res),
--				   (res_idx + 1) * sizeof(*mem_res));
-+		memblock_free(mem_res, (res_idx + 1) * sizeof(*mem_res));
- 	return;
- 
-  error:
- 	/* Better an empty resource tree than an inconsistent one */
- 	release_child_resources(&iomem_resource);
--	memblock_phys_free(__pa(mem_res), mem_res_sz);
-+	memblock_free(mem_res, mem_res_sz);
- }
- 
- 
---- a/arch/sparc/kernel/smp_64.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/sparc/kernel/smp_64.c
-@@ -1567,7 +1567,7 @@ static void * __init pcpu_alloc_bootmem(
- 
- static void __init pcpu_free_bootmem(void *ptr, size_t size)
+ static void __init hugetlb_hstate_alloc_pages(struct hstate *h)
  {
--	memblock_phys_free(__pa(ptr), size);
-+	memblock_free(ptr, size);
+ 	unsigned long i;
+ 	nodemask_t *node_alloc_noretry;
++	bool node_specific_alloc = false;
++
++	/* skip gigantic hugepages allocation if hugetlb_cma enabled */
++	if (hstate_is_gigantic(h) && hugetlb_cma_size) {
++		pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
++		return;
++	}
++
++	/* do node specific alloc */
++	for (i = 0; i < nr_online_nodes; i++) {
++		if (h->max_huge_pages_node[i] > 0) {
++			hugetlb_hstate_alloc_pages_onenode(h, i);
++			node_specific_alloc = true;
++		}
++	}
+ 
++	if (node_specific_alloc)
++		return;
++
++	/* below will do all node balanced alloc */
+ 	if (!hstate_is_gigantic(h)) {
+ 		/*
+ 		 * Bit mask controlling how hard we retry per-node allocations.
+@@ -3055,11 +3111,7 @@ static void __init hugetlb_hstate_alloc_
+ 
+ 	for (i = 0; i < h->max_huge_pages; ++i) {
+ 		if (hstate_is_gigantic(h)) {
+-			if (hugetlb_cma_size) {
+-				pr_warn_once("HugeTLB: hugetlb_cma is enabled, skip boot time allocation\n");
+-				goto free;
+-			}
+-			if (!alloc_bootmem_huge_page(h))
++			if (!alloc_bootmem_huge_page(h, NUMA_NO_NODE))
+ 				break;
+ 		} else if (!alloc_pool_huge_page(h,
+ 					 &node_states[N_MEMORY],
+@@ -3075,7 +3127,6 @@ static void __init hugetlb_hstate_alloc_
+ 			h->max_huge_pages, buf, i);
+ 		h->max_huge_pages = i;
+ 	}
+-free:
+ 	kfree(node_alloc_noretry);
  }
  
- static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
---- a/arch/um/kernel/mem.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/um/kernel/mem.c
-@@ -47,7 +47,7 @@ void __init mem_init(void)
- 	 */
- 	brk_end = (unsigned long) UML_ROUND_UP(sbrk(0));
- 	map_memory(brk_end, __pa(brk_end), uml_reserved - brk_end, 1, 1, 0);
--	memblock_phys_free(__pa(brk_end), uml_reserved - brk_end);
-+	memblock_free((void *)brk_end, uml_reserved - brk_end);
- 	uml_reserved = brk_end;
- 
- 	/* this will put all low memory onto the freelists */
---- a/arch/x86/kernel/setup_percpu.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/kernel/setup_percpu.c
-@@ -135,7 +135,7 @@ static void * __init pcpu_fc_alloc(unsig
- 
- static void __init pcpu_fc_free(void *ptr, size_t size)
- {
--	memblock_free_ptr(ptr, size);
-+	memblock_free(ptr, size);
- }
- 
- static int __init pcpu_cpu_distance(unsigned int from, unsigned int to)
---- a/arch/x86/mm/kasan_init_64.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/mm/kasan_init_64.c
-@@ -49,7 +49,7 @@ static void __init kasan_populate_pmd(pm
- 			p = early_alloc(PMD_SIZE, nid, false);
- 			if (p && pmd_set_huge(pmd, __pa(p), PAGE_KERNEL))
- 				return;
--			memblock_free_ptr(p, PMD_SIZE);
-+			memblock_free(p, PMD_SIZE);
+@@ -3990,6 +4041,10 @@ static int __init hugetlb_init(void)
+ 			}
+ 			default_hstate.max_huge_pages =
+ 				default_hstate_max_huge_pages;
++
++			for (i = 0; i < nr_online_nodes; i++)
++				default_hstate.max_huge_pages_node[i] =
++					default_hugepages_in_node[i];
  		}
+ 	}
  
- 		p = early_alloc(PAGE_SIZE, nid, true);
-@@ -85,7 +85,7 @@ static void __init kasan_populate_pud(pu
- 			p = early_alloc(PUD_SIZE, nid, false);
- 			if (p && pud_set_huge(pud, __pa(p), PAGE_KERNEL))
- 				return;
--			memblock_free_ptr(p, PUD_SIZE);
-+			memblock_free(p, PUD_SIZE);
- 		}
- 
- 		p = early_alloc(PAGE_SIZE, nid, true);
---- a/arch/x86/mm/numa.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/mm/numa.c
-@@ -355,7 +355,7 @@ void __init numa_reset_distance(void)
- 
- 	/* numa_distance could be 1LU marking allocation failure, test cnt */
- 	if (numa_distance_cnt)
--		memblock_free_ptr(numa_distance, size);
-+		memblock_free(numa_distance, size);
- 	numa_distance_cnt = 0;
- 	numa_distance = NULL;	/* enable table creation */
+@@ -4050,6 +4105,10 @@ void __init hugetlb_add_hstate(unsigned
+ 	parsed_hstate = h;
  }
---- a/arch/x86/mm/numa_emulation.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/mm/numa_emulation.c
-@@ -517,7 +517,7 @@ void __init numa_emulation(struct numa_m
- 	}
  
- 	/* free the copied physical distance table */
--	memblock_free_ptr(phys_dist, phys_size);
-+	memblock_free(phys_dist, phys_size);
- 	return;
- 
- no_emu:
---- a/arch/x86/xen/mmu_pv.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/xen/mmu_pv.c
-@@ -1151,7 +1151,7 @@ static void __init xen_pagetable_p2m_fre
- 		xen_cleanhighmap(addr, addr + size);
- 		size = PAGE_ALIGN(xen_start_info->nr_pages *
- 				  sizeof(unsigned long));
--		memblock_phys_free(__pa(addr), size);
-+		memblock_free((void *)addr, size);
- 	} else {
- 		xen_cleanmfnmap(addr);
- 	}
---- a/arch/x86/xen/p2m.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/arch/x86/xen/p2m.c
-@@ -197,7 +197,7 @@ static void * __ref alloc_p2m_page(void)
- static void __ref free_p2m_page(void *p)
++bool __init __weak hugetlb_node_alloc_supported(void)
++{
++	return true;
++}
+ /*
+  * hugepages command line processing
+  * hugepages normally follows a valid hugepagsz or default_hugepagsz
+@@ -4061,6 +4120,10 @@ static int __init hugepages_setup(char *
  {
- 	if (unlikely(!slab_is_available())) {
--		memblock_free_ptr(p, PAGE_SIZE);
-+		memblock_free(p, PAGE_SIZE);
- 		return;
+ 	unsigned long *mhp;
+ 	static unsigned long *last_mhp;
++	int node = NUMA_NO_NODE;
++	int count;
++	unsigned long tmp;
++	char *p = s;
+ 
+ 	if (!parsed_valid_hugepagesz) {
+ 		pr_warn("HugeTLB: hugepages=%s does not follow a valid hugepagesz, ignoring\n", s);
+@@ -4084,8 +4147,40 @@ static int __init hugepages_setup(char *
+ 		return 0;
  	}
  
---- a/drivers/base/arch_numa.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/drivers/base/arch_numa.c
-@@ -166,7 +166,7 @@ static void * __init pcpu_fc_alloc(unsig
- 
- static void __init pcpu_fc_free(void *ptr, size_t size)
- {
--	memblock_phys_free(__pa(ptr), size);
-+	memblock_free(ptr, size);
- }
- 
- #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
-@@ -326,7 +326,7 @@ void __init numa_free_distance(void)
- 	size = numa_distance_cnt * numa_distance_cnt *
- 		sizeof(numa_distance[0]);
- 
--	memblock_free_ptr(numa_distance, size);
-+	memblock_free(numa_distance, size);
- 	numa_distance_cnt = 0;
- 	numa_distance = NULL;
- }
---- a/drivers/macintosh/smu.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/drivers/macintosh/smu.c
-@@ -570,7 +570,7 @@ fail_msg_node:
- fail_db_node:
- 	of_node_put(smu->db_node);
- fail_bootmem:
--	memblock_free_ptr(smu, sizeof(struct smu_device));
-+	memblock_free(smu, sizeof(struct smu_device));
- 	smu = NULL;
- fail_np:
- 	of_node_put(np);
---- a/drivers/xen/swiotlb-xen.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/drivers/xen/swiotlb-xen.c
-@@ -241,7 +241,7 @@ retry:
- 	 */
- 	rc = xen_swiotlb_fixup(start, nslabs);
- 	if (rc) {
--		memblock_phys_free(__pa(start), PAGE_ALIGN(bytes));
-+		memblock_free(start, PAGE_ALIGN(bytes));
- 		if (nslabs > 1024 && repeat--) {
- 			/* Min is 2MB */
- 			nslabs = max(1024UL, ALIGN(nslabs >> 1, IO_TLB_SEGSIZE));
---- a/include/linux/memblock.h~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/include/linux/memblock.h
-@@ -118,7 +118,7 @@ int memblock_mark_nomap(phys_addr_t base
- int memblock_clear_nomap(phys_addr_t base, phys_addr_t size);
- 
- void memblock_free_all(void);
--void memblock_free_ptr(void *ptr, size_t size);
-+void memblock_free(void *ptr, size_t size);
- void reset_node_managed_pages(pg_data_t *pgdat);
- void reset_all_zones_managed_pages(void);
- 
---- a/init/initramfs.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/init/initramfs.c
-@@ -607,7 +607,7 @@ void __weak __init free_initrd_mem(unsig
- 	unsigned long aligned_start = ALIGN_DOWN(start, PAGE_SIZE);
- 	unsigned long aligned_end = ALIGN(end, PAGE_SIZE);
- 
--	memblock_phys_free(__pa(aligned_start), aligned_end - aligned_start);
-+	memblock_free((void *)aligned_start, aligned_end - aligned_start);
- #endif
- 
- 	free_reserved_area((void *)start, (void *)end, POISON_FREE_INITMEM,
---- a/init/main.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/init/main.c
-@@ -382,7 +382,7 @@ static char * __init xbc_make_cmdline(co
- 	ret = xbc_snprint_cmdline(new_cmdline, len + 1, root);
- 	if (ret < 0 || ret > len) {
- 		pr_err("Failed to print extra kernel cmdline.\n");
--		memblock_free_ptr(new_cmdline, len + 1);
-+		memblock_free(new_cmdline, len + 1);
- 		return NULL;
- 	}
- 
-@@ -925,7 +925,7 @@ static void __init print_unknown_bootopt
- 		end += sprintf(end, " %s", *p);
- 
- 	pr_notice("Unknown command line parameters:%s\n", unknown_options);
--	memblock_free_ptr(unknown_options, len);
-+	memblock_free(unknown_options, len);
- }
- 
- asmlinkage __visible void __init __no_sanitize_address start_kernel(void)
---- a/kernel/dma/swiotlb.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/kernel/dma/swiotlb.c
-@@ -247,7 +247,7 @@ swiotlb_init(int verbose)
- 	return;
- 
- fail_free_mem:
--	memblock_phys_free(__pa(tlb), bytes);
-+	memblock_free(tlb, bytes);
- fail:
- 	pr_warn("Cannot allocate buffer");
- }
---- a/kernel/printk/printk.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/kernel/printk/printk.c
-@@ -1166,9 +1166,9 @@ void __init setup_log_buf(int early)
- 	return;
- 
- err_free_descs:
--	memblock_free_ptr(new_descs, new_descs_size);
-+	memblock_free(new_descs, new_descs_size);
- err_free_log_buf:
--	memblock_free_ptr(new_log_buf, new_log_buf_len);
-+	memblock_free(new_log_buf, new_log_buf_len);
- }
- 
- static bool __read_mostly ignore_loglevel;
---- a/lib/bootconfig.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/lib/bootconfig.c
-@@ -792,7 +792,7 @@ void __init xbc_destroy_all(void)
- 	xbc_data = NULL;
- 	xbc_data_size = 0;
- 	xbc_node_num = 0;
--	memblock_free_ptr(xbc_nodes, sizeof(struct xbc_node) * XBC_NODE_MAX);
-+	memblock_free(xbc_nodes, sizeof(struct xbc_node) * XBC_NODE_MAX);
- 	xbc_nodes = NULL;
- 	brace_index = 0;
- }
---- a/lib/cpumask.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/lib/cpumask.c
-@@ -188,7 +188,7 @@ EXPORT_SYMBOL(free_cpumask_var);
-  */
- void __init free_bootmem_cpumask_var(cpumask_var_t mask)
- {
--	memblock_phys_free(__pa(mask), cpumask_size());
-+	memblock_free(mask, cpumask_size());
- }
- #endif
- 
---- a/mm/memblock.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/mm/memblock.c
-@@ -472,7 +472,7 @@ static int __init_memblock memblock_doub
- 		kfree(old_array);
- 	else if (old_array != memblock_memory_init_regions &&
- 		 old_array != memblock_reserved_init_regions)
--		memblock_free_ptr(old_array, old_alloc_size);
-+		memblock_free(old_array, old_alloc_size);
+-	if (sscanf(s, "%lu", mhp) <= 0)
+-		*mhp = 0;
++	while (*p) {
++		count = 0;
++		if (sscanf(p, "%lu%n", &tmp, &count) != 1)
++			goto invalid;
++		/* Parameter is node format */
++		if (p[count] == ':') {
++			if (!hugetlb_node_alloc_supported()) {
++				pr_warn("HugeTLB: architecture can't support node specific alloc, ignoring!\n");
++				return 0;
++			}
++			node = tmp;
++			p += count + 1;
++			if (node < 0 || node >= nr_online_nodes)
++				goto invalid;
++			/* Parse hugepages */
++			if (sscanf(p, "%lu%n", &tmp, &count) != 1)
++				goto invalid;
++			if (!hugetlb_max_hstate)
++				default_hugepages_in_node[node] = tmp;
++			else
++				parsed_hstate->max_huge_pages_node[node] = tmp;
++			*mhp += tmp;
++			/* Go to parse next node*/
++			if (p[count] == ',')
++				p += count + 1;
++			else
++				break;
++		} else {
++			if (p != s)
++				goto invalid;
++			*mhp = tmp;
++			break;
++		}
++	}
  
  	/*
- 	 * Reserve the new array if that comes from the memblock.  Otherwise, we
-@@ -796,14 +796,14 @@ int __init_memblock memblock_remove(phys
- }
+ 	 * Global state is always initialized later in hugetlb_init.
+@@ -4098,6 +4193,10 @@ static int __init hugepages_setup(char *
+ 	last_mhp = mhp;
  
- /**
-- * memblock_free_ptr - free boot memory allocation
-+ * memblock_free - free boot memory allocation
-  * @ptr: starting address of the  boot memory allocation
-  * @size: size of the boot memory block in bytes
-  *
-  * Free boot memory block previously allocated by memblock_alloc_xx() API.
-  * The freeing memory will not be released to the buddy allocator.
-  */
--void __init_memblock memblock_free_ptr(void *ptr, size_t size)
-+void __init_memblock memblock_free(void *ptr, size_t size)
+ 	return 1;
++
++invalid:
++	pr_warn("HugeTLB: Invalid hugepages parameter %s\n", p);
++	return 0;
+ }
+ __setup("hugepages=", hugepages_setup);
+ 
+@@ -4159,6 +4258,7 @@ __setup("hugepagesz=", hugepagesz_setup)
+ static int __init default_hugepagesz_setup(char *s)
  {
- 	if (ptr)
- 		memblock_phys_free(__pa(ptr), size);
---- a/mm/percpu.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/mm/percpu.c
-@@ -2472,7 +2472,7 @@ struct pcpu_alloc_info * __init pcpu_all
-  */
- void __init pcpu_free_alloc_info(struct pcpu_alloc_info *ai)
- {
--	memblock_phys_free(__pa(ai), ai->__ai_size);
-+	memblock_free(ai, ai->__ai_size);
- }
+ 	unsigned long size;
++	int i;
  
- /**
-@@ -3134,7 +3134,7 @@ out_free_areas:
- out_free:
- 	pcpu_free_alloc_info(ai);
- 	if (areas)
--		memblock_phys_free(__pa(areas), areas_size);
-+		memblock_free(areas, areas_size);
- 	return rc;
- }
- #endif /* BUILD_EMBED_FIRST_CHUNK */
-@@ -3256,7 +3256,7 @@ enomem:
- 		free_fn(page_address(pages[j]), PAGE_SIZE);
- 	rc = -ENOMEM;
- out_free_ar:
--	memblock_phys_free(__pa(pages), pages_size);
-+	memblock_free(pages, pages_size);
- 	pcpu_free_alloc_info(ai);
- 	return rc;
- }
-@@ -3286,7 +3286,7 @@ static void * __init pcpu_dfl_fc_alloc(u
- 
- static void __init pcpu_dfl_fc_free(void *ptr, size_t size)
- {
--	memblock_phys_free(__pa(ptr), size);
-+	memblock_free(ptr, size);
- }
- 
- void __init setup_per_cpu_areas(void)
---- a/mm/sparse.c~memblock-use-memblock_free-for-freeing-virtual-pointers
-+++ a/mm/sparse.c
-@@ -451,7 +451,7 @@ static void *sparsemap_buf_end __meminit
- static inline void __meminit sparse_buffer_free(unsigned long size)
- {
- 	WARN_ON(!sparsemap_buf || size == 0);
--	memblock_phys_free(__pa(sparsemap_buf), size);
-+	memblock_free(sparsemap_buf, size);
- }
- 
- static void __init sparse_buffer_init(unsigned long size, int nid)
+ 	parsed_valid_hugepagesz = false;
+ 	if (parsed_default_hugepagesz) {
+@@ -4187,6 +4287,9 @@ static int __init default_hugepagesz_set
+ 	 */
+ 	if (default_hstate_max_huge_pages) {
+ 		default_hstate.max_huge_pages = default_hstate_max_huge_pages;
++		for (i = 0; i < nr_online_nodes; i++)
++			default_hstate.max_huge_pages_node[i] =
++				default_hugepages_in_node[i];
+ 		if (hstate_is_gigantic(&default_hstate))
+ 			hugetlb_hstate_alloc_pages(&default_hstate);
+ 		default_hstate_max_huge_pages = 0;
 _
