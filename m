@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A2871C43217
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:41:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA2A2C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:41:03 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9058561262
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:41:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D35456127A
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:41:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233425AbhKEUnj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:43:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:38344 "EHLO mail.kernel.org"
+        id S232537AbhKEUnn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:43:43 -0400
+Received: from mail.kernel.org ([198.145.29.99]:38404 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233485AbhKEUnj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:43:39 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E3685611C0;
-        Fri,  5 Nov 2021 20:40:58 +0000 (UTC)
+        id S233226AbhKEUnm (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:43:42 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DE1F86126A;
+        Fri,  5 Nov 2021 20:41:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144859;
-        bh=FJ117JC7W34jlEpL/A9WwXWOZvE/GIu5k4dPVvRpWhg=;
+        s=korg; t=1636144862;
+        bh=jOuwn8Guu8VA46qSiznSZUNIlcH+vRKwNXz6m3zXcJw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=LqRfLvajSIolyrWcrw1gj03FmGbXqEKxHp8HVRzSc1zAMiq18vwCxMzwIH4Q/q0eM
-         GnnElNvUXF3vUAx2oegpiDCHknrBsaXCSFTN6rviddYuZcg7q1lL4unRHiTj4od0/8
-         yMTxBDcIUnvE4CPIriYSbVuuEYo74FUWs6DGVE+M=
-Date:   Fri, 05 Nov 2021 13:40:58 -0700
+        b=Vvk+XD7m9HKDmD0xTclQgKcVv8ETRrKeaW6DWXXyDdTyMlxCxsZiphnvxQc/9Acza
+         iQ7sE/a4LmuBdEAsProEjcF9jp2WqgV7+hDu0CEyXhp5Q2UhEOmrgDdH88mgFtPmHQ
+         YiDUd8xBjWvPcwe3AvF+yGFp56GB/ITEmnitkOKY=
+Date:   Fri, 05 Nov 2021 13:41:01 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, elver@google.com,
-        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
-        oliver.sang@intel.com, torvalds@linux-foundation.org,
-        will@kernel.org
-Subject:  [patch 121/262] mm: fix data race in PagePoisoned()
-Message-ID: <20211105204058.ifx3dDphm%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, anshuman.khandual@arm.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, rikard.falkeborn@gmail.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 122/262] mm/memory_failure: constify static
+ mm_walk_ops
+Message-ID: <20211105204101.8OnxznkNy%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,52 +39,32 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Marco Elver <elver@google.com>
-Subject: mm: fix data race in PagePoisoned()
+From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Subject: mm/memory_failure: constify static mm_walk_ops
 
-PagePoisoned() accesses page->flags which can be updated concurrently:
+The only usage of hwp_walk_ops is to pass its address to walk_page_range()
+which takes a pointer to const mm_walk_ops as argument.  Make it const to
+allow the compiler to put it in read-only memory.
 
-  | BUG: KCSAN: data-race in next_uptodate_page / unlock_page
-  |
-  | write (marked) to 0xffffea00050f37c0 of 8 bytes by task 1872 on cpu 1:
-  |  instrument_atomic_write           include/linux/instrumented.h:87 [inline]
-  |  clear_bit_unlock_is_negative_byte include/asm-generic/bitops/instrumented-lock.h:74 [inline]
-  |  unlock_page+0x102/0x1b0           mm/filemap.c:1465
-  |  filemap_map_pages+0x6c6/0x890     mm/filemap.c:3057
-  |  ...
-  | read to 0xffffea00050f37c0 of 8 bytes by task 1873 on cpu 0:
-  |  PagePoisoned                   include/linux/page-flags.h:204 [inline]
-  |  PageReadahead                  include/linux/page-flags.h:382 [inline]
-  |  next_uptodate_page+0x456/0x830 mm/filemap.c:2975
-  |  ...
-  | CPU: 0 PID: 1873 Comm: systemd-udevd Not tainted 5.11.0-rc4-00001-gf9ce0be71d1f #1
-
-To avoid the compiler tearing or otherwise optimizing the access, use
-READ_ONCE() to access flags.
-
-Link: https://lore.kernel.org/all/20210826144157.GA26950@xsang-OptiPlex-9020/
-Link: https://lkml.kernel.org/r/20210913113542.2658064-1-elver@google.com
-Reported-by: kernel test robot <oliver.sang@intel.com>
-Signed-off-by: Marco Elver <elver@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Will Deacon <will@kernel.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Link: https://lkml.kernel.org/r/20211014075042.17174-3-rikard.falkeborn@gmail.com
+Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 +-
+ mm/memory-failure.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/page-flags.h~mm-fix-data-race-in-pagepoisoned
-+++ a/include/linux/page-flags.h
-@@ -215,7 +215,7 @@ static __always_inline int PageCompound(
- #define	PAGE_POISON_PATTERN	-1l
- static inline int PagePoisoned(const struct page *page)
- {
--	return page->flags == PAGE_POISON_PATTERN;
-+	return READ_ONCE(page->flags) == PAGE_POISON_PATTERN;
- }
+--- a/mm/memory-failure.c~mm-memory_failure-constify-static-mm_walk_ops
++++ a/mm/memory-failure.c
+@@ -674,7 +674,7 @@ static int hwpoison_hugetlb_range(pte_t
+ #define hwpoison_hugetlb_range	NULL
+ #endif
  
- #ifdef CONFIG_DEBUG_VM
+-static struct mm_walk_ops hwp_walk_ops = {
++static const struct mm_walk_ops hwp_walk_ops = {
+ 	.pmd_entry = hwpoison_pte_range,
+ 	.hugetlb_entry = hwpoison_hugetlb_range,
+ };
 _
