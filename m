@@ -2,38 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D04FC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C744C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5C08E60174
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7AE6261263
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233251AbhKEUku (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:40:50 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35592 "EHLO mail.kernel.org"
+        id S232258AbhKEUkx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:40:53 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35640 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232258AbhKEUku (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:40:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B872A611C0;
-        Fri,  5 Nov 2021 20:38:09 +0000 (UTC)
+        id S232476AbhKEUkx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:40:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F238D611C4;
+        Fri,  5 Nov 2021 20:38:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144690;
-        bh=t5wHbGfIuJW7vsDOUJJHIHgqWF5JBs2z11pDnbCKrQ0=;
+        s=korg; t=1636144693;
+        bh=FgwI/W7sBWzuvMF+2tMW3dFamQwob5KnsnD+Bqc9pgg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=cRM87EKqt0tRqXyf//aIvYRgAh5V4iOMfoNhyvLJ/x2Yj5K+FIkMwjWrmVep9Mz8E
-         IFJsG0ZXMr8Y0oFaNzmnRXgluFHio5rUTFBsjvAqd/1NRfJ4DHnvB9PP5FssdtLaLT
-         mOeeUr2F6af/jFAVgDFDZO74JavCzckNTBCqnzNE=
-Date:   Fri, 05 Nov 2021 13:38:09 -0700
+        b=18AlemLY2u6wkSB3c/k0j5tRcNYC9RolUQxHIWAZ/nwb7AEgLzNEYk+2mlrN0Y0eO
+         Rkz3hajjhriKXuOVm9BYkHvS2IZlhnLRjRo5DQiIb1NmllKThu5PgxnOQ5IUyDPJmY
+         AkE9R+FYPCgVb9QAvsJVWWL249YLj/0vV3u19utQ=
+Date:   Fri, 05 Nov 2021 13:38:12 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, guro@fb.com, hannes@cmpxchg.org,
-        linux-mm@kvack.org, mgorman@techsingularity.net, mhocko@suse.com,
-        mm-commits@vger.kernel.org, penguin-kernel@i-love.sakura.ne.jp,
-        shakeelb@google.com, stable@vger.kernel.org,
-        torvalds@linux-foundation.org, urezki@gmail.com, vbabka@suse.cz,
-        vdavydov.dev@gmail.com, vvs@virtuozzo.com
-Subject:  [patch 067/262] memcg: prohibit unconditional exceeding
- the limit of dying tasks
-Message-ID: <20211105203809.1Zku99VL8%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, linux-mm@kvack.org,
+        liupeng256@huawei.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 068/262] mm/mmap.c: fix a data race of
+ mm->total_vm
+Message-ID: <20211105203812.6Y1n-n47F%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,140 +38,80 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: prohibit unconditional exceeding the limit of dying tasks
+From: Peng Liu <liupeng256@huawei.com>
+Subject: mm/mmap.c: fix a data race of mm->total_vm
 
-Memory cgroup charging allows killed or exiting tasks to exceed the hard
-limit.  It is assumed that the amount of the memory charged by those tasks
-is bound and most of the memory will get released while the task is
-exiting.  This is resembling a heuristic for the global OOM situation when
-tasks get access to memory reserves.  There is no global memory shortage
-at the memcg level so the memcg heuristic is more relieved.
+Variable mm->total_vm could be accessed concurrently during mmaping and
+system accounting as noticed by KCSAN,
 
-The above assumption is overly optimistic though.  E.g.  vmalloc can scale
-to really large requests and the heuristic would allow that.  We used to
-have an early break in the vmalloc allocator for killed tasks but this has
-been reverted by commit b8c8a338f75e ("Revert "vmalloc: back off when the
-current task is killed"").  There are likely other similar code paths
-which do not check for fatal signals in an allocation&charge loop.  Also
-there are some kernel objects charged to a memcg which are not bound to a
-process life time.
+BUG: KCSAN: data-race in __acct_update_integrals / mmap_region
 
-It has been observed that it is not really hard to trigger these bypasses
-and cause global OOM situation.
+read-write to 0xffffa40267bd14c8 of 8 bytes by task 15609 on cpu 3:
+ mmap_region+0x6dc/0x1400
+ do_mmap+0x794/0xca0
+ vm_mmap_pgoff+0xdf/0x150
+ ksys_mmap_pgoff+0xe1/0x380
+ do_syscall_64+0x37/0x50
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-One potential way to address these runaways would be to limit the amount
-of excess (similar to the global OOM with limited oom reserves).  This is
-certainly possible but it is not really clear how much of an excess is
-desirable and still protects from global OOMs as that would have to
-consider the overall memcg configuration.
+read to 0xffffa40267bd14c8 of 8 bytes by interrupt on cpu 2:
+ __acct_update_integrals+0x187/0x1d0
+ acct_account_cputime+0x3c/0x40
+ update_process_times+0x5c/0x150
+ tick_sched_timer+0x184/0x210
+ __run_hrtimer+0x119/0x3b0
+ hrtimer_interrupt+0x350/0xaa0
+ __sysvec_apic_timer_interrupt+0x7b/0x220
+ asm_call_irq_on_stack+0x12/0x20
+ sysvec_apic_timer_interrupt+0x4d/0x80
+ asm_sysvec_apic_timer_interrupt+0x12/0x20
+ smp_call_function_single+0x192/0x2b0
+ perf_install_in_context+0x29b/0x4a0
+ __se_sys_perf_event_open+0x1a98/0x2550
+ __x64_sys_perf_event_open+0x63/0x70
+ do_syscall_64+0x37/0x50
+ entry_SYSCALL_64_after_hwframe+0x44/0xa9
 
-This patch is addressing the problem by removing the heuristic altogether.
-Bypass is only allowed for requests which either cannot fail or where the
-failure is not desirable while excess should be still limited (e.g. 
-atomic requests).  Implementation wise a killed or dying task fails to
-charge if it has passed the OOM killer stage.  That should give all forms
-of reclaim chance to restore the limit before the failure (ENOMEM) and
-tell the caller to back off.
+Reported by Kernel Concurrency Sanitizer on:
+CPU: 2 PID: 15610 Comm: syz-executor.3 Not tainted 5.10.0+ #2
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS
+Ubuntu-1.8.2-1ubuntu1 04/01/2014
 
-In addition, this patch renames should_force_charge() helper to
-task_is_dying() because now its use is not associated witch forced
-charging.
+In vm_stat_account which called by mmap_region, increase total_vm, and
+__acct_update_integrals may read total_vm at the same time.  This will
+cause a data race which lead to undefined behaviour.  To avoid potential
+bad read/write, volatile property and barrier are both used to avoid
+undefined behaviour.
 
-This patch depends on pagefault_out_of_memory() to not trigger
-out_of_memory(), because then a memcg failure can unwind to VM_FAULT_OOM
-and cause a global OOM killer.
-
-Link: https://lkml.kernel.org/r/8f5cebbb-06da-4902-91f0-6566fc4b4203@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210913105550.1569419-1-liupeng256@huawei.com
+Signed-off-by: Peng Liu <liupeng256@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   27 ++++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+ kernel/tsacct.c |    2 +-
+ mm/mmap.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks
-+++ a/mm/memcontrol.c
-@@ -234,7 +234,7 @@ enum res_type {
- 	     iter != NULL;				\
- 	     iter = mem_cgroup_iter(NULL, iter, NULL))
+--- a/kernel/tsacct.c~mm-mmapc-fix-a-data-race-of-mm-total_vm
++++ a/kernel/tsacct.c
+@@ -137,7 +137,7 @@ static void __acct_update_integrals(stru
+ 	 * the rest of the math is done in xacct_add_tsk.
+ 	 */
+ 	tsk->acct_rss_mem1 += delta * get_mm_rss(tsk->mm) >> 10;
+-	tsk->acct_vm_mem1 += delta * tsk->mm->total_vm >> 10;
++	tsk->acct_vm_mem1 += delta * READ_ONCE(tsk->mm->total_vm) >> 10;
+ }
  
--static inline bool should_force_charge(void)
-+static inline bool task_is_dying(void)
+ /**
+--- a/mm/mmap.c~mm-mmapc-fix-a-data-race-of-mm-total_vm
++++ a/mm/mmap.c
+@@ -3332,7 +3332,7 @@ bool may_expand_vm(struct mm_struct *mm,
+ 
+ void vm_stat_account(struct mm_struct *mm, vm_flags_t flags, long npages)
  {
- 	return tsk_is_oom_victim(current) || fatal_signal_pending(current) ||
- 		(current->flags & PF_EXITING);
-@@ -1624,7 +1624,7 @@ static bool mem_cgroup_out_of_memory(str
- 	 * A few threads which were not waiting at mutex_lock_killable() can
- 	 * fail to bail out. Therefore, check again after holding oom_lock.
- 	 */
--	ret = should_force_charge() || out_of_memory(&oc);
-+	ret = task_is_dying() || out_of_memory(&oc);
+-	mm->total_vm += npages;
++	WRITE_ONCE(mm->total_vm, READ_ONCE(mm->total_vm)+npages);
  
- unlock:
- 	mutex_unlock(&oom_lock);
-@@ -2579,6 +2579,7 @@ static int try_charge_memcg(struct mem_c
- 	struct page_counter *counter;
- 	enum oom_status oom_status;
- 	unsigned long nr_reclaimed;
-+	bool passed_oom = false;
- 	bool may_swap = true;
- 	bool drained = false;
- 	unsigned long pflags;
-@@ -2614,15 +2615,6 @@ retry:
- 		goto force;
- 
- 	/*
--	 * Unlike in global OOM situations, memcg is not in a physical
--	 * memory shortage.  Allow dying and OOM-killed tasks to
--	 * bypass the last charges so that they can exit quickly and
--	 * free their memory.
--	 */
--	if (unlikely(should_force_charge()))
--		goto force;
--
--	/*
- 	 * Prevent unbounded recursion when reclaim operations need to
- 	 * allocate memory. This might exceed the limits temporarily,
- 	 * but we prefer facilitating memory reclaim and getting back
-@@ -2679,8 +2671,9 @@ retry:
- 	if (gfp_mask & __GFP_RETRY_MAYFAIL)
- 		goto nomem;
- 
--	if (fatal_signal_pending(current))
--		goto force;
-+	/* Avoid endless loop for tasks bypassed by the oom killer */
-+	if (passed_oom && task_is_dying())
-+		goto nomem;
- 
- 	/*
- 	 * keep retrying as long as the memcg oom killer is able to make
-@@ -2689,14 +2682,10 @@ retry:
- 	 */
- 	oom_status = mem_cgroup_oom(mem_over_limit, gfp_mask,
- 		       get_order(nr_pages * PAGE_SIZE));
--	switch (oom_status) {
--	case OOM_SUCCESS:
-+	if (oom_status == OOM_SUCCESS) {
-+		passed_oom = true;
- 		nr_retries = MAX_RECLAIM_RETRIES;
- 		goto retry;
--	case OOM_FAILED:
--		goto force;
--	default:
--		goto nomem;
- 	}
- nomem:
- 	if (!(gfp_mask & __GFP_NOFAIL))
+ 	if (is_exec_mapping(flags))
+ 		mm->exec_vm += npages;
 _
