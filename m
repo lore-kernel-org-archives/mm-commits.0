@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E01E4C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:39:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6CAAC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:39:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CB10C60FBF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:39:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D37886128C
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:39:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233425AbhKEUlv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:41:51 -0400
-Received: from mail.kernel.org ([198.145.29.99]:36560 "EHLO mail.kernel.org"
+        id S233407AbhKEUly (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:41:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:36614 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233407AbhKEUlu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:41:50 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 83BF66056B;
-        Fri,  5 Nov 2021 20:39:10 +0000 (UTC)
+        id S232810AbhKEUlx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:41:53 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C997611C4;
+        Fri,  5 Nov 2021 20:39:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144750;
-        bh=p6w+94iaxs7+r544PijRic/QocSyQwil4huhbWvkmJM=;
+        s=korg; t=1636144753;
+        bh=rtwuP7hVZi1gtDgBjBy0ZFmr7NoKm/yrpYBknmJAcgI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jbwechSTOKscOUsBf5zT7zlLyDCobpI1l2xFl3Ky0D1ss/M63QU48lkPaVV/2eA1R
-         +ZUqNqx19ewOG/8k+Li1CsMeSSNw9e+I0uIVktWyKGHwTHR/pDycahOm7Skkl+74RN
-         pYwZuoDSUvhPJ+/yrK7P9Ro7N0e/w5QaEOLQe+kU=
-Date:   Fri, 05 Nov 2021 13:39:10 -0700
+        b=jevt8ezyR/NAC9Jdo0allCuWrkP2GRGiwnMFKr9jEeKZmSW/p3/SiOXNPd4d124Ri
+         sp51P1xiyL75YJUJGS+Z549WSh3eEqvEUm27Zcts5Xqup5XLdtXTZqVUTwtZc/eC9k
+         Ewpi7iLOkPPTf4f1SX4cWI57lGSPc4Zd1IGdp1nk=
+Date:   Fri, 05 Nov 2021 13:39:13 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, chris@chris-wilson.co.uk,
-        daniel.vetter@ffwll.ch, joonas.lahtinen@linux.intel.com,
-        linux-mm@kvack.org, lucas.demarchi@intel.com,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 086/262] include/linux/io-mapping.h: remove
- fallback for writecombine
-Message-ID: <20211105203910.DxiEtivZD%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, axelrasmussen@google.com,
+        ligang.bdlg@bytedance.com, linux-mm@kvack.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, rostedt@goodmis.org,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 087/262] mm: mmap_lock: remove redundant newline 
+ in TP_printk
+Message-ID: <20211105203913.NmX2MeX7r%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,46 +39,51 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Lucas De Marchi <lucas.demarchi@intel.com>
-Subject: include/linux/io-mapping.h: remove fallback for writecombine
+From: Gang Li <ligang.bdlg@bytedance.com>
+Subject: mm: mmap_lock: remove redundant newline  in TP_printk
 
-The fallback was introduced in commit 80c33624e472 ("io-mapping: Fixup for
-different names of writecombine") to fix the build on microblaze.
+Ftrace core will add newline automatically on printing, so using it in
+TP_printkcreates a blank line.
 
-5 years later, it seems all archs now provide a pgprot_writecombine(), so
-just remove the other possible fallbacks.  For microblaze,
-pgprot_writecombine() is available since commit 97ccedd793ac ("microblaze:
-Provide pgprot_device/writecombine macros for nommu").
-
-This is build-tested on microblaze with a hack to always build
-mm/io-mapping.o and without DIYing on an x86-only macro (_PAGE_CACHE_MASK)
-
-Link: https://lkml.kernel.org/r/20211020204838.1142908-1-lucas.demarchi@intel.com
-Signed-off-by: Lucas De Marchi <lucas.demarchi@intel.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Link: https://lkml.kernel.org/r/20211009071105.69544-1-ligang.bdlg@bytedance.com
+Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Axel Rasmussen <axelrasmussen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io-mapping.h |    6 ------
- 1 file changed, 6 deletions(-)
+ include/trace/events/mmap_lock.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/include/linux/io-mapping.h~io-mapping-remove-fallback-for-writecombine
-+++ a/include/linux/io-mapping.h
-@@ -132,13 +132,7 @@ io_mapping_init_wc(struct io_mapping *io
+--- a/include/trace/events/mmap_lock.h~mm-mmap_lock-remove-redundant-newline-in-tp_printk
++++ a/include/trace/events/mmap_lock.h
+@@ -32,7 +32,7 @@ TRACE_EVENT_FN(mmap_lock_start_locking,
+ 	),
  
- 	iomap->base = base;
- 	iomap->size = size;
--#if defined(pgprot_noncached_wc) /* archs can't agree on a name ... */
--	iomap->prot = pgprot_noncached_wc(PAGE_KERNEL);
--#elif defined(pgprot_writecombine)
- 	iomap->prot = pgprot_writecombine(PAGE_KERNEL);
--#else
--	iomap->prot = pgprot_noncached(PAGE_KERNEL);
--#endif
+ 	TP_printk(
+-		"mm=%p memcg_path=%s write=%s\n",
++		"mm=%p memcg_path=%s write=%s",
+ 		__entry->mm,
+ 		__get_str(memcg_path),
+ 		__entry->write ? "true" : "false"
+@@ -63,7 +63,7 @@ TRACE_EVENT_FN(mmap_lock_acquire_returne
+ 	),
  
- 	return iomap;
- }
+ 	TP_printk(
+-		"mm=%p memcg_path=%s write=%s success=%s\n",
++		"mm=%p memcg_path=%s write=%s success=%s",
+ 		__entry->mm,
+ 		__get_str(memcg_path),
+ 		__entry->write ? "true" : "false",
+@@ -92,7 +92,7 @@ TRACE_EVENT_FN(mmap_lock_released,
+ 	),
+ 
+ 	TP_printk(
+-		"mm=%p memcg_path=%s write=%s\n",
++		"mm=%p memcg_path=%s write=%s",
+ 		__entry->mm,
+ 		__get_str(memcg_path),
+ 		__entry->write ? "true" : "false"
 _
