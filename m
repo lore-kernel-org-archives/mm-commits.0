@@ -2,38 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B7807C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:35:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18BCDC433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:37:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A1DC061131
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:35:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E52A2604DA
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:37:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232412AbhKEShi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 14:37:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46914 "EHLO mail.kernel.org"
+        id S232395AbhKESjv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 14:39:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:48312 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232528AbhKEShh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 14:37:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CE8C06113B;
-        Fri,  5 Nov 2021 18:34:56 +0000 (UTC)
+        id S230291AbhKESju (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 14:39:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8EADB60D07;
+        Fri,  5 Nov 2021 18:37:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636137297;
-        bh=l0eTwYYUlEJ15Xcy25e2IddaxH4lXZQWA7//amNgmnw=;
+        s=korg; t=1636137430;
+        bh=0ZaZFP1PBWzc8IOjcoloon0NAJTVTbOeQdvwzf5gI0U=;
         h=Date:From:To:Subject:From;
-        b=jl+5gXiLFkGQWHco+Rdfvz79RFAG4TdACkwotT2vT6c/dVRvVEvdu6bXbouX8kEbh
-         t6YntXm9Nu8CPoXS8m8IXAP7zaONsiyFEmvDyzZOrcY87AEjOZ+/X2pxUVD8cKzZqJ
-         okj2zIgLjZfooHGyu8WuEhDBY+RKmWhJAF22dvbk=
-Date:   Fri, 05 Nov 2021 11:34:56 -0700
+        b=a6EhvQWDkPZrj+Ferqme9uCvSco3QPzj3x7+VCLnLTivtGdreFC35PM8p6npzoDsR
+         4rS+FfRn81VLT9gRGrYMBxTkODdDXtMCAzIosywG5WP833rin9CoMF2SVvkWPR1MJp
+         2rKsglByusIH6vUN7odownIy4DNekS04PupT61EA=
+Date:   Fri, 05 Nov 2021 11:37:10 -0700
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, guro@fb.com, hannes@cmpxchg.org, longman@redhat.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org,
-        sfr@canb.auug.org.au, shakeelb@google.com,
-        songmuchun@bytedance.com, vdavydov.dev@gmail.com,
-        willy@infradead.org
+To:     catalin.marinas@arm.com, dvyukov@google.com, lkft@linaro.org,
+        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        ryabinin.a.a@gmail.com, sfr@canb.auug.org.au,
+        wangkefeng.wang@huawei.com
 Subject:  [folded-merged]
- memcg-kmem-further-deprecate-kmemlimit_in_bytes-fix.patch removed from -mm
- tree
-Message-ID: <20211105183456.MQad5IYZ3%akpm@linux-foundation.org>
+ kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
+ removed from -mm tree
+Message-ID: <20211105183710.M3zm5x1g6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,70 +41,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg, kmem: mark cancel_charge() inline
+     Subject: mm: kasan: fix redefinition of 'kasan_populate_early_vm_area_shadow'
 has been removed from the -mm tree.  Its filename was
-     memcg-kmem-further-deprecate-kmemlimit_in_bytes-fix.patch
+     kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix.patch
 
-This patch was dropped because it was folded into memcg-kmem-further-deprecate-kmemlimit_in_bytes.patch
+This patch was dropped because it was folded into kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc.patch
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: memcg, kmem: mark cancel_charge() inline
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm: kasan: fix redefinition of 'kasan_populate_early_vm_area_shadow'
 
-cancel_charge() is no longer called for CONFIG_MEMCG_KMEM on NOMMU
-targets, which causes a compiletime warning:
+Move kasan_populate_early_vm_area_shadow() from mm/kasan/init.c to
+mm/kasan/shadow.c, make it under CONFIG_KASAN_VMALLOC to fix the
+redefinition issue.
 
-mm/memcontrol.c:2774:13: error: unused function 'cancel_charge' [-Werror,-Wunused-function]
-
-Remove the now-incorrect #ifdef and just mark the function 'inline' like
-the other related helpers.  This is simpler and means we no longer have to
-match the #ifdef with the caller.
-
-Link: https://lkml.kernel.org/r/20211022070542.679839-1-arnd@kernel.org
-Fixes: 5f3345c17079 ("memcg, kmem: further deprecate kmem.limit_in_bytes")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: https://lkml.kernel.org/r/20211011123211.3936196-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reported-by: Linux Kernel Functional Testing <lkft@linaro.org>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: resh Kamboju <naresh.kamboju@linaro.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Cc: Waiman Long <longman@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/kasan/init.c   |    5 -----
+ mm/kasan/shadow.c |    5 +++++
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/memcontrol.c~memcg-kmem-further-deprecate-kmemlimit_in_bytes-fix
-+++ a/mm/memcontrol.c
-@@ -2771,8 +2771,7 @@ static inline int try_charge(struct mem_
- 	return try_charge_memcg(memcg, gfp_mask, nr_pages);
+--- a/mm/kasan/init.c~kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix
++++ a/mm/kasan/init.c
+@@ -279,11 +279,6 @@ int __ref kasan_populate_early_shadow(co
+ 	return 0;
  }
  
--#if defined(CONFIG_MEMCG_KMEM) || defined(CONFIG_MMU)
--static void cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages)
-+static inline void cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages)
+-void __init __weak kasan_populate_early_vm_area_shadow(void *start,
+-						       unsigned long size)
+-{
+-}
+-
+ static void kasan_free_pte(pte_t *pte_start, pmd_t *pmd)
  {
- 	if (mem_cgroup_is_root(memcg))
- 		return;
-@@ -2781,7 +2780,6 @@ static void cancel_charge(struct mem_cgr
- 	if (do_memsw_account())
- 		page_counter_uncharge(&memcg->memsw, nr_pages);
- }
--#endif
+ 	pte_t *pte;
+--- a/mm/kasan/shadow.c~kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc-fix
++++ a/mm/kasan/shadow.c
+@@ -254,6 +254,11 @@ core_initcall(kasan_memhotplug_init);
  
- static void commit_charge(struct page *page, struct mem_cgroup *memcg)
+ #ifdef CONFIG_KASAN_VMALLOC
+ 
++void __init __weak kasan_populate_early_vm_area_shadow(void *start,
++						       unsigned long size)
++{
++}
++
+ static int kasan_populate_vmalloc_pte(pte_t *ptep, unsigned long addr,
+ 				      void *unused)
  {
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
 
-posix-acl-avoid-wempty-body-warning.patch
-memcg-kmem-further-deprecate-kmemlimit_in_bytes.patch
-mm-shmem-dont-truncate-page-if-memory-failure-happens-fix-2.patch
-kasan-test-use-underlying-string-helpers.patch
-hfs-hfsplus-use-warn_on-for-sanity-check.patch
+slub-add-back-check-for-free-nonslab-objects.patch
+vmalloc-choose-a-better-start-address-in-vm_area_register_early.patch
+arm64-support-page-mapping-percpu-first-chunk-allocator.patch
+kasan-arm64-fix-pcpu_page_first_chunk-crash-with-kasan_vmalloc.patch
+mm-nommu-kill-arch_get_unmapped_area.patch
+kallsyms-remove-arch-specific-text-and-data-check.patch
+kallsyms-fix-address-checks-for-kernel-related-range.patch
+sections-move-and-rename-core_kernel_data-to-is_kernel_core_data.patch
+sections-move-is_kernel_inittext-into-sectionsh.patch
+x86-mm-rename-__is_kernel_text-to-is_x86_32_kernel_text.patch
+sections-provide-internal-__is_kernel-and-__is_kernel_text-helper.patch
+mm-kasan-use-is_kernel-helper.patch
+extable-use-is_kernel_text-helper.patch
+powerpc-mm-use-core_kernel_text-helper.patch
+microblaze-use-is_kernel_text-helper.patch
+alpha-use-is_kernel_text-helper.patch
 
