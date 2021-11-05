@@ -2,40 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 519FAC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05DABC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 390B96127A
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:52 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E1BA561279
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232477AbhKEUib (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:38:31 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33284 "EHLO mail.kernel.org"
+        id S232502AbhKEUig (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:38:36 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33352 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232269AbhKEUib (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:38:31 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A0F356125F;
-        Fri,  5 Nov 2021 20:35:50 +0000 (UTC)
+        id S232616AbhKEUie (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:38:34 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E53F8611C0;
+        Fri,  5 Nov 2021 20:35:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144551;
-        bh=6hwGJeuqg+C82l2O5CY/QOwkqZrGCqqopInDMa9RhMo=;
+        s=korg; t=1636144554;
+        bh=gX87Amf+PVnytwD7lQr6QutoFY5VcSy+n6KZz8x7OyM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=B1ePJecY1HVeXBNLPtbLMIantay4e/WF5zdF2xcgeqvgqVpE1tvxFjfnZvaWRL0t6
-         zUILTx9CJq/Mnct3M/iHnOH3wj4ncBPBtpeXwXFT9gB9Oc9XSAxN2AZebO78C1/s3q
-         DD1J+Q9CCGApn0MAQwDUyNtd6aXVzy/x6lIiEkC0=
-Date:   Fri, 05 Nov 2021 13:35:50 -0700
+        b=1706hhnPNBVGScm7AIY7L1lLMQC6lbVfC9UQQMKtcwGTj8CbTKo05gDMaiQ6cia7X
+         4Z/Db2KWpykaJxX/e5SYD1eCPVAxNZkaXVqJVw+OVDXfvdInVsWxnzq4oNYy0Nj8yi
+         WcHBQurkQtcnt1amPinOvlP3hdJwPS98rJFeTUzY=
+Date:   Fri, 05 Nov 2021 13:35:53 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        bigeasy@linutronix.de, dvyukov@google.com, elver@google.com,
-        glider@google.com, gustavoars@kernel.org, jiangshanlai@gmail.com,
+        dvyukov@google.com, elver@google.com, glider@google.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        ryabinin.a.a@gmail.com, skhan@linuxfoundation.org,
-        tarasmadan@google.com, tglx@linutronix.de, tj@kernel.org,
-        torvalds@linux-foundation.org, vinmenon@codeaurora.org,
-        vjitta@codeaurora.org, walter-zh.wu@mediatek.com
-Subject:  [patch 024/262] workqueue, kasan: avoid alloc_pages()
- when recording stack
-Message-ID: <20211105203550.82Ko3s-BI%akpm@linux-foundation.org>
+        ryabinin.a.a@gmail.com, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject:  [patch 025/262] kasan: fix tag for large allocations when
+ using CONFIG_SLAB
+Message-ID: <20211105203553.dTwQoHYqA%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,84 +40,36 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Marco Elver <elver@google.com>
-Subject: workqueue, kasan: avoid alloc_pages() when recording stack
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: kasan: fix tag for large allocations when using CONFIG_SLAB
 
-Shuah Khan reported:
+If an object is allocated on a tail page of a multi-page slab, kasan will
+get the wrong tag because page->s_mem is NULL for tail pages.  I'm not
+quite sure what the user-visible effect of this might be.
 
- | When CONFIG_PROVE_RAW_LOCK_NESTING=y and CONFIG_KASAN are enabled,
- | kasan_record_aux_stack() runs into "BUG: Invalid wait context" when
- | it tries to allocate memory attempting to acquire spinlock in page
- | allocation code while holding workqueue pool raw_spinlock.
- |
- | There are several instances of this problem when block layer tries
- | to __queue_work(). Call trace from one of these instances is below:
- |
- |     kblockd_mod_delayed_work_on()
- |       mod_delayed_work_on()
- |         __queue_delayed_work()
- |           __queue_work() (rcu_read_lock, raw_spin_lock pool->lock held)
- |             insert_work()
- |               kasan_record_aux_stack()
- |                 kasan_save_stack()
- |                   stack_depot_save()
- |                     alloc_pages()
- |                       __alloc_pages()
- |                         get_page_from_freelist()
- |                           rm_queue()
- |                             rm_queue_pcplist()
- |                               local_lock_irqsave(&pagesets.lock, flags);
- |                               [ BUG: Invalid wait context triggered ]
-
-The default kasan_record_aux_stack() calls stack_depot_save() with
-GFP_NOWAIT, which in turn can then call alloc_pages(GFP_NOWAIT, ...).  In
-general, however, it is not even possible to use either GFP_ATOMIC nor
-GFP_NOWAIT in certain non-preemptive contexts, including raw_spin_locks
-(see gfp.h and ab00db216c9c7).
-
-Fix it by instructing stackdepot to not expand stack storage via
-alloc_pages() in case it runs out by using
-kasan_record_aux_stack_noalloc().
-
-While there is an increased risk of failing to insert the stack trace,
-this is typically unlikely, especially if the same insertion had already
-succeeded previously (stack depot hit).  For frequent calls from the same
-location, it therefore becomes extremely unlikely that
-kasan_record_aux_stack_noalloc() fails.
-
-Link: https://lkml.kernel.org/r/20210902200134.25603-1-skhan@linuxfoundation.org
-Link: https://lkml.kernel.org/r/20210913112609.2651084-7-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Shuah Khan <skhan@linuxfoundation.org>
-Tested-by: Shuah Khan <skhan@linuxfoundation.org>
-Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Tejun Heo <tj@kernel.org>
+Link: https://lkml.kernel.org/r/20211001024105.3217339-1-willy@infradead.org
+Fixes: 7f94ffbc4c6a ("kasan: add hooks implementation for tag-based mode")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Marco Elver <elver@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Taras Madan <tarasmadan@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vijayanand Jitta <vjitta@codeaurora.org>
-Cc: Vinayak Menon <vinmenon@codeaurora.org>
-Cc: Walter Wu <walter-zh.wu@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/workqueue.c |    2 +-
+ mm/kasan/common.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/kernel/workqueue.c~workqueue-kasan-avoid-alloc_pages-when-recording-stack
-+++ a/kernel/workqueue.c
-@@ -1350,7 +1350,7 @@ static void insert_work(struct pool_work
- 	struct worker_pool *pool = pwq->pool;
- 
- 	/* record the work call stack in order to print it in KASAN reports */
--	kasan_record_aux_stack(work);
-+	kasan_record_aux_stack_noalloc(work);
- 
- 	/* we own @work, set data and link */
- 	set_work_pwq(work, pwq, extra_flags);
+--- a/mm/kasan/common.c~kasan-fix-tag-for-large-allocations-when-using-config_slab
++++ a/mm/kasan/common.c
+@@ -298,7 +298,7 @@ static inline u8 assign_tag(struct kmem_
+ 	/* For caches that either have a constructor or SLAB_TYPESAFE_BY_RCU: */
+ #ifdef CONFIG_SLAB
+ 	/* For SLAB assign tags based on the object index in the freelist. */
+-	return (u8)obj_to_index(cache, virt_to_page(object), (void *)object);
++	return (u8)obj_to_index(cache, virt_to_head_page(object), (void *)object);
+ #else
+ 	/*
+ 	 * For SLUB assign a random tag during slab creation, otherwise reuse
 _
