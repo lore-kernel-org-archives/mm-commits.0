@@ -2,37 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5D5CC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:47:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27B19C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:47:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 96E2E611C0
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:47:18 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0876E61131
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:47:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230285AbhKESt5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 14:49:57 -0400
-Received: from mail.kernel.org ([198.145.29.99]:54034 "EHLO mail.kernel.org"
+        id S230356AbhKESuC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 14:50:02 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54066 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230063AbhKESt5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 14:49:57 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 4E5BA6023D;
-        Fri,  5 Nov 2021 18:47:17 +0000 (UTC)
+        id S230063AbhKESt7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 14:49:59 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AFE75611C0;
+        Fri,  5 Nov 2021 18:47:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636138037;
-        bh=S+iBBcbCNsbpUL+MFPVuv/Ei3I1TjEkvg93ds1IT9Dg=;
+        s=korg; t=1636138039;
+        bh=nQxvm7hfe+FON5r3TLrsJHplyxcp/JFTh4YOzbG0SAQ=;
         h=Date:From:To:Subject:From;
-        b=L0q2s9zP35oupzF2gI0VcetljPmSvbmEt2n0dA3npbE/e4EwoLut7eGXy9mC2ogEc
-         jjfYNMdke7KCUrekssnf6sGFjur5qkolBRIsN4qcQmpqYfrLp5l3xNq1FKA4/LBtgx
-         4xRVMk+UeyDvcj8pBNHCXpOixoHzH9AQGDeMsu7I=
-Date:   Fri, 05 Nov 2021 11:47:16 -0700
+        b=whYI7I6n5lNhGAt0El40a5SK9Ji4AmY7eKbFsVmXvNfY4OuWwCt5vvgq/PzqtYma2
+         KNi3EZHHqcETJQYwDDhY/X3nA692kN8NMU2jIuDfFbpqcwlFKYJ0DvNb4nVHOLndpR
+         l7UA8gx6d9HIHF7TFOSnfEycRpW0PT808dYpleI8=
+Date:   Fri, 05 Nov 2021 11:47:19 -0700
 From:   akpm@linux-foundation.org
-To:     dvyukov@google.com, elver@google.com, glider@google.com,
-        jannh@google.com, mm-commits@vger.kernel.org, nogikh@google.com,
-        tarasmadan@google.com
+To:     akpm@linux-foundation.org, elver@google.com,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
- removed from -mm tree
-Message-ID: <20211105184716.hGk0tJqs5%akpm@linux-foundation.org>
+ =?US-ASCII?Q?kfence-limit-currently-covered-allocations-when-pool-nearl?=
+ =?US-ASCII?Q?y-full-fix-fix.patch?= removed from -mm tree
+Message-ID: <20211105184719.0tcuKJdDb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,88 +41,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix
+     Subject: fixup! kfence: limit currently covered allocations when pool nearly full
 has been removed from the -mm tree.  Its filename was
-     kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix.patch
+     kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix.patch
 
 This patch was dropped because it was folded into kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix
+Subject: fixup! kfence: limit currently covered allocations when pool nearly full
 
-* Simplify and just use hash_32().
-* Use more random stack_hash_seed.
+Fix 32 bit. size_t is UL on 64-bit only; just cast it to size_t
 
-Link: https://lkml.kernel.org/r/YU3MRGaCaJiYht5g@elver.google.com
+mm/kfence/core.c: In function `get_alloc_stack_hash':
+./include/linux/minmax.h:20:28: warning: comparison of distinct pointer types lacks a cast
+   20 |  (!!(sizeof((typeof(x) *)1 == (typeof(y) *)1)))
+      |                            ^~
+./include/linux/minmax.h:26:4: note: in expansion of macro `__typecheck'
+   26 |   (__typecheck(x, y) && __no_side_effects(x, y))
+      |    ^~~~~~~~~~~
+./include/linux/minmax.h:36:24: note: in expansion of macro `__safe_cmp'
+   36 |  __builtin_choose_expr(__safe_cmp(x, y), \
+      |                        ^~~~~~~~~~
+./include/linux/minmax.h:45:19: note: in expansion of macro `__careful_cmp'
+   45 | #define min(x, y) __careful_cmp(x, y, <)
+      |                   ^~~~~~~~~~~~~
+mm/kfence/core.c:177:16: note: in expansion of macro `min'
+  177 |  num_entries = min(num_entries, UNIQUE_ALLOC_STACK_DEPTH);
+      |                ^~~
+
+Link: https://lkml.kernel.org/r/YVQ0fE4Yil2EX8FI@elver.google.com
 Signed-off-by: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Aleksandr Nogikh <nogikh@google.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Taras Madan <tarasmadan@google.com>
+Reported-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+ mm/kfence/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/kfence/core.c~kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix
+--- a/mm/kfence/core.c~kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix
 +++ a/mm/kfence/core.c
-@@ -10,6 +10,7 @@
- #include <linux/atomic.h>
- #include <linux/bug.h>
- #include <linux/debugfs.h>
-+#include <linux/hash.h>
- #include <linux/irq_work.h>
- #include <linux/jhash.h>
- #include <linux/kcsan-checks.h>
-@@ -122,14 +123,21 @@ atomic_t kfence_allocation_gate = ATOMIC
-  *	P(alloc_traces) = (1 - e^(-HNUM * (alloc_traces / SIZE)) ^ HNUM
-  */
- #define ALLOC_COVERED_HNUM	2
--#define ALLOC_COVERED_SIZE	(1 << (const_ilog2(CONFIG_KFENCE_NUM_OBJECTS) + 2))
--#define ALLOC_COVERED_HNEXT(h)	(1664525 * (h) + 1013904223)
-+#define ALLOC_COVERED_ORDER	(const_ilog2(CONFIG_KFENCE_NUM_OBJECTS) + 2)
-+#define ALLOC_COVERED_SIZE	(1 << ALLOC_COVERED_ORDER)
-+#define ALLOC_COVERED_HNEXT(h)	hash_32(h, ALLOC_COVERED_ORDER)
- #define ALLOC_COVERED_MASK	(ALLOC_COVERED_SIZE - 1)
+@@ -130,7 +130,7 @@ atomic_t kfence_allocation_gate = ATOMIC
  static atomic_t alloc_covered[ALLOC_COVERED_SIZE];
  
  /* Stack depth used to determine uniqueness of an allocation. */
- #define UNIQUE_ALLOC_STACK_DEPTH 8UL
- 
-+/*
-+ * Randomness for stack hashes, making the same collisions across reboots and
-+ * different machines less likely.
-+ */
-+static u32 stack_hash_seed __ro_after_init;
-+
- /* Statistics counters for debugfs. */
- enum kfence_counter_id {
- 	KFENCE_COUNTER_ALLOCATED,
-@@ -166,12 +174,9 @@ static inline bool should_skip_covered(v
- 
- static u32 get_alloc_stack_hash(unsigned long *stack_entries, size_t num_entries)
- {
--	/* Some randomness across reboots / different machines. */
--	u32 seed = (u32)((unsigned long)__kfence_pool >> (BITS_PER_LONG - 32));
--
- 	num_entries = min(num_entries, UNIQUE_ALLOC_STACK_DEPTH);
- 	num_entries = filter_irq_stacks(stack_entries, num_entries);
--	return jhash(stack_entries, num_entries * sizeof(stack_entries[0]), seed);
-+	return jhash(stack_entries, num_entries * sizeof(stack_entries[0]), stack_hash_seed);
- }
+-#define UNIQUE_ALLOC_STACK_DEPTH 8UL
++#define UNIQUE_ALLOC_STACK_DEPTH ((size_t)8)
  
  /*
-@@ -759,6 +764,7 @@ void __init kfence_init(void)
- 	if (!kfence_sample_interval)
- 		return;
- 
-+	stack_hash_seed = (u32)random_get_entropy();
- 	if (!kfence_init_pool()) {
- 		pr_err("%s failed\n", __func__);
- 		return;
+  * Randomness for stack hashes, making the same collisions across reboots and
 _
 
 Patches currently in -mm which might be from elver@google.com are
@@ -137,7 +105,6 @@ stacktrace-move-filter_irq_stacks-to-kernel-stacktracec.patch
 kfence-count-unexpectedly-skipped-allocations.patch
 kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
 kfence-limit-currently-covered-allocations-when-pool-nearly-full.patch
-kfence-limit-currently-covered-allocations-when-pool-nearly-full-fix-fix.patch
 kfence-add-note-to-documentation-about-skipping-covered-allocations.patch
 kfence-test-use-kunit_skip-to-skip-tests.patch
 kfence-shorten-critical-sections-of-alloc-free.patch
