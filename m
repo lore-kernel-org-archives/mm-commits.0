@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A34BEC433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA2E1C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FFCC61262
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:23 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B877C611C0
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:38:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233277AbhKEUlC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:41:02 -0400
-Received: from mail.kernel.org ([198.145.29.99]:35770 "EHLO mail.kernel.org"
+        id S232695AbhKEUlG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:41:06 -0400
+Received: from mail.kernel.org ([198.145.29.99]:35824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232476AbhKEUlC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:41:02 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C457C60174;
-        Fri,  5 Nov 2021 20:38:21 +0000 (UTC)
+        id S232476AbhKEUlF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:41:05 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1D11E611C4;
+        Fri,  5 Nov 2021 20:38:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144702;
-        bh=/5P1kFsDt2rnxtQraJN9QoS2RlQR3nyp2CXKI0+oaHw=;
+        s=korg; t=1636144705;
+        bh=MLR4U50RT2yuKzbSmLF7KMClNgDVmIHCRhN6LqHDA00=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=KeV+hYAGxCpYKI9ECVB5KlYlEoNOivfvMPUE1KHHntJs8ZCyAClWepw7phznmJEYE
-         9c/vnj6gymOID0vKwUcEd66y0PIwneU4Fq7bYprnEyGYFgSRLIfkWqslNPS227eGYj
-         43N+dWR3JO/jYVdnhRqjh8nSAEDIU3PLWjV38WEY=
-Date:   Fri, 05 Nov 2021 13:38:21 -0700
+        b=oGr7Qywh7TabM8X8doTvLkWtMHIxFonRL7FdwNdL9oSp0OOIX+QAIMKmUd+O78gH0
+         /FD2Nm9SUNHOyPw95R8I/8EoiSuGk4RuYz0MJROiXbZAnxXblTz75RzVejjuAdVdnR
+         5d0O8YcWfc7LqLL6DqCLLNOL1rH1qwyapmHdrOsE=
+Date:   Fri, 05 Nov 2021 13:38:24 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     aarcange@redhat.com, akpm@linux-foundation.org,
-        andrew.cooper3@citrix.com, dave.hansen@linux.intel.com,
-        linux-mm@kvack.org, luto@kernel.org, mm-commits@vger.kernel.org,
-        namit@vmware.com, npiggin@gmail.com, peterz@infradead.org,
-        tglx@linutronix.de, torvalds@linux-foundation.org, will@kernel.org,
-        yuzhao@google.com
-Subject:  [patch 071/262] mm/memory.c: use correct VMA flags when
- freeing page-tables
-Message-ID: <20211105203821.mV5HWKCGr%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org, apopple@nvidia.com,
+        axelrasmussen@google.com, david@redhat.com, hughd@google.com,
+        jglisse@redhat.com, kirill@shutemov.name, liam.howlett@oracle.com,
+        linmiaohe@huawei.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, peterx@redhat.com,
+        rppt@linux.vnet.ibm.com, shy828301@gmail.com,
+        torvalds@linux-foundation.org, willy@infradead.org
+Subject:  [patch 072/262] mm/shmem: unconditionally set pte dirty
+ in mfill_atomic_install_pte
+Message-ID: <20211105203824.F5P-pkCc0%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,65 +42,90 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Nadav Amit <namit@vmware.com>
-Subject: mm/memory.c: use correct VMA flags when freeing page-tables
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/shmem: unconditionally set pte dirty in mfill_atomic_install_pte
 
-Consistent use of the mmu_gather interface requires a call to
-tlb_start_vma() and tlb_end_vma() for each VMA.  free_pgtables() does not
-follow this pattern.
+Patch series "mm: A few cleanup patches around zap, shmem and uffd", v4.
 
-Certain architectures need tlb_start_vma() to be called in order for
-tlb_update_vma_flags() to update the VMA flags (tlb->vma_exec and
-tlb->vma_huge), which are later used for the proper TLB flush to be
-issued.  Since tlb_start_vma() is not called, this can lead to the wrong
-VMA flags being used when the flush is performed.
+IMHO all of them are very nice cleanups to existing code already, they're
+all small and self-contained.  They'll be needed by uffd-wp coming series.
 
-Specifically, the munmap syscall would call unmap_region(), which unmaps
-the VMAs and then frees the page-tables.  A flush is needed after the
-page-tables are removed to prevent page-walk caches from holding stale
-entries, but this flush would use the flags of the VMA flags of the last
-VMA that was flushed.  This does not appear to be right.
 
-Use tlb_start_vma() and tlb_end_vma() to prevent this from happening. 
-This might lead to unnecessary calls to flush_cache_range() on certain
-arch's.  If needed, a new flag can be added to mmu_gather to indicate that
-the flush is not needed.
+This patch (of 4):
 
-Link: https://lkml.kernel.org/r/20211021122322.592822-1-namit@vmware.com
-Signed-off-by: Nadav Amit <namit@vmware.com>
+It was conditionally done previously, as there's one shmem special case
+that we use SetPageDirty() instead.  However that's not necessary and it
+should be easier and cleaner to do it unconditionally in
+mfill_atomic_install_pte().
+
+The most recent discussion about this is here, where Hugh explained the
+history of SetPageDirty() and why it's possible that it's not required at
+all:
+
+https://lore.kernel.org/lkml/alpine.LSU.2.11.2104121657050.1097@eggly.anvils/
+
+Currently mfill_atomic_install_pte() has three callers:
+
+        1. shmem_mfill_atomic_pte
+        2. mcopy_atomic_pte
+        3. mcontinue_atomic_pte
+
+After the change: case (1) should have its SetPageDirty replaced by the
+dirty bit on pte (so we unify them together, finally), case (2) should
+have no functional change at all as it has page_in_cache==false, case (3)
+may add a dirty bit to the pte.  However since case (3) is UFFDIO_CONTINUE
+for shmem, it's merely 100% sure the page is dirty after all because
+UFFDIO_CONTINUE normally requires another process to modify the page cache
+and kick the faulted thread, so should not make a real difference either.
+
+This should make it much easier to follow on which case will set dirty for
+uffd, as we'll simply set it all now for all uffd related ioctls. 
+Meanwhile, no special handling of SetPageDirty() if there's no need.
+
+Link: https://lkml.kernel.org/r/20210915181456.10739-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20210915181456.10739-2-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Axel Rasmussen <axelrasmussen@google.com>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrew Cooper <andrew.cooper3@citrix.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yu Zhao <yuzhao@google.com>
-Cc: Nick Piggin <npiggin@gmail.com>
+Cc: Liam Howlett <liam.howlett@oracle.com>
+Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/shmem.c       |    1 -
+ mm/userfaultfd.c |    3 +--
+ 2 files changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/memory.c~mm-use-correct-vma-flags-when-freeing-page-tables
-+++ a/mm/memory.c
-@@ -412,6 +412,8 @@ void free_pgtables(struct mmu_gather *tl
- 		unlink_anon_vmas(vma);
- 		unlink_file_vma(vma);
+--- a/mm/shmem.c~mm-shmem-unconditionally-set-pte-dirty-in-mfill_atomic_install_pte
++++ a/mm/shmem.c
+@@ -2423,7 +2423,6 @@ int shmem_mfill_atomic_pte(struct mm_str
+ 	shmem_recalc_inode(inode);
+ 	spin_unlock_irq(&info->lock);
  
-+		tlb_start_vma(tlb, vma);
-+
- 		if (is_vm_hugetlb_page(vma)) {
- 			hugetlb_free_pgd_range(tlb, addr, vma->vm_end,
- 				floor, next ? next->vm_start : ceiling);
-@@ -429,6 +431,8 @@ void free_pgtables(struct mmu_gather *tl
- 			free_pgd_range(tlb, addr, vma->vm_end,
- 				floor, next ? next->vm_start : ceiling);
- 		}
-+
-+		tlb_end_vma(tlb, vma);
- 		vma = next;
- 	}
- }
+-	SetPageDirty(page);
+ 	unlock_page(page);
+ 	return 0;
+ out_delete_from_cache:
+--- a/mm/userfaultfd.c~mm-shmem-unconditionally-set-pte-dirty-in-mfill_atomic_install_pte
++++ a/mm/userfaultfd.c
+@@ -69,10 +69,9 @@ int mfill_atomic_install_pte(struct mm_s
+ 	pgoff_t offset, max_off;
+ 
+ 	_dst_pte = mk_pte(page, dst_vma->vm_page_prot);
++	_dst_pte = pte_mkdirty(_dst_pte);
+ 	if (page_in_cache && !vm_shared)
+ 		writable = false;
+-	if (writable || !page_in_cache)
+-		_dst_pte = pte_mkdirty(_dst_pte);
+ 	if (writable) {
+ 		if (wp_copy)
+ 			_dst_pte = pte_mkuffd_wp(_dst_pte);
 _
