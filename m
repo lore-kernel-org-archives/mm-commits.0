@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4D47C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:37:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 379BBC4332F
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:37:18 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 99F1760720
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:37:16 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2429560EBD
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:37:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231842AbhKEUjy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:39:54 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34746 "EHLO mail.kernel.org"
+        id S233055AbhKEUj5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:39:57 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34782 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233038AbhKEUjy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:39:54 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id EDA4760720;
-        Fri,  5 Nov 2021 20:37:13 +0000 (UTC)
+        id S233038AbhKEUj5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:39:57 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DAC3360720;
+        Fri,  5 Nov 2021 20:37:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144634;
-        bh=2UkTKQih8idxLVqf2ibokSlG04tvQHz4ZCkdKXtbOhk=;
+        s=korg; t=1636144637;
+        bh=pJI1XCeFCB/vXMFPBQdMc6D36Bo3BhS18WObboGfWDU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=XF4YEKexWqtTz+ggQcKLSCB9Q/4DKw0/CfhX3IoK0rWvFLq9qqGbkdRLLXxtbYKel
-         +MFizU1uLqkBLRUOjZxFrdNE3dP0IhtYdHvDWJBGO3SakB/WZJdMMb9Ntwi1UN6PdU
-         5PtfuJpnrQe/yLIrXGnNIw3o4eAp30BdBX9kWPaI=
-Date:   Fri, 05 Nov 2021 13:37:13 -0700
+        b=S+toJuOPkUGoA+9iwLS85LuJroHnORqUC8emIDXSgQjt6IFSlxwXk5f0N6GX5jxW6
+         xPtN6lqTUPDNIJlshS6jAW6FfUb55AiBMr9T11BgWs/eotbCqWOwjcbMCn5g7R/t7Y
+         i6+N/GYCvu0fuB3Cs24Y/5Xzn/Q8BZkSeMcKx/JE=
+Date:   Fri, 05 Nov 2021 13:37:16 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, axboe@kernel.dk, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        willy@infradead.org
-Subject:  [patch 049/262] mm: move more expensive part of XA setup
- out of mapping check
-Message-ID: <20211105203713.0Ahhj4i8_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, imbrenda@linux.ibm.com, jack@suse.cz,
+        jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
+        linmiaohe@huawei.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 050/262] mm/gup: further simplify
+ __gup_device_huge()
+Message-ID: <20211105203716.qKGfFlN1h%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -38,85 +39,63 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Jens Axboe <axboe@kernel.dk>
-Subject: mm: move more expensive part of XA setup out of mapping check
+From: John Hubbard <jhubbard@nvidia.com>
+Subject: mm/gup: further simplify __gup_device_huge()
 
-The fast path here is not needing any writeback, yet we spend time setting
-up the xarray lookup data upfront.  Move the part that actually needs to
-iterate the address space mapping into a separate helper, saving ~30% of
-the time here.
+commit 6401c4eb57f9 ("mm: gup: fix potential pgmap refcnt leak in
+__gup_device_huge()") simplified the return paths, but didn't go quite far
+enough, as discussed in [1].
 
-Link: https://lkml.kernel.org/r/49f67983-b802-8929-edab-d807f745c9ca@kernel.dk
-Signed-off-by: Jens Axboe <axboe@kernel.dk>
-Cc: Matthew Wilcox <willy@infradead.org>
+Remove the "ret" variable entirely, because there is enough information
+already available to provide the return value.
+
+[1] https://lore.kernel.org/r/CAHk-=wgQTRX=5SkCmS+zfmpqubGHGJvXX_HgnPG8JSpHKHBMeg@mail.gmail.com
+
+Link: https://lkml.kernel.org/r/20210904004224.86391-1-jhubbard@nvidia.com
+Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Suggested-by: Linus Torvalds <torvalds@linux-foundation.org>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Claudio Imbrenda <imbrenda@linux.ibm.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   43 +++++++++++++++++++++++++------------------
- 1 file changed, 25 insertions(+), 18 deletions(-)
+ mm/gup.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/mm/filemap.c~mm-move-more-expensive-part-of-xa-setup-out-of-mapping-check
-+++ a/mm/filemap.c
-@@ -639,6 +639,30 @@ static bool mapping_needs_writeback(stru
- 	return mapping->nrpages;
- }
- 
-+static bool filemap_range_has_writeback(struct address_space *mapping,
-+					loff_t start_byte, loff_t end_byte)
-+{
-+	XA_STATE(xas, &mapping->i_pages, start_byte >> PAGE_SHIFT);
-+	pgoff_t max = end_byte >> PAGE_SHIFT;
-+	struct page *page;
-+
-+	if (end_byte < start_byte)
-+		return false;
-+
-+	rcu_read_lock();
-+	xas_for_each(&xas, page, max) {
-+		if (xas_retry(&xas, page))
-+			continue;
-+		if (xa_is_value(page))
-+			continue;
-+		if (PageDirty(page) || PageLocked(page) || PageWriteback(page))
-+			break;
-+	}
-+	rcu_read_unlock();
-+	return page != NULL;
-+
-+}
-+
- /**
-  * filemap_range_needs_writeback - check if range potentially needs writeback
-  * @mapping:           address space within which to check
-@@ -656,29 +680,12 @@ static bool mapping_needs_writeback(stru
- bool filemap_range_needs_writeback(struct address_space *mapping,
- 				   loff_t start_byte, loff_t end_byte)
+--- a/mm/gup.c~mm-gup-further-simplify-__gup_device_huge
++++ a/mm/gup.c
+@@ -2228,7 +2228,6 @@ static int __gup_device_huge(unsigned lo
  {
--	XA_STATE(xas, &mapping->i_pages, start_byte >> PAGE_SHIFT);
--	pgoff_t max = end_byte >> PAGE_SHIFT;
--	struct page *page;
--
- 	if (!mapping_needs_writeback(mapping))
- 		return false;
- 	if (!mapping_tagged(mapping, PAGECACHE_TAG_DIRTY) &&
- 	    !mapping_tagged(mapping, PAGECACHE_TAG_WRITEBACK))
- 		return false;
--	if (end_byte < start_byte)
--		return false;
--
--	rcu_read_lock();
--	xas_for_each(&xas, page, max) {
--		if (xas_retry(&xas, page))
--			continue;
--		if (xa_is_value(page))
--			continue;
--		if (PageDirty(page) || PageLocked(page) || PageWriteback(page))
--			break;
--	}
--	rcu_read_unlock();
--	return page != NULL;
-+	return filemap_range_has_writeback(mapping, start_byte, end_byte);
- }
- EXPORT_SYMBOL_GPL(filemap_range_needs_writeback);
+ 	int nr_start = *nr;
+ 	struct dev_pagemap *pgmap = NULL;
+-	int ret = 1;
  
+ 	do {
+ 		struct page *page = pfn_to_page(pfn);
+@@ -2236,14 +2235,12 @@ static int __gup_device_huge(unsigned lo
+ 		pgmap = get_dev_pagemap(pfn, pgmap);
+ 		if (unlikely(!pgmap)) {
+ 			undo_dev_pagemap(nr, nr_start, flags, pages);
+-			ret = 0;
+ 			break;
+ 		}
+ 		SetPageReferenced(page);
+ 		pages[*nr] = page;
+ 		if (unlikely(!try_grab_page(page, flags))) {
+ 			undo_dev_pagemap(nr, nr_start, flags, pages);
+-			ret = 0;
+ 			break;
+ 		}
+ 		(*nr)++;
+@@ -2251,7 +2248,7 @@ static int __gup_device_huge(unsigned lo
+ 	} while (addr += PAGE_SIZE, addr != end);
+ 
+ 	put_dev_pagemap(pgmap);
+-	return ret;
++	return addr == end;
+ }
+ 
+ static int __gup_device_huge_pmd(pmd_t orig, pmd_t *pmdp, unsigned long addr,
 _
