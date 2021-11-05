@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87B59C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 12239C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6DC6C6136A
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F067C6128E
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233802AbhKEUtU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:49:20 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44458 "EHLO mail.kernel.org"
+        id S233804AbhKEUtY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:49:24 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44508 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233786AbhKEUtU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:49:20 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id DB46061288;
-        Fri,  5 Nov 2021 20:46:39 +0000 (UTC)
+        id S233786AbhKEUtX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:49:23 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6489E61357;
+        Fri,  5 Nov 2021 20:46:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145200;
-        bh=i5KSwLkZjkyCOOiADrAkxZ/QTlmqwFS8Uohf6C0QEas=;
+        s=korg; t=1636145204;
+        bh=VOIunbdNmcWFyd8uMrc34AqP7A1NbkwVd0pIGYCJJ68=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=h6NySITDANK3Tkxi73/gteFnR3d4gPWPZaBv5l5XG0p4R5upjPv7XWzqJKoxZ3SEX
-         /veD3QB0qu0QButXYL0UWkCnvQh1F1U6oa8wa4iKaMfj7xK2wQ+HyM6dudtYWrOO6x
-         3kkxv4bbwZ2LMFIs5C+plAiaJ20rSH8aXc5urfZk=
-Date:   Fri, 05 Nov 2021 13:46:39 -0700
+        b=CewqAxPoSvYQeZUHf6wlrx+cKYxokwBTievw36dDmD6V3VDuTz+Nm4mVr90k1JREx
+         G+sTCB6NTqrYe/PWrJCDC8quwpnFkrZpdgPKI4g/befAfUJH8uV8d1ohrB5xasEP13
+         xowvOYU4qcfkxp+nJ/ve7P7/dw14hTUJYD478dM4=
+Date:   Fri, 05 Nov 2021 13:46:42 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, amit@kernel.org,
-        benh@kernel.crashing.org, corbet@lwn.net, david@redhat.com,
-        dwmw@amazon.com, elver@google.com, foersleo@amazon.de,
-        gthelen@google.com, Jonathan.Cameron@huawei.com,
-        linux-mm@kvack.org, markubo@amazon.de, mm-commits@vger.kernel.org,
-        rientjes@google.com, shakeelb@google.com, shuah@kernel.org,
-        sj@kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 229/262] Docs/admin-guide/mm/damon: document
- DAMON-based Operation Schemes
-Message-ID: <20211105204639.Cba_-vH9D%akpm@linux-foundation.org>
+        benh@kernel.crashing.org, brendanhiggins@google.com,
+        corbet@lwn.net, david@redhat.com, dwmw@amazon.com,
+        elver@google.com, foersleo@amazon.de, gthelen@google.com,
+        Jonathan.Cameron@huawei.com, linux-mm@kvack.org, markubo@amazon.de,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        shakeelb@google.com, shuah@kernel.org, sj@kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 230/262] mm/damon/dbgfs: allow users to set
+ initial monitoring target regions
+Message-ID: <20211105204642.8cBaVVOlp%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,118 +44,248 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon: document DAMON-based Operation Schemes
+Subject: mm/damon/dbgfs: allow users to set initial monitoring target regions
 
-This commit add description of DAMON-based operation schemes in the DAMON
-documents.
+Patch series "DAMON: Support Physical Memory Address Space Monitoring:.
 
-Link: https://lkml.kernel.org/r/20211001125604.29660-8-sj@kernel.org
+DAMON currently supports only virtual address spaces monitoring.  It can
+be easily extended for various use cases and address spaces by configuring
+its monitoring primitives layer to use appropriate primitives
+implementations, though.  This patchset implements monitoring primitives
+for the physical address space monitoring using the structure.
+
+The first 3 patches allow the user space users manually set the monitoring
+regions.  The 1st patch implements the feature in the 'damon-dbgfs'. 
+Then, patches for adding a unit tests (the 2nd patch) and updating the
+documentation (the 3rd patch) follow.
+
+Following 4 patches implement the physical address space monitoring
+primitives.  The 4th patch makes some primitive functions for the virtual
+address spaces primitives reusable.  The 5th patch implements the physical
+address space monitoring primitives.  The 6th patch links the primitives
+to the 'damon-dbgfs'.  Finally, 7th patch documents this new features.
+
+
+This patch (of 7):
+
+Some 'damon-dbgfs' users would want to monitor only a part of the entire
+virtual memory address space.  The program interface users in the kernel
+space could use '->before_start()' callback or set the regions inside the
+context struct as they want, but 'damon-dbgfs' users cannot.
+
+For the reason, this commit introduces a new debugfs file called
+'init_region'.  'damon-dbgfs' users can specify which initial monitoring
+target address regions they want by writing special input to the file. 
+The input should describe each region in each line in the below form:
+
+    <pid> <start address> <end address>
+
+Note that the regions will be updated to cover entire memory mapped
+regions after a 'regions update interval' is passed.  If you want the
+regions to not be updated after the initial setting, you could set the
+interval as a very long time, say, a few decades.
+
+Link: https://lkml.kernel.org/r/20211012205711.29216-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211012205711.29216-2-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rienjes <rientjes@google.com>
-Cc: David Woodhouse <dwmw@amazon.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Jonathan Cameron <Jonathan.Cameron@huawei.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Leonard Foerster <foersleo@amazon.de>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: David Woodhouse <dwmw@amazon.com>
 Cc: Marco Elver <elver@google.com>
+Cc: Leonard Foerster <foersleo@amazon.de>
+Cc: Greg Thelen <gthelen@google.com>
 Cc: Markus Boehme <markubo@amazon.de>
+Cc: David Rienjes <rientjes@google.com>
 Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/start.rst |   11 +++
- Documentation/admin-guide/mm/damon/usage.rst |   51 ++++++++++++++++-
- 2 files changed, 60 insertions(+), 2 deletions(-)
+ mm/damon/dbgfs.c |  156 ++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 154 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-document-damon-based-operation-schemes
-+++ a/Documentation/admin-guide/mm/damon/start.rst
-@@ -108,6 +108,17 @@ the results as separate image files. ::
- You can view the visualizations of this example workload at [1]_.
- Visualizations of other realistic workloads are available at [2]_ [3]_ [4]_.
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-allow-users-to-set-initial-monitoring-target-regions
++++ a/mm/damon/dbgfs.c
+@@ -394,6 +394,152 @@ out:
+ 	return ret;
+ }
  
++static ssize_t sprint_init_regions(struct damon_ctx *c, char *buf, ssize_t len)
++{
++	struct damon_target *t;
++	struct damon_region *r;
++	int written = 0;
++	int rc;
 +
-+Data Access Pattern Aware Memory Management
-+===========================================
++	damon_for_each_target(t, c) {
++		damon_for_each_region(r, t) {
++			rc = scnprintf(&buf[written], len - written,
++					"%lu %lu %lu\n",
++					t->id, r->ar.start, r->ar.end);
++			if (!rc)
++				return -ENOMEM;
++			written += rc;
++		}
++	}
++	return written;
++}
 +
-+Below three commands make every memory region of size >=4K that doesn't
-+accessed for >=60 seconds in your workload to be swapped out. ::
++static ssize_t dbgfs_init_regions_read(struct file *file, char __user *buf,
++		size_t count, loff_t *ppos)
++{
++	struct damon_ctx *ctx = file->private_data;
++	char *kbuf;
++	ssize_t len;
 +
-+    $ echo "#min-size max-size min-acc max-acc min-age max-age action" > scheme
-+    $ echo "4K        max      0       0       60s     max     pageout" >> scheme
-+    $ damo schemes -c my_thp_scheme <pid of your workload>
++	kbuf = kmalloc(count, GFP_KERNEL);
++	if (!kbuf)
++		return -ENOMEM;
 +
- .. [1] https://damonitor.github.io/doc/html/v17/admin-guide/mm/damon/start.html#visualizing-recorded-patterns
- .. [2] https://damonitor.github.io/test/result/visual/latest/rec.heatmap.1.png.html
- .. [3] https://damonitor.github.io/test/result/visual/latest/rec.wss_sz.png.html
---- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-document-damon-based-operation-schemes
-+++ a/Documentation/admin-guide/mm/damon/usage.rst
-@@ -34,8 +34,8 @@ the reason, this document describes only
- debugfs Interface
- =================
++	mutex_lock(&ctx->kdamond_lock);
++	if (ctx->kdamond) {
++		mutex_unlock(&ctx->kdamond_lock);
++		len = -EBUSY;
++		goto out;
++	}
++
++	len = sprint_init_regions(ctx, kbuf, count);
++	mutex_unlock(&ctx->kdamond_lock);
++	if (len < 0)
++		goto out;
++	len = simple_read_from_buffer(buf, count, ppos, kbuf, len);
++
++out:
++	kfree(kbuf);
++	return len;
++}
++
++static int add_init_region(struct damon_ctx *c,
++			 unsigned long target_id, struct damon_addr_range *ar)
++{
++	struct damon_target *t;
++	struct damon_region *r, *prev;
++	unsigned long id;
++	int rc = -EINVAL;
++
++	if (ar->start >= ar->end)
++		return -EINVAL;
++
++	damon_for_each_target(t, c) {
++		id = t->id;
++		if (targetid_is_pid(c))
++			id = (unsigned long)pid_vnr((struct pid *)id);
++		if (id == target_id) {
++			r = damon_new_region(ar->start, ar->end);
++			if (!r)
++				return -ENOMEM;
++			damon_add_region(r, t);
++			if (damon_nr_regions(t) > 1) {
++				prev = damon_prev_region(r);
++				if (prev->ar.end > r->ar.start) {
++					damon_destroy_region(r, t);
++					return -EINVAL;
++				}
++			}
++			rc = 0;
++		}
++	}
++	return rc;
++}
++
++static int set_init_regions(struct damon_ctx *c, const char *str, ssize_t len)
++{
++	struct damon_target *t;
++	struct damon_region *r, *next;
++	int pos = 0, parsed, ret;
++	unsigned long target_id;
++	struct damon_addr_range ar;
++	int err;
++
++	damon_for_each_target(t, c) {
++		damon_for_each_region_safe(r, next, t)
++			damon_destroy_region(r, t);
++	}
++
++	while (pos < len) {
++		ret = sscanf(&str[pos], "%lu %lu %lu%n",
++				&target_id, &ar.start, &ar.end, &parsed);
++		if (ret != 3)
++			break;
++		err = add_init_region(c, target_id, &ar);
++		if (err)
++			goto fail;
++		pos += parsed;
++	}
++
++	return 0;
++
++fail:
++	damon_for_each_target(t, c) {
++		damon_for_each_region_safe(r, next, t)
++			damon_destroy_region(r, t);
++	}
++	return err;
++}
++
++static ssize_t dbgfs_init_regions_write(struct file *file,
++					  const char __user *buf, size_t count,
++					  loff_t *ppos)
++{
++	struct damon_ctx *ctx = file->private_data;
++	char *kbuf;
++	ssize_t ret = count;
++	int err;
++
++	kbuf = user_input_str(buf, count, ppos);
++	if (IS_ERR(kbuf))
++		return PTR_ERR(kbuf);
++
++	mutex_lock(&ctx->kdamond_lock);
++	if (ctx->kdamond) {
++		ret = -EBUSY;
++		goto unlock_out;
++	}
++
++	err = set_init_regions(ctx, kbuf, ret);
++	if (err)
++		ret = err;
++
++unlock_out:
++	mutex_unlock(&ctx->kdamond_lock);
++	kfree(kbuf);
++	return ret;
++}
++
+ static ssize_t dbgfs_kdamond_pid_read(struct file *file,
+ 		char __user *buf, size_t count, loff_t *ppos)
+ {
+@@ -445,6 +591,12 @@ static const struct file_operations targ
+ 	.write = dbgfs_target_ids_write,
+ };
  
--DAMON exports three files, ``attrs``, ``target_ids``, and ``monitor_on`` under
--its debugfs directory, ``<debugfs>/damon/``.
-+DAMON exports four files, ``attrs``, ``target_ids``, ``schemes`` and
-+``monitor_on`` under its debugfs directory, ``<debugfs>/damon/``.
++static const struct file_operations init_regions_fops = {
++	.open = damon_dbgfs_open,
++	.read = dbgfs_init_regions_read,
++	.write = dbgfs_init_regions_write,
++};
++
+ static const struct file_operations kdamond_pid_fops = {
+ 	.open = damon_dbgfs_open,
+ 	.read = dbgfs_kdamond_pid_read,
+@@ -453,9 +605,9 @@ static const struct file_operations kdam
+ static void dbgfs_fill_ctx_dir(struct dentry *dir, struct damon_ctx *ctx)
+ {
+ 	const char * const file_names[] = {"attrs", "schemes", "target_ids",
+-		"kdamond_pid"};
++		"init_regions", "kdamond_pid"};
+ 	const struct file_operations *fops[] = {&attrs_fops, &schemes_fops,
+-		&target_ids_fops, &kdamond_pid_fops};
++		&target_ids_fops, &init_regions_fops, &kdamond_pid_fops};
+ 	int i;
  
- 
- Attributes
-@@ -74,6 +74,53 @@ check it again::
- Note that setting the target ids doesn't start the monitoring.
- 
- 
-+Schemes
-+-------
-+
-+For usual DAMON-based data access aware memory management optimizations, users
-+would simply want the system to apply a memory management action to a memory
-+region of a specific size having a specific access frequency for a specific
-+time.  DAMON receives such formalized operation schemes from the user and
-+applies those to the target processes.  It also counts the total number and
-+size of regions that each scheme is applied.  This statistics can be used for
-+online analysis or tuning of the schemes.
-+
-+Users can get and set the schemes by reading from and writing to ``schemes``
-+debugfs file.  Reading the file also shows the statistics of each scheme.  To
-+the file, each of the schemes should be represented in each line in below form:
-+
-+    min-size max-size min-acc max-acc min-age max-age action
-+
-+Note that the ranges are closed interval.  Bytes for the size of regions
-+(``min-size`` and ``max-size``), number of monitored accesses per aggregate
-+interval for access frequency (``min-acc`` and ``max-acc``), number of
-+aggregate intervals for the age of regions (``min-age`` and ``max-age``), and a
-+predefined integer for memory management actions should be used.  The supported
-+numbers and their meanings are as below.
-+
-+ - 0: Call ``madvise()`` for the region with ``MADV_WILLNEED``
-+ - 1: Call ``madvise()`` for the region with ``MADV_COLD``
-+ - 2: Call ``madvise()`` for the region with ``MADV_PAGEOUT``
-+ - 3: Call ``madvise()`` for the region with ``MADV_HUGEPAGE``
-+ - 4: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``
-+ - 5: Do nothing but count the statistics
-+
-+You can disable schemes by simply writing an empty string to the file.  For
-+example, below commands applies a scheme saying "If a memory region of size in
-+[4KiB, 8KiB] is showing accesses per aggregate interval in [0, 5] for aggregate
-+interval in [10, 20], page out the region", check the entered scheme again, and
-+finally remove the scheme. ::
-+
-+    # cd <debugfs>/damon
-+    # echo "4096 8192    0 5    10 20    2" > schemes
-+    # cat schemes
-+    4096 8192 0 5 10 20 2 0 0
-+    # echo > schemes
-+
-+The last two integers in the 4th line of above example is the total number and
-+the total size of the regions that the scheme is applied.
-+
-+
- Turning On/Off
- --------------
- 
+ 	for (i = 0; i < ARRAY_SIZE(file_names); i++)
 _
