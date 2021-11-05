@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2887FC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A0F3C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1814361373
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:06 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 854126136A
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233729AbhKEUsp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:48:45 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43790 "EHLO mail.kernel.org"
+        id S233648AbhKEUsy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:48:54 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43870 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233724AbhKEUso (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:48:44 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7D12861288;
-        Fri,  5 Nov 2021 20:46:04 +0000 (UTC)
+        id S233752AbhKEUsr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:48:47 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 6C1EE61288;
+        Fri,  5 Nov 2021 20:46:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145164;
-        bh=1hDB9nfGh9/MCnfFpWEWPrr61S0fnTZleNIJlYsPn/E=;
+        s=korg; t=1636145167;
+        bh=NRDUh2MdEyFRB0KledZvV54NdO0zcH9XWhGWSwoPEzw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wAF7Dtnb60hWUbTbWrxbDeXc6ruxcGj58CiJApHLh1g9F+h/KAj7hS/WZtNiwde3b
-         WUgWA1A8+/UmZIQF/ptKaMO+6TfSo8bgDJvjsgGE7BEO6jAFRHlGOmGzNDY4RFwW5u
-         v649Au/IV/xJKRYlWq68ZepqGyMyM34zrdGqD6GU=
-Date:   Fri, 05 Nov 2021 13:46:04 -0700
+        b=uAnuQqciTDUsVLwlmw4Xxg+vscxCFLrsD7iWs4cP6vHp3QbS91+hHrk6yvCGF79oE
+         Oofa0f/Qr7JuWfGJsoQUBsNRb6aFe02e7E+GwsOEQSLCGV45K0sbHTMJU/CJPUQ2jq
+         WPcPTLL13FxannVHewoe5eGeZFcWVEIM6tn1tswg=
+Date:   Fri, 05 Nov 2021 13:46:06 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, corbet@lwn.net, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, sjpark@amazon.de,
+        mm-commits@vger.kernel.org, sj@kernel.org, sjpark@amazon.de,
         torvalds@linux-foundation.org
-Subject:  [patch 218/262] include/linux/damon.h: fix kernel-doc
- comments for 'damon_callback'
-Message-ID: <20211105204604.SNmwZ955x%akpm@linux-foundation.org>
+Subject:  [patch 219/262] mm/damon/core: print kdamond start log in
+ debug mode only
+Message-ID: <20211105204606.buFORSv6G%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -38,41 +38,31 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: SeongJae Park <sjpark@amazon.de>
-Subject: include/linux/damon.h: fix kernel-doc comments for 'damon_callback'
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/core: print kdamond start log in debug mode only
 
-A few Kernel-doc comments in 'damon.h' are broken.  This commit fixes
-those.
+Logging of kdamond startup is using 'pr_info()' unnecessarily.  This
+commit makes it to use 'pr_debug()' instead.
 
-Link: https://lkml.kernel.org/r/20210917123958.3819-5-sj@kernel.org
-Signed-off-by: SeongJae Park <sjpark@amazon.de>
+Link: https://lkml.kernel.org/r/20210917123958.3819-6-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: SeongJae Park <sjpark@amazon.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/damon/core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/damon.h~include-linux-damonh-fix-kernel-doc-comments-for-damon_callback
-+++ a/include/linux/damon.h
-@@ -62,7 +62,7 @@ struct damon_target {
- struct damon_ctx;
+--- a/mm/damon/core.c~mm-damon-core-print-kdamond-start-log-in-debug-mode-only
++++ a/mm/damon/core.c
+@@ -653,7 +653,7 @@ static int kdamond_fn(void *data)
+ 	unsigned long sz_limit = 0;
  
- /**
-- * struct damon_primitive	Monitoring primitives for given use cases.
-+ * struct damon_primitive - Monitoring primitives for given use cases.
-  *
-  * @init:			Initialize primitive-internal data structures.
-  * @update:			Update primitive-internal data structures.
-@@ -108,8 +108,8 @@ struct damon_primitive {
- 	void (*cleanup)(struct damon_ctx *context);
- };
+ 	mutex_lock(&ctx->kdamond_lock);
+-	pr_info("kdamond (%d) starts\n", ctx->kdamond->pid);
++	pr_debug("kdamond (%d) starts\n", ctx->kdamond->pid);
+ 	mutex_unlock(&ctx->kdamond_lock);
  
--/*
-- * struct damon_callback	Monitoring events notification callbacks.
-+/**
-+ * struct damon_callback - Monitoring events notification callbacks.
-  *
-  * @before_start:	Called before starting the monitoring.
-  * @after_sampling:	Called after each sampling.
+ 	if (ctx->primitive.init)
 _
