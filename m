@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 70101C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E9578C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 52A526136F
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D6F606128E
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:46:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233805AbhKEUt3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:49:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:44574 "EHLO mail.kernel.org"
+        id S233806AbhKEUtb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:49:31 -0400
+Received: from mail.kernel.org ([198.145.29.99]:44630 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233786AbhKEUt1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:49:27 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CF39561288;
-        Fri,  5 Nov 2021 20:46:46 +0000 (UTC)
+        id S233786AbhKEUta (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:49:30 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 458F26126A;
+        Fri,  5 Nov 2021 20:46:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145207;
-        bh=y+5mSAl9bOTvn9SHMFyqOP82kYoIRhlo3opLhCCgEC4=;
+        s=korg; t=1636145210;
+        bh=RcTA1AudXgXH9EMTrgmQoWw5+SCP6irYLWzXAWwE4GY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=HEv4jqP6vSwL3ZkUuZ+UYpbMBheAWDascRQGr++dVy1jBzW9495EIm5tKapN4g04k
-         JTaqAdeZUwfI4RKN3JyG1NPoeOAHqMUvJ/xh9Q26mKeMgkY3TZweTJPiqgCAL+sOOh
-         nMOsph/xxLELeCu+geUn1S3pixuRgbTymuSLH22Q=
-Date:   Fri, 05 Nov 2021 13:46:46 -0700
+        b=XiK25w98qyvz3HgDp69ZqPvFamWBI8AN+BXPwGvvfxPdE145ikuPJFuV84tlqj8aw
+         JWYeBWXLq1powsv2ZWjjGnxD83JhvA2T1amKPW6mG+yQDPdq4qS9OiqUYuGFRMXhz/
+         1THNiUrzR2iQe/vRccK0c4KFXLLBR9/TnZqvb/Tg=
+Date:   Fri, 05 Nov 2021 13:46:49 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, amit@kernel.org,
         benh@kernel.crashing.org, brendanhiggins@google.com,
@@ -33,9 +33,9 @@ To:     akpm@linux-foundation.org, amit@kernel.org,
         mm-commits@vger.kernel.org, rientjes@google.com,
         shakeelb@google.com, shuah@kernel.org, sj@kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 231/262] mm/damon/dbgfs-test: add a unit test case
- for 'init_regions'
-Message-ID: <20211105204646.fYQGh1BC3%akpm@linux-foundation.org>
+Subject:  [patch 232/262] Docs/admin-guide/mm/damon: document
+ 'init_regions' feature
+Message-ID: <20211105204649.5UJA8W9k3%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,15 +44,16 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/dbgfs-test: add a unit test case for 'init_regions'
+Subject: Docs/admin-guide/mm/damon: document 'init_regions' feature
 
-This commit adds another test case for the new feature, 'init_regions'.
+This commit adds description of the 'init_regions' feature in the DAMON
+usage document.
 
-Link: https://lkml.kernel.org/r/20211012205711.29216-3-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211012205711.29216-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
-Reviewed-by: Brendan Higgins <brendanhiggins@google.com>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: David Hildenbrand <david@redhat.com>
 Cc: David Rienjes <rientjes@google.com>
 Cc: David Woodhouse <dwmw@amazon.com>
@@ -67,73 +68,64 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs-test.h |   54 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 54 insertions(+)
+ Documentation/admin-guide/mm/damon/usage.rst |   41 ++++++++++++++++-
+ 1 file changed, 39 insertions(+), 2 deletions(-)
 
---- a/mm/damon/dbgfs-test.h~mm-damon-dbgfs-test-add-a-unit-test-case-for-init_regions
-+++ a/mm/damon/dbgfs-test.h
-@@ -109,9 +109,63 @@ static void damon_dbgfs_test_set_targets
- 	dbgfs_destroy_ctx(ctx);
- }
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-document-init_regions-feature
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -34,8 +34,9 @@ the reason, this document describes only
+ debugfs Interface
+ =================
  
-+static void damon_dbgfs_test_set_init_regions(struct kunit *test)
-+{
-+	struct damon_ctx *ctx = damon_new_ctx();
-+	unsigned long ids[] = {1, 2, 3};
-+	/* Each line represents one region in ``<target id> <start> <end>`` */
-+	char * const valid_inputs[] = {"2 10 20\n 2   20 30\n2 35 45",
-+		"2 10 20\n",
-+		"2 10 20\n1 39 59\n1 70 134\n  2  20 25\n",
-+		""};
-+	/* Reading the file again will show sorted, clean output */
-+	char * const valid_expects[] = {"2 10 20\n2 20 30\n2 35 45\n",
-+		"2 10 20\n",
-+		"1 39 59\n1 70 134\n2 10 20\n2 20 25\n",
-+		""};
-+	char * const invalid_inputs[] = {"4 10 20\n",	/* target not exists */
-+		"2 10 20\n 2 14 26\n",		/* regions overlap */
-+		"1 10 20\n2 30 40\n 1 5 8"};	/* not sorted by address */
-+	char *input, *expect;
-+	int i, rc;
-+	char buf[256];
+-DAMON exports four files, ``attrs``, ``target_ids``, ``schemes`` and
+-``monitor_on`` under its debugfs directory, ``<debugfs>/damon/``.
++DAMON exports five files, ``attrs``, ``target_ids``, ``init_regions``,
++``schemes`` and ``monitor_on`` under its debugfs directory,
++``<debugfs>/damon/``.
+ 
+ 
+ Attributes
+@@ -74,6 +75,42 @@ check it again::
+ Note that setting the target ids doesn't start the monitoring.
+ 
+ 
++Initial Monitoring Target Regions
++---------------------------------
 +
-+	damon_set_targets(ctx, ids, 3);
++In case of the debugfs based monitoring, DAMON automatically sets and updates
++the monitoring target regions so that entire memory mappings of target
++processes can be covered.  However, users can want to limit the monitoring
++region to specific address ranges, such as the heap, the stack, or specific
++file-mapped area.  Or, some users can know the initial access pattern of their
++workloads and therefore want to set optimal initial regions for the 'adaptive
++regions adjustment'.
 +
-+	/* Put valid inputs and check the results */
-+	for (i = 0; i < ARRAY_SIZE(valid_inputs); i++) {
-+		input = valid_inputs[i];
-+		expect = valid_expects[i];
++In such cases, users can explicitly set the initial monitoring target regions
++as they want, by writing proper values to the ``init_regions`` file.  Each line
++of the input should represent one region in below form.::
 +
-+		rc = set_init_regions(ctx, input, strnlen(input, 256));
-+		KUNIT_EXPECT_EQ(test, rc, 0);
++    <target id> <start address> <end address>
 +
-+		memset(buf, 0, 256);
-+		sprint_init_regions(ctx, buf, 256);
++The ``target id`` should already in ``target_ids`` file, and the regions should
++be passed in address order.  For example, below commands will set a couple of
++address ranges, ``1-100`` and ``100-200`` as the initial monitoring target
++region of process 42, and another couple of address ranges, ``20-40`` and
++``50-100`` as that of process 4242.::
 +
-+		KUNIT_EXPECT_STREQ(test, (char *)buf, expect);
-+	}
-+	/* Put invlid inputs and check the return error code */
-+	for (i = 0; i < ARRAY_SIZE(invalid_inputs); i++) {
-+		input = invalid_inputs[i];
-+		pr_info("input: %s\n", input);
-+		rc = set_init_regions(ctx, input, strnlen(input, 256));
-+		KUNIT_EXPECT_EQ(test, rc, -EINVAL);
++    # cd <debugfs>/damon
++    # echo "42   1       100
++            42   100     200
++            4242 20      40
++            4242 50      100" > init_regions
 +
-+		memset(buf, 0, 256);
-+		sprint_init_regions(ctx, buf, 256);
++Note that this sets the initial monitoring target regions only.  In case of
++virtual memory monitoring, DAMON will automatically updates the boundary of the
++regions after one ``regions update interval``.  Therefore, users should set the
++``regions update interval`` large enough in this case, if they don't want the
++update.
 +
-+		KUNIT_EXPECT_STREQ(test, (char *)buf, "");
-+	}
 +
-+	damon_set_targets(ctx, NULL, 0);
-+	damon_destroy_ctx(ctx);
-+}
-+
- static struct kunit_case damon_test_cases[] = {
- 	KUNIT_CASE(damon_dbgfs_test_str_to_target_ids),
- 	KUNIT_CASE(damon_dbgfs_test_set_targets),
-+	KUNIT_CASE(damon_dbgfs_test_set_init_regions),
- 	{},
- };
+ Schemes
+ -------
  
 _
