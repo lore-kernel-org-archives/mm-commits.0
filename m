@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B1B0C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 98334C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0FBF66136F
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 83C7861362
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233704AbhKEUrl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:47:41 -0400
-Received: from mail.kernel.org ([198.145.29.99]:42756 "EHLO mail.kernel.org"
+        id S233055AbhKEUrp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:47:45 -0400
+Received: from mail.kernel.org ([198.145.29.99]:42830 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233504AbhKEUrl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:47:41 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CD0916136A;
-        Fri,  5 Nov 2021 20:45:00 +0000 (UTC)
+        id S233197AbhKEUro (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:47:44 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E5D0C6136F;
+        Fri,  5 Nov 2021 20:45:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145101;
-        bh=idL0yaFmY8TUVLDiAyvWIBsNSZtEO/ZbWdvGTnAYvG0=;
+        s=korg; t=1636145104;
+        bh=CdHMF4pxm2GhLSh8VjYZRSZM1GSBQRNTbC6EcG4WsYI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=purpFdKL9jSqV02q7QhJHpwT0YC5oCFkTXmung7fTYtGKZHYzQ1pVIictLj0G/lkQ
-         ZU5ZGPVQfGfAcMEFffMIJWv/lWkzfjtctuUFlWyNg2KqStBY/EBJwGQY+BHI/VCRfy
-         ndP7edNlym1wYtEfn6zniON96q11mVjIKTOe5jpA=
-Date:   Fri, 05 Nov 2021 13:45:00 -0700
+        b=UrwAWra0MwwPZA9wxDW8fTNgXS6x89ectA9lcuSUaRjHkFTWavWaKVlL7H8sRQppJ
+         yJ/bhqFLUOU5z/pUg/Xkak0qt97+LkJntuS05xo4re2iktjhW010zST6dBfyUSiiSU
+         nSMQ+sUt398MgDhCglfCzdQGxR3fAy9jPqkKgIWM=
+Date:   Fri, 05 Nov 2021 13:45:03 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, apopple@nvidia.com, jglisse@redhat.com,
-        jhubbard@nvidia.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com,
+To:     akpm@linux-foundation.org, henryburns@google.com,
+        linmiaohe@huawei.com, linux-mm@kvack.org, minchan@kernel.org,
+        mm-commits@vger.kernel.org, senozhatsky@chromium.org,
         torvalds@linux-foundation.org
-Subject:  [patch 197/262] mm/rmap.c: avoid double faults migrating
- device private pages
-Message-ID: <20211105204500.E7gZ9uZtc%akpm@linux-foundation.org>
+Subject:  [patch 198/262] mm/zsmalloc.c: close race window between
+ zs_pool_dec_isolated() and zs_unregister_migration()
+Message-ID: <20211105204503.cVz6sXG8I%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,60 +39,56 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/rmap.c: avoid double faults migrating device private pages
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/zsmalloc.c: close race window between zs_pool_dec_isolated() and zs_unregister_migration()
 
-During migration special page table entries are installed for each page
-being migrated.  These entries store the pfn and associated permissions of
-ptes mapping the page being migarted.
+There is one possible race window between zs_pool_dec_isolated() and
+zs_unregister_migration() because wait_for_isolated_drain() checks the
+isolated count without holding class->lock and there is no order inside
+zs_pool_dec_isolated().  Thus the below race window could be possible:
 
-Device-private pages use special swap pte entries to distinguish read-only
-vs.  writeable pages which the migration code checks when creating
-migration entries.  Normally this follows a fast path in
-migrate_vma_collect_pmd() which correctly copies the permissions of
-device-private pages over to migration entries when migrating pages back
-to the CPU.
+zs_pool_dec_isolated		zs_unregister_migration
+  check pool->destroying != 0
+				  pool->destroying = true;
+				  smp_mb();
+				  wait_for_isolated_drain()
+				    wait for pool->isolated_pages == 0
+  atomic_long_dec(&pool->isolated_pages);
+  atomic_long_read(&pool->isolated_pages) == 0
 
-However the slow-path falls back to using try_to_migrate() which
-unconditionally creates read-only migration entries for device-private
-pages.  This leads to unnecessary double faults on the CPU as the new
-pages are always mapped read-only even when they could be mapped
-writeable.  Fix this by correctly copying device-private permissions in
-try_to_migrate_one().
+Since we observe the pool->destroying (false) before atomic_long_dec() for
+pool->isolated_pages, waking pool->migration_wait up is missed.
 
-Link: https://lkml.kernel.org/r/20211018045247.3128058-1-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reported-by: Ralph Campbell <rcampbell@nvidia.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
+Fix this by ensure checking pool->destroying happens after the
+atomic_long_dec(&pool->isolated_pages).
+
+Link: https://lkml.kernel.org/r/20210708115027.7557-1-linmiaohe@huawei.com
+Fixes: 701d678599d0 ("mm/zsmalloc.c: fix race condition in zs_destroy_pool")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Henry Burns <henryburns@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/zsmalloc.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/rmap.c~mm-rmapc-avoid-double-faults-migrating-device-private-pages
-+++ a/mm/rmap.c
-@@ -1807,6 +1807,7 @@ static bool try_to_migrate_one(struct pa
- 		update_hiwater_rss(mm);
- 
- 		if (is_zone_device_page(page)) {
-+			unsigned long pfn = page_to_pfn(page);
- 			swp_entry_t entry;
- 			pte_t swp_pte;
- 
-@@ -1815,8 +1816,11 @@ static bool try_to_migrate_one(struct pa
- 			 * pte. do_swap_page() will wait until the migration
- 			 * pte is removed and then restart fault handling.
- 			 */
--			entry = make_readable_migration_entry(
--							page_to_pfn(page));
-+			entry = pte_to_swp_entry(pteval);
-+			if (is_writable_device_private_entry(entry))
-+				entry = make_writable_migration_entry(pfn);
-+			else
-+				entry = make_readable_migration_entry(pfn);
- 			swp_pte = swp_entry_to_pte(entry);
- 
- 			/*
+--- a/mm/zsmalloc.c~mm-zsmallocc-close-race-window-between-zs_pool_dec_isolated-and-zs_unregister_migration
++++ a/mm/zsmalloc.c
+@@ -1830,10 +1830,11 @@ static inline void zs_pool_dec_isolated(
+ 	VM_BUG_ON(atomic_long_read(&pool->isolated_pages) <= 0);
+ 	atomic_long_dec(&pool->isolated_pages);
+ 	/*
+-	 * There's no possibility of racing, since wait_for_isolated_drain()
+-	 * checks the isolated count under &class->lock after enqueuing
+-	 * on migration_wait.
++	 * Checking pool->destroying must happen after atomic_long_dec()
++	 * for pool->isolated_pages above. Paired with the smp_mb() in
++	 * zs_unregister_migration().
+ 	 */
++	smp_mb__after_atomic();
+ 	if (atomic_long_read(&pool->isolated_pages) == 0 && pool->destroying)
+ 		wake_up_all(&pool->migration_wait);
+ }
 _
