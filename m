@@ -2,36 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BC74EC433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EF64DC433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:23 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9BFD661371
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E040861373
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:45:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233701AbhKEUr7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:47:59 -0400
-Received: from mail.kernel.org ([198.145.29.99]:43018 "EHLO mail.kernel.org"
+        id S233709AbhKEUsD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:48:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:43084 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233650AbhKEUr7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:47:59 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 054396128E;
-        Fri,  5 Nov 2021 20:45:18 +0000 (UTC)
+        id S233702AbhKEUsC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:48:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 47A2761362;
+        Fri,  5 Nov 2021 20:45:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145119;
-        bh=PpQE9hHEwJ4f9NZ2iMF+besnDDOA/dbnQt7+H/4lGQs=;
+        s=korg; t=1636145122;
+        bh=tcauLH4ijKH/o2arIcCMmtzCCODlg33d8vndq8P6M8Q=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=J9F/GR44Qqgs49sG1OiZlUYa1hrqdmnPINSKBFOMivBnqVuDRduluvsnp4Pb4nbEw
-         bxWC4URUJp175TUAzYaeiojQsepuRJlu03ClJwZXdDBGUveJDuivPb/Sszvt3wzHsb
-         HTM91QfHLHk0gm8vtKGyFhPMzygMwuF6LAcxFInc=
-Date:   Fri, 05 Nov 2021 13:45:18 -0700
+        b=lCRW1DGlPoD+eHOIJ2FbuqBVVl2vxXXsGyUEE3F2AOkGKDAQCix7guSOpkRYY2MBP
+         lGnd5MitopV48RxohUejxhgQSmWJwqM6ysVSjaZ54VPyOBvSIskklSbcIwqogOEYBZ
+         ypDgK30GIWSmVhl6LQ9zbnUzSfyDhFkPKdiKtJYk=
+Date:   Fri, 05 Nov 2021 13:45:21 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
-        jmorris@namei.org, joel@jms.id.au, keescook@chromium.org,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, serge@hallyn.com, steve@sk2.org,
-        torvalds@linux-foundation.org, vbabka@suse.cz
-Subject:  [patch 203/262] mm: remove HARDENED_USERCOPY_FALLBACK
-Message-ID: <20211105204518._op8lD-Ug%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, davem@davemloft.net, horms@verge.net.au,
+        kuba@kernel.org, linux-mm@kvack.org, liumh1@shanghaitech.edu.cn,
+        marcelo.leitner@gmail.com, mm-commits@vger.kernel.org,
+        pshelar@ovn.org, torvalds@linux-foundation.org,
+        ulf.hansson@linaro.org, vyasevich@gmail.com, willy@infradead.org
+Subject:  [patch 204/262] include/linux/mm.h: move
+ nr_free_buffer_pages from swap.h to mm.h
+Message-ID: <20211105204521.CXrs5KDI0%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,154 +40,123 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Stephen Kitt <steve@sk2.org>
-Subject: mm: remove HARDENED_USERCOPY_FALLBACK
+From: Mianhan Liu <liumh1@shanghaitech.edu.cn>
+Subject: include/linux/mm.h: move nr_free_buffer_pages from swap.h to mm.h
 
-This has served its purpose and is no longer used.  All usercopy
-violations appear to have been handled by now, any remaining instances (or
-new bugs) will cause copies to be rejected.
+nr_free_buffer_pages could be exposed through mm.h instead of swap.h.  The
+advantage of this change is that it can reduce the obsolete includes.  For
+example, net/ipv4/tcp.c wouldn't need swap.h any more since it has already
+included mm.h.  Similarly, after checking all the other files, it comes
+that tcp.c, udp.c meter.c ,...  follow the same rule, so these files can
+have swap.h removed too.
 
-This isn't a direct revert of commit 2d891fbc3bb6 ("usercopy: Allow strict
-enforcement of whitelists"); since usercopy_fallback is effectively 0, the
-fallback handling is removed too.
+Moreover, after preprocessing all the files that use nr_free_buffer_pages,
+it turns out that those files have already included mm.h.Thus, we can move
+nr_free_buffer_pages from swap.h to mm.h safely.  This change will not
+affect the compilation of other files.
 
-This also removes the usercopy_fallback module parameter on slab_common.
-
-Link: https://github.com/KSPP/linux/issues/153
-Link: https://lkml.kernel.org/r/20210921061149.1091163-1-steve@sk2.org
-Signed-off-by: Stephen Kitt <steve@sk2.org>
-Suggested-by: Kees Cook <keescook@chromium.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Joel Stanley <joel@jms.id.au>	[defconfig change]
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: James Morris <jmorris@namei.org>
-Cc: "Serge E . Hallyn" <serge@hallyn.com>
+Link: https://lkml.kernel.org/r/20210912133640.1624-1-liumh1@shanghaitech.edu.cn
+Signed-off-by: Mianhan Liu <liumh1@shanghaitech.edu.cn>
+Cc: Jakub Kicinski <kuba@kernel.org>
+CC: Ulf Hansson <ulf.hansson@linaro.org>
+Cc: "David S . Miller" <davem@davemloft.net>
+Cc: Simon Horman <horms@verge.net.au>
+Cc: Pravin B Shelar <pshelar@ovn.org>
+Cc: Vlad Yasevich <vyasevich@gmail.com>
+Cc: Marcelo Ricardo Leitner <marcelo.leitner@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/configs/skiroot_defconfig |    1 -
- include/linux/slab.h                   |    2 --
- mm/slab.c                              |   13 -------------
- mm/slab_common.c                       |    8 --------
- mm/slub.c                              |   14 --------------
- security/Kconfig                       |   14 --------------
- 6 files changed, 52 deletions(-)
+ drivers/mmc/core/mmc_test.c    |    1 -
+ include/linux/mm.h             |    2 ++
+ include/linux/swap.h           |    1 -
+ net/ipv4/tcp.c                 |    1 -
+ net/ipv4/udp.c                 |    1 -
+ net/netfilter/ipvs/ip_vs_ctl.c |    1 -
+ net/openvswitch/meter.c        |    1 -
+ net/sctp/protocol.c            |    1 -
+ 8 files changed, 2 insertions(+), 7 deletions(-)
 
---- a/arch/powerpc/configs/skiroot_defconfig~mm-remove-hardened_usercopy_fallback
-+++ a/arch/powerpc/configs/skiroot_defconfig
-@@ -275,7 +275,6 @@ CONFIG_NLS_UTF8=y
- CONFIG_ENCRYPTED_KEYS=y
- CONFIG_SECURITY=y
- CONFIG_HARDENED_USERCOPY=y
--# CONFIG_HARDENED_USERCOPY_FALLBACK is not set
- CONFIG_HARDENED_USERCOPY_PAGESPAN=y
- CONFIG_FORTIFY_SOURCE=y
- CONFIG_SECURITY_LOCKDOWN_LSM=y
---- a/include/linux/slab.h~mm-remove-hardened_usercopy_fallback
-+++ a/include/linux/slab.h
-@@ -142,8 +142,6 @@ struct mem_cgroup;
- void __init kmem_cache_init(void);
- bool slab_is_available(void);
+--- a/drivers/mmc/core/mmc_test.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
++++ a/drivers/mmc/core/mmc_test.c
+@@ -10,7 +10,6 @@
+ #include <linux/slab.h>
  
--extern bool usercopy_fallback;
--
- struct kmem_cache *kmem_cache_create(const char *name, unsigned int size,
- 			unsigned int align, slab_flags_t flags,
- 			void (*ctor)(void *));
---- a/mm/slab.c~mm-remove-hardened_usercopy_fallback
-+++ a/mm/slab.c
-@@ -4204,19 +4204,6 @@ void __check_heap_object(const void *ptr
- 	    n <= cachep->useroffset - offset + cachep->usersize)
- 		return;
+ #include <linux/scatterlist.h>
+-#include <linux/swap.h>		/* For nr_free_buffer_pages() */
+ #include <linux/list.h>
  
--	/*
--	 * If the copy is still within the allocated object, produce
--	 * a warning instead of rejecting the copy. This is intended
--	 * to be a temporary method to find any missing usercopy
--	 * whitelists.
--	 */
--	if (usercopy_fallback &&
--	    offset <= cachep->object_size &&
--	    n <= cachep->object_size - offset) {
--		usercopy_warn("SLAB object", cachep->name, to_user, offset, n);
--		return;
--	}
--
- 	usercopy_abort("SLAB object", cachep->name, to_user, offset, n);
- }
- #endif /* CONFIG_HARDENED_USERCOPY */
---- a/mm/slab_common.c~mm-remove-hardened_usercopy_fallback
-+++ a/mm/slab_common.c
-@@ -37,14 +37,6 @@ LIST_HEAD(slab_caches);
- DEFINE_MUTEX(slab_mutex);
- struct kmem_cache *kmem_cache;
+ #include <linux/debugfs.h>
+--- a/include/linux/mm.h~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
++++ a/include/linux/mm.h
+@@ -875,6 +875,8 @@ void put_pages_list(struct list_head *pa
+ void split_page(struct page *page, unsigned int order);
+ void copy_huge_page(struct page *dst, struct page *src);
  
--#ifdef CONFIG_HARDENED_USERCOPY
--bool usercopy_fallback __ro_after_init =
--		IS_ENABLED(CONFIG_HARDENED_USERCOPY_FALLBACK);
--module_param(usercopy_fallback, bool, 0400);
--MODULE_PARM_DESC(usercopy_fallback,
--		"WARN instead of reject usercopy whitelist violations");
--#endif
--
- static LIST_HEAD(slab_caches_to_rcu_destroy);
- static void slab_caches_to_rcu_destroy_workfn(struct work_struct *work);
- static DECLARE_WORK(slab_caches_to_rcu_destroy_work,
---- a/mm/slub.c~mm-remove-hardened_usercopy_fallback
-+++ a/mm/slub.c
-@@ -4489,7 +4489,6 @@ void __check_heap_object(const void *ptr
- {
- 	struct kmem_cache *s;
- 	unsigned int offset;
--	size_t object_size;
- 	bool is_kfence = is_kfence_address(ptr);
++unsigned long nr_free_buffer_pages(void);
++
+ /*
+  * Compound pages have a destructor function.  Provide a
+  * prototype for that function and accessor functions.
+--- a/include/linux/swap.h~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
++++ a/include/linux/swap.h
+@@ -335,7 +335,6 @@ void workingset_update_node(struct xa_no
  
- 	ptr = kasan_reset_tag(ptr);
-@@ -4522,19 +4521,6 @@ void __check_heap_object(const void *ptr
- 	    n <= s->useroffset - offset + s->usersize)
- 		return;
+ /* linux/mm/page_alloc.c */
+ extern unsigned long totalreserve_pages;
+-extern unsigned long nr_free_buffer_pages(void);
  
--	/*
--	 * If the copy is still within the allocated object, produce
--	 * a warning instead of rejecting the copy. This is intended
--	 * to be a temporary method to find any missing usercopy
--	 * whitelists.
--	 */
--	object_size = slab_ksize(s);
--	if (usercopy_fallback &&
--	    offset <= object_size && n <= object_size - offset) {
--		usercopy_warn("SLUB object", s->name, to_user, offset, n);
--		return;
--	}
--
- 	usercopy_abort("SLUB object", s->name, to_user, offset, n);
- }
- #endif /* CONFIG_HARDENED_USERCOPY */
---- a/security/Kconfig~mm-remove-hardened_usercopy_fallback
-+++ a/security/Kconfig
-@@ -163,20 +163,6 @@ config HARDENED_USERCOPY
- 	  or are part of the kernel text. This kills entire classes
- 	  of heap overflow exploits and similar kernel memory exposures.
+ /* Definition of global_zone_page_state not available yet */
+ #define nr_free_pages() global_zone_page_state(NR_FREE_PAGES)
+--- a/net/ipv4/tcp.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
++++ a/net/ipv4/tcp.c
+@@ -260,7 +260,6 @@
+ #include <linux/random.h>
+ #include <linux/memblock.h>
+ #include <linux/highmem.h>
+-#include <linux/swap.h>
+ #include <linux/cache.h>
+ #include <linux/err.h>
+ #include <linux/time.h>
+--- a/net/ipv4/udp.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
++++ a/net/ipv4/udp.c
+@@ -78,7 +78,6 @@
+ #include <asm/ioctls.h>
+ #include <linux/memblock.h>
+ #include <linux/highmem.h>
+-#include <linux/swap.h>
+ #include <linux/types.h>
+ #include <linux/fcntl.h>
+ #include <linux/module.h>
+--- a/net/netfilter/ipvs/ip_vs_ctl.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
++++ a/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -24,7 +24,6 @@
+ #include <linux/sysctl.h>
+ #include <linux/proc_fs.h>
+ #include <linux/workqueue.h>
+-#include <linux/swap.h>
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
  
--config HARDENED_USERCOPY_FALLBACK
--	bool "Allow usercopy whitelist violations to fallback to object size"
--	depends on HARDENED_USERCOPY
--	default y
--	help
--	  This is a temporary option that allows missing usercopy whitelists
--	  to be discovered via a WARN() to the kernel log, instead of
--	  rejecting the copy, falling back to non-whitelisted hardened
--	  usercopy that checks the slab allocation size instead of the
--	  whitelist size. This option will be removed once it seems like
--	  all missing usercopy whitelists have been identified and fixed.
--	  Booting with "slab_common.usercopy_fallback=Y/N" can change
--	  this setting.
--
- config HARDENED_USERCOPY_PAGESPAN
- 	bool "Refuse to copy allocations that span multiple pages"
- 	depends on HARDENED_USERCOPY
+--- a/net/openvswitch/meter.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
++++ a/net/openvswitch/meter.c
+@@ -12,7 +12,6 @@
+ #include <linux/openvswitch.h>
+ #include <linux/netlink.h>
+ #include <linux/rculist.h>
+-#include <linux/swap.h>
+ 
+ #include <net/netlink.h>
+ #include <net/genetlink.h>
+--- a/net/sctp/protocol.c~include-linux-mmh-move-nr_free_buffer_pages-from-swaph-to-mmh
++++ a/net/sctp/protocol.c
+@@ -33,7 +33,6 @@
+ #include <linux/seq_file.h>
+ #include <linux/memblock.h>
+ #include <linux/highmem.h>
+-#include <linux/swap.h>
+ #include <linux/slab.h>
+ #include <net/net_namespace.h>
+ #include <net/protocol.h>
 _
