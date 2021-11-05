@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4D88C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:45:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 11542C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:46:20 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8FB8D611C1
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:45:50 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E85C261186
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:46:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232619AbhKESs3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 14:48:29 -0400
-Received: from mail.kernel.org ([198.145.29.99]:53262 "EHLO mail.kernel.org"
+        id S232950AbhKESs6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 14:48:58 -0400
+Received: from mail.kernel.org ([198.145.29.99]:53526 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231904AbhKESs3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 14:48:29 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 56BB86023D;
-        Fri,  5 Nov 2021 18:45:49 +0000 (UTC)
+        id S232952AbhKESs6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 14:48:58 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 679DC6023D;
+        Fri,  5 Nov 2021 18:46:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636137949;
-        bh=0QrOfhwLNakVwdqCfPtQjuG62/M7Wyj9MH3k2GZjNSY=;
+        s=korg; t=1636137978;
+        bh=RyQBqcZPkymiFM8BJkLLSumelMiZUffHp3OZrLpwvN4=;
         h=Date:From:To:Subject:From;
-        b=AvcsuYqaSDLPrRHHdSSmVocBO20DNd7QoglsPpQcIVp0B10gXZJUGAdzp2MAQhOZ6
-         fiUAJxGBr41CV7jK4lFAOX7c7cTcTEO86zPdGhD86oHCkMDIeakwxdzIkcLACGWTyz
-         XIdhZqxB90AFmGiiXhRDRuNZKQ7IsYdUIKlLbimA=
-Date:   Fri, 05 Nov 2021 11:45:48 -0700
+        b=UOKcXohEKzospykVLRLS80yes3T6CRRPykJ6OHBIIpO97szXr76o8y4a6qZRnpLJE
+         wtjn8/RG7jqDZHfqnK6hEnyLMsxGKxxW1Hy+nIvxuvsxrxeyGT6OusqkSjQMyB1IZ1
+         bG5yWC0av6evTa7xJW9zTNPJLlC/M+NhMtRO+mQM=
+Date:   Fri, 05 Nov 2021 11:46:17 -0700
 From:   akpm@linux-foundation.org
-To:     ira.weiny@intel.com, mm-commits@vger.kernel.org,
-        peterz@infradead.org, prathu.baronia@oneplus.com,
-        rdunlap@infradead.org, tglx@linutronix.de, willy@infradead.org
+To:     bgeffon@google.com, minchan@kernel.org, mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- mm-highmem-remove-deprecated-kmap_atomic-fix.patch removed from -mm tree
-Message-ID: <20211105184548.y5Ry5rqbk%akpm@linux-foundation.org>
+ zram-introduce-an-aged-idle-interface-v5.patch removed from -mm tree
+Message-ID: <20211105184617.-HoNUPWBP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,67 +37,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-highmem-remove-deprecated-kmap_atomic-fix
+     Subject: zram-introduce-an-aged-idle-interface-v5
 has been removed from the -mm tree.  Its filename was
-     mm-highmem-remove-deprecated-kmap_atomic-fix.patch
+     zram-introduce-an-aged-idle-interface-v5.patch
 
-This patch was dropped because it was folded into mm-highmem-remove-deprecated-kmap_atomic.patch
+This patch was dropped because it was folded into zram-introduce-an-aged-idle-interface.patch
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm-highmem-remove-deprecated-kmap_atomic-fix
+From: Brian Geffon <bgeffon@google.com>
+Subject: zram-introduce-an-aged-idle-interface-v5
 
-fix zero_user_segments().
+use IS_ENABLED and cleanup comment
 
-Link: https://lkml.kernel.org/r/YYVhHCJcm2DM2G9u@casper.infradead.org
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Prathu Baronia <prathu.baronia@oneplus.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20210924161128.1508015-1-bgeffon@google.com
+Signed-off-by: Brian Geffon <bgeffon@google.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/mm/highmem.c~mm-highmem-remove-deprecated-kmap_atomic-fix
-+++ a/mm/highmem.c
-@@ -383,7 +383,7 @@ void zero_user_segments(struct page *pag
- 			unsigned this_end = min_t(unsigned, end1, PAGE_SIZE);
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-an-aged-idle-interface-v5
++++ a/drivers/block/zram/zram_drv.c
+@@ -294,7 +294,7 @@ static ssize_t mem_used_max_store(struct
+ /*
+  * Mark all pages which are older than or equal to cutoff as IDLE.
+  * Callers should hold the zram init lock in read mode
+- **/
++ */
+ static void mark_idle(struct zram *zram, ktime_t cutoff)
+ {
+ 	int is_idle = 1;
+@@ -310,7 +310,7 @@ static void mark_idle(struct zram *zram,
+ 		if (zram_allocated(zram, index) &&
+ 				!zram_test_flag(zram, index, ZRAM_UNDER_WB)) {
+ #ifdef CONFIG_ZRAM_MEMORY_TRACKING
+-			is_idle = (!cutoff || ktime_after(cutoff, zram->table[index].ac_time));
++				is_idle = (!cutoff || ktime_after(cutoff, zram->table[index].ac_time));
+ #endif
+ 			if (is_idle)
+ 				zram_set_flag(zram, index, ZRAM_IDLE);
+@@ -327,14 +327,15 @@ static ssize_t idle_store(struct device
+ 	ssize_t rv = -EINVAL;
  
- 			if (end1 > start1) {
--				kaddr = kmap_atomic(page + i);
-+				kaddr = kmap_local_page(page + i);
- 				memset(kaddr + start1, 0, this_end - start1);
- 			}
- 			end1 -= this_end;
-@@ -398,7 +398,7 @@ void zero_user_segments(struct page *pag
- 
- 			if (end2 > start2) {
- 				if (!kaddr)
--					kaddr = kmap_atomic(page + i);
-+					kaddr = kmap_local_page(page + i);
- 				memset(kaddr + start2, 0, this_end - start2);
- 			}
- 			end2 -= this_end;
-@@ -406,7 +406,7 @@ void zero_user_segments(struct page *pag
- 		}
- 
- 		if (kaddr) {
--			kunmap_atomic(kaddr);
-+			kunmap_local(kaddr);
- 			flush_dcache_page(page + i);
- 		}
+ 	if (!sysfs_streq(buf, "all")) {
+-#ifdef CONFIG_ZRAM_MEMORY_TRACKING
++		/*
++		 * If it did not parse as 'all' try to treat it as an integer when
++		 * we have memory tracking enabled.
++		 */
+ 		u64 age_sec;
+-		/* If it did not parse as 'all' try to treat it as an integer */
+-		if (!kstrtoull(buf, 0, &age_sec))
++		if (IS_ENABLED(CONFIG_ZRAM_MEMORY_TRACKING) && !kstrtoull(buf, 0, &age_sec))
+ 			cutoff_time = ktime_sub(ktime_get_boottime(),
+ 					ns_to_ktime(age_sec * NSEC_PER_SEC));
+ 		else
+-#endif
+ 			goto out;
+ 	}
  
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from bgeffon@google.com are
 
-mm-move-kvmalloc-related-functions-to-slabh.patch
-kasan-fix-tag-for-large-allocations-when-using-config_slab.patch
-mm-remove-bogus-vm_bug_on.patch
-mm-optimise-put_pages_list.patch
-mm-highmem-remove-deprecated-kmap_atomic.patch
+zram-introduce-an-aged-idle-interface.patch
+zram-introduce-an-aged-idle-interface-v6.patch
 
