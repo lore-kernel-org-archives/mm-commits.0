@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EF8FFC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:48:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D6384C433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:48:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D6C4561252
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:48:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C4E486126A
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:48:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233840AbhKEUus (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:50:48 -0400
-Received: from mail.kernel.org ([198.145.29.99]:46108 "EHLO mail.kernel.org"
+        id S233838AbhKEUuv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:50:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:46144 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233838AbhKEUus (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:50:48 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC3A760FBF;
-        Fri,  5 Nov 2021 20:48:07 +0000 (UTC)
+        id S233740AbhKEUuu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:50:50 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B3B136120A;
+        Fri,  5 Nov 2021 20:48:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636145288;
-        bh=8zNn0MTxAyxMFfsR2o/RpV1VmQ5LkBRO4BH3td/iDdk=;
+        s=korg; t=1636145290;
+        bh=qu2rlHwySO0EP1Ru+ktgVkit7Y4aha8BJc6JMSG9pH8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=IYW5oQV4FQVoInok6fvQeiuXjqjkirgW+Jrb7HTCHRTkFb/9uuLPabxOX44McEj3z
-         ObtdTdzn7mMUHRHtulxIC3XqrQ0AyO+YPggEHlkZXwtFx/en3RG4YLddPz3uQlw66v
-         RFByHfdgSbvM93BiYZKMoY9YKRAng3XyRZpdiPn0=
-Date:   Fri, 05 Nov 2021 13:48:07 -0700
+        b=C1cOudhPy+P2wf4Mppkwu3UDePA9tf4tHRHeOi4/b7iIEMt1gVosshttioxZ+vaQO
+         UBNS0HEWyOEWGVj7lzCD4gXeC7jFLMX6DrnzADeoYI55TDgd0+90DdOVCnAJ9FDk+X
+         34EnUkJwMvjTLfhLr8t32s8U/oZR99e7VAxB4hIU=
+Date:   Fri, 05 Nov 2021 13:48:10 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, sj@kernel.org,
-        torvalds@linux-foundation.org, xhao@linux.alibaba.com
-Subject:  [patch 255/262] mm/damon/dbgfs: add adaptive_targets list
- check before enable monitor_on
-Message-ID: <20211105204807.WLs3d5z72%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, corbet@lwn.net, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, peterx@redhat.com, sj@kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 256/262] Docs/admin-guide/mm/damon/start: fix
+ wrong example commands
+Message-ID: <20211105204810.2vA7rsIAo%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -38,83 +38,65 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Xin Hao <xhao@linux.alibaba.com>
-Subject: mm/damon/dbgfs: add adaptive_targets list check before enable monitor_on
+From: SeongJae Park <sj@kernel.org>
+Subject: Docs/admin-guide/mm/damon/start: fix wrong example commands
 
-When the ctx->adaptive_targets list is empty, I did some test on
-monitor_on interface like this.
+Patch series "Fix trivial nits in Documentation/admin-guide/mm".
 
-    # cat /sys/kernel/debug/damon/target_ids
-    #
-    # echo on > /sys/kernel/debug/damon/monitor_on
-    # damon: kdamond (5390) starts
+This patchset fixes trivial nits in admin guide documents for DAMON and
+pagemap.
 
-Though the ctx->adaptive_targets list is empty, but the kthread_run still
-be called, and the kdamond.x thread still be created, this is meaningless.
 
-So there adds a judgment in 'dbgfs_monitor_on_write', if the
-ctx->adaptive_targets list is empty, return -EINVAL.
+This patch (of 4):
 
-Link: https://lkml.kernel.org/r/0a60a6e8ec9d71989e0848a4dc3311996ca3b5d4.1634720326.git.xhao@linux.alibaba.com
-Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+Some of the example commands in DAMON getting started guide are
+outdated, missing sudo, or just wrong.  This commit fixes those.
+
+Link: https://lkml.kernel.org/r/20211022090311.3856-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    1 +
- mm/damon/core.c       |    5 +++++
- mm/damon/dbgfs.c      |   15 ++++++++++++---
- 3 files changed, 18 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/mm/damon/start.rst |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-dbgfs-add-adaptive_targets-list-check-before-enable-monitor_on
-+++ a/include/linux/damon.h
-@@ -440,6 +440,7 @@ void damon_destroy_scheme(struct damos *
+--- a/Documentation/admin-guide/mm/damon/start.rst~docs-admin-guide-mm-damon-start-fix-wrong-example-commands
++++ a/Documentation/admin-guide/mm/damon/start.rst
+@@ -19,7 +19,7 @@ your workload. ::
+     # mount -t debugfs none /sys/kernel/debug/
+     # git clone https://github.com/awslabs/damo
+     # ./damo/damo record $(pidof <your workload>)
+-    # ./damo/damo report heat --plot_ascii
++    # ./damo/damo report heats --heatmap stdout
  
- struct damon_target *damon_new_target(unsigned long id);
- void damon_add_target(struct damon_ctx *ctx, struct damon_target *t);
-+bool damon_targets_empty(struct damon_ctx *ctx);
- void damon_free_target(struct damon_target *t);
- void damon_destroy_target(struct damon_target *t);
- unsigned int damon_nr_regions(struct damon_target *t);
---- a/mm/damon/core.c~mm-damon-dbgfs-add-adaptive_targets-list-check-before-enable-monitor_on
-+++ a/mm/damon/core.c
-@@ -180,6 +180,11 @@ void damon_add_target(struct damon_ctx *
- 	list_add_tail(&t->list, &ctx->adaptive_targets);
- }
+ The final command draws the access heatmap of ``<your workload>``.  The heatmap
+ shows which memory region (x-axis) is accessed when (y-axis) and how frequently
+@@ -94,9 +94,9 @@ Visualizing Recorded Patterns
+ The following three commands visualize the recorded access patterns and save
+ the results as separate image files. ::
  
-+bool damon_targets_empty(struct damon_ctx *ctx)
-+{
-+	return list_empty(&ctx->adaptive_targets);
-+}
-+
- static void damon_del_target(struct damon_target *t)
- {
- 	list_del(&t->list);
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-add-adaptive_targets-list-check-before-enable-monitor_on
-+++ a/mm/damon/dbgfs.c
-@@ -878,12 +878,21 @@ static ssize_t dbgfs_monitor_on_write(st
- 		return -EINVAL;
- 	}
+-    $ damo report heats --heatmap access_pattern_heatmap.png
+-    $ damo report wss --range 0 101 1 --plot wss_dist.png
+-    $ damo report wss --range 0 101 1 --sortby time --plot wss_chron_change.png
++    $ sudo damo report heats --heatmap access_pattern_heatmap.png
++    $ sudo damo report wss --range 0 101 1 --plot wss_dist.png
++    $ sudo damo report wss --range 0 101 1 --sortby time --plot wss_chron_change.png
  
--	if (!strncmp(kbuf, "on", count))
-+	if (!strncmp(kbuf, "on", count)) {
-+		int i;
-+
-+		for (i = 0; i < dbgfs_nr_ctxs; i++) {
-+			if (damon_targets_empty(dbgfs_ctxs[i])) {
-+				kfree(kbuf);
-+				return -EINVAL;
-+			}
-+		}
- 		ret = damon_start(dbgfs_ctxs, dbgfs_nr_ctxs);
--	else if (!strncmp(kbuf, "off", count))
-+	} else if (!strncmp(kbuf, "off", count)) {
- 		ret = damon_stop(dbgfs_ctxs, dbgfs_nr_ctxs);
--	else
-+	} else {
- 		ret = -EINVAL;
-+	}
+ - ``access_pattern_heatmap.png`` will visualize the data access pattern in a
+   heatmap, showing which memory region (y-axis) got accessed when (x-axis)
+@@ -115,9 +115,9 @@ Data Access Pattern Aware Memory Managem
+ Below three commands make every memory region of size >=4K that doesn't
+ accessed for >=60 seconds in your workload to be swapped out. ::
  
- 	if (!ret)
- 		ret = count;
+-    $ echo "#min-size max-size min-acc max-acc min-age max-age action" > scheme
+-    $ echo "4K        max      0       0       60s     max     pageout" >> scheme
+-    $ damo schemes -c my_thp_scheme <pid of your workload>
++    $ echo "#min-size max-size min-acc max-acc min-age max-age action" > test_scheme
++    $ echo "4K        max      0       0       60s     max     pageout" >> test_scheme
++    $ damo schemes -c test_scheme <pid of your workload>
+ 
+ .. [1] https://damonitor.github.io/doc/html/v17/admin-guide/mm/damon/start.html#visualizing-recorded-patterns
+ .. [2] https://damonitor.github.io/test/result/visual/latest/rec.heatmap.1.png.html
 _
