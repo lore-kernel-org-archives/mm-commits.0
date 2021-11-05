@@ -2,37 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08ED5C433FE
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:36:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D9E2CC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:36:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E137361279
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:35:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C6E2661263
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:36:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232700AbhKEUii (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:38:38 -0400
-Received: from mail.kernel.org ([198.145.29.99]:33398 "EHLO mail.kernel.org"
+        id S232680AbhKEUir (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:38:47 -0400
+Received: from mail.kernel.org ([198.145.29.99]:33498 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232616AbhKEUih (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:38:37 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 15805611EE;
-        Fri,  5 Nov 2021 20:35:57 +0000 (UTC)
+        id S232736AbhKEUik (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:38:40 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4DAA061252;
+        Fri,  5 Nov 2021 20:36:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144557;
-        bh=5z2+sfRC8ejjpEzOSr92a4X3PtVD+qQDarEhEA6O8+M=;
+        s=korg; t=1636144560;
+        bh=POl68rlaiFepkgXhJo1XMNxFC/jPqk7URJQ1Z3yPjBA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=szMOgNXbW0wH5634+zpp3IPREpaTyErXfkkNOL/KGBUP778okP7ODUFndtlFQYsS4
-         WC58wytpPY9xxRLqleO2TbNnH6SZ8UEhDa3ewuGh9G4r5dhN6/lFVy4y5pHYwHtlUF
-         3RFXYtGnvMWRB65dw9jbNR49VP6Rg35FaaYMFKj8=
-Date:   Fri, 05 Nov 2021 13:35:56 -0700
+        b=XJ4gy82mwUyGEXNia1N/d2ASstsEB0cMZs6tHKBay6Gvw49eIqad8/PAnRZ+Pqks+
+         LvbY5IKR/D3H7v1WJB/yKbAKOnABK6+cc5wbB04lyQm+eC0X6bfvkC+5z14L/7WCX7
+         j/a2PxB8GTN5d9Juhd7sBMWOxa76ZMM8TtbP4gzw=
+Date:   Fri, 05 Nov 2021 13:35:59 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        catalin.marinas@arm.com, elver@google.com, eugenis@google.com,
-        glider@google.com, linux-mm@kvack.org, mark.rutland@arm.com,
-        mm-commits@vger.kernel.org, pcc@google.com, robin.murphy@arm.com,
-        torvalds@linux-foundation.org, will@kernel.org
-Subject:  [patch 026/262] kasan: test: add memcpy test that avoids
- out-of-bounds write
-Message-ID: <20211105203556.oqhUL-8Gp%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org, hughd@google.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, peterx@redhat.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz, willy@infradead.org
+Subject:  [patch 027/262] mm/smaps: fix shmem pte hole swap
+ calculation
+Message-ID: <20211105203559.qOWoE4JSh%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,94 +38,89 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Peter Collingbourne <pcc@google.com>
-Subject: kasan: test: add memcpy test that avoids out-of-bounds write
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/smaps: fix shmem pte hole swap calculation
 
-With HW tag-based KASAN, error checks are performed implicitly by the load
-and store instructions in the memcpy implementation.  A failed check
-results in tag checks being disabled and execution will keep going.  As a
-result, under HW tag-based KASAN, prior to commit 1b0668be62cf ("kasan:
-test: disable kmalloc_memmove_invalid_size for HW_TAGS"), this memcpy
-would end up corrupting memory until it hits an inaccessible page and
-causes a kernel panic.
+Patch series "mm/smaps: Fixes and optimizations on shmem swap handling".
 
-This is a pre-existing issue that was revealed by commit 285133040e6c
-("arm64: Import latest memcpy()/memmove() implementation") which changed
-the memcpy implementation from using signed comparisons (incorrectly,
-resulting in the memcpy being terminated early for negative sizes) to
-using unsigned comparisons.
 
-It is unclear how this could be handled by memcpy itself in a reasonable
-way.  One possibility would be to add an exception handler that would
-force memcpy to return if a tag check fault is detected -- this would make
-the behavior roughly similar to generic and SW tag-based KASAN.  However,
-this wouldn't solve the problem for asynchronous mode and also makes
-memcpy behavior inconsistent with manually copying data.
+This patch (of 3):
 
-This test was added as a part of a series that taught KASAN to detect
-negative sizes in memory operations, see commit 8cceeff48f23 ("kasan:
-detect negative size in memory operation function").  Therefore we should
-keep testing for negative sizes with generic and SW tag-based KASAN.  But
-there is some value in testing small memcpy overflows, so let's add
-another test with memcpy that does not destabilize the kernel by
-performing out-of-bounds writes, and run it in all modes.
+The shmem swap calculation on the privately writable mappings are using
+wrong parameters as spotted by Vlastimil.  Fix them.  That's introduced in
+commit 48131e03ca4e, when rework shmem_swap_usage to
+shmem_partial_swap_usage.
 
-Link: https://linux-review.googlesource.com/id/I048d1e6a9aff766c4a53f989fb0c83de68923882
-Link: https://lkml.kernel.org/r/20210910211356.3603758-1-pcc@google.com
-Signed-off-by: Peter Collingbourne <pcc@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Acked-by: Marco Elver <elver@google.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Evgenii Stepanov <eugenis@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Test program:
+
+==================
+
+void main(void)
+{
+    char *buffer, *p;
+    int i, fd;
+
+    fd = memfd_create("test", 0);
+    assert(fd > 0);
+
+    /* isize==2M*3, fill in pages, swap them out */
+    ftruncate(fd, SIZE_2M * 3);
+    buffer = mmap(NULL, SIZE_2M * 3, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    assert(buffer);
+    for (i = 0, p = buffer; i < SIZE_2M * 3 / 4096; i++) {
+        *p = 1;
+        p += 4096;
+    }
+    madvise(buffer, SIZE_2M * 3, MADV_PAGEOUT);
+    munmap(buffer, SIZE_2M * 3);
+
+    /*
+     * Remap with private+writtable mappings on partial of the inode (<= 2M*3),
+     * while the size must also be >= 2M*2 to make sure there's a none pmd so
+     * smaps_pte_hole will be triggered.
+     */
+    buffer = mmap(NULL, SIZE_2M * 2, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+    printf("pid=%d, buffer=%p
+", getpid(), buffer);
+
+    /* Check /proc/$PID/smap_rollup, should see 4MB swap */
+    sleep(1000000);
+}
+==================
+
+Before the patch, smaps_rollup shows <4MB swap and the number will be
+random depending on the alignment of the buffer of mmap() allocated. 
+After this patch, it'll show 4MB.
+
+Link: https://lkml.kernel.org/r/20210917164756.8586-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20210917164756.8586-2-peterx@redhat.com
+Fixes: 48131e03ca4e ("mm, proc: reduce cost of /proc/pid/smaps for unpopulated shmem mappings")
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   18 +++++++++++++++++-
- 1 file changed, 17 insertions(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/lib/test_kasan.c~kasan-test-add-memcpy-test-that-avoids-out-of-bounds-write
-+++ a/lib/test_kasan.c
-@@ -493,7 +493,7 @@ static void kmalloc_oob_in_memset(struct
- 	kfree(ptr);
- }
- 
--static void kmalloc_memmove_invalid_size(struct kunit *test)
-+static void kmalloc_memmove_negative_size(struct kunit *test)
+--- a/fs/proc/task_mmu.c~mm-smaps-fix-shmem-pte-hole-swap-calculation
++++ a/fs/proc/task_mmu.c
+@@ -478,9 +478,11 @@ static int smaps_pte_hole(unsigned long
+ 			  __always_unused int depth, struct mm_walk *walk)
  {
- 	char *ptr;
- 	size_t size = 64;
-@@ -515,6 +515,21 @@ static void kmalloc_memmove_invalid_size
- 	kfree(ptr);
- }
+ 	struct mem_size_stats *mss = walk->private;
++	struct vm_area_struct *vma = walk->vma;
  
-+static void kmalloc_memmove_invalid_size(struct kunit *test)
-+{
-+	char *ptr;
-+	size_t size = 64;
-+	volatile size_t invalid_size = size;
-+
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
-+
-+	memset((char *)ptr, 0, 64);
-+	KUNIT_EXPECT_KASAN_FAIL(test,
-+		memmove((char *)ptr, (char *)ptr + 4, invalid_size));
-+	kfree(ptr);
-+}
-+
- static void kmalloc_uaf(struct kunit *test)
- {
- 	char *ptr;
-@@ -1129,6 +1144,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(kmalloc_oob_memset_4),
- 	KUNIT_CASE(kmalloc_oob_memset_8),
- 	KUNIT_CASE(kmalloc_oob_memset_16),
-+	KUNIT_CASE(kmalloc_memmove_negative_size),
- 	KUNIT_CASE(kmalloc_memmove_invalid_size),
- 	KUNIT_CASE(kmalloc_uaf),
- 	KUNIT_CASE(kmalloc_uaf_memset),
+-	mss->swap += shmem_partial_swap_usage(
+-			walk->vma->vm_file->f_mapping, addr, end);
++	mss->swap += shmem_partial_swap_usage(walk->vma->vm_file->f_mapping,
++					      linear_page_index(vma, addr),
++					      linear_page_index(vma, end));
+ 
+ 	return 0;
+ }
 _
