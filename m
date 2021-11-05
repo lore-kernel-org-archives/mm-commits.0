@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 12BB4C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:42:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3BBE7C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:43:30 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E799861216
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:41:59 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 209AA60EB4
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 18:43:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232502AbhKESoj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 14:44:39 -0400
-Received: from mail.kernel.org ([198.145.29.99]:51378 "EHLO mail.kernel.org"
+        id S232513AbhKESqJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 14:46:09 -0400
+Received: from mail.kernel.org ([198.145.29.99]:52080 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232513AbhKESoi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 14:44:38 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A576761186;
-        Fri,  5 Nov 2021 18:41:58 +0000 (UTC)
+        id S231904AbhKESqI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 14:46:08 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id E61496023D;
+        Fri,  5 Nov 2021 18:43:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636137718;
-        bh=fUsLVj50xiZCrHjm4TMSE/ffD2BofHlCEECgIUZXRf8=;
+        s=korg; t=1636137809;
+        bh=4JimNJnAf4C4YSvOJmVu4ZJ+izw6MWVgx9poG9qEL1k=;
         h=Date:From:To:Subject:From;
-        b=lInp896EAWmvHNeywaTD6aoG7Pshs8A5El9LjiAFhqYCWIaKhx5tN0F0ePwL3yMYC
-         6q/CU883b32uquWRQ26uJRs91J2jHZwmVhwEZ1ry3lrC6gsHRJV97i8ZIJCWYOHoBu
-         GErW3ZogfIZCHg2C2tE20l3KDmTwTHUjd/tMxDxU=
-Date:   Fri, 05 Nov 2021 11:41:58 -0700
+        b=DXq1D4FU2DSkoimB2T8Lp7N93Wy2N1a7qRWdjc0qg+5nsLkwia13+ahpi5JvJsWnt
+         NhQnXeUIaZkALQuWuMhQaOaMu6DUsqkpmMArnQ8xW1cGir8rNoZtLE/ksoIxSUpo3S
+         I1YFiA/dQnXD9AKJp8TkQcJVWD4oMMPwvJ1IIqJs=
+Date:   Fri, 05 Nov 2021 11:43:28 -0700
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, mm-commits@vger.kernel.org,
-        wanjiabing@vivo.com
+To:     mm-commits@vger.kernel.org, rppt@kernel.org, sfr@canb.auug.org.au
 Subject:  [folded-merged]
- mm-hugepages-add-hugetlb-vma-mremap-test-v8-fix.patch removed from -mm tree
-Message-ID: <20211105184158.1zKTzqmTc%akpm@linux-foundation.org>
+ memblock-use-memblock_free-for-freeing-virtual-pointers-fix.patch removed
+ from -mm tree
+Message-ID: <20211105184328.YRnwmtZyX%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,42 +38,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: remove duplicated include in hugepage-mremap
+     Subject: fixup for "memblock: use memblock_free for freeing virtual pointers"
 has been removed from the -mm tree.  Its filename was
-     mm-hugepages-add-hugetlb-vma-mremap-test-v8-fix.patch
+     memblock-use-memblock_free-for-freeing-virtual-pointers-fix.patch
 
-This patch was dropped because it was folded into mm-hugepages-add-hugetlb-vma-mremap-test.patch
+This patch was dropped because it was folded into memblock-use-memblock_free-for-freeing-virtual-pointers.patch
 
 ------------------------------------------------------
-From: Wan Jiabing <wanjiabing@vivo.com>
-Subject: selftests: vm: remove duplicated include in hugepage-mremap
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: fixup for "memblock: use memblock_free for freeing virtual pointers"
 
-Fix following checkinclude.pl warning:
-./tools/testing/selftests/vm/hugepage-mremap.c: fcntl.h is included
-more than once.
-
-Link: https://lkml.kernel.org/r/20211021122944.8857-1-wanjiabing@vivo.com
-Signed-off-by: Wan Jiabing <wanjiabing@vivo.com>
-Cc: Mina Almasry <almasrymina@google.com>
+Link: https://lkml.kernel.org/r/20211018192940.3d1d532f@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hugepage-mremap.c |    1 -
- 1 file changed, 1 deletion(-)
+ init/main.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/hugepage-mremap.c~mm-hugepages-add-hugetlb-vma-mremap-test-v8-fix
-+++ a/tools/testing/selftests/vm/hugepage-mremap.c
-@@ -12,7 +12,6 @@
- #include <stdio.h>
- #include <unistd.h>
- #include <sys/mman.h>
--#include <fcntl.h>
- #include <errno.h>
- #include <fcntl.h> /* Definition of O_* constants */
- #include <sys/syscall.h> /* Definition of SYS_* constants */
+--- a/init/main.c~memblock-use-memblock_free-for-freeing-virtual-pointers-fix
++++ a/init/main.c
+@@ -382,7 +382,7 @@ static char * __init xbc_make_cmdline(co
+ 	ret = xbc_snprint_cmdline(new_cmdline, len + 1, root);
+ 	if (ret < 0 || ret > len) {
+ 		pr_err("Failed to print extra kernel cmdline.\n");
+-		memblock_free_ptr(new_cmdline, len + 1);
++		memblock_free(new_cmdline, len + 1);
+ 		return NULL;
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from wanjiabing@vivo.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-mm-hugepages-add-hugetlb-vma-mremap-test.patch
+memblock-use-memblock_free-for-freeing-virtual-pointers.patch
+kernelh-drop-unneeded-linux-kernelh-inclusion-from-other-headers-fix.patch
+kernelh-split-out-instruction-pointer-accessors.patch
 
