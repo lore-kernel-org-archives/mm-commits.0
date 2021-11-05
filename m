@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B2D3C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:37:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A0EFC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:37:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5525160E05
-	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:37:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0E3E160720
+	for <mm-commits@archiver.kernel.org>; Fri,  5 Nov 2021 20:37:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233106AbhKEUkA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 5 Nov 2021 16:40:00 -0400
-Received: from mail.kernel.org ([198.145.29.99]:34832 "EHLO mail.kernel.org"
+        id S233117AbhKEUkD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 5 Nov 2021 16:40:03 -0400
+Received: from mail.kernel.org ([198.145.29.99]:34868 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233038AbhKEUkA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 5 Nov 2021 16:40:00 -0400
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CF0E660E08;
-        Fri,  5 Nov 2021 20:37:19 +0000 (UTC)
+        id S233038AbhKEUkC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 5 Nov 2021 16:40:02 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C69C56056B;
+        Fri,  5 Nov 2021 20:37:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636144640;
-        bh=ocH+yVvAf4/EjIgaD54nWyy2pMZQ33fGsi9sbCMjpyE=;
+        s=korg; t=1636144643;
+        bh=fUsc17QLprrGYCLgQqWtflrIJ6wfV1kBZrogCaoSSp8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xxCgZkbByb/JuEgUC5tr6XhrDYrM1o7zYSDwgKHGFdzeRdfE+EFaAjpvBaOTwWtzx
-         a5caNLO1CwtourKpBSV6MSk5S2p3nqYEMFG3v/VDirSTlt7n/qFhHrRPMEnNU6w33G
-         JNnZNtEdOrfY5FeYFStFLfYuo9R+Rf4ZwX1ORQbY=
-Date:   Fri, 05 Nov 2021 13:37:19 -0700
+        b=rh1TJFOTBRKkkVDF7U4M4smEMsZmkkNauyEZcfhUP13TjARtKIXt9/nkQgI129LgM
+         reDWfYpubtHf9kL0q2vOpQUfIriZHeRFThUOePPLbwAVpDPBJZWs6ZCouRRZUxJjDS
+         MGQyr/ExA34sfmlZ2o5K4+q3fkEI6Qlt02uFeRhE=
+Date:   Fri, 05 Nov 2021 13:37:22 -0700
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@redhat.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        vulab@iscas.ac.cn
-Subject:  [patch 051/262] mm/swapfile: remove needless
- request_queue NULL pointer check
-Message-ID: <20211105203719.-ssTsYg32%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, aquini@redhat.com, hughd@google.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 052/262] mm/swapfile: fix an integer overflow in
+ swap_show()
+Message-ID: <20211105203722.TlSr_OQ9B%akpm@linux-foundation.org>
 In-Reply-To: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -38,30 +38,49 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Xu Wang <vulab@iscas.ac.cn>
-Subject: mm/swapfile: remove needless request_queue NULL pointer check
+From: Rafael Aquini <aquini@redhat.com>
+Subject: mm/swapfile: fix an integer overflow in swap_show()
 
-The request_queue pointer returned from bdev_get_queue() shall never be
-NULL, so the null check is unnecessary, just remove it.
+This one is just a minor nuisance for people going through /proc/swaps if
+any of their swapareas is bigger than, or equal to 1073741824 pages (4TB).
 
-Link: https://lkml.kernel.org/r/20210917082111.33923-1-vulab@iscas.ac.cn
-Signed-off-by: Xu Wang <vulab@iscas.ac.cn>
-Acked-by: David Hildenbrand <david@redhat.com>
+seq_printf() format string casts as uint the conversion from pages to KB,
+and that will overflow in the aforementioned case.
+
+Albeit being almost unthinkable that someone would actually set up such
+big of a single swaparea, there is a ticket recently filed against RHEL:
+https://bugzilla.redhat.com/show_bug.cgi?id=2008812
+
+Given that all other codesites that use format strings for the same swap
+pages-to-KB conversion do cast it as ulong, this patch just follows suit.
+
+Link: https://lkml.kernel.org/r/20211006184011.2579054-1-aquini@redhat.com
+Signed-off-by: Rafael Aquini <aquini@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swapfile.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/swapfile.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swapfile.c~mm-swapfile-remove-needless-request_queue-null-pointer-check
+--- a/mm/swapfile.c~mm-swapfile-fix-an-integer-overflow-in-swap_show
 +++ a/mm/swapfile.c
-@@ -3118,7 +3118,7 @@ static bool swap_discardable(struct swap
- {
- 	struct request_queue *q = bdev_get_queue(si->bdev);
+@@ -2763,7 +2763,7 @@ static int swap_show(struct seq_file *sw
+ 	struct swap_info_struct *si = v;
+ 	struct file *file;
+ 	int len;
+-	unsigned int bytes, inuse;
++	unsigned long bytes, inuse;
  
--	if (!q || !blk_queue_discard(q))
-+	if (!blk_queue_discard(q))
- 		return false;
+ 	if (si == SEQ_START_TOKEN) {
+ 		seq_puts(swap, "Filename\t\t\t\tType\t\tSize\t\tUsed\t\tPriority\n");
+@@ -2775,7 +2775,7 @@ static int swap_show(struct seq_file *sw
  
- 	return true;
+ 	file = si->swap_file;
+ 	len = seq_file_path(swap, file, " \t\n\\");
+-	seq_printf(swap, "%*s%s\t%u\t%s%u\t%s%d\n",
++	seq_printf(swap, "%*s%s\t%lu\t%s%lu\t%s%d\n",
+ 			len < 40 ? 40 - len : 1, " ",
+ 			S_ISBLK(file_inode(file)->i_mode) ?
+ 				"partition" : "file\t",
 _
