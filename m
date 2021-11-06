@@ -2,63 +2,32 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3598EC433EF
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Nov 2021 21:13:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 49578C433F5
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Nov 2021 21:20:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1C0DB61214
-	for <mm-commits@archiver.kernel.org>; Sat,  6 Nov 2021 21:13:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 344BA611AE
+	for <mm-commits@archiver.kernel.org>; Sat,  6 Nov 2021 21:20:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231290AbhKFVQS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 6 Nov 2021 17:16:18 -0400
-Received: from smtp-out2.suse.de ([195.135.220.29]:34118 "EHLO
-        smtp-out2.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231159AbhKFVQR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 6 Nov 2021 17:16:17 -0400
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by smtp-out2.suse.de (Postfix) with ESMTPS id 0C0761FD3B;
-        Sat,  6 Nov 2021 21:13:35 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.cz; s=susede2_rsa;
-        t=1636233215; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=fvNa/BzcZtA+GjD5ywXYtZAaY5L8MN9Hcn7VzuEbm0w=;
-        b=kTbQCkD0/suCBa9r09/ajOEAts9DybokSof0ET4RmJT4bjwcgRizV2T/OoGGFYPG/4IoIE
-        BUwKBIfNoJGkpoI0faQ1EAO54qbdaSjS14dxjTODCi3PNOuYNJSU348uyaHq0Mv98uUQwJ
-        MNGzRuWW0gNx2gXTqEZx0Hxe+N0e4YQ=
-DKIM-Signature: v=1; a=ed25519-sha256; c=relaxed/relaxed; d=suse.cz;
-        s=susede2_ed25519; t=1636233215;
-        h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         content-transfer-encoding:content-transfer-encoding:
-         in-reply-to:in-reply-to:references:references;
-        bh=fvNa/BzcZtA+GjD5ywXYtZAaY5L8MN9Hcn7VzuEbm0w=;
-        b=WUx34g0s6Qem0nhsNKt5XsC5OknnuravxNDW7zLmNXhOu3JUYZfo2HelmzXqjdvQFgeIKd
-        c7eoIGog7ZdB20DQ==
-Received: from imap2.suse-dmz.suse.de (imap2.suse-dmz.suse.de [192.168.254.74])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature ECDSA (P-521) server-digest SHA512)
-        (No client certificate requested)
-        by imap2.suse-dmz.suse.de (Postfix) with ESMTPS id C0C5113AB3;
-        Sat,  6 Nov 2021 21:13:34 +0000 (UTC)
-Received: from dovecot-director2.suse.de ([192.168.254.65])
-        by imap2.suse-dmz.suse.de with ESMTPSA
-        id 3y8FLv7vhmHsRAAAMHmgww
-        (envelope-from <vbabka@suse.cz>); Sat, 06 Nov 2021 21:13:34 +0000
-Message-ID: <e08fa92e-31bc-c340-fd31-d4535d922aed@suse.cz>
-Date:   Sat, 6 Nov 2021 22:13:34 +0100
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.2.1
-Subject: Re: [patch 149/262] mm/vmscan: throttle reclaim until some writeback
- completes if congested
-Content-Language: en-US
-To:     Linus Torvalds <torvalds@linux-foundation.org>,
-        Matthew Wilcox <willy@infradead.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
+        id S235121AbhKFVWv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 6 Nov 2021 17:22:51 -0400
+Received: from mail.kernel.org ([198.145.29.99]:54240 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S233912AbhKFVWv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Sat, 6 Nov 2021 17:22:51 -0400
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 3E99060240;
+        Sat,  6 Nov 2021 21:20:09 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1636233609;
+        bh=nNadFUWRbcC3kNmm5hW/iEEJPZbJezLbRcMqTbl9l6A=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=TFFChLZx/tfVHwMvwfsfY5N3g7+hOE1nMSOtwzkiO8VFERdyCjxwvK+QcXUUHvz0/
+         4sPJW0TRDW3Svbq8dY9EapGguaEvJ/WR1abYOgfPfF1Tgh+B+1SSX19nEiRhMP9sDW
+         da2AOJ1pYcMEEHbBbYG/WTi/Q/PhT9g59vwhlh+g=
+Date:   Sat, 6 Nov 2021 14:20:07 -0700
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Vlastimil Babka <vbabka@suse.cz>
+Cc:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Matthew Wilcox <willy@infradead.org>,
         Andreas Dilger <adilger.kernel@dilger.ca>,
         Jonathan Corbet <corbet@lwn.net>,
         Dave Chinner <david@fromorbit.com>,
@@ -68,41 +37,49 @@ Cc:     Andrew Morton <akpm@linux-foundation.org>,
         Mel Gorman <mgorman@techsingularity.net>,
         Michal Hocko <mhocko@suse.com>, mm-commits@vger.kernel.org,
         Neil Brown <neilb@suse.de>, Rik van Riel <riel@surriel.com>,
-        Theodore Ts'o <tytso@mit.edu>
+        "Theodore Ts'o" <tytso@mit.edu>
+Subject: Re: [patch 149/262] mm/vmscan: throttle reclaim until some
+ writeback completes if congested
+Message-Id: <20211106142007.6996480f2ac52b96c273ecf5@linux-foundation.org>
+In-Reply-To: <e08fa92e-31bc-c340-fd31-d4535d922aed@suse.cz>
 References: <20211105133408.cccbb98b71a77d5e8430aba1@linux-foundation.org>
- <20211105204225.iIh99P9cn%akpm@linux-foundation.org>
- <YYWb5jTLkNRUI6ea@casper.infradead.org>
- <CAHk-=wi=D7f9H=3cxcZm16-iCRJY5EBaJ4kTjp+UjpD4dsNKPw@mail.gmail.com>
- <CAHk-=wgDdPxNWvQ8n=LW5bQeuq2WvP=5pnCZe2aubodfNR1JBg@mail.gmail.com>
-From:   Vlastimil Babka <vbabka@suse.cz>
-In-Reply-To: <CAHk-=wgDdPxNWvQ8n=LW5bQeuq2WvP=5pnCZe2aubodfNR1JBg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+        <20211105204225.iIh99P9cn%akpm@linux-foundation.org>
+        <YYWb5jTLkNRUI6ea@casper.infradead.org>
+        <CAHk-=wi=D7f9H=3cxcZm16-iCRJY5EBaJ4kTjp+UjpD4dsNKPw@mail.gmail.com>
+        <CAHk-=wgDdPxNWvQ8n=LW5bQeuq2WvP=5pnCZe2aubodfNR1JBg@mail.gmail.com>
+        <e08fa92e-31bc-c340-fd31-d4535d922aed@suse.cz>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 11/6/21 22:12, Linus Torvalds wrote:
-> On Sat, Nov 6, 2021 at 1:49 PM Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
->>
->> This workflow can result in more conflicts for me than what Andrew
->> used to do ("send against current linus tip"), but it means that when
->> conflicts happen, they get all the merge resolution help that git
->> gives you, and hopefully what gets tested (over the months that it can
->> be in -mm) is closer to what gets sent to me.
-> 
-> .. and resolving the conflicts (none of which looked bad), I think
-> that part of the resolution ends up doing very similar things to your
-> fixup patch.
+On Sat, 6 Nov 2021 22:13:34 +0100 Vlastimil Babka <vbabka@suse.cz> wrote:
 
-If this needed resolution, didn't the resolution exist in -next already?
+> On 11/6/21 22:12, Linus Torvalds wrote:
+> > On Sat, Nov 6, 2021 at 1:49 PM Linus Torvalds
+> > <torvalds@linux-foundation.org> wrote:
+> >>
+> >> This workflow can result in more conflicts for me than what Andrew
+> >> used to do ("send against current linus tip"), but it means that when
+> >> conflicts happen, they get all the merge resolution help that git
+> >> gives you, and hopefully what gets tested (over the months that it can
+> >> be in -mm) is closer to what gets sent to me.
+> > 
+> > .. and resolving the conflicts (none of which looked bad), I think
+> > that part of the resolution ends up doing very similar things to your
+> > fixup patch.
+> 
+> If this needed resolution, didn't the resolution exist in -next already?
 
-> So it looks all good.
-> 
-> Famous last words.
-> 
->                 Linus
-> 
+Yes, but I had it queued after linux-next.patch so it got lost in the
+unholy mess that linux-next becomes during the merge window.
 
+I'm still figuring this out.  In retrospect I should have moved this
+patch "mm/vmscan: throttle reclaim until some writeback completes if
+congested" to the post-linux-next section weeks ago, then waited for
+the prerequisites to be merged into mainline.  That way the unaltered,
+tested patch would have smoothly slotted in late in the merge window.
