@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CC75C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Nov 2021 19:04:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 24303C433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Nov 2021 19:07:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DFF0D6162E
-	for <mm-commits@archiver.kernel.org>; Mon,  8 Nov 2021 19:04:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 027E361181
+	for <mm-commits@archiver.kernel.org>; Mon,  8 Nov 2021 19:07:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236467AbhKHTGz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Nov 2021 14:06:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52670 "EHLO mail.kernel.org"
+        id S236626AbhKHTKL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Nov 2021 14:10:11 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53058 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236588AbhKHTGz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Nov 2021 14:06:55 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5857661181;
-        Mon,  8 Nov 2021 19:04:10 +0000 (UTC)
+        id S236573AbhKHTKK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Nov 2021 14:10:10 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 72FFE610CB;
+        Mon,  8 Nov 2021 19:07:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636398250;
-        bh=TI4JM1qtcPnQHj8cfmtCjGHV+xZdU0ctuiQwuIyhcyM=;
+        s=korg; t=1636398445;
+        bh=t9RR7zyN/798cJjEC1/PZWeH1gk6i2ycd/dkNAS+4t0=;
         h=Date:From:To:Subject:From;
-        b=gUzjMd/D8Bv72NT3AAoVqhBDhHeANxLFJC6BpONiriW9CRyrSAVR9TtXDjAG7JEA+
-         f1SNg769+Psjvt2oYaXM2/MdU9WDBAfR4t1/mRxL6xbpgt4lmKLfvjxnmJY0oLsgVk
-         FZ1AN4AvUAmDq1bYnUXWxVXX+wGlkr6tHAdNpors=
-Date:   Mon, 08 Nov 2021 11:04:09 -0800
+        b=BDL+gXZ7tEWUlGB6JAOZaZLHXn63sD6l+qKoK5UPuVLXtPgZkjnSz5bazAjzHMsBw
+         Y+OA1bF9jFOYoNpOHxSvnDROsr4mrejWDUpECvoqUmjVvIxQBoOyKj9Gh0xp3aoeq6
+         QMmbRTDUP+KB7eeT7tkx1wwoMtYDL/qGpuNOnqeE=
+Date:   Mon, 08 Nov 2021 11:07:24 -0800
 From:   akpm@linux-foundation.org
 To:     alexander.mikhalitsyn@virtuozzo.com, avagin@gmail.com,
         dave@stgolabs.net, ebiederm@xmission.com,
         gregkh@linuxfoundation.org, manfred@colorfullife.com,
         mm-commits@vger.kernel.org, ptikhomirov@virtuozzo.com,
         stable@vger.kernel.org, vvs@virtuozzo.com
-Subject:  [to-be-updated]
+Subject:  +
  =?US-ASCII?Q?shm-extend-forced-shm-destroy-to-support-objects-from-severa?=
- =?US-ASCII?Q?l-ipc-nses.patch?= removed from -mm tree
-Message-ID: <20211108190409.cq401zwTV%akpm@linux-foundation.org>
+ =?US-ASCII?Q?l-ipc-nses.patch?= added to -mm tree
+Message-ID: <20211108190724.MQ2tloD35%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -45,10 +45,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: shm: extend forced shm destroy to support objects from several IPC nses
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      shm-extend-forced-shm-destroy-to-support-objects-from-several-ipc-nses.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/shm-extend-forced-shm-destroy-to-support-objects-from-several-ipc-nses.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/shm-extend-forced-shm-destroy-to-support-objects-from-several-ipc-nses.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
@@ -75,23 +89,23 @@ To achieve that we do several things:
    it was before but from shp's object itself, then call shm_destroy(shp,
    ns).
 
-Note.  We need to be really careful here, because as it was said before
-(1), our pointer to IPC ns non-refcnt'ed.  To be on the safe side we using
+Note. We need to be really careful here, because as it was said before
+(1), our pointer to IPC ns non-refcnt'ed. To be on the safe side we using
 special helper get_ipc_ns_not_zero() which allows to get IPC ns refcounter
 only if IPC ns not in the "state of destruction".
 
 Q/A
 
 Q: Why we can access shp->ns memory using non-refcounted pointer?
-A: Because shp object lifetime is always shorther than IPC namespace
-   lifetime, so, if we get shp object from the task->sysvshm.shm_clist
-   while holding task_lock(task) nobody can steal our namespace.
+A: Because shp object lifetime is always shorther
+than IPC namespace lifetime, so, if we get shp object from the
+task->sysvshm.shm_clist while holding task_lock(task) nobody can
+steal our namespace.
 
 Q: Does this patch change semantics of unshare/setns/clone syscalls?
-A: Not.  It's just fixes non-covered case when process may leave IPC
-   namespace without getting task->sysvshm.shm_clist list cleaned up.
+A: Not. It's just fixes non-covered case when process may leave
+IPC namespace without getting task->sysvshm.shm_clist list cleaned up.
 
-Link: https://lkml.kernel.org/r/20211027224348.611025-3-alexander.mikhalitsyn@virtuozzo.com
 Fixes: ab602f79915 ("shm: make exit_shm work proportional to task activity")
 Co-developed-by: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
@@ -108,9 +122,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 
  include/linux/ipc_namespace.h |   15 ++
  include/linux/sched/task.h    |    2 
- include/linux/shm.h           |    2 
- ipc/shm.c                     |  170 +++++++++++++++++++++++---------
- 4 files changed, 142 insertions(+), 47 deletions(-)
+ ipc/shm.c                     |  186 ++++++++++++++++++++++++--------
+ 3 files changed, 156 insertions(+), 47 deletions(-)
 
 --- a/include/linux/ipc_namespace.h~shm-extend-forced-shm-destroy-to-support-objects-from-several-ipc-nses
 +++ a/include/linux/ipc_namespace.h
@@ -154,17 +167,6 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
   *
   * Nests both inside and outside of read_lock(&tasklist_lock).
   * It must not be nested with write_lock_irq(&tasklist_lock),
---- a/include/linux/shm.h~shm-extend-forced-shm-destroy-to-support-objects-from-several-ipc-nses
-+++ a/include/linux/shm.h
-@@ -11,7 +11,7 @@ struct file;
- 
- #ifdef CONFIG_SYSVIPC
- struct sysv_shm {
--	struct list_head shm_clist;
-+	struct list_head	shm_clist;
- };
- 
- long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
 --- a/ipc/shm.c~shm-extend-forced-shm-destroy-to-support-objects-from-several-ipc-nses
 +++ a/ipc/shm.c
 @@ -62,9 +62,18 @@ struct shmid_kernel /* private to the ke
@@ -173,15 +175,15 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
 -	/* The task created the shm object.  NULL if the task is dead. */
 +	/*
-+	 * The task created the shm object, for looking up
-+	 * task->sysvshm.shm_clist_lock
++	 * The task created the shm object, for
++	 * task_lock(shp->shm_creator)
 +	 */
  	struct task_struct	*shm_creator;
 -	struct list_head	shm_clist;	/* list by creator */
 +
 +	/*
-+	 * list by creator. shm_clist_lock required for read/write
-+	 * if list_empty(), then the creator is dead already
++	 * List by creator. task_lock(->shm_creator) required for read/write.
++	 * If list_empty(), then the creator is dead already.
 +	 */
 +	struct list_head	shm_clist;
 +	struct ipc_namespace	*ns;
@@ -196,7 +198,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	if (shp->shm_nattch) {
  		shp->shm_perm.mode |= SHM_DEST;
-@@ -225,10 +235,36 @@ static void shm_rcu_free(struct rcu_head
+@@ -225,10 +235,43 @@ static void shm_rcu_free(struct rcu_head
  	kfree(shp);
  }
  
@@ -211,22 +213,29 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	ipc_rmid(&shm_ids(ns), &s->shm_perm);
 +	struct task_struct *creator;
 +
++	/* ensure that shm_creator does not disappear */
++	rcu_read_lock();
++
 +	/*
 +	 * A concurrent exit_shm may do a list_del_init() as well.
 +	 * Just do nothing if exit_shm already did the work
 +	 */
-+	if (list_empty(&shp->shm_clist))
-+		return;
++	if (!list_empty(&shp->shm_clist)) {
++		/*
++		 * shp->shm_creator is guaranteed to be valid *only*
++		 * if shp->shm_clist is not empty.
++		 */
++		creator = shp->shm_creator;
 +
-+	/*
-+	 * shp->shm_creator is guaranteed to be valid *only*
-+	 * if shp->shm_clist is not empty.
-+	 */
-+	creator = shp->shm_creator;
-+
-+	task_lock(creator);
-+	list_del_init(&shp->shm_clist);
-+	task_unlock(creator);
++		task_lock(creator);
++		/*
++		 * list_del_init() is a nop if the entry was already removed
++		 * from the list.
++		 */
++		list_del_init(&shp->shm_clist);
++		task_unlock(creator);
++	}
++	rcu_read_unlock();
 +}
 +
 +static inline void shm_rmid(struct shmid_kernel *s)
@@ -236,7 +245,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  }
  
  
-@@ -283,7 +319,7 @@ static void shm_destroy(struct ipc_names
+@@ -283,7 +326,7 @@ static void shm_destroy(struct ipc_names
  	shm_file = shp->shm_file;
  	shp->shm_file = NULL;
  	ns->shm_tot -= (shp->shm_segsz + PAGE_SIZE - 1) >> PAGE_SHIFT;
@@ -245,7 +254,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  	shm_unlock(shp);
  	if (!is_file_hugepages(shm_file))
  		shmem_lock(shm_file, 0, shp->mlock_ucounts);
-@@ -306,10 +342,10 @@ static void shm_destroy(struct ipc_names
+@@ -303,10 +346,10 @@ static void shm_destroy(struct ipc_names
   *
   * 2) sysctl kernel.shm_rmid_forced is set to 1.
   */
@@ -258,7 +267,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		(shp->shm_perm.mode & SHM_DEST));
  }
  
-@@ -340,7 +376,7 @@ static void shm_close(struct vm_area_str
+@@ -337,7 +380,7 @@ static void shm_close(struct vm_area_str
  	ipc_update_pid(&shp->shm_lprid, task_tgid(current));
  	shp->shm_dtim = ktime_get_real_seconds();
  	shp->shm_nattch--;
@@ -267,7 +276,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		shm_destroy(ns, shp);
  	else
  		shm_unlock(shp);
-@@ -361,10 +397,10 @@ static int shm_try_destroy_orphaned(int
+@@ -358,10 +401,10 @@ static int shm_try_destroy_orphaned(int
  	 *
  	 * As shp->* are changed under rwsem, it's safe to skip shp locking.
  	 */
@@ -280,7 +289,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		shm_lock_by_ptr(shp);
  		shm_destroy(ns, shp);
  	}
-@@ -382,48 +418,87 @@ void shm_destroy_orphaned(struct ipc_nam
+@@ -379,48 +422,94 @@ void shm_destroy_orphaned(struct ipc_nam
  /* Locking assumes this will only be called with task == current */
  void exit_shm(struct task_struct *task)
  {
@@ -301,9 +310,6 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +
 +		shp = list_first_entry(&task->sysvshm.shm_clist, struct shmid_kernel,
 +				shm_clist);
-+
-+		/* 1) unlink */
-+		list_del_init(&shp->shm_clist);
  
 -	/*
 -	 * If kernel.shm_rmid_forced is not set then only keep track of
@@ -317,17 +323,17 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		/*
 -		 * Only under read lock but we are only called on current
 -		 * so no entry on the list will be shared.
-+		 * 2) Get pointer to the ipc namespace. It is worth to say
-+		 * that this pointer is guaranteed to be valid because
-+		 * shp lifetime is always shorter than namespace lifetime
-+		 * in which shp lives.
-+		 * We taken task_lock it means that shp won't be freed.
++		 * 1) get a reference to shp.
++		 *    This must be done first: Right now, task_lock() prevents
++		 *    any concurrent IPC_RMID calls. After the list_del_init(),
++		 *    IPC_RMID will not acquire task_lock(->shm_creator)
++		 *    anymore.
  		 */
 -		list_del(&task->sysvshm.shm_clist);
 -		up_read(&shm_ids(ns).rwsem);
 -		return;
 -	}
-+		ns = shp->ns;
++		WARN_ON(!ipc_rcu_getref(&shp->shm_perm));
  
 -	/*
 -	 * Destroy all already created segments, that were not yet mapped,
@@ -337,71 +343,82 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	down_write(&shm_ids(ns).rwsem);
 -	list_for_each_entry_safe(shp, n, &task->sysvshm.shm_clist, shm_clist) {
 -		shp->shm_creator = NULL;
++		/* 2) unlink */
++		list_del_init(&shp->shm_clist);
++
 +		/*
-+		 * 3) If kernel.shm_rmid_forced is not set then only keep track of
++		 * 3) Get pointer to the ipc namespace. It is worth to say
++		 * that this pointer is guaranteed to be valid because
++		 * shp lifetime is always shorter than namespace lifetime
++		 * in which shp lives.
++		 * We taken task_lock it means that shp won't be freed.
++		 */
++		ns = shp->ns;
+ 
+-		if (shm_may_destroy(ns, shp)) {
+-			shm_lock_by_ptr(shp);
+-			shm_destroy(ns, shp);
++		/*
++		 * 4) If kernel.shm_rmid_forced is not set then only keep track of
 +		 * which shmids are orphaned, so that a later set of the sysctl
 +		 * can clean them up.
 +		 */
 +		if (!ns->shm_rmid_forced) {
++			ipc_rcu_putref(&shp->shm_perm, shm_rcu_free);
 +			task_unlock(task);
 +			continue;
-+		}
+ 		}
+-	}
  
--		if (shm_may_destroy(ns, shp)) {
+-	/* Remove the list head from any segments still attached. */
+-	list_del(&task->sysvshm.shm_clist);
+-	up_write(&shm_ids(ns).rwsem);
 +		/*
-+		 * 4) get a reference to the namespace.
++		 * 5) get a reference to the namespace.
 +		 *    The refcount could be already 0. If it is 0, then
 +		 *    the shm objects will be free by free_ipc_work().
 +		 */
 +		ns = get_ipc_ns_not_zero(ns);
-+		if (ns) {
-+			/*
-+			 * 5) get a reference to the shp itself.
-+			 *   This cannot fail: shm_clist_rm() is called before
-+			 *   ipc_rmid(), thus the refcount cannot be 0.
-+			 */
-+			WARN_ON(!ipc_rcu_getref(&shp->shm_perm));
++		if (!ns) {
++			ipc_rcu_putref(&shp->shm_perm, shm_rcu_free);
++			task_unlock(task);
++			continue;
 +		}
-+
 +		task_unlock(task);
 +
-+		if (ns) {
-+			down_write(&shm_ids(ns).rwsem);
- 			shm_lock_by_ptr(shp);
--			shm_destroy(ns, shp);
-+			/*
-+			 * rcu_read_lock was implicitly taken in
-+			 * shm_lock_by_ptr, it's safe to call
-+			 * ipc_rcu_putref here
-+			 */
-+			ipc_rcu_putref(&shp->shm_perm, shm_rcu_free);
++		/*
++		 * 6) we have all references
++		 *    Thus lock & if needed destroy shp.
++		 */
++		down_write(&shm_ids(ns).rwsem);
++		shm_lock_by_ptr(shp);
++		/*
++		 * rcu_read_lock was implicitly taken in shm_lock_by_ptr, it's
++		 * safe to call ipc_rcu_putref here
++		 */
++		ipc_rcu_putref(&shp->shm_perm, shm_rcu_free);
 +
-+			if (ipc_valid_object(&shp->shm_perm)) {
-+				if (shm_may_destroy(shp))
-+					shm_destroy(ns, shp);
-+				else
-+					shm_unlock(shp);
-+			} else {
-+				/*
-+				 * Someone else deleted the shp from namespace
-+				 * idr/kht while we have waited.
-+				 * Just unlock and continue.
-+				 */
++		if (ipc_valid_object(&shp->shm_perm)) {
++			if (shm_may_destroy(shp))
++				shm_destroy(ns, shp);
++			else
 +				shm_unlock(shp);
-+			}
++		} else {
++			/*
++			 * Someone else deleted the shp from namespace
++			 * idr/kht while we have waited.
++			 * Just unlock and continue.
++			 */
++			shm_unlock(shp);
++		}
 +
-+			up_write(&shm_ids(ns).rwsem);
-+			put_ipc_ns(ns); /* paired with get_ipc_ns_not_zero */
- 		}
- 	}
--
--	/* Remove the list head from any segments still attached. */
--	list_del(&task->sysvshm.shm_clist);
--	up_write(&shm_ids(ns).rwsem);
++		up_write(&shm_ids(ns).rwsem);
++		put_ipc_ns(ns); /* paired with get_ipc_ns_not_zero */
++	}
  }
  
  static vm_fault_t shm_fault(struct vm_fault *vmf)
-@@ -680,7 +755,11 @@ static int newseg(struct ipc_namespace *
+@@ -676,7 +765,11 @@ static int newseg(struct ipc_namespace *
  	if (error < 0)
  		goto no_id;
  
@@ -413,7 +430,7 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  	/*
  	 * shmid gets reported as "inode#" in /proc/pid/maps.
-@@ -1573,7 +1652,8 @@ out_nattch:
+@@ -1567,7 +1660,8 @@ out_nattch:
  	down_write(&shm_ids(ns).rwsem);
  	shp = shm_lock(ns, shmid);
  	shp->shm_nattch--;
@@ -428,4 +445,5 @@ _
 Patches currently in -mm which might be from alexander.mikhalitsyn@virtuozzo.com are
 
 ipc-warn-if-trying-to-remove-ipc-object-which-is-absent.patch
+shm-extend-forced-shm-destroy-to-support-objects-from-several-ipc-nses.patch
 
