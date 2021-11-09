@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 19BA2C433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F9B6C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 01EE7614C8
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3B8E261381
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238104AbhKICiF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Nov 2021 21:38:05 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53518 "EHLO mail.kernel.org"
+        id S236920AbhKICiI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Nov 2021 21:38:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53580 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237743AbhKICiF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Nov 2021 21:38:05 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F35461360;
-        Tue,  9 Nov 2021 02:35:19 +0000 (UTC)
+        id S237743AbhKICiI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Nov 2021 21:38:08 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9772A6137F;
+        Tue,  9 Nov 2021 02:35:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636425319;
-        bh=4m/9it/qoKLdrA83lbpAfV0YEspJ+kRur+ACqIJhMOc=;
+        s=korg; t=1636425322;
+        bh=lYyLnLUzjt+IxmgIR2Nk+9mu8Z8DWSmmZ87vpx6+u3k=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=0EPaqoaQLPdcy2dIu47ycuGpnqKyIXNjjrH5IdjCnfM4pjv54La/WKU9dxqCvCexG
-         DDZYSel+yMPjVtfxzkQaURqPLD1P7PvHowLWUBsL4LNPhQuIj/fSv2fzR6qI8WDcie
-         ChKRC+ji9osQioDmEVuejHxwNNR/34+aCTGjjzAQ=
-Date:   Mon, 08 Nov 2021 18:35:19 -0800
+        b=c699rOgr9MO2OC1wQNy9RC85LSc5NejY/1cCibW9a/briz6HWojGSuiaBio5Y+R1T
+         j+pLu2eFsfhKp1Mikgn39ne0FPom3i8QJGmoIwPobtetVdIgdINm1obcHSl5T4ZBWY
+         fo3qF3b7/bzZoniLqg5m08fNChE3ff6DhAW4ruW8=
+Date:   Mon, 08 Nov 2021 18:35:22 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        revest@chromium.org, sfr@canb.auug.org.au,
-        songmuchun@bytedance.com, torvalds@linux-foundation.org
-Subject:  [patch 73/87] seq_file: fix passing wrong private data
-Message-ID: <20211109023519.9dvm6-aET%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, axboe@kernel.dk, ebiederm@xmission.com,
+        krisman@collabora.com, legion@kernel.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, peterz@infradead.org,
+        ran.xiaokai@zte.com.cn, torvalds@linux-foundation.org
+Subject:  [patch 74/87] kernel/fork.c: unshare(): use swap() to
+ make code cleaner
+Message-ID: <20211109023522.1_gvxnX2r%akpm@linux-foundation.org>
 In-Reply-To: <20211108183057.809e428e841088b657a975ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -39,40 +39,47 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: seq_file: fix passing wrong private data
+From: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Subject: kernel/fork.c: unshare(): use swap() to make code cleaner
 
-DEFINE_PROC_SHOW_ATTRIBUTE() is supposed to be used to define a series
-of functions and variables to register proc file easily. And the users
-can use proc_create_data() to pass their own private data and get it
-via seq->private in the callback. Unfortunately, the proc file system
-use PDE_DATA() to get private data instead of inode->i_private. So fix
-it. Fortunately, there only one user of it which does not pass any
-private data, so this bug does not break any in-tree codes.
+Use swap() instead of reimplementing it.
 
-Link: https://lkml.kernel.org/r/20211029032638.84884-1-songmuchun@bytedance.com
-Fixes: 97a32539b956 ("proc: convert everything to "struct proc_ops"")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Florent Revest <revest@chromium.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Link: https://lkml.kernel.org/r/20210909022046.8151-1-ran.xiaokai@zte.com.cn
+Signed-off-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Cc: Gabriel Krisman Bertazi <krisman@collabora.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Alexey Gladkov <legion@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/seq_file.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/fork.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
---- a/include/linux/seq_file.h~seq_file-fix-passing-wrong-private-data
-+++ a/include/linux/seq_file.h
-@@ -209,7 +209,7 @@ static const struct file_operations __na
- #define DEFINE_PROC_SHOW_ATTRIBUTE(__name)				\
- static int __name ## _open(struct inode *inode, struct file *file)	\
- {									\
--	return single_open(file, __name ## _show, inode->i_private);	\
-+	return single_open(file, __name ## _show, PDE_DATA(inode));	\
- }									\
- 									\
- static const struct proc_ops __name ## _proc_ops = {			\
+--- a/kernel/fork.c~unshare-use-swap-to-make-code-cleaner
++++ a/kernel/fork.c
+@@ -3027,7 +3027,7 @@ int unshare_fd(unsigned long unshare_fla
+ int ksys_unshare(unsigned long unshare_flags)
+ {
+ 	struct fs_struct *fs, *new_fs = NULL;
+-	struct files_struct *fd, *new_fd = NULL;
++	struct files_struct *new_fd = NULL;
+ 	struct cred *new_cred = NULL;
+ 	struct nsproxy *new_nsproxy = NULL;
+ 	int do_sysvsem = 0;
+@@ -3114,11 +3114,8 @@ int ksys_unshare(unsigned long unshare_f
+ 			spin_unlock(&fs->lock);
+ 		}
+ 
+-		if (new_fd) {
+-			fd = current->files;
+-			current->files = new_fd;
+-			new_fd = fd;
+-		}
++		if (new_fd)
++			swap(current->files, new_fd);
+ 
+ 		task_unlock(current);
+ 
 _
