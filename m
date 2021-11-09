@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45E59C433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:33:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5AD0C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:33:33 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1E2B761207
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:33:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C761361284
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:33:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235998AbhKICgP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Nov 2021 21:36:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51378 "EHLO mail.kernel.org"
+        id S236221AbhKICgS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Nov 2021 21:36:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51460 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235932AbhKICgO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Nov 2021 21:36:14 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B5CD61208;
-        Tue,  9 Nov 2021 02:33:28 +0000 (UTC)
+        id S235794AbhKICgQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Nov 2021 21:36:16 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9576E6134F;
+        Tue,  9 Nov 2021 02:33:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636425208;
-        bh=wHpXk4kUeyj17HE47oG7nwHoXUyNIqzK/jw67qyqJyo=;
+        s=korg; t=1636425211;
+        bh=j9sv+VqCsFmRPuxO0QCzqo249FXNQaf+H/JropyyBx4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wOE3iOVmvYTIGkX39NaYEqu9CTuDKSPHK4q8g8ehfJ6uDFnYhqgK3uVB2OHj2ZSeg
-         ut5ef00I/wIgqOcP5sl1agMVwhIzljTkTqyT9K5Jl4RABmNZDZccZiNwFhGD6l1gbn
-         8NvAKGjciM6+CZTagiWDrtq1L5n7kV7Pgc2RqhhY=
-Date:   Mon, 08 Nov 2021 18:33:28 -0800
+        b=hZt1YCpVH79Q9GbE0dxoUhNJfILwWPUAs5ceGn1DpGr/WXfYK4RnlqKCNa53zmK0Q
+         /5xfIH4737WYP4eF8f1FFCp3rq1XbVKvw7gRTn0Omj0rMZJ+/FbhWM4zCYCL7PhURV
+         JO6bp1QkofLErJ1Ld4BuQ/+x7RwStRxJGs1jxP+o=
+Date:   Mon, 08 Nov 2021 18:33:31 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, broonie@kernel.org, joe@perches.com,
-        lgirdwood@gmail.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, perex@perex.cz,
-        rikard.falkeborn@gmail.com, tiwai@suse.com,
+To:     akpm@linux-foundation.org, arequipeno@gmail.com,
+        dwaipayanray1@gmail.com, joe@perches.com, linux-mm@kvack.org,
+        lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 39/87] const_structs.checkpatch: add a few sound
- ops structs
-Message-ID: <20211109023328.SBppmfyB1%akpm@linux-foundation.org>
+Subject:  [patch 40/87] checkpatch: improve EXPORT_SYMBOL test for
+ EXPORT_SYMBOL_NS uses
+Message-ID: <20211109023331.QLYxTOMOM%akpm@linux-foundation.org>
 In-Reply-To: <20211108183057.809e428e841088b657a975ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,37 +39,34 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
-Subject: const_structs.checkpatch: add a few sound ops structs
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve EXPORT_SYMBOL test for EXPORT_SYMBOL_NS uses
 
-Add a couple of commonly used (>50 instances) sound ops structs that are
-typically const.
+The EXPORT_SYMBOL test expects a single argument but definitions of
+EXPORT_SYMBOL_NS have multiple arguments.
 
-Link: https://lkml.kernel.org/r/20210922211042.38017-1-rikard.falkeborn@gmail.com
-Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Liam Girdwood <lgirdwood@gmail.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Jaroslav Kysela <perex@perex.cz>
-Cc: Takashi Iwai <tiwai@suse.com>
+Update the test to extract only the first argument from any
+EXPORT_SYMBOL related definition.
+
+Link: https://lkml.kernel.org/r/9e8f251b42e405f460f26a23ba9b33ef45a94adc.camel@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Ian Pilcher <arequipeno@gmail.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/const_structs.checkpatch |    4 ++++
- 1 file changed, 4 insertions(+)
+ scripts/checkpatch.pl |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/scripts/const_structs.checkpatch~const_structscheckpatch-add-a-few-sound-ops-structs
-+++ a/scripts/const_structs.checkpatch
-@@ -54,7 +54,11 @@ sd_desc
- seq_operations
- sirfsoc_padmux
- snd_ac97_build_ops
-+snd_pcm_ops
-+snd_rawmidi_ops
- snd_soc_component_driver
-+snd_soc_dai_ops
-+snd_soc_ops
- soc_pcmcia_socket_ops
- stacktrace_ops
- sysfs_ops
+--- a/scripts/checkpatch.pl~checkpatch-improve-export_symbol-test-for-export_symbol_ns-uses
++++ a/scripts/checkpatch.pl
+@@ -4449,6 +4449,7 @@ sub process {
+ 			#   XXX(foo);
+ 			#   EXPORT_SYMBOL(something_foo);
+ 			my $name = $1;
++			$name =~ s/^\s*($Ident).*/$1/;
+ 			if ($stat =~ /^(?:.\s*}\s*\n)?.([A-Z_]+)\s*\(\s*($Ident)/ &&
+ 			    $name =~ /^${Ident}_$2/) {
+ #print "FOO C name<$name>\n";
 _
