@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63E79C433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38559C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:36:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 4A544619E5
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 20FB3619E5
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:36:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239356AbhKICim (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Nov 2021 21:38:42 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54162 "EHLO mail.kernel.org"
+        id S239643AbhKICiq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Nov 2021 21:38:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54218 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238412AbhKICim (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Nov 2021 21:38:42 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id F179B619A6;
-        Tue,  9 Nov 2021 02:35:56 +0000 (UTC)
+        id S238412AbhKICip (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Nov 2021 21:38:45 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F2814619BB;
+        Tue,  9 Nov 2021 02:35:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636425357;
-        bh=Ulbi1NUz/S954JH65DW07Fjc2XcByVledStYEZaw8Jc=;
+        s=korg; t=1636425360;
+        bh=7/4xRmMFf8d5g+Pw6oQ9++isJLNnPgpB2n58i7JDr+k=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=fLsQFTutLR9lQi3/fsCmu7r771Co2aJKxJ8mSbnjBuiBOAD+y+/hlh8TTtAsx9sY3
-         6ojGsfmgkaju10JiKyGQHX/dO/FhvF6iARjzbftF0Y/W4FvBKUi1aTqYIm+fs7yTdU
-         YZZhEBhHrAp4yHELQwfz9Fty4c0UKdii0WMRbKC4=
-Date:   Mon, 08 Nov 2021 18:35:56 -0800
+        b=CalsLB4EftqHe+PvMTMMvIKNco/k3wjMjpR4qKZDBWj2ASN1qM/uB1AY31a3Uu2ai
+         v5TY3h6hjT694S47Tdr0XB/a4UDz9FTqVjVFgopXwAVD+VGIAUBt1z7s/oNnMNBt9V
+         uzFhXw9aCIwBf6+jYsphyj5nLk+yQ+o9Z+R/Pe2g=
+Date:   Mon, 08 Nov 2021 18:35:59 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, gregkh@linuxfoundation.org,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, shuah@kernel.org,
-        sjpark@amazon.de, torvalds@linux-foundation.org
-Subject:  [patch 85/87] selftests/kselftest/runner/run_one(): allow
- running non-executable files
-Message-ID: <20211109023556.QHYswe1Gd%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, dbueso@suse.de, ebiederm@xmission.com,
+        linux-mm@kvack.org, manfred@colorfullife.com,
+        mclapinski@google.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 86/87] ipc: check checkpoint_restore_ns_capable()
+ to modify C/R proc files
+Message-ID: <20211109023559.ZBeL3oWWO%akpm@linux-foundation.org>
 In-Reply-To: <20211108183057.809e428e841088b657a975ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -38,79 +39,100 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: SeongJae Park <sjpark@amazon.de>
-Subject: selftests/kselftest/runner/run_one(): allow running non-executable files
+From: Michal Clapinski <mclapinski@google.com>
+Subject: ipc: check checkpoint_restore_ns_capable() to modify C/R proc files
 
-When running a test program, 'run_one()' checks if the program has the
-execution permission and fails if it doesn't.  However, it's easy to
-mistakenly lose the permissions, as some common tools like 'diff' don't
-support the permission change well[1].  Compared to that, making mistakes
-in the test program's path would only rare, as those are explicitly listed
-in 'TEST_PROGS'.  Therefore, it might make more sense to resolve the
-situation on our own and run the program.
+This commit removes the requirement to be root to modify sem_next_id,
+msg_next_id and shm_next_id and checks checkpoint_restore_ns_capable
+instead.
 
-For this reason, this commit makes the test program runner function still
-print the warning message but to try parsing the interpreter of the
-program and to explicitly run it with the interpreter, in this case.
+Since those files are specific to the IPC namespace, there is no reason
+they should require root privileges.  This is similar to ns_last_pid,
+which also only checks checkpoint_restore_ns_capable.
 
-[1] https://lore.kernel.org/mm-commits/YRJisBs9AunccCD4@kroah.com/
-
-Link: https://lkml.kernel.org/r/20210810164534.25902-1-sj38.park@gmail.com
-Signed-off-by: SeongJae Park <sjpark@amazon.de>
-Suggested-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Shuah Khan <shuah@kernel.org>
+[akpm@linux-foundation.org: ipc/ipc_sysctl.c needs capability.h for checkpoint_restore_ns_capable()]
+Link: https://lkml.kernel.org/r/20210916163717.3179496-1-mclapinski@google.com
+Signed-off-by: Michal Clapinski <mclapinski@google.com>
+Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
+Reviewed-by: Manfred Spraul <manfred@colorfullife.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kselftest/runner.sh |   28 +++++++++++-------
- 1 file changed, 18 insertions(+), 10 deletions(-)
+ ipc/ipc_sysctl.c |   29 +++++++++++++++++++++++------
+ 1 file changed, 23 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/kselftest/runner.sh~selftests-kselftest-runner-run_one-allow-running-non-executable-files
-+++ a/tools/testing/selftests/kselftest/runner.sh
-@@ -33,9 +33,9 @@ tap_timeout()
- {
- 	# Make sure tests will time out if utility is available.
- 	if [ -x /usr/bin/timeout ] ; then
--		/usr/bin/timeout --foreground "$kselftest_timeout" "$1"
-+		/usr/bin/timeout --foreground "$kselftest_timeout" $1
- 	else
--		"$1"
-+		$1
- 	fi
+--- a/ipc/ipc_sysctl.c~ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files
++++ a/ipc/ipc_sysctl.c
+@@ -10,6 +10,7 @@
+ #include <linux/nsproxy.h>
+ #include <linux/sysctl.h>
+ #include <linux/uaccess.h>
++#include <linux/capability.h>
+ #include <linux/ipc_namespace.h>
+ #include <linux/msg.h>
+ #include "util.h"
+@@ -104,6 +105,19 @@ static int proc_ipc_sem_dointvec(struct
+ 	return ret;
  }
  
-@@ -65,17 +65,25 @@ run_one()
- 
- 	TEST_HDR_MSG="selftests: $DIR: $BASENAME_TEST"
- 	echo "# $TEST_HDR_MSG"
--	if [ ! -x "$TEST" ]; then
--		echo -n "# Warning: file $TEST is "
--		if [ ! -e "$TEST" ]; then
--			echo "missing!"
--		else
--			echo "not executable, correct this."
--		fi
-+	if [ ! -e "$TEST" ]; then
-+		echo "# Warning: file $TEST is missing!"
- 		echo "not ok $test_num $TEST_HDR_MSG"
- 	else
-+		cmd="./$BASENAME_TEST"
-+		if [ ! -x "$TEST" ]; then
-+			echo "# Warning: file $TEST is not executable"
++#ifdef CONFIG_CHECKPOINT_RESTORE
++static int proc_ipc_dointvec_minmax_checkpoint_restore(struct ctl_table *table,
++		int write, void *buffer, size_t *lenp, loff_t *ppos)
++{
++	struct user_namespace *user_ns = current->nsproxy->ipc_ns->user_ns;
 +
-+			if [ $(head -n 1 "$TEST" | cut -c -2) = "#!" ]
-+			then
-+				interpreter=$(head -n 1 "$TEST" | cut -c 3-)
-+				cmd="$interpreter ./$BASENAME_TEST"
-+			else
-+				echo "not ok $test_num $TEST_HDR_MSG"
-+				return
-+			fi
-+		fi
- 		cd `dirname $TEST` > /dev/null
--		((((( tap_timeout ./$BASENAME_TEST 2>&1; echo $? >&3) |
-+		((((( tap_timeout "$cmd" 2>&1; echo $? >&3) |
- 			tap_prefix >&4) 3>&1) |
- 			(read xs; exit $xs)) 4>>"$logfile" &&
- 		echo "ok $test_num $TEST_HDR_MSG") ||
++	if (write && !checkpoint_restore_ns_capable(user_ns))
++		return -EPERM;
++
++	return proc_ipc_dointvec_minmax(table, write, buffer, lenp, ppos);
++}
++#endif
++
+ #else
+ #define proc_ipc_doulongvec_minmax NULL
+ #define proc_ipc_dointvec	   NULL
+@@ -111,6 +125,9 @@ static int proc_ipc_sem_dointvec(struct
+ #define proc_ipc_dointvec_minmax_orphans   NULL
+ #define proc_ipc_auto_msgmni	   NULL
+ #define proc_ipc_sem_dointvec	   NULL
++#ifdef CONFIG_CHECKPOINT_RESTORE
++#define proc_ipc_dointvec_minmax_checkpoint_restore	NULL
++#endif	/* CONFIG_CHECKPOINT_RESTORE */
+ #endif
+ 
+ int ipc_mni = IPCMNI;
+@@ -198,8 +215,8 @@ static struct ctl_table ipc_kern_table[]
+ 		.procname	= "sem_next_id",
+ 		.data		= &init_ipc_ns.ids[IPC_SEM_IDS].next_id,
+ 		.maxlen		= sizeof(init_ipc_ns.ids[IPC_SEM_IDS].next_id),
+-		.mode		= 0644,
+-		.proc_handler	= proc_ipc_dointvec_minmax,
++		.mode		= 0666,
++		.proc_handler	= proc_ipc_dointvec_minmax_checkpoint_restore,
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_INT_MAX,
+ 	},
+@@ -207,8 +224,8 @@ static struct ctl_table ipc_kern_table[]
+ 		.procname	= "msg_next_id",
+ 		.data		= &init_ipc_ns.ids[IPC_MSG_IDS].next_id,
+ 		.maxlen		= sizeof(init_ipc_ns.ids[IPC_MSG_IDS].next_id),
+-		.mode		= 0644,
+-		.proc_handler	= proc_ipc_dointvec_minmax,
++		.mode		= 0666,
++		.proc_handler	= proc_ipc_dointvec_minmax_checkpoint_restore,
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_INT_MAX,
+ 	},
+@@ -216,8 +233,8 @@ static struct ctl_table ipc_kern_table[]
+ 		.procname	= "shm_next_id",
+ 		.data		= &init_ipc_ns.ids[IPC_SHM_IDS].next_id,
+ 		.maxlen		= sizeof(init_ipc_ns.ids[IPC_SHM_IDS].next_id),
+-		.mode		= 0644,
+-		.proc_handler	= proc_ipc_dointvec_minmax,
++		.mode		= 0666,
++		.proc_handler	= proc_ipc_dointvec_minmax_checkpoint_restore,
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_INT_MAX,
+ 	},
 _
