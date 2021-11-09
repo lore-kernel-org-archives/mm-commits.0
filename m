@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D576DC433EF
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:32:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EE1AC433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:32:45 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id BE2FF6124D
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:32:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 88CA06124D
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:32:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235599AbhKICf1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Nov 2021 21:35:27 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50608 "EHLO mail.kernel.org"
+        id S235628AbhKICf3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Nov 2021 21:35:29 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50644 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229999AbhKICf0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Nov 2021 21:35:26 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 6DC9761207;
-        Tue,  9 Nov 2021 02:32:41 +0000 (UTC)
+        id S229999AbhKICf3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Nov 2021 21:35:29 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5183A61208;
+        Tue,  9 Nov 2021 02:32:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636425161;
-        bh=gLvCIZzkF6wkrrje1AA7SZ105gqis/4MBNBzQOu6AKA=;
+        s=korg; t=1636425164;
+        bh=M7wIh2UgzBKDLLrnUTL6hm2UhxXRMuWMsO0N1dpxx00=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Yes3Txmf8VuN+Y6TQsTB6eUVGYLrU5QRn0HilTsT0UpTjw1vrP5jFlNPU/bxRck3a
-         qf6Ze9V6wGt2QlsCo02gyXXuOrl09/abeDpH9BpRUYMm1m70JRFP1bzL6wZSobjZaw
-         8Bc3wzkY8F3MX5Qwq7U0j/OUtRHzFMVDJYR0jbm0=
-Date:   Mon, 08 Nov 2021 18:32:41 -0800
+        b=RKo6gn2vV0F6yS6Civx1Qtfq38Xs+gHuiVJw0UBcEMnE9KyMQ0DK5ZwJ8yM6sYQ/F
+         VH321gCQgvbJSURXAXOpQxmTA8S4bzovjVaBgHyhymok8r15Yp/M8oqbHQKG5nD6l3
+         97wpgQqQijaTFGEQunI5LOVxkefIsGJU+e5JfaS4=
+Date:   Mon, 08 Nov 2021 18:32:43 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 24/87] include/linux/generic-radix-tree.h: replace
- kernel.h with the necessary inclusions
-Message-ID: <20211109023241.0I8DheIWD%akpm@linux-foundation.org>
+        sfr@canb.auug.org.au, torvalds@linux-foundation.org
+Subject:  [patch 25/87] kernel.h: split out instruction pointer
+ accessors
+Message-ID: <20211109023243.S5hAtR3lL%akpm@linux-foundation.org>
 In-Reply-To: <20211108183057.809e428e841088b657a975ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -38,34 +38,65 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: include/linux/generic-radix-tree.h: replace kernel.h with the necessary inclusions
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: kernel.h: split out instruction pointer accessors
 
-When kernel.h is used in the headers it adds a lot into dependency hell,
-especially when there are circular dependencies are involved.
+bottom_half.h needs _THIS_IP_ to be standalone, so split that and _RET_IP_
+out from kernel.h into the new instruction_pointer.h.  kernel.h directly
+needs them, so include it there and replace the include of kernel.h with
+this new file in bottom_half.h.
 
-Replace kernel.h inclusion with the list of what is really being used.
-
-[akpm@linux-foundation.org: include math.h for round_up()]
-Link: https://lkml.kernel.org/r/20211027150548.80042-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20211028161248.45232-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/generic-radix-tree.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/bottom_half.h         |    2 +-
+ include/linux/instruction_pointer.h |    8 ++++++++
+ include/linux/kernel.h              |    4 +---
+ 3 files changed, 10 insertions(+), 4 deletions(-)
 
---- a/include/linux/generic-radix-tree.h~generic-radix-tree-replace-kernelh-with-the-necessary-inclusions
-+++ a/include/linux/generic-radix-tree.h
-@@ -38,8 +38,9 @@
+--- a/include/linux/bottom_half.h~kernelh-split-out-instruction-pointer-accessors
++++ a/include/linux/bottom_half.h
+@@ -2,7 +2,7 @@
+ #ifndef _LINUX_BH_H
+ #define _LINUX_BH_H
  
- #include <asm/page.h>
- #include <linux/bug.h>
 -#include <linux/kernel.h>
- #include <linux/log2.h>
-+#include <linux/math.h>
-+#include <linux/types.h>
++#include <linux/instruction_pointer.h>
+ #include <linux/preempt.h>
  
- struct genradix_root;
+ #if defined(CONFIG_PREEMPT_RT) || defined(CONFIG_TRACE_IRQFLAGS)
+--- /dev/null
++++ a/include/linux/instruction_pointer.h
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_INSTRUCTION_POINTER_H
++#define _LINUX_INSTRUCTION_POINTER_H
++
++#define _RET_IP_		(unsigned long)__builtin_return_address(0)
++#define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
++
++#endif /* _LINUX_INSTRUCTION_POINTER_H */
+--- a/include/linux/kernel.h~kernelh-split-out-instruction-pointer-accessors
++++ a/include/linux/kernel.h
+@@ -20,6 +20,7 @@
+ #include <linux/printk.h>
+ #include <linux/build_bug.h>
+ #include <linux/static_call_types.h>
++#include <linux/instruction_pointer.h>
+ #include <asm/byteorder.h>
  
+ #include <uapi/linux/kernel.h>
+@@ -53,9 +54,6 @@
+ }					\
+ )
+ 
+-#define _RET_IP_		(unsigned long)__builtin_return_address(0)
+-#define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
+-
+ /**
+  * upper_32_bits - return bits 32-63 of a number
+  * @n: the number we're accessing
 _
