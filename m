@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A214DC433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:31:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92729C433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:31:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8232060E97
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:31:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 6CB9160E97
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:31:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235021AbhKICeK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Nov 2021 21:34:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49362 "EHLO mail.kernel.org"
+        id S235061AbhKICeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Nov 2021 21:34:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229999AbhKICeK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Nov 2021 21:34:10 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 20553611CC;
-        Tue,  9 Nov 2021 02:31:25 +0000 (UTC)
+        id S229999AbhKICeN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Nov 2021 21:34:13 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 22320611ED;
+        Tue,  9 Nov 2021 02:31:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636425085;
-        bh=aw6Rhf/LVzpE34XfdZ6Vgm80QGWbkU++o++ga9O+HU4=;
+        s=korg; t=1636425088;
+        bh=xpZxK4hipzouPOyqBfagVPy8JOKXa76rkD1/H5Nh2c4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rZts5MZHDmoSsc/g6Vgg3PTvmWHVRA/m2yRPcAzqcREmUiEPAT36/zrK5vlTgwTw2
-         hUr2q610j42/S6oVNhupAeRjhirQXbQe9XPzwwA+/y7LkJWAemXEtLj0bWsuT6W2yn
-         mQ2mRxbo8LbvDK3Xi3+cFwTIuliVOMwptnkuIRzU=
-Date:   Mon, 08 Nov 2021 18:31:24 -0800
+        b=BHQdO4WBPWYid6eM1KcOSxVPv5NcZYpYqNgLI3fVlttqNWiwN3C9umDrR5LH7g2fF
+         xVbevKvUBLpAH37qaitVg0Z9Nar6iV/KmUyu4qR40s+uKNbLzrw/qY3yw8bWkLI3RS
+         +aMK1XPgCgP+he5c41iUWHNbmHCNtuBauG23w3kw=
+Date:   Mon, 08 Nov 2021 18:31:27 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, david@fromorbit.com, guro@fb.com,
-        hannes@cmpxchg.org, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        tj@kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 01/87] vfs: keep inodes with page cache off the
- inode shrinker LRU
-Message-ID: <20211109023124.-zo_v1Nio%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hughd@google.com, linux-mm@kvack.org,
+        liuzixian4@huawei.com, mhocko@suse.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        wuxu.wu@huawei.com, zhangyiru3@huawei.com
+Subject:  [patch 02/87] mm,hugetlb: remove mlock ulimit for
+ SHM_HUGETLB
+Message-ID: <20211109023127.M0F66RgO7%akpm@linux-foundation.org>
 In-Reply-To: <20211108183057.809e428e841088b657a975ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -38,426 +39,172 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: vfs: keep inodes with page cache off the inode shrinker LRU
+From: zhangyiru <zhangyiru3@huawei.com>
+Subject: mm,hugetlb: remove mlock ulimit for SHM_HUGETLB
 
-Historically (pre-2.5), the inode shrinker used to reclaim only empty
-inodes and skip over those that still contained page cache.  This caused
-problems on highmem hosts: struct inode could put fill lowmem zones before
-the cache was getting reclaimed in the highmem zones.
+commit 21a3c273f88c9cbbaf7e ("mm, hugetlb: add thread name and pid to
+SHM_HUGETLB mlock rlimit warning") marked this as deprecated in 2012, but
+it is not deleted yet.
 
-To address this, the inode shrinker started to strip page cache to
-facilitate reclaiming lowmem.  However, this comes with its own set of
-problems: the shrinkers may drop actively used page cache just because the
-inodes are not currently open or dirty - think working with a large git
-tree.  It further doesn't respect cgroup memory protection settings and
-can cause priority inversions between containers.
+Mike says he still sees that message in log files on occasion, so maybe we
+should preserve this warning.
 
-Nowadays, the page cache also holds non-resident info for evicted cache
-pages in order to detect refaults.  We've come to rely heavily on this
-data inside reclaim for protecting the cache workingset and driving swap
-behavior.  We also use it to quantify and report workload health through
-psi.  The latter in turn is used for fleet health monitoring, as well as
-driving automated memory sizing of workloads and containers, proactive
-reclaim and memory offloading schemes.
+Also remove hugetlbfs related user_shm_unlock in ipc/shm.c and remove the
+user_shm_unlock after out.
 
-The consequences of dropping page cache prematurely is that we're seeing
-subtle and not-so-subtle failures in all of the above-mentioned scenarios,
-with the workload generally entering unexpected thrashing states while
-losing the ability to reliably detect it.
-
-To fix this on non-highmem systems at least, going back to rotating inodes
-on the LRU isn't feasible.  We've tried (commit a76cf1a474d7 ("mm: don't
-reclaim inodes with many attached pages")) and failed (commit 69056ee6a8a3
-("Revert "mm: don't reclaim inodes with many attached pages"")).  The
-issue is mostly that shrinker pools attract pressure based on their size,
-and when objects get skipped the shrinkers remember this as deferred
-reclaim work.  This accumulates excessive pressure on the remaining
-inodes, and we can quickly eat into heavily used ones, or dirty ones that
-require IO to reclaim, when there potentially is plenty of cold, clean
-cache around still.
-
-Instead, this patch keeps populated inodes off the inode LRU in the first
-place - just like an open file or dirty state would.  An otherwise clean
-and unused inode then gets queued when the last cache entry disappears. 
-This solves the problem without reintroducing the reclaim issues, and
-generally is a bit more scalable than having to wade through potentially
-hundreds of thousands of busy inodes.
-
-Locking is a bit tricky because the locks protecting the inode state
-(i_lock) and the inode LRU (lru_list.lock) don't nest inside the irq-safe
-page cache lock (i_pages.xa_lock).  Page cache deletions are serialized
-through i_lock, taken before the i_pages lock, to make sure depopulated
-inodes are queued reliably.  Additions may race with deletions, but we'll
-check again in the shrinker.  If additions race with the shrinker itself,
-we're protected by the i_lock: if find_inode() or iput() win, the shrinker
-will bail on the elevated i_count or I_REFERENCED; if the shrinker wins
-and goes ahead with the inode, it will set I_FREEING and inhibit further
-igets(), which will cause the other side to create a new instance of the
-inode instead.
-
-Link: https://lkml.kernel.org/r/20210614211904.14420-4-hannes@cmpxchg.org
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
+Link: https://lkml.kernel.org/r/20211103105857.25041-1-zhangyiru3@huawei.com
+Signed-off-by: zhangyiru <zhangyiru3@huawei.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Liu Zixian <liuzixian4@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: wuxu.wu <wuxu.wu@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/inode.c              |   46 ++++++++++++++++++++--------------
- fs/internal.h           |    1 
- include/linux/fs.h      |    1 
- include/linux/pagemap.h |   50 ++++++++++++++++++++++++++++++++++++++
- mm/filemap.c            |    8 ++++++
- mm/truncate.c           |   19 ++++++++++++--
- mm/vmscan.c             |    7 +++++
- mm/workingset.c         |   10 +++++++
- 8 files changed, 120 insertions(+), 22 deletions(-)
+ fs/hugetlbfs/inode.c    |   23 ++++++++---------------
+ include/linux/hugetlb.h |    6 ++----
+ ipc/shm.c               |    8 +-------
+ mm/memfd.c              |    4 +---
+ mm/mmap.c               |    3 +--
+ 5 files changed, 13 insertions(+), 31 deletions(-)
 
---- a/fs/inode.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/fs/inode.c
-@@ -428,11 +428,20 @@ void ihold(struct inode *inode)
- }
- EXPORT_SYMBOL(ihold);
- 
--static void inode_lru_list_add(struct inode *inode)
-+static void __inode_add_lru(struct inode *inode, bool rotate)
- {
-+	if (inode->i_state & (I_DIRTY_ALL | I_SYNC | I_FREEING | I_WILL_FREE))
-+		return;
-+	if (atomic_read(&inode->i_count))
-+		return;
-+	if (!(inode->i_sb->s_flags & SB_ACTIVE))
-+		return;
-+	if (!mapping_shrinkable(&inode->i_data))
-+		return;
-+
- 	if (list_lru_add(&inode->i_sb->s_inode_lru, &inode->i_lru))
- 		this_cpu_inc(nr_unused);
--	else
-+	else if (rotate)
- 		inode->i_state |= I_REFERENCED;
- }
- 
-@@ -443,16 +452,11 @@ static void inode_lru_list_add(struct in
+--- a/fs/hugetlbfs/inode.c~mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb
++++ a/fs/hugetlbfs/inode.c
+@@ -1446,8 +1446,8 @@ static int get_hstate_idx(int page_size_
+  * otherwise hugetlb_reserve_pages reserves one less hugepages than intended.
   */
- void inode_add_lru(struct inode *inode)
+ struct file *hugetlb_file_setup(const char *name, size_t size,
+-				vm_flags_t acctflag, struct ucounts **ucounts,
+-				int creat_flags, int page_size_log)
++				vm_flags_t acctflag, int creat_flags,
++				int page_size_log)
  {
--	if (!(inode->i_state & (I_DIRTY_ALL | I_SYNC |
--				I_FREEING | I_WILL_FREE)) &&
--	    !atomic_read(&inode->i_count) && inode->i_sb->s_flags & SB_ACTIVE)
--		inode_lru_list_add(inode);
-+	__inode_add_lru(inode, false);
- }
+ 	struct inode *inode;
+ 	struct vfsmount *mnt;
+@@ -1458,22 +1458,19 @@ struct file *hugetlb_file_setup(const ch
+ 	if (hstate_idx < 0)
+ 		return ERR_PTR(-ENODEV);
  
--
- static void inode_lru_list_del(struct inode *inode)
- {
--
- 	if (list_lru_del(&inode->i_sb->s_inode_lru, &inode->i_lru))
- 		this_cpu_dec(nr_unused);
- }
-@@ -728,10 +732,6 @@ again:
- /*
-  * Isolate the inode from the LRU in preparation for freeing it.
-  *
-- * Any inodes which are pinned purely because of attached pagecache have their
-- * pagecache removed.  If the inode has metadata buffers attached to
-- * mapping->private_list then try to remove them.
-- *
-  * If the inode has the I_REFERENCED flag set, then it means that it has been
-  * used recently - the flag is set in iput_final(). When we encounter such an
-  * inode, clear the flag and move it to the back of the LRU so it gets another
-@@ -747,31 +747,39 @@ static enum lru_status inode_lru_isolate
- 	struct inode	*inode = container_of(item, struct inode, i_lru);
+-	*ucounts = NULL;
+ 	mnt = hugetlbfs_vfsmount[hstate_idx];
+ 	if (!mnt)
+ 		return ERR_PTR(-ENOENT);
  
- 	/*
--	 * we are inverting the lru lock/inode->i_lock here, so use a trylock.
--	 * If we fail to get the lock, just skip it.
-+	 * We are inverting the lru lock/inode->i_lock here, so use a
-+	 * trylock. If we fail to get the lock, just skip it.
- 	 */
- 	if (!spin_trylock(&inode->i_lock))
- 		return LRU_SKIP;
- 
- 	/*
--	 * Referenced or dirty inodes are still in use. Give them another pass
--	 * through the LRU as we canot reclaim them now.
-+	 * Inodes can get referenced, redirtied, or repopulated while
-+	 * they're already on the LRU, and this can make them
-+	 * unreclaimable for a while. Remove them lazily here; iput,
-+	 * sync, or the last page cache deletion will requeue them.
- 	 */
- 	if (atomic_read(&inode->i_count) ||
--	    (inode->i_state & ~I_REFERENCED)) {
-+	    (inode->i_state & ~I_REFERENCED) ||
-+	    !mapping_shrinkable(&inode->i_data)) {
- 		list_lru_isolate(lru, &inode->i_lru);
- 		spin_unlock(&inode->i_lock);
- 		this_cpu_dec(nr_unused);
- 		return LRU_REMOVED;
+ 	if (creat_flags == HUGETLB_SHMFS_INODE && !can_do_hugetlb_shm()) {
+-		*ucounts = current_ucounts();
+-		if (user_shm_lock(size, *ucounts)) {
+-			task_lock(current);
+-			pr_warn_once("%s (%d): Using mlock ulimits for SHM_HUGETLB is deprecated\n",
++		struct ucounts *ucounts = current_ucounts();
++
++		if (user_shm_lock(size, ucounts)) {
++			pr_warn_once("%s (%d): Using mlock ulimits for SHM_HUGETLB is obsolete\n",
+ 				current->comm, current->pid);
+-			task_unlock(current);
+-		} else {
+-			*ucounts = NULL;
+-			return ERR_PTR(-EPERM);
++			user_shm_unlock(size, ucounts);
+ 		}
++		return ERR_PTR(-EPERM);
  	}
  
--	/* recently referenced inodes get one more pass */
-+	/* Recently referenced inodes get one more pass */
- 	if (inode->i_state & I_REFERENCED) {
- 		inode->i_state &= ~I_REFERENCED;
- 		spin_unlock(&inode->i_lock);
- 		return LRU_ROTATE;
- 	}
+ 	file = ERR_PTR(-ENOSPC);
+@@ -1498,10 +1495,6 @@ struct file *hugetlb_file_setup(const ch
  
-+	/*
-+	 * On highmem systems, mapping_shrinkable() permits dropping
-+	 * page cache in order to free up struct inodes: lowmem might
-+	 * be under pressure before the cache inside the highmem zone.
-+	 */
- 	if (inode_has_buffers(inode) || !mapping_empty(&inode->i_data)) {
- 		__iget(inode);
- 		spin_unlock(&inode->i_lock);
-@@ -1638,7 +1646,7 @@ static void iput_final(struct inode *ino
- 	if (!drop &&
- 	    !(inode->i_state & I_DONTCACHE) &&
- 	    (sb->s_flags & SB_ACTIVE)) {
--		inode_add_lru(inode);
-+		__inode_add_lru(inode, true);
- 		spin_unlock(&inode->i_lock);
- 		return;
- 	}
---- a/fs/internal.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/fs/internal.h
-@@ -149,7 +149,6 @@ extern int vfs_open(const struct path *,
-  * inode.c
-  */
- extern long prune_icache_sb(struct super_block *sb, struct shrink_control *sc);
--extern void inode_add_lru(struct inode *inode);
- extern int dentry_needs_remove_privs(struct dentry *dentry);
- 
- /*
---- a/include/linux/fs.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/include/linux/fs.h
-@@ -3193,6 +3193,7 @@ static inline void remove_inode_hash(str
- }
- 
- extern void inode_sb_list_add(struct inode *inode);
-+extern void inode_add_lru(struct inode *inode);
- 
- extern int sb_set_blocksize(struct super_block *, int);
- extern int sb_min_blocksize(struct super_block *, int);
---- a/include/linux/pagemap.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/include/linux/pagemap.h
-@@ -24,6 +24,56 @@ static inline bool mapping_empty(struct
- }
- 
- /*
-+ * mapping_shrinkable - test if page cache state allows inode reclaim
-+ * @mapping: the page cache mapping
-+ *
-+ * This checks the mapping's cache state for the pupose of inode
-+ * reclaim and LRU management.
-+ *
-+ * The caller is expected to hold the i_lock, but is not required to
-+ * hold the i_pages lock, which usually protects cache state. That's
-+ * because the i_lock and the list_lru lock that protect the inode and
-+ * its LRU state don't nest inside the irq-safe i_pages lock.
-+ *
-+ * Cache deletions are performed under the i_lock, which ensures that
-+ * when an inode goes empty, it will reliably get queued on the LRU.
-+ *
-+ * Cache additions do not acquire the i_lock and may race with this
-+ * check, in which case we'll report the inode as shrinkable when it
-+ * has cache pages. This is okay: the shrinker also checks the
-+ * refcount and the referenced bit, which will be elevated or set in
-+ * the process of adding new cache pages to an inode.
-+ */
-+static inline bool mapping_shrinkable(struct address_space *mapping)
-+{
-+	void *head;
-+
-+	/*
-+	 * On highmem systems, there could be lowmem pressure from the
-+	 * inodes before there is highmem pressure from the page
-+	 * cache. Make inodes shrinkable regardless of cache state.
-+	 */
-+	if (IS_ENABLED(CONFIG_HIGHMEM))
-+		return true;
-+
-+	/* Cache completely empty? Shrink away. */
-+	head = rcu_access_pointer(mapping->i_pages.xa_head);
-+	if (!head)
-+		return true;
-+
-+	/*
-+	 * The xarray stores single offset-0 entries directly in the
-+	 * head pointer, which allows non-resident page cache entries
-+	 * to escape the shadow shrinker's list of xarray nodes. The
-+	 * inode shrinker needs to pick them up under memory pressure.
-+	 */
-+	if (!xa_is_node(head) && xa_is_value(head))
-+		return true;
-+
-+	return false;
-+}
-+
-+/*
-  * Bits in mapping->flags.
-  */
- enum mapping_flags {
---- a/mm/filemap.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/mm/filemap.c
-@@ -262,9 +262,13 @@ void delete_from_page_cache(struct page
- 	struct address_space *mapping = page_mapping(page);
- 
- 	BUG_ON(!PageLocked(page));
-+	spin_lock(&mapping->host->i_lock);
- 	xa_lock_irq(&mapping->i_pages);
- 	__delete_from_page_cache(page, NULL);
- 	xa_unlock_irq(&mapping->i_pages);
-+	if (mapping_shrinkable(mapping))
-+		inode_add_lru(mapping->host);
-+	spin_unlock(&mapping->host->i_lock);
- 
- 	page_cache_free_page(mapping, page);
- }
-@@ -340,6 +344,7 @@ void delete_from_page_cache_batch(struct
- 	if (!pagevec_count(pvec))
- 		return;
- 
-+	spin_lock(&mapping->host->i_lock);
- 	xa_lock_irq(&mapping->i_pages);
- 	for (i = 0; i < pagevec_count(pvec); i++) {
- 		trace_mm_filemap_delete_from_page_cache(pvec->pages[i]);
-@@ -348,6 +353,9 @@ void delete_from_page_cache_batch(struct
- 	}
- 	page_cache_delete_batch(mapping, pvec);
- 	xa_unlock_irq(&mapping->i_pages);
-+	if (mapping_shrinkable(mapping))
-+		inode_add_lru(mapping->host);
-+	spin_unlock(&mapping->host->i_lock);
- 
- 	for (i = 0; i < pagevec_count(pvec); i++)
- 		page_cache_free_page(mapping, pvec->pages[i]);
---- a/mm/truncate.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/mm/truncate.c
-@@ -45,9 +45,13 @@ static inline void __clear_shadow_entry(
- static void clear_shadow_entry(struct address_space *mapping, pgoff_t index,
- 			       void *entry)
- {
-+	spin_lock(&mapping->host->i_lock);
- 	xa_lock_irq(&mapping->i_pages);
- 	__clear_shadow_entry(mapping, index, entry);
- 	xa_unlock_irq(&mapping->i_pages);
-+	if (mapping_shrinkable(mapping))
-+		inode_add_lru(mapping->host);
-+	spin_unlock(&mapping->host->i_lock);
- }
- 
- /*
-@@ -73,8 +77,10 @@ static void truncate_exceptional_pvec_en
- 		return;
- 
- 	dax = dax_mapping(mapping);
--	if (!dax)
-+	if (!dax) {
-+		spin_lock(&mapping->host->i_lock);
- 		xa_lock_irq(&mapping->i_pages);
-+	}
- 
- 	for (i = j; i < pagevec_count(pvec); i++) {
- 		struct page *page = pvec->pages[i];
-@@ -93,8 +99,12 @@ static void truncate_exceptional_pvec_en
- 		__clear_shadow_entry(mapping, index, page);
- 	}
- 
--	if (!dax)
-+	if (!dax) {
- 		xa_unlock_irq(&mapping->i_pages);
-+		if (mapping_shrinkable(mapping))
-+			inode_add_lru(mapping->host);
-+		spin_unlock(&mapping->host->i_lock);
-+	}
- 	pvec->nr = j;
- }
- 
-@@ -567,6 +577,7 @@ invalidate_complete_page2(struct address
- 	if (page_has_private(page) && !try_to_release_page(page, GFP_KERNEL))
- 		return 0;
- 
-+	spin_lock(&mapping->host->i_lock);
- 	xa_lock_irq(&mapping->i_pages);
- 	if (PageDirty(page))
- 		goto failed;
-@@ -574,6 +585,9 @@ invalidate_complete_page2(struct address
- 	BUG_ON(page_has_private(page));
- 	__delete_from_page_cache(page, NULL);
- 	xa_unlock_irq(&mapping->i_pages);
-+	if (mapping_shrinkable(mapping))
-+		inode_add_lru(mapping->host);
-+	spin_unlock(&mapping->host->i_lock);
- 
- 	if (mapping->a_ops->freepage)
- 		mapping->a_ops->freepage(page);
-@@ -582,6 +596,7 @@ invalidate_complete_page2(struct address
- 	return 1;
- failed:
- 	xa_unlock_irq(&mapping->i_pages);
-+	spin_unlock(&mapping->host->i_lock);
- 	return 0;
- }
- 
---- a/mm/vmscan.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/mm/vmscan.c
-@@ -1190,6 +1190,8 @@ static int __remove_mapping(struct addre
- 	BUG_ON(!PageLocked(page));
- 	BUG_ON(mapping != page_mapping(page));
- 
-+	if (!PageSwapCache(page))
-+		spin_lock(&mapping->host->i_lock);
- 	xa_lock_irq(&mapping->i_pages);
- 	/*
- 	 * The non racy check for a busy page.
-@@ -1258,6 +1260,9 @@ static int __remove_mapping(struct addre
- 			shadow = workingset_eviction(page, target_memcg);
- 		__delete_from_page_cache(page, shadow);
- 		xa_unlock_irq(&mapping->i_pages);
-+		if (mapping_shrinkable(mapping))
-+			inode_add_lru(mapping->host);
-+		spin_unlock(&mapping->host->i_lock);
- 
- 		if (freepage != NULL)
- 			freepage(page);
-@@ -1267,6 +1272,8 @@ static int __remove_mapping(struct addre
- 
- cannot_free:
- 	xa_unlock_irq(&mapping->i_pages);
-+	if (!PageSwapCache(page))
-+		spin_unlock(&mapping->host->i_lock);
- 	return 0;
- }
- 
---- a/mm/workingset.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
-+++ a/mm/workingset.c
-@@ -543,6 +543,13 @@ static enum lru_status shadow_lru_isolat
- 		goto out;
- 	}
- 
-+	if (!spin_trylock(&mapping->host->i_lock)) {
-+		xa_unlock(&mapping->i_pages);
-+		spin_unlock_irq(lru_lock);
-+		ret = LRU_RETRY;
-+		goto out;
-+	}
-+
- 	list_lru_isolate(lru, item);
- 	__dec_lruvec_kmem_state(node, WORKINGSET_NODES);
- 
-@@ -562,6 +569,9 @@ static enum lru_status shadow_lru_isolat
- 
- out_invalid:
- 	xa_unlock_irq(&mapping->i_pages);
-+	if (mapping_shrinkable(mapping))
-+		inode_add_lru(mapping->host);
-+	spin_unlock(&mapping->host->i_lock);
- 	ret = LRU_REMOVED_RETRY;
+ 	iput(inode);
  out:
- 	cond_resched();
+-	if (*ucounts) {
+-		user_shm_unlock(size, *ucounts);
+-		*ucounts = NULL;
+-	}
+ 	return file;
+ }
+ 
+--- a/include/linux/hugetlb.h~mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb
++++ a/include/linux/hugetlb.h
+@@ -477,8 +477,7 @@ static inline struct hugetlbfs_inode_inf
+ extern const struct file_operations hugetlbfs_file_operations;
+ extern const struct vm_operations_struct hugetlb_vm_ops;
+ struct file *hugetlb_file_setup(const char *name, size_t size, vm_flags_t acct,
+-				struct ucounts **ucounts, int creat_flags,
+-				int page_size_log);
++				int creat_flags, int page_size_log);
+ 
+ static inline bool is_file_hugepages(struct file *file)
+ {
+@@ -497,8 +496,7 @@ static inline struct hstate *hstate_inod
+ #define is_file_hugepages(file)			false
+ static inline struct file *
+ hugetlb_file_setup(const char *name, size_t size, vm_flags_t acctflag,
+-		struct ucounts **ucounts, int creat_flags,
+-		int page_size_log)
++		int creat_flags, int page_size_log)
+ {
+ 	return ERR_PTR(-ENOSYS);
+ }
+--- a/ipc/shm.c~mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb
++++ a/ipc/shm.c
+@@ -287,9 +287,6 @@ static void shm_destroy(struct ipc_names
+ 	shm_unlock(shp);
+ 	if (!is_file_hugepages(shm_file))
+ 		shmem_lock(shm_file, 0, shp->mlock_ucounts);
+-	else if (shp->mlock_ucounts)
+-		user_shm_unlock(i_size_read(file_inode(shm_file)),
+-				shp->mlock_ucounts);
+ 	fput(shm_file);
+ 	ipc_update_pid(&shp->shm_cprid, NULL);
+ 	ipc_update_pid(&shp->shm_lprid, NULL);
+@@ -650,8 +647,7 @@ static int newseg(struct ipc_namespace *
+ 		if (shmflg & SHM_NORESERVE)
+ 			acctflag = VM_NORESERVE;
+ 		file = hugetlb_file_setup(name, hugesize, acctflag,
+-				  &shp->mlock_ucounts, HUGETLB_SHMFS_INODE,
+-				(shmflg >> SHM_HUGE_SHIFT) & SHM_HUGE_MASK);
++				HUGETLB_SHMFS_INODE, (shmflg >> SHM_HUGE_SHIFT) & SHM_HUGE_MASK);
+ 	} else {
+ 		/*
+ 		 * Do not allow no accounting for OVERCOMMIT_NEVER, even
+@@ -698,8 +694,6 @@ static int newseg(struct ipc_namespace *
+ no_id:
+ 	ipc_update_pid(&shp->shm_cprid, NULL);
+ 	ipc_update_pid(&shp->shm_lprid, NULL);
+-	if (is_file_hugepages(file) && shp->mlock_ucounts)
+-		user_shm_unlock(size, shp->mlock_ucounts);
+ 	fput(file);
+ 	ipc_rcu_putref(&shp->shm_perm, shm_rcu_free);
+ 	return error;
+--- a/mm/memfd.c~mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb
++++ a/mm/memfd.c
+@@ -297,9 +297,7 @@ SYSCALL_DEFINE2(memfd_create,
+ 	}
+ 
+ 	if (flags & MFD_HUGETLB) {
+-		struct ucounts *ucounts = NULL;
+-
+-		file = hugetlb_file_setup(name, 0, VM_NORESERVE, &ucounts,
++		file = hugetlb_file_setup(name, 0, VM_NORESERVE,
+ 					HUGETLB_ANONHUGE_INODE,
+ 					(flags >> MFD_HUGE_SHIFT) &
+ 					MFD_HUGE_MASK);
+--- a/mm/mmap.c~mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb
++++ a/mm/mmap.c
+@@ -1599,7 +1599,6 @@ unsigned long ksys_mmap_pgoff(unsigned l
+ 			goto out_fput;
+ 		}
+ 	} else if (flags & MAP_HUGETLB) {
+-		struct ucounts *ucounts = NULL;
+ 		struct hstate *hs;
+ 
+ 		hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK);
+@@ -1615,7 +1614,7 @@ unsigned long ksys_mmap_pgoff(unsigned l
+ 		 */
+ 		file = hugetlb_file_setup(HUGETLB_ANON_FILE, len,
+ 				VM_NORESERVE,
+-				&ucounts, HUGETLB_ANONHUGE_INODE,
++				HUGETLB_ANONHUGE_INODE,
+ 				(flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK);
+ 		if (IS_ERR(file))
+ 			return PTR_ERR(file);
 _
