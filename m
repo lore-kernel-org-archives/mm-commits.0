@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA999C433EF
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 57C0DC43217
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id A4DCB619E5
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 413E4619F7
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238127AbhKICi0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Nov 2021 21:38:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53822 "EHLO mail.kernel.org"
+        id S237743AbhKICi2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Nov 2021 21:38:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53884 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S241923AbhKICiX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Nov 2021 21:38:23 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D4821617E4;
-        Tue,  9 Nov 2021 02:35:37 +0000 (UTC)
+        id S239643AbhKICi0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Nov 2021 21:38:26 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EF3F961881;
+        Tue,  9 Nov 2021 02:35:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636425338;
-        bh=+6aCSN1WBcxmm7trjnHrwbBSnVymibzZJZPeq5CTC0s=;
+        s=korg; t=1636425341;
+        bh=YrUQJ5dxF8MkciKUvf6JSGlePH4iKf4wQH0Q1d1dcUU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=M3bOgFIjMktIDxPbxAVWNN0nel3a/xMFYcUCyEMv0UPsoOluCj3LLM2KYdZN7y8HX
-         aUlBR6Oj60Ebi9QnIhwBnI59VYJ/d26Fj5AGIDv8OBetJ5so7jq24WTwYUEeUNbihh
-         wfk3g0prJB1ubjVRxxXm3Q7VpwcST873EeBb2fP0=
-Date:   Mon, 08 Nov 2021 18:35:37 -0800
+        b=1MdqtRep93ryTyh1wy260tZJnlKD5nJ0ysjTbGltvxQ94ylNMln8C/j7/BLq7hbBJ
+         13OM0DoEfBdDNsTFujE4nO1evPw3qeO/Xc6CAxxb9PQxpKEX4pL2+80O0N6He6AcFq
+         yqohK7x+b5M8EB6n+Xf0xX9ClS7B8i+oeYPGwuq4=
+Date:   Mon, 08 Nov 2021 18:35:40 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
         bigeasy@linutronix.de, dvyukov@google.com, elver@google.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         rostedt@goodmis.org, torvalds@linux-foundation.org,
         williams@redhat.com
-Subject:  [patch 79/87] kcov: avoid enable+disable interrupts if
- !in_task()
-Message-ID: <20211109023537.MOlW3u0_N%akpm@linux-foundation.org>
+Subject:  [patch 80/87] kcov: replace local_irq_save() with a
+ local_lock_t
+Message-ID: <20211109023540.nV7kmtt2E%akpm@linux-foundation.org>
 In-Reply-To: <20211108183057.809e428e841088b657a975ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,56 +41,169 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: kcov: avoid enable+disable interrupts if !in_task()
+Subject: kcov: replace local_irq_save() with a local_lock_t
 
-kcov_remote_start() may need to allocate memory in the in_task() case
-(otherwise per-CPU memory has been pre-allocated) and therefore requires
-enabled interrupts.
+The kcov code mixes local_irq_save() and spin_lock() in
+kcov_remote_{start|end}().  This creates a warning on PREEMPT_RT because
+local_irq_save() disables interrupts and spin_lock_t is turned into a
+sleeping lock which can not be acquired in a section with disabled
+interrupts.
 
-The interrupts are enabled before checking if the allocation is required
-so if no allocation is required then the interrupts are needlessly enabled
-and disabled again.
+The kcov_remote_lock is used to synchronize the access to the hash-list
+kcov_remote_map.  The local_irq_save() block protects access to the
+per-CPU data kcov_percpu_data.
 
-Enable interrupts only if memory allocation is performed.
+There is no compelling reason to change the lock type to raw_spin_lock_t
+to make it work with local_irq_save().  Changing it would require to move
+memory allocation (in kcov_remote_add()) and deallocation outside of the
+locked section.
 
-Link: https://lkml.kernel.org/r/20210923164741.1859522-5-bigeasy@linutronix.de
-Link: https://lore.kernel.org/r/20210830172627.267989-5-bigeasy@linutronix.de
+Adding an unlimited amount of entries to the hashlist will increase the
+IRQ-off time during lookup.  It could be argued that this is debug code
+and the latency does not matter.  There is however no need to do so and it
+would allow to use this facility in an RT enabled build.
+
+Using a local_lock_t instead of local_irq_save() has the befit of adding a
+protection scope within the source which makes it obvious what is
+protected.  On a !PREEMPT_RT && !LOCKDEP build the local_lock_irqsave()
+maps directly to local_irq_save() so there is overhead at runtime.
+
+Replace the local_irq_save() section with a local_lock_t.
+
+Link: https://lkml.kernel.org/r/20210923164741.1859522-6-bigeasy@linutronix.de
+Link: https://lore.kernel.org/r/20210830172627.267989-6-bigeasy@linutronix.de
+Reported-by: Clark Williams <williams@redhat.com>
 Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Acked-by: Dmitry Vyukov <dvyukov@google.com>
 Acked-by: Marco Elver <elver@google.com>
 Tested-by: Marco Elver <elver@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Clark Williams <williams@redhat.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ kernel/kcov.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
---- a/kernel/kcov.c~kcov-avoid-enabledisable-interrupts-if-in_task
+--- a/kernel/kcov.c~kcov-replace-local_irq_save-with-a-local_lock_t
 +++ a/kernel/kcov.c
-@@ -869,19 +869,19 @@ void kcov_remote_start(u64 handle)
- 		size = CONFIG_KCOV_IRQ_AREA_SIZE;
- 		area = this_cpu_ptr(&kcov_percpu_data)->irq_area;
+@@ -88,6 +88,7 @@ static struct list_head kcov_remote_area
+ 
+ struct kcov_percpu_data {
+ 	void			*irq_area;
++	local_lock_t		lock;
+ 
+ 	unsigned int		saved_mode;
+ 	unsigned int		saved_size;
+@@ -96,7 +97,9 @@ struct kcov_percpu_data {
+ 	int			saved_sequence;
+ };
+ 
+-static DEFINE_PER_CPU(struct kcov_percpu_data, kcov_percpu_data);
++static DEFINE_PER_CPU(struct kcov_percpu_data, kcov_percpu_data) = {
++	.lock = INIT_LOCAL_LOCK(lock),
++};
+ 
+ /* Must be called with kcov_remote_lock locked. */
+ static struct kcov_remote *kcov_remote_find(u64 handle)
+@@ -824,7 +827,7 @@ void kcov_remote_start(u64 handle)
+ 	if (!in_task() && !in_serving_softirq())
+ 		return;
+ 
+-	local_irq_save(flags);
++	local_lock_irqsave(&kcov_percpu_data.lock, flags);
+ 
+ 	/*
+ 	 * Check that kcov_remote_start() is not called twice in background
+@@ -832,7 +835,7 @@ void kcov_remote_start(u64 handle)
+ 	 */
+ 	mode = READ_ONCE(t->kcov_mode);
+ 	if (WARN_ON(in_task() && kcov_mode_enabled(mode))) {
+-		local_irq_restore(flags);
++		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
+ 		return;
  	}
--	spin_unlock_irqrestore(&kcov_remote_lock, flags);
-+	spin_unlock(&kcov_remote_lock);
+ 	/*
+@@ -841,14 +844,15 @@ void kcov_remote_start(u64 handle)
+ 	 * happened while collecting coverage from a background thread.
+ 	 */
+ 	if (WARN_ON(in_serving_softirq() && t->kcov_softirq)) {
+-		local_irq_restore(flags);
++		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
+ 		return;
+ 	}
+ 
+ 	spin_lock(&kcov_remote_lock);
+ 	remote = kcov_remote_find(handle);
+ 	if (!remote) {
+-		spin_unlock_irqrestore(&kcov_remote_lock, flags);
++		spin_unlock(&kcov_remote_lock);
++		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
+ 		return;
+ 	}
+ 	kcov_debug("handle = %llx, context: %s\n", handle,
+@@ -873,13 +877,13 @@ void kcov_remote_start(u64 handle)
  
  	/* Can only happen when in_task(). */
  	if (!area) {
-+		local_irqrestore(flags);
+-		local_irqrestore(flags);
++		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
  		area = vmalloc(size * sizeof(unsigned long));
  		if (!area) {
  			kcov_put(kcov);
  			return;
  		}
-+		local_irq_save(flags);
+-		local_irq_save(flags);
++		local_lock_irqsave(&kcov_percpu_data.lock, flags);
  	}
  
--	local_irq_save(flags);
--
  	/* Reset coverage size. */
- 	*(u64 *)area = 0;
+@@ -891,7 +895,7 @@ void kcov_remote_start(u64 handle)
+ 	}
+ 	kcov_start(t, kcov, size, area, mode, sequence);
  
+-	local_irq_restore(flags);
++	local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
+ 
+ }
+ EXPORT_SYMBOL(kcov_remote_start);
+@@ -965,12 +969,12 @@ void kcov_remote_stop(void)
+ 	if (!in_task() && !in_serving_softirq())
+ 		return;
+ 
+-	local_irq_save(flags);
++	local_lock_irqsave(&kcov_percpu_data.lock, flags);
+ 
+ 	mode = READ_ONCE(t->kcov_mode);
+ 	barrier();
+ 	if (!kcov_mode_enabled(mode)) {
+-		local_irq_restore(flags);
++		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
+ 		return;
+ 	}
+ 	/*
+@@ -978,12 +982,12 @@ void kcov_remote_stop(void)
+ 	 * actually found the remote handle and started collecting coverage.
+ 	 */
+ 	if (in_serving_softirq() && !t->kcov_softirq) {
+-		local_irq_restore(flags);
++		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
+ 		return;
+ 	}
+ 	/* Make sure that kcov_softirq is only set when in softirq. */
+ 	if (WARN_ON(!in_serving_softirq() && t->kcov_softirq)) {
+-		local_irq_restore(flags);
++		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
+ 		return;
+ 	}
+ 
+@@ -1013,7 +1017,7 @@ void kcov_remote_stop(void)
+ 		spin_unlock(&kcov_remote_lock);
+ 	}
+ 
+-	local_irq_restore(flags);
++	local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
+ 
+ 	/* Get in kcov_remote_start(). */
+ 	kcov_put(kcov);
 _
