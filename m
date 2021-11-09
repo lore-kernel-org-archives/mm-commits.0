@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FD8DC433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:12:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED589C433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:12:57 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 30E27611C5
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:12:55 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D628461207
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:12:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230248AbhKICPj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Nov 2021 21:15:39 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44226 "EHLO mail.kernel.org"
+        id S231945AbhKICPm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Nov 2021 21:15:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44246 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230190AbhKICPj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Nov 2021 21:15:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C2EA6117A;
-        Tue,  9 Nov 2021 02:12:54 +0000 (UTC)
+        id S230190AbhKICPl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Nov 2021 21:15:41 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id BC51461181;
+        Tue,  9 Nov 2021 02:12:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636423974;
-        bh=yhN4i7ywRYdbzPo/WD9JPqg2NI79LDEyoctXvKhZoq0=;
+        s=korg; t=1636423976;
+        bh=u4VcdmZtzCyjj45kDy+IEdkvZo+F4A/46T5pWTRVXyk=;
         h=Date:From:To:Subject:From;
-        b=PYFxLeGvae5PpPVUnniKg/AzAESIFiBuAtnVvWFeIhWuAmEHCu/3MClPAvH0hq/Zw
-         NRuxWxUE3PUpDlR4KKCABf3HfhyFSAIMzDTLAXp8WBgIKQpFD/gkOuUSbaiUlVakxV
-         5xjc95avdT80rZxfFvddAYGd3Nhh1AQ8U30JniFg=
-Date:   Mon, 08 Nov 2021 18:12:53 -0800
+        b=2W8SLB72x9brOLvBIFX4JsPA6Hu+dq7Mr/sRz0Zfk4Ql+WOub8DbdOUszSx3Xx3vG
+         i618iAAkzdVrfMDoU+UjquC2VxQ/T1sHOBvxAh/opeu+EBAFlwy80C048zg3FHPIN0
+         Ch47xiGmBAVebZnlO353yscgjfzODSeYTWwTT2HI=
+Date:   Mon, 08 Nov 2021 18:12:56 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
-        lkp@intel.com, mm-commits@vger.kernel.org
+To:     andriy.shevchenko@linux.intel.com, linux@roeck-us.net,
+        mm-commits@vger.kernel.org, palmer@dabbelt.com,
+        sfr@canb.auug.org.au
 Subject:  [folded-merged]
- delay-replace-kernelh-with-the-necessary-inclusions-fix.patch removed from
- -mm tree
-Message-ID: <20211109021253.p98SewP14%akpm@linux-foundation.org>
+ delay-replace-kernelh-with-the-necessary-inclusions-fix-2.patch removed
+ from -mm tree
+Message-ID: <20211109021256.pfcCmJ68M%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,50 +40,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: delay-replace-kernelh-with-the-necessary-inclusions-fix
+     Subject: delay.h: fix for removed kernel.h
 has been removed from the -mm tree.  Its filename was
-     delay-replace-kernelh-with-the-necessary-inclusions-fix.patch
+     delay-replace-kernelh-with-the-necessary-inclusions-fix-2.patch
 
 This patch was dropped because it was folded into delay-replace-kernelh-with-the-necessary-inclusions.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: delay-replace-kernelh-with-the-necessary-inclusions-fix
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: delay.h: fix for removed kernel.h
 
-drivers/media/dvb-frontends/cxd2880/cxd2880_common.h needs bits.h for GENMASK()
+To be folded to the commit 0d280a9fbbd9 ("include/linux/delay.h:
+replace kernel.h with the necessary inclusions")
 
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Link: https://lkml.kernel.org/r/20211028170143.56523-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Reviewed-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/media/dvb-frontends/cxd2880/cxd2880_common.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/riscv/lib/delay.c           |    4 ++++
+ arch/s390/include/asm/facility.h |    4 ++++
+ 2 files changed, 8 insertions(+)
 
---- a/drivers/media/dvb-frontends/cxd2880/cxd2880_common.h~delay-replace-kernelh-with-the-necessary-inclusions-fix
-+++ a/drivers/media/dvb-frontends/cxd2880/cxd2880_common.h
-@@ -12,6 +12,7 @@
- #include <linux/types.h>
- #include <linux/errno.h>
- #include <linux/delay.h>
-+#include <linux/bits.h>
- #include <linux/string.h>
+--- a/arch/riscv/lib/delay.c~delay-replace-kernelh-with-the-necessary-inclusions-fix-2
++++ a/arch/riscv/lib/delay.c
+@@ -4,10 +4,14 @@
+  */
  
- int cxd2880_convert2s_complement(u32 value, u32 bitlen);
+ #include <linux/delay.h>
++#include <linux/math.h>
+ #include <linux/param.h>
+ #include <linux/timex.h>
++#include <linux/types.h>
+ #include <linux/export.h>
+ 
++#include <asm/processor.h>
++
+ /*
+  * This is copies from arch/arm/include/asm/delay.h
+  *
+--- a/arch/s390/include/asm/facility.h~delay-replace-kernelh-with-the-necessary-inclusions-fix-2
++++ a/arch/s390/include/asm/facility.h
+@@ -9,8 +9,12 @@
+ #define __ASM_FACILITY_H
+ 
+ #include <asm/facility-defs.h>
++
++#include <linux/minmax.h>
+ #include <linux/string.h>
++#include <linux/types.h>
+ #include <linux/preempt.h>
++
+ #include <asm/lowcore.h>
+ 
+ #define MAX_FACILITY_BIT (sizeof(stfle_fac_list) * 8)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
+kernelh-drop-unneeded-linux-kernelh-inclusion-from-other-headers.patch
+kernelh-split-out-container_of-and-typeof_member-macros.patch
+kunit-replace-kernelh-with-the-necessary-inclusions.patch
+list-replace-kernelh-with-the-necessary-inclusions.patch
+llist-replace-kernelh-with-the-necessary-inclusions.patch
+plist-replace-kernelh-with-the-necessary-inclusions.patch
+media-entity-replace-kernelh-with-the-necessary-inclusions.patch
 delay-replace-kernelh-with-the-necessary-inclusions.patch
-delay-replace-kernelh-with-the-necessary-inclusions-fix-2-fix.patch
-generic-radix-tree-replace-kernelh-with-the-necessary-inclusions-fix.patch
-ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files-fix.patch
-kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
-mm.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-revert-acct_reclaim_writeback-for-next.patch
-mm-filemap-check-if-thp-has-hwpoisoned-subpage-for-pmd-page-fault-vs-folios.patch
-mm-page_ownerc-modify-the-type-of-argument-order-in-some-functions-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+sbitmap-replace-kernelh-with-the-necessary-inclusions.patch
+radix-tree-replace-kernelh-with-the-necessary-inclusions.patch
+generic-radix-tree-replace-kernelh-with-the-necessary-inclusions.patch
+seq_file-move-seq_escape-to-a-header.patch
 
