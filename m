@@ -2,80 +2,106 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6AC50C433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 11:00:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2FC98C433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 23:24:24 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5367261178
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 11:00:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0FF07611AF
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 23:24:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245562AbhKILDl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 9 Nov 2021 06:03:41 -0500
-Received: from smtp-out1.suse.de ([195.135.220.28]:44556 "EHLO
-        smtp-out1.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240965AbhKILDl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 9 Nov 2021 06:03:41 -0500
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id CA324218B0;
-        Tue,  9 Nov 2021 11:00:54 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1636455654; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=41Cyo/hMei2kmUmbpToJbVcXlj7u0VEEJZBij8c44T4=;
-        b=rU3HghRaRnLHqlK1DMI/WDwk63A7cdlqcjv3bnyCf+0PoIBXAakd//+3P3PnoPwxBVvr3/
-        GhU5BO4ABLAMnaNBg3uN3kGf87rdGMIf9OvYHkHCZT7ScK4kTD/jnDvWGmoQes37OCZGIF
-        UanpITJBU3oM7Yo2K9zUn+acsEKuC5Y=
-Received: from suse.cz (unknown [10.100.201.86])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 295BAA3B8C;
-        Tue,  9 Nov 2021 11:00:53 +0000 (UTC)
-Date:   Tue, 9 Nov 2021 12:00:46 +0100
-From:   Michal Hocko <mhocko@suse.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     amakhalov@vmware.com, cl@linux.com, dennis@kernel.org,
-        mm-commits@vger.kernel.org, osalvador@suse.de,
-        stable@vger.kernel.org, tj@kernel.org
-Subject: Re: + mm-fix-panic-in-__alloc_pages.patch added to -mm tree
-Message-ID: <YYpTy9eXZucxuRO/@dhcp22.suse.cz>
-References: <20211108205031.UxDPHBZWa%akpm@linux-foundation.org>
- <YYozLsIECu0Jnv0p@dhcp22.suse.cz>
- <af7ab3ce-fed2-1ffc-13a8-f9acbd201841@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <af7ab3ce-fed2-1ffc-13a8-f9acbd201841@redhat.com>
+        id S231722AbhKIX1J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 9 Nov 2021 18:27:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47626 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S231572AbhKIX1H (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 9 Nov 2021 18:27:07 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DA6DD61184;
+        Tue,  9 Nov 2021 23:24:20 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1636500261;
+        bh=mbcMPZcXv0zJKXUKuuFnvCvH+VH1zkANTaWJmaqXz/w=;
+        h=Date:From:To:Subject:From;
+        b=DiE7lZX/a/VnoKTekxTmYRWVjrR7s8eEYFW0W6ntf1RbxllMoUsu7Has2tOUwgEpb
+         5k+8E5ER8K7BrDfS9DZDhy0N4bFTONFBFv67SzQX3dKJS2W6yOupuIzorc2hJAPVGi
+         /R+TrdwVeJeHVrXmouLbo3eHkr4Qhyn1urERiBBg=
+Date:   Tue, 09 Nov 2021 15:24:20 -0800
+From:   akpm@linux-foundation.org
+To:     hyc.lee@gmail.com, linkinjeon@kernel.org,
+        mm-commits@vger.kernel.org, smfrench@gmail.com, willy@infradead.org
+Subject:  +
+ hitting-bug_on-trap-in-read_pages-mm-optimise-put_pages_list.patch added to
+ -mm tree
+Message-ID: <20211109232420.5X7KNcoQd%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue 09-11-21 09:42:56, David Hildenbrand wrote:
-> On 09.11.21 09:37, Michal Hocko wrote:
-> > I have opposed this patch http://lkml.kernel.org/r/YYj91Mkt4m8ySIWt@dhcp22.suse.cz
-> > There was no response to that feedback. I will not go as far as to nack
-> > it explicitly because pcp allocator is not an area I would nack patches
-> > but seriously, this issue needs a deeper look rather than a paper over
-> > patch. I hope we do not want to do a similar thing to all callers of
-> > cpu_to_mem.
-> 
-> While we could move it into the !HOLES version of cpu_to_mem(), calling
-> cpu_to_mem() on an offline (and eventually not even present) CPU (with
-> an offline node) is really a corner case.
-> 
-> Instead of additional runtime overhead for all cpu_to_mem(), my take
-> would be to just do it for the random special cases. Sure, we can
-> document that people should be careful when calling cpu_to_mem() on
-> offline CPUs. But IMHO it's really a corner case.
 
-I suspect I haven't made myself clear enough. I do not think we should
-be touching cpu_to_mem/cpu_to_node and handle this corner case. We
-should be looking at the underlying problem instead. We cannot really
-rely on cpu to be onlined to have a proper node association. We should
-really look at the initialization code and handle this situation
-properly. Memory less nodes are something we have been dealing with
-already. This particular instance of the problem is new and we should
-understand why.
--- 
-Michal Hocko
-SUSE Labs
+The patch titled
+     Subject: ipc/ipc_sysctl.c:put_pages_list(): reinitialise the page list
+has been added to the -mm tree.  Its filename is
+     hitting-bug_on-trap-in-read_pages-mm-optimise-put_pages_list.patch
+
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/hitting-bug_on-trap-in-read_pages-mm-optimise-put_pages_list.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/hitting-bug_on-trap-in-read_pages-mm-optimise-put_pages_list.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Matthew Wilcox <willy@infradead.org>
+Subject: ipc/ipc_sysctl.c:put_pages_list(): reinitialise the page list
+
+
+While free_unref_page_list() puts pages onto the CPU local LRU list, it
+does not remove them from the list they were passed in on.  That makes the
+list_head appear to be non-empty, and would lead to various corruption
+problems if we didn't have an assertion that the list was empty.
+
+Reinitialise the list after calling free_unref_page_list() to avoid this
+problem.
+
+Link: https://lkml.kernel.org/r/YYp40A2lNrxaZji8@casper.infradead.org
+Fixes: 988c69f1bc23 ("mm: optimise put_pages_list()")
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reported-by: Namjae Jeon <linkinjeon@kernel.org>
+Tested-by: Namjae Jeon <linkinjeon@kernel.org>
+Cc: Steve French <smfrench@gmail.com>
+Cc: Hyeoncheol Lee <hyc.lee@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/swap.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/mm/swap.c~hitting-bug_on-trap-in-read_pages-mm-optimise-put_pages_list
++++ a/mm/swap.c
+@@ -155,6 +155,7 @@ void put_pages_list(struct list_head *pa
+ 	}
+ 
+ 	free_unref_page_list(pages);
++	INIT_LIST_HEAD(pages);
+ }
+ EXPORT_SYMBOL(put_pages_list);
+ 
+_
+
+Patches currently in -mm which might be from willy@infradead.org are
+
+mm-move-kvmalloc-related-functions-to-slabh.patch
+kasan-fix-tag-for-large-allocations-when-using-config_slab.patch
+mm-remove-bogus-vm_bug_on.patch
+mm-optimise-put_pages_list.patch
+hitting-bug_on-trap-in-read_pages-mm-optimise-put_pages_list.patch
+
