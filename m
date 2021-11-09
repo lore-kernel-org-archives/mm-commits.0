@@ -2,436 +2,462 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6164DC433EF
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:31:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A214DC433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:31:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3D53860E97
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:31:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8232060E97
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:31:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234623AbhKICdq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Nov 2021 21:33:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49296 "EHLO mail.kernel.org"
+        id S235021AbhKICeK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Nov 2021 21:34:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49362 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229999AbhKICdp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Nov 2021 21:33:45 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D6AC060E97;
-        Tue,  9 Nov 2021 02:30:59 +0000 (UTC)
+        id S229999AbhKICeK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Nov 2021 21:34:10 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 20553611CC;
+        Tue,  9 Nov 2021 02:31:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636425060;
-        bh=EWWY+wtUTybyjA80ubMOUuCiqPfzoQcgh5GDiPXLTxY=;
-        h=Date:From:To:Cc:Subject:From;
-        b=CfoTCzaXQQU9lsNLsyE8o4UwaBxc5GFbIjQqumGVmnTpLV0koOmYHwkd+neG2UfTY
-         8dwBi+8+jWXbqLDpq2I0XpvGBq0k7+lLpyWxtm5QbmRXmBCyCoVBQ++thi0sQmXb6Q
-         HgYQlS/w0BKq03D51oVBtTwwyTs23GrVMyl3iScg=
-Date:   Mon, 8 Nov 2021 18:30:57 -0800
+        s=korg; t=1636425085;
+        bh=aw6Rhf/LVzpE34XfdZ6Vgm80QGWbkU++o++ga9O+HU4=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=rZts5MZHDmoSsc/g6Vgg3PTvmWHVRA/m2yRPcAzqcREmUiEPAT36/zrK5vlTgwTw2
+         hUr2q610j42/S6oVNhupAeRjhirQXbQe9XPzwwA+/y7LkJWAemXEtLj0bWsuT6W2yn
+         mQ2mRxbo8LbvDK3Xi3+cFwTIuliVOMwptnkuIRzU=
+Date:   Mon, 08 Nov 2021 18:31:24 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org
-Subject: incoming
-Message-Id: <20211108183057.809e428e841088b657a975ec@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     akpm@linux-foundation.org, david@fromorbit.com, guro@fb.com,
+        hannes@cmpxchg.org, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        tj@kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 01/87] vfs: keep inodes with page cache off the
+ inode shrinker LRU
+Message-ID: <20211109023124.-zo_v1Nio%akpm@linux-foundation.org>
+In-Reply-To: <20211108183057.809e428e841088b657a975ec@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-87 patches, based on 8bb7eca972ad531c9b149c0a51ab43a417385813, plus
-previously sent material.
-
-Subsystems affected by this patch series:
-
-  mm/pagecache
-  mm/hugetlb
-  procfs
-  misc
-  MAINTAINERS
-  lib
-  checkpatch
-  binfmt
-  kallsyms
-  ramfs
-  init
-  codafs
-  nilfs2
-  hfs
-  crash_dump
-  signals
-  seq_file
-  fork
-  sysvfs
-  kcov
-  gdb
-  resource
-  selftests
-  ipc
-
-Subsystem: mm/pagecache
-
-    Johannes Weiner <hannes@cmpxchg.org>:
-      vfs: keep inodes with page cache off the inode shrinker LRU
-
-Subsystem: mm/hugetlb
-
-    zhangyiru <zhangyiru3@huawei.com>:
-      mm,hugetlb: remove mlock ulimit for SHM_HUGETLB
-
-Subsystem: procfs
-
-    Florian Weimer <fweimer@redhat.com>:
-      procfs: do not list TID 0 in /proc/<pid>/task
-
-    David Hildenbrand <david@redhat.com>:
-      x86/xen: update xen_oldmem_pfn_is_ram() documentation
-      x86/xen: simplify xen_oldmem_pfn_is_ram()
-      x86/xen: print a warning when HVMOP_get_mem_type fails
-      proc/vmcore: let pfn_is_ram() return a bool
-      proc/vmcore: convert oldmem_pfn_is_ram callback to more generic vmcore callbacks
-      virtio-mem: factor out hotplug specifics from virtio_mem_init() into virtio_mem_init_hotplug()
-      virtio-mem: factor out hotplug specifics from virtio_mem_probe() into virtio_mem_init_hotplug()
-      virtio-mem: factor out hotplug specifics from virtio_mem_remove() into virtio_mem_deinit_hotplug()
-      virtio-mem: kdump mode to sanitize /proc/vmcore access
-
-    Stephen Brennan <stephen.s.brennan@oracle.com>:
-      proc: allow pid_revalidate() during LOOKUP_RCU
-
-Subsystem: misc
-
-    Andy Shevchenko <andriy.shevchenko@linux.intel.com>:
-    Patch series "kernel.h further split", v5:
-      kernel.h: drop unneeded <linux/kernel.h> inclusion from other headers
-      kernel.h: split out container_of() and typeof_member() macros
-      include/kunit/test.h: replace kernel.h with the necessary inclusions
-      include/linux/list.h: replace kernel.h with the necessary inclusions
-      include/linux/llist.h: replace kernel.h with the necessary inclusions
-      include/linux/plist.h: replace kernel.h with the necessary inclusions
-      include/media/media-entity.h: replace kernel.h with the necessary inclusions
-      include/linux/delay.h: replace kernel.h with the necessary inclusions
-      include/linux/sbitmap.h: replace kernel.h with the necessary inclusions
-      include/linux/radix-tree.h: replace kernel.h with the necessary inclusions
-      include/linux/generic-radix-tree.h: replace kernel.h with the necessary inclusions
-
-    Stephen Rothwell <sfr@canb.auug.org.au>:
-      kernel.h: split out instruction pointer accessors
-
-    Rasmus Villemoes <linux@rasmusvillemoes.dk>:
-      linux/container_of.h: switch to static_assert
-
-    Colin Ian King <colin.i.king@googlemail.com>:
-      mailmap: update email address for Colin King
-
-Subsystem: MAINTAINERS
-
-    Kees Cook <keescook@chromium.org>:
-      MAINTAINERS: add "exec & binfmt" section with myself and Eric
-
-    Lukas Bulwahn <lukas.bulwahn@gmail.com>:
-    Patch series "Rectify file references for dt-bindings in MAINTAINERS", v5:
-      MAINTAINERS: rectify entry for ARM/TOSHIBA VISCONTI ARCHITECTURE
-      MAINTAINERS: rectify entry for HIKEY960 ONBOARD USB GPIO HUB DRIVER
-      MAINTAINERS: rectify entry for INTEL KEEM BAY DRM DRIVER
-      MAINTAINERS: rectify entry for ALLWINNER HARDWARE SPINLOCK SUPPORT
-
-Subsystem: lib
-
-    Imran Khan <imran.f.khan@oracle.com>:
-    Patch series "lib, stackdepot: check stackdepot handle before accessing slabs", v2:
-      lib, stackdepot: check stackdepot handle before accessing slabs
-      lib, stackdepot: add helper to print stack entries
-      lib, stackdepot: add helper to print stack entries into buffer
-
-    Lucas De Marchi <lucas.demarchi@intel.com>:
-      include/linux/string_helpers.h: add linux/string.h for strlen()
-
-    Alexey Dobriyan <adobriyan@gmail.com>:
-      lib: uninline simple_strntoull() as well
-
-    Thomas Gleixner <tglx@linutronix.de>:
-      mm/scatterlist: replace the !preemptible warning in sg_miter_stop()
-
-Subsystem: checkpatch
-
-    Rikard Falkeborn <rikard.falkeborn@gmail.com>:
-      const_structs.checkpatch: add a few sound ops structs
-
-    Joe Perches <joe@perches.com>:
-      checkpatch: improve EXPORT_SYMBOL test for EXPORT_SYMBOL_NS uses
-
-    Peter Ujfalusi <peter.ujfalusi@linux.intel.com>:
-      checkpatch: get default codespell dictionary path from package location
-
-Subsystem: binfmt
-
-    Kees Cook <keescook@chromium.org>:
-      binfmt_elf: reintroduce using MAP_FIXED_NOREPLACE
-
-    Alexey Dobriyan <adobriyan@gmail.com>:
-      ELF: simplify STACK_ALLOC macro
-
-Subsystem: kallsyms
-
-    Kefeng Wang <wangkefeng.wang@huawei.com>:
-    Patch series "sections: Unify kernel sections range check and use", v4:
-      kallsyms: remove arch specific text and data check
-      kallsyms: fix address-checks for kernel related range
-      sections: move and rename core_kernel_data() to is_kernel_core_data()
-      sections: move is_kernel_inittext() into sections.h
-      x86: mm: rename __is_kernel_text() to is_x86_32_kernel_text()
-      sections: provide internal __is_kernel() and __is_kernel_text() helper
-      mm: kasan: use is_kernel() helper
-      extable: use is_kernel_text() helper
-      powerpc/mm: use core_kernel_text() helper
-      microblaze: use is_kernel_text() helper
-      alpha: use is_kernel_text() helper
-
-Subsystem: ramfs
-
-    yangerkun <yangerkun@huawei.com>:
-      ramfs: fix mount source show for ramfs
-
-Subsystem: init
-
-    Andrew Halaney <ahalaney@redhat.com>:
-      init: make unknown command line param message clearer
-
-Subsystem: codafs
-
-    Jan Harkes <jaharkes@cs.cmu.edu>:
-    Patch series "Coda updates for -next":
-      coda: avoid NULL pointer dereference from a bad inode
-      coda: check for async upcall request using local state
-
-    Alex Shi <alex.shi@linux.alibaba.com>:
-      coda: remove err which no one care
-
-    Jan Harkes <jaharkes@cs.cmu.edu>:
-      coda: avoid flagging NULL inodes
-      coda: avoid hidden code duplication in rename
-      coda: avoid doing bad things on inode type changes during revalidation
-
-    Xiyu Yang <xiyuyang19@fudan.edu.cn>:
-      coda: convert from atomic_t to refcount_t on coda_vm_ops->refcnt
-
-    Jing Yangyang <jing.yangyang@zte.com.cn>:
-      coda: use vmemdup_user to replace the open code
-
-    Jan Harkes <jaharkes@cs.cmu.edu>:
-      coda: bump module version to 7.2
-
-Subsystem: nilfs2
-
-    Qing Wang <wangqing@vivo.com>:
-    Patch series "nilfs2 updates":
-      nilfs2: replace snprintf in show functions with sysfs_emit
-
-    Ryusuke Konishi <konishi.ryusuke@gmail.com>:
-      nilfs2: remove filenames from file comments
-
-Subsystem: hfs
-
-    Arnd Bergmann <arnd@arndb.de>:
-      hfs/hfsplus: use WARN_ON for sanity check
-
-Subsystem: crash_dump
-
-    Changcheng Deng <deng.changcheng@zte.com.cn>:
-      crash_dump: fix boolreturn.cocci warning
-
-    Ye Guojin <ye.guojin@zte.com.cn>:
-      crash_dump: remove duplicate include in crash_dump.h
-
-Subsystem: signals
-
-    Ye Guojin <ye.guojin@zte.com.cn>:
-      signal: remove duplicate include in signal.h
-
-Subsystem: seq_file
-
-    Andy Shevchenko <andriy.shevchenko@linux.intel.com>:
-      seq_file: move seq_escape() to a header
-
-    Muchun Song <songmuchun@bytedance.com>:
-      seq_file: fix passing wrong private data
-
-Subsystem: fork
-
-    Ran Xiaokai <ran.xiaokai@zte.com.cn>:
-      kernel/fork.c: unshare(): use swap() to make code cleaner
-
-Subsystem: sysvfs
-
-    Pavel Skripkin <paskripkin@gmail.com>:
-      sysv: use BUILD_BUG_ON instead of runtime check
-
-Subsystem: kcov
-
-    Sebastian Andrzej Siewior <bigeasy@linutronix.de>:
-    Patch series "kcov: PREEMPT_RT fixup + misc", v2:
-      Documentation/kcov: include types.h in the example
-      Documentation/kcov: define `ip' in the example
-      kcov: allocate per-CPU memory on the relevant node
-      kcov: avoid enable+disable interrupts if !in_task()
-      kcov: replace local_irq_save() with a local_lock_t
-
-Subsystem: gdb
-
-    Douglas Anderson <dianders@chromium.org>:
-      scripts/gdb: handle split debug for vmlinux
-
-Subsystem: resource
-
-    David Hildenbrand <david@redhat.com>:
-    Patch series "virtio-mem: disallow mapping virtio-mem memory via /dev/mem", v5:
-      kernel/resource: clean up and optimize iomem_is_exclusive()
-      kernel/resource: disallow access to exclusive system RAM regions
-      virtio-mem: disallow mapping virtio-mem memory via /dev/mem
-
-Subsystem: selftests
-
-    SeongJae Park <sjpark@amazon.de>:
-      selftests/kselftest/runner/run_one(): allow running non-executable files
-
-Subsystem: ipc
-
-    Michal Clapinski <mclapinski@google.com>:
-      ipc: check checkpoint_restore_ns_capable() to modify C/R proc files
-
-    Manfred Spraul <manfred@colorfullife.com>:
-      ipc/ipc_sysctl.c: remove fallback for !CONFIG_PROC_SYSCTL
-
- .mailmap                                             |    2 
- Documentation/dev-tools/kcov.rst                     |    5 
- MAINTAINERS                                          |   21 +
- arch/alpha/kernel/traps.c                            |    4 
- arch/microblaze/mm/pgtable.c                         |    3 
- arch/powerpc/mm/pgtable_32.c                         |    7 
- arch/riscv/lib/delay.c                               |    4 
- arch/s390/include/asm/facility.h                     |    4 
- arch/x86/kernel/aperture_64.c                        |   13 
- arch/x86/kernel/unwind_orc.c                         |    2 
- arch/x86/mm/init_32.c                                |   14 
- arch/x86/xen/mmu_hvm.c                               |   39 --
- drivers/gpu/drm/drm_dp_mst_topology.c                |    5 
- drivers/gpu/drm/drm_mm.c                             |    5 
- drivers/gpu/drm/i915/i915_vma.c                      |    5 
- drivers/gpu/drm/i915/intel_runtime_pm.c              |   20 -
- drivers/media/dvb-frontends/cxd2880/cxd2880_common.h |    1 
- drivers/virtio/Kconfig                               |    1 
- drivers/virtio/virtio_mem.c                          |  321 +++++++++++++------
- fs/binfmt_elf.c                                      |   33 +
- fs/coda/cnode.c                                      |   13 
- fs/coda/coda_linux.c                                 |   39 +-
- fs/coda/coda_linux.h                                 |    6 
- fs/coda/dir.c                                        |   20 -
- fs/coda/file.c                                       |   12 
- fs/coda/psdev.c                                      |   14 
- fs/coda/upcall.c                                     |    3 
- fs/hfs/inode.c                                       |    6 
- fs/hfsplus/inode.c                                   |   12 
- fs/hugetlbfs/inode.c                                 |   23 -
- fs/inode.c                                           |   46 +-
- fs/internal.h                                        |    1 
- fs/nilfs2/alloc.c                                    |    2 
- fs/nilfs2/alloc.h                                    |    2 
- fs/nilfs2/bmap.c                                     |    2 
- fs/nilfs2/bmap.h                                     |    2 
- fs/nilfs2/btnode.c                                   |    2 
- fs/nilfs2/btnode.h                                   |    2 
- fs/nilfs2/btree.c                                    |    2 
- fs/nilfs2/btree.h                                    |    2 
- fs/nilfs2/cpfile.c                                   |    2 
- fs/nilfs2/cpfile.h                                   |    2 
- fs/nilfs2/dat.c                                      |    2 
- fs/nilfs2/dat.h                                      |    2 
- fs/nilfs2/dir.c                                      |    2 
- fs/nilfs2/direct.c                                   |    2 
- fs/nilfs2/direct.h                                   |    2 
- fs/nilfs2/file.c                                     |    2 
- fs/nilfs2/gcinode.c                                  |    2 
- fs/nilfs2/ifile.c                                    |    2 
- fs/nilfs2/ifile.h                                    |    2 
- fs/nilfs2/inode.c                                    |    2 
- fs/nilfs2/ioctl.c                                    |    2 
- fs/nilfs2/mdt.c                                      |    2 
- fs/nilfs2/mdt.h                                      |    2 
- fs/nilfs2/namei.c                                    |    2 
- fs/nilfs2/nilfs.h                                    |    2 
- fs/nilfs2/page.c                                     |    2 
- fs/nilfs2/page.h                                     |    2 
- fs/nilfs2/recovery.c                                 |    2 
- fs/nilfs2/segbuf.c                                   |    2 
- fs/nilfs2/segbuf.h                                   |    2 
- fs/nilfs2/segment.c                                  |    2 
- fs/nilfs2/segment.h                                  |    2 
- fs/nilfs2/sufile.c                                   |    2 
- fs/nilfs2/sufile.h                                   |    2 
- fs/nilfs2/super.c                                    |    2 
- fs/nilfs2/sysfs.c                                    |   78 ++--
- fs/nilfs2/sysfs.h                                    |    2 
- fs/nilfs2/the_nilfs.c                                |    2 
- fs/nilfs2/the_nilfs.h                                |    2 
- fs/proc/base.c                                       |   21 -
- fs/proc/vmcore.c                                     |  109 ++++--
- fs/ramfs/inode.c                                     |   11 
- fs/seq_file.c                                        |   16 
- fs/sysv/super.c                                      |    6 
- include/asm-generic/sections.h                       |   75 +++-
- include/kunit/test.h                                 |   13 
- include/linux/bottom_half.h                          |    3 
- include/linux/container_of.h                         |   52 ++-
- include/linux/crash_dump.h                           |   30 +
- include/linux/delay.h                                |    2 
- include/linux/fs.h                                   |    1 
- include/linux/fwnode.h                               |    1 
- include/linux/generic-radix-tree.h                   |    3 
- include/linux/hugetlb.h                              |    6 
- include/linux/instruction_pointer.h                  |    8 
- include/linux/kallsyms.h                             |   21 -
- include/linux/kernel.h                               |   39 --
- include/linux/list.h                                 |    4 
- include/linux/llist.h                                |    4 
- include/linux/pagemap.h                              |   50 ++
- include/linux/plist.h                                |    5 
- include/linux/radix-tree.h                           |    4 
- include/linux/rwsem.h                                |    1 
- include/linux/sbitmap.h                              |   11 
- include/linux/seq_file.h                             |   19 +
- include/linux/signal.h                               |    1 
- include/linux/smp.h                                  |    1 
- include/linux/spinlock.h                             |    1 
- include/linux/stackdepot.h                           |    5 
- include/linux/string_helpers.h                       |    1 
- include/media/media-entity.h                         |    3 
- init/main.c                                          |    4 
- ipc/ipc_sysctl.c                                     |   42 +-
- ipc/shm.c                                            |    8 
- kernel/extable.c                                     |   33 -
- kernel/fork.c                                        |    9 
- kernel/kcov.c                                        |   40 +-
- kernel/locking/lockdep.c                             |    3 
- kernel/resource.c                                    |   54 ++-
- kernel/trace/ftrace.c                                |    2 
- lib/scatterlist.c                                    |   11 
- lib/stackdepot.c                                     |   46 ++
- lib/vsprintf.c                                       |    3 
- mm/Kconfig                                           |    7 
- mm/filemap.c                                         |    8 
- mm/kasan/report.c                                    |   17 -
- mm/memfd.c                                           |    4 
- mm/mmap.c                                            |    3 
- mm/page_owner.c                                      |   18 -
- mm/truncate.c                                        |   19 +
- mm/vmscan.c                                          |    7 
- mm/workingset.c                                      |   10 
- net/sysctl_net.c                                     |    2 
- scripts/checkpatch.pl                                |   33 +
- scripts/const_structs.checkpatch                     |    4 
- scripts/gdb/linux/symbols.py                         |    3 
- tools/testing/selftests/kselftest/runner.sh          |   28 +
- tools/testing/selftests/proc/.gitignore              |    1 
- tools/testing/selftests/proc/Makefile                |    2 
- tools/testing/selftests/proc/proc-tid0.c             |   81 ++++
- 132 files changed, 1206 insertions(+), 681 deletions(-)
-
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: vfs: keep inodes with page cache off the inode shrinker LRU
+
+Historically (pre-2.5), the inode shrinker used to reclaim only empty
+inodes and skip over those that still contained page cache.  This caused
+problems on highmem hosts: struct inode could put fill lowmem zones before
+the cache was getting reclaimed in the highmem zones.
+
+To address this, the inode shrinker started to strip page cache to
+facilitate reclaiming lowmem.  However, this comes with its own set of
+problems: the shrinkers may drop actively used page cache just because the
+inodes are not currently open or dirty - think working with a large git
+tree.  It further doesn't respect cgroup memory protection settings and
+can cause priority inversions between containers.
+
+Nowadays, the page cache also holds non-resident info for evicted cache
+pages in order to detect refaults.  We've come to rely heavily on this
+data inside reclaim for protecting the cache workingset and driving swap
+behavior.  We also use it to quantify and report workload health through
+psi.  The latter in turn is used for fleet health monitoring, as well as
+driving automated memory sizing of workloads and containers, proactive
+reclaim and memory offloading schemes.
+
+The consequences of dropping page cache prematurely is that we're seeing
+subtle and not-so-subtle failures in all of the above-mentioned scenarios,
+with the workload generally entering unexpected thrashing states while
+losing the ability to reliably detect it.
+
+To fix this on non-highmem systems at least, going back to rotating inodes
+on the LRU isn't feasible.  We've tried (commit a76cf1a474d7 ("mm: don't
+reclaim inodes with many attached pages")) and failed (commit 69056ee6a8a3
+("Revert "mm: don't reclaim inodes with many attached pages"")).  The
+issue is mostly that shrinker pools attract pressure based on their size,
+and when objects get skipped the shrinkers remember this as deferred
+reclaim work.  This accumulates excessive pressure on the remaining
+inodes, and we can quickly eat into heavily used ones, or dirty ones that
+require IO to reclaim, when there potentially is plenty of cold, clean
+cache around still.
+
+Instead, this patch keeps populated inodes off the inode LRU in the first
+place - just like an open file or dirty state would.  An otherwise clean
+and unused inode then gets queued when the last cache entry disappears. 
+This solves the problem without reintroducing the reclaim issues, and
+generally is a bit more scalable than having to wade through potentially
+hundreds of thousands of busy inodes.
+
+Locking is a bit tricky because the locks protecting the inode state
+(i_lock) and the inode LRU (lru_list.lock) don't nest inside the irq-safe
+page cache lock (i_pages.xa_lock).  Page cache deletions are serialized
+through i_lock, taken before the i_pages lock, to make sure depopulated
+inodes are queued reliably.  Additions may race with deletions, but we'll
+check again in the shrinker.  If additions race with the shrinker itself,
+we're protected by the i_lock: if find_inode() or iput() win, the shrinker
+will bail on the elevated i_count or I_REFERENCED; if the shrinker wins
+and goes ahead with the inode, it will set I_FREEING and inhibit further
+igets(), which will cause the other side to create a new instance of the
+inode instead.
+
+Link: https://lkml.kernel.org/r/20210614211904.14420-4-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/inode.c              |   46 ++++++++++++++++++++--------------
+ fs/internal.h           |    1 
+ include/linux/fs.h      |    1 
+ include/linux/pagemap.h |   50 ++++++++++++++++++++++++++++++++++++++
+ mm/filemap.c            |    8 ++++++
+ mm/truncate.c           |   19 ++++++++++++--
+ mm/vmscan.c             |    7 +++++
+ mm/workingset.c         |   10 +++++++
+ 8 files changed, 120 insertions(+), 22 deletions(-)
+
+--- a/fs/inode.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/fs/inode.c
+@@ -428,11 +428,20 @@ void ihold(struct inode *inode)
+ }
+ EXPORT_SYMBOL(ihold);
+ 
+-static void inode_lru_list_add(struct inode *inode)
++static void __inode_add_lru(struct inode *inode, bool rotate)
+ {
++	if (inode->i_state & (I_DIRTY_ALL | I_SYNC | I_FREEING | I_WILL_FREE))
++		return;
++	if (atomic_read(&inode->i_count))
++		return;
++	if (!(inode->i_sb->s_flags & SB_ACTIVE))
++		return;
++	if (!mapping_shrinkable(&inode->i_data))
++		return;
++
+ 	if (list_lru_add(&inode->i_sb->s_inode_lru, &inode->i_lru))
+ 		this_cpu_inc(nr_unused);
+-	else
++	else if (rotate)
+ 		inode->i_state |= I_REFERENCED;
+ }
+ 
+@@ -443,16 +452,11 @@ static void inode_lru_list_add(struct in
+  */
+ void inode_add_lru(struct inode *inode)
+ {
+-	if (!(inode->i_state & (I_DIRTY_ALL | I_SYNC |
+-				I_FREEING | I_WILL_FREE)) &&
+-	    !atomic_read(&inode->i_count) && inode->i_sb->s_flags & SB_ACTIVE)
+-		inode_lru_list_add(inode);
++	__inode_add_lru(inode, false);
+ }
+ 
+-
+ static void inode_lru_list_del(struct inode *inode)
+ {
+-
+ 	if (list_lru_del(&inode->i_sb->s_inode_lru, &inode->i_lru))
+ 		this_cpu_dec(nr_unused);
+ }
+@@ -728,10 +732,6 @@ again:
+ /*
+  * Isolate the inode from the LRU in preparation for freeing it.
+  *
+- * Any inodes which are pinned purely because of attached pagecache have their
+- * pagecache removed.  If the inode has metadata buffers attached to
+- * mapping->private_list then try to remove them.
+- *
+  * If the inode has the I_REFERENCED flag set, then it means that it has been
+  * used recently - the flag is set in iput_final(). When we encounter such an
+  * inode, clear the flag and move it to the back of the LRU so it gets another
+@@ -747,31 +747,39 @@ static enum lru_status inode_lru_isolate
+ 	struct inode	*inode = container_of(item, struct inode, i_lru);
+ 
+ 	/*
+-	 * we are inverting the lru lock/inode->i_lock here, so use a trylock.
+-	 * If we fail to get the lock, just skip it.
++	 * We are inverting the lru lock/inode->i_lock here, so use a
++	 * trylock. If we fail to get the lock, just skip it.
+ 	 */
+ 	if (!spin_trylock(&inode->i_lock))
+ 		return LRU_SKIP;
+ 
+ 	/*
+-	 * Referenced or dirty inodes are still in use. Give them another pass
+-	 * through the LRU as we canot reclaim them now.
++	 * Inodes can get referenced, redirtied, or repopulated while
++	 * they're already on the LRU, and this can make them
++	 * unreclaimable for a while. Remove them lazily here; iput,
++	 * sync, or the last page cache deletion will requeue them.
+ 	 */
+ 	if (atomic_read(&inode->i_count) ||
+-	    (inode->i_state & ~I_REFERENCED)) {
++	    (inode->i_state & ~I_REFERENCED) ||
++	    !mapping_shrinkable(&inode->i_data)) {
+ 		list_lru_isolate(lru, &inode->i_lru);
+ 		spin_unlock(&inode->i_lock);
+ 		this_cpu_dec(nr_unused);
+ 		return LRU_REMOVED;
+ 	}
+ 
+-	/* recently referenced inodes get one more pass */
++	/* Recently referenced inodes get one more pass */
+ 	if (inode->i_state & I_REFERENCED) {
+ 		inode->i_state &= ~I_REFERENCED;
+ 		spin_unlock(&inode->i_lock);
+ 		return LRU_ROTATE;
+ 	}
+ 
++	/*
++	 * On highmem systems, mapping_shrinkable() permits dropping
++	 * page cache in order to free up struct inodes: lowmem might
++	 * be under pressure before the cache inside the highmem zone.
++	 */
+ 	if (inode_has_buffers(inode) || !mapping_empty(&inode->i_data)) {
+ 		__iget(inode);
+ 		spin_unlock(&inode->i_lock);
+@@ -1638,7 +1646,7 @@ static void iput_final(struct inode *ino
+ 	if (!drop &&
+ 	    !(inode->i_state & I_DONTCACHE) &&
+ 	    (sb->s_flags & SB_ACTIVE)) {
+-		inode_add_lru(inode);
++		__inode_add_lru(inode, true);
+ 		spin_unlock(&inode->i_lock);
+ 		return;
+ 	}
+--- a/fs/internal.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/fs/internal.h
+@@ -149,7 +149,6 @@ extern int vfs_open(const struct path *,
+  * inode.c
+  */
+ extern long prune_icache_sb(struct super_block *sb, struct shrink_control *sc);
+-extern void inode_add_lru(struct inode *inode);
+ extern int dentry_needs_remove_privs(struct dentry *dentry);
+ 
+ /*
+--- a/include/linux/fs.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/include/linux/fs.h
+@@ -3193,6 +3193,7 @@ static inline void remove_inode_hash(str
+ }
+ 
+ extern void inode_sb_list_add(struct inode *inode);
++extern void inode_add_lru(struct inode *inode);
+ 
+ extern int sb_set_blocksize(struct super_block *, int);
+ extern int sb_min_blocksize(struct super_block *, int);
+--- a/include/linux/pagemap.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/include/linux/pagemap.h
+@@ -24,6 +24,56 @@ static inline bool mapping_empty(struct
+ }
+ 
+ /*
++ * mapping_shrinkable - test if page cache state allows inode reclaim
++ * @mapping: the page cache mapping
++ *
++ * This checks the mapping's cache state for the pupose of inode
++ * reclaim and LRU management.
++ *
++ * The caller is expected to hold the i_lock, but is not required to
++ * hold the i_pages lock, which usually protects cache state. That's
++ * because the i_lock and the list_lru lock that protect the inode and
++ * its LRU state don't nest inside the irq-safe i_pages lock.
++ *
++ * Cache deletions are performed under the i_lock, which ensures that
++ * when an inode goes empty, it will reliably get queued on the LRU.
++ *
++ * Cache additions do not acquire the i_lock and may race with this
++ * check, in which case we'll report the inode as shrinkable when it
++ * has cache pages. This is okay: the shrinker also checks the
++ * refcount and the referenced bit, which will be elevated or set in
++ * the process of adding new cache pages to an inode.
++ */
++static inline bool mapping_shrinkable(struct address_space *mapping)
++{
++	void *head;
++
++	/*
++	 * On highmem systems, there could be lowmem pressure from the
++	 * inodes before there is highmem pressure from the page
++	 * cache. Make inodes shrinkable regardless of cache state.
++	 */
++	if (IS_ENABLED(CONFIG_HIGHMEM))
++		return true;
++
++	/* Cache completely empty? Shrink away. */
++	head = rcu_access_pointer(mapping->i_pages.xa_head);
++	if (!head)
++		return true;
++
++	/*
++	 * The xarray stores single offset-0 entries directly in the
++	 * head pointer, which allows non-resident page cache entries
++	 * to escape the shadow shrinker's list of xarray nodes. The
++	 * inode shrinker needs to pick them up under memory pressure.
++	 */
++	if (!xa_is_node(head) && xa_is_value(head))
++		return true;
++
++	return false;
++}
++
++/*
+  * Bits in mapping->flags.
+  */
+ enum mapping_flags {
+--- a/mm/filemap.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/mm/filemap.c
+@@ -262,9 +262,13 @@ void delete_from_page_cache(struct page
+ 	struct address_space *mapping = page_mapping(page);
+ 
+ 	BUG_ON(!PageLocked(page));
++	spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	__delete_from_page_cache(page, NULL);
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (mapping_shrinkable(mapping))
++		inode_add_lru(mapping->host);
++	spin_unlock(&mapping->host->i_lock);
+ 
+ 	page_cache_free_page(mapping, page);
+ }
+@@ -340,6 +344,7 @@ void delete_from_page_cache_batch(struct
+ 	if (!pagevec_count(pvec))
+ 		return;
+ 
++	spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	for (i = 0; i < pagevec_count(pvec); i++) {
+ 		trace_mm_filemap_delete_from_page_cache(pvec->pages[i]);
+@@ -348,6 +353,9 @@ void delete_from_page_cache_batch(struct
+ 	}
+ 	page_cache_delete_batch(mapping, pvec);
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (mapping_shrinkable(mapping))
++		inode_add_lru(mapping->host);
++	spin_unlock(&mapping->host->i_lock);
+ 
+ 	for (i = 0; i < pagevec_count(pvec); i++)
+ 		page_cache_free_page(mapping, pvec->pages[i]);
+--- a/mm/truncate.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/mm/truncate.c
+@@ -45,9 +45,13 @@ static inline void __clear_shadow_entry(
+ static void clear_shadow_entry(struct address_space *mapping, pgoff_t index,
+ 			       void *entry)
+ {
++	spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	__clear_shadow_entry(mapping, index, entry);
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (mapping_shrinkable(mapping))
++		inode_add_lru(mapping->host);
++	spin_unlock(&mapping->host->i_lock);
+ }
+ 
+ /*
+@@ -73,8 +77,10 @@ static void truncate_exceptional_pvec_en
+ 		return;
+ 
+ 	dax = dax_mapping(mapping);
+-	if (!dax)
++	if (!dax) {
++		spin_lock(&mapping->host->i_lock);
+ 		xa_lock_irq(&mapping->i_pages);
++	}
+ 
+ 	for (i = j; i < pagevec_count(pvec); i++) {
+ 		struct page *page = pvec->pages[i];
+@@ -93,8 +99,12 @@ static void truncate_exceptional_pvec_en
+ 		__clear_shadow_entry(mapping, index, page);
+ 	}
+ 
+-	if (!dax)
++	if (!dax) {
+ 		xa_unlock_irq(&mapping->i_pages);
++		if (mapping_shrinkable(mapping))
++			inode_add_lru(mapping->host);
++		spin_unlock(&mapping->host->i_lock);
++	}
+ 	pvec->nr = j;
+ }
+ 
+@@ -567,6 +577,7 @@ invalidate_complete_page2(struct address
+ 	if (page_has_private(page) && !try_to_release_page(page, GFP_KERNEL))
+ 		return 0;
+ 
++	spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	if (PageDirty(page))
+ 		goto failed;
+@@ -574,6 +585,9 @@ invalidate_complete_page2(struct address
+ 	BUG_ON(page_has_private(page));
+ 	__delete_from_page_cache(page, NULL);
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (mapping_shrinkable(mapping))
++		inode_add_lru(mapping->host);
++	spin_unlock(&mapping->host->i_lock);
+ 
+ 	if (mapping->a_ops->freepage)
+ 		mapping->a_ops->freepage(page);
+@@ -582,6 +596,7 @@ invalidate_complete_page2(struct address
+ 	return 1;
+ failed:
+ 	xa_unlock_irq(&mapping->i_pages);
++	spin_unlock(&mapping->host->i_lock);
+ 	return 0;
+ }
+ 
+--- a/mm/vmscan.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/mm/vmscan.c
+@@ -1190,6 +1190,8 @@ static int __remove_mapping(struct addre
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(mapping != page_mapping(page));
+ 
++	if (!PageSwapCache(page))
++		spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	/*
+ 	 * The non racy check for a busy page.
+@@ -1258,6 +1260,9 @@ static int __remove_mapping(struct addre
+ 			shadow = workingset_eviction(page, target_memcg);
+ 		__delete_from_page_cache(page, shadow);
+ 		xa_unlock_irq(&mapping->i_pages);
++		if (mapping_shrinkable(mapping))
++			inode_add_lru(mapping->host);
++		spin_unlock(&mapping->host->i_lock);
+ 
+ 		if (freepage != NULL)
+ 			freepage(page);
+@@ -1267,6 +1272,8 @@ static int __remove_mapping(struct addre
+ 
+ cannot_free:
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (!PageSwapCache(page))
++		spin_unlock(&mapping->host->i_lock);
+ 	return 0;
+ }
+ 
+--- a/mm/workingset.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/mm/workingset.c
+@@ -543,6 +543,13 @@ static enum lru_status shadow_lru_isolat
+ 		goto out;
+ 	}
+ 
++	if (!spin_trylock(&mapping->host->i_lock)) {
++		xa_unlock(&mapping->i_pages);
++		spin_unlock_irq(lru_lock);
++		ret = LRU_RETRY;
++		goto out;
++	}
++
+ 	list_lru_isolate(lru, item);
+ 	__dec_lruvec_kmem_state(node, WORKINGSET_NODES);
+ 
+@@ -562,6 +569,9 @@ static enum lru_status shadow_lru_isolat
+ 
+ out_invalid:
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (mapping_shrinkable(mapping))
++		inode_add_lru(mapping->host);
++	spin_unlock(&mapping->host->i_lock);
+ 	ret = LRU_REMOVED_RETRY;
+ out:
+ 	cond_resched();
+_
