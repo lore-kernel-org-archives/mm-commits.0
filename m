@@ -2,34 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6B60C433EF
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19BA2C433FE
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:22 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CFC3161452
-	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:17 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01EE7614C8
+	for <mm-commits@archiver.kernel.org>; Tue,  9 Nov 2021 02:35:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237681AbhKICiC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 8 Nov 2021 21:38:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53484 "EHLO mail.kernel.org"
+        id S238104AbhKICiF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 8 Nov 2021 21:38:05 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53518 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236920AbhKICiB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 8 Nov 2021 21:38:01 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9BEA96137F;
-        Tue,  9 Nov 2021 02:35:16 +0000 (UTC)
+        id S237743AbhKICiF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 8 Nov 2021 21:38:05 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F35461360;
+        Tue,  9 Nov 2021 02:35:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636425316;
-        bh=bOzUB8ET3FOeLS2tw/7bWe/I8VFKnh845VYNWKIX+bU=;
+        s=korg; t=1636425319;
+        bh=4m/9it/qoKLdrA83lbpAfV0YEspJ+kRur+ACqIJhMOc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=JY+SS3+12uVTMlnzonqB3AdayF8BvePM3/+pAO0UoOs8M29TpsZLb7YB6ui32DIX7
-         1wjxU5uwfeFCfsyLssKBeFZLur8HoqCKqxNqsPl4fX/VEItfy6+i3NJK2je8uowGIk
-         9Q8liJ8/C7TRSmDfjYw+o595hUzZWkPZFHBJCfxY=
-Date:   Mon, 08 Nov 2021 18:35:16 -0800
+        b=0EPaqoaQLPdcy2dIu47ycuGpnqKyIXNjjrH5IdjCnfM4pjv54La/WKU9dxqCvCexG
+         DDZYSel+yMPjVtfxzkQaURqPLD1P7PvHowLWUBsL4LNPhQuIj/fSv2fzR6qI8WDcie
+         ChKRC+ji9osQioDmEVuejHxwNNR/34+aCTGjjzAQ=
+Date:   Mon, 08 Nov 2021 18:35:19 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
+To:     adobriyan@gmail.com, akpm@linux-foundation.org,
+        andriy.shevchenko@linux.intel.com, christian.brauner@ubuntu.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 72/87] seq_file: move seq_escape() to a header
-Message-ID: <20211109023516.l5Dniqrh2%akpm@linux-foundation.org>
+        revest@chromium.org, sfr@canb.auug.org.au,
+        songmuchun@bytedance.com, torvalds@linux-foundation.org
+Subject:  [patch 73/87] seq_file: fix passing wrong private data
+Message-ID: <20211109023519.9dvm6-aET%akpm@linux-foundation.org>
 In-Reply-To: <20211108183057.809e428e841088b657a975ec@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -37,77 +39,40 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: seq_file: move seq_escape() to a header
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: seq_file: fix passing wrong private data
 
-Move seq_escape() to the header as inliner, for a small kernel text size
-reduction.
+DEFINE_PROC_SHOW_ATTRIBUTE() is supposed to be used to define a series
+of functions and variables to register proc file easily. And the users
+can use proc_create_data() to pass their own private data and get it
+via seq->private in the callback. Unfortunately, the proc file system
+use PDE_DATA() to get private data instead of inode->i_private. So fix
+it. Fortunately, there only one user of it which does not pass any
+private data, so this bug does not break any in-tree codes.
 
-Link: https://lkml.kernel.org/r/20211001122917.67228-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Link: https://lkml.kernel.org/r/20211029032638.84884-1-songmuchun@bytedance.com
+Fixes: 97a32539b956 ("proc: convert everything to "struct proc_ops"")
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Florent Revest <revest@chromium.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c            |   16 ----------------
- include/linux/seq_file.h |   17 ++++++++++++++++-
- 2 files changed, 16 insertions(+), 17 deletions(-)
+ include/linux/seq_file.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/seq_file.c~seq_file-move-seq_escape-to-a-header
-+++ a/fs/seq_file.c
-@@ -383,22 +383,6 @@ void seq_escape_mem(struct seq_file *m,
- }
- EXPORT_SYMBOL(seq_escape_mem);
- 
--/**
-- *	seq_escape -	print string into buffer, escaping some characters
-- *	@m:	target buffer
-- *	@s:	string
-- *	@esc:	set of characters that need escaping
-- *
-- *	Puts string into buffer, replacing each occurrence of character from
-- *	@esc with usual octal escape.
-- *	Use seq_has_overflowed() to check for errors.
-- */
--void seq_escape(struct seq_file *m, const char *s, const char *esc)
--{
--	seq_escape_str(m, s, ESCAPE_OCTAL, esc);
--}
--EXPORT_SYMBOL(seq_escape);
--
- void seq_vprintf(struct seq_file *m, const char *f, va_list args)
- {
- 	int len;
---- a/include/linux/seq_file.h~seq_file-move-seq_escape-to-a-header
+--- a/include/linux/seq_file.h~seq_file-fix-passing-wrong-private-data
 +++ a/include/linux/seq_file.h
-@@ -4,6 +4,7 @@
- 
- #include <linux/types.h>
- #include <linux/string.h>
-+#include <linux/string_helpers.h>
- #include <linux/bug.h>
- #include <linux/mutex.h>
- #include <linux/cpumask.h>
-@@ -135,7 +136,21 @@ static inline void seq_escape_str(struct
- 	seq_escape_mem(m, src, strlen(src), flags, esc);
- }
- 
--void seq_escape(struct seq_file *m, const char *s, const char *esc);
-+/**
-+ * seq_escape - print string into buffer, escaping some characters
-+ * @m: target buffer
-+ * @s: NULL-terminated string
-+ * @esc: set of characters that need escaping
-+ *
-+ * Puts string into buffer, replacing each occurrence of character from
-+ * @esc with usual octal escape.
-+ *
-+ * Use seq_has_overflowed() to check for errors.
-+ */
-+static inline void seq_escape(struct seq_file *m, const char *s, const char *esc)
-+{
-+	seq_escape_str(m, s, ESCAPE_OCTAL, esc);
-+}
- 
- void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
- 		  int rowsize, int groupsize, const void *buf, size_t len,
+@@ -209,7 +209,7 @@ static const struct file_operations __na
+ #define DEFINE_PROC_SHOW_ATTRIBUTE(__name)				\
+ static int __name ## _open(struct inode *inode, struct file *file)	\
+ {									\
+-	return single_open(file, __name ## _show, inode->i_private);	\
++	return single_open(file, __name ## _show, PDE_DATA(inode));	\
+ }									\
+ 									\
+ static const struct proc_ops __name ## _proc_ops = {			\
 _
