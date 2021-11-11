@@ -2,36 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9151EC43217
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 42EACC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 78CEE61247
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2EAFC61108
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234349AbhKKCsY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:48:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53252 "EHLO mail.kernel.org"
+        id S234142AbhKKCsZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:48:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53324 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234369AbhKKCsN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:48:13 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B7B66103C;
-        Thu, 11 Nov 2021 02:45:25 +0000 (UTC)
+        id S234384AbhKKCsT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:48:19 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E7B56103C;
+        Thu, 11 Nov 2021 02:45:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598725;
-        bh=H37nJalztR3j6BGLPEdrRxY7W0+z/FJh3lus+DzxjA4=;
+        s=korg; t=1636598731;
+        bh=bzD0ejISrSdwA+D23qIOto5RUXbmXWP2QsASN1fxjLQ=;
         h=Date:From:To:Subject:From;
-        b=TSLoIQwmbDssO7VD4zTzHpH3pCZkToKG63KmfMj4lakERAf055uJvbUlG0Iugy0xC
-         h5vSUpzvroeNGQfc6H2w2sYUgLAY6IaCXTNHkszhQpAUFWOiTsVugtyYF5CZxRaTjl
-         c3tjMYoCcNRWuhEYoSCVK3Dy4td/e/3MG3VsHmOA=
-Date:   Wed, 10 Nov 2021 18:45:25 -0800
+        b=vMiGWqWgf8D8VK61HX3xP3YnSKERpZVV4mRxDk8qYPPzizoNltf3TxzFP2Cpq6KHZ
+         iT7hmHHT9oe9bZaBdGjLCBkcV4FWkr9qe8bSnawdJ5PivBuvbrckdcg29Pnof88fAn
+         me+OY1AgpUE4vWqRLFeCQkcz+V7lsPa6+jMBxmts=
+Date:   Wed, 10 Nov 2021 18:45:31 -0800
 From:   akpm@linux-foundation.org
-To:     axelrasmussen@google.com, mm-commits@vger.kernel.org,
-        peterx@redhat.com, shuah@kernel.org
+To:     david@redhat.com, linmiaohe@huawei.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, vbabka@suse.cz
 Subject:  [merged]
- userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
- removed from -mm tree
-Message-ID: <20211111024525.umF8Tm4C5%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-page=5Fisolation-fix-potential-missing-call-to-unset=5Fm?=
+ =?US-ASCII?Q?igratetype=5Fisolate.patch?= removed from -mm tree
+Message-ID: <20211111024531.hWU7M7OSR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,95 +41,77 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: don't rely on GNU extensions for random numbers
+     Subject: mm/page_isolation: fix potential missing call to unset_migratetype_isolate()
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
+     mm-page_isolation-fix-potential-missing-call-to-unset_migratetype_isolate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: don't rely on GNU extensions for random numbers
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/page_isolation: fix potential missing call to unset_migratetype_isolate()
 
-Patch series "Small userfaultfd selftest fixups", v2.
+In start_isolate_page_range() undo path, pfn_to_online_page() just checks
+the first pfn in a pageblock while __first_valid_page() will traverse the
+pageblock until the first online pfn is found.  So we may miss the call to
+unset_migratetype_isolate() in undo path and pages will remain isolated
+unexpectedly.  Fix this by calling undo_isolate_page_range() and this will
+also help to simplify the code further.  Note we shouldn't ever trigger it
+because MAX_ORDER-1 aligned pfn ranges shouldn't contain memory holes now.
 
-
-This patch (of 3):
-
-Two arguments for doing this:
-
-First, and maybe most importantly, the resulting code is significantly
-shorter / simpler.
-
-Then, we avoid using GNU libc extensions.  Why does this matter?  It makes
-testing userfaultfd with the selftest easier e.g.  on distros which use
-something other than glibc (e.g., Alpine, which uses musl); basically, it
-makes the test more portable.
-
-Link: https://lkml.kernel.org/r/20210930212309.4001967-2-axelrasmussen@google.com
-Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
-Reviewed-by: Peter Xu <peterx@redhat.com>
-Cc: Shuah Khan <shuah@kernel.org>
+Link: https://lkml.kernel.org/r/20210914114348.15569-1-linmiaohe@huawei.com
+Fixes: 2ce13640b3f4 ("mm: __first_valid_page skip over offline pages")
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   26 +++------------------
- 1 file changed, 4 insertions(+), 22 deletions(-)
+ mm/page_isolation.c |   20 +++-----------------
+ 1 file changed, 3 insertions(+), 17 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -57,6 +57,7 @@
- #include <assert.h>
- #include <inttypes.h>
- #include <stdint.h>
-+#include <sys/random.h>
- 
- #include "../kselftest.h"
- 
-@@ -518,22 +519,10 @@ static void continue_range(int ufd, __u6
- static void *locking_thread(void *arg)
+--- a/mm/page_isolation.c~mm-page_isolation-fix-potential-missing-call-to-unset_migratetype_isolate
++++ a/mm/page_isolation.c
+@@ -183,7 +183,6 @@ int start_isolate_page_range(unsigned lo
+ 			     unsigned migratetype, int flags)
  {
- 	unsigned long cpu = (unsigned long) arg;
--	struct random_data rand;
- 	unsigned long page_nr = *(&(page_nr)); /* uninitialized warning */
--	int32_t rand_nr;
- 	unsigned long long count;
--	char randstate[64];
--	unsigned int seed;
+ 	unsigned long pfn;
+-	unsigned long undo_pfn;
+ 	struct page *page;
  
--	if (bounces & BOUNCE_RANDOM) {
--		seed = (unsigned int) time(NULL) - bounces;
--		if (!(bounces & BOUNCE_RACINGFAULTS))
--			seed += cpu;
--		bzero(&rand, sizeof(rand));
--		bzero(&randstate, sizeof(randstate));
--		if (initstate_r(seed, randstate, sizeof(randstate), &rand))
--			err("initstate_r failed");
--	} else {
-+	if (!(bounces & BOUNCE_RANDOM)) {
- 		page_nr = -bounces;
- 		if (!(bounces & BOUNCE_RACINGFAULTS))
- 			page_nr += cpu * nr_pages_per_cpu;
-@@ -541,15 +530,8 @@ static void *locking_thread(void *arg)
- 
- 	while (!finished) {
- 		if (bounces & BOUNCE_RANDOM) {
--			if (random_r(&rand, &rand_nr))
--				err("random_r failed");
--			page_nr = rand_nr;
--			if (sizeof(page_nr) > sizeof(rand_nr)) {
--				if (random_r(&rand, &rand_nr))
--					err("random_r failed");
--				page_nr |= (((unsigned long) rand_nr) << 16) <<
--					   16;
+ 	BUG_ON(!IS_ALIGNED(start_pfn, pageblock_nr_pages));
+@@ -193,25 +192,12 @@ int start_isolate_page_range(unsigned lo
+ 	     pfn < end_pfn;
+ 	     pfn += pageblock_nr_pages) {
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+-		if (page) {
+-			if (set_migratetype_isolate(page, migratetype, flags)) {
+-				undo_pfn = pfn;
+-				goto undo;
 -			}
-+			if (getrandom(&page_nr, sizeof(page_nr), 0) != sizeof(page_nr))
-+				err("getrandom failed");
- 		} else
- 			page_nr += 1;
- 		page_nr %= nr_pages;
++		if (page && set_migratetype_isolate(page, migratetype, flags)) {
++			undo_isolate_page_range(start_pfn, pfn, migratetype);
++			return -EBUSY;
+ 		}
+ 	}
+ 	return 0;
+-undo:
+-	for (pfn = start_pfn;
+-	     pfn < undo_pfn;
+-	     pfn += pageblock_nr_pages) {
+-		struct page *page = pfn_to_online_page(pfn);
+-		if (!page)
+-			continue;
+-		unset_migratetype_isolate(page, migratetype);
+-	}
+-
+-	return -EBUSY;
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from axelrasmussen@google.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
 
