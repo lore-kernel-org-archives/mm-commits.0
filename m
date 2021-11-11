@@ -2,35 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7D957C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCF7AC433EF
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:51:58 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 61EF46135E
+	by mail.kernel.org (Postfix) with ESMTP id 9D15E610A2
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:51:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234549AbhKKCyp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:54:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58372 "EHLO mail.kernel.org"
+        id S232020AbhKKCyq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:54:46 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58388 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232020AbhKKCym (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:54:42 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 783B56103C;
-        Thu, 11 Nov 2021 02:51:54 +0000 (UTC)
+        id S234548AbhKKCyp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:54:45 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CA57560F26;
+        Thu, 11 Nov 2021 02:51:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599114;
-        bh=KYuLurvSf0+Mz2AWFoimkgU3PRqRGx1HJUtbg+sq2Hw=;
+        s=korg; t=1636599117;
+        bh=+dSQHbIwaHvcljBKzA6anx9tbKCs0INOIYlgz9xY6co=;
         h=Date:From:To:Subject:From;
-        b=FT+dPQVVoklXTYKoy8yxTIKFLpVIMT9YcuAJtXaz3AMMMGUJR3xK8oQosaNg7RcAU
-         jHAP2N6TY7x6zfmnJYdGCK1VJBhPHAqFHaxncPuy/TJyxJ4nmbxfwqOCOKuL4O8RY9
-         3cKtXEmMqak7UdhxiQ43YhTLMGD2OVosYrOPd44A=
-Date:   Wed, 10 Nov 2021 18:51:54 -0800
+        b=b83gjkoG6ipBf1OLxlTVXYSSE8T4YGN2iu15DmqkdHWzUw5iezZ9a9ZRpACZ9vDgf
+         WJSLIEf5kKyFVA9MISIzetljafFm4Y4B6OuE1kJz1xVUGrC3y7py033qAYk/Uwc6h7
+         otC2yiYUn6eq7OPgmxbhd4FuN6JkWdzD7kuIAjcA=
+Date:   Wed, 10 Nov 2021 18:51:56 -0800
 From:   akpm@linux-foundation.org
-To:     ebiederm@xmission.com, keescook@chromium.org,
-        mm-commits@vger.kernel.org
+To:     anitha.chrisanthus@intel.com, chenyu56@huawei.com,
+        edmund.j.dea@intel.com, gregkh@linuxfoundation.org,
+        joe@perches.com, john.stultz@linaro.org, lukas.bulwahn@gmail.com,
+        mchehab+huawei@kernel.org, mm-commits@vger.kernel.org,
+        nobuhiro1.iwamatsu@toshiba.co.jp, punit1.agrawal@toshiba.co.jp,
+        ralf.ramsauer@oth-regensburg.de, robh+dt@kernel.org,
+        sam@ravnborg.org, wilken.gottwalt@posteo.net
 Subject:  [merged]
- maintainers-add-exec-binfmt-section-with-myself-and-eric.patch removed from
- -mm tree
-Message-ID: <20211111025154.5kduU1kXh%akpm@linux-foundation.org>
+ maintainers-rectify-entry-for-arm-toshiba-visconti-architecture.patch
+ removed from -mm tree
+Message-ID: <20211111025156.lCIZU2uYz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,55 +44,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add "exec & binfmt" section with myself and Eric
+     Subject: MAINTAINERS: rectify entry for ARM/TOSHIBA VISCONTI ARCHITECTURE
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-exec-binfmt-section-with-myself-and-eric.patch
+     maintainers-rectify-entry-for-arm-toshiba-visconti-architecture.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: MAINTAINERS: add "exec & binfmt" section with myself and Eric
+From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Subject: MAINTAINERS: rectify entry for ARM/TOSHIBA VISCONTI ARCHITECTURE
 
-I'd like more continuity of review for the exec and binfmt (and ELF)
-stuff.  Eric and I have been the most active lately, so list us as
-reviewers.
+Patch series "Rectify file references for dt-bindings in MAINTAINERS", v5.
 
-Link: https://lkml.kernel.org/r/20211006180200.1178142-1-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
+A patch series that cleans up some file references for dt-bindings in
+MAINTAINERS.  
+
+
+This patch (of 4):
+
+Commit 836863a08c99 ("MAINTAINERS: Add information for Toshiba Visconti
+ARM SoCs") refers to the non-existing file toshiba,tmpv7700-pinctrl.yaml
+in ./Documentation/devicetree/bindings/pinctrl/.  Commit 1825c1fe0057
+("pinctrl: Add DT bindings for Toshiba Visconti TMPV7700 SoC") originating
+from the same patch series however adds the file
+toshiba,visconti-pinctrl.yaml in that directory instead.
+
+So, refer to toshiba,visconti-pinctrl.yaml in the ARM/TOSHIBA VISCONTI
+ARCHITECTURE section instead.
+
+Link: https://lkml.kernel.org/r/20211026141902.4865-1-lukas.bulwahn@gmail.com
+Link: https://lkml.kernel.org/r/20211026141902.4865-2-lukas.bulwahn@gmail.com
+Fixes: 836863a08c99 ("MAINTAINERS: Add information for Toshiba Visconti ARM SoCs")
+Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Acked-by: Nobuhiro Iwamatsu <nobuhiro1.iwamatsu@toshiba.co.jp>
+Reviewed-by: Nobuhiro Iwamatsu <nobuhiro1.iwamatsu@toshiba.co.jp>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Punit Agrawal <punit1.agrawal@toshiba.co.jp>
+Cc: Anitha Chrisanthus <anitha.chrisanthus@intel.com>
+Cc: Wilken Gottwalt <wilken.gottwalt@posteo.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: John Stultz <john.stultz@linaro.org>
+Cc: Mauro Carvalho Chehab <mchehab+huawei@kernel.org>
+Cc: Yu Chen <chenyu56@huawei.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Edmund Dea <edmund.j.dea@intel.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Ralf Ramsauer <ralf.ramsauer@oth-regensburg.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/MAINTAINERS~maintainers-add-exec-binfmt-section-with-myself-and-eric
+--- a/MAINTAINERS~maintainers-rectify-entry-for-arm-toshiba-visconti-architecture
 +++ a/MAINTAINERS
-@@ -7037,6 +7037,20 @@ F:	include/trace/events/mdio.h
- F:	include/uapi/linux/mdio.h
- F:	include/uapi/linux/mii.h
- 
-+EXEC & BINFMT API
-+R:	Eric Biederman <ebiederm@xmission.com>
-+R:	Kees Cook <keescook@chromium.org>
-+F:	arch/alpha/kernel/binfmt_loader.c
-+F:	arch/x86/ia32/ia32_aout.c
-+F:	fs/*binfmt_*.c
-+F:	fs/exec.c
-+F:	include/linux/binfmts.h
-+F:	include/linux/elf.h
-+F:	include/uapi/linux/binfmts.h
-+F:	tools/testing/selftests/exec/
-+N:	asm/elf.h
-+N:	binfmt
-+
- EXFAT FILE SYSTEM
- M:	Namjae Jeon <linkinjeon@kernel.org>
- M:	Sungjong Seo <sj1557.seo@samsung.com>
+@@ -2745,7 +2745,7 @@ F:	Documentation/devicetree/bindings/arm
+ F:	Documentation/devicetree/bindings/net/toshiba,visconti-dwmac.yaml
+ F:	Documentation/devicetree/bindings/gpio/toshiba,gpio-visconti.yaml
+ F:	Documentation/devicetree/bindings/pci/toshiba,visconti-pcie.yaml
+-F:	Documentation/devicetree/bindings/pinctrl/toshiba,tmpv7700-pinctrl.yaml
++F:	Documentation/devicetree/bindings/pinctrl/toshiba,visconti-pinctrl.yaml
+ F:	Documentation/devicetree/bindings/watchdog/toshiba,visconti-wdt.yaml
+ F:	arch/arm64/boot/dts/toshiba/
+ F:	drivers/net/ethernet/stmicro/stmmac/dwmac-visconti.c
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
 
-kasan-test-consolidate-workarounds-for-unwanted-__alloc_size-protection.patch
 
