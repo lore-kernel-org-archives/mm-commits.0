@@ -2,35 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AD8CC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED158C433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 434D3610A2
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:45 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D520A61108
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234499AbhKKCxb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:53:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57280 "EHLO mail.kernel.org"
+        id S234514AbhKKCxc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:53:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57300 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234609AbhKKCxX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:53:23 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7C72D60F26;
-        Thu, 11 Nov 2021 02:50:35 +0000 (UTC)
+        id S234636AbhKKCxZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:53:25 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B86060F26;
+        Thu, 11 Nov 2021 02:50:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599035;
-        bh=w9/ZvLlRogfQoGnbId3igHyMA6SNtiYnfq+tjRXJ50I=;
+        s=korg; t=1636599037;
+        bh=roLy4tZpFya1LPf/NecpV89osJaAf+v7LHguZ2MSWgo=;
         h=Date:From:To:Subject:From;
-        b=qCcUc4HC/pJDS/TueWQSWyFzyPOncYC7o+O9uYJKQ9riaH+M+dXRD7ArmtXKJbKxU
-         g13L0BxPaciALqSN31qd0QwumtSLLJMM8s/YOM6V075/NR79YNUhC1oowN8j3V+RFN
-         VvI1qWF8VprwZL4GlXWbWP5ZADwNnHxNIMc9NXCw=
-Date:   Wed, 10 Nov 2021 18:50:35 -0800
+        b=2HJHp5N+EDI4ASTSCs37hjpAxG/P/S1xj8gARG3sD5VfN6tSjD8hLTgc5FI+6AEpI
+         e7KfyMHFWq/p82sVQUsu6kNPgcpWtI94Aevt+OtJ/f/mNmAYFyyS1iousxGmLD5p8A
+         ItQpJvbGmU3PN0+Jg1F4+Y84JmVPTf9AA7WMxqh8=
+Date:   Wed, 10 Nov 2021 18:50:37 -0800
 From:   akpm@linux-foundation.org
-To:     corbet@lwn.net, mm-commits@vger.kernel.org, peterx@redhat.com,
-        sj@kernel.org
-Subject:  [merged]
- docs-admin-guide-mm-pagemap-wordsmith-page-flags-descriptions.patch removed
+To:     changbin.du@gmail.com, mm-commits@vger.kernel.org, sj@kernel.org
+Subject:  [merged] mm-damon-simplify-stop-mechanism.patch removed
  from -mm tree
-Message-ID: <20211111025035.ss6BP2ZrK%akpm@linux-foundation.org>
+Message-ID: <20211111025037.KAoDk00m3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,156 +37,170 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/pagemap: wordsmith page flags descriptions
+     Subject: mm/damon: simplify stop mechanism
 has been removed from the -mm tree.  Its filename was
-     docs-admin-guide-mm-pagemap-wordsmith-page-flags-descriptions.patch
+     mm-damon-simplify-stop-mechanism.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/pagemap: wordsmith page flags descriptions
+From: Changbin Du <changbin.du@gmail.com>
+Subject: mm/damon: simplify stop mechanism
 
-Some descriptions of page flags in 'pagemap.rst' are written in
-assumption of none-rst, which respects every new line, as below:
+A kernel thread can exit gracefully with kthread_stop().  So we don't need
+a new flag 'kdamond_stop'.  And to make sure the task struct is not freed
+when accessing it, get reference to it before termination.
 
-    7 - SLAB
-       page is managed by the SLAB/SLOB/SLUB/SLQB kernel memory allocator
-       When compound page is used, SLUB/SLQB will only set this flag on the head
-
-Because rst ignores the new line between the first sentence and second
-sentence, resulting html looks a little bit weird, as below.
-
-    7 - SLAB
-    page is managed by the SLAB/SLOB/SLUB/SLQB kernel memory allocator When
-                                                                       ^
-    compound page is used, SLUB/SLQB will only set this flag on the head
-    page; SLOB will not flag it at all.
-
-This commit makes it more natural and consistent with other parts in the
-rendered version.
-
-Link: https://lkml.kernel.org/r/20211022090311.3856-5-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Peter Xu <peterx@redhat.com>
+Link: https://lkml.kernel.org/r/20211027130517.4404-1-changbin.du@gmail.com
+Signed-off-by: Changbin Du <changbin.du@gmail.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/pagemap.rst |   53 ++++++++++-----------
- 1 file changed, 27 insertions(+), 26 deletions(-)
+ include/linux/damon.h |    1 
+ mm/damon/core.c       |   51 +++++++++++-----------------------------
+ 2 files changed, 15 insertions(+), 37 deletions(-)
 
---- a/Documentation/admin-guide/mm/pagemap.rst~docs-admin-guide-mm-pagemap-wordsmith-page-flags-descriptions
-+++ a/Documentation/admin-guide/mm/pagemap.rst
-@@ -90,13 +90,14 @@ Short descriptions to the page flags
- ====================================
+--- a/include/linux/damon.h~mm-damon-simplify-stop-mechanism
++++ a/include/linux/damon.h
+@@ -381,7 +381,6 @@ struct damon_ctx {
  
- 0 - LOCKED
--   page is being locked for exclusive access, e.g. by undergoing read/write IO
-+   The page is being locked for exclusive access, e.g. by undergoing read/write
-+   IO.
- 7 - SLAB
--   page is managed by the SLAB/SLOB/SLUB/SLQB kernel memory allocator
-+   The page is managed by the SLAB/SLOB/SLUB/SLQB kernel memory allocator.
-    When compound page is used, SLUB/SLQB will only set this flag on the head
-    page; SLOB will not flag it at all.
- 10 - BUDDY
--    a free memory block managed by the buddy system allocator
-+    A free memory block managed by the buddy system allocator.
-     The buddy system organizes free memory in blocks of various orders.
-     An order N block has 2^N physically contiguous pages, with the BUDDY flag
-     set for and _only_ for the first page.
-@@ -112,65 +113,65 @@ Short descriptions to the page flags
- 16 - COMPOUND_TAIL
-     A compound page tail (see description above).
- 17 - HUGE
--    this is an integral part of a HugeTLB page
-+    This is an integral part of a HugeTLB page.
- 19 - HWPOISON
--    hardware detected memory corruption on this page: don't touch the data!
-+    Hardware detected memory corruption on this page: don't touch the data!
- 20 - NOPAGE
--    no page frame exists at the requested address
-+    No page frame exists at the requested address.
- 21 - KSM
--    identical memory pages dynamically shared between one or more processes
-+    Identical memory pages dynamically shared between one or more processes.
- 22 - THP
--    contiguous pages which construct transparent hugepages
-+    Contiguous pages which construct transparent hugepages.
- 23 - OFFLINE
--    page is logically offline
-+    The page is logically offline.
- 24 - ZERO_PAGE
--    zero page for pfn_zero or huge_zero page
-+    Zero page for pfn_zero or huge_zero page.
- 25 - IDLE
--    page has not been accessed since it was marked idle (see
-+    The page has not been accessed since it was marked idle (see
-     :ref:`Documentation/admin-guide/mm/idle_page_tracking.rst <idle_page_tracking>`).
-     Note that this flag may be stale in case the page was accessed via
-     a PTE. To make sure the flag is up-to-date one has to read
-     ``/sys/kernel/mm/page_idle/bitmap`` first.
- 26 - PGTABLE
--    page is in use as a page table
-+    The page is in use as a page table.
+ /* public: */
+ 	struct task_struct *kdamond;
+-	bool kdamond_stop;
+ 	struct mutex kdamond_lock;
  
- IO related page flags
- ---------------------
+ 	struct damon_primitive primitive;
+--- a/mm/damon/core.c~mm-damon-simplify-stop-mechanism
++++ a/mm/damon/core.c
+@@ -390,17 +390,6 @@ static unsigned long damon_region_sz_lim
+ 	return sz;
+ }
  
- 1 - ERROR
--   IO error occurred
-+   IO error occurred.
- 3 - UPTODATE
--   page has up-to-date data
-+   The page has up-to-date data.
-    ie. for file backed page: (in-memory data revision >= on-disk one)
- 4 - DIRTY
--   page has been written to, hence contains new data
-+   The page has been written to, hence contains new data.
-    i.e. for file backed page: (in-memory data revision >  on-disk one)
- 8 - WRITEBACK
--   page is being synced to disk
-+   The page is being synced to disk.
+-static bool damon_kdamond_running(struct damon_ctx *ctx)
+-{
+-	bool running;
+-
+-	mutex_lock(&ctx->kdamond_lock);
+-	running = ctx->kdamond != NULL;
+-	mutex_unlock(&ctx->kdamond_lock);
+-
+-	return running;
+-}
+-
+ static int kdamond_fn(void *data);
  
- LRU related page flags
- ----------------------
+ /*
+@@ -418,7 +407,6 @@ static int __damon_start(struct damon_ct
+ 	mutex_lock(&ctx->kdamond_lock);
+ 	if (!ctx->kdamond) {
+ 		err = 0;
+-		ctx->kdamond_stop = false;
+ 		ctx->kdamond = kthread_run(kdamond_fn, ctx, "kdamond.%d",
+ 				nr_running_ctxs);
+ 		if (IS_ERR(ctx->kdamond)) {
+@@ -474,13 +462,15 @@ int damon_start(struct damon_ctx **ctxs,
+  */
+ static int __damon_stop(struct damon_ctx *ctx)
+ {
++	struct task_struct *tsk;
++
+ 	mutex_lock(&ctx->kdamond_lock);
+-	if (ctx->kdamond) {
+-		ctx->kdamond_stop = true;
++	tsk = ctx->kdamond;
++	if (tsk) {
++		get_task_struct(tsk);
+ 		mutex_unlock(&ctx->kdamond_lock);
+-		while (damon_kdamond_running(ctx))
+-			usleep_range(ctx->sample_interval,
+-					ctx->sample_interval * 2);
++		kthread_stop(tsk);
++		put_task_struct(tsk);
+ 		return 0;
+ 	}
+ 	mutex_unlock(&ctx->kdamond_lock);
+@@ -925,12 +915,8 @@ static bool kdamond_need_update_primitiv
+ static bool kdamond_need_stop(struct damon_ctx *ctx)
+ {
+ 	struct damon_target *t;
+-	bool stop;
  
- 5 - LRU
--   page is in one of the LRU lists
-+   The page is in one of the LRU lists.
- 6 - ACTIVE
--   page is in the active LRU list
-+   The page is in the active LRU list.
- 18 - UNEVICTABLE
--   page is in the unevictable (non-)LRU list It is somehow pinned and
-+   The page is in the unevictable (non-)LRU list It is somehow pinned and
-    not a candidate for LRU page reclaims, e.g. ramfs pages,
--   shmctl(SHM_LOCK) and mlock() memory segments
-+   shmctl(SHM_LOCK) and mlock() memory segments.
- 2 - REFERENCED
--   page has been referenced since last LRU list enqueue/requeue
-+   The page has been referenced since last LRU list enqueue/requeue.
- 9 - RECLAIM
--   page will be reclaimed soon after its pageout IO completed
-+   The page will be reclaimed soon after its pageout IO completed.
- 11 - MMAP
--   a memory mapped page
-+   A memory mapped page.
- 12 - ANON
--   a memory mapped page that is not part of a file
-+   A memory mapped page that is not part of a file.
- 13 - SWAPCACHE
--   page is mapped to swap space, i.e. has an associated swap entry
-+   The page is mapped to swap space, i.e. has an associated swap entry.
- 14 - SWAPBACKED
--   page is backed by swap/RAM
-+   The page is backed by swap/RAM.
+-	mutex_lock(&ctx->kdamond_lock);
+-	stop = ctx->kdamond_stop;
+-	mutex_unlock(&ctx->kdamond_lock);
+-	if (stop)
++	if (kthread_should_stop())
+ 		return true;
  
- The page-types tool in the tools/vm directory can be used to query the
- above flags.
+ 	if (!ctx->primitive.target_valid)
+@@ -1021,13 +1007,6 @@ static int kdamond_wait_activation(struc
+ 	return -EBUSY;
+ }
+ 
+-static void set_kdamond_stop(struct damon_ctx *ctx)
+-{
+-	mutex_lock(&ctx->kdamond_lock);
+-	ctx->kdamond_stop = true;
+-	mutex_unlock(&ctx->kdamond_lock);
+-}
+-
+ /*
+  * The monitoring daemon that runs as a kernel thread
+  */
+@@ -1038,17 +1017,18 @@ static int kdamond_fn(void *data)
+ 	struct damon_region *r, *next;
+ 	unsigned int max_nr_accesses = 0;
+ 	unsigned long sz_limit = 0;
++	bool done = false;
+ 
+ 	pr_debug("kdamond (%d) starts\n", current->pid);
+ 
+ 	if (ctx->primitive.init)
+ 		ctx->primitive.init(ctx);
+ 	if (ctx->callback.before_start && ctx->callback.before_start(ctx))
+-		set_kdamond_stop(ctx);
++		done = true;
+ 
+ 	sz_limit = damon_region_sz_limit(ctx);
+ 
+-	while (!kdamond_need_stop(ctx)) {
++	while (!kdamond_need_stop(ctx) && !done) {
+ 		if (kdamond_wait_activation(ctx))
+ 			continue;
+ 
+@@ -1056,7 +1036,7 @@ static int kdamond_fn(void *data)
+ 			ctx->primitive.prepare_access_checks(ctx);
+ 		if (ctx->callback.after_sampling &&
+ 				ctx->callback.after_sampling(ctx))
+-			set_kdamond_stop(ctx);
++			done = true;
+ 
+ 		usleep_range(ctx->sample_interval, ctx->sample_interval + 1);
+ 
+@@ -1069,7 +1049,7 @@ static int kdamond_fn(void *data)
+ 					sz_limit);
+ 			if (ctx->callback.after_aggregation &&
+ 					ctx->callback.after_aggregation(ctx))
+-				set_kdamond_stop(ctx);
++				done = true;
+ 			kdamond_apply_schemes(ctx);
+ 			kdamond_reset_aggregated(ctx);
+ 			kdamond_split_regions(ctx);
+@@ -1088,9 +1068,8 @@ static int kdamond_fn(void *data)
+ 			damon_destroy_region(r, t);
+ 	}
+ 
+-	if (ctx->callback.before_terminate &&
+-			ctx->callback.before_terminate(ctx))
+-		set_kdamond_stop(ctx);
++	if (ctx->callback.before_terminate)
++		ctx->callback.before_terminate(ctx);
+ 	if (ctx->primitive.cleanup)
+ 		ctx->primitive.cleanup(ctx);
+ 
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from changbin.du@gmail.com are
 
 
