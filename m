@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D24AC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:51:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05096C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:51:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 55D1E6103C
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:51:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E38C461241
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:51:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234531AbhKKCyL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:54:11 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57984 "EHLO mail.kernel.org"
+        id S234532AbhKKCyP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:54:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58024 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234519AbhKKCyL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:54:11 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B6385610A2;
-        Thu, 11 Nov 2021 02:51:22 +0000 (UTC)
+        id S234519AbhKKCyO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:54:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 09DF760F26;
+        Thu, 11 Nov 2021 02:51:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599083;
-        bh=vlnzOkVIs6m0rpgDvbjMbdgzC9bhI/dnExfu8cBdR8I=;
+        s=korg; t=1636599086;
+        bh=k5PJc2ABwCjSGQX7aKXmGVTUziH8ecuKeZjfkvQdp6w=;
         h=Date:From:To:Subject:From;
-        b=CdBWo4R9+9hwoqXU6kTInxMVsag7rYSVJhnOJgaaV2+lBBRw8iG+XsuMj0fOYbqNQ
-         wCe8vnLOQUBaloGnm1SQBSRRyHjPZAxUUOLPbOxzJ+kSWRsextoKykT0ChIwHRxen7
-         ivA7CYs2NJfu7DrHbI9TpsDZJj+tHbYNRTuR2TLc=
-Date:   Wed, 10 Nov 2021 18:51:22 -0800
+        b=RyOiHaZbYQD15I0E4JXutEEfl/Ca8NbcAAL2WB6uEQ5mbKNR/8uT9S7bjra/YeTjZ
+         zzACSXMAKY12WrMSIHtfagHEzxbgsmMwy7bPX7EV0F9u/XHRnE1Y1MavBs/dVll4/1
+         FC41DPeEQkfKOR+GzVshxh5337OXDgpUWVqWU758=
+Date:   Wed, 10 Nov 2021 18:51:25 -0800
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, boqun.feng@gmail.com,
         brendanhiggins@google.com, jic23@kernel.org,
@@ -34,9 +34,9 @@ To:     andriy.shevchenko@linux.intel.com, boqun.feng@gmail.com,
         regressions@leemhuis.info, sakari.ailus@linux.intel.com,
         tglx@linutronix.de, will@kernel.org
 Subject:  [merged]
- kernelh-split-out-container_of-and-typeof_member-macros.patch removed from
- -mm tree
-Message-ID: <20211111025122.AAHjo1ltz%akpm@linux-foundation.org>
+ kunit-replace-kernelh-with-the-necessary-inclusions.patch removed from -mm
+ tree
+Message-ID: <20211111025125.62sd5tC8l%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,28 +45,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: split out container_of() and typeof_member() macros
+     Subject: include/kunit/test.h: replace kernel.h with the necessary inclusions
 has been removed from the -mm tree.  Its filename was
-     kernelh-split-out-container_of-and-typeof_member-macros.patch
+     kunit-replace-kernelh-with-the-necessary-inclusions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: kernel.h: split out container_of() and typeof_member() macros
+Subject: include/kunit/test.h: replace kernel.h with the necessary inclusions
 
-kernel.h is being used as a dump for all kinds of stuff for a long time. 
-Here is the attempt cleaning it up by splitting out container_of() and
-typeof_member() macros.
+When kernel.h is used in the headers it adds a lot into dependency hell,
+especially when there are circular dependencies are involved.
 
-For time being include new header back to kernel.h to avoid twisted
-indirected includes for existing users.
+Replace kernel.h inclusion with the list of what is really being used.
 
-Note, there are _a lot_ of headers and modules that include kernel.h
-solely for one of these macros and this allows to unburden compiler for
-the twisted inclusion paths and to make new code cleaner in the future.
-
-Link: https://lkml.kernel.org/r/20211013170417.87909-3-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20211013170417.87909-4-andriy.shevchenko@linux.intel.com
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Boqun Feng <boqun.feng@gmail.com>
 Cc: Brendan Higgins <brendanhiggins@google.com>
@@ -85,109 +79,34 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/container_of.h |   40 +++++++++++++++++++++++++++++++++
- include/linux/kernel.h       |   33 ---------------------------
- 2 files changed, 41 insertions(+), 32 deletions(-)
+ include/kunit/test.h |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
---- /dev/null
-+++ a/include/linux/container_of.h
-@@ -0,0 +1,40 @@
-+/* SPDX-License-Identifier: GPL-2.0 */
-+#ifndef _LINUX_CONTAINER_OF_H
-+#define _LINUX_CONTAINER_OF_H
+--- a/include/kunit/test.h~kunit-replace-kernelh-with-the-necessary-inclusions
++++ a/include/kunit/test.h
+@@ -11,11 +11,20 @@
+ 
+ #include <kunit/assert.h>
+ #include <kunit/try-catch.h>
+-#include <linux/kernel.h>
 +
-+#include <linux/build_bug.h>
-+#include <linux/err.h>
-+
-+#define typeof_member(T, m)	typeof(((T*)0)->m)
-+
-+/**
-+ * container_of - cast a member of a structure out to the containing structure
-+ * @ptr:	the pointer to the member.
-+ * @type:	the type of the container struct this is embedded in.
-+ * @member:	the name of the member within the struct.
-+ *
-+ */
-+#define container_of(ptr, type, member) ({				\
-+	void *__mptr = (void *)(ptr);					\
-+	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
-+			 !__same_type(*(ptr), void),			\
-+			 "pointer type mismatch in container_of()");	\
-+	((type *)(__mptr - offsetof(type, member))); })
-+
-+/**
-+ * container_of_safe - cast a member of a structure out to the containing structure
-+ * @ptr:	the pointer to the member.
-+ * @type:	the type of the container struct this is embedded in.
-+ * @member:	the name of the member within the struct.
-+ *
-+ * If IS_ERR_OR_NULL(ptr), ptr is returned unchanged.
-+ */
-+#define container_of_safe(ptr, type, member) ({				\
-+	void *__mptr = (void *)(ptr);					\
-+	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
-+			 !__same_type(*(ptr), void),			\
-+			 "pointer type mismatch in container_of()");	\
-+	IS_ERR_OR_NULL(__mptr) ? ERR_CAST(__mptr) :			\
-+		((type *)(__mptr - offsetof(type, member))); })
-+
-+#endif	/* _LINUX_CONTAINER_OF_H */
---- a/include/linux/kernel.h~kernelh-split-out-container_of-and-typeof_member-macros
-+++ a/include/linux/kernel.h
-@@ -9,6 +9,7 @@
- #include <linux/stddef.h>
- #include <linux/types.h>
- #include <linux/compiler.h>
 +#include <linux/container_of.h>
- #include <linux/bitops.h>
- #include <linux/kstrtox.h>
- #include <linux/log2.h>
-@@ -52,8 +53,6 @@
- }					\
- )
++#include <linux/err.h>
++#include <linux/init.h>
++#include <linux/kconfig.h>
++#include <linux/kref.h>
++#include <linux/list.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/spinlock.h>
++#include <linux/string.h>
+ #include <linux/types.h>
+-#include <linux/kref.h>
++
++#include <asm/rwonce.h>
  
--#define typeof_member(T, m)	typeof(((T*)0)->m)
--
- #define _RET_IP_		(unsigned long)__builtin_return_address(0)
- #define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
+ struct kunit_resource;
  
-@@ -484,36 +483,6 @@ static inline void ftrace_dump(enum ftra
- #define __CONCAT(a, b) a ## b
- #define CONCATENATE(a, b) __CONCAT(a, b)
- 
--/**
-- * container_of - cast a member of a structure out to the containing structure
-- * @ptr:	the pointer to the member.
-- * @type:	the type of the container struct this is embedded in.
-- * @member:	the name of the member within the struct.
-- *
-- */
--#define container_of(ptr, type, member) ({				\
--	void *__mptr = (void *)(ptr);					\
--	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
--			 !__same_type(*(ptr), void),			\
--			 "pointer type mismatch in container_of()");	\
--	((type *)(__mptr - offsetof(type, member))); })
--
--/**
-- * container_of_safe - cast a member of a structure out to the containing structure
-- * @ptr:	the pointer to the member.
-- * @type:	the type of the container struct this is embedded in.
-- * @member:	the name of the member within the struct.
-- *
-- * If IS_ERR_OR_NULL(ptr), ptr is returned unchanged.
-- */
--#define container_of_safe(ptr, type, member) ({				\
--	void *__mptr = (void *)(ptr);					\
--	BUILD_BUG_ON_MSG(!__same_type(*(ptr), ((type *)0)->member) &&	\
--			 !__same_type(*(ptr), void),			\
--			 "pointer type mismatch in container_of()");	\
--	IS_ERR_OR_NULL(__mptr) ? ERR_CAST(__mptr) :			\
--		((type *)(__mptr - offsetof(type, member))); })
--
- /* Rebuild everything on CONFIG_FTRACE_MCOUNT_RECORD */
- #ifdef CONFIG_FTRACE_MCOUNT_RECORD
- # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
