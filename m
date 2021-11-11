@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 230B7C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 69C8CC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F00E261260
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:22 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4876961354
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234003AbhKKCoK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:44:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49594 "EHLO mail.kernel.org"
+        id S234012AbhKKCoO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:44:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49632 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233954AbhKKCoI (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:44:08 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A095E610F7;
-        Thu, 11 Nov 2021 02:41:19 +0000 (UTC)
+        id S233954AbhKKCoO (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:44:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 95100610F7;
+        Thu, 11 Nov 2021 02:41:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598479;
-        bh=EhNWjL2DS5a/X5KFS6rf+1qKSKXRkXJiyh3H8gDBjoY=;
+        s=korg; t=1636598485;
+        bh=fAL1+lf9N7URtigqs8dxfalGhxC9GZMfllV2kFxcX84=;
         h=Date:From:To:Subject:From;
-        b=HgSu/GesAwVuy207U0UaSlTM7qSa/q1Pi0Z1WSxhPYfahoh3wsQyQXOi7r1AFH9Fe
-         rqIo8uYInqjs6va/JSdTG2tgdOFsLKHXPh7wALyBcHGWpPDRrrCjZC965GLL+uwJ8c
-         sR8n3lTfRNR88mnLsK9j32cGPCXYff61YZw2pDe8=
-Date:   Wed, 10 Nov 2021 18:41:17 -0800
+        b=w7oWIFpJa+QFypKkJvy7MmBDhwy9UB1+hsuqcPk2BqerPJq6wlv+SHCsHOJ8pkR1I
+         cJQ+/gWF47tHQcwMI1557eVlghroHDq0DrZ7yBQmpYlZTHcacgz1XpaYrjOrryb0cN
+         3LPk3EKIBYx9djS0YCb6IOHl5SuRrSzpLiXlKSZQ=
+Date:   Wed, 10 Nov 2021 18:41:22 -0800
 From:   akpm@linux-foundation.org
-To:     dhowells@redhat.com, jlayton@kernel.org, kent.overstreet@gmail.com,
-        mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  [merged]
- mm-stop-filemap_read-from-grabbing-a-superfluous-page.patch removed from
- -mm tree
-Message-ID: <20211111024117.Gsd_UoR2Y%akpm@linux-foundation.org>
+To:     hch@lst.de, jack@suse.cz, miquel.raynal@bootlin.com,
+        mm-commits@vger.kernel.org, richard@nod.at, vigneshr@ti.com
+Subject:  [merged] mm-export-bdi_unregister.patch removed from -mm
+ tree
+Message-ID: <20211111024122.awnoXujue%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,54 +38,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: stop filemap_read() from grabbing a superfluous page
+     Subject: mm: export bdi_unregister
 has been removed from the -mm tree.  Its filename was
-     mm-stop-filemap_read-from-grabbing-a-superfluous-page.patch
+     mm-export-bdi_unregister.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Howells <dhowells@redhat.com>
-Subject: mm: stop filemap_read() from grabbing a superfluous page
+From: Christoph Hellwig <hch@lst.de>
+Subject: mm: export bdi_unregister
 
-Under some circumstances, filemap_read() will allocate sufficient pages to
-read to the end of the file, call readahead/readpages on them and copy the
-data over - and then it will allocate another page at the EOF and call
-readpage on that and then ignore it.  This is unnecessary and a waste of
-time and resources.
+Patch series "simplify bdi unregistation".
 
-filemap_read() *does* check for this, but only after it has already done
-the allocation and I/O.  Fix this by checking before calling
-filemap_get_pages() also.
+This series simplifies the BDI code to get rid of the magic
+auto-unregister feature that hid a recent block layer refcounting bug.
 
-Link: https://lkml.kernel.org/r/163472463105.3126792.7056099385135786492.stgit@warthog.procyon.org.uk
-Link: https://lore.kernel.org/r/160588481358.3465195.16552616179674485179.stgit@warthog.procyon.org.uk/
-Link: https://lore.kernel.org/r/163456863216.2614702.6384850026368833133.stgit@warthog.procyon.org.uk/
-Signed-off-by: David Howells <dhowells@redhat.com>
-Acked-by: Jeff Layton <jlayton@kernel.org>
-Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Kent Overstreet <kent.overstreet@gmail.com>
+
+This patch (of 5):
+
+To wind down the magic auto-unregister semantics we'll need to push this
+into modular code.
+
+Link: https://lkml.kernel.org/r/20211021124441.668816-1-hch@lst.de
+Link: https://lkml.kernel.org/r/20211021124441.668816-2-hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Miquel Raynal <miquel.raynal@bootlin.com>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Vignesh Raghavendra <vigneshr@ti.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/backing-dev.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/mm/filemap.c~mm-stop-filemap_read-from-grabbing-a-superfluous-page
-+++ a/mm/filemap.c
-@@ -2625,6 +2625,9 @@ ssize_t filemap_read(struct kiocb *iocb,
- 		if ((iocb->ki_flags & IOCB_WAITQ) && already_read)
- 			iocb->ki_flags |= IOCB_NOWAIT;
+--- a/mm/backing-dev.c~mm-export-bdi_unregister
++++ a/mm/backing-dev.c
+@@ -958,6 +958,7 @@ void bdi_unregister(struct backing_dev_i
+ 		bdi->owner = NULL;
+ 	}
+ }
++EXPORT_SYMBOL(bdi_unregister);
  
-+		if (unlikely(iocb->ki_pos >= i_size_read(inode)))
-+			break;
-+
- 		error = filemap_get_pages(iocb, iter, &pvec);
- 		if (error < 0)
- 			break;
+ static void release_bdi(struct kref *ref)
+ {
 _
 
-Patches currently in -mm which might be from dhowells@redhat.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mutex-subsystem-synchro-test-module.patch
+mm-unexport-folio_memcg_unlock.patch
+mm-unexport-unlock_page_memcg.patch
 
