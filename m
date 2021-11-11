@@ -2,36 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AE62C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06FB8C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 23944619A6
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E529D61884
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233601AbhKKCmu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:42:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48484 "EHLO mail.kernel.org"
+        id S233870AbhKKCmx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:42:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48512 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233571AbhKKCmu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:42:50 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C0A9961884;
-        Thu, 11 Nov 2021 02:40:01 +0000 (UTC)
+        id S233571AbhKKCmx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:42:53 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 965E1610F7;
+        Thu, 11 Nov 2021 02:40:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598402;
-        bh=LE1FRn7dBuaC4ZzC6+q5I/CZFsS68kK4PJmB3tUJ+ag=;
+        s=korg; t=1636598404;
+        bh=E3YFTwhDgZg/bCs5k3BUDP4zj7Bc5SA5F/zSMfm7X/8=;
         h=Date:From:To:Subject:From;
-        b=zrzeFPU9Sf7A3SORHGJt++BNQc6g1jTjEK60oySSnPrsNpw43eYDEspx1I0dLURMl
-         QSOyAnMCKTxNHgE/ySwtu1uEQHDThHy4EveL6ozQmw8NiPg3DRAjpfYyA+rAIPKnw0
-         AAEtwG7NcNVTO0k+OkTIDEVs8ehhlJ2HMP667jF4=
-Date:   Wed, 10 Nov 2021 18:40:01 -0800
+        b=xdUGKPt3i+hfHrKVwxtXn4XVAdgByAGiLC+2G7d0oYdMbSC9RgqXniPl7mmyz0o6I
+         gnKLTqPIrJ5iGu/TEm2h17tMR6l/pHR0zvzrofABUbvgmNajDQppa5ZgO1bbEjZrrP
+         RVRPPPWBGTRqsaiIT6GE/QyKzUZabbyRKoWOgIvg=
+Date:   Wed, 10 Nov 2021 18:40:04 -0800
 From:   akpm@linux-foundation.org
-To:     42.hyeyoo@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz
-Subject:  [merged] mm-slub-use-prefetchw-instead-of-prefetch.patch
- removed from -mm tree
-Message-ID: <20211111024001.mP1oYrA5X%akpm@linux-foundation.org>
+To:     bigeasy@linutronix.de, david@redhat.com,
+        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
+        peterz@infradead.org, tglx@linutronix.de, vbabka@suse.cz
+Subject:  [merged]
+ =?US-ASCII?Q?mm-disable-numa=5Fbalancing=5Fdefault=5Fenabled-and-transpar?=
+ =?US-ASCII?Q?ent=5Fhugepage-on-preempt=5Frt.patch?= removed from -mm tree
+Message-ID: <20211111024004.YElSC7TNe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,112 +42,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, slub: use prefetchw instead of prefetch
+     Subject: mm: disable NUMA_BALANCING_DEFAULT_ENABLED and TRANSPARENT_HUGEPAGE on PREEMPT_RT
 has been removed from the -mm tree.  Its filename was
-     mm-slub-use-prefetchw-instead-of-prefetch.patch
+     mm-disable-numa_balancing_default_enabled-and-transparent_hugepage-on-preempt_rt.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Subject: mm, slub: use prefetchw instead of prefetch
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: mm: disable NUMA_BALANCING_DEFAULT_ENABLED and TRANSPARENT_HUGEPAGE on PREEMPT_RT
 
-commit 0ad9500e16fe ("slub: prefetch next freelist pointer in
-slab_alloc()") introduced prefetch_freepointer() because when other cpu(s)
-freed objects into a page that current cpu owns, the freelist link is hot
-on cpu(s) which freed objects and possibly very cold on current cpu.
+TRANSPARENT_HUGEPAGE:
+There are potential non-deterministic delays to an RT thread if a critical
+memory region is not THP-aligned and a non-RT buffer is located in the same
+hugepage-aligned region. It's also possible for an unrelated thread to migrate
+pages belonging to an RT task incurring unexpected page faults due to memory
+defragmentation even if khugepaged is disabled.
 
-But if freelist link chain is hot on cpu(s) which freed objects,
-it's better to invalidate that chain because they're not going to access
-again within a short time.
+Regular HUGEPAGEs are not affected by this can be used.
 
-So use prefetchw instead of prefetch. On supported architectures like x86
-and arm, it invalidates other copied instances of a cache line when
-prefetching it.
+NUMA_BALANCING:
+There is a non-deterministic delay to mark PTEs PROT_NONE to gather NUMA fault
+samples, increased page faults of regions even if mlocked and non-deterministic
+delays when migrating pages.
 
-Before:
+[Mel Gorman worded 99% of the commit description].
 
-Time: 91.677
-
- Performance counter stats for 'hackbench -g 100 -l 10000':
-        1462938.07 msec cpu-clock                 #   15.908 CPUs utilized
-          18072550      context-switches          #   12.354 K/sec
-           1018814      cpu-migrations            #  696.416 /sec
-            104558      page-faults               #   71.471 /sec
-     1580035699271      cycles                    #    1.080 GHz                      (54.51%)
-     2003670016013      instructions              #    1.27  insn per cycle           (54.31%)
-        5702204863      branch-misses                                                 (54.28%)
-      643368500985      cache-references          #  439.778 M/sec                    (54.26%)
-       18475582235      cache-misses              #    2.872 % of all cache refs      (54.28%)
-      642206796636      L1-dcache-loads           #  438.984 M/sec                    (46.87%)
-       18215813147      L1-dcache-load-misses     #    2.84% of all L1-dcache accesses  (46.83%)
-      653842996501      dTLB-loads                #  446.938 M/sec                    (46.63%)
-        3227179675      dTLB-load-misses          #    0.49% of all dTLB cache accesses  (46.85%)
-      537531951350      iTLB-loads                #  367.433 M/sec                    (54.33%)
-         114750630      iTLB-load-misses          #    0.02% of all iTLB cache accesses  (54.37%)
-      630135543177      L1-icache-loads           #  430.733 M/sec                    (46.80%)
-       22923237620      L1-icache-load-misses     #    3.64% of all L1-icache accesses  (46.76%)
-
-      91.964452802 seconds time elapsed
-
-      43.416742000 seconds user
-    1422.441123000 seconds sys
-
-After:
-
-Time: 90.220
-
- Performance counter stats for 'hackbench -g 100 -l 10000':
-        1437418.48 msec cpu-clock                 #   15.880 CPUs utilized
-          17694068      context-switches          #   12.310 K/sec
-            958257      cpu-migrations            #  666.651 /sec
-            100604      page-faults               #   69.989 /sec
-     1583259429428      cycles                    #    1.101 GHz                      (54.57%)
-     2004002484935      instructions              #    1.27  insn per cycle           (54.37%)
-        5594202389      branch-misses                                                 (54.36%)
-      643113574524      cache-references          #  447.409 M/sec                    (54.39%)
-       18233791870      cache-misses              #    2.835 % of all cache refs      (54.37%)
-      640205852062      L1-dcache-loads           #  445.386 M/sec                    (46.75%)
-       17968160377      L1-dcache-load-misses     #    2.81% of all L1-dcache accesses  (46.79%)
-      651747432274      dTLB-loads                #  453.415 M/sec                    (46.59%)
-        3127124271      dTLB-load-misses          #    0.48% of all dTLB cache accesses  (46.75%)
-      535395273064      iTLB-loads                #  372.470 M/sec                    (54.38%)
-         113500056      iTLB-load-misses          #    0.02% of all iTLB cache accesses  (54.35%)
-      628871845924      L1-icache-loads           #  437.501 M/sec                    (46.80%)
-       22585641203      L1-icache-load-misses     #    3.59% of all L1-icache accesses  (46.79%)
-
-      90.514819303 seconds time elapsed
-
-      43.877656000 seconds user
-    1397.176001000 seconds sys
-
-Link: https://lkml.org/lkml/2021/10/8/598=20
-Link: https://lkml.kernel.org/r/20211011144331.70084-1-42.hyeyoo@gmail.com
-Signed-off-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Link: https://lore.kernel.org/all/20200304091159.GN3818@techsingularity.net/
+Link: https://lore.kernel.org/all/20211026165100.ahz5bkx44lrrw5pt@linutronix.de/
+Link: https://lkml.kernel.org/r/20211028143327.hfbxjze7palrpfgp@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/Kconfig |    2 +-
+ mm/Kconfig   |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/slub.c~mm-slub-use-prefetchw-instead-of-prefetch
-+++ a/mm/slub.c
-@@ -354,7 +354,7 @@ static inline void *get_freepointer(stru
+--- a/init/Kconfig~mm-disable-numa_balancing_default_enabled-and-transparent_hugepage-on-preempt_rt
++++ a/init/Kconfig
+@@ -901,7 +901,7 @@ config NUMA_BALANCING
+ 	bool "Memory placement aware NUMA scheduler"
+ 	depends on ARCH_SUPPORTS_NUMA_BALANCING
+ 	depends on !ARCH_WANT_NUMA_VARIABLE_LOCALITY
+-	depends on SMP && NUMA && MIGRATION
++	depends on SMP && NUMA && MIGRATION && !PREEMPT_RT
+ 	help
+ 	  This option adds support for automatic NUMA aware memory/task placement.
+ 	  The mechanism is quite primitive and is based on migrating memory when
+--- a/mm/Kconfig~mm-disable-numa_balancing_default_enabled-and-transparent_hugepage-on-preempt_rt
++++ a/mm/Kconfig
+@@ -371,7 +371,7 @@ config NOMMU_INITIAL_TRIM_EXCESS
  
- static void prefetch_freepointer(const struct kmem_cache *s, void *object)
- {
--	prefetch(object + s->offset);
-+	prefetchw(object + s->offset);
- }
- 
- static inline void *get_freepointer_safe(struct kmem_cache *s, void *object)
+ config TRANSPARENT_HUGEPAGE
+ 	bool "Transparent Hugepage Support"
+-	depends on HAVE_ARCH_TRANSPARENT_HUGEPAGE
++	depends on HAVE_ARCH_TRANSPARENT_HUGEPAGE && !PREEMPT_RT
+ 	select COMPACTION
+ 	select XARRAY_MULTI
+ 	help
 _
 
-Patches currently in -mm which might be from 42.hyeyoo@gmail.com are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
 
