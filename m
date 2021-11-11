@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D06C8C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 686C0C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:48 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B40B761284
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4AD4761284
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234352AbhKKCsa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:48:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53484 "EHLO mail.kernel.org"
+        id S234354AbhKKCsf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:48:35 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53588 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234346AbhKKCs3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:48:29 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E6F96103C;
-        Thu, 11 Nov 2021 02:45:40 +0000 (UTC)
+        id S234355AbhKKCsf (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:48:35 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8AEA56103C;
+        Thu, 11 Nov 2021 02:45:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598741;
-        bh=D7c+YM9nY5g/unZHrNG50LScHEYRxBRBK53bHmZF0Ek=;
+        s=korg; t=1636598747;
+        bh=W4NG4ct9Vh1DSVgWQJGTM8FQ8SJLoWHiNbscFPNNJC4=;
         h=Date:From:To:Subject:From;
-        b=Zf3CGg2EB+sHwh2My8aAjcGbWrF9TRjL9wkd+kqhVuoWecQSxzzWRgmrmdmdDDGJw
-         DnQfx2HUk80DG0pLqf+3pSoF88oKjecOjWIpG0aw4FLaI+JrMri/F9Ri7NUblyl9jA
-         iglmFstDP/ccL8RJ988UAmD6bQUIEs+oSVKNiqUs=
-Date:   Wed, 10 Nov 2021 18:45:40 -0800
+        b=cXYhp8C10aFmhGILvXW958iqpWEqS1FNz81hoPt06Mn7MxmxxQ1RorrjKfRf2aIv1
+         xrBpaW5Dju94AvM/KRbMbHbjFZlna0wUZS4UmPEOD3lnWiakPixy/TjIb8ZLf+Epns
+         mec50CQkbcn0dMHuy15LdNbNAY1DWQElhjVOBHdg=
+Date:   Wed, 10 Nov 2021 18:45:46 -0800
 From:   akpm@linux-foundation.org
 To:     adilger.kernel@dilger.ca, corbet@lwn.net, david@fromorbit.com,
         djwong@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net,
@@ -31,12 +31,10 @@ To:     adilger.kernel@dilger.ca, corbet@lwn.net, david@fromorbit.com,
         riel@surriel.com, tytso@mit.edu, vbabka@suse.cz,
         willy@infradead.org
 Subject:  [merged]
- =?US-ASCII?Q?mm-vmscan-throttle-reclaim-and-compaction-when-too-may-page?=
- =?US-ASCII?Q?s-are-isolated.patch?= removed from -mm tree
-Message-ID: <20211111024540.FXJtwOrKB%akpm@linux-foundation.org>
+ mm-writeback-throttle-based-on-page-writeback-instead-of-congestion.patch
+ removed from -mm tree
+Message-ID: <20211111024546.WUZoc68-X%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,29 +42,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: throttle reclaim and compaction when too may pages are isolated
+     Subject: mm/writeback: throttle based on page writeback instead of congestion
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-throttle-reclaim-and-compaction-when-too-may-pages-are-isolated.patch
+     mm-writeback-throttle-based-on-page-writeback-instead-of-congestion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/vmscan: throttle reclaim and compaction when too may pages are isolated
+Subject: mm/writeback: throttle based on page writeback instead of congestion
 
-Page reclaim throttles on congestion if too many parallel reclaim
-instances have isolated too many pages.  This makes no sense, excessive
-parallelisation has nothing to do with writeback or congestion.
+do_writepages throttles on congestion if the writepages() fails due to a
+lack of memory but congestion_wait() is partially broken as the congestion
+state is not updated for all BDIs.
 
-This patch creates an additional workqueue to sleep on when too many pages
-are isolated.  The throttled tasks are woken when the number of isolated
-pages is reduced or a timeout occurs.  There may be some false positive
-wakeups for GFP_NOIO/GFP_NOFS callers but the tasks will throttle again if
-necessary.
+This patch stalls waiting for a number of pages to complete writeback that
+located on the local node.  The main weakness is that there is no
+correlation between the location of the inode's pages and locality but
+that is still better than congestion_wait.
 
-[shy828301@gmail.com: Wake up from compaction context]
-[vbabka@suse.cz: Account number of throttled tasks only for writeback]
-Link: https://lkml.kernel.org/r/20211022144651.19914-3-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20211022144651.19914-5-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
@@ -82,170 +77,29 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h        |    1 +
- include/trace/events/vmscan.h |    4 +++-
- mm/compaction.c               |   10 ++++++++--
- mm/internal.h                 |   11 +++++++++++
- mm/vmscan.c                   |   22 ++++++++++++++++------
- 5 files changed, 39 insertions(+), 9 deletions(-)
+ mm/page-writeback.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
---- a/include/linux/mmzone.h~mm-vmscan-throttle-reclaim-and-compaction-when-too-may-pages-are-isolated
-+++ a/include/linux/mmzone.h
-@@ -275,6 +275,7 @@ enum lru_list {
- 
- enum vmscan_throttle_state {
- 	VMSCAN_THROTTLE_WRITEBACK,
-+	VMSCAN_THROTTLE_ISOLATED,
- 	NR_VMSCAN_THROTTLE,
- };
- 
---- a/include/trace/events/vmscan.h~mm-vmscan-throttle-reclaim-and-compaction-when-too-may-pages-are-isolated
-+++ a/include/trace/events/vmscan.h
-@@ -28,10 +28,12 @@
- 		) : "RECLAIM_WB_NONE"
- 
- #define _VMSCAN_THROTTLE_WRITEBACK	(1 << VMSCAN_THROTTLE_WRITEBACK)
-+#define _VMSCAN_THROTTLE_ISOLATED	(1 << VMSCAN_THROTTLE_ISOLATED)
- 
- #define show_throttle_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",					\
--		{_VMSCAN_THROTTLE_WRITEBACK,	"VMSCAN_THROTTLE_WRITEBACK"}	\
-+		{_VMSCAN_THROTTLE_WRITEBACK,	"VMSCAN_THROTTLE_WRITEBACK"},	\
-+		{_VMSCAN_THROTTLE_ISOLATED,	"VMSCAN_THROTTLE_ISOLATED"}	\
- 		) : "VMSCAN_THROTTLE_NONE"
- 
- 
---- a/mm/compaction.c~mm-vmscan-throttle-reclaim-and-compaction-when-too-may-pages-are-isolated
-+++ a/mm/compaction.c
-@@ -761,6 +761,8 @@ isolate_freepages_range(struct compact_c
- /* Similar to reclaim, but different enough that they don't share logic */
- static bool too_many_isolated(pg_data_t *pgdat)
- {
-+	bool too_many;
+--- a/mm/page-writeback.c~mm-writeback-throttle-based-on-page-writeback-instead-of-congestion
++++ a/mm/page-writeback.c
+@@ -2366,8 +2366,15 @@ int do_writepages(struct address_space *
+ 			ret = generic_writepages(mapping, wbc);
+ 		if ((ret != -ENOMEM) || (wbc->sync_mode != WB_SYNC_ALL))
+ 			break;
+-		cond_resched();
+-		congestion_wait(BLK_RW_ASYNC, HZ/50);
 +
- 	unsigned long active, inactive, isolated;
- 
- 	inactive = node_page_state(pgdat, NR_INACTIVE_FILE) +
-@@ -770,7 +772,11 @@ static bool too_many_isolated(pg_data_t
- 	isolated = node_page_state(pgdat, NR_ISOLATED_FILE) +
- 			node_page_state(pgdat, NR_ISOLATED_ANON);
- 
--	return isolated > (inactive + active) / 2;
-+	too_many = isolated > (inactive + active) / 2;
-+	if (!too_many)
-+		wake_throttle_isolated(pgdat);
-+
-+	return too_many;
- }
- 
- /**
-@@ -822,7 +828,7 @@ isolate_migratepages_block(struct compac
- 		if (cc->mode == MIGRATE_ASYNC)
- 			return -EAGAIN;
- 
--		congestion_wait(BLK_RW_ASYNC, HZ/10);
-+		reclaim_throttle(pgdat, VMSCAN_THROTTLE_ISOLATED, HZ/10);
- 
- 		if (fatal_signal_pending(current))
- 			return -EINTR;
---- a/mm/internal.h~mm-vmscan-throttle-reclaim-and-compaction-when-too-may-pages-are-isolated
-+++ a/mm/internal.h
-@@ -45,6 +45,15 @@ static inline void acct_reclaim_writebac
- 		__acct_reclaim_writeback(pgdat, page, nr_throttled);
- }
- 
-+static inline void wake_throttle_isolated(pg_data_t *pgdat)
-+{
-+	wait_queue_head_t *wqh;
-+
-+	wqh = &pgdat->reclaim_wait[VMSCAN_THROTTLE_ISOLATED];
-+	if (waitqueue_active(wqh))
-+		wake_up(wqh);
-+}
-+
- vm_fault_t do_swap_page(struct vm_fault *vmf);
- 
- void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
-@@ -121,6 +130,8 @@ extern unsigned long highest_memmap_pfn;
-  */
- extern int isolate_lru_page(struct page *page);
- extern void putback_lru_page(struct page *page);
-+extern void reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason,
-+								long timeout);
- 
- /*
-  * in mm/rmap.c:
---- a/mm/vmscan.c~mm-vmscan-throttle-reclaim-and-compaction-when-too-may-pages-are-isolated
-+++ a/mm/vmscan.c
-@@ -1006,12 +1006,12 @@ static void handle_write_error(struct ad
- 	unlock_page(page);
- }
- 
--static void
--reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason,
-+void reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason,
- 							long timeout)
- {
- 	wait_queue_head_t *wqh = &pgdat->reclaim_wait[reason];
- 	long ret;
-+	bool acct_writeback = (reason == VMSCAN_THROTTLE_WRITEBACK);
- 	DEFINE_WAIT(wait);
- 
- 	/*
-@@ -1023,7 +1023,8 @@ reclaim_throttle(pg_data_t *pgdat, enum
- 	    current->flags & (PF_IO_WORKER|PF_KTHREAD))
- 		return;
- 
--	if (atomic_inc_return(&pgdat->nr_writeback_throttled) == 1) {
-+	if (acct_writeback &&
-+	    atomic_inc_return(&pgdat->nr_writeback_throttled) == 1) {
- 		WRITE_ONCE(pgdat->nr_reclaim_start,
- 			node_page_state(pgdat, NR_THROTTLED_WRITTEN));
++		/*
++		 * Lacking an allocation context or the locality or writeback
++		 * state of any of the inode's pages, throttle based on
++		 * writeback activity on the local node. It's as good a
++		 * guess as any.
++		 */
++		reclaim_throttle(NODE_DATA(numa_node_id()),
++			VMSCAN_THROTTLE_WRITEBACK, HZ/50);
  	}
-@@ -1031,7 +1032,9 @@ reclaim_throttle(pg_data_t *pgdat, enum
- 	prepare_to_wait(wqh, &wait, TASK_UNINTERRUPTIBLE);
- 	ret = schedule_timeout(timeout);
- 	finish_wait(wqh, &wait);
--	atomic_dec(&pgdat->nr_writeback_throttled);
-+
-+	if (acct_writeback)
-+		atomic_dec(&pgdat->nr_writeback_throttled);
- 
- 	trace_mm_vmscan_throttled(pgdat->node_id, jiffies_to_usecs(timeout),
- 				jiffies_to_usecs(timeout - ret),
-@@ -2175,6 +2178,7 @@ static int too_many_isolated(struct pgli
- 		struct scan_control *sc)
- {
- 	unsigned long inactive, isolated;
-+	bool too_many;
- 
- 	if (current_is_kswapd())
- 		return 0;
-@@ -2198,7 +2202,13 @@ static int too_many_isolated(struct pgli
- 	if ((sc->gfp_mask & (__GFP_IO | __GFP_FS)) == (__GFP_IO | __GFP_FS))
- 		inactive >>= 3;
- 
--	return isolated > inactive;
-+	too_many = isolated > inactive;
-+
-+	/* Wake up tasks throttled due to too_many_isolated. */
-+	if (!too_many)
-+		wake_throttle_isolated(pgdat);
-+
-+	return too_many;
- }
- 
- /*
-@@ -2307,8 +2317,8 @@ shrink_inactive_list(unsigned long nr_to
- 			return 0;
- 
- 		/* wait a bit for the reclaimer. */
--		msleep(100);
- 		stalled = true;
-+		reclaim_throttle(pgdat, VMSCAN_THROTTLE_ISOLATED, HZ/10);
- 
- 		/* We are about to die and free our memory. Return now. */
- 		if (fatal_signal_pending(current))
+ 	/*
+ 	 * Usually few pages are written by now from those we've just submitted
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
