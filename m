@@ -2,38 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8008AC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 05521C4332F
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6668961108
+	by mail.kernel.org (Postfix) with ESMTP id DB0F961108
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234115AbhKKCpP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:45:15 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50556 "EHLO mail.kernel.org"
+        id S233144AbhKKCpX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:45:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50664 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233144AbhKKCpP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:45:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C20C56103C;
-        Thu, 11 Nov 2021 02:42:26 +0000 (UTC)
+        id S234146AbhKKCpX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:45:23 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 99588611F2;
+        Thu, 11 Nov 2021 02:42:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598547;
-        bh=GSjkj/rz1HPcxtY+wf2H3/m4mOFkzRtKgkYuo1vkFoU=;
+        s=korg; t=1636598554;
+        bh=BMTTZPjmTK6EhupD8PmQgSewn1XBNqWN5Dwb8bOXvzc=;
         h=Date:From:To:Subject:From;
-        b=ELDNeyw4GcLIycZwGUXogBA2rWPohhMmmSMDHIAwlybV/g5yK0xK0PY1AFYcKtL+J
-         VtmfHFRW8E6lZ17v+55Tv07r2up3ebRyF9+XdEDqzWmlJXsBuy/hBhT3kufCXUKm7j
-         1K/PC6D7MGUt1yahJdDr/74heH2LGCQLNTr1xqSI=
-Date:   Wed, 10 Nov 2021 18:42:26 -0800
+        b=Pka2u7Cgl+13mIV/K9VMrpXWtFjrfpibVCJN7gGPW5JmqdGoddY3gXfNv/WeAHcWd
+         w/ATuLvMnBue1ewEQU8iqwc6MvOU3BqAHyTrLdT/7qSeJpLp1TvDqmjZqOY3fRutHU
+         HCFW06cbAz5vTSbeTXFomWJyqH5YtHI/enn2FjAc=
+Date:   Wed, 10 Nov 2021 18:42:34 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mgorman@techsingularity.net,
-        mhocko@suse.com, mm-commits@vger.kernel.org,
-        penguin-kernel@i-love.sakura.ne.jp, shakeelb@google.com,
-        stable@vger.kernel.org, urezki@gmail.com, vbabka@suse.cz,
-        vdavydov.dev@gmail.com, vvs@virtuozzo.com
+To:     amit.kachhap@arm.com, kirill.shutemov@linux.intel.com,
+        mm-commits@vger.kernel.org, Vincenzo.Frascino@arm.com
 Subject:  [merged]
- memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks.patch
- removed from -mm tree
-Message-ID: <20211111024226.qTs1Sl9ac%akpm@linux-foundation.org>
+ mm-memory-avoid-unnecessary-kernel-user-pointer-conversion.patch removed
+ from -mm tree
+Message-ID: <20211111024234.IM7M2bIGN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,151 +39,52 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: prohibit unconditional exceeding the limit of dying tasks
+     Subject: mm/memory.c: avoid unnecessary kernel/user pointer conversion
 has been removed from the -mm tree.  Its filename was
-     memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks.patch
+     mm-memory-avoid-unnecessary-kernel-user-pointer-conversion.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vasily Averin <vvs@virtuozzo.com>
-Subject: memcg: prohibit unconditional exceeding the limit of dying tasks
+From: Amit Daniel Kachhap <amit.kachhap@arm.com>
+Subject: mm/memory.c: avoid unnecessary kernel/user pointer conversion
 
-Memory cgroup charging allows killed or exiting tasks to exceed the hard
-limit.  It is assumed that the amount of the memory charged by those tasks
-is bound and most of the memory will get released while the task is
-exiting.  This is resembling a heuristic for the global OOM situation when
-tasks get access to memory reserves.  There is no global memory shortage
-at the memcg level so the memcg heuristic is more relieved.
+Annotating a pointer from __user to kernel and then back again might
+confuse sparse.  In copy_huge_page_from_user() it can be avoided by
+removing the intermediate variable since it is never used.
 
-The above assumption is overly optimistic though.  E.g.  vmalloc can scale
-to really large requests and the heuristic would allow that.  We used to
-have an early break in the vmalloc allocator for killed tasks but this has
-been reverted by commit b8c8a338f75e ("Revert "vmalloc: back off when the
-current task is killed"").  There are likely other similar code paths
-which do not check for fatal signals in an allocation&charge loop.  Also
-there are some kernel objects charged to a memcg which are not bound to a
-process life time.
-
-It has been observed that it is not really hard to trigger these bypasses
-and cause global OOM situation.
-
-One potential way to address these runaways would be to limit the amount
-of excess (similar to the global OOM with limited oom reserves).  This is
-certainly possible but it is not really clear how much of an excess is
-desirable and still protects from global OOMs as that would have to
-consider the overall memcg configuration.
-
-This patch is addressing the problem by removing the heuristic altogether.
-Bypass is only allowed for requests which either cannot fail or where the
-failure is not desirable while excess should be still limited (e.g. 
-atomic requests).  Implementation wise a killed or dying task fails to
-charge if it has passed the OOM killer stage.  That should give all forms
-of reclaim chance to restore the limit before the failure (ENOMEM) and
-tell the caller to back off.
-
-In addition, this patch renames should_force_charge() helper to
-task_is_dying() because now its use is not associated witch forced
-charging.
-
-This patch depends on pagefault_out_of_memory() to not trigger
-out_of_memory(), because then a memcg failure can unwind to VM_FAULT_OOM
-and cause a global OOM killer.
-
-Link: https://lkml.kernel.org/r/8f5cebbb-06da-4902-91f0-6566fc4b4203@virtuozzo.com
-Signed-off-by: Vasily Averin <vvs@virtuozzo.com>
-Suggested-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20210914150820.19326-1-amit.kachhap@arm.com
+Signed-off-by: Amit Daniel Kachhap <amit.kachhap@arm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   27 ++++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+ mm/memory.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~memcg-prohibit-unconditional-exceeding-the-limit-of-dying-tasks
-+++ a/mm/memcontrol.c
-@@ -234,7 +234,7 @@ enum res_type {
- 	     iter != NULL;				\
- 	     iter = mem_cgroup_iter(NULL, iter, NULL))
- 
--static inline bool should_force_charge(void)
-+static inline bool task_is_dying(void)
+--- a/mm/memory.c~mm-memory-avoid-unnecessary-kernel-user-pointer-conversion
++++ a/mm/memory.c
+@@ -5421,7 +5421,6 @@ long copy_huge_page_from_user(struct pag
+ 				unsigned int pages_per_huge_page,
+ 				bool allow_pagefault)
  {
- 	return tsk_is_oom_victim(current) || fatal_signal_pending(current) ||
- 		(current->flags & PF_EXITING);
-@@ -1624,7 +1624,7 @@ static bool mem_cgroup_out_of_memory(str
- 	 * A few threads which were not waiting at mutex_lock_killable() can
- 	 * fail to bail out. Therefore, check again after holding oom_lock.
- 	 */
--	ret = should_force_charge() || out_of_memory(&oc);
-+	ret = task_is_dying() || out_of_memory(&oc);
- 
- unlock:
- 	mutex_unlock(&oom_lock);
-@@ -2579,6 +2579,7 @@ static int try_charge_memcg(struct mem_c
- 	struct page_counter *counter;
- 	enum oom_status oom_status;
- 	unsigned long nr_reclaimed;
-+	bool passed_oom = false;
- 	bool may_swap = true;
- 	bool drained = false;
- 	unsigned long pflags;
-@@ -2614,15 +2615,6 @@ retry:
- 		goto force;
- 
- 	/*
--	 * Unlike in global OOM situations, memcg is not in a physical
--	 * memory shortage.  Allow dying and OOM-killed tasks to
--	 * bypass the last charges so that they can exit quickly and
--	 * free their memory.
--	 */
--	if (unlikely(should_force_charge()))
--		goto force;
--
--	/*
- 	 * Prevent unbounded recursion when reclaim operations need to
- 	 * allocate memory. This might exceed the limits temporarily,
- 	 * but we prefer facilitating memory reclaim and getting back
-@@ -2679,8 +2671,9 @@ retry:
- 	if (gfp_mask & __GFP_RETRY_MAYFAIL)
- 		goto nomem;
- 
--	if (fatal_signal_pending(current))
--		goto force;
-+	/* Avoid endless loop for tasks bypassed by the oom killer */
-+	if (passed_oom && task_is_dying())
-+		goto nomem;
- 
- 	/*
- 	 * keep retrying as long as the memcg oom killer is able to make
-@@ -2689,14 +2682,10 @@ retry:
- 	 */
- 	oom_status = mem_cgroup_oom(mem_over_limit, gfp_mask,
- 		       get_order(nr_pages * PAGE_SIZE));
--	switch (oom_status) {
--	case OOM_SUCCESS:
-+	if (oom_status == OOM_SUCCESS) {
-+		passed_oom = true;
- 		nr_retries = MAX_RECLAIM_RETRIES;
- 		goto retry;
--	case OOM_FAILED:
--		goto force;
--	default:
--		goto nomem;
- 	}
- nomem:
- 	if (!(gfp_mask & __GFP_NOFAIL))
+-	void *src = (void *)usr_src;
+ 	void *page_kaddr;
+ 	unsigned long i, rc = 0;
+ 	unsigned long ret_val = pages_per_huge_page * PAGE_SIZE;
+@@ -5434,8 +5433,7 @@ long copy_huge_page_from_user(struct pag
+ 		else
+ 			page_kaddr = kmap_atomic(subpage);
+ 		rc = copy_from_user(page_kaddr,
+-				(const void __user *)(src + i * PAGE_SIZE),
+-				PAGE_SIZE);
++				usr_src + i * PAGE_SIZE, PAGE_SIZE);
+ 		if (allow_pagefault)
+ 			kunmap(subpage);
+ 		else
 _
 
-Patches currently in -mm which might be from vvs@virtuozzo.com are
+Patches currently in -mm which might be from amit.kachhap@arm.com are
 
 
