@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C0D81C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:49:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AE007C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:49:11 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id ABC3B61108
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:49:03 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9423D61361
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:49:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234443AbhKKCvu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:51:50 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56008 "EHLO mail.kernel.org"
+        id S234391AbhKKCv7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:51:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56096 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234391AbhKKCvs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:51:48 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B9D9060F26;
-        Thu, 11 Nov 2021 02:48:59 +0000 (UTC)
+        id S234394AbhKKCvy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:51:54 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B81EF610A2;
+        Thu, 11 Nov 2021 02:49:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598940;
-        bh=6AH376xZ7df2GRq57Gsddpg2k9Z1lfHDtmv/Rm89TJ4=;
+        s=korg; t=1636598946;
+        bh=+41IGcXa1LLHIaj7bJWPks99h8h8lcz3QpHujTmFMdc=;
         h=Date:From:To:Subject:From;
-        b=MUm2txdDKsPEnE8epb4Uc4nfaTOtPtV4irDoH8BFXnBGqynUYEehOI8/HrJssBMby
-         LDr1kfAKDby5WUDLUXYWS+/O/UHS+8xidnkagBx53kHDiSRwjB748+vpTey1z1+pz9
-         1SBYE8i+KARh4FDFA7uAND9zT8T+iUV0CP9Ctrdk=
-Date:   Wed, 10 Nov 2021 18:48:59 -0800
+        b=Em0mYOYyYLwyif6svbOplaU5fIzYANc0sBjk1hh1K3IJ25yC2jc7NMwSrMtdnL6eS
+         8v6H4JqP/xFFpAUWTKTdVQEu4PJzBzi22eKKILKp10G0LllxWn2HVXOMxqoYQ5Uomv
+         3GWzvZicGqmHBrAzDFQulR57leJXqm0EY0eXqBG8=
+Date:   Wed, 10 Nov 2021 18:49:05 -0800
 From:   akpm@linux-foundation.org
 To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         david@redhat.com, dwmw@amazon.com, elver@google.com,
@@ -32,9 +32,8 @@ To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         mm-commits@vger.kernel.org, rientjes@google.com,
         shakeelb@google.com, shuah@kernel.org, sj@kernel.org
 Subject:  [merged]
- mm-damon-vaddr-support-damon-based-operation-schemes.patch removed from -mm
- tree
-Message-ID: <20211111024859.CoQNwIj-N%akpm@linux-foundation.org>
+ mm-damon-schemes-implement-statistics-feature.patch removed from -mm tree
+Message-ID: <20211111024905.QvfosDqpL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,27 +42,32 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/vaddr: support DAMON-based Operation Schemes
+     Subject: mm/damon/schemes: implement statistics feature
 has been removed from the -mm tree.  Its filename was
-     mm-damon-vaddr-support-damon-based-operation-schemes.patch
+     mm-damon-schemes-implement-statistics-feature.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/vaddr: support DAMON-based Operation Schemes
+Subject: mm/damon/schemes: implement statistics feature
 
-This commit makes DAMON's default primitives for virtual address spaces to
-support DAMON-based Operation Schemes (DAMOS) by implementing actions
-application functions and registering it to the monitoring context.  The
-implementation simply links 'madvise()' for related DAMOS actions.  That
-is, 'madvise(MADV_WILLNEED)' is called for 'WILLNEED' DAMOS action and
-similar for other actions ('COLD', 'PAGEOUT', 'HUGEPAGE', 'NOHUGEPAGE').
+To tune the DAMON-based operation schemes, knowing how many and how large
+regions are affected by each of the schemes will be helful.  Those stats
+could be used for not only the tuning, but also monitoring of the working
+set size and the number of regions, if the scheme does not change the
+program behavior too much.
 
-So, the kernel space DAMON users can now use the DAMON-based optimizations
-with only small amount of code.
+For the reason, this commit implements the statistics for the schemes. 
+The total number and size of the regions that each scheme is applied are
+exported to users via '->stat_count' and '->stat_sz' of 'struct damos'. 
+Admins can also check the number by reading 'schemes' debugfs file.  The
+last two integers now represents the stats.  To allow collecting the stats
+without changing the program behavior, this commit also adds new scheme
+action, 'DAMOS_STAT'.  Note that 'DAMOS_STAT' is not only making no memory
+operation actions, but also does not reset the age of regions.
 
-Link: https://lkml.kernel.org/r/20211001125604.29660-4-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211001125604.29660-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -81,100 +85,114 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 +
- mm/damon/vaddr.c      |   56 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 58 insertions(+)
+ include/linux/damon.h |   10 +++++++++-
+ mm/damon/core.c       |    7 ++++++-
+ mm/damon/dbgfs.c      |    5 +++--
+ mm/damon/vaddr.c      |    2 ++
+ 4 files changed, 20 insertions(+), 4 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-vaddr-support-damon-based-operation-schemes
+--- a/include/linux/damon.h~mm-damon-schemes-implement-statistics-feature
 +++ a/include/linux/damon.h
-@@ -337,6 +337,8 @@ void damon_va_prepare_access_checks(stru
- unsigned int damon_va_check_accesses(struct damon_ctx *ctx);
- bool damon_va_target_valid(void *t);
- void damon_va_cleanup(struct damon_ctx *ctx);
-+int damon_va_apply_scheme(struct damon_ctx *context, struct damon_target *t,
-+		struct damon_region *r, struct damos *scheme);
- void damon_va_set_primitives(struct damon_ctx *ctx);
+@@ -78,6 +78,7 @@ struct damon_target {
+  * @DAMOS_PAGEOUT:	Call ``madvise()`` for the region with MADV_PAGEOUT.
+  * @DAMOS_HUGEPAGE:	Call ``madvise()`` for the region with MADV_HUGEPAGE.
+  * @DAMOS_NOHUGEPAGE:	Call ``madvise()`` for the region with MADV_NOHUGEPAGE.
++ * @DAMOS_STAT:		Do nothing but count the stat.
+  */
+ enum damos_action {
+ 	DAMOS_WILLNEED,
+@@ -85,6 +86,7 @@ enum damos_action {
+ 	DAMOS_PAGEOUT,
+ 	DAMOS_HUGEPAGE,
+ 	DAMOS_NOHUGEPAGE,
++	DAMOS_STAT,		/* Do nothing but only record the stat */
+ };
  
- #endif	/* CONFIG_DAMON_VADDR */
---- a/mm/damon/vaddr.c~mm-damon-vaddr-support-damon-based-operation-schemes
+ /**
+@@ -96,9 +98,13 @@ enum damos_action {
+  * @min_age_region:	Minimum age of target regions.
+  * @max_age_region:	Maximum age of target regions.
+  * @action:		&damo_action to be applied to the target regions.
++ * @stat_count:		Total number of regions that this scheme is applied.
++ * @stat_sz:		Total size of regions that this scheme is applied.
+  * @list:		List head for siblings.
+  *
+- * Note that both the minimums and the maximums are inclusive.
++ * For each aggregation interval, DAMON applies @action to monitoring target
++ * regions fit in the condition and updates the statistics.  Note that both
++ * the minimums and the maximums are inclusive.
+  */
+ struct damos {
+ 	unsigned long min_sz_region;
+@@ -108,6 +114,8 @@ struct damos {
+ 	unsigned int min_age_region;
+ 	unsigned int max_age_region;
+ 	enum damos_action action;
++	unsigned long stat_count;
++	unsigned long stat_sz;
+ 	struct list_head list;
+ };
+ 
+--- a/mm/damon/core.c~mm-damon-schemes-implement-statistics-feature
++++ a/mm/damon/core.c
+@@ -103,6 +103,8 @@ struct damos *damon_new_scheme(
+ 	scheme->min_age_region = min_age_region;
+ 	scheme->max_age_region = max_age_region;
+ 	scheme->action = action;
++	scheme->stat_count = 0;
++	scheme->stat_sz = 0;
+ 	INIT_LIST_HEAD(&scheme->list);
+ 
+ 	return scheme;
+@@ -544,9 +546,12 @@ static void damon_do_apply_schemes(struc
+ 			continue;
+ 		if (r->age < s->min_age_region || s->max_age_region < r->age)
+ 			continue;
++		s->stat_count++;
++		s->stat_sz += sz;
+ 		if (c->primitive.apply_scheme)
+ 			c->primitive.apply_scheme(c, t, r, s);
+-		r->age = 0;
++		if (s->action != DAMOS_STAT)
++			r->age = 0;
+ 	}
+ }
+ 
+--- a/mm/damon/dbgfs.c~mm-damon-schemes-implement-statistics-feature
++++ a/mm/damon/dbgfs.c
+@@ -106,11 +106,11 @@ static ssize_t sprint_schemes(struct dam
+ 
+ 	damon_for_each_scheme(s, c) {
+ 		rc = scnprintf(&buf[written], len - written,
+-				"%lu %lu %u %u %u %u %d\n",
++				"%lu %lu %u %u %u %u %d %lu %lu\n",
+ 				s->min_sz_region, s->max_sz_region,
+ 				s->min_nr_accesses, s->max_nr_accesses,
+ 				s->min_age_region, s->max_age_region,
+-				s->action);
++				s->action, s->stat_count, s->stat_sz);
+ 		if (!rc)
+ 			return -ENOMEM;
+ 
+@@ -159,6 +159,7 @@ static bool damos_action_valid(int actio
+ 	case DAMOS_PAGEOUT:
+ 	case DAMOS_HUGEPAGE:
+ 	case DAMOS_NOHUGEPAGE:
++	case DAMOS_STAT:
+ 		return true;
+ 	default:
+ 		return false;
+--- a/mm/damon/vaddr.c~mm-damon-schemes-implement-statistics-feature
 +++ a/mm/damon/vaddr.c
-@@ -7,6 +7,7 @@
- 
- #define pr_fmt(fmt) "damon-va: " fmt
- 
-+#include <asm-generic/mman-common.h>
- #include <linux/damon.h>
- #include <linux/hugetlb.h>
- #include <linux/mm.h>
-@@ -658,6 +659,60 @@ bool damon_va_target_valid(void *target)
- 	return false;
- }
- 
-+#ifndef CONFIG_ADVISE_SYSCALLS
-+static int damos_madvise(struct damon_target *target, struct damon_region *r,
-+			int behavior)
-+{
-+	return -EINVAL;
-+}
-+#else
-+static int damos_madvise(struct damon_target *target, struct damon_region *r,
-+			int behavior)
-+{
-+	struct mm_struct *mm;
-+	int ret = -ENOMEM;
-+
-+	mm = damon_get_mm(target);
-+	if (!mm)
-+		goto out;
-+
-+	ret = do_madvise(mm, PAGE_ALIGN(r->ar.start),
-+			PAGE_ALIGN(r->ar.end - r->ar.start), behavior);
-+	mmput(mm);
-+out:
-+	return ret;
-+}
-+#endif	/* CONFIG_ADVISE_SYSCALLS */
-+
-+int damon_va_apply_scheme(struct damon_ctx *ctx, struct damon_target *t,
-+		struct damon_region *r, struct damos *scheme)
-+{
-+	int madv_action;
-+
-+	switch (scheme->action) {
-+	case DAMOS_WILLNEED:
-+		madv_action = MADV_WILLNEED;
-+		break;
-+	case DAMOS_COLD:
-+		madv_action = MADV_COLD;
-+		break;
-+	case DAMOS_PAGEOUT:
-+		madv_action = MADV_PAGEOUT;
-+		break;
-+	case DAMOS_HUGEPAGE:
-+		madv_action = MADV_HUGEPAGE;
-+		break;
-+	case DAMOS_NOHUGEPAGE:
-+		madv_action = MADV_NOHUGEPAGE;
-+		break;
-+	default:
-+		pr_warn("Wrong action %d\n", scheme->action);
-+		return -EINVAL;
-+	}
-+
-+	return damos_madvise(t, r, madv_action);
-+}
-+
- void damon_va_set_primitives(struct damon_ctx *ctx)
- {
- 	ctx->primitive.init = damon_va_init;
-@@ -667,6 +722,7 @@ void damon_va_set_primitives(struct damo
- 	ctx->primitive.reset_aggregated = NULL;
- 	ctx->primitive.target_valid = damon_va_target_valid;
- 	ctx->primitive.cleanup = NULL;
-+	ctx->primitive.apply_scheme = damon_va_apply_scheme;
- }
- 
- #include "vaddr-test.h"
+@@ -705,6 +705,8 @@ int damon_va_apply_scheme(struct damon_c
+ 	case DAMOS_NOHUGEPAGE:
+ 		madv_action = MADV_NOHUGEPAGE;
+ 		break;
++	case DAMOS_STAT:
++		return 0;
+ 	default:
+ 		pr_warn("Wrong action %d\n", scheme->action);
+ 		return -EINVAL;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
