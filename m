@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CECEC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9151EC43217
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 46A8D61354
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:36 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 78CEE61247
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234336AbhKKCsX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:48:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53306 "EHLO mail.kernel.org"
+        id S234349AbhKKCsY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:48:24 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53252 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234375AbhKKCsR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:48:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 79AFC61208;
-        Thu, 11 Nov 2021 02:45:29 +0000 (UTC)
+        id S234369AbhKKCsN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:48:13 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B7B66103C;
+        Thu, 11 Nov 2021 02:45:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598729;
-        bh=i8qChotJyr6KmIbgWNlAiDFinN3uLa7nJqmuk9PBM7c=;
+        s=korg; t=1636598725;
+        bh=H37nJalztR3j6BGLPEdrRxY7W0+z/FJh3lus+DzxjA4=;
         h=Date:From:To:Subject:From;
-        b=2btlZwhsuDnxt27zm6t9spPp4kFAqVBdyTPDLaTcC//GxoIeYoiNvnXg4fDLSlNoK
-         ZdydgB+Ygmm9dTWQY/C6Humrr9BzxqgNfFF9VeAl2JtE239BL8g97tMOjX4R1Hi08J
-         1NvExlXr6dQrOAZSVrzO2HT7pFCo7ZjOnNNSE2MA=
-Date:   Wed, 10 Nov 2021 18:45:29 -0800
+        b=TSLoIQwmbDssO7VD4zTzHpH3pCZkToKG63KmfMj4lakERAf055uJvbUlG0Iugy0xC
+         h5vSUpzvroeNGQfc6H2w2sYUgLAY6IaCXTNHkszhQpAUFWOiTsVugtyYF5CZxRaTjl
+         c3tjMYoCcNRWuhEYoSCVK3Dy4td/e/3MG3VsHmOA=
+Date:   Wed, 10 Nov 2021 18:45:25 -0800
 From:   akpm@linux-foundation.org
 To:     axelrasmussen@google.com, mm-commits@vger.kernel.org,
         peterx@redhat.com, shuah@kernel.org
 Subject:  [merged]
- userfaultfd-selftests-fix-calculation-of-expected-ioctls.patch removed from
- -mm tree
-Message-ID: <20211111024529.UKUubaZ1n%akpm@linux-foundation.org>
+ userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
+ removed from -mm tree
+Message-ID: <20211111024525.umF8Tm4C5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,239 +39,93 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd/selftests: fix calculation of expected ioctls
+     Subject: userfaultfd/selftests: don't rely on GNU extensions for random numbers
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-selftests-fix-calculation-of-expected-ioctls.patch
+     userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Axel Rasmussen <axelrasmussen@google.com>
-Subject: userfaultfd/selftests: fix calculation of expected ioctls
+Subject: userfaultfd/selftests: don't rely on GNU extensions for random numbers
 
-Today, we assert that the ioctls the kernel reports as supported for a
-registration match a precomputed list.  We decide which ioctls are
-supported by examining the memory type.  Then, in several locations we
-"fix up" this list by adding or removing things this initial decision got
-wrong.
+Patch series "Small userfaultfd selftest fixups", v2.
 
-What ioctls the kernel reports is actually a function of several things:
-- The memory type
-- Kernel feature support (e.g., no writeprotect on aarch64)
-- The registration type (e.g., CONTINUE only supported for MINOR mode)
 
-So, we can't fully compute this at the start, in set_test_type.  It varies
-per test, depending on what registration mode(s) those tests use.
+This patch (of 3):
 
-Instead, introduce a new function which computes the correct list.  This
-centralizes the add/remove of ioctls depending on these function inputs in
-one place, so we don't have to repeat ourselves in various tests.
+Two arguments for doing this:
 
-Not only is the resulting code a bit shorter, but it fixes a real bug in
-the existing code: previously, we would incorrectly require the
-writeprotect ioctl to be present on aarch64, where it isn't actually
-supported.
+First, and maybe most importantly, the resulting code is significantly
+shorter / simpler.
 
-Link: https://lkml.kernel.org/r/20210930212309.4001967-4-axelrasmussen@google.com
+Then, we avoid using GNU libc extensions.  Why does this matter?  It makes
+testing userfaultfd with the selftest easier e.g.  on distros which use
+something other than glibc (e.g., Alpine, which uses musl); basically, it
+makes the test more portable.
+
+Link: https://lkml.kernel.org/r/20210930212309.4001967-2-axelrasmussen@google.com
 Signed-off-by: Axel Rasmussen <axelrasmussen@google.com>
 Reviewed-by: Peter Xu <peterx@redhat.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |   77 ++++++++++-----------
- 1 file changed, 38 insertions(+), 39 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   26 +++------------------
+ 1 file changed, 4 insertions(+), 22 deletions(-)
 
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-fix-calculation-of-expected-ioctls
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftests-dont-rely-on-gnu-extensions-for-random-numbers
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -308,37 +308,24 @@ static void shmem_alias_mapping(__u64 *s
- }
+@@ -57,6 +57,7 @@
+ #include <assert.h>
+ #include <inttypes.h>
+ #include <stdint.h>
++#include <sys/random.h>
  
- struct uffd_test_ops {
--	unsigned long expected_ioctls;
- 	void (*allocate_area)(void **alloc_area);
- 	void (*release_pages)(char *rel_area);
- 	void (*alias_mapping)(__u64 *start, size_t len, unsigned long offset);
- };
+ #include "../kselftest.h"
  
--#define SHMEM_EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
--					 (1 << _UFFDIO_COPY) | \
--					 (1 << _UFFDIO_ZEROPAGE))
--
--#define ANON_EXPECTED_IOCTLS		((1 << _UFFDIO_WAKE) | \
--					 (1 << _UFFDIO_COPY) | \
--					 (1 << _UFFDIO_ZEROPAGE) | \
--					 (1 << _UFFDIO_WRITEPROTECT))
--
- static struct uffd_test_ops anon_uffd_test_ops = {
--	.expected_ioctls = ANON_EXPECTED_IOCTLS,
- 	.allocate_area	= anon_allocate_area,
- 	.release_pages	= anon_release_pages,
- 	.alias_mapping = noop_alias_mapping,
- };
- 
- static struct uffd_test_ops shmem_uffd_test_ops = {
--	.expected_ioctls = SHMEM_EXPECTED_IOCTLS,
- 	.allocate_area	= shmem_allocate_area,
- 	.release_pages	= shmem_release_pages,
- 	.alias_mapping = shmem_alias_mapping,
- };
- 
- static struct uffd_test_ops hugetlb_uffd_test_ops = {
--	.expected_ioctls = UFFD_API_RANGE_IOCTLS_BASIC & ~(1 << _UFFDIO_CONTINUE),
- 	.allocate_area	= hugetlb_allocate_area,
- 	.release_pages	= hugetlb_release_pages,
- 	.alias_mapping = hugetlb_alias_mapping,
-@@ -356,6 +343,33 @@ static inline uint64_t uffd_minor_featur
- 		return 0;
- }
- 
-+static uint64_t get_expected_ioctls(uint64_t mode)
-+{
-+	uint64_t ioctls = UFFD_API_RANGE_IOCTLS;
-+
-+	if (test_type == TEST_HUGETLB)
-+		ioctls &= ~(1 << _UFFDIO_ZEROPAGE);
-+
-+	if (!((mode & UFFDIO_REGISTER_MODE_WP) && test_uffdio_wp))
-+		ioctls &= ~(1 << _UFFDIO_WRITEPROTECT);
-+
-+	if (!((mode & UFFDIO_REGISTER_MODE_MINOR) && test_uffdio_minor))
-+		ioctls &= ~(1 << _UFFDIO_CONTINUE);
-+
-+	return ioctls;
-+}
-+
-+static void assert_expected_ioctls_present(uint64_t mode, uint64_t ioctls)
-+{
-+	uint64_t expected = get_expected_ioctls(mode);
-+	uint64_t actual = ioctls & expected;
-+
-+	if (actual != expected) {
-+		err("missing ioctl(s): expected %"PRIx64" actual: %"PRIx64,
-+		    expected, actual);
-+	}
-+}
-+
- static void userfaultfd_open(uint64_t *features)
+@@ -518,22 +519,10 @@ static void continue_range(int ufd, __u6
+ static void *locking_thread(void *arg)
  {
- 	struct uffdio_api uffdio_api;
-@@ -1017,11 +1031,9 @@ static int __uffdio_zeropage(int ufd, un
- {
- 	struct uffdio_zeropage uffdio_zeropage;
- 	int ret;
--	unsigned long has_zeropage;
-+	bool has_zeropage = get_expected_ioctls(0) & (1 << _UFFDIO_ZEROPAGE);
- 	__s64 res;
+ 	unsigned long cpu = (unsigned long) arg;
+-	struct random_data rand;
+ 	unsigned long page_nr = *(&(page_nr)); /* uninitialized warning */
+-	int32_t rand_nr;
+ 	unsigned long long count;
+-	char randstate[64];
+-	unsigned int seed;
  
--	has_zeropage = uffd_test_ops->expected_ioctls & (1 << _UFFDIO_ZEROPAGE);
--
- 	if (offset >= nr_pages * page_size)
- 		err("unexpected offset %lu", offset);
- 	uffdio_zeropage.range.start = (unsigned long) area_dst + offset;
-@@ -1061,7 +1073,6 @@ static int uffdio_zeropage(int ufd, unsi
- static int userfaultfd_zeropage_test(void)
- {
- 	struct uffdio_register uffdio_register;
--	unsigned long expected_ioctls;
+-	if (bounces & BOUNCE_RANDOM) {
+-		seed = (unsigned int) time(NULL) - bounces;
+-		if (!(bounces & BOUNCE_RACINGFAULTS))
+-			seed += cpu;
+-		bzero(&rand, sizeof(rand));
+-		bzero(&randstate, sizeof(randstate));
+-		if (initstate_r(seed, randstate, sizeof(randstate), &rand))
+-			err("initstate_r failed");
+-	} else {
++	if (!(bounces & BOUNCE_RANDOM)) {
+ 		page_nr = -bounces;
+ 		if (!(bounces & BOUNCE_RACINGFAULTS))
+ 			page_nr += cpu * nr_pages_per_cpu;
+@@ -541,15 +530,8 @@ static void *locking_thread(void *arg)
  
- 	printf("testing UFFDIO_ZEROPAGE: ");
- 	fflush(stdout);
-@@ -1076,9 +1087,8 @@ static int userfaultfd_zeropage_test(voi
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		err("register failure");
- 
--	expected_ioctls = uffd_test_ops->expected_ioctls;
--	if ((uffdio_register.ioctls & expected_ioctls) != expected_ioctls)
--		err("unexpected missing ioctl for anon memory");
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
- 
- 	if (uffdio_zeropage(uffd, 0))
- 		if (my_bcmp(area_dst, zeropage, page_size))
-@@ -1091,7 +1101,6 @@ static int userfaultfd_zeropage_test(voi
- static int userfaultfd_events_test(void)
- {
- 	struct uffdio_register uffdio_register;
--	unsigned long expected_ioctls;
- 	pthread_t uffd_mon;
- 	int err, features;
- 	pid_t pid;
-@@ -1115,9 +1124,8 @@ static int userfaultfd_events_test(void)
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		err("register failure");
- 
--	expected_ioctls = uffd_test_ops->expected_ioctls;
--	if ((uffdio_register.ioctls & expected_ioctls) != expected_ioctls)
--		err("unexpected missing ioctl for anon memory");
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
- 
- 	if (pthread_create(&uffd_mon, &attr, uffd_poll_thread, &stats))
- 		err("uffd_poll_thread create");
-@@ -1145,7 +1153,6 @@ static int userfaultfd_events_test(void)
- static int userfaultfd_sig_test(void)
- {
- 	struct uffdio_register uffdio_register;
--	unsigned long expected_ioctls;
- 	unsigned long userfaults;
- 	pthread_t uffd_mon;
- 	int err, features;
-@@ -1169,9 +1176,8 @@ static int userfaultfd_sig_test(void)
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		err("register failure");
- 
--	expected_ioctls = uffd_test_ops->expected_ioctls;
--	if ((uffdio_register.ioctls & expected_ioctls) != expected_ioctls)
--		err("unexpected missing ioctl for anon memory");
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
- 
- 	if (faulting_process(1))
- 		err("faulting process failed");
-@@ -1206,7 +1212,6 @@ static int userfaultfd_sig_test(void)
- static int userfaultfd_minor_test(void)
- {
- 	struct uffdio_register uffdio_register;
--	unsigned long expected_ioctls;
- 	unsigned long p;
- 	pthread_t uffd_mon;
- 	uint8_t expected_byte;
-@@ -1228,10 +1233,8 @@ static int userfaultfd_minor_test(void)
- 	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 		err("register failure");
- 
--	expected_ioctls = uffd_test_ops->expected_ioctls;
--	expected_ioctls |= 1 << _UFFDIO_CONTINUE;
--	if ((uffdio_register.ioctls & expected_ioctls) != expected_ioctls)
--		err("unexpected missing ioctl(s)");
-+	assert_expected_ioctls_present(
-+		uffdio_register.mode, uffdio_register.ioctls);
- 
- 	/*
- 	 * After registering with UFFD, populate the non-UFFD-registered side of
-@@ -1428,8 +1431,6 @@ static int userfaultfd_stress(void)
- 	pthread_attr_setstacksize(&attr, 16*1024*1024);
- 
- 	while (bounces--) {
--		unsigned long expected_ioctls;
--
- 		printf("bounces: %d, mode:", bounces);
- 		if (bounces & BOUNCE_RANDOM)
- 			printf(" rnd");
-@@ -1457,10 +1458,8 @@ static int userfaultfd_stress(void)
- 			uffdio_register.mode |= UFFDIO_REGISTER_MODE_WP;
- 		if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register))
- 			err("register failure");
--		expected_ioctls = uffd_test_ops->expected_ioctls;
--		if ((uffdio_register.ioctls & expected_ioctls) !=
--		    expected_ioctls)
--			err("unexpected missing ioctl for anon memory");
-+		assert_expected_ioctls_present(
-+			uffdio_register.mode, uffdio_register.ioctls);
- 
- 		if (area_dst_alias) {
- 			uffdio_register.range.start = (unsigned long)
+ 	while (!finished) {
+ 		if (bounces & BOUNCE_RANDOM) {
+-			if (random_r(&rand, &rand_nr))
+-				err("random_r failed");
+-			page_nr = rand_nr;
+-			if (sizeof(page_nr) > sizeof(rand_nr)) {
+-				if (random_r(&rand, &rand_nr))
+-					err("random_r failed");
+-				page_nr |= (((unsigned long) rand_nr) << 16) <<
+-					   16;
+-			}
++			if (getrandom(&page_nr, sizeof(page_nr), 0) != sizeof(page_nr))
++				err("getrandom failed");
+ 		} else
+ 			page_nr += 1;
+ 		page_nr %= nr_pages;
 _
 
 Patches currently in -mm which might be from axelrasmussen@google.com are
