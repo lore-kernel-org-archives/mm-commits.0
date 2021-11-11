@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1E31C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:53:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3524C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:53:10 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A17561872
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:53:08 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C7C5061872
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:53:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234548AbhKKCz4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:55:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:59532 "EHLO mail.kernel.org"
+        id S234585AbhKKCz6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:55:58 -0500
+Received: from mail.kernel.org ([198.145.29.99]:59554 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234509AbhKKCz4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:55:56 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 963FB6162E;
-        Thu, 11 Nov 2021 02:53:07 +0000 (UTC)
+        id S234509AbhKKCz5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:55:57 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8332061361;
+        Thu, 11 Nov 2021 02:53:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599187;
-        bh=m9VplfYN6y7oyLUFWD4oMFVl2hayQv8p9YgaaLPF5Vg=;
+        s=korg; t=1636599189;
+        bh=o5cft+szzSvNmlSOp+rTPBM5XKJ9Ac6dhDufiTOwHq4=;
         h=Date:From:To:Subject:From;
-        b=KV4G3YZUipHlpuuTgAidSX3IJdPYE2z1YjlFdg6JPyphGT1t+d4iq3Xw8zddIsLla
-         Gk4q+vOwTd8aXDWfd4nc2hfapLyCEfr0cLKSmZvCVPPWTYpZOIKz+Flmy85daVmKsU
-         XsgzTSnU4vFxRoAHpv0vuLvN4XJpCF1RY+JTvT5E=
-Date:   Wed, 10 Nov 2021 18:53:07 -0800
+        b=gdGNumdxkAUk7B/6n2s7XTK/WlkOnXIFCdORz5gnopih1T3/HCuOU00CuW0DgnJMs
+         k1PrsMO0bg691ffKxfM9ljfW8mBkDoETjma3254CSXUIi9TBMpN7iPIl/EFACYso4i
+         0+iQlCedN2exrSF56u0WF2oLZnaOQR4Q0BD2TOyI=
+Date:   Wed, 10 Nov 2021 18:53:09 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        yangerkun@huawei.com
-Subject:  [merged] ramfs-fix-mount-source-show-for-ramfs.patch
- removed from -mm tree
-Message-ID: <20211111025307.MbZf2Y4LV%akpm@linux-foundation.org>
+To:     ahalaney@redhat.com, bp@suse.de, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, rostedt@goodmis.org
+Subject:  [merged]
+ init-make-unknown-command-line-param-message-clearer.patch removed from -mm
+ tree
+Message-ID: <20211111025309.EQ-0SSTYW%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,59 +39,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ramfs: fix mount source show for ramfs
+     Subject: init: make unknown command line param message clearer
 has been removed from the -mm tree.  Its filename was
-     ramfs-fix-mount-source-show-for-ramfs.patch
+     init-make-unknown-command-line-param-message-clearer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: yangerkun <yangerkun@huawei.com>
-Subject: ramfs: fix mount source show for ramfs
+From: Andrew Halaney <ahalaney@redhat.com>
+Subject: init: make unknown command line param message clearer
 
-ramfs_parse_param does not parse key "source", and will convert -ENOPARAM
-to 0.  This will skip vfs_parse_fs_param_source in vfs_parse_fs_param,
-which lead always "none" mount source for ramfs.  Fix it by parse "source"
-in ramfs_parse_param like cgroup1_parse_param has do.
+The prior message is confusing users, which is the exact opposite of the
+goal.  If the message is being seen, one of the following situations is
+happening:
 
-Link: https://lkml.kernel.org/r/20210924091756.1906118-1-yangerkun@huawei.com
-Signed-off-by: yangerkun <yangerkun@huawei.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+ 1. the param is misspelled
+ 2. the param is not valid due to the kernel configuration
+ 3. the param is intended for init but isn't after the '--'
+    delineator on the command line
+
+To make that more clear to the user, explicitly mention "kernel command
+line" and also note that the params are still passed to user space to
+avoid causing any alarm over params intended for init.
+
+Link: https://lkml.kernel.org/r/20211013223502.96756-1-ahalaney@redhat.com
+Fixes: 86d1919a4fb0 ("init: print out unknown kernel parameters")
+Signed-off-by: Andrew Halaney <ahalaney@redhat.com>
+Suggested-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Borislav Petkov <bp@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ramfs/inode.c |   11 +++++++----
- 1 file changed, 7 insertions(+), 4 deletions(-)
+ init/main.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/fs/ramfs/inode.c~ramfs-fix-mount-source-show-for-ramfs
-+++ a/fs/ramfs/inode.c
-@@ -203,17 +203,20 @@ static int ramfs_parse_param(struct fs_c
- 	int opt;
+--- a/init/main.c~init-make-unknown-command-line-param-message-clearer
++++ a/init/main.c
+@@ -924,7 +924,9 @@ static void __init print_unknown_bootopt
+ 	for (p = &envp_init[2]; *p; p++)
+ 		end += sprintf(end, " %s", *p);
  
- 	opt = fs_parse(fc, ramfs_fs_parameters, param, &result);
--	if (opt < 0) {
-+	if (opt == -ENOPARAM) {
-+		opt = vfs_parse_fs_param_source(fc, param);
-+		if (opt != -ENOPARAM)
-+			return opt;
- 		/*
- 		 * We might like to report bad mount options here;
- 		 * but traditionally ramfs has ignored all mount options,
- 		 * and as it is used as a !CONFIG_SHMEM simple substitute
- 		 * for tmpfs, better continue to ignore other mount options.
- 		 */
--		if (opt == -ENOPARAM)
--			opt = 0;
--		return opt;
-+		return 0;
- 	}
-+	if (opt < 0)
-+		return opt;
+-	pr_notice("Unknown command line parameters:%s\n", unknown_options);
++	/* Start at unknown_options[1] to skip the initial space */
++	pr_notice("Unknown kernel command line parameters \"%s\", will be passed to user space.\n",
++		&unknown_options[1]);
+ 	memblock_free(unknown_options, len);
+ }
  
- 	switch (opt) {
- 	case Opt_mode:
 _
 
-Patches currently in -mm which might be from yangerkun@huawei.com are
+Patches currently in -mm which might be from ahalaney@redhat.com are
 
+init-mainc-silence-some-wunused-parameter-warnings.patch
 
