@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38754C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E3329C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2165D619A6
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:02 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id C5046610F7
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234058AbhKKCot (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:44:49 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50146 "EHLO mail.kernel.org"
+        id S234074AbhKKCov (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:44:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50192 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234044AbhKKCot (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:44:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 90BAF61872;
-        Thu, 11 Nov 2021 02:42:00 +0000 (UTC)
+        id S234044AbhKKCov (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:44:51 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A45AA61994;
+        Thu, 11 Nov 2021 02:42:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598520;
-        bh=rGfr0mgCOzEZdtsL0FdOQniOSyrSREDMdIAd5b+Ofls=;
+        s=korg; t=1636598522;
+        bh=PvMAwwgjozuUlqawKVJ8ZxWWKGCWumGkrcPYgviV1UM=;
         h=Date:From:To:Subject:From;
-        b=iylGBOrlUhkUEUOAVJR9UF1vNBYy+RVVJ11IHfwTdXWNNM7OC8uPpy5c4+EqB/tmp
-         JFeFaJI9KoMBWRxvb2Js0JmKPw7T3HPikwOWWgVGw655T0ck0YYErk4gnF1PBTZHEl
-         +iIs1AQHfoBgkxsMDZoc/ZVxrq4mEiOHItgSQW3M=
-Date:   Wed, 10 Nov 2021 18:42:00 -0800
+        b=j12AcZhwGsNtsvSSCAJVshYXsM9jykuuolY6YOqwvy9pp9uZoTp22THcsDlJiSqM/
+         FFxnNIBAKuct87iWVKo4nq9GQH2+PLwihBn3mfWa6nEEFtv+uuJFP2O5eQH70msgCU
+         NhHbZv9+3DGvf+Ibb5CIaCQLpqf8sJVjy1t6bBuU=
+Date:   Wed, 10 Nov 2021 18:42:02 -0800
 From:   akpm@linux-foundation.org
-To:     gustavoars@kernel.org, keescook@chromium.org, len.baker@gmx.com,
-        mm-commits@vger.kernel.org
+To:     arnd@arndb.de, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        songmuchun@bytedance.com, vvs@virtuozzo.com
 Subject:  [merged]
- mm-list_lruc-prefer-struct_size-over-open-coded-arithmetic.patch removed
- from -mm tree
-Message-ID: <20211111024200.YC_UO4MTd%akpm@linux-foundation.org>
+ memcg-kmem-further-deprecate-kmemlimit_in_bytes.patch removed from -mm tree
+Message-ID: <20211111024202._hCcsqlLS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,77 +39,154 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/list_lru.c: prefer struct_size over open coded arithmetic
+     Subject: memcg, kmem: further deprecate kmem.limit_in_bytes
 has been removed from the -mm tree.  Its filename was
-     mm-list_lruc-prefer-struct_size-over-open-coded-arithmetic.patch
+     memcg-kmem-further-deprecate-kmemlimit_in_bytes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Len Baker <len.baker@gmx.com>
-Subject: mm/list_lru.c: prefer struct_size over open coded arithmetic
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg, kmem: further deprecate kmem.limit_in_bytes
 
-As noted in the "Deprecated Interfaces, Language Features, Attributes, and
-Conventions" documentation [1], size calculations (especially
-multiplication) should not be performed in memory allocator (or similar)
-function arguments due to the risk of them overflowing.  This could lead
-to values wrapping around and a smaller allocation being made than the
-caller was expecting.  Using those allocations could lead to linear
-overflows of heap memory and other misbehaviors.
+The deprecation process of kmem.limit_in_bytes started with the commit
+0158115f702 ("memcg, kmem: deprecate kmem.limit_in_bytes") which also
+explains in detail the motivation behind the deprecation.  To summarize,
+it is the unexpected behavior on hitting the kmem limit.  This patch moves
+the deprecation process to the next stage by disallowing to set the kmem
+limit.  In future we might just remove the kmem.limit_in_bytes file
+completely.
 
-So, use the struct_size() helper to do the arithmetic instead of the
-argument "size + count * size" in the kvmalloc() functions.
-
-Also, take the opportunity to refactor the memcpy() call to use the
-flex_array_size() helper.
-
-This code was detected with the help of Coccinelle and audited and fixed
-manually.
-
-[1] https://www.kernel.org/doc/html/latest/process/deprecated.html#open-coded-arithmetic-in-allocator-arguments
-
-Link: https://lkml.kernel.org/r/20211017105929.9284-1-len.baker@gmx.com
-Signed-off-by: Len Baker <len.baker@gmx.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
+[akpm@linux-foundation.org: s/ENOTSUPP/EOPNOTSUPP/]
+[arnd@arndb.de: mark cancel_charge() inline]
+  Link: https://lkml.kernel.org/r/20211022070542.679839-1-arnd@kernel.org
+Link: https://lkml.kernel.org/r/20211019153408.2916808-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Roman Gushchin <guro@fb.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Vasily Averin <vvs@virtuozzo.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ Documentation/admin-guide/cgroup-v1/memory.rst |   11 ----
+ mm/memcontrol.c                                |   39 +--------------
+ 2 files changed, 7 insertions(+), 43 deletions(-)
 
---- a/mm/list_lru.c~mm-list_lruc-prefer-struct_size-over-open-coded-arithmetic
-+++ a/mm/list_lru.c
-@@ -354,8 +354,7 @@ static int memcg_init_list_lru_node(stru
- 	struct list_lru_memcg *memcg_lrus;
- 	int size = memcg_nr_cache_ids;
+--- a/Documentation/admin-guide/cgroup-v1/memory.rst~memcg-kmem-further-deprecate-kmemlimit_in_bytes
++++ a/Documentation/admin-guide/cgroup-v1/memory.rst
+@@ -87,10 +87,8 @@ Brief summary of control files.
+  memory.oom_control		     set/show oom controls.
+  memory.numa_stat		     show the number of memory usage per numa
+ 				     node
+- memory.kmem.limit_in_bytes          set/show hard limit for kernel memory
+-                                     This knob is deprecated and shouldn't be
+-                                     used. It is planned that this be removed in
+-                                     the foreseeable future.
++ memory.kmem.limit_in_bytes          This knob is deprecated and writing to
++                                     it will return -ENOTSUPP.
+  memory.kmem.usage_in_bytes          show current kernel memory allocation
+  memory.kmem.failcnt                 show the number of kernel memory usage
+ 				     hits limits
+@@ -518,11 +516,6 @@ will be charged as a new owner of it.
+   charged file caches. Some out-of-use page caches may keep charged until
+   memory pressure happens. If you want to avoid that, force_empty will be useful.
  
--	memcg_lrus = kvmalloc(sizeof(*memcg_lrus) +
--			      size * sizeof(void *), GFP_KERNEL);
-+	memcg_lrus = kvmalloc(struct_size(memcg_lrus, lru, size), GFP_KERNEL);
- 	if (!memcg_lrus)
- 		return -ENOMEM;
+-  Also, note that when memory.kmem.limit_in_bytes is set the charges due to
+-  kernel pages will still be seen. This is not considered a failure and the
+-  write will still return success. In this case, it is expected that
+-  memory.kmem.usage_in_bytes == memory.usage_in_bytes.
+-
+ 5.2 stat file
+ -------------
  
-@@ -389,7 +388,7 @@ static int memcg_update_list_lru_node(st
+--- a/mm/memcontrol.c~memcg-kmem-further-deprecate-kmemlimit_in_bytes
++++ a/mm/memcontrol.c
+@@ -2771,8 +2771,7 @@ static inline int try_charge(struct mem_
+ 	return try_charge_memcg(memcg, gfp_mask, nr_pages);
+ }
  
- 	old = rcu_dereference_protected(nlru->memcg_lrus,
- 					lockdep_is_held(&list_lrus_mutex));
--	new = kvmalloc(sizeof(*new) + new_size * sizeof(void *), GFP_KERNEL);
-+	new = kvmalloc(struct_size(new, lru, new_size), GFP_KERNEL);
- 	if (!new)
- 		return -ENOMEM;
+-#if defined(CONFIG_MEMCG_KMEM) || defined(CONFIG_MMU)
+-static void cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages)
++static inline void cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages)
+ {
+ 	if (mem_cgroup_is_root(memcg))
+ 		return;
+@@ -2781,7 +2780,6 @@ static void cancel_charge(struct mem_cgr
+ 	if (do_memsw_account())
+ 		page_counter_uncharge(&memcg->memsw, nr_pages);
+ }
+-#endif
  
-@@ -398,7 +397,7 @@ static int memcg_update_list_lru_node(st
- 		return -ENOMEM;
- 	}
+ static void commit_charge(struct page *page, struct mem_cgroup *memcg)
+ {
+@@ -3000,7 +2998,6 @@ static void obj_cgroup_uncharge_pages(st
+ static int obj_cgroup_charge_pages(struct obj_cgroup *objcg, gfp_t gfp,
+ 				   unsigned int nr_pages)
+ {
+-	struct page_counter *counter;
+ 	struct mem_cgroup *memcg;
+ 	int ret;
  
--	memcpy(&new->lru, &old->lru, old_size * sizeof(void *));
-+	memcpy(&new->lru, &old->lru, flex_array_size(new, lru, old_size));
+@@ -3010,21 +3007,8 @@ static int obj_cgroup_charge_pages(struc
+ 	if (ret)
+ 		goto out;
  
- 	/*
- 	 * The locking below allows readers that hold nlru->lock avoid taking
+-	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) &&
+-	    !page_counter_try_charge(&memcg->kmem, nr_pages, &counter)) {
+-
+-		/*
+-		 * Enforce __GFP_NOFAIL allocation because callers are not
+-		 * prepared to see failures and likely do not have any failure
+-		 * handling code.
+-		 */
+-		if (gfp & __GFP_NOFAIL) {
+-			page_counter_charge(&memcg->kmem, nr_pages);
+-			goto out;
+-		}
+-		cancel_charge(memcg, nr_pages);
+-		ret = -ENOMEM;
+-	}
++	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
++		page_counter_charge(&memcg->kmem, nr_pages);
+ out:
+ 	css_put(&memcg->css);
+ 
+@@ -3714,17 +3698,6 @@ static void memcg_offline_kmem(struct me
+ }
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+-static int memcg_update_kmem_max(struct mem_cgroup *memcg,
+-				 unsigned long max)
+-{
+-	int ret;
+-
+-	mutex_lock(&memcg_max_mutex);
+-	ret = page_counter_set_max(&memcg->kmem, max);
+-	mutex_unlock(&memcg_max_mutex);
+-	return ret;
+-}
+-
+ static int memcg_update_tcp_max(struct mem_cgroup *memcg, unsigned long max)
+ {
+ 	int ret;
+@@ -3790,10 +3763,8 @@ static ssize_t mem_cgroup_write(struct k
+ 			ret = mem_cgroup_resize_max(memcg, nr_pages, true);
+ 			break;
+ 		case _KMEM:
+-			pr_warn_once("kmem.limit_in_bytes is deprecated and will be removed. "
+-				     "Please report your usecase to linux-mm@kvack.org if you "
+-				     "depend on this functionality.\n");
+-			ret = memcg_update_kmem_max(memcg, nr_pages);
++			/* kmem.limit_in_bytes is deprecated. */
++			ret = -EOPNOTSUPP;
+ 			break;
+ 		case _TCP:
+ 			ret = memcg_update_tcp_max(memcg, nr_pages);
 _
 
-Patches currently in -mm which might be from len.baker@gmx.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
 
