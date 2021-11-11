@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EC633C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1952BC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:43:02 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D41DE611F2
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:58 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 01F8760F46
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:43:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234187AbhKKCpq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:45:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51032 "EHLO mail.kernel.org"
+        id S233493AbhKKCpt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:45:49 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51060 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234183AbhKKCpq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:45:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9626361108;
-        Thu, 11 Nov 2021 02:42:57 +0000 (UTC)
+        id S234183AbhKKCpr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:45:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8C5C36113B;
+        Thu, 11 Nov 2021 02:42:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598577;
-        bh=leX+/lq5AiZi8NZ7Xd5X7ZHKcluSO0KfAnh3Fluoq70=;
+        s=korg; t=1636598579;
+        bh=AqNjxVKfDTkGU7RYrzQcxoG58TyGj4xslLTgKt+r8uM=;
         h=Date:From:To:Subject:From;
-        b=IoPekTuJzhnKmbVfB/WNdTha2qi4L3+9IcmxhRrZxPRJhJyo18/QaNh7Zy/onndzU
-         G5EYHFLlZBQAYn7cy0DLBYNfYwoKZBJPNKVS7/HYnBuYEXimszJmfRJAtKt7j6Sp9S
-         AKDOm16SH6omfAPLzGJ6/3I4wvEHdcDE+ZMZG3nY=
-Date:   Wed, 10 Nov 2021 18:42:57 -0800
+        b=z1Bf8R6lBvMfGsqQUMyWNnZlVyDvDb+NnyCK2fR2q6sQiVuAqVy7gfdBFCGlBSuAb
+         JvWJ1Ri2Itys44TbJa7zLvUan8XvaraXdovjM80d0gCaypuBWa8VNFDZI9V2o8DTJg
+         XUItpJooq+exnsqtqevgdt+fupda7VPvkPKlg1AA=
+Date:   Wed, 10 Nov 2021 18:42:59 -0800
 From:   akpm@linux-foundation.org
-To:     dave.hansen@linux.intel.com, david@redhat.com,
-        lukas.bulwahn@gmail.com, mhocko@suse.com,
+To:     akpm@linux-foundation.org, liu.song11@zte.com.cn,
         mm-commits@vger.kernel.org
-Subject:  [merged] memory-remove-unused-config_mem_block_size.patch
- removed from -mm tree
-Message-ID: <20211111024257.NlLoJd1DT%akpm@linux-foundation.org>
+Subject:  [merged]
+ mm-mprotectc-avoid-repeated-assignment-in-do_mprotect_pkey.patch removed
+ from -mm tree
+Message-ID: <20211111024259.Qkb7iquB5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,48 +39,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory: remove unused CONFIG_MEM_BLOCK_SIZE
+     Subject: mm/mprotect.c: avoid repeated assignment in do_mprotect_pkey()
 has been removed from the -mm tree.  Its filename was
-     memory-remove-unused-config_mem_block_size.patch
+     mm-mprotectc-avoid-repeated-assignment-in-do_mprotect_pkey.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Subject: memory: remove unused CONFIG_MEM_BLOCK_SIZE
+From: Liu Song <liu.song11@zte.com.cn>
+Subject: mm/mprotect.c: avoid repeated assignment in do_mprotect_pkey()
 
-Commit 3947be1969a9 ("[PATCH] memory hotplug: sysfs and add/remove
-functions") defines CONFIG_MEM_BLOCK_SIZE, but this has never been
-utilized anywhere.
+After adjustment, the repeated assignment of "prev" is avoided, and the
+readability of the code is improved.
 
-It is a good practice to keep the CONFIG_* defines exclusively for the
-Kbuild system.  So, drop this unused definition.
-
-This issue was noticed due to running ./scripts/checkkconfigsymbols.py.
-
-Link: https://lkml.kernel.org/r/20211006120354.7468-1-lukas.bulwahn@gmail.com
-Signed-off-by: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Link: https://lkml.kernel.org/r/20211012152444.4127-1-fishland@aliyun.com
+Reviewed-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Liu Song <liu.song11@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/mprotect.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/linux/memory.h~memory-remove-unused-config_mem_block_size
-+++ a/include/linux/memory.h
-@@ -140,7 +140,6 @@ typedef int (*walk_memory_blocks_func_t)
- extern int walk_memory_blocks(unsigned long start, unsigned long size,
- 			      void *arg, walk_memory_blocks_func_t func);
- extern int for_each_memory_block(void *arg, walk_memory_blocks_func_t func);
--#define CONFIG_MEM_BLOCK_SIZE	(PAGES_PER_SECTION<<PAGE_SHIFT)
+--- a/mm/mprotect.c~mm-mprotectc-avoid-repeated-assignment-in-do_mprotect_pkey
++++ a/mm/mprotect.c
+@@ -563,7 +563,7 @@ static int do_mprotect_pkey(unsigned lon
+ 	error = -ENOMEM;
+ 	if (!vma)
+ 		goto out;
+-	prev = vma->vm_prev;
++
+ 	if (unlikely(grows & PROT_GROWSDOWN)) {
+ 		if (vma->vm_start >= end)
+ 			goto out;
+@@ -581,8 +581,11 @@ static int do_mprotect_pkey(unsigned lon
+ 				goto out;
+ 		}
+ 	}
++
+ 	if (start > vma->vm_start)
+ 		prev = vma;
++	else
++		prev = vma->vm_prev;
  
- extern int memory_group_register_static(int nid, unsigned long max_pages);
- extern int memory_group_register_dynamic(int nid, unsigned long unit_pages);
+ 	for (nstart = start ; ; ) {
+ 		unsigned long mask_off_old_flags;
 _
 
-Patches currently in -mm which might be from lukas.bulwahn@gmail.com are
+Patches currently in -mm which might be from liu.song11@zte.com.cn are
 
 
