@@ -2,35 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07DB9C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A6846C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E641B61354
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:42 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9246D61284
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234389AbhKKCta (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:49:30 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54284 "EHLO mail.kernel.org"
+        id S234392AbhKKCte (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:49:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54314 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234346AbhKKCta (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:49:30 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B92E861247;
-        Thu, 11 Nov 2021 02:46:41 +0000 (UTC)
+        id S234346AbhKKCtd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:49:33 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id EFD586103C;
+        Thu, 11 Nov 2021 02:46:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598801;
-        bh=bQdU8zV7boEjhCCb24eicFwsgfZwYL5/O/z9Ao1eIEM=;
+        s=korg; t=1636598805;
+        bh=QRli3MnSNQt3e3Lk9eFRTDrEPXMPYs2vyDi3GD8MUus=;
         h=Date:From:To:Subject:From;
-        b=kl9sdfeaVBjIXbjHygVqZMw+SBH9P9evQ/Vjl9k9KD7IPM6Es23RFr5R0EW6zAS57
-         Hh2/QwM6UGfHpeHYzeE5yd60JlzMNUfdSkAkMTe3Q9fJwFTyjkgtzoWcZF7yNuBY7b
-         va5klcwGx7eNqJVZHDiH9xjhMjb68R3rNRWiFir0=
-Date:   Wed, 10 Nov 2021 18:46:41 -0800
+        b=DnD9iQzU6y0wSMzLAN1MF4jBdJGlhQzyVXXVuTqQEXg7thFb+sq24y5EjpdkDUkWn
+         /OQlMJi5b0ZE62keNIGnSt9wk4QUymS/JK8B+ZOR8lAHrilt8eA4Dz8aBvBpM7s/pR
+         qBk+G9BnQZxfXQCdhdh7/sXNefXJtqt/lB0KDPZc=
+Date:   Wed, 10 Nov 2021 18:46:44 -0800
 From:   akpm@linux-foundation.org
-To:     davis.george@siemens.com, erosca@de.adit-jv.com, koct9i@gmail.com,
-        mm-commits@vger.kernel.org, skhan@linuxfoundation.org
+To:     cfijalkovich@google.com, hughd@google.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, rongwei.wang@linux.alibaba.com,
+        shy828301@gmail.com, song@kernel.org, stable@vger.kernel.org,
+        william.kucharski@oracle.com, willy@infradead.org,
+        xuyu@linux.alibaba.com
 Subject:  [merged]
- selftests-vm-transhuge-stress-fix-ram-size-thinko.patch removed from -mm
- tree
-Message-ID: <20211111024641.Btm-JA59P%akpm@linux-foundation.org>
+ mm-thp-lock-filemap-when-truncating-page-cache.patch removed from -mm tree
+Message-ID: <20211111024644.gPQXzoBKh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,55 +41,124 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/vm/transhuge-stress: fix ram size thinko
+     Subject: mm, thp: lock filemap when truncating page cache
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-transhuge-stress-fix-ram-size-thinko.patch
+     mm-thp-lock-filemap-when-truncating-page-cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "George G. Davis" <davis.george@siemens.com>
-Subject: selftests/vm/transhuge-stress: fix ram size thinko
+From: Rongwei Wang <rongwei.wang@linux.alibaba.com>
+Subject: mm, thp: lock filemap when truncating page cache
 
-When executing transhuge-stress with an argument to specify the virtual
-memory size for testing, the ram size is reported as 0, e.g.
+Patch series "fix two bugs for file THP".
 
-transhuge-stress 384
-thp-mmap: allocate 192 transhuge pages, using 384 MiB virtual memory and 0 MiB of ram
-thp-mmap: 0.184 s/loop, 0.957 ms/page,   2090.265 MiB/s  192 succeed,    0 failed
 
-This appears to be due to a thinko in commit 0085d61fe05e
-("selftests/vm/transhuge-stress: stress test for memory compaction"),
-where, at a guess, the intent was to base "xyz MiB of ram" on `ram` size. 
-Here are results after using `ram` size:
+This patch (of 2):
 
-thp-mmap: allocate 192 transhuge pages, using 384 MiB virtual memory and 14 MiB of ram
+Transparent huge page has supported read-only non-shmem files.  The file-
+backed THP is collapsed by khugepaged and truncated when written (for
+shared libraries).
 
-Link: https://lkml.kernel.org/r/20210825135843.29052-1-george_davis@mentor.com
-Fixes: 0085d61fe05e ("selftests/vm/transhuge-stress: stress test for memory compaction")
-Signed-off-by: George G. Davis <davis.george@siemens.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Eugeniu Rosca <erosca@de.adit-jv.com>
-Cc: Shuah Khan <skhan@linuxfoundation.org>
+However, there is a race when multiple writers truncate the same page
+cache concurrently.
+
+In that case, subpage(s) of file THP can be revealed by find_get_entry in
+truncate_inode_pages_range, which will trigger PageTail BUG_ON in
+truncate_inode_page, as follows.
+
+page:000000009e420ff2 refcount:1 mapcount:0 mapping:0000000000000000 index:0x7ff pfn:0x50c3ff
+head:0000000075ff816d order:9 compound_mapcount:0 compound_pincount:0
+flags: 0x37fffe0000010815(locked|uptodate|lru|arch_1|head)
+raw: 37fffe0000000000 fffffe0013108001 dead000000000122 dead000000000400
+raw: 0000000000000001 0000000000000000 00000000ffffffff 0000000000000000
+head: 37fffe0000010815 fffffe001066bd48 ffff000404183c20 0000000000000000
+head: 0000000000000600 0000000000000000 00000001ffffffff ffff000c0345a000
+page dumped because: VM_BUG_ON_PAGE(PageTail(page))
+------------[ cut here ]------------
+kernel BUG at mm/truncate.c:213!
+Internal error: Oops - BUG: 0 [#1] SMP
+Modules linked in: xfs(E) libcrc32c(E) rfkill(E) ...
+CPU: 14 PID: 11394 Comm: check_madvise_d Kdump: ...
+Hardware name: ECS, BIOS 0.0.0 02/06/2015
+pstate: 60400005 (nZCv daif +PAN -UAO -TCO BTYPE=--)
+pc : truncate_inode_page+0x64/0x70
+lr : truncate_inode_page+0x64/0x70
+sp : ffff80001b60b900
+x29: ffff80001b60b900 x28: 00000000000007ff
+x27: ffff80001b60b9a0 x26: 0000000000000000
+x25: 000000000000000f x24: ffff80001b60b9a0
+x23: ffff80001b60ba18 x22: ffff0001e0999ea8
+x21: ffff0000c21db300 x20: ffffffffffffffff
+x19: fffffe001310ffc0 x18: 0000000000000020
+x17: 0000000000000000 x16: 0000000000000000
+x15: ffff0000c21db960 x14: 3030306666666620
+x13: 6666666666666666 x12: 3130303030303030
+x11: ffff8000117b69b8 x10: 00000000ffff8000
+x9 : ffff80001012690c x8 : 0000000000000000
+x7 : ffff8000114f69b8 x6 : 0000000000017ffd
+x5 : ffff0007fffbcbc8 x4 : ffff80001b60b5c0
+x3 : 0000000000000001 x2 : 0000000000000000
+x1 : 0000000000000000 x0 : 0000000000000000
+Call trace:
+ truncate_inode_page+0x64/0x70
+ truncate_inode_pages_range+0x550/0x7e4
+ truncate_pagecache+0x58/0x80
+ do_dentry_open+0x1e4/0x3c0
+ vfs_open+0x38/0x44
+ do_open+0x1f0/0x310
+ path_openat+0x114/0x1dc
+ do_filp_open+0x84/0x134
+ do_sys_openat2+0xbc/0x164
+ __arm64_sys_openat+0x74/0xc0
+ el0_svc_common.constprop.0+0x88/0x220
+ do_el0_svc+0x30/0xa0
+ el0_svc+0x20/0x30
+ el0_sync_handler+0x1a4/0x1b0
+ el0_sync+0x180/0x1c0
+Code: aa0103e0 900061e1 910ec021 9400d300 (d4210000)
+---[ end trace f70cdb42cb7c2d42 ]---
+Kernel panic - not syncing: Oops - BUG: Fatal exception
+
+This patch mainly to lock filemap when one enter truncate_pagecache(),
+avoiding truncating the same page cache concurrently.
+
+Link: https://lkml.kernel.org/r/20211025092134.18562-1-rongwei.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/20211025092134.18562-2-rongwei.wang@linux.alibaba.com
+Fixes: eb6ecbed0aa2 ("mm, thp: relax the VM_DENYWRITE constraint on file-backed THPs")
+Signed-off-by: Xu Yu <xuyu@linux.alibaba.com>
+Signed-off-by: Rongwei Wang <rongwei.wang@linux.alibaba.com>
+Suggested-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Tested-by: Song Liu <song@kernel.org>
+Cc: Collin Fijalkovich <cfijalkovich@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/transhuge-stress.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/open.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/transhuge-stress.c~selftests-vm-transhuge-stress-fix-ram-size-thinko
-+++ a/tools/testing/selftests/vm/transhuge-stress.c
-@@ -79,7 +79,7 @@ int main(int argc, char **argv)
+--- a/fs/open.c~mm-thp-lock-filemap-when-truncating-page-cache
++++ a/fs/open.c
+@@ -856,8 +856,11 @@ static int do_dentry_open(struct file *f
+ 		 * of THPs into the page cache will fail.
+ 		 */
+ 		smp_mb();
+-		if (filemap_nr_thps(inode->i_mapping))
++		if (filemap_nr_thps(inode->i_mapping)) {
++			filemap_invalidate_lock(inode->i_mapping);
+ 			truncate_pagecache(inode, 0);
++			filemap_invalidate_unlock(inode->i_mapping);
++		}
+ 	}
  
- 	warnx("allocate %zd transhuge pages, using %zd MiB virtual memory"
- 	      " and %zd MiB of ram", len >> HPAGE_SHIFT, len >> 20,
--	      len >> (20 + HPAGE_SHIFT - PAGE_SHIFT - 1));
-+	      ram >> (20 + HPAGE_SHIFT - PAGE_SHIFT - 1));
- 
- 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
- 	if (pagemap_fd < 0)
+ 	return 0;
 _
 
-Patches currently in -mm which might be from davis.george@siemens.com are
+Patches currently in -mm which might be from rongwei.wang@linux.alibaba.com are
 
 
