@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99C07C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A638C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:46 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 811C26113B
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:43 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 421EB61208
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234146AbhKKCpb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:45:31 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50780 "EHLO mail.kernel.org"
+        id S234180AbhKKCpd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:45:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50818 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234197AbhKKCp2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:45:28 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B9EDA60F46;
-        Thu, 11 Nov 2021 02:42:39 +0000 (UTC)
+        id S234174AbhKKCpb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:45:31 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B655861108;
+        Thu, 11 Nov 2021 02:42:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598560;
-        bh=7Ou+OytPhRpETJnBWzQYqYwTH5SYm7vCXxoQ1v5jDoo=;
+        s=korg; t=1636598563;
+        bh=fZ9oMQVtJZJSwkVpbeD/uyNRrGuX5MZXIC8mPj7fte4=;
         h=Date:From:To:Subject:From;
-        b=KmXuYXLVp6u/azM1vW9yt+OUV76BXl3nkBBny83ThGAENLncsyr4yn/oQuryXgXJB
-         nz4slvZev6G2HYV1RgrJuueGwncIv+GwBbFJSj7X5JWFN6UaWz+07xPUhOHheVbSbf
-         i2HriPLDWzDb2xh8zJMQylI7PFASMha+v8vii3vo=
-Date:   Wed, 10 Nov 2021 18:42:39 -0800
+        b=qRDyKrdqXqQFwflNfMYMwLVY8BrjrFMxGPidWVazQSSQDkpQTxArY6FZV6/2wn4Pw
+         iYIc+1bSaMY+gpaQdxsfvtCL7kGgYBNgZmmqxc75SaDjyUY7xzN0SkL7vDkqPl5tja
+         NxhnpI+ST66e51DSwZgL9CsZ3fj/SEUq9McVfhsA=
+Date:   Wed, 10 Nov 2021 18:42:42 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, apopple@nvidia.com, axelrasmussen@google.com,
         david@redhat.com, hughd@google.com, jglisse@redhat.com,
@@ -32,8 +32,8 @@ To:     aarcange@redhat.com, apopple@nvidia.com, axelrasmussen@google.com,
         peterx@redhat.com, rppt@linux.vnet.ibm.com, shy828301@gmail.com,
         willy@infradead.org
 Subject:  [merged]
- mm-clear-vmf-pte-after-pte_unmap_same-returns.patch removed from -mm tree
-Message-ID: <20211111024239.lwamDzFsI%akpm@linux-foundation.org>
+ mm-drop-first_index-last_index-in-zap_details.patch removed from -mm tree
+Message-ID: <20211111024242.I6m25TTNv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,83 +42,132 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: clear vmf->pte after pte_unmap_same() returns
+     Subject: mm: drop first_index/last_index in zap_details
 has been removed from the -mm tree.  Its filename was
-     mm-clear-vmf-pte-after-pte_unmap_same-returns.patch
+     mm-drop-first_index-last_index-in-zap_details.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm: clear vmf->pte after pte_unmap_same() returns
+Subject: mm: drop first_index/last_index in zap_details
 
-pte_unmap_same() will always unmap the pte pointer.  After the unmap,
-vmf->pte will not be valid any more, we should clear it.
+The first_index/last_index parameters in zap_details are actually only
+used in unmap_mapping_range_tree().  At the meantime, this function is
+only called by unmap_mapping_pages() once.  Instead of passing these two
+variables through the whole stack of page zapping code, remove them from
+zap_details and let them simply be parameters of
+unmap_mapping_range_tree(), which is inlined.
 
-It was safe only because no one is accessing vmf->pte after
-pte_unmap_same() returns, since the only caller of pte_unmap_same() (so
-far) is do_swap_page(), where vmf->pte will in most cases be overwritten
-very soon.
-
-Directly pass in vmf into pte_unmap_same() and then we can also avoid the
-long parameter list too, which should be a nice cleanup.
-
-Link: https://lkml.kernel.org/r/20210915181533.11188-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20210915181535.11238-1-peterx@redhat.com
 Signed-off-by: Peter Xu <peterx@redhat.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Alistair Popple <apopple@nvidia.com>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Liam Howlett <liam.howlett@oracle.com>
 Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
 Cc: "Kirill A . Shutemov" <kirill@shutemov.name>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Cc: Mike Rapoport <rppt@linux.vnet.ibm.com>
 Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/mm.h |    2 --
+ mm/memory.c        |   31 ++++++++++++++++++-------------
+ 2 files changed, 18 insertions(+), 15 deletions(-)
 
---- a/mm/memory.c~mm-clear-vmf-pte-after-pte_unmap_same-returns
-+++ a/mm/memory.c
-@@ -2728,19 +2728,19 @@ EXPORT_SYMBOL_GPL(apply_to_existing_page
-  * proceeding (but do_wp_page is only called after already making such a check;
-  * and do_anonymous_page can safely check later on).
+--- a/include/linux/mm.h~mm-drop-first_index-last_index-in-zap_details
++++ a/include/linux/mm.h
+@@ -1688,8 +1688,6 @@ extern void user_shm_unlock(size_t, stru
   */
--static inline int pte_unmap_same(struct mm_struct *mm, pmd_t *pmd,
--				pte_t *page_table, pte_t orig_pte)
-+static inline int pte_unmap_same(struct vm_fault *vmf)
- {
- 	int same = 1;
- #if defined(CONFIG_SMP) || defined(CONFIG_PREEMPTION)
- 	if (sizeof(pte_t) > sizeof(unsigned long)) {
--		spinlock_t *ptl = pte_lockptr(mm, pmd);
-+		spinlock_t *ptl = pte_lockptr(vmf->vma->vm_mm, vmf->pmd);
- 		spin_lock(ptl);
--		same = pte_same(*page_table, orig_pte);
-+		same = pte_same(*vmf->pte, vmf->orig_pte);
- 		spin_unlock(ptl);
- 	}
- #endif
--	pte_unmap(page_table);
-+	pte_unmap(vmf->pte);
-+	vmf->pte = NULL;
- 	return same;
+ struct zap_details {
+ 	struct address_space *check_mapping;	/* Check page->mapping if set */
+-	pgoff_t	first_index;			/* Lowest page->index to unmap */
+-	pgoff_t last_index;			/* Highest page->index to unmap */
+ 	struct page *single_page;		/* Locked page to be unmapped */
+ };
+ 
+--- a/mm/memory.c~mm-drop-first_index-last_index-in-zap_details
++++ a/mm/memory.c
+@@ -3325,20 +3325,20 @@ static void unmap_mapping_range_vma(stru
  }
  
-@@ -3492,7 +3492,7 @@ vm_fault_t do_swap_page(struct vm_fault
- 	vm_fault_t ret = 0;
- 	void *shadow = NULL;
+ static inline void unmap_mapping_range_tree(struct rb_root_cached *root,
++					    pgoff_t first_index,
++					    pgoff_t last_index,
+ 					    struct zap_details *details)
+ {
+ 	struct vm_area_struct *vma;
+ 	pgoff_t vba, vea, zba, zea;
  
--	if (!pte_unmap_same(vma->vm_mm, vmf->pmd, vmf->pte, vmf->orig_pte))
-+	if (!pte_unmap_same(vmf))
- 		goto out;
+-	vma_interval_tree_foreach(vma, root,
+-			details->first_index, details->last_index) {
+-
++	vma_interval_tree_foreach(vma, root, first_index, last_index) {
+ 		vba = vma->vm_pgoff;
+ 		vea = vba + vma_pages(vma) - 1;
+-		zba = details->first_index;
++		zba = first_index;
+ 		if (zba < vba)
+ 			zba = vba;
+-		zea = details->last_index;
++		zea = last_index;
+ 		if (zea > vea)
+ 			zea = vea;
  
- 	entry = pte_to_swp_entry(vmf->orig_pte);
+@@ -3364,18 +3364,22 @@ void unmap_mapping_page(struct page *pag
+ {
+ 	struct address_space *mapping = page->mapping;
+ 	struct zap_details details = { };
++	pgoff_t	first_index;
++	pgoff_t	last_index;
+ 
+ 	VM_BUG_ON(!PageLocked(page));
+ 	VM_BUG_ON(PageTail(page));
+ 
++	first_index = page->index;
++	last_index = page->index + thp_nr_pages(page) - 1;
++
+ 	details.check_mapping = mapping;
+-	details.first_index = page->index;
+-	details.last_index = page->index + thp_nr_pages(page) - 1;
+ 	details.single_page = page;
+ 
+ 	i_mmap_lock_write(mapping);
+ 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root)))
+-		unmap_mapping_range_tree(&mapping->i_mmap, &details);
++		unmap_mapping_range_tree(&mapping->i_mmap, first_index,
++					 last_index, &details);
+ 	i_mmap_unlock_write(mapping);
+ }
+ 
+@@ -3395,16 +3399,17 @@ void unmap_mapping_pages(struct address_
+ 		pgoff_t nr, bool even_cows)
+ {
+ 	struct zap_details details = { };
++	pgoff_t	first_index = start;
++	pgoff_t	last_index = start + nr - 1;
+ 
+ 	details.check_mapping = even_cows ? NULL : mapping;
+-	details.first_index = start;
+-	details.last_index = start + nr - 1;
+-	if (details.last_index < details.first_index)
+-		details.last_index = ULONG_MAX;
++	if (last_index < first_index)
++		last_index = ULONG_MAX;
+ 
+ 	i_mmap_lock_write(mapping);
+ 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap.rb_root)))
+-		unmap_mapping_range_tree(&mapping->i_mmap, &details);
++		unmap_mapping_range_tree(&mapping->i_mmap, first_index,
++					 last_index, &details);
+ 	i_mmap_unlock_write(mapping);
+ }
+ EXPORT_SYMBOL_GPL(unmap_mapping_pages);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
