@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 97252C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:51:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09BB2C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:51:50 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7EDBD610A2
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:51:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E077A6103C
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:51:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234544AbhKKCyf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:54:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58290 "EHLO mail.kernel.org"
+        id S234545AbhKKCyh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:54:37 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58308 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232020AbhKKCye (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:54:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7992E60F26;
-        Thu, 11 Nov 2021 02:51:46 +0000 (UTC)
+        id S232020AbhKKCyg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:54:36 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7E2D2610A2;
+        Thu, 11 Nov 2021 02:51:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599106;
-        bh=PE4w675iifC4mvmbQFPGP4Xl5Ost1zOqTcyfO7hUph8=;
+        s=korg; t=1636599108;
+        bh=D5qfypbyI9jv102vuAkrcbDLjPYsR9yMFLNMa9Kccj8=;
         h=Date:From:To:Subject:From;
-        b=wVRuQXArEvPC4+a5dz0vKSBvmAPhEZ8iVRBzuGK4XGIn4naJsBfR38gjDeBB+6uCO
-         1VqIFaTXne8/OIGBDeXl+dItCGNMcIIvyzXzMkir20OO2B+k5QWvVldor+tXDL6Pq7
-         AYkwWlV9eJum/sX4IlseFE6p6Z2zcBOiJZ0np3XE=
-Date:   Wed, 10 Nov 2021 18:51:46 -0800
+        b=DDsi7t7828D53O/HXDIy/p1nQhiVFJ2+bb9HM/D01ekAWx2xvjw7DlQIrwqGK8EoG
+         RbNpGUnkZmUKfIA7+6peypJT0YbejTKSrmtcnLZ8BIQ9b1i0ptHp+1Im+e9lVZPPnC
+         3iEF+nrI3QYjZN/m8y2HStcZVmQh8LHGVYpHUHSo=
+Date:   Wed, 10 Nov 2021 18:51:48 -0800
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+To:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
 Subject:  [merged]
- generic-radix-tree-replace-kernelh-with-the-necessary-inclusions.patch
- removed from -mm tree
-Message-ID: <20211111025146.PRr0ztmHJ%akpm@linux-foundation.org>
+ kernelh-split-out-instruction-pointer-accessors.patch removed from -mm tree
+Message-ID: <20211111025148.XvapHVQ_k%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,45 +38,76 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/generic-radix-tree.h: replace kernel.h with the necessary inclusions
+     Subject: kernel.h: split out instruction pointer accessors
 has been removed from the -mm tree.  Its filename was
-     generic-radix-tree-replace-kernelh-with-the-necessary-inclusions.patch
+     kernelh-split-out-instruction-pointer-accessors.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: include/linux/generic-radix-tree.h: replace kernel.h with the necessary inclusions
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: kernel.h: split out instruction pointer accessors
 
-When kernel.h is used in the headers it adds a lot into dependency hell,
-especially when there are circular dependencies are involved.
+bottom_half.h needs _THIS_IP_ to be standalone, so split that and _RET_IP_
+out from kernel.h into the new instruction_pointer.h.  kernel.h directly
+needs them, so include it there and replace the include of kernel.h with
+this new file in bottom_half.h.
 
-Replace kernel.h inclusion with the list of what is really being used.
-
-[akpm@linux-foundation.org: include math.h for round_up()]
-Link: https://lkml.kernel.org/r/20211027150548.80042-1-andriy.shevchenko@linux.intel.com
+Link: https://lkml.kernel.org/r/20211028161248.45232-1-andriy.shevchenko@linux.intel.com
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/generic-radix-tree.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/bottom_half.h         |    2 +-
+ include/linux/instruction_pointer.h |    8 ++++++++
+ include/linux/kernel.h              |    4 +---
+ 3 files changed, 10 insertions(+), 4 deletions(-)
 
---- a/include/linux/generic-radix-tree.h~generic-radix-tree-replace-kernelh-with-the-necessary-inclusions
-+++ a/include/linux/generic-radix-tree.h
-@@ -38,8 +38,9 @@
+--- a/include/linux/bottom_half.h~kernelh-split-out-instruction-pointer-accessors
++++ a/include/linux/bottom_half.h
+@@ -2,7 +2,7 @@
+ #ifndef _LINUX_BH_H
+ #define _LINUX_BH_H
  
- #include <asm/page.h>
- #include <linux/bug.h>
 -#include <linux/kernel.h>
- #include <linux/log2.h>
-+#include <linux/math.h>
-+#include <linux/types.h>
++#include <linux/instruction_pointer.h>
+ #include <linux/preempt.h>
  
- struct genradix_root;
+ #if defined(CONFIG_PREEMPT_RT) || defined(CONFIG_TRACE_IRQFLAGS)
+--- /dev/null
++++ a/include/linux/instruction_pointer.h
+@@ -0,0 +1,8 @@
++/* SPDX-License-Identifier: GPL-2.0 */
++#ifndef _LINUX_INSTRUCTION_POINTER_H
++#define _LINUX_INSTRUCTION_POINTER_H
++
++#define _RET_IP_		(unsigned long)__builtin_return_address(0)
++#define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
++
++#endif /* _LINUX_INSTRUCTION_POINTER_H */
+--- a/include/linux/kernel.h~kernelh-split-out-instruction-pointer-accessors
++++ a/include/linux/kernel.h
+@@ -20,6 +20,7 @@
+ #include <linux/printk.h>
+ #include <linux/build_bug.h>
+ #include <linux/static_call_types.h>
++#include <linux/instruction_pointer.h>
+ #include <asm/byteorder.h>
  
+ #include <uapi/linux/kernel.h>
+@@ -53,9 +54,6 @@
+ }					\
+ )
+ 
+-#define _RET_IP_		(unsigned long)__builtin_return_address(0)
+-#define _THIS_IP_  ({ __label__ __here; __here: (unsigned long)&&__here; })
+-
+ /**
+  * upper_32_bits - return bits 32-63 of a number
+  * @n: the number we're accessing
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
 
