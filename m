@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCE7CC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 04:32:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EA3F9C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 04:32:35 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9A88C6103A
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 04:32:32 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D0E6461179
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 04:32:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231185AbhKKEfU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 23:35:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50458 "EHLO mail.kernel.org"
+        id S231226AbhKKEfX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 23:35:23 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229699AbhKKEfT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 23:35:19 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 51C3561052;
-        Thu, 11 Nov 2021 04:32:31 +0000 (UTC)
+        id S229699AbhKKEfX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 23:35:23 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 61317610A5;
+        Thu, 11 Nov 2021 04:32:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636605151;
-        bh=RhTLhkXBUI90daJaOhsfezBzBaO0CCNwMSx9EtaULqg=;
+        s=korg; t=1636605154;
+        bh=cOh6I4SwX9XQzbaMEbNLzKn6WGDfDjkAHtcRvOR2yFM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=v97opWIveB+7ww0ilimk8hNMFUYOeV04nGkQ8+0D4yzNYvJaEoi+k95sEvOEAEeSq
-         22mY5W2C8lfH4h0YgGAB4TraUtaTDCkwnEI5GkOvUcy0tA9ZMi7BCeM2z//8QY94qg
-         RV2gZobi/xuIrv0/FQmEUhZ6iq0Hn/tU5idTMykI=
-Date:   Wed, 10 Nov 2021 20:32:30 -0800
+        b=O0EIbzU17ANXmxu0eI0A9gCKCyVjT8xGU52xhWaiznBe8/rcZ7BZl38y8Wj4Sw2/C
+         Hu8rI4Xn6AvoBXqx/8xEfNgqKmoLTkaRCcg4+B6AW43kex7x723GpVWytIwAiY4kvI
+         QPkD8elA/BWY728eG3Fg1N7TQ/DvSLec3dQdoJCo=
+Date:   Wed, 10 Nov 2021 20:32:33 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, caoyixuan2019@email.szu.edu.cn,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 1/7] mm/page_owner.c: modify the type of argument
- "order" in some functions
-Message-ID: <20211111043230.QinNUBtCp%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bigeasy@linutronix.de, cl@linux.com,
+        iamjoonsoo.kim@lge.com, linux-mm@kvack.org, mingo@kernel.org,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, tglx@linutronix.de,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 2/7] mm: allow only SLUB on PREEMPT_RT
+Message-ID: <20211111043233.isiAxdgu6%akpm@linux-foundation.org>
 In-Reply-To: <20211110203204.37de96048c3279ab2da758a5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -38,104 +39,59 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
-Subject: mm/page_owner.c: modify the type of argument "order" in some functions
+From: Ingo Molnar <mingo@kernel.org>
+Subject: mm: allow only SLUB on PREEMPT_RT
 
-The type of "order" in struct page_owner is unsigned short.
-However, it is unsigned int in the following 3 functions:
-__reset_page_owner
-__set_page_owner_handle
-__set_page_owner_handle
+Memory allocators may disable interrupts or preemption as part of the
+allocation and freeing process.  For PREEMPT_RT it is important that these
+sections remain deterministic and short and therefore don't depend on the
+size of the memory to allocate/ free or the inner state of the algorithm.
 
-The type of "order" in argument list is unsigned int, which is
-inconsistent.
+Until v3.12-RT the SLAB allocator was an option but involved several
+changes to meet all the requirements.  The SLUB design fits better with
+PREEMPT_RT model and so the SLAB patches were dropped in the 3.12-RT
+patchset.  Comparing the two allocator, SLUB outperformed SLAB in both
+throughput (time needed to allocate and free memory) and the maximal
+latency of the system measured with cyclictest during hackbench.
 
-[akpm@linux-foundation.org: update include/linux/page_owner.h]
-Link: https://lkml.kernel.org/r/20211020125945.47792-1-caoyixuan2019@email.szu.edu.cn
-Signed-off-by: Yixuan Cao <caoyixuan2019@email.szu.edu.cn>
+SLOB was never evaluated since it was unlikely that it preforms better
+than SLAB.  During a quick test, the kernel crashed with SLOB enabled
+during boot.
+
+Disable SLAB and SLOB on PREEMPT_RT.
+
+[bigeasy@linutronix.de: commit description]
+Link: https://lkml.kernel.org/r/20211015210336.gen3tib33ig5q2md@linutronix.de
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_owner.h |   12 ++++++------
- mm/page_owner.c            |    6 +++---
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ init/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/page_owner.h~mm-page_ownerc-modify-the-type-of-argument-order-in-some-functions
-+++ a/include/linux/page_owner.h
-@@ -8,9 +8,9 @@
- extern struct static_key_false page_owner_inited;
- extern struct page_ext_operations page_owner_ops;
+--- a/init/Kconfig~mm-allow-only-slub-on-preempt_rt
++++ a/init/Kconfig
+@@ -1896,6 +1896,7 @@ choice
  
--extern void __reset_page_owner(struct page *page, unsigned int order);
-+extern void __reset_page_owner(struct page *page, unsigned short order);
- extern void __set_page_owner(struct page *page,
--			unsigned int order, gfp_t gfp_mask);
-+			unsigned short order, gfp_t gfp_mask);
- extern void __split_page_owner(struct page *page, unsigned int nr);
- extern void __folio_copy_owner(struct folio *newfolio, struct folio *old);
- extern void __set_page_owner_migrate_reason(struct page *page, int reason);
-@@ -18,14 +18,14 @@ extern void __dump_page_owner(const stru
- extern void pagetypeinfo_showmixedcount_print(struct seq_file *m,
- 					pg_data_t *pgdat, struct zone *zone);
- 
--static inline void reset_page_owner(struct page *page, unsigned int order)
-+static inline void reset_page_owner(struct page *page, unsigned short order)
- {
- 	if (static_branch_unlikely(&page_owner_inited))
- 		__reset_page_owner(page, order);
- }
- 
- static inline void set_page_owner(struct page *page,
--			unsigned int order, gfp_t gfp_mask)
-+			unsigned short order, gfp_t gfp_mask)
- {
- 	if (static_branch_unlikely(&page_owner_inited))
- 		__set_page_owner(page, order, gfp_mask);
-@@ -52,7 +52,7 @@ static inline void dump_page_owner(const
- 		__dump_page_owner(page);
- }
- #else
--static inline void reset_page_owner(struct page *page, unsigned int order)
-+static inline void reset_page_owner(struct page *page, unsigned short order)
- {
- }
- static inline void set_page_owner(struct page *page,
-@@ -60,7 +60,7 @@ static inline void set_page_owner(struct
- {
- }
- static inline void split_page_owner(struct page *page,
--			unsigned int order)
-+			unsigned short order)
- {
- }
- static inline void folio_copy_owner(struct folio *newfolio, struct folio *folio)
---- a/mm/page_owner.c~mm-page_ownerc-modify-the-type-of-argument-order-in-some-functions
-+++ a/mm/page_owner.c
-@@ -125,7 +125,7 @@ static noinline depot_stack_handle_t sav
- 	return handle;
- }
- 
--void __reset_page_owner(struct page *page, unsigned int order)
-+void __reset_page_owner(struct page *page, unsigned short order)
- {
- 	int i;
- 	struct page_ext *page_ext;
-@@ -149,7 +149,7 @@ void __reset_page_owner(struct page *pag
- 
- static inline void __set_page_owner_handle(struct page_ext *page_ext,
- 					depot_stack_handle_t handle,
--					unsigned int order, gfp_t gfp_mask)
-+					unsigned short order, gfp_t gfp_mask)
- {
- 	struct page_owner *page_owner;
- 	int i;
-@@ -169,7 +169,7 @@ static inline void __set_page_owner_hand
- 	}
- }
- 
--noinline void __set_page_owner(struct page *page, unsigned int order,
-+noinline void __set_page_owner(struct page *page, unsigned short order,
- 					gfp_t gfp_mask)
- {
- 	struct page_ext *page_ext = lookup_page_ext(page);
+ config SLAB
+ 	bool "SLAB"
++	depends on !PREEMPT_RT
+ 	select HAVE_HARDENED_USERCOPY_ALLOCATOR
+ 	help
+ 	  The regular slab allocator that is established and known to work
+@@ -1916,6 +1917,7 @@ config SLUB
+ config SLOB
+ 	depends on EXPERT
+ 	bool "SLOB (Simple Allocator)"
++	depends on !PREEMPT_RT
+ 	help
+ 	   SLOB replaces the stock allocator with a drastically simpler
+ 	   allocator. SLOB is generally more space efficient but
 _
