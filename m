@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87AC3C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 740BBC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6F8C061208
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5CC9C6113B
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234332AbhKKCrh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:47:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52624 "EHLO mail.kernel.org"
+        id S234337AbhKKCrl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:47:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52672 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234044AbhKKCrg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:47:36 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E8D3961108;
-        Thu, 11 Nov 2021 02:44:47 +0000 (UTC)
+        id S234334AbhKKCrj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:47:39 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B79A760F46;
+        Thu, 11 Nov 2021 02:44:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598688;
-        bh=aieFeqYDGVsCXi6ghummS3AQaMqXL83fNvoari+ZA9A=;
+        s=korg; t=1636598691;
+        bh=bOWiVHC4BGJ6uoY39pzwT3t2CuFKuI3X4VGwJrJhU6Y=;
         h=Date:From:To:Subject:From;
-        b=TTPdhR6uCPcdVCKN0X7qOJgM6Fsjqcf7gcHLxGwpJWue5ti24Yrf0qH/SPi6JQCSk
-         u87gdFhnn+PN2bK8EHXZsk7oJMZLmdusdk+ZFUNMU1ZskzoOqq13ss24xTlOCKH0+Z
-         oT6cOn6vZQ88dZQxYkGVu8vxTKDP4iHNxcV3T1bA=
-Date:   Wed, 10 Nov 2021 18:44:47 -0800
+        b=jM0ZA1/17K03YdPOZeMY9mf8oYRVvOO9e4emjCGJoYwsa1VnF5o5vt/8c42tI5Rdc
+         bBmXWWK4fYHtk1B+Pl9NMUDa0bU7fTeVgS7TJvCTGTgXXOlrjV96ZARVeKlogabRGh
+         szONnRGnxkji9T+RdLUgOdMqO4tl8DoiB1Fwr7Fs=
+Date:   Wed, 10 Nov 2021 18:44:50 -0800
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, david@redhat.com, mhocko@suse.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         naoya.horiguchi@linux.dev, nghialm78@gmail.com, osalvador@suse.de,
         rientjes@google.com, songmuchun@bytedance.com, ziy@nvidia.com
 Subject:  [merged]
- hugetlb-add-demote-hugetlb-page-sysfs-interfaces.patch removed from -mm
- tree
-Message-ID: <20211111024447.3otU10oNd%akpm@linux-foundation.org>
+ mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma.patch removed
+ from -mm tree
+Message-ID: <20211111024450.hTRophyFT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,404 +41,99 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: add demote hugetlb page sysfs interfaces
+     Subject: mm/cma: add cma_pages_valid to determine if pages are in CMA
 has been removed from the -mm tree.  Its filename was
-     hugetlb-add-demote-hugetlb-page-sysfs-interfaces.patch
+     mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: add demote hugetlb page sysfs interfaces
+Subject: mm/cma: add cma_pages_valid to determine if pages are in CMA
 
-Patch series "hugetlb: add demote/split page functionality", v4.
+Add new interface cma_pages_valid() which indicates if the specified pages
+are part of a CMA region.  This interface will be used in a subsequent
+patch by hugetlb code.
 
-The concurrent use of multiple hugetlb page sizes on a single system is
-becoming more common.  One of the reasons is better TLB support for
-gigantic page sizes on x86 hardware.  In addition, hugetlb pages are being
-used to back VMs in hosting environments.
+In order to keep the same amount of DEBUG information, a pr_debug() call
+was added to cma_pages_valid().  In the case where the page passed to
+cma_release is not in cma region, the debug message will be printed from
+cma_pages_valid as opposed to cma_release.
 
-When using hugetlb pages to back VMs, it is often desirable to preallocate
-hugetlb pools.  This avoids the delay and uncertainty of allocating
-hugetlb pages at VM startup.  In addition, preallocating huge pages
-minimizes the issue of memory fragmentation that increases the longer the
-system is up and running.
-
-In such environments, a combination of larger and smaller hugetlb pages
-are preallocated in anticipation of backing VMs of various sizes.  Over
-time, the preallocated pool of smaller hugetlb pages may become depleted
-while larger hugetlb pages still remain.  In such situations, it is
-desirable to convert larger hugetlb pages to smaller hugetlb pages.
-
-Converting larger to smaller hugetlb pages can be accomplished today by
-first freeing the larger page to the buddy allocator and then allocating
-the smaller pages.  For example, to convert 50 GB pages on x86:
-gb_pages=`cat .../hugepages-1048576kB/nr_hugepages`
-m2_pages=`cat .../hugepages-2048kB/nr_hugepages`
-echo $(($gb_pages - 50)) > .../hugepages-1048576kB/nr_hugepages
-echo $(($m2_pages + 25600)) > .../hugepages-2048kB/nr_hugepages
-
-On an idle system this operation is fairly reliable and results are as
-expected.  The number of 2MB pages is increased as expected and the time
-of the operation is a second or two.
-
-However, when there is activity on the system the following issues
-arise:
-1) This process can take quite some time, especially if allocation of
-   the smaller pages is not immediate and requires migration/compaction.
-2) There is no guarantee that the total size of smaller pages allocated
-   will match the size of the larger page which was freed.  This is
-   because the area freed by the larger page could quickly be
-   fragmented.
-In a test environment with a load that continually fills the page cache
-with clean pages, results such as the following can be observed:
-
-Unexpected number of 2MB pages allocated: Expected 25600, have 19944
-real    0m42.092s
-user    0m0.008s
-sys     0m41.467s
-
-To address these issues, introduce the concept of hugetlb page demotion. 
-Demotion provides a means of 'in place' splitting of a hugetlb page to
-pages of a smaller size.  This avoids freeing pages to buddy and then
-trying to allocate from buddy.
-
-Page demotion is controlled via sysfs files that reside in the per-hugetlb
-page size and per node directories.
-- demote_size   Target page size for demotion, a smaller huge page size.
-		File can be written to chose a smaller huge page size if
-		multiple are available.
-- demote        Writable number of hugetlb pages to be demoted
-
-To demote 50 GB huge pages, one would:
-cat .../hugepages-1048576kB/free_hugepages   /* optional, verify free pages */
-cat .../hugepages-1048576kB/demote_size      /* optional, verify target size */
-echo 50 > .../hugepages-1048576kB/demote
-
-Only hugetlb pages which are free at the time of the request can be
-demoted.  Demotion does not add to the complexity of surplus pages and
-honors reserved huge pages.  Therefore, when a value is written to the
-sysfs demote file, that value is only the maximum number of pages which
-will be demoted.  It is possible fewer will actually be demoted.  The
-recently introduced per-hstate mutex is used to synchronize demote
-operations with other operations that modify hugetlb pools.
-
-Real world use cases
---------------------
-The above scenario describes a real world use case where hugetlb pages are
-used to back VMs on x86.  Both issues of long allocation times and not
-necessarily getting the expected number of smaller huge pages after a free
-and allocate cycle have been experienced.  The occurrence of these issues
-is dependent on other activity within the host and can not be predicted.
-
-
-This patch (of 5):
-
-Two new sysfs files are added to demote hugtlb pages.  These files are
-both per-hugetlb page size and per node.  Files are:
-
-  demote_size - The size in Kb that pages are demoted to. (read-write)
-  demote - The number of huge pages to demote. (write-only)
-
-By default, demote_size is the next smallest huge page size.  Valid huge
-page sizes less than huge page size may be written to this file.  When
-huge pages are demoted, they are demoted to this size.
-
-Writing a value to demote will result in an attempt to demote that number
-of hugetlb pages to an appropriate number of demote_size pages.
-
-NOTE: Demote interfaces are only provided for huge page sizes if there is
-a smaller target demote huge page size.  For example, on x86 1GB huge
-pages will have demote interfaces.  2MB huge pages will not have demote
-interfaces.
-
-This patch does not provide full demote functionality.  It only provides
-the sysfs interfaces.
-
-It also provides documentation for the new interfaces.
-
-[mike.kravetz@oracle.com: n_mask initialization does not need to be protected by the mutex]
-  Link: https://lkml.kernel.org/r/0530e4ef-2492-5186-f919-5db68edea654@oracle.com
-Link: https://lkml.kernel.org/r/20211007181918.136982-2-mike.kravetz@oracle.com
-Link: https://lkml.kernel.org/r/20211007181918.136982-2-mike.kravetz@oracle.com
+Link: https://lkml.kernel.org/r/20211007181918.136982-3-mike.kravetz@oracle.com
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: David Hildenbrand <david@redhat.com>
+Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Zi Yan <ziy@nvidia.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
 Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
 Cc: Nghia Le <nghialm78@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/hugetlbpage.rst |   30 +++
- include/linux/hugetlb.h                      |    1 
- mm/hugetlb.c                                 |  155 ++++++++++++++++-
- 3 files changed, 183 insertions(+), 3 deletions(-)
+ include/linux/cma.h |    1 +
+ mm/cma.c            |   24 ++++++++++++++++++++----
+ 2 files changed, 21 insertions(+), 4 deletions(-)
 
---- a/Documentation/admin-guide/mm/hugetlbpage.rst~hugetlb-add-demote-hugetlb-page-sysfs-interfaces
-+++ a/Documentation/admin-guide/mm/hugetlbpage.rst
-@@ -234,8 +234,12 @@ will exist, of the form::
+--- a/include/linux/cma.h~mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma
++++ a/include/linux/cma.h
+@@ -46,6 +46,7 @@ extern int cma_init_reserved_mem(phys_ad
+ 					struct cma **res_cma);
+ extern struct page *cma_alloc(struct cma *cma, unsigned long count, unsigned int align,
+ 			      bool no_warn);
++extern bool cma_pages_valid(struct cma *cma, const struct page *pages, unsigned long count);
+ extern bool cma_release(struct cma *cma, const struct page *pages, unsigned long count);
  
- 	hugepages-${size}kB
+ extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
+--- a/mm/cma.c~mm-cma-add-cma_pages_valid-to-determine-if-pages-are-in-cma
++++ a/mm/cma.c
+@@ -524,6 +524,25 @@ out:
+ 	return page;
+ }
  
--Inside each of these directories, the same set of files will exist::
-+Inside each of these directories, the set of files contained in ``/proc``
-+will exist.  In addition, two additional interfaces for demoting huge
-+pages may exist::
- 
-+        demote
-+        demote_size
- 	nr_hugepages
- 	nr_hugepages_mempolicy
- 	nr_overcommit_hugepages
-@@ -243,7 +247,29 @@ Inside each of these directories, the sa
- 	resv_hugepages
- 	surplus_hugepages
- 
--which function as described above for the default huge page-sized case.
-+The demote interfaces provide the ability to split a huge page into
-+smaller huge pages.  For example, the x86 architecture supports both
-+1GB and 2MB huge pages sizes.  A 1GB huge page can be split into 512
-+2MB huge pages.  Demote interfaces are not available for the smallest
-+huge page size.  The demote interfaces are:
++bool cma_pages_valid(struct cma *cma, const struct page *pages,
++		     unsigned long count)
++{
++	unsigned long pfn;
 +
-+demote_size
-+        is the size of demoted pages.  When a page is demoted a corresponding
-+        number of huge pages of demote_size will be created.  By default,
-+        demote_size is set to the next smaller huge page size.  If there are
-+        multiple smaller huge page sizes, demote_size can be set to any of
-+        these smaller sizes.  Only huge page sizes less than the current huge
-+        pages size are allowed.
++	if (!cma || !pages)
++		return false;
 +
-+demote
-+        is used to demote a number of huge pages.  A user with root privileges
-+        can write to this file.  It may not be possible to demote the
-+        requested number of huge pages.  To determine how many pages were
-+        actually demoted, compare the value of nr_hugepages before and after
-+        writing to the demote interface.  demote is a write only interface.
++	pfn = page_to_pfn(pages);
 +
-+The interfaces which are the same as in ``/proc`` (all except demote and
-+demote_size) function as described above for the default huge page-sized case.
- 
- .. _mem_policy_and_hp_alloc:
- 
---- a/include/linux/hugetlb.h~hugetlb-add-demote-hugetlb-page-sysfs-interfaces
-+++ a/include/linux/hugetlb.h
-@@ -586,6 +586,7 @@ struct hstate {
- 	int next_nid_to_alloc;
- 	int next_nid_to_free;
- 	unsigned int order;
-+	unsigned int demote_order;
- 	unsigned long mask;
- 	unsigned long max_huge_pages;
- 	unsigned long nr_huge_pages;
---- a/mm/hugetlb.c~hugetlb-add-demote-hugetlb-page-sysfs-interfaces
-+++ a/mm/hugetlb.c
-@@ -2986,7 +2986,7 @@ free:
- 
- static void __init hugetlb_init_hstates(void)
++	if (pfn < cma->base_pfn || pfn >= cma->base_pfn + cma->count) {
++		pr_debug("%s(page %p, count %lu)\n", __func__,
++						(void *)pages, count);
++		return false;
++	}
++
++	return true;
++}
++
+ /**
+  * cma_release() - release allocated pages
+  * @cma:   Contiguous memory region for which the allocation is performed.
+@@ -539,16 +558,13 @@ bool cma_release(struct cma *cma, const
  {
--	struct hstate *h;
-+	struct hstate *h, *h2;
+ 	unsigned long pfn;
  
- 	for_each_hstate(h) {
- 		if (minimum_order > huge_page_order(h))
-@@ -2995,6 +2995,22 @@ static void __init hugetlb_init_hstates(
- 		/* oversize hugepages were init'ed in early boot */
- 		if (!hstate_is_gigantic(h))
- 			hugetlb_hstate_alloc_pages(h);
-+
-+		/*
-+		 * Set demote order for each hstate.  Note that
-+		 * h->demote_order is initially 0.
-+		 * - We can not demote gigantic pages if runtime freeing
-+		 *   is not supported, so skip this.
-+		 */
-+		if (hstate_is_gigantic(h) && !gigantic_page_runtime_supported())
-+			continue;
-+		for_each_hstate(h2) {
-+			if (h2 == h)
-+				continue;
-+			if (h2->order < h->order &&
-+			    h2->order > h->demote_order)
-+				h->demote_order = h2->order;
-+		}
- 	}
- 	VM_BUG_ON(minimum_order == UINT_MAX);
- }
-@@ -3235,9 +3251,31 @@ out:
- 	return 0;
- }
+-	if (!cma || !pages)
++	if (!cma_pages_valid(cma, pages, count))
+ 		return false;
  
-+static int demote_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed)
-+	__must_hold(&hugetlb_lock)
-+{
-+	int rc = 0;
-+
-+	lockdep_assert_held(&hugetlb_lock);
-+
-+	/* We should never get here if no demote order */
-+	if (!h->demote_order) {
-+		pr_warn("HugeTLB: NULL demote order passed to demote_pool_huge_page.\n");
-+		return -EINVAL;		/* internal error */
-+	}
-+
-+	/*
-+	 * TODO - demote fucntionality will be added in subsequent patch
-+	 */
-+	return rc;
-+}
-+
- #define HSTATE_ATTR_RO(_name) \
- 	static struct kobj_attribute _name##_attr = __ATTR_RO(_name)
+ 	pr_debug("%s(page %p, count %lu)\n", __func__, (void *)pages, count);
  
-+#define HSTATE_ATTR_WO(_name) \
-+	static struct kobj_attribute _name##_attr = __ATTR_WO(_name)
-+
- #define HSTATE_ATTR(_name) \
- 	static struct kobj_attribute _name##_attr = \
- 		__ATTR(_name, 0644, _name##_show, _name##_store)
-@@ -3433,6 +3471,105 @@ static ssize_t surplus_hugepages_show(st
- }
- HSTATE_ATTR_RO(surplus_hugepages);
+ 	pfn = page_to_pfn(pages);
  
-+static ssize_t demote_store(struct kobject *kobj,
-+	       struct kobj_attribute *attr, const char *buf, size_t len)
-+{
-+	unsigned long nr_demote;
-+	unsigned long nr_available;
-+	nodemask_t nodes_allowed, *n_mask;
-+	struct hstate *h;
-+	int err = 0;
-+	int nid;
-+
-+	err = kstrtoul(buf, 10, &nr_demote);
-+	if (err)
-+		return err;
-+	h = kobj_to_hstate(kobj, &nid);
-+
-+	if (nid != NUMA_NO_NODE) {
-+		init_nodemask_of_node(&nodes_allowed, nid);
-+		n_mask = &nodes_allowed;
-+	} else {
-+		n_mask = &node_states[N_MEMORY];
-+	}
-+
-+	/* Synchronize with other sysfs operations modifying huge pages */
-+	mutex_lock(&h->resize_lock);
-+	spin_lock_irq(&hugetlb_lock);
-+
-+	while (nr_demote) {
-+		/*
-+		 * Check for available pages to demote each time thorough the
-+		 * loop as demote_pool_huge_page will drop hugetlb_lock.
-+		 *
-+		 * NOTE: demote_pool_huge_page does not yet drop hugetlb_lock
-+		 * but will when full demote functionality is added in a later
-+		 * patch.
-+		 */
-+		if (nid != NUMA_NO_NODE)
-+			nr_available = h->free_huge_pages_node[nid];
-+		else
-+			nr_available = h->free_huge_pages;
-+		nr_available -= h->resv_huge_pages;
-+		if (!nr_available)
-+			break;
-+
-+		err = demote_pool_huge_page(h, n_mask);
-+		if (err)
-+			break;
-+
-+		nr_demote--;
-+	}
-+
-+	spin_unlock_irq(&hugetlb_lock);
-+	mutex_unlock(&h->resize_lock);
-+
-+	if (err)
-+		return err;
-+	return len;
-+}
-+HSTATE_ATTR_WO(demote);
-+
-+static ssize_t demote_size_show(struct kobject *kobj,
-+					struct kobj_attribute *attr, char *buf)
-+{
-+	int nid;
-+	struct hstate *h = kobj_to_hstate(kobj, &nid);
-+	unsigned long demote_size = (PAGE_SIZE << h->demote_order) / SZ_1K;
-+
-+	return sysfs_emit(buf, "%lukB\n", demote_size);
-+}
-+
-+static ssize_t demote_size_store(struct kobject *kobj,
-+					struct kobj_attribute *attr,
-+					const char *buf, size_t count)
-+{
-+	struct hstate *h, *demote_hstate;
-+	unsigned long demote_size;
-+	unsigned int demote_order;
-+	int nid;
-+
-+	demote_size = (unsigned long)memparse(buf, NULL);
-+
-+	demote_hstate = size_to_hstate(demote_size);
-+	if (!demote_hstate)
-+		return -EINVAL;
-+	demote_order = demote_hstate->order;
-+
-+	/* demote order must be smaller than hstate order */
-+	h = kobj_to_hstate(kobj, &nid);
-+	if (demote_order >= h->order)
-+		return -EINVAL;
-+
-+	/* resize_lock synchronizes access to demote size and writes */
-+	mutex_lock(&h->resize_lock);
-+	h->demote_order = demote_order;
-+	mutex_unlock(&h->resize_lock);
-+
-+	return count;
-+}
-+HSTATE_ATTR(demote_size);
-+
- static struct attribute *hstate_attrs[] = {
- 	&nr_hugepages_attr.attr,
- 	&nr_overcommit_hugepages_attr.attr,
-@@ -3449,6 +3586,16 @@ static const struct attribute_group hsta
- 	.attrs = hstate_attrs,
- };
+-	if (pfn < cma->base_pfn || pfn >= cma->base_pfn + cma->count)
+-		return false;
+-
+ 	VM_BUG_ON(pfn + count > cma->base_pfn + cma->count);
  
-+static struct attribute *hstate_demote_attrs[] = {
-+	&demote_size_attr.attr,
-+	&demote_attr.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group hstate_demote_attr_group = {
-+	.attrs = hstate_demote_attrs,
-+};
-+
- static int hugetlb_sysfs_add_hstate(struct hstate *h, struct kobject *parent,
- 				    struct kobject **hstate_kobjs,
- 				    const struct attribute_group *hstate_attr_group)
-@@ -3466,6 +3613,12 @@ static int hugetlb_sysfs_add_hstate(stru
- 		hstate_kobjs[hi] = NULL;
- 	}
- 
-+	if (h->demote_order) {
-+		if (sysfs_create_group(hstate_kobjs[hi],
-+					&hstate_demote_attr_group))
-+			pr_warn("HugeTLB unable to create demote interfaces for %s\n", h->name);
-+	}
-+
- 	return retval;
- }
- 
+ 	free_contig_range(pfn, count);
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
