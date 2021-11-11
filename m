@@ -2,43 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 52D64C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CD2A8C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3B29B6187A
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B4BDF61884
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233997AbhKKCoB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:44:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49496 "EHLO mail.kernel.org"
+        id S234001AbhKKCoE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:44:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49558 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233954AbhKKCoB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:44:01 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 50E2B61872;
-        Thu, 11 Nov 2021 02:41:12 +0000 (UTC)
+        id S233954AbhKKCoD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:44:03 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 76DE361284;
+        Thu, 11 Nov 2021 02:41:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598473;
-        bh=R2PIR0ZHD41ybHP4dQlR6WEtQ5Wnu/0DtMhME3Q9m6g=;
+        s=korg; t=1636598475;
+        bh=pnGCEs5/RRTOhz64jL7GhlqHkHISHXY9rCaTyUd9V4M=;
         h=Date:From:To:Subject:From;
-        b=pMyDsWsFosCNXQnyLV3UnxDnYGxqlokNP0882n386TYmQcr2SGsuJAWh1Rl0/ByBq
-         02z5rkEfogiHSZcyM+fctCe2yBdQLcgn0Az8QXVPClbNJcFaJ1SKaV+B8DpmltYWM9
-         aKxOg2v0zbGmBe7GQl5WyQ/JhnO+ZT0x4NFdWC/I=
-Date:   Wed, 10 Nov 2021 18:41:11 -0800
+        b=KxAXTPKXjMJH7q2HDp9caIQpBp/lSOzU+IkcL+SvtKHS77KExdaBlKEHYQLtfVBvy
+         ransO5F5yFD81Im4J/1ZRL9jg+EwrElpIsdvrFIYbHeUsx5lNgyMfvnYzKgxptd/0y
+         ybedx3/zEs4udeGJCy5386UORd41WgVeo9tDH5EA=
+Date:   Wed, 10 Nov 2021 18:41:15 -0800
 From:   akpm@linux-foundation.org
-To:     alex.bou9@gmail.com, apw@canonical.com, cl@linux.com,
-        danielmicay@gmail.com, dennis@kernel.org, dwaipayanray1@gmail.com,
-        gustavoars@kernel.org, iamjoonsoo.kim@lge.com, ira.weiny@intel.com,
-        jhubbard@nvidia.com, jingxiangfeng@huawei.com, joe@perches.com,
-        jrdr.linux@gmail.com, keescook@chromium.org, lkp@intel.com,
-        lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org,
-        mporter@kernel.crashing.org, nathan@kernel.org,
-        ndesaulniers@google.com, ojeda@kernel.org, penberg@kernel.org,
-        rdunlap@infradead.org, rientjes@google.com, tj@kernel.org,
-        vbabka@suse.cz
-Subject:  [merged]
- percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch removed
- from -mm tree
-Message-ID: <20211111024111.8TXlB6cR7%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, vbabka@suse.cz,
+        zhangyinan2019@email.szu.edu.cn
+Subject:  [merged] mm-fix-a-comment.patch removed from -mm tree
+Message-ID: <20211111024115.eG9BTlO0S%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,83 +37,41 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: percpu: add __alloc_size attributes for better bounds checking
+     Subject: mm/page_ext.c: fix a comment
 has been removed from the -mm tree.  Its filename was
-     percpu-add-__alloc_size-attributes-for-better-bounds-checking.patch
+     mm-fix-a-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: percpu: add __alloc_size attributes for better bounds checking
+From: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
+Subject: mm/page_ext.c: fix a comment
 
-As already done in GrapheneOS, add the __alloc_size attribute for
-appropriate percpu allocator interfaces, to provide additional hinting for
-better bounds checking, assisting CONFIG_FORTIFY_SOURCE and other compiler
-optimizations.
+I have noticed that the previous macro is #ifndef CONFIG_SPARSEMEM.  I
+think the comment of #else should be CONFIG_SPARSEMEM.
 
-Note that due to the implementation of the percpu API, this is unlikely to
-ever actually provide compile-time checking beyond very simple non-SMP
-builds.  But, since they are technically allocators, mark them as such.
-
-Link: https://lkml.kernel.org/r/20210930222704.2631604-9-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Co-developed-by: Daniel Micay <danielmicay@gmail.com>
-Signed-off-by: Daniel Micay <danielmicay@gmail.com>
-Acked-by: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Alexandre Bounine <alex.bou9@gmail.com>
-Cc: Gustavo A. R. Silva <gustavoars@kernel.org>
-Cc: Ira Weiny <ira.weiny@intel.com>
-Cc: Jing Xiangfeng <jingxiangfeng@huawei.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Souptick Joarder <jrdr.linux@gmail.com>
+Link: https://lkml.kernel.org/r/20211008140312.6492-1-zhangyinan2019@email.szu.edu.cn
+Signed-off-by: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/percpu.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_ext.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/percpu.h~percpu-add-__alloc_size-attributes-for-better-bounds-checking
-+++ a/include/linux/percpu.h
-@@ -123,7 +123,7 @@ extern int __init pcpu_page_first_chunk(
- 				pcpu_fc_populate_pte_fn_t populate_pte_fn);
- #endif
+--- a/mm/page_ext.c~mm-fix-a-comment
++++ a/mm/page_ext.c
+@@ -201,7 +201,7 @@ fail:
+ 	panic("Out of memory");
+ }
  
--extern void __percpu *__alloc_reserved_percpu(size_t size, size_t align);
-+extern void __percpu *__alloc_reserved_percpu(size_t size, size_t align) __alloc_size(1);
- extern bool __is_kernel_percpu_address(unsigned long addr, unsigned long *can_addr);
- extern bool is_kernel_percpu_address(unsigned long addr);
+-#else /* CONFIG_FLATMEM */
++#else /* CONFIG_SPARSEMEM */
  
-@@ -131,8 +131,8 @@ extern bool is_kernel_percpu_address(uns
- extern void __init setup_per_cpu_areas(void);
- #endif
- 
--extern void __percpu *__alloc_percpu_gfp(size_t size, size_t align, gfp_t gfp);
--extern void __percpu *__alloc_percpu(size_t size, size_t align);
-+extern void __percpu *__alloc_percpu_gfp(size_t size, size_t align, gfp_t gfp) __alloc_size(1);
-+extern void __percpu *__alloc_percpu(size_t size, size_t align) __alloc_size(1);
- extern void free_percpu(void __percpu *__pdata);
- extern phys_addr_t per_cpu_ptr_to_phys(void *addr);
- 
+ struct page_ext *lookup_page_ext(const struct page *page)
+ {
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from zhangyinan2019@email.szu.edu.cn are
 
-kasan-test-consolidate-workarounds-for-unwanted-__alloc_size-protection.patch
 
