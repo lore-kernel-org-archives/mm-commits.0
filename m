@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3C02C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:47:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C968CC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:47:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AE79161284
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:47:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B76A561260
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:47:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234403AbhKKCtx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:49:53 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54512 "EHLO mail.kernel.org"
+        id S234406AbhKKCt4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:49:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54528 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234393AbhKKCtv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:49:51 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7B92161247;
-        Thu, 11 Nov 2021 02:47:03 +0000 (UTC)
+        id S234393AbhKKCtx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:49:53 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8F6A261108;
+        Thu, 11 Nov 2021 02:47:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598823;
-        bh=URveo9s22vI7aRyfAi9crEkZzeGfqK85sqFeNhWYmPU=;
+        s=korg; t=1636598825;
+        bh=l451VpBBzJ8oEnq4mFlUayhdY699kXNfNwaaNmcX9Ys=;
         h=Date:From:To:Subject:From;
-        b=et1fuegwlhG8oHhhTtaVTJBXKtdAxt1DWrVDgiFNhLf4SFBH4p0Vt5d6Ke4DGgRv/
-         tReYdJjNhIhbNuBjiz3btfuBfjsWCVXZ/Ua3Irw+sWJ6ix9J9oz7EmdfY2f5HWc9/+
-         JKuhxEBIwOCfVqzR/t4yig3wFfar7bZefi+vnTJQ=
-Date:   Wed, 10 Nov 2021 18:47:03 -0800
+        b=ocb4pKUUVpt4QEx5XGd5an7RsSMVV1IdxuijseJlG10tA9ejeTMUk5glNem1vOQFj
+         tgiX8SQDDyEGf/Zn3qPgwhNRKdbWP2ervZIMtLypVSKqBu1+QjM8sh43w6R+SNcynX
+         aMSOEbijSu07Zk0rrRX3OQ2172Gn7EyddWeNOzQ8=
+Date:   Wed, 10 Nov 2021 18:47:05 -0800
 From:   akpm@linux-foundation.org
-To:     linf@wangsu.com, mm-commits@vger.kernel.org
+To:     david@redhat.com, mm-commits@vger.kernel.org,
+        skhan@linuxfoundation.org
 Subject:  [merged]
- mm-vmstatc-make-extfrag_index-show-more-pretty.patch removed from -mm tree
-Message-ID: <20211111024703.E4LTK1CEZ%akpm@linux-foundation.org>
+ selftests-vm-make-madv_populate_readwrite-use-in-tree-headers.patch removed
+ from -mm tree
+Message-ID: <20211111024705.ah6p9ihPJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -37,52 +39,73 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmstat.c: make extfrag_index show more pretty
+     Subject: selftests/vm: make MADV_POPULATE_(READ|WRITE) use in-tree headers
 has been removed from the -mm tree.  Its filename was
-     mm-vmstatc-make-extfrag_index-show-more-pretty.patch
+     selftests-vm-make-madv_populate_readwrite-use-in-tree-headers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lin Feng <linf@wangsu.com>
-Subject: mm: vmstat.c: make extfrag_index show more pretty
+From: David Hildenbrand <david@redhat.com>
+Subject: selftests/vm: make MADV_POPULATE_(READ|WRITE) use in-tree headers
 
-fragmentation_index may return -1000 and the corresponding formated value
-showed by seq_printf will take a negative signatrue, but other positive
-formated values don't take a positive signatrue, so the output becomes
-unaligned.
+The madv_populate selftest currently builds with a warning when the local
+installed headers (via the distribution) don't include MADV_POPULATE_READ
+and MADV_POPULATE_WRITE.  The warning is correct, because the test cannot
+locate the necessary header.
 
-before:
-Node 0, zone      DMA -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000
-Node 0, zone    DMA32 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000
-Node 0, zone   Normal -1.000 -1.000 -1.000 -1.000 0.931 0.966 0.983 0.992 0.996 0.998 0.999
+Reason is that the in-tree installed headers (usr/include) have a "linux"
+instead of a "sys" subdirectory.
 
-after this patch:
-Node 0, zone      DMA -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000
-Node 0, zone    DMA32 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000 -1.000
-Node 0, zone   Normal -1.000 -1.000 -1.000 -1.000  0.931  0.966  0.983  0.992  0.996  0.998  0.999
+Including "linux/mman.h" instead of "sys/mman.h" doesn't work (e.g.,
+mmap() and madvise() are not defined that way).  The only thing that seems
+to work is including "linux/mman.h" in addition to "sys/mman.h".
 
-Link: https://lkml.kernel.org/r/20211019103241.134797-1-linf@wangsu.com
-Signed-off-by: Lin Feng <linf@wangsu.com>
+We can get rid of our availability check and simplify.
+
+Link: https://lkml.kernel.org/r/20211015165758.41374-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Reported-by: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/madv_populate.c |   15 +--------------
+ 1 file changed, 1 insertion(+), 14 deletions(-)
 
---- a/mm/vmstat.c~mm-vmstatc-make-extfrag_index-show-more-pretty
-+++ a/mm/vmstat.c
-@@ -2191,7 +2191,7 @@ static void extfrag_show_print(struct se
- 	for (order = 0; order < MAX_ORDER; ++order) {
- 		fill_contig_page_info(zone, order, &info);
- 		index = __fragmentation_index(order, &info);
--		seq_printf(m, "%d.%03d ", index / 1000, index % 1000);
-+		seq_printf(m, "%2d.%03d ", index / 1000, index % 1000);
- 	}
+--- a/tools/testing/selftests/vm/madv_populate.c~selftests-vm-make-madv_populate_readwrite-use-in-tree-headers
++++ a/tools/testing/selftests/vm/madv_populate.c
+@@ -14,12 +14,11 @@
+ #include <unistd.h>
+ #include <errno.h>
+ #include <fcntl.h>
++#include <linux/mman.h>
+ #include <sys/mman.h>
  
- 	seq_putc(m, '\n');
+ #include "../kselftest.h"
+ 
+-#if defined(MADV_POPULATE_READ) && defined(MADV_POPULATE_WRITE)
+-
+ /*
+  * For now, we're using 2 MiB of private anonymous memory for all tests.
+  */
+@@ -328,15 +327,3 @@ int main(int argc, char **argv)
+ 				   err, ksft_test_num());
+ 	return ksft_exit_pass();
+ }
+-
+-#else /* defined(MADV_POPULATE_READ) && defined(MADV_POPULATE_WRITE) */
+-
+-#warning "missing MADV_POPULATE_READ or MADV_POPULATE_WRITE definition"
+-
+-int main(int argc, char **argv)
+-{
+-	ksft_print_header();
+-	ksft_exit_skip("MADV_POPULATE_READ or MADV_POPULATE_WRITE not defined\n");
+-}
+-
+-#endif /* defined(MADV_POPULATE_READ) && defined(MADV_POPULATE_WRITE) */
 _
 
-Patches currently in -mm which might be from linf@wangsu.com are
+Patches currently in -mm which might be from david@redhat.com are
 
 
