@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A058DC433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5997C433EF
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8CBA361108
+	by mail.kernel.org (Postfix) with ESMTP id CEAE061108
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234448AbhKKCvR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234437AbhKKCvR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 10 Nov 2021 21:51:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55620 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55644 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234437AbhKKCvP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:51:15 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9B09361108;
-        Thu, 11 Nov 2021 02:48:24 +0000 (UTC)
+        id S234449AbhKKCvQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:51:16 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 99C5F6103C;
+        Thu, 11 Nov 2021 02:48:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598904;
-        bh=GQlBTc/7X0R+OWXzNddfidpNTSFbd90L77nOIMaCxSM=;
+        s=korg; t=1636598907;
+        bh=Ed/CBQr8yIvSt4QAIv30iNu03TjDLgNzfZGuPAvagFg=;
         h=Date:From:To:Subject:From;
-        b=zNMUjvwIdA5JfoBQI2e/aGRghZibME8Mg3lxgWtwySMhQfK+0AA8vYPL7SwXKHfES
-         QnBE8lnpe/SdodBeBwQNWRSks/0t7lTqBuoBDYRTqRRyURmHHjTURPWMIIUmiNEPZ9
-         Ogp7kIKsWmDM8o6eBGLXeREVfdJ98+UI7uv1sZX8=
-Date:   Wed, 10 Nov 2021 18:48:24 -0800
+        b=izhlOxwJiP3OuO4T4Ms+fHVePbKypxhIbut5bDYJnY6WHK6UlEl5vo0Z573xhJsIm
+         Jhi7RJKbdXRI085uaWCXQyHCvJIyUNJ/o62TBBc6IKiCQ8i744aGR2ck2DNmiKr73T
+         qLguUjJw/UyZaARv6tQPByMZGI8ppi1do8Gxg+h4=
+Date:   Wed, 10 Nov 2021 18:48:27 -0800
 From:   akpm@linux-foundation.org
-To:     davidgow@google.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, mm-commits@vger.kernel.org, nogikh@google.com,
-        tarasmadan@google.com
-Subject:  [merged] kfence-test-use-kunit_skip-to-skip-tests.patch
- removed from -mm tree
-Message-ID: <20211111024824.N423-02NG%akpm@linux-foundation.org>
+To:     dvyukov@google.com, elver@google.com, glider@google.com,
+        jannh@google.com, mm-commits@vger.kernel.org
+Subject:  [merged]
+ kfence-shorten-critical-sections-of-alloc-free.patch removed from -mm tree
+Message-ID: <20211111024827.gkUpYj-8T%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,69 +38,138 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: test: use kunit_skip() to skip tests
+     Subject: kfence: shorten critical sections of alloc/free
 has been removed from the -mm tree.  Its filename was
-     kfence-test-use-kunit_skip-to-skip-tests.patch
+     kfence-shorten-critical-sections-of-alloc-free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kfence: test: use kunit_skip() to skip tests
+Subject: kfence: shorten critical sections of alloc/free
 
-Use the new kunit_skip() to skip tests if requirements were not met.  It
-makes it easier to see in KUnit's summary if there were skipped tests.
+Initializing memory and setting/checking the canary bytes is relatively
+expensive, and doing so in the meta->lock critical sections extends the
+duration with preemption and interrupts disabled unnecessarily.
 
-Link: https://lkml.kernel.org/r/20210922182541.1372400-1-elver@google.com
+Any reads to meta->addr and meta->size in kfence_guarded_alloc() and
+kfence_guarded_free() don't require locking meta->lock as long as the
+object is removed from the freelist: only kfence_guarded_alloc() sets
+meta->addr and meta->size after removing it from the freelist, which
+requires a preceding kfence_guarded_free() returning it to the list or the
+initial state.
+
+Therefore move reads to meta->addr and meta->size, including expensive
+memory initialization using them, out of meta->lock critical sections.
+
+Link: https://lkml.kernel.org/r/20210930153706.2105471-1-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: David Gow <davidgow@google.com>
-Cc: Alexander Potapenko <glider@google.com>
+Acked-by: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Aleksandr Nogikh <nogikh@google.com>
-Cc: Taras Madan <tarasmadan@google.com>
+Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/kfence_test.c |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ mm/kfence/core.c |   38 +++++++++++++++++++++-----------------
+ 1 file changed, 21 insertions(+), 17 deletions(-)
 
---- a/mm/kfence/kfence_test.c~kfence-test-use-kunit_skip-to-skip-tests
-+++ a/mm/kfence/kfence_test.c
-@@ -32,6 +32,11 @@
- #define arch_kfence_test_address(addr) (addr)
- #endif
- 
-+#define KFENCE_TEST_REQUIRES(test, cond) do {			\
-+	if (!(cond))						\
-+		kunit_skip((test), "Test requires: " #cond);	\
-+} while (0)
+--- a/mm/kfence/core.c~kfence-shorten-critical-sections-of-alloc-free
++++ a/mm/kfence/core.c
+@@ -309,12 +309,19 @@ static inline bool set_canary_byte(u8 *a
+ /* Check canary byte at @addr. */
+ static inline bool check_canary_byte(u8 *addr)
+ {
++	struct kfence_metadata *meta;
++	unsigned long flags;
 +
- /* Report as observed from console. */
- static struct {
- 	spinlock_t lock;
-@@ -555,8 +560,7 @@ static void test_init_on_free(struct kun
- 	};
- 	int i;
+ 	if (likely(*addr == KFENCE_CANARY_PATTERN(addr)))
+ 		return true;
  
--	if (!IS_ENABLED(CONFIG_INIT_ON_FREE_DEFAULT_ON))
--		return;
-+	KFENCE_TEST_REQUIRES(test, IS_ENABLED(CONFIG_INIT_ON_FREE_DEFAULT_ON));
- 	/* Assume it hasn't been disabled on command line. */
+ 	atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
+-	kfence_report_error((unsigned long)addr, false, NULL, addr_to_metadata((unsigned long)addr),
+-			    KFENCE_ERROR_CORRUPTION);
++
++	meta = addr_to_metadata((unsigned long)addr);
++	raw_spin_lock_irqsave(&meta->lock, flags);
++	kfence_report_error((unsigned long)addr, false, NULL, meta, KFENCE_ERROR_CORRUPTION);
++	raw_spin_unlock_irqrestore(&meta->lock, flags);
++
+ 	return false;
+ }
  
- 	setup_test_cache(test, size, 0, NULL);
-@@ -603,10 +607,8 @@ static void test_gfpzero(struct kunit *t
- 	char *buf1, *buf2;
- 	int i;
+@@ -324,8 +331,6 @@ static __always_inline void for_each_can
+ 	const unsigned long pageaddr = ALIGN_DOWN(meta->addr, PAGE_SIZE);
+ 	unsigned long addr;
  
--	if (CONFIG_KFENCE_SAMPLE_INTERVAL > 100) {
--		kunit_warn(test, "skipping ... would take too long\n");
--		return;
--	}
-+	/* Skip if we think it'd take too long. */
-+	KFENCE_TEST_REQUIRES(test, CONFIG_KFENCE_SAMPLE_INTERVAL <= 100);
+-	lockdep_assert_held(&meta->lock);
+-
+ 	/*
+ 	 * We'll iterate over each canary byte per-side until fn() returns
+ 	 * false. However, we'll still iterate over the canary bytes to the
+@@ -414,8 +419,9 @@ static void *kfence_guarded_alloc(struct
+ 	WRITE_ONCE(meta->cache, cache);
+ 	meta->size = size;
+ 	meta->alloc_stack_hash = alloc_stack_hash;
++	raw_spin_unlock_irqrestore(&meta->lock, flags);
  
- 	setup_test_cache(test, size, 0, NULL);
- 	buf1 = test_alloc(test, size, GFP_KERNEL, ALLOCATE_ANY);
+-	for_each_canary(meta, set_canary_byte);
++	alloc_covered_add(alloc_stack_hash, 1);
+ 
+ 	/* Set required struct page fields. */
+ 	page = virt_to_page(meta->addr);
+@@ -425,11 +431,8 @@ static void *kfence_guarded_alloc(struct
+ 	if (IS_ENABLED(CONFIG_SLAB))
+ 		page->s_mem = addr;
+ 
+-	raw_spin_unlock_irqrestore(&meta->lock, flags);
+-
+-	alloc_covered_add(alloc_stack_hash, 1);
+-
+ 	/* Memory initialization. */
++	for_each_canary(meta, set_canary_byte);
+ 
+ 	/*
+ 	 * We check slab_want_init_on_alloc() ourselves, rather than letting
+@@ -454,6 +457,7 @@ static void kfence_guarded_free(void *ad
+ {
+ 	struct kcsan_scoped_access assert_page_exclusive;
+ 	unsigned long flags;
++	bool init;
+ 
+ 	raw_spin_lock_irqsave(&meta->lock, flags);
+ 
+@@ -481,6 +485,13 @@ static void kfence_guarded_free(void *ad
+ 		meta->unprotected_page = 0;
+ 	}
+ 
++	/* Mark the object as freed. */
++	metadata_update_state(meta, KFENCE_OBJECT_FREED, NULL, 0);
++	init = slab_want_init_on_free(meta->cache);
++	raw_spin_unlock_irqrestore(&meta->lock, flags);
++
++	alloc_covered_add(meta->alloc_stack_hash, -1);
++
+ 	/* Check canary bytes for memory corruption. */
+ 	for_each_canary(meta, check_canary_byte);
+ 
+@@ -489,16 +500,9 @@ static void kfence_guarded_free(void *ad
+ 	 * data is still there, and after a use-after-free is detected, we
+ 	 * unprotect the page, so the data is still accessible.
+ 	 */
+-	if (!zombie && unlikely(slab_want_init_on_free(meta->cache)))
++	if (!zombie && unlikely(init))
+ 		memzero_explicit(addr, meta->size);
+ 
+-	/* Mark the object as freed. */
+-	metadata_update_state(meta, KFENCE_OBJECT_FREED, NULL, 0);
+-
+-	raw_spin_unlock_irqrestore(&meta->lock, flags);
+-
+-	alloc_covered_add(meta->alloc_stack_hash, -1);
+-
+ 	/* Protect to detect use-after-frees. */
+ 	kfence_protect((unsigned long)addr);
+ 
 _
 
 Patches currently in -mm which might be from elver@google.com are
