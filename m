@@ -2,37 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BB97C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 25378C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:06 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DA7661208
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0D5A66103C
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234364AbhKKCsv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:48:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53790 "EHLO mail.kernel.org"
+        id S234365AbhKKCsx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:48:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53824 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234346AbhKKCsu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:48:50 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 87EC66113B;
-        Thu, 11 Nov 2021 02:46:01 +0000 (UTC)
+        id S234346AbhKKCsx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:48:53 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AC3DF60F46;
+        Thu, 11 Nov 2021 02:46:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598761;
-        bh=XURIetYkRkwWHBT3JDQfuTpCruO2VyUyrHRCLeFk9T8=;
+        s=korg; t=1636598764;
+        bh=b5xui8QI9p9tUNGsRcwH9bFE3kOQbl2h4Js3PXu7hKg=;
         h=Date:From:To:Subject:From;
-        b=wwH0yf7sBaEIohDwYtOir4FAHbMmZE3HAhVccoAXctGylCf3dxR8/KbDNx9wW2hPu
-         A4Xu2pq+5h7wGq4JBvE9ZXbl2ekS+nqJNbSu2Wyvy/N+PaMwvslHKAJjuAV+sY1uHN
-         N+m3iKk2D9UluoIwuSh9pJyvAx/zScblZUFKoO30=
-Date:   Wed, 10 Nov 2021 18:46:01 -0800
+        b=m5w+XUcSeIhEWqsZikzFz9TeJwB2l6g0+QCMgJuYyFT1IPQJIrQ9IQ3NqlET8LP3o
+         dhYaI/Xy4MEZz9QO9vvwVny37fnx6qTTZzyPS+c5I7lpRexruYbJfPLz5Hhawlrvq9
+         HToLxr5QWobhFDhBf7ow2C1tep0fLZo6380hsOHg=
+Date:   Wed, 10 Nov 2021 18:46:04 -0800
 From:   akpm@linux-foundation.org
-To:     alexs@kernel.org, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
-        shakeelb@google.com, songmuchun@bytedance.com,
-        songyuanzheng@huawei.com, willy@infradead.org
+To:     mm-commits@vger.kernel.org, nixiaoming@huawei.com,
+        tangbin@cmss.chinamobile.com, weizhenliang@huawei.com,
+        zhangshengju@cmss.chinamobile.com
 Subject:  [merged]
- mm-vmpressure-fix-data-race-with-memcg-socket_pressure.patch removed from
- -mm tree
-Message-ID: <20211111024601.d-FmyAoaR%akpm@linux-foundation.org>
+ tools-vm-page_owner_sortc-count-and-sort-by-mem.patch removed from -mm tree
+Message-ID: <20211111024604.P86mccHZm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,95 +39,270 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmpressure: fix data-race with memcg->socket_pressure
+     Subject: tools/vm/page_owner_sort.c: count and sort by mem
 has been removed from the -mm tree.  Its filename was
-     mm-vmpressure-fix-data-race-with-memcg-socket_pressure.patch
+     tools-vm-page_owner_sortc-count-and-sort-by-mem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yuanzheng Song <songyuanzheng@huawei.com>
-Subject: mm/vmpressure: fix data-race with memcg->socket_pressure
+From: Zhenliang Wei <weizhenliang@huawei.com>
+Subject: tools/vm/page_owner_sort.c: count and sort by mem
 
-BUG: KCSAN: data-race in __sk_mem_reduce_allocated / vmpressure
+When viewing page owner information, we may be more concerned about the
+total memory rather than the times of stack appears.  Therefore, the
+following adjustments are made:
 
-write to 0xffff8881286f4938 of 8 bytes by task 24550 on cpu 3:
- vmpressure+0x218/0x230 mm/vmpressure.c:307
- shrink_node_memcgs+0x2b9/0x410 mm/vmscan.c:2658
- shrink_node+0x9d2/0x11d0 mm/vmscan.c:2769
- shrink_zones+0x29f/0x470 mm/vmscan.c:2972
- do_try_to_free_pages+0x193/0x6e0 mm/vmscan.c:3027
- try_to_free_mem_cgroup_pages+0x1c0/0x3f0 mm/vmscan.c:3345
- reclaim_high mm/memcontrol.c:2440 [inline]
- mem_cgroup_handle_over_high+0x18b/0x4d0 mm/memcontrol.c:2624
- tracehook_notify_resume include/linux/tracehook.h:197 [inline]
- exit_to_user_mode_loop kernel/entry/common.c:164 [inline]
- exit_to_user_mode_prepare+0x110/0x170 kernel/entry/common.c:191
- syscall_exit_to_user_mode+0x16/0x30 kernel/entry/common.c:266
- ret_from_fork+0x15/0x30 arch/x86/entry/entry_64.S:289
+1. Added the statistics on the total number of pages.
 
-read to 0xffff8881286f4938 of 8 bytes by interrupt on cpu 1:
- mem_cgroup_under_socket_pressure include/linux/memcontrol.h:1483 [inline]
- sk_under_memory_pressure include/net/sock.h:1314 [inline]
- __sk_mem_reduce_allocated+0x1d2/0x270 net/core/sock.c:2696
- __sk_mem_reclaim+0x44/0x50 net/core/sock.c:2711
- sk_mem_reclaim include/net/sock.h:1490 [inline]
- ......
- net_rx_action+0x17a/0x480 net/core/dev.c:6864
- __do_softirq+0x12c/0x2af kernel/softirq.c:298
- run_ksoftirqd+0x13/0x20 kernel/softirq.c:653
- smpboot_thread_fn+0x33f/0x510 kernel/smpboot.c:165
- kthread+0x1fc/0x220 kernel/kthread.c:292
- ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+2. Added the optional parameter "-m" to configure the program to sort by
+   memory (total pages).
 
-When reading memcg->socket_pressure in mem_cgroup_under_socket_pressure()
-and writing memcg->socket_pressure in vmpressure() at the same time,
-the data-race occurs.
+The general output of page_owner is as follows:
 
-So fix it by using READ_ONCE() and WRITE_ONCE() to read and write
-memcg->socket_pressure.
+	Page allocated via order XXX, ...
+	PFN XXX ...
+	 // Detailed stack
 
-Link: https://lkml.kernel.org/r/20211025082843.671690-1-songyuanzheng@huawei.com
-Signed-off-by: Yuanzheng Song <songyuanzheng@huawei.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+	Page allocated via order XXX, ...
+	PFN XXX ...
+	 // Detailed stack
+
+The original page_owner_sort ignores PFN rows, puts the remaining rows
+in buf, counts the times of buf, and finally sorts them according to
+the times. General output:
+
+	XXX times:
+	Page allocated via order XXX, ...
+	 // Detailed stack
+
+Now, we use regexp to extract the page order value from the buf,
+and count the total pages for the buf. General output:
+
+	XXX times, XXX pages:
+	Page allocated via order XXX, ...
+	 // Detailed stack
+
+By default, it is still sorted by the times of buf;
+If you want to sort by the pages nums of buf, use the new -m parameter.
+
+Link: https://lkml.kernel.org/r/1631678242-41033-1-git-send-email-weizhenliang@huawei.com
+Signed-off-by: Zhenliang Wei <weizhenliang@huawei.com>
+Cc: Tang Bin <tangbin@cmss.chinamobile.com>
+Cc: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    2 +-
- mm/vmpressure.c            |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ Documentation/vm/page_owner.rst |   23 +++++++
+ tools/vm/page_owner_sort.c      |   94 +++++++++++++++++++++++++++---
+ 2 files changed, 107 insertions(+), 10 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-vmpressure-fix-data-race-with-memcg-socket_pressure
-+++ a/include/linux/memcontrol.h
-@@ -1606,7 +1606,7 @@ static inline bool mem_cgroup_under_sock
- 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && memcg->tcpmem_pressure)
- 		return true;
- 	do {
--		if (time_before(jiffies, memcg->socket_pressure))
-+		if (time_before(jiffies, READ_ONCE(memcg->socket_pressure)))
- 			return true;
- 	} while ((memcg = parent_mem_cgroup(memcg)));
- 	return false;
---- a/mm/vmpressure.c~mm-vmpressure-fix-data-race-with-memcg-socket_pressure
-+++ a/mm/vmpressure.c
-@@ -308,7 +308,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
- 			 * asserted for a second in which subsequent
- 			 * pressure events can occur.
- 			 */
--			memcg->socket_pressure = jiffies + HZ;
-+			WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
+--- a/Documentation/vm/page_owner.rst~tools-vm-page_owner_sortc-count-and-sort-by-mem
++++ a/Documentation/vm/page_owner.rst
+@@ -85,5 +85,26 @@ Usage
+ 	cat /sys/kernel/debug/page_owner > page_owner_full.txt
+ 	./page_owner_sort page_owner_full.txt sorted_page_owner.txt
+ 
++   The general output of ``page_owner_full.txt`` is as follows:
++
++	Page allocated via order XXX, ...
++	PFN XXX ...
++	 // Detailed stack
++
++	Page allocated via order XXX, ...
++	PFN XXX ...
++	 // Detailed stack
++
++   The ``page_owner_sort`` tool ignores ``PFN`` rows, puts the remaining rows
++   in buf, uses regexp to extract the page order value, counts the times
++   and pages of buf, and finally sorts them according to the times.
++
+    See the result about who allocated each page
+-   in the ``sorted_page_owner.txt``.
++   in the ``sorted_page_owner.txt``. General output:
++
++	XXX times, XXX pages:
++	Page allocated via order XXX, ...
++	 // Detailed stack
++
++   By default, ``page_owner_sort`` is sorted according to the times of buf.
++   If you want to sort by the pages nums of buf, use the ``-m`` parameter.
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-count-and-sort-by-mem
++++ a/tools/vm/page_owner_sort.c
+@@ -5,6 +5,8 @@
+  * Example use:
+  * cat /sys/kernel/debug/page_owner > page_owner_full.txt
+  * ./page_owner_sort page_owner_full.txt sorted_page_owner.txt
++ * Or sort by total memory:
++ * ./page_owner_sort -m page_owner_full.txt sorted_page_owner.txt
+  *
+  * See Documentation/vm/page_owner.rst
+ */
+@@ -16,14 +18,18 @@
+ #include <fcntl.h>
+ #include <unistd.h>
+ #include <string.h>
++#include <regex.h>
++#include <errno.h>
+ 
+ struct block_list {
+ 	char *txt;
+ 	int len;
+ 	int num;
++	int page_num;
+ };
+ 
+-
++static int sort_by_memory;
++static regex_t order_pattern;
+ static struct block_list *list;
+ static int list_size;
+ static int max_size;
+@@ -59,12 +65,50 @@ static int compare_num(const void *p1, c
+ 	return l2->num - l1->num;
+ }
+ 
++static int compare_page_num(const void *p1, const void *p2)
++{
++	const struct block_list *l1 = p1, *l2 = p2;
++
++	return l2->page_num - l1->page_num;
++}
++
++static int get_page_num(char *buf)
++{
++	int err, val_len, order_val;
++	char order_str[4] = {0};
++	char *endptr;
++	regmatch_t pmatch[2];
++
++	err = regexec(&order_pattern, buf, 2, pmatch, REG_NOTBOL);
++	if (err != 0 || pmatch[1].rm_so == -1) {
++		printf("no order pattern in %s\n", buf);
++		return 0;
++	}
++	val_len = pmatch[1].rm_eo - pmatch[1].rm_so;
++	if (val_len > 2) /* max_order should not exceed 2 digits */
++		goto wrong_order;
++
++	memcpy(order_str, buf + pmatch[1].rm_so, val_len);
++
++	errno = 0;
++	order_val = strtol(order_str, &endptr, 10);
++	if (errno != 0 || endptr == order_str || *endptr != '\0')
++		goto wrong_order;
++
++	return 1 << order_val;
++
++wrong_order:
++	printf("wrong order in follow buf:\n%s\n", buf);
++	return 0;
++}
++
+ static void add_list(char *buf, int len)
+ {
+ 	if (list_size != 0 &&
+ 	    len == list[list_size-1].len &&
+ 	    memcmp(buf, list[list_size-1].txt, len) == 0) {
+ 		list[list_size-1].num++;
++		list[list_size-1].page_num += get_page_num(buf);
+ 		return;
+ 	}
+ 	if (list_size == max_size) {
+@@ -74,6 +118,7 @@ static void add_list(char *buf, int len)
+ 	list[list_size].txt = malloc(len+1);
+ 	list[list_size].len = len;
+ 	list[list_size].num = 1;
++	list[list_size].page_num = get_page_num(buf);
+ 	memcpy(list[list_size].txt, buf, len);
+ 	list[list_size].txt[len] = 0;
+ 	list_size++;
+@@ -85,6 +130,13 @@ static void add_list(char *buf, int len)
+ 
+ #define BUF_SIZE	(128 * 1024)
+ 
++static void usage(void)
++{
++	printf("Usage: ./page_owner_sort [-m] <input> <output>\n"
++		"-m	Sort by total memory. If this option is unset, sort by times\n"
++	);
++}
++
+ int main(int argc, char **argv)
+ {
+ 	FILE *fin, *fout;
+@@ -92,21 +144,39 @@ int main(int argc, char **argv)
+ 	int ret, i, count;
+ 	struct block_list *list2;
+ 	struct stat st;
++	int err;
++	int opt;
+ 
+-	if (argc < 3) {
+-		printf("Usage: ./program <input> <output>\n");
+-		perror("open: ");
++	while ((opt = getopt(argc, argv, "m")) != -1)
++		switch (opt) {
++		case 'm':
++			sort_by_memory = 1;
++			break;
++		default:
++			usage();
++			exit(1);
++		}
++
++	if (optind >= (argc - 1)) {
++		usage();
+ 		exit(1);
+ 	}
+ 
+-	fin = fopen(argv[1], "r");
+-	fout = fopen(argv[2], "w");
++	fin = fopen(argv[optind], "r");
++	fout = fopen(argv[optind + 1], "w");
+ 	if (!fin || !fout) {
+-		printf("Usage: ./program <input> <output>\n");
++		usage();
+ 		perror("open: ");
+ 		exit(1);
+ 	}
+ 
++	err = regcomp(&order_pattern, "order\\s*([0-9]*),", REG_EXTENDED|REG_NEWLINE);
++	if (err != 0 || order_pattern.re_nsub != 1) {
++		printf("%s: Invalid pattern 'order\\s*([0-9]*),' code %d\n",
++			argv[0], err);
++		exit(1);
++	}
++
+ 	fstat(fileno(fin), &st);
+ 	max_size = st.st_size / 100; /* hack ... */
+ 
+@@ -145,13 +215,19 @@ int main(int argc, char **argv)
+ 			list2[count++] = list[i];
+ 		} else {
+ 			list2[count-1].num += list[i].num;
++			list2[count-1].page_num += list[i].page_num;
  		}
  	}
+ 
+-	qsort(list2, count, sizeof(list[0]), compare_num);
++	if (sort_by_memory)
++		qsort(list2, count, sizeof(list[0]), compare_page_num);
++	else
++		qsort(list2, count, sizeof(list[0]), compare_num);
+ 
+ 	for (i = 0; i < count; i++)
+-		fprintf(fout, "%d times:\n%s\n", list2[i].num, list2[i].txt);
++		fprintf(fout, "%d times, %d pages:\n%s\n",
++				list2[i].num, list2[i].page_num, list2[i].txt);
+ 
++	regfree(&order_pattern);
+ 	return 0;
  }
 _
 
-Patches currently in -mm which might be from songyuanzheng@huawei.com are
+Patches currently in -mm which might be from weizhenliang@huawei.com are
 
 
