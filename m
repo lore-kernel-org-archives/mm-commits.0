@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1DF7C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:54:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8D58C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:54:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DEE0661108
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:54:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E78261108
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:54:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234636AbhKKC5N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:57:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60394 "EHLO mail.kernel.org"
+        id S234637AbhKKC5P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:57:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60422 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234632AbhKKC5M (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:57:12 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7BBEF61075;
-        Thu, 11 Nov 2021 02:54:24 +0000 (UTC)
+        id S234632AbhKKC5O (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:57:14 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7F7506103C;
+        Thu, 11 Nov 2021 02:54:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599264;
-        bh=QnY2pVf1wuwSGxRtb0a6Zi6Jp70vBxw574Hlch8x300=;
+        s=korg; t=1636599266;
+        bh=VIaarQuQNykmIhAXMRB6//zK6k+b2yN/6LwjJZjJG0c=;
         h=Date:From:To:Subject:From;
-        b=K332Q/26uqn8qBhxQH6gb+Fa9QpuOtPAPYOW8ZW46/9SlU+SOPxy+pvdNAZBtgNF7
-         aotWaIAz09WMuMRGxt5RojRtV21Z4ypn2SQ+5gBvjwEgeCvNix3h3OUxdqKPluVL2+
-         CfMnpPOKhBxskoEySN3v2FRgycfbBO/gOeXW1rSU=
-Date:   Wed, 10 Nov 2021 18:54:24 -0800
+        b=BaoZVdexBZTzM9kKJt5Uv59mMJ/cVGw+KPTQOCqK9Vg/xFcTgL24xc21C7cJusUHO
+         +dnE68l3J1ls/j6fvCqoodIamOgngWEwvmld2k+Rdi1GaFkud35/YzFZQs1dhKOZgc
+         QN9Oh1f+hZunn+m+GiXk0U87q2GFGUhREem3Wz+8=
+Date:   Wed, 10 Nov 2021 18:54:26 -0800
 From:   akpm@linux-foundation.org
 To:     dbueso@suse.de, ebiederm@xmission.com, manfred@colorfullife.com,
-        mclapinski@google.com, mm-commits@vger.kernel.org
+        mm-commits@vger.kernel.org
 Subject:  [merged]
- ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files.patch
- removed from -mm tree
-Message-ID: <20211111025424.HmopAfCXr%akpm@linux-foundation.org>
+ ipc-ipc_sysctlc-remove-fallback-for-config_proc_sysctl.patch removed from
+ -mm tree
+Message-ID: <20211111025426.8pCz8l-wc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,111 +39,71 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: check checkpoint_restore_ns_capable() to modify C/R proc files
+     Subject: ipc/ipc_sysctl.c: remove fallback for !CONFIG_PROC_SYSCTL
 has been removed from the -mm tree.  Its filename was
-     ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files.patch
+     ipc-ipc_sysctlc-remove-fallback-for-config_proc_sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Clapinski <mclapinski@google.com>
-Subject: ipc: check checkpoint_restore_ns_capable() to modify C/R proc files
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/ipc_sysctl.c: remove fallback for !CONFIG_PROC_SYSCTL
 
-This commit removes the requirement to be root to modify sem_next_id,
-msg_next_id and shm_next_id and checks checkpoint_restore_ns_capable
-instead.
+Compilation of ipc/ipc_sysctl.c is controlled by
+obj-$(CONFIG_SYSVIPC_SYSCTL)
+[see ipc/Makefile]
 
-Since those files are specific to the IPC namespace, there is no reason
-they should require root privileges.  This is similar to ns_last_pid,
-which also only checks checkpoint_restore_ns_capable.
+And CONFIG_SYSVIPC_SYSCTL depends on SYSCTL
+[see init/Kconfig]
 
-[akpm@linux-foundation.org: ipc/ipc_sysctl.c needs capability.h for checkpoint_restore_ns_capable()]
-Link: https://lkml.kernel.org/r/20210916163717.3179496-1-mclapinski@google.com
-Signed-off-by: Michal Clapinski <mclapinski@google.com>
-Reviewed-by: Davidlohr Bueso <dbueso@suse.de>
-Reviewed-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+An SYSCTL is selected by PROC_SYSCTL.
+[see fs/proc/Kconfig]
+
+Thus: #ifndef CONFIG_PROC_SYSCTL in ipc/ipc_sysctl.c is impossible, the
+fallback can be removed.
+
+Link: https://lkml.kernel.org/r/20210918145337.3369-1-manfred@colorfullife.com
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Reviewed-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Acked-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Manfred Spraul <manfred@colorfullife.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/ipc_sysctl.c |   29 +++++++++++++++++++++++------
- 1 file changed, 23 insertions(+), 6 deletions(-)
+ ipc/ipc_sysctl.c |   13 -------------
+ 1 file changed, 13 deletions(-)
 
---- a/ipc/ipc_sysctl.c~ipc-check-checkpoint_restore_ns_capable-to-modify-c-r-proc-files
+--- a/ipc/ipc_sysctl.c~ipc-ipc_sysctlc-remove-fallback-for-config_proc_sysctl
 +++ a/ipc/ipc_sysctl.c
-@@ -10,6 +10,7 @@
- #include <linux/nsproxy.h>
- #include <linux/sysctl.h>
- #include <linux/uaccess.h>
-+#include <linux/capability.h>
- #include <linux/ipc_namespace.h>
- #include <linux/msg.h>
- #include "util.h"
-@@ -104,6 +105,19 @@ static int proc_ipc_sem_dointvec(struct
- 	return ret;
+@@ -23,7 +23,6 @@ static void *get_ipc(struct ctl_table *t
+ 	return which;
  }
  
-+#ifdef CONFIG_CHECKPOINT_RESTORE
-+static int proc_ipc_dointvec_minmax_checkpoint_restore(struct ctl_table *table,
-+		int write, void *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	struct user_namespace *user_ns = current->nsproxy->ipc_ns->user_ns;
-+
-+	if (write && !checkpoint_restore_ns_capable(user_ns))
-+		return -EPERM;
-+
-+	return proc_ipc_dointvec_minmax(table, write, buffer, lenp, ppos);
-+}
-+#endif
-+
- #else
- #define proc_ipc_doulongvec_minmax NULL
- #define proc_ipc_dointvec	   NULL
-@@ -111,6 +125,9 @@ static int proc_ipc_sem_dointvec(struct
- #define proc_ipc_dointvec_minmax_orphans   NULL
- #define proc_ipc_auto_msgmni	   NULL
- #define proc_ipc_sem_dointvec	   NULL
-+#ifdef CONFIG_CHECKPOINT_RESTORE
-+#define proc_ipc_dointvec_minmax_checkpoint_restore	NULL
-+#endif	/* CONFIG_CHECKPOINT_RESTORE */
+-#ifdef CONFIG_PROC_SYSCTL
+ static int proc_ipc_dointvec(struct ctl_table *table, int write,
+ 		void *buffer, size_t *lenp, loff_t *ppos)
+ {
+@@ -118,18 +117,6 @@ static int proc_ipc_dointvec_minmax_chec
+ }
  #endif
  
+-#else
+-#define proc_ipc_doulongvec_minmax NULL
+-#define proc_ipc_dointvec	   NULL
+-#define proc_ipc_dointvec_minmax   NULL
+-#define proc_ipc_dointvec_minmax_orphans   NULL
+-#define proc_ipc_auto_msgmni	   NULL
+-#define proc_ipc_sem_dointvec	   NULL
+-#ifdef CONFIG_CHECKPOINT_RESTORE
+-#define proc_ipc_dointvec_minmax_checkpoint_restore	NULL
+-#endif	/* CONFIG_CHECKPOINT_RESTORE */
+-#endif
+-
  int ipc_mni = IPCMNI;
-@@ -198,8 +215,8 @@ static struct ctl_table ipc_kern_table[]
- 		.procname	= "sem_next_id",
- 		.data		= &init_ipc_ns.ids[IPC_SEM_IDS].next_id,
- 		.maxlen		= sizeof(init_ipc_ns.ids[IPC_SEM_IDS].next_id),
--		.mode		= 0644,
--		.proc_handler	= proc_ipc_dointvec_minmax,
-+		.mode		= 0666,
-+		.proc_handler	= proc_ipc_dointvec_minmax_checkpoint_restore,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_INT_MAX,
- 	},
-@@ -207,8 +224,8 @@ static struct ctl_table ipc_kern_table[]
- 		.procname	= "msg_next_id",
- 		.data		= &init_ipc_ns.ids[IPC_MSG_IDS].next_id,
- 		.maxlen		= sizeof(init_ipc_ns.ids[IPC_MSG_IDS].next_id),
--		.mode		= 0644,
--		.proc_handler	= proc_ipc_dointvec_minmax,
-+		.mode		= 0666,
-+		.proc_handler	= proc_ipc_dointvec_minmax_checkpoint_restore,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_INT_MAX,
- 	},
-@@ -216,8 +233,8 @@ static struct ctl_table ipc_kern_table[]
- 		.procname	= "shm_next_id",
- 		.data		= &init_ipc_ns.ids[IPC_SHM_IDS].next_id,
- 		.maxlen		= sizeof(init_ipc_ns.ids[IPC_SHM_IDS].next_id),
--		.mode		= 0644,
--		.proc_handler	= proc_ipc_dointvec_minmax,
-+		.mode		= 0666,
-+		.proc_handler	= proc_ipc_dointvec_minmax_checkpoint_restore,
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_INT_MAX,
- 	},
+ int ipc_mni_shift = IPCMNI_SHIFT;
+ int ipc_min_cycle = RADIX_TREE_MAP_SIZE;
 _
 
-Patches currently in -mm which might be from mclapinski@google.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
 
