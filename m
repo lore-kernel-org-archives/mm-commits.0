@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 376E1C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AB83C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:08 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 211AD6135E
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:05 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id EA34361241
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234490AbhKKCww (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:52:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56904 "EHLO mail.kernel.org"
+        id S234491AbhKKCwz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:52:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56938 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234469AbhKKCww (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:52:52 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B33C2610A2;
-        Thu, 11 Nov 2021 02:50:03 +0000 (UTC)
+        id S234469AbhKKCwz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:52:55 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8AB0661108;
+        Thu, 11 Nov 2021 02:50:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599004;
-        bh=3rI4ICAZ7zowKGBw+TdDO6rPj42Wj6rDayK8NchUN7E=;
+        s=korg; t=1636599007;
+        bh=+vmYHArwkGBRmkd9TzSza0fizKYkbxyV4nRplcsI7tQ=;
         h=Date:From:To:Subject:From;
-        b=Qct4z8fG1h8hcIwLOSqTRZkhRSO4HLkU34iT0+72U4Xn+bjgAnWvO1/l6hac15TtY
-         W69tOc4YWomciqiI0Q7iHsxBfHlIOkjDfFdWY19Jj9qh7qRdbBcu9r+3QZzbhOftj2
-         WOnp4XkkD/udeVNoxxOb6bs7dc/ciLFtx9wIxWPc=
-Date:   Wed, 10 Nov 2021 18:50:03 -0800
+        b=j3qP0fnASuBweIczfYzfNdlLZD+Lx7lH1MPwckSjf0jVXBDwaCpjfZo2CHQv5wB6u
+         H/a2VpuoiaK/JjDDqKGHKb3RMUdrj8TYvD5B+o3ws7UWAtjcukyGo3Xd4jIfP2SQS7
+         9MTXk2PyLdxHt1VEErxvgakEKysXcyAUZRPy7ECE=
+Date:   Wed, 10 Nov 2021 18:50:06 -0800
 From:   akpm@linux-foundation.org
 To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         david@redhat.com, dwmw@amazon.com, elver@google.com,
@@ -32,8 +32,9 @@ To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         mm-commits@vger.kernel.org, rientjes@google.com,
         shakeelb@google.com, shuah@kernel.org, sj@kernel.org
 Subject:  [merged]
- mm-damon-dbgfs-support-prioritization-weights.patch removed from -mm tree
-Message-ID: <20211111025003.mR5V550Gn%akpm@linux-foundation.org>
+ tools-selftests-damon-update-for-regions-prioritization-of-schemes.patch
+ removed from -mm tree
+Message-ID: <20211111025006.igHh5H7fT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,20 +43,20 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/dbgfs: support prioritization weights
+     Subject: tools/selftests/damon: update for regions prioritization of schemes
 has been removed from the -mm tree.  Its filename was
-     mm-damon-dbgfs-support-prioritization-weights.patch
+     tools-selftests-damon-update-for-regions-prioritization-of-schemes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/dbgfs: support prioritization weights
+Subject: tools/selftests/damon: update for regions prioritization of schemes
 
-This commit allows DAMON debugfs interface users set the prioritization
-weights by putting three more numbers to the 'schemes' file.
+This commit updates the DAMON selftests for 'schemes' debugfs file, as the
+file format is updated.
 
-Link: https://lkml.kernel.org/r/20211019150731.16699-10-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211019150731.16699-11-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -73,47 +74,24 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |   14 ++++++++++----
- 1 file changed, 10 insertions(+), 4 deletions(-)
+ tools/testing/selftests/damon/debugfs_attrs.sh |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-support-prioritization-weights
-+++ a/mm/damon/dbgfs.c
-@@ -105,13 +105,16 @@ static ssize_t sprint_schemes(struct dam
+--- a/tools/testing/selftests/damon/debugfs_attrs.sh~tools-selftests-damon-update-for-regions-prioritization-of-schemes
++++ a/tools/testing/selftests/damon/debugfs_attrs.sh
+@@ -63,10 +63,10 @@ echo "$orig_content" > "$file"
+ file="$DBGFS/schemes"
+ orig_content=$(cat "$file")
  
- 	damon_for_each_scheme(s, c) {
- 		rc = scnprintf(&buf[written], len - written,
--				"%lu %lu %u %u %u %u %d %lu %lu %lu %lu %lu\n",
-+				"%lu %lu %u %u %u %u %d %lu %lu %lu %u %u %u %lu %lu\n",
- 				s->min_sz_region, s->max_sz_region,
- 				s->min_nr_accesses, s->max_nr_accesses,
- 				s->min_age_region, s->max_age_region,
- 				s->action,
- 				s->quota.ms, s->quota.sz,
- 				s->quota.reset_interval,
-+				s->quota.weight_sz,
-+				s->quota.weight_nr_accesses,
-+				s->quota.weight_age,
- 				s->stat_count, s->stat_sz);
- 		if (!rc)
- 			return -ENOMEM;
-@@ -193,11 +196,14 @@ static struct damos **str_to_schemes(con
- 	while (pos < len && *nr_schemes < max_nr_schemes) {
- 		struct damos_quota quota = {};
+-test_write_succ "$file" "1 2 3 4 5 6 4 0 0 0" \
++test_write_succ "$file" "1 2 3 4 5 6 4 0 0 0 1 2 3" \
+ 	"$orig_content" "valid input"
+ test_write_fail "$file" "1 2
+-3 4 5 6 3 0 0 0" "$orig_content" "multi lines"
++3 4 5 6 3 0 0 0 1 2 3" "$orig_content" "multi lines"
+ test_write_succ "$file" "" "$orig_content" "disabling"
+ echo "$orig_content" > "$file"
  
--		ret = sscanf(&str[pos], "%lu %lu %u %u %u %u %u %lu %lu %lu%n",
-+		ret = sscanf(&str[pos],
-+				"%lu %lu %u %u %u %u %u %lu %lu %lu %u %u %u%n",
- 				&min_sz, &max_sz, &min_nr_a, &max_nr_a,
- 				&min_age, &max_age, &action, &quota.ms,
--				&quota.sz, &quota.reset_interval, &parsed);
--		if (ret != 10)
-+				&quota.sz, &quota.reset_interval,
-+				&quota.weight_sz, &quota.weight_nr_accesses,
-+				&quota.weight_age, &parsed);
-+		if (ret != 13)
- 			break;
- 		if (!damos_action_valid(action)) {
- 			pr_err("wrong action %d\n", action);
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
