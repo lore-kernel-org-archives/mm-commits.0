@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08B29C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 00999C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E560B6113B
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DFD9961247
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234310AbhKKCr5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:47:57 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53004 "EHLO mail.kernel.org"
+        id S234313AbhKKCr7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:47:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53042 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234044AbhKKCr5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:47:57 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 7FA8560F46;
-        Thu, 11 Nov 2021 02:45:08 +0000 (UTC)
+        id S234044AbhKKCr7 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:47:59 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A4E06113B;
+        Thu, 11 Nov 2021 02:45:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598708;
-        bh=CnqJwDMfA9UraHWQ7OSpPdE00mnFOINNun9rBKKkkFE=;
+        s=korg; t=1636598710;
+        bh=TH0U+8SGzeDtGNpbPX9KZYHT53/d0Ki1kp17FwcjuP0=;
         h=Date:From:To:Subject:From;
-        b=vQLuoFi/31HxMJfkmWtDWpHNLFpu5aTolkMDlbNOL8ND2dzctcUrqcTuPy3y/j+Ab
-         iAwUMuw1HqrKUhN264dodhsv8jjSSFNJOtHdAlPlaJWfvFFEzY7SpLnOp9ZznGxrf/
-         7VdhvWBqAp1FeCQDazgOx8XqcfjLVJXp+WjvKtpI=
-Date:   Wed, 10 Nov 2021 18:45:08 -0800
+        b=Tv2geSQoE/DW6E/p7ND3z204+upm2DdZMFdrC3tC7obik2KvLPzvuOil+BqQbB+DA
+         xhOVb/l3+IHs1v5ubFerE83k/ZmYb1Mx3nOTxOhI17TYWCt935/PnAzJ6M13Ba0L+y
+         2KBTJL+7+tYC/w5HMOzthCrEKh04uIOTbK7PIV0Y=
+Date:   Wed, 10 Nov 2021 18:45:10 -0800
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, ckennelly@google.com, kenchen@google.com,
-        kirill@shutemov.name, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, vbabka@suse.cz, wanjiabing@vivo.com
-Subject:  [merged] mm-hugepages-add-hugetlb-vma-mremap-test.patch
+To:     baolin.wang@linux.alibaba.com, corbet@lwn.net, guro@fb.com,
+        mhocko@kernel.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org
+Subject:  [merged]
+ hugetlb-support-node-specified-when-using-cma-for-gigantic-hugepages.patch
  removed from -mm tree
-Message-ID: <20211111024508.fSC2OqZWy%akpm@linux-foundation.org>
+Message-ID: <20211111024510.Um1CkQGd6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,242 +40,203 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugepages: add hugetlb vma mremap() test
+     Subject: hugetlb: support node specified when using cma for gigantic hugepages
 has been removed from the -mm tree.  Its filename was
-     mm-hugepages-add-hugetlb-vma-mremap-test.patch
+     hugetlb-support-node-specified-when-using-cma-for-gigantic-hugepages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mina Almasry <almasrymina@google.com>
-Subject: mm, hugepages: add hugetlb vma mremap() test
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: hugetlb: support node specified when using cma for gigantic hugepages
 
-[almasrymina@google.com: v8]
-  Link: https://lkml.kernel.org/r/20211014200542.4126947-2-almasrymina@google.com
-[wanjiabing@vivo.com: remove duplicated include in hugepage-mremap]
-  Link: https://lkml.kernel.org/r/20211021122944.8857-1-wanjiabing@vivo.com
-Link: https://lkml.kernel.org/r/20211013195825.3058275-2-almasrymina@google.com
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Signed-off-by: Wan Jiabing <wanjiabing@vivo.com>
-Acked-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Ken Chen <kenchen@google.com>
-Cc: Chris Kennelly <ckennelly@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Kirill Shutemov <kirill@shutemov.name>
+Now the size of CMA area for gigantic hugepages runtime allocation is
+balanced for all online nodes, but we also want to specify the size of CMA
+per-node, or only one node in some cases, which are similar with patch
+[1].
+
+For example, on some multi-nodes systems, each node's memory can be
+different, allocating the same size of CMA for each node is not suitable
+for the low-memory nodes.  Meanwhile some workloads like DPDK mentioned by
+Zhenguo in patch [1] only need hugepages in one node.
+
+On the other hand, we have some machines with multiple types of memory,
+like DRAM and PMEM (persistent memory).  On this system, we may want to
+specify all the hugepages only on DRAM node, or specify the proportion of
+DRAM node and PMEM node, to tuning the performance of the workloads.
+
+Thus this patch adds node format for 'hugetlb_cma' parameter to support
+specifying the size of CMA per-node.  An example is as follows:
+
+hugetlb_cma=0:5G,2:5G
+
+which means allocating 5G size of CMA area on node 0 and node 2
+respectively.  And the users should use the node specific sysfs file to
+allocate the gigantic hugepages if specified the CMA size on that node.
+
+[1]
+https://lkml.kernel.org/r/20211005054729.86457-1-yaozhenguo1@gmail.com
+
+Link: https://lkml.kernel.org/r/bb790775ca60bb8f4b26956bb3f6988f74e075c7.1634261144.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/.gitignore        |    1 
- tools/testing/selftests/vm/Makefile          |    1 
- tools/testing/selftests/vm/hugepage-mremap.c |  160 +++++++++++++++++
- tools/testing/selftests/vm/run_vmtests.sh    |   11 +
- 4 files changed, 173 insertions(+)
+ Documentation/admin-guide/kernel-parameters.txt |    6 
+ mm/hugetlb.c                                    |   86 ++++++++++++--
+ 2 files changed, 81 insertions(+), 11 deletions(-)
 
---- a/tools/testing/selftests/vm/.gitignore~mm-hugepages-add-hugetlb-vma-mremap-test
-+++ a/tools/testing/selftests/vm/.gitignore
-@@ -1,5 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0-only
- hugepage-mmap
-+hugepage-mremap
- hugepage-shm
- khugepaged
- map_hugetlb
---- /dev/null
-+++ a/tools/testing/selftests/vm/hugepage-mremap.c
-@@ -0,0 +1,160 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * hugepage-mremap:
-+ *
-+ * Example of remapping huge page memory in a user application using the
-+ * mremap system call.  Code assumes a hugetlbfs filesystem is mounted
-+ * at './huge'.  The code will use 10MB worth of huge pages.
-+ */
-+
-+#define _GNU_SOURCE
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <unistd.h>
-+#include <sys/mman.h>
-+#include <errno.h>
-+#include <fcntl.h> /* Definition of O_* constants */
-+#include <sys/syscall.h> /* Definition of SYS_* constants */
-+#include <unistd.h>
-+#include <linux/userfaultfd.h>
-+#include <sys/ioctl.h>
-+
-+#define LENGTH (1UL * 1024 * 1024 * 1024)
-+
-+#define PROTECTION (PROT_READ | PROT_WRITE | PROT_EXEC)
-+#define FLAGS (MAP_SHARED | MAP_ANONYMOUS)
-+
-+static void check_bytes(char *addr)
-+{
-+	printf("First hex is %x\n", *((unsigned int *)addr));
-+}
-+
-+static void write_bytes(char *addr)
-+{
-+	unsigned long i;
-+
-+	for (i = 0; i < LENGTH; i++)
-+		*(addr + i) = (char)i;
-+}
-+
-+static int read_bytes(char *addr)
-+{
-+	unsigned long i;
-+
-+	check_bytes(addr);
-+	for (i = 0; i < LENGTH; i++)
-+		if (*(addr + i) != (char)i) {
-+			printf("Mismatch at %lu\n", i);
-+			return 1;
-+		}
-+	return 0;
-+}
-+
-+static void register_region_with_uffd(char *addr, size_t len)
-+{
-+	long uffd; /* userfaultfd file descriptor */
-+	struct uffdio_api uffdio_api;
-+	struct uffdio_register uffdio_register;
-+
-+	/* Create and enable userfaultfd object. */
-+
-+	uffd = syscall(__NR_userfaultfd, O_CLOEXEC | O_NONBLOCK);
-+	if (uffd == -1) {
-+		perror("userfaultfd");
-+		exit(1);
-+	}
-+
-+	uffdio_api.api = UFFD_API;
-+	uffdio_api.features = 0;
-+	if (ioctl(uffd, UFFDIO_API, &uffdio_api) == -1) {
-+		perror("ioctl-UFFDIO_API");
-+		exit(1);
-+	}
-+
-+	/* Create a private anonymous mapping. The memory will be
-+	 * demand-zero paged--that is, not yet allocated. When we
-+	 * actually touch the memory, it will be allocated via
-+	 * the userfaultfd.
-+	 */
-+
-+	addr = mmap(NULL, len, PROT_READ | PROT_WRITE,
-+		    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-+	if (addr == MAP_FAILED) {
-+		perror("mmap");
-+		exit(1);
-+	}
-+
-+	printf("Address returned by mmap() = %p\n", addr);
-+
-+	/* Register the memory range of the mapping we just created for
-+	 * handling by the userfaultfd object. In mode, we request to track
-+	 * missing pages (i.e., pages that have not yet been faulted in).
-+	 */
-+
-+	uffdio_register.range.start = (unsigned long)addr;
-+	uffdio_register.range.len = len;
-+	uffdio_register.mode = UFFDIO_REGISTER_MODE_MISSING;
-+	if (ioctl(uffd, UFFDIO_REGISTER, &uffdio_register) == -1) {
-+		perror("ioctl-UFFDIO_REGISTER");
-+		exit(1);
-+	}
-+}
-+
-+int main(void)
-+{
-+	int ret = 0;
-+
-+	int fd = open("/huge/test", O_CREAT | O_RDWR, 0755);
-+
-+	if (fd < 0) {
-+		perror("Open failed");
-+		exit(1);
-+	}
-+
-+	/* mmap to a PUD aligned address to hopefully trigger pmd sharing. */
-+	unsigned long suggested_addr = 0x7eaa40000000;
-+	void *haddr = mmap((void *)suggested_addr, LENGTH, PROTECTION,
-+			   MAP_HUGETLB | MAP_SHARED | MAP_POPULATE, fd, 0);
-+	printf("Map haddr: Returned address is %p\n", haddr);
-+	if (haddr == MAP_FAILED) {
-+		perror("mmap1");
-+		exit(1);
-+	}
-+
-+	/* mmap again to a dummy address to hopefully trigger pmd sharing. */
-+	suggested_addr = 0x7daa40000000;
-+	void *daddr = mmap((void *)suggested_addr, LENGTH, PROTECTION,
-+			   MAP_HUGETLB | MAP_SHARED | MAP_POPULATE, fd, 0);
-+	printf("Map daddr: Returned address is %p\n", daddr);
-+	if (daddr == MAP_FAILED) {
-+		perror("mmap3");
-+		exit(1);
-+	}
-+
-+	suggested_addr = 0x7faa40000000;
-+	void *vaddr =
-+		mmap((void *)suggested_addr, LENGTH, PROTECTION, FLAGS, -1, 0);
-+	printf("Map vaddr: Returned address is %p\n", vaddr);
-+	if (vaddr == MAP_FAILED) {
-+		perror("mmap2");
-+		exit(1);
-+	}
-+
-+	register_region_with_uffd(haddr, LENGTH);
-+
-+	void *addr = mremap(haddr, LENGTH, LENGTH,
-+			    MREMAP_MAYMOVE | MREMAP_FIXED, vaddr);
-+	if (addr == MAP_FAILED) {
-+		perror("mremap");
-+		exit(1);
-+	}
-+
-+	printf("Mremap: Returned address is %p\n", addr);
-+	check_bytes(addr);
-+	write_bytes(addr);
-+	ret = read_bytes(addr);
-+
-+	munmap(addr, LENGTH);
-+
-+	return ret;
-+}
---- a/tools/testing/selftests/vm/Makefile~mm-hugepages-add-hugetlb-vma-mremap-test
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -29,6 +29,7 @@ TEST_GEN_FILES = compaction_test
- TEST_GEN_FILES += gup_test
- TEST_GEN_FILES += hmm-tests
- TEST_GEN_FILES += hugepage-mmap
-+TEST_GEN_FILES += hugepage-mremap
- TEST_GEN_FILES += hugepage-shm
- TEST_GEN_FILES += khugepaged
- TEST_GEN_FILES += madv_populate
---- a/tools/testing/selftests/vm/run_vmtests.sh~mm-hugepages-add-hugetlb-vma-mremap-test
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -108,6 +108,17 @@ else
- 	echo "[PASS]"
- fi
+--- a/Documentation/admin-guide/kernel-parameters.txt~hugetlb-support-node-specified-when-using-cma-for-gigantic-hugepages
++++ a/Documentation/admin-guide/kernel-parameters.txt
+@@ -1587,8 +1587,10 @@
+ 			registers.  Default set by CONFIG_HPET_MMAP_DEFAULT.
  
-+echo "-----------------------"
-+echo "running hugepage-mremap"
-+echo "-----------------------"
-+./hugepage-mremap
-+if [ $? -ne 0 ]; then
-+	echo "[FAIL]"
-+	exitcode=1
-+else
-+	echo "[PASS]"
-+fi
+ 	hugetlb_cma=	[HW,CMA] The size of a CMA area used for allocation
+-			of gigantic hugepages.
+-			Format: nn[KMGTPE]
++			of gigantic hugepages. Or using node format, the size
++			of a CMA area per node can be specified.
++			Format: nn[KMGTPE] or (node format)
++				<node>:nn[KMGTPE][,<node>:nn[KMGTPE]]
+ 
+ 			Reserve a CMA area of given size and allocate gigantic
+ 			hugepages using the CMA allocator. If enabled, the
+--- a/mm/hugetlb.c~hugetlb-support-node-specified-when-using-cma-for-gigantic-hugepages
++++ a/mm/hugetlb.c
+@@ -50,6 +50,7 @@ struct hstate hstates[HUGE_MAX_HSTATE];
+ 
+ #ifdef CONFIG_CMA
+ static struct cma *hugetlb_cma[MAX_NUMNODES];
++static unsigned long hugetlb_cma_size_in_node[MAX_NUMNODES] __initdata;
+ static bool hugetlb_cma_page(struct page *page, unsigned int order)
+ {
+ 	return cma_pages_valid(hugetlb_cma[page_to_nid(page)], page,
+@@ -6762,7 +6763,38 @@ static bool cma_reserve_called __initdat
+ 
+ static int __init cmdline_parse_hugetlb_cma(char *p)
+ {
+-	hugetlb_cma_size = memparse(p, &p);
++	int nid, count = 0;
++	unsigned long tmp;
++	char *s = p;
 +
- echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
- echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
- echo "      hugetlb regression testing."
++	while (*s) {
++		if (sscanf(s, "%lu%n", &tmp, &count) != 1)
++			break;
++
++		if (s[count] == ':') {
++			nid = tmp;
++			if (nid < 0 || nid >= MAX_NUMNODES)
++				break;
++
++			s += count + 1;
++			tmp = memparse(s, &s);
++			hugetlb_cma_size_in_node[nid] = tmp;
++			hugetlb_cma_size += tmp;
++
++			/*
++			 * Skip the separator if have one, otherwise
++			 * break the parsing.
++			 */
++			if (*s == ',')
++				s++;
++			else
++				break;
++		} else {
++			hugetlb_cma_size = memparse(p, &p);
++			break;
++		}
++	}
++
+ 	return 0;
+ }
+ 
+@@ -6771,6 +6803,7 @@ early_param("hugetlb_cma", cmdline_parse
+ void __init hugetlb_cma_reserve(int order)
+ {
+ 	unsigned long size, reserved, per_node;
++	bool node_specific_cma_alloc = false;
+ 	int nid;
+ 
+ 	cma_reserve_called = true;
+@@ -6778,6 +6811,31 @@ void __init hugetlb_cma_reserve(int orde
+ 	if (!hugetlb_cma_size)
+ 		return;
+ 
++	for (nid = 0; nid < MAX_NUMNODES; nid++) {
++		if (hugetlb_cma_size_in_node[nid] == 0)
++			continue;
++
++		if (!node_state(nid, N_ONLINE)) {
++			pr_warn("hugetlb_cma: invalid node %d specified\n", nid);
++			hugetlb_cma_size -= hugetlb_cma_size_in_node[nid];
++			hugetlb_cma_size_in_node[nid] = 0;
++			continue;
++		}
++
++		if (hugetlb_cma_size_in_node[nid] < (PAGE_SIZE << order)) {
++			pr_warn("hugetlb_cma: cma area of node %d should be at least %lu MiB\n",
++				nid, (PAGE_SIZE << order) / SZ_1M);
++			hugetlb_cma_size -= hugetlb_cma_size_in_node[nid];
++			hugetlb_cma_size_in_node[nid] = 0;
++		} else {
++			node_specific_cma_alloc = true;
++		}
++	}
++
++	/* Validate the CMA size again in case some invalid nodes specified. */
++	if (!hugetlb_cma_size)
++		return;
++
+ 	if (hugetlb_cma_size < (PAGE_SIZE << order)) {
+ 		pr_warn("hugetlb_cma: cma area should be at least %lu MiB\n",
+ 			(PAGE_SIZE << order) / SZ_1M);
+@@ -6785,20 +6843,30 @@ void __init hugetlb_cma_reserve(int orde
+ 		return;
+ 	}
+ 
+-	/*
+-	 * If 3 GB area is requested on a machine with 4 numa nodes,
+-	 * let's allocate 1 GB on first three nodes and ignore the last one.
+-	 */
+-	per_node = DIV_ROUND_UP(hugetlb_cma_size, nr_online_nodes);
+-	pr_info("hugetlb_cma: reserve %lu MiB, up to %lu MiB per node\n",
+-		hugetlb_cma_size / SZ_1M, per_node / SZ_1M);
++	if (!node_specific_cma_alloc) {
++		/*
++		 * If 3 GB area is requested on a machine with 4 numa nodes,
++		 * let's allocate 1 GB on first three nodes and ignore the last one.
++		 */
++		per_node = DIV_ROUND_UP(hugetlb_cma_size, nr_online_nodes);
++		pr_info("hugetlb_cma: reserve %lu MiB, up to %lu MiB per node\n",
++			hugetlb_cma_size / SZ_1M, per_node / SZ_1M);
++	}
+ 
+ 	reserved = 0;
+ 	for_each_node_state(nid, N_ONLINE) {
+ 		int res;
+ 		char name[CMA_MAX_NAME];
+ 
+-		size = min(per_node, hugetlb_cma_size - reserved);
++		if (node_specific_cma_alloc) {
++			if (hugetlb_cma_size_in_node[nid] == 0)
++				continue;
++
++			size = hugetlb_cma_size_in_node[nid];
++		} else {
++			size = min(per_node, hugetlb_cma_size - reserved);
++		}
++
+ 		size = round_up(size, PAGE_SIZE << order);
+ 
+ 		snprintf(name, sizeof(name), "hugetlb%d", nid);
 _
 
-Patches currently in -mm which might be from almasrymina@google.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
+mm-migrate-simplify-the-file-backed-pages-validation-when-migrating-its-mapping.patch
 
