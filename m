@@ -2,37 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8297AC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F28DC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:12 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 6AF126113B
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:09 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 46D486103C
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234291AbhKKCq4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:46:56 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52042 "EHLO mail.kernel.org"
+        id S234293AbhKKCq7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:46:59 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52088 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234032AbhKKCq4 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:46:56 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8375961108;
-        Thu, 11 Nov 2021 02:44:07 +0000 (UTC)
+        id S234032AbhKKCq6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:46:58 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A21360F46;
+        Thu, 11 Nov 2021 02:44:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598647;
-        bh=tlL9ptTkJtE7ncipd/+whBKG4ukJhUFrrFG5erLQZYM=;
+        s=korg; t=1636598650;
+        bh=zUe+7ZlhKXcXnAA/4dWVRjfper8ckRwYE3NWR061IDE=;
         h=Date:From:To:Subject:From;
-        b=HN576dSaSDB4QYUtrgO7RwbbEPPXMyJRzPlQ/ZyKi9pkbJRLM/PsWCWS4dYDlzQYt
-         DiXayHSivh2FaY3SBGFx+cV3lU8Fe3nDyareozFvRC+B5HBRamNpWzjXa7yJLFhOEo
-         haHyeBGv/uD+2vgCJM4sNLgNeSe6g5e1pDOhsvg4=
-Date:   Wed, 10 Nov 2021 18:44:07 -0800
+        b=M+gaO4ZqgDTgi5H7hfXYeb0h8ceTWggpsC8ebeqEeIWbG2sWI2dWpG77Q8E3wuB5i
+         K/Tg2nHehj1WDDJHusPwk/fsCO+YOG/0j42rt9FRvdJu3W4xWabl3IN+3D4HsFb4iX
+         8HFpGSuklrhpFbyTqyoknvV+pdP0ltJISD5Gpf3w=
+Date:   Wed, 10 Nov 2021 18:44:10 -0800
 From:   akpm@linux-foundation.org
-To:     dalias@libc.org, geert+renesas@glider.be, gonsolo@gmail.com,
-        juri.lelli@redhat.com, matt@codeblueprint.co.uk, mgorman@suse.de,
-        mingo@redhat.com, mm-commits@vger.kernel.org, peterz@infradead.org,
-        vbabka@suse.cz, vincent.guittot@linaro.org, ysato@users.osdn.me
+To:     edumazet@google.com, hughd@google.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-move-fold_vm_numa_events-to-fix-numa-without-smp.patch removed from -mm
+ mm-do-not-acquire-zone-lock-in-is_free_buddy_page.patch removed from -mm
  tree
-Message-ID: <20211111024407.4ZO1MVj5v%akpm@linux-foundation.org>
+Message-ID: <20211111024410.QxSmP1CuJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,120 +38,63 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move fold_vm_numa_events() to fix NUMA without SMP
+     Subject: mm/page_alloc.c: do not acquire zone lock in is_free_buddy_page()
 has been removed from the -mm tree.  Its filename was
-     mm-move-fold_vm_numa_events-to-fix-numa-without-smp.patch
+     mm-do-not-acquire-zone-lock-in-is_free_buddy_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert+renesas@glider.be>
-Subject: mm: move fold_vm_numa_events() to fix NUMA without SMP
+From: Eric Dumazet <edumazet@google.com>
+Subject: mm/page_alloc.c: do not acquire zone lock in is_free_buddy_page()
 
-If CONFIG_NUMA=y, but CONFIG_SMP=n (e.g. sh/migor_defconfig):
+Grabbing zone lock in is_free_buddy_page() gives a wrong sense of safety,
+and has potential performance implications when zone is experiencing lock
+contention.
 
-    sh4-linux-gnu-ld: mm/vmstat.o: in function `vmstat_start':
-    vmstat.c:(.text+0x97c): undefined reference to `fold_vm_numa_events'
-    sh4-linux-gnu-ld: drivers/base/node.o: in function `node_read_vmstat':
-    node.c:(.text+0x140): undefined reference to `fold_vm_numa_events'
-    sh4-linux-gnu-ld: drivers/base/node.o: in function `node_read_numastat':
-    node.c:(.text+0x1d0): undefined reference to `fold_vm_numa_events'
+In any case, if a caller needs a stable result, it should grab zone lock
+before calling this function.
 
-Fix this by moving fold_vm_numa_events() outside the SMP-only section.
-
-Link: https://lkml.kernel.org/r/9d16ccdd9ef32803d7100c84f737de6a749314fb.1631781495.git.geert+renesas@glider.be
-Fixes: f19298b9516c1a03 ("mm/vmstat: convert NUMA statistics to basic NUMA counters")
-Signed-off-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Acked-by: Mel Gorman <mgorman@suse.de>
-Cc: Gon Solo <gonsolo@gmail.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Juri Lelli <juri.lelli@redhat.com>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Vincent Guittot <vincent.guittot@linaro.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Yoshinori Sato <ysato@users.osdn.me>
+Link: https://lkml.kernel.org/r/20210922152833.4023972-1-eric.dumazet@gmail.com
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   56 +++++++++++++++++++++++++-------------------------
- 1 file changed, 28 insertions(+), 28 deletions(-)
+ mm/page_alloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/vmstat.c~mm-move-fold_vm_numa_events-to-fix-numa-without-smp
-+++ a/mm/vmstat.c
-@@ -165,6 +165,34 @@ atomic_long_t vm_numa_event[NR_VM_NUMA_E
- EXPORT_SYMBOL(vm_zone_stat);
- EXPORT_SYMBOL(vm_node_stat);
- 
-+#ifdef CONFIG_NUMA
-+static void fold_vm_zone_numa_events(struct zone *zone)
-+{
-+	unsigned long zone_numa_events[NR_VM_NUMA_EVENT_ITEMS] = { 0, };
-+	int cpu;
-+	enum numa_stat_item item;
-+
-+	for_each_online_cpu(cpu) {
-+		struct per_cpu_zonestat *pzstats;
-+
-+		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, cpu);
-+		for (item = 0; item < NR_VM_NUMA_EVENT_ITEMS; item++)
-+			zone_numa_events[item] += xchg(&pzstats->vm_numa_event[item], 0);
-+	}
-+
-+	for (item = 0; item < NR_VM_NUMA_EVENT_ITEMS; item++)
-+		zone_numa_event_add(zone_numa_events[item], zone, item);
-+}
-+
-+void fold_vm_numa_events(void)
-+{
-+	struct zone *zone;
-+
-+	for_each_populated_zone(zone)
-+		fold_vm_zone_numa_events(zone);
-+}
-+#endif
-+
- #ifdef CONFIG_SMP
- 
- int calculate_pressure_threshold(struct zone *zone)
-@@ -771,34 +799,6 @@ static int fold_diff(int *zone_diff, int
- 	return changes;
+--- a/mm/page_alloc.c~mm-do-not-acquire-zone-lock-in-is_free_buddy_page
++++ a/mm/page_alloc.c
+@@ -9356,21 +9356,21 @@ void __offline_isolated_pages(unsigned l
  }
+ #endif
  
--#ifdef CONFIG_NUMA
--static void fold_vm_zone_numa_events(struct zone *zone)
--{
--	unsigned long zone_numa_events[NR_VM_NUMA_EVENT_ITEMS] = { 0, };
--	int cpu;
--	enum numa_stat_item item;
--
--	for_each_online_cpu(cpu) {
--		struct per_cpu_zonestat *pzstats;
--
--		pzstats = per_cpu_ptr(zone->per_cpu_zonestats, cpu);
--		for (item = 0; item < NR_VM_NUMA_EVENT_ITEMS; item++)
--			zone_numa_events[item] += xchg(&pzstats->vm_numa_event[item], 0);
--	}
--
--	for (item = 0; item < NR_VM_NUMA_EVENT_ITEMS; item++)
--		zone_numa_event_add(zone_numa_events[item], zone, item);
--}
--
--void fold_vm_numa_events(void)
--{
--	struct zone *zone;
--
--	for_each_populated_zone(zone)
--		fold_vm_zone_numa_events(zone);
--}
--#endif
--
- /*
-  * Update the zone counters for the current cpu.
-  *
++/*
++ * This function returns a stable result only if called under zone lock.
++ */
+ bool is_free_buddy_page(struct page *page)
+ {
+-	struct zone *zone = page_zone(page);
+ 	unsigned long pfn = page_to_pfn(page);
+-	unsigned long flags;
+ 	unsigned int order;
+ 
+-	spin_lock_irqsave(&zone->lock, flags);
+ 	for (order = 0; order < MAX_ORDER; order++) {
+ 		struct page *page_head = page - (pfn & ((1 << order) - 1));
+ 
+-		if (PageBuddy(page_head) && buddy_order(page_head) >= order)
++		if (PageBuddy(page_head) &&
++		    buddy_order_unsafe(page_head) >= order)
+ 			break;
+ 	}
+-	spin_unlock_irqrestore(&zone->lock, flags);
+ 
+ 	return order < MAX_ORDER;
+ }
 _
 
-Patches currently in -mm which might be from geert+renesas@glider.be are
+Patches currently in -mm which might be from edumazet@google.com are
 
 
