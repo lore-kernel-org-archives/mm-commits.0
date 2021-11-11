@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E5997C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7FFFC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id CEAE061108
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:29 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D142761241
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234437AbhKKCvR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:51:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55644 "EHLO mail.kernel.org"
+        id S234450AbhKKCvT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:51:19 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55666 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234449AbhKKCvQ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:51:16 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 99C5F6103C;
-        Thu, 11 Nov 2021 02:48:27 +0000 (UTC)
+        id S234449AbhKKCvS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:51:18 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D6FD60F26;
+        Thu, 11 Nov 2021 02:48:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598907;
-        bh=Ed/CBQr8yIvSt4QAIv30iNu03TjDLgNzfZGuPAvagFg=;
+        s=korg; t=1636598909;
+        bh=Jyg8NDzH/IUDLVpXDjmPEHFU1TYH8cETb7OiurePiXU=;
         h=Date:From:To:Subject:From;
-        b=izhlOxwJiP3OuO4T4Ms+fHVePbKypxhIbut5bDYJnY6WHK6UlEl5vo0Z573xhJsIm
-         Jhi7RJKbdXRI085uaWCXQyHCvJIyUNJ/o62TBBc6IKiCQ8i744aGR2ck2DNmiKr73T
-         qLguUjJw/UyZaARv6tQPByMZGI8ppi1do8Gxg+h4=
-Date:   Wed, 10 Nov 2021 18:48:27 -0800
+        b=OQT8/iKtp9Py0jfm4bhqdUeni98oO2fRhKLdYL/O1ZcySG1BCreSqefleXr3Vo8K5
+         P7qlSDkVIzJA4nYoPkYjCEyu2RGOEDyu/Lq4QxnJ+iAKNs1xPXgBGqjUjCNow4eErY
+         0Ch0dlKPPZbORRBmCyC0HBA/R2RyOi9aSQD4bsXs=
+Date:   Wed, 10 Nov 2021 18:48:29 -0800
 From:   akpm@linux-foundation.org
 To:     dvyukov@google.com, elver@google.com, glider@google.com,
         jannh@google.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- kfence-shorten-critical-sections-of-alloc-free.patch removed from -mm tree
-Message-ID: <20211111024827.gkUpYj-8T%akpm@linux-foundation.org>
+ kfence-always-use-static-branches-to-guard-kfence_alloc.patch removed from
+ -mm tree
+Message-ID: <20211111024829.mG0X-kxsm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,138 +39,127 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: shorten critical sections of alloc/free
+     Subject: kfence: always use static branches to guard kfence_alloc()
 has been removed from the -mm tree.  Its filename was
-     kfence-shorten-critical-sections-of-alloc-free.patch
+     kfence-always-use-static-branches-to-guard-kfence_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kfence: shorten critical sections of alloc/free
+Subject: kfence: always use static branches to guard kfence_alloc()
 
-Initializing memory and setting/checking the canary bytes is relatively
-expensive, and doing so in the meta->lock critical sections extends the
-duration with preemption and interrupts disabled unnecessarily.
+Regardless of KFENCE mode (CONFIG_KFENCE_STATIC_KEYS: either using static
+keys to gate allocations, or using a simple dynamic branch), always use a
+static branch to avoid the dynamic branch in kfence_alloc() if KFENCE was
+disabled at boot.
 
-Any reads to meta->addr and meta->size in kfence_guarded_alloc() and
-kfence_guarded_free() don't require locking meta->lock as long as the
-object is removed from the freelist: only kfence_guarded_alloc() sets
-meta->addr and meta->size after removing it from the freelist, which
-requires a preceding kfence_guarded_free() returning it to the list or the
-initial state.
+For CONFIG_KFENCE_STATIC_KEYS=n, this now avoids the dynamic branch if
+KFENCE was disabled at boot.
 
-Therefore move reads to meta->addr and meta->size, including expensive
-memory initialization using them, out of meta->lock critical sections.
+To simplify, also unifies the location where kfence_allocation_gate is
+read-checked to just be inline in kfence_alloc().
 
-Link: https://lkml.kernel.org/r/20210930153706.2105471-1-elver@google.com
+Link: https://lkml.kernel.org/r/20211019102524.2807208-1-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
-Acked-by: Alexander Potapenko <glider@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   38 +++++++++++++++++++++-----------------
- 1 file changed, 21 insertions(+), 17 deletions(-)
+ include/linux/kfence.h |   21 +++++++++++----------
+ mm/kfence/core.c       |   16 +++++++---------
+ 2 files changed, 18 insertions(+), 19 deletions(-)
 
---- a/mm/kfence/core.c~kfence-shorten-critical-sections-of-alloc-free
-+++ a/mm/kfence/core.c
-@@ -309,12 +309,19 @@ static inline bool set_canary_byte(u8 *a
- /* Check canary byte at @addr. */
- static inline bool check_canary_byte(u8 *addr)
- {
-+	struct kfence_metadata *meta;
-+	unsigned long flags;
-+
- 	if (likely(*addr == KFENCE_CANARY_PATTERN(addr)))
- 		return true;
+--- a/include/linux/kfence.h~kfence-always-use-static-branches-to-guard-kfence_alloc
++++ a/include/linux/kfence.h
+@@ -14,6 +14,9 @@
  
- 	atomic_long_inc(&counters[KFENCE_COUNTER_BUGS]);
--	kfence_report_error((unsigned long)addr, false, NULL, addr_to_metadata((unsigned long)addr),
--			    KFENCE_ERROR_CORRUPTION);
+ #ifdef CONFIG_KFENCE
+ 
++#include <linux/atomic.h>
++#include <linux/static_key.h>
 +
-+	meta = addr_to_metadata((unsigned long)addr);
-+	raw_spin_lock_irqsave(&meta->lock, flags);
-+	kfence_report_error((unsigned long)addr, false, NULL, meta, KFENCE_ERROR_CORRUPTION);
-+	raw_spin_unlock_irqrestore(&meta->lock, flags);
-+
- 	return false;
+ /*
+  * We allocate an even number of pages, as it simplifies calculations to map
+  * address to metadata indices; effectively, the very first page serves as an
+@@ -22,13 +25,8 @@
+ #define KFENCE_POOL_SIZE ((CONFIG_KFENCE_NUM_OBJECTS + 1) * 2 * PAGE_SIZE)
+ extern char *__kfence_pool;
+ 
+-#ifdef CONFIG_KFENCE_STATIC_KEYS
+-#include <linux/static_key.h>
+ DECLARE_STATIC_KEY_FALSE(kfence_allocation_key);
+-#else
+-#include <linux/atomic.h>
+ extern atomic_t kfence_allocation_gate;
+-#endif
+ 
+ /**
+  * is_kfence_address() - check if an address belongs to KFENCE pool
+@@ -116,13 +114,16 @@ void *__kfence_alloc(struct kmem_cache *
+  */
+ static __always_inline void *kfence_alloc(struct kmem_cache *s, size_t size, gfp_t flags)
+ {
+-#ifdef CONFIG_KFENCE_STATIC_KEYS
+-	if (static_branch_unlikely(&kfence_allocation_key))
++#if defined(CONFIG_KFENCE_STATIC_KEYS) || CONFIG_KFENCE_SAMPLE_INTERVAL == 0
++	if (!static_branch_unlikely(&kfence_allocation_key))
++		return NULL;
+ #else
+-	if (unlikely(!atomic_read(&kfence_allocation_gate)))
++	if (!static_branch_likely(&kfence_allocation_key))
++		return NULL;
+ #endif
+-		return __kfence_alloc(s, size, flags);
+-	return NULL;
++	if (likely(atomic_read(&kfence_allocation_gate)))
++		return NULL;
++	return __kfence_alloc(s, size, flags);
  }
  
-@@ -324,8 +331,6 @@ static __always_inline void for_each_can
- 	const unsigned long pageaddr = ALIGN_DOWN(meta->addr, PAGE_SIZE);
- 	unsigned long addr;
+ /**
+--- a/mm/kfence/core.c~kfence-always-use-static-branches-to-guard-kfence_alloc
++++ a/mm/kfence/core.c
+@@ -104,10 +104,11 @@ struct kfence_metadata kfence_metadata[C
+ static struct list_head kfence_freelist = LIST_HEAD_INIT(kfence_freelist);
+ static DEFINE_RAW_SPINLOCK(kfence_freelist_lock); /* Lock protecting freelist. */
  
--	lockdep_assert_held(&meta->lock);
--
- 	/*
- 	 * We'll iterate over each canary byte per-side until fn() returns
- 	 * false. However, we'll still iterate over the canary bytes to the
-@@ -414,8 +419,9 @@ static void *kfence_guarded_alloc(struct
- 	WRITE_ONCE(meta->cache, cache);
- 	meta->size = size;
- 	meta->alloc_stack_hash = alloc_stack_hash;
-+	raw_spin_unlock_irqrestore(&meta->lock, flags);
+-#ifdef CONFIG_KFENCE_STATIC_KEYS
+-/* The static key to set up a KFENCE allocation. */
++/*
++ * The static key to set up a KFENCE allocation; or if static keys are not used
++ * to gate allocations, to avoid a load and compare if KFENCE is disabled.
++ */
+ DEFINE_STATIC_KEY_FALSE(kfence_allocation_key);
+-#endif
  
--	for_each_canary(meta, set_canary_byte);
-+	alloc_covered_add(alloc_stack_hash, 1);
- 
- 	/* Set required struct page fields. */
- 	page = virt_to_page(meta->addr);
-@@ -425,11 +431,8 @@ static void *kfence_guarded_alloc(struct
- 	if (IS_ENABLED(CONFIG_SLAB))
- 		page->s_mem = addr;
- 
--	raw_spin_unlock_irqrestore(&meta->lock, flags);
--
--	alloc_covered_add(alloc_stack_hash, 1);
--
- 	/* Memory initialization. */
-+	for_each_canary(meta, set_canary_byte);
- 
- 	/*
- 	 * We check slab_want_init_on_alloc() ourselves, rather than letting
-@@ -454,6 +457,7 @@ static void kfence_guarded_free(void *ad
- {
- 	struct kcsan_scoped_access assert_page_exclusive;
- 	unsigned long flags;
-+	bool init;
- 
- 	raw_spin_lock_irqsave(&meta->lock, flags);
- 
-@@ -481,6 +485,13 @@ static void kfence_guarded_free(void *ad
- 		meta->unprotected_page = 0;
+ /* Gates the allocation, ensuring only one succeeds in a given period. */
+ atomic_t kfence_allocation_gate = ATOMIC_INIT(1);
+@@ -774,6 +775,8 @@ void __init kfence_init(void)
+ 		return;
  	}
  
-+	/* Mark the object as freed. */
-+	metadata_update_state(meta, KFENCE_OBJECT_FREED, NULL, 0);
-+	init = slab_want_init_on_free(meta->cache);
-+	raw_spin_unlock_irqrestore(&meta->lock, flags);
-+
-+	alloc_covered_add(meta->alloc_stack_hash, -1);
-+
- 	/* Check canary bytes for memory corruption. */
- 	for_each_canary(meta, check_canary_byte);
++	if (!IS_ENABLED(CONFIG_KFENCE_STATIC_KEYS))
++		static_branch_enable(&kfence_allocation_key);
+ 	WRITE_ONCE(kfence_enabled, true);
+ 	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
+ 	pr_info("initialized - using %lu bytes for %d objects at 0x%p-0x%p\n", KFENCE_POOL_SIZE,
+@@ -866,12 +869,7 @@ void *__kfence_alloc(struct kmem_cache *
+ 		return NULL;
+ 	}
  
-@@ -489,16 +500,9 @@ static void kfence_guarded_free(void *ad
- 	 * data is still there, and after a use-after-free is detected, we
- 	 * unprotect the page, so the data is still accessible.
- 	 */
--	if (!zombie && unlikely(slab_want_init_on_free(meta->cache)))
-+	if (!zombie && unlikely(init))
- 		memzero_explicit(addr, meta->size);
- 
--	/* Mark the object as freed. */
--	metadata_update_state(meta, KFENCE_OBJECT_FREED, NULL, 0);
--
--	raw_spin_unlock_irqrestore(&meta->lock, flags);
--
--	alloc_covered_add(meta->alloc_stack_hash, -1);
--
- 	/* Protect to detect use-after-frees. */
- 	kfence_protect((unsigned long)addr);
- 
+-	/*
+-	 * allocation_gate only needs to become non-zero, so it doesn't make
+-	 * sense to continue writing to it and pay the associated contention
+-	 * cost, in case we have a large number of concurrent allocations.
+-	 */
+-	if (atomic_read(&kfence_allocation_gate) || atomic_inc_return(&kfence_allocation_gate) > 1)
++	if (atomic_inc_return(&kfence_allocation_gate) > 1)
+ 		return NULL;
+ #ifdef CONFIG_KFENCE_STATIC_KEYS
+ 	/*
 _
 
 Patches currently in -mm which might be from elver@google.com are
