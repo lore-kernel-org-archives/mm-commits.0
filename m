@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7FFFC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3CE93C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:34 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D142761241
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:31 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 270876103C
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234450AbhKKCvT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:51:19 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55666 "EHLO mail.kernel.org"
+        id S234451AbhKKCvV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:51:21 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55690 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234449AbhKKCvS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:51:18 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D6FD60F26;
-        Thu, 11 Nov 2021 02:48:29 +0000 (UTC)
+        id S234449AbhKKCvV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:51:21 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A7994610A2;
+        Thu, 11 Nov 2021 02:48:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598909;
-        bh=Jyg8NDzH/IUDLVpXDjmPEHFU1TYH8cETb7OiurePiXU=;
+        s=korg; t=1636598912;
+        bh=Hgu1tolGzMwJxzaLR+HcLkpNvZsCt8E3vphCzzrAQQ0=;
         h=Date:From:To:Subject:From;
-        b=OQT8/iKtp9Py0jfm4bhqdUeni98oO2fRhKLdYL/O1ZcySG1BCreSqefleXr3Vo8K5
-         P7qlSDkVIzJA4nYoPkYjCEyu2RGOEDyu/Lq4QxnJ+iAKNs1xPXgBGqjUjCNow4eErY
-         0Ch0dlKPPZbORRBmCyC0HBA/R2RyOi9aSQD4bsXs=
-Date:   Wed, 10 Nov 2021 18:48:29 -0800
+        b=F21Es+51fOeluwtuSOH5I3qNJQ0cVqLFY1M/j54o341QmOdXAPzZhjVoDSNnIA0nJ
+         gqItl7zgJABViOIN8XaiRDNsPWbjQexvSfYnafH/RjpfPFekoz0rQqthi3rx10fT+P
+         QB44pugwRD1DLgFVZuOF33HEXFSy4dKL9/4l7Z0M=
+Date:   Wed, 10 Nov 2021 18:48:32 -0800
 From:   akpm@linux-foundation.org
 To:     dvyukov@google.com, elver@google.com, glider@google.com,
         jannh@google.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- kfence-always-use-static-branches-to-guard-kfence_alloc.patch removed from
- -mm tree
-Message-ID: <20211111024829.mG0X-kxsm%akpm@linux-foundation.org>
+ kfence-default-to-dynamic-branch-instead-of-static-keys-mode.patch removed
+ from -mm tree
+Message-ID: <20211111024832.X5CjVRh0x%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,28 +39,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: always use static branches to guard kfence_alloc()
+     Subject: kfence: default to dynamic branch instead of static keys mode
 has been removed from the -mm tree.  Its filename was
-     kfence-always-use-static-branches-to-guard-kfence_alloc.patch
+     kfence-default-to-dynamic-branch-instead-of-static-keys-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kfence: always use static branches to guard kfence_alloc()
+Subject: kfence: default to dynamic branch instead of static keys mode
 
-Regardless of KFENCE mode (CONFIG_KFENCE_STATIC_KEYS: either using static
-keys to gate allocations, or using a simple dynamic branch), always use a
-static branch to avoid the dynamic branch in kfence_alloc() if KFENCE was
-disabled at boot.
+We have observed that on very large machines with newer CPUs, the static
+key/branch switching delay is on the order of milliseconds.  This is due
+to the required broadcast IPIs, which simply does not scale well to
+hundreds of CPUs (cores).  If done too frequently, this can adversely
+affect tail latencies of various workloads.
 
-For CONFIG_KFENCE_STATIC_KEYS=n, this now avoids the dynamic branch if
-KFENCE was disabled at boot.
+One workaround is to increase the sample interval to several seconds,
+while decreasing sampled allocation coverage, but the problem still exists
+and could still increase tail latencies.
 
-To simplify, also unifies the location where kfence_allocation_gate is
-read-checked to just be inline in kfence_alloc().
+As already noted in the Kconfig help text, there are trade-offs: at lower
+sample intervals the dynamic branch results in better performance;
+however, at very large sample intervals, the static keys mode can result
+in better performance -- careful benchmarking is recommended.
 
-Link: https://lkml.kernel.org/r/20211019102524.2807208-1-elver@google.com
+Our initial benchmarking showed that with large enough sample intervals
+and workloads stressing the allocator, the static keys mode was slightly
+better.  Evaluating and observing the possible system-wide side-effects of
+the static-key-switching induced broadcast IPIs, however, was a blind spot
+(in particular on large machines with 100s of cores).
+
+Therefore, a major downside of the static keys mode is, unfortunately,
+that it is hard to predict performance on new system architectures and
+topologies, but also making conclusions about performance of new workloads
+based on a limited set of benchmarks.
+
+Most distributions will simply select the defaults, while targeting a
+large variety of different workloads and system architectures.  As such,
+the better default is CONFIG_KFENCE_STATIC_KEYS=n, and re-enabling it is
+only recommended after careful evaluation.
+
+For reference, on x86-64 the condition in kfence_alloc() generates exactly
+2 instructions in the kmem_cache_alloc() fast-path:
+
+ | ...
+ | cmpl   $0x0,0x1a8021c(%rip)  # ffffffff82d560d0 <kfence_allocation_gate>
+ | je     ffffffff812d6003      <kmem_cache_alloc+0x243>
+ | ...
+
+which, given kfence_allocation_gate is infrequently modified, should be
+well predicted by most CPUs.
+
+Link: https://lkml.kernel.org/r/20211019102524.2807208-2-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -68,98 +99,73 @@ Cc: Jann Horn <jannh@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kfence.h |   21 +++++++++++----------
- mm/kfence/core.c       |   16 +++++++---------
- 2 files changed, 18 insertions(+), 19 deletions(-)
+ Documentation/dev-tools/kfence.rst |   12 ++++++++----
+ lib/Kconfig.kfence                 |   26 +++++++++++++++-----------
+ 2 files changed, 23 insertions(+), 15 deletions(-)
 
---- a/include/linux/kfence.h~kfence-always-use-static-branches-to-guard-kfence_alloc
-+++ a/include/linux/kfence.h
-@@ -14,6 +14,9 @@
- 
- #ifdef CONFIG_KFENCE
- 
-+#include <linux/atomic.h>
-+#include <linux/static_key.h>
+--- a/Documentation/dev-tools/kfence.rst~kfence-default-to-dynamic-branch-instead-of-static-keys-mode
++++ a/Documentation/dev-tools/kfence.rst
+@@ -231,10 +231,14 @@ Guarded allocations are set up based on
+ of the sample interval, the next allocation through the main allocator (SLAB or
+ SLUB) returns a guarded allocation from the KFENCE object pool (allocation
+ sizes up to PAGE_SIZE are supported). At this point, the timer is reset, and
+-the next allocation is set up after the expiration of the interval. To "gate" a
+-KFENCE allocation through the main allocator's fast-path without overhead,
+-KFENCE relies on static branches via the static keys infrastructure. The static
+-branch is toggled to redirect the allocation to KFENCE.
++the next allocation is set up after the expiration of the interval.
 +
- /*
-  * We allocate an even number of pages, as it simplifies calculations to map
-  * address to metadata indices; effectively, the very first page serves as an
-@@ -22,13 +25,8 @@
- #define KFENCE_POOL_SIZE ((CONFIG_KFENCE_NUM_OBJECTS + 1) * 2 * PAGE_SIZE)
- extern char *__kfence_pool;
++When using ``CONFIG_KFENCE_STATIC_KEYS=y``, KFENCE allocations are "gated"
++through the main allocator's fast-path by relying on static branches via the
++static keys infrastructure. The static branch is toggled to redirect the
++allocation to KFENCE. Depending on sample interval, target workloads, and
++system architecture, this may perform better than the simple dynamic branch.
++Careful benchmarking is recommended.
  
--#ifdef CONFIG_KFENCE_STATIC_KEYS
--#include <linux/static_key.h>
- DECLARE_STATIC_KEY_FALSE(kfence_allocation_key);
--#else
--#include <linux/atomic.h>
- extern atomic_t kfence_allocation_gate;
--#endif
+ KFENCE objects each reside on a dedicated page, at either the left or right
+ page boundaries selected at random. The pages to the left and right of the
+--- a/lib/Kconfig.kfence~kfence-default-to-dynamic-branch-instead-of-static-keys-mode
++++ a/lib/Kconfig.kfence
+@@ -25,17 +25,6 @@ menuconfig KFENCE
  
- /**
-  * is_kfence_address() - check if an address belongs to KFENCE pool
-@@ -116,13 +114,16 @@ void *__kfence_alloc(struct kmem_cache *
-  */
- static __always_inline void *kfence_alloc(struct kmem_cache *s, size_t size, gfp_t flags)
- {
--#ifdef CONFIG_KFENCE_STATIC_KEYS
--	if (static_branch_unlikely(&kfence_allocation_key))
-+#if defined(CONFIG_KFENCE_STATIC_KEYS) || CONFIG_KFENCE_SAMPLE_INTERVAL == 0
-+	if (!static_branch_unlikely(&kfence_allocation_key))
-+		return NULL;
- #else
--	if (unlikely(!atomic_read(&kfence_allocation_gate)))
-+	if (!static_branch_likely(&kfence_allocation_key))
-+		return NULL;
- #endif
--		return __kfence_alloc(s, size, flags);
--	return NULL;
-+	if (likely(atomic_read(&kfence_allocation_gate)))
-+		return NULL;
-+	return __kfence_alloc(s, size, flags);
- }
+ if KFENCE
  
- /**
---- a/mm/kfence/core.c~kfence-always-use-static-branches-to-guard-kfence_alloc
-+++ a/mm/kfence/core.c
-@@ -104,10 +104,11 @@ struct kfence_metadata kfence_metadata[C
- static struct list_head kfence_freelist = LIST_HEAD_INIT(kfence_freelist);
- static DEFINE_RAW_SPINLOCK(kfence_freelist_lock); /* Lock protecting freelist. */
+-config KFENCE_STATIC_KEYS
+-	bool "Use static keys to set up allocations"
+-	default y
+-	depends on JUMP_LABEL # To ensure performance, require jump labels
+-	help
+-	  Use static keys (static branches) to set up KFENCE allocations. Using
+-	  static keys is normally recommended, because it avoids a dynamic
+-	  branch in the allocator's fast path. However, with very low sample
+-	  intervals, or on systems that do not support jump labels, a dynamic
+-	  branch may still be an acceptable performance trade-off.
+-
+ config KFENCE_SAMPLE_INTERVAL
+ 	int "Default sample interval in milliseconds"
+ 	default 100
+@@ -56,6 +45,21 @@ config KFENCE_NUM_OBJECTS
+ 	  pages are required; with one containing the object and two adjacent
+ 	  ones used as guard pages.
  
--#ifdef CONFIG_KFENCE_STATIC_KEYS
--/* The static key to set up a KFENCE allocation. */
-+/*
-+ * The static key to set up a KFENCE allocation; or if static keys are not used
-+ * to gate allocations, to avoid a load and compare if KFENCE is disabled.
-+ */
- DEFINE_STATIC_KEY_FALSE(kfence_allocation_key);
--#endif
- 
- /* Gates the allocation, ensuring only one succeeds in a given period. */
- atomic_t kfence_allocation_gate = ATOMIC_INIT(1);
-@@ -774,6 +775,8 @@ void __init kfence_init(void)
- 		return;
- 	}
- 
-+	if (!IS_ENABLED(CONFIG_KFENCE_STATIC_KEYS))
-+		static_branch_enable(&kfence_allocation_key);
- 	WRITE_ONCE(kfence_enabled, true);
- 	queue_delayed_work(system_unbound_wq, &kfence_timer, 0);
- 	pr_info("initialized - using %lu bytes for %d objects at 0x%p-0x%p\n", KFENCE_POOL_SIZE,
-@@ -866,12 +869,7 @@ void *__kfence_alloc(struct kmem_cache *
- 		return NULL;
- 	}
- 
--	/*
--	 * allocation_gate only needs to become non-zero, so it doesn't make
--	 * sense to continue writing to it and pay the associated contention
--	 * cost, in case we have a large number of concurrent allocations.
--	 */
--	if (atomic_read(&kfence_allocation_gate) || atomic_inc_return(&kfence_allocation_gate) > 1)
-+	if (atomic_inc_return(&kfence_allocation_gate) > 1)
- 		return NULL;
- #ifdef CONFIG_KFENCE_STATIC_KEYS
- 	/*
++config KFENCE_STATIC_KEYS
++	bool "Use static keys to set up allocations" if EXPERT
++	depends on JUMP_LABEL
++	help
++	  Use static keys (static branches) to set up KFENCE allocations. This
++	  option is only recommended when using very large sample intervals, or
++	  performance has carefully been evaluated with this option.
++
++	  Using static keys comes with trade-offs that need to be carefully
++	  evaluated given target workloads and system architectures. Notably,
++	  enabling and disabling static keys invoke IPI broadcasts, the latency
++	  and impact of which is much harder to predict than a dynamic branch.
++
++	  Say N if you are unsure.
++
+ config KFENCE_STRESS_TEST_FAULTS
+ 	int "Stress testing of fault handling and error reporting" if EXPERT
+ 	default 0
 _
 
 Patches currently in -mm which might be from elver@google.com are
