@@ -2,38 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 921E6C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B96AC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 7B5676113B
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7051761260
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234346AbhKKCtg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:49:36 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54356 "EHLO mail.kernel.org"
+        id S234396AbhKKCtk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:49:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54400 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234393AbhKKCtg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:49:36 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BBDA161108;
-        Thu, 11 Nov 2021 02:46:47 +0000 (UTC)
+        id S234395AbhKKCti (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:49:38 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 8A74D6103C;
+        Thu, 11 Nov 2021 02:46:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598808;
-        bh=UFlJGPKRzvhz0KcEfzFzM2oDb5a48Pl0wU7EGHP+em8=;
+        s=korg; t=1636598810;
+        bh=OfVzsNYnIN3YQIrFi0o5L9NOtUvfkIzAtXXD2qxwhes=;
         h=Date:From:To:Subject:From;
-        b=X4QaU1cgClUeUmqefv3TxQ/ghxwiHmEvgUn1Tb7U7Qwf5dwFajUmdpjnI/WaeRYgS
-         YYT+gRv5F25DsVlVW/MPIEJkxNimZsSI46bdTR+yKd0sWRvWNpksi3VB2OwK9fleWJ
-         0JYvDgASE/4ah9XB5gD/drFIEwuHPQk1lC5CVV44=
-Date:   Wed, 10 Nov 2021 18:46:47 -0800
+        b=uFdb+4noyEGSU/4/yBHpZqOQIPbyHVBGk/tz5lB4ypOR4nsY9E/McfKnW43Z3smVd
+         /MJCtzXpEYBCOg61Dr+Cbi5xVJZG67Xz/orJY8NnEBRXrjS5GUOJd1MfGGs3IGkT/3
+         yOCbiAMyx6xeZMPebMZqcj/RHAtXasvGEL7JVWqk=
+Date:   Wed, 10 Nov 2021 18:46:50 -0800
 From:   akpm@linux-foundation.org
-To:     cfijalkovich@google.com, hughd@google.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, rongwei.wang@linux.alibaba.com,
-        shy828301@gmail.com, song@kernel.org, stable@vger.kernel.org,
-        william.kucharski@oracle.com, willy@infradead.org,
-        xuyu@linux.alibaba.com
+To:     linf@wangsu.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-thp-fix-incorrect-unmap-behavior-for-private-pages.patch removed from
- -mm tree
-Message-ID: <20211111024647.QlMdbznQo%akpm@linux-foundation.org>
+ mm-readaheadc-fix-incorrect-comments-for-get_init_ra_size.patch removed
+ from -mm tree
+Message-ID: <20211111024650.0N89rMKsB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,80 +38,40 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: fix incorrect unmap behavior for private pages
+     Subject: mm/readahead.c: fix incorrect comments for get_init_ra_size
 has been removed from the -mm tree.  Its filename was
-     mm-thp-fix-incorrect-unmap-behavior-for-private-pages.patch
+     mm-readaheadc-fix-incorrect-comments-for-get_init_ra_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rongwei Wang <rongwei.wang@linux.alibaba.com>
-Subject: mm, thp: fix incorrect unmap behavior for private pages
+From: Lin Feng <linf@wangsu.com>
+Subject: mm/readahead.c: fix incorrect comments for get_init_ra_size
 
-When truncating pagecache on file THP, the private pages of a process
-should not be unmapped mapping.  This incorrect behavior on a dynamic
-shared libraries which will cause related processes to happen core dump.
+In fact, formated values returned by get_init_ra_size are not that
+intuitive.  This patch make the comments reflect its truth.
 
-A simple test for a DSO (Prerequisite is the DSO mapped in file THP):
-
-int main(int argc, char *argv[])
-{
-	int fd;
-
-	fd = open(argv[1], O_WRONLY);
-	if (fd < 0) {
-		perror("open");
-	}
-
-	close(fd);
-	return 0;
-}
-
-The test only to open a target DSO, and do nothing.  But this operation
-will lead one or more process to happen core dump.  This patch mainly to
-fix this bug.
-
-Link: https://lkml.kernel.org/r/20211025092134.18562-3-rongwei.wang@linux.alibaba.com
-Fixes: eb6ecbed0aa2 ("mm, thp: relax the VM_DENYWRITE constraint on file-backed THPs")
-Signed-off-by: Rongwei Wang <rongwei.wang@linux.alibaba.com>
-Tested-by: Xu Yu <xuyu@linux.alibaba.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Song Liu <song@kernel.org>
-Cc: William Kucharski <william.kucharski@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Collin Fijalkovich <cfijalkovich@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20211019104812.135602-1-linf@wangsu.com
+Signed-off-by: Lin Feng <linf@wangsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/open.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ mm/readahead.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/open.c~mm-thp-fix-incorrect-unmap-behavior-for-private-pages
-+++ a/fs/open.c
-@@ -857,8 +857,17 @@ static int do_dentry_open(struct file *f
- 		 */
- 		smp_mb();
- 		if (filemap_nr_thps(inode->i_mapping)) {
-+			struct address_space *mapping = inode->i_mapping;
-+
- 			filemap_invalidate_lock(inode->i_mapping);
--			truncate_pagecache(inode, 0);
-+			/*
-+			 * unmap_mapping_range just need to be called once
-+			 * here, because the private pages is not need to be
-+			 * unmapped mapping (e.g. data segment of dynamic
-+			 * shared libraries here).
-+			 */
-+			unmap_mapping_range(mapping, 0, 0, 0);
-+			truncate_inode_pages(mapping, 0);
- 			filemap_invalidate_unlock(inode->i_mapping);
- 		}
- 	}
+--- a/mm/readahead.c~mm-readaheadc-fix-incorrect-comments-for-get_init_ra_size
++++ a/mm/readahead.c
+@@ -309,7 +309,7 @@ void force_page_cache_ra(struct readahea
+  * Set the initial window size, round to next power of 2 and square
+  * for small size, x 4 for medium, and x 2 for large
+  * for 128k (32 page) max ra
+- * 1-8 page = 32k initial, > 8 page = 128k initial
++ * 1-2 page = 16k, 3-4 page 32k, 5-8 page = 64k, > 8 page = 128k initial
+  */
+ static unsigned long get_init_ra_size(unsigned long size, unsigned long max)
+ {
 _
 
-Patches currently in -mm which might be from rongwei.wang@linux.alibaba.com are
+Patches currently in -mm which might be from linf@wangsu.com are
 
 
