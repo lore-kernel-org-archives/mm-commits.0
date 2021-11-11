@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04A20C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A56CFC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D8C5C61284
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:49 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 8964061884
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:41:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234034AbhKKCoh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:44:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49980 "EHLO mail.kernel.org"
+        id S234036AbhKKCoj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:44:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50010 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234005AbhKKCoh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:44:37 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 910A961872;
-        Thu, 11 Nov 2021 02:41:48 +0000 (UTC)
+        id S234005AbhKKCoj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:44:39 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9D20B61284;
+        Thu, 11 Nov 2021 02:41:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598508;
-        bh=FIjMYS36gtTabmGAtpTpk+0WdKb+yOEvHRASAVFxav4=;
+        s=korg; t=1636598510;
+        bh=1IEmeocHa6R1uPoxOU4H4r6HphtUmin0MQuX7uK0yEM=;
         h=Date:From:To:Subject:From;
-        b=riHIduZCe+FIZbbuZM+MpdqtOloVK9uHcSzxCybcwLR/M8OPalU2Ut4IoB5YD66if
-         Zq/W5WXktLXMl/V+Y9bEJYIJCXon1DKqQgDysOhP7K/kylZSE4byyWfARuGpzb2Tr3
-         n+FGIaGxfArMj84VT8oqoMxuRqJuiqp9dbiROZt0=
-Date:   Wed, 10 Nov 2021 18:41:48 -0800
+        b=XbWAuzYEPwAd00m+yIIK0TPQOCMcqmoDq05xLuNNaRpqgVVuEyyuCkudBgQBQecmt
+         j69g+8aBU8swdtqQ/Uc7OVObPcD9i/GiXk8rZJ/cLTeIhq6Tgr/Lg+A2KRRgyu62vu
+         GrEF6+/iBvDlTlroSQXbC8zv+1xhZ3ysee0x21Ak=
+Date:   Wed, 10 Nov 2021 18:41:50 -0800
 From:   akpm@linux-foundation.org
-To:     anthony.yznaga@oracle.com, mgorman@techsingularity.net,
-        mm-commits@vger.kernel.org, willy@infradead.org
-Subject:  [merged] mm-optimise-put_pages_list.patch removed from
- -mm tree
-Message-ID: <20211111024148.IK5D_dXpr%akpm@linux-foundation.org>
+To:     david@redhat.com, hannes@cmpxchg.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, peterx@redhat.com,
+        songmuchun@bytedance.com, willy@infradead.org
+Subject:  [merged]
+ mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte.patch removed from -mm tree
+Message-ID: <20211111024150.J-EnPU7n7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,72 +39,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: optimise put_pages_list()
+     Subject: mm/memcg: drop swp_entry_t* in mc_handle_file_pte()
 has been removed from the -mm tree.  Its filename was
-     mm-optimise-put_pages_list.patch
+     mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: optimise put_pages_list()
+From: Peter Xu <peterx@redhat.com>
+Subject: mm/memcg: drop swp_entry_t* in mc_handle_file_pte()
 
-Instead of calling put_page() one page at a time, pop pages off the list
-if their refcount was too high and pass the remainder to
-put_unref_page_list().  This should be a speed improvement, but I have no
-measurements to support that.  Current callers do not care about
-performance, but I hope to add some which do.
+After the rework of f5df8635c5a3 ("mm: use find_get_incore_page in memcontrol",
+2020-10-13) it's unused.
 
-Link: https://lkml.kernel.org/r/20211007192138.561673-1-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Anthony Yznaga <anthony.yznaga@oracle.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Link: https://lkml.kernel.org/r/20210916193014.80129-1-peterx@redhat.com
+Signed-off-by: Peter Xu <peterx@redhat.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/swap.c~mm-optimise-put_pages_list
-+++ a/mm/swap.c
-@@ -134,18 +134,27 @@ EXPORT_SYMBOL(__put_page);
-  * put_pages_list() - release a list of pages
-  * @pages: list of pages threaded on page->lru
-  *
-- * Release a list of pages which are strung together on page.lru.  Currently
-- * used by read_cache_pages() and related error recovery code.
-+ * Release a list of pages which are strung together on page.lru.
-  */
- void put_pages_list(struct list_head *pages)
+--- a/mm/memcontrol.c~mm-memcg-drop-swp_entry_t-in-mc_handle_file_pte
++++ a/mm/memcontrol.c
+@@ -5545,7 +5545,7 @@ static struct page *mc_handle_swap_pte(s
+ #endif
+ 
+ static struct page *mc_handle_file_pte(struct vm_area_struct *vma,
+-			unsigned long addr, pte_t ptent, swp_entry_t *entry)
++			unsigned long addr, pte_t ptent)
  {
--	while (!list_empty(pages)) {
--		struct page *victim;
-+	struct page *page, *next;
+ 	if (!vma->vm_file) /* anonymous vma */
+ 		return NULL;
+@@ -5718,7 +5718,7 @@ static enum mc_target_type get_mctgt_typ
+ 	else if (is_swap_pte(ptent))
+ 		page = mc_handle_swap_pte(vma, ptent, &ent);
+ 	else if (pte_none(ptent))
+-		page = mc_handle_file_pte(vma, addr, ptent, &ent);
++		page = mc_handle_file_pte(vma, addr, ptent);
  
--		victim = lru_to_page(pages);
--		list_del(&victim->lru);
--		put_page(victim);
-+	list_for_each_entry_safe(page, next, pages, lru) {
-+		if (!put_page_testzero(page)) {
-+			list_del(&page->lru);
-+			continue;
-+		}
-+		if (PageHead(page)) {
-+			list_del(&page->lru);
-+			__put_compound_page(page);
-+			continue;
-+		}
-+		/* Cannot be PageLRU because it's passed to us using the lru */
-+		__ClearPageWaiters(page);
- 	}
-+
-+	free_unref_page_list(pages);
- }
- EXPORT_SYMBOL(put_pages_list);
- 
+ 	if (!page && !ent.val)
+ 		return ret;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from peterx@redhat.com are
 
-hitting-bug_on-trap-in-read_pages-mm-optimise-put_pages_list.patch
 
