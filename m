@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 446B4C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CB8F4C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:26 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2DB4F619A6
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id B017E61260
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233061AbhKKCnK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:43:10 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48774 "EHLO mail.kernel.org"
+        id S233911AbhKKCnO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:43:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48810 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233911AbhKKCnK (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:43:10 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 90AAA61260;
-        Thu, 11 Nov 2021 02:40:21 +0000 (UTC)
+        id S233906AbhKKCnN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:43:13 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DD87061872;
+        Thu, 11 Nov 2021 02:40:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598422;
-        bh=PsnAwm3YkUldx++UN96TSVGJTtBuRrI5qr1FVNMKrCM=;
+        s=korg; t=1636598425;
+        bh=8750l4Lp1kQAIkKdtJvyNOVhpoSWhZCbO4FyNuhko9w=;
         h=Date:From:To:Subject:From;
-        b=Nxp08ZDiLBhD+/r22qnR9Ty4WGy+RSZaew1NIIGTMf9OGbBAP3n/M1HTxC5JyfxAl
-         HT1T65V/UyGcaxbWsn26KIzF/en0DmoLzFx2nJCJhDRzAb1wfngsW9ZjOrmjknUNDr
-         4PLDIOzPShegswccEPC29eAhAJq/CpH++o8ArTow=
-Date:   Wed, 10 Nov 2021 18:40:21 -0800
+        b=QWPXFWxUrH62Yc+7RzFgvqavduEtmf8B/Pam5G+ra7I5W0OehEOu7L0yobYbBp/cZ
+         sVwsEDEnGl2EVldLb7bBMEqfNIvZrqUJQTRJ6NwgM80dKKeaiEYUqP1t1pIeiiMJtP
+         Ebhgc7qwfnXuT1/G3P1K1Ra5S6pccmE2ArqPcWrY=
+Date:   Wed, 10 Nov 2021 18:40:24 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, bigeasy@linutronix.de, dvyukov@google.com,
         elver@google.com, glider@google.com, gustavoars@kernel.org,
@@ -33,9 +33,9 @@ To:     andreyknvl@gmail.com, bigeasy@linutronix.de, dvyukov@google.com,
         vinmenon@codeaurora.org, vjitta@codeaurora.org,
         walter-zh.wu@mediatek.com
 Subject:  [merged]
- kasan-generic-introduce-kasan_record_aux_stack_noalloc.patch removed from
+ workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch removed from
  -mm tree
-Message-ID: <20211111024021.qioOq3Ltq%akpm@linux-foundation.org>
+Message-ID: <20211111024024.tGIMI8dAF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,24 +44,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: generic: introduce kasan_record_aux_stack_noalloc()
+     Subject: workqueue, kasan: avoid alloc_pages() when recording stack
 has been removed from the -mm tree.  Its filename was
-     kasan-generic-introduce-kasan_record_aux_stack_noalloc.patch
+     workqueue-kasan-avoid-alloc_pages-when-recording-stack.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kasan: generic: introduce kasan_record_aux_stack_noalloc()
+Subject: workqueue, kasan: avoid alloc_pages() when recording stack
 
-Introduce a variant of kasan_record_aux_stack() that does not do any
-memory allocation through stackdepot.  This will permit using it in
-contexts that cannot allocate any memory.
+Shuah Khan reported:
 
-Link: https://lkml.kernel.org/r/20210913112609.2651084-6-elver@google.com
+ | When CONFIG_PROVE_RAW_LOCK_NESTING=y and CONFIG_KASAN are enabled,
+ | kasan_record_aux_stack() runs into "BUG: Invalid wait context" when
+ | it tries to allocate memory attempting to acquire spinlock in page
+ | allocation code while holding workqueue pool raw_spinlock.
+ |
+ | There are several instances of this problem when block layer tries
+ | to __queue_work(). Call trace from one of these instances is below:
+ |
+ |     kblockd_mod_delayed_work_on()
+ |       mod_delayed_work_on()
+ |         __queue_delayed_work()
+ |           __queue_work() (rcu_read_lock, raw_spin_lock pool->lock held)
+ |             insert_work()
+ |               kasan_record_aux_stack()
+ |                 kasan_save_stack()
+ |                   stack_depot_save()
+ |                     alloc_pages()
+ |                       __alloc_pages()
+ |                         get_page_from_freelist()
+ |                           rm_queue()
+ |                             rm_queue_pcplist()
+ |                               local_lock_irqsave(&pagesets.lock, flags);
+ |                               [ BUG: Invalid wait context triggered ]
+
+The default kasan_record_aux_stack() calls stack_depot_save() with
+GFP_NOWAIT, which in turn can then call alloc_pages(GFP_NOWAIT, ...).  In
+general, however, it is not even possible to use either GFP_ATOMIC nor
+GFP_NOWAIT in certain non-preemptive contexts, including raw_spin_locks
+(see gfp.h and ab00db216c9c7).
+
+Fix it by instructing stackdepot to not expand stack storage via
+alloc_pages() in case it runs out by using
+kasan_record_aux_stack_noalloc().
+
+While there is an increased risk of failing to insert the stack trace,
+this is typically unlikely, especially if the same insertion had already
+succeeded previously (stack depot hit).  For frequent calls from the same
+location, it therefore becomes extremely unlikely that
+kasan_record_aux_stack_noalloc() fails.
+
+Link: https://lkml.kernel.org/r/20210902200134.25603-1-skhan@linuxfoundation.org
+Link: https://lkml.kernel.org/r/20210913112609.2651084-7-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
+Reported-by: Shuah Khan <skhan@linuxfoundation.org>
 Tested-by: Shuah Khan <skhan@linuxfoundation.org>
 Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Tejun Heo <tj@kernel.org>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -69,7 +110,6 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: "Gustavo A. R. Silva" <gustavoars@kernel.org>
 Cc: Lai Jiangshan <jiangshanlai@gmail.com>
 Cc: Taras Madan <tarasmadan@google.com>
-Cc: Tejun Heo <tj@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Vijayanand Jitta <vjitta@codeaurora.org>
 Cc: Vinayak Menon <vinmenon@codeaurora.org>
@@ -77,57 +117,20 @@ Cc: Walter Wu <walter-zh.wu@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    2 ++
- mm/kasan/generic.c    |   14 ++++++++++++--
- 2 files changed, 14 insertions(+), 2 deletions(-)
+ kernel/workqueue.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/kasan.h~kasan-generic-introduce-kasan_record_aux_stack_noalloc
-+++ a/include/linux/kasan.h
-@@ -370,12 +370,14 @@ static inline void kasan_unpoison_task_s
- void kasan_cache_shrink(struct kmem_cache *cache);
- void kasan_cache_shutdown(struct kmem_cache *cache);
- void kasan_record_aux_stack(void *ptr);
-+void kasan_record_aux_stack_noalloc(void *ptr);
+--- a/kernel/workqueue.c~workqueue-kasan-avoid-alloc_pages-when-recording-stack
++++ a/kernel/workqueue.c
+@@ -1350,7 +1350,7 @@ static void insert_work(struct pool_work
+ 	struct worker_pool *pool = pwq->pool;
  
- #else /* CONFIG_KASAN_GENERIC */
+ 	/* record the work call stack in order to print it in KASAN reports */
+-	kasan_record_aux_stack(work);
++	kasan_record_aux_stack_noalloc(work);
  
- static inline void kasan_cache_shrink(struct kmem_cache *cache) {}
- static inline void kasan_cache_shutdown(struct kmem_cache *cache) {}
- static inline void kasan_record_aux_stack(void *ptr) {}
-+static inline void kasan_record_aux_stack_noalloc(void *ptr) {}
- 
- #endif /* CONFIG_KASAN_GENERIC */
- 
---- a/mm/kasan/generic.c~kasan-generic-introduce-kasan_record_aux_stack_noalloc
-+++ a/mm/kasan/generic.c
-@@ -328,7 +328,7 @@ DEFINE_ASAN_SET_SHADOW(f3);
- DEFINE_ASAN_SET_SHADOW(f5);
- DEFINE_ASAN_SET_SHADOW(f8);
- 
--void kasan_record_aux_stack(void *addr)
-+static void __kasan_record_aux_stack(void *addr, bool can_alloc)
- {
- 	struct page *page = kasan_addr_to_page(addr);
- 	struct kmem_cache *cache;
-@@ -345,7 +345,17 @@ void kasan_record_aux_stack(void *addr)
- 		return;
- 
- 	alloc_meta->aux_stack[1] = alloc_meta->aux_stack[0];
--	alloc_meta->aux_stack[0] = kasan_save_stack(GFP_NOWAIT, true);
-+	alloc_meta->aux_stack[0] = kasan_save_stack(GFP_NOWAIT, can_alloc);
-+}
-+
-+void kasan_record_aux_stack(void *addr)
-+{
-+	return __kasan_record_aux_stack(addr, true);
-+}
-+
-+void kasan_record_aux_stack_noalloc(void *addr)
-+{
-+	return __kasan_record_aux_stack(addr, false);
- }
- 
- void kasan_set_free_info(struct kmem_cache *cache,
+ 	/* we own @work, set data and link */
+ 	set_work_pwq(work, pwq, extra_flags);
 _
 
 Patches currently in -mm which might be from elver@google.com are
