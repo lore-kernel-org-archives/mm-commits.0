@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FE7BC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:49:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 13035C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:49:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id EBA916103C
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:49:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 008506135E
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:49:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234479AbhKKCwc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:52:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56608 "EHLO mail.kernel.org"
+        id S234482AbhKKCwe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:52:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56650 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234469AbhKKCwb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:52:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9CE70610A2;
-        Thu, 11 Nov 2021 02:49:42 +0000 (UTC)
+        id S234469AbhKKCwe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:52:34 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 863FD6103C;
+        Thu, 11 Nov 2021 02:49:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598983;
-        bh=6ZDK697cWS1E+P1W+IpWAuoyETTPH86MNdT+MB588HI=;
+        s=korg; t=1636598986;
+        bh=0WIfe5AoHTZH+tSiTkxfL5SMa4vFu77d5kPh//uhAlg=;
         h=Date:From:To:Subject:From;
-        b=HS8bF7CH+Y0w2iKUH9YFHoyhlSlbPymHk4ifGp/DaWSDBI8PUvSwjJtXYTtHdliVI
-         /i18um+kzX+PfxLcjv4W3d2AecnXUVJCsgEFe6VDGaADl8h46tAk7QLBLVvAtAm9lH
-         sUHUtyDTOotYFgMJU4eScpe4TtnLQ9kw1SEXBNz0=
-Date:   Wed, 10 Nov 2021 18:49:42 -0800
+        b=Y2VZp3qC+P6yYgPk3ZnIGY7suCJIW88KqAl/JXYazSIKsJCaQTbVt0yYO0bwBuNmR
+         YjU96f827P4k5h4QmmDmzmmRXt4DRHCgyJxWnv2ZrMWNGROj9Py2aPDKGP04LBOT7+
+         BRnY0souRNVZvJmHLZcpk/sOOfjtnd1mmYWVDRKA=
+Date:   Wed, 10 Nov 2021 18:49:45 -0800
 From:   akpm@linux-foundation.org
 To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         david@redhat.com, dwmw@amazon.com, elver@google.com,
@@ -32,12 +32,10 @@ To:     amit@kernel.org, benh@kernel.crashing.org, corbet@lwn.net,
         mm-commits@vger.kernel.org, rientjes@google.com,
         shakeelb@google.com, shuah@kernel.org, sj@kernel.org
 Subject:  [merged]
- =?US-ASCII?Q?mm-damon-schemes-implement-size-quota-for-schemes-applica?=
- =?US-ASCII?Q?tion-speed-control.patch?= removed from -mm tree
-Message-ID: <20211111024942.FeDF_9IQG%akpm@linux-foundation.org>
+ mm-damon-schemes-skip-already-charged-targets-and-regions.patch removed
+ from -mm tree
+Message-ID: <20211111024945.p6fJ6l0bO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,24 +43,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/schemes: implement size quota for schemes application speed control
+     Subject: mm/damon/schemes: skip already charged targets and regions
 has been removed from the -mm tree.  Its filename was
-     mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control.patch
+     mm-damon-schemes-skip-already-charged-targets-and-regions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/schemes: implement size quota for schemes application speed control
+Subject: mm/damon/schemes: skip already charged targets and regions
 
-There could be arbitrarily large memory regions fulfilling the target data
-access pattern of a DAMON-based operation scheme.  In the case, applying
-the action of the scheme could incur too high overhead.  To provide an
-intuitive way for avoiding it, this commit implements a feature called
-size quota.  If the quota is set, DAMON tries to apply the action only up
-to the given amount of memory regions within a given time window.
+If DAMOS has stopped applying action in the middle of a group of memory
+regions due to its size quota, it starts the work again from the beginning
+of the address space in the next charge window.  If there is a huge memory
+region at the beginning of the address space and it fulfills the scheme's
+target data access pattern always, the action will applied to only the
+region.
 
-Link: https://lkml.kernel.org/r/20211019150731.16699-3-sj@kernel.org
+This commit mitigates the case by skipping memory regions that charged in
+current charge window at the beginning of next charge window.
+
+Link: https://lkml.kernel.org/r/20211019150731.16699-4-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Amit Shah <amit@kernel.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -80,209 +81,91 @@ Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   36 +++++++++++++++++++++---
- mm/damon/core.c       |   60 ++++++++++++++++++++++++++++++++++------
- mm/damon/dbgfs.c      |    4 ++
- 3 files changed, 87 insertions(+), 13 deletions(-)
+ include/linux/damon.h |    5 +++++
+ mm/damon/core.c       |   37 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 42 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control
+--- a/include/linux/damon.h~mm-damon-schemes-skip-already-charged-targets-and-regions
 +++ a/include/linux/damon.h
-@@ -90,6 +90,26 @@ enum damos_action {
+@@ -107,6 +107,8 @@ struct damos_quota {
+ /* private: For charging the quota */
+ 	unsigned long charged_sz;
+ 	unsigned long charged_from;
++	struct damon_target *charge_target_from;
++	unsigned long charge_addr_from;
  };
  
  /**
-+ * struct damos_quota - Controls the aggressiveness of the given scheme.
-+ * @sz:			Maximum bytes of memory that the action can be applied.
-+ * @reset_interval:	Charge reset interval in milliseconds.
-+ *
-+ * To avoid consuming too much CPU time or IO resources for applying the
-+ * &struct damos->action to large memory, DAMON allows users to set a size
-+ * quota.  The quota can be set by writing non-zero values to &sz.  If the size
-+ * quota is set, DAMON tries to apply the action only up to &sz bytes within
-+ * &reset_interval.
-+ */
-+struct damos_quota {
-+	unsigned long sz;
-+	unsigned long reset_interval;
-+
-+/* private: For charging the quota */
-+	unsigned long charged_sz;
-+	unsigned long charged_from;
-+};
-+
-+/**
-  * struct damos - Represents a Data Access Monitoring-based Operation Scheme.
-  * @min_sz_region:	Minimum size of target regions.
-  * @max_sz_region:	Maximum size of target regions.
-@@ -98,13 +118,20 @@ enum damos_action {
-  * @min_age_region:	Minimum age of target regions.
-  * @max_age_region:	Maximum age of target regions.
-  * @action:		&damo_action to be applied to the target regions.
-+ * @quota:		Control the aggressiveness of this scheme.
-  * @stat_count:		Total number of regions that this scheme is applied.
-  * @stat_sz:		Total size of regions that this scheme is applied.
-  * @list:		List head for siblings.
-  *
-- * For each aggregation interval, DAMON applies @action to monitoring target
-- * regions fit in the condition and updates the statistics.  Note that both
-- * the minimums and the maximums are inclusive.
-+ * For each aggregation interval, DAMON finds regions which fit in the
-+ * condition (&min_sz_region, &max_sz_region, &min_nr_accesses,
-+ * &max_nr_accesses, &min_age_region, &max_age_region) and applies &action to
-+ * those.  To avoid consuming too much CPU time or IO resources for the
-+ * &action, &quota is used.
-+ *
-+ * After applying the &action to each region, &stat_count and &stat_sz is
-+ * updated to reflect the number of regions and total size of regions that the
-+ * &action is applied.
-  */
- struct damos {
- 	unsigned long min_sz_region;
-@@ -114,6 +141,7 @@ struct damos {
- 	unsigned int min_age_region;
- 	unsigned int max_age_region;
- 	enum damos_action action;
-+	struct damos_quota quota;
- 	unsigned long stat_count;
- 	unsigned long stat_sz;
- 	struct list_head list;
-@@ -310,7 +338,7 @@ struct damos *damon_new_scheme(
- 		unsigned long min_sz_region, unsigned long max_sz_region,
- 		unsigned int min_nr_accesses, unsigned int max_nr_accesses,
- 		unsigned int min_age_region, unsigned int max_age_region,
--		enum damos_action action);
-+		enum damos_action action, struct damos_quota *quota);
- void damon_add_scheme(struct damon_ctx *ctx, struct damos *s);
- void damon_destroy_scheme(struct damos *s);
+@@ -307,6 +309,9 @@ struct damon_ctx {
+ #define damon_prev_region(r) \
+ 	(container_of(r->list.prev, struct damon_region, list))
  
---- a/mm/damon/core.c~mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control
++#define damon_last_region(t) \
++	(list_last_entry(&t->regions_list, struct damon_region, list))
++
+ #define damon_for_each_region(r, t) \
+ 	list_for_each_entry(r, &t->regions_list, list)
+ 
+--- a/mm/damon/core.c~mm-damon-schemes-skip-already-charged-targets-and-regions
 +++ a/mm/damon/core.c
-@@ -89,7 +89,7 @@ struct damos *damon_new_scheme(
- 		unsigned long min_sz_region, unsigned long max_sz_region,
- 		unsigned int min_nr_accesses, unsigned int max_nr_accesses,
- 		unsigned int min_age_region, unsigned int max_age_region,
--		enum damos_action action)
-+		enum damos_action action, struct damos_quota *quota)
- {
- 	struct damos *scheme;
+@@ -111,6 +111,8 @@ struct damos *damon_new_scheme(
+ 	scheme->quota.reset_interval = quota->reset_interval;
+ 	scheme->quota.charged_sz = 0;
+ 	scheme->quota.charged_from = 0;
++	scheme->quota.charge_target_from = NULL;
++	scheme->quota.charge_addr_from = 0;
  
-@@ -107,6 +107,11 @@ struct damos *damon_new_scheme(
- 	scheme->stat_sz = 0;
- 	INIT_LIST_HEAD(&scheme->list);
- 
-+	scheme->quota.sz = quota->sz;
-+	scheme->quota.reset_interval = quota->reset_interval;
-+	scheme->quota.charged_sz = 0;
-+	scheme->quota.charged_from = 0;
-+
  	return scheme;
  }
+@@ -553,6 +555,37 @@ static void damon_do_apply_schemes(struc
+ 		if (quota->sz && quota->charged_sz >= quota->sz)
+ 			continue;
  
-@@ -530,15 +535,25 @@ static void kdamond_reset_aggregated(str
- 	}
- }
- 
-+static void damon_split_region_at(struct damon_ctx *ctx,
-+		struct damon_target *t, struct damon_region *r,
-+		unsigned long sz_r);
++		/* Skip previously charged regions */
++		if (quota->charge_target_from) {
++			if (t != quota->charge_target_from)
++				continue;
++			if (r == damon_last_region(t)) {
++				quota->charge_target_from = NULL;
++				quota->charge_addr_from = 0;
++				continue;
++			}
++			if (quota->charge_addr_from &&
++					r->ar.end <= quota->charge_addr_from)
++				continue;
 +
- static void damon_do_apply_schemes(struct damon_ctx *c,
- 				   struct damon_target *t,
- 				   struct damon_region *r)
- {
- 	struct damos *s;
--	unsigned long sz;
- 
- 	damon_for_each_scheme(s, c) {
--		sz = r->ar.end - r->ar.start;
-+		struct damos_quota *quota = &s->quota;
-+		unsigned long sz = r->ar.end - r->ar.start;
++			if (quota->charge_addr_from && r->ar.start <
++					quota->charge_addr_from) {
++				sz = ALIGN_DOWN(quota->charge_addr_from -
++						r->ar.start, DAMON_MIN_REGION);
++				if (!sz) {
++					if (r->ar.end - r->ar.start <=
++							DAMON_MIN_REGION)
++						continue;
++					sz = DAMON_MIN_REGION;
++				}
++				damon_split_region_at(c, t, r, sz);
++				r = damon_next_region(r);
++				sz = r->ar.end - r->ar.start;
++			}
++			quota->charge_target_from = NULL;
++			quota->charge_addr_from = 0;
++		}
 +
-+		/* Check the quota */
-+		if (quota->sz && quota->charged_sz >= quota->sz)
-+			continue;
-+
-+		/* Check the target regions condition */
+ 		/* Check the target regions condition */
  		if (sz < s->min_sz_region || s->max_sz_region < sz)
  			continue;
- 		if (r->nr_accesses < s->min_nr_accesses ||
-@@ -546,22 +561,51 @@ static void damon_do_apply_schemes(struc
- 			continue;
- 		if (r->age < s->min_age_region || s->max_age_region < r->age)
- 			continue;
--		s->stat_count++;
--		s->stat_sz += sz;
--		if (c->primitive.apply_scheme)
-+
-+		/* Apply the scheme */
-+		if (c->primitive.apply_scheme) {
-+			if (quota->sz && quota->charged_sz + sz > quota->sz) {
-+				sz = ALIGN_DOWN(quota->sz - quota->charged_sz,
-+						DAMON_MIN_REGION);
-+				if (!sz)
-+					goto update_stat;
-+				damon_split_region_at(c, t, r, sz);
-+			}
+@@ -573,6 +606,10 @@ static void damon_do_apply_schemes(struc
+ 			}
  			c->primitive.apply_scheme(c, t, r, s);
-+			quota->charged_sz += sz;
-+		}
+ 			quota->charged_sz += sz;
++			if (quota->sz && quota->charged_sz >= quota->sz) {
++				quota->charge_target_from = t;
++				quota->charge_addr_from = r->ar.end + 1;
++			}
+ 		}
  		if (s->action != DAMOS_STAT)
  			r->age = 0;
-+
-+update_stat:
-+		s->stat_count++;
-+		s->stat_sz += sz;
- 	}
- }
- 
- static void kdamond_apply_schemes(struct damon_ctx *c)
- {
- 	struct damon_target *t;
--	struct damon_region *r;
-+	struct damon_region *r, *next_r;
-+	struct damos *s;
-+
-+	damon_for_each_scheme(s, c) {
-+		struct damos_quota *quota = &s->quota;
-+
-+		if (!quota->sz)
-+			continue;
-+
-+		/* New charge window starts */
-+		if (time_after_eq(jiffies, quota->charged_from +
-+					msecs_to_jiffies(
-+						quota->reset_interval))) {
-+			quota->charged_from = jiffies;
-+			quota->charged_sz = 0;
-+		}
-+	}
- 
- 	damon_for_each_target(t, c) {
--		damon_for_each_region(r, t)
-+		damon_for_each_region_safe(r, next_r, t)
- 			damon_do_apply_schemes(c, t, r);
- 	}
- }
---- a/mm/damon/dbgfs.c~mm-damon-schemes-implement-size-quota-for-schemes-application-speed-control
-+++ a/mm/damon/dbgfs.c
-@@ -188,6 +188,8 @@ static struct damos **str_to_schemes(con
- 
- 	*nr_schemes = 0;
- 	while (pos < len && *nr_schemes < max_nr_schemes) {
-+		struct damos_quota quota = {};
-+
- 		ret = sscanf(&str[pos], "%lu %lu %u %u %u %u %u%n",
- 				&min_sz, &max_sz, &min_nr_a, &max_nr_a,
- 				&min_age, &max_age, &action, &parsed);
-@@ -200,7 +202,7 @@ static struct damos **str_to_schemes(con
- 
- 		pos += parsed;
- 		scheme = damon_new_scheme(min_sz, max_sz, min_nr_a, max_nr_a,
--				min_age, max_age, action);
-+				min_age, max_age, action, &quota);
- 		if (!scheme)
- 			goto fail;
- 
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
