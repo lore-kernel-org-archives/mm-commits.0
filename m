@@ -2,36 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2A63BC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15103C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 13B016113B
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E7CCA61247
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234324AbhKKCrs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:47:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52806 "EHLO mail.kernel.org"
+        id S234290AbhKKCrv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:47:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52942 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234290AbhKKCrs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:47:48 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8114060F46;
-        Thu, 11 Nov 2021 02:44:59 +0000 (UTC)
+        id S234338AbhKKCrv (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:47:51 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A258B61108;
+        Thu, 11 Nov 2021 02:45:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598699;
-        bh=7FYYq3RnZUrKvIO9yeztAQpZrIpXCU+8gbVVMWtFyxo=;
+        s=korg; t=1636598702;
+        bh=kf4/N5xxneQEQ6fc38nlGFXp9Qqf7rogbQaDGkUIDjc=;
         h=Date:From:To:Subject:From;
-        b=dDJ+cvGqv7dJRAMCJUIJEfd5iBZvP/Z/uf+3MPbTCyaB2LXRNZbEZnWfNyYOa+DNu
-         AhxADfJjT2Hc+Q1htTPnS6F8rBpqfa+O0ASRxPPRn8vkbBDFpmm50fqYQPE1bxMhqe
-         LFK5AhFP4gJnIBH1Vqdz469ECz7spBwGvFAlivaI=
-Date:   Wed, 10 Nov 2021 18:44:59 -0800
+        b=cRfOTMXIxz8CVEqrYjninV3XGNdM5aD8ic4U6AqOmfTrcF09E/mf502SxID/b8iLJ
+         Fbut51o87Hfa3kwTmc09QuUntbuFGy3R+VJ0Phbuz464gU21q2aqz8caAOV2ilkl7X
+         p4/lJUcKISKQIF/9yq8E3YtPrXL1qjSA3LvLGEl8=
+Date:   Wed, 10 Nov 2021 18:45:02 -0800
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, david@redhat.com, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@linux.dev, nghialm78@gmail.com, osalvador@suse.de,
-        rientjes@google.com, songmuchun@bytedance.com, ziy@nvidia.com
-Subject:  [merged] hugetlb-add-hugetlb-demote-page-support.patch
+To:     liangcaifan19@gmail.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, zhang.lyra@gmail.com
+Subject:  [merged]
+ mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged.patch
  removed from -mm tree
-Message-ID: <20211111024459.GIxSnE_6b%akpm@linux-foundation.org>
+Message-ID: <20211111024502.teq65BKjH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,200 +39,105 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: add hugetlb demote page support
+     Subject: mm: khugepaged: recalculate min_free_kbytes after stopping khugepaged
 has been removed from the -mm tree.  Its filename was
-     hugetlb-add-hugetlb-demote-page-support.patch
+     mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: hugetlb: add hugetlb demote page support
+From: Liangcai Fan <liangcaifan19@gmail.com>
+Subject: mm: khugepaged: recalculate min_free_kbytes after stopping khugepaged
 
-Demote page functionality will split a huge page into a number of huge
-pages of a smaller size.  For example, on x86 a 1GB huge page can be
-demoted into 512 2M huge pages.  Demotion is done 'in place' by simply
-splitting the huge page.
+When initializing transparent huge pages, min_free_kbytes would be
+calculated according to what khugepaged expected.
+So when disable transparent huge pages, min_free_kbytes should be
+recalculated instead of the higher value set by khugepaged.
 
-Added '*_for_demote' wrappers for remove_hugetlb_page,
-destroy_compound_hugetlb_page and prep_compound_gigantic_page for use by
-demote code.
-
-[mike.kravetz@oracle.com: v4]
-  Link: https://lkml.kernel.org/r/6ca29b8e-527c-d6ec-900e-e6a43e4f8b73@oracle.com
-Link: https://lkml.kernel.org/r/20211007181918.136982-6-mike.kravetz@oracle.com
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: "Aneesh Kumar K . V" <aneesh.kumar@linux.ibm.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Cc: Nghia Le <nghialm78@gmail.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Link: https://lkml.kernel.org/r/1633937809-16558-1-git-send-email-liangcaifan19@gmail.com
+Signed-off-by: Liangcai Fan <liangcaifan19@gmail.com>
+Signed-off-by: Chunyan Zhang <zhang.lyra@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  100 +++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 92 insertions(+), 8 deletions(-)
+ include/linux/mm.h |    1 +
+ mm/khugepaged.c    |   10 ++++++++--
+ mm/page_alloc.c    |    7 ++++++-
+ 3 files changed, 15 insertions(+), 3 deletions(-)
 
---- a/mm/hugetlb.c~hugetlb-add-hugetlb-demote-page-support
-+++ a/mm/hugetlb.c
-@@ -1270,7 +1270,7 @@ static int hstate_next_node_to_free(stru
- 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
- 		nr_nodes--)
+--- a/include/linux/mm.h~mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged
++++ a/include/linux/mm.h
+@@ -2453,6 +2453,7 @@ extern void memmap_init_range(unsigned l
+ 		unsigned long, unsigned long, enum meminit_context,
+ 		struct vmem_altmap *, int migratetype);
+ extern void setup_per_zone_wmarks(void);
++extern void calculate_min_free_kbytes(void);
+ extern int __meminit init_per_zone_wmark_min(void);
+ extern void mem_init(void);
+ extern void __init mmap_init(void);
+--- a/mm/khugepaged.c~mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged
++++ a/mm/khugepaged.c
+@@ -2299,6 +2299,11 @@ static void set_recommended_min_free_kby
+ 	int nr_zones = 0;
+ 	unsigned long recommended_min;
  
--#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
-+/* used to demote non-gigantic_huge pages as well */
- static void __destroy_compound_gigantic_page(struct page *page,
- 					unsigned int order, bool demote)
- {
-@@ -1293,6 +1293,13 @@ static void __destroy_compound_gigantic_
- 	__ClearPageHead(page);
- }
- 
-+static void destroy_compound_hugetlb_page_for_demote(struct page *page,
-+					unsigned int order)
-+{
-+	__destroy_compound_gigantic_page(page, order, true);
-+}
-+
-+#ifdef CONFIG_ARCH_HAS_GIGANTIC_PAGE
- static void destroy_compound_gigantic_page(struct page *page,
- 					unsigned int order)
- {
-@@ -1438,6 +1445,12 @@ static void remove_hugetlb_page(struct h
- 	__remove_hugetlb_page(h, page, adjust_surplus, false);
- }
- 
-+static void remove_hugetlb_page_for_demote(struct hstate *h, struct page *page,
-+							bool adjust_surplus)
-+{
-+	__remove_hugetlb_page(h, page, adjust_surplus, true);
-+}
-+
- static void add_hugetlb_page(struct hstate *h, struct page *page,
- 			     bool adjust_surplus)
- {
-@@ -1779,6 +1792,12 @@ static bool prep_compound_gigantic_page(
- 	return __prep_compound_gigantic_page(page, order, false);
- }
- 
-+static bool prep_compound_gigantic_page_for_demote(struct page *page,
-+							unsigned int order)
-+{
-+	return __prep_compound_gigantic_page(page, order, true);
-+}
-+
- /*
-  * PageHuge() only returns true for hugetlbfs pages, but not for normal or
-  * transparent huge pages.  See the PageTransHuge() documentation for more
-@@ -3304,9 +3323,72 @@ out:
- 	return 0;
- }
- 
-+static int demote_free_huge_page(struct hstate *h, struct page *page)
-+{
-+	int i, nid = page_to_nid(page);
-+	struct hstate *target_hstate;
-+	int rc = 0;
-+
-+	target_hstate = size_to_hstate(PAGE_SIZE << h->demote_order);
-+
-+	remove_hugetlb_page_for_demote(h, page, false);
-+	spin_unlock_irq(&hugetlb_lock);
-+
-+	rc = alloc_huge_page_vmemmap(h, page);
-+	if (rc) {
-+		/* Allocation of vmemmmap failed, we can not demote page */
-+		spin_lock_irq(&hugetlb_lock);
-+		set_page_refcounted(page);
-+		add_hugetlb_page(h, page, false);
-+		return rc;
++	if (!khugepaged_enabled()) {
++		calculate_min_free_kbytes();
++		goto update_wmarks;
 +	}
 +
-+	/*
-+	 * Use destroy_compound_hugetlb_page_for_demote for all huge page
-+	 * sizes as it will not ref count pages.
-+	 */
-+	destroy_compound_hugetlb_page_for_demote(page, huge_page_order(h));
-+
-+	/*
-+	 * Taking target hstate mutex synchronizes with set_max_huge_pages.
-+	 * Without the mutex, pages added to target hstate could be marked
-+	 * as surplus.
-+	 *
-+	 * Note that we already hold h->resize_lock.  To prevent deadlock,
-+	 * use the convention of always taking larger size hstate mutex first.
-+	 */
-+	mutex_lock(&target_hstate->resize_lock);
-+	for (i = 0; i < pages_per_huge_page(h);
-+				i += pages_per_huge_page(target_hstate)) {
-+		if (hstate_is_gigantic(target_hstate))
-+			prep_compound_gigantic_page_for_demote(page + i,
-+							target_hstate->order);
-+		else
-+			prep_compound_page(page + i, target_hstate->order);
-+		set_page_private(page + i, 0);
-+		set_page_refcounted(page + i);
-+		prep_new_huge_page(target_hstate, page + i, nid);
-+		put_page(page + i);
-+	}
-+	mutex_unlock(&target_hstate->resize_lock);
-+
-+	spin_lock_irq(&hugetlb_lock);
-+
-+	/*
-+	 * Not absolutely necessary, but for consistency update max_huge_pages
-+	 * based on pool changes for the demoted page.
-+	 */
-+	h->max_huge_pages--;
-+	target_hstate->max_huge_pages += pages_per_huge_page(h);
-+
-+	return rc;
-+}
-+
- static int demote_pool_huge_page(struct hstate *h, nodemask_t *nodes_allowed)
- 	__must_hold(&hugetlb_lock)
- {
-+	int nr_nodes, node;
-+	struct page *page;
- 	int rc = 0;
- 
- 	lockdep_assert_held(&hugetlb_lock);
-@@ -3317,9 +3399,15 @@ static int demote_pool_huge_page(struct
- 		return -EINVAL;		/* internal error */
- 	}
- 
--	/*
--	 * TODO - demote fucntionality will be added in subsequent patch
--	 */
-+	for_each_node_mask_to_free(h, nr_nodes, node, nodes_allowed) {
-+		if (!list_empty(&h->hugepage_freelists[node])) {
-+			page = list_entry(h->hugepage_freelists[node].next,
-+					struct page, lru);
-+			rc = demote_free_huge_page(h, page);
-+			break;
-+		}
-+	}
-+
- 	return rc;
- }
- 
-@@ -3554,10 +3642,6 @@ static ssize_t demote_store(struct kobje
+ 	for_each_populated_zone(zone) {
  		/*
- 		 * Check for available pages to demote each time thorough the
- 		 * loop as demote_pool_huge_page will drop hugetlb_lock.
--		 *
--		 * NOTE: demote_pool_huge_page does not yet drop hugetlb_lock
--		 * but will when full demote functionality is added in a later
--		 * patch.
- 		 */
- 		if (nid != NUMA_NO_NODE)
- 			nr_available = h->free_huge_pages_node[nid];
+ 		 * We don't need to worry about fragmentation of
+@@ -2334,6 +2339,8 @@ static void set_recommended_min_free_kby
+ 
+ 		min_free_kbytes = recommended_min;
+ 	}
++
++update_wmarks:
+ 	setup_per_zone_wmarks();
+ }
+ 
+@@ -2355,12 +2362,11 @@ int start_stop_khugepaged(void)
+ 
+ 		if (!list_empty(&khugepaged_scan.mm_head))
+ 			wake_up_interruptible(&khugepaged_wait);
+-
+-		set_recommended_min_free_kbytes();
+ 	} else if (khugepaged_thread) {
+ 		kthread_stop(khugepaged_thread);
+ 		khugepaged_thread = NULL;
+ 	}
++	set_recommended_min_free_kbytes();
+ fail:
+ 	mutex_unlock(&khugepaged_mutex);
+ 	return err;
+--- a/mm/page_alloc.c~mm-khugepaged-recalculate-min_free_kbytes-after-stopping-khugepaged
++++ a/mm/page_alloc.c
+@@ -8469,7 +8469,7 @@ void setup_per_zone_wmarks(void)
+  * 8192MB:	11584k
+  * 16384MB:	16384k
+  */
+-int __meminit init_per_zone_wmark_min(void)
++void calculate_min_free_kbytes(void)
+ {
+ 	unsigned long lowmem_kbytes;
+ 	int new_min_free_kbytes;
+@@ -8483,6 +8483,11 @@ int __meminit init_per_zone_wmark_min(vo
+ 		pr_warn("min_free_kbytes is not updated to %d because user defined value %d is preferred\n",
+ 				new_min_free_kbytes, user_min_free_kbytes);
+ 
++}
++
++int __meminit init_per_zone_wmark_min(void)
++{
++	calculate_min_free_kbytes();
+ 	setup_per_zone_wmarks();
+ 	refresh_zone_stat_thresholds();
+ 	setup_per_zone_lowmem_reserve();
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from liangcaifan19@gmail.com are
 
 
