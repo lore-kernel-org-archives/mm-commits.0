@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D9C2C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:39:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 376B7C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:39:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 32F5961872
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:39:25 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1BCDE61884
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:39:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233758AbhKKCmM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:42:12 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47854 "EHLO mail.kernel.org"
+        id S233769AbhKKCmP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:42:15 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47904 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233120AbhKKCmM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:42:12 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BA259610F7;
-        Thu, 11 Nov 2021 02:39:23 +0000 (UTC)
+        id S233120AbhKKCmP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:42:15 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A3A1361260;
+        Thu, 11 Nov 2021 02:39:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598364;
-        bh=DVt0/+fuXRgbs2zDnW9INVI1Ri+UMVPP2/Lso5av60Y=;
+        s=korg; t=1636598366;
+        bh=qOuYDav1hE51m69vbv4RHag+2GRs66syMbE1kNyLUw8=;
         h=Date:From:To:Subject:From;
-        b=Dcxwl6bkGODl4bzbJQxynXDLA2iotC/qHPceJ3Xb1/CZ6crEHler2M7iRefiaF9eA
-         vcjwEbei9s64a87ifvxdbxz+CHwd2EVbMVOT7OKqAtNRHKU9b6BUkIbadG8rlIxzst
-         Q/TJDMuuhPoyfDTdRIKj7sNNRJUlCtIPj4y8DkBw=
-Date:   Wed, 10 Nov 2021 18:39:23 -0800
+        b=xmiU9JmmgctI/Fz4vk65e5oP/YhS4WY0KeyQwvFzfdpvCsfzLkCHmMPJSlYPA5yIn
+         Ws/Cw/B0TXXPe/Wc4hzUuPJ57xWYttPIZtdH+Xc9Ewn2CcuQfBvqvCH2IFxaYa6zQY
+         xE1PUyrSCEdWEXYiccQXO96aOPOESGCsWDtHV+aA=
+Date:   Wed, 10 Nov 2021 18:39:26 -0800
 From:   akpm@linux-foundation.org
-To:     cymi20@fudan.edu.cn, gechangwei@live.cn, ghe@suse.com,
-        jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
-        junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org,
-        piaojun@huawei.com, tanxin.ctf@gmail.com, wen.gang.wang@oracle.com,
-        xiyuyang19@fudan.edu.cn
-Subject:  [merged]
- ocfs2-fix-handle-refcount-leak-in-two-exception-handling-paths.patch
+To:     gechangwei@live.cn, ghe@suse.com, jlbec@evilplan.org,
+        joseph.qi@linux.alibaba.com, junxiao.bi@oracle.com,
+        mark@fasheh.com, mm-commits@vger.kernel.org, piaojun@huawei.com,
+        vvidic@valentin-vidic.from.hr
+Subject:  [merged] ocfs2-cleanup-journal-init-and-shutdown.patch
  removed from -mm tree
-Message-ID: <20211111023923.Qiw-aUvjM%akpm@linux-foundation.org>
+Message-ID: <20211111023926.EXtvmNo5Q%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,30 +40,23 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix handle refcount leak in two exception handling paths
+     Subject: ocfs2: cleanup journal init and shutdown
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-handle-refcount-leak-in-two-exception-handling-paths.patch
+     ocfs2-cleanup-journal-init-and-shutdown.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chenyuan Mi <cymi20@fudan.edu.cn>
-Subject: ocfs2: fix handle refcount leak in two exception handling paths
+From: Valentin Vidic <vvidic@valentin-vidic.from.hr>
+Subject: ocfs2: cleanup journal init and shutdown
 
-The reference counting issue happens in two exception handling paths
-of ocfs2_replay_truncate_records(). When executing these two exception
-handling paths, the function forgets to decrease the refcount of handle
-increased by ocfs2_start_trans(), causing a refcount leak.
+Allocate and free struct ocfs2_journal in ocfs2_journal_init and
+ocfs2_journal_shutdown.  Init and release of system inodes references the
+journal so reorder calls to make sure they work correctly.
 
-Fix this issue by using ocfs2_commit_trans() to decrease the refcount
-of handle in two handling paths.
-
-Link: https://lkml.kernel.org/r/20210908102055.10168-1-cymi20@fudan.edu.cn
-Signed-off-by: Chenyuan Mi <cymi20@fudan.edu.cn>
-Signed-off-by: Xiyu Yang <xiyuyang19@fudan.edu.cn>
-Signed-off-by: Xin Tan <tanxin.ctf@gmail.com>
+Link: https://lkml.kernel.org/r/20211009145006.3478-1-vvidic@valentin-vidic.from.hr
+Signed-off-by: Valentin Vidic <vvidic@valentin-vidic.from.hr>
 Reviewed-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Wengang Wang <wen.gang.wang@oracle.com>
 Cc: Mark Fasheh <mark@fasheh.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
@@ -75,29 +66,187 @@ Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ocfs2/inode.c   |    4 ++--
+ fs/ocfs2/journal.c |   28 ++++++++++++++++++++++------
+ fs/ocfs2/journal.h |    3 +--
+ fs/ocfs2/super.c   |   40 +++-------------------------------------
+ 4 files changed, 28 insertions(+), 47 deletions(-)
 
---- a/fs/ocfs2/alloc.c~ocfs2-fix-handle-refcount-leak-in-two-exception-handling-paths
-+++ a/fs/ocfs2/alloc.c
-@@ -5940,6 +5940,7 @@ static int ocfs2_replay_truncate_records
- 		status = ocfs2_journal_access_di(handle, INODE_CACHE(tl_inode), tl_bh,
- 						 OCFS2_JOURNAL_ACCESS_WRITE);
- 		if (status < 0) {
-+			ocfs2_commit_trans(osb, handle);
- 			mlog_errno(status);
- 			goto bail;
- 		}
-@@ -5964,6 +5965,7 @@ static int ocfs2_replay_truncate_records
- 						     data_alloc_bh, start_blk,
- 						     num_clusters);
- 			if (status < 0) {
-+				ocfs2_commit_trans(osb, handle);
- 				mlog_errno(status);
- 				goto bail;
- 			}
+--- a/fs/ocfs2/inode.c~ocfs2-cleanup-journal-init-and-shutdown
++++ a/fs/ocfs2/inode.c
+@@ -125,7 +125,6 @@ struct inode *ocfs2_iget(struct ocfs2_su
+ 	struct inode *inode = NULL;
+ 	struct super_block *sb = osb->sb;
+ 	struct ocfs2_find_inode_args args;
+-	journal_t *journal = OCFS2_SB(sb)->journal->j_journal;
+ 
+ 	trace_ocfs2_iget_begin((unsigned long long)blkno, flags,
+ 			       sysfile_type);
+@@ -172,10 +171,11 @@ struct inode *ocfs2_iget(struct ocfs2_su
+ 	 * part of the transaction - the inode could have been reclaimed and
+ 	 * now it is reread from disk.
+ 	 */
+-	if (journal) {
++	if (osb->journal) {
+ 		transaction_t *transaction;
+ 		tid_t tid;
+ 		struct ocfs2_inode_info *oi = OCFS2_I(inode);
++		journal_t *journal = osb->journal->j_journal;
+ 
+ 		read_lock(&journal->j_state_lock);
+ 		if (journal->j_running_transaction)
+--- a/fs/ocfs2/journal.c~ocfs2-cleanup-journal-init-and-shutdown
++++ a/fs/ocfs2/journal.c
+@@ -810,19 +810,34 @@ void ocfs2_set_journal_params(struct ocf
+ 	write_unlock(&journal->j_state_lock);
+ }
+ 
+-int ocfs2_journal_init(struct ocfs2_journal *journal, int *dirty)
++int ocfs2_journal_init(struct ocfs2_super *osb, int *dirty)
+ {
+ 	int status = -1;
+ 	struct inode *inode = NULL; /* the journal inode */
+ 	journal_t *j_journal = NULL;
++	struct ocfs2_journal *journal = NULL;
+ 	struct ocfs2_dinode *di = NULL;
+ 	struct buffer_head *bh = NULL;
+-	struct ocfs2_super *osb;
+ 	int inode_lock = 0;
+ 
+-	BUG_ON(!journal);
+-
+-	osb = journal->j_osb;
++	/* initialize our journal structure */
++	journal = kzalloc(sizeof(struct ocfs2_journal), GFP_KERNEL);
++	if (!journal) {
++		mlog(ML_ERROR, "unable to alloc journal\n");
++		status = -ENOMEM;
++		goto done;
++	}
++	osb->journal = journal;
++	journal->j_osb = osb;
++
++	atomic_set(&journal->j_num_trans, 0);
++	init_rwsem(&journal->j_trans_barrier);
++	init_waitqueue_head(&journal->j_checkpointed);
++	spin_lock_init(&journal->j_lock);
++	journal->j_trans_id = 1UL;
++	INIT_LIST_HEAD(&journal->j_la_cleanups);
++	INIT_WORK(&journal->j_recovery_work, ocfs2_complete_recovery);
++	journal->j_state = OCFS2_JOURNAL_FREE;
+ 
+ 	/* already have the inode for our journal */
+ 	inode = ocfs2_get_system_file_inode(osb, JOURNAL_SYSTEM_INODE,
+@@ -1028,9 +1043,10 @@ void ocfs2_journal_shutdown(struct ocfs2
+ 
+ 	journal->j_state = OCFS2_JOURNAL_FREE;
+ 
+-//	up_write(&journal->j_trans_barrier);
+ done:
+ 	iput(inode);
++	kfree(journal);
++	osb->journal = NULL;
+ }
+ 
+ static void ocfs2_clear_journal_error(struct super_block *sb,
+--- a/fs/ocfs2/journal.h~ocfs2-cleanup-journal-init-and-shutdown
++++ a/fs/ocfs2/journal.h
+@@ -167,8 +167,7 @@ int ocfs2_compute_replay_slots(struct oc
+  *  ocfs2_start_checkpoint - Kick the commit thread to do a checkpoint.
+  */
+ void   ocfs2_set_journal_params(struct ocfs2_super *osb);
+-int    ocfs2_journal_init(struct ocfs2_journal *journal,
+-			  int *dirty);
++int    ocfs2_journal_init(struct ocfs2_super *osb, int *dirty);
+ void   ocfs2_journal_shutdown(struct ocfs2_super *osb);
+ int    ocfs2_journal_wipe(struct ocfs2_journal *journal,
+ 			  int full);
+--- a/fs/ocfs2/super.c~ocfs2-cleanup-journal-init-and-shutdown
++++ a/fs/ocfs2/super.c
+@@ -1894,8 +1894,6 @@ static void ocfs2_dismount_volume(struct
+ 	/* This will disable recovery and flush any recovery work. */
+ 	ocfs2_recovery_exit(osb);
+ 
+-	ocfs2_journal_shutdown(osb);
+-
+ 	ocfs2_sync_blockdev(sb);
+ 
+ 	ocfs2_purge_refcount_trees(osb);
+@@ -1918,6 +1916,8 @@ static void ocfs2_dismount_volume(struct
+ 
+ 	ocfs2_release_system_inodes(osb);
+ 
++	ocfs2_journal_shutdown(osb);
++
+ 	/*
+ 	 * If we're dismounting due to mount error, mount.ocfs2 will clean
+ 	 * up heartbeat.  If we're a local mount, there is no heartbeat.
+@@ -2016,7 +2016,6 @@ static int ocfs2_initialize_super(struct
+ 	int i, cbits, bbits;
+ 	struct ocfs2_dinode *di = (struct ocfs2_dinode *)bh->b_data;
+ 	struct inode *inode = NULL;
+-	struct ocfs2_journal *journal;
+ 	struct ocfs2_super *osb;
+ 	u64 total_blocks;
+ 
+@@ -2197,33 +2196,6 @@ static int ocfs2_initialize_super(struct
+ 
+ 	get_random_bytes(&osb->s_next_generation, sizeof(u32));
+ 
+-	/* FIXME
+-	 * This should be done in ocfs2_journal_init(), but unknown
+-	 * ordering issues will cause the filesystem to crash.
+-	 * If anyone wants to figure out what part of the code
+-	 * refers to osb->journal before ocfs2_journal_init() is run,
+-	 * be my guest.
+-	 */
+-	/* initialize our journal structure */
+-
+-	journal = kzalloc(sizeof(struct ocfs2_journal), GFP_KERNEL);
+-	if (!journal) {
+-		mlog(ML_ERROR, "unable to alloc journal\n");
+-		status = -ENOMEM;
+-		goto bail;
+-	}
+-	osb->journal = journal;
+-	journal->j_osb = osb;
+-
+-	atomic_set(&journal->j_num_trans, 0);
+-	init_rwsem(&journal->j_trans_barrier);
+-	init_waitqueue_head(&journal->j_checkpointed);
+-	spin_lock_init(&journal->j_lock);
+-	journal->j_trans_id = (unsigned long) 1;
+-	INIT_LIST_HEAD(&journal->j_la_cleanups);
+-	INIT_WORK(&journal->j_recovery_work, ocfs2_complete_recovery);
+-	journal->j_state = OCFS2_JOURNAL_FREE;
+-
+ 	INIT_WORK(&osb->dquot_drop_work, ocfs2_drop_dquot_refs);
+ 	init_llist_head(&osb->dquot_drop_list);
+ 
+@@ -2404,7 +2376,7 @@ static int ocfs2_check_volume(struct ocf
+ 						  * ourselves. */
+ 
+ 	/* Init our journal object. */
+-	status = ocfs2_journal_init(osb->journal, &dirty);
++	status = ocfs2_journal_init(osb, &dirty);
+ 	if (status < 0) {
+ 		mlog(ML_ERROR, "Could not initialize journal!\n");
+ 		goto finally;
+@@ -2513,12 +2485,6 @@ static void ocfs2_delete_osb(struct ocfs
+ 
+ 	kfree(osb->osb_orphan_wipes);
+ 	kfree(osb->slot_recovery_generations);
+-	/* FIXME
+-	 * This belongs in journal shutdown, but because we have to
+-	 * allocate osb->journal at the start of ocfs2_initialize_osb(),
+-	 * we free it here.
+-	 */
+-	kfree(osb->journal);
+ 	kfree(osb->local_alloc_copy);
+ 	kfree(osb->uuid_str);
+ 	kfree(osb->vol_label);
 _
 
-Patches currently in -mm which might be from cymi20@fudan.edu.cn are
+Patches currently in -mm which might be from vvidic@valentin-vidic.from.hr are
 
 
