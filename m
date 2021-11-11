@@ -2,37 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD227C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46827C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:47:00 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9764861284
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:57 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2B2EF6103C
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:47:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234397AbhKKCtp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:49:45 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54436 "EHLO mail.kernel.org"
+        id S234400AbhKKCtr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:49:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54470 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234393AbhKKCto (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:49:44 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B947061247;
-        Thu, 11 Nov 2021 02:46:55 +0000 (UTC)
+        id S234393AbhKKCtr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:49:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A600061260;
+        Thu, 11 Nov 2021 02:46:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598816;
-        bh=hAdT3yl8RPuv/QnQJjWexr4t9S9xz/vhIJ9JJDy2sJI=;
+        s=korg; t=1636598818;
+        bh=QuM0rrvGxHqwgHwudWrroDMYff27AOuZVD2q+JhGShc=;
         h=Date:From:To:Subject:From;
-        b=Ad7Kp3AAFa2pzW40YwP4JBvowq3/L4yS7jFnHADwGP6f53E/lbcAQGPPPFYmvbSnW
-         0aaRP4IbJ5/hik3UEQ8ltS5fPM5tDUiwxTaQ0Lut+K6sE414RN0lRgMyOKxEEiPjZC
-         YsVLemH2lqbBCw8z0GEZzPLIZE2ZYKh4w5WKVJyk=
-Date:   Wed, 10 Nov 2021 18:46:55 -0800
+        b=gU1kuWFjYLqD5BE+WYM8sW6IFtrpO/9zryZNJ0aod4MvlpusWIzaYKaVjIyluyioD
+         5VN4BoGvqU+thooCYopE9VQSyNY1XwcJPcyITlorpHMmF0+K7f7GSQC+LoGF0uhAmj
+         Q58f7d8cHNojNfku1P1wLESb4NIxrS5JoLxSKKSc=
+Date:   Wed, 10 Nov 2021 18:46:58 -0800
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, hughd@google.com,
-        mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
-        shuah@kernel.org, tyhicks@linux.microsoft.com,
+To:     mm-commits@vger.kernel.org, pedrodemargomes@gmail.com,
         zhansayabagdaulet@gmail.com
 Subject:  [merged]
- selftest-vm-fix-ksm-selftest-to-run-with-different-numa-topologies.patch
- removed from -mm tree
-Message-ID: <20211111024655.nbVCKKvH0%akpm@linux-foundation.org>
+ selftests-vm-add-ksm-huge-pages-merging-time-test.patch removed from -mm
+ tree
+Message-ID: <20211111024658.vMgRP3Pco%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,112 +39,212 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftest/vm: fix ksm selftest to run with different NUMA topologies
+     Subject: selftests: vm: add KSM huge pages merging time test
 has been removed from the -mm tree.  Its filename was
-     selftest-vm-fix-ksm-selftest-to-run-with-different-numa-topologies.patch
+     selftests-vm-add-ksm-huge-pages-merging-time-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: selftest/vm: fix ksm selftest to run with different NUMA topologies
+From: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
+Subject: selftests: vm: add KSM huge pages merging time test
 
-Platforms can have non-contiguous NUMA nodes like below
+Add test case of KSM merging time using mostly huge pages
 
- #numactl  -H
-available: 2 nodes (0,8)
-.....
-node distances:
-node   0   8
-  0:  10  40
-  8:  40  10
-
- #numactl  -H
-available: 1 nodes (1)
-....
-node distances:
-node   1
-  1:  10
-
-Hence update the test to not assume the presence of Node 0 and 1 and also
-use numa_num_configured_nodes() instead of numa_max_node for finding
-whether to skip the test.
-
-Link: https://lkml.kernel.org/r/20210914141414.350759-1-aneesh.kumar@linux.ibm.com
-Fixes: 82e717ad3501 ("selftests: vm: add KSM merging across nodes test")
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Link: https://lkml.kernel.org/r/20211013044045.360251-1-pedrodemargomes@gmail.com
+Signed-off-by: Pedro Demarchi Gomes <pedrodemargomes@gmail.com>
 Cc: Zhansaya Bagdauletkyzy <zhansayabagdaulet@gmail.com>
-Cc: Pavel Tatashin <pasha.tatashin@soleen.com>
-Cc: Tyler Hicks <tyhicks@linux.microsoft.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/ksm_tests.c |   29 ++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/ksm_tests.c |  125 ++++++++++++++++++++++-
+ 1 file changed, 124 insertions(+), 1 deletion(-)
 
---- a/tools/testing/selftests/vm/ksm_tests.c~selftest-vm-fix-ksm-selftest-to-run-with-different-numa-topologies
+--- a/tools/testing/selftests/vm/ksm_tests.c~selftests-vm-add-ksm-huge-pages-merging-time-test
 +++ a/tools/testing/selftests/vm/ksm_tests.c
-@@ -354,12 +354,34 @@ err_out:
+@@ -5,6 +5,10 @@
+ #include <time.h>
+ #include <string.h>
+ #include <numa.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <stdint.h>
++#include <err.h>
+ 
+ #include "../kselftest.h"
+ #include "../../../../include/vdso/time64.h"
+@@ -18,6 +22,15 @@
+ #define KSM_MERGE_ACROSS_NODES_DEFAULT true
+ #define MB (1ul << 20)
+ 
++#define PAGE_SHIFT 12
++#define HPAGE_SHIFT 21
++
++#define PAGE_SIZE (1 << PAGE_SHIFT)
++#define HPAGE_SIZE (1 << HPAGE_SHIFT)
++
++#define PAGEMAP_PRESENT(ent)	(((ent) & (1ull << 63)) != 0)
++#define PAGEMAP_PFN(ent)	((ent) & ((1ull << 55) - 1))
++
+ struct ksm_sysfs {
+ 	unsigned long max_page_sharing;
+ 	unsigned long merge_across_nodes;
+@@ -34,6 +47,7 @@ enum ksm_test_name {
+ 	CHECK_KSM_ZERO_PAGE_MERGE,
+ 	CHECK_KSM_NUMA_MERGE,
+ 	KSM_MERGE_TIME,
++	KSM_MERGE_TIME_HUGE_PAGES,
+ 	KSM_COW_TIME
+ };
+ 
+@@ -100,6 +114,9 @@ static void print_help(void)
+ 	       " -P evaluate merging time and speed.\n"
+ 	       "    For this test, the size of duplicated memory area (in MiB)\n"
+ 	       "    must be provided using -s option\n"
++				 " -H evaluate merging time and speed of area allocated mostly with huge pages\n"
++	       "    For this test, the size of duplicated memory area (in MiB)\n"
++	       "    must be provided using -s option\n"
+ 	       " -C evaluate the time required to break COW of merged pages.\n\n");
+ 
+ 	printf(" -a: specify the access protections of pages.\n"
+@@ -439,6 +456,101 @@ err_out:
  	return KSFT_FAIL;
  }
  
-+static int get_next_mem_node(int node)
++int64_t allocate_transhuge(void *ptr, int pagemap_fd)
 +{
++	uint64_t ent[2];
 +
-+	long node_size;
-+	int mem_node = 0;
-+	int i, max_node = numa_max_node();
++	/* drop pmd */
++	if (mmap(ptr, HPAGE_SIZE, PROT_READ | PROT_WRITE,
++				MAP_FIXED | MAP_ANONYMOUS |
++				MAP_NORESERVE | MAP_PRIVATE, -1, 0) != ptr)
++		errx(2, "mmap transhuge");
 +
-+	for (i = node + 1; i <= max_node + node; i++) {
-+		mem_node = i % (max_node + 1);
-+		node_size = numa_node_size(mem_node, NULL);
-+		if (node_size > 0)
-+			break;
++	if (madvise(ptr, HPAGE_SIZE, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
++
++	/* allocate transparent huge page */
++	*(volatile void **)ptr = ptr;
++
++	if (pread(pagemap_fd, ent, sizeof(ent),
++			(uintptr_t)ptr >> (PAGE_SHIFT - 3)) != sizeof(ent))
++		err(2, "read pagemap");
++
++	if (PAGEMAP_PRESENT(ent[0]) && PAGEMAP_PRESENT(ent[1]) &&
++	    PAGEMAP_PFN(ent[0]) + 1 == PAGEMAP_PFN(ent[1]) &&
++	    !(PAGEMAP_PFN(ent[0]) & ((1 << (HPAGE_SHIFT - PAGE_SHIFT)) - 1)))
++		return PAGEMAP_PFN(ent[0]);
++
++	return -1;
++}
++
++static int ksm_merge_hugepages_time(int mapping, int prot, int timeout, size_t map_size)
++{
++	void *map_ptr, *map_ptr_orig;
++	struct timespec start_time, end_time;
++	unsigned long scan_time_ns;
++	int pagemap_fd, n_normal_pages, n_huge_pages;
++
++	map_size *= MB;
++	size_t len = map_size;
++
++	len -= len % HPAGE_SIZE;
++	map_ptr_orig = mmap(NULL, len + HPAGE_SIZE, PROT_READ | PROT_WRITE,
++			MAP_ANONYMOUS | MAP_NORESERVE | MAP_PRIVATE, -1, 0);
++	map_ptr = map_ptr_orig + HPAGE_SIZE - (uintptr_t)map_ptr_orig % HPAGE_SIZE;
++
++	if (map_ptr_orig == MAP_FAILED)
++		err(2, "initial mmap");
++
++	if (madvise(map_ptr, len + HPAGE_SIZE, MADV_HUGEPAGE))
++		err(2, "MADV_HUGEPAGE");
++
++	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
++	if (pagemap_fd < 0)
++		err(2, "open pagemap");
++
++	n_normal_pages = 0;
++	n_huge_pages = 0;
++	for (void *p = map_ptr; p < map_ptr + len; p += HPAGE_SIZE) {
++		if (allocate_transhuge(p, pagemap_fd) < 0)
++			n_normal_pages++;
++		else
++			n_huge_pages++;
 +	}
-+	return mem_node;
++	printf("Number of normal pages:    %d\n", n_normal_pages);
++	printf("Number of huge pages:    %d\n", n_huge_pages);
++
++	memset(map_ptr, '*', len);
++
++	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
++		perror("clock_gettime");
++		goto err_out;
++	}
++	if (ksm_merge_pages(map_ptr, map_size, start_time, timeout))
++		goto err_out;
++	if (clock_gettime(CLOCK_MONOTONIC_RAW, &end_time)) {
++		perror("clock_gettime");
++		goto err_out;
++	}
++
++	scan_time_ns = (end_time.tv_sec - start_time.tv_sec) * NSEC_PER_SEC +
++		       (end_time.tv_nsec - start_time.tv_nsec);
++
++	printf("Total size:    %lu MiB\n", map_size / MB);
++	printf("Total time:    %ld.%09ld s\n", scan_time_ns / NSEC_PER_SEC,
++	       scan_time_ns % NSEC_PER_SEC);
++	printf("Average speed:  %.3f MiB/s\n", (map_size / MB) /
++					       ((double)scan_time_ns / NSEC_PER_SEC));
++
++	munmap(map_ptr_orig, len + HPAGE_SIZE);
++	return KSFT_PASS;
++
++err_out:
++	printf("Not OK\n");
++	munmap(map_ptr_orig, len + HPAGE_SIZE);
++	return KSFT_FAIL;
 +}
 +
-+static int get_first_mem_node(void)
-+{
-+	return get_next_mem_node(numa_max_node());
-+}
-+
- static int check_ksm_numa_merge(int mapping, int prot, int timeout, bool merge_across_nodes,
- 				size_t page_size)
+ static int ksm_merge_time(int mapping, int prot, int timeout, size_t map_size)
  {
- 	void *numa1_map_ptr, *numa2_map_ptr;
- 	struct timespec start_time;
- 	int page_count = 2;
-+	int first_node;
+ 	void *map_ptr;
+@@ -564,7 +676,7 @@ int main(int argc, char *argv[])
+ 	bool merge_across_nodes = KSM_MERGE_ACROSS_NODES_DEFAULT;
+ 	long size_MB = 0;
  
- 	if (clock_gettime(CLOCK_MONOTONIC_RAW, &start_time)) {
- 		perror("clock_gettime");
-@@ -370,7 +392,7 @@ static int check_ksm_numa_merge(int mapp
- 		perror("NUMA support not enabled");
- 		return KSFT_SKIP;
- 	}
--	if (numa_max_node() < 1) {
-+	if (numa_num_configured_nodes() <= 1) {
- 		printf("At least 2 NUMA nodes must be available\n");
- 		return KSFT_SKIP;
- 	}
-@@ -378,8 +400,9 @@ static int check_ksm_numa_merge(int mapp
- 		return KSFT_FAIL;
- 
- 	/* allocate 2 pages in 2 different NUMA nodes and fill them with the same data */
--	numa1_map_ptr = numa_alloc_onnode(page_size, 0);
--	numa2_map_ptr = numa_alloc_onnode(page_size, 1);
-+	first_node = get_first_mem_node();
-+	numa1_map_ptr = numa_alloc_onnode(page_size, first_node);
-+	numa2_map_ptr = numa_alloc_onnode(page_size, get_next_mem_node(first_node));
- 	if (!numa1_map_ptr || !numa2_map_ptr) {
- 		perror("numa_alloc_onnode");
- 		return KSFT_FAIL;
+-	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPC")) != -1) {
++	while ((opt = getopt(argc, argv, "ha:p:l:z:m:s:MUZNPCH")) != -1) {
+ 		switch (opt) {
+ 		case 'a':
+ 			prot = str_to_prot(optarg);
+@@ -618,6 +730,9 @@ int main(int argc, char *argv[])
+ 		case 'P':
+ 			test_name = KSM_MERGE_TIME;
+ 			break;
++		case 'H':
++			test_name = KSM_MERGE_TIME_HUGE_PAGES;
++			break;
+ 		case 'C':
+ 			test_name = KSM_COW_TIME;
+ 			break;
+@@ -670,6 +785,14 @@ int main(int argc, char *argv[])
+ 		ret = ksm_merge_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+ 				     size_MB);
+ 		break;
++	case KSM_MERGE_TIME_HUGE_PAGES:
++		if (size_MB == 0) {
++			printf("Option '-s' is required.\n");
++			return KSFT_FAIL;
++		}
++		ret = ksm_merge_hugepages_time(MAP_PRIVATE | MAP_ANONYMOUS, prot,
++				ksm_scan_limit_sec, size_MB);
++		break;
+ 	case KSM_COW_TIME:
+ 		ret = ksm_cow_time(MAP_PRIVATE | MAP_ANONYMOUS, prot, ksm_scan_limit_sec,
+ 				   page_size);
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from pedrodemargomes@gmail.com are
 
 
