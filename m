@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1A22C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E89E2C433EF
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:16 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 9AE9B61108
+	by mail.kernel.org (Postfix) with ESMTP id CC8B261361
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:48:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234442AbhKKCvE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234404AbhKKCvE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 10 Nov 2021 21:51:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55536 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:55552 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234404AbhKKCvC (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:51:02 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 87E7E60F26;
-        Thu, 11 Nov 2021 02:48:13 +0000 (UTC)
+        id S234441AbhKKCvE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:51:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A9973610A2;
+        Thu, 11 Nov 2021 02:48:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598893;
-        bh=B46Vvz8E5SO/KLSm4U4mLv7C9azpT6rDH8M4BOy479Y=;
+        s=korg; t=1636598895;
+        bh=mUG96+muP3MrGfwewP4RWZFgThiy1MPtqt0vg6cgfuk=;
         h=Date:From:To:Subject:From;
-        b=xbwxCxfi1+QGTep4M9auZgPYXhNg+rWGRmO29kQz7q8RYGXzjMuTzubxC94IjOwf8
-         QEe5Z8Hpwvf1xxmr6OMVfE8SNt1mMKfjOUOgeJY6uC+QScuoXDzliZUvcNIoDuB0Az
-         HsipZPApzs1urn0OX9sSJRfZabkp+XsCK3VFe1HA=
-Date:   Wed, 10 Nov 2021 18:48:13 -0800
+        b=wBZbdwZWy1yBwzFuNGFvP09C7la4+qOA3DV0etWuo5XjvRRTZqisTVKh/qMLc9LbA
+         qDvlUgQ1Qb1xSglIpxy6LniF8lnT6Eh0RzxnWJb+kX/iylgUbe0JOW1kJWCelalGHd
+         51jbS1p+e/yPWdDh+Sb7e5Dq/Q/rVZ31nFHzyLwM=
+Date:   Wed, 10 Nov 2021 18:48:15 -0800
 From:   akpm@linux-foundation.org
 To:     dvyukov@google.com, elver@google.com, glider@google.com,
         jannh@google.com, mm-commits@vger.kernel.org, nogikh@google.com,
         tarasmadan@google.com
 Subject:  [merged]
- kfence-count-unexpectedly-skipped-allocations.patch removed from -mm tree
-Message-ID: <20211111024813.0pZ-sEKDe%akpm@linux-foundation.org>
+ kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
+ removed from -mm tree
+Message-ID: <20211111024815.T7Co_6HfQ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,23 +40,22 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kfence: count unexpectedly skipped allocations
+     Subject: kfence: move saving stack trace of allocations into __kfence_alloc()
 has been removed from the -mm tree.  Its filename was
-     kfence-count-unexpectedly-skipped-allocations.patch
+     kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: kfence: count unexpectedly skipped allocations
+Subject: kfence: move saving stack trace of allocations into __kfence_alloc()
 
-Maintain a counter to count allocations that are skipped due to being
-incompatible (oversized, incompatible gfp flags) or no capacity.
+Move the saving of the stack trace of allocations into __kfence_alloc(),
+so that the stack entries array can be used outside of
+kfence_guarded_alloc() and we avoid potentially unwinding the stack
+multiple times.
 
-This is to compute the fraction of allocations that could not be serviced
-by KFENCE, which we expect to be rare.
-
-Link: https://lkml.kernel.org/r/20210923104803.2620285-2-elver@google.com
+Link: https://lkml.kernel.org/r/20210923104803.2620285-3-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
 Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
 Acked-by: Alexander Potapenko <glider@google.com>
@@ -65,65 +65,94 @@ Cc: Taras Madan <tarasmadan@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ mm/kfence/core.c |   35 ++++++++++++++++++++++++-----------
+ 1 file changed, 24 insertions(+), 11 deletions(-)
 
---- a/mm/kfence/core.c~kfence-count-unexpectedly-skipped-allocations
+--- a/mm/kfence/core.c~kfence-move-saving-stack-trace-of-allocations-into-__kfence_alloc
 +++ a/mm/kfence/core.c
-@@ -112,6 +112,8 @@ enum kfence_counter_id {
- 	KFENCE_COUNTER_FREES,
- 	KFENCE_COUNTER_ZOMBIES,
- 	KFENCE_COUNTER_BUGS,
-+	KFENCE_COUNTER_SKIP_INCOMPAT,
-+	KFENCE_COUNTER_SKIP_CAPACITY,
- 	KFENCE_COUNTER_COUNT,
- };
- static atomic_long_t counters[KFENCE_COUNTER_COUNT];
-@@ -121,6 +123,8 @@ static const char *const counter_names[]
- 	[KFENCE_COUNTER_FREES]		= "total frees",
- 	[KFENCE_COUNTER_ZOMBIES]	= "zombie allocations",
- 	[KFENCE_COUNTER_BUGS]		= "total bugs",
-+	[KFENCE_COUNTER_SKIP_INCOMPAT]	= "skipped allocations (incompatible)",
-+	[KFENCE_COUNTER_SKIP_CAPACITY]	= "skipped allocations (capacity)",
- };
- static_assert(ARRAY_SIZE(counter_names) == KFENCE_COUNTER_COUNT);
+@@ -187,19 +187,26 @@ static inline unsigned long metadata_to_
+  * Update the object's metadata state, including updating the alloc/free stacks
+  * depending on the state transition.
+  */
+-static noinline void metadata_update_state(struct kfence_metadata *meta,
+-					   enum kfence_object_state next)
++static noinline void
++metadata_update_state(struct kfence_metadata *meta, enum kfence_object_state next,
++		      unsigned long *stack_entries, size_t num_stack_entries)
+ {
+ 	struct kfence_track *track =
+ 		next == KFENCE_OBJECT_FREED ? &meta->free_track : &meta->alloc_track;
  
-@@ -271,8 +275,10 @@ static void *kfence_guarded_alloc(struct
- 		list_del_init(&meta->list);
- 	}
- 	raw_spin_unlock_irqrestore(&kfence_freelist_lock, flags);
--	if (!meta)
-+	if (!meta) {
-+		atomic_long_inc(&counters[KFENCE_COUNTER_SKIP_CAPACITY]);
- 		return NULL;
+ 	lockdep_assert_held(&meta->lock);
+ 
+-	/*
+-	 * Skip over 1 (this) functions; noinline ensures we do not accidentally
+-	 * skip over the caller by never inlining.
+-	 */
+-	track->num_stack_entries = stack_trace_save(track->stack_entries, KFENCE_STACK_DEPTH, 1);
++	if (stack_entries) {
++		memcpy(track->stack_entries, stack_entries,
++		       num_stack_entries * sizeof(stack_entries[0]));
++	} else {
++		/*
++		 * Skip over 1 (this) functions; noinline ensures we do not
++		 * accidentally skip over the caller by never inlining.
++		 */
++		num_stack_entries = stack_trace_save(track->stack_entries, KFENCE_STACK_DEPTH, 1);
 +	}
++	track->num_stack_entries = num_stack_entries;
+ 	track->pid = task_pid_nr(current);
+ 	track->cpu = raw_smp_processor_id();
+ 	track->ts_nsec = local_clock(); /* Same source as printk timestamps. */
+@@ -261,7 +268,8 @@ static __always_inline void for_each_can
+ 	}
+ }
  
- 	if (unlikely(!raw_spin_trylock_irqsave(&meta->lock, flags))) {
- 		/*
-@@ -740,8 +746,10 @@ void *__kfence_alloc(struct kmem_cache *
+-static void *kfence_guarded_alloc(struct kmem_cache *cache, size_t size, gfp_t gfp)
++static void *kfence_guarded_alloc(struct kmem_cache *cache, size_t size, gfp_t gfp,
++				  unsigned long *stack_entries, size_t num_stack_entries)
+ {
+ 	struct kfence_metadata *meta = NULL;
+ 	unsigned long flags;
+@@ -320,7 +328,7 @@ static void *kfence_guarded_alloc(struct
+ 	addr = (void *)meta->addr;
+ 
+ 	/* Update remaining metadata. */
+-	metadata_update_state(meta, KFENCE_OBJECT_ALLOCATED);
++	metadata_update_state(meta, KFENCE_OBJECT_ALLOCATED, stack_entries, num_stack_entries);
+ 	/* Pairs with READ_ONCE() in kfence_shutdown_cache(). */
+ 	WRITE_ONCE(meta->cache, cache);
+ 	meta->size = size;
+@@ -400,7 +408,7 @@ static void kfence_guarded_free(void *ad
+ 		memzero_explicit(addr, meta->size);
+ 
+ 	/* Mark the object as freed. */
+-	metadata_update_state(meta, KFENCE_OBJECT_FREED);
++	metadata_update_state(meta, KFENCE_OBJECT_FREED, NULL, 0);
+ 
+ 	raw_spin_unlock_irqrestore(&meta->lock, flags);
+ 
+@@ -742,6 +750,9 @@ void kfence_shutdown_cache(struct kmem_c
+ 
+ void *__kfence_alloc(struct kmem_cache *s, size_t size, gfp_t flags)
+ {
++	unsigned long stack_entries[KFENCE_STACK_DEPTH];
++	size_t num_stack_entries;
++
+ 	/*
  	 * Perform size check before switching kfence_allocation_gate, so that
  	 * we don't disable KFENCE without making an allocation.
- 	 */
--	if (size > PAGE_SIZE)
-+	if (size > PAGE_SIZE) {
-+		atomic_long_inc(&counters[KFENCE_COUNTER_SKIP_INCOMPAT]);
+@@ -786,7 +797,9 @@ void *__kfence_alloc(struct kmem_cache *
+ 	if (!READ_ONCE(kfence_enabled))
  		return NULL;
-+	}
  
- 	/*
- 	 * Skip allocations from non-default zones, including DMA. We cannot
-@@ -749,8 +757,10 @@ void *__kfence_alloc(struct kmem_cache *
- 	 * properties (e.g. reside in DMAable memory).
- 	 */
- 	if ((flags & GFP_ZONEMASK) ||
--	    (s->flags & (SLAB_CACHE_DMA | SLAB_CACHE_DMA32)))
-+	    (s->flags & (SLAB_CACHE_DMA | SLAB_CACHE_DMA32))) {
-+		atomic_long_inc(&counters[KFENCE_COUNTER_SKIP_INCOMPAT]);
- 		return NULL;
-+	}
+-	return kfence_guarded_alloc(s, size, flags);
++	num_stack_entries = stack_trace_save(stack_entries, KFENCE_STACK_DEPTH, 0);
++
++	return kfence_guarded_alloc(s, size, flags, stack_entries, num_stack_entries);
+ }
  
- 	/*
- 	 * allocation_gate only needs to become non-zero, so it doesn't make
+ size_t kfence_ksize(const void *addr)
 _
 
 Patches currently in -mm which might be from elver@google.com are
