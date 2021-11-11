@@ -2,38 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3142FC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4BB97C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1FD536113B
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 2DA7661208
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234363AbhKKCsr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:48:47 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53750 "EHLO mail.kernel.org"
+        id S234364AbhKKCsv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:48:51 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53790 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234346AbhKKCsr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:48:47 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 82E0761108;
-        Thu, 11 Nov 2021 02:45:58 +0000 (UTC)
+        id S234346AbhKKCsu (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:48:50 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 87EC66113B;
+        Thu, 11 Nov 2021 02:46:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598758;
-        bh=W6+B5DVwDwJhF/1n3kYOJ17xAyiiSnWRBVZZSkFdd6c=;
+        s=korg; t=1636598761;
+        bh=XURIetYkRkwWHBT3JDQfuTpCruO2VyUyrHRCLeFk9T8=;
         h=Date:From:To:Subject:From;
-        b=LZdQBHcgZM6TajCXfzubzzOI6Y8u+prl9jAMjOpRnuuiGR9c4ydYftFlO/xXw4aeL
-         2D8J3ROckmTS40kWlxyfjYcUQxB+RwzWvLGSXAxLIXJy9ZO956XK/AqZkwd0akgDqJ
-         eGxlrgSETvWX+RrVeBiZnF84FbE32BchpevP/W8Y=
-Date:   Wed, 10 Nov 2021 18:45:58 -0800
+        b=wwH0yf7sBaEIohDwYtOir4FAHbMmZE3HAhVccoAXctGylCf3dxR8/KbDNx9wW2hPu
+         A4Xu2pq+5h7wGq4JBvE9ZXbl2ekS+nqJNbSu2Wyvy/N+PaMwvslHKAJjuAV+sY1uHN
+         N+m3iKk2D9UluoIwuSh9pJyvAx/zScblZUFKoO30=
+Date:   Wed, 10 Nov 2021 18:46:01 -0800
 From:   akpm@linux-foundation.org
-To:     adilger.kernel@dilger.ca, corbet@lwn.net, david@fromorbit.com,
-        djwong@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net,
-        mhocko@suse.com, mm-commits@vger.kernel.org, neilb@suse.de,
-        riel@surriel.com, tytso@mit.edu, vbabka@suse.cz,
-        willy@infradead.org
+To:     alexs@kernel.org, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
+        shakeelb@google.com, songmuchun@bytedance.com,
+        songyuanzheng@huawei.com, willy@infradead.org
 Subject:  [merged]
- mm-vmscan-delay-waking-of-tasks-throttled-on-noprogress.patch removed from
+ mm-vmpressure-fix-data-race-with-memcg-socket_pressure.patch removed from
  -mm tree
-Message-ID: <20211111024558.qu-e-GpuU%akpm@linux-foundation.org>
+Message-ID: <20211111024601.d-FmyAoaR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,58 +41,95 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: delay waking of tasks throttled on NOPROGRESS
+     Subject: mm/vmpressure: fix data-race with memcg->socket_pressure
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-delay-waking-of-tasks-throttled-on-noprogress.patch
+     mm-vmpressure-fix-data-race-with-memcg-socket_pressure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/vmscan: delay waking of tasks throttled on NOPROGRESS
+From: Yuanzheng Song <songyuanzheng@huawei.com>
+Subject: mm/vmpressure: fix data-race with memcg->socket_pressure
 
-Tracing indicates that tasks throttled on NOPROGRESS are woken prematurely
-resulting in occasional massive spikes in direct reclaim activity.  This
-patch wakes tasks throttled on NOPROGRESS if reclaim efficiency is at
-least 12%.
+BUG: KCSAN: data-race in __sk_mem_reduce_allocated / vmpressure
 
-Link: https://lkml.kernel.org/r/20211022144651.19914-9-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: "Darrick J . Wong" <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
+write to 0xffff8881286f4938 of 8 bytes by task 24550 on cpu 3:
+ vmpressure+0x218/0x230 mm/vmpressure.c:307
+ shrink_node_memcgs+0x2b9/0x410 mm/vmscan.c:2658
+ shrink_node+0x9d2/0x11d0 mm/vmscan.c:2769
+ shrink_zones+0x29f/0x470 mm/vmscan.c:2972
+ do_try_to_free_pages+0x193/0x6e0 mm/vmscan.c:3027
+ try_to_free_mem_cgroup_pages+0x1c0/0x3f0 mm/vmscan.c:3345
+ reclaim_high mm/memcontrol.c:2440 [inline]
+ mem_cgroup_handle_over_high+0x18b/0x4d0 mm/memcontrol.c:2624
+ tracehook_notify_resume include/linux/tracehook.h:197 [inline]
+ exit_to_user_mode_loop kernel/entry/common.c:164 [inline]
+ exit_to_user_mode_prepare+0x110/0x170 kernel/entry/common.c:191
+ syscall_exit_to_user_mode+0x16/0x30 kernel/entry/common.c:266
+ ret_from_fork+0x15/0x30 arch/x86/entry/entry_64.S:289
+
+read to 0xffff8881286f4938 of 8 bytes by interrupt on cpu 1:
+ mem_cgroup_under_socket_pressure include/linux/memcontrol.h:1483 [inline]
+ sk_under_memory_pressure include/net/sock.h:1314 [inline]
+ __sk_mem_reduce_allocated+0x1d2/0x270 net/core/sock.c:2696
+ __sk_mem_reclaim+0x44/0x50 net/core/sock.c:2711
+ sk_mem_reclaim include/net/sock.h:1490 [inline]
+ ......
+ net_rx_action+0x17a/0x480 net/core/dev.c:6864
+ __do_softirq+0x12c/0x2af kernel/softirq.c:298
+ run_ksoftirqd+0x13/0x20 kernel/softirq.c:653
+ smpboot_thread_fn+0x33f/0x510 kernel/smpboot.c:165
+ kthread+0x1fc/0x220 kernel/kthread.c:292
+ ret_from_fork+0x1f/0x30 arch/x86/entry/entry_64.S:296
+
+When reading memcg->socket_pressure in mem_cgroup_under_socket_pressure()
+and writing memcg->socket_pressure in vmpressure() at the same time,
+the data-race occurs.
+
+So fix it by using READ_ONCE() and WRITE_ONCE() to read and write
+memcg->socket_pressure.
+
+Link: https://lkml.kernel.org/r/20211025082843.671690-1-songyuanzheng@huawei.com
+Signed-off-by: Yuanzheng Song <songyuanzheng@huawei.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Roman Gushchin <guro@fb.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: NeilBrown <neilb@suse.de>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alex Shi <alexs@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |    2 +-
+ mm/vmpressure.c            |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/vmscan.c~mm-vmscan-delay-waking-of-tasks-throttled-on-noprogress
-+++ a/mm/vmscan.c
-@@ -3348,8 +3348,11 @@ static inline bool compaction_ready(stru
- 
- static void consider_reclaim_throttle(pg_data_t *pgdat, struct scan_control *sc)
- {
--	/* If reclaim is making progress, wake any throttled tasks. */
--	if (sc->nr_reclaimed) {
-+	/*
-+	 * If reclaim is making progress greater than 12% efficiency then
-+	 * wake all the NOPROGRESS throttled tasks.
-+	 */
-+	if (sc->nr_reclaimed > (sc->nr_scanned >> 3)) {
- 		wait_queue_head_t *wqh;
- 
- 		wqh = &pgdat->reclaim_wait[VMSCAN_THROTTLE_NOPROGRESS];
+--- a/include/linux/memcontrol.h~mm-vmpressure-fix-data-race-with-memcg-socket_pressure
++++ a/include/linux/memcontrol.h
+@@ -1606,7 +1606,7 @@ static inline bool mem_cgroup_under_sock
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && memcg->tcpmem_pressure)
+ 		return true;
+ 	do {
+-		if (time_before(jiffies, memcg->socket_pressure))
++		if (time_before(jiffies, READ_ONCE(memcg->socket_pressure)))
+ 			return true;
+ 	} while ((memcg = parent_mem_cgroup(memcg)));
+ 	return false;
+--- a/mm/vmpressure.c~mm-vmpressure-fix-data-race-with-memcg-socket_pressure
++++ a/mm/vmpressure.c
+@@ -308,7 +308,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
+ 			 * asserted for a second in which subsequent
+ 			 * pressure events can occur.
+ 			 */
+-			memcg->socket_pressure = jiffies + HZ;
++			WRITE_ONCE(memcg->socket_pressure, jiffies + HZ);
+ 		}
+ 	}
+ }
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from songyuanzheng@huawei.com are
 
 
