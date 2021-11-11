@@ -2,34 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5173FC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 04:32:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2941AC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 04:32:53 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 39CB761052
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 04:32:51 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 12ED0610FC
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 04:32:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229584AbhKKEfi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 23:35:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50700 "EHLO mail.kernel.org"
+        id S232426AbhKKEfk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 23:35:40 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50742 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232020AbhKKEff (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 23:35:35 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A6557610FC;
-        Thu, 11 Nov 2021 04:32:46 +0000 (UTC)
+        id S232020AbhKKEfj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 23:35:39 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C6FC7610A5;
+        Thu, 11 Nov 2021 04:32:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636605166;
-        bh=Nez74/N9XVbgj/4g0JWaUzuHXBuPHyFHRLfY4QWVMKs=;
+        s=korg; t=1636605170;
+        bh=yn/shjwy2dxiiEU7uL24M0Z1mPKFTYp8NIEzguaB48E=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=noOYBsQWwwRrp85A/bAHKgHXryAVQbix3y2mIfiOXVvcrXjojgyZl7rUXZGlneL1T
-         gahQrTFxCSSCyIBrq7/+D0LK1nV6r/GcygHawSArFEhrQIDAAqwYrBD5G+TraWx46J
-         Wt/d8dVPGkwpjd90T0UstUBcU2Q0VzZleRCXPFhs=
-Date:   Wed, 10 Nov 2021 20:32:46 -0800
+        b=CS/fDGB4cQM6s+rKpM7XX8v6ZLAehJl0qisxvK/iRT3K5ttn2Papr5J/xhfuooF4M
+         vPwvFvndXHLKIxM9TJFStCr9UBFaA0MruBnC7NgdKz8IjDsiEUbWej7X0uvb3GrVfN
+         I4WgRGKQ4cRhOKcnBdsNKg2pYmrB7mbBNSLSPjf8=
+Date:   Wed, 10 Nov 2021 20:32:49 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hannes@cmpxchg.org, hch@lst.de,
-        linux-mm@kvack.org, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, vdavydov.dev@gmail.com
-Subject:  [patch 6/7] mm: unexport {,un}lock_page_memcg
-Message-ID: <20211111043246.xcLg4uTsX%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
+        catalin.marinas@arm.com, chinwen.chang@mediatek.com,
+        david@redhat.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, Kuan-Ying.Lee@mediatek.com, linux-mm@kvack.org,
+        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
+        nicholas.tang@mediatek.com, ryabinin.a.a@gmail.com,
+        torvalds@linux-foundation.org, will@kernel.org,
+        yee.lee@mediatek.com
+Subject:  [patch 7/7] kasan: add kasan mode messages when kasan
+ init
+Message-ID: <20211111043249.LTk73-t6z%akpm@linux-foundation.org>
 In-Reply-To: <20211110203204.37de96048c3279ab2da758a5@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -37,38 +43,85 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Christoph Hellwig <hch@lst.de>
-Subject: mm: unexport {,un}lock_page_memcg
+From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Subject: kasan: add kasan mode messages when kasan init
 
-These are only used in built-in core mm code.
+There are multiple kasan modes.  It makes sense that we add some messages
+to know which kasan mode is active when booting up.  see [1].
 
-Link: https://lkml.kernel.org/r/20210820095815.445392-3-hch@lst.de
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=212195 [1]
+Link: https://lkml.kernel.org/r/20211020094850.4113-1-Kuan-Ying.Lee@mediatek.com
+Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Matthias Brugger <matthias.bgg@gmail.com>
+Cc: Chinwen Chang <chinwen.chang@mediatek.com>
+Cc: Yee Lee <yee.lee@mediatek.com>
+Cc: Nicholas Tang <nicholas.tang@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/arm64/mm/kasan_init.c |    2 +-
+ mm/kasan/hw_tags.c         |   14 +++++++++++++-
+ mm/kasan/sw_tags.c         |    2 +-
+ 3 files changed, 15 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-unexport-unlock_page_memcg
-+++ a/mm/memcontrol.c
-@@ -2063,7 +2063,6 @@ void lock_page_memcg(struct page *page)
- {
- 	folio_memcg_lock(page_folio(page));
+--- a/arch/arm64/mm/kasan_init.c~kasan-add-kasan-mode-messages-when-kasan-init
++++ a/arch/arm64/mm/kasan_init.c
+@@ -310,7 +310,7 @@ void __init kasan_init(void)
+ 	kasan_init_depth();
+ #if defined(CONFIG_KASAN_GENERIC)
+ 	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_sw_tags(). */
+-	pr_info("KernelAddressSanitizer initialized\n");
++	pr_info("KernelAddressSanitizer initialized (generic)\n");
+ #endif
  }
--EXPORT_SYMBOL(lock_page_memcg);
  
- static void __folio_memcg_unlock(struct mem_cgroup *memcg)
- {
-@@ -2096,7 +2095,6 @@ void unlock_page_memcg(struct page *page
- {
- 	folio_memcg_unlock(page_folio(page));
+--- a/mm/kasan/hw_tags.c~kasan-add-kasan-mode-messages-when-kasan-init
++++ a/mm/kasan/hw_tags.c
+@@ -106,6 +106,16 @@ static int __init early_kasan_flag_stack
  }
--EXPORT_SYMBOL(unlock_page_memcg);
+ early_param("kasan.stacktrace", early_kasan_flag_stacktrace);
  
- struct obj_stock {
- #ifdef CONFIG_MEMCG_KMEM
++static inline const char *kasan_mode_info(void)
++{
++	if (kasan_mode == KASAN_MODE_ASYNC)
++		return "async";
++	else if (kasan_mode == KASAN_MODE_ASYMM)
++		return "asymm";
++	else
++		return "sync";
++}
++
+ /* kasan_init_hw_tags_cpu() is called for each CPU. */
+ void kasan_init_hw_tags_cpu(void)
+ {
+@@ -177,7 +187,9 @@ void __init kasan_init_hw_tags(void)
+ 		break;
+ 	}
+ 
+-	pr_info("KernelAddressSanitizer initialized\n");
++	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, stacktrace=%s)\n",
++		kasan_mode_info(),
++		kasan_stack_collection_enabled() ? "on" : "off");
+ }
+ 
+ void kasan_alloc_pages(struct page *page, unsigned int order, gfp_t flags)
+--- a/mm/kasan/sw_tags.c~kasan-add-kasan-mode-messages-when-kasan-init
++++ a/mm/kasan/sw_tags.c
+@@ -42,7 +42,7 @@ void __init kasan_init_sw_tags(void)
+ 	for_each_possible_cpu(cpu)
+ 		per_cpu(prng_state, cpu) = (u32)get_cycles();
+ 
+-	pr_info("KernelAddressSanitizer initialized\n");
++	pr_info("KernelAddressSanitizer initialized (sw-tags)\n");
+ }
+ 
+ /*
 _
