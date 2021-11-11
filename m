@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09516C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7CB8EC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id DE55C61208
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:35 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 66A846113B
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:44:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234328AbhKKCrX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:47:23 -0500
-Received: from mail.kernel.org ([198.145.29.99]:52434 "EHLO mail.kernel.org"
+        id S234110AbhKKCr0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:47:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:52474 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234310AbhKKCrX (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:47:23 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A1E1960F46;
-        Thu, 11 Nov 2021 02:44:34 +0000 (UTC)
+        id S234044AbhKKCr0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:47:26 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A343361108;
+        Thu, 11 Nov 2021 02:44:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598674;
-        bh=YNa8bEBZHfONnl2NPvQPSLRM/4BXysqeLFL2YYgj45Y=;
+        s=korg; t=1636598677;
+        bh=fXm7BII8Qs1k1RC1m534OEqpLHnnAnRM7kYAuoVPtxk=;
         h=Date:From:To:Subject:From;
-        b=sqdmsyAudOZcGLAEZQF7MD/CMmlJzzeoTUxDjmFfNhoCgArIaVdRaMrYN5uzOQIjl
-         55UDPSreqmDe/HA2rhiuS6d6ve9Jf5RV2RCYhIs/ie999mr7k5ClWJs/ms5YPnHzIK
-         bI9KKViPCSZ4Htwtuf2uKk2qwjWIXhCDKLwWkgrA=
-Date:   Wed, 10 Nov 2021 18:44:34 -0800
+        b=JG46/yGDuzjdTwqrRO7q6sEx1jSClFHuId50bUGOwfmRpr8bixMqroh2hM2oVkq4z
+         HEm+g6iK38xrcI1RbDrcq+G5AZn6yoaOzrdQpkA5dOCWmSXBm4oSG7yN8Zp8LMbu1J
+         dE0Lz6+gbC0FY654hLuRsleym4jaA8JDWVN+i46A=
+Date:   Wed, 10 Nov 2021 18:44:37 -0800
 From:   akpm@linux-foundation.org
 To:     hughd@google.com, kirill.shutemov@linux.intel.com,
         mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         osalvador@suse.de, peterx@redhat.com, shy828301@gmail.com,
         willy@infradead.org
 Subject:  [merged]
- mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch removed from -mm
- tree
-Message-ID: <20211111024434.lri61uZ2B%akpm@linux-foundation.org>
+ mm-hwpoison-refactor-refcount-check-handling.patch removed from -mm tree
+Message-ID: <20211111024437.w5t9kDeN-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,111 +40,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: filemap: coding style cleanup for filemap_map_pmd()
+     Subject: mm: hwpoison: refactor refcount check handling
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-coding-style-cleanup-for-filemap_map_pmd.patch
+     mm-hwpoison-refactor-refcount-check-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yang Shi <shy828301@gmail.com>
-Subject: mm: filemap: coding style cleanup for filemap_map_pmd()
+Subject: mm: hwpoison: refactor refcount check handling
 
-Patch series "Solve silent data loss caused by poisoned page cache (shmem/tmpfs)", v5.
+Memory failure will report failure if the page still has extra pinned
+refcount other than from hwpoison after the handler is done.  Actually the
+check is not necessary for all handlers, so move the check into specific
+handlers.  This would make the following keeping shmem page in page cache
+patch easier.
 
-When discussing the patch that splits page cache THP in order to offline
-the poisoned page, Noaya mentioned there is a bigger problem [1] that
-prevents this from working since the page cache page will be truncated if
-uncorrectable errors happen.  By looking this deeper it turns out this
-approach (truncating poisoned page) may incur silent data loss for all
-non-readonly filesystems if the page is dirty.  It may be worse for
-in-memory filesystem, e.g.  shmem/tmpfs since the data blocks are actually
-gone.
+There may be expected extra pin for some cases, for example, when the page
+is dirty and in swapcache.
 
-To solve this problem we could keep the poisoned dirty page in page cache
-then notify the users on any later access, e.g.  page fault, read/write,
-etc.  The clean page could be truncated as is since they can be reread
-from disk later on.
-
-The consequence is the filesystems may find poisoned page and manipulate
-it as healthy page since all the filesystems actually don't check if the
-page is poisoned or not in all the relevant paths except page fault.  In
-general, we need make the filesystems be aware of poisoned page before we
-could keep the poisoned page in page cache in order to solve the data loss
-problem.
-
-To make filesystems be aware of poisoned page we should consider:
-- The page should be not written back: clearing dirty flag could prevent from
-  writeback.
-- The page should not be dropped (it shows as a clean page) by drop caches or
-  other callers: the refcount pin from hwpoison could prevent from invalidating
-  (called by cache drop, inode cache shrinking, etc), but it doesn't avoid
-  invalidation in DIO path.
-- The page should be able to get truncated/hole punched/unlinked: it works as it
-  is.
-- Notify users when the page is accessed, e.g. read/write, page fault and other
-  paths (compression, encryption, etc).
-
-The scope of the last one is huge since almost all filesystems need do it
-once a page is returned from page cache lookup.  There are a couple of
-options to do it:
-
-1. Check hwpoison flag for every path, the most straightforward way.
-2. Return NULL for poisoned page from page cache lookup, the most callsites
-   check if NULL is returned, this should have least work I think.  But the
-   error handling in filesystems just return -ENOMEM, the error code will incur
-   confusion to the users obviously.
-3. To improve #2, we could return error pointer, e.g. ERR_PTR(-EIO), but this
-   will involve significant amount of code change as well since all the paths
-   need check if the pointer is ERR or not just like option #1.
-
-I did prototype for both #1 and #3, but it seems #3 may require more
-changes than #1.  For #3 ERR_PTR will be returned so all the callers need
-to check the return value otherwise invalid pointer may be dereferenced,
-but not all callers really care about the content of the page, for
-example, partial truncate which just sets the truncated range in one page
-to 0.  So for such paths it needs additional modification if ERR_PTR is
-returned.  And if the callers have their own way to handle the problematic
-pages we need to add a new FGP flag to tell FGP functions to return the
-pointer to the page.
-
-It may happen very rarely, but once it happens the consequence (data
-corruption) could be very bad and it is very hard to debug.  It seems this
-problem had been slightly discussed before, but seems no action was taken
-at that time.  [2]
-
-As the aforementioned investigation, it needs huge amount of work to solve
-the potential data loss for all filesystems.  But it is much easier for
-in-memory filesystems and such filesystems actually suffer more than
-others since even the data blocks are gone due to truncating.  So this
-patchset starts from shmem/tmpfs by taking option #1.
-
-TODO:
-* The unpoison has been broken since commit 0ed950d1f281 ("mm,hwpoison: make
-  get_hwpoison_page() call get_any_page()"), and this patch series make
-  refcount check for unpoisoning shmem page fail.
-* Expand to other filesystems.  But I haven't heard feedback from filesystem
-  developers yet.
-
-Patch breakdown:
-Patch #1: cleanup, depended by patch #2
-Patch #2: fix THP with hwpoisoned subpage(s) PMD map bug
-Patch #3: coding style cleanup
-Patch #4: refactor and preparation.
-Patch #5: keep the poisoned page in page cache and handle such case for all
-          the paths.
-Patch #6: the previous patches unblock page cache THP split, so this patch
-          add page cache THP split support.
-
-
-This patch (of 4):
-
-A minor cleanup to the indent.
-
-Link: https://lkml.kernel.org/r/20211020210755.23964-1-shy828301@gmail.com
-Link: https://lkml.kernel.org/r/20211020210755.23964-4-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20211020210755.23964-5-shy828301@gmail.com
 Signed-off-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Suggested-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Matthew Wilcox <willy@infradead.org>
@@ -154,30 +71,218 @@ Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/memory-failure.c |   93 ++++++++++++++++++++++++++++--------------
+ 1 file changed, 64 insertions(+), 29 deletions(-)
 
---- a/mm/filemap.c~mm-filemap-coding-style-cleanup-for-filemap_map_pmd
-+++ a/mm/filemap.c
-@@ -3203,12 +3203,12 @@ static bool filemap_map_pmd(struct vm_fa
+--- a/mm/memory-failure.c~mm-hwpoison-refactor-refcount-check-handling
++++ a/mm/memory-failure.c
+@@ -807,12 +807,44 @@ static int truncate_error_page(struct pa
+ 	return ret;
+ }
+ 
++struct page_state {
++	unsigned long mask;
++	unsigned long res;
++	enum mf_action_page_type type;
++
++	/* Callback ->action() has to unlock the relevant page inside it. */
++	int (*action)(struct page_state *ps, struct page *p);
++};
++
++/*
++ * Return true if page is still referenced by others, otherwise return
++ * false.
++ *
++ * The extra_pins is true when one extra refcount is expected.
++ */
++static bool has_extra_refcount(struct page_state *ps, struct page *p,
++			       bool extra_pins)
++{
++	int count = page_count(p) - 1;
++
++	if (extra_pins)
++		count -= 1;
++
++	if (count > 0) {
++		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
++		       page_to_pfn(p), action_page_types[ps->type], count);
++		return true;
++	}
++
++	return false;
++}
++
+ /*
+  * Error hit kernel page.
+  * Do nothing, try to be lucky and not touch this instead. For a few cases we
+  * could be more sophisticated.
+  */
+-static int me_kernel(struct page *p, unsigned long pfn)
++static int me_kernel(struct page_state *ps, struct page *p)
+ {
+ 	unlock_page(p);
+ 	return MF_IGNORED;
+@@ -821,9 +853,9 @@ static int me_kernel(struct page *p, uns
+ /*
+  * Page in unknown state. Do nothing.
+  */
+-static int me_unknown(struct page *p, unsigned long pfn)
++static int me_unknown(struct page_state *ps, struct page *p)
+ {
+-	pr_err("Memory failure: %#lx: Unknown page state\n", pfn);
++	pr_err("Memory failure: %#lx: Unknown page state\n", page_to_pfn(p));
+ 	unlock_page(p);
+ 	return MF_FAILED;
+ }
+@@ -831,7 +863,7 @@ static int me_unknown(struct page *p, un
+ /*
+  * Clean (or cleaned) page cache page.
+  */
+-static int me_pagecache_clean(struct page *p, unsigned long pfn)
++static int me_pagecache_clean(struct page_state *ps, struct page *p)
+ {
+ 	int ret;
+ 	struct address_space *mapping;
+@@ -868,9 +900,13 @@ static int me_pagecache_clean(struct pag
+ 	 *
+ 	 * Open: to take i_rwsem or not for this? Right now we don't.
+ 	 */
+-	ret = truncate_error_page(p, pfn, mapping);
++	ret = truncate_error_page(p, page_to_pfn(p), mapping);
+ out:
+ 	unlock_page(p);
++
++	if (has_extra_refcount(ps, p, false))
++		ret = MF_FAILED;
++
+ 	return ret;
+ }
+ 
+@@ -879,7 +915,7 @@ out:
+  * Issues: when the error hit a hole page the error is not properly
+  * propagated.
+  */
+-static int me_pagecache_dirty(struct page *p, unsigned long pfn)
++static int me_pagecache_dirty(struct page_state *ps, struct page *p)
+ {
+ 	struct address_space *mapping = page_mapping(p);
+ 
+@@ -923,7 +959,7 @@ static int me_pagecache_dirty(struct pag
+ 		mapping_set_error(mapping, -EIO);
  	}
  
- 	if (pmd_none(*vmf->pmd) && PageTransHuge(page)) {
--	    vm_fault_t ret = do_set_pmd(vmf, page);
--	    if (!ret) {
--		    /* The page is mapped successfully, reference consumed. */
--		    unlock_page(page);
--		    return true;
--	    }
-+		vm_fault_t ret = do_set_pmd(vmf, page);
-+		if (!ret) {
-+			/* The page is mapped successfully, reference consumed. */
-+			unlock_page(page);
-+			return true;
-+		}
+-	return me_pagecache_clean(p, pfn);
++	return me_pagecache_clean(ps, p);
+ }
+ 
+ /*
+@@ -945,9 +981,10 @@ static int me_pagecache_dirty(struct pag
+  * Clean swap cache pages can be directly isolated. A later page fault will
+  * bring in the known good data from disk.
+  */
+-static int me_swapcache_dirty(struct page *p, unsigned long pfn)
++static int me_swapcache_dirty(struct page_state *ps, struct page *p)
+ {
+ 	int ret;
++	bool extra_pins = false;
+ 
+ 	ClearPageDirty(p);
+ 	/* Trigger EIO in shmem: */
+@@ -955,10 +992,17 @@ static int me_swapcache_dirty(struct pag
+ 
+ 	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_DELAYED;
+ 	unlock_page(p);
++
++	if (ret == MF_DELAYED)
++		extra_pins = true;
++
++	if (has_extra_refcount(ps, p, extra_pins))
++		ret = MF_FAILED;
++
+ 	return ret;
+ }
+ 
+-static int me_swapcache_clean(struct page *p, unsigned long pfn)
++static int me_swapcache_clean(struct page_state *ps, struct page *p)
+ {
+ 	int ret;
+ 
+@@ -966,6 +1010,10 @@ static int me_swapcache_clean(struct pag
+ 
+ 	ret = delete_from_lru_cache(p) ? MF_FAILED : MF_RECOVERED;
+ 	unlock_page(p);
++
++	if (has_extra_refcount(ps, p, false))
++		ret = MF_FAILED;
++
+ 	return ret;
+ }
+ 
+@@ -975,7 +1023,7 @@ static int me_swapcache_clean(struct pag
+  * - Error on hugepage is contained in hugepage unit (not in raw page unit.)
+  *   To narrow down kill region to one page, we need to break up pmd.
+  */
+-static int me_huge_page(struct page *p, unsigned long pfn)
++static int me_huge_page(struct page_state *ps, struct page *p)
+ {
+ 	int res;
+ 	struct page *hpage = compound_head(p);
+@@ -986,7 +1034,7 @@ static int me_huge_page(struct page *p,
+ 
+ 	mapping = page_mapping(hpage);
+ 	if (mapping) {
+-		res = truncate_error_page(hpage, pfn, mapping);
++		res = truncate_error_page(hpage, page_to_pfn(p), mapping);
+ 		unlock_page(hpage);
+ 	} else {
+ 		res = MF_FAILED;
+@@ -1004,6 +1052,9 @@ static int me_huge_page(struct page *p,
+ 		}
  	}
  
- 	if (pmd_none(*vmf->pmd))
++	if (has_extra_refcount(ps, p, false))
++		res = MF_FAILED;
++
+ 	return res;
+ }
+ 
+@@ -1029,14 +1080,7 @@ static int me_huge_page(struct page *p,
+ #define slab		(1UL << PG_slab)
+ #define reserved	(1UL << PG_reserved)
+ 
+-static struct page_state {
+-	unsigned long mask;
+-	unsigned long res;
+-	enum mf_action_page_type type;
+-
+-	/* Callback ->action() has to unlock the relevant page inside it. */
+-	int (*action)(struct page *p, unsigned long pfn);
+-} error_states[] = {
++static struct page_state error_states[] = {
+ 	{ reserved,	reserved,	MF_MSG_KERNEL,	me_kernel },
+ 	/*
+ 	 * free pages are specially detected outside this table:
+@@ -1096,19 +1140,10 @@ static int page_action(struct page_state
+ 			unsigned long pfn)
+ {
+ 	int result;
+-	int count;
+ 
+ 	/* page p should be unlocked after returning from ps->action().  */
+-	result = ps->action(p, pfn);
++	result = ps->action(ps, p);
+ 
+-	count = page_count(p) - 1;
+-	if (ps->action == me_swapcache_dirty && result == MF_DELAYED)
+-		count--;
+-	if (count > 0) {
+-		pr_err("Memory failure: %#lx: %s still referenced by %d users\n",
+-		       pfn, action_page_types[ps->type], count);
+-		result = MF_FAILED;
+-	}
+ 	action_result(pfn, ps->type, result);
+ 
+ 	/* Could do more checks here if page looks ok */
 _
 
 Patches currently in -mm which might be from shy828301@gmail.com are
