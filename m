@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3329C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A199C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:07 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id C5046610F7
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:04 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 401A961354
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:42:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234074AbhKKCov (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:44:51 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50192 "EHLO mail.kernel.org"
+        id S234082AbhKKCoy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:44:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50236 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234044AbhKKCov (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:44:51 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A45AA61994;
-        Thu, 11 Nov 2021 02:42:02 +0000 (UTC)
+        id S234044AbhKKCoy (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:44:54 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F2B2610F7;
+        Thu, 11 Nov 2021 02:42:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598522;
-        bh=PvMAwwgjozuUlqawKVJ8ZxWWKGCWumGkrcPYgviV1UM=;
+        s=korg; t=1636598525;
+        bh=Um5UbOuJd54SiYGTai4tRX6VHFtscg06dnFpGA0vhwM=;
         h=Date:From:To:Subject:From;
-        b=j12AcZhwGsNtsvSSCAJVshYXsM9jykuuolY6YOqwvy9pp9uZoTp22THcsDlJiSqM/
-         FFxnNIBAKuct87iWVKo4nq9GQH2+PLwihBn3mfWa6nEEFtv+uuJFP2O5eQH70msgCU
-         NhHbZv9+3DGvf+Ibb5CIaCQLpqf8sJVjy1t6bBuU=
-Date:   Wed, 10 Nov 2021 18:42:02 -0800
+        b=u0AiGKNtUBNY4zQ69jS3kY80B/uzmCPTAx3lV6cb/bCwuNtckXPi0/dJQgMzs5f8A
+         rlpMAUKn+3eJdXkZWDW8QM0LiwuBxHgWNfVZkaaVWlasFHNUOJPBkGlD3oVffh9sEv
+         Y8vE4kbn1+s4sds3irsOljy+dVbBJgmL/h6wYBM8=
+Date:   Wed, 10 Nov 2021 18:42:05 -0800
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@kernel.org,
         mm-commits@vger.kernel.org, shakeelb@google.com,
-        songmuchun@bytedance.com, vvs@virtuozzo.com
-Subject:  [merged]
- memcg-kmem-further-deprecate-kmemlimit_in_bytes.patch removed from -mm tree
-Message-ID: <20211111024202._hCcsqlLS%akpm@linux-foundation.org>
+        songmuchun@bytedance.com, willy@infradead.org
+Subject:  [merged] mm-list_lru-remove-holding-lru-lock.patch
+ removed from -mm tree
+Message-ID: <20211111024205.WFo-yZHG7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,154 +39,57 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg, kmem: further deprecate kmem.limit_in_bytes
+     Subject: mm: list_lru: remove holding lru lock
 has been removed from the -mm tree.  Its filename was
-     memcg-kmem-further-deprecate-kmemlimit_in_bytes.patch
+     mm-list_lru-remove-holding-lru-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg, kmem: further deprecate kmem.limit_in_bytes
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: list_lru: remove holding lru lock
 
-The deprecation process of kmem.limit_in_bytes started with the commit
-0158115f702 ("memcg, kmem: deprecate kmem.limit_in_bytes") which also
-explains in detail the motivation behind the deprecation.  To summarize,
-it is the unexpected behavior on hitting the kmem limit.  This patch moves
-the deprecation process to the next stage by disallowing to set the kmem
-limit.  In future we might just remove the kmem.limit_in_bytes file
-completely.
+Since commit e5bc3af7734f ("rcu: Consolidate PREEMPT and !PREEMPT
+synchronize_rcu()"), the critical section of spin lock can serve as an
+RCU read-side critical section which already allows readers that hold
+nlru->lock to avoid taking rcu lock.  So just remove holding lock.
 
-[akpm@linux-foundation.org: s/ENOTSUPP/EOPNOTSUPP/]
-[arnd@arndb.de: mark cancel_charge() inline]
-  Link: https://lkml.kernel.org/r/20211022070542.679839-1-arnd@kernel.org
-Link: https://lkml.kernel.org/r/20211019153408.2916808-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Acked-by: Roman Gushchin <guro@fb.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Vasily Averin <vvs@virtuozzo.com>
+Link: https://lkml.kernel.org/r/20211025124534.56345-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/memory.rst |   11 ----
- mm/memcontrol.c                                |   39 +--------------
- 2 files changed, 7 insertions(+), 43 deletions(-)
+ mm/list_lru.c |   11 -----------
+ 1 file changed, 11 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/memory.rst~memcg-kmem-further-deprecate-kmemlimit_in_bytes
-+++ a/Documentation/admin-guide/cgroup-v1/memory.rst
-@@ -87,10 +87,8 @@ Brief summary of control files.
-  memory.oom_control		     set/show oom controls.
-  memory.numa_stat		     show the number of memory usage per numa
- 				     node
-- memory.kmem.limit_in_bytes          set/show hard limit for kernel memory
--                                     This knob is deprecated and shouldn't be
--                                     used. It is planned that this be removed in
--                                     the foreseeable future.
-+ memory.kmem.limit_in_bytes          This knob is deprecated and writing to
-+                                     it will return -ENOTSUPP.
-  memory.kmem.usage_in_bytes          show current kernel memory allocation
-  memory.kmem.failcnt                 show the number of kernel memory usage
- 				     hits limits
-@@ -518,11 +516,6 @@ will be charged as a new owner of it.
-   charged file caches. Some out-of-use page caches may keep charged until
-   memory pressure happens. If you want to avoid that, force_empty will be useful.
+--- a/mm/list_lru.c~mm-list_lru-remove-holding-lru-lock
++++ a/mm/list_lru.c
+@@ -398,18 +398,7 @@ static int memcg_update_list_lru_node(st
+ 	}
  
--  Also, note that when memory.kmem.limit_in_bytes is set the charges due to
--  kernel pages will still be seen. This is not considered a failure and the
--  write will still return success. In this case, it is expected that
--  memory.kmem.usage_in_bytes == memory.usage_in_bytes.
+ 	memcpy(&new->lru, &old->lru, flex_array_size(new, lru, old_size));
 -
- 5.2 stat file
- -------------
- 
---- a/mm/memcontrol.c~memcg-kmem-further-deprecate-kmemlimit_in_bytes
-+++ a/mm/memcontrol.c
-@@ -2771,8 +2771,7 @@ static inline int try_charge(struct mem_
- 	return try_charge_memcg(memcg, gfp_mask, nr_pages);
+-	/*
+-	 * The locking below allows readers that hold nlru->lock avoid taking
+-	 * rcu_read_lock (see list_lru_from_memcg_idx).
+-	 *
+-	 * Since list_lru_{add,del} may be called under an IRQ-safe lock,
+-	 * we have to use IRQ-safe primitives here to avoid deadlock.
+-	 */
+-	spin_lock_irq(&nlru->lock);
+ 	rcu_assign_pointer(nlru->memcg_lrus, new);
+-	spin_unlock_irq(&nlru->lock);
+-
+ 	kvfree_rcu(old, rcu);
+ 	return 0;
  }
- 
--#if defined(CONFIG_MEMCG_KMEM) || defined(CONFIG_MMU)
--static void cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages)
-+static inline void cancel_charge(struct mem_cgroup *memcg, unsigned int nr_pages)
- {
- 	if (mem_cgroup_is_root(memcg))
- 		return;
-@@ -2781,7 +2780,6 @@ static void cancel_charge(struct mem_cgr
- 	if (do_memsw_account())
- 		page_counter_uncharge(&memcg->memsw, nr_pages);
- }
--#endif
- 
- static void commit_charge(struct page *page, struct mem_cgroup *memcg)
- {
-@@ -3000,7 +2998,6 @@ static void obj_cgroup_uncharge_pages(st
- static int obj_cgroup_charge_pages(struct obj_cgroup *objcg, gfp_t gfp,
- 				   unsigned int nr_pages)
- {
--	struct page_counter *counter;
- 	struct mem_cgroup *memcg;
- 	int ret;
- 
-@@ -3010,21 +3007,8 @@ static int obj_cgroup_charge_pages(struc
- 	if (ret)
- 		goto out;
- 
--	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) &&
--	    !page_counter_try_charge(&memcg->kmem, nr_pages, &counter)) {
--
--		/*
--		 * Enforce __GFP_NOFAIL allocation because callers are not
--		 * prepared to see failures and likely do not have any failure
--		 * handling code.
--		 */
--		if (gfp & __GFP_NOFAIL) {
--			page_counter_charge(&memcg->kmem, nr_pages);
--			goto out;
--		}
--		cancel_charge(memcg, nr_pages);
--		ret = -ENOMEM;
--	}
-+	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		page_counter_charge(&memcg->kmem, nr_pages);
- out:
- 	css_put(&memcg->css);
- 
-@@ -3714,17 +3698,6 @@ static void memcg_offline_kmem(struct me
- }
- #endif /* CONFIG_MEMCG_KMEM */
- 
--static int memcg_update_kmem_max(struct mem_cgroup *memcg,
--				 unsigned long max)
--{
--	int ret;
--
--	mutex_lock(&memcg_max_mutex);
--	ret = page_counter_set_max(&memcg->kmem, max);
--	mutex_unlock(&memcg_max_mutex);
--	return ret;
--}
--
- static int memcg_update_tcp_max(struct mem_cgroup *memcg, unsigned long max)
- {
- 	int ret;
-@@ -3790,10 +3763,8 @@ static ssize_t mem_cgroup_write(struct k
- 			ret = mem_cgroup_resize_max(memcg, nr_pages, true);
- 			break;
- 		case _KMEM:
--			pr_warn_once("kmem.limit_in_bytes is deprecated and will be removed. "
--				     "Please report your usecase to linux-mm@kvack.org if you "
--				     "depend on this functionality.\n");
--			ret = memcg_update_kmem_max(memcg, nr_pages);
-+			/* kmem.limit_in_bytes is deprecated. */
-+			ret = -EOPNOTSUPP;
- 			break;
- 		case _TCP:
- 			ret = memcg_update_tcp_max(memcg, nr_pages);
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from songmuchun@bytedance.com are
 
 
