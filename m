@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F043C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 07DB9C433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:43 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 667FA61247
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:41 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id E641B61354
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:46:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234386AbhKKCt3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:49:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54258 "EHLO mail.kernel.org"
+        id S234389AbhKKCta (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:49:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54284 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234346AbhKKCt1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:49:27 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D84A661108;
-        Thu, 11 Nov 2021 02:46:38 +0000 (UTC)
+        id S234346AbhKKCta (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:49:30 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B92E861247;
+        Thu, 11 Nov 2021 02:46:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598799;
-        bh=4/m59XpQjqISzqc1Mqd53iNk+KqXgakoVrq2rgRkEiI=;
+        s=korg; t=1636598801;
+        bh=bQdU8zV7boEjhCCb24eicFwsgfZwYL5/O/z9Ao1eIEM=;
         h=Date:From:To:Subject:From;
-        b=axsTXPKOSWB8Znc60DxDIvL14dH4cVDzIhy7RlLaQpF34NUgr+R8sqGLYqD8Xm7KZ
-         ZZZ24WBPfyK+1QAL6UTsHpeYkTV8bl8pDgtTMnWOY+j8hDXKl8sxfs0Tu42NnhilCp
-         bDWlqIqlf0u20nwdRyg91qSo/+1zED4yDj9248U0=
-Date:   Wed, 10 Nov 2021 18:46:38 -0800
+        b=kl9sdfeaVBjIXbjHygVqZMw+SBH9P9evQ/Vjl9k9KD7IPM6Es23RFr5R0EW6zAS57
+         Hh2/QwM6UGfHpeHYzeE5yd60JlzMNUfdSkAkMTe3Q9fJwFTyjkgtzoWcZF7yNuBY7b
+         va5klcwGx7eNqJVZHDiH9xjhMjb68R3rNRWiFir0=
+Date:   Wed, 10 Nov 2021 18:46:41 -0800
 From:   akpm@linux-foundation.org
-To:     dave.hansen@linux.intel.com, mm-commits@vger.kernel.org,
-        shy828301@gmail.com, ying.huang@intel.com
+To:     davis.george@siemens.com, erosca@de.adit-jv.com, koct9i@gmail.com,
+        mm-commits@vger.kernel.org, skhan@linuxfoundation.org
 Subject:  [merged]
- mm-migrate-make-demotion-knob-depend-on-migration.patch removed from -mm
+ selftests-vm-transhuge-stress-fix-ram-size-thinko.patch removed from -mm
  tree
-Message-ID: <20211111024638.7L-cnkWED%akpm@linux-foundation.org>
+Message-ID: <20211111024641.Btm-JA59P%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,216 +39,55 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: make demotion knob depend on migration
+     Subject: selftests/vm/transhuge-stress: fix ram size thinko
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-make-demotion-knob-depend-on-migration.patch
+     selftests-vm-transhuge-stress-fix-ram-size-thinko.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <shy828301@gmail.com>
-Subject: mm: migrate: make demotion knob depend on migration
+From: "George G. Davis" <davis.george@siemens.com>
+Subject: selftests/vm/transhuge-stress: fix ram size thinko
 
-The memory demotion needs to call migrate_pages() to do the jobs.  And it
-is controlled by a knob, however, the knob doesn't depend on
-CONFIG_MIGRATION.  The knob could be truned on even though MIGRATION is
-disabled, this will not cause any crash since migrate_pages() would just
-return -ENOSYS.  But it is definitely not optimal to go through demotion
-path then retry regular swap every time.
+When executing transhuge-stress with an argument to specify the virtual
+memory size for testing, the ram size is reported as 0, e.g.
 
-And it doesn't make too much sense to have the knob visible to the users
-when !MIGRATION.  Move the related code from mempolicy.[h|c] to
-migrate.[h|c].
+transhuge-stress 384
+thp-mmap: allocate 192 transhuge pages, using 384 MiB virtual memory and 0 MiB of ram
+thp-mmap: 0.184 s/loop, 0.957 ms/page,   2090.265 MiB/s  192 succeed,    0 failed
 
-Link: https://lkml.kernel.org/r/20211015005559.246709-1-shy828301@gmail.com
-Signed-off-by: Yang Shi <shy828301@gmail.com>
-Acked-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+This appears to be due to a thinko in commit 0085d61fe05e
+("selftests/vm/transhuge-stress: stress test for memory compaction"),
+where, at a guess, the intent was to base "xyz MiB of ram" on `ram` size. 
+Here are results after using `ram` size:
+
+thp-mmap: allocate 192 transhuge pages, using 384 MiB virtual memory and 14 MiB of ram
+
+Link: https://lkml.kernel.org/r/20210825135843.29052-1-george_davis@mentor.com
+Fixes: 0085d61fe05e ("selftests/vm/transhuge-stress: stress test for memory compaction")
+Signed-off-by: George G. Davis <davis.george@siemens.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Eugeniu Rosca <erosca@de.adit-jv.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    4 --
- include/linux/migrate.h   |    4 ++
- mm/mempolicy.c            |   61 ------------------------------------
- mm/migrate.c              |   61 ++++++++++++++++++++++++++++++++++++
- 4 files changed, 65 insertions(+), 65 deletions(-)
+ tools/testing/selftests/vm/transhuge-stress.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mempolicy.h~mm-migrate-make-demotion-knob-depend-on-migration
-+++ a/include/linux/mempolicy.h
-@@ -183,8 +183,6 @@ extern bool vma_migratable(struct vm_are
- extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
- extern void mpol_put_task_policy(struct task_struct *);
+--- a/tools/testing/selftests/vm/transhuge-stress.c~selftests-vm-transhuge-stress-fix-ram-size-thinko
++++ a/tools/testing/selftests/vm/transhuge-stress.c
+@@ -79,7 +79,7 @@ int main(int argc, char **argv)
  
--extern bool numa_demotion_enabled;
--
- static inline bool mpol_is_preferred_many(struct mempolicy *pol)
- {
- 	return  (pol->mode == MPOL_PREFERRED_MANY);
-@@ -300,8 +298,6 @@ static inline nodemask_t *policy_nodemas
- 	return NULL;
- }
+ 	warnx("allocate %zd transhuge pages, using %zd MiB virtual memory"
+ 	      " and %zd MiB of ram", len >> HPAGE_SHIFT, len >> 20,
+-	      len >> (20 + HPAGE_SHIFT - PAGE_SHIFT - 1));
++	      ram >> (20 + HPAGE_SHIFT - PAGE_SHIFT - 1));
  
--#define numa_demotion_enabled	false
--
- static inline bool mpol_is_preferred_many(struct mempolicy *pol)
- {
- 	return  false;
---- a/include/linux/migrate.h~mm-migrate-make-demotion-knob-depend-on-migration
-+++ a/include/linux/migrate.h
-@@ -40,6 +40,8 @@ extern int migrate_huge_page_move_mappin
- 				  struct page *newpage, struct page *page);
- extern int migrate_page_move_mapping(struct address_space *mapping,
- 		struct page *newpage, struct page *page, int extra_count);
-+
-+extern bool numa_demotion_enabled;
- #else
- 
- static inline void putback_movable_pages(struct list_head *l) {}
-@@ -65,6 +67,8 @@ static inline int migrate_huge_page_move
- {
- 	return -ENOSYS;
- }
-+
-+#define numa_demotion_enabled	false
- #endif /* CONFIG_MIGRATION */
- 
- #ifdef CONFIG_COMPACTION
---- a/mm/mempolicy.c~mm-migrate-make-demotion-knob-depend-on-migration
-+++ a/mm/mempolicy.c
-@@ -3057,64 +3057,3 @@ void mpol_to_str(char *buffer, int maxle
- 		p += scnprintf(p, buffer + maxlen - p, ":%*pbl",
- 			       nodemask_pr_args(&nodes));
- }
--
--bool numa_demotion_enabled = false;
--
--#ifdef CONFIG_SYSFS
--static ssize_t numa_demotion_enabled_show(struct kobject *kobj,
--					  struct kobj_attribute *attr, char *buf)
--{
--	return sysfs_emit(buf, "%s\n",
--			  numa_demotion_enabled? "true" : "false");
--}
--
--static ssize_t numa_demotion_enabled_store(struct kobject *kobj,
--					   struct kobj_attribute *attr,
--					   const char *buf, size_t count)
--{
--	if (!strncmp(buf, "true", 4) || !strncmp(buf, "1", 1))
--		numa_demotion_enabled = true;
--	else if (!strncmp(buf, "false", 5) || !strncmp(buf, "0", 1))
--		numa_demotion_enabled = false;
--	else
--		return -EINVAL;
--
--	return count;
--}
--
--static struct kobj_attribute numa_demotion_enabled_attr =
--	__ATTR(demotion_enabled, 0644, numa_demotion_enabled_show,
--	       numa_demotion_enabled_store);
--
--static struct attribute *numa_attrs[] = {
--	&numa_demotion_enabled_attr.attr,
--	NULL,
--};
--
--static const struct attribute_group numa_attr_group = {
--	.attrs = numa_attrs,
--};
--
--static int __init numa_init_sysfs(void)
--{
--	int err;
--	struct kobject *numa_kobj;
--
--	numa_kobj = kobject_create_and_add("numa", mm_kobj);
--	if (!numa_kobj) {
--		pr_err("failed to create numa kobject\n");
--		return -ENOMEM;
--	}
--	err = sysfs_create_group(numa_kobj, &numa_attr_group);
--	if (err) {
--		pr_err("failed to register numa group\n");
--		goto delete_obj;
--	}
--	return 0;
--
--delete_obj:
--	kobject_put(numa_kobj);
--	return err;
--}
--subsys_initcall(numa_init_sysfs);
--#endif
---- a/mm/migrate.c~mm-migrate-make-demotion-knob-depend-on-migration
-+++ a/mm/migrate.c
-@@ -3306,3 +3306,64 @@ static int __init migrate_on_reclaim_ini
- }
- late_initcall(migrate_on_reclaim_init);
- #endif /* CONFIG_HOTPLUG_CPU */
-+
-+bool numa_demotion_enabled = false;
-+
-+#ifdef CONFIG_SYSFS
-+static ssize_t numa_demotion_enabled_show(struct kobject *kobj,
-+					  struct kobj_attribute *attr, char *buf)
-+{
-+	return sysfs_emit(buf, "%s\n",
-+			  numa_demotion_enabled ? "true" : "false");
-+}
-+
-+static ssize_t numa_demotion_enabled_store(struct kobject *kobj,
-+					   struct kobj_attribute *attr,
-+					   const char *buf, size_t count)
-+{
-+	if (!strncmp(buf, "true", 4) || !strncmp(buf, "1", 1))
-+		numa_demotion_enabled = true;
-+	else if (!strncmp(buf, "false", 5) || !strncmp(buf, "0", 1))
-+		numa_demotion_enabled = false;
-+	else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+
-+static struct kobj_attribute numa_demotion_enabled_attr =
-+	__ATTR(demotion_enabled, 0644, numa_demotion_enabled_show,
-+	       numa_demotion_enabled_store);
-+
-+static struct attribute *numa_attrs[] = {
-+	&numa_demotion_enabled_attr.attr,
-+	NULL,
-+};
-+
-+static const struct attribute_group numa_attr_group = {
-+	.attrs = numa_attrs,
-+};
-+
-+static int __init numa_init_sysfs(void)
-+{
-+	int err;
-+	struct kobject *numa_kobj;
-+
-+	numa_kobj = kobject_create_and_add("numa", mm_kobj);
-+	if (!numa_kobj) {
-+		pr_err("failed to create numa kobject\n");
-+		return -ENOMEM;
-+	}
-+	err = sysfs_create_group(numa_kobj, &numa_attr_group);
-+	if (err) {
-+		pr_err("failed to register numa group\n");
-+		goto delete_obj;
-+	}
-+	return 0;
-+
-+delete_obj:
-+	kobject_put(numa_kobj);
-+	return err;
-+}
-+subsys_initcall(numa_init_sysfs);
-+#endif
+ 	pagemap_fd = open("/proc/self/pagemap", O_RDONLY);
+ 	if (pagemap_fd < 0)
 _
 
-Patches currently in -mm which might be from shy828301@gmail.com are
+Patches currently in -mm which might be from davis.george@siemens.com are
 
 
