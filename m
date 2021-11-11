@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 11120C4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 19809C43217
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id F23ED61108
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:46 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0AE8D6135E
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234497AbhKKCxd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S234517AbhKKCxd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 10 Nov 2021 21:53:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57322 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.99]:57380 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234655AbhKKCx1 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:53:27 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 79F1460F26;
-        Thu, 11 Nov 2021 02:50:39 +0000 (UTC)
+        id S234510AbhKKCxc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:53:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9A4536103C;
+        Thu, 11 Nov 2021 02:50:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599039;
-        bh=Zw/58lWTqykB1qdP6+kawhBPYJSi6f4fNubX14JjMG0=;
+        s=korg; t=1636599043;
+        bh=f6P6vra2FGud4E2OaNzH55nwbpKXNO37BMNlbQaSs7E=;
         h=Date:From:To:Subject:From;
-        b=lsZzcjVSjM3dybe7VwxavTKeYd7Nn2G8Kyi9es5k1Tfupoj9tXhtcYqaHr4mLflTu
-         MS3pcBMLSM5sBkMLyyVe7McOTzOuYd47evfD9DRI4Yx0vJ7fZwadXFqr9Ep9P8NU7q
-         LYjP0O1kn9L7nnyL4aQFTsSKtSFlQvz6RpfJC1Tw=
-Date:   Wed, 10 Nov 2021 18:50:39 -0800
+        b=QJ7xt16IHKmu+4U2jjHrEt0bpaWeIU/9ePoNjzjtpvq1JQmBXuMi/2qFOamf5xUOp
+         4iE0IhvDS7MvfOAWKh5MyVDbJ/fp7U1WqM0A71bh/Oz6jsY21hJcdC+sZbJbd+O7uy
+         EyLTPlmAJg80zpREvwhSDo6Sd1b0aEYS5g9l4gAQ=
+Date:   Wed, 10 Nov 2021 18:50:43 -0800
 From:   akpm@linux-foundation.org
-To:     colin.i.king@gmail.com, colin.i.king@googlemail.com,
-        mm-commits@vger.kernel.org, sj@kernel.org
+To:     david@fromorbit.com, guro@fb.com, hannes@cmpxchg.org,
+        mm-commits@vger.kernel.org, tj@kernel.org
 Subject:  [merged]
- =?US-ASCII?Q?mm-damon-fix-a-few-spelling-mistakes-in-comments-and-a-pr?=
- =?US-ASCII?Q?=5Fdebug-message.patch?= removed from -mm tree
-Message-ID: <20211111025039.OAPSpLb2J%akpm@linux-foundation.org>
+ vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch removed
+ from -mm tree
+Message-ID: <20211111025043.tCqfW8jSi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,64 +39,437 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: fix a few spelling mistakes in comments and a pr_debug message
+     Subject: vfs: keep inodes with page cache off the inode shrinker LRU
 has been removed from the -mm tree.  Its filename was
-     mm-damon-fix-a-few-spelling-mistakes-in-comments-and-a-pr_debug-message.patch
+     vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.i.king@googlemail.com>
-Subject: mm/damon: fix a few spelling mistakes in comments and a pr_debug message
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: vfs: keep inodes with page cache off the inode shrinker LRU
 
-There are a few spelling mistakes in the code. Fix these.
+Historically (pre-2.5), the inode shrinker used to reclaim only empty
+inodes and skip over those that still contained page cache.  This caused
+problems on highmem hosts: struct inode could put fill lowmem zones before
+the cache was getting reclaimed in the highmem zones.
 
-Link: https://lkml.kernel.org/r/20211028184157.614544-1-colin.i.king@gmail.com
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
+To address this, the inode shrinker started to strip page cache to
+facilitate reclaiming lowmem.  However, this comes with its own set of
+problems: the shrinkers may drop actively used page cache just because the
+inodes are not currently open or dirty - think working with a large git
+tree.  It further doesn't respect cgroup memory protection settings and
+can cause priority inversions between containers.
+
+Nowadays, the page cache also holds non-resident info for evicted cache
+pages in order to detect refaults.  We've come to rely heavily on this
+data inside reclaim for protecting the cache workingset and driving swap
+behavior.  We also use it to quantify and report workload health through
+psi.  The latter in turn is used for fleet health monitoring, as well as
+driving automated memory sizing of workloads and containers, proactive
+reclaim and memory offloading schemes.
+
+The consequences of dropping page cache prematurely is that we're seeing
+subtle and not-so-subtle failures in all of the above-mentioned scenarios,
+with the workload generally entering unexpected thrashing states while
+losing the ability to reliably detect it.
+
+To fix this on non-highmem systems at least, going back to rotating inodes
+on the LRU isn't feasible.  We've tried (commit a76cf1a474d7 ("mm: don't
+reclaim inodes with many attached pages")) and failed (commit 69056ee6a8a3
+("Revert "mm: don't reclaim inodes with many attached pages"")).  The
+issue is mostly that shrinker pools attract pressure based on their size,
+and when objects get skipped the shrinkers remember this as deferred
+reclaim work.  This accumulates excessive pressure on the remaining
+inodes, and we can quickly eat into heavily used ones, or dirty ones that
+require IO to reclaim, when there potentially is plenty of cold, clean
+cache around still.
+
+Instead, this patch keeps populated inodes off the inode LRU in the first
+place - just like an open file or dirty state would.  An otherwise clean
+and unused inode then gets queued when the last cache entry disappears. 
+This solves the problem without reintroducing the reclaim issues, and
+generally is a bit more scalable than having to wade through potentially
+hundreds of thousands of busy inodes.
+
+Locking is a bit tricky because the locks protecting the inode state
+(i_lock) and the inode LRU (lru_list.lock) don't nest inside the irq-safe
+page cache lock (i_pages.xa_lock).  Page cache deletions are serialized
+through i_lock, taken before the i_pages lock, to make sure depopulated
+inodes are queued reliably.  Additions may race with deletions, but we'll
+check again in the shrinker.  If additions race with the shrinker itself,
+we're protected by the i_lock: if find_inode() or iput() win, the shrinker
+will bail on the elevated i_count or I_REFERENCED; if the shrinker wins
+and goes ahead with the inode, it will set I_FREEING and inhibit further
+igets(), which will cause the other side to create a new instance of the
+inode instead.
+
+Link: https://lkml.kernel.org/r/20210614211904.14420-4-hannes@cmpxchg.org
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c       |    2 +-
- mm/damon/dbgfs-test.h |    2 +-
- mm/damon/vaddr-test.h |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ fs/inode.c              |   46 ++++++++++++++++++++--------------
+ fs/internal.h           |    1 
+ include/linux/fs.h      |    1 
+ include/linux/pagemap.h |   50 ++++++++++++++++++++++++++++++++++++++
+ mm/filemap.c            |    8 ++++++
+ mm/truncate.c           |   19 ++++++++++++--
+ mm/vmscan.c             |    7 +++++
+ mm/workingset.c         |   10 +++++++
+ 8 files changed, 120 insertions(+), 22 deletions(-)
 
---- a/mm/damon/core.c~mm-damon-fix-a-few-spelling-mistakes-in-comments-and-a-pr_debug-message
-+++ a/mm/damon/core.c
-@@ -959,7 +959,7 @@ static unsigned long damos_wmark_wait_us
- 	/* higher than high watermark or lower than low watermark */
- 	if (metric > scheme->wmarks.high || scheme->wmarks.low > metric) {
- 		if (scheme->wmarks.activated)
--			pr_debug("inactivate a scheme (%d) for %s wmark\n",
-+			pr_debug("deactivate a scheme (%d) for %s wmark\n",
- 					scheme->action,
- 					metric > scheme->wmarks.high ?
- 					"high" : "low");
---- a/mm/damon/dbgfs-test.h~mm-damon-fix-a-few-spelling-mistakes-in-comments-and-a-pr_debug-message
-+++ a/mm/damon/dbgfs-test.h
-@@ -145,7 +145,7 @@ static void damon_dbgfs_test_set_init_re
+--- a/fs/inode.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/fs/inode.c
+@@ -428,11 +428,20 @@ void ihold(struct inode *inode)
+ }
+ EXPORT_SYMBOL(ihold);
  
- 		KUNIT_EXPECT_STREQ(test, (char *)buf, expect);
- 	}
--	/* Put invlid inputs and check the return error code */
-+	/* Put invalid inputs and check the return error code */
- 	for (i = 0; i < ARRAY_SIZE(invalid_inputs); i++) {
- 		input = invalid_inputs[i];
- 		pr_info("input: %s\n", input);
---- a/mm/damon/vaddr-test.h~mm-damon-fix-a-few-spelling-mistakes-in-comments-and-a-pr_debug-message
-+++ a/mm/damon/vaddr-test.h
-@@ -233,7 +233,7 @@ static void damon_test_apply_three_regio
-  * and 70-100) has totally freed and mapped to different area (30-32 and
-  * 65-68).  The target regions which were in the old second and third big
-  * regions should now be removed and new target regions covering the new second
-- * and third big regions should be crated.
-+ * and third big regions should be created.
-  */
- static void damon_test_apply_three_regions4(struct kunit *test)
+-static void inode_lru_list_add(struct inode *inode)
++static void __inode_add_lru(struct inode *inode, bool rotate)
  {
++	if (inode->i_state & (I_DIRTY_ALL | I_SYNC | I_FREEING | I_WILL_FREE))
++		return;
++	if (atomic_read(&inode->i_count))
++		return;
++	if (!(inode->i_sb->s_flags & SB_ACTIVE))
++		return;
++	if (!mapping_shrinkable(&inode->i_data))
++		return;
++
+ 	if (list_lru_add(&inode->i_sb->s_inode_lru, &inode->i_lru))
+ 		this_cpu_inc(nr_unused);
+-	else
++	else if (rotate)
+ 		inode->i_state |= I_REFERENCED;
+ }
+ 
+@@ -443,16 +452,11 @@ static void inode_lru_list_add(struct in
+  */
+ void inode_add_lru(struct inode *inode)
+ {
+-	if (!(inode->i_state & (I_DIRTY_ALL | I_SYNC |
+-				I_FREEING | I_WILL_FREE)) &&
+-	    !atomic_read(&inode->i_count) && inode->i_sb->s_flags & SB_ACTIVE)
+-		inode_lru_list_add(inode);
++	__inode_add_lru(inode, false);
+ }
+ 
+-
+ static void inode_lru_list_del(struct inode *inode)
+ {
+-
+ 	if (list_lru_del(&inode->i_sb->s_inode_lru, &inode->i_lru))
+ 		this_cpu_dec(nr_unused);
+ }
+@@ -728,10 +732,6 @@ again:
+ /*
+  * Isolate the inode from the LRU in preparation for freeing it.
+  *
+- * Any inodes which are pinned purely because of attached pagecache have their
+- * pagecache removed.  If the inode has metadata buffers attached to
+- * mapping->private_list then try to remove them.
+- *
+  * If the inode has the I_REFERENCED flag set, then it means that it has been
+  * used recently - the flag is set in iput_final(). When we encounter such an
+  * inode, clear the flag and move it to the back of the LRU so it gets another
+@@ -747,31 +747,39 @@ static enum lru_status inode_lru_isolate
+ 	struct inode	*inode = container_of(item, struct inode, i_lru);
+ 
+ 	/*
+-	 * we are inverting the lru lock/inode->i_lock here, so use a trylock.
+-	 * If we fail to get the lock, just skip it.
++	 * We are inverting the lru lock/inode->i_lock here, so use a
++	 * trylock. If we fail to get the lock, just skip it.
+ 	 */
+ 	if (!spin_trylock(&inode->i_lock))
+ 		return LRU_SKIP;
+ 
+ 	/*
+-	 * Referenced or dirty inodes are still in use. Give them another pass
+-	 * through the LRU as we canot reclaim them now.
++	 * Inodes can get referenced, redirtied, or repopulated while
++	 * they're already on the LRU, and this can make them
++	 * unreclaimable for a while. Remove them lazily here; iput,
++	 * sync, or the last page cache deletion will requeue them.
+ 	 */
+ 	if (atomic_read(&inode->i_count) ||
+-	    (inode->i_state & ~I_REFERENCED)) {
++	    (inode->i_state & ~I_REFERENCED) ||
++	    !mapping_shrinkable(&inode->i_data)) {
+ 		list_lru_isolate(lru, &inode->i_lru);
+ 		spin_unlock(&inode->i_lock);
+ 		this_cpu_dec(nr_unused);
+ 		return LRU_REMOVED;
+ 	}
+ 
+-	/* recently referenced inodes get one more pass */
++	/* Recently referenced inodes get one more pass */
+ 	if (inode->i_state & I_REFERENCED) {
+ 		inode->i_state &= ~I_REFERENCED;
+ 		spin_unlock(&inode->i_lock);
+ 		return LRU_ROTATE;
+ 	}
+ 
++	/*
++	 * On highmem systems, mapping_shrinkable() permits dropping
++	 * page cache in order to free up struct inodes: lowmem might
++	 * be under pressure before the cache inside the highmem zone.
++	 */
+ 	if (inode_has_buffers(inode) || !mapping_empty(&inode->i_data)) {
+ 		__iget(inode);
+ 		spin_unlock(&inode->i_lock);
+@@ -1638,7 +1646,7 @@ static void iput_final(struct inode *ino
+ 	if (!drop &&
+ 	    !(inode->i_state & I_DONTCACHE) &&
+ 	    (sb->s_flags & SB_ACTIVE)) {
+-		inode_add_lru(inode);
++		__inode_add_lru(inode, true);
+ 		spin_unlock(&inode->i_lock);
+ 		return;
+ 	}
+--- a/fs/internal.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/fs/internal.h
+@@ -149,7 +149,6 @@ extern int vfs_open(const struct path *,
+  * inode.c
+  */
+ extern long prune_icache_sb(struct super_block *sb, struct shrink_control *sc);
+-extern void inode_add_lru(struct inode *inode);
+ extern int dentry_needs_remove_privs(struct dentry *dentry);
+ 
+ /*
+--- a/include/linux/fs.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/include/linux/fs.h
+@@ -3193,6 +3193,7 @@ static inline void remove_inode_hash(str
+ }
+ 
+ extern void inode_sb_list_add(struct inode *inode);
++extern void inode_add_lru(struct inode *inode);
+ 
+ extern int sb_set_blocksize(struct super_block *, int);
+ extern int sb_min_blocksize(struct super_block *, int);
+--- a/include/linux/pagemap.h~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/include/linux/pagemap.h
+@@ -24,6 +24,56 @@ static inline bool mapping_empty(struct
+ }
+ 
+ /*
++ * mapping_shrinkable - test if page cache state allows inode reclaim
++ * @mapping: the page cache mapping
++ *
++ * This checks the mapping's cache state for the pupose of inode
++ * reclaim and LRU management.
++ *
++ * The caller is expected to hold the i_lock, but is not required to
++ * hold the i_pages lock, which usually protects cache state. That's
++ * because the i_lock and the list_lru lock that protect the inode and
++ * its LRU state don't nest inside the irq-safe i_pages lock.
++ *
++ * Cache deletions are performed under the i_lock, which ensures that
++ * when an inode goes empty, it will reliably get queued on the LRU.
++ *
++ * Cache additions do not acquire the i_lock and may race with this
++ * check, in which case we'll report the inode as shrinkable when it
++ * has cache pages. This is okay: the shrinker also checks the
++ * refcount and the referenced bit, which will be elevated or set in
++ * the process of adding new cache pages to an inode.
++ */
++static inline bool mapping_shrinkable(struct address_space *mapping)
++{
++	void *head;
++
++	/*
++	 * On highmem systems, there could be lowmem pressure from the
++	 * inodes before there is highmem pressure from the page
++	 * cache. Make inodes shrinkable regardless of cache state.
++	 */
++	if (IS_ENABLED(CONFIG_HIGHMEM))
++		return true;
++
++	/* Cache completely empty? Shrink away. */
++	head = rcu_access_pointer(mapping->i_pages.xa_head);
++	if (!head)
++		return true;
++
++	/*
++	 * The xarray stores single offset-0 entries directly in the
++	 * head pointer, which allows non-resident page cache entries
++	 * to escape the shadow shrinker's list of xarray nodes. The
++	 * inode shrinker needs to pick them up under memory pressure.
++	 */
++	if (!xa_is_node(head) && xa_is_value(head))
++		return true;
++
++	return false;
++}
++
++/*
+  * Bits in mapping->flags.
+  */
+ enum mapping_flags {
+--- a/mm/filemap.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/mm/filemap.c
+@@ -262,9 +262,13 @@ void delete_from_page_cache(struct page
+ 	struct address_space *mapping = page_mapping(page);
+ 
+ 	BUG_ON(!PageLocked(page));
++	spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	__delete_from_page_cache(page, NULL);
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (mapping_shrinkable(mapping))
++		inode_add_lru(mapping->host);
++	spin_unlock(&mapping->host->i_lock);
+ 
+ 	page_cache_free_page(mapping, page);
+ }
+@@ -340,6 +344,7 @@ void delete_from_page_cache_batch(struct
+ 	if (!pagevec_count(pvec))
+ 		return;
+ 
++	spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	for (i = 0; i < pagevec_count(pvec); i++) {
+ 		trace_mm_filemap_delete_from_page_cache(pvec->pages[i]);
+@@ -348,6 +353,9 @@ void delete_from_page_cache_batch(struct
+ 	}
+ 	page_cache_delete_batch(mapping, pvec);
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (mapping_shrinkable(mapping))
++		inode_add_lru(mapping->host);
++	spin_unlock(&mapping->host->i_lock);
+ 
+ 	for (i = 0; i < pagevec_count(pvec); i++)
+ 		page_cache_free_page(mapping, pvec->pages[i]);
+--- a/mm/truncate.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/mm/truncate.c
+@@ -45,9 +45,13 @@ static inline void __clear_shadow_entry(
+ static void clear_shadow_entry(struct address_space *mapping, pgoff_t index,
+ 			       void *entry)
+ {
++	spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	__clear_shadow_entry(mapping, index, entry);
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (mapping_shrinkable(mapping))
++		inode_add_lru(mapping->host);
++	spin_unlock(&mapping->host->i_lock);
+ }
+ 
+ /*
+@@ -73,8 +77,10 @@ static void truncate_exceptional_pvec_en
+ 		return;
+ 
+ 	dax = dax_mapping(mapping);
+-	if (!dax)
++	if (!dax) {
++		spin_lock(&mapping->host->i_lock);
+ 		xa_lock_irq(&mapping->i_pages);
++	}
+ 
+ 	for (i = j; i < pagevec_count(pvec); i++) {
+ 		struct page *page = pvec->pages[i];
+@@ -93,8 +99,12 @@ static void truncate_exceptional_pvec_en
+ 		__clear_shadow_entry(mapping, index, page);
+ 	}
+ 
+-	if (!dax)
++	if (!dax) {
+ 		xa_unlock_irq(&mapping->i_pages);
++		if (mapping_shrinkable(mapping))
++			inode_add_lru(mapping->host);
++		spin_unlock(&mapping->host->i_lock);
++	}
+ 	pvec->nr = j;
+ }
+ 
+@@ -567,6 +577,7 @@ invalidate_complete_page2(struct address
+ 	if (page_has_private(page) && !try_to_release_page(page, GFP_KERNEL))
+ 		return 0;
+ 
++	spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	if (PageDirty(page))
+ 		goto failed;
+@@ -574,6 +585,9 @@ invalidate_complete_page2(struct address
+ 	BUG_ON(page_has_private(page));
+ 	__delete_from_page_cache(page, NULL);
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (mapping_shrinkable(mapping))
++		inode_add_lru(mapping->host);
++	spin_unlock(&mapping->host->i_lock);
+ 
+ 	if (mapping->a_ops->freepage)
+ 		mapping->a_ops->freepage(page);
+@@ -582,6 +596,7 @@ invalidate_complete_page2(struct address
+ 	return 1;
+ failed:
+ 	xa_unlock_irq(&mapping->i_pages);
++	spin_unlock(&mapping->host->i_lock);
+ 	return 0;
+ }
+ 
+--- a/mm/vmscan.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/mm/vmscan.c
+@@ -1190,6 +1190,8 @@ static int __remove_mapping(struct addre
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(mapping != page_mapping(page));
+ 
++	if (!PageSwapCache(page))
++		spin_lock(&mapping->host->i_lock);
+ 	xa_lock_irq(&mapping->i_pages);
+ 	/*
+ 	 * The non racy check for a busy page.
+@@ -1258,6 +1260,9 @@ static int __remove_mapping(struct addre
+ 			shadow = workingset_eviction(page, target_memcg);
+ 		__delete_from_page_cache(page, shadow);
+ 		xa_unlock_irq(&mapping->i_pages);
++		if (mapping_shrinkable(mapping))
++			inode_add_lru(mapping->host);
++		spin_unlock(&mapping->host->i_lock);
+ 
+ 		if (freepage != NULL)
+ 			freepage(page);
+@@ -1267,6 +1272,8 @@ static int __remove_mapping(struct addre
+ 
+ cannot_free:
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (!PageSwapCache(page))
++		spin_unlock(&mapping->host->i_lock);
+ 	return 0;
+ }
+ 
+--- a/mm/workingset.c~vfs-keep-inodes-with-page-cache-off-the-inode-shrinker-lru
++++ a/mm/workingset.c
+@@ -543,6 +543,13 @@ static enum lru_status shadow_lru_isolat
+ 		goto out;
+ 	}
+ 
++	if (!spin_trylock(&mapping->host->i_lock)) {
++		xa_unlock(&mapping->i_pages);
++		spin_unlock_irq(lru_lock);
++		ret = LRU_RETRY;
++		goto out;
++	}
++
+ 	list_lru_isolate(lru, item);
+ 	__dec_lruvec_kmem_state(node, WORKINGSET_NODES);
+ 
+@@ -562,6 +569,9 @@ static enum lru_status shadow_lru_isolat
+ 
+ out_invalid:
+ 	xa_unlock_irq(&mapping->i_pages);
++	if (mapping_shrinkable(mapping))
++		inode_add_lru(mapping->host);
++	spin_unlock(&mapping->host->i_lock);
+ 	ret = LRU_REMOVED_RETRY;
+ out:
+ 	cond_resched();
 _
 
-Patches currently in -mm which might be from colin.i.king@googlemail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
 
