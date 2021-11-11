@@ -2,36 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9E411C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:52:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B9673C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:52:28 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 8741F61250
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:52:26 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 9E6D9610A2
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:52:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234562AbhKKCzO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:55:14 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58778 "EHLO mail.kernel.org"
+        id S234565AbhKKCzQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:55:16 -0500
+Received: from mail.kernel.org ([198.145.29.99]:58798 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234548AbhKKCzN (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:55:13 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 810416103C;
-        Thu, 11 Nov 2021 02:52:25 +0000 (UTC)
+        id S234548AbhKKCzP (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:55:15 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7BBD461250;
+        Thu, 11 Nov 2021 02:52:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599145;
-        bh=9y9yE+LdKvi5x/bhwSvmxmGfSAtHSdOZfn7KnSEAia8=;
+        s=korg; t=1636599147;
+        bh=vzAK2nMaRJRm/uZEAON0Dvc+uEQ4NdGv4OulE9V1H1M=;
         h=Date:From:To:Subject:From;
-        b=nZD2IlStEDfT/PavaTDuTUjCRe09bdUHlV6lkiGy5dQSNWYegdXf7LPkUjYObrRhp
-         /mYh2ttsKXWc2Z+KVcdIFFQl9o+00xeckZXYQGiF2DxAddf6MKEnDfwaMYMsm5xSx9
-         qCXfFx2UT7y7Ro3BZfEG9pbAGf+jGJRhGOq0HPaM=
-Date:   Wed, 10 Nov 2021 18:52:25 -0800
+        b=Zis9X5gCQf34CziCugZxrctjUpRc8lozdBhO2QGduuNIiT1bNM7WUiF9xHgRah0hk
+         VHT2jpqFWJkjYZoSrvUt/fC93+w9ARW6Uuytz4PF/lm6GMGQ7/hot8NB5vXWih5rXw
+         Xofaz3kHsLifm+W9k2G2mh1G6iwNubPBUJZQXhhs=
+Date:   Wed, 10 Nov 2021 18:52:27 -0800
 From:   akpm@linux-foundation.org
-To:     arequipeno@gmail.com, dwaipayanray1@gmail.com, joe@perches.com,
-        lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org
+To:     joe@perches.com, mm-commits@vger.kernel.org,
+        peter.ujfalusi@linux.intel.com
 Subject:  [merged]
- checkpatch-improve-export_symbol-test-for-export_symbol_ns-uses.patch
- removed from -mm tree
-Message-ID: <20211111025225.4izLJfRyn%akpm@linux-foundation.org>
+ =?US-ASCII?Q?checkpatch-get-default-codespell-dictionary-path-from-packag?=
+ =?US-ASCII?Q?e-location.patch?= removed from -mm tree
+Message-ID: <20211111025227.tIX_WrWJM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,45 +41,101 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve EXPORT_SYMBOL test for EXPORT_SYMBOL_NS uses
+     Subject: checkpatch: get default codespell dictionary path from package location
 has been removed from the -mm tree.  Its filename was
-     checkpatch-improve-export_symbol-test-for-export_symbol_ns-uses.patch
+     checkpatch-get-default-codespell-dictionary-path-from-package-location.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve EXPORT_SYMBOL test for EXPORT_SYMBOL_NS uses
+From: Peter Ujfalusi <peter.ujfalusi@linux.intel.com>
+Subject: checkpatch: get default codespell dictionary path from package location
 
-The EXPORT_SYMBOL test expects a single argument but definitions of
-EXPORT_SYMBOL_NS have multiple arguments.
+The standard location of dictionary.txt is under codespell's package, on
+my machine atm (codespell 2.1, Artix Linux):
+/usr/lib/python3.9/site-packages/codespell_lib/data/dictionary.txt
 
-Update the test to extract only the first argument from any
-EXPORT_SYMBOL related definition.
+Since we enable the codespell by default for SOF I have constant:
+No codespell typos will be found - \
+file '/usr/share/codespell/dictionary.txt': No such file or directory
 
-Link: https://lkml.kernel.org/r/9e8f251b42e405f460f26a23ba9b33ef45a94adc.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Reported-by: Ian Pilcher <arequipeno@gmail.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+The patch proposes to try to fix up the path following the recommendation
+found here: https://github.com/codespell-project/codespell/issues/1540
+
+Link: https://lkml.kernel.org/r/29e25d1364c8ad7f7657cc0660f60c568074d438.camel@perches.com
+Signed-off-by: Peter Ujfalusi <peter.ujfalusi@linux.intel.com>
+Acked-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/checkpatch.pl |   32 ++++++++++++++++++++++++++++----
+ 1 file changed, 28 insertions(+), 4 deletions(-)
 
---- a/scripts/checkpatch.pl~checkpatch-improve-export_symbol-test-for-export_symbol_ns-uses
+--- a/scripts/checkpatch.pl~checkpatch-get-default-codespell-dictionary-path-from-package-location
 +++ a/scripts/checkpatch.pl
-@@ -4449,6 +4449,7 @@ sub process {
- 			#   XXX(foo);
- 			#   EXPORT_SYMBOL(something_foo);
- 			my $name = $1;
-+			$name =~ s/^\s*($Ident).*/$1/;
- 			if ($stat =~ /^(?:.\s*}\s*\n)?.([A-Z_]+)\s*\(\s*($Ident)/ &&
- 			    $name =~ /^${Ident}_$2/) {
- #print "FOO C name<$name>\n";
+@@ -63,6 +63,7 @@ my $min_conf_desc_length = 4;
+ my $spelling_file = "$D/spelling.txt";
+ my $codespell = 0;
+ my $codespellfile = "/usr/share/codespell/dictionary.txt";
++my $user_codespellfile = "";
+ my $conststructsfile = "$D/const_structs.checkpatch";
+ my $docsfile = "$D/../Documentation/dev-tools/checkpatch.rst";
+ my $typedefsfile;
+@@ -130,7 +131,7 @@ Options:
+   --ignore-perl-version      override checking of perl version.  expect
+                              runtime errors.
+   --codespell                Use the codespell dictionary for spelling/typos
+-                             (default:/usr/share/codespell/dictionary.txt)
++                             (default:$codespellfile)
+   --codespellfile            Use this codespell dictionary
+   --typedefsfile             Read additional types from this file
+   --color[=WHEN]             Use colors 'always', 'never', or only when output
+@@ -317,7 +318,7 @@ GetOptions(
+ 	'debug=s'	=> \%debug,
+ 	'test-only=s'	=> \$tst_only,
+ 	'codespell!'	=> \$codespell,
+-	'codespellfile=s'	=> \$codespellfile,
++	'codespellfile=s'	=> \$user_codespellfile,
+ 	'typedefsfile=s'	=> \$typedefsfile,
+ 	'color=s'	=> \$color,
+ 	'no-color'	=> \$color,	#keep old behaviors of -nocolor
+@@ -325,9 +326,32 @@ GetOptions(
+ 	'kconfig-prefix=s'	=> \${CONFIG_},
+ 	'h|help'	=> \$help,
+ 	'version'	=> \$help
+-) or help(1);
++) or $help = 2;
+ 
+-help(0) if ($help);
++if ($user_codespellfile) {
++	# Use the user provided codespell file unconditionally
++	$codespellfile = $user_codespellfile;
++} elsif (!(-f $codespellfile)) {
++	# If /usr/share/codespell/dictionary.txt is not present, try to find it
++	# under codespell's install directory: <codespell_root>/data/dictionary.txt
++	if (($codespell || $help) && which("codespell") ne "" && which("python") ne "") {
++		my $python_codespell_dict = << "EOF";
++
++import os.path as op
++import codespell_lib
++codespell_dir = op.dirname(codespell_lib.__file__)
++codespell_file = op.join(codespell_dir, 'data', 'dictionary.txt')
++print(codespell_file, end='')
++EOF
++
++		my $codespell_dict = `python -c "$python_codespell_dict" 2> /dev/null`;
++		$codespellfile = $codespell_dict if (-f $codespell_dict);
++	}
++}
++
++# $help is 1 if either -h, --help or --version is passed as option - exitcode: 0
++# $help is 2 if invalid option is passed - exitcode: 1
++help($help - 1) if ($help);
+ 
+ die "$P: --git cannot be used with --file or --fix\n" if ($git && ($file || $fix));
+ die "$P: --verbose cannot be used with --terse\n" if ($verbose && $terse);
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from peter.ujfalusi@linux.intel.com are
 
 
