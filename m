@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77266C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BEE03C433EF
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:54 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 57EC961241
+	by mail.kernel.org (Postfix) with ESMTP id A56A961994
 	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:50:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234521AbhKKCxl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:53:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:57418 "EHLO mail.kernel.org"
+        id S234518AbhKKCxm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:53:42 -0500
+Received: from mail.kernel.org ([198.145.29.99]:57508 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234518AbhKKCxe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:53:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 80B19610A2;
-        Thu, 11 Nov 2021 02:50:45 +0000 (UTC)
+        id S234510AbhKKCxg (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:53:36 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 82F2D61989;
+        Thu, 11 Nov 2021 02:50:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599045;
-        bh=IIfln/d6fULd4cZby6Ket8Wu09IdFbEakSoaZBK/9/Y=;
+        s=korg; t=1636599047;
+        bh=PPoNB3enXBmxTdIb0KcVZk1vFcxJO8UtX1fwp3OpGSc=;
         h=Date:From:To:Subject:From;
-        b=OB/u/jsPFTSwBy9TlbfNsjGwIgztb7ZcYzcYAYSNbA+DyDk1WLfYb7XYcbi52ODlL
-         PJUdEjZVOC09wilMyE5wHy5y5OmPJX21UOSuN17tG5P8GY3n9lXfru0EJk+1xt/c50
-         wEVElbKVPt5HRPfkVuPkQTRucMKXgsxyLWi9TbRg=
-Date:   Wed, 10 Nov 2021 18:50:45 -0800
+        b=m5f8lz/IxSHIP03s6fZSD7PYBg2581P2M423hoA7YnboggvaZCXoHfPCXJuYz5COd
+         82ptP+mLdmzeUYNJu9pRi1SVltyBIza8jsLlSSkJlxP4otXwfpnDuj4B37kIGnAOHG
+         6qb49XqoWWQU2HVwNhsgsMhnt7wEWs2eY64Bzwgg=
+Date:   Wed, 10 Nov 2021 18:50:47 -0800
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, liuzixian4@huawei.com, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        wuxu.wu@huawei.com, zhangyiru3@huawei.com
-Subject:  [merged]
- mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb.patch removed from -mm tree
-Message-ID: <20211111025045.By5WAFPOx%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, christian.brauner@ubuntu.com,
+        ebiederm@xmission.com, fweimer@redhat.com, keescook@chromium.org,
+        mm-commits@vger.kernel.org
+Subject:  [merged] procfs-do-not-list-tid-0-in-proc-pid-task.patch
+ removed from -mm tree
+Message-ID: <20211111025047.smYlfC0Pp%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,183 +39,164 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,hugetlb: remove mlock ulimit for SHM_HUGETLB
+     Subject: procfs: do not list TID 0 in /proc/<pid>/task
 has been removed from the -mm tree.  Its filename was
-     mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb.patch
+     procfs-do-not-list-tid-0-in-proc-pid-task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: zhangyiru <zhangyiru3@huawei.com>
-Subject: mm,hugetlb: remove mlock ulimit for SHM_HUGETLB
+From: Florian Weimer <fweimer@redhat.com>
+Subject: procfs: do not list TID 0 in /proc/<pid>/task
 
-commit 21a3c273f88c9cbbaf7e ("mm, hugetlb: add thread name and pid to
-SHM_HUGETLB mlock rlimit warning") marked this as deprecated in 2012, but
-it is not deleted yet.
+If a task exits concurrently, task_pid_nr_ns may return 0.
 
-Mike says he still sees that message in log files on occasion, so maybe we
-should preserve this warning.
-
-Also remove hugetlbfs related user_shm_unlock in ipc/shm.c and remove the
-user_shm_unlock after out.
-
-Link: https://lkml.kernel.org/r/20211103105857.25041-1-zhangyiru3@huawei.com
-Signed-off-by: zhangyiru <zhangyiru3@huawei.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Liu Zixian <liuzixian4@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: wuxu.wu <wuxu.wu@huawei.com>
+[akpm@linux-foundation.org: coding style tweaks]
+[adobriyan@gmail.com: test that /proc/*/task doesn't contain "0"]
+  Link: https://lkml.kernel.org/r/YV88AnVzHxPafQ9o@localhost.localdomain
+Link: https://lkml.kernel.org/r/8735pn5dx7.fsf@oldenburg.str.redhat.com
+Signed-off-by: Florian Weimer <fweimer@redhat.com>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Reviewed-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c    |   23 ++++++++---------------
- include/linux/hugetlb.h |    6 ++----
- ipc/shm.c               |    8 +-------
- mm/memfd.c              |    4 +---
- mm/mmap.c               |    3 +--
- 5 files changed, 13 insertions(+), 31 deletions(-)
+ fs/proc/base.c                           |    3 
+ tools/testing/selftests/proc/.gitignore  |    1 
+ tools/testing/selftests/proc/Makefile    |    2 
+ tools/testing/selftests/proc/proc-tid0.c |   81 +++++++++++++++++++++
+ 4 files changed, 87 insertions(+)
 
---- a/fs/hugetlbfs/inode.c~mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb
-+++ a/fs/hugetlbfs/inode.c
-@@ -1446,8 +1446,8 @@ static int get_hstate_idx(int page_size_
-  * otherwise hugetlb_reserve_pages reserves one less hugepages than intended.
-  */
- struct file *hugetlb_file_setup(const char *name, size_t size,
--				vm_flags_t acctflag, struct ucounts **ucounts,
--				int creat_flags, int page_size_log)
-+				vm_flags_t acctflag, int creat_flags,
-+				int page_size_log)
- {
- 	struct inode *inode;
- 	struct vfsmount *mnt;
-@@ -1458,22 +1458,19 @@ struct file *hugetlb_file_setup(const ch
- 	if (hstate_idx < 0)
- 		return ERR_PTR(-ENODEV);
- 
--	*ucounts = NULL;
- 	mnt = hugetlbfs_vfsmount[hstate_idx];
- 	if (!mnt)
- 		return ERR_PTR(-ENOENT);
- 
- 	if (creat_flags == HUGETLB_SHMFS_INODE && !can_do_hugetlb_shm()) {
--		*ucounts = current_ucounts();
--		if (user_shm_lock(size, *ucounts)) {
--			task_lock(current);
--			pr_warn_once("%s (%d): Using mlock ulimits for SHM_HUGETLB is deprecated\n",
-+		struct ucounts *ucounts = current_ucounts();
+--- a/fs/proc/base.c~procfs-do-not-list-tid-0-in-proc-pid-task
++++ a/fs/proc/base.c
+@@ -3799,7 +3799,10 @@ static int proc_task_readdir(struct file
+ 	     task = next_tid(task), ctx->pos++) {
+ 		char name[10 + 1];
+ 		unsigned int len;
 +
-+		if (user_shm_lock(size, ucounts)) {
-+			pr_warn_once("%s (%d): Using mlock ulimits for SHM_HUGETLB is obsolete\n",
- 				current->comm, current->pid);
--			task_unlock(current);
--		} else {
--			*ucounts = NULL;
--			return ERR_PTR(-EPERM);
-+			user_shm_unlock(size, ucounts);
- 		}
-+		return ERR_PTR(-EPERM);
- 	}
+ 		tid = task_pid_nr_ns(task, ns);
++		if (!tid)
++			continue;	/* The task has just exited. */
+ 		len = snprintf(name, sizeof(name), "%u", tid);
+ 		if (!proc_fill_cache(file, ctx, name, len,
+ 				proc_task_instantiate, task, NULL)) {
+--- a/tools/testing/selftests/proc/.gitignore~procfs-do-not-list-tid-0-in-proc-pid-task
++++ a/tools/testing/selftests/proc/.gitignore
+@@ -11,6 +11,7 @@
+ /proc-self-syscall
+ /proc-self-wchan
+ /proc-subset-pid
++/proc-tid0
+ /proc-uptime-001
+ /proc-uptime-002
+ /read
+--- a/tools/testing/selftests/proc/Makefile~procfs-do-not-list-tid-0-in-proc-pid-task
++++ a/tools/testing/selftests/proc/Makefile
+@@ -1,6 +1,7 @@
+ # SPDX-License-Identifier: GPL-2.0-only
+ CFLAGS += -Wall -O2 -Wno-unused-function
+ CFLAGS += -D_GNU_SOURCE
++LDFLAGS += -pthread
  
- 	file = ERR_PTR(-ENOSPC);
-@@ -1498,10 +1495,6 @@ struct file *hugetlb_file_setup(const ch
- 
- 	iput(inode);
- out:
--	if (*ucounts) {
--		user_shm_unlock(size, *ucounts);
--		*ucounts = NULL;
--	}
- 	return file;
- }
- 
---- a/include/linux/hugetlb.h~mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb
-+++ a/include/linux/hugetlb.h
-@@ -477,8 +477,7 @@ static inline struct hugetlbfs_inode_inf
- extern const struct file_operations hugetlbfs_file_operations;
- extern const struct vm_operations_struct hugetlb_vm_ops;
- struct file *hugetlb_file_setup(const char *name, size_t size, vm_flags_t acct,
--				struct ucounts **ucounts, int creat_flags,
--				int page_size_log);
-+				int creat_flags, int page_size_log);
- 
- static inline bool is_file_hugepages(struct file *file)
- {
-@@ -497,8 +496,7 @@ static inline struct hstate *hstate_inod
- #define is_file_hugepages(file)			false
- static inline struct file *
- hugetlb_file_setup(const char *name, size_t size, vm_flags_t acctflag,
--		struct ucounts **ucounts, int creat_flags,
--		int page_size_log)
-+		int creat_flags, int page_size_log)
- {
- 	return ERR_PTR(-ENOSYS);
- }
---- a/ipc/shm.c~mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb
-+++ a/ipc/shm.c
-@@ -287,9 +287,6 @@ static void shm_destroy(struct ipc_names
- 	shm_unlock(shp);
- 	if (!is_file_hugepages(shm_file))
- 		shmem_lock(shm_file, 0, shp->mlock_ucounts);
--	else if (shp->mlock_ucounts)
--		user_shm_unlock(i_size_read(file_inode(shm_file)),
--				shp->mlock_ucounts);
- 	fput(shm_file);
- 	ipc_update_pid(&shp->shm_cprid, NULL);
- 	ipc_update_pid(&shp->shm_lprid, NULL);
-@@ -650,8 +647,7 @@ static int newseg(struct ipc_namespace *
- 		if (shmflg & SHM_NORESERVE)
- 			acctflag = VM_NORESERVE;
- 		file = hugetlb_file_setup(name, hugesize, acctflag,
--				  &shp->mlock_ucounts, HUGETLB_SHMFS_INODE,
--				(shmflg >> SHM_HUGE_SHIFT) & SHM_HUGE_MASK);
-+				HUGETLB_SHMFS_INODE, (shmflg >> SHM_HUGE_SHIFT) & SHM_HUGE_MASK);
- 	} else {
- 		/*
- 		 * Do not allow no accounting for OVERCOMMIT_NEVER, even
-@@ -698,8 +694,6 @@ static int newseg(struct ipc_namespace *
- no_id:
- 	ipc_update_pid(&shp->shm_cprid, NULL);
- 	ipc_update_pid(&shp->shm_lprid, NULL);
--	if (is_file_hugepages(file) && shp->mlock_ucounts)
--		user_shm_unlock(size, shp->mlock_ucounts);
- 	fput(file);
- 	ipc_rcu_putref(&shp->shm_perm, shm_rcu_free);
- 	return error;
---- a/mm/memfd.c~mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb
-+++ a/mm/memfd.c
-@@ -297,9 +297,7 @@ SYSCALL_DEFINE2(memfd_create,
- 	}
- 
- 	if (flags & MFD_HUGETLB) {
--		struct ucounts *ucounts = NULL;
--
--		file = hugetlb_file_setup(name, 0, VM_NORESERVE, &ucounts,
-+		file = hugetlb_file_setup(name, 0, VM_NORESERVE,
- 					HUGETLB_ANONHUGE_INODE,
- 					(flags >> MFD_HUGE_SHIFT) &
- 					MFD_HUGE_MASK);
---- a/mm/mmap.c~mmhugetlb-remove-mlock-ulimit-for-shm_hugetlb
-+++ a/mm/mmap.c
-@@ -1599,7 +1599,6 @@ unsigned long ksys_mmap_pgoff(unsigned l
- 			goto out_fput;
- 		}
- 	} else if (flags & MAP_HUGETLB) {
--		struct ucounts *ucounts = NULL;
- 		struct hstate *hs;
- 
- 		hs = hstate_sizelog((flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK);
-@@ -1615,7 +1614,7 @@ unsigned long ksys_mmap_pgoff(unsigned l
- 		 */
- 		file = hugetlb_file_setup(HUGETLB_ANON_FILE, len,
- 				VM_NORESERVE,
--				&ucounts, HUGETLB_ANONHUGE_INODE,
-+				HUGETLB_ANONHUGE_INODE,
- 				(flags >> MAP_HUGE_SHIFT) & MAP_HUGE_MASK);
- 		if (IS_ERR(file))
- 			return PTR_ERR(file);
+ TEST_GEN_PROGS :=
+ TEST_GEN_PROGS += fd-001-lookup
+@@ -13,6 +14,7 @@ TEST_GEN_PROGS += proc-self-map-files-00
+ TEST_GEN_PROGS += proc-self-syscall
+ TEST_GEN_PROGS += proc-self-wchan
+ TEST_GEN_PROGS += proc-subset-pid
++TEST_GEN_PROGS += proc-tid0
+ TEST_GEN_PROGS += proc-uptime-001
+ TEST_GEN_PROGS += proc-uptime-002
+ TEST_GEN_PROGS += read
+--- /dev/null
++++ a/tools/testing/selftests/proc/proc-tid0.c
+@@ -0,0 +1,81 @@
++/*
++ * Copyright (c) 2021 Alexey Dobriyan <adobriyan@gmail.com>
++ *
++ * Permission to use, copy, modify, and distribute this software for any
++ * purpose with or without fee is hereby granted, provided that the above
++ * copyright notice and this permission notice appear in all copies.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
++ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
++ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
++ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
++ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
++ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
++ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
++ */
++// Test that /proc/*/task never contains "0".
++#include <sys/types.h>
++#include <dirent.h>
++#include <signal.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <pthread.h>
++
++static pid_t pid = -1;
++
++static void atexit_hook(void)
++{
++	if (pid > 0) {
++		kill(pid, SIGKILL);
++	}
++}
++
++static void *f(void *_)
++{
++	return NULL;
++}
++
++static void sigalrm(int _)
++{
++	exit(0);
++}
++
++int main(void)
++{
++	pid = fork();
++	if (pid == 0) {
++		/* child */
++		while (1) {
++			pthread_t pth;
++			pthread_create(&pth, NULL, f, NULL);
++			pthread_join(pth, NULL);
++		}
++	} else if (pid > 0) {
++		/* parent */
++		atexit(atexit_hook);
++
++		char buf[64];
++		snprintf(buf, sizeof(buf), "/proc/%u/task", pid);
++
++		signal(SIGALRM, sigalrm);
++		alarm(1);
++
++		while (1) {
++			DIR *d = opendir(buf);
++			struct dirent *de;
++			while ((de = readdir(d))) {
++				if (strcmp(de->d_name, "0") == 0) {
++					exit(1);
++				}
++			}
++			closedir(d);
++		}
++
++		return 0;
++	} else {
++		perror("fork");
++		return 1;
++	}
++}
 _
 
-Patches currently in -mm which might be from zhangyiru3@huawei.com are
+Patches currently in -mm which might be from fweimer@redhat.com are
 
 
