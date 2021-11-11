@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A280C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6DB96C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:52 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0401261247
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 5863A61208
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:45:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234359AbhKKCsf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:48:35 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53548 "EHLO mail.kernel.org"
+        id S234362AbhKKCsj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:48:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:53632 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234354AbhKKCsc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:48:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 88AE861247;
-        Thu, 11 Nov 2021 02:45:43 +0000 (UTC)
+        id S234346AbhKKCsi (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:48:38 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A4BF861108;
+        Thu, 11 Nov 2021 02:45:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598744;
-        bh=dJfmFkW3xX6qNYv8E4hYgOKbKewqGWl4k6FYEVkkIcQ=;
+        s=korg; t=1636598750;
+        bh=wB6R/Gc0HuwhukGoiprRzQcIms31f8bVCpo6nD2E5hA=;
         h=Date:From:To:Subject:From;
-        b=H1gTnoZdXhu7T8j/FYJwHhQDK6y905aoY+lUDx2o3yu4gE1UrVaQv6pJHgk9MgM0j
-         nQXY1NZcRFdu5MYcQHrRWuX8un1J8zKSrFXvInF0Yk4uXxF2//oPlXiuiBaq+ZOHhd
-         8/W9q+zTIted7NbUNwt1DTeg0jg2N73bvs0tl2E0=
-Date:   Wed, 10 Nov 2021 18:45:43 -0800
+        b=0cCAHzixYWOjNX0wrf1iwZy2KQlInP3vM85RjMwlchV51QqGjtRH+OLAmGPeTiTc9
+         v3ex8YwhS6PabJ+lTCHcH+Xg3AgeZ2lCUD2MzHjtYzUldC6dP7kcbU8IY3699zDaOO
+         uSzdpSZKvX8Zg0uBNKC+2De/wuopKKTWJK8fEOq0=
+Date:   Wed, 10 Nov 2021 18:45:49 -0800
 From:   akpm@linux-foundation.org
 To:     adilger.kernel@dilger.ca, corbet@lwn.net, david@fromorbit.com,
         djwong@kernel.org, hannes@cmpxchg.org, mgorman@techsingularity.net,
@@ -31,9 +31,9 @@ To:     adilger.kernel@dilger.ca, corbet@lwn.net, david@fromorbit.com,
         riel@surriel.com, tytso@mit.edu, vbabka@suse.cz,
         willy@infradead.org
 Subject:  [merged]
- mm-vmscan-throttle-reclaim-when-no-progress-is-being-made.patch removed
- from -mm tree
-Message-ID: <20211111024543.lnXAIkmEN%akpm@linux-foundation.org>
+ mm-page_alloc-remove-the-throttling-logic-from-the-page-allocator.patch
+ removed from -mm tree
+Message-ID: <20211111024549.aGzmzFapx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,28 +42,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: throttle reclaim when no progress is being made
+     Subject: mm/page_alloc: remove the throttling logic from the page allocator
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-throttle-reclaim-when-no-progress-is-being-made.patch
+     mm-page_alloc-remove-the-throttling-logic-from-the-page-allocator.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm/vmscan: throttle reclaim when no progress is being made
+Subject: mm/page_alloc: remove the throttling logic from the page allocator
 
-Memcg reclaim throttles on congestion if no reclaim progress is made. 
-This makes little sense, it might be due to writeback or a host of other
-factors.
+The page allocator stalls based on the number of pages that are waiting
+for writeback to start but this should now be redundant. 
+shrink_inactive_list() will wake flusher threads if the LRU tail are
+unqueued dirty pages so the flusher should be active.  If it fails to make
+progress due to pages under writeback not being completed quickly then it
+should stall on VMSCAN_THROTTLE_WRITEBACK.
 
-For !memcg reclaim, it's messy.  Direct reclaim primarily is throttled in
-the page allocator if it is failing to make progress.  Kswapd throttles if
-too many pages are under writeback and marked for immediate reclaim.
-
-This patch explicitly throttles if reclaim is failing to make progress.
-
-[vbabka@suse.cz: Remove redundant code]
-Link: https://lkml.kernel.org/r/20211022144651.19914-4-mgorman@techsingularity.net
+Link: https://lkml.kernel.org/r/20211022144651.19914-6-mgorman@techsingularity.net
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
@@ -79,106 +75,43 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h        |    1 +
- include/trace/events/vmscan.h |    4 +++-
- mm/memcontrol.c               |   10 +---------
- mm/vmscan.c                   |   28 ++++++++++++++++++++++++++++
- 4 files changed, 33 insertions(+), 10 deletions(-)
+ mm/page_alloc.c |   21 +--------------------
+ 1 file changed, 1 insertion(+), 20 deletions(-)
 
---- a/include/linux/mmzone.h~mm-vmscan-throttle-reclaim-when-no-progress-is-being-made
-+++ a/include/linux/mmzone.h
-@@ -276,6 +276,7 @@ enum lru_list {
- enum vmscan_throttle_state {
- 	VMSCAN_THROTTLE_WRITEBACK,
- 	VMSCAN_THROTTLE_ISOLATED,
-+	VMSCAN_THROTTLE_NOPROGRESS,
- 	NR_VMSCAN_THROTTLE,
- };
- 
---- a/include/trace/events/vmscan.h~mm-vmscan-throttle-reclaim-when-no-progress-is-being-made
-+++ a/include/trace/events/vmscan.h
-@@ -29,11 +29,13 @@
- 
- #define _VMSCAN_THROTTLE_WRITEBACK	(1 << VMSCAN_THROTTLE_WRITEBACK)
- #define _VMSCAN_THROTTLE_ISOLATED	(1 << VMSCAN_THROTTLE_ISOLATED)
-+#define _VMSCAN_THROTTLE_NOPROGRESS	(1 << VMSCAN_THROTTLE_NOPROGRESS)
- 
- #define show_throttle_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",					\
- 		{_VMSCAN_THROTTLE_WRITEBACK,	"VMSCAN_THROTTLE_WRITEBACK"},	\
--		{_VMSCAN_THROTTLE_ISOLATED,	"VMSCAN_THROTTLE_ISOLATED"}	\
-+		{_VMSCAN_THROTTLE_ISOLATED,	"VMSCAN_THROTTLE_ISOLATED"},	\
-+		{_VMSCAN_THROTTLE_NOPROGRESS,	"VMSCAN_THROTTLE_NOPROGRESS"}	\
- 		) : "VMSCAN_THROTTLE_NONE"
- 
- 
---- a/mm/memcontrol.c~mm-vmscan-throttle-reclaim-when-no-progress-is-being-made
-+++ a/mm/memcontrol.c
-@@ -3487,19 +3487,11 @@ static int mem_cgroup_force_empty(struct
- 
- 	/* try to free all pages in this cgroup */
- 	while (nr_retries && page_counter_read(&memcg->memory)) {
--		int progress;
+--- a/mm/page_alloc.c~mm-page_alloc-remove-the-throttling-logic-from-the-page-allocator
++++ a/mm/page_alloc.c
+@@ -4791,30 +4791,11 @@ should_reclaim_retry(gfp_t gfp_mask, uns
+ 		trace_reclaim_retry_zone(z, order, reclaimable,
+ 				available, min_wmark, *no_progress_loops, wmark);
+ 		if (wmark) {
+-			/*
+-			 * If we didn't make any progress and have a lot of
+-			 * dirty + writeback pages then we should wait for
+-			 * an IO to complete to slow down the reclaim and
+-			 * prevent from pre mature OOM
+-			 */
+-			if (!did_some_progress) {
+-				unsigned long write_pending;
 -
- 		if (signal_pending(current))
- 			return -EINTR;
- 
--		progress = try_to_free_mem_cgroup_pages(memcg, 1,
--							GFP_KERNEL, true);
--		if (!progress) {
-+		if (!try_to_free_mem_cgroup_pages(memcg, 1, GFP_KERNEL, true))
- 			nr_retries--;
--			/* maybe some writeback is necessary */
--			congestion_wait(BLK_RW_ASYNC, HZ/10);
--		}
+-				write_pending = zone_page_state_snapshot(zone,
+-							NR_ZONE_WRITE_PENDING);
 -
+-				if (2 * write_pending > reclaimable) {
+-					congestion_wait(BLK_RW_ASYNC, HZ/10);
+-					return true;
+-				}
+-			}
+-
+ 			ret = true;
+-			goto out;
++			break;
+ 		}
  	}
  
- 	return 0;
---- a/mm/vmscan.c~mm-vmscan-throttle-reclaim-when-no-progress-is-being-made
-+++ a/mm/vmscan.c
-@@ -3322,6 +3322,33 @@ static inline bool compaction_ready(stru
- 	return zone_watermark_ok_safe(zone, 0, watermark, sc->reclaim_idx);
- }
- 
-+static void consider_reclaim_throttle(pg_data_t *pgdat, struct scan_control *sc)
-+{
-+	/* If reclaim is making progress, wake any throttled tasks. */
-+	if (sc->nr_reclaimed) {
-+		wait_queue_head_t *wqh;
-+
-+		wqh = &pgdat->reclaim_wait[VMSCAN_THROTTLE_NOPROGRESS];
-+		if (waitqueue_active(wqh))
-+			wake_up(wqh);
-+
-+		return;
-+	}
-+
-+	/*
-+	 * Do not throttle kswapd on NOPROGRESS as it will throttle on
-+	 * VMSCAN_THROTTLE_WRITEBACK if there are too many pages under
-+	 * writeback and marked for immediate reclaim at the tail of
-+	 * the LRU.
-+	 */
-+	if (current_is_kswapd())
-+		return;
-+
-+	/* Throttle if making no progress at high prioities. */
-+	if (sc->priority < DEF_PRIORITY - 2)
-+		reclaim_throttle(pgdat, VMSCAN_THROTTLE_NOPROGRESS, HZ/10);
-+}
-+
- /*
-  * This is the direct reclaim path, for page-allocating processes.  We only
-  * try to reclaim pages from zones which will satisfy the caller's allocation
-@@ -3406,6 +3433,7 @@ static void shrink_zones(struct zonelist
- 			continue;
- 		last_pgdat = zone->zone_pgdat;
- 		shrink_node(zone->zone_pgdat, sc);
-+		consider_reclaim_throttle(zone->zone_pgdat, sc);
- 	}
- 
+-out:
  	/*
+ 	 * Memory allocation/reclaim might be called from a WQ context and the
+ 	 * current implementation of the WQ concurrency control doesn't
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
