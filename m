@@ -2,35 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F57CC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:54:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1582DC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:54:13 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 3A5D46162E
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:54:11 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1E686162E
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:54:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234630AbhKKC46 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:56:58 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60236 "EHLO mail.kernel.org"
+        id S234631AbhKKC5A (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:57:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60262 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234627AbhKKC46 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:56:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 868BC6103C;
-        Thu, 11 Nov 2021 02:54:09 +0000 (UTC)
+        id S234627AbhKKC47 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:56:59 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 7A33B61075;
+        Thu, 11 Nov 2021 02:54:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636599249;
-        bh=2Ca4rjQIFmXrlHsW9d0+Un3nZGeV0csxF3HRXPxnW2s=;
+        s=korg; t=1636599251;
+        bh=srGdhW+DbiXSl7/6I1SFfQ1LhVYrVliwQXWW03jpGu8=;
         h=Date:From:To:Subject:From;
-        b=PKSszjWSB2ipdFmnq331ewE92lg4yomEbEGzmataCCFEYfJvSVWFI2FfoU0TmuWkJ
-         1F/qsvrEtHwADaiUOg0d47CEoskhCEINpt6CUTWlNrJzPoDNASeOPaI9JUsZuACvB9
-         OaLTaEzXzRsUTegdclLodDzYuidmSVVedHGfMWnU=
-Date:   Wed, 10 Nov 2021 18:54:09 -0800
+        b=0r4RFKoeai/vQXR8wCtRDkGsUPRkFlIJLtoIoDbT93GtyWEX8ps/874zf6ED+tc2G
+         oj8fHgPyxIGifgmL84nHo2ZSx35E77txZjsM2AdHn2x4xhA61ho41NdOrbgu85O0oY
+         RNa9EfdRkIYM0iUqkKkzlt7WMmLaaUXL+/24SYks=
+Date:   Wed, 10 Nov 2021 18:54:11 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, bigeasy@linutronix.de, dvyukov@google.com,
-        elver@google.com, mm-commits@vger.kernel.org, rostedt@goodmis.org,
-        williams@redhat.com
-Subject:  [merged]
- kcov-replace-local_irq_save-with-a-local_lock_t.patch removed from -mm tree
-Message-ID: <20211111025409.ncWo10snV%akpm@linux-foundation.org>
+To:     dianders@chromium.org, jan.kiszka@siemens.com,
+        johannes.berg@intel.com, kbingham@kernel.org,
+        mm-commits@vger.kernel.org, swboyd@chromium.org
+Subject:  [merged] scripts-gdb-handle-split-debug-for-vmlinux.patch
+ removed from -mm tree
+Message-ID: <20211111025411.ONrM2bRMf%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,181 +39,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: replace local_irq_save() with a local_lock_t
+     Subject: scripts/gdb: handle split debug for vmlinux
 has been removed from the -mm tree.  Its filename was
-     kcov-replace-local_irq_save-with-a-local_lock_t.patch
+     scripts-gdb-handle-split-debug-for-vmlinux.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: kcov: replace local_irq_save() with a local_lock_t
+From: Douglas Anderson <dianders@chromium.org>
+Subject: scripts/gdb: handle split debug for vmlinux
 
-The kcov code mixes local_irq_save() and spin_lock() in
-kcov_remote_{start|end}().  This creates a warning on PREEMPT_RT because
-local_irq_save() disables interrupts and spin_lock_t is turned into a
-sleeping lock which can not be acquired in a section with disabled
-interrupts.
+This is related to two previous changes.  Commit dfe4529ee4d3
+("scripts/gdb: find vmlinux where it was before") and commit da036ae14762
+("scripts/gdb: handle split debug").
 
-The kcov_remote_lock is used to synchronize the access to the hash-list
-kcov_remote_map.  The local_irq_save() block protects access to the
-per-CPU data kcov_percpu_data.
+Although Chrome OS has been using the debug suffix for modules for a
+while, it has just recently started using it for vmlinux as well.  That
+means we've now got to improve the detection of "vmlinux" to also handle
+that it might end with ".debug".
 
-There is no compelling reason to change the lock type to raw_spin_lock_t
-to make it work with local_irq_save().  Changing it would require to move
-memory allocation (in kcov_remote_add()) and deallocation outside of the
-locked section.
-
-Adding an unlimited amount of entries to the hashlist will increase the
-IRQ-off time during lookup.  It could be argued that this is debug code
-and the latency does not matter.  There is however no need to do so and it
-would allow to use this facility in an RT enabled build.
-
-Using a local_lock_t instead of local_irq_save() has the befit of adding a
-protection scope within the source which makes it obvious what is
-protected.  On a !PREEMPT_RT && !LOCKDEP build the local_lock_irqsave()
-maps directly to local_irq_save() so there is overhead at runtime.
-
-Replace the local_irq_save() section with a local_lock_t.
-
-Link: https://lkml.kernel.org/r/20210923164741.1859522-6-bigeasy@linutronix.de
-Link: https://lore.kernel.org/r/20210830172627.267989-6-bigeasy@linutronix.de
-Reported-by: Clark Williams <williams@redhat.com>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Marco Elver <elver@google.com>
-Tested-by: Marco Elver <elver@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20211028151120.v2.1.Ie6bd5a232f770acd8c9ffae487a02170bad3e963@changeid
+Signed-off-by: Douglas Anderson <dianders@chromium.org>
+Reviewed-by: Stephen Boyd <swboyd@chromium.org>
+Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Kieran Bingham <kbingham@kernel.org>
+Cc: Johannes Berg <johannes.berg@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ scripts/gdb/linux/symbols.py |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/kernel/kcov.c~kcov-replace-local_irq_save-with-a-local_lock_t
-+++ a/kernel/kcov.c
-@@ -88,6 +88,7 @@ static struct list_head kcov_remote_area
- 
- struct kcov_percpu_data {
- 	void			*irq_area;
-+	local_lock_t		lock;
- 
- 	unsigned int		saved_mode;
- 	unsigned int		saved_size;
-@@ -96,7 +97,9 @@ struct kcov_percpu_data {
- 	int			saved_sequence;
- };
- 
--static DEFINE_PER_CPU(struct kcov_percpu_data, kcov_percpu_data);
-+static DEFINE_PER_CPU(struct kcov_percpu_data, kcov_percpu_data) = {
-+	.lock = INIT_LOCAL_LOCK(lock),
-+};
- 
- /* Must be called with kcov_remote_lock locked. */
- static struct kcov_remote *kcov_remote_find(u64 handle)
-@@ -824,7 +827,7 @@ void kcov_remote_start(u64 handle)
- 	if (!in_task() && !in_serving_softirq())
- 		return;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&kcov_percpu_data.lock, flags);
- 
- 	/*
- 	 * Check that kcov_remote_start() is not called twice in background
-@@ -832,7 +835,7 @@ void kcov_remote_start(u64 handle)
- 	 */
- 	mode = READ_ONCE(t->kcov_mode);
- 	if (WARN_ON(in_task() && kcov_mode_enabled(mode))) {
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
- 		return;
- 	}
- 	/*
-@@ -841,14 +844,15 @@ void kcov_remote_start(u64 handle)
- 	 * happened while collecting coverage from a background thread.
- 	 */
- 	if (WARN_ON(in_serving_softirq() && t->kcov_softirq)) {
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
- 		return;
- 	}
- 
- 	spin_lock(&kcov_remote_lock);
- 	remote = kcov_remote_find(handle);
- 	if (!remote) {
--		spin_unlock_irqrestore(&kcov_remote_lock, flags);
-+		spin_unlock(&kcov_remote_lock);
-+		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
- 		return;
- 	}
- 	kcov_debug("handle = %llx, context: %s\n", handle,
-@@ -873,13 +877,13 @@ void kcov_remote_start(u64 handle)
- 
- 	/* Can only happen when in_task(). */
- 	if (!area) {
--		local_irqrestore(flags);
-+		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
- 		area = vmalloc(size * sizeof(unsigned long));
- 		if (!area) {
- 			kcov_put(kcov);
- 			return;
- 		}
--		local_irq_save(flags);
-+		local_lock_irqsave(&kcov_percpu_data.lock, flags);
- 	}
- 
- 	/* Reset coverage size. */
-@@ -891,7 +895,7 @@ void kcov_remote_start(u64 handle)
- 	}
- 	kcov_start(t, kcov, size, area, mode, sequence);
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
- 
- }
- EXPORT_SYMBOL(kcov_remote_start);
-@@ -965,12 +969,12 @@ void kcov_remote_stop(void)
- 	if (!in_task() && !in_serving_softirq())
- 		return;
- 
--	local_irq_save(flags);
-+	local_lock_irqsave(&kcov_percpu_data.lock, flags);
- 
- 	mode = READ_ONCE(t->kcov_mode);
- 	barrier();
- 	if (!kcov_mode_enabled(mode)) {
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
- 		return;
- 	}
- 	/*
-@@ -978,12 +982,12 @@ void kcov_remote_stop(void)
- 	 * actually found the remote handle and started collecting coverage.
- 	 */
- 	if (in_serving_softirq() && !t->kcov_softirq) {
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
- 		return;
- 	}
- 	/* Make sure that kcov_softirq is only set when in softirq. */
- 	if (WARN_ON(!in_serving_softirq() && t->kcov_softirq)) {
--		local_irq_restore(flags);
-+		local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
- 		return;
- 	}
- 
-@@ -1013,7 +1017,7 @@ void kcov_remote_stop(void)
- 		spin_unlock(&kcov_remote_lock);
- 	}
- 
--	local_irq_restore(flags);
-+	local_unlock_irqrestore(&kcov_percpu_data.lock, flags);
- 
- 	/* Get in kcov_remote_start(). */
- 	kcov_put(kcov);
+--- a/scripts/gdb/linux/symbols.py~scripts-gdb-handle-split-debug-for-vmlinux
++++ a/scripts/gdb/linux/symbols.py
+@@ -148,7 +148,8 @@ lx-symbols command."""
+         # drop all current symbols and reload vmlinux
+         orig_vmlinux = 'vmlinux'
+         for obj in gdb.objfiles():
+-            if obj.filename.endswith('vmlinux'):
++            if (obj.filename.endswith('vmlinux') or
++                obj.filename.endswith('vmlinux.debug')):
+                 orig_vmlinux = obj.filename
+         gdb.execute("symbol-file", to_string=True)
+         gdb.execute("symbol-file {0}".format(orig_vmlinux))
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from dianders@chromium.org are
 
 
