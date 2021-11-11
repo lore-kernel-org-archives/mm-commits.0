@@ -2,28 +2,28 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BBCEC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3DAF4C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:17 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1502061284
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1B53661884
+	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 02:40:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233571AbhKKCnB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 21:43:01 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48680 "EHLO mail.kernel.org"
+        id S233895AbhKKCnE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 10 Nov 2021 21:43:04 -0500
+Received: from mail.kernel.org ([198.145.29.99]:48716 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S233061AbhKKCnB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 21:43:01 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8956E61260;
-        Thu, 11 Nov 2021 02:40:12 +0000 (UTC)
+        id S233061AbhKKCnE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 10 Nov 2021 21:43:04 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 86695610F7;
+        Thu, 11 Nov 2021 02:40:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636598413;
-        bh=qyn8Oy6xXa31aiP9PkIs4TawGYMjcxcI90dAa7+yh3o=;
+        s=korg; t=1636598416;
+        bh=86ZXvIELJnj1RHbXTxHwkemTm6ByH1yBkoxXEnXoORU=;
         h=Date:From:To:Subject:From;
-        b=bMyUrPaJTivtjCDvO4XGBSywiTknmIDVAGw67lD3si4Tl4q2Aq87kUnbQMRmHsBpK
-         4yrTcEALD6ita1AP+aRWLHnGVlXJ5yK5qoLCmklHBMh2oAOEWYFCF7IXpcBvWbUacU
-         S7FUuxVUaTvPTo2O3RG+mlBFYp4GT8+UXV9Xdj3E=
-Date:   Wed, 10 Nov 2021 18:40:12 -0800
+        b=LkPHkfmNgG2E/e+xCVPGTf3leX2joeSmNGNB0B68UrmfAlPgGFBq3ZitVLzqJMJNV
+         o41Hfc9C3f1Fr6K9CjScDvu/2vOsrLOI6tYYycPk9PVwfGLuxLXiupeSHNjJsJVutB
+         ykdGH7ebg4lnvqlBCDZaHz86CyVAxk9Fbr8n7Zyc=
+Date:   Wed, 10 Nov 2021 18:40:15 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@gmail.com, bigeasy@linutronix.de, dvyukov@google.com,
         elver@google.com, glider@google.com, gustavoars@kernel.org,
@@ -33,8 +33,8 @@ To:     andreyknvl@gmail.com, bigeasy@linutronix.de, dvyukov@google.com,
         vinmenon@codeaurora.org, vjitta@codeaurora.org,
         walter-zh.wu@mediatek.com
 Subject:  [merged]
- lib-stackdepot-remove-unused-function-argument.patch removed from -mm tree
-Message-ID: <20211111024012.9Gk2ZlJgl%akpm@linux-foundation.org>
+ lib-stackdepot-introduce-__stack_depot_save.patch removed from -mm tree
+Message-ID: <20211111024015.fAF5MqNNx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,19 +43,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/stackdepot: remove unused function argument
+     Subject: lib/stackdepot: introduce __stack_depot_save()
 has been removed from the -mm tree.  Its filename was
-     lib-stackdepot-remove-unused-function-argument.patch
+     lib-stackdepot-introduce-__stack_depot_save.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Marco Elver <elver@google.com>
-Subject: lib/stackdepot: remove unused function argument
+Subject: lib/stackdepot: introduce __stack_depot_save()
 
-alloc_flags in depot_alloc_stack() is no longer used; remove it.
+Add __stack_depot_save(), which provides more fine-grained control over
+stackdepot's memory allocation behaviour, in case stackdepot runs out of
+"stack slabs".
 
-Link: https://lkml.kernel.org/r/20210913112609.2651084-3-elver@google.com
+Normally stackdepot uses alloc_pages() in case it runs out of space;
+passing can_alloc==false to __stack_depot_save() prohibits this, at the
+cost of more likely failure to record a stack trace.
+
+Link: https://lkml.kernel.org/r/20210913112609.2651084-4-elver@google.com
 Signed-off-by: Marco Elver <elver@google.com>
 Tested-by: Shuah Khan <skhan@linuxfoundation.org>
 Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
@@ -74,34 +80,95 @@ Cc: Walter Wu <walter-zh.wu@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ include/linux/stackdepot.h |    4 +++
+ lib/stackdepot.c           |   43 ++++++++++++++++++++++++++++++-----
+ 2 files changed, 41 insertions(+), 6 deletions(-)
 
---- a/lib/stackdepot.c~lib-stackdepot-remove-unused-function-argument
-+++ a/lib/stackdepot.c
-@@ -102,8 +102,8 @@ static bool init_stack_slab(void **preal
- }
+--- a/include/linux/stackdepot.h~lib-stackdepot-introduce-__stack_depot_save
++++ a/include/linux/stackdepot.h
+@@ -15,6 +15,10 @@
  
- /* Allocation of a new stack in raw storage */
--static struct stack_record *depot_alloc_stack(unsigned long *entries, int size,
--		u32 hash, void **prealloc, gfp_t alloc_flags)
-+static struct stack_record *
-+depot_alloc_stack(unsigned long *entries, int size, u32 hash, void **prealloc)
- {
- 	struct stack_record *stack;
- 	size_t required_size = struct_size(stack, entries, size);
-@@ -309,9 +309,8 @@ depot_stack_handle_t stack_depot_save(un
+ typedef u32 depot_stack_handle_t;
  
- 	found = find_stack(*bucket, entries, nr_entries, hash);
- 	if (!found) {
--		struct stack_record *new =
--			depot_alloc_stack(entries, nr_entries,
--					  hash, &prealloc, alloc_flags);
-+		struct stack_record *new = depot_alloc_stack(entries, nr_entries, hash, &prealloc);
++depot_stack_handle_t __stack_depot_save(unsigned long *entries,
++					unsigned int nr_entries,
++					gfp_t gfp_flags, bool can_alloc);
 +
- 		if (new) {
- 			new->next = *bucket;
- 			/*
+ depot_stack_handle_t stack_depot_save(unsigned long *entries,
+ 				      unsigned int nr_entries, gfp_t gfp_flags);
+ 
+--- a/lib/stackdepot.c~lib-stackdepot-introduce-__stack_depot_save
++++ a/lib/stackdepot.c
+@@ -248,17 +248,28 @@ unsigned int stack_depot_fetch(depot_sta
+ EXPORT_SYMBOL_GPL(stack_depot_fetch);
+ 
+ /**
+- * stack_depot_save - Save a stack trace from an array
++ * __stack_depot_save - Save a stack trace from an array
+  *
+  * @entries:		Pointer to storage array
+  * @nr_entries:		Size of the storage array
+  * @alloc_flags:	Allocation gfp flags
++ * @can_alloc:		Allocate stack slabs (increased chance of failure if false)
++ *
++ * Saves a stack trace from @entries array of size @nr_entries. If @can_alloc is
++ * %true, is allowed to replenish the stack slab pool in case no space is left
++ * (allocates using GFP flags of @alloc_flags). If @can_alloc is %false, avoids
++ * any allocations and will fail if no space is left to store the stack trace.
++ *
++ * Context: Any context, but setting @can_alloc to %false is required if
++ *          alloc_pages() cannot be used from the current context. Currently
++ *          this is the case from contexts where neither %GFP_ATOMIC nor
++ *          %GFP_NOWAIT can be used (NMI, raw_spin_lock).
+  *
+- * Return: The handle of the stack struct stored in depot
++ * Return: The handle of the stack struct stored in depot, 0 on failure.
+  */
+-depot_stack_handle_t stack_depot_save(unsigned long *entries,
+-				      unsigned int nr_entries,
+-				      gfp_t alloc_flags)
++depot_stack_handle_t __stack_depot_save(unsigned long *entries,
++					unsigned int nr_entries,
++					gfp_t alloc_flags, bool can_alloc)
+ {
+ 	struct stack_record *found = NULL, **bucket;
+ 	depot_stack_handle_t retval = 0;
+@@ -291,7 +302,7 @@ depot_stack_handle_t stack_depot_save(un
+ 	 * The smp_load_acquire() here pairs with smp_store_release() to
+ 	 * |next_slab_inited| in depot_alloc_stack() and init_stack_slab().
+ 	 */
+-	if (unlikely(!smp_load_acquire(&next_slab_inited))) {
++	if (unlikely(can_alloc && !smp_load_acquire(&next_slab_inited))) {
+ 		/*
+ 		 * Zero out zone modifiers, as we don't have specific zone
+ 		 * requirements. Keep the flags related to allocation in atomic
+@@ -339,6 +350,26 @@ exit:
+ fast_exit:
+ 	return retval;
+ }
++EXPORT_SYMBOL_GPL(__stack_depot_save);
++
++/**
++ * stack_depot_save - Save a stack trace from an array
++ *
++ * @entries:		Pointer to storage array
++ * @nr_entries:		Size of the storage array
++ * @alloc_flags:	Allocation gfp flags
++ *
++ * Context: Contexts where allocations via alloc_pages() are allowed.
++ *          See __stack_depot_save() for more details.
++ *
++ * Return: The handle of the stack struct stored in depot, 0 on failure.
++ */
++depot_stack_handle_t stack_depot_save(unsigned long *entries,
++				      unsigned int nr_entries,
++				      gfp_t alloc_flags)
++{
++	return __stack_depot_save(entries, nr_entries, alloc_flags, true);
++}
+ EXPORT_SYMBOL_GPL(stack_depot_save);
+ 
+ static inline int in_irqentry_text(unsigned long ptr)
 _
 
 Patches currently in -mm which might be from elver@google.com are
