@@ -2,126 +2,104 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2941AC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 04:32:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C07DC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 12 Nov 2021 18:20:29 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 12ED0610FC
-	for <mm-commits@archiver.kernel.org>; Thu, 11 Nov 2021 04:32:53 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7EDD66103D
+	for <mm-commits@archiver.kernel.org>; Fri, 12 Nov 2021 18:20:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232426AbhKKEfk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 10 Nov 2021 23:35:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50742 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S232020AbhKKEfj (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 10 Nov 2021 23:35:39 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C6FC7610A5;
-        Thu, 11 Nov 2021 04:32:49 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636605170;
-        bh=yn/shjwy2dxiiEU7uL24M0Z1mPKFTYp8NIEzguaB48E=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=CS/fDGB4cQM6s+rKpM7XX8v6ZLAehJl0qisxvK/iRT3K5ttn2Papr5J/xhfuooF4M
-         vPwvFvndXHLKIxM9TJFStCr9UBFaA0MruBnC7NgdKz8IjDsiEUbWej7X0uvb3GrVfN
-         I4WgRGKQ4cRhOKcnBdsNKg2pYmrB7mbBNSLSPjf8=
-Date:   Wed, 10 Nov 2021 20:32:49 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        catalin.marinas@arm.com, chinwen.chang@mediatek.com,
-        david@redhat.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, Kuan-Ying.Lee@mediatek.com, linux-mm@kvack.org,
-        matthias.bgg@gmail.com, mm-commits@vger.kernel.org,
-        nicholas.tang@mediatek.com, ryabinin.a.a@gmail.com,
-        torvalds@linux-foundation.org, will@kernel.org,
-        yee.lee@mediatek.com
-Subject:  [patch 7/7] kasan: add kasan mode messages when kasan
- init
-Message-ID: <20211111043249.LTk73-t6z%akpm@linux-foundation.org>
-In-Reply-To: <20211110203204.37de96048c3279ab2da758a5@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S235596AbhKLSXQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 12 Nov 2021 13:23:16 -0500
+Received: from mail-qk1-f171.google.com ([209.85.222.171]:36505 "EHLO
+        mail-qk1-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235570AbhKLSXO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 12 Nov 2021 13:23:14 -0500
+Received: by mail-qk1-f171.google.com with SMTP id i9so9965986qki.3;
+        Fri, 12 Nov 2021 10:20:22 -0800 (PST)
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
+         :mime-version:content-disposition:in-reply-to;
+        bh=JWiZ8wXdpr+ymeir7wbIGENhhh+/R2m3VvP1Bfr2oM4=;
+        b=M4sqScv+84j7gLvwUxmu6S4lXTe+X93ITsYiARqNdYmNbPT4aOMr84UVcmAisFoIIJ
+         6gbO498HNa6zb/Gna5vDtcyOAHK+P8AqNQuX8AV1kCdz+G6pKsOnYZrDHU18lXTmgVTM
+         hA72RHHm2YrIOS7XDTQm/4gls912uAX0/S6Ia8vBdVcFIsnO2xaJ8S1lpevbJ6AjqH0l
+         UneOT9GQ46layqTKGDxEXyghxu2Tft9VfzanHi1UAcNx6O4hIYC10sk1shRqSY7yumhk
+         Iymw7LKkzMggkaKrbzlm+bcaXTy1IX/gWP3eh8oNiv4INfF9BPBmXBUpW1watnA48Ij5
+         FaKg==
+X-Gm-Message-State: AOAM532sH57IVLFNC1/5cCr93ozslstiiyWU/78rJjAQuBBA5wjjUwfg
+        y3z325UG/xlBCr6kqRvP5fRpFxRvi/IX2Q==
+X-Google-Smtp-Source: ABdhPJzkotWNNE2ix4ZDIU6GFE4z6Dw5dyR82WpPFbAh3UAefUEqzld+CDUVl2jJ1IS+fxcn5BaFvw==
+X-Received: by 2002:a05:620a:1468:: with SMTP id j8mr14187436qkl.170.1636741222425;
+        Fri, 12 Nov 2021 10:20:22 -0800 (PST)
+Received: from fedora (pool-173-68-57-129.nycmny.fios.verizon.net. [173.68.57.129])
+        by smtp.gmail.com with ESMTPSA id e15sm3289846qtp.94.2021.11.12.10.20.21
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Fri, 12 Nov 2021 10:20:22 -0800 (PST)
+Date:   Fri, 12 Nov 2021 13:20:20 -0500
+From:   Dennis Zhou <dennis@kernel.org>
+To:     Michal Hocko <mhocko@suse.com>,
+        Andrew Morton <akpm@linux-foundation.org>
+Cc:     linux-kernel@vger.kernel.org, amakhalov@vmware.com, cl@linux.com,
+        mm-commits@vger.kernel.org, osalvador@suse.de,
+        stable@vger.kernel.org, tj@kernel.org
+Subject: Re: + mm-fix-panic-in-__alloc_pages.patch added to -mm tree
+Message-ID: <YY6wZMcx/BeddUnH@fedora>
+References: <20211108205031.UxDPHBZWa%akpm@linux-foundation.org>
+ <YYozLsIECu0Jnv0p@dhcp22.suse.cz>
+ <af7ab3ce-fed2-1ffc-13a8-f9acbd201841@redhat.com>
+ <YYpTy9eXZucxuRO/@dhcp22.suse.cz>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <YYpTy9eXZucxuRO/@dhcp22.suse.cz>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Subject: kasan: add kasan mode messages when kasan init
+Hello,
 
-There are multiple kasan modes.  It makes sense that we add some messages
-to know which kasan mode is active when booting up.  see [1].
+On Tue, Nov 09, 2021 at 12:00:46PM +0100, Michal Hocko wrote:
+> On Tue 09-11-21 09:42:56, David Hildenbrand wrote:
+> > On 09.11.21 09:37, Michal Hocko wrote:
+> > > I have opposed this patch http://lkml.kernel.org/r/YYj91Mkt4m8ySIWt@dhcp22.suse.cz
+> > > There was no response to that feedback. I will not go as far as to nack
+> > > it explicitly because pcp allocator is not an area I would nack patches
+> > > but seriously, this issue needs a deeper look rather than a paper over
+> > > patch. I hope we do not want to do a similar thing to all callers of
+> > > cpu_to_mem.
+> > 
+> > While we could move it into the !HOLES version of cpu_to_mem(), calling
+> > cpu_to_mem() on an offline (and eventually not even present) CPU (with
+> > an offline node) is really a corner case.
+> > 
+> > Instead of additional runtime overhead for all cpu_to_mem(), my take
+> > would be to just do it for the random special cases. Sure, we can
+> > document that people should be careful when calling cpu_to_mem() on
+> > offline CPUs. But IMHO it's really a corner case.
+> 
+> I suspect I haven't made myself clear enough. I do not think we should
+> be touching cpu_to_mem/cpu_to_node and handle this corner case. We
+> should be looking at the underlying problem instead. We cannot really
+> rely on cpu to be onlined to have a proper node association. We should
+> really look at the initialization code and handle this situation
+> properly. Memory less nodes are something we have been dealing with
+> already. This particular instance of the problem is new and we should
+> understand why.
+> -- 
+> Michal Hocko
+> SUSE Labs
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=212195 [1]
-Link: https://lkml.kernel.org/r/20211020094850.4113-1-Kuan-Ying.Lee@mediatek.com
-Signed-off-by: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Matthias Brugger <matthias.bgg@gmail.com>
-Cc: Chinwen Chang <chinwen.chang@mediatek.com>
-Cc: Yee Lee <yee.lee@mediatek.com>
-Cc: Nicholas Tang <nicholas.tang@mediatek.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+So I think we're still short a solution here. This patch solves the side
+effect but not the underlying problem related to cpu hotplug.
 
- arch/arm64/mm/kasan_init.c |    2 +-
- mm/kasan/hw_tags.c         |   14 +++++++++++++-
- mm/kasan/sw_tags.c         |    2 +-
- 3 files changed, 15 insertions(+), 3 deletions(-)
+I'm fine with this going in as a stop gap because I imagine the fixes to
+hotplug are a lot more intrusive, but do we have someone who can own
+that work to fix hotplug? I think that should be a requirement for
+taking this because clearly it's hotplug that's broken and not percpu.
 
---- a/arch/arm64/mm/kasan_init.c~kasan-add-kasan-mode-messages-when-kasan-init
-+++ a/arch/arm64/mm/kasan_init.c
-@@ -310,7 +310,7 @@ void __init kasan_init(void)
- 	kasan_init_depth();
- #if defined(CONFIG_KASAN_GENERIC)
- 	/* CONFIG_KASAN_SW_TAGS also requires kasan_init_sw_tags(). */
--	pr_info("KernelAddressSanitizer initialized\n");
-+	pr_info("KernelAddressSanitizer initialized (generic)\n");
- #endif
- }
- 
---- a/mm/kasan/hw_tags.c~kasan-add-kasan-mode-messages-when-kasan-init
-+++ a/mm/kasan/hw_tags.c
-@@ -106,6 +106,16 @@ static int __init early_kasan_flag_stack
- }
- early_param("kasan.stacktrace", early_kasan_flag_stacktrace);
- 
-+static inline const char *kasan_mode_info(void)
-+{
-+	if (kasan_mode == KASAN_MODE_ASYNC)
-+		return "async";
-+	else if (kasan_mode == KASAN_MODE_ASYMM)
-+		return "asymm";
-+	else
-+		return "sync";
-+}
-+
- /* kasan_init_hw_tags_cpu() is called for each CPU. */
- void kasan_init_hw_tags_cpu(void)
- {
-@@ -177,7 +187,9 @@ void __init kasan_init_hw_tags(void)
- 		break;
- 	}
- 
--	pr_info("KernelAddressSanitizer initialized\n");
-+	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, stacktrace=%s)\n",
-+		kasan_mode_info(),
-+		kasan_stack_collection_enabled() ? "on" : "off");
- }
- 
- void kasan_alloc_pages(struct page *page, unsigned int order, gfp_t flags)
---- a/mm/kasan/sw_tags.c~kasan-add-kasan-mode-messages-when-kasan-init
-+++ a/mm/kasan/sw_tags.c
-@@ -42,7 +42,7 @@ void __init kasan_init_sw_tags(void)
- 	for_each_possible_cpu(cpu)
- 		per_cpu(prng_state, cpu) = (u32)get_cycles();
- 
--	pr_info("KernelAddressSanitizer initialized\n");
-+	pr_info("KernelAddressSanitizer initialized (sw-tags)\n");
- }
- 
- /*
-_
+Acked-by: Dennis Zhou <dennis@kernel.org>
+
+Thanks,
+Dennis
