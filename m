@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 56C38C433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 18:53:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56657C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 20:34:51 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 40DCE63640
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 18:53:34 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 3EB7A60FBF
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 20:34:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242811AbhKOS4Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 13:56:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:54760 "EHLO mail.kernel.org"
+        id S236778AbhKOUhl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 15:37:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44642 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243234AbhKOSxo (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 13:53:44 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D2D4163309;
-        Mon, 15 Nov 2021 18:11:06 +0000 (UTC)
+        id S245628AbhKOTU5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 14:20:57 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1EB9D632E6;
+        Mon, 15 Nov 2021 18:38:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636999867;
-        bh=wzHHHBCzjWhVLSZ11uTQYvXBd6VsacmohQWtzK34LfI=;
+        s=korg; t=1637001499;
+        bh=4la6BN3A/O1StzRSEEVLp+j2BIsP14mvjV1FoiBy1m8=;
         h=Date:From:To:Subject:From;
-        b=ccpgnLalRgKaeuAodtShfQHgSliE6KDSNn3eycTgiTMvnzbe+2j5Q3wmdRGt6gzIB
-         C4B6mz91QQXrkB1Ruxqo1MmDtl2E+FQLJFFDOPI7zwCj8hryBY3bn/UQt5szcoQzPX
-         4lgmpKiLinAnCgC/i1FPDPvHRHeHLpoAZ1AcZ/m8=
-Date:   Mon, 15 Nov 2021 10:11:06 -0800
+        b=KQ+nNsTCqjeLd+lzfDWwwBBQ1sXNAjy45XpMa+Hc/y0U7N1JC7xvovHNjvPSvs5Rp
+         puHdkxQ3J9iYJtOM+mSikcFsiE6SXBv7IoqDwiwGcbB3t2fF0LFP8pMJdBE1MDIZe6
+         r2DPr/2r8ET+d74S/9nv4mwXq77q2QV/PEDy2tgg=
+Date:   Mon, 15 Nov 2021 10:38:18 -0800
 From:   akpm@linux-foundation.org
-To:     daniel.thompson@linaro.org, dvyukov@google.com, elver@google.com,
-        masahiroy@kernel.org, mm-commits@vger.kernel.org,
-        naresh.kamboju@linaro.org, paulmck@kernel.org,
-        quic_qiancai@quicinc.com, rdunlap@infradead.org,
-        sfr@canb.auug.org.au
-Subject:  + configs-introduce-debugconfig-for-ci-like-setup.patch
- added to -mm tree
-Message-ID: <20211115181106._HRCT6dJM%akpm@linux-foundation.org>
+To:     aneesh.kumar@linux.vnet.ibm.com, david@redhat.com,
+        dinghui@sangfor.com.cn, linmiaohe@huawei.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, peterx@redhat.com, shy828301@gmail.com,
+        tony.luck@intel.com
+Subject:  +
+ mm-hwpoison-mf_mutex-for-soft-offline-and-unpoison.patch added to -mm tree
+Message-ID: <20211115183818.MNGU3rLK6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: configs: introduce debug.config for CI-like setup
+     Subject: mm/hwpoison: mf_mutex for soft offline and unpoison
 has been added to the -mm tree.  Its filename is
-     configs-introduce-debugconfig-for-ci-like-setup.patch
+     mm-hwpoison-mf_mutex-for-soft-offline-and-unpoison.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/configs-introduce-debugconfig-for-ci-like-setup.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-mf_mutex-for-soft-offline-and-unpoison.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/configs-introduce-debugconfig-for-ci-like-setup.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-mf_mutex-for-soft-offline-and-unpoison.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,154 +62,222 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Qian Cai <quic_qiancai@quicinc.com>
-Subject: configs: introduce debug.config for CI-like setup
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hwpoison: mf_mutex for soft offline and unpoison
 
-Some general debugging features like kmemleak, KASAN, lockdep, UBSAN etc
-help fix many viruses like a microscope.  On the other hand, those
-features are scatter around and mixed up with more situational debugging
-options making them difficult to consume properly.  This cold help amplify
-the general debugging/testing efforts and help establish sensitive default
-values for those options across the broad.  This could also help different
-distros to collaborate on maintaining debug-flavored kernels.
+Patch series "mm/hwpoison: fix unpoison_memory()", v4.
 
-The config is based on years' experiences running daily CI inside the
-largest enterprise Linux distro company to seek regressions on linux-next
-builds on different bare-metal and virtual platforms.  It can be used for
-example,
+Main purpose of this series is to sync unpoison code to recent changes
+around how hwpoison code takes page refcount.  Unpoison should work or
+simply fail (without crash) if impossible.
 
-$ make ARCH=arm64 defconfig debug.config
+The recent works of keeping hwpoison pages in shmem pagecache introduce a
+new state of hwpoisoned pages, but unpoison for such pages is not
+supported yet with this series.
 
-Since KASAN and KCSAN can't be enabled together, we will need to create a
-separate one for KCSAN later as well.
+It seems that soft-offline and unpoison can be used as general purpose
+page offline/online mechanism (not in the context of memory error).  I
+think that we need some additional works to realize it because currently
+soft-offline and unpoison are assumed not to happen so frequently (print
+out too many messages for aggressive usecases).  But anyway this could be
+another interesting next topic.
 
-Link: https://lkml.kernel.org/r/20211115134754.7334-1-quic_qiancai@quicinc.com
-Signed-off-by: Qian Cai <quic_qiancai@quicinc.com>
-Acked-by: Paul E. McKenney <paulmck@kernel.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Daniel Thompson <daniel.thompson@linaro.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
-Cc: "Stephen Rothwell" <sfr@canb.auug.org.au>
-Cc: Randy Dunlap <rdunlap@infradead.org>
+v1: https://lore.kernel.org/linux-mm/20210614021212.223326-1-nao.horiguchi@gmail.com/
+v2: https://lore.kernel.org/linux-mm/20211025230503.2650970-1-naoya.horiguchi@linux.dev/
+v3: https://lore.kernel.org/linux-mm/20211105055058.3152564-1-naoya.horiguchi@linux.dev/
+
+
+This patch (of 3):
+
+Originally mf_mutex is introduced to serialize multiple MCE events, but it
+is not that useful to allow unpoison to run in parallel with
+memory_failure() and soft offline.  So apply mf_mutex to soft offline and
+unpoison.  The memory failure handler and soft offline handler get simpler
+with this.
+
+Link: https://lkml.kernel.org/r/20211115084006.3728254-1-naoya.horiguchi@linux.dev
+Link: https://lkml.kernel.org/r/20211115084006.3728254-2-naoya.horiguchi@linux.dev
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ding Hui <dinghui@sangfor.com.cn>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/configs/debug.config |  105 ++++++++++++++++++++++++++++++++++
- 1 file changed, 105 insertions(+)
+ mm/memory-failure.c |   62 ++++++++++++------------------------------
+ 1 file changed, 18 insertions(+), 44 deletions(-)
 
---- /dev/null
-+++ a/kernel/configs/debug.config
-@@ -0,0 +1,105 @@
-+# The config is based on running daily CI for enterprise Linux distros to
-+# seek regressions on linux-next builds on different bare-metal and virtual
-+# platforms. It can be used for example,
-+#
-+# $ make ARCH=arm64 defconfig debug.config
-+#
-+# Keep alphabetically sorted inside each section.
-+#
-+# printk and dmesg options
-+#
-+CONFIG_DEBUG_BUGVERBOSE=y
-+CONFIG_DYNAMIC_DEBUG=y
-+CONFIG_PRINTK_CALLER=y
-+CONFIG_PRINTK_TIME=y
-+CONFIG_SYMBOLIC_ERRNAME=y
-+#
-+# Compile-time checks and compiler options
-+#
-+CONFIG_DEBUG_INFO=y
-+CONFIG_DEBUG_SECTION_MISMATCH=y
-+CONFIG_FRAME_WARN=2048
-+CONFIG_SECTION_MISMATCH_WARN_ONLY=y
-+#
-+# Generic Kernel Debugging Instruments
-+#
-+# CONFIG_UBSAN_ALIGNMENT is not set
-+# CONFIG_UBSAN_DIV_ZERO is not set
-+# CONFIG_UBSAN_TRAP is not set
-+# CONFIG_WARN_ALL_UNSEEDED_RANDOM is not set
-+CONFIG_DEBUG_FS=y
-+CONFIG_DEBUG_FS_ALLOW_ALL=y
-+CONFIG_DEBUG_IRQFLAGS=y
-+CONFIG_UBSAN=y
-+CONFIG_UBSAN_BOOL=y
-+CONFIG_UBSAN_BOUNDS=y
-+CONFIG_UBSAN_ENUM=y
-+CONFIG_UBSAN_SHIFT=y
-+CONFIG_UBSAN_UNREACHABLE=y
-+#
-+# Memory Debugging
-+#
-+# CONFIG_DEBUG_PAGEALLOC is not set
-+# CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF is not set
-+# CONFIG_DEBUG_RODATA_TEST is not set
-+# CONFIG_DEBUG_WX is not set
-+# CONFIG_KFENCE is not set
-+# CONFIG_PAGE_POISONING is not set
-+# CONFIG_SLUB_STATS is not set
-+CONFIG_PAGE_EXTENSION=y
-+CONFIG_PAGE_OWNER=y
-+CONFIG_DEBUG_KMEMLEAK=y
-+CONFIG_DEBUG_KMEMLEAK_AUTO_SCAN=y
-+CONFIG_DEBUG_OBJECTS=y
-+CONFIG_DEBUG_OBJECTS_ENABLE_DEFAULT=1
-+CONFIG_DEBUG_OBJECTS_FREE=y
-+CONFIG_DEBUG_OBJECTS_PERCPU_COUNTER=y
-+CONFIG_DEBUG_OBJECTS_RCU_HEAD=y
-+CONFIG_DEBUG_OBJECTS_TIMERS=y
-+CONFIG_DEBUG_OBJECTS_WORK=y
-+CONFIG_DEBUG_PER_CPU_MAPS=y
-+CONFIG_DEBUG_STACK_USAGE=y
-+CONFIG_DEBUG_VIRTUAL=y
-+CONFIG_DEBUG_VM=y
-+CONFIG_DEBUG_VM_PGFLAGS=y
-+CONFIG_DEBUG_VM_RB=y
-+CONFIG_DEBUG_VM_VMACACHE=y
-+CONFIG_GENERIC_PTDUMP=y
-+CONFIG_KASAN=y
-+CONFIG_KASAN_GENERIC=y
-+CONFIG_KASAN_INLINE=y
-+CONFIG_KASAN_VMALLOC=y
-+CONFIG_PTDUMP_DEBUGFS=y
-+CONFIG_SCHED_STACK_END_CHECK=y
-+CONFIG_SLUB_DEBUG_ON=y
-+#
-+# Debug Oops, Lockups and Hangs
-+#
-+# CONFIG_BOOTPARAM_HUNG_TASK_PANIC is not set
-+# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
-+CONFIG_DEBUG_ATOMIC_SLEEP=y
-+CONFIG_DETECT_HUNG_TASK=y
-+CONFIG_PANIC_ON_OOPS=y
-+CONFIG_PANIC_TIMEOUT=0
-+CONFIG_SOFTLOCKUP_DETECTOR=y
-+#
-+# Lock Debugging (spinlocks, mutexes, etc...)
-+#
-+# CONFIG_PROVE_RAW_LOCK_NESTING is not set
-+CONFIG_PROVE_LOCKING=y
-+#
-+# Debug kernel data structures
-+#
-+CONFIG_BUG_ON_DATA_CORRUPTION=y
-+#
-+# RCU Debugging
-+#
-+CONFIG_PROVE_RCU=y
-+CONFIG_PROVE_RCU_LIST=y
-+#
-+# Tracers
-+#
-+CONFIG_BRANCH_PROFILE_NONE=y
-+CONFIG_DYNAMIC_FTRACE=y
-+CONFIG_FTRACE=y
-+CONFIG_FUNCTION_TRACER=y
+--- a/mm/memory-failure.c~mm-hwpoison-mf_mutex-for-soft-offline-and-unpoison
++++ a/mm/memory-failure.c
+@@ -1499,14 +1499,6 @@ static int memory_failure_hugetlb(unsign
+ 	lock_page(head);
+ 	page_flags = head->flags;
+ 
+-	if (!PageHWPoison(head)) {
+-		pr_err("Memory failure: %#lx: just unpoisoned\n", pfn);
+-		num_poisoned_pages_dec();
+-		unlock_page(head);
+-		put_page(head);
+-		return 0;
+-	}
+-
+ 	/*
+ 	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
+ 	 * simply disable it. In order to make it work properly, we need
+@@ -1620,6 +1612,8 @@ out:
+ 	return rc;
+ }
+ 
++static DEFINE_MUTEX(mf_mutex);
++
+ /**
+  * memory_failure - Handle memory failure of a page.
+  * @pfn: Page Number of the corrupted page
+@@ -1646,7 +1640,6 @@ int memory_failure(unsigned long pfn, in
+ 	int res = 0;
+ 	unsigned long page_flags;
+ 	bool retry = true;
+-	static DEFINE_MUTEX(mf_mutex);
+ 
+ 	if (!sysctl_memory_failure_recovery)
+ 		panic("Memory failure on page %lx", pfn);
+@@ -1780,16 +1773,6 @@ try_again:
+ 	 */
+ 	page_flags = p->flags;
+ 
+-	/*
+-	 * unpoison always clear PG_hwpoison inside page lock
+-	 */
+-	if (!PageHWPoison(p)) {
+-		pr_err("Memory failure: %#lx: just unpoisoned\n", pfn);
+-		num_poisoned_pages_dec();
+-		unlock_page(p);
+-		put_page(p);
+-		goto unlock_mutex;
+-	}
+ 	if (hwpoison_filter(p)) {
+ 		if (TestClearPageHWPoison(p))
+ 			num_poisoned_pages_dec();
+@@ -1970,6 +1953,7 @@ int unpoison_memory(unsigned long pfn)
+ 	struct page *page;
+ 	struct page *p;
+ 	int freeit = 0;
++	int ret = 0;
+ 	unsigned long flags = 0;
+ 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 					DEFAULT_RATELIMIT_BURST);
+@@ -1980,39 +1964,30 @@ int unpoison_memory(unsigned long pfn)
+ 	p = pfn_to_page(pfn);
+ 	page = compound_head(p);
+ 
++	mutex_lock(&mf_mutex);
++
+ 	if (!PageHWPoison(p)) {
+ 		unpoison_pr_info("Unpoison: Page was already unpoisoned %#lx\n",
+ 				 pfn, &unpoison_rs);
+-		return 0;
++		goto unlock_mutex;
+ 	}
+ 
+ 	if (page_count(page) > 1) {
+ 		unpoison_pr_info("Unpoison: Someone grabs the hwpoison page %#lx\n",
+ 				 pfn, &unpoison_rs);
+-		return 0;
++		goto unlock_mutex;
+ 	}
+ 
+ 	if (page_mapped(page)) {
+ 		unpoison_pr_info("Unpoison: Someone maps the hwpoison page %#lx\n",
+ 				 pfn, &unpoison_rs);
+-		return 0;
++		goto unlock_mutex;
+ 	}
+ 
+ 	if (page_mapping(page)) {
+ 		unpoison_pr_info("Unpoison: the hwpoison page has non-NULL mapping %#lx\n",
+ 				 pfn, &unpoison_rs);
+-		return 0;
+-	}
+-
+-	/*
+-	 * unpoison_memory() can encounter thp only when the thp is being
+-	 * worked by memory_failure() and the page lock is not held yet.
+-	 * In such case, we yield to memory_failure() and make unpoison fail.
+-	 */
+-	if (!PageHuge(page) && PageTransHuge(page)) {
+-		unpoison_pr_info("Unpoison: Memory failure is now running on %#lx\n",
+-				 pfn, &unpoison_rs);
+-		return 0;
++		goto unlock_mutex;
+ 	}
+ 
+ 	if (!get_hwpoison_page(p, flags)) {
+@@ -2020,29 +1995,23 @@ int unpoison_memory(unsigned long pfn)
+ 			num_poisoned_pages_dec();
+ 		unpoison_pr_info("Unpoison: Software-unpoisoned free page %#lx\n",
+ 				 pfn, &unpoison_rs);
+-		return 0;
++		goto unlock_mutex;
+ 	}
+ 
+-	lock_page(page);
+-	/*
+-	 * This test is racy because PG_hwpoison is set outside of page lock.
+-	 * That's acceptable because that won't trigger kernel panic. Instead,
+-	 * the PG_hwpoison page will be caught and isolated on the entrance to
+-	 * the free buddy page pool.
+-	 */
+ 	if (TestClearPageHWPoison(page)) {
+ 		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
+ 				 pfn, &unpoison_rs);
+ 		num_poisoned_pages_dec();
+ 		freeit = 1;
+ 	}
+-	unlock_page(page);
+ 
+ 	put_page(page);
+ 	if (freeit && !(pfn == my_zero_pfn(0) && page_count(p) == 1))
+ 		put_page(page);
+ 
+-	return 0;
++unlock_mutex:
++	mutex_unlock(&mf_mutex);
++	return ret;
+ }
+ EXPORT_SYMBOL(unpoison_memory);
+ 
+@@ -2223,9 +2192,12 @@ int soft_offline_page(unsigned long pfn,
+ 		return -EIO;
+ 	}
+ 
++	mutex_lock(&mf_mutex);
++
+ 	if (PageHWPoison(page)) {
+ 		pr_info("%s: %#lx page already poisoned\n", __func__, pfn);
+ 		put_ref_page(ref_page);
++		mutex_unlock(&mf_mutex);
+ 		return 0;
+ 	}
+ 
+@@ -2243,5 +2215,7 @@ retry:
+ 		}
+ 	}
+ 
++	mutex_unlock(&mf_mutex);
++
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from quic_qiancai@quicinc.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-configs-introduce-debugconfig-for-ci-like-setup.patch
+mm-hwpoison-mf_mutex-for-soft-offline-and-unpoison.patch
+mm-hwpoison-remove-mf_msg_buddy_2nd-and-mf_msg_poisoned_huge.patch
+mm-hwpoison-fix-unpoison_memory.patch
 
