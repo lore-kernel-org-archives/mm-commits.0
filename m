@@ -2,382 +2,76 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 22ED5C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 20:34:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61BDAC433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 20:34:56 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0A69C619E3
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 20:34:54 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4800B619E3
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 20:34:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245414AbhKOUhq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 15:37:46 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44598 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1343659AbhKOTVe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 14:21:34 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D5797632C8;
-        Mon, 15 Nov 2021 18:44:02 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637001843;
-        bh=o/r0Vf+N/WtAXvjAcDPBc8sghP+kBfCaRulRKm5H83A=;
-        h=Date:From:To:Subject:From;
-        b=X1BTe438OSJbjvX6IS5XF8ZtJg0q7M2JEIFpLHTkiVgd1jPfC9r6dY9RXF5uLl7A6
-         +7iWI+rb6719gedX/mppH7/wCGsplW2kD2OTnOpWdgACmQcp/EwNLcJaKUKdSYwUGM
-         06YMusZaBM+Uu65LPMT2hoHX7E5nb/9mLOYX6pBw=
-Date:   Mon, 15 Nov 2021 10:44:02 -0800
-From:   akpm@linux-foundation.org
-To:     baolin.wang@linux.alibaba.com, dave.hansen@linux.intel.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de, shy828301@gmail.com,
-        xlpang@linux.alibaba.com, ying.huang@intel.com,
-        zhongjiang-ali@linux.alibaba.com, ziy@nvidia.com
-Subject:  + mm-migrate-support-multiple-target-nodes-demotion.patch
+        id S1347254AbhKOUhs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 15:37:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41344 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1347717AbhKOTmz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 Nov 2021 14:42:55 -0500
+Received: from mail-oi1-x22b.google.com (mail-oi1-x22b.google.com [IPv6:2607:f8b0:4864:20::22b])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 50BC8C061570
+        for <mm-commits@vger.kernel.org>; Mon, 15 Nov 2021 11:39:57 -0800 (PST)
+Received: by mail-oi1-x22b.google.com with SMTP id w199so3843611oiw.4
+        for <mm-commits@vger.kernel.org>; Mon, 15 Nov 2021 11:39:57 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=google.com; s=20210112;
+        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
+         :cc;
+        bh=f8QjUQHYKxcUA/Y8KIeAbBLkiHJtaz31XO51VshdBhE=;
+        b=APNbux0b5xrJgX5qqDRvThj9wyHsjCKsPHlPPvDDwy6CE+FENWwtsMsbK1cfIBYoV1
+         qt8SuPC34Wq3IsSVpXkrBIoehPGVhm6Li7Ba5mA0AF86ROWD0xEKe/Ul1BVxUZy+fY8M
+         tLNcZAgwIiHksFGijwyo1x0t6EUX29bDTuY2oweNraBZjyggHvOmlvqdlzNJacKX5bvd
+         +Or+M0F/wqxnh1cSgQmi8A9CbUo5ZwBNs942gd3zK3ViqoSPa8vQi5wh0JslwUfHZ4cm
+         wQFx5n7RxBOCenYlpGCawdQ3/nAyrbFq8s2traMyQUqdKbtMSOUNgHGaRR5GTOAWfIAN
+         S41A==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
+         :message-id:subject:to:cc;
+        bh=f8QjUQHYKxcUA/Y8KIeAbBLkiHJtaz31XO51VshdBhE=;
+        b=RT66ojVk9bouNZpWCCqBQC2ho3yeE+XrRS5ncg5sBJLMVAQWTKNemDHpxaHyzxwyRQ
+         jNqymoQ4aeNr2tcH0/PejXY7Nr+8JFaI1Ss0ZQ1WoQyq0VKPDA2V9yppLpZPypHirTJ/
+         QW7Nh1yOwF/koHek23LpmZPq8sT+pnZ0CzWak+Pn7aMZjS+IU994zHbJvtSW5/BVOySR
+         Bhs3HwSP8Of5+sWA97wP1woghd8mIJt7PNg30DaaXDuKetkuzBzivOF7muAQJYwxisfG
+         uT3fgZp5JSNaMpSMh4XR9QergtqpdXMr/7mwP1E4gI8a1+5qeUblJT8qiXHu6yCshBed
+         4sCg==
+X-Gm-Message-State: AOAM5310w4obzrUr94DBnqaw/JBQc1QoMQPF1c9zxOrLPBPkn3jwp3l2
+        T/Fjz8+fLbWnkV3JdvmROq6L/Q2bYRs5yO7a3xKOD6g8DU8=
+X-Google-Smtp-Source: ABdhPJxfuJbpl+sbSEa+HfVyjG3+lXU3PNQB9PYaF7n5A0NduiGbeidc3n02RfvuXJxxp/FD0ZgKBbphFy62/3KeQ1c=
+X-Received: by 2002:a05:6808:1903:: with SMTP id bf3mr36769410oib.7.1637005196523;
+ Mon, 15 Nov 2021 11:39:56 -0800 (PST)
+MIME-Version: 1.0
+References: <20211115183337.-JrkuEgrc%akpm@linux-foundation.org>
+In-Reply-To: <20211115183337.-JrkuEgrc%akpm@linux-foundation.org>
+From:   Marco Elver <elver@google.com>
+Date:   Mon, 15 Nov 2021 20:39:44 +0100
+Message-ID: <CANpmjNN8z7jnR5_prtBt0Qr-K4jmjJCvzvxOj=dnkKj0sCSATQ@mail.gmail.com>
+Subject: Re: + panic-use-error_report_end-tracepoint-on-warnings-fix.patch
  added to -mm tree
-Message-ID: <20211115184402.2_1fUJ62g%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+To:     akpm@linux-foundation.org
+Cc:     andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Mon, 15 Nov 2021 at 19:33, <akpm@linux-foundation.org> wrote:
+[...]
+> ------------------------------------------------------
+> From: Andrew Morton <akpm@linux-foundation.org>
+> Subject: panic-use-error_report_end-tracepoint-on-warnings-fix
+>
+> add comma to enum list, per Andy.
 
-The patch titled
-     Subject: mm: migrate: support multiple target nodes demotion
-has been added to the -mm tree.  Its filename is
-     mm-migrate-support-multiple-target-nodes-demotion.patch
+Thanks, Andrew. I wanted to send v2 tomorrow, in case there were more
+comments. I'll skip sending v2 in this case.
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-support-multiple-target-nodes-demotion.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-support-multiple-target-nodes-demotion.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: migrate: support multiple target nodes demotion
-
-We have some machines with multiple memory types like below, which have
-one fast (DRAM) memory node and two slow (persistent memory) memory nodes.
-According to current node demotion policy, if node 0 fills up, its memory
-should be migrated to node 1, when node 1 fills up, its memory will be
-migrated to node 2: node 0 -> node 1 -> node 2 ->stop.
-
-But this is not efficient and suitbale memory migration route for our
-machine with multiple slow memory nodes.  Since the distance between node
-0 to node 1 and node 0 to node 2 is equal, and memory migration between
-slow memory nodes will increase persistent memory bandwidth greatly, which
-will hurt the whole system's performance.
-
-Thus for this case, we can treat the slow memory node 1 and node 2 as a
-whole slow memory region, and we should migrate memory from node 0 to node
-1 and node 2 if node 0 fills up.
-
-This patch changes the node_demotion data structure to support multiple
-target nodes, and establishes the migration path to support multiple
-target nodes with validating if the node distance is the best or not.
-
-available: 3 nodes (0-2)
-node 0 cpus: 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
-node 0 size: 62153 MB
-node 0 free: 55135 MB
-node 1 cpus:
-node 1 size: 127007 MB
-node 1 free: 126930 MB
-node 2 cpus:
-node 2 size: 126968 MB
-node 2 free: 126878 MB
-node distances:
-node   0   1   2
-  0:  10  20  20
-  1:  20  10  20
-  2:  20  20  10
-
-Link: https://lkml.kernel.org/r/00728da107789bb4ed9e0d28b1d08fd8056af2ef.1636697263.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Baolin Wang <baolin.wang@linux.alibaba.com>
-Cc: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
-Cc: Xunlei Pang <xlpang@linux.alibaba.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/migrate.c |  164 ++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 129 insertions(+), 35 deletions(-)
-
---- a/mm/migrate.c~mm-migrate-support-multiple-target-nodes-demotion
-+++ a/mm/migrate.c
-@@ -50,6 +50,7 @@
- #include <linux/ptrace.h>
- #include <linux/oom.h>
- #include <linux/memory.h>
-+#include <linux/random.h>
- 
- #include <asm/tlbflush.h>
- 
-@@ -1119,12 +1120,25 @@ out:
-  *
-  * This is represented in the node_demotion[] like this:
-  *
-- *	{  1, // Node 0 migrates to 1
-- *	   2, // Node 1 migrates to 2
-- *	  -1, // Node 2 does not migrate
-- *	   4, // Node 3 migrates to 4
-- *	   5, // Node 4 migrates to 5
-- *	  -1} // Node 5 does not migrate
-+ *	{  nr=1, nodes[0]=1 }, // Node 0 migrates to 1
-+ *	{  nr=1, nodes[0]=2 }, // Node 1 migrates to 2
-+ *	{  nr=0, nodes[0]=-1 }, // Node 2 does not migrate
-+ *	{  nr=1, nodes[0]=4 }, // Node 3 migrates to 4
-+ *	{  nr=1, nodes[0]=5 }, // Node 4 migrates to 5
-+ *	{  nr=0, nodes[0]=-1 }, // Node 5 does not migrate
-+ *
-+ * Moreover some systems may have multiple slow memory nodes.
-+ * Suppose a system has one socket with 3 memory nodes, node 0
-+ * is fast memory type, and node 1/2 both are slow memory
-+ * type, and the distance between fast memory node and slow
-+ * memory node is same. So the migration path should be:
-+ *
-+ *	0 -> 1/2 -> stop
-+ *
-+ * This is represented in the node_demotion[] like this:
-+ *	{ nr=2, {nodes[0]=1, nodes[1]=2} }, // Node 0 migrates to node 1 and node 2
-+ *	{ nr=0, nodes[0]=-1, }, // Node 1 dose not migrate
-+ *	{ nr=0, nodes[0]=-1, }, // Node 2 does not migrate
-  */
- 
- /*
-@@ -1135,8 +1149,20 @@ out:
-  * must be held over all reads to ensure that no cycles are
-  * observed.
-  */
--static int node_demotion[MAX_NUMNODES] __read_mostly =
--	{[0 ...  MAX_NUMNODES - 1] = NUMA_NO_NODE};
-+#define DEFAULT_DEMOTION_TARGET_NODES 15
-+
-+#if MAX_NUMNODES < DEFAULT_DEMOTION_TARGET_NODES
-+#define DEMOTION_TARGET_NODES	(MAX_NUMNODES - 1)
-+#else
-+#define DEMOTION_TARGET_NODES	DEFAULT_DEMOTION_TARGET_NODES
-+#endif
-+
-+struct demotion_nodes {
-+	unsigned short nr;
-+	short nodes[DEMOTION_TARGET_NODES];
-+};
-+
-+static struct demotion_nodes *node_demotion __read_mostly;
- 
- /**
-  * next_demotion_node() - Get the next node in the demotion path
-@@ -1149,8 +1175,15 @@ static int node_demotion[MAX_NUMNODES] _
-  */
- int next_demotion_node(int node)
- {
-+	struct demotion_nodes *nd;
-+	unsigned short target_nr, index;
- 	int target;
- 
-+	if (!node_demotion)
-+		return NUMA_NO_NODE;
-+
-+	nd = &node_demotion[node];
-+
- 	/*
- 	 * node_demotion[] is updated without excluding this
- 	 * function from running.  RCU doesn't provide any
-@@ -1161,9 +1194,28 @@ int next_demotion_node(int node)
- 	 * node_demotion[] reads need to be consistent.
- 	 */
- 	rcu_read_lock();
--	target = READ_ONCE(node_demotion[node]);
--	rcu_read_unlock();
-+	target_nr = READ_ONCE(nd->nr);
- 
-+	switch (target_nr) {
-+	case 0:
-+		target = NUMA_NO_NODE;
-+		goto out;
-+	case 1:
-+		index = 0;
-+		break;
-+	default:
-+		/*
-+		 * If there are multiple target nodes, just select one
-+		 * target node randomly.
-+		 */
-+		index = get_random_int() % target_nr;
-+		break;
-+	}
-+
-+	target = READ_ONCE(nd->nodes[index]);
-+
-+out:
-+	rcu_read_unlock();
- 	return target;
- }
- 
-@@ -2974,10 +3026,16 @@ EXPORT_SYMBOL(migrate_vma_finalize);
- /* Disable reclaim-based migration. */
- static void __disable_all_migrate_targets(void)
- {
--	int node;
-+	int node, i;
- 
--	for_each_online_node(node)
--		node_demotion[node] = NUMA_NO_NODE;
-+	if (!node_demotion)
-+		return;
-+
-+	for_each_online_node(node) {
-+		node_demotion[node].nr = 0;
-+		for (i = 0; i < DEMOTION_TARGET_NODES; i++)
-+			node_demotion[node].nodes[i] = NUMA_NO_NODE;
-+	}
- }
- 
- static void disable_all_migrate_targets(void)
-@@ -3004,26 +3062,40 @@ static void disable_all_migrate_targets(
-  * Failing here is OK.  It might just indicate
-  * being at the end of a chain.
-  */
--static int establish_migrate_target(int node, nodemask_t *used)
-+static int establish_migrate_target(int node, nodemask_t *used,
-+				    int best_distance)
- {
--	int migration_target;
-+	int migration_target, index, val;
-+	struct demotion_nodes *nd;
- 
--	/*
--	 * Can not set a migration target on a
--	 * node with it already set.
--	 *
--	 * No need for READ_ONCE() here since this
--	 * in the write path for node_demotion[].
--	 * This should be the only thread writing.
--	 */
--	if (node_demotion[node] != NUMA_NO_NODE)
-+	if (!node_demotion)
- 		return NUMA_NO_NODE;
- 
-+	nd = &node_demotion[node];
-+
- 	migration_target = find_next_best_node(node, used);
- 	if (migration_target == NUMA_NO_NODE)
- 		return NUMA_NO_NODE;
- 
--	node_demotion[node] = migration_target;
-+	/*
-+	 * If the node has been set a migration target node before,
-+	 * which means it's the best distance between them. Still
-+	 * check if this node can be demoted to other target nodes
-+	 * if they have a same best distance.
-+	 */
-+	if (best_distance != -1) {
-+		val = node_distance(node, migration_target);
-+		if (val > best_distance)
-+			return NUMA_NO_NODE;
-+	}
-+
-+	index = nd->nr;
-+	if (WARN_ONCE(index >= DEMOTION_TARGET_NODES,
-+		      "Exceeds maximum demotion target nodes\n"))
-+		return NUMA_NO_NODE;
-+
-+	nd->nodes[index] = migration_target;
-+	nd->nr++;
- 
- 	return migration_target;
- }
-@@ -3039,7 +3111,9 @@ static int establish_migrate_target(int
-  *
-  * The difference here is that cycles must be avoided.  If
-  * node0 migrates to node1, then neither node1, nor anything
-- * node1 migrates to can migrate to node0.
-+ * node1 migrates to can migrate to node0. Also one node can
-+ * be migrated to multiple nodes if the target nodes all have
-+ * a same best-distance against the source node.
-  *
-  * This function can run simultaneously with readers of
-  * node_demotion[].  However, it can not run simultaneously
-@@ -3051,7 +3125,7 @@ static void __set_migration_target_nodes
- 	nodemask_t next_pass	= NODE_MASK_NONE;
- 	nodemask_t this_pass	= NODE_MASK_NONE;
- 	nodemask_t used_targets = NODE_MASK_NONE;
--	int node;
-+	int node, best_distance;
- 
- 	/*
- 	 * Avoid any oddities like cycles that could occur
-@@ -3080,18 +3154,33 @@ again:
- 	 * multiple source nodes to share a destination.
- 	 */
- 	nodes_or(used_targets, used_targets, this_pass);
--	for_each_node_mask(node, this_pass) {
--		int target_node = establish_migrate_target(node, &used_targets);
- 
--		if (target_node == NUMA_NO_NODE)
--			continue;
-+	for_each_node_mask(node, this_pass) {
-+		best_distance = -1;
- 
- 		/*
--		 * Visit targets from this pass in the next pass.
--		 * Eventually, every node will have been part of
--		 * a pass, and will become set in 'used_targets'.
-+		 * Try to set up the migration path for the node, and the target
-+		 * migration nodes can be multiple, so doing a loop to find all
-+		 * the target nodes if they all have a best node distance.
- 		 */
--		node_set(target_node, next_pass);
-+		do {
-+			int target_node =
-+				establish_migrate_target(node, &used_targets,
-+							 best_distance);
-+
-+			if (target_node == NUMA_NO_NODE)
-+				break;
-+
-+			if (best_distance == -1)
-+				best_distance = node_distance(node, target_node);
-+
-+			/*
-+			 * Visit targets from this pass in the next pass.
-+			 * Eventually, every node will have been part of
-+			 * a pass, and will become set in 'used_targets'.
-+			 */
-+			node_set(target_node, next_pass);
-+		} while (1);
- 	}
- 	/*
- 	 * 'next_pass' contains nodes which became migration
-@@ -3192,6 +3281,11 @@ static int __init migrate_on_reclaim_ini
- {
- 	int ret;
- 
-+	node_demotion = kmalloc_array(nr_node_ids,
-+				      sizeof(struct demotion_nodes),
-+				      GFP_KERNEL);
-+	WARN_ON(!node_demotion);
-+
- 	ret = cpuhp_setup_state_nocalls(CPUHP_MM_DEMOTION_DEAD, "mm/demotion:offline",
- 					NULL, migration_offline_cpu);
- 	/*
-_
-
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
-
-mm-migrate-support-multiple-target-nodes-demotion.patch
-
+Thanks,
+-- Marco
