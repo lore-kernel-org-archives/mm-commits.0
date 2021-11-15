@@ -2,37 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AA4CEC4332F
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 22:13:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A014DC433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 22:42:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 995C361546
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 22:13:21 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7C60363219
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 22:42:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241785AbhKOWQN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 17:16:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:41266 "EHLO mail.kernel.org"
+        id S238186AbhKOWpJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 17:45:09 -0500
+Received: from mail.kernel.org ([198.145.29.99]:43364 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1352652AbhKOWLa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 17:11:30 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id D0FE161A09;
-        Mon, 15 Nov 2021 22:08:28 +0000 (UTC)
+        id S1353205AbhKOWXB (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 17:23:01 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CF3E861B4A;
+        Mon, 15 Nov 2021 22:20:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637014109;
-        bh=Ne/q8oxEiNDVZvFUcIQ/6UjMfRyVQsayas4V/9oKJbc=;
+        s=korg; t=1637014804;
+        bh=Ji4mfdDwCiIF+Wnh8j8PsXIaJnFnNkGfPLFJuPJtyrM=;
         h=Date:From:To:Subject:From;
-        b=q9q4c54A1kdhVcCPVnO0DF+MpYLUaPgT+h7VXEz8Umx9XGzp2Q/cr4glrMnpmLhr6
-         hdlwtYCkjZBPo52XSi7a7TtyZsL99mklDY/Agpo68rUKn9HnV7z3B8j6aI0tyzRtSL
-         nzXf5HZn2g6jMv4Zq+F7L0piTRYadVaqPCmLvWKE=
-Date:   Mon, 15 Nov 2021 14:08:28 -0800
+        b=lJiPzfM8FsHOrFuVZx8uUv8+LcMLHrZleV3KlY1kPvDZgwKrj4w5f6ORjEkpjrOdH
+         hAE8T+nbjLVxHbM7LA1ZnsAFWjUWsaz0T4PIvKhGqjc6AXmmVVY714sHq/Ig9L1y23
+         RaywlzxlR/qwz7pPyUVF61SaBBp5JthVQoFNhzTE=
+Date:   Mon, 15 Nov 2021 14:20:03 -0800
 From:   akpm@linux-foundation.org
-To:     bsingharora@gmail.com, hannes@cmpxchg.org, mingo@kernel.org,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        yang.yang29@zte.com.cn, zealci@zte.com.cn
+To:     bhe@redhat.com, david@redhat.com, dyoung@redhat.com,
+        mm-commits@vger.kernel.org, prudo@redhat.com, vgoyal@redhat.com
 Subject:  +
- delayacct-support-swapin-delay-accounting-for-swapping-without-blkio.patch
- added to -mm tree
-Message-ID: <20211115220828.ivP27dTTS%akpm@linux-foundation.org>
+ =?US-ASCII?Q?proc-vmcore-dont-fake-reading-zeroes-on-surprise-vmcore?=
+ =?US-ASCII?Q?=5Fcb-unregistration.patch?= added to -mm tree
+Message-ID: <20211115222003.QYkcdi4zM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: delayacct: support swapin delay accounting for swapping without blkio
+     Subject: proc/vmcore: don't fake reading zeroes on surprise vmcore_cb unregistration
 has been added to the -mm tree.  Its filename is
-     delayacct-support-swapin-delay-accounting-for-swapping-without-blkio.patch
+     proc-vmcore-dont-fake-reading-zeroes-on-surprise-vmcore_cb-unregistration.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/delayacct-support-swapin-delay-accounting-for-swapping-without-blkio.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc-vmcore-dont-fake-reading-zeroes-on-surprise-vmcore_cb-unregistration.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/delayacct-support-swapin-delay-accounting-for-swapping-without-blkio.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc-vmcore-dont-fake-reading-zeroes-on-surprise-vmcore_cb-unregistration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,249 +62,101 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Yang <yang.yang29@zte.com.cn>
-Subject: delayacct: support swapin delay accounting for swapping without blkio
+From: David Hildenbrand <david@redhat.com>
+Subject: proc/vmcore: don't fake reading zeroes on surprise vmcore_cb unregistration
 
-Currently delayacct accounts swapin delay only for swapping that cause
-blkio.  If we use zram for swapping, tools/accounting/getdelays can't get
-any SWAP delay.
+In commit cc5f2704c934 ("proc/vmcore: convert oldmem_pfn_is_ram callback
+to more generic vmcore callbacks"), we added detection of surprise
+vmcore_cb unregistration after the vmcore was already opened.  Once
+detected, we warn the user and simulate reading zeroes from that point on
+when accessing the vmcore.
 
-It's useful to get zram swapin delay information, for example to adjust
-compress algorithm or /proc/sys/vm/swappiness.
+The basic reason was that unexpected unregistration, for example, by
+manually unbinding a driver from a device after opening the vmcore, is not
+supported and could result in reading oldmem the vmcore_cb would have
+actually prohibited while registered.  However, something like that can
+similarly be trigger by a user that's really looking for trouble simply by
+unbinding the relevant driver before opening the vmcore -- or by
+disallowing loading the driver in the first place.  So it's actually of
+limited help.
 
-Reference to PSI, it accounts any kind of swapping by doing its work in
-swap_readpage(), no matter whether swapping causes blkio.  Let delayacct
-do the similar work.
+Currently, unregistration can only be triggered via virtio-mem when
+manually unbinding the driver from the device inside the VM; there is no
+way to trigger it from the hypervisor, as hypervisors don't allow for
+unplugging virtio-mem devices -- ripping out system RAM from a VM without
+coordination with the guest is usually not a good idea.
 
-Link: https://lkml.kernel.org/r/20211112083813.8559-1-yang.yang29@zte.com.cn
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+The important part is that unbinding the driver and unregistering the
+vmcore_cb while concurrently reading the vmcore won't crash the system,
+and that is handled by the rwsem.
+
+To make the mechanism more future proof, let's remove the "read zero"
+part, but leave the warning in place.  For example, we could have a future
+driver (like virtio-balloon) that will contact the hypervisor to figure
+out if we already populated a page for a given PFN.  Hotunplugging such a
+device and consequently unregistering the vmcore_cb could be triggered
+from the hypervisor without harming the system even while kdump is
+running.  In that case, we don't want to silently end up with a vmcore
+that contains wrong data, because the user inside the VM might be unaware
+of the hypervisor action and might easily miss the warning in the log.
+
+Link: https://lkml.kernel.org/r/20211111192243.22002-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Philipp Rudo <prudo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/delayacct.h |   44 ++++++++++++++++++------------------
- kernel/delayacct.c        |   34 +++++++++++++++------------
- mm/memory.c               |    4 ---
- mm/page_io.c              |    3 ++
- 4 files changed, 44 insertions(+), 41 deletions(-)
+ fs/proc/vmcore.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
---- a/include/linux/delayacct.h~delayacct-support-swapin-delay-accounting-for-swapping-without-blkio
-+++ a/include/linux/delayacct.h
-@@ -9,14 +9,6 @@
+--- a/fs/proc/vmcore.c~proc-vmcore-dont-fake-reading-zeroes-on-surprise-vmcore_cb-unregistration
++++ a/fs/proc/vmcore.c
+@@ -65,8 +65,6 @@ static size_t vmcoredd_orig_sz;
+ static DECLARE_RWSEM(vmcore_cb_rwsem);
+ /* List of registered vmcore callbacks. */
+ static LIST_HEAD(vmcore_cb_list);
+-/* Whether we had a surprise unregistration of a callback. */
+-static bool vmcore_cb_unstable;
+ /* Whether the vmcore has been opened once. */
+ static bool vmcore_opened;
  
- #include <uapi/linux/taskstats.h>
- 
--/*
-- * Per-task flags relevant to delay accounting
-- * maintained privately to avoid exhausting similar flags in sched.h:PF_*
-- * Used to set current->delays->flags
-- */
--#define DELAYACCT_PF_SWAPIN	0x00000001	/* I am doing a swapin */
--#define DELAYACCT_PF_BLKIO	0x00000002	/* I am waiting on IO */
--
- #ifdef CONFIG_TASK_DELAY_ACCT
- struct task_delay_info {
- 	raw_spinlock_t	lock;
-@@ -37,13 +29,13 @@ struct task_delay_info {
- 	 * associated with the operation is added to XXX_delay.
- 	 * XXX_delay contains the accumulated delay time in nanoseconds.
+@@ -94,10 +92,8 @@ void unregister_vmcore_cb(struct vmcore_
+ 	 * very unusual (e.g., forced driver removal), but we cannot stop
+ 	 * unregistering.
  	 */
--	u64 blkio_start;	/* Shared by blkio, swapin */
-+	u64 blkio_start;
- 	u64 blkio_delay;	/* wait for sync block io completion */
--	u64 swapin_delay;	/* wait for swapin block io completion */
-+	u64 swapin_start;
-+	u64 swapin_delay;	/* wait for swapin */
- 	u32 blkio_count;	/* total count of the number of sync block */
- 				/* io operations performed */
--	u32 swapin_count;	/* total count of the number of swapin block */
--				/* io operations performed */
-+	u32 swapin_count;	/* total count of swapin */
- 
- 	u64 freepages_start;
- 	u64 freepages_delay;	/* wait for memory reclaim */
-@@ -79,14 +71,8 @@ extern void __delayacct_freepages_start(
- extern void __delayacct_freepages_end(void);
- extern void __delayacct_thrashing_start(void);
- extern void __delayacct_thrashing_end(void);
--
--static inline int delayacct_is_task_waiting_on_io(struct task_struct *p)
--{
--	if (p->delays)
--		return (p->delays->flags & DELAYACCT_PF_BLKIO);
--	else
--		return 0;
--}
-+extern void __delayacct_swapin_start(void);
-+extern void __delayacct_swapin_end(void);
- 
- static inline void delayacct_set_flag(struct task_struct *p, int flag)
- {
-@@ -123,7 +109,6 @@ static inline void delayacct_blkio_start
- 	if (!static_branch_unlikely(&delayacct_key))
- 		return;
- 
--	delayacct_set_flag(current, DELAYACCT_PF_BLKIO);
- 	if (current->delays)
- 		__delayacct_blkio_start();
- }
-@@ -135,7 +120,6 @@ static inline void delayacct_blkio_end(s
- 
- 	if (p->delays)
- 		__delayacct_blkio_end(p);
--	delayacct_clear_flag(p, DELAYACCT_PF_BLKIO);
- }
- 
- static inline __u64 delayacct_blkio_ticks(struct task_struct *tsk)
-@@ -169,6 +153,18 @@ static inline void delayacct_thrashing_e
- 		__delayacct_thrashing_end();
- }
- 
-+static inline void delayacct_swapin_start(void)
-+{
-+	if (current->delays)
-+		__delayacct_swapin_start();
-+}
-+
-+static inline void delayacct_swapin_end(void)
-+{
-+	if (current->delays)
-+		__delayacct_swapin_end();
-+}
-+
- #else
- static inline void delayacct_set_flag(struct task_struct *p, int flag)
- {}
-@@ -199,6 +195,10 @@ static inline void delayacct_thrashing_s
- {}
- static inline void delayacct_thrashing_end(void)
- {}
-+static inline void delayacct_swapin_start(void)
-+{}
-+static inline void delayacct_swapin_end(void)
-+{}
- 
- #endif /* CONFIG_TASK_DELAY_ACCT */
- 
---- a/kernel/delayacct.c~delayacct-support-swapin-delay-accounting-for-swapping-without-blkio
-+++ a/kernel/delayacct.c
-@@ -100,19 +100,10 @@ void __delayacct_blkio_start(void)
-  */
- void __delayacct_blkio_end(struct task_struct *p)
- {
--	struct task_delay_info *delays = p->delays;
--	u64 *total;
--	u32 *count;
--
--	if (p->delays->flags & DELAYACCT_PF_SWAPIN) {
--		total = &delays->swapin_delay;
--		count = &delays->swapin_count;
--	} else {
--		total = &delays->blkio_delay;
--		count = &delays->blkio_count;
+-	if (vmcore_opened) {
++	if (vmcore_opened)
+ 		pr_warn_once("Unexpected vmcore callback unregistration\n");
+-		vmcore_cb_unstable = true;
 -	}
--
--	delayacct_end(&delays->lock, &delays->blkio_start, total, count);
-+	delayacct_end(&p->delays->lock,
-+		      &p->delays->blkio_start,
-+		      &p->delays->blkio_delay,
-+		      &p->delays->blkio_count);
+ 	up_write(&vmcore_cb_rwsem);
  }
+ EXPORT_SYMBOL_GPL(unregister_vmcore_cb);
+@@ -108,8 +104,6 @@ static bool pfn_is_ram(unsigned long pfn
+ 	bool ret = true;
  
- int delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
-@@ -179,8 +170,7 @@ __u64 __delayacct_blkio_ticks(struct tas
- 	unsigned long flags;
+ 	lockdep_assert_held_read(&vmcore_cb_rwsem);
+-	if (unlikely(vmcore_cb_unstable))
+-		return false;
  
- 	raw_spin_lock_irqsave(&tsk->delays->lock, flags);
--	ret = nsec_to_clock_t(tsk->delays->blkio_delay +
--				tsk->delays->swapin_delay);
-+	ret = nsec_to_clock_t(tsk->delays->blkio_delay);
- 	raw_spin_unlock_irqrestore(&tsk->delays->lock, flags);
- 	return ret;
- }
-@@ -210,3 +200,17 @@ void __delayacct_thrashing_end(void)
- 		      &current->delays->thrashing_delay,
- 		      &current->delays->thrashing_count);
- }
-+
-+void __delayacct_swapin_start(void)
-+{
-+	current->delays->swapin_start = local_clock();
-+}
-+
-+void __delayacct_swapin_end(void)
-+{
-+	delayacct_end(&current->delays->lock,
-+		      &current->delays->swapin_start,
-+		      &current->delays->swapin_delay,
-+		      &current->delays->swapin_count);
-+}
-+
---- a/mm/memory.c~delayacct-support-swapin-delay-accounting-for-swapping-without-blkio
-+++ a/mm/memory.c
-@@ -3507,7 +3507,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 	if (unlikely(!si))
- 		goto out;
- 
--	delayacct_set_flag(current, DELAYACCT_PF_SWAPIN);
- 	page = lookup_swap_cache(entry, vma, vmf->address);
- 	swapcache = page;
- 
-@@ -3555,7 +3554,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 					vmf->address, &vmf->ptl);
- 			if (likely(pte_same(*vmf->pte, vmf->orig_pte)))
- 				ret = VM_FAULT_OOM;
--			delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
- 			goto unlock;
- 		}
- 
-@@ -3569,13 +3567,11 @@ vm_fault_t do_swap_page(struct vm_fault
- 		 * owner processes (which may be unknown at hwpoison time)
- 		 */
- 		ret = VM_FAULT_HWPOISON;
--		delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
- 		goto out_release;
- 	}
- 
- 	locked = lock_page_or_retry(page, vma->vm_mm, vmf->flags);
- 
--	delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
- 	if (!locked) {
- 		ret |= VM_FAULT_RETRY;
- 		goto out_release;
---- a/mm/page_io.c~delayacct-support-swapin-delay-accounting-for-swapping-without-blkio
-+++ a/mm/page_io.c
-@@ -25,6 +25,7 @@
- #include <linux/psi.h>
- #include <linux/uio.h>
- #include <linux/sched/task.h>
-+#include <linux/delayacct.h>
- 
- void end_swap_bio_write(struct bio *bio)
- {
-@@ -370,6 +371,7 @@ int swap_readpage(struct page *page, boo
- 	 * significant part of overall IO time.
+ 	list_for_each_entry(cb, &vmcore_cb_list, next) {
+ 		if (unlikely(!cb->pfn_is_ram))
+@@ -581,7 +575,7 @@ static int vmcore_remap_oldmem_pfn(struc
+ 	 * looping over all pages without a reason.
  	 */
- 	psi_memstall_enter(&pflags);
-+	delayacct_swapin_start();
- 
- 	if (frontswap_load(page) == 0) {
- 		SetPageUptodate(page);
-@@ -432,6 +434,7 @@ int swap_readpage(struct page *page, boo
- 
- out:
- 	psi_memstall_leave(&pflags);
-+	delayacct_swapin_end();
- 	return ret;
- }
- 
+ 	down_read(&vmcore_cb_rwsem);
+-	if (!list_empty(&vmcore_cb_list) || vmcore_cb_unstable)
++	if (!list_empty(&vmcore_cb_list))
+ 		ret = remap_oldmem_pfn_checked(vma, from, pfn, size, prot);
+ 	else
+ 		ret = remap_oldmem_pfn_range(vma, from, pfn, size, prot);
 _
 
-Patches currently in -mm which might be from yang.yang29@zte.com.cn are
+Patches currently in -mm which might be from david@redhat.com are
 
-delayacct-support-swapin-delay-accounting-for-swapping-without-blkio.patch
+proc-vmcore-fix-clearing-user-buffer-by-properly-using-clear_user.patch
+proc-vmcore-dont-fake-reading-zeroes-on-surprise-vmcore_cb-unregistration.patch
 
