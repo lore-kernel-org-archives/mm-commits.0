@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDB85C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 17:47:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C3D61C4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 18:17:09 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id B7425633BE
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 17:47:12 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id A61DB633F7
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 18:17:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237432AbhKORtk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 12:49:40 -0500
-Received: from mail.kernel.org ([198.145.29.99]:58626 "EHLO mail.kernel.org"
+        id S238889AbhKOSRC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 13:17:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56258 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238780AbhKORrT (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 12:47:19 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B14EE6329E;
-        Mon, 15 Nov 2021 17:29:48 +0000 (UTC)
+        id S240797AbhKOSNr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 13:13:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2989D6120F;
+        Mon, 15 Nov 2021 17:48:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636997388;
-        bh=cmSJs4J9elEyXAcZYN7O1eMtbQ7cB83plyYaze/bkog=;
+        s=korg; t=1636998511;
+        bh=BAXoF+aA2GnAh3EpA+AmdBvvRj3YVEDdpYUSbaifEC4=;
         h=Date:From:To:Subject:From;
-        b=E95bfSzp9FC45n66rB9nzrvfuvnPIzJzUgQHPyibSxvcKLZkpLXbQia15wQJ2UTBv
-         7daYHTkpvFsAguyiVFVl50M3cMic9VkZ9BamLGVNgiKqAoQI/jp7QfgZ0qiigxA/N2
-         DKaWvlbT+bVZU2pWjHaIZQza7nz8ljgND68P4cnA=
-Date:   Mon, 15 Nov 2021 09:29:48 -0800
+        b=dsjgXkKUSgMENPt1uzUfEPaG+hQ9jRxit6XAWCFcYKYjLVNydElM5cHgl4mVBRPTq
+         +t/CeTCStwgiN1pEhxlA4GR4BksvgMBt/WDLnsKKhgdklcM2cYu4x4naycsezxAcWi
+         TnAWHDY52YNGT44a9qz3bHmpzqul8lWYH048nJ6A=
+Date:   Mon, 15 Nov 2021 09:48:30 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, arnd@arndb.de,
-        mm-commits@vger.kernel.org
-Subject:  [merged]
- kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch removed
- from -mm tree
-Message-ID: <20211115172948.FpmyZaqFu%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        songmuchun@bytedance.com, xhao@linux.alibaba.com
+Subject:  +
+ mm-damon-unified-access_check-function-naming-rules.patch added to -mm tree
+Message-ID: <20211115174830.jOCnHcsTS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,56 +38,104 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan-test-use-underlying-string-helpers-checkpatch-fixes
-has been removed from the -mm tree.  Its filename was
-     kasan-test-use-underlying-string-helpers-checkpatch-fixes.patch
+     Subject: mm/damon: unified access_check function naming rules
+has been added to the -mm tree.  Its filename is
+     mm-damon-unified-access_check-function-naming-rules.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-unified-access_check-function-naming-rules.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-unified-access_check-function-naming-rules.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kasan-test-use-underlying-string-helpers-checkpatch-fixes
+From: Xin Hao <xhao@linux.alibaba.com>
+Subject: mm/damon: unified access_check function naming rules
 
-WARNING: Block comments use a trailing */ on a separate line
-#49: FILE: lib/test_kasan.c:837:
-+ * */
+Patch series "mm/damon: Do some small changes", v4.
 
-total: 0 errors, 1 warnings, 37 lines checked
 
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
+This patch (of 4):
 
-./patches/kasan-test-use-underlying-string-helpers.patch has style problems, please review.
+In damon/paddr.c file, two functions names start with underscore,
+	static void __damon_pa_prepare_access_check(struct damon_ctx *ctx,
+			struct damon_region *r)
+	static void __damon_pa_prepare_access_check(struct damon_ctx *ctx,
+			struct damon_region *r)
+In damon/vaddr.c file, there are also two functions with the same function,
+	static void damon_va_prepare_access_check(struct damon_ctx *ctx,
+			struct mm_struct *mm, struct damon_region *r)
+	static void damon_va_check_access(struct damon_ctx *ctx,
+			struct mm_struct *mm, struct damon_region *r)
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+It makes sense to keep consistent, and it is not easy to be confused with
+the function that call them.
 
-Please run checkpatch prior to sending patches
-
-Cc: Arnd Bergmann <arnd@arndb.de>
+Link: https://lkml.kernel.org/r/cover.1636989871.git.xhao@linux.alibaba.com
+Link: https://lkml.kernel.org/r/529054aed932a42b9c09fc9977ad4574b9e7b0bd.1636989871.git.xhao@linux.alibaba.com
+Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/vaddr.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/lib/test_kasan.c~kasan-test-use-underlying-string-helpers-checkpatch-fixes
-+++ a/lib/test_kasan.c
-@@ -834,7 +834,7 @@ static void kmem_cache_invalid_free(stru
- /*
-  * noinline wrappers to prevent the compiler from noticing the overflow
-  * at compile time rather than having kasan catch it.
-- * */
-+ */
- static noinline void *__kasan_memchr(const void *s, int c, size_t n)
+--- a/mm/damon/vaddr.c~mm-damon-unified-access_check-function-naming-rules
++++ a/mm/damon/vaddr.c
+@@ -409,7 +409,7 @@ static void damon_va_mkold(struct mm_str
+  * Functions for the access checking of the regions
+  */
+ 
+-static void damon_va_prepare_access_check(struct damon_ctx *ctx,
++static void __damon_va_prepare_access_check(struct damon_ctx *ctx,
+ 			struct mm_struct *mm, struct damon_region *r)
  {
- 	return memchr(s, c, n);
+ 	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
+@@ -428,7 +428,7 @@ void damon_va_prepare_access_checks(stru
+ 		if (!mm)
+ 			continue;
+ 		damon_for_each_region(r, t)
+-			damon_va_prepare_access_check(ctx, mm, r);
++			__damon_va_prepare_access_check(ctx, mm, r);
+ 		mmput(mm);
+ 	}
+ }
+@@ -514,7 +514,7 @@ static bool damon_va_young(struct mm_str
+  * mm	'mm_struct' for the given virtual address space
+  * r	the region to be checked
+  */
+-static void damon_va_check_access(struct damon_ctx *ctx,
++static void __damon_va_check_access(struct damon_ctx *ctx,
+ 			       struct mm_struct *mm, struct damon_region *r)
+ {
+ 	static struct mm_struct *last_mm;
+@@ -550,7 +550,7 @@ unsigned int damon_va_check_accesses(str
+ 		if (!mm)
+ 			continue;
+ 		damon_for_each_region(r, t) {
+-			damon_va_check_access(ctx, mm, r);
++			__damon_va_check_access(ctx, mm, r);
+ 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
+ 		}
+ 		mmput(mm);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xhao@linux.alibaba.com are
 
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
-mm.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-damon-unified-access_check-function-naming-rules.patch
+mm-damon-add-age-of-region-tracepoint-support.patch
+mm-damon-core-using-function-abs-instead-of-diff_of.patch
+mm-damon-remove-some-no-need-func-definitions-in-damonh-file.patch
 
