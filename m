@@ -2,35 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B873C4167D
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 18:17:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2DF7C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 18:23:27 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 228DC633F4
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 18:17:10 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id DCC8E63326
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 18:23:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241061AbhKOSRn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 13:17:43 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56280 "EHLO mail.kernel.org"
+        id S241320AbhKOS0O (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 13:26:14 -0500
+Received: from mail.kernel.org ([198.145.29.99]:60612 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240809AbhKOSNs (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 13:13:48 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E0D9A633CF;
-        Mon, 15 Nov 2021 17:48:37 +0000 (UTC)
+        id S241333AbhKOST2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 13:19:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 29E1A63402;
+        Mon, 15 Nov 2021 17:51:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636998518;
-        bh=I7UA56AB8is49w2JUaedpkHmNjANJW57cKjPwLhpI/s=;
+        s=korg; t=1636998698;
+        bh=LLEoedAUxo+x6uH8/Bj2u67fTeG0jN4oydUq5vfcdSo=;
         h=Date:From:To:Subject:From;
-        b=jyZzm84pSiLaoFBE+kNPbsvCLTVLFrri1e6pByrb6PgvKLH1xwo0QnDdZu/1ZlnSo
-         s23ndT+7t858B28AbnAvMDW+3iHAb7BFcmGCLohRxMY6mMwoitsKMA0lDue25vfpD8
-         1+8xwwcLPOm7ZKP8fR9B315mtr8LcybgcZTP8cAY=
-Date:   Mon, 15 Nov 2021 09:48:37 -0800
+        b=YCuEFqw3Wi9VE3wZxgz+mdnK0pRMxhViDfkb3ZZcXgnWEYv5dhJaWHLj+Vru9yVdq
+         xu/PYv5wLqOXYf89OQuOo2wEQ4bD63MQy+arqB4TPhNhxWwvGcaGi1wEvOm1Imb+zv
+         ZXO9/hDiRuPTSIDA9LzEYQIm2uPz665+1cKKZHNo=
+Date:   Mon, 15 Nov 2021 09:51:37 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sj@kernel.org,
-        songmuchun@bytedance.com, xhao@linux.alibaba.com
-Subject:  +
- mm-damon-remove-some-no-need-func-definitions-in-damonh-file.patch added to
- -mm tree
-Message-ID: <20211115174837.wvyS8FbLx%akpm@linux-foundation.org>
+To:     bcain@codeaurora.org, mm-commits@vger.kernel.org,
+        nathan@kernel.org, ndesaulniers@google.com, stable@vger.kernel.org
+Subject:  + hexagon-export-raw-i-o-routines-for-modules.patch added
+ to -mm tree
+Message-ID: <20211115175137.msDLz__IY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +38,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: remove some unneeded function definitions in damon.h
+     Subject: hexagon: export raw I/O routines for modules
 has been added to the -mm tree.  Its filename is
-     mm-damon-remove-some-no-need-func-definitions-in-damonh-file.patch
+     hexagon-export-raw-i-o-routines-for-modules.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-remove-some-no-need-func-definitions-in-damonh-file.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hexagon-export-raw-i-o-routines-for-modules.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-remove-some-no-need-func-definitions-in-damonh-file.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hexagon-export-raw-i-o-routines-for-modules.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,167 +59,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xin Hao <xhao@linux.alibaba.com>
-Subject: mm/damon: remove some unneeded function definitions in damon.h
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: hexagon: export raw I/O routines for modules
 
-In the damon.h header file, some func definitions about VA & PA can only
-be used in its own file, so there no need to define in the header file,
-and the header file will looks cleaner.
+Patch series "Fixes for ARCH=hexagon allmodconfig", v2.
 
-If other files later call these functions, then put them to the header
-file will not be late.
+This series fixes some issues noticed with ARCH=hexagon allmodconfig.
 
-Link: https://lkml.kernel.org/r/45fd5b3ef6cce8e28dbc1c92f9dc845ccfc949d7.1636989871.git.xhao@linux.alibaba.com
-Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
+
+This patch (of 3):
+
+When building ARCH=hexagon allmodconfig, the following errors occur:
+
+ERROR: modpost: "__raw_readsl" [drivers/i3c/master/svc-i3c-master.ko] undefined!
+ERROR: modpost: "__raw_writesl" [drivers/i3c/master/dw-i3c-master.ko] undefined!
+ERROR: modpost: "__raw_readsl" [drivers/i3c/master/dw-i3c-master.ko] undefined!
+ERROR: modpost: "__raw_writesl" [drivers/i3c/master/i3c-master-cdns.ko] undefined!
+ERROR: modpost: "__raw_readsl" [drivers/i3c/master/i3c-master-cdns.ko] undefined!
+
+Export these symbols so that modules can use them without any errors.
+
+Link: https://lkml.kernel.org/r/20211115174250.1994179-1-nathan@kernel.org
+Link: https://lkml.kernel.org/r/20211115174250.1994179-2-nathan@kernel.org
+Fixes: 013bf24c3829 ("Hexagon: Provide basic implementation and/or stubs for I/O routines.")
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Acked-by: Brian Cain <bcain@codeaurora.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   25 ++-----------------------
- mm/damon/paddr.c      |    8 ++++----
- mm/damon/vaddr.c      |   12 ++++++------
- 3 files changed, 12 insertions(+), 33 deletions(-)
+ arch/hexagon/lib/io.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/include/linux/damon.h~mm-damon-remove-some-no-need-func-definitions-in-damonh-file
-+++ a/include/linux/damon.h
-@@ -461,34 +461,13 @@ int damon_stop(struct damon_ctx **ctxs,
- #endif	/* CONFIG_DAMON */
+--- a/arch/hexagon/lib/io.c~hexagon-export-raw-i-o-routines-for-modules
++++ a/arch/hexagon/lib/io.c
+@@ -27,6 +27,7 @@ void __raw_readsw(const void __iomem *ad
+ 		*dst++ = *src;
  
- #ifdef CONFIG_DAMON_VADDR
--
--/* Monitoring primitives for virtual memory address spaces */
--void damon_va_init(struct damon_ctx *ctx);
--void damon_va_update(struct damon_ctx *ctx);
--void damon_va_prepare_access_checks(struct damon_ctx *ctx);
--unsigned int damon_va_check_accesses(struct damon_ctx *ctx);
--bool damon_va_target_valid(void *t);
--void damon_va_cleanup(struct damon_ctx *ctx);
--int damon_va_apply_scheme(struct damon_ctx *context, struct damon_target *t,
--		struct damon_region *r, struct damos *scheme);
--int damon_va_scheme_score(struct damon_ctx *context, struct damon_target *t,
--		struct damon_region *r, struct damos *scheme);
- void damon_va_set_primitives(struct damon_ctx *ctx);
--
-+bool damon_va_target_valid(void *t);
- #endif	/* CONFIG_DAMON_VADDR */
- 
- #ifdef CONFIG_DAMON_PADDR
--
--/* Monitoring primitives for the physical memory address space */
--void damon_pa_prepare_access_checks(struct damon_ctx *ctx);
--unsigned int damon_pa_check_accesses(struct damon_ctx *ctx);
--bool damon_pa_target_valid(void *t);
--int damon_pa_apply_scheme(struct damon_ctx *context, struct damon_target *t,
--		struct damon_region *r, struct damos *scheme);
--int damon_pa_scheme_score(struct damon_ctx *context, struct damon_target *t,
--		struct damon_region *r, struct damos *scheme);
- void damon_pa_set_primitives(struct damon_ctx *ctx);
--
-+bool damon_pa_target_valid(void *t);
- #endif	/* CONFIG_DAMON_PADDR */
- 
- #endif	/* _DAMON_H */
---- a/mm/damon/paddr.c~mm-damon-remove-some-no-need-func-definitions-in-damonh-file
-+++ a/mm/damon/paddr.c
-@@ -73,7 +73,7 @@ static void __damon_pa_prepare_access_ch
- 	damon_pa_mkold(r->sampling_addr);
  }
++EXPORT_SYMBOL(__raw_readsw);
  
--void damon_pa_prepare_access_checks(struct damon_ctx *ctx)
-+static void damon_pa_prepare_access_checks(struct damon_ctx *ctx)
- {
- 	struct damon_target *t;
- 	struct damon_region *r;
-@@ -192,7 +192,7 @@ static void __damon_pa_check_access(stru
- 	last_addr = r->sampling_addr;
- }
- 
--unsigned int damon_pa_check_accesses(struct damon_ctx *ctx)
-+static unsigned int damon_pa_check_accesses(struct damon_ctx *ctx)
- {
- 	struct damon_target *t;
- 	struct damon_region *r;
-@@ -213,7 +213,7 @@ bool damon_pa_target_valid(void *t)
- 	return true;
- }
- 
--int damon_pa_apply_scheme(struct damon_ctx *ctx, struct damon_target *t,
-+static int damon_pa_apply_scheme(struct damon_ctx *ctx, struct damon_target *t,
- 		struct damon_region *r, struct damos *scheme)
- {
- 	unsigned long addr;
-@@ -246,7 +246,7 @@ int damon_pa_apply_scheme(struct damon_c
- 	return 0;
- }
- 
--int damon_pa_scheme_score(struct damon_ctx *context, struct damon_target *t,
-+static int damon_pa_scheme_score(struct damon_ctx *context, struct damon_target *t,
- 		struct damon_region *r, struct damos *scheme)
- {
- 	switch (scheme->action) {
---- a/mm/damon/vaddr.c~mm-damon-remove-some-no-need-func-definitions-in-damonh-file
-+++ a/mm/damon/vaddr.c
-@@ -271,7 +271,7 @@ static void __damon_va_init_regions(stru
- }
- 
- /* Initialize '->regions_list' of every target (task) */
--void damon_va_init(struct damon_ctx *ctx)
-+static void damon_va_init(struct damon_ctx *ctx)
- {
- 	struct damon_target *t;
- 
-@@ -355,7 +355,7 @@ static void damon_va_apply_three_regions
  /*
-  * Update regions for current memory mappings
-  */
--void damon_va_update(struct damon_ctx *ctx)
-+static void damon_va_update(struct damon_ctx *ctx)
- {
- 	struct damon_addr_range three_regions[3];
- 	struct damon_target *t;
-@@ -417,7 +417,7 @@ static void __damon_va_prepare_access_ch
- 	damon_va_mkold(mm, r->sampling_addr);
+  * __raw_writesw - read words a short at a time
+@@ -47,6 +48,7 @@ void __raw_writesw(void __iomem *addr, c
+ 
+ 
  }
++EXPORT_SYMBOL(__raw_writesw);
  
--void damon_va_prepare_access_checks(struct damon_ctx *ctx)
-+static void damon_va_prepare_access_checks(struct damon_ctx *ctx)
- {
- 	struct damon_target *t;
- 	struct mm_struct *mm;
-@@ -538,7 +538,7 @@ static void __damon_va_check_access(stru
- 	last_addr = r->sampling_addr;
+ /*  Pretty sure len is pre-adjusted for the length of the access already */
+ void __raw_readsl(const void __iomem *addr, void *data, int len)
+@@ -62,6 +64,7 @@ void __raw_readsl(const void __iomem *ad
+ 
+ 
  }
++EXPORT_SYMBOL(__raw_readsl);
  
--unsigned int damon_va_check_accesses(struct damon_ctx *ctx)
-+static unsigned int damon_va_check_accesses(struct damon_ctx *ctx)
+ void __raw_writesl(void __iomem *addr, const void *data, int len)
  {
- 	struct damon_target *t;
- 	struct mm_struct *mm;
-@@ -602,7 +602,7 @@ out:
+@@ -76,3 +79,4 @@ void __raw_writesl(void __iomem *addr, c
+ 
+ 
  }
- #endif	/* CONFIG_ADVISE_SYSCALLS */
- 
--int damon_va_apply_scheme(struct damon_ctx *ctx, struct damon_target *t,
-+static int damon_va_apply_scheme(struct damon_ctx *ctx, struct damon_target *t,
- 		struct damon_region *r, struct damos *scheme)
- {
- 	int madv_action;
-@@ -633,7 +633,7 @@ int damon_va_apply_scheme(struct damon_c
- 	return damos_madvise(t, r, madv_action);
- }
- 
--int damon_va_scheme_score(struct damon_ctx *context, struct damon_target *t,
-+static int damon_va_scheme_score(struct damon_ctx *context, struct damon_target *t,
- 		struct damon_region *r, struct damos *scheme)
- {
- 
++EXPORT_SYMBOL(__raw_writesl);
 _
 
-Patches currently in -mm which might be from xhao@linux.alibaba.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
-mm-damon-unified-access_check-function-naming-rules.patch
-mm-damon-add-age-of-region-tracepoint-support.patch
-mm-damon-core-using-function-abs-instead-of-diff_of.patch
-mm-damon-remove-some-no-need-func-definitions-in-damonh-file.patch
+hexagon-export-raw-i-o-routines-for-modules.patch
+hexagon-clean-up-timer-regsh.patch
+hexagon-ignore-vmlinuxlds.patch
 
