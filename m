@@ -2,32 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C513C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 00:32:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C52FC4167B
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 00:53:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 85DAA619FA
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 00:32:39 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 744D061B49
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 00:53:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245643AbhKPAfc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 19:35:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45394 "EHLO mail.kernel.org"
+        id S245116AbhKPA4Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 19:56:25 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44634 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1344050AbhKOTXM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 14:23:12 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A8353632A3;
-        Mon, 15 Nov 2021 18:50:52 +0000 (UTC)
+        id S245637AbhKOTU5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 14:20:57 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C55F632E9;
+        Mon, 15 Nov 2021 18:38:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637002252;
-        bh=/FybE8S6PcWCIe6w5dKzd+pBvfl9m8nPQu0QBMLLdLk=;
+        s=korg; t=1637001505;
+        bh=vx2MBgTNMOzkKF3GloId+8GOhBsrTmIkkY8CWnSIsgA=;
         h=Date:From:To:Subject:From;
-        b=hyTSzBzi7LLp31OopIEh5aVyk4y4Utv5Zn1RGzPSuNN1fE2diLQnwhmmeXPo+yI5L
-         GTXxpA+UDgT6ZKvQI+rsCHNz/x8eGmjzJ5U2xrg+894MbEyh0rl5FRRX4Lj/wS8N5L
-         krG00ReKinbrVeigXY5w3/5wq9gLEiS14vmbTgu4=
-Date:   Mon, 15 Nov 2021 10:50:52 -0800
+        b=uRxIxrjlteQPnEzwDr7T+l4M9mI39gnNSXl14NNNJfMvJ4c7LHAFYkb10JPdx9foH
+         VGzoWBKA6bVrRBUPpGZzdAoHJ6XZja0iX5gmiMIRct2UorhTgcBJ8lBBTZEpOTjN9j
+         la4U10E91INfZRVJKgQVCnVWzdv8l5jbMQBd86K0=
+Date:   Mon, 15 Nov 2021 10:38:24 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, mm-commits@vger.kernel.org
-Subject:  + kstrtox-uninline-everything.patch added to -mm tree
-Message-ID: <20211115185052.V-WSUcAv6%akpm@linux-foundation.org>
+To:     aneesh.kumar@linux.vnet.ibm.com, david@redhat.com,
+        dinghui@sangfor.com.cn, linmiaohe@huawei.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, peterx@redhat.com, shy828301@gmail.com,
+        tony.luck@intel.com
+Subject:  + mm-hwpoison-fix-unpoison_memory.patch added to -mm tree
+Message-ID: <20211115183824.44UGsMus-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -36,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kstrtox: uninline everything
+     Subject: mm/hwpoison: fix unpoison_memory()
 has been added to the -mm tree.  Its filename is
-     kstrtox-uninline-everything.patch
+     mm-hwpoison-fix-unpoison_memory.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kstrtox-uninline-everything.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-unpoison_memory.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kstrtox-uninline-everything.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-unpoison_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -57,155 +61,296 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: kstrtox: uninline everything
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hwpoison: fix unpoison_memory()
 
-I've made a mistake of looking into lib/kstrtox.o code generation.
+After recent soft-offline rework, error pages can be taken off from buddy
+allocator, but the existing unpoison_memory() does not properly undo the
+operation.  Moreover, due to the recent change on __get_hwpoison_page(),
+get_page_unless_zero() is hardly called for hwpoisoned pages.  So
+__get_hwpoison_page() highly likely returns -EBUSY (meaning to fail to
+grab page refcount) and unpoison just clears PG_hwpoison without releasing
+a refcount.  That does not lead to a critical issue like kernel panic, but
+unpoisoned pages never get back to buddy (leaked permanently), which is
+not good.
 
-The only function remotely performance critical is _parse_integer()
-(via /proc/*/map_files/*), everything else is not.
+To (partially) fix this, we need to identify "taken off" pages from other
+types of hwpoisoned pages.  We can't use refcount or page flags for this
+purpose, so a pseudo flag is defined by hacking ->private field.  Someone
+might think that put_page() is enough to cancel taken-off pages, but the
+normal free path contains some operations not suitable for the current
+purpose, and can fire VM_BUG_ON().
 
-Uninline everything, shrink lib/kstrtox.o by ~20 % !
+Note that unpoison_memory() is now supposed to be cancel hwpoison events
+injected only by madvise() or
+/sys/devices/system/memory/{hard,soft}_offline_page, not by MCE injection,
+so please don't try to use unpoison when testing with MCE injection.
 
-Space savings on x86_64:
-
-	add/remove: 0/0 grow/shrink: 0/23 up/down: 0/-1269 (-1269 !!!)
-	Function                                     old     new   delta
-	kstrtoull                                     16      13      -3
-	kstrtouint                                    59      48     -11
-	kstrtou8                                      60      49     -11
-	kstrtou16                                     61      50     -11
-	_kstrtoul                                     46      35     -11
-	kstrtoull_from_user                           95      83     -12
-	kstrtoul_from_user                            95      83     -12
-	kstrtoll                                      93      80     -13
-	kstrtouint_from_user                         124      83     -41
-	kstrtou8_from_user                           125      83     -42
-	kstrtou16_from_user                          126      83     -43
-	kstrtos8                                     101      50     -51
-	kstrtos16                                    102      51     -51
-	kstrtoint                                    100      49     -51
-	_kstrtol                                      93      35     -58
-	kstrtobool_from_user                         156      75     -81
-	kstrtoll_from_user                           165      83     -82
-	kstrtol_from_user                            165      83     -82
-	kstrtoint_from_user                          172      83     -89
-	kstrtos8_from_user                           173      83     -90
-	kstrtos16_from_user                          174      83     -91
-	_parse_integer                               136      10    -126
-	_kstrtoull                                   308     101    -207
-	Total: Before=3421236, After=3419967, chg -0.04%
-
-Link: https://lkml.kernel.org/r/YZDsFDhHst4m2Pnt@localhost.localdomain
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+[lkp@intel.com: report build failure for ARCH=i386]
+Link: https://lkml.kernel.org/r/20211115084006.3728254-4-naoya.horiguchi@linux.dev
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Ding Hui <dinghui@sangfor.com.cn>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Yang Shi <shy828301@gmail.com>
+Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kstrtox.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ include/linux/mm.h         |    1 
+ include/linux/page-flags.h |    4 +
+ mm/memory-failure.c        |  109 ++++++++++++++++++++++++++++-------
+ mm/page_alloc.c            |   27 ++++++++
+ 4 files changed, 122 insertions(+), 19 deletions(-)
 
---- a/lib/kstrtox.c~kstrtox-uninline-everything
-+++ a/lib/kstrtox.c
-@@ -22,6 +22,7 @@
+--- a/include/linux/mm.h~mm-hwpoison-fix-unpoison_memory
++++ a/include/linux/mm.h
+@@ -3220,6 +3220,7 @@ enum mf_flags {
+ 	MF_ACTION_REQUIRED = 1 << 1,
+ 	MF_MUST_KILL = 1 << 2,
+ 	MF_SOFT_OFFLINE = 1 << 3,
++	MF_UNPOISON = 1 << 4,
+ };
+ extern int memory_failure(unsigned long pfn, int flags);
+ extern void memory_failure_queue(unsigned long pfn, int flags);
+--- a/include/linux/page-flags.h~mm-hwpoison-fix-unpoison_memory
++++ a/include/linux/page-flags.h
+@@ -522,7 +522,11 @@ PAGEFLAG_FALSE(Uncached, uncached)
+ PAGEFLAG(HWPoison, hwpoison, PF_ANY)
+ TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
+ #define __PG_HWPOISON (1UL << PG_hwpoison)
++#define MAGIC_HWPOISON	0x48575053U	/* HWPS */
++extern void SetPageHWPoisonTakenOff(struct page *page);
++extern void ClearPageHWPoisonTakenOff(struct page *page);
+ extern bool take_page_off_buddy(struct page *page);
++extern bool put_page_back_buddy(struct page *page);
+ #else
+ PAGEFLAG_FALSE(HWPoison, hwpoison)
+ #define __PG_HWPOISON 0
+--- a/mm/memory-failure.c~mm-hwpoison-fix-unpoison_memory
++++ a/mm/memory-failure.c
+@@ -1152,6 +1152,22 @@ static int page_action(struct page_state
+ 	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
+ }
  
- #include "kstrtox.h"
++static inline bool PageHWPoisonTakenOff(struct page *page)
++{
++	return PageHWPoison(page) && page_private(page) == MAGIC_HWPOISON;
++}
++
++void SetPageHWPoisonTakenOff(struct page *page)
++{
++	set_page_private(page, MAGIC_HWPOISON);
++}
++
++void ClearPageHWPoisonTakenOff(struct page *page)
++{
++	if (PageHWPoison(page))
++		set_page_private(page, 0);
++}
++
+ /*
+  * Return true if a page type of a given page is supported by hwpoison
+  * mechanism (while handling could fail), otherwise false.  This function
+@@ -1254,6 +1270,27 @@ out:
+ 	return ret;
+ }
  
-+noinline
- const char *_parse_integer_fixup_radix(const char *s, unsigned int *base)
- {
- 	if (*base == 0) {
-@@ -47,6 +48,7 @@ const char *_parse_integer_fixup_radix(c
++static int __get_unpoison_page(struct page *page)
++{
++	struct page *head = compound_head(page);
++	int ret = 0;
++	bool hugetlb = false;
++
++	ret = get_hwpoison_huge_page(head, &hugetlb);
++	if (hugetlb)
++		return ret;
++
++	/*
++	 * PageHWPoisonTakenOff pages are not only marked as PG_hwpoison,
++	 * but also isolated from buddy freelist, so need to identify the
++	 * state and have to cancel both operations to unpoison.
++	 */
++	if (PageHWPoisonTakenOff(page))
++		return -EHWPOISON;
++
++	return get_page_unless_zero(page) ? 1 : 0;
++}
++
+ /**
+  * get_hwpoison_page() - Get refcount for memory error handling
+  * @p:		Raw error page (hit by memory error)
+@@ -1270,18 +1307,26 @@ out:
+  * extra care for the error page's state (as done in __get_hwpoison_page()),
+  * and has some retry logic in get_any_page().
   *
-  * Don't you dare use this function.
++ * When called from unpoison_memory(), the caller should already ensure that
++ * the given page has PG_hwpoison. So it's never reused for other page
++ * allocations, and __get_unpoison_page() never races with them.
++ *
+  * Return: 0 on failure,
+  *         1 on success for in-use pages in a well-defined state,
+  *         -EIO for pages on which we can not handle memory errors,
+  *         -EBUSY when get_hwpoison_page() has raced with page lifecycle
+- *         operations like allocation and free.
++ *         operations like allocation and free,
++ *         -EHWPOISON when the page is hwpoisoned and taken off from buddy.
   */
-+noinline
- unsigned int _parse_integer_limit(const char *s, unsigned int base, unsigned long long *p,
- 				  size_t max_chars)
+ static int get_hwpoison_page(struct page *p, unsigned long flags)
  {
-@@ -85,6 +87,7 @@ unsigned int _parse_integer_limit(const
- 	return rv;
- }
+ 	int ret;
  
-+noinline
- unsigned int _parse_integer(const char *s, unsigned int base, unsigned long long *p)
- {
- 	return _parse_integer_limit(s, base, p, INT_MAX);
-@@ -125,6 +128,7 @@ static int _kstrtoull(const char *s, uns
-  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-  * Preferred over simple_strtoull(). Return code must be checked.
-  */
-+noinline
- int kstrtoull(const char *s, unsigned int base, unsigned long long *res)
- {
- 	if (s[0] == '+')
-@@ -148,6 +152,7 @@ EXPORT_SYMBOL(kstrtoull);
-  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-  * Preferred over simple_strtoll(). Return code must be checked.
-  */
-+noinline
- int kstrtoll(const char *s, unsigned int base, long long *res)
- {
- 	unsigned long long tmp;
-@@ -219,6 +224,7 @@ EXPORT_SYMBOL(_kstrtol);
-  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-  * Preferred over simple_strtoul(). Return code must be checked.
-  */
-+noinline
- int kstrtouint(const char *s, unsigned int base, unsigned int *res)
- {
- 	unsigned long long tmp;
-@@ -249,6 +255,7 @@ EXPORT_SYMBOL(kstrtouint);
-  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
-  * Preferred over simple_strtol(). Return code must be checked.
-  */
-+noinline
- int kstrtoint(const char *s, unsigned int base, int *res)
- {
- 	long long tmp;
-@@ -264,6 +271,7 @@ int kstrtoint(const char *s, unsigned in
- }
- EXPORT_SYMBOL(kstrtoint);
+ 	zone_pcp_disable(page_zone(p));
+-	ret = get_any_page(p, flags);
++	if (flags & MF_UNPOISON)
++		ret = __get_unpoison_page(p);
++	else
++		ret = get_any_page(p, flags);
+ 	zone_pcp_enable(page_zone(p));
  
-+noinline
- int kstrtou16(const char *s, unsigned int base, u16 *res)
- {
- 	unsigned long long tmp;
-@@ -279,6 +287,7 @@ int kstrtou16(const char *s, unsigned in
- }
- EXPORT_SYMBOL(kstrtou16);
+ 	return ret;
+@@ -1934,6 +1979,28 @@ core_initcall(memory_failure_init);
+ 		pr_info(fmt, pfn);			\
+ })
  
-+noinline
- int kstrtos16(const char *s, unsigned int base, s16 *res)
++static inline int clear_page_hwpoison(struct ratelimit_state *rs, struct page *p)
++{
++	if (TestClearPageHWPoison(p)) {
++		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
++				 page_to_pfn(p), rs);
++		num_poisoned_pages_dec();
++		return 1;
++	}
++	return 0;
++}
++
++static inline int unpoison_taken_off_page(struct ratelimit_state *rs,
++					  struct page *p)
++{
++	if (put_page_back_buddy(p)) {
++		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
++				 page_to_pfn(p), rs);
++		return 0;
++	}
++	return -EBUSY;
++}
++
+ /**
+  * unpoison_memory - Unpoison a previously poisoned page
+  * @pfn: Page number of the to be unpoisoned page
+@@ -1950,9 +2017,7 @@ int unpoison_memory(unsigned long pfn)
  {
- 	long long tmp;
-@@ -294,6 +303,7 @@ int kstrtos16(const char *s, unsigned in
- }
- EXPORT_SYMBOL(kstrtos16);
+ 	struct page *page;
+ 	struct page *p;
+-	int freeit = 0;
+-	int ret = 0;
+-	unsigned long flags = 0;
++	int ret = -EBUSY;
+ 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 					DEFAULT_RATELIMIT_BURST);
  
-+noinline
- int kstrtou8(const char *s, unsigned int base, u8 *res)
- {
- 	unsigned long long tmp;
-@@ -309,6 +319,7 @@ int kstrtou8(const char *s, unsigned int
- }
- EXPORT_SYMBOL(kstrtou8);
+@@ -1988,24 +2053,30 @@ int unpoison_memory(unsigned long pfn)
+ 		goto unlock_mutex;
+ 	}
  
-+noinline
- int kstrtos8(const char *s, unsigned int base, s8 *res)
- {
- 	long long tmp;
-@@ -333,6 +344,7 @@ EXPORT_SYMBOL(kstrtos8);
-  * [oO][NnFf] for "on" and "off". Otherwise it will return -EINVAL.  Value
-  * pointed to by res is updated upon finding a match.
-  */
-+noinline
- int kstrtobool(const char *s, bool *res)
- {
- 	if (!s)
+-	if (!get_hwpoison_page(p, flags)) {
+-		if (TestClearPageHWPoison(p))
+-			num_poisoned_pages_dec();
+-		unpoison_pr_info("Unpoison: Software-unpoisoned free page %#lx\n",
+-				 pfn, &unpoison_rs);
++	if (PageSlab(page) || PageTable(page))
+ 		goto unlock_mutex;
+-	}
+ 
+-	if (TestClearPageHWPoison(page)) {
+-		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
+-				 pfn, &unpoison_rs);
+-		num_poisoned_pages_dec();
+-		freeit = 1;
+-	}
++	ret = get_hwpoison_page(p, MF_UNPOISON);
++	if (!ret) {
++		if (clear_page_hwpoison(&unpoison_rs, page))
++			ret = 0;
++		else
++			ret = -EBUSY;
++	} else if (ret < 0) {
++		if (ret == -EHWPOISON) {
++			ret = unpoison_taken_off_page(&unpoison_rs, p);
++		} else
++			unpoison_pr_info("Unpoison: failed to grab page %#lx\n",
++					 pfn, &unpoison_rs);
++	} else {
++		int freeit = clear_page_hwpoison(&unpoison_rs, p);
+ 
+-	put_page(page);
+-	if (freeit && !(pfn == my_zero_pfn(0) && page_count(p) == 1))
+ 		put_page(page);
++		if (freeit && !(pfn == my_zero_pfn(0) && page_count(p) == 1)) {
++			put_page(page);
++			ret = 0;
++		}
++	}
+ 
+ unlock_mutex:
+ 	mutex_unlock(&mf_mutex);
+--- a/mm/page_alloc.c~mm-hwpoison-fix-unpoison_memory
++++ a/mm/page_alloc.c
+@@ -19,6 +19,7 @@
+ #include <linux/mm.h>
+ #include <linux/highmem.h>
+ #include <linux/swap.h>
++#include <linux/swapops.h>
+ #include <linux/interrupt.h>
+ #include <linux/pagemap.h>
+ #include <linux/jiffies.h>
+@@ -9448,6 +9449,7 @@ bool take_page_off_buddy(struct page *pa
+ 			del_page_from_free_list(page_head, zone, page_order);
+ 			break_down_buddy_pages(zone, page_head, page, 0,
+ 						page_order, migratetype);
++			SetPageHWPoisonTakenOff(page);
+ 			if (!is_migrate_isolate(migratetype))
+ 				__mod_zone_freepage_state(zone, -1, migratetype);
+ 			ret = true;
+@@ -9459,4 +9461,29 @@ bool take_page_off_buddy(struct page *pa
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	return ret;
+ }
++
++/*
++ * Cancel takeoff done by take_page_off_buddy().
++ */
++bool put_page_back_buddy(struct page *page)
++{
++	struct zone *zone = page_zone(page);
++	unsigned long pfn = page_to_pfn(page);
++	unsigned long flags;
++	int migratetype = get_pfnblock_migratetype(page, pfn);
++	bool ret = false;
++
++	spin_lock_irqsave(&zone->lock, flags);
++	if (put_page_testzero(page)) {
++		ClearPageHWPoisonTakenOff(page);
++		__free_one_page(page, pfn, zone, 0, migratetype, FPI_NONE);
++		if (TestClearPageHWPoison(page)) {
++			num_poisoned_pages_dec();
++			ret = true;
++		}
++	}
++	spin_unlock_irqrestore(&zone->lock, flags);
++
++	return ret;
++}
+ #endif
 _
 
-Patches currently in -mm which might be from adobriyan@gmail.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-kstrtox-uninline-everything.patch
-elf-fix-overflow-in-total-mapping-size-calculation.patch
+mm-hwpoison-mf_mutex-for-soft-offline-and-unpoison.patch
+mm-hwpoison-remove-mf_msg_buddy_2nd-and-mf_msg_poisoned_huge.patch
+mm-hwpoison-fix-unpoison_memory.patch
 
