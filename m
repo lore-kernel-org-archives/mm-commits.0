@@ -2,37 +2,32 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BEF7CC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 00:31:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C513C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 00:32:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id AA5E3619E1
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 00:31:20 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 85DAA619FA
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 00:32:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345730AbhKPAeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 19:34:13 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45408 "EHLO mail.kernel.org"
+        id S245643AbhKPAfc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 19:35:32 -0500
+Received: from mail.kernel.org ([198.145.29.99]:45394 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1344004AbhKOTXH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 14:23:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CE4E863611;
-        Mon, 15 Nov 2021 18:50:04 +0000 (UTC)
+        id S1344050AbhKOTXM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 14:23:12 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8353632A3;
+        Mon, 15 Nov 2021 18:50:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637002205;
-        bh=1cLVH5KZNDb7WdYsbn/WQAD0Dy9XSwgb8y7wWvwgucw=;
+        s=korg; t=1637002252;
+        bh=/FybE8S6PcWCIe6w5dKzd+pBvfl9m8nPQu0QBMLLdLk=;
         h=Date:From:To:Subject:From;
-        b=U8jiR187b/hzIYyFX1mLAVIFdIgYcHdKAZQr3txL38BswIinjzeb3vyLii/Ok1+PC
-         R3/JpN2s/A7V/eKWvM+pMEOIIHgrKf0yttDZT9ahOpDFierq/OTAMX6JOZu+LZhDLe
-         a3FKlfzfuwx+DMRPRcGy99FNIgopu7udEsEJaxKU=
-Date:   Mon, 15 Nov 2021 10:50:04 -0800
+        b=hyTSzBzi7LLp31OopIEh5aVyk4y4Utv5Zn1RGzPSuNN1fE2diLQnwhmmeXPo+yI5L
+         GTXxpA+UDgT6ZKvQI+rsCHNz/x8eGmjzJ5U2xrg+894MbEyh0rl5FRRX4Lj/wS8N5L
+         krG00ReKinbrVeigXY5w3/5wq9gLEiS14vmbTgu4=
+Date:   Mon, 15 Nov 2021 10:50:52 -0800
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, cl@linux.com, glommer@parallels.com,
-        gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, rkovhaev@gmail.com, stable@vger.kernel.org,
-        vbabka@suse.cz
-Subject:  + mm-kmemleak-slob-respect-slab_noleaktrace-flag.patch
- added to -mm tree
-Message-ID: <20211115185004.cd2DZSA6q%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, mm-commits@vger.kernel.org
+Subject:  + kstrtox-uninline-everything.patch added to -mm tree
+Message-ID: <20211115185052.V-WSUcAv6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmemleak: slob: respect SLAB_NOLEAKTRACE flag
+     Subject: kstrtox: uninline everything
 has been added to the -mm tree.  Its filename is
-     mm-kmemleak-slob-respect-slab_noleaktrace-flag.patch
+     kstrtox-uninline-everything.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-slob-respect-slab_noleaktrace-flag.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kstrtox-uninline-everything.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-slob-respect-slab_noleaktrace-flag.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kstrtox-uninline-everything.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,51 +57,155 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rustam Kovhaev <rkovhaev@gmail.com>
-Subject: mm: kmemleak: slob: respect SLAB_NOLEAKTRACE flag
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: kstrtox: uninline everything
 
-When kmemleak is enabled for SLOB, system does not boot and does not print
-anything to the console.  At the very early stage in the boot process we
-hit infinite recursion from kmemleak_init() and eventually kernel crashes.
+I've made a mistake of looking into lib/kstrtox.o code generation.
 
-kmemleak_init() specifies SLAB_NOLEAKTRACE for KMEM_CACHE(), but
-kmem_cache_create_usercopy() removes it because CACHE_CREATE_MASK is not
-valid for SLOB.
+The only function remotely performance critical is _parse_integer()
+(via /proc/*/map_files/*), everything else is not.
 
-Let's fix CACHE_CREATE_MASK and make kmemleak work with SLOB
+Uninline everything, shrink lib/kstrtox.o by ~20 % !
 
-Link: https://lkml.kernel.org/r/20211115020850.3154366-1-rkovhaev@gmail.com
-Fixes: d8843922fba4 ("slab: Ignore internal flags in cache creation")
-Signed-off-by: Rustam Kovhaev <rkovhaev@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Glauber Costa <glommer@parallels.com>
-Cc: <stable@vger.kernel.org>
+Space savings on x86_64:
+
+	add/remove: 0/0 grow/shrink: 0/23 up/down: 0/-1269 (-1269 !!!)
+	Function                                     old     new   delta
+	kstrtoull                                     16      13      -3
+	kstrtouint                                    59      48     -11
+	kstrtou8                                      60      49     -11
+	kstrtou16                                     61      50     -11
+	_kstrtoul                                     46      35     -11
+	kstrtoull_from_user                           95      83     -12
+	kstrtoul_from_user                            95      83     -12
+	kstrtoll                                      93      80     -13
+	kstrtouint_from_user                         124      83     -41
+	kstrtou8_from_user                           125      83     -42
+	kstrtou16_from_user                          126      83     -43
+	kstrtos8                                     101      50     -51
+	kstrtos16                                    102      51     -51
+	kstrtoint                                    100      49     -51
+	_kstrtol                                      93      35     -58
+	kstrtobool_from_user                         156      75     -81
+	kstrtoll_from_user                           165      83     -82
+	kstrtol_from_user                            165      83     -82
+	kstrtoint_from_user                          172      83     -89
+	kstrtos8_from_user                           173      83     -90
+	kstrtos16_from_user                          174      83     -91
+	_parse_integer                               136      10    -126
+	_kstrtoull                                   308     101    -207
+	Total: Before=3421236, After=3419967, chg -0.04%
+
+Link: https://lkml.kernel.org/r/YZDsFDhHst4m2Pnt@localhost.localdomain
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/kstrtox.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
---- a/mm/slab.h~mm-kmemleak-slob-respect-slab_noleaktrace-flag
-+++ a/mm/slab.h
-@@ -147,7 +147,7 @@ static inline slab_flags_t kmem_cache_fl
- #define SLAB_CACHE_FLAGS (SLAB_NOLEAKTRACE | SLAB_RECLAIM_ACCOUNT | \
- 			  SLAB_TEMPORARY | SLAB_ACCOUNT)
- #else
--#define SLAB_CACHE_FLAGS (0)
-+#define SLAB_CACHE_FLAGS (SLAB_NOLEAKTRACE)
- #endif
+--- a/lib/kstrtox.c~kstrtox-uninline-everything
++++ a/lib/kstrtox.c
+@@ -22,6 +22,7 @@
  
- /* Common flags available with current configuration */
+ #include "kstrtox.h"
+ 
++noinline
+ const char *_parse_integer_fixup_radix(const char *s, unsigned int *base)
+ {
+ 	if (*base == 0) {
+@@ -47,6 +48,7 @@ const char *_parse_integer_fixup_radix(c
+  *
+  * Don't you dare use this function.
+  */
++noinline
+ unsigned int _parse_integer_limit(const char *s, unsigned int base, unsigned long long *p,
+ 				  size_t max_chars)
+ {
+@@ -85,6 +87,7 @@ unsigned int _parse_integer_limit(const
+ 	return rv;
+ }
+ 
++noinline
+ unsigned int _parse_integer(const char *s, unsigned int base, unsigned long long *p)
+ {
+ 	return _parse_integer_limit(s, base, p, INT_MAX);
+@@ -125,6 +128,7 @@ static int _kstrtoull(const char *s, uns
+  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+  * Preferred over simple_strtoull(). Return code must be checked.
+  */
++noinline
+ int kstrtoull(const char *s, unsigned int base, unsigned long long *res)
+ {
+ 	if (s[0] == '+')
+@@ -148,6 +152,7 @@ EXPORT_SYMBOL(kstrtoull);
+  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+  * Preferred over simple_strtoll(). Return code must be checked.
+  */
++noinline
+ int kstrtoll(const char *s, unsigned int base, long long *res)
+ {
+ 	unsigned long long tmp;
+@@ -219,6 +224,7 @@ EXPORT_SYMBOL(_kstrtol);
+  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+  * Preferred over simple_strtoul(). Return code must be checked.
+  */
++noinline
+ int kstrtouint(const char *s, unsigned int base, unsigned int *res)
+ {
+ 	unsigned long long tmp;
+@@ -249,6 +255,7 @@ EXPORT_SYMBOL(kstrtouint);
+  * Returns 0 on success, -ERANGE on overflow and -EINVAL on parsing error.
+  * Preferred over simple_strtol(). Return code must be checked.
+  */
++noinline
+ int kstrtoint(const char *s, unsigned int base, int *res)
+ {
+ 	long long tmp;
+@@ -264,6 +271,7 @@ int kstrtoint(const char *s, unsigned in
+ }
+ EXPORT_SYMBOL(kstrtoint);
+ 
++noinline
+ int kstrtou16(const char *s, unsigned int base, u16 *res)
+ {
+ 	unsigned long long tmp;
+@@ -279,6 +287,7 @@ int kstrtou16(const char *s, unsigned in
+ }
+ EXPORT_SYMBOL(kstrtou16);
+ 
++noinline
+ int kstrtos16(const char *s, unsigned int base, s16 *res)
+ {
+ 	long long tmp;
+@@ -294,6 +303,7 @@ int kstrtos16(const char *s, unsigned in
+ }
+ EXPORT_SYMBOL(kstrtos16);
+ 
++noinline
+ int kstrtou8(const char *s, unsigned int base, u8 *res)
+ {
+ 	unsigned long long tmp;
+@@ -309,6 +319,7 @@ int kstrtou8(const char *s, unsigned int
+ }
+ EXPORT_SYMBOL(kstrtou8);
+ 
++noinline
+ int kstrtos8(const char *s, unsigned int base, s8 *res)
+ {
+ 	long long tmp;
+@@ -333,6 +344,7 @@ EXPORT_SYMBOL(kstrtos8);
+  * [oO][NnFf] for "on" and "off". Otherwise it will return -EINVAL.  Value
+  * pointed to by res is updated upon finding a match.
+  */
++noinline
+ int kstrtobool(const char *s, bool *res)
+ {
+ 	if (!s)
 _
 
-Patches currently in -mm which might be from rkovhaev@gmail.com are
+Patches currently in -mm which might be from adobriyan@gmail.com are
 
-mm-kmemleak-slob-respect-slab_noleaktrace-flag.patch
+kstrtox-uninline-everything.patch
+elf-fix-overflow-in-total-mapping-size-calculation.patch
 
