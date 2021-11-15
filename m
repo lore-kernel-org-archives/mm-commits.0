@@ -2,36 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8C52FC4167B
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2A07C433EF
 	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 00:53:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 744D061B49
+	by mail.kernel.org (Postfix) with ESMTP id CD1D961ABF
 	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 00:53:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245116AbhKPA4Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 19:56:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44634 "EHLO mail.kernel.org"
+        id S243616AbhKPA40 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 19:56:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:44598 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245637AbhKOTU5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S245630AbhKOTU5 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 15 Nov 2021 14:20:57 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1C55F632E9;
-        Mon, 15 Nov 2021 18:38:25 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id D4947632E7;
+        Mon, 15 Nov 2021 18:38:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637001505;
-        bh=vx2MBgTNMOzkKF3GloId+8GOhBsrTmIkkY8CWnSIsgA=;
+        s=korg; t=1637001502;
+        bh=hSZ/4un2bLwzmRExKgVLSyWLXlf3FjUSDxKhmfcYVDc=;
         h=Date:From:To:Subject:From;
-        b=uRxIxrjlteQPnEzwDr7T+l4M9mI39gnNSXl14NNNJfMvJ4c7LHAFYkb10JPdx9foH
-         VGzoWBKA6bVrRBUPpGZzdAoHJ6XZja0iX5gmiMIRct2UorhTgcBJ8lBBTZEpOTjN9j
-         la4U10E91INfZRVJKgQVCnVWzdv8l5jbMQBd86K0=
-Date:   Mon, 15 Nov 2021 10:38:24 -0800
+        b=YIoVSXAGfiGgbLsS76uHP4vyGdCk5laS7cRs9ouIDm3UOMrEpXlC1RqDZhpmv+JmK
+         dbYwS5uC+CMA/X0tp5RCG/OSFXOEcbfLzBmPMnH3NcPW1qwtjtaRz5Aqe+JqUOQtSs
+         AbwDFoQGjT8T7XVzmWfocxY3A1roFvIICs5NHnEQ=
+Date:   Mon, 15 Nov 2021 10:38:21 -0800
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.vnet.ibm.com, david@redhat.com,
         dinghui@sangfor.com.cn, linmiaohe@huawei.com, mhocko@suse.com,
         mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
         osalvador@suse.de, peterx@redhat.com, shy828301@gmail.com,
         tony.luck@intel.com
-Subject:  + mm-hwpoison-fix-unpoison_memory.patch added to -mm tree
-Message-ID: <20211115183824.44UGsMus-%akpm@linux-foundation.org>
+Subject:  +
+ mm-hwpoison-remove-mf_msg_buddy_2nd-and-mf_msg_poisoned_huge.patch added to
+ -mm tree
+Message-ID: <20211115183821.HIcCZPmSV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: fix unpoison_memory()
+     Subject: mm/hwpoison: remove MF_MSG_BUDDY_2ND and MF_MSG_POISONED_HUGE
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-unpoison_memory.patch
+     mm-hwpoison-remove-mf_msg_buddy_2nd-and-mf_msg_poisoned_huge.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-unpoison_memory.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-remove-mf_msg_buddy_2nd-and-mf_msg_poisoned_huge.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-unpoison_memory.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-remove-mf_msg_buddy_2nd-and-mf_msg_poisoned_huge.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,290 +64,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: fix unpoison_memory()
+Subject: mm/hwpoison: remove MF_MSG_BUDDY_2ND and MF_MSG_POISONED_HUGE
 
-After recent soft-offline rework, error pages can be taken off from buddy
-allocator, but the existing unpoison_memory() does not properly undo the
-operation.  Moreover, due to the recent change on __get_hwpoison_page(),
-get_page_unless_zero() is hardly called for hwpoisoned pages.  So
-__get_hwpoison_page() highly likely returns -EBUSY (meaning to fail to
-grab page refcount) and unpoison just clears PG_hwpoison without releasing
-a refcount.  That does not lead to a critical issue like kernel panic, but
-unpoisoned pages never get back to buddy (leaked permanently), which is
-not good.
+These action_page_types are no longer used, so remove them.
 
-To (partially) fix this, we need to identify "taken off" pages from other
-types of hwpoisoned pages.  We can't use refcount or page flags for this
-purpose, so a pseudo flag is defined by hacking ->private field.  Someone
-might think that put_page() is enough to cancel taken-off pages, but the
-normal free path contains some operations not suitable for the current
-purpose, and can fire VM_BUG_ON().
-
-Note that unpoison_memory() is now supposed to be cancel hwpoison events
-injected only by madvise() or
-/sys/devices/system/memory/{hard,soft}_offline_page, not by MCE injection,
-so please don't try to use unpoison when testing with MCE injection.
-
-[lkp@intel.com: report build failure for ARCH=i386]
-Link: https://lkml.kernel.org/r/20211115084006.3728254-4-naoya.horiguchi@linux.dev
+Link: https://lkml.kernel.org/r/20211115084006.3728254-3-naoya.horiguchi@linux.dev
 Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Ding Hui <dinghui@sangfor.com.cn>
-Cc: Tony Luck <tony.luck@intel.com>
+Acked-by: Yang Shi <shy828301@gmail.com>
 Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ding Hui <dinghui@sangfor.com.cn>
 Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Yang Shi <shy828301@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
 Cc: Peter Xu <peterx@redhat.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h         |    1 
- include/linux/page-flags.h |    4 +
- mm/memory-failure.c        |  109 ++++++++++++++++++++++++++++-------
- mm/page_alloc.c            |   27 ++++++++
- 4 files changed, 122 insertions(+), 19 deletions(-)
+ include/linux/mm.h      |    2 --
+ include/ras/ras_event.h |    2 --
+ mm/memory-failure.c     |    2 --
+ 3 files changed, 6 deletions(-)
 
---- a/include/linux/mm.h~mm-hwpoison-fix-unpoison_memory
+--- a/include/linux/mm.h~mm-hwpoison-remove-mf_msg_buddy_2nd-and-mf_msg_poisoned_huge
 +++ a/include/linux/mm.h
-@@ -3220,6 +3220,7 @@ enum mf_flags {
- 	MF_ACTION_REQUIRED = 1 << 1,
- 	MF_MUST_KILL = 1 << 2,
- 	MF_SOFT_OFFLINE = 1 << 3,
-+	MF_UNPOISON = 1 << 4,
- };
- extern int memory_failure(unsigned long pfn, int flags);
- extern void memory_failure_queue(unsigned long pfn, int flags);
---- a/include/linux/page-flags.h~mm-hwpoison-fix-unpoison_memory
-+++ a/include/linux/page-flags.h
-@@ -522,7 +522,11 @@ PAGEFLAG_FALSE(Uncached, uncached)
- PAGEFLAG(HWPoison, hwpoison, PF_ANY)
- TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
- #define __PG_HWPOISON (1UL << PG_hwpoison)
-+#define MAGIC_HWPOISON	0x48575053U	/* HWPS */
-+extern void SetPageHWPoisonTakenOff(struct page *page);
-+extern void ClearPageHWPoisonTakenOff(struct page *page);
- extern bool take_page_off_buddy(struct page *page);
-+extern bool put_page_back_buddy(struct page *page);
- #else
- PAGEFLAG_FALSE(HWPoison, hwpoison)
- #define __PG_HWPOISON 0
---- a/mm/memory-failure.c~mm-hwpoison-fix-unpoison_memory
+@@ -3247,7 +3247,6 @@ enum mf_action_page_type {
+ 	MF_MSG_KERNEL_HIGH_ORDER,
+ 	MF_MSG_SLAB,
+ 	MF_MSG_DIFFERENT_COMPOUND,
+-	MF_MSG_POISONED_HUGE,
+ 	MF_MSG_HUGE,
+ 	MF_MSG_FREE_HUGE,
+ 	MF_MSG_NON_PMD_HUGE,
+@@ -3262,7 +3261,6 @@ enum mf_action_page_type {
+ 	MF_MSG_CLEAN_LRU,
+ 	MF_MSG_TRUNCATED_LRU,
+ 	MF_MSG_BUDDY,
+-	MF_MSG_BUDDY_2ND,
+ 	MF_MSG_DAX,
+ 	MF_MSG_UNSPLIT_THP,
+ 	MF_MSG_UNKNOWN,
+--- a/include/ras/ras_event.h~mm-hwpoison-remove-mf_msg_buddy_2nd-and-mf_msg_poisoned_huge
++++ a/include/ras/ras_event.h
+@@ -358,7 +358,6 @@ TRACE_EVENT(aer_event,
+ 	EM ( MF_MSG_KERNEL_HIGH_ORDER, "high-order kernel page" )	\
+ 	EM ( MF_MSG_SLAB, "kernel slab page" )				\
+ 	EM ( MF_MSG_DIFFERENT_COMPOUND, "different compound page after locking" ) \
+-	EM ( MF_MSG_POISONED_HUGE, "huge page already hardware poisoned" )	\
+ 	EM ( MF_MSG_HUGE, "huge page" )					\
+ 	EM ( MF_MSG_FREE_HUGE, "free huge page" )			\
+ 	EM ( MF_MSG_NON_PMD_HUGE, "non-pmd-sized huge page" )		\
+@@ -373,7 +372,6 @@ TRACE_EVENT(aer_event,
+ 	EM ( MF_MSG_CLEAN_LRU, "clean LRU page" )			\
+ 	EM ( MF_MSG_TRUNCATED_LRU, "already truncated LRU page" )	\
+ 	EM ( MF_MSG_BUDDY, "free buddy page" )				\
+-	EM ( MF_MSG_BUDDY_2ND, "free buddy page (2nd try)" )		\
+ 	EM ( MF_MSG_DAX, "dax page" )					\
+ 	EM ( MF_MSG_UNSPLIT_THP, "unsplit thp" )			\
+ 	EMe ( MF_MSG_UNKNOWN, "unknown page" )
+--- a/mm/memory-failure.c~mm-hwpoison-remove-mf_msg_buddy_2nd-and-mf_msg_poisoned_huge
 +++ a/mm/memory-failure.c
-@@ -1152,6 +1152,22 @@ static int page_action(struct page_state
- 	return (result == MF_RECOVERED || result == MF_DELAYED) ? 0 : -EBUSY;
- }
- 
-+static inline bool PageHWPoisonTakenOff(struct page *page)
-+{
-+	return PageHWPoison(page) && page_private(page) == MAGIC_HWPOISON;
-+}
-+
-+void SetPageHWPoisonTakenOff(struct page *page)
-+{
-+	set_page_private(page, MAGIC_HWPOISON);
-+}
-+
-+void ClearPageHWPoisonTakenOff(struct page *page)
-+{
-+	if (PageHWPoison(page))
-+		set_page_private(page, 0);
-+}
-+
- /*
-  * Return true if a page type of a given page is supported by hwpoison
-  * mechanism (while handling could fail), otherwise false.  This function
-@@ -1254,6 +1270,27 @@ out:
- 	return ret;
- }
- 
-+static int __get_unpoison_page(struct page *page)
-+{
-+	struct page *head = compound_head(page);
-+	int ret = 0;
-+	bool hugetlb = false;
-+
-+	ret = get_hwpoison_huge_page(head, &hugetlb);
-+	if (hugetlb)
-+		return ret;
-+
-+	/*
-+	 * PageHWPoisonTakenOff pages are not only marked as PG_hwpoison,
-+	 * but also isolated from buddy freelist, so need to identify the
-+	 * state and have to cancel both operations to unpoison.
-+	 */
-+	if (PageHWPoisonTakenOff(page))
-+		return -EHWPOISON;
-+
-+	return get_page_unless_zero(page) ? 1 : 0;
-+}
-+
- /**
-  * get_hwpoison_page() - Get refcount for memory error handling
-  * @p:		Raw error page (hit by memory error)
-@@ -1270,18 +1307,26 @@ out:
-  * extra care for the error page's state (as done in __get_hwpoison_page()),
-  * and has some retry logic in get_any_page().
-  *
-+ * When called from unpoison_memory(), the caller should already ensure that
-+ * the given page has PG_hwpoison. So it's never reused for other page
-+ * allocations, and __get_unpoison_page() never races with them.
-+ *
-  * Return: 0 on failure,
-  *         1 on success for in-use pages in a well-defined state,
-  *         -EIO for pages on which we can not handle memory errors,
-  *         -EBUSY when get_hwpoison_page() has raced with page lifecycle
-- *         operations like allocation and free.
-+ *         operations like allocation and free,
-+ *         -EHWPOISON when the page is hwpoisoned and taken off from buddy.
-  */
- static int get_hwpoison_page(struct page *p, unsigned long flags)
- {
- 	int ret;
- 
- 	zone_pcp_disable(page_zone(p));
--	ret = get_any_page(p, flags);
-+	if (flags & MF_UNPOISON)
-+		ret = __get_unpoison_page(p);
-+	else
-+		ret = get_any_page(p, flags);
- 	zone_pcp_enable(page_zone(p));
- 
- 	return ret;
-@@ -1934,6 +1979,28 @@ core_initcall(memory_failure_init);
- 		pr_info(fmt, pfn);			\
- })
- 
-+static inline int clear_page_hwpoison(struct ratelimit_state *rs, struct page *p)
-+{
-+	if (TestClearPageHWPoison(p)) {
-+		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
-+				 page_to_pfn(p), rs);
-+		num_poisoned_pages_dec();
-+		return 1;
-+	}
-+	return 0;
-+}
-+
-+static inline int unpoison_taken_off_page(struct ratelimit_state *rs,
-+					  struct page *p)
-+{
-+	if (put_page_back_buddy(p)) {
-+		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
-+				 page_to_pfn(p), rs);
-+		return 0;
-+	}
-+	return -EBUSY;
-+}
-+
- /**
-  * unpoison_memory - Unpoison a previously poisoned page
-  * @pfn: Page number of the to be unpoisoned page
-@@ -1950,9 +2017,7 @@ int unpoison_memory(unsigned long pfn)
- {
- 	struct page *page;
- 	struct page *p;
--	int freeit = 0;
--	int ret = 0;
--	unsigned long flags = 0;
-+	int ret = -EBUSY;
- 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
- 					DEFAULT_RATELIMIT_BURST);
- 
-@@ -1988,24 +2053,30 @@ int unpoison_memory(unsigned long pfn)
- 		goto unlock_mutex;
- 	}
- 
--	if (!get_hwpoison_page(p, flags)) {
--		if (TestClearPageHWPoison(p))
--			num_poisoned_pages_dec();
--		unpoison_pr_info("Unpoison: Software-unpoisoned free page %#lx\n",
--				 pfn, &unpoison_rs);
-+	if (PageSlab(page) || PageTable(page))
- 		goto unlock_mutex;
--	}
- 
--	if (TestClearPageHWPoison(page)) {
--		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
--				 pfn, &unpoison_rs);
--		num_poisoned_pages_dec();
--		freeit = 1;
--	}
-+	ret = get_hwpoison_page(p, MF_UNPOISON);
-+	if (!ret) {
-+		if (clear_page_hwpoison(&unpoison_rs, page))
-+			ret = 0;
-+		else
-+			ret = -EBUSY;
-+	} else if (ret < 0) {
-+		if (ret == -EHWPOISON) {
-+			ret = unpoison_taken_off_page(&unpoison_rs, p);
-+		} else
-+			unpoison_pr_info("Unpoison: failed to grab page %#lx\n",
-+					 pfn, &unpoison_rs);
-+	} else {
-+		int freeit = clear_page_hwpoison(&unpoison_rs, p);
- 
--	put_page(page);
--	if (freeit && !(pfn == my_zero_pfn(0) && page_count(p) == 1))
- 		put_page(page);
-+		if (freeit && !(pfn == my_zero_pfn(0) && page_count(p) == 1)) {
-+			put_page(page);
-+			ret = 0;
-+		}
-+	}
- 
- unlock_mutex:
- 	mutex_unlock(&mf_mutex);
---- a/mm/page_alloc.c~mm-hwpoison-fix-unpoison_memory
-+++ a/mm/page_alloc.c
-@@ -19,6 +19,7 @@
- #include <linux/mm.h>
- #include <linux/highmem.h>
- #include <linux/swap.h>
-+#include <linux/swapops.h>
- #include <linux/interrupt.h>
- #include <linux/pagemap.h>
- #include <linux/jiffies.h>
-@@ -9448,6 +9449,7 @@ bool take_page_off_buddy(struct page *pa
- 			del_page_from_free_list(page_head, zone, page_order);
- 			break_down_buddy_pages(zone, page_head, page, 0,
- 						page_order, migratetype);
-+			SetPageHWPoisonTakenOff(page);
- 			if (!is_migrate_isolate(migratetype))
- 				__mod_zone_freepage_state(zone, -1, migratetype);
- 			ret = true;
-@@ -9459,4 +9461,29 @@ bool take_page_off_buddy(struct page *pa
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 	return ret;
- }
-+
-+/*
-+ * Cancel takeoff done by take_page_off_buddy().
-+ */
-+bool put_page_back_buddy(struct page *page)
-+{
-+	struct zone *zone = page_zone(page);
-+	unsigned long pfn = page_to_pfn(page);
-+	unsigned long flags;
-+	int migratetype = get_pfnblock_migratetype(page, pfn);
-+	bool ret = false;
-+
-+	spin_lock_irqsave(&zone->lock, flags);
-+	if (put_page_testzero(page)) {
-+		ClearPageHWPoisonTakenOff(page);
-+		__free_one_page(page, pfn, zone, 0, migratetype, FPI_NONE);
-+		if (TestClearPageHWPoison(page)) {
-+			num_poisoned_pages_dec();
-+			ret = true;
-+		}
-+	}
-+	spin_unlock_irqrestore(&zone->lock, flags);
-+
-+	return ret;
-+}
- #endif
+@@ -722,7 +722,6 @@ static const char * const action_page_ty
+ 	[MF_MSG_KERNEL_HIGH_ORDER]	= "high-order kernel page",
+ 	[MF_MSG_SLAB]			= "kernel slab page",
+ 	[MF_MSG_DIFFERENT_COMPOUND]	= "different compound page after locking",
+-	[MF_MSG_POISONED_HUGE]		= "huge page already hardware poisoned",
+ 	[MF_MSG_HUGE]			= "huge page",
+ 	[MF_MSG_FREE_HUGE]		= "free huge page",
+ 	[MF_MSG_NON_PMD_HUGE]		= "non-pmd-sized huge page",
+@@ -737,7 +736,6 @@ static const char * const action_page_ty
+ 	[MF_MSG_CLEAN_LRU]		= "clean LRU page",
+ 	[MF_MSG_TRUNCATED_LRU]		= "already truncated LRU page",
+ 	[MF_MSG_BUDDY]			= "free buddy page",
+-	[MF_MSG_BUDDY_2ND]		= "free buddy page (2nd try)",
+ 	[MF_MSG_DAX]			= "dax page",
+ 	[MF_MSG_UNSPLIT_THP]		= "unsplit thp",
+ 	[MF_MSG_UNKNOWN]		= "unknown page",
 _
 
 Patches currently in -mm which might be from naoya.horiguchi@nec.com are
