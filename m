@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DCAAC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FD0DC433F5
 	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 21:33:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0742663220
-	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 21:33:44 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F081763215
+	for <mm-commits@archiver.kernel.org>; Mon, 15 Nov 2021 21:33:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350751AbhKOVgd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 16:36:33 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56212 "EHLO mail.kernel.org"
+        id S1349497AbhKOVga (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 16:36:30 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56216 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1352993AbhKOVKn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S1353002AbhKOVKn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
         Mon, 15 Nov 2021 16:10:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id E15006321B;
-        Mon, 15 Nov 2021 21:06:57 +0000 (UTC)
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0F9BE61B44;
+        Mon, 15 Nov 2021 21:06:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637010418;
-        bh=7WNFkdnUCCNj+TsIINzouF4q9jXC05QY+3Y7K3/swgM=;
+        s=korg; t=1637010412;
+        bh=aqXHAkLLJWcFd4xwV+k9oyjaAWWeoijJ1lnsPZ9f2fI=;
         h=Date:From:To:Subject:From;
-        b=h1QrdQUx+z94B588TuictlWj9vYRAW0M6hQrpWhXCF8qRK8Ggqueq6WPFiFF7PEN2
-         E8cQXx5qVhYnwK1q1D1TyJFQI1N9gtYQh1Hp3JRvbz0nf41naZkZsd0Lw1TAf5aIze
-         vH50aJybRng/cMrQg2NS6RL3tnr2kLeiELKYW3P4=
-Date:   Mon, 15 Nov 2021 13:06:57 -0800
+        b=DwCX66UIR+e0RfyqfiGKOmCLD7fnSNck5NJCCEnkKAJ+eudYo//7u33z+tdS6Tlc3
+         z9eY01EzTCH1fwEBTgiZyO/6KsRAscj47eh2Oqvijh6g0Ft7XkYOekof7+WWWw3RoO
+         E6yvfrIZYqcG7qkHbe1b+QDDtBEeR0ElSt4Bulew=
+Date:   Mon, 15 Nov 2021 13:06:51 -0800
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, minchan@kernel.org,
         mm-commits@vger.kernel.org, peterz@infradead.org,
         senozhatsky@chromium.org, tglx@linutronix.de,
         umgwanakikbuti@gmail.com
-Subject:  + zsmalloc-replace-get_cpu_var-with-local_lock.patch
- added to -mm tree
-Message-ID: <20211115210657.I6OunrGVa%akpm@linux-foundation.org>
+Subject:  + locking-rwlocks-introduce-write_lock_nested.patch added
+ to -mm tree
+Message-ID: <20211115210651.3xbf7AvMt%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: replace get_cpu_var with local_lock
+     Subject: locking/rwlocks: introduce write_lock_nested
 has been added to the -mm tree.  Its filename is
-     zsmalloc-replace-get_cpu_var-with-local_lock.patch
+     locking-rwlocks-introduce-write_lock_nested.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-replace-get_cpu_var-with-local_lock.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/locking-rwlocks-introduce-write_lock_nested.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-replace-get_cpu_var-with-local_lock.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/locking-rwlocks-introduce-write_lock_nested.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,82 +61,157 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Galbraith <umgwanakikbuti@gmail.com>
-Subject: zsmalloc: replace get_cpu_var with local_lock
+From: Minchan Kim <minchan@kernel.org>
+Subject: locking/rwlocks: introduce write_lock_nested
 
-The usage of get_cpu_var() in zs_map_object() is problematic because it
-disables preemption and makes it impossible to acquire any sleeping lock
-on PREEMPT_RT such as a spinlock_t.
+In preparation for converting bit_spin_lock to rwlock in zsmalloc so that
+multiple writers of zspages can run at the same time but those zspages are
+supposed to be different zspage instance.  Thus, it's not deadlock.  This
+patch adds write_lock_nested to support the case for LOCKDEP.
 
-Replace the get_cpu_var() usage with a local_lock_t which is embedded
-struct mapping_area.  It ensures that the access the struct is
-synchronized against all users on the same CPU.
-
-[minchan: remove the bit_spin_lock part and change the title]
-Link: https://lkml.kernel.org/r/20211115185909.3949505-10-minchan@kernel.org
-Signed-off-by: Mike Galbraith <umgwanakikbuti@gmail.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Signed-off-by: Minchan Kim <minchan@kernel.org>
+Link: https://lkml.kernel.org/r/20211115185909.3949505-8-minchan@kernel.org
 Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/linux/rwlock.h          |    6 ++++++
+ include/linux/rwlock_api_smp.h  |    9 +++++++++
+ include/linux/rwlock_rt.h       |    6 ++++++
+ include/linux/spinlock_api_up.h |    1 +
+ kernel/locking/spinlock.c       |    6 ++++++
+ kernel/locking/spinlock_rt.c    |   12 ++++++++++++
+ 6 files changed, 40 insertions(+)
 
---- a/mm/zsmalloc.c~zsmalloc-replace-get_cpu_var-with-local_lock
-+++ a/mm/zsmalloc.c
-@@ -65,6 +65,7 @@
- #include <linux/wait.h>
- #include <linux/pagemap.h>
- #include <linux/fs.h>
-+#include <linux/local_lock.h>
+--- a/include/linux/rwlock_api_smp.h~locking-rwlocks-introduce-write_lock_nested
++++ a/include/linux/rwlock_api_smp.h
+@@ -17,6 +17,7 @@
  
- #define ZSPAGE_MAGIC	0x58
+ void __lockfunc _raw_read_lock(rwlock_t *lock)		__acquires(lock);
+ void __lockfunc _raw_write_lock(rwlock_t *lock)		__acquires(lock);
++void __lockfunc _raw_write_lock_nested(rwlock_t *lock, int subclass)	__acquires(lock);
+ void __lockfunc _raw_read_lock_bh(rwlock_t *lock)	__acquires(lock);
+ void __lockfunc _raw_write_lock_bh(rwlock_t *lock)	__acquires(lock);
+ void __lockfunc _raw_read_lock_irq(rwlock_t *lock)	__acquires(lock);
+@@ -46,6 +47,7 @@ _raw_write_unlock_irqrestore(rwlock_t *l
  
-@@ -276,6 +277,7 @@ struct zspage {
- };
+ #ifdef CONFIG_INLINE_WRITE_LOCK
+ #define _raw_write_lock(lock) __raw_write_lock(lock)
++#define _raw_write_lock_nested(lock, subclass) __raw_write_lock_nested(lock, subclass)
+ #endif
  
- struct mapping_area {
-+	local_lock_t lock;
- 	char *vm_buf; /* copy buffer for objects that span pages */
- 	char *vm_addr; /* address of kmap_atomic()'ed pages */
- 	enum zs_mapmode vm_mm; /* mapping mode */
-@@ -451,7 +453,9 @@ MODULE_ALIAS("zpool-zsmalloc");
- #endif /* CONFIG_ZPOOL */
- 
- /* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
--static DEFINE_PER_CPU(struct mapping_area, zs_map_area);
-+static DEFINE_PER_CPU(struct mapping_area, zs_map_area) = {
-+	.lock	= INIT_LOCAL_LOCK(lock),
-+};
- 
- static __maybe_unused int is_first_page(struct page *page)
- {
-@@ -1269,7 +1273,8 @@ void *zs_map_object(struct zs_pool *pool
- 	class = zspage_class(pool, zspage);
- 	off = (class->size * obj_idx) & ~PAGE_MASK;
- 
--	area = &get_cpu_var(zs_map_area);
-+	local_lock(&zs_map_area.lock);
-+	area = this_cpu_ptr(&zs_map_area);
- 	area->vm_mm = mm;
- 	if (off + class->size <= PAGE_SIZE) {
- 		/* this object is contained entirely within a page */
-@@ -1320,7 +1325,7 @@ void zs_unmap_object(struct zs_pool *poo
- 
- 		__zs_unmap_object(area, pages, off, class->size);
- 	}
--	put_cpu_var(zs_map_area);
-+	local_unlock(&zs_map_area.lock);
- 
- 	migrate_read_unlock(zspage);
+ #ifdef CONFIG_INLINE_READ_LOCK_BH
+@@ -209,6 +211,13 @@ static inline void __raw_write_lock(rwlo
+ 	LOCK_CONTENDED(lock, do_raw_write_trylock, do_raw_write_lock);
  }
+ 
++static inline void __raw_write_lock_nested(rwlock_t *lock, int subclass)
++{
++	preempt_disable();
++	rwlock_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
++	LOCK_CONTENDED(lock, do_raw_write_trylock, do_raw_write_lock);
++}
++
+ #endif /* !CONFIG_GENERIC_LOCKBREAK || CONFIG_DEBUG_LOCK_ALLOC */
+ 
+ static inline void __raw_write_unlock(rwlock_t *lock)
+--- a/include/linux/rwlock.h~locking-rwlocks-introduce-write_lock_nested
++++ a/include/linux/rwlock.h
+@@ -55,6 +55,12 @@ do {								\
+ #define write_lock(lock)	_raw_write_lock(lock)
+ #define read_lock(lock)		_raw_read_lock(lock)
+ 
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++#define write_lock_nested(lock, subclass)	_raw_write_lock_nested(lock, subclass)
++#else
++#define write_lock_nested(lock, subclass)	_raw_write_lock(lock)
++#endif
++
+ #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
+ 
+ #define read_lock_irqsave(lock, flags)			\
+--- a/include/linux/rwlock_rt.h~locking-rwlocks-introduce-write_lock_nested
++++ a/include/linux/rwlock_rt.h
+@@ -28,6 +28,7 @@ extern void rt_read_lock(rwlock_t *rwloc
+ extern int rt_read_trylock(rwlock_t *rwlock);
+ extern void rt_read_unlock(rwlock_t *rwlock);
+ extern void rt_write_lock(rwlock_t *rwlock);
++extern void rt_write_lock_nested(rwlock_t *rwlock, int subclass);
+ extern int rt_write_trylock(rwlock_t *rwlock);
+ extern void rt_write_unlock(rwlock_t *rwlock);
+ 
+@@ -83,6 +84,11 @@ static __always_inline void write_lock(r
+ 	rt_write_lock(rwlock);
+ }
+ 
++static __always_inline void write_lock_nested(rwlock_t *rwlock, int subclass)
++{
++	rt_write_lock_nested(rwlock, subclass);
++}
++
+ static __always_inline void write_lock_bh(rwlock_t *rwlock)
+ {
+ 	local_bh_disable();
+--- a/include/linux/spinlock_api_up.h~locking-rwlocks-introduce-write_lock_nested
++++ a/include/linux/spinlock_api_up.h
+@@ -59,6 +59,7 @@
+ #define _raw_spin_lock_nested(lock, subclass)	__LOCK(lock)
+ #define _raw_read_lock(lock)			__LOCK(lock)
+ #define _raw_write_lock(lock)			__LOCK(lock)
++#define _raw_write_lock_nested(lock, subclass)	__LOCK(lock)
+ #define _raw_spin_lock_bh(lock)			__LOCK_BH(lock)
+ #define _raw_read_lock_bh(lock)			__LOCK_BH(lock)
+ #define _raw_write_lock_bh(lock)		__LOCK_BH(lock)
+--- a/kernel/locking/spinlock.c~locking-rwlocks-introduce-write_lock_nested
++++ a/kernel/locking/spinlock.c
+@@ -300,6 +300,12 @@ void __lockfunc _raw_write_lock(rwlock_t
+ 	__raw_write_lock(lock);
+ }
+ EXPORT_SYMBOL(_raw_write_lock);
++
++void __lockfunc _raw_write_lock_nested(rwlock_t *lock, int subclass)
++{
++	__raw_write_lock_nested(lock, subclass);
++}
++EXPORT_SYMBOL(_raw_write_lock_nested);
+ #endif
+ 
+ #ifndef CONFIG_INLINE_WRITE_LOCK_IRQSAVE
+--- a/kernel/locking/spinlock_rt.c~locking-rwlocks-introduce-write_lock_nested
++++ a/kernel/locking/spinlock_rt.c
+@@ -239,6 +239,18 @@ void __sched rt_write_lock(rwlock_t *rwl
+ }
+ EXPORT_SYMBOL(rt_write_lock);
+ 
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++void __sched rt_write_lock_nested(rwlock_t *rwlock, int subclass)
++{
++	___might_sleep(__FILE__, __LINE__, 0);
++	rwlock_acquire(&rwlock->dep_map, subclass, 0, _RET_IP_);
++	rwbase_write_lock(&rwlock->rwbase, TASK_RTLOCK_WAIT);
++	rcu_read_lock();
++	migrate_disable();
++}
++EXPORT_SYMBOL(rt_write_lock_nested);
++#endif
++
+ void __sched rt_read_unlock(rwlock_t *rwlock)
+ {
+ 	rwlock_release(&rwlock->dep_map, _RET_IP_);
 _
 
-Patches currently in -mm which might be from umgwanakikbuti@gmail.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-zsmalloc-replace-get_cpu_var-with-local_lock.patch
+zsmalloc-introduce-some-helper-functions.patch
+zsmalloc-rename-zs_stat_type-to-class_stat_type.patch
+zsmalloc-decouple-class-actions-from-zspage-works.patch
+zsmalloc-introduce-obj_allocated.patch
+zsmalloc-move-huge-compressed-obj-from-page-to-zspage.patch
+zsmalloc-remove-zspage-isolation-for-migration.patch
+locking-rwlocks-introduce-write_lock_nested.patch
+zsmalloc-replace-per-zpage-lock-with-pool-migrate_lock.patch
 
