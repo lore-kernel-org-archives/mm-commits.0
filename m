@@ -2,34 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27EE0C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 01:27:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE01EC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 02:14:14 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 0B9CA6137E
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 01:27:01 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D702561B66
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 02:14:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230416AbhKPB3z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 20:29:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:46390 "EHLO mail.kernel.org"
+        id S244107AbhKPCRI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 21:17:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55462 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1353307AbhKPB1v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 20:27:51 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A179A61104;
-        Tue, 16 Nov 2021 01:24:54 +0000 (UTC)
+        id S238704AbhKORpr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 12:45:47 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B1B3163315;
+        Mon, 15 Nov 2021 17:29:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637025894;
-        bh=H7igFod2D5qvm97iV2JijA9iprE0UNMvTi/nWx9PQGM=;
+        s=korg; t=1636997371;
+        bh=Q0f8il/c/FLJeu3lYaVf3gSiOpPrFL0RKxv/hu0szn8=;
         h=Date:From:To:Subject:From;
-        b=n68h/ue1/DVsF6pFxo7mthlcZq+CKOhli8A+UCmcjH6ZM4YWVpHFKFru5WweeX/ZB
-         soDosmo6ty6sGhLyRrihng0gP9cHxPiwbH2Kj03o081vBoZAz+fJheGoONMNdInk+9
-         xbbNuoXK+BhZ0ebuOVxxIYHcpVk/O1txEwcU6bQU=
-Date:   Mon, 15 Nov 2021 17:24:54 -0800
+        b=eIJdOEQljgieervsKMkQXsQl9RWMSm6dg6GP9AurTWotX8nI1Y88QmISedoyTB5Y1
+         ebGvQpk2F97E80dwSfe5ZrziYtXKairi1ZFSSCqQ1TfA+i/BbS8W7YZ349j3tZ60qc
+         YicjFpScMwKiWjpUE3/NMqN6s+2eUx9Fitf3/k9c=
+Date:   Mon, 15 Nov 2021 09:29:30 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, ligang.bdlg@bytedance.com,
-        mm-commits@vger.kernel.org, songmuchun@bytedance.com
-Subject:  + vmscan-make-drop_slab_node-static.patch added to -mm
- tree
-Message-ID: <20211116012454.BjLS5-qTs%akpm@linux-foundation.org>
+To:     bigeasy@linutronix.de, cl@linux.com, iamjoonsoo.kim@lge.com,
+        mingo@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, tglx@linutronix.de, vbabka@suse.cz
+Subject:  [merged] mm-allow-only-slub-on-preempt_rt.patch removed
+ from -mm tree
+Message-ID: <20211115172930.54O4rMiRZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,68 +39,70 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan: make drop_slab_node static
-has been added to the -mm tree.  Its filename is
-     vmscan-make-drop_slab_node-static.patch
+     Subject: mm: allow only SLUB on PREEMPT_RT
+has been removed from the -mm tree.  Its filename was
+     mm-allow-only-slub-on-preempt_rt.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/vmscan-make-drop_slab_node-static.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/vmscan-make-drop_slab_node-static.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gang Li <ligang.bdlg@bytedance.com>
-Subject: vmscan: make drop_slab_node static
+From: Ingo Molnar <mingo@kernel.org>
+Subject: mm: allow only SLUB on PREEMPT_RT
 
-drop_slab_node is only used in drop_slab.  So remove it's declaration from
-header file and add keyword static for it's definition.
+Memory allocators may disable interrupts or preemption as part of the
+allocation and freeing process.  For PREEMPT_RT it is important that these
+sections remain deterministic and short and therefore don't depend on the
+size of the memory to allocate/ free or the inner state of the algorithm.
 
-Link: https://lkml.kernel.org/r/20211111062445.5236-1-ligang.bdlg@bytedance.com
-Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Until v3.12-RT the SLAB allocator was an option but involved several
+changes to meet all the requirements.  The SLUB design fits better with
+PREEMPT_RT model and so the SLAB patches were dropped in the 3.12-RT
+patchset.  Comparing the two allocator, SLUB outperformed SLAB in both
+throughput (time needed to allocate and free memory) and the maximal
+latency of the system measured with cyclictest during hackbench.
+
+SLOB was never evaluated since it was unlikely that it preforms better
+than SLAB.  During a quick test, the kernel crashed with SLOB enabled
+during boot.
+
+Disable SLAB and SLOB on PREEMPT_RT.
+
+[bigeasy@linutronix.de: commit description]
+Link: https://lkml.kernel.org/r/20211015210336.gen3tib33ig5q2md@linutronix.de
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- mm/vmscan.c        |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ init/Kconfig |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/mm.h~vmscan-make-drop_slab_node-static
-+++ a/include/linux/mm.h
-@@ -3167,7 +3167,6 @@ int drop_caches_sysctl_handler(struct ct
- #endif
+--- a/init/Kconfig~mm-allow-only-slub-on-preempt_rt
++++ a/init/Kconfig
+@@ -1896,6 +1896,7 @@ choice
  
- void drop_slab(void);
--void drop_slab_node(int nid);
- 
- #ifndef CONFIG_MMU
- #define randomize_va_space 0
---- a/mm/vmscan.c~vmscan-make-drop_slab_node-static
-+++ a/mm/vmscan.c
-@@ -951,7 +951,7 @@ out:
- 	return freed;
- }
- 
--void drop_slab_node(int nid)
-+static void drop_slab_node(int nid)
- {
- 	unsigned long freed;
- 	int shift = 0;
+ config SLAB
+ 	bool "SLAB"
++	depends on !PREEMPT_RT
+ 	select HAVE_HARDENED_USERCOPY_ALLOCATOR
+ 	help
+ 	  The regular slab allocator that is established and known to work
+@@ -1916,6 +1917,7 @@ config SLUB
+ config SLOB
+ 	depends on EXPERT
+ 	bool "SLOB (Simple Allocator)"
++	depends on !PREEMPT_RT
+ 	help
+ 	   SLOB replaces the stock allocator with a drastically simpler
+ 	   allocator. SLOB is generally more space efficient but
 _
 
-Patches currently in -mm which might be from ligang.bdlg@bytedance.com are
+Patches currently in -mm which might be from mingo@kernel.org are
 
-vmscan-make-drop_slab_node-static.patch
 
