@@ -2,36 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EE01EC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 02:14:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23B4CC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 03:42:47 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id D702561B66
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 02:14:14 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 006D661B3E
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 03:42:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244107AbhKPCRI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 21:17:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55462 "EHLO mail.kernel.org"
+        id S233929AbhKPDpl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 22:45:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:49074 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238704AbhKORpr (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 12:45:47 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B1B3163315;
-        Mon, 15 Nov 2021 17:29:30 +0000 (UTC)
+        id S233795AbhKPDpF (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 22:45:05 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id F38C361B3E;
+        Tue, 16 Nov 2021 03:42:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1636997371;
-        bh=Q0f8il/c/FLJeu3lYaVf3gSiOpPrFL0RKxv/hu0szn8=;
+        s=korg; t=1637034126;
+        bh=wbVxhxKHbMyRyOlaVzpQz0LJjSI1EqUmrW+i1aIDHK0=;
         h=Date:From:To:Subject:From;
-        b=eIJdOEQljgieervsKMkQXsQl9RWMSm6dg6GP9AurTWotX8nI1Y88QmISedoyTB5Y1
-         ebGvQpk2F97E80dwSfe5ZrziYtXKairi1ZFSSCqQ1TfA+i/BbS8W7YZ349j3tZ60qc
-         YicjFpScMwKiWjpUE3/NMqN6s+2eUx9Fitf3/k9c=
-Date:   Mon, 15 Nov 2021 09:29:30 -0800
+        b=MMLuIrzOjtonvvb1FM6Acg20Az3BJYwnddv1R3e7GW3BiX+ML9ROOCKBwP21ZJoW3
+         aZR7OBvXfGDIp6YEfBCPVTvRkdxGCRjQ35z/JuaTxa3TilX6L2excbv+JL7CCJ+0vp
+         MqNohBKgMnoLIOw0e8kNK3UJP22/5JpJb00nRJ6A=
+Date:   Mon, 15 Nov 2021 19:42:05 -0800
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, cl@linux.com, iamjoonsoo.kim@lge.com,
-        mingo@kernel.org, mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, tglx@linutronix.de, vbabka@suse.cz
-Subject:  [merged] mm-allow-only-slub-on-preempt_rt.patch removed
- from -mm tree
-Message-ID: <20211115172930.54O4rMiRZ%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, sj@kernel.org, stable@vger.kernel.org
+Subject:  +
+ =?US-ASCII?Q?mm-damon-dbgfs-use-=5F=5Fgfp=5Fnowarn-for-user-specified-?=
+ =?US-ASCII?Q?size-buffer-allocation.patch?= added to -mm tree
+Message-ID: <20211116034205.2g_di_78u%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,70 +40,102 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: allow only SLUB on PREEMPT_RT
-has been removed from the -mm tree.  Its filename was
-     mm-allow-only-slub-on-preempt_rt.patch
+     Subject: mm/damon/dbgfs: use '__GFP_NOWARN' for user-specified size buffer allocation
+has been added to the -mm tree.  Its filename is
+     mm-damon-dbgfs-use-__gfp_nowarn-for-user-specified-size-buffer-allocation.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-dbgfs-use-__gfp_nowarn-for-user-specified-size-buffer-allocation.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-dbgfs-use-__gfp_nowarn-for-user-specified-size-buffer-allocation.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Ingo Molnar <mingo@kernel.org>
-Subject: mm: allow only SLUB on PREEMPT_RT
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/dbgfs: use '__GFP_NOWARN' for user-specified size buffer allocation
 
-Memory allocators may disable interrupts or preemption as part of the
-allocation and freeing process.  For PREEMPT_RT it is important that these
-sections remain deterministic and short and therefore don't depend on the
-size of the memory to allocate/ free or the inner state of the algorithm.
+Patch series "DAMON fixes".
 
-Until v3.12-RT the SLAB allocator was an option but involved several
-changes to meet all the requirements.  The SLUB design fits better with
-PREEMPT_RT model and so the SLAB patches were dropped in the 3.12-RT
-patchset.  Comparing the two allocator, SLUB outperformed SLAB in both
-throughput (time needed to allocate and free memory) and the maximal
-latency of the system measured with cyclictest during hackbench.
 
-SLOB was never evaluated since it was unlikely that it preforms better
-than SLAB.  During a quick test, the kernel crashed with SLOB enabled
-during boot.
+This patch (of 2):
 
-Disable SLAB and SLOB on PREEMPT_RT.
+DAMON users can trigger below warning in '__alloc_pages()' by invoking
+write() to some DAMON debugfs files with arbitrarily high count argument,
+because DAMON debugfs interface allocates some buffers based on the
+user-specified 'count'.
 
-[bigeasy@linutronix.de: commit description]
-Link: https://lkml.kernel.org/r/20211015210336.gen3tib33ig5q2md@linutronix.de
-Signed-off-by: Ingo Molnar <mingo@kernel.org>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+        if (unlikely(order >= MAX_ORDER)) {
+                WARN_ON_ONCE(!(gfp & __GFP_NOWARN));
+                return NULL;
+        }
+
+Because the DAMON debugfs interface code checks failure of the
+'kmalloc()', this commit simply suppresses the warnings by adding
+'__GFP_NOWARN' flag.
+
+Link: https://lkml.kernel.org/r/20211110145758.16558-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211110145758.16558-2-sj@kernel.org
+Fixes: 4bc05954d007 ("mm/damon: implement a debugfs-based user space interface")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/dbgfs.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/init/Kconfig~mm-allow-only-slub-on-preempt_rt
-+++ a/init/Kconfig
-@@ -1896,6 +1896,7 @@ choice
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-use-__gfp_nowarn-for-user-specified-size-buffer-allocation
++++ a/mm/damon/dbgfs.c
+@@ -32,7 +32,7 @@ static char *user_input_str(const char _
+ 	if (*ppos)
+ 		return ERR_PTR(-EINVAL);
  
- config SLAB
- 	bool "SLAB"
-+	depends on !PREEMPT_RT
- 	select HAVE_HARDENED_USERCOPY_ALLOCATOR
- 	help
- 	  The regular slab allocator that is established and known to work
-@@ -1916,6 +1917,7 @@ config SLUB
- config SLOB
- 	depends on EXPERT
- 	bool "SLOB (Simple Allocator)"
-+	depends on !PREEMPT_RT
- 	help
- 	   SLOB replaces the stock allocator with a drastically simpler
- 	   allocator. SLOB is generally more space efficient but
+-	kbuf = kmalloc(count + 1, GFP_KERNEL);
++	kbuf = kmalloc(count + 1, GFP_KERNEL | __GFP_NOWARN);
+ 	if (!kbuf)
+ 		return ERR_PTR(-ENOMEM);
+ 
+@@ -133,7 +133,7 @@ static ssize_t dbgfs_schemes_read(struct
+ 	char *kbuf;
+ 	ssize_t len;
+ 
+-	kbuf = kmalloc(count, GFP_KERNEL);
++	kbuf = kmalloc(count, GFP_KERNEL | __GFP_NOWARN);
+ 	if (!kbuf)
+ 		return -ENOMEM;
+ 
+@@ -452,7 +452,7 @@ static ssize_t dbgfs_init_regions_read(s
+ 	char *kbuf;
+ 	ssize_t len;
+ 
+-	kbuf = kmalloc(count, GFP_KERNEL);
++	kbuf = kmalloc(count, GFP_KERNEL | __GFP_NOWARN);
+ 	if (!kbuf)
+ 		return -ENOMEM;
+ 
+@@ -578,7 +578,7 @@ static ssize_t dbgfs_kdamond_pid_read(st
+ 	char *kbuf;
+ 	ssize_t len;
+ 
+-	kbuf = kmalloc(count, GFP_KERNEL);
++	kbuf = kmalloc(count, GFP_KERNEL | __GFP_NOWARN);
+ 	if (!kbuf)
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from mingo@kernel.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-dbgfs-use-__gfp_nowarn-for-user-specified-size-buffer-allocation.patch
+mm-damon-dbgfs-fix-missed-use-of-damon_dbgfs_lock.patch
 
