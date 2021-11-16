@@ -2,36 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3322EC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 01:23:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED331C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 01:23:39 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1CF2760F5A
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 01:23:37 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id D624463212
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 01:23:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243547AbhKPB00 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 20:26:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:42110 "EHLO mail.kernel.org"
+        id S1345452AbhKPB01 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 20:26:27 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42996 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1347824AbhKPBUR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 20:20:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CA8D060F5A;
-        Tue, 16 Nov 2021 01:17:20 +0000 (UTC)
+        id S1378769AbhKPBWJ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 20:22:09 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id ADE6B61104;
+        Tue, 16 Nov 2021 01:19:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637025441;
-        bh=UpMMUWj/IAUf2v23eo+CJDrb3hKldEtzrTG+v392iJ4=;
+        s=korg; t=1637025552;
+        bh=KNXfOI1ksCArY6BDlwnCyBfyC5wUb87cBIMe28wL+zE=;
         h=Date:From:To:Subject:From;
-        b=XjbkQ8/5JtI1hHP7NCaKKaEgN5Fov9NPEKAKAa+fyfkPHjhRQkwsa3csLCBVaCJhu
-         NM/rLOJv2W8ytEBEFU58a8S+t3roX9PFNy+aEgoQWlqiYAf9WF9iuXJ1ZZfWS/sTsW
-         RG3EMEj7qFxmyWLEZre4BPdsUjHIJYyPWLvudGj8=
-Date:   Mon, 15 Nov 2021 17:17:20 -0800
+        b=z6/3Nvpi41jNrFqiDm4Y4BbEjunE60blppk+y81NKRSWj8eEWIQEVF3imN2MOmoUj
+         4i3+6ZKFBn+ewltirWGZvTGeG+1S/d4Sj2CAFbdJGi1mXE7wWm+NhP5/lUiA6WQmw6
+         JSUmB4PVwx2mazgrmJx3/mnTYiIaEDpRzVahIjcQ=
+Date:   Mon, 15 Nov 2021 17:19:12 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, keescook@chromium.org,
-        mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com
+To:     hanyihao@vivo.com, mm-commits@vger.kernel.org, sj@kernel.org,
+        songmuchun@bytedance.com
 Subject:  +
- kasan-test-silence-intentional-read-overflow-warnings.patch added to -mm
- tree
-Message-ID: <20211116011720.jBWe5EMV6%akpm@linux-foundation.org>
+ mm-damon-vaddr-remove-swap_ranges-and-replace-it-with-swap.patch added to
+ -mm tree
+Message-ID: <20211116011912.NfzpIGMiK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: test: silence intentional read overflow warnings
+     Subject: mm/damon/vaddr: remove swap_ranges() and replace it with swap()
 has been added to the -mm tree.  Its filename is
-     kasan-test-silence-intentional-read-overflow-warnings.patch
+     mm-damon-vaddr-remove-swap_ranges-and-replace-it-with-swap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-test-silence-intentional-read-overflow-warnings.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-vaddr-remove-swap_ranges-and-replace-it-with-swap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-test-silence-intentional-read-overflow-warnings.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-vaddr-remove-swap_ranges-and-replace-it-with-swap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,72 +60,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: kasan: test: silence intentional read overflow warnings
+From: Yihao Han <hanyihao@vivo.com>
+Subject: mm/damon/vaddr: remove swap_ranges() and replace it with swap()
 
-As done in commit d73dad4eb5ad ("kasan: test: bypass __alloc_size checks")
-for __write_overflow warnings, also silence some more cases that trip the
-__read_overflow warnings seen in 5.16-rc1[1]:
+Remove 'swap_ranges()' and replace it with the macro 'swap()' defined in
+'include/linux/minmax.h' to simplify code and improve efficiency
 
-In file included from /kisskb/src/include/linux/string.h:253,
-                 from /kisskb/src/include/linux/bitmap.h:10,
-                 from /kisskb/src/include/linux/cpumask.h:12,
-                 from /kisskb/src/include/linux/mm_types_task.h:14,
-                 from /kisskb/src/include/linux/mm_types.h:5,
-                 from /kisskb/src/include/linux/page-flags.h:13,
-                 from /kisskb/src/arch/arm64/include/asm/mte.h:14,
-                 from /kisskb/src/arch/arm64/include/asm/pgtable.h:12,
-                 from /kisskb/src/include/linux/pgtable.h:6,
-                 from /kisskb/src/include/linux/kasan.h:29,
-                 from /kisskb/src/lib/test_kasan.c:10:
-In function 'memcmp',
-    inlined from 'kasan_memcmp' at /kisskb/src/lib/test_kasan.c:897:2:
-/kisskb/src/include/linux/fortify-string.h:263:25: error: call to '__read_overflow' declared with attribute error: detected read beyond size of object (1st parameter)
-  263 |                         __read_overflow();
-      |                         ^~~~~~~~~~~~~~~~~
-In function 'memchr',
-    inlined from 'kasan_memchr' at /kisskb/src/lib/test_kasan.c:872:2:
-/kisskb/src/include/linux/fortify-string.h:277:17: error: call to '__read_overflow' declared with attribute error: detected read beyond size of object (1st parameter)
-  277 |                 __read_overflow();
-      |                 ^~~~~~~~~~~~~~~~~
-
-[1] http://kisskb.ellerman.id.au/kisskb/buildresult/14660585/log/
-
-Link: https://lkml.kernel.org/r/20211116004111.3171781-1-keescook@chromium.org
-Fixes: d73dad4eb5ad ("kasan: test: bypass __alloc_size checks")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Link: https://lkml.kernel.org/r/20211111115355.2808-1-hanyihao@vivo.com
+Signed-off-by: Yihao Han <hanyihao@vivo.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/damon/vaddr.c |   16 +++-------------
+ 1 file changed, 3 insertions(+), 13 deletions(-)
 
---- a/lib/test_kasan.c~kasan-test-silence-intentional-read-overflow-warnings
-+++ a/lib/test_kasan.c
-@@ -869,6 +869,7 @@ static void kasan_memchr(struct kunit *t
- 	ptr = kmalloc(size, GFP_KERNEL | __GFP_ZERO);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+--- a/mm/damon/vaddr.c~mm-damon-vaddr-remove-swap_ranges-and-replace-it-with-swap
++++ a/mm/damon/vaddr.c
+@@ -97,16 +97,6 @@ static unsigned long sz_range(struct dam
+ 	return r->end - r->start;
+ }
  
-+	OPTIMIZER_HIDE_VAR(size);
- 	KUNIT_EXPECT_KASAN_FAIL(test,
- 		kasan_ptr_result = memchr(ptr, '1', size + 1));
+-static void swap_ranges(struct damon_addr_range *r1,
+-			struct damon_addr_range *r2)
+-{
+-	struct damon_addr_range tmp;
+-
+-	tmp = *r1;
+-	*r1 = *r2;
+-	*r2 = tmp;
+-}
+-
+ /*
+  * Find three regions separated by two biggest unmapped regions
+  *
+@@ -145,9 +135,9 @@ static int __damon_va_three_regions(stru
+ 		gap.start = last_vma->vm_end;
+ 		gap.end = vma->vm_start;
+ 		if (sz_range(&gap) > sz_range(&second_gap)) {
+-			swap_ranges(&gap, &second_gap);
++			swap(gap, second_gap);
+ 			if (sz_range(&second_gap) > sz_range(&first_gap))
+-				swap_ranges(&second_gap, &first_gap);
++				swap(second_gap, first_gap);
+ 		}
+ next:
+ 		last_vma = vma;
+@@ -158,7 +148,7 @@ next:
  
-@@ -894,6 +895,7 @@ static void kasan_memcmp(struct kunit *t
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 	memset(arr, 0, sizeof(arr));
+ 	/* Sort the two biggest gaps by address */
+ 	if (first_gap.start > second_gap.start)
+-		swap_ranges(&first_gap, &second_gap);
++		swap(first_gap, second_gap);
  
-+	OPTIMIZER_HIDE_VAR(size);
- 	KUNIT_EXPECT_KASAN_FAIL(test,
- 		kasan_int_result = memcmp(ptr, arr, size+1));
- 	kfree(ptr);
+ 	/* Store the result */
+ 	regions[0].start = ALIGN(start, DAMON_MIN_REGION);
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from hanyihao@vivo.com are
 
-kasan-test-silence-intentional-read-overflow-warnings.patch
+mm-damon-vaddr-remove-swap_ranges-and-replace-it-with-swap.patch
 
