@@ -2,87 +2,180 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BF5BC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 15:42:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A8FFC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 21:17:04 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 5F87661502
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 15:42:15 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 4989561BF5
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 21:17:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238537AbhKPPpJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 16 Nov 2021 10:45:09 -0500
-Received: from smtp-out1.suse.de ([195.135.220.28]:42030 "EHLO
-        smtp-out1.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238645AbhKPPoh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 16 Nov 2021 10:44:37 -0500
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out1.suse.de (Postfix) with ESMTP id B4738212B9;
-        Tue, 16 Nov 2021 15:41:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1637077298; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=SAj4/SjslMmi0FzgQn3IjAHWrXahNXXWxcjpgKfHdds=;
-        b=mS6Lug7LWryBurfazjYIzvl0HOhty00lql4VdVYJMRjiwUVzccu8tX58yvjy7hxICqPv/M
-        hWsmYb1OgsMR9GpusOn3ImUAyt9a1X9Z1pfy79MZF9d1u99GzKXdZn/Zx4HWjuuseSk1pc
-        /gzJ2iyaMKTDJBCBiczXOQib8YUN4rc=
-Received: from suse.cz (unknown [10.100.201.86])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id 88FCAA3B8B;
-        Tue, 16 Nov 2021 15:41:38 +0000 (UTC)
-Date:   Tue, 16 Nov 2021 16:41:35 +0100
-From:   Michal Hocko <mhocko@suse.com>
-To:     Christoph Lameter <cl@gentwo.de>
-Cc:     Dennis Zhou <dennis@kernel.org>,
-        Alexey Makhalov <amakhalov@vmware.com>,
-        Andrew Morton <akpm@linux-foundation.org>,
-        "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-        "mm-commits@vger.kernel.org" <mm-commits@vger.kernel.org>,
-        "osalvador@suse.de" <osalvador@suse.de>,
-        "stable@vger.kernel.org" <stable@vger.kernel.org>,
-        "tj@kernel.org" <tj@kernel.org>
-Subject: Re: + mm-fix-panic-in-__alloc_pages.patch added to -mm tree
-Message-ID: <YZPRL7HtQGUUAVG4@dhcp22.suse.cz>
-References: <YYozLsIECu0Jnv0p@dhcp22.suse.cz>
- <af7ab3ce-fed2-1ffc-13a8-f9acbd201841@redhat.com>
- <YYpTy9eXZucxuRO/@dhcp22.suse.cz>
- <YY6wZMcx/BeddUnH@fedora>
- <YZI5TEW2BkBjOtC1@dhcp22.suse.cz>
- <B8B7E3FA-6EAB-46B7-95EB-5A31395C8ADE@vmware.com>
- <YZJZes9Gz9fe7bCC@dhcp22.suse.cz>
- <ABEDED57-93A9-4601-8EB6-2FF348A0E0BB@vmware.com>
- <YZMq++inSmJegJmj@fedora>
- <alpine.DEB.2.22.394.2111161329010.79746@gentwo.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.22.394.2111161329010.79746@gentwo.de>
+        id S229543AbhKPVUB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 16 Nov 2021 16:20:01 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47952 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S229532AbhKPVUA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Nov 2021 16:20:00 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 2B10361BBD;
+        Tue, 16 Nov 2021 21:17:03 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1637097423;
+        bh=PlhpfgD1PwnQd6s+PsSVQR3S3RIZlUz/FryMWCfKwes=;
+        h=Date:From:To:Subject:From;
+        b=m78Sd5p3R9hMM5W55ll844frLCVi7QQhsfoPa810jkLWJvK16MaXpJdNk4gXIegJS
+         YRZz8WOAG3eeBbxGUCXAocsglEqF282lgm59K2eO+FR6F7ddgyoQJczBUKa2bq8xjr
+         T3BGvbgbvZmDoD7I+zz2iLgQAYmdR9MGbUnDLeQk=
+Date:   Tue, 16 Nov 2021 13:17:02 -0800
+From:   akpm@linux-foundation.org
+To:     houtao1@huawei.com, miaoxie@huawei.com, mm-commits@vger.kernel.org,
+        phillip@squashfs.org.uk, yi.zhang@huawei.com,
+        zhengliang6@huawei.com
+Subject:  +
+ squashfs-provides-backing_dev_info-in-order-to-disable-read-ahead.patch
+ added to -mm tree
+Message-ID: <20211116211702.hwNv5thzD%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue 16-11-21 13:30:45, Christoph Lameter wrote:
-> On Mon, 15 Nov 2021, Dennis Zhou wrote:
-> 
-> > I need some clarification here. It sounds like memoryless nodes work on
-> > x86, but hotplug + memoryless nodes isn't a supported use case or you're
-> > introducing it as a new use case?
-> 
-> Could you do that step by step?
-> 
-> First add the new node and ensure everything is ok and that the memory is
-> online.
-> 
-> *After* that is done bring up the new processor and associate the
-> processor with *online* memory.
 
-We are discussing that in the original thread -
-http://lkml.kernel.org/r/YZN3ExwL7BiDS5nj@dhcp22.suse.cz
+The patch titled
+     Subject: squashfs: provide backing_dev_info in order to disable read-ahead
+has been added to the -mm tree.  Its filename is
+     squashfs-provides-backing_dev_info-in-order-to-disable-read-ahead.patch
 
-This patch is a a workaround that problem in the pcp code.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/squashfs-provides-backing_dev_info-in-order-to-disable-read-ahead.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/squashfs-provides-backing_dev_info-in-order-to-disable-read-ahead.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Zheng Liang <zhengliang6@huawei.com>
+Subject: squashfs: provide backing_dev_info in order to disable read-ahead
+
+Commit c1f6925e1091("mm: put readahead pages in cache earlier") causes the
+read performance of squashfs to deteriorate.Through testing, we find that
+the performance will be back by closing the readahead of squashfs.  So we
+want to learn the way of ubifs, provides backing_dev_info and disable
+read-ahead.
+
+--------------------------------------------------------------------
+We tested the following data by fio.
+squashfs image blocksize=128K
+test command:
+fio --name basic --bs=? --filename="/mnt/test_file" --rw=? --iodepth=1 --ioengine=psync --runtime=200 --time_based
+
+turn on squashfs readahead in 5.10 kernel
+bs(k)      read/randread           MB/s
+4            randread              271
+128          randread              231
+1024         randread              246
+4            read                  310
+128          read                  245
+1024         read                  247
+
+turn off squashfs readahead in 5.10 kernel
+bs(k)      read/randread           MB/s
+4            randread              293
+128          randread              330
+1024         randread              363
+4            read                  338
+128          read                  360
+1024         read                  365
+
+turn on squashfs readahead and revert the
+commit c1f6925e1091("mm: put readahead
+pages in cache earlier") in 5.10 kernel
+bs(k)      read/randread           MB/s
+4           randread               289
+128         randread               306
+1024        randread               335
+4           read                   337
+128         read                   336
+1024        read                   338
+
+Link: https://lkml.kernel.org/r/20211116113141.1391026-1-zhengliang6@huawei.com
+Signed-off-by: Zheng Liang <zhengliang6@huawei.com>
+Reviewed-by: Phillip Lougher <phillip@squashfs.org.uk>
+Cc: Zhang Yi <yi.zhang@huawei.com>
+Cc: Hou Tao <houtao1@huawei.com>
+Cc: Miao Xie <miaoxie@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ fs/squashfs/super.c |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
+
+--- a/fs/squashfs/super.c~squashfs-provides-backing_dev_info-in-order-to-disable-read-ahead
++++ a/fs/squashfs/super.c
+@@ -29,6 +29,7 @@
+ #include <linux/module.h>
+ #include <linux/magic.h>
+ #include <linux/xattr.h>
++#include <linux/backing-dev.h>
  
+ #include "squashfs_fs.h"
+ #include "squashfs_fs_sb.h"
+@@ -112,6 +113,24 @@ static const struct squashfs_decompresso
+ 	return decompressor;
+ }
+ 
++static int squashfs_bdi_init(struct super_block *sb)
++{
++	int err;
++	unsigned int major = MAJOR(sb->s_dev);
++	unsigned int minor = MINOR(sb->s_dev);
++
++	bdi_put(sb->s_bdi);
++	sb->s_bdi = &noop_backing_dev_info;
++
++	err = super_setup_bdi_name(sb, "squashfs_%u_%u", major, minor);
++	if (err)
++		return err;
++
++	sb->s_bdi->ra_pages = 0;
++	sb->s_bdi->io_pages = 0;
++
++	return 0;
++}
+ 
+ static int squashfs_fill_super(struct super_block *sb, struct fs_context *fc)
+ {
+@@ -127,6 +146,20 @@ static int squashfs_fill_super(struct su
+ 
+ 	TRACE("Entered squashfs_fill_superblock\n");
+ 
++	/*
++	 * squashfs provides 'backing_dev_info' in order to disable read-ahead. For
++	 * squashfs, I/O is not deferred, it is done immediately in readpage,
++	 * which means the user would always have to wait their own I/O. So the effect
++	 * of readahead is very weak for squashfs. squashfs_bdi_init will set
++	 * sb->s_bdi->ra_pages and sb->s_bdi->io_pages to 0 and close readahead for
++	 * squashfs.
++	 */
++	err = squashfs_bdi_init(sb);
++	if (err) {
++		errorf(fc, "squashfs init bdi failed");
++		return err;
++	}
++
+ 	sb->s_fs_info = kzalloc(sizeof(*msblk), GFP_KERNEL);
+ 	if (sb->s_fs_info == NULL) {
+ 		ERROR("Failed to allocate squashfs_sb_info\n");
+_
 
--- 
-Michal Hocko
-SUSE Labs
+Patches currently in -mm which might be from zhengliang6@huawei.com are
+
+squashfs-provides-backing_dev_info-in-order-to-disable-read-ahead.patch
+
