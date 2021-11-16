@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 092D0C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 01:04:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3322EC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 01:23:37 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E9B64615E6
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 01:04:00 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 1CF2760F5A
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 01:23:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344099AbhKPBGy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 20:06:54 -0500
-Received: from mail.kernel.org ([198.145.29.99]:44638 "EHLO mail.kernel.org"
+        id S243547AbhKPB00 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 20:26:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:42110 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245377AbhKOTUZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Mon, 15 Nov 2021 14:20:25 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 27EE163467;
-        Mon, 15 Nov 2021 18:33:35 +0000 (UTC)
+        id S1347824AbhKPBUR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 20:20:17 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CA8D060F5A;
+        Tue, 16 Nov 2021 01:17:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637001215;
-        bh=ks93p6nOQ7ww9wnCvkcksmnFOPIKuHaRFgwoQMa+woo=;
+        s=korg; t=1637025441;
+        bh=UpMMUWj/IAUf2v23eo+CJDrb3hKldEtzrTG+v392iJ4=;
         h=Date:From:To:Subject:From;
-        b=jb9YyFAVRdAXQTFAUnbyftfeA3nOaKHcSoy7MTBBh446DvOKLpEoOkDJBc+HkwIzE
-         n5nuUmrzjoj3LLZiC6ly0qgDEchnzG0ULiTmdn/tBSQMQsEZg7HKC3qpIRFz0G44z3
-         iBNryd5vrwZtGnFrqvFqz05M7Yj6ZN5/kfsEj/NA=
-Date:   Mon, 15 Nov 2021 10:33:34 -0800
+        b=XjbkQ8/5JtI1hHP7NCaKKaEgN5Fov9NPEKAKAa+fyfkPHjhRQkwsa3csLCBVaCJhu
+         NM/rLOJv2W8ytEBEFU58a8S+t3roX9PFNy+aEgoQWlqiYAf9WF9iuXJ1ZZfWS/sTsW
+         RG3EMEj7qFxmyWLEZre4BPdsUjHIJYyPWLvudGj8=
+Date:   Mon, 15 Nov 2021 17:17:20 -0800
 From:   akpm@linux-foundation.org
-To:     alex.popov@linux.com, andriy.shevchenko@linux.intel.com,
-        arnd@arndb.de, elver@google.com, glider@google.com,
-        john.ogness@linutronix.de, mcgrof@kernel.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, pmladek@suse.com, rostedt@goodmis.org,
-        rppt@kernel.org, wei.liu@kernel.org
-Subject:  + panic-use-error_report_end-tracepoint-on-warnings.patch
- added to -mm tree
-Message-ID: <20211115183334.ADiGygGp3%akpm@linux-foundation.org>
+To:     andreyknvl@gmail.com, dvyukov@google.com, elver@google.com,
+        glider@google.com, keescook@chromium.org,
+        mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com
+Subject:  +
+ kasan-test-silence-intentional-read-overflow-warnings.patch added to -mm
+ tree
+Message-ID: <20211116011720.jBWe5EMV6%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: use error_report_end tracepoint on warnings
+     Subject: kasan: test: silence intentional read overflow warnings
 has been added to the -mm tree.  Its filename is
-     panic-use-error_report_end-tracepoint-on-warnings.patch
+     kasan-test-silence-intentional-read-overflow-warnings.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/panic-use-error_report_end-tracepoint-on-warnings.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-test-silence-intentional-read-overflow-warnings.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/panic-use-error_report_end-tracepoint-on-warnings.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-test-silence-intentional-read-overflow-warnings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,78 +61,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: panic: use error_report_end tracepoint on warnings
+From: Kees Cook <keescook@chromium.org>
+Subject: kasan: test: silence intentional read overflow warnings
 
-Introduce the error detector "warning" to the error_report event and use
-the error_report_end tracepoint at the end of a warning report.
+As done in commit d73dad4eb5ad ("kasan: test: bypass __alloc_size checks")
+for __write_overflow warnings, also silence some more cases that trip the
+__read_overflow warnings seen in 5.16-rc1[1]:
 
-This allows in-kernel tests but also userspace to more easily determine
-if a warning occurred without polling kernel logs.
+In file included from /kisskb/src/include/linux/string.h:253,
+                 from /kisskb/src/include/linux/bitmap.h:10,
+                 from /kisskb/src/include/linux/cpumask.h:12,
+                 from /kisskb/src/include/linux/mm_types_task.h:14,
+                 from /kisskb/src/include/linux/mm_types.h:5,
+                 from /kisskb/src/include/linux/page-flags.h:13,
+                 from /kisskb/src/arch/arm64/include/asm/mte.h:14,
+                 from /kisskb/src/arch/arm64/include/asm/pgtable.h:12,
+                 from /kisskb/src/include/linux/pgtable.h:6,
+                 from /kisskb/src/include/linux/kasan.h:29,
+                 from /kisskb/src/lib/test_kasan.c:10:
+In function 'memcmp',
+    inlined from 'kasan_memcmp' at /kisskb/src/lib/test_kasan.c:897:2:
+/kisskb/src/include/linux/fortify-string.h:263:25: error: call to '__read_overflow' declared with attribute error: detected read beyond size of object (1st parameter)
+  263 |                         __read_overflow();
+      |                         ^~~~~~~~~~~~~~~~~
+In function 'memchr',
+    inlined from 'kasan_memchr' at /kisskb/src/lib/test_kasan.c:872:2:
+/kisskb/src/include/linux/fortify-string.h:277:17: error: call to '__read_overflow' declared with attribute error: detected read beyond size of object (1st parameter)
+  277 |                 __read_overflow();
+      |                 ^~~~~~~~~~~~~~~~~
 
-Link: https://lkml.kernel.org/r/20211115085630.1756817-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
+[1] http://kisskb.ellerman.id.au/kisskb/buildresult/14660585/log/
+
+Link: https://lkml.kernel.org/r/20211116004111.3171781-1-keescook@chromium.org
+Fixes: d73dad4eb5ad ("kasan: test: bypass __alloc_size checks")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Alexander Potapenko <glider@google.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Wei Liu <wei.liu@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexander Popov <alex.popov@linux.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/error_report.h |    8 +++++---
- kernel/panic.c                      |    2 ++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ lib/test_kasan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/trace/events/error_report.h~panic-use-error_report_end-tracepoint-on-warnings
-+++ a/include/trace/events/error_report.h
-@@ -17,14 +17,16 @@
+--- a/lib/test_kasan.c~kasan-test-silence-intentional-read-overflow-warnings
++++ a/lib/test_kasan.c
+@@ -869,6 +869,7 @@ static void kasan_memchr(struct kunit *t
+ 	ptr = kmalloc(size, GFP_KERNEL | __GFP_ZERO);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
  
- enum error_detector {
- 	ERROR_DETECTOR_KFENCE,
--	ERROR_DETECTOR_KASAN
-+	ERROR_DETECTOR_KASAN,
-+	ERROR_DETECTOR_WARN
- };
++	OPTIMIZER_HIDE_VAR(size);
+ 	KUNIT_EXPECT_KASAN_FAIL(test,
+ 		kasan_ptr_result = memchr(ptr, '1', size + 1));
  
- #endif /* __ERROR_REPORT_DECLARE_TRACE_ENUMS_ONCE_ONLY */
+@@ -894,6 +895,7 @@ static void kasan_memcmp(struct kunit *t
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 	memset(arr, 0, sizeof(arr));
  
--#define error_detector_list	\
-+#define error_detector_list			\
- 	EM(ERROR_DETECTOR_KFENCE, "kfence")	\
--	EMe(ERROR_DETECTOR_KASAN, "kasan")
-+	EM(ERROR_DETECTOR_KASAN, "kasan")	\
-+	EMe(ERROR_DETECTOR_WARN, "warning")
- /* Always end the list with an EMe. */
- 
- #undef EM
---- a/kernel/panic.c~panic-use-error_report_end-tracepoint-on-warnings
-+++ a/kernel/panic.c
-@@ -32,6 +32,7 @@
- #include <linux/bug.h>
- #include <linux/ratelimit.h>
- #include <linux/debugfs.h>
-+#include <trace/events/error_report.h>
- #include <asm/sections.h>
- 
- #define PANIC_TIMER_STEP 100
-@@ -609,6 +610,7 @@ void __warn(const char *file, int line,
- 	print_irqtrace_events(current);
- 
- 	print_oops_end_marker();
-+	trace_error_report_end(ERROR_DETECTOR_WARN, (unsigned long)caller);
- 
- 	/* Just a warning, don't kill lockdep. */
- 	add_taint(taint, LOCKDEP_STILL_OK);
++	OPTIMIZER_HIDE_VAR(size);
+ 	KUNIT_EXPECT_KASAN_FAIL(test,
+ 		kasan_int_result = memcmp(ptr, arr, size+1));
+ 	kfree(ptr);
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-panic-use-error_report_end-tracepoint-on-warnings.patch
+kasan-test-silence-intentional-read-overflow-warnings.patch
 
