@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 17EF3C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 21:43:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DB29C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 22:00:38 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id E506E61263
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 21:43:40 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id F1E1D63223
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 22:00:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230251AbhKPVqh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 16 Nov 2021 16:46:37 -0500
-Received: from mail.kernel.org ([198.145.29.99]:60084 "EHLO mail.kernel.org"
+        id S231699AbhKPWDe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 16 Nov 2021 17:03:34 -0500
+Received: from mail.kernel.org ([198.145.29.99]:39974 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229605AbhKPVqh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 16 Nov 2021 16:46:37 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C522961A53;
-        Tue, 16 Nov 2021 21:43:39 +0000 (UTC)
+        id S231629AbhKPWDe (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 16 Nov 2021 17:03:34 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C79B8619FA;
+        Tue, 16 Nov 2021 22:00:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637099019;
-        bh=tB+L5uYKOKJDPnF5ROPvQkAK73tgb2/ib3eeA3S3nRE=;
+        s=korg; t=1637100037;
+        bh=fP/hsAnhizUXdeenkblntCd84keQUEZeLqOdj7I1Ao4=;
         h=Date:From:To:Subject:From;
-        b=vnJXO7OC6CuqzfGSbSD42C+PmMC0YG720X7WSMWVr4uttpvRGZzB+Zko7OIiqumt6
-         mu47/FThXhwKMOT6aML2HHu3zKt8QDviVABDshXB0N4Kukn8WeQV6Qts+BmmL8ndDJ
-         j1XhelkjMZHBYHqiJI3D+or56GDSSBlkwSZ+Yz7o=
-Date:   Tue, 16 Nov 2021 13:43:39 -0800
+        b=jRdDuHhvG+N4FxqRCcnjPI6ZYz9XXepuY3aBZWiZc4IQsgEO7h/uqFFeCWiB1P8SJ
+         ColXeoPihBHyN9wzvOxcEFvPAKgxKNhvFa4u0rbH5k8z2yfOFv70wYQ02aJ6m0t998
+         f+jnXFhkX3S4dE/wfwBkLeVXvRrH7EzOihdyIkSI=
+Date:   Tue, 16 Nov 2021 14:00:36 -0800
 From:   akpm@linux-foundation.org
-To:     agruenba@redhat.com, christophe.leroy@csgroup.eu,
-        mm-commits@vger.kernel.org
-Subject:  +
- =?US-ASCII?Q?gup-avoid-multiple-user-access-locking-unlocking-in-fault?=
- =?US-ASCII?Q?=5Fin=5Fread-writeable.patch?= added to -mm tree
-Message-ID: <20211116214339.eHkSH7V9i%akpm@linux-foundation.org>
+To:     christian@brauner.io, dhowells@redhat.com, hch@infradead.org,
+        hdegoede@redhat.com, lkp@intel.com, mm-commits@vger.kernel.org,
+        viro@zeniv.linux.org.uk
+Subject:  + proc-make-the-proc_create-stubs-static-inlines.patch
+ added to -mm tree
+Message-ID: <20211116220036.N8f_s3cLJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gup: avoid multiple user access locking/unlocking in fault_in_{read/write}able
+     Subject: proc: Make the proc_create[_data]() stubs static inlines
 has been added to the -mm tree.  Its filename is
-     gup-avoid-multiple-user-access-locking-unlocking-in-fault_in_read-writeable.patch
+     proc-make-the-proc_create-stubs-static-inlines.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/gup-avoid-multiple-user-access-locking-unlocking-in-fault_in_read-writeable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc-make-the-proc_create-stubs-static-inlines.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/gup-avoid-multiple-user-access-locking-unlocking-in-fault_in_read-writeable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc-make-the-proc_create-stubs-static-inlines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,82 +60,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: gup: avoid multiple user access locking/unlocking in fault_in_{read/write}able
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: proc: Make the proc_create[_data]() stubs static inlines
 
-fault_in_readable() and fault_in_writeable() perform __get_user() and
-__put_user() in a loop, implying multiple user access locking/unlocking.
+Change the proc_create[_data]() stubs which are used when CONFIG_PROC_FS
+is not set from #defines to a static inline stubs.
 
-To avoid that, use user access blocks.
+Thix should fix clang -Werror builds failing due to errors like this:
 
-Link: https://lkml.kernel.org/r/720dcf79314acca1a78fae56d478cc851952149d.1637084492.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Cc: Andreas Gruenbacher <agruenba@redhat.com>
+drivers/platform/x86/thinkpad_acpi.c:918:30: error: unused variable
+ 'dispatch_proc_ops' [-Werror,-Wunused-const-variable]
+
+Fixing this in include/linux/proc_fs.h should ensure that the same issue
+is also fixed in any other drivers hitting the same -Werror issue.
+
+Link: https://lkml.kernel.org/r/20211116131112.508304-1-hdegoede@redhat.com
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Christian Brauner <christian@brauner.io>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ include/linux/proc_fs.h |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/mm/gup.c~gup-avoid-multiple-user-access-locking-unlocking-in-fault_in_read-writeable
-+++ a/mm/gup.c
-@@ -1672,21 +1672,22 @@ size_t fault_in_writeable(char __user *u
+--- a/include/linux/proc_fs.h~proc-make-the-proc_create-stubs-static-inlines
++++ a/include/linux/proc_fs.h
+@@ -178,8 +178,14 @@ static inline struct proc_dir_entry *pro
+ #define proc_create_seq(name, mode, parent, ops) ({NULL;})
+ #define proc_create_single(name, mode, parent, show) ({NULL;})
+ #define proc_create_single_data(name, mode, parent, show, data) ({NULL;})
+-#define proc_create(name, mode, parent, proc_ops) ({NULL;})
+-#define proc_create_data(name, mode, parent, proc_ops, data) ({NULL;})
++
++static inline struct proc_dir_entry *proc_create(
++	const char *, umode_t, struct proc_dir_entry *, const struct proc_ops *)
++{ return NULL; }
++
++static inline struct proc_dir_entry *proc_create_data(
++	const char *, umode_t, struct proc_dir_entry *, const struct proc_ops *, void *)
++{ return NULL; }
  
- 	if (unlikely(size == 0))
- 		return 0;
-+	if (!user_write_access_begin(uaddr, size))
-+		return size;
- 	if (!PAGE_ALIGNED(uaddr)) {
--		if (unlikely(__put_user(0, uaddr) != 0))
--			return size;
-+		unsafe_put_user(0, uaddr, out);
- 		uaddr = (char __user *)PAGE_ALIGN((unsigned long)uaddr);
- 	}
- 	end = (char __user *)PAGE_ALIGN((unsigned long)start + size);
- 	if (unlikely(end < start))
- 		end = NULL;
- 	while (uaddr != end) {
--		if (unlikely(__put_user(0, uaddr) != 0))
--			goto out;
-+		unsafe_put_user(0, uaddr, out);
- 		uaddr += PAGE_SIZE;
- 	}
- 
- out:
-+	user_write_access_end();
- 	if (size > uaddr - start)
- 		return size - (uaddr - start);
- 	return 0;
-@@ -1771,21 +1772,22 @@ size_t fault_in_readable(const char __us
- 
- 	if (unlikely(size == 0))
- 		return 0;
-+	if (!user_read_access_begin(uaddr, size))
-+		return size;
- 	if (!PAGE_ALIGNED(uaddr)) {
--		if (unlikely(__get_user(c, uaddr) != 0))
--			return size;
-+		unsafe_get_user(c, uaddr, out);
- 		uaddr = (const char __user *)PAGE_ALIGN((unsigned long)uaddr);
- 	}
- 	end = (const char __user *)PAGE_ALIGN((unsigned long)start + size);
- 	if (unlikely(end < start))
- 		end = NULL;
- 	while (uaddr != end) {
--		if (unlikely(__get_user(c, uaddr) != 0))
--			goto out;
-+		unsafe_get_user(c, uaddr, out);
- 		uaddr += PAGE_SIZE;
- 	}
- 
- out:
-+	user_read_access_end();
- 	(void)c;
- 	if (size > uaddr - start)
- 		return size - (uaddr - start);
+ static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
+ static inline void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid) {}
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from hdegoede@redhat.com are
 
-gup-avoid-multiple-user-access-locking-unlocking-in-fault_in_read-writeable.patch
+proc-make-the-proc_create-stubs-static-inlines.patch
 
