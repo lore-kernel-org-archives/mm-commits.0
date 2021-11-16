@@ -2,90 +2,109 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59470C433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 04:22:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23817C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 04:25:44 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 1FD6961B30
-	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 04:22:47 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 0247461C14
+	for <mm-commits@archiver.kernel.org>; Tue, 16 Nov 2021 04:25:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344528AbhKPEZm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 15 Nov 2021 23:25:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42760 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344448AbhKPEZ2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 15 Nov 2021 23:25:28 -0500
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [IPv6:2404:9400:2:0:216:3eff:fee2:21ea])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1F4DC2029AF
-        for <mm-commits@vger.kernel.org>; Mon, 15 Nov 2021 17:16:55 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4HtSnx0h3yz4xg1;
-        Tue, 16 Nov 2021 12:16:53 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-        s=201702; t=1637025413;
-        bh=UGXZ39QbDKZMSEWtT+jUCWZD7NrYCjYjRbtAtuhgkto=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=HPJaSvVOoMqFxJpnyr9DoipS5J8L2UwV4gZBFSmEhIrpmWUb7E+ikxHihmcLuPTJW
-         8D4wDPtfq/SKeaWqmu8AFWA6Aj+VqCO8dje+DVR5kJ+E0/08ILcGHbHja/DXULsG7p
-         tOL6Gs8OdslS9DRLPe8J9s7X+IV3nYcQLxV8FuOiGzekqSK8zHc8FMRaZkx7l50xmj
-         CTOBs1SFq0ohzE3wleCl9v1kIzbmf/x2A8JorvS2kVvIIANqC3qXon/BBLjQLHTAUG
-         USXB7ToNpWkIMdBVNXCGbpC+vLvH7OERav3URU1QKt3mhx2LVT7JlNwfCIMu/jLvKj
-         FyDwmC49j2CnA==
-Date:   Tue, 16 Nov 2021 12:16:52 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     daniel.thompson@linaro.org, dvyukov@google.com, elver@google.com,
-        masahiroy@kernel.org, mm-commits@vger.kernel.org,
-        naresh.kamboju@linaro.org, paulmck@kernel.org,
-        quic_qiancai@quicinc.com, rdunlap@infradead.org
-Subject: Re: + configs-introduce-debugconfig-for-ci-like-setup.patch added
- to -mm tree
-Message-ID: <20211116121652.742f4bec@canb.auug.org.au>
-In-Reply-To: <20211115181106._HRCT6dJM%akpm@linux-foundation.org>
-References: <20211115181106._HRCT6dJM%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/Hr=btAI9ZlCQbw+G=RHNgZR";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        id S230089AbhKPE2j (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 15 Nov 2021 23:28:39 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54424 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S240474AbhKPE2C (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Mon, 15 Nov 2021 23:28:02 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CE7C461B30;
+        Tue, 16 Nov 2021 04:25:05 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1637036706;
+        bh=k9LCBn9LOM8tmII2dc7YUjgygsjd4PnwDtwFQTcrAVc=;
+        h=Date:From:To:Subject:From;
+        b=fZC9PAQPGo9b3iMROvkGdK7M9pd1pf1QlAKV0sno/RfUxlYG5gkTzTbWe8ICxFvET
+         JS66QPLGfCK/RYh2nTK/2DbUv9pPQphGJhoMPQcj/ycEPRjml1V/AxsO03gZjzYCCo
+         5NbPghblwpeUlPBOibevT16EpVhxvTvzeMz7qcn4=
+Date:   Mon, 15 Nov 2021 20:25:05 -0800
+From:   akpm@linux-foundation.org
+To:     apw@canonical.com, dwaipayanray1@gmail.com, jerome@forissier.org,
+        joe@perches.com, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org
+Subject:  + checkpatch-relax-regexp-for-commit_log_long_line.patch
+ added to -mm tree
+Message-ID: <20211116042505.tgeyTWWgK%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/Hr=btAI9ZlCQbw+G=RHNgZR
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi Andrew,
+The patch titled
+     Subject: checkpatch: relax regexp for COMMIT_LOG_LONG_LINE
+has been added to the -mm tree.  Its filename is
+     checkpatch-relax-regexp-for-commit_log_long_line.patch
 
-On Mon, 15 Nov 2021 10:11:06 -0800 akpm@linux-foundation.org wrote:
->
-> The patch titled
->      Subject: configs: introduce debug.config for CI-like setup
-> has been added to the -mm tree.  Its filename is
->      configs-introduce-debugconfig-for-ci-like-setup.patch
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-relax-regexp-for-commit_log_long_line.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-relax-regexp-for-commit_log_long_line.patch
 
-Added to linux-next today.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---=20
-Cheers,
-Stephen Rothwell
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
---Sig_/Hr=btAI9ZlCQbw+G=RHNgZR
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
------BEGIN PGP SIGNATURE-----
+------------------------------------------------------
+From: Jerome Forissier <jerome@forissier.org>
+Subject: checkpatch: relax regexp for COMMIT_LOG_LONG_LINE
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmGTBoQACgkQAVBC80lX
-0GyIygf+NPULE7w/n5V+ADSwXnDVotB3fU4tdfNt3IH8cnmkEpPNt7/17D94m7oJ
-DxVpJwhQT/PLB5BYiyR0IxBnMWrEzultDHxH5dA1GS5YMkOt4ZeRsoao8FdgnMpp
-qmQFp3Om6W82+RBktjSuEkN2FLci/6y38Vei7E8d+eLuDmdcH+sMEHyDfYn6uxJ3
-6SCpKNE1vK0fJEUnm+/myfSu8huG/m9cw9G6kY2dU15z7dck0a5raOx+F0SvXJcB
-wwGEhrJPO8aNu7eHdNCLLmV20Y1UaxIozuz3cv4yY+DWb5IiL9NixLkFK//Ugcdo
-dh1OR2R5Sw8z0iPSCSAFF1h5jwPcIA==
-=p0mK
------END PGP SIGNATURE-----
+One exceptions to the COMMIT_LOG_LONG_LINE rule is a file path followed by
+:.  That is typically some sort diagnostic message from a compiler or a
+build tool, in which case we don't want to wrap the lines but keep the
+message unmodified.
 
---Sig_/Hr=btAI9ZlCQbw+G=RHNgZR--
+The regular expression used to match this pattern currently doesn't accept
+absolute paths or + characters.  This can result in false positives as in
+the following (out-of-tree) example:
+
+  ...
+  /home/jerome/work/optee_repo_qemu/build/../toolchains/aarch32/bin/arm-linux-gnueabihf-ld.bfd: /home/jerome/work/toolchains-gcc10.2/aarch32/bin/../lib/gcc/arm-none-linux-gnueabihf/10.2.1/../../../../arm-none-linux-gnueabihf/lib/libstdc++.a(eh_alloc.o): in function `__cxa_allocate_exception':
+  /tmp/dgboter/bbs/build03--cen7x86_64/buildbot/cen7x86_64--arm-none-linux-gnueabihf/build/src/gcc/libstdc++-v3/libsupc++/eh_alloc.cc:284: undefined reference to `malloc'
+  ...
+
+Update the regular expression to match the above paths.
+
+Link: https://lkml.kernel.org/r/20210923143842.2837983-1-jerome@forissier.org
+Signed-off-by: Jerome Forissier <jerome@forissier.org>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/scripts/checkpatch.pl~checkpatch-relax-regexp-for-commit_log_long_line
++++ a/scripts/checkpatch.pl
+@@ -3172,7 +3172,7 @@ sub process {
+ 		    length($line) > 75 &&
+ 		    !($line =~ /^\s*[a-zA-Z0-9_\/\.]+\s+\|\s+\d+/ ||
+ 					# file delta changes
+-		      $line =~ /^\s*(?:[\w\.\-]+\/)++[\w\.\-]+:/ ||
++		      $line =~ /^\s*(?:[\w\.\-\+]*\/)++[\w\.\-\+]+:/ ||
+ 					# filename then :
+ 		      $line =~ /^\s*(?:Fixes:|Link:|$signature_tags)/i ||
+ 					# A Fixes: or Link: line or signature tag line
+_
+
+Patches currently in -mm which might be from jerome@forissier.org are
+
+checkpatch-relax-regexp-for-commit_log_long_line.patch
+
