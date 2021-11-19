@@ -2,82 +2,85 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from mail.kernel.org (mail.kernel.org [198.145.29.99])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D37DC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Nov 2021 01:04:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B15EC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Nov 2021 01:04:31 +0000 (UTC)
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by mail.kernel.org (Postfix) with ESMTP id 2969061AA2
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Nov 2021 01:04:24 +0000 (UTC)
+	by mail.kernel.org (Postfix) with ESMTP id 7D54E610E9
+	for <mm-commits@archiver.kernel.org>; Fri, 19 Nov 2021 01:04:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232248AbhKSBHY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 18 Nov 2021 20:07:24 -0500
-Received: from mail.kernel.org ([198.145.29.99]:34190 "EHLO mail.kernel.org"
+        id S230133AbhKSBHb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 18 Nov 2021 20:07:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34246 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230133AbhKSBHY (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 18 Nov 2021 20:07:24 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id BF9B961279;
-        Fri, 19 Nov 2021 01:04:22 +0000 (UTC)
+        id S233866AbhKSBHa (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Thu, 18 Nov 2021 20:07:30 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A8882610E9;
+        Fri, 19 Nov 2021 01:04:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637283863;
-        bh=WiT53ndH/ccBQBNCpWyDA46vL8l9acqEux2ileRUUNU=;
-        h=Date:From:To:Subject:From;
-        b=Hs6hUbKfRnMvJ9ehrJYNV3zXacsLbm020VU/yp5iM074vcD+dfXQlQWTU1wbw0SgA
-         wos+vnr9q58RktTZ+I6MvxN/QNZzHT0/h3Wfq9oIRYftl/+amixb9L+ucWxzMAVrZz
-         YR3eBPeirpkn5zeZpcFj5vGOaEDAySIuFAL+0HPY=
-Date:   Thu, 18 Nov 2021 17:04:22 -0800
-From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, christian@brauner.io,
-        dhowells@redhat.com, hch@infradead.org, hdegoede@redhat.com,
+        s=korg; t=1637283869;
+        bh=d+jScWzSF+d1/BExI5Xo0llKnxV+zdz/xcXpB+YM/BE=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=nCAdhKb+EeTQ6E9hx89/ge6Ru1IOPb55oNsdsIuC1Qhsy1ldI+Gl7qJgU53CzvOWR
+         xXo/Q05D+by5aiZ3efc4u47rjymaB8SWjh3FLMLEW73MJ8YnmmeJd5EPjLzj4BjKMR
+         oPWahSBY9lXH8h/4E6LNODzRNpgd8mkUv01qo0EA=
+Date:   Thu, 18 Nov 2021 17:04:26 -0800
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     broonie@kernel.org, linux-fsdevel@vger.kernel.org,
+        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
+        linux-next@vger.kernel.org, mhocko@suse.cz,
         mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        viro@zeniv.linux.org.uk
-Subject:  +
- proc-make-the-proc_create-stubs-static-inlines-fix.patch added to -mm tree
-Message-ID: <20211119010422.ZzUvO1GaL%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        Hans de Goede <hdegoede@redhat.com>
+Subject: Re: mmotm 2021-11-18-15-47 uploaded (<linux/proc_fs.h>)
+Message-Id: <20211118170426.bfcd00c159aba815ffc282d3@linux-foundation.org>
+In-Reply-To: <db0b9313-fef6-2977-9b1c-4c830edea5c5@infradead.org>
+References: <20211118234743.-bgoWMQfK%akpm@linux-foundation.org>
+        <db0b9313-fef6-2977-9b1c-4c830edea5c5@infradead.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+On Thu, 18 Nov 2021 16:53:30 -0800 Randy Dunlap <rdunlap@infradead.org> wrote:
 
-The patch titled
-     Subject: proc-make-the-proc_create-stubs-static-inlines-fix
-has been added to the -mm tree.  Its filename is
-     proc-make-the-proc_create-stubs-static-inlines-fix.patch
+> On 11/18/21 3:47 PM, akpm@linux-foundation.org wrote:
+> > The mm-of-the-moment snapshot 2021-11-18-15-47 has been uploaded to
+> > 
+> >     https://www.ozlabs.org/~akpm/mmotm/
+> > 
+> > mmotm-readme.txt says
+> > 
+> > README for mm-of-the-moment:
+> > 
+> > https://www.ozlabs.org/~akpm/mmotm/
+> > 
+> > This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
+> > more than once a week.
+> > 
+> > You will need quilt to apply these patches to the latest Linus release (5.x
+> > or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
+> > https://ozlabs.org/~akpm/mmotm/series
+> > 
+> > The file broken-out.tar.gz contains two datestamp files: .DATE and
+> > .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
+> > followed by the base kernel version against which this patch series is to
+> > be applied.
+> 
+> Hi,
+> 
+> I get hundreds of warnings from <linux/proc_fs.h>:
+> 
+> from proc-make-the-proc_create-stubs-static-inlines.patch:
+> 
+> ../include/linux/proc_fs.h:186:2: error: parameter name omitted
+> ../include/linux/proc_fs.h:186:32: error: parameter name omitted
+> ../include/linux/proc_fs.h:186:63: error: parameter name omitted
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-make-the-proc_create-stubs-static-inlines-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-make-the-proc_create-stubs-static-inlines-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-make-the-proc_create-stubs-static-inlines-fix
-
-fix CONFIG_PROC_FS=n
-
-Randy Dunlap <rdunlap@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/proc_fs.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+Nobody uses PROC_FS=n ;)
 
 --- a/include/linux/proc_fs.h~proc-make-the-proc_create-stubs-static-inlines-fix
 +++ a/include/linux/proc_fs.h
@@ -101,16 +104,4 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  
  static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
 _
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
-kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
-mm.patch
-mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-panic-use-error_report_end-tracepoint-on-warnings-fix.patch
-linux-next-git-rejects.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-proc-make-the-proc_create-stubs-static-inlines-fix.patch
 
