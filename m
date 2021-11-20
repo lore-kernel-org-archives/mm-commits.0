@@ -2,115 +2,135 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1DDCC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 19 Nov 2021 22:51:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0B885C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 20 Nov 2021 00:42:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234413AbhKSWy3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Nov 2021 17:54:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:45440 "EHLO mail.kernel.org"
+        id S235757AbhKTApx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Nov 2021 19:45:53 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50206 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231231AbhKSWy3 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Nov 2021 17:54:29 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AAE2961AF0;
-        Fri, 19 Nov 2021 22:51:26 +0000 (UTC)
+        id S235192AbhKTApx (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Nov 2021 19:45:53 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C5FF66137B;
+        Sat, 20 Nov 2021 00:42:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637362286;
-        bh=ajV3iuJtGM61fWrsVOr4wmxk/G+ynWtnonXBNWwRpHI=;
-        h=Date:From:To:Subject:From;
-        b=F1o8vdV+BKgUxW3BqGj+xqkftXjgoKvwMVrdf+XfT+OY4t79gXna0yk/ROWi8sm9f
-         ToosV/LT4IQYoxVoPXLQS1fLItlkz2USsCDGIKyLXqVHZxgSKrmg/sWpt9wI8p48cz
-         H4FQ2Pef35Yx/KSzAk3N2puiMIQ6zNaEljx2W8Ns=
-Date:   Fri, 19 Nov 2021 14:51:26 -0800
-From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, minchan@kernel.org,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject:  + locking-rwlocks-introduce-write_lock_nested-fix.patch
- added to -mm tree
-Message-ID: <20211119225126.3ilU1Uv6x%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=korg; t=1637368970;
+        bh=3EUDTPluBp72IX8HMrvI/JADN6aekPeuYtHrCLTZTcE=;
+        h=Date:From:To:Cc:Subject:From;
+        b=HAHtl32gBfSU8lZewZ5edDylXNCaoudbuI7jAeHetPmjijSHYyyS960EKNB5IdRuP
+         UxcdDvEHXTHCnTvZHghdFOPN+n4ZLzoSXYh+M9c3GLI+nSWHNx39GdlobIJZtSs2Em
+         4qUzsX4GrpmQYrU/7tIn0NqUaxBXwraDYmRabkH8=
+Date:   Fri, 19 Nov 2021 16:42:48 -0800
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org
+Subject: incoming
+Message-Id: <20211119164248.50feee07c5d2cc6cc4addf97@linux-foundation.org>
+X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+15 patches, based on a90af8f15bdc9449ee2d24e1d73fa3f7e8633f81.
 
-The patch titled
-     Subject: locking/rwlocks: fix write_lock_nested for RT
-has been added to the -mm tree.  Its filename is
-     locking-rwlocks-introduce-write_lock_nested-fix.patch
+Subsystems affected by this patch series:
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/locking-rwlocks-introduce-write_lock_nested-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/locking-rwlocks-introduce-write_lock_nested-fix.patch
+  mm/swap
+  ipc
+  mm/slab-generic
+  hexagon
+  mm/kmemleak
+  mm/hugetlb
+  mm/kasan
+  mm/damon
+  mm/highmem
+  proc
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Subsystem: mm/swap
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+    Matthew Wilcox <willy@infradead.org>:
+      mm/swap.c:put_pages_list(): reinitialise the page list
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+Subsystem: ipc
 
-------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: locking/rwlocks: fix write_lock_nested for RT
+    Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>:
+    Patch series "shm: shm_rmid_forced feature fixes":
+      ipc: WARN if trying to remove ipc object which is absent
+      shm: extend forced shm destroy to support objects from several IPC nses
 
-Fix build break of write_lock_nested for RT.
+Subsystem: mm/slab-generic
 
-Link: https://lkml.kernel.org/r/YZfrMTAXV56HFWJY@google.com
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Suggested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+    Yunfeng Ye <yeyunfeng@huawei.com>:
+      mm: emit the "free" trace report before freeing memory in kmem_cache_free()
 
- include/linux/rwlock_rt.h    |    4 ++++
- kernel/locking/spinlock_rt.c |    2 +-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+Subsystem: hexagon
 
---- a/include/linux/rwlock_rt.h~locking-rwlocks-introduce-write_lock_nested-fix
-+++ a/include/linux/rwlock_rt.h
-@@ -84,10 +84,14 @@ static __always_inline void write_lock(r
- 	rt_write_lock(rwlock);
- }
- 
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
- static __always_inline void write_lock_nested(rwlock_t *rwlock, int subclass)
- {
- 	rt_write_lock_nested(rwlock, subclass);
- }
-+#else
-+#define write_lock_nested(lock, subclass)	rt_write_lock(((void)(subclass), (lock)))
-+#endif
- 
- static __always_inline void write_lock_bh(rwlock_t *rwlock)
- {
---- a/kernel/locking/spinlock_rt.c~locking-rwlocks-introduce-write_lock_nested-fix
-+++ a/kernel/locking/spinlock_rt.c
-@@ -242,7 +242,7 @@ EXPORT_SYMBOL(rt_write_lock);
- #ifdef CONFIG_DEBUG_LOCK_ALLOC
- void __sched rt_write_lock_nested(rwlock_t *rwlock, int subclass)
- {
--	___might_sleep(__FILE__, __LINE__, 0);
-+	rtlock_might_resched();
- 	rwlock_acquire(&rwlock->dep_map, subclass, 0, _RET_IP_);
- 	rwbase_write_lock(&rwlock->rwbase, TASK_RTLOCK_WAIT);
- 	rcu_read_lock();
-_
+    Nathan Chancellor <nathan@kernel.org>:
+    Patch series "Fixes for ARCH=hexagon allmodconfig", v2:
+      hexagon: export raw I/O routines for modules
+      hexagon: clean up timer-regs.h
+      hexagon: ignore vmlinux.lds
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Subsystem: mm/kmemleak
 
-zsmalloc-introduce-some-helper-functions.patch
-zsmalloc-rename-zs_stat_type-to-class_stat_type.patch
-zsmalloc-decouple-class-actions-from-zspage-works.patch
-zsmalloc-introduce-obj_allocated.patch
-zsmalloc-move-huge-compressed-obj-from-page-to-zspage.patch
-zsmalloc-remove-zspage-isolation-for-migration.patch
-locking-rwlocks-introduce-write_lock_nested.patch
-locking-rwlocks-introduce-write_lock_nested-fix.patch
-zsmalloc-replace-per-zpage-lock-with-pool-migrate_lock.patch
+    Rustam Kovhaev <rkovhaev@gmail.com>:
+      mm: kmemleak: slob: respect SLAB_NOLEAKTRACE flag
+
+Subsystem: mm/hugetlb
+
+    Bui Quang Minh <minhquangbui99@gmail.com>:
+      hugetlb: fix hugetlb cgroup refcounting during mremap
+
+    Mina Almasry <almasrymina@google.com>:
+      hugetlb, userfaultfd: fix reservation restore on userfaultfd error
+
+Subsystem: mm/kasan
+
+    Kees Cook <keescook@chromium.org>:
+      kasan: test: silence intentional read overflow warnings
+
+Subsystem: mm/damon
+
+    SeongJae Park <sj@kernel.org>:
+    Patch series "DAMON fixes":
+      mm/damon/dbgfs: use '__GFP_NOWARN' for user-specified size buffer allocation
+      mm/damon/dbgfs: fix missed use of damon_dbgfs_lock
+
+Subsystem: mm/highmem
+
+    Ard Biesheuvel <ardb@kernel.org>:
+      kmap_local: don't assume kmap PTEs are linear arrays in memory
+
+Subsystem: proc
+
+    David Hildenbrand <david@redhat.com>:
+      proc/vmcore: fix clearing user buffer by properly using clear_user()
+
+ arch/arm/Kconfig                      |    1 
+ arch/hexagon/include/asm/timer-regs.h |   26 ----
+ arch/hexagon/include/asm/timex.h      |    3 
+ arch/hexagon/kernel/.gitignore        |    1 
+ arch/hexagon/kernel/time.c            |   12 +-
+ arch/hexagon/lib/io.c                 |    4 
+ fs/proc/vmcore.c                      |   20 ++-
+ include/linux/hugetlb_cgroup.h        |   12 ++
+ include/linux/ipc_namespace.h         |   15 ++
+ include/linux/sched/task.h            |    2 
+ ipc/shm.c                             |  189 +++++++++++++++++++++++++---------
+ ipc/util.c                            |    6 -
+ lib/test_kasan.c                      |    2 
+ mm/Kconfig                            |    3 
+ mm/damon/dbgfs.c                      |   20 ++-
+ mm/highmem.c                          |   32 +++--
+ mm/hugetlb.c                          |   11 +
+ mm/slab.c                             |    3 
+ mm/slab.h                             |    2 
+ mm/slob.c                             |    3 
+ mm/slub.c                             |    2 
+ mm/swap.c                             |    1 
+ 22 files changed, 254 insertions(+), 116 deletions(-)
 
