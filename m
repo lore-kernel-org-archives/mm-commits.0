@@ -2,33 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 21583C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A0C5C433F5
 	for <mm-commits@archiver.kernel.org>; Sat, 20 Nov 2021 00:43:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236533AbhKTAqs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Nov 2021 19:46:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50798 "EHLO mail.kernel.org"
+        id S236503AbhKTAqu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Nov 2021 19:46:50 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50836 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S236503AbhKTAqq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Nov 2021 19:46:46 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 00E0361AF0;
-        Sat, 20 Nov 2021 00:43:43 +0000 (UTC)
+        id S235910AbhKTAqt (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Nov 2021 19:46:49 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0A4316137B;
+        Sat, 20 Nov 2021 00:43:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637369024;
-        bh=PFGDFAEfjl7jEKR11Yq/J+ibTmrUmQSFCxGQ51lNk84=;
+        s=korg; t=1637369027;
+        bh=YQCDfguLNjM5kMCoiYTU0Dw3Z+Q5SerasjidDCmpaHw=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=eTMr4uf8Z0tJNfmS5Uqj7/JRU3mtaA9waxcAnCxKh94wtWruGHWA8qcxNF0dBxYd4
-         4aUnFqTgnOiOv3qObBwgfrNCGzp0OXq0FWGYurZyntWU5dmqh6iuObQspr+QABfTbA
-         rin+dYlzhOElqwqTa+yrJRNakvq2nxJv1UKl3Pzw=
-Date:   Fri, 19 Nov 2021 16:43:43 -0800
+        b=b6nAFp/FH9AS2/05mW1dyslYcxwW7CakBFOGfM7PERPO5AGhn1uwvjRVcSVKmP9AD
+         KxjemqsaLyyfDCmD4xRoaaXz3GLycTrePy99ouOhfVb1a+ayC1z0Y+mOqr+gCl1wxa
+         czM34+sVk9oTJKDhb7Fk15zNB35lXsRP2tU+NF1A=
+Date:   Fri, 19 Nov 2021 16:43:46 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, almasrymina@google.com,
-        jthoughton@google.com, linux-mm@kvack.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        torvalds@linux-foundation.org, weixugc@google.com
-Subject:  [patch 10/15] hugetlb, userfaultfd: fix reservation
- restore on userfaultfd error
-Message-ID: <20211120004343.akzlmXMvc%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
+        dvyukov@google.com, elver@google.com, glider@google.com,
+        keescook@chromium.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        torvalds@linux-foundation.org
+Subject:  [patch 11/15] kasan: test: silence intentional read
+ overflow warnings
+Message-ID: <20211120004346.6GSSdDImN%akpm@linux-foundation.org>
 In-Reply-To: <20211119164248.50feee07c5d2cc6cc4addf97@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -36,70 +37,67 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mina Almasry <almasrymina@google.com>
-Subject: hugetlb, userfaultfd: fix reservation restore on userfaultfd error
+From: Kees Cook <keescook@chromium.org>
+Subject: kasan: test: silence intentional read overflow warnings
 
-Currently in the is_continue case in hugetlb_mcopy_atomic_pte(), if we
-bail out using "goto out_release_unlock;" in the cases where idx >= size,
-or !huge_pte_none(), the code will detect that new_pagecache_page ==
-false, and so call restore_reserve_on_error().  In this case I see
-restore_reserve_on_error() delete the reservation, and the following call
-to remove_inode_hugepages() will increment h->resv_hugepages causing a
-100% reproducible leak.
+As done in commit d73dad4eb5ad ("kasan: test: bypass __alloc_size checks")
+for __write_overflow warnings, also silence some more cases that trip the
+__read_overflow warnings seen in 5.16-rc1[1]:
 
-We should treat the is_continue case similar to adding a page into the
-pagecache and set new_pagecache_page to true, to indicate that there is no
-reservation to restore on the error path, and we need not call
-restore_reserve_on_error().  Rename new_pagecache_page to
-page_in_pagecache to make that clear.
+In file included from /kisskb/src/include/linux/string.h:253,
+                 from /kisskb/src/include/linux/bitmap.h:10,
+                 from /kisskb/src/include/linux/cpumask.h:12,
+                 from /kisskb/src/include/linux/mm_types_task.h:14,
+                 from /kisskb/src/include/linux/mm_types.h:5,
+                 from /kisskb/src/include/linux/page-flags.h:13,
+                 from /kisskb/src/arch/arm64/include/asm/mte.h:14,
+                 from /kisskb/src/arch/arm64/include/asm/pgtable.h:12,
+                 from /kisskb/src/include/linux/pgtable.h:6,
+                 from /kisskb/src/include/linux/kasan.h:29,
+                 from /kisskb/src/lib/test_kasan.c:10:
+In function 'memcmp',
+    inlined from 'kasan_memcmp' at /kisskb/src/lib/test_kasan.c:897:2:
+/kisskb/src/include/linux/fortify-string.h:263:25: error: call to '__read_overflow' declared with attribute error: detected read beyond size of object (1st parameter)
+  263 |                         __read_overflow();
+      |                         ^~~~~~~~~~~~~~~~~
+In function 'memchr',
+    inlined from 'kasan_memchr' at /kisskb/src/lib/test_kasan.c:872:2:
+/kisskb/src/include/linux/fortify-string.h:277:17: error: call to '__read_overflow' declared with attribute error: detected read beyond size of object (1st parameter)
+  277 |                 __read_overflow();
+      |                 ^~~~~~~~~~~~~~~~~
 
-Link: https://lkml.kernel.org/r/20211117193825.378528-1-almasrymina@google.com
-Fixes: c7b1850dfb41 ("hugetlb: don't pass page cache pages to restore_reserve_on_error")
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Reported-by: James Houghton <jthoughton@google.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Wei Xu <weixugc@google.com>
-Cc: <stable@vger.kernel.org>
+[1] http://kisskb.ellerman.id.au/kisskb/buildresult/14660585/log/
+
+Link: https://lkml.kernel.org/r/20211116004111.3171781-1-keescook@chromium.org
+Fixes: d73dad4eb5ad ("kasan: test: bypass __alloc_size checks")
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Acked-by: Marco Elver <elver@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ lib/test_kasan.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/hugetlb.c~hugetlb-userfaultfd-fix-reservation-restore-on-userfaultfd-error
-+++ a/mm/hugetlb.c
-@@ -5736,13 +5736,14 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 	int ret = -ENOMEM;
- 	struct page *page;
- 	int writable;
--	bool new_pagecache_page = false;
-+	bool page_in_pagecache = false;
+--- a/lib/test_kasan.c~kasan-test-silence-intentional-read-overflow-warnings
++++ a/lib/test_kasan.c
+@@ -869,6 +869,7 @@ static void kasan_memchr(struct kunit *t
+ 	ptr = kmalloc(size, GFP_KERNEL | __GFP_ZERO);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
  
- 	if (is_continue) {
- 		ret = -EFAULT;
- 		page = find_lock_page(mapping, idx);
- 		if (!page)
- 			goto out;
-+		page_in_pagecache = true;
- 	} else if (!*pagep) {
- 		/* If a page already exists, then it's UFFDIO_COPY for
- 		 * a non-missing case. Return -EEXIST.
-@@ -5830,7 +5831,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
- 		ret = huge_add_to_page_cache(page, mapping, idx);
- 		if (ret)
- 			goto out_release_nounlock;
--		new_pagecache_page = true;
-+		page_in_pagecache = true;
- 	}
++	OPTIMIZER_HIDE_VAR(size);
+ 	KUNIT_EXPECT_KASAN_FAIL(test,
+ 		kasan_ptr_result = memchr(ptr, '1', size + 1));
  
- 	ptl = huge_pte_lockptr(h, dst_mm, dst_pte);
-@@ -5894,7 +5895,7 @@ out_release_unlock:
- 	if (vm_shared || is_continue)
- 		unlock_page(page);
- out_release_nounlock:
--	if (!new_pagecache_page)
-+	if (!page_in_pagecache)
- 		restore_reserve_on_error(h, dst_vma, dst_addr, page);
- 	put_page(page);
- 	goto out;
+@@ -894,6 +895,7 @@ static void kasan_memcmp(struct kunit *t
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ 	memset(arr, 0, sizeof(arr));
+ 
++	OPTIMIZER_HIDE_VAR(size);
+ 	KUNIT_EXPECT_KASAN_FAIL(test,
+ 		kasan_int_result = memcmp(ptr, arr, size+1));
+ 	kfree(ptr);
 _
