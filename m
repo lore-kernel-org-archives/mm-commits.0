@@ -2,34 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A840DC433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 20 Nov 2021 00:43:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D3B08C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 20 Nov 2021 00:43:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235806AbhKTAq2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 19 Nov 2021 19:46:28 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50518 "EHLO mail.kernel.org"
+        id S235830AbhKTAqb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 19 Nov 2021 19:46:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50566 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S235621AbhKTAq2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Fri, 19 Nov 2021 19:46:28 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 89B2061AF0;
-        Sat, 20 Nov 2021 00:43:25 +0000 (UTC)
+        id S235621AbhKTAqb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Fri, 19 Nov 2021 19:46:31 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B37F661B1B;
+        Sat, 20 Nov 2021 00:43:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637369005;
-        bh=GL74/S4haXPlH+wyDOeXx8kOaAMCi5FrhWBhq1KdbW0=;
+        s=korg; t=1637369009;
+        bh=w4Gqj6gB4x23MZz1h6PoQLudENfzvVA6v09Dq9JsJsE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=kFytvkne3bvoFWqbejtFGKrs8GlThh9czttXj9wwiV7plmQFPn6bV00k6Fery6Cqx
-         opUcrczuuLOCpqgYO2zxD2blpxO+k4goMzXvmwRLdNskc42lJXP09+aH6YDShwxbnC
-         nW3/1DA5dWvb7ziuaeIwrDbv+rDM5XtTHhFGEzWM=
-Date:   Fri, 19 Nov 2021 16:43:25 -0800
+        b=fBYXKk5/Tfy+eH5k7cpKL4AK6FZiXeDe7eacYaJGAlj6GQshu5AkJlzfJDzfwgUnv
+         bzARdR/pIoBO1xOozzqe8ipiA5ApuEZi0f/iUTSkBWEZcRmQx0pYVcREK7pMq77mFp
+         V4Gg/FE0/N6hXxoVv37BQCYjD5VHHhC/Xr7ogIkM=
+Date:   Fri, 19 Nov 2021 16:43:28 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, cl@linux.com, iamjoonsoo.kim@lge.com,
-        jhubbard@nvidia.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, torvalds@linux-foundation.org, vbabka@suse.cz,
-        yeyunfeng@huawei.com
-Subject:  [patch 04/15] mm: emit the "free" trace report before
- freeing memory in kmem_cache_free()
-Message-ID: <20211120004325.Y4vOrn1WT%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bcain@codeaurora.org,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 05/15] hexagon: export raw I/O routines for
+ modules
+Message-ID: <20211120004328.PW1DgeT_0%akpm@linux-foundation.org>
 In-Reply-To: <20211119164248.50feee07c5d2cc6cc4addf97@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -37,102 +36,68 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Yunfeng Ye <yeyunfeng@huawei.com>
-Subject: mm: emit the "free" trace report before freeing memory in kmem_cache_free()
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: hexagon: export raw I/O routines for modules
 
-After the memory is freed, it can be immediately allocated by other CPUs,
-before the "free" trace report has been emitted.  This causes inaccurate
-traces.
+Patch series "Fixes for ARCH=hexagon allmodconfig", v2.
 
-For example, if the following sequence of events occurs:
+This series fixes some issues noticed with ARCH=hexagon allmodconfig.
 
-    CPU 0                 CPU 1
 
-  (1) alloc xxxxxx
-  (2) free  xxxxxx
-                         (3) alloc xxxxxx
-                         (4) free  xxxxxx
+This patch (of 3):
 
-Then they will be inaccurately reported via tracing, so that they appear
-to have happened in this order:
+When building ARCH=hexagon allmodconfig, the following errors occur:
 
-    CPU 0                 CPU 1
+ERROR: modpost: "__raw_readsl" [drivers/i3c/master/svc-i3c-master.ko] undefined!
+ERROR: modpost: "__raw_writesl" [drivers/i3c/master/dw-i3c-master.ko] undefined!
+ERROR: modpost: "__raw_readsl" [drivers/i3c/master/dw-i3c-master.ko] undefined!
+ERROR: modpost: "__raw_writesl" [drivers/i3c/master/i3c-master-cdns.ko] undefined!
+ERROR: modpost: "__raw_readsl" [drivers/i3c/master/i3c-master-cdns.ko] undefined!
 
-  (1) alloc xxxxxx
-                         (2) alloc xxxxxx
-  (3) free  xxxxxx
-                         (4) free  xxxxxx
+Export these symbols so that modules can use them without any errors.
 
-This makes it look like CPU 1 somehow managed to allocate memory that CPU
-0 still had allocated for itself.
-
-In order to avoid this, emit the "free xxxxxx" tracing report just before
-the actual call to free the memory, instead of just after it.
-
-Link: https://lkml.kernel.org/r/374eb75d-7404-8721-4e1e-65b0e5b17279@huawei.com
-Signed-off-by: Yunfeng Ye <yeyunfeng@huawei.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20211115174250.1994179-1-nathan@kernel.org
+Link: https://lkml.kernel.org/r/20211115174250.1994179-2-nathan@kernel.org
+Fixes: 013bf24c3829 ("Hexagon: Provide basic implementation and/or stubs for I/O routines.")
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Acked-by: Brian Cain <bcain@codeaurora.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    3 +--
- mm/slob.c |    3 +--
- mm/slub.c |    2 +-
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ arch/hexagon/lib/io.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/slab.c~mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free
-+++ a/mm/slab.c
-@@ -3733,14 +3733,13 @@ void kmem_cache_free(struct kmem_cache *
- 	if (!cachep)
- 		return;
+--- a/arch/hexagon/lib/io.c~hexagon-export-raw-i-o-routines-for-modules
++++ a/arch/hexagon/lib/io.c
+@@ -27,6 +27,7 @@ void __raw_readsw(const void __iomem *ad
+ 		*dst++ = *src;
  
-+	trace_kmem_cache_free(_RET_IP_, objp, cachep->name);
- 	local_irq_save(flags);
- 	debug_check_no_locks_freed(objp, cachep->object_size);
- 	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
- 		debug_check_no_obj_freed(objp, cachep->object_size);
- 	__cache_free(cachep, objp, _RET_IP_);
- 	local_irq_restore(flags);
--
--	trace_kmem_cache_free(_RET_IP_, objp, cachep->name);
  }
- EXPORT_SYMBOL(kmem_cache_free);
++EXPORT_SYMBOL(__raw_readsw);
  
---- a/mm/slob.c~mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free
-+++ a/mm/slob.c
-@@ -666,6 +666,7 @@ static void kmem_rcu_free(struct rcu_hea
- void kmem_cache_free(struct kmem_cache *c, void *b)
+ /*
+  * __raw_writesw - read words a short at a time
+@@ -47,6 +48,7 @@ void __raw_writesw(void __iomem *addr, c
+ 
+ 
+ }
++EXPORT_SYMBOL(__raw_writesw);
+ 
+ /*  Pretty sure len is pre-adjusted for the length of the access already */
+ void __raw_readsl(const void __iomem *addr, void *data, int len)
+@@ -62,6 +64,7 @@ void __raw_readsl(const void __iomem *ad
+ 
+ 
+ }
++EXPORT_SYMBOL(__raw_readsl);
+ 
+ void __raw_writesl(void __iomem *addr, const void *data, int len)
  {
- 	kmemleak_free_recursive(b, c->flags);
-+	trace_kmem_cache_free(_RET_IP_, b, c->name);
- 	if (unlikely(c->flags & SLAB_TYPESAFE_BY_RCU)) {
- 		struct slob_rcu *slob_rcu;
- 		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
-@@ -674,8 +675,6 @@ void kmem_cache_free(struct kmem_cache *
- 	} else {
- 		__kmem_cache_free(b, c->size);
- 	}
--
--	trace_kmem_cache_free(_RET_IP_, b, c->name);
- }
- EXPORT_SYMBOL(kmem_cache_free);
+@@ -76,3 +79,4 @@ void __raw_writesl(void __iomem *addr, c
  
---- a/mm/slub.c~mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free
-+++ a/mm/slub.c
-@@ -3526,8 +3526,8 @@ void kmem_cache_free(struct kmem_cache *
- 	s = cache_from_obj(s, x);
- 	if (!s)
- 		return;
--	slab_free(s, virt_to_head_page(x), x, NULL, 1, _RET_IP_);
- 	trace_kmem_cache_free(_RET_IP_, x, s->name);
-+	slab_free(s, virt_to_head_page(x), x, NULL, 1, _RET_IP_);
- }
- EXPORT_SYMBOL(kmem_cache_free);
  
+ }
++EXPORT_SYMBOL(__raw_writesl);
 _
