@@ -2,34 +2,31 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 46CD4C4321E
-	for <mm-commits@archiver.kernel.org>; Tue, 23 Nov 2021 22:45:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 81E7CC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 23 Nov 2021 22:45:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238943AbhKWWtC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 17:49:02 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51198 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238852AbhKWWtA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        id S229774AbhKWWtA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 23 Nov 2021 17:49:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B4ADA60F5B;
-        Tue, 23 Nov 2021 22:45:51 +0000 (UTC)
+Received: from mail.kernel.org ([198.145.29.99]:51056 "EHLO mail.kernel.org"
+        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+        id S238420AbhKWWsw (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 17:48:52 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B879F60FBF;
+        Tue, 23 Nov 2021 22:45:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637707552;
-        bh=B2/8noxuwOC+gEGCaH83L4w1SDipuIEtZpDQbFyjsNM=;
+        s=korg; t=1637707543;
+        bh=ctMz14NtKcmaIKbHZkbRW1UvMrdQQ1Jl0dWQ2kh76ls=;
         h=Date:From:To:Subject:From;
-        b=wuTYDuNb0Z5LwT5jtXbULb6zfsbmoLtg/+XszJfXwfCRoZvkwA3eZe0py2hSS2wXs
-         2YCZ/5O3S+mv6h+nvLEQ/BXRXSctQtetQ8yHO/nXwH1Ri5Jbu+eJBfF6kaQtox6njQ
-         BS5GMa87yJf4EVZHnQZR9pNi5h6DlKJJZsFiBoOg=
-Date:   Tue, 23 Nov 2021 14:45:51 -0800
+        b=MXQUdgPDiWDDHKVBipiiXn2rgLp0OGQ188mJzSgRXXVPpMf6krkaEFeUHASTmhW4F
+         +srHAp4HyVuWkEaB27QUnwCaMTiAhvjsPHiejiLlxZ/WdaRLLnSWUsWX8BITd4Jwyi
+         Rdj1yZjjMtYs4kx851chhUPToAPOTL3RPRDN/RXQ=
+Date:   Tue, 23 Nov 2021 14:45:43 -0800
 From:   akpm@linux-foundation.org
-To:     catalin.marinas@arm.com, cl@linux.com, glommer@parallels.com,
-        gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, rkovhaev@gmail.com, songmuchun@bytedance.com,
-        stable@vger.kernel.org, vbabka@suse.cz
+To:     bcain@codeaurora.org, mm-commits@vger.kernel.org,
+        nathan@kernel.org, ndesaulniers@google.com, stable@vger.kernel.org
 Subject:  [merged]
- mm-kmemleak-slob-respect-slab_noleaktrace-flag.patch removed from -mm tree
-Message-ID: <20211123224551.z6_jxv25w%akpm@linux-foundation.org>
+ hexagon-export-raw-i-o-routines-for-modules.patch removed from -mm tree
+Message-ID: <20211123224543.1cAZAeS4n%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -38,58 +35,79 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kmemleak: slob: respect SLAB_NOLEAKTRACE flag
+     Subject: hexagon: export raw I/O routines for modules
 has been removed from the -mm tree.  Its filename was
-     mm-kmemleak-slob-respect-slab_noleaktrace-flag.patch
+     hexagon-export-raw-i-o-routines-for-modules.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rustam Kovhaev <rkovhaev@gmail.com>
-Subject: mm: kmemleak: slob: respect SLAB_NOLEAKTRACE flag
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: hexagon: export raw I/O routines for modules
 
-When kmemleak is enabled for SLOB, system does not boot and does not print
-anything to the console.  At the very early stage in the boot process we
-hit infinite recursion from kmemleak_init() and eventually kernel crashes.
+Patch series "Fixes for ARCH=hexagon allmodconfig", v2.
 
-kmemleak_init() specifies SLAB_NOLEAKTRACE for KMEM_CACHE(), but
-kmem_cache_create_usercopy() removes it because CACHE_CREATE_MASK is not
-valid for SLOB.
+This series fixes some issues noticed with ARCH=hexagon allmodconfig.
 
-Let's fix CACHE_CREATE_MASK and make kmemleak work with SLOB
 
-Link: https://lkml.kernel.org/r/20211115020850.3154366-1-rkovhaev@gmail.com
-Fixes: d8843922fba4 ("slab: Ignore internal flags in cache creation")
-Signed-off-by: Rustam Kovhaev <rkovhaev@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Glauber Costa <glommer@parallels.com>
+This patch (of 3):
+
+When building ARCH=hexagon allmodconfig, the following errors occur:
+
+ERROR: modpost: "__raw_readsl" [drivers/i3c/master/svc-i3c-master.ko] undefined!
+ERROR: modpost: "__raw_writesl" [drivers/i3c/master/dw-i3c-master.ko] undefined!
+ERROR: modpost: "__raw_readsl" [drivers/i3c/master/dw-i3c-master.ko] undefined!
+ERROR: modpost: "__raw_writesl" [drivers/i3c/master/i3c-master-cdns.ko] undefined!
+ERROR: modpost: "__raw_readsl" [drivers/i3c/master/i3c-master-cdns.ko] undefined!
+
+Export these symbols so that modules can use them without any errors.
+
+Link: https://lkml.kernel.org/r/20211115174250.1994179-1-nathan@kernel.org
+Link: https://lkml.kernel.org/r/20211115174250.1994179-2-nathan@kernel.org
+Fixes: 013bf24c3829 ("Hexagon: Provide basic implementation and/or stubs for I/O routines.")
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Acked-by: Brian Cain <bcain@codeaurora.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/hexagon/lib/io.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/slab.h~mm-kmemleak-slob-respect-slab_noleaktrace-flag
-+++ a/mm/slab.h
-@@ -147,7 +147,7 @@ static inline slab_flags_t kmem_cache_fl
- #define SLAB_CACHE_FLAGS (SLAB_NOLEAKTRACE | SLAB_RECLAIM_ACCOUNT | \
- 			  SLAB_TEMPORARY | SLAB_ACCOUNT)
- #else
--#define SLAB_CACHE_FLAGS (0)
-+#define SLAB_CACHE_FLAGS (SLAB_NOLEAKTRACE)
- #endif
+--- a/arch/hexagon/lib/io.c~hexagon-export-raw-i-o-routines-for-modules
++++ a/arch/hexagon/lib/io.c
+@@ -27,6 +27,7 @@ void __raw_readsw(const void __iomem *ad
+ 		*dst++ = *src;
  
- /* Common flags available with current configuration */
+ }
++EXPORT_SYMBOL(__raw_readsw);
+ 
+ /*
+  * __raw_writesw - read words a short at a time
+@@ -47,6 +48,7 @@ void __raw_writesw(void __iomem *addr, c
+ 
+ 
+ }
++EXPORT_SYMBOL(__raw_writesw);
+ 
+ /*  Pretty sure len is pre-adjusted for the length of the access already */
+ void __raw_readsl(const void __iomem *addr, void *data, int len)
+@@ -62,6 +64,7 @@ void __raw_readsl(const void __iomem *ad
+ 
+ 
+ }
++EXPORT_SYMBOL(__raw_readsl);
+ 
+ void __raw_writesl(void __iomem *addr, const void *data, int len)
+ {
+@@ -76,3 +79,4 @@ void __raw_writesl(void __iomem *addr, c
+ 
+ 
+ }
++EXPORT_SYMBOL(__raw_writesl);
 _
 
-Patches currently in -mm which might be from rkovhaev@gmail.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
 
