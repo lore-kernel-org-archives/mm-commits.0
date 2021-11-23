@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D889AC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 23 Nov 2021 22:46:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0393C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 23 Nov 2021 22:46:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239035AbhKWWtJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 17:49:09 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51292 "EHLO mail.kernel.org"
+        id S238741AbhKWWtK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 17:49:10 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51354 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238741AbhKWWtD (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 17:49:03 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id A967660FBF;
-        Tue, 23 Nov 2021 22:45:54 +0000 (UTC)
+        id S238872AbhKWWtG (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 17:49:06 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A454860F5B;
+        Tue, 23 Nov 2021 22:45:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637707555;
-        bh=KxVBkHPMWM1dh6wPjNzeB2LiHzw9zmOl5PTHbODpIqI=;
+        s=korg; t=1637707557;
+        bh=5tMIA9XNAUZArQtB3oaAttpPjb5FNx12bM3gfGv3aJg=;
         h=Date:From:To:Subject:From;
-        b=h/Q64WEfeOw3kzpwLSWzycGrHfhpUq730rUKclmwd+LHIJA6QjYmqhS3Whe1b3CbR
-         xL4k1alGb8eNU/bBq9k0ClOq++EUA5K6xvefggZ/86LysiqzHY/p2uWJimd5T0uPK5
-         IxMPlJUekejfAK6hoI2BaV+KYpp2FxEB5eAzPPpA=
-Date:   Tue, 23 Nov 2021 14:45:54 -0800
+        b=kPguxAx2u+H0eTw0tdvjEBE7wPcdNpUvtI2OPYz5ywzQHisOc7IB1LPfm9B/UbAjf
+         HKuPWW45sBxOlEhMScbAZijNBWwDH9PqxWfZMeVGH4Kgj5QhXPaCCiMVx08Sn/EyDx
+         NfAYraHKrSYJeYAe+hu/UY1FU30jSJPKyqfLAYos=
+Date:   Tue, 23 Nov 2021 14:45:57 -0800
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, linmiaohe@huawei.com, mhocko@suse.com,
-        mike.kravetz@oracle.com, minhquangbui99@gmail.com,
-        mm-commits@vger.kernel.org, songmuchun@bytedance.com
+To:     almasrymina@google.com, jthoughton@google.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, weixugc@google.com
 Subject:  [merged]
- hugetlb-fix-hugetlb-cgroup-refcounting-during-mremap.patch removed from -mm
- tree
-Message-ID: <20211123224554.F0bHCsp75%akpm@linux-foundation.org>
+ hugetlb-userfaultfd-fix-reservation-restore-on-userfaultfd-error.patch
+ removed from -mm tree
+Message-ID: <20211123224557.TWmUGXclm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -37,83 +37,81 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix hugetlb cgroup refcounting during mremap
+     Subject: hugetlb, userfaultfd: fix reservation restore on userfaultfd error
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-hugetlb-cgroup-refcounting-during-mremap.patch
+     hugetlb-userfaultfd-fix-reservation-restore-on-userfaultfd-error.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Bui Quang Minh <minhquangbui99@gmail.com>
-Subject: hugetlb: fix hugetlb cgroup refcounting during mremap
+From: Mina Almasry <almasrymina@google.com>
+Subject: hugetlb, userfaultfd: fix reservation restore on userfaultfd error
 
-When hugetlb_vm_op_open() is called during copy_vma(), we may take the
-reference to resv_map->css.  Later, when clearing the reservation pointer
-of old_vma after transferring it to new_vma, we forget to drop the
-reference to resv_map->css.  This leads to a reference leak of css.
+Currently in the is_continue case in hugetlb_mcopy_atomic_pte(), if we
+bail out using "goto out_release_unlock;" in the cases where idx >= size,
+or !huge_pte_none(), the code will detect that new_pagecache_page ==
+false, and so call restore_reserve_on_error().  In this case I see
+restore_reserve_on_error() delete the reservation, and the following call
+to remove_inode_hugepages() will increment h->resv_hugepages causing a
+100% reproducible leak.
 
-Fixes this by adding a check to drop reservation css reference in
-clear_vma_resv_huge_pages()
+We should treat the is_continue case similar to adding a page into the
+pagecache and set new_pagecache_page to true, to indicate that there is no
+reservation to restore on the error path, and we need not call
+restore_reserve_on_error().  Rename new_pagecache_page to
+page_in_pagecache to make that clear.
 
-Link: https://lkml.kernel.org/r/20211113154412.91134-1-minhquangbui99@gmail.com
-Fixes: 550a7d60bd5e35 ("mm, hugepages: add mremap() support for hugepage backed vma")
-Signed-off-by: Bui Quang Minh <minhquangbui99@gmail.com>
+Link: https://lkml.kernel.org/r/20211117193825.378528-1-almasrymina@google.com
+Fixes: c7b1850dfb41 ("hugetlb: don't pass page cache pages to restore_reserve_on_error")
+Signed-off-by: Mina Almasry <almasrymina@google.com>
+Reported-by: James Houghton <jthoughton@google.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Mina Almasry <almasrymina@google.com>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb_cgroup.h |   12 ++++++++++++
- mm/hugetlb.c                   |    4 +++-
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ mm/hugetlb.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/include/linux/hugetlb_cgroup.h~hugetlb-fix-hugetlb-cgroup-refcounting-during-mremap
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -128,6 +128,13 @@ static inline void resv_map_dup_hugetlb_
- 		css_get(resv_map->css);
- }
- 
-+static inline void resv_map_put_hugetlb_cgroup_uncharge_info(
-+						struct resv_map *resv_map)
-+{
-+	if (resv_map->css)
-+		css_put(resv_map->css);
-+}
-+
- extern int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
- 					struct hugetlb_cgroup **ptr);
- extern int hugetlb_cgroup_charge_cgroup_rsvd(int idx, unsigned long nr_pages,
-@@ -210,6 +217,11 @@ static inline void resv_map_dup_hugetlb_
- 						struct resv_map *resv_map)
- {
- }
-+
-+static inline void resv_map_put_hugetlb_cgroup_uncharge_info(
-+						struct resv_map *resv_map)
-+{
-+}
- 
- static inline int hugetlb_cgroup_charge_cgroup(int idx, unsigned long nr_pages,
- 					       struct hugetlb_cgroup **ptr)
---- a/mm/hugetlb.c~hugetlb-fix-hugetlb-cgroup-refcounting-during-mremap
+--- a/mm/hugetlb.c~hugetlb-userfaultfd-fix-reservation-restore-on-userfaultfd-error
 +++ a/mm/hugetlb.c
-@@ -1037,8 +1037,10 @@ void clear_vma_resv_huge_pages(struct vm
- 	 */
- 	struct resv_map *reservations = vma_resv_map(vma);
+@@ -5736,13 +5736,14 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 	int ret = -ENOMEM;
+ 	struct page *page;
+ 	int writable;
+-	bool new_pagecache_page = false;
++	bool page_in_pagecache = false;
  
--	if (reservations && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
-+	if (reservations && is_vma_resv_set(vma, HPAGE_RESV_OWNER)) {
-+		resv_map_put_hugetlb_cgroup_uncharge_info(reservations);
- 		kref_put(&reservations->refs, resv_map_release);
-+	}
+ 	if (is_continue) {
+ 		ret = -EFAULT;
+ 		page = find_lock_page(mapping, idx);
+ 		if (!page)
+ 			goto out;
++		page_in_pagecache = true;
+ 	} else if (!*pagep) {
+ 		/* If a page already exists, then it's UFFDIO_COPY for
+ 		 * a non-missing case. Return -EEXIST.
+@@ -5830,7 +5831,7 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 		ret = huge_add_to_page_cache(page, mapping, idx);
+ 		if (ret)
+ 			goto out_release_nounlock;
+-		new_pagecache_page = true;
++		page_in_pagecache = true;
+ 	}
  
- 	reset_vma_resv_huge_pages(vma);
- }
+ 	ptl = huge_pte_lockptr(h, dst_mm, dst_pte);
+@@ -5894,7 +5895,7 @@ out_release_unlock:
+ 	if (vm_shared || is_continue)
+ 		unlock_page(page);
+ out_release_nounlock:
+-	if (!new_pagecache_page)
++	if (!page_in_pagecache)
+ 		restore_reserve_on_error(h, dst_vma, dst_addr, page);
+ 	put_page(page);
+ 	goto out;
 _
 
-Patches currently in -mm which might be from minhquangbui99@gmail.com are
+Patches currently in -mm which might be from almasrymina@google.com are
 
 
