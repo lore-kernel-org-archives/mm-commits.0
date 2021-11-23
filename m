@@ -2,31 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25877C43219
-	for <mm-commits@archiver.kernel.org>; Tue, 23 Nov 2021 22:45:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 46CD4C4321E
+	for <mm-commits@archiver.kernel.org>; Tue, 23 Nov 2021 22:45:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238713AbhKWWtA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 17:49:00 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51162 "EHLO mail.kernel.org"
+        id S238943AbhKWWtC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 17:49:02 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51198 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238741AbhKWWs6 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 17:48:58 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 9BC8A60FE3;
-        Tue, 23 Nov 2021 22:45:49 +0000 (UTC)
+        id S238852AbhKWWtA (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 17:49:00 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id B4ADA60F5B;
+        Tue, 23 Nov 2021 22:45:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637707549;
-        bh=Co3j/HXxn3+o9LjnpVw8n96BQlG+HTJhbzO8U2cbt14=;
+        s=korg; t=1637707552;
+        bh=B2/8noxuwOC+gEGCaH83L4w1SDipuIEtZpDQbFyjsNM=;
         h=Date:From:To:Subject:From;
-        b=Qu07udVXmaVL7gSF/lMt6CoUjdiyamlVBF9kAMyaXntmK25w4iNOJ8N7aLxebrxu8
-         BysK+lmbORrQhLUfFmpvTGssUJqc0QN0HvXO8fla2welO0CJCJSU0VL9SgidAXusXF
-         IU9H1fwuBAEUR5ZOpxaYKLVwjHbJ5bX2DRg1rXdw=
-Date:   Tue, 23 Nov 2021 14:45:49 -0800
+        b=wuTYDuNb0Z5LwT5jtXbULb6zfsbmoLtg/+XszJfXwfCRoZvkwA3eZe0py2hSS2wXs
+         2YCZ/5O3S+mv6h+nvLEQ/BXRXSctQtetQ8yHO/nXwH1Ri5Jbu+eJBfF6kaQtox6njQ
+         BS5GMa87yJf4EVZHnQZR9pNi5h6DlKJJZsFiBoOg=
+Date:   Tue, 23 Nov 2021 14:45:51 -0800
 From:   akpm@linux-foundation.org
-To:     bcain@codeaurora.org, mm-commits@vger.kernel.org,
-        nathan@kernel.org, ndesaulniers@google.com
-Subject:  [merged] hexagon-ignore-vmlinuxlds.patch removed from -mm
- tree
-Message-ID: <20211123224549.Sycm-D-Wh%akpm@linux-foundation.org>
+To:     catalin.marinas@arm.com, cl@linux.com, glommer@parallels.com,
+        gregkh@linuxfoundation.org, iamjoonsoo.kim@lge.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, rkovhaev@gmail.com, songmuchun@bytedance.com,
+        stable@vger.kernel.org, vbabka@suse.cz
+Subject:  [merged]
+ mm-kmemleak-slob-respect-slab_noleaktrace-flag.patch removed from -mm tree
+Message-ID: <20211123224551.z6_jxv25w%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -35,40 +38,58 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexagon: ignore vmlinux.lds
+     Subject: mm: kmemleak: slob: respect SLAB_NOLEAKTRACE flag
 has been removed from the -mm tree.  Its filename was
-     hexagon-ignore-vmlinuxlds.patch
+     mm-kmemleak-slob-respect-slab_noleaktrace-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: hexagon: ignore vmlinux.lds
+From: Rustam Kovhaev <rkovhaev@gmail.com>
+Subject: mm: kmemleak: slob: respect SLAB_NOLEAKTRACE flag
 
-After building allmodconfig, there is an untracked vmlinux.lds file in
-arch/hexagon/kernel:
+When kmemleak is enabled for SLOB, system does not boot and does not print
+anything to the console.  At the very early stage in the boot process we
+hit infinite recursion from kmemleak_init() and eventually kernel crashes.
 
-$ git ls-files . --exclude-standard --others
-arch/hexagon/kernel/vmlinux.lds
+kmemleak_init() specifies SLAB_NOLEAKTRACE for KMEM_CACHE(), but
+kmem_cache_create_usercopy() removes it because CACHE_CREATE_MASK is not
+valid for SLOB.
 
-Ignore it as all other architectures have.
+Let's fix CACHE_CREATE_MASK and make kmemleak work with SLOB
 
-Link: https://lkml.kernel.org/r/20211115174250.1994179-4-nathan@kernel.org
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Cc: Brian Cain <bcain@codeaurora.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
+Link: https://lkml.kernel.org/r/20211115020850.3154366-1-rkovhaev@gmail.com
+Fixes: d8843922fba4 ("slab: Ignore internal flags in cache creation")
+Signed-off-by: Rustam Kovhaev <rkovhaev@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Glauber Costa <glommer@parallels.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/hexagon/kernel/.gitignore |    1 +
- 1 file changed, 1 insertion(+)
+ mm/slab.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- /dev/null
-+++ a/arch/hexagon/kernel/.gitignore
-@@ -0,0 +1 @@
-+vmlinux.lds
+--- a/mm/slab.h~mm-kmemleak-slob-respect-slab_noleaktrace-flag
++++ a/mm/slab.h
+@@ -147,7 +147,7 @@ static inline slab_flags_t kmem_cache_fl
+ #define SLAB_CACHE_FLAGS (SLAB_NOLEAKTRACE | SLAB_RECLAIM_ACCOUNT | \
+ 			  SLAB_TEMPORARY | SLAB_ACCOUNT)
+ #else
+-#define SLAB_CACHE_FLAGS (0)
++#define SLAB_CACHE_FLAGS (SLAB_NOLEAKTRACE)
+ #endif
+ 
+ /* Common flags available with current configuration */
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from rkovhaev@gmail.com are
 
 
