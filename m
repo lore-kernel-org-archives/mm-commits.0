@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6D656C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 23 Nov 2021 22:45:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 58775C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 23 Nov 2021 22:45:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229970AbhKWWsl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 17:48:41 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50832 "EHLO mail.kernel.org"
+        id S229978AbhKWWso (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 17:48:44 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50872 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229774AbhKWWsk (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 17:48:40 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C4AE160E0B;
-        Tue, 23 Nov 2021 22:45:31 +0000 (UTC)
+        id S229774AbhKWWsn (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 17:48:43 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C681A60F5D;
+        Tue, 23 Nov 2021 22:45:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637707532;
-        bh=Xtqn5aAStFNPv21fzmb8aY+CN7kfHkO6Ojradn3LZWY=;
+        s=korg; t=1637707535;
+        bh=CpRrrWk9aWIu9SjC7KwhFAwYIYBWgRFgmWFyFDsLGGM=;
         h=Date:From:To:Subject:From;
-        b=LW4KxGwL37MOLrV5z0AbcNgzlOKtIbMTvE02narLYDCOH206cUo4NIk0g9xWhz2/V
-         P5ddIrD4B9o/1BDm2ECoZ3u9XUgwenuYsbar7+RNYc/P+06Fb98LL8GfRMiOs42yvW
-         M9wl36hPhlsCh2KKdGZsloFT6ZMa9vSHiRgfWWSg=
-Date:   Tue, 23 Nov 2021 14:45:31 -0800
+        b=cRztrMXjglwzw/CnmI7zgInTgncvQgIcnDcWrnYRlNt+lkZ/DchdK7N12mVL3wZAo
+         Z0VwQMSfievehjzlk5fkk1xEnhJew59V8FdOa3J5zmmsDIuHA/aSZUtYu4AeLowxxq
+         BCkwnIitC/OSHLwEkzBHldBdoTcdMNzRBq27igII=
+Date:   Tue, 23 Nov 2021 14:45:34 -0800
 From:   akpm@linux-foundation.org
-To:     hyc.lee@gmail.com, linkinjeon@kernel.org,
-        mm-commits@vger.kernel.org, smfrench@gmail.com,
-        stfrench@microsoft.com, willy@infradead.org
+To:     alexander.mikhalitsyn@virtuozzo.com, avagin@gmail.com,
+        dave@stgolabs.net, ebiederm@xmission.com,
+        gregkh@linuxfoundation.org, manfred@colorfullife.com,
+        mm-commits@vger.kernel.org, ptikhomirov@virtuozzo.com,
+        stable@vger.kernel.org, vvs@virtuozzo.com
 Subject:  [merged]
- hitting-bug_on-trap-in-read_pages-mm-optimise-put_pages_list.patch removed
- from -mm tree
-Message-ID: <20211123224531.HY05sDnnz%akpm@linux-foundation.org>
+ ipc-warn-if-trying-to-remove-ipc-object-which-is-absent.patch removed from
+ -mm tree
+Message-ID: <20211123224534.d7EfwPRdS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -37,51 +39,118 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/swap.c:put_pages_list(): reinitialise the page list
+     Subject: ipc: WARN if trying to remove ipc object which is absent
 has been removed from the -mm tree.  Its filename was
-     hitting-bug_on-trap-in-read_pages-mm-optimise-put_pages_list.patch
+     ipc-warn-if-trying-to-remove-ipc-object-which-is-absent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@infradead.org>
-Subject: mm/swap.c:put_pages_list(): reinitialise the page list
+From: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+Subject: ipc: WARN if trying to remove ipc object which is absent
 
-While free_unref_page_list() puts pages onto the CPU local LRU list, it
-does not remove them from the list they were passed in on.  That makes the
-list_head appear to be non-empty, and would lead to various corruption
-problems if we didn't have an assertion that the list was empty.
+Patch series "shm: shm_rmid_forced feature fixes".
 
-Reinitialise the list after calling free_unref_page_list() to avoid this
-problem.
+Some time ago I met kernel crash after CRIU restore procedure,
+fortunately, it was CRIU restore, so, I had dump files and could do
+restore many times and crash reproduced easily.  After some investigation
+I've constructed the minimal reproducer.  It was found that it's
+use-after-free and it happens only if sysctl kernel.shm_rmid_forced = 1.
 
-Link: https://lkml.kernel.org/r/YYp40A2lNrxaZji8@casper.infradead.org
-Fixes: 988c69f1bc23 ("mm: optimise put_pages_list()")
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: Steve French <stfrench@microsoft.com>
-Reported-by: Namjae Jeon <linkinjeon@kernel.org>
-Tested-by: Steve French <stfrench@microsoft.com>
-Tested-by: Namjae Jeon <linkinjeon@kernel.org>
-Cc: Steve French <smfrench@gmail.com>
-Cc: Hyeoncheol Lee <hyc.lee@gmail.com>
+The key of the problem is that the exit_shm() function not handles shp's
+object destroy when task->sysvshm.shm_clist contains items from different
+IPC namespaces.  In most cases this list will contain only items from one
+IPC namespace.
+
+Why this list may contain object from different namespaces?  Function
+exit_shm() designed to clean up this list always when process leaves IPC
+namespace.  But we made a mistake a long time ago and not add exit_shm()
+call into setns() syscall procedures.  1st second idea was just to add
+this call to setns() syscall but it's obviously changes semantics of
+setns() syscall and that's userspace-visible change.  So, I gave up this
+idea.
+
+First real attempt to address the issue was just to omit forced destroy if
+we meet shp object not from current task IPC namespace [1].  But that was
+not the best idea because task->sysvshm.shm_clist was protected by rwsem
+which belongs to current task IPC namespace.  It means that list
+corruption may occur.
+
+Second approach is just extend exit_shm() to properly handle shp's from
+different IPC namespaces [2].  This is really non-trivial thing, I've put
+a lot of effort into that but not believed that it's possible to make it
+fully safe, clean and clear.
+
+Thanks to the efforts of Manfred Spraul working an elegant solution was
+designed.  Thanks a lot, Manfred!
+
+Eric also suggested the way to address the issue in ("[RFC][PATCH] shm: In
+shm_exit destroy all created and never attached segments") Eric's idea was
+to maintain a list of shm_clists one per IPC namespace, use lock-less
+lists.  But there is some extra memory consumption-related concerns.
+
+Alternative solution which was suggested by me was implemented in ("shm:
+reset shm_clist on setns but omit forced shm destroy") Idea is pretty
+simple, we add exit_shm() syscall to setns() but DO NOT destroy shm
+segments even if sysctl kernel.shm_rmid_forced = 1, we just clean up the
+task->sysvshm.shm_clist list.  This chages semantics of setns() syscall a
+little bit but in comparision to "naive" solution when we just add
+exit_shm() without any special exclusions this looks like a safer option.
+
+[1] https://lkml.org/lkml/2021/7/6/1108
+[2] https://lkml.org/lkml/2021/7/14/736
+
+
+This patch (of 2):
+
+Let's produce a warning if we trying to remove non-existing IPC object
+from IPC namespace kht/idr structures.
+
+This allows to catch possible bugs when ipc_rmid() function was called
+with inconsistent struct ipc_ids*, struct kern_ipc_perm* arguments.
+
+Link: https://lkml.kernel.org/r/20211027224348.611025-1-alexander.mikhalitsyn@virtuozzo.com
+Link: https://lkml.kernel.org/r/20211027224348.611025-2-alexander.mikhalitsyn@virtuozzo.com
+Co-developed-by: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Signed-off-by: Alexander Mikhalitsyn <alexander.mikhalitsyn@virtuozzo.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Andrei Vagin <avagin@gmail.com>
+Cc: Pavel Tikhomirov <ptikhomirov@virtuozzo.com>
+Cc: Vasily Averin <vvs@virtuozzo.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    1 +
- 1 file changed, 1 insertion(+)
+ ipc/util.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/mm/swap.c~hitting-bug_on-trap-in-read_pages-mm-optimise-put_pages_list
-+++ a/mm/swap.c
-@@ -156,6 +156,7 @@ void put_pages_list(struct list_head *pa
- 	}
- 
- 	free_unref_page_list(pages);
-+	INIT_LIST_HEAD(pages);
+--- a/ipc/util.c~ipc-warn-if-trying-to-remove-ipc-object-which-is-absent
++++ a/ipc/util.c
+@@ -447,8 +447,8 @@ static int ipcget_public(struct ipc_name
+ static void ipc_kht_remove(struct ipc_ids *ids, struct kern_ipc_perm *ipcp)
+ {
+ 	if (ipcp->key != IPC_PRIVATE)
+-		rhashtable_remove_fast(&ids->key_ht, &ipcp->khtnode,
+-				       ipc_kht_params);
++		WARN_ON_ONCE(rhashtable_remove_fast(&ids->key_ht, &ipcp->khtnode,
++				       ipc_kht_params));
  }
- EXPORT_SYMBOL(put_pages_list);
  
+ /**
+@@ -498,7 +498,7 @@ void ipc_rmid(struct ipc_ids *ids, struc
+ {
+ 	int idx = ipcid_to_idx(ipcp->id);
+ 
+-	idr_remove(&ids->ipcs_idr, idx);
++	WARN_ON_ONCE(idr_remove(&ids->ipcs_idr, idx) != ipcp);
+ 	ipc_kht_remove(ids, ipcp);
+ 	ids->in_use--;
+ 	ipcp->deleted = true;
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from alexander.mikhalitsyn@virtuozzo.com are
 
 
