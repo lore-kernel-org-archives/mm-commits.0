@@ -2,36 +2,32 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 514B9C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCE2EC43217
 	for <mm-commits@archiver.kernel.org>; Tue, 23 Nov 2021 22:45:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238749AbhKWWs7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 17:48:59 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51000 "EHLO mail.kernel.org"
+        id S238420AbhKWWtA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 17:49:00 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51110 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S237945AbhKWWst (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 17:48:49 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B494960E0B;
-        Tue, 23 Nov 2021 22:45:40 +0000 (UTC)
+        id S238713AbhKWWsz (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 17:48:55 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 9F43060FD8;
+        Tue, 23 Nov 2021 22:45:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637707541;
-        bh=EFfOA9LJCKQXalmmI9WOwPKYCGDhfTQQoK2xzpa7Lbk=;
+        s=korg; t=1637707546;
+        bh=S/eqENpeBw9q7fTannvmijtsDt3Lh8aFeN8UmxGhsJM=;
         h=Date:From:To:Subject:From;
-        b=N2SvYpVBn07QIAaTXpnCbz8J4gTQJ1oS7SiIqC7RsR+CfaeEC3OzvbZKfS3EihRfS
-         EjFeh7NBU/t9PiZgkht0T6FthF2tmqX1kmUjKQ+iUj8/Yr+SDoqQl70/+bVSMyK2sw
-         sZ/AnOUop5I1lSRtZZt7QDtgpJuIQ4RxayQaxC8A=
-Date:   Tue, 23 Nov 2021 14:45:40 -0800
+        b=giQRUx78ZPGkKGEBI9T90ERUEd5cNnTkJrIXONYxofjicpqT6JXFCh7Z8sQh/81Al
+         BwDbwmRjbVffJGi8hIidxZXVXRBaocCHSuWTC9z2jF1rSW6GhUU9K9mMP+7jiWWTyF
+         L5mlgie1aU1LEqbMn+0k1QgTjKYwoGeNcBnbBK1Y=
+Date:   Tue, 23 Nov 2021 14:45:46 -0800
 From:   akpm@linux-foundation.org
-To:     cl@linux.com, iamjoonsoo.kim@lge.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, vbabka@suse.cz, yeyunfeng@huawei.com
-Subject:  [merged]
- =?US-ASCII?Q?mm-emit-the-free-trace-report-before-freeing-memory-in-k?=
- =?US-ASCII?Q?mem=5Fcache=5Ffree.patch?= removed from -mm tree
-Message-ID: <20211123224540.RMFc4DS8Z%akpm@linux-foundation.org>
+To:     bcain@codeaurora.org, mm-commits@vger.kernel.org,
+        nathan@kernel.org, ndesaulniers@google.com, stable@vger.kernel.org
+Subject:  [merged] hexagon-clean-up-timer-regsh.patch removed from
+ -mm tree
+Message-ID: <20211123224546.FW7t5__ow%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,113 +35,139 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: emit the "free" trace report before freeing memory in kmem_cache_free()
+     Subject: hexagon: clean up timer-regs.h
 has been removed from the -mm tree.  Its filename was
-     mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free.patch
+     hexagon-clean-up-timer-regsh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yunfeng Ye <yeyunfeng@huawei.com>
-Subject: mm: emit the "free" trace report before freeing memory in kmem_cache_free()
+From: Nathan Chancellor <nathan@kernel.org>
+Subject: hexagon: clean up timer-regs.h
 
-After the memory is freed, it can be immediately allocated by other CPUs,
-before the "free" trace report has been emitted.  This causes inaccurate
-traces.
+When building allmodconfig, there is a warning about TIMER_ENABLE being
+redefined:
 
-For example, if the following sequence of events occurs:
+ drivers/clocksource/timer-oxnas-rps.c:39:9: error: 'TIMER_ENABLE' macro redefined [-Werror,-Wmacro-redefined]
+ #define TIMER_ENABLE            BIT(7)
+         ^
+ ./arch/hexagon/include/asm/timer-regs.h:13:9: note: previous definition is here
+ #define TIMER_ENABLE            0
+         ^
+ 1 error generated.
 
-    CPU 0                 CPU 1
+The values in this header are only used in one file each, if they are
+used at all. Remove the header and sink all of the constants into their
+respective files.
 
-  (1) alloc xxxxxx
-  (2) free  xxxxxx
-                         (3) alloc xxxxxx
-                         (4) free  xxxxxx
+TCX0_CLK_RATE is only used in arch/hexagon/include/asm/timex.h
 
-Then they will be inaccurately reported via tracing, so that they appear
-to have happened in this order:
+TIMER_ENABLE, RTOS_TIMER_INT, RTOS_TIMER_REGS_ADDR are only used in
+arch/hexagon/kernel/time.c.
 
-    CPU 0                 CPU 1
+SLEEP_CLK_RATE and TIMER_CLR_ON_MATCH have both been unused since the
+file's introduction in commit 71e4a47f32f4 ("Hexagon: Add time and timer
+functions").
 
-  (1) alloc xxxxxx
-                         (2) alloc xxxxxx
-  (3) free  xxxxxx
-                         (4) free  xxxxxx
+TIMER_ENABLE is redefined as BIT(0) so the shift is moved into the
+definition, rather than its use.
 
-This makes it look like CPU 1 somehow managed to allocate memory that CPU
-0 still had allocated for itself.
-
-In order to avoid this, emit the "free xxxxxx" tracing report just before
-the actual call to free the memory, instead of just after it.
-
-Link: https://lkml.kernel.org/r/374eb75d-7404-8721-4e1e-65b0e5b17279@huawei.com
-Signed-off-by: Yunfeng Ye <yeyunfeng@huawei.com>
-Reviewed-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Link: https://lkml.kernel.org/r/20211115174250.1994179-3-nathan@kernel.org
+Signed-off-by: Nathan Chancellor <nathan@kernel.org>
+Acked-by: Brian Cain <bcain@codeaurora.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    3 +--
- mm/slob.c |    3 +--
- mm/slub.c |    2 +-
- 3 files changed, 3 insertions(+), 5 deletions(-)
+ arch/hexagon/include/asm/timer-regs.h |   26 ------------------------
+ arch/hexagon/include/asm/timex.h      |    3 --
+ arch/hexagon/kernel/time.c            |   12 +++++++++--
+ 3 files changed, 11 insertions(+), 30 deletions(-)
 
---- a/mm/slab.c~mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free
-+++ a/mm/slab.c
-@@ -3733,14 +3733,13 @@ void kmem_cache_free(struct kmem_cache *
- 	if (!cachep)
- 		return;
- 
-+	trace_kmem_cache_free(_RET_IP_, objp, cachep->name);
- 	local_irq_save(flags);
- 	debug_check_no_locks_freed(objp, cachep->object_size);
- 	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
- 		debug_check_no_obj_freed(objp, cachep->object_size);
- 	__cache_free(cachep, objp, _RET_IP_);
- 	local_irq_restore(flags);
+--- a/arch/hexagon/include/asm/timer-regs.h
++++ /dev/null
+@@ -1,26 +0,0 @@
+-/* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * Timer support for Hexagon
+- *
+- * Copyright (c) 2010-2011, The Linux Foundation. All rights reserved.
+- */
 -
--	trace_kmem_cache_free(_RET_IP_, objp, cachep->name);
- }
- EXPORT_SYMBOL(kmem_cache_free);
- 
---- a/mm/slob.c~mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free
-+++ a/mm/slob.c
-@@ -666,6 +666,7 @@ static void kmem_rcu_free(struct rcu_hea
- void kmem_cache_free(struct kmem_cache *c, void *b)
- {
- 	kmemleak_free_recursive(b, c->flags);
-+	trace_kmem_cache_free(_RET_IP_, b, c->name);
- 	if (unlikely(c->flags & SLAB_TYPESAFE_BY_RCU)) {
- 		struct slob_rcu *slob_rcu;
- 		slob_rcu = b + (c->size - sizeof(struct slob_rcu));
-@@ -674,8 +675,6 @@ void kmem_cache_free(struct kmem_cache *
- 	} else {
- 		__kmem_cache_free(b, c->size);
- 	}
+-#ifndef _ASM_TIMER_REGS_H
+-#define _ASM_TIMER_REGS_H
 -
--	trace_kmem_cache_free(_RET_IP_, b, c->name);
- }
- EXPORT_SYMBOL(kmem_cache_free);
+-/*  This stuff should go into a platform specific file  */
+-#define TCX0_CLK_RATE		19200
+-#define TIMER_ENABLE		0
+-#define TIMER_CLR_ON_MATCH	1
+-
+-/*
+- * 8x50 HDD Specs 5-8.  Simulator co-sim not fixed until
+- * release 1.1, and then it's "adjustable" and probably not defaulted.
+- */
+-#define RTOS_TIMER_INT		3
+-#ifdef CONFIG_HEXAGON_COMET
+-#define RTOS_TIMER_REGS_ADDR	0xAB000000UL
+-#endif
+-#define SLEEP_CLK_RATE		32000
+-
+-#endif
+--- a/arch/hexagon/include/asm/timex.h~hexagon-clean-up-timer-regsh
++++ a/arch/hexagon/include/asm/timex.h
+@@ -7,11 +7,10 @@
+ #define _ASM_TIMEX_H
  
---- a/mm/slub.c~mm-emit-the-free-trace-report-before-freeing-memory-in-kmem_cache_free
-+++ a/mm/slub.c
-@@ -3526,8 +3526,8 @@ void kmem_cache_free(struct kmem_cache *
- 	s = cache_from_obj(s, x);
- 	if (!s)
- 		return;
--	slab_free(s, virt_to_head_page(x), x, NULL, 1, _RET_IP_);
- 	trace_kmem_cache_free(_RET_IP_, x, s->name);
-+	slab_free(s, virt_to_head_page(x), x, NULL, 1, _RET_IP_);
+ #include <asm-generic/timex.h>
+-#include <asm/timer-regs.h>
+ #include <asm/hexagon_vm.h>
+ 
+ /* Using TCX0 as our clock.  CLOCK_TICK_RATE scheduled to be removed. */
+-#define CLOCK_TICK_RATE              TCX0_CLK_RATE
++#define CLOCK_TICK_RATE              19200
+ 
+ #define ARCH_HAS_READ_CURRENT_TIMER
+ 
+--- a/arch/hexagon/kernel/time.c~hexagon-clean-up-timer-regsh
++++ a/arch/hexagon/kernel/time.c
+@@ -17,9 +17,10 @@
+ #include <linux/of_irq.h>
+ #include <linux/module.h>
+ 
+-#include <asm/timer-regs.h>
+ #include <asm/hexagon_vm.h>
+ 
++#define TIMER_ENABLE		BIT(0)
++
+ /*
+  * For the clocksource we need:
+  *	pcycle frequency (600MHz)
+@@ -33,6 +34,13 @@ cycles_t	pcycle_freq_mhz;
+ cycles_t	thread_freq_mhz;
+ cycles_t	sleep_clk_freq;
+ 
++/*
++ * 8x50 HDD Specs 5-8.  Simulator co-sim not fixed until
++ * release 1.1, and then it's "adjustable" and probably not defaulted.
++ */
++#define RTOS_TIMER_INT		3
++#define RTOS_TIMER_REGS_ADDR	0xAB000000UL
++
+ static struct resource rtos_timer_resources[] = {
+ 	{
+ 		.start	= RTOS_TIMER_REGS_ADDR,
+@@ -80,7 +88,7 @@ static int set_next_event(unsigned long
+ 	iowrite32(0, &rtos_timer->clear);
+ 
+ 	iowrite32(delta, &rtos_timer->match);
+-	iowrite32(1 << TIMER_ENABLE, &rtos_timer->enable);
++	iowrite32(TIMER_ENABLE, &rtos_timer->enable);
+ 	return 0;
  }
- EXPORT_SYMBOL(kmem_cache_free);
  
 _
 
-Patches currently in -mm which might be from yeyunfeng@huawei.com are
+Patches currently in -mm which might be from nathan@kernel.org are
 
 
