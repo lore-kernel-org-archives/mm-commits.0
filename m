@@ -2,31 +2,31 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 45DC6C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 22:17:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5B7CC433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 22:18:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243316AbhKXWUs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Nov 2021 17:20:48 -0500
-Received: from mail.kernel.org ([198.145.29.99]:36436 "EHLO mail.kernel.org"
+        id S245131AbhKXWVr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Nov 2021 17:21:47 -0500
+Received: from mail.kernel.org ([198.145.29.99]:36788 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245131AbhKXWUd (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Nov 2021 17:20:33 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 651A960F55;
-        Wed, 24 Nov 2021 22:17:23 +0000 (UTC)
+        id S243516AbhKXWVq (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Nov 2021 17:21:46 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 92F9C60F55;
+        Wed, 24 Nov 2021 22:18:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637792243;
-        bh=G6PPHkoU/ow+YKnd4R6u33AHW//R47rLzc2cw2ektoQ=;
+        s=korg; t=1637792316;
+        bh=lruKnRJSWmhWgFF1H/ROgYKIq/1Rlr3utPI72dsXJYc=;
         h=Date:From:To:Subject:From;
-        b=ms76pBKJyJuG09FbmMT/UekoM2FZr9gUAzmcCZjvigYjB9sSQFXpsoJpyQU2v4KBd
-         RJswBZ/UjYmxU2GI5p0Sv4xlpq9E6Cm5p/8XP4unk7++ElpNqcQl+3hrqemd1OMvpX
-         c1r5Yxw4/yOlfG0EySokcF8zUrIc9+8UFKAw8zvY=
-Date:   Wed, 24 Nov 2021 14:17:22 -0800
+        b=SJFnEjJU4vDTcKgDp/lEwif4z0krvSmwbqp9thegoa/e7zxqLa7abuheywYv6bWfD
+         Suf765BGj4RQWw/jdYczH2esTjbDZxyixqW+tyNhNbfXQBDnlKo/vg/kHoWiOw26Fh
+         jbyKkWfndu6swbPW9mK0Y9h/rVXbj1lwsdCpUz4E=
+Date:   Wed, 24 Nov 2021 14:18:36 -0800
 From:   akpm@linux-foundation.org
 To:     adobriyan@gmail.com, gladkov.alexey@gmail.com,
         mm-commits@vger.kernel.org, songmuchun@bytedance.com
-Subject:  [to-be-updated]
- fs-proc-store-pde-data-into-inode-i_private.patch removed from -mm tree
-Message-ID: <20211124221722.8FhJkj4p1%akpm@linux-foundation.org>
+Subject:  [to-be-updated] fs-proc-remove-pde_data.patch removed
+ from -mm tree
+Message-ID: <20211124221836.S-Gpn4brK%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -35,58 +35,78 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: proc: store PDE()->data into inode->i_private
+     Subject: fs: proc: remove PDE_DATA()
 has been removed from the -mm tree.  Its filename was
-     fs-proc-store-pde-data-into-inode-i_private.patch
+     fs-proc-remove-pde_data.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: fs: proc: store PDE()->data into inode->i_private
+Subject: fs: proc: remove PDE_DATA()
 
-Patch series "remove PDE_DATA()".
+There are no users of PDE_DATA() and we do not need it anymore, just
+remove it.
 
-I found a bug [1] some days ago, which is because we want to use
-inode->i_private to pass user private data.  However, this is wrong on
-proc fs.  We provide a specific function PDE_DATA() to get user private
-data.  Actually, we can hide this detail by storing PDE()->data into
-inode->i_private and removing PDE_DATA() completely.  The user could use
-inode->i_private to get user private data just like debugfs does.  This
-series is trying to remove PDE_DATA().
-
-[1] https://lore.kernel.org/lkml/20211029032638.84884-1-songmuchun@bytedance.com/
-
-
-This patch (of 4):
-
-PDE_DATA(inode) is introduced to get user private data and hide the layout
-of struct proc_dir_entry.  The inode->i_private is used to do the same
-thing as well.  Save a copy of user private data to inode-> i_private when
-proc inode is allocated.  This means the user also can get their private
-data by inode->i_private.
-
-Link: https://lkml.kernel.org/r/20211101093518.86845-1-songmuchun@bytedance.com
-Link: https://lkml.kernel.org/r/20211101093518.86845-2-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20211101093518.86845-4-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/inode.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/proc/generic.c       |    6 ------
+ fs/proc/internal.h      |    5 -----
+ include/linux/proc_fs.h |    2 --
+ 3 files changed, 13 deletions(-)
 
---- a/fs/proc/inode.c~fs-proc-store-pde-data-into-inode-i_private
-+++ a/fs/proc/inode.c
-@@ -650,6 +650,7 @@ struct inode *proc_get_inode(struct supe
- 		return NULL;
- 	}
+--- a/fs/proc/generic.c~fs-proc-remove-pde_data
++++ a/fs/proc/generic.c
+@@ -791,12 +791,6 @@ void proc_remove(struct proc_dir_entry *
+ }
+ EXPORT_SYMBOL(proc_remove);
  
-+	inode->i_private = de->data;
- 	inode->i_ino = de->low_ino;
- 	inode->i_mtime = inode->i_atime = inode->i_ctime = current_time(inode);
- 	PROC_I(inode)->pde = de;
+-void *PDE_DATA(const struct inode *inode)
+-{
+-	return __PDE_DATA(inode);
+-}
+-EXPORT_SYMBOL(PDE_DATA);
+-
+ /*
+  * Pull a user buffer into memory and pass it to the file's write handler if
+  * one is supplied.  The ->write() method is permitted to modify the
+--- a/fs/proc/internal.h~fs-proc-remove-pde_data
++++ a/fs/proc/internal.h
+@@ -115,11 +115,6 @@ static inline struct proc_dir_entry *PDE
+ 	return PROC_I(inode)->pde;
+ }
+ 
+-static inline void *__PDE_DATA(const struct inode *inode)
+-{
+-	return PDE(inode)->data;
+-}
+-
+ static inline struct pid *proc_pid(const struct inode *inode)
+ {
+ 	return PROC_I(inode)->pid;
+--- a/include/linux/proc_fs.h~fs-proc-remove-pde_data
++++ a/include/linux/proc_fs.h
+@@ -110,7 +110,6 @@ extern struct proc_dir_entry *proc_creat
+ struct proc_dir_entry *proc_create(const char *name, umode_t mode, struct proc_dir_entry *parent, const struct proc_ops *proc_ops);
+ extern void proc_set_size(struct proc_dir_entry *, loff_t);
+ extern void proc_set_user(struct proc_dir_entry *, kuid_t, kgid_t);
+-extern void *PDE_DATA(const struct inode *);
+ extern void *proc_get_parent_data(const struct inode *);
+ extern void proc_remove(struct proc_dir_entry *);
+ extern void remove_proc_entry(const char *, struct proc_dir_entry *);
+@@ -191,7 +190,6 @@ proc_create_data(const char *name, umode
+ 
+ static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
+ static inline void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid) {}
+-static inline void *PDE_DATA(const struct inode *inode) {BUG(); return NULL;}
+ static inline void *proc_get_parent_data(const struct inode *inode) { BUG(); return NULL; }
+ 
+ static inline void proc_remove(struct proc_dir_entry *de) {}
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
@@ -98,7 +118,7 @@ mm-hugetlb-replace-hugetlb_free_vmemmap_enabled-with-a-static_key.patch
 mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
 selftests-vm-add-a-hugetlb-test-case.patch
 mm-sparsemem-move-vmemmap-related-to-hugetlb-to-config_hugetlb_page_free_vmemmap.patch
-fs-proc-replace-pde_datainode-with-inode-i_private.patch
-fs-proc-remove-pde_data.patch
+fs-proc-store-pde-data-into-inode-i_private.patch
+proc-remove-pde_data-completely.patch
 fs-proc-use-define_proc_show_attribute-to-simplify-the-code.patch
 
