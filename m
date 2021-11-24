@@ -2,25 +2,25 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A4EEC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:14:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ABDE8C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:14:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240626AbhKXARI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 19:17:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50402 "EHLO mail.kernel.org"
+        id S240627AbhKXARM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 19:17:12 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50494 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240606AbhKXARH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 19:17:07 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 209F761050;
-        Wed, 24 Nov 2021 00:13:58 +0000 (UTC)
+        id S240606AbhKXARM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 19:17:12 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 5CB2061055;
+        Wed, 24 Nov 2021 00:14:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637712839;
-        bh=62t13iIBvPbrB9cGWu46la817esgIt5FXjn3Jnx7Nh8=;
+        s=korg; t=1637712843;
+        bh=r5RRcv8nGsV0dL0qCRFJraPddzpnsIdcPKm9s6u/9RY=;
         h=Date:From:To:Subject:From;
-        b=lSD+v8LfVZ7UFuCVy3C5vafdYp5Ek0QiZBNovRrYJVkmVJPUrd8hwt+owcwtnSBD+
-         PUkqD4kFGc/qOUmpqjzxwA8eU3ktOzQ0zXmsT30b2WSLVUUVLiN5LlLGzhvxJ9o2rq
-         t8VheCWUK+g9vwMsktHeUeEWzB+K7KUJ6Lkx0+jM=
-Date:   Tue, 23 Nov 2021 16:13:57 -0800
+        b=UJ59foCOSXG5w4uus/ANjKVWw7V6ZtrQu7RFssIR8HDCBpbEA5+6y4/mA8PvPi2XP
+         TeCdtijOMt08i6iSWVcKfa/VF4o/lJv5qb7fh9VsMtL8nBXNol2bAytsSN8ZPwuq4e
+         GvxWYBryP2bawXmdSnxQy/Ad57+XIhFr0CIHJaFw=
+Date:   Tue, 23 Nov 2021 16:14:01 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -36,8 +36,9 @@ To:     airlied@linux.ie, amir73il@gmail.com,
         pmladek@suse.com, rodrigo.vivi@intel.com, senozhatsky@chromium.org,
         sre@kernel.org, steve@sk2.org, viro@zeniv.linux.org.uk,
         wangqing@vivo.com, yzaikin@google.com
-Subject:  + aio-move-aio-sysctl-to-aioc.patch added to -mm tree
-Message-ID: <20211124001357.tfJqqmXQi%akpm@linux-foundation.org>
+Subject:  + dnotify-move-dnotify-sysctl-to-dnotifyc.patch added to
+ -mm tree
+Message-ID: <20211124001401.a358NgLmh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: aio: move aio sysctl to aio.c
+     Subject: dnotify: move dnotify sysctl to dnotify.c
 has been added to the -mm tree.  Its filename is
-     aio-move-aio-sysctl-to-aioc.patch
+     dnotify-move-dnotify-sysctl-to-dnotifyc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/aio-move-aio-sysctl-to-aioc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/dnotify-move-dnotify-sysctl-to-dnotifyc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/aio-move-aio-sysctl-to-aioc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/dnotify-move-dnotify-sysctl-to-dnotifyc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,7 +69,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: aio: move aio sysctl to aio.c
+Subject: dnotify: move dnotify sysctl to dnotify.c
 
 The kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
 dishes, this makes it very difficult to maintain.
@@ -78,11 +79,11 @@ where they actually belong.  The proc sysctl maintainers do not want to
 know what sysctl knobs you wish to add for your own piece of code, we just
 care about the core logic.
 
-Move aio sysctl to aio.c and use the new register_sysctl_init() to
-register the sysctl interface for aio.
+So move dnotify sysctls to dnotify.c and use the new
+register_sysctl_init() to register the sysctl interface.
 
-[mcgrof@kernel.org: adjust commit log to justify the move]
-Link: https://lkml.kernel.org/r/20211123202347.818157-9-mcgrof@kernel.org
+[mcgrof@kernel.org: adjust the commit log to justify the move]
+Link: https://lkml.kernel.org/r/20211123202347.818157-10-mcgrof@kernel.org
 Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -121,103 +122,84 @@ Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/aio.c            |   31 +++++++++++++++++++++++++++++--
- include/linux/aio.h |    4 ----
- kernel/sysctl.c     |   17 -----------------
- 3 files changed, 29 insertions(+), 23 deletions(-)
+ fs/notify/dnotify/dnotify.c |   21 ++++++++++++++++++++-
+ include/linux/dnotify.h     |    1 -
+ kernel/sysctl.c             |   10 ----------
+ 3 files changed, 20 insertions(+), 12 deletions(-)
 
---- a/fs/aio.c~aio-move-aio-sysctl-to-aioc
-+++ a/fs/aio.c
-@@ -219,9 +219,35 @@ struct aio_kiocb {
+--- a/fs/notify/dnotify/dnotify.c~dnotify-move-dnotify-sysctl-to-dnotifyc
++++ a/fs/notify/dnotify/dnotify.c
+@@ -19,7 +19,25 @@
+ #include <linux/fdtable.h>
+ #include <linux/fsnotify_backend.h>
  
- /*------ sysctl variables----*/
- static DEFINE_SPINLOCK(aio_nr_lock);
--unsigned long aio_nr;		/* current system wide number of aio requests */
--unsigned long aio_max_nr = 0x10000; /* system wide maximum number of aio requests */
-+static unsigned long aio_nr;		/* current system wide number of aio requests */
-+static unsigned long aio_max_nr = 0x10000; /* system wide maximum number of aio requests */
- /*----end sysctl variables---*/
+-int dir_notify_enable __read_mostly = 1;
++static int dir_notify_enable __read_mostly = 1;
 +#ifdef CONFIG_SYSCTL
-+static struct ctl_table aio_sysctls[] = {
++static struct ctl_table dnotify_sysctls[] = {
 +	{
-+		.procname	= "aio-nr",
-+		.data		= &aio_nr,
-+		.maxlen		= sizeof(aio_nr),
-+		.mode		= 0444,
-+		.proc_handler	= proc_doulongvec_minmax,
-+	},
-+	{
-+		.procname	= "aio-max-nr",
-+		.data		= &aio_max_nr,
-+		.maxlen		= sizeof(aio_max_nr),
++		.procname	= "dir-notify-enable",
++		.data		= &dir_notify_enable,
++		.maxlen		= sizeof(int),
 +		.mode		= 0644,
-+		.proc_handler	= proc_doulongvec_minmax,
++		.proc_handler	= proc_dointvec,
 +	},
 +	{}
 +};
-+
-+static void __init aio_sysctl_init(void)
++static void __init dnotify_sysctl_init(void)
 +{
-+	register_sysctl_init("fs", aio_sysctls);
++	register_sysctl_init("fs", dnotify_sysctls);
 +}
 +#else
-+#define aio_sysctl_init() do { } while (0)
++#define dnotify_sysctl_init() do { } while (0)
 +#endif
  
- static struct kmem_cache	*kiocb_cachep;
- static struct kmem_cache	*kioctx_cachep;
-@@ -274,6 +300,7 @@ static int __init aio_setup(void)
- 
- 	kiocb_cachep = KMEM_CACHE(aio_kiocb, SLAB_HWCACHE_ALIGN|SLAB_PANIC);
- 	kioctx_cachep = KMEM_CACHE(kioctx,SLAB_HWCACHE_ALIGN|SLAB_PANIC);
-+	aio_sysctl_init();
+ static struct kmem_cache *dnotify_struct_cache __read_mostly;
+ static struct kmem_cache *dnotify_mark_cache __read_mostly;
+@@ -386,6 +404,7 @@ static int __init dnotify_init(void)
+ 	dnotify_group = fsnotify_alloc_group(&dnotify_fsnotify_ops);
+ 	if (IS_ERR(dnotify_group))
+ 		panic("unable to allocate fsnotify group for dnotify\n");
++	dnotify_sysctl_init();
  	return 0;
  }
- __initcall(aio_setup);
---- a/include/linux/aio.h~aio-move-aio-sysctl-to-aioc
-+++ a/include/linux/aio.h
-@@ -20,8 +20,4 @@ static inline void kiocb_set_cancel_fn(s
- 				       kiocb_cancel_fn *cancel) { }
- #endif /* CONFIG_AIO */
  
--/* for sysctl: */
--extern unsigned long aio_nr;
--extern unsigned long aio_max_nr;
--
- #endif /* __LINUX__AIO_H */
---- a/kernel/sysctl.c~aio-move-aio-sysctl-to-aioc
+--- a/include/linux/dnotify.h~dnotify-move-dnotify-sysctl-to-dnotifyc
++++ a/include/linux/dnotify.h
+@@ -29,7 +29,6 @@ struct dnotify_struct {
+ 			    FS_CREATE | FS_DN_RENAME |\
+ 			    FS_MOVED_FROM | FS_MOVED_TO)
+ 
+-extern int dir_notify_enable;
+ extern void dnotify_flush(struct file *, fl_owner_t);
+ extern int fcntl_dirnotify(int, struct file *, unsigned long);
+ 
+--- a/kernel/sysctl.c~dnotify-move-dnotify-sysctl-to-dnotifyc
 +++ a/kernel/sysctl.c
-@@ -20,7 +20,6 @@
-  */
- 
- #include <linux/module.h>
--#include <linux/aio.h>
- #include <linux/mm.h>
- #include <linux/swap.h>
- #include <linux/slab.h>
-@@ -3110,22 +3109,6 @@ static struct ctl_table fs_table[] = {
+@@ -48,7 +48,6 @@
+ #include <linux/times.h>
+ #include <linux/limits.h>
+ #include <linux/dcache.h>
+-#include <linux/dnotify.h>
+ #include <linux/syscalls.h>
+ #include <linux/vmstat.h>
+ #include <linux/nfs_fs.h>
+@@ -3088,15 +3087,6 @@ static struct ctl_table fs_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
  		.proc_handler	= proc_dointvec,
+-	},
+-#endif
+-#ifdef CONFIG_DNOTIFY
+-	{
+-		.procname	= "dir-notify-enable",
+-		.data		= &dir_notify_enable,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
  	},
  #endif
--#ifdef CONFIG_AIO
--	{
--		.procname	= "aio-nr",
--		.data		= &aio_nr,
--		.maxlen		= sizeof(aio_nr),
--		.mode		= 0444,
--		.proc_handler	= proc_doulongvec_minmax,
--	},
--	{
--		.procname	= "aio-max-nr",
--		.data		= &aio_max_nr,
--		.maxlen		= sizeof(aio_max_nr),
--		.mode		= 0644,
--		.proc_handler	= proc_doulongvec_minmax,
--	},
--#endif /* CONFIG_AIO */
- #ifdef CONFIG_INOTIFY_USER
- 	{
- 		.procname	= "inotify",
+ #ifdef CONFIG_MMU
 _
 
 Patches currently in -mm which might be from nixiaoming@huawei.com are
