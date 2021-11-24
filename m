@@ -2,32 +2,31 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 32032C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 03:14:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0711CC433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 03:18:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233913AbhKXDRS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 22:17:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50744 "EHLO mail.kernel.org"
+        id S233484AbhKXDVN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 22:21:13 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51694 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230517AbhKXDRS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 22:17:18 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CC30260234;
-        Wed, 24 Nov 2021 03:14:08 +0000 (UTC)
+        id S231217AbhKXDVL (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 22:21:11 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id A9D9760F55;
+        Wed, 24 Nov 2021 03:18:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637723649;
-        bh=H2tWHmruMbqS2Jg7eY/SYhqfFuBInz0rzA58vTiecNY=;
+        s=korg; t=1637723882;
+        bh=GtJIZ5XRaJcUng6EC56AbR7FDIJEhnW1M+6HTziWSJ8=;
         h=Date:From:To:Subject:From;
-        b=UhZaIQXCL0wlch1exHIMndwY7SstNVBaSFK0IHntrpQq/FktA6lGtdbIZ+ALNPLLP
-         5KTCDh4UDs8HoCHZOK7789UMXp6gTfZ9IMiyCPKnGz47P0FnuPJle1R1Nr6rotZLZW
-         973AT8MG0lJmBItu3eMYtDjHcZxFTSVsB6GODHg0=
-Date:   Tue, 23 Nov 2021 19:14:08 -0800
+        b=tPwnFzdtqLhroJdEugrGmewGRUvbo5mxy3zMdxd21qrQ2uF/6YK4RqUiQiyibPtE4
+         PAe1KtHwp5z55IzstqSAg3ZGHKHHJ9TVv/EWfhd1MT17mmm+DDAZ8Oc/kAwfrNVsEU
+         Fqi08BeMIoF/waEJpt6C/riAKBt5wxqb+yxEPaUE=
+Date:   Tue, 23 Nov 2021 19:18:02 -0800
 From:   akpm@linux-foundation.org
-To:     chao@kernel.org, chuck.lever@oracle.com, david@fromorbit.com,
-        djwong@kernel.org, jaegeuk@kernel.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, neilb@suse.de, tytso@mit.edu
-Subject:  + mm-introduce-memalloc_retry_wait.patch added to -mm
- tree
-Message-ID: <20211124031408.KgT7sgjr8%akpm@linux-foundation.org>
+To:     mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz,
+        willy@infradead.org
+Subject:  + mmfs-split-dump_mapping-out-from-dump_page.patch added
+ to -mm tree
+Message-ID: <20211124031802.o71QbZ8F2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -36,14 +35,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: introduce memalloc_retry_wait()
+     Subject: mm,fs: split dump_mapping() out from dump_page()
 has been added to the -mm tree.  Its filename is
-     mm-introduce-memalloc_retry_wait.patch
+     mmfs-split-dump_mapping-out-from-dump_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-memalloc_retry_wait.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mmfs-split-dump_mapping-out-from-dump_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-memalloc_retry_wait.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mmfs-split-dump_mapping-out-from-dump_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -57,414 +56,158 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "NeilBrown" <neilb@suse.de>
-Subject: mm: introduce memalloc_retry_wait()
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm,fs: split dump_mapping() out from dump_page()
 
-Various places in the kernel - largely in filesystems - respond to a
-memory allocation failure by looping around and re-trying.  Some of these
-cannot conveniently use __GFP_NOFAIL, for reasons such as:
+dump_mapping() is a big chunk of dump_page(), and it'd be handy to be able
+to call it when we don't have a struct page.  Split it out and move it to
+fs/inode.c.  Take the opportunity to simplify some of the debug messages a
+little.
 
- - a GFP_ATOMIC allocation, which __GFP_NOFAIL doesn't work on
- - a need to check for the process being signalled between failures
- - the possibility that other recovery actions could be performed
- - the allocation is quite deep in support code, and passing down an
-   extra flag to say if __GFP_NOFAIL is wanted would be clumsy.
-
-Many of these currently use congestion_wait() which (in almost all cases)
-simply waits the given timeout - congestion isn't tracked for most
-devices.
-
-It isn't clear what the best delay is for loops, but it is clear that the
-various filesystems shouldn't be responsible for choosing a timeout.
-
-This patch introduces memalloc_retry_wait() with takes on that
-responsibility.  Code that wants to retry a memory allocation can call
-this function passing the GFP flags that were used.  It will wait however
-is appropriate.
-
-For now, it only considers __GFP_NORETRY and whatever
-gfpflags_allow_blocking() tests.  If blocking is allowed without
-__GFP_NORETRY, then alloc_page either made some reclaim progress, or
-waited for a while, before failing.  So there is no need for much further
-waiting.  memalloc_retry_wait() will wait until the current jiffie ends. 
-If this condition is not met, then alloc_page() won't have waited much if
-at all.  In that case memalloc_retry_wait() waits about 200ms.  This is
-the delay that most current loops uses.
-
-linux/sched/mm.h needs to be included in some files now,
-but linux/backing-dev.h does not.
-
-Link: https://lkml.kernel.org/r/163754371968.13692.1277530886009912421@noble.neil.brown.name
-Signed-off-by: NeilBrown <neilb@suse.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Chuck Lever <chuck.lever@oracle.com>
+Link: https://lkml.kernel.org/r/20211121121056.2870061-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/extents.c        |    8 +++-----
- fs/ext4/inline.c         |    5 ++---
- fs/ext4/page-io.c        |    9 +++++----
- fs/f2fs/data.c           |    4 ++--
- fs/f2fs/gc.c             |    5 ++---
- fs/f2fs/inode.c          |    4 ++--
- fs/f2fs/node.c           |    4 ++--
- fs/f2fs/recovery.c       |    6 +++---
- fs/f2fs/segment.c        |    9 +++------
- fs/f2fs/super.c          |    5 ++---
- fs/xfs/kmem.c            |    3 +--
- fs/xfs/xfs_buf.c         |    2 +-
- include/linux/sched/mm.h |   26 ++++++++++++++++++++++++++
- net/sunrpc/svc_xprt.c    |    3 ++-
- 14 files changed, 56 insertions(+), 37 deletions(-)
+ fs/inode.c         |   49 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/fs.h |    1 
+ mm/debug.c         |   52 +------------------------------------------
+ 3 files changed, 52 insertions(+), 50 deletions(-)
 
---- a/fs/ext4/extents.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/ext4/extents.c
-@@ -27,8 +27,8 @@
- #include <linux/slab.h>
- #include <linux/uaccess.h>
- #include <linux/fiemap.h>
--#include <linux/backing-dev.h>
- #include <linux/iomap.h>
-+#include <linux/sched/mm.h>
- #include "ext4_jbd2.h"
- #include "ext4_extents.h"
- #include "xattr.h"
-@@ -4407,8 +4407,7 @@ retry:
- 	err = ext4_es_remove_extent(inode, last_block,
- 				    EXT_MAX_BLOCKS - last_block);
- 	if (err == -ENOMEM) {
--		cond_resched();
--		congestion_wait(BLK_RW_ASYNC, HZ/50);
-+		memalloc_retry_wait(GFP_ATOMIC);
- 		goto retry;
- 	}
- 	if (err)
-@@ -4416,8 +4415,7 @@ retry:
- retry_remove_space:
- 	err = ext4_ext_remove_space(inode, last_block, EXT_MAX_BLOCKS - 1);
- 	if (err == -ENOMEM) {
--		cond_resched();
--		congestion_wait(BLK_RW_ASYNC, HZ/50);
-+		memalloc_retry_wait(GFP_ATOMIC);
- 		goto retry_remove_space;
- 	}
- 	return err;
---- a/fs/ext4/inline.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/ext4/inline.c
-@@ -7,7 +7,7 @@
- #include <linux/iomap.h>
- #include <linux/fiemap.h>
- #include <linux/iversion.h>
--#include <linux/backing-dev.h>
-+#include <linux/sched/mm.h>
- 
- #include "ext4_jbd2.h"
- #include "ext4.h"
-@@ -1929,8 +1929,7 @@ int ext4_inline_data_truncate(struct ino
- retry:
- 			err = ext4_es_remove_extent(inode, 0, EXT_MAX_BLOCKS);
- 			if (err == -ENOMEM) {
--				cond_resched();
--				congestion_wait(BLK_RW_ASYNC, HZ/50);
-+				memalloc_retry_wait(GFP_ATOMIC);
- 				goto retry;
- 			}
- 			if (err)
---- a/fs/ext4/page-io.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/ext4/page-io.c
-@@ -24,7 +24,7 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/mm.h>
--#include <linux/backing-dev.h>
-+#include <linux/sched/mm.h>
- 
- #include "ext4_jbd2.h"
- #include "xattr.h"
-@@ -523,12 +523,13 @@ int ext4_bio_write_page(struct ext4_io_s
- 			ret = PTR_ERR(bounce_page);
- 			if (ret == -ENOMEM &&
- 			    (io->io_bio || wbc->sync_mode == WB_SYNC_ALL)) {
--				gfp_flags = GFP_NOFS;
-+				gfp_t new_gfp_flags = GFP_NOFS;
- 				if (io->io_bio)
- 					ext4_io_submit(io);
- 				else
--					gfp_flags |= __GFP_NOFAIL;
--				congestion_wait(BLK_RW_ASYNC, HZ/50);
-+					new_gfp_flags |= __GFP_NOFAIL;
-+				memalloc_retry_wait(gfp_flags);
-+				gfp_flags = new_gfp_flags;
- 				goto retry_encrypt;
- 			}
- 
---- a/fs/f2fs/data.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/f2fs/data.c
-@@ -8,9 +8,9 @@
- #include <linux/fs.h>
- #include <linux/f2fs_fs.h>
- #include <linux/buffer_head.h>
-+#include <linux/sched/mm.h>
- #include <linux/mpage.h>
- #include <linux/writeback.h>
--#include <linux/backing-dev.h>
- #include <linux/pagevec.h>
- #include <linux/blkdev.h>
- #include <linux/bio.h>
-@@ -2542,7 +2542,7 @@ retry_encrypt:
- 		/* flush pending IOs and wait for a while in the ENOMEM case */
- 		if (PTR_ERR(fio->encrypted_page) == -ENOMEM) {
- 			f2fs_flush_merged_writes(fio->sbi);
--			congestion_wait(BLK_RW_ASYNC, DEFAULT_IO_TIMEOUT);
-+			memalloc_retry_wait(GFP_NOFS);
- 			gfp_flags |= __GFP_NOFAIL;
- 			goto retry_encrypt;
- 		}
---- a/fs/f2fs/gc.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/f2fs/gc.c
-@@ -7,7 +7,6 @@
-  */
- #include <linux/fs.h>
- #include <linux/module.h>
--#include <linux/backing-dev.h>
- #include <linux/init.h>
- #include <linux/f2fs_fs.h>
- #include <linux/kthread.h>
-@@ -15,6 +14,7 @@
- #include <linux/freezer.h>
- #include <linux/sched/signal.h>
- #include <linux/random.h>
-+#include <linux/sched/mm.h>
- 
- #include "f2fs.h"
- #include "node.h"
-@@ -1375,8 +1375,7 @@ retry:
- 		if (err) {
- 			clear_page_private_gcing(page);
- 			if (err == -ENOMEM) {
--				congestion_wait(BLK_RW_ASYNC,
--						DEFAULT_IO_TIMEOUT);
-+				memalloc_retry_wait(GFP_NOFS);
- 				goto retry;
- 			}
- 			if (is_dirty)
---- a/fs/f2fs/inode.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/f2fs/inode.c
-@@ -8,8 +8,8 @@
- #include <linux/fs.h>
- #include <linux/f2fs_fs.h>
- #include <linux/buffer_head.h>
--#include <linux/backing-dev.h>
- #include <linux/writeback.h>
-+#include <linux/sched/mm.h>
- 
- #include "f2fs.h"
- #include "node.h"
-@@ -562,7 +562,7 @@ retry:
- 	inode = f2fs_iget(sb, ino);
- 	if (IS_ERR(inode)) {
- 		if (PTR_ERR(inode) == -ENOMEM) {
--			congestion_wait(BLK_RW_ASYNC, DEFAULT_IO_TIMEOUT);
-+			memalloc_retry_wait(GFP_NOFS);
- 			goto retry;
- 		}
- 	}
---- a/fs/f2fs/node.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/f2fs/node.c
-@@ -8,7 +8,7 @@
- #include <linux/fs.h>
- #include <linux/f2fs_fs.h>
- #include <linux/mpage.h>
--#include <linux/backing-dev.h>
-+#include <linux/sched/mm.h>
- #include <linux/blkdev.h>
- #include <linux/pagevec.h>
- #include <linux/swap.h>
-@@ -2750,7 +2750,7 @@ int f2fs_recover_inode_page(struct f2fs_
- retry:
- 	ipage = f2fs_grab_cache_page(NODE_MAPPING(sbi), ino, false);
- 	if (!ipage) {
--		congestion_wait(BLK_RW_ASYNC, DEFAULT_IO_TIMEOUT);
-+		memalloc_retry_wait(GFP_NOFS);
- 		goto retry;
- 	}
- 
---- a/fs/f2fs/recovery.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/f2fs/recovery.c
-@@ -8,6 +8,7 @@
- #include <asm/unaligned.h>
- #include <linux/fs.h>
- #include <linux/f2fs_fs.h>
-+#include <linux/sched/mm.h>
- #include "f2fs.h"
- #include "node.h"
- #include "segment.h"
-@@ -587,7 +588,7 @@ retry_dn:
- 	err = f2fs_get_dnode_of_data(&dn, start, ALLOC_NODE);
- 	if (err) {
- 		if (err == -ENOMEM) {
--			congestion_wait(BLK_RW_ASYNC, DEFAULT_IO_TIMEOUT);
-+			memalloc_retry_wait(GFP_NOFS);
- 			goto retry_dn;
- 		}
- 		goto out;
-@@ -670,8 +671,7 @@ retry_prev:
- 			err = check_index_in_prev_nodes(sbi, dest, &dn);
- 			if (err) {
- 				if (err == -ENOMEM) {
--					congestion_wait(BLK_RW_ASYNC,
--							DEFAULT_IO_TIMEOUT);
-+					memalloc_retry_wait(GFP_NOFS);
- 					goto retry_prev;
- 				}
- 				goto err;
---- a/fs/f2fs/segment.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/f2fs/segment.c
-@@ -9,6 +9,7 @@
- #include <linux/f2fs_fs.h>
- #include <linux/bio.h>
- #include <linux/blkdev.h>
-+#include <linux/sched/mm.h>
- #include <linux/prefetch.h>
- #include <linux/kthread.h>
- #include <linux/swap.h>
-@@ -245,9 +246,7 @@ retry:
- 								LOOKUP_NODE);
- 			if (err) {
- 				if (err == -ENOMEM) {
--					congestion_wait(BLK_RW_ASYNC,
--							DEFAULT_IO_TIMEOUT);
--					cond_resched();
-+					memalloc_retry_wait(GFP_NOFS);
- 					goto retry;
- 				}
- 				err = -EAGAIN;
-@@ -424,9 +423,7 @@ retry:
- 			err = f2fs_do_write_data_page(&fio);
- 			if (err) {
- 				if (err == -ENOMEM) {
--					congestion_wait(BLK_RW_ASYNC,
--							DEFAULT_IO_TIMEOUT);
--					cond_resched();
-+					memalloc_retry_wait(GFP_NOFS);
- 					goto retry;
- 				}
- 				unlock_page(page);
---- a/fs/f2fs/super.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/f2fs/super.c
-@@ -8,9 +8,9 @@
- #include <linux/module.h>
- #include <linux/init.h>
- #include <linux/fs.h>
-+#include <linux/sched/mm.h>
- #include <linux/statfs.h>
- #include <linux/buffer_head.h>
--#include <linux/backing-dev.h>
- #include <linux/kthread.h>
- #include <linux/parser.h>
- #include <linux/mount.h>
-@@ -2415,8 +2415,7 @@ repeat:
- 		page = read_cache_page_gfp(mapping, blkidx, GFP_NOFS);
- 		if (IS_ERR(page)) {
- 			if (PTR_ERR(page) == -ENOMEM) {
--				congestion_wait(BLK_RW_ASYNC,
--						DEFAULT_IO_TIMEOUT);
-+				memalloc_retry_wait(GFP_NOFS);
- 				goto repeat;
- 			}
- 			set_sbi_flag(F2FS_SB(sb), SBI_QUOTA_NEED_REPAIR);
---- a/fs/xfs/kmem.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/xfs/kmem.c
-@@ -4,7 +4,6 @@
-  * All Rights Reserved.
-  */
- #include "xfs.h"
--#include <linux/backing-dev.h>
- #include "xfs_message.h"
- #include "xfs_trace.h"
- 
-@@ -26,6 +25,6 @@ kmem_alloc(size_t size, xfs_km_flags_t f
- 	"%s(%u) possible memory allocation deadlock size %u in %s (mode:0x%x)",
- 				current->comm, current->pid,
- 				(unsigned int)size, __func__, lflags);
--		congestion_wait(BLK_RW_ASYNC, HZ/50);
-+		memalloc_retry_wait(lflags);
- 	} while (1);
+--- a/fs/inode.c~mmfs-split-dump_mapping-out-from-dump_page
++++ a/fs/inode.c
+@@ -528,6 +528,55 @@ void __remove_inode_hash(struct inode *i
  }
---- a/fs/xfs/xfs_buf.c~mm-introduce-memalloc_retry_wait
-+++ a/fs/xfs/xfs_buf.c
-@@ -394,7 +394,7 @@ xfs_buf_alloc_pages(
- 		}
+ EXPORT_SYMBOL(__remove_inode_hash);
  
- 		XFS_STATS_INC(bp->b_mount, xb_page_retries);
--		congestion_wait(BLK_RW_ASYNC, HZ / 50);
-+		memalloc_retry_wait(gfp_mask);
- 	}
- 	return 0;
- }
---- a/include/linux/sched/mm.h~mm-introduce-memalloc_retry_wait
-+++ a/include/linux/sched/mm.h
-@@ -214,6 +214,32 @@ static inline void fs_reclaim_acquire(gf
- static inline void fs_reclaim_release(gfp_t gfp_mask) { }
- #endif
- 
-+/* Any memory-allocation retry loop should use
-+ * memalloc_retry_wait(), and pass the flags for the most
-+ * constrained allocation attempt that might have failed.
-+ * This provides useful documentation of where loops are,
-+ * and a central place to fine tune the waiting as the MM
-+ * implementation changes.
-+ */
-+static inline void memalloc_retry_wait(gfp_t gfp_flags)
++void dump_mapping(const struct address_space *mapping)
 +{
-+	/* We use io_schedule_timeout because waiting for memory
-+	 * typically included waiting for dirty pages to be
-+	 * written out, which requires IO.
++	struct inode *host;
++	const struct address_space_operations *a_ops;
++	struct hlist_node *dentry_first;
++	struct dentry *dentry_ptr;
++	struct dentry dentry;
++	unsigned long ino;
++
++	/*
++	 * If mapping is an invalid pointer, we don't want to crash
++	 * accessing it, so probe everything depending on it carefully.
 +	 */
-+	__set_current_state(TASK_UNINTERRUPTIBLE);
-+	gfp_flags = current_gfp_context(gfp_flags);
-+	if (gfpflags_allow_blocking(gfp_flags) &&
-+	    !(gfp_flags & __GFP_NORETRY))
-+		/* Probably waited already, no need for much more */
-+		io_schedule_timeout(1);
-+	else
-+		/* Probably didn't wait, and has now released a lock,
-+		 * so now is a good time to wait
-+		 */
-+		io_schedule_timeout(HZ/50);
++	if (get_kernel_nofault(host, &mapping->host) ||
++	    get_kernel_nofault(a_ops, &mapping->a_ops)) {
++		pr_warn("invalid mapping:%px\n", mapping);
++		return;
++	}
++
++	if (!host) {
++		pr_warn("aops:%ps\n", a_ops);
++		return;
++	}
++
++	if (get_kernel_nofault(dentry_first, &host->i_dentry.first) ||
++	    get_kernel_nofault(ino, &host->i_ino)) {
++		pr_warn("aops:%ps invalid inode:%px\n", a_ops, host);
++		return;
++	}
++
++	if (!dentry_first) {
++		pr_warn("aops:%ps ino:%lx\n", a_ops, ino);
++		return;
++	}
++
++	dentry_ptr = container_of(dentry_first, struct dentry, d_u.d_alias);
++	if (get_kernel_nofault(dentry, dentry_ptr)) {
++		pr_warn("aops:%ps ino:%lx invalid dentry:%px\n",
++				a_ops, ino, dentry_ptr);
++		return;
++	}
++
++	/*
++	 * if dentry is corrupted, the %pd handler may still crash,
++	 * but it's unlikely that we reach here with a corrupt mapping
++	 */
++	pr_warn("aops:%ps ino:%lx dentry name:\"%pd\"\n", a_ops, ino, &dentry);
 +}
 +
- /**
-  * might_alloc - Mark possible allocation sites
-  * @gfp_mask: gfp_t flags that would be used to allocate
---- a/net/sunrpc/svc_xprt.c~mm-introduce-memalloc_retry_wait
-+++ a/net/sunrpc/svc_xprt.c
-@@ -6,6 +6,7 @@
-  */
+ void clear_inode(struct inode *inode)
+ {
+ 	/*
+--- a/include/linux/fs.h~mmfs-split-dump_mapping-out-from-dump_page
++++ a/include/linux/fs.h
+@@ -3153,6 +3153,7 @@ extern void unlock_new_inode(struct inod
+ extern void discard_new_inode(struct inode *);
+ extern unsigned int get_next_ino(void);
+ extern void evict_inodes(struct super_block *sb);
++void dump_mapping(const struct address_space *);
  
- #include <linux/sched.h>
-+#include <linux/sched/mm.h>
- #include <linux/errno.h>
- #include <linux/freezer.h>
- #include <linux/kthread.h>
-@@ -688,7 +689,7 @@ static int svc_alloc_arg(struct svc_rqst
- 			return -EINTR;
- 		}
- 		trace_svc_alloc_arg_err(pages);
--		schedule_timeout(msecs_to_jiffies(500));
-+		memalloc_retry_wait(GFP_KERNEL);
- 	}
- 	rqstp->rq_page_end = &rqstp->rq_pages[pages];
- 	rqstp->rq_pages[pages] = NULL; /* this might be seen in nfsd_splice_actor() */
+ /*
+  * Userspace may rely on the the inode number being non-zero. For example, glibc
+--- a/mm/debug.c~mmfs-split-dump_mapping-out-from-dump_page
++++ a/mm/debug.c
+@@ -112,56 +112,8 @@ static void __dump_page(struct page *pag
+ 		type = "ksm ";
+ 	else if (PageAnon(page))
+ 		type = "anon ";
+-	else if (mapping) {
+-		struct inode *host;
+-		const struct address_space_operations *a_ops;
+-		struct hlist_node *dentry_first;
+-		struct dentry *dentry_ptr;
+-		struct dentry dentry;
+-		unsigned long ino;
+-
+-		/*
+-		 * mapping can be invalid pointer and we don't want to crash
+-		 * accessing it, so probe everything depending on it carefully
+-		 */
+-		if (get_kernel_nofault(host, &mapping->host) ||
+-		    get_kernel_nofault(a_ops, &mapping->a_ops)) {
+-			pr_warn("failed to read mapping contents, not a valid kernel address?\n");
+-			goto out_mapping;
+-		}
+-
+-		if (!host) {
+-			pr_warn("aops:%ps\n", a_ops);
+-			goto out_mapping;
+-		}
+-
+-		if (get_kernel_nofault(dentry_first, &host->i_dentry.first) ||
+-		    get_kernel_nofault(ino, &host->i_ino)) {
+-			pr_warn("aops:%ps with invalid host inode %px\n",
+-					a_ops, host);
+-			goto out_mapping;
+-		}
+-
+-		if (!dentry_first) {
+-			pr_warn("aops:%ps ino:%lx\n", a_ops, ino);
+-			goto out_mapping;
+-		}
+-
+-		dentry_ptr = container_of(dentry_first, struct dentry, d_u.d_alias);
+-		if (get_kernel_nofault(dentry, dentry_ptr)) {
+-			pr_warn("aops:%ps ino:%lx with invalid dentry %px\n",
+-					a_ops, ino, dentry_ptr);
+-		} else {
+-			/*
+-			 * if dentry is corrupted, the %pd handler may still
+-			 * crash, but it's unlikely that we reach here with a
+-			 * corrupted struct page
+-			 */
+-			pr_warn("aops:%ps ino:%lx dentry name:\"%pd\"\n",
+-					a_ops, ino, &dentry);
+-		}
+-	}
+-out_mapping:
++	else if (mapping)
++		dump_mapping(mapping);
+ 	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
+ 
+ 	pr_warn("%sflags: %pGp%s\n", type, &head->flags,
 _
 
-Patches currently in -mm which might be from neilb@suse.de are
+Patches currently in -mm which might be from willy@infradead.org are
 
-mm-discard-__gfp_atomic.patch
-mm-introduce-memalloc_retry_wait.patch
+mmfs-split-dump_mapping-out-from-dump_page.patch
 
