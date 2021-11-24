@@ -2,161 +2,82 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 02526C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 03:00:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D9D0C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 03:07:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230422AbhKXDD0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 22:03:26 -0500
-Received: from mail.kernel.org ([198.145.29.99]:48106 "EHLO mail.kernel.org"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229773AbhKXDDZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 22:03:25 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AC90460F55;
-        Wed, 24 Nov 2021 03:00:16 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637722816;
-        bh=Wex9r8AxNcuVrWb3eA11SmrwCJilQpWGk18kAfCBRsU=;
-        h=Date:From:To:Subject:From;
-        b=MNm+Jt38o8syU5ThRPAjz0OAzXHOEsYCoQwCrzTZSo+K7oewqG3/VskqN5GC9MtRR
-         Ig+OnWHRKniZL2w3sqGH9Dslm8oVB636ZrYPmdi/nPLoC18td2TtUivwUbfY9N+YWY
-         DWfLR76sUZl+gO7fBdXUAzgDrZRN4qhBpzx8LyxM=
-Date:   Tue, 23 Nov 2021 19:00:16 -0800
-From:   akpm@linux-foundation.org
-To:     apw@canonical.com, dwaipayanray1@gmail.com, joe@perches.com,
-        lukas.bulwahn@gmail.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org
-Subject:  + checkpatch-improve-kconfig-help-test.patch added to -mm
- tree
-Message-ID: <20211124030016.yh1vHUJLS%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S229745AbhKXDKr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 22:10:47 -0500
+Received: from gandalf.ozlabs.org ([150.107.74.76]:36425 "EHLO
+        gandalf.ozlabs.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229646AbhKXDKr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 23 Nov 2021 22:10:47 -0500
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (No client certificate requested)
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4HzQt02qLlz4xcK;
+        Wed, 24 Nov 2021 14:07:36 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+        s=201702; t=1637723256;
+        bh=VfQlwvKjJzKN70mF3EQztLYg3JVR9jGUdJHHCu5LuJQ=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=BDSgo2mnWZEw9nhWP/VIVCYvmH4vSfOSAg+iW1bCPzo1+ZmImKBna8IhhvCeOufov
+         XYZ7Ql75iu1G8nZFFAcbuWkpZPIdLeqJaJjUiDtSEmpP4NA7sqzUvYeDtstNgEheIG
+         Hsd9QpqaYx2Ln6xMN4Erh6PTw44v1AEy8Rqj36hiXo1e/FYO73sVIjzcbkvHJcAy0O
+         Hr3jrQ8R1vfnq38/hr7Z2eYn0FOBMUVwSIfDKeHOy8cJdi4QdpGoekl6cvmRyKfG7l
+         /dpWg0d+gHVws2WMj/FEAAW+5IwC3XzbEkcM3f8R9l/CogKa99JZhJ/++1eBe4TWPZ
+         xobYPmtw9dPTA==
+Date:   Wed, 24 Nov 2021 14:07:34 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     akpm@linux-foundation.org
+Cc:     ccross@google.com, mm-commits@vger.kernel.org, surenb@google.com
+Subject: Re: +
+ mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch added
+ to -mm tree
+Message-ID: <20211124140734.07b093b4@canb.auug.org.au>
+In-Reply-To: <20211124002029.xqAm4tts2%akpm@linux-foundation.org>
+References: <20211124002029.xqAm4tts2%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="Sig_/TvoRx5bC6YhrYsIRWh4Qi_h";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+--Sig_/TvoRx5bC6YhrYsIRWh4Qi_h
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The patch titled
-     Subject: checkpatch: Improve Kconfig help test
-has been added to the -mm tree.  Its filename is
-     checkpatch-improve-kconfig-help-test.patch
+Hi Andrew,
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-kconfig-help-test.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-kconfig-help-test.patch
+On Tue, 23 Nov 2021 16:20:29 -0800 akpm@linux-foundation.org wrote:
+>
+> The patch titled
+>      Subject: docs: proc.rst: /proc/PID/maps: fix malformed table
+> has been added to the -mm tree.  Its filename is
+>      mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Added to linux-next today.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+--=20
+Cheers,
+Stephen Rothwell
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+--Sig_/TvoRx5bC6YhrYsIRWh4Qi_h
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: Improve Kconfig help test
+-----BEGIN PGP SIGNATURE-----
 
-The Kconfig help test erroneously counts patch context lines as part of
-the help text.
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmGdrHYACgkQAVBC80lX
+0Gz7MQf7B+K8tAoghLExLKpaoFlhGqN1Hr3hxlP0NeZe8jlTegRLdsiP44v6Sa40
+TAbuo3hOfzXM/zR0rw/kJj3avfXbb8Fscw6AjAxcOZaubevitvWRZT9EAdk0QLpR
+BYifiLUG10I2ldRDQoy25g9ftonLk0RRb0HlLUGY5vVyieNNZlpI4WNQ07HthOR2
+pIW0HwPuhnThWUTmalTYN5/j0tY0HEF9fvAMw8rs6bdnK3fvpYmpfCJiPMXjVy7l
++xb8Om6hx44ytynDq4hMaC/HFmpjCbbohqPlO4j4faoxRc3rNw/m5EABU4mzyanQ
+yi9ACsVgfyxq3UbaRKaBFcsD0QOskQ==
+=pecw
+-----END PGP SIGNATURE-----
 
-Fix that and improve the message block output.
-
-Link: https://lkml.kernel.org/r/06c0cdc157ae1502e8e9eb3624b9ea995cf11e7a.camel@perches.com
-Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: Randy Dunlap <rdunlap@infradead.org>
-Acked-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Andy Whitcroft <apw@canonical.com>
-Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
-Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- scripts/checkpatch.pl |   52 ++++++++++++++++++++--------------------
- 1 file changed, 26 insertions(+), 26 deletions(-)
-
---- a/scripts/checkpatch.pl~checkpatch-improve-kconfig-help-test
-+++ a/scripts/checkpatch.pl
-@@ -3479,47 +3479,47 @@ sub process {
- 		    # Kconfig supports named choices), so use a word boundary
- 		    # (\b) rather than a whitespace character (\s)
- 		    $line =~ /^\+\s*(?:config|menuconfig|choice)\b/) {
--			my $length = 0;
--			my $cnt = $realcnt;
--			my $ln = $linenr + 1;
--			my $f;
--			my $is_start = 0;
--			my $is_end = 0;
--			for (; $cnt > 0 && defined $lines[$ln - 1]; $ln++) {
--				$f = $lines[$ln - 1];
--				$cnt-- if ($lines[$ln - 1] !~ /^-/);
--				$is_end = $lines[$ln - 1] =~ /^\+/;
-+			my $ln = $linenr;
-+			my $needs_help = 0;
-+			my $has_help = 0;
-+			my $help_length = 0;
-+			while (defined $lines[$ln]) {
-+				my $f = $lines[$ln++];
- 
- 				next if ($f =~ /^-/);
--				last if (!$file && $f =~ /^\@\@/);
-+				last if ($f !~ /^[\+ ]/);	# !patch context
- 
--				if ($lines[$ln - 1] =~ /^\+\s*(?:bool|tristate|prompt)\s*["']/) {
--					$is_start = 1;
--				} elsif ($lines[$ln - 1] =~ /^\+\s*(?:---)?help(?:---)?$/) {
--					$length = -1;
-+				if ($f =~ /^\+\s*(?:bool|tristate|prompt)\s*["']/) {
-+					$needs_help = 1;
-+					next;
-+				}
-+				if ($f =~ /^\+\s*help\s*$/) {
-+					$has_help = 1;
-+					next;
- 				}
- 
--				$f =~ s/^.//;
--				$f =~ s/#.*//;
--				$f =~ s/^\s+//;
--				next if ($f =~ /^$/);
-+				$f =~ s/^.//;	# strip patch context [+ ]
-+				$f =~ s/#.*//;	# strip # directives
-+				$f =~ s/^\s+//;	# strip leading blanks
-+				next if ($f =~ /^$/);	# skip blank lines
- 
-+				# At the end of this Kconfig block:
- 				# This only checks context lines in the patch
- 				# and so hopefully shouldn't trigger false
- 				# positives, even though some of these are
- 				# common words in help texts
--				if ($f =~ /^\s*(?:config|menuconfig|choice|endchoice|
--						  if|endif|menu|endmenu|source)\b/x) {
--					$is_end = 1;
-+				if ($f =~ /^(?:config|menuconfig|choice|endchoice|
-+					       if|endif|menu|endmenu|source)\b/x) {
- 					last;
- 				}
--				$length++;
-+				$help_length++ if ($has_help);
- 			}
--			if ($is_start && $is_end && $length < $min_conf_desc_length) {
-+			if ($needs_help &&
-+			    $help_length < $min_conf_desc_length) {
-+				my $stat_real = get_stat_real($linenr, $ln - 1);
- 				WARN("CONFIG_DESCRIPTION",
--				     "please write a paragraph that describes the config symbol fully\n" . $herecurr);
-+				     "please write a help paragraph that fully describes the config symbol\n" . "$here\n$stat_real\n");
- 			}
--			#print "is_start<$is_start> is_end<$is_end> length<$length>\n";
- 		}
- 
- # check MAINTAINERS entries
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-checkpatch-improve-kconfig-help-test.patch
-
+--Sig_/TvoRx5bC6YhrYsIRWh4Qi_h--
