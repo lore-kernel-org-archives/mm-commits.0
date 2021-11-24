@@ -2,25 +2,25 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D3E7C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:14:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA80EC4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:14:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231247AbhKXARz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 19:17:55 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51000 "EHLO mail.kernel.org"
+        id S232084AbhKXAR4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 19:17:56 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51376 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240629AbhKXARc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 19:17:32 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 994896108E;
-        Wed, 24 Nov 2021 00:14:22 +0000 (UTC)
+        id S234942AbhKXARp (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 19:17:45 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 4E8F8610A2;
+        Wed, 24 Nov 2021 00:14:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637712863;
-        bh=bNJzvAZpYMhxHCGbVQTX3V87I5pdMesR/hPfX/xTPig=;
+        s=korg; t=1637712876;
+        bh=hnwjQMoFe+x6NXOy3AuVWkRYxA5HwX1gNOX/ggXgqx0=;
         h=Date:From:To:Subject:From;
-        b=XrmBY88s1PQdBzZeJ8aUlmv2/BJVdsDQVR1hWM+DzHCrOVr/+M1fPIC4NIPsAornV
-         8jrh/Z/HKcq8pcmTdqjZRozI9f2C4WrZH1rPM64U9R++4WCEE5h6ehxCgUFtf0CSiW
-         hnARKa2hDshyfjccjrens1p18wSpeAemxgZn6kIs=
-Date:   Tue, 23 Nov 2021 16:14:22 -0800
+        b=gTuo1KTz/1hXw7ftpR5vfH+uwmlAPIp19CN9NpxrD1P9Ac4vhhdVMWBJmEMqHBdcN
+         D8B7CJMhdi0VY9BX9wK893nwzDosCzj/5dZbGRnvN2ZCzQMMP8TE4yn9b2jwRhfVGG
+         j2/GqyNk6X5IkIEfNIP8x7RFgbrKLyqUowWr0A+A=
+Date:   Tue, 23 Nov 2021 16:14:34 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -37,9 +37,9 @@ To:     airlied@linux.ie, amir73il@gmail.com,
         sre@kernel.org, steve@sk2.org, viro@zeniv.linux.org.uk,
         wangqing@vivo.com, yzaikin@google.com
 Subject:  +
- test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
- added to -mm tree
-Message-ID: <20211124001422.bxrdQkzfg%akpm@linux-foundation.org>
+ eventpoll-simplify-sysctl-declaration-with-register_sysctl.patch added to
+ -mm tree
+Message-ID: <20211124001434.T7iot0JPj%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_sysctl: simplify subdirectory registration with register_sysctl()
+     Subject: eventpoll: simplify sysctl declaration with register_sysctl()
 has been added to the -mm tree.  Its filename is
-     test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
+     eventpoll-simplify-sysctl-declaration-with-register_sysctl.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/eventpoll-simplify-sysctl-declaration-with-register_sysctl.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/eventpoll-simplify-sysctl-declaration-with-register_sysctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,106 +69,22 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: test_sysctl: simplify subdirectory registration with register_sysctl()
+From: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: eventpoll: simplify sysctl declaration with register_sysctl()
 
-There is no need to user boiler plate code to specify a set of base
-directories we're going to stuff sysctls under.  Simplify this by using
-register_sysctl() and specifying the directory path directly.
+The kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
+dishes, this makes it very difficult to maintain.
 
-// pycocci sysctl-subdir-register-sysctl-simplify.cocci lib/test_sysctl.c
+To help with this maintenance let's start by moving sysctls to places
+where they actually belong.  The proc sysctl maintainers do not want to
+know what sysctl knobs you wish to add for your own piece of code, we just
+care about the core logic.
 
-@c1@
-expression E1;
-identifier subdir, sysctls;
-@@
+So move the epoll_table sysctl to fs/eventpoll.c and use use
+register_sysctl().
 
-static struct ctl_table subdir[] = {
-	{
-		.procname = E1,
-		.maxlen = 0,
-		.mode = 0555,
-		.child = sysctls,
-	},
-	{ }
-};
-
-@c2@
-identifier c1.subdir;
-
-expression E2;
-identifier base;
-@@
-
-static struct ctl_table base[] = {
-	{
-		.procname = E2,
-		.maxlen = 0,
-		.mode = 0555,
-		.child = subdir,
-	},
-	{ }
-};
-
-@c3@
-identifier c2.base;
-identifier header;
-@@
-
-header = register_sysctl_table(base);
-
-@r1 depends on c1 && c2 && c3@
-expression c1.E1;
-identifier c1.subdir, c1.sysctls;
-@@
-
--static struct ctl_table subdir[] = {
--	{
--		.procname = E1,
--		.maxlen = 0,
--		.mode = 0555,
--		.child = sysctls,
--	},
--	{ }
--};
-
-@r2 depends on c1 && c2 && c3@
-identifier c1.subdir;
-
-expression c2.E2;
-identifier c2.base;
-@@
--static struct ctl_table base[] = {
--	{
--		.procname = E2,
--		.maxlen = 0,
--		.mode = 0555,
--		.child = subdir,
--	},
--	{ }
--};
-
-@initialize:python@
-@@
-
-def make_my_fresh_expression(s1, s2):
-  return '"' + s1.strip('"') + "/" + s2.strip('"') + '"'
-
-@r3 depends on c1 && c2 && c3@
-expression c1.E1;
-identifier c1.sysctls;
-expression c2.E2;
-identifier c2.base;
-identifier c3.header;
-fresh identifier E3 = script:python(E2, E1) { make_my_fresh_expression(E2, E1) };
-@@
-
-header =
--register_sysctl_table(base);
-+register_sysctl(E3, sysctls);
-
-Generated-by: Coccinelle SmPL
-Link: https://lkml.kernel.org/r/20211123202422.819032-6-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211123202422.819032-9-mcgrof@kernel.org
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
@@ -203,60 +119,101 @@ Cc: Sebastian Reichel <sre@kernel.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Stephen Kitt <steve@sk2.org>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_sysctl.c |   22 +---------------------
- 1 file changed, 1 insertion(+), 21 deletions(-)
+ fs/eventpoll.c         |   10 +++++++++-
+ include/linux/poll.h   |    2 --
+ include/linux/sysctl.h |    1 -
+ kernel/sysctl.c        |    7 -------
+ 4 files changed, 9 insertions(+), 11 deletions(-)
 
---- a/lib/test_sysctl.c~test_sysctl-simplify-subdirectory-registration-with-register_sysctl
-+++ a/lib/test_sysctl.c
-@@ -128,26 +128,6 @@ static struct ctl_table test_table[] = {
+--- a/fs/eventpoll.c~eventpoll-simplify-sysctl-declaration-with-register_sysctl
++++ a/fs/eventpoll.c
+@@ -307,7 +307,7 @@ static void unlist_file(struct epitems_h
+ static long long_zero;
+ static long long_max = LONG_MAX;
+ 
+-struct ctl_table epoll_table[] = {
++static struct ctl_table epoll_table[] = {
+ 	{
+ 		.procname	= "max_user_watches",
+ 		.data		= &max_user_watches,
+@@ -319,6 +319,13 @@ struct ctl_table epoll_table[] = {
+ 	},
  	{ }
  };
++
++static void __init epoll_sysctls_init(void)
++{
++	register_sysctl("fs/epoll", epoll_table);
++}
++#else
++#define epoll_sysctls_init() do { } while (0)
+ #endif /* CONFIG_SYSCTL */
  
--static struct ctl_table test_sysctl_table[] = {
--	{
--		.procname	= "test_sysctl",
--		.maxlen		= 0,
--		.mode		= 0555,
--		.child		= test_table,
--	},
--	{ }
--};
--
--static struct ctl_table test_sysctl_root_table[] = {
--	{
--		.procname	= "debug",
--		.maxlen		= 0,
--		.mode		= 0555,
--		.child		= test_sysctl_table,
--	},
--	{ }
--};
--
- static struct ctl_table_header *test_sysctl_header;
+ static const struct file_operations eventpoll_fops;
+@@ -2378,6 +2385,7 @@ static int __init eventpoll_init(void)
+ 	/* Allocates slab cache used to allocate "struct eppoll_entry" */
+ 	pwq_cache = kmem_cache_create("eventpoll_pwq",
+ 		sizeof(struct eppoll_entry), 0, SLAB_PANIC|SLAB_ACCOUNT, NULL);
++	epoll_sysctls_init();
  
- static int __init test_sysctl_init(void)
-@@ -155,7 +135,7 @@ static int __init test_sysctl_init(void)
- 	test_data.bitmap_0001 = kzalloc(SYSCTL_TEST_BITMAP_SIZE/8, GFP_KERNEL);
- 	if (!test_data.bitmap_0001)
- 		return -ENOMEM;
--	test_sysctl_header = register_sysctl_table(test_sysctl_root_table);
-+	test_sysctl_header = register_sysctl("debug/test_sysctl", test_table);
- 	if (!test_sysctl_header) {
- 		kfree(test_data.bitmap_0001);
- 		return -ENOMEM;
+ 	ephead_cache = kmem_cache_create("ep_head",
+ 		sizeof(struct epitems_head), 0, SLAB_PANIC|SLAB_ACCOUNT, NULL);
+--- a/include/linux/poll.h~eventpoll-simplify-sysctl-declaration-with-register_sysctl
++++ a/include/linux/poll.h
+@@ -8,12 +8,10 @@
+ #include <linux/wait.h>
+ #include <linux/string.h>
+ #include <linux/fs.h>
+-#include <linux/sysctl.h>
+ #include <linux/uaccess.h>
+ #include <uapi/linux/poll.h>
+ #include <uapi/linux/eventpoll.h>
+ 
+-extern struct ctl_table epoll_table[]; /* for sysctl */
+ /* ~832 bytes of stack space used max in sys_select/sys_poll before allocating
+    additional memory. */
+ #ifdef __clang__
+--- a/include/linux/sysctl.h~eventpoll-simplify-sysctl-declaration-with-register_sysctl
++++ a/include/linux/sysctl.h
+@@ -218,7 +218,6 @@ extern int no_unaligned_warning;
+ extern struct ctl_table sysctl_mount_point[];
+ extern struct ctl_table random_table[];
+ extern struct ctl_table firmware_config_table[];
+-extern struct ctl_table epoll_table[];
+ 
+ #else /* CONFIG_SYSCTL */
+ static inline struct ctl_table_header *register_sysctl_table(struct ctl_table * table)
+--- a/kernel/sysctl.c~eventpoll-simplify-sysctl-declaration-with-register_sysctl
++++ a/kernel/sysctl.c
+@@ -3092,13 +3092,6 @@ static struct ctl_table fs_table[] = {
+ 		.proc_handler	= proc_dointvec,
+ 	},
+ #endif
+-#ifdef CONFIG_EPOLL
+-	{
+-		.procname	= "epoll",
+-		.mode		= 0555,
+-		.child		= epoll_table,
+-	},
+-#endif
+ #endif
+ 	{
+ 		.procname	= "protected_symlinks",
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from nixiaoming@huawei.com are
 
-zram-use-attribute_groups.patch
-hpet-simplify-subdirectory-registration-with-register_sysctl.patch
-i915-simplify-subdirectory-registration-with-register_sysctl.patch
-macintosh-mac_hidc-simplify-subdirectory-registration-with-register_sysctl.patch
-ocfs2-simplify-subdirectory-registration-with-register_sysctl.patch
-test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
-cdrom-simplify-subdirectory-registration-with-register_sysctl.patch
+sysctl-add-a-new-register_sysctl_init-interface.patch
+sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals.patch
+hung_task-move-hung_task-sysctl-interface-to-hung_taskc.patch
+watchdog-move-watchdog-sysctl-interface-to-watchdogc.patch
+sysctl-use-const-for-typically-used-max-min-proc-sysctls.patch
+sysctl-use-sysctl_zero-to-replace-some-static-int-zero-uses.patch
+aio-move-aio-sysctl-to-aioc.patch
+dnotify-move-dnotify-sysctl-to-dnotifyc.patch
+inotify-simplify-subdirectory-registration-with-register_sysctl.patch
+eventpoll-simplify-sysctl-declaration-with-register_sysctl.patch
 
