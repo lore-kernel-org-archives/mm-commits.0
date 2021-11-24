@@ -2,25 +2,25 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C504C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 03:36:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34350C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 03:36:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240850AbhKXDjR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 22:39:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56174 "EHLO mail.kernel.org"
+        id S240851AbhKXDj0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 22:39:26 -0500
+Received: from mail.kernel.org ([198.145.29.99]:56244 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229987AbhKXDjR (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 22:39:17 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id CB79860F50;
-        Wed, 24 Nov 2021 03:36:07 +0000 (UTC)
+        id S229987AbhKXDj0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 22:39:26 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C3F5F60F55;
+        Wed, 24 Nov 2021 03:36:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637724968;
-        bh=BYsbeio7BTMlOjstli1H5IvUwADqpmJ/0OcfIPD/qx8=;
+        s=korg; t=1637724977;
+        bh=NE2Jw67DHr1RH3ClHDErG9GT4pxKJ1ejbcFGClWkdYE=;
         h=Date:From:To:Subject:From;
-        b=U8HshgNn8lxt8Vgkk6pyWEsdOUA+boAZQ+liy7QkkzENmgrM36955dIH/klaA0lvN
-         ghdp78b6LV+7YUmslpG4SUyYIuMGkveSBVmYcMqOtsmTY4I7n4Pk1Ov57Mc5/4w8yx
-         QT/o4K8mf0Rk9dMkoHPi4U1wG1wN4jsCkXjlh9GU=
-Date:   Tue, 23 Nov 2021 19:36:07 -0800
+        b=Hja/kO4UblYFwBx9FxiC+U8jl+QzoJWT8Zzrcvbz2t2zfMhQEPAu43DaUvKizF++C
+         MpmnGur3LVVcjooEmdarzxpEDJihUPq76svwkEM/1mCDLVhRmXOHpfk+oErk7LBOeB
+         SSdlv8OkBappS5tdnRKqj0g8VIm6eZUg4/0o/0Lo=
+Date:   Tue, 23 Nov 2021 19:36:16 -0800
 From:   akpm@linux-foundation.org
 To:     bodeddub@amazon.com, chenhuang5@huawei.com, corbet@lwn.net,
         david@redhat.com, duanxiongchun@bytedance.com,
@@ -28,10 +28,9 @@ To:     bodeddub@amazon.com, chenhuang5@huawei.com, corbet@lwn.net,
         mm-commits@vger.kernel.org, osalvador@suse.de,
         song.bao.hua@hisilicon.com, songmuchun@bytedance.com,
         willy@infradead.org, zhengqi.arch@bytedance.com
-Subject:  +
- mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
- added to -mm tree
-Message-ID: <20211124033607.LScUyGnIL%akpm@linux-foundation.org>
+Subject:  + selftests-vm-add-a-hugetlb-test-case.patch added to -mm
+ tree
+Message-ID: <20211124033616._MQf6p6eO%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: sparsemem: use page table lock to protect kernel pmd operations
+     Subject: selftests: vm: add a hugetlb test case
 has been added to the -mm tree.  Its filename is
-     mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
+     selftests-vm-add-a-hugetlb-test-case.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-add-a-hugetlb-test-case.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-add-a-hugetlb-test-case.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,31 +61,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: sparsemem: use page table lock to protect kernel pmd operations
+Subject: selftests: vm: add a hugetlb test case
 
-The init_mm.page_table_lock is used to protect kernel page tables, we can
-use it to serialize splitting vmemmap PMD mappings instead of mmap write
-lock, which can increase the concurrency of vmemmap_remap_free().
+Since the head vmemmap page frame associated with each HugeTLB page is
+reused, we should hide the PG_head flag of tail struct page from the user.
+Add a tese case to check whether it is work properly.  The test steps are
+as follows.
 
-Actually, It increase the concurrency between allocations of HugeTLB
-pages.  But it is not the only benefit.  There are a lot of users of mmap
-read lock of init_mm.  The mmap write lock is holding through
-vmemmap_remap_free(), removing mmap write lock usage to make it does not
-affect other users of mmap read lock.  It is not making anything worse and
-always a win to move.
+  1) alloc 2MB hugeTLB
+  2) get each page frame
+  3) apply those APIs in each page frame
+  4) Those APIs work completely the same as before.
 
-Now the kernel page table walker does not hold the page_table_lock when
-walking pmd entries.  There may be consistency issue of a pmd entry,
-because pmd entry might change from a huge pmd entry to a PTE page table. 
-There is only one user of kernel page table walker, namely ptdump.  The
-ptdump already considers the consistency, which use a local variable to
-cache the value of pmd entry.  But we also need to update ->action to
-ACTION_CONTINUE to make sure the walker does not walk every pte entry
-again when concurrent thread has split the huge pmd.
+Reading the flags of a page by /proc/kpageflags is done in
+stable_page_flags(), which has invoked PageHead(), PageTail(),
+PageCompound() and compound_head().  If those APIs work properly, the head
+page must have 15 and 17 bits set.  And tail pages must have 16 and 17
+bits set but 15 bit unset.  Those flags are checked in check_page_flags().
 
-Link: https://lkml.kernel.org/r/20211101031651.75851-4-songmuchun@bytedance.com
+Link: https://lkml.kernel.org/r/20211101031651.75851-5-songmuchun@bytedance.com
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Barry Song <song.bao.hua@hisilicon.com>
+Reviewed-by: Barry Song <song.bao.hua@hisilicon.com>
 Cc: Bodeddula Balasubramaniam <bodeddub@amazon.com>
 Cc: Chen Huang <chenhuang5@huawei.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -101,143 +96,199 @@ Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ptdump.c         |   16 ++++++++++----
- mm/sparse-vmemmap.c |   47 +++++++++++++++++++++++++++---------------
- 2 files changed, 43 insertions(+), 20 deletions(-)
+ tools/testing/selftests/vm/.gitignore         |    1 
+ tools/testing/selftests/vm/Makefile           |    1 
+ tools/testing/selftests/vm/hugepage-vmemmap.c |  144 ++++++++++++++++
+ tools/testing/selftests/vm/run_vmtests.sh     |   11 +
+ 4 files changed, 157 insertions(+)
 
---- a/mm/ptdump.c~mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations
-+++ a/mm/ptdump.c
-@@ -40,8 +40,10 @@ static int ptdump_pgd_entry(pgd_t *pgd,
- 	if (st->effective_prot)
- 		st->effective_prot(st, 0, pgd_val(val));
- 
--	if (pgd_leaf(val))
-+	if (pgd_leaf(val)) {
- 		st->note_page(st, addr, 0, pgd_val(val));
-+		walk->action = ACTION_CONTINUE;
-+	}
- 
- 	return 0;
- }
-@@ -61,8 +63,10 @@ static int ptdump_p4d_entry(p4d_t *p4d,
- 	if (st->effective_prot)
- 		st->effective_prot(st, 1, p4d_val(val));
- 
--	if (p4d_leaf(val))
-+	if (p4d_leaf(val)) {
- 		st->note_page(st, addr, 1, p4d_val(val));
-+		walk->action = ACTION_CONTINUE;
-+	}
- 
- 	return 0;
- }
-@@ -82,8 +86,10 @@ static int ptdump_pud_entry(pud_t *pud,
- 	if (st->effective_prot)
- 		st->effective_prot(st, 2, pud_val(val));
- 
--	if (pud_leaf(val))
-+	if (pud_leaf(val)) {
- 		st->note_page(st, addr, 2, pud_val(val));
-+		walk->action = ACTION_CONTINUE;
-+	}
- 
- 	return 0;
- }
-@@ -101,8 +107,10 @@ static int ptdump_pmd_entry(pmd_t *pmd,
- 
- 	if (st->effective_prot)
- 		st->effective_prot(st, 3, pmd_val(val));
--	if (pmd_leaf(val))
-+	if (pmd_leaf(val)) {
- 		st->note_page(st, addr, 3, pmd_val(val));
-+		walk->action = ACTION_CONTINUE;
-+	}
- 
- 	return 0;
- }
---- a/mm/sparse-vmemmap.c~mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations
-+++ a/mm/sparse-vmemmap.c
-@@ -53,8 +53,7 @@ struct vmemmap_remap_walk {
- 	struct list_head *vmemmap_pages;
- };
- 
--static int split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start,
--				  struct vmemmap_remap_walk *walk)
-+static int __split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start)
- {
- 	pmd_t __pmd;
- 	int i;
-@@ -76,15 +75,34 @@ static int split_vmemmap_huge_pmd(pmd_t
- 		set_pte_at(&init_mm, addr, pte, entry);
- 	}
- 
--	/* Make pte visible before pmd. See comment in pmd_install(). */
--	smp_wmb();
--	pmd_populate_kernel(&init_mm, pmd, pgtable);
--
--	flush_tlb_kernel_range(start, start + PMD_SIZE);
-+	spin_lock(&init_mm.page_table_lock);
-+	if (likely(pmd_leaf(*pmd))) {
-+		/* Make pte visible before pmd. See comment in pmd_install(). */
-+		smp_wmb();
-+		pmd_populate_kernel(&init_mm, pmd, pgtable);
-+		flush_tlb_kernel_range(start, start + PMD_SIZE);
-+	} else {
-+		pte_free_kernel(&init_mm, pgtable);
-+	}
-+	spin_unlock(&init_mm.page_table_lock);
- 
- 	return 0;
- }
- 
-+static int split_vmemmap_huge_pmd(pmd_t *pmd, unsigned long start)
+--- a/tools/testing/selftests/vm/.gitignore~selftests-vm-add-a-hugetlb-test-case
++++ a/tools/testing/selftests/vm/.gitignore
+@@ -2,6 +2,7 @@
+ hugepage-mmap
+ hugepage-mremap
+ hugepage-shm
++hugepage-vmemmap
+ khugepaged
+ map_hugetlb
+ map_populate
+--- /dev/null
++++ a/tools/testing/selftests/vm/hugepage-vmemmap.c
+@@ -0,0 +1,144 @@
++// SPDX-License-Identifier: GPL-2.0
++/*
++ * A test case of using hugepage memory in a user application using the
++ * mmap system call with MAP_HUGETLB flag.  Before running this program
++ * make sure the administrator has allocated enough default sized huge
++ * pages to cover the 2 MB allocation.
++ */
++#include <stdlib.h>
++#include <stdio.h>
++#include <unistd.h>
++#include <sys/mman.h>
++#include <fcntl.h>
++
++#define MAP_LENGTH		(2UL * 1024 * 1024)
++
++#ifndef MAP_HUGETLB
++#define MAP_HUGETLB		0x40000	/* arch specific */
++#endif
++
++#define PAGE_SIZE		4096
++
++#define PAGE_COMPOUND_HEAD	(1UL << 15)
++#define PAGE_COMPOUND_TAIL	(1UL << 16)
++#define PAGE_HUGE		(1UL << 17)
++
++#define HEAD_PAGE_FLAGS		(PAGE_COMPOUND_HEAD | PAGE_HUGE)
++#define TAIL_PAGE_FLAGS		(PAGE_COMPOUND_TAIL | PAGE_HUGE)
++
++#define PM_PFRAME_BITS		55
++#define PM_PFRAME_MASK		~((1UL << PM_PFRAME_BITS) - 1)
++
++/*
++ * For ia64 architecture, Linux kernel reserves Region number 4 for hugepages.
++ * That means the addresses starting with 0x800000... will need to be
++ * specified.  Specifying a fixed address is not required on ppc64, i386
++ * or x86_64.
++ */
++#ifdef __ia64__
++#define MAP_ADDR		(void *)(0x8000000000000000UL)
++#define MAP_FLAGS		(MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_FIXED)
++#else
++#define MAP_ADDR		NULL
++#define MAP_FLAGS		(MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB)
++#endif
++
++static void write_bytes(char *addr, size_t length)
 +{
-+	int leaf;
++	unsigned long i;
 +
-+	spin_lock(&init_mm.page_table_lock);
-+	leaf = pmd_leaf(*pmd);
-+	spin_unlock(&init_mm.page_table_lock);
-+
-+	if (!leaf)
-+		return 0;
-+
-+	return __split_vmemmap_huge_pmd(pmd, start);
++	for (i = 0; i < length; i++)
++		*(addr + i) = (char)i;
 +}
 +
- static void vmemmap_pte_range(pmd_t *pmd, unsigned long addr,
- 			      unsigned long end,
- 			      struct vmemmap_remap_walk *walk)
-@@ -121,13 +139,12 @@ static int vmemmap_pmd_range(pud_t *pud,
- 
- 	pmd = pmd_offset(pud, addr);
- 	do {
--		if (pmd_leaf(*pmd)) {
--			int ret;
-+		int ret;
++static unsigned long virt_to_pfn(void *addr)
++{
++	int fd;
++	unsigned long pagemap;
 +
-+		ret = split_vmemmap_huge_pmd(pmd, addr & PMD_MASK);
-+		if (ret)
-+			return ret;
++	fd = open("/proc/self/pagemap", O_RDONLY);
++	if (fd < 0)
++		return -1UL;
++
++	lseek(fd, (unsigned long)addr / PAGE_SIZE * sizeof(pagemap), SEEK_SET);
++	read(fd, &pagemap, sizeof(pagemap));
++	close(fd);
++
++	return pagemap & ~PM_PFRAME_MASK;
++}
++
++static int check_page_flags(unsigned long pfn)
++{
++	int fd, i;
++	unsigned long pageflags;
++
++	fd = open("/proc/kpageflags", O_RDONLY);
++	if (fd < 0)
++		return -1;
++
++	lseek(fd, pfn * sizeof(pageflags), SEEK_SET);
++
++	read(fd, &pageflags, sizeof(pageflags));
++	if ((pageflags & HEAD_PAGE_FLAGS) != HEAD_PAGE_FLAGS) {
++		close(fd);
++		printf("Head page flags (%lx) is invalid\n", pageflags);
++		return -1;
++	}
++
++	/*
++	 * pages other than the first page must be tail and shouldn't be head;
++	 * this also verifies kernel has correctly set the fake page_head to tail
++	 * while hugetlb_free_vmemmap is enabled.
++	 */
++	for (i = 1; i < MAP_LENGTH / PAGE_SIZE; i++) {
++		read(fd, &pageflags, sizeof(pageflags));
++		if ((pageflags & TAIL_PAGE_FLAGS) != TAIL_PAGE_FLAGS ||
++		    (pageflags & HEAD_PAGE_FLAGS) == HEAD_PAGE_FLAGS) {
++			close(fd);
++			printf("Tail page flags (%lx) is invalid\n", pageflags);
++			return -1;
++		}
++	}
++
++	close(fd);
++
++	return 0;
++}
++
++int main(int argc, char **argv)
++{
++	void *addr;
++	unsigned long pfn;
++
++	addr = mmap(MAP_ADDR, MAP_LENGTH, PROT_READ | PROT_WRITE, MAP_FLAGS, -1, 0);
++	if (addr == MAP_FAILED) {
++		perror("mmap");
++		exit(1);
++	}
++
++	/* Trigger allocation of HugeTLB page. */
++	write_bytes(addr, MAP_LENGTH);
++
++	pfn = virt_to_pfn(addr);
++	if (pfn == -1UL) {
++		munmap(addr, MAP_LENGTH);
++		perror("virt_to_pfn");
++		exit(1);
++	}
++
++	printf("Returned address is %p whose pfn is %lx\n", addr, pfn);
++
++	if (check_page_flags(pfn) < 0) {
++		munmap(addr, MAP_LENGTH);
++		perror("check_page_flags");
++		exit(1);
++	}
++
++	/* munmap() length of MAP_HUGETLB memory must be hugepage aligned */
++	if (munmap(addr, MAP_LENGTH)) {
++		perror("munmap");
++		exit(1);
++	}
++
++	return 0;
++}
+--- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-a-hugetlb-test-case
++++ a/tools/testing/selftests/vm/Makefile
+@@ -31,6 +31,7 @@ TEST_GEN_FILES += hmm-tests
+ TEST_GEN_FILES += hugepage-mmap
+ TEST_GEN_FILES += hugepage-mremap
+ TEST_GEN_FILES += hugepage-shm
++TEST_GEN_FILES += hugepage-vmemmap
+ TEST_GEN_FILES += khugepaged
+ TEST_GEN_FILES += madv_populate
+ TEST_GEN_FILES += map_fixed_noreplace
+--- a/tools/testing/selftests/vm/run_vmtests.sh~selftests-vm-add-a-hugetlb-test-case
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -119,6 +119,17 @@ else
+ 	echo "[PASS]"
+ fi
  
--			ret = split_vmemmap_huge_pmd(pmd, addr & PMD_MASK, walk);
--			if (ret)
--				return ret;
--		}
- 		next = pmd_addr_end(addr, end);
- 		vmemmap_pte_range(pmd, addr, next, walk);
- 	} while (pmd++, addr = next, addr != end);
-@@ -321,10 +338,8 @@ int vmemmap_remap_free(unsigned long sta
- 	 */
- 	BUG_ON(start - reuse != PAGE_SIZE);
- 
--	mmap_write_lock(&init_mm);
-+	mmap_read_lock(&init_mm);
- 	ret = vmemmap_remap_range(reuse, end, &walk);
--	mmap_write_downgrade(&init_mm);
--
- 	if (ret && walk.nr_walked) {
- 		end = reuse + walk.nr_walked * PAGE_SIZE;
- 		/*
++echo "------------------------"
++echo "running hugepage-vmemmap"
++echo "------------------------"
++./hugepage-vmemmap
++if [ $? -ne 0 ]; then
++	echo "[FAIL]"
++	exitcode=1
++else
++	echo "[PASS]"
++fi
++
+ echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
+ echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
+ echo "      hugetlb regression testing."
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
