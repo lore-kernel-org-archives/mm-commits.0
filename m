@@ -2,25 +2,25 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7FC36C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:14:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D3E7C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:14:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233132AbhKXARw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 19:17:52 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50956 "EHLO mail.kernel.org"
+        id S231247AbhKXARz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 19:17:55 -0500
+Received: from mail.kernel.org ([198.145.29.99]:51000 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240656AbhKXAR2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 19:17:28 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 8E42161056;
-        Wed, 24 Nov 2021 00:14:18 +0000 (UTC)
+        id S240629AbhKXARc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 19:17:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 994896108E;
+        Wed, 24 Nov 2021 00:14:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637712859;
-        bh=/TC1Vd9GqcgPwKVVb/nFO7AfSlxOlx1FnNklWuNilrE=;
+        s=korg; t=1637712863;
+        bh=bNJzvAZpYMhxHCGbVQTX3V87I5pdMesR/hPfX/xTPig=;
         h=Date:From:To:Subject:From;
-        b=OxZCDiVD9RwfD4WOGJZhtUKyp2hYcMlTlwZd9sbgum3cJRMgqgumvcBCnLtOWrKOb
-         R4Jvjm23kWGGrb57IKuyoB+LLjxmKFuLfOhQqLOt5qwF6hoD1Q6l7/25vHBNDBuWH9
-         59JIncDDf7rj/g2MBbXxAC/cRJYlJ1eVsacxd5Cw=
-Date:   Tue, 23 Nov 2021 16:14:18 -0800
+        b=XrmBY88s1PQdBzZeJ8aUlmv2/BJVdsDQVR1hWM+DzHCrOVr/+M1fPIC4NIPsAornV
+         8jrh/Z/HKcq8pcmTdqjZRozI9f2C4WrZH1rPM64U9R++4WCEE5h6ehxCgUFtf0CSiW
+         hnARKa2hDshyfjccjrens1p18wSpeAemxgZn6kIs=
+Date:   Tue, 23 Nov 2021 16:14:22 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -37,9 +37,9 @@ To:     airlied@linux.ie, amir73il@gmail.com,
         sre@kernel.org, steve@sk2.org, viro@zeniv.linux.org.uk,
         wangqing@vivo.com, yzaikin@google.com
 Subject:  +
- ocfs2-simplify-subdirectory-registration-with-register_sysctl.patch added
- to -mm tree
-Message-ID: <20211124001418.TPp-GO-o_%akpm@linux-foundation.org>
+ test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
+ added to -mm tree
+Message-ID: <20211124001422.bxrdQkzfg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: simplify subdirectory registration with register_sysctl()
+     Subject: test_sysctl: simplify subdirectory registration with register_sysctl()
 has been added to the -mm tree.  Its filename is
-     ocfs2-simplify-subdirectory-registration-with-register_sysctl.patch
+     test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-simplify-subdirectory-registration-with-register_sysctl.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-simplify-subdirectory-registration-with-register_sysctl.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,13 +70,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: ocfs2: simplify subdirectory registration with register_sysctl()
+Subject: test_sysctl: simplify subdirectory registration with register_sysctl()
 
 There is no need to user boiler plate code to specify a set of base
 directories we're going to stuff sysctls under.  Simplify this by using
 register_sysctl() and specifying the directory path directly.
 
-// pycocci sysctl-subdir-register-sysctl-simplify.cocci PATH
+// pycocci sysctl-subdir-register-sysctl-simplify.cocci lib/test_sysctl.c
 
 @c1@
 expression E1;
@@ -168,7 +168,7 @@ header =
 +register_sysctl(E3, sysctls);
 
 Generated-by: Coccinelle SmPL
-Link: https://lkml.kernel.org/r/20211123202422.819032-5-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211123202422.819032-6-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
@@ -207,52 +207,47 @@ Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |   25 +------------------------
- 1 file changed, 1 insertion(+), 24 deletions(-)
+ lib/test_sysctl.c |   22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
---- a/fs/ocfs2/stackglue.c~ocfs2-simplify-subdirectory-registration-with-register_sysctl
-+++ a/fs/ocfs2/stackglue.c
-@@ -672,31 +672,8 @@ static struct ctl_table ocfs2_mod_table[
+--- a/lib/test_sysctl.c~test_sysctl-simplify-subdirectory-registration-with-register_sysctl
++++ a/lib/test_sysctl.c
+@@ -128,26 +128,6 @@ static struct ctl_table test_table[] = {
  	{ }
  };
  
--static struct ctl_table ocfs2_kern_table[] = {
+-static struct ctl_table test_sysctl_table[] = {
 -	{
--		.procname	= "ocfs2",
--		.data		= NULL,
+-		.procname	= "test_sysctl",
 -		.maxlen		= 0,
 -		.mode		= 0555,
--		.child		= ocfs2_mod_table
+-		.child		= test_table,
 -	},
 -	{ }
 -};
 -
--static struct ctl_table ocfs2_root_table[] = {
+-static struct ctl_table test_sysctl_root_table[] = {
 -	{
--		.procname	= "fs",
--		.data		= NULL,
+-		.procname	= "debug",
 -		.maxlen		= 0,
 -		.mode		= 0555,
--		.child		= ocfs2_kern_table
+-		.child		= test_sysctl_table,
 -	},
 -	{ }
 -};
 -
- static struct ctl_table_header *ocfs2_table_header;
+ static struct ctl_table_header *test_sysctl_header;
  
--
- /*
-  * Initialization
-  */
-@@ -705,7 +682,7 @@ static int __init ocfs2_stack_glue_init(
- {
- 	strcpy(cluster_stack_name, OCFS2_STACK_PLUGIN_O2CB);
- 
--	ocfs2_table_header = register_sysctl_table(ocfs2_root_table);
-+	ocfs2_table_header = register_sysctl("fs/ocfs2", ocfs2_mod_table);
- 	if (!ocfs2_table_header) {
- 		printk(KERN_ERR
- 		       "ocfs2 stack glue: unable to register sysctl\n");
+ static int __init test_sysctl_init(void)
+@@ -155,7 +135,7 @@ static int __init test_sysctl_init(void)
+ 	test_data.bitmap_0001 = kzalloc(SYSCTL_TEST_BITMAP_SIZE/8, GFP_KERNEL);
+ 	if (!test_data.bitmap_0001)
+ 		return -ENOMEM;
+-	test_sysctl_header = register_sysctl_table(test_sysctl_root_table);
++	test_sysctl_header = register_sysctl("debug/test_sysctl", test_table);
+ 	if (!test_sysctl_header) {
+ 		kfree(test_data.bitmap_0001);
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from mcgrof@kernel.org are
