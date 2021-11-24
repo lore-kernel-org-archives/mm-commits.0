@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0FC35C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:23:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9B0A8C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:27:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231715AbhKXA0o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 19:26:44 -0500
-Received: from mail.kernel.org ([198.145.29.99]:53458 "EHLO mail.kernel.org"
+        id S238874AbhKXAa2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 19:30:28 -0500
+Received: from mail.kernel.org ([198.145.29.99]:54554 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S231515AbhKXA0n (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 19:26:43 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B8BA2610A5;
-        Wed, 24 Nov 2021 00:23:34 +0000 (UTC)
+        id S233846AbhKXAa2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 19:30:28 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id DB71F60240;
+        Wed, 24 Nov 2021 00:27:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637713415;
-        bh=PxzsDkZQCCMrPm7I8iIr0t7HqtPtaPQE3lyb/bPlmXk=;
+        s=korg; t=1637713639;
+        bh=epJm76xCgOuRo8dkukwyR1zosrhax+Cnnny4r9UKmKU=;
         h=Date:From:To:Subject:From;
-        b=l8EVaH7aePClosBIwr25UmsWhlzuJs5S7y78DPf/lWevFSRy3CsMVvPHU6sS+MefT
-         me6LFxdvo8cFOniGiXdLj/9rbdy5FtZHBe5yZIJB3X1vHxb7hYVg0c2AyKvppjBiDF
-         4XpriIOSoPS3zbViPL1R4/I4Eci6GgIC1S9AXTto=
-Date:   Tue, 23 Nov 2021 16:23:34 -0800
+        b=TAqctVzrXkezQWjZnyHRCHd9qx6+Ixnu8XWTMpxKhu3DgarIfgDlDlSiKTeGnAXYy
+         P37poLJk0TdLdX1hPYKQqY1W/inXjxSbsKZhoRrGHkhpb1RFo23wG/BGvRwWFk0ZUZ
+         hSFufbbBrc0web01/ucXRgM9DqxqZ5iV1T+D0qsU=
+Date:   Tue, 23 Nov 2021 16:27:18 -0800
 From:   akpm@linux-foundation.org
-To:     bsingharora@gmail.com, hannes@cmpxchg.org, mingo@kernel.org,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        yang.yang29@zte.com.cn, zealci@zte.com.cn
-Subject:  +
- =?US-ASCII?Q?delayacct-fix-incomplete-disable-operation-when-switch-ena?=
- =?US-ASCII?Q?ble-to-disable.patch?= added to -mm tree
-Message-ID: <20211124002334.yVOtbk7U5%akpm@linux-foundation.org>
+To:     arnd@arndb.de, bigeasy@linutronix.de, boqun.feng@gmail.com,
+        dalias@libc.org, geert@linux-m68k.org, longman@redhat.com,
+        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        naresh.kamboju@linaro.org, peterz@infradead.org,
+        senozhatsky@chromium.org, sfr@canb.auug.org.au,
+        umgwanakikbuti@gmail.com, will@kernel.org, ysato@users.osdn.me
+Subject:  + locking-rwlocks-introduce-write_lock_nested-fix-2.patch
+ added to -mm tree
+Message-ID: <20211124002718.D_TbiDsqh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -39,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: delayacct: fix incomplete disable operation when switch enable to disable
+     Subject: locking: fixup write_lock_nested() implementation
 has been added to the -mm tree.  Its filename is
-     delayacct-fix-incomplete-disable-operation-when-switch-enable-to-disable.patch
+     locking-rwlocks-introduce-write_lock_nested-fix-2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/delayacct-fix-incomplete-disable-operation-when-switch-enable-to-disable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/locking-rwlocks-introduce-write_lock_nested-fix-2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/delayacct-fix-incomplete-disable-operation-when-switch-enable-to-disable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/locking-rwlocks-introduce-write_lock_nested-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,91 +60,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yang Yang <yang.yang29@zte.com.cn>
-Subject: delayacct: fix incomplete disable operation when switch enable to disable
+From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Subject: locking: fixup write_lock_nested() implementation
 
-When a task is created after delayacct is enabled, kernel will do all the
-delay accountings for that task.  The problems is if user disables
-delayacct by set /proc/sys/kernel/task_delayacct to zero, only blkio delay
-accounting is disabled.
+    kernel/locking/spinlock.c:306:9: error: implicit declaration of
+    function '__raw_write_lock_nested'; did you mean
 
-Now disable all the kinds of delay accountings when
-/proc/sys/kernel/task_delayacct sets to zero.
 
-Link: https://lkml.kernel.org/r/20211123140342.32962-1-ran.xiaokai@zte.com.cn
-Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
+Link: https://lkml.kernel.org/r/20211123170134.y6xb7pmpgdn4m3bn@linutronix.de
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Waiman Long <longman@redhat.com>
+Cc: Boqun Feng <boqun.feng@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Yoshinori Sato <ysato@users.osdn.me>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/delayacct.h |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+ include/linux/rwlock_api_smp.h |    1 -
+ kernel/locking/spinlock.c      |    4 ++++
+ 2 files changed, 4 insertions(+), 1 deletion(-)
 
---- a/include/linux/delayacct.h~delayacct-fix-incomplete-disable-operation-when-switch-enable-to-disable
-+++ a/include/linux/delayacct.h
-@@ -131,36 +131,54 @@ static inline __u64 delayacct_blkio_tick
+--- a/include/linux/rwlock_api_smp.h~locking-rwlocks-introduce-write_lock_nested-fix-2
++++ a/include/linux/rwlock_api_smp.h
+@@ -47,7 +47,6 @@ _raw_write_unlock_irqrestore(rwlock_t *l
  
- static inline void delayacct_freepages_start(void)
- {
-+	if (!static_branch_unlikely(&delayacct_key))
-+		return;
-+
- 	if (current->delays)
- 		__delayacct_freepages_start();
- }
+ #ifdef CONFIG_INLINE_WRITE_LOCK
+ #define _raw_write_lock(lock) __raw_write_lock(lock)
+-#define _raw_write_lock_nested(lock, subclass) __raw_write_lock_nested(lock, subclass)
+ #endif
  
- static inline void delayacct_freepages_end(void)
- {
-+	if (!static_branch_unlikely(&delayacct_key))
-+		return;
-+
- 	if (current->delays)
- 		__delayacct_freepages_end();
+ #ifdef CONFIG_INLINE_READ_LOCK_BH
+--- a/kernel/locking/spinlock.c~locking-rwlocks-introduce-write_lock_nested-fix-2
++++ a/kernel/locking/spinlock.c
+@@ -301,6 +301,10 @@ void __lockfunc _raw_write_lock(rwlock_t
  }
+ EXPORT_SYMBOL(_raw_write_lock);
  
- static inline void delayacct_thrashing_start(void)
- {
-+	if (!static_branch_unlikely(&delayacct_key))
-+		return;
++#ifndef CONFIG_DEBUG_LOCK_ALLOC
++#define __raw_write_lock_nested(lock, subclass)	__raw_write_lock(((void)(subclass), (lock)))
++#endif
 +
- 	if (current->delays)
- 		__delayacct_thrashing_start();
- }
- 
- static inline void delayacct_thrashing_end(void)
+ void __lockfunc _raw_write_lock_nested(rwlock_t *lock, int subclass)
  {
-+	if (!static_branch_unlikely(&delayacct_key))
-+		return;
-+
- 	if (current->delays)
- 		__delayacct_thrashing_end();
- }
- 
- static inline void delayacct_swapin_start(void)
- {
-+	if (!static_branch_unlikely(&delayacct_key))
-+		return;
-+
- 	if (current->delays)
- 		__delayacct_swapin_start();
- }
- 
- static inline void delayacct_swapin_end(void)
- {
-+	if (!static_branch_unlikely(&delayacct_key))
-+		return;
-+
- 	if (current->delays)
- 		__delayacct_swapin_end();
- }
+ 	__raw_write_lock_nested(lock, subclass);
 _
 
-Patches currently in -mm which might be from yang.yang29@zte.com.cn are
+Patches currently in -mm which might be from bigeasy@linutronix.de are
 
-delayacct-support-swapin-delay-accounting-for-swapping-without-blkio.patch
-delayacct-fix-incomplete-disable-operation-when-switch-enable-to-disable.patch
+locking-rwlocks-introduce-write_lock_nested-fix-2.patch
 
