@@ -2,39 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A12AC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 03:08:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 32032C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 03:14:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232043AbhKXDLi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 22:11:38 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49370 "EHLO mail.kernel.org"
+        id S233913AbhKXDRS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 22:17:18 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50744 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S229646AbhKXDLh (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 22:11:37 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 5ABF460EB5;
-        Wed, 24 Nov 2021 03:08:28 +0000 (UTC)
+        id S230517AbhKXDRS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 22:17:18 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id CC30260234;
+        Wed, 24 Nov 2021 03:14:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637723308;
-        bh=vZ4tnXTg1WU9d/OIf8ie+VNoZ1IyS4p/XaoHKzbOZ5A=;
+        s=korg; t=1637723649;
+        bh=H2tWHmruMbqS2Jg7eY/SYhqfFuBInz0rzA58vTiecNY=;
         h=Date:From:To:Subject:From;
-        b=pqGAvZffzzgmdopN6x3tSbSWb1c2LEEQQ/fO8OM9E764kqZSDvsFkBgZJtsDOT5o5
-         FdWmZUa8tbdIDyRCHtkxZOUiRMf5Y3DB28Uxv0aOMgngKntjmaRFeQz9FsyfWGljja
-         QTaX05S6xlDteQbQQLbGsXSL0S44F4bYSI1I38gA=
-Date:   Tue, 23 Nov 2021 19:08:27 -0800
+        b=UhZaIQXCL0wlch1exHIMndwY7SstNVBaSFK0IHntrpQq/FktA6lGtdbIZ+ALNPLLP
+         5KTCDh4UDs8HoCHZOK7789UMXp6gTfZ9IMiyCPKnGz47P0FnuPJle1R1Nr6rotZLZW
+         973AT8MG0lJmBItu3eMYtDjHcZxFTSVsB6GODHg0=
+Date:   Tue, 23 Nov 2021 19:14:08 -0800
 From:   akpm@linux-foundation.org
-To:     bodeddub@amazon.com, chenhuang5@huawei.com, corbet@lwn.net,
-        david@redhat.com, duanxiongchun@bytedance.com,
-        fam.zheng@bytedance.com, mhocko@suse.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, osalvador@suse.de,
-        song.bao.hua@hisilicon.com, songmuchun@bytedance.com,
-        willy@infradead.org, zhengqi.arch@bytedance.com
-Subject:  +
- =?US-ASCII?Q?mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hu?=
- =?US-ASCII?Q?getlb-page.patch?= added to -mm tree
-Message-ID: <20211124030827.E1b8Y2BWu%akpm@linux-foundation.org>
+To:     chao@kernel.org, chuck.lever@oracle.com, david@fromorbit.com,
+        djwong@kernel.org, jaegeuk@kernel.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, neilb@suse.de, tytso@mit.edu
+Subject:  + mm-introduce-memalloc_retry_wait.patch added to -mm
+ tree
+Message-ID: <20211124031408.KgT7sgjr8%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +36,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: free the 2nd vmemmap page associated with each HugeTLB page
+     Subject: mm: introduce memalloc_retry_wait()
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page.patch
+     mm-introduce-memalloc_retry_wait.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-memalloc_retry_wait.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-memalloc_retry_wait.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,466 +57,414 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: free the 2nd vmemmap page associated with each HugeTLB page
+From: "NeilBrown" <neilb@suse.de>
+Subject: mm: introduce memalloc_retry_wait()
 
-Patch series "Free the 2nd vmemmap page associated with each HugeTLB page", v7.
+Various places in the kernel - largely in filesystems - respond to a
+memory allocation failure by looping around and re-trying.  Some of these
+cannot conveniently use __GFP_NOFAIL, for reasons such as:
 
-This series can minimize the overhead of struct page for 2MB HugeTLB pages
-significantly.  It further reduces the overhead of struct page by 12.5%
-for a 2MB HugeTLB compared to the previous approach, which means 2GB per
-1TB HugeTLB.  It is a nice gain.  Comments and reviews are welcome. 
-Thanks.
+ - a GFP_ATOMIC allocation, which __GFP_NOFAIL doesn't work on
+ - a need to check for the process being signalled between failures
+ - the possibility that other recovery actions could be performed
+ - the allocation is quite deep in support code, and passing down an
+   extra flag to say if __GFP_NOFAIL is wanted would be clumsy.
 
-The main implementation and details can refer to the commit log of patch
-1.  In this series, I have changed the following four helpers, the
-following table shows the impact of the overhead of those helpers.
+Many of these currently use congestion_wait() which (in almost all cases)
+simply waits the given timeout - congestion isn't tracked for most
+devices.
 
-	+------------------+-----------------------+
-	|       APIs       | head page | tail page |
-	+------------------+-----------+-----------+
-	|    PageHead()    |     Y     |     N     |
-	+------------------+-----------+-----------+
-	|    PageTail()    |     Y     |     N     |
-	+------------------+-----------+-----------+
-	|  PageCompound()  |     N     |     N     |
-	+------------------+-----------+-----------+
-	|  compound_head() |     Y     |     N     |
-	+------------------+-----------+-----------+
+It isn't clear what the best delay is for loops, but it is clear that the
+various filesystems shouldn't be responsible for choosing a timeout.
 
-	Y: Overhead is increased.
-	N: Overhead is _NOT_ increased.
+This patch introduces memalloc_retry_wait() with takes on that
+responsibility.  Code that wants to retry a memory allocation can call
+this function passing the GFP flags that were used.  It will wait however
+is appropriate.
 
-It shows that the overhead of those helpers on a tail page don't change
-between "hugetlb_free_vmemmap=on" and "hugetlb_free_vmemmap=off".  But the
-overhead on a head page will be increased when "hugetlb_free_vmemmap=on"
-(except PageCompound()).  So I believe that Matthew Wilcox's folio series
-will help with this.
+For now, it only considers __GFP_NORETRY and whatever
+gfpflags_allow_blocking() tests.  If blocking is allowed without
+__GFP_NORETRY, then alloc_page either made some reclaim progress, or
+waited for a while, before failing.  So there is no need for much further
+waiting.  memalloc_retry_wait() will wait until the current jiffie ends. 
+If this condition is not met, then alloc_page() won't have waited much if
+at all.  In that case memalloc_retry_wait() waits about 200ms.  This is
+the delay that most current loops uses.
 
-The users of PageHead() and PageTail() are much less than compound_head()
-and most users of PageTail() are VM_BUG_ON(), so I have done some tests
-about the overhead of compound_head() on head pages.
+linux/sched/mm.h needs to be included in some files now,
+but linux/backing-dev.h does not.
 
-I have tested the overhead of calling compound_head() on a head page,
-which is 2.11ns (Measure the call time of 10 million times
-compound_head(), and then average).
-
-For a head page whose address is not aligned with PAGE_SIZE or a
-non-compound page, the overhead of compound_head() is 2.54ns which is
-increased by 20%.  For a head page whose address is aligned with
-PAGE_SIZE, the overhead of compound_head() is 2.97ns which is increased by
-40%.  Most pages are the former.  I do not think the overhead is
-significant since the overhead of compound_head() itself is low.
-
-
-This patch (of 5):
-
-This patch minimizes the overhead of struct page for 2MB HugeTLB pages
-significantly.  It further reduces the overhead of struct page by 12.5%
-for a 2MB HugeTLB compared to the previous approach, which means 2GB per
-1TB HugeTLB (2MB type).
-
-After the feature of "Free sonme vmemmap pages of HugeTLB page" is
-enabled, the mapping of the vmemmap addresses associated with a 2MB
-HugeTLB page becomes the figure below.
-
-     HugeTLB                    struct pages(8 pages)         page frame(8 pages)
- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+---> PG_head
- |           |                     |     0     | -------------> |     0     |
- |           |                     +-----------+                +-----------+
- |           |                     |     1     | -------------> |     1     |
- |           |                     +-----------+                +-----------+
- |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
- |           |                     +-----------+                   | | | | |
- |           |                     |     3     | ------------------+ | | | |
- |           |                     +-----------+                     | | | |
- |           |                     |     4     | --------------------+ | | |
- |    2MB    |                     +-----------+                       | | |
- |           |                     |     5     | ----------------------+ | |
- |           |                     +-----------+                         | |
- |           |                     |     6     | ------------------------+ |
- |           |                     +-----------+                           |
- |           |                     |     7     | --------------------------+
- |           |                     +-----------+
- |           |
- |           |
- |           |
- +-----------+
-
-As we can see, the 2nd vmemmap page frame (indexed by 1) is reused and
-remaped. However, the 2nd vmemmap page frame is also can be freed to
-the buddy allocator, then we can change the mapping from the figure
-above to the figure below.
-
-    HugeTLB                    struct pages(8 pages)         page frame(8 pages)
- +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+---> PG_head
- |           |                     |     0     | -------------> |     0     |
- |           |                     +-----------+                +-----------+
- |           |                     |     1     | ---------------^ ^ ^ ^ ^ ^ ^
- |           |                     +-----------+                  | | | | | |
- |           |                     |     2     | -----------------+ | | | | |
- |           |                     +-----------+                    | | | | |
- |           |                     |     3     | -------------------+ | | | |
- |           |                     +-----------+                      | | | |
- |           |                     |     4     | ---------------------+ | | |
- |    2MB    |                     +-----------+                        | | |
- |           |                     |     5     | -----------------------+ | |
- |           |                     +-----------+                          | |
- |           |                     |     6     | -------------------------+ |
- |           |                     +-----------+                            |
- |           |                     |     7     | ---------------------------+
- |           |                     +-----------+
- |           |
- |           |
- |           |
- +-----------+
-
-After we do this, all tail vmemmap pages (1-7) are mapped to the head
-vmemmap page frame (0).  In other words, there are more than one page
-struct with PG_head associated with each HugeTLB page.  We __know__ that
-there is only one head page struct, the tail page structs with PG_head are
-fake head page structs.  We need an approach to distinguish between those
-two different types of page structs so that compound_head(), PageHead()
-and PageTail() can work properly if the parameter is the tail page struct
-but with PG_head.
-
-The following code snippet describes how to distinguish between real and
-fake head page struct.
-
-	if (test_bit(PG_head, &page->flags)) {
-		unsigned long head = READ_ONCE(page[1].compound_head);
-
-		if (head & 1) {
-			if (head == (unsigned long)page + 1)
-				==> head page struct
-			else
-				==> tail page struct
-		} else
-			==> head page struct
-	}
-
-We can safely access the field of the @page[1] with PG_head because the
-@page is a compound page composed with at least two contiguous pages.
-
-Link: https://lkml.kernel.org/r/20211101031651.75851-1-songmuchun@bytedance.com
-Link: https://lkml.kernel.org/r/20211101031651.75851-2-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Barry Song <song.bao.hua@hisilicon.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
+Link: https://lkml.kernel.org/r/163754371968.13692.1277530886009912421@noble.neil.brown.name
+Signed-off-by: NeilBrown <neilb@suse.de>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Chen Huang <chenhuang5@huawei.com>
-Cc: Bodeddula Balasubramaniam <bodeddub@amazon.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Fam Zheng <fam.zheng@bytedance.com>
-Cc: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Chao Yu <chao@kernel.org>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Chuck Lever <chuck.lever@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/kernel-parameters.txt |    2 
- include/linux/page-flags.h                      |   78 +++++++++++++-
- mm/hugetlb_vmemmap.c                            |   62 ++++++-----
- mm/sparse-vmemmap.c                             |   21 +++
- 4 files changed, 130 insertions(+), 33 deletions(-)
+ fs/ext4/extents.c        |    8 +++-----
+ fs/ext4/inline.c         |    5 ++---
+ fs/ext4/page-io.c        |    9 +++++----
+ fs/f2fs/data.c           |    4 ++--
+ fs/f2fs/gc.c             |    5 ++---
+ fs/f2fs/inode.c          |    4 ++--
+ fs/f2fs/node.c           |    4 ++--
+ fs/f2fs/recovery.c       |    6 +++---
+ fs/f2fs/segment.c        |    9 +++------
+ fs/f2fs/super.c          |    5 ++---
+ fs/xfs/kmem.c            |    3 +--
+ fs/xfs/xfs_buf.c         |    2 +-
+ include/linux/sched/mm.h |   26 ++++++++++++++++++++++++++
+ net/sunrpc/svc_xprt.c    |    3 ++-
+ 14 files changed, 56 insertions(+), 37 deletions(-)
 
---- a/Documentation/admin-guide/kernel-parameters.txt~mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page
-+++ a/Documentation/admin-guide/kernel-parameters.txt
-@@ -1616,7 +1616,7 @@
- 			[KNL] Reguires CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
- 			enabled.
- 			Allows heavy hugetlb users to free up some more
--			memory (6 * PAGE_SIZE for each 2MB hugetlb page).
-+			memory (7 * PAGE_SIZE for each 2MB hugetlb page).
- 			Format: { on | off (default) }
- 
- 			on:  enable the feature
---- a/include/linux/page-flags.h~mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page
-+++ a/include/linux/page-flags.h
-@@ -193,13 +193,69 @@ enum pageflags {
- 
- #ifndef __GENERATING_BOUNDS_H
- 
-+#ifdef CONFIG_HUGETLB_PAGE_FREE_VMEMMAP
-+extern bool hugetlb_free_vmemmap_enabled;
-+
-+/*
-+ * If the feature of freeing some vmemmap pages associated with each HugeTLB
-+ * page is enabled, the head vmemmap page frame is reused and all of the tail
-+ * vmemmap addresses map to the head vmemmap page frame (furture details can
-+ * refer to the figure at the head of the mm/hugetlb_vmemmap.c).  In other
-+ * words, there are more than one page struct with PG_head associated with each
-+ * HugeTLB page.  We __know__ that there is only one head page struct, the tail
-+ * page structs with PG_head are fake head page structs.  We need an approach
-+ * to distinguish between those two different types of page structs so that
-+ * compound_head() can return the real head page struct when the parameter is
-+ * the tail page struct but with PG_head.
-+ *
-+ * The page_fixed_fake_head() returns the real head page struct if the @page is
-+ * fake page head, otherwise, returns @page which can either be a true page
-+ * head or tail.
-+ */
-+static __always_inline const struct page *page_fixed_fake_head(const struct page *page)
-+{
-+	if (!hugetlb_free_vmemmap_enabled)
-+		return page;
-+
-+	/*
-+	 * Only addresses aligned with PAGE_SIZE of struct page may be fake head
-+	 * struct page. The alignment check aims to avoid access the fields (
-+	 * e.g. compound_head) of the @page[1]. It can avoid touch a (possibly)
-+	 * cold cacheline in some cases.
-+	 */
-+	if (IS_ALIGNED((unsigned long)page, PAGE_SIZE) &&
-+	    test_bit(PG_head, &page->flags)) {
-+		/*
-+		 * We can safely access the field of the @page[1] with PG_head
-+		 * because the @page is a compound page composed with at least
-+		 * two contiguous pages.
-+		 */
-+		unsigned long head = READ_ONCE(page[1].compound_head);
-+
-+		if (likely(head & 1))
-+			return (const struct page *)(head - 1);
-+	}
-+	return page;
-+}
-+#else
-+static inline const struct page *page_fixed_fake_head(const struct page *page)
-+{
-+	return page;
-+}
-+#endif
-+
-+static __always_inline int page_is_fake_head(struct page *page)
-+{
-+	return page_fixed_fake_head(page) != page;
-+}
-+
- static inline unsigned long _compound_head(const struct page *page)
- {
- 	unsigned long head = READ_ONCE(page->compound_head);
- 
- 	if (unlikely(head & 1))
- 		return head - 1;
--	return (unsigned long)page;
-+	return (unsigned long)page_fixed_fake_head(page);
- }
- 
- #define compound_head(page)	((typeof(page))_compound_head(page))
-@@ -234,12 +290,13 @@ static inline unsigned long _compound_he
- 
- static __always_inline int PageTail(struct page *page)
- {
--	return READ_ONCE(page->compound_head) & 1;
-+	return READ_ONCE(page->compound_head) & 1 || page_is_fake_head(page);
- }
- 
- static __always_inline int PageCompound(struct page *page)
- {
--	return test_bit(PG_head, &page->flags) || PageTail(page);
-+	return test_bit(PG_head, &page->flags) ||
-+	       READ_ONCE(page->compound_head) & 1;
- }
- 
- #define	PAGE_POISON_PATTERN	-1l
-@@ -684,7 +741,20 @@ static inline bool test_set_page_writeba
- 	return set_page_writeback(page);
- }
- 
--__PAGEFLAG(Head, head, PF_ANY) CLEARPAGEFLAG(Head, head, PF_ANY)
-+static __always_inline bool folio_test_head(struct folio *folio)
-+{
-+	return test_bit(PG_head, folio_flags(folio, FOLIO_PF_ANY));
-+}
-+
-+static __always_inline int PageHead(struct page *page)
-+{
-+	PF_POISONED_CHECK(page);
-+	return test_bit(PG_head, &page->flags) && !page_is_fake_head(page);
-+}
-+
-+__SETPAGEFLAG(Head, head, PF_ANY)
-+__CLEARPAGEFLAG(Head, head, PF_ANY)
-+CLEARPAGEFLAG(Head, head, PF_ANY)
- 
- /* Whether there are one or multiple pages in a folio */
- static inline bool folio_test_single(struct folio *folio)
---- a/mm/hugetlb_vmemmap.c~mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page
-+++ a/mm/hugetlb_vmemmap.c
-@@ -124,9 +124,9 @@
-  * page of page structs (page 0) associated with the HugeTLB page contains the 4
-  * page structs necessary to describe the HugeTLB. The only use of the remaining
-  * pages of page structs (page 1 to page 7) is to point to page->compound_head.
-- * Therefore, we can remap pages 2 to 7 to page 1. Only 2 pages of page structs
-+ * Therefore, we can remap pages 1 to 7 to page 0. Only 1 page of page structs
-  * will be used for each HugeTLB page. This will allow us to free the remaining
-- * 6 pages to the buddy allocator.
-+ * 7 pages to the buddy allocator.
-  *
-  * Here is how things look after remapping.
-  *
-@@ -134,30 +134,30 @@
-  * +-----------+ ---virt_to_page---> +-----------+   mapping to   +-----------+
-  * |           |                     |     0     | -------------> |     0     |
-  * |           |                     +-----------+                +-----------+
-- * |           |                     |     1     | -------------> |     1     |
-- * |           |                     +-----------+                +-----------+
-- * |           |                     |     2     | ----------------^ ^ ^ ^ ^ ^
-- * |           |                     +-----------+                   | | | | |
-- * |           |                     |     3     | ------------------+ | | | |
-- * |           |                     +-----------+                     | | | |
-- * |           |                     |     4     | --------------------+ | | |
-- * |    PMD    |                     +-----------+                       | | |
-- * |   level   |                     |     5     | ----------------------+ | |
-- * |  mapping  |                     +-----------+                         | |
-- * |           |                     |     6     | ------------------------+ |
-- * |           |                     +-----------+                           |
-- * |           |                     |     7     | --------------------------+
-+ * |           |                     |     1     | ---------------^ ^ ^ ^ ^ ^ ^
-+ * |           |                     +-----------+                  | | | | | |
-+ * |           |                     |     2     | -----------------+ | | | | |
-+ * |           |                     +-----------+                    | | | | |
-+ * |           |                     |     3     | -------------------+ | | | |
-+ * |           |                     +-----------+                      | | | |
-+ * |           |                     |     4     | ---------------------+ | | |
-+ * |    PMD    |                     +-----------+                        | | |
-+ * |   level   |                     |     5     | -----------------------+ | |
-+ * |  mapping  |                     +-----------+                          | |
-+ * |           |                     |     6     | -------------------------+ |
-+ * |           |                     +-----------+                            |
-+ * |           |                     |     7     | ---------------------------+
-  * |           |                     +-----------+
-  * |           |
-  * |           |
-  * |           |
-  * +-----------+
-  *
-- * When a HugeTLB is freed to the buddy system, we should allocate 6 pages for
-+ * When a HugeTLB is freed to the buddy system, we should allocate 7 pages for
-  * vmemmap pages and restore the previous mapping relationship.
-  *
-  * For the HugeTLB page of the pud level mapping. It is similar to the former.
-- * We also can use this approach to free (PAGE_SIZE - 2) vmemmap pages.
-+ * We also can use this approach to free (PAGE_SIZE - 1) vmemmap pages.
-  *
-  * Apart from the HugeTLB page of the pmd/pud level mapping, some architectures
-  * (e.g. aarch64) provides a contiguous bit in the translation table entries
-@@ -166,7 +166,13 @@
-  *
-  * The contiguous bit is used to increase the mapping size at the pmd and pte
-  * (last) level. So this type of HugeTLB page can be optimized only when its
-- * size of the struct page structs is greater than 2 pages.
-+ * size of the struct page structs is greater than 1 page.
-+ *
-+ * Notice: The head vmemmap page is not freed to the buddy allocator and all
-+ * tail vmemmap pages are mapped to the head vmemmap page frame. So we can see
-+ * more than one struct page struct with PG_head (e.g. 8 per 2 MB HugeTLB page)
-+ * associated with each HugeTLB page. The compound_head() can handle this
-+ * correctly (more details refer to the comment above compound_head()).
-  */
- #define pr_fmt(fmt)	"HugeTLB: " fmt
- 
-@@ -175,19 +181,21 @@
- /*
-  * There are a lot of struct page structures associated with each HugeTLB page.
-  * For tail pages, the value of compound_head is the same. So we can reuse first
-- * page of tail page structures. We map the virtual addresses of the remaining
-- * pages of tail page structures to the first tail page struct, and then free
-- * these page frames. Therefore, we need to reserve two pages as vmemmap areas.
-+ * page of head page structures. We map the virtual addresses of all the pages
-+ * of tail page structures to the head page struct, and then free these page
-+ * frames. Therefore, we need to reserve one pages as vmemmap areas.
-  */
--#define RESERVE_VMEMMAP_NR		2U
-+#define RESERVE_VMEMMAP_NR		1U
- #define RESERVE_VMEMMAP_SIZE		(RESERVE_VMEMMAP_NR << PAGE_SHIFT)
- 
--bool hugetlb_free_vmemmap_enabled = IS_ENABLED(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON);
-+bool hugetlb_free_vmemmap_enabled __read_mostly =
-+	IS_ENABLED(CONFIG_HUGETLB_PAGE_FREE_VMEMMAP_DEFAULT_ON);
-+EXPORT_SYMBOL(hugetlb_free_vmemmap_enabled);
- 
- static int __init early_hugetlb_free_vmemmap_param(char *buf)
- {
- 	/* We cannot optimize if a "struct page" crosses page boundaries. */
--	if ((!is_power_of_2(sizeof(struct page)))) {
-+	if (!is_power_of_2(sizeof(struct page))) {
- 		pr_warn("cannot free vmemmap pages because \"struct page\" crosses page boundaries\n");
- 		return 0;
+--- a/fs/ext4/extents.c~mm-introduce-memalloc_retry_wait
++++ a/fs/ext4/extents.c
+@@ -27,8 +27,8 @@
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
+ #include <linux/fiemap.h>
+-#include <linux/backing-dev.h>
+ #include <linux/iomap.h>
++#include <linux/sched/mm.h>
+ #include "ext4_jbd2.h"
+ #include "ext4_extents.h"
+ #include "xattr.h"
+@@ -4407,8 +4407,7 @@ retry:
+ 	err = ext4_es_remove_extent(inode, last_block,
+ 				    EXT_MAX_BLOCKS - last_block);
+ 	if (err == -ENOMEM) {
+-		cond_resched();
+-		congestion_wait(BLK_RW_ASYNC, HZ/50);
++		memalloc_retry_wait(GFP_ATOMIC);
+ 		goto retry;
  	}
-@@ -236,7 +244,6 @@ int alloc_huge_page_vmemmap(struct hstat
- 	 */
- 	ret = vmemmap_remap_alloc(vmemmap_addr, vmemmap_end, vmemmap_reuse,
- 				  GFP_KERNEL | __GFP_NORETRY | __GFP_THISNODE);
--
- 	if (!ret)
- 		ClearHPageVmemmapOptimized(head);
+ 	if (err)
+@@ -4416,8 +4415,7 @@ retry:
+ retry_remove_space:
+ 	err = ext4_ext_remove_space(inode, last_block, EXT_MAX_BLOCKS - 1);
+ 	if (err == -ENOMEM) {
+-		cond_resched();
+-		congestion_wait(BLK_RW_ASYNC, HZ/50);
++		memalloc_retry_wait(GFP_ATOMIC);
+ 		goto retry_remove_space;
+ 	}
+ 	return err;
+--- a/fs/ext4/inline.c~mm-introduce-memalloc_retry_wait
++++ a/fs/ext4/inline.c
+@@ -7,7 +7,7 @@
+ #include <linux/iomap.h>
+ #include <linux/fiemap.h>
+ #include <linux/iversion.h>
+-#include <linux/backing-dev.h>
++#include <linux/sched/mm.h>
  
-@@ -282,9 +289,8 @@ void __init hugetlb_vmemmap_init(struct
+ #include "ext4_jbd2.h"
+ #include "ext4.h"
+@@ -1929,8 +1929,7 @@ int ext4_inline_data_truncate(struct ino
+ retry:
+ 			err = ext4_es_remove_extent(inode, 0, EXT_MAX_BLOCKS);
+ 			if (err == -ENOMEM) {
+-				cond_resched();
+-				congestion_wait(BLK_RW_ASYNC, HZ/50);
++				memalloc_retry_wait(GFP_ATOMIC);
+ 				goto retry;
+ 			}
+ 			if (err)
+--- a/fs/ext4/page-io.c~mm-introduce-memalloc_retry_wait
++++ a/fs/ext4/page-io.c
+@@ -24,7 +24,7 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/mm.h>
+-#include <linux/backing-dev.h>
++#include <linux/sched/mm.h>
  
- 	vmemmap_pages = (nr_pages * sizeof(struct page)) >> PAGE_SHIFT;
- 	/*
--	 * The head page and the first tail page are not to be freed to buddy
--	 * allocator, the other pages will map to the first tail page, so they
--	 * can be freed.
-+	 * The head page is not to be freed to buddy allocator, the other tail
-+	 * pages will map to the head page, so they can be freed.
- 	 *
- 	 * Could RESERVE_VMEMMAP_NR be greater than @vmemmap_pages? It is true
- 	 * on some architectures (e.g. aarch64). See Documentation/arm64/
---- a/mm/sparse-vmemmap.c~mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page
-+++ a/mm/sparse-vmemmap.c
-@@ -245,6 +245,26 @@ static void vmemmap_remap_pte(pte_t *pte
- 	set_pte_at(&init_mm, addr, pte, entry);
+ #include "ext4_jbd2.h"
+ #include "xattr.h"
+@@ -523,12 +523,13 @@ int ext4_bio_write_page(struct ext4_io_s
+ 			ret = PTR_ERR(bounce_page);
+ 			if (ret == -ENOMEM &&
+ 			    (io->io_bio || wbc->sync_mode == WB_SYNC_ALL)) {
+-				gfp_flags = GFP_NOFS;
++				gfp_t new_gfp_flags = GFP_NOFS;
+ 				if (io->io_bio)
+ 					ext4_io_submit(io);
+ 				else
+-					gfp_flags |= __GFP_NOFAIL;
+-				congestion_wait(BLK_RW_ASYNC, HZ/50);
++					new_gfp_flags |= __GFP_NOFAIL;
++				memalloc_retry_wait(gfp_flags);
++				gfp_flags = new_gfp_flags;
+ 				goto retry_encrypt;
+ 			}
+ 
+--- a/fs/f2fs/data.c~mm-introduce-memalloc_retry_wait
++++ a/fs/f2fs/data.c
+@@ -8,9 +8,9 @@
+ #include <linux/fs.h>
+ #include <linux/f2fs_fs.h>
+ #include <linux/buffer_head.h>
++#include <linux/sched/mm.h>
+ #include <linux/mpage.h>
+ #include <linux/writeback.h>
+-#include <linux/backing-dev.h>
+ #include <linux/pagevec.h>
+ #include <linux/blkdev.h>
+ #include <linux/bio.h>
+@@ -2542,7 +2542,7 @@ retry_encrypt:
+ 		/* flush pending IOs and wait for a while in the ENOMEM case */
+ 		if (PTR_ERR(fio->encrypted_page) == -ENOMEM) {
+ 			f2fs_flush_merged_writes(fio->sbi);
+-			congestion_wait(BLK_RW_ASYNC, DEFAULT_IO_TIMEOUT);
++			memalloc_retry_wait(GFP_NOFS);
+ 			gfp_flags |= __GFP_NOFAIL;
+ 			goto retry_encrypt;
+ 		}
+--- a/fs/f2fs/gc.c~mm-introduce-memalloc_retry_wait
++++ a/fs/f2fs/gc.c
+@@ -7,7 +7,6 @@
+  */
+ #include <linux/fs.h>
+ #include <linux/module.h>
+-#include <linux/backing-dev.h>
+ #include <linux/init.h>
+ #include <linux/f2fs_fs.h>
+ #include <linux/kthread.h>
+@@ -15,6 +14,7 @@
+ #include <linux/freezer.h>
+ #include <linux/sched/signal.h>
+ #include <linux/random.h>
++#include <linux/sched/mm.h>
+ 
+ #include "f2fs.h"
+ #include "node.h"
+@@ -1375,8 +1375,7 @@ retry:
+ 		if (err) {
+ 			clear_page_private_gcing(page);
+ 			if (err == -ENOMEM) {
+-				congestion_wait(BLK_RW_ASYNC,
+-						DEFAULT_IO_TIMEOUT);
++				memalloc_retry_wait(GFP_NOFS);
+ 				goto retry;
+ 			}
+ 			if (is_dirty)
+--- a/fs/f2fs/inode.c~mm-introduce-memalloc_retry_wait
++++ a/fs/f2fs/inode.c
+@@ -8,8 +8,8 @@
+ #include <linux/fs.h>
+ #include <linux/f2fs_fs.h>
+ #include <linux/buffer_head.h>
+-#include <linux/backing-dev.h>
+ #include <linux/writeback.h>
++#include <linux/sched/mm.h>
+ 
+ #include "f2fs.h"
+ #include "node.h"
+@@ -562,7 +562,7 @@ retry:
+ 	inode = f2fs_iget(sb, ino);
+ 	if (IS_ERR(inode)) {
+ 		if (PTR_ERR(inode) == -ENOMEM) {
+-			congestion_wait(BLK_RW_ASYNC, DEFAULT_IO_TIMEOUT);
++			memalloc_retry_wait(GFP_NOFS);
+ 			goto retry;
+ 		}
+ 	}
+--- a/fs/f2fs/node.c~mm-introduce-memalloc_retry_wait
++++ a/fs/f2fs/node.c
+@@ -8,7 +8,7 @@
+ #include <linux/fs.h>
+ #include <linux/f2fs_fs.h>
+ #include <linux/mpage.h>
+-#include <linux/backing-dev.h>
++#include <linux/sched/mm.h>
+ #include <linux/blkdev.h>
+ #include <linux/pagevec.h>
+ #include <linux/swap.h>
+@@ -2750,7 +2750,7 @@ int f2fs_recover_inode_page(struct f2fs_
+ retry:
+ 	ipage = f2fs_grab_cache_page(NODE_MAPPING(sbi), ino, false);
+ 	if (!ipage) {
+-		congestion_wait(BLK_RW_ASYNC, DEFAULT_IO_TIMEOUT);
++		memalloc_retry_wait(GFP_NOFS);
+ 		goto retry;
+ 	}
+ 
+--- a/fs/f2fs/recovery.c~mm-introduce-memalloc_retry_wait
++++ a/fs/f2fs/recovery.c
+@@ -8,6 +8,7 @@
+ #include <asm/unaligned.h>
+ #include <linux/fs.h>
+ #include <linux/f2fs_fs.h>
++#include <linux/sched/mm.h>
+ #include "f2fs.h"
+ #include "node.h"
+ #include "segment.h"
+@@ -587,7 +588,7 @@ retry_dn:
+ 	err = f2fs_get_dnode_of_data(&dn, start, ALLOC_NODE);
+ 	if (err) {
+ 		if (err == -ENOMEM) {
+-			congestion_wait(BLK_RW_ASYNC, DEFAULT_IO_TIMEOUT);
++			memalloc_retry_wait(GFP_NOFS);
+ 			goto retry_dn;
+ 		}
+ 		goto out;
+@@ -670,8 +671,7 @@ retry_prev:
+ 			err = check_index_in_prev_nodes(sbi, dest, &dn);
+ 			if (err) {
+ 				if (err == -ENOMEM) {
+-					congestion_wait(BLK_RW_ASYNC,
+-							DEFAULT_IO_TIMEOUT);
++					memalloc_retry_wait(GFP_NOFS);
+ 					goto retry_prev;
+ 				}
+ 				goto err;
+--- a/fs/f2fs/segment.c~mm-introduce-memalloc_retry_wait
++++ a/fs/f2fs/segment.c
+@@ -9,6 +9,7 @@
+ #include <linux/f2fs_fs.h>
+ #include <linux/bio.h>
+ #include <linux/blkdev.h>
++#include <linux/sched/mm.h>
+ #include <linux/prefetch.h>
+ #include <linux/kthread.h>
+ #include <linux/swap.h>
+@@ -245,9 +246,7 @@ retry:
+ 								LOOKUP_NODE);
+ 			if (err) {
+ 				if (err == -ENOMEM) {
+-					congestion_wait(BLK_RW_ASYNC,
+-							DEFAULT_IO_TIMEOUT);
+-					cond_resched();
++					memalloc_retry_wait(GFP_NOFS);
+ 					goto retry;
+ 				}
+ 				err = -EAGAIN;
+@@ -424,9 +423,7 @@ retry:
+ 			err = f2fs_do_write_data_page(&fio);
+ 			if (err) {
+ 				if (err == -ENOMEM) {
+-					congestion_wait(BLK_RW_ASYNC,
+-							DEFAULT_IO_TIMEOUT);
+-					cond_resched();
++					memalloc_retry_wait(GFP_NOFS);
+ 					goto retry;
+ 				}
+ 				unlock_page(page);
+--- a/fs/f2fs/super.c~mm-introduce-memalloc_retry_wait
++++ a/fs/f2fs/super.c
+@@ -8,9 +8,9 @@
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/fs.h>
++#include <linux/sched/mm.h>
+ #include <linux/statfs.h>
+ #include <linux/buffer_head.h>
+-#include <linux/backing-dev.h>
+ #include <linux/kthread.h>
+ #include <linux/parser.h>
+ #include <linux/mount.h>
+@@ -2415,8 +2415,7 @@ repeat:
+ 		page = read_cache_page_gfp(mapping, blkidx, GFP_NOFS);
+ 		if (IS_ERR(page)) {
+ 			if (PTR_ERR(page) == -ENOMEM) {
+-				congestion_wait(BLK_RW_ASYNC,
+-						DEFAULT_IO_TIMEOUT);
++				memalloc_retry_wait(GFP_NOFS);
+ 				goto repeat;
+ 			}
+ 			set_sbi_flag(F2FS_SB(sb), SBI_QUOTA_NEED_REPAIR);
+--- a/fs/xfs/kmem.c~mm-introduce-memalloc_retry_wait
++++ a/fs/xfs/kmem.c
+@@ -4,7 +4,6 @@
+  * All Rights Reserved.
+  */
+ #include "xfs.h"
+-#include <linux/backing-dev.h>
+ #include "xfs_message.h"
+ #include "xfs_trace.h"
+ 
+@@ -26,6 +25,6 @@ kmem_alloc(size_t size, xfs_km_flags_t f
+ 	"%s(%u) possible memory allocation deadlock size %u in %s (mode:0x%x)",
+ 				current->comm, current->pid,
+ 				(unsigned int)size, __func__, lflags);
+-		congestion_wait(BLK_RW_ASYNC, HZ/50);
++		memalloc_retry_wait(lflags);
+ 	} while (1);
  }
+--- a/fs/xfs/xfs_buf.c~mm-introduce-memalloc_retry_wait
++++ a/fs/xfs/xfs_buf.c
+@@ -394,7 +394,7 @@ xfs_buf_alloc_pages(
+ 		}
  
-+/*
-+ * How many struct page structs need to be reset. When we reuse the head
-+ * struct page, the special metadata (e.g. page->flags or page->mapping)
-+ * cannot copy to the tail struct page structs. The invalid value will be
-+ * checked in the free_tail_pages_check(). In order to avoid the message
-+ * of "corrupted mapping in tail page". We need to reset at least 3 (one
-+ * head struct page struct and two tail struct page structs) struct page
-+ * structs.
+ 		XFS_STATS_INC(bp->b_mount, xb_page_retries);
+-		congestion_wait(BLK_RW_ASYNC, HZ / 50);
++		memalloc_retry_wait(gfp_mask);
+ 	}
+ 	return 0;
+ }
+--- a/include/linux/sched/mm.h~mm-introduce-memalloc_retry_wait
++++ a/include/linux/sched/mm.h
+@@ -214,6 +214,32 @@ static inline void fs_reclaim_acquire(gf
+ static inline void fs_reclaim_release(gfp_t gfp_mask) { }
+ #endif
+ 
++/* Any memory-allocation retry loop should use
++ * memalloc_retry_wait(), and pass the flags for the most
++ * constrained allocation attempt that might have failed.
++ * This provides useful documentation of where loops are,
++ * and a central place to fine tune the waiting as the MM
++ * implementation changes.
 + */
-+#define NR_RESET_STRUCT_PAGE		3
-+
-+static inline void reset_struct_pages(struct page *start)
++static inline void memalloc_retry_wait(gfp_t gfp_flags)
 +{
-+	int i;
-+	struct page *from = start + NR_RESET_STRUCT_PAGE;
-+
-+	for (i = 0; i < NR_RESET_STRUCT_PAGE; i++)
-+		memcpy(start + i, from, sizeof(*from));
++	/* We use io_schedule_timeout because waiting for memory
++	 * typically included waiting for dirty pages to be
++	 * written out, which requires IO.
++	 */
++	__set_current_state(TASK_UNINTERRUPTIBLE);
++	gfp_flags = current_gfp_context(gfp_flags);
++	if (gfpflags_allow_blocking(gfp_flags) &&
++	    !(gfp_flags & __GFP_NORETRY))
++		/* Probably waited already, no need for much more */
++		io_schedule_timeout(1);
++	else
++		/* Probably didn't wait, and has now released a lock,
++		 * so now is a good time to wait
++		 */
++		io_schedule_timeout(HZ/50);
 +}
 +
- static void vmemmap_restore_pte(pte_t *pte, unsigned long addr,
- 				struct vmemmap_remap_walk *walk)
- {
-@@ -258,6 +278,7 @@ static void vmemmap_restore_pte(pte_t *p
- 	list_del(&page->lru);
- 	to = page_to_virt(page);
- 	copy_page(to, (void *)walk->reuse_addr);
-+	reset_struct_pages(to);
+ /**
+  * might_alloc - Mark possible allocation sites
+  * @gfp_mask: gfp_t flags that would be used to allocate
+--- a/net/sunrpc/svc_xprt.c~mm-introduce-memalloc_retry_wait
++++ a/net/sunrpc/svc_xprt.c
+@@ -6,6 +6,7 @@
+  */
  
- 	set_pte_at(&init_mm, addr, pte, mk_pte(page, pgprot));
- }
+ #include <linux/sched.h>
++#include <linux/sched/mm.h>
+ #include <linux/errno.h>
+ #include <linux/freezer.h>
+ #include <linux/kthread.h>
+@@ -688,7 +689,7 @@ static int svc_alloc_arg(struct svc_rqst
+ 			return -EINTR;
+ 		}
+ 		trace_svc_alloc_arg_err(pages);
+-		schedule_timeout(msecs_to_jiffies(500));
++		memalloc_retry_wait(GFP_KERNEL);
+ 	}
+ 	rqstp->rq_page_end = &rqstp->rq_pages[pages];
+ 	rqstp->rq_pages[pages] = NULL; /* this might be seen in nfsd_splice_actor() */
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from neilb@suse.de are
 
-mm-slab-make-slab-iterator-functions-static.patch
-mm-memcontrol-make-cgroup_memory_nokmem-static.patch
-mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page.patch
-mm-hugetlb-replace-hugetlb_free_vmemmap_enabled-with-a-static_key.patch
-mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
-selftests-vm-add-a-hugetlb-test-case.patch
-mm-sparsemem-move-vmemmap-related-to-hugetlb-to-config_hugetlb_page_free_vmemmap.patch
-fs-proc-store-pde-data-into-inode-i_private.patch
-fs-proc-replace-pde_datainode-with-inode-i_private.patch
-fs-proc-remove-pde_data.patch
-fs-proc-use-define_proc_show_attribute-to-simplify-the-code.patch
+mm-discard-__gfp_atomic.patch
+mm-introduce-memalloc_retry_wait.patch
 
