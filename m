@@ -2,32 +2,31 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 520ADC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 22:08:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4CC2C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 22:09:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244154AbhKXWLR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Nov 2021 17:11:17 -0500
-Received: from mail.kernel.org ([198.145.29.99]:32984 "EHLO mail.kernel.org"
+        id S242219AbhKXWMU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Nov 2021 17:12:20 -0500
+Received: from mail.kernel.org ([198.145.29.99]:33410 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S1345028AbhKXWLM (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Nov 2021 17:11:12 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B9FBA61039;
-        Wed, 24 Nov 2021 22:08:01 +0000 (UTC)
+        id S234403AbhKXWMU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Nov 2021 17:12:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id AF67860C4A;
+        Wed, 24 Nov 2021 22:09:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637791681;
-        bh=IEpAWCCaZJ1dRqScNYUjWaq1hBEkmkYx6o30QPsW4i0=;
+        s=korg; t=1637791749;
+        bh=efxszxEKrtha7qwpQ1I2IkFFyfehLPB7eLFwoA1OZgw=;
         h=Date:From:To:Subject:From;
-        b=M2F8UdDgk+bmERjbBRDxdgYP6CF3yu2Dn5kji2TUTJSiuld+A6lDXTvzV/822waQQ
-         vqVN3go0nhVX2nq+dOsNeCADQKf/hcGEYzRG1cvqC2MXwbUDM4yPSWw9osAuTHYVon
-         tzB1Ww/iIpjth7B2DpqWi1+DJ8OGKWV2tJbN6OBs=
-Date:   Wed, 24 Nov 2021 14:08:01 -0800
+        b=12Mhpm900hzCsIXIZnbqYPzi2x5hItwDg/kwYgmYBIbsuDiQGH7TrL0jq7eXGiDkj
+         iTr1EOfYPiLmlqj6onOVKn+FEb3JL9mDv3VawQOnyXtHYueoyL5Y4lYJao/wl1eH3w
+         zWlrttmwQUbgF12kQoHxszZbBfTm4N3iKeqlZrZk=
+Date:   Wed, 24 Nov 2021 14:09:09 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
-        nixiaoming@huawei.com, surenb@google.com
+To:     jack@suse.cz, mcgrof@kernel.org, mm-commits@vger.kernel.org
 Subject:  +
- sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+ inotify-simplify-subdirectory-registration-with-register_sysctl-fix.patch
  added to -mm tree
-Message-ID: <20211124220801.ip01WsWPQ%akpm@linux-foundation.org>
+Message-ID: <20211124220909.SFQ1gvukm%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -36,14 +35,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix
+     Subject: inotify-simplify-subdirectory-registration-with-register_sysctl-fix
 has been added to the -mm tree.  Its filename is
-     sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+     inotify-simplify-subdirectory-registration-with-register_sysctl-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/inotify-simplify-subdirectory-registration-with-register_sysctl-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/inotify-simplify-subdirectory-registration-with-register_sysctl-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -57,76 +56,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: inotify-simplify-subdirectory-registration-with-register_sysctl-fix
 
-update it for "mm/pagealloc: sysctl: change watermark_scale_factor max
-limit to 30%".
+remember to register fanotify_table
 
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
+Link: https://lkml.kernel.org/r/YZ5A6iWLb0h3N3RC@bombadil.infradead.org
+Reported-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c  |    2 +-
- include/linux/sysctl.h |    3 ++-
- kernel/sysctl.c        |    3 +--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ fs/notify/fanotify/fanotify_user.c |   10 +++++++++-
+ include/linux/fanotify.h           |    2 --
+ 2 files changed, 9 insertions(+), 3 deletions(-)
 
---- a/fs/proc/proc_sysctl.c~sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix
-+++ a/fs/proc/proc_sysctl.c
-@@ -26,7 +26,7 @@ static const struct file_operations proc
- static const struct inode_operations proc_sys_dir_operations;
+--- a/fs/notify/fanotify/fanotify_user.c~inotify-simplify-subdirectory-registration-with-register_sysctl-fix
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -59,7 +59,7 @@ static int fanotify_max_queued_events __
+ static long ft_zero = 0;
+ static long ft_int_max = INT_MAX;
  
- /* shared constants to be used in various sysctls */
--const int sysctl_vals[] = { -1, 0, 1, 2, 4, 100, 200, 1000, INT_MAX };
-+const int sysctl_vals[] = { -1, 0, 1, 2, 4, 100, 200, 1000, 3000, INT_MAX };
- EXPORT_SYMBOL(sysctl_vals);
- 
- /* Support for permanently empty directories */
---- a/include/linux/sysctl.h~sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix
-+++ a/include/linux/sysctl.h
-@@ -46,7 +46,8 @@ struct ctl_dir;
- #define SYSCTL_ONE_HUNDRED		((void *)&sysctl_vals[5])
- #define SYSCTL_TWO_HUNDRED		((void *)&sysctl_vals[6])
- #define SYSCTL_ONE_THOUSAND		((void *)&sysctl_vals[7])
--#define SYSCTL_INT_MAX			((void *)&sysctl_vals[8])
-+#define SYSCTL_THREE_THOUSAND		((void *)&sysctl_vals[8])
-+#define SYSCTL_INT_MAX			((void *)&sysctl_vals[9])
- 
- extern const int sysctl_vals[];
- 
---- a/kernel/sysctl.c~sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix
-+++ a/kernel/sysctl.c
-@@ -116,7 +116,6 @@ static int sixty = 60;
- static unsigned long zero_ul;
- static unsigned long one_ul = 1;
- static unsigned long long_max = LONG_MAX;
--static int three_thousand = 3000;
- #ifdef CONFIG_PRINTK
- static int ten_thousand = 10000;
- #endif
-@@ -2954,7 +2953,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= watermark_scale_factor_sysctl_handler,
- 		.extra1		= SYSCTL_ONE,
--		.extra2		= &three_thousand,
-+		.extra2		= SYSCTL_THREE_THOUSAND,
- 	},
+-struct ctl_table fanotify_table[] = {
++static struct ctl_table fanotify_table[] = {
  	{
- 		.procname	= "percpu_pagelist_high_fraction",
+ 		.procname	= "max_user_groups",
+ 		.data	= &init_user_ns.ucount_max[UCOUNT_FANOTIFY_GROUPS],
+@@ -88,6 +88,13 @@ struct ctl_table fanotify_table[] = {
+ 	},
+ 	{ }
+ };
++
++static void __init fanotify_sysctls_init(void)
++{
++	register_sysctl("fs/fanotify", fanotify_table);
++}
++#else
++#define fanotify_sysctls_init() do { } while (0)
+ #endif /* CONFIG_SYSCTL */
+ 
+ /*
+@@ -1685,6 +1692,7 @@ static int __init fanotify_user_setup(vo
+ 	init_user_ns.ucount_max[UCOUNT_FANOTIFY_GROUPS] =
+ 					FANOTIFY_DEFAULT_MAX_GROUPS;
+ 	init_user_ns.ucount_max[UCOUNT_FANOTIFY_MARKS] = max_marks;
++	fanotify_sysctls_init();
+ 
+ 	return 0;
+ }
+--- a/include/linux/fanotify.h~inotify-simplify-subdirectory-registration-with-register_sysctl-fix
++++ a/include/linux/fanotify.h
+@@ -5,8 +5,6 @@
+ #include <linux/sysctl.h>
+ #include <uapi/linux/fanotify.h>
+ 
+-extern struct ctl_table fanotify_table[]; /* for sysctl */
+-
+ #define FAN_GROUP_FLAG(group, flag) \
+ 	((group)->fanotify_data.flags & (flag))
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
-kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
-mm.patch
-mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-proc-make-the-proc_create-stubs-static-inlines-fix.patch
-panic-use-error_report_end-tracepoint-on-warnings-fix.patch
-linux-next-git-rejects.patch
-sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+zram-use-attribute_groups.patch
+hpet-simplify-subdirectory-registration-with-register_sysctl.patch
+i915-simplify-subdirectory-registration-with-register_sysctl.patch
+macintosh-mac_hidc-simplify-subdirectory-registration-with-register_sysctl.patch
+ocfs2-simplify-subdirectory-registration-with-register_sysctl.patch
+test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
+inotify-simplify-subdirectory-registration-with-register_sysctl-fix.patch
+cdrom-simplify-subdirectory-registration-with-register_sysctl.patch
 
