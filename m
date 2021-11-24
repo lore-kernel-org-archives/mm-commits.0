@@ -2,33 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 44ECDC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 23 Nov 2021 22:46:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4526C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:01:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239209AbhKWWtU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 17:49:20 -0500
-Received: from mail.kernel.org ([198.145.29.99]:51620 "EHLO mail.kernel.org"
+        id S235813AbhKXAEl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 19:04:41 -0500
+Received: from mail.kernel.org ([198.145.29.99]:46318 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239245AbhKWWtS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 17:49:18 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id AC52860E0B;
-        Tue, 23 Nov 2021 22:46:09 +0000 (UTC)
+        id S232501AbhKXAEl (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 19:04:41 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 040D26101D;
+        Wed, 24 Nov 2021 00:01:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637707569;
-        bh=sCltMwsHLR4aRFO4J/uczcN9/JuobhCDzvWHbg2pwdA=;
+        s=korg; t=1637712092;
+        bh=ADnHoiltJzlhABOuRgxi/wByb9RdFwQZYDoWpq+B0w4=;
         h=Date:From:To:Subject:From;
-        b=hm1ozpgA+3Ao29WELnWwxQnCzvaSbTnOyyWfxE2L8scLSrrNfZ1U3zCqVas3LvxHs
-         i4JIlucpWkk4YkJMxYan7by6NwF8rZmX2MuRvRumzya370FbGG5uOUZ4cRQmw5J85o
-         tw8I2h8KhNVtsVC6XXsCCNDaF3Fdy2qsZqtmfNig=
-Date:   Tue, 23 Nov 2021 14:46:09 -0800
+        b=eGaLywEPGaiUwp9pfYY0LdS88tUqFkajcHwYNMagPSDLWCp2gA5F4TK1WkcGtgvuS
+         t7A5tRPwUGO4jI74njkE6ZmBiIsL6HZxR76T8bhHZzpMlm98r70zjGjasyCOxcW9am
+         Q2OojywQU7buYglGehp2JUNsYrCvfPwHj8CZbum8=
+Date:   Tue, 23 Nov 2021 16:01:31 -0800
 From:   akpm@linux-foundation.org
-To:     bhe@redhat.com, david@redhat.com, dyoung@redhat.com,
-        mm-commits@vger.kernel.org, prudo@redhat.com,
-        stable@vger.kernel.org, vgoyal@redhat.com
-Subject:  [merged]
- proc-vmcore-fix-clearing-user-buffer-by-properly-using-clear_user.patch
- removed from -mm tree
-Message-ID: <20211123224609.H8PrpJStI%akpm@linux-foundation.org>
+To:     aneesh.kumar@linux.ibm.com, corbet@lwn.net,
+        dave.hansen@linux.intel.com, frederic@kernel.org,
+        gthelen@google.com, hpa@zytor.com, keescook@chromium.org,
+        masahiroy@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
+        pasha.tatashin@soleen.com, peterz@infradead.org, pjt@google.com,
+        rientjes@google.com, rppt@kernel.org, samitolvanen@google.com,
+        tglx@linutronix.de, weixugc@google.com, will@kernel.org
+Subject:  + mm-ptep_clear-page-table-helper.patch added to -mm tree
+Message-ID: <20211124000131.GraRNcgxy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -37,119 +39,175 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc/vmcore: fix clearing user buffer by properly using clear_user()
-has been removed from the -mm tree.  Its filename was
-     proc-vmcore-fix-clearing-user-buffer-by-properly-using-clear_user.patch
+     Subject: mm: ptep_clear() page table helper
+has been added to the -mm tree.  Its filename is
+     mm-ptep_clear-page-table-helper.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-ptep_clear-page-table-helper.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-ptep_clear-page-table-helper.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: David Hildenbrand <david@redhat.com>
-Subject: proc/vmcore: fix clearing user buffer by properly using clear_user()
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: mm: ptep_clear() page table helper
 
-To clear a user buffer we cannot simply use memset, we have to use
-clear_user().  With a virtio-mem device that registers a vmcore_cb and has
-some logically unplugged memory inside an added Linux memory block, I can
-easily trigger a BUG by copying the vmcore via "cp":
+Patch series "page table check".
 
-[   11.327580] systemd[1]: Starting Kdump Vmcore Save Service...
-[   11.339697] kdump[420]: Kdump is using the default log level(3).
-[   11.370964] kdump[453]: saving to /sysroot/var/crash/127.0.0.1-2021-11-11-14:59:22/
-[   11.373997] kdump[458]: saving vmcore-dmesg.txt to /sysroot/var/crash/127.0.0.1-2021-11-11-14:59:22/
-[   11.385357] kdump[465]: saving vmcore-dmesg.txt complete
-[   11.386722] kdump[467]: saving vmcore
-[   16.531275] BUG: unable to handle page fault for address: 00007f2374e01000
-[   16.531705] #PF: supervisor write access in kernel mode
-[   16.532037] #PF: error_code(0x0003) - permissions violation
-[   16.532396] PGD 7a523067 P4D 7a523067 PUD 7a528067 PMD 7a525067 PTE 800000007048f867
-[   16.532872] Oops: 0003 [#1] PREEMPT SMP NOPTI
-[   16.533154] CPU: 0 PID: 468 Comm: cp Not tainted 5.15.0+ #6
-[   16.533513] Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.14.0-27-g64f37cc530f1-prebuilt.qemu.org 04/01/2014
-[   16.534198] RIP: 0010:read_from_oldmem.part.0.cold+0x1d/0x86
-[   16.534552] Code: ff ff ff e8 05 ff fe ff e9 b9 e9 7f ff 48 89 de 48 c7 c7 38 3b 60 82 e8 f1 fe fe ff 83 fd 08 72 3c 49 8d 7d 08 4c 89 e9 89 e8 <49> c7 45 00 00 00 00 00 49 c7 44 05 f8 00 00 00 00 48 83 e7 f81
-[   16.535670] RSP: 0018:ffffc9000073be08 EFLAGS: 00010212
-[   16.535998] RAX: 0000000000001000 RBX: 00000000002fd000 RCX: 00007f2374e01000
-[   16.536441] RDX: 0000000000000001 RSI: 00000000ffffdfff RDI: 00007f2374e01008
-[   16.536878] RBP: 0000000000001000 R08: 0000000000000000 R09: ffffc9000073bc50
-[   16.537315] R10: ffffc9000073bc48 R11: ffffffff829461a8 R12: 000000000000f000
-[   16.537755] R13: 00007f2374e01000 R14: 0000000000000000 R15: ffff88807bd421e8
-[   16.538200] FS:  00007f2374e12140(0000) GS:ffff88807f000000(0000) knlGS:0000000000000000
-[   16.538696] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   16.539055] CR2: 00007f2374e01000 CR3: 000000007a4aa000 CR4: 0000000000350eb0
-[   16.539510] Call Trace:
-[   16.539679]  <TASK>
-[   16.539828]  read_vmcore+0x236/0x2c0
-[   16.540063]  ? enqueue_hrtimer+0x2f/0x80
-[   16.540323]  ? inode_security+0x22/0x60
-[   16.540572]  proc_reg_read+0x55/0xa0
-[   16.540807]  vfs_read+0x95/0x190
-[   16.541022]  ksys_read+0x4f/0xc0
-[   16.541238]  do_syscall_64+0x3b/0x90
-[   16.541475]  entry_SYSCALL_64_after_hwframe+0x44/0xae
+Ensure that some memory corruptions are prevented by checking at the time
+of insertion of entries into user page tables that there is no illegal
+sharing.
 
-Some x86-64 CPUs have a CPU feature called "Supervisor Mode Access
-Prevention (SMAP)", which is used to detect wrong access from the kernel
-to user buffers like this: SMAP triggers a permissions violation on wrong
-access.  In the x86-64 variant of clear_user(), SMAP is properly handled
-via clac()+stac().
+We have recently found a problem [1] that existed in kernel since 4.14. 
+The problem was caused by broken page ref count and led to memory leaking
+from one process into another.  The problem was accidentally detected by
+studying a dump of one process and noticing that one page contains memory
+that should not belong to this process.
 
-To fix, properly use clear_user() when we're dealing with a user buffer.
+There are some other page->_refcount related problems that were recently
+fixed: [2], [3] which potentially could also lead to illegal sharing.
 
-Link: https://lkml.kernel.org/r/20211112092750.6921-1-david@redhat.com
-Fixes: 997c136f518c ("fs/proc/vmcore.c: add hook to read_from_oldmem() to check for non-ram pages")
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Philipp Rudo <prudo@redhat.com>
-Cc: <stable@vger.kernel.org>
+In addition to hardening refcount [4] itself, this work is an attempt to
+prevent this class of memory corruption issues.
+
+It uses a simple state machine that is independent from regular MM logic
+to check for illegal sharing at time pages are inserted and removed from
+page tables.
+
+[1] https://lore.kernel.org/all/xr9335nxwc5y.fsf@gthelen2.svl.corp.google.com
+[2] https://lore.kernel.org/all/1582661774-30925-2-git-send-email-akaher@vmware.com
+[3] https://lore.kernel.org/all/20210622021423.154662-3-mike.kravetz@oracle.com
+[4] https://lore.kernel.org/all/20211026173822.502506-1-pasha.tatashin@soleen.com
+
+
+This patch (of 3):
+
+We have ptep_get_and_clear() and ptep_get_and_clear_full() helpers to
+clear PTE from user page tables, but there is no variant for simple clear
+of a present PTE from user page tables without using a low level
+pte_clear() which can be either native or para-virtualised.
+
+Add a new ptep_clear() that can be used in common code to clear PTEs from
+page table.  We will need this call later in order to add a hook for page
+table check.
+
+Link: https://lkml.kernel.org/r/20211123214814.3756047-1-pasha.tatashin@soleen.com
+Link: https://lkml.kernel.org/r/20211123214814.3756047-2-pasha.tatashin@soleen.com
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Paul Turner <pjt@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Will Deacon <will@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Sami Tolvanen <samitolvanen@google.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Frederic Weisbecker <frederic@kernel.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   20 ++++++++++++--------
- 1 file changed, 12 insertions(+), 8 deletions(-)
+ Documentation/vm/arch_pgtable_helpers.rst |    6 ++++--
+ include/linux/pgtable.h                   |    8 ++++++++
+ mm/debug_vm_pgtable.c                     |    2 +-
+ mm/khugepaged.c                           |   12 ++----------
+ 4 files changed, 15 insertions(+), 13 deletions(-)
 
---- a/fs/proc/vmcore.c~proc-vmcore-fix-clearing-user-buffer-by-properly-using-clear_user
-+++ a/fs/proc/vmcore.c
-@@ -154,9 +154,13 @@ ssize_t read_from_oldmem(char *buf, size
- 			nr_bytes = count;
+--- a/Documentation/vm/arch_pgtable_helpers.rst~mm-ptep_clear-page-table-helper
++++ a/Documentation/vm/arch_pgtable_helpers.rst
+@@ -66,9 +66,11 @@ PTE Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pte_mknotpresent          | Invalidates a mapped PTE                         |
+ +---------------------------+--------------------------------------------------+
+-| ptep_get_and_clear        | Clears a PTE                                     |
++| ptep_clear                | Clears a PTE                                     |
+ +---------------------------+--------------------------------------------------+
+-| ptep_get_and_clear_full   | Clears a PTE                                     |
++| ptep_get_and_clear        | Clears and returns PTE                           |
+++---------------------------+--------------------------------------------------+
++| ptep_get_and_clear_full   | Clears and returns PTE (batched PTE unmap)       |
+ +---------------------------+--------------------------------------------------+
+ | ptep_test_and_clear_young | Clears young from a PTE                          |
+ +---------------------------+--------------------------------------------------+
+--- a/include/linux/pgtable.h~mm-ptep_clear-page-table-helper
++++ a/include/linux/pgtable.h
+@@ -258,6 +258,14 @@ static inline int pmdp_clear_flush_young
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
  
- 		/* If pfn is not ram, return zeros for sparse dump files */
--		if (!pfn_is_ram(pfn))
--			memset(buf, 0, nr_bytes);
--		else {
-+		if (!pfn_is_ram(pfn)) {
-+			tmp = 0;
-+			if (!userbuf)
-+				memset(buf, 0, nr_bytes);
-+			else if (clear_user(buf, nr_bytes))
-+				tmp = -EFAULT;
-+		} else {
- 			if (encrypted)
- 				tmp = copy_oldmem_page_encrypted(pfn, buf,
- 								 nr_bytes,
-@@ -165,12 +169,12 @@ ssize_t read_from_oldmem(char *buf, size
- 			else
- 				tmp = copy_oldmem_page(pfn, buf, nr_bytes,
- 						       offset, userbuf);
--
--			if (tmp < 0) {
--				up_read(&vmcore_cb_rwsem);
--				return tmp;
--			}
- 		}
-+		if (tmp < 0) {
-+			up_read(&vmcore_cb_rwsem);
-+			return tmp;
-+		}
++#ifndef __HAVE_ARCH_PTEP_CLEAR
++static inline void ptep_clear(struct mm_struct *mm, unsigned long addr,
++			      pte_t *ptep)
++{
++	pte_clear(mm, addr, ptep);
++}
++#endif
 +
- 		*ppos += nr_bytes;
- 		count -= nr_bytes;
- 		buf += nr_bytes;
+ #ifndef __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long address,
+--- a/mm/debug_vm_pgtable.c~mm-ptep_clear-page-table-helper
++++ a/mm/debug_vm_pgtable.c
+@@ -652,7 +652,7 @@ static void __init pte_clear_tests(struc
+ 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
+ 	flush_dcache_page(page);
+ 	barrier();
+-	pte_clear(args->mm, args->vaddr, args->ptep);
++	ptep_clear(args->mm, args->vaddr, args->ptep);
+ 	pte = ptep_get(args->ptep);
+ 	WARN_ON(!pte_none(pte));
+ }
+--- a/mm/khugepaged.c~mm-ptep_clear-page-table-helper
++++ a/mm/khugepaged.c
+@@ -756,11 +756,7 @@ static void __collapse_huge_page_copy(pt
+ 				 * ptl mostly unnecessary.
+ 				 */
+ 				spin_lock(ptl);
+-				/*
+-				 * paravirt calls inside pte_clear here are
+-				 * superfluous.
+-				 */
+-				pte_clear(vma->vm_mm, address, _pte);
++				ptep_clear(vma->vm_mm, address, _pte);
+ 				spin_unlock(ptl);
+ 			}
+ 		} else {
+@@ -774,11 +770,7 @@ static void __collapse_huge_page_copy(pt
+ 			 * inside page_remove_rmap().
+ 			 */
+ 			spin_lock(ptl);
+-			/*
+-			 * paravirt calls inside pte_clear here are
+-			 * superfluous.
+-			 */
+-			pte_clear(vma->vm_mm, address, _pte);
++			ptep_clear(vma->vm_mm, address, _pte);
+ 			page_remove_rmap(src_page, false);
+ 			spin_unlock(ptl);
+ 			free_page_and_swap_cache(src_page);
 _
 
-Patches currently in -mm which might be from david@redhat.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-proc-vmcore-dont-fake-reading-zeroes-on-surprise-vmcore_cb-unregistration.patch
+mm-ptep_clear-page-table-helper.patch
+mm-page-table-check.patch
+x86-mm-add-x86_64-support-for-page-table-check.patch
 
