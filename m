@@ -2,25 +2,25 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C79DFC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 03:32:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47568C4332F
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 03:32:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240278AbhKXDfc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 22:35:32 -0500
-Received: from mail.kernel.org ([198.145.29.99]:55286 "EHLO mail.kernel.org"
+        id S240336AbhKXDfd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 22:35:33 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55320 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S239950AbhKXDfb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 22:35:31 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 3BC0C60F50;
-        Wed, 24 Nov 2021 03:32:20 +0000 (UTC)
+        id S239950AbhKXDfc (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 22:35:32 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 0E37360E8E;
+        Wed, 24 Nov 2021 03:32:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637724740;
-        bh=bSDJSer4Qx25PDw1oI4HD3g0mDzOeM8Y1GagEA3WpwI=;
+        s=korg; t=1637724743;
+        bh=8VKc9ibjIFQNCpkF8Vt+L18zdBGsH9hZlXJLTcPJS2s=;
         h=Date:From:To:Subject:From;
-        b=TO86YZEpYevCXLZF+tl3Au7mblGxYdKMyLiWu8jpBpN2FXGt+OGqdJvL+FarHhbuX
-         oWC3OPuRpih2b/OyK+ZDibo/J8ieWPPG5/iPrlFpJBd377S/HFAMAnqUknOFaFivgE
-         Ku9Tq68eejlZcFNzKYYoUu5xvSZ7mSeV6PYF5Ngk=
-Date:   Tue, 23 Nov 2021 19:32:19 -0800
+        b=WK3h4x0pOse4nrEuNXzQjFAL253c9AsfyWl6utlb/1bXpdyoB2MQSj9/6VD38rGEI
+         XydOBW1WkefPXLk5REb/B4MUJmD/lBd4G2oKooinP3kU8DV/RzAsbw/S2zCTGi/5R6
+         lFS4ml0B+tzKoHNxxhZEnhboI8qBiQDMDBBhGl5Q=
+Date:   Tue, 23 Nov 2021 19:32:22 -0800
 From:   akpm@linux-foundation.org
 To:     alexei.starovoitov@gmail.com, andrii.nakryiko@gmail.com,
         andrii@kernel.org, arnaldo.melo@gmail.com, david@redhat.com,
@@ -30,9 +30,9 @@ To:     alexei.starovoitov@gmail.com, andrii.nakryiko@gmail.com,
         peterz@infradead.org, pmladek@suse.com, rostedt@goodmis.org,
         viro@zeniv.linux.org.uk, willy@infradead.org
 Subject:  +
- fs-exec-replace-strlcpy-with-strscpy_pad-in-__set_task_comm.patch added to
+ fs-exec-replace-strncpy-with-strscpy_pad-in-__get_task_comm.patch added to
  -mm tree
-Message-ID: <20211124033219.vqqWKRZ27%akpm@linux-foundation.org>
+Message-ID: <20211124033222.ztC0Z4cF9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/exec: replace strlcpy with strscpy_pad in __set_task_comm
+     Subject: fs/exec: replace strncpy with strscpy_pad in __get_task_comm
 has been added to the -mm tree.  Its filename is
-     fs-exec-replace-strlcpy-with-strscpy_pad-in-__set_task_comm.patch
+     fs-exec-replace-strncpy-with-strscpy_pad-in-__get_task_comm.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-exec-replace-strlcpy-with-strscpy_pad-in-__set_task_comm.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-exec-replace-strncpy-with-strscpy_pad-in-__get_task_comm.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-exec-replace-strlcpy-with-strscpy_pad-in-__set_task_comm.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-exec-replace-strncpy-with-strscpy_pad-in-__get_task_comm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,35 +63,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yafang Shao <laoar.shao@gmail.com>
-Subject: fs/exec: replace strlcpy with strscpy_pad in __set_task_comm
+Subject: fs/exec: replace strncpy with strscpy_pad in __get_task_comm
 
-Patch series "task comm cleanups", v2.
+If the dest buffer size is smaller than sizeof(tsk->comm), the buffer will
+be without null ternimator, that may cause problem.  Using strscpy_pad()
+instead of strncpy() in __get_task_comm() can make the string always nul
+ternimated and zero padded.
 
-This patchset is part of the patchset "extend task comm from 16 to 24"[1].
-Now we have different opinion that dynamically allocates memory to store
-kthread's long name into a separate pointer, so I decide to take the
-useful cleanups apart from the original patchset and send it
-separately[2].
-
-These useful cleanups can make the usage around task comm less
-error-prone.  Furthermore, it will be useful if we want to extend task
-comm in the future.
-
-[1]. https://lore.kernel.org/lkml/20211101060419.4682-1-laoar.shao@gmail.com/
-[2]. https://lore.kernel.org/lkml/CALOAHbAx55AUo3bm8ZepZSZnw7A08cvKPdPyNTf=E_tPqmw5hw@mail.gmail.com/
-
-
-This patch (of 7):
-
-strlcpy() can trigger out-of-bound reads on the source string[1], we'd
-better use strscpy() instead.  To make it be robust against full tsk->comm
-copies that got noticed in other places, we should make sure it's zero
-padded.
-
-[1] https://github.com/KSPP/linux/issues/89
-
-Link: https://lkml.kernel.org/r/20211120112738.45980-1-laoar.shao@gmail.com
-Link: https://lkml.kernel.org/r/20211120112738.45980-2-laoar.shao@gmail.com
+Link: https://lkml.kernel.org/r/20211120112738.45980-3-laoar.shao@gmail.com
+Suggested-by: Kees Cook <keescook@chromium.org>
+Suggested-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
 Reviewed-by: Kees Cook <keescook@chromium.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
@@ -112,19 +93,20 @@ Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exec.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/exec.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/fs/exec.c~fs-exec-replace-strlcpy-with-strscpy_pad-in-__set_task_comm
+--- a/fs/exec.c~fs-exec-replace-strncpy-with-strscpy_pad-in-__get_task_comm
 +++ a/fs/exec.c
-@@ -1222,7 +1222,7 @@ void __set_task_comm(struct task_struct
+@@ -1207,7 +1207,8 @@ static int unshare_sighand(struct task_s
+ char *__get_task_comm(char *buf, size_t buf_size, struct task_struct *tsk)
  {
  	task_lock(tsk);
- 	trace_task_rename(tsk, buf);
--	strlcpy(tsk->comm, buf, sizeof(tsk->comm));
-+	strscpy_pad(tsk->comm, buf, sizeof(tsk->comm));
+-	strncpy(buf, tsk->comm, buf_size);
++	/* Always NUL terminated and zero-padded */
++	strscpy_pad(buf, tsk->comm, buf_size);
  	task_unlock(tsk);
- 	perf_event_comm(tsk, exec);
+ 	return buf;
  }
 _
 
