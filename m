@@ -2,33 +2,31 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED338C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 20:35:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10B02C433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 20:53:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236208AbhKXUiZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Nov 2021 15:38:25 -0500
-Received: from mail.kernel.org ([198.145.29.99]:49328 "EHLO mail.kernel.org"
+        id S243507AbhKXU4y (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Nov 2021 15:56:54 -0500
+Received: from mail.kernel.org ([198.145.29.99]:55486 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S234742AbhKXUiZ (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Nov 2021 15:38:25 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id B1D6260F5A;
-        Wed, 24 Nov 2021 20:35:14 +0000 (UTC)
+        id S238237AbhKXU4v (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Nov 2021 15:56:51 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 941D060FD9;
+        Wed, 24 Nov 2021 20:53:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637786114;
-        bh=AuI20SIV088dsLGNUM8D3vTBBOmQ4Dt/D2v1FRuktU8=;
+        s=korg; t=1637787221;
+        bh=WbJtO/EQWue00TwEyesgeQowA1o7ftXFt81SQ5mhwws=;
         h=Date:From:To:Subject:From;
-        b=Xoe1nzQs2sdMkgy+NJmSqHxWSo5aDg7TUC1z3U6v6byhBHyco5TPHlbEkpEn/zhIB
-         ggPO9a9dttK57kpKckPvfDTsEAPnKXll7ysVO6dvPE9rN7KMZfjO82EsjUNSLFwbEF
-         qf9OgJX+1zKTAlDL8Fk/LQzI6+4AsecFBslf0jgs=
-Date:   Wed, 24 Nov 2021 12:35:14 -0800
+        b=o3u8TyKpPMHXnJkgkAcUSoCiJgFBBI6P4/WhGQWveKtKBcz7Ne06ZRU1PTWt0VVQk
+         gTJJXHwCY8FfqHG4UFu8XavXbWgDnzmLwskHnzgcGax5g0kEs8oFABnzAOUo6tLJ5Y
+         3C3X3j80jBy/h5o3/FTNH9hXKQX0H5l6/f0Y/IMg=
+Date:   Wed, 24 Nov 2021 12:53:41 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, kirill.shutemov@linux.intel.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        shakeelb@google.com, shy828301@gmail.com, willy@infradead.org,
-        ziy@nvidia.com
-Subject:  [nacked] mm-thp-update-split_queue_len-correctly.patch
- removed from -mm tree
-Message-ID: <20211124203514.BeKEPJ_TT%akpm@linux-foundation.org>
+To:     almasrymina@google.com, mm-commits@vger.kernel.org,
+        shuah@kernel.org, yosryahmed@google.com
+Subject:  [alternative-merged]
+ mm-hugepages-fix-size-in-hugetlb-mremap-test.patch removed from -mm tree
+Message-ID: <20211124205341.08Gflgpp5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -37,65 +35,43 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: update split_queue_len correctly
+     Subject: mm, hugepages: fix size in hugetlb mremap() test
 has been removed from the -mm tree.  Its filename was
-     mm-thp-update-split_queue_len-correctly.patch
+     mm-hugepages-fix-size-in-hugetlb-mremap-test.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: mm: thp: update split_queue_len correctly
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm, hugepages: fix size in hugetlb mremap() test
 
-The deferred THPs are split on memory pressure through shrinker callback
-and splitting of THP during reclaim can fail for several reasons like
-unable to lock the THP, under writeback or unexpected number of pins on
-the THP.  Such pages are put back on the deferred split list for
-consideration later.  However kernel does not update the deferred queue
-size on putting back the pages whose split was failed.  This patch fixes
-that.
+The hugetlb vma mremap() test mentions in the header comment that it uses
+10MB worth of huge pages, when it actually uses 1GB.  This causes the test
+to fail on devices with smaller memories.
 
-Without this patch the split_queue_len can underflow.  Shrinker will
-always get that there are some THPs to split even if there are not and
-waste some cpu to scan the empty list.
-
-Link: https://lkml.kernel.org/r/20211123190916.1738458-1-shakeelb@google.com
-Fixes: 364c1eebe453 ("mm: thp: extract split_queue_* into a struct")
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20211123204644.3458700-1-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Mina Almasry <almasrymina@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ tools/testing/selftests/vm/hugepage-mremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-thp-update-split_queue_len-correctly
-+++ a/mm/huge_memory.c
-@@ -2809,7 +2809,7 @@ static unsigned long deferred_split_scan
- 	unsigned long flags;
- 	LIST_HEAD(list), *pos, *next;
- 	struct page *page;
--	int split = 0;
-+	unsigned long split = 0;
+--- a/tools/testing/selftests/vm/hugepage-mremap.c~mm-hugepages-fix-size-in-hugetlb-mremap-test
++++ a/tools/testing/selftests/vm/hugepage-mremap.c
+@@ -18,7 +18,7 @@
+ #include <linux/userfaultfd.h>
+ #include <sys/ioctl.h>
  
- #ifdef CONFIG_MEMCG
- 	if (sc->memcg)
-@@ -2847,6 +2847,7 @@ next:
+-#define LENGTH (1UL * 1024 * 1024 * 1024)
++#define LENGTH (10UL * 1024 * 1024)
  
- 	spin_lock_irqsave(&ds_queue->split_queue_lock, flags);
- 	list_splice_tail(&list, &ds_queue->split_queue);
-+	ds_queue->split_queue_len -= split;
- 	spin_unlock_irqrestore(&ds_queue->split_queue_lock, flags);
- 
- 	/*
+ #define PROTECTION (PROT_READ | PROT_WRITE | PROT_EXEC)
+ #define FLAGS (MAP_SHARED | MAP_ANONYMOUS)
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from yosryahmed@google.com are
 
-memcg-better-bounds-on-the-memcg-stats-updates.patch
 
