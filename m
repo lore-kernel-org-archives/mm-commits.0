@@ -2,25 +2,25 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4AE52C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 21:19:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 997C3C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 21:19:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243909AbhKXVWS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Nov 2021 16:22:18 -0500
-Received: from mail.kernel.org ([198.145.29.99]:40506 "EHLO mail.kernel.org"
+        id S244027AbhKXVWW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Nov 2021 16:22:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:40558 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S243500AbhKXVWS (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Nov 2021 16:22:18 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 19E55603E5;
-        Wed, 24 Nov 2021 21:19:08 +0000 (UTC)
+        id S243500AbhKXVWV (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Nov 2021 16:22:21 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 1269960F41;
+        Wed, 24 Nov 2021 21:19:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637788748;
-        bh=G/Kphi+wjoqH4H5b7d2q6W80R7KPYUem3fPrTtWaYKs=;
+        s=korg; t=1637788751;
+        bh=Kx45E3XLFEF6EDo4DkuLzUtb2ghY5Q5zmhMtoTByIDU=;
         h=Date:From:To:Subject:From;
-        b=CvQuJ23BFgrT7EGqpGUCgxqtuRuY4TFJWpHPT3bu98zP2Ovtv9a+GkhADpJ1AOx+w
-         IrpvYje1CtvO12uspr9Xsl3rUjBV4heKgyLI660O1zoRbJ2gqmx1hbW6fYboqMKQiW
-         H5X3LAI7bmK/8CN3NMHAybHp7D2AGn9/NfylUrfQ=
-Date:   Wed, 24 Nov 2021 13:19:07 -0800
+        b=ZNCDuKUaKiGPsb3lUULWIl31XtQbIKW5e0SAgRQ7aox/MPDIrCioJk/9vmhVwH62M
+         CFIjlHg7wq1Tr5dw92H1wot2HZ/TABcsH4ro7pBthmA8xf1UCSxNAenHH0MwBZ8O8Y
+         dHO5m3LL/wo01tPzuAvThIChiMFoURqw6UwOK2T8=
+Date:   Wed, 24 Nov 2021 13:19:10 -0800
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, dan.j.williams@intel.com, dave.jiang@intel.com,
         hch@lst.de, jane.chu@oracle.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -28,10 +28,9 @@ To:     corbet@lwn.net, dan.j.williams@intel.com, dave.jiang@intel.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         naoya.horiguchi@nec.com, songmuchun@bytedance.com,
         vishal.l.verma@intel.com, willy@infradead.org
-Subject:  +
- mm-memremap-add-zone_device-support-for-compound-pages.patch added to -mm
- tree
-Message-ID: <20211124211907.GO4srrHbg%akpm@linux-foundation.org>
+Subject:  + device-dax-use-align-for-determining-pgoff.patch added
+ to -mm tree
+Message-ID: <20211124211910.mUhT6OPpF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memremap: add ZONE_DEVICE support for compound pages
+     Subject: device-dax: use ALIGN() for determining pgoff
 has been added to the -mm tree.  Its filename is
-     mm-memremap-add-zone_device-support-for-compound-pages.patch
+     device-dax-use-align-for-determining-pgoff.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memremap-add-zone_device-support-for-compound-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-use-align-for-determining-pgoff.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memremap-add-zone_device-support-for-compound-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-use-align-for-determining-pgoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,26 +61,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/memremap: add ZONE_DEVICE support for compound pages
+Subject: device-dax: use ALIGN() for determining pgoff
 
-Add a new @vmemmap_shift property for struct dev_pagemap which specifies
-that a devmap is composed of a set of compound pages of order
-@vmemmap_shift, instead of base pages.  When a compound page devmap is
-requested, all but the first page are initialised as tail pages instead of
-order-0 pages.
+Rather than calculating @pgoff manually, switch to ALIGN() instead.
 
-For certain ZONE_DEVICE users like device-dax which have a fixed page
-size, this creates an opportunity to optimize GUP and GUP-fast walkers,
-treating it the same way as THP or hugetlb pages.
-
-Additionally, commit 7118fc2906e2 ("hugetlb: address ref count racing in
-prep_compound_gigantic_page") removed set_page_count() because the setting
-of page ref count to zero was redundant.  devmap pages don't come from
-page allocator though and only head page refcount is used for compound
-pages, hence initialize tail page count to zero.
-
-Link: https://lkml.kernel.org/r/20211124191005.20783-5-joao.m.martins@oracle.com
+Link: https://lkml.kernel.org/r/20211124191005.20783-6-joao.m.martins@oracle.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Jiang <dave.jiang@intel.com>
@@ -98,146 +84,22 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memremap.h |   11 ++++++++++
- mm/memremap.c            |   12 +++++------
- mm/page_alloc.c          |   38 ++++++++++++++++++++++++++++++++++++-
- 3 files changed, 54 insertions(+), 7 deletions(-)
+ drivers/dax/device.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/memremap.h~mm-memremap-add-zone_device-support-for-compound-pages
-+++ a/include/linux/memremap.h
-@@ -99,6 +99,11 @@ struct dev_pagemap_ops {
-  * @done: completion for @internal_ref
-  * @type: memory type: see MEMORY_* in memory_hotplug.h
-  * @flags: PGMAP_* flags to specify defailed behavior
-+ * @vmemmap_shift: structural definition of how the vmemmap page metadata
-+ *      is populated, specifically the metadata page order.
-+ *	A zero value (default) uses base pages as the vmemmap metadata
-+ *	representation. A bigger value will set up compound struct pages
-+ *	of the requested order value.
-  * @ops: method table
-  * @owner: an opaque pointer identifying the entity that manages this
-  *	instance.  Used by various helpers to make sure that no
-@@ -114,6 +119,7 @@ struct dev_pagemap {
- 	struct completion done;
- 	enum memory_type type;
- 	unsigned int flags;
-+	unsigned long vmemmap_shift;
- 	const struct dev_pagemap_ops *ops;
- 	void *owner;
- 	int nr_range;
-@@ -130,6 +136,11 @@ static inline struct vmem_altmap *pgmap_
- 	return NULL;
- }
+--- a/drivers/dax/device.c~device-dax-use-align-for-determining-pgoff
++++ a/drivers/dax/device.c
+@@ -234,8 +234,8 @@ static vm_fault_t dev_dax_huge_fault(str
+ 		 * mapped. No need to consider the zero page, or racing
+ 		 * conflicting mappings.
+ 		 */
+-		pgoff = linear_page_index(vmf->vma, vmf->address
+-				& ~(fault_size - 1));
++		pgoff = linear_page_index(vmf->vma,
++				ALIGN(vmf->address, fault_size));
+ 		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
+ 			struct page *page;
  
-+static inline unsigned long pgmap_vmemmap_nr(struct dev_pagemap *pgmap)
-+{
-+	return 1 << pgmap->vmemmap_shift;
-+}
-+
- #ifdef CONFIG_ZONE_DEVICE
- bool pfn_zone_device_reserved(unsigned long pfn);
- void *memremap_pages(struct dev_pagemap *pgmap, int nid);
---- a/mm/memremap.c~mm-memremap-add-zone_device-support-for-compound-pages
-+++ a/mm/memremap.c
-@@ -102,11 +102,11 @@ static unsigned long pfn_end(struct dev_
- 	return (range->start + range_len(range)) >> PAGE_SHIFT;
- }
- 
--static unsigned long pfn_next(unsigned long pfn)
-+static unsigned long pfn_next(struct dev_pagemap *pgmap, unsigned long pfn)
- {
--	if (pfn % 1024 == 0)
-+	if (pfn % (1024 << pgmap->vmemmap_shift))
- 		cond_resched();
--	return pfn + 1;
-+	return pfn + pgmap_vmemmap_nr(pgmap);
- }
- 
- /*
-@@ -130,7 +130,7 @@ bool pfn_zone_device_reserved(unsigned l
- }
- 
- #define for_each_device_pfn(pfn, map, i) \
--	for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); pfn = pfn_next(pfn))
-+	for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); pfn = pfn_next(map, pfn))
- 
- static void dev_pagemap_kill(struct dev_pagemap *pgmap)
- {
-@@ -315,8 +315,8 @@ static int pagemap_range(struct dev_page
- 	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
- 				PHYS_PFN(range->start),
- 				PHYS_PFN(range_len(range)), pgmap);
--	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap, range_id)
--			- pfn_first(pgmap, range_id));
-+	percpu_ref_get_many(pgmap->ref, (pfn_end(pgmap, range_id)
-+			- pfn_first(pgmap, range_id)) >> pgmap->vmemmap_shift);
- 	return 0;
- 
- err_add_memory:
---- a/mm/page_alloc.c~mm-memremap-add-zone_device-support-for-compound-pages
-+++ a/mm/page_alloc.c
-@@ -6612,6 +6612,35 @@ static void __ref __init_zone_device_pag
- 	}
- }
- 
-+static void __ref memmap_init_compound(struct page *head,
-+				       unsigned long head_pfn,
-+				       unsigned long zone_idx, int nid,
-+				       struct dev_pagemap *pgmap,
-+				       unsigned long nr_pages)
-+{
-+	unsigned long pfn, end_pfn = head_pfn + nr_pages;
-+	unsigned int order = pgmap->vmemmap_shift;
-+
-+	__SetPageHead(head);
-+	for (pfn = head_pfn + 1; pfn < end_pfn; pfn++) {
-+		struct page *page = pfn_to_page(pfn);
-+
-+		__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
-+		prep_compound_tail(head, pfn - head_pfn);
-+		set_page_count(page, 0);
-+
-+		/*
-+		 * The first tail page stores compound_mapcount_ptr() and
-+		 * compound_order() and the second tail page stores
-+		 * compound_pincount_ptr(). Call prep_compound_head() after
-+		 * the first and second tail pages have been initialized to
-+		 * not have the data overwritten.
-+		 */
-+		if (pfn == head_pfn + 2)
-+			prep_compound_head(head, order);
-+	}
-+}
-+
- void __ref memmap_init_zone_device(struct zone *zone,
- 				   unsigned long start_pfn,
- 				   unsigned long nr_pages,
-@@ -6620,6 +6649,7 @@ void __ref memmap_init_zone_device(struc
- 	unsigned long pfn, end_pfn = start_pfn + nr_pages;
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	struct vmem_altmap *altmap = pgmap_altmap(pgmap);
-+	unsigned int pfns_per_compound = pgmap_vmemmap_nr(pgmap);
- 	unsigned long zone_idx = zone_idx(zone);
- 	unsigned long start = jiffies;
- 	int nid = pgdat->node_id;
-@@ -6637,10 +6667,16 @@ void __ref memmap_init_zone_device(struc
- 		nr_pages = end_pfn - start_pfn;
- 	}
- 
--	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
-+	for (pfn = start_pfn; pfn < end_pfn; pfn += pfns_per_compound) {
- 		struct page *page = pfn_to_page(pfn);
- 
- 		__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
-+
-+		if (pfns_per_compound == 1)
-+			continue;
-+
-+		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
-+				     pfns_per_compound);
- 	}
- 
- 	pr_info("%s initialised %lu pages in %ums\n", __func__,
 _
 
 Patches currently in -mm which might be from joao.m.martins@oracle.com are
