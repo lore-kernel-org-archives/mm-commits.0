@@ -2,25 +2,25 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 89734C433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:13:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9A4EEC433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 00:14:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240625AbhKXARE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 19:17:04 -0500
-Received: from mail.kernel.org ([198.145.29.99]:50306 "EHLO mail.kernel.org"
+        id S240626AbhKXARI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 19:17:08 -0500
+Received: from mail.kernel.org ([198.145.29.99]:50402 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S240606AbhKXARE (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 19:17:04 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 698A060FE6;
-        Wed, 24 Nov 2021 00:13:54 +0000 (UTC)
+        id S240606AbhKXARH (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 19:17:07 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 209F761050;
+        Wed, 24 Nov 2021 00:13:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637712835;
-        bh=gtxtwgIAhW+cgz+IEhK48QAgz6N1u8N0b+iOA0D4Y1k=;
+        s=korg; t=1637712839;
+        bh=62t13iIBvPbrB9cGWu46la817esgIt5FXjn3Jnx7Nh8=;
         h=Date:From:To:Subject:From;
-        b=uSfCKNbZkGGU0MS/20JEVYC2QwqsjrCm077URsQv7WcW9WUsF8CSsPY6xTaH/kqkB
-         MRONcV3QTojAEgBtkphXDE0eA5me1HQl9LoB0Nk1PwI65m8EBCwy6ZB1KI7nWgIJ4D
-         7pMnZvhEh0/3tUh00PRlqVKsfPDBqW92Jm19MP3g=
-Date:   Tue, 23 Nov 2021 16:13:53 -0800
+        b=lSD+v8LfVZ7UFuCVy3C5vafdYp5Ek0QiZBNovRrYJVkmVJPUrd8hwt+owcwtnSBD+
+         PUkqD4kFGc/qOUmpqjzxwA8eU3ktOzQ0zXmsT30b2WSLVUUVLiN5LlLGzhvxJ9o2rq
+         t8VheCWUK+g9vwMsktHeUeEWzB+K7KUJ6Lkx0+jM=
+Date:   Tue, 23 Nov 2021 16:13:57 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -36,10 +36,8 @@ To:     airlied@linux.ie, amir73il@gmail.com,
         pmladek@suse.com, rodrigo.vivi@intel.com, senozhatsky@chromium.org,
         sre@kernel.org, steve@sk2.org, viro@zeniv.linux.org.uk,
         wangqing@vivo.com, yzaikin@google.com
-Subject:  +
- sysctl-use-sysctl_zero-to-replace-some-static-int-zero-uses.patch added to
- -mm tree
-Message-ID: <20211124001353.nUBugunpB%akpm@linux-foundation.org>
+Subject:  + aio-move-aio-sysctl-to-aioc.patch added to -mm tree
+Message-ID: <20211124001357.tfJqqmXQi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: use SYSCTL_ZERO to replace some static int zero uses
+     Subject: aio: move aio sysctl to aio.c
 has been added to the -mm tree.  Its filename is
-     sysctl-use-sysctl_zero-to-replace-some-static-int-zero-uses.patch
+     aio-move-aio-sysctl-to-aioc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/sysctl-use-sysctl_zero-to-replace-some-static-int-zero-uses.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/aio-move-aio-sysctl-to-aioc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/sysctl-use-sysctl_zero-to-replace-some-static-int-zero-uses.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/aio-move-aio-sysctl-to-aioc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,13 +68,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: sysctl: use SYSCTL_ZERO to replace some static int zero uses
+Subject: aio: move aio sysctl to aio.c
 
-Use the variable SYSCTL_ZERO to replace some static int boundary variables
-with a value of 0 (minolduid, min_extfrag_threshold,
-min_wakeup_granularity_ns).
+The kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
+dishes, this makes it very difficult to maintain.
 
-Link: https://lkml.kernel.org/r/20211123202347.818157-8-mcgrof@kernel.org
+To help with this maintenance let's start by moving sysctls to places
+where they actually belong.  The proc sysctl maintainers do not want to
+know what sysctl knobs you wish to add for your own piece of code, we just
+care about the core logic.
+
+Move aio sysctl to aio.c and use the new register_sysctl_init() to
+register the sysctl interface for aio.
+
+[mcgrof@kernel.org: adjust commit log to justify the move]
+Link: https://lkml.kernel.org/r/20211123202347.818157-9-mcgrof@kernel.org
 Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -115,74 +121,103 @@ Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/aio.c            |   31 +++++++++++++++++++++++++++++--
+ include/linux/aio.h |    4 ----
+ kernel/sysctl.c     |   17 -----------------
+ 3 files changed, 29 insertions(+), 23 deletions(-)
 
---- a/kernel/sysctl.c~sysctl-use-sysctl_zero-to-replace-some-static-int-zero-uses
+--- a/fs/aio.c~aio-move-aio-sysctl-to-aioc
++++ a/fs/aio.c
+@@ -219,9 +219,35 @@ struct aio_kiocb {
+ 
+ /*------ sysctl variables----*/
+ static DEFINE_SPINLOCK(aio_nr_lock);
+-unsigned long aio_nr;		/* current system wide number of aio requests */
+-unsigned long aio_max_nr = 0x10000; /* system wide maximum number of aio requests */
++static unsigned long aio_nr;		/* current system wide number of aio requests */
++static unsigned long aio_max_nr = 0x10000; /* system wide maximum number of aio requests */
+ /*----end sysctl variables---*/
++#ifdef CONFIG_SYSCTL
++static struct ctl_table aio_sysctls[] = {
++	{
++		.procname	= "aio-nr",
++		.data		= &aio_nr,
++		.maxlen		= sizeof(aio_nr),
++		.mode		= 0444,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
++	{
++		.procname	= "aio-max-nr",
++		.data		= &aio_max_nr,
++		.maxlen		= sizeof(aio_max_nr),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++	},
++	{}
++};
++
++static void __init aio_sysctl_init(void)
++{
++	register_sysctl_init("fs", aio_sysctls);
++}
++#else
++#define aio_sysctl_init() do { } while (0)
++#endif
+ 
+ static struct kmem_cache	*kiocb_cachep;
+ static struct kmem_cache	*kioctx_cachep;
+@@ -274,6 +300,7 @@ static int __init aio_setup(void)
+ 
+ 	kiocb_cachep = KMEM_CACHE(aio_kiocb, SLAB_HWCACHE_ALIGN|SLAB_PANIC);
+ 	kioctx_cachep = KMEM_CACHE(kioctx,SLAB_HWCACHE_ALIGN|SLAB_PANIC);
++	aio_sysctl_init();
+ 	return 0;
+ }
+ __initcall(aio_setup);
+--- a/include/linux/aio.h~aio-move-aio-sysctl-to-aioc
++++ a/include/linux/aio.h
+@@ -20,8 +20,4 @@ static inline void kiocb_set_cancel_fn(s
+ 				       kiocb_cancel_fn *cancel) { }
+ #endif /* CONFIG_AIO */
+ 
+-/* for sysctl: */
+-extern unsigned long aio_nr;
+-extern unsigned long aio_max_nr;
+-
+ #endif /* __LINUX__AIO_H */
+--- a/kernel/sysctl.c~aio-move-aio-sysctl-to-aioc
 +++ a/kernel/sysctl.c
-@@ -122,7 +122,7 @@ static const unsigned long dirty_bytes_m
+@@ -20,7 +20,6 @@
+  */
  
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
- static const int maxolduid = 65535;
--static const int minolduid;
-+/* minolduid is SYSCTL_ZERO */
- 
- static const int ngroups_max = NGROUPS_MAX;
- static const int cap_last_cap = CAP_LAST_CAP;
-@@ -170,7 +170,7 @@ int sysctl_legacy_va_layout;
+ #include <linux/module.h>
+-#include <linux/aio.h>
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+ #include <linux/slab.h>
+@@ -3110,22 +3109,6 @@ static struct ctl_table fs_table[] = {
+ 		.proc_handler	= proc_dointvec,
+ 	},
  #endif
- 
- #ifdef CONFIG_COMPACTION
--static const int min_extfrag_threshold;
-+/* min_extfrag_threshold is SYSCTL_ZERO */;
- static const int max_extfrag_threshold = 1000;
- #endif
- 
-@@ -2175,7 +2175,7 @@ static struct ctl_table kern_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= (void *)&minolduid,
-+		.extra1		= SYSCTL_ZERO,
- 		.extra2		= (void *)&maxolduid,
- 	},
+-#ifdef CONFIG_AIO
+-	{
+-		.procname	= "aio-nr",
+-		.data		= &aio_nr,
+-		.maxlen		= sizeof(aio_nr),
+-		.mode		= 0444,
+-		.proc_handler	= proc_doulongvec_minmax,
+-	},
+-	{
+-		.procname	= "aio-max-nr",
+-		.data		= &aio_max_nr,
+-		.maxlen		= sizeof(aio_max_nr),
+-		.mode		= 0644,
+-		.proc_handler	= proc_doulongvec_minmax,
+-	},
+-#endif /* CONFIG_AIO */
+ #ifdef CONFIG_INOTIFY_USER
  	{
-@@ -2184,7 +2184,7 @@ static struct ctl_table kern_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= (void *)&minolduid,
-+		.extra1		= SYSCTL_ZERO,
- 		.extra2		= (void *)&maxolduid,
- 	},
- #ifdef CONFIG_S390
-@@ -2758,7 +2758,7 @@ static struct ctl_table vm_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= (void *)&min_extfrag_threshold,
-+		.extra1		= SYSCTL_ZERO,
- 		.extra2		= (void *)&max_extfrag_threshold,
- 	},
- 	{
-@@ -3070,7 +3070,7 @@ static struct ctl_table fs_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= (void *)&minolduid,
-+		.extra1		= SYSCTL_ZERO,
- 		.extra2		= (void *)&maxolduid,
- 	},
- 	{
-@@ -3079,7 +3079,7 @@ static struct ctl_table fs_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= (void *)&minolduid,
-+		.extra1		= SYSCTL_ZERO,
- 		.extra2		= (void *)&maxolduid,
- 	},
- #ifdef CONFIG_FILE_LOCKING
+ 		.procname	= "inotify",
 _
 
 Patches currently in -mm which might be from nixiaoming@huawei.com are
