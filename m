@@ -2,32 +2,31 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C01DEC433F5
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 02:58:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6480FC433EF
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 02:59:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240109AbhKXDB3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 23 Nov 2021 22:01:29 -0500
-Received: from mail.kernel.org ([198.145.29.99]:47482 "EHLO mail.kernel.org"
+        id S230512AbhKXDCW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 23 Nov 2021 22:02:22 -0500
+Received: from mail.kernel.org ([198.145.29.99]:47706 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S230488AbhKXDB0 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Tue, 23 Nov 2021 22:01:26 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C7A4261038;
-        Wed, 24 Nov 2021 02:58:16 +0000 (UTC)
+        id S237422AbhKXDCU (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Tue, 23 Nov 2021 22:02:20 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id C784B60F45;
+        Wed, 24 Nov 2021 02:59:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637722697;
-        bh=UwdPkP7dwaadAQwF38r/ijhtzyWdNh9cUTukRC7O/mY=;
+        s=korg; t=1637722752;
+        bh=QT4dLi0nUxK/JYriy1n1mz5wNSyFKMOzGpZM1b/G5PQ=;
         h=Date:From:To:Subject:From;
-        b=gLM8df/s7Pk7CHZKPaELSHgLvVFrSn2ATLcnSVy/jZbTt77tFwCx+ZUidWI9kcLMI
-         v+UJzfSHIX33jIAogKxwB/LVEr1QG/0tBpvD8pFxccsO1M7W38O2SLFmdQkUWwEu67
-         rsM1FKKjzSSpVwx8cqNz5W9thm6kQ4ML9lDFKcWo=
-Date:   Tue, 23 Nov 2021 18:58:16 -0800
+        b=ekp8q5PnXDFrN7r5A2GNHo5N8AIwa0M3cwuzqlIH0FiqSgmwot+52Rc6/a26CIEym
+         1u8hsOxsep4RuVCUWOwiZpH1LJOusXiNI2GIU2DJvrFJSTJc6r1fZjG/E5S83aipaq
+         u0CQm2SnmtG9j+Ln2FhkLP1EAf7CB9c3poGX1WR0=
+Date:   Tue, 23 Nov 2021 18:59:11 -0800
 From:   akpm@linux-foundation.org
-To:     amit.kachhap@arm.com, Kevin.Brodsky@arm.com,
-        mm-commits@vger.kernel.org, Vincenzo.Frascino@arm.com,
-        viro@zeniv.linux.org.uk
-Subject:  + fs-ioctl-remove-unnecessary-__user-annotation.patch
- added to -mm tree
-Message-ID: <20211124025816.jNgY-u6Mx%akpm@linux-foundation.org>
+To:     colin.king@intel.com, dfustini@baylibre.com, gustavoars@kernel.org,
+        mm-commits@vger.kernel.org, sven@narfation.org,
+        tangchunyou@yulong.com, tom.saeger@oracle.com, zuoqilin@yulong.com
+Subject:  + scripts-spellingtxt-add-oveflow.patch added to -mm tree
+Message-ID: <20211124025911.c_-xJ5i73%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -36,14 +35,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ioctl: remove unnecessary __user annotation
+     Subject: scripts/spelling.txt: add "oveflow"
 has been added to the -mm tree.  Its filename is
-     fs-ioctl-remove-unnecessary-__user-annotation.patch
+     scripts-spellingtxt-add-oveflow.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-ioctl-remove-unnecessary-__user-annotation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/scripts-spellingtxt-add-oveflow.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-ioctl-remove-unnecessary-__user-annotation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/scripts-spellingtxt-add-oveflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -57,43 +56,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Amit Daniel Kachhap <amit.kachhap@arm.com>
-Subject: fs/ioctl: remove unnecessary __user annotation
+From: Drew Fustini <dfustini@baylibre.com>
+Subject: scripts/spelling.txt: add "oveflow"
 
-__user annotations are used by the checker (e.g sparse) to mark user
-pointers.  However here __user is applied to a struct directly, without a
-pointer being directly involved.
+Add typo "oveflow" for "overflow".  This typo was found and fixed in
+tools/testing/selftests/bpf/prog_tests/btf_dump.c
 
-Although the presence of __user does not cause sparse to emit a warning,
-__user should be removed for consistency with other uses of offsetof().
-
-Note: No functional changes intended.
-
-Link: https://lkml.kernel.org/r/20211122101256.7875-1-amit.kachhap@arm.com
-Signed-off-by: Amit Daniel Kachhap <amit.kachhap@arm.com>
-Cc: Vincenzo Frascino <Vincenzo.Frascino@arm.com>
-Cc: Kevin Brodsky <Kevin.Brodsky@arm.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Link: https://lore.kernel.org/all/20211122070528.837806-1-dfustini@baylibre.com/
+Link: https://lkml.kernel.org/r/20211122072302.839102-1-dfustini@baylibre.com
+Signed-off-by: Drew Fustini <dfustini@baylibre.com>
+Suggested-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Cc: Colin Ian King <colin.king@intel.com>
+Cc: Drew Fustini <dfustini@baylibre.com>
+Cc: zuoqilin <zuoqilin@yulong.com>
+Cc: Tom Saeger <tom.saeger@oracle.com>
+Cc: Sven Eckelmann <sven@narfation.org>
+Cc: tangchunyou <tangchunyou@yulong.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ioctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/spelling.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/ioctl.c~fs-ioctl-remove-unnecessary-__user-annotation
-+++ a/fs/ioctl.c
-@@ -430,7 +430,7 @@ static int ioctl_file_dedupe_range(struc
- 		goto out;
- 	}
- 
--	size = offsetof(struct file_dedupe_range __user, info[count]);
-+	size = offsetof(struct file_dedupe_range, info[count]);
- 	if (size > PAGE_SIZE) {
- 		ret = -ENOMEM;
- 		goto out;
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-oveflow
++++ a/scripts/spelling.txt
+@@ -1046,6 +1046,7 @@ oustanding||outstanding
+ overaall||overall
+ overhread||overhead
+ overlaping||overlapping
++oveflow||overflow
+ overflw||overflow
+ overlfow||overflow
+ overide||override
 _
 
-Patches currently in -mm which might be from amit.kachhap@arm.com are
+Patches currently in -mm which might be from dfustini@baylibre.com are
 
-fs-ioctl-remove-unnecessary-__user-annotation.patch
+scripts-spellingtxt-add-oveflow.patch
 
