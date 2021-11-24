@@ -2,32 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C9262C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 20:54:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D1BDC433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 24 Nov 2021 21:10:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244323AbhKXU6I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Nov 2021 15:58:08 -0500
-Received: from mail.kernel.org ([198.145.29.99]:56116 "EHLO mail.kernel.org"
+        id S244117AbhKXVNb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 24 Nov 2021 16:13:31 -0500
+Received: from mail.kernel.org ([198.145.29.99]:34450 "EHLO mail.kernel.org"
         rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S245011AbhKXU6A (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Wed, 24 Nov 2021 15:58:00 -0500
-Received: by mail.kernel.org (Postfix) with ESMTPSA id C173F60FD9;
-        Wed, 24 Nov 2021 20:54:49 +0000 (UTC)
+        id S234102AbhKXVNb (ORCPT <rfc822;mm-commits@vger.kernel.org>);
+        Wed, 24 Nov 2021 16:13:31 -0500
+Received: by mail.kernel.org (Postfix) with ESMTPSA id 046F860FDA;
+        Wed, 24 Nov 2021 21:10:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1637787289;
-        bh=kJT31D96NjUGzGwbnAnsJQcQUj6Wo+SzVMA1kKkAjd8=;
+        s=korg; t=1637788221;
+        bh=n7fz7brzLukESifJ4VwTVgHzm6S45upWuwKA8MqHL+o=;
         h=Date:From:To:Subject:From;
-        b=EfZw7S0Iswfca9UFQsdaruc1LChMOFN/askg8hAIyqOaB4r0vUB/O6MrebIB99H70
-         IoKlOdKp5dIMEOcVlHKnEOKfQtZybgDo8Dq669r7GAEIGe99F4WtE0gQJg3hAkzhzR
-         Y3eQCiyDABaxD3LPICQR1T+KgWx4c0KepK4rSYTA=
-Date:   Wed, 24 Nov 2021 12:54:49 -0800
+        b=gMkpbj5dm8txhDyq9CzApXAw95eqS5HUeU4c0zN9lYe5zfxKuOKtoMaHb1zJ6Qwzi
+         kiUUjbk56Br1UQ6RMwDaxDMXg7IVwe/mgE06sNPW73nGzMgTenQMA3yVr/qkZCUxb9
+         YnS/GjXDFYKVV9eEghEXn0oB8ZmpiOypzxpdDxnU=
+Date:   Wed, 24 Nov 2021 13:10:20 -0800
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, shuah@kernel.org, yosryahmed@google.com
+To:     ch0.han@lge.com, mm-commits@vger.kernel.org, seanga2@gmail.com,
+        tangbin@cmss.chinamobile.com, weizhenliang@huawei.com,
+        zhangshengju@cmss.chinamobile.com
 Subject:  +
- mm-hugepages-make-memory-size-variable-in-hugepage-mremap-selftest.patch
- added to -mm tree
-Message-ID: <20211124205449.ARdBIqlZL%akpm@linux-foundation.org>
+ tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling.patch added to
+ -mm tree
+Message-ID: <20211124211020.NtfAHnrg5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -36,14 +37,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugepages: make memory size variable in hugepage-mremap selftest
+     Subject: tools/vm/page_owner_sort.c: sort by stacktrace before culling
 has been added to the -mm tree.  Its filename is
-     mm-hugepages-make-memory-size-variable-in-hugepage-mremap-selftest.patch
+     tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugepages-make-memory-size-variable-in-hugepage-mremap-selftest.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugepages-make-memory-size-variable-in-hugepage-mremap-selftest.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -57,171 +58,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yosry Ahmed <yosryahmed@google.com>
-Subject: mm, hugepages: make memory size variable in hugepage-mremap selftest
+From: Sean Anderson <seanga2@gmail.com>
+Subject: tools/vm/page_owner_sort.c: sort by stacktrace before culling
 
-The hugetlb vma mremap() test currently maps 1GB of memory to trigger pmd
-sharing and make sure that 'unshare' path in mremap code works.  The test
-originally only mapped 10MB of memory (as specified by the header comment)
-but was later modified to 1GB to tackle this case.
+The contents of page_owner have changed to include more information than
+the stack trace.  On a modern kernel, the blocks look like
 
-However, not all machines will have 1GB of memory to spare for this test. 
-Adding a mapping size arg will allow run_vmtest.sh to pass an adequate
-mapping size, while allowing users to run the test independently with
-arbitrary size mappings.
+Page allocated via order 0, mask 0x0(), pid 1, ts 165564237 ns, free_ts 0 ns
+ register_early_stack+0x4b/0x90
+ init_page_owner+0x39/0x250
+ kernel_init_freeable+0x11e/0x242
+ kernel_init+0x16/0x130
 
-Link: https://lkml.kernel.org/r/20211124203805.3700355-1-yosryahmed@google.com
-Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
-Cc: Mina Almasry <almasrymina@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Sorting by the contents of .txt will result in almost no repeated pages,
+as the pid, ts, and free_ts will almost never be the same.  Instead, sort
+by the contents of the stack trace, which we assume to be whatever is
+after the first line.
+
+Link: https://lkml.kernel.org/r/20211124193709.1805776-1-seanga2@gmail.com
+Signed-off-by: Sean Anderson <seanga2@gmail.com>
+Cc: Changhee Han <ch0.han@lge.com>
+Cc: Tang Bin <tangbin@cmss.chinamobile.com>
+Cc: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/hugepage-mremap.c |   46 +++++++++++------
- tools/testing/selftests/vm/run_vmtests.sh    |    2 
- 2 files changed, 31 insertions(+), 17 deletions(-)
+ tools/vm/page_owner_sort.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/tools/testing/selftests/vm/hugepage-mremap.c~mm-hugepages-make-memory-size-variable-in-hugepage-mremap-selftest
-+++ a/tools/testing/selftests/vm/hugepage-mremap.c
-@@ -4,7 +4,11 @@
-  *
-  * Example of remapping huge page memory in a user application using the
-  * mremap system call.  Code assumes a hugetlbfs filesystem is mounted
-- * at './huge'.  The code will use 10MB worth of huge pages.
-+ * at './huge'.  The amount of memory used by this test is decided by a command
-+ * line argument in MBs. If missing, the default amount is 10MB.
-+ *
-+ * To make sure the test triggers pmd sharing and goes through the 'unshare'
-+ * path in the mremap code use 1GB (1024) or more.
-  */
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling
++++ a/tools/vm/page_owner_sort.c
+@@ -23,6 +23,7 @@
  
- #define _GNU_SOURCE
-@@ -18,8 +22,10 @@
- #include <linux/userfaultfd.h>
- #include <sys/ioctl.h>
- 
--#define LENGTH (1UL * 1024 * 1024 * 1024)
-+#define DEFAULT_LENGTH_MB 10UL
-+#define MB_TO_BYTES(x) (x * 1024 * 1024)
- 
-+#define FILE_NAME "huge/hugepagefile"
- #define PROTECTION (PROT_READ | PROT_WRITE | PROT_EXEC)
- #define FLAGS (MAP_SHARED | MAP_ANONYMOUS)
- 
-@@ -28,20 +34,20 @@ static void check_bytes(char *addr)
- 	printf("First hex is %x\n", *((unsigned int *)addr));
+ struct block_list {
+ 	char *txt;
++	char *stacktrace;
+ 	int len;
+ 	int num;
+ 	int page_num;
+@@ -51,11 +52,11 @@ int read_block(char *buf, int buf_size,
+ 	return -1; /* EOF or no space left in buf. */
  }
  
--static void write_bytes(char *addr)
-+static void write_bytes(char *addr, size_t len)
+-static int compare_txt(const void *p1, const void *p2)
++static int compare_stacktrace(const void *p1, const void *p2)
  {
- 	unsigned long i;
+ 	const struct block_list *l1 = p1, *l2 = p2;
  
--	for (i = 0; i < LENGTH; i++)
-+	for (i = 0; i < len; i++)
- 		*(addr + i) = (char)i;
+-	return strcmp(l1->txt, l2->txt);
++	return strcmp(l1->stacktrace ?: "", l2->stacktrace ?: "");
  }
  
--static int read_bytes(char *addr)
-+static int read_bytes(char *addr, size_t len)
- {
- 	unsigned long i;
+ static int compare_num(const void *p1, const void *p2)
+@@ -121,6 +122,7 @@ static void add_list(char *buf, int len)
+ 	list[list_size].page_num = get_page_num(buf);
+ 	memcpy(list[list_size].txt, buf, len);
+ 	list[list_size].txt[len] = 0;
++	list[list_size].stacktrace = strchr(list[list_size].txt, '\n');
+ 	list_size++;
+ 	if (list_size % 1000 == 0) {
+ 		printf("loaded %d\r", list_size);
+@@ -199,7 +201,7 @@ int main(int argc, char **argv)
  
- 	check_bytes(addr);
--	for (i = 0; i < LENGTH; i++)
-+	for (i = 0; i < len; i++)
- 		if (*(addr + i) != (char)i) {
- 			printf("Mismatch at %lu\n", i);
- 			return 1;
-@@ -99,11 +105,19 @@ static void register_region_with_uffd(ch
- 	}
- }
+ 	printf("sorting ....\n");
  
--int main(void)
-+int main(int argc, char *argv[])
- {
-+	/* Read memory length as the first arg if valid, otherwise fallback to
-+	 * the default length. Any additional args are ignored.
-+	 */
-+	size_t length = argc > 1 ? (size_t)atoi(argv[1]) : 0UL;
-+
-+	length = length > 0 ? length : DEFAULT_LENGTH_MB;
-+	length = MB_TO_BYTES(length);
-+
- 	int ret = 0;
+-	qsort(list, list_size, sizeof(list[0]), compare_txt);
++	qsort(list, list_size, sizeof(list[0]), compare_stacktrace);
  
--	int fd = open("/huge/test", O_CREAT | O_RDWR, 0755);
-+	int fd = open(FILE_NAME, O_CREAT | O_RDWR, 0755);
+ 	list2 = malloc(sizeof(*list) * list_size);
+ 	if (!list2) {
+@@ -211,7 +213,7 @@ int main(int argc, char **argv)
  
- 	if (fd < 0) {
- 		perror("Open failed");
-@@ -112,7 +126,7 @@ int main(void)
- 
- 	/* mmap to a PUD aligned address to hopefully trigger pmd sharing. */
- 	unsigned long suggested_addr = 0x7eaa40000000;
--	void *haddr = mmap((void *)suggested_addr, LENGTH, PROTECTION,
-+	void *haddr = mmap((void *)suggested_addr, length, PROTECTION,
- 			   MAP_HUGETLB | MAP_SHARED | MAP_POPULATE, fd, 0);
- 	printf("Map haddr: Returned address is %p\n", haddr);
- 	if (haddr == MAP_FAILED) {
-@@ -122,7 +136,7 @@ int main(void)
- 
- 	/* mmap again to a dummy address to hopefully trigger pmd sharing. */
- 	suggested_addr = 0x7daa40000000;
--	void *daddr = mmap((void *)suggested_addr, LENGTH, PROTECTION,
-+	void *daddr = mmap((void *)suggested_addr, length, PROTECTION,
- 			   MAP_HUGETLB | MAP_SHARED | MAP_POPULATE, fd, 0);
- 	printf("Map daddr: Returned address is %p\n", daddr);
- 	if (daddr == MAP_FAILED) {
-@@ -132,16 +146,16 @@ int main(void)
- 
- 	suggested_addr = 0x7faa40000000;
- 	void *vaddr =
--		mmap((void *)suggested_addr, LENGTH, PROTECTION, FLAGS, -1, 0);
-+		mmap((void *)suggested_addr, length, PROTECTION, FLAGS, -1, 0);
- 	printf("Map vaddr: Returned address is %p\n", vaddr);
- 	if (vaddr == MAP_FAILED) {
- 		perror("mmap2");
- 		exit(1);
- 	}
- 
--	register_region_with_uffd(haddr, LENGTH);
-+	register_region_with_uffd(haddr, length);
- 
--	void *addr = mremap(haddr, LENGTH, LENGTH,
-+	void *addr = mremap(haddr, length, length,
- 			    MREMAP_MAYMOVE | MREMAP_FIXED, vaddr);
- 	if (addr == MAP_FAILED) {
- 		perror("mremap");
-@@ -150,10 +164,10 @@ int main(void)
- 
- 	printf("Mremap: Returned address is %p\n", addr);
- 	check_bytes(addr);
--	write_bytes(addr);
--	ret = read_bytes(addr);
-+	write_bytes(addr, length);
-+	ret = read_bytes(addr, length);
- 
--	munmap(addr, LENGTH);
-+	munmap(addr, length);
- 
- 	return ret;
- }
---- a/tools/testing/selftests/vm/run_vmtests.sh~mm-hugepages-make-memory-size-variable-in-hugepage-mremap-selftest
-+++ a/tools/testing/selftests/vm/run_vmtests.sh
-@@ -111,7 +111,7 @@ fi
- echo "-----------------------"
- echo "running hugepage-mremap"
- echo "-----------------------"
--./hugepage-mremap
-+./hugepage-mremap 256
- if [ $? -ne 0 ]; then
- 	echo "[FAIL]"
- 	exitcode=1
+ 	for (i = count = 0; i < list_size; i++) {
+ 		if (count == 0 ||
+-		    strcmp(list2[count-1].txt, list[i].txt) != 0) {
++		    strcmp(list2[count-1].stacktrace, list[i].stacktrace) != 0) {
+ 			list2[count++] = list[i];
+ 		} else {
+ 			list2[count-1].num += list[i].num;
 _
 
-Patches currently in -mm which might be from yosryahmed@google.com are
+Patches currently in -mm which might be from seanga2@gmail.com are
 
-mm-hugepages-make-memory-size-variable-in-hugepage-mremap-selftest.patch
+tools-vm-page_owner_sortc-sort-by-stacktrace-before-culling.patch
+tools-vm-page_owner_sortc-support-sorting-by-stack-trace.patch
 
