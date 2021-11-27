@@ -2,78 +2,95 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85F43C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 25 Nov 2021 03:14:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BCE56C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Nov 2021 23:35:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345252AbhKYDRk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 24 Nov 2021 22:17:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51490 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346650AbhKYDPk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 24 Nov 2021 22:15:40 -0500
-Received: from mail-ed1-x532.google.com (mail-ed1-x532.google.com [IPv6:2a00:1450:4864:20::532])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E5AD8C061A2D
-        for <mm-commits@vger.kernel.org>; Wed, 24 Nov 2021 18:52:40 -0800 (PST)
-Received: by mail-ed1-x532.google.com with SMTP id y13so18942142edd.13
-        for <mm-commits@vger.kernel.org>; Wed, 24 Nov 2021 18:52:40 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=soleen.com; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=qZ9027euDHp/VBRrugN3oJrd5MYyIW1jmvHbsKkHQAU=;
-        b=F9KVIqXmXf9Q4rgEmzc2ahegOOauptE7KZI280qva9TjeZ56zH9DgLkftsGZn1SUKv
-         ID//DFP22005uzQLBwXWcva+asbJuIwVC2oOzwVwHqjlGK46RhVoMx8znL+8Aey4RbKa
-         khWas0v9VCbHsbwNqxYrneEfc4AgAcPBm5rHNoZ5CUeRNsUcDJOr/dt43q9NfKW1PdBh
-         h4FRK/EtfYXzmPvwN6JKaCrubgI3QJ/E3FqGqt7IKhn7npDMMS1jGqe1ZR2/Sp+gmavI
-         OZbxBxbwRYA2EgGyCJQtwBGsPvWYW7vGO4RdWqNIf+NUzBQLvI7SaPExhxh1hQu1LWgy
-         I4gA==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=qZ9027euDHp/VBRrugN3oJrd5MYyIW1jmvHbsKkHQAU=;
-        b=zbVzg/uDYQ35v7Hr+mVXETlweAKsky19f9heivXx4hTCBa3rOlYvFmUwDz3cuzStnq
-         hh2RlnMBW7qtJHlwezSTiJJ2xylQBR/uuoZrL036TlVcegPPkvKinETQWeg2jbaTFAKn
-         bneCZL5S9xLuKdvJXbdqGkcS5xbFu14WpQITwQZjfcvKuXRKU415scTmUldmt5XAZbot
-         gdoD4s0z1FhIHVcOM0ANNfV2Yu/ATsBvrggwtEFfyutOyZIFVU52afYUxDsZImt6imM3
-         p98dhaS8VFpQ7Vb9v/0oKwOmVue6eSo6DWryfVNz7BP2QQ/EUE891Ya2jLxEXFcB27nN
-         pq3A==
-X-Gm-Message-State: AOAM531YYPlC3MFz/Eoy7rYoicgi9Q/H94Np4F1ZViXEsXrpVjw31GBi
-        gWaYOcVFIloQ8USJaSwUnpGDgwCXvZd16xmc878PVQ==
-X-Google-Smtp-Source: ABdhPJyZajGoyTz9IYitsT1buoEDPcxyKUxypylpbl5CTZ1LzpovAo7WNDE3C4O3H/wyJXTK5H4BtJ3KMXN0YuYZQ0c=
-X-Received: by 2002:a50:fb16:: with SMTP id d22mr34664365edq.367.1637808759515;
- Wed, 24 Nov 2021 18:52:39 -0800 (PST)
-MIME-Version: 1.0
-References: <20211124234754.l5co34dUK%akpm@linux-foundation.org>
-In-Reply-To: <20211124234754.l5co34dUK%akpm@linux-foundation.org>
-From:   Pasha Tatashin <pasha.tatashin@soleen.com>
-Date:   Wed, 24 Nov 2021 21:52:03 -0500
-Message-ID: <CA+CK2bBFbR5+NRpRnoBkqenf4iUSbof9nmH5OGESBNS3GW85FQ@mail.gmail.com>
-Subject: Re: + mm-page-table-check-fix.patch added to -mm tree
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
+        id S231129AbhK0Xi3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 27 Nov 2021 18:38:29 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:50292 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230131AbhK0Xg3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Nov 2021 18:36:29 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6F7D660F14
+        for <mm-commits@vger.kernel.org>; Sat, 27 Nov 2021 23:33:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6698C53FBF;
+        Sat, 27 Nov 2021 23:33:13 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1638055993;
+        bh=UXVVuN5Cqd+geOmLU+RE1nN6Z7Z37rhzpLLzPQHy1T8=;
+        h=Date:From:To:Subject:From;
+        b=w5bdKVFXK3f/JVgszQkum5ZsMLRrxMw1wwz4hWk88j6P7pu14EC34nL+/mt4Rkbwi
+         7Ll7sJMcuVDNgqQbvjcvXvpY4ERL3siIAIEi5kxH/1jLixuAQulOxXwr4LTNfX6M4A
+         zn2y7lWP925vcKZcPgLROE3XwS9PhhvCS8ENSCd4=
+Date:   Sat, 27 Nov 2021 15:33:12 -0800
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        wangkefeng.wang@huawei.com
+Subject:  +
+ mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch added to -mm
+ tree
+Message-ID: <20211127233312.gUSjZ_jdi%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-> --- a/mm/page_table_check.c~mm-page-table-check-fix
-> +++ a/mm/page_table_check.c
-> @@ -19,6 +19,7 @@ static bool __page_table_check_enabled _
->                                 IS_ENABLED(CONFIG_PAGE_TABLE_CHECK_ENFORCED);
->
->  DEFINE_STATIC_KEY_TRUE_RO(page_table_check_disabled);
-> +EXPORT_SYMBOL(page_table_check_disabled);
->
->  static int __init early_page_table_check_param(char *buf)
->  {
-> @@ -217,6 +218,7 @@ void __page_table_check_pte_set(struct m
->                                      pte_write(pte));
->         }
->  }
-> +EXPORT_SYMBOL(__page_table_check_pte_set);
 
-Thanks Andrew!
+The patch titled
+     Subject: mm-defer-kmemleak-object-creation-of-module_alloc-v4
+has been added to the -mm tree.  Its filename is
+     mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch
 
-Pasha
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Kefeng Wang <wangkefeng.wang@huawei.com>
+Subject: mm-defer-kmemleak-object-creation-of-module_alloc-v4
+
+fix build
+
+Link: https://lkml.kernel.org/r/20211125080307.27225-1-wangkefeng.wang@huawei.com
+Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/kasan/shadow.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/mm/kasan/shadow.c~mm-defer-kmemleak-object-creation-of-module_alloc-v4
++++ a/mm/kasan/shadow.c
+@@ -525,7 +525,7 @@ int kasan_module_alloc(void *addr, size_
+ 		vm->flags |= VM_KASAN;
+ 		kmemleak_ignore(ret);
+ 
+-		if (vm->flags & VM_DELAY_KMEMLEAK)
++		if (vm->flags & VM_DEFER_KMEMLEAK)
+ 			kmemleak_vmalloc(vm, size, gfp_mask);
+ 
+ 		return 0;
+_
+
+Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+
+mm-defer-kmemleak-object-creation-of-module_alloc.patch
+mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch
+
