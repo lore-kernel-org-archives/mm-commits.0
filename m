@@ -2,37 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BCE56C433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Nov 2021 23:35:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E06AC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 27 Nov 2021 23:45:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231129AbhK0Xi3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 27 Nov 2021 18:38:29 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:50292 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230131AbhK0Xg3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Nov 2021 18:36:29 -0500
+        id S1356609AbhK0XsY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 27 Nov 2021 18:48:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43998 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231663AbhK0XqY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Nov 2021 18:46:24 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4FE2C061757
+        for <mm-commits@vger.kernel.org>; Sat, 27 Nov 2021 15:42:40 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6F7D660F14
-        for <mm-commits@vger.kernel.org>; Sat, 27 Nov 2021 23:33:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6698C53FBF;
-        Sat, 27 Nov 2021 23:33:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8040360ECB
+        for <mm-commits@vger.kernel.org>; Sat, 27 Nov 2021 23:42:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B66ECC53FAD;
+        Sat, 27 Nov 2021 23:42:39 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638055993;
-        bh=UXVVuN5Cqd+geOmLU+RE1nN6Z7Z37rhzpLLzPQHy1T8=;
+        s=korg; t=1638056559;
+        bh=cxUh2SeEvVskjAKlNpCteMcPlBZ/KBWDNOSXP99h0bk=;
         h=Date:From:To:Subject:From;
-        b=w5bdKVFXK3f/JVgszQkum5ZsMLRrxMw1wwz4hWk88j6P7pu14EC34nL+/mt4Rkbwi
-         7Ll7sJMcuVDNgqQbvjcvXvpY4ERL3siIAIEi5kxH/1jLixuAQulOxXwr4LTNfX6M4A
-         zn2y7lWP925vcKZcPgLROE3XwS9PhhvCS8ENSCd4=
-Date:   Sat, 27 Nov 2021 15:33:12 -0800
+        b=HEJtsSSJdCavVOiN9ieuD/7c4hcXhkkCvLSX4Bwh5+tSmjSYxwKFsoQelmX0kjokU
+         Xkohx9XOa3co9Y2pRHrJ4L297zNOhtk+QO2JERYn1U1lEc1yhLy53qxz7Uss/AEpUg
+         PurUwF7elxEIxCjyYz34+lFSLcMvPjdyMG+WFBcs=
+Date:   Sat, 27 Nov 2021 15:42:39 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        wangkefeng.wang@huawei.com
+To:     joe@perches.com, mm-commits@vger.kernel.org,
+        rikard.falkeborn@gmail.com
 Subject:  +
- mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch added to -mm
+ const_structscheckpatch-add-frequently-used-ops-structs.patch added to -mm
  tree
-Message-ID: <20211127233312.gUSjZ_jdi%akpm@linux-foundation.org>
+Message-ID: <20211127234239.36xsbXMXe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-defer-kmemleak-object-creation-of-module_alloc-v4
+     Subject: const_structs.checkpatch: add frequently used ops structs
 has been added to the -mm tree.  Its filename is
-     mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch
+     const_structscheckpatch-add-frequently-used-ops-structs.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/const_structscheckpatch-add-frequently-used-ops-structs.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/const_structscheckpatch-add-frequently-used-ops-structs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,35 +65,102 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm-defer-kmemleak-object-creation-of-module_alloc-v4
+From: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Subject: const_structs.checkpatch: add frequently used ops structs
 
-fix build
+Add commonly used structs (>50 instances) which are always or almost
+always const.
 
-Link: https://lkml.kernel.org/r/20211125080307.27225-1-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20211127101134.33101-1-rikard.falkeborn@gmail.com
+Signed-off-by: Rikard Falkeborn <rikard.falkeborn@gmail.com>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/shadow.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/const_structs.checkpatch |   23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
---- a/mm/kasan/shadow.c~mm-defer-kmemleak-object-creation-of-module_alloc-v4
-+++ a/mm/kasan/shadow.c
-@@ -525,7 +525,7 @@ int kasan_module_alloc(void *addr, size_
- 		vm->flags |= VM_KASAN;
- 		kmemleak_ignore(ret);
- 
--		if (vm->flags & VM_DELAY_KMEMLEAK)
-+		if (vm->flags & VM_DEFER_KMEMLEAK)
- 			kmemleak_vmalloc(vm, size, gfp_mask);
- 
- 		return 0;
+--- a/scripts/const_structs.checkpatch~const_structscheckpatch-add-frequently-used-ops-structs
++++ a/scripts/const_structs.checkpatch
+@@ -12,19 +12,27 @@ driver_info
+ drm_connector_funcs
+ drm_encoder_funcs
+ drm_encoder_helper_funcs
++dvb_frontend_ops
++dvb_tuner_ops
+ ethtool_ops
+ extent_io_ops
++fb_ops
+ file_lock_operations
+ file_operations
+ hv_ops
++hwmon_ops
++ib_device_ops
+ ide_dma_ops
+ ide_port_ops
++ieee80211_ops
++iio_buffer_setup_ops
+ inode_operations
+ intel_dvo_dev_ops
+ irq_domain_ops
+ item_operations
+ iwl_cfg
+ iwl_ops
++kernel_param_ops
+ kgdb_arch
+ kgdb_io
+ kset_uevent_ops
+@@ -32,25 +40,33 @@ lock_manager_operations
+ machine_desc
+ microcode_ops
+ mlxsw_reg_info
++mtd_ooblayout_ops
+ mtrr_ops
++nand_controller_ops
+ neigh_ops
+ net_device_ops
++nft_expr_ops
+ nlmsvc_binding
+ nvkm_device_chip
+ of_device_id
+ pci_raw_ops
+ phy_ops
++pinconf_ops
+ pinctrl_ops
+ pinmux_ops
+ pipe_buf_operations
+ platform_hibernation_ops
+ platform_suspend_ops
++proc_ops
+ proto_ops
++pwm_ops
+ regmap_access_table
+ regulator_ops
++reset_control_ops
+ rpc_pipe_ops
+ rtc_class_ops
+ sd_desc
++sdhci_ops
+ seq_operations
+ sirfsoc_padmux
+ snd_ac97_build_ops
+@@ -67,6 +83,13 @@ uart_ops
+ usb_mon_operations
+ v4l2_ctrl_ops
+ v4l2_ioctl_ops
++v4l2_subdev_core_ops
++v4l2_subdev_internal_ops
++v4l2_subdev_ops
++v4l2_subdev_pad_ops
++v4l2_subdev_video_ops
++vb2_ops
+ vm_operations_struct
+ wacom_features
++watchdog_ops
+ wd_ops
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from rikard.falkeborn@gmail.com are
 
-mm-defer-kmemleak-object-creation-of-module_alloc.patch
-mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch
+const_structscheckpatch-add-frequently-used-ops-structs.patch
 
