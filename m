@@ -2,38 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 91650C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 27 Nov 2021 23:59:00 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8459CC433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Nov 2021 00:04:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1356613AbhK1ACO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 27 Nov 2021 19:02:14 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:42654 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231622AbhK1AAO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Nov 2021 19:00:14 -0500
+        id S229868AbhK1AHn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 27 Nov 2021 19:07:43 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:59986 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230082AbhK1AFn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Nov 2021 19:05:43 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6B264B80662;
-        Sat, 27 Nov 2021 23:56:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9096C53FBF;
-        Sat, 27 Nov 2021 23:56:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6740660F56
+        for <mm-commits@vger.kernel.org>; Sun, 28 Nov 2021 00:02:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B174CC53FAD;
+        Sun, 28 Nov 2021 00:02:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638057417;
-        bh=icvtoA57qKh1cqysQd7r48aFx/Nx1ZcR23HSoh8yZLg=;
+        s=korg; t=1638057747;
+        bh=vn29qr75qhK//+Ehmkqxiuarjk6fuXWdH4vyx6L/RrQ=;
         h=Date:From:To:Subject:From;
-        b=BYeBqBg4myi7IrQq8pcbB4Oe56ycqJMujRbZ6MuC2SYlhgC5ub6950LJNxQTmh5ql
-         ZPWVfs1VGtv4SLmBWHahgXsz5UYzvur8gVYeQpEQ/ZqYpmFAvTc1k0mH471Xv5Gbwk
-         68A5dNcPhAGfRZwCecjfjOc67owC6pra49CStq6Y=
-Date:   Sat, 27 Nov 2021 15:56:56 -0800
+        b=bibFToMsZ6o0klIFU3o30UW7LNmkqwCgJPoiIv5oX6SN7o2ACI8jJ98Z1d5AZOdEg
+         LUQCqtcqI6VV0THCnFbzo1iDCb/MiMhZIt25yhIEP9lEA9SjhzdMjHYcERTL3HLL7B
+         B8Y9ofNQd58vX5hORSLpmiA+Yvdz7uwN6WbxtNW0=
+Date:   Sat, 27 Nov 2021 16:02:27 -0800
 From:   akpm@linux-foundation.org
-To:     john.stultz@linaro.org, mm-commits@vger.kernel.org,
-        oleksandr@natalenko.name, sj@kernel.org, stable@vger.kernel.org,
-        tglx@linutronix.de
-Subject:  +
- mm-damon-core-fix-fake-load-reports-due-to-uninterruptible-sleeps.patch
- added to -mm tree
-Message-ID: <20211127235656.knlr2mtzg%akpm@linux-foundation.org>
+To:     deng.changcheng@zte.com.cn, mm-commits@vger.kernel.org,
+        zealci@zte.com.cn
+Subject:  + mm-fix-boolreturncocci-warning.patch added to -mm tree
+Message-ID: <20211128000227.0ePQ4ZlCI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/core: fix fake load reports due to uninterruptible sleeps
+     Subject: mm: fix boolreturn.cocci warning
 has been added to the -mm tree.  Its filename is
-     mm-damon-core-fix-fake-load-reports-due-to-uninterruptible-sleeps.patch
+     mm-fix-boolreturncocci-warning.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-core-fix-fake-load-reports-due-to-uninterruptible-sleeps.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-boolreturncocci-warning.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-core-fix-fake-load-reports-due-to-uninterruptible-sleeps.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-boolreturncocci-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,58 +60,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/core: fix fake load reports due to uninterruptible sleeps
+From: Changcheng Deng <deng.changcheng@zte.com.cn>
+Subject: mm: fix boolreturn.cocci warning
 
-Because DAMON sleeps in uninterruptible mode, /proc/loadavg reports fake
-load while DAMON is turned on, though it is doing nothing.  This can
-confuse users[1].  To avoid the case, this commit makes DAMON sleeps in
-idle mode.
+Return statements in functions returning bool should use true/false
+instead of 1/0.
 
-[1] https://lore.kernel.org/all/11868371.O9o76ZdvQC@natalenko.name/
-
-Link: https://lkml.kernel.org/r/20211126145015.15862-3-sj@kernel.org
-Fixes: 2224d8485492 ("mm: introduce Data Access MONitor (DAMON)")
-Reported-by: Oleksandr Natalenko <oleksandr@natalenko.name>
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Oleksandr Natalenko <oleksandr@natalenko.name>
-Cc: John Stultz <john.stultz@linaro.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20211126073327.74815-1-deng.changcheng@zte.com.cn
+Signed-off-by: Changcheng Deng <deng.changcheng@zte.com.cn>
+Reported-by: Zeal Robot <zealci@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/core.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/damon/core.c~mm-damon-core-fix-fake-load-reports-due-to-uninterruptible-sleeps
-+++ a/mm/damon/core.c
-@@ -981,9 +981,9 @@ static unsigned long damos_wmark_wait_us
- static void kdamond_usleep(unsigned long usecs)
- {
- 	if (usecs > 100 * 1000)
--		schedule_timeout_interruptible(usecs_to_jiffies(usecs));
-+		schedule_timeout_idle(usecs_to_jiffies(usecs));
- 	else
--		usleep_range(usecs, usecs + 1);
-+		usleep_idle_range(usecs, usecs + 1);
- }
+--- a/include/linux/page-flags.h~mm-fix-boolreturncocci-warning
++++ a/include/linux/page-flags.h
+@@ -383,7 +383,7 @@ static __always_inline int TestClearPage
+ 	TESTCLEARFLAG(uname, lname, policy)
  
- /* Returns negative error code if it's not activated but should return */
-@@ -1038,7 +1038,7 @@ static int kdamond_fn(void *data)
- 				ctx->callback.after_sampling(ctx))
- 			done = true;
+ #define TESTPAGEFLAG_FALSE(uname, lname)				\
+-static inline bool folio_test_##lname(const struct folio *folio) { return 0; } \
++static inline bool folio_test_##lname(const struct folio *folio) { return false; } \
+ static inline int Page##uname(const struct page *page) { return 0; }
  
--		usleep_range(ctx->sample_interval, ctx->sample_interval + 1);
-+		kdamond_usleep(ctx->sample_interval);
- 
- 		if (ctx->primitive.check_accesses)
- 			max_nr_accesses = ctx->primitive.check_accesses(ctx);
+ #define SETPAGEFLAG_NOOP(uname, lname)					\
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from deng.changcheng@zte.com.cn are
 
-timers-implement-usleep_idle_range.patch
-mm-damon-core-fix-fake-load-reports-due-to-uninterruptible-sleeps.patch
-mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix.patch
+mm-fix-boolreturncocci-warning.patch
 
