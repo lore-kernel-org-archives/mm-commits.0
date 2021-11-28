@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2E1C2C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Nov 2021 01:07:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9F147C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Nov 2021 01:07:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344682AbhK1BKS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 27 Nov 2021 20:10:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33290 "EHLO
+        id S230231AbhK1BKZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 27 Nov 2021 20:10:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33318 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346836AbhK1BIS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Nov 2021 20:08:18 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4853FC061748
-        for <mm-commits@vger.kernel.org>; Sat, 27 Nov 2021 17:05:03 -0800 (PST)
+        with ESMTP id S1356795AbhK1BIY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Nov 2021 20:08:24 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6D78EC06174A
+        for <mm-commits@vger.kernel.org>; Sat, 27 Nov 2021 17:05:09 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A1E3E60F57
-        for <mm-commits@vger.kernel.org>; Sun, 28 Nov 2021 01:05:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9321C53FAD;
-        Sun, 28 Nov 2021 01:05:00 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 36E10B80B35
+        for <mm-commits@vger.kernel.org>; Sun, 28 Nov 2021 01:05:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 88D26C53FAD;
+        Sun, 28 Nov 2021 01:05:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638061502;
-        bh=vq/npTlGz0qC9+WTfdJDRnqAig+U+U3yi4XFlK3q+c0=;
+        s=korg; t=1638061506;
+        bh=0HGN6YaIpBBPLUm0QrigPAPlseA/uLP8kSX0tO/z3zg=;
         h=Date:From:To:Subject:From;
-        b=yVJ6O4YcnMYMAWi6DTW7B7fEJa3wJ1PNn5ltsIb2i3Y+klJXf5hVyoYFIdU8BCQ7t
-         hHsE4lGXbr9VnL4NwyEPZniahmsz98W81G8Y7gMj2i2RK66xZVtb61YEmbN9f5hGeU
-         DfH1IzIGwhKvI5A+pBQ+4gkij9rie0+AyFRbeLi4=
-Date:   Sat, 27 Nov 2021 17:05:00 -0800
+        b=rll/+72zUYKiY4pCtuzDZcG0oHXkOtH4Uw3vznm36TlgDtlNNKzN1SBaDQlt81iMV
+         CriFpYSUB2IoRnadwhzCGDrVEKUOx1QWKYccPdSt2iqafmScV9rX9hCFVygjh/bjCU
+         54npXoMIoAlkI84NbeDiITo1cwFa+MbnO2MPtXJg=
+Date:   Sat, 27 Nov 2021 17:05:05 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -47,9 +47,9 @@ To:     airlied@linux.ie, amir73il@gmail.com,
         rostedt@goodmis.org, senozhatsky@chromium.org, sre@kernel.org,
         steve@sk2.org, surenb@google.com, tytso@mit.edu,
         viro@zeniv.linux.org.uk, wangqing@vivo.com, yzaikin@google.com
-Subject:  + stackleak-move-stack_erasing-sysctl-to-stackleakc.patch
- added to -mm tree
-Message-ID: <20211128010500.cXBEzgxcr%akpm@linux-foundation.org>
+Subject:  + sysctl-share-unsigned-long-const-values.patch added to
+ -mm tree
+Message-ID: <20211128010505.6FHJE3s87%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,14 +58,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: stackleak: move stack_erasing sysctl to stackleak.c
+     Subject: sysctl: share unsigned long const values
 has been added to the -mm tree.  Its filename is
-     stackleak-move-stack_erasing-sysctl-to-stackleakc.patch
+     sysctl-share-unsigned-long-const-values.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/stackleak-move-stack_erasing-sysctl-to-stackleakc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/sysctl-share-unsigned-long-const-values.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/stackleak-move-stack_erasing-sysctl-to-stackleakc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/sysctl-share-unsigned-long-const-values.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -79,24 +79,13 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: stackleak: move stack_erasing sysctl to stackleak.c
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: sysctl: share unsigned long const values
 
-kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
-dishes, this makes it very difficult to maintain.
+Provide a way to share unsigned long values.  This will allow others to
+not have to re-invent these values.
 
-To help with this maintenance let's start by moving sysctls to places
-where they actually belong.  The proc sysctl maintainers do not want to
-know what sysctl knobs you wish to add for your own piece of code, we just
-care about the core logic.
-
-So move the stack_erasing sysctl from kernel/sysctl.c to
-kernel/stackleak.c and use register_sysctl() to register the sysctl
-interface.
-
-[mcgrof@kernel.org: commit log update]
-Link: https://lkml.kernel.org/r/20211124231435.1445213-8-mcgrof@kernel.org
-Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
+Link: https://lkml.kernel.org/r/20211124231435.1445213-9-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
@@ -139,120 +128,87 @@ Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/stackleak.h |    5 -----
- kernel/stackleak.c        |   26 ++++++++++++++++++++++++--
- kernel/sysctl.c           |   14 --------------
- 3 files changed, 24 insertions(+), 21 deletions(-)
+ fs/proc/proc_sysctl.c  |    3 +++
+ include/linux/sysctl.h |    6 ++++++
+ kernel/sysctl.c        |    9 +++------
+ 3 files changed, 12 insertions(+), 6 deletions(-)
 
---- a/include/linux/stackleak.h~stackleak-move-stack_erasing-sysctl-to-stackleakc
-+++ a/include/linux/stackleak.h
-@@ -23,11 +23,6 @@ static inline void stackleak_task_init(s
- # endif
- }
+--- a/fs/proc/proc_sysctl.c~sysctl-share-unsigned-long-const-values
++++ a/fs/proc/proc_sysctl.c
+@@ -29,6 +29,9 @@ static const struct inode_operations pro
+ const int sysctl_vals[] = { -1, 0, 1, 2, 4, 100, 200, 1000, 3000, INT_MAX };
+ EXPORT_SYMBOL(sysctl_vals);
  
--#ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
--int stack_erasing_sysctl(struct ctl_table *table, int write,
--			void *buffer, size_t *lenp, loff_t *ppos);
--#endif
--
- #else /* !CONFIG_GCC_PLUGIN_STACKLEAK */
- static inline void stackleak_task_init(struct task_struct *t) { }
- #endif
---- a/kernel/stackleak.c~stackleak-move-stack_erasing-sysctl-to-stackleakc
-+++ a/kernel/stackleak.c
-@@ -16,11 +16,13 @@
- #ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
- #include <linux/jump_label.h>
- #include <linux/sysctl.h>
-+#include <linux/init.h>
- 
- static DEFINE_STATIC_KEY_FALSE(stack_erasing_bypass);
- 
--int stack_erasing_sysctl(struct ctl_table *table, int write,
--			void *buffer, size_t *lenp, loff_t *ppos)
-+#ifdef CONFIG_SYSCTL
-+static int stack_erasing_sysctl(struct ctl_table *table, int write,
-+			void __user *buffer, size_t *lenp, loff_t *ppos)
- {
- 	int ret = 0;
- 	int state = !static_branch_unlikely(&stack_erasing_bypass);
-@@ -42,6 +44,26 @@ int stack_erasing_sysctl(struct ctl_tabl
- 					state ? "enabled" : "disabled");
- 	return ret;
- }
-+static struct ctl_table stackleak_sysctls[] = {
-+	{
-+		.procname	= "stack_erasing",
-+		.data		= NULL,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0600,
-+		.proc_handler	= stack_erasing_sysctl,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+	{}
-+};
++const unsigned long sysctl_long_vals[] = { 0, 1, LONG_MAX };
++EXPORT_SYMBOL_GPL(sysctl_long_vals);
 +
-+static int __init stackleak_sysctls_init(void)
-+{
-+	register_sysctl_init("kernel", stackleak_sysctls);
-+	return 0;
-+}
-+late_initcall(stackleak_sysctls_init);
-+#endif /* CONFIG_SYSCTL */
+ /* Support for permanently empty directories */
  
- #define skip_erasing()	static_branch_unlikely(&stack_erasing_bypass)
- #else
---- a/kernel/sysctl.c~stackleak-move-stack_erasing-sysctl-to-stackleakc
+ struct ctl_table sysctl_mount_point[] = {
+--- a/include/linux/sysctl.h~sysctl-share-unsigned-long-const-values
++++ a/include/linux/sysctl.h
+@@ -51,6 +51,12 @@ struct ctl_dir;
+ 
+ extern const int sysctl_vals[];
+ 
++#define SYSCTL_LONG_ZERO	((void *)&sysctl_long_vals[0])
++#define SYSCTL_LONG_ONE		((void *)&sysctl_long_vals[1])
++#define SYSCTL_LONG_MAX		((void *)&sysctl_long_vals[2])
++
++extern const unsigned long sysctl_long_vals[];
++
+ typedef int proc_handler(struct ctl_table *ctl, int write, void *buffer,
+ 		size_t *lenp, loff_t *ppos);
+ 
+--- a/kernel/sysctl.c~sysctl-share-unsigned-long-const-values
 +++ a/kernel/sysctl.c
-@@ -94,9 +94,6 @@
- #if defined(CONFIG_PROVE_LOCKING) || defined(CONFIG_LOCK_STAT)
- #include <linux/lockdep.h>
+@@ -99,9 +99,6 @@
+ 
+ /* Constants used for minimum and  maximum */
+ 
+-static const unsigned long zero_ul;
+-static const unsigned long one_ul = 1;
+-static const unsigned long long_max = LONG_MAX;
+ #ifdef CONFIG_PRINTK
+ static const int ten_thousand = 10000;
  #endif
--#ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
--#include <linux/stackleak.h>
--#endif
- 
- #if defined(CONFIG_SYSCTL)
- 
-@@ -2442,17 +2439,6 @@ static struct ctl_table kern_table[] = {
- 		.extra2		= SYSCTL_INT_MAX,
+@@ -2512,7 +2509,7 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(dirty_background_bytes),
+ 		.mode		= 0644,
+ 		.proc_handler	= dirty_background_bytes_handler,
+-		.extra1		= (void *)&one_ul,
++		.extra1		= SYSCTL_LONG_ONE,
  	},
- #endif
--#ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
--	{
--		.procname	= "stack_erasing",
--		.data		= NULL,
--		.maxlen		= sizeof(int),
--		.mode		= 0600,
--		.proc_handler	= stack_erasing_sysctl,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_ONE,
--	},
--#endif
- 	{ }
- };
- 
+ 	{
+ 		.procname	= "dirty_ratio",
+@@ -2930,8 +2927,8 @@ static struct ctl_table fs_table[] = {
+ 		.maxlen		= sizeof(files_stat.max_files),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_doulongvec_minmax,
+-		.extra1		= (void *)&zero_ul,
+-		.extra2		= (void *)&long_max,
++		.extra1		= SYSCTL_LONG_ZERO,
++		.extra2		= SYSCTL_LONG_MAX,
+ 	},
+ 	{
+ 		.procname	= "nr_open",
 _
 
-Patches currently in -mm which might be from nixiaoming@huawei.com are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
-sysctl-add-a-new-register_sysctl_init-interface.patch
-sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals.patch
-hung_task-move-hung_task-sysctl-interface-to-hung_taskc.patch
-watchdog-move-watchdog-sysctl-interface-to-watchdogc.patch
-sysctl-use-const-for-typically-used-max-min-proc-sysctls.patch
-sysctl-use-sysctl_zero-to-replace-some-static-int-zero-uses.patch
-aio-move-aio-sysctl-to-aioc.patch
-dnotify-move-dnotify-sysctl-to-dnotifyc.patch
-inotify-simplify-subdirectory-registration-with-register_sysctl.patch
-eventpoll-simplify-sysctl-declaration-with-register_sysctl.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files.patch
-random-move-the-random-sysctl-declarations-to-its-own-file.patch
-printk-move-printk-sysctl-to-printk-sysctlc.patch
-scsi-sg-move-sg-big-buff-sysctl-to-scsi-sgc.patch
-stackleak-move-stack_erasing-sysctl-to-stackleakc.patch
+zram-use-attribute_groups.patch
+hpet-simplify-subdirectory-registration-with-register_sysctl.patch
+i915-simplify-subdirectory-registration-with-register_sysctl.patch
+macintosh-mac_hidc-simplify-subdirectory-registration-with-register_sysctl.patch
+ocfs2-simplify-subdirectory-registration-with-register_sysctl.patch
+test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
+inotify-simplify-subdirectory-registration-with-register_sysctl-fix.patch
+cdrom-simplify-subdirectory-registration-with-register_sysctl.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point.patch
+fs-move-binfmt_misc-sysctl-to-its-own-file.patch
+sysctl-share-unsigned-long-const-values.patch
 
