@@ -2,46 +2,52 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC782C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 28 Nov 2021 00:58:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 292B3C433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 28 Nov 2021 01:06:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231200AbhK1BBq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 27 Nov 2021 20:01:46 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59662 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344682AbhK1A7q (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Nov 2021 19:59:46 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1085C061574
-        for <mm-commits@vger.kernel.org>; Sat, 27 Nov 2021 16:56:30 -0800 (PST)
+        id S1356798AbhK1BJu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 27 Nov 2021 20:09:50 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:55124 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230061AbhK1BHu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 27 Nov 2021 20:07:50 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 64D8260F55
-        for <mm-commits@vger.kernel.org>; Sun, 28 Nov 2021 00:56:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23FC2C53FBF;
-        Sun, 28 Nov 2021 00:56:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CAAA360F5A
+        for <mm-commits@vger.kernel.org>; Sun, 28 Nov 2021 01:04:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF670C53FAD;
+        Sun, 28 Nov 2021 01:04:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638060989;
-        bh=uSixdTyfGhv+9AaT2VvL2t6oNJqYvdKJM2O0j+1SMdE=;
+        s=korg; t=1638061474;
+        bh=Jl38zijJU1nr4Xb/fDUy8Kf2H+SRS/fE5xnv0FID+4M=;
         h=Date:From:To:Subject:From;
-        b=RxlBgWDCskPwbZoMcqh/6bPB3UIXic/E6G+QeUFjL1WX2SyyLMzu0ALGyv5FAXgrN
-         sN2vAQeFhecGzeVIoLBQAT0V7p/gixTqGAo4gv2W/T+3NQCZ3UlJbac5GNyFaWKVOz
-         9fSa1qzkH98aA081yF72pqqyUkMXJfUp9hs6qdxU=
-Date:   Sat, 27 Nov 2021 16:56:28 -0800
+        b=pYIx4Q4CzBnVPatIva5l4oMkvR9QfYbQxhzaCzFuv52f063UjyEZgytZ9gZGcGner
+         Sv5rpCo68u35AoBfAAJrWBTbpbcgW2e4I6ReL2M52fo5NUVOZ+ff1rDFsZJMoYZICX
+         8cyvi3e/Aw//J5oWNuZfvgU3up9kVNIPBPNtiiTQ=
+Date:   Sat, 27 Nov 2021 17:04:32 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, christian.brauner@ubuntu.com,
-        christian@brauner.io, david@redhat.com, fweimer@redhat.com,
-        guro@fb.com, hannes@cmpxchg.org, hch@infradead.org,
-        jannh@google.com, jengelh@inai.de, kirill@shutemov.name,
-        luto@kernel.org, mhocko@suse.com, minchan@kernel.org,
-        mm-commits@vger.kernel.org, oleg@redhat.com, riel@surriel.com,
-        rientjes@google.com, shakeelb@google.com, surenb@google.com,
-        timmurray@google.com, willy@infradead.org
+To:     airlied@linux.ie, amir73il@gmail.com,
+        andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
+        benh@kernel.crashing.org, clemens@ladisch.de, crope@iki.fi,
+        dgilbert@interlog.com, ebiederm@xmission.com,
+        gregkh@linuxfoundation.org, jack@suse.cz, jani.nikula@intel.com,
+        jani.nikula@linux.intel.com, jejb@linux.ibm.com,
+        jlbec@evilplan.org, john.ogness@linutronix.de,
+        joonas.lahtinen@linux.intel.com, joseph.qi@linux.alibaba.com,
+        julia.lawall@inria.fr, keescook@chromium.org, kernel@tuxforce.de,
+        mark@fasheh.com, martin.petersen@oracle.com, mcgrof@kernel.org,
+        mchehab@kernel.org, mm-commits@vger.kernel.org,
+        nixiaoming@huawei.com, penguin-kernel@I-love.SAKURA.ne.jp,
+        peterz@infradead.org, phil@philpotter.co.uk, pjt@google.com,
+        pmladek@suse.com, rafael@kernel.org, rodrigo.vivi@intel.com,
+        rostedt@goodmis.org, senozhatsky@chromium.org, sre@kernel.org,
+        steve@sk2.org, surenb@google.com, tytso@mit.edu,
+        viro@zeniv.linux.org.uk, wangqing@vivo.com, yzaikin@google.com
 Subject:  +
- mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
- added to -mm tree
-Message-ID: <20211128005628.sYulOdY4w%akpm@linux-foundation.org>
+ firmware_loader-move-firmware-sysctl-to-its-own-files.patch added to -mm
+ tree
+Message-ID: <20211128010432.ExP_4sOpG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -50,14 +56,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill: allow process_mrelease to run under mmap_lock protection
+     Subject: firmware_loader: move firmware sysctl to its own files
 has been added to the -mm tree.  Its filename is
-     mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
+     firmware_loader-move-firmware-sysctl-to-its-own-files.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/firmware_loader-move-firmware-sysctl-to-its-own-files.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/firmware_loader-move-firmware-sysctl-to-its-own-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -71,98 +77,202 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/oom_kill: allow process_mrelease to run under mmap_lock protection
+From: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: firmware_loader: move firmware sysctl to its own files
 
-With exit_mmap holding mmap_write_lock during free_pgtables call,
-process_mrelease does not need to elevate mm->mm_users in order to prevent
-exit_mmap from destrying pagetables while __oom_reap_task_mm is walking
-the VMA tree.  The change prevents process_mrelease from calling the last
-mmput, which can lead to waiting for IO completion in exit_aio.
+Patch series "sysctl: 3rd set of kernel/sysctl cleanups", v2.
 
-Link: https://lkml.kernel.org/r/20211124235906.14437-2-surenb@google.com
-Fixes: 337546e83fc7 ("mm/oom_kill.c: prevent a race between process_mrelease and exit_mmap")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Kirill Shutemov <kirill@shutemov.name>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Jann Horn <jannh@google.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: Jan Engelhardt <jengelh@inai.de>
-Cc: Tim Murray <timmurray@google.com>
+This is the third set of patches to help address cleaning the kitchen
+seink in kernel/sysctl.c and to move sysctls away to where they are
+actually implemented / used.
+
+
+This patch (of 8):
+
+kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
+dishes, this makes it very difficult to maintain.
+
+To help with this maintenance let's start by moving sysctls to places
+where they actually belong.  The proc sysctl maintainers do not want to
+know what sysctl knobs you wish to add for your own piece of code, we just
+care about the core logic.
+
+So move the firmware configuration sysctl table to the only place where it
+is used, and make it clear that if sysctls are disabled this is not used.
+
+[mcgrof@kernel.org: major commit log update to justify the move]
+Link: https://lkml.kernel.org/r/20211124231435.1445213-1-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211124231435.1445213-2-mcgrof@kernel.org
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
+Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Stephen Kitt <steve@sk2.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Douglas Gilbert <dgilbert@interlog.com>
+Cc: James E.J. Bottomley <jejb@linux.ibm.com>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
+Cc: Lukas Middendorf <kernel@tuxforce.de>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Jani Nikula <jani.nikula@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Julia Lawall <julia.lawall@inria.fr>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Paul Turner <pjt@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Phillip Potter <phil@philpotter.co.uk>
+Cc: Qing Wang <wangqing@vivo.com>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ drivers/base/firmware_loader/fallback.c       |    7 ++++-
+ drivers/base/firmware_loader/fallback.h       |   11 ++++++++
+ drivers/base/firmware_loader/fallback_table.c |   21 ++++++++++++++--
+ include/linux/sysctl.h                        |    1 
+ kernel/sysctl.c                               |    7 -----
+ 5 files changed, 36 insertions(+), 11 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection
-+++ a/mm/oom_kill.c
-@@ -1169,15 +1169,15 @@ SYSCALL_DEFINE2(process_mrelease, int, p
- 		goto put_task;
- 	}
+--- a/drivers/base/firmware_loader/fallback.c~firmware_loader-move-firmware-sysctl-to-its-own-files
++++ a/drivers/base/firmware_loader/fallback.c
+@@ -199,11 +199,16 @@ static struct class firmware_class = {
  
--	if (mmget_not_zero(p->mm)) {
--		mm = p->mm;
--		if (task_will_free_mem(p))
--			reap = true;
--		else {
--			/* Error only if the work has not been done already */
--			if (!test_bit(MMF_OOM_SKIP, &mm->flags))
--				ret = -EINVAL;
--		}
-+	mm = p->mm;
-+	mmgrab(mm);
+ int register_sysfs_loader(void)
+ {
+-	return class_register(&firmware_class);
++	int ret = class_register(&firmware_class);
 +
-+	if (task_will_free_mem(p))
-+		reap = true;
-+	else {
-+		/* Error only if the work has not been done already */
-+		if (!test_bit(MMF_OOM_SKIP, &mm->flags))
-+			ret = -EINVAL;
- 	}
- 	task_unlock(p);
++	if (ret != 0)
++		return ret;
++	return register_firmware_config_sysctl();
+ }
  
-@@ -1188,13 +1188,16 @@ SYSCALL_DEFINE2(process_mrelease, int, p
- 		ret = -EINTR;
- 		goto drop_mm;
- 	}
--	if (!__oom_reap_task_mm(mm))
-+	/*
-+	 * Check MMF_OOM_SKIP again under mmap_read_lock protection to ensure
-+	 * possible change in exit_mmap is seen
-+	 */
-+	if (!test_bit(MMF_OOM_SKIP, &mm->flags) && !__oom_reap_task_mm(mm))
- 		ret = -EAGAIN;
- 	mmap_read_unlock(mm);
+ void unregister_sysfs_loader(void)
+ {
++	unregister_firmware_config_sysctl();
+ 	class_unregister(&firmware_class);
+ }
  
- drop_mm:
--	if (mm)
--		mmput(mm);
-+	mmdrop(mm);
- put_task:
- 	put_task_struct(task);
- 	return ret;
+--- a/drivers/base/firmware_loader/fallback.h~firmware_loader-move-firmware-sysctl-to-its-own-files
++++ a/drivers/base/firmware_loader/fallback.h
+@@ -42,6 +42,17 @@ void fw_fallback_set_default_timeout(voi
+ 
+ int register_sysfs_loader(void);
+ void unregister_sysfs_loader(void);
++#ifdef CONFIG_SYSCTL
++extern int register_firmware_config_sysctl(void);
++extern void unregister_firmware_config_sysctl(void);
++#else
++static inline int register_firmware_config_sysctl(void)
++{
++	return 0;
++}
++static inline void unregister_firmware_config_sysctl(void) { }
++#endif /* CONFIG_SYSCTL */
++
+ #else /* CONFIG_FW_LOADER_USER_HELPER */
+ static inline int firmware_fallback_sysfs(struct firmware *fw, const char *name,
+ 					  struct device *device,
+--- a/drivers/base/firmware_loader/fallback_table.c~firmware_loader-move-firmware-sysctl-to-its-own-files
++++ a/drivers/base/firmware_loader/fallback_table.c
+@@ -24,7 +24,7 @@ struct firmware_fallback_config fw_fallb
+ EXPORT_SYMBOL_NS_GPL(fw_fallback_config, FIRMWARE_LOADER_PRIVATE);
+ 
+ #ifdef CONFIG_SYSCTL
+-struct ctl_table firmware_config_table[] = {
++static struct ctl_table firmware_config_table[] = {
+ 	{
+ 		.procname	= "force_sysfs_fallback",
+ 		.data		= &fw_fallback_config.force_sysfs_fallback,
+@@ -45,4 +45,21 @@ struct ctl_table firmware_config_table[]
+ 	},
+ 	{ }
+ };
+-#endif
++
++static struct ctl_table_header *firmware_config_sysct_table_header;
++int register_firmware_config_sysctl(void)
++{
++	firmware_config_sysct_table_header =
++		register_sysctl("kernel/firmware_config",
++				firmware_config_table);
++	if (!firmware_config_sysct_table_header)
++		return -ENOMEM;
++	return 0;
++}
++
++void unregister_firmware_config_sysctl(void)
++{
++	unregister_sysctl_table(firmware_config_sysct_table_header);
++	firmware_config_sysct_table_header = NULL;
++}
++#endif /* CONFIG_SYSCTL */
+--- a/include/linux/sysctl.h~firmware_loader-move-firmware-sysctl-to-its-own-files
++++ a/include/linux/sysctl.h
+@@ -218,7 +218,6 @@ extern int no_unaligned_warning;
+ 
+ extern struct ctl_table sysctl_mount_point[];
+ extern struct ctl_table random_table[];
+-extern struct ctl_table firmware_config_table[];
+ 
+ #else /* CONFIG_SYSCTL */
+ static inline struct ctl_table_header *register_sysctl_table(struct ctl_table * table)
+--- a/kernel/sysctl.c~firmware_loader-move-firmware-sysctl-to-its-own-files
++++ a/kernel/sysctl.c
+@@ -2153,13 +2153,6 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0555,
+ 		.child		= usermodehelper_table,
+ 	},
+-#ifdef CONFIG_FW_LOADER_USER_HELPER
+-	{
+-		.procname	= "firmware_config",
+-		.mode		= 0555,
+-		.child		= firmware_config_table,
+-	},
+-#endif
+ 	{
+ 		.procname	= "overflowuid",
+ 		.data		= &overflowuid,
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from nixiaoming@huawei.com are
 
-mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
-mm-add-anonymous-vma-name-refcounting.patch
-mm-protect-free_pgtables-with-mmap_lock-write-lock-in-exit_mmap.patch
-mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
-sysctl-change-watermark_scale_factor-max-limit-to-30%.patch
+sysctl-add-a-new-register_sysctl_init-interface.patch
+sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals.patch
+hung_task-move-hung_task-sysctl-interface-to-hung_taskc.patch
+watchdog-move-watchdog-sysctl-interface-to-watchdogc.patch
+sysctl-use-const-for-typically-used-max-min-proc-sysctls.patch
+sysctl-use-sysctl_zero-to-replace-some-static-int-zero-uses.patch
+aio-move-aio-sysctl-to-aioc.patch
+dnotify-move-dnotify-sysctl-to-dnotifyc.patch
+inotify-simplify-subdirectory-registration-with-register_sysctl.patch
+eventpoll-simplify-sysctl-declaration-with-register_sysctl.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files.patch
+random-move-the-random-sysctl-declarations-to-its-own-file.patch
+printk-move-printk-sysctl-to-printk-sysctlc.patch
+scsi-sg-move-sg-big-buff-sysctl-to-scsi-sgc.patch
+stackleak-move-stack_erasing-sysctl-to-stackleakc.patch
 
