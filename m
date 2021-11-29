@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B3FF4C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 20:53:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A95B9C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 21:29:29 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234735AbhK2U4U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 29 Nov 2021 15:56:20 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:37728 "EHLO
+        id S229700AbhK2Vcr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 29 Nov 2021 16:32:47 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:57222 "EHLO
         ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235476AbhK2UyU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 15:54:20 -0500
+        with ESMTP id S232631AbhK2Vaq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 16:30:46 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 98CEBB81643
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 20:51:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D80C2C53FC7;
-        Mon, 29 Nov 2021 20:50:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 03E83B81648
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 21:27:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61841C53FC7;
+        Mon, 29 Nov 2021 21:27:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638219060;
-        bh=qgxfW474gN5PnOkI8tmR1l/xMA++qCm+9I4chiy1aiI=;
+        s=korg; t=1638221246;
+        bh=nTzfJpJUxTMMC5JaONd9WKXZPZiIZO4QPhA2sumEiiU=;
         h=Date:From:To:Subject:From;
-        b=ZftVpM9YmQ8+kQaAkFqRPMrAtgV5bt+HUqrbwa+ydiqzyRnUIEh7YbPhmYpEq/ymO
-         cgtIZ/3PW6UXmQjIkhD5ybXCP8zQy6PBZPFzt7uJeCpbubCJU2AvT9IZ85YjnxY7pF
-         Qq6gYKbYuT6Tms2hya/LF3v6NBdJcIyTmAZ5Krz0=
-Date:   Mon, 29 Nov 2021 12:50:59 -0800
+        b=hlMf/t/q/FrnjRh34X2bGYxUqKgNx59j31jrPiyECbetkJsFweYNuHcfnPQ7HzRGJ
+         wMC7N9HI5duT9oS3jCpSqxcEJILIIi41ipvmPNL1/zTvAgV3aQIShZyY8564LY/42o
+         OvGMjgcdNmNN+cBLnn/JtbciBcoEXaCtzT1I5ejk=
+Date:   Mon, 29 Nov 2021 13:27:25 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, ak@linux.intel.com,
-        aneesh.kumar@linux.ibm.com, ben.widawsky@intel.com,
-        dan.j.williams@intel.com, dave.hansen@linux.intel.com,
-        feng.tang@intel.com, mgorman@techsingularity.net, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, vbabka@suse.cz, ying.huang@intel.com
-Subject:  + mm-drop-node-from-alloc_pages_vma.patch added to -mm
- tree
-Message-ID: <20211129205059.RiazwCk14%akpm@linux-foundation.org>
+To:     bigeasy@linutronix.de, dchinner@redhat.com, hch@lst.de,
+        idryomov@gmail.com, jlayton@kernel.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, neilb@suse.de, urezki@gmail.com,
+        vbabka@suse.cz
+Subject:  + mm-vmalloc-alloc-gfp_nofsio-for-vmalloc.patch added to
+ -mm tree
+Message-ID: <20211129212725.umN3G-Odg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop node from alloc_pages_vma
+     Subject: mm/vmalloc: alloc GFP_NO{FS,IO} for vmalloc
 has been added to the -mm tree.  Its filename is
-     mm-drop-node-from-alloc_pages_vma.patch
+     mm-vmalloc-alloc-gfp_nofsio-for-vmalloc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-drop-node-from-alloc_pages_vma.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-alloc-gfp_nofsio-for-vmalloc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-node-from-alloc_pages_vma.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-alloc-gfp_nofsio-for-vmalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,94 +64,119 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: drop node from alloc_pages_vma
+Subject: mm/vmalloc: alloc GFP_NO{FS,IO} for vmalloc
 
-alloc_pages_vma is meant to allocate a page with a vma specific memory
-policy.  The initial node parameter is always a local node so it is
-pointless to waste a function argument for this.  Drop the parameter.
+Patch series "extend vmalloc support for constrained allocations", v2.
 
-Link: https://lkml.kernel.org/r/YaSnlv4QpryEpesG@dhcp22.suse.cz
+Based on a recent discussion with Dave and Neil [1] I have tried to
+implement NOFS, NOIO, NOFAIL support for the vmalloc to make life of
+kvmalloc users easier.
+
+A requirement for NOFAIL support for kvmalloc was new to me but this seems
+to be really needed by the xfs code.
+
+NOFS/NOIO was a known and a long term problem which was hoped to be
+handled by the scope API.  Those scope should have been used at the
+reclaim recursion boundaries both to document them and also to remove the
+necessity of NOFS/NOIO constrains for all allocations within that scope. 
+Instead workarounds were developed to wrap a single allocation instead
+(like ceph_kvmalloc).
+
+First patch implements NOFS/NOIO support for vmalloc.  The second one adds
+NOFAIL support and the third one bundles all together into kvmalloc and
+drops ceph_kvmalloc which can use kvmalloc directly now.
+
+[1] http://lkml.kernel.org/r/163184741778.29351.16920832234899124642.stgit@noble.brown
+
+
+This patch (of 4):
+
+vmalloc historically hasn't supported GFP_NO{FS,IO} requests because page
+table allocations do not support externally provided gfp mask and
+performed GFP_KERNEL like allocations.
+
+Since few years we have scope (memalloc_no{fs,io}_{save,restore}) APIs to
+enforce NOFS and NOIO constrains implicitly to all allocators within the
+scope.  There was a hope that those scopes would be defined on a higher
+level when the reclaim recursion boundary starts/stops (e.g.  when a lock
+required during the memory reclaim is required etc.).  It seems that not
+all NOFS/NOIO users have adopted this approach and instead they have taken
+a workaround approach to wrap a single [k]vmalloc allocation by a scope
+API.
+
+These workarounds do not serve the purpose of a better reclaim recursion
+documentation and reduction of explicit GFP_NO{FS,IO} usege so let's just
+provide them with the semantic they are asking for without a need for
+workarounds.
+
+Add support for GFP_NOFS and GFP_NOIO to vmalloc directly.  All internal
+allocations already comply with the given gfp_mask.  The only current
+exception is vmap_pages_range which maps kernel page tables.  Infer the
+proper scope API based on the given gfp mask.
+
+Link: https://lkml.kernel.org/r/20211122153233.9924-1-mhocko@kernel.org
+Link: https://lkml.kernel.org/r/20211122153233.9924-2-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Ben Widawsky <ben.widawsky@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Feng Tang <feng.tang@intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andi Kleen <ak@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Neil Brown <neilb@suse.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ilya Dryomov <idryomov@gmail.com>
+Cc: Jeff Layton <jlayton@kernel.org>
+Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    8 ++++----
- mm/mempolicy.c      |    3 ++-
- mm/shmem.c          |    3 +--
- 3 files changed, 7 insertions(+), 7 deletions(-)
+ mm/vmalloc.c |   22 ++++++++++++++++++++--
+ 1 file changed, 20 insertions(+), 2 deletions(-)
 
---- a/include/linux/gfp.h~mm-drop-node-from-alloc_pages_vma
-+++ a/include/linux/gfp.h
-@@ -594,9 +594,9 @@ struct page *alloc_pages(gfp_t gfp, unsi
- struct folio *folio_alloc(gfp_t gfp, unsigned order);
- extern struct page *alloc_pages_vma(gfp_t gfp_mask, int order,
- 			struct vm_area_struct *vma, unsigned long addr,
--			int node, bool hugepage);
-+			bool hugepage);
- #define alloc_hugepage_vma(gfp_mask, vma, addr, order) \
--	alloc_pages_vma(gfp_mask, order, vma, addr, numa_node_id(), true)
-+	alloc_pages_vma(gfp_mask, order, vma, addr, true)
- #else
- static inline struct page *alloc_pages(gfp_t gfp_mask, unsigned int order)
- {
-@@ -606,14 +606,14 @@ static inline struct folio *folio_alloc(
- {
- 	return __folio_alloc_node(gfp, order, numa_node_id());
- }
--#define alloc_pages_vma(gfp_mask, order, vma, addr, node, false)\
-+#define alloc_pages_vma(gfp_mask, order, vma, addr, false)\
- 	alloc_pages(gfp_mask, order)
- #define alloc_hugepage_vma(gfp_mask, vma, addr, order) \
- 	alloc_pages(gfp_mask, order)
- #endif
- #define alloc_page(gfp_mask) alloc_pages(gfp_mask, 0)
- #define alloc_page_vma(gfp_mask, vma, addr)			\
--	alloc_pages_vma(gfp_mask, 0, vma, addr, numa_node_id(), false)
-+	alloc_pages_vma(gfp_mask, 0, vma, addr, false)
+--- a/mm/vmalloc.c~mm-vmalloc-alloc-gfp_nofsio-for-vmalloc
++++ a/mm/vmalloc.c
+@@ -2926,6 +2926,8 @@ static void *__vmalloc_area_node(struct
+ 	unsigned long array_size;
+ 	unsigned int nr_small_pages = size >> PAGE_SHIFT;
+ 	unsigned int page_order;
++	unsigned int flags;
++	int ret;
  
- extern unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order);
- extern unsigned long get_zeroed_page(gfp_t gfp_mask);
---- a/mm/mempolicy.c~mm-drop-node-from-alloc_pages_vma
-+++ a/mm/mempolicy.c
-@@ -2084,9 +2084,10 @@ static struct page *alloc_pages_preferre
-  * Return: The page on success or NULL if allocation fails.
-  */
- struct page *alloc_pages_vma(gfp_t gfp, int order, struct vm_area_struct *vma,
--		unsigned long addr, int node, bool hugepage)
-+		unsigned long addr, bool hugepage)
- {
- 	struct mempolicy *pol;
-+	int node = numa_node_id();
- 	struct page *page;
- 	int preferred_nid;
- 	nodemask_t *nmask;
---- a/mm/shmem.c~mm-drop-node-from-alloc_pages_vma
-+++ a/mm/shmem.c
-@@ -1564,8 +1564,7 @@ static struct page *shmem_alloc_hugepage
- 		return NULL;
+ 	array_size = (unsigned long)nr_small_pages * sizeof(struct page *);
+ 	gfp_mask |= __GFP_NOWARN;
+@@ -2967,8 +2969,24 @@ static void *__vmalloc_area_node(struct
+ 		goto fail;
+ 	}
  
- 	shmem_pseudo_vma_init(&pvma, info, hindex);
--	page = alloc_pages_vma(gfp, HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(),
--			       true);
-+	page = alloc_pages_vma(gfp, HPAGE_PMD_ORDER, &pvma, 0, true);
- 	shmem_pseudo_vma_destroy(&pvma);
- 	if (page)
- 		prep_transhuge_page(page);
+-	if (vmap_pages_range(addr, addr + size, prot, area->pages,
+-			page_shift) < 0) {
++	/*
++	 * page tables allocations ignore external gfp mask, enforce it
++	 * by the scope API
++	 */
++	if ((gfp_mask & (__GFP_FS | __GFP_IO)) == __GFP_IO)
++		flags = memalloc_nofs_save();
++	else if ((gfp_mask & (__GFP_FS | __GFP_IO)) == 0)
++		flags = memalloc_noio_save();
++
++	ret = vmap_pages_range(addr, addr + size, prot, area->pages,
++			page_shift);
++
++	if ((gfp_mask & (__GFP_FS | __GFP_IO)) == __GFP_IO)
++		memalloc_nofs_restore(flags);
++	else if ((gfp_mask & (__GFP_FS | __GFP_IO)) == 0)
++		memalloc_noio_restore(flags);
++
++	if (ret < 0) {
+ 		warn_alloc(orig_gfp_mask, NULL,
+ 			"vmalloc error: size %lu, failed to map pages",
+ 			area->nr_pages * PAGE_SIZE);
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-vmalloc-alloc-gfp_nofsio-for-vmalloc.patch
+mm-vmalloc-add-support-for-__gfp_nofail.patch
+mm-vmalloc-be-more-explicit-about-supported-gfp-flags.patch
+mm-allow-gfp_kernel-allocations-for-kvmalloc.patch
+mm-make-slab-and-vmalloc-allocators-__gfp_nolockdep-aware.patch
 mm-drop-node-from-alloc_pages_vma.patch
 
