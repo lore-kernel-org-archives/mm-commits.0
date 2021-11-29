@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BD22C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA855C433FE
 	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 22:38:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233315AbhK2Wl4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 29 Nov 2021 17:41:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33652 "EHLO
+        id S233953AbhK2Wl5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 29 Nov 2021 17:41:57 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232959AbhK2WlI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 17:41:08 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 005EAC0E2ECA
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 13:27:40 -0800 (PST)
+        with ESMTP id S234069AbhK2WlJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 17:41:09 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 036AFC0E2EC9
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 13:27:36 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A7881B81643
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 21:27:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10D73C53FC7;
-        Mon, 29 Nov 2021 21:27:38 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 1A4D2CE16C0
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 21:27:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ED8B3C53FC7;
+        Mon, 29 Nov 2021 21:27:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638221258;
-        bh=bqw2r6tyQsZ3ZXF2kc90uMNe+2K2P4QMFIE+zBh8kls=;
+        s=korg; t=1638221252;
+        bh=I4u2Xf/c0Ktc5KoZs8FHnVCkZ3Ouz6EKiWX1Dtv1Syc=;
         h=Date:From:To:Subject:From;
-        b=sXFcqK0QiWi6x46JxqiuoU1Cf74q6dEbxtwbeyqYdgA15kGDKyB55sEA9W0pW6rmy
-         jUbz4wHD99fSsZMC7J/J0zhi3mkvkAqKcDMqF3e7ld5nHYSSj0gtagCjI1z/h6Jd+C
-         aA0l9FQYKACG9+elf+yd9HdIPyoXTuINRTt+Rrzo=
-Date:   Mon, 29 Nov 2021 13:27:37 -0800
+        b=f455UzqHDhdTLxIrySLsA9zTEF0jinTxh50GBjsMMXou6SWO+ffXegI1pqhm2bZs+
+         NZZ8dKKS3VQzLm401a2HRTsD+1lne1GoV7jigal3aXEB1pf1tOpqoNsxwecnIOj7od
+         kDyOauvFcETCNOfjhCNeeGeHcVyryvnJMQmWSW8Q=
+Date:   Mon, 29 Nov 2021 13:27:31 -0800
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, david@fromorbit.com, dchinner@redhat.com,
-        hch@lst.de, idryomov@gmail.com, jlayton@kernel.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org, neilb@suse.de,
-        urezki@gmail.com, vbabka@suse.cz
+To:     bigeasy@linutronix.de, david@fromorbit.com, hch@lst.de,
+        idryomov@gmail.com, jlayton@kernel.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, neilb@suse.de, urezki@gmail.com,
+        vbabka@suse.cz
 Subject:  +
- mm-make-slab-and-vmalloc-allocators-__gfp_nolockdep-aware.patch added to
- -mm tree
-Message-ID: <20211129212737.GICERW5JR%akpm@linux-foundation.org>
+ mm-vmalloc-be-more-explicit-about-supported-gfp-flags.patch added to -mm
+ tree
+Message-ID: <20211129212731.esTDx2l-z%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make slab and vmalloc allocators __GFP_NOLOCKDEP aware
+     Subject: mm/vmalloc: be more explicit about supported gfp flags.
 has been added to the -mm tree.  Its filename is
-     mm-make-slab-and-vmalloc-allocators-__gfp_nolockdep-aware.patch
+     mm-vmalloc-be-more-explicit-about-supported-gfp-flags.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-make-slab-and-vmalloc-allocators-__gfp_nolockdep-aware.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-be-more-explicit-about-supported-gfp-flags.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-make-slab-and-vmalloc-allocators-__gfp_nolockdep-aware.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-be-more-explicit-about-supported-gfp-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,51 +68,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: make slab and vmalloc allocators __GFP_NOLOCKDEP aware
+Subject: mm/vmalloc: be more explicit about supported gfp flags.
 
-sl?b and vmalloc allocators reduce the given gfp mask for their internal
-needs.  For that they use GFP_RECLAIM_MASK to preserve the reclaim
-behavior and constrains.
+b7d90e7a5ea8 ("mm/vmalloc: be more explicit about supported gfp flags")
+has been merged prematurely without the rest of the series and without
+addressed review feedback from Neil.  Fix that up now.  Only wording is
+changed slightly.
 
-__GFP_NOLOCKDEP is not a part of that mask because it doesn't really
-control the reclaim behavior strictly speaking.  On the other hand it
-tells the underlying page allocator to disable reclaim recursion detection
-so arguably it should be part of the mask.
-
-Having __GFP_NOLOCKDEP in the mask will not alter the behavior in any form
-so this change is safe pretty much by definition.  It also adds a support
-for this flag to SL?B and vmalloc allocators which will in turn allow its
-use to kvmalloc as well.  A lack of the support has been noticed recently
-in http://lkml.kernel.org/r/20211119225435.GZ449541@dread.disaster.area
-
-Link: https://lkml.kernel.org/r/YZ9XtLY4AEjVuiEI@dhcp22.suse.cz
+Link: https://lkml.kernel.org/r/20211122153233.9924-4-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Dave Chinner <dchinner@redhat.com>
+Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Ilya Dryomov <idryomov@gmail.com>
 Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Neil Brown <neilb@suse.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
---- a/mm/internal.h~mm-make-slab-and-vmalloc-allocators-__gfp_nolockdep-aware
-+++ a/mm/internal.h
-@@ -21,7 +21,7 @@
- #define GFP_RECLAIM_MASK (__GFP_RECLAIM|__GFP_HIGH|__GFP_IO|__GFP_FS|\
- 			__GFP_NOWARN|__GFP_RETRY_MAYFAIL|__GFP_NOFAIL|\
- 			__GFP_NORETRY|__GFP_MEMALLOC|__GFP_NOMEMALLOC|\
--			__GFP_ATOMIC)
-+			__GFP_ATOMIC|__GFP_NOLOCKDEP)
- 
- /* The GFP flags allowed during early boot */
- #define GFP_BOOT_MASK (__GFP_BITS_MASK & ~(__GFP_RECLAIM|__GFP_IO|__GFP_FS))
+--- a/mm/vmalloc.c~mm-vmalloc-be-more-explicit-about-supported-gfp-flags
++++ a/mm/vmalloc.c
+@@ -3021,12 +3021,14 @@ fail:
+  *
+  * Allocate enough pages to cover @size from the page level
+  * allocator with @gfp_mask flags. Please note that the full set of gfp
+- * flags are not supported. GFP_KERNEL would be a preferred allocation mode
+- * but GFP_NOFS and GFP_NOIO are supported as well. Zone modifiers are not
+- * supported. From the reclaim modifiers__GFP_DIRECT_RECLAIM is required (aka
+- * GFP_NOWAIT is not supported) and only __GFP_NOFAIL is supported (aka
+- * __GFP_NORETRY and __GFP_RETRY_MAYFAIL are not supported).
+- * __GFP_NOWARN can be used to suppress error messages about failures.
++ * flags are not supported. GFP_KERNEL, GFP_NOFS and GFP_NOIO are all
++ * supported.
++ * Zone modifiers are not supported. From the reclaim modifiers
++ * __GFP_DIRECT_RECLAIM is required (aka GFP_NOWAIT is not supported)
++ * and only __GFP_NOFAIL is supported (i.e. __GFP_NORETRY and
++ * __GFP_RETRY_MAYFAIL are not supported).
++ *
++ * __GFP_NOWARN can be used to suppress failures messages.
+  *
+  * Map them into contiguous kernel virtual space, using a pagetable
+  * protection of @prot.
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
