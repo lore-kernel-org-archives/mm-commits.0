@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 72CE0C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8B8F1C4167B
 	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 22:58:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237144AbhK2XBi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 29 Nov 2021 18:01:38 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:59312 "EHLO
+        id S237091AbhK2XBj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 29 Nov 2021 18:01:39 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:59400 "EHLO
         ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237101AbhK2XAo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 18:00:44 -0500
+        with ESMTP id S235736AbhK2XAv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 18:00:51 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DC15FB81204
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 22:57:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2219CC53FC7;
-        Mon, 29 Nov 2021 22:57:23 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E495BB80D1E
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 22:57:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26861C53FC7;
+        Mon, 29 Nov 2021 22:57:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638226643;
-        bh=ZmNZT3IifPc982qXlM4TjzeamQLuYVNc0GaUNw6VAlM=;
+        s=korg; t=1638226650;
+        bh=JZbZ/CEQRmUYjB4TW7AAV8OLI3o17+Jp+R7dlBQNThI=;
         h=Date:From:To:Subject:From;
-        b=ozVqpikZgcWrOUr1JzCiVv8fp87wk6Z8Np++1AZeIjdwgpqvaXnf811XqfYq9lFlS
-         xKdWaTihXQBquWfqgB5X8xXWEQx7YmUU/LIeLcKf7j63ZSY92RHUFwAkdetJIwLFRq
-         ByuR4jCwPs31d9BgMrWLMGQ2Oo+UDCxSiDv1WGi4=
-Date:   Mon, 29 Nov 2021 14:57:22 -0800
+        b=oarViCT4crC9INhgdGwSApvqTwOf/xtyK44il4oYwao2kGlmMrdtVPbRm/rIuNef3
+         VdsbBY4PN4yj3kPoQ+1kpxdk2AR39d4FF/3tPYExHHCEUxpCdMZ2sp031ERIoSr1gv
+         5NEcDOK/Lpyh9iddIZX4Gx/3KcYxadHu7LnYXExU=
+Date:   Mon, 29 Nov 2021 14:57:29 -0800
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, bfields@fieldses.org,
         crope@iki.fi, ebiederm@xmission.com, jlayton@kernel.org,
@@ -33,9 +33,9 @@ To:     andriy.shevchenko@linux.intel.com, bfields@fieldses.org,
         mchehab@kernel.org, mm-commits@vger.kernel.org,
         nixiaoming@huawei.com, steve@sk2.org, viro@zeniv.linux.org.uk,
         yzaikin@google.com
-Subject:  + sysctl-move-maxolduid-as-a-sysctl-specific-const.patch
- added to -mm tree
-Message-ID: <20211129225722.lOoDZaJ-M%akpm@linux-foundation.org>
+Subject:  + fs-move-locking-sysctls-where-they-are-used.patch added
+ to -mm tree
+Message-ID: <20211129225729.eNroROqwR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: move maxolduid as a sysctl specific const
+     Subject: fs: move locking sysctls where they are used
 has been added to the -mm tree.  Its filename is
-     sysctl-move-maxolduid-as-a-sysctl-specific-const.patch
+     fs-move-locking-sysctls-where-they-are-used.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/sysctl-move-maxolduid-as-a-sysctl-specific-const.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-move-locking-sysctls-where-they-are-used.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/sysctl-move-maxolduid-as-a-sysctl-specific-const.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-move-locking-sysctls-where-they-are-used.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,12 +66,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: sysctl: move maxolduid as a sysctl specific const
+Subject: fs: move locking sysctls where they are used
 
-The maxolduid value is only shared for sysctl purposes for use on a max
-range.  Just stuff this into our shared const array.
+kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
+dishes, this makes it very difficult to maintain.
 
-Link: https://lkml.kernel.org/r/20211129205548.605569-5-mcgrof@kernel.org
+To help with this maintenance let's start by moving sysctls to places
+where they actually belong.  The proc sysctl maintainers do not want to
+know what sysctl knobs you wish to add for your own piece of code, we just
+care about the core logic.
+
+The locking fs sysctls are only used on fs/locks.c, so move them there.
+
+Link: https://lkml.kernel.org/r/20211129205548.605569-7-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -88,83 +95,103 @@ Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c  |    2 +-
- include/linux/sysctl.h |    3 +++
- kernel/sysctl.c        |   12 ++++--------
- 3 files changed, 8 insertions(+), 9 deletions(-)
+ fs/locks.c         |   34 ++++++++++++++++++++++++++++++++--
+ include/linux/fs.h |    4 ----
+ kernel/sysctl.c    |   20 --------------------
+ 3 files changed, 32 insertions(+), 26 deletions(-)
 
---- a/fs/proc/proc_sysctl.c~sysctl-move-maxolduid-as-a-sysctl-specific-const
-+++ a/fs/proc/proc_sysctl.c
-@@ -26,7 +26,7 @@ static const struct file_operations proc
- static const struct inode_operations proc_sys_dir_operations;
+--- a/fs/locks.c~fs-move-locking-sysctls-where-they-are-used
++++ a/fs/locks.c
+@@ -62,6 +62,7 @@
+ #include <linux/pid_namespace.h>
+ #include <linux/hashtable.h>
+ #include <linux/percpu.h>
++#include <linux/sysctl.h>
  
- /* shared constants to be used in various sysctls */
--const int sysctl_vals[] = { -1, 0, 1, 2, 4, 100, 200, 1000, 3000, INT_MAX };
-+const int sysctl_vals[] = { -1, 0, 1, 2, 4, 100, 200, 1000, 65535, INT_MAX };
- EXPORT_SYMBOL(sysctl_vals);
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/filelock.h>
+@@ -88,8 +89,37 @@ static int target_leasetype(struct file_
+ 	return fl->fl_type;
+ }
  
- const unsigned long sysctl_long_vals[] = { 0, 1, LONG_MAX };
---- a/include/linux/sysctl.h~sysctl-move-maxolduid-as-a-sysctl-specific-const
-+++ a/include/linux/sysctl.h
-@@ -49,6 +49,9 @@ struct ctl_dir;
- #define SYSCTL_THREE_THOUSAND		((void *)&sysctl_vals[8])
- #define SYSCTL_INT_MAX			((void *)&sysctl_vals[9])
- 
-+/* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
-+#define SYSCTL_MAXOLDUID		((void *)&sysctl_vals[10])
+-int leases_enable = 1;
+-int lease_break_time = 45;
++static int leases_enable = 1;
++static int lease_break_time = 45;
 +
- extern const int sysctl_vals[];
++#ifdef CONFIG_SYSCTL
++static struct ctl_table locks_sysctls[] = {
++	{
++		.procname	= "leases-enable",
++		.data		= &leases_enable,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++#ifdef CONFIG_MMU
++	{
++		.procname	= "lease-break-time",
++		.data		= &lease_break_time,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++#endif /* CONFIG_MMU */
++	{}
++};
++
++static int __init init_fs_locks_sysctls(void)
++{
++	register_sysctl_init("fs", locks_sysctls);
++	return 0;
++}
++early_initcall(init_fs_locks_sysctls);
++#endif /* CONFIG_SYSCTL */
  
- #define SYSCTL_LONG_ZERO	((void *)&sysctl_long_vals[0])
---- a/kernel/sysctl.c~sysctl-move-maxolduid-as-a-sysctl-specific-const
+ /*
+  * The global file_lock_list is only used for displaying /proc/locks, so we
+--- a/include/linux/fs.h~fs-move-locking-sysctls-where-they-are-used
++++ a/include/linux/fs.h
+@@ -81,10 +81,6 @@ extern void __init files_maxfiles_init(v
+ extern unsigned long get_max_files(void);
+ extern unsigned int sysctl_nr_open;
+ extern int leases_enable, lease_break_time;
+-extern int sysctl_protected_symlinks;
+-extern int sysctl_protected_hardlinks;
+-extern int sysctl_protected_fifos;
+-extern int sysctl_protected_regular;
+ 
+ typedef __kernel_rwf_t rwf_t;
+ 
+--- a/kernel/sysctl.c~fs-move-locking-sysctls-where-they-are-used
 +++ a/kernel/sysctl.c
-@@ -109,10 +109,6 @@ static const int six_hundred_forty_kb =
- /* this is needed for the proc_doulongvec_minmax of vm_dirty_bytes */
- static const unsigned long dirty_bytes_min = 2 * PAGE_SIZE;
+@@ -2896,26 +2896,6 @@ static struct ctl_table vm_table[] = {
+ };
  
--/* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
--static const int maxolduid = 65535;
--/* minolduid is SYSCTL_ZERO */
--
- static const int ngroups_max = NGROUPS_MAX;
- static const int cap_last_cap = CAP_LAST_CAP;
- 
-@@ -2126,7 +2122,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= (void *)&maxolduid,
-+		.extra2		= SYSCTL_MAXOLDUID,
- 	},
+ static struct ctl_table fs_table[] = {
+-#ifdef CONFIG_FILE_LOCKING
+-	{
+-		.procname	= "leases-enable",
+-		.data		= &leases_enable,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-	},
+-#endif
+-#ifdef CONFIG_MMU
+-#ifdef CONFIG_FILE_LOCKING
+-	{
+-		.procname	= "lease-break-time",
+-		.data		= &lease_break_time,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-	},
+-#endif
+-#endif
  	{
- 		.procname	= "overflowgid",
-@@ -2135,7 +2131,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= (void *)&maxolduid,
-+		.extra2		= SYSCTL_MAXOLDUID,
- 	},
- #ifdef CONFIG_S390
- 	{
-@@ -2907,7 +2903,7 @@ static struct ctl_table fs_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= (void *)&maxolduid,
-+		.extra2		= SYSCTL_MAXOLDUID,
- 	},
- 	{
- 		.procname	= "overflowgid",
-@@ -2916,7 +2912,7 @@ static struct ctl_table fs_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= (void *)&maxolduid,
-+		.extra2		= SYSCTL_MAXOLDUID,
- 	},
- #ifdef CONFIG_FILE_LOCKING
- 	{
+ 		.procname	= "protected_symlinks",
+ 		.data		= &sysctl_protected_symlinks,
 _
 
 Patches currently in -mm which might be from mcgrof@kernel.org are
