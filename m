@@ -2,42 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF8CCC43219
-	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 22:20:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6993AC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 22:22:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233590AbhK2WXt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 29 Nov 2021 17:23:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57926 "EHLO
+        id S234295AbhK2W0M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 29 Nov 2021 17:26:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58388 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231515AbhK2WV6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 17:21:58 -0500
+        with ESMTP id S233086AbhK2WXV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 17:23:21 -0500
 Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42C15C06FD43
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 12:15:41 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 13103C06FD6E
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 12:19:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 74720CE140F
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 20:15:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58F60C53FAD;
-        Mon, 29 Nov 2021 20:15:37 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 24FC0CE169C
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 20:19:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D257DC53FAD;
+        Mon, 29 Nov 2021 20:19:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638216937;
-        bh=q8nmy8aFxLoSI4qQAXMKof1YAHMuZTxsye8AJscN0BQ=;
+        s=korg; t=1638217186;
+        bh=zmr3Lb9va0rVn4f6dSk2yfgmSBlFwhI6ufmZWByNtHU=;
         h=Date:From:To:Subject:From;
-        b=WjcrcB6LUpUddVfNYDG+Uo8scKBQoLQ1LBKM7MmohmAHO7X4G79phipc9CWX2DGG0
-         K9GL+xeBOuuQOR9v2bY8AGsx5K55VjiX5FpivINLaJeFLfBUonmD48103UQ/JHC+KM
-         7y6n1Nj/d6CyOzj0ACbZXLphJq23SHjVEnynuTiI=
-Date:   Mon, 29 Nov 2021 12:15:36 -0800
+        b=xF75xrbCGeLn4cEtEK3mu41Wc0iYlVgHKo9tVxtShYhcQgcSN9n2s7oubDi5BXNNf
+         Wz9UjZ+sgcYDnMrWFF69HooQd4Ss3JD7MhO0FaiepIZzlqTjc0J3CQQ5LzczAad5or
+         2HjmEN0Evh8ZeKBDIwTq7fZQibp289e0fKmvHPEY=
+Date:   Mon, 29 Nov 2021 12:19:45 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, lkp@intel.com, longman@redhat.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org, shakeelb@google.com,
-        vdavydov.dev@gmail.com
+To:     ch0.han@lge.com, mm-commits@vger.kernel.org, seanga2@gmail.com,
+        sfr@canb.auug.org.au, tangbin@cmss.chinamobile.com,
+        weizhenliang@huawei.com, zhangshengju@cmss.chinamobile.com,
+        zhangyinan2019@email.szu.edu.cn
 Subject:  +
- mm-memcg-relocate-mod_objcg_mlstate-get_obj_stock-and-put_obj_stock.patch
- added to -mm tree
-Message-ID: <20211129201536.NFKadbuJi%akpm@linux-foundation.org>
+ =?US-ASCII?Q?tools-vm-page=5Fowner=5Fsortc-add-switch-between-culling-by-?=
+ =?US-ASCII?Q?stacktrace-and-txt.patch?= added to -mm tree
+Message-ID: <20211129201945.-16BT1ZAE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: relocate mod_objcg_mlstate(), get_obj_stock() and put_obj_stock()
+     Subject: tools/vm/page_owner_sort.c: add switch between culling by stacktrace and txt
 has been added to the -mm tree.  Its filename is
-     mm-memcg-relocate-mod_objcg_mlstate-get_obj_stock-and-put_obj_stock.patch
+     tools-vm-page_owner_sortc-add-switch-between-culling-by-stacktrace-and-txt.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-relocate-mod_objcg_mlstate-get_obj_stock-and-put_obj_stock.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sortc-add-switch-between-culling-by-stacktrace-and-txt.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-relocate-mod_objcg_mlstate-get_obj_stock-and-put_obj_stock.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sortc-add-switch-between-culling-by-stacktrace-and-txt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,171 +69,135 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm/memcg: relocate mod_objcg_mlstate(), get_obj_stock() and put_obj_stock()
+From: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
+Subject: tools/vm/page_owner_sort.c: add switch between culling by stacktrace and txt
 
-All the calls to mod_objcg_mlstate(), get_obj_stock() and put_obj_stock()
-are done by functions defined within the same "#ifdef CONFIG_MEMCG_KMEM"
-compilation block.  When CONFIG_MEMCG_KMEM isn't defined, the following
-compilation warnings will be issued [1] and [2].
+Culling by comparing stacktrace would casue loss of some information.  For
+example, if there exists 2 blocks which have the same stacktrace and the
+different head info
 
-  mm/memcontrol.c:785:20: warning: unused function 'mod_objcg_mlstate'
-  mm/memcontrol.c:2113:33: warning: unused function 'get_obj_stock'
+Page allocated via order 0, mask 0x108c48(...), pid 73696,
+ ts 1578829190639010 ns, free_ts 1576583851324450 ns
+ prep_new_page+0x80/0xb8
+ get_page_from_freelist+0x924/0xee8
+ __alloc_pages+0x138/0xc18
+ alloc_pages+0x80/0xf0
+ __page_cache_alloc+0x90/0xc8
 
-Fix these warning by moving those functions to under the same
-CONFIG_MEMCG_KMEM compilation block.  There is no functional change.
+Page allocated via order 0, mask 0x108c48(...), pid 61806,
+ ts 1354113726046100 ns, free_ts 1354104926841400 ns
+ prep_new_page+0x80/0xb8
+ get_page_from_freelist+0x924/0xee8
+ __alloc_pages+0x138/0xc18
+ alloc_pages+0x80/0xf0
+ __page_cache_alloc+0x90/0xc8
 
-[1] https://lore.kernel.org/lkml/202111272014.WOYNLUV6-lkp@intel.com/
-[2] https://lore.kernel.org/lkml/202111280551.LXsWYt1T-lkp@intel.com/
+After culling, it would be like this
 
-Link: https://lkml.kernel.org/r/20211129161140.306488-1-longman@redhat.com
-Fixes: 559271146efc ("mm/memcg: optimize user context object stock access")
-Fixes: 68ac5b3c8db2 ("mm/memcg: cache vmstat data in percpu memcg_stock_pcp")
-Signed-off-by: Waiman Long <longman@redhat.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Acked-by: Roman Gushchin <guro@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+2 times, 2 pages:
+Page allocated via order 0, mask 0x108c48(...), pid 73696,
+ ts 1578829190639010 ns, free_ts 1576583851324450 ns
+ prep_new_page+0x80/0xb8
+ get_page_from_freelist+0x924/0xee8
+ __alloc_pages+0x138/0xc18
+ alloc_pages+0x80/0xf0
+ __page_cache_alloc+0x90/0xc8
+
+The info of second block missed.  So, add -c to turn on culling by
+stacktrace.  By default, it will cull by txt.
+
+Link: https://lkml.kernel.org/r/20211129145658.2491-1-zhangyinan2019@email.szu.edu.cn
+Signed-off-by: Yinan Zhang <zhangyinan2019@email.szu.edu.cn>
+Cc: Changhee Han <ch0.han@lge.com>
+Cc: Sean Anderson <seanga2@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Tang Bin <tangbin@cmss.chinamobile.com>
+Cc: Zhang Shengju <zhangshengju@cmss.chinamobile.com>
+Cc: Zhenliang Wei <weizhenliang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  106 +++++++++++++++++++++++-----------------------
- 1 file changed, 53 insertions(+), 53 deletions(-)
+ tools/vm/page_owner_sort.c |   23 ++++++++++++++++++++---
+ 1 file changed, 20 insertions(+), 3 deletions(-)
 
---- a/mm/memcontrol.c~mm-memcg-relocate-mod_objcg_mlstate-get_obj_stock-and-put_obj_stock
-+++ a/mm/memcontrol.c
-@@ -776,24 +776,6 @@ void __mod_lruvec_kmem_state(void *p, en
- 	rcu_read_unlock();
+--- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-add-switch-between-culling-by-stacktrace-and-txt
++++ a/tools/vm/page_owner_sort.c
+@@ -51,6 +51,13 @@ int read_block(char *buf, int buf_size,
+ 	return -1; /* EOF or no space left in buf. */
  }
  
--/*
-- * mod_objcg_mlstate() may be called with irq enabled, so
-- * mod_memcg_lruvec_state() should be used.
-- */
--static inline void mod_objcg_mlstate(struct obj_cgroup *objcg,
--				     struct pglist_data *pgdat,
--				     enum node_stat_item idx, int nr)
--{
--	struct mem_cgroup *memcg;
--	struct lruvec *lruvec;
--
--	rcu_read_lock();
--	memcg = obj_cgroup_memcg(objcg);
--	lruvec = mem_cgroup_lruvec(memcg, pgdat);
--	mod_memcg_lruvec_state(lruvec, idx, nr);
--	rcu_read_unlock();
--}
--
- /**
-  * __count_memcg_events - account VM events in a cgroup
-  * @memcg: the memory cgroup
-@@ -2137,41 +2119,6 @@ static bool obj_stock_flush_required(str
- }
- #endif
- 
--/*
-- * Most kmem_cache_alloc() calls are from user context. The irq disable/enable
-- * sequence used in this case to access content from object stock is slow.
-- * To optimize for user context access, there are now two object stocks for
-- * task context and interrupt context access respectively.
-- *
-- * The task context object stock can be accessed by disabling preemption only
-- * which is cheap in non-preempt kernel. The interrupt context object stock
-- * can only be accessed after disabling interrupt. User context code can
-- * access interrupt object stock, but not vice versa.
-- */
--static inline struct obj_stock *get_obj_stock(unsigned long *pflags)
--{
--	struct memcg_stock_pcp *stock;
--
--	if (likely(in_task())) {
--		*pflags = 0UL;
--		preempt_disable();
--		stock = this_cpu_ptr(&memcg_stock);
--		return &stock->task_obj;
--	}
--
--	local_irq_save(*pflags);
--	stock = this_cpu_ptr(&memcg_stock);
--	return &stock->irq_obj;
--}
--
--static inline void put_obj_stock(unsigned long flags)
--{
--	if (likely(in_task()))
--		preempt_enable();
--	else
--		local_irq_restore(flags);
--}
--
- /**
-  * consume_stock: Try to consume stocked charge on this cpu.
-  * @memcg: memcg to consume from.
-@@ -2816,6 +2763,59 @@ retry:
-  */
- #define OBJCGS_CLEAR_MASK	(__GFP_DMA | __GFP_RECLAIMABLE | __GFP_ACCOUNT)
- 
-+/*
-+ * Most kmem_cache_alloc() calls are from user context. The irq disable/enable
-+ * sequence used in this case to access content from object stock is slow.
-+ * To optimize for user context access, there are now two object stocks for
-+ * task context and interrupt context access respectively.
-+ *
-+ * The task context object stock can be accessed by disabling preemption only
-+ * which is cheap in non-preempt kernel. The interrupt context object stock
-+ * can only be accessed after disabling interrupt. User context code can
-+ * access interrupt object stock, but not vice versa.
-+ */
-+static inline struct obj_stock *get_obj_stock(unsigned long *pflags)
++static int compare_txt(const void *p1, const void *p2)
 +{
-+	struct memcg_stock_pcp *stock;
++	const struct block_list *l1 = p1, *l2 = p2;
 +
-+	if (likely(in_task())) {
-+		*pflags = 0UL;
-+		preempt_disable();
-+		stock = this_cpu_ptr(&memcg_stock);
-+		return &stock->task_obj;
-+	}
-+
-+	local_irq_save(*pflags);
-+	stock = this_cpu_ptr(&memcg_stock);
-+	return &stock->irq_obj;
++	return strcmp(l1->txt, l2->txt);
 +}
 +
-+static inline void put_obj_stock(unsigned long flags)
-+{
-+	if (likely(in_task()))
-+		preempt_enable();
-+	else
-+		local_irq_restore(flags);
-+}
-+
-+/*
-+ * mod_objcg_mlstate() may be called with irq enabled, so
-+ * mod_memcg_lruvec_state() should be used.
-+ */
-+static inline void mod_objcg_mlstate(struct obj_cgroup *objcg,
-+				     struct pglist_data *pgdat,
-+				     enum node_stat_item idx, int nr)
-+{
-+	struct mem_cgroup *memcg;
-+	struct lruvec *lruvec;
-+
-+	rcu_read_lock();
-+	memcg = obj_cgroup_memcg(objcg);
-+	lruvec = mem_cgroup_lruvec(memcg, pgdat);
-+	mod_memcg_lruvec_state(lruvec, idx, nr);
-+	rcu_read_unlock();
-+}
-+
- int memcg_alloc_page_obj_cgroups(struct page *page, struct kmem_cache *s,
- 				 gfp_t gfp, bool new_page)
+ static int compare_stacktrace(const void *p1, const void *p2)
  {
+ 	const struct block_list *l1 = p1, *l2 = p2;
+@@ -137,12 +144,14 @@ static void usage(void)
+ 		"-m	Sort by total memory.\n"
+ 		"-s	Sort by the stack trace.\n"
+ 		"-t	Sort by times (default).\n"
++		"-c	cull by comparing stacktrace instead of total block.\n"
+ 	);
+ }
+ 
+ int main(int argc, char **argv)
+ {
+ 	int (*cmp)(const void *, const void *) = compare_num;
++	int cull_st = 0;
+ 	FILE *fin, *fout;
+ 	char *buf;
+ 	int ret, i, count;
+@@ -151,7 +160,7 @@ int main(int argc, char **argv)
+ 	int err;
+ 	int opt;
+ 
+-	while ((opt = getopt(argc, argv, "mst")) != -1)
++	while ((opt = getopt(argc, argv, "mstc")) != -1)
+ 		switch (opt) {
+ 		case 'm':
+ 			cmp = compare_page_num;
+@@ -162,6 +171,9 @@ int main(int argc, char **argv)
+ 		case 't':
+ 			cmp = compare_num;
+ 			break;
++		case 'c':
++			cull_st = 1;
++			break;
+ 		default:
+ 			usage();
+ 			exit(1);
+@@ -209,7 +221,10 @@ int main(int argc, char **argv)
+ 
+ 	printf("sorting ....\n");
+ 
+-	qsort(list, list_size, sizeof(list[0]), compare_stacktrace);
++	if (cull_st == 1)
++		qsort(list, list_size, sizeof(list[0]), compare_stacktrace);
++	else
++		qsort(list, list_size, sizeof(list[0]), compare_txt);
+ 
+ 	list2 = malloc(sizeof(*list) * list_size);
+ 	if (!list2) {
+@@ -219,9 +234,11 @@ int main(int argc, char **argv)
+ 
+ 	printf("culling\n");
+ 
++	long offset = cull_st ? &list[0].stacktrace - &list[0].txt : 0;
++
+ 	for (i = count = 0; i < list_size; i++) {
+ 		if (count == 0 ||
+-		    strcmp(list2[count-1].stacktrace, list[i].stacktrace) != 0) {
++		    strcmp(*(&list2[count-1].txt+offset), *(&list[i].txt+offset)) != 0) {
+ 			list2[count++] = list[i];
+ 		} else {
+ 			list2[count-1].num += list[i].num;
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from zhangyinan2019@email.szu.edu.cn are
 
-mm-memcg-relocate-mod_objcg_mlstate-get_obj_stock-and-put_obj_stock.patch
+tools-vm-page_owner_sortc-add-switch-between-culling-by-stacktrace-and-txt.patch
 
