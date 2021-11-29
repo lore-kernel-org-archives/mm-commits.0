@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF5C7C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 22:47:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 01390C43217
+	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 22:58:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234724AbhK2Wum (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 29 Nov 2021 17:50:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36380 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236041AbhK2Wu0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 17:50:26 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 34B20C0E2EC8
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 13:27:33 -0800 (PST)
+        id S236804AbhK2XBg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 29 Nov 2021 18:01:36 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:59130 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236654AbhK2XAa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 18:00:30 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 29D76CE16B9
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 21:27:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06086C53FAD;
-        Mon, 29 Nov 2021 21:27:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2DF67B81649
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 22:57:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18EDFC53FC7;
+        Mon, 29 Nov 2021 22:57:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638221249;
-        bh=buOpF7o0A+jCcTHX4EeQUWcCKramoNJ2Ajl6125wgRE=;
+        s=korg; t=1638226630;
+        bh=wLVK6JtOb3b7FVLwtn7nQgqXklNeeDlzcWas9KZDTeA=;
         h=Date:From:To:Subject:From;
-        b=gD8IbSUqoJxtPy59fvSYZO6lRBL/DHDisFAxUFcHY+YDkdGtjoTjLQsPqFv9yu6yF
-         r7AjxZRHuCFWYtp52KFbU0BNW3m1ASluJYTnU/x4BBMLvDNxsk8qZb5PBgCpIfWywF
-         TE4P7gVyS18mc3ABgwtsYM2DCLeKKLKdGJMcmX/Q=
-Date:   Mon, 29 Nov 2021 13:27:28 -0800
+        b=1PDohNPAYdU86gtETU/hn1cA8zyTXYQ998JoWLok9vlAjIIlDGSKLRtavZNWItH89
+         yKZ/q4tZRPcjB2Pv0L9ep1UX2Y96f19T2NXEk8SaYBke6A0kLQPBtJ+mzVukvLBtNT
+         xHnOR+mbuvYdBtQIvOPMweFtZsQtuCCwIiPAcGFQ=
+Date:   Mon, 29 Nov 2021 14:57:08 -0800
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, david@fromorbit.com, hch@lst.de,
-        idryomov@gmail.com, jlayton@kernel.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, neilb@suse.de, urezki@gmail.com,
-        vbabka@suse.cz
-Subject:  + mm-vmalloc-add-support-for-__gfp_nofail.patch added to
+To:     andriy.shevchenko@linux.intel.com, bfields@fieldses.org,
+        crope@iki.fi, ebiederm@xmission.com, jlayton@kernel.org,
+        keescook@chromium.org, kernel@tuxforce.de, mcgrof@kernel.org,
+        mchehab@kernel.org, mm-commits@vger.kernel.org,
+        nixiaoming@huawei.com, steve@sk2.org, viro@zeniv.linux.org.uk,
+        yzaikin@google.com
+Subject:  + fs-move-fs-stat-sysctls-to-file_tablec.patch added to
  -mm tree
-Message-ID: <20211129212728.KLLl43YN4%akpm@linux-foundation.org>
+Message-ID: <20211129225708.yq7VOxyqa%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: add support for __GFP_NOFAIL
+     Subject: fs: move fs stat sysctls to file_table.c
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-add-support-for-__gfp_nofail.patch
+     fs-move-fs-stat-sysctls-to-file_tablec.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-add-support-for-__gfp_nofail.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-move-fs-stat-sysctls-to-file_tablec.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-add-support-for-__gfp_nofail.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-move-fs-stat-sysctls-to-file_tablec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,114 +65,193 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm/vmalloc: add support for __GFP_NOFAIL
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: fs: move fs stat sysctls to file_table.c
 
-Dave Chinner has mentioned that some of the xfs code would benefit from
-kvmalloc support for __GFP_NOFAIL because they have allocations that
-cannot fail and they do not fit into a single page.
+kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
+dishes, this makes it very difficult to maintain.
 
-The large part of the vmalloc implementation already complies with the
-given gfp flags so there is no work for those to be done.  The area and
-page table allocations are an exception to that.  Implement a retry loop
-for those.
+To help with this maintenance let's start by moving sysctls to places
+where they actually belong.  The proc sysctl maintainers do not want to
+know what sysctl knobs you wish to add for your own piece of code, we just
+care about the core logic.
 
-Add a short sleep before retrying.  1 jiffy is a completely random
-timeout.  Ideally the retry would wait for an explicit event - e.g.  a
-change to the vmalloc space change if the failure was caused by the space
-fragmentation or depletion.  But there are multiple different reasons to
-retry and this could become much more complex.  Keep the retry simple for
-now and just sleep to prevent from hogging CPUs.
+We can create the sysctl dynamically on early init for fs stat to help
+with this clutter.  This dusts off the fs stat syctls knobs and puts them
+into where they are declared.
 
-Link: https://lkml.kernel.org/r/20211122153233.9924-3-mhocko@kernel.org
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ilya Dryomov <idryomov@gmail.com>
+Link: https://lkml.kernel.org/r/20211129205548.605569-3-mcgrof@kernel.org
+Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Neil Brown <neilb@suse.de>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Uladzislau Rezki (Sony) <urezki@gmail.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Lukas Middendorf <kernel@tuxforce.de>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: Stephen Kitt <steve@sk2.org>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   22 +++++++++++++++++-----
- 1 file changed, 17 insertions(+), 5 deletions(-)
+ fs/file_table.c    |   47 +++++++++++++++++++++++++++++++++++--------
+ include/linux/fs.h |    3 --
+ kernel/sysctl.c    |   25 ----------------------
+ 3 files changed, 39 insertions(+), 36 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-add-support-for-__gfp_nofail
-+++ a/mm/vmalloc.c
-@@ -2844,6 +2844,8 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 	 * more permissive.
- 	 */
- 	if (!order) {
-+		gfp_t bulk_gfp = gfp & ~__GFP_NOFAIL;
+--- a/fs/file_table.c~fs-move-fs-stat-sysctls-to-file_tablec
++++ a/fs/file_table.c
+@@ -33,7 +33,7 @@
+ #include "internal.h"
+ 
+ /* sysctl tunables... */
+-struct files_stat_struct files_stat = {
++static struct files_stat_struct files_stat = {
+ 	.max_files = NR_FILE
+ };
+ 
+@@ -75,22 +75,53 @@ unsigned long get_max_files(void)
+ }
+ EXPORT_SYMBOL_GPL(get_max_files);
+ 
++#if defined(CONFIG_SYSCTL) && defined(CONFIG_PROC_FS)
 +
- 		while (nr_allocated < nr_pages) {
- 			unsigned int nr, nr_pages_request;
- 
-@@ -2861,12 +2863,12 @@ vm_area_alloc_pages(gfp_t gfp, int nid,
- 			 * but mempolcy want to alloc memory by interleaving.
- 			 */
- 			if (IS_ENABLED(CONFIG_NUMA) && nid == NUMA_NO_NODE)
--				nr = alloc_pages_bulk_array_mempolicy(gfp,
-+				nr = alloc_pages_bulk_array_mempolicy(bulk_gfp,
- 							nr_pages_request,
- 							pages + nr_allocated);
- 
- 			else
--				nr = alloc_pages_bulk_array_node(gfp, nid,
-+				nr = alloc_pages_bulk_array_node(bulk_gfp, nid,
- 							nr_pages_request,
- 							pages + nr_allocated);
- 
-@@ -2921,6 +2923,7 @@ static void *__vmalloc_area_node(struct
+ /*
+  * Handle nr_files sysctl
+  */
+-#if defined(CONFIG_SYSCTL) && defined(CONFIG_PROC_FS)
+-int proc_nr_files(struct ctl_table *table, int write,
+-                     void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_nr_files(struct ctl_table *table, int write, void *buffer,
++			 size_t *lenp, loff_t *ppos)
  {
- 	const gfp_t nested_gfp = (gfp_mask & GFP_RECLAIM_MASK) | __GFP_ZERO;
- 	const gfp_t orig_gfp_mask = gfp_mask;
-+	bool nofail = gfp_mask & __GFP_NOFAIL;
- 	unsigned long addr = (unsigned long)area->addr;
- 	unsigned long size = get_vm_area_size(area);
- 	unsigned long array_size;
-@@ -2978,8 +2981,12 @@ static void *__vmalloc_area_node(struct
- 	else if ((gfp_mask & (__GFP_FS | __GFP_IO)) == 0)
- 		flags = memalloc_noio_save();
+ 	files_stat.nr_files = get_nr_files();
+ 	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
+ }
+-#else
+-int proc_nr_files(struct ctl_table *table, int write,
+-                     void *buffer, size_t *lenp, loff_t *ppos)
++
++static struct ctl_table fs_stat_sysctls[] = {
++	{
++		.procname	= "file-nr",
++		.data		= &files_stat,
++		.maxlen		= sizeof(files_stat),
++		.mode		= 0444,
++		.proc_handler	= proc_nr_files,
++	},
++	{
++		.procname	= "file-max",
++		.data		= &files_stat.max_files,
++		.maxlen		= sizeof(files_stat.max_files),
++		.mode		= 0644,
++		.proc_handler	= proc_doulongvec_minmax,
++		.extra1		= SYSCTL_LONG_ZERO,
++		.extra2		= SYSCTL_LONG_MAX,
++	},
++	{
++		.procname	= "nr_open",
++		.data		= &sysctl_nr_open,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &sysctl_nr_open_min,
++		.extra2		= &sysctl_nr_open_max,
++	},
++	{ }
++};
++
++static int __init init_fs_stat_sysctls(void)
+ {
+-	return -ENOSYS;
++	register_sysctl_init("fs", fs_stat_sysctls);
++	return 0;
+ }
++fs_initcall(init_fs_stat_sysctls);
+ #endif
  
--	ret = vmap_pages_range(addr, addr + size, prot, area->pages,
-+	do {
-+		ret = vmap_pages_range(addr, addr + size, prot, area->pages,
- 			page_shift);
-+		if (nofail && (ret < 0))
-+			schedule_timeout_uninterruptible(1);
-+	} while (nofail && (ret < 0));
+ static struct file *__alloc_file(int flags, const struct cred *cred)
+--- a/include/linux/fs.h~fs-move-fs-stat-sysctls-to-file_tablec
++++ a/include/linux/fs.h
+@@ -78,7 +78,6 @@ extern void __init inode_init_early(void
+ extern void __init files_init(void);
+ extern void __init files_maxfiles_init(void);
  
- 	if ((gfp_mask & (__GFP_FS | __GFP_IO)) == __GFP_IO)
- 		memalloc_nofs_restore(flags);
-@@ -3074,9 +3081,14 @@ again:
- 				  VM_UNINITIALIZED | vm_flags, start, end, node,
- 				  gfp_mask, caller);
- 	if (!area) {
-+		bool nofail = gfp_mask & __GFP_NOFAIL;
- 		warn_alloc(gfp_mask, NULL,
--			"vmalloc error: size %lu, vm_struct allocation failed",
--			real_size);
-+			"vmalloc error: size %lu, vm_struct allocation failed%s",
-+			real_size, (nofail) ? ". Retrying." : "");
-+		if (nofail) {
-+			schedule_timeout_uninterruptible(1);
-+			goto again;
-+		}
- 		goto fail;
- 	}
+-extern struct files_stat_struct files_stat;
+ extern unsigned long get_max_files(void);
+ extern unsigned int sysctl_nr_open;
+ extern int leases_enable, lease_break_time;
+@@ -3591,8 +3590,6 @@ ssize_t simple_attr_write(struct file *f
+ 			  size_t len, loff_t *ppos);
  
+ struct ctl_table;
+-int proc_nr_files(struct ctl_table *table, int write,
+-		  void *buffer, size_t *lenp, loff_t *ppos);
+ int proc_nr_dentry(struct ctl_table *table, int write,
+ 		  void *buffer, size_t *lenp, loff_t *ppos);
+ int __init list_bdev_fs_names(char *buf, size_t size);
+--- a/kernel/sysctl.c~fs-move-fs-stat-sysctls-to-file_tablec
++++ a/kernel/sysctl.c
+@@ -2901,31 +2901,6 @@ static struct ctl_table vm_table[] = {
+ 
+ static struct ctl_table fs_table[] = {
+ 	{
+-		.procname	= "file-nr",
+-		.data		= &files_stat,
+-		.maxlen		= sizeof(files_stat),
+-		.mode		= 0444,
+-		.proc_handler	= proc_nr_files,
+-	},
+-	{
+-		.procname	= "file-max",
+-		.data		= &files_stat.max_files,
+-		.maxlen		= sizeof(files_stat.max_files),
+-		.mode		= 0644,
+-		.proc_handler	= proc_doulongvec_minmax,
+-		.extra1		= SYSCTL_LONG_ZERO,
+-		.extra2		= SYSCTL_LONG_MAX,
+-	},
+-	{
+-		.procname	= "nr_open",
+-		.data		= &sysctl_nr_open,
+-		.maxlen		= sizeof(unsigned int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= &sysctl_nr_open_min,
+-		.extra2		= &sysctl_nr_open_max,
+-	},
+-	{
+ 		.procname	= "dentry-state",
+ 		.data		= &dentry_stat,
+ 		.maxlen		= 6*sizeof(long),
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
-mm-vmalloc-alloc-gfp_nofsio-for-vmalloc.patch
-mm-vmalloc-add-support-for-__gfp_nofail.patch
-mm-vmalloc-be-more-explicit-about-supported-gfp-flags.patch
-mm-allow-gfp_kernel-allocations-for-kvmalloc.patch
-mm-make-slab-and-vmalloc-allocators-__gfp_nolockdep-aware.patch
-mm-drop-node-from-alloc_pages_vma.patch
+zram-use-attribute_groups.patch
+hpet-simplify-subdirectory-registration-with-register_sysctl.patch
+i915-simplify-subdirectory-registration-with-register_sysctl.patch
+macintosh-mac_hidc-simplify-subdirectory-registration-with-register_sysctl.patch
+ocfs2-simplify-subdirectory-registration-with-register_sysctl.patch
+test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
+inotify-simplify-subdirectory-registration-with-register_sysctl-fix.patch
+cdrom-simplify-subdirectory-registration-with-register_sysctl.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point.patch
+fs-move-binfmt_misc-sysctl-to-its-own-file.patch
+sysctl-share-unsigned-long-const-values.patch
+fs-move-inode-sysctls-to-its-own-file.patch
+fs-move-fs-stat-sysctls-to-file_tablec.patch
+fs-move-dcache-sysctls-to-its-own-file.patch
+sysctl-move-maxolduid-as-a-sysctl-specific-const.patch
+fs-move-shared-sysctls-to-fs-sysctlsc.patch
+fs-move-locking-sysctls-where-they-are-used.patch
+fs-move-namei-sysctls-to-its-own-file.patch
+fs-move-fs-execc-sysctls-into-its-own-file.patch
+fs-move-pipe-sysctls-to-is-own-file.patch
+sysctl-add-and-use-base-directory-declarer-and-registration-helper.patch
+fs-move-namespace-sysctls-and-declare-fs-base-directory.patch
+kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases.patch
 
