@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A95B9C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 21:29:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73E91C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 21:29:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229700AbhK2Vcr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 29 Nov 2021 16:32:47 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:57222 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232631AbhK2Vaq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 16:30:46 -0500
+        id S231294AbhK2Vcz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 29 Nov 2021 16:32:55 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:41614 "EHLO
+        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232674AbhK2Vaz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 16:30:55 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 03E83B81648
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 21:27:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61841C53FC7;
-        Mon, 29 Nov 2021 21:27:26 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id E3BBBCE13AB
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 21:27:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF240C53FCF;
+        Mon, 29 Nov 2021 21:27:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638221246;
-        bh=nTzfJpJUxTMMC5JaONd9WKXZPZiIZO4QPhA2sumEiiU=;
+        s=korg; t=1638221254;
+        bh=2UmVVsLfSNeeHhUpM20rPG5qfE7wAqXOnJbkqG7UrpE=;
         h=Date:From:To:Subject:From;
-        b=hlMf/t/q/FrnjRh34X2bGYxUqKgNx59j31jrPiyECbetkJsFweYNuHcfnPQ7HzRGJ
-         wMC7N9HI5duT9oS3jCpSqxcEJILIIi41ipvmPNL1/zTvAgV3aQIShZyY8564LY/42o
-         OvGMjgcdNmNN+cBLnn/JtbciBcoEXaCtzT1I5ejk=
-Date:   Mon, 29 Nov 2021 13:27:25 -0800
+        b=cCFN51Lly8fmxLf2Pc5YT9gGif1tg3JocfoIHYWqvhXk03RtOvIW1tGlwdVdpNnpC
+         IMBNx8qc2K1UToBG6/hp5D+t8gr9e3UbNY0JNzcTD8VKJkZTYtXrfmJeBpih6Y0MsJ
+         h6u5/PbHU/WkEOLWX3hiALq8uR3HuHti6P9uwpf8=
+Date:   Mon, 29 Nov 2021 13:27:33 -0800
 From:   akpm@linux-foundation.org
-To:     bigeasy@linutronix.de, dchinner@redhat.com, hch@lst.de,
+To:     bigeasy@linutronix.de, david@fromorbit.com, hch@lst.de,
         idryomov@gmail.com, jlayton@kernel.org, mhocko@suse.com,
         mm-commits@vger.kernel.org, neilb@suse.de, urezki@gmail.com,
         vbabka@suse.cz
-Subject:  + mm-vmalloc-alloc-gfp_nofsio-for-vmalloc.patch added to
- -mm tree
-Message-ID: <20211129212725.umN3G-Odg%akpm@linux-foundation.org>
+Subject:  + mm-allow-gfp_kernel-allocations-for-kvmalloc.patch
+ added to -mm tree
+Message-ID: <20211129212733.l46q9grXH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: alloc GFP_NO{FS,IO} for vmalloc
+     Subject: mm: allow !GFP_KERNEL allocations for kvmalloc
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-alloc-gfp_nofsio-for-vmalloc.patch
+     mm-allow-gfp_kernel-allocations-for-kvmalloc.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-alloc-gfp_nofsio-for-vmalloc.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-allow-gfp_kernel-allocations-for-kvmalloc.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-alloc-gfp_nofsio-for-vmalloc.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-allow-gfp_kernel-allocations-for-kvmalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,111 +64,222 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm/vmalloc: alloc GFP_NO{FS,IO} for vmalloc
+Subject: mm: allow !GFP_KERNEL allocations for kvmalloc
 
-Patch series "extend vmalloc support for constrained allocations", v2.
+Support for GFP_NO{FS,IO} and __GFP_NOFAIL has been implemented by
+previous patches so we can allow the support for kvmalloc.  This will
+allow some external users to simplify or completely remove their helpers.
 
-Based on a recent discussion with Dave and Neil [1] I have tried to
-implement NOFS, NOIO, NOFAIL support for the vmalloc to make life of
-kvmalloc users easier.
+GFP_NOWAIT semantic hasn't been supported so far but it hasn't been
+explicitly documented so let's add a note about that.
 
-A requirement for NOFAIL support for kvmalloc was new to me but this seems
-to be really needed by the xfs code.
+ceph_kvmalloc is the first helper to be dropped and changed to kvmalloc.
 
-NOFS/NOIO was a known and a long term problem which was hoped to be
-handled by the scope API.  Those scope should have been used at the
-reclaim recursion boundaries both to document them and also to remove the
-necessity of NOFS/NOIO constrains for all allocations within that scope. 
-Instead workarounds were developed to wrap a single allocation instead
-(like ceph_kvmalloc).
-
-First patch implements NOFS/NOIO support for vmalloc.  The second one adds
-NOFAIL support and the third one bundles all together into kvmalloc and
-drops ceph_kvmalloc which can use kvmalloc directly now.
-
-[1] http://lkml.kernel.org/r/163184741778.29351.16920832234899124642.stgit@noble.brown
-
-
-This patch (of 4):
-
-vmalloc historically hasn't supported GFP_NO{FS,IO} requests because page
-table allocations do not support externally provided gfp mask and
-performed GFP_KERNEL like allocations.
-
-Since few years we have scope (memalloc_no{fs,io}_{save,restore}) APIs to
-enforce NOFS and NOIO constrains implicitly to all allocators within the
-scope.  There was a hope that those scopes would be defined on a higher
-level when the reclaim recursion boundary starts/stops (e.g.  when a lock
-required during the memory reclaim is required etc.).  It seems that not
-all NOFS/NOIO users have adopted this approach and instead they have taken
-a workaround approach to wrap a single [k]vmalloc allocation by a scope
-API.
-
-These workarounds do not serve the purpose of a better reclaim recursion
-documentation and reduction of explicit GFP_NO{FS,IO} usege so let's just
-provide them with the semantic they are asking for without a need for
-workarounds.
-
-Add support for GFP_NOFS and GFP_NOIO to vmalloc directly.  All internal
-allocations already comply with the given gfp_mask.  The only current
-exception is vmap_pages_range which maps kernel page tables.  Infer the
-proper scope API based on the given gfp mask.
-
-Link: https://lkml.kernel.org/r/20211122153233.9924-1-mhocko@kernel.org
-Link: https://lkml.kernel.org/r/20211122153233.9924-2-mhocko@kernel.org
+Link: https://lkml.kernel.org/r/20211122153233.9924-5-mhocko@kernel.org
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Reviewed-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Neil Brown <neilb@suse.de>
 Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Ilya Dryomov <idryomov@gmail.com>
 Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Dave Chinner <dchinner@redhat.com>
+Cc: Neil Brown <neilb@suse.de>
 Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+ include/linux/ceph/libceph.h |    1 -
+ mm/util.c                    |   15 ++++-----------
+ net/ceph/buffer.c            |    4 ++--
+ net/ceph/ceph_common.c       |   27 ---------------------------
+ net/ceph/crypto.c            |    2 +-
+ net/ceph/messenger.c         |    2 +-
+ net/ceph/messenger_v2.c      |    2 +-
+ net/ceph/osdmap.c            |   12 ++++++------
+ 8 files changed, 15 insertions(+), 50 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-alloc-gfp_nofsio-for-vmalloc
-+++ a/mm/vmalloc.c
-@@ -2926,6 +2926,8 @@ static void *__vmalloc_area_node(struct
- 	unsigned long array_size;
- 	unsigned int nr_small_pages = size >> PAGE_SHIFT;
- 	unsigned int page_order;
-+	unsigned int flags;
-+	int ret;
+--- a/include/linux/ceph/libceph.h~mm-allow-gfp_kernel-allocations-for-kvmalloc
++++ a/include/linux/ceph/libceph.h
+@@ -295,7 +295,6 @@ extern bool libceph_compatible(void *dat
  
- 	array_size = (unsigned long)nr_small_pages * sizeof(struct page *);
- 	gfp_mask |= __GFP_NOWARN;
-@@ -2967,8 +2969,24 @@ static void *__vmalloc_area_node(struct
- 		goto fail;
+ extern const char *ceph_msg_type_name(int type);
+ extern int ceph_check_fsid(struct ceph_client *client, struct ceph_fsid *fsid);
+-extern void *ceph_kvmalloc(size_t size, gfp_t flags);
+ 
+ struct fs_parameter;
+ struct fc_log;
+--- a/mm/util.c~mm-allow-gfp_kernel-allocations-for-kvmalloc
++++ a/mm/util.c
+@@ -549,13 +549,10 @@ EXPORT_SYMBOL(vm_mmap);
+  * Uses kmalloc to get the memory but if the allocation fails then falls back
+  * to the vmalloc allocator. Use kvfree for freeing the memory.
+  *
+- * Reclaim modifiers - __GFP_NORETRY and __GFP_NOFAIL are not supported.
++ * GFP_NOWAIT and GFP_ATOMIC are not supported, neither is the __GFP_NORETRY modifier.
+  * __GFP_RETRY_MAYFAIL is supported, and it should be used only if kmalloc is
+  * preferable to the vmalloc fallback, due to visible performance drawbacks.
+  *
+- * Please note that any use of gfp flags outside of GFP_KERNEL is careful to not
+- * fall back to vmalloc.
+- *
+  * Return: pointer to the allocated memory of %NULL in case of failure
+  */
+ void *kvmalloc_node(size_t size, gfp_t flags, int node)
+@@ -564,13 +561,6 @@ void *kvmalloc_node(size_t size, gfp_t f
+ 	void *ret;
+ 
+ 	/*
+-	 * vmalloc uses GFP_KERNEL for some internal allocations (e.g page tables)
+-	 * so the given set of flags has to be compatible.
+-	 */
+-	if ((flags & GFP_KERNEL) != GFP_KERNEL)
+-		return kmalloc_node(size, flags, node);
+-
+-	/*
+ 	 * We want to attempt a large physically contiguous block first because
+ 	 * it is less likely to fragment multiple larger blocks and therefore
+ 	 * contribute to a long term fragmentation less than vmalloc fallback.
+@@ -582,6 +572,9 @@ void *kvmalloc_node(size_t size, gfp_t f
+ 
+ 		if (!(kmalloc_flags & __GFP_RETRY_MAYFAIL))
+ 			kmalloc_flags |= __GFP_NORETRY;
++
++		/* nofail semantic is implemented by the vmalloc fallback */
++		kmalloc_flags &= ~__GFP_NOFAIL;
  	}
  
--	if (vmap_pages_range(addr, addr + size, prot, area->pages,
--			page_shift) < 0) {
-+	/*
-+	 * page tables allocations ignore external gfp mask, enforce it
-+	 * by the scope API
-+	 */
-+	if ((gfp_mask & (__GFP_FS | __GFP_IO)) == __GFP_IO)
-+		flags = memalloc_nofs_save();
-+	else if ((gfp_mask & (__GFP_FS | __GFP_IO)) == 0)
-+		flags = memalloc_noio_save();
-+
-+	ret = vmap_pages_range(addr, addr + size, prot, area->pages,
-+			page_shift);
-+
-+	if ((gfp_mask & (__GFP_FS | __GFP_IO)) == __GFP_IO)
-+		memalloc_nofs_restore(flags);
-+	else if ((gfp_mask & (__GFP_FS | __GFP_IO)) == 0)
-+		memalloc_noio_restore(flags);
-+
-+	if (ret < 0) {
- 		warn_alloc(orig_gfp_mask, NULL,
- 			"vmalloc error: size %lu, failed to map pages",
- 			area->nr_pages * PAGE_SIZE);
+ 	ret = kmalloc_node(size, kmalloc_flags, node);
+--- a/net/ceph/buffer.c~mm-allow-gfp_kernel-allocations-for-kvmalloc
++++ a/net/ceph/buffer.c
+@@ -7,7 +7,7 @@
+ 
+ #include <linux/ceph/buffer.h>
+ #include <linux/ceph/decode.h>
+-#include <linux/ceph/libceph.h> /* for ceph_kvmalloc */
++#include <linux/ceph/libceph.h> /* for kvmalloc */
+ 
+ struct ceph_buffer *ceph_buffer_new(size_t len, gfp_t gfp)
+ {
+@@ -17,7 +17,7 @@ struct ceph_buffer *ceph_buffer_new(size
+ 	if (!b)
+ 		return NULL;
+ 
+-	b->vec.iov_base = ceph_kvmalloc(len, gfp);
++	b->vec.iov_base = kvmalloc(len, gfp);
+ 	if (!b->vec.iov_base) {
+ 		kfree(b);
+ 		return NULL;
+--- a/net/ceph/ceph_common.c~mm-allow-gfp_kernel-allocations-for-kvmalloc
++++ a/net/ceph/ceph_common.c
+@@ -190,33 +190,6 @@ int ceph_compare_options(struct ceph_opt
+ }
+ EXPORT_SYMBOL(ceph_compare_options);
+ 
+-/*
+- * kvmalloc() doesn't fall back to the vmalloc allocator unless flags are
+- * compatible with (a superset of) GFP_KERNEL.  This is because while the
+- * actual pages are allocated with the specified flags, the page table pages
+- * are always allocated with GFP_KERNEL.
+- *
+- * ceph_kvmalloc() may be called with GFP_KERNEL, GFP_NOFS or GFP_NOIO.
+- */
+-void *ceph_kvmalloc(size_t size, gfp_t flags)
+-{
+-	void *p;
+-
+-	if ((flags & (__GFP_IO | __GFP_FS)) == (__GFP_IO | __GFP_FS)) {
+-		p = kvmalloc(size, flags);
+-	} else if ((flags & (__GFP_IO | __GFP_FS)) == __GFP_IO) {
+-		unsigned int nofs_flag = memalloc_nofs_save();
+-		p = kvmalloc(size, GFP_KERNEL);
+-		memalloc_nofs_restore(nofs_flag);
+-	} else {
+-		unsigned int noio_flag = memalloc_noio_save();
+-		p = kvmalloc(size, GFP_KERNEL);
+-		memalloc_noio_restore(noio_flag);
+-	}
+-
+-	return p;
+-}
+-
+ static int parse_fsid(const char *str, struct ceph_fsid *fsid)
+ {
+ 	int i = 0;
+--- a/net/ceph/crypto.c~mm-allow-gfp_kernel-allocations-for-kvmalloc
++++ a/net/ceph/crypto.c
+@@ -147,7 +147,7 @@ void ceph_crypto_key_destroy(struct ceph
+ static const u8 *aes_iv = (u8 *)CEPH_AES_IV;
+ 
+ /*
+- * Should be used for buffers allocated with ceph_kvmalloc().
++ * Should be used for buffers allocated with kvmalloc().
+  * Currently these are encrypt out-buffer (ceph_buffer) and decrypt
+  * in-buffer (msg front).
+  *
+--- a/net/ceph/messenger.c~mm-allow-gfp_kernel-allocations-for-kvmalloc
++++ a/net/ceph/messenger.c
+@@ -1920,7 +1920,7 @@ struct ceph_msg *ceph_msg_new2(int type,
+ 
+ 	/* front */
+ 	if (front_len) {
+-		m->front.iov_base = ceph_kvmalloc(front_len, flags);
++		m->front.iov_base = kvmalloc(front_len, flags);
+ 		if (m->front.iov_base == NULL) {
+ 			dout("ceph_msg_new can't allocate %d bytes\n",
+ 			     front_len);
+--- a/net/ceph/messenger_v2.c~mm-allow-gfp_kernel-allocations-for-kvmalloc
++++ a/net/ceph/messenger_v2.c
+@@ -308,7 +308,7 @@ static void *alloc_conn_buf(struct ceph_
+ 	if (WARN_ON(con->v2.conn_buf_cnt >= ARRAY_SIZE(con->v2.conn_bufs)))
+ 		return NULL;
+ 
+-	buf = ceph_kvmalloc(len, GFP_NOIO);
++	buf = kvmalloc(len, GFP_NOIO);
+ 	if (!buf)
+ 		return NULL;
+ 
+--- a/net/ceph/osdmap.c~mm-allow-gfp_kernel-allocations-for-kvmalloc
++++ a/net/ceph/osdmap.c
+@@ -980,7 +980,7 @@ static struct crush_work *alloc_workspac
+ 	work_size = crush_work_size(c, CEPH_PG_MAX_SIZE);
+ 	dout("%s work_size %zu bytes\n", __func__, work_size);
+ 
+-	work = ceph_kvmalloc(work_size, GFP_NOIO);
++	work = kvmalloc(work_size, GFP_NOIO);
+ 	if (!work)
+ 		return NULL;
+ 
+@@ -1190,9 +1190,9 @@ static int osdmap_set_max_osd(struct cep
+ 	if (max == map->max_osd)
+ 		return 0;
+ 
+-	state = ceph_kvmalloc(array_size(max, sizeof(*state)), GFP_NOFS);
+-	weight = ceph_kvmalloc(array_size(max, sizeof(*weight)), GFP_NOFS);
+-	addr = ceph_kvmalloc(array_size(max, sizeof(*addr)), GFP_NOFS);
++	state = kvmalloc(array_size(max, sizeof(*state)), GFP_NOFS);
++	weight = kvmalloc(array_size(max, sizeof(*weight)), GFP_NOFS);
++	addr = kvmalloc(array_size(max, sizeof(*addr)), GFP_NOFS);
+ 	if (!state || !weight || !addr) {
+ 		kvfree(state);
+ 		kvfree(weight);
+@@ -1222,7 +1222,7 @@ static int osdmap_set_max_osd(struct cep
+ 	if (map->osd_primary_affinity) {
+ 		u32 *affinity;
+ 
+-		affinity = ceph_kvmalloc(array_size(max, sizeof(*affinity)),
++		affinity = kvmalloc(array_size(max, sizeof(*affinity)),
+ 					 GFP_NOFS);
+ 		if (!affinity)
+ 			return -ENOMEM;
+@@ -1503,7 +1503,7 @@ static int set_primary_affinity(struct c
+ 	if (!map->osd_primary_affinity) {
+ 		int i;
+ 
+-		map->osd_primary_affinity = ceph_kvmalloc(
++		map->osd_primary_affinity = kvmalloc(
+ 		    array_size(map->max_osd, sizeof(*map->osd_primary_affinity)),
+ 		    GFP_NOFS);
+ 		if (!map->osd_primary_affinity)
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
