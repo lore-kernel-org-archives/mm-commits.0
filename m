@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 05824C433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 22:58:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F34ADC433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 22:59:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234029AbhK2XB6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 29 Nov 2021 18:01:58 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:59594 "EHLO
+        id S237149AbhK2XC5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 29 Nov 2021 18:02:57 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:59782 "EHLO
         ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236160AbhK2XBC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 18:01:02 -0500
+        with ESMTP id S236824AbhK2XBL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 18:01:11 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D8B52B81655
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 22:57:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10583C53FCE;
-        Mon, 29 Nov 2021 22:57:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E7EDBB81204
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 22:57:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25DD4C8D102;
+        Mon, 29 Nov 2021 22:57:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638226660;
-        bh=rbxod43D8K9Vdz9LhSXEPidpk7p43B9b2cTYu85vnyQ=;
+        s=korg; t=1638226670;
+        bh=NwAQc7CbIzH/WQ4YANtdpE9nCgEOSPpXJLnm92iRDnE=;
         h=Date:From:To:Subject:From;
-        b=1P0uhgq35X6ussgzLSMDxyLbLlmRr7gtx6jXLQz8KlO83Ew00OP1HzCr9vonSqYTX
-         hZpbUxGlXPcu1BJfI7YdxR0JCF7emRSu3psHo0wuR2qpXUfL+uuC7lYUUHunhZlPWY
-         kLHshFMiyqcDZkAz3rmSJqNBhET0K/XNccdhIoI8=
-Date:   Mon, 29 Nov 2021 14:57:39 -0800
+        b=vrV/I9GkIysB/nkh0W9pBpW2oOWWKALKTnciV8+MZeINZtQW/K03omX6R2NoTcz2J
+         /YsMO/RW6eILfQeoiARusMbsqoWjmdvS5x5qsvYz+uQsS7BMncL8UxsvsZo1afPuTm
+         hQkMq9EkKAKH6y1ezsNUGBN212iCrURkBzBzjj9M=
+Date:   Mon, 29 Nov 2021 14:57:49 -0800
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, bfields@fieldses.org,
-        crope@iki.fi, ebiederm@xmission.com, jlayton@kernel.org,
-        keescook@chromium.org, kernel@tuxforce.de, mcgrof@kernel.org,
-        mchehab@kernel.org, mm-commits@vger.kernel.org,
+To:     anil.s.keshavamurthy@intel.com, christian.brauner@ubuntu.com,
+        crope@iki.fi, davem@davemloft.net, ebiederm@xmission.com,
+        ebiggers@google.com, keescook@chromium.org, kernel@tuxforce.de,
+        mcgrof@kernel.org, mchehab@kernel.org, mhiramat@kernel.org,
+        mm-commits@vger.kernel.org, naveen.n.rao@linux.ibm.com,
         nixiaoming@huawei.com, steve@sk2.org, viro@zeniv.linux.org.uk,
         yzaikin@google.com
-Subject:  + fs-move-pipe-sysctls-to-is-own-file.patch added to -mm
+Subject:  +
+ kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases.patch added to -mm
  tree
-Message-ID: <20211129225739.ekHiDJ_Z4%akpm@linux-foundation.org>
+Message-ID: <20211129225749.v5m1EF4oA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: move pipe sysctls to is own file
+     Subject: kernel/sysctl.c: rename sysctl_init() to sysctl_init_bases()
 has been added to the -mm tree.  Its filename is
-     fs-move-pipe-sysctls-to-is-own-file.patch
+     kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-move-pipe-sysctls-to-is-own-file.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-move-pipe-sysctls-to-is-own-file.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,258 +68,102 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: fs: move pipe sysctls to is own file
+Subject: kernel/sysctl.c: rename sysctl_init() to sysctl_init_bases()
 
-kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
-dishes, this makes it very difficult to maintain.
+Rename sysctl_init() to sysctl_init_bases() so to reflect exactly what
+this is doing.
 
-To help with this maintenance let's start by moving sysctls to places
-where they actually belong.  The proc sysctl maintainers do not want to
-know what sysctl knobs you wish to add for your own piece of code, we just
-care about the core logic.
-
-So move the pipe sysctls to its own file.
-
-Link: https://lkml.kernel.org/r/20211129205548.605569-10-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211129211943.640266-4-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
 Cc: Antti Palosaari <crope@iki.fi>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Eric Biggers <ebiggers@google.com>
 Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Jeff Layton <jlayton@kernel.org>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Lukas Middendorf <kernel@tuxforce.de>
+Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
 Cc: Stephen Kitt <steve@sk2.org>
 Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/pipe.c                 |   64 ++++++++++++++++++++++++++++++++++--
- include/linux/pipe_fs_i.h |    4 --
- include/linux/sysctl.h    |    6 +++
- kernel/sysctl.c           |   61 +++-------------------------------
- 4 files changed, 73 insertions(+), 62 deletions(-)
+ arch/arm/mm/alignment.c |    2 +-
+ arch/sh/mm/alignment.c  |    2 +-
+ fs/proc/proc_sysctl.c   |    4 ++--
+ include/linux/sysctl.h  |    2 +-
+ kernel/sysctl.c         |    2 +-
+ 5 files changed, 6 insertions(+), 6 deletions(-)
 
---- a/fs/pipe.c~fs-move-pipe-sysctls-to-is-own-file
-+++ a/fs/pipe.c
-@@ -25,6 +25,7 @@
- #include <linux/fcntl.h>
- #include <linux/memcontrol.h>
- #include <linux/watch_queue.h>
-+#include <linux/sysctl.h>
- 
- #include <linux/uaccess.h>
- #include <asm/ioctls.h>
-@@ -50,13 +51,13 @@
-  * The max size that a non-root user is allowed to grow the pipe. Can
-  * be set by root in /proc/sys/fs/pipe-max-size
-  */
--unsigned int pipe_max_size = 1048576;
-+static unsigned int pipe_max_size = 1048576;
- 
- /* Maximum allocatable pages per user. Hard limit is unset by default, soft
-  * matches default values.
-  */
--unsigned long pipe_user_pages_hard;
--unsigned long pipe_user_pages_soft = PIPE_DEF_BUFFERS * INR_OPEN_CUR;
-+static unsigned long pipe_user_pages_hard;
-+static unsigned long pipe_user_pages_soft = PIPE_DEF_BUFFERS * INR_OPEN_CUR;
+--- a/arch/arm/mm/alignment.c~kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases
++++ a/arch/arm/mm/alignment.c
+@@ -1005,7 +1005,7 @@ static int __init noalign_setup(char *__
+ __setup("noalign", noalign_setup);
  
  /*
-  * We use head and tail indices that aren't masked off, except at the point of
-@@ -1428,6 +1429,60 @@ static struct file_system_type pipe_fs_t
- 	.kill_sb	= kill_anon_super,
+- * This needs to be done after sysctl_init, otherwise sys/ will be
++ * This needs to be done after sysctl_init_bases(), otherwise sys/ will be
+  * overwritten.  Actually, this shouldn't be in sys/ at all since
+  * it isn't a sysctl, and it doesn't contain sysctl information.
+  * We now locate it in /proc/cpu/alignment instead.
+--- a/arch/sh/mm/alignment.c~kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases
++++ a/arch/sh/mm/alignment.c
+@@ -161,7 +161,7 @@ static const struct proc_ops alignment_p
  };
  
-+#ifdef CONFIG_SYSCTL
-+static int do_proc_dopipe_max_size_conv(unsigned long *lvalp,
-+					unsigned int *valp,
-+					int write, void *data)
-+{
-+	if (write) {
-+		unsigned int val;
-+
-+		val = round_pipe_size(*lvalp);
-+		if (val == 0)
-+			return -EINVAL;
-+
-+		*valp = val;
-+	} else {
-+		unsigned int val = *valp;
-+		*lvalp = (unsigned long) val;
-+	}
-+
-+	return 0;
-+}
-+
-+static int proc_dopipe_max_size(struct ctl_table *table, int write,
-+				void *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	return do_proc_douintvec(table, write, buffer, lenp, ppos,
-+				 do_proc_dopipe_max_size_conv, NULL);
-+}
-+
-+static struct ctl_table fs_pipe_sysctls[] = {
-+	{
-+		.procname	= "pipe-max-size",
-+		.data		= &pipe_max_size,
-+		.maxlen		= sizeof(pipe_max_size),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dopipe_max_size,
-+	},
-+	{
-+		.procname	= "pipe-user-pages-hard",
-+		.data		= &pipe_user_pages_hard,
-+		.maxlen		= sizeof(pipe_user_pages_hard),
-+		.mode		= 0644,
-+		.proc_handler	= proc_doulongvec_minmax,
-+	},
-+	{
-+		.procname	= "pipe-user-pages-soft",
-+		.data		= &pipe_user_pages_soft,
-+		.maxlen		= sizeof(pipe_user_pages_soft),
-+		.mode		= 0644,
-+		.proc_handler	= proc_doulongvec_minmax,
-+	},
-+	{ }
-+};
-+#endif
-+
- static int __init init_pipe_fs(void)
- {
- 	int err = register_filesystem(&pipe_fs_type);
-@@ -1439,6 +1494,9 @@ static int __init init_pipe_fs(void)
- 			unregister_filesystem(&pipe_fs_type);
- 		}
- 	}
-+#ifdef CONFIG_SYSCTL
-+	register_sysctl_init("fs", fs_pipe_sysctls);
-+#endif
- 	return err;
+ /*
+- * This needs to be done after sysctl_init, otherwise sys/ will be
++ * This needs to be done after sysctl_init_bases(), otherwise sys/ will be
+  * overwritten.  Actually, this shouldn't be in sys/ at all since
+  * it isn't a sysctl, and it doesn't contain sysctl information.
+  * We now locate it in /proc/cpu/alignment instead.
+--- a/fs/proc/proc_sysctl.c~kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases
++++ a/fs/proc/proc_sysctl.c
+@@ -1419,7 +1419,7 @@ EXPORT_SYMBOL(register_sysctl);
+  * Context: Can only be called after your respective sysctl base path has been
+  * registered. So for instance, most base directories are registered early on
+  * init before init levels are processed through proc_sys_init() and
+- * sysctl_init().
++ * sysctl_init_bases().
+  */
+ void __init __register_sysctl_init(const char *path, struct ctl_table *table,
+ 				 const char *table_name)
+@@ -1768,7 +1768,7 @@ int __init proc_sys_init(void)
+ 	proc_sys_root->proc_dir_ops = &proc_sys_dir_file_operations;
+ 	proc_sys_root->nlink = 0;
+ 
+-	return sysctl_init();
++	return sysctl_init_bases();
  }
  
---- a/include/linux/pipe_fs_i.h~fs-move-pipe-sysctls-to-is-own-file
-+++ a/include/linux/pipe_fs_i.h
-@@ -238,10 +238,6 @@ void pipe_lock(struct pipe_inode_info *)
- void pipe_unlock(struct pipe_inode_info *);
- void pipe_double_lock(struct pipe_inode_info *, struct pipe_inode_info *);
- 
--extern unsigned int pipe_max_size;
--extern unsigned long pipe_user_pages_hard;
--extern unsigned long pipe_user_pages_soft;
--
- /* Wait for a pipe to be readable/writable while dropping the pipe lock */
- void pipe_wait_readable(struct pipe_inode_info *);
- void pipe_wait_writable(struct pipe_inode_info *);
---- a/include/linux/sysctl.h~fs-move-pipe-sysctls-to-is-own-file
+ struct sysctl_alias {
+--- a/include/linux/sysctl.h~kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases
 +++ a/include/linux/sysctl.h
-@@ -221,6 +221,12 @@ extern void __register_sysctl_init(const
- extern struct ctl_table_header *register_sysctl_mount_point(const char *path);
+@@ -227,7 +227,7 @@ struct ctl_table_header *register_sysctl
  
- void do_sysctl_args(void);
-+int do_proc_douintvec(struct ctl_table *table, int write,
-+		      void *buffer, size_t *lenp, loff_t *ppos,
-+		      int (*conv)(unsigned long *lvalp,
-+				  unsigned int *valp,
-+				  int write, void *data),
-+		      void *data);
+ void unregister_sysctl_table(struct ctl_table_header * table);
  
- extern int pwrsw_enabled;
- extern int unaligned_enabled;
---- a/kernel/sysctl.c~fs-move-pipe-sysctls-to-is-own-file
+-extern int sysctl_init(void);
++extern int sysctl_init_bases(void);
+ extern void __register_sysctl_init(const char *path, struct ctl_table *table,
+ 				 const char *table_name);
+ #define register_sysctl_init(path, table) __register_sysctl_init(path, table, #table)
+--- a/kernel/sysctl.c~kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases
 +++ a/kernel/sysctl.c
-@@ -56,7 +56,6 @@
- #include <linux/ftrace.h>
- #include <linux/perf_event.h>
- #include <linux/kprobes.h>
--#include <linux/pipe_fs_i.h>
- #include <linux/oom.h>
- #include <linux/kmod.h>
- #include <linux/capability.h>
-@@ -760,12 +759,12 @@ static int __do_proc_douintvec(void *tbl
- 	return do_proc_douintvec_r(i, buffer, lenp, ppos, conv, data);
- }
+@@ -2843,7 +2843,7 @@ DECLARE_SYSCTL_BASE(vm, vm_table);
+ DECLARE_SYSCTL_BASE(debug, debug_table);
+ DECLARE_SYSCTL_BASE(dev, dev_table);
  
--static int do_proc_douintvec(struct ctl_table *table, int write,
--			     void *buffer, size_t *lenp, loff_t *ppos,
--			     int (*conv)(unsigned long *lvalp,
--					 unsigned int *valp,
--					 int write, void *data),
--			     void *data)
-+int do_proc_douintvec(struct ctl_table *table, int write,
-+		      void *buffer, size_t *lenp, loff_t *ppos,
-+		      int (*conv)(unsigned long *lvalp,
-+				  unsigned int *valp,
-+				  int write, void *data),
-+		      void *data)
+-int __init sysctl_init(void)
++int __init sysctl_init_bases(void)
  {
- 	return __do_proc_douintvec(table->data, table, write,
- 				   buffer, lenp, ppos, conv, data);
-@@ -1089,33 +1088,6 @@ int proc_dou8vec_minmax(struct ctl_table
- }
- EXPORT_SYMBOL_GPL(proc_dou8vec_minmax);
- 
--static int do_proc_dopipe_max_size_conv(unsigned long *lvalp,
--					unsigned int *valp,
--					int write, void *data)
--{
--	if (write) {
--		unsigned int val;
--
--		val = round_pipe_size(*lvalp);
--		if (val == 0)
--			return -EINVAL;
--
--		*valp = val;
--	} else {
--		unsigned int val = *valp;
--		*lvalp = (unsigned long) val;
--	}
--
--	return 0;
--}
--
--static int proc_dopipe_max_size(struct ctl_table *table, int write,
--				void *buffer, size_t *lenp, loff_t *ppos)
--{
--	return do_proc_douintvec(table, write, buffer, lenp, ppos,
--				 do_proc_dopipe_max_size_conv, NULL);
--}
--
- #ifdef CONFIG_MAGIC_SYSRQ
- static int sysrq_sysctl_handler(struct ctl_table *table, int write,
- 				void *buffer, size_t *lenp, loff_t *ppos)
-@@ -2840,27 +2812,6 @@ static struct ctl_table vm_table[] = {
- 
- static struct ctl_table fs_table[] = {
- 	{
--		.procname	= "pipe-max-size",
--		.data		= &pipe_max_size,
--		.maxlen		= sizeof(pipe_max_size),
--		.mode		= 0644,
--		.proc_handler	= proc_dopipe_max_size,
--	},
--	{
--		.procname	= "pipe-user-pages-hard",
--		.data		= &pipe_user_pages_hard,
--		.maxlen		= sizeof(pipe_user_pages_hard),
--		.mode		= 0644,
--		.proc_handler	= proc_doulongvec_minmax,
--	},
--	{
--		.procname	= "pipe-user-pages-soft",
--		.data		= &pipe_user_pages_soft,
--		.maxlen		= sizeof(pipe_user_pages_soft),
--		.mode		= 0644,
--		.proc_handler	= proc_doulongvec_minmax,
--	},
--	{
- 		.procname	= "mount-max",
- 		.data		= &sysctl_mount_max,
- 		.maxlen		= sizeof(unsigned int),
+ 	register_sysctl_base(kernel);
+ 	register_sysctl_base(vm);
 _
 
 Patches currently in -mm which might be from mcgrof@kernel.org are
