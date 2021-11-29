@@ -2,35 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AD1D3C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 22:25:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D522C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 29 Nov 2021 22:33:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229675AbhK2W2Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 29 Nov 2021 17:28:25 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:56934 "EHLO
-        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233208AbhK2W14 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 17:27:56 -0500
+        id S233472AbhK2Wgx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 29 Nov 2021 17:36:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60554 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234180AbhK2WgK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 29 Nov 2021 17:36:10 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8C8C8C0254FC
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 12:26:18 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 8EDD4CE16C0
-        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 22:24:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9F0FC53FC7;
-        Mon, 29 Nov 2021 22:24:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 40A81B8163A
+        for <mm-commits@vger.kernel.org>; Mon, 29 Nov 2021 20:26:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4CAAC53FC7;
+        Mon, 29 Nov 2021 20:26:15 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638224674;
-        bh=Bzd65lo1gNJneUe2UdBN1Qw+QuVtL0rvAIwtGMuRTLQ=;
+        s=korg; t=1638217575;
+        bh=dqslqTC0ov12SxQG9Ed1NQD/N6oTuuHekLF9VYYtv98=;
         h=Date:From:To:Subject:From;
-        b=u6C6b4p56kTZ4y3KQjgAHQDfQ1/0VSIOjbSqS+x7N/VztPEO3yJXlIjetxQGlkeFn
-         OSGdNruhTqqDf7UOZJDVs24EPXP3j6/Z+iDCuwQzNd5zcUpNvkv7elwDh/45vNA97j
-         Yd1gzj9Clc32hSslYRVYgBGCLPEEIv7gK7tVsbSw=
-Date:   Mon, 29 Nov 2021 14:24:34 -0800
+        b=VvWG2yI85T1cCdu9ip279klg+u72haqTUFFm77y91DkuvGOvrBRl/j+9mA3MVcfXz
+         4D826qh0UqjZBT7yZTorB5psuGFRfvJdO9xjU6imqV/da7A9KQLkrc6Sp992XcLY/0
+         d0HGsk+w0Fg4BPJsENjjCHWyeykn7JY/CQvwA0N4=
+Date:   Mon, 29 Nov 2021 12:26:15 -0800
 From:   akpm@linux-foundation.org
-To:     christophe.jaillet@wanadoo.fr, mm-commits@vger.kernel.org
-Subject:  + mm-mempool-use-non-atomic-__set_bit-when-possible.patch
+To:     mike.kravetz@oracle.com, mlevitsk@redhat.com,
+        mm-commits@vger.kernel.org, yaozhenguo1@gmail.com
+Subject:  +
+ hugetlbfs-fix-issue-of-preallocation-of-gigantic-pages-cant-work.patch
  added to -mm tree
-Message-ID: <20211129222434.wFokRdshF%akpm@linux-foundation.org>
+Message-ID: <20211129202615.ft0hdk7AM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/frontswap.c: use non-atomic '__set_bit()' when possible
+     Subject: hugetlbfs: fix issue of preallocation of gigantic pages can't work
 has been added to the -mm tree.  Its filename is
-     mm-mempool-use-non-atomic-__set_bit-when-possible.patch
+     hugetlbfs-fix-issue-of-preallocation-of-gigantic-pages-cant-work.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-mempool-use-non-atomic-__set_bit-when-possible.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hugetlbfs-fix-issue-of-preallocation-of-gigantic-pages-cant-work.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-mempool-use-non-atomic-__set_bit-when-possible.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hugetlbfs-fix-issue-of-preallocation-of-gigantic-pages-cant-work.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,44 +65,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: mm/frontswap.c: use non-atomic '__set_bit()' when possible
+From: Zhenguo Yao <yaozhenguo1@gmail.com>
+Subject: hugetlbfs: fix issue of preallocation of gigantic pages can't work
 
-the 'a' and 'b' bitmaps are local to this function, so no concurrent
-access can occur.  So the non-atomic '__set_bit()' can be used to save a
-few cycles.
+Preallocation of gigantic pages can't work bacause of commit b5389086ad7b
+("hugetlbfs: extend the definition of hugepages parameter to support node
+allocation").  When nid is NUMA_NO_NODE(-1), alloc_bootmem_huge_page will
+always return without doing allocation.  Fix this by adding more check.
 
-Link: https://lkml.kernel.org/r/e52476da5cee57151745c5c3c934a69798dc6fa4.1638132190.git.christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Link: https://lkml.kernel.org/r/20211129133803.15653-1-yaozhenguo1@gmail.com
+Fixes: b5389086ad7b ("hugetlbfs: extend the definition of hugepages parameter to support node allocation")
+Signed-off-by: Zhenguo Yao <yaozhenguo1@gmail.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Maxim Levitsky <mlevitsk@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/frontswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/frontswap.c~mm-mempool-use-non-atomic-__set_bit-when-possible
-+++ a/mm/frontswap.c
-@@ -127,7 +127,7 @@ void frontswap_register_ops(struct front
- 	spin_lock(&swap_lock);
- 	plist_for_each_entry(si, &swap_active_head, list) {
- 		if (!WARN_ON(!si->frontswap_map))
--			set_bit(si->type, a);
-+			__set_bit(si->type, a);
- 	}
- 	spin_unlock(&swap_lock);
+--- a/mm/hugetlb.c~hugetlbfs-fix-issue-of-preallocation-of-gigantic-pages-cant-work
++++ a/mm/hugetlb.c
+@@ -2973,7 +2973,7 @@ int __alloc_bootmem_huge_page(struct hst
+ 	struct huge_bootmem_page *m = NULL; /* initialize for clang */
+ 	int nr_nodes, node;
  
-@@ -149,7 +149,7 @@ void frontswap_register_ops(struct front
- 	spin_lock(&swap_lock);
- 	plist_for_each_entry(si, &swap_active_head, list) {
- 		if (si->frontswap_map)
--			set_bit(si->type, b);
-+			__set_bit(si->type, b);
- 	}
- 	spin_unlock(&swap_lock);
- 
+-	if (nid >= nr_online_nodes)
++	if (nid != NUMA_NO_NODE && nid >= nr_online_nodes)
+ 		return 0;
+ 	/* do node specific alloc */
+ 	if (nid != NUMA_NO_NODE) {
 _
 
-Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
+Patches currently in -mm which might be from yaozhenguo1@gmail.com are
 
-mm-mempool-use-non-atomic-__set_bit-when-possible.patch
+hugetlbfs-fix-issue-of-preallocation-of-gigantic-pages-cant-work.patch
 
