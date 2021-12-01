@@ -2,40 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4FDDBC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Dec 2021 02:52:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4DC15C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Dec 2021 02:56:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241502AbhLACzi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 Nov 2021 21:55:38 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57284 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241462AbhLACzh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Nov 2021 21:55:37 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A69E7C061574
-        for <mm-commits@vger.kernel.org>; Tue, 30 Nov 2021 18:52:17 -0800 (PST)
+        id S241572AbhLAC7W (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 Nov 2021 21:59:22 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:57384 "EHLO
+        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S241551AbhLAC7V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Nov 2021 21:59:21 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id E02D2CE1D63
-        for <mm-commits@vger.kernel.org>; Wed,  1 Dec 2021 02:52:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6AD7C53FCB;
-        Wed,  1 Dec 2021 02:52:13 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 48108CE1759
+        for <mm-commits@vger.kernel.org>; Wed,  1 Dec 2021 02:56:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3E0EFC53FCB;
+        Wed,  1 Dec 2021 02:55:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638327133;
-        bh=4/3cGTYNz2m+CDs5+0bUClp55M38m/UxT4AO/YLXq28=;
+        s=korg; t=1638327358;
+        bh=Xu0q6xnpqRkEINuyHPB8ra7M5MhfS6RN/98p2/sHYT0=;
         h=Date:From:To:Subject:From;
-        b=wM6a/QQGLQ5IUeXmvZiLcUwSC9CsmF6L3YdC1doW2a3Bfzqn9UIPrx6EzAn6fZC8J
-         oj0oiKuUzy8aQqEzeum2c9PEiGLDBjoAdGX/NDPag+LCtWg0af85xa5afk8G3LO9PW
-         5GK3DaOLq6xLeGaGmclVImMW+wICxkfYcP7bCyDU=
-Date:   Tue, 30 Nov 2021 18:52:13 -0800
+        b=kRamJRTCy3Txc75g2QwPXqdiDqCCh5ep+6TcFWUfeFmHEf0JDaCzT3e0rr0e2MhDA
+         d01s7EjIyHuNqrkLqdPZrA0ccd6kV24rJVSTcEy8+XRXxBVt6eznWewYIDTIg7bVdD
+         6qdTswcblZ9nFcDITtmCKoD6qJSIQZyqlG9/Q9SI=
+Date:   Tue, 30 Nov 2021 18:55:57 -0800
 From:   akpm@linux-foundation.org
-To:     adobriyan@gmail.com, akpm@linux-foundation.org,
-        christian.brauner@ubuntu.com, gladkov.alexey@gmail.com,
-        mm-commits@vger.kernel.org, songmuchun@bytedance.com
-Subject:  + proc-remove-pde_data-completely-fix.patch added to -mm
- tree
-Message-ID: <20211201025213.ZTprXL2ki%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akirakawata1@gmail.com, ebiederm@xmission.com,
+        keescook@chromium.org, lkp@intel.com, mm-commits@vger.kernel.org,
+        viro@zeniv.linux.org.uk
+Subject:  + fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
+ added to -mm tree
+Message-ID: <20211201025557.06m1gJAyY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-remove-pde_data-completely-fix
+     Subject: fs/binfmt_elf: Fix AT_PHDR for unusual ELF files
 has been added to the -mm tree.  Its filename is
-     proc-remove-pde_data-completely-fix.patch
+     fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-remove-pde_data-completely-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-remove-pde_data-completely-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,123 +62,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-remove-pde_data-completely-fix
+From: Akira Kawata <akirakawata1@gmail.com>
+Subject: fs/binfmt_elf: Fix AT_PHDR for unusual ELF files
 
-fix naming clash in drivers/nubus/proc.c
+BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=197921
 
+As pointed out in the discussion of buglink, we cannot calculate AT_PHDR
+as the sum of load_addr and exec->e_phoff.
+
+: The AT_PHDR of ELF auxiliary vectors should point to the memory address of
+: program header. But binfmt_elf.c calculates this address as follows:
+: 
+: NEW_AUX_ENT(AT_PHDR, load_addr + exec->e_phoff);
+: 
+: which is wrong since e_phoff is the file offset of program header and
+: load_addr is the memory base address from PT_LOAD entry.
+: 
+: The ld.so uses AT_PHDR as the memory address of program header.  In normal
+: case, since the e_phoff is usually 64 and in the first PT_LOAD region, it
+: is the correct program header address.
+: 
+: But if the address of program header isn't equal to the first PT_LOAD
+: address + e_phoff (e.g.  Put the program header in other non-consecutive
+: PT_LOAD region), ld.so will try to read program header from wrong address
+: then crash or use incorrect program header.
+
+This is because exec->e_phoff
+is the offset of PHDRs in the file and the address of PHDRs in the
+memory may differ from it. This patch fixes the bug by calculating the
+address of program headers from PT_LOADs directly.
+
+Link: https://lkml.kernel.org/r/20211130115906.414176-1-akirakawata1@gmail.com
+Signed-off-by: Akira Kawata <akirakawata1@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nubus/proc.c |   36 ++++++++++++++++++------------------
- 1 file changed, 18 insertions(+), 18 deletions(-)
+ fs/binfmt_elf.c |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
---- a/drivers/nubus/proc.c~proc-remove-pde_data-completely-fix
-+++ a/drivers/nubus/proc.c
-@@ -93,30 +93,30 @@ struct nubus_proc_pde_data {
- static struct nubus_proc_pde_data *
- nubus_proc_alloc_pde_data(unsigned char *ptr, unsigned int size)
+--- a/fs/binfmt_elf.c~fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files
++++ a/fs/binfmt_elf.c
+@@ -170,8 +170,8 @@ static int padzero(unsigned long elf_bss
+ 
+ static int
+ create_elf_tables(struct linux_binprm *bprm, const struct elfhdr *exec,
+-		unsigned long load_addr, unsigned long interp_load_addr,
+-		unsigned long e_entry)
++		unsigned long interp_load_addr,
++		unsigned long e_entry, unsigned long phdr_addr)
  {
--	struct nubus_proc_pde_data *pde_data;
-+	struct nubus_proc_pded *pded;
- 
--	pde_data = kmalloc(sizeof(*pde_data), GFP_KERNEL);
--	if (!pde_data)
-+	pded = kmalloc(sizeof(*pded), GFP_KERNEL);
-+	if (!pded)
- 		return NULL;
- 
--	pde_data->res_ptr = ptr;
--	pde_data->res_size = size;
--	return pde_data;
-+	pded->res_ptr = ptr;
-+	pded->res_size = size;
-+	return pded;
- }
- 
- static int nubus_proc_rsrc_show(struct seq_file *m, void *v)
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long p = bprm->p;
+@@ -257,7 +257,7 @@ create_elf_tables(struct linux_binprm *b
+ 	NEW_AUX_ENT(AT_HWCAP, ELF_HWCAP);
+ 	NEW_AUX_ENT(AT_PAGESZ, ELF_EXEC_PAGESIZE);
+ 	NEW_AUX_ENT(AT_CLKTCK, CLOCKS_PER_SEC);
+-	NEW_AUX_ENT(AT_PHDR, load_addr + exec->e_phoff);
++	NEW_AUX_ENT(AT_PHDR, phdr_addr);
+ 	NEW_AUX_ENT(AT_PHENT, sizeof(struct elf_phdr));
+ 	NEW_AUX_ENT(AT_PHNUM, exec->e_phnum);
+ 	NEW_AUX_ENT(AT_BASE, interp_load_addr);
+@@ -823,7 +823,7 @@ static int parse_elf_properties(struct f
+ static int load_elf_binary(struct linux_binprm *bprm)
  {
- 	struct inode *inode = m->private;
--	struct nubus_proc_pde_data *pde_data;
-+	struct nubus_proc_pde_data *pded;
+ 	struct file *interpreter = NULL; /* to shut gcc up */
+- 	unsigned long load_addr = 0, load_bias = 0;
++	unsigned long load_addr, load_bias = 0, phdr_addr = 0;
+ 	int load_addr_set = 0;
+ 	unsigned long error;
+ 	struct elf_phdr *elf_ppnt, *elf_phdata, *interp_elf_phdata = NULL;
+@@ -1169,6 +1169,13 @@ out_free_interp:
+ 				reloc_func_desc = load_bias;
+ 			}
+ 		}
++
++		if (elf_ppnt->p_offset <= elf_ex->e_phoff &&
++		    elf_ex->e_phoff < elf_ppnt->p_offset + elf_ppnt->p_filesz) {
++			phdr_addr = elf_ex->e_phoff - elf_ppnt->p_offset +
++				    elf_ppnt->p_vaddr;
++		}
++
+ 		k = elf_ppnt->p_vaddr;
+ 		if ((elf_ppnt->p_flags & PF_X) && k < start_code)
+ 			start_code = k;
+@@ -1204,6 +1211,7 @@ out_free_interp:
+ 	}
  
--	pde_data = pde_data(inode);
--	if (!pde_data)
-+	pded = pde_data(inode);
-+	if (!pded)
- 		return 0;
+ 	e_entry = elf_ex->e_entry + load_bias;
++	phdr_addr += load_bias;
+ 	elf_bss += load_bias;
+ 	elf_brk += load_bias;
+ 	start_code += load_bias;
+@@ -1267,8 +1275,8 @@ out_free_interp:
+ 		goto out;
+ #endif /* ARCH_HAS_SETUP_ADDITIONAL_PAGES */
  
--	if (pde_data->res_size > m->size)
-+	if (pded->res_size > m->size)
- 		return -EFBIG;
+-	retval = create_elf_tables(bprm, elf_ex,
+-			  load_addr, interp_load_addr, e_entry);
++	retval = create_elf_tables(bprm, elf_ex, interp_load_addr,
++				   e_entry, phdr_addr);
+ 	if (retval < 0)
+ 		goto out;
  
--	if (pde_data->res_size) {
-+	if (pded->res_size) {
- 		int lanes = (int)proc_get_parent_data(inode);
- 		struct nubus_dirent ent;
- 
-@@ -124,11 +124,11 @@ static int nubus_proc_rsrc_show(struct s
- 			return 0;
- 
- 		ent.mask = lanes;
--		ent.base = pde_data->res_ptr;
-+		ent.base = pded->res_ptr;
- 		ent.data = 0;
--		nubus_seq_write_rsrc_mem(m, &ent, pde_data->res_size);
-+		nubus_seq_write_rsrc_mem(m, &ent, pded->res_size);
- 	} else {
--		unsigned int data = (unsigned int)pde_data->res_ptr;
-+		unsigned int data = (unsigned int)pded->res_ptr;
- 
- 		seq_putc(m, data >> 16);
- 		seq_putc(m, data >> 8);
-@@ -142,18 +142,18 @@ void nubus_proc_add_rsrc_mem(struct proc
- 			     unsigned int size)
- {
- 	char name[9];
--	struct nubus_proc_pde_data *pde_data;
-+	struct nubus_proc_pde_data *pded;
- 
- 	if (!procdir)
- 		return;
- 
- 	snprintf(name, sizeof(name), "%x", ent->type);
- 	if (size)
--		pde_data = nubus_proc_alloc_pde_data(nubus_dirptr(ent), size);
-+		pded = nubus_proc_alloc_pde_data(nubus_dirptr(ent), size);
- 	else
--		pde_data = NULL;
-+		pded = NULL;
- 	proc_create_single_data(name, S_IFREG | 0444, procdir,
--			nubus_proc_rsrc_show, pde_data);
-+			nubus_proc_rsrc_show, pded);
- }
- 
- void nubus_proc_add_rsrc(struct proc_dir_entry *procdir,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from akirakawata1@gmail.com are
 
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
-shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
-kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
-mm.patch
-kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
-mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
-mm-page-table-check-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
-mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch
-proc-make-the-proc_create-stubs-static-inlines-fix.patch
-panic-use-error_report_end-tracepoint-on-warnings-fix.patch
-sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
-sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
-proc-remove-pde_data-completely-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
 
