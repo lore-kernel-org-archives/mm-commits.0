@@ -2,207 +2,270 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BEB3C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Dec 2021 15:35:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 84097C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Dec 2021 20:59:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235044AbhLAPjL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 1 Dec 2021 10:39:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32990 "EHLO
+        id S1353343AbhLAVCZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 1 Dec 2021 16:02:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51498 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234031AbhLAPjK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2021 10:39:10 -0500
-Received: from mail-pf1-x434.google.com (mail-pf1-x434.google.com [IPv6:2607:f8b0:4864:20::434])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 02A88C061574
-        for <mm-commits@vger.kernel.org>; Wed,  1 Dec 2021 07:35:50 -0800 (PST)
-Received: by mail-pf1-x434.google.com with SMTP id g18so24861406pfk.5
-        for <mm-commits@vger.kernel.org>; Wed, 01 Dec 2021 07:35:49 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=date:from:to:cc:subject:message-id:references:mime-version
-         :content-disposition:in-reply-to;
-        bh=sVoQLW2O/c7POV+OuqtGhYI0GlJYcvnMhFp9yvw8p1Q=;
-        b=ejFItBtDIy5Z6Ozkx1MnBrC9TBvvG9yNM5aR1pS/KFISW31ZdWXM38Y0VUgPcsyX0i
-         3JWOwyoa1uQEdWtp6xpSAbnzS7JJmRQ1BgMZ+o7xIVA0LoKWmPCIIeQXm4IzeKhyRb8l
-         g8V2nD0RkrlfQdCdRkdSeWm6/WJrRugI8CeTtPCRccqokVI4UTyYwTSNhcidC1pHIXY5
-         RIvmB+ysRg6IRheaexCg+IS3E0k+degIxT8XUyNo+TTpWJzdD8+b88geqKPuXPd4Y05S
-         sfOTwoOznupCpMMaZAqy8RUoZ8Nf4XhWrlSGaVbTnUZzV/5f5NhPaAFURovC6aD64mcL
-         LRqQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:date:from:to:cc:subject:message-id:references
-         :mime-version:content-disposition:in-reply-to;
-        bh=sVoQLW2O/c7POV+OuqtGhYI0GlJYcvnMhFp9yvw8p1Q=;
-        b=jSNxvJmZY0+NA/fu+q8z9GWNTBtaSgaJxYvXrR6IaMLvPJnynBqvBez6RmoJ3bZp1b
-         6CI2Hj+FJ9bYrvVz8xb1XnRR+Qh+VYhAFUvoZyjdYYgl5GGOALJUj829NmDt5zZRO4pm
-         MHvOzFEJHykC6pw2Z3iPzKCTqTmxe+69KDh69pc4qYt/E28D2v5HI3mtw0KWMFFcW3wz
-         hc5mriQMShwwkxh+jeIGvNm+1hTq2QQf1ZsOEMk9xHPMi5CO8Rc30y7PEHry04TJvodW
-         RhNOQDjW3NnTzi0RX3WrWHdoLegN1lLGeGIMaM8v6dlDYdj6DNe1mlYb0b8LKB5fDHMt
-         J7/A==
-X-Gm-Message-State: AOAM5315a9JQxraZ0j3YIuc3cE8II5PEl1XyZtREXuoEK9qOjjlH2AIA
-        /W7cVaHuLZr9ArNifK4eadM=
-X-Google-Smtp-Source: ABdhPJy7jyeO29YrkiNV2VUPxSaXjdJ0e2qBMHc7kISKrZL+0WflZvDFKPijgvjsLUdAXodzmm5meg==
-X-Received: by 2002:a63:f008:: with SMTP id k8mr5141145pgh.189.1638372949493;
-        Wed, 01 Dec 2021 07:35:49 -0800 (PST)
-Received: from gmail.com (113x33x71x97.ap113.ftth.ucom.ne.jp. [113.33.71.97])
-        by smtp.gmail.com with ESMTPSA id t4sm180674pfj.168.2021.12.01.07.35.47
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Wed, 01 Dec 2021 07:35:49 -0800 (PST)
-Date:   Thu, 2 Dec 2021 00:35:45 +0900
-From:   Akira Kawata <akirakawata1@gmail.com>
-To:     akpm@linux-foundation.org
-Cc:     adobriyan@gmail.com, ebiederm@xmission.com, keescook@chromium.org,
-        lkp@intel.com, mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
-Subject: Re: + fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch added to
+        with ESMTP id S1353652AbhLAVA1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2021 16:00:27 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2264C06175D
+        for <mm-commits@vger.kernel.org>; Wed,  1 Dec 2021 12:55:38 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 75CC8B81F45
+        for <mm-commits@vger.kernel.org>; Wed,  1 Dec 2021 20:55:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C261BC53FCC;
+        Wed,  1 Dec 2021 20:55:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1638392136;
+        bh=sEFpcn5nC0QNrllHCEPoPlCb0UzRpIBgvSJPG9Y/rHU=;
+        h=Date:From:To:Subject:From;
+        b=yzlzJVL3Zp0E5/7idRDawkNgYMWfRLmnLx2ZLQf8/eV6DfuWBU/bmP24x/r2Ymw+j
+         piJSBSJBI6t/Pj94QoQ012vQzR2g/eqpZFuc8ij3oFGtFyTaDKUdjbW/CNu7hM1VUN
+         OyJEVGf4mzAYqzSCNitybVaS0nb0wzz1B5g95ox0=
+Date:   Wed, 01 Dec 2021 12:55:35 -0800
+From:   akpm@linux-foundation.org
+To:     ajaygargnsit@gmail.com, arnd@arndb.de, hughd@google.com,
+        kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org,
+        naoya.horiguchi@nec.com, osalvador@suse.de, peterx@redhat.com,
+        shy828301@gmail.com, songmuchun@bytedance.com, willy@infradead.org
+Subject:  [failures]
+ mm-shmem-dont-truncate-page-if-memory-failure-happens.patch removed from
  -mm tree
-Message-ID: <20211201153545.wm5neiutzkgzok3s@gmail.com>
-References: <20211201025557.06m1gJAyY%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211201025557.06m1gJAyY%akpm@linux-foundation.org>
+Message-ID: <20211201205535.Xizr3LbTn%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, Nov 30, 2021 at 06:55:57PM -0800, akpm@linux-foundation.org wrote:
-> 
-> The patch titled
->      Subject: fs/binfmt_elf: Fix AT_PHDR for unusual ELF files
-> has been added to the -mm tree.  Its filename is
->      fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
-> 
-> This patch should soon appear at
->     https://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
-> and later at
->     https://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
-> 
-> Before you just go and hit "reply", please:
->    a) Consider who else should be cc'ed
->    b) Prefer to cc a suitable mailing list as well
->    c) Ideally: find the original patch on the mailing list and do a
->       reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
-> 
-> ------------------------------------------------------
-> From: Akira Kawata <akirakawata1@gmail.com>
-> Subject: fs/binfmt_elf: Fix AT_PHDR for unusual ELF files
-> 
-> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=197921
-> 
-> As pointed out in the discussion of buglink, we cannot calculate AT_PHDR
-> as the sum of load_addr and exec->e_phoff.
-> 
-> : The AT_PHDR of ELF auxiliary vectors should point to the memory address of
-> : program header. But binfmt_elf.c calculates this address as follows:
-> : 
-> : NEW_AUX_ENT(AT_PHDR, load_addr + exec->e_phoff);
-> : 
-> : which is wrong since e_phoff is the file offset of program header and
-> : load_addr is the memory base address from PT_LOAD entry.
-> : 
-> : The ld.so uses AT_PHDR as the memory address of program header.  In normal
-> : case, since the e_phoff is usually 64 and in the first PT_LOAD region, it
-> : is the correct program header address.
-> : 
-> : But if the address of program header isn't equal to the first PT_LOAD
-> : address + e_phoff (e.g.  Put the program header in other non-consecutive
-> : PT_LOAD region), ld.so will try to read program header from wrong address
-> : then crash or use incorrect program header.
-> 
-> This is because exec->e_phoff
-> is the offset of PHDRs in the file and the address of PHDRs in the
-> memory may differ from it. This patch fixes the bug by calculating the
-> address of program headers from PT_LOADs directly.
-> 
-> Link: https://lkml.kernel.org/r/20211130115906.414176-1-akirakawata1@gmail.com
-> Signed-off-by: Akira Kawata <akirakawata1@gmail.com>
-> Reported-by: kernel test robot <lkp@intel.com>
-> Cc: Alexey Dobriyan <adobriyan@gmail.com>
-> Cc: Al Viro <viro@zeniv.linux.org.uk>
-> Cc: Kees Cook <keescook@chromium.org>
-> Cc: Eric Biederman <ebiederm@xmission.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  fs/binfmt_elf.c |   20 ++++++++++++++------
->  1 file changed, 14 insertions(+), 6 deletions(-)
-> 
-> --- a/fs/binfmt_elf.c~fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files
-> +++ a/fs/binfmt_elf.c
-> @@ -170,8 +170,8 @@ static int padzero(unsigned long elf_bss
->  
->  static int
->  create_elf_tables(struct linux_binprm *bprm, const struct elfhdr *exec,
-> -		unsigned long load_addr, unsigned long interp_load_addr,
-> -		unsigned long e_entry)
-> +		unsigned long interp_load_addr,
-> +		unsigned long e_entry, unsigned long phdr_addr)
->  {
->  	struct mm_struct *mm = current->mm;
->  	unsigned long p = bprm->p;
-> @@ -257,7 +257,7 @@ create_elf_tables(struct linux_binprm *b
->  	NEW_AUX_ENT(AT_HWCAP, ELF_HWCAP);
->  	NEW_AUX_ENT(AT_PAGESZ, ELF_EXEC_PAGESIZE);
->  	NEW_AUX_ENT(AT_CLKTCK, CLOCKS_PER_SEC);
-> -	NEW_AUX_ENT(AT_PHDR, load_addr + exec->e_phoff);
-> +	NEW_AUX_ENT(AT_PHDR, phdr_addr);
->  	NEW_AUX_ENT(AT_PHENT, sizeof(struct elf_phdr));
->  	NEW_AUX_ENT(AT_PHNUM, exec->e_phnum);
->  	NEW_AUX_ENT(AT_BASE, interp_load_addr);
-> @@ -823,7 +823,7 @@ static int parse_elf_properties(struct f
->  static int load_elf_binary(struct linux_binprm *bprm)
->  {
->  	struct file *interpreter = NULL; /* to shut gcc up */
-> - 	unsigned long load_addr = 0, load_bias = 0;
-> +	unsigned long load_addr, load_bias = 0, phdr_addr = 0;
->  	int load_addr_set = 0;
->  	unsigned long error;
->  	struct elf_phdr *elf_ppnt, *elf_phdata, *interp_elf_phdata = NULL;
-> @@ -1169,6 +1169,13 @@ out_free_interp:
->  				reloc_func_desc = load_bias;
->  			}
->  		}
-> +
-> +		if (elf_ppnt->p_offset <= elf_ex->e_phoff &&
-> +		    elf_ex->e_phoff < elf_ppnt->p_offset + elf_ppnt->p_filesz) {
-> +			phdr_addr = elf_ex->e_phoff - elf_ppnt->p_offset +
-> +				    elf_ppnt->p_vaddr;
-> +		}
-> +
->  		k = elf_ppnt->p_vaddr;
->  		if ((elf_ppnt->p_flags & PF_X) && k < start_code)
->  			start_code = k;
-> @@ -1204,6 +1211,7 @@ out_free_interp:
->  	}
->  
->  	e_entry = elf_ex->e_entry + load_bias;
-> +	phdr_addr += load_bias;
->  	elf_bss += load_bias;
->  	elf_brk += load_bias;
->  	start_code += load_bias;
-> @@ -1267,8 +1275,8 @@ out_free_interp:
->  		goto out;
->  #endif /* ARCH_HAS_SETUP_ADDITIONAL_PAGES */
->  
-> -	retval = create_elf_tables(bprm, elf_ex,
-> -			  load_addr, interp_load_addr, e_entry);
-> +	retval = create_elf_tables(bprm, elf_ex, interp_load_addr,
-> +				   e_entry, phdr_addr);
->  	if (retval < 0)
->  		goto out;
->  
-> _
-> 
-> Patches currently in -mm which might be from akirakawata1@gmail.com are
-> 
-> fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
-> 
 
-Thank you.
+The patch titled
+     Subject: mm: shmem: don't truncate page if memory failure happens
+has been removed from the -mm tree.  Its filename was
+     mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
 
-Akira
+This patch was dropped because it had testing failures
+
+------------------------------------------------------
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: shmem: don't truncate page if memory failure happens
+
+The current behavior of memory failure is to truncate the page cache
+regardless of dirty or clean.  If the page is dirty the later access will
+get the obsolete data from disk without any notification to the users. 
+This may cause silent data loss.  It is even worse for shmem since shmem
+is in-memory filesystem, truncating page cache means discarding data
+blocks.  The later read would return all zero.
+
+The right approach is to keep the corrupted page in page cache, any later
+access would return error for syscalls or SIGBUS for page fault, until the
+file is truncated, hole punched or removed.  The regular storage backed
+filesystems would be more complicated so this patch is focused on shmem. 
+This also unblock the support for soft offlining shmem THP.
+
+[arnd@arndb.de: fix uninitialized variable use in me_pagecache_clean()]
+  Link: https://lkml.kernel.org/r/20211022064748.4173718-1-arnd@kernel.org
+[Fix invalid pointer dereference in shmem_read_mapping_page_gfp() with a
+ slight different implementation from what Ajay Garg <ajaygargnsit@gmail.com>
+ and Muchun Song <songmuchun@bytedance.com> proposed and reworked the
+ error handling of shmem_write_begin() suggested by Linus]
+  Link: https://lore.kernel.org/linux-mm/20211111084617.6746-1-ajaygargnsit@gmail.com/
+Link: https://lkml.kernel.org/r/20211020210755.23964-6-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20211116193247.21102-1-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ajay Garg <ajaygargnsit@gmail.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/memory-failure.c |   14 +++++++++--
+ mm/shmem.c          |   51 +++++++++++++++++++++++++++++++++++++-----
+ mm/userfaultfd.c    |    5 ++++
+ 3 files changed, 61 insertions(+), 9 deletions(-)
+
+--- a/mm/memory-failure.c~mm-shmem-dont-truncate-page-if-memory-failure-happens
++++ a/mm/memory-failure.c
+@@ -58,6 +58,7 @@
+ #include <linux/ratelimit.h>
+ #include <linux/page-isolation.h>
+ #include <linux/pagewalk.h>
++#include <linux/shmem_fs.h>
+ #include "internal.h"
+ #include "ras/ras_event.h"
+ 
+@@ -867,6 +868,7 @@ static int me_pagecache_clean(struct pag
+ {
+ 	int ret;
+ 	struct address_space *mapping;
++	bool extra_pins;
+ 
+ 	delete_from_lru_cache(p);
+ 
+@@ -896,17 +898,23 @@ static int me_pagecache_clean(struct pag
+ 	}
+ 
+ 	/*
++	 * The shmem page is kept in page cache instead of truncating
++	 * so is expected to have an extra refcount after error-handling.
++	 */
++	extra_pins = shmem_mapping(mapping);
++
++	/*
+ 	 * Truncation is a bit tricky. Enable it per file system for now.
+ 	 *
+ 	 * Open: to take i_rwsem or not for this? Right now we don't.
+ 	 */
+ 	ret = truncate_error_page(p, page_to_pfn(p), mapping);
++	if (has_extra_refcount(ps, p, extra_pins))
++		ret = MF_FAILED;
++
+ out:
+ 	unlock_page(p);
+ 
+-	if (has_extra_refcount(ps, p, false))
+-		ret = MF_FAILED;
+-
+ 	return ret;
+ }
+ 
+--- a/mm/shmem.c~mm-shmem-dont-truncate-page-if-memory-failure-happens
++++ a/mm/shmem.c
+@@ -2462,6 +2462,7 @@ shmem_write_begin(struct file *file, str
+ 	struct inode *inode = mapping->host;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	pgoff_t index = pos >> PAGE_SHIFT;
++	int ret = 0;
+ 
+ 	/* i_rwsem is held by caller */
+ 	if (unlikely(info->seals & (F_SEAL_GROW |
+@@ -2472,7 +2473,19 @@ shmem_write_begin(struct file *file, str
+ 			return -EPERM;
+ 	}
+ 
+-	return shmem_getpage(inode, index, pagep, SGP_WRITE);
++	ret = shmem_getpage(inode, index, pagep, SGP_WRITE);
++
++	if (ret)
++		return ret;
++
++	if (PageHWPoison(*pagep)) {
++		unlock_page(*pagep);
++		put_page(*pagep);
++		*pagep = NULL;
++		return -EIO;
++	}
++
++	return 0;
+ }
+ 
+ static int
+@@ -2559,6 +2572,12 @@ static ssize_t shmem_file_read_iter(stru
+ 			if (sgp == SGP_CACHE)
+ 				set_page_dirty(page);
+ 			unlock_page(page);
++
++			if (PageHWPoison(page)) {
++				put_page(page);
++				error = -EIO;
++				break;
++			}
+ 		}
+ 
+ 		/*
+@@ -3098,7 +3117,8 @@ static const char *shmem_get_link(struct
+ 		page = find_get_page(inode->i_mapping, 0);
+ 		if (!page)
+ 			return ERR_PTR(-ECHILD);
+-		if (!PageUptodate(page)) {
++		if (PageHWPoison(page) ||
++		    !PageUptodate(page)) {
+ 			put_page(page);
+ 			return ERR_PTR(-ECHILD);
+ 		}
+@@ -3106,6 +3126,13 @@ static const char *shmem_get_link(struct
+ 		error = shmem_getpage(inode, 0, &page, SGP_READ);
+ 		if (error)
+ 			return ERR_PTR(error);
++		if (!page)
++		       return ERR_PTR(-ECHILD);
++		if (PageHWPoison(page)) {
++			unlock_page(page);
++			put_page(page);
++			return ERR_PTR(-ECHILD);
++		}
+ 		unlock_page(page);
+ 	}
+ 	set_delayed_call(done, shmem_put_link, page);
+@@ -3756,6 +3783,13 @@ static void shmem_destroy_inodecache(voi
+ 	kmem_cache_destroy(shmem_inode_cachep);
+ }
+ 
++/* Keep the page in page cache instead of truncating it */
++static int shmem_error_remove_page(struct address_space *mapping,
++				   struct page *page)
++{
++	return 0;
++}
++
+ const struct address_space_operations shmem_aops = {
+ 	.writepage	= shmem_writepage,
+ 	.set_page_dirty	= __set_page_dirty_no_writeback,
+@@ -3766,7 +3800,7 @@ const struct address_space_operations sh
+ #ifdef CONFIG_MIGRATION
+ 	.migratepage	= migrate_page,
+ #endif
+-	.error_remove_page = generic_error_remove_page,
++	.error_remove_page = shmem_error_remove_page,
+ };
+ EXPORT_SYMBOL(shmem_aops);
+ 
+@@ -4174,9 +4208,14 @@ struct page *shmem_read_mapping_page_gfp
+ 	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE,
+ 				  gfp, NULL, NULL, NULL);
+ 	if (error)
+-		page = ERR_PTR(error);
+-	else
+-		unlock_page(page);
++		return ERR_PTR(error);
++
++	unlock_page(page);
++	if (PageHWPoison(page)) {
++		put_page(page);
++		return ERR_PTR(-EIO);
++	}
++
+ 	return page;
+ #else
+ 	/*
+--- a/mm/userfaultfd.c~mm-shmem-dont-truncate-page-if-memory-failure-happens
++++ a/mm/userfaultfd.c
+@@ -232,6 +232,11 @@ static int mcontinue_atomic_pte(struct m
+ 		goto out;
+ 	}
+ 
++	if (PageHWPoison(page)) {
++		ret = -EIO;
++		goto out_release;
++	}
++
+ 	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
+ 				       page, false, wp_copy);
+ 	if (ret)
+_
+
+Patches currently in -mm which might be from shy828301@gmail.com are
+
+
