@@ -2,123 +2,86 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D8397C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  1 Dec 2021 00:05:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F10AC433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  1 Dec 2021 01:27:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236679AbhLAAJF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 30 Nov 2021 19:09:05 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:48858 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240807AbhLAAJC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Nov 2021 19:09:02 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S1346139AbhLABa6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 30 Nov 2021 20:30:58 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38492 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230476AbhLABa6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 30 Nov 2021 20:30:58 -0500
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [IPv6:2404:9400:2:0:216:3eff:fee2:21ea])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8DDE5C061574
+        for <mm-commits@vger.kernel.org>; Tue, 30 Nov 2021 17:27:37 -0800 (PST)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4E079B81DA1
-        for <mm-commits@vger.kernel.org>; Wed,  1 Dec 2021 00:05:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8D0AC53FCB;
-        Wed,  1 Dec 2021 00:05:38 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638317139;
-        bh=iw9Z7HZrvdN2RCo/JntnG3S3qhPUr6WaxVCDGU3Br+s=;
-        h=Date:From:To:Subject:From;
-        b=Wi5FUlqOwPrfMRZPS/e3O6VBETn7j5VOfgk/oXrU6+8a8Zd5LDB1h4UPT7v8AUelw
-         X7QQrf+qw4sTzkH8DBNOHRih/Mlc+pYCNNhKFYIPtKKcPKGroDa7EEAvl9szWpxS8M
-         cfsO/PJa/TXMU8RsQa4BstV5iw3lBzKCDECUcTXk=
-Date:   Tue, 30 Nov 2021 16:05:38 -0800
-From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, lkp@intel.com, mcgrof@kernel.org,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au
-Subject:  +
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4J3hKH3yLqz4xR7;
+        Wed,  1 Dec 2021 12:27:31 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+        s=201702; t=1638322051;
+        bh=TXCZF22YIkTuzB2PSdihVnNKkjkDyXW9RReqZlYpjwU=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=AERyN4piVpYpuQwKQ0FTBPK6yvdv0YBqZai5VcjvLCkRzkrILcoAeP+SEDQENLiLU
+         7ZR/gVuQ0EUz0zOP4esMK42/XJjq5bmzbIVSzfxzO3noe24hYOS+veestCFWDp3he+
+         VaxpsrSjPSg5yPxrOpqb5AB7gZnNFcXvd3/bcsnkmyOAMEDJk1LLtVjEl4MbQVEW3H
+         zdRZ1oEsyrvqzTM4Pp+x9uoaLb08GkgE3AWQYuwP8TLcLm0+nWO9LK4yu2lTU77sf7
+         SnJhcwjDU6fyz6C7OVWofnHNEVQZ3hhVWZ52oMR8oYFpiaI9GSMZnKYsvxQkwsyyKQ
+         l1d+18L6Zh4Qg==
+Date:   Wed, 1 Dec 2021 12:27:28 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     akpm@linux-foundation.org
+Cc:     lkp@intel.com, mcgrof@kernel.org, mm-commits@vger.kernel.org
+Subject: Re: +
  firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch added
  to -mm tree
-Message-ID: <20211201000538.0GqUUdBdv%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+Message-ID: <20211201122728.3fd6463f@canb.auug.org.au>
+In-Reply-To: <20211201000538.0GqUUdBdv%akpm@linux-foundation.org>
+References: <20211201000538.0GqUUdBdv%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="Sig_/pCIo=K/uzz=IY+s.fgRaL1e";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+--Sig_/pCIo=K/uzz=IY+s.fgRaL1e
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The patch titled
-     Subject: firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix
-has been added to the -mm tree.  Its filename is
-     firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
+Hi all,
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
+On Tue, 30 Nov 2021 16:05:38 -0800 akpm@linux-foundation.org wrote:
+>
+> The patch titled
+>      Subject: firmware_loader-move-firmware-sysctl-to-its-own-files-fix-f=
+ix
+> has been added to the -mm tree.  Its filename is
+>      firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Added to linux-next today.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+--=20
+Cheers,
+Stephen Rothwell
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+--Sig_/pCIo=K/uzz=IY+s.fgRaL1e
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix
+-----BEGIN PGP SIGNATURE-----
 
-Cc: kernel test robot <lkp@intel.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmGmz4AACgkQAVBC80lX
+0GyUfAf+Mh4jzk2giFMwqjWoUprAgc26JuxaV65JnD3T5GnTrEPLJdYwKd+KqdDb
+hOBFoLDJsHyaszpox9ICFPanoLooWuadfx6DazGiDgBHcvgfDgYPS/N19R+7iKWs
+GVN3cZA7FraEQtJ4YuS+tdU8UXv8rLpVPEaZnHla4vqHQGggVZDkBGUqiYHz8fmC
+fy5Eul7t+wIQMHfC6wW/kitlFWxMuwea97Eywg/+P5J7S2he1LBxrFRaYT06bNKn
+KJ4SjDjwC2R+MpjaX8SniSUy50AaJNIH+1J1VZqBAkazuBavxHsKjaQ417WpfR/A
+ZLOPlV9uEaeQYJL3nMyfoXlF7c2djw==
+=Sylf
+-----END PGP SIGNATURE-----
 
- drivers/base/firmware_loader/fallback_table.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
-
---- a/drivers/base/firmware_loader/fallback_table.c~firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix
-+++ a/drivers/base/firmware_loader/fallback_table.c
-@@ -4,7 +4,7 @@
- #include <linux/kconfig.h>
- #include <linux/list.h>
- #include <linux/slab.h>
--#include <linux/module.h>
-+#include <linux/export.h>
- #include <linux/security.h>
- #include <linux/highmem.h>
- #include <linux/umh.h>
-@@ -57,13 +57,13 @@ int register_firmware_config_sysctl(void
- 		return -ENOMEM;
- 	return 0;
- }
--EXPORT_SYMBOL(register_firmware_config_sysctl);
-+EXPORT_SYMBOL_NS_GPL(register_firmware_config_sysctl);
- 
- void unregister_firmware_config_sysctl(void)
- {
- 	unregister_sysctl_table(firmware_config_sysct_table_header);
- 	firmware_config_sysct_table_header = NULL;
- }
--EXPORT_SYMBOL(unregister_firmware_config_sysctl);
-+EXPORT_SYMBOL_NS_GPL(unregister_firmware_config_sysctl);
- 
- #endif /* CONFIG_SYSCTL */
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
-shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
-kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
-mm.patch
-kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
-mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
-mm-page-table-check-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
-proc-make-the-proc_create-stubs-static-inlines-fix.patch
-panic-use-error_report_end-tracepoint-on-warnings-fix.patch
-sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
-sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-
+--Sig_/pCIo=K/uzz=IY+s.fgRaL1e--
