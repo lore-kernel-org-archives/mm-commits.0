@@ -2,40 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 27D20C43219
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 03:42:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFF75C4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 03:42:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344724AbhLBDp5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232490AbhLBDp5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 1 Dec 2021 22:45:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59010 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355265AbhLBDog (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2021 22:44:36 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 911A3C06175A
-        for <mm-commits@vger.kernel.org>; Wed,  1 Dec 2021 19:40:47 -0800 (PST)
+Received: from ams.source.kernel.org ([145.40.68.75]:44852 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1355232AbhLBDoR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2021 22:44:17 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id DE6C7CE21A9
-        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 03:40:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9745C00446;
-        Thu,  2 Dec 2021 03:40:43 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5AE69B8221D
+        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 03:40:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDEBEC53FCC;
+        Thu,  2 Dec 2021 03:40:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638416444;
-        bh=HF7sPuKbIokD0I9UGLYlucesw687yJr4OBUWOlMz1PE=;
+        s=korg; t=1638416442;
+        bh=2ljZ9k0nUYc2jEdqRiQ5NOis7Uy+Qe0WxIbcNAA/Nss=;
         h=Date:From:To:Subject:From;
-        b=NjZc/8T4uBBrSW9lrsc3u0/RY3nVfb2jPBN4Vy2G1Uu9jiibSCrJwYA5Yt00UZQwC
-         L+01JIf7H1kjjSbDKtEj2sozFNHXXvdufJAHj+iEalwgX7jK+WZlb58SzeY//O7NRO
-         OfgKbJ6IU+bTiXbW5rvuhI8gkfJX4F0N9r6PJNgI=
-Date:   Wed, 01 Dec 2021 19:40:43 -0800
+        b=C9ZYDkh55fxKhxWC64cWG20wt+a4Fu1xWjtdnd905ge0v6J6fIFJHehb4wtfmgm5j
+         crDTEK1wqSZRVhZi0iDJMYOwGB/s02bd58sTmtfc60pJ7EgmozkvdD7SflcYNLozAF
+         DpazsirHIOgRyAzPsU8nbDUd8/0e7YMEMN8WAAm4=
+Date:   Wed, 01 Dec 2021 19:40:41 -0800
 From:   akpm@linux-foundation.org
 To:     brendanhiggins@google.com, mm-commits@vger.kernel.org,
         shuah@kernel.org, sj@kernel.org
 Subject:  +
- selftests-damon-test-debugfs-file-reads-writes-with-huge-count.patch added
- to -mm tree
-Message-ID: <20211202034043.eTSlWUcl3%akpm@linux-foundation.org>
+ selftests-damon-test-wrong-damos-condition-ranges-input.patch added to -mm
+ tree
+Message-ID: <20211202034041.95_2UvKW-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/damon: test debugfs file reads/writes with huge count
+     Subject: selftests/damon: test wrong DAMOS condition ranges input
 has been added to the -mm tree.  Its filename is
-     selftests-damon-test-debugfs-file-reads-writes-with-huge-count.patch
+     selftests-damon-test-wrong-damos-condition-ranges-input.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-damon-test-debugfs-file-reads-writes-with-huge-count.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-damon-test-wrong-damos-condition-ranges-input.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-damon-test-debugfs-file-reads-writes-with-huge-count.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-damon-test-wrong-damos-condition-ranges-input.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,110 +63,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: test debugfs file reads/writes with huge count
+Subject: selftests/damon: test wrong DAMOS condition ranges input
 
-DAMON debugfs interface users were able to trigger warning by writing some
-files with arbitrarily large 'count' parameter.  The issue is fixed with
-commit db7a347b26fe ("mm/damon/dbgfs: use '__GFP_NOWARN' for
-user-specified size buffer allocation").  This commit adds a test case for
-the issue in DAMON selftests to avoid future regressions.
+A patch titled "mm/damon/schemes: add the validity judgment of
+thresholds"[1] makes DAMON debugfs interface to validate DAMON scheme
+inputs.  This commit adds a test case for the validation logic in DAMON
+selftests.
 
-Link: https://lkml.kernel.org/r/20211201150440.1088-11-sj@kernel.org
+[1] https://lore.kernel.org/linux-mm/d78360e52158d786fcbf20bc62c96785742e76d3.1637239568.git.xhao@linux.alibaba.com/
+
+Link: https://lkml.kernel.org/r/20211201150440.1088-10-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/.gitignore              |    2 
- tools/testing/selftests/damon/Makefile                |    2 
- tools/testing/selftests/damon/debugfs_attrs.sh        |   18 ++++
- tools/testing/selftests/damon/huge_count_read_write.c |   39 ++++++++++
- 4 files changed, 61 insertions(+)
+ tools/testing/selftests/damon/debugfs_attrs.sh |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/tools/testing/selftests/damon/debugfs_attrs.sh~selftests-damon-test-debugfs-file-reads-writes-with-huge-count
+--- a/tools/testing/selftests/damon/debugfs_attrs.sh~selftests-damon-test-wrong-damos-condition-ranges-input
 +++ a/tools/testing/selftests/damon/debugfs_attrs.sh
-@@ -105,4 +105,22 @@ orig_monitor_on=$(cat "$DBGFS/monitor_on
- test_write_fail "$DBGFS/monitor_on" "on" "orig_monitor_on" "empty target ids"
- echo "$orig_target_ids" > "$DBGFS/target_ids"
+@@ -77,6 +77,8 @@ test_write_succ "$file" "1 2 3 4 5 6 4 0
+ test_write_fail "$file" "1 2
+ 3 4 5 6 3 0 0 0 1 2 3 1 100 3 2 1" "$orig_content" "multi lines"
+ test_write_succ "$file" "" "$orig_content" "disabling"
++test_write_fail "$file" "2 1 2 1 10 1 3 10 1 1 1 1 1 1 1 1 2 3" \
++	"$orig_content" "wrong condition ranges"
+ echo "$orig_content" > "$file"
  
-+# Test huge count read write
-+# ==========================
-+
-+dmesg -C
-+
-+for file in "$DBGFS/"*
-+do
-+	./huge_count_read_write "$file"
-+done
-+
-+if dmesg | grep -q WARNING
-+then
-+	dmesg
-+	exit 1
-+else
-+	exit 0
-+fi
-+
- echo "PASS"
---- /dev/null
-+++ a/tools/testing/selftests/damon/.gitignore
-@@ -0,0 +1,2 @@
-+# SPDX-License-Identifier: GPL-2.0-only
-+huge_count_read_write
---- /dev/null
-+++ a/tools/testing/selftests/damon/huge_count_read_write.c
-@@ -0,0 +1,39 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * Author: SeongJae Park <sj@kernel.org>
-+ */
-+
-+#include <fcntl.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <stdio.h>
-+
-+void write_read_with_huge_count(char *file)
-+{
-+	int filedesc = open(file, O_RDWR);
-+	char buf[25];
-+	int ret;
-+
-+	printf("%s %s\n", __func__, file);
-+	if (filedesc < 0) {
-+		fprintf(stderr, "failed opening %s\n", file);
-+		exit(1);
-+	}
-+
-+	write(filedesc, "", 0xfffffffful);
-+	perror("after write: ");
-+	ret = read(filedesc, buf, 0xfffffffful);
-+	perror("after read: ");
-+	close(filedesc);
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	if (argc != 2) {
-+		fprintf(stderr, "Usage: %s <file>\n", argv[0]);
-+		exit(1);
-+	}
-+	write_read_with_huge_count(argv[1]);
-+
-+	return 0;
-+}
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-test-debugfs-file-reads-writes-with-huge-count
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -1,6 +1,8 @@
- # SPDX-License-Identifier: GPL-2.0
- # Makefile for damon selftests
- 
-+TEST_GEN_FILES += huge_count_read_write
-+
- TEST_FILES = _chk_dependency.sh
- TEST_PROGS = debugfs_attrs.sh
- 
+ # Test target_ids file
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
