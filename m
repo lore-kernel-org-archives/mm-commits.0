@@ -2,30 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E7C3FC433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 21:32:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C02D4C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 21:32:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1354021AbhLBVgF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Dec 2021 16:36:05 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:38248 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243217AbhLBVgE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2021 16:36:04 -0500
+        id S1377116AbhLBVgK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Dec 2021 16:36:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48376 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S243217AbhLBVgK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2021 16:36:10 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AAE9CC06174A
+        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 13:32:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1E07562856
-        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 21:32:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0E91DC00446;
-        Thu,  2 Dec 2021 21:32:40 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3EAB6627E4
+        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 21:32:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 257AEC00446;
+        Thu,  2 Dec 2021 21:32:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638480760;
-        bh=VJ6HABtobnsACzJ+LoikKqNTsKWPatEy39pFb4cUNgU=;
+        s=korg; t=1638480766;
+        bh=HQND++/keI4Mv94a/taSrvOLeU0ZQVm616T2JyN1/x0=;
         h=Date:From:To:Subject:From;
-        b=XFBvfrYANugtx+rBlBTWHyR/Q/ZM7uN1kkzqMoBfJjXxEY+a7EnmZ0GuYCuMZprju
-         gMtIA/4KNLq3+5vIjDcPA8PsGOqxPh05G6BV9pFIdNgCdSR1qPm7TdwEpUIH1ctSvX
-         jRHlVCwTMU18LwpizoEKJImMUToq7GovCiVy/c3o=
-Date:   Thu, 02 Dec 2021 13:32:39 -0800
+        b=liXVbay4H7n1XIssZNNWtqQEhE/h+eY8wNztiwxxJgDNkHjztcqZUIwz0SRlwZX6s
+         DRgdNedGgyZpjF5gV4gSYoxaZl1h6dR6vK1qN7j0nuIOBeVO5OVzt4Gj7H/dX+tedd
+         DmMgea8G5UNzT0RgDrtm/pdh2C9IlmN/bD7KbkoM=
+Date:   Thu, 02 Dec 2021 13:32:45 -0800
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, dan.j.williams@intel.com, dave.jiang@intel.com,
         hch@lst.de, jane.chu@oracle.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -33,10 +36,9 @@ To:     corbet@lwn.net, dan.j.williams@intel.com, dave.jiang@intel.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         naoya.horiguchi@nec.com, songmuchun@bytedance.com,
         vishal.l.verma@intel.com, willy@infradead.org
-Subject:  +
- mm-page_alloc-refactor-memmap_init_zone_device-page-init.patch added to -mm
- tree
-Message-ID: <20211202213239.U0Ryj6G8s%akpm@linux-foundation.org>
+Subject:  + device-dax-use-align-for-determining-pgoff.patch added
+ to -mm tree
+Message-ID: <20211202213245.StzJLuVql%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: refactor memmap_init_zone_device() page init
+     Subject: device-dax: use ALIGN() for determining pgoff
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-refactor-memmap_init_zone_device-page-init.patch
+     device-dax-use-align-for-determining-pgoff.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-refactor-memmap_init_zone_device-page-init.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-use-align-for-determining-pgoff.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-refactor-memmap_init_zone_device-page-init.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-use-align-for-determining-pgoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,13 +69,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/page_alloc: refactor memmap_init_zone_device() page init
+Subject: device-dax: use ALIGN() for determining pgoff
 
-Move struct page init to an helper function __init_zone_device_page().
+Rather than calculating @pgoff manually, switch to ALIGN() instead.
 
-This is in preparation for sharing the storage for compound page metadata.
-
-Link: https://lkml.kernel.org/r/20211202204422.26777-4-joao.m.martins@oracle.com
+Link: https://lkml.kernel.org/r/20211202204422.26777-6-joao.m.martins@oracle.com
+Suggested-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -91,99 +92,22 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   74 +++++++++++++++++++++++++---------------------
- 1 file changed, 41 insertions(+), 33 deletions(-)
+ drivers/dax/device.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-refactor-memmap_init_zone_device-page-init
-+++ a/mm/page_alloc.c
-@@ -6572,6 +6572,46 @@ void __meminit memmap_init_range(unsigne
- }
+--- a/drivers/dax/device.c~device-dax-use-align-for-determining-pgoff
++++ a/drivers/dax/device.c
+@@ -234,8 +234,8 @@ static vm_fault_t dev_dax_huge_fault(str
+ 		 * mapped. No need to consider the zero page, or racing
+ 		 * conflicting mappings.
+ 		 */
+-		pgoff = linear_page_index(vmf->vma, vmf->address
+-				& ~(fault_size - 1));
++		pgoff = linear_page_index(vmf->vma,
++				ALIGN(vmf->address, fault_size));
+ 		for (i = 0; i < fault_size / PAGE_SIZE; i++) {
+ 			struct page *page;
  
- #ifdef CONFIG_ZONE_DEVICE
-+static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
-+					  unsigned long zone_idx, int nid,
-+					  struct dev_pagemap *pgmap)
-+{
-+
-+	__init_single_page(page, pfn, zone_idx, nid);
-+
-+	/*
-+	 * Mark page reserved as it will need to wait for onlining
-+	 * phase for it to be fully associated with a zone.
-+	 *
-+	 * We can use the non-atomic __set_bit operation for setting
-+	 * the flag as we are still initializing the pages.
-+	 */
-+	__SetPageReserved(page);
-+
-+	/*
-+	 * ZONE_DEVICE pages union ->lru with a ->pgmap back pointer
-+	 * and zone_device_data.  It is a bug if a ZONE_DEVICE page is
-+	 * ever freed or placed on a driver-private list.
-+	 */
-+	page->pgmap = pgmap;
-+	page->zone_device_data = NULL;
-+
-+	/*
-+	 * Mark the block movable so that blocks are reserved for
-+	 * movable at startup. This will force kernel allocations
-+	 * to reserve their blocks rather than leaking throughout
-+	 * the address space during boot when many long-lived
-+	 * kernel allocations are made.
-+	 *
-+	 * Please note that MEMINIT_HOTPLUG path doesn't clear memmap
-+	 * because this is done early in section_activate()
-+	 */
-+	if (IS_ALIGNED(pfn, pageblock_nr_pages)) {
-+		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-+		cond_resched();
-+	}
-+}
-+
- void __ref memmap_init_zone_device(struct zone *zone,
- 				   unsigned long start_pfn,
- 				   unsigned long nr_pages,
-@@ -6600,39 +6640,7 @@ void __ref memmap_init_zone_device(struc
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		struct page *page = pfn_to_page(pfn);
- 
--		__init_single_page(page, pfn, zone_idx, nid);
--
--		/*
--		 * Mark page reserved as it will need to wait for onlining
--		 * phase for it to be fully associated with a zone.
--		 *
--		 * We can use the non-atomic __set_bit operation for setting
--		 * the flag as we are still initializing the pages.
--		 */
--		__SetPageReserved(page);
--
--		/*
--		 * ZONE_DEVICE pages union ->lru with a ->pgmap back pointer
--		 * and zone_device_data.  It is a bug if a ZONE_DEVICE page is
--		 * ever freed or placed on a driver-private list.
--		 */
--		page->pgmap = pgmap;
--		page->zone_device_data = NULL;
--
--		/*
--		 * Mark the block movable so that blocks are reserved for
--		 * movable at startup. This will force kernel allocations
--		 * to reserve their blocks rather than leaking throughout
--		 * the address space during boot when many long-lived
--		 * kernel allocations are made.
--		 *
--		 * Please note that MEMINIT_HOTPLUG path doesn't clear memmap
--		 * because this is done early in section_activate()
--		 */
--		if (IS_ALIGNED(pfn, pageblock_nr_pages)) {
--			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--			cond_resched();
--		}
-+		__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
- 	}
- 
- 	pr_info("%s initialised %lu pages in %ums\n", __func__,
 _
 
 Patches currently in -mm which might be from joao.m.martins@oracle.com are
