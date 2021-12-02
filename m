@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD154C433FE
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 21:33:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4A5B2C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 21:33:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377123AbhLBVgZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Dec 2021 16:36:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48438 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377097AbhLBVgY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2021 16:36:24 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9EF5C06174A
-        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 13:33:01 -0800 (PST)
+        id S1377124AbhLBVg1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Dec 2021 16:36:27 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:38458 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377097AbhLBVg1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2021 16:36:27 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 2247FCE2474
-        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 21:33:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8702C00446;
-        Thu,  2 Dec 2021 21:32:57 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3B93B6285C
+        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 21:33:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 28DD0C00446;
+        Thu,  2 Dec 2021 21:33:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638480778;
-        bh=MjM0NQFvEz0gzg5YnEuQgUvTAq/dTl3PpAwYI7xJdrM=;
+        s=korg; t=1638480783;
+        bh=PqWBL1h4o4qslldhqpXnghea2yN6kqJmaEzo6RYOGdY=;
         h=Date:From:To:Subject:From;
-        b=NVot7HaMzeB38NqT75Awr49d2AF7AeFEfzS0h98VvFP2QKp62vhUe4cV+ri3FJtOp
-         C85jag7TYlEz4j26SnrsW7jHBg85vYx8/1pZkQS/NbcC2wJUUx/CKtU9wLrxC5dsY6
-         yjYJMD8/Rl50ZSvIFt+jp2Ui/ZVhEr4H5Z52kwO8=
-Date:   Thu, 02 Dec 2021 13:32:57 -0800
+        b=DTjr2jvj6nXk1Q4LarMhD9wAsRHCtxwhZcswJdWfZS5qdLK7Oiz27zNGBAA+It4lb
+         ZYLECeFI+ZZZVBPmWxMmaBn9YqxKIk59vgoOy2x2kEkwmZN8amNYDXbAfJJBRpWcOe
+         Lf4K7v/y9jvfMfT6eLGYdQOn+sT1wYJ0FhAf+xOo=
+Date:   Thu, 02 Dec 2021 13:33:02 -0800
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, dan.j.williams@intel.com, dave.jiang@intel.com,
         hch@lst.de, jane.chu@oracle.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -36,10 +33,9 @@ To:     corbet@lwn.net, dan.j.williams@intel.com, dave.jiang@intel.com,
         mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
         naoya.horiguchi@nec.com, songmuchun@bytedance.com,
         vishal.l.verma@intel.com, willy@infradead.org
-Subject:  +
- device-dax-set-mapping-prior-to-vmf_insert_pfn_pmdpud.patch added to -mm
+Subject:  + device-dax-compound-devmap-support.patch added to -mm
  tree
-Message-ID: <20211202213257.SAXQXjGYk%akpm@linux-foundation.org>
+Message-ID: <20211202213302.CryU17aI5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax: set mapping prior to vmf_insert_pfn{,_pmd,pud}()
+     Subject: device-dax: compound devmap support
 has been added to the -mm tree.  Its filename is
-     device-dax-set-mapping-prior-to-vmf_insert_pfn_pmdpud.patch
+     device-dax-compound-devmap-support.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-set-mapping-prior-to-vmf_insert_pfn_pmdpud.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-compound-devmap-support.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-set-mapping-prior-to-vmf_insert_pfn_pmdpud.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-compound-devmap-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,24 +66,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: device-dax: set mapping prior to vmf_insert_pfn{,_pmd,pud}()
+Subject: device-dax: compound devmap support
 
-Normally, the @page mapping is set prior to inserting the page into a page
-table entry.  Make device-dax adhere to the same ordering, rather than
-setting mapping after the PTE is inserted.
+Use the newly added compound devmap facility which maps the assigned dax
+ranges as compound pages at a page size of @align.
 
-The address_space never changes and it is always associated with the same
-inode and underlying pages.  So, the page mapping is set once but cleared
-when the struct pages are removed/freed (i.e.  after
-{devm_}memunmap_pages()).
+dax devices are created with a fixed @align (huge page size) which is
+enforced through as well at mmap() of the device.  Faults, consequently
+happen too at the specified @align specified at the creation, and those
+don't change throughout dax device lifetime.  MCEs unmap a whole dax huge
+page, as well as splits occurring at the configured page size.
 
-Link: https://lkml.kernel.org/r/20211202204422.26777-10-joao.m.martins@oracle.com
-Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
+Performance measured by gup_test improves considerably for
+unpin_user_pages() and altmap with NVDIMMs:
+
+$ gup_test -f /dev/dax1.0 -m 16384 -r 10 -S -a -n 512 -w
+(pin_user_pages_fast 2M pages) put:~71 ms -> put:~22 ms
+[altmap]
+(pin_user_pages_fast 2M pages) get:~524ms put:~525 ms -> get: ~127ms put:~71ms
+
+ $ gup_test -f /dev/dax1.0 -m 129022 -r 10 -S -a -n 512 -w
+(pin_user_pages_fast 2M pages) put:~513 ms -> put:~188 ms
+[altmap with -m 127004]
+(pin_user_pages_fast 2M pages) get:~4.1 secs put:~4.12 secs -> get:~1sec put:~563ms
+
+.. as well as unpin_user_page_range_dirty_lock() being just as effective
+as THP/hugetlb[0] pages.
+
+[0] https://lore.kernel.org/linux-mm/20210212130843.13865-5-joao.m.martins@oracle.com/
+
+Link: https://lkml.kernel.org/r/20211202204422.26777-12-joao.m.martins@oracle.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: Jane Chu <jane.chu@oracle.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -99,70 +113,42 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ drivers/dax/device.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
---- a/drivers/dax/device.c~device-dax-set-mapping-prior-to-vmf_insert_pfn_pmdpud
+--- a/drivers/dax/device.c~device-dax-compound-devmap-support
 +++ a/drivers/dax/device.c
-@@ -121,6 +121,8 @@ static vm_fault_t __dev_dax_pte_fault(st
- 
- 	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
- 
-+	dax_set_mapping(vmf, *pfn, fault_size);
-+
- 	return vmf_insert_mixed(vmf->vma, vmf->address, *pfn);
- }
- 
-@@ -161,6 +163,8 @@ static vm_fault_t __dev_dax_pmd_fault(st
- 
- 	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
- 
-+	dax_set_mapping(vmf, *pfn, fault_size);
-+
- 	return vmf_insert_pfn_pmd(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
- }
- 
-@@ -203,6 +207,8 @@ static vm_fault_t __dev_dax_pud_fault(st
- 
- 	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
- 
-+	dax_set_mapping(vmf, *pfn, fault_size);
-+
- 	return vmf_insert_pfn_pud(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
- }
- #else
-@@ -217,7 +223,6 @@ static vm_fault_t dev_dax_huge_fault(str
- 		enum page_entry_size pe_size)
+@@ -78,14 +78,20 @@ static void dax_set_mapping(struct vm_fa
  {
+ 	unsigned long i, nr_pages = fault_size / PAGE_SIZE;
  	struct file *filp = vmf->vma->vm_file;
--	unsigned long fault_size;
- 	vm_fault_t rc = VM_FAULT_SIGBUS;
- 	int id;
- 	pfn_t pfn;
-@@ -230,23 +235,18 @@ static vm_fault_t dev_dax_huge_fault(str
- 	id = dax_read_lock();
- 	switch (pe_size) {
- 	case PE_SIZE_PTE:
--		fault_size = PAGE_SIZE;
- 		rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
- 		break;
- 	case PE_SIZE_PMD:
--		fault_size = PMD_SIZE;
- 		rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
- 		break;
- 	case PE_SIZE_PUD:
--		fault_size = PUD_SIZE;
- 		rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
- 		break;
- 	default:
- 		rc = VM_FAULT_SIGBUS;
++	struct dev_dax *dev_dax = filp->private_data;
+ 	pgoff_t pgoff;
+ 
++	/* mapping is only set on the head */
++	if (dev_dax->pgmap->vmemmap_shift)
++		nr_pages = 1;
++
+ 	pgoff = linear_page_index(vmf->vma,
+ 			ALIGN(vmf->address, fault_size));
+ 
+ 	for (i = 0; i < nr_pages; i++) {
+ 		struct page *page = pfn_to_page(pfn_t_to_pfn(pfn) + i);
+ 
++		page = compound_head(page);
+ 		if (page->mapping)
+ 			continue;
+ 
+@@ -443,6 +449,9 @@ int dev_dax_probe(struct dev_dax *dev_da
  	}
  
--	if (rc == VM_FAULT_NOPAGE)
--		dax_set_mapping(vmf, pfn, fault_size);
- 	dax_read_unlock(id);
- 
- 	return rc;
+ 	pgmap->type = MEMORY_DEVICE_GENERIC;
++	if (dev_dax->align > PAGE_SIZE)
++		pgmap->vmemmap_shift =
++			order_base_2(dev_dax->align >> PAGE_SHIFT);
+ 	addr = devm_memremap_pages(dev, pgmap);
+ 	if (IS_ERR(addr))
+ 		return PTR_ERR(addr);
 _
 
 Patches currently in -mm which might be from joao.m.martins@oracle.com are
