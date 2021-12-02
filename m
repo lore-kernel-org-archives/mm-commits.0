@@ -2,30 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D309C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 21:33:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DD154C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 21:33:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377122AbhLBVgY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Dec 2021 16:36:24 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:38444 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        id S1377123AbhLBVgZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Dec 2021 16:36:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48438 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
         with ESMTP id S1377097AbhLBVgY (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2021 16:36:24 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C9EF5C06174A
+        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 13:33:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1E8806285B
-        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 21:33:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B89EC53FD0;
-        Thu,  2 Dec 2021 21:33:00 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 2247FCE2474
+        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 21:33:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8702C00446;
+        Thu,  2 Dec 2021 21:32:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638480780;
-        bh=JM750IRZbnTJq18VJKN7nLmDQUyxAysKuMz/TJij6eg=;
+        s=korg; t=1638480778;
+        bh=MjM0NQFvEz0gzg5YnEuQgUvTAq/dTl3PpAwYI7xJdrM=;
         h=Date:From:To:Subject:From;
-        b=p8rc2L9mkp1JYbdLBUNPTYSVdZjCfuNxkGwnsSAZP9+3Dg5wjIlEBpOowJaNnO6Z4
-         VgpCpm6FgfocQW58zMAZTtt+nDbQXGYQ2g5LBl2BOFW/7+4ukwZIUSiBmYGdlLBa6t
-         lHRICHv0KYUtXHGrAhbJh38999O2YfxngKj6I0Yg=
-Date:   Thu, 02 Dec 2021 13:32:59 -0800
+        b=NVot7HaMzeB38NqT75Awr49d2AF7AeFEfzS0h98VvFP2QKp62vhUe4cV+ri3FJtOp
+         C85jag7TYlEz4j26SnrsW7jHBg85vYx8/1pZkQS/NbcC2wJUUx/CKtU9wLrxC5dsY6
+         yjYJMD8/Rl50ZSvIFt+jp2Ui/ZVhEr4H5Z52kwO8=
+Date:   Thu, 02 Dec 2021 13:32:57 -0800
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, dan.j.williams@intel.com, dave.jiang@intel.com,
         hch@lst.de, jane.chu@oracle.com, jgg@nvidia.com, jgg@ziepe.ca,
@@ -34,9 +37,9 @@ To:     corbet@lwn.net, dan.j.williams@intel.com, dave.jiang@intel.com,
         naoya.horiguchi@nec.com, songmuchun@bytedance.com,
         vishal.l.verma@intel.com, willy@infradead.org
 Subject:  +
- device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault.patch added to -mm
+ device-dax-set-mapping-prior-to-vmf_insert_pfn_pmdpud.patch added to -mm
  tree
-Message-ID: <20211202213259.OcMQAWJZY%akpm@linux-foundation.org>
+Message-ID: <20211202213257.SAXQXjGYk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax: remove pfn from __dev_dax_{pte,pmd,pud}_fault()
+     Subject: device-dax: set mapping prior to vmf_insert_pfn{,_pmd,pud}()
 has been added to the -mm tree.  Its filename is
-     device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault.patch
+     device-dax-set-mapping-prior-to-vmf_insert_pfn_pmdpud.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/device-dax-set-mapping-prior-to-vmf_insert_pfn_pmdpud.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/device-dax-set-mapping-prior-to-vmf_insert_pfn_pmdpud.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,19 +70,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: device-dax: remove pfn from __dev_dax_{pte,pmd,pud}_fault()
+Subject: device-dax: set mapping prior to vmf_insert_pfn{,_pmd,pud}()
 
-After moving the page mapping to be set prior to pte insertion, the pfn in
-dev_dax_huge_fault() no longer is necessary.  Remove it, as well as the
-@pfn argument passed to the internal fault handler helpers.
+Normally, the @page mapping is set prior to inserting the page into a page
+table entry.  Make device-dax adhere to the same ordering, rather than
+setting mapping after the PTE is inserted.
 
-Link: https://lkml.kernel.org/r/20211202204422.26777-11-joao.m.martins@oracle.com
-Suggested-by: Christoph Hellwig <hch@lst.de>
+The address_space never changes and it is always associated with the same
+inode and underlying pages.  So, the page mapping is set once but cleared
+when the struct pages are removed/freed (i.e.  after
+{devm_}memunmap_pages()).
+
+Link: https://lkml.kernel.org/r/20211202204422.26777-10-joao.m.martins@oracle.com
+Suggested-by: Jason Gunthorpe <jgg@nvidia.com>
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Jiang <dave.jiang@intel.com>
 Cc: Jane Chu <jane.chu@oracle.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Cc: John Hubbard <jhubbard@nvidia.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
@@ -91,117 +99,70 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |   34 ++++++++++++++++++----------------
- 1 file changed, 18 insertions(+), 16 deletions(-)
+ drivers/dax/device.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/drivers/dax/device.c~device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault
+--- a/drivers/dax/device.c~device-dax-set-mapping-prior-to-vmf_insert_pfn_pmdpud
 +++ a/drivers/dax/device.c
-@@ -95,10 +95,11 @@ static void dax_set_mapping(struct vm_fa
+@@ -121,6 +121,8 @@ static vm_fault_t __dev_dax_pte_fault(st
+ 
+ 	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
+ 
++	dax_set_mapping(vmf, *pfn, fault_size);
++
+ 	return vmf_insert_mixed(vmf->vma, vmf->address, *pfn);
  }
  
- static vm_fault_t __dev_dax_pte_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf, pfn_t *pfn)
-+				struct vm_fault *vmf)
- {
- 	struct device *dev = &dev_dax->dev;
- 	phys_addr_t phys;
-+	pfn_t pfn;
- 	unsigned int fault_size = PAGE_SIZE;
+@@ -161,6 +163,8 @@ static vm_fault_t __dev_dax_pmd_fault(st
  
- 	if (check_vma(dev_dax, vmf->vma, __func__))
-@@ -119,20 +120,21 @@ static vm_fault_t __dev_dax_pte_fault(st
- 		return VM_FAULT_SIGBUS;
- 	}
+ 	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
  
--	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
- 
--	dax_set_mapping(vmf, *pfn, fault_size);
-+	dax_set_mapping(vmf, pfn, fault_size);
- 
--	return vmf_insert_mixed(vmf->vma, vmf->address, *pfn);
-+	return vmf_insert_mixed(vmf->vma, vmf->address, pfn);
++	dax_set_mapping(vmf, *pfn, fault_size);
++
+ 	return vmf_insert_pfn_pmd(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
  }
  
- static vm_fault_t __dev_dax_pmd_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf, pfn_t *pfn)
-+				struct vm_fault *vmf)
- {
- 	unsigned long pmd_addr = vmf->address & PMD_MASK;
- 	struct device *dev = &dev_dax->dev;
- 	phys_addr_t phys;
- 	pgoff_t pgoff;
-+	pfn_t pfn;
- 	unsigned int fault_size = PMD_SIZE;
+@@ -203,6 +207,8 @@ static vm_fault_t __dev_dax_pud_fault(st
  
- 	if (check_vma(dev_dax, vmf->vma, __func__))
-@@ -161,21 +163,22 @@ static vm_fault_t __dev_dax_pmd_fault(st
- 		return VM_FAULT_SIGBUS;
- 	}
+ 	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
  
--	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
- 
--	dax_set_mapping(vmf, *pfn, fault_size);
-+	dax_set_mapping(vmf, pfn, fault_size);
- 
--	return vmf_insert_pfn_pmd(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
-+	return vmf_insert_pfn_pmd(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
- }
- 
- #ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf, pfn_t *pfn)
-+				struct vm_fault *vmf)
- {
- 	unsigned long pud_addr = vmf->address & PUD_MASK;
- 	struct device *dev = &dev_dax->dev;
- 	phys_addr_t phys;
- 	pgoff_t pgoff;
-+	pfn_t pfn;
- 	unsigned int fault_size = PUD_SIZE;
- 
- 
-@@ -205,11 +208,11 @@ static vm_fault_t __dev_dax_pud_fault(st
- 		return VM_FAULT_SIGBUS;
- 	}
- 
--	*pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
-+	pfn = phys_to_pfn_t(phys, PFN_DEV|PFN_MAP);
- 
--	dax_set_mapping(vmf, *pfn, fault_size);
-+	dax_set_mapping(vmf, pfn, fault_size);
- 
--	return vmf_insert_pfn_pud(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
-+	return vmf_insert_pfn_pud(vmf, pfn, vmf->flags & FAULT_FLAG_WRITE);
++	dax_set_mapping(vmf, *pfn, fault_size);
++
+ 	return vmf_insert_pfn_pud(vmf, *pfn, vmf->flags & FAULT_FLAG_WRITE);
  }
  #else
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
-@@ -225,7 +228,6 @@ static vm_fault_t dev_dax_huge_fault(str
+@@ -217,7 +223,6 @@ static vm_fault_t dev_dax_huge_fault(str
+ 		enum page_entry_size pe_size)
+ {
  	struct file *filp = vmf->vma->vm_file;
+-	unsigned long fault_size;
  	vm_fault_t rc = VM_FAULT_SIGBUS;
  	int id;
--	pfn_t pfn;
- 	struct dev_dax *dev_dax = filp->private_data;
- 
- 	dev_dbg(&dev_dax->dev, "%s: %s (%#lx - %#lx) size = %d\n", current->comm,
-@@ -235,13 +237,13 @@ static vm_fault_t dev_dax_huge_fault(str
+ 	pfn_t pfn;
+@@ -230,23 +235,18 @@ static vm_fault_t dev_dax_huge_fault(str
  	id = dax_read_lock();
  	switch (pe_size) {
  	case PE_SIZE_PTE:
--		rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
-+		rc = __dev_dax_pte_fault(dev_dax, vmf);
+-		fault_size = PAGE_SIZE;
+ 		rc = __dev_dax_pte_fault(dev_dax, vmf, &pfn);
  		break;
  	case PE_SIZE_PMD:
--		rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
-+		rc = __dev_dax_pmd_fault(dev_dax, vmf);
+-		fault_size = PMD_SIZE;
+ 		rc = __dev_dax_pmd_fault(dev_dax, vmf, &pfn);
  		break;
  	case PE_SIZE_PUD:
--		rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
-+		rc = __dev_dax_pud_fault(dev_dax, vmf);
+-		fault_size = PUD_SIZE;
+ 		rc = __dev_dax_pud_fault(dev_dax, vmf, &pfn);
  		break;
  	default:
  		rc = VM_FAULT_SIGBUS;
+ 	}
+ 
+-	if (rc == VM_FAULT_NOPAGE)
+-		dax_set_mapping(vmf, pfn, fault_size);
+ 	dax_read_unlock(id);
+ 
+ 	return rc;
 _
 
 Patches currently in -mm which might be from joao.m.martins@oracle.com are
