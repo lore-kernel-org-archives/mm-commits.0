@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7A7C6C433F5
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 04:30:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5556AC433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 04:39:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355425AbhLBEdl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 1 Dec 2021 23:33:41 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:39644 "EHLO
+        id S1355487AbhLBEm5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 1 Dec 2021 23:42:57 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:42142 "EHLO
         sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355407AbhLBEdl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2021 23:33:41 -0500
+        with ESMTP id S1355360AbhLBEmy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2021 23:42:54 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id D131CCE2079
-        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 04:30:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B99D8C00446;
-        Thu,  2 Dec 2021 04:30:15 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 81B9BCE1DC7
+        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 04:39:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2239C00446;
+        Thu,  2 Dec 2021 04:39:26 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638419415;
-        bh=KafVUpUDdq2iFUfa+/Z727hk6f7An7o2hFGyUN6VxT0=;
+        s=korg; t=1638419966;
+        bh=cGM1zlK1x8+IojTTssbhJ0oL0NpK1bItIkz9cMG4i/4=;
         h=Date:From:To:Subject:From;
-        b=dkred5KmVTasKSE2C8BEkE9rc2FsVo3bNBuliQfWWmP4g7URLWU6bZWHbkxFJiscd
-         QiSu1ga9O0U5qq/kp87CM8r04/9hXIc97f9PcEAI53WXynlmsnl4FlqNTn909O8VeM
-         K3rtYtbu6Rz53p/ouFXuaB5pb1hMxM0Km8rHihvI=
-Date:   Wed, 01 Dec 2021 20:30:15 -0800
+        b=xz9FVoeWeuyjTRHb1giB+JmQt3VPN6WLzfYBT/j5O6MRqePFYdqTzOR5VnQlrYkZv
+         scnUd4KEh4iP2FAmNZxr25YYh5HeWBKirN8VXlAVW6X0aBz7+ijZoR5D2CufIdGlg0
+         h1MX7J3vl2jfCcKThCsu5iL4BQrQS95Mr5srcvyI=
+Date:   Wed, 01 Dec 2021 20:39:26 -0800
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com,
-        mm-commits@vger.kernel.org
+To:     mcgrof@kernel.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 Subject:  +
- list-introduce-list_is_head-helper-and-re-use-it-in-listh.patch added to
+ firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3.patch added to
  -mm tree
-Message-ID: <20211202043015.lk53BDNj-%akpm@linux-foundation.org>
+Message-ID: <20211202043926.Yal5diQ05%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: list: introduce list_is_head() helper and re-use it in list.h
+     Subject: firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3
 has been added to the -mm tree.  Its filename is
-     list-introduce-list_is_head-helper-and-re-use-it-in-listh.patch
+     firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/list-introduce-list_is_head-helper-and-re-use-it-in-listh.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/list-introduce-list_is_head-helper-and-re-use-it-in-listh.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,135 +61,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: list: introduce list_is_head() helper and re-use it in list.h
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3
 
-Introduce list_is_head() in the similar (*) way as it's done for
-list_entry_is_head().  Make use of it in the list.h.
+akpm sucks
 
-*) it's done as inliner and not a macro to be aligned with other
-   list_is_*() APIs; while at it, make all three to have the same
-   style.
-
-Link: https://lkml.kernel.org/r/20211201141824.81400-1-andriy.shevchenko@linux.intel.com
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Link: https://lkml.kernel.org/r/20211201160626.401d828d@canb.auug.org.au
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/list.h |   36 ++++++++++++++++++++++--------------
- 1 file changed, 22 insertions(+), 14 deletions(-)
+ drivers/base/firmware_loader/fallback_table.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/list.h~list-introduce-list_is_head-helper-and-re-use-it-in-listh
-+++ a/include/linux/list.h
-@@ -258,8 +258,7 @@ static inline void list_bulk_move_tail(s
-  * @list: the entry to test
-  * @head: the head of the list
-  */
--static inline int list_is_first(const struct list_head *list,
--					const struct list_head *head)
-+static inline int list_is_first(const struct list_head *list, const struct list_head *head)
- {
- 	return list->prev == head;
+--- a/drivers/base/firmware_loader/fallback_table.c~firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3
++++ a/drivers/base/firmware_loader/fallback_table.c
+@@ -57,13 +57,13 @@ int register_firmware_config_sysctl(void
+ 		return -ENOMEM;
+ 	return 0;
  }
-@@ -269,13 +268,22 @@ static inline int list_is_first(const st
-  * @list: the entry to test
-  * @head: the head of the list
-  */
--static inline int list_is_last(const struct list_head *list,
--				const struct list_head *head)
-+static inline int list_is_last(const struct list_head *list, const struct list_head *head)
+-EXPORT_SYMBOL_NS_GPL(register_firmware_config_sysctl);
++EXPORT_SYMBOL_NS_GPL(register_firmware_config_sysctl, FIRMWARE_LOADER_PRIVATE);
+ 
+ void unregister_firmware_config_sysctl(void)
  {
- 	return list->next == head;
+ 	unregister_sysctl_table(firmware_config_sysct_table_header);
+ 	firmware_config_sysct_table_header = NULL;
  }
+-EXPORT_SYMBOL_NS_GPL(unregister_firmware_config_sysctl);
++EXPORT_SYMBOL_NS_GPL(unregister_firmware_config_sysctl, FIRMWARE_LOADER_PRIVATE);
  
- /**
-+ * list_is_head - tests whether @list is the list @head
-+ * @list: the entry to test
-+ * @head: the head of the list
-+ */
-+static inline int list_is_head(const struct list_head *list, const struct list_head *head)
-+{
-+	return list == head;
-+}
-+
-+/**
-  * list_empty - tests whether a list is empty
-  * @head: the list to test.
-  */
-@@ -318,7 +326,7 @@ static inline void list_del_init_careful
- static inline int list_empty_careful(const struct list_head *head)
- {
- 	struct list_head *next = smp_load_acquire(&head->next);
--	return (next == head) && (next == head->prev);
-+	return list_is_head(next, head) && (next == head->prev);
- }
- 
- /**
-@@ -393,10 +401,9 @@ static inline void list_cut_position(str
- {
- 	if (list_empty(head))
- 		return;
--	if (list_is_singular(head) &&
--		(head->next != entry && head != entry))
-+	if (list_is_singular(head) && !list_is_head(entry, head) && (entry != head->next))
- 		return;
--	if (entry == head)
-+	if (list_is_head(entry, head))
- 		INIT_LIST_HEAD(list);
- 	else
- 		__list_cut_position(list, head, entry);
-@@ -570,7 +577,7 @@ static inline void list_splice_tail_init
-  * @head:	the head for your list.
-  */
- #define list_for_each(pos, head) \
--	for (pos = (head)->next; pos != (head); pos = pos->next)
-+	for (pos = (head)->next; !list_is_head(pos, (head)); pos = pos->next)
- 
- /**
-  * list_for_each_continue - continue iteration over a list
-@@ -580,7 +587,7 @@ static inline void list_splice_tail_init
-  * Continue to iterate over a list, continuing after the current position.
-  */
- #define list_for_each_continue(pos, head) \
--	for (pos = pos->next; pos != (head); pos = pos->next)
-+	for (pos = pos->next; !list_is_head(pos, (head)); pos = pos->next)
- 
- /**
-  * list_for_each_prev	-	iterate over a list backwards
-@@ -588,7 +595,7 @@ static inline void list_splice_tail_init
-  * @head:	the head for your list.
-  */
- #define list_for_each_prev(pos, head) \
--	for (pos = (head)->prev; pos != (head); pos = pos->prev)
-+	for (pos = (head)->prev; !list_is_head(pos, (head)); pos = pos->prev)
- 
- /**
-  * list_for_each_safe - iterate over a list safe against removal of list entry
-@@ -597,8 +604,9 @@ static inline void list_splice_tail_init
-  * @head:	the head for your list.
-  */
- #define list_for_each_safe(pos, n, head) \
--	for (pos = (head)->next, n = pos->next; pos != (head); \
--		pos = n, n = pos->next)
-+	for (pos = (head)->next, n = pos->next; \
-+	     !list_is_head(pos, (head)); \
-+	     pos = n, n = pos->next)
- 
- /**
-  * list_for_each_prev_safe - iterate over a list backwards safe against removal of list entry
-@@ -608,7 +616,7 @@ static inline void list_splice_tail_init
-  */
- #define list_for_each_prev_safe(pos, n, head) \
- 	for (pos = (head)->prev, n = pos->prev; \
--	     pos != (head); \
-+	     !list_is_head(pos, (head)); \
- 	     pos = n, n = pos->prev)
- 
- /**
+ #endif /* CONFIG_SYSCTL */
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from sfr@canb.auug.org.au are
 
-list-introduce-list_is_head-helper-and-re-use-it-in-listh.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3.patch
 
