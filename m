@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 066A4C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 22:59:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B77C6C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 23:07:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245009AbhLBXCo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 2 Dec 2021 18:02:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39974 "EHLO
+        id S1349336AbhLBXKx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 2 Dec 2021 18:10:53 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41742 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236694AbhLBXCn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2021 18:02:43 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A928BC06174A
-        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 14:59:20 -0800 (PST)
+        with ESMTP id S240957AbhLBXKw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 2 Dec 2021 18:10:52 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9F37FC06174A
+        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 15:07:29 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6B9C8B823BF
-        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 22:59:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3459C00446;
-        Thu,  2 Dec 2021 22:59:17 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5E5E26287A
+        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 23:07:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2941C00446;
+        Thu,  2 Dec 2021 23:07:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638485958;
-        bh=ioafzX8cEdvqJzaTqwZBS2M5Ebu6dEju0z3lP0CBzfs=;
+        s=korg; t=1638486447;
+        bh=dtohLVsUufViwxMKoOmsRqL8lE2cqGh2ToCbSV/rN+w=;
         h=Date:From:To:Subject:From;
-        b=r/FUQ9oBF1hm5Sekhr7Bwe5OHNbHs+fInWd/LW7xQZRFgkxwHqZO/PSbqhW5OBpol
-         C6kQtJVa70+zG4toV4d7ZtvkmDz8k9tVIBWunD22qw6uSLXwsPboazSoKLM0ITn8vb
-         YGFEsFOE18GZSUBn5zHVQfbMJA5+7Ov9y9mHXJmw=
-Date:   Thu, 02 Dec 2021 14:59:17 -0800
+        b=wA4B7vLQEOB1r+/iCHwIoZjw7Y+QejjInZdiF6Ybz3nN3F64ou714jPpOCdsFsHmH
+         IeahLIJnK65VIH+SaRZRFerGCCCiorwDPacm8TYCyEa84laerkljQCuEj4yceMjpMd
+         Nn1uS9Iwn6u2QFSHAw1HzVBO2PglPmnlr2s4hQ6g=
+Date:   Thu, 02 Dec 2021 15:07:27 -0800
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, mm-commits@vger.kernel.org,
-        sunnanyong@huawei.com, wangkefeng.wang@huawei.com
+To:     akpm@linux-foundation.org, hdegoede@redhat.com, lkp@intel.com,
+        mm-commits@vger.kernel.org
 Subject:  +
- mm-ksm-fix-use-after-free-kasan-report-in-ksm_might_need_to_copy.patch
- added to -mm tree
-Message-ID: <20211202225917.yeFJpJegp%akpm@linux-foundation.org>
+ proc-make-the-proc_create-stubs-static-inlines-fix2.patch added to -mm tree
+Message-ID: <20211202230727.vr8ic7s1J%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: ksm: fix use-after-free kasan report in ksm_might_need_to_copy
+     Subject: proc-make-the-proc_create-stubs-static-inlines-fix2
 has been added to the -mm tree.  Its filename is
-     mm-ksm-fix-use-after-free-kasan-report-in-ksm_might_need_to_copy.patch
+     proc-make-the-proc_create-stubs-static-inlines-fix2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-ksm-fix-use-after-free-kasan-report-in-ksm_might_need_to_copy.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc-make-the-proc_create-stubs-static-inlines-fix2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-ksm-fix-use-after-free-kasan-report-in-ksm_might_need_to_copy.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc-make-the-proc_create-stubs-static-inlines-fix2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,104 +64,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nanyong Sun <sunnanyong@huawei.com>
-Subject: mm: ksm: fix use-after-free kasan report in ksm_might_need_to_copy
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc-make-the-proc_create-stubs-static-inlines-fix2
 
-When under the stress of swapping in/out with KSM enabled, there is a low
-probability that kasan reports the BUG of use-after-free in
-ksm_might_need_to_copy() when do swap in.  The freed object is the
-anon_vma got from page_anon_vma(page).
+fix arch/sparc/kernel/led.c
 
-It is because a swapcache page associated with one anon_vma now needed for
-another anon_vma, but the page's original vma was unmapped and the
-anon_vma was freed.  In this case the if condition below always return
-false and then alloc a new page to copy.  Swapin process then use the new
-page and can continue to run well, so this is harmless actually.
-
-} else if (anon_vma->root == vma->anon_vma->root &&
-                 page->index == linear_page_index(vma, address)) {
-
-This patch exchange the order of above two judgment statement to avoid the
-kasan warning.  Let cpu run "page->index == linear_page_index(vma,
-address)" firstly and return false basically to skip the read of
-anon_vma->root which may trigger the kasan use-after-free warning.
-
-==================================================================
-BUG: KASAN: use-after-free in ksm_might_need_to_copy+0x12e/0x5b0
-Read of size 8 at addr ffff88be9977dbd0 by task khugepaged/694
-
- CPU: 8 PID: 694 Comm: khugepaged Kdump: loaded Tainted: G OE - 4.18.0.x86_64
- Hardware name: 1288H V5/BC11SPSC0, BIOS 7.93 01/14/2021
-Call Trace:
- dump_stack+0xf1/0x19b
- print_address_description+0x70/0x360
- kasan_report+0x1b2/0x330
- ksm_might_need_to_copy+0x12e/0x5b0
- do_swap_page+0x452/0xe70
- __collapse_huge_page_swapin+0x24b/0x720
- khugepaged_scan_pmd+0xcae/0x1ff0
- khugepaged+0x8ee/0xd70
- kthread+0x1a2/0x1d0
- ret_from_fork+0x1f/0x40
-
-Allocated by task 2306153:
- kasan_kmalloc+0xa0/0xd0
- kmem_cache_alloc+0xc0/0x1c0
- anon_vma_clone+0xf7/0x380
- anon_vma_fork+0xc0/0x390
- copy_process+0x447b/0x4810
- _do_fork+0x118/0x620
- do_syscall_64+0x112/0x360
- entry_SYSCALL_64_after_hwframe+0x65/0xca
-
-Freed by task 2306242:
- __kasan_slab_free+0x130/0x180
- kmem_cache_free+0x78/0x1d0
- unlink_anon_vmas+0x19c/0x4a0
- free_pgtables+0x137/0x1b0
- exit_mmap+0x133/0x320
- mmput+0x15e/0x390
- do_exit+0x8c5/0x1210
- do_group_exit+0xb5/0x1b0
- __x64_sys_exit_group+0x21/0x30
- do_syscall_64+0x112/0x360
- entry_SYSCALL_64_after_hwframe+0x65/0xca
-
-The buggy address belongs to the object at ffff88be9977dba0
- which belongs to the cache anon_vma_chain of size 64
-The buggy address is located 48 bytes inside of
- 64-byte region [ffff88be9977dba0, ffff88be9977dbe0)
-The buggy address belongs to the page:
-page:ffffea00fa65df40 count:1 mapcount:0 mapping:ffff888107717800 index:0x0
-flags: 0x17ffffc0000100(slab)
-==================================================================
-
-Link: https://lkml.kernel.org/r/20211202102940.1069634-1-sunnanyong@huawei.com
-Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/sparc/kernel/led.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/ksm.c~mm-ksm-fix-use-after-free-kasan-report-in-ksm_might_need_to_copy
-+++ a/mm/ksm.c
-@@ -2575,8 +2575,8 @@ struct page *ksm_might_need_to_copy(stru
- 			return page;	/* no need to copy it */
- 	} else if (!anon_vma) {
- 		return page;		/* no need to copy it */
--	} else if (anon_vma->root == vma->anon_vma->root &&
--		 page->index == linear_page_index(vma, address)) {
-+	} else if (page->index == linear_page_index(vma, address) &&
-+			anon_vma->root == vma->anon_vma->root) {
- 		return page;		/* still no need to copy it */
- 	}
- 	if (!PageUptodate(page))
+--- a/arch/sparc/kernel/led.c~proc-make-the-proc_create-stubs-static-inlines-fix2
++++ a/arch/sparc/kernel/led.c
+@@ -122,10 +122,11 @@ static int __init led_init(void)
+ {
+ 	timer_setup(&led_blink_timer, led_blink, 0);
+ 
++#ifdef CONFIG_PROC_FS
+ 	led = proc_create("led", 0, NULL, &led_proc_ops);
+ 	if (!led)
+ 		return -ENOMEM;
+-
++#endif
+ 	printk(KERN_INFO
+ 	       "led: version %s, Lars Kotthoff <metalhead@metalhead.ws>\n",
+ 	       LED_VERSION);
 _
 
-Patches currently in -mm which might be from sunnanyong@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-ksm-fix-use-after-free-kasan-report-in-ksm_might_need_to_copy.patch
+mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
+shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
+kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
+mm.patch
+kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
+mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
+mm-page-table-check-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
+mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch
+proc-make-the-proc_create-stubs-static-inlines-fix.patch
+proc-make-the-proc_create-stubs-static-inlines-fix2.patch
+panic-use-error_report_end-tracepoint-on-warnings-fix.patch
+sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
+proc-remove-pde_data-completely-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
