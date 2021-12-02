@@ -2,39 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A567AC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 03:42:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6ACC4C433FE
+	for <mm-commits@archiver.kernel.org>; Thu,  2 Dec 2021 03:42:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1355244AbhLBDov (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 1 Dec 2021 22:44:51 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58876 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232490AbhLBDn7 (ORCPT
+        id S1355215AbhLBDp4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 1 Dec 2021 22:45:56 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:44724 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1355239AbhLBDn7 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Wed, 1 Dec 2021 22:43:59 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A8E02C061757
-        for <mm-commits@vger.kernel.org>; Wed,  1 Dec 2021 19:40:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5077CB8221B
-        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 03:40:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB3A2C00446;
-        Thu,  2 Dec 2021 03:40:35 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6C4A2B8221A
+        for <mm-commits@vger.kernel.org>; Thu,  2 Dec 2021 03:40:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F0560C00446;
+        Thu,  2 Dec 2021 03:40:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638416436;
-        bh=25cgr/sZ/Y7c3kAbHJ56pPYFt4rnqEGYm/eztxEKchg=;
+        s=korg; t=1638416428;
+        bh=V3Bl26QzXmNCDGeipo22iU4YRyMIfll1OA90Z6RQgOI=;
         h=Date:From:To:Subject:From;
-        b=D9oHDtHDdJyHocBtXkadbWnmJ1b1QTCbChOrM3SegWChikIE7qU95McpzBiuzlNg8
-         mPk9d/brGWw7h7qrYOoDNJNU2inC1qOZl4TEP3k0W+wdAcfYbsH2MD4zwtP2nSSQbF
-         lePsAkwqmgfbrBu6E1x0qXPnmGWscsvi7+/iLANs=
-Date:   Wed, 01 Dec 2021 19:40:35 -0800
+        b=HJIQbZletpzRmIyVDNpHzmMu0hQ8155KmqsquBDrg8QPD94gYAkAYD8P/8be8OB3+
+         nV6WhI6HOPyH7BgDIE7U2ZWX7s7KHZJscBHMinvgzHV3RFnVRXtKe2ncjjVrBISzMw
+         +MgrxERxCX2gdaQSNr5APR1Sj2mpV7ECXi/Gx+3o=
+Date:   Wed, 01 Dec 2021 19:40:27 -0800
 From:   akpm@linux-foundation.org
-To:     brendanhiggins@google.com, mm-commits@vger.kernel.org,
-        shuah@kernel.org, sj@kernel.org
-Subject:  + mm-damon-vaddr-test-remove-unnecessary-variables.patch
+To:     brendanhiggins@google.com, lkp@intel.com,
+        mm-commits@vger.kernel.org, shuah@kernel.org, sj@kernel.org
+Subject:  + mm-damon-core-remove-unnecessary-error-messages.patch
  added to -mm tree
-Message-ID: <20211202034035.GZHvYaNIX%akpm@linux-foundation.org>
+Message-ID: <20211202034027.r3nLB8Ifd%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/vaddr-test: remove unnecessary variables
+     Subject: mm/damon/core: remove unnecessary error messages
 has been added to the -mm tree.  Its filename is
-     mm-damon-vaddr-test-remove-unnecessary-variables.patch
+     mm-damon-core-remove-unnecessary-error-messages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-vaddr-test-remove-unnecessary-variables.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-core-remove-unnecessary-error-messages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-vaddr-test-remove-unnecessary-variables.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-core-remove-unnecessary-error-messages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,67 +62,57 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/vaddr-test: remove unnecessary variables
+Subject: mm/damon/core: remove unnecessary error messages
 
-A couple of test functions in DAMON virtual address space monitoring
-primitives implementation has unnecessary damon_ctx variables.  This
-commit removes those.
+DAMON core prints error messages when damon_target object creation is
+failed or wrong monitoring attributes are given.  Because appropriate
+error code is returned for each case, the messages are not essential. 
+Also, because the code path can be triggered with user-specified input,
+this could result in kernel log mistakenly being messy.  To avoid the
+case, this commit removes the messages.
 
-Link: https://lkml.kernel.org/r/20211201150440.1088-7-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211201150440.1088-4-sj@kernel.org
+Fixes: 4bc05954d007 ("mm/damon: implement a debugfs-based user space interface")
+Fixes: b9a6ac4e4ede ("mm/damon: adaptively adjust regions")
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: kernel test robot <lkp@intel.com>
 Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr-test.h |    8 --------
- 1 file changed, 8 deletions(-)
+ mm/damon/core.c |   11 ++---------
+ 1 file changed, 2 insertions(+), 9 deletions(-)
 
---- a/mm/damon/vaddr-test.h~mm-damon-vaddr-test-remove-unnecessary-variables
-+++ a/mm/damon/vaddr-test.h
-@@ -135,7 +135,6 @@ static void damon_do_test_apply_three_re
- 				struct damon_addr_range *three_regions,
- 				unsigned long *expected, int nr_expected)
+--- a/mm/damon/core.c~mm-damon-core-remove-unnecessary-error-messages
++++ a/mm/damon/core.c
+@@ -282,7 +282,6 @@ int damon_set_targets(struct damon_ctx *
+ 	for (i = 0; i < nr_ids; i++) {
+ 		t = damon_new_target(ids[i]);
+ 		if (!t) {
+-			pr_err("Failed to alloc damon_target\n");
+ 			/* The caller should do cleanup of the ids itself */
+ 			damon_for_each_target_safe(t, next, ctx)
+ 				damon_destroy_target(t);
+@@ -312,16 +311,10 @@ int damon_set_attrs(struct damon_ctx *ct
+ 		    unsigned long aggr_int, unsigned long primitive_upd_int,
+ 		    unsigned long min_nr_reg, unsigned long max_nr_reg)
  {
--	struct damon_ctx *ctx = damon_new_ctx();
- 	struct damon_target *t;
- 	struct damon_region *r;
- 	int i;
-@@ -145,7 +144,6 @@ static void damon_do_test_apply_three_re
- 		r = damon_new_region(regions[i * 2], regions[i * 2 + 1]);
- 		damon_add_region(r, t);
- 	}
--	damon_add_target(ctx, t);
+-	if (min_nr_reg < 3) {
+-		pr_err("min_nr_regions (%lu) must be at least 3\n",
+-				min_nr_reg);
++	if (min_nr_reg < 3)
+ 		return -EINVAL;
+-	}
+-	if (min_nr_reg > max_nr_reg) {
+-		pr_err("invalid nr_regions.  min (%lu) > max (%lu)\n",
+-				min_nr_reg, max_nr_reg);
++	if (min_nr_reg > max_nr_reg)
+ 		return -EINVAL;
+-	}
  
- 	damon_va_apply_three_regions(t, three_regions);
- 
-@@ -154,8 +152,6 @@ static void damon_do_test_apply_three_re
- 		KUNIT_EXPECT_EQ(test, r->ar.start, expected[i * 2]);
- 		KUNIT_EXPECT_EQ(test, r->ar.end, expected[i * 2 + 1]);
- 	}
--
--	damon_destroy_ctx(ctx);
- }
- 
- /*
-@@ -298,8 +294,6 @@ static void damon_test_split_evenly_succ
- 
- static void damon_test_split_evenly(struct kunit *test)
- {
--	struct damon_ctx *c = damon_new_ctx();
--
- 	KUNIT_EXPECT_EQ(test, damon_va_evenly_split_region(NULL, NULL, 5),
- 			-EINVAL);
- 
-@@ -307,8 +301,6 @@ static void damon_test_split_evenly(stru
- 	damon_test_split_evenly_succ(test, 0, 100, 10);
- 	damon_test_split_evenly_succ(test, 5, 59, 5);
- 	damon_test_split_evenly_fail(test, 5, 6, 2);
--
--	damon_destroy_ctx(c);
- }
- 
- static struct kunit_case damon_test_cases[] = {
+ 	ctx->sample_interval = sample_int;
+ 	ctx->aggr_interval = aggr_int;
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
