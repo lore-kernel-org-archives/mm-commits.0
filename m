@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F716C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Dec 2021 17:31:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CE0BC433EF
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Dec 2021 20:14:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234284AbhLCRes (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Dec 2021 12:34:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39218 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358636AbhLCRes (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Dec 2021 12:34:48 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3B8CAC061751
-        for <mm-commits@vger.kernel.org>; Fri,  3 Dec 2021 09:31:24 -0800 (PST)
+        id S1357736AbhLCUR6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Dec 2021 15:17:58 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:35028 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236287AbhLCURz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Dec 2021 15:17:55 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EDE05B82878
-        for <mm-commits@vger.kernel.org>; Fri,  3 Dec 2021 17:31:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D348C53FCD;
-        Fri,  3 Dec 2021 17:31:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3965C62CCD
+        for <mm-commits@vger.kernel.org>; Fri,  3 Dec 2021 20:14:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 73F2AC53FAD;
+        Fri,  3 Dec 2021 20:14:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638552681;
-        bh=FabUMOdnOHFuQd6gbtcqG6ybDULwyPhRWh4hKahFsRA=;
+        s=korg; t=1638562469;
+        bh=qGhOa+Yo+Bkga/zoT832aUiCqY9wmv9ssOe/Vusz2Hg=;
         h=Date:From:To:Subject:From;
-        b=pzSPsZpGJJhwzzQNOKn4fOkgMz32wD3jTbb4r0rcGiq30AKVTwWYT5V2IfwWczzGK
-         Qe0z1AFG4VACgd37oVHhili1YoLgmm/lfnur1DnX6UmPcuaQsOLex1V7SjG1FaEPpC
-         XvIHiObqjU7fv/c73kFfv2RvAHU7GgdhvbgDP46I=
-Date:   Fri, 03 Dec 2021 09:31:21 -0800
+        b=gpTyEAm14LlIFZDevQKmwo1wyi9zBu8tL0BtywK+AffnkZ3PSYwQxp7SXJZir1wYb
+         BFS9J6eB9X3i+C48aG1C85+7wsOERAMj8RHaji28POEJfmNIratsAU8i3qJmDNR8+r
+         wnsedMIbTZS3BusbeywvDJiYtN2EtcFh/CG9+Ww0=
+Date:   Fri, 03 Dec 2021 12:14:28 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-rejects.patch added to -mm tree
-Message-ID: <20211203173121.mA2eIu4c-%akpm@linux-foundation.org>
+To:     arnd@arndb.de, mcgrof@kernel.org, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
+Subject:  + fs-move-inode-sysctls-to-its-own-file-fix.patch added
+ to -mm tree
+Message-ID: <20211203201428.fw2v7ABAc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: fs/inode: avoid unused-variable warning
 has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     fs-move-inode-sysctls-to-its-own-file-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-move-inode-sysctls-to-its-own-file-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-move-inode-sysctls-to-its-own-file-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,51 +61,58 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: fs/inode: avoid unused-variable warning
 
+Now that 'inodes_stat' is marked 'static', it causes a harmless warning
+whenever it is unused:
+
+fs/inode.c:73:29: error: 'inodes_stat' defined but not used [-Werror=unused-variable]
+   73 | static struct inodes_stat_t inodes_stat;
+
+Move it into the #ifdef that guards its only references.
+
+Link: https://lkml.kernel.org/r/20211203190123.874239-1-arnd@kernel.org
+Fixes: 245314851782 ("fs: move inode sysctls to its own file")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/inode.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/mm/zsmalloc.c~linux-next-rejects
-+++ a/mm/zsmalloc.c
-@@ -893,7 +893,7 @@ static void reset_page(struct page *page
- 	ClearPagePrivate(page);
- 	set_page_private(page, 0);
- 	page_mapcount_reset(page);
--	page->freelist = NULL;
-+	page->index = 0;
- }
+--- a/fs/inode.c~fs-move-inode-sysctls-to-its-own-file-fix
++++ a/fs/inode.c
+@@ -67,11 +67,6 @@ const struct address_space_operations em
+ };
+ EXPORT_SYMBOL(empty_aops);
  
- static int trylock_zspage(struct zspage *zspage)
+-/*
+- * Statistics gathering..
+- */
+-static struct inodes_stat_t inodes_stat;
+-
+ static DEFINE_PER_CPU(unsigned long, nr_inodes);
+ static DEFINE_PER_CPU(unsigned long, nr_unused);
+ 
+@@ -106,6 +101,11 @@ long get_nr_dirty_inodes(void)
+  * Handle nr_inode sysctl
+  */
+ #ifdef CONFIG_SYSCTL
++/*
++ * Statistics gathering..
++ */
++static struct inodes_stat_t inodes_stat;
++
+ static int proc_nr_inodes(struct ctl_table *table, int write, void *buffer,
+ 			  size_t *lenp, loff_t *ppos)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
-shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
-kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
-mm.patch
-kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
-device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch
-mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
-mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
-mm-page-table-check-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
-mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch
-proc-make-the-proc_create-stubs-static-inlines-fix.patch
-proc-make-the-proc_create-stubs-static-inlines-fix2.patch
-panic-use-error_report_end-tracepoint-on-warnings-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
-sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
-proc-remove-pde_data-completely-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+fs-move-inode-sysctls-to-its-own-file-fix.patch
+fs-move-dcache-sysctls-to-its-own-file-fix-2.patch
 
