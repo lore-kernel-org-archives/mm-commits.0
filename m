@@ -2,43 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D4E8BC433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Dec 2021 20:17:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 34DB3C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  3 Dec 2021 20:28:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1383068AbhLCUUz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Dec 2021 15:20:55 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48964 "EHLO
+        id S235651AbhLCUbh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 3 Dec 2021 15:31:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51416 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234814AbhLCUUu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Dec 2021 15:20:50 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9E28DC061354
-        for <mm-commits@vger.kernel.org>; Fri,  3 Dec 2021 12:17:25 -0800 (PST)
+        with ESMTP id S233528AbhLCUbh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Dec 2021 15:31:37 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B9DABC061751
+        for <mm-commits@vger.kernel.org>; Fri,  3 Dec 2021 12:28:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6E7BDB8293D
-        for <mm-commits@vger.kernel.org>; Fri,  3 Dec 2021 20:17:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB530C53FAD;
-        Fri,  3 Dec 2021 20:17:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7A67D62CD6
+        for <mm-commits@vger.kernel.org>; Fri,  3 Dec 2021 20:28:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACFAAC53FAD;
+        Fri,  3 Dec 2021 20:28:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638562643;
-        bh=Gd0zxdCzDj6X/55qGwnO/JPw/444HPMmnOrp8WgmCY0=;
+        s=korg; t=1638563290;
+        bh=FoK0/RmyZ+aca71kyMlt/mtXZ6nIzf5x3iS/mGjQrYA=;
         h=Date:From:To:Subject:From;
-        b=CLkGhwf5HVocAFRZnQ7BMubrfuMo0DMGHuWd5nvJO72qOKWWGDV5gJ+upA+jTMpa+
-         YGM9W/DBqUDMp1OUui8VtV3tpRC4C2fz0c25Usf342S0OfUR4RF7hz3DbfAIS8lwhq
-         +Qg5IOfeXDTLnBZuSH3OvS9QTxTt6axO0IYwzwlw=
-Date:   Fri, 03 Dec 2021 12:17:22 -0800
+        b=s439G11lpufbB/ObH8LUwZsHfMTuF1DGu0FWRr0bKQfjPXOijMDoxvilEqA9nad9b
+         6WCgxWCpRv8cz4zflNG1fvciw+OlottIzspueB2h4LaJIujAZNByTCAem/S4b+SSb+
+         5MmiWlIKF9MQ0TijbAk8Qt7uSSBg1mzO1ERiDw3A=
+Date:   Fri, 03 Dec 2021 12:28:10 -0800
 From:   akpm@linux-foundation.org
-To:     alexs@kernel.org, corbet@lwn.net, guro@fb.com,
-        lizefan.x@bytedance.com, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
-        schatzberg.dan@gmail.com, shakeelb@google.com,
-        songmuchun@bytedance.com, tj@kernel.org, vdavydov.dev@gmail.com,
-        willy@infradead.org
-Subject:  + mm-add-group_oom_kill-memory-event.patch added to -mm
- tree
-Message-ID: <20211203201722._w29ad300%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, lkp@intel.com,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        songmuchun@bytedance.com
+Subject:  + proc-remove-pde_data-completely-fix-fix.patch added to
+ -mm tree
+Message-ID: <20211203202810.eIo3hOTZw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: add group_oom_kill memory event
+     Subject: proc-remove-pde_data-completely-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-add-group_oom_kill-memory-event.patch
+     proc-remove-pde_data-completely-fix-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-group_oom_kill-memory-event.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc-remove-pde_data-completely-fix-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-group_oom_kill-memory-event.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc-remove-pde_data-completely-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,107 +65,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Schatzberg <schatzberg.dan@gmail.com>
-Subject: mm/memcg: add group_oom_kill memory event
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc-remove-pde_data-completely-fix-fix
 
-Our container agent wants to know when a container exits if it was OOM
-killed or not to report to the user.  We use memory.oom.group = 1 to
-ensure that OOM kills within the container's cgroup kill everything. 
-Existing memory.events are insufficient for knowing if this triggered:
-
-1) Our current approach reads memory.events oom_kill and reports the
-   container was killed if the value is non-zero.  This is erroneous in
-   some cases where containers create their children cgroups with
-   memory.oom.group=1 as such OOM kills will get counted against the
-   container cgroup's oom_kill counter despite not actually OOM killing
-   the entire container.
-
-2) Reading memory.events.local will fail to identify OOM kills in leaf
-   cgroups (that don't set memory.oom.group) within the container cgroup.
-
-This patch adds a new oom_group_kill event when memory.oom.group triggers
-to allow userspace to cleanly identify when an entire cgroup is oom
-killed.
-
-Link: https://lkml.kernel.org/r/20211203162426.3375036-1-schatzberg.dan@gmail.com
-Signed-off-by: Dan Schatzberg <schatzberg.dan@gmail.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Zefan Li <lizefan.x@bytedance.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
 Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Alex Shi <alexs@kernel.org>
-Cc: Wei Yang <richard.weiyang@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Reported-by: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    4 ++++
- include/linux/memcontrol.h              |    1 +
- mm/memcontrol.c                         |    5 +++++
- mm/oom_kill.c                           |    1 +
- 4 files changed, 11 insertions(+)
+ drivers/nubus/proc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-add-group_oom_kill-memory-event
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1268,6 +1268,10 @@ PAGE_SIZE multiple when read back.
- 		The number of processes belonging to this cgroup
- 		killed by any kind of OOM killer.
+--- a/drivers/nubus/proc.c~proc-remove-pde_data-completely-fix-fix
++++ a/drivers/nubus/proc.c
+@@ -93,7 +93,7 @@ struct nubus_proc_pde_data {
+ static struct nubus_proc_pde_data *
+ nubus_proc_alloc_pde_data(unsigned char *ptr, unsigned int size)
+ {
+-	struct nubus_proc_pded *pded;
++	struct nubus_proc_pde_data *pded;
  
-+          oom_group_kill
-+                The number of times all tasks in the cgroup were killed
-+                due to memory.oom.group.
-+
-   memory.events.local
- 	Similar to memory.events but the fields in the file are local
- 	to the cgroup i.e. not hierarchical. The file modified event
---- a/include/linux/memcontrol.h~mm-add-group_oom_kill-memory-event
-+++ a/include/linux/memcontrol.h
-@@ -42,6 +42,7 @@ enum memcg_memory_event {
- 	MEMCG_MAX,
- 	MEMCG_OOM,
- 	MEMCG_OOM_KILL,
-+	MEMCG_OOM_GROUP_KILL,
- 	MEMCG_SWAP_HIGH,
- 	MEMCG_SWAP_MAX,
- 	MEMCG_SWAP_FAIL,
---- a/mm/memcontrol.c~mm-add-group_oom_kill-memory-event
-+++ a/mm/memcontrol.c
-@@ -4390,6 +4390,9 @@ static int mem_cgroup_oom_control_read(s
- 	seq_printf(sf, "under_oom %d\n", (bool)memcg->under_oom);
- 	seq_printf(sf, "oom_kill %lu\n",
- 		   atomic_long_read(&memcg->memory_events[MEMCG_OOM_KILL]));
-+	seq_printf(sf, "oom_group_kill %lu\n",
-+		   atomic_long_read(
-+			&memcg->memory_events[MEMCG_OOM_GROUP_KILL]));
- 	return 0;
- }
- 
-@@ -6318,6 +6321,8 @@ static void __memory_events_show(struct
- 	seq_printf(m, "oom %lu\n", atomic_long_read(&events[MEMCG_OOM]));
- 	seq_printf(m, "oom_kill %lu\n",
- 		   atomic_long_read(&events[MEMCG_OOM_KILL]));
-+	seq_printf(m, "oom_group_kill %lu\n",
-+		   atomic_long_read(&events[MEMCG_OOM_GROUP_KILL]));
- }
- 
- static int memory_events_show(struct seq_file *m, void *v)
---- a/mm/oom_kill.c~mm-add-group_oom_kill-memory-event
-+++ a/mm/oom_kill.c
-@@ -994,6 +994,7 @@ static void oom_kill_process(struct oom_
- 	 * If necessary, kill all tasks in the selected memory cgroup.
- 	 */
- 	if (oom_group) {
-+		memcg_memory_event(oom_group, MEMCG_OOM_GROUP_KILL);
- 		mem_cgroup_print_oom_group(oom_group);
- 		mem_cgroup_scan_tasks(oom_group, oom_kill_memcg_member,
- 				      (void *)message);
+ 	pded = kmalloc(sizeof(*pded), GFP_KERNEL);
+ 	if (!pded)
 _
 
-Patches currently in -mm which might be from schatzberg.dan@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-add-group_oom_kill-memory-event.patch
+mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
+shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
+kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
+mm.patch
+kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
+device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch
+mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
+mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
+mm-page-table-check-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
+mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch
+proc-make-the-proc_create-stubs-static-inlines-fix.patch
+proc-make-the-proc_create-stubs-static-inlines-fix2.patch
+panic-use-error_report_end-tracepoint-on-warnings-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
+proc-remove-pde_data-completely-fix.patch
+proc-remove-pde_data-completely-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
