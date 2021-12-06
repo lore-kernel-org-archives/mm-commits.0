@@ -2,266 +2,84 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90A07C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  3 Dec 2021 21:02:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AC7E6C433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  6 Dec 2021 07:39:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353848AbhLCVFz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 3 Dec 2021 16:05:55 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:54366 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S243206AbhLCVFz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 3 Dec 2021 16:05:55 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        id S238495AbhLFHnB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Dec 2021 02:43:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34894 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229652AbhLFHnA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Dec 2021 02:43:00 -0500
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [IPv6:2404:9400:2:0:216:3eff:fee2:21ea])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F6D6C0613F8
+        for <mm-commits@vger.kernel.org>; Sun,  5 Dec 2021 23:39:31 -0800 (PST)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 15751B82920
-        for <mm-commits@vger.kernel.org>; Fri,  3 Dec 2021 21:02:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 66437C53FCD;
-        Fri,  3 Dec 2021 21:02:28 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638565348;
-        bh=y4ZskyDgljVYlpnNr8091g1XGLaORX5snSx3kreUHSw=;
-        h=Date:From:To:Subject:From;
-        b=t6YVkwkWEgPnMAkuHgcafpFZ8kh2gaFCSWs/7UpdYQKt6FwJH9geL82crtnHBO6I1
-         6uWFpGaTn+N1YEkVt9IAIgSsDvPCIdTuGCdae+eCB+A3CwRXN5X1Vln/rSDTNZvJ1f
-         PuXc/P7mchC1CRegPJ1bVgHL851Xir4yYJLZXitM=
-Date:   Fri, 03 Dec 2021 13:02:27 -0800
-From:   akpm@linux-foundation.org
-To:     bsingharora@gmail.com, mingo@kernel.org,
-        mm-commits@vger.kernel.org, peterz@infradead.org,
-        wang.yong12@zte.com.cn, yang.yang29@zte.com.cn, zealci@zte.com.cn
-Subject:  [failures]
- delayacct-track-delays-from-memory-compact.patch removed from -mm tree
-Message-ID: <20211203210227.sJ9oWZJmE%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4J6wL83JB2z4xgY;
+        Mon,  6 Dec 2021 18:39:28 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+        s=201702; t=1638776369;
+        bh=VS/VCJeLLvcl37Pyl0fT6aQsVacbn7iM34yG4DqaDQc=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=Uii6B5dKTR7J0XQaXxw9QR6fl6vIuZTMdtZZ0kPsa2piNyu3iZMoOmTD2NOHX2rOQ
+         pQ1WcRP+bpxjYVZYgAsW+/0gPtNlKLObktjmacLkjlirHrAxoTOkWWycewi11NhJiT
+         kwV2MbWFMZqbwIS0e+SoUHq7mk1pgaZ6q2CwB/nEq0XIMgxio9ypKEFkq3sPgo3Dsj
+         YTcOvaF4uXXl55RF5O8LS7Tq2oy2AsO4v6CWyZ6v4XDSXBmjTiOZgX2A5AN8S1n6Od
+         /28W+N8Thzzri9desqkJHgntwppvnHOdot2qeZMS2QVesrD6yygR43aAoCzZYAT0dE
+         RocWSc/t2tiAg==
+Date:   Mon, 6 Dec 2021 18:39:27 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     akpm@linux-foundation.org
+Cc:     arnd@arndb.de, mcgrof@kernel.org, mm-commits@vger.kernel.org
+Subject: Re: + fs-move-inode-sysctls-to-its-own-file-fix.patch added to -mm
+ tree
+Message-ID: <20211206183927.0f9704f9@canb.auug.org.au>
+In-Reply-To: <20211203201428.fw2v7ABAc%akpm@linux-foundation.org>
+References: <20211203201428.fw2v7ABAc%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="Sig_/0t5GmXEjJ0tY8xuC+NAe.D4";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+--Sig_/0t5GmXEjJ0tY8xuC+NAe.D4
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The patch titled
-     Subject: delayacct: track delays from memory compact
-has been removed from the -mm tree.  Its filename was
-     delayacct-track-delays-from-memory-compact.patch
+Hi all,
 
-This patch was dropped because it had testing failures
+On Fri, 03 Dec 2021 12:14:28 -0800 akpm@linux-foundation.org wrote:
+>
+> The patch titled
+>      Subject: fs/inode: avoid unused-variable warning
+> has been added to the -mm tree.  Its filename is
+>      fs-move-inode-sysctls-to-its-own-file-fix.patch
 
-------------------------------------------------------
-From: wangyong <wang.yong12@zte.com.cn>
-Subject: delayacct: track delays from memory compact
+Added to linux-next today.
 
-Delay accounting does not track the delay of memory compact.  When there
-is not enough free memory, tasks can spend a amount of their time waiting
-for memory compact.
+--=20
+Cheers,
+Stephen Rothwell
 
-To get the impact of tasks in direct memory compact, measure the delay
-when allocating memory through memory compact.
+--Sig_/0t5GmXEjJ0tY8xuC+NAe.D4
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-Update tools/accounting/getdelays.c:
-/ # ./getdelays_next  -di -p 304
-print delayacct stats ON
-printing IO accounting
-PID     304
+-----BEGIN PGP SIGNATURE-----
 
-CPU             count     real total  virtual total    delay total  delay average
-                  277      780000000      849039485       18877296          0.068ms
-IO              count    delay total  delay average
-                    0              0              0ms
-SWAP            count    delay total  delay average
-                    0              0              0ms
-RECLAIM         count    delay total  delay average
-                    5    11088812685           2217ms
-THRASHING       count    delay total  delay average
-                    0              0              0ms
-COMPACT         count    delay total  delay average
-                    3          72758              0ms
-watch: read=0, write=0, cancelled_write=0
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmGtvi8ACgkQAVBC80lX
+0Gy+LwgAkZE2YpkE1M1wyifB1H9WNHwPg2oGm+uh5T8EE2oTwdGiKZNFvfnaOOcU
+nWn3NG8Q/TioZGDrBuMpMA7+C92mFmF7iJi2EyDQetR8AYg9PpfxbLuTVurDpeTX
+l/qS/ziq6qFuy7zff1cIK6t9Vab9v96jvhbynX6aMpzMdGqMFecljNtcpYrZoK8v
+zcq8XT7NnJagIspFZSDZoBr6jI2Yaf+WBnnGvf4fD+XvBAaZyYkj9g1YY8mhmPoo
+CsYmhIGF+etaYgsUUaep+opmCKsJ8Hxhb9R3aQgNmCjqaCcIkhP1n+Y75hDeWhuP
+8weGQZcdwHtOYdDiasZKfb+H8aiCWQ==
+=sAgN
+-----END PGP SIGNATURE-----
 
-Link: https://lkml.kernel.org/r/1638542272-15187-1-git-send-email-wang.yong12@zte.com.cn
-Signed-off-by: wangyong <wang.yong12@zte.com.cn>
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Reviewed-by: Yang Yang <yang.yang29@zte.com.cn>
-Cc: Balbir Singh <bsingharora@gmail.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/delayacct.h      |   29 +++++++++++++++++++++++++++++
- include/uapi/linux/taskstats.h |    6 +++++-
- kernel/delayacct.c             |   15 +++++++++++++++
- mm/page_alloc.c                |    3 +++
- tools/accounting/getdelays.c   |    8 +++++++-
- 5 files changed, 59 insertions(+), 2 deletions(-)
-
---- a/include/linux/delayacct.h~delayacct-track-delays-from-memory-compact
-+++ a/include/linux/delayacct.h
-@@ -42,8 +42,13 @@ struct task_delay_info {
- 	u64 thrashing_start;
- 	u64 thrashing_delay;	/* wait for thrashing page */
- 
-+	u64 compact_start;
-+	u64 compact_delay;	/* wait for memory compact */
-+
-+	u64 freepages_start;
- 	u32 freepages_count;	/* total count of memory reclaim */
- 	u32 thrashing_count;	/* total count of thrash waits */
-+	u32 compact_count;	/* total count of memory compact */
- };
- #endif
- 
-@@ -72,6 +77,8 @@ extern void __delayacct_thrashing_start(
- extern void __delayacct_thrashing_end(void);
- extern void __delayacct_swapin_start(void);
- extern void __delayacct_swapin_end(void);
-+extern void __delayacct_compact_start(void);
-+extern void __delayacct_compact_end(void);
- 
- static inline void delayacct_tsk_init(struct task_struct *tsk)
- {
-@@ -170,6 +177,24 @@ static inline void delayacct_swapin_end(
- 		__delayacct_swapin_end();
- }
- 
-+static inline void delayacct_compact_start(void)
-+{
-+	if (!static_branch_unlikely(&delayacct_key))
-+		return;
-+
-+	if (current->delays)
-+		__delayacct_compact_start();
-+}
-+
-+static inline void delayacct_compact_end(void)
-+{
-+	if (!static_branch_unlikely(&delayacct_key))
-+		return;
-+
-+	if (current->delays)
-+		__delayacct_compact_end();
-+}
-+
- #else
- static inline void delayacct_init(void)
- {}
-@@ -200,6 +225,10 @@ static inline void delayacct_swapin_star
- {}
- static inline void delayacct_swapin_end(void)
- {}
-+static inline void delayacct_compact_start(void)
-+{}
-+static inline void delayacct_compact_end(void)
-+{}
- 
- #endif /* CONFIG_TASK_DELAY_ACCT */
- 
---- a/include/uapi/linux/taskstats.h~delayacct-track-delays-from-memory-compact
-+++ a/include/uapi/linux/taskstats.h
-@@ -34,7 +34,7 @@
-  */
- 
- 
--#define TASKSTATS_VERSION	10
-+#define TASKSTATS_VERSION	11
- #define TS_COMM_LEN		32	/* should be >= TASK_COMM_LEN
- 					 * in linux/sched.h */
- 
-@@ -172,6 +172,10 @@ struct taskstats {
- 
- 	/* v10: 64-bit btime to avoid overflow */
- 	__u64	ac_btime64;		/* 64-bit begin time */
-+
-+	/* Delay waiting for memory compact */
-+	__u64	compact_count;
-+	__u64	compact_delay_total;
- };
- 
- 
---- a/kernel/delayacct.c~delayacct-track-delays-from-memory-compact
-+++ a/kernel/delayacct.c
-@@ -155,10 +155,13 @@ int delayacct_add_tsk(struct taskstats *
- 	d->freepages_delay_total = (tmp < d->freepages_delay_total) ? 0 : tmp;
- 	tmp = d->thrashing_delay_total + tsk->delays->thrashing_delay;
- 	d->thrashing_delay_total = (tmp < d->thrashing_delay_total) ? 0 : tmp;
-+	tmp = d->compact_delay_total + tsk->delays->compact_delay;
-+	d->compact_delay_total = (tmp < d->compact_delay_total) ? 0 : tmp;
- 	d->blkio_count += tsk->delays->blkio_count;
- 	d->swapin_count += tsk->delays->swapin_count;
- 	d->freepages_count += tsk->delays->freepages_count;
- 	d->thrashing_count += tsk->delays->thrashing_count;
-+	d->compact_count += tsk->delays->compact_count;
- 	raw_spin_unlock_irqrestore(&tsk->delays->lock, flags);
- 
- 	return 0;
-@@ -214,3 +217,15 @@ void __delayacct_swapin_end(void)
- 		      &current->delays->swapin_count);
- }
- 
-+void __delayacct_compact_start(void)
-+{
-+	current->delays->compact_start = local_clock();
-+}
-+
-+void __delayacct_compact_end(void)
-+{
-+	delayacct_end(&current->delays->lock,
-+		      &current->delays->compact_start,
-+		      &current->delays->compact_delay,
-+		      &current->delays->compact_count);
-+}
---- a/mm/page_alloc.c~delayacct-track-delays-from-memory-compact
-+++ a/mm/page_alloc.c
-@@ -74,6 +74,7 @@
- #include <linux/padata.h>
- #include <linux/khugepaged.h>
- #include <linux/buffer_head.h>
-+#include <linux/delayacct.h>
- #include <asm/sections.h>
- #include <asm/tlbflush.h>
- #include <asm/div64.h>
-@@ -4363,6 +4364,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		return NULL;
- 
- 	psi_memstall_enter(&pflags);
-+	delayacct_compact_start();
- 	noreclaim_flag = memalloc_noreclaim_save();
- 
- 	*compact_result = try_to_compact_pages(gfp_mask, order, alloc_flags, ac,
-@@ -4370,6 +4372,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 
- 	memalloc_noreclaim_restore(noreclaim_flag);
- 	psi_memstall_leave(&pflags);
-+	delayacct_compact_end();
- 
- 	if (*compact_result == COMPACT_SKIPPED)
- 		return NULL;
---- a/tools/accounting/getdelays.c~delayacct-track-delays-from-memory-compact
-+++ a/tools/accounting/getdelays.c
-@@ -205,6 +205,8 @@ static void print_delayacct(struct tasks
- 	       "RECLAIM  %12s%15s%15s\n"
- 	       "      %15llu%15llu%15llums\n"
- 	       "THRASHING%12s%15s%15s\n"
-+	       "      %15llu%15llu%15llums\n"
-+	       "COMPACT  %12s%15s%15s\n"
- 	       "      %15llu%15llu%15llums\n",
- 	       "count", "real total", "virtual total",
- 	       "delay total", "delay average",
-@@ -228,7 +230,11 @@ static void print_delayacct(struct tasks
- 	       "count", "delay total", "delay average",
- 	       (unsigned long long)t->thrashing_count,
- 	       (unsigned long long)t->thrashing_delay_total,
--	       average_ms(t->thrashing_delay_total, t->thrashing_count));
-+	       average_ms(t->thrashing_delay_total, t->thrashing_count),
-+	       "count", "delay total", "delay average",
-+	       (unsigned long long)t->compact_count,
-+	       (unsigned long long)t->compact_delay_total,
-+	       average_ms(t->compact_delay_total, t->compact_count));
- }
- 
- static void task_context_switch_counts(struct taskstats *t)
-_
-
-Patches currently in -mm which might be from wang.yong12@zte.com.cn are
-
-
+--Sig_/0t5GmXEjJ0tY8xuC+NAe.D4--
