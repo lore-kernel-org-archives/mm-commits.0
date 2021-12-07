@@ -2,37 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6BBF4C433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Dec 2021 00:54:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23056C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Dec 2021 00:58:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1378847AbhLGA6M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Dec 2021 19:58:12 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:47486 "EHLO
+        id S1351630AbhLGBBa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Dec 2021 20:01:30 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:48220 "EHLO
         sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1378849AbhLGA6L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Dec 2021 19:58:11 -0500
+        with ESMTP id S1344698AbhLGBBa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Dec 2021 20:01:30 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 9752CCE1952
-        for <mm-commits@vger.kernel.org>; Tue,  7 Dec 2021 00:54:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A63F6C004DD;
-        Tue,  7 Dec 2021 00:54:38 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 053C3CE1953
+        for <mm-commits@vger.kernel.org>; Tue,  7 Dec 2021 00:58:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0B8BC004DD;
+        Tue,  7 Dec 2021 00:57:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638838478;
-        bh=0X8il6ZdnxDCtBG2YqLI7L8ckAHc72wlAyjjz1yS7Wg=;
+        s=korg; t=1638838678;
+        bh=P3BCHL1CmUPpswNfvcViuSeZVtpCTL6wqseiJ9JhCN8=;
         h=Date:From:To:Subject:From;
-        b=xmAzUcF/J2QhXF0X2YUL0ioKzHDavDYr9SCujBdxXNM6KdkMjgqK8FT2zD73P53TB
-         AWjCmGFwGXeOT16h3hz9KRKb+lGSJmDxakYhuOJlNBFIp74u5j4uoi+6CQn/BANCav
-         CmqbXwM80s/5wlefva3liyMNkt4VeFLJ1z5ynjiI=
-Date:   Mon, 06 Dec 2021 16:54:38 -0800
+        b=jCxn22D3EGOuUEAc3mXyqXPI0Y4YKUZFbSH1mbHt9rkyxNzAqiSkxkbbqyGAWrIKi
+         DH1xF0n2SSvot+yJHOGmPFabxwOCU9nOnipLqleFJy08gbU9PGWxun2FbcoZLAeNaB
+         DwsnaMAjSBZ2h4SBRXcqhSL5cmzVb8CEHhqY/iEg=
+Date:   Mon, 06 Dec 2021 16:57:57 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, hdegoede@redhat.com, lkp@intel.com,
-        mm-commits@vger.kernel.org
-Subject:  +
- proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch added to -mm
- tree
-Message-ID: <20211207005438.ucvuj6M6O%akpm@linux-foundation.org>
+To:     dvyukov@google.com, elver@google.com, glider@google.com,
+        hulkci@huawei.com, libaokun1@huawei.com,
+        mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
+        yukuai3@huawei.com
+Subject:  + kfence-fix-memory-leak-when-cat-kfence-objects.patch
+ added to -mm tree
+Message-ID: <20211207005757.hWyux6v2Y%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-make-the-proc_create-stubs-static-inlines-fix2-fix
+     Subject: kfence: fix memory leak when cat kfence objects
 has been added to the -mm tree.  Its filename is
-     proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch
+     kfence-fix-memory-leak-when-cat-kfence-objects.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kfence-fix-memory-leak-when-cat-kfence-objects.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kfence-fix-memory-leak-when-cat-kfence-objects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,66 +63,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-make-the-proc_create-stubs-static-inlines-fix2-fix
+From: Baokun Li <libaokun1@huawei.com>
+Subject: kfence: fix memory leak when cat kfence objects
 
-fix build
+Hulk robot reported a kmemleak problem:
+-----------------------------------------------------------------------
+unreferenced object 0xffff93d1d8cc02e8 (size 248):
+  comm "cat", pid 23327, jiffies 4624670141 (age 495992.217s)
+  hex dump (first 32 bytes):
+    00 40 85 19 d4 93 ff ff 00 10 00 00 00 00 00 00  .@..............
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<00000000db5610b3>] seq_open+0x2a/0x80
+    [<00000000d66ac99d>] full_proxy_open+0x167/0x1e0
+    [<00000000d58ef917>] do_dentry_open+0x1e1/0x3a0
+    [<0000000016c91867>] path_openat+0x961/0xa20
+    [<00000000909c9564>] do_filp_open+0xae/0x120
+    [<0000000059c761e6>] do_sys_openat2+0x216/0x2f0
+    [<00000000b7a7b239>] do_sys_open+0x57/0x80
+    [<00000000e559d671>] do_syscall_64+0x33/0x40
+    [<000000000ea1fbfd>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+unreferenced object 0xffff93d419854000 (size 4096):
+  comm "cat", pid 23327, jiffies 4624670141 (age 495992.217s)
+  hex dump (first 32 bytes):
+    6b 66 65 6e 63 65 2d 23 32 35 30 3a 20 30 78 30  kfence-#250: 0x0
+    30 30 30 30 30 30 30 37 35 34 62 64 61 31 32 2d  0000000754bda12-
+  backtrace:
+    [<000000008162c6f2>] seq_read_iter+0x313/0x440
+    [<0000000020b1b3e3>] seq_read+0x14b/0x1a0
+    [<00000000af248fbc>] full_proxy_read+0x56/0x80
+    [<00000000f97679d1>] vfs_read+0xa5/0x1b0
+    [<000000000ed8a36f>] ksys_read+0xa0/0xf0
+    [<00000000e559d671>] do_syscall_64+0x33/0x40
+    [<000000000ea1fbfd>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+-----------------------------------------------------------------------
 
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: kernel test robot <lkp@intel.com>
+I find that we can easily reproduce this problem with the following
+commands:
+	`cat /sys/kernel/debug/kfence/objects`
+	`echo scan > /sys/kernel/debug/kmemleak`
+	`cat /sys/kernel/debug/kmemleak`
+
+The leaked memory is allocated in the stack below:
+----------------------------------
+do_syscall_64
+  do_sys_open
+    do_dentry_open
+      full_proxy_open
+        seq_open            ---> alloc seq_file
+  vfs_read
+    full_proxy_read
+      seq_read
+        seq_read_iter
+          traverse          ---> alloc seq_buf
+----------------------------------
+
+And it should have been released in the following process:
+----------------------------------
+do_syscall_64
+  syscall_exit_to_user_mode
+    exit_to_user_mode_prepare
+      task_work_run
+        ____fput
+          __fput
+            full_proxy_release  ---> free here
+----------------------------------
+
+However, the release function corresponding to file_operations is not
+implemented in kfence. As a result, a memory leak occurs. Therefore,
+the solution to this problem is to implement the corresponding
+release function.
+
+Link: https://lkml.kernel.org/r/20211206133628.2822545-1-libaokun1@huawei.com
+Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
+Signed-off-by: Baokun Li <libaokun1@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Acked-by: Marco Elver <elver@google.com>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Yu Kuai <yukuai3@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/led.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/kfence/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/sparc/kernel/led.c~proc-make-the-proc_create-stubs-static-inlines-fix2-fix
-+++ a/arch/sparc/kernel/led.c
-@@ -114,8 +114,6 @@ static const struct proc_ops led_proc_op
+--- a/mm/kfence/core.c~kfence-fix-memory-leak-when-cat-kfence-objects
++++ a/mm/kfence/core.c
+@@ -683,6 +683,7 @@ static const struct file_operations obje
+ 	.open = open_objects,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
++	.release = seq_release,
  };
- #endif
  
--static struct proc_dir_entry *led;
--
- #define LED_VERSION	"0.1"
- 
- static int __init led_init(void)
-@@ -123,8 +121,7 @@ static int __init led_init(void)
- 	timer_setup(&led_blink_timer, led_blink, 0);
- 
- #ifdef CONFIG_PROC_FS
--	led = proc_create("led", 0, NULL, &led_proc_ops);
--	if (!led)
-+	if (!proc_create("led", 0, NULL, &led_proc_ops))
- 		return -ENOMEM;
- #endif
- 	printk(KERN_INFO
+ static int __init kfence_debugfs_init(void)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from libaokun1@huawei.com are
 
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
-shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
-kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
-mm.patch
-kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
-device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch
-mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
-mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
-mm-page-table-check-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
-mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch
-proc-make-the-proc_create-stubs-static-inlines-fix.patch
-proc-make-the-proc_create-stubs-static-inlines-fix2.patch
-proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch
-panic-use-error_report_end-tracepoint-on-warnings-fix.patch
-linux-next-rejects.patch
-sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
-sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
-proc-remove-pde_data-completely-fix.patch
-proc-remove-pde_data-completely-fix-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+kfence-fix-memory-leak-when-cat-kfence-objects.patch
 
