@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E292C433EF
-	for <mm-commits@archiver.kernel.org>; Tue,  7 Dec 2021 01:42:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED1A8C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  7 Dec 2021 02:11:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233984AbhLGBpo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 6 Dec 2021 20:45:44 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:35826 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233676AbhLGBpn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Dec 2021 20:45:43 -0500
+        id S239659AbhLGCOs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 6 Dec 2021 21:14:48 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:40322 "EHLO
+        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235404AbhLGCOr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 6 Dec 2021 21:14:47 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A6ADBB8166B
-        for <mm-commits@vger.kernel.org>; Tue,  7 Dec 2021 01:42:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D1C17C341C1;
-        Tue,  7 Dec 2021 01:42:11 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 54481CE19B6
+        for <mm-commits@vger.kernel.org>; Tue,  7 Dec 2021 02:11:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F3DCC341C5;
+        Tue,  7 Dec 2021 02:11:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638841332;
-        bh=M5Q73kvnBJDTacyvfhZDE5lvyZYppSpc0YdEsRNAKSA=;
+        s=korg; t=1638843074;
+        bh=FwAsPvIRd94b71ZSFSedVxzM12tLL1mM1JBJiCfM+r0=;
         h=Date:From:To:Subject:From;
-        b=mZVhBzkTzZt4dzc4b+fZXVJeL7O05FgoEOMsJuLWQMvXaFw26V2GJ5jlqxoEzXu54
-         jaHqxBgQMlJDAnYxnV79gvbOJmm12vIYhXqyCWtAZxDcuEvhy/gcfjjN0vkm0uv4Ra
-         qjP9ZkNBpCsBbus8XlY43qqJ4CNJdYWuGfXLW96M=
-Date:   Mon, 06 Dec 2021 17:42:11 -0800
+        b=r1tAwv0kjzr+glSNC/PAMqBjd+SmLgORN2mmG/9ThYJp6lmi/UBT9ldquKcS4cfBo
+         64vMeV9NgxqrlmllUiDiGVt8XyafBerZjpMJouTYneh6tovF7E/O+tlAH1+0xomiMJ
+         Pro3A37eWB7TcwgBk/AQm7Zxi4osm5nr0T0wbcr0=
+Date:   Mon, 06 Dec 2021 18:11:13 -0800
 From:   akpm@linux-foundation.org
-To:     baolin.wang@linux.alibaba.com, dan.j.williams@intel.com,
-        dave.hansen@linux.intel.com, david@redhat.com, gthelen@google.com,
-        kbusch@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, rientjes@google.com, shy828301@gmail.com,
-        weixugc@google.com, yang.shi@linux.alibaba.com,
-        ying.huang@intel.com, ziy@nvidia.com
-Subject:  +
- mm-migrate-move-node-demotion-code-to-near-its-user.patch added to -mm tree
-Message-ID: <20211207014211.nlykxgB9g%akpm@linux-foundation.org>
+To:     arnd@arndb.de, elver@google.com, keescook@chromium.org,
+        masahiroy@kernel.org, michal.lkml@markovi.net,
+        mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, peterz@infradead.org,
+        ryabinin.a.a@gmail.com, sfr@canb.auug.org.au
+Subject:  + ubsan-remove-config_ubsan_object_size.patch added to
+ -mm tree
+Message-ID: <20211207021113.bONE4-Nyo%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: move node demotion code to near its user
+     Subject: ubsan: remove CONFIG_UBSAN_OBJECT_SIZE
 has been added to the -mm tree.  Its filename is
-     mm-migrate-move-node-demotion-code-to-near-its-user.patch
+     ubsan-remove-config_ubsan_object_size.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-move-node-demotion-code-to-near-its-user.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ubsan-remove-config_ubsan_object_size.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-move-node-demotion-code-to-near-its-user.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ubsan-remove-config_ubsan_object_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,320 +64,123 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Huang Ying <ying.huang@intel.com>
-Subject: mm/migrate: move node demotion code to near its user
+From: Kees Cook <keescook@chromium.org>
+Subject: ubsan: remove CONFIG_UBSAN_OBJECT_SIZE
 
-Now, node_demotion and next_demotion_node() are placed between
-__unmap_and_move() and unmap_and_move().  This hurts code readability.  So
-move them near their users in the file.  There's no functionality change
-in this patch.
+The object-size sanitizer is redundant to -Warray-bounds, and
+inappropriately performs its checks at run-time when all information
+needed for the evaluation is available at compile-time, making it quite
+difficult to use:
 
-Link: https://lkml.kernel.org/r/20211206031227.3323097-1-ying.huang@intel.com
-Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Yang Shi <shy828301@gmail.com>
-Reviewed-by: Wei Xu <weixugc@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Keith Busch <kbusch@kernel.org>
-Cc: Yang Shi <yang.shi@linux.alibaba.com>
+https://bugzilla.kernel.org/show_bug.cgi?id=214861
+
+With -Warray-bounds almost enabled globally, it doesn't make sense to keep
+this around.
+
+Link: https://lkml.kernel.org/r/20211203235346.110809-1-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |  265 ++++++++++++++++++++++++-------------------------
- 1 file changed, 132 insertions(+), 133 deletions(-)
+ lib/Kconfig.ubsan      |   13 -------------
+ lib/test_ubsan.c       |   22 ----------------------
+ scripts/Makefile.ubsan |    1 -
+ 3 files changed, 36 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-move-node-demotion-code-to-near-its-user
-+++ a/mm/migrate.c
-@@ -1083,139 +1083,6 @@ out:
- 	return rc;
+--- a/lib/Kconfig.ubsan~ubsan-remove-config_ubsan_object_size
++++ a/lib/Kconfig.ubsan
+@@ -112,19 +112,6 @@ config UBSAN_UNREACHABLE
+ 	  This option enables -fsanitize=unreachable which checks for control
+ 	  flow reaching an expected-to-be-unreachable position.
+ 
+-config UBSAN_OBJECT_SIZE
+-	bool "Perform checking for accesses beyond the end of objects"
+-	default UBSAN
+-	# gcc hugely expands stack usage with -fsanitize=object-size
+-	# https://lore.kernel.org/lkml/CAHk-=wjPasyJrDuwDnpHJS2TuQfExwe=px-SzLeN8GFMAQJPmQ@mail.gmail.com/
+-	depends on !CC_IS_GCC
+-	depends on $(cc-option,-fsanitize=object-size)
+-	help
+-	  This option enables -fsanitize=object-size which checks for accesses
+-	  beyond the end of objects where the optimizer can determine both the
+-	  object being operated on and its size, usually seen with bad downcasts,
+-	  or access to struct members from NULL pointers.
+-
+ config UBSAN_BOOL
+ 	bool "Perform checking for non-boolean values used as boolean"
+ 	default UBSAN
+--- a/lib/test_ubsan.c~ubsan-remove-config_ubsan_object_size
++++ a/lib/test_ubsan.c
+@@ -79,15 +79,6 @@ static void test_ubsan_load_invalid_valu
+ 	eval2 = eval;
  }
  
--
--/*
-- * node_demotion[] example:
-- *
-- * Consider a system with two sockets.  Each socket has
-- * three classes of memory attached: fast, medium and slow.
-- * Each memory class is placed in its own NUMA node.  The
-- * CPUs are placed in the node with the "fast" memory.  The
-- * 6 NUMA nodes (0-5) might be split among the sockets like
-- * this:
-- *
-- *	Socket A: 0, 1, 2
-- *	Socket B: 3, 4, 5
-- *
-- * When Node 0 fills up, its memory should be migrated to
-- * Node 1.  When Node 1 fills up, it should be migrated to
-- * Node 2.  The migration path start on the nodes with the
-- * processors (since allocations default to this node) and
-- * fast memory, progress through medium and end with the
-- * slow memory:
-- *
-- *	0 -> 1 -> 2 -> stop
-- *	3 -> 4 -> 5 -> stop
-- *
-- * This is represented in the node_demotion[] like this:
-- *
-- *	{  nr=1, nodes[0]=1 }, // Node 0 migrates to 1
-- *	{  nr=1, nodes[0]=2 }, // Node 1 migrates to 2
-- *	{  nr=0, nodes[0]=-1 }, // Node 2 does not migrate
-- *	{  nr=1, nodes[0]=4 }, // Node 3 migrates to 4
-- *	{  nr=1, nodes[0]=5 }, // Node 4 migrates to 5
-- *	{  nr=0, nodes[0]=-1 }, // Node 5 does not migrate
-- *
-- * Moreover some systems may have multiple slow memory nodes.
-- * Suppose a system has one socket with 3 memory nodes, node 0
-- * is fast memory type, and node 1/2 both are slow memory
-- * type, and the distance between fast memory node and slow
-- * memory node is same. So the migration path should be:
-- *
-- *	0 -> 1/2 -> stop
-- *
-- * This is represented in the node_demotion[] like this:
-- *	{ nr=2, {nodes[0]=1, nodes[1]=2} }, // Node 0 migrates to node 1 and node 2
-- *	{ nr=0, nodes[0]=-1, }, // Node 1 dose not migrate
-- *	{ nr=0, nodes[0]=-1, }, // Node 2 does not migrate
-- */
--
--/*
-- * Writes to this array occur without locking.  Cycles are
-- * not allowed: Node X demotes to Y which demotes to X...
-- *
-- * If multiple reads are performed, a single rcu_read_lock()
-- * must be held over all reads to ensure that no cycles are
-- * observed.
-- */
--#define DEFAULT_DEMOTION_TARGET_NODES 15
--
--#if MAX_NUMNODES < DEFAULT_DEMOTION_TARGET_NODES
--#define DEMOTION_TARGET_NODES	(MAX_NUMNODES - 1)
--#else
--#define DEMOTION_TARGET_NODES	DEFAULT_DEMOTION_TARGET_NODES
--#endif
--
--struct demotion_nodes {
--	unsigned short nr;
--	short nodes[DEMOTION_TARGET_NODES];
--};
--
--static struct demotion_nodes *node_demotion __read_mostly;
--
--/**
-- * next_demotion_node() - Get the next node in the demotion path
-- * @node: The starting node to lookup the next node
-- *
-- * Return: node id for next memory node in the demotion path hierarchy
-- * from @node; NUMA_NO_NODE if @node is terminal.  This does not keep
-- * @node online or guarantee that it *continues* to be the next demotion
-- * target.
-- */
--int next_demotion_node(int node)
+-static void test_ubsan_null_ptr_deref(void)
 -{
--	struct demotion_nodes *nd;
--	unsigned short target_nr, index;
--	int target;
+-	volatile int *ptr = NULL;
+-	int val;
 -
--	if (!node_demotion)
--		return NUMA_NO_NODE;
--
--	nd = &node_demotion[node];
--
--	/*
--	 * node_demotion[] is updated without excluding this
--	 * function from running.  RCU doesn't provide any
--	 * compiler barriers, so the READ_ONCE() is required
--	 * to avoid compiler reordering or read merging.
--	 *
--	 * Make sure to use RCU over entire code blocks if
--	 * node_demotion[] reads need to be consistent.
--	 */
--	rcu_read_lock();
--	target_nr = READ_ONCE(nd->nr);
--
--	switch (target_nr) {
--	case 0:
--		target = NUMA_NO_NODE;
--		goto out;
--	case 1:
--		index = 0;
--		break;
--	default:
--		/*
--		 * If there are multiple target nodes, just select one
--		 * target node randomly.
--		 *
--		 * In addition, we can also use round-robin to select
--		 * target node, but we should introduce another variable
--		 * for node_demotion[] to record last selected target node,
--		 * that may cause cache ping-pong due to the changing of
--		 * last target node. Or introducing per-cpu data to avoid
--		 * caching issue, which seems more complicated. So selecting
--		 * target node randomly seems better until now.
--		 */
--		index = get_random_int() % target_nr;
--		break;
--	}
--
--	target = READ_ONCE(nd->nodes[index]);
--
--out:
--	rcu_read_unlock();
--	return target;
+-	UBSAN_TEST(CONFIG_UBSAN_OBJECT_SIZE);
+-	val = *ptr;
 -}
 -
- /*
-  * Obtain the lock on page, remove all ptes and migrate the page
-  * to the newly allocated page in newpage.
-@@ -3035,6 +2902,138 @@ void migrate_vma_finalize(struct migrate
- EXPORT_SYMBOL(migrate_vma_finalize);
- #endif /* CONFIG_DEVICE_PRIVATE */
+ static void test_ubsan_misaligned_access(void)
+ {
+ 	volatile char arr[5] __aligned(4) = {1, 2, 3, 4, 5};
+@@ -98,29 +89,16 @@ static void test_ubsan_misaligned_access
+ 	*ptr = val;
+ }
  
-+/*
-+ * node_demotion[] example:
-+ *
-+ * Consider a system with two sockets.  Each socket has
-+ * three classes of memory attached: fast, medium and slow.
-+ * Each memory class is placed in its own NUMA node.  The
-+ * CPUs are placed in the node with the "fast" memory.  The
-+ * 6 NUMA nodes (0-5) might be split among the sockets like
-+ * this:
-+ *
-+ *	Socket A: 0, 1, 2
-+ *	Socket B: 3, 4, 5
-+ *
-+ * When Node 0 fills up, its memory should be migrated to
-+ * Node 1.  When Node 1 fills up, it should be migrated to
-+ * Node 2.  The migration path start on the nodes with the
-+ * processors (since allocations default to this node) and
-+ * fast memory, progress through medium and end with the
-+ * slow memory:
-+ *
-+ *	0 -> 1 -> 2 -> stop
-+ *	3 -> 4 -> 5 -> stop
-+ *
-+ * This is represented in the node_demotion[] like this:
-+ *
-+ *	{  nr=1, nodes[0]=1 }, // Node 0 migrates to 1
-+ *	{  nr=1, nodes[0]=2 }, // Node 1 migrates to 2
-+ *	{  nr=0, nodes[0]=-1 }, // Node 2 does not migrate
-+ *	{  nr=1, nodes[0]=4 }, // Node 3 migrates to 4
-+ *	{  nr=1, nodes[0]=5 }, // Node 4 migrates to 5
-+ *	{  nr=0, nodes[0]=-1 }, // Node 5 does not migrate
-+ *
-+ * Moreover some systems may have multiple slow memory nodes.
-+ * Suppose a system has one socket with 3 memory nodes, node 0
-+ * is fast memory type, and node 1/2 both are slow memory
-+ * type, and the distance between fast memory node and slow
-+ * memory node is same. So the migration path should be:
-+ *
-+ *	0 -> 1/2 -> stop
-+ *
-+ * This is represented in the node_demotion[] like this:
-+ *	{ nr=2, {nodes[0]=1, nodes[1]=2} }, // Node 0 migrates to node 1 and node 2
-+ *	{ nr=0, nodes[0]=-1, }, // Node 1 dose not migrate
-+ *	{ nr=0, nodes[0]=-1, }, // Node 2 does not migrate
-+ */
-+
-+/*
-+ * Writes to this array occur without locking.  Cycles are
-+ * not allowed: Node X demotes to Y which demotes to X...
-+ *
-+ * If multiple reads are performed, a single rcu_read_lock()
-+ * must be held over all reads to ensure that no cycles are
-+ * observed.
-+ */
-+#define DEFAULT_DEMOTION_TARGET_NODES 15
-+
-+#if MAX_NUMNODES < DEFAULT_DEMOTION_TARGET_NODES
-+#define DEMOTION_TARGET_NODES	(MAX_NUMNODES - 1)
-+#else
-+#define DEMOTION_TARGET_NODES	DEFAULT_DEMOTION_TARGET_NODES
-+#endif
-+
-+struct demotion_nodes {
-+	unsigned short nr;
-+	short nodes[DEMOTION_TARGET_NODES];
-+};
-+
-+static struct demotion_nodes *node_demotion __read_mostly;
-+
-+/**
-+ * next_demotion_node() - Get the next node in the demotion path
-+ * @node: The starting node to lookup the next node
-+ *
-+ * Return: node id for next memory node in the demotion path hierarchy
-+ * from @node; NUMA_NO_NODE if @node is terminal.  This does not keep
-+ * @node online or guarantee that it *continues* to be the next demotion
-+ * target.
-+ */
-+int next_demotion_node(int node)
-+{
-+	struct demotion_nodes *nd;
-+	unsigned short target_nr, index;
-+	int target;
-+
-+	if (!node_demotion)
-+		return NUMA_NO_NODE;
-+
-+	nd = &node_demotion[node];
-+
-+	/*
-+	 * node_demotion[] is updated without excluding this
-+	 * function from running.  RCU doesn't provide any
-+	 * compiler barriers, so the READ_ONCE() is required
-+	 * to avoid compiler reordering or read merging.
-+	 *
-+	 * Make sure to use RCU over entire code blocks if
-+	 * node_demotion[] reads need to be consistent.
-+	 */
-+	rcu_read_lock();
-+	target_nr = READ_ONCE(nd->nr);
-+
-+	switch (target_nr) {
-+	case 0:
-+		target = NUMA_NO_NODE;
-+		goto out;
-+	case 1:
-+		index = 0;
-+		break;
-+	default:
-+		/*
-+		 * If there are multiple target nodes, just select one
-+		 * target node randomly.
-+		 *
-+		 * In addition, we can also use round-robin to select
-+		 * target node, but we should introduce another variable
-+		 * for node_demotion[] to record last selected target node,
-+		 * that may cause cache ping-pong due to the changing of
-+		 * last target node. Or introducing per-cpu data to avoid
-+		 * caching issue, which seems more complicated. So selecting
-+		 * target node randomly seems better until now.
-+		 */
-+		index = get_random_int() % target_nr;
-+		break;
-+	}
-+
-+	target = READ_ONCE(nd->nodes[index]);
-+
-+out:
-+	rcu_read_unlock();
-+	return target;
-+}
-+
- #if defined(CONFIG_HOTPLUG_CPU)
- /* Disable reclaim-based migration. */
- static void __disable_all_migrate_targets(void)
+-static void test_ubsan_object_size_mismatch(void)
+-{
+-	/* "((aligned(8)))" helps this not into be misaligned for ptr-access. */
+-	volatile int val __aligned(8) = 4;
+-	volatile long long *ptr, val2;
+-
+-	UBSAN_TEST(CONFIG_UBSAN_OBJECT_SIZE);
+-	ptr = (long long *)&val;
+-	val2 = *ptr;
+-}
+-
+ static const test_ubsan_fp test_ubsan_array[] = {
+ 	test_ubsan_shift_out_of_bounds,
+ 	test_ubsan_out_of_bounds,
+ 	test_ubsan_load_invalid_value,
+ 	test_ubsan_misaligned_access,
+-	test_ubsan_object_size_mismatch,
+ };
+ 
+ /* Excluded because they Oops the module. */
+ static const test_ubsan_fp skip_ubsan_array[] = {
+ 	test_ubsan_divrem_overflow,
+-	test_ubsan_null_ptr_deref,
+ };
+ 
+ static int __init test_ubsan_init(void)
+--- a/scripts/Makefile.ubsan~ubsan-remove-config_ubsan_object_size
++++ a/scripts/Makefile.ubsan
+@@ -8,7 +8,6 @@ ubsan-cflags-$(CONFIG_UBSAN_LOCAL_BOUNDS
+ ubsan-cflags-$(CONFIG_UBSAN_SHIFT)		+= -fsanitize=shift
+ ubsan-cflags-$(CONFIG_UBSAN_DIV_ZERO)		+= -fsanitize=integer-divide-by-zero
+ ubsan-cflags-$(CONFIG_UBSAN_UNREACHABLE)	+= -fsanitize=unreachable
+-ubsan-cflags-$(CONFIG_UBSAN_OBJECT_SIZE)	+= -fsanitize=object-size
+ ubsan-cflags-$(CONFIG_UBSAN_BOOL)		+= -fsanitize=bool
+ ubsan-cflags-$(CONFIG_UBSAN_ENUM)		+= -fsanitize=enum
+ ubsan-cflags-$(CONFIG_UBSAN_TRAP)		+= -fsanitize-undefined-trap-on-error
 _
 
-Patches currently in -mm which might be from ying.huang@intel.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-mm-migrate-move-node-demotion-code-to-near-its-user.patch
-mm-rmap-fix-potential-batched-tlb-flush-race.patch
+hugetlb-add-hugetlbnuma_stat-file-fix-2.patch
+hfsplus-use-struct_group_attr-for-memcpy-region.patch
+ubsan-remove-config_ubsan_object_size.patch
 
