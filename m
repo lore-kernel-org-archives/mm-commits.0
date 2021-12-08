@@ -2,42 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CA61BC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Dec 2021 00:05:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 30B8EC433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Dec 2021 00:08:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242724AbhLHAJG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Dec 2021 19:09:06 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:58456 "EHLO
+        id S238441AbhLHAMX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Dec 2021 19:12:23 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:59880 "EHLO
         ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242720AbhLHAJF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2021 19:09:05 -0500
+        with ESMTP id S233913AbhLHAMX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2021 19:12:23 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A4491B81751
-        for <mm-commits@vger.kernel.org>; Wed,  8 Dec 2021 00:05:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4B97C341C3;
-        Wed,  8 Dec 2021 00:05:31 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5AD11B81EB2
+        for <mm-commits@vger.kernel.org>; Wed,  8 Dec 2021 00:08:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7247C341C3;
+        Wed,  8 Dec 2021 00:08:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638921932;
-        bh=7nB7MpdSGncwE6Jn0WtfYBpqMC5I6jPMWy3gZb2utN0=;
+        s=korg; t=1638922130;
+        bh=urux0RUQ7BsZ2DwFboe//oiqB289wVa37eM6XVI5j0Q=;
         h=Date:From:To:Subject:From;
-        b=Tr0QBlXPzwCxeV68lxjq/XfKu8/S4yrO/ojlO9XFIBsfFXh1286uryyVepL8TCMPJ
-         2Ys5KvX8O9Xs74D/L+PNHUjOEEREQL+ia72EpJO6/v51MjevWOPMbi8P+6mwRdku2u
-         m5mOej3aCyD/I+pDJ/U715ssJxQyIDkiLwy9Bv9I=
-Date:   Tue, 07 Dec 2021 16:05:31 -0800
+        b=F+D0k/+Q9/7Pi6p9/zsHFXHlspD50AZX0PDAfBJIXpH6FsEU4yQONITrUI3oikq+e
+         cvIrVwybyFgClo/opQzX5MdLOo4LjQBMLtLjkUUnYTv2CG3cQlUvk3AEBVEx4oi+Lv
+         aiiFyvplugpF/55R5V8awOiJ5JZgEW6PzZcGAoJA=
+Date:   Tue, 07 Dec 2021 16:08:49 -0800
 From:   akpm@linux-foundation.org
-To:     aneesh.kumar@linux.ibm.com, corbet@lwn.net,
-        dave.hansen@linux.intel.com, frederic@kernel.org,
-        gthelen@google.com, hpa@zytor.com, jirislaby@kernel.org,
-        keescook@chromium.org, masahiroy@kernel.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
-        peterz@infradead.org, pjt@google.com, rientjes@google.com,
-        rppt@kernel.org, samitolvanen@google.com, songmuchun@bytedance.com,
-        tglx@linutronix.de, weixugc@google.com, will@kernel.org
-Subject:  + x86-mm-add-x86_64-support-for-page-table-check.patch
- added to -mm tree
-Message-ID: <20211208000531.xs32yOUS7%akpm@linux-foundation.org>
+To:     djwong@kernel.org, efault@gmx.de, hakavlad@inbox.lv, lkp@intel.com,
+        mgorman@techsingularity.net, mhocko@suse.com,
+        mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com,
+        vbabka@suse.cz
+Subject:  +
+ mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch added
+ to -mm tree
+Message-ID: <20211208000849.GpbFrz4yP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: mm: add x86_64 support for page table check
+     Subject: mm: vmscan: reduce throttling due to a failure to make progress
 has been added to the -mm tree.  Its filename is
-     x86-mm-add-x86_64-support-for-page-table-check.patch
+     mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/x86-mm-add-x86_64-support-for-page-table-check.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-add-x86_64-support-for-page-table-check.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,152 +64,217 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: x86: mm: add x86_64 support for page table check
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm: vmscan: reduce throttling due to a failure to make progress
 
-Add page table check hooks into routines that modify user page tables.
+Mike Galbraith, Alexey Avramov and Darrick Wong all reported similar
+problems due to reclaim throttling for excessive lengths of time.  In
+Alexey's case, a memory hog that should go OOM quickly stalls for several
+minutes before stalling.  In Mike and Darrick's cases, a small memcg
+environment stalled excessively even though the system had enough memory
+overall.
 
-Link: https://lkml.kernel.org/r/20211204182314.1470076-5-pasha.tatashin@soleen.com
-Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Frederic Weisbecker <frederic@kernel.org>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jiri Slaby <jirislaby@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Paul Turner <pjt@google.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Sami Tolvanen <samitolvanen@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Wei Xu <weixugc@google.com>
-Cc: Will Deacon <will@kernel.org>
+Commit 69392a403f49 ("mm/vmscan: throttle reclaim when no progress is bei=
+ng made") introduced the problem although commit a19594ca4a8b ("mm/vmscan:
+increase the timeout if page reclaim is not making progress") made it
+worse.  Systems at or near an OOM state that cannot be recovered must
+reach OOM quickly and memcg should kill tasks if a memcg is near OOM.
+
+To address this, only stall for the first zone in the zonelist, reduce the
+timeout to 1 tick for VMSCAN_THROTTLE_NOPROGRESS and only stall if the
+scan control nr_reclaimed is 0, kswapd is still active and there were
+excessive pages pending for writeback.  If kswapd has stopped reclaiming
+d= ue to excessive failures, do not stall at all so that OOM triggers
+relativel= y quickly.  Similarly, if an LRU is simply congested, only
+lightly throttle similar to NOPROGRESS.
+
+Alexey's original case was the most straight forward
+
+	for i in {1..3}; do tail /dev/zero; done
+
+On vanilla 5.16-rc1, this test stalled heavily, after the patch the test
+completes in a few seconds similar to 5.15.
+
+Alexey's second test case added watching a youtube video while tail runs
+10 times.  On 5.15, playback only jitters slightly, 5.16-rc1 stalls a lot
+with lots of frames missing and numerous audio glitches.  With this patch
+applies, the video plays similarly to 5.15.
+
+Link: https://lore.kernel.org/r/99e779783d6c7fce96448a3402061b9dc1b3b602.camel@gmx.de
+Link: https://lore.kernel.org/r/20211124011954.7cab9bb4@mail.inbox.lv
+Link: https://lore.kernel.org/r/20211022144651.19914-1-mgorman@techsingularity.net
+
+[lkp@intel.com: Fix W=1 build warning]
+Fixes: 69392a403f49 ("mm/vmscan: throttle reclaim when no progress is being made")
+Link: https://lkml.kernel.org/r/20211202150614.22440-1-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-and-tested-by: Alexey Avramov <hakavlad@inbox.lv>
+Reported-and-tested-by: Mike Galbraith <efault@gmx.de>
+Reported-and-tested-by: Darrick J. Wong <djwong@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig               |    1 +
- arch/x86/include/asm/pgtable.h |   29 +++++++++++++++++++++++++++--
- 2 files changed, 28 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h        |    1 
+ include/trace/events/vmscan.h |    4 +-
+ mm/vmscan.c                   |   64 +++++++++++++++++++++++++++-----
+ 3 files changed, 59 insertions(+), 10 deletions(-)
 
---- a/arch/x86/include/asm/pgtable.h~x86-mm-add-x86_64-support-for-page-table-check
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -26,6 +26,7 @@
- #include <asm/pkru.h>
- #include <asm/fpu/api.h>
- #include <asm-generic/pgtable_uffd.h>
-+#include <linux/page_table_check.h>
+--- a/include/linux/mmzone.h~mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress
++++ a/include/linux/mmzone.h
+@@ -277,6 +277,7 @@ enum vmscan_throttle_state {
+ 	VMSCAN_THROTTLE_WRITEBACK,
+ 	VMSCAN_THROTTLE_ISOLATED,
+ 	VMSCAN_THROTTLE_NOPROGRESS,
++	VMSCAN_THROTTLE_CONGESTED,
+ 	NR_VMSCAN_THROTTLE,
+ };
  
- extern pgd_t early_top_pgt[PTRS_PER_PGD];
- bool __init __early_make_pgtable(unsigned long address, pmdval_t pmd);
-@@ -1006,18 +1007,21 @@ static inline pud_t native_local_pudp_ge
- static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep, pte_t pte)
- {
-+	page_table_check_pte_set(mm, addr, ptep, pte);
- 	set_pte(ptep, pte);
+--- a/include/trace/events/vmscan.h~mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress
++++ a/include/trace/events/vmscan.h
+@@ -30,12 +30,14 @@
+ #define _VMSCAN_THROTTLE_WRITEBACK	(1 << VMSCAN_THROTTLE_WRITEBACK)
+ #define _VMSCAN_THROTTLE_ISOLATED	(1 << VMSCAN_THROTTLE_ISOLATED)
+ #define _VMSCAN_THROTTLE_NOPROGRESS	(1 << VMSCAN_THROTTLE_NOPROGRESS)
++#define _VMSCAN_THROTTLE_CONGESTED	(1 << VMSCAN_THROTTLE_CONGESTED)
+ 
+ #define show_throttle_flags(flags)						\
+ 	(flags) ? __print_flags(flags, "|",					\
+ 		{_VMSCAN_THROTTLE_WRITEBACK,	"VMSCAN_THROTTLE_WRITEBACK"},	\
+ 		{_VMSCAN_THROTTLE_ISOLATED,	"VMSCAN_THROTTLE_ISOLATED"},	\
+-		{_VMSCAN_THROTTLE_NOPROGRESS,	"VMSCAN_THROTTLE_NOPROGRESS"}	\
++		{_VMSCAN_THROTTLE_NOPROGRESS,	"VMSCAN_THROTTLE_NOPROGRESS"},	\
++		{_VMSCAN_THROTTLE_CONGESTED,	"VMSCAN_THROTTLE_CONGESTED"}	\
+ 		) : "VMSCAN_THROTTLE_NONE"
+ 
+ 
+--- a/mm/vmscan.c~mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress
++++ a/mm/vmscan.c
+@@ -1021,6 +1021,39 @@ static void handle_write_error(struct ad
+ 	unlock_page(page);
  }
  
- static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 			      pmd_t *pmdp, pmd_t pmd)
- {
-+	page_table_check_pmd_set(mm, addr, pmdp, pmd);
- 	set_pmd(pmdp, pmd);
- }
- 
- static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
- 			      pud_t *pudp, pud_t pud)
- {
-+	page_table_check_pud_set(mm, addr, pudp, pud);
- 	native_set_pud(pudp, pud);
- }
- 
-@@ -1048,6 +1052,7 @@ static inline pte_t ptep_get_and_clear(s
- 				       pte_t *ptep)
- {
- 	pte_t pte = native_ptep_get_and_clear(ptep);
-+	page_table_check_pte_clear(mm, addr, pte);
- 	return pte;
- }
- 
-@@ -1063,12 +1068,23 @@ static inline pte_t ptep_get_and_clear_f
- 		 * care about updates and native needs no locking
- 		 */
- 		pte = native_local_ptep_get_and_clear(ptep);
-+		page_table_check_pte_clear(mm, addr, pte);
- 	} else {
- 		pte = ptep_get_and_clear(mm, addr, ptep);
- 	}
- 	return pte;
- }
- 
-+#define __HAVE_ARCH_PTEP_CLEAR
-+static inline void ptep_clear(struct mm_struct *mm, unsigned long addr,
-+			      pte_t *ptep)
++static bool skip_throttle_noprogress(pg_data_t *pgdat)
 +{
-+	if (IS_ENABLED(CONFIG_PAGE_TABLE_CHECK))
-+		ptep_get_and_clear(mm, addr, ptep);
-+	else
-+		pte_clear(mm, addr, ptep);
++	int reclaimable = 0, write_pending = 0;
++	int i;
++
++	/*
++	 * If kswapd is disabled, reschedule if necessary but do not
++	 * throttle as the system is likely near OOM.
++	 */
++	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
++		return true;
++
++	/*
++	 * If there are a lot of dirty/writeback pages then do not
++	 * throttle as throttling will occur when the pages cycle
++	 * towards the end of the LRU if still under writeback.
++	 */
++	for (i = 0; i < MAX_NR_ZONES; i++) {
++		struct zone *zone = pgdat->node_zones + i;
++
++		if (!populated_zone(zone))
++			continue;
++
++		reclaimable += zone_reclaimable_pages(zone);
++		write_pending += zone_page_state_snapshot(zone,
++						  NR_ZONE_WRITE_PENDING);
++	}
++	if (2 * write_pending <= reclaimable)
++		return true;
++
++	return false;
 +}
 +
- #define __HAVE_ARCH_PTEP_SET_WRPROTECT
- static inline void ptep_set_wrprotect(struct mm_struct *mm,
- 				      unsigned long addr, pte_t *ptep)
-@@ -1109,14 +1125,22 @@ static inline int pmd_write(pmd_t pmd)
- static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm, unsigned long addr,
- 				       pmd_t *pmdp)
+ void reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason)
  {
--	return native_pmdp_get_and_clear(pmdp);
-+	pmd_t pmd = native_pmdp_get_and_clear(pmdp);
+ 	wait_queue_head_t *wqh = &pgdat->reclaim_wait[reason];
+@@ -1056,8 +1089,16 @@ void reclaim_throttle(pg_data_t *pgdat,
+ 		}
+ 
+ 		break;
++	case VMSCAN_THROTTLE_CONGESTED:
++		fallthrough;
+ 	case VMSCAN_THROTTLE_NOPROGRESS:
+-		timeout = HZ/2;
++		if (skip_throttle_noprogress(pgdat)) {
++			cond_resched();
++			return;
++		}
 +
-+	page_table_check_pmd_clear(mm, addr, pmd);
++		timeout = 1;
 +
-+	return pmd;
+ 		break;
+ 	case VMSCAN_THROTTLE_ISOLATED:
+ 		timeout = HZ/50;
+@@ -3321,7 +3362,7 @@ again:
+ 	if (!current_is_kswapd() && current_may_throttle() &&
+ 	    !sc->hibernation_mode &&
+ 	    test_bit(LRUVEC_CONGESTED, &target_lruvec->flags))
+-		reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
++		reclaim_throttle(pgdat, VMSCAN_THROTTLE_CONGESTED);
+ 
+ 	if (should_continue_reclaim(pgdat, sc->nr_reclaimed - nr_reclaimed,
+ 				    sc))
+@@ -3386,16 +3427,16 @@ static void consider_reclaim_throttle(pg
+ 	}
+ 
+ 	/*
+-	 * Do not throttle kswapd on NOPROGRESS as it will throttle on
+-	 * VMSCAN_THROTTLE_WRITEBACK if there are too many pages under
+-	 * writeback and marked for immediate reclaim at the tail of
+-	 * the LRU.
++	 * Do not throttle kswapd or cgroup reclaim on NOPROGRESS as it will
++	 * throttle on VMSCAN_THROTTLE_WRITEBACK if there are too many pages
++	 * under writeback and marked for immediate reclaim at the tail of the
++	 * LRU.
+ 	 */
+-	if (current_is_kswapd())
++	if (current_is_kswapd() || cgroup_reclaim(sc))
+ 		return;
+ 
+ 	/* Throttle if making no progress at high prioities. */
+-	if (sc->priority < DEF_PRIORITY - 2)
++	if (sc->priority == 1 && !sc->nr_reclaimed)
+ 		reclaim_throttle(pgdat, VMSCAN_THROTTLE_NOPROGRESS);
  }
  
- #define __HAVE_ARCH_PUDP_HUGE_GET_AND_CLEAR
- static inline pud_t pudp_huge_get_and_clear(struct mm_struct *mm,
- 					unsigned long addr, pud_t *pudp)
- {
--	return native_pudp_get_and_clear(pudp);
-+	pud_t pud = native_pudp_get_and_clear(pudp);
-+
-+	page_table_check_pud_clear(mm, addr, pud);
-+
-+	return pud;
- }
+@@ -3415,6 +3456,7 @@ static void shrink_zones(struct zonelist
+ 	unsigned long nr_soft_scanned;
+ 	gfp_t orig_mask;
+ 	pg_data_t *last_pgdat = NULL;
++	pg_data_t *first_pgdat = NULL;
  
- #define __HAVE_ARCH_PMDP_SET_WRPROTECT
-@@ -1137,6 +1161,7 @@ static inline int pud_write(pud_t pud)
- static inline pmd_t pmdp_establish(struct vm_area_struct *vma,
- 		unsigned long address, pmd_t *pmdp, pmd_t pmd)
- {
-+	page_table_check_pmd_set(vma->vm_mm, address, pmdp, pmd);
- 	if (IS_ENABLED(CONFIG_SMP)) {
- 		return xchg(pmdp, pmd);
- 	} else {
---- a/arch/x86/Kconfig~x86-mm-add-x86_64-support-for-page-table-check
-+++ a/arch/x86/Kconfig
-@@ -104,6 +104,7 @@ config X86
- 	select ARCH_SUPPORTS_ACPI
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
-+	select ARCH_SUPPORTS_PAGE_TABLE_CHECK	if X86_64
- 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
- 	select ARCH_SUPPORTS_KMAP_LOCAL_FORCE_MAP	if NR_CPUS <= 4096
- 	select ARCH_SUPPORTS_LTO_CLANG
+ 	/*
+ 	 * If the number of buffer_heads in the machine exceeds the maximum
+@@ -3478,14 +3520,18 @@ static void shrink_zones(struct zonelist
+ 			/* need some check for avoid more shrink_zone() */
+ 		}
+ 
++		if (!first_pgdat)
++			first_pgdat = zone->zone_pgdat;
++
+ 		/* See comment about same check for global reclaim above */
+ 		if (zone->zone_pgdat == last_pgdat)
+ 			continue;
+ 		last_pgdat = zone->zone_pgdat;
+ 		shrink_node(zone->zone_pgdat, sc);
+-		consider_reclaim_throttle(zone->zone_pgdat, sc);
+ 	}
+ 
++	consider_reclaim_throttle(first_pgdat, sc);
++
+ 	/*
+ 	 * Restore to original mask to avoid the impact on the caller if we
+ 	 * promoted it to __GFP_HIGHMEM.
 _
 
-Patches currently in -mm which might be from pasha.tatashin@soleen.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-change-page-type-prior-to-adding-page-table-entry.patch
-mm-ptep_clear-page-table-helper.patch
-mm-page-table-check.patch
-x86-mm-add-x86_64-support-for-page-table-check.patch
+mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
 
