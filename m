@@ -2,88 +2,171 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE7F3C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Dec 2021 05:46:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BAB70C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Dec 2021 23:17:32 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230423AbhLHFuV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 8 Dec 2021 00:50:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34006 "EHLO
+        id S237945AbhLHXVE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 8 Dec 2021 18:21:04 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51280 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230312AbhLHFuU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2021 00:50:20 -0500
-Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [IPv6:2404:9400:2:0:216:3eff:fee2:21ea])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76A44C061574
-        for <mm-commits@vger.kernel.org>; Tue,  7 Dec 2021 21:46:49 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        with ESMTP id S235101AbhLHXVD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 8 Dec 2021 18:21:03 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 58F52C061746
+        for <mm-commits@vger.kernel.org>; Wed,  8 Dec 2021 15:17:31 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4J85lC59qJz4xZ1;
-        Wed,  8 Dec 2021 16:46:47 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-        s=201702; t=1638942408;
-        bh=XYU1iV0dPaMB+v6PmxaH+/DVhnTWICDIIroVEnWEfX4=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=shIS53TN6w86a4Wer+dtcJvGPRt8jy5aYaLOUfUZe2Q/O+yl5jgglGdNPhFBvxXZk
-         6Qjoan0BSN+ifkZ8LRAIV4yXfkoP2Ou0OIrRVQ0xxtGhD/hVyaWM9NisE1FrGy81BC
-         ewNf86g//8BplKEp2HwcmK2xmDFwxNY8E1HA5BxitFGB9kQz/e3m09TTjb0omM6T04
-         /Vsz8yC1ftBDwUOxkcta9eGy8F9htAwjqrm4UUGc5bQlCn0FN8WPnGv0Om6AIvnrXv
-         lK7p1M6809wd+sqbH93AsKx1zkcaVEjXsvH7tqBc6Vug7rdrOj3xvRwcEPqCRlfnx2
-         49bSKmYkOGdaA==
-Date:   Wed, 8 Dec 2021 16:46:45 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     akpm@linux-foundation.org
-Cc:     arnd@arndb.de, ccross@google.com, ebiederm@xmission.com,
-        keescook@chromium.org, mm-commits@vger.kernel.org,
-        peterx@redhat.com, peterz@infradead.org, surenb@google.com,
-        vbabka@suse.cz, viro@zeniv.linux.org.uk, willy@infradead.org,
-        yuzhao@google.com
-Subject: Re: + mm-move-tlb_flush_pending-inline-helpers-to-mm_inlineh.patch
- added to -mm tree
-Message-ID: <20211208164645.51b7804e@canb.auug.org.au>
-In-Reply-To: <20211208001138.pZrzcRX8_%akpm@linux-foundation.org>
-References: <20211208001138.pZrzcRX8_%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/EILS_j/EZWvReOVBlfNhQax";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1DD05B82325
+        for <mm-commits@vger.kernel.org>; Wed,  8 Dec 2021 23:17:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24DC5C00446;
+        Wed,  8 Dec 2021 23:17:28 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1639005448;
+        bh=wBm4J5gn3whYuTe8p6AG++noqgbBXyoFNtJ2f5heDmU=;
+        h=Date:From:To:Subject:From;
+        b=wS+uli7TuKqcm2ZiaFVLkD4WnFtAy6p5mojA2gIbyKMR8OxFHd/TSyut4onp4mqtB
+         bQFZSNDF04oApza3KyIMU3J+EWHX2nN0OAcCX7FHam499Xlar+TkAwSBYTGzi40QfH
+         M5EwIIHaOjhi8buQRsrZjotJat8Ypjxgbf5POOBQ=
+Date:   Wed, 08 Dec 2021 15:17:27 -0800
+From:   akpm@linux-foundation.org
+To:     aarcange@redhat.com, christian.brauner@ubuntu.com,
+        christian@brauner.io, david@redhat.com, fweimer@redhat.com,
+        guro@fb.com, hannes@cmpxchg.org, hch@infradead.org,
+        jannh@google.com, jengelh@inai.de, kirill@shutemov.name,
+        luto@kernel.org, mchehab@kernel.org, mhocko@suse.com,
+        minchan@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com,
+        riel@surriel.com, rientjes@google.com, shakeelb@google.com,
+        surenb@google.com, timmurray@google.com, willy@infradead.org
+Subject:  +
+ mm-document-locking-restrictions-for-vm_operations_struct-close.patch added
+ to -mm tree
+Message-ID: <20211208231727.dS-vwANhw%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/EILS_j/EZWvReOVBlfNhQax
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+The patch titled
+     Subject: mm: document locking restrictions for vm_operations_struct::close
+has been added to the -mm tree.  Its filename is
+     mm-document-locking-restrictions-for-vm_operations_struct-close.patch
 
-On Tue, 07 Dec 2021 16:11:38 -0800 akpm@linux-foundation.org wrote:
->
-> The patch titled
->      Subject: mm: move tlb_flush_pending inline helpers to mm_inline.h
-> has been added to the -mm tree.  Its filename is
->      mm-move-tlb_flush_pending-inline-helpers-to-mm_inlineh.patch
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-document-locking-restrictions-for-vm_operations_struct-close.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-document-locking-restrictions-for-vm_operations_struct-close.patch
 
-Added to linux-next today.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---=20
-Cheers,
-Stephen Rothwell
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
---Sig_/EILS_j/EZWvReOVBlfNhQax
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
------BEGIN PGP SIGNATURE-----
+------------------------------------------------------
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: document locking restrictions for vm_operations_struct::close
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmGwRsUACgkQAVBC80lX
-0Gwewgf/UnrPgeoh2ivRhIForzBclU5TkYY+3eKlfb3/TAQO9JNcZHfjHEf7de/C
-TkfcYs0rc7EdYSqX6sGEGlvgRalUIaial1D6iW+AKc4iLY8mNsitdEVQP6NKrrNC
-mpcONY+MSDkUTiuqxS8koRNN95SXbTFdytIKC5K/JcCSYAaO5OmtSJplil8a0/Ze
-YZYm7t/h/gpYkbdxzXvWA1ZfaSj/otWlRj0StW589v/g6DqoQY1F1SPgp1ZkKyyy
-gClVwixeJagnViQgj3nTPnEMl1rSreAzXl0ky9IZpr24OCDsV5VldA48k79e9XuE
-4eAhXPHacGbEM5reUFXZrHGC1LyZFQ==
-=xZ2s
------END PGP SIGNATURE-----
+Patch series "mm: protect free_pgtables with mmap_lock write lock in exit_mmap", v4.
 
---Sig_/EILS_j/EZWvReOVBlfNhQax--
+oom-reaper and process_mrelease system call should protect against races
+with exit_mmap which can destroy page tables while they walk the VMA tree.
+oom-reaper protects from that race by setting MMF_OOM_VICTIM and by
+relying on exit_mmap to set MMF_OOM_SKIP before taking and releasing
+mmap_write_lock.  process_mrelease has to elevate mm->mm_users to prevent
+such race.  Both oom-reaper and process_mrelease hold mmap_read_lock when
+walking the VMA tree.
+
+The locking rules and mechanisms could be simpler if exit_mmap takes
+mmap_write_lock while executing destructive operations such as
+free_pgtables.
+
+Change exit_mmap to hold the mmap_write_lock when calling free_pgtables
+and remove_vma.  Operations like unmap_vmas and unlock_range are not
+destructive and could run under mmap_read_lock but for simplicity we take
+one mmap_write_lock during almost the entire operation.  Note also that
+because oom-reaper checks VM_LOCKED flag, unlock_range() should not be
+allowed to race with it.
+
+Before this patch, remove_vma used to be called with no locks held,
+however with fput being executed asynchronously and vm_ops->close not
+being allowed to hold mmap_lock (it is called from __split_vma with
+mmap_sem held for write), changing that should be fine.
+
+In most cases this lock should be uncontended.  Previously, Kirill
+reported ~4% regression caused by a similar change [1].  We reran the same
+test and although the individual results are quite noisy, the percentiles
+show lower regression with 1.6% being the worst case [2].  The change
+allows oom-reaper and process_mrelease to execute safely under
+mmap_read_lock without worries that exit_mmap might destroy page tables
+from under them.
+
+[1] https://lore.kernel.org/all/20170725141723.ivukwhddk2voyhuc@node.shutemov.name/
+[2] https://lore.kernel.org/all/CAJuCfpGC9-c9P40x7oy=jy5SphMcd0o0G_6U1-+JAziGKG6dGA@mail.gmail.com/
+
+
+This patch (of 2):
+
+Add comments for vm_operations_struct::close documenting locking
+requirements for this callback and its callers.
+
+Link: https://lkml.kernel.org/r/20211208212211.2860249-1-surenb@google.com
+Link: https://lkml.kernel.org/r/20211208212211.2860249-2-surenb@google.com
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Christian Brauner <christian@brauner.io>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jann Horn <jannh@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Florian Weimer <fweimer@redhat.com>
+Cc: Jan Engelhardt <jengelh@inai.de>
+Cc: Tim Murray <timmurray@google.com>
+Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ include/linux/mm.h |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/include/linux/mm.h~mm-document-locking-restrictions-for-vm_operations_struct-close
++++ a/include/linux/mm.h
+@@ -532,6 +532,10 @@ enum page_entry_size {
+  */
+ struct vm_operations_struct {
+ 	void (*open)(struct vm_area_struct * area);
++	/**
++	 * @close: Called when the VMA is being removed from the MM.
++	 * Context: User context.  May sleep.  Caller holds mmap_lock.
++	 */
+ 	void (*close)(struct vm_area_struct * area);
+ 	/* Called any time before splitting to check if it's allowed */
+ 	int (*may_split)(struct vm_area_struct *area, unsigned long addr);
+_
+
+Patches currently in -mm which might be from surenb@google.com are
+
+mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
+mm-add-anonymous-vma-name-refcounting.patch
+mm-document-locking-restrictions-for-vm_operations_struct-close.patch
+mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
+sysctl-change-watermark_scale_factor-max-limit-to-30%.patch
+
