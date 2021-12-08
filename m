@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 30B8EC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  8 Dec 2021 00:08:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 10528C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  8 Dec 2021 00:11:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238441AbhLHAMX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 7 Dec 2021 19:12:23 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:59880 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233913AbhLHAMX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2021 19:12:23 -0500
+        id S231416AbhLHAPJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 7 Dec 2021 19:15:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42844 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233913AbhLHAPJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 7 Dec 2021 19:15:09 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EFF53C061574
+        for <mm-commits@vger.kernel.org>; Tue,  7 Dec 2021 16:11:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5AD11B81EB2
-        for <mm-commits@vger.kernel.org>; Wed,  8 Dec 2021 00:08:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7247C341C3;
-        Wed,  8 Dec 2021 00:08:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B8929B81EBA
+        for <mm-commits@vger.kernel.org>; Wed,  8 Dec 2021 00:11:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 02A9FC341C5;
+        Wed,  8 Dec 2021 00:11:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1638922130;
-        bh=urux0RUQ7BsZ2DwFboe//oiqB289wVa37eM6XVI5j0Q=;
+        s=korg; t=1638922295;
+        bh=zOJe4aLlx4/rpMYGD197oxCWprMjrUZEI+fDTdisUw8=;
         h=Date:From:To:Subject:From;
-        b=F+D0k/+Q9/7Pi6p9/zsHFXHlspD50AZX0PDAfBJIXpH6FsEU4yQONITrUI3oikq+e
-         cvIrVwybyFgClo/opQzX5MdLOo4LjQBMLtLjkUUnYTv2CG3cQlUvk3AEBVEx4oi+Lv
-         aiiFyvplugpF/55R5V8awOiJ5JZgEW6PzZcGAoJA=
-Date:   Tue, 07 Dec 2021 16:08:49 -0800
+        b=TQGGql1fOLlSlVzJuZrFc3ebsl53QW1T9hoMqyOGgqcznoQXPYV/48a5HPvHNinLd
+         clGVaNtHb4sriv3RYMRlyRCRrGlc5rmzAb2KNPnfitSfdMpmWSGxUyX0N8H41LSUEd
+         LghbJ2A4An0X87eJBvQBRSZ5C0U1sCQJNynJBfRA=
+Date:   Tue, 07 Dec 2021 16:11:34 -0800
 From:   akpm@linux-foundation.org
-To:     djwong@kernel.org, efault@gmx.de, hakavlad@inbox.lv, lkp@intel.com,
-        mgorman@techsingularity.net, mhocko@suse.com,
-        mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com,
-        vbabka@suse.cz
-Subject:  +
- mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch added
- to -mm tree
-Message-ID: <20211208000849.GpbFrz4yP%akpm@linux-foundation.org>
+To:     arnd@arndb.de, ccross@google.com, ebiederm@xmission.com,
+        keescook@chromium.org, mm-commits@vger.kernel.org,
+        peterx@redhat.com, peterz@infradead.org, sfr@canb.auug.org.au,
+        surenb@google.com, vbabka@suse.cz, viro@zeniv.linux.org.uk,
+        willy@infradead.org, yuzhao@google.com
+Subject:  + mm-move-anon_vma-declarations-to-linux-mm_inlineh.patch
+ added to -mm tree
+Message-ID: <20211208001134.Ki-xRAxki%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: reduce throttling due to a failure to make progress
+     Subject: mm: move anon_vma declarations to linux/mm_inline.h
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
+     mm-move-anon_vma-declarations-to-linux-mm_inlineh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-move-anon_vma-declarations-to-linux-mm_inlineh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-move-anon_vma-declarations-to-linux-mm_inlineh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,217 +67,229 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: vmscan: reduce throttling due to a failure to make progress
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: move anon_vma declarations to linux/mm_inline.h
 
-Mike Galbraith, Alexey Avramov and Darrick Wong all reported similar
-problems due to reclaim throttling for excessive lengths of time.  In
-Alexey's case, a memory hog that should go OOM quickly stalls for several
-minutes before stalling.  In Mike and Darrick's cases, a small memcg
-environment stalled excessively even though the system had enough memory
-overall.
+The patch to add anonymous vma names causes a build failure in some
+configurations:
 
-Commit 69392a403f49 ("mm/vmscan: throttle reclaim when no progress is bei=
-ng made") introduced the problem although commit a19594ca4a8b ("mm/vmscan:
-increase the timeout if page reclaim is not making progress") made it
-worse.  Systems at or near an OOM state that cannot be recovered must
-reach OOM quickly and memcg should kill tasks if a memcg is near OOM.
+include/linux/mm_types.h: In function 'is_same_vma_anon_name':
+include/linux/mm_types.h:924:37: error: implicit declaration of function 'strcmp' [-Werror=implicit-function-declaration]
+  924 |         return name && vma_name && !strcmp(name, vma_name);
+      |                                     ^~~~~~
+include/linux/mm_types.h:22:1: note: 'strcmp' is defined in header '<string.h>'; did you forget to '#include <string.h>'?
 
-To address this, only stall for the first zone in the zonelist, reduce the
-timeout to 1 tick for VMSCAN_THROTTLE_NOPROGRESS and only stall if the
-scan control nr_reclaimed is 0, kswapd is still active and there were
-excessive pages pending for writeback.  If kswapd has stopped reclaiming
-d= ue to excessive failures, do not stall at all so that OOM triggers
-relativel= y quickly.  Similarly, if an LRU is simply congested, only
-lightly throttle similar to NOPROGRESS.
+This should not really be part of linux/mm_types.h in the first place, as
+that header is meant to only contain structure defintions and need a
+minimum set of indirect includes itself.  While the header clearly
+includes more than it should at this point, let's not make it worse by
+including string.h as well, which would pull in the expensive
+(compile-speed wise) fortify-string logic.
 
-Alexey's original case was the most straight forward
+Move the new functions into a separate header that only needs to be
+included in a couple of locations.
 
-	for i in {1..3}; do tail /dev/zero; done
-
-On vanilla 5.16-rc1, this test stalled heavily, after the patch the test
-completes in a few seconds similar to 5.15.
-
-Alexey's second test case added watching a youtube video while tail runs
-10 times.  On 5.15, playback only jitters slightly, 5.16-rc1 stalls a lot
-with lots of frames missing and numerous audio glitches.  With this patch
-applies, the video plays similarly to 5.15.
-
-Link: https://lore.kernel.org/r/99e779783d6c7fce96448a3402061b9dc1b3b602.camel@gmx.de
-Link: https://lore.kernel.org/r/20211124011954.7cab9bb4@mail.inbox.lv
-Link: https://lore.kernel.org/r/20211022144651.19914-1-mgorman@techsingularity.net
-
-[lkp@intel.com: Fix W=1 build warning]
-Fixes: 69392a403f49 ("mm/vmscan: throttle reclaim when no progress is being made")
-Link: https://lkml.kernel.org/r/20211202150614.22440-1-mgorman@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: kernel test robot <lkp@intel.com>
-Reported-and-tested-by: Alexey Avramov <hakavlad@inbox.lv>
-Reported-and-tested-by: Mike Galbraith <efault@gmx.de>
-Reported-and-tested-by: Darrick J. Wong <djwong@kernel.org>
-Cc: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20211207125710.2503446-1-arnd@kernel.org
+Fixes: "mm: add a field to store names for private anonymous memory"
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Colin Cross <ccross@google.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h        |    1 
- include/trace/events/vmscan.h |    4 +-
- mm/vmscan.c                   |   64 +++++++++++++++++++++++++++-----
- 3 files changed, 59 insertions(+), 10 deletions(-)
+ fs/proc/task_mmu.c        |    1 
+ fs/userfaultfd.c          |    1 
+ include/linux/mm_inline.h |   50 ++++++++++++++++++++++++++++++++++++
+ include/linux/mm_types.h  |   48 ----------------------------------
+ kernel/fork.c             |    1 
+ mm/madvise.c              |    1 
+ mm/mmap.c                 |    1 
+ 7 files changed, 55 insertions(+), 48 deletions(-)
 
---- a/include/linux/mmzone.h~mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress
-+++ a/include/linux/mmzone.h
-@@ -277,6 +277,7 @@ enum vmscan_throttle_state {
- 	VMSCAN_THROTTLE_WRITEBACK,
- 	VMSCAN_THROTTLE_ISOLATED,
- 	VMSCAN_THROTTLE_NOPROGRESS,
-+	VMSCAN_THROTTLE_CONGESTED,
- 	NR_VMSCAN_THROTTLE,
- };
+--- a/fs/proc/task_mmu.c~mm-move-anon_vma-declarations-to-linux-mm_inlineh
++++ a/fs/proc/task_mmu.c
+@@ -1,6 +1,7 @@
+ // SPDX-License-Identifier: GPL-2.0
+ #include <linux/pagewalk.h>
+ #include <linux/vmacache.h>
++#include <linux/mm_inline.h>
+ #include <linux/hugetlb.h>
+ #include <linux/huge_mm.h>
+ #include <linux/mount.h>
+--- a/fs/userfaultfd.c~mm-move-anon_vma-declarations-to-linux-mm_inlineh
++++ a/fs/userfaultfd.c
+@@ -15,6 +15,7 @@
+ #include <linux/sched/signal.h>
+ #include <linux/sched/mm.h>
+ #include <linux/mm.h>
++#include <linux/mm_inline.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/poll.h>
+ #include <linux/slab.h>
+--- a/include/linux/mm_inline.h~mm-move-anon_vma-declarations-to-linux-mm_inlineh
++++ a/include/linux/mm_inline.h
+@@ -4,6 +4,7 @@
  
---- a/include/trace/events/vmscan.h~mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress
-+++ a/include/trace/events/vmscan.h
-@@ -30,12 +30,14 @@
- #define _VMSCAN_THROTTLE_WRITEBACK	(1 << VMSCAN_THROTTLE_WRITEBACK)
- #define _VMSCAN_THROTTLE_ISOLATED	(1 << VMSCAN_THROTTLE_ISOLATED)
- #define _VMSCAN_THROTTLE_NOPROGRESS	(1 << VMSCAN_THROTTLE_NOPROGRESS)
-+#define _VMSCAN_THROTTLE_CONGESTED	(1 << VMSCAN_THROTTLE_CONGESTED)
+ #include <linux/huge_mm.h>
+ #include <linux/swap.h>
++#include <linux/string.h>
  
- #define show_throttle_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",					\
- 		{_VMSCAN_THROTTLE_WRITEBACK,	"VMSCAN_THROTTLE_WRITEBACK"},	\
- 		{_VMSCAN_THROTTLE_ISOLATED,	"VMSCAN_THROTTLE_ISOLATED"},	\
--		{_VMSCAN_THROTTLE_NOPROGRESS,	"VMSCAN_THROTTLE_NOPROGRESS"}	\
-+		{_VMSCAN_THROTTLE_NOPROGRESS,	"VMSCAN_THROTTLE_NOPROGRESS"},	\
-+		{_VMSCAN_THROTTLE_CONGESTED,	"VMSCAN_THROTTLE_CONGESTED"}	\
- 		) : "VMSCAN_THROTTLE_NONE"
- 
- 
---- a/mm/vmscan.c~mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress
-+++ a/mm/vmscan.c
-@@ -1021,6 +1021,39 @@ static void handle_write_error(struct ad
- 	unlock_page(page);
- }
- 
-+static bool skip_throttle_noprogress(pg_data_t *pgdat)
-+{
-+	int reclaimable = 0, write_pending = 0;
-+	int i;
-+
-+	/*
-+	 * If kswapd is disabled, reschedule if necessary but do not
-+	 * throttle as the system is likely near OOM.
-+	 */
-+	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
-+		return true;
-+
-+	/*
-+	 * If there are a lot of dirty/writeback pages then do not
-+	 * throttle as throttling will occur when the pages cycle
-+	 * towards the end of the LRU if still under writeback.
-+	 */
-+	for (i = 0; i < MAX_NR_ZONES; i++) {
-+		struct zone *zone = pgdat->node_zones + i;
-+
-+		if (!populated_zone(zone))
-+			continue;
-+
-+		reclaimable += zone_reclaimable_pages(zone);
-+		write_pending += zone_page_state_snapshot(zone,
-+						  NR_ZONE_WRITE_PENDING);
-+	}
-+	if (2 * write_pending <= reclaimable)
-+		return true;
-+
-+	return false;
-+}
-+
- void reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason)
+ /**
+  * folio_is_file_lru - Should the folio be on a file LRU or anon LRU?
+@@ -135,4 +136,53 @@ static __always_inline void del_page_fro
  {
- 	wait_queue_head_t *wqh = &pgdat->reclaim_wait[reason];
-@@ -1056,8 +1089,16 @@ void reclaim_throttle(pg_data_t *pgdat,
- 		}
- 
- 		break;
-+	case VMSCAN_THROTTLE_CONGESTED:
-+		fallthrough;
- 	case VMSCAN_THROTTLE_NOPROGRESS:
--		timeout = HZ/2;
-+		if (skip_throttle_noprogress(pgdat)) {
-+			cond_resched();
-+			return;
-+		}
-+
-+		timeout = 1;
-+
- 		break;
- 	case VMSCAN_THROTTLE_ISOLATED:
- 		timeout = HZ/50;
-@@ -3321,7 +3362,7 @@ again:
- 	if (!current_is_kswapd() && current_may_throttle() &&
- 	    !sc->hibernation_mode &&
- 	    test_bit(LRUVEC_CONGESTED, &target_lruvec->flags))
--		reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
-+		reclaim_throttle(pgdat, VMSCAN_THROTTLE_CONGESTED);
- 
- 	if (should_continue_reclaim(pgdat, sc->nr_reclaimed - nr_reclaimed,
- 				    sc))
-@@ -3386,16 +3427,16 @@ static void consider_reclaim_throttle(pg
- 	}
- 
- 	/*
--	 * Do not throttle kswapd on NOPROGRESS as it will throttle on
--	 * VMSCAN_THROTTLE_WRITEBACK if there are too many pages under
--	 * writeback and marked for immediate reclaim at the tail of
--	 * the LRU.
-+	 * Do not throttle kswapd or cgroup reclaim on NOPROGRESS as it will
-+	 * throttle on VMSCAN_THROTTLE_WRITEBACK if there are too many pages
-+	 * under writeback and marked for immediate reclaim at the tail of the
-+	 * LRU.
- 	 */
--	if (current_is_kswapd())
-+	if (current_is_kswapd() || cgroup_reclaim(sc))
- 		return;
- 
- 	/* Throttle if making no progress at high prioities. */
--	if (sc->priority < DEF_PRIORITY - 2)
-+	if (sc->priority == 1 && !sc->nr_reclaimed)
- 		reclaim_throttle(pgdat, VMSCAN_THROTTLE_NOPROGRESS);
+ 	lruvec_del_folio(lruvec, page_folio(page));
  }
- 
-@@ -3415,6 +3456,7 @@ static void shrink_zones(struct zonelist
- 	unsigned long nr_soft_scanned;
- 	gfp_t orig_mask;
- 	pg_data_t *last_pgdat = NULL;
-+	pg_data_t *first_pgdat = NULL;
- 
- 	/*
- 	 * If the number of buffer_heads in the machine exceeds the maximum
-@@ -3478,14 +3520,18 @@ static void shrink_zones(struct zonelist
- 			/* need some check for avoid more shrink_zone() */
- 		}
- 
-+		if (!first_pgdat)
-+			first_pgdat = zone->zone_pgdat;
 +
- 		/* See comment about same check for global reclaim above */
- 		if (zone->zone_pgdat == last_pgdat)
- 			continue;
- 		last_pgdat = zone->zone_pgdat;
- 		shrink_node(zone->zone_pgdat, sc);
--		consider_reclaim_throttle(zone->zone_pgdat, sc);
- 	}
- 
-+	consider_reclaim_throttle(first_pgdat, sc);
++#ifdef CONFIG_ANON_VMA_NAME
++/*
++ * mmap_lock should be read-locked when calling vma_anon_name() and while using
++ * the returned pointer.
++ */
++extern const char *vma_anon_name(struct vm_area_struct *vma);
 +
- 	/*
- 	 * Restore to original mask to avoid the impact on the caller if we
- 	 * promoted it to __GFP_HIGHMEM.
++/*
++ * mmap_lock should be read-locked for orig_vma->vm_mm.
++ * mmap_lock should be write-locked for new_vma->vm_mm or new_vma should be
++ * isolated.
++ */
++extern void dup_vma_anon_name(struct vm_area_struct *orig_vma,
++			      struct vm_area_struct *new_vma);
++
++/*
++ * mmap_lock should be write-locked or vma should have been isolated under
++ * write-locked mmap_lock protection.
++ */
++extern void free_vma_anon_name(struct vm_area_struct *vma);
++
++/* mmap_lock should be read-locked */
++static inline bool is_same_vma_anon_name(struct vm_area_struct *vma,
++					 const char *name)
++{
++	const char *vma_name = vma_anon_name(vma);
++
++	/* either both NULL, or pointers to same string */
++	if (vma_name == name)
++		return true;
++
++	return name && vma_name && !strcmp(name, vma_name);
++}
++#else /* CONFIG_ANON_VMA_NAME */
++static inline const char *vma_anon_name(struct vm_area_struct *vma)
++{
++	return NULL;
++}
++static inline void dup_vma_anon_name(struct vm_area_struct *orig_vma,
++			      struct vm_area_struct *new_vma) {}
++static inline void free_vma_anon_name(struct vm_area_struct *vma) {}
++static inline bool is_same_vma_anon_name(struct vm_area_struct *vma,
++					 const char *name)
++{
++	return true;
++}
++#endif  /* CONFIG_ANON_VMA_NAME */
++
+ #endif
+--- a/include/linux/mm_types.h~mm-move-anon_vma-declarations-to-linux-mm_inlineh
++++ a/include/linux/mm_types.h
+@@ -890,52 +890,4 @@ typedef struct {
+ 	unsigned long val;
+ } swp_entry_t;
+ 
+-#ifdef CONFIG_ANON_VMA_NAME
+-/*
+- * mmap_lock should be read-locked when calling vma_anon_name() and while using
+- * the returned pointer.
+- */
+-extern const char *vma_anon_name(struct vm_area_struct *vma);
+-
+-/*
+- * mmap_lock should be read-locked for orig_vma->vm_mm.
+- * mmap_lock should be write-locked for new_vma->vm_mm or new_vma should be
+- * isolated.
+- */
+-extern void dup_vma_anon_name(struct vm_area_struct *orig_vma,
+-			      struct vm_area_struct *new_vma);
+-
+-/*
+- * mmap_lock should be write-locked or vma should have been isolated under
+- * write-locked mmap_lock protection.
+- */
+-extern void free_vma_anon_name(struct vm_area_struct *vma);
+-
+-/* mmap_lock should be read-locked */
+-static inline bool is_same_vma_anon_name(struct vm_area_struct *vma,
+-					 const char *name)
+-{
+-	const char *vma_name = vma_anon_name(vma);
+-
+-	/* either both NULL, or pointers to same string */
+-	if (vma_name == name)
+-		return true;
+-
+-	return name && vma_name && !strcmp(name, vma_name);
+-}
+-#else /* CONFIG_ANON_VMA_NAME */
+-static inline const char *vma_anon_name(struct vm_area_struct *vma)
+-{
+-	return NULL;
+-}
+-static inline void dup_vma_anon_name(struct vm_area_struct *orig_vma,
+-			      struct vm_area_struct *new_vma) {}
+-static inline void free_vma_anon_name(struct vm_area_struct *vma) {}
+-static inline bool is_same_vma_anon_name(struct vm_area_struct *vma,
+-					 const char *name)
+-{
+-	return true;
+-}
+-#endif  /* CONFIG_ANON_VMA_NAME */
+-
+ #endif /* _LINUX_MM_TYPES_H */
+--- a/kernel/fork.c~mm-move-anon_vma-declarations-to-linux-mm_inlineh
++++ a/kernel/fork.c
+@@ -42,6 +42,7 @@
+ #include <linux/mmu_notifier.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/mm_inline.h>
+ #include <linux/vmacache.h>
+ #include <linux/nsproxy.h>
+ #include <linux/capability.h>
+--- a/mm/madvise.c~mm-move-anon_vma-declarations-to-linux-mm_inlineh
++++ a/mm/madvise.c
+@@ -18,6 +18,7 @@
+ #include <linux/fadvise.h>
+ #include <linux/sched.h>
+ #include <linux/sched/mm.h>
++#include <linux/mm_inline.h>
+ #include <linux/string.h>
+ #include <linux/uio.h>
+ #include <linux/ksm.h>
+--- a/mm/mmap.c~mm-move-anon_vma-declarations-to-linux-mm_inlineh
++++ a/mm/mmap.c
+@@ -13,6 +13,7 @@
+ #include <linux/slab.h>
+ #include <linux/backing-dev.h>
+ #include <linux/mm.h>
++#include <linux/mm_inline.h>
+ #include <linux/vmacache.h>
+ #include <linux/shm.h>
+ #include <linux/mman.h>
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
+mm-move-anon_vma-declarations-to-linux-mm_inlineh.patch
+mm-move-tlb_flush_pending-inline-helpers-to-mm_inlineh.patch
+fs-move-inode-sysctls-to-its-own-file-fix.patch
+fs-move-dcache-sysctls-to-its-own-file-fix-2.patch
 
