@@ -2,43 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D3BAC433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Dec 2021 20:19:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7912C433F5
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Dec 2021 20:27:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231789AbhLIUWn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Dec 2021 15:22:43 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:54772 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229522AbhLIUWm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2021 15:22:42 -0500
+        id S231194AbhLIUbY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Dec 2021 15:31:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36104 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229850AbhLIUbX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2021 15:31:23 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E769BC061746
+        for <mm-commits@vger.kernel.org>; Thu,  9 Dec 2021 12:27:49 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2794DB82672
-        for <mm-commits@vger.kernel.org>; Thu,  9 Dec 2021 20:19:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33152C004DD;
-        Thu,  9 Dec 2021 20:19:05 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AF6A2B823C3
+        for <mm-commits@vger.kernel.org>; Thu,  9 Dec 2021 20:27:48 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9729C004DD;
+        Thu,  9 Dec 2021 20:27:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639081146;
-        bh=sQh1ffe9YL/FVUK3WxfU7daR10mXp23eE+ZI3exFfjk=;
+        s=korg; t=1639081667;
+        bh=F/Q+HoXWRBs4VuzSjnF935x/kwH9qrQQnDKsJKk/MGE=;
         h=Date:From:To:Subject:From;
-        b=LDYFTkzqwR8+YheCtM0nnfDT8g56wQevA7zyLt3tiZRcuMNr3FPF9/bopxBdG9XW2
-         38r0HI2d/47Xwcrwnc1M75rUqC7kJwmdzMNBqf3ZsrD6J6jWF3+8WQYMKz7rKr7Tij
-         LuWAz+CZ+ygPMAG3N2DIwXRtAYi5aeHc46UOw2pM=
-Date:   Thu, 09 Dec 2021 12:19:04 -0800
+        b=CVM4KmCKcVzpzrVa8SHWzixCam8I1nZ/Hv7LFXf8vDbplFtMi4BwnUxHLV0tDaSAR
+         wn8r/bgHks6+EUQ5ugIauQl/f1+gMLjKga38VA/gG/i7riSOLifYVRrYZAViHRu1su
+         3yLqa9IEA/DJieX1lDMTBjeSQmUGc2qRus5j7KhI=
+Date:   Thu, 09 Dec 2021 12:27:46 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, christian.brauner@ubuntu.com,
-        christian@brauner.io, david@redhat.com, fweimer@redhat.com,
-        guro@fb.com, hannes@cmpxchg.org, hch@infradead.org,
-        jannh@google.com, jengelh@inai.de, kirill@shutemov.name,
-        luto@kernel.org, mchehab@kernel.org, mhocko@suse.com,
-        minchan@kernel.org, mm-commits@vger.kernel.org, oleg@redhat.com,
-        riel@surriel.com, rientjes@google.com, shakeelb@google.com,
-        surenb@google.com, timmurray@google.com, willy@infradead.org
+To:     adobriyan@gmail.com, ckennelly@google.com, hjl.tools@gmail.com,
+        hughd@google.com, irogers@google.com,
+        kirill.shutemov@linux.intel.com, maskray@google.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        ndesaulniers@google.com, rientjes@google.com, shuah@kernel.org,
+        songliubraving@fb.com, sspatil@google.com, surenb@google.com,
+        viro@zeniv.linux.org.uk
 Subject:  +
- mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
- added to -mm tree
-Message-ID: <20211209201904.EZBGguPHr%akpm@linux-foundation.org>
+ fs-binfmt_elf-use-pt_load-p_align-values-for-static-pie.patch added to -mm
+ tree
+Message-ID: <20211209202746.60OBIcmnu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill: allow process_mrelease to run under mmap_lock protection
+     Subject: fs/binfmt_elf: use PT_LOAD p_align values for static PIE
 has been added to the -mm tree.  Its filename is
-     mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
+     fs-binfmt_elf-use-pt_load-p_align-values-for-static-pie.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elf-use-pt_load-p_align-values-for-static-pie.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elf-use-pt_load-p_align-values-for-static-pie.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,99 +70,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/oom_kill: allow process_mrelease to run under mmap_lock protection
+From: "H.J. Lu" <hjl.tools@gmail.com>
+Subject: fs/binfmt_elf: use PT_LOAD p_align values for static PIE
 
-With exit_mmap holding mmap_write_lock during free_pgtables call,
-process_mrelease does not need to elevate mm->mm_users in order to prevent
-exit_mmap from destrying pagetables while __oom_reap_task_mm is walking
-the VMA tree.  The change prevents process_mrelease from calling the last
-mmput, which can lead to waiting for IO completion in exit_aio.
+Extend
 
-Link: https://lkml.kernel.org/r/20211209191325.3069345-3-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Hildenbrand <david@redhat.com>
+commit ce81bb256a224259ab686742a6284930cbe4f1fa
+Author: Chris Kennelly <ckennelly@google.com>
+Date:   Thu Oct 15 20:12:32 2020 -0700
+
+    fs/binfmt_elf: use PT_LOAD p_align values for suitable start address
+
+which fixed PIE binaries built with -Wl,-z,max-page-size=0x200000, to
+cover static PIE binaries.  This fixes:
+
+https://bugzilla.kernel.org/show_bug.cgi?id=215275
+
+Tested by verifying static PIE binaries with -Wl,-z,max-page-size=0x200000
+loading.
+
+Link: https://lkml.kernel.org/r/20211209174052.370537-1-hjl.tools@gmail.com
+Signed-off-by: H.J. Lu <hjl.tools@gmail.com>
+Cc: Chris Kennelly <ckennelly@google.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Song Liu <songliubraving@fb.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Florian Weimer <fweimer@redhat.com>
-Cc: Jan Engelhardt <jengelh@inai.de>
-Cc: Jann Horn <jannh@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mauro Carvalho Chehab <mchehab@kernel.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Roman Gushchin <guro@fb.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Tim Murray <timmurray@google.com>
+Cc: Ian Rogers <irogers@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Sandeep Patil <sspatil@google.com>
+Cc: Fangrui Song <maskray@google.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   27 +++++++++++++++------------
- 1 file changed, 15 insertions(+), 12 deletions(-)
+ fs/binfmt_elf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/oom_kill.c~mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection
-+++ a/mm/oom_kill.c
-@@ -1182,15 +1182,15 @@ SYSCALL_DEFINE2(process_mrelease, int, p
- 		goto put_task;
- 	}
- 
--	if (mmget_not_zero(p->mm)) {
--		mm = p->mm;
--		if (task_will_free_mem(p))
--			reap = true;
--		else {
--			/* Error only if the work has not been done already */
--			if (!test_bit(MMF_OOM_SKIP, &mm->flags))
--				ret = -EINVAL;
--		}
-+	mm = p->mm;
-+	mmgrab(mm);
-+
-+	if (task_will_free_mem(p))
-+		reap = true;
-+	else {
-+		/* Error only if the work has not been done already */
-+		if (!test_bit(MMF_OOM_SKIP, &mm->flags))
-+			ret = -EINVAL;
- 	}
- 	task_unlock(p);
- 
-@@ -1201,13 +1201,16 @@ SYSCALL_DEFINE2(process_mrelease, int, p
- 		ret = -EINTR;
- 		goto drop_mm;
- 	}
--	if (!__oom_reap_task_mm(mm))
-+	/*
-+	 * Check MMF_OOM_SKIP again under mmap_read_lock protection to ensure
-+	 * possible change in exit_mmap is seen
-+	 */
-+	if (!test_bit(MMF_OOM_SKIP, &mm->flags) && !__oom_reap_task_mm(mm))
- 		ret = -EAGAIN;
- 	mmap_read_unlock(mm);
- 
- drop_mm:
--	if (mm)
--		mmput(mm);
-+	mmdrop(mm);
- put_task:
- 	put_task_struct(task);
- 	return ret;
+--- a/fs/binfmt_elf.c~fs-binfmt_elf-use-pt_load-p_align-values-for-static-pie
++++ a/fs/binfmt_elf.c
+@@ -1116,11 +1116,11 @@ out_free_interp:
+ 			 * independently randomized mmap region (0 load_bias
+ 			 * without MAP_FIXED nor MAP_FIXED_NOREPLACE).
+ 			 */
+-			if (interpreter) {
++			alignment = maximum_alignment(elf_phdata, elf_ex->e_phnum);
++			if (alignment > ELF_MIN_ALIGN) {
+ 				load_bias = ELF_ET_DYN_BASE;
+ 				if (current->flags & PF_RANDOMIZE)
+ 					load_bias += arch_mmap_rnd();
+-				alignment = maximum_alignment(elf_phdata, elf_ex->e_phnum);
+ 				if (alignment)
+ 					load_bias &= ~(alignment - 1);
+ 				elf_flags |= MAP_FIXED_NOREPLACE;
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from hjl.tools@gmail.com are
 
-mm-add-a-field-to-store-names-for-private-anonymous-memory-fix.patch
-mm-add-anonymous-vma-name-refcounting.patch
-mm-protect-free_pgtables-with-mmap_lock-write-lock-in-exit_mmap.patch
-mm-document-locking-restrictions-for-vm_operations_struct-close.patch
-mm-oom_kill-allow-process_mrelease-to-run-under-mmap_lock-protection.patch
-sysctl-change-watermark_scale_factor-max-limit-to-30%.patch
+fs-binfmt_elf-use-pt_load-p_align-values-for-static-pie.patch
 
