@@ -2,37 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 537D6C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Dec 2021 20:32:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D4E6C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  9 Dec 2021 20:32:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229754AbhLIUf6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Dec 2021 15:35:58 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:34428 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229657AbhLIUf5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2021 15:35:57 -0500
+        id S232060AbhLIUgD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 9 Dec 2021 15:36:03 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:33036 "EHLO
+        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232056AbhLIUgD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2021 15:36:03 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4044EB82410
-        for <mm-commits@vger.kernel.org>; Thu,  9 Dec 2021 20:32:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E99C0C004DD;
-        Thu,  9 Dec 2021 20:32:21 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id C7114CE25DE
+        for <mm-commits@vger.kernel.org>; Thu,  9 Dec 2021 20:32:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA397C004DD;
+        Thu,  9 Dec 2021 20:32:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639081942;
-        bh=hofrRLNhVsXdZYBLyk1tJxzpgOSVSV7U3hnH+8gX/Jw=;
+        s=korg; t=1639081945;
+        bh=V5oNPYrkZHhHrfMoJHvqeIl41IXJl+fLwNK+fCM8FLw=;
         h=Date:From:To:Subject:From;
-        b=rC3v5oXDrb3o9gxkwT0P3Lkgt/Xuq3tQxE0ZQMMDooxG5Mt6iF5/VwBAAd2J4/n6b
-         XanBOLPYFQ3hY9w4ucf+81wyrQniHf3eEtJMHl+Ze91NHLd7BlYQcsim/0l4XfMZdL
-         KTddteqX2RBieNNc4huiyxvdUaKai0sCHZBnJzNo=
-Date:   Thu, 09 Dec 2021 12:32:21 -0800
+        b=QA+w2ZVsAFMslg1Qb9IuvFcLD9T9oOmExA0SnKt8azO+B/X/Lr1NSjGQvkO3bPlNL
+         R8ci2ov1CHVOhhxnkVPeIv5N+kr7IDOJoKKrGNecEbVbUQE8LieHw1tESaZeUtkETW
+         U8MpKDmH8umFTcie7+eEZ+rvurRhLI8P7r4JCO8M=
+Date:   Thu, 09 Dec 2021 12:32:24 -0800
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, mm-commits@vger.kernel.org, sj@kernel.org
 Subject:  +
- mm-damon-convert-macro-functions-to-static-inline-functions.patch added to
- -mm tree
-Message-ID: <20211209203221.YUEBhvDSd%akpm@linux-foundation.org>
+ =?US-ASCII?Q?docs-admin-guide-mm-damon-usage-update-for-scheme-quotas-?=
+ =?US-ASCII?Q?and-watermarks.patch?= added to -mm tree
+Message-ID: <20211209203224.VHP2-UtND%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: convert macro functions to static inline functions
+     Subject: Docs/admin-guide/mm/damon/usage: update for scheme quotas and watermarks
 has been added to the -mm tree.  Its filename is
-     mm-damon-convert-macro-functions-to-static-inline-functions.patch
+     docs-admin-guide-mm-damon-usage-update-for-scheme-quotas-and-watermarks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-convert-macro-functions-to-static-inline-functions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/docs-admin-guide-mm-damon-usage-update-for-scheme-quotas-and-watermarks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-convert-macro-functions-to-static-inline-functions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/docs-admin-guide-mm-damon-usage-update-for-scheme-quotas-and-watermarks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,91 +64,167 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: convert macro functions to static inline functions
+Subject: Docs/admin-guide/mm/damon/usage: update for scheme quotas and watermarks
 
-Patch series "mm/damon: Misc cleanups".
+DAMOS features including time/space quota limits and watermarks are not
+described in the DAMON debugfs interface document.  This commit updates
+the document for the features.
 
-This patchset contains miscellaneous cleanups for DAMON's macro
-functions and documentation.
-
-
-This patch (of 6):
-
-This commit converts macro functions in DAMON to static inline functions,
-for better type checking, code documentation, etc[1].
-
-[1] https://lore.kernel.org/linux-mm/20211202151213.6ec830863342220da4141bc5@linux-foundation.org/
-
-Link: https://lkml.kernel.org/r/20211209131806.19317-1-sj@kernel.org
-Link: https://lkml.kernel.org/r/20211209131806.19317-2-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211209131806.19317-3-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |   18 ++++++++++++------
- mm/damon/core.c       |    5 ++++-
- mm/damon/vaddr.c      |    6 ++++--
- 3 files changed, 20 insertions(+), 9 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |  123 +++++++++++++----
+ 1 file changed, 98 insertions(+), 25 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-convert-macro-functions-to-static-inline-functions
-+++ a/include/linux/damon.h
-@@ -399,14 +399,20 @@ struct damon_ctx {
- 	struct list_head schemes;
- };
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-scheme-quotas-and-watermarks
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -131,24 +131,38 @@ Schemes
  
--#define damon_next_region(r) \
--	(container_of(r->list.next, struct damon_region, list))
-+static inline struct damon_region *damon_next_region(struct damon_region *r)
-+{
-+	return container_of(r->list.next, struct damon_region, list);
-+}
+ For usual DAMON-based data access aware memory management optimizations, users
+ would simply want the system to apply a memory management action to a memory
+-region of a specific size having a specific access frequency for a specific
+-time.  DAMON receives such formalized operation schemes from the user and
+-applies those to the target processes.  It also counts the total number and
+-size of regions that each scheme is applied.  This statistics can be used for
+-online analysis or tuning of the schemes.
++region of a specific access pattern.  DAMON receives such formalized operation
++schemes from the user and applies those to the target processes.
  
--#define damon_prev_region(r) \
--	(container_of(r->list.prev, struct damon_region, list))
-+static inline struct damon_region *damon_prev_region(struct damon_region *r)
-+{
-+	return container_of(r->list.prev, struct damon_region, list);
-+}
+ Users can get and set the schemes by reading from and writing to ``schemes``
+ debugfs file.  Reading the file also shows the statistics of each scheme.  To
+-the file, each of the schemes should be represented in each line in below form:
++the file, each of the schemes should be represented in each line in below
++form::
  
--#define damon_last_region(t) \
--	(list_last_entry(&t->regions_list, struct damon_region, list))
-+static inline struct damon_region *damon_last_region(struct damon_target *t)
-+{
-+	return list_last_entry(&t->regions_list, struct damon_region, list);
-+}
+-    min-size max-size min-acc max-acc min-age max-age action
++    <target access pattern> <action> <quota> <watermarks>
  
- #define damon_for_each_region(r, t) \
- 	list_for_each_entry(r, &t->regions_list, list)
---- a/mm/damon/core.c~mm-damon-convert-macro-functions-to-static-inline-functions
-+++ a/mm/damon/core.c
-@@ -729,7 +729,10 @@ static void kdamond_apply_schemes(struct
- 	}
- }
+-Note that the ranges are closed interval.  Bytes for the size of regions
+-(``min-size`` and ``max-size``), number of monitored accesses per aggregate
+-interval for access frequency (``min-acc`` and ``max-acc``), number of
+-aggregate intervals for the age of regions (``min-age`` and ``max-age``), and a
+-predefined integer for memory management actions should be used.  The supported
+-numbers and their meanings are as below.
++You can disable schemes by simply writing an empty string to the file.
++
++Target Access Pattern
++~~~~~~~~~~~~~~~~~~~~~
++
++The ``<target access pattern>`` is constructed with three ranges in below
++form::
++
++    min-size max-size min-acc max-acc min-age max-age
++
++Specifically, bytes for the size of regions (``min-size`` and ``max-size``),
++number of monitored accesses per aggregate interval for access frequency
++(``min-acc`` and ``max-acc``), number of aggregate intervals for the age of
++regions (``min-age`` and ``max-age``) are specified.  Note that the ranges are
++closed interval.
++
++Action
++~~~~~~
++
++The ``<action>`` is a predefined integer for memory management actions, which
++DAMON will apply to the regions having the target access pattern.  The
++supported numbers and their meanings are as below.
  
--#define sz_damon_region(r) (r->ar.end - r->ar.start)
-+static inline unsigned long sz_damon_region(struct damon_region *r)
-+{
-+	return r->ar.end - r->ar.start;
-+}
+  - 0: Call ``madvise()`` for the region with ``MADV_WILLNEED``
+  - 1: Call ``madvise()`` for the region with ``MADV_COLD``
+@@ -157,20 +171,79 @@ numbers and their meanings are as below.
+  - 4: Call ``madvise()`` for the region with ``MADV_NOHUGEPAGE``
+  - 5: Do nothing but count the statistics
  
- /*
-  * Merge two adjacent regions into one region
---- a/mm/damon/vaddr.c~mm-damon-convert-macro-functions-to-static-inline-functions
-+++ a/mm/damon/vaddr.c
-@@ -25,8 +25,10 @@
-  * 't->id' should be the pointer to the relevant 'struct pid' having reference
-  * count.  Caller must put the returned task, unless it is NULL.
-  */
--#define damon_get_task_struct(t) \
--	(get_pid_task((struct pid *)t->id, PIDTYPE_PID))
-+static inline struct task_struct *damon_get_task_struct(struct damon_target *t)
-+{
-+	return get_pid_task((struct pid *)t->id, PIDTYPE_PID);
-+}
+-You can disable schemes by simply writing an empty string to the file.  For
+-example, below commands applies a scheme saying "If a memory region of size in
+-[4KiB, 8KiB] is showing accesses per aggregate interval in [0, 5] for aggregate
+-interval in [10, 20], page out the region", check the entered scheme again, and
+-finally remove the scheme. ::
++Quota
++~~~~~
  
- /*
-  * Get the mm_struct of the given target
+-    # cd <debugfs>/damon
+-    # echo "4096 8192    0 5    10 20    2" > schemes
+-    # cat schemes
+-    4096 8192 0 5 10 20 2 0 0
+-    # echo > schemes
++Optimal ``target access pattern`` for each ``action`` is workload dependent, so
++not easy to find.  Worse yet, setting a scheme of some action too aggressive
++can cause severe overhead.  To avoid such overhead, users can limit time and
++size quota for the scheme via the ``<quota>`` in below form::
++
++    <ms> <sz> <reset interval> <priority weights>
++
++This makes DAMON to try to use only up to ``<ms>`` milliseconds for applying
++the action to memory regions of the ``target access pattern`` within the
++``<reset interval>`` milliseconds, and to apply the action to only up to
++``<sz>`` bytes of memory regions within the ``<reset interval>``.  Setting both
++``<ms>`` and ``<sz>`` zero disables the quota limits.
++
++When the quota limit is expected to be exceeded, DAMON prioritizes found memory
++regions of the ``target access pattern`` based on their size, access frequency,
++and age.  For personalized prioritization, users can set the weights for the
++three properties in ``<priority weights>`` in below form::
++
++    <size weight> <access frequency weight> <age weight>
++
++Watermarks
++~~~~~~~~~~
+ 
+-The last two integers in the 4th line of above example is the total number and
+-the total size of the regions that the scheme is applied.
++Some schemes would need to run based on current value of the system's specific
++metrics like free memory ratio.  For such cases, users can specify watermarks
++for the condition.::
++
++    <metric> <check interval> <high mark> <middle mark> <low mark>
++
++``<metric>`` is a predefined integer for the metric to be checked.  The
++supported numbers and their meanings are as below.
++
++ - 0: Ignore the watermarks
++ - 1: System's free memory rate (per thousand)
++
++The value of the metric is checked every ``<check interval>`` microseconds.
++
++If the value is higher than ``<high mark>`` or lower than ``<low mark>``, the
++scheme is deactivated.  If the value is lower than ``<mid mark>``, the scheme
++is activated.
++
++Statistics
++~~~~~~~~~~
++
++It also counts the total number and bytes of regions that each scheme is
++applied.  This statistics can be used for online analysis or tuning of the
++schemes.
++
++The statistics can be shown by reading the ``schemes`` file.  Reading the file
++will show each scheme you entered in each line, and the two numbers for the
++statistics will be added at the end of each line.
++
++Example
++~~~~~~~
++
++Below commands applies a scheme saying "If a memory region of size in [4KiB,
++8KiB] is showing accesses per aggregate interval in [0, 5] for aggregate
++interval in [10, 20], page out the region.  For the paging out, use only up to
++10ms per second, and also don't page out more than 1GiB per second.  Under the
++limitation, page out memory regions having longer age first.  Also, check the
++free memory rate of the system every 5 seconds, start the monitoring and paging
++out when the free memory rate becomes lower than 50%, but stop it if the free
++memory rate becomes larger than 60%, or lower than 30%".::
++
++    # cd <debugfs>/damon
++    # scheme="4096 8192  0 5    10 20    2"  # target access pattern and action
++    # scheme+=" 10 $((1024*1024*1024)) 1000" # quotas
++    # scheme+=" 0 0 100"                     # prioritization weights
++    # scheme+=" 1 5000000 600 500 300"       # watermarks
++    # echo "$scheme" > schemes
+ 
+ 
+ Turning On/Off
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
