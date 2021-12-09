@@ -2,37 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 162BEC433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 063ECC433F5
 	for <mm-commits@archiver.kernel.org>; Thu,  9 Dec 2021 20:32:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232064AbhLIUgJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S232067AbhLIUgJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 9 Dec 2021 15:36:09 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:34546 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229657AbhLIUgI (ORCPT
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37172 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232064AbhLIUgI (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2021 15:36:08 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B73B4C061746
+        for <mm-commits@vger.kernel.org>; Thu,  9 Dec 2021 12:32:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 42D03B82410
-        for <mm-commits@vger.kernel.org>; Thu,  9 Dec 2021 20:32:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA311C341CA;
-        Thu,  9 Dec 2021 20:32:32 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 0F14ACE25F1
+        for <mm-commits@vger.kernel.org>; Thu,  9 Dec 2021 20:32:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 23826C004DD;
+        Thu,  9 Dec 2021 20:32:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639081953;
-        bh=VEz1UwWufGe65aRDDVRrUu9mlons55BdOZu0JtzUwTw=;
+        s=korg; t=1639081951;
+        bh=G8PoFTjclPXXeIhaHial3v1TKQ2xfVUEB4EsMopS9ic=;
         h=Date:From:To:Subject:From;
-        b=k8/3bYCWXHc5SbrpOfBAFLegh00Ul10bjKVh/WQKorwgmpu30Kfl/D1B5T7y0ekFc
-         AT/goVOMQ+dIO0h/s9K5qz6JP5TaIuw5TyWO50ITNJSW4hMk6opfKh0SPos6mH/IJa
-         pVNC4RAVISz3lEDozvJiSND2WptKCqharc5OJIZs=
-Date:   Thu, 09 Dec 2021 12:32:32 -0800
+        b=jI6AzDiaLZl8NhT6ZP9WqfEUM7HHwY3xtvvVKyxE67jhTl25JD0qwBc21uk+IxKXj
+         JPrAJrLFp9u+YCM9TJYj9h1GlWOHXE6RbYZIgTCFM63scqqokus3gNEx60SRipaZ+L
+         VFiXhkd6tq9GgPJjWysLEZ7PJBWK9nC2+DounCuI=
+Date:   Thu, 09 Dec 2021 12:32:30 -0800
 From:   akpm@linux-foundation.org
 To:     corbet@lwn.net, mm-commits@vger.kernel.org, sj@kernel.org
 Subject:  +
- mm-damon-remove-a-mistakenly-added-comment-for-a-future-feature.patch added
- to -mm tree
-Message-ID: <20211209203232.4Nkg8cO0c%akpm@linux-foundation.org>
+ =?US-ASCII?Q?docs-admin-guide-mm-damon-usage-update-for-kdamond=5Fpid-and?=
+ =?US-ASCII?Q?-mkrm=5Fcontexts.patch?= added to -mm tree
+Message-ID: <20211209203230.WkKl_jitY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: remove a mistakenly added comment for a future feature
+     Subject: Docs/admin-guide/mm/damon/usage: update for kdamond_pid and (mk|rm)_contexts
 has been added to the -mm tree.  Its filename is
-     mm-damon-remove-a-mistakenly-added-comment-for-a-future-feature.patch
+     docs-admin-guide-mm-damon-usage-update-for-kdamond_pid-and-mkrm_contexts.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-remove-a-mistakenly-added-comment-for-a-future-feature.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/docs-admin-guide-mm-damon-usage-update-for-kdamond_pid-and-mkrm_contexts.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-remove-a-mistakenly-added-comment-for-a-future-feature.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/docs-admin-guide-mm-damon-usage-update-for-kdamond_pid-and-mkrm_contexts.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,37 +67,89 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: remove a mistakenly added comment for a future feature
+Subject: Docs/admin-guide/mm/damon/usage: update for kdamond_pid and (mk|rm)_contexts
 
-Due to a mistake in patches reordering, a comment for a future feature
-called 'arbitrary monitoring target support'[1], which is still under
-development, has added.  Because it only introduces confusion and we don't
-have a plan to post the patches soon, this commit removes the mistakenly
-added part.
+The DAMON debugfs usage document is missing descriptions for
+'kdamond_pid', 'mk_contexts', and 'rm_contexts' debugfs files.  This
+commit adds those.
 
-[1] https://lore.kernel.org/linux-mm/20201215115448.25633-3-sjpark@amazon.com/
-
-Link: https://lkml.kernel.org/r/20211209131806.19317-7-sj@kernel.org
-Fixes: 1f366e421c8f ("mm/damon/core: implement DAMON-based Operation Schemes (DAMOS)")
+Link: https://lkml.kernel.org/r/20211209131806.19317-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/damon.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/admin-guide/mm/damon/usage.rst |   52 ++++++++++++++++-
+ 1 file changed, 49 insertions(+), 3 deletions(-)
 
---- a/include/linux/damon.h~mm-damon-remove-a-mistakenly-added-comment-for-a-future-feature
-+++ a/include/linux/damon.h
-@@ -281,7 +281,7 @@ struct damon_ctx;
-  * as an integer in [0, &DAMOS_MAX_SCORE].
-  * @apply_scheme is called from @kdamond when a region for user provided
-  * DAMON-based operation scheme is found.  It should apply the scheme's action
-- * to the region.  This is not used for &DAMON_ARBITRARY_TARGET case.
-+ * to the region.
-  * @target_valid should check whether the target is still valid for the
-  * monitoring.
-  * @cleanup is called from @kdamond just before its termination.
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-kdamond_pid-and-mkrm_contexts
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -38,9 +38,9 @@ DAMON provides below three interfaces fo
+ debugfs Interface
+ =================
+ 
+-DAMON exports five files, ``attrs``, ``target_ids``, ``init_regions``,
+-``schemes`` and ``monitor_on`` under its debugfs directory,
+-``<debugfs>/damon/``.
++DAMON exports eight files, ``attrs``, ``target_ids``, ``init_regions``,
++``schemes``, ``monitor_on``, ``kdamond_pid``, ``mk_contexts`` and
++``rm_contexts`` under its debugfs directory, ``<debugfs>/damon/``.
+ 
+ 
+ Attributes
+@@ -273,6 +273,52 @@ the monitoring is turned on.  If you wri
+ an error code such as ``-EBUSY`` will be returned.
+ 
+ 
++Monitoring Thread PID
++---------------------
++
++DAMON does requested monitoring with a kernel thread called ``kdamond``.  You
++can get the pid of the thread by reading the ``kdamond_pid`` file.  When the
++monitoring is turned off, reading the file returns ``none``. ::
++
++    # cd <debugfs>/damon
++    # cat monitor_on
++    off
++    # cat kdamond_pid
++    none
++    # echo on > monitor_on
++    # cat kdamond_pid
++    18594
++
++
++Using Multiple Monitoring Threads
++---------------------------------
++
++One ``kdamond`` thread is created for each monitoring context.  You can create
++and remove monitoring contexts for multiple ``kdamond`` required use case using
++the ``mk_contexts`` and ``rm_contexts`` files.
++
++Writing the name of the new context to the ``mk_contexts`` file creates a
++directory of the name on the DAMON debugfs directory.  The directory will have
++DAMON debugfs files for the context. ::
++
++    # cd <debugfs>/damon
++    # ls foo
++    # ls: cannot access 'foo': No such file or directory
++    # echo foo > mk_contexts
++    # ls foo
++    # attrs  init_regions  kdamond_pid  schemes  target_ids
++
++If the context is not needed anymore, you can remove it and the corresponding
++directory by putting the name of the context to the ``rm_contexts`` file. ::
++
++    # echo foo > rm_contexts
++    # ls foo
++    # ls: cannot access 'foo': No such file or directory
++
++Note that ``mk_contexts``, ``rm_contexts``, and ``monitor_on`` files are in the
++root directory only.
++
++
+ .. _tracepoint:
+ 
+ Tracepoint for Monitoring Results
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
