@@ -2,36 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A8364C433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 16:50:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 914C7C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 16:50:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244133AbhLJQyG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Dec 2021 11:54:06 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:59970 "EHLO
-        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244180AbhLJQyF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 11:54:05 -0500
+        id S244181AbhLJQyL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Dec 2021 11:54:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33956 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S244171AbhLJQyH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 11:54:07 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54812C061746
+        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 08:50:31 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id AFE25CE2C1E
-        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 16:50:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE557C341CA;
-        Fri, 10 Dec 2021 16:50:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1CA0FB82905
+        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 16:50:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB9F5C00446;
+        Fri, 10 Dec 2021 16:50:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639155026;
-        bh=Bgv9xuC5hNZ2/OP4EOYmg1GkO7T0HhAirZbx6eQgXdg=;
+        s=korg; t=1639155028;
+        bh=yh6LJs+mT9E6kG11BDOOkxB6zjpmwJ6mH+Y+Z8VsjPQ=;
         h=Date:From:To:Subject:From;
-        b=S0qUfQRH8HpBHUO/+MH228h4E5z2u0/cDDzCCnfaB4wvdRvZWla02Lz+rBT5DBYcZ
-         ozlwLaKzoUukuZ6IgunfJLIVCoRLWGtOrDlVgSg1Dt4Ea4nrLxGGpcl/AQw5Iwo3WW
-         muG/zVeNGQ0OlgYDe2pmzpyxgtBWpsu2bVEyYAaU=
-Date:   Fri, 10 Dec 2021 08:50:26 -0800
+        b=wgFbsbR02tNm9IGLFAdWhdYFsVVV0mt7OMoX8GXP8Y+b5HaZ9v1ekKrH4+2u56g6C
+         CSJf4+6aHMgw+R1/0+9WjsZhtcIS/yUyuPTix118PK/y9G+ep6duN39AR6S/NfpcPd
+         5yfmHLq56dVvdrOMEcJoeWt/i1/WxM1Wirk0E+n0=
+Date:   Fri, 10 Dec 2021 08:50:28 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, sj@kernel.org
-Subject:  +
- docs-admin-guide-mm-damon-reclaim-document-statistics-parameters.patch
- added to -mm tree
-Message-ID: <20211210165026.UE4ybywYT%akpm@linux-foundation.org>
+Subject:  + mm-damon-dbgfs-support-all-damos-stats.patch added to
+ -mm tree
+Message-ID: <20211210165028.fSf5jIDW4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Docs/admin-guide/mm/damon/reclaim: document statistics parameters
+     Subject: mm/damon/dbgfs: support all DAMOS stats
 has been added to the -mm tree.  Its filename is
-     docs-admin-guide-mm-damon-reclaim-document-statistics-parameters.patch
+     mm-damon-dbgfs-support-all-damos-stats.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/docs-admin-guide-mm-damon-reclaim-document-statistics-parameters.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-dbgfs-support-all-damos-stats.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/docs-admin-guide-mm-damon-reclaim-document-statistics-parameters.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-dbgfs-support-all-damos-stats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,51 +64,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: Docs/admin-guide/mm/damon/reclaim: document statistics parameters
+Subject: mm/damon/dbgfs: support all DAMOS stats
 
-This commit adds descriptions for the DAMON_RECLAIM statistics parameters.
+Currently, DAMON debugfs interface is not supporting DAMON-based Operation
+Schemes (DAMOS) stats for schemes successfully applied regions and
+time/space quota limit exceeds.  This commit adds the support.
 
-Link: https://lkml.kernel.org/r/20211210150016.35349-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211210150016.35349-6-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/mm/damon/reclaim.rst |   25 +++++++++++++++
- 1 file changed, 25 insertions(+)
+ mm/damon/dbgfs.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/mm/damon/reclaim.rst~docs-admin-guide-mm-damon-reclaim-document-statistics-parameters
-+++ a/Documentation/admin-guide/mm/damon/reclaim.rst
-@@ -208,6 +208,31 @@ PID of the DAMON thread.
- If DAMON_RECLAIM is enabled, this becomes the PID of the worker thread.  Else,
- -1.
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-support-all-damos-stats
++++ a/mm/damon/dbgfs.c
+@@ -105,7 +105,7 @@ static ssize_t sprint_schemes(struct dam
  
-+nr_reclaim_tried_regions
-+------------------------
-+
-+Number of memory regions that tried to be reclaimed by DAMON_RECLAIM.
-+
-+bytes_reclaim_tried_regions
-+---------------------------
-+
-+Total bytes of memory regions that tried to be reclaimed by DAMON_RECLAIM.
-+
-+nr_reclaimed_regions
-+--------------------
-+
-+Number of memory regions that successfully be reclaimed by DAMON_RECLAIM.
-+
-+bytes_reclaimed_regions
-+-----------------------
-+
-+Total bytes of memory regions that successfully be reclaimed by DAMON_RECLAIM.
-+
-+nr_quota_exceeds
-+----------------
-+
-+Number of times that the time/space quota limits have exceeded.
-+
- Example
- =======
+ 	damon_for_each_scheme(s, c) {
+ 		rc = scnprintf(&buf[written], len - written,
+-				"%lu %lu %u %u %u %u %d %lu %lu %lu %u %u %u %d %lu %lu %lu %lu %lu %lu\n",
++				"%lu %lu %u %u %u %u %d %lu %lu %lu %u %u %u %d %lu %lu %lu %lu %lu %lu %lu %lu %lu\n",
+ 				s->min_sz_region, s->max_sz_region,
+ 				s->min_nr_accesses, s->max_nr_accesses,
+ 				s->min_age_region, s->max_age_region,
+@@ -117,7 +117,9 @@ static ssize_t sprint_schemes(struct dam
+ 				s->quota.weight_age,
+ 				s->wmarks.metric, s->wmarks.interval,
+ 				s->wmarks.high, s->wmarks.mid, s->wmarks.low,
+-				s->stat.nr_tried, s->stat.sz_tried);
++				s->stat.nr_tried, s->stat.sz_tried,
++				s->stat.nr_applied, s->stat.sz_applied,
++				s->stat.qt_exceeds);
+ 		if (!rc)
+ 			return -ENOMEM;
  
 _
 
