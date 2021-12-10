@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 914C7C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4136C433EF
 	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 16:50:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244181AbhLJQyL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S244171AbhLJQyL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 10 Dec 2021 11:54:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33956 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244171AbhLJQyH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 11:54:07 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 54812C061746
-        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 08:50:31 -0800 (PST)
+Received: from sin.source.kernel.org ([145.40.73.55]:60018 "EHLO
+        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S244194AbhLJQyJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 11:54:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1CA0FB82905
-        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 16:50:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB9F5C00446;
-        Fri, 10 Dec 2021 16:50:28 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id B1B1FCE2C28
+        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 16:50:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF5B4C00446;
+        Fri, 10 Dec 2021 16:50:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639155028;
-        bh=yh6LJs+mT9E6kG11BDOOkxB6zjpmwJ6mH+Y+Z8VsjPQ=;
+        s=korg; t=1639155030;
+        bh=8jrm1UjVjzrjLblHviFkoB98rH+U5tnxoFJPnyK94no=;
         h=Date:From:To:Subject:From;
-        b=wgFbsbR02tNm9IGLFAdWhdYFsVVV0mt7OMoX8GXP8Y+b5HaZ9v1ekKrH4+2u56g6C
-         CSJf4+6aHMgw+R1/0+9WjsZhtcIS/yUyuPTix118PK/y9G+ep6duN39AR6S/NfpcPd
-         5yfmHLq56dVvdrOMEcJoeWt/i1/WxM1Wirk0E+n0=
-Date:   Fri, 10 Dec 2021 08:50:28 -0800
+        b=jH1pgBCzK6MvwNUAbTD4z1UkaTzRupgHB2+miG9l8+lViXAvapBqMTkKwj4X8UgKZ
+         /yqhqzsQKeFzdh6Cg7te78gMaCq4PUD6v3qrP58YxIDX4gh+oX5YEgevQS0eUIpt5s
+         1F9LTgnf+IkHdkcs9cuiRjQMSv4blTwboOpnzqYA=
+Date:   Fri, 10 Dec 2021 08:50:30 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, sj@kernel.org
-Subject:  + mm-damon-dbgfs-support-all-damos-stats.patch added to
- -mm tree
-Message-ID: <20211210165028.fSf5jIDW4%akpm@linux-foundation.org>
+Subject:  +
+ docs-admin-guide-mm-damon-usage-update-for-schemes-statistics.patch added
+ to -mm tree
+Message-ID: <20211210165030.UHH0utDD2%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/dbgfs: support all DAMOS stats
+     Subject: Docs/admin-guide/mm/damon/usage: update for schemes statistics
 has been added to the -mm tree.  Its filename is
-     mm-damon-dbgfs-support-all-damos-stats.patch
+     docs-admin-guide-mm-damon-usage-update-for-schemes-statistics.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-dbgfs-support-all-damos-stats.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/docs-admin-guide-mm-damon-usage-update-for-schemes-statistics.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-dbgfs-support-all-damos-stats.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/docs-admin-guide-mm-damon-usage-update-for-schemes-statistics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,42 +62,39 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/dbgfs: support all DAMOS stats
+Subject: Docs/admin-guide/mm/damon/usage: update for schemes statistics
 
-Currently, DAMON debugfs interface is not supporting DAMON-based Operation
-Schemes (DAMOS) stats for schemes successfully applied regions and
-time/space quota limit exceeds.  This commit adds the support.
+This commit updates DAMON debugfs interface for statistics of schemes
+successfully applied regions and time/space quota limit exceeds counts.
 
-Link: https://lkml.kernel.org/r/20211210150016.35349-6-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211210150016.35349-7-sj@kernel.org
 Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ Documentation/admin-guide/mm/damon/usage.rst |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-support-all-damos-stats
-+++ a/mm/damon/dbgfs.c
-@@ -105,7 +105,7 @@ static ssize_t sprint_schemes(struct dam
+--- a/Documentation/admin-guide/mm/damon/usage.rst~docs-admin-guide-mm-damon-usage-update-for-schemes-statistics
++++ a/Documentation/admin-guide/mm/damon/usage.rst
+@@ -223,12 +223,13 @@ is activated.
+ Statistics
+ ~~~~~~~~~~
  
- 	damon_for_each_scheme(s, c) {
- 		rc = scnprintf(&buf[written], len - written,
--				"%lu %lu %u %u %u %u %d %lu %lu %lu %u %u %u %d %lu %lu %lu %lu %lu %lu\n",
-+				"%lu %lu %u %u %u %u %d %lu %lu %lu %u %u %u %d %lu %lu %lu %lu %lu %lu %lu %lu %lu\n",
- 				s->min_sz_region, s->max_sz_region,
- 				s->min_nr_accesses, s->max_nr_accesses,
- 				s->min_age_region, s->max_age_region,
-@@ -117,7 +117,9 @@ static ssize_t sprint_schemes(struct dam
- 				s->quota.weight_age,
- 				s->wmarks.metric, s->wmarks.interval,
- 				s->wmarks.high, s->wmarks.mid, s->wmarks.low,
--				s->stat.nr_tried, s->stat.sz_tried);
-+				s->stat.nr_tried, s->stat.sz_tried,
-+				s->stat.nr_applied, s->stat.sz_applied,
-+				s->stat.qt_exceeds);
- 		if (!rc)
- 			return -ENOMEM;
+-It also counts the total number and bytes of regions that each scheme is
+-applied.  This statistics can be used for online analysis or tuning of the
+-schemes.
++It also counts the total number and bytes of regions that each scheme is tried
++to be applied, the two numbers for the regions that each scheme is successfully
++applied, and the total number of the quota limit exceeds.  This statistics can
++be used for online analysis or tuning of the schemes.
  
+ The statistics can be shown by reading the ``schemes`` file.  Reading the file
+-will show each scheme you entered in each line, and the two numbers for the
++will show each scheme you entered in each line, and the five numbers for the
+ statistics will be added at the end of each line.
+ 
+ Example
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
