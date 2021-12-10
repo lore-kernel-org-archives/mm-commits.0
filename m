@@ -2,142 +2,113 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6A57DC433FE
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 22:45:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDC89C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 22:46:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344601AbhLJWtV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Dec 2021 17:49:21 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60834 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S239783AbhLJWtV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 17:49:21 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 36749C061746
-        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 14:45:45 -0800 (PST)
-Received: from mail.kernel.org (unknown [198.145.29.99])
+        id S239783AbhLJWtt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Dec 2021 17:49:49 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:56890 "EHLO
+        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1344718AbhLJWtt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 17:49:49 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id D2BBFCE2D7E
-        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 22:45:42 +0000 (UTC)
-Received: by mail.kernel.org (Postfix) with ESMTPSA id 1F8BB60E52;
-        Fri, 10 Dec 2021 22:45:41 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 8431ECE2D7E
+        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 22:46:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1588CC00446;
+        Fri, 10 Dec 2021 22:46:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639176341;
-        bh=1mrGD2IglnhFgTRvjfiB3dHpgk/GCyWqvHA0Diy/O2Y=;
-        h=Date:From:To:Cc:Subject:From;
-        b=JhBIxm42TWrUal8J3JDCguElqh8lK7DNL2ZhKADbQC2KPnPRk9JTAbKVaA6FHb8nE
-         EdUnLdofKT4TIT1jxTAZ+IMa9P4B35rBYrtucZ7XQMV52wCwimfs07FemBphvJhrcv
-         IgpfHVPIt56Sldaayb/6V22NJt2cuDXyIugTZrMU=
-Date:   Fri, 10 Dec 2021 14:45:39 -0800
+        s=korg; t=1639176370;
+        bh=t75EP32Wqn+V6jVouKzkBMZHdJbz4sx4tnkOr0TQI+k=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=DOk08XWnoouLxle+q+RoadDus9vchXe8Oluap+ISQ2PFYWFzBi/vP+TA9PsrJnYXx
+         1RMx2HV8MJw7v/+24YK8cMYc6woXSFPOobGDn4Fy4kVzfKDHEyNfT1vXM77+TjAaVV
+         MP+a/S7GKBuEed6aTNYWwltxWG2/T9w7IZABrwJ4=
+Date:   Fri, 10 Dec 2021 14:46:09 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
-Subject: incoming
-Message-Id: <20211210144539.663efee2c80d8450e6180230@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.31; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     akpm@linux-foundation.org, ammarfaizi2@gnuweeb.org,
+        andrew@donacou.ch, asml.silence@gmail.com, axboe@kernel.dk,
+        chrubis@suse.cz, david@redhat.com, hannes@cmpxchg.org,
+        jgg@ziepe.ca, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        sir@cmpwn.com, torvalds@linux-foundation.org
+Subject:  [patch 01/21] Increase default MLOCK_LIMIT to 8 MiB
+Message-ID: <20211210224609.9QkKor7T0%akpm@linux-foundation.org>
+In-Reply-To: <20211210144539.663efee2c80d8450e6180230@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-21 patches, based on c741e49150dbb0c0aebe234389f4aa8b47958fa8.
+From: Drew DeVault <sir@cmpwn.com>
+Subject: Increase default MLOCK_LIMIT to 8 MiB
 
-Subsystems affected by this patch series:
+This limit has not been updated since 2008, when it was increased to 64
+KiB at the request of GnuPG.  Until recently, the main use-cases for this
+feature were (1) preventing sensitive memory from being swapped, as in
+GnuPG's use-case; and (2) real-time use-cases.  In the first case, little
+memory is called for, and in the second case, the user is generally in a
+position to increase it if they need more.
 
-  mm/mlock
-  MAINTAINERS
-  mailmap
-  mm/pagecache
-  mm/damon
-  mm/slub
-  mm/memcg
-  mm/hugetlb
-  mm/pagecache
+The introduction of IOURING_REGISTER_BUFFERS adds a third use-case:
+preparing fixed buffers for high-performance I/O.  This use-case will take
+as much of this memory as it can get, but is still limited to 64 KiB by
+default, which is very little.  This increases the limit to 8 MB, which
+was chosen fairly arbitrarily as a more generous, but still conservative,
+default value.
 
-Subsystem: mm/mlock
+It is also possible to raise this limit in userspace.  This is easily
+done, for example, in the use-case of a network daemon: systemd, for
+instance, provides for this via LimitMEMLOCK in the service file; OpenRC
+via the rc_ulimit variables.  However, there is no established userspace
+facility for configuring this outside of daemons: end-user applications do
+not presently have access to a convenient means of raising their limits.
 
-    Drew DeVault <sir@cmpwn.com>:
-      Increase default MLOCK_LIMIT to 8 MiB
+The buck, as it were, stops with the kernel.  It's much easier to address
+it here than it is to bring it to hundreds of distributions, and it can
+only realistically be relied upon to be high-enough by end-user software
+if it is more-or-less ubiquitous.  Most distros don't change this
+particular rlimit from the kernel-supplied default value, so a change here
+will easily provide that ubiquity.
 
-Subsystem: MAINTAINERS
+Link: https://lkml.kernel.org/r/20211028080813.15966-1-sir@cmpwn.com
+Signed-off-by: Drew DeVault <sir@cmpwn.com>
+Acked-by: Jens Axboe <axboe@kernel.dk>
+Acked-by: Cyril Hrubis <chrubis@suse.cz>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Pavel Begunkov <asml.silence@gmail.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Andrew Dona-Couch <andrew@donacou.ch>
+Cc: Ammar Faizi <ammarfaizi2@gnuweeb.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-    Dave Young <dyoung@redhat.com>:
-      MAINTAINERS: update kdump maintainers
+ include/uapi/linux/resource.h |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-Subsystem: mailmap
-
-    Guo Ren <guoren@linux.alibaba.com>:
-      mailmap: update email address for Guo Ren
-
-Subsystem: mm/pagecache
-
-    "Matthew Wilcox (Oracle)" <willy@infradead.org>:
-      filemap: remove PageHWPoison check from next_uptodate_page()
-
-Subsystem: mm/damon
-
-    SeongJae Park <sj@kernel.org>:
-    Patch series "mm/damon: Fix fake /proc/loadavg reports", v3:
-      timers: implement usleep_idle_range()
-      mm/damon/core: fix fake load reports due to uninterruptible sleeps
-    Patch series "mm/damon: Trivial fixups and improvements":
-      mm/damon/core: use better timer mechanisms selection threshold
-      mm/damon/dbgfs: remove an unnecessary error message
-      mm/damon/core: remove unnecessary error messages
-      mm/damon/vaddr: remove an unnecessary warning message
-      mm/damon/vaddr-test: split a test function having >1024 bytes frame size
-      mm/damon/vaddr-test: remove unnecessary variables
-      selftests/damon: skip test if DAMON is running
-      selftests/damon: test DAMON enabling with empty target_ids case
-      selftests/damon: test wrong DAMOS condition ranges input
-      selftests/damon: test debugfs file reads/writes with huge count
-      selftests/damon: split test cases
-
-Subsystem: mm/slub
-
-    Gerald Schaefer <gerald.schaefer@linux.ibm.com>:
-      mm/slub: fix endianness bug for alloc/free_traces attributes
-
-Subsystem: mm/memcg
-
-    Waiman Long <longman@redhat.com>:
-      mm/memcg: relocate mod_objcg_mlstate(), get_obj_stock() and put_obj_stock()
-
-Subsystem: mm/hugetlb
-
-    Zhenguo Yao <yaozhenguo1@gmail.com>:
-      hugetlbfs: fix issue of preallocation of gigantic pages can't work
-
-Subsystem: mm/pagecache
-
-    Manjong Lee <mj0123.lee@samsung.com>:
-      mm: bdi: initialize bdi_min_ratio when bdi is unregistered
-
- .mailmap                                                       |    2 
- MAINTAINERS                                                    |    2 
- include/linux/delay.h                                          |   14 
- include/uapi/linux/resource.h                                  |   13 
- kernel/time/timer.c                                            |   16 -
- mm/backing-dev.c                                               |    7 
- mm/damon/core.c                                                |   20 -
- mm/damon/dbgfs.c                                               |    4 
- mm/damon/vaddr-test.h                                          |   85 ++---
- mm/damon/vaddr.c                                               |    1 
- mm/filemap.c                                                   |    2 
- mm/hugetlb.c                                                   |    2 
- mm/memcontrol.c                                                |  106 +++----
- mm/slub.c                                                      |   15 -
- tools/testing/selftests/damon/.gitignore                       |    2 
- tools/testing/selftests/damon/Makefile                         |    7 
- tools/testing/selftests/damon/_debugfs_common.sh               |   52 +++
- tools/testing/selftests/damon/debugfs_attrs.sh                 |  149 ++--------
- tools/testing/selftests/damon/debugfs_empty_targets.sh         |   13 
- tools/testing/selftests/damon/debugfs_huge_count_read_write.sh |   22 +
- tools/testing/selftests/damon/debugfs_schemes.sh               |   19 +
- tools/testing/selftests/damon/debugfs_target_ids.sh            |   19 +
- tools/testing/selftests/damon/huge_count_read_write.c          |   39 ++
- 23 files changed, 363 insertions(+), 248 deletions(-)
-
+--- a/include/uapi/linux/resource.h~increase-default-mlock_limit-to-8-mib
++++ a/include/uapi/linux/resource.h
+@@ -66,10 +66,17 @@ struct rlimit64 {
+ #define _STK_LIM	(8*1024*1024)
+ 
+ /*
+- * GPG2 wants 64kB of mlocked memory, to make sure pass phrases
+- * and other sensitive information are never written to disk.
++ * Limit the amount of locked memory by some sane default:
++ * root can always increase this limit if needed.
++ *
++ * The main use-cases are (1) preventing sensitive memory
++ * from being swapped; (2) real-time operations; (3) via
++ * IOURING_REGISTER_BUFFERS.
++ *
++ * The first two don't need much. The latter will take as
++ * much as it can get. 8MB is a reasonably sane default.
+  */
+-#define MLOCK_LIMIT	((PAGE_SIZE > 64*1024) ? PAGE_SIZE : 64*1024)
++#define MLOCK_LIMIT	((PAGE_SIZE > 8*1024*1024) ? PAGE_SIZE : 8*1024*1024)
+ 
+ /*
+  * Due to binary compatibility, the actual resource numbers
+_
