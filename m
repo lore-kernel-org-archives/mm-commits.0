@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 03D5EC433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 85251C433EF
 	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 22:47:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344986AbhLJWup (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1344964AbhLJWup (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 10 Dec 2021 17:50:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32952 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345004AbhLJWum (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 17:50:42 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 44F78C0617A2
-        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 14:47:03 -0800 (PST)
+        with ESMTP id S1345010AbhLJWun (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 17:50:43 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC8D8C061D60;
+        Fri, 10 Dec 2021 14:47:03 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 90A5ECE2D8B
-        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 22:47:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7EFDAC341D5;
-        Fri, 10 Dec 2021 22:46:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 56D6FB82A22;
+        Fri, 10 Dec 2021 22:47:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C38DC00446;
+        Fri, 10 Dec 2021 22:47:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639176419;
-        bh=8PFL2hU+aqClMN7E8TzwzdWKP6OcUsLs1v/vELPKT8o=;
+        s=korg; t=1639176423;
+        bh=e371BC48yi+1zkcqf7J8rWC7iV2JeIwQviTRnB13Kls=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=mZ2S8ufz/ffX9pGM/AXL7e5w9PE7vq6uXfzfLiBwVSup/Pv1ofz3ExNsHUEs3u1D2
-         61hlgYBWENuiS0eKYX8pKT6G8RfjGLEn5wAjq1iXacSnbpgXVLBE3bX1d9O6uKk9Pg
-         pQAq0YmxPUXgsJT/ljHgg8hWzvf7ajoJpO9bBpKA=
-Date:   Fri, 10 Dec 2021 14:46:59 -0800
+        b=qpY/s0wadtl/IEGFGEEkLlISN9uKcIInlTINk0m2DjQs5BGhAuKhd8kgRCr/Q5Kzt
+         ExOFW5fXLpg4sEkumGTwfamiV/ioV46/NLt1vgiy8drY7LIbTamCPgCU7N22BlR1pV
+         NKbqorpTmn54M2J3Sjpv63prhg7JMlUTJA4khRg0=
+Date:   Fri, 10 Dec 2021 14:47:02 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, brendanhiggins@google.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org, shuah@kernel.org,
-        sj@kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 17/21] selftests/damon: split test cases
-Message-ID: <20211210224659.U3T9o0WbW%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, cl@linux.com, faiyazm@codeaurora.org,
+        gerald.schaefer@linux.ibm.com, gregkh@linuxfoundation.org,
+        iamjoonsoo.kim@lge.com, linux-mm@kvack.org, maier@linux.ibm.com,
+        mm-commits@vger.kernel.org, penberg@kernel.org,
+        rientjes@google.com, stable@vger.kernel.org,
+        torvalds@linux-foundation.org, vbabka@suse.cz
+Subject:  [patch 18/21] mm/slub: fix endianness bug for
+ alloc/free_traces attributes
+Message-ID: <20211210224702.RW6YwnTh2%akpm@linux-foundation.org>
 In-Reply-To: <20211210144539.663efee2c80d8450e6180230@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,306 +46,88 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: SeongJae Park <sj@kernel.org>
-Subject: selftests/damon: split test cases
+From: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Subject: mm/slub: fix endianness bug for alloc/free_traces attributes
 
-Currently, the single test program, debugfs.sh, contains all test cases
-for DAMON.  When one of the cases fails, finding which case is failed from
-the test log is not so easy, and all remaining tests will be skipped.  To
-improve the situation, this commit splits the single program into small
-test programs having their own names.
+On big-endian s390, the alloc/free_traces attributes produce endless
+output, because of always 0 idx in slab_debugfs_show().
 
-Link: https://lkml.kernel.org/r/20211201150440.1088-12-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Brendan Higgins <brendanhiggins@google.com>
-Cc: Shuah Khan <shuah@kernel.org>
+idx is de-referenced from *v, which points to a loff_t value, with
+
+unsigned int idx = *(unsigned int *)v;
+
+This will only give the upper 32 bits on big-endian, which remain 0.
+
+Instead of only fixing this de-reference, during discussion it seemed more
+appropriate to change the seq_ops so that they use an explicit iterator in
+private loc_track struct.
+
+This patch adds idx to loc_track, which will also fix the endianness bug.
+
+Link: https://lore.kernel.org/r/20211117193932.4049412-1-gerald.schaefer@linux.ibm.com
+Link: https://lkml.kernel.org/r/20211126171848.17534-1-gerald.schaefer@linux.ibm.com
+Fixes: 64dd68497be7 ("mm: slub: move sysfs slab alloc/free interfaces to debugfs")
+Signed-off-by: Gerald Schaefer <gerald.schaefer@linux.ibm.com>
+Reported-by: Steffen Maier <maier@linux.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Faiyaz Mohammed <faiyazm@codeaurora.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/damon/Makefile                         |    5 
- tools/testing/selftests/damon/_debugfs_common.sh               |   52 ++++
- tools/testing/selftests/damon/debugfs_attrs.sh                 |  111 ----------
- tools/testing/selftests/damon/debugfs_empty_targets.sh         |   13 +
- tools/testing/selftests/damon/debugfs_huge_count_read_write.sh |   22 +
- tools/testing/selftests/damon/debugfs_schemes.sh               |   19 +
- tools/testing/selftests/damon/debugfs_target_ids.sh            |   19 +
- 7 files changed, 129 insertions(+), 112 deletions(-)
+ mm/slub.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
---- a/tools/testing/selftests/damon/debugfs_attrs.sh~selftests-damon-split-test-cases
-+++ a/tools/testing/selftests/damon/debugfs_attrs.sh
-@@ -1,57 +1,7 @@
- #!/bin/bash
- # SPDX-License-Identifier: GPL-2.0
+--- a/mm/slub.c~mm-slub-fix-endianness-bug-for-alloc-free_traces-attributes
++++ a/mm/slub.c
+@@ -5081,6 +5081,7 @@ struct loc_track {
+ 	unsigned long max;
+ 	unsigned long count;
+ 	struct location *loc;
++	loff_t idx;
+ };
  
--test_write_result() {
--	file=$1
--	content=$2
--	orig_content=$3
--	expect_reason=$4
--	expected=$5
+ static struct dentry *slab_debugfs_root;
+@@ -6052,11 +6053,11 @@ __initcall(slab_sysfs_init);
+ #if defined(CONFIG_SLUB_DEBUG) && defined(CONFIG_DEBUG_FS)
+ static int slab_debugfs_show(struct seq_file *seq, void *v)
+ {
 -
--	echo "$content" > "$file"
--	if [ $? -ne "$expected" ]
--	then
--		echo "writing $content to $file doesn't return $expected"
--		echo "expected because: $expect_reason"
--		echo "$orig_content" > "$file"
--		exit 1
--	fi
--}
--
--test_write_succ() {
--	test_write_result "$1" "$2" "$3" "$4" 0
--}
--
--test_write_fail() {
--	test_write_result "$1" "$2" "$3" "$4" 1
--}
--
--test_content() {
--	file=$1
--	orig_content=$2
--	expected=$3
--	expect_reason=$4
--
--	content=$(cat "$file")
--	if [ "$content" != "$expected" ]
--	then
--		echo "reading $file expected $expected but $content"
--		echo "expected because: $expect_reason"
--		echo "$orig_content" > "$file"
--		exit 1
--	fi
--}
--
--source ./_chk_dependency.sh
--
--ksft_skip=4
--
--damon_onoff="$DBGFS/monitor_on"
--if [ $(cat "$damon_onoff") = "on" ]
--then
--	echo "monitoring is on"
--	exit $ksft_skip
--fi
-+source _debugfs_common.sh
+-	struct location *l;
+-	unsigned int idx = *(unsigned int *)v;
+ 	struct loc_track *t = seq->private;
++	struct location *l;
++	unsigned long idx;
  
- # Test attrs file
- # ===============
-@@ -65,62 +15,3 @@ test_write_fail "$file" "1 2 3 5 4" "$or
- 	"min_nr_regions > max_nr_regions"
- test_content "$file" "$orig_content" "1 2 3 4 5" "successfully written"
- echo "$orig_content" > "$file"
--
--# Test schemes file
--# =================
--
--file="$DBGFS/schemes"
--orig_content=$(cat "$file")
--
--test_write_succ "$file" "1 2 3 4 5 6 4 0 0 0 1 2 3 1 100 3 2 1" \
--	"$orig_content" "valid input"
--test_write_fail "$file" "1 2
--3 4 5 6 3 0 0 0 1 2 3 1 100 3 2 1" "$orig_content" "multi lines"
--test_write_succ "$file" "" "$orig_content" "disabling"
--test_write_fail "$file" "2 1 2 1 10 1 3 10 1 1 1 1 1 1 1 1 2 3" \
--	"$orig_content" "wrong condition ranges"
--echo "$orig_content" > "$file"
--
--# Test target_ids file
--# ====================
--
--file="$DBGFS/target_ids"
--orig_content=$(cat "$file")
--
--test_write_succ "$file" "1 2 3 4" "$orig_content" "valid input"
--test_write_succ "$file" "1 2 abc 4" "$orig_content" "still valid input"
--test_content "$file" "$orig_content" "1 2" "non-integer was there"
--test_write_succ "$file" "abc 2 3" "$orig_content" "the file allows wrong input"
--test_content "$file" "$orig_content" "" "wrong input written"
--test_write_succ "$file" "" "$orig_content" "empty input"
--test_content "$file" "$orig_content" "" "empty input written"
--echo "$orig_content" > "$file"
--
--# Test empty targets case
--# =======================
--
--orig_target_ids=$(cat "$DBGFS/target_ids")
--echo "" > "$DBGFS/target_ids"
--orig_monitor_on=$(cat "$DBGFS/monitor_on")
--test_write_fail "$DBGFS/monitor_on" "on" "orig_monitor_on" "empty target ids"
--echo "$orig_target_ids" > "$DBGFS/target_ids"
--
--# Test huge count read write
--# ==========================
--
--dmesg -C
--
--for file in "$DBGFS/"*
--do
--	./huge_count_read_write "$file"
--done
--
--if dmesg | grep -q WARNING
--then
--	dmesg
--	exit 1
--else
--	exit 0
--fi
--
--echo "PASS"
---- /dev/null
-+++ a/tools/testing/selftests/damon/_debugfs_common.sh
-@@ -0,0 +1,52 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+
-+test_write_result() {
-+	file=$1
-+	content=$2
-+	orig_content=$3
-+	expect_reason=$4
-+	expected=$5
-+
-+	echo "$content" > "$file"
-+	if [ $? -ne "$expected" ]
-+	then
-+		echo "writing $content to $file doesn't return $expected"
-+		echo "expected because: $expect_reason"
-+		echo "$orig_content" > "$file"
-+		exit 1
-+	fi
-+}
-+
-+test_write_succ() {
-+	test_write_result "$1" "$2" "$3" "$4" 0
-+}
-+
-+test_write_fail() {
-+	test_write_result "$1" "$2" "$3" "$4" 1
-+}
-+
-+test_content() {
-+	file=$1
-+	orig_content=$2
-+	expected=$3
-+	expect_reason=$4
-+
-+	content=$(cat "$file")
-+	if [ "$content" != "$expected" ]
-+	then
-+		echo "reading $file expected $expected but $content"
-+		echo "expected because: $expect_reason"
-+		echo "$orig_content" > "$file"
-+		exit 1
-+	fi
-+}
-+
-+source ./_chk_dependency.sh
-+
-+damon_onoff="$DBGFS/monitor_on"
-+if [ $(cat "$damon_onoff") = "on" ]
-+then
-+	echo "monitoring is on"
-+	exit $ksft_skip
-+fi
---- /dev/null
-+++ a/tools/testing/selftests/damon/debugfs_empty_targets.sh
-@@ -0,0 +1,13 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+
-+source _debugfs_common.sh
-+
-+# Test empty targets case
-+# =======================
-+
-+orig_target_ids=$(cat "$DBGFS/target_ids")
-+echo "" > "$DBGFS/target_ids"
-+orig_monitor_on=$(cat "$DBGFS/monitor_on")
-+test_write_fail "$DBGFS/monitor_on" "on" "orig_monitor_on" "empty target ids"
-+echo "$orig_target_ids" > "$DBGFS/target_ids"
---- /dev/null
-+++ a/tools/testing/selftests/damon/debugfs_huge_count_read_write.sh
-@@ -0,0 +1,22 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+
-+source _debugfs_common.sh
-+
-+# Test huge count read write
-+# ==========================
-+
-+dmesg -C
-+
-+for file in "$DBGFS/"*
-+do
-+	./huge_count_read_write "$file"
-+done
-+
-+if dmesg | grep -q WARNING
-+then
-+	dmesg
-+	exit 1
-+else
-+	exit 0
-+fi
---- /dev/null
-+++ a/tools/testing/selftests/damon/debugfs_schemes.sh
-@@ -0,0 +1,19 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+
-+source _debugfs_common.sh
-+
-+# Test schemes file
-+# =================
-+
-+file="$DBGFS/schemes"
-+orig_content=$(cat "$file")
-+
-+test_write_succ "$file" "1 2 3 4 5 6 4 0 0 0 1 2 3 1 100 3 2 1" \
-+	"$orig_content" "valid input"
-+test_write_fail "$file" "1 2
-+3 4 5 6 3 0 0 0 1 2 3 1 100 3 2 1" "$orig_content" "multi lines"
-+test_write_succ "$file" "" "$orig_content" "disabling"
-+test_write_fail "$file" "2 1 2 1 10 1 3 10 1 1 1 1 1 1 1 1 2 3" \
-+	"$orig_content" "wrong condition ranges"
-+echo "$orig_content" > "$file"
---- /dev/null
-+++ a/tools/testing/selftests/damon/debugfs_target_ids.sh
-@@ -0,0 +1,19 @@
-+#!/bin/bash
-+# SPDX-License-Identifier: GPL-2.0
-+
-+source _debugfs_common.sh
-+
-+# Test target_ids file
-+# ====================
-+
-+file="$DBGFS/target_ids"
-+orig_content=$(cat "$file")
-+
-+test_write_succ "$file" "1 2 3 4" "$orig_content" "valid input"
-+test_write_succ "$file" "1 2 abc 4" "$orig_content" "still valid input"
-+test_content "$file" "$orig_content" "1 2" "non-integer was there"
-+test_write_succ "$file" "abc 2 3" "$orig_content" "the file allows wrong input"
-+test_content "$file" "$orig_content" "" "wrong input written"
-+test_write_succ "$file" "" "$orig_content" "empty input"
-+test_content "$file" "$orig_content" "" "empty input written"
-+echo "$orig_content" > "$file"
---- a/tools/testing/selftests/damon/Makefile~selftests-damon-split-test-cases
-+++ a/tools/testing/selftests/damon/Makefile
-@@ -3,7 +3,8 @@
++	idx = (unsigned long) t->idx;
+ 	if (idx < t->count) {
+ 		l = &t->loc[idx];
  
- TEST_GEN_FILES += huge_count_read_write
+@@ -6105,16 +6106,18 @@ static void *slab_debugfs_next(struct se
+ {
+ 	struct loc_track *t = seq->private;
  
--TEST_FILES = _chk_dependency.sh
--TEST_PROGS = debugfs_attrs.sh
-+TEST_FILES = _chk_dependency.sh _debugfs_common.sh
-+TEST_PROGS = debugfs_attrs.sh debugfs_schemes.sh debugfs_target_ids.sh
-+TEST_PROGS += debugfs_empty_targets.sh debugfs_huge_count_read_write.sh
+-	v = ppos;
+-	++*ppos;
++	t->idx = ++(*ppos);
+ 	if (*ppos <= t->count)
+-		return v;
++		return ppos;
  
- include ../lib.mk
+ 	return NULL;
+ }
+ 
+ static void *slab_debugfs_start(struct seq_file *seq, loff_t *ppos)
+ {
++	struct loc_track *t = seq->private;
++
++	t->idx = *ppos;
+ 	return ppos;
+ }
+ 
 _
