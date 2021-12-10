@@ -2,123 +2,152 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A455BC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 09:26:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E79FEC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 16:35:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233988AbhLJJ36 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Dec 2021 04:29:58 -0500
-Received: from smtp-out2.suse.de ([195.135.220.29]:58880 "EHLO
-        smtp-out2.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236300AbhLJJ3z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 04:29:55 -0500
-Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
-        by smtp-out2.suse.de (Postfix) with ESMTP id DC5881F387;
-        Fri, 10 Dec 2021 09:26:18 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
-        t=1639128378; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
-         mime-version:mime-version:content-type:content-type:
-         in-reply-to:in-reply-to:references:references;
-        bh=OD+kBuQDOOzzVBWfZjCqChKEAkc0ex9ahLKuU1LARsk=;
-        b=r5Y/+F2KwJT8oI46KotaQuXRFCkiUvz0+MqfnXBTG88vQ4OziCH6BPYx7jwF0oUCE7gOy0
-        H8YUh+KHem+z44xOQ4EFh8B+iOxBdr8Wy0FEebidVK1VXOVntgQISACreyCI7e2LpztJIN
-        jNdj3tJu/0Bhl+MpIF51YO+Ne8PQlwQ=
-Received: from suse.cz (unknown [10.100.201.86])
+        id S243615AbhLJQit (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Dec 2021 11:38:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57922 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S243603AbhLJQir (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 11:38:47 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 386A7C061746
+        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 08:35:12 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by relay2.suse.de (Postfix) with ESMTPS id C65C1A3B93;
-        Fri, 10 Dec 2021 09:26:18 +0000 (UTC)
-Date:   Fri, 10 Dec 2021 10:26:17 +0100
-From:   Michal Hocko <mhocko@suse.com>
-To:     linux-kernel@vger.kernel.org
-Cc:     jsavitz@redhat.com, longman@redhat.com, mm-commits@vger.kernel.org,
-        npache@redhat.com, peterz@infradead.org
-Subject: Re: +
- mm-oom_kill-wake-futex-waiters-before-annihilating-victim-shared-mutex.patch
- added to -mm tree
-Message-ID: <YbMdOXqMayGSguFQ@dhcp22.suse.cz>
-References: <20211207234924.gtknfVfZB%akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20211207234924.gtknfVfZB%akpm@linux-foundation.org>
+        by sin.source.kernel.org (Postfix) with ESMTPS id 81B30CE2C1B
+        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 16:35:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2676FC00446;
+        Fri, 10 Dec 2021 16:35:08 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1639154108;
+        bh=5IqD+deZwFm/hyzla3Qhhi9IMEpKbfJm0O5syTEfNxg=;
+        h=Date:From:To:Subject:From;
+        b=qWwyDqw5xLEEoh+hlQ1Yb0eY1PoizRb8vvDXrAwFVqNlV3hbq7kPcfMQG0AegbDqa
+         w+LJ8T9XdC/3vKJDb7BtYI2Z4ZTA4s2vvSFi2Kik7/Ed98sK7ObKFuidXdHlFNEeP3
+         lmjcwcwm8ujzfCNutw0iHwjhRjXTDvAlONWGRPPA=
+Date:   Fri, 10 Dec 2021 08:35:07 -0800
+From:   akpm@linux-foundation.org
+To:     andreyknvl@gmail.com, bp@alien8.de, catalin.marinas@arm.com,
+        dave.hansen@linux.intel.com, dvyukov@google.com, elver@google.com,
+        hpa@zytor.com, mark.rutland@arm.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, peterz@infradead.org, tglx@linutronix.de,
+        will@kernel.org
+Subject:  +
+ kcov-fix-generic-kconfig-dependencies-if-arch_wants_no_instr.patch added to
+ -mm tree
+Message-ID: <20211210163507.Wu6bT8kGg%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Btw. I do not think this patch should be in MM until we hear from Futex
-maintainers and also learn more about the underlying issue.
 
-Thanks.
+The patch titled
+     Subject: kcov: fix generic Kconfig dependencies if ARCH_WANTS_NO_INSTR
+has been added to the -mm tree.  Its filename is
+     kcov-fix-generic-kconfig-dependencies-if-arch_wants_no_instr.patch
 
-On Tue 07-12-21 15:49:24, Andrew Morton wrote:
-> From: Joel Savitz <jsavitz@redhat.com>
-> Subject: mm/oom_kill: wake futex waiters before annihilating victim shared mutex
-> 
-> In the case that two or more processes share a futex located within a
-> shared mmaped region, such as a process that shares a lock between itself
-> and a number of child processes, we have observed that when a process
-> holding the lock is oom killed, at least one waiter is never alerted to
-> this new development and simply continues to wait.
-> 
-> This is visible via pthreads by checking the __owner field of the
-> pthread_mutex_t structure within a waiting process, perhaps with gdb.
-> 
-> We identify reproduction of this issue by checking a waiting process of a
-> test program and viewing the contents of the pthread_mutex_t, taking note
-> of the value in the owner field, and then checking dmesg to see if the
-> owner has already been killed.
-> 
-> This issue can be tricky to reproduce, but with the modifications of this
-> small patch, I have found it to be impossible to reproduce.  There may be
-> additional considerations that I have not taken into account in this patch
-> and I welcome any comments and criticism.
-> 
-> Link: https://lkml.kernel.org/r/20211207214902.772614-1-jsavitz@redhat.com
-> Signed-off-by: Nico Pache <npache@redhat.com>
-> Co-developed-by: Nico Pache <npache@redhat.com>
-> Signed-off-by: Joel Savitz <jsavitz@redhat.com>
-> Cc: Waiman Long <longman@redhat.com>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Michal Hocko <mhocko@suse.com>
-> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
-> ---
-> 
->  mm/oom_kill.c |    3 +++
->  1 file changed, 3 insertions(+)
-> 
-> --- a/mm/oom_kill.c~mm-oom_kill-wake-futex-waiters-before-annihilating-victim-shared-mutex
-> +++ a/mm/oom_kill.c
-> @@ -44,6 +44,7 @@
->  #include <linux/kthread.h>
->  #include <linux/init.h>
->  #include <linux/mmu_notifier.h>
-> +#include <linux/futex.h>
->  
->  #include <asm/tlb.h>
->  #include "internal.h"
-> @@ -890,6 +891,7 @@ static void __oom_kill_process(struct ta
->  	 * in order to prevent the OOM victim from depleting the memory
->  	 * reserves from the user space under its control.
->  	 */
-> +	futex_exit_release(victim);
->  	do_send_sig_info(SIGKILL, SEND_SIG_PRIV, victim, PIDTYPE_TGID);
->  	mark_oom_victim(victim);
->  	pr_err("%s: Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB, UID:%u pgtables:%lukB oom_score_adj:%hd\n",
-> @@ -930,6 +932,7 @@ static void __oom_kill_process(struct ta
->  		 */
->  		if (unlikely(p->flags & PF_KTHREAD))
->  			continue;
-> +		futex_exit_release(p);
->  		do_send_sig_info(SIGKILL, SEND_SIG_PRIV, p, PIDTYPE_TGID);
->  	}
->  	rcu_read_unlock();
-> _
-> 
-> Patches currently in -mm which might be from jsavitz@redhat.com are
-> 
-> mm-oom_kill-wake-futex-waiters-before-annihilating-victim-shared-mutex.patch
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/kcov-fix-generic-kconfig-dependencies-if-arch_wants_no_instr.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/kcov-fix-generic-kconfig-dependencies-if-arch_wants_no_instr.patch
 
--- 
-Michal Hocko
-SUSE Labs
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Marco Elver <elver@google.com>
+Subject: kcov: fix generic Kconfig dependencies if ARCH_WANTS_NO_INSTR
+
+Until recent versions of GCC and Clang, it was not possible to disable
+KCOV instrumentation via a function attribute. The relevant function
+attribute was introduced in 540540d06e9d9 ("kcov: add
+__no_sanitize_coverage to fix noinstr for all architectures").
+
+x86 was the first architecture to want a working noinstr, and at the
+time no compiler support for the attribute existed yet. Therefore,
+0f1441b44e823 ("objtool: Fix noinstr vs KCOV") introduced the ability to
+NOP __sanitizer_cov_*() calls in .noinstr.text.
+
+However, this doesn't work for other architectures like arm64 and s390
+that want a working noinstr per ARCH_WANTS_NO_INSTR.
+
+At the time of 0f1441b44e823, we didn't yet have ARCH_WANTS_NO_INSTR,
+but now we can move the Kconfig dependency checks to the generic KCOV
+option. KCOV will be available if:
+
+	- architecture does not care about noinstr, OR
+	- we have objtool support (like on x86), OR
+	- GCC is 12.0 or newer, OR
+	- Clang is 13.0 or newer.
+
+Link: https://lkml.kernel.org/r/20211201152604.3984495-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will@kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ arch/x86/Kconfig  |    2 +-
+ lib/Kconfig.debug |    2 ++
+ 2 files changed, 3 insertions(+), 1 deletion(-)
+
+--- a/arch/x86/Kconfig~kcov-fix-generic-kconfig-dependencies-if-arch_wants_no_instr
++++ a/arch/x86/Kconfig
+@@ -78,7 +78,7 @@ config X86
+ 	select ARCH_HAS_FILTER_PGPROT
+ 	select ARCH_HAS_FORTIFY_SOURCE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+-	select ARCH_HAS_KCOV			if X86_64 && STACK_VALIDATION
++	select ARCH_HAS_KCOV			if X86_64
+ 	select ARCH_HAS_MEM_ENCRYPT
+ 	select ARCH_HAS_MEMBARRIER_SYNC_CORE
+ 	select ARCH_HAS_NON_OVERLAPPING_ADDRESS_SPACE
+--- a/lib/Kconfig.debug~kcov-fix-generic-kconfig-dependencies-if-arch_wants_no_instr
++++ a/lib/Kconfig.debug
+@@ -1985,6 +1985,8 @@ config KCOV
+ 	bool "Code coverage for fuzzing"
+ 	depends on ARCH_HAS_KCOV
+ 	depends on CC_HAS_SANCOV_TRACE_PC || GCC_PLUGINS
++	depends on !ARCH_WANTS_NO_INSTR || STACK_VALIDATION || \
++		   GCC_VERSION >= 120000 || CLANG_VERSION >= 130000
+ 	select DEBUG_FS
+ 	select GCC_PLUGIN_SANCOV if !CC_HAS_SANCOV_TRACE_PC
+ 	help
+_
+
+Patches currently in -mm which might be from elver@google.com are
+
+mm-slab_common-use-warn-if-cache-still-has-objects-on-destroy.patch
+kasan-test-add-globals-left-out-of-bounds-test.patch
+kasan-add-ability-to-detect-double-kmem_cache_destroy.patch
+kasan-test-add-test-case-for-double-kmem_cache_destroy.patch
+panic-use-error_report_end-tracepoint-on-warnings.patch
+kcov-fix-generic-kconfig-dependencies-if-arch_wants_no_instr.patch
+lib-stackdepot-always-do-filter_irq_stacks-in-stack_depot_save.patch
+
