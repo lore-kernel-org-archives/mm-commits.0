@@ -2,40 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CB3FDC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 21:05:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61190C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 22:30:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232478AbhLJVJR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 10 Dec 2021 16:09:17 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:55030 "EHLO
-        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231983AbhLJVJR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 16:09:17 -0500
+        id S240033AbhLJWeQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Dec 2021 17:34:16 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57398 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239079AbhLJWeP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 17:34:15 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1385FC061746
+        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 14:30:39 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id BD8A5CE2B9F
-        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 21:05:40 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C786BC00446;
-        Fri, 10 Dec 2021 21:05:38 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 1EF84CE2AC8
+        for <mm-commits@vger.kernel.org>; Fri, 10 Dec 2021 22:30:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2F30C00446;
+        Fri, 10 Dec 2021 22:30:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639170338;
-        bh=BIKiVXeYGdk9XFTuinvBqwqmmPwKMSt8+f4kfpxV8Hg=;
+        s=korg; t=1639175436;
+        bh=FyygjVle5vI96vTx66uefVxJcgaqJ5eXZpoXwRZxcYo=;
         h=Date:From:To:Subject:From;
-        b=uq3BYg91eOiTxQs6rARHIZUn1x8AnlW7pdlLhZZFb8dEY1OXD1xct7BrT+thexWgj
-         NPaHne6mZOoHHcKV01RvkFXKUAIJgYKcceVl1w6k4CtzYwLW3r3goLWceC5HIS/Tuv
-         mkXtUgo40W8P49dp46+t8okAszWxEyb+7bOUf/0U=
-Date:   Fri, 10 Dec 2021 13:05:38 -0800
+        b=fXOGLZjuvjVR82luDOkva311A/2n5hAlDVcSXbyK/Q1/RLX/0jpjRhiaGfs2zyxuI
+         rp/o9gk4sqx3/QJx2woM9bzymMpyGguZxtv5B6vsYziPojiwe2ykUtHpWGZq7QsgOn
+         RyI9X0+jWAyAs0no2ItuM/RI7plRd2g8nAyCiGt8=
+Date:   Fri, 10 Dec 2021 14:30:34 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de,
-        mm-commits@vger.kernel.org
-Subject:  +
- =?US-ASCII?Q?kernel-sys-only-take-tasklist=5Flock-for-get-setpriorityprio?=
- =?US-ASCII?Q?=5Fpgrp-checkpatch-fixes.patch?= added to -mm tree
-Message-ID: <20211210210538.CXMNfB-nK%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, axboe@kernel.dk, hch@infradead.org,
+        jisoo2146.oh@samsung.com, junho89.kim@samsung.com,
+        mj0123.lee@samsung.com, mm-commits@vger.kernel.org,
+        nanich.lee@samsung.com, seunghwan.hyun@samsung.com,
+        sookwan7.kim@samsung.com, willy@infradead.org,
+        yt0928.kim@samsung.com
+Subject:  [folded-merged]
+ mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch removed from
+ -mm tree
+Message-ID: <20211210223034.awiHMHY24%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,75 +48,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes
-has been added to the -mm tree.  Its filename is
-     kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch
+     Subject: mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix
+has been removed from the -mm tree.  Its filename was
+     mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes
+Subject: mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix
 
-ERROR: code indent should use tabs where possible
-#102: FILE: kernel/sys.c:321:
-+^I        for_each_process_thread(g, p) {$
-
-WARNING: From:/Signed-off-by: email address mismatch: 'From: Davidlohr Bueso <dave@stgolabs.net>' != 'Signed-off-by: Davidlohr Bueso <dbueso@suse.de>'
-
-total: 1 errors, 1 warnings, 77 lines checked
-
-NOTE: For some of the reported defects, checkpatch may be able to
-      mechanically convert to the typical style using --fix or --fix-inplace.
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Changheun Lee <nanich.lee@samsung.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: <jisoo2146.oh@samsung.com>
+Cc: <junho89.kim@samsung.com>
+Cc: Manjong Lee <mj0123.lee@samsung.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: <seunghwan.hyun@samsung.com>
+Cc: <sookwan7.kim@samsung.com>
+Cc: <yt0928.kim@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sys.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/backing-dev.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
---- a/kernel/sys.c~kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes
-+++ a/kernel/sys.c
-@@ -318,7 +318,7 @@ SYSCALL_DEFINE2(getpriority, int, which,
- 			if (!user)
- 				goto out_unlock;	/* No processes for this user */
- 		}
--	        for_each_process_thread(g, p) {
-+		for_each_process_thread(g, p) {
- 			if (uid_eq(task_uid(p), uid) && task_pid_vnr(p)) {
- 				niceval = nice_to_rlimit(task_nice(p));
- 				if (niceval > retval)
+--- a/mm/backing-dev.c~mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix
++++ a/mm/backing-dev.c
+@@ -945,10 +945,12 @@ void bdi_unregister(struct backing_dev_i
+ 	wb_shutdown(&bdi->wb);
+ 	cgwb_bdi_unregister(bdi);
+ 
+-	/* if min ratio doesn't 0, it has to set 0 before unregister */
+-	if (bdi->min_ratio) {
++	/*
++	 * If this BDI's min ratio has been set, use bdi_set_min_ratio() to
++	 * update the global bdi_min_ratio.
++	 */
++	if (bdi->min_ratio)
+ 		bdi_set_min_ratio(bdi, 0);
+-	}
+ 
+ 	if (bdi->dev) {
+ 		bdi_debug_unregister(bdi);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister.patch
 shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
-mm-bdi-initialize-bdi_min_ratio-when-bdi-unregister-fix.patch
 kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
 mm.patch
 kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
