@@ -2,132 +2,123 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2BE94C4332F
-	for <mm-commits@archiver.kernel.org>; Thu,  9 Dec 2021 20:47:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A455BC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 10 Dec 2021 09:26:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231695AbhLIUvJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 9 Dec 2021 15:51:09 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:36192 "EHLO
-        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231230AbhLIUvI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 9 Dec 2021 15:51:08 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        id S233988AbhLJJ36 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 10 Dec 2021 04:29:58 -0500
+Received: from smtp-out2.suse.de ([195.135.220.29]:58880 "EHLO
+        smtp-out2.suse.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236300AbhLJJ3z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 10 Dec 2021 04:29:55 -0500
+Received: from relay2.suse.de (relay2.suse.de [149.44.160.134])
+        by smtp-out2.suse.de (Postfix) with ESMTP id DC5881F387;
+        Fri, 10 Dec 2021 09:26:18 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=suse.com; s=susede1;
+        t=1639128378; h=from:from:reply-to:date:date:message-id:message-id:to:to:cc:cc:
+         mime-version:mime-version:content-type:content-type:
+         in-reply-to:in-reply-to:references:references;
+        bh=OD+kBuQDOOzzVBWfZjCqChKEAkc0ex9ahLKuU1LARsk=;
+        b=r5Y/+F2KwJT8oI46KotaQuXRFCkiUvz0+MqfnXBTG88vQ4OziCH6BPYx7jwF0oUCE7gOy0
+        H8YUh+KHem+z44xOQ4EFh8B+iOxBdr8Wy0FEebidVK1VXOVntgQISACreyCI7e2LpztJIN
+        jNdj3tJu/0Bhl+MpIF51YO+Ne8PQlwQ=
+Received: from suse.cz (unknown [10.100.201.86])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id F1C05CE2833
-        for <mm-commits@vger.kernel.org>; Thu,  9 Dec 2021 20:47:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E2F20C004DD;
-        Thu,  9 Dec 2021 20:47:31 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639082852;
-        bh=8mUlOpSfpYNBH9i0NPsk6tH454686QgnXb5P712hiTA=;
-        h=Date:From:To:Subject:From;
-        b=hDdoVgCMakIRhEhnoCMnSgO1LFLRYkIT9GuQETqIoM3I8IF+QFpeqd95UVw/JbKH5
-         U+ofyPyhZwmsPyttEqeDpTpz2oAOnrfgeP+9HRF/jOn/0eiHRBZ5yQD8eZ/C6IIhEk
-         08SPtlBwJb+tk/0Wz8hEyu5CIzfNA3fnfU59VhF4=
-Date:   Thu, 09 Dec 2021 12:47:31 -0800
-From:   akpm@linux-foundation.org
-To:     djwong@kernel.org, efault@gmx.de, hughd@google.com,
-        mgorman@techsingularity.net, mhocko@suse.com,
-        mm-commits@vger.kernel.org, riel@surriel.com, shakeelb@google.com,
-        vbabka@suse.cz
-Subject:  +
- mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress-fix.patch
+        by relay2.suse.de (Postfix) with ESMTPS id C65C1A3B93;
+        Fri, 10 Dec 2021 09:26:18 +0000 (UTC)
+Date:   Fri, 10 Dec 2021 10:26:17 +0100
+From:   Michal Hocko <mhocko@suse.com>
+To:     linux-kernel@vger.kernel.org
+Cc:     jsavitz@redhat.com, longman@redhat.com, mm-commits@vger.kernel.org,
+        npache@redhat.com, peterz@infradead.org
+Subject: Re: +
+ mm-oom_kill-wake-futex-waiters-before-annihilating-victim-shared-mutex.patch
  added to -mm tree
-Message-ID: <20211209204731.zdVwc9Gha%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+Message-ID: <YbMdOXqMayGSguFQ@dhcp22.suse.cz>
+References: <20211207234924.gtknfVfZB%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20211207234924.gtknfVfZB%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+Btw. I do not think this patch should be in MM until we hear from Futex
+maintainers and also learn more about the underlying issue.
 
-The patch titled
-     Subject: mm: vmscan: reduce throttling due to a failure to make progress -fix
-has been added to the -mm tree.  Its filename is
-     mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress-fix.patch
+Thanks.
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress-fix.patch
+On Tue 07-12-21 15:49:24, Andrew Morton wrote:
+> From: Joel Savitz <jsavitz@redhat.com>
+> Subject: mm/oom_kill: wake futex waiters before annihilating victim shared mutex
+> 
+> In the case that two or more processes share a futex located within a
+> shared mmaped region, such as a process that shares a lock between itself
+> and a number of child processes, we have observed that when a process
+> holding the lock is oom killed, at least one waiter is never alerted to
+> this new development and simply continues to wait.
+> 
+> This is visible via pthreads by checking the __owner field of the
+> pthread_mutex_t structure within a waiting process, perhaps with gdb.
+> 
+> We identify reproduction of this issue by checking a waiting process of a
+> test program and viewing the contents of the pthread_mutex_t, taking note
+> of the value in the owner field, and then checking dmesg to see if the
+> owner has already been killed.
+> 
+> This issue can be tricky to reproduce, but with the modifications of this
+> small patch, I have found it to be impossible to reproduce.  There may be
+> additional considerations that I have not taken into account in this patch
+> and I welcome any comments and criticism.
+> 
+> Link: https://lkml.kernel.org/r/20211207214902.772614-1-jsavitz@redhat.com
+> Signed-off-by: Nico Pache <npache@redhat.com>
+> Co-developed-by: Nico Pache <npache@redhat.com>
+> Signed-off-by: Joel Savitz <jsavitz@redhat.com>
+> Cc: Waiman Long <longman@redhat.com>
+> Cc: Peter Zijlstra <peterz@infradead.org>
+> Cc: Michal Hocko <mhocko@suse.com>
+> Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+> ---
+> 
+>  mm/oom_kill.c |    3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> --- a/mm/oom_kill.c~mm-oom_kill-wake-futex-waiters-before-annihilating-victim-shared-mutex
+> +++ a/mm/oom_kill.c
+> @@ -44,6 +44,7 @@
+>  #include <linux/kthread.h>
+>  #include <linux/init.h>
+>  #include <linux/mmu_notifier.h>
+> +#include <linux/futex.h>
+>  
+>  #include <asm/tlb.h>
+>  #include "internal.h"
+> @@ -890,6 +891,7 @@ static void __oom_kill_process(struct ta
+>  	 * in order to prevent the OOM victim from depleting the memory
+>  	 * reserves from the user space under its control.
+>  	 */
+> +	futex_exit_release(victim);
+>  	do_send_sig_info(SIGKILL, SEND_SIG_PRIV, victim, PIDTYPE_TGID);
+>  	mark_oom_victim(victim);
+>  	pr_err("%s: Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB, UID:%u pgtables:%lukB oom_score_adj:%hd\n",
+> @@ -930,6 +932,7 @@ static void __oom_kill_process(struct ta
+>  		 */
+>  		if (unlikely(p->flags & PF_KTHREAD))
+>  			continue;
+> +		futex_exit_release(p);
+>  		do_send_sig_info(SIGKILL, SEND_SIG_PRIV, p, PIDTYPE_TGID);
+>  	}
+>  	rcu_read_unlock();
+> _
+> 
+> Patches currently in -mm which might be from jsavitz@redhat.com are
+> 
+> mm-oom_kill-wake-futex-waiters-before-annihilating-victim-shared-mutex.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
-
-------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: vmscan: reduce throttling due to a failure to make progress -fix
-
-Hugh Dickins reported the following
-
-	My tmpfs swapping load (tweaked to use huge pages more heavily
-	than in real life) is far from being a realistic load: but it was
-	notably slowed down by your throttling mods in 5.16-rc, and this
-	patch makes it well again - thanks.
-
-	But: it very quickly hit NULL pointer until I changed that last
-	line to
-
-        if (first_pgdat)
-                consider_reclaim_throttle(first_pgdat, sc);
-
-The likely issue is that huge pages are a major component of the test
-workload. When this is the case, first_pgdat may never get set if
-compaction is ready to continue due to this check
-
-        if (IS_ENABLED(CONFIG_COMPACTION) &&
-            sc->order > PAGE_ALLOC_COSTLY_ORDER &&
-            compaction_ready(zone, sc)) {
-                sc->compaction_ready = true;
-                continue;
-        }
-
-If this was true for every zone in the zonelist, first_pgdat would never
-get set resulting in a NULL pointer exception.
-
-This is a fix to the mmotm patch
-mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
-
-Link: https://lkml.kernel.org/r/20211209095453.GM3366@techsingularity.net
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: Hugh Dickins <hughd@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Rik van Riel <riel@surriel.com>
-Cc: Mike Galbraith <efault@gmx.de>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Shakeel Butt <shakeelb@google.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/vmscan.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
---- a/mm/vmscan.c~mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress-fix
-+++ a/mm/vmscan.c
-@@ -3530,7 +3530,8 @@ static void shrink_zones(struct zonelist
- 		shrink_node(zone->zone_pgdat, sc);
- 	}
- 
--	consider_reclaim_throttle(first_pgdat, sc);
-+	if (first_pgdat)
-+		consider_reclaim_throttle(first_pgdat, sc);
- 
- 	/*
- 	 * Restore to original mask to avoid the impact on the caller if we
-_
-
-Patches currently in -mm which might be from mgorman@techsingularity.net are
-
-mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
-mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress-fix.patch
-
+-- 
+Michal Hocko
+SUSE Labs
