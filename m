@@ -2,35 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 379D0C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 13 Dec 2021 20:50:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9AD37C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 13 Dec 2021 20:52:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233741AbhLMUuy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Dec 2021 15:50:54 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:48576 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233728AbhLMUux (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Dec 2021 15:50:53 -0500
+        id S233728AbhLMUwJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Dec 2021 15:52:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45984 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S236136AbhLMUwI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Dec 2021 15:52:08 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 79B2DC061574
+        for <mm-commits@vger.kernel.org>; Mon, 13 Dec 2021 12:52:08 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 3079460FAA
-        for <mm-commits@vger.kernel.org>; Mon, 13 Dec 2021 20:50:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 79E14C34600;
-        Mon, 13 Dec 2021 20:50:52 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6B84561200
+        for <mm-commits@vger.kernel.org>; Mon, 13 Dec 2021 20:52:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9DB6CC34601;
+        Mon, 13 Dec 2021 20:52:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639428652;
-        bh=cSKGSvWD10sz5U2CZP/mBpshMbVm/5ozeNADLcAiw44=;
+        s=korg; t=1639428726;
+        bh=sy/xiXygDao+LsnDrFOA/iBBseTVR6e/avfLes7HV4c=;
         h=Date:From:To:Subject:From;
-        b=OJEnI8ciToM9HW4PyqfvKRzNMjlBKEtLIZamUh0AQ3AWFE52jkMESs6cfBKXZZmtF
-         htd6GOfG4YmeXUyY15yuoKt0DXrmqWAyoI10TgAZbHE4zLCyeEG/BB7hZmNIdY6SqQ
-         KYp/oDN0Z8zb6w0T+GonSRaBt86HYWCkPLx6G/Kg=
-Date:   Mon, 13 Dec 2021 12:50:51 -0800
+        b=IS+upeaG001llrXGIHxlwd06UkaPUEojWivgMZzD8UB5vSxuhv/H2s3ortj2dJe2o
+         hRQ/2MP83TxiQHszamhYA9a+atxjiBMNzMWAqk/J8UXUt2oQFFS+gw/yCtSjriPGHY
+         UGuVefOoxiEAHyoHiV5lgvCXZZUohk5QRsKjqvys=
+Date:   Mon, 13 Dec 2021 12:52:06 -0800
 From:   akpm@linux-foundation.org
-To:     hanshenghong2019@email.szu.edu.cn, mm-commits@vger.kernel.org
-Subject:  + tools-vm-page_owner_sortc-two-trivial-fixes.patch added
- to -mm tree
-Message-ID: <20211213205051.eVbg4UB9r%akpm@linux-foundation.org>
+To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
+        mm-commits@vger.kernel.org, schatzberg.dan@gmail.com
+Subject:  + mm-add-group_oom_kill-memoryevent-fix.patch added to
+ -mm tree
+Message-ID: <20211213205206.McpbmsAM3%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page_owner_sort.c: two trivial fixes
+     Subject: mm: add group_oom_kill memory.event fix
 has been added to the -mm tree.  Its filename is
-     tools-vm-page_owner_sortc-two-trivial-fixes.patch
+     mm-add-group_oom_kill-memoryevent-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page_owner_sortc-two-trivial-fixes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-add-group_oom_kill-memoryevent-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page_owner_sortc-two-trivial-fixes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-add-group_oom_kill-memoryevent-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -60,44 +64,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shenghong Han <hanshenghong2019@email.szu.edu.cn>
-Subject: tools/vm/page_owner_sort.c: two trivial fixes
+From: Dan Schatzberg <schatzberg.dan@gmail.com>
+Subject: mm: add group_oom_kill memory.event fix
 
-1) There is an unused variable. It's better to delete it.
-2) One case is missing in the usage().
+Andrew, could you please amend the prior patch "mm: add group_oom_kill
+memory.event" with these changes from Johannes and Chris?
 
-Link: https://lkml.kernel.org/r/20211213164518.2461-1-hanshenghong2019@email.szu.edu.cn
-Signed-off-by: Shenghong Han <hanshenghong2019@email.szu.edu.cn>
+Also - small nit: it makes better sense to
+s/group_oom_kill/oom_group_kill/g in the patch title.
+
+Link: https://lkml.kernel.org/r/20211213162511.2492267-1-schatzberg.dan@gmail.com
+Reviewed-by: Roman Gushchin <guro@fb.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Dan Schatzberg <schatzberg.dan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page_owner_sort.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ Documentation/admin-guide/cgroup-v2.rst |    3 +--
+ mm/memcontrol.c                         |    3 ---
+ 2 files changed, 1 insertion(+), 5 deletions(-)
 
---- a/tools/vm/page_owner_sort.c~tools-vm-page_owner_sortc-two-trivial-fixes
-+++ a/tools/vm/page_owner_sort.c
-@@ -41,8 +41,6 @@ static struct block_list *list;
- static int list_size;
- static int max_size;
+--- a/Documentation/admin-guide/cgroup-v2.rst~mm-add-group_oom_kill-memoryevent-fix
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -1269,8 +1269,7 @@ PAGE_SIZE multiple when read back.
+ 		killed by any kind of OOM killer.
  
--struct block_list *block_head;
--
- int read_block(char *buf, int buf_size, FILE *fin)
- {
- 	char *curr = buf, *const buf_end = buf + buf_size;
-@@ -249,7 +247,8 @@ static void usage(void)
- 		"-p	Sort by pid.\n"
- 		"-a	Sort by memory allocate time.\n"
- 		"-r	Sort by memory release time.\n"
--		"-c	cull by comparing stacktrace instead of total block.\n"
-+		"-c	Cull by comparing stacktrace instead of total block.\n"
-+		"-f	Filter out the information of blocks whose memory has not been released.\n"
- 	);
+           oom_group_kill
+-                The number of times all tasks in the cgroup were killed
+-                due to memory.oom.group.
++                The number of times a group OOM has occurred.
+ 
+   memory.events.local
+ 	Similar to memory.events but the fields in the file are local
+--- a/mm/memcontrol.c~mm-add-group_oom_kill-memoryevent-fix
++++ a/mm/memcontrol.c
+@@ -4390,9 +4390,6 @@ static int mem_cgroup_oom_control_read(s
+ 	seq_printf(sf, "under_oom %d\n", (bool)memcg->under_oom);
+ 	seq_printf(sf, "oom_kill %lu\n",
+ 		   atomic_long_read(&memcg->memory_events[MEMCG_OOM_KILL]));
+-	seq_printf(sf, "oom_group_kill %lu\n",
+-		   atomic_long_read(
+-			&memcg->memory_events[MEMCG_OOM_GROUP_KILL]));
+ 	return 0;
  }
  
 _
 
-Patches currently in -mm which might be from hanshenghong2019@email.szu.edu.cn are
+Patches currently in -mm which might be from schatzberg.dan@gmail.com are
 
-tools-vm-page_owner_sortc-two-trivial-fixes.patch
+mm-add-group_oom_kill-memory-event.patch
+mm-add-group_oom_kill-memoryevent-fix.patch
 
