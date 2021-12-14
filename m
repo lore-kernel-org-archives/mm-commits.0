@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB5EFC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 14 Dec 2021 03:42:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8136BC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 14 Dec 2021 04:38:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230147AbhLNDmr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 13 Dec 2021 22:42:47 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55048 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232398AbhLNDmr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Dec 2021 22:42:47 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BFA3C061574
-        for <mm-commits@vger.kernel.org>; Mon, 13 Dec 2021 19:42:46 -0800 (PST)
+        id S233760AbhLNEiN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 13 Dec 2021 23:38:13 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:56812 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231237AbhLNEiM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 13 Dec 2021 23:38:12 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4FAD2B817AD
-        for <mm-commits@vger.kernel.org>; Tue, 14 Dec 2021 03:42:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 088A8C34604;
-        Tue, 14 Dec 2021 03:42:44 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 76E47B80DA1
+        for <mm-commits@vger.kernel.org>; Tue, 14 Dec 2021 04:38:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 005C3C34605;
+        Tue, 14 Dec 2021 04:38:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639453364;
-        bh=yFqvfRviTyye0IAIarHXHkfUSfKCCToB7iO0uqHOsnM=;
+        s=korg; t=1639456690;
+        bh=7ibWMMrx2Fw4xO1HCpVSk/kx/HjQnIwY5DYdU/7LOHE=;
         h=Date:From:To:Subject:From;
-        b=E8a/Sd7STSXdFR3KYPt39JgtrJFaK3u/tmSebaYPY65jVriVREKjrPInyfPqc2QXS
-         IzmwG6QNs1o39Lq82pNPYcJ2o56ja3YOifSmZoKtazLlTKBOayp/y0dQgm9pcEybMn
-         2mYo3YTI5tBbL+2kO9ctehRhGCYEkoVh+zywHdCA=
-Date:   Mon, 13 Dec 2021 19:42:43 -0800
+        b=Mzd05ErympWKVRacrep9DSqDqBkbIVo9ioTXDd132UvH05gSUT9kMp9LPNL3W1YGW
+         u5Wl2vdfSDXmDxa1Hdv1ScdORfRbeo+N/CB3ZcLAHcb/l6pKs0eo27uirgsGYsrNOM
+         3OQ0mV+0UQe+uDjb9NAYWDrGAql4Gnot7Gxd4bys=
+Date:   Mon, 13 Dec 2021 20:38:09 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + drivers-gpu-drm-vmwgfx-vmwgfx_gemc-printk-fix.patch
- added to -mm tree
-Message-ID: <20211214034243.0v9FFZAK_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, isabbasso@riseup.net,
+        mm-commits@vger.kernel.org
+Subject:  + hashh-remove-unused-define-directive-fix.patch added to
+ -mm tree
+Message-ID: <20211214043809.XJ6bWZxsn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/gpu/drm/vmwgfx/vmwgfx_gem.c: printk fix
+     Subject: drivers/infiniband/sw/rxe/rxe_qp.c: fix for "hash.h: remove unused define directive"
 has been added to the -mm tree.  Its filename is
-     drivers-gpu-drm-vmwgfx-vmwgfx_gemc-printk-fix.patch
+     hashh-remove-unused-define-directive-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/drivers-gpu-drm-vmwgfx-vmwgfx_gemc-printk-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/hashh-remove-unused-define-directive-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/drivers-gpu-drm-vmwgfx-vmwgfx_gemc-printk-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/hashh-remove-unused-define-directive-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,26 +62,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/gpu/drm/vmwgfx/vmwgfx_gem.c: printk fix
+Subject: drivers/infiniband/sw/rxe/rxe_qp.c: fix for "hash.h: remove unused define directive"
 
+hash_32_generic() becomes hash_32()
 
+Cc: Isabella Basso <isabbasso@riseup.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/vmwgfx/vmwgfx_gem.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/infiniband/sw/rxe/rxe_qp.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/drivers/gpu/drm/vmwgfx/vmwgfx_gem.c~drivers-gpu-drm-vmwgfx-vmwgfx_gemc-printk-fix
-+++ a/drivers/gpu/drm/vmwgfx/vmwgfx_gem.c
-@@ -227,7 +227,7 @@ static void vmw_bo_print_info(int id, st
- 		break;
- 	}
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c~hashh-remove-unused-define-directive-fix
++++ a/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -217,8 +217,7 @@ static int rxe_qp_init_req(struct rxe_de
+ 	 * the port number must be in the Dynamic Ports range
+ 	 * (0xc000 - 0xffff).
+ 	 */
+-	qp->src_port = RXE_ROCE_V2_SPORT +
+-		(hash_32_generic(qp_num(qp), 14) & 0x3fff);
++	qp->src_port = RXE_ROCE_V2_SPORT + (hash_32(qp_num(qp), 14) & 0x3fff);
+ 	qp->sq.max_wr		= init->cap.max_send_wr;
  
--	seq_printf(m, "\t\t0x%08x: %12ld bytes %s, type = %s",
-+	seq_printf(m, "\t\t0x%08x: %12zd bytes %s, type = %s",
- 		   id, bo->base.base.size, placement, type);
- 	seq_printf(m, ", priority = %u, pin_count = %u, GEM refs = %d, TTM refs = %d",
- 		   bo->base.priority,
+ 	/* These caps are limited by rxe_qp_chk_cap() done by the caller */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,7 +107,6 @@ kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes
 panic-use-error_report_end-tracepoint-on-warnings-fix.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
-drivers-gpu-drm-vmwgfx-vmwgfx_gemc-printk-fix.patch
 sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
 firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
 firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
@@ -114,4 +114,5 @@ sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
 proc-remove-pde_data-completely-fix.patch
 proc-remove-pde_data-completely-fix-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
+hashh-remove-unused-define-directive-fix.patch
 
