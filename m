@@ -2,45 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63640C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 16 Dec 2021 22:02:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 731E8C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 16 Dec 2021 22:08:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237329AbhLPWCX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 16 Dec 2021 17:02:23 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38182 "EHLO
+        id S237004AbhLPWIS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 16 Dec 2021 17:08:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234459AbhLPWCW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Dec 2021 17:02:22 -0500
+        with ESMTP id S234331AbhLPWIR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 16 Dec 2021 17:08:17 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 33E77C061574
-        for <mm-commits@vger.kernel.org>; Thu, 16 Dec 2021 14:02:22 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 68F1BC061574
+        for <mm-commits@vger.kernel.org>; Thu, 16 Dec 2021 14:08:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D0A99B8258A
-        for <mm-commits@vger.kernel.org>; Thu, 16 Dec 2021 22:02:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBE99C36AE7;
-        Thu, 16 Dec 2021 22:02:18 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 295DFB82651
+        for <mm-commits@vger.kernel.org>; Thu, 16 Dec 2021 22:08:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C04ACC36AE8;
+        Thu, 16 Dec 2021 22:08:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1639692139;
-        bh=uajQYrFkw+NWGhmmarqQLxMlF4C+nUAEatKyFecdS2w=;
+        s=korg; t=1639692494;
+        bh=67fI7wPlAfNTIv+ljN9oHRSfTTLewbgM/t0B+Li04HM=;
         h=Date:From:To:Subject:From;
-        b=En/H3VHX3xv+YFbRLrGOE84TjMvUfkylqvqSUg2BKkwPIgM8DXtTJr74J9Xob8Bdd
-         /0vbVh7+Fi6PTPk7fJumcjBRz/OwNi6SrfNPYmvR0EkJOQ6JQXBItWossvLQrX0SgN
-         fZHDQOEqRw4RNP66zRjdDYjWIbpatlJKgLZU8Wjs=
-Date:   Thu, 16 Dec 2021 14:02:18 -0800
+        b=c6rL4KLCjhlGcuKxgq2hfiCfFZ3wfklikc+9kNRyGZ0k8YLyFVKvsdWz2fanii1yZ
+         4UPktRXm0DC+MyUPNhS3pqISTNJTmbKIIMGpU2pe/jk0lCu/sFMHGFijta3lEJVkDa
+         vBU5E+ksZaD81OlKiYtCk/uwqdFQ/zQEdoHgqBg4=
+Date:   Thu, 16 Dec 2021 14:08:14 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, will@kernel.org,
-        tsbogend@alpha.franken.de, tj@kernel.org, tglx@linutronix.de,
-        rafael@kernel.org, paul.walmsley@sifive.com, paulus@samba.org,
-        palmer@dabbelt.com, mpe@ellerman.id.au, mingo@redhat.com,
-        hpa@zytor.com, gregkh@linuxfoundation.org, dennis@kernel.org,
-        davem@davemloft.net, dave.hansen@linux.intel.com, cl@linux.com,
-        catalin.marinas@arm.com, bp@alien8.de, benh@kernel.crashing.org,
-        aou@eecs.berkeley.edu, wangkefeng.wang@huawei.com
-Subject:  + mm-percpu-add-generic-pcpu_populate_pte-function.patch
+To:     mm-commits@vger.kernel.org, sj@kernel.org, mike.kravetz@oracle.com,
+        baolin.wang@linux.alibaba.com
+Subject:  + mm-damon-add-access-checking-for-hugetlb-pages.patch
  added to -mm tree
-Message-ID: <20211216220218.4kLJC%akpm@linux-foundation.org>
+Message-ID: <20211216220814.ku1lM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -49,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: percpu: add generic pcpu_populate_pte() function
+     Subject: mm/damon: add access checking for hugetlb pages
 has been added to the -mm tree.  Its filename is
-     mm-percpu-add-generic-pcpu_populate_pte-function.patch
+     mm-damon-add-access-checking-for-hugetlb-pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-percpu-add-generic-pcpu_populate_pte-function.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-add-access-checking-for-hugetlb-pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-percpu-add-generic-pcpu_populate_pte-function.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-add-access-checking-for-hugetlb-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -70,411 +64,182 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: percpu: add generic pcpu_populate_pte() function
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm/damon: add access checking for hugetlb pages
 
-With NEED_PER_CPU_PAGE_FIRST_CHUNK enabled, we need a function to populate
-pte, this patch adds a generic pcpu populate pte function,
-pcpu_populate_pte(), which is marked __weak and used on most
-architectures, but it is overridden on x86, which has its own
-implemention.
+The process's VMAs can be mapped by hugetlb page, but now the DAMON
+did not implement the access checking for hugetlb pte, so we can not
+get the actual access count like below if a process VMAs were mapped
+by hugetlb.
 
-Link: https://lkml.kernel.org/r/20211216112359.103822-5-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Will Deacon <will@kernel.org>
+damon_aggregated: target_id=18446614368406014464
+nr_regions=12 4194304-5476352: 0 545
+damon_aggregated: target_id=18446614368406014464
+nr_regions=12 140662370467840-140662372970496: 0 545
+damon_aggregated: target_id=18446614368406014464
+nr_regions=12 140662372970496-140662375460864: 0 545
+damon_aggregated: target_id=18446614368406014464
+nr_regions=12 140662375460864-140662377951232: 0 545
+damon_aggregated: target_id=18446614368406014464
+nr_regions=12 140662377951232-140662380449792: 0 545
+damon_aggregated: target_id=18446614368406014464
+nr_regions=12 140662380449792-140662382944256: 0 545
+......
+
+Thus this patch adds hugetlb access checking support, with this patch
+we can see below VMA mapped by hugetlb access count.
+
+damon_aggregated: target_id=18446613056935405824
+nr_regions=12 140296486649856-140296489914368: 1 3
+damon_aggregated: target_id=18446613056935405824
+nr_regions=12 140296489914368-140296492978176: 1 3
+damon_aggregated: target_id=18446613056935405824
+nr_regions=12 140296492978176-140296495439872: 1 3
+damon_aggregated: target_id=18446613056935405824
+nr_regions=12 140296495439872-140296498311168: 1 3
+damon_aggregated: target_id=18446613056935405824
+nr_regions=12 140296498311168-140296501198848: 1 3
+damon_aggregated: target_id=18446613056935405824
+nr_regions=12 140296501198848-140296504320000: 1 3
+damon_aggregated: target_id=18446613056935405824
+nr_regions=12 140296504320000-140296507568128: 1 2
+......
+
+Link: https://lkml.kernel.org/r/6afcbd1fda5f9c7c24f320d26a98188c727ceec3.1639623751.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: SeongJae Park <sj@kernel.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/setup_64.c |   47 -------------------
- arch/sparc/kernel/smp_64.c     |   56 ----------------------
- arch/x86/kernel/setup_percpu.c |    5 --
- drivers/base/arch_numa.c       |   51 --------------------
- include/linux/percpu.h         |    5 --
- mm/percpu.c                    |   76 ++++++++++++++++++++++++++++---
- 6 files changed, 78 insertions(+), 162 deletions(-)
+ mm/damon/vaddr.c |   96 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 96 insertions(+)
 
---- a/arch/powerpc/kernel/setup_64.c~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/arch/powerpc/kernel/setup_64.c
-@@ -787,51 +787,6 @@ static __init int pcpu_cpu_to_node(int c
- unsigned long __per_cpu_offset[NR_CPUS] __read_mostly;
- EXPORT_SYMBOL(__per_cpu_offset);
- 
--static void __init pcpu_populate_pte(unsigned long addr)
--{
--	pgd_t *pgd = pgd_offset_k(addr);
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--
--	p4d = p4d_offset(pgd, addr);
--	if (p4d_none(*p4d)) {
--		pud_t *new;
--
--		new = memblock_alloc(PUD_TABLE_SIZE, PUD_TABLE_SIZE);
--		if (!new)
--			goto err_alloc;
--		p4d_populate(&init_mm, p4d, new);
--	}
--
--	pud = pud_offset(p4d, addr);
--	if (pud_none(*pud)) {
--		pmd_t *new;
--
--		new = memblock_alloc(PMD_TABLE_SIZE, PMD_TABLE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pud_populate(&init_mm, pud, new);
--	}
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd)) {
--		pte_t *new;
--
--		new = memblock_alloc(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pmd_populate_kernel(&init_mm, pmd, new);
--	}
--
--	return;
--
--err_alloc:
--	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
--	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--}
--
--
- void __init setup_per_cpu_areas(void)
- {
- 	const size_t dyn_size = PERCPU_MODULE_RESERVE + PERCPU_DYNAMIC_RESERVE;
-@@ -860,7 +815,7 @@ void __init setup_per_cpu_areas(void)
- 	}
- 
- 	if (rc < 0)
--		rc = pcpu_page_first_chunk(0, pcpu_cpu_to_node, pcpu_populate_pte);
-+		rc = pcpu_page_first_chunk(0, pcpu_cpu_to_node);
- 	if (rc < 0)
- 		panic("cannot initialize percpu area (err=%d)", rc);
- 
---- a/arch/sparc/kernel/smp_64.c~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/arch/sparc/kernel/smp_64.c
-@@ -1539,59 +1539,6 @@ static int __init pcpu_cpu_to_node(int c
- 	return cpu_to_node(cpu);
+--- a/mm/damon/vaddr.c~mm-damon-add-access-checking-for-hugetlb-pages
++++ a/mm/damon/vaddr.c
+@@ -388,8 +388,65 @@ out:
+ 	return 0;
  }
  
--static void __init pcpu_populate_pte(unsigned long addr)
--{
--	pgd_t *pgd = pgd_offset_k(addr);
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--
--	if (pgd_none(*pgd)) {
--		pud_t *new;
--
--		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pgd_populate(&init_mm, pgd, new);
--	}
--
--	p4d = p4d_offset(pgd, addr);
--	if (p4d_none(*p4d)) {
--		pud_t *new;
--
--		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		p4d_populate(&init_mm, p4d, new);
--	}
--
--	pud = pud_offset(p4d, addr);
--	if (pud_none(*pud)) {
--		pmd_t *new;
--
--		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pud_populate(&init_mm, pud, new);
--	}
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd)) {
--		pte_t *new;
--
--		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pmd_populate_kernel(&init_mm, pmd, new);
--	}
--
--	return;
--
--err_alloc:
--	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
--	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--}
--
- void __init setup_per_cpu_areas(void)
- {
- 	unsigned long delta;
-@@ -1610,8 +1557,7 @@ void __init setup_per_cpu_areas(void)
- 	}
- 	if (rc < 0)
- 		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE,
--					   pcpu_cpu_to_node,
--					   pcpu_populate_pte);
-+					   pcpu_cpu_to_node);
- 	if (rc < 0)
- 		panic("cannot initialize percpu area (err=%d)", rc);
- 
---- a/arch/x86/kernel/setup_percpu.c~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/arch/x86/kernel/setup_percpu.c
-@@ -101,7 +101,7 @@ static int __init pcpu_cpu_to_node(int c
- 	return early_cpu_to_node(cpu);
- }
- 
--static void __init pcpup_populate_pte(unsigned long addr)
-+void __init pcpu_populate_pte(unsigned long addr)
- {
- 	populate_extra_pte(addr);
- }
-@@ -163,8 +163,7 @@ void __init setup_per_cpu_areas(void)
- 	}
- 	if (rc < 0)
- 		rc = pcpu_page_first_chunk(PERCPU_FIRST_CHUNK_RESERVE,
--					   pcpu_cpu_to_node,
--					   pcpup_populate_pte);
-+					   pcpu_cpu_to_node);
- 	if (rc < 0)
- 		panic("cannot initialize percpu area (err=%d)", rc);
- 
---- a/drivers/base/arch_numa.c~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/drivers/base/arch_numa.c
-@@ -14,7 +14,6 @@
- #include <linux/of.h>
- 
- #include <asm/sections.h>
--#include <asm/pgalloc.h>
- 
- struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
- EXPORT_SYMBOL(node_data);
-@@ -155,52 +154,6 @@ static int __init pcpu_cpu_distance(unsi
- 	return node_distance(early_cpu_to_node(from), early_cpu_to_node(to));
- }
- 
--#ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
--static void __init pcpu_populate_pte(unsigned long addr)
--{
--	pgd_t *pgd = pgd_offset_k(addr);
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--
--	p4d = p4d_offset(pgd, addr);
--	if (p4d_none(*p4d)) {
--		pud_t *new;
--
--		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		p4d_populate(&init_mm, p4d, new);
--	}
--
--	pud = pud_offset(p4d, addr);
--	if (pud_none(*pud)) {
--		pmd_t *new;
--
--		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pud_populate(&init_mm, pud, new);
--	}
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd)) {
--		pte_t *new;
--
--		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pmd_populate_kernel(&init_mm, pmd, new);
--	}
--
--	return;
--
--err_alloc:
--	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
--	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--}
--#endif
--
- void __init setup_per_cpu_areas(void)
- {
- 	unsigned long delta;
-@@ -225,9 +178,7 @@ void __init setup_per_cpu_areas(void)
- 
- #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
- 	if (rc < 0)
--		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE,
--					   early_cpu_to_node,
--					   pcpu_populate_pte);
-+		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE, early_cpu_to_node);
- #endif
- 	if (rc < 0)
- 		panic("Failed to initialize percpu areas (err=%d).", rc);
---- a/include/linux/percpu.h~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/include/linux/percpu.h
-@@ -95,7 +95,6 @@ extern const char * const pcpu_fc_names[
- extern enum pcpu_fc pcpu_chosen_fc;
- 
- typedef int (pcpu_fc_cpu_to_node_fn_t)(int cpu);
--typedef void (*pcpu_fc_populate_pte_fn_t)(unsigned long addr);
- typedef int (pcpu_fc_cpu_distance_fn_t)(unsigned int from, unsigned int to);
- 
- extern struct pcpu_alloc_info * __init pcpu_alloc_alloc_info(int nr_groups,
-@@ -113,9 +112,9 @@ extern int __init pcpu_embed_first_chunk
- #endif
- 
- #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
-+void __init pcpu_populate_pte(unsigned long addr);
- extern int __init pcpu_page_first_chunk(size_t reserved_size,
--				pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn,
--				pcpu_fc_populate_pte_fn_t populate_pte_fn);
-+				pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn);
- #endif
- 
- extern void __percpu *__alloc_reserved_percpu(size_t size, size_t align) __alloc_size(1);
---- a/mm/percpu.c~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/mm/percpu.c
-@@ -3174,11 +3174,79 @@ out_free:
- #endif /* BUILD_EMBED_FIRST_CHUNK */
- 
- #ifdef BUILD_PAGE_FIRST_CHUNK
-+#include <asm/pgalloc.h>
-+
-+#ifndef P4D_TABLE_SIZE
-+#define P4D_TABLE_SIZE PAGE_SIZE
-+#endif
-+
-+#ifndef PUD_TABLE_SIZE
-+#define PUD_TABLE_SIZE PAGE_SIZE
-+#endif
-+
-+#ifndef PMD_TABLE_SIZE
-+#define PMD_TABLE_SIZE PAGE_SIZE
-+#endif
-+
-+#ifndef PTE_TABLE_SIZE
-+#define PTE_TABLE_SIZE PAGE_SIZE
-+#endif
-+void __init __weak pcpu_populate_pte(unsigned long addr)
++#ifdef CONFIG_HUGETLB_PAGE
++static void damon_hugetlb_mkold(pte_t *pte, struct mm_struct *mm,
++				struct vm_area_struct *vma, unsigned long addr)
 +{
-+	pgd_t *pgd = pgd_offset_k(addr);
-+	p4d_t *p4d;
-+	pud_t *pud;
-+	pmd_t *pmd;
++	bool referenced = false;
++	struct hstate *h = hstate_vma(vma);
++	pte_t entry = huge_ptep_get(pte);
++	struct page *page = pte_page(entry);
 +
-+	if (pgd_none(*pgd)) {
-+		p4d_t *new;
++	if (!page)
++		return;
 +
-+		new = memblock_alloc(P4D_TABLE_SIZE, P4D_TABLE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		pgd_populate(&init_mm, pgd, new);
++	get_page(page);
++
++	if (pte_young(entry)) {
++		referenced = true;
++		entry = pte_mkold(entry);
++		huge_ptep_set_access_flags(vma, addr, pte, entry,
++					   vma->vm_flags & VM_WRITE);
 +	}
 +
-+	p4d = p4d_offset(pgd, addr);
-+	if (p4d_none(*p4d)) {
-+		pud_t *new;
++#ifdef CONFIG_MMU_NOTIFIER
++	if (mmu_notifier_clear_young(mm, addr, addr + huge_page_size(h)))
++		referenced = true;
++#endif /* CONFIG_MMU_NOTIFIER */
 +
-+		new = memblock_alloc(PUD_TABLE_SIZE, PUD_TABLE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		p4d_populate(&init_mm, p4d, new);
-+	}
++	if (referenced)
++		set_page_young(page);
 +
-+	pud = pud_offset(p4d, addr);
-+	if (pud_none(*pud)) {
-+		pmd_t *new;
-+
-+		new = memblock_alloc(PMD_TABLE_SIZE, PMD_TABLE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		pud_populate(&init_mm, pud, new);
-+	}
-+
-+	pmd = pmd_offset(pud, addr);
-+	if (!pmd_present(*pmd)) {
-+		pte_t *new;
-+
-+		new = memblock_alloc(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		pmd_populate_kernel(&init_mm, pmd, new);
-+	}
-+
-+	return;
-+
-+err_alloc:
-+	panic("%s: Failed to allocate memory\n", __func__);
++	set_page_idle(page);
++	put_page(page);
 +}
 +
- /**
-  * pcpu_page_first_chunk - map the first chunk using PAGE_SIZE pages
-  * @reserved_size: the size of reserved percpu area in bytes
-  * @cpu_to_nd_fn: callback to convert cpu to it's node, optional
-- * @populate_pte_fn: function to populate pte
-  *
-  * This is a helper to ease setting up page-remapped first percpu
-  * chunk and can be called where pcpu_setup_first_chunk() is expected.
-@@ -3189,9 +3257,7 @@ out_free:
-  * RETURNS:
-  * 0 on success, -errno on failure.
-  */
--int __init pcpu_page_first_chunk(size_t reserved_size,
--				 pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn,
--				 pcpu_fc_populate_pte_fn_t populate_pte_fn)
-+int __init pcpu_page_first_chunk(size_t reserved_size, pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn)
- {
- 	static struct vm_struct vm;
- 	struct pcpu_alloc_info *ai;
-@@ -3255,7 +3321,7 @@ int __init pcpu_page_first_chunk(size_t
- 			(unsigned long)vm.addr + unit * ai->unit_size;
++static int damon_mkold_hugetlb_entry(pte_t *pte, unsigned long hmask,
++				     unsigned long addr, unsigned long end,
++				     struct mm_walk *walk)
++{
++	struct hstate *h = hstate_vma(walk->vma);
++	spinlock_t *ptl;
++	pte_t entry;
++
++	ptl = huge_pte_lock(h, walk->mm, pte);
++	entry = huge_ptep_get(pte);
++	if (!pte_present(entry))
++		goto out;
++
++	damon_hugetlb_mkold(pte, walk->mm, walk->vma, addr);
++
++out:
++	spin_unlock(ptl);
++	return 0;
++}
++#else
++#define damon_mkold_hugetlb_entry NULL
++#endif
++
+ static const struct mm_walk_ops damon_mkold_ops = {
+ 	.pmd_entry = damon_mkold_pmd_entry,
++	.hugetlb_entry = damon_mkold_hugetlb_entry,
+ };
  
- 		for (i = 0; i < unit_pages; i++)
--			populate_pte_fn(unit_addr + (i << PAGE_SHIFT));
-+			pcpu_populate_pte(unit_addr + (i << PAGE_SHIFT));
+ static void damon_va_mkold(struct mm_struct *mm, unsigned long addr)
+@@ -484,8 +541,47 @@ out:
+ 	return 0;
+ }
  
- 		/* pte already populated, the following shouldn't fail */
- 		rc = __pcpu_map_pages(unit_addr, &pages[unit * unit_pages],
++#ifdef CONFIG_HUGETLB_PAGE
++static int damon_young_hugetlb_entry(pte_t *pte, unsigned long hmask,
++				     unsigned long addr, unsigned long end,
++				     struct mm_walk *walk)
++{
++	struct damon_young_walk_private *priv = walk->private;
++	struct hstate *h = hstate_vma(walk->vma);
++	struct page *page;
++	spinlock_t *ptl;
++	pte_t entry;
++
++	ptl = huge_pte_lock(h, walk->mm, pte);
++	entry = huge_ptep_get(pte);
++	if (!pte_present(entry))
++		goto out;
++
++	page = pte_page(entry);
++	if (!page)
++		goto out;
++
++	get_page(page);
++
++	if (pte_young(entry) || !page_is_idle(page) ||
++	    mmu_notifier_test_young(walk->mm, addr)) {
++		*priv->page_sz = huge_page_size(h);
++		priv->young = true;
++	}
++
++	put_page(page);
++
++out:
++	spin_unlock(ptl);
++	return 0;
++}
++#else
++#define damon_young_hugetlb_entry NULL
++#endif
++
+ static const struct mm_walk_ops damon_young_ops = {
+ 	.pmd_entry = damon_young_pmd_entry,
++	.hugetlb_entry = damon_young_hugetlb_entry,
+ };
+ 
+ static bool damon_va_young(struct mm_struct *mm, unsigned long addr,
 _
 
-Patches currently in -mm which might be from wangkefeng.wang@huawei.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-mm-defer-kmemleak-object-creation-of-module_alloc.patch
-mm-defer-kmemleak-object-creation-of-module_alloc-v4.patch
-mm-percpu-generalize-percpu-related-config.patch
-mm-percpu-add-pcpu_fc_cpu_to_node_fn_t-typedef.patch
-mm-percpu-add-generic-pcpu_fc_alloc-free-funciton.patch
-mm-percpu-add-generic-pcpu_populate_pte-function.patch
+mm-migrate-fix-the-return-value-of-migrate_pages.patch
+mm-migrate-correct-the-hugetlb-migration-stats.patch
+mm-migrate-correct-the-hugetlb-migration-stats-fix.patch
+mm-compaction-fix-the-migration-stats-in-trace_mm_compaction_migratepages.patch
+mm-migrate-support-multiple-target-nodes-demotion.patch
+mm-migrate-add-more-comments-for-selecting-target-node-randomly.patch
+mm-damon-add-access-checking-for-hugetlb-pages.patch
 
