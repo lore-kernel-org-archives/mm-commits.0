@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CE273C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Dec 2021 22:54:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8F2DAC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Dec 2021 23:11:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234528AbhLUWyT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Dec 2021 17:54:19 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:58230 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229732AbhLUWyT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Dec 2021 17:54:19 -0500
+        id S235616AbhLUXLq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Dec 2021 18:11:46 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53536 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235399AbhLUXLp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Dec 2021 18:11:45 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2D3E5C061574
+        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 15:11:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 276E2B817D0
-        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 22:54:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3DA2C36AE9;
-        Tue, 21 Dec 2021 22:54:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C8EB3617B8
+        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 23:11:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EFE59C36AE9;
+        Tue, 21 Dec 2021 23:11:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640127257;
-        bh=K8WDkfUshpNDoxe7SUTH/TjfUwXVqYw9J1pkjfsHzhU=;
+        s=korg; t=1640128304;
+        bh=XqV2dcAA+jXLrSWgWqvQ1sUoipibXDxmOIxFn+e7tiI=;
         h=Date:From:To:Subject:From;
-        b=ioHzwHjd3PV88Mq2+iKhso5Hhgxbcq6j+9PzESutqiEu2cKLibNTaYQMuzZGpMNoV
-         WkOp/dmeAV/esft5GkX3ZQBJ8K3eVsgHGNdFfuFoQZULltPGvMRObwue3h1Xv6kuoQ
-         RUHppr+oGO8GCvaf29+6MZcXJp2u8JnnFAbFjA64=
-Date:   Tue, 21 Dec 2021 14:54:16 -0800
+        b=0o/nPeK2pm40D+L1efM7VOE8KK37QD0EiAj2Wnns2hp/neUwb2uJe8opXZAROFUOg
+         Yk7r3tlpacwb8y76HnzREevuntuOoSeSuTd59qj2/sUG/ioCoOIAKo3ehhE/tDVagp
+         2vWrvr6rtj41KgutOymV+eyl/R726d9DvminToWk=
+Date:   Tue, 21 Dec 2021 15:11:43 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, william.kucharski@oracle.com,
-        torvalds@linux-foundation.org, david@redhat.com,
-        willy@infradead.org
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@google.com
 Subject:  +
- mm-remove-the-total_mapcount-argument-from-page_trans_huge_mapcount.patch
- added to -mm tree
-Message-ID: <20211221225416.pGejJ%akpm@linux-foundation.org>
+ lib-test_meminit-destroy-cache-in-kmem_cache_alloc_bulk-test.patch added to
+ -mm tree
+Message-ID: <20211221231143.rM1ub%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove the total_mapcount argument from page_trans_huge_mapcount()
+     Subject: lib/test_meminit: destroy cache in kmem_cache_alloc_bulk() test
 has been added to the -mm tree.  Its filename is
-     mm-remove-the-total_mapcount-argument-from-page_trans_huge_mapcount.patch
+     lib-test_meminit-destroy-cache-in-kmem_cache_alloc_bulk-test.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-the-total_mapcount-argument-from-page_trans_huge_mapcount.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/lib-test_meminit-destroy-cache-in-kmem_cache_alloc_bulk-test.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-the-total_mapcount-argument-from-page_trans_huge_mapcount.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/lib-test_meminit-destroy-cache-in-kmem_cache_alloc_bulk-test.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,130 +66,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
-Subject: mm: remove the total_mapcount argument from page_trans_huge_mapcount()
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: lib/test_meminit: destroy cache in kmem_cache_alloc_bulk() test
 
-All callers pass NULL, so we can stop calculating the value we would store
-in it.
+Make do_kmem_cache_size_bulk() destroy the cache it creates.
 
-Link: https://lkml.kernel.org/r/20211220205943.456187-3-willy@infradead.org
-Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
-Reviewed-by: William Kucharski <william.kucharski@oracle.com>
-Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lkml.kernel.org/r/aced20a94bf04159a139f0846e41d38a1537debb.1640018297.git.andreyknvl@google.com
+Fixes: 03a9349ac0e0 ("lib/test_meminit: add a kmem_cache_alloc_bulk() test")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h   |   10 +++-------
- include/linux/swap.h |    2 +-
- mm/huge_memory.c     |   30 ++++++++++--------------------
- mm/swapfile.c        |    2 +-
- 4 files changed, 15 insertions(+), 29 deletions(-)
+ lib/test_meminit.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/include/linux/mm.h~mm-remove-the-total_mapcount-argument-from-page_trans_huge_mapcount
-+++ a/include/linux/mm.h
-@@ -799,19 +799,15 @@ static inline int page_mapcount(struct p
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- int total_mapcount(struct page *page);
--int page_trans_huge_mapcount(struct page *page, int *total_mapcount);
-+int page_trans_huge_mapcount(struct page *page);
- #else
- static inline int total_mapcount(struct page *page)
- {
- 	return page_mapcount(page);
- }
--static inline int page_trans_huge_mapcount(struct page *page,
--					   int *total_mapcount)
-+static inline int page_trans_huge_mapcount(struct page *page)
- {
--	int mapcount = page_mapcount(page);
--	if (total_mapcount)
--		*total_mapcount = mapcount;
--	return mapcount;
-+	return page_mapcount(page);
- }
- #endif
- 
---- a/include/linux/swap.h~mm-remove-the-total_mapcount-argument-from-page_trans_huge_mapcount
-+++ a/include/linux/swap.h
-@@ -681,7 +681,7 @@ static inline int swp_swapcount(swp_entr
- }
- 
- #define reuse_swap_page(page) \
--	(page_trans_huge_mapcount(page, NULL) == 1)
-+	(page_trans_huge_mapcount(page) == 1)
- 
- static inline int try_to_free_swap(struct page *page)
- {
---- a/mm/huge_memory.c~mm-remove-the-total_mapcount-argument-from-page_trans_huge_mapcount
-+++ a/mm/huge_memory.c
-@@ -2542,38 +2542,28 @@ int total_mapcount(struct page *page)
-  * need full accuracy to avoid breaking page pinning, because
-  * page_trans_huge_mapcount() is slower than page_mapcount().
-  */
--int page_trans_huge_mapcount(struct page *page, int *total_mapcount)
-+int page_trans_huge_mapcount(struct page *page)
- {
--	int i, ret, _total_mapcount, mapcount;
-+	int i, ret;
- 
- 	/* hugetlbfs shouldn't call it */
- 	VM_BUG_ON_PAGE(PageHuge(page), page);
- 
--	if (likely(!PageTransCompound(page))) {
--		mapcount = atomic_read(&page->_mapcount) + 1;
--		if (total_mapcount)
--			*total_mapcount = mapcount;
--		return mapcount;
--	}
-+	if (likely(!PageTransCompound(page)))
-+		return atomic_read(&page->_mapcount) + 1;
- 
- 	page = compound_head(page);
- 
--	_total_mapcount = ret = 0;
-+	ret = 0;
- 	for (i = 0; i < thp_nr_pages(page); i++) {
--		mapcount = atomic_read(&page[i]._mapcount) + 1;
-+		int mapcount = atomic_read(&page[i]._mapcount) + 1;
- 		ret = max(ret, mapcount);
--		_total_mapcount += mapcount;
+--- a/lib/test_meminit.c~lib-test_meminit-destroy-cache-in-kmem_cache_alloc_bulk-test
++++ a/lib/test_meminit.c
+@@ -337,6 +337,7 @@ static int __init do_kmem_cache_size_bul
+ 		if (num)
+ 			kmem_cache_free_bulk(c, num, objects);
  	}
--	if (PageDoubleMap(page)) {
-+
-+	if (PageDoubleMap(page))
- 		ret -= 1;
--		_total_mapcount -= thp_nr_pages(page);
--	}
--	mapcount = compound_mapcount(page);
--	ret += mapcount;
--	_total_mapcount += mapcount;
--	if (total_mapcount)
--		*total_mapcount = _total_mapcount;
--	return ret;
-+
-+	return ret + compound_mapcount(page);
++	kmem_cache_destroy(c);
+ 	*total_failures += fail;
+ 	return 1;
  }
- 
- /* Racy check whether the huge page can be split */
---- a/mm/swapfile.c~mm-remove-the-total_mapcount-argument-from-page_trans_huge_mapcount
-+++ a/mm/swapfile.c
-@@ -1619,7 +1619,7 @@ static int page_trans_huge_map_swapcount
- 			swapcount = page_swapcount(page);
- 		if (total_swapcount)
- 			*total_swapcount = swapcount;
--		return swapcount + page_trans_huge_mapcount(page, NULL);
-+		return swapcount + page_trans_huge_mapcount(page);
- 	}
- 
- 	page = compound_head(page);
 _
 
-Patches currently in -mm which might be from willy@infradead.org are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mmfs-split-dump_mapping-out-from-dump_page.patch
-mm-remove-last-argument-of-reuse_swap_page.patch
-mm-remove-the-total_mapcount-argument-from-page_trans_huge_map_swapcount.patch
-mm-remove-the-total_mapcount-argument-from-page_trans_huge_mapcount.patch
+kasan-fix-quarantine-conflicting-with-init_on_free.patch
+lib-test_meminit-destroy-cache-in-kmem_cache_alloc_bulk-test.patch
 
