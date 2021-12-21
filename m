@@ -2,37 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0CCFEC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Dec 2021 23:44:31 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 292B9C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Dec 2021 23:50:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231804AbhLUXoa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Dec 2021 18:44:30 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:46654 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229676AbhLUXoa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Dec 2021 18:44:30 -0500
+        id S234858AbhLUXu1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Dec 2021 18:50:27 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34046 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229676AbhLUXu1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Dec 2021 18:50:27 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2C866C061574
+        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 15:50:27 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3C0F7B81A2F
-        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 23:44:29 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4CCEC36AE9;
-        Tue, 21 Dec 2021 23:44:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B11E2617DF
+        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 23:50:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8F49C36AE9;
+        Tue, 21 Dec 2021 23:50:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640130268;
-        bh=FXdB012iiGrm6Nj4gMqVCIAeknznstr6vXi1xxzI5zo=;
+        s=korg; t=1640130626;
+        bh=nrYnzgTcWAq8Co7N6o5gv9z8QDhE7wAjHns9We8XJcU=;
         h=Date:From:To:Subject:From;
-        b=vLcejY2awguskIVK/Nje6rOpZsazMKQWNibCWqg5aRpvW4gbUqTQETwVBPNnqEBYI
-         QIOel7hMdOQWBiQy+PwUsKmhP1EnQzQ5QnxJpq4p6igbKioxSQXhkrnCzyWRLwPue5
-         xuVI/6dJecQrmYWNf9thOFvnFQqSlZlf0YzDutSc=
-Date:   Tue, 21 Dec 2021 15:44:27 -0800
+        b=YdxL/x1Zv1eYf9Fj+23WUFnCf/m+Hgw0G6p9muEJtd58oqG1BRTrDRABG9kXlUssX
+         EBXbzDsSg+w0gMWCEO5EBz2ew+PeTgJqBiqujoZ4lfAlH4a/Bmwc0nuLNlluHKLuPR
+         KCso+FNzuFXXmV6uLIIgTOcYbvYJxiO+3DlpPHBE=
+Date:   Tue, 21 Dec 2021 15:50:25 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, mike.kravetz@oracle.com,
-        luofei@unicloud.com, naoya.horiguchi@linux.dev
+To:     mm-commits@vger.kernel.org, keescook@chromium.org,
+        adobriyan@gmail.com, zhengqi.arch@bytedance.com
 Subject:  +
- mm-hwpoison-fix-condition-in-free-hugetlb-page-path-fix.patch added to -mm
- tree
-Message-ID: <20211221234427.QrGPL%akpm@linux-foundation.org>
+ proc-convert-the-return-type-of-proc_fd_access_allowed-to-be-boolean.patch
+ added to -mm tree
+Message-ID: <20211221235025.qNuab%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hwpoison-fix-condition-in-free-hugetlb-page-path-fix
+     Subject: proc: convert the return type of proc_fd_access_allowed() to be boolean
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-condition-in-free-hugetlb-page-path-fix.patch
+     proc-convert-the-return-type-of-proc_fd_access_allowed-to-be-boolean.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-condition-in-free-hugetlb-page-path-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/proc-convert-the-return-type-of-proc_fd_access_allowed-to-be-boolean.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-condition-in-free-hugetlb-page-path-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/proc-convert-the-return-type-of-proc_fd_access_allowed-to-be-boolean.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,40 +65,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@linux.dev>
-Subject: mm-hwpoison-fix-condition-in-free-hugetlb-page-path-fix
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: proc: convert the return type of proc_fd_access_allowed() to be boolean
 
-fix "HardwareCorrupted" counter
+Convert return type of proc_fd_access_allowed() and the 'allowed' in it to
+be boolean since the return type of ptrace_may_access() is boolean.
 
-Link: https://lkml.kernel.org/r/20211220084851.GA1460264@u2004
-Cc: Fei Luo <luofei@unicloud.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20211219024404.29779-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ fs/proc/base.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-fix-condition-in-free-hugetlb-page-path-fix
-+++ a/mm/memory-failure.c
-@@ -1478,9 +1478,11 @@ static int memory_failure_hugetlb(unsign
- 				return 0;
- 			}
- 			unlock_page(head);
--			res = MF_RECOVERED;
--			if (!page_handle_poison(p, true, false))
--				res = MF_FAILED;
-+			res = MF_FAILED;
-+			if (__page_handle_poison(p)) {
-+				page_ref_inc(p);
-+				res = MF_RECOVERED;
-+			}
- 			action_result(pfn, MF_MSG_FREE_HUGE, res);
- 			return res == MF_RECOVERED ? 0 : -EBUSY;
- 		} else if (res < 0) {
+--- a/fs/proc/base.c~proc-convert-the-return-type-of-proc_fd_access_allowed-to-be-boolean
++++ a/fs/proc/base.c
+@@ -670,10 +670,10 @@ static int proc_pid_syscall(struct seq_f
+ /************************************************************************/
+ 
+ /* permission checks */
+-static int proc_fd_access_allowed(struct inode *inode)
++static bool proc_fd_access_allowed(struct inode *inode)
+ {
+ 	struct task_struct *task;
+-	int allowed = 0;
++	bool allowed = false;
+ 	/* Allow access to a task's file descriptors if it is us or we
+ 	 * may use ptrace attach to the process and find out that
+ 	 * information.
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@linux.dev are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm-hwpoison-fix-condition-in-free-hugetlb-page-path-fix.patch
+mm-remove-redundant-check-about-fault_flag_allow_retry-bit.patch
+mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups.patch
+proc-convert-the-return-type-of-proc_fd_access_allowed-to-be-boolean.patch
 
