@@ -2,37 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08225C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Dec 2021 21:18:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 841D4C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Dec 2021 21:18:55 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236150AbhLUVSG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Dec 2021 16:18:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56650 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230326AbhLUVSG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Dec 2021 16:18:06 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1F75AC061574
-        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 13:18:06 -0800 (PST)
+        id S236380AbhLUVSz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Dec 2021 16:18:55 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:58580 "EHLO
+        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230326AbhLUVSy (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Dec 2021 16:18:54 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BDFD0617A9
-        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 21:18:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B1F6C36AE8;
-        Tue, 21 Dec 2021 21:18:05 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 7D6D4CE1A6F
+        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 21:18:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B964DC36AE9;
+        Tue, 21 Dec 2021 21:18:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640121485;
-        bh=Ojpk0a2Z/8nG6d5Ln14Zv2GpugJEsTHeIVq5TPbrVqc=;
+        s=korg; t=1640121531;
+        bh=L+5Kmwz9fZaSg5Aw7I8UYff2bsN71QzSA17gcSnhrnQ=;
         h=Date:From:To:Subject:From;
-        b=pZe4/wrLAHoI0p3C9sgj4bZOGZrnq28h0xRvaNCp1FvmPNGVjxfgmfScITZl/lOV8
-         2TJWPtodVPm9RyQygdyX9H+YisjOZWmZi8QnOriiYkiO9N4NgMuWX1Uhl9qHJwmg9r
-         agW0drYeZkG6BaWbwGmQNvyH8Wt2KOLhxnjjD3Cw=
-Date:   Tue, 21 Dec 2021 13:18:04 -0800
+        b=egXokBN0Mc3VCBaiKAW+0blVCfUx25hk5/Fdb8mzcdyZYXyyVVM/eTWi5MRBQhVL8
+         lBIvG5aejx6DQrjJxpXdl2jB3jPipVY9z6OtHYL6r4/5FaZDysa73GUcX59iOT41A4
+         K9Rnn10poRzIe2HRcNreO7IV1rKHOEu7cnLEZFXY=
+Date:   Tue, 21 Dec 2021 13:18:51 -0800
 From:   akpm@linux-foundation.org
 To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20211221211804.IPQG20alH%akpm@linux-foundation.org>
+Subject:  [obsolete]
+ drivers-gpu-drm-vmwgfx-vmwgfx_gemc-printk-fix.patch removed from -mm tree
+Message-ID: <20211221211851.CTe3HZbcG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,56 +39,34 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: drivers/gpu/drm/vmwgfx/vmwgfx_gem.c: printk fix
+has been removed from the -mm tree.  Its filename was
+     drivers-gpu-drm-vmwgfx-vmwgfx_gemc-printk-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: drivers/gpu/drm/vmwgfx/vmwgfx_gem.c: printk fix
+
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/vmx/vmx.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/gpu/drm/vmwgfx/vmwgfx_gem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/x86/kvm/vmx/vmx.c~linux-next-git-rejects
-+++ a/arch/x86/kvm/vmx/vmx.c
-@@ -3994,9 +3994,6 @@ static int vmx_deliver_posted_interrupt(
- 	if (pi_test_and_set_on(&vmx->pi_desc))
- 		return 0;
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_gem.c~drivers-gpu-drm-vmwgfx-vmwgfx_gemc-printk-fix
++++ a/drivers/gpu/drm/vmwgfx/vmwgfx_gem.c
+@@ -227,7 +227,7 @@ static void vmw_bo_print_info(int id, st
+ 		break;
+ 	}
  
--<<<<<<< HEAD
--	if (!kvm_vcpu_trigger_posted_interrupt(vcpu, false))
--=======
- 	/*
- 	 * The implied barrier in pi_test_and_set_on() pairs with the smp_mb_*()
- 	 * after setting vcpu->mode in vcpu_enter_guest(), thus the vCPU is
-@@ -4005,7 +4002,6 @@ static int vmx_deliver_posted_interrupt(
- 	 */
- 	if (vcpu != kvm_get_running_vcpu() &&
- 	    !kvm_vcpu_trigger_posted_interrupt(vcpu, false))
-->>>>>>> linux-next/akpm-base
- 		kvm_vcpu_kick(vcpu);
- 
- 	return 0;
+-	seq_printf(m, "\t\t0x%08x: %12ld bytes %s, type = %s",
++	seq_printf(m, "\t\t0x%08x: %12zd bytes %s, type = %s",
+ 		   id, bo->base.base.size, placement, type);
+ 	seq_printf(m, ", priority = %u, pin_count = %u, GEM refs = %d, TTM refs = %d",
+ 		   bo->base.priority,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -115,7 +91,6 @@ hashh-remove-unused-define-directive-fix.patch
 panic-use-error_report_end-tracepoint-on-warnings-fix.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
-drivers-gpu-drm-vmwgfx-vmwgfx_gemc-printk-fix.patch
 sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
 firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
 firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
