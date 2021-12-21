@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 49B31C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 21 Dec 2021 22:15:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D226DC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 21 Dec 2021 22:20:38 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236321AbhLUWPB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 21 Dec 2021 17:15:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41008 "EHLO
+        id S231352AbhLUWUi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 21 Dec 2021 17:20:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42250 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237128AbhLUWPB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Dec 2021 17:15:01 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10CFEC06173F;
-        Tue, 21 Dec 2021 14:15:01 -0800 (PST)
+        with ESMTP id S230085AbhLUWUh (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 21 Dec 2021 17:20:37 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8E73CC061574
+        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 14:20:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 23B01617C9;
-        Tue, 21 Dec 2021 22:15:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52223C36AE9;
-        Tue, 21 Dec 2021 22:14:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5406AB81A1D
+        for <mm-commits@vger.kernel.org>; Tue, 21 Dec 2021 22:20:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C3C4AC36AE9;
+        Tue, 21 Dec 2021 22:20:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640124899;
-        bh=+gsBDoWlQVmiX8PeZHeMxUNKJ9evciNoBG2cAyGQHaU=;
+        s=korg; t=1640125235;
+        bh=ecWMcuZ5p28+Isj6XLqPpb2ZRoGAGhFJgosc2s6tFFg=;
         h=Date:From:To:Subject:From;
-        b=c00u8pgwn9JZsWOLR+SSdU1yOHRzHK6af6f3wHC8+DGkg0y0mUCkRhL4neSZCOqVf
-         jRLII369IUJxGEeCHYE4zrR7Ggb1B8K4xphq4PIMAJeCabfUgXfN4Zkn5PBp6BKviw
-         DcpinE01BiQth4x6ZlJlCpAGMyqpAcP3C7oA2fJ0=
-Date:   Tue, 21 Dec 2021 14:14:58 -0800
+        b=DuLHOh78DOrXIkAMuqLCH6YEZHn74CkLtpdekp1LL0T6rLFKV8cRa8SOYImCh/gQg
+         nsUYr8hGy0V2w85tj06IyqQTEVVeAF5S08aKLDA9a+a3ysIPUsIc50IbKdLib1ZD3A
+         Vh2VDYrkJAHCbA+qxYnjzHOKMCSSQIraBdRHsO9M=
+Date:   Tue, 21 Dec 2021 14:20:34 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        osalvador@suse.de, naoya.horiguchi@nec.com, hulkci@huawei.com,
-        liushixin2@huawei.com
-Subject:  +
- mm-hwpoison-clear-mf_count_increased-before-retrying-get_any_page.patch added
- to -mm tree
-Message-ID: <20211221221458.ul93w%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@gmail.com, andreyknvl@google.com
+Subject:  + kasan-fix-quarantine-conflicting-with-init_on_free.patch
+ added to -mm tree
+Message-ID: <20211221222034.pdN5C%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: clear MF_COUNT_INCREASED before retrying get_any_page()
+     Subject: kasan: fix quarantine conflicting with init_on_free
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-clear-mf_count_increased-before-retrying-get_any_page.patch
+     kasan-fix-quarantine-conflicting-with-init_on_free.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-clear-mf_count_increased-before-retrying-get_any_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-quarantine-conflicting-with-init_on_free.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-clear-mf_count_increased-before-retrying-get_any_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-quarantine-conflicting-with-init_on_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,99 +65,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/hwpoison: clear MF_COUNT_INCREASED before retrying get_any_page()
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: fix quarantine conflicting with init_on_free
 
-Hulk Robot reported a panic in put_page_testzero() when testing madvise()
-with MADV_SOFT_OFFLINE.  The BUG() is triggered when retrying
-get_any_page().  This is because we keep MF_COUNT_INCREASED flag in second
-try but the refcnt is not increased.
+KASAN's quarantine might save its metadata inside freed objects.  As this
+happens after the memory is zeroed by the slab allocator when init_on_free
+is enabled, the memory coming out of quarantine is not properly zeroed.
 
- page dumped because: VM_BUG_ON_PAGE(page_ref_count(page) == 0)
- ------------[ cut here ]------------
- kernel BUG at include/linux/mm.h:737!
- invalid opcode: 0000 [#1] PREEMPT SMP
- CPU: 5 PID: 2135 Comm: sshd Tainted: G    B             5.16.0-rc6-dirty #373
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
- RIP: 0010:release_pages+0x53f/0x840
- Code: 0c 01 4c 8d 60 ff e9 5b fb ff ff 48 c7 c6 d8 97 0c b3 4c 89 e7 48 83 05 0e 7b 3c 0c 01 e8 89 3d 04 00 48 83 05 11 7b 3c 0c 01 <0f> 0b 48 83 05 0f 7b 3c 0c 01 48 83 05 0f 7b 3c 0c 01 48 83 05f
- RSP: 0018:ffffc900015a7bc0 EFLAGS: 00010002
- RAX: 000000000000003e RBX: ffffffffbace04c8 RCX: 0000000000000002
- RDX: 0000000000000000 RSI: 0000000000000001 RDI: 00000000ffffffff
- RBP: ffff88817b9acd50 R08: 0000000000000000 R09: c0000000ffefffff
- R10: 0000000000000001 R11: ffffc900015a79b0 R12: ffffea0005e1c900
- R13: ffffea0005e1de88 R14: 000000000000001f R15: ffff888100071000
- FS:  0000000000000000(0000) GS:ffff88842fb40000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 00007f305e8de3d4 CR3: 000000017bb6f000 CR4: 00000000000006e0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
- Call Trace:
-  <TASK>
-  free_pages_and_swap_cache+0x64/0x80
-  tlb_flush_mmu+0x6f/0x220
-  unmap_page_range+0xe6c/0x12c0
-  unmap_single_vma+0x90/0x170
-  unmap_vmas+0xc4/0x180
-  exit_mmap+0xde/0x3a0
-  mmput+0xa3/0x250
-  do_exit+0x564/0x1470
-  do_group_exit+0x3b/0x100
-  __do_sys_exit_group+0x13/0x20
-  __x64_sys_exit_group+0x16/0x20
-  do_syscall_64+0x34/0x80
-  entry_SYSCALL_64_after_hwframe+0x44/0xae
- RIP: 0033:0x7f30625401d9
- Code: Unable to access opcode bytes at RIP 0x7f30625401af.
- RSP: 002b:00007ffe391b0c88 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
- RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007f30625401d9
- RDX: 0000000000000001 RSI: 0000000000000000 RDI: 0000000000000001
- RBP: 00007f306283d838 R08: 000000000000003c R09: 00000000000000e7
- R10: fffffffffffffe30 R11: 0000000000000246 R12: 00007f306283d838
- R13: 00007f3062842e80 R14: 0000000000000000 R15: ffffaa4fb7932430
-  </TASK>
- Modules linked in:
- ---[ end trace e99579b570fe0649 ]---
- RIP: 0010:release_pages+0x53f/0x840
- Code: 0c 01 4c 8d 60 ff e9 5b fb ff ff 48 c7 c6 d8 97 0c b3 4c 89 e7 48 83 05 0e 7b 3c 0c 01 e8 89 3d 04 00 48 83 05 11 7b 3c 0c 01 <0f> 0b 48 83 05 0f 7b 3c 0c 01 48 83 05 0f 7b 3c 0c 01 48 83 05f
- RSP: 0018:ffffc900015a7bc0 EFLAGS: 00010002
- RAX: 000000000000003e RBX: ffffffffbace04c8 RCX: 0000000000000002
- RDX: 0000000000000000 RSI: 0000000000000001 RDI: 00000000ffffffff
- RBP: ffff88817b9acd50 R08: 0000000000000000 R09: c0000000ffefffff
- R10: 0000000000000001 R11: ffffc900015a79b0 R12: ffffea0005e1c900
- R13: ffffea0005e1de88 R14: 000000000000001f R15: ffff888100071000
- FS:  0000000000000000(0000) GS:ffff88842fb40000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 00007f305e8de3d4 CR3: 000000017bb6f000 CR4: 00000000000006e0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+This causes lib/test_meminit.c tests to fail with Generic KASAN.
 
-Link: https://lkml.kernel.org/r/20211221074908.3910286-1-liushixin2@huawei.com
-Fixes: b94e02822deb ("mm,hwpoison: try to narrow window race for free pages")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: <stable@vger.kernel.org>
+Zero the metadata when the object is removed from quarantine.
+
+Link: https://lkml.kernel.org/r/2805da5df4b57138fdacd671f5d227d58950ba54.1640037083.git.andreyknvl@google.com
+Fixes: 6471384af2a6 ("mm: security: introduce init_on_alloc=1 and init_on_free=1 boot options")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kasan/quarantine.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
---- a/mm/memory-failure.c~mm-hwpoison-clear-mf_count_increased-before-retrying-get_any_page
-+++ a/mm/memory-failure.c
-@@ -2232,6 +2232,7 @@ retry:
- 	} else if (ret == 0) {
- 		if (soft_offline_free_page(page) && try_again) {
- 			try_again = false;
-+			flags &= ~MF_COUNT_INCREASED;
- 			goto retry;
- 		}
- 	}
+--- a/mm/kasan/quarantine.c~kasan-fix-quarantine-conflicting-with-init_on_free
++++ a/mm/kasan/quarantine.c
+@@ -132,12 +132,23 @@ static void *qlink_to_object(struct qlis
+ static void qlink_free(struct qlist_node *qlink, struct kmem_cache *cache)
+ {
+ 	void *object = qlink_to_object(qlink, cache);
++	struct kasan_free_meta *meta = kasan_get_free_meta(cache, object);
+ 	unsigned long flags;
+ 
+ 	if (IS_ENABLED(CONFIG_SLAB))
+ 		local_irq_save(flags);
+ 
+ 	/*
++	 * If init_on_free is enabled and KASAN's free metadata is stored in
++	 * the object, zero the metadata. Otherwise, the object's memory will
++	 * not be properly zeroed, as KASAN saves the metadata after the slab
++	 * allocator zeroes the object.
++	 */
++	if (slab_want_init_on_free(cache) &&
++	    cache->kasan_info.free_meta_offset == 0)
++		memzero_explicit(meta, sizeof(*meta));
++
++	/*
+ 	 * As the object now gets freed from the quarantine, assume that its
+ 	 * free track is no longer valid.
+ 	 */
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-hwpoison-clear-mf_count_increased-before-retrying-get_any_page.patch
+kasan-fix-quarantine-conflicting-with-init_on_free.patch
 
