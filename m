@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9101EC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Dec 2021 00:26:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BBBD8C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Dec 2021 02:15:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229620AbhLWA0Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Dec 2021 19:26:25 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:34246 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232736AbhLWA0Z (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Dec 2021 19:26:25 -0500
+        id S231513AbhLWCPL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Dec 2021 21:15:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52896 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229788AbhLWCPK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Dec 2021 21:15:10 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 99E8BC061574
+        for <mm-commits@vger.kernel.org>; Wed, 22 Dec 2021 18:15:10 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 34E24B81F2B
-        for <mm-commits@vger.kernel.org>; Thu, 23 Dec 2021 00:26:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9167BC36AE5;
-        Thu, 23 Dec 2021 00:26:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 25DD861D1B
+        for <mm-commits@vger.kernel.org>; Thu, 23 Dec 2021 02:15:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 48397C36AE8;
+        Thu, 23 Dec 2021 02:15:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640219182;
-        bh=zyFMjX4oPdNCAnzNu9rIdN3DrSRFgHPNeNmnpVHrrM4=;
+        s=korg; t=1640225709;
+        bh=sBsDllqQLrBRo7iwV+zDLgBG3btyl7cL3NJ3xZP8AbQ=;
         h=Date:From:To:Subject:From;
-        b=tLEsxOH3aGH1VoK261Nv6XRLvBtb8WgKLdxlbXqGJjZWPU0kEf654cqPXJBOP5sKw
-         wkNOWrMK800XdQgkka8+wLxh6fX5JOCK4Zb+23DmVhS/l2yVDEUoxqeEOEQ2pTlBly
-         tg8dzUM7eCjoV659/Vpn8RbgeP/XgmSnzxO+sBH8=
-Date:   Wed, 22 Dec 2021 16:26:21 -0800
+        b=kVivw9vRWorB3t1pcHng1hw1B6Coc4U1FQSZRhVsluXXm/9TR2DTDf4OQpzyLUU2Y
+         39L6Oq2ntTuWMM4mbwWtz2HHyFmwI2IRPsA4shuOIMoTPVpMt/gIPt3te4BOIJWG5U
+         nWYkmnx6b+UziQj5WuyRYkGrfReCZ1yotuigGcq8=
+Date:   Wed, 22 Dec 2021 18:15:08 -0800
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, david@redhat.com, dhowells@redhat.com,
-        hughd@google.com, jgg@nvidia.com, jglisse@redhat.com,
-        jhubbard@nvidia.com, mm-commits@vger.kernel.org,
-        rcampbell@nvidia.com, willy@infradead.org
-Subject:  [folded-merged]
- mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref-v5.patch
- removed from -mm tree
-Message-ID: <20211223002621.kNH3R4fLb%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bunk@stusta.de, dhowells@redhat.com,
+        mingo@elte.hu, mm-commits@vger.kernel.org, rdunlap@xenotime.net,
+        walken@google.com
+Subject:  + mutex-subsystem-synchro-test-module-fix.patch added to
+ -mm tree
+Message-ID: <20211223021508.bVwG2TEIk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,96 +44,128 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate.c: Rework migration_entry_wait() to not take a pageref
-has been removed from the -mm tree.  Its filename was
-     mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref-v5.patch
+     Subject: mutex-subsystem-synchro-test-module-fix
+has been added to the -mm tree.  Its filename is
+     mutex-subsystem-synchro-test-module-fix.patch
 
-This patch was dropped because it was folded into mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref.patch
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mutex-subsystem-synchro-test-module-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mutex-subsystem-synchro-test-module-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/migrate.c: Rework migration_entry_wait() to not take a pageref
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mutex-subsystem-synchro-test-module-fix
 
- - Documentation/comment fixes from David H
- - Added David's Acked-by
- - Changed functions to take swap entries instead of struct pages as
-   suggested by Matthew W
-
-Link: https://lkml.kernel.org/r/20211213033848.1973946-1-apopple@nvidia.com
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Adrian Bunk <bunk@stusta.de>
 Cc: David Howells <dhowells@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h |    2 +-
- mm/filemap.c            |   11 +++++++----
- 2 files changed, 8 insertions(+), 5 deletions(-)
+ kernel/synchro-test.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/include/linux/migrate.h~mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref-v5
-+++ a/include/linux/migrate.h
-@@ -40,7 +40,7 @@ extern int migrate_huge_page_move_mappin
- 				  struct page *newpage, struct page *page);
- extern int migrate_page_move_mapping(struct address_space *mapping,
- 		struct page *newpage, struct page *page, int extra_count);
--void migration_entry_wait_on_locked(struct folio *folio, pte_t *ptep,
-+void migration_entry_wait_on_locked(swp_entry_t entry, pte_t *ptep,
- 				spinlock_t *ptl);
- void folio_migrate_flags(struct folio *newfolio, struct folio *folio);
- void folio_migrate_copy(struct folio *newfolio, struct folio *folio);
---- a/mm/filemap.c~mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref-v5
-+++ a/mm/filemap.c
-@@ -21,6 +21,7 @@
- #include <linux/gfp.h>
- #include <linux/mm.h>
- #include <linux/swap.h>
-+#include <linux/swapops.h>
- #include <linux/mman.h>
- #include <linux/pagemap.h>
- #include <linux/file.h>
-@@ -1392,8 +1393,9 @@ repeat:
- #ifdef CONFIG_MIGRATION
- /**
-  * migration_entry_wait_on_locked - Wait for a migration entry to be removed
-- * @folio: folio referenced by the migration entry.
-- * @ptep: mapped pte pointer. This function will return with the ptep unmapped.
-+ * @entry: migration swap entry.
-+ * @ptep: mapped pte pointer. Will return with the ptep unmapped. Only required
-+ *        for pte entries, pass NULL for pmd entries.
-  * @ptl: already locked ptl. This function will drop the lock.
-  *
-  * Wait for a migration entry referencing the given page to be removed. This is
-@@ -1404,10 +1406,10 @@ repeat:
-  *
-  * Returns after unmapping and unlocking the pte/ptl with pte_unmap_unlock().
-  *
-- * This follows the same logic as wait_on_page_bit_common() so see the comments
-+ * This follows the same logic as folio_wait_bit_common() so see the comments
-  * there.
-  */
--void migration_entry_wait_on_locked(struct folio *folio, pte_t *ptep,
-+void migration_entry_wait_on_locked(swp_entry_t entry, pte_t *ptep,
- 				spinlock_t *ptl)
- {
- 	struct wait_page_queue wait_page;
-@@ -1416,6 +1418,7 @@ void migration_entry_wait_on_locked(stru
- 	bool delayacct = false;
- 	unsigned long pflags;
- 	wait_queue_head_t *q;
-+	struct folio *folio = page_folio(pfn_swap_entry_to_page(entry));
+--- a/kernel/synchro-test.c~mutex-subsystem-synchro-test-module-fix
++++ a/kernel/synchro-test.c
+@@ -264,7 +264,7 @@ static int spinlocker(void *arg)
  
- 	q = folio_waitqueue(folio);
- 	if (!folio_test_uptodate(folio) && folio_test_workingset(folio)) {
+ 	if (verbose >= 2)
+ 		printk("%s: done\n", current->comm);
+-	complete_and_exit(&sp_comp[N], 0);
++	kthread_complete_and_exit(&sp_comp[N], 0);
+ }
+ 
+ static int mutexer(void *arg)
+@@ -285,7 +285,7 @@ static int mutexer(void *arg)
+ 
+ 	if (verbose >= 2)
+ 		printk("%s: done\n", current->comm);
+-	complete_and_exit(&mx_comp[N], 0);
++	kthread_complete_and_exit(&mx_comp[N], 0);
+ }
+ 
+ static int semaphorer(void *arg)
+@@ -306,7 +306,7 @@ static int semaphorer(void *arg)
+ 
+ 	if (verbose >= 2)
+ 		printk("%s: done\n", current->comm);
+-	complete_and_exit(&sm_comp[N], 0);
++	kthread_complete_and_exit(&sm_comp[N], 0);
+ }
+ 
+ static int reader(void *arg)
+@@ -329,7 +329,7 @@ static int reader(void *arg)
+ 
+ 	if (verbose >= 2)
+ 		printk("%s: done\n", current->comm);
+-	complete_and_exit(&rd_comp[N], 0);
++	kthread_complete_and_exit(&rd_comp[N], 0);
+ }
+ 
+ static int writer(void *arg)
+@@ -352,7 +352,7 @@ static int writer(void *arg)
+ 
+ 	if (verbose >= 2)
+ 		printk("%s: done\n", current->comm);
+-	complete_and_exit(&wr_comp[N], 0);
++	kthread_complete_and_exit(&wr_comp[N], 0);
+ }
+ 
+ static int downgrader(void *arg)
+@@ -380,7 +380,7 @@ static int downgrader(void *arg)
+ 
+ 	if (verbose >= 2)
+ 		printk("%s: done\n", current->comm);
+-	complete_and_exit(&dg_comp[N], 0);
++	kthread_complete_and_exit(&dg_comp[N], 0);
+ }
+ 
+ static void stop_test(struct timer_list *t)
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hmmc-allow-vm_mixedmap-to-work-with-hmm_range_fault.patch
-mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref.patch
+shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
+kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
+mm.patch
+kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
+device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
+memcg-add-per-memcg-vmalloc-stat-v2-fix.patch
+mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
+mm-vmalloc-allocate-small-pages-for-area-pages-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
+mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch
+proc-make-the-proc_create-stubs-static-inlines-fix.patch
+proc-make-the-proc_create-stubs-static-inlines-fix2.patch
+proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch
+kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch
+hashh-remove-unused-define-directive-fix.patch
+panic-use-error_report_end-tracepoint-on-warnings-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
+proc-remove-pde_data-completely-fix.patch
+proc-remove-pde_data-completely-fix-fix.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
