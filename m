@@ -2,42 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86857C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Dec 2021 00:06:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9101EC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Dec 2021 00:26:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345084AbhLWAG4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Dec 2021 19:06:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51844 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231232AbhLWAGz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Dec 2021 19:06:55 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 66861C061574
-        for <mm-commits@vger.kernel.org>; Wed, 22 Dec 2021 16:06:55 -0800 (PST)
+        id S229620AbhLWA0Z (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Dec 2021 19:26:25 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:34246 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232736AbhLWA0Z (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Dec 2021 19:26:25 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2DD42B81EA0
-        for <mm-commits@vger.kernel.org>; Thu, 23 Dec 2021 00:06:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9B678C36AE8;
-        Thu, 23 Dec 2021 00:06:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 34E24B81F2B
+        for <mm-commits@vger.kernel.org>; Thu, 23 Dec 2021 00:26:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9167BC36AE5;
+        Thu, 23 Dec 2021 00:26:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640218012;
-        bh=whTELGeSyeWClDQQXZOGYc3vDbUkanXTpLIRkV8EkXY=;
+        s=korg; t=1640219182;
+        bh=zyFMjX4oPdNCAnzNu9rIdN3DrSRFgHPNeNmnpVHrrM4=;
         h=Date:From:To:Subject:From;
-        b=kV0AuFRNpIJi5n88Ojr6m6ZbeTAboV/Zqt1KwvzO6FDllRMP3rzy4Vt2a2iXYgPaH
-         91F/UGopeD22X5+iYNXg8b6x4tHoEiJOc3LTlCQN8ViCyauVwHN38pbpolx4jhBIS3
-         v50qeaSXkafeGle/uYqupHW89Xog0os5Jkfyj6Fc=
-Date:   Wed, 22 Dec 2021 16:06:52 -0800
+        b=tLEsxOH3aGH1VoK261Nv6XRLvBtb8WgKLdxlbXqGJjZWPU0kEf654cqPXJBOP5sKw
+         wkNOWrMK800XdQgkka8+wLxh6fX5JOCK4Zb+23DmVhS/l2yVDEUoxqeEOEQ2pTlBly
+         tg8dzUM7eCjoV659/Vpn8RbgeP/XgmSnzxO+sBH8=
+Date:   Wed, 22 Dec 2021 16:26:21 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk,
-        tglx@linutronix.de, richard@nod.at, peterz@infradead.org,
-        elver@google.com, ebiederm@xmission.com, axboe@kernel.dk,
-        rdunlap@infradead.org
-Subject:  + signal-clean-up-kernel-doc-comments.patch added to -mm
- tree
-Message-ID: <20211223000652.ne0dP%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+To:     apopple@nvidia.com, david@redhat.com, dhowells@redhat.com,
+        hughd@google.com, jgg@nvidia.com, jglisse@redhat.com,
+        jhubbard@nvidia.com, mm-commits@vger.kernel.org,
+        rcampbell@nvidia.com, willy@infradead.org
+Subject:  [folded-merged]
+ mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref-v5.patch
+ removed from -mm tree
+Message-ID: <20211223002621.kNH3R4fLb%akpm@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,84 +43,96 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: clean up kernel-doc comments
-has been added to the -mm tree.  Its filename is
-     signal-clean-up-kernel-doc-comments.patch
+     Subject: mm/migrate.c: Rework migration_entry_wait() to not take a pageref
+has been removed from the -mm tree.  Its filename was
+     mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref-v5.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/signal-clean-up-kernel-doc-comments.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/signal-clean-up-kernel-doc-comments.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref.patch
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: signal: clean up kernel-doc comments
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/migrate.c: Rework migration_entry_wait() to not take a pageref
 
-Fix kernel-doc warnings in kernel/signal.c:
+ - Documentation/comment fixes from David H
+ - Added David's Acked-by
+ - Changed functions to take swap entries instead of struct pages as
+   suggested by Matthew W
 
-kernel/signal.c:1830: warning: Function parameter or member 'force_coredump' not described in 'force_sig_seccomp'
-kernel/signal.c:2873: warning: missing initial short description on line:
- * signal_delivered -
-
-Also add a closing parenthesis to the comments in signal_delivered().
-
-Link: https://lkml.kernel.org/r/20211222031027.29694-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Richard Weinberger <richard@nod.at>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Marco Elver <elver@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Link: https://lkml.kernel.org/r/20211213033848.1973946-1-apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/linux/migrate.h |    2 +-
+ mm/filemap.c            |   11 +++++++----
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
---- a/kernel/signal.c~signal-clean-up-kernel-doc-comments
-+++ a/kernel/signal.c
-@@ -1820,6 +1820,7 @@ int force_sig_perf(void __user *addr, u3
-  * force_sig_seccomp - signals the task to allow in-process syscall emulation
-  * @syscall: syscall number to send to userland
-  * @reason: filter-supplied reason code to send to userland (via si_errno)
-+ * @force_coredump: true to trigger a coredump
-  *
-  * Forces a SIGSYS with a code of SYS_SECCOMP and related sigsys info.
-  */
-@@ -2863,13 +2864,13 @@ out:
- }
- 
+--- a/include/linux/migrate.h~mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref-v5
++++ a/include/linux/migrate.h
+@@ -40,7 +40,7 @@ extern int migrate_huge_page_move_mappin
+ 				  struct page *newpage, struct page *page);
+ extern int migrate_page_move_mapping(struct address_space *mapping,
+ 		struct page *newpage, struct page *page, int extra_count);
+-void migration_entry_wait_on_locked(struct folio *folio, pte_t *ptep,
++void migration_entry_wait_on_locked(swp_entry_t entry, pte_t *ptep,
+ 				spinlock_t *ptl);
+ void folio_migrate_flags(struct folio *newfolio, struct folio *folio);
+ void folio_migrate_copy(struct folio *newfolio, struct folio *folio);
+--- a/mm/filemap.c~mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref-v5
++++ a/mm/filemap.c
+@@ -21,6 +21,7 @@
+ #include <linux/gfp.h>
+ #include <linux/mm.h>
+ #include <linux/swap.h>
++#include <linux/swapops.h>
+ #include <linux/mman.h>
+ #include <linux/pagemap.h>
+ #include <linux/file.h>
+@@ -1392,8 +1393,9 @@ repeat:
+ #ifdef CONFIG_MIGRATION
  /**
-- * signal_delivered - 
-+ * signal_delivered - called after signal delivery to update blocked signals
-  * @ksig:		kernel signal struct
-  * @stepping:		nonzero if debugger single-step or block-step in use
+  * migration_entry_wait_on_locked - Wait for a migration entry to be removed
+- * @folio: folio referenced by the migration entry.
+- * @ptep: mapped pte pointer. This function will return with the ptep unmapped.
++ * @entry: migration swap entry.
++ * @ptep: mapped pte pointer. Will return with the ptep unmapped. Only required
++ *        for pte entries, pass NULL for pmd entries.
+  * @ptl: already locked ptl. This function will drop the lock.
   *
-  * This function should be called when a signal has successfully been
-  * delivered. It updates the blocked signals accordingly (@ksig->ka.sa.sa_mask
-- * is always blocked, and the signal itself is blocked unless %SA_NODEFER
-+ * is always blocked), and the signal itself is blocked unless %SA_NODEFER
-  * is set in @ksig->ka.sa.sa_flags.  Tracing is notified.
+  * Wait for a migration entry referencing the given page to be removed. This is
+@@ -1404,10 +1406,10 @@ repeat:
+  *
+  * Returns after unmapping and unlocking the pte/ptl with pte_unmap_unlock().
+  *
+- * This follows the same logic as wait_on_page_bit_common() so see the comments
++ * This follows the same logic as folio_wait_bit_common() so see the comments
+  * there.
   */
- static void signal_delivered(struct ksignal *ksig, int stepping)
+-void migration_entry_wait_on_locked(struct folio *folio, pte_t *ptep,
++void migration_entry_wait_on_locked(swp_entry_t entry, pte_t *ptep,
+ 				spinlock_t *ptl)
+ {
+ 	struct wait_page_queue wait_page;
+@@ -1416,6 +1418,7 @@ void migration_entry_wait_on_locked(stru
+ 	bool delayacct = false;
+ 	unsigned long pflags;
+ 	wait_queue_head_t *q;
++	struct folio *folio = page_folio(pfn_swap_entry_to_page(entry));
+ 
+ 	q = folio_waitqueue(folio);
+ 	if (!folio_test_uptodate(folio) && folio_test_workingset(folio)) {
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-maintainers-mark-more-list-instances-as-moderated.patch
-mm-mempolicy-fix-all-kernel-doc-warnings.patch
-signal-clean-up-kernel-doc-comments.patch
+mm-hmmc-allow-vm_mixedmap-to-work-with-hmm_range_fault.patch
+mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref.patch
 
