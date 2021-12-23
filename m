@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B23CC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 23 Dec 2021 00:06:17 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E901C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 23 Dec 2021 00:06:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344934AbhLWAGQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 22 Dec 2021 19:06:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51700 "EHLO
+        id S1345013AbhLWAGU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 22 Dec 2021 19:06:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51712 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231232AbhLWAGQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Dec 2021 19:06:16 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A03CC061574
-        for <mm-commits@vger.kernel.org>; Wed, 22 Dec 2021 16:06:16 -0800 (PST)
+        with ESMTP id S231232AbhLWAGT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 22 Dec 2021 19:06:19 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 815BEC061574
+        for <mm-commits@vger.kernel.org>; Wed, 22 Dec 2021 16:06:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E48B961D2F
-        for <mm-commits@vger.kernel.org>; Thu, 23 Dec 2021 00:06:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 001A6C36AE5;
-        Thu, 23 Dec 2021 00:06:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 3DBB9B81F22
+        for <mm-commits@vger.kernel.org>; Thu, 23 Dec 2021 00:06:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BC0CCC36AE8;
+        Thu, 23 Dec 2021 00:06:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640217974;
-        bh=fyTsw0TrRaYzImcT2ozzbHmGWhc+cwv3lPXQ6mi+9ZY=;
+        s=korg; t=1640217977;
+        bh=+1DTiQmb31Oe3PlSo/kRehV2TKkccm1oyKtwQrhcPhg=;
         h=Date:From:To:Subject:From;
-        b=oKqjOCp2TjY6gMg2S6dv0K/XJlsctE+zKM+QYdCrSRqNEpQAAg0l7R9HhyZgSndyQ
-         fKGyqDk8DqP8l/FoU0jUTwVr66r0tQXajmT3JnjBr+jjnqfjHoQkiFxYve8JOLU9Wn
-         EUv7gRy3PsBmZAZyRvktxZHCIoFKVTivrJk/WQv0=
-Date:   Wed, 22 Dec 2021 16:06:12 -0800
+        b=GMwf772xfWIF+eKnzDIadwhtBBFhCS0+BQq+rG6RK19vUFCxA+EJrTCNPMP6DIMfJ
+         FMOrCAPlKXsNIvYA77uqIVdew/4Ate1i8FZGKFEozpoTftDJuVO/4eIOE4zGlpelYX
+         epXXbOxPxMGtbjfFJZE44p9hH2mV3OE/XG7fNchQ=
+Date:   Wed, 22 Dec 2021 16:06:16 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        mhocko@kernel.org, hannes@cmpxchg.org, guro@fb.com,
-        shakeelb@google.com
-Subject:  + memcg-add-per-memcg-vmalloc-stat-v2.patch added to -mm
- tree
-Message-ID: <20211223000612.htHl1%akpm@linux-foundation.org>
+        shakeelb@google.com, mhocko@kernel.org, hannes@cmpxchg.org,
+        guro@fb.com, akpm@linux-foundation.org
+Subject:  + memcg-add-per-memcg-vmalloc-stat-v2-fix.patch added to
+ -mm tree
+Message-ID: <20211223000616.JoWPP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-add-per-memcg-vmalloc-stat-v2
+     Subject: memcg-add-per-memcg-vmalloc-stat-v2-fix
 has been added to the -mm tree.  Its filename is
-     memcg-add-per-memcg-vmalloc-stat-v2.patch
+     memcg-add-per-memcg-vmalloc-stat-v2-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-add-per-memcg-vmalloc-stat-v2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/memcg-add-per-memcg-vmalloc-stat-v2-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-add-per-memcg-vmalloc-stat-v2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-add-per-memcg-vmalloc-stat-v2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,49 +65,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg-add-per-memcg-vmalloc-stat-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: memcg-add-per-memcg-vmalloc-stat-v2-fix
 
-page_memcg() within rcu lock, per Muchun
+remove cast, per Muchun
 
-Link: https://lkml.kernel.org/r/20211222052457.1960701-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
 Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/memcontrol.h~memcg-add-per-memcg-vmalloc-stat-v2
-+++ a/include/linux/memcontrol.h
-@@ -996,10 +996,16 @@ static inline void mod_memcg_state(struc
- static inline void mod_memcg_page_state(struct page *page,
- 					int idx, int val)
- {
--	struct mem_cgroup *memcg = page_memcg(page);
-+	struct mem_cgroup *memcg;
+--- a/mm/vmalloc.c~memcg-add-per-memcg-vmalloc-stat-v2-fix
++++ a/mm/vmalloc.c
+@@ -2627,7 +2627,7 @@ static void __vunmap(const void *addr, i
+ 		int i;
  
--	if (!mem_cgroup_disabled() && memcg)
-+	if (mem_cgroup_disabled())
-+		return;
-+
-+	rcu_read_lock();
-+	memcg = page_memcg(page);
-+	if (memcg)
- 		mod_memcg_state(memcg, idx, val);
-+	rcu_read_unlock();
- }
+ 		mod_memcg_page_state(area->pages[0], MEMCG_VMALLOC,
+-				     -(int)area->nr_pages);
++				     -area->nr_pages);
  
- static inline unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx)
+ 		for (i = 0; i < area->nr_pages; i += 1U << page_order) {
+ 			struct page *page = area->pages[i];
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memcg-better-bounds-on-the-memcg-stats-updates.patch
-memcg-add-per-memcg-vmalloc-stat.patch
-memcg-add-per-memcg-vmalloc-stat-v2.patch
+shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
+kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
+mm.patch
+kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
+device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
+memcg-add-per-memcg-vmalloc-stat-v2-fix.patch
+mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
+mm-vmalloc-allocate-small-pages-for-area-pages-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
+mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch
+proc-make-the-proc_create-stubs-static-inlines-fix.patch
+proc-make-the-proc_create-stubs-static-inlines-fix2.patch
+proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch
+kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch
+hashh-remove-unused-define-directive-fix.patch
+panic-use-error_report_end-tracepoint-on-warnings-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
+proc-remove-pde_data-completely-fix.patch
+proc-remove-pde_data-completely-fix-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
