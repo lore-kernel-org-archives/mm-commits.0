@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CC5A4C433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 25 Dec 2021 05:12:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2F84C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 25 Dec 2021 05:12:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229812AbhLYFMt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 25 Dec 2021 00:12:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43960 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229463AbhLYFMs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Dec 2021 00:12:48 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A3814C061401;
-        Fri, 24 Dec 2021 21:12:48 -0800 (PST)
+        id S229463AbhLYFMw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 25 Dec 2021 00:12:52 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:49890 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229822AbhLYFMv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Dec 2021 00:12:51 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 606E4B80939;
-        Sat, 25 Dec 2021 05:12:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D675CC36AE5;
-        Sat, 25 Dec 2021 05:12:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 88FCBB80939
+        for <mm-commits@vger.kernel.org>; Sat, 25 Dec 2021 05:12:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 044EEC36AE5;
+        Sat, 25 Dec 2021 05:12:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640409166;
-        bh=t1cKdzqXaN9juD51UD8CmyrMzm8EciQHDZMKnzSa3xk=;
+        s=korg; t=1640409169;
+        bh=TI0picrzibbqMhFp+eSd2X7fi+1cVTHZ5kuwfKFkfnc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=oCc7X0JSK/XViToPutcUMR93WkiTlosKmOMselPvWweQ2xfsRlGV4fhngKzO5/Dq4
-         MD6PoyAvEnmImr1kTzCKxK7ekbdOKYmcNbOizFOTsEUSWcbBnhoSUnQsux2tJ/RDOA
-         0gXNN6ZQ3NTBafwGxAHzE6sgdfO2CqiKSsatZU58=
-Date:   Fri, 24 Dec 2021 21:12:45 -0800
+        b=XpC0QkjZBUlVNJZlkzWQbK/axWHAz/pco1S4LBzRz1TPN727JIQ0iZmrHeka36oeh
+         CwHk9jeAkFUBGsvL8bBdImGPCrgMRDEpF2kzcpe3GOFsLE18sZ3lgHGzBK+9EpO8VC
+         xpg1BgU1zRhmKsQHBhkODfUGOsvaKrTrfofhC1AY=
+Date:   Fri, 24 Dec 2021 21:12:48 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org, luofei@unicloud.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, stable@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 5/9] mm, hwpoison: fix condition in free hugetlb
- page path
-Message-ID: <20211225051245.qaFlHGVIZ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hch@lst.de, hughd@google.com,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rppt@linux.ibm.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz,
+        william.kucharski@oracle.com, willy@infradead.org
+Subject:  [patch 6/9] mm: delete unsafe BUG from
+ page_cache_add_speculative()
+Message-ID: <20211225051248.N-f4erWZF%akpm@linux-foundation.org>
 In-Reply-To: <20211224211127.30b60764d059ff3b0afea38a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,60 +42,45 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm, hwpoison: fix condition in free hugetlb page path
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: delete unsafe BUG from page_cache_add_speculative()
 
-When a memory error hits a tail page of a free hugepage,
-__page_handle_poison() is expected to be called to isolate the error in
-4kB unit, but it's not called due to the outdated if-condition in
-memory_failure_hugetlb().  This loses the chance to isolate the error in
-the finer unit, so it's not optimal.  Drop the condition.
+It is not easily reproducible, but on 5.16-rc I have several times hit the
+VM_BUG_ON_PAGE(PageTail(page), page) in page_cache_add_speculative():
+usually from filemap_get_read_batch() for an ext4 read, yesterday from
+next_uptodate_page() from filemap_map_pages() for a shmem fault.
 
-This "(p != head && TestSetPageHWPoison(head)" condition is based on the
-old semantics of PageHWPoison on hugepage (where PG_hwpoison flag was set
-on the subpage), so it's not necessray any more.  By getting to set
-PG_hwpoison on head page for hugepages, concurrent error events on
-different subpages in a single hugepage can be prevented by
-TestSetPageHWPoison(head) at the beginning of memory_failure_hugetlb(). 
-So dropping the condition should not reopen the race window originally
-mentioned in commit b985194c8c0a ("hwpoison, hugetlb:
-lock_page/unlock_page does not match for handling a free hugepage")
+That BUG used to be placed where page_ref_add_unless() had succeeded, but
+now it is placed before folio_ref_add_unless() is attempted: that is not
+safe, since it is only the acquired reference which makes the page safe
+from racing THP collapse or split.
 
-[naoya.horiguchi@linux.dev: fix "HardwareCorrupted" counter]
-  Link: https://lkml.kernel.org/r/20211220084851.GA1460264@u2004
-Link: https://lkml.kernel.org/r/20211210110208.879740-1-naoya.horiguchi@linux.dev
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Fei Luo <luofei@unicloud.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: <stable@vger.kernel.org>	[5.14+]
+We could keep the BUG, checking PageTail only when folio_ref_try_add_rcu()
+has succeeded; but I don't think it adds much value - just delete it.
+
+Link: https://lkml.kernel.org/r/8b98fc6f-3439-8614-c3f3-945c659a1aba@google.com
+Fixes: 020853b6f5ea ("mm: Add folio_try_get_rcu()")
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: William Kucharski <william.kucharski@oracle.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   13 ++++---------
- 1 file changed, 4 insertions(+), 9 deletions(-)
+ include/linux/pagemap.h |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-fix-condition-in-free-hugetlb-page-path
-+++ a/mm/memory-failure.c
-@@ -1470,17 +1470,12 @@ static int memory_failure_hugetlb(unsign
- 	if (!(flags & MF_COUNT_INCREASED)) {
- 		res = get_hwpoison_page(p, flags);
- 		if (!res) {
--			/*
--			 * Check "filter hit" and "race with other subpage."
--			 */
- 			lock_page(head);
--			if (PageHWPoison(head)) {
--				if ((hwpoison_filter(p) && TestClearPageHWPoison(p))
--				    || (p != head && TestSetPageHWPoison(head))) {
-+			if (hwpoison_filter(p)) {
-+				if (TestClearPageHWPoison(head))
- 					num_poisoned_pages_dec();
--					unlock_page(head);
--					return 0;
--				}
-+				unlock_page(head);
-+				return 0;
- 			}
- 			unlock_page(head);
- 			res = MF_FAILED;
+--- a/include/linux/pagemap.h~mm-delete-unsafe-bug-from-page_cache_add_speculative
++++ a/include/linux/pagemap.h
+@@ -285,7 +285,6 @@ static inline struct inode *folio_inode(
+ 
+ static inline bool page_cache_add_speculative(struct page *page, int count)
+ {
+-	VM_BUG_ON_PAGE(PageTail(page), page);
+ 	return folio_ref_try_add_rcu((struct folio *)page, count);
+ }
+ 
 _
