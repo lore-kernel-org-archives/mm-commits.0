@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E6EAFC433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 25 Dec 2021 05:12:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EFE2BC433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 25 Dec 2021 05:12:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229766AbhLYFMe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 25 Dec 2021 00:12:34 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:37548 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229463AbhLYFMe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Dec 2021 00:12:34 -0500
+        id S229795AbhLYFMj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 25 Dec 2021 00:12:39 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:49778 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229463AbhLYFMj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Dec 2021 00:12:39 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E47C2609ED
-        for <mm-commits@vger.kernel.org>; Sat, 25 Dec 2021 05:12:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5AA6C36AE5;
-        Sat, 25 Dec 2021 05:12:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 00743B80AEA;
+        Sat, 25 Dec 2021 05:12:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 627B7C36AE5;
+        Sat, 25 Dec 2021 05:12:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640409153;
-        bh=ftvWK7fZ+YREUmWuRptkmXPUWgee6d9+glTbKZ7jJ+0=;
+        s=korg; t=1640409156;
+        bh=uNyKebTzcIdoglhu867uyKUwwjmt/U1M4h+OErPnlAs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=q8nhDriIAiahepZhD5HBwQbZlee8lSyNeKAKXLvVdWj+CYfdkqKDDEMzz7t54Otz8
-         6lSAGHrGum6ggUcEpayjKLx0EN+odf/BGKUfb8XeK29GEdud4qMz2MUsgfQFo7jmgs
-         GEOcqjVbqwCakVdwRI76sGZpRdLpAf1dBHfijN+I=
-Date:   Fri, 24 Dec 2021 21:12:32 -0800
+        b=z4spDwkGBXW72yMFNbBX5Rad5oFe+mgXRuhMnaY/X3gioxuD37YNttVgc6opgB/yf
+         m4tgra8mjYTWXbFBJ1lwhDO+Bo5dlzIIyXDYUp6tYLcGeIxoG9jmyttquldDkBy2KB
+         82L/avVMYi4MQMmfBI0h+qslNE2i/JvCQZiVlq88=
+Date:   Fri, 24 Dec 2021 21:12:35 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dvyukov@google.com, elver@google.com,
-        glider@google.com, hulkci@huawei.com, libaokun1@huawei.com,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, wangkefeng.wang@huawei.com,
-        yukuai3@huawei.com
-Subject:  [patch 1/9] kfence: fix memory leak when cat kfence
- objects
-Message-ID: <20211225051232.Xrw2Ipiny%akpm@linux-foundation.org>
+To:     aarcange@redhat.com, akpm@linux-foundation.org,
+        arbn@yandex-team.com, linux-mm@kvack.org,
+        mgorman@techsingularity.net, mhocko@suse.com,
+        mm-commits@vger.kernel.org, rientjes@google.com,
+        stable@vger.kernel.org, torvalds@linux-foundation.org
+Subject:  [patch 2/9] mm: mempolicy: fix THP allocations escaping
+ mempolicy restrictions
+Message-ID: <20211225051235.JoA_I5IqL%akpm@linux-foundation.org>
 In-Reply-To: <20211224211127.30b60764d059ff3b0afea38a@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,100 +42,114 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Baokun Li <libaokun1@huawei.com>
-Subject: kfence: fix memory leak when cat kfence objects
+From: Andrey Ryabinin <arbn@yandex-team.com>
+Subject: mm: mempolicy: fix THP allocations escaping mempolicy restrictions
 
-Hulk robot reported a kmemleak problem:
------------------------------------------------------------------------
-unreferenced object 0xffff93d1d8cc02e8 (size 248):
-  comm "cat", pid 23327, jiffies 4624670141 (age 495992.217s)
-  hex dump (first 32 bytes):
-    00 40 85 19 d4 93 ff ff 00 10 00 00 00 00 00 00  .@..............
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace:
-    [<00000000db5610b3>] seq_open+0x2a/0x80
-    [<00000000d66ac99d>] full_proxy_open+0x167/0x1e0
-    [<00000000d58ef917>] do_dentry_open+0x1e1/0x3a0
-    [<0000000016c91867>] path_openat+0x961/0xa20
-    [<00000000909c9564>] do_filp_open+0xae/0x120
-    [<0000000059c761e6>] do_sys_openat2+0x216/0x2f0
-    [<00000000b7a7b239>] do_sys_open+0x57/0x80
-    [<00000000e559d671>] do_syscall_64+0x33/0x40
-    [<000000000ea1fbfd>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
-unreferenced object 0xffff93d419854000 (size 4096):
-  comm "cat", pid 23327, jiffies 4624670141 (age 495992.217s)
-  hex dump (first 32 bytes):
-    6b 66 65 6e 63 65 2d 23 32 35 30 3a 20 30 78 30  kfence-#250: 0x0
-    30 30 30 30 30 30 30 37 35 34 62 64 61 31 32 2d  0000000754bda12-
-  backtrace:
-    [<000000008162c6f2>] seq_read_iter+0x313/0x440
-    [<0000000020b1b3e3>] seq_read+0x14b/0x1a0
-    [<00000000af248fbc>] full_proxy_read+0x56/0x80
-    [<00000000f97679d1>] vfs_read+0xa5/0x1b0
-    [<000000000ed8a36f>] ksys_read+0xa0/0xf0
-    [<00000000e559d671>] do_syscall_64+0x33/0x40
-    [<000000000ea1fbfd>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
------------------------------------------------------------------------
+alloc_pages_vma() may try to allocate THP page on the local NUMA node
+first:
 
-I find that we can easily reproduce this problem with the following
-commands:
-	`cat /sys/kernel/debug/kfence/objects`
-	`echo scan > /sys/kernel/debug/kmemleak`
-	`cat /sys/kernel/debug/kmemleak`
+	page = __alloc_pages_node(hpage_node,
+		gfp | __GFP_THISNODE | __GFP_NORETRY, order);
 
-The leaked memory is allocated in the stack below:
-----------------------------------
-do_syscall_64
-  do_sys_open
-    do_dentry_open
-      full_proxy_open
-        seq_open            ---> alloc seq_file
-  vfs_read
-    full_proxy_read
-      seq_read
-        seq_read_iter
-          traverse          ---> alloc seq_buf
-----------------------------------
+And if the allocation fails it retries allowing remote memory:
 
-And it should have been released in the following process:
-----------------------------------
-do_syscall_64
-  syscall_exit_to_user_mode
-    exit_to_user_mode_prepare
-      task_work_run
-        ____fput
-          __fput
-            full_proxy_release  ---> free here
-----------------------------------
+	if (!page && (gfp & __GFP_DIRECT_RECLAIM))
+    		page = __alloc_pages_node(hpage_node,
+					gfp, order);
 
-However, the release function corresponding to file_operations is not
-implemented in kfence. As a result, a memory leak occurs. Therefore,
-the solution to this problem is to implement the corresponding
-release function.
+However, this retry allocation completely ignores memory policy nodemask
+allowing allocation to escape restrictions.
 
-Link: https://lkml.kernel.org/r/20211206133628.2822545-1-libaokun1@huawei.com
-Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
-Signed-off-by: Baokun Li <libaokun1@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Acked-by: Marco Elver <elver@google.com>
-Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Yu Kuai <yukuai3@huawei.com>
+The first appearance of this bug seems to be the commit ac5b2c18911f
+ ("mm: thp: relax __GFP_THISNODE for MADV_HUGEPAGE mappings")
+The bug disappeared later in the commit 89c83fb539f9
+ ("mm, thp: consolidate THP gfp handling into alloc_hugepage_direct_gfpmask")
+and reappeared again in slightly different form in the commit 76e654cc91bb
+ ("mm, page_alloc: allow hugepage fallback to remote nodes when madvised")
+
+Fix this by passing correct nodemask to the __alloc_pages() call.
+
+The demonstration/reproducer of the problem:
+ $ mount -oremount,size=4G,huge=always /dev/shm/
+ $ echo always > /sys/kernel/mm/transparent_hugepage/defrag
+ $ cat mbind_thp.c
+ #include <unistd.h>
+ #include <sys/mman.h>
+ #include <sys/stat.h>
+ #include <fcntl.h>
+ #include <assert.h>
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <numaif.h>
+
+ #define SIZE 2ULL << 30
+ int main(int argc, char **argv)
+ {
+   int fd;
+   unsigned long long i;
+   char *addr;
+   pid_t pid;
+   char buf[100];
+   unsigned long nodemask = 1;
+
+   fd = open("/dev/shm/test", O_RDWR|O_CREAT);
+   assert(fd > 0);
+   assert(ftruncate(fd, SIZE) == 0);
+
+   addr = mmap(NULL, SIZE, PROT_READ|PROT_WRITE,
+                        MAP_SHARED, fd, 0);
+
+   assert(mbind(addr, SIZE, MPOL_BIND, &nodemask, 2, MPOL_MF_STRICT|MPOL_MF_MOVE)==0);
+   for (i = 0; i < SIZE; i+=4096) {
+     addr[i] = 1;
+   }
+   pid = getpid();
+   snprintf(buf, sizeof(buf), "grep shm /proc/%d/numa_maps", pid);
+   system(buf);
+   sleep(10000);
+
+   return 0;
+ }
+ $ gcc mbind_thp.c -o mbind_thp -lnuma
+ $ numactl -H
+ available: 2 nodes (0-1)
+ node 0 cpus: 0 2
+ node 0 size: 1918 MB
+ node 0 free: 1595 MB
+ node 1 cpus: 1 3
+ node 1 size: 2014 MB
+ node 1 free: 1731 MB
+ node distances:
+ node   0   1
+   0:  10  20
+   1:  20  10
+ $ rm -f /dev/shm/test; taskset -c 0 ./mbind_thp
+ 7fd970a00000 bind:0 file=/dev/shm/test dirty=524288 active=0 N0=396800 N1=127488 kernelpagesize_kB=4
+
+Link: https://lkml.kernel.org/r/20211208165343.22349-1-arbn@yandex-team.com
+Fixes: ac5b2c18911f ("mm: thp: relax __GFP_THISNODE for MADV_HUGEPAGE mappings")
+Signed-off-by: Andrey Ryabinin <arbn@yandex-team.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kfence/core.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mempolicy.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/mm/kfence/core.c~kfence-fix-memory-leak-when-cat-kfence-objects
-+++ a/mm/kfence/core.c
-@@ -683,6 +683,7 @@ static const struct file_operations obje
- 	.open = open_objects,
- 	.read = seq_read,
- 	.llseek = seq_lseek,
-+	.release = seq_release,
- };
+--- a/mm/mempolicy.c~mm-mempolicy-fix-thp-allocations-escaping-mempolicy-restrictions
++++ a/mm/mempolicy.c
+@@ -2140,8 +2140,7 @@ struct page *alloc_pages_vma(gfp_t gfp,
+ 			 * memory with both reclaim and compact as well.
+ 			 */
+ 			if (!page && (gfp & __GFP_DIRECT_RECLAIM))
+-				page = __alloc_pages_node(hpage_node,
+-								gfp, order);
++				page = __alloc_pages(gfp, order, hpage_node, nmask);
  
- static int __init kfence_debugfs_init(void)
+ 			goto out;
+ 		}
 _
