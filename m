@@ -2,133 +2,62 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 100B4C433FE
-	for <mm-commits@archiver.kernel.org>; Sat, 25 Dec 2021 05:13:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E456C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 25 Dec 2021 11:38:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229837AbhLYFNA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 25 Dec 2021 00:13:00 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:37824 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229822AbhLYFNA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Dec 2021 00:13:00 -0500
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1970360C75;
-        Sat, 25 Dec 2021 05:13:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 33DB7C36AE5;
-        Sat, 25 Dec 2021 05:12:59 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640409179;
-        bh=SgMRfPzvQcmhc31+bo+uLtucdaBKnrw6ZzF0pf5qZt4=;
-        h=Date:From:To:Subject:In-Reply-To:From;
-        b=Gkvv/aTqATuvvWbQCzXzcTzace/fG1B35jGOgjcbY1HXPqfk0JwI0+woUrcRJMBta
-         qxK2Nw2LwDXjifZSmY8ABpLTol9F+3oOFSZe8BknsTD/GhMISU2CofNPNPligo3Bc0
-         bIMLOagQlvFZwFKlJosxI1vDKGowBTRUQF/r9vq0=
-Date:   Fri, 24 Dec 2021 21:12:58 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hulkci@huawei.com, linux-mm@kvack.org,
-        liushixin2@huawei.com, mm-commits@vger.kernel.org,
-        naoya.horiguchi@nec.com, osalvador@suse.de, stable@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 9/9] mm/hwpoison: clear MF_COUNT_INCREASED before
- retrying get_any_page()
-Message-ID: <20211225051258.AXb30IPQI%akpm@linux-foundation.org>
-In-Reply-To: <20211224211127.30b60764d059ff3b0afea38a@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        id S230496AbhLYLiY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 25 Dec 2021 06:38:24 -0500
+Received: from webma-server100.com ([153.127.27.170]:34282 "EHLO
+        webma-server100.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229807AbhLYLiY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Dec 2021 06:38:24 -0500
+X-Greylist: delayed 348 seconds by postgrey-1.27 at vger.kernel.org; Sat, 25 Dec 2021 06:38:23 EST
+Received: by webma-server100.com (Postfix, from userid 1033)
+        id 48D17620EE1B; Sat, 25 Dec 2021 20:32:32 +0900 (JST)
+To:     mm-commits@vger.kernel.org
+Subject: =?UTF-8?B?44CQ44K544OX44Oq44OV44Kp44O844Og44CR44Ob44O844Og44Oa44O844K4?=
+ =?UTF-8?B?44KI44KK44GK5ZWP44GE5ZCI44KP44Gb44GE44Gf44Gg44GN44GC44KK44GM?=
+ =?UTF-8?B?44Go44GG44GU44GW44GE44G+44GZ44CC?=
+Date:   Sat, 25 Dec 2021 11:32:32 +0000
+From:   =?UTF-8?B?44K544OX44Oq44OV44Kp44O844Og?= <info@supreform.com>
+Message-ID: <JtRD1kbSpbytEIzqQqpHKLBixjRZftM0pvwPn0r35rU@supreform.com>
+X-Mailer: PHPMailer 6.5.0 (https://github.com/PHPMailer/PHPMailer)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/hwpoison: clear MF_COUNT_INCREASED before retrying get_any_page()
+❤️ Rachel is interested in your profile! Click Here: http://bit.do/fSYaW?egsok ❤️ 様
 
-Hulk Robot reported a panic in put_page_testzero() when testing madvise()
-with MADV_SOFT_OFFLINE.  The BUG() is triggered when retrying
-get_any_page().  This is because we keep MF_COUNT_INCREASED flag in second
-try but the refcnt is not increased.
+この度はスプリフォームのホームページよりお問い合わせいただきありがとうございます。
+このメールは自動返信です。ご内容確認後、担当スタッフよりご連絡させていただきます。
 
- page dumped because: VM_BUG_ON_PAGE(page_ref_count(page) == 0)
- ------------[ cut here ]------------
- kernel BUG at include/linux/mm.h:737!
- invalid opcode: 0000 [#1] PREEMPT SMP
- CPU: 5 PID: 2135 Comm: sshd Tainted: G    B             5.16.0-rc6-dirty #373
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
- RIP: 0010:release_pages+0x53f/0x840
- Code: 0c 01 4c 8d 60 ff e9 5b fb ff ff 48 c7 c6 d8 97 0c b3 4c 89 e7 48 83 05 0e 7b 3c 0c 01 e8 89 3d 04 00 48 83 05 11 7b 3c 0c 01 <0f> 0b 48 83 05 0f 7b 3c 0c 01 48 83 05 0f 7b 3c 0c 01 48 83 05f
- RSP: 0018:ffffc900015a7bc0 EFLAGS: 00010002
- RAX: 000000000000003e RBX: ffffffffbace04c8 RCX: 0000000000000002
- RDX: 0000000000000000 RSI: 0000000000000001 RDI: 00000000ffffffff
- RBP: ffff88817b9acd50 R08: 0000000000000000 R09: c0000000ffefffff
- R10: 0000000000000001 R11: ffffc900015a79b0 R12: ffffea0005e1c900
- R13: ffffea0005e1de88 R14: 000000000000001f R15: ffff888100071000
- FS:  0000000000000000(0000) GS:ffff88842fb40000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 00007f305e8de3d4 CR3: 000000017bb6f000 CR4: 00000000000006e0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
- Call Trace:
-  <TASK>
-  free_pages_and_swap_cache+0x64/0x80
-  tlb_flush_mmu+0x6f/0x220
-  unmap_page_range+0xe6c/0x12c0
-  unmap_single_vma+0x90/0x170
-  unmap_vmas+0xc4/0x180
-  exit_mmap+0xde/0x3a0
-  mmput+0xa3/0x250
-  do_exit+0x564/0x1470
-  do_group_exit+0x3b/0x100
-  __do_sys_exit_group+0x13/0x20
-  __x64_sys_exit_group+0x16/0x20
-  do_syscall_64+0x34/0x80
-  entry_SYSCALL_64_after_hwframe+0x44/0xae
- RIP: 0033:0x7f30625401d9
- Code: Unable to access opcode bytes at RIP 0x7f30625401af.
- RSP: 002b:00007ffe391b0c88 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
- RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007f30625401d9
- RDX: 0000000000000001 RSI: 0000000000000000 RDI: 0000000000000001
- RBP: 00007f306283d838 R08: 000000000000003c R09: 00000000000000e7
- R10: fffffffffffffe30 R11: 0000000000000246 R12: 00007f306283d838
- R13: 00007f3062842e80 R14: 0000000000000000 R15: ffffaa4fb7932430
-  </TASK>
- Modules linked in:
- ---[ end trace e99579b570fe0649 ]---
- RIP: 0010:release_pages+0x53f/0x840
- Code: 0c 01 4c 8d 60 ff e9 5b fb ff ff 48 c7 c6 d8 97 0c b3 4c 89 e7 48 83 05 0e 7b 3c 0c 01 e8 89 3d 04 00 48 83 05 11 7b 3c 0c 01 <0f> 0b 48 83 05 0f 7b 3c 0c 01 48 83 05 0f 7b 3c 0c 01 48 83 05f
- RSP: 0018:ffffc900015a7bc0 EFLAGS: 00010002
- RAX: 000000000000003e RBX: ffffffffbace04c8 RCX: 0000000000000002
- RDX: 0000000000000000 RSI: 0000000000000001 RDI: 00000000ffffffff
- RBP: ffff88817b9acd50 R08: 0000000000000000 R09: c0000000ffefffff
- R10: 0000000000000001 R11: ffffc900015a79b0 R12: ffffea0005e1c900
- R13: ffffea0005e1de88 R14: 000000000000001f R15: ffff888100071000
- FS:  0000000000000000(0000) GS:ffff88842fb40000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 00007f305e8de3d4 CR3: 000000017bb6f000 CR4: 00000000000006e0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+以下、お送りいただきましたご内容です。
 
-Link: https://lkml.kernel.org/r/20211221074908.3910286-1-liushixin2@huawei.com
-Fixes: b94e02822deb ("mm,hwpoison: try to narrow window race for free pages")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: <stable@vger.kernel.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
 
- mm/memory-failure.c |    1 +
- 1 file changed, 1 insertion(+)
+【お名前】
+❤️ Rachel is interested in your profile! Click Here: http://bit.do/fSYaW?egsok ❤️ 様
 
---- a/mm/memory-failure.c~mm-hwpoison-clear-mf_count_increased-before-retrying-get_any_page
-+++ a/mm/memory-failure.c
-@@ -2234,6 +2234,7 @@ retry:
- 	} else if (ret == 0) {
- 		if (soft_offline_free_page(page) && try_again) {
- 			try_again = false;
-+			flags &= ~MF_COUNT_INCREASED;
- 			goto retry;
- 		}
- 	}
-_
+【メールアドレス】
+mm-commits@vger.kernel.org
+
+【電話番号】
+275622419291
+
+【メッセージ本文】
+wa2l8j1o
+
+=============================
+株式会社スプリフォーム
+TEL:043-330-3101
+住所：〒264-0032
+千葉県千葉市若葉区みつわ台4-16-7
+斎木店舗102号室
+電話受付時間：9:00～18:00
+定休日：火曜日
+https://supreform.com/
+=============================
+
