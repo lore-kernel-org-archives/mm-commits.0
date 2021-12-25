@@ -2,110 +2,140 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C4E1C433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 25 Dec 2021 05:11:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6EAFC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 25 Dec 2021 05:12:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229742AbhLYFLb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 25 Dec 2021 00:11:31 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:49536 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229463AbhLYFLb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Dec 2021 00:11:31 -0500
+        id S229766AbhLYFMe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 25 Dec 2021 00:12:34 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:37548 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229463AbhLYFMe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 25 Dec 2021 00:12:34 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 37EDCB8072F
-        for <mm-commits@vger.kernel.org>; Sat, 25 Dec 2021 05:11:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE7D3C36AE5;
-        Sat, 25 Dec 2021 05:11:28 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E47C2609ED
+        for <mm-commits@vger.kernel.org>; Sat, 25 Dec 2021 05:12:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E5AA6C36AE5;
+        Sat, 25 Dec 2021 05:12:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640409089;
-        bh=VRN6iwyGuJTiUzGcXXCeYcVYJpGRDsWc1daxJ/SvlA8=;
-        h=Date:From:To:Cc:Subject:From;
-        b=zFtmJcQVjjTtH7Jy5Pm7SRhajq0mg95JgTWCRmafPAMBEaRYWkjsBK2Ot14F4f5Aq
-         RCkKgbttKz6lZpIYuhNI1BclC768W49BjWmsjSMDEC9m3rhhCeT6J0d1/SssTI6BLF
-         9APVq4ZolgR3TFA4gUY7DGI+94K8USuJIbbiv8uM=
-Date:   Fri, 24 Dec 2021 21:11:27 -0800
+        s=korg; t=1640409153;
+        bh=ftvWK7fZ+YREUmWuRptkmXPUWgee6d9+glTbKZ7jJ+0=;
+        h=Date:From:To:Subject:In-Reply-To:From;
+        b=q8nhDriIAiahepZhD5HBwQbZlee8lSyNeKAKXLvVdWj+CYfdkqKDDEMzz7t54Otz8
+         6lSAGHrGum6ggUcEpayjKLx0EN+odf/BGKUfb8XeK29GEdud4qMz2MUsgfQFo7jmgs
+         GEOcqjVbqwCakVdwRI76sGZpRdLpAf1dBHfijN+I=
+Date:   Fri, 24 Dec 2021 21:12:32 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
-Subject: incoming
-Message-Id: <20211224211127.30b60764d059ff3b0afea38a@linux-foundation.org>
-X-Mailer: Sylpheed 3.5.1 (GTK+ 2.24.32; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+To:     akpm@linux-foundation.org, dvyukov@google.com, elver@google.com,
+        glider@google.com, hulkci@huawei.com, libaokun1@huawei.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, wangkefeng.wang@huawei.com,
+        yukuai3@huawei.com
+Subject:  [patch 1/9] kfence: fix memory leak when cat kfence
+ objects
+Message-ID: <20211225051232.Xrw2Ipiny%akpm@linux-foundation.org>
+In-Reply-To: <20211224211127.30b60764d059ff3b0afea38a@linux-foundation.org>
+User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-9 patches, based on bc491fb12513e79702c6f936c838f792b5389129.
+From: Baokun Li <libaokun1@huawei.com>
+Subject: kfence: fix memory leak when cat kfence objects
 
-Subsystems affected by this patch series:
+Hulk robot reported a kmemleak problem:
+-----------------------------------------------------------------------
+unreferenced object 0xffff93d1d8cc02e8 (size 248):
+  comm "cat", pid 23327, jiffies 4624670141 (age 495992.217s)
+  hex dump (first 32 bytes):
+    00 40 85 19 d4 93 ff ff 00 10 00 00 00 00 00 00  .@..............
+    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<00000000db5610b3>] seq_open+0x2a/0x80
+    [<00000000d66ac99d>] full_proxy_open+0x167/0x1e0
+    [<00000000d58ef917>] do_dentry_open+0x1e1/0x3a0
+    [<0000000016c91867>] path_openat+0x961/0xa20
+    [<00000000909c9564>] do_filp_open+0xae/0x120
+    [<0000000059c761e6>] do_sys_openat2+0x216/0x2f0
+    [<00000000b7a7b239>] do_sys_open+0x57/0x80
+    [<00000000e559d671>] do_syscall_64+0x33/0x40
+    [<000000000ea1fbfd>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+unreferenced object 0xffff93d419854000 (size 4096):
+  comm "cat", pid 23327, jiffies 4624670141 (age 495992.217s)
+  hex dump (first 32 bytes):
+    6b 66 65 6e 63 65 2d 23 32 35 30 3a 20 30 78 30  kfence-#250: 0x0
+    30 30 30 30 30 30 30 37 35 34 62 64 61 31 32 2d  0000000754bda12-
+  backtrace:
+    [<000000008162c6f2>] seq_read_iter+0x313/0x440
+    [<0000000020b1b3e3>] seq_read+0x14b/0x1a0
+    [<00000000af248fbc>] full_proxy_read+0x56/0x80
+    [<00000000f97679d1>] vfs_read+0xa5/0x1b0
+    [<000000000ed8a36f>] ksys_read+0xa0/0xf0
+    [<00000000e559d671>] do_syscall_64+0x33/0x40
+    [<000000000ea1fbfd>] entry_SYSCALL_64_after_hwframe+0x44/0xa9
+-----------------------------------------------------------------------
 
-  mm/kfence
-  mm/mempolicy
-  core-kernel
-  MAINTAINERS
-  mm/memory-failure
-  mm/pagemap
-  mm/pagealloc
-  mm/damon
-  mm/memory-failure
+I find that we can easily reproduce this problem with the following
+commands:
+	`cat /sys/kernel/debug/kfence/objects`
+	`echo scan > /sys/kernel/debug/kmemleak`
+	`cat /sys/kernel/debug/kmemleak`
 
-Subsystem: mm/kfence
+The leaked memory is allocated in the stack below:
+----------------------------------
+do_syscall_64
+  do_sys_open
+    do_dentry_open
+      full_proxy_open
+        seq_open            ---> alloc seq_file
+  vfs_read
+    full_proxy_read
+      seq_read
+        seq_read_iter
+          traverse          ---> alloc seq_buf
+----------------------------------
 
-    Baokun Li <libaokun1@huawei.com>:
-      kfence: fix memory leak when cat kfence objects
+And it should have been released in the following process:
+----------------------------------
+do_syscall_64
+  syscall_exit_to_user_mode
+    exit_to_user_mode_prepare
+      task_work_run
+        ____fput
+          __fput
+            full_proxy_release  ---> free here
+----------------------------------
 
-Subsystem: mm/mempolicy
+However, the release function corresponding to file_operations is not
+implemented in kfence. As a result, a memory leak occurs. Therefore,
+the solution to this problem is to implement the corresponding
+release function.
 
-    Andrey Ryabinin <arbn@yandex-team.com>:
-      mm: mempolicy: fix THP allocations escaping mempolicy restrictions
+Link: https://lkml.kernel.org/r/20211206133628.2822545-1-libaokun1@huawei.com
+Fixes: 0ce20dd84089 ("mm: add Kernel Electric-Fence infrastructure")
+Signed-off-by: Baokun Li <libaokun1@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Acked-by: Marco Elver <elver@google.com>
+Reviewed-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Yu Kuai <yukuai3@huawei.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-Subsystem: core-kernel
+ mm/kfence/core.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-    Philipp Rudo <prudo@redhat.com>:
-      kernel/crash_core: suppress unknown crashkernel parameter warning
-
-Subsystem: MAINTAINERS
-
-    Randy Dunlap <rdunlap@infradead.org>:
-      MAINTAINERS: mark more list instances as moderated
-
-Subsystem: mm/memory-failure
-
-    Naoya Horiguchi <naoya.horiguchi@nec.com>:
-      mm, hwpoison: fix condition in free hugetlb page path
-
-Subsystem: mm/pagemap
-
-    Hugh Dickins <hughd@google.com>:
-      mm: delete unsafe BUG from page_cache_add_speculative()
-
-Subsystem: mm/pagealloc
-
-    Thibaut Sautereau <thibaut.sautereau@ssi.gouv.fr>:
-      mm/page_alloc: fix __alloc_size attribute for alloc_pages_exact_nid
-
-Subsystem: mm/damon
-
-    SeongJae Park <sj@kernel.org>:
-      mm/damon/dbgfs: protect targets destructions with kdamond_lock
-
-Subsystem: mm/memory-failure
-
-    Liu Shixin <liushixin2@huawei.com>:
-      mm/hwpoison: clear MF_COUNT_INCREASED before retrying get_any_page()
-
- MAINTAINERS             |    4 ++--
- include/linux/gfp.h     |    2 +-
- include/linux/pagemap.h |    1 -
- kernel/crash_core.c     |   11 +++++++++++
- mm/damon/dbgfs.c        |    2 ++
- mm/kfence/core.c        |    1 +
- mm/memory-failure.c     |   14 +++++---------
- mm/mempolicy.c          |    3 +--
- 8 files changed, 23 insertions(+), 15 deletions(-)
-
+--- a/mm/kfence/core.c~kfence-fix-memory-leak-when-cat-kfence-objects
++++ a/mm/kfence/core.c
+@@ -683,6 +683,7 @@ static const struct file_operations obje
+ 	.open = open_objects,
+ 	.read = seq_read,
+ 	.llseek = seq_lseek,
++	.release = seq_release,
+ };
+ 
+ static int __init kfence_debugfs_init(void)
+_
