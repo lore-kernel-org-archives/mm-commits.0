@@ -2,41 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 29CA3C433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Dec 2021 22:20:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1C41DC433FE
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Dec 2021 22:20:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234710AbhLZWUN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Dec 2021 17:20:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36678 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234705AbhLZWUN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Dec 2021 17:20:13 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4AF04C06173E
-        for <mm-commits@vger.kernel.org>; Sun, 26 Dec 2021 14:20:13 -0800 (PST)
+        id S234717AbhLZWUQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Dec 2021 17:20:16 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:52130 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234705AbhLZWUQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Dec 2021 17:20:16 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0C3ABB808CD
-        for <mm-commits@vger.kernel.org>; Sun, 26 Dec 2021 22:20:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8FACC36AE9;
-        Sun, 26 Dec 2021 22:20:10 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F241AB80DE2;
+        Sun, 26 Dec 2021 22:20:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3098C36AE8;
+        Sun, 26 Dec 2021 22:20:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640557210;
-        bh=ea1HIqMO3E1qdlFEPEe0vArGabzMuhDUowRBtHfGRNs=;
+        s=korg; t=1640557213;
+        bh=wAro1RTIpVx3ZtlJEAmaOTx+QMCzboCfkAntAiFvs/g=;
         h=Date:From:To:Subject:From;
-        b=IL8rQu8wIc5u5r+BdZooLIvcpLZmYxfygal/IBrBWNBblYUMAf/RkksCCx22v2B9C
-         fWtABEQCaiyR5CYC4hWiS6Syo83pgn4+t3Wbicq7gXV81cliYGuUkraWOILnWqVo0U
-         Y4uSQ/9lPj79Gku1Rs3UzSYnlqCsMdPHPBPGokks=
-Date:   Sun, 26 Dec 2021 14:20:10 -0800
+        b=nd81tpK7uKNdgtx0eDICplABBG3GxhuxuRLB2aWOZKvhFlN3ndsjmEvhTCfQiK/Qs
+         +d3kGwVtxDqwUb4z91RpejVH/h1Vy4qlyKbY4XKrPHHzUrBLrmXYMpwAcuzSnRncts
+         DPtGSBcLTiyP4lMrxxZbr9AIkanNVvrNDQLjWXLM=
+Date:   Sun, 26 Dec 2021 14:20:13 -0800
 From:   akpm@linux-foundation.org
-To:     danielmicay@gmail.com, keescook@chromium.org,
-        levente@leventepolyak.net, mm-commits@vger.kernel.org,
-        thibaut.sautereau@ssi.gouv.fr
+To:     mm-commits@vger.kernel.org, sangwoob@amazon.com, sj@kernel.org,
+        stable@vger.kernel.org
 Subject:  [merged]
- mm-page_alloc-fix-__alloc_size-attribute-for-alloc_pages_exact_nid.patch
- removed from -mm tree
-Message-ID: <20211226222010.2WRNlZX4D%akpm@linux-foundation.org>
+ mm-damon-dbgfs-protect-targets-destructions-with-kdamond_lock.patch removed
+ from -mm tree
+Message-ID: <20211226222013.04LcQPcL1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,44 +41,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: fix __alloc_size attribute for alloc_pages_exact_nid
+     Subject: mm/damon/dbgfs: protect targets destructions with kdamond_lock
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-__alloc_size-attribute-for-alloc_pages_exact_nid.patch
+     mm-damon-dbgfs-protect-targets-destructions-with-kdamond_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Thibaut Sautereau <thibaut.sautereau@ssi.gouv.fr>
-Subject: mm/page_alloc: fix __alloc_size attribute for alloc_pages_exact_nid
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/dbgfs: protect targets destructions with kdamond_lock
 
-The second parameter of alloc_pages_exact_nid is the one indicating the
-size of memory pointed by the returned pointer.
+DAMON debugfs interface iterates current monitoring targets in
+'dbgfs_target_ids_read()' while holding the corresponding 'kdamond_lock'. 
+However, it also destructs the monitoring targets in
+'dbgfs_before_terminate()' without holding the lock.  This can result in a
+use_after_free bug.  This commit avoids the race by protecting the
+destruction with the corresponding 'kdamond_lock'.
 
-Link: https://lkml.kernel.org/r/YbjEgwhn4bGblp//@coeus
-Fixes: abd58f38dfb4 ("mm/page_alloc: add __alloc_size attributes for better bounds checking")
-Signed-off-by: Thibaut Sautereau <thibaut.sautereau@ssi.gouv.fr>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Levente Polyak <levente@leventepolyak.net>
+Link: https://lkml.kernel.org/r/20211221094447.2241-1-sj@kernel.org
+Reported-by: Sangwoo Bae <sangwoob@amazon.com>
+Fixes: 4bc05954d007 ("mm/damon: implement a debugfs-based user space interface")
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[5.15.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/damon/dbgfs.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/include/linux/gfp.h~mm-page_alloc-fix-__alloc_size-attribute-for-alloc_pages_exact_nid
-+++ a/include/linux/gfp.h
-@@ -624,7 +624,7 @@ extern unsigned long get_zeroed_page(gfp
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-protect-targets-destructions-with-kdamond_lock
++++ a/mm/damon/dbgfs.c
+@@ -650,10 +650,12 @@ static void dbgfs_before_terminate(struc
+ 	if (!targetid_is_pid(ctx))
+ 		return;
  
- void *alloc_pages_exact(size_t size, gfp_t gfp_mask) __alloc_size(1);
- void free_pages_exact(void *virt, size_t size);
--__meminit void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask) __alloc_size(1);
-+__meminit void *alloc_pages_exact_nid(int nid, size_t size, gfp_t gfp_mask) __alloc_size(2);
++	mutex_lock(&ctx->kdamond_lock);
+ 	damon_for_each_target_safe(t, next, ctx) {
+ 		put_pid((struct pid *)t->id);
+ 		damon_destroy_target(t);
+ 	}
++	mutex_unlock(&ctx->kdamond_lock);
+ }
  
- #define __get_free_page(gfp_mask) \
- 		__get_free_pages((gfp_mask), 0)
+ static struct damon_ctx *dbgfs_new_ctx(void)
 _
 
-Patches currently in -mm which might be from thibaut.sautereau@ssi.gouv.fr are
+Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix.patch
+mm-damon-convert-macro-functions-to-static-inline-functions.patch
+docs-admin-guide-mm-damon-usage-update-for-scheme-quotas-and-watermarks.patch
+docs-admin-guide-mm-damon-usage-remove-redundant-information.patch
+docs-admin-guide-mm-damon-usage-mention-tracepoint-at-the-beginning.patch
+docs-admin-guide-mm-damon-usage-update-for-kdamond_pid-and-mkrm_contexts.patch
+mm-damon-remove-a-mistakenly-added-comment-for-a-future-feature.patch
+mm-damon-schemes-account-scheme-actions-that-successfully-applied.patch
+mm-damon-schemes-account-how-many-times-quota-limit-has-exceeded.patch
+mm-damon-reclaim-provide-reclamation-statistics.patch
+docs-admin-guide-mm-damon-reclaim-document-statistics-parameters.patch
+mm-damon-dbgfs-support-all-damos-stats.patch
+docs-admin-guide-mm-damon-usage-update-for-schemes-statistics.patch
 
