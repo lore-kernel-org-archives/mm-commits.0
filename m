@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8A06C4332F
-	for <mm-commits@archiver.kernel.org>; Sun, 26 Dec 2021 22:20:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D41BBC433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 26 Dec 2021 22:20:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234720AbhLZWUS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Dec 2021 17:20:18 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:58374 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234705AbhLZWUR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Dec 2021 17:20:17 -0500
+        id S234705AbhLZWUU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Dec 2021 17:20:20 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36718 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234715AbhLZWUU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Dec 2021 17:20:20 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0338AC061401
+        for <mm-commits@vger.kernel.org>; Sun, 26 Dec 2021 14:20:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4195A60F17;
-        Sun, 26 Dec 2021 22:20:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E82EC36AE9;
-        Sun, 26 Dec 2021 22:20:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 974A360F17
+        for <mm-commits@vger.kernel.org>; Sun, 26 Dec 2021 22:20:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0CD7C36AE9;
+        Sun, 26 Dec 2021 22:20:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640557216;
-        bh=g5LqZMxyruUxGR3bfmbtmXz6SMLnDiRS+J9IkoyXB1Y=;
+        s=korg; t=1640557219;
+        bh=14VlHCELA2rzly9Z0nSlpWc/qUvj3Dehvnqeg76ID4s=;
         h=Date:From:To:Subject:From;
-        b=YrWrfaT3a6PMdfTiQYEGJk7gbPoHUxkBbgkbMC72j9cTWef7qWdPTy7Edcm5NYFEr
-         nuL6NdDOnxW+RB7oluPFrQ/pNDd4QnKRBWo5XR0GhGf0hJSFvAElFvgOz7mKrXC+Us
-         3y+1lXedOxcNFf1I27mKrjcjM+JNLfB3c4iEuUcY=
-Date:   Sun, 26 Dec 2021 14:20:15 -0800
+        b=uvD71cJbWGLZEu/1pNTWyZGRFsBv5XDj5eWlXkzuie5uMsvtOMMksEoeiFD+Mo7Cd
+         uu3dU52ZrjhDObNw5HVzuFGrJp66bt4O5ywQlLYDiGShamUunq55xMzZ9oWYDExxnm
+         SPqaNH7SXTTa3/o58T69c1ixtJ5WV9RtdRlpgplQ=
+Date:   Sun, 26 Dec 2021 14:20:18 -0800
 From:   akpm@linux-foundation.org
-To:     hulkci@huawei.com, liushixin2@huawei.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        osalvador@suse.de, stable@vger.kernel.org
-Subject:  [merged]
- mm-hwpoison-clear-mf_count_increased-before-retrying-get_any_page.patch
+To:     axboe@kernel.dk, ebiederm@xmission.com, elver@google.com,
+        mm-commits@vger.kernel.org, peterz@infradead.org,
+        rdunlap@infradead.org, richard@nod.at, tglx@linutronix.de,
+        viro@zeniv.linux.org.uk
+Subject:  [merged] signal-clean-up-kernel-doc-comments.patch
  removed from -mm tree
-Message-ID: <20211226222015.f6PnqN9cH%akpm@linux-foundation.org>
+Message-ID: <20211226222018.oDJ6h6Dpv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,105 +45,68 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: clear MF_COUNT_INCREASED before retrying get_any_page()
+     Subject: signal: clean up kernel-doc comments
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-clear-mf_count_increased-before-retrying-get_any_page.patch
+     signal-clean-up-kernel-doc-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Liu Shixin <liushixin2@huawei.com>
-Subject: mm/hwpoison: clear MF_COUNT_INCREASED before retrying get_any_page()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: signal: clean up kernel-doc comments
 
-Hulk Robot reported a panic in put_page_testzero() when testing madvise()
-with MADV_SOFT_OFFLINE.  The BUG() is triggered when retrying
-get_any_page().  This is because we keep MF_COUNT_INCREASED flag in second
-try but the refcnt is not increased.
+Fix kernel-doc warnings in kernel/signal.c:
 
- page dumped because: VM_BUG_ON_PAGE(page_ref_count(page) == 0)
- ------------[ cut here ]------------
- kernel BUG at include/linux/mm.h:737!
- invalid opcode: 0000 [#1] PREEMPT SMP
- CPU: 5 PID: 2135 Comm: sshd Tainted: G    B             5.16.0-rc6-dirty #373
- Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.13.0-1ubuntu1.1 04/01/2014
- RIP: 0010:release_pages+0x53f/0x840
- Code: 0c 01 4c 8d 60 ff e9 5b fb ff ff 48 c7 c6 d8 97 0c b3 4c 89 e7 48 83 05 0e 7b 3c 0c 01 e8 89 3d 04 00 48 83 05 11 7b 3c 0c 01 <0f> 0b 48 83 05 0f 7b 3c 0c 01 48 83 05 0f 7b 3c 0c 01 48 83 05f
- RSP: 0018:ffffc900015a7bc0 EFLAGS: 00010002
- RAX: 000000000000003e RBX: ffffffffbace04c8 RCX: 0000000000000002
- RDX: 0000000000000000 RSI: 0000000000000001 RDI: 00000000ffffffff
- RBP: ffff88817b9acd50 R08: 0000000000000000 R09: c0000000ffefffff
- R10: 0000000000000001 R11: ffffc900015a79b0 R12: ffffea0005e1c900
- R13: ffffea0005e1de88 R14: 000000000000001f R15: ffff888100071000
- FS:  0000000000000000(0000) GS:ffff88842fb40000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 00007f305e8de3d4 CR3: 000000017bb6f000 CR4: 00000000000006e0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
- Call Trace:
-  <TASK>
-  free_pages_and_swap_cache+0x64/0x80
-  tlb_flush_mmu+0x6f/0x220
-  unmap_page_range+0xe6c/0x12c0
-  unmap_single_vma+0x90/0x170
-  unmap_vmas+0xc4/0x180
-  exit_mmap+0xde/0x3a0
-  mmput+0xa3/0x250
-  do_exit+0x564/0x1470
-  do_group_exit+0x3b/0x100
-  __do_sys_exit_group+0x13/0x20
-  __x64_sys_exit_group+0x16/0x20
-  do_syscall_64+0x34/0x80
-  entry_SYSCALL_64_after_hwframe+0x44/0xae
- RIP: 0033:0x7f30625401d9
- Code: Unable to access opcode bytes at RIP 0x7f30625401af.
- RSP: 002b:00007ffe391b0c88 EFLAGS: 00000246 ORIG_RAX: 00000000000000e7
- RAX: ffffffffffffffda RBX: 0000000000000001 RCX: 00007f30625401d9
- RDX: 0000000000000001 RSI: 0000000000000000 RDI: 0000000000000001
- RBP: 00007f306283d838 R08: 000000000000003c R09: 00000000000000e7
- R10: fffffffffffffe30 R11: 0000000000000246 R12: 00007f306283d838
- R13: 00007f3062842e80 R14: 0000000000000000 R15: ffffaa4fb7932430
-  </TASK>
- Modules linked in:
- ---[ end trace e99579b570fe0649 ]---
- RIP: 0010:release_pages+0x53f/0x840
- Code: 0c 01 4c 8d 60 ff e9 5b fb ff ff 48 c7 c6 d8 97 0c b3 4c 89 e7 48 83 05 0e 7b 3c 0c 01 e8 89 3d 04 00 48 83 05 11 7b 3c 0c 01 <0f> 0b 48 83 05 0f 7b 3c 0c 01 48 83 05 0f 7b 3c 0c 01 48 83 05f
- RSP: 0018:ffffc900015a7bc0 EFLAGS: 00010002
- RAX: 000000000000003e RBX: ffffffffbace04c8 RCX: 0000000000000002
- RDX: 0000000000000000 RSI: 0000000000000001 RDI: 00000000ffffffff
- RBP: ffff88817b9acd50 R08: 0000000000000000 R09: c0000000ffefffff
- R10: 0000000000000001 R11: ffffc900015a79b0 R12: ffffea0005e1c900
- R13: ffffea0005e1de88 R14: 000000000000001f R15: ffff888100071000
- FS:  0000000000000000(0000) GS:ffff88842fb40000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 00007f305e8de3d4 CR3: 000000017bb6f000 CR4: 00000000000006e0
- DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
- DR3: 0000000000000000 DR6: 00000000fffe0ff0 DR7: 0000000000000400
+kernel/signal.c:1830: warning: Function parameter or member 'force_coredump' not described in 'force_sig_seccomp'
+kernel/signal.c:2873: warning: missing initial short description on line:
+ * signal_delivered -
 
-Link: https://lkml.kernel.org/r/20211221074908.3910286-1-liushixin2@huawei.com
-Fixes: b94e02822deb ("mm,hwpoison: try to narrow window race for free pages")
-Signed-off-by: Liu Shixin <liushixin2@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Acked-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Cc: <stable@vger.kernel.org>
+Also add a closing parenthesis to the comments in signal_delivered().
+
+Link: https://lkml.kernel.org/r/20211222031027.29694-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Marco Elver <elver@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/signal.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/mm/memory-failure.c~mm-hwpoison-clear-mf_count_increased-before-retrying-get_any_page
-+++ a/mm/memory-failure.c
-@@ -2234,6 +2234,7 @@ retry:
- 	} else if (ret == 0) {
- 		if (soft_offline_free_page(page) && try_again) {
- 			try_again = false;
-+			flags &= ~MF_COUNT_INCREASED;
- 			goto retry;
- 		}
- 	}
+--- a/kernel/signal.c~signal-clean-up-kernel-doc-comments
++++ a/kernel/signal.c
+@@ -1820,6 +1820,7 @@ int force_sig_perf(void __user *addr, u3
+  * force_sig_seccomp - signals the task to allow in-process syscall emulation
+  * @syscall: syscall number to send to userland
+  * @reason: filter-supplied reason code to send to userland (via si_errno)
++ * @force_coredump: true to trigger a coredump
+  *
+  * Forces a SIGSYS with a code of SYS_SECCOMP and related sigsys info.
+  */
+@@ -2863,13 +2864,13 @@ out:
+ }
+ 
+ /**
+- * signal_delivered - 
++ * signal_delivered - called after signal delivery to update blocked signals
+  * @ksig:		kernel signal struct
+  * @stepping:		nonzero if debugger single-step or block-step in use
+  *
+  * This function should be called when a signal has successfully been
+  * delivered. It updates the blocked signals accordingly (@ksig->ka.sa.sa_mask
+- * is always blocked, and the signal itself is blocked unless %SA_NODEFER
++ * is always blocked), and the signal itself is blocked unless %SA_NODEFER
+  * is set in @ksig->ka.sa.sa_flags.  Tracing is notified.
+  */
+ static void signal_delivered(struct ksignal *ksig, int stepping)
 _
 
-Patches currently in -mm which might be from liushixin2@huawei.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
+mm-mempolicy-fix-all-kernel-doc-warnings.patch
 
