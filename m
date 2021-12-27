@@ -2,44 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EDD8C43217
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Dec 2021 00:32:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C929BC433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Dec 2021 00:33:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234873AbhL0AcY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Dec 2021 19:32:24 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:57300 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234866AbhL0AcY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Dec 2021 19:32:24 -0500
+        id S234866AbhL0AdV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Dec 2021 19:33:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36918 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232840AbhL0AdV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Dec 2021 19:33:21 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF110C06173E
+        for <mm-commits@vger.kernel.org>; Sun, 26 Dec 2021 16:33:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 26ECF60F28;
-        Mon, 27 Dec 2021 00:32:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08A7DC36AE9;
-        Mon, 27 Dec 2021 00:32:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6F05E60F19
+        for <mm-commits@vger.kernel.org>; Mon, 27 Dec 2021 00:33:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDBFCC36AE8;
+        Mon, 27 Dec 2021 00:33:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640565143;
-        bh=p9BiVUfUO6I8WPgaJFDEg5uZE2LjrzAk3kkkgBpS5NM=;
+        s=korg; t=1640565199;
+        bh=QfFT7cZ/j2DJqdM7He3D4rOEnaCmElKMBiQ8mMMhv1M=;
         h=Date:From:To:Subject:From;
-        b=UjB8Q/LYp1+nXoJvORd10qcuoSkPo6uF70L+GUPpjTU1aOqbYs07fh1noEmkZufd5
-         qWTVK2LS2TxemxyBWQlQ9q7qyR4XSITaf7SPiAL/ipSMXbWEpFZxckqXoRfUyGq5h6
-         sxQ0R1xG1u85dbwBVMt9Y9RODLyN9ov8zNbBe7oM=
-Date:   Sun, 26 Dec 2021 16:32:22 -0800
+        b=LpQpQ4QoBNEbA9HIeo6WBxzBJ+I+iJdIZrhJgLMUksJLKNjX5mlhf0SxORJEBh3IG
+         HQ7QWQYCECc9SihyLHzym0uxKPlQW1ivKp50Uvqb20SMdI93mGGm7UlUhp7JWZ5ta6
+         DZtj6cjgTW0pG6/U1VR6mKHKSmXWWEgan8FVPTPc=
+Date:   Sun, 26 Dec 2021 16:33:19 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, vbabka@suse.cz, stable@vger.kernel.org,
-        robin.murphy@arm.com, rientjes@google.com, penberg@kernel.org,
-        m.szyprowski@samsung.com, john.p.donnelly@oracle.com,
-        iamjoonsoo.kim@lge.com, hch@lst.de, david@redhat.com,
-        David.Laight@ACULAB.COM, cl@linux.com, bp@alien8.de,
-        42.hyeyoo@gmail.com, bhe@redhat.com
+To:     mm-commits@vger.kernel.org, sj@kernel.org, guoqing.jiang@linux.dev
 Subject:  +
- =?us-ascii?Q?mm-page=5Fallocc-do-not-warn-allocation-failure-on-zone-d?=
- =?us-ascii?Q?ma-if-no-managed-pages.patch?= added to -mm tree
-Message-ID: <20211227003222.A33t0%akpm@linux-foundation.org>
+ mm-damon-move-the-implementation-of-damon_insert_region-to-damonh.patch added
+ to -mm tree
+Message-ID: <20211227003319.L92_N%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: do not warn allocation failure on zone DMA if no managed pages
+     Subject: mm/damon: move the implementation of damon_insert_region to damon.h
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages.patch
+     mm-damon-move-the-implementation-of-damon_insert_region-to-damonh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-move-the-implementation-of-damon_insert_region-to-damonh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-move-the-implementation-of-damon_insert_region-to-damonh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,99 +64,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/page_alloc.c: do not warn allocation failure on zone DMA if no managed pages
+From: Guoqing Jiang <guoqing.jiang@linux.dev>
+Subject: mm/damon: move the implementation of damon_insert_region to damon.h
 
-In kdump kernel of x86_64, page allocation failure is observed:
+Usually, inline function is declared static since it should sit between
+storage and type.  And implement it in a header file if used by multiple
+files.
 
- kworker/u2:2: page allocation failure: order:0, mode:0xcc1(GFP_KERNEL|GFP_DMA), nodemask=(null),cpuset=/,mems_allowed=0
- CPU: 0 PID: 55 Comm: kworker/u2:2 Not tainted 5.16.0-rc4+ #5
- Hardware name: AMD Dinar/Dinar, BIOS RDN1505B 06/05/2013
- Workqueue: events_unbound async_run_entry_fn
- Call Trace:
-  <TASK>
-  dump_stack_lvl+0x48/0x5e
-  warn_alloc.cold+0x72/0xd6
-  __alloc_pages_slowpath.constprop.0+0xc69/0xcd0
-  __alloc_pages+0x1df/0x210
-  new_slab+0x389/0x4d0
-  ___slab_alloc+0x58f/0x770
-  __slab_alloc.constprop.0+0x4a/0x80
-  kmem_cache_alloc_trace+0x24b/0x2c0
-  sr_probe+0x1db/0x620
-  ......
-  device_add+0x405/0x920
-  ......
-  __scsi_add_device+0xe5/0x100
-  ata_scsi_scan_host+0x97/0x1d0
-  async_run_entry_fn+0x30/0x130
-  process_one_work+0x1e8/0x3c0
-  worker_thread+0x50/0x3b0
-  ? rescuer_thread+0x350/0x350
-  kthread+0x16b/0x190
-  ? set_kthread_struct+0x40/0x40
-  ret_from_fork+0x22/0x30
-  </TASK>
- Mem-Info:
- ......
+And this change also fixes compile issue when backport damon to 5.10.
 
-The above failure happened when calling kmalloc() to allocate buffer with
-GFP_DMA.  It requests to allocate slab page from DMA zone while no managed
-pages at all in there.
+mm/damon/vaddr.c: In function `damon_va_evenly_split_region':
+./include/linux/damon.h:425:13: error: inlining failed in call to `always_inline' `damon_insert_region': function body not available
+425 | inline void damon_insert_region(struct damon_region *r,
+| ^~~~~~~~~~~~~~~~~~~
+mm/damon/vaddr.c:86:3: note: called from here
+86 | damon_insert_region(n, r, next, t);
+| ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- sr_probe()
- --> get_capabilities()
-     --> buffer = kmalloc(512, GFP_KERNEL | GFP_DMA);
-
-Because in the current kernel, dma-kmalloc will be created as long as
-CONFIG_ZONE_DMA is enabled.  However, kdump kernel of x86_64 doesn't have
-managed pages on DMA zone since commit 6f599d84231f ("x86/kdump: Always
-reserve the low 1M when the crashkernel option is specified").  The
-failure can be always reproduced.
-
-For now, let's mute the warning of allocation failure if requesting pages
-from DMA zone while no managed pages.
-
-Link: https://lkml.kernel.org/r/20211223094435.248523-4-bhe@redhat.com
-Fixes: 6f599d84231f ("x86/kdump: Always reserve the low 1M when the crashkernel option is specified")
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: John Donnelly  <john.p.donnelly@oracle.com>
-Reviewed-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20211223085703.6142-1-guoqing.jiang@linux.dev
+Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
+Reviewed-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/damon.h |   13 +++++++++++--
+ mm/damon/core.c       |   11 -----------
+ 2 files changed, 11 insertions(+), 13 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages
-+++ a/mm/page_alloc.c
-@@ -4218,7 +4218,8 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- 	va_list args;
- 	static DEFINE_RATELIMIT_STATE(nopage_rs, 10*HZ, 1);
+--- a/include/linux/damon.h~mm-damon-move-the-implementation-of-damon_insert_region-to-damonh
++++ a/include/linux/damon.h
+@@ -451,9 +451,18 @@ static inline struct damon_region *damon
+ #ifdef CONFIG_DAMON
  
--	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs))
-+	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
-+		(gfp_mask & __GFP_DMA) && !has_managed_dma())
- 		return;
+ struct damon_region *damon_new_region(unsigned long start, unsigned long end);
+-inline void damon_insert_region(struct damon_region *r,
++
++/*
++ * Add a region between two other regions
++ */
++static inline void damon_insert_region(struct damon_region *r,
+ 		struct damon_region *prev, struct damon_region *next,
+-		struct damon_target *t);
++		struct damon_target *t)
++{
++	__list_add(&r->list, &prev->list, &next->list);
++	t->nr_regions++;
++}
++
+ void damon_add_region(struct damon_region *r, struct damon_target *t);
+ void damon_destroy_region(struct damon_region *r, struct damon_target *t);
  
- 	va_start(args, fmt);
+--- a/mm/damon/core.c~mm-damon-move-the-implementation-of-damon_insert_region-to-damonh
++++ a/mm/damon/core.c
+@@ -49,17 +49,6 @@ struct damon_region *damon_new_region(un
+ 	return region;
+ }
+ 
+-/*
+- * Add a region between two other regions
+- */
+-inline void damon_insert_region(struct damon_region *r,
+-		struct damon_region *prev, struct damon_region *next,
+-		struct damon_target *t)
+-{
+-	__list_add(&r->list, &prev->list, &next->list);
+-	t->nr_regions++;
+-}
+-
+ void damon_add_region(struct damon_region *r, struct damon_target *t)
+ {
+ 	list_add_tail(&r->list, &t->regions_list);
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from guoqing.jiang@linux.dev are
 
-mm_zone-add-function-to-check-if-managed-dma-zone-exists.patch
-dma-pool-create-dma-atomic-pool-only-if-dma-zone-has-managed-pages.patch
-mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages.patch
+mm-damon-move-the-implementation-of-damon_insert_region-to-damonh.patch
 
