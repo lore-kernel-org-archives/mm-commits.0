@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C3DB5C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 27 Dec 2021 00:08:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 27338C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 27 Dec 2021 00:08:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234856AbhL0AIj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 26 Dec 2021 19:08:39 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:46968 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234859AbhL0AIj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Dec 2021 19:08:39 -0500
+        id S234860AbhL0AIn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 26 Dec 2021 19:08:43 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:60230 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234859AbhL0AIn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 26 Dec 2021 19:08:43 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BDB6360F1A
-        for <mm-commits@vger.kernel.org>; Mon, 27 Dec 2021 00:08:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D0047C36AE8;
-        Mon, 27 Dec 2021 00:08:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5F620B80E6B
+        for <mm-commits@vger.kernel.org>; Mon, 27 Dec 2021 00:08:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D6610C36AE8;
+        Mon, 27 Dec 2021 00:08:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640563718;
-        bh=DH1DIeN0xLjzBa1kdWneRadHMmjfuGIL1D2STXDpeVg=;
+        s=korg; t=1640563721;
+        bh=pw2uZTH9lBxjFZscRXxp59phZcmMmrMRG1+vbuGC56E=;
         h=Date:From:To:Subject:From;
-        b=iKubQp0n57EZ5SkPganfXJrwPWRwQey+0foKs7hNMBuI6Smv27DUL60L9TssPcyrL
-         HXr3TqLUISPSwDr5A3TgAogv3x+1nV5DRZrSMWbCflsJ/plzcIbL2It3IiN73SgWtA
-         4Dw9NcaEDH95JBXYq3kUZrtLkFgman690b8Rnd/c=
-Date:   Sun, 26 Dec 2021 16:08:37 -0800
+        b=HDH7xGzzlB2pxAYuryRU5JE7+5hWrj+gAZXI0Q6dKOfOAzJfc11z+8MXceR6JSVU1
+         zJiKhP1UJX9t5nZ5mF+V0vIGSFuGAdQDkohVVTSIXVXWgu59JF8sJE6o/OPZyl+wip
+         /PVUYr5F1Uf5ko8nnyKC8aYPxBFgBLGwrQvxVrps=
+Date:   Sun, 26 Dec 2021 16:08:40 -0800
 From:   akpm@linux-foundation.org
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         vitaly.wool@konsulko.com, sjenning@redhat.com,
         Konrad.wilk@oracle.com, jgross@suse.com, hughd@google.com,
         geert@linux-m68k.org, ddstreet@ieee.org, hch@lst.de
-Subject:  + frontswap-remove-support-for-multiple-ops.patch added to
- -mm tree
-Message-ID: <20211227000837.YbUQu%akpm@linux-foundation.org>
+Subject:  + mm-hide-the-frontswap-kconfig-symbol.patch added to -mm
+ tree
+Message-ID: <20211227000840.ahe6G%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frontswap: remove support for multiple ops
+     Subject: mm: hide the FRONTSWAP Kconfig symbol
 has been added to the -mm tree.  Its filename is
-     frontswap-remove-support-for-multiple-ops.patch
+     mm-hide-the-frontswap-kconfig-symbol.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/frontswap-remove-support-for-multiple-ops.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hide-the-frontswap-kconfig-symbol.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/frontswap-remove-support-for-multiple-ops.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hide-the-frontswap-kconfig-symbol.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,12 +64,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: frontswap: remove support for multiple ops
+Subject: mm: hide the FRONTSWAP Kconfig symbol
 
-There is only a single instance of frontswap ops in the kernel, so
-simplify the frontswap code by removing support for multiple operations.
+Select FRONTSWAP from ZSWAP instead of prompting for it.
 
-Link: https://lkml.kernel.org/r/20211224062246.1258487-13-hch@lst.de
+Link: https://lkml.kernel.org/r/20211224062246.1258487-14-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Juergen Gross <jgross@suse.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
@@ -82,194 +81,43 @@ Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/frontswap.h |    3 --
- mm/frontswap.c            |   50 ++++++++----------------------------
- mm/zswap.c                |    8 ++++-
- 3 files changed, 19 insertions(+), 42 deletions(-)
+ mm/Kconfig |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
---- a/include/linux/frontswap.h~frontswap-remove-support-for-multiple-ops
-+++ a/include/linux/frontswap.h
-@@ -13,10 +13,9 @@ struct frontswap_ops {
- 	int (*load)(unsigned, pgoff_t, struct page *); /* load a page */
- 	void (*invalidate_page)(unsigned, pgoff_t); /* page no longer needed */
- 	void (*invalidate_area)(unsigned); /* swap type just swapoff'ed */
--	struct frontswap_ops *next; /* private pointer to next ops */
- };
+--- a/mm/Kconfig~mm-hide-the-frontswap-kconfig-symbol
++++ a/mm/Kconfig
+@@ -445,20 +445,7 @@ config HAVE_SETUP_PER_CPU_AREA
+ 	bool
  
--extern void frontswap_register_ops(struct frontswap_ops *ops);
-+int frontswap_register_ops(const struct frontswap_ops *ops);
- 
- extern void frontswap_init(unsigned type, unsigned long *map);
- extern int __frontswap_store(struct page *page);
---- a/mm/frontswap.c~frontswap-remove-support-for-multiple-ops
-+++ a/mm/frontswap.c
-@@ -27,10 +27,7 @@ DEFINE_STATIC_KEY_FALSE(frontswap_enable
-  * may be registered, but implementations can never deregister.  This
-  * is a simple singly-linked list of all registered implementations.
-  */
--static struct frontswap_ops *frontswap_ops __read_mostly;
+ config FRONTSWAP
+-	bool "Enable frontswap to cache swap pages if tmem is present"
+-	depends on SWAP
+-	help
+-	  Frontswap is so named because it can be thought of as the opposite
+-	  of a "backing" store for a swap device.  The data is stored into
+-	  "transcendent memory", memory that is not directly accessible or
+-	  addressable by the kernel and is of unknown and possibly
+-	  time-varying size.  When space in transcendent memory is available,
+-	  a significant swap I/O reduction may be achieved.  When none is
+-	  available, all frontswap calls are reduced to a single pointer-
+-	  compare-against-NULL resulting in a negligible performance hit
+-	  and swap data is stored as normal on the matching swap device.
 -
--#define for_each_frontswap_ops(ops)		\
--	for ((ops) = frontswap_ops; (ops); (ops) = (ops)->next)
-+static const struct frontswap_ops *frontswap_ops __read_mostly;
+-	  If unsure, say Y to enable frontswap.
++	bool
  
- #ifdef CONFIG_DEBUG_FS
- /*
-@@ -97,18 +94,14 @@ static inline void inc_frontswap_invalid
- /*
-  * Register operations for frontswap
-  */
--void frontswap_register_ops(struct frontswap_ops *ops)
-+int frontswap_register_ops(const struct frontswap_ops *ops)
- {
--	/*
--	 * Setting frontswap_ops must happen after the ops->init() calls
--	 * above; cmpxchg implies smp_mb() which will ensure the init is
--	 * complete at this point.
--	 */
--	do {
--		ops->next = frontswap_ops;
--	} while (cmpxchg(&frontswap_ops, ops->next, ops) != ops->next);
-+	if (frontswap_ops)
-+		return -EINVAL;
+ config CMA
+ 	bool "Contiguous Memory Allocator"
+@@ -523,7 +510,8 @@ config MEM_SOFT_DIRTY
  
-+	frontswap_ops = ops;
- 	static_branch_inc(&frontswap_enabled_key);
-+	return 0;
- }
- 
- /*
-@@ -117,7 +110,6 @@ void frontswap_register_ops(struct front
- void frontswap_init(unsigned type, unsigned long *map)
- {
- 	struct swap_info_struct *sis = swap_info[type];
--	struct frontswap_ops *ops;
- 
- 	VM_BUG_ON(sis == NULL);
- 
-@@ -133,9 +125,7 @@ void frontswap_init(unsigned type, unsig
- 	 * p->frontswap set to something valid to work properly.
- 	 */
- 	frontswap_map_set(sis, map);
--
--	for_each_frontswap_ops(ops)
--		ops->init(type);
-+	frontswap_ops->init(type);
- }
- 
- static bool __frontswap_test(struct swap_info_struct *sis,
-@@ -174,7 +164,6 @@ int __frontswap_store(struct page *page)
- 	int type = swp_type(entry);
- 	struct swap_info_struct *sis = swap_info[type];
- 	pgoff_t offset = swp_offset(entry);
--	struct frontswap_ops *ops;
- 
- 	VM_BUG_ON(!frontswap_ops);
- 	VM_BUG_ON(!PageLocked(page));
-@@ -188,16 +177,10 @@ int __frontswap_store(struct page *page)
- 	 */
- 	if (__frontswap_test(sis, offset)) {
- 		__frontswap_clear(sis, offset);
--		for_each_frontswap_ops(ops)
--			ops->invalidate_page(type, offset);
-+		frontswap_ops->invalidate_page(type, offset);
- 	}
- 
--	/* Try to store in each implementation, until one succeeds. */
--	for_each_frontswap_ops(ops) {
--		ret = ops->store(type, offset, page);
--		if (!ret) /* successful store */
--			break;
--	}
-+	ret = frontswap_ops->store(type, offset, page);
- 	if (ret == 0) {
- 		__frontswap_set(sis, offset);
- 		inc_frontswap_succ_stores();
-@@ -220,7 +203,6 @@ int __frontswap_load(struct page *page)
- 	int type = swp_type(entry);
- 	struct swap_info_struct *sis = swap_info[type];
- 	pgoff_t offset = swp_offset(entry);
--	struct frontswap_ops *ops;
- 
- 	VM_BUG_ON(!frontswap_ops);
- 	VM_BUG_ON(!PageLocked(page));
-@@ -230,11 +212,7 @@ int __frontswap_load(struct page *page)
- 		return -1;
- 
- 	/* Try loading from each implementation, until one succeeds. */
--	for_each_frontswap_ops(ops) {
--		ret = ops->load(type, offset, page);
--		if (!ret) /* successful load */
--			break;
--	}
-+	ret = frontswap_ops->load(type, offset, page);
- 	if (ret == 0)
- 		inc_frontswap_loads();
- 	return ret;
-@@ -247,7 +225,6 @@ int __frontswap_load(struct page *page)
- void __frontswap_invalidate_page(unsigned type, pgoff_t offset)
- {
- 	struct swap_info_struct *sis = swap_info[type];
--	struct frontswap_ops *ops;
- 
- 	VM_BUG_ON(!frontswap_ops);
- 	VM_BUG_ON(sis == NULL);
-@@ -255,8 +232,7 @@ void __frontswap_invalidate_page(unsigne
- 	if (!__frontswap_test(sis, offset))
- 		return;
- 
--	for_each_frontswap_ops(ops)
--		ops->invalidate_page(type, offset);
-+	frontswap_ops->invalidate_page(type, offset);
- 	__frontswap_clear(sis, offset);
- 	inc_frontswap_invalidates();
- }
-@@ -268,7 +244,6 @@ void __frontswap_invalidate_page(unsigne
- void __frontswap_invalidate_area(unsigned type)
- {
- 	struct swap_info_struct *sis = swap_info[type];
--	struct frontswap_ops *ops;
- 
- 	VM_BUG_ON(!frontswap_ops);
- 	VM_BUG_ON(sis == NULL);
-@@ -276,8 +251,7 @@ void __frontswap_invalidate_area(unsigne
- 	if (sis->frontswap_map == NULL)
- 		return;
- 
--	for_each_frontswap_ops(ops)
--		ops->invalidate_area(type);
-+	frontswap_ops->invalidate_area(type);
- 	atomic_set(&sis->frontswap_pages, 0);
- 	bitmap_zero(sis->frontswap_map, sis->max);
- }
---- a/mm/zswap.c~frontswap-remove-support-for-multiple-ops
-+++ a/mm/zswap.c
-@@ -1378,7 +1378,7 @@ static void zswap_frontswap_init(unsigne
- 	zswap_trees[type] = tree;
- }
- 
--static struct frontswap_ops zswap_frontswap_ops = {
-+static const struct frontswap_ops zswap_frontswap_ops = {
- 	.store = zswap_frontswap_store,
- 	.load = zswap_frontswap_load,
- 	.invalidate_page = zswap_frontswap_invalidate_page,
-@@ -1475,11 +1475,15 @@ static int __init init_zswap(void)
- 	if (!shrink_wq)
- 		goto fallback_fail;
- 
--	frontswap_register_ops(&zswap_frontswap_ops);
-+	ret = frontswap_register_ops(&zswap_frontswap_ops);
-+	if (ret)
-+		goto destroy_wq;
- 	if (zswap_debugfs_init())
- 		pr_warn("debugfs initialization failed\n");
- 	return 0;
- 
-+destroy_wq:
-+	destroy_workqueue(shrink_wq);
- fallback_fail:
- 	if (pool)
- 		zswap_pool_destroy(pool);
+ config ZSWAP
+ 	bool "Compressed cache for swap pages (EXPERIMENTAL)"
+-	depends on FRONTSWAP && CRYPTO=y
++	depends on SWAP && CRYPTO=y
++	select FRONTSWAP
+ 	select ZPOOL
+ 	help
+ 	  A lightweight compressed cache for swap pages.  It takes
 _
 
 Patches currently in -mm which might be from hch@lst.de are
