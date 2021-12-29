@@ -2,38 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D6BDC433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Dec 2021 23:21:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E60D2C433FE
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Dec 2021 23:23:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233141AbhL2XVu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 29 Dec 2021 18:21:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38400 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232759AbhL2XVu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Dec 2021 18:21:50 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 498F4C061574
-        for <mm-commits@vger.kernel.org>; Wed, 29 Dec 2021 15:21:50 -0800 (PST)
+        id S233182AbhL2XXF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Dec 2021 18:23:05 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:47620 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233152AbhL2XXE (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Dec 2021 18:23:04 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 739D961579
-        for <mm-commits@vger.kernel.org>; Wed, 29 Dec 2021 23:21:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C9944C36AEA;
-        Wed, 29 Dec 2021 23:21:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 38C70B817AB;
+        Wed, 29 Dec 2021 23:23:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB71FC36AEA;
+        Wed, 29 Dec 2021 23:23:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640820108;
-        bh=pFhwsUpQ76jjJyecoslmVxOi+iEIZw9NpSiJYGKYJwc=;
+        s=korg; t=1640820181;
+        bh=BXG18Sw1yVHCdB15AVt+Dqe/tked87k4pz322bxIyX0=;
         h=Date:From:To:Subject:From;
-        b=cWeZa/sFTgAeBWJr7YS+XI5cipwMYBjcjfITTjtIcnfdoCyU2AH24k4Qs0EqruLe1
-         FM4sSuRTPoqODpxPsmbSmwskClxC6+ccUcs3NMI5uI/RXbpynMOHgYaptJdZD3bGVZ
-         RAdTHQGLZ5qV0KdmtxpHgU/XpeFDcIIyOdZZklDc=
-Date:   Wed, 29 Dec 2021 15:21:49 -0800
+        b=on+fkySPLFbyRIZLhT3rFavU7yE8rMs6DnhD5N6/xhE/BuZw9rgmc3HMzCDGscL+i
+         hHII2/L2KaHPfQ2F655/55E/qTQvU5NWvKrFLefUSxiiYpKRmx9Bu1SmEF7yKRyZbg
+         Q0h5vfxJx/5zlnzXfdx24H+Q66OEIn8bG0rUs23E=
+Date:   Wed, 29 Dec 2021 15:23:02 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sj@kernel.org
-Subject:  + mm-damon-hide-kernel-pointer-from-tracepoint-event.patch
- added to -mm tree
-Message-ID: <20211229232149.6HPK4%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org, sj@kernel.org
+Subject:  +
+ mm-damon-dbgfs-fix-struct-pid-leaks-in-dbgfs_target_ids_write.patch added to
+ -mm tree
+Message-ID: <20211229232302.2rP0w%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: hide kernel pointer from tracepoint event
+     Subject: mm/damon/dbgfs: fix 'struct pid' leaks in 'dbgfs_target_ids_write()'
 has been added to the -mm tree.  Its filename is
-     mm-damon-hide-kernel-pointer-from-tracepoint-event.patch
+     mm-damon-dbgfs-fix-struct-pid-leaks-in-dbgfs_target_ids_write.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-hide-kernel-pointer-from-tracepoint-event.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-dbgfs-fix-struct-pid-leaks-in-dbgfs_target_ids_write.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-hide-kernel-pointer-from-tracepoint-event.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-dbgfs-fix-struct-pid-leaks-in-dbgfs_target_ids_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,81 +62,59 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon: hide kernel pointer from tracepoint event
+Subject: mm/damon/dbgfs: fix 'struct pid' leaks in 'dbgfs_target_ids_write()'
 
-DAMON's virtual address spaces monitoring primitive uses 'struct pid *' of
-the target process as its monitoring target id.  The kernel address is
-exposed as-is to the user space via the DAMON tracepoint,
-'damon_aggregated'.
+DAMON debugfs interface increases the reference counts of 'struct pid's
+for targets from the 'target_ids' file write callback
+('dbgfs_target_ids_write()'), but decreases the counts only in DAMON
+monitoring termination callback ('dbgfs_before_terminate()').
 
-Though primarily only privileged users are allowed to access that, it
-would be better to avoid unnecessarily exposing kernel pointers so. 
-Because the trace result is only required to be able to distinguish each
-target, we aren't need to use the pointer as-is.
+Therefore, when 'target_ids' file is repeatedly written without DAMON
+monitoring start/termination, the reference count is not decreased and
+therefore memory for the 'struct pid' cannot be freed.  This commit fixes
+this issue by decreasing the reference counts when 'target_ids' is
+written.
 
-This commit makes the tracepoint to use the index of the target in the
-context's targets list as its id in the tracepoint, to hide the kernel
-space address.
-
-Link: https://lkml.kernel.org/r/20211229131016.23641-5-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211229124029.23348-1-sj@kernel.org
+Fixes: 4bc05954d007 ("mm/damon: implement a debugfs-based user space interface")
 Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: <stable@vger.kernel.org>	[5.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/damon.h |    8 ++++----
- mm/damon/core.c              |    4 +++-
- 2 files changed, 7 insertions(+), 5 deletions(-)
+ mm/damon/dbgfs.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
---- a/include/trace/events/damon.h~mm-damon-hide-kernel-pointer-from-tracepoint-event
-+++ a/include/trace/events/damon.h
-@@ -11,10 +11,10 @@
- 
- TRACE_EVENT(damon_aggregated,
- 
--	TP_PROTO(struct damon_target *t, struct damon_region *r,
--		unsigned int nr_regions),
-+	TP_PROTO(struct damon_target *t, unsigned int target_id,
-+		struct damon_region *r, unsigned int nr_regions),
- 
--	TP_ARGS(t, r, nr_regions),
-+	TP_ARGS(t, target_id, r, nr_regions),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, target_id)
-@@ -26,7 +26,7 @@ TRACE_EVENT(damon_aggregated,
- 	),
- 
- 	TP_fast_assign(
--		__entry->target_id = t->id;
-+		__entry->target_id = target_id;
- 		__entry->nr_regions = nr_regions;
- 		__entry->start = r->ar.start;
- 		__entry->end = r->ar.end;
---- a/mm/damon/core.c~mm-damon-hide-kernel-pointer-from-tracepoint-event
-+++ a/mm/damon/core.c
-@@ -514,15 +514,17 @@ static bool kdamond_aggregate_interval_p
- static void kdamond_reset_aggregated(struct damon_ctx *c)
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-fix-struct-pid-leaks-in-dbgfs_target_ids_write
++++ a/mm/damon/dbgfs.c
+@@ -353,6 +353,7 @@ static ssize_t dbgfs_target_ids_write(st
+ 		const char __user *buf, size_t count, loff_t *ppos)
  {
- 	struct damon_target *t;
-+	unsigned int ti = 0;	/* target's index */
- 
- 	damon_for_each_target(t, c) {
- 		struct damon_region *r;
- 
- 		damon_for_each_region(r, t) {
--			trace_damon_aggregated(t, r, damon_nr_regions(t));
-+			trace_damon_aggregated(t, ti, r, damon_nr_regions(t));
- 			r->last_nr_accesses = r->nr_accesses;
- 			r->nr_accesses = 0;
- 		}
-+		ti++;
+ 	struct damon_ctx *ctx = file->private_data;
++	struct damon_target *t, *next_t;
+ 	bool id_is_pid = true;
+ 	char *kbuf, *nrs;
+ 	unsigned long *targets;
+@@ -397,8 +398,12 @@ static ssize_t dbgfs_target_ids_write(st
+ 		goto unlock_out;
  	}
- }
  
+-	/* remove targets with previously-set primitive */
+-	damon_set_targets(ctx, NULL, 0);
++	/* remove previously set targets */
++	damon_for_each_target_safe(t, next_t, ctx) {
++		if (targetid_is_pid(ctx))
++			put_pid((struct pid *)t->id);
++		damon_destroy_target(t);
++	}
+ 
+ 	/* Configure the context for the address space type */
+ 	if (id_is_pid)
 _
 
 Patches currently in -mm which might be from sj@kernel.org are
 
+mm-damon-dbgfs-fix-struct-pid-leaks-in-dbgfs_target_ids_write.patch
 mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix.patch
 mm-damon-convert-macro-functions-to-static-inline-functions.patch
 docs-admin-guide-mm-damon-usage-update-for-scheme-quotas-and-watermarks.patch
