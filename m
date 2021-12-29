@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E28F2C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Dec 2021 23:34:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EE349C433F5
+	for <mm-commits@archiver.kernel.org>; Wed, 29 Dec 2021 23:35:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233423AbhL2Xeh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 29 Dec 2021 18:34:37 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:51758 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233389AbhL2Xeg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Dec 2021 18:34:36 -0500
+        id S233217AbhL2Xfu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Dec 2021 18:35:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41444 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233173AbhL2Xfu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Dec 2021 18:35:50 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1DB4BC061574
+        for <mm-commits@vger.kernel.org>; Wed, 29 Dec 2021 15:35:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 31B1BB819C4
-        for <mm-commits@vger.kernel.org>; Wed, 29 Dec 2021 23:34:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A980EC36AE9;
-        Wed, 29 Dec 2021 23:34:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A6F1C615A8
+        for <mm-commits@vger.kernel.org>; Wed, 29 Dec 2021 23:35:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8F69C36AEA;
+        Wed, 29 Dec 2021 23:35:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640820873;
-        bh=k4RdKmxJtHsy4cg62XoNdKyOLluHdIzJch1TtT5T7KU=;
+        s=korg; t=1640820949;
+        bh=8g+OuQBldqaoo6TyABRspjHyWqFG9bqmmGvgEzbBeis=;
         h=Date:From:To:Subject:From;
-        b=1T0QkJLPH4GWMv19UJK4lffREI7mk900cfkxjnZv/F62BujLli9EAlgfrTLRCXGL7
-         67mgWxI6elcXu4eN75+eiAwNMBcKaxUAA0yj3HtpR3RFbrzreSyQBizsKmkT3olgvc
-         vXToKhsXa0AP/otbzjNO8QvVf2iK4GSNw2XBn9DM=
-Date:   Wed, 29 Dec 2021 15:34:33 -0800
+        b=VBAbPmhvULkazN1ceL7/4Phw7ZWRqhONClOV6n0tL8ePOK1pyUCNUC52zgaGShUjn
+         PykFwM84s2sj8eOUoxq+fdpgakdmsmrR83QVfv/5HSDv3NUZAUka1axNlMKedt4kIi
+         VQpcCKhtsjx+O/OIhDw0d1LmP/JOyc6Uju3GnANc=
+Date:   Wed, 29 Dec 2021 15:35:49 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, wangkefeng.wang@huawei.com,
-        vbabka@suse.cz, osalvador@suse.de, iamjoonsoo.kim@lge.com,
-        chenwandun@huawei.com
-Subject:  +
- mm-page_isolation-unset-migratetype-directly-for-non-buddy-page.patch added
- to -mm tree
-Message-ID: <20211229233433.-R8hO%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
+        jlbec@evilplan.org, gregkh@linuxfoundation.org, ghe@suse.com,
+        gechangwei@live.cn, ocfs2-devel@oss.oracle.com
+Subject:  + ocfs2-use-default_groups-in-kobj_type.patch added to -mm
+ tree
+Message-ID: <20211229233549.asRi_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_isolation: unset migratetype directly for non Buddy page
+     Subject: ocfs2: use default_groups in kobj_type
 has been added to the -mm tree.  Its filename is
-     mm-page_isolation-unset-migratetype-directly-for-non-buddy-page.patch
+     ocfs2-use-default_groups-in-kobj_type.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_isolation-unset-migratetype-directly-for-non-buddy-page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-use-default_groups-in-kobj_type.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_isolation-unset-migratetype-directly-for-non-buddy-page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-use-default_groups-in-kobj_type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,50 +66,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Wandun <chenwandun@huawei.com>
-Subject: mm/page_isolation: unset migratetype directly for non Buddy page
+From: Greg Kroah-Hartman via Ocfs2-devel <ocfs2-devel@oss.oracle.com>
+Subject: ocfs2: use default_groups in kobj_type
 
-In unset_migratetype_isolate(), we can bypass the call to
-move_freepages_block() for non-buddy pages.
+There are currently 2 ways to create a set of sysfs files for a kobj_type,
+through the default_attrs field, and the default_groups field.  Move the
+ocfs2 code to use default_groups field which has been the preferred way
+since aa30f47cf666 ("kobject: Add support for default attribute groups to
+kobj_type") so that we can soon get rid of the obsolete default_attrs
+field.
 
-It will save a few cpu cycles for some situations such as cma and hugetlb
-when allocating continue pages, in these situation function
-alloc_contig_pages will be called.
-
-alloc_contig_pages
-	__alloc_contig_migrate_range
-	isolate_freepages_range ==> pages has been remove from buddy
-	undo_isolate_page_range
-		unset_migratetype_isolate ==> can directly set migratetype
-
-[osalvador@suse.de: changelog tweak]
-Link: https://lkml.kernel.org/r/20211229033649.2760586-1-chenwandun@huawei.com
-Fixes: 3c605096d315 ("mm/page_alloc: restrict max order of merging on isolated pageblock")
-Signed-off-by: Chen Wandun <chenwandun@huawei.com>
-Reviewed-by: Oscar Salvador <osalvador@suse.de>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Wang Kefeng <wangkefeng.wang@huawei.com>
+Link: https://lkml.kernel.org/r/20211228144517.391660-1-gregkh@linuxfoundation.org
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/filecheck.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/page_isolation.c~mm-page_isolation-unset-migratetype-directly-for-non-buddy-page
-+++ a/mm/page_isolation.c
-@@ -115,7 +115,7 @@ static void unset_migratetype_isolate(st
- 	 * onlining - just onlined memory won't immediately be considered for
- 	 * allocation.
- 	 */
--	if (!isolated_page) {
-+	if (!isolated_page && PageBuddy(page)) {
- 		nr_pages = move_freepages_block(zone, page, migratetype, NULL);
- 		__mod_zone_freepage_state(zone, nr_pages, migratetype);
- 	}
+--- a/fs/ocfs2/filecheck.c~ocfs2-use-default_groups-in-kobj_type
++++ a/fs/ocfs2/filecheck.c
+@@ -94,6 +94,7 @@ static struct attribute *ocfs2_filecheck
+ 	&ocfs2_filecheck_attr_set.attr,
+ 	NULL
+ };
++ATTRIBUTE_GROUPS(ocfs2_filecheck);
+ 
+ static void ocfs2_filecheck_release(struct kobject *kobj)
+ {
+@@ -138,7 +139,7 @@ static const struct sysfs_ops ocfs2_file
+ };
+ 
+ static struct kobj_type ocfs2_ktype_filecheck = {
+-	.default_attrs = ocfs2_filecheck_attrs,
++	.default_groups = ocfs2_filecheck_groups,
+ 	.sysfs_ops = &ocfs2_filecheck_ops,
+ 	.release = ocfs2_filecheck_release,
+ };
 _
 
-Patches currently in -mm which might be from chenwandun@huawei.com are
+Patches currently in -mm which might be from ocfs2-devel@oss.oracle.com are
 
-mm-page_isolation-unset-migratetype-directly-for-non-buddy-page.patch
+ocfs2-use-default_groups-in-kobj_type.patch
 
