@@ -2,44 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F925C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Dec 2021 01:24:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 16A09C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Dec 2021 03:47:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233866AbhL3BYn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 29 Dec 2021 20:24:43 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:49440 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232261AbhL3BYn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Dec 2021 20:24:43 -0500
+        id S235504AbhL3DrR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Dec 2021 22:47:17 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:57396 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235450AbhL3DrQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Dec 2021 22:47:16 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B928061562
-        for <mm-commits@vger.kernel.org>; Thu, 30 Dec 2021 01:24:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 992E0C36AE9;
-        Thu, 30 Dec 2021 01:24:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 891BFB80E36
+        for <mm-commits@vger.kernel.org>; Thu, 30 Dec 2021 03:47:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B251C36AEA;
+        Thu, 30 Dec 2021 03:47:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640827482;
-        bh=nsEoLa/rPmikpMDF3EnJYwdDCMSL07bGQIPytluUdYQ=;
+        s=korg; t=1640836034;
+        bh=ntkTcLDbtfSTDNiJZ1zsdQ821mW9/Y/xg2x5x+dxgTE=;
         h=Date:From:To:Subject:From;
-        b=0ggkEiiT6pXXRQGtd12g9qOxXOiz/Arv1sidvDYe3TsnFmgd6BBK12/zD5bdG4Pkr
-         5b7piCyOjfuAwYqWgKU48nmfKB4pxYEfQx0ypIdnKpM9T84EEAGvnzXLwfzEng9Ym/
-         NSvC+JGVfEgKaK0jio8kWqwNQhoLpljwLsOxM/JM=
-Date:   Wed, 29 Dec 2021 17:24:41 -0800
+        b=QxcCkHx79iYYIzbpKi6YH1kjwOZyNz+Y/DTF713MEnHKDeGHh1j/Cb7z7n/1VqhvS
+         btrGFScU+uN3SIsilLR8++wFQVpevM7hJCdcYpC+xNjwpuDE+AhJ1Gv8k4J67FcDaY
+         1If8jIbc9AhhnWUsevTuZjmCq0RxPNsgO8cP1w/w=
+Date:   Wed, 29 Dec 2021 19:47:13 -0800
 From:   akpm@linux-foundation.org
-To:     42.hyeyoo@gmail.com, akpm@linux-foundation.org, bhe@redhat.com,
-        bp@alien8.de, cl@linux.com, David.Laight@ACULAB.COM,
-        david@redhat.com, hch@lst.de, iamjoonsoo.kim@lge.com,
-        john.p.donnelly@oracle.com, m.szyprowski@samsung.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, robin.murphy@arm.com, vbabka@suse.cz
-Subject:  +
- =?US-ASCII?Q?mm-page=5Fallocc-do-not-warn-allocation-failure-on-zone-d?=
- =?US-ASCII?Q?ma-if-no-managed-pages-fix.patch?= added to -mm tree
-Message-ID: <20211230012441.govniiBD_%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, chao@kernel.org, jaegeuk@kernel.org,
+        mm-commits@vger.kernel.org
+Subject:  + fs-f2fs-datac-fix-mess.patch added to -mm tree
+Message-ID: <20211230034713.kR_DhD6kH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages-fix
+     Subject: fs/f2fs/data.c: fix mess
 has been added to the -mm tree.  Its filename is
-     mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages-fix.patch
+     fs-f2fs-datac-fix-mess.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-f2fs-datac-fix-mess.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-f2fs-datac-fix-mess.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,49 +61,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages-fix
+Subject: fs/f2fs/data.c: fix mess
 
-fix warning
+fs/f2fs/data.c: In function 'f2fs_read_single_page':
+fs/f2fs/data.c:2092:1: error: label 'confused' defined but not used [-Werror=unused-label]
+ 2092 | confused:
+      | ^~~~~~~~
 
-mm/page_alloc.c: In function 'warn_alloc':
-mm/page_alloc.c:4224:26: warning: suggest parentheses around '&&' within '||' [-Wparentheses]
- 4224 |   (gfp_mask & __GFP_DMA) && !has_managed_dma())
-      |   ~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~
-
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: John Donnelly  <john.p.donnelly@oracle.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Chao Yu <chao@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/f2fs/data.c |    7 -------
+ 1 file changed, 7 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages-fix
-+++ a/mm/page_alloc.c
-@@ -4218,8 +4218,9 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- 	va_list args;
- 	static DEFINE_RATELIMIT_STATE(nopage_rs, 10*HZ, 1);
- 
--	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs) ||
--		(gfp_mask & __GFP_DMA) && !has_managed_dma())
-+	if ((gfp_mask & __GFP_NOWARN) ||
-+	     !__ratelimit(&nopage_rs) ||
-+	     ((gfp_mask & __GFP_DMA) && !has_managed_dma()))
- 		return;
- 
- 	va_start(args, fmt);
+--- a/fs/f2fs/data.c~fs-f2fs-datac-fix-mess
++++ a/fs/f2fs/data.c
+@@ -2088,13 +2088,6 @@ submit_and_realloc:
+ 	f2fs_update_iostat(F2FS_I_SB(inode), FS_DATA_READ_IO, F2FS_BLKSIZE);
+ 	ClearPageError(page);
+ 	*last_block_in_bio = block_nr;
+-	goto out;
+-confused:
+-	if (bio) {
+-		__submit_bio(F2FS_I_SB(inode), bio, DATA);
+-		bio = NULL;
+-	}
+-	unlock_page(page);
+ out:
+ 	*bio_ret = bio;
+ 	return ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -138,6 +118,7 @@ hashh-remove-unused-define-directive-fix.patch
 panic-use-error_report_end-tracepoint-on-warnings-fix.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
+fs-f2fs-datac-fix-mess.patch
 sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
 firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
 firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
