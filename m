@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CD590C433EF
-	for <mm-commits@archiver.kernel.org>; Wed, 29 Dec 2021 23:37:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1EBEC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 30 Dec 2021 00:05:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233358AbhL2XhD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 29 Dec 2021 18:37:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41714 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233344AbhL2XhC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Dec 2021 18:37:02 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4023FC061574
-        for <mm-commits@vger.kernel.org>; Wed, 29 Dec 2021 15:37:02 -0800 (PST)
+        id S233499AbhL3AFK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 29 Dec 2021 19:05:10 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:46142 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230083AbhL3AFK (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 29 Dec 2021 19:05:10 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3BA05B819C4
-        for <mm-commits@vger.kernel.org>; Wed, 29 Dec 2021 23:37:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D142BC36AEA;
-        Wed, 29 Dec 2021 23:36:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id ABEF961579
+        for <mm-commits@vger.kernel.org>; Thu, 30 Dec 2021 00:05:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BF345C36AEA;
+        Thu, 30 Dec 2021 00:05:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640821019;
-        bh=U6F65NtotazS3tGQfD+uEJCXw60FSfLngq0DV7qLlY4=;
+        s=korg; t=1640822709;
+        bh=PUUd3F30nFS4Yh5mU3y1VgWpjvV5jeKrN5dD9aiNORs=;
         h=Date:From:To:Subject:From;
-        b=t0IL7q5jd6VfXG/8ZGhERqoMaqzzHGvBMRCXadjiQTuUc5c6y0JKPYWZlooQiRV0H
-         DKY1avYKf32qS1XcLQ+MmoCEvNtbSW/pM+uPMKvXax86AdGvRYB6DX3JoRSxhBKwK8
-         6atFZF73/iXQYHd+D900gjY5CBdNIw13mbJNoxeQ=
-Date:   Wed, 29 Dec 2021 15:36:59 -0800
+        b=mcYskElwtvafIerYn/bLjpNZsFWmjMDan7F8IJdzqMIlZ+Ob6LJ2QS5596kOSHCLA
+         ABuBz6igGm+4PJWg5hkggtfp4VvukF5mY3Ij0zVyrEHNCfiqEfz+FvCaBhzRvyc1TL
+         mAGJ41ehLuJqHcTLoSu118h5rCnWtICOHWU0MstA=
+Date:   Wed, 29 Dec 2021 16:05:07 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, konishi.ryusuke@gmail.com,
+To:     mm-commits@vger.kernel.org, piaojun@huawei.com, mark@fasheh.com,
+        junxiao.bi@oracle.com, joseph.qi@linux.alibaba.com,
+        jlbec@evilplan.org, ghe@suse.com, gechangwei@live.cn,
         colin.i.king@gmail.com
-Subject:  + nilfs2-remove-redundant-pointer-sbufs.patch added to -mm
- tree
-Message-ID: <20211229233659.Xdyt4%akpm@linux-foundation.org>
+Subject:  +
+ ocfs2-remove-redundant-assignment-to-pointer-root_bh.patch added to -mm tree
+Message-ID: <20211230000507.OxzIc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: remove redundant pointer sbufs
+     Subject: ocfs2: remove redundant assignment to pointer root_bh
 has been added to the -mm tree.  Its filename is
-     nilfs2-remove-redundant-pointer-sbufs.patch
+     ocfs2-remove-redundant-assignment-to-pointer-root_bh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/nilfs2-remove-redundant-pointer-sbufs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-redundant-assignment-to-pointer-root_bh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-remove-redundant-pointer-sbufs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-redundant-assignment-to-pointer-root_bh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,48 +64,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Colin Ian King <colin.i.king@gmail.com>
-Subject: nilfs2: remove redundant pointer sbufs
+Subject: ocfs2: remove redundant assignment to pointer root_bh
 
-Pointer sbufs is being assigned a value but it's not being used later on. 
-The pointer is redundant and can be removed.  Cleans up scan-build static
-analysis warning:
+Pointer root_bh is being initialized with a value that is not read, it is
+being re-assigned later on closer to its use.  The early initialization is
+redundant and can be removed.
 
-fs/nilfs2/page.c:203:8: warning: Although the value stored to 'sbufs'
-is used in the enclosing expression, the value is never actually read
-from 'sbufs' [deadcode.DeadStores]
-        sbh = sbufs = page_buffers(src);
-
-Link: https://lkml.kernel.org/r/20211211180955.550380-1-colin.i.king@gmail.com
-Link: https://lkml.kernel.org/r/1640712476-15136-1-git-send-email-konishi.ryusuke@gmail.com
+Link: https://lkml.kernel.org/r/20211228013719.620923-1-colin.i.king@gmail.com
 Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/page.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/alloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/nilfs2/page.c~nilfs2-remove-redundant-pointer-sbufs
-+++ a/fs/nilfs2/page.c
-@@ -195,12 +195,12 @@ void nilfs_page_bug(struct page *page)
-  */
- static void nilfs_copy_page(struct page *dst, struct page *src, int copy_dirty)
- {
--	struct buffer_head *dbh, *dbufs, *sbh, *sbufs;
-+	struct buffer_head *dbh, *dbufs, *sbh;
- 	unsigned long mask = NILFS_BUFFER_INHERENT_BITS;
+--- a/fs/ocfs2/alloc.c~ocfs2-remove-redundant-assignment-to-pointer-root_bh
++++ a/fs/ocfs2/alloc.c
+@@ -2040,7 +2040,7 @@ static void ocfs2_complete_edge_insert(h
+ 	int i, idx;
+ 	struct ocfs2_extent_list *el, *left_el, *right_el;
+ 	struct ocfs2_extent_rec *left_rec, *right_rec;
+-	struct buffer_head *root_bh = left_path->p_node[subtree_index].bh;
++	struct buffer_head *root_bh;
  
- 	BUG_ON(PageWriteback(dst));
- 
--	sbh = sbufs = page_buffers(src);
-+	sbh = page_buffers(src);
- 	if (!page_has_buffers(dst))
- 		create_empty_buffers(dst, sbh->b_size, 0);
- 
+ 	/*
+ 	 * Update the counts and position values within all the
 _
 
 Patches currently in -mm which might be from colin.i.king@gmail.com are
 
+ocfs2-remove-redundant-assignment-to-pointer-root_bh.patch
 mm-migrate-remove-redundant-variables-used-in-a-for-loop.patch
 nilfs2-remove-redundant-pointer-sbufs.patch
 kernel-sysctlc-remove-unused-variable-ten_thousand.patch
