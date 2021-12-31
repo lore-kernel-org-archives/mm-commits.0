@@ -2,120 +2,112 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 08A3FC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 30 Dec 2021 17:32:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33FE0C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Dec 2021 02:15:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241419AbhL3Rcs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Dec 2021 12:32:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:51694 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231386AbhL3Rcr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Dec 2021 12:32:47 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91046C061574;
-        Thu, 30 Dec 2021 09:32:47 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=Content-Transfer-Encoding:Content-Type:
-        In-Reply-To:From:References:To:Subject:MIME-Version:Date:Message-ID:Sender:
-        Reply-To:Cc:Content-ID:Content-Description;
-        bh=aA9xBCuC2t/FCahUtFoF9vl9PxKpUL1fgzD9EinxOdo=; b=Z8drxXgAC81DL2C+p/fauQxUXf
-        NsKPhFvqfekg/WFrvVja5bA4fBORGdpvl0dWCK1Aoy3l5uVtRvRBA9iSLlKP7MEsBfdf/5Fu5FSLU
-        sDrJhGQg0kzhDDj/znSXRYMKj8gNfjGfKfzPuBuKqbI+FiNy+JxXh4xugYlsC7E9GWKVC6f1MDl9S
-        Y6gPYgQNL7lvyLoboMGvlG7EvgBVcGm9mBUQH3kBagIVy5gjGwDniIoBNVLLGX4ciE9bYzSNqeSxg
-        TaJvSv6YFKo1M5aY7TKF3d6WSTbKPOsj5qwdeTGeZpTdggtOoHpx+gKJFlk48Ggu+VoGK6+XLFRGa
-        4m2kFgjQ==;
-Received: from [2601:1c0:6280:3f0::aa0b]
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1n2zI7-009x46-N5; Thu, 30 Dec 2021 17:32:39 +0000
-Message-ID: <3ad11107-30d8-ab75-961b-8142404c8c21@infradead.org>
-Date:   Thu, 30 Dec 2021 09:32:35 -0800
-MIME-Version: 1.0
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
- Thunderbird/91.4.1
-Subject: Re: mmotm 2021-12-29-20-07 uploaded (mm/damon)
-Content-Language: en-US
-To:     Baolin Wang <baolin.wang@linux.alibaba.com>,
-        akpm@linux-foundation.org, broonie@kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-kernel@vger.kernel.org,
-        linux-mm@kvack.org, linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        SeongJae Park <sj@kernel.org>
-References: <20211230040740.SbquJAFf5%akpm@linux-foundation.org>
- <a57f9bc4-2c1b-f819-17a6-2e1d2f9dd173@infradead.org>
- <1aaf9c11-0d8e-b92d-5c92-46e50a6e8d4e@linux.alibaba.com>
-From:   Randy Dunlap <rdunlap@infradead.org>
-In-Reply-To: <1aaf9c11-0d8e-b92d-5c92-46e50a6e8d4e@linux.alibaba.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+        id S241008AbhLaCPg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Dec 2021 21:15:36 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:57260 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229890AbhLaCPg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Dec 2021 21:15:36 -0500
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A559661767
+        for <mm-commits@vger.kernel.org>; Fri, 31 Dec 2021 02:15:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7706C36AE7;
+        Fri, 31 Dec 2021 02:15:34 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1640916935;
+        bh=gXZBppzeT9SQDdSG+kKwwYe+6I522fKFkN3vHDp983I=;
+        h=Date:From:To:Subject:From;
+        b=jgQKt7ovRT6bws1a+C9k/ZxQR+8CDATsc5OJGPhgRcsEAv7oUrxcojXGJD1UwxdNS
+         NZPxEbD3yXD2RTcROknFOhOQOsu1UJKe8xwsJgpmVwdDT0Wfb+9742k476Ta6702uD
+         WeKNItApK2h44fioYRWwP4puaxC6+QT8Y6L8Q6Zo=
+Date:   Thu, 30 Dec 2021 18:15:34 -0800
+From:   akpm@linux-foundation.org
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        rdunlap@infradead.org, baolin.wang@linux.alibaba.com
+Subject:  + mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
+ added to -mm tree
+Message-ID: <20211231021534.IkjJJ%akpm@linux-foundation.org>
+User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 
+The patch titled
+     Subject: mm-damon-add-access-checking-for-hugetlb-pages-fix
+has been added to the -mm tree.  Its filename is
+     mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
 
-On 12/29/21 22:33, Baolin Wang wrote:
-> Hi,
-> 
-> On 12/30/2021 2:27 PM, Randy Dunlap wrote:
->> Hi--
->>
->> On 12/29/21 20:07, akpm@linux-foundation.org wrote:
->>> The mm-of-the-moment snapshot 2021-12-29-20-07 has been uploaded to
->>>
->>>     https://www.ozlabs.org/~akpm/mmotm/
->>>
->>> mmotm-readme.txt says
->>>
->>> README for mm-of-the-moment:
->>>
->>> https://www.ozlabs.org/~akpm/mmotm/
->>>
->>> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
->>> more than once a week.
->>>
->>> You will need quilt to apply these patches to the latest Linus release (5.x
->>> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
->>> https://ozlabs.org/~akpm/mmotm/series
->>>
->>> The file broken-out.tar.gz contains two datestamp files: .DATE and
->>> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
->>> followed by the base kernel version against which this patch series is to
->>> be applied.
->>
->>
->> On i386:
->>
->> ../mm/damon/vaddr.c: In function ‘damon_hugetlb_mkold’:
->> ../mm/damon/vaddr.c:402:17: warning: unused variable ‘h’ [-Wunused-variable]
->>    struct hstate *h = hstate_vma(vma);
-> 
-> Ah, thanks for report, I think below changes can fix the warning. And I'll send a new version to address this warning.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
 
-Yes, that works. Thanks.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
-Acked-by: Randy Dunlap <rdunlap@infradead.org> # build-tested
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
-> diff --git a/mm/damon/vaddr.c b/mm/damon/vaddr.c
-> index bcdc602..25bff8a 100644
-> --- a/mm/damon/vaddr.c
-> +++ b/mm/damon/vaddr.c
-> @@ -397,7 +397,6 @@ static void damon_hugetlb_mkold(pte_t *pte, struct mm_struct *mm,
->                                 struct vm_area_struct *vma, unsigned long addr)
->  {
->         bool referenced = false;
-> -       struct hstate *h = hstate_vma(vma);
->         pte_t entry = huge_ptep_get(pte);
->         struct page *page = pte_page(entry);
-> 
-> @@ -414,7 +413,7 @@ static void damon_hugetlb_mkold(pte_t *pte, struct mm_struct *mm,
->         }
-> 
->  #ifdef CONFIG_MMU_NOTIFIER
-> -       if (mmu_notifier_clear_young(mm, addr, addr + huge_page_size(h)))
-> +       if (mmu_notifier_clear_young(mm, addr, addr + huge_page_size(hstate_vma(vma))))
->                 referenced = true;
->  #endif /* CONFIG_MMU_NOTIFIER */
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
--- 
-~Randy
+------------------------------------------------------
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm-damon-add-access-checking-for-hugetlb-pages-fix
+
+> On i386:
+>
+> ../mm/damon/vaddr.c: In function `damon_hugetlb_mkold':
+> ../mm/damon/vaddr.c:402:17: warning: unused variable `h' [-Wunused-variable]
+>    struct hstate *h = hstate_vma(vma);
+
+Link: https://lkml.kernel.org/r/1aaf9c11-0d8e-b92d-5c92-46e50a6e8d4e@linux.alibaba.com
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/damon/vaddr.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+--- a/mm/damon/vaddr.c~mm-damon-add-access-checking-for-hugetlb-pages-fix
++++ a/mm/damon/vaddr.c
+@@ -393,7 +393,6 @@ static void damon_hugetlb_mkold(pte_t *p
+ 				struct vm_area_struct *vma, unsigned long addr)
+ {
+ 	bool referenced = false;
+-	struct hstate *h = hstate_vma(vma);
+ 	pte_t entry = huge_ptep_get(pte);
+ 	struct page *page = pte_page(entry);
+ 
+@@ -410,7 +409,7 @@ static void damon_hugetlb_mkold(pte_t *p
+ 	}
+ 
+ #ifdef CONFIG_MMU_NOTIFIER
+-	if (mmu_notifier_clear_young(mm, addr, addr + huge_page_size(h)))
++	if (mmu_notifier_clear_young(mm, addr, addr + huge_page_size(hstate_vma(vma))))
+ 		referenced = true;
+ #endif /* CONFIG_MMU_NOTIFIER */
+ 
+_
+
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+
+mm-migrate-fix-the-return-value-of-migrate_pages.patch
+mm-migrate-correct-the-hugetlb-migration-stats.patch
+mm-migrate-correct-the-hugetlb-migration-stats-fix.patch
+mm-compaction-fix-the-migration-stats-in-trace_mm_compaction_migratepages.patch
+mm-migrate-support-multiple-target-nodes-demotion.patch
+mm-migrate-add-more-comments-for-selecting-target-node-randomly.patch
+mm-damon-add-access-checking-for-hugetlb-pages.patch
+mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
+
