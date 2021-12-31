@@ -2,36 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33FE0C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 31 Dec 2021 02:15:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A4A34C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 31 Dec 2021 02:18:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241008AbhLaCPg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 30 Dec 2021 21:15:36 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:57260 "EHLO
+        id S237287AbhLaCS5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 30 Dec 2021 21:18:57 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:59010 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229890AbhLaCPg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Dec 2021 21:15:36 -0500
+        with ESMTP id S242229AbhLaCSw (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 30 Dec 2021 21:18:52 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A559661767
-        for <mm-commits@vger.kernel.org>; Fri, 31 Dec 2021 02:15:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E7706C36AE7;
-        Fri, 31 Dec 2021 02:15:34 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8D6D661753
+        for <mm-commits@vger.kernel.org>; Fri, 31 Dec 2021 02:18:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDF2AC36AEC;
+        Fri, 31 Dec 2021 02:18:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640916935;
-        bh=gXZBppzeT9SQDdSG+kKwwYe+6I522fKFkN3vHDp983I=;
+        s=korg; t=1640917132;
+        bh=8Xhx1XZGrDrxgKK09GTvTs2UshQ4yXop30PX/PfiNXs=;
         h=Date:From:To:Subject:From;
-        b=jgQKt7ovRT6bws1a+C9k/ZxQR+8CDATsc5OJGPhgRcsEAv7oUrxcojXGJD1UwxdNS
-         NZPxEbD3yXD2RTcROknFOhOQOsu1UJKe8xwsJgpmVwdDT0Wfb+9742k476Ta6702uD
-         WeKNItApK2h44fioYRWwP4puaxC6+QT8Y6L8Q6Zo=
-Date:   Thu, 30 Dec 2021 18:15:34 -0800
+        b=RUU1oxUpMnxIj20QZbWYxEc7QpKeWMHvtdY+6vbBEwUz7cInlKIWsVwt/qqFrTUfL
+         FQ7qa+SmgWjanGa7t2qNd0ITPWWUQmP8iTnbzzH/OFycI9Jwm32K+DXU33ceMhSOCR
+         CxCKWZeBen4y2Cgfp0r30w5UJbShaBwdc6pzvkSc=
+Date:   Thu, 30 Dec 2021 18:18:51 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        rdunlap@infradead.org, baolin.wang@linux.alibaba.com
-Subject:  + mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
+To:     mm-commits@vger.kernel.org, sj@kernel.org, sfr@canb.auug.org.au,
+        rdunlap@infradead.org, mike.kravetz@oracle.com,
+        baolin.wang@linux.alibaba.com
+Subject:  + mm-damon-add-access-checking-for-hugetlb-pages-v3.patch
  added to -mm tree
-Message-ID: <20211231021534.IkjJJ%akpm@linux-foundation.org>
+Message-ID: <20211231021851.AfPOD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.9.10
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-damon-add-access-checking-for-hugetlb-pages-fix
+     Subject: mm-damon-add-access-checking-for-hugetlb-pages-v3
 has been added to the -mm tree.  Its filename is
-     mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
+     mm-damon-add-access-checking-for-hugetlb-pages-v3.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-add-access-checking-for-hugetlb-pages-v3.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-add-access-checking-for-hugetlb-pages-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,42 +63,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm-damon-add-access-checking-for-hugetlb-pages-fix
+Subject: mm-damon-add-access-checking-for-hugetlb-pages-v3
 
-> On i386:
->
-> ../mm/damon/vaddr.c: In function `damon_hugetlb_mkold':
-> ../mm/damon/vaddr.c:402:17: warning: unused variable `h' [-Wunused-variable]
->    struct hstate *h = hstate_vma(vma);
-
-Link: https://lkml.kernel.org/r/1aaf9c11-0d8e-b92d-5c92-46e50a6e8d4e@linux.alibaba.com
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/486927ecaaaecf2e3a7fbe0378ec6e1c58b50747.1640852276.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: SeongJae Park <sj@kernel.org>
 Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/damon/vaddr.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-add-access-checking-for-hugetlb-pages-fix
+--- a/mm/damon/vaddr.c~mm-damon-add-access-checking-for-hugetlb-pages-v3
 +++ a/mm/damon/vaddr.c
-@@ -393,7 +393,6 @@ static void damon_hugetlb_mkold(pte_t *p
- 				struct vm_area_struct *vma, unsigned long addr)
- {
- 	bool referenced = false;
--	struct hstate *h = hstate_vma(vma);
- 	pte_t entry = huge_ptep_get(pte);
- 	struct page *page = pte_page(entry);
- 
-@@ -410,7 +409,7 @@ static void damon_hugetlb_mkold(pte_t *p
+@@ -409,7 +409,8 @@ static void damon_hugetlb_mkold(pte_t *p
  	}
  
  #ifdef CONFIG_MMU_NOTIFIER
--	if (mmu_notifier_clear_young(mm, addr, addr + huge_page_size(h)))
-+	if (mmu_notifier_clear_young(mm, addr, addr + huge_page_size(hstate_vma(vma))))
+-	if (mmu_notifier_clear_young(mm, addr, addr + huge_page_size(hstate_vma(vma))))
++	if (mmu_notifier_clear_young(mm, addr,
++				     addr + huge_page_size(hstate_vma(vma))))
  		referenced = true;
  #endif /* CONFIG_MMU_NOTIFIER */
  
+@@ -441,7 +442,7 @@ out:
+ }
+ #else
+ #define damon_mkold_hugetlb_entry NULL
+-#endif
++#endif /* CONFIG_HUGETLB_PAGE */
+ 
+ static const struct mm_walk_ops damon_mkold_ops = {
+ 	.pmd_entry = damon_mkold_pmd_entry,
+@@ -576,7 +577,7 @@ out:
+ }
+ #else
+ #define damon_young_hugetlb_entry NULL
+-#endif
++#endif /* CONFIG_HUGETLB_PAGE */
+ 
+ static const struct mm_walk_ops damon_young_ops = {
+ 	.pmd_entry = damon_young_pmd_entry,
 _
 
 Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
@@ -110,4 +119,5 @@ mm-migrate-support-multiple-target-nodes-demotion.patch
 mm-migrate-add-more-comments-for-selecting-target-node-randomly.patch
 mm-damon-add-access-checking-for-hugetlb-pages.patch
 mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
+mm-damon-add-access-checking-for-hugetlb-pages-v3.patch
 
