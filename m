@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 80EE3C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 92785C4332F
 	for <mm-commits@archiver.kernel.org>; Fri, 31 Dec 2021 21:07:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231784AbhLaVHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231778AbhLaVHU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 31 Dec 2021 16:07:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43670 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231778AbhLaVHT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Dec 2021 16:07:19 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29229C061574;
-        Fri, 31 Dec 2021 13:07:19 -0800 (PST)
+Received: from dfw.source.kernel.org ([139.178.84.217]:32992 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231782AbhLaVHU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 31 Dec 2021 16:07:20 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E8BD7B81D7A;
-        Fri, 31 Dec 2021 21:07:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E3FAC36AEA;
-        Fri, 31 Dec 2021 21:07:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BCD2B61827
+        for <mm-commits@vger.kernel.org>; Fri, 31 Dec 2021 21:07:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE75EC36AEA;
+        Fri, 31 Dec 2021 21:07:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1640984836;
-        bh=mJXkXmQh7Z31S7wp/KP12QJqyiu5jIOEL3u8nIvKtVM=;
+        s=korg; t=1640984839;
+        bh=IolvMSuA69W9h5EJf00OPoPlcipq56SdCMNxLoWpwbg=;
         h=Date:From:To:Subject:From;
-        b=Nw6VkiJEkpRhTcqJolIlhfSlDJdmaxACfAM/PUk4PfgDLazkSXDb4jYgIrxrRQW3i
-         iX68X7fLt1fB9FbCDs/L4eGOA3IFfNQILdeWNkJLtpniqBFFLurlMnS6bmtUdBe/Cz
-         Um+WQtmZ4By8uRPdrDqBCfroZtQ0m0ecz/v/QuWA=
-Date:   Fri, 31 Dec 2021 13:07:16 -0800
+        b=h85GEmWE/IlrVOPBy2QL5+BL8NQCInRVRsuB2dg57fAqxkdzad9eKSgUepjPddPl5
+         hLRhK+BSCVtP+cEYeBPGgYn1x2W7inZzCbmEt71TwJy3CfZV08Mi7Ak9aabSzbGCIs
+         tG/73ggDsykyqb4xwgHro9QD82ngqu5GeZkLEgoA=
+Date:   Fri, 31 Dec 2021 13:07:18 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, sj@kernel.org, stable@vger.kernel.org
+To:     djwong@kernel.org, efault@gmx.de, hakavlad@inbox.lv,
+        hughd@google.com, lkp@intel.com, mgorman@techsingularity.net,
+        mhocko@suse.com, mm-commits@vger.kernel.org, riel@surriel.com,
+        shakeelb@google.com, vbabka@suse.cz
 Subject:  [merged]
- mm-damon-dbgfs-fix-struct-pid-leaks-in-dbgfs_target_ids_write.patch removed
+ mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch removed
  from -mm tree
-Message-ID: <20211231210716.4k505Z5z3%akpm@linux-foundation.org>
+Message-ID: <20211231210718.-Vxta2vPe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,81 +43,225 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon/dbgfs: fix 'struct pid' leaks in 'dbgfs_target_ids_write()'
+     Subject: mm: vmscan: reduce throttling due to a failure to make progress
 has been removed from the -mm tree.  Its filename was
-     mm-damon-dbgfs-fix-struct-pid-leaks-in-dbgfs_target_ids_write.patch
+     mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/damon/dbgfs: fix 'struct pid' leaks in 'dbgfs_target_ids_write()'
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm: vmscan: reduce throttling due to a failure to make progress
 
-DAMON debugfs interface increases the reference counts of 'struct pid's
-for targets from the 'target_ids' file write callback
-('dbgfs_target_ids_write()'), but decreases the counts only in DAMON
-monitoring termination callback ('dbgfs_before_terminate()').
+Mike Galbraith, Alexey Avramov and Darrick Wong all reported similar
+problems due to reclaim throttling for excessive lengths of time.  In
+Alexey's case, a memory hog that should go OOM quickly stalls for several
+minutes before stalling.  In Mike and Darrick's cases, a small memcg
+environment stalled excessively even though the system had enough memory
+overall.
 
-Therefore, when 'target_ids' file is repeatedly written without DAMON
-monitoring start/termination, the reference count is not decreased and
-therefore memory for the 'struct pid' cannot be freed.  This commit fixes
-this issue by decreasing the reference counts when 'target_ids' is
-written.
+Commit 69392a403f49 ("mm/vmscan: throttle reclaim when no progress is
+being made") introduced the problem although commit a19594ca4a8b
+("mm/vmscan: increase the timeout if page reclaim is not making progress")
+made it worse.  Systems at or near an OOM state that cannot be recovered
+must reach OOM quickly and memcg should kill tasks if a memcg is near OOM.
 
-Link: https://lkml.kernel.org/r/20211229124029.23348-1-sj@kernel.org
-Fixes: 4bc05954d007 ("mm/damon: implement a debugfs-based user space interface")
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: <stable@vger.kernel.org>	[5.15+]
+To address this, only stall for the first zone in the zonelist, reduce the
+timeout to 1 tick for VMSCAN_THROTTLE_NOPROGRESS and only stall if the
+scan control nr_reclaimed is 0, kswapd is still active and there were
+excessive pages pending for writeback.  If kswapd has stopped reclaiming
+due to excessive failures, do not stall at all so that OOM triggers
+relatively quickly.  Similarly, if an LRU is simply congested, only
+lightly throttle similar to NOPROGRESS.
+
+Alexey's original case was the most straight forward
+
+	for i in {1..3}; do tail /dev/zero; done
+
+On vanilla 5.16-rc1, this test stalled heavily, after the patch the test
+completes in a few seconds similar to 5.15.
+
+Alexey's second test case added watching a youtube video while tail runs
+10 times.  On 5.15, playback only jitters slightly, 5.16-rc1 stalls a lot
+with lots of frames missing and numerous audio glitches.  With this patch
+applies, the video plays similarly to 5.15.
+
+Link: https://lore.kernel.org/r/99e779783d6c7fce96448a3402061b9dc1b3b602.camel@gmx.de
+Link: https://lore.kernel.org/r/20211124011954.7cab9bb4@mail.inbox.lv
+Link: https://lore.kernel.org/r/20211022144651.19914-1-mgorman@techsingularity.net
+
+[lkp@intel.com: Fix W=1 build warning]
+Fixes: 69392a403f49 ("mm/vmscan: throttle reclaim when no progress is being made")
+Link: https://lkml.kernel.org/r/20211202150614.22440-1-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: kernel test robot <lkp@intel.com>
+Reported-and-tested-by: Alexey Avramov <hakavlad@inbox.lv>
+Reported-and-tested-by: Mike Galbraith <efault@gmx.de>
+Reported-and-tested-by: Darrick J. Wong <djwong@kernel.org>
+Tested-by: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Shakeel Butt <shakeelb@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/dbgfs.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h        |    1 
+ include/trace/events/vmscan.h |    4 +-
+ mm/vmscan.c                   |   64 +++++++++++++++++++++++++++-----
+ 3 files changed, 59 insertions(+), 10 deletions(-)
 
---- a/mm/damon/dbgfs.c~mm-damon-dbgfs-fix-struct-pid-leaks-in-dbgfs_target_ids_write
-+++ a/mm/damon/dbgfs.c
-@@ -353,6 +353,7 @@ static ssize_t dbgfs_target_ids_write(st
- 		const char __user *buf, size_t count, loff_t *ppos)
+--- a/include/linux/mmzone.h~mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress
++++ a/include/linux/mmzone.h
+@@ -277,6 +277,7 @@ enum vmscan_throttle_state {
+ 	VMSCAN_THROTTLE_WRITEBACK,
+ 	VMSCAN_THROTTLE_ISOLATED,
+ 	VMSCAN_THROTTLE_NOPROGRESS,
++	VMSCAN_THROTTLE_CONGESTED,
+ 	NR_VMSCAN_THROTTLE,
+ };
+ 
+--- a/include/trace/events/vmscan.h~mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress
++++ a/include/trace/events/vmscan.h
+@@ -30,12 +30,14 @@
+ #define _VMSCAN_THROTTLE_WRITEBACK	(1 << VMSCAN_THROTTLE_WRITEBACK)
+ #define _VMSCAN_THROTTLE_ISOLATED	(1 << VMSCAN_THROTTLE_ISOLATED)
+ #define _VMSCAN_THROTTLE_NOPROGRESS	(1 << VMSCAN_THROTTLE_NOPROGRESS)
++#define _VMSCAN_THROTTLE_CONGESTED	(1 << VMSCAN_THROTTLE_CONGESTED)
+ 
+ #define show_throttle_flags(flags)						\
+ 	(flags) ? __print_flags(flags, "|",					\
+ 		{_VMSCAN_THROTTLE_WRITEBACK,	"VMSCAN_THROTTLE_WRITEBACK"},	\
+ 		{_VMSCAN_THROTTLE_ISOLATED,	"VMSCAN_THROTTLE_ISOLATED"},	\
+-		{_VMSCAN_THROTTLE_NOPROGRESS,	"VMSCAN_THROTTLE_NOPROGRESS"}	\
++		{_VMSCAN_THROTTLE_NOPROGRESS,	"VMSCAN_THROTTLE_NOPROGRESS"},	\
++		{_VMSCAN_THROTTLE_CONGESTED,	"VMSCAN_THROTTLE_CONGESTED"}	\
+ 		) : "VMSCAN_THROTTLE_NONE"
+ 
+ 
+--- a/mm/vmscan.c~mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress
++++ a/mm/vmscan.c
+@@ -1021,6 +1021,39 @@ static void handle_write_error(struct ad
+ 	unlock_page(page);
+ }
+ 
++static bool skip_throttle_noprogress(pg_data_t *pgdat)
++{
++	int reclaimable = 0, write_pending = 0;
++	int i;
++
++	/*
++	 * If kswapd is disabled, reschedule if necessary but do not
++	 * throttle as the system is likely near OOM.
++	 */
++	if (pgdat->kswapd_failures >= MAX_RECLAIM_RETRIES)
++		return true;
++
++	/*
++	 * If there are a lot of dirty/writeback pages then do not
++	 * throttle as throttling will occur when the pages cycle
++	 * towards the end of the LRU if still under writeback.
++	 */
++	for (i = 0; i < MAX_NR_ZONES; i++) {
++		struct zone *zone = pgdat->node_zones + i;
++
++		if (!populated_zone(zone))
++			continue;
++
++		reclaimable += zone_reclaimable_pages(zone);
++		write_pending += zone_page_state_snapshot(zone,
++						  NR_ZONE_WRITE_PENDING);
++	}
++	if (2 * write_pending <= reclaimable)
++		return true;
++
++	return false;
++}
++
+ void reclaim_throttle(pg_data_t *pgdat, enum vmscan_throttle_state reason)
  {
- 	struct damon_ctx *ctx = file->private_data;
-+	struct damon_target *t, *next_t;
- 	bool id_is_pid = true;
- 	char *kbuf, *nrs;
- 	unsigned long *targets;
-@@ -397,8 +398,12 @@ static ssize_t dbgfs_target_ids_write(st
- 		goto unlock_out;
+ 	wait_queue_head_t *wqh = &pgdat->reclaim_wait[reason];
+@@ -1056,8 +1089,16 @@ void reclaim_throttle(pg_data_t *pgdat,
+ 		}
+ 
+ 		break;
++	case VMSCAN_THROTTLE_CONGESTED:
++		fallthrough;
+ 	case VMSCAN_THROTTLE_NOPROGRESS:
+-		timeout = HZ/2;
++		if (skip_throttle_noprogress(pgdat)) {
++			cond_resched();
++			return;
++		}
++
++		timeout = 1;
++
+ 		break;
+ 	case VMSCAN_THROTTLE_ISOLATED:
+ 		timeout = HZ/50;
+@@ -3321,7 +3362,7 @@ again:
+ 	if (!current_is_kswapd() && current_may_throttle() &&
+ 	    !sc->hibernation_mode &&
+ 	    test_bit(LRUVEC_CONGESTED, &target_lruvec->flags))
+-		reclaim_throttle(pgdat, VMSCAN_THROTTLE_WRITEBACK);
++		reclaim_throttle(pgdat, VMSCAN_THROTTLE_CONGESTED);
+ 
+ 	if (should_continue_reclaim(pgdat, sc->nr_reclaimed - nr_reclaimed,
+ 				    sc))
+@@ -3386,16 +3427,16 @@ static void consider_reclaim_throttle(pg
  	}
  
--	/* remove targets with previously-set primitive */
--	damon_set_targets(ctx, NULL, 0);
-+	/* remove previously set targets */
-+	damon_for_each_target_safe(t, next_t, ctx) {
-+		if (targetid_is_pid(ctx))
-+			put_pid((struct pid *)t->id);
-+		damon_destroy_target(t);
-+	}
+ 	/*
+-	 * Do not throttle kswapd on NOPROGRESS as it will throttle on
+-	 * VMSCAN_THROTTLE_WRITEBACK if there are too many pages under
+-	 * writeback and marked for immediate reclaim at the tail of
+-	 * the LRU.
++	 * Do not throttle kswapd or cgroup reclaim on NOPROGRESS as it will
++	 * throttle on VMSCAN_THROTTLE_WRITEBACK if there are too many pages
++	 * under writeback and marked for immediate reclaim at the tail of the
++	 * LRU.
+ 	 */
+-	if (current_is_kswapd())
++	if (current_is_kswapd() || cgroup_reclaim(sc))
+ 		return;
  
- 	/* Configure the context for the address space type */
- 	if (id_is_pid)
+ 	/* Throttle if making no progress at high prioities. */
+-	if (sc->priority < DEF_PRIORITY - 2)
++	if (sc->priority == 1 && !sc->nr_reclaimed)
+ 		reclaim_throttle(pgdat, VMSCAN_THROTTLE_NOPROGRESS);
+ }
+ 
+@@ -3415,6 +3456,7 @@ static void shrink_zones(struct zonelist
+ 	unsigned long nr_soft_scanned;
+ 	gfp_t orig_mask;
+ 	pg_data_t *last_pgdat = NULL;
++	pg_data_t *first_pgdat = NULL;
+ 
+ 	/*
+ 	 * If the number of buffer_heads in the machine exceeds the maximum
+@@ -3478,14 +3520,18 @@ static void shrink_zones(struct zonelist
+ 			/* need some check for avoid more shrink_zone() */
+ 		}
+ 
++		if (!first_pgdat)
++			first_pgdat = zone->zone_pgdat;
++
+ 		/* See comment about same check for global reclaim above */
+ 		if (zone->zone_pgdat == last_pgdat)
+ 			continue;
+ 		last_pgdat = zone->zone_pgdat;
+ 		shrink_node(zone->zone_pgdat, sc);
+-		consider_reclaim_throttle(zone->zone_pgdat, sc);
+ 	}
+ 
++	consider_reclaim_throttle(first_pgdat, sc);
++
+ 	/*
+ 	 * Restore to original mask to avoid the impact on the caller if we
+ 	 * promoted it to __GFP_HIGHMEM.
 _
 
-Patches currently in -mm which might be from sj@kernel.org are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix.patch
-mm-damon-convert-macro-functions-to-static-inline-functions.patch
-docs-admin-guide-mm-damon-usage-update-for-scheme-quotas-and-watermarks.patch
-docs-admin-guide-mm-damon-usage-remove-redundant-information.patch
-docs-admin-guide-mm-damon-usage-mention-tracepoint-at-the-beginning.patch
-docs-admin-guide-mm-damon-usage-update-for-kdamond_pid-and-mkrm_contexts.patch
-mm-damon-remove-a-mistakenly-added-comment-for-a-future-feature.patch
-mm-damon-schemes-account-scheme-actions-that-successfully-applied.patch
-mm-damon-schemes-account-how-many-times-quota-limit-has-exceeded.patch
-mm-damon-reclaim-provide-reclamation-statistics.patch
-docs-admin-guide-mm-damon-reclaim-document-statistics-parameters.patch
-mm-damon-dbgfs-support-all-damos-stats.patch
-docs-admin-guide-mm-damon-usage-update-for-schemes-statistics.patch
-mm-damon-dbgfs-remove-a-unnecessary-variable.patch
-mm-damon-vaddr-use-pr_debug-for-damon_va_three_regions-failure-logging.patch
-mm-damon-vaddr-hide-kernel-pointer-from-damon_va_three_regions-failure-log.patch
-mm-damon-hide-kernel-pointer-from-tracepoint-event.patch
+mm-vmscan-reduce-throttling-due-to-a-failure-to-make-progress-fix.patch
 
