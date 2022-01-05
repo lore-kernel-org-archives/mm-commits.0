@@ -2,111 +2,84 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37842C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  5 Jan 2022 23:25:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 61ADCC433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  5 Jan 2022 23:27:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245368AbiAEXZb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Jan 2022 18:25:31 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52156 "EHLO
+        id S245380AbiAEX1H (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Jan 2022 18:27:07 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52504 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245364AbiAEXZa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jan 2022 18:25:30 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9218DC061245
-        for <mm-commits@vger.kernel.org>; Wed,  5 Jan 2022 15:25:30 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S245364AbiAEX1H (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jan 2022 18:27:07 -0500
+Received: from gandalf.ozlabs.org (gandalf.ozlabs.org [IPv6:2404:9400:2:0:216:3eff:fee2:21ea])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5332C061245
+        for <mm-commits@vger.kernel.org>; Wed,  5 Jan 2022 15:27:06 -0800 (PST)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id BA7F0CE206F
-        for <mm-commits@vger.kernel.org>; Wed,  5 Jan 2022 23:25:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2E45C36AE9;
-        Wed,  5 Jan 2022 23:25:26 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1641425126;
-        bh=Lmwk9ZAdI+OjRSwYQLIEo0YYIdJBSsKQgEbo8ieZZBE=;
-        h=Date:From:To:Subject:From;
-        b=Wd4R4jvmZqT/WjmxmXRCMmDo7QgQJ8mw0G7LFMoD8yfFTVPdXqKCtMUueE/vvO076
-         ndK4w6H6s5h8zM0sI7LTStOk79vPASSD5qq3WKS6uaXXB6ar9eT4a0LYhdIDpw2vo4
-         n6jNBnjhARTMLP0+4PEotWZqeM70xg5XWYyuKYFg=
-Date:   Wed, 05 Jan 2022 15:25:26 -0800
-From:   akpm@linux-foundation.org
-To:     david@redhat.com, gregkh@linuxfoundation.org,
-        mm-commits@vger.kernel.org, rppt@kernel.org
-Subject:  + ia64-topology-use-default_groups-in-kobj_type.patch
- added to -mm tree
-Message-ID: <20220105232526.dl3Re3KeA%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4JTlxh0H9Nz4xd4;
+        Thu,  6 Jan 2022 10:27:04 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+        s=201702; t=1641425225;
+        bh=kXMJcxJwAgNFH6a0irvX3M5Zjtt56wx1uuwQ27zHxuU=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=nrcbmBdEtea/yWzJccKdU+8tV64hiHtzsgN39LJPO9OrA7wcMmbyElwCppe43e22o
+         XOPkapLrnOvNAEsMXoSIT+cLzDmeZTvmaVZUncfzegaNc+4R1mPXrRCHQVbbI0nt/9
+         1AhzyOTPxjuzma3mdBlZ+CeCTjCBhzGyqYD+L1Mi51cgZ1bi38bKWb2QhwJffqmwoM
+         yCyvYUHfF1gcGYSmFJ1xT3H6UKe9mlbQ8kThmQ9vrXGp+g63qGkBbzRj/3KPjfFYU/
+         rhpQrvlixx1fHcsgHEJ++m5wAy8t1CFBdUn8TUkHZ6X8ikqhs/LXxFBRbi/KmgwKVl
+         Q0g7G+E/1Wgow==
+Date:   Thu, 6 Jan 2022 10:27:03 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     akpm@linux-foundation.org
+Cc:     hch@lst.de, mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
+        willy@infradead.org
+Subject: Re: + mm-simplify-try_to_unuse-fix.patch added to -mm tree
+Message-ID: <20220106102703.08e92421@canb.auug.org.au>
+In-Reply-To: <20220105231643.6QHtaU4sl%akpm@linux-foundation.org>
+References: <20220105231643.6QHtaU4sl%akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="Sig_/dVdHC.AwzYCPH7Yh5SfqY5N";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+--Sig_/dVdHC.AwzYCPH7Yh5SfqY5N
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The patch titled
-     Subject: ia64: topology: use default_groups in kobj_type
-has been added to the -mm tree.  Its filename is
-     ia64-topology-use-default_groups-in-kobj_type.patch
+Hi all,
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ia64-topology-use-default_groups-in-kobj_type.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-topology-use-default_groups-in-kobj_type.patch
+On Wed, 05 Jan 2022 15:16:43 -0800 akpm@linux-foundation.org wrote:
+>
+> The patch titled
+>      Subject: mm-simplify-try_to_unuse-fix
+> has been added to the -mm tree.  Its filename is
+>      mm-simplify-try_to_unuse-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Added to linux-next today.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+--=20
+Cheers,
+Stephen Rothwell
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+--Sig_/dVdHC.AwzYCPH7Yh5SfqY5N
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-------------------------------------------------------
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: ia64: topology: use default_groups in kobj_type
+-----BEGIN PGP SIGNATURE-----
 
-There are currently 2 ways to create a set of sysfs files for a kobj_type,
-through the default_attrs field, and the default_groups field.  Move the
-ia64 topology sysfs code to use default_groups field which has been the
-preferred way since aa30f47cf666 ("kobject: Add support for default
-attribute groups to kobj_type") so that we can soon get rid of the
-obsolete default_attrs field.
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmHWKUcACgkQAVBC80lX
+0GzAzAf8DnTJ8CR+QXmgbpv0SBLCOQkyyiuvptH8/zgk8WPffOaQZubJndOd5U7Q
+NfgiicRgOhJep7CKo2lWv3sRDciEA6oZz6GFFHoriOJaAHInPZ3hKaj7JdRVI/UW
+9flcgIIcIgl3DkQ0RCL7mq1kHIPF9OinP0YIaCa1ZAZHza4WHMT/eydKQY8//Y2G
+lafwY1M39WMtk8VzXKJWWaGmp3yK3hx4A9DVpeKPE8ohMIHlXUFgEi5PVFhGf0eC
+Qxo+2H2Zxt4kyQx5Y3Cd2JViu2Ar7SDOXSyBPh/xokIB78DXLQ1WCFSAh/UFFRs1
+8BPKixagxbMek31zWexklfjljNt9ow==
+=OXPy
+-----END PGP SIGNATURE-----
 
-Link: https://lkml.kernel.org/r/20220104154800.1287947-1-gregkh@linuxfoundation.org
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- arch/ia64/kernel/topology.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
---- a/arch/ia64/kernel/topology.c~ia64-topology-use-default_groups-in-kobj_type
-+++ a/arch/ia64/kernel/topology.c
-@@ -264,6 +264,7 @@ static struct attribute * cache_default_
- 	&shared_cpu_map.attr,
- 	NULL
- };
-+ATTRIBUTE_GROUPS(cache_default);
- 
- #define to_object(k) container_of(k, struct cache_info, kobj)
- #define to_attr(a) container_of(a, struct cache_attr, attr)
-@@ -284,7 +285,7 @@ static const struct sysfs_ops cache_sysf
- 
- static struct kobj_type cache_ktype = {
- 	.sysfs_ops	= &cache_sysfs_ops,
--	.default_attrs	= cache_default_attrs,
-+	.default_groups	= cache_default_groups,
- };
- 
- static struct kobj_type cache_ktype_percpu_entry = {
-_
-
-Patches currently in -mm which might be from gregkh@linuxfoundation.org are
-
-ia64-topology-use-default_groups-in-kobj_type.patch
-ocfs2-use-default_groups-in-kobj_type.patch
-
+--Sig_/dVdHC.AwzYCPH7Yh5SfqY5N--
