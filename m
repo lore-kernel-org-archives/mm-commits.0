@@ -2,36 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F0DDC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  5 Jan 2022 23:08:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB29DC433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  5 Jan 2022 23:16:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245297AbiAEXI4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Jan 2022 18:08:56 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:60158 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245296AbiAEXIx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jan 2022 18:08:53 -0500
+        id S239359AbiAEXQs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Jan 2022 18:16:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50242 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235339AbiAEXQr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jan 2022 18:16:47 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 51896C061245
+        for <mm-commits@vger.kernel.org>; Wed,  5 Jan 2022 15:16:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id A2F6FB81DCB
-        for <mm-commits@vger.kernel.org>; Wed,  5 Jan 2022 23:08:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39821C36AEB;
-        Wed,  5 Jan 2022 23:08:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id A0E05B80D96
+        for <mm-commits@vger.kernel.org>; Wed,  5 Jan 2022 23:16:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2EFDEC36AE9;
+        Wed,  5 Jan 2022 23:16:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1641424129;
-        bh=mX1E+cAE4hHT1uemHadcnF0XAhRqpAK+L3GE2nZVVFI=;
+        s=korg; t=1641424604;
+        bh=+xPCgCw5rhhlwh2auen3n68Sk8nMIZudSMFpDeb2c9A=;
         h=Date:From:To:Subject:From;
-        b=Y4Lg8v6jEzqE91K5xbrqcpFS7noadBKg8oAfsKlgvshP6H8lGtL3bhxJJF/2/mE8K
-         qMY8WgOI/u1iy9vn+n/+CSBvlmpJ9oorlJcya6jSAEBQHaPcf1srbPx9+zqV9L0QcE
-         DJAeIG1obxAn1o1jbnYNGoc7gQjfFV5OSVBXp4Fs=
-Date:   Wed, 05 Jan 2022 15:08:48 -0800
+        b=q0MxVzioIogjrb0Ldocd+AhriL1JZcntKp9atnwyAqL0ZT4byIjYCyGUlP77iY1Sn
+         qM3pxMjMjht2Hs8NxGiq3hyevXHzGR2gt57EszUdnbtYRzfZlb+nTV6ma7JjEloVen
+         A3hc0jSDwEm1jlphLStga2MwUBYzDB8zcVZbJUUc=
+Date:   Wed, 05 Jan 2022 15:16:43 -0800
 From:   akpm@linux-foundation.org
-To:     jannh@google.com, mhocko@kernel.org, mm-commits@vger.kernel.org,
-        schwidefsky@de.ibm.com
-Subject:  + mm-oom-oom-sysrq-should-always-kill-a-process.patch
- added to -mm tree
-Message-ID: <20220105230848.qucnz05JG%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, hch@lst.de, mm-commits@vger.kernel.org,
+        naresh.kamboju@linaro.org, sfr@canb.auug.org.au,
+        willy@infradead.org
+Subject:  + mm-simplify-try_to_unuse-fix.patch added to -mm tree
+Message-ID: <20220105231643.6QHtaU4sl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: OOM sysrq should always kill a process
+     Subject: mm-simplify-try_to_unuse-fix
 has been added to the -mm tree.  Its filename is
-     mm-oom-oom-sysrq-should-always-kill-a-process.patch
+     mm-simplify-try_to_unuse-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-oom-oom-sysrq-should-always-kill-a-process.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-try_to_unuse-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-oom-sysrq-should-always-kill-a-process.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-try_to_unuse-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,51 +64,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: mm, oom: OOM sysrq should always kill a process
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-simplify-try_to_unuse-fix
 
-The OOM kill sysrq (alt+sysrq+F) should allow the user to kill the process
-with the highest OOM badness with a single execution.
+fix shmem_unuse() stub, per Matthew
 
-However, at the moment, the OOM kill can bail out if an OOM notifier (e.g.
-the i915 one) says that it reclaimed a tiny amount of memory from
-somewhere.  That's probably not what the user wants.
-
-As documented in struct oom_control, order == -1 means the oom kill is
-required by sysrq.  So check for that, and if it's true, don't bail out no
-matter what the OOM notifiers say.
-
-Link: https://lkml.kernel.org/r/20220105175115.605074-1-jannh@google.com
-Signed-off-by: Jann Horn <jannh@google.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/shmem.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/oom_kill.c~mm-oom-oom-sysrq-should-always-kill-a-process
-+++ a/mm/oom_kill.c
-@@ -1052,13 +1052,14 @@ EXPORT_SYMBOL_GPL(unregister_oom_notifie
- bool out_of_memory(struct oom_control *oc)
+--- a/mm/shmem.c~mm-simplify-try_to_unuse-fix
++++ a/mm/shmem.c
+@@ -3990,7 +3990,7 @@ int __init shmem_init(void)
+ 	return 0;
+ }
+ 
+-int shmem_unuse(unsigned int type, unsigned long *fs_pages_to_unuse)
++int shmem_unuse(unsigned int type)
  {
- 	unsigned long freed = 0;
-+	bool sysrq_forced = oc->order == -1;
- 
- 	if (oom_killer_disabled)
- 		return false;
- 
- 	if (!is_memcg_oom(oc)) {
- 		blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
--		if (freed > 0)
-+		if (freed > 0 && !sysrq_forced)
- 			/* Got some memory back in the last second. */
- 			return true;
- 	}
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-oom-oom-sysrq-should-always-kill-a-process.patch
+shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
+kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
+mm.patch
+kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
+device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
+memcg-add-per-memcg-vmalloc-stat-v2-fix.patch
+mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
+mm-vmalloc-allocate-small-pages-for-area-pages-fix.patch
+mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
+mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch
+proc-make-the-proc_create-stubs-static-inlines-fix.patch
+proc-make-the-proc_create-stubs-static-inlines-fix2.patch
+proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch
+kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch
+hashh-remove-unused-define-directive-fix.patch
+panic-use-error_report_end-tracepoint-on-warnings-fix.patch
+linux-next-rejects.patch
+fs-f2fs-datac-fix-mess.patch
+sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
+sysctl-move-maxolduid-as-a-sysctl-specific-const-fix.patch
+proc-remove-pde_data-completely-fix.patch
+proc-remove-pde_data-completely-fix-fix.patch
+mm-simplify-try_to_unuse-fix.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
