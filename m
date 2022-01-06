@@ -2,37 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 09323C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  6 Jan 2022 00:00:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99AA0C433EF
+	for <mm-commits@archiver.kernel.org>; Thu,  6 Jan 2022 00:19:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S245677AbiAFAAf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 5 Jan 2022 19:00:35 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:39014 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S245697AbiAFAA1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jan 2022 19:00:27 -0500
+        id S1343621AbiAFATJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 5 Jan 2022 19:19:09 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:59432 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239471AbiAFATH (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 5 Jan 2022 19:19:07 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5356C61849
-        for <mm-commits@vger.kernel.org>; Thu,  6 Jan 2022 00:00:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A2619C36AE9;
-        Thu,  6 Jan 2022 00:00:26 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5B6AAB81E7F
+        for <mm-commits@vger.kernel.org>; Thu,  6 Jan 2022 00:19:05 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E4C26C36AEB;
+        Thu,  6 Jan 2022 00:19:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1641427226;
-        bh=B2OKwa+u/j3sRjwQfhpJWs8F0xXcGSGt+sWESNhz/q8=;
+        s=korg; t=1641428344;
+        bh=9u/pmR+9STe7VFkq2aPb9+bngPFxe/mmRt3PdYHdr5Q=;
         h=Date:From:To:Subject:From;
-        b=al1JqxrSnQI15r8+kSkTjkFd9NX8Z7JAZPDo72nqlIBLukH//hoxDQptDB4sCtZdM
-         HFcsuZsATObFFI4huncTfeUEuKKv7nOto0EW5EJm2VV1BIHmW08hnJ95ZqosrdMfH3
-         obL3M0QyNIshSONha6oj/nhDLaQ8Jt6xnePv4Y/Y=
-Date:   Wed, 05 Jan 2022 16:00:26 -0800
+        b=yZ8HZROThp14HNj68/lX6OOj6gXOSNC0qx2p95it363PQOdO8TZhFrywzVmRtvIaU
+         Yd6DcVIzP3OwbpVA3z3EMqsBGFZi0tSJ5pVWIK9Zgz7rRDzYeYE7fx7POHkI40bKRq
+         nhRPEu0cdawwH4c06kby3VlMWbFY6YKzXwSSRjTw=
+Date:   Wed, 05 Jan 2022 16:19:03 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, richard.weiyang@gmail.com,
-        willy@infradead.org
+To:     joe@perches.com, mm-commits@vger.kernel.org, rdunlap@infradead.org
 Subject:  +
- mm-page-mapping-folio-mapping-should-have-the-same-offset.patch added to
- -mm tree
-Message-ID: <20220106000026.RcSbH_ykw%akpm@linux-foundation.org>
+ get_maintainer-dont-remind-about-no-git-repo-when-nogit-is-used.patch added
+ to -mm tree
+Message-ID: <20220106001903.mRqYFiRTh%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page->mapping folio->mapping should have the same offset
+     Subject: get_maintainer: don't remind about no git repo when --nogit is used
 has been added to the -mm tree.  Its filename is
-     mm-page-mapping-folio-mapping-should-have-the-same-offset.patch
+     get_maintainer-dont-remind-about-no-git-repo-when-nogit-is-used.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page-mapping-folio-mapping-should-have-the-same-offset.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/get_maintainer-dont-remind-about-no-git-repo-when-nogit-is-used.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page-mapping-folio-mapping-should-have-the-same-offset.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/get_maintainer-dont-remind-about-no-git-repo-when-nogit-is-used.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,37 +61,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm: page->mapping folio->mapping should have the same offset
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: get_maintainer: don't remind about no git repo when --nogit is used
 
-In commit 7b230db3b8d3 ("mm: Introduce struct folio"), folio is
-introduced.  This is a folio of page, so we need to make sure those
-members of folio should be at the same offset in page.
+When --nogit is used with scripts/get_maintainer.pl, the script spews 4
+lines of unnecessary information (noise).  Do not print those lines when
+--nogit is specified.
 
-The offset of mapping is not checked. This patch just adds it.
+This change removes the printing of these 4 lines:
 
-Link: https://lkml.kernel.org/r/20220104011734.21714-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+  ./scripts/get_maintainer.pl: No supported VCS found.  Add --nogit to options?
+  Using a git repository produces better results.
+  Try Linus Torvalds' latest git repository using:
+  git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+
+Link: https://lkml.kernel.org/r/20220102031424.3328-1-rdunlap@infradead.org
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    1 +
- 1 file changed, 1 insertion(+)
+ scripts/get_maintainer.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/include/linux/mm_types.h~mm-page-mapping-folio-mapping-should-have-the-same-offset
-+++ a/include/linux/mm_types.h
-@@ -289,6 +289,7 @@ static_assert(sizeof(struct page) == siz
- 	static_assert(offsetof(struct page, pg) == offsetof(struct folio, fl))
- FOLIO_MATCH(flags, flags);
- FOLIO_MATCH(lru, lru);
-+FOLIO_MATCH(mapping, mapping);
- FOLIO_MATCH(compound_head, lru);
- FOLIO_MATCH(index, index);
- FOLIO_MATCH(private, private);
+--- a/scripts/get_maintainer.pl~get_maintainer-dont-remind-about-no-git-repo-when-nogit-is-used
++++ a/scripts/get_maintainer.pl
+@@ -1718,7 +1718,7 @@ sub vcs_exists {
+     %VCS_cmds = %VCS_cmds_hg;
+     return 2 if eval $VCS_cmds{"available"};
+     %VCS_cmds = ();
+-    if (!$printed_novcs) {
++    if (!$printed_novcs && $email_git) {
+ 	warn("$P: No supported VCS found.  Add --nogit to options?\n");
+ 	warn("Using a git repository produces better results.\n");
+ 	warn("Try Linus Torvalds' latest git repository using:\n");
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-page-mapping-folio-mapping-should-have-the-same-offset.patch
+mm-mempolicy-fix-all-kernel-doc-warnings.patch
+get_maintainer-dont-remind-about-no-git-repo-when-nogit-is-used.patch
 
