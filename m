@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B0DFDC4332F
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Jan 2022 23:47:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9EC57C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Jan 2022 23:51:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231759AbiAGXrE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Jan 2022 18:47:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57444 "EHLO
+        id S231777AbiAGXve (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Jan 2022 18:51:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58502 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231747AbiAGXrD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jan 2022 18:47:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC9CCC061574;
-        Fri,  7 Jan 2022 15:47:02 -0800 (PST)
+        with ESMTP id S231708AbiAGXve (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jan 2022 18:51:34 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 607E5C061574;
+        Fri,  7 Jan 2022 15:51:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7B9556204A;
-        Fri,  7 Jan 2022 23:47:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4C89C36AED;
-        Fri,  7 Jan 2022 23:47:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id F1A54B827AB;
+        Fri,  7 Jan 2022 23:51:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 82029C36AE5;
+        Fri,  7 Jan 2022 23:51:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1641599221;
-        bh=BPvTbDVFhiEfy0K1c2fazFFz1nIUVp7PfrgtocUacfE=;
+        s=korg; t=1641599491;
+        bh=HDgvXZEnOpD6pk/1GkFzCDWzQxYhAnwtgl62foas9U8=;
         h=Date:From:To:Subject:From;
-        b=kk++F41lle4Oy9WYffqZqW3UxCUPcEK/LhxHkN/GTbMpyYtsXRP+4fgurj1QlpSgt
-         ifZr9AaJB4rrQ9vdULTfJBJV74pnzq5udQl+OxGejPT8QwY+Z8QTJMCTR1JV3bkO56
-         IkoxrVBoJA4LKsLdgnOct0qO3mt4V8PstsZF7oOo=
-Date:   Fri, 07 Jan 2022 15:47:01 -0800
+        b=y/MIe32HBNDqVPFTMou+lTttn8gDLmtRc1H8zcHvX9yEDv2ELez1lSOuoSNHlltau
+         YgNb8dJyfU91xswEfPqZDtBAYZhbDvH15lMYZ5fEDPmlffYYTO7Dn7kxXo+mj4oFkW
+         qkKi2G4UdeGXFlu3VGRfGiFbtR6rWftcBREgBWF0=
+Date:   Fri, 07 Jan 2022 15:51:30 -0800
 From:   akpm@linux-foundation.org
 To:     deller@gmx.de, mm-commits@vger.kernel.org, stable@vger.kernel.org
-Subject:  +
- usercopy-do-not-fail-on-memory-from-former-init-sections.patch added to -mm
- tree
-Message-ID: <20220107234701.4ZAlIDHdY%akpm@linux-foundation.org>
+Subject:  [to-be-updated]
+ usercopy-do-not-fail-on-memory-from-former-init-sections.patch removed from
+ -mm tree
+Message-ID: <20220107235130.0tLfuD1h7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,24 +44,10 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: usercopy: do not fail on memory from former init sections
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      usercopy-do-not-fail-on-memory-from-former-init-sections.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/usercopy-do-not-fail-on-memory-from-former-init-sections.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/usercopy-do-not-fail-on-memory-from-former-init-sections.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Helge Deller <deller@gmx.de>
@@ -123,5 +109,4 @@ _
 
 Patches currently in -mm which might be from deller@gmx.de are
 
-usercopy-do-not-fail-on-memory-from-former-init-sections.patch
 
