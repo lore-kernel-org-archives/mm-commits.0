@@ -2,36 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8D03C433EF
-	for <mm-commits@archiver.kernel.org>; Fri,  7 Jan 2022 23:39:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15C36C433F5
+	for <mm-commits@archiver.kernel.org>; Fri,  7 Jan 2022 23:40:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231574AbiAGXjj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 7 Jan 2022 18:39:39 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:58734 "EHLO
-        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231519AbiAGXjj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jan 2022 18:39:39 -0500
+        id S231664AbiAGXki (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 7 Jan 2022 18:40:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55974 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231605AbiAGXki (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 7 Jan 2022 18:40:38 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 18490C06173E
+        for <mm-commits@vger.kernel.org>; Fri,  7 Jan 2022 15:40:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 92628CE2D37
-        for <mm-commits@vger.kernel.org>; Fri,  7 Jan 2022 23:39:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4583C36AE5;
-        Fri,  7 Jan 2022 23:39:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9A1BA61E4B
+        for <mm-commits@vger.kernel.org>; Fri,  7 Jan 2022 23:40:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BE479C36AED;
+        Fri,  7 Jan 2022 23:40:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1641598775;
-        bh=eO22co47yzFPBiWtjhDJYJeXKKcdCKI7brpdQm18vvY=;
+        s=korg; t=1641598836;
+        bh=iP8nYlCP24sDBMLzupVznJbFw+4CNOkSCPILOuiWygk=;
         h=Date:From:To:Subject:From;
-        b=1ShyGfU6vW02c8iMdNzEWrPvPRlfM8VDlZpVVU9smNpArspWfyPgLVkex38hEWQYo
-         A7564pmIFc/g7IJB+bmYTlqLfWFadoSS2FxHtaTVjhNfdxLgCtGmodcRbXWelZ3Zrk
-         8jfrypTeB72Vf7egNgONWhRCypjJ1do0P1uVjAYU=
-Date:   Fri, 07 Jan 2022 15:39:35 -0800
+        b=pyG3zA0gecJItNP5rNIFZKkLXtMWzW5w1RgLKdtS5Z2ruCcvSwnaDvyHpjqcH4aC3
+         jbAbzfsUInrDgJ1Dx3sNIrKDwaXvEWe8VKjo9dH+086lmSkz75bZ7v0Q5B7nQMAcHi
+         eJZRgsrZ5LHMRtWqUgzC9oLn1k6+ARMUWtm2lN7U=
+Date:   Fri, 07 Jan 2022 15:40:35 -0800
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, kirill@shutemov.name, mingo@redhat.com,
-        mm-commits@vger.kernel.org, rostedt@goodmis.org
-Subject:  + mm-thp-drop-unused-trace-events-hugepage_.patch added
- to -mm tree
-Message-ID: <20220107233935.oC9tgKuLm%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, jhubbard@nvidia.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        rostedt@goodmis.org, willy@infradead.org, ziy@nvidia.com
+Subject:  + mm-migration-add-trace-events-for-thp-migrations.patch
+ added to -mm tree
+Message-ID: <20220107234035.hQXyOlUw7%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: drop unused trace events hugepage_[invalidate|splitting]
+     Subject: mm/migration: add trace events for THP migrations
 has been added to the -mm tree.  Its filename is
-     mm-thp-drop-unused-trace-events-hugepage_.patch
+     mm-migration-add-trace-events-for-thp-migrations.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-drop-unused-trace-events-hugepage_.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migration-add-trace-events-for-thp-migrations.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-drop-unused-trace-events-hugepage_.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migration-add-trace-events-for-thp-migrations.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,81 +66,106 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/thp: drop unused trace events hugepage_[invalidate|splitting]
+Subject: mm/migration: add trace events for THP migrations
 
-The trace events hugepage_[invalidate|splitting], were added via the
-commit 9e813308a5c1 ("powerpc/thp: Add tracepoints to track hugepage
-invalidate").  Afterwards their call sites i.e
-trace_hugepage_[invalidate|splitting] were just dropped off, leaving these
-trace points unused.
+This adds two trace events for PMD based THP migration without split. 
+These events closely follow the implementation details like setting and
+removing of PMD migration entries, which are essential operations for THP
+migration.
 
-Link: https://lkml.kernel.org/r/1641546351-15109-1-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1641531575-28524-1-git-send-email-anshuman.khandual@arm.com
 Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/thp.h |   36 -----------------------------------
- 1 file changed, 36 deletions(-)
+ include/trace/events/thp.h |   37 +++++++++++++++++++++++++++++++++++
+ mm/huge_memory.c           |    5 ++++
+ 2 files changed, 42 insertions(+)
 
---- a/include/trace/events/thp.h~mm-thp-drop-unused-trace-events-hugepage_
+--- a/include/trace/events/thp.h~mm-migration-add-trace-events-for-thp-migrations
 +++ a/include/trace/events/thp.h
-@@ -8,24 +8,6 @@
- #include <linux/types.h>
- #include <linux/tracepoint.h>
- 
--TRACE_EVENT(hugepage_invalidate,
--
--	    TP_PROTO(unsigned long addr, unsigned long pte),
--	    TP_ARGS(addr, pte),
--	    TP_STRUCT__entry(
--		    __field(unsigned long, addr)
--		    __field(unsigned long, pte)
--		    ),
--
--	    TP_fast_assign(
--		    __entry->addr = addr;
--		    __entry->pte = pte;
--		    ),
--
--	    TP_printk("hugepage invalidate at addr 0x%lx and pte = 0x%lx",
--		      __entry->addr, __entry->pte)
--);
--
- TRACE_EVENT(hugepage_set_pmd,
- 
- 	    TP_PROTO(unsigned long addr, unsigned long pmd),
-@@ -65,24 +47,6 @@ TRACE_EVENT(hugepage_update,
- 
- 	    TP_printk("hugepage update at addr 0x%lx and pte = 0x%lx clr = 0x%lx, set = 0x%lx", __entry->addr, __entry->pte, __entry->clr, __entry->set)
+@@ -83,6 +83,43 @@ TRACE_EVENT(hugepage_splitting,
+ 		      __entry->addr, __entry->pte)
  );
--TRACE_EVENT(hugepage_splitting,
--
--	    TP_PROTO(unsigned long addr, unsigned long pte),
--	    TP_ARGS(addr, pte),
--	    TP_STRUCT__entry(
--		    __field(unsigned long, addr)
--		    __field(unsigned long, pte)
--		    ),
--
--	    TP_fast_assign(
--		    __entry->addr = addr;
--		    __entry->pte = pte;
--		    ),
--
--	    TP_printk("hugepage splitting at addr 0x%lx and pte = 0x%lx",
--		      __entry->addr, __entry->pte)
--);
--
+ 
++TRACE_EVENT(set_migration_pmd,
++
++	TP_PROTO(unsigned long addr, unsigned long pmd),
++
++	TP_ARGS(addr, pmd),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, addr)
++		__field(unsigned long, pmd)
++	),
++
++	TP_fast_assign(
++		__entry->addr = addr;
++		__entry->pmd = pmd;
++	),
++
++	TP_printk("create pmd migration entry addr=%lx, pmd=%lx", __entry->addr, __entry->pmd)
++);
++
++TRACE_EVENT(remove_migration_pmd,
++
++	TP_PROTO(unsigned long addr, unsigned long pmd),
++
++	TP_ARGS(addr, pmd),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, addr)
++		__field(unsigned long, pmd)
++	),
++
++	TP_fast_assign(
++		__entry->addr = addr;
++		__entry->pmd = pmd;
++	),
++
++	TP_printk("remove pmd migration entry addr=%lx, val=%lx", __entry->addr, __entry->pmd)
++);
  #endif /* _TRACE_THP_H */
  
  /* This part must be outside protection */
+--- a/mm/huge_memory.c~mm-migration-add-trace-events-for-thp-migrations
++++ a/mm/huge_memory.c
+@@ -39,6 +39,9 @@
+ #include <asm/pgalloc.h>
+ #include "internal.h"
+ 
++#define CREATE_TRACE_POINTS
++#include <trace/events/thp.h>
++
+ /*
+  * By default, transparent hugepage support is disabled in order to avoid
+  * risking an increased memory footprint for applications that are not
+@@ -3163,6 +3166,7 @@ void set_pmd_migration_entry(struct page
+ 	set_pmd_at(mm, address, pvmw->pmd, pmdswp);
+ 	page_remove_rmap(page, true);
+ 	put_page(page);
++	trace_set_migration_pmd(address, pmd_val(pmdswp));
+ }
+ 
+ void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
+@@ -3196,5 +3200,6 @@ void remove_migration_pmd(struct page_vm
+ 	if ((vma->vm_flags & VM_LOCKED) && !PageDoubleMap(new))
+ 		mlock_vma_page(new);
+ 	update_mmu_cache_pmd(vma, address, pvmw->pmd);
++	trace_remove_migration_pmd(address, pmd_val(pmde));
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
 mm-page_alloc-modify-the-comment-section-for-alloc_contig_pages.patch
+mm-migration-add-trace-events-for-thp-migrations.patch
 mm-thp-drop-unused-trace-events-hugepage_.patch
 
