@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 362DBC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 00:47:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE6CEC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 00:50:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229780AbiAMAr4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jan 2022 19:47:56 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48384 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229763AbiAMArx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jan 2022 19:47:53 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E689DC06173F
-        for <mm-commits@vger.kernel.org>; Wed, 12 Jan 2022 16:47:52 -0800 (PST)
+        id S229763AbiAMAuc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Jan 2022 19:50:32 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:59868 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229511AbiAMAua (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jan 2022 19:50:30 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 856C161BBB
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 00:47:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CF01FC36AE9;
-        Thu, 13 Jan 2022 00:47:51 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1A55461BAA
+        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 00:50:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FB21C36AE9;
+        Thu, 13 Jan 2022 00:50:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642034871;
-        bh=Q182pL44lLpoBah3etMV4RcxPns7qud+5UrFnWvgzww=;
+        s=korg; t=1642035029;
+        bh=OY7x6nL8l3LHTVpcwtWWevwSlEVo0aZwNTq9PAwLsHc=;
         h=Date:From:To:Subject:From;
-        b=otCD2boSb3sPsnBA5xs0Br8q7XwI3+v6nGshPOito3kBjvt51KKEyafGq+1HMWcI0
-         CeIxYjTdV0dgW/1vBh5JdZvkeCOGzt1HYDyBQ2cllmO3F6W2dBrVczsm/U/GU/NGFY
-         8fqq5elOkGk+UBXXAGdhdQjJ1zb8l6ebbiUVbbdo=
-Date:   Wed, 12 Jan 2022 16:47:51 -0800
+        b=VlfMHflLHb49KcBYOrml2NImVOJa+wZmMAqxvPGmxGVcCURIjnnNgv5g1tF7m2BwP
+         kSz8cpu5ZBS4gZh53sai5C3QOExZKfASc1oPj+8fmKc5YfWsoCLM4Vs3hi2S8Lne2l
+         FfTqjS6FvpPwHn9a9hGu+UjzhylDQs51y/ARyiyM=
+Date:   Wed, 12 Jan 2022 16:50:28 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  + linux-next-git-rejects.patch added to -mm tree
-Message-ID: <20220113004751.1aUsezj61%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, ddstreet@ieee.org, geert@linux-m68k.org,
+        hch@lst.de, hughd@google.com, jgross@suse.com,
+        Konrad.wilk@oracle.com, mm-commits@vger.kernel.org,
+        sjenning@redhat.com, vitaly.wool@konsulko.com, willy@infradead.org
+Subject:  + mm-remove-cleancache-fix.patch added to -mm tree
+Message-ID: <20220113005028.4rdhYdNqJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm-remove-cleancache-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     mm-remove-cleancache-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-cleancache-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-cleancache-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,32 +63,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: mm-remove-cleancache-fix
 
+remove now-unreachable code
+
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dan Streetman <ddstreet@ieee.org>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Juergen Gross <jgross@suse.com>
+Cc: Konrad Rzeszutek Wilk <Konrad.wilk@oracle.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/pinctrl/Kconfig |    9 ---------
- 1 file changed, 9 deletions(-)
+ fs/f2fs/data.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/drivers/pinctrl/Kconfig~linux-next-git-rejects
-+++ a/drivers/pinctrl/Kconfig
-@@ -327,15 +327,6 @@ config PINCTRL_OXNAS
- 	depends on OF
- 	select PINMUX
- 	select PINCONF
--<<<<<<< HEAD
--	select GPIOLIB_IRQCHIP
--
--config PINCTRL_STMFX
--	tristate "STMicroelectronics STMFX GPIO expander pinctrl driver"
--	depends on I2C
--	depends on OF_GPIO
--=======
-->>>>>>> linux-next/akpm-base
- 	select GENERIC_PINCONF
- 	select GPIOLIB
- 	select OF_GPIO
+--- a/fs/f2fs/data.c~mm-remove-cleancache-fix
++++ a/fs/f2fs/data.c
+@@ -2089,12 +2089,6 @@ submit_and_realloc:
+ 	ClearPageError(page);
+ 	*last_block_in_bio = block_nr;
+ 	goto out;
+-confused:
+-	if (bio) {
+-		__submit_bio(F2FS_I_SB(inode), bio, DATA);
+-		bio = NULL;
+-	}
+-	unlock_page(page);
+ out:
+ 	*bio_ret = bio;
+ 	return ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,6 +122,7 @@ kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes
 hashh-remove-unused-define-directive-fix.patch
 panic-use-error_report_end-tracepoint-on-warnings-fix.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
 firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
 firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
@@ -121,8 +130,8 @@ sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
 sysctl-move-maxolduid-as-a-sysctl-specific-const-fix.patch
 proc-remove-pde_data-completely-fix.patch
 proc-remove-pde_data-completely-fix-fix.patch
+mm-remove-cleancache-fix.patch
 mm-simplify-try_to_unuse-fix.patch
 mutex-subsystem-synchro-test-module-fix.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
-linux-next-git-rejects.patch
 
