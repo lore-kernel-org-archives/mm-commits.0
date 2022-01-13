@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77504C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 20:20:37 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E3E3C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 20:44:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232953AbiAMUUg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Jan 2022 15:20:36 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:54566 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232597AbiAMUUg (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jan 2022 15:20:36 -0500
+        id S234590AbiAMUoZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Jan 2022 15:44:25 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:44670 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230515AbiAMUoZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jan 2022 15:44:25 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4B1ACB8237F
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 20:20:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCEE7C36AE9;
-        Thu, 13 Jan 2022 20:20:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0F50A61073
+        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 20:44:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 39B97C36AEB;
+        Thu, 13 Jan 2022 20:44:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642105234;
-        bh=pdHqennAGoCIn+1JqGZu/oBZyVluqWgCls0FvePoxMw=;
+        s=korg; t=1642106664;
+        bh=oUmy5d4KyWVPTUlVQt+zjh6JBGQVfnpzLqAgYrzYbsw=;
         h=Date:From:To:Subject:From;
-        b=O8TMr7IcoMqFvMv/rqLBsWQJiG8QYrBg8tD2N6c061ZUHMICYevRhsbQPBT/hbSGf
-         8pTgCqg/3P7WkG2SHDoVHIsC977Ysn0MaNZwyGwdmwO2hr4gBLGR4bE7sJ62kIL/3b
-         Mnp0BcZS+RcbZz7JCf+zyrkJFAiLqKfGJ9Eq7l4M=
-Date:   Thu, 13 Jan 2022 12:20:33 -0800
+        b=fmlSXa5FeReLCHEzS8gsCbm69Jl//WShkXTn6hC5oahdC3D5lOoseY2iiYwENiBfV
+         q0JgthR/EBWVdKFhutKjq9WeBWaMwfaPSUFeqD8SC83ajUZ3yu4OkDV3EZNQaI+ayk
+         v6kIaYJfrSLAh04cpbFpjJxVkZ7f+wN1rk/vpv1Y=
+Date:   Thu, 13 Jan 2022 12:44:23 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        wangkefeng.wang@huawei.com
-Subject:  +
- mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix.patch added to -mm
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        npiggin@gmail.com, uladzislau.rezki@sony.com,
+        xuyu@linux.alibaba.com
+Subject:  [folded-merged]
+ mm-vmalloc-allocate-small-pages-for-area-pages-fix.patch removed from -mm
  tree
-Message-ID: <20220113202033.8CMmXQsBw%akpm@linux-foundation.org>
+Message-ID: <20220113204423.qhCqr9bG1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,68 +42,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix
-has been added to the -mm tree.  Its filename is
-     mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix.patch
+     Subject: mm-vmalloc-allocate-small-pages-for-area-pages-fix
+has been removed from the -mm tree.  Its filename was
+     mm-vmalloc-allocate-small-pages-for-area-pages-fix.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-vmalloc-allocate-small-pages-for-area-pages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix
+Subject: mm-vmalloc-allocate-small-pages-for-area-pages-fix
 
-simplify ifdefs, per Andrey
+tweak code layout
 
-Link: https://lkml.kernel.org/r/CA+fCnZcnwJHUQq34VuRxpdoY6_XbJCDJ-jopksS5Eia4PijPzw@mail.gmail.com
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Xu Yu <xuyu@linux.alibaba.com>
+Cc: Uladzislau Rezki <uladzislau.rezki@sony.com>
+Cc: Nicholas Piggin <npiggin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmalloc.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/include/linux/vmalloc.h~mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix
-+++ a/include/linux/vmalloc.h
-@@ -28,8 +28,8 @@ struct notifier_block;		/* in notifier.h
- #define VM_MAP_PUT_PAGES	0x00000200	/* put pages and free array in vfree */
- #define VM_NO_HUGE_VMAP		0x00000400	/* force PAGE_SIZE pte mapping */
+--- a/mm/vmalloc.c~mm-vmalloc-allocate-small-pages-for-area-pages-fix
++++ a/mm/vmalloc.c
+@@ -2932,12 +2932,14 @@ static void *__vmalloc_area_node(struct
+ 	unsigned long addr = (unsigned long)area->addr;
+ 	unsigned long size = get_vm_area_size(area);
+ 	unsigned long array_size;
+-	unsigned int nr_small_pages = size >> PAGE_SHIFT;
+-	unsigned int max_small_pages = ALIGN(size, 1UL << page_shift) >> PAGE_SHIFT;
++	unsigned int nr_small_pages, max_small_pages;
+ 	unsigned int page_order;
+ 	unsigned int flags;
+ 	int ret;
  
--#if defined(CONFIG_KASAN) && (defined(CONFIG_KASAN_GENERIC) || \
--	defined(CONFIG_KASAN_SW_TAGS)) && !defined(CONFIG_KASAN_VMALLOC)
-+#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
-+	!defined(CONFIG_KASAN_VMALLOC)
- #define VM_DEFER_KMEMLEAK	0x00000800	/* defer kmemleak object creation */
- #else
- #define VM_DEFER_KMEMLEAK	0
++	nr_small_pages = size >> PAGE_SHIFT;
++	max_small_pages = ALIGN(size, 1UL << page_shift) >> PAGE_SHIFT;
++
+ 	array_size = (unsigned long)max_small_pages * sizeof(struct page *);
+ 	gfp_mask |= __GFP_NOWARN;
+ 	if (!(gfp_mask & (GFP_DMA | GFP_DMA32)))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
 kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
+mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix.patch
 device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
 mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
 shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
 memcg-add-per-memcg-vmalloc-stat-v2-fix.patch
 mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
-mm-vmalloc-allocate-small-pages-for-area-pages-fix.patch
+mm-vmalloc-allocate-small-pages-for-area-pages.patch
 mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages-fix.patch
 mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
 mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
