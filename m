@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C549C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 19:58:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77504C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 20:20:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230416AbiAMT6n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Jan 2022 14:58:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54796 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229704AbiAMT6n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jan 2022 14:58:43 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29D3FC061574
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 11:58:43 -0800 (PST)
+        id S232953AbiAMUUg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Jan 2022 15:20:36 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:54566 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232597AbiAMUUg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jan 2022 15:20:36 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AC22A61CE8
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 19:58:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B8CA8C36AE9;
-        Thu, 13 Jan 2022 19:58:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4B1ACB8237F
+        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 20:20:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BCEE7C36AE9;
+        Thu, 13 Jan 2022 20:20:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642103922;
-        bh=FYYbwC8StlcTc5f1Y/lqE8ECMYRKaZMW38rpZaTPSkI=;
+        s=korg; t=1642105234;
+        bh=pdHqennAGoCIn+1JqGZu/oBZyVluqWgCls0FvePoxMw=;
         h=Date:From:To:Subject:From;
-        b=wL/0K8whlpdYeKl5Mrd9nqDFRmYOqMiK1mqhFw5unI05loKKb0TTqvbdv+TvS8kgb
-         jfINA2s15Zq/Hesl+RmvrsjoCHn3d5zLMdLP30/Da2ti8Vhk7lVeanFeS/YJ4zpv28
-         Y+1+SnGjOfVo3qAGhdYdlvQrnT8nZo32gn3IZ8iY=
-Date:   Thu, 13 Jan 2022 11:58:41 -0800
+        b=O8TMr7IcoMqFvMv/rqLBsWQJiG8QYrBg8tD2N6c061ZUHMICYevRhsbQPBT/hbSGf
+         8pTgCqg/3P7WkG2SHDoVHIsC977Ysn0MaNZwyGwdmwO2hr4gBLGR4bE7sJ62kIL/3b
+         Mnp0BcZS+RcbZz7JCf+zyrkJFAiLqKfGJ9Eq7l4M=
+Date:   Thu, 13 Jan 2022 12:20:33 -0800
 From:   akpm@linux-foundation.org
-To:     colin.i.king@gmail.com, gechangwei@live.cn, ghe@suse.com,
-        jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
-        junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org,
-        piaojun@huawei.com
+To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        wangkefeng.wang@huawei.com
 Subject:  +
- ocfs2-remove-redundant-assignment-to-variable-free_space.patch added to -mm
+ mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix.patch added to -mm
  tree
-Message-ID: <20220113195841.YdMBTtiTT%akpm@linux-foundation.org>
+Message-ID: <20220113202033.8CMmXQsBw%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: remove redundant assignment to variable free_space
+     Subject: mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-remove-redundant-assignment-to-variable-free_space.patch
+     mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-remove-redundant-assignment-to-variable-free_space.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-remove-redundant-assignment-to-variable-free_space.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,47 +63,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Colin Ian King <colin.i.king@gmail.com>
-Subject: ocfs2: remove redundant assignment to variable free_space
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix
 
-Variable free_space is being initialized with a value that is not read, it
-is being re-assigned later in the two paths of an if statement.  The early
-initialization is redundant and can be removed.
+simplify ifdefs, per Andrey
 
-Link: https://lkml.kernel.org/r/20220112230411.1090761-1-colin.i.king@gmail.com
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
-Acked-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+Link: https://lkml.kernel.org/r/CA+fCnZcnwJHUQq34VuRxpdoY6_XbJCDJ-jopksS5Eia4PijPzw@mail.gmail.com
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/vmalloc.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/fs/ocfs2/dir.c~ocfs2-remove-redundant-assignment-to-variable-free_space
-+++ a/fs/ocfs2/dir.c
-@@ -3343,7 +3343,7 @@ static int ocfs2_find_dir_space_id(struc
- 	struct ocfs2_dir_entry *de, *last_de = NULL;
- 	char *de_buf, *limit;
- 	unsigned long offset = 0;
--	unsigned int rec_len, new_rec_len, free_space = dir->i_sb->s_blocksize;
-+	unsigned int rec_len, new_rec_len, free_space;
+--- a/include/linux/vmalloc.h~mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix
++++ a/include/linux/vmalloc.h
+@@ -28,8 +28,8 @@ struct notifier_block;		/* in notifier.h
+ #define VM_MAP_PUT_PAGES	0x00000200	/* put pages and free array in vfree */
+ #define VM_NO_HUGE_VMAP		0x00000400	/* force PAGE_SIZE pte mapping */
  
- 	/*
- 	 * This calculates how many free bytes we'd have in block zero, should
+-#if defined(CONFIG_KASAN) && (defined(CONFIG_KASAN_GENERIC) || \
+-	defined(CONFIG_KASAN_SW_TAGS)) && !defined(CONFIG_KASAN_VMALLOC)
++#if (defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)) && \
++	!defined(CONFIG_KASAN_VMALLOC)
+ #define VM_DEFER_KMEMLEAK	0x00000800	/* defer kmemleak object creation */
+ #else
+ #define VM_DEFER_KMEMLEAK	0
 _
 
-Patches currently in -mm which might be from colin.i.king@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-remove-redundant-assignment-to-pointer-root_bh.patch
-ocfs2-remove-redundant-assignment-to-variable-free_space.patch
-mm-migrate-remove-redundant-variables-used-in-a-for-loop.patch
-nilfs2-remove-redundant-pointer-sbufs.patch
-lib-remove-redundant-assignment-to-variable-ret.patch
-kernel-sysctlc-remove-unused-variable-ten_thousand.patch
+kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
+kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
+device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
+shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
+memcg-add-per-memcg-vmalloc-stat-v2-fix.patch
+mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
+mm-vmalloc-allocate-small-pages-for-area-pages-fix.patch
+mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+mm-memcg-percpu-account-extra-objcg-space-to-memory-cgroups-fix.patch
+mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch
 
