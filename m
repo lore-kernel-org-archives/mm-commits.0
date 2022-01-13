@@ -2,37 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CCD6CC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 20:52:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 839F0C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 20:58:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234679AbiAMUwj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Jan 2022 15:52:39 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:49300 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234675AbiAMUwi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jan 2022 15:52:38 -0500
+        id S229579AbiAMU6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Jan 2022 15:58:23 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:42026 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229543AbiAMU6X (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jan 2022 15:58:23 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CFA9C61426
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 20:52:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1978BC36AE3;
-        Thu, 13 Jan 2022 20:52:37 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 96CFAB8239E
+        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 20:58:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B835C36AE3;
+        Thu, 13 Jan 2022 20:58:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642107157;
-        bh=+oEslID8jAglO9208sNto+/olv7wXzTUtA8QgWXf7zQ=;
+        s=korg; t=1642107501;
+        bh=DkcW2oupavI45vc983L0s7VUOdYZDEKbOKsB5mc0p8s=;
         h=Date:From:To:Subject:From;
-        b=WbH68Ma5/DmVo8Rh87bgi08Zro5iAYa1683nsrCPb0KqJiXcf7iEOOJqwJ1aUCY6S
-         VZgEQ54TA3KQSSejLh9+XHNJPWG6VpdgQQaKQKIK2649Q5tKjJ2/jIY1alfyra1pvU
-         OUxJ8f8NhfLijdQYK2tTlDXWaeSpgJO0Oqn/RfJc=
-Date:   Thu, 13 Jan 2022 12:52:36 -0800
+        b=VciXtU4XuDfniSuZ80Mzi/nDKlgG2vITUsLmWm7o9oMcXf8Cz/Wk0INO7i/ydZJPc
+         gjij4/f6L2FRcYcPuDRj6jHN6wPyTUJpB3RamzcS7CZZ25WJXbTgOZ5ZVLOe9bs9Zi
+         0cwAAOLl0y8bhE8dLlNPk10mqrJVIfue141sNnNQ=
+Date:   Thu, 13 Jan 2022 12:58:20 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        tony.luck@intel.com, youquan.song@intel.com
-Subject:  [alternative-merged]
- mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
- removed from -mm tree
-Message-ID: <20220113205236.jiEQDiJf1%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, jhubbard@nvidia.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        rostedt@goodmis.org, willy@infradead.org, ziy@nvidia.com
+Subject:  [to-be-updated]
+ mm-migration-add-trace-events-for-thp-migrations.patch removed from -mm
+ tree
+Message-ID: <20220113205820.IA9FNtvs0%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,65 +42,114 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: fix error page recovered but reported "not recovered"
+     Subject: mm/migration: add trace events for THP migrations
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
+     mm-migration-add-trace-events-for-thp-migrations.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Youquan Song <youquan.song@intel.com>
-Subject: mm/hwpoison: fix error page recovered but reported "not recovered"
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/migration: add trace events for THP migrations
 
-When an uncorrected memory error is consumed there is a race between the
-CMCI from the memory controller reporting an uncorrected error with a UCNA
-signature, and the core reporting and SRAR signature machine check when
-the data is about to be consumed.
+This adds two trace events for PMD based THP migration without split. 
+These events closely follow the implementation details like setting and
+removing of PMD migration entries, which are essential operations for THP
+migration.
 
-If the CMCI wins that race, the page is marked poisoned when
-uc_decode_notifier() calls memory_failure() and the machine check
-processing code finds the page already poisoned.  It calls
-kill_accessing_process() to make sure a SIGBUS is sent.  But returns the
-wrong error code.
-
-Console log looks like this:
-
-[34775.674296] mce: Uncorrected hardware memory error in user-access at 3710b3400
-[34775.675413] Memory failure: 0x3710b3: recovery action for dirty LRU page: Recovered
-[34775.690310] Memory failure: 0x3710b3: already hardware poisoned
-[34775.696247] Memory failure: 0x3710b3: Sending SIGBUS to einj_mem_uc:361438 due to hardware memory corruption
-[34775.706072] mce: Memory error not recovered
-
-Fix kill_accessing_process() to return -EHWPOISON to avoid the noise
-message "Memory error not recovered" and skip duplicate SIGBUS.
-
-[Tony: Reworded some parts of commit message]
-
-Link: https://lkml.kernel.org/r/20220107194450.1687264-1-tony.luck@intel.com
-Fixes: a3f5d80ea401 ("mm,hwpoison: send SIGBUS with error virutal address")
-Signed-off-by: Youquan Song <youquan.song@intel.com>
-Signed-off-by: Tony Luck <tony.luck@intel.com>
-Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Link: https://lkml.kernel.org/r/1641531575-28524-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/trace/events/thp.h |   37 +++++++++++++++++++++++++++++++++++
+ mm/huge_memory.c           |    5 ++++
+ 2 files changed, 42 insertions(+)
 
---- a/mm/memory-failure.c~mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered
-+++ a/mm/memory-failure.c
-@@ -708,7 +708,8 @@ static int kill_accessing_process(struct
- 	if (ret == 1 && priv.tk.addr)
- 		kill_proc(&priv.tk, pfn, flags);
- 	mmap_read_unlock(p->mm);
--	return ret ? -EFAULT : -EHWPOISON;
+--- a/include/trace/events/thp.h~mm-migration-add-trace-events-for-thp-migrations
++++ a/include/trace/events/thp.h
+@@ -83,6 +83,43 @@ TRACE_EVENT(hugepage_splitting,
+ 		      __entry->addr, __entry->pte)
+ );
+ 
++TRACE_EVENT(set_migration_pmd,
 +
-+	return (ret < 0) ? -EFAULT : -EHWPOISON;
++	TP_PROTO(unsigned long addr, unsigned long pmd),
++
++	TP_ARGS(addr, pmd),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, addr)
++		__field(unsigned long, pmd)
++	),
++
++	TP_fast_assign(
++		__entry->addr = addr;
++		__entry->pmd = pmd;
++	),
++
++	TP_printk("create pmd migration entry addr=%lx, pmd=%lx", __entry->addr, __entry->pmd)
++);
++
++TRACE_EVENT(remove_migration_pmd,
++
++	TP_PROTO(unsigned long addr, unsigned long pmd),
++
++	TP_ARGS(addr, pmd),
++
++	TP_STRUCT__entry(
++		__field(unsigned long, addr)
++		__field(unsigned long, pmd)
++	),
++
++	TP_fast_assign(
++		__entry->addr = addr;
++		__entry->pmd = pmd;
++	),
++
++	TP_printk("remove pmd migration entry addr=%lx, val=%lx", __entry->addr, __entry->pmd)
++);
+ #endif /* _TRACE_THP_H */
+ 
+ /* This part must be outside protection */
+--- a/mm/huge_memory.c~mm-migration-add-trace-events-for-thp-migrations
++++ a/mm/huge_memory.c
+@@ -39,6 +39,9 @@
+ #include <asm/pgalloc.h>
+ #include "internal.h"
+ 
++#define CREATE_TRACE_POINTS
++#include <trace/events/thp.h>
++
+ /*
+  * By default, transparent hugepage support is disabled in order to avoid
+  * risking an increased memory footprint for applications that are not
+@@ -3163,6 +3166,7 @@ void set_pmd_migration_entry(struct page
+ 	set_pmd_at(mm, address, pvmw->pmd, pmdswp);
+ 	page_remove_rmap(page, true);
+ 	put_page(page);
++	trace_set_migration_pmd(address, pmd_val(pmdswp));
  }
  
- static const char *action_name[] = {
+ void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
+@@ -3196,5 +3200,6 @@ void remove_migration_pmd(struct page_vm
+ 	if ((vma->vm_flags & VM_LOCKED) && !PageDoubleMap(new))
+ 		mlock_vma_page(new);
+ 	update_mmu_cache_pmd(vma, address, pvmw->pmd);
++	trace_remove_migration_pmd(address, pmd_val(pmde));
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from youquan.song@intel.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
+mm-debug_vm_pgtable-update-comments-regarding-migration-swap-entries.patch
+mm-page_alloc-modify-the-comment-section-for-alloc_contig_pages.patch
+mm-thp-drop-unused-trace-events-hugepage_.patch
 
