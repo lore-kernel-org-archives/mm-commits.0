@@ -2,39 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 84F29C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 20:45:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CCD6CC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 20:52:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234586AbiAMUpA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Jan 2022 15:45:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36932 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230515AbiAMUo5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jan 2022 15:44:57 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B79ABC061574
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 12:44:57 -0800 (PST)
+        id S234679AbiAMUwj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Jan 2022 15:52:39 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:49300 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234675AbiAMUwi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jan 2022 15:52:38 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1A16C61024
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 20:44:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 55B03C36AEB;
-        Thu, 13 Jan 2022 20:44:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CFA9C61426
+        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 20:52:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1978BC36AE3;
+        Thu, 13 Jan 2022 20:52:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642106696;
-        bh=csUEr7/OVnALSNy+8iPCoF19T7vj9+R2LG94hQJZcPI=;
+        s=korg; t=1642107157;
+        bh=+oEslID8jAglO9208sNto+/olv7wXzTUtA8QgWXf7zQ=;
         h=Date:From:To:Subject:From;
-        b=DmClRCMMhb2XdzP6vyYavl4H32D3IVNupimfG7CMT+R4NmqxSoQ+JtPFmIuWshCWB
-         8MZqkHK3nWieClrBoyu1mEfwLdHVYHVpBPlU9f1FHmvlpcfg/hAqo6olF/i5CvkhBt
-         dzH9d5pB0huDMnEdxfhsaxreE2IHWcqtexYbNV54=
-Date:   Thu, 13 Jan 2022 12:44:55 -0800
+        b=WbH68Ma5/DmVo8Rh87bgi08Zro5iAYa1683nsrCPb0KqJiXcf7iEOOJqwJ1aUCY6S
+         VZgEQ54TA3KQSSejLh9+XHNJPWG6VpdgQQaKQKIK2649Q5tKjJ2/jIY1alfyra1pvU
+         OUxJ8f8NhfLijdQYK2tTlDXWaeSpgJO0Oqn/RfJc=
+Date:   Thu, 13 Jan 2022 12:52:36 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, npiggin@gmail.com,
-        uladzislau.rezki@sony.com, xuyu@linux.alibaba.com
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        tony.luck@intel.com, youquan.song@intel.com
 Subject:  [alternative-merged]
- mm-vmalloc-allocate-small-pages-for-area-pages.patch removed from -mm tree
-Message-ID: <20220113204455.fTZkS_3Wq%akpm@linux-foundation.org>
+ mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
+ removed from -mm tree
+Message-ID: <20220113205236.jiEQDiJf1%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,99 +41,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: allocate small pages for area->pages
+     Subject: mm/hwpoison: fix error page recovered but reported "not recovered"
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-allocate-small-pages-for-area-pages.patch
+     mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
 
 This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Xu Yu <xuyu@linux.alibaba.com>
-Subject: mm/vmalloc: allocate small pages for area->pages
+From: Youquan Song <youquan.song@intel.com>
+Subject: mm/hwpoison: fix error page recovered but reported "not recovered"
 
-The area->pages stores the struct pages allocated for vmalloc mappings.
-The allocated memory can be hugepage if arch has HAVE_ARCH_HUGE_VMALLOC
-set, while area->pages itself does not have to be hugepage backed.
+When an uncorrected memory error is consumed there is a race between the
+CMCI from the memory controller reporting an uncorrected error with a UCNA
+signature, and the core reporting and SRAR signature machine check when
+the data is about to be consumed.
 
-Suppose that we want to vmalloc 1026M of memory, then area->pages is
-2052K in size, which is large than PMD_SIZE when the pagesize is 4K.
-Currently, 4096K will be allocated for area->pages, wherein 2044K is
-wasted.
+If the CMCI wins that race, the page is marked poisoned when
+uc_decode_notifier() calls memory_failure() and the machine check
+processing code finds the page already poisoned.  It calls
+kill_accessing_process() to make sure a SIGBUS is sent.  But returns the
+wrong error code.
 
-This introduces __vmalloc_node_no_huge, and makes area->pages backed by
-small pages, because I think to allocate hugepage for area->pages is
-unnecessary and vulnerable to abuse.
+Console log looks like this:
 
-[akpm@linux-foundation.org: tweak code layout]
-Link: https://lkml.kernel.org/r/dd04f516643fde4206c1fe93818526a768125c75.1638870169.git.xuyu@linux.alibaba.com
-Signed-off-by: Xu Yu <xuyu@linux.alibaba.com>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Uladzislau Rezki <uladzislau.rezki@sony.com>
+[34775.674296] mce: Uncorrected hardware memory error in user-access at 3710b3400
+[34775.675413] Memory failure: 0x3710b3: recovery action for dirty LRU page: Recovered
+[34775.690310] Memory failure: 0x3710b3: already hardware poisoned
+[34775.696247] Memory failure: 0x3710b3: Sending SIGBUS to einj_mem_uc:361438 due to hardware memory corruption
+[34775.706072] mce: Memory error not recovered
+
+Fix kill_accessing_process() to return -EHWPOISON to avoid the noise
+message "Memory error not recovered" and skip duplicate SIGBUS.
+
+[Tony: Reworded some parts of commit message]
+
+Link: https://lkml.kernel.org/r/20220107194450.1687264-1-tony.luck@intel.com
+Fixes: a3f5d80ea401 ("mm,hwpoison: send SIGBUS with error virutal address")
+Signed-off-by: Youquan Song <youquan.song@intel.com>
+Signed-off-by: Tony Luck <tony.luck@intel.com>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    2 ++
- mm/vmalloc.c            |   19 +++++++++++++++----
- 2 files changed, 17 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/vmalloc.h~mm-vmalloc-allocate-small-pages-for-area-pages
-+++ a/include/linux/vmalloc.h
-@@ -157,6 +157,8 @@ extern void *__vmalloc_node_range(unsign
- 			const void *caller) __alloc_size(1);
- void *__vmalloc_node(unsigned long size, unsigned long align, gfp_t gfp_mask,
- 		int node, const void *caller) __alloc_size(1);
-+void *__vmalloc_node_no_huge(unsigned long size, unsigned long align,
-+		gfp_t gfp_mask, int node, const void *caller) __alloc_size(1);
- void *vmalloc_no_huge(unsigned long size) __alloc_size(1);
- 
- extern void vfree(const void *addr);
---- a/mm/vmalloc.c~mm-vmalloc-allocate-small-pages-for-area-pages
-+++ a/mm/vmalloc.c
-@@ -2930,20 +2930,23 @@ static void *__vmalloc_area_node(struct
- 	unsigned long addr = (unsigned long)area->addr;
- 	unsigned long size = get_vm_area_size(area);
- 	unsigned long array_size;
--	unsigned int nr_small_pages = size >> PAGE_SHIFT;
-+	unsigned int nr_small_pages, max_small_pages;
- 	unsigned int page_order;
- 	unsigned int flags;
- 	int ret;
- 
--	array_size = (unsigned long)nr_small_pages * sizeof(struct page *);
-+	nr_small_pages = size >> PAGE_SHIFT;
-+	max_small_pages = ALIGN(size, 1UL << page_shift) >> PAGE_SHIFT;
+--- a/mm/memory-failure.c~mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered
++++ a/mm/memory-failure.c
+@@ -708,7 +708,8 @@ static int kill_accessing_process(struct
+ 	if (ret == 1 && priv.tk.addr)
+ 		kill_proc(&priv.tk, pfn, flags);
+ 	mmap_read_unlock(p->mm);
+-	return ret ? -EFAULT : -EHWPOISON;
 +
-+	array_size = (unsigned long)max_small_pages * sizeof(struct page *);
- 	gfp_mask |= __GFP_NOWARN;
- 	if (!(gfp_mask & (GFP_DMA | GFP_DMA32)))
- 		gfp_mask |= __GFP_HIGHMEM;
- 
- 	/* Please note that the recursion is strictly bounded. */
- 	if (array_size > PAGE_SIZE) {
--		area->pages = __vmalloc_node(array_size, 1, nested_gfp, node,
--					area->caller);
-+		area->pages = __vmalloc_node_no_huge(array_size, 1, nested_gfp,
-+						     node, area->caller);
- 	} else {
- 		area->pages = kmalloc_node(array_size, nested_gfp, node);
- 	}
-@@ -3157,6 +3160,14 @@ void *__vmalloc_node(unsigned long size,
- 	return __vmalloc_node_range(size, align, VMALLOC_START, VMALLOC_END,
- 				gfp_mask, PAGE_KERNEL, 0, node, caller);
++	return (ret < 0) ? -EFAULT : -EHWPOISON;
  }
-+
-+void *__vmalloc_node_no_huge(unsigned long size, unsigned long align,
-+			     gfp_t gfp_mask, int node, const void *caller)
-+{
-+	return __vmalloc_node_range(size, align, VMALLOC_START, VMALLOC_END,
-+				gfp_mask, PAGE_KERNEL, VM_NO_HUGE_VMAP, node, caller);
-+}
-+
- /*
-  * This is only for performance analysis of vmalloc and stress purpose.
-  * It is required by vmalloc test module, therefore do not use it other
+ 
+ static const char *action_name[] = {
 _
 
-Patches currently in -mm which might be from xuyu@linux.alibaba.com are
+Patches currently in -mm which might be from youquan.song@intel.com are
 
 
