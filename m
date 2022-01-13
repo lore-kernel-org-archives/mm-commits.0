@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 839F0C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 20:58:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 74A99C433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 21:08:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229579AbiAMU6X (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 13 Jan 2022 15:58:23 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:42026 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229543AbiAMU6X (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jan 2022 15:58:23 -0500
+        id S234856AbiAMVIX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 13 Jan 2022 16:08:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42102 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229543AbiAMVIX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 13 Jan 2022 16:08:23 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0F558C061574;
+        Thu, 13 Jan 2022 13:08:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 96CFAB8239E
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 20:58:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1B835C36AE3;
-        Thu, 13 Jan 2022 20:58:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7A6EFB8239F;
+        Thu, 13 Jan 2022 21:08:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D326CC36AEA;
+        Thu, 13 Jan 2022 21:08:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642107501;
-        bh=DkcW2oupavI45vc983L0s7VUOdYZDEKbOKsB5mc0p8s=;
+        s=korg; t=1642108100;
+        bh=9F0dD2G6B2U4jaJOOxR6rSlOvUaOOeJjMDDHw3gY7cc=;
         h=Date:From:To:Subject:From;
-        b=VciXtU4XuDfniSuZ80Mzi/nDKlgG2vITUsLmWm7o9oMcXf8Cz/Wk0INO7i/ydZJPc
-         gjij4/f6L2FRcYcPuDRj6jHN6wPyTUJpB3RamzcS7CZZ25WJXbTgOZ5ZVLOe9bs9Zi
-         0cwAAOLl0y8bhE8dLlNPk10mqrJVIfue141sNnNQ=
-Date:   Thu, 13 Jan 2022 12:58:20 -0800
+        b=2tItUYSMbXQ6FmVz1D8WBhh0g2F6I4GiL1qrzD1jjzdJ18nu+/xhQNv5dO70lHmlW
+         Em0uvMzOpL5MhrwkuKjl6ckw8UCtnE3MmADhOERcS6NloDxca1A28ZQziSLcIIXIur
+         QSR/Nsy0UKaolNkOzuE/AYTTtkJ8n0thcUhA+zGo=
+Date:   Thu, 13 Jan 2022 13:08:19 -0800
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, jhubbard@nvidia.com, mingo@redhat.com,
-        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
-        rostedt@goodmis.org, willy@infradead.org, ziy@nvidia.com
+To:     agruenba@redhat.com, catalin.marinas@arm.com, dsterba@suse.com,
+        josef@toxicpanda.com, mm-commits@vger.kernel.org,
+        stable@vger.kernel.org, viro@zeniv.linux.org.uk, will@kernel.org,
+        willy@infradead.org
 Subject:  [to-be-updated]
- mm-migration-add-trace-events-for-thp-migrations.patch removed from -mm
- tree
-Message-ID: <20220113205820.IA9FNtvs0%akpm@linux-foundation.org>
+ mm-introduce-fault_in_exact_writeable-to-probe-for-sub-page-faults.patch
+ removed from -mm tree
+Message-ID: <20220113210819.fNXhYcUbG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,114 +46,196 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migration: add trace events for THP migrations
+     Subject: mm: introduce fault_in_exact_writeable() to probe for sub-page faults
 has been removed from the -mm tree.  Its filename was
-     mm-migration-add-trace-events-for-thp-migrations.patch
+     mm-introduce-fault_in_exact_writeable-to-probe-for-sub-page-faults.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/migration: add trace events for THP migrations
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: introduce fault_in_exact_writeable() to probe for sub-page faults
 
-This adds two trace events for PMD based THP migration without split. 
-These events closely follow the implementation details like setting and
-removing of PMD migration entries, which are essential operations for THP
-migration.
+Patch series "Avoid live-lock in fault-in+uaccess loops with sub-page faults".
 
-Link: https://lkml.kernel.org/r/1641531575-28524-1-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+There are a few places in the filesystem layer where a uaccess is
+performed in a loop with page faults disabled, together with a
+fault_in_*() call to pre-fault the pages.  On architectures like arm64
+with MTE (memory tagging extensions) or SPARC ADI, even if the
+fault_in_*() succeeded, the uaccess can still fault indefinitely.
+
+In general this is not an issue since such code restarts the fault_in_*()
+from where the uaccess failed, therefore guaranteeing forward progress. 
+The btrfs search_ioctl(), however, rewinds the fault_in_*() position and
+it can live-lock.  This was reported by Al here:
+
+https://lore.kernel.org/r/YSqOUb7yZ7kBoKRY@zeniv-ca.linux.org.uk
+
+There's also an analysis by Al of other fault-in places:
+
+https://lore.kernel.org/r/YSldx9uhMYhT/G8X@zeniv-ca.linux.org.uk
+
+and another sub-thread on the same topic:
+
+https://lore.kernel.org/r/YXBFqD9WVuU8awIv@arm.com
+
+So far only btrfs search_ioctl() seems to be affected and that's what this
+series addresses.  The existing loops like generic_perform_write() already
+guarantee forward progress.
+
+Andreas raised a concern about O_DIRECT accesses since on fault the user
+address is rewound to a block size boundary.  I tried ext4, btrfs and gfs2
+and I could not get any of them to live-lock.  Depending on the alignment
+of the user buffer (page or not), I found two behaviours:
+
+- the copy to or from the user buffer succeeds entirely if it goes
+  through the kernel mapping (GUP, kmap'ed page; user MTE tags are not
+  checked) or
+
+- the copy partially succeeds after a few attempts at uaccess on the
+  faulting same address (the highest number of attempts in my tests was
+  11 with btrfs).
+
+Given the high cost of such sub-page probing (which is done prior to the
+uaccess) my proposal is to only change the btrfs search_ioctl() (as per
+the last patch).  We can extend the API and call places in the future if
+needed but I hope filesystems already deal with this in other ways.
+
+
+This patch (of 3):
+
+On hardware with features like arm64 MTE or SPARC ADI, an access fault can
+be triggered at sub-page granularity.  Depending on how the fault_in_*()
+functions are used, the caller can get into a live-lock by continuously
+retrying the fault-in on an address different from the one where the
+uaccess failed.
+
+In the majority of cases progress is ensured by the following conditions:
+
+1. copy_{to,from}_user() guarantees at least one byte access if the user
+   address is not faulting;
+
+2. The fault_in_*() is attempted on the next address that could not be
+   accessed by copy_*_user().
+
+In the places where the above conditions are not met or the
+fault-in/uaccess loop does not have a mechanism to bail out, the
+fault_in_exact_writeable() ensures that the arch code will probe the range
+in question at a sub-page fault granularity (e.g.  16 bytes for arm64
+MTE).  For large ranges, this is significantly more expensive than the
+non-exact versions which probe a single byte in each page or use GUP.
+
+The architecture code has to select ARCH_HAS_SUBPAGE_FAULTS and implement
+probe_user_writeable().
+
+Link: https://lkml.kernel.org/r/20211124192024.2408218-1-catalin.marinas@arm.com
+Link: https://lkml.kernel.org/r/20211124192024.2408218-2-catalin.marinas@arm.com
+Fixes: a48b73eca4ce ("btrfs: fix potential deadlock in the search ioctl") 
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Gruenbacher <agruenba@redhat.com>
+Cc: David Sterba <dsterba@suse.com>
+Cc: Josef Bacik <josef@toxicpanda.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/thp.h |   37 +++++++++++++++++++++++++++++++++++
- mm/huge_memory.c           |    5 ++++
- 2 files changed, 42 insertions(+)
+ arch/Kconfig            |    7 +++++++
+ include/linux/pagemap.h |    1 +
+ include/linux/uaccess.h |   21 +++++++++++++++++++++
+ mm/gup.c                |   19 +++++++++++++++++++
+ 4 files changed, 48 insertions(+)
 
---- a/include/trace/events/thp.h~mm-migration-add-trace-events-for-thp-migrations
-+++ a/include/trace/events/thp.h
-@@ -83,6 +83,43 @@ TRACE_EVENT(hugepage_splitting,
- 		      __entry->addr, __entry->pte)
- );
+--- a/arch/Kconfig~mm-introduce-fault_in_exact_writeable-to-probe-for-sub-page-faults
++++ a/arch/Kconfig
+@@ -27,6 +27,13 @@ config HAVE_IMA_KEXEC
+ config SET_FS
+ 	bool
  
-+TRACE_EVENT(set_migration_pmd,
++config ARCH_HAS_SUBPAGE_FAULTS
++	bool
++	help
++	  Select if the architecture can check permissions at sub-page
++	  granularity (e.g. arm64 MTE). The probe_user_*() functions
++	  must be implemented.
 +
-+	TP_PROTO(unsigned long addr, unsigned long pmd),
-+
-+	TP_ARGS(addr, pmd),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, addr)
-+		__field(unsigned long, pmd)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->addr = addr;
-+		__entry->pmd = pmd;
-+	),
-+
-+	TP_printk("create pmd migration entry addr=%lx, pmd=%lx", __entry->addr, __entry->pmd)
-+);
-+
-+TRACE_EVENT(remove_migration_pmd,
-+
-+	TP_PROTO(unsigned long addr, unsigned long pmd),
-+
-+	TP_ARGS(addr, pmd),
-+
-+	TP_STRUCT__entry(
-+		__field(unsigned long, addr)
-+		__field(unsigned long, pmd)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->addr = addr;
-+		__entry->pmd = pmd;
-+	),
-+
-+	TP_printk("remove pmd migration entry addr=%lx, val=%lx", __entry->addr, __entry->pmd)
-+);
- #endif /* _TRACE_THP_H */
+ config HOTPLUG_SMT
+ 	bool
  
- /* This part must be outside protection */
---- a/mm/huge_memory.c~mm-migration-add-trace-events-for-thp-migrations
-+++ a/mm/huge_memory.c
-@@ -39,6 +39,9 @@
- #include <asm/pgalloc.h>
- #include "internal.h"
+--- a/include/linux/pagemap.h~mm-introduce-fault_in_exact_writeable-to-probe-for-sub-page-faults
++++ a/include/linux/pagemap.h
+@@ -925,6 +925,7 @@ void folio_add_wait_queue(struct folio *
+  * Fault in userspace address range.
+  */
+ size_t fault_in_writeable(char __user *uaddr, size_t size);
++size_t fault_in_exact_writeable(char __user *uaddr, size_t size);
+ size_t fault_in_safe_writeable(const char __user *uaddr, size_t size);
+ size_t fault_in_readable(const char __user *uaddr, size_t size);
  
-+#define CREATE_TRACE_POINTS
-+#include <trace/events/thp.h>
+--- a/include/linux/uaccess.h~mm-introduce-fault_in_exact_writeable-to-probe-for-sub-page-faults
++++ a/include/linux/uaccess.h
+@@ -271,6 +271,27 @@ static inline bool pagefault_disabled(vo
+  */
+ #define faulthandler_disabled() (pagefault_disabled() || in_atomic())
+ 
++#ifndef CONFIG_ARCH_HAS_SUBPAGE_FAULTS
++/**
++ * probe_user_writable: probe for sub-page faults in the user range
++ * @uaddr: start of address range
++ * @size: size of address range
++ *
++ * Returns the number of bytes not accessible (like copy_to_user() and
++ * copy_from_user()).
++ *
++ * Architectures that can generate sub-page faults (e.g. arm64 MTE) should
++ * implement this function. It is expected that the caller checked for the
++ * write permission of each page in the range either by put_user() or GUP.
++ * The architecture port can implement a more efficient get_user() probing of
++ * the range if sub-page faults are triggered by either a load or store.
++ */
++static inline size_t probe_user_writable(void __user *uaddr, size_t size)
++{
++	return 0;
++}
++#endif
++
+ #ifndef ARCH_HAS_NOCACHE_UACCESS
+ 
+ static inline __must_check unsigned long
+--- a/mm/gup.c~mm-introduce-fault_in_exact_writeable-to-probe-for-sub-page-faults
++++ a/mm/gup.c
+@@ -1699,6 +1699,25 @@ out:
+ }
+ EXPORT_SYMBOL(fault_in_writeable);
+ 
++/**
++ * fault_in_exact_writeable - fault in userspace address range for writing,
++ *			      potentially checking for sub-page faults
++ * @uaddr: start of address range
++ * @size: size of address range
++ *
++ * Returns the number of bytes not faulted in (like copy_to_user() and
++ * copy_from_user()).
++ */
++size_t fault_in_exact_writeable(char __user *uaddr, size_t size)
++{
++	size_t accessible = size - fault_in_writeable(uaddr, size);
++
++	if (accessible)
++		accessible -= probe_user_writable(uaddr, accessible);
++	return size - accessible;
++}
++EXPORT_SYMBOL(fault_in_exact_writeable);
 +
  /*
-  * By default, transparent hugepage support is disabled in order to avoid
-  * risking an increased memory footprint for applications that are not
-@@ -3163,6 +3166,7 @@ void set_pmd_migration_entry(struct page
- 	set_pmd_at(mm, address, pvmw->pmd, pmdswp);
- 	page_remove_rmap(page, true);
- 	put_page(page);
-+	trace_set_migration_pmd(address, pmd_val(pmdswp));
- }
- 
- void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
-@@ -3196,5 +3200,6 @@ void remove_migration_pmd(struct page_vm
- 	if ((vma->vm_flags & VM_LOCKED) && !PageDoubleMap(new))
- 		mlock_vma_page(new);
- 	update_mmu_cache_pmd(vma, address, pvmw->pmd);
-+	trace_remove_migration_pmd(address, pmd_val(pmde));
- }
- #endif
+  * fault_in_safe_writeable - fault in an address range for writing
+  * @uaddr: start of address range
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
-mm-debug_vm_pgtable-update-comments-regarding-migration-swap-entries.patch
-mm-page_alloc-modify-the-comment-section-for-alloc_contig_pages.patch
-mm-thp-drop-unused-trace-events-hugepage_.patch
+arm64-add-support-for-sub-page-faults-user-probing.patch
+btrfs-avoid-live-lock-in-search_ioctl-on-hardware-with-sub-page-faults.patch
 
