@@ -2,37 +2,35 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE6CEC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 00:50:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C2E9C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 13 Jan 2022 01:42:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229763AbiAMAuc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 12 Jan 2022 19:50:32 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:59868 "EHLO
+        id S231415AbiAMBmx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 12 Jan 2022 20:42:53 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:59586 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229511AbiAMAua (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jan 2022 19:50:30 -0500
+        with ESMTP id S231388AbiAMBmv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 12 Jan 2022 20:42:51 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1A55461BAA
-        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 00:50:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FB21C36AE9;
-        Thu, 13 Jan 2022 00:50:29 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9BE4B601E3
+        for <mm-commits@vger.kernel.org>; Thu, 13 Jan 2022 01:42:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E6609C36AE9;
+        Thu, 13 Jan 2022 01:42:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642035029;
-        bh=OY7x6nL8l3LHTVpcwtWWevwSlEVo0aZwNTq9PAwLsHc=;
+        s=korg; t=1642038171;
+        bh=oZpW5TXJ45iozwKT5ytJV5Vr+FP04xO8e10E55exauU=;
         h=Date:From:To:Subject:From;
-        b=VlfMHflLHb49KcBYOrml2NImVOJa+wZmMAqxvPGmxGVcCURIjnnNgv5g1tF7m2BwP
-         kSz8cpu5ZBS4gZh53sai5C3QOExZKfASc1oPj+8fmKc5YfWsoCLM4Vs3hi2S8Lne2l
-         FfTqjS6FvpPwHn9a9hGu+UjzhylDQs51y/ARyiyM=
-Date:   Wed, 12 Jan 2022 16:50:28 -0800
+        b=cjhAf9UOQJBEnEioweXcjfMINlYngNbPgyIZg8QaGKEs/9avz+qsCIMUUFibH8sA7
+         46mWUlSnfO6T4m8bxnEw0/pPAD15gRI4OQCW4wWJ6N4tFr4xgp0LMN3sF9zyDgnVmA
+         My+imd2cLh4pFjCje7TII2xi3pwaDNC8kEk6ZPes=
+Date:   Wed, 12 Jan 2022 17:42:50 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, ddstreet@ieee.org, geert@linux-m68k.org,
-        hch@lst.de, hughd@google.com, jgross@suse.com,
-        Konrad.wilk@oracle.com, mm-commits@vger.kernel.org,
-        sjenning@redhat.com, vitaly.wool@konsulko.com, willy@infradead.org
-Subject:  + mm-remove-cleancache-fix.patch added to -mm tree
-Message-ID: <20220113005028.4rdhYdNqJ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
+Subject:  + arch-x86-include-asm-pgtableh-needs-spinlockh.patch
+ added to -mm tree
+Message-ID: <20220113014250.ZOFoQZ2pL%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +39,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-remove-cleancache-fix
+     Subject: arch/x86/include/asm/pgtable.h needs spinlock.h
 has been added to the -mm tree.  Its filename is
-     mm-remove-cleancache-fix.patch
+     arch-x86-include-asm-pgtableh-needs-spinlockh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-cleancache-fix.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/arch-x86-include-asm-pgtableh-needs-spinlockh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-cleancache-fix.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-include-asm-pgtableh-needs-spinlockh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,40 +61,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-remove-cleancache-fix
+Subject: arch/x86/include/asm/pgtable.h needs spinlock.h
 
-remove now-unreachable code
+In file included from ./include/linux/pgtable.h:6,
+                 from ./include/linux/kasan.h:30,
+                 from mm/kasan/common.c:14:
+./arch/x86/include/asm/pgtable.h:56:8: error: unknown type name 'spinlock_t'
+   56 | extern spinlock_t pgd_lock;
+      |        ^~~~~~~~~~
 
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Juergen Gross <jgross@suse.com>
-Cc: Konrad Rzeszutek Wilk <Konrad.wilk@oracle.com>
-Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: Vitaly Wool <vitaly.wool@konsulko.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/data.c |    6 ------
- 1 file changed, 6 deletions(-)
+ arch/x86/include/asm/pgtable.h |    1 +
+ mm/kasan/common.c              |    1 +
+ 2 files changed, 2 insertions(+)
 
---- a/fs/f2fs/data.c~mm-remove-cleancache-fix
-+++ a/fs/f2fs/data.c
-@@ -2089,12 +2089,6 @@ submit_and_realloc:
- 	ClearPageError(page);
- 	*last_block_in_bio = block_nr;
- 	goto out;
--confused:
--	if (bio) {
--		__submit_bio(F2FS_I_SB(inode), bio, DATA);
--		bio = NULL;
--	}
--	unlock_page(page);
- out:
- 	*bio_ret = bio;
- 	return ret;
+--- a/arch/x86/include/asm/pgtable.h~arch-x86-include-asm-pgtableh-needs-spinlockh
++++ a/arch/x86/include/asm/pgtable.h
+@@ -3,6 +3,7 @@
+ #define _ASM_X86_PGTABLE_H
+ 
+ #include <linux/mem_encrypt.h>
++#include <linux/spinlock.h>
+ #include <asm/page.h>
+ #include <asm/pgtable_types.h>
+ 
+--- a/mm/kasan/common.c~arch-x86-include-asm-pgtableh-needs-spinlockh
++++ a/mm/kasan/common.c
+@@ -15,6 +15,7 @@
+ #include <linux/kernel.h>
+ #include <linux/linkage.h>
+ #include <linux/memblock.h>
++#include <linux/spinlock.h>
+ #include <linux/memory.h>
+ #include <linux/mm.h>
+ #include <linux/module.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +124,7 @@ hashh-remove-unused-define-directive-fix.patch
 panic-use-error_report_end-tracepoint-on-warnings-fix.patch
 linux-next-rejects.patch
 linux-next-git-rejects.patch
+arch-x86-include-asm-pgtableh-needs-spinlockh.patch
 sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
 firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
 firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
