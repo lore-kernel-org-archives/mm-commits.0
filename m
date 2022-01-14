@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06EB5C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:03:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D06B7C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:03:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230071AbiANWDJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 17:03:09 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41784 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229980AbiANWDJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:03:09 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03CF4C061574
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 14:03:08 -0800 (PST)
+        id S230060AbiANWDN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 17:03:13 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:57232 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229980AbiANWDN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:03:13 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 12F5161FEE
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:03:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EA2FEC36AE9;
-        Fri, 14 Jan 2022 22:03:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 37F05B82630
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:03:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7B7A7C36AE9;
+        Fri, 14 Jan 2022 22:03:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642197787;
-        bh=TCCbkQv3Z5Jyic4DQgXlZXah5HWhZHvALS2kVOtzjzs=;
+        s=korg; t=1642197791;
+        bh=GAVMvjSqQb3qKYqLPSoXyCyjKQXix2PTQ97z3GBGXaY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=fTuvFWFrAoWVU2Qmp2FbZXBvLQ9sQwovpg8fohQY99QtBhyaHWnmhOdQkh+SUbxez
-         hbTz6wDnf3oEmqFfrEAHbPcoobzWJ1lSpJMigXbV4/UentfIM8vw615KgyHzV8Q8Zy
-         +nVPx1uZoZXLNK8Yh6NfSQ0VrAqSsHVyC8d/Qios=
-Date:   Fri, 14 Jan 2022 14:03:06 -0800
+        b=O76iebov87USnie3YmN6n3CaBXftL772S9mKOI+eFfcHJoL+yZxeQ8/mYuZ8xzjn+
+         actYmcKn8P3TwxFj10Mry+jByftsqyr8Hv4L6GQ/aVvSATfuYg80e9sy/1NhVsue1J
+         ABppWfrzOYtxin7oKi9Xso3UGOhrqGxCyOKvZsOM=
+Date:   Fri, 14 Jan 2022 14:03:10 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bmt@zurich.ibm.com, bristot@kernel.org,
         caihuoqing@baidu.com, dave@stgolabs.net, dledford@redhat.com,
@@ -37,9 +34,9 @@ To:     akpm@linux-foundation.org, bmt@zurich.ibm.com, bristot@kernel.org,
         mathieu.desnoyers@efficios.com, mingo@redhat.com,
         mm-commits@vger.kernel.org, paulmck@kernel.org,
         rostedt@goodmis.org, torvalds@linux-foundation.org
-Subject:  [patch 005/146] trace/osnoise: make use of the helper
+Subject:  [patch 006/146] trace/hwlat: make use of the helper
  function kthread_run_on_cpu()
-Message-ID: <20220114220306.E3xj0fyX8%akpm@linux-foundation.org>
+Message-ID: <20220114220310.cKAJFgLZs%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,12 +45,12 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Cai Huoqing <caihuoqing@baidu.com>
-Subject: trace/osnoise: make use of the helper function kthread_run_on_cpu()
+Subject: trace/hwlat: make use of the helper function kthread_run_on_cpu()
 
 Replace kthread_create_on_cpu/wake_up_process() with kthread_run_on_cpu()
 to simplify the code.
 
-Link: https://lkml.kernel.org/r/20211022025711.3673-6-caihuoqing@baidu.com
+Link: https://lkml.kernel.org/r/20211022025711.3673-7-caihuoqing@baidu.com
 Signed-off-by: Cai Huoqing <caihuoqing@baidu.com>
 Cc: Bernard Metzler <bmt@zurich.ibm.com>
 Cc: Daniel Bristot de Oliveira <bristot@kernel.org>
@@ -70,24 +67,27 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace_osnoise.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/trace/trace_hwlat.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
---- a/kernel/trace/trace_osnoise.c~trace-osnoise-make-use-of-the-helper-function-kthread_run_on_cpu
-+++ a/kernel/trace/trace_osnoise.c
-@@ -1701,7 +1701,7 @@ static int start_kthread(unsigned int cp
- 		snprintf(comm, 24, "osnoise/%d", cpu);
- 	}
+--- a/kernel/trace/trace_hwlat.c~trace-hwlat-make-use-of-the-helper-function-kthread_run_on_cpu
++++ a/kernel/trace/trace_hwlat.c
+@@ -491,18 +491,14 @@ static void stop_per_cpu_kthreads(void)
+ static int start_cpu_kthread(unsigned int cpu)
+ {
+ 	struct task_struct *kthread;
+-	char comm[24];
  
--	kthread = kthread_create_on_cpu(main, NULL, cpu, comm);
-+	kthread = kthread_run_on_cpu(main, NULL, cpu, comm);
- 
+-	snprintf(comm, 24, "hwlatd/%d", cpu);
+-
+-	kthread = kthread_create_on_cpu(kthread_fn, NULL, cpu, comm);
++	kthread = kthread_run_on_cpu(kthread_fn, NULL, cpu, "hwlatd/%u");
  	if (IS_ERR(kthread)) {
  		pr_err(BANNER "could not start sampling thread\n");
-@@ -1710,7 +1710,6 @@ static int start_kthread(unsigned int cp
+ 		return -ENOMEM;
  	}
  
- 	per_cpu(per_cpu_osnoise_var, cpu).kthread = kthread;
+ 	per_cpu(hwlat_per_cpu_data, cpu).kthread = kthread;
 -	wake_up_process(kthread);
  
  	return 0;
