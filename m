@@ -2,44 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A7030C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:07:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DCBE8C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:07:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230216AbiANWHy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 17:07:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42886 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230217AbiANWHx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:07:53 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23AFAC061574
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 14:07:53 -0800 (PST)
+        id S230217AbiANWH4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 17:07:56 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:37496 "EHLO
+        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230202AbiANWHz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:07:55 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 60751CE19A9
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:07:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11AB3C36AE9;
-        Fri, 14 Jan 2022 22:07:49 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 80418CE24A4
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:07:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AEF0C36AE9;
+        Fri, 14 Jan 2022 22:07:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642198069;
-        bh=qmiPWMZwTgA/BMJA7I+d9SQrNXt8PzR9//XGI0UIFRQ=;
+        s=korg; t=1642198072;
+        bh=LLVBL4zoC2wVFwmXEE3n+SJftiNf+BT088LprLM5pXs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Ubp4JbdoHHjlaZZXmtZpWALILW5CjG+MjIWNBAlOazj99yaZy/+WT9KTXB0eJMG9U
-         /K+ynGYMm7AlaX63XFVxuglE++0xe7fYQ8I/tJl0YhVhP4SCxp5DlGYrwesWr7V3EJ
-         mJAoEVRF4yoEg/BL25zkfTVMC8UIOm6GX+XTZ9MM=
-Date:   Fri, 14 Jan 2022 14:07:48 -0800
+        b=Pi7YD9T0/f6r3tSxBn03y7yon5Jt9GY22G/UkZpftFH97Ln9A0CmZ88kTQZIjv5p9
+         gj28EcxZLOYRTRntZt6xoMOI3tn+T2q3ao2zsQ5GNTWm6jQOALICQIPu8qppzcy0Uo
+         H0sePDsTRvyZw+7NUREXSdT64QJcRK9lNzSn/DyU=
+Date:   Fri, 14 Jan 2022 14:07:52 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, almasrymina@google.com,
-        cannonmatthews@google.com, colin.i.king@gmail.com,
-        joannali@google.com, juew@google.com, keescook@chromium.org,
-        linmiaohe@huawei.com, linux-mm@kvack.org, mhocko@suse.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        osalvador@suse.de, rientjes@google.com, shakeelb@google.com,
-        shuah@kernel.org, songmuchun@bytedance.com,
-        torvalds@linux-foundation.org, ygyao@google.com
-Subject:  [patch 088/146] hugetlb: add hugetlb.*.numa_stat file
-Message-ID: <20220114220748.yBUy4PjHh%akpm@linux-foundation.org>
+        linux-mm@kvack.org, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, shuah@kernel.org,
+        torvalds@linux-foundation.org, yosryahmed@google.com
+Subject:  [patch 089/146] mm, hugepages: make memory size variable
+ in hugepage-mremap selftest
+Message-ID: <20220114220752._hNtbvxep%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,350 +41,166 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Mina Almasry <almasrymina@google.com>
-Subject: hugetlb: add hugetlb.*.numa_stat file
+From: Yosry Ahmed <yosryahmed@google.com>
+Subject: mm, hugepages: make memory size variable in hugepage-mremap selftest
 
-For hugetlb backed jobs/VMs it's critical to understand the numa
-information for the memory backing these jobs to deliver optimal
-performance.
+The hugetlb vma mremap() test currently maps 1GB of memory to trigger pmd
+sharing and make sure that 'unshare' path in mremap code works.  The test
+originally only mapped 10MB of memory (as specified by the header comment)
+but was later modified to 1GB to tackle this case.
 
-Currently this technically can be queried from /proc/self/numa_maps, but
-there are significant issues with that. Namely:
+However, not all machines will have 1GB of memory to spare for this test. 
+Adding a mapping size arg will allow run_vmtest.sh to pass an adequate
+mapping size, while allowing users to run the test independently with
+arbitrary size mappings.
 
-1. Memory can be mapped or unmapped.
-
-2. numa_maps are per process and need to be aggregated across all
-   processes in the cgroup.  For shared memory this is more involved as
-   the userspace needs to make sure it doesn't double count shared
-   mappings.
-
-3. I believe querying numa_maps needs to hold the mmap_lock which adds
-   to the contention on this lock.
-
-For these reasons I propose simply adding hugetlb.*.numa_stat file,
-   which shows the numa information of the cgroup similarly to
-   memory.numa_stat.
-
-On cgroup-v2:
-   cat /sys/fs/cgroup/unified/test/hugetlb.2MB.numa_stat
-   total=2097152 N0=2097152 N1=0
-
-On cgroup-v1:
-   cat /sys/fs/cgroup/hugetlb/test/hugetlb.2MB.numa_stat
-   total=2097152 N0=2097152 N1=0
-   hierarichal_total=2097152 N0=2097152 N1=0
-
-This patch was tested manually by allocating hugetlb memory and querying
-the hugetlb.*.numa_stat file of the cgroup and its parents.
-
-[colin.i.king@googlemail.com: fix spelling mistake "hierarichal" -> "hierarchical"]
-  Link: https://lkml.kernel.org/r/20211125090635.23508-1-colin.i.king@gmail.com
-[keescook@chromium.org: fix copy/paste array assignment]
-  Link: https://lkml.kernel.org/r/20211203065647.2819707-1-keescook@chromium.org
-Link: https://lkml.kernel.org/r/20211123001020.4083653-1-almasrymina@google.com
-Signed-off-by: Mina Almasry <almasrymina@google.com>
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Link: https://lkml.kernel.org/r/20211124203805.3700355-1-yosryahmed@google.com
+Signed-off-by: Yosry Ahmed <yosryahmed@google.com>
 Cc: Shuah Khan <shuah@kernel.org>
-Cc: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Jue Wang <juew@google.com>
-Cc: Yang Yao <ygyao@google.com>
-Cc: Joanna Li <joannali@google.com>
-Cc: Cannon Matthews <cannonmatthews@google.com>
+Cc: Mina Almasry <almasrymina@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v1/hugetlb.rst |    4 
- Documentation/admin-guide/cgroup-v2.rst         |    5 
- include/linux/hugetlb.h                         |    4 
- include/linux/hugetlb_cgroup.h                  |    7 
- mm/hugetlb_cgroup.c                             |  133 ++++++++++++--
- 5 files changed, 141 insertions(+), 12 deletions(-)
+ tools/testing/selftests/vm/hugepage-mremap.c |   46 +++++++++++------
+ tools/testing/selftests/vm/run_vmtests.sh    |    2 
+ 2 files changed, 31 insertions(+), 17 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v1/hugetlb.rst~hugetlb-add-hugetlbnuma_stat-file
-+++ a/Documentation/admin-guide/cgroup-v1/hugetlb.rst
-@@ -29,12 +29,14 @@ Brief summary of control files::
-  hugetlb.<hugepagesize>.max_usage_in_bytes             # show max "hugepagesize" hugetlb  usage recorded
-  hugetlb.<hugepagesize>.usage_in_bytes                 # show current usage for "hugepagesize" hugetlb
-  hugetlb.<hugepagesize>.failcnt                        # show the number of allocation failure due to HugeTLB usage limit
-+ hugetlb.<hugepagesize>.numa_stat                      # show the numa information of the hugetlb memory charged to this cgroup
+--- a/tools/testing/selftests/vm/hugepage-mremap.c~mm-hugepages-make-memory-size-variable-in-hugepage-mremap-selftest
++++ a/tools/testing/selftests/vm/hugepage-mremap.c
+@@ -4,7 +4,11 @@
+  *
+  * Example of remapping huge page memory in a user application using the
+  * mremap system call.  Code assumes a hugetlbfs filesystem is mounted
+- * at './huge'.  The code will use 10MB worth of huge pages.
++ * at './huge'.  The amount of memory used by this test is decided by a command
++ * line argument in MBs. If missing, the default amount is 10MB.
++ *
++ * To make sure the test triggers pmd sharing and goes through the 'unshare'
++ * path in the mremap code use 1GB (1024) or more.
+  */
  
- For a system supporting three hugepage sizes (64k, 32M and 1G), the control
- files include::
+ #define _GNU_SOURCE
+@@ -18,8 +22,10 @@
+ #include <linux/userfaultfd.h>
+ #include <sys/ioctl.h>
  
-   hugetlb.1GB.limit_in_bytes
-   hugetlb.1GB.max_usage_in_bytes
-+  hugetlb.1GB.numa_stat
-   hugetlb.1GB.usage_in_bytes
-   hugetlb.1GB.failcnt
-   hugetlb.1GB.rsvd.limit_in_bytes
-@@ -43,6 +45,7 @@ files include::
-   hugetlb.1GB.rsvd.failcnt
-   hugetlb.64KB.limit_in_bytes
-   hugetlb.64KB.max_usage_in_bytes
-+  hugetlb.64KB.numa_stat
-   hugetlb.64KB.usage_in_bytes
-   hugetlb.64KB.failcnt
-   hugetlb.64KB.rsvd.limit_in_bytes
-@@ -51,6 +54,7 @@ files include::
-   hugetlb.64KB.rsvd.failcnt
-   hugetlb.32MB.limit_in_bytes
-   hugetlb.32MB.max_usage_in_bytes
-+  hugetlb.32MB.numa_stat
-   hugetlb.32MB.usage_in_bytes
-   hugetlb.32MB.failcnt
-   hugetlb.32MB.rsvd.limit_in_bytes
---- a/Documentation/admin-guide/cgroup-v2.rst~hugetlb-add-hugetlbnuma_stat-file
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -2266,6 +2266,11 @@ HugeTLB Interface Files
- 	are local to the cgroup i.e. not hierarchical. The file modified event
- 	generated on this file reflects only the local events.
+-#define LENGTH (1UL * 1024 * 1024 * 1024)
++#define DEFAULT_LENGTH_MB 10UL
++#define MB_TO_BYTES(x) (x * 1024 * 1024)
  
-+  hugetlb.<hugepagesize>.numa_stat
-+	Similar to memory.numa_stat, it shows the numa information of the
-+        hugetlb pages of <hugepagesize> in this cgroup.  Only active in
-+        use hugetlb pages are included.  The per-node values are in bytes.
-+
- Misc
- ----
++#define FILE_NAME "huge/hugepagefile"
+ #define PROTECTION (PROT_READ | PROT_WRITE | PROT_EXEC)
+ #define FLAGS (MAP_SHARED | MAP_ANONYMOUS)
  
---- a/include/linux/hugetlb_cgroup.h~hugetlb-add-hugetlbnuma_stat-file
-+++ a/include/linux/hugetlb_cgroup.h
-@@ -36,6 +36,11 @@ enum hugetlb_memory_event {
- 	HUGETLB_NR_MEMORY_EVENTS,
- };
+@@ -28,20 +34,20 @@ static void check_bytes(char *addr)
+ 	printf("First hex is %x\n", *((unsigned int *)addr));
+ }
  
-+struct hugetlb_cgroup_per_node {
-+	/* hugetlb usage in pages over all hstates. */
-+	unsigned long usage[HUGE_MAX_HSTATE];
-+};
-+
- struct hugetlb_cgroup {
- 	struct cgroup_subsys_state css;
+-static void write_bytes(char *addr)
++static void write_bytes(char *addr, size_t len)
+ {
+ 	unsigned long i;
  
-@@ -57,6 +62,8 @@ struct hugetlb_cgroup {
+-	for (i = 0; i < LENGTH; i++)
++	for (i = 0; i < len; i++)
+ 		*(addr + i) = (char)i;
+ }
  
- 	/* Handle for "hugetlb.events.local" */
- 	struct cgroup_file events_local_file[HUGE_MAX_HSTATE];
-+
-+	struct hugetlb_cgroup_per_node *nodeinfo[];
- };
+-static int read_bytes(char *addr)
++static int read_bytes(char *addr, size_t len)
+ {
+ 	unsigned long i;
  
- static inline struct hugetlb_cgroup *
---- a/include/linux/hugetlb.h~hugetlb-add-hugetlbnuma_stat-file
-+++ a/include/linux/hugetlb.h
-@@ -622,8 +622,8 @@ struct hstate {
- #endif
- #ifdef CONFIG_CGROUP_HUGETLB
- 	/* cgroup control files */
--	struct cftype cgroup_files_dfl[7];
--	struct cftype cgroup_files_legacy[9];
-+	struct cftype cgroup_files_dfl[8];
-+	struct cftype cgroup_files_legacy[10];
- #endif
- 	char name[HSTATE_NAME_LEN];
- };
---- a/mm/hugetlb_cgroup.c~hugetlb-add-hugetlbnuma_stat-file
-+++ a/mm/hugetlb_cgroup.c
-@@ -123,29 +123,58 @@ static void hugetlb_cgroup_init(struct h
+ 	check_bytes(addr);
+-	for (i = 0; i < LENGTH; i++)
++	for (i = 0; i < len; i++)
+ 		if (*(addr + i) != (char)i) {
+ 			printf("Mismatch at %lu\n", i);
+ 			return 1;
+@@ -99,11 +105,19 @@ static void register_region_with_uffd(ch
  	}
  }
  
-+static void hugetlb_cgroup_free(struct hugetlb_cgroup *h_cgroup)
-+{
-+	int node;
-+
-+	for_each_node(node)
-+		kfree(h_cgroup->nodeinfo[node]);
-+	kfree(h_cgroup);
-+}
-+
- static struct cgroup_subsys_state *
- hugetlb_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
+-int main(void)
++int main(int argc, char *argv[])
  {
- 	struct hugetlb_cgroup *parent_h_cgroup = hugetlb_cgroup_from_css(parent_css);
- 	struct hugetlb_cgroup *h_cgroup;
-+	int node;
-+
-+	h_cgroup = kzalloc(struct_size(h_cgroup, nodeinfo, nr_node_ids),
-+			   GFP_KERNEL);
- 
--	h_cgroup = kzalloc(sizeof(*h_cgroup), GFP_KERNEL);
- 	if (!h_cgroup)
- 		return ERR_PTR(-ENOMEM);
- 
- 	if (!parent_h_cgroup)
- 		root_h_cgroup = h_cgroup;
- 
-+	/*
-+	 * TODO: this routine can waste much memory for nodes which will
-+	 * never be onlined. It's better to use memory hotplug callback
-+	 * function.
++	/* Read memory length as the first arg if valid, otherwise fallback to
++	 * the default length. Any additional args are ignored.
 +	 */
-+	for_each_node(node) {
-+		/* Set node_to_alloc to -1 for offline nodes. */
-+		int node_to_alloc =
-+			node_state(node, N_NORMAL_MEMORY) ? node : -1;
-+		h_cgroup->nodeinfo[node] =
-+			kzalloc_node(sizeof(struct hugetlb_cgroup_per_node),
-+				     GFP_KERNEL, node_to_alloc);
-+		if (!h_cgroup->nodeinfo[node])
-+			goto fail_alloc_nodeinfo;
-+	}
++	size_t length = argc > 1 ? (size_t)atoi(argv[1]) : 0UL;
 +
- 	hugetlb_cgroup_init(h_cgroup, parent_h_cgroup);
- 	return &h_cgroup->css;
++	length = length > 0 ? length : DEFAULT_LENGTH_MB;
++	length = MB_TO_BYTES(length);
 +
-+fail_alloc_nodeinfo:
-+	hugetlb_cgroup_free(h_cgroup);
-+	return ERR_PTR(-ENOMEM);
+ 	int ret = 0;
+ 
+-	int fd = open("/huge/test", O_CREAT | O_RDWR, 0755);
++	int fd = open(FILE_NAME, O_CREAT | O_RDWR, 0755);
+ 
+ 	if (fd < 0) {
+ 		perror("Open failed");
+@@ -112,7 +126,7 @@ int main(void)
+ 
+ 	/* mmap to a PUD aligned address to hopefully trigger pmd sharing. */
+ 	unsigned long suggested_addr = 0x7eaa40000000;
+-	void *haddr = mmap((void *)suggested_addr, LENGTH, PROTECTION,
++	void *haddr = mmap((void *)suggested_addr, length, PROTECTION,
+ 			   MAP_HUGETLB | MAP_SHARED | MAP_POPULATE, fd, 0);
+ 	printf("Map haddr: Returned address is %p\n", haddr);
+ 	if (haddr == MAP_FAILED) {
+@@ -122,7 +136,7 @@ int main(void)
+ 
+ 	/* mmap again to a dummy address to hopefully trigger pmd sharing. */
+ 	suggested_addr = 0x7daa40000000;
+-	void *daddr = mmap((void *)suggested_addr, LENGTH, PROTECTION,
++	void *daddr = mmap((void *)suggested_addr, length, PROTECTION,
+ 			   MAP_HUGETLB | MAP_SHARED | MAP_POPULATE, fd, 0);
+ 	printf("Map daddr: Returned address is %p\n", daddr);
+ 	if (daddr == MAP_FAILED) {
+@@ -132,16 +146,16 @@ int main(void)
+ 
+ 	suggested_addr = 0x7faa40000000;
+ 	void *vaddr =
+-		mmap((void *)suggested_addr, LENGTH, PROTECTION, FLAGS, -1, 0);
++		mmap((void *)suggested_addr, length, PROTECTION, FLAGS, -1, 0);
+ 	printf("Map vaddr: Returned address is %p\n", vaddr);
+ 	if (vaddr == MAP_FAILED) {
+ 		perror("mmap2");
+ 		exit(1);
+ 	}
+ 
+-	register_region_with_uffd(haddr, LENGTH);
++	register_region_with_uffd(haddr, length);
+ 
+-	void *addr = mremap(haddr, LENGTH, LENGTH,
++	void *addr = mremap(haddr, length, length,
+ 			    MREMAP_MAYMOVE | MREMAP_FIXED, vaddr);
+ 	if (addr == MAP_FAILED) {
+ 		perror("mremap");
+@@ -150,10 +164,10 @@ int main(void)
+ 
+ 	printf("Mremap: Returned address is %p\n", addr);
+ 	check_bytes(addr);
+-	write_bytes(addr);
+-	ret = read_bytes(addr);
++	write_bytes(addr, length);
++	ret = read_bytes(addr, length);
+ 
+-	munmap(addr, LENGTH);
++	munmap(addr, length);
+ 
+ 	return ret;
  }
- 
- static void hugetlb_cgroup_css_free(struct cgroup_subsys_state *css)
- {
--	struct hugetlb_cgroup *h_cgroup;
--
--	h_cgroup = hugetlb_cgroup_from_css(css);
--	kfree(h_cgroup);
-+	hugetlb_cgroup_free(hugetlb_cgroup_from_css(css));
- }
- 
- /*
-@@ -289,7 +318,17 @@ static void __hugetlb_cgroup_commit_char
- 		return;
- 
- 	__set_hugetlb_cgroup(page, h_cg, rsvd);
--	return;
-+	if (!rsvd) {
-+		unsigned long usage =
-+			h_cg->nodeinfo[page_to_nid(page)]->usage[idx];
-+		/*
-+		 * This write is not atomic due to fetching usage and writing
-+		 * to it, but that's fine because we call this with
-+		 * hugetlb_lock held anyway.
-+		 */
-+		WRITE_ONCE(h_cg->nodeinfo[page_to_nid(page)]->usage[idx],
-+			   usage + nr_pages);
-+	}
- }
- 
- void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
-@@ -328,8 +367,17 @@ static void __hugetlb_cgroup_uncharge_pa
- 
- 	if (rsvd)
- 		css_put(&h_cg->css);
--
--	return;
-+	else {
-+		unsigned long usage =
-+			h_cg->nodeinfo[page_to_nid(page)]->usage[idx];
-+		/*
-+		 * This write is not atomic due to fetching usage and writing
-+		 * to it, but that's fine because we call this with
-+		 * hugetlb_lock held anyway.
-+		 */
-+		WRITE_ONCE(h_cg->nodeinfo[page_to_nid(page)]->usage[idx],
-+			   usage - nr_pages);
-+	}
- }
- 
- void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
-@@ -418,6 +466,59 @@ enum {
- 	RES_RSVD_FAILCNT,
- };
- 
-+static int hugetlb_cgroup_read_numa_stat(struct seq_file *seq, void *dummy)
-+{
-+	int nid;
-+	struct cftype *cft = seq_cft(seq);
-+	int idx = MEMFILE_IDX(cft->private);
-+	bool legacy = MEMFILE_ATTR(cft->private);
-+	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(seq_css(seq));
-+	struct cgroup_subsys_state *css;
-+	unsigned long usage;
-+
-+	if (legacy) {
-+		/* Add up usage across all nodes for the non-hierarchical total. */
-+		usage = 0;
-+		for_each_node_state(nid, N_MEMORY)
-+			usage += READ_ONCE(h_cg->nodeinfo[nid]->usage[idx]);
-+		seq_printf(seq, "total=%lu", usage * PAGE_SIZE);
-+
-+		/* Simply print the per-node usage for the non-hierarchical total. */
-+		for_each_node_state(nid, N_MEMORY)
-+			seq_printf(seq, " N%d=%lu", nid,
-+				   READ_ONCE(h_cg->nodeinfo[nid]->usage[idx]) *
-+					   PAGE_SIZE);
-+		seq_putc(seq, '\n');
-+	}
-+
-+	/*
-+	 * The hierarchical total is pretty much the value recorded by the
-+	 * counter, so use that.
-+	 */
-+	seq_printf(seq, "%stotal=%lu", legacy ? "hierarchical_" : "",
-+		   page_counter_read(&h_cg->hugepage[idx]) * PAGE_SIZE);
-+
-+	/*
-+	 * For each node, transverse the css tree to obtain the hierarchical
-+	 * node usage.
-+	 */
-+	for_each_node_state(nid, N_MEMORY) {
-+		usage = 0;
-+		rcu_read_lock();
-+		css_for_each_descendant_pre(css, &h_cg->css) {
-+			usage += READ_ONCE(hugetlb_cgroup_from_css(css)
-+						   ->nodeinfo[nid]
-+						   ->usage[idx]);
-+		}
-+		rcu_read_unlock();
-+		seq_printf(seq, " N%d=%lu", nid, usage * PAGE_SIZE);
-+	}
-+
-+	seq_putc(seq, '\n');
-+
-+	return 0;
-+}
-+
- static u64 hugetlb_cgroup_read_u64(struct cgroup_subsys_state *css,
- 				   struct cftype *cft)
- {
-@@ -668,8 +769,14 @@ static void __init __hugetlb_cgroup_file
- 				    events_local_file[idx]);
- 	cft->flags = CFTYPE_NOT_ON_ROOT;
- 
--	/* NULL terminate the last cft */
-+	/* Add the numa stat file */
- 	cft = &h->cgroup_files_dfl[6];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.numa_stat", buf);
-+	cft->seq_show = hugetlb_cgroup_read_numa_stat;
-+	cft->flags = CFTYPE_NOT_ON_ROOT;
-+
-+	/* NULL terminate the last cft */
-+	cft = &h->cgroup_files_dfl[7];
- 	memset(cft, 0, sizeof(*cft));
- 
- 	WARN_ON(cgroup_add_dfl_cftypes(&hugetlb_cgrp_subsys,
-@@ -739,8 +846,14 @@ static void __init __hugetlb_cgroup_file
- 	cft->write = hugetlb_cgroup_reset;
- 	cft->read_u64 = hugetlb_cgroup_read_u64;
- 
--	/* NULL terminate the last cft */
-+	/* Add the numa stat file */
- 	cft = &h->cgroup_files_legacy[8];
-+	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.numa_stat", buf);
-+	cft->private = MEMFILE_PRIVATE(idx, 1);
-+	cft->seq_show = hugetlb_cgroup_read_numa_stat;
-+
-+	/* NULL terminate the last cft */
-+	cft = &h->cgroup_files_legacy[9];
- 	memset(cft, 0, sizeof(*cft));
- 
- 	WARN_ON(cgroup_add_legacy_cftypes(&hugetlb_cgrp_subsys,
+--- a/tools/testing/selftests/vm/run_vmtests.sh~mm-hugepages-make-memory-size-variable-in-hugepage-mremap-selftest
++++ a/tools/testing/selftests/vm/run_vmtests.sh
+@@ -111,7 +111,7 @@ fi
+ echo "-----------------------"
+ echo "running hugepage-mremap"
+ echo "-----------------------"
+-./hugepage-mremap
++./hugepage-mremap 256
+ if [ $? -ne 0 ]; then
+ 	echo "[FAIL]"
+ 	exitcode=1
 _
