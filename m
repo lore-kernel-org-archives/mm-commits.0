@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 531E2C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:05:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EDA8AC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:05:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230146AbiANWF2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 17:05:28 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42324 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230142AbiANWF2 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:05:28 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D67CCC061574
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 14:05:27 -0800 (PST)
+        id S230142AbiANWFb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 17:05:31 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:47066 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230148AbiANWFb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:05:31 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7DB4262003
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:05:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BAAFDC36AE5;
-        Fri, 14 Jan 2022 22:05:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B205361FF6
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:05:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0F53C36AE9;
+        Fri, 14 Jan 2022 22:05:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642197926;
-        bh=A6orIj7zEKCwqVSN/lU708h9PEkKG+pv4FQp8bVap30=;
+        s=korg; t=1642197930;
+        bh=F1ELaCyx4YcGBzGH+gZlEAcKQ7q0e/ULOdTBWIPHcWg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=AZ5qYlpTZijVLdEZWCzhit5/fGinmeBPhnN4dBLAwG3jvetQYB/4j/3pysm0u3cUv
-         5cueOj4F88qZseM580hGBsObrDAXncZmpmsZ1S/dsPle+Hw9MoQwO+RBmFCrWbX6nw
-         zf58UrTar/O6zwgeLV1PvJaQFY0LlhkSXTAS59KU=
-Date:   Fri, 14 Jan 2022 14:05:26 -0800
+        b=lFrpLxsxpqpJrPT+oQTJwLnymxBov9mT4XdLGdb4WQ9pLD//+jf/5JWIKA5k4Rbi3
+         2IPk4d6z01V9xNWw+AqxlKl8TJMDpMhsjKohDGhEp/wY8s5UrSh8y9B30861VoiI2y
+         nnmHtHgbSiQLoNlHrEOc6xFTZLjfNLtPFzJ3rrwc=
+Date:   Fri, 14 Jan 2022 14:05:29 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, christophe.jaillet@wanadoo.fr,
-        linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 047/146] mm/frontswap.c: use non-atomic
- '__set_bit()' when possible
-Message-ID: <20220114220526.Av3FTFVPw%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, chris@chrisdown.name,
+        hannes@cmpxchg.org, linux-mm@kvack.org, mhocko@kernel.org,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
+        torvalds@linux-foundation.org, vbabka@suse.cz,
+        vdavydov.dev@gmail.com
+Subject:  [patch 048/146] mm: memcontrol: make cgroup_memory_nokmem
+ static
+Message-ID: <20220114220529.svLxttnTm%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,39 +42,66 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
-Subject: mm/frontswap.c: use non-atomic '__set_bit()' when possible
+From: Muchun Song <songmuchun@bytedance.com>
+Subject: mm: memcontrol: make cgroup_memory_nokmem static
 
-the 'a' and 'b' bitmaps are local to this function, so no concurrent
-access can occur.  So the non-atomic '__set_bit()' can be used to save a
-few cycles.
+commit 494c1dfe855e ("mm: memcg/slab: create a new set of kmalloc-cg-<n>
+caches") makes cgroup_memory_nokmem global, however, it is unnecessary
+because there is already a function mem_cgroup_kmem_disabled() which
+exports it.
 
-Link: https://lkml.kernel.org/r/e52476da5cee57151745c5c3c934a69798dc6fa4.1638132190.git.christophe.jaillet@wanadoo.fr
-Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Just make it static and replace it with mem_cgroup_kmem_disabled() in
+mm/slab_common.c.
+
+Link: https://lkml.kernel.org/r/20211109065418.21693-1-songmuchun@bytedance.com
+Signed-off-by: Muchun Song <songmuchun@bytedance.com>
+Acked-by: Chris Down <chris@chrisdown.name>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/frontswap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/internal.h    |    5 -----
+ mm/memcontrol.c  |    2 +-
+ mm/slab_common.c |    2 +-
+ 3 files changed, 2 insertions(+), 7 deletions(-)
 
---- a/mm/frontswap.c~mm-mempool-use-non-atomic-__set_bit-when-possible
-+++ a/mm/frontswap.c
-@@ -127,7 +127,7 @@ void frontswap_register_ops(struct front
- 	spin_lock(&swap_lock);
- 	plist_for_each_entry(si, &swap_active_head, list) {
- 		if (!WARN_ON(!si->frontswap_map))
--			set_bit(si->type, a);
-+			__set_bit(si->type, a);
- 	}
- 	spin_unlock(&swap_lock);
+--- a/mm/internal.h~mm-memcontrol-make-cgroup_memory_nokmem-static
++++ a/mm/internal.h
+@@ -158,11 +158,6 @@ extern void reclaim_throttle(pg_data_t *
+ extern pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
  
-@@ -149,7 +149,7 @@ void frontswap_register_ops(struct front
- 	spin_lock(&swap_lock);
- 	plist_for_each_entry(si, &swap_active_head, list) {
- 		if (si->frontswap_map)
--			set_bit(si->type, b);
-+			__set_bit(si->type, b);
- 	}
- 	spin_unlock(&swap_lock);
+ /*
+- * in mm/memcontrol.c:
+- */
+-extern bool cgroup_memory_nokmem;
+-
+-/*
+  * in mm/page_alloc.c
+  */
  
+--- a/mm/memcontrol.c~mm-memcontrol-make-cgroup_memory_nokmem-static
++++ a/mm/memcontrol.c
+@@ -84,7 +84,7 @@ EXPORT_PER_CPU_SYMBOL_GPL(int_active_mem
+ static bool cgroup_memory_nosocket __ro_after_init;
+ 
+ /* Kernel memory accounting disabled? */
+-bool cgroup_memory_nokmem __ro_after_init;
++static bool cgroup_memory_nokmem __ro_after_init;
+ 
+ /* Whether the swap controller is active */
+ #ifdef CONFIG_MEMCG_SWAP
+--- a/mm/slab_common.c~mm-memcontrol-make-cgroup_memory_nokmem-static
++++ a/mm/slab_common.c
+@@ -844,7 +844,7 @@ new_kmalloc_cache(int idx, enum kmalloc_
+ 	if (type == KMALLOC_RECLAIM) {
+ 		flags |= SLAB_RECLAIM_ACCOUNT;
+ 	} else if (IS_ENABLED(CONFIG_MEMCG_KMEM) && (type == KMALLOC_CGROUP)) {
+-		if (cgroup_memory_nokmem) {
++		if (mem_cgroup_kmem_disabled()) {
+ 			kmalloc_caches[type][idx] = kmalloc_caches[KMALLOC_NORMAL][idx];
+ 			return;
+ 		}
 _
