@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 37B25C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 21:24:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 833D2C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 21:25:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229741AbiANVYj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 16:24:39 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33208 "EHLO
+        id S229704AbiANVZj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 16:25:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33418 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229545AbiANVYj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 16:24:39 -0500
+        with ESMTP id S229545AbiANVZi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 16:25:38 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2146C061574
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 13:24:38 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4F59BC061574
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 13:25:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id DE3C6B82A3C
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 21:24:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 76DD9C36AE5;
-        Fri, 14 Jan 2022 21:24:34 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 171E3B82A34
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 21:25:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E9B5C36AE5;
+        Fri, 14 Jan 2022 21:25:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642195474;
-        bh=yzHNc2SjVSNlPh4sSNbzLrgzq71zS8SfLkvnphImrKM=;
+        s=korg; t=1642195535;
+        bh=PfPr3KgsOAdCOR0bYC6FwIBlyDaXmZ8mCzd9RkokM9A=;
         h=Date:From:To:Subject:From;
-        b=2NgzPXHxgGSqj7Sw8I/SMctSzdgxX/PUHuk+00+BgbwHyyr+uMEDgDB2UfumdAynE
-         7vMjaDTfJfsBY3+m7rjbPtFmPMIYnEjNK3U7L8E25s3NANuOZ1Tx0F2a4/4UBGDoIq
-         K7htxDHjDRH56D/PZZ1yfCmRL+PPNVsB1ju73tow=
-Date:   Fri, 14 Jan 2022 13:24:34 -0800
+        b=kJGX4AMWSLEc+bWrpLVWH734tJeCkCHnpzqGeL/pYYGo35pZg2/Ep36vaF6/xahs3
+         eemE/BuGPazdKGUHSt8O6FPirnXIphxBqyO/LaSgRKQksB1LVfL4HM4yZHEAhluR/w
+         4HLV65CzCicDwz0q0scJNwTGOdbg8x1KT1Wrus4U=
+Date:   Fri, 14 Jan 2022 13:25:35 -0800
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, guro@fb.com, hannes@cmpxchg.org,
-        mhocko@suse.com, mm-commits@vger.kernel.org,
-        schatzberg.dan@gmail.com
-Subject:  [folded-merged]
- mm-add-group_oom_kill-memoryevent-fix.patch removed from -mm tree
-Message-ID: <20220114212434.cn2WRM5-u%akpm@linux-foundation.org>
+To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
+        mm-commits@vger.kernel.org, shakeelb@google.com,
+        songmuchun@bytedance.com
+Subject:  [folded-merged] memcg-add-per-memcg-vmalloc-stat-v2.patch
+ removed from -mm tree
+Message-ID: <20220114212535.z6avPVXLe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,62 +44,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add group_oom_kill memory.event fix
+     Subject: memcg-add-per-memcg-vmalloc-stat-v2
 has been removed from the -mm tree.  Its filename was
-     mm-add-group_oom_kill-memoryevent-fix.patch
+     memcg-add-per-memcg-vmalloc-stat-v2.patch
 
-This patch was dropped because it was folded into mm-add-group_oom_kill-memory-event.patch
+This patch was dropped because it was folded into memcg-add-per-memcg-vmalloc-stat.patch
 
 ------------------------------------------------------
-From: Dan Schatzberg <schatzberg.dan@gmail.com>
-Subject: mm: add group_oom_kill memory.event fix
+From: Shakeel Butt <shakeelb@google.com>
+Subject: memcg-add-per-memcg-vmalloc-stat-v2
 
-Andrew, could you please amend the prior patch "mm: add group_oom_kill
-memory.event" with these changes from Johannes and Chris?
+page_memcg() within rcu lock, per Muchun
 
-Also - small nit: it makes better sense to
-s/group_oom_kill/oom_group_kill/g in the patch title.
-
-Link: https://lkml.kernel.org/r/20211213162511.2492267-1-schatzberg.dan@gmail.com
-Signed-off-by: Dan Schatzberg <schatzberg.dan@gmail.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Link: https://lkml.kernel.org/r/20211222052457.1960701-1-shakeelb@google.com
+Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Roman Gushchin <guro@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/cgroup-v2.rst |    3 +--
- mm/memcontrol.c                         |    3 ---
- 2 files changed, 1 insertion(+), 5 deletions(-)
+ include/linux/memcontrol.h |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/Documentation/admin-guide/cgroup-v2.rst~mm-add-group_oom_kill-memoryevent-fix
-+++ a/Documentation/admin-guide/cgroup-v2.rst
-@@ -1269,8 +1269,7 @@ PAGE_SIZE multiple when read back.
- 		killed by any kind of OOM killer.
+--- a/include/linux/memcontrol.h~memcg-add-per-memcg-vmalloc-stat-v2
++++ a/include/linux/memcontrol.h
+@@ -996,10 +996,16 @@ static inline void mod_memcg_state(struc
+ static inline void mod_memcg_page_state(struct page *page,
+ 					int idx, int val)
+ {
+-	struct mem_cgroup *memcg = page_memcg(page);
++	struct mem_cgroup *memcg;
  
-           oom_group_kill
--                The number of times all tasks in the cgroup were killed
--                due to memory.oom.group.
-+                The number of times a group OOM has occurred.
- 
-   memory.events.local
- 	Similar to memory.events but the fields in the file are local
---- a/mm/memcontrol.c~mm-add-group_oom_kill-memoryevent-fix
-+++ a/mm/memcontrol.c
-@@ -4390,9 +4390,6 @@ static int mem_cgroup_oom_control_read(s
- 	seq_printf(sf, "under_oom %d\n", (bool)memcg->under_oom);
- 	seq_printf(sf, "oom_kill %lu\n",
- 		   atomic_long_read(&memcg->memory_events[MEMCG_OOM_KILL]));
--	seq_printf(sf, "oom_group_kill %lu\n",
--		   atomic_long_read(
--			&memcg->memory_events[MEMCG_OOM_GROUP_KILL]));
- 	return 0;
+-	if (!mem_cgroup_disabled() && memcg)
++	if (mem_cgroup_disabled())
++		return;
++
++	rcu_read_lock();
++	memcg = page_memcg(page);
++	if (memcg)
+ 		mod_memcg_state(memcg, idx, val);
++	rcu_read_unlock();
  }
  
+ static inline unsigned long memcg_page_state(struct mem_cgroup *memcg, int idx)
 _
 
-Patches currently in -mm which might be from schatzberg.dan@gmail.com are
+Patches currently in -mm which might be from shakeelb@google.com are
 
-mm-add-group_oom_kill-memory-event.patch
+memcg-better-bounds-on-the-memcg-stats-updates.patch
+memcg-add-per-memcg-vmalloc-stat.patch
+memcg-add-per-memcg-vmalloc-stat-v4.patch
 
