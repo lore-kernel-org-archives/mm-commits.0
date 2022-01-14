@@ -2,37 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2710FC433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 21:30:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 87DFEC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 21:34:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229543AbiANVaH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 16:30:07 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:55858 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229545AbiANVaF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 16:30:05 -0500
+        id S229606AbiANVe4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 16:34:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35432 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229545AbiANVey (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 16:34:54 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A083C061574
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 13:34:54 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1D91661F92
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 21:30:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 522CAC36AE5;
-        Fri, 14 Jan 2022 21:30:04 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B0747B82A34
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 21:34:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 31FF7C36AEC;
+        Fri, 14 Jan 2022 21:34:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642195804;
-        bh=Hp4Iz1RKfTHvF2uOoKVR/Kmrhonf3yx+igQIGaRNqAY=;
+        s=korg; t=1642196091;
+        bh=eTTRFoFu9VTgRtJc++kvRimgVdTUUMINZwMHocw0/uM=;
         h=Date:From:To:Subject:From;
-        b=y4CCvcCm2dTKiXooWkbDcWe5UNU5kLMvCcHyA4SiHfmjqM/5qeAY0fx0RkbaaFC61
-         O6j2oDNKZ8TFZLKQ4K2V1/eJ9pKkbnjSF1Oaiz2WDnRbnAC4ymczbXM+BM/5koR6Mr
-         bQ/X4qQyFLF4pnUnh9VxpKRriaBK5nGpd+0FHW7Q=
-Date:   Fri, 14 Jan 2022 13:30:03 -0800
+        b=CQvohr5QHFAq3pwOnRINpHH0Btvw2UJTDk1DkkztvmwAPjl1fILn0CK2atuqb+102
+         Tl6Dd1S7puT3nUuTWXRHPrjEHCApzZUmL4Vkq1sU8wJ1Ao+cYkHlQt+DfSXx5BtiJI
+         UXHoriZC9G0T2cSW62af5toKPepKHbHNW2lKbPbE=
+Date:   Fri, 14 Jan 2022 13:34:50 -0800
 From:   akpm@linux-foundation.org
-To:     almasrymina@google.com, keescook@chromium.org,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        sfr@canb.auug.org.au, songmuchun@bytedance.com
+To:     baolin.wang@linux.alibaba.com, mike.kravetz@oracle.com,
+        mm-commits@vger.kernel.org, shy828301@gmail.com, ziy@nvidia.com
 Subject:  [folded-merged]
- hugetlb-add-hugetlbnuma_stat-file-fix-2.patch removed from -mm tree
-Message-ID: <20220114213003.4cTKFzais%akpm@linux-foundation.org>
+ mm-migrate-correct-the-hugetlb-migration-stats-fix.patch removed from -mm
+ tree
+Message-ID: <20220114213450.jJsOOCIHv%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,56 +44,62 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb/cgroup: fix copy/paste array assignment
+     Subject: mm-migrate-correct-the-hugetlb-migration-stats-fix
 has been removed from the -mm tree.  Its filename was
-     hugetlb-add-hugetlbnuma_stat-file-fix-2.patch
+     mm-migrate-correct-the-hugetlb-migration-stats-fix.patch
 
-This patch was dropped because it was folded into hugetlb-add-hugetlbnuma_stat-file.patch
+This patch was dropped because it was folded into mm-migrate-correct-the-hugetlb-migration-stats.patch
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: hugetlb/cgroup: fix copy/paste array assignment
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm-migrate-correct-the-hugetlb-migration-stats-fix
 
-Fix mismatched array assignment, reported by an -Warray-bounds build:
+fix docs, per Mike
 
-mm/hugetlb_cgroup.c: In function '__hugetlb_cgroup_file_legacy_init':
-mm/hugetlb_cgroup.c:850:35: error: array subscript 8 is above array bounds of 'struct cftype[8]' [-Werror=array-bounds ]
-  850 |         cft = &h->cgroup_files_dfl[8];
-      |                ~~~~~~~~~~~~~~~~~~~^~~
-In file included from mm/hugetlb_cgroup.c:23:
-./include/linux/hugetlb.h:625:23: note: while referencing 'cgroup_files_dfl'
-  625 |         struct cftype cgroup_files_dfl[8];
-      |                       ^~~~~~~~~~~~~~~~
-
-Link: https://lkml.kernel.org/r/20211203065647.2819707-1-keescook@chromium.org
-Fixes: e45f4726bcad ("hugetlb: add hugetlb.*.numa_stat file")
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Mina Almasry <almasrymina@google.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/141bdfc6-f898-3cc3-f692-726c5f6cb74d@linux.alibaba.com
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb_cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/vm/page_migration.rst |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
---- a/mm/hugetlb_cgroup.c~hugetlb-add-hugetlbnuma_stat-file-fix-2
-+++ a/mm/hugetlb_cgroup.c
-@@ -847,7 +847,7 @@ static void __init __hugetlb_cgroup_file
- 	cft->read_u64 = hugetlb_cgroup_read_u64;
+--- a/Documentation/vm/page_migration.rst~mm-migrate-correct-the-hugetlb-migration-stats-fix
++++ a/Documentation/vm/page_migration.rst
+@@ -263,15 +263,15 @@ Monitoring Migration
+ The following events (counters) can be used to monitor page migration.
  
- 	/* Add the numa stat file */
--	cft = &h->cgroup_files_dfl[8];
-+	cft = &h->cgroup_files_legacy[8];
- 	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.numa_stat", buf);
- 	cft->private = MEMFILE_PRIVATE(idx, 1);
- 	cft->seq_show = hugetlb_cgroup_read_numa_stat;
+ 1. PGMIGRATE_SUCCESS: Normal page migration success. Each count means that a
+-   page was migrated. If the page was a non-THP page, then this counter is
+-   increased by one. If the page was a THP, then this counter is increased by
+-   the number of THP subpages. For example, migration of a single 2MB THP that
+-   has 4KB-size base pages (subpages) will cause this counter to increase by
+-   512.
++   page was migrated. If the page was a non-THP and non-hugetlb page, then
++   this counter is increased by one. If the page was a THP or hugetlb, then
++   this counter is increased by the number of THP or hugetlb subpages.
++   For example, migration of a single 2MB THP that has 4KB-size base pages
++   (subpages) will cause this counter to increase by 512.
+ 
+ 2. PGMIGRATE_FAIL: Normal page migration failure. Same counting rules as for
+    PGMIGRATE_SUCCESS, above: this will be increased by the number of subpages,
+-   if it was a THP.
++   if it was a THP or hugetlb.
+ 
+ 3. THP_MIGRATION_SUCCESS: A THP was migrated without being split.
+ 
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-hugetlb-add-hugetlbnuma_stat-file.patch
-hfsplus-use-struct_group_attr-for-memcpy-region.patch
-ubsan-remove-config_ubsan_object_size.patch
+mm-migrate-fix-the-return-value-of-migrate_pages.patch
+mm-migrate-correct-the-hugetlb-migration-stats.patch
+mm-compaction-fix-the-migration-stats-in-trace_mm_compaction_migratepages.patch
+mm-migrate-support-multiple-target-nodes-demotion.patch
+mm-migrate-add-more-comments-for-selecting-target-node-randomly.patch
+mm-damon-add-access-checking-for-hugetlb-pages.patch
+mm-damon-add-access-checking-for-hugetlb-pages-fix.patch
+mm-damon-add-access-checking-for-hugetlb-pages-v3.patch
 
