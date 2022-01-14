@@ -2,41 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F3482C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:10:40 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15F3AC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:10:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230309AbiANWKk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 17:10:40 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43534 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230307AbiANWKk (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:10:40 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88AA0C061574
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 14:10:39 -0800 (PST)
+        id S230145AbiANWKn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 17:10:43 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:38600 "EHLO
+        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229863AbiANWKm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:10:42 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id DAC69CE2498
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:10:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9CB3C36AEC;
-        Fri, 14 Jan 2022 22:10:35 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id D9597CE2384
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:10:40 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1294C36AE5;
+        Fri, 14 Jan 2022 22:10:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642198236;
-        bh=494o6UPR1dCRBxmjCxiev9rGNpIsWEH9ubGKHFmP2PY=;
+        s=korg; t=1642198239;
+        bh=v1bwwHVFMHKlbRbNAi/180jRFambaRbnWJ42e8609zc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xpZtTSVwVN2jvF3K5q2T/UeGARS9OwAKj7e7845ceWp0KknJXJEzjJUQ6ewNnG5su
-         LSf9k08jvSdGavFyzjE3ObZDoBECA5DRzXEPQoumhpZ478bvn3fMm1Sa9JGWVMYk3O
-         80sqpK//+K794iYYs3UJhD10dAw+UP5vRPtSDYok=
-Date:   Fri, 14 Jan 2022 14:10:35 -0800
+        b=Z7CbX80CYjdVYnzWi5Ai/mCrTEitVYqHK35US8nVKve/7hsD8e5s5CdP186xX57LX
+         GfwTnPeI3KPt2UNZMSJCpxX2eMBL6zSGyjW0IH0bKI9rXZJMXmnWrKU+J39PtyGQld
+         98VtigBzk0KEfskWcEQuBVvWNoHdaJaF/tOBXikQ=
+Date:   Fri, 14 Jan 2022 14:10:38 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, baolin.wang@linux.alibaba.com,
-        linux-mm@kvack.org, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        sfr@canb.auug.org.au, sj@kernel.org, torvalds@linux-foundation.org
-Subject:  [patch 141/146] mm/damon: add access checking for hugetlb
- pages
-Message-ID: <20220114221035.BB8CjJjza%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, guoqing.jiang@linux.dev,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, sj@kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 142/146] mm/damon: move the implementation of
+ damon_insert_region to damon.h
+Message-ID: <20220114221038.0qYlWfSgE%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,164 +40,74 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm/damon: add access checking for hugetlb pages
+From: Guoqing Jiang <guoqing.jiang@linux.dev>
+Subject: mm/damon: move the implementation of damon_insert_region to damon.h
 
-The process's VMAs can be mapped by hugetlb page, but now the DAMON did
-not implement the access checking for hugetlb pte, so we can not get the
-actual access count like below if a process VMAs were mapped by hugetlb.
+Usually, inline function is declared static since it should sit between
+storage and type.  And implement it in a header file if used by multiple
+files.
 
-damon_aggregated: target_id=18446614368406014464 nr_regions=12 4194304-5476352: 0 545
-damon_aggregated: target_id=18446614368406014464 nr_regions=12 140662370467840-140662372970496: 0 545
-damon_aggregated: target_id=18446614368406014464 nr_regions=12 140662372970496-140662375460864: 0 545
-damon_aggregated: target_id=18446614368406014464 nr_regions=12 140662375460864-140662377951232: 0 545
-damon_aggregated: target_id=18446614368406014464 nr_regions=12 140662377951232-140662380449792: 0 545
-damon_aggregated: target_id=18446614368406014464 nr_regions=12 140662380449792-140662382944256: 0 545
-......
+And this change also fixes compile issue when backport damon to 5.10.
 
-Thus this patch adds hugetlb access checking support, with this patch we
-can see below VMA mapped by hugetlb access count.
+mm/damon/vaddr.c: In function `damon_va_evenly_split_region':
+./include/linux/damon.h:425:13: error: inlining failed in call to `always_inline' `damon_insert_region': function body not available
+425 | inline void damon_insert_region(struct damon_region *r,
+| ^~~~~~~~~~~~~~~~~~~
+mm/damon/vaddr.c:86:3: note: called from here
+86 | damon_insert_region(n, r, next, t);
+| ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-damon_aggregated: target_id=18446613056935405824 nr_regions=12 140296486649856-140296489914368: 1 3
-damon_aggregated: target_id=18446613056935405824 nr_regions=12 140296489914368-140296492978176: 1 3
-damon_aggregated: target_id=18446613056935405824 nr_regions=12 140296492978176-140296495439872: 1 3
-damon_aggregated: target_id=18446613056935405824 nr_regions=12 140296495439872-140296498311168: 1 3
-damon_aggregated: target_id=18446613056935405824 nr_regions=12 140296498311168-140296501198848: 1 3
-damon_aggregated: target_id=18446613056935405824 nr_regions=12 140296501198848-140296504320000: 1 3
-damon_aggregated: target_id=18446613056935405824 nr_regions=12 140296504320000-140296507568128: 1 2
-......
-
-
-[baolin.wang@linux.alibaba.com: fix unused var warning]
-  Link: https://lkml.kernel.org/r/1aaf9c11-0d8e-b92d-5c92-46e50a6e8d4e@linux.alibaba.com
-[baolin.wang@linux.alibaba.com: v3]
-  Link: https://lkml.kernel.org/r/486927ecaaaecf2e3a7fbe0378ec6e1c58b50747.1640852276.git.baolin.wang@linux.alibaba.com
-Link: https://lkml.kernel.org/r/6afcbd1fda5f9c7c24f320d26a98188c727ceec3.1639623751.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Link: https://lkml.kernel.org/r/20211223085703.6142-1-guoqing.jiang@linux.dev
+Signed-off-by: Guoqing Jiang <guoqing.jiang@linux.dev>
 Reviewed-by: SeongJae Park <sj@kernel.org>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |   96 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 96 insertions(+)
+ include/linux/damon.h |   13 +++++++++++--
+ mm/damon/core.c       |   11 -----------
+ 2 files changed, 11 insertions(+), 13 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-add-access-checking-for-hugetlb-pages
-+++ a/mm/damon/vaddr.c
-@@ -388,8 +388,65 @@ out:
- 	return 0;
+--- a/include/linux/damon.h~mm-damon-move-the-implementation-of-damon_insert_region-to-damonh
++++ a/include/linux/damon.h
+@@ -451,9 +451,18 @@ static inline struct damon_region *damon
+ #ifdef CONFIG_DAMON
+ 
+ struct damon_region *damon_new_region(unsigned long start, unsigned long end);
+-inline void damon_insert_region(struct damon_region *r,
++
++/*
++ * Add a region between two other regions
++ */
++static inline void damon_insert_region(struct damon_region *r,
+ 		struct damon_region *prev, struct damon_region *next,
+-		struct damon_target *t);
++		struct damon_target *t)
++{
++	__list_add(&r->list, &prev->list, &next->list);
++	t->nr_regions++;
++}
++
+ void damon_add_region(struct damon_region *r, struct damon_target *t);
+ void damon_destroy_region(struct damon_region *r, struct damon_target *t);
+ 
+--- a/mm/damon/core.c~mm-damon-move-the-implementation-of-damon_insert_region-to-damonh
++++ a/mm/damon/core.c
+@@ -49,17 +49,6 @@ struct damon_region *damon_new_region(un
+ 	return region;
  }
  
-+#ifdef CONFIG_HUGETLB_PAGE
-+static void damon_hugetlb_mkold(pte_t *pte, struct mm_struct *mm,
-+				struct vm_area_struct *vma, unsigned long addr)
-+{
-+	bool referenced = false;
-+	pte_t entry = huge_ptep_get(pte);
-+	struct page *page = pte_page(entry);
-+
-+	if (!page)
-+		return;
-+
-+	get_page(page);
-+
-+	if (pte_young(entry)) {
-+		referenced = true;
-+		entry = pte_mkold(entry);
-+		huge_ptep_set_access_flags(vma, addr, pte, entry,
-+					   vma->vm_flags & VM_WRITE);
-+	}
-+
-+#ifdef CONFIG_MMU_NOTIFIER
-+	if (mmu_notifier_clear_young(mm, addr,
-+				     addr + huge_page_size(hstate_vma(vma))))
-+		referenced = true;
-+#endif /* CONFIG_MMU_NOTIFIER */
-+
-+	if (referenced)
-+		set_page_young(page);
-+
-+	set_page_idle(page);
-+	put_page(page);
-+}
-+
-+static int damon_mkold_hugetlb_entry(pte_t *pte, unsigned long hmask,
-+				     unsigned long addr, unsigned long end,
-+				     struct mm_walk *walk)
-+{
-+	struct hstate *h = hstate_vma(walk->vma);
-+	spinlock_t *ptl;
-+	pte_t entry;
-+
-+	ptl = huge_pte_lock(h, walk->mm, pte);
-+	entry = huge_ptep_get(pte);
-+	if (!pte_present(entry))
-+		goto out;
-+
-+	damon_hugetlb_mkold(pte, walk->mm, walk->vma, addr);
-+
-+out:
-+	spin_unlock(ptl);
-+	return 0;
-+}
-+#else
-+#define damon_mkold_hugetlb_entry NULL
-+#endif /* CONFIG_HUGETLB_PAGE */
-+
- static const struct mm_walk_ops damon_mkold_ops = {
- 	.pmd_entry = damon_mkold_pmd_entry,
-+	.hugetlb_entry = damon_mkold_hugetlb_entry,
- };
- 
- static void damon_va_mkold(struct mm_struct *mm, unsigned long addr)
-@@ -484,8 +541,47 @@ out:
- 	return 0;
- }
- 
-+#ifdef CONFIG_HUGETLB_PAGE
-+static int damon_young_hugetlb_entry(pte_t *pte, unsigned long hmask,
-+				     unsigned long addr, unsigned long end,
-+				     struct mm_walk *walk)
-+{
-+	struct damon_young_walk_private *priv = walk->private;
-+	struct hstate *h = hstate_vma(walk->vma);
-+	struct page *page;
-+	spinlock_t *ptl;
-+	pte_t entry;
-+
-+	ptl = huge_pte_lock(h, walk->mm, pte);
-+	entry = huge_ptep_get(pte);
-+	if (!pte_present(entry))
-+		goto out;
-+
-+	page = pte_page(entry);
-+	if (!page)
-+		goto out;
-+
-+	get_page(page);
-+
-+	if (pte_young(entry) || !page_is_idle(page) ||
-+	    mmu_notifier_test_young(walk->mm, addr)) {
-+		*priv->page_sz = huge_page_size(h);
-+		priv->young = true;
-+	}
-+
-+	put_page(page);
-+
-+out:
-+	spin_unlock(ptl);
-+	return 0;
-+}
-+#else
-+#define damon_young_hugetlb_entry NULL
-+#endif /* CONFIG_HUGETLB_PAGE */
-+
- static const struct mm_walk_ops damon_young_ops = {
- 	.pmd_entry = damon_young_pmd_entry,
-+	.hugetlb_entry = damon_young_hugetlb_entry,
- };
- 
- static bool damon_va_young(struct mm_struct *mm, unsigned long addr,
+-/*
+- * Add a region between two other regions
+- */
+-inline void damon_insert_region(struct damon_region *r,
+-		struct damon_region *prev, struct damon_region *next,
+-		struct damon_target *t)
+-{
+-	__list_add(&r->list, &prev->list, &next->list);
+-	t->nr_regions++;
+-}
+-
+ void damon_add_region(struct damon_region *r, struct damon_target *t)
+ {
+ 	list_add_tail(&r->list, &t->regions_list);
 _
