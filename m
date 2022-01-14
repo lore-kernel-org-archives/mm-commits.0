@@ -2,38 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5FF0AC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 21:23:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BD3BBC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 21:23:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229769AbiANVXI (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 16:23:08 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:43188 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229741AbiANVXI (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 16:23:08 -0500
+        id S229773AbiANVXo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 16:23:44 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:52902 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229741AbiANVXo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 16:23:44 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 544A6B82A26
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 21:23:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB532C36AE9;
-        Fri, 14 Jan 2022 21:23:05 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B3A1661F85
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 21:23:43 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0B020C36AE9;
+        Fri, 14 Jan 2022 21:23:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642195386;
-        bh=1ZfMbAqvv7aVkA7JmZ18D3tgT60RLBjSackweyTaKnA=;
+        s=korg; t=1642195423;
+        bh=1v6Jl3VLa6tDnFwRLP3MIsIHSflsgjKmFfE+41pQVd4=;
         h=Date:From:To:Subject:From;
-        b=YyOB/jsayUFBSSpZiG6eDzCGa6lFi0U/AL6vcaqa5KNbkIwwA/6wPwxPFAyt8udiS
-         RsedPbt6T3M+6iB7pWSzb2eS5+mCjRwd6czxEVpoeZR/gJ5ttbCCmxf1klaha22gIX
-         YJ0ZlFBDjRPQ9x0rTAgR6xpoNxHt+pIbvsu1f27A=
-Date:   Fri, 14 Jan 2022 13:23:05 -0800
+        b=C3yQKAXg7btAXmgPQ8f3ckfTzJ5V+j0rcResgsAHo5GK0a29qleR82Cj+kJSXaBlI
+         EnUgmmcFB3dHNIHEgHsQnU1oJ3fNGLwvRZg3tu1M0w5sN5bk+Egiqr7IhyiEhTX0Kc
+         3HEW3+Mx9oSZCC6kIQwyS5aKjNE7qjy9AQcQfzKA=
+Date:   Fri, 14 Jan 2022 13:23:42 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, joao.m.martins@oracle.com,
-        mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org,
+        shy828301@gmail.com
 Subject:  [folded-merged]
- device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch removed from
- -mm tree
-Message-ID: <20220114212305.8zGVuD1Bx%akpm@linux-foundation.org>
+ =?US-ASCII?Q?mm-shmem-dont-truncate-page-if-memory-failure-happens-checkp?=
+ =?US-ASCII?Q?atch-fixes.patch?= removed from -mm tree
+Message-ID: <20220114212342.p0h5AetGb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,42 +43,64 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix
+     Subject: mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch
+     mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault.patch
+This patch was dropped because it was folded into mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix
+Subject: mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes
 
-fix CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD=n build
+WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
+#20: 
+ slight different implementation from what Ajay Garg <ajaygargnsit@gmail.com>
 
-Cc: Joao Martins <joao.m.martins@oracle.com>
+WARNING: suspect code indent for conditional statements (16, 23)
+#148: FILE: mm/shmem.c:3129:
++		if (!page)
++		       return ERR_PTR(-ECHILD);
+
+WARNING: Statements should start on a tabstop
+#149: FILE: mm/shmem.c:3130:
++		       return ERR_PTR(-ECHILD);
+
+total: 0 errors, 3 warnings, 150 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/mm-shmem-dont-truncate-page-if-memory-failure-happens.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/dax/device.c |    2 +-
+ mm/shmem.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/dax/device.c~device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix
-+++ a/drivers/dax/device.c
-@@ -216,7 +216,7 @@ static vm_fault_t __dev_dax_pud_fault(st
- }
- #else
- static vm_fault_t __dev_dax_pud_fault(struct dev_dax *dev_dax,
--				struct vm_fault *vmf, pfn_t *pfn)
-+				struct vm_fault *vmf)
- {
- 	return VM_FAULT_FALLBACK;
- }
+--- a/mm/shmem.c~mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes
++++ a/mm/shmem.c
+@@ -3127,7 +3127,7 @@ static const char *shmem_get_link(struct
+ 		if (error)
+ 			return ERR_PTR(error);
+ 		if (!page)
+-		       return ERR_PTR(-ECHILD);
++			return ERR_PTR(-ECHILD);
+ 		if (PageHWPoison(page)) {
+ 			unlock_page(page);
+ 			put_page(page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault.patch
-mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
+mm-shmem-dont-truncate-page-if-memory-failure-happens.patch
 shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode-checkpatch-fixes.patch
 memcg-add-per-memcg-vmalloc-stat-v2-fix.patch
 mm-remove-redundant-check-about-fault_flag_allow_retry-bit-checkpatch-fixes.patch
