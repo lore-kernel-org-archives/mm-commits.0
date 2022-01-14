@@ -2,37 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 07FBBC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C03AC4332F
 	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:09:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230261AbiANWJg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S230270AbiANWJg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 14 Jan 2022 17:09:36 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:60820 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230270AbiANWJb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:09:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43270 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230321AbiANWJf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:09:35 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0785CC061574
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 14:09:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 65A8AB8262E
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:09:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F3A8C36AE9;
-        Fri, 14 Jan 2022 22:09:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C3C75B825F5
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:09:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 258DFC36AEC;
+        Fri, 14 Jan 2022 22:09:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642198169;
-        bh=sJj+3KSGx0lT8xZbK1n+Apk8RaMnsSo4xCzroKRdGoc=;
+        s=korg; t=1642198172;
+        bh=+vVz2eWdeL20DFjkOdFxoyvdzR1B/GkjtVkxXYkjPlE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2AEDeP6k2XFvv1PUg1DeQD6jPiPE/9JuFzLfuhIX/vFYUokjcTpvqRx9sssIcZ1ls
-         0D9faQcNwG+q0CYHsiyiFUUSRyG6EKNmqSWN+1ifTOUlQvx2yt2kJJjuY431p9hSXl
-         YiW0HHB20b3zI+pv/8GadKriA89Sb1qymnaYa1OI=
-Date:   Fri, 14 Jan 2022 14:09:28 -0800
+        b=zNvO1u0NxyKCpbUwYG+KTu/hHBuVwb8mn57U1ALhN3RqC94yB3YdW9f13JnVx/r6A
+         pY2IFSfdjgRFlGLQIZEnfWlv/YpPBmnYWYGPVGzn6jfEC0AnztGPNEL/VeTJCjiuBW
+         nu6pCqMdD7kECkiIC4nBRLx6cetIF+JfLT/IG+JM=
+Date:   Fri, 14 Jan 2022 14:09:31 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        liuting.0x7c00@bytedance.com, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 119/146] mm: make some vars and functions static
- or __init
-Message-ID: <20220114220928.xzpniNG1e%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, apopple@nvidia.com,
+        Felix.Kuehling@amd.com, jgg@nvidia.com, jglisse@redhat.com,
+        jhubbard@nvidia.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, rcampbell@nvidia.com,
+        torvalds@linux-foundation.org, ziy@nvidia.com
+Subject:  [patch 120/146] mm/hmm.c: allow VM_MIXEDMAP to work with
+ hmm_range_fault
+Message-ID: <20220114220931.285H-925c%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,71 +45,144 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Ting Liu <liuting.0x7c00@bytedance.com>
-Subject: mm: make some vars and functions static or __init
+From: Alistair Popple <apopple@nvidia.com>
+Subject: mm/hmm.c: allow VM_MIXEDMAP to work with hmm_range_fault
 
-"page_idle_ops" as a global var, but its scope of use within this
-document.  So it should be static.
+hmm_range_fault() can be used instead of get_user_pages() for devices
+which allow faulting however unlike get_user_pages() it will return an
+error when used on a VM_MIXEDMAP range.
 
-"page_ext_ops" is a var used in the kernel initial phase.  And other
-functions are aslo used in the kernel initial phase.  So they should be
-__init or __initdata to reclaim memory.
+To make hmm_range_fault() more closely match get_user_pages() remove
+this restriction. This requires dealing with the !ARCH_HAS_PTE_SPECIAL
+case in hmm_vma_handle_pte(). Rather than replicating the logic of
+vm_normal_page() call it directly and do a check for the zero pfn
+similar to what get_user_pages() currently does.
 
-Link: https://lkml.kernel.org/r/20211217095023.67293-1-liuting.0x7c00@bytedance.com
-Signed-off-by: Ting Liu <liuting.0x7c00@bytedance.com>
+Also add a test to hmm selftest to verify functionality.
+
+Link: https://lkml.kernel.org/r/20211104012001.2555676-1-apopple@nvidia.com
+Fixes: da4c3c735ea4 ("mm/hmm/mirror: helper to snapshot CPU page table")
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_idle.h |    1 -
- mm/page_ext.c             |    4 ++--
- mm/page_owner.c           |    4 ++--
- 3 files changed, 4 insertions(+), 5 deletions(-)
+ lib/test_hmm.c                         |   24 +++++++++++++
+ mm/hmm.c                               |    5 +-
+ tools/testing/selftests/vm/hmm-tests.c |   42 +++++++++++++++++++++++
+ 3 files changed, 69 insertions(+), 2 deletions(-)
 
---- a/include/linux/page_idle.h~mm-make-some-vars-and-functions-static-or-__init
-+++ a/include/linux/page_idle.h
-@@ -13,7 +13,6 @@
-  * If there is not enough space to store Idle and Young bits in page flags, use
-  * page ext flags instead.
+--- a/lib/test_hmm.c~mm-hmmc-allow-vm_mixedmap-to-work-with-hmm_range_fault
++++ a/lib/test_hmm.c
+@@ -1086,9 +1086,33 @@ static long dmirror_fops_unlocked_ioctl(
+ 	return 0;
+ }
+ 
++static int dmirror_fops_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	unsigned long addr;
++
++	for (addr = vma->vm_start; addr < vma->vm_end; addr += PAGE_SIZE) {
++		struct page *page;
++		int ret;
++
++		page = alloc_page(GFP_KERNEL | __GFP_ZERO);
++		if (!page)
++			return -ENOMEM;
++
++		ret = vm_insert_page(vma, addr, page);
++		if (ret) {
++			__free_page(page);
++			return ret;
++		}
++		put_page(page);
++	}
++
++	return 0;
++}
++
+ static const struct file_operations dmirror_fops = {
+ 	.open		= dmirror_fops_open,
+ 	.release	= dmirror_fops_release,
++	.mmap		= dmirror_fops_mmap,
+ 	.unlocked_ioctl = dmirror_fops_unlocked_ioctl,
+ 	.llseek		= default_llseek,
+ 	.owner		= THIS_MODULE,
+--- a/mm/hmm.c~mm-hmmc-allow-vm_mixedmap-to-work-with-hmm_range_fault
++++ a/mm/hmm.c
+@@ -300,7 +300,8 @@ static int hmm_vma_handle_pte(struct mm_
+ 	 * Since each architecture defines a struct page for the zero page, just
+ 	 * fall through and treat it like a normal page.
+ 	 */
+-	if (pte_special(pte) && !pte_devmap(pte) &&
++	if (!vm_normal_page(walk->vma, addr, pte) &&
++	    !pte_devmap(pte) &&
+ 	    !is_zero_pfn(pte_pfn(pte))) {
+ 		if (hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0)) {
+ 			pte_unmap(ptep);
+@@ -518,7 +519,7 @@ static int hmm_vma_walk_test(unsigned lo
+ 	struct hmm_range *range = hmm_vma_walk->range;
+ 	struct vm_area_struct *vma = walk->vma;
+ 
+-	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP | VM_MIXEDMAP)) &&
++	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)) &&
+ 	    vma->vm_flags & VM_READ)
+ 		return 0;
+ 
+--- a/tools/testing/selftests/vm/hmm-tests.c~mm-hmmc-allow-vm_mixedmap-to-work-with-hmm_range_fault
++++ a/tools/testing/selftests/vm/hmm-tests.c
+@@ -1251,6 +1251,48 @@ TEST_F(hmm, anon_teardown)
+ /*
+  * Test memory snapshot without faulting in pages accessed by the device.
   */
--extern struct page_ext_operations page_idle_ops;
- 
- static inline bool folio_test_young(struct folio *folio)
++TEST_F(hmm, mixedmap)
++{
++	struct hmm_buffer *buffer;
++	unsigned long npages;
++	unsigned long size;
++	unsigned char *m;
++	int ret;
++
++	npages = 1;
++	size = npages << self->page_shift;
++
++	buffer = malloc(sizeof(*buffer));
++	ASSERT_NE(buffer, NULL);
++
++	buffer->fd = -1;
++	buffer->size = size;
++	buffer->mirror = malloc(npages);
++	ASSERT_NE(buffer->mirror, NULL);
++
++
++	/* Reserve a range of addresses. */
++	buffer->ptr = mmap(NULL, size,
++			   PROT_READ | PROT_WRITE,
++			   MAP_PRIVATE,
++			   self->fd, 0);
++	ASSERT_NE(buffer->ptr, MAP_FAILED);
++
++	/* Simulate a device snapshotting CPU pagetables. */
++	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++
++	/* Check what the device saw. */
++	m = buffer->mirror;
++	ASSERT_EQ(m[0], HMM_DMIRROR_PROT_READ);
++
++	hmm_buffer_free(buffer);
++}
++
++/*
++ * Test memory snapshot without faulting in pages accessed by the device.
++ */
+ TEST_F(hmm2, snapshot)
  {
---- a/mm/page_ext.c~mm-make-some-vars-and-functions-static-or-__init
-+++ a/mm/page_ext.c
-@@ -64,12 +64,12 @@ static bool need_page_idle(void)
- {
- 	return true;
- }
--struct page_ext_operations page_idle_ops = {
-+static struct page_ext_operations page_idle_ops __initdata = {
- 	.need = need_page_idle,
- };
- #endif
- 
--static struct page_ext_operations *page_ext_ops[] = {
-+static struct page_ext_operations *page_ext_ops[] __initdata = {
- #ifdef CONFIG_PAGE_OWNER
- 	&page_owner_ops,
- #endif
---- a/mm/page_owner.c~mm-make-some-vars-and-functions-static-or-__init
-+++ a/mm/page_owner.c
-@@ -46,7 +46,7 @@ static int __init early_page_owner_param
- }
- early_param("page_owner", early_page_owner_param);
- 
--static bool need_page_owner(void)
-+static __init bool need_page_owner(void)
- {
- 	return page_owner_enabled;
- }
-@@ -75,7 +75,7 @@ static noinline void register_early_stac
- 	early_handle = create_dummy_stack();
- }
- 
--static void init_page_owner(void)
-+static __init void init_page_owner(void)
- {
- 	if (!page_owner_enabled)
- 		return;
+ 	struct hmm_buffer *buffer;
 _
