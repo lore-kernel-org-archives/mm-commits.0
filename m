@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8244DC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:05:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 527E8C433FE
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:05:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230147AbiANWFW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S229554AbiANWFW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Fri, 14 Jan 2022 17:05:22 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:58282 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230142AbiANWFT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:05:19 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:46924 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230144AbiANWFV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:05:21 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5B72DB825F5
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:05:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E0404C36AE9;
-        Fri, 14 Jan 2022 22:05:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 569B861FE2
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:05:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 34B6DC36AEC;
+        Fri, 14 Jan 2022 22:05:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642197917;
-        bh=gN5DsMeAdSGJoe2owBHk09Ta8KpskfveIu7mEDq0Ux4=;
+        s=korg; t=1642197920;
+        bh=8AIMNW2kktylIwIkCjAs27utNwB1FH1LY8ztkjD6O1I=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=LCU6z3cA68spkFXerZ5eXcSjJuTkOsHZAfKiwnq9t/SEyA6skrZ2kQjZiLKQo7U56
-         fgGM4ydJB/pa0P5u8uUqiSyS8njJGqzTZDF6kBKpw74DRlE36ZYHVwPo4w/jdQ5OyE
-         zovxCG71xZl7/WTSfIpHFY+QdpeWVu25QLI2fqoA=
-Date:   Fri, 14 Jan 2022 14:05:16 -0800
+        b=QTN/Dn6uRPJV7k5hCQvVQ/92//NZshNWi1UEJvyfiloDkfkZvsRKpjNys7RMZ79Ed
+         8qht9a2kNlhrMPgOZhou+6fQ6yY/yEtsa5Gxh3C4hpxNeTaU60xv0xCzSKLIFw2WBh
+         rHV18EWq9CTmZAgjlmDfNf8EIY2Wlg//qAZ9DmO0=
+Date:   Fri, 14 Jan 2022 14:05:19 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, kirill.shutemov@linux.intel.com,
-        linmiaohe@huawei.com, linux-mm@kvack.org, lixinhai.lxh@gmail.com,
-        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
-        ying.huang@intel.com, ziy@nvidia.com
-Subject:  [patch 044/146] mm/gup.c: stricter check on THP migration
- entry during follow_pmd_mask
-Message-ID: <20220114220516.9_DFP1Inz%akpm@linux-foundation.org>
+To:     ajaygargnsit@gmail.com, akpm@linux-foundation.org,
+        andy.lavr@gmail.com, arnd@arndb.de, hughd@google.com,
+        kirill.shutemov@linux.intel.com, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, peterx@redhat.com, shy828301@gmail.com,
+        songmuchun@bytedance.com, torvalds@linux-foundation.org,
+        willy@infradead.org
+Subject:  [patch 045/146] mm: shmem: don't truncate page if memory
+ failure happens
+Message-ID: <20220114220519.M1fWj4WeI%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,56 +44,217 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Li Xinhai <lixinhai.lxh@gmail.com>
-Subject: mm/gup.c: stricter check on THP migration entry during follow_pmd_mask
+From: Yang Shi <shy828301@gmail.com>
+Subject: mm: shmem: don't truncate page if memory failure happens
 
-When BUG_ON check for THP migration entry, the existing code only check
-thp_migration_supported case, but not for !thp_migration_supported case. 
-If !thp_migration_supported() and !pmd_present(), the original code may
-dead loop in theory.  To make the BUG_ON check consistent, we need catch
-both cases.
+The current behavior of memory failure is to truncate the page cache
+regardless of dirty or clean.  If the page is dirty the later access will
+get the obsolete data from disk without any notification to the users. 
+This may cause silent data loss.  It is even worse for shmem since shmem
+is in-memory filesystem, truncating page cache means discarding data
+blocks.  The later read would return all zero.
 
-Move the BUG_ON check one step earlier, because if the bug happen we
-should know it instead of depend on FOLL_MIGRATION been used by caller.
+The right approach is to keep the corrupted page in page cache, any later
+access would return error for syscalls or SIGBUS for page fault, until the
+file is truncated, hole punched or removed.  The regular storage backed
+filesystems would be more complicated so this patch is focused on shmem. 
+This also unblock the support for soft offlining shmem THP.
 
-Because pmdval instead of *pmd is read by the is_pmd_migration_entry()
-check, the existing code don't help to avoid useless locking within
-pmd_migration_entry_wait(), so remove that check.
-
-Link: https://lkml.kernel.org/r/20211217062559.737063-1-lixinhai.lxh@gmail.com
-Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
-Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+[akpm@linux-foundation.org: coding style fixes]
+[arnd@arndb.de: fix uninitialized variable use in me_pagecache_clean()]
+  Link: https://lkml.kernel.org/r/20211022064748.4173718-1-arnd@kernel.org
+[Fix invalid pointer dereference in shmem_read_mapping_page_gfp() with a
+ slight different implementation from what Ajay Garg <ajaygargnsit@gmail.com>
+ and Muchun Song <songmuchun@bytedance.com> proposed and reworked the
+ error handling of shmem_write_begin() suggested by Linus]
+  Link: https://lore.kernel.org/linux-mm/20211111084617.6746-1-ajaygargnsit@gmail.com/
+Link: https://lkml.kernel.org/r/20211020210755.23964-6-shy828301@gmail.com
+Link: https://lkml.kernel.org/r/20211116193247.21102-1-shy828301@gmail.com
+Signed-off-by: Yang Shi <shy828301@gmail.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Ajay Garg <ajaygargnsit@gmail.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Andy Lavr <andy.lavr@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |   14 +++++++++--
+ mm/shmem.c          |   51 +++++++++++++++++++++++++++++++++++++-----
+ mm/userfaultfd.c    |    5 ++++
+ 3 files changed, 61 insertions(+), 9 deletions(-)
 
---- a/mm/gup.c~mm-gupc-stricter-check-on-thp-migration-entry-during-follow_pmd_mask
-+++ a/mm/gup.c
-@@ -642,12 +642,17 @@ static struct page *follow_pmd_mask(stru
+--- a/mm/memory-failure.c~mm-shmem-dont-truncate-page-if-memory-failure-happens
++++ a/mm/memory-failure.c
+@@ -58,6 +58,7 @@
+ #include <linux/ratelimit.h>
+ #include <linux/page-isolation.h>
+ #include <linux/pagewalk.h>
++#include <linux/shmem_fs.h>
+ #include "internal.h"
+ #include "ras/ras_event.h"
+ 
+@@ -867,6 +868,7 @@ static int me_pagecache_clean(struct pag
+ {
+ 	int ret;
+ 	struct address_space *mapping;
++	bool extra_pins;
+ 
+ 	delete_from_lru_cache(p);
+ 
+@@ -896,17 +898,23 @@ static int me_pagecache_clean(struct pag
  	}
- retry:
- 	if (!pmd_present(pmdval)) {
-+		/*
-+		 * Should never reach here, if thp migration is not supported;
-+		 * Otherwise, it must be a thp migration entry.
-+		 */
-+		VM_BUG_ON(!thp_migration_supported() ||
-+				  !is_pmd_migration_entry(pmdval));
+ 
+ 	/*
++	 * The shmem page is kept in page cache instead of truncating
++	 * so is expected to have an extra refcount after error-handling.
++	 */
++	extra_pins = shmem_mapping(mapping);
 +
- 		if (likely(!(flags & FOLL_MIGRATION)))
- 			return no_page_table(vma, flags);
--		VM_BUG_ON(thp_migration_supported() &&
--				  !is_pmd_migration_entry(pmdval));
--		if (is_pmd_migration_entry(pmdval))
--			pmd_migration_entry_wait(mm, pmd);
++	/*
+ 	 * Truncation is a bit tricky. Enable it per file system for now.
+ 	 *
+ 	 * Open: to take i_rwsem or not for this? Right now we don't.
+ 	 */
+ 	ret = truncate_error_page(p, page_to_pfn(p), mapping);
++	if (has_extra_refcount(ps, p, extra_pins))
++		ret = MF_FAILED;
 +
-+		pmd_migration_entry_wait(mm, pmd);
- 		pmdval = READ_ONCE(*pmd);
+ out:
+ 	unlock_page(p);
+ 
+-	if (has_extra_refcount(ps, p, false))
+-		ret = MF_FAILED;
+-
+ 	return ret;
+ }
+ 
+--- a/mm/shmem.c~mm-shmem-dont-truncate-page-if-memory-failure-happens
++++ a/mm/shmem.c
+@@ -2457,6 +2457,7 @@ shmem_write_begin(struct file *file, str
+ 	struct inode *inode = mapping->host;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 	pgoff_t index = pos >> PAGE_SHIFT;
++	int ret = 0;
+ 
+ 	/* i_rwsem is held by caller */
+ 	if (unlikely(info->seals & (F_SEAL_GROW |
+@@ -2467,7 +2468,19 @@ shmem_write_begin(struct file *file, str
+ 			return -EPERM;
+ 	}
+ 
+-	return shmem_getpage(inode, index, pagep, SGP_WRITE);
++	ret = shmem_getpage(inode, index, pagep, SGP_WRITE);
++
++	if (ret)
++		return ret;
++
++	if (PageHWPoison(*pagep)) {
++		unlock_page(*pagep);
++		put_page(*pagep);
++		*pagep = NULL;
++		return -EIO;
++	}
++
++	return 0;
+ }
+ 
+ static int
+@@ -2554,6 +2567,12 @@ static ssize_t shmem_file_read_iter(stru
+ 			if (sgp == SGP_CACHE)
+ 				set_page_dirty(page);
+ 			unlock_page(page);
++
++			if (PageHWPoison(page)) {
++				put_page(page);
++				error = -EIO;
++				break;
++			}
+ 		}
+ 
  		/*
- 		 * MADV_DONTNEED may convert the pmd to null because
+@@ -3093,7 +3112,8 @@ static const char *shmem_get_link(struct
+ 		page = find_get_page(inode->i_mapping, 0);
+ 		if (!page)
+ 			return ERR_PTR(-ECHILD);
+-		if (!PageUptodate(page)) {
++		if (PageHWPoison(page) ||
++		    !PageUptodate(page)) {
+ 			put_page(page);
+ 			return ERR_PTR(-ECHILD);
+ 		}
+@@ -3101,6 +3121,13 @@ static const char *shmem_get_link(struct
+ 		error = shmem_getpage(inode, 0, &page, SGP_READ);
+ 		if (error)
+ 			return ERR_PTR(error);
++		if (!page)
++			return ERR_PTR(-ECHILD);
++		if (PageHWPoison(page)) {
++			unlock_page(page);
++			put_page(page);
++			return ERR_PTR(-ECHILD);
++		}
+ 		unlock_page(page);
+ 	}
+ 	set_delayed_call(done, shmem_put_link, page);
+@@ -3751,6 +3778,13 @@ static void shmem_destroy_inodecache(voi
+ 	kmem_cache_destroy(shmem_inode_cachep);
+ }
+ 
++/* Keep the page in page cache instead of truncating it */
++static int shmem_error_remove_page(struct address_space *mapping,
++				   struct page *page)
++{
++	return 0;
++}
++
+ const struct address_space_operations shmem_aops = {
+ 	.writepage	= shmem_writepage,
+ 	.set_page_dirty	= __set_page_dirty_no_writeback,
+@@ -3761,7 +3795,7 @@ const struct address_space_operations sh
+ #ifdef CONFIG_MIGRATION
+ 	.migratepage	= migrate_page,
+ #endif
+-	.error_remove_page = generic_error_remove_page,
++	.error_remove_page = shmem_error_remove_page,
+ };
+ EXPORT_SYMBOL(shmem_aops);
+ 
+@@ -4169,9 +4203,14 @@ struct page *shmem_read_mapping_page_gfp
+ 	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE,
+ 				  gfp, NULL, NULL, NULL);
+ 	if (error)
+-		page = ERR_PTR(error);
+-	else
+-		unlock_page(page);
++		return ERR_PTR(error);
++
++	unlock_page(page);
++	if (PageHWPoison(page)) {
++		put_page(page);
++		return ERR_PTR(-EIO);
++	}
++
+ 	return page;
+ #else
+ 	/*
+--- a/mm/userfaultfd.c~mm-shmem-dont-truncate-page-if-memory-failure-happens
++++ a/mm/userfaultfd.c
+@@ -232,6 +232,11 @@ static int mcontinue_atomic_pte(struct m
+ 		goto out;
+ 	}
+ 
++	if (PageHWPoison(page)) {
++		ret = -EIO;
++		goto out_release;
++	}
++
+ 	ret = mfill_atomic_install_pte(dst_mm, dst_pmd, dst_vma, dst_addr,
+ 				       page, false, wp_copy);
+ 	if (ret)
 _
