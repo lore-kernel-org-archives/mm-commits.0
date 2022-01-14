@@ -2,42 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 358EEC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:07:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A7030C4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:07:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230212AbiANWHt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 17:07:49 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:37440 "EHLO
-        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230202AbiANWHt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:07:49 -0500
+        id S230216AbiANWHy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 17:07:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42886 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230217AbiANWHx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:07:53 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 23AFAC061574
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 14:07:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id AFDC6CE2498;
-        Fri, 14 Jan 2022 22:07:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 61332C36AEC;
-        Fri, 14 Jan 2022 22:07:45 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 60751CE19A9
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:07:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11AB3C36AE9;
+        Fri, 14 Jan 2022 22:07:49 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642198066;
-        bh=H4631Pyu+q2Mu2CLJ4PHUC0/uQIvI0vr+z8ZF4QT454=;
+        s=korg; t=1642198069;
+        bh=qmiPWMZwTgA/BMJA7I+d9SQrNXt8PzR9//XGI0UIFRQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=yT2+9SDTyn93j9Rkm5df/HkuRF1usCFfqJjoK4id5XW1pV/DyjWFVEClRlk0JokbG
-         0n28Nb1qSqA7G7PysuB+HJC5K1bPWdq1f1ar6iaqkOMgZW+ETrjxnXAh65Fz9b42HI
-         prQW7PcnPnG9hT0oDwHBDmEfVnqo2LpUAr7iySyo=
-Date:   Fri, 14 Jan 2022 14:07:44 -0800
+        b=Ubp4JbdoHHjlaZZXmtZpWALILW5CjG+MjIWNBAlOazj99yaZy/+WT9KTXB0eJMG9U
+         /K+ynGYMm7AlaX63XFVxuglE++0xe7fYQ8I/tJl0YhVhP4SCxp5DlGYrwesWr7V3EJ
+         mJAoEVRF4yoEg/BL25zkfTVMC8UIOm6GX+XTZ9MM=
+Date:   Fri, 14 Jan 2022 14:07:48 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     42.hyeyoo@gmail.com, akpm@linux-foundation.org, bhe@redhat.com,
-        bp@alien8.de, cl@linux.com, David.Laight@ACULAB.COM,
-        david@redhat.com, hch@lst.de, iamjoonsoo.kim@lge.com,
-        john.p.donnelly@oracle.com, linux-mm@kvack.org,
-        m.szyprowski@samsung.com, mm-commits@vger.kernel.org,
-        penberg@kernel.org, rientjes@google.com, robin.murphy@arm.com,
-        stable@vger.kernel.org, torvalds@linux-foundation.org,
-        vbabka@suse.cz
-Subject:  [patch 087/146] mm/page_alloc.c: do not warn allocation
- failure on zone DMA if no managed pages
-Message-ID: <20220114220744.5KK-0rDF5%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, almasrymina@google.com,
+        cannonmatthews@google.com, colin.i.king@gmail.com,
+        joannali@google.com, juew@google.com, keescook@chromium.org,
+        linmiaohe@huawei.com, linux-mm@kvack.org, mhocko@suse.com,
+        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
+        osalvador@suse.de, rientjes@google.com, shakeelb@google.com,
+        shuah@kernel.org, songmuchun@bytedance.com,
+        torvalds@linux-foundation.org, ygyao@google.com
+Subject:  [patch 088/146] hugetlb: add hugetlb.*.numa_stat file
+Message-ID: <20220114220748.yBUy4PjHh%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,94 +47,350 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Baoquan He <bhe@redhat.com>
-Subject: mm/page_alloc.c: do not warn allocation failure on zone DMA if no managed pages
+From: Mina Almasry <almasrymina@google.com>
+Subject: hugetlb: add hugetlb.*.numa_stat file
 
-In kdump kernel of x86_64, page allocation failure is observed:
+For hugetlb backed jobs/VMs it's critical to understand the numa
+information for the memory backing these jobs to deliver optimal
+performance.
 
- kworker/u2:2: page allocation failure: order:0, mode:0xcc1(GFP_KERNEL|GFP_DMA), nodemask=(null),cpuset=/,mems_allowed=0
- CPU: 0 PID: 55 Comm: kworker/u2:2 Not tainted 5.16.0-rc4+ #5
- Hardware name: AMD Dinar/Dinar, BIOS RDN1505B 06/05/2013
- Workqueue: events_unbound async_run_entry_fn
- Call Trace:
-  <TASK>
-  dump_stack_lvl+0x48/0x5e
-  warn_alloc.cold+0x72/0xd6
-  __alloc_pages_slowpath.constprop.0+0xc69/0xcd0
-  __alloc_pages+0x1df/0x210
-  new_slab+0x389/0x4d0
-  ___slab_alloc+0x58f/0x770
-  __slab_alloc.constprop.0+0x4a/0x80
-  kmem_cache_alloc_trace+0x24b/0x2c0
-  sr_probe+0x1db/0x620
-  ......
-  device_add+0x405/0x920
-  ......
-  __scsi_add_device+0xe5/0x100
-  ata_scsi_scan_host+0x97/0x1d0
-  async_run_entry_fn+0x30/0x130
-  process_one_work+0x1e8/0x3c0
-  worker_thread+0x50/0x3b0
-  ? rescuer_thread+0x350/0x350
-  kthread+0x16b/0x190
-  ? set_kthread_struct+0x40/0x40
-  ret_from_fork+0x22/0x30
-  </TASK>
- Mem-Info:
- ......
+Currently this technically can be queried from /proc/self/numa_maps, but
+there are significant issues with that. Namely:
 
-The above failure happened when calling kmalloc() to allocate buffer with
-GFP_DMA.  It requests to allocate slab page from DMA zone while no managed
-pages at all in there.
+1. Memory can be mapped or unmapped.
 
- sr_probe()
- --> get_capabilities()
-     --> buffer = kmalloc(512, GFP_KERNEL | GFP_DMA);
+2. numa_maps are per process and need to be aggregated across all
+   processes in the cgroup.  For shared memory this is more involved as
+   the userspace needs to make sure it doesn't double count shared
+   mappings.
 
-Because in the current kernel, dma-kmalloc will be created as long as
-CONFIG_ZONE_DMA is enabled.  However, kdump kernel of x86_64 doesn't have
-managed pages on DMA zone since commit 6f599d84231f ("x86/kdump: Always
-reserve the low 1M when the crashkernel option is specified").  The
-failure can be always reproduced.
+3. I believe querying numa_maps needs to hold the mmap_lock which adds
+   to the contention on this lock.
 
-For now, let's mute the warning of allocation failure if requesting pages
-from DMA zone while no managed pages.
+For these reasons I propose simply adding hugetlb.*.numa_stat file,
+   which shows the numa information of the cgroup similarly to
+   memory.numa_stat.
 
-[akpm@linux-foundation.org: fix warning]
-Link: https://lkml.kernel.org/r/20211223094435.248523-4-bhe@redhat.com
-Fixes: 6f599d84231f ("x86/kdump: Always reserve the low 1M when the crashkernel option is specified")
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: John Donnelly  <john.p.donnelly@oracle.com>
-Reviewed-by: Hyeonggon Yoo <42.hyeyoo@gmail.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+On cgroup-v2:
+   cat /sys/fs/cgroup/unified/test/hugetlb.2MB.numa_stat
+   total=2097152 N0=2097152 N1=0
+
+On cgroup-v1:
+   cat /sys/fs/cgroup/hugetlb/test/hugetlb.2MB.numa_stat
+   total=2097152 N0=2097152 N1=0
+   hierarichal_total=2097152 N0=2097152 N1=0
+
+This patch was tested manually by allocating hugetlb memory and querying
+the hugetlb.*.numa_stat file of the cgroup and its parents.
+
+[colin.i.king@googlemail.com: fix spelling mistake "hierarichal" -> "hierarchical"]
+  Link: https://lkml.kernel.org/r/20211125090635.23508-1-colin.i.king@gmail.com
+[keescook@chromium.org: fix copy/paste array assignment]
+  Link: https://lkml.kernel.org/r/20211203065647.2819707-1-keescook@chromium.org
+Link: https://lkml.kernel.org/r/20211123001020.4083653-1-almasrymina@google.com
+Signed-off-by: Mina Almasry <almasrymina@google.com>
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Shakeel Butt <shakeelb@google.com>
+Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: David Laight <David.Laight@ACULAB.COM>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: <stable@vger.kernel.org>
+Cc: Jue Wang <juew@google.com>
+Cc: Yang Yao <ygyao@google.com>
+Cc: Joanna Li <joannali@google.com>
+Cc: Cannon Matthews <cannonmatthews@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ Documentation/admin-guide/cgroup-v1/hugetlb.rst |    4 
+ Documentation/admin-guide/cgroup-v2.rst         |    5 
+ include/linux/hugetlb.h                         |    4 
+ include/linux/hugetlb_cgroup.h                  |    7 
+ mm/hugetlb_cgroup.c                             |  133 ++++++++++++--
+ 5 files changed, 141 insertions(+), 12 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_allocc-do-not-warn-allocation-failure-on-zone-dma-if-no-managed-pages
-+++ a/mm/page_alloc.c
-@@ -4218,7 +4218,9 @@ void warn_alloc(gfp_t gfp_mask, nodemask
- 	va_list args;
- 	static DEFINE_RATELIMIT_STATE(nopage_rs, 10*HZ, 1);
+--- a/Documentation/admin-guide/cgroup-v1/hugetlb.rst~hugetlb-add-hugetlbnuma_stat-file
++++ a/Documentation/admin-guide/cgroup-v1/hugetlb.rst
+@@ -29,12 +29,14 @@ Brief summary of control files::
+  hugetlb.<hugepagesize>.max_usage_in_bytes             # show max "hugepagesize" hugetlb  usage recorded
+  hugetlb.<hugepagesize>.usage_in_bytes                 # show current usage for "hugepagesize" hugetlb
+  hugetlb.<hugepagesize>.failcnt                        # show the number of allocation failure due to HugeTLB usage limit
++ hugetlb.<hugepagesize>.numa_stat                      # show the numa information of the hugetlb memory charged to this cgroup
  
--	if ((gfp_mask & __GFP_NOWARN) || !__ratelimit(&nopage_rs))
-+	if ((gfp_mask & __GFP_NOWARN) ||
-+	     !__ratelimit(&nopage_rs) ||
-+	     ((gfp_mask & __GFP_DMA) && !has_managed_dma()))
+ For a system supporting three hugepage sizes (64k, 32M and 1G), the control
+ files include::
+ 
+   hugetlb.1GB.limit_in_bytes
+   hugetlb.1GB.max_usage_in_bytes
++  hugetlb.1GB.numa_stat
+   hugetlb.1GB.usage_in_bytes
+   hugetlb.1GB.failcnt
+   hugetlb.1GB.rsvd.limit_in_bytes
+@@ -43,6 +45,7 @@ files include::
+   hugetlb.1GB.rsvd.failcnt
+   hugetlb.64KB.limit_in_bytes
+   hugetlb.64KB.max_usage_in_bytes
++  hugetlb.64KB.numa_stat
+   hugetlb.64KB.usage_in_bytes
+   hugetlb.64KB.failcnt
+   hugetlb.64KB.rsvd.limit_in_bytes
+@@ -51,6 +54,7 @@ files include::
+   hugetlb.64KB.rsvd.failcnt
+   hugetlb.32MB.limit_in_bytes
+   hugetlb.32MB.max_usage_in_bytes
++  hugetlb.32MB.numa_stat
+   hugetlb.32MB.usage_in_bytes
+   hugetlb.32MB.failcnt
+   hugetlb.32MB.rsvd.limit_in_bytes
+--- a/Documentation/admin-guide/cgroup-v2.rst~hugetlb-add-hugetlbnuma_stat-file
++++ a/Documentation/admin-guide/cgroup-v2.rst
+@@ -2266,6 +2266,11 @@ HugeTLB Interface Files
+ 	are local to the cgroup i.e. not hierarchical. The file modified event
+ 	generated on this file reflects only the local events.
+ 
++  hugetlb.<hugepagesize>.numa_stat
++	Similar to memory.numa_stat, it shows the numa information of the
++        hugetlb pages of <hugepagesize> in this cgroup.  Only active in
++        use hugetlb pages are included.  The per-node values are in bytes.
++
+ Misc
+ ----
+ 
+--- a/include/linux/hugetlb_cgroup.h~hugetlb-add-hugetlbnuma_stat-file
++++ a/include/linux/hugetlb_cgroup.h
+@@ -36,6 +36,11 @@ enum hugetlb_memory_event {
+ 	HUGETLB_NR_MEMORY_EVENTS,
+ };
+ 
++struct hugetlb_cgroup_per_node {
++	/* hugetlb usage in pages over all hstates. */
++	unsigned long usage[HUGE_MAX_HSTATE];
++};
++
+ struct hugetlb_cgroup {
+ 	struct cgroup_subsys_state css;
+ 
+@@ -57,6 +62,8 @@ struct hugetlb_cgroup {
+ 
+ 	/* Handle for "hugetlb.events.local" */
+ 	struct cgroup_file events_local_file[HUGE_MAX_HSTATE];
++
++	struct hugetlb_cgroup_per_node *nodeinfo[];
+ };
+ 
+ static inline struct hugetlb_cgroup *
+--- a/include/linux/hugetlb.h~hugetlb-add-hugetlbnuma_stat-file
++++ a/include/linux/hugetlb.h
+@@ -622,8 +622,8 @@ struct hstate {
+ #endif
+ #ifdef CONFIG_CGROUP_HUGETLB
+ 	/* cgroup control files */
+-	struct cftype cgroup_files_dfl[7];
+-	struct cftype cgroup_files_legacy[9];
++	struct cftype cgroup_files_dfl[8];
++	struct cftype cgroup_files_legacy[10];
+ #endif
+ 	char name[HSTATE_NAME_LEN];
+ };
+--- a/mm/hugetlb_cgroup.c~hugetlb-add-hugetlbnuma_stat-file
++++ a/mm/hugetlb_cgroup.c
+@@ -123,29 +123,58 @@ static void hugetlb_cgroup_init(struct h
+ 	}
+ }
+ 
++static void hugetlb_cgroup_free(struct hugetlb_cgroup *h_cgroup)
++{
++	int node;
++
++	for_each_node(node)
++		kfree(h_cgroup->nodeinfo[node]);
++	kfree(h_cgroup);
++}
++
+ static struct cgroup_subsys_state *
+ hugetlb_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
+ {
+ 	struct hugetlb_cgroup *parent_h_cgroup = hugetlb_cgroup_from_css(parent_css);
+ 	struct hugetlb_cgroup *h_cgroup;
++	int node;
++
++	h_cgroup = kzalloc(struct_size(h_cgroup, nodeinfo, nr_node_ids),
++			   GFP_KERNEL);
+ 
+-	h_cgroup = kzalloc(sizeof(*h_cgroup), GFP_KERNEL);
+ 	if (!h_cgroup)
+ 		return ERR_PTR(-ENOMEM);
+ 
+ 	if (!parent_h_cgroup)
+ 		root_h_cgroup = h_cgroup;
+ 
++	/*
++	 * TODO: this routine can waste much memory for nodes which will
++	 * never be onlined. It's better to use memory hotplug callback
++	 * function.
++	 */
++	for_each_node(node) {
++		/* Set node_to_alloc to -1 for offline nodes. */
++		int node_to_alloc =
++			node_state(node, N_NORMAL_MEMORY) ? node : -1;
++		h_cgroup->nodeinfo[node] =
++			kzalloc_node(sizeof(struct hugetlb_cgroup_per_node),
++				     GFP_KERNEL, node_to_alloc);
++		if (!h_cgroup->nodeinfo[node])
++			goto fail_alloc_nodeinfo;
++	}
++
+ 	hugetlb_cgroup_init(h_cgroup, parent_h_cgroup);
+ 	return &h_cgroup->css;
++
++fail_alloc_nodeinfo:
++	hugetlb_cgroup_free(h_cgroup);
++	return ERR_PTR(-ENOMEM);
+ }
+ 
+ static void hugetlb_cgroup_css_free(struct cgroup_subsys_state *css)
+ {
+-	struct hugetlb_cgroup *h_cgroup;
+-
+-	h_cgroup = hugetlb_cgroup_from_css(css);
+-	kfree(h_cgroup);
++	hugetlb_cgroup_free(hugetlb_cgroup_from_css(css));
+ }
+ 
+ /*
+@@ -289,7 +318,17 @@ static void __hugetlb_cgroup_commit_char
  		return;
  
- 	va_start(args, fmt);
+ 	__set_hugetlb_cgroup(page, h_cg, rsvd);
+-	return;
++	if (!rsvd) {
++		unsigned long usage =
++			h_cg->nodeinfo[page_to_nid(page)]->usage[idx];
++		/*
++		 * This write is not atomic due to fetching usage and writing
++		 * to it, but that's fine because we call this with
++		 * hugetlb_lock held anyway.
++		 */
++		WRITE_ONCE(h_cg->nodeinfo[page_to_nid(page)]->usage[idx],
++			   usage + nr_pages);
++	}
+ }
+ 
+ void hugetlb_cgroup_commit_charge(int idx, unsigned long nr_pages,
+@@ -328,8 +367,17 @@ static void __hugetlb_cgroup_uncharge_pa
+ 
+ 	if (rsvd)
+ 		css_put(&h_cg->css);
+-
+-	return;
++	else {
++		unsigned long usage =
++			h_cg->nodeinfo[page_to_nid(page)]->usage[idx];
++		/*
++		 * This write is not atomic due to fetching usage and writing
++		 * to it, but that's fine because we call this with
++		 * hugetlb_lock held anyway.
++		 */
++		WRITE_ONCE(h_cg->nodeinfo[page_to_nid(page)]->usage[idx],
++			   usage - nr_pages);
++	}
+ }
+ 
+ void hugetlb_cgroup_uncharge_page(int idx, unsigned long nr_pages,
+@@ -418,6 +466,59 @@ enum {
+ 	RES_RSVD_FAILCNT,
+ };
+ 
++static int hugetlb_cgroup_read_numa_stat(struct seq_file *seq, void *dummy)
++{
++	int nid;
++	struct cftype *cft = seq_cft(seq);
++	int idx = MEMFILE_IDX(cft->private);
++	bool legacy = MEMFILE_ATTR(cft->private);
++	struct hugetlb_cgroup *h_cg = hugetlb_cgroup_from_css(seq_css(seq));
++	struct cgroup_subsys_state *css;
++	unsigned long usage;
++
++	if (legacy) {
++		/* Add up usage across all nodes for the non-hierarchical total. */
++		usage = 0;
++		for_each_node_state(nid, N_MEMORY)
++			usage += READ_ONCE(h_cg->nodeinfo[nid]->usage[idx]);
++		seq_printf(seq, "total=%lu", usage * PAGE_SIZE);
++
++		/* Simply print the per-node usage for the non-hierarchical total. */
++		for_each_node_state(nid, N_MEMORY)
++			seq_printf(seq, " N%d=%lu", nid,
++				   READ_ONCE(h_cg->nodeinfo[nid]->usage[idx]) *
++					   PAGE_SIZE);
++		seq_putc(seq, '\n');
++	}
++
++	/*
++	 * The hierarchical total is pretty much the value recorded by the
++	 * counter, so use that.
++	 */
++	seq_printf(seq, "%stotal=%lu", legacy ? "hierarchical_" : "",
++		   page_counter_read(&h_cg->hugepage[idx]) * PAGE_SIZE);
++
++	/*
++	 * For each node, transverse the css tree to obtain the hierarchical
++	 * node usage.
++	 */
++	for_each_node_state(nid, N_MEMORY) {
++		usage = 0;
++		rcu_read_lock();
++		css_for_each_descendant_pre(css, &h_cg->css) {
++			usage += READ_ONCE(hugetlb_cgroup_from_css(css)
++						   ->nodeinfo[nid]
++						   ->usage[idx]);
++		}
++		rcu_read_unlock();
++		seq_printf(seq, " N%d=%lu", nid, usage * PAGE_SIZE);
++	}
++
++	seq_putc(seq, '\n');
++
++	return 0;
++}
++
+ static u64 hugetlb_cgroup_read_u64(struct cgroup_subsys_state *css,
+ 				   struct cftype *cft)
+ {
+@@ -668,8 +769,14 @@ static void __init __hugetlb_cgroup_file
+ 				    events_local_file[idx]);
+ 	cft->flags = CFTYPE_NOT_ON_ROOT;
+ 
+-	/* NULL terminate the last cft */
++	/* Add the numa stat file */
+ 	cft = &h->cgroup_files_dfl[6];
++	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.numa_stat", buf);
++	cft->seq_show = hugetlb_cgroup_read_numa_stat;
++	cft->flags = CFTYPE_NOT_ON_ROOT;
++
++	/* NULL terminate the last cft */
++	cft = &h->cgroup_files_dfl[7];
+ 	memset(cft, 0, sizeof(*cft));
+ 
+ 	WARN_ON(cgroup_add_dfl_cftypes(&hugetlb_cgrp_subsys,
+@@ -739,8 +846,14 @@ static void __init __hugetlb_cgroup_file
+ 	cft->write = hugetlb_cgroup_reset;
+ 	cft->read_u64 = hugetlb_cgroup_read_u64;
+ 
+-	/* NULL terminate the last cft */
++	/* Add the numa stat file */
+ 	cft = &h->cgroup_files_legacy[8];
++	snprintf(cft->name, MAX_CFTYPE_NAME, "%s.numa_stat", buf);
++	cft->private = MEMFILE_PRIVATE(idx, 1);
++	cft->seq_show = hugetlb_cgroup_read_numa_stat;
++
++	/* NULL terminate the last cft */
++	cft = &h->cgroup_files_legacy[9];
+ 	memset(cft, 0, sizeof(*cft));
+ 
+ 	WARN_ON(cgroup_add_legacy_cftypes(&hugetlb_cgrp_subsys,
 _
