@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B02DCC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 21:35:48 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DECBBC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 21:36:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229837AbiANVfs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 16:35:48 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:58168 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229710AbiANVfr (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 16:35:47 -0500
+        id S229864AbiANVgX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 16:36:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35766 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229838AbiANVgX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 16:36:23 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A74DAC061574
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 13:36:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 61B5861FB3
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 21:35:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67FAAC36AE5;
-        Fri, 14 Jan 2022 21:35:46 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4D813B82A26
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 21:36:21 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF1A5C36AE5;
+        Fri, 14 Jan 2022 21:36:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642196146;
-        bh=uiJQZVDNh3IjgKaWPsQTw5qKUN/ngIIPYSdpXJ7Xcyg=;
+        s=korg; t=1642196180;
+        bh=zY2Zn5zvmmQ208R7I7leZOuNHb+LyOmlBRj/pCEAfbs=;
         h=Date:From:To:Subject:From;
-        b=NVGrHpS4lUIgKcRBK0lhP1ANyrGVckK14V5nvKuxAjpSFy/VwZZzssLeda5B/eGsZ
-         q0RPxGLgEAe6NmilTpUaYFghiP0//e66Jc2hl4Lq5OOFZND7Sgb2nbOUkHzd+77PPE
-         4OtOWR0Z1bLA7k3xOp40HavRuBQf5SOVCr2g8KAs=
-Date:   Fri, 14 Jan 2022 13:35:45 -0800
+        b=yPooA1tw9z/zLNCQqeoYZYLAEXkp262bThScOzb6pLONlv+qBhNVu1a7cEC4yl2zz
+         cDCBRDlAb245axnEchZupUGEfvmfaxiP76eQfuBOmv3q7hNAghvQ3UV8ma4ZpNCdrR
+         2XwG0jKaL/baKOupcqyyclPbnmsW4vXWGwQWD+g0=
+Date:   Fri, 14 Jan 2022 13:36:19 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, akpm@linux-foundation.org,
-        dave.hansen@linux.intel.com, elver@google.com, luto@kernel.org,
-        mgorman@techsingularity.net, mm-commits@vger.kernel.org,
-        namit@vmware.com, will@kernel.org, ying.huang@intel.com,
-        yuzhao@google.com
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        songmuchun@bytedance.com, xhao@linux.alibaba.com
 Subject:  [folded-merged]
- mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch removed from -mm
- tree
-Message-ID: <20220114213545.hyhCLztiW%akpm@linux-foundation.org>
+ mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix.patch
+ removed from -mm tree
+Message-ID: <20220114213619.J4hw8Ggj5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,97 +44,115 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rmap-fix-potential-batched-tlb-flush-race-fix
+     Subject: mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-fix-potential-batched-tlb-flush-race-fix.patch
+     mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix.patch
 
-This patch was dropped because it was folded into mm-rmap-fix-potential-batched-tlb-flush-race.patch
+This patch was dropped because it was folded into mm-damon-remove-some-no-need-func-definitions-in-damonh-file.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rmap-fix-potential-batched-tlb-flush-race-fix
+From: SeongJae Park <sj@kernel.org>
+Subject: mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix
 
-tweak comments
+mm-damon-remove-some-no-need-func-definitions-in-damonh-file.patch[1],
+which is merged in -mm but mainline yet, is making unnecessary function
+prototype position changes in the damon.h.  This could make later
+'git-blame' a little bit complex.  It also violates the 80 columns limit,
+which is not madated but preferred and all other code of DAMON is
+following.
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "Huang, Ying" <ying.huang@intel.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Nadav Amit <namit@vmware.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Yu Zhao <yuzhao@google.com>
+This commit fixes those.  This should be folded into the patch before it
+is sent to Linus.
+
+[1] https://lore.kernel.org/mm-commits/20211115174837.wvyS8FbLx%25akpm@linux-foundation.org/
+
+Link: https://lkml.kernel.org/r/20211118114827.20052-1-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Xin Hao <xhao@linux.alibaba.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ include/linux/damon.h |    4 ++--
+ mm/damon/paddr.c      |    5 +++--
+ mm/damon/vaddr.c      |    8 +++++---
+ 3 files changed, 10 insertions(+), 7 deletions(-)
 
---- a/mm/rmap.c~mm-rmap-fix-potential-batched-tlb-flush-race-fix
-+++ a/mm/rmap.c
-@@ -622,8 +622,8 @@ void try_to_unmap_flush_dirty(void)
+--- a/include/linux/damon.h~mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix
++++ a/include/linux/damon.h
+@@ -461,13 +461,13 @@ int damon_stop(struct damon_ctx **ctxs,
+ #endif	/* CONFIG_DAMON */
+ 
+ #ifdef CONFIG_DAMON_VADDR
+-void damon_va_set_primitives(struct damon_ctx *ctx);
+ bool damon_va_target_valid(void *t);
++void damon_va_set_primitives(struct damon_ctx *ctx);
+ #endif	/* CONFIG_DAMON_VADDR */
+ 
+ #ifdef CONFIG_DAMON_PADDR
+-void damon_pa_set_primitives(struct damon_ctx *ctx);
+ bool damon_pa_target_valid(void *t);
++void damon_pa_set_primitives(struct damon_ctx *ctx);
+ #endif	/* CONFIG_DAMON_PADDR */
+ 
+ #endif	/* _DAMON_H */
+--- a/mm/damon/paddr.c~mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix
++++ a/mm/damon/paddr.c
+@@ -246,8 +246,9 @@ static int damon_pa_apply_scheme(struct
+ 	return 0;
  }
  
- /*
-- * The 0-14 bit of mm->tlb_flush_batched records pending generations,
-- * and the 16-30 bit records flushed generations.
-+ * Bits 0-14 of mm->tlb_flush_batched record pending generations.
-+ * Bits 16-30 of mm->tlb_flush_batched bit record flushed generations.
+-static int damon_pa_scheme_score(struct damon_ctx *context, struct damon_target *t,
+-		struct damon_region *r, struct damos *scheme)
++static int damon_pa_scheme_score(struct damon_ctx *context,
++		struct damon_target *t, struct damon_region *r,
++		struct damos *scheme)
+ {
+ 	switch (scheme->action) {
+ 	case DAMOS_PAGEOUT:
+--- a/mm/damon/vaddr.c~mm-damon-remove-some-no-need-func-definitions-in-damonh-file-fix
++++ a/mm/damon/vaddr.c
+@@ -292,7 +292,8 @@ static void damon_va_init(struct damon_c
+  *
+  * Returns true if it is.
   */
- #define TLB_FLUSH_BATCH_FLUSHED_SHIFT	16
- #define TLB_FLUSH_BATCH_PENDING_MASK			\
-@@ -648,9 +648,9 @@ static void set_tlb_ubc_flush_pending(st
- retry:
- 	if ((batch & TLB_FLUSH_BATCH_PENDING_MASK) > TLB_FLUSH_BATCH_PENDING_LARGE) {
- 		/*
--		 * To avoid ""pending"" to catch up with ""flushed""
--		 * because of overflow.  Reset "pending" and "flushed"
--		 * to be "1" and "0" if "pending" becomes large.
-+		 * Prevent `pending' from catching up with `flushed' because of
-+		 * overflow.  Reset `pending' and `flushed' to be 1 and 0 if
-+		 * `pending' becomes large.
- 		 */
- 		nbatch = atomic_cmpxchg(&mm->tlb_flush_batched, batch, 1);
- 		if (nbatch != batch) {
-@@ -713,9 +713,8 @@ void flush_tlb_batched_pending(struct mm
- 	if (pending != flushed) {
- 		flush_tlb_mm(mm);
- 		/*
--		 * If the new TLB flushing is pended during flushing,
--		 * leave mm->tlb_flush_batched as is, to avoid to lose
--		 * flushing.
-+		 * If the new TLB flushing is pending during flushing, leave
-+		 * mm->tlb_flush_batched as is, to avoid losing flushing.
- 		 */
- 		atomic_cmpxchg(&mm->tlb_flush_batched, batch,
- 			       pending | (pending << TLB_FLUSH_BATCH_FLUSHED_SHIFT));
+-static bool damon_intersect(struct damon_region *r, struct damon_addr_range *re)
++static bool damon_intersect(struct damon_region *r,
++		struct damon_addr_range *re)
+ {
+ 	return !(r->ar.end <= re->start || re->end <= r->ar.start);
+ }
+@@ -633,8 +634,9 @@ static int damon_va_apply_scheme(struct
+ 	return damos_madvise(t, r, madv_action);
+ }
+ 
+-static int damon_va_scheme_score(struct damon_ctx *context, struct damon_target *t,
+-		struct damon_region *r, struct damos *scheme)
++static int damon_va_scheme_score(struct damon_ctx *context,
++		struct damon_target *t, struct damon_region *r,
++		struct damos *scheme)
+ {
+ 
+ 	switch (scheme->action) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sj@kernel.org are
 
-mm-rmap-fix-potential-batched-tlb-flush-race.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-proc-make-the-proc_create-stubs-static-inlines-fix.patch
-proc-make-the-proc_create-stubs-static-inlines-fix2.patch
-proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch
-kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch
-hashh-remove-unused-define-directive-fix.patch
-panic-use-error_report_end-tracepoint-on-warnings-fix.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-arch-x86-include-asm-pgtableh-needs-spinlockh.patch
-sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
-sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
-sysctl-move-maxolduid-as-a-sysctl-specific-const-fix.patch
-proc-remove-pde_data-completely-fix.patch
-proc-remove-pde_data-completely-fix-fix.patch
-mm-remove-cleancache-fix.patch
-mm-simplify-try_to_unuse-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-damon-remove-some-no-need-func-definitions-in-damonh-file.patch
+mm-damon-convert-macro-functions-to-static-inline-functions.patch
+docs-admin-guide-mm-damon-usage-update-for-scheme-quotas-and-watermarks.patch
+docs-admin-guide-mm-damon-usage-remove-redundant-information.patch
+docs-admin-guide-mm-damon-usage-mention-tracepoint-at-the-beginning.patch
+docs-admin-guide-mm-damon-usage-update-for-kdamond_pid-and-mkrm_contexts.patch
+mm-damon-remove-a-mistakenly-added-comment-for-a-future-feature.patch
+mm-damon-schemes-account-scheme-actions-that-successfully-applied.patch
+mm-damon-schemes-account-how-many-times-quota-limit-has-exceeded.patch
+mm-damon-reclaim-provide-reclamation-statistics.patch
+docs-admin-guide-mm-damon-reclaim-document-statistics-parameters.patch
+mm-damon-dbgfs-support-all-damos-stats.patch
+docs-admin-guide-mm-damon-usage-update-for-schemes-statistics.patch
+mm-damon-dbgfs-remove-a-unnecessary-variable.patch
+mm-damon-vaddr-use-pr_debug-for-damon_va_three_regions-failure-logging.patch
+mm-damon-vaddr-hide-kernel-pointer-from-damon_va_three_regions-failure-log.patch
+mm-damon-hide-kernel-pointer-from-tracepoint-event.patch
 
