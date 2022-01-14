@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 933CAC4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:04:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF4D3C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:04:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230118AbiANWEV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 17:04:21 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:46010 "EHLO
+        id S230110AbiANWEZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 17:04:25 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:46102 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230117AbiANWEU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:04:20 -0500
+        with ESMTP id S230117AbiANWEY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:04:24 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8054E61FEE
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:04:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58DF2C36AE5;
-        Fri, 14 Jan 2022 22:04:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 27B1C61FB7
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:04:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EBE90C36AEC;
+        Fri, 14 Jan 2022 22:04:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642197860;
-        bh=sFnPFoqeExZj0BfB0gVfxJfeE0AVkbIP0cxQpOgWjqw=;
+        s=korg; t=1642197863;
+        bh=9iAiEeb4UvT+jYIwxrSfdvyYYMjAoD854bj1LI2V/Mc=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=k8OPKOgPkMPK3vjNQq+sNdvnUgtOnc7MdS5VDPLG8NWUpLKI25J28WsdYPJgYbkui
-         Vuw+VaUg/bzXbIeZZ+/P1qvO0EWKrzuKxDYZe9M63taquw1Q+xqC+3BGivKFTbUVhW
-         xccMaSRoJRIhg6gnabEzix2hSWS8zZEctxVf8yP8=
-Date:   Fri, 14 Jan 2022 14:04:18 -0800
+        b=pe4cG6PYMqGSxf/UQbpZYiyzK8P771o3RD1deYlCqlZE/e5T7cbJjQPZ9KXtQwR0m
+         Kvjhg7hRlcgb5ccqqtSIuhr7aNZbXRVw3exccJSPi6XkIdp0qWQgvIRr6oS7u0KR+T
+         X+PFAQaarWwWkiwsPOJcc1uN9ayKOWB2d+f0q+9Y=
+Date:   Fri, 14 Jan 2022 14:04:22 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, corbet@lwn.net,
         dan.j.williams@intel.com, dave.jiang@intel.com, hch@lst.de,
@@ -35,9 +35,9 @@ To:     akpm@linux-foundation.org, corbet@lwn.net,
         naoya.horiguchi@nec.com, songmuchun@bytedance.com,
         torvalds@linux-foundation.org, vishal.l.verma@intel.com,
         willy@infradead.org
-Subject:  [patch 027/146] mm/page_alloc: refactor
- memmap_init_zone_device() page init
-Message-ID: <20220114220418.RtHpbXDRe%akpm@linux-foundation.org>
+Subject:  [patch 028/146] mm/memremap: add ZONE_DEVICE support for
+ compound pages
+Message-ID: <20220114220422.NTYjq91hd%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -46,13 +46,25 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Joao Martins <joao.m.martins@oracle.com>
-Subject: mm/page_alloc: refactor memmap_init_zone_device() page init
+Subject: mm/memremap: add ZONE_DEVICE support for compound pages
 
-Move struct page init to an helper function __init_zone_device_page().
+Add a new @vmemmap_shift property for struct dev_pagemap which specifies
+that a devmap is composed of a set of compound pages of order
+@vmemmap_shift, instead of base pages.  When a compound page devmap is
+requested, all but the first page are initialised as tail pages instead of
+order-0 pages.
 
-This is in preparation for sharing the storage for compound page metadata.
+For certain ZONE_DEVICE users like device-dax which have a fixed page
+size, this creates an opportunity to optimize GUP and GUP-fast walkers,
+treating it the same way as THP or hugetlb pages.
 
-Link: https://lkml.kernel.org/r/20211202204422.26777-4-joao.m.martins@oracle.com
+Additionally, commit 7118fc2906e2 ("hugetlb: address ref count racing in
+prep_compound_gigantic_page") removed set_page_count() because the setting
+of page ref count to zero was redundant.  devmap pages don't come from
+page allocator though and only head page refcount is used for compound
+pages, hence initialize tail page count to zero.
+
+Link: https://lkml.kernel.org/r/20211202204422.26777-5-joao.m.martins@oracle.com
 Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -70,96 +82,145 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   74 +++++++++++++++++++++++++---------------------
- 1 file changed, 41 insertions(+), 33 deletions(-)
+ include/linux/memremap.h |   11 ++++++++++
+ mm/memremap.c            |   18 +++++++++++------
+ mm/page_alloc.c          |   38 ++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 60 insertions(+), 7 deletions(-)
 
---- a/mm/page_alloc.c~mm-page_alloc-refactor-memmap_init_zone_device-page-init
-+++ a/mm/page_alloc.c
-@@ -6572,6 +6572,46 @@ void __meminit memmap_init_range(unsigne
+--- a/include/linux/memremap.h~mm-memremap-add-zone_device-support-for-compound-pages
++++ a/include/linux/memremap.h
+@@ -99,6 +99,11 @@ struct dev_pagemap_ops {
+  * @done: completion for @internal_ref
+  * @type: memory type: see MEMORY_* in memory_hotplug.h
+  * @flags: PGMAP_* flags to specify defailed behavior
++ * @vmemmap_shift: structural definition of how the vmemmap page metadata
++ *      is populated, specifically the metadata page order.
++ *	A zero value (default) uses base pages as the vmemmap metadata
++ *	representation. A bigger value will set up compound struct pages
++ *	of the requested order value.
+  * @ops: method table
+  * @owner: an opaque pointer identifying the entity that manages this
+  *	instance.  Used by various helpers to make sure that no
+@@ -114,6 +119,7 @@ struct dev_pagemap {
+ 	struct completion done;
+ 	enum memory_type type;
+ 	unsigned int flags;
++	unsigned long vmemmap_shift;
+ 	const struct dev_pagemap_ops *ops;
+ 	void *owner;
+ 	int nr_range;
+@@ -130,6 +136,11 @@ static inline struct vmem_altmap *pgmap_
+ 	return NULL;
  }
  
- #ifdef CONFIG_ZONE_DEVICE
-+static void __ref __init_zone_device_page(struct page *page, unsigned long pfn,
-+					  unsigned long zone_idx, int nid,
-+					  struct dev_pagemap *pgmap)
++static inline unsigned long pgmap_vmemmap_nr(struct dev_pagemap *pgmap)
 +{
++	return 1 << pgmap->vmemmap_shift;
++}
 +
-+	__init_single_page(page, pfn, zone_idx, nid);
+ #ifdef CONFIG_ZONE_DEVICE
+ void *memremap_pages(struct dev_pagemap *pgmap, int nid);
+ void memunmap_pages(struct dev_pagemap *pgmap);
+--- a/mm/memremap.c~mm-memremap-add-zone_device-support-for-compound-pages
++++ a/mm/memremap.c
+@@ -102,15 +102,22 @@ static unsigned long pfn_end(struct dev_
+ 	return (range->start + range_len(range)) >> PAGE_SHIFT;
+ }
+ 
+-static unsigned long pfn_next(unsigned long pfn)
++static unsigned long pfn_next(struct dev_pagemap *pgmap, unsigned long pfn)
+ {
+-	if (pfn % 1024 == 0)
++	if (pfn % (1024 << pgmap->vmemmap_shift))
+ 		cond_resched();
+-	return pfn + 1;
++	return pfn + pgmap_vmemmap_nr(pgmap);
++}
 +
-+	/*
-+	 * Mark page reserved as it will need to wait for onlining
-+	 * phase for it to be fully associated with a zone.
-+	 *
-+	 * We can use the non-atomic __set_bit operation for setting
-+	 * the flag as we are still initializing the pages.
-+	 */
-+	__SetPageReserved(page);
++static unsigned long pfn_len(struct dev_pagemap *pgmap, unsigned long range_id)
++{
++	return (pfn_end(pgmap, range_id) -
++		pfn_first(pgmap, range_id)) >> pgmap->vmemmap_shift;
+ }
+ 
+ #define for_each_device_pfn(pfn, map, i) \
+-	for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); pfn = pfn_next(pfn))
++	for (pfn = pfn_first(map, i); pfn < pfn_end(map, i); \
++	     pfn = pfn_next(map, pfn))
+ 
+ static void dev_pagemap_kill(struct dev_pagemap *pgmap)
+ {
+@@ -295,8 +302,7 @@ static int pagemap_range(struct dev_page
+ 	memmap_init_zone_device(&NODE_DATA(nid)->node_zones[ZONE_DEVICE],
+ 				PHYS_PFN(range->start),
+ 				PHYS_PFN(range_len(range)), pgmap);
+-	percpu_ref_get_many(pgmap->ref, pfn_end(pgmap, range_id)
+-			- pfn_first(pgmap, range_id));
++	percpu_ref_get_many(pgmap->ref, pfn_len(pgmap, range_id));
+ 	return 0;
+ 
+ err_add_memory:
+--- a/mm/page_alloc.c~mm-memremap-add-zone_device-support-for-compound-pages
++++ a/mm/page_alloc.c
+@@ -6612,6 +6612,35 @@ static void __ref __init_zone_device_pag
+ 	}
+ }
+ 
++static void __ref memmap_init_compound(struct page *head,
++				       unsigned long head_pfn,
++				       unsigned long zone_idx, int nid,
++				       struct dev_pagemap *pgmap,
++				       unsigned long nr_pages)
++{
++	unsigned long pfn, end_pfn = head_pfn + nr_pages;
++	unsigned int order = pgmap->vmemmap_shift;
 +
-+	/*
-+	 * ZONE_DEVICE pages union ->lru with a ->pgmap back pointer
-+	 * and zone_device_data.  It is a bug if a ZONE_DEVICE page is
-+	 * ever freed or placed on a driver-private list.
-+	 */
-+	page->pgmap = pgmap;
-+	page->zone_device_data = NULL;
++	__SetPageHead(head);
++	for (pfn = head_pfn + 1; pfn < end_pfn; pfn++) {
++		struct page *page = pfn_to_page(pfn);
 +
-+	/*
-+	 * Mark the block movable so that blocks are reserved for
-+	 * movable at startup. This will force kernel allocations
-+	 * to reserve their blocks rather than leaking throughout
-+	 * the address space during boot when many long-lived
-+	 * kernel allocations are made.
-+	 *
-+	 * Please note that MEMINIT_HOTPLUG path doesn't clear memmap
-+	 * because this is done early in section_activate()
-+	 */
-+	if (IS_ALIGNED(pfn, pageblock_nr_pages)) {
-+		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
-+		cond_resched();
++		__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
++		prep_compound_tail(head, pfn - head_pfn);
++		set_page_count(page, 0);
++
++		/*
++		 * The first tail page stores compound_mapcount_ptr() and
++		 * compound_order() and the second tail page stores
++		 * compound_pincount_ptr(). Call prep_compound_head() after
++		 * the first and second tail pages have been initialized to
++		 * not have the data overwritten.
++		 */
++		if (pfn == head_pfn + 2)
++			prep_compound_head(head, order);
 +	}
 +}
 +
  void __ref memmap_init_zone_device(struct zone *zone,
  				   unsigned long start_pfn,
  				   unsigned long nr_pages,
-@@ -6600,39 +6640,7 @@ void __ref memmap_init_zone_device(struc
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+@@ -6620,6 +6649,7 @@ void __ref memmap_init_zone_device(struc
+ 	unsigned long pfn, end_pfn = start_pfn + nr_pages;
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
+ 	struct vmem_altmap *altmap = pgmap_altmap(pgmap);
++	unsigned int pfns_per_compound = pgmap_vmemmap_nr(pgmap);
+ 	unsigned long zone_idx = zone_idx(zone);
+ 	unsigned long start = jiffies;
+ 	int nid = pgdat->node_id;
+@@ -6637,10 +6667,16 @@ void __ref memmap_init_zone_device(struc
+ 		nr_pages = end_pfn - start_pfn;
+ 	}
+ 
+-	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
++	for (pfn = start_pfn; pfn < end_pfn; pfn += pfns_per_compound) {
  		struct page *page = pfn_to_page(pfn);
  
--		__init_single_page(page, pfn, zone_idx, nid);
--
--		/*
--		 * Mark page reserved as it will need to wait for onlining
--		 * phase for it to be fully associated with a zone.
--		 *
--		 * We can use the non-atomic __set_bit operation for setting
--		 * the flag as we are still initializing the pages.
--		 */
--		__SetPageReserved(page);
--
--		/*
--		 * ZONE_DEVICE pages union ->lru with a ->pgmap back pointer
--		 * and zone_device_data.  It is a bug if a ZONE_DEVICE page is
--		 * ever freed or placed on a driver-private list.
--		 */
--		page->pgmap = pgmap;
--		page->zone_device_data = NULL;
--
--		/*
--		 * Mark the block movable so that blocks are reserved for
--		 * movable at startup. This will force kernel allocations
--		 * to reserve their blocks rather than leaking throughout
--		 * the address space during boot when many long-lived
--		 * kernel allocations are made.
--		 *
--		 * Please note that MEMINIT_HOTPLUG path doesn't clear memmap
--		 * because this is done early in section_activate()
--		 */
--		if (IS_ALIGNED(pfn, pageblock_nr_pages)) {
--			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--			cond_resched();
--		}
-+		__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
+ 		__init_zone_device_page(page, pfn, zone_idx, nid, pgmap);
++
++		if (pfns_per_compound == 1)
++			continue;
++
++		memmap_init_compound(page, pfn, zone_idx, nid, pgmap,
++				     pfns_per_compound);
  	}
  
  	pr_info("%s initialised %lu pages in %ums\n", __func__,
