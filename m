@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E3FA0C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 21:21:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71714C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 21:21:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229610AbiANVVC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 16:21:02 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:51616 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229741AbiANVVC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 16:21:02 -0500
+        id S229770AbiANVVi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 16:21:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60794 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229741AbiANVVi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 16:21:38 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A0FAC061574
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 13:21:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E78D961F6E
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 21:21:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36E5FC36AE9;
-        Fri, 14 Jan 2022 21:21:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E73DEB82A3C
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 21:21:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C714C36AE9;
+        Fri, 14 Jan 2022 21:21:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642195261;
-        bh=WiD2FOcNygk0XOO0VQSx9kNZB/lGk0Q2NhsNPvr1LZY=;
+        s=korg; t=1642195295;
+        bh=pQf7o+JAKYRrqyay0Ik/KF7hpGft9TM3Qfkad3fdLVo=;
         h=Date:From:To:Subject:From;
-        b=tN84xBuDeeaEQll3nVxJCDdc7JMLC/N1zRO03sBZZsY/74Wq5azaL9/B3qB2nu03+
-         gApxbhnVosrZZyu/RoDj4sj7i+FK47GeEHv8THuV6X1F4AP/hCvbjDn22KLJ/CTZbZ
-         qVY+9S8k5NjXSEoMXnLsCP55cLvLyUZbSXt/Vl/k=
-Date:   Fri, 14 Jan 2022 13:21:00 -0800
+        b=BMU/wCbLMvLbJWDi4mMlV7wHA0P35PiB9nV+EGlCR6Ii17zU31FjXNxxnr/K+BGzX
+         QMBoiN//5FSCeKSDxUvCR5b6lSmXCnAQBI+S0+uBzmh6FIjfTNhNKk3TsYpc3ZsVBf
+         b/+GbNp6oeBzRtW1A97/QAMlDVhSEOyi/ji0s+ro=
+Date:   Fri, 14 Jan 2022 13:21:35 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, caihuoqing@baidu.com,
+To:     akpm@linux-foundation.org, Kuan-Ying.Lee@mediatek.com,
         mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch removed from
- -mm tree
-Message-ID: <20220114212100.JPoQWp2eU%akpm@linux-foundation.org>
+ =?US-ASCII?Q?kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-base?=
+ =?US-ASCII?Q?d-kasan-enable-fix.patch?= removed from -mm tree
+Message-ID: <20220114212135.bgca40juD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,44 +46,45 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kthread-add-the-helper-function-kthread_run_on_cpu-fix
+     Subject: kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix
 has been removed from the -mm tree.  Its filename was
-     kthread-add-the-helper-function-kthread_run_on_cpu-fix.patch
+     kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
 
-This patch was dropped because it was folded into kthread-add-the-helper-function-kthread_run_on_cpu.patch
+This patch was dropped because it was folded into kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kthread-add-the-helper-function-kthread_run_on_cpu-fix
+Subject: kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix
 
-export kthread_create_on_cpu to modules
+whitespace tweak
 
-ERROR: modpost: "kthread_create_on_cpu" [drivers/infiniband/sw/siw/siw.ko] undefined!
-ERROR: modpost: "kthread_create_on_cpu" [kernel/rcu/rcutorture.ko] undefined!
-
-Cc: Cai Huoqing <caihuoqing@baidu.com>
+Cc: Kuan-Ying Lee <Kuan-Ying.Lee@mediatek.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kthread.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/kmemleak.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/kernel/kthread.c~kthread-add-the-helper-function-kthread_run_on_cpu-fix
-+++ a/kernel/kthread.c
-@@ -523,6 +523,7 @@ struct task_struct *kthread_create_on_cp
- 	to_kthread(p)->cpu = cpu;
- 	return p;
- }
-+EXPORT_SYMBOL(kthread_create_on_cpu);
+--- a/mm/kmemleak.c~kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix
++++ a/mm/kmemleak.c
+@@ -384,10 +384,10 @@ static struct kmemleak_object *lookup_ob
+ 	unsigned long untagged_ptr = (unsigned long)kasan_reset_tag((void *)ptr);
  
- void kthread_set_per_cpu(struct task_struct *k, int cpu)
- {
+ 	while (rb) {
+-		struct kmemleak_object *object =
+-			rb_entry(rb, struct kmemleak_object, rb_node);
++		struct kmemleak_object *object;
+ 		unsigned long untagged_objp;
+ 
++		object = rb_entry(rb, struct kmemleak_object, rb_node);
+ 		untagged_objp = (unsigned long)kasan_reset_tag((void *)object->pointer);
+ 
+ 		if (untagged_ptr < untagged_objp)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kthread-add-the-helper-function-kthread_run_on_cpu.patch
-kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable-fix.patch
+kmemleak-fix-kmemleak-false-positive-report-with-hw-tag-based-kasan-enable.patch
 mm-defer-kmemleak-object-creation-of-module_alloc-v4-fix.patch
 device-dax-remove-pfn-from-__dev_dax_ptepmdpud_fault-fix.patch
 mm-shmem-dont-truncate-page-if-memory-failure-happens-checkpatch-fixes.patch
