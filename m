@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7BA48C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:02:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AC15C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:03:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230058AbiANWC6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 17:02:58 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:44694 "EHLO
+        id S230070AbiANWDD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 17:03:03 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:44774 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229980AbiANWC5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:02:57 -0500
+        with ESMTP id S230060AbiANWDB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:03:01 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 832BD61FEE
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:02:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 59FFBC36AE9;
-        Fri, 14 Jan 2022 22:02:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 10DCE61FF0
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:03:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DB76BC36AE5;
+        Fri, 14 Jan 2022 22:02:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642197776;
-        bh=sGsAq+0wKXeYRkrjJAef+zs4S7vgZ9DsnZbpsQb14OU=;
+        s=korg; t=1642197780;
+        bh=A5j0iXSb71HCjCe29rW2IIzeZqi11B2GacRE/qA5+tQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=WQNl6nB0Vj/1xOaKobpAEpI0BZ0YOVVcZWRWD5zU6VH52FZX9+kYxMq3+fxzaxeXw
-         VIxiJEi0xntXKNIPr4Wsl5nBhovnw70ZMWQCt6RhIyuioGa64R/nhwFZAKIiVM21Q/
-         ZHlm84kNE9KaHbEei/ksSi/b26Py8lW6e5bZ8xFo=
-Date:   Fri, 14 Jan 2022 14:02:55 -0800
+        b=JRxuJiz/8epe+gGw3IOCLJ2cSlLEDitSszf1O3TV8OOI2NS1DQ/SAQhIftVzioJIy
+         Uop/lpaW5/MxmJukGxKK75SPuCz6o8Q2Aj+eeXskyf3Q06CxYOR2lPn/kRb59gBq2T
+         zBroNw1KSEGGShFDaHaVdwyi9/XBpzde48SYZbdQ=
+Date:   Fri, 14 Jan 2022 14:02:59 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bmt@zurich.ibm.com, bristot@kernel.org,
         caihuoqing@baidu.com, dave@stgolabs.net, dledford@redhat.com,
@@ -34,9 +34,9 @@ To:     akpm@linux-foundation.org, bmt@zurich.ibm.com, bristot@kernel.org,
         mathieu.desnoyers@efficios.com, mingo@redhat.com,
         mm-commits@vger.kernel.org, paulmck@kernel.org,
         rostedt@goodmis.org, torvalds@linux-foundation.org
-Subject:  [patch 002/146] RDMA/siw: make use of the helper function
- kthread_run_on_cpu()
-Message-ID: <20220114220255.ZPEpuUjOn%akpm@linux-foundation.org>
+Subject:  [patch 003/146] ring-buffer: make use of the helper
+ function kthread_run_on_cpu()
+Message-ID: <20220114220259.m6-lQwjxH%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,12 +45,12 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Cai Huoqing <caihuoqing@baidu.com>
-Subject: RDMA/siw: make use of the helper function kthread_run_on_cpu()
+Subject: ring-buffer: make use of the helper function kthread_run_on_cpu()
 
 Replace kthread_create/kthread_bind/wake_up_process() with
 kthread_run_on_cpu() to simplify the code.
 
-Link: https://lkml.kernel.org/r/20211022025711.3673-3-caihuoqing@baidu.com
+Link: https://lkml.kernel.org/r/20211022025711.3673-4-caihuoqing@baidu.com
 Signed-off-by: Cai Huoqing <caihuoqing@baidu.com>
 Cc: Bernard Metzler <bmt@zurich.ibm.com>
 Cc: Daniel Bristot de Oliveira <bristot@kernel.org>
@@ -67,28 +67,28 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/infiniband/sw/siw/siw_main.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/trace/ring_buffer.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
---- a/drivers/infiniband/sw/siw/siw_main.c~rdma-siw-make-use-of-the-helper-function-kthread_run_on_cpu
-+++ a/drivers/infiniband/sw/siw/siw_main.c
-@@ -98,15 +98,14 @@ static int siw_create_tx_threads(void)
- 			continue;
- 
- 		siw_tx_thread[cpu] =
--			kthread_create(siw_run_sq, (unsigned long *)(long)cpu,
--				       "siw_tx/%d", cpu);
-+			kthread_run_on_cpu(siw_run_sq,
-+					   (unsigned long *)(long)cpu,
-+					   cpu, "siw_tx/%u");
- 		if (IS_ERR(siw_tx_thread[cpu])) {
- 			siw_tx_thread[cpu] = NULL;
- 			continue;
+--- a/kernel/trace/ring_buffer.c~ring-buffer-make-use-of-the-helper-function-kthread_run_on_cpu
++++ a/kernel/trace/ring_buffer.c
+@@ -5898,16 +5898,13 @@ static __init int test_ringbuffer(void)
+ 		rb_data[cpu].buffer = buffer;
+ 		rb_data[cpu].cpu = cpu;
+ 		rb_data[cpu].cnt = cpu;
+-		rb_threads[cpu] = kthread_create(rb_test, &rb_data[cpu],
+-						 "rbtester/%d", cpu);
++		rb_threads[cpu] = kthread_run_on_cpu(rb_test, &rb_data[cpu],
++						     cpu, "rbtester/%u");
+ 		if (WARN_ON(IS_ERR(rb_threads[cpu]))) {
+ 			pr_cont("FAILED\n");
+ 			ret = PTR_ERR(rb_threads[cpu]);
+ 			goto out_free;
  		}
--		kthread_bind(siw_tx_thread[cpu], cpu);
- 
--		wake_up_process(siw_tx_thread[cpu]);
- 		assigned++;
+-
+-		kthread_bind(rb_threads[cpu], cpu);
+- 		wake_up_process(rb_threads[cpu]);
  	}
- 	return assigned;
+ 
+ 	/* Now create the rb hammer! */
 _
