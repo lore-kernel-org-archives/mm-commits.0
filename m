@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 33FC4C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:08:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B8C0FC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:08:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230237AbiANWIm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 17:08:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43060 "EHLO
+        id S230242AbiANWIp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 17:08:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230242AbiANWIl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:08:41 -0500
+        with ESMTP id S230238AbiANWIp (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:08:45 -0500
 Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CF932C061574
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 14:08:40 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2E08DC061574
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 14:08:44 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 503E0CE19A9
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:08:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 869CEC36AE9;
-        Fri, 14 Jan 2022 22:08:37 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 7DEE9CE2384
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:08:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91C82C36AE5;
+        Fri, 14 Jan 2022 22:08:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642198117;
-        bh=H+8BKHlRw4ydJJIqoNXnYqxoxCJ7lnBuWLDXTYmOd5c=;
+        s=korg; t=1642198120;
+        bh=AbxaJI2ZzEZZvcHuk8pMyWSoIl0x4wvKLH4mxWiFD30=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=XFLWkfEEyZQkO6vv+cxFgcFlnKjb0lwQjNbwgMwotAC3LwJpRxEqgrkQZF5qu1cBB
-         3PKEp8z9P2lezSTX/GJEDdTJ+1p+pgcH0Vy3Uwo3k7i3MR9H3xUXD6lpyfxP+CpkPH
-         FF0WP0gzKYW8Fp2SBW8d2MA7obt5s9V4IdPgcYG8=
-Date:   Fri, 14 Jan 2022 14:08:37 -0800
+        b=nOOaJVpVT4tEQBvbpUkM3/0IMy/lzozBo+bDJwMJI/Q4KHrSPOqfjL6sI3ZaxCDKv
+         HXcNlLPYSif8Y5XydX3Tl2DW8sIRM6WCFiOeo8LpKYzxzlaV9L3xzhSai0nn7eyIbD
+         /adefYQ2QlSnvZ+xCFE6j+DPdowdvckSOyyGlrhs=
+Date:   Fri, 14 Jan 2022 14:08:40 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, baolin.wang@linux.alibaba.com,
         linux-mm@kvack.org, mm-commits@vger.kernel.org,
         rostedt@goodmis.org, torvalds@linux-foundation.org, ziy@nvidia.com
-Subject:  [patch 103/146] mm: migrate: correct the hugetlb
- migration stats
-Message-ID: <20220114220837.ht0mOVvU5%akpm@linux-foundation.org>
+Subject:  [patch 104/146] mm: compaction: fix the migration stats
+ in trace_mm_compaction_migratepages()
+Message-ID: <20220114220840.FROGeVO3F%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,114 +44,89 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm: migrate: correct the hugetlb migration stats
+Subject: mm: compaction: fix the migration stats in trace_mm_compaction_migratepages()
 
-Correct the migration stats for hugetlb with using compound_nr() instead
-of thp_nr_pages(), meanwhile change 'nr_failed_pages' to record the number
-of normal pages failed to migrate, including THP and hugetlb, and
-'nr_succeeded' will record the number of normal pages migrated
-successfully.
+Now the migrate_pages() has changed to return the number of {normal page,
+THP, hugetlb} instead, thus we should not use the return value to
+calculate the number of pages migrated successfully.  Instead we can just
+use the 'nr_succeeded' which indicates the number of normal pages migrated
+successfully to calculate the non-migrated pages in
+trace_mm_compaction_migratepages().
 
-[baolin.wang@linux.alibaba.com: fix docs, per Mike]
-  Link: https://lkml.kernel.org/r/141bdfc6-f898-3cc3-f692-726c5f6cb74d@linux.alibaba.com
-Link: https://lkml.kernel.org/r/71a4b6c22f208728fe8c78ad26375436c4ff9704.1636275127.git.baolin.wang@linux.alibaba.com
+Link: https://lkml.kernel.org/r/b4225251c4bec068dcd90d275ab7de88a39e2bd7.1636275127.git.baolin.wang@linux.alibaba.com
 Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Reviewed-by: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/page_migration.rst |   12 ++++++------
- mm/migrate.c                        |   17 ++++++++---------
- 2 files changed, 14 insertions(+), 15 deletions(-)
+ include/trace/events/compaction.h |   24 ++++--------------------
+ mm/compaction.c                   |    7 ++++---
+ 2 files changed, 8 insertions(+), 23 deletions(-)
 
---- a/Documentation/vm/page_migration.rst~mm-migrate-correct-the-hugetlb-migration-stats
-+++ a/Documentation/vm/page_migration.rst
-@@ -263,15 +263,15 @@ Monitoring Migration
- The following events (counters) can be used to monitor page migration.
+--- a/include/trace/events/compaction.h~mm-compaction-fix-the-migration-stats-in-trace_mm_compaction_migratepages
++++ a/include/trace/events/compaction.h
+@@ -68,10 +68,9 @@ DEFINE_EVENT(mm_compaction_isolate_templ
+ TRACE_EVENT(mm_compaction_migratepages,
  
- 1. PGMIGRATE_SUCCESS: Normal page migration success. Each count means that a
--   page was migrated. If the page was a non-THP page, then this counter is
--   increased by one. If the page was a THP, then this counter is increased by
--   the number of THP subpages. For example, migration of a single 2MB THP that
--   has 4KB-size base pages (subpages) will cause this counter to increase by
--   512.
-+   page was migrated. If the page was a non-THP and non-hugetlb page, then
-+   this counter is increased by one. If the page was a THP or hugetlb, then
-+   this counter is increased by the number of THP or hugetlb subpages.
-+   For example, migration of a single 2MB THP that has 4KB-size base pages
-+   (subpages) will cause this counter to increase by 512.
+ 	TP_PROTO(unsigned long nr_all,
+-		int migrate_rc,
+-		struct list_head *migratepages),
++		unsigned int nr_succeeded),
  
- 2. PGMIGRATE_FAIL: Normal page migration failure. Same counting rules as for
-    PGMIGRATE_SUCCESS, above: this will be increased by the number of subpages,
--   if it was a THP.
-+   if it was a THP or hugetlb.
+-	TP_ARGS(nr_all, migrate_rc, migratepages),
++	TP_ARGS(nr_all, nr_succeeded),
  
- 3. THP_MIGRATION_SUCCESS: A THP was migrated without being split.
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, nr_migrated)
+@@ -79,23 +78,8 @@ TRACE_EVENT(mm_compaction_migratepages,
+ 	),
  
---- a/mm/migrate.c~mm-migrate-correct-the-hugetlb-migration-stats
-+++ a/mm/migrate.c
-@@ -1429,9 +1429,9 @@ static inline int try_split_thp(struct p
-  * It is caller's responsibility to call putback_movable_pages() to return pages
-  * to the LRU or free list only if ret != 0.
-  *
-- * Returns the number of {normal page, THP} that were not migrated, or an error code.
-- * The number of THP splits will be considered as the number of non-migrated THP,
-- * no matter how many subpages of the THP are migrated successfully.
-+ * Returns the number of {normal page, THP, hugetlb} that were not migrated, or
-+ * an error code. The number of THP splits will be considered as the number of
-+ * non-migrated THP, no matter how many subpages of the THP are migrated successfully.
-  */
- int migrate_pages(struct list_head *from, new_page_t get_new_page,
- 		free_page_t put_new_page, unsigned long private,
-@@ -1474,7 +1474,7 @@ retry:
- 			 * during migration.
- 			 */
- 			is_thp = PageTransHuge(page) && !PageHuge(page);
--			nr_subpages = thp_nr_pages(page);
-+			nr_subpages = compound_nr(page);
- 			cond_resched();
+ 	TP_fast_assign(
+-		unsigned long nr_failed = 0;
+-		struct list_head *page_lru;
+-
+-		/*
+-		 * migrate_pages() returns either a non-negative number
+-		 * with the number of pages that failed migration, or an
+-		 * error code, in which case we need to count the remaining
+-		 * pages manually
+-		 */
+-		if (migrate_rc >= 0)
+-			nr_failed = migrate_rc;
+-		else
+-			list_for_each(page_lru, migratepages)
+-				nr_failed++;
+-
+-		__entry->nr_migrated = nr_all - nr_failed;
+-		__entry->nr_failed = nr_failed;
++		__entry->nr_migrated = nr_succeeded;
++		__entry->nr_failed = nr_all - nr_succeeded;
+ 	),
  
- 			if (PageHuge(page))
-@@ -1523,7 +1523,7 @@ retry:
- 				/* Hugetlb migration is unsupported */
- 				if (!no_subpage_counting)
- 					nr_failed++;
--				nr_failed_pages++;
-+				nr_failed_pages += nr_subpages;
- 				break;
- 			case -ENOMEM:
- 				/*
-@@ -1544,7 +1544,7 @@ retry:
+ 	TP_printk("nr_migrated=%lu nr_failed=%lu",
+--- a/mm/compaction.c~mm-compaction-fix-the-migration-stats-in-trace_mm_compaction_migratepages
++++ a/mm/compaction.c
+@@ -2280,6 +2280,7 @@ compact_zone(struct compact_control *cc,
+ 	unsigned long last_migrated_pfn;
+ 	const bool sync = cc->mode != MIGRATE_ASYNC;
+ 	bool update_cached;
++	unsigned int nr_succeeded = 0;
  
- 				if (!no_subpage_counting)
- 					nr_failed++;
--				nr_failed_pages++;
-+				nr_failed_pages += nr_subpages;
- 				goto out;
- 			case -EAGAIN:
- 				if (is_thp) {
-@@ -1554,12 +1554,11 @@ retry:
- 				retry++;
- 				break;
- 			case MIGRATEPAGE_SUCCESS:
-+				nr_succeeded += nr_subpages;
- 				if (is_thp) {
- 					nr_thp_succeeded++;
--					nr_succeeded += nr_subpages;
- 					break;
- 				}
--				nr_succeeded++;
- 				break;
- 			default:
- 				/*
-@@ -1576,7 +1575,7 @@ retry:
+ 	/*
+ 	 * These counters track activities during zone compaction.  Initialize
+@@ -2398,10 +2399,10 @@ compact_zone(struct compact_control *cc,
  
- 				if (!no_subpage_counting)
- 					nr_failed++;
--				nr_failed_pages++;
-+				nr_failed_pages += nr_subpages;
- 				break;
- 			}
- 		}
+ 		err = migrate_pages(&cc->migratepages, compaction_alloc,
+ 				compaction_free, (unsigned long)cc, cc->mode,
+-				MR_COMPACTION, NULL);
++				MR_COMPACTION, &nr_succeeded);
+ 
+-		trace_mm_compaction_migratepages(cc->nr_migratepages, err,
+-							&cc->migratepages);
++		trace_mm_compaction_migratepages(cc->nr_migratepages,
++						 nr_succeeded);
+ 
+ 		/* All pages were either migrated or will be released */
+ 		cc->nr_migratepages = 0;
 _
