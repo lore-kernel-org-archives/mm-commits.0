@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E9733C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:07:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A708C433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 14 Jan 2022 22:07:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230197AbiANWHV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 14 Jan 2022 17:07:21 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:59538 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230195AbiANWHV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:07:21 -0500
+        id S230198AbiANWHX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 14 Jan 2022 17:07:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42762 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230195AbiANWHX (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 14 Jan 2022 17:07:23 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F0F95C061574
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 14:07:22 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3FECBB82630
-        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:07:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58F13C36AE5;
-        Fri, 14 Jan 2022 22:07:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8D4656201E
+        for <mm-commits@vger.kernel.org>; Fri, 14 Jan 2022 22:07:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02B3C36AEC;
+        Fri, 14 Jan 2022 22:07:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642198039;
-        bh=tDLobOzau0oLIqILsdj8C88xEKH5BlBa+zweQA20Hdo=;
+        s=korg; t=1642198042;
+        bh=7LuOOK14eXnlNYG8J9QodfnSLJlEQv7H2NUrOoEMzOg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=XLun85IaBvyCf0H/FHqSejGKIpmNBsqyXaD/wel/3F4CSpp/0eC9yxw/1a0veuZjn
-         8OkqfZ+gvH0D56kcFGloHKhLaOPLkkFtPtkiMxpVHRK2kLLimeQRXhVO/wIoTtclVZ
-         1oDGWuKORyynJD3kf7EieaxhTZx5m9qIsN04AcOI=
-Date:   Fri, 14 Jan 2022 14:07:17 -0800
+        b=1VTAfQ26b7Cf/+PEbx+koxZ9z1iHu7NVfozhK3Mavil4Z9dF3ykrt2QN4EXKsFfFn
+         izn3v2SrAiCiWn0G7idmUCpQhb47utLlRIL6qcUDzQoVAqBvM5QHTBO/Hdh28D7WJI
+         2qZLM3KREM+WAiGe7SeUNXBzs8owD5IBEdvCDnpc=
+Date:   Fri, 14 Jan 2022 14:07:21 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, corbet@lwn.net, crope@iki.fi,
-        dave.hansen@linux.intel.com, hannes@cmpxchg.org,
-        keescook@chromium.org, kernel@tuxforce.de, linux-mm@kvack.org,
-        mcgrof@kernel.org, mgorman@techsingularity.net, mhocko@suse.com,
-        mm-commits@vger.kernel.org, rppt@kernel.org, surenb@google.com,
-        torvalds@linux-foundation.org, vbabka@suse.cz, xi.fengfei@h3c.com,
-        yi.zhang@huawei.com, yzaikin@google.com
-Subject:  [patch 079/146] mm/pagealloc: sysctl: change
- watermark_scale_factor max limit to 30%
-Message-ID: <20220114220717.gRYVbnFKZ%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, deng.changcheng@zte.com.cn,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, zealci@zte.com.cn
+Subject:  [patch 080/146] mm: fix boolreturn.cocci warning
+Message-ID: <20220114220721.-NgiYC23R%akpm@linux-foundation.org>
 In-Reply-To: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -44,70 +42,30 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm/pagealloc: sysctl: change watermark_scale_factor max limit to 30%
+From: Changcheng Deng <deng.changcheng@zte.com.cn>
+Subject: mm: fix boolreturn.cocci warning
 
-For embedded systems with low total memory, having to run applications
-with relatively large memory requirements, 10% max limitation for
-watermark_scale_factor poses an issue of triggering direct reclaim every
-time such application is started.  This results in slow application
-startup times and bad end-user experience.
+Return statements in functions returning bool should use true/false
+instead of 1/0.
 
-By increasing watermark_scale_factor max limit we allow vendors more
-flexibility to choose the right level of kswapd aggressiveness for their
-device and workload requirements.
-
-Link: https://lkml.kernel.org/r/20211124193604.2758863-1-surenb@google.com
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Lukas Middendorf <kernel@tuxforce.de>
-Cc: Antti Palosaari <crope@iki.fi>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Zhang Yi <yi.zhang@huawei.com>
-Cc: Fengfei Xi <xi.fengfei@h3c.com>
-Cc: Mike Rapoport <rppt@kernel.org>
+Link: https://lkml.kernel.org/r/20211126073327.74815-1-deng.changcheng@zte.com.cn
+Signed-off-by: Changcheng Deng <deng.changcheng@zte.com.cn>
+Reported-by: Zeal Robot <zealci@zte.com.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/admin-guide/sysctl/vm.rst |    2 +-
- kernel/sysctl.c                         |    3 ++-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ include/linux/page-flags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/Documentation/admin-guide/sysctl/vm.rst~sysctl-change-watermark_scale_factor-max-limit-to-30%
-+++ a/Documentation/admin-guide/sysctl/vm.rst
-@@ -948,7 +948,7 @@ how much memory needs to be free before
+--- a/include/linux/page-flags.h~mm-fix-boolreturncocci-warning
++++ a/include/linux/page-flags.h
+@@ -383,7 +383,7 @@ static __always_inline int TestClearPage
+ 	TESTCLEARFLAG(uname, lname, policy)
  
- The unit is in fractions of 10,000. The default value of 10 means the
- distances between watermarks are 0.1% of the available memory in the
--node/system. The maximum value is 1000, or 10% of memory.
-+node/system. The maximum value is 3000, or 30% of memory.
+ #define TESTPAGEFLAG_FALSE(uname, lname)				\
+-static inline bool folio_test_##lname(const struct folio *folio) { return 0; } \
++static inline bool folio_test_##lname(const struct folio *folio) { return false; } \
+ static inline int Page##uname(const struct page *page) { return 0; }
  
- A high rate of threads entering direct reclaim (allocstall) or kswapd
- going to sleep prematurely (kswapd_low_wmark_hit_quickly) can indicate
---- a/kernel/sysctl.c~sysctl-change-watermark_scale_factor-max-limit-to-30%
-+++ a/kernel/sysctl.c
-@@ -122,6 +122,7 @@ static unsigned long long_max = LONG_MAX
- static int one_hundred = 100;
- static int two_hundred = 200;
- static int one_thousand = 1000;
-+static int three_thousand = 3000;
- #ifdef CONFIG_PRINTK
- static int ten_thousand = 10000;
- #endif
-@@ -2959,7 +2960,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= watermark_scale_factor_sysctl_handler,
- 		.extra1		= SYSCTL_ONE,
--		.extra2		= &one_thousand,
-+		.extra2		= &three_thousand,
- 	},
- 	{
- 		.procname	= "percpu_pagelist_high_fraction",
+ #define SETPAGEFLAG_NOOP(uname, lname)					\
 _
