@@ -2,108 +2,186 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C42F9C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 15 Jan 2022 14:16:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 20962C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 15 Jan 2022 17:10:51 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232636AbiAOOQ1 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 15 Jan 2022 09:16:27 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55806 "EHLO
+        id S232301AbiAORKt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 15 Jan 2022 12:10:49 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37426 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231782AbiAOOQ1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 15 Jan 2022 09:16:27 -0500
-Received: from mail-ed1-x536.google.com (mail-ed1-x536.google.com [IPv6:2a00:1450:4864:20::536])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88AFAC061574
-        for <mm-commits@vger.kernel.org>; Sat, 15 Jan 2022 06:16:26 -0800 (PST)
-Received: by mail-ed1-x536.google.com with SMTP id b13so45464725edn.0
-        for <mm-commits@vger.kernel.org>; Sat, 15 Jan 2022 06:16:26 -0800 (PST)
+        with ESMTP id S229570AbiAORKs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 15 Jan 2022 12:10:48 -0500
+Received: from mail-pl1-x631.google.com (mail-pl1-x631.google.com [IPv6:2607:f8b0:4864:20::631])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63D5BC061574;
+        Sat, 15 Jan 2022 09:10:48 -0800 (PST)
+Received: by mail-pl1-x631.google.com with SMTP id c3so15911728pls.5;
+        Sat, 15 Jan 2022 09:10:48 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linux-foundation.org; s=google;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=PrScd+2vEKmTKdZUNmTxKOvgm1+0xKJIeja/bnueszw=;
-        b=YlB4c1nLOqoZL2Mm2zoMpK5xCrGq9d8w7qMCs4z22tdKBE2qKctOl3nRho2tjQus3i
-         kEvJiuUJrnbiOHbNpSofWq1L834Q2GaM3cKNKT86xPDuvkXsui1gGILbnxkd7NYNE5eu
-         P2iPVfd0h4tn+hiz7GzD7f1vX6WMWhKm4OqmU=
+        d=gmail.com; s=20210112;
+        h=mime-version:from:date:message-id:subject:to:cc;
+        bh=ZbAfuW1XWY9HaUdMD8hJuwmFfyCOS07KigrE8S+BFHk=;
+        b=ZLSF7DGk12toPT8H7bM/RZjVKNh6ds3T/W+4W7QejIQg3f2GdxuRzPLj7lMZufz2KS
+         7SfhFv6eBPh3GQUwEHDsoqsfZQDOwjcgOXenYsddce5Twmkc+CU4TqRwxWaXOdnqW5Dn
+         p1g89/XswyuZaNGJrKdlpMVjklLLf5P5RZhxaPo+2ky/GGOojOEH4sJqX+CsYFP1aC+o
+         JJJXV+ID+WRAn/PzanIQktNoL7x35AGky5AilW7i9aofoIQ7+Jkxdhy3SBaS8bNoyEMH
+         CM1nxUh6h25PlBT5+8hQRl4U1qcyKnseDbxvfP6oS/pC4uWoKQQfV0NbHpNjPxKpws38
+         VmwA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=PrScd+2vEKmTKdZUNmTxKOvgm1+0xKJIeja/bnueszw=;
-        b=cDm3yofqkuJzJcE9SFaT2KxJBlpik+BK21LDbeaQlPo/5EJqcpuE+lretx+wlIiRsR
-         rd6Q/U/68bx4A8vGN1vt55BnfY1EIHyhu6d4tcBy6Cx7bPRBWpf+b2T91FESRs9dP89t
-         VzfLWhVyNt8SQae5b916qx6OpIHGRtA/Js9NKz8p9X2AOtA2QH6qMZhBzqew/pZekKob
-         +g6SdsWKs+4FTstMRrujqQSj/5lXwkAV2a+LpNWBg3Yl846e1bgVt8sd1Vb8NIJejA6A
-         NL2jgkwrPRYriwNTHwcSTsV7mwPx2EVByI5Z1CJzTvXKux27LhZAlK5tEvJuE2xTnsRT
-         Y4Rw==
-X-Gm-Message-State: AOAM531F+WY34/IBh5gjfRc7k5TMY8xoZfWlLEpya0rX3B3CTCAPr+Su
-        JzeMtkjxNoOUK6Z9QMfHX+WnxCGYg3W2tKFx2ek=
-X-Google-Smtp-Source: ABdhPJxUFpvLrqVYxtNuBhxs6yIqiTfglLQJT2AZqMuCdvafJQxSEKuEM/dLL9+7a3JdX7SgDujFyw==
-X-Received: by 2002:aa7:d507:: with SMTP id y7mr11180341edq.298.1642256185002;
-        Sat, 15 Jan 2022 06:16:25 -0800 (PST)
-Received: from mail-wm1-f49.google.com (mail-wm1-f49.google.com. [209.85.128.49])
-        by smtp.gmail.com with ESMTPSA id k16sm2654952ejk.172.2022.01.15.06.16.23
-        for <mm-commits@vger.kernel.org>
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Sat, 15 Jan 2022 06:16:24 -0800 (PST)
-Received: by mail-wm1-f49.google.com with SMTP id v123so11353946wme.2
-        for <mm-commits@vger.kernel.org>; Sat, 15 Jan 2022 06:16:23 -0800 (PST)
-X-Received: by 2002:a5d:4575:: with SMTP id a21mr12016883wrc.281.1642256183429;
- Sat, 15 Jan 2022 06:16:23 -0800 (PST)
+        h=x-gm-message-state:mime-version:from:date:message-id:subject:to:cc;
+        bh=ZbAfuW1XWY9HaUdMD8hJuwmFfyCOS07KigrE8S+BFHk=;
+        b=mpFLgIx6p2myO5QOWRRqf+2o8OgUp4fCP1Cem8lNErv1o1sWPin9fBJmWYAYmdUHut
+         3GSpipy9bk/gyrdsHoM0iv8dIAA/8zt0itTWboNklBzBdSejvD+WFuN4RaS56bTM+SLn
+         zJrHSrwQlcjKiZM2QFvjm1yDiapqKE+IK9hrK3D16NvOPpxiq78H7yEbllYY448rds38
+         R07u+qQnIOWDtj9r5G9lL/ZUpd29q+dbXNkCaQf2xCDPa1dYe2nq9yGqTrn0mqiM50ez
+         SD4Df8qzILpTdu6UHtKHnE5NgaCc3sNWVQpCdRoJms7vNB1jt5Sopch5QJ7JaXNCXvcF
+         VJcw==
+X-Gm-Message-State: AOAM532NAxukmBYhi2Y2gZX2ggQ404zkPPuEICip/yg11eBwc54kSTYD
+        Yb6XXs0yaZgTmwfiZwbPOVHfpezFx8i1Wn0o6jE=
+X-Google-Smtp-Source: ABdhPJy2O0baAy/pVYzY1xhuksgifczAOmTVCuqrQOQpCTTeVEXaOoRMu9vb2xstPBoTtki77TFry1AkUc7l1DEx1DE=
+X-Received: by 2002:a17:90b:1d83:: with SMTP id pf3mr26040320pjb.228.1642266647763;
+ Sat, 15 Jan 2022 09:10:47 -0800 (PST)
 MIME-Version: 1.0
-References: <20220114140222.6b14f0061194d3200000c52d@linux-foundation.org> <20220114220555.kAbhSEmus%akpm@linux-foundation.org>
-In-Reply-To: <20220114220555.kAbhSEmus%akpm@linux-foundation.org>
-From:   Linus Torvalds <torvalds@linux-foundation.org>
-Date:   Sat, 15 Jan 2022 16:16:07 +0200
-X-Gmail-Original-Message-ID: <CAHk-=wgH6jmhs=wtv8eEWcfw1NVvxwdt2h6fMKhRf75fiTW1Hw@mail.gmail.com>
-Message-ID: <CAHk-=wgH6jmhs=wtv8eEWcfw1NVvxwdt2h6fMKhRf75fiTW1Hw@mail.gmail.com>
-Subject: Re: [patch 056/146] mm: rearrange madvise code to allow for reuse
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     ccross@google.com, Dave Hansen <dave.hansen@intel.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>, gorcunov@openvz.org,
-        Johannes Weiner <hannes@cmpxchg.org>,
-        Hugh Dickins <hughd@google.com>, jan.glauber@gmail.com,
-        John Stultz <john.stultz@linaro.org>,
-        Kees Cook <keescook@chromium.org>,
-        Linux-MM <linux-mm@kvack.org>, Mel Gorman <mgorman@suse.de>,
-        Minchan Kim <minchan@kernel.org>,
-        Ingo Molnar <mingo@kernel.org>, mm-commits@vger.kernel.org,
-        Oleg Nesterov <oleg@redhat.com>,
-        Pekka Enberg <penberg@kernel.org>,
-        Peter Zijlstra <peterz@infradead.org>,
-        David Rientjes <rientjes@google.com>,
-        Rob Landley <rob@landley.net>, serge.hallyn@ubuntu.com,
-        shli@fusionio.com, Suren Baghdasaryan <surenb@google.com>,
-        Al Viro <viro@zeniv.linux.org.uk>
+From:   Yury Norov <yury.norov@gmail.com>
+Date:   Sat, 15 Jan 2022 09:10:36 -0800
+Message-ID: <CAAH8bW_3mVqCxebkYeY0XKBfTAjPi1dtygCBEy4GpqvyeKAPqA@mail.gmail.com>
+Subject: [GIT PULL] Bitmap patches for 5.17-rc1
+To:     Linus Torvalds <torvalds@linux-foundation.org>,
+        Alexey Klimov <aklimov@redhat.com>,
+        Andrew Morton <akpm@linux-foundation.org>,
+        Alexander Lobakin <alobakin@pm.me>,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Dennis Zhou <dennis@kernel.org>, Jiri Olsa <jolsa@redhat.com>,
+        linux-mm <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
+        Ulf Hansson <ulf.hansson@linaro.org>,
+        Will Deacon <will@kernel.org>,
+        Wolfram Sang <wsa+renesas@sang-engineering.com>,
+        Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc:     Yury Norov <yury.norov@gmail.com>
 Content-Type: text/plain; charset="UTF-8"
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sat, Jan 15, 2022 at 12:06 AM Andrew Morton
-<akpm@linux-foundation.org> wrote:
->
-> Speed up fork() by up to 40% by refcounting the anon vma name field.
+The following changes since commit df0cc57e057f18e44dac8e6c18aba47ab53202f9:
 
-What?
+  Linux 5.16 (2022-01-09 14:55:34 -0800)
 
-No.
+are available in the Git repository at:
 
-This doesn't speed up anything at all.
+  git://github.com/norov/linux.git/ tags/bitmap-5.17-rc1
 
-The refcounting of the anon-vma name field avoids a 40% regression
-that comes from adding the field in the first place, but this commit
-message makes it sound like this series is speeding up fork() by 40%.
+for you to fetch changes up to 15325b4f768f2b27b5765489eeab6ec0d6b5e902:
 
-I don't mind the series, but I absolutely mind these kinds of horribly
-misleading commit messages.
+  vsprintf: rework bitmap_list_string (2022-01-15 08:47:31 -0800)
 
-This is literally the first commit in the series - and the series in
-no way improves performance by 40% in the end, it just first makes it
-worse, and then fixes the regression.
+----------------------------------------------------------------
+bitmap patches for 5.17-rc1
 
-I can speed up any function by a thousand percent - if I'm just
-allowed to make it horribly slow first, and only count the final
-speedup win when I remove the overhead of the garbage I added.
+Hi Linus, please pull these patches for bitmap. They were supposed to
+be pulled in 5.16 cycle, but due to merge glitch we decided to merge them
+in 5.17.
 
-               Linus
+Thanks,
+Yury
+----------------------------------------------------------------
+Yury Norov (16):
+      bitops: protect find_first_{,zero}_bit properly
+      bitops: move find_bit_*_le functions from le.h to find.h
+      include: move find.h from asm_generic to linux
+      arch: remove GENERIC_FIND_FIRST_BIT entirely
+      lib: add find_first_and_bit()
+      cpumask: use find_first_and_bit()
+      all: replace find_next{,_zero}_bit with find_first{,_zero}_bit
+where appropriate
+      tools: sync tools/bitmap with mother linux
+      cpumask: replace cpumask_next_* with cpumask_first_* where appropriate
+      include/linux: move for_each_bit() macros from bitops.h to find.h
+      find: micro-optimize for_each_{set,clear}_bit()
+      Replace for_each_*_bit_from() with for_each_*_bit() where appropriate
+      mm/percpu: micro-optimize pcpu_is_populated()
+      bitmap: unify find_bit operations
+      lib: bitmap: add performance test for bitmap_print_to_pagebuf
+      vsprintf: rework bitmap_list_string
+
+ MAINTAINERS                                                |   4 +-
+ arch/alpha/include/asm/bitops.h                            |   2 -
+ arch/arc/Kconfig                                           |   1 -
+ arch/arc/include/asm/bitops.h                              |   1 -
+ arch/arm/include/asm/bitops.h                              |   1 -
+ arch/arm64/Kconfig                                         |   1 -
+ arch/arm64/include/asm/bitops.h                            |   1 -
+ arch/csky/include/asm/bitops.h                             |   1 -
+ arch/h8300/include/asm/bitops.h                            |   1 -
+ arch/hexagon/include/asm/bitops.h                          |   1 -
+ arch/ia64/include/asm/bitops.h                             |   2 -
+ arch/m68k/include/asm/bitops.h                             |   2 -
+ arch/mips/Kconfig                                          |   1 -
+ arch/mips/include/asm/bitops.h                             |   1 -
+ arch/openrisc/include/asm/bitops.h                         |   1 -
+ arch/parisc/include/asm/bitops.h                           |   1 -
+ arch/powerpc/include/asm/bitops.h                          |   2 -
+ arch/powerpc/platforms/pasemi/dma_lib.c                    |   4 +-
+ arch/riscv/include/asm/bitops.h                            |   1 -
+ arch/s390/Kconfig                                          |   1 -
+ arch/s390/include/asm/bitops.h                             |   1 -
+ arch/s390/kvm/kvm-s390.c                                   |   2 +-
+ arch/sh/include/asm/bitops.h                               |   1 -
+ arch/sparc/include/asm/bitops_32.h                         |   1 -
+ arch/sparc/include/asm/bitops_64.h                         |   2 -
+ arch/x86/Kconfig                                           |   1 -
+ arch/x86/include/asm/bitops.h                              |   2 -
+ arch/x86/kernel/apic/vector.c                              |   4 +-
+ arch/x86/um/Kconfig                                        |   1 -
+ arch/xtensa/include/asm/bitops.h                           |   1 -
+ block/blk-mq.c                                             |   2 +-
+ drivers/block/rnbd/rnbd-clt.c                              |   2 +-
+ drivers/dma/ti/edma.c                                      |   2 +-
+ drivers/gpu/drm/etnaviv/etnaviv_gpu.c                      |   4 +-
+ drivers/hwmon/ltc2992.c                                    |   3 +-
+ drivers/iio/adc/ad7124.c                                   |   2 +-
+ drivers/infiniband/hw/irdma/hw.c                           |  16 +-
+ drivers/media/cec/core/cec-core.c                          |   2 +-
+ drivers/media/mc/mc-devnode.c                              |   2 +-
+ drivers/mmc/host/renesas_sdhi_core.c                       |   2 +-
+ drivers/net/virtio_net.c                                   |   2 +-
+ drivers/pci/controller/dwc/pci-dra7xx.c                    |   2 +-
+ drivers/scsi/lpfc/lpfc_sli.c                               |  10 +-
+ drivers/soc/fsl/qbman/bman_portal.c                        |   2 +-
+ drivers/soc/fsl/qbman/qman_portal.c                        |   2 +-
+ drivers/soc/ti/k3-ringacc.c                                |   4 +-
+ drivers/tty/n_tty.c                                        |   2 +-
+ drivers/virt/acrn/ioreq.c                                  |   3 +-
+ fs/f2fs/segment.c                                          |   8 +-
+ fs/ocfs2/cluster/heartbeat.c                               |   2 +-
+ fs/ocfs2/dlm/dlmdomain.c                                   |   4 +-
+ fs/ocfs2/dlm/dlmmaster.c                                   |  18 +-
+ fs/ocfs2/dlm/dlmrecovery.c                                 |   2 +-
+ fs/ocfs2/dlm/dlmthread.c                                   |   2 +-
+ include/asm-generic/bitops.h                               |   1 -
+ include/asm-generic/bitops/le.h                            |  64 -------
+ include/linux/bitmap.h                                     |  34 +---
+ include/linux/bitops.h                                     |  34 ----
+ include/linux/cpumask.h                                    |  46 ++++-
+ include/linux/find.h                                       | 372
+++++++++++++++++++++++++++++++++++++++
+ kernel/time/clocksource.c                                  |   4 +-
+ lib/Kconfig                                                |   3 -
+ lib/find_bit.c                                             |  21 +++
+ lib/find_bit_benchmark.c                                   |  21 +++
+ lib/genalloc.c                                             |   2 +-
+ lib/test_bitmap.c                                          |  37 ++++
+ lib/vsprintf.c                                             |  24 +--
+ mm/percpu.c                                                |  35 ++--
+ net/ncsi/ncsi-manage.c                                     |   4 +-
+ tools/include/asm-generic/bitops.h                         |   1 -
+ tools/include/asm-generic/bitops/find.h                    | 145
+---------------
+ tools/include/linux/bitmap.h                               |   7 +-
+ {include/asm-generic/bitops => tools/include/linux}/find.h |  54 ++++--
+ tools/lib/find_bit.c                                       |  20 ++
+ 74 files changed, 636 insertions(+), 439 deletions(-)
+ create mode 100644 include/linux/find.h
+ delete mode 100644 tools/include/asm-generic/bitops/find.h
+ rename {include/asm-generic/bitops => tools/include/linux}/find.h (83%)
