@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BD1EBC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 01:51:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 02890C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 01:52:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344882AbiATBvm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jan 2022 20:51:42 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:57246 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345656AbiATBvh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 20:51:37 -0500
+        id S1344494AbiATBwb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jan 2022 20:52:31 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:59088 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239740AbiATBwa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 20:52:30 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A12AEC061574
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jan 2022 17:52:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 68A9E6154E
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 01:51:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id ADC6CC004E1;
-        Thu, 20 Jan 2022 01:51:36 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 458096154E
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 01:52:30 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 6E414C004E1;
+        Thu, 20 Jan 2022 01:52:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642643496;
-        bh=MiYFLy/xJJm94i9XofEeLlITv8BpW1SiZBP1+XRHCbA=;
+        s=korg; t=1642643549;
+        bh=gXzsRGmlvxamFRxtrQ4fkswzsq8hpjkxf15PI714yXM=;
         h=Date:From:To:Subject:From;
-        b=bStUQpuOUfxTS0AQKxTWAJ1GFaP3PSy+BQgqwRJ4hCGcBnGyy3Oc3FBPLt295XgQZ
-         qly5Xy1DBxy+fnAaux3uJqwZcju0xLkkjUZcOkT11vEU5IAWbFvJ7rD6YpCHuZCKg2
-         6wZR4boceuZsb/RMNafiWlGxe+RvVcq+xNrJ8H/I=
-Date:   Wed, 19 Jan 2022 17:51:36 -0800
+        b=Qgd9TyYaN0LEeRC/J+MU7MMx4qotNS5JGmXxvFsTodoWVzlOOhg9gldldyXxMfane
+         BB+dVAL0Rzob4LsagOcjJayUXXEbP0Ggv0UKmFISrXyn047LOrVBk/BIGwfQEO8OQG
+         WV6uRtUY3kCbod2BGmUlBoSghKcX4on0DOqpiRew=
+Date:   Wed, 19 Jan 2022 17:52:28 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, hdegoede@redhat.com, lkp@intel.com,
-        mm-commits@vger.kernel.org
+To:     akpm@linux-foundation.org, dave@stgolabs.net, dbueso@suse.de,
+        mm-commits@vger.kernel.org, oleg@redhat.com
 Subject:  [folded-merged]
- proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch removed from
- -mm tree
-Message-ID: <20220120015136.GHjQKwoIm%akpm@linux-foundation.org>
+ =?US-ASCII?Q?kernel-sys-only-take-tasklist=5Flock-for-get-setpriorityprio?=
+ =?US-ASCII?Q?=5Fpgrp-checkpatch-fixes.patch?= removed from -mm tree
+Message-ID: <20220120015228.raWDC4oCZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,53 +46,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-make-the-proc_create-stubs-static-inlines-fix2-fix
+     Subject: kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch
+     kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into proc-make-the-proc_create-stubs-static-inlines.patch
+This patch was dropped because it was folded into kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-make-the-proc_create-stubs-static-inlines-fix2-fix
+Subject: kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes
 
-fix build
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: kernel test robot <lkp@intel.com>
+WARNING: A patch subject line should describe the change not the tool that found it
+#2: 
+Subject: kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes
+
+WARNING: Commit log lines starting with '#' are dropped by git as comments
+#5: 
+#102: FILE: kernel/sys.c:321:
+
+WARNING: Possible unwrapped commit description (prefer a maximum 75 chars per line)
+#13: 
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+total: 0 errors, 3 warnings, 8 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+./patches/kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/led.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ kernel/sys.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/sparc/kernel/led.c~proc-make-the-proc_create-stubs-static-inlines-fix2-fix
-+++ a/arch/sparc/kernel/led.c
-@@ -114,8 +114,6 @@ static const struct proc_ops led_proc_op
- };
- #endif
- 
--static struct proc_dir_entry *led;
--
- #define LED_VERSION	"0.1"
- 
- static int __init led_init(void)
-@@ -123,8 +121,7 @@ static int __init led_init(void)
- 	timer_setup(&led_blink_timer, led_blink, 0);
- 
- #ifdef CONFIG_PROC_FS
--	led = proc_create("led", 0, NULL, &led_proc_ops);
--	if (!led)
-+	if (!proc_create("led", 0, NULL, &led_proc_ops))
- 		return -ENOMEM;
- #endif
- 	printk(KERN_INFO
+--- a/kernel/sys.c~kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes
++++ a/kernel/sys.c
+@@ -318,7 +318,7 @@ SYSCALL_DEFINE2(getpriority, int, which,
+ 			if (!user)
+ 				goto out_unlock;	/* No processes for this user */
+ 		}
+-	        for_each_process_thread(g, p) {
++		for_each_process_thread(g, p) {
+ 			if (uid_eq(task_uid(p), uid) && task_pid_vnr(p)) {
+ 				niceval = nice_to_rlimit(task_nice(p));
+ 				if (niceval > retval)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-proc-make-the-proc_create-stubs-static-inlines.patch
-kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch
+kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp.patch
 hashh-remove-unused-define-directive-fix.patch
 panic-use-error_report_end-tracepoint-on-warnings-fix.patch
 mm.patch
