@@ -2,39 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AB6E4C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:31:22 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0C07C43219
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:31:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377949AbiATVbW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:31:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43922 "EHLO
+        id S1377942AbiATVbY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:31:24 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43956 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377939AbiATVbQ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:31:16 -0500
+        with ESMTP id S1377944AbiATVbY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:31:24 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BBD7EC061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:31:16 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11A80C061574
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:31:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 446AE61715
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:31:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C04CC340E0;
-        Thu, 20 Jan 2022 21:31:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A6E1B618CD
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:31:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1EE5C340E3;
+        Thu, 20 Jan 2022 21:31:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714275;
-        bh=NqPQWwNf1Jp8ZYJ6h90/S+jq1riASakoCZZkvFxNf6M=;
+        s=korg; t=1642714283;
+        bh=YxBZADMnL4RIn6M0k7LktMazCWEfgtVmf+oBpnvdWyg=;
         h=Date:From:To:Subject:From;
-        b=FrLnwnZh7/o9P11OEg5TCZmrDYhHrhjdV5tI6tjwF1FaboubTco0swCR8nNUJgHXi
-         DIYv/tMifRMih4wqNXGYoToTjScXFUxhgdczqqxPrdVYDk1E3G72I12xsJUf0ZONSa
-         TzQNDffurrw8jNr5n/jcp40pgVba851P+ditRkOE=
-Date:   Thu, 20 Jan 2022 13:31:15 -0800
+        b=nvqSejvh2vLk071Pq5MLQ5Pucxk2js+ew/SQy2O7TkFGlZRNfNxm7PF828CFa8Ghm
+         x4Q9Yl6UmCTxUtdu4RRNUlC2ae9VVWgC2+InuAMVjQWJTqSlTKcpYw3KK5PaXX7aQc
+         x3QBcu1J7Rbu//uqFVFdRdiO1h1b2FBYhKCp9uU0=
+Date:   Thu, 20 Jan 2022 13:31:22 -0800
 From:   akpm@linux-foundation.org
-To:     christian.brauner@ubuntu.com, keescook@chromium.org,
-        mm-commits@vger.kernel.org, thunder.leizhen@huawei.com
+To:     alex.popov@linux.com, andriy.shevchenko@linux.intel.com,
+        arnd@arndb.de, elver@google.com, glider@google.com,
+        john.ogness@linutronix.de, mcgrof@kernel.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, pmladek@suse.com, rostedt@goodmis.org,
+        rppt@kernel.org, wei.liu@kernel.org
 Subject:  [merged]
- hfsplus-use-struct_group_attr-for-memcpy-region.patch removed from -mm tree
-Message-ID: <20220120213115.y_HaMzf5J%akpm@linux-foundation.org>
+ panic-use-error_report_end-tracepoint-on-warnings.patch removed from -mm
+ tree
+Message-ID: <20220120213122.FT2y-nEFl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,90 +47,85 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hfsplus: use struct_group_attr() for memcpy() region
+     Subject: panic: use error_report_end tracepoint on warnings
 has been removed from the -mm tree.  Its filename was
-     hfsplus-use-struct_group_attr-for-memcpy-region.patch
+     panic-use-error_report_end-tracepoint-on-warnings.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: hfsplus: use struct_group_attr() for memcpy() region
+From: Marco Elver <elver@google.com>
+Subject: panic: use error_report_end tracepoint on warnings
 
-In preparation for FORTIFY_SOURCE performing compile-time and run-time
-field bounds checking for memset(), avoid intentionally writing across
-neighboring fields.
+Introduce the error detector "warning" to the error_report event and use
+the error_report_end tracepoint at the end of a warning report.
 
-Add struct_group() to mark the "info" region (containing struct DInfo and
-struct DXInfo structs) in struct hfsplus_cat_folder and struct
-hfsplus_cat_file that are written into directly, so the compiler can
-correctly reason about the expected size of the writes.
+This allows in-kernel tests but also userspace to more easily determine
+if a warning occurred without polling kernel logs.
 
-"pahole" shows no size nor member offset changes to struct
-hfsplus_cat_folder nor struct hfsplus_cat_file.  "objdump -d" shows no
-object code changes.
-
-Link: https://lkml.kernel.org/r/20211119192851.1046717-1-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Link: https://lkml.kernel.org/r/20211115085630.1756817-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Wei Liu <wei.liu@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Alexander Popov <alex.popov@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/hfsplus_raw.h |   12 ++++++++----
- fs/hfsplus/xattr.c       |    4 ++--
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ include/trace/events/error_report.h |    8 +++++---
+ kernel/panic.c                      |    2 ++
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
---- a/fs/hfsplus/hfsplus_raw.h~hfsplus-use-struct_group_attr-for-memcpy-region
-+++ a/fs/hfsplus/hfsplus_raw.h
-@@ -260,8 +260,10 @@ struct hfsplus_cat_folder {
- 	__be32 access_date;
- 	__be32 backup_date;
- 	struct hfsplus_perm permissions;
--	struct DInfo user_info;
--	struct DXInfo finder_info;
-+	struct_group_attr(info, __packed,
-+		struct DInfo user_info;
-+		struct DXInfo finder_info;
-+	);
- 	__be32 text_encoding;
- 	__be32 subfolders;	/* Subfolder count in HFSX. Reserved in HFS+. */
- } __packed;
-@@ -294,8 +296,10 @@ struct hfsplus_cat_file {
- 	__be32 access_date;
- 	__be32 backup_date;
- 	struct hfsplus_perm permissions;
--	struct FInfo user_info;
--	struct FXInfo finder_info;
-+	struct_group_attr(info, __packed,
-+		struct FInfo user_info;
-+		struct FXInfo finder_info;
-+	);
- 	__be32 text_encoding;
- 	u32 reserved2;
+--- a/include/trace/events/error_report.h~panic-use-error_report_end-tracepoint-on-warnings
++++ a/include/trace/events/error_report.h
+@@ -17,14 +17,16 @@
  
---- a/fs/hfsplus/xattr.c~hfsplus-use-struct_group_attr-for-memcpy-region
-+++ a/fs/hfsplus/xattr.c
-@@ -296,7 +296,7 @@ int __hfsplus_setxattr(struct inode *ino
- 					sizeof(hfsplus_cat_entry));
- 		if (be16_to_cpu(entry.type) == HFSPLUS_FOLDER) {
- 			if (size == folder_finderinfo_len) {
--				memcpy(&entry.folder.user_info, value,
-+				memcpy(&entry.folder.info, value,
- 						folder_finderinfo_len);
- 				hfs_bnode_write(cat_fd.bnode, &entry,
- 					cat_fd.entryoffset,
-@@ -309,7 +309,7 @@ int __hfsplus_setxattr(struct inode *ino
- 			}
- 		} else if (be16_to_cpu(entry.type) == HFSPLUS_FILE) {
- 			if (size == file_finderinfo_len) {
--				memcpy(&entry.file.user_info, value,
-+				memcpy(&entry.file.info, value,
- 						file_finderinfo_len);
- 				hfs_bnode_write(cat_fd.bnode, &entry,
- 					cat_fd.entryoffset,
+ enum error_detector {
+ 	ERROR_DETECTOR_KFENCE,
+-	ERROR_DETECTOR_KASAN
++	ERROR_DETECTOR_KASAN,
++	ERROR_DETECTOR_WARN
+ };
+ 
+ #endif /* __ERROR_REPORT_DECLARE_TRACE_ENUMS_ONCE_ONLY */
+ 
+-#define error_detector_list	\
++#define error_detector_list			\
+ 	EM(ERROR_DETECTOR_KFENCE, "kfence")	\
+-	EMe(ERROR_DETECTOR_KASAN, "kasan")
++	EM(ERROR_DETECTOR_KASAN, "kasan")	\
++	EMe(ERROR_DETECTOR_WARN, "warning")
+ /* Always end the list with an EMe. */
+ 
+ #undef EM
+--- a/kernel/panic.c~panic-use-error_report_end-tracepoint-on-warnings
++++ a/kernel/panic.c
+@@ -32,6 +32,7 @@
+ #include <linux/bug.h>
+ #include <linux/ratelimit.h>
+ #include <linux/debugfs.h>
++#include <trace/events/error_report.h>
+ #include <asm/sections.h>
+ 
+ #define PANIC_TIMER_STEP 100
+@@ -609,6 +610,7 @@ void __warn(const char *file, int line,
+ 	print_irqtrace_events(current);
+ 
+ 	print_oops_end_marker();
++	trace_error_report_end(ERROR_DETECTOR_WARN, (unsigned long)caller);
+ 
+ 	/* Just a warning, don't kill lockdep. */
+ 	add_taint(taint, LOCKDEP_STILL_OK);
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from elver@google.com are
 
+lib-stackdepot-always-do-filter_irq_stacks-in-stack_depot_save.patch
 
