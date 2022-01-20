@@ -2,42 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A4692C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 18F41C433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:31:36 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377945AbiATVbd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:31:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43992 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377943AbiATVbc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:31:32 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65C75C061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:31:32 -0800 (PST)
+        id S1377946AbiATVbf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:31:35 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:60598 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377943AbiATVbf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:31:35 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 23A3BB81E6A
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:31:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9758AC340E0;
-        Thu, 20 Jan 2022 21:31:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1B726B81E68
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:31:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8E6ADC340E0;
+        Thu, 20 Jan 2022 21:31:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714289;
-        bh=UgXHh/j7R0VkZT54i1FW5N23xwwKoeLzMCQcnItML9Q=;
+        s=korg; t=1642714292;
+        bh=abIN/Y7A2lBfUsIN3CppgY+VJfvv+VrI+EHDRxqjhsg=;
         h=Date:From:To:Subject:From;
-        b=Wpc57Ie6O8bilRP9aM97IyGgPr28ClFJe7UcycX+Li5Y6IMOYty3ZcmwydjSEmcji
-         W/mQ5u4c+cWWeyPbKh7FP8DaxS90pF6UV5eE3JON384IOzD7+gn1378RoEYyUf4WPp
-         w1MRVJyuD2ODAZccNHCZbpdOSR+6vKyHzTJJQrdk=
-Date:   Thu, 20 Jan 2022 13:31:29 -0800
+        b=SSvKADampu52eoaZ5PW+z7wxvhm3vwVjd4xT8BTtrwHo7PG9r06xYmmR69WQaZyQg
+         L2UecPUH3GZQTualxGwwNuzkgCuycSvhwZLtbGurAF0+NqEI/0Gu1cwQZBNGSODU76
+         o3BfG1z1ykskJGIz0Ksj22dSkTLuwA0tLQ1jduzo=
+Date:   Thu, 20 Jan 2022 13:31:32 -0800
 From:   akpm@linux-foundation.org
 To:     bsingharora@gmail.com, hannes@cmpxchg.org, mingo@kernel.org,
         mm-commits@vger.kernel.org, peterz@infradead.org,
         yang.yang29@zte.com.cn, zealci@zte.com.cn
 Subject:  [merged]
- delayacct-support-swapin-delay-accounting-for-swapping-without-blkio.patch
- removed from -mm tree
-Message-ID: <20220120213129.FWuCdA33U%akpm@linux-foundation.org>
+ =?US-ASCII?Q?delayacct-fix-incomplete-disable-operation-when-switch-ena?=
+ =?US-ASCII?Q?ble-to-disable.patch?= removed from -mm tree
+Message-ID: <20220120213132.4xkvhY0lR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -45,28 +44,25 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: delayacct: support swapin delay accounting for swapping without blkio
+     Subject: delayacct: fix incomplete disable operation when switch enable to disable
 has been removed from the -mm tree.  Its filename was
-     delayacct-support-swapin-delay-accounting-for-swapping-without-blkio.patch
+     delayacct-fix-incomplete-disable-operation-when-switch-enable-to-disable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yang Yang <yang.yang29@zte.com.cn>
-Subject: delayacct: support swapin delay accounting for swapping without blkio
+Subject: delayacct: fix incomplete disable operation when switch enable to disable
 
-Currently delayacct accounts swapin delay only for swapping that cause
-blkio.  If we use zram for swapping, tools/accounting/getdelays can't get
-any SWAP delay.
+When a task is created after delayacct is enabled, kernel will do all the
+delay accountings for that task.  The problems is if user disables
+delayacct by set /proc/sys/kernel/task_delayacct to zero, only blkio delay
+accounting is disabled.
 
-It's useful to get zram swapin delay information, for example to adjust
-compress algorithm or /proc/sys/vm/swappiness.
+Now disable all the kinds of delay accountings when
+/proc/sys/kernel/task_delayacct sets to zero.
 
-Reference to PSI, it accounts any kind of swapping by doing its work in
-swap_readpage(), no matter whether swapping causes blkio.  Let delayacct
-do the similar work.
-
-Link: https://lkml.kernel.org/r/20211112083813.8559-1-yang.yang29@zte.com.cn
+Link: https://lkml.kernel.org/r/20211123140342.32962-1-ran.xiaokai@zte.com.cn
 Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
 Reported-by: Zeal Robot <zealci@zte.com.cn>
 Cc: Balbir Singh <bsingharora@gmail.com>
@@ -76,222 +72,66 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/delayacct.h |   44 ++++++++++++++++++------------------
- kernel/delayacct.c        |   34 +++++++++++++++------------
- mm/memory.c               |    4 ---
- mm/page_io.c              |    3 ++
- 4 files changed, 44 insertions(+), 41 deletions(-)
+ include/linux/delayacct.h |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/include/linux/delayacct.h~delayacct-support-swapin-delay-accounting-for-swapping-without-blkio
+--- a/include/linux/delayacct.h~delayacct-fix-incomplete-disable-operation-when-switch-enable-to-disable
 +++ a/include/linux/delayacct.h
-@@ -9,14 +9,6 @@
+@@ -131,36 +131,54 @@ static inline __u64 delayacct_blkio_tick
  
- #include <uapi/linux/taskstats.h>
- 
--/*
-- * Per-task flags relevant to delay accounting
-- * maintained privately to avoid exhausting similar flags in sched.h:PF_*
-- * Used to set current->delays->flags
-- */
--#define DELAYACCT_PF_SWAPIN	0x00000001	/* I am doing a swapin */
--#define DELAYACCT_PF_BLKIO	0x00000002	/* I am waiting on IO */
--
- #ifdef CONFIG_TASK_DELAY_ACCT
- struct task_delay_info {
- 	raw_spinlock_t	lock;
-@@ -37,13 +29,13 @@ struct task_delay_info {
- 	 * associated with the operation is added to XXX_delay.
- 	 * XXX_delay contains the accumulated delay time in nanoseconds.
- 	 */
--	u64 blkio_start;	/* Shared by blkio, swapin */
-+	u64 blkio_start;
- 	u64 blkio_delay;	/* wait for sync block io completion */
--	u64 swapin_delay;	/* wait for swapin block io completion */
-+	u64 swapin_start;
-+	u64 swapin_delay;	/* wait for swapin */
- 	u32 blkio_count;	/* total count of the number of sync block */
- 				/* io operations performed */
--	u32 swapin_count;	/* total count of the number of swapin block */
--				/* io operations performed */
-+	u32 swapin_count;	/* total count of swapin */
- 
- 	u64 freepages_start;
- 	u64 freepages_delay;	/* wait for memory reclaim */
-@@ -79,14 +71,8 @@ extern void __delayacct_freepages_start(
- extern void __delayacct_freepages_end(void);
- extern void __delayacct_thrashing_start(void);
- extern void __delayacct_thrashing_end(void);
--
--static inline int delayacct_is_task_waiting_on_io(struct task_struct *p)
--{
--	if (p->delays)
--		return (p->delays->flags & DELAYACCT_PF_BLKIO);
--	else
--		return 0;
--}
-+extern void __delayacct_swapin_start(void);
-+extern void __delayacct_swapin_end(void);
- 
- static inline void delayacct_set_flag(struct task_struct *p, int flag)
+ static inline void delayacct_freepages_start(void)
  {
-@@ -123,7 +109,6 @@ static inline void delayacct_blkio_start
- 	if (!static_branch_unlikely(&delayacct_key))
- 		return;
- 
--	delayacct_set_flag(current, DELAYACCT_PF_BLKIO);
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
  	if (current->delays)
- 		__delayacct_blkio_start();
- }
-@@ -135,7 +120,6 @@ static inline void delayacct_blkio_end(s
- 
- 	if (p->delays)
- 		__delayacct_blkio_end(p);
--	delayacct_clear_flag(p, DELAYACCT_PF_BLKIO);
+ 		__delayacct_freepages_start();
  }
  
- static inline __u64 delayacct_blkio_ticks(struct task_struct *tsk)
-@@ -169,6 +153,18 @@ static inline void delayacct_thrashing_e
+ static inline void delayacct_freepages_end(void)
+ {
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
+ 		__delayacct_freepages_end();
+ }
+ 
+ static inline void delayacct_thrashing_start(void)
+ {
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
+ 		__delayacct_thrashing_start();
+ }
+ 
+ static inline void delayacct_thrashing_end(void)
+ {
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
  		__delayacct_thrashing_end();
  }
  
-+static inline void delayacct_swapin_start(void)
-+{
-+	if (current->delays)
-+		__delayacct_swapin_start();
-+}
-+
-+static inline void delayacct_swapin_end(void)
-+{
-+	if (current->delays)
-+		__delayacct_swapin_end();
-+}
-+
- #else
- static inline void delayacct_set_flag(struct task_struct *p, int flag)
- {}
-@@ -199,6 +195,10 @@ static inline void delayacct_thrashing_s
- {}
- static inline void delayacct_thrashing_end(void)
- {}
-+static inline void delayacct_swapin_start(void)
-+{}
-+static inline void delayacct_swapin_end(void)
-+{}
- 
- #endif /* CONFIG_TASK_DELAY_ACCT */
- 
---- a/kernel/delayacct.c~delayacct-support-swapin-delay-accounting-for-swapping-without-blkio
-+++ a/kernel/delayacct.c
-@@ -100,19 +100,10 @@ void __delayacct_blkio_start(void)
-  */
- void __delayacct_blkio_end(struct task_struct *p)
+ static inline void delayacct_swapin_start(void)
  {
--	struct task_delay_info *delays = p->delays;
--	u64 *total;
--	u32 *count;
--
--	if (p->delays->flags & DELAYACCT_PF_SWAPIN) {
--		total = &delays->swapin_delay;
--		count = &delays->swapin_count;
--	} else {
--		total = &delays->blkio_delay;
--		count = &delays->blkio_count;
--	}
--
--	delayacct_end(&delays->lock, &delays->blkio_start, total, count);
-+	delayacct_end(&p->delays->lock,
-+		      &p->delays->blkio_start,
-+		      &p->delays->blkio_delay,
-+		      &p->delays->blkio_count);
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
+ 		__delayacct_swapin_start();
  }
  
- int delayacct_add_tsk(struct taskstats *d, struct task_struct *tsk)
-@@ -179,8 +170,7 @@ __u64 __delayacct_blkio_ticks(struct tas
- 	unsigned long flags;
- 
- 	raw_spin_lock_irqsave(&tsk->delays->lock, flags);
--	ret = nsec_to_clock_t(tsk->delays->blkio_delay +
--				tsk->delays->swapin_delay);
-+	ret = nsec_to_clock_t(tsk->delays->blkio_delay);
- 	raw_spin_unlock_irqrestore(&tsk->delays->lock, flags);
- 	return ret;
- }
-@@ -210,3 +200,17 @@ void __delayacct_thrashing_end(void)
- 		      &current->delays->thrashing_delay,
- 		      &current->delays->thrashing_count);
- }
-+
-+void __delayacct_swapin_start(void)
-+{
-+	current->delays->swapin_start = local_clock();
-+}
-+
-+void __delayacct_swapin_end(void)
-+{
-+	delayacct_end(&current->delays->lock,
-+		      &current->delays->swapin_start,
-+		      &current->delays->swapin_delay,
-+		      &current->delays->swapin_count);
-+}
-+
---- a/mm/memory.c~delayacct-support-swapin-delay-accounting-for-swapping-without-blkio
-+++ a/mm/memory.c
-@@ -3508,7 +3508,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 	if (unlikely(!si))
- 		goto out;
- 
--	delayacct_set_flag(current, DELAYACCT_PF_SWAPIN);
- 	page = lookup_swap_cache(entry, vma, vmf->address);
- 	swapcache = page;
- 
-@@ -3556,7 +3555,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 					vmf->address, &vmf->ptl);
- 			if (likely(pte_same(*vmf->pte, vmf->orig_pte)))
- 				ret = VM_FAULT_OOM;
--			delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
- 			goto unlock;
- 		}
- 
-@@ -3570,13 +3568,11 @@ vm_fault_t do_swap_page(struct vm_fault
- 		 * owner processes (which may be unknown at hwpoison time)
- 		 */
- 		ret = VM_FAULT_HWPOISON;
--		delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
- 		goto out_release;
- 	}
- 
- 	locked = lock_page_or_retry(page, vma->vm_mm, vmf->flags);
- 
--	delayacct_clear_flag(current, DELAYACCT_PF_SWAPIN);
- 	if (!locked) {
- 		ret |= VM_FAULT_RETRY;
- 		goto out_release;
---- a/mm/page_io.c~delayacct-support-swapin-delay-accounting-for-swapping-without-blkio
-+++ a/mm/page_io.c
-@@ -25,6 +25,7 @@
- #include <linux/psi.h>
- #include <linux/uio.h>
- #include <linux/sched/task.h>
-+#include <linux/delayacct.h>
- 
- void end_swap_bio_write(struct bio *bio)
+ static inline void delayacct_swapin_end(void)
  {
-@@ -370,6 +371,7 @@ int swap_readpage(struct page *page, boo
- 	 * significant part of overall IO time.
- 	 */
- 	psi_memstall_enter(&pflags);
-+	delayacct_swapin_start();
- 
- 	if (frontswap_load(page) == 0) {
- 		SetPageUptodate(page);
-@@ -432,6 +434,7 @@ int swap_readpage(struct page *page, boo
- 
- out:
- 	psi_memstall_leave(&pflags);
-+	delayacct_swapin_end();
- 	return ret;
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
+ 		__delayacct_swapin_end();
  }
- 
 _
 
 Patches currently in -mm which might be from yang.yang29@zte.com.cn are
