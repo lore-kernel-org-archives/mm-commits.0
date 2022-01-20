@@ -2,35 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AED8DC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:28:09 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A0F4AC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:28:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377885AbiATV2J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:28:09 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:58816 "EHLO
+        id S1377887AbiATV2L (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:28:11 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:58834 "EHLO
         ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377882AbiATV2J (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:28:09 -0500
+        with ESMTP id S1377882AbiATV2L (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:28:11 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D8173B81E54
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:28:07 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84AF5C340E0;
-        Thu, 20 Jan 2022 21:28:06 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 08E66B81E69
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:28:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A0437C340E0;
+        Thu, 20 Jan 2022 21:28:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714086;
-        bh=7j/XdfqzFjJOSXNFwQ1J8umPtcDVLvpY977bFWTSCsE=;
+        s=korg; t=1642714088;
+        bh=0Xc9o92SCPZqFBT+51VfZ6Jby6rHYrD5GB3rYYSwCac=;
         h=Date:From:To:Subject:From;
-        b=0+IgPNZWo3p+3rMO1TvIT1O0WIO6wWhXqQ/918WsDW79xLtKezUBc7Tb4MxcOTITv
-         CVQRkPd340AU7w4Vaa49ZydGOC0ZB2kzEPWxnDzOnyB9xoQ/IAUwGpFQzZOa8bDUZM
-         EWLqX3DG7VPWVhKr9AzXf5syzoYc58Xv8PdCpVrk=
-Date:   Thu, 20 Jan 2022 13:28:06 -0800
+        b=cThKvffDZlyn2pyoq1cF772xYJvupRqXFv+51+arFg2MAG+5q3sTso9w+nj4LABO0
+         tFEgF4COZMoekmpI7O+DxUCe//VbQaBBDo3EmeMWKkgWMZlh/vpp/EQyEle4MVnWSI
+         aUzdgG6TiaVGGmmDCXmGkqidTnKTG5efdhr5/WPU=
+Date:   Thu, 20 Jan 2022 13:28:08 -0800
 From:   akpm@linux-foundation.org
-To:     fuqf0919@gmail.com, mm-commits@vger.kernel.org
-Subject:  [merged] writeback-fix-some-comment-errors.patch removed
- from -mm tree
-Message-ID: <20220120212806.-TaT_PkKz%akpm@linux-foundation.org>
+To:     liuting.0x7c00@bytedance.com, mm-commits@vger.kernel.org
+Subject:  [merged]
+ mm-make-some-vars-and-functions-static-or-__init.patch removed from -mm
+ tree
+Message-ID: <20220120212808.2EskLZDqz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -39,73 +40,82 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix some comment errors
+     Subject: mm: make some vars and functions static or __init
 has been removed from the -mm tree.  Its filename was
-     writeback-fix-some-comment-errors.patch
+     mm-make-some-vars-and-functions-static-or-__init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Quanfa Fu <fuqf0919@gmail.com>
-Subject: mm: fix some comment errors
+From: Ting Liu <liuting.0x7c00@bytedance.com>
+Subject: mm: make some vars and functions static or __init
 
-Link: https://lkml.kernel.org/r/20211101040208.460810-1-fuqf0919@gmail.com
-Signed-off-by: Quanfa Fu <fuqf0919@gmail.com>
+"page_idle_ops" as a global var, but its scope of use within this
+document.  So it should be static.
+
+"page_ext_ops" is a var used in the kernel initial phase.  And other
+functions are aslo used in the kernel initial phase.  So they should be
+__init or __initdata to reclaim memory.
+
+Link: https://lkml.kernel.org/r/20211217095023.67293-1-liuting.0x7c00@bytedance.com
+Signed-off-by: Ting Liu <liuting.0x7c00@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c     |    2 +-
- mm/memory-failure.c |    2 +-
- mm/slab_common.c    |    2 +-
- mm/swap.c           |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/page_idle.h |    1 -
+ mm/page_ext.c             |    4 ++--
+ mm/page_owner.c           |    4 ++--
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/khugepaged.c~writeback-fix-some-comment-errors
-+++ a/mm/khugepaged.c
-@@ -1303,7 +1303,7 @@ static int khugepaged_scan_pmd(struct mm
- 		/*
- 		 * Record which node the original page is from and save this
- 		 * information to khugepaged_node_load[].
--		 * Khupaged will allocate hugepage from the node has the max
-+		 * Khugepaged will allocate hugepage from the node has the max
- 		 * hit record.
- 		 */
- 		node = page_to_nid(page);
---- a/mm/memory-failure.c~writeback-fix-some-comment-errors
-+++ a/mm/memory-failure.c
-@@ -1306,7 +1306,7 @@ static int __get_unpoison_page(struct pa
-  *
-  * get_hwpoison_page() takes a page refcount of an error page to handle memory
-  * error on it, after checking that the error page is in a well-defined state
-- * (defined as a page-type we can successfully handle the memor error on it,
-+ * (defined as a page-type we can successfully handle the memory error on it,
-  * such as LRU page and hugetlb page).
-  *
-  * Memory error handling could be triggered at any time on any type of page,
---- a/mm/slab_common.c~writeback-fix-some-comment-errors
-+++ a/mm/slab_common.c
-@@ -819,7 +819,7 @@ void __init setup_kmalloc_cache_index_ta
+--- a/include/linux/page_idle.h~mm-make-some-vars-and-functions-static-or-__init
++++ a/include/linux/page_idle.h
+@@ -13,7 +13,6 @@
+  * If there is not enough space to store Idle and Young bits in page flags, use
+  * page ext flags instead.
+  */
+-extern struct page_ext_operations page_idle_ops;
  
- 	if (KMALLOC_MIN_SIZE >= 64) {
- 		/*
--		 * The 96 byte size cache is not used if the alignment
-+		 * The 96 byte sized cache is not used if the alignment
- 		 * is 64 byte.
- 		 */
- 		for (i = 64 + 8; i <= 96; i += 8)
---- a/mm/swap.c~writeback-fix-some-comment-errors
-+++ a/mm/swap.c
-@@ -882,7 +882,7 @@ void lru_cache_disable(void)
- 	 * all online CPUs so any calls of lru_cache_disabled wrapped by
- 	 * local_lock or preemption disabled would be ordered by that.
- 	 * The atomic operation doesn't need to have stronger ordering
--	 * requirements because that is enforeced by the scheduling
-+	 * requirements because that is enforced by the scheduling
- 	 * guarantees.
- 	 */
- 	__lru_add_drain_all(true);
+ static inline bool folio_test_young(struct folio *folio)
+ {
+--- a/mm/page_ext.c~mm-make-some-vars-and-functions-static-or-__init
++++ a/mm/page_ext.c
+@@ -64,12 +64,12 @@ static bool need_page_idle(void)
+ {
+ 	return true;
+ }
+-struct page_ext_operations page_idle_ops = {
++static struct page_ext_operations page_idle_ops __initdata = {
+ 	.need = need_page_idle,
+ };
+ #endif
+ 
+-static struct page_ext_operations *page_ext_ops[] = {
++static struct page_ext_operations *page_ext_ops[] __initdata = {
+ #ifdef CONFIG_PAGE_OWNER
+ 	&page_owner_ops,
+ #endif
+--- a/mm/page_owner.c~mm-make-some-vars-and-functions-static-or-__init
++++ a/mm/page_owner.c
+@@ -46,7 +46,7 @@ static int __init early_page_owner_param
+ }
+ early_param("page_owner", early_page_owner_param);
+ 
+-static bool need_page_owner(void)
++static __init bool need_page_owner(void)
+ {
+ 	return page_owner_enabled;
+ }
+@@ -75,7 +75,7 @@ static noinline void register_early_stac
+ 	early_handle = create_dummy_stack();
+ }
+ 
+-static void init_page_owner(void)
++static __init void init_page_owner(void)
+ {
+ 	if (!page_owner_enabled)
+ 		return;
 _
 
-Patches currently in -mm which might be from fuqf0919@gmail.com are
+Patches currently in -mm which might be from liuting.0x7c00@bytedance.com are
 
 
