@@ -2,40 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 38CC6C4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:10:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2F859C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:10:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232183AbiATCKG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jan 2022 21:10:06 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:51232 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232981AbiATCJ7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:09:59 -0500
+        id S233581AbiATCKJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jan 2022 21:10:09 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:43700 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232981AbiATCKI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:10:08 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 974C0B81911
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:09:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DD979C340E3;
-        Thu, 20 Jan 2022 02:09:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 7D42B6145A
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:10:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9623DC340E4;
+        Thu, 20 Jan 2022 02:10:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642644597;
-        bh=K8x2+rrKbvMgE+PltXot5aEDL/xetbBzK1muFCoSfNk=;
+        s=korg; t=1642644606;
+        bh=H0CEFoSISCPFCDRFnMeFFAH/fy/VQv/ddBxTwfNzOPM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=W6P1fLbRwdXkSki68o1YuG/FquOLOJBD6ekK3KDCVxalVBpMsjqdQSpnT2O60U1fr
-         a4OTPowaFk5xr8o0e6jpmp7viJdJMCyKD1RZ/A0kNZwcOO2m9PVWTusSWAsbJUwmdE
-         6tzqEPmiXo/VeRA2P4VDvC1GD7kFckU3ALv4lBJo=
-Date:   Wed, 19 Jan 2022 18:09:56 -0800
+        b=1SKMbPS2it3P40OtYmkm163JY0QvN0SJgE/Bb/Pe5eBEndUmQBlMKmVSQGjRGTyQ/
+         c+cdNRbAl5R8WT+6Wno+46sX/TcxZdYveoYrAdykHpxAJ35fiH6lYQw6J/1jbZaBJD
+         s+DAQ8S9NYZg6++q97NDYPThhS6wJsXvdZqp5gO8=
+Date:   Wed, 19 Jan 2022 18:10:06 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, alex.popov@linux.com,
-        andriy.shevchenko@linux.intel.com, arnd@arndb.de, elver@google.com,
-        glider@google.com, john.ogness@linutronix.de, linux-mm@kvack.org,
-        mcgrof@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        pmladek@suse.com, rostedt@goodmis.org, rppt@kernel.org,
-        torvalds@linux-foundation.org, wei.liu@kernel.org
-Subject:  [patch 42/55] panic: use error_report_end tracepoint on
- warnings
-Message-ID: <20220120020956.7nXS_wTfb%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bsingharora@gmail.com,
+        hannes@cmpxchg.org, linux-mm@kvack.org, mingo@kernel.org,
+        mm-commits@vger.kernel.org, peterz@infradead.org,
+        torvalds@linux-foundation.org, yang.yang29@zte.com.cn,
+        zealci@zte.com.cn
+Subject:  [patch 45/55] delayacct: fix incomplete disable operation
+ when switch enable to disable
+Message-ID: <20220120021006.cVLJPygAt%akpm@linux-foundation.org>
 In-Reply-To: <20220119180714.9e187ce100e4510de3cd9f7d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,74 +42,85 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Marco Elver <elver@google.com>
-Subject: panic: use error_report_end tracepoint on warnings
+From: Yang Yang <yang.yang29@zte.com.cn>
+Subject: delayacct: fix incomplete disable operation when switch enable to disable
 
-Introduce the error detector "warning" to the error_report event and use
-the error_report_end tracepoint at the end of a warning report.
+When a task is created after delayacct is enabled, kernel will do all the
+delay accountings for that task.  The problems is if user disables
+delayacct by set /proc/sys/kernel/task_delayacct to zero, only blkio delay
+accounting is disabled.
 
-This allows in-kernel tests but also userspace to more easily determine
-if a warning occurred without polling kernel logs.
+Now disable all the kinds of delay accountings when
+/proc/sys/kernel/task_delayacct sets to zero.
 
-[akpm@linux-foundation.org: add comma to enum list, per Andy]
-Link: https://lkml.kernel.org/r/20211115085630.1756817-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Wei Liu <wei.liu@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexander Popov <alex.popov@linux.com>
+Link: https://lkml.kernel.org/r/20211123140342.32962-1-ran.xiaokai@zte.com.cn
+Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Cc: Balbir Singh <bsingharora@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/error_report.h |    8 +++++---
- kernel/panic.c                      |    2 ++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ include/linux/delayacct.h |   18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+)
 
---- a/include/trace/events/error_report.h~panic-use-error_report_end-tracepoint-on-warnings
-+++ a/include/trace/events/error_report.h
-@@ -17,14 +17,16 @@
+--- a/include/linux/delayacct.h~delayacct-fix-incomplete-disable-operation-when-switch-enable-to-disable
++++ a/include/linux/delayacct.h
+@@ -131,36 +131,54 @@ static inline __u64 delayacct_blkio_tick
  
- enum error_detector {
- 	ERROR_DETECTOR_KFENCE,
--	ERROR_DETECTOR_KASAN
-+	ERROR_DETECTOR_KASAN,
-+	ERROR_DETECTOR_WARN,
- };
+ static inline void delayacct_freepages_start(void)
+ {
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
+ 		__delayacct_freepages_start();
+ }
  
- #endif /* __ERROR_REPORT_DECLARE_TRACE_ENUMS_ONCE_ONLY */
+ static inline void delayacct_freepages_end(void)
+ {
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
+ 		__delayacct_freepages_end();
+ }
  
--#define error_detector_list	\
-+#define error_detector_list			\
- 	EM(ERROR_DETECTOR_KFENCE, "kfence")	\
--	EMe(ERROR_DETECTOR_KASAN, "kasan")
-+	EM(ERROR_DETECTOR_KASAN, "kasan")	\
-+	EMe(ERROR_DETECTOR_WARN, "warning")
- /* Always end the list with an EMe. */
+ static inline void delayacct_thrashing_start(void)
+ {
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
+ 		__delayacct_thrashing_start();
+ }
  
- #undef EM
---- a/kernel/panic.c~panic-use-error_report_end-tracepoint-on-warnings
-+++ a/kernel/panic.c
-@@ -32,6 +32,7 @@
- #include <linux/bug.h>
- #include <linux/ratelimit.h>
- #include <linux/debugfs.h>
-+#include <trace/events/error_report.h>
- #include <asm/sections.h>
+ static inline void delayacct_thrashing_end(void)
+ {
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
+ 		__delayacct_thrashing_end();
+ }
  
- #define PANIC_TIMER_STEP 100
-@@ -609,6 +610,7 @@ void __warn(const char *file, int line,
- 	print_irqtrace_events(current);
+ static inline void delayacct_swapin_start(void)
+ {
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
+ 		__delayacct_swapin_start();
+ }
  
- 	print_oops_end_marker();
-+	trace_error_report_end(ERROR_DETECTOR_WARN, (unsigned long)caller);
- 
- 	/* Just a warning, don't kill lockdep. */
- 	add_taint(taint, LOCKDEP_STILL_OK);
+ static inline void delayacct_swapin_end(void)
+ {
++	if (!static_branch_unlikely(&delayacct_key))
++		return;
++
+ 	if (current->delays)
+ 		__delayacct_swapin_end();
+ }
 _
