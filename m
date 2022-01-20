@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C8A59C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5721CC433EF
 	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:25:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377841AbiATVZt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1377847AbiATVZt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 20 Jan 2022 16:25:49 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:36718 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377846AbiATVZt (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:25:49 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:57606 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377841AbiATVZq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:25:46 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 43A8260B08
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:25:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DED7FC340E7;
-        Thu, 20 Jan 2022 21:25:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id AA23FB81E66
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:25:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8A8BC340E0;
+        Thu, 20 Jan 2022 21:25:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642713948;
-        bh=0QRYpjJA9iuRQBjCN0DUcEXnriUtP2rGDwo65AHXhBI=;
+        s=korg; t=1642713944;
+        bh=pM1b7SKt1n5TRsSXx54uw732HbDTRGv/Slj97D2foNE=;
         h=Date:From:To:Subject:From;
-        b=PTHHX3ztvSeCntSLWCdMzwCBVYMaB5pkZCSNOtsnxBWLtMjTCZB2ytg5c6F+TkIrs
-         4CDJ/+arc7mtp+C1lVxQRTZz638ThBs6UpaVotNACqpWwOA9JmaBO2vCE6Kfx8Hx5d
-         rYDqIWuGDSNyH57oSuAFRE4vcjh4b7DQCjUOhDR8=
-Date:   Thu, 20 Jan 2022 13:25:47 -0800
+        b=ByeM8tTtrLPws0XcjlErioaz/G1FBEMuVfBIReqjbRBkRLldwiW5IEQ1ykcj+qeBZ
+         Pn0b/HCxydD/+f08jXiRVutn+HqbbQXHCcsqihTJWNDKmK21TOKC9ZDow5BYnfcnOq
+         HX5PimqJ7udJ2ipnz87ydpZ/bWfJOYC/T1WBQ1c0=
+Date:   Thu, 20 Jan 2022 13:25:43 -0800
 From:   akpm@linux-foundation.org
 To:     aneesh.kumar@linux.ibm.com, corbet@lwn.net,
         dave.hansen@linux.intel.com, frederic@kernel.org,
@@ -36,9 +36,9 @@ To:     aneesh.kumar@linux.ibm.com, corbet@lwn.net,
         rientjes@google.com, rppt@kernel.org, samitolvanen@google.com,
         songmuchun@bytedance.com, tglx@linutronix.de, weixugc@google.com,
         will@kernel.org
-Subject:  [merged]
- x86-mm-add-x86_64-support-for-page-table-check.patch removed from -mm tree
-Message-ID: <20220120212547.0J5PdCLko%akpm@linux-foundation.org>
+Subject:  [merged] mm-ptep_clear-page-table-helper.patch removed
+ from -mm tree
+Message-ID: <20220120212543.rmJ8WkmKe%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,19 +47,26 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: mm: add x86_64 support for page table check
+     Subject: mm: ptep_clear() page table helper
 has been removed from the -mm tree.  Its filename was
-     x86-mm-add-x86_64-support-for-page-table-check.patch
+     mm-ptep_clear-page-table-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Pasha Tatashin <pasha.tatashin@soleen.com>
-Subject: x86: mm: add x86_64 support for page table check
+Subject: mm: ptep_clear() page table helper
 
-Add page table check hooks into routines that modify user page tables.
+We have ptep_get_and_clear() and ptep_get_and_clear_full() helpers to
+clear PTE from user page tables, but there is no variant for simple clear
+of a present PTE from user page tables without using a low level
+pte_clear() which can be either native or para-virtualised.
 
-Link: https://lkml.kernel.org/r/20211221154650.1047963-5-pasha.tatashin@soleen.com
+Add a new ptep_clear() that can be used in common code to clear PTEs from
+page table.  We will need this call later in order to add a hook for page
+table check.
+
+Link: https://lkml.kernel.org/r/20211221154650.1047963-3-pasha.tatashin@soleen.com
 Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -84,117 +91,84 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig               |    1 +
- arch/x86/include/asm/pgtable.h |   29 +++++++++++++++++++++++++++--
- 2 files changed, 28 insertions(+), 2 deletions(-)
+ Documentation/vm/arch_pgtable_helpers.rst |    6 ++++--
+ include/linux/pgtable.h                   |    8 ++++++++
+ mm/debug_vm_pgtable.c                     |    2 +-
+ mm/khugepaged.c                           |   12 ++----------
+ 4 files changed, 15 insertions(+), 13 deletions(-)
 
---- a/arch/x86/include/asm/pgtable.h~x86-mm-add-x86_64-support-for-page-table-check
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -26,6 +26,7 @@
- #include <asm/pkru.h>
- #include <asm/fpu/api.h>
- #include <asm-generic/pgtable_uffd.h>
-+#include <linux/page_table_check.h>
+--- a/Documentation/vm/arch_pgtable_helpers.rst~mm-ptep_clear-page-table-helper
++++ a/Documentation/vm/arch_pgtable_helpers.rst
+@@ -66,9 +66,11 @@ PTE Page Table Helpers
+ +---------------------------+--------------------------------------------------+
+ | pte_mknotpresent          | Invalidates a mapped PTE                         |
+ +---------------------------+--------------------------------------------------+
+-| ptep_get_and_clear        | Clears a PTE                                     |
++| ptep_clear                | Clears a PTE                                     |
+ +---------------------------+--------------------------------------------------+
+-| ptep_get_and_clear_full   | Clears a PTE                                     |
++| ptep_get_and_clear        | Clears and returns PTE                           |
+++---------------------------+--------------------------------------------------+
++| ptep_get_and_clear_full   | Clears and returns PTE (batched PTE unmap)       |
+ +---------------------------+--------------------------------------------------+
+ | ptep_test_and_clear_young | Clears young from a PTE                          |
+ +---------------------------+--------------------------------------------------+
+--- a/include/linux/pgtable.h~mm-ptep_clear-page-table-helper
++++ a/include/linux/pgtable.h
+@@ -258,6 +258,14 @@ static inline int pmdp_clear_flush_young
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #endif
  
- extern pgd_t early_top_pgt[PTRS_PER_PGD];
- bool __init __early_make_pgtable(unsigned long address, pmdval_t pmd);
-@@ -1006,18 +1007,21 @@ static inline pud_t native_local_pudp_ge
- static inline void set_pte_at(struct mm_struct *mm, unsigned long addr,
- 			      pte_t *ptep, pte_t pte)
- {
-+	page_table_check_pte_set(mm, addr, ptep, pte);
- 	set_pte(ptep, pte);
- }
- 
- static inline void set_pmd_at(struct mm_struct *mm, unsigned long addr,
- 			      pmd_t *pmdp, pmd_t pmd)
- {
-+	page_table_check_pmd_set(mm, addr, pmdp, pmd);
- 	set_pmd(pmdp, pmd);
- }
- 
- static inline void set_pud_at(struct mm_struct *mm, unsigned long addr,
- 			      pud_t *pudp, pud_t pud)
- {
-+	page_table_check_pud_set(mm, addr, pudp, pud);
- 	native_set_pud(pudp, pud);
- }
- 
-@@ -1048,6 +1052,7 @@ static inline pte_t ptep_get_and_clear(s
- 				       pte_t *ptep)
- {
- 	pte_t pte = native_ptep_get_and_clear(ptep);
-+	page_table_check_pte_clear(mm, addr, pte);
- 	return pte;
- }
- 
-@@ -1063,12 +1068,23 @@ static inline pte_t ptep_get_and_clear_f
- 		 * care about updates and native needs no locking
- 		 */
- 		pte = native_local_ptep_get_and_clear(ptep);
-+		page_table_check_pte_clear(mm, addr, pte);
- 	} else {
- 		pte = ptep_get_and_clear(mm, addr, ptep);
- 	}
- 	return pte;
- }
- 
-+#define __HAVE_ARCH_PTEP_CLEAR
++#ifndef __HAVE_ARCH_PTEP_CLEAR
 +static inline void ptep_clear(struct mm_struct *mm, unsigned long addr,
 +			      pte_t *ptep)
 +{
-+	if (IS_ENABLED(CONFIG_PAGE_TABLE_CHECK))
-+		ptep_get_and_clear(mm, addr, ptep);
-+	else
-+		pte_clear(mm, addr, ptep);
++	pte_clear(mm, addr, ptep);
 +}
++#endif
 +
- #define __HAVE_ARCH_PTEP_SET_WRPROTECT
- static inline void ptep_set_wrprotect(struct mm_struct *mm,
- 				      unsigned long addr, pte_t *ptep)
-@@ -1109,14 +1125,22 @@ static inline int pmd_write(pmd_t pmd)
- static inline pmd_t pmdp_huge_get_and_clear(struct mm_struct *mm, unsigned long addr,
- 				       pmd_t *pmdp)
- {
--	return native_pmdp_get_and_clear(pmdp);
-+	pmd_t pmd = native_pmdp_get_and_clear(pmdp);
-+
-+	page_table_check_pmd_clear(mm, addr, pmd);
-+
-+	return pmd;
+ #ifndef __HAVE_ARCH_PTEP_GET_AND_CLEAR
+ static inline pte_t ptep_get_and_clear(struct mm_struct *mm,
+ 				       unsigned long address,
+--- a/mm/debug_vm_pgtable.c~mm-ptep_clear-page-table-helper
++++ a/mm/debug_vm_pgtable.c
+@@ -652,7 +652,7 @@ static void __init pte_clear_tests(struc
+ 	set_pte_at(args->mm, args->vaddr, args->ptep, pte);
+ 	flush_dcache_page(page);
+ 	barrier();
+-	pte_clear(args->mm, args->vaddr, args->ptep);
++	ptep_clear(args->mm, args->vaddr, args->ptep);
+ 	pte = ptep_get(args->ptep);
+ 	WARN_ON(!pte_none(pte));
  }
- 
- #define __HAVE_ARCH_PUDP_HUGE_GET_AND_CLEAR
- static inline pud_t pudp_huge_get_and_clear(struct mm_struct *mm,
- 					unsigned long addr, pud_t *pudp)
- {
--	return native_pudp_get_and_clear(pudp);
-+	pud_t pud = native_pudp_get_and_clear(pudp);
-+
-+	page_table_check_pud_clear(mm, addr, pud);
-+
-+	return pud;
- }
- 
- #define __HAVE_ARCH_PMDP_SET_WRPROTECT
-@@ -1137,6 +1161,7 @@ static inline int pud_write(pud_t pud)
- static inline pmd_t pmdp_establish(struct vm_area_struct *vma,
- 		unsigned long address, pmd_t *pmdp, pmd_t pmd)
- {
-+	page_table_check_pmd_set(vma->vm_mm, address, pmdp, pmd);
- 	if (IS_ENABLED(CONFIG_SMP)) {
- 		return xchg(pmdp, pmd);
- 	} else {
---- a/arch/x86/Kconfig~x86-mm-add-x86_64-support-for-page-table-check
-+++ a/arch/x86/Kconfig
-@@ -104,6 +104,7 @@ config X86
- 	select ARCH_SUPPORTS_ACPI
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEBUG_PAGEALLOC
-+	select ARCH_SUPPORTS_PAGE_TABLE_CHECK	if X86_64
- 	select ARCH_SUPPORTS_NUMA_BALANCING	if X86_64
- 	select ARCH_SUPPORTS_KMAP_LOCAL_FORCE_MAP	if NR_CPUS <= 4096
- 	select ARCH_SUPPORTS_LTO_CLANG
+--- a/mm/khugepaged.c~mm-ptep_clear-page-table-helper
++++ a/mm/khugepaged.c
+@@ -756,11 +756,7 @@ static void __collapse_huge_page_copy(pt
+ 				 * ptl mostly unnecessary.
+ 				 */
+ 				spin_lock(ptl);
+-				/*
+-				 * paravirt calls inside pte_clear here are
+-				 * superfluous.
+-				 */
+-				pte_clear(vma->vm_mm, address, _pte);
++				ptep_clear(vma->vm_mm, address, _pte);
+ 				spin_unlock(ptl);
+ 			}
+ 		} else {
+@@ -774,11 +770,7 @@ static void __collapse_huge_page_copy(pt
+ 			 * inside page_remove_rmap().
+ 			 */
+ 			spin_lock(ptl);
+-			/*
+-			 * paravirt calls inside pte_clear here are
+-			 * superfluous.
+-			 */
+-			pte_clear(vma->vm_mm, address, _pte);
++			ptep_clear(vma->vm_mm, address, _pte);
+ 			page_remove_rmap(src_page, false);
+ 			spin_unlock(ptl);
+ 			free_page_and_swap_cache(src_page);
 _
 
 Patches currently in -mm which might be from pasha.tatashin@soleen.com are
