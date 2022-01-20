@@ -2,41 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C72BC4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:31:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A675FC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:31:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377941AbiATVbW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:31:22 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43940 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377947AbiATVbV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:31:21 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D67B6C06173F
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:31:20 -0800 (PST)
+        id S1377944AbiATVb2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:31:28 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:60540 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377936AbiATVb2 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:31:28 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 761C9618CD
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:31:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8531C340E0;
-        Thu, 20 Jan 2022 21:31:19 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id ECE19B81E6A
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:31:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8246BC36AEB;
+        Thu, 20 Jan 2022 21:31:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714279;
-        bh=4Z/oFclvA1/NaZhTF/37vuLvL+GGnQoa15GunOpDhrg=;
+        s=korg; t=1642714285;
+        bh=oyjSifs/ybXd76kPH27uhNbVuB8ueI4DwA6OojqRhFI=;
         h=Date:From:To:Subject:From;
-        b=ZULqd5M5pMa6Pa3xS4/S2+xKSuWqvka4WJvqCaCAjmvEdKACKwEKBJB9IGL2fz/Wg
-         5cO32YgwGLmww69eMXwAxLE+shL7kVts+fh2HECmrisN9hH8hJMuUTDCKTQJ6oM9UF
-         uUuCSvyLA82c1f9WHgiRH/F1uwXZfSzloXQF0Jy4=
-Date:   Thu, 20 Jan 2022 13:31:19 -0800
+        b=hROV/4MnrsEzVBem4eo7p21q5t2ZQPzefP8AgJcOP60/AdRAwazGABIE5l5AtxlGa
+         Pmamu1kj71l0zTDA+Ij0QelMAL5tP2LGVwNSm+IAU3hqF1ti2g+VTrUQjmC9QPy8OO
+         UMMFsFbz7EOBqAcd7i0XobcUfTtRrAQiO5jXnPcQ=
+Date:   Thu, 20 Jan 2022 13:31:25 -0800
 From:   akpm@linux-foundation.org
-To:     chi.minghao@zte.com.cn, christian.brauner@ubuntu.com,
-        gregkh@linuxfoundation.org, jack@suse.cz,
-        mm-commits@vger.kernel.org, zealci@zte.com.cm
+To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
+        elver@google.com, mm-commits@vger.kernel.org
 Subject:  [merged]
- fs-adfs-remove-unneeded-variable-make-code-cleaner.patch removed from -mm
- tree
-Message-ID: <20220120213119.WsNC_6YVE%akpm@linux-foundation.org>
+ panic-use-error_report_end-tracepoint-on-warnings-fix.patch removed from
+ -mm tree
+Message-ID: <20220120213125.GoXyX1znF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,51 +41,54 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/adfs: remove unneeded variable make code cleaner
+     Subject: panic-use-error_report_end-tracepoint-on-warnings-fix
 has been removed from the -mm tree.  Its filename was
-     fs-adfs-remove-unneeded-variable-make-code-cleaner.patch
+     panic-use-error_report_end-tracepoint-on-warnings-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minghao Chi <chi.minghao@zte.com.cn>
-Subject: fs/adfs: remove unneeded variable make code cleaner
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: panic-use-error_report_end-tracepoint-on-warnings-fix
 
-Return value directly instead of taking this in a variable.
+add comma to enum list, per Andy.
 
-Link: https://lkml.kernel.org/r/20211210023211.424609-1-chi.minghao@zte.com.cn
-Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
-Reported-by: Zeal Robot <zealci@zte.com.cm>
-Cc: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Marco Elver <elver@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/adfs/inode.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/trace/events/error_report.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/adfs/inode.c~fs-adfs-remove-unneeded-variable-make-code-cleaner
-+++ a/fs/adfs/inode.c
-@@ -355,7 +355,6 @@ int adfs_write_inode(struct inode *inode
- {
- 	struct super_block *sb = inode->i_sb;
- 	struct object_info obj;
--	int ret;
+--- a/include/trace/events/error_report.h~panic-use-error_report_end-tracepoint-on-warnings-fix
++++ a/include/trace/events/error_report.h
+@@ -18,7 +18,7 @@
+ enum error_detector {
+ 	ERROR_DETECTOR_KFENCE,
+ 	ERROR_DETECTOR_KASAN,
+-	ERROR_DETECTOR_WARN
++	ERROR_DETECTOR_WARN,
+ };
  
- 	obj.indaddr	= ADFS_I(inode)->indaddr;
- 	obj.name_len	= 0;
-@@ -365,6 +364,5 @@ int adfs_write_inode(struct inode *inode
- 	obj.attr	= ADFS_I(inode)->attr;
- 	obj.size	= inode->i_size;
- 
--	ret = adfs_dir_update(sb, &obj, wbc->sync_mode == WB_SYNC_ALL);
--	return ret;
-+	return adfs_dir_update(sb, &obj, wbc->sync_mode == WB_SYNC_ALL);
- }
+ #endif /* __ERROR_REPORT_DECLARE_TRACE_ENUMS_ONCE_ONLY */
 _
 
-Patches currently in -mm which might be from chi.minghao@zte.com.cn are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ipc-sem-do-not-sleep-with-a-spin-lock-held.patch
+mm.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+arch-x86-include-asm-pgtableh-needs-spinlockh.patch
+sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
+sysctl-move-maxolduid-as-a-sysctl-specific-const-fix.patch
+proc-remove-pde_data-completely-fix.patch
+proc-remove-pde_data-completely-fix-fix.patch
+mm-remove-cleancache-fix.patch
+mm-simplify-try_to_unuse-fix.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
