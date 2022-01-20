@@ -2,130 +2,206 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 729E8C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:09:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77EEFC433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:09:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358181AbiATCJD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jan 2022 21:09:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34432 "EHLO
+        id S1358177AbiATCJK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jan 2022 21:09:10 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34464 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358177AbiATCJB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:09:01 -0500
+        with ESMTP id S1358188AbiATCJI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:09:08 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 53380C06161C
-        for <mm-commits@vger.kernel.org>; Wed, 19 Jan 2022 18:09:01 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DF019C06161C
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jan 2022 18:09:07 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B51606157F
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:09:00 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB49CC004E1;
-        Thu, 20 Jan 2022 02:08:59 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6E65F61546
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:09:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 60149C004E1;
+        Thu, 20 Jan 2022 02:09:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642644540;
-        bh=epbkqSrcHK/6KlLJQkw/2e90VMDDEd0OIzn31LZWQuI=;
+        s=korg; t=1642644546;
+        bh=qF8Ej4NLhGs61sKvXLjCld8c5IymGUZyJ9tI+SsFFc8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=jpbY/JN6MZ9pVbJoLkue2sVGtKE7cKmnpWO5s21s60orRGy8aA9VFap5eOsOTIpMg
-         CnKoJfd2tuEWxtdzLkptOOb3nR3NYJkpVEBypUujTp16MakLmCAvTIIZ2qGFXIRDmO
-         NR7b2kRFXs6q6w7rXZVbw7F7UycRSo7KSOh3+dfY=
-Date:   Wed, 19 Jan 2022 18:08:59 -0800
+        b=CcUbwr9SkTQOA1wMoPkCcB2fdnuzVcNLcB22uGbg/F1hxUhbFwPO7LTfXFYn0Avup
+         B7Wky8XT0WPy8n7Lom6N3KXwvOH5YOytVCqjChLSTYUFvCodta/D1eLiJP8XtIm0PC
+         Jgzd/CXwgWw13A0IGz9IH9co5EtTPnYk+RDClTg0=
+Date:   Wed, 19 Jan 2022 18:09:05 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, paulmck@linux.vnet.ibm.com,
-        thunder.leizhen@huawei.com, torvalds@linux-foundation.org
-Subject:  [patch 24/55] lib/list_debug.c: print more list debugging
- context in __list_del_entry_valid()
-Message-ID: <20220120020859.qc9Vixzbq%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, augusto.duraes33@gmail.com,
+        brendanhiggins@google.com, davidgow@google.com,
+        dlatypov@google.com, ferreiraenzoa@gmail.com, geert@linux-m68k.org,
+        isabbasso@riseup.net, linux-mm@kvack.org, lkp@intel.com,
+        mm-commits@vger.kernel.org, rodrigosiqueiramelo@gmail.com,
+        skhan@linuxfoundation.org, torvalds@linux-foundation.org
+Subject:  [patch 26/55] test_hash.c: split test_int_hash into
+ arch-specific functions
+Message-ID: <20220120020905.jubAuSic8%akpm@linux-foundation.org>
 In-Reply-To: <20220119180714.9e187ce100e4510de3cd9f7d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Zhen Lei <thunder.leizhen@huawei.com>
-Subject: lib/list_debug.c: print more list debugging context in __list_del_entry_valid()
+=46rom: Isabella Basso <isabbasso@riseup.net>
+Subject: test_hash.c: split test_int_hash into arch-specific functions
 
-Currently, the entry->prev and entry->next are considered to be valid as
-long as they are not LIST_POISON{1|2}.  However, the memory may be
-corrupted.  The prev->next is invalid probably because 'prev' is invalid,
-not because prev->next's content is illegal.
+Split the test_int_hash function to keep its mainloop separate from
+arch-specific chunks, which are only compiled as needed.  This aims at
+improving readability.
 
-Unfortunately, the printk and its subfunctions will modify the registers
-that hold the 'prev' and 'next', and we don't see this valuable
-information in the BUG context.
-
-So print the contents of 'entry->prev' and 'entry->next'.
-
-Here's an example:
-list_del corruption. prev->next should be c0ecbf74, but was c08410dc
-kernel BUG at lib/list_debug.c:53!
-... ...
-PC is at __list_del_entry_valid+0x58/0x98
-LR is at __list_del_entry_valid+0x58/0x98
-psr: 60000093
-sp : c0ecbf30  ip : 00000000  fp : 00000001
-r10: c08410d0  r9 : 00000001  r8 : c0825e0c
-r7 : 20000013  r6 : c08410d0  r5 : c0ecbf74  r4 : c0ecbf74
-r3 : c0825d08  r2 : 00000000  r1 : df7ce6f4  r0 : 00000044
-... ...
-Stack: (0xc0ecbf30 to 0xc0ecc000)
-bf20:                                     c0ecbf74 c0164fd0 c0ecbf70 c0165170
-bf40: c0eca000 c0840c00 c0840c00 c0824500 c0825e0c c0189bbc c088f404 60000013
-bf60: 60000013 c0e85100 000004ec 00000000 c0ebcdc0 c0ecbf74 c0ecbf74 c0825d08
-bf80: c0e807c0 c018965c 00000000 c013f2a0 c0e807c0 c013f154 00000000 00000000
-bfa0: 00000000 00000000 00000000 c01001b0 00000000 00000000 00000000 00000000
-bfc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
-bfe0: 00000000 00000000 00000000 00000000 00000013 00000000 00000000 00000000
-(__list_del_entry_valid) from (__list_del_entry+0xc/0x20)
-(__list_del_entry) from (finish_swait+0x60/0x7c)
-(finish_swait) from (rcu_gp_kthread+0x560/0xa20)
-(rcu_gp_kthread) from (kthread+0x14c/0x15c)
-(kthread) from (ret_from_fork+0x14/0x24)
-
-At first, I thought prev->next was overwritten.  Later, I carefully
-analyzed the RCU code and the disassembly code.  The error occurred when
-deleting a node from the list rcu_state.gp_wq.  The System.map shows that
-the address of rcu_state is c0840c00.  Then I use gdb to obtain the offset
-of rcu_state.gp_wq.task_list.
-
-(gdb) p &((struct rcu_state *)0)->gp_wq.task_list
-$1 = (struct list_head *) 0x4dc
-
-Again:
-list_del corruption. prev->next should be c0ecbf74, but was c08410dc
-
-c08410dc = c0840c00 + 0x4dc = &rcu_state.gp_wq.task_list
-
-Because rcu_state.gp_wq has at most one node, so I can guess that "prev =
-&rcu_state.gp_wq.task_list".  But for other scenes, maybe I wasn't so
-lucky, I cannot figure out the value of 'prev'.
-
-Link: https://lkml.kernel.org/r/20211207025835.1909-1-thunder.leizhen@huawei.com
-Signed-off-by: Zhen Lei <thunder.leizhen@huawei.com>
-Cc: "Paul E . McKenney" <paulmck@linux.vnet.ibm.com>
+Link: https://lkml.kernel.org/r/20211208183711.390454-3-isabbasso@riseup.net
+Reviewed-by: David Gow <davidgow@google.com>
+Tested-by: David Gow <davidgow@google.com>
+Signed-off-by: Isabella Basso <isabbasso@riseup.net>
+Cc: Augusto Dur=C3=A3es Camargo <augusto.duraes33@gmail.com>
+Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: Daniel Latypov <dlatypov@google.com>
+Cc: Enzo Ferreira <ferreiraenzoa@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: kernel test robot <lkp@intel.com>
+Cc: Rodrigo Siqueira <rodrigosiqueiramelo@gmail.com>
+Cc: Shuah Khan <skhan@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/list_debug.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ lib/test_hash.c |   91 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 62 insertions(+), 29 deletions(-)
 
---- a/lib/list_debug.c~lib-list_debugc-print-more-list-debugging-context-in-__list_del_entry_valid
-+++ a/lib/list_debug.c
-@@ -49,11 +49,11 @@ bool __list_del_entry_valid(struct list_
- 			"list_del corruption, %px->prev is LIST_POISON2 (%px)\n",
- 			entry, LIST_POISON2) ||
- 	    CHECK_DATA_CORRUPTION(prev->next != entry,
--			"list_del corruption. prev->next should be %px, but was %px\n",
--			entry, prev->next) ||
-+			"list_del corruption. prev->next should be %px, but was %px. (prev=%px)\n",
-+			entry, prev->next, prev) ||
- 	    CHECK_DATA_CORRUPTION(next->prev != entry,
--			"list_del corruption. next->prev should be %px, but was %px\n",
--			entry, next->prev))
-+			"list_del corruption. next->prev should be %px, but was %px. (next=%px)\n",
-+			entry, next->prev, next))
+--- a/lib/test_hash.c~test_hashc-split-test_int_hash-into-arch-specific-fun=
+ctions
++++ a/lib/test_hash.c
+@@ -56,6 +56,58 @@ fill_buf(char *buf, size_t len, u32 seed
+ 	}
+ }
+=20
++/* Holds most testing variables for the int test. */
++struct test_hash_params {
++        /* Pointer to integer to be hashed. */
++	unsigned long long *h64;
++        /* Low 32-bits of integer to be hashed. */
++	u32 h0;
++        /* Arch-specific hash result. */
++	u32 h1;
++        /* Generic hash result. */
++	u32 h2;
++        /* ORed hashes of given size (in bits). */
++	u32 (*hash_or)[33];
++};
++
++#ifdef HAVE_ARCH__HASH_32
++static bool __init
++test_int__hash_32(struct test_hash_params *params)
++{
++	params->hash_or[1][0] |=3D params->h2 =3D __hash_32_generic(params->h0);
++#if HAVE_ARCH__HASH_32 =3D=3D 1
++	if (params->h1 !=3D params->h2) {
++		pr_err("__hash_32(%#x) =3D %#x !=3D __hash_32_generic() =3D %#x",
++		       params->h0, params->h1, params->h2);
++		return false;
++	}
++#endif
++	return true;
++}
++#endif
++
++#ifdef HAVE_ARCH_HASH_64
++static bool __init
++test_int_hash_64(struct test_hash_params *params, u32 const *m, int *k)
++{
++	params->h2 =3D hash_64_generic(*params->h64, *k);
++#if HAVE_ARCH_HASH_64 =3D=3D 1
++	if (params->h1 !=3D params->h2) {
++		pr_err("hash_64(%#llx, %d) =3D %#x !=3D hash_64_generic() =3D %#x",
++		       *params->h64, *k, params->h1, params->h2);
++		return false;
++	}
++#else
++	if (params->h2 > *m) {
++		pr_err("hash_64_generic(%#llx, %d) =3D %#x > %#x",
++		       *params->h64, *k, params->h1, *m);
++		return false;
++	}
++#endif
++	return true;
++}
++#endif
++
+ /*
+  * Test the various integer hash functions.  h64 (or its low-order bits)
+  * is the integer to hash.  hash_or accumulates the OR of the hash values,
+@@ -69,19 +121,13 @@ static bool __init
+ test_int_hash(unsigned long long h64, u32 hash_or[2][33])
+ {
+ 	int k;
+-	u32 h0 =3D (u32)h64, h1, h2;
++	struct test_hash_params params =3D { &h64, (u32)h64, 0, 0, hash_or };
+=20
+ 	/* Test __hash32 */
+-	hash_or[0][0] |=3D h1 =3D __hash_32(h0);
++	hash_or[0][0] |=3D params.h1 =3D __hash_32(params.h0);
+ #ifdef HAVE_ARCH__HASH_32
+-	hash_or[1][0] |=3D h2 =3D __hash_32_generic(h0);
+-#if HAVE_ARCH__HASH_32 =3D=3D 1
+-	if (h1 !=3D h2) {
+-		pr_err("__hash_32(%#x) =3D %#x !=3D __hash_32_generic() =3D %#x",
+-			h0, h1, h2);
++	if (!test_int__hash_32(&params))
  		return false;
- 
+-	}
+-#endif
+ #endif
+=20
+ 	/* Test k =3D 1..32 bits */
+@@ -89,37 +135,24 @@ test_int_hash(unsigned long long h64, u3
+ 		u32 const m =3D ((u32)2 << (k-1)) - 1;	/* Low k bits set */
+=20
+ 		/* Test hash_32 */
+-		hash_or[0][k] |=3D h1 =3D hash_32(h0, k);
+-		if (h1 > m) {
+-			pr_err("hash_32(%#x, %d) =3D %#x > %#x", h0, k, h1, m);
++		hash_or[0][k] |=3D params.h1 =3D hash_32(params.h0, k);
++		if (params.h1 > m) {
++			pr_err("hash_32(%#x, %d) =3D %#x > %#x", params.h0, k, params.h1, m);
+ 			return false;
+ 		}
+=20
+ 		/* Test hash_64 */
+-		hash_or[1][k] |=3D h1 =3D hash_64(h64, k);
+-		if (h1 > m) {
+-			pr_err("hash_64(%#llx, %d) =3D %#x > %#x", h64, k, h1, m);
++		hash_or[1][k] |=3D params.h1 =3D hash_64(h64, k);
++		if (params.h1 > m) {
++			pr_err("hash_64(%#llx, %d) =3D %#x > %#x", h64, k, params.h1, m);
+ 			return false;
+ 		}
+ #ifdef HAVE_ARCH_HASH_64
+-		h2 =3D hash_64_generic(h64, k);
+-#if HAVE_ARCH_HASH_64 =3D=3D 1
+-		if (h1 !=3D h2) {
+-			pr_err("hash_64(%#llx, %d) =3D %#x !=3D hash_64_generic() "
+-				"=3D %#x", h64, k, h1, h2);
++		if (!test_int_hash_64(&params, &m, &k))
+ 			return false;
+-		}
+-#else
+-		if (h2 > m) {
+-			pr_err("hash_64_generic(%#llx, %d) =3D %#x > %#x",
+-				h64, k, h1, m);
+-			return false;
+-		}
+-#endif
+ #endif
+ 	}
+=20
+-	(void)h2;	/* Suppress unused variable warning */
  	return true;
+ }
+=20
 _
