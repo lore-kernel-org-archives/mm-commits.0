@@ -2,44 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 642D0C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:07:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D27CC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:08:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232041AbiATCH4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jan 2022 21:07:56 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:41236 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229589AbiATCHz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:07:55 -0500
+        id S232689AbiATCIA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jan 2022 21:08:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34208 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229589AbiATCIA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:08:00 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16DDBC061574
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jan 2022 18:08:00 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6493B615D8
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:07:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F3C7DC340E4;
-        Thu, 20 Jan 2022 02:07:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 952AE6157F
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:07:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2F20C340E4;
+        Thu, 20 Jan 2022 02:07:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642644474;
-        bh=OP3QUebMU3+f559RP18Lo6+290tEjLOlJ5hQ76D5qKs=;
+        s=korg; t=1642644478;
+        bh=oXTiz8bgm2yyRMJ9IjFGvVMYI9DBH4p4inEGj6yoaMU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=gJtVcUhRLmeGFzdmNyXrxy5qEV22zQHZ2bcnQX+/K6Xs4NwnH04boNw0RwbcCX5J5
-         i9iQKdToCNG+QXXBP7LXmCUbFemole67gw0f+IzP8qdOCgUtUIv1lpny0tFOQ/LPfS
-         F/c97xW7VuL3QME2ZtkOuRFPFOTm7zumhHFmeGzE=
-Date:   Wed, 19 Jan 2022 18:07:53 -0800
+        b=yhNwuacDw7oNdeWaQpMKQzTDTYiGfKHO+rxqL6vsWcWhyZ16JfoXbAddTR9rkBsk3
+         cnUxXDS87onZd3bb0a/Atv6Ce+3wdV32A+pJn0U6sGu+Betzm2euEVuGP1ft93H94m
+         dIrpiKa1rdkDycUV85tnwmf9LtewKrWLMJ7Sr3yU=
+Date:   Wed, 19 Jan 2022 18:07:57 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, aou@eecs.berkeley.edu,
-        benh@kernel.crashing.org, bp@alien8.de, catalin.marinas@arm.com,
-        cl@linux.com, dave.hansen@linux.intel.com, davem@davemloft.net,
-        dennis@kernel.org, gregkh@linuxfoundation.org, hpa@zytor.com,
-        linux-mm@kvack.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, palmer@dabbelt.com, paul.walmsley@sifive.com,
-        paulus@samba.org, rafael@kernel.org, tglx@linutronix.de,
-        tj@kernel.org, torvalds@linux-foundation.org,
-        tsbogend@alpha.franken.de, wangkefeng.wang@huawei.com,
-        will@kernel.org
-Subject:  [patch 04/55] mm: percpu: add generic pcpu_populate_pte()
- function
-Message-ID: <20220120020753.lvwnlM-Id%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bhe@redhat.com, david@redhat.com,
+        dyoung@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        prudo@redhat.com, torvalds@linux-foundation.org, vgoyal@redhat.com
+Subject:  [patch 05/55] proc/vmcore: don't fake reading zeroes on
+ surprise vmcore_cb unregistration
+Message-ID: <20220120020757.dOiHTk8NT%akpm@linux-foundation.org>
 In-Reply-To: <20220119180714.9e187ce100e4510de3cd9f7d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,401 +43,95 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Kefeng Wang <wangkefeng.wang@huawei.com>
-Subject: mm: percpu: add generic pcpu_populate_pte() function
+From: David Hildenbrand <david@redhat.com>
+Subject: proc/vmcore: don't fake reading zeroes on surprise vmcore_cb unregistration
 
-With NEED_PER_CPU_PAGE_FIRST_CHUNK enabled, we need a function to populate
-pte, this patch adds a generic pcpu populate pte function,
-pcpu_populate_pte(), which is marked __weak and used on most
-architectures, but it is overridden on x86, which has its own
-implementation.
+In commit cc5f2704c934 ("proc/vmcore: convert oldmem_pfn_is_ram callback
+to more generic vmcore callbacks"), we added detection of surprise
+vmcore_cb unregistration after the vmcore was already opened.  Once
+detected, we warn the user and simulate reading zeroes from that point on
+when accessing the vmcore.
 
-Link: https://lkml.kernel.org/r/20211216112359.103822-5-wangkefeng.wang@huawei.com
-Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Dennis Zhou <dennis@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Thomas Bogendoerfer <tsbogend@alpha.franken.de>
-Cc: Will Deacon <will@kernel.org>
+The basic reason was that unexpected unregistration, for example, by
+manually unbinding a driver from a device after opening the vmcore, is not
+supported and could result in reading oldmem the vmcore_cb would have
+actually prohibited while registered.  However, something like that can
+similarly be trigger by a user that's really looking for trouble simply by
+unbinding the relevant driver before opening the vmcore -- or by
+disallowing loading the driver in the first place.  So it's actually of
+limited help.
+
+Currently, unregistration can only be triggered via virtio-mem when
+manually unbinding the driver from the device inside the VM; there is no
+way to trigger it from the hypervisor, as hypervisors don't allow for
+unplugging virtio-mem devices -- ripping out system RAM from a VM without
+coordination with the guest is usually not a good idea.
+
+The important part is that unbinding the driver and unregistering the
+vmcore_cb while concurrently reading the vmcore won't crash the system,
+and that is handled by the rwsem.
+
+To make the mechanism more future proof, let's remove the "read zero"
+part, but leave the warning in place.  For example, we could have a future
+driver (like virtio-balloon) that will contact the hypervisor to figure
+out if we already populated a page for a given PFN.  Hotunplugging such a
+device and consequently unregistering the vmcore_cb could be triggered
+from the hypervisor without harming the system even while kdump is
+running.  In that case, we don't want to silently end up with a vmcore
+that contains wrong data, because the user inside the VM might be unaware
+of the hypervisor action and might easily miss the warning in the log.
+
+Link: https://lkml.kernel.org/r/20211111192243.22002-1-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Philipp Rudo <prudo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/setup_64.c |   47 -------------------
- arch/sparc/kernel/smp_64.c     |   56 ----------------------
- arch/x86/kernel/setup_percpu.c |    5 --
- drivers/base/arch_numa.c       |   51 --------------------
- include/linux/percpu.h         |    5 --
- mm/percpu.c                    |   76 ++++++++++++++++++++++++++++---
- 6 files changed, 78 insertions(+), 162 deletions(-)
+ fs/proc/vmcore.c |   10 ++--------
+ 1 file changed, 2 insertions(+), 8 deletions(-)
 
---- a/arch/powerpc/kernel/setup_64.c~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/arch/powerpc/kernel/setup_64.c
-@@ -787,51 +787,6 @@ static __init int pcpu_cpu_to_node(int c
- unsigned long __per_cpu_offset[NR_CPUS] __read_mostly;
- EXPORT_SYMBOL(__per_cpu_offset);
+--- a/fs/proc/vmcore.c~proc-vmcore-dont-fake-reading-zeroes-on-surprise-vmcore_cb-unregistration
++++ a/fs/proc/vmcore.c
+@@ -65,8 +65,6 @@ static size_t vmcoredd_orig_sz;
+ static DECLARE_RWSEM(vmcore_cb_rwsem);
+ /* List of registered vmcore callbacks. */
+ static LIST_HEAD(vmcore_cb_list);
+-/* Whether we had a surprise unregistration of a callback. */
+-static bool vmcore_cb_unstable;
+ /* Whether the vmcore has been opened once. */
+ static bool vmcore_opened;
  
--static void __init pcpu_populate_pte(unsigned long addr)
--{
--	pgd_t *pgd = pgd_offset_k(addr);
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--
--	p4d = p4d_offset(pgd, addr);
--	if (p4d_none(*p4d)) {
--		pud_t *new;
--
--		new = memblock_alloc(PUD_TABLE_SIZE, PUD_TABLE_SIZE);
--		if (!new)
--			goto err_alloc;
--		p4d_populate(&init_mm, p4d, new);
+@@ -94,10 +92,8 @@ void unregister_vmcore_cb(struct vmcore_
+ 	 * very unusual (e.g., forced driver removal), but we cannot stop
+ 	 * unregistering.
+ 	 */
+-	if (vmcore_opened) {
++	if (vmcore_opened)
+ 		pr_warn_once("Unexpected vmcore callback unregistration\n");
+-		vmcore_cb_unstable = true;
 -	}
--
--	pud = pud_offset(p4d, addr);
--	if (pud_none(*pud)) {
--		pmd_t *new;
--
--		new = memblock_alloc(PMD_TABLE_SIZE, PMD_TABLE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pud_populate(&init_mm, pud, new);
--	}
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd)) {
--		pte_t *new;
--
--		new = memblock_alloc(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pmd_populate_kernel(&init_mm, pmd, new);
--	}
--
--	return;
--
--err_alloc:
--	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
--	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--}
--
--
- void __init setup_per_cpu_areas(void)
- {
- 	const size_t dyn_size = PERCPU_MODULE_RESERVE + PERCPU_DYNAMIC_RESERVE;
-@@ -860,7 +815,7 @@ void __init setup_per_cpu_areas(void)
- 	}
- 
- 	if (rc < 0)
--		rc = pcpu_page_first_chunk(0, pcpu_cpu_to_node, pcpu_populate_pte);
-+		rc = pcpu_page_first_chunk(0, pcpu_cpu_to_node);
- 	if (rc < 0)
- 		panic("cannot initialize percpu area (err=%d)", rc);
- 
---- a/arch/sparc/kernel/smp_64.c~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/arch/sparc/kernel/smp_64.c
-@@ -1539,59 +1539,6 @@ static int __init pcpu_cpu_to_node(int c
- 	return cpu_to_node(cpu);
+ 	up_write(&vmcore_cb_rwsem);
  }
+ EXPORT_SYMBOL_GPL(unregister_vmcore_cb);
+@@ -108,8 +104,6 @@ static bool pfn_is_ram(unsigned long pfn
+ 	bool ret = true;
  
--static void __init pcpu_populate_pte(unsigned long addr)
--{
--	pgd_t *pgd = pgd_offset_k(addr);
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--
--	if (pgd_none(*pgd)) {
--		pud_t *new;
--
--		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pgd_populate(&init_mm, pgd, new);
--	}
--
--	p4d = p4d_offset(pgd, addr);
--	if (p4d_none(*p4d)) {
--		pud_t *new;
--
--		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		p4d_populate(&init_mm, p4d, new);
--	}
--
--	pud = pud_offset(p4d, addr);
--	if (pud_none(*pud)) {
--		pmd_t *new;
--
--		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pud_populate(&init_mm, pud, new);
--	}
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd)) {
--		pte_t *new;
--
--		new = memblock_alloc_from(PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pmd_populate_kernel(&init_mm, pmd, new);
--	}
--
--	return;
--
--err_alloc:
--	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
--	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--}
--
- void __init setup_per_cpu_areas(void)
- {
- 	unsigned long delta;
-@@ -1610,8 +1557,7 @@ void __init setup_per_cpu_areas(void)
- 	}
- 	if (rc < 0)
- 		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE,
--					   pcpu_cpu_to_node,
--					   pcpu_populate_pte);
-+					   pcpu_cpu_to_node);
- 	if (rc < 0)
- 		panic("cannot initialize percpu area (err=%d)", rc);
+ 	lockdep_assert_held_read(&vmcore_cb_rwsem);
+-	if (unlikely(vmcore_cb_unstable))
+-		return false;
  
---- a/arch/x86/kernel/setup_percpu.c~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/arch/x86/kernel/setup_percpu.c
-@@ -101,7 +101,7 @@ static int __init pcpu_cpu_to_node(int c
- 	return early_cpu_to_node(cpu);
- }
- 
--static void __init pcpup_populate_pte(unsigned long addr)
-+void __init pcpu_populate_pte(unsigned long addr)
- {
- 	populate_extra_pte(addr);
- }
-@@ -163,8 +163,7 @@ void __init setup_per_cpu_areas(void)
- 	}
- 	if (rc < 0)
- 		rc = pcpu_page_first_chunk(PERCPU_FIRST_CHUNK_RESERVE,
--					   pcpu_cpu_to_node,
--					   pcpup_populate_pte);
-+					   pcpu_cpu_to_node);
- 	if (rc < 0)
- 		panic("cannot initialize percpu area (err=%d)", rc);
- 
---- a/drivers/base/arch_numa.c~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/drivers/base/arch_numa.c
-@@ -14,7 +14,6 @@
- #include <linux/of.h>
- 
- #include <asm/sections.h>
--#include <asm/pgalloc.h>
- 
- struct pglist_data *node_data[MAX_NUMNODES] __read_mostly;
- EXPORT_SYMBOL(node_data);
-@@ -155,52 +154,6 @@ static int __init pcpu_cpu_distance(unsi
- 	return node_distance(early_cpu_to_node(from), early_cpu_to_node(to));
- }
- 
--#ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
--static void __init pcpu_populate_pte(unsigned long addr)
--{
--	pgd_t *pgd = pgd_offset_k(addr);
--	p4d_t *p4d;
--	pud_t *pud;
--	pmd_t *pmd;
--
--	p4d = p4d_offset(pgd, addr);
--	if (p4d_none(*p4d)) {
--		pud_t *new;
--
--		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		p4d_populate(&init_mm, p4d, new);
--	}
--
--	pud = pud_offset(p4d, addr);
--	if (pud_none(*pud)) {
--		pmd_t *new;
--
--		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pud_populate(&init_mm, pud, new);
--	}
--
--	pmd = pmd_offset(pud, addr);
--	if (!pmd_present(*pmd)) {
--		pte_t *new;
--
--		new = memblock_alloc(PAGE_SIZE, PAGE_SIZE);
--		if (!new)
--			goto err_alloc;
--		pmd_populate_kernel(&init_mm, pmd, new);
--	}
--
--	return;
--
--err_alloc:
--	panic("%s: Failed to allocate %lu bytes align=%lx from=%lx\n",
--	      __func__, PAGE_SIZE, PAGE_SIZE, PAGE_SIZE);
--}
--#endif
--
- void __init setup_per_cpu_areas(void)
- {
- 	unsigned long delta;
-@@ -225,9 +178,7 @@ void __init setup_per_cpu_areas(void)
- 
- #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
- 	if (rc < 0)
--		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE,
--					   early_cpu_to_node,
--					   pcpu_populate_pte);
-+		rc = pcpu_page_first_chunk(PERCPU_MODULE_RESERVE, early_cpu_to_node);
- #endif
- 	if (rc < 0)
- 		panic("Failed to initialize percpu areas (err=%d).", rc);
---- a/include/linux/percpu.h~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/include/linux/percpu.h
-@@ -95,7 +95,6 @@ extern const char * const pcpu_fc_names[
- extern enum pcpu_fc pcpu_chosen_fc;
- 
- typedef int (pcpu_fc_cpu_to_node_fn_t)(int cpu);
--typedef void (*pcpu_fc_populate_pte_fn_t)(unsigned long addr);
- typedef int (pcpu_fc_cpu_distance_fn_t)(unsigned int from, unsigned int to);
- 
- extern struct pcpu_alloc_info * __init pcpu_alloc_alloc_info(int nr_groups,
-@@ -113,9 +112,9 @@ extern int __init pcpu_embed_first_chunk
- #endif
- 
- #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
-+void __init pcpu_populate_pte(unsigned long addr);
- extern int __init pcpu_page_first_chunk(size_t reserved_size,
--				pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn,
--				pcpu_fc_populate_pte_fn_t populate_pte_fn);
-+				pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn);
- #endif
- 
- extern void __percpu *__alloc_reserved_percpu(size_t size, size_t align) __alloc_size(1);
---- a/mm/percpu.c~mm-percpu-add-generic-pcpu_populate_pte-function
-+++ a/mm/percpu.c
-@@ -3174,11 +3174,79 @@ out_free:
- #endif /* BUILD_EMBED_FIRST_CHUNK */
- 
- #ifdef BUILD_PAGE_FIRST_CHUNK
-+#include <asm/pgalloc.h>
-+
-+#ifndef P4D_TABLE_SIZE
-+#define P4D_TABLE_SIZE PAGE_SIZE
-+#endif
-+
-+#ifndef PUD_TABLE_SIZE
-+#define PUD_TABLE_SIZE PAGE_SIZE
-+#endif
-+
-+#ifndef PMD_TABLE_SIZE
-+#define PMD_TABLE_SIZE PAGE_SIZE
-+#endif
-+
-+#ifndef PTE_TABLE_SIZE
-+#define PTE_TABLE_SIZE PAGE_SIZE
-+#endif
-+void __init __weak pcpu_populate_pte(unsigned long addr)
-+{
-+	pgd_t *pgd = pgd_offset_k(addr);
-+	p4d_t *p4d;
-+	pud_t *pud;
-+	pmd_t *pmd;
-+
-+	if (pgd_none(*pgd)) {
-+		p4d_t *new;
-+
-+		new = memblock_alloc(P4D_TABLE_SIZE, P4D_TABLE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		pgd_populate(&init_mm, pgd, new);
-+	}
-+
-+	p4d = p4d_offset(pgd, addr);
-+	if (p4d_none(*p4d)) {
-+		pud_t *new;
-+
-+		new = memblock_alloc(PUD_TABLE_SIZE, PUD_TABLE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		p4d_populate(&init_mm, p4d, new);
-+	}
-+
-+	pud = pud_offset(p4d, addr);
-+	if (pud_none(*pud)) {
-+		pmd_t *new;
-+
-+		new = memblock_alloc(PMD_TABLE_SIZE, PMD_TABLE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		pud_populate(&init_mm, pud, new);
-+	}
-+
-+	pmd = pmd_offset(pud, addr);
-+	if (!pmd_present(*pmd)) {
-+		pte_t *new;
-+
-+		new = memblock_alloc(PTE_TABLE_SIZE, PTE_TABLE_SIZE);
-+		if (!new)
-+			goto err_alloc;
-+		pmd_populate_kernel(&init_mm, pmd, new);
-+	}
-+
-+	return;
-+
-+err_alloc:
-+	panic("%s: Failed to allocate memory\n", __func__);
-+}
-+
- /**
-  * pcpu_page_first_chunk - map the first chunk using PAGE_SIZE pages
-  * @reserved_size: the size of reserved percpu area in bytes
-  * @cpu_to_nd_fn: callback to convert cpu to it's node, optional
-- * @populate_pte_fn: function to populate pte
-  *
-  * This is a helper to ease setting up page-remapped first percpu
-  * chunk and can be called where pcpu_setup_first_chunk() is expected.
-@@ -3189,9 +3257,7 @@ out_free:
-  * RETURNS:
-  * 0 on success, -errno on failure.
-  */
--int __init pcpu_page_first_chunk(size_t reserved_size,
--				 pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn,
--				 pcpu_fc_populate_pte_fn_t populate_pte_fn)
-+int __init pcpu_page_first_chunk(size_t reserved_size, pcpu_fc_cpu_to_node_fn_t cpu_to_nd_fn)
- {
- 	static struct vm_struct vm;
- 	struct pcpu_alloc_info *ai;
-@@ -3255,7 +3321,7 @@ int __init pcpu_page_first_chunk(size_t
- 			(unsigned long)vm.addr + unit * ai->unit_size;
- 
- 		for (i = 0; i < unit_pages; i++)
--			populate_pte_fn(unit_addr + (i << PAGE_SHIFT));
-+			pcpu_populate_pte(unit_addr + (i << PAGE_SHIFT));
- 
- 		/* pte already populated, the following shouldn't fail */
- 		rc = __pcpu_map_pages(unit_addr, &pages[unit * unit_pages],
+ 	list_for_each_entry(cb, &vmcore_cb_list, next) {
+ 		if (unlikely(!cb->pfn_is_ram))
+@@ -581,7 +575,7 @@ static int vmcore_remap_oldmem_pfn(struc
+ 	 * looping over all pages without a reason.
+ 	 */
+ 	down_read(&vmcore_cb_rwsem);
+-	if (!list_empty(&vmcore_cb_list) || vmcore_cb_unstable)
++	if (!list_empty(&vmcore_cb_list))
+ 		ret = remap_oldmem_pfn_checked(vma, from, pfn, size, prot);
+ 	else
+ 		ret = remap_oldmem_pfn_range(vma, from, pfn, size, prot);
 _
