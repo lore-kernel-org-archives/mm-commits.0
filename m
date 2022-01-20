@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1418EC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:30:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A5503C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:30:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244458AbiATVaG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:30:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43638 "EHLO
+        id S244363AbiATVaJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:30:09 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43646 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244363AbiATVaF (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:30:05 -0500
+        with ESMTP id S1347984AbiATVaI (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:30:08 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 644FBC061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:30:05 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3F55DC061574
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:30:08 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0651E6188A
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:30:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8B91C340E0;
-        Thu, 20 Jan 2022 21:30:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D278C618BB
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:30:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B0C23C340E0;
+        Thu, 20 Jan 2022 21:30:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714204;
-        bh=izusKtUXkv270vZTy4RW+SasDkuZrjOKZ4fZjjQiGug=;
+        s=korg; t=1642714207;
+        bh=9uuLbMqLtzolb2GCD0Uo/WOwkoOsy1Urtyio8b6Ogvc=;
         h=Date:From:To:Subject:From;
-        b=ZNvxVprfI4UjjFBFUI30KdNf6FgaWeGAT/4LRJuuJJUGGDsTEpcEXvHZUSjkd1kRl
-         5GLZ5rBhLlWSNADLFWCH3VxHNUfBgRG2j/60JRQJuhBKc1TWhbw0qfVoydIrKCiNRp
-         MF3EuPUUeCsPVFvNpaTB5RU1g18XOr7Eqk0fkih8=
-Date:   Thu, 20 Jan 2022 13:30:03 -0800
+        b=vi3RxEknKtC+YAXQr8mC21KMfuotnAZUGDTuFJwW4tqzg2Xt22VCvVJK3T19McKAd
+         Icyc/s2uv0N8gKZ+jsH7b9VcF3c5dq1ibHh4e2mecBLpDd/S6p9Xox2UDZ57PvKbK5
+         VhvDHHmJ9xda/rPkfH71MkcWtfQyi+Le5MwdwSg4=
+Date:   Thu, 20 Jan 2022 13:30:06 -0800
 From:   akpm@linux-foundation.org
 To:     alexei.starovoitov@gmail.com, andrii.nakryiko@gmail.com,
         andrii@kernel.org, arnaldo.melo@gmail.com, david@redhat.com,
@@ -38,10 +38,10 @@ To:     alexei.starovoitov@gmail.com, andrii.nakryiko@gmail.com,
         peterz@infradead.org, pmladek@suse.com, rostedt@goodmis.org,
         viro@zeniv.linux.org.uk, willy@infradead.org
 Subject:  [merged]
- =?US-ASCII?Q?samples-bpf-test=5Foverhead=5Fkprobe=5Fkern-replace-bpf?=
- =?US-ASCII?Q?=5Fprobe=5Fread=5Fkernel-with-bpf=5Fprobe=5Fread=5Fkerne?=
- =?US-ASCII?Q?l=5Fstr-to-get-task-comm.patch?= removed from -mm tree
-Message-ID: <20220120213003.PXBMVLBWc%akpm@linux-foundation.org>
+ =?US-ASCII?Q?tools-bpf-bpftool-skeleton-replace-bpf=5Fprobe=5Fread=5Fkern?=
+ =?US-ASCII?Q?el-with-bpf=5Fprobe=5Fread=5Fkernel=5Fstr-to-get-task-comm.p?=
+ =?US-ASCII?Q?atch?= removed from -mm tree
+Message-ID: <20220120213006.QGlkwuBiN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -52,23 +52,21 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: samples/bpf/test_overhead_kprobe_kern: replace bpf_probe_read_kernel with bpf_probe_read_kernel_str to get task comm
+     Subject: tools/bpf/bpftool/skeleton: replace bpf_probe_read_kernel with bpf_probe_read_kernel_str to get task comm
 has been removed from the -mm tree.  Its filename was
-     samples-bpf-test_overhead_kprobe_kern-replace-bpf_probe_read_kernel-with-bpf_probe_read_kernel_str-to-get-task-comm.patch
+     tools-bpf-bpftool-skeleton-replace-bpf_probe_read_kernel-with-bpf_probe_read_kernel_str-to-get-task-comm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yafang Shao <laoar.shao@gmail.com>
-Subject: samples/bpf/test_overhead_kprobe_kern: replace bpf_probe_read_kernel with bpf_probe_read_kernel_str to get task comm
+Subject: tools/bpf/bpftool/skeleton: replace bpf_probe_read_kernel with bpf_probe_read_kernel_str to get task comm
 
 bpf_probe_read_kernel_str() will add a nul terminator to the dst, then we
-don't care about if the dst size is big enough.  This patch also replaces
-the hard-coded 16 with TASK_COMM_LEN to make it grepable.
+don't care about if the dst size is big enough.
 
-Link: https://lkml.kernel.org/r/20211120112738.45980-6-laoar.shao@gmail.com
+Link: https://lkml.kernel.org/r/20211120112738.45980-7-laoar.shao@gmail.com
 Signed-off-by: Yafang Shao <laoar.shao@gmail.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
 Acked-by: Andrii Nakryiko <andrii@kernel.org>
 Reviewed-by: David Hildenbrand <david@redhat.com>
 Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
@@ -87,81 +85,22 @@ Cc: Dennis Dalessandro <dennis.dalessandro@cornelisnetworks.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/bpf/offwaketime_kern.c          |    4 ++--
- samples/bpf/test_overhead_kprobe_kern.c |   11 ++++++-----
- samples/bpf/test_overhead_tp_kern.c     |    5 +++--
- 3 files changed, 11 insertions(+), 9 deletions(-)
+ tools/bpf/bpftool/skeleton/pid_iter.bpf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/samples/bpf/offwaketime_kern.c~samples-bpf-test_overhead_kprobe_kern-replace-bpf_probe_read_kernel-with-bpf_probe_read_kernel_str-to-get-task-comm
-+++ a/samples/bpf/offwaketime_kern.c
-@@ -113,11 +113,11 @@ static inline int update_counts(void *ct
- /* taken from /sys/kernel/debug/tracing/events/sched/sched_switch/format */
- struct sched_switch_args {
- 	unsigned long long pad;
--	char prev_comm[16];
-+	char prev_comm[TASK_COMM_LEN];
- 	int prev_pid;
- 	int prev_prio;
- 	long long prev_state;
--	char next_comm[16];
-+	char next_comm[TASK_COMM_LEN];
- 	int next_pid;
- 	int next_prio;
- };
---- a/samples/bpf/test_overhead_kprobe_kern.c~samples-bpf-test_overhead_kprobe_kern-replace-bpf_probe_read_kernel-with-bpf_probe_read_kernel_str-to-get-task-comm
-+++ a/samples/bpf/test_overhead_kprobe_kern.c
-@@ -6,6 +6,7 @@
-  */
- #include <linux/version.h>
- #include <linux/ptrace.h>
-+#include <linux/sched.h>
- #include <uapi/linux/bpf.h>
- #include <bpf/bpf_helpers.h>
- #include <bpf/bpf_tracing.h>
-@@ -22,17 +23,17 @@ int prog(struct pt_regs *ctx)
- {
- 	struct signal_struct *signal;
- 	struct task_struct *tsk;
--	char oldcomm[16] = {};
--	char newcomm[16] = {};
-+	char oldcomm[TASK_COMM_LEN] = {};
-+	char newcomm[TASK_COMM_LEN] = {};
- 	u16 oom_score_adj;
- 	u32 pid;
+--- a/tools/bpf/bpftool/skeleton/pid_iter.bpf.c~tools-bpf-bpftool-skeleton-replace-bpf_probe_read_kernel-with-bpf_probe_read_kernel_str-to-get-task-comm
++++ a/tools/bpf/bpftool/skeleton/pid_iter.bpf.c
+@@ -71,8 +71,8 @@ int iter(struct bpf_iter__task_file *ctx
  
- 	tsk = (void *)PT_REGS_PARM1(ctx);
+ 	e.pid = task->tgid;
+ 	e.id = get_obj_id(file->private_data, obj_type);
+-	bpf_probe_read_kernel(&e.comm, sizeof(e.comm),
+-			      task->group_leader->comm);
++	bpf_probe_read_kernel_str(&e.comm, sizeof(e.comm),
++				  task->group_leader->comm);
+ 	bpf_seq_write(ctx->meta->seq, &e, sizeof(e));
  
- 	pid = _(tsk->pid);
--	bpf_probe_read_kernel(oldcomm, sizeof(oldcomm), &tsk->comm);
--	bpf_probe_read_kernel(newcomm, sizeof(newcomm),
--			      (void *)PT_REGS_PARM2(ctx));
-+	bpf_probe_read_kernel_str(oldcomm, sizeof(oldcomm), &tsk->comm);
-+	bpf_probe_read_kernel_str(newcomm, sizeof(newcomm),
-+				  (void *)PT_REGS_PARM2(ctx));
- 	signal = _(tsk->signal);
- 	oom_score_adj = _(signal->oom_score_adj);
  	return 0;
---- a/samples/bpf/test_overhead_tp_kern.c~samples-bpf-test_overhead_kprobe_kern-replace-bpf_probe_read_kernel-with-bpf_probe_read_kernel_str-to-get-task-comm
-+++ a/samples/bpf/test_overhead_tp_kern.c
-@@ -4,6 +4,7 @@
-  * modify it under the terms of version 2 of the GNU General Public
-  * License as published by the Free Software Foundation.
-  */
-+#include <linux/sched.h>
- #include <uapi/linux/bpf.h>
- #include <bpf/bpf_helpers.h>
- 
-@@ -11,8 +12,8 @@
- struct task_rename {
- 	__u64 pad;
- 	__u32 pid;
--	char oldcomm[16];
--	char newcomm[16];
-+	char oldcomm[TASK_COMM_LEN];
-+	char newcomm[TASK_COMM_LEN];
- 	__u16 oom_score_adj;
- };
- SEC("tracepoint/task/task_rename")
 _
 
 Patches currently in -mm which might be from laoar.shao@gmail.com are
