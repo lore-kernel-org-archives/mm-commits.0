@@ -2,42 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 449B0C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 556B5C433FE
 	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:24:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237208AbiATVYg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1377816AbiATVYg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 20 Jan 2022 16:24:36 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42280 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377816AbiATVY3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:29 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFD12C061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:24:28 -0800 (PST)
+Received: from dfw.source.kernel.org ([139.178.84.217]:35698 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377821AbiATVYb (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:31 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 7E28D60C78
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:28 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CDDBC340E0;
-        Thu, 20 Jan 2022 21:24:27 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8BD4E60C72
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4D3CC340E3;
+        Thu, 20 Jan 2022 21:24:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642713867;
-        bh=6d03HukqjYF6w/m5CWQgxaUWxto4NpNVTDJmosuwNg4=;
+        s=korg; t=1642713871;
+        bh=P5J/20yD9lj7+luUc5qoz6GC+zY02bDAPa35+PB/89A=;
         h=Date:From:To:Subject:From;
-        b=xHqibsPnSo7B0rfzvKSB6w1yxDZneRn8qYZaeHDCST9geGgs2cffit80JhrMmU7aL
-         rwO/HKlyWHN0sFMWNplrMyw9sKztVHIid2jFtrgkruN64iuD4rsewT5Fcw9/8qgUxW
-         4UtOuW5nH99OD7bNd58hvfll82TvrefxBB61vCuY=
-Date:   Thu, 20 Jan 2022 13:24:27 -0800
+        b=hCzhPpQBlAhR4S2qKN3LXDAZOGSeRcgbHmmadtDGJISo/uKIpr61tyroL6MR+RNoG
+         OSZTcJrG/jKib1Uwk9hrL+JvIjw29TyzXYMuUevmaawgB/5Ko+L/1BOXoX+/f/MSVI
+         3lroJzxn43DwJX9zyBGAI6sqjnCZ9AKIsFalbv4w=
+Date:   Thu, 20 Jan 2022 13:24:30 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, cl@linux.com, dvyukov@google.com,
-        elver@google.com, glider@google.com, iamjoonsoo.kim@lge.com,
-        mm-commits@vger.kernel.org, penberg@kernel.org,
-        rientjes@google.com, ryabinin.a.a@gmail.com, vbabka@suse.cz
+To:     andreyknvl@gmail.com, andreyknvl@google.com, dvyukov@google.com,
+        elver@google.com, glider@google.com, mm-commits@vger.kernel.org,
+        ryabinin.a.a@gmail.com
 Subject:  [merged]
- kasan-test-add-test-case-for-double-kmem_cache_destroy.patch removed from
- -mm tree
-Message-ID: <20220120212427.vvO6fWCEQ%akpm@linux-foundation.org>
+ kasan-fix-quarantine-conflicting-with-init_on_free.patch removed from -mm
+ tree
+Message-ID: <20220120212430.SM-HPh7pu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,65 +42,66 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: test: add test case for double-kmem_cache_destroy()
+     Subject: kasan: fix quarantine conflicting with init_on_free
 has been removed from the -mm tree.  Its filename was
-     kasan-test-add-test-case-for-double-kmem_cache_destroy.patch
+     kasan-fix-quarantine-conflicting-with-init_on_free.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: kasan: test: add test case for double-kmem_cache_destroy()
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: fix quarantine conflicting with init_on_free
 
-Add a test case for double-kmem_cache_destroy() detection.
+KASAN's quarantine might save its metadata inside freed objects.  As this
+happens after the memory is zeroed by the slab allocator when init_on_free
+is enabled, the memory coming out of quarantine is not properly zeroed.
 
-Link: https://lkml.kernel.org/r/20211119142219.1519617-2-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+This causes lib/test_meminit.c tests to fail with Generic KASAN.
+
+Zero the metadata when the object is removed from quarantine.
+
+Link: https://lkml.kernel.org/r/2805da5df4b57138fdacd671f5d227d58950ba54.1640037083.git.andreyknvl@google.com
+Fixes: 6471384af2a6 ("mm: security: introduce init_on_alloc=1 and init_on_free=1 boot options")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@gmail.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   11 +++++++++++
+ mm/kasan/quarantine.c |   11 +++++++++++
  1 file changed, 11 insertions(+)
 
---- a/lib/test_kasan.c~kasan-test-add-test-case-for-double-kmem_cache_destroy
-+++ a/lib/test_kasan.c
-@@ -866,6 +866,16 @@ static void kmem_cache_invalid_free(stru
- 	kmem_cache_destroy(cache);
- }
- 
-+static void kmem_cache_double_destroy(struct kunit *test)
-+{
-+	struct kmem_cache *cache;
-+
-+	cache = kmem_cache_create("test_cache", 200, 0, 0, NULL);
-+	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
-+	kmem_cache_destroy(cache);
-+	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_destroy(cache));
-+}
-+
- static void kasan_memchr(struct kunit *test)
+--- a/mm/kasan/quarantine.c~kasan-fix-quarantine-conflicting-with-init_on_free
++++ a/mm/kasan/quarantine.c
+@@ -132,12 +132,23 @@ static void *qlink_to_object(struct qlis
+ static void qlink_free(struct qlist_node *qlink, struct kmem_cache *cache)
  {
- 	char *ptr;
-@@ -1185,6 +1195,7 @@ static struct kunit_case kasan_kunit_tes
- 	KUNIT_CASE(ksize_uaf),
- 	KUNIT_CASE(kmem_cache_double_free),
- 	KUNIT_CASE(kmem_cache_invalid_free),
-+	KUNIT_CASE(kmem_cache_double_destroy),
- 	KUNIT_CASE(kasan_memchr),
- 	KUNIT_CASE(kasan_memcmp),
- 	KUNIT_CASE(kasan_strings),
+ 	void *object = qlink_to_object(qlink, cache);
++	struct kasan_free_meta *meta = kasan_get_free_meta(cache, object);
+ 	unsigned long flags;
+ 
+ 	if (IS_ENABLED(CONFIG_SLAB))
+ 		local_irq_save(flags);
+ 
+ 	/*
++	 * If init_on_free is enabled and KASAN's free metadata is stored in
++	 * the object, zero the metadata. Otherwise, the object's memory will
++	 * not be properly zeroed, as KASAN saves the metadata after the slab
++	 * allocator zeroes the object.
++	 */
++	if (slab_want_init_on_free(cache) &&
++	    cache->kasan_info.free_meta_offset == 0)
++		memzero_explicit(meta, sizeof(*meta));
++
++	/*
+ 	 * As the object now gets freed from the quarantine, assume that its
+ 	 * free track is no longer valid.
+ 	 */
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-lib-stackdepot-always-do-filter_irq_stacks-in-stack_depot_save.patch
 
