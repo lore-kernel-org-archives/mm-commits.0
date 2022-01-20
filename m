@@ -2,42 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AEF21C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:29:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6837EC43217
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:29:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377912AbiATV3n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1377913AbiATV3n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Thu, 20 Jan 2022 16:29:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43524 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377943AbiATV3f (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:29:35 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92500C061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:29:35 -0800 (PST)
+Received: from ams.source.kernel.org ([145.40.68.75]:59478 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377970AbiATV3k (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:29:40 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 458DDB81E54
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:29:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC349C340E0;
-        Thu, 20 Jan 2022 21:29:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 15EFBB81E6A
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:29:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A61EFC340E3;
+        Thu, 20 Jan 2022 21:29:37 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714173;
-        bh=8qiGaoFmGG+4MjIdGdrd3yxrdwlnw1VvJhqR7mEbDjs=;
+        s=korg; t=1642714177;
+        bh=ekW65EZzsPu0WB81Dg4AedKqliz9azHCrKa01MZ4iqI=;
         h=Date:From:To:Subject:From;
-        b=bxPcon4uZlr2AdyMIn3hzdLBsg1yfkkfSsIxsDseGiVRUfMYNLPtCitNVXuVx3eEj
-         4bS9MaLeV8IdFmJjCALScduiDIw4AYLGDfxFPiiVAMa8NMW63auGrkhqucqpAGYhLc
-         E4YoBXypXQ0j9exKGQy3N1rNdjs8jYyUeehXhKcw=
-Date:   Thu, 20 Jan 2022 13:29:32 -0800
+        b=aLhBld3wpmuHqcBUSoPRrUayilUjL8sf1cXtBPLSZAav6zUuzz+G5YfHjo67ORg0Y
+         ATdz2jIyDEfzwSsON4yZdzuB9y/kEEpup5AOaB/qtDLoELsNIYr7mS/nrsDPFS8oSI
+         qheFOf+QexOF8zlLWOkoKcmTcuEZRDjmeY7k3nh8=
+Date:   Thu, 20 Jan 2022 13:29:37 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, christian@brauner.io,
-        dhowells@redhat.com, hch@infradead.org, hdegoede@redhat.com,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        viro@zeniv.linux.org.uk
+To:     adobriyan@gmail.com, keescook@chromium.org,
+        mm-commits@vger.kernel.org, zhengqi.arch@bytedance.com
 Subject:  [merged]
- proc-make-the-proc_create-stubs-static-inlines-fix.patch removed from -mm
- tree
-Message-ID: <20220120212932.-5AfZ9dSM%akpm@linux-foundation.org>
+ proc-convert-the-return-type-of-proc_fd_access_allowed-to-be-boolean.patch
+ removed from -mm tree
+Message-ID: <20220120212937.FoO6paQI5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,69 +41,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-make-the-proc_create-stubs-static-inlines-fix
+     Subject: proc: convert the return type of proc_fd_access_allowed() to be boolean
 has been removed from the -mm tree.  Its filename was
-     proc-make-the-proc_create-stubs-static-inlines-fix.patch
+     proc-convert-the-return-type-of-proc_fd_access_allowed-to-be-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-make-the-proc_create-stubs-static-inlines-fix
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: proc: convert the return type of proc_fd_access_allowed() to be boolean
 
-fix CONFIG_PROC_FS=n
+Convert return type of proc_fd_access_allowed() and the 'allowed' in it to
+be boolean since the return type of ptrace_may_access() is boolean.
 
-Randy Dunlap <rdunlap@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Link: https://lkml.kernel.org/r/20211219024404.29779-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/proc_fs.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ fs/proc/base.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/proc_fs.h~proc-make-the-proc_create-stubs-static-inlines-fix
-+++ a/include/linux/proc_fs.h
-@@ -179,12 +179,14 @@ static inline struct proc_dir_entry *pro
- #define proc_create_single(name, mode, parent, show) ({NULL;})
- #define proc_create_single_data(name, mode, parent, show, data) ({NULL;})
+--- a/fs/proc/base.c~proc-convert-the-return-type-of-proc_fd_access_allowed-to-be-boolean
++++ a/fs/proc/base.c
+@@ -670,10 +670,10 @@ static int proc_pid_syscall(struct seq_f
+ /************************************************************************/
  
--static inline struct proc_dir_entry *proc_create(
--	const char *, umode_t, struct proc_dir_entry *, const struct proc_ops *)
-+static inline struct proc_dir_entry *
-+proc_create(const char *name, umode_t mode, struct proc_dir_entry *parent,
-+	    const struct proc_ops *proc_ops)
- { return NULL; }
- 
--static inline struct proc_dir_entry *proc_create_data(
--	const char *, umode_t, struct proc_dir_entry *, const struct proc_ops *, void *)
-+static inline struct proc_dir_entry *
-+proc_create_data(const char *name, umode_t mode, struct proc_dir_entry *parent,
-+		 const struct proc_ops *proc_ops, void *data)
- { return NULL; }
- 
- static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
+ /* permission checks */
+-static int proc_fd_access_allowed(struct inode *inode)
++static bool proc_fd_access_allowed(struct inode *inode)
+ {
+ 	struct task_struct *task;
+-	int allowed = 0;
++	bool allowed = false;
+ 	/* Allow access to a task's file descriptors if it is us or we
+ 	 * may use ptrace attach to the process and find out that
+ 	 * information.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from zhengqi.arch@bytedance.com are
 
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-arch-x86-include-asm-pgtableh-needs-spinlockh.patch
-sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
-firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
-sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
-sysctl-move-maxolduid-as-a-sysctl-specific-const-fix.patch
-proc-remove-pde_data-completely-fix.patch
-proc-remove-pde_data-completely-fix-fix.patch
-mm-remove-cleancache-fix.patch
-mm-simplify-try_to_unuse-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
 
