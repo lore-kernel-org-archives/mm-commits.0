@@ -2,43 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0670CC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:24:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E8463C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:24:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377820AbiATVYm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:24:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42334 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377818AbiATVYl (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:41 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC430C061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:24:41 -0800 (PST)
+        id S238848AbiATVYq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:24:46 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:57102 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1347632AbiATVYq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:46 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A6A460A3C
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF22BC340E0;
-        Thu, 20 Jan 2022 21:24:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2A208B81E66
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id ACB0AC340E0;
+        Thu, 20 Jan 2022 21:24:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642713880;
-        bh=GWC/iHSMf7Q291uFelgiEje8fXk68HOXIFmP14EmA4Q=;
+        s=korg; t=1642713883;
+        bh=q2p/jA1KAORlc8SFZn//hrOwY/UAn+ygkH5RUFxHjv8=;
         h=Date:From:To:Subject:From;
-        b=yD6kNR/1Ha/5ahlWsWcyxfmYiK3vgEhEP6fSZ6UhfXXy7AT/2GTTeBpImcMpmgGmM
-         P3DJBdARzd4JnCHCjpRr/JDFgtQgSRIYWQNJZvDB0udITx2gOIoogQdX66Hac4jWKU
-         hUgBAPoAHz0xdpwIdKn0BVljgV1AwcIJelt0xdnU=
-Date:   Thu, 20 Jan 2022 13:24:40 -0800
+        b=i2U9vAa7vnAYJruQHdzHKopu8qMYpq1oIcOX7XBV758HJ3FlWQ3q4I6NuAulI4CQe
+         FMRXP2yTHOhy8FHEWfShoIyITP7mvmWKtyfpjMMzZlQoZ5lXCveKCOD27OMnjKk9tg
+         iVBed1I+GWrgpgL4vwNKaOjEf2LRedZ41RcTyopU=
+Date:   Thu, 20 Jan 2022 13:24:43 -0800
 From:   akpm@linux-foundation.org
-To:     agruenba@redhat.com, christophe.leroy@csgroup.eu,
-        mm-commits@vger.kernel.org
+To:     kirill.shutemov@linux.intel.com, linmiaohe@huawei.com,
+        lixinhai.lxh@gmail.com, mm-commits@vger.kernel.org,
+        ying.huang@intel.com, ziy@nvidia.com
 Subject:  [merged]
- =?US-ASCII?Q?gup-avoid-multiple-user-access-locking-unlocking-in-fault?=
- =?US-ASCII?Q?=5Fin=5Fread-writeable.patch?= removed from -mm tree
-Message-ID: <20220120212440.QdZiSu8eV%akpm@linux-foundation.org>
+ mm-gupc-stricter-check-on-thp-migration-entry-during-follow_pmd_mask.patch
+ removed from -mm tree
+Message-ID: <20220120212443.2pce8mODP%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,88 +42,67 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: gup: avoid multiple user access locking/unlocking in fault_in_{read/write}able
+     Subject: mm/gup.c: stricter check on THP migration entry during follow_pmd_mask
 has been removed from the -mm tree.  Its filename was
-     gup-avoid-multiple-user-access-locking-unlocking-in-fault_in_read-writeable.patch
+     mm-gupc-stricter-check-on-thp-migration-entry-during-follow_pmd_mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: gup: avoid multiple user access locking/unlocking in fault_in_{read/write}able
+From: Li Xinhai <lixinhai.lxh@gmail.com>
+Subject: mm/gup.c: stricter check on THP migration entry during follow_pmd_mask
 
-fault_in_readable() and fault_in_writeable() perform __get_user() and
-__put_user() in a loop, implying multiple user access locking/unlocking.
+When BUG_ON check for THP migration entry, the existing code only check
+thp_migration_supported case, but not for !thp_migration_supported case. 
+If !thp_migration_supported() and !pmd_present(), the original code may
+dead loop in theory.  To make the BUG_ON check consistent, we need catch
+both cases.
 
-To avoid that, use user access blocks.
+Move the BUG_ON check one step earlier, because if the bug happen we
+should know it instead of depend on FOLL_MIGRATION been used by caller.
 
-Link: https://lkml.kernel.org/r/720dcf79314acca1a78fae56d478cc851952149d.1637084492.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
-Reviewed-by: Andreas Gruenbacher <agruenba@redhat.com>
+Because pmdval instead of *pmd is read by the is_pmd_migration_entry()
+check, the existing code don't help to avoid useless locking within
+pmd_migration_entry_wait(), so remove that check.
+
+Link: https://lkml.kernel.org/r/20211217062559.737063-1-lixinhai.lxh@gmail.com
+Signed-off-by: Li Xinhai <lixinhai.lxh@gmail.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   18 ++++++++++--------
- 1 file changed, 10 insertions(+), 8 deletions(-)
+ mm/gup.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/mm/gup.c~gup-avoid-multiple-user-access-locking-unlocking-in-fault_in_read-writeable
+--- a/mm/gup.c~mm-gupc-stricter-check-on-thp-migration-entry-during-follow_pmd_mask
 +++ a/mm/gup.c
-@@ -1672,21 +1672,22 @@ size_t fault_in_writeable(char __user *u
- 
- 	if (unlikely(size == 0))
- 		return 0;
-+	if (!user_write_access_begin(uaddr, size))
-+		return size;
- 	if (!PAGE_ALIGNED(uaddr)) {
--		if (unlikely(__put_user(0, uaddr) != 0))
--			return size;
-+		unsafe_put_user(0, uaddr, out);
- 		uaddr = (char __user *)PAGE_ALIGN((unsigned long)uaddr);
+@@ -642,12 +642,17 @@ static struct page *follow_pmd_mask(stru
  	}
- 	end = (char __user *)PAGE_ALIGN((unsigned long)start + size);
- 	if (unlikely(end < start))
- 		end = NULL;
- 	while (uaddr != end) {
--		if (unlikely(__put_user(0, uaddr) != 0))
--			goto out;
-+		unsafe_put_user(0, uaddr, out);
- 		uaddr += PAGE_SIZE;
- 	}
- 
- out:
-+	user_write_access_end();
- 	if (size > uaddr - start)
- 		return size - (uaddr - start);
- 	return 0;
-@@ -1771,21 +1772,22 @@ size_t fault_in_readable(const char __us
- 
- 	if (unlikely(size == 0))
- 		return 0;
-+	if (!user_read_access_begin(uaddr, size))
-+		return size;
- 	if (!PAGE_ALIGNED(uaddr)) {
--		if (unlikely(__get_user(c, uaddr) != 0))
--			return size;
-+		unsafe_get_user(c, uaddr, out);
- 		uaddr = (const char __user *)PAGE_ALIGN((unsigned long)uaddr);
- 	}
- 	end = (const char __user *)PAGE_ALIGN((unsigned long)start + size);
- 	if (unlikely(end < start))
- 		end = NULL;
- 	while (uaddr != end) {
--		if (unlikely(__get_user(c, uaddr) != 0))
--			goto out;
-+		unsafe_get_user(c, uaddr, out);
- 		uaddr += PAGE_SIZE;
- 	}
- 
- out:
-+	user_read_access_end();
- 	(void)c;
- 	if (size > uaddr - start)
- 		return size - (uaddr - start);
+ retry:
+ 	if (!pmd_present(pmdval)) {
++		/*
++		 * Should never reach here, if thp migration is not supported;
++		 * Otherwise, it must be a thp migration entry.
++		 */
++		VM_BUG_ON(!thp_migration_supported() ||
++				  !is_pmd_migration_entry(pmdval));
++
+ 		if (likely(!(flags & FOLL_MIGRATION)))
+ 			return no_page_table(vma, flags);
+-		VM_BUG_ON(thp_migration_supported() &&
+-				  !is_pmd_migration_entry(pmdval));
+-		if (is_pmd_migration_entry(pmdval))
+-			pmd_migration_entry_wait(mm, pmd);
++
++		pmd_migration_entry_wait(mm, pmd);
+ 		pmdval = READ_ONCE(*pmd);
+ 		/*
+ 		 * MADV_DONTNEED may convert the pmd to null because
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from lixinhai.lxh@gmail.com are
 
 
