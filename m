@@ -2,38 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2E7AC4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:09:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2C47CC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:09:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231749AbiATCJv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jan 2022 21:09:51 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:43366 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232838AbiATCJs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:09:48 -0500
+        id S233417AbiATCJz (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jan 2022 21:09:55 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:51200 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232838AbiATCJx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:09:53 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 78299615E1
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:09:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5B8EC340E3;
-        Thu, 20 Jan 2022 02:09:47 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 26442B81C9F
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:09:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A4604C004E1;
+        Thu, 20 Jan 2022 02:09:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642644587;
-        bh=6qJmLn+o/drq4coo4FjSh/QCb2BVfpWMGyxhSv+6u3Q=;
+        s=korg; t=1642644590;
+        bh=OGoH40tmNboM4Q9w0ReRvZcrS1vzgLhJ/ARQ2rU3RiQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=2mD2s2+a/WoXqx3OaWgHOeYYacVrCrXShEhXD3tGGOWDx/3rJBZAxffPxsonev8yK
-         7BiNPgdetOlOahr6dBrMu9ymiWKqJxuKV/pdxfM2UY+i3cVrra80ec/Mw3aVhYbD83
-         AFx6AkqrH9RvuOeGf0y6UgAluaDWPjnRYMZvUREk=
-Date:   Wed, 19 Jan 2022 18:09:47 -0800
+        b=hB9FXAkhau7OUL3gdFK2dI0aMam+Uil/3HSX538YXog9+toHKMg+50Pb8JqW0jzZf
+         oCVz1fcFjqLs0oeFFEOf3LgqJCuIOVrooZo+plMmK84S1CMWhq1Ns9IrpDt6xBLVhD
+         F2ZdDjQTQBFTfEOA6xMIb07643/ConlaaPHlc1fc=
+Date:   Wed, 19 Jan 2022 18:09:50 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, christian.brauner@ubuntu.com,
-        keescook@chromium.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, thunder.leizhen@huawei.com,
+To:     akpm@linux-foundation.org, hirofumi@mail.parknet.co.jp,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, neilb@suse.de,
         torvalds@linux-foundation.org
-Subject:  [patch 39/55] hfsplus: use struct_group_attr() for
- memcpy() region
-Message-ID: <20220120020947.D5Co4uzsW%akpm@linux-foundation.org>
+Subject:  [patch 40/55]  FAT: use io_schedule_timeout() instead of
+ congestion_wait()
+Message-ID: <20220120020950.xuF6ThKFO%akpm@linux-foundation.org>
 In-Reply-To: <20220119180714.9e187ce100e4510de3cd9f7d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,79 +40,42 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Kees Cook <keescook@chromium.org>
-Subject: hfsplus: use struct_group_attr() for memcpy() region
+From: "NeilBrown" <neilb@suse.de>
+Subject:  FAT: use io_schedule_timeout() instead of congestion_wait()
 
-In preparation for FORTIFY_SOURCE performing compile-time and run-time
-field bounds checking for memset(), avoid intentionally writing across
-neighboring fields.
+congestion_wait() in this context is just a sleep - block devices do not
+support congestion signalling any more.
 
-Add struct_group() to mark the "info" region (containing struct DInfo and
-struct DXInfo structs) in struct hfsplus_cat_folder and struct
-hfsplus_cat_file that are written into directly, so the compiler can
-correctly reason about the expected size of the writes.
+The goal for this wait, which was introduced in Commit ae78bf9c4f5f
+("[PATCH] add -o flush for fat") is to wait for any recently written data
+to get to storage.  We currently have no direct mechanism to do this, so a
+simple wait that behaves identically to the current congestion_wait() is
+the best we can do.
 
-"pahole" shows no size nor member offset changes to struct
-hfsplus_cat_folder nor struct hfsplus_cat_file.  "objdump -d" shows no
-object code changes.
+This is a step towards removing congestion_wait()
 
-Link: https://lkml.kernel.org/r/20211119192851.1046717-1-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Zhen Lei <thunder.leizhen@huawei.com>
+Link: https://lkml.kernel.org/r/163936544519.22433.13400436295732112065@noble.neil.brown.name
+Signed-off-by: NeilBrown <neilb@suse.de>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfsplus/hfsplus_raw.h |   12 ++++++++----
- fs/hfsplus/xattr.c       |    4 ++--
- 2 files changed, 10 insertions(+), 6 deletions(-)
+ fs/fat/file.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
---- a/fs/hfsplus/hfsplus_raw.h~hfsplus-use-struct_group_attr-for-memcpy-region
-+++ a/fs/hfsplus/hfsplus_raw.h
-@@ -260,8 +260,10 @@ struct hfsplus_cat_folder {
- 	__be32 access_date;
- 	__be32 backup_date;
- 	struct hfsplus_perm permissions;
--	struct DInfo user_info;
--	struct DXInfo finder_info;
-+	struct_group_attr(info, __packed,
-+		struct DInfo user_info;
-+		struct DXInfo finder_info;
-+	);
- 	__be32 text_encoding;
- 	__be32 subfolders;	/* Subfolder count in HFSX. Reserved in HFS+. */
- } __packed;
-@@ -294,8 +296,10 @@ struct hfsplus_cat_file {
- 	__be32 access_date;
- 	__be32 backup_date;
- 	struct hfsplus_perm permissions;
--	struct FInfo user_info;
--	struct FXInfo finder_info;
-+	struct_group_attr(info, __packed,
-+		struct FInfo user_info;
-+		struct FXInfo finder_info;
-+	);
- 	__be32 text_encoding;
- 	u32 reserved2;
- 
---- a/fs/hfsplus/xattr.c~hfsplus-use-struct_group_attr-for-memcpy-region
-+++ a/fs/hfsplus/xattr.c
-@@ -296,7 +296,7 @@ int __hfsplus_setxattr(struct inode *ino
- 					sizeof(hfsplus_cat_entry));
- 		if (be16_to_cpu(entry.type) == HFSPLUS_FOLDER) {
- 			if (size == folder_finderinfo_len) {
--				memcpy(&entry.folder.user_info, value,
-+				memcpy(&entry.folder.info, value,
- 						folder_finderinfo_len);
- 				hfs_bnode_write(cat_fd.bnode, &entry,
- 					cat_fd.entryoffset,
-@@ -309,7 +309,7 @@ int __hfsplus_setxattr(struct inode *ino
- 			}
- 		} else if (be16_to_cpu(entry.type) == HFSPLUS_FILE) {
- 			if (size == file_finderinfo_len) {
--				memcpy(&entry.file.user_info, value,
-+				memcpy(&entry.file.info, value,
- 						file_finderinfo_len);
- 				hfs_bnode_write(cat_fd.bnode, &entry,
- 					cat_fd.entryoffset,
+--- a/fs/fat/file.c~fat-use-io_schedule_timeout-instead-of-congestion_wait
++++ a/fs/fat/file.c
+@@ -175,9 +175,10 @@ long fat_generic_ioctl(struct file *filp
+ static int fat_file_release(struct inode *inode, struct file *filp)
+ {
+ 	if ((filp->f_mode & FMODE_WRITE) &&
+-	     MSDOS_SB(inode->i_sb)->options.flush) {
++	    MSDOS_SB(inode->i_sb)->options.flush) {
+ 		fat_flush_inodes(inode->i_sb, inode, NULL);
+-		congestion_wait(BLK_RW_ASYNC, HZ/10);
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		io_schedule_timeout(HZ/10);
+ 	}
+ 	return 0;
+ }
 _
