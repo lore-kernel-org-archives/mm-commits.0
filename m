@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 556B5C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EBEE5C433EF
 	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:24:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377816AbiATVYg (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:24:36 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:35698 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377821AbiATVYb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:31 -0500
+        id S1377817AbiATVYh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:24:37 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42304 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377844AbiATVYe (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:34 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B463BC061574
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:24:34 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8BD4E60C72
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B4D3CC340E3;
-        Thu, 20 Jan 2022 21:24:30 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 52D2F60B08
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 891C3C340E0;
+        Thu, 20 Jan 2022 21:24:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642713871;
-        bh=P5J/20yD9lj7+luUc5qoz6GC+zY02bDAPa35+PB/89A=;
+        s=korg; t=1642713873;
+        bh=rlwI+HynvESo/ASfAzaMjjNqmULRVy2fLtvTD+Cs+z4=;
         h=Date:From:To:Subject:From;
-        b=hCzhPpQBlAhR4S2qKN3LXDAZOGSeRcgbHmmadtDGJISo/uKIpr61tyroL6MR+RNoG
-         OSZTcJrG/jKib1Uwk9hrL+JvIjw29TyzXYMuUevmaawgB/5Ko+L/1BOXoX+/f/MSVI
-         3lroJzxn43DwJX9zyBGAI6sqjnCZ9AKIsFalbv4w=
-Date:   Thu, 20 Jan 2022 13:24:30 -0800
+        b=n9WhGmxv8mbyPJ05qbsZY4LjMMNu6C/vma9rKIH+Xp+0fw48qetNWN5p7n53GUj/6
+         8oLiXlWUCIz+lGX69rY6vVrklYr78wppNSQcpibEO6gEmschx/AQJI7iYecc4BbJVz
+         thOPwsv9/K2PT6F7EBOiyp6W7I1LpNctVeOqxPms=
+Date:   Thu, 20 Jan 2022 13:24:33 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, andreyknvl@google.com, dvyukov@google.com,
-        elver@google.com, glider@google.com, mm-commits@vger.kernel.org,
-        ryabinin.a.a@gmail.com
-Subject:  [merged]
- kasan-fix-quarantine-conflicting-with-init_on_free.patch removed from -mm
- tree
-Message-ID: <20220120212430.SM-HPh7pu%akpm@linux-foundation.org>
+To:     mhocko@suse.com, mm-commits@vger.kernel.org, vbabka@suse.cz,
+        william.kucharski@oracle.com, willy@infradead.org
+Subject:  [merged] mmfs-split-dump_mapping-out-from-dump_page.patch
+ removed from -mm tree
+Message-ID: <20220120212433.1b81CDv6v%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,66 +43,165 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: fix quarantine conflicting with init_on_free
+     Subject: mm,fs: split dump_mapping() out from dump_page()
 has been removed from the -mm tree.  Its filename was
-     kasan-fix-quarantine-conflicting-with-init_on_free.patch
+     mmfs-split-dump_mapping-out-from-dump_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: fix quarantine conflicting with init_on_free
+From: "Matthew Wilcox (Oracle)" <willy@infradead.org>
+Subject: mm,fs: split dump_mapping() out from dump_page()
 
-KASAN's quarantine might save its metadata inside freed objects.  As this
-happens after the memory is zeroed by the slab allocator when init_on_free
-is enabled, the memory coming out of quarantine is not properly zeroed.
+dump_mapping() is a big chunk of dump_page(), and it'd be handy to be able
+to call it when we don't have a struct page.  Split it out and move it to
+fs/inode.c.  Take the opportunity to simplify some of the debug messages a
+little.
 
-This causes lib/test_meminit.c tests to fail with Generic KASAN.
-
-Zero the metadata when the object is removed from quarantine.
-
-Link: https://lkml.kernel.org/r/2805da5df4b57138fdacd671f5d227d58950ba54.1640037083.git.andreyknvl@google.com
-Fixes: 6471384af2a6 ("mm: security: introduce init_on_alloc=1 and init_on_free=1 boot options")
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Link: https://lkml.kernel.org/r/20211121121056.2870061-1-willy@infradead.org
+Signed-off-by: Matthew Wilcox (Oracle) <willy@infradead.org>
+Reviewed-by: William Kucharski <william.kucharski@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ fs/inode.c         |   49 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/fs.h |    1 
+ mm/debug.c         |   52 +------------------------------------------
+ 3 files changed, 52 insertions(+), 50 deletions(-)
 
---- a/mm/kasan/quarantine.c~kasan-fix-quarantine-conflicting-with-init_on_free
-+++ a/mm/kasan/quarantine.c
-@@ -132,12 +132,23 @@ static void *qlink_to_object(struct qlis
- static void qlink_free(struct qlist_node *qlink, struct kmem_cache *cache)
- {
- 	void *object = qlink_to_object(qlink, cache);
-+	struct kasan_free_meta *meta = kasan_get_free_meta(cache, object);
- 	unsigned long flags;
+--- a/fs/inode.c~mmfs-split-dump_mapping-out-from-dump_page
++++ a/fs/inode.c
+@@ -526,6 +526,55 @@ void __remove_inode_hash(struct inode *i
+ }
+ EXPORT_SYMBOL(__remove_inode_hash);
  
- 	if (IS_ENABLED(CONFIG_SLAB))
- 		local_irq_save(flags);
- 
- 	/*
-+	 * If init_on_free is enabled and KASAN's free metadata is stored in
-+	 * the object, zero the metadata. Otherwise, the object's memory will
-+	 * not be properly zeroed, as KASAN saves the metadata after the slab
-+	 * allocator zeroes the object.
-+	 */
-+	if (slab_want_init_on_free(cache) &&
-+	    cache->kasan_info.free_meta_offset == 0)
-+		memzero_explicit(meta, sizeof(*meta));
++void dump_mapping(const struct address_space *mapping)
++{
++	struct inode *host;
++	const struct address_space_operations *a_ops;
++	struct hlist_node *dentry_first;
++	struct dentry *dentry_ptr;
++	struct dentry dentry;
++	unsigned long ino;
 +
 +	/*
- 	 * As the object now gets freed from the quarantine, assume that its
- 	 * free track is no longer valid.
- 	 */
++	 * If mapping is an invalid pointer, we don't want to crash
++	 * accessing it, so probe everything depending on it carefully.
++	 */
++	if (get_kernel_nofault(host, &mapping->host) ||
++	    get_kernel_nofault(a_ops, &mapping->a_ops)) {
++		pr_warn("invalid mapping:%px\n", mapping);
++		return;
++	}
++
++	if (!host) {
++		pr_warn("aops:%ps\n", a_ops);
++		return;
++	}
++
++	if (get_kernel_nofault(dentry_first, &host->i_dentry.first) ||
++	    get_kernel_nofault(ino, &host->i_ino)) {
++		pr_warn("aops:%ps invalid inode:%px\n", a_ops, host);
++		return;
++	}
++
++	if (!dentry_first) {
++		pr_warn("aops:%ps ino:%lx\n", a_ops, ino);
++		return;
++	}
++
++	dentry_ptr = container_of(dentry_first, struct dentry, d_u.d_alias);
++	if (get_kernel_nofault(dentry, dentry_ptr)) {
++		pr_warn("aops:%ps ino:%lx invalid dentry:%px\n",
++				a_ops, ino, dentry_ptr);
++		return;
++	}
++
++	/*
++	 * if dentry is corrupted, the %pd handler may still crash,
++	 * but it's unlikely that we reach here with a corrupt mapping
++	 */
++	pr_warn("aops:%ps ino:%lx dentry name:\"%pd\"\n", a_ops, ino, &dentry);
++}
++
+ void clear_inode(struct inode *inode)
+ {
+ 	/*
+--- a/include/linux/fs.h~mmfs-split-dump_mapping-out-from-dump_page
++++ a/include/linux/fs.h
+@@ -3152,6 +3152,7 @@ extern void unlock_new_inode(struct inod
+ extern void discard_new_inode(struct inode *);
+ extern unsigned int get_next_ino(void);
+ extern void evict_inodes(struct super_block *sb);
++void dump_mapping(const struct address_space *);
+ 
+ /*
+  * Userspace may rely on the the inode number being non-zero. For example, glibc
+--- a/mm/debug.c~mmfs-split-dump_mapping-out-from-dump_page
++++ a/mm/debug.c
+@@ -112,56 +112,8 @@ static void __dump_page(struct page *pag
+ 		type = "ksm ";
+ 	else if (PageAnon(page))
+ 		type = "anon ";
+-	else if (mapping) {
+-		struct inode *host;
+-		const struct address_space_operations *a_ops;
+-		struct hlist_node *dentry_first;
+-		struct dentry *dentry_ptr;
+-		struct dentry dentry;
+-		unsigned long ino;
+-
+-		/*
+-		 * mapping can be invalid pointer and we don't want to crash
+-		 * accessing it, so probe everything depending on it carefully
+-		 */
+-		if (get_kernel_nofault(host, &mapping->host) ||
+-		    get_kernel_nofault(a_ops, &mapping->a_ops)) {
+-			pr_warn("failed to read mapping contents, not a valid kernel address?\n");
+-			goto out_mapping;
+-		}
+-
+-		if (!host) {
+-			pr_warn("aops:%ps\n", a_ops);
+-			goto out_mapping;
+-		}
+-
+-		if (get_kernel_nofault(dentry_first, &host->i_dentry.first) ||
+-		    get_kernel_nofault(ino, &host->i_ino)) {
+-			pr_warn("aops:%ps with invalid host inode %px\n",
+-					a_ops, host);
+-			goto out_mapping;
+-		}
+-
+-		if (!dentry_first) {
+-			pr_warn("aops:%ps ino:%lx\n", a_ops, ino);
+-			goto out_mapping;
+-		}
+-
+-		dentry_ptr = container_of(dentry_first, struct dentry, d_u.d_alias);
+-		if (get_kernel_nofault(dentry, dentry_ptr)) {
+-			pr_warn("aops:%ps ino:%lx with invalid dentry %px\n",
+-					a_ops, ino, dentry_ptr);
+-		} else {
+-			/*
+-			 * if dentry is corrupted, the %pd handler may still
+-			 * crash, but it's unlikely that we reach here with a
+-			 * corrupted struct page
+-			 */
+-			pr_warn("aops:%ps ino:%lx dentry name:\"%pd\"\n",
+-					a_ops, ino, &dentry);
+-		}
+-	}
+-out_mapping:
++	else if (mapping)
++		dump_mapping(mapping);
+ 	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
+ 
+ 	pr_warn("%sflags: %pGp%s\n", type, &head->flags,
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from willy@infradead.org are
 
 
