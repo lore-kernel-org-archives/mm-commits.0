@@ -2,44 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 85835C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9BC61C4332F
 	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:24:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377818AbiATVYx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:24:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42376 "EHLO
+        id S244034AbiATVYy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:24:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42382 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S244034AbiATVYw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:52 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 76BE6C061574;
-        Thu, 20 Jan 2022 13:24:52 -0800 (PST)
+        with ESMTP id S1377821AbiATVYx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:53 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF06AC061574
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:24:53 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3F834B81E69;
-        Thu, 20 Jan 2022 21:24:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB7A8C340E0;
-        Thu, 20 Jan 2022 21:24:49 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B0B960018
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9E416C340E0;
+        Thu, 20 Jan 2022 21:24:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642713890;
-        bh=VcJDkpFz3Ety29p86cJgI/LC1Er+RLna7QuXLIk3aXI=;
+        s=korg; t=1642713892;
+        bh=05+GQhCed6OfqCj+QbG5EQQGOMDnhXLDovizuif/Czo=;
         h=Date:From:To:Subject:From;
-        b=Qtf2mNjH6fd2CE0W5SJkc2ZeipIvvvrpMGh5UBV8M4g2ak2UFjJJWKpQO67tSisr+
-         JLLABKIOWbEvdDJVhjd7wQNBcrROcACNs8d78rUWpK9NxVCu5jNa205AquAYCYf5mB
-         swcgSam/CF/NZlKV5Gqp+jNa06AvzPm80uEHX2nQ=
-Date:   Thu, 20 Jan 2022 13:24:49 -0800
+        b=ewv45i3vJJlL2Jm1vXVmHKQr206x/DC45z3wgjJ99ny/P+ERttquyOUuCPQ+FZmCT
+         ++0onYixX9xi/X4t4+i3Tsupqx7VhwGGI5Fsez4+jhMiZ6U/fF3yPw7tiEO56kLMcR
+         cBL37H3K0mlN0+cJz8cRUku7AzdEY9XdU1aq5GWk=
+Date:   Thu, 20 Jan 2022 13:24:52 -0800
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, kirill.shutemov@linux.intel.com,
-        ligang.bdlg@bytedance.com, mm-commits@vger.kernel.org,
-        songmuchun@bytedance.com, stable@vger.kernel.org
+To:     christophe.jaillet@wanadoo.fr, mm-commits@vger.kernel.org
 Subject:  [merged]
- =?US-ASCII?Q?shmem-fix-a-race-between-shmem=5Funused=5Fhuge=5Fshrink-and?=
- =?US-ASCII?Q?-shmem=5Fevict=5Finode.patch?= removed from -mm tree
-Message-ID: <20220120212449.LA9Nvfar6%akpm@linux-foundation.org>
+ mm-mempool-use-non-atomic-__set_bit-when-possible.patch removed from -mm
+ tree
+Message-ID: <20220120212452.ltFfm9EtT%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,179 +43,50 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: fix a race between shmem_unused_huge_shrink and shmem_evict_inode
+     Subject: mm/frontswap.c: use non-atomic '__set_bit()' when possible
 has been removed from the -mm tree.  Its filename was
-     shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode.patch
+     mm-mempool-use-non-atomic-__set_bit-when-possible.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gang Li <ligang.bdlg@bytedance.com>
-Subject: shmem: fix a race between shmem_unused_huge_shrink and shmem_evict_inode
+From: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
+Subject: mm/frontswap.c: use non-atomic '__set_bit()' when possible
 
-Fix a data race in commit 779750d20b93 ("shmem: split huge pages beyond
-i_size under memory pressure").
+the 'a' and 'b' bitmaps are local to this function, so no concurrent
+access can occur.  So the non-atomic '__set_bit()' can be used to save a
+few cycles.
 
-Here are call traces causing race:
-
-   Call Trace 1:
-     shmem_unused_huge_shrink+0x3ae/0x410
-     ? __list_lru_walk_one.isra.5+0x33/0x160
-     super_cache_scan+0x17c/0x190
-     shrink_slab.part.55+0x1ef/0x3f0
-     shrink_node+0x10e/0x330
-     kswapd+0x380/0x740
-     kthread+0xfc/0x130
-     ? mem_cgroup_shrink_node+0x170/0x170
-     ? kthread_create_on_node+0x70/0x70
-     ret_from_fork+0x1f/0x30
-
-   Call Trace 2:
-     shmem_evict_inode+0xd8/0x190
-     evict+0xbe/0x1c0
-     do_unlinkat+0x137/0x330
-     do_syscall_64+0x76/0x120
-     entry_SYSCALL_64_after_hwframe+0x3d/0xa2
-
-A simple explanation:
-
-Image there are 3 items in the local list (@list).  In the first
-traversal, A is not deleted from @list.
-
-  1)    A->B->C
-        ^
-        |
-        pos (leave)
-
-In the second traversal, B is deleted from @list.  Concurrently, A is
-deleted from @list through shmem_evict_inode() since last reference
-counter of inode is dropped by other thread.  Then the @list is corrupted.
-
-  2)    A->B->C
-        ^  ^
-        |  |
-     evict pos (drop)
-
-We should make sure the inode is either on the global list or deleted from
-any local list before iput().
-
-Fixed by moving inodes back to global list before we put them.
-
-[akpm@linux-foundation.org: coding style fixes]
-Link: https://lkml.kernel.org/r/20211125064502.99983-1-ligang.bdlg@bytedance.com
-Fixes: 779750d20b93 ("shmem: split huge pages beyond i_size under memory pressure")
-Signed-off-by: Gang Li <ligang.bdlg@bytedance.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/e52476da5cee57151745c5c3c934a69798dc6fa4.1638132190.git.christophe.jaillet@wanadoo.fr
+Signed-off-by: Christophe JAILLET <christophe.jaillet@wanadoo.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   37 +++++++++++++++++++++----------------
- 1 file changed, 21 insertions(+), 16 deletions(-)
+ mm/frontswap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/shmem.c~shmem-fix-a-race-between-shmem_unused_huge_shrink-and-shmem_evict_inode
-+++ a/mm/shmem.c
-@@ -554,7 +554,7 @@ static unsigned long shmem_unused_huge_s
- 	struct shmem_inode_info *info;
- 	struct page *page;
- 	unsigned long batch = sc ? sc->nr_to_scan : 128;
--	int removed = 0, split = 0;
-+	int split = 0;
- 
- 	if (list_empty(&sbinfo->shrinklist))
- 		return SHRINK_STOP;
-@@ -569,7 +569,6 @@ static unsigned long shmem_unused_huge_s
- 		/* inode is about to be evicted */
- 		if (!inode) {
- 			list_del_init(&info->shrinklist);
--			removed++;
- 			goto next;
- 		}
- 
-@@ -577,12 +576,12 @@ static unsigned long shmem_unused_huge_s
- 		if (round_up(inode->i_size, PAGE_SIZE) ==
- 				round_up(inode->i_size, HPAGE_PMD_SIZE)) {
- 			list_move(&info->shrinklist, &to_remove);
--			removed++;
- 			goto next;
- 		}
- 
- 		list_move(&info->shrinklist, &list);
- next:
-+		sbinfo->shrinklist_len--;
- 		if (!--batch)
- 			break;
+--- a/mm/frontswap.c~mm-mempool-use-non-atomic-__set_bit-when-possible
++++ a/mm/frontswap.c
+@@ -127,7 +127,7 @@ void frontswap_register_ops(struct front
+ 	spin_lock(&swap_lock);
+ 	plist_for_each_entry(si, &swap_active_head, list) {
+ 		if (!WARN_ON(!si->frontswap_map))
+-			set_bit(si->type, a);
++			__set_bit(si->type, a);
  	}
-@@ -602,7 +601,7 @@ next:
- 		inode = &info->vfs_inode;
+ 	spin_unlock(&swap_lock);
  
- 		if (nr_to_split && split >= nr_to_split)
--			goto leave;
-+			goto move_back;
- 
- 		page = find_get_page(inode->i_mapping,
- 				(inode->i_size & HPAGE_PMD_MASK) >> PAGE_SHIFT);
-@@ -616,38 +615,44 @@ next:
- 		}
- 
- 		/*
--		 * Leave the inode on the list if we failed to lock
--		 * the page at this time.
-+		 * Move the inode on the list back to shrinklist if we failed
-+		 * to lock the page at this time.
- 		 *
- 		 * Waiting for the lock may lead to deadlock in the
- 		 * reclaim path.
- 		 */
- 		if (!trylock_page(page)) {
- 			put_page(page);
--			goto leave;
-+			goto move_back;
- 		}
- 
- 		ret = split_huge_page(page);
- 		unlock_page(page);
- 		put_page(page);
- 
--		/* If split failed leave the inode on the list */
-+		/* If split failed move the inode on the list back to shrinklist */
- 		if (ret)
--			goto leave;
-+			goto move_back;
- 
- 		split++;
- drop:
- 		list_del_init(&info->shrinklist);
--		removed++;
--leave:
-+		goto put;
-+move_back:
-+		/*
-+		 * Make sure the inode is either on the global list or deleted
-+		 * from any local list before iput() since it could be deleted
-+		 * in another thread once we put the inode (then the local list
-+		 * is corrupted).
-+		 */
-+		spin_lock(&sbinfo->shrinklist_lock);
-+		list_move(&info->shrinklist, &sbinfo->shrinklist);
-+		sbinfo->shrinklist_len++;
-+		spin_unlock(&sbinfo->shrinklist_lock);
-+put:
- 		iput(inode);
+@@ -149,7 +149,7 @@ void frontswap_register_ops(struct front
+ 	spin_lock(&swap_lock);
+ 	plist_for_each_entry(si, &swap_active_head, list) {
+ 		if (si->frontswap_map)
+-			set_bit(si->type, b);
++			__set_bit(si->type, b);
  	}
- 
--	spin_lock(&sbinfo->shrinklist_lock);
--	list_splice_tail(&list, &sbinfo->shrinklist);
--	sbinfo->shrinklist_len -= removed;
--	spin_unlock(&sbinfo->shrinklist_lock);
--
- 	return split;
- }
+ 	spin_unlock(&swap_lock);
  
 _
 
-Patches currently in -mm which might be from ligang.bdlg@bytedance.com are
+Patches currently in -mm which might be from christophe.jaillet@wanadoo.fr are
 
 
