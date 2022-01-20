@@ -2,43 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0C07C43219
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:31:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4C72BC4332F
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:31:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377942AbiATVbY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:31:24 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43956 "EHLO
+        id S1377941AbiATVbW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:31:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43940 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377944AbiATVbY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:31:24 -0500
+        with ESMTP id S1377947AbiATVbV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:31:21 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11A80C061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:31:24 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D67B6C06173F
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:31:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id A6E1B618CD
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:31:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1EE5C340E3;
-        Thu, 20 Jan 2022 21:31:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 761C9618CD
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:31:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A8531C340E0;
+        Thu, 20 Jan 2022 21:31:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714283;
-        bh=YxBZADMnL4RIn6M0k7LktMazCWEfgtVmf+oBpnvdWyg=;
+        s=korg; t=1642714279;
+        bh=4Z/oFclvA1/NaZhTF/37vuLvL+GGnQoa15GunOpDhrg=;
         h=Date:From:To:Subject:From;
-        b=nvqSejvh2vLk071Pq5MLQ5Pucxk2js+ew/SQy2O7TkFGlZRNfNxm7PF828CFa8Ghm
-         x4Q9Yl6UmCTxUtdu4RRNUlC2ae9VVWgC2+InuAMVjQWJTqSlTKcpYw3KK5PaXX7aQc
-         x3QBcu1J7Rbu//uqFVFdRdiO1h1b2FBYhKCp9uU0=
-Date:   Thu, 20 Jan 2022 13:31:22 -0800
+        b=ZULqd5M5pMa6Pa3xS4/S2+xKSuWqvka4WJvqCaCAjmvEdKACKwEKBJB9IGL2fz/Wg
+         5cO32YgwGLmww69eMXwAxLE+shL7kVts+fh2HECmrisN9hH8hJMuUTDCKTQJ6oM9UF
+         uUuCSvyLA82c1f9WHgiRH/F1uwXZfSzloXQF0Jy4=
+Date:   Thu, 20 Jan 2022 13:31:19 -0800
 From:   akpm@linux-foundation.org
-To:     alex.popov@linux.com, andriy.shevchenko@linux.intel.com,
-        arnd@arndb.de, elver@google.com, glider@google.com,
-        john.ogness@linutronix.de, mcgrof@kernel.org, mingo@redhat.com,
-        mm-commits@vger.kernel.org, pmladek@suse.com, rostedt@goodmis.org,
-        rppt@kernel.org, wei.liu@kernel.org
+To:     chi.minghao@zte.com.cn, christian.brauner@ubuntu.com,
+        gregkh@linuxfoundation.org, jack@suse.cz,
+        mm-commits@vger.kernel.org, zealci@zte.com.cm
 Subject:  [merged]
- panic-use-error_report_end-tracepoint-on-warnings.patch removed from -mm
+ fs-adfs-remove-unneeded-variable-make-code-cleaner.patch removed from -mm
  tree
-Message-ID: <20220120213122.FT2y-nEFl%akpm@linux-foundation.org>
+Message-ID: <20220120213119.WsNC_6YVE%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,85 +45,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: use error_report_end tracepoint on warnings
+     Subject: fs/adfs: remove unneeded variable make code cleaner
 has been removed from the -mm tree.  Its filename was
-     panic-use-error_report_end-tracepoint-on-warnings.patch
+     fs-adfs-remove-unneeded-variable-make-code-cleaner.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: panic: use error_report_end tracepoint on warnings
+From: Minghao Chi <chi.minghao@zte.com.cn>
+Subject: fs/adfs: remove unneeded variable make code cleaner
 
-Introduce the error detector "warning" to the error_report event and use
-the error_report_end tracepoint at the end of a warning report.
+Return value directly instead of taking this in a variable.
 
-This allows in-kernel tests but also userspace to more easily determine
-if a warning occurred without polling kernel logs.
-
-Link: https://lkml.kernel.org/r/20211115085630.1756817-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Wei Liu <wei.liu@kernel.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: John Ogness <john.ogness@linutronix.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexander Popov <alex.popov@linux.com>
+Link: https://lkml.kernel.org/r/20211210023211.424609-1-chi.minghao@zte.com.cn
+Signed-off-by: Minghao Chi <chi.minghao@zte.com.cn>
+Reported-by: Zeal Robot <zealci@zte.com.cm>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/error_report.h |    8 +++++---
- kernel/panic.c                      |    2 ++
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ fs/adfs/inode.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
---- a/include/trace/events/error_report.h~panic-use-error_report_end-tracepoint-on-warnings
-+++ a/include/trace/events/error_report.h
-@@ -17,14 +17,16 @@
+--- a/fs/adfs/inode.c~fs-adfs-remove-unneeded-variable-make-code-cleaner
++++ a/fs/adfs/inode.c
+@@ -355,7 +355,6 @@ int adfs_write_inode(struct inode *inode
+ {
+ 	struct super_block *sb = inode->i_sb;
+ 	struct object_info obj;
+-	int ret;
  
- enum error_detector {
- 	ERROR_DETECTOR_KFENCE,
--	ERROR_DETECTOR_KASAN
-+	ERROR_DETECTOR_KASAN,
-+	ERROR_DETECTOR_WARN
- };
+ 	obj.indaddr	= ADFS_I(inode)->indaddr;
+ 	obj.name_len	= 0;
+@@ -365,6 +364,5 @@ int adfs_write_inode(struct inode *inode
+ 	obj.attr	= ADFS_I(inode)->attr;
+ 	obj.size	= inode->i_size;
  
- #endif /* __ERROR_REPORT_DECLARE_TRACE_ENUMS_ONCE_ONLY */
- 
--#define error_detector_list	\
-+#define error_detector_list			\
- 	EM(ERROR_DETECTOR_KFENCE, "kfence")	\
--	EMe(ERROR_DETECTOR_KASAN, "kasan")
-+	EM(ERROR_DETECTOR_KASAN, "kasan")	\
-+	EMe(ERROR_DETECTOR_WARN, "warning")
- /* Always end the list with an EMe. */
- 
- #undef EM
---- a/kernel/panic.c~panic-use-error_report_end-tracepoint-on-warnings
-+++ a/kernel/panic.c
-@@ -32,6 +32,7 @@
- #include <linux/bug.h>
- #include <linux/ratelimit.h>
- #include <linux/debugfs.h>
-+#include <trace/events/error_report.h>
- #include <asm/sections.h>
- 
- #define PANIC_TIMER_STEP 100
-@@ -609,6 +610,7 @@ void __warn(const char *file, int line,
- 	print_irqtrace_events(current);
- 
- 	print_oops_end_marker();
-+	trace_error_report_end(ERROR_DETECTOR_WARN, (unsigned long)caller);
- 
- 	/* Just a warning, don't kill lockdep. */
- 	add_taint(taint, LOCKDEP_STILL_OK);
+-	ret = adfs_dir_update(sb, &obj, wbc->sync_mode == WB_SYNC_ALL);
+-	return ret;
++	return adfs_dir_update(sb, &obj, wbc->sync_mode == WB_SYNC_ALL);
+ }
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from chi.minghao@zte.com.cn are
 
-lib-stackdepot-always-do-filter_irq_stacks-in-stack_depot_save.patch
+ipc-sem-do-not-sleep-with-a-spin-lock-held.patch
 
