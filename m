@@ -2,36 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E435C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:32:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 43E7BC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:32:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377956AbiATVcF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:32:05 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:40606 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1348034AbiATVcE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:32:04 -0500
+        id S1377955AbiATVcC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:32:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44106 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1348034AbiATVcC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:32:02 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E4008C061574
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:32:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 588C4618CC
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:32:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A04E5C340E0;
-        Thu, 20 Jan 2022 21:32:03 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 86659618CC
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:32:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 91A1FC340E0;
+        Thu, 20 Jan 2022 21:32:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714323;
-        bh=HOZGVa0aovhNpd1WpNNSwL8SEDPsbr6C+O79W+14gmc=;
+        s=korg; t=1642714321;
+        bh=Rbw+UMSiMj5vDrrpKOklSIJGKj1q1HCF6yYHgJ4/EU8=;
         h=Date:From:To:Subject:From;
-        b=cWtSdFvBu2/uOB58YfRnGEAjwaOdI11yW9FVusKe0s6ZopNpw8B8HS1DQXPyZqa6E
-         sQb5DhhD+WK3DEpLcwtZt+XogjaK2QZXzapS3lSnFMJbh+12I1Jf6ZBrF/Fj1t9m2k
-         wwbQR+eYjw0ZXNJZtfEP9z8gZ5aL0kbniXN09rHc=
-Date:   Thu, 20 Jan 2022 13:32:03 -0800
+        b=r9KupurDyJTMBoecO785WZfUP+8K5Lk5gLcUy9LWsb19Cioe2gjP2pesubCib7hd1
+         ItK2dWx42m/SmdYh4r3LXvk3aSXJXsRSwWYwyGZeuV1W5YUChJ3B0zoyO67ZmkPsrx
+         X1h1RI8DRd7R4JGCVyVKKeES4B8qVe0y8it9VbL4=
+Date:   Thu, 20 Jan 2022 13:32:00 -0800
 From:   akpm@linux-foundation.org
-To:     colin.i.king@gmail.com, jarkko@kernel.org,
-        mm-commits@vger.kernel.org
-Subject:  [merged]
- lib-remove-redundant-assignment-to-variable-ret.patch removed from -mm tree
-Message-ID: <20220120213203.ZCqdK3kyA%akpm@linux-foundation.org>
+To:     arnd@arndb.de, elver@google.com, keescook@chromium.org,
+        masahiroy@kernel.org, michal.lkml@markovi.net,
+        mm-commits@vger.kernel.org, nathan@kernel.org,
+        ndesaulniers@google.com, peterz@infradead.org,
+        ryabinin.a.a@gmail.com, sfr@canb.auug.org.au
+Subject:  [merged] ubsan-remove-config_ubsan_object_size.patch
+ removed from -mm tree
+Message-ID: <20220120213200.nwjNYheWU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,44 +46,127 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: remove redundant assignment to variable ret
+     Subject: ubsan: remove CONFIG_UBSAN_OBJECT_SIZE
 has been removed from the -mm tree.  Its filename was
-     lib-remove-redundant-assignment-to-variable-ret.patch
+     ubsan-remove-config_ubsan_object_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.i.king@gmail.com>
-Subject: lib: remove redundant assignment to variable ret
+From: Kees Cook <keescook@chromium.org>
+Subject: ubsan: remove CONFIG_UBSAN_OBJECT_SIZE
 
-Variable ret is being assigned a value that is never read.  If the
-for-loop is entered then ret is immediately re-assigned a new value.  If
-the for-loop is not executed ret is never read.  The assignment is
-redundant and can be removed.
+The object-size sanitizer is redundant to -Warray-bounds, and
+inappropriately performs its checks at run-time when all information
+needed for the evaluation is available at compile-time, making it quite
+difficult to use:
 
-Link: https://lkml.kernel.org/r/20211230134557.83633-1-colin.i.king@gmail.com
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
-Cc: Jarkko Sakkinen <jarkko@kernel.org>
+https://bugzilla.kernel.org/show_bug.cgi?id=214861
+
+With -Warray-bounds almost enabled globally, it doesn't make sense to keep
+this around.
+
+Link: https://lkml.kernel.org/r/20211203235346.110809-1-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Masahiro Yamada <masahiroy@kernel.org>
+Cc: Michal Marek <michal.lkml@markovi.net>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: "Peter Zijlstra (Intel)" <peterz@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/asn1_encoder.c |    2 --
- 1 file changed, 2 deletions(-)
+ lib/Kconfig.ubsan      |   13 -------------
+ lib/test_ubsan.c       |   22 ----------------------
+ scripts/Makefile.ubsan |    1 -
+ 3 files changed, 36 deletions(-)
 
---- a/lib/asn1_encoder.c~lib-remove-redundant-assignment-to-variable-ret
-+++ a/lib/asn1_encoder.c
-@@ -164,8 +164,6 @@ asn1_encode_oid(unsigned char *data, con
+--- a/lib/Kconfig.ubsan~ubsan-remove-config_ubsan_object_size
++++ a/lib/Kconfig.ubsan
+@@ -112,19 +112,6 @@ config UBSAN_UNREACHABLE
+ 	  This option enables -fsanitize=unreachable which checks for control
+ 	  flow reaching an expected-to-be-unreachable position.
  
- 	data_len -= 3;
- 
--	ret = 0;
+-config UBSAN_OBJECT_SIZE
+-	bool "Perform checking for accesses beyond the end of objects"
+-	default UBSAN
+-	# gcc hugely expands stack usage with -fsanitize=object-size
+-	# https://lore.kernel.org/lkml/CAHk-=wjPasyJrDuwDnpHJS2TuQfExwe=px-SzLeN8GFMAQJPmQ@mail.gmail.com/
+-	depends on !CC_IS_GCC
+-	depends on $(cc-option,-fsanitize=object-size)
+-	help
+-	  This option enables -fsanitize=object-size which checks for accesses
+-	  beyond the end of objects where the optimizer can determine both the
+-	  object being operated on and its size, usually seen with bad downcasts,
+-	  or access to struct members from NULL pointers.
 -
- 	for (i = 2; i < oid_len; i++) {
- 		ret = asn1_encode_oid_digit(&d, &data_len, oid[i]);
- 		if (ret < 0)
+ config UBSAN_BOOL
+ 	bool "Perform checking for non-boolean values used as boolean"
+ 	default UBSAN
+--- a/lib/test_ubsan.c~ubsan-remove-config_ubsan_object_size
++++ a/lib/test_ubsan.c
+@@ -79,15 +79,6 @@ static void test_ubsan_load_invalid_valu
+ 	eval2 = eval;
+ }
+ 
+-static void test_ubsan_null_ptr_deref(void)
+-{
+-	volatile int *ptr = NULL;
+-	int val;
+-
+-	UBSAN_TEST(CONFIG_UBSAN_OBJECT_SIZE);
+-	val = *ptr;
+-}
+-
+ static void test_ubsan_misaligned_access(void)
+ {
+ 	volatile char arr[5] __aligned(4) = {1, 2, 3, 4, 5};
+@@ -98,29 +89,16 @@ static void test_ubsan_misaligned_access
+ 	*ptr = val;
+ }
+ 
+-static void test_ubsan_object_size_mismatch(void)
+-{
+-	/* "((aligned(8)))" helps this not into be misaligned for ptr-access. */
+-	volatile int val __aligned(8) = 4;
+-	volatile long long *ptr, val2;
+-
+-	UBSAN_TEST(CONFIG_UBSAN_OBJECT_SIZE);
+-	ptr = (long long *)&val;
+-	val2 = *ptr;
+-}
+-
+ static const test_ubsan_fp test_ubsan_array[] = {
+ 	test_ubsan_shift_out_of_bounds,
+ 	test_ubsan_out_of_bounds,
+ 	test_ubsan_load_invalid_value,
+ 	test_ubsan_misaligned_access,
+-	test_ubsan_object_size_mismatch,
+ };
+ 
+ /* Excluded because they Oops the module. */
+ static const test_ubsan_fp skip_ubsan_array[] = {
+ 	test_ubsan_divrem_overflow,
+-	test_ubsan_null_ptr_deref,
+ };
+ 
+ static int __init test_ubsan_init(void)
+--- a/scripts/Makefile.ubsan~ubsan-remove-config_ubsan_object_size
++++ a/scripts/Makefile.ubsan
+@@ -8,7 +8,6 @@ ubsan-cflags-$(CONFIG_UBSAN_LOCAL_BOUNDS
+ ubsan-cflags-$(CONFIG_UBSAN_SHIFT)		+= -fsanitize=shift
+ ubsan-cflags-$(CONFIG_UBSAN_DIV_ZERO)		+= -fsanitize=integer-divide-by-zero
+ ubsan-cflags-$(CONFIG_UBSAN_UNREACHABLE)	+= -fsanitize=unreachable
+-ubsan-cflags-$(CONFIG_UBSAN_OBJECT_SIZE)	+= -fsanitize=object-size
+ ubsan-cflags-$(CONFIG_UBSAN_BOOL)		+= -fsanitize=bool
+ ubsan-cflags-$(CONFIG_UBSAN_ENUM)		+= -fsanitize=enum
+ ubsan-cflags-$(CONFIG_UBSAN_TRAP)		+= -fsanitize-undefined-trap-on-error
 _
 
-Patches currently in -mm which might be from colin.i.king@gmail.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-kernel-sysctlc-remove-unused-variable-ten_thousand.patch
 
