@@ -2,38 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1750FC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:24:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0670CC433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:24:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377819AbiATVYk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:24:40 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:57050 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377818AbiATVYi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:38 -0500
+        id S1377820AbiATVYm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:24:42 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42334 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377818AbiATVYl (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:41 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CC430C061574
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:24:41 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 067C2B81E66
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 92AAAC340E5;
-        Thu, 20 Jan 2022 21:24:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A6A460A3C
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AF22BC340E0;
+        Thu, 20 Jan 2022 21:24:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642713875;
-        bh=5KZkYNk94N4c5AkUYwRmEbpFVQwkzgo6Z8/qLkgoHaY=;
+        s=korg; t=1642713880;
+        bh=GWC/iHSMf7Q291uFelgiEje8fXk68HOXIFmP14EmA4Q=;
         h=Date:From:To:Subject:From;
-        b=v700bLg77Kd+7QY2VumITAYn/Zj1i5lIiGBztp3tmm+o4DWPuV9o6ulHkbpJSsiIs
-         IqjMUkZbSsBh4wAAyguA2APk423ooqN0LZudGOJ67qYE2l0pRW5qqjG/kQR2UeJH7A
-         11k1/TVWn0XqR3RkCTu6cpfQgIDgu/QXtGws9hGQ=
-Date:   Thu, 20 Jan 2022 13:24:35 -0800
+        b=yD6kNR/1Ha/5ahlWsWcyxfmYiK3vgEhEP6fSZ6UhfXXy7AT/2GTTeBpImcMpmgGmM
+         P3DJBdARzd4JnCHCjpRr/JDFgtQgSRIYWQNJZvDB0udITx2gOIoogQdX66Hac4jWKU
+         hUgBAPoAHz0xdpwIdKn0BVljgV1AwcIJelt0xdnU=
+Date:   Thu, 20 Jan 2022 13:24:40 -0800
 From:   akpm@linux-foundation.org
-To:     anshuman.khandual@arm.com, corbet@lwn.net,
+To:     agruenba@redhat.com, christophe.leroy@csgroup.eu,
         mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-debug_vm_pgtable-update-comments-regarding-migration-swap-entries.patch
- removed from -mm tree
-Message-ID: <20220120212435.SqV7jGQTQ%akpm@linux-foundation.org>
+ =?US-ASCII?Q?gup-avoid-multiple-user-access-locking-unlocking-in-fault?=
+ =?US-ASCII?Q?=5Fin=5Fread-writeable.patch?= removed from -mm tree
+Message-ID: <20220120212440.QdZiSu8eV%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,67 +46,88 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/debug_vm_pgtable: update comments regarding migration swap entries
+     Subject: gup: avoid multiple user access locking/unlocking in fault_in_{read/write}able
 has been removed from the -mm tree.  Its filename was
-     mm-debug_vm_pgtable-update-comments-regarding-migration-swap-entries.patch
+     gup-avoid-multiple-user-access-locking-unlocking-in-fault_in_read-writeable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/debug_vm_pgtable: update comments regarding migration swap entries
+From: Christophe Leroy <christophe.leroy@csgroup.eu>
+Subject: gup: avoid multiple user access locking/unlocking in fault_in_{read/write}able
 
-The commit 4dd845b5a3e5 ("mm/swapops: rework swap entry manipulation code")
-had changed migtation entry related helpers. Just update debug_vm_pgatble()
-synced documentation to reflect those changes.
+fault_in_readable() and fault_in_writeable() perform __get_user() and
+__put_user() in a loop, implying multiple user access locking/unlocking.
 
-Link: https://lkml.kernel.org/r/1641880417-24848-1-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+To avoid that, use user access blocks.
+
+Link: https://lkml.kernel.org/r/720dcf79314acca1a78fae56d478cc851952149d.1637084492.git.christophe.leroy@csgroup.eu
+Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Reviewed-by: Andreas Gruenbacher <agruenba@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/arch_pgtable_helpers.rst |   14 +++++++-------
- mm/debug_vm_pgtable.c                     |    4 ++--
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ mm/gup.c |   18 ++++++++++--------
+ 1 file changed, 10 insertions(+), 8 deletions(-)
 
---- a/Documentation/vm/arch_pgtable_helpers.rst~mm-debug_vm_pgtable-update-comments-regarding-migration-swap-entries
-+++ a/Documentation/vm/arch_pgtable_helpers.rst
-@@ -247,12 +247,12 @@ SWAP Page Table Helpers
- | __swp_to_pmd_entry        | Creates a mapped PMD from a swapped entry (arch) |
- +---------------------------+--------------------------------------------------+
- | is_migration_entry        | Tests a migration (read or write) swapped entry  |
--+---------------------------+--------------------------------------------------+
--| is_write_migration_entry  | Tests a write migration swapped entry            |
--+---------------------------+--------------------------------------------------+
--| make_migration_entry_read | Converts into read migration swapped entry       |
--+---------------------------+--------------------------------------------------+
--| make_migration_entry      | Creates a migration swapped entry (read or write)|
--+---------------------------+--------------------------------------------------+
-++-------------------------------+----------------------------------------------+
-+| is_writable_migration_entry   | Tests a write migration swapped entry        |
-++-------------------------------+----------------------------------------------+
-+| make_readable_migration_entry | Creates a read migration swapped entry       |
-++-------------------------------+----------------------------------------------+
-+| make_writable_migration_entry | Creates a write migration swapped entry      |
-++-------------------------------+----------------------------------------------+
+--- a/mm/gup.c~gup-avoid-multiple-user-access-locking-unlocking-in-fault_in_read-writeable
++++ a/mm/gup.c
+@@ -1672,21 +1672,22 @@ size_t fault_in_writeable(char __user *u
  
- [1] https://lore.kernel.org/linux-mm/20181017020930.GN30832@redhat.com/
---- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-update-comments-regarding-migration-swap-entries
-+++ a/mm/debug_vm_pgtable.c
-@@ -888,8 +888,8 @@ static void __init swap_migration_tests(
- 	pr_debug("Validating swap migration\n");
+ 	if (unlikely(size == 0))
+ 		return 0;
++	if (!user_write_access_begin(uaddr, size))
++		return size;
+ 	if (!PAGE_ALIGNED(uaddr)) {
+-		if (unlikely(__put_user(0, uaddr) != 0))
+-			return size;
++		unsafe_put_user(0, uaddr, out);
+ 		uaddr = (char __user *)PAGE_ALIGN((unsigned long)uaddr);
+ 	}
+ 	end = (char __user *)PAGE_ALIGN((unsigned long)start + size);
+ 	if (unlikely(end < start))
+ 		end = NULL;
+ 	while (uaddr != end) {
+-		if (unlikely(__put_user(0, uaddr) != 0))
+-			goto out;
++		unsafe_put_user(0, uaddr, out);
+ 		uaddr += PAGE_SIZE;
+ 	}
  
- 	/*
--	 * make_migration_entry() expects given page to be
--	 * locked, otherwise it stumbles upon a BUG_ON().
-+	 * make_[readable|writable]_migration_entry() expects given page to
-+	 * be locked, otherwise it stumbles upon a BUG_ON().
- 	 */
- 	__SetPageLocked(page);
- 	swp = make_writable_migration_entry(page_to_pfn(page));
+ out:
++	user_write_access_end();
+ 	if (size > uaddr - start)
+ 		return size - (uaddr - start);
+ 	return 0;
+@@ -1771,21 +1772,22 @@ size_t fault_in_readable(const char __us
+ 
+ 	if (unlikely(size == 0))
+ 		return 0;
++	if (!user_read_access_begin(uaddr, size))
++		return size;
+ 	if (!PAGE_ALIGNED(uaddr)) {
+-		if (unlikely(__get_user(c, uaddr) != 0))
+-			return size;
++		unsafe_get_user(c, uaddr, out);
+ 		uaddr = (const char __user *)PAGE_ALIGN((unsigned long)uaddr);
+ 	}
+ 	end = (const char __user *)PAGE_ALIGN((unsigned long)start + size);
+ 	if (unlikely(end < start))
+ 		end = NULL;
+ 	while (uaddr != end) {
+-		if (unlikely(__get_user(c, uaddr) != 0))
+-			goto out;
++		unsafe_get_user(c, uaddr, out);
+ 		uaddr += PAGE_SIZE;
+ 	}
+ 
+ out:
++	user_read_access_end();
+ 	(void)c;
+ 	if (size > uaddr - start)
+ 		return size - (uaddr - start);
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
 
 
