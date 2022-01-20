@@ -2,44 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CD0FC433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F2332C433FE
 	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:22:59 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377800AbiATVW6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:22:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41908 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377802AbiATVW4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:22:56 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E75D9C061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:22:55 -0800 (PST)
+        id S1377801AbiATVW7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:22:59 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:56056 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377807AbiATVW6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:22:58 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 952F8B81E6E
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:22:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7EBCC340E3;
-        Thu, 20 Jan 2022 21:22:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1614EB81E6B
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:22:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A219EC340E0;
+        Thu, 20 Jan 2022 21:22:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642713773;
-        bh=oh+M1Xn9nBUNEw4mF6eIP6epnYbWLYzEFWgPraLLwhw=;
+        s=korg; t=1642713775;
+        bh=jl9bcRJP6IvURCsejIbtugDRoDRqygCbds4Pp2MKRTo=;
         h=Date:From:To:Subject:From;
-        b=lZ0SshFYLvCVzksmbL2MUb/oMu6dbxyD96BoTZC2rQf9ZvUm9SivwgkffcN/bz2Qs
-         4Yep8I3dD4HSmuGLY4LOumGXE+u4EVz+H9DHEAZCl06pbdkahmFy77NBDB4WxKx/Za
-         L4d9ZNczEODSQ26VocmjylNLzeojDFezAQOC58ng=
-Date:   Thu, 20 Jan 2022 13:22:52 -0800
+        b=crg3CEH16R1OsfZi7C0lTza3JvVQTBD5CpVgzGjwXIpgfIUoDfuRxJWGyB774t7sV
+         oHdQ9Kh8isOHoC1IV0/SvPM8tlW643iNCLzHKi+b8Hm52Hete3ZnXIndln1IXoTgoZ
+         KtMCHgVaviV4GqBRGhlH3X/vNl+42gfGCR8XwFVQ=
+Date:   Thu, 20 Jan 2022 13:22:55 -0800
 From:   akpm@linux-foundation.org
-To:     bmt@zurich.ibm.com, bristot@kernel.org, caihuoqing@baidu.com,
-        dave@stgolabs.net, dledford@redhat.com, jgg@ziepe.ca,
-        jiangshanlai@gmail.com, joel@joelfernandes.org,
-        josh@joshtriplett.org, mathieu.desnoyers@efficios.com,
-        mingo@redhat.com, mm-commits@vger.kernel.org, paulmck@kernel.org,
-        rostedt@goodmis.org
-Subject:  [merged]
- trace-hwlat-make-use-of-the-helper-function-kthread_run_on_cpu.patch
+To:     davidcomponentone@gmail.com, mm-commits@vger.kernel.org,
+        yang.guang5@zte.com.cn, zealci@zte.com.cn
+Subject:  [merged] ia64-module-use-swap-to-make-code-cleaner.patch
  removed from -mm tree
-Message-ID: <20220120212252.1VKQ95zmo%akpm@linux-foundation.org>
+Message-ID: <20220120212255.FCPZRQjZx%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,63 +40,53 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: trace/hwlat: make use of the helper function kthread_run_on_cpu()
+     Subject: ia64: module: use swap() to make code cleaner
 has been removed from the -mm tree.  Its filename was
-     trace-hwlat-make-use-of-the-helper-function-kthread_run_on_cpu.patch
+     ia64-module-use-swap-to-make-code-cleaner.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Cai Huoqing <caihuoqing@baidu.com>
-Subject: trace/hwlat: make use of the helper function kthread_run_on_cpu()
+From: Yang Guang <yang.guang5@zte.com.cn>
+Subject: ia64: module: use swap() to make code cleaner
 
-Replace kthread_create_on_cpu/wake_up_process() with kthread_run_on_cpu()
-to simplify the code.
+Use the macro 'swap()' defined in 'include/linux/minmax.h' to avoid
+opencoding it.
 
-Link: https://lkml.kernel.org/r/20211022025711.3673-7-caihuoqing@baidu.com
-Signed-off-by: Cai Huoqing <caihuoqing@baidu.com>
-Cc: Bernard Metzler <bmt@zurich.ibm.com>
-Cc: Daniel Bristot de Oliveira <bristot@kernel.org>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Doug Ledford <dledford@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
-Cc: Joel Fernandes (Google) <joel@joelfernandes.org>
-Cc: Josh Triplett <josh@joshtriplett.org>
-Cc: Lai Jiangshan <jiangshanlai@gmail.com>
-Cc: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
-Cc: "Paul E . McKenney" <paulmck@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
+Link: https://lkml.kernel.org/r/20211104062642.1506539-1-yang.guang5@zte.com.cn
+Signed-off-by: Yang Guang <yang.guang5@zte.com.cn>
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Cc: David Yang <davidcomponentone@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/trace/trace_hwlat.c |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ arch/ia64/kernel/module.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
---- a/kernel/trace/trace_hwlat.c~trace-hwlat-make-use-of-the-helper-function-kthread_run_on_cpu
-+++ a/kernel/trace/trace_hwlat.c
-@@ -491,18 +491,14 @@ static void stop_per_cpu_kthreads(void)
- static int start_cpu_kthread(unsigned int cpu)
+--- a/arch/ia64/kernel/module.c~ia64-module-use-swap-to-make-code-cleaner
++++ a/arch/ia64/kernel/module.c
+@@ -848,7 +848,7 @@ register_unwind_table (struct module *mo
  {
- 	struct task_struct *kthread;
--	char comm[24];
+ 	struct unw_table_entry *start = (void *) mod->arch.unwind->sh_addr;
+ 	struct unw_table_entry *end = start + mod->arch.unwind->sh_size / sizeof (*start);
+-	struct unw_table_entry tmp, *e1, *e2, *core, *init;
++	struct unw_table_entry *e1, *e2, *core, *init;
+ 	unsigned long num_init = 0, num_core = 0;
  
--	snprintf(comm, 24, "hwlatd/%d", cpu);
--
--	kthread = kthread_create_on_cpu(kthread_fn, NULL, cpu, comm);
-+	kthread = kthread_run_on_cpu(kthread_fn, NULL, cpu, "hwlatd/%u");
- 	if (IS_ERR(kthread)) {
- 		pr_err(BANNER "could not start sampling thread\n");
- 		return -ENOMEM;
+ 	/* First, count how many init and core unwind-table entries there are.  */
+@@ -865,9 +865,7 @@ register_unwind_table (struct module *mo
+ 	for (e1 = start; e1 < end; ++e1) {
+ 		for (e2 = e1 + 1; e2 < end; ++e2) {
+ 			if (e2->start_offset < e1->start_offset) {
+-				tmp = *e1;
+-				*e1 = *e2;
+-				*e2 = tmp;
++				swap(*e1, *e2);
+ 			}
+ 		}
  	}
- 
- 	per_cpu(hwlat_per_cpu_data, cpu).kthread = kthread;
--	wake_up_process(kthread);
- 
- 	return 0;
- }
 _
 
-Patches currently in -mm which might be from caihuoqing@baidu.com are
+Patches currently in -mm which might be from yang.guang5@zte.com.cn are
 
 
