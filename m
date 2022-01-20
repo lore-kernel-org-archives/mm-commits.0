@@ -2,30 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C38BC4332F
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:09:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C75F5C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:09:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358185AbiATCJL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1358188AbiATCJL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Wed, 19 Jan 2022 21:09:11 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:42630 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1358186AbiATCJL (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:09:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34454 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1358187AbiATCJG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:09:06 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A7ECC061574
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jan 2022 18:09:06 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BC9E061522
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:09:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5208C004E1;
-        Thu, 20 Jan 2022 02:09:09 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D3900B81C96
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:09:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 11932C004E1;
+        Thu, 20 Jan 2022 02:09:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642644550;
-        bh=oRrx3xONEg6JjQbHh8Xwrg1IDLXtvoRPG+P7LJjOngk=;
+        s=korg; t=1642644543;
+        bh=P74ImW8NFcc4NTZjEvErmDzpZCgT79qV9QJln0mE8Ho=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=fXu+tCjG83PsQImZsgN/Tg2oWNb+18a7rGmVR1ODRgV90DapsH40SbhcghDN5DCvh
-         oCKXT4XUu9DJWopGD2RcLywJTxlO/v79dDlo8FgG7uS5o1dymac/xFP/X3+iMBRPhw
-         Deyl9Bfg7tMrJxNe8HS+e7L0y0VFTi+LjhqlWE50=
-Date:   Wed, 19 Jan 2022 18:09:09 -0800
+        b=aSEysCXp9F9Ed2hFmKx29a98TQ18P7TyKBrMtbUBkqMXWzJ8XAuyZi6N0zc9GsrrD
+         JMsWSa83qMmz/nWX4G+U5wwQ4ZgzCOSkPGqPWP2iQubGYJO662uWWS7OccLnCq0QnD
+         oS+iI7uu5tMfI0oyfRRdpv5MGG4rHQiAyZn4GE4o=
+Date:   Wed, 19 Jan 2022 18:09:02 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, augusto.duraes33@gmail.com,
         brendanhiggins@google.com, davidgow@google.com,
@@ -33,8 +36,8 @@ To:     akpm@linux-foundation.org, augusto.duraes33@gmail.com,
         isabbasso@riseup.net, linux-mm@kvack.org, lkp@intel.com,
         mm-commits@vger.kernel.org, rodrigosiqueiramelo@gmail.com,
         skhan@linuxfoundation.org, torvalds@linux-foundation.org
-Subject:  [patch 27/55] test_hash.c: split test_hash_init
-Message-ID: <20220120020909.dUlNR0Vlg%akpm@linux-foundation.org>
+Subject:  [patch 25/55] hash.h: remove unused define directive
+Message-ID: <20220120020902.3ESIu3uKA%akpm@linux-foundation.org>
 In-Reply-To: <20220119180714.9e187ce100e4510de3cd9f7d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
@@ -46,140 +49,160 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 =46rom: Isabella Basso <isabbasso@riseup.net>
-Subject: test_hash.c: split test_hash_init
+Subject: hash.h: remove unused define directive
 
-Split up test_hash_init so that it calls each test more explicitly insofar
-it is possible without rewriting the entire file.  This aims at improving
-readability.
+Patch series "test_hash.c: refactor into KUnit", v3.
 
-Split tests performed on string_or as they don't interfere with those
-performed in hash_or.  Also separate pr_info calls about skipped tests as
-they're not part of the tests themselves, but only warn about (un)defined
-arch-specific hash functions.
+We refactored the lib/test_hash.c file into KUnit as part of the student
+group LKCAMP [1] introductory hackathon for kernel development.
 
-Link: https://lkml.kernel.org/r/20211208183711.390454-4-isabbasso@riseup.net
+This test was pointed to our group by Daniel Latypov [2], so its full
+conversion into a pure KUnit test was our goal in this patch series, but
+we ran into many problems relating to it not being split as unit tests,
+which complicated matters a bit, as the reasoning behind the original
+tests is quite cryptic for those unfamiliar with hash implementations.
+
+Some interesting developments we'd like to highlight are:
+
+- In patch 1/5 we noticed that there was an unused define directive that
+  could be removed.
+- In patch 4/5 we noticed how stringhash and hash tests are all under
+  the lib/test_hash.c file, which might cause some confusion, and we
+  also broke those kernel config entries up.
+
+Overall KUnit developments have been made in the other patches in this
+series:
+
+In patches 2/5, 3/5 and 5/5 we refactored the lib/test_hash.c file so as
+to make it more compatible with the KUnit style, whilst preserving the
+original idea of the maintainer who designed it (i.e.  George Spelvin),
+which might be undesirable for unit tests, but we assume it is enough for
+a first patch.
+
+
+This patch (of 5):
+
+Currently, there exist hash_32() and __hash_32() functions, which were
+introduced in a patch [1] targeting architecture specific optimizations.=20
+These functions can be overridden on a per-architecture basis to achieve
+such optimizations.  They must set their corresponding define directive
+(HAVE_ARCH_HASH_32 and HAVE_ARCH__HASH_32, respectively) so that header
+files can deal with these overrides properly.
+
+As the supported 32-bit architectures that have their own hash function
+implementation (i.e.  m68k, Microblaze, H8/300, pa-risc) have only been
+making use of the (more general) __hash_32() function (which only lacks a
+right shift operation when compared to the hash_32() function), remove the
+define directive corresponding to the arch-specific hash_32()
+implementation.
+
+[1] https://lore.kernel.org/lkml/20160525073311.5600.qmail@ns.sciencehorizo=
+ns.net/
+
+[akpm@linux-foundation.org: hash_32_generic() becomes hash_32()]
+Link: https://lkml.kernel.org/r/20211208183711.390454-1-isabbasso@riseup.net
+Link: https://lkml.kernel.org/r/20211208183711.390454-2-isabbasso@riseup.net
 Reviewed-by: David Gow <davidgow@google.com>
 Tested-by: David Gow <davidgow@google.com>
+Co-developed-by: Augusto Dur=C3=A3es Camargo <augusto.duraes33@gmail.com>
+Signed-off-by: Augusto Dur=C3=A3es Camargo <augusto.duraes33@gmail.com>
+Co-developed-by: Enzo Ferreira <ferreiraenzoa@gmail.com>
+Signed-off-by: Enzo Ferreira <ferreiraenzoa@gmail.com>
 Signed-off-by: Isabella Basso <isabbasso@riseup.net>
-Cc: Augusto Dur=C3=A3es Camargo <augusto.duraes33@gmail.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Cc: Brendan Higgins <brendanhiggins@google.com>
 Cc: Daniel Latypov <dlatypov@google.com>
-Cc: Enzo Ferreira <ferreiraenzoa@gmail.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: kernel test robot <lkp@intel.com>
-Cc: Rodrigo Siqueira <rodrigosiqueiramelo@gmail.com>
 Cc: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Rodrigo Siqueira <rodrigosiqueiramelo@gmail.com>
+Cc: kernel test robot <lkp@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hash.c |   66 +++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 54 insertions(+), 12 deletions(-)
+ drivers/infiniband/sw/rxe/rxe_qp.c |    3 +--
+ include/linux/hash.h               |    5 +----
+ lib/test_hash.c                    |   24 +-----------------------
+ tools/include/linux/hash.h         |    5 +----
+ 4 files changed, 4 insertions(+), 33 deletions(-)
 
---- a/lib/test_hash.c~test_hashc-split-test_hash_init
-+++ a/lib/test_hash.c
-@@ -158,11 +158,39 @@ test_int_hash(unsigned long long h64, u3
+--- a/drivers/infiniband/sw/rxe/rxe_qp.c~hashh-remove-unused-define-directi=
+ve
++++ a/drivers/infiniband/sw/rxe/rxe_qp.c
+@@ -217,8 +217,7 @@ static int rxe_qp_init_req(struct rxe_de
+ 	 * the port number must be in the Dynamic Ports range
+ 	 * (0xc000 - 0xffff).
+ 	 */
+-	qp->src_port =3D RXE_ROCE_V2_SPORT +
+-		(hash_32_generic(qp_num(qp), 14) & 0x3fff);
++	qp->src_port =3D RXE_ROCE_V2_SPORT + (hash_32(qp_num(qp), 14) & 0x3fff);
+ 	qp->sq.max_wr		=3D init->cap.max_send_wr;
 =20
- #define SIZE 256	/* Run time is cubic in SIZE */
-=20
--static int __init
--test_hash_init(void)
-+static int __init test_string_or(void)
- {
- 	char buf[SIZE+1];
--	u32 string_or =3D 0, hash_or[2][33] =3D { { 0, } };
-+	u32 string_or =3D 0;
-+	int i, j;
-+
-+	fill_buf(buf, SIZE, 1);
-+
-+	/* Test every possible non-empty substring in the buffer. */
-+	for (j =3D SIZE; j > 0; --j) {
-+		buf[j] =3D '\0';
-+
-+		for (i =3D 0; i <=3D j; i++) {
-+			u32 h0 =3D full_name_hash(buf+i, buf+i, j-i);
-+
-+			string_or |=3D h0;
-+		} /* i */
-+	} /* j */
-+
-+	/* The OR of all the hash values should cover all the bits */
-+	if (~string_or) {
-+		pr_err("OR of all string hash results =3D %#x !=3D %#x",
-+		       string_or, -1u);
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static int __init test_hash_or(void)
-+{
-+	char buf[SIZE+1];
-+	u32 hash_or[2][33] =3D { { 0, } };
- 	unsigned tests =3D 0;
- 	unsigned long long h64 =3D 0;
- 	int i, j;
-@@ -192,7 +220,6 @@ test_hash_init(void)
- 				return -EINVAL;
- 			}
-=20
--			string_or |=3D h0;
- 			h64 =3D h64 << 32 | h0;	/* For use with hash_64 */
- 			if (!test_int_hash(h64, hash_or))
- 				return -EINVAL;
-@@ -200,12 +227,6 @@ test_hash_init(void)
- 		} /* i */
- 	} /* j */
-=20
--	/* The OR of all the hash values should cover all the bits */
--	if (~string_or) {
--		pr_err("OR of all string hash results =3D %#x !=3D %#x",
--			string_or, -1u);
--		return -EINVAL;
--	}
- 	if (~hash_or[0][0]) {
- 		pr_err("OR of all __hash_32 results =3D %#x !=3D %#x",
- 			hash_or[0][0], -1u);
-@@ -237,6 +258,13 @@ test_hash_init(void)
- 		}
- 	}
-=20
-+	pr_notice("%u tests passed.", tests);
-+
-+	return 0;
-+}
-+
-+static void __init notice_skipped_tests(void)
-+{
- 	/* Issue notices about skipped tests. */
- #ifdef HAVE_ARCH__HASH_32
- #if HAVE_ARCH__HASH_32 !=3D 1
-@@ -252,10 +280,24 @@ test_hash_init(void)
- #else
- 	pr_info("hash_64() has no arch implementation to test.");
- #endif
-+}
-=20
--	pr_notice("%u tests passed.", tests);
-+static int __init
-+test_hash_init(void)
-+{
-+	int ret;
-=20
--	return 0;
-+	ret =3D test_string_or();
-+	if (ret < 0)
-+		return ret;
-+
-+	ret =3D test_hash_or();
-+	if (ret < 0)
-+		return ret;
-+
-+	notice_skipped_tests();
-+
-+	return ret;
+ 	/* These caps are limited by rxe_qp_chk_cap() done by the caller */
+--- a/include/linux/hash.h~hashh-remove-unused-define-directive
++++ a/include/linux/hash.h
+@@ -62,10 +62,7 @@ static inline u32 __hash_32_generic(u32
+ 	return val * GOLDEN_RATIO_32;
  }
 =20
- static void __exit test_hash_exit(void)
+-#ifndef HAVE_ARCH_HASH_32
+-#define hash_32 hash_32_generic
+-#endif
+-static inline u32 hash_32_generic(u32 val, unsigned int bits)
++static inline u32 hash_32(u32 val, unsigned int bits)
+ {
+ 	/* High bits are more random, so use them. */
+ 	return __hash_32(val) >> (32 - bits);
+--- a/lib/test_hash.c~hashh-remove-unused-define-directive
++++ a/lib/test_hash.c
+@@ -94,22 +94,7 @@ test_int_hash(unsigned long long h64, u3
+ 			pr_err("hash_32(%#x, %d) =3D %#x > %#x", h0, k, h1, m);
+ 			return false;
+ 		}
+-#ifdef HAVE_ARCH_HASH_32
+-		h2 =3D hash_32_generic(h0, k);
+-#if HAVE_ARCH_HASH_32 =3D=3D 1
+-		if (h1 !=3D h2) {
+-			pr_err("hash_32(%#x, %d) =3D %#x !=3D hash_32_generic() "
+-				" =3D %#x", h0, k, h1, h2);
+-			return false;
+-		}
+-#else
+-		if (h2 > m) {
+-			pr_err("hash_32_generic(%#x, %d) =3D %#x > %#x",
+-				h0, k, h1, m);
+-			return false;
+-		}
+-#endif
+-#endif
++
+ 		/* Test hash_64 */
+ 		hash_or[1][k] |=3D h1 =3D hash_64(h64, k);
+ 		if (h1 > m) {
+@@ -227,13 +212,6 @@ test_hash_init(void)
+ #else
+ 	pr_info("__hash_32() has no arch implementation to test.");
+ #endif
+-#ifdef HAVE_ARCH_HASH_32
+-#if HAVE_ARCH_HASH_32 !=3D 1
+-	pr_info("hash_32() is arch-specific; not compared to generic.");
+-#endif
+-#else
+-	pr_info("hash_32() has no arch implementation to test.");
+-#endif
+ #ifdef HAVE_ARCH_HASH_64
+ #if HAVE_ARCH_HASH_64 !=3D 1
+ 	pr_info("hash_64() is arch-specific; not compared to generic.");
+--- a/tools/include/linux/hash.h~hashh-remove-unused-define-directive
++++ a/tools/include/linux/hash.h
+@@ -62,10 +62,7 @@ static inline u32 __hash_32_generic(u32
+ 	return val * GOLDEN_RATIO_32;
+ }
+=20
+-#ifndef HAVE_ARCH_HASH_32
+-#define hash_32 hash_32_generic
+-#endif
+-static inline u32 hash_32_generic(u32 val, unsigned int bits)
++static inline u32 hash_32(u32 val, unsigned int bits)
+ {
+ 	/* High bits are more random, so use them. */
+ 	return __hash_32(val) >> (32 - bits);
 _
