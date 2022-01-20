@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 150DCC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:25:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5E78CC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:25:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377828AbiATVY6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:24:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42402 "EHLO
+        id S244344AbiATVZC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:25:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42414 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377821AbiATVY5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:24:57 -0500
+        with ESMTP id S1377832AbiATVZA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:25:00 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5416FC061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:24:57 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6E69DC061574
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:25:00 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1BECBB81E54
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8C7BCC340E0;
-        Thu, 20 Jan 2022 21:24:54 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2A746B81E66
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:24:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA5A6C340E5;
+        Thu, 20 Jan 2022 21:24:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642713894;
-        bh=QSh24bXdhVdvwaKYzMpt81U1tnQEEVucKjkzuPk6fNA=;
+        s=korg; t=1642713897;
+        bh=0ljh8h81xfUrB4PoUU7udwz8VXOCrUsToiOpwrVZssM=;
         h=Date:From:To:Subject:From;
-        b=lMqin+zxlrYcR72pquacoHqMTe4jnBYRtbZAQ8v/mSvxOam0xZdi6o74ohBgz+uIM
-         7hBSgUHdIUeRupzWir6bxis5c4bpkKWrdwf3NCxO+Pf4NKW2843bhaOEtjdXYuJ0RB
-         rdQPMAppZtuJJhHJoY9+dqd2MZFlWDzSjSZ9BgM4=
-Date:   Thu, 20 Jan 2022 13:24:54 -0800
+        b=Ou2R8SwAPKvDOu0v3WNWDhxh+USsmMD3mjXZOcC4haSqDgpHAkSo8zZdff9DB6bVG
+         zVkzdWZV6Ht1XoEEQ5lyArluSxjZEwOsPDgv9+qCf3SJwElYCQ8wDyIr87ropz2U17
+         z5jhO3z1BIJRpZP8RiEjn9jPKEIbvs0/JxtZn+Ms=
+Date:   Thu, 20 Jan 2022 13:24:57 -0800
 From:   akpm@linux-foundation.org
-To:     chris@chrisdown.name, hannes@cmpxchg.org, mhocko@kernel.org,
-        mm-commits@vger.kernel.org, songmuchun@bytedance.com,
-        vbabka@suse.cz, vdavydov.dev@gmail.com
+To:     dqiao@redhat.com, guro@fb.com, hannes@cmpxchg.org,
+        mhocko@kernel.org, mm-commits@vger.kernel.org
 Subject:  [merged]
- mm-memcontrol-make-cgroup_memory_nokmem-static.patch removed from -mm tree
-Message-ID: <20220120212454.zLGOWGe44%akpm@linux-foundation.org>
+ mm-page_counter-remove-an-incorrect-call-to-propagate_protected_usage.patch
+ removed from -mm tree
+Message-ID: <20220120212457.J23zbS26R%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,84 +44,44 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: make cgroup_memory_nokmem static
+     Subject: mm/page_counter: remove an incorrect call to propagate_protected_usage()
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-make-cgroup_memory_nokmem-static.patch
+     mm-page_counter-remove-an-incorrect-call-to-propagate_protected_usage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: memcontrol: make cgroup_memory_nokmem static
+From: Donghai Qiao <dqiao@redhat.com>
+Subject: mm/page_counter: remove an incorrect call to propagate_protected_usage()
 
-commit 494c1dfe855e ("mm: memcg/slab: create a new set of kmalloc-cg-<n>
-caches") makes cgroup_memory_nokmem global, however, it is unnecessary
-because there is already a function mem_cgroup_kmem_disabled() which
-exports it.
+propagate_protected_usage() is called to propagate the usage change in the
+page_counter structure.  But there is a call to this function from
+page_counter_try_charge() when there is actually no usage change.  Hence
+this call should be removed.
 
-Just make it static and replace it with mem_cgroup_kmem_disabled() in
-mm/slab_common.c.
-
-Link: https://lkml.kernel.org/r/20211109065418.21693-1-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Chris Down <chris@chrisdown.name>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Link: https://lkml.kernel.org/r/20211118181125.3918222-1-dqiao@redhat.com
+Signed-off-by: Donghai Qiao <dqiao@redhat.com>
+Reviewed-by: Roman Gushchin <guro@fb.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h    |    5 -----
- mm/memcontrol.c  |    2 +-
- mm/slab_common.c |    2 +-
- 3 files changed, 2 insertions(+), 7 deletions(-)
+ mm/page_counter.c |    1 -
+ 1 file changed, 1 deletion(-)
 
---- a/mm/internal.h~mm-memcontrol-make-cgroup_memory_nokmem-static
-+++ a/mm/internal.h
-@@ -158,11 +158,6 @@ extern void reclaim_throttle(pg_data_t *
- extern pmd_t *mm_find_pmd(struct mm_struct *mm, unsigned long address);
- 
- /*
-- * in mm/memcontrol.c:
-- */
--extern bool cgroup_memory_nokmem;
--
--/*
-  * in mm/page_alloc.c
-  */
- 
---- a/mm/memcontrol.c~mm-memcontrol-make-cgroup_memory_nokmem-static
-+++ a/mm/memcontrol.c
-@@ -84,7 +84,7 @@ EXPORT_PER_CPU_SYMBOL_GPL(int_active_mem
- static bool cgroup_memory_nosocket __ro_after_init;
- 
- /* Kernel memory accounting disabled? */
--bool cgroup_memory_nokmem __ro_after_init;
-+static bool cgroup_memory_nokmem __ro_after_init;
- 
- /* Whether the swap controller is active */
- #ifdef CONFIG_MEMCG_SWAP
---- a/mm/slab_common.c~mm-memcontrol-make-cgroup_memory_nokmem-static
-+++ a/mm/slab_common.c
-@@ -844,7 +844,7 @@ new_kmalloc_cache(int idx, enum kmalloc_
- 	if (type == KMALLOC_RECLAIM) {
- 		flags |= SLAB_RECLAIM_ACCOUNT;
- 	} else if (IS_ENABLED(CONFIG_MEMCG_KMEM) && (type == KMALLOC_CGROUP)) {
--		if (cgroup_memory_nokmem) {
-+		if (mem_cgroup_kmem_disabled()) {
- 			kmalloc_caches[type][idx] = kmalloc_caches[KMALLOC_NORMAL][idx];
- 			return;
- 		}
+--- a/mm/page_counter.c~mm-page_counter-remove-an-incorrect-call-to-propagate_protected_usage
++++ a/mm/page_counter.c
+@@ -120,7 +120,6 @@ bool page_counter_try_charge(struct page
+ 		new = atomic_long_add_return(nr_pages, &c->usage);
+ 		if (new > c->max) {
+ 			atomic_long_sub(nr_pages, &c->usage);
+-			propagate_protected_usage(c, new);
+ 			/*
+ 			 * This is racy, but we can live with some
+ 			 * inaccuracy in the failcnt which is only used
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from dqiao@redhat.com are
 
-mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page.patch
-mm-hugetlb-replace-hugetlb_free_vmemmap_enabled-with-a-static_key.patch
-mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
-selftests-vm-add-a-hugetlb-test-case.patch
-mm-sparsemem-move-vmemmap-related-to-hugetlb-to-config_hugetlb_page_free_vmemmap.patch
-fs-proc-store-pde-data-into-inode-i_private.patch
-proc-remove-pde_data-completely.patch
 
