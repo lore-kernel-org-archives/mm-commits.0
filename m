@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5844EC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:08:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C1E4AC433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:08:06 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236186AbiATCIE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jan 2022 21:08:04 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:50272 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229589AbiATCID (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:08:03 -0500
+        id S1358157AbiATCIG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jan 2022 21:08:06 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:41456 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229589AbiATCIF (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:08:05 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 822F8B81B3B
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:08:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEA05C004E1;
-        Thu, 20 Jan 2022 02:08:00 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C8512615C2
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:08:04 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF03BC004E1;
+        Thu, 20 Jan 2022 02:08:03 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642644481;
-        bh=S7e8CuGvJPJ35GtdLmKgBe36jQTkMKEoJL47rd69lXM=;
+        s=korg; t=1642644484;
+        bh=AflCnBXLUWeAvAcbs1hf0gtmL5D1A0nl1HN1bIdEWsg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=gKRapUQjGGOrDfb63tghnJqxmS5uuXiq6+yH4U5rg0W5ThQrerMgdcLCVxtEfy/6p
-         D4e0AzivS1rILUAKgUTPaUXkhem5vgT+cc5/EK6uK2LOfcuZDJGD9kEJN8YHST8EtB
-         XdXgEv3J0o0WTDrB7LwP89sRKGsQDCGK4/t6i0oQ=
-Date:   Wed, 19 Jan 2022 18:08:00 -0800
+        b=XoZz1iQoTqAMJmw0ERavmVfB4KHleSEpn06oUCDdGiV40ZccwwsaoTYL0nLCytYGV
+         ox0WGtCMxfe7MXa66HVbXfbvy3dC1Snq7AidvN3XNYRZx7U7qIq0S/5S7G5HhUpgWv
+         NrNOGcco8z+GX04kJYJ1ZtadCrLwC/O47eGIaxic=
+Date:   Wed, 19 Jan 2022 18:08:03 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, christian.brauner@ubuntu.com,
-        dhowells@redhat.com, hch@infradead.org, hdegoede@redhat.com,
-        linux-mm@kvack.org, lkp@intel.com, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
-Subject:  [patch 06/55] proc: make the proc_create[_data]() stubs
- static inlines
-Message-ID: <20220120020800.1TImEbrhi%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akpm@linux-foundation.org,
+        keescook@chromium.org, linux-mm@kvack.org,
+        mm-commits@vger.kernel.org, torvalds@linux-foundation.org,
+        zhengqi.arch@bytedance.com
+Subject:  [patch 07/55] proc: convert the return type of
+ proc_fd_access_allowed() to be boolean
+Message-ID: <20220120020803.B1AdljNwl%akpm@linux-foundation.org>
 In-Reply-To: <20220119180714.9e187ce100e4510de3cd9f7d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,81 +41,35 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: proc: make the proc_create[_data]() stubs static inlines
+From: Qi Zheng <zhengqi.arch@bytedance.com>
+Subject: proc: convert the return type of proc_fd_access_allowed() to be boolean
 
-Change the proc_create[_data]() stubs which are used when CONFIG_PROC_FS
-is not set from #defines to a static inline stubs.
+Convert return type of proc_fd_access_allowed() and the 'allowed' in it to
+be boolean since the return type of ptrace_may_access() is boolean.
 
-Thix should fix clang -Werror builds failing due to errors like this:
-
-drivers/platform/x86/thinkpad_acpi.c:918:30: error: unused variable
- 'dispatch_proc_ops' [-Werror,-Wunused-const-variable]
-
-Fixing this in include/linux/proc_fs.h should ensure that the same issue
-is also fixed in any other drivers hitting the same -Werror issue.
-
-[akpm@linux-foundation.org: fix CONFIG_PROC_FS=n]
-[akpm@linux-foundation.org: fix arch/sparc/kernel/led.c]
-[akpm@linux-foundation.org: fix build]
-Link: https://lkml.kernel.org/r/20211116131112.508304-1-hdegoede@redhat.com
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Christoph Hellwig <hch@infradead.org>
+Link: https://lkml.kernel.org/r/20211219024404.29779-1-zhengqi.arch@bytedance.com
+Signed-off-by: Qi Zheng <zhengqi.arch@bytedance.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/kernel/led.c |    8 +++-----
- include/linux/proc_fs.h |   12 ++++++++++--
- 2 files changed, 13 insertions(+), 7 deletions(-)
+ fs/proc/base.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/arch/sparc/kernel/led.c~proc-make-the-proc_create-stubs-static-inlines
-+++ a/arch/sparc/kernel/led.c
-@@ -114,18 +114,16 @@ static const struct proc_ops led_proc_op
- };
- #endif
+--- a/fs/proc/base.c~proc-convert-the-return-type-of-proc_fd_access_allowed-to-be-boolean
++++ a/fs/proc/base.c
+@@ -670,10 +670,10 @@ static int proc_pid_syscall(struct seq_f
+ /************************************************************************/
  
--static struct proc_dir_entry *led;
--
- #define LED_VERSION	"0.1"
- 
- static int __init led_init(void)
+ /* permission checks */
+-static int proc_fd_access_allowed(struct inode *inode)
++static bool proc_fd_access_allowed(struct inode *inode)
  {
- 	timer_setup(&led_blink_timer, led_blink, 0);
- 
--	led = proc_create("led", 0, NULL, &led_proc_ops);
--	if (!led)
-+#ifdef CONFIG_PROC_FS
-+	if (!proc_create("led", 0, NULL, &led_proc_ops))
- 		return -ENOMEM;
--
-+#endif
- 	printk(KERN_INFO
- 	       "led: version %s, Lars Kotthoff <metalhead@metalhead.ws>\n",
- 	       LED_VERSION);
---- a/include/linux/proc_fs.h~proc-make-the-proc_create-stubs-static-inlines
-+++ a/include/linux/proc_fs.h
-@@ -178,8 +178,16 @@ static inline struct proc_dir_entry *pro
- #define proc_create_seq(name, mode, parent, ops) ({NULL;})
- #define proc_create_single(name, mode, parent, show) ({NULL;})
- #define proc_create_single_data(name, mode, parent, show, data) ({NULL;})
--#define proc_create(name, mode, parent, proc_ops) ({NULL;})
--#define proc_create_data(name, mode, parent, proc_ops, data) ({NULL;})
-+
-+static inline struct proc_dir_entry *
-+proc_create(const char *name, umode_t mode, struct proc_dir_entry *parent,
-+	    const struct proc_ops *proc_ops)
-+{ return NULL; }
-+
-+static inline struct proc_dir_entry *
-+proc_create_data(const char *name, umode_t mode, struct proc_dir_entry *parent,
-+		 const struct proc_ops *proc_ops, void *data)
-+{ return NULL; }
- 
- static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
- static inline void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid) {}
+ 	struct task_struct *task;
+-	int allowed = 0;
++	bool allowed = false;
+ 	/* Allow access to a task's file descriptors if it is us or we
+ 	 * may use ptrace attach to the process and find out that
+ 	 * information.
 _
