@@ -2,40 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6B073C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AEF21C433EF
 	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:29:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377907AbiATV3m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:29:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43512 "EHLO
+        id S1377912AbiATV3n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:29:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43524 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377916AbiATV3c (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:29:32 -0500
+        with ESMTP id S1377943AbiATV3f (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:29:35 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BD8EC061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:29:32 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 92500C061574
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:29:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3424AB81E69
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:29:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD778C340E0;
-        Thu, 20 Jan 2022 21:29:29 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 458DDB81E54
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:29:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AC349C340E0;
+        Thu, 20 Jan 2022 21:29:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714170;
-        bh=B8cImmT43H1ZNz/4bNZXSCq7I5i7Uc9ANzYoyXNaNw0=;
+        s=korg; t=1642714173;
+        bh=8qiGaoFmGG+4MjIdGdrd3yxrdwlnw1VvJhqR7mEbDjs=;
         h=Date:From:To:Subject:From;
-        b=LFuLCXiWGin3+EbDHEDRvKBLUNKq+Q7Uf87dKPl+FeV/KmZVn/65rhqZPIHr0DGGj
-         JjDZHcyxcjfckBBoYBSPi9C540W+6MUGt6Ls9GiPhwN+U7t2OpA6F7u1ROXByH4XnY
-         ajFApRXMiUH3CpoW/cPYycjkC+Xj9uenGTITrx8M=
-Date:   Thu, 20 Jan 2022 13:29:29 -0800
+        b=bxPcon4uZlr2AdyMIn3hzdLBsg1yfkkfSsIxsDseGiVRUfMYNLPtCitNVXuVx3eEj
+         4bS9MaLeV8IdFmJjCALScduiDIw4AYLGDfxFPiiVAMa8NMW63auGrkhqucqpAGYhLc
+         E4YoBXypXQ0j9exKGQy3N1rNdjs8jYyUeehXhKcw=
+Date:   Thu, 20 Jan 2022 13:29:32 -0800
 From:   akpm@linux-foundation.org
-To:     christian.brauner@ubuntu.com, dhowells@redhat.com,
-        hch@infradead.org, hdegoede@redhat.com, lkp@intel.com,
-        mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
+To:     akpm@linux-foundation.org, christian@brauner.io,
+        dhowells@redhat.com, hch@infradead.org, hdegoede@redhat.com,
+        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
+        viro@zeniv.linux.org.uk
 Subject:  [merged]
- proc-make-the-proc_create-stubs-static-inlines.patch removed from -mm tree
-Message-ID: <20220120212929.Gjh4U4LKM%akpm@linux-foundation.org>
+ proc-make-the-proc_create-stubs-static-inlines-fix.patch removed from -mm
+ tree
+Message-ID: <20220120212932.-5AfZ9dSM%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,62 +46,69 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: make the proc_create[_data]() stubs static inlines
+     Subject: proc-make-the-proc_create-stubs-static-inlines-fix
 has been removed from the -mm tree.  Its filename was
-     proc-make-the-proc_create-stubs-static-inlines.patch
+     proc-make-the-proc_create-stubs-static-inlines-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: proc: make the proc_create[_data]() stubs static inlines
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc-make-the-proc_create-stubs-static-inlines-fix
 
-Change the proc_create[_data]() stubs which are used when CONFIG_PROC_FS
-is not set from #defines to a static inline stubs.
+fix CONFIG_PROC_FS=n
 
-Thix should fix clang -Werror builds failing due to errors like this:
-
-drivers/platform/x86/thinkpad_acpi.c:918:30: error: unused variable
- 'dispatch_proc_ops' [-Werror,-Wunused-const-variable]
-
-Fixing this in include/linux/proc_fs.h should ensure that the same issue
-is also fixed in any other drivers hitting the same -Werror issue.
-
-Link: https://lkml.kernel.org/r/20211116131112.508304-1-hdegoede@redhat.com
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Randy Dunlap <rdunlap@infradead.org>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Christian Brauner <christian@brauner.io>
 Cc: Christoph Hellwig <hch@infradead.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/proc_fs.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ include/linux/proc_fs.h |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
---- a/include/linux/proc_fs.h~proc-make-the-proc_create-stubs-static-inlines
+--- a/include/linux/proc_fs.h~proc-make-the-proc_create-stubs-static-inlines-fix
 +++ a/include/linux/proc_fs.h
-@@ -178,8 +178,14 @@ static inline struct proc_dir_entry *pro
- #define proc_create_seq(name, mode, parent, ops) ({NULL;})
+@@ -179,12 +179,14 @@ static inline struct proc_dir_entry *pro
  #define proc_create_single(name, mode, parent, show) ({NULL;})
  #define proc_create_single_data(name, mode, parent, show, data) ({NULL;})
--#define proc_create(name, mode, parent, proc_ops) ({NULL;})
--#define proc_create_data(name, mode, parent, proc_ops, data) ({NULL;})
-+
-+static inline struct proc_dir_entry *proc_create(
-+	const char *, umode_t, struct proc_dir_entry *, const struct proc_ops *)
-+{ return NULL; }
-+
-+static inline struct proc_dir_entry *proc_create_data(
-+	const char *, umode_t, struct proc_dir_entry *, const struct proc_ops *, void *)
-+{ return NULL; }
+ 
+-static inline struct proc_dir_entry *proc_create(
+-	const char *, umode_t, struct proc_dir_entry *, const struct proc_ops *)
++static inline struct proc_dir_entry *
++proc_create(const char *name, umode_t mode, struct proc_dir_entry *parent,
++	    const struct proc_ops *proc_ops)
+ { return NULL; }
+ 
+-static inline struct proc_dir_entry *proc_create_data(
+-	const char *, umode_t, struct proc_dir_entry *, const struct proc_ops *, void *)
++static inline struct proc_dir_entry *
++proc_create_data(const char *name, umode_t mode, struct proc_dir_entry *parent,
++		 const struct proc_ops *proc_ops, void *data)
+ { return NULL; }
  
  static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
- static inline void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid) {}
 _
 
-Patches currently in -mm which might be from hdegoede@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+mm.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+arch-x86-include-asm-pgtableh-needs-spinlockh.patch
+sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix.patch
+firmware_loader-move-firmware-sysctl-to-its-own-files-fix-fix.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
+sysctl-move-maxolduid-as-a-sysctl-specific-const-fix.patch
+proc-remove-pde_data-completely-fix.patch
+proc-remove-pde_data-completely-fix-fix.patch
+mm-remove-cleancache-fix.patch
+mm-simplify-try_to_unuse-fix.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
