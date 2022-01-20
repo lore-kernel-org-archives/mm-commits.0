@@ -2,36 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7546BC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:23:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E30AC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:23:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229934AbiATVXG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:23:06 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:34536 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377803AbiATVXE (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:23:04 -0500
+        id S1377803AbiATVXJ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:23:09 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:56220 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237238AbiATVXJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:23:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 562DA61890
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:23:04 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9CC25C340E0;
-        Thu, 20 Jan 2022 21:23:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 34746B81E54
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:23:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9FD6C340E0;
+        Thu, 20 Jan 2022 21:23:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642713783;
-        bh=heND0Bb6AyDvTWgycnvIIkGMRFtWBQaiSAcL7mczgt8=;
+        s=korg; t=1642713786;
+        bh=R8RRutPJ+ltkL2Xkvpb3/IGorTkNImcB0BU6mL8qTqE=;
         h=Date:From:To:Subject:From;
-        b=o605c2rtvIBNmh+mA9Bs+4Rg5FoS300M9joTz/DfnZmhXFjmNzkhviz50HpsrCC5b
-         CBaOIdHyx+h/Of5PPBtVkjNxtwXDD6FfL2hIQnzSSyuXzaVXOWzwm/TMCIpq2aWfLQ
-         xBOLf7OMeUqNg4v07XiAtl/AGLEaNoDvqT7K3Mik=
-Date:   Thu, 20 Jan 2022 13:23:03 -0800
+        b=RCcOCaY5uzaMwf8zfeYYoBpyop3bY4sCzVgsjoXSSyrzLzoHaxukBFRI1MA35WZqV
+         IGLm8eObCA02Y9E8TIzDzdrpR7dpWAMgHoyPi0lc568HipXx5XtqOTJLgpUTzZQpjD
+         ijgk5tjmCOv+hfqebDtJFB3pqNwia8y7BOJBhOAc=
+Date:   Thu, 20 Jan 2022 13:23:06 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, gregkh@linuxfoundation.org,
-        mm-commits@vger.kernel.org, rppt@kernel.org
-Subject:  [merged]
- ia64-topology-use-default_groups-in-kobj_type.patch removed from -mm tree
-Message-ID: <20220120212303.p0BioIa6p%akpm@linux-foundation.org>
+To:     colin.king@intel.com, dfustini@baylibre.com, gustavoars@kernel.org,
+        mm-commits@vger.kernel.org, sven@narfation.org,
+        tom.saeger@oracle.com, zuoqilin@yulong.com
+Subject:  [merged] scripts-spellingtxt-add-oveflow.patch removed
+ from -mm tree
+Message-ID: <20220120212306.7FE8D6JxY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,54 +41,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ia64: topology: use default_groups in kobj_type
+     Subject: scripts/spelling.txt: add "oveflow"
 has been removed from the -mm tree.  Its filename was
-     ia64-topology-use-default_groups-in-kobj_type.patch
+     scripts-spellingtxt-add-oveflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: ia64: topology: use default_groups in kobj_type
+From: Drew Fustini <dfustini@baylibre.com>
+Subject: scripts/spelling.txt: add "oveflow"
 
-There are currently 2 ways to create a set of sysfs files for a kobj_type,
-through the default_attrs field, and the default_groups field.  Move the
-ia64 topology sysfs code to use default_groups field which has been the
-preferred way since aa30f47cf666 ("kobject: Add support for default
-attribute groups to kobj_type") so that we can soon get rid of the
-obsolete default_attrs field.
+Add typo "oveflow" for "overflow".  This typo was found and fixed in
+tools/testing/selftests/bpf/prog_tests/btf_dump.c
 
-Link: https://lkml.kernel.org/r/20220104154800.1287947-1-gregkh@linuxfoundation.org
-Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Mike Rapoport <rppt@kernel.org>
-Cc: David Hildenbrand <david@redhat.com>
+Link: https://lore.kernel.org/all/20211122070528.837806-1-dfustini@baylibre.com/
+Link: https://lkml.kernel.org/r/20211122072302.839102-1-dfustini@baylibre.com
+Signed-off-by: Drew Fustini <dfustini@baylibre.com>
+Suggested-by: Gustavo A. R. Silva <gustavoars@kernel.org>
+Cc: Colin Ian King <colin.king@intel.com>
+Cc: Drew Fustini <dfustini@baylibre.com>
+Cc: zuoqilin <zuoqilin@yulong.com>
+Cc: Tom Saeger <tom.saeger@oracle.com>
+Cc: Sven Eckelmann <sven@narfation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/kernel/topology.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ scripts/spelling.txt |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/arch/ia64/kernel/topology.c~ia64-topology-use-default_groups-in-kobj_type
-+++ a/arch/ia64/kernel/topology.c
-@@ -264,6 +264,7 @@ static struct attribute * cache_default_
- 	&shared_cpu_map.attr,
- 	NULL
- };
-+ATTRIBUTE_GROUPS(cache_default);
- 
- #define to_object(k) container_of(k, struct cache_info, kobj)
- #define to_attr(a) container_of(a, struct cache_attr, attr)
-@@ -284,7 +285,7 @@ static const struct sysfs_ops cache_sysf
- 
- static struct kobj_type cache_ktype = {
- 	.sysfs_ops	= &cache_sysfs_ops,
--	.default_attrs	= cache_default_attrs,
-+	.default_groups	= cache_default_groups,
- };
- 
- static struct kobj_type cache_ktype_percpu_entry = {
+--- a/scripts/spelling.txt~scripts-spellingtxt-add-oveflow
++++ a/scripts/spelling.txt
+@@ -1046,6 +1046,7 @@ oustanding||outstanding
+ overaall||overall
+ overhread||overhead
+ overlaping||overlapping
++oveflow||overflow
+ overflw||overflow
+ overlfow||overflow
+ overide||override
 _
 
-Patches currently in -mm which might be from gregkh@linuxfoundation.org are
+Patches currently in -mm which might be from dfustini@baylibre.com are
 
 
