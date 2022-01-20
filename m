@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCD35C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 01:51:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 96134C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 01:51:42 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345728AbiATBvd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jan 2022 20:51:33 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:57174 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1344882AbiATBvb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 20:51:31 -0500
+        id S1358097AbiATBvl (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jan 2022 20:51:41 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:58894 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1344882AbiATBvg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 20:51:36 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D354C061574
+        for <mm-commits@vger.kernel.org>; Wed, 19 Jan 2022 17:51:36 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 61258615AE
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 01:51:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 754BEC004E1;
-        Thu, 20 Jan 2022 01:51:30 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 393D1B81C9B
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 01:51:35 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5B31C004E1;
+        Thu, 20 Jan 2022 01:51:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642643490;
-        bh=Uk+sghDCPPN2L0wbWIjQxvxwNOLVcxbuVutnOCucR24=;
+        s=korg; t=1642643493;
+        bh=UObdvmq62h6+fihyeHGUDkZWHWb0d3nbKBIE+jnAink=;
         h=Date:From:To:Subject:From;
-        b=o9F/cQmXSsn6y+yM8diNk3AxpBlwPRCOEyRwtg0NquCzjrc4QLGRSe/xW4oYSunFA
-         77db4eCaZem5A+CmFiPi3Afxj3SeLY9mD/nTJgWnCMEqfiZbXkVo9oV0Ki8cvKjPDa
-         pdmcNDXZrEvPb6UOA5VKUVXHUg1vaCpO56f2XJPg=
-Date:   Wed, 19 Jan 2022 17:51:29 -0800
+        b=vVn+CAD/VmrCUvVEPgT/xWRpKubwbjbjAFm2fo8v/Gt0elFOkJLrni48vn+O/oIzl
+         LyVvJZR00WaMHKb760gP0XBstF2AsRumoThhBq0LQDJPbkZz8+c3Zy3g3pTB47WbAH
+         T9YatTgP0wIFOKE6I2SmVnfz14wl96BRXtDm4xuc=
+Date:   Wed, 19 Jan 2022 17:51:33 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, christian@brauner.io,
-        dhowells@redhat.com, hch@infradead.org, hdegoede@redhat.com,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        viro@zeniv.linux.org.uk
+To:     akpm@linux-foundation.org, hdegoede@redhat.com, lkp@intel.com,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- proc-make-the-proc_create-stubs-static-inlines-fix.patch removed from -mm
+ proc-make-the-proc_create-stubs-static-inlines-fix2.patch removed from -mm
  tree
-Message-ID: <20220120015129.6YxVpjc2v%akpm@linux-foundation.org>
+Message-ID: <20220120015133.Oqws_ROjc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,58 +44,46 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-make-the-proc_create-stubs-static-inlines-fix
+     Subject: proc-make-the-proc_create-stubs-static-inlines-fix2
 has been removed from the -mm tree.  Its filename was
-     proc-make-the-proc_create-stubs-static-inlines-fix.patch
+     proc-make-the-proc_create-stubs-static-inlines-fix2.patch
 
 This patch was dropped because it was folded into proc-make-the-proc_create-stubs-static-inlines.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-make-the-proc_create-stubs-static-inlines-fix
+Subject: proc-make-the-proc_create-stubs-static-inlines-fix2
 
-fix CONFIG_PROC_FS=n
+fix arch/sparc/kernel/led.c
 
-Randy Dunlap <rdunlap@infradead.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Christian Brauner <christian@brauner.io>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: David Howells <dhowells@redhat.com>
+Reported-by: kernel test robot <lkp@intel.com>
 Cc: Hans de Goede <hdegoede@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/proc_fs.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ arch/sparc/kernel/led.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/proc_fs.h~proc-make-the-proc_create-stubs-static-inlines-fix
-+++ a/include/linux/proc_fs.h
-@@ -179,12 +179,14 @@ static inline struct proc_dir_entry *pro
- #define proc_create_single(name, mode, parent, show) ({NULL;})
- #define proc_create_single_data(name, mode, parent, show, data) ({NULL;})
+--- a/arch/sparc/kernel/led.c~proc-make-the-proc_create-stubs-static-inlines-fix2
++++ a/arch/sparc/kernel/led.c
+@@ -122,10 +122,11 @@ static int __init led_init(void)
+ {
+ 	timer_setup(&led_blink_timer, led_blink, 0);
  
--static inline struct proc_dir_entry *proc_create(
--	const char *, umode_t, struct proc_dir_entry *, const struct proc_ops *)
-+static inline struct proc_dir_entry *
-+proc_create(const char *name, umode_t mode, struct proc_dir_entry *parent,
-+	    const struct proc_ops *proc_ops)
- { return NULL; }
- 
--static inline struct proc_dir_entry *proc_create_data(
--	const char *, umode_t, struct proc_dir_entry *, const struct proc_ops *, void *)
-+static inline struct proc_dir_entry *
-+proc_create_data(const char *name, umode_t mode, struct proc_dir_entry *parent,
-+		 const struct proc_ops *proc_ops, void *data)
- { return NULL; }
- 
- static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
++#ifdef CONFIG_PROC_FS
+ 	led = proc_create("led", 0, NULL, &led_proc_ops);
+ 	if (!led)
+ 		return -ENOMEM;
+-
++#endif
+ 	printk(KERN_INFO
+ 	       "led: version %s, Lars Kotthoff <metalhead@metalhead.ws>\n",
+ 	       LED_VERSION);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 proc-make-the-proc_create-stubs-static-inlines.patch
-proc-make-the-proc_create-stubs-static-inlines-fix2.patch
 proc-make-the-proc_create-stubs-static-inlines-fix2-fix.patch
 kernel-sys-only-take-tasklist_lock-for-get-setpriorityprio_pgrp-checkpatch-fixes.patch
 hashh-remove-unused-define-directive-fix.patch
