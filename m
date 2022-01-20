@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1D27CC433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:08:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5844EC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 02:08:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232689AbiATCIA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 19 Jan 2022 21:08:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34208 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229589AbiATCIA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:08:00 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 16DDBC061574
-        for <mm-commits@vger.kernel.org>; Wed, 19 Jan 2022 18:08:00 -0800 (PST)
+        id S236186AbiATCIE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 19 Jan 2022 21:08:04 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:50272 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229589AbiATCID (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 19 Jan 2022 21:08:03 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 952AE6157F
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:07:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2F20C340E4;
-        Thu, 20 Jan 2022 02:07:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 822F8B81B3B
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 02:08:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DEA05C004E1;
+        Thu, 20 Jan 2022 02:08:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642644478;
-        bh=oXTiz8bgm2yyRMJ9IjFGvVMYI9DBH4p4inEGj6yoaMU=;
+        s=korg; t=1642644481;
+        bh=S7e8CuGvJPJ35GtdLmKgBe36jQTkMKEoJL47rd69lXM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=yhNwuacDw7oNdeWaQpMKQzTDTYiGfKHO+rxqL6vsWcWhyZ16JfoXbAddTR9rkBsk3
-         cnUxXDS87onZd3bb0a/Atv6Ce+3wdV32A+pJn0U6sGu+Betzm2euEVuGP1ft93H94m
-         dIrpiKa1rdkDycUV85tnwmf9LtewKrWLMJ7Sr3yU=
-Date:   Wed, 19 Jan 2022 18:07:57 -0800
+        b=gKRapUQjGGOrDfb63tghnJqxmS5uuXiq6+yH4U5rg0W5ThQrerMgdcLCVxtEfy/6p
+         D4e0AzivS1rILUAKgUTPaUXkhem5vgT+cc5/EK6uK2LOfcuZDJGD9kEJN8YHST8EtB
+         XdXgEv3J0o0WTDrB7LwP89sRKGsQDCGK4/t6i0oQ=
+Date:   Wed, 19 Jan 2022 18:08:00 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bhe@redhat.com, david@redhat.com,
-        dyoung@redhat.com, linux-mm@kvack.org, mm-commits@vger.kernel.org,
-        prudo@redhat.com, torvalds@linux-foundation.org, vgoyal@redhat.com
-Subject:  [patch 05/55] proc/vmcore: don't fake reading zeroes on
- surprise vmcore_cb unregistration
-Message-ID: <20220120020757.dOiHTk8NT%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, christian.brauner@ubuntu.com,
+        dhowells@redhat.com, hch@infradead.org, hdegoede@redhat.com,
+        linux-mm@kvack.org, lkp@intel.com, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, viro@zeniv.linux.org.uk
+Subject:  [patch 06/55] proc: make the proc_create[_data]() stubs
+ static inlines
+Message-ID: <20220120020800.1TImEbrhi%akpm@linux-foundation.org>
 In-Reply-To: <20220119180714.9e187ce100e4510de3cd9f7d@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,95 +41,81 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: David Hildenbrand <david@redhat.com>
-Subject: proc/vmcore: don't fake reading zeroes on surprise vmcore_cb unregistration
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: proc: make the proc_create[_data]() stubs static inlines
 
-In commit cc5f2704c934 ("proc/vmcore: convert oldmem_pfn_is_ram callback
-to more generic vmcore callbacks"), we added detection of surprise
-vmcore_cb unregistration after the vmcore was already opened.  Once
-detected, we warn the user and simulate reading zeroes from that point on
-when accessing the vmcore.
+Change the proc_create[_data]() stubs which are used when CONFIG_PROC_FS
+is not set from #defines to a static inline stubs.
 
-The basic reason was that unexpected unregistration, for example, by
-manually unbinding a driver from a device after opening the vmcore, is not
-supported and could result in reading oldmem the vmcore_cb would have
-actually prohibited while registered.  However, something like that can
-similarly be trigger by a user that's really looking for trouble simply by
-unbinding the relevant driver before opening the vmcore -- or by
-disallowing loading the driver in the first place.  So it's actually of
-limited help.
+Thix should fix clang -Werror builds failing due to errors like this:
 
-Currently, unregistration can only be triggered via virtio-mem when
-manually unbinding the driver from the device inside the VM; there is no
-way to trigger it from the hypervisor, as hypervisors don't allow for
-unplugging virtio-mem devices -- ripping out system RAM from a VM without
-coordination with the guest is usually not a good idea.
+drivers/platform/x86/thinkpad_acpi.c:918:30: error: unused variable
+ 'dispatch_proc_ops' [-Werror,-Wunused-const-variable]
 
-The important part is that unbinding the driver and unregistering the
-vmcore_cb while concurrently reading the vmcore won't crash the system,
-and that is handled by the rwsem.
+Fixing this in include/linux/proc_fs.h should ensure that the same issue
+is also fixed in any other drivers hitting the same -Werror issue.
 
-To make the mechanism more future proof, let's remove the "read zero"
-part, but leave the warning in place.  For example, we could have a future
-driver (like virtio-balloon) that will contact the hypervisor to figure
-out if we already populated a page for a given PFN.  Hotunplugging such a
-device and consequently unregistering the vmcore_cb could be triggered
-from the hypervisor without harming the system even while kdump is
-running.  In that case, we don't want to silently end up with a vmcore
-that contains wrong data, because the user inside the VM might be unaware
-of the hypervisor action and might easily miss the warning in the log.
-
-Link: https://lkml.kernel.org/r/20211111192243.22002-1-david@redhat.com
-Signed-off-by: David Hildenbrand <david@redhat.com>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Philipp Rudo <prudo@redhat.com>
+[akpm@linux-foundation.org: fix CONFIG_PROC_FS=n]
+[akpm@linux-foundation.org: fix arch/sparc/kernel/led.c]
+[akpm@linux-foundation.org: fix build]
+Link: https://lkml.kernel.org/r/20211116131112.508304-1-hdegoede@redhat.com
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Acked-by: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Christoph Hellwig <hch@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |   10 ++--------
- 1 file changed, 2 insertions(+), 8 deletions(-)
+ arch/sparc/kernel/led.c |    8 +++-----
+ include/linux/proc_fs.h |   12 ++++++++++--
+ 2 files changed, 13 insertions(+), 7 deletions(-)
 
---- a/fs/proc/vmcore.c~proc-vmcore-dont-fake-reading-zeroes-on-surprise-vmcore_cb-unregistration
-+++ a/fs/proc/vmcore.c
-@@ -65,8 +65,6 @@ static size_t vmcoredd_orig_sz;
- static DECLARE_RWSEM(vmcore_cb_rwsem);
- /* List of registered vmcore callbacks. */
- static LIST_HEAD(vmcore_cb_list);
--/* Whether we had a surprise unregistration of a callback. */
--static bool vmcore_cb_unstable;
- /* Whether the vmcore has been opened once. */
- static bool vmcore_opened;
+--- a/arch/sparc/kernel/led.c~proc-make-the-proc_create-stubs-static-inlines
++++ a/arch/sparc/kernel/led.c
+@@ -114,18 +114,16 @@ static const struct proc_ops led_proc_op
+ };
+ #endif
  
-@@ -94,10 +92,8 @@ void unregister_vmcore_cb(struct vmcore_
- 	 * very unusual (e.g., forced driver removal), but we cannot stop
- 	 * unregistering.
- 	 */
--	if (vmcore_opened) {
-+	if (vmcore_opened)
- 		pr_warn_once("Unexpected vmcore callback unregistration\n");
--		vmcore_cb_unstable = true;
--	}
- 	up_write(&vmcore_cb_rwsem);
- }
- EXPORT_SYMBOL_GPL(unregister_vmcore_cb);
-@@ -108,8 +104,6 @@ static bool pfn_is_ram(unsigned long pfn
- 	bool ret = true;
+-static struct proc_dir_entry *led;
+-
+ #define LED_VERSION	"0.1"
  
- 	lockdep_assert_held_read(&vmcore_cb_rwsem);
--	if (unlikely(vmcore_cb_unstable))
--		return false;
+ static int __init led_init(void)
+ {
+ 	timer_setup(&led_blink_timer, led_blink, 0);
  
- 	list_for_each_entry(cb, &vmcore_cb_list, next) {
- 		if (unlikely(!cb->pfn_is_ram))
-@@ -581,7 +575,7 @@ static int vmcore_remap_oldmem_pfn(struc
- 	 * looping over all pages without a reason.
- 	 */
- 	down_read(&vmcore_cb_rwsem);
--	if (!list_empty(&vmcore_cb_list) || vmcore_cb_unstable)
-+	if (!list_empty(&vmcore_cb_list))
- 		ret = remap_oldmem_pfn_checked(vma, from, pfn, size, prot);
- 	else
- 		ret = remap_oldmem_pfn_range(vma, from, pfn, size, prot);
+-	led = proc_create("led", 0, NULL, &led_proc_ops);
+-	if (!led)
++#ifdef CONFIG_PROC_FS
++	if (!proc_create("led", 0, NULL, &led_proc_ops))
+ 		return -ENOMEM;
+-
++#endif
+ 	printk(KERN_INFO
+ 	       "led: version %s, Lars Kotthoff <metalhead@metalhead.ws>\n",
+ 	       LED_VERSION);
+--- a/include/linux/proc_fs.h~proc-make-the-proc_create-stubs-static-inlines
++++ a/include/linux/proc_fs.h
+@@ -178,8 +178,16 @@ static inline struct proc_dir_entry *pro
+ #define proc_create_seq(name, mode, parent, ops) ({NULL;})
+ #define proc_create_single(name, mode, parent, show) ({NULL;})
+ #define proc_create_single_data(name, mode, parent, show, data) ({NULL;})
+-#define proc_create(name, mode, parent, proc_ops) ({NULL;})
+-#define proc_create_data(name, mode, parent, proc_ops, data) ({NULL;})
++
++static inline struct proc_dir_entry *
++proc_create(const char *name, umode_t mode, struct proc_dir_entry *parent,
++	    const struct proc_ops *proc_ops)
++{ return NULL; }
++
++static inline struct proc_dir_entry *
++proc_create_data(const char *name, umode_t mode, struct proc_dir_entry *parent,
++		 const struct proc_ops *proc_ops, void *data)
++{ return NULL; }
+ 
+ static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
+ static inline void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid) {}
 _
