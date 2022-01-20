@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 16D82C433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:28:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33607C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:28:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347870AbiATV2M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:28:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43196 "EHLO
+        id S1377886AbiATV2R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:28:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43216 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377888AbiATV2M (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:28:12 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03A5CC061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:28:12 -0800 (PST)
+        with ESMTP id S1377882AbiATV2R (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:28:17 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 629D0C061574
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:28:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 95E5360A3C
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:28:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B2C83C340E0;
-        Thu, 20 Jan 2022 21:28:10 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1D1C6B81E69
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:28:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A43B2C340E0;
+        Thu, 20 Jan 2022 21:28:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714091;
-        bh=R5Lh8LuQZQz9PO7xuIJKqQImfTSvARTl5IGJmRi5Hro=;
+        s=korg; t=1642714093;
+        bh=fK3RDnBDDZqh3XJ3cpKFQvEB7ZgkORbfuaCPpryRuDQ=;
         h=Date:From:To:Subject:From;
-        b=RIZaVWmI3/mJm/IlaYFN81Zgj3jzwnf8/PilwR3xo6E1m7uFgSvVj/f9Biw61Sdz7
-         UT0Xy6vGTanS+vHInbOxHP1oDnK1tdt19dY/luuf0yJdkBl3BR1pVTPRUskKQ7sfoG
-         9WCbXPukKVGHIPkFlxd3mlkWadPh1+rSrUGLM9Yg=
-Date:   Thu, 20 Jan 2022 13:28:10 -0800
+        b=JSheUd7FFqZPP1c8MR+iCPhEH9TTkhJFh0+qVha0Adq10/oJhGWqoBujbmO/ZgOsq
+         MYIPhOiKUFoQHv6f206T0zhotFE1O0+7lwSXW+wnlApGMgdlJqTJVe8PYbVBwo/IiY
+         j5n37+V0cvf4kTWhRd7mdaiKT/Q6KNsMjtqLKSKI=
+Date:   Thu, 20 Jan 2022 13:28:13 -0800
 From:   akpm@linux-foundation.org
-To:     apopple@nvidia.com, Felix.Kuehling@amd.com, jgg@nvidia.com,
-        jglisse@redhat.com, jhubbard@nvidia.com,
-        mm-commits@vger.kernel.org, rcampbell@nvidia.com, ziy@nvidia.com
+To:     mm-commits@vger.kernel.org, sj@kernel.org,
+        songmuchun@bytedance.com, xhao@linux.alibaba.com
 Subject:  [merged]
- mm-hmmc-allow-vm_mixedmap-to-work-with-hmm_range_fault.patch removed from
- -mm tree
-Message-ID: <20220120212810.tM-AgIAij%akpm@linux-foundation.org>
+ mm-damon-unified-access_check-function-naming-rules.patch removed from -mm
+ tree
+Message-ID: <20220120212813.wfGY5Gr_a%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,156 +44,86 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hmm.c: allow VM_MIXEDMAP to work with hmm_range_fault
+     Subject: mm/damon: unified access_check function naming rules
 has been removed from the -mm tree.  Its filename was
-     mm-hmmc-allow-vm_mixedmap-to-work-with-hmm_range_fault.patch
+     mm-damon-unified-access_check-function-naming-rules.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/hmm.c: allow VM_MIXEDMAP to work with hmm_range_fault
+From: Xin Hao <xhao@linux.alibaba.com>
+Subject: mm/damon: unified access_check function naming rules
 
-hmm_range_fault() can be used instead of get_user_pages() for devices
-which allow faulting however unlike get_user_pages() it will return an
-error when used on a VM_MIXEDMAP range.
+Patch series "mm/damon: Do some small changes", v4.
 
-To make hmm_range_fault() more closely match get_user_pages() remove
-this restriction. This requires dealing with the !ARCH_HAS_PTE_SPECIAL
-case in hmm_vma_handle_pte(). Rather than replicating the logic of
-vm_normal_page() call it directly and do a check for the zero pfn
-similar to what get_user_pages() currently does.
 
-Also add a test to hmm selftest to verify functionality.
+This patch (of 4):
 
-Link: https://lkml.kernel.org/r/20211104012001.2555676-1-apopple@nvidia.com
-Fixes: da4c3c735ea4 ("mm/hmm/mirror: helper to snapshot CPU page table")
-Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
-Cc: Jerome Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Ralph Campbell <rcampbell@nvidia.com>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+In damon/paddr.c file, two functions names start with underscore,
+	static void __damon_pa_prepare_access_check(struct damon_ctx *ctx,
+			struct damon_region *r)
+	static void __damon_pa_prepare_access_check(struct damon_ctx *ctx,
+			struct damon_region *r)
+In damon/vaddr.c file, there are also two functions with the same function,
+	static void damon_va_prepare_access_check(struct damon_ctx *ctx,
+			struct mm_struct *mm, struct damon_region *r)
+	static void damon_va_check_access(struct damon_ctx *ctx,
+			struct mm_struct *mm, struct damon_region *r)
+
+It makes sense to keep consistent, and it is not easy to be confused with
+the function that call them.
+
+Link: https://lkml.kernel.org/r/cover.1636989871.git.xhao@linux.alibaba.com
+Link: https://lkml.kernel.org/r/529054aed932a42b9c09fc9977ad4574b9e7b0bd.1636989871.git.xhao@linux.alibaba.com
+Signed-off-by: Xin Hao <xhao@linux.alibaba.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hmm.c                         |   24 +++++++++++++
- mm/hmm.c                               |    5 +-
- tools/testing/selftests/vm/hmm-tests.c |   42 +++++++++++++++++++++++
- 3 files changed, 69 insertions(+), 2 deletions(-)
+ mm/damon/vaddr.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
---- a/lib/test_hmm.c~mm-hmmc-allow-vm_mixedmap-to-work-with-hmm_range_fault
-+++ a/lib/test_hmm.c
-@@ -1086,9 +1086,33 @@ static long dmirror_fops_unlocked_ioctl(
- 	return 0;
- }
- 
-+static int dmirror_fops_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	unsigned long addr;
-+
-+	for (addr = vma->vm_start; addr < vma->vm_end; addr += PAGE_SIZE) {
-+		struct page *page;
-+		int ret;
-+
-+		page = alloc_page(GFP_KERNEL | __GFP_ZERO);
-+		if (!page)
-+			return -ENOMEM;
-+
-+		ret = vm_insert_page(vma, addr, page);
-+		if (ret) {
-+			__free_page(page);
-+			return ret;
-+		}
-+		put_page(page);
-+	}
-+
-+	return 0;
-+}
-+
- static const struct file_operations dmirror_fops = {
- 	.open		= dmirror_fops_open,
- 	.release	= dmirror_fops_release,
-+	.mmap		= dmirror_fops_mmap,
- 	.unlocked_ioctl = dmirror_fops_unlocked_ioctl,
- 	.llseek		= default_llseek,
- 	.owner		= THIS_MODULE,
---- a/mm/hmm.c~mm-hmmc-allow-vm_mixedmap-to-work-with-hmm_range_fault
-+++ a/mm/hmm.c
-@@ -300,7 +300,8 @@ static int hmm_vma_handle_pte(struct mm_
- 	 * Since each architecture defines a struct page for the zero page, just
- 	 * fall through and treat it like a normal page.
- 	 */
--	if (pte_special(pte) && !pte_devmap(pte) &&
-+	if (!vm_normal_page(walk->vma, addr, pte) &&
-+	    !pte_devmap(pte) &&
- 	    !is_zero_pfn(pte_pfn(pte))) {
- 		if (hmm_pte_need_fault(hmm_vma_walk, pfn_req_flags, 0)) {
- 			pte_unmap(ptep);
-@@ -518,7 +519,7 @@ static int hmm_vma_walk_test(unsigned lo
- 	struct hmm_range *range = hmm_vma_walk->range;
- 	struct vm_area_struct *vma = walk->vma;
- 
--	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP | VM_MIXEDMAP)) &&
-+	if (!(vma->vm_flags & (VM_IO | VM_PFNMAP)) &&
- 	    vma->vm_flags & VM_READ)
- 		return 0;
- 
---- a/tools/testing/selftests/vm/hmm-tests.c~mm-hmmc-allow-vm_mixedmap-to-work-with-hmm_range_fault
-+++ a/tools/testing/selftests/vm/hmm-tests.c
-@@ -1251,6 +1251,48 @@ TEST_F(hmm, anon_teardown)
- /*
-  * Test memory snapshot without faulting in pages accessed by the device.
+--- a/mm/damon/vaddr.c~mm-damon-unified-access_check-function-naming-rules
++++ a/mm/damon/vaddr.c
+@@ -410,7 +410,7 @@ static void damon_va_mkold(struct mm_str
+  * Functions for the access checking of the regions
   */
-+TEST_F(hmm, mixedmap)
-+{
-+	struct hmm_buffer *buffer;
-+	unsigned long npages;
-+	unsigned long size;
-+	unsigned char *m;
-+	int ret;
-+
-+	npages = 1;
-+	size = npages << self->page_shift;
-+
-+	buffer = malloc(sizeof(*buffer));
-+	ASSERT_NE(buffer, NULL);
-+
-+	buffer->fd = -1;
-+	buffer->size = size;
-+	buffer->mirror = malloc(npages);
-+	ASSERT_NE(buffer->mirror, NULL);
-+
-+
-+	/* Reserve a range of addresses. */
-+	buffer->ptr = mmap(NULL, size,
-+			   PROT_READ | PROT_WRITE,
-+			   MAP_PRIVATE,
-+			   self->fd, 0);
-+	ASSERT_NE(buffer->ptr, MAP_FAILED);
-+
-+	/* Simulate a device snapshotting CPU pagetables. */
-+	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
-+	ASSERT_EQ(ret, 0);
-+	ASSERT_EQ(buffer->cpages, npages);
-+
-+	/* Check what the device saw. */
-+	m = buffer->mirror;
-+	ASSERT_EQ(m[0], HMM_DMIRROR_PROT_READ);
-+
-+	hmm_buffer_free(buffer);
-+}
-+
-+/*
-+ * Test memory snapshot without faulting in pages accessed by the device.
-+ */
- TEST_F(hmm2, snapshot)
+ 
+-static void damon_va_prepare_access_check(struct damon_ctx *ctx,
++static void __damon_va_prepare_access_check(struct damon_ctx *ctx,
+ 			struct mm_struct *mm, struct damon_region *r)
  {
- 	struct hmm_buffer *buffer;
+ 	r->sampling_addr = damon_rand(r->ar.start, r->ar.end);
+@@ -429,7 +429,7 @@ void damon_va_prepare_access_checks(stru
+ 		if (!mm)
+ 			continue;
+ 		damon_for_each_region(r, t)
+-			damon_va_prepare_access_check(ctx, mm, r);
++			__damon_va_prepare_access_check(ctx, mm, r);
+ 		mmput(mm);
+ 	}
+ }
+@@ -515,7 +515,7 @@ static bool damon_va_young(struct mm_str
+  * mm	'mm_struct' for the given virtual address space
+  * r	the region to be checked
+  */
+-static void damon_va_check_access(struct damon_ctx *ctx,
++static void __damon_va_check_access(struct damon_ctx *ctx,
+ 			       struct mm_struct *mm, struct damon_region *r)
+ {
+ 	static struct mm_struct *last_mm;
+@@ -551,7 +551,7 @@ unsigned int damon_va_check_accesses(str
+ 		if (!mm)
+ 			continue;
+ 		damon_for_each_region(r, t) {
+-			damon_va_check_access(ctx, mm, r);
++			__damon_va_check_access(ctx, mm, r);
+ 			max_nr_accesses = max(r->nr_accesses, max_nr_accesses);
+ 		}
+ 		mmput(mm);
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from xhao@linux.alibaba.com are
 
-mm-migratec-rework-migration_entry_wait-to-not-take-a-pageref.patch
 
