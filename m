@@ -2,36 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 86FCAC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:27:42 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 742E1C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:27:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347846AbiATV1m (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:27:42 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:58612 "EHLO
+        id S1377879AbiATV1n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:27:43 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:58630 "EHLO
         ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377882AbiATV1l (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:27:41 -0500
+        with ESMTP id S1377877AbiATV1n (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:27:43 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EFD6EB81E6B
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:27:39 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9F42CC340E0;
-        Thu, 20 Jan 2022 21:27:38 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 61C30B81E54
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:27:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF40CC340E0;
+        Thu, 20 Jan 2022 21:27:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714058;
-        bh=vuDOhu50o/TF5MUVfS+HYXll0sV2qpxo9B7RgqjI+9M=;
+        s=korg; t=1642714061;
+        bh=KIv3mLgVMgm+UcrQo5ZwLC97Ww6h3cE36QEUspWx2Po=;
         h=Date:From:To:Subject:From;
-        b=tG7luQRHej12kFQcLXPkhQepb0V6hIKMipQEP9QUuLc3bFqsnVndtXAfOPgZ6r0aQ
-         ZeWNHq8/GCdjORWnuE5TutHEvFiYhPj/Xv2sLuwRAfUjxVP/md9d63wGPfhzFm1VbS
-         G6/3G+K+bRRb6Cz/IGT5ahikNSEjcYukFnuvRg+4=
-Date:   Thu, 20 Jan 2022 13:27:38 -0800
+        b=BCO0aw0Y2RfA71hiBZ2aXMJziMVMcLIyB06Q2lY8JC6ove/NzWiMwB/NSz/9pPzek
+         zW8p2lkicPPsMkTKgma7EajecMcInDvkUJNDnUb5rZwKv0lg+hyiXLyyjCvgumvlCI
+         OExn3HDwkBUNydJa2wCIOA7kS/g2gflTKtrBhThw=
+Date:   Thu, 20 Jan 2022 13:27:40 -0800
 From:   akpm@linux-foundation.org
-To:     colin.i.king@gmail.com, mm-commits@vger.kernel.org
-Subject:  [merged]
- mm-migrate-remove-redundant-variables-used-in-a-for-loop.patch removed from
- -mm tree
-Message-ID: <20220120212738.O9vUiNlyn%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, david@redhat.com, kirill@shutemov.name,
+        mingo@redhat.com, mm-commits@vger.kernel.org, rostedt@goodmis.org
+Subject:  [merged] mm-thp-drop-unused-trace-events-hugepage_.patch
+ removed from -mm tree
+Message-ID: <20220120212740.vXCTr-Oyi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,52 +40,87 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migrate: remove redundant variables used in a for-loop
+     Subject: mm/thp: drop unused trace events hugepage_[invalidate|splitting]
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-remove-redundant-variables-used-in-a-for-loop.patch
+     mm-thp-drop-unused-trace-events-hugepage_.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.i.king@gmail.com>
-Subject: mm/migrate: remove redundant variables used in a for-loop
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/thp: drop unused trace events hugepage_[invalidate|splitting]
 
-The variable addr is being set and incremented in a for-loop but not
-actually being used.  It is redundant and so addr and also variable start
-can be removed.
+The trace events hugepage_[invalidate|splitting], were added via the
+commit 9e813308a5c1 ("powerpc/thp: Add tracepoints to track hugepage
+invalidate").  Afterwards their call sites i.e
+trace_hugepage_[invalidate|splitting] were just dropped off, leaving these
+trace points unused.
 
-Link: https://lkml.kernel.org/r/20211221185729.609630-1-colin.i.king@gmail.com
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Link: https://lkml.kernel.org/r/1641546351-15109-1-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Reviewed-by: David Hildenbrand <david@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/trace/events/thp.h |   35 -----------------------------------
+ 1 file changed, 35 deletions(-)
 
---- a/mm/migrate.c~mm-migrate-remove-redundant-variables-used-in-a-for-loop
-+++ a/mm/migrate.c
-@@ -2481,8 +2481,7 @@ static bool migrate_vma_check_page(struc
- static void migrate_vma_unmap(struct migrate_vma *migrate)
- {
- 	const unsigned long npages = migrate->npages;
--	const unsigned long start = migrate->start;
--	unsigned long addr, i, restore = 0;
-+	unsigned long i, restore = 0;
- 	bool allow_drain = true;
+--- a/include/trace/events/thp.h~mm-thp-drop-unused-trace-events-hugepage_
++++ a/include/trace/events/thp.h
+@@ -8,24 +8,6 @@
+ #include <linux/types.h>
+ #include <linux/tracepoint.h>
  
- 	lru_add_drain();
-@@ -2528,7 +2527,7 @@ static void migrate_vma_unmap(struct mig
- 		}
- 	}
+-TRACE_EVENT(hugepage_invalidate,
+-
+-	    TP_PROTO(unsigned long addr, unsigned long pte),
+-	    TP_ARGS(addr, pte),
+-	    TP_STRUCT__entry(
+-		    __field(unsigned long, addr)
+-		    __field(unsigned long, pte)
+-		    ),
+-
+-	    TP_fast_assign(
+-		    __entry->addr = addr;
+-		    __entry->pte = pte;
+-		    ),
+-
+-	    TP_printk("hugepage invalidate at addr 0x%lx and pte = 0x%lx",
+-		      __entry->addr, __entry->pte)
+-);
+-
+ TRACE_EVENT(hugepage_set_pmd,
  
--	for (addr = start, i = 0; i < npages && restore; addr += PAGE_SIZE, i++) {
-+	for (i = 0; i < npages && restore; i++) {
- 		struct page *page = migrate_pfn_to_page(migrate->src[i]);
+ 	    TP_PROTO(unsigned long addr, unsigned long pmd),
+@@ -65,23 +47,6 @@ TRACE_EVENT(hugepage_update,
  
- 		if (!page || (migrate->src[i] & MIGRATE_PFN_MIGRATE))
+ 	    TP_printk("hugepage update at addr 0x%lx and pte = 0x%lx clr = 0x%lx, set = 0x%lx", __entry->addr, __entry->pte, __entry->clr, __entry->set)
+ );
+-TRACE_EVENT(hugepage_splitting,
+-
+-	    TP_PROTO(unsigned long addr, unsigned long pte),
+-	    TP_ARGS(addr, pte),
+-	    TP_STRUCT__entry(
+-		    __field(unsigned long, addr)
+-		    __field(unsigned long, pte)
+-		    ),
+-
+-	    TP_fast_assign(
+-		    __entry->addr = addr;
+-		    __entry->pte = pte;
+-		    ),
+-
+-	    TP_printk("hugepage splitting at addr 0x%lx and pte = 0x%lx",
+-		      __entry->addr, __entry->pte)
+-);
+ 
+ #endif /* _TRACE_THP_H */
+ 
 _
 
-Patches currently in -mm which might be from colin.i.king@gmail.com are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-kernel-sysctlc-remove-unused-variable-ten_thousand.patch
 
