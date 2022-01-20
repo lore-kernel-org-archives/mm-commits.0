@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D3C2FC433FE
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:27:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4EDC8C4332F
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:27:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377866AbiATV1U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:27:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42980 "EHLO
+        id S237502AbiATV1V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:27:21 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42990 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377882AbiATV1R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:27:17 -0500
+        with ESMTP id S1377873AbiATV1T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:27:19 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 98C8EC061574
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:27:17 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9EBB0C06173F
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:27:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 38D3460A6C
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:27:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 84F97C340E0;
-        Thu, 20 Jan 2022 21:27:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3FF6060A6C
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:27:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86733C340E0;
+        Thu, 20 Jan 2022 21:27:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714036;
-        bh=eSQUaF9VTtMXSNRE/l3/eLSUpRlVJjYWi2jm259whlY=;
+        s=korg; t=1642714038;
+        bh=Z7gFLnGGbEZJnW8Dfp0XQS+9p9i6Ynq8gP+Bpqq6LPs=;
         h=Date:From:To:Subject:From;
-        b=qU97US5zMBegSD+0nmmVKi+kdllCKH6xsP9s7qMjSVhoqnfrNN3uinclN27JwDgJ/
-         hTp47zEia8695t1H6Pe0iqI3HMiK8Hjl9HyIChI17TNGeGkWSzmvLQd53ejqnze5cg
-         ETOASmjxNW9/+2orpRvdyjAXIpTjQ87lCm2ISONA=
-Date:   Thu, 20 Jan 2022 13:27:16 -0800
+        b=tURyHFxPKsjZhGsoyqpUxN7EZpsaJ7gDALmuf+1iU5pWCtaMlLMVoLFyC50a2xxbs
+         I39EusKLX4yVi5I2mSEogyk+ImkE8oPlzRNoeRypunmxwoHYnoVh4zYFtDy5pwT7tf
+         5QQlbK9WfVc93mtXiM2jbu40kbTKpaproye1FyNs=
+Date:   Thu, 20 Jan 2022 13:27:18 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, rdunlap@infradead.org
-Subject:  [merged] mm-mempolicy-fix-all-kernel-doc-warnings.patch
- removed from -mm tree
-Message-ID: <20220120212716.LFmM2PxOm%akpm@linux-foundation.org>
+To:     jannh@google.com, mhocko@suse.com, mm-commits@vger.kernel.org,
+        rientjes@google.com
+Subject:  [merged]
+ mm-oom-oom-sysrq-should-always-kill-a-process.patch removed from -mm tree
+Message-ID: <20220120212718.zWY6Dq7QG%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,61 +43,47 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy: fix all kernel-doc warnings
+     Subject: mm, oom: OOM sysrq should always kill a process
 has been removed from the -mm tree.  Its filename was
-     mm-mempolicy-fix-all-kernel-doc-warnings.patch
+     mm-oom-oom-sysrq-should-always-kill-a-process.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm/mempolicy: fix all kernel-doc warnings
+From: Jann Horn <jannh@google.com>
+Subject: mm, oom: OOM sysrq should always kill a process
 
-Fix kernel-doc warnings in mempolicy.c:
+The OOM kill sysrq (alt+sysrq+F) should allow the user to kill the process
+with the highest OOM badness with a single execution.
 
-mempolicy.c:139: warning: No description found for return value of 'numa_map_to_online_node'
-mempolicy.c:2165: warning: Excess function parameter 'node' description in 'alloc_pages_vma'
-mempolicy.c:2973: warning: No description found for return value of 'mpol_parse_str'
+However, at the moment, the OOM kill can bail out if an OOM notifier (e.g.
+the i915 one) says that it reclaimed a tiny amount of memory from
+somewhere.  That's probably not what the user wants, so skip the bailout
+if the OOM was triggered via sysrq.
 
-Link: https://lkml.kernel.org/r/20211213233216.5477-1-rdunlap@infradead.org
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Link: https://lkml.kernel.org/r/20220106102605.635656-1-jannh@google.com
+Signed-off-by: Jann Horn <jannh@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/mm/mempolicy.c~mm-mempolicy-fix-all-kernel-doc-warnings
-+++ a/mm/mempolicy.c
-@@ -134,6 +134,8 @@ static struct mempolicy preferred_node_p
-  * @node: Node id to start the search
-  *
-  * Lookup the next closest node by distance if @nid is not online.
-+ *
-+ * Return: this @node if it is online, otherwise the closest node by distance
-  */
- int numa_map_to_online_node(int node)
- {
-@@ -2150,7 +2152,6 @@ static struct page *alloc_pages_preferre
-  * @order: Order of the GFP allocation.
-  * @vma: Pointer to VMA or NULL if not available.
-  * @addr: Virtual address of the allocation.  Must be inside @vma.
-- * @node: Which node to prefer for allocation (modulo policy).
-  * @hugepage: For hugepages try only the preferred node if possible.
-  *
-  * Allocate a page for a specific address in @vma, using the appropriate
-@@ -2966,7 +2967,7 @@ static const char * const policy_modes[]
-  * Format of input:
-  *	<mode>[=<flags>][:<nodelist>]
-  *
-- * On success, returns 0, else 1
-+ * Return: %0 on success, else %1
-  */
- int mpol_parse_str(char *str, struct mempolicy **mpol)
- {
+--- a/mm/oom_kill.c~mm-oom-oom-sysrq-should-always-kill-a-process
++++ a/mm/oom_kill.c
+@@ -1058,7 +1058,7 @@ bool out_of_memory(struct oom_control *o
+ 
+ 	if (!is_memcg_oom(oc)) {
+ 		blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
+-		if (freed > 0)
++		if (freed > 0 && !is_sysrq_oom(oc))
+ 			/* Got some memory back in the last second. */
+ 			return true;
+ 	}
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from jannh@google.com are
 
-sysctl-documentation-fix-table-format-warning.patch
 
