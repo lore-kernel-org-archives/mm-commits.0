@@ -2,37 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 00510C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:27:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DEF63C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 20 Jan 2022 21:27:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1347838AbiATV1p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 20 Jan 2022 16:27:45 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:37980 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377882AbiATV1o (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:27:44 -0500
+        id S1377877AbiATV1s (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 20 Jan 2022 16:27:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:43106 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1347854AbiATV1s (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 20 Jan 2022 16:27:48 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EC1A7C061574
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 13:27:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9814061715
-        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:27:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CE48EC340E0;
-        Thu, 20 Jan 2022 21:27:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 8A4DF617CF
+        for <mm-commits@vger.kernel.org>; Thu, 20 Jan 2022 21:27:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9725AC340E0;
+        Thu, 20 Jan 2022 21:27:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642714064;
-        bh=UEk7Cw/hVrdY/8rP3Z8rMjUwbHOAlPqc1MxUwOn0OKk=;
+        s=korg; t=1642714067;
+        bh=Pk3IESU5BdjnUdNR4308lkFMrTniTDlzeIqkb/55dwQ=;
         h=Date:From:To:Subject:From;
-        b=GAi926A4V38gepPd/IEDpTaBdbTiHT8MKGSRldWiRexR2bE9WDNT4kYcLAGr14glh
-         toYEuIiT7/HlxIf9hW0VGd/V3Xa2sXtkGRBy9cEVhtYv32Xex7BYPBFCH3GAjpZxYl
-         jbTRmri+G+3BnRlw7kaJEZykisgerM9P1BJ6Ygik=
-Date:   Thu, 20 Jan 2022 13:27:43 -0800
+        b=LFN6S1oztfa9FRij6QLGenM08McjRAy8JmsUQJ6GXFaqpopTONn3e0HRCJ4a1Hgi/
+         hINxOAKn5T9NqTrWZsFujU7PuKznWhKEBpO3Pd1Btog4a+cfcsGGJvgxxtjy8grYW1
+         ctmb8iKfaDTAbDYr+oeCmDiAatTd9MmGCJD+fVBI=
+Date:   Thu, 20 Jan 2022 13:27:46 -0800
 From:   akpm@linux-foundation.org
-To:     hughd@google.com, mm-commits@vger.kernel.org,
-        sunnanyong@huawei.com, wangkefeng.wang@huawei.com
+To:     aneesh.kumar@linux.vnet.ibm.com, david@redhat.com,
+        dinghui@sangfor.com.cn, linmiaohe@huawei.com, mhocko@suse.com,
+        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        osalvador@suse.de, peterx@redhat.com, shy828301@gmail.com,
+        tony.luck@intel.com
 Subject:  [merged]
- mm-ksm-fix-use-after-free-kasan-report-in-ksm_might_need_to_copy.patch
- removed from -mm tree
-Message-ID: <20220120212743.eXS6u_XvN%akpm@linux-foundation.org>
+ mm-hwpoison-mf_mutex-for-soft-offline-and-unpoison.patch removed from -mm
+ tree
+Message-ID: <20220120212746.yGm2bBhs4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,110 +47,226 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: ksm: fix use-after-free kasan report in ksm_might_need_to_copy
+     Subject: mm/hwpoison: mf_mutex for soft offline and unpoison
 has been removed from the -mm tree.  Its filename was
-     mm-ksm-fix-use-after-free-kasan-report-in-ksm_might_need_to_copy.patch
+     mm-hwpoison-mf_mutex-for-soft-offline-and-unpoison.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nanyong Sun <sunnanyong@huawei.com>
-Subject: mm: ksm: fix use-after-free kasan report in ksm_might_need_to_copy
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hwpoison: mf_mutex for soft offline and unpoison
 
-When under the stress of swapping in/out with KSM enabled, there is a low
-probability that kasan reports the BUG of use-after-free in
-ksm_might_need_to_copy() when do swap in.  The freed object is the
-anon_vma got from page_anon_vma(page).
+Patch series "mm/hwpoison: fix unpoison_memory()", v4.
 
-It is because a swapcache page associated with one anon_vma now needed for
-another anon_vma, but the page's original vma was unmapped and the
-anon_vma was freed.  In this case the if condition below always return
-false and then alloc a new page to copy.  Swapin process then use the new
-page and can continue to run well, so this is harmless actually.
+Main purpose of this series is to sync unpoison code to recent changes
+around how hwpoison code takes page refcount.  Unpoison should work or
+simply fail (without crash) if impossible.
 
-} else if (anon_vma->root == vma->anon_vma->root &&
-                 page->index == linear_page_index(vma, address)) {
+The recent works of keeping hwpoison pages in shmem pagecache introduce a
+new state of hwpoisoned pages, but unpoison for such pages is not
+supported yet with this series.
 
-This patch exchange the order of above two judgment statement to avoid the
-kasan warning.  Let cpu run "page->index == linear_page_index(vma,
-address)" firstly and return false basically to skip the read of
-anon_vma->root which may trigger the kasan use-after-free warning.
+It seems that soft-offline and unpoison can be used as general purpose
+page offline/online mechanism (not in the context of memory error).  I
+think that we need some additional works to realize it because currently
+soft-offline and unpoison are assumed not to happen so frequently (print
+out too many messages for aggressive usecases).  But anyway this could be
+another interesting next topic.
 
-==================================================================
-BUG: KASAN: use-after-free in ksm_might_need_to_copy+0x12e/0x5b0
-Read of size 8 at addr ffff88be9977dbd0 by task khugepaged/694
+v1: https://lore.kernel.org/linux-mm/20210614021212.223326-1-nao.horiguchi@gmail.com/
+v2: https://lore.kernel.org/linux-mm/20211025230503.2650970-1-naoya.horiguchi@linux.dev/
+v3: https://lore.kernel.org/linux-mm/20211105055058.3152564-1-naoya.horiguchi@linux.dev/
 
- CPU: 8 PID: 694 Comm: khugepaged Kdump: loaded Tainted: G OE - 4.18.0.x86_64
- Hardware name: 1288H V5/BC11SPSC0, BIOS 7.93 01/14/2021
-Call Trace:
- dump_stack+0xf1/0x19b
- print_address_description+0x70/0x360
- kasan_report+0x1b2/0x330
- ksm_might_need_to_copy+0x12e/0x5b0
- do_swap_page+0x452/0xe70
- __collapse_huge_page_swapin+0x24b/0x720
- khugepaged_scan_pmd+0xcae/0x1ff0
- khugepaged+0x8ee/0xd70
- kthread+0x1a2/0x1d0
- ret_from_fork+0x1f/0x40
 
-Allocated by task 2306153:
- kasan_kmalloc+0xa0/0xd0
- kmem_cache_alloc+0xc0/0x1c0
- anon_vma_clone+0xf7/0x380
- anon_vma_fork+0xc0/0x390
- copy_process+0x447b/0x4810
- _do_fork+0x118/0x620
- do_syscall_64+0x112/0x360
- entry_SYSCALL_64_after_hwframe+0x65/0xca
+This patch (of 3):
 
-Freed by task 2306242:
- __kasan_slab_free+0x130/0x180
- kmem_cache_free+0x78/0x1d0
- unlink_anon_vmas+0x19c/0x4a0
- free_pgtables+0x137/0x1b0
- exit_mmap+0x133/0x320
- mmput+0x15e/0x390
- do_exit+0x8c5/0x1210
- do_group_exit+0xb5/0x1b0
- __x64_sys_exit_group+0x21/0x30
- do_syscall_64+0x112/0x360
- entry_SYSCALL_64_after_hwframe+0x65/0xca
+Originally mf_mutex is introduced to serialize multiple MCE events, but it
+is not that useful to allow unpoison to run in parallel with
+memory_failure() and soft offline.  So apply mf_mutex to soft offline and
+unpoison.  The memory failure handler and soft offline handler get simpler
+with this.
 
-The buggy address belongs to the object at ffff88be9977dba0
- which belongs to the cache anon_vma_chain of size 64
-The buggy address is located 48 bytes inside of
- 64-byte region [ffff88be9977dba0, ffff88be9977dbe0)
-The buggy address belongs to the page:
-page:ffffea00fa65df40 count:1 mapcount:0 mapping:ffff888107717800 index:0x0
-flags: 0x17ffffc0000100(slab)
-==================================================================
-
-Link: https://lkml.kernel.org/r/20211202102940.1069634-1-sunnanyong@huawei.com
-Signed-off-by: Nanyong Sun <sunnanyong@huawei.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>
+Link: https://lkml.kernel.org/r/20211115084006.3728254-1-naoya.horiguchi@linux.dev
+Link: https://lkml.kernel.org/r/20211115084006.3728254-2-naoya.horiguchi@linux.dev
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Ding Hui <dinghui@sangfor.com.cn>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Peter Xu <peterx@redhat.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |   62 ++++++++++++------------------------------
+ 1 file changed, 18 insertions(+), 44 deletions(-)
 
---- a/mm/ksm.c~mm-ksm-fix-use-after-free-kasan-report-in-ksm_might_need_to_copy
-+++ a/mm/ksm.c
-@@ -2576,8 +2576,8 @@ struct page *ksm_might_need_to_copy(stru
- 			return page;	/* no need to copy it */
- 	} else if (!anon_vma) {
- 		return page;		/* no need to copy it */
--	} else if (anon_vma->root == vma->anon_vma->root &&
--		 page->index == linear_page_index(vma, address)) {
-+	} else if (page->index == linear_page_index(vma, address) &&
-+			anon_vma->root == vma->anon_vma->root) {
- 		return page;		/* still no need to copy it */
+--- a/mm/memory-failure.c~mm-hwpoison-mf_mutex-for-soft-offline-and-unpoison
++++ a/mm/memory-failure.c
+@@ -1502,14 +1502,6 @@ static int memory_failure_hugetlb(unsign
+ 	lock_page(head);
+ 	page_flags = head->flags;
+ 
+-	if (!PageHWPoison(head)) {
+-		pr_err("Memory failure: %#lx: just unpoisoned\n", pfn);
+-		num_poisoned_pages_dec();
+-		unlock_page(head);
+-		put_page(head);
+-		return 0;
+-	}
+-
+ 	/*
+ 	 * TODO: hwpoison for pud-sized hugetlb doesn't work right now, so
+ 	 * simply disable it. In order to make it work properly, we need
+@@ -1623,6 +1615,8 @@ out:
+ 	return rc;
+ }
+ 
++static DEFINE_MUTEX(mf_mutex);
++
+ /**
+  * memory_failure - Handle memory failure of a page.
+  * @pfn: Page Number of the corrupted page
+@@ -1649,7 +1643,6 @@ int memory_failure(unsigned long pfn, in
+ 	int res = 0;
+ 	unsigned long page_flags;
+ 	bool retry = true;
+-	static DEFINE_MUTEX(mf_mutex);
+ 
+ 	if (!sysctl_memory_failure_recovery)
+ 		panic("Memory failure on page %lx", pfn);
+@@ -1783,16 +1776,6 @@ try_again:
+ 	 */
+ 	page_flags = p->flags;
+ 
+-	/*
+-	 * unpoison always clear PG_hwpoison inside page lock
+-	 */
+-	if (!PageHWPoison(p)) {
+-		pr_err("Memory failure: %#lx: just unpoisoned\n", pfn);
+-		num_poisoned_pages_dec();
+-		unlock_page(p);
+-		put_page(p);
+-		goto unlock_mutex;
+-	}
+ 	if (hwpoison_filter(p)) {
+ 		if (TestClearPageHWPoison(p))
+ 			num_poisoned_pages_dec();
+@@ -1973,6 +1956,7 @@ int unpoison_memory(unsigned long pfn)
+ 	struct page *page;
+ 	struct page *p;
+ 	int freeit = 0;
++	int ret = 0;
+ 	unsigned long flags = 0;
+ 	static DEFINE_RATELIMIT_STATE(unpoison_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 					DEFAULT_RATELIMIT_BURST);
+@@ -1983,39 +1967,30 @@ int unpoison_memory(unsigned long pfn)
+ 	p = pfn_to_page(pfn);
+ 	page = compound_head(p);
+ 
++	mutex_lock(&mf_mutex);
++
+ 	if (!PageHWPoison(p)) {
+ 		unpoison_pr_info("Unpoison: Page was already unpoisoned %#lx\n",
+ 				 pfn, &unpoison_rs);
+-		return 0;
++		goto unlock_mutex;
  	}
- 	if (!PageUptodate(page))
+ 
+ 	if (page_count(page) > 1) {
+ 		unpoison_pr_info("Unpoison: Someone grabs the hwpoison page %#lx\n",
+ 				 pfn, &unpoison_rs);
+-		return 0;
++		goto unlock_mutex;
+ 	}
+ 
+ 	if (page_mapped(page)) {
+ 		unpoison_pr_info("Unpoison: Someone maps the hwpoison page %#lx\n",
+ 				 pfn, &unpoison_rs);
+-		return 0;
++		goto unlock_mutex;
+ 	}
+ 
+ 	if (page_mapping(page)) {
+ 		unpoison_pr_info("Unpoison: the hwpoison page has non-NULL mapping %#lx\n",
+ 				 pfn, &unpoison_rs);
+-		return 0;
+-	}
+-
+-	/*
+-	 * unpoison_memory() can encounter thp only when the thp is being
+-	 * worked by memory_failure() and the page lock is not held yet.
+-	 * In such case, we yield to memory_failure() and make unpoison fail.
+-	 */
+-	if (!PageHuge(page) && PageTransHuge(page)) {
+-		unpoison_pr_info("Unpoison: Memory failure is now running on %#lx\n",
+-				 pfn, &unpoison_rs);
+-		return 0;
++		goto unlock_mutex;
+ 	}
+ 
+ 	if (!get_hwpoison_page(p, flags)) {
+@@ -2023,29 +1998,23 @@ int unpoison_memory(unsigned long pfn)
+ 			num_poisoned_pages_dec();
+ 		unpoison_pr_info("Unpoison: Software-unpoisoned free page %#lx\n",
+ 				 pfn, &unpoison_rs);
+-		return 0;
++		goto unlock_mutex;
+ 	}
+ 
+-	lock_page(page);
+-	/*
+-	 * This test is racy because PG_hwpoison is set outside of page lock.
+-	 * That's acceptable because that won't trigger kernel panic. Instead,
+-	 * the PG_hwpoison page will be caught and isolated on the entrance to
+-	 * the free buddy page pool.
+-	 */
+ 	if (TestClearPageHWPoison(page)) {
+ 		unpoison_pr_info("Unpoison: Software-unpoisoned page %#lx\n",
+ 				 pfn, &unpoison_rs);
+ 		num_poisoned_pages_dec();
+ 		freeit = 1;
+ 	}
+-	unlock_page(page);
+ 
+ 	put_page(page);
+ 	if (freeit && !(pfn == my_zero_pfn(0) && page_count(p) == 1))
+ 		put_page(page);
+ 
+-	return 0;
++unlock_mutex:
++	mutex_unlock(&mf_mutex);
++	return ret;
+ }
+ EXPORT_SYMBOL(unpoison_memory);
+ 
+@@ -2226,9 +2195,12 @@ int soft_offline_page(unsigned long pfn,
+ 		return -EIO;
+ 	}
+ 
++	mutex_lock(&mf_mutex);
++
+ 	if (PageHWPoison(page)) {
+ 		pr_info("%s: %#lx page already poisoned\n", __func__, pfn);
+ 		put_ref_page(ref_page);
++		mutex_unlock(&mf_mutex);
+ 		return 0;
+ 	}
+ 
+@@ -2247,5 +2219,7 @@ retry:
+ 		}
+ 	}
+ 
++	mutex_unlock(&mf_mutex);
++
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from sunnanyong@huawei.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
 
