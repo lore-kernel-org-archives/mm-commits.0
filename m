@@ -2,40 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61633C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:13:49 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AD62C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:13:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232143AbiAVGNt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:13:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57344 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230076AbiAVGNs (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:13:48 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87F42C06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:13:48 -0800 (PST)
+        id S233440AbiAVGNv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:13:51 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:54882 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230076AbiAVGNv (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:13:51 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 52063B8216D
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:13:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5EA5C004E1;
-        Sat, 22 Jan 2022 06:13:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5CA50B820FE
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:13:50 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBDFAC004E1;
+        Sat, 22 Jan 2022 06:13:48 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642832026;
-        bh=G+CirkaGuf3U0Ctj8zohvkboH9ldNSxVUUngGwSfWWI=;
+        s=korg; t=1642832029;
+        bh=1x4JN5S0n9RZ0qlKxGN3jfVL3NgvlQumpjqKP1bFW9Q=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=vbNsf9TGFgj6KuVcv/kZzv719Y2+IHGLZlIsWIy+usEJNzt11ufKLoXitbRPCbfTy
-         eC/u+N4ftLNKQ2duIzmo0M6JTC7i6KHz5ZYg+v2xyrXMb1cJz9aXKFSYztHxh1+HtK
-         TrAk+9FWIhwc4PUni9GUop7sRRmJP2+IiaBk1Lwg=
-Date:   Fri, 21 Jan 2022 22:13:45 -0800
+        b=j20TdlmqPVf3y8HCrTBkYyWWuwSQUQAhBQpF+/5KB/ywT1v7HhEQgrtRYiiPGU/KV
+         nINPPSxZezq8nZri2zdnLTc7r27n82XhsXaiQaS5ZxS7DM3ip3QyttanYQ6QKqhUOt
+         PzvdueyQTnaiVDaWH4+TuIUNx35Ryr40q9RfYjQU=
+Date:   Fri, 21 Jan 2022 22:13:48 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, colin.i.king@gmail.com,
+To:     akpm@linux-foundation.org, hulkci@huawei.com, libaokun1@huawei.com,
         linux-mm@kvack.org, mcgrof@kernel.org, mm-commits@vger.kernel.org,
         torvalds@linux-foundation.org
-Subject:  [patch 42/69] kernel/sysctl.c: remove unused variable
- ten_thousand
-Message-ID: <20220122061345.JD5s2KopC%akpm@linux-foundation.org>
+Subject:  [patch 43/69] sysctl: returns -EINVAL when a negative
+ value is passed to proc_doulongvec_minmax
+Message-ID: <20220122061348.oKWIG8D09%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -43,36 +40,45 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Colin Ian King <colin.i.king@gmail.com>
-Subject: kernel/sysctl.c: remove unused variable ten_thousand
+From: Baokun Li <libaokun1@huawei.com>
+Subject: sysctl: returns -EINVAL when a negative value is passed to proc_doulongvec_minmax
 
-The const variable ten_thousand is not used, it is redundant and can be
-removed.
+When we pass a negative value to the proc_doulongvec_minmax() function,
+the function returns 0, but the corresponding interface value does not
+change.
 
-Cleans up clang warning:
-kernel/sysctl.c:99:18: warning: unused variable 'ten_thousand' [-Wunused-const-variable]
-static const int ten_thousand = 10000;
+we can easily reproduce this problem with the following commands:
+    cd /proc/sys/fs/epoll
+    echo -1 > max_user_watches; echo $?; cat max_user_watches
 
-Link: https://lkml.kernel.org/r/20211221184501.574670-1-colin.i.king@gmail.com
-Fixes: c26da54dc8ca ("printk: move printk sysctl to printk/sysctl.c")
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+This function requires a non-negative number to be passed in, so when
+a negative number is passed in, -EINVAL is returned.
+
+Link: https://lkml.kernel.org/r/20211220092627.3744624-1-libaokun1@huawei.com
+Signed-off-by: Baokun Li <libaokun1@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
 Acked-by: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/sysctl.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/kernel/sysctl.c~kernel-sysctlc-remove-unused-variable-ten_thousand
+--- a/kernel/sysctl.c~sysctl-returns-einval-when-a-negative-value-is-passed-to-proc_doulongvec_minmax
 +++ a/kernel/sysctl.c
-@@ -96,9 +96,6 @@
- 
- /* Constants used for minimum and  maximum */
- 
--#ifdef CONFIG_PRINTK
--static const int ten_thousand = 10000;
--#endif
- #ifdef CONFIG_PERF_EVENTS
- static const int six_hundred_forty_kb = 640 * 1024;
- #endif
+@@ -1145,10 +1145,11 @@ static int __do_proc_doulongvec_minmax(v
+ 			err = proc_get_long(&p, &left, &val, &neg,
+ 					     proc_wspace_sep,
+ 					     sizeof(proc_wspace_sep), NULL);
+-			if (err)
++			if (err || neg) {
++				err = -EINVAL;
+ 				break;
+-			if (neg)
+-				continue;
++			}
++
+ 			val = convmul * val / convdiv;
+ 			if ((min && val < *min) || (max && val > *max)) {
+ 				err = -EINVAL;
 _
