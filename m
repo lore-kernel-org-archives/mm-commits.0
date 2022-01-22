@@ -2,45 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD509C433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 01:19:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 935E2C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 01:20:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231535AbiAVBTN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Jan 2022 20:19:13 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:38814 "EHLO
+        id S231588AbiAVBUV (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Jan 2022 20:20:21 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:39002 "EHLO
         sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231402AbiAVBTN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jan 2022 20:19:13 -0500
+        with ESMTP id S231402AbiAVBUU (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jan 2022 20:20:20 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 92DE1CE17BF
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 01:19:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8573CC340E1;
-        Sat, 22 Jan 2022 01:19:09 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 025D1CE2508
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 01:20:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54651C340E1;
+        Sat, 22 Jan 2022 01:20:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642814350;
-        bh=Kf7Sydd26Wnrt41YCjFKktdexNrsXTptuCDTwqEq134=;
+        s=korg; t=1642814417;
+        bh=XhOTn/22Rcxj9i1gGRWYgrFS1V0MyUj3cj9ITXuiuvo=;
         h=Date:From:To:Subject:From;
-        b=nfq+DvoCuatU/h5Eyw6M0ZU35ISDINXOGo75DjqfEyBmXoC03zHrJjNhCd+v1mLVt
-         Pk1+WtP9OirazRuBksqZ7J25XfxCuikICnqBfnnXnPndnt91uCkBBtJP+4bxq5Fgy7
-         mV0XVWu4MHE/+lg86d+kzH/Ezayz+4DAI/kwzUlA=
-Date:   Fri, 21 Jan 2022 17:19:08 -0800
+        b=KuKCo/UYZWbELo0VW9LHg44C0M++6ZgGIk0rEAgqaluh8A3fplOrNHPH4iFWnMj7j
+         hATWVG8ipy7jgw9xtx7ydC2Ts5e3zI5crAva9YHwbPCP1aFO82iwXi4dwuHHdT4rOS
+         /WwBWjRWg/Hie+Lf25lwBHZLGkm7zEtK08qi9faM=
+Date:   Fri, 21 Jan 2022 17:20:16 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
-        bfields@fieldses.org, crope@iki.fi, ebiederm@xmission.com,
-        jlayton@kernel.org, keescook@chromium.org, kernel@tuxforce.de,
-        mcgrof@kernel.org, mic@digikod.net, mm-commits@vger.kernel.org,
-        nixiaoming@huawei.com, steve@sk2.org, viro@zeniv.linux.org.uk,
-        yzaikin@google.com
+To:     mcgrof@kernel.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
 Subject:  [folded-merged]
- sysctl-move-maxolduid-as-a-sysctl-specific-const-fix.patch removed from -mm
- tree
-Message-ID: <20220122011908.D2AQeKo1v%akpm@linux-foundation.org>
+ =?US-ASCII?Q?sysctl-add-and-use-base-directory-declarer-and-registration-?=
+ =?US-ASCII?Q?helper-fix.patch?= removed from -mm tree
+Message-ID: <20220122012016.xzRPW8alF%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -48,66 +42,59 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl-move-maxolduid-as-a-sysctl-specific-const-fix
+     Subject: sysctl-add-and-use-base-directory-declarer-and-registration-helper-fix
 has been removed from the -mm tree.  Its filename was
-     sysctl-move-maxolduid-as-a-sysctl-specific-const-fix.patch
+     sysctl-add-and-use-base-directory-declarer-and-registration-helper-fix.patch
 
-This patch was dropped because it was folded into sysctl-move-maxolduid-as-=
-a-sysctl-specific-const.patch
+This patch was dropped because it was folded into sysctl-add-and-use-base-directory-declarer-and-registration-helper.patch
 
 ------------------------------------------------------
-=46rom: Andrew Morton <akpm@linux-foundation.org>
-Subject: sysctl-move-maxolduid-as-a-sysctl-specific-const-fix
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: sysctl-add-and-use-base-directory-declarer-and-registration-helper-fix
 
-fix sysctl_vals[], per Micka=C3=ABl.
+null-terminate the ctl_table arrays
 
-Signed-off-by: Micka=C3=ABl Sala=C3=BCn <mic@digikod.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Antti Palosaari <crope@iki.fi>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
-Cc: Lukas Middendorf <kernel@tuxforce.de>
-Cc: Stephen Kitt <steve@sk2.org>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
+Link: https://lkml.kernel.org/r/YafJY3rXDYnjK/gs@bombadil.infradead.org
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/sysctl.h |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/fs/proc/proc_sysctl.c~sysctl-move-maxolduid-as-a-sysctl-specific-cons=
-t-fix
-+++ a/fs/proc/proc_sysctl.c
-@@ -26,7 +26,7 @@ static const struct file_operations proc
- static const struct inode_operations proc_sys_dir_operations;
-=20
- /* shared constants to be used in various sysctls */
--const int sysctl_vals[] =3D { -1, 0, 1, 2, 4, 100, 200, 1000, 65535, INT_M=
-AX };
-+const int sysctl_vals[] =3D { -1, 0, 1, 2, 4, 100, 200, 1000, 3000, INT_MA=
-X, 65535 };
- EXPORT_SYMBOL(sysctl_vals);
-=20
- const unsigned long sysctl_long_vals[] =3D { 0, 1, LONG_MAX };
+--- a/include/linux/sysctl.h~sysctl-add-and-use-base-directory-declarer-and-registration-helper-fix
++++ a/include/linux/sysctl.h
+@@ -201,6 +201,7 @@ static struct ctl_table _name##_base_tab
+ 		.mode		= 0555,					\
+ 		.child		= _table,				\
+ 	},								\
++	{ },								\
+ }
+ 
+ extern int __register_sysctl_base(struct ctl_table *base_table);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
+hpet-simplify-subdirectory-registration-with-register_sysctl.patch
+i915-simplify-subdirectory-registration-with-register_sysctl.patch
+macintosh-mac_hidc-simplify-subdirectory-registration-with-register_sysctl.patch
+ocfs2-simplify-subdirectory-registration-with-register_sysctl.patch
+test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
+cdrom-simplify-subdirectory-registration-with-register_sysctl.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point.patch
+fs-move-binfmt_misc-sysctl-to-its-own-file.patch
+sysctl-share-unsigned-long-const-values.patch
+fs-move-inode-sysctls-to-its-own-file.patch
+fs-move-fs-stat-sysctls-to-file_tablec.patch
+fs-move-dcache-sysctls-to-its-own-file.patch
 sysctl-move-maxolduid-as-a-sysctl-specific-const.patch
-proc-remove-pde_data-completely-fix.patch
-proc-remove-pde_data-completely-fix-fix.patch
-mm-remove-cleancache-fix.patch
-mm-simplify-try_to_unuse-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.pa=
-tch
-arch-x86-include-asm-pgtableh-needs-spinlockh.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+fs-move-shared-sysctls-to-fs-sysctlsc.patch
+fs-move-locking-sysctls-where-they-are-used.patch
+fs-move-namei-sysctls-to-its-own-file.patch
+fs-move-fs-execc-sysctls-into-its-own-file.patch
+fs-move-pipe-sysctls-to-is-own-file.patch
+sysctl-add-and-use-base-directory-declarer-and-registration-helper.patch
+fs-move-namespace-sysctls-and-declare-fs-base-directory.patch
+kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases.patch
 
