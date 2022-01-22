@@ -2,40 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B4011C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 01:15:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0E941C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 01:16:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231573AbiAVBPS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Jan 2022 20:15:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48776 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231402AbiAVBPS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jan 2022 20:15:18 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC243C06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 17:15:17 -0800 (PST)
+        id S231511AbiAVBQn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Jan 2022 20:16:43 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:35782 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231402AbiAVBQm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jan 2022 20:16:42 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5BE8D61AB6
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 01:15:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D0E7C340E1;
-        Sat, 22 Jan 2022 01:15:16 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BAF9EB8213B
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 01:16:41 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3ADE7C340E1;
+        Sat, 22 Jan 2022 01:16:40 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642814116;
-        bh=1H4m1TftHDGGVRCzmnDKRUGbY6yTWqh4tc1wwRVZ4NI=;
+        s=korg; t=1642814200;
+        bh=W6JoYNGBkA5Rw4ru0BYMTdtZ9HjG8eYsoQXvobrfk/8=;
         h=Date:From:To:Subject:From;
-        b=olbw/QyoJMt+nq0+327va68E8pxLSDYBKgy0mO9uET5/ixk9ffqrja4HOzjBIaL1l
-         o6lfa1sXUW59q9yvAS1kC5Dff9u+jaKwKRQCyXgzIokFnQkTCkZBZ9P8qyp26m8UYD
-         pm4+H1TQDbGDHEL3gsCMykdG3PRbuMHiOAHrtqUc=
-Date:   Fri, 21 Jan 2022 17:15:16 -0800
+        b=NuPP4iWgAOcSBw99IgP7DLNld0dttzW1/ptSxsNoJ+TRQNs9cu8U1YL6plJpgYmLu
+         mSRrT/n0hStpOqehg/IoZdHrQSCgsifIt6LpuZ60PesQt9CK44CUn3g2VHXoagE7kd
+         J0piVYgh+QRopvpgDZXUgVP7Dmw9Z0nGBU0SSae8=
+Date:   Fri, 21 Jan 2022 17:16:39 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mcgrof@kernel.org,
-        mm-commits@vger.kernel.org
+To:     arnd@arndb.de, mcgrof@kernel.org, mm-commits@vger.kernel.org,
+        sfr@canb.auug.org.au
 Subject:  [folded-merged]
- sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch removed from
- -mm tree
-Message-ID: <20220122011516.nyLjXv1rU%akpm@linux-foundation.org>
+ fs-move-inode-sysctls-to-its-own-file-fix.patch removed from -mm tree
+Message-ID: <20220122011639.Jy2xxVm3Y%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,51 +40,65 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl-add-helper-to-register-a-sysctl-mount-point-fix
+     Subject: fs/inode: avoid unused-variable warning
 has been removed from the -mm tree.  Its filename was
-     sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
+     fs-move-inode-sysctls-to-its-own-file-fix.patch
 
-This patch was dropped because it was folded into sysctl-add-helper-to-register-a-sysctl-mount-point.patch
+This patch was dropped because it was folded into fs-move-inode-sysctls-to-its-own-file.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sysctl-add-helper-to-register-a-sysctl-mount-point-fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: fs/inode: avoid unused-variable warning
 
-export register_sysctl_mount_point() to modules
+Now that 'inodes_stat' is marked 'static', it causes a harmless warning
+whenever it is unused:
 
-ERROR: modpost: "register_sysctl_mount_point" [fs/binfmt_misc.ko] undefined!
+fs/inode.c:73:29: error: 'inodes_stat' defined but not used [-Werror=unused-variable]
+   73 | static struct inodes_stat_t inodes_stat;
 
+Move it into the #ifdef that guards its only references.
+
+Link: https://lkml.kernel.org/r/20211203190123.874239-1-arnd@kernel.org
+Fixes: 245314851782 ("fs: move inode sysctls to its own file")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/inode.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/fs/proc/proc_sysctl.c~sysctl-add-helper-to-register-a-sysctl-mount-point-fix
-+++ a/fs/proc/proc_sysctl.c
-@@ -47,6 +47,7 @@ struct ctl_table_header *register_sysctl
- {
- 	return register_sysctl(path, sysctl_mount_point);
- }
-+EXPORT_SYMBOL(register_sysctl_mount_point);
+--- a/fs/inode.c~fs-move-inode-sysctls-to-its-own-file-fix
++++ a/fs/inode.c
+@@ -67,11 +67,6 @@ const struct address_space_operations em
+ };
+ EXPORT_SYMBOL(empty_aops);
  
- static bool is_empty_dir(struct ctl_table_header *head)
+-/*
+- * Statistics gathering..
+- */
+-static struct inodes_stat_t inodes_stat;
+-
+ static DEFINE_PER_CPU(unsigned long, nr_inodes);
+ static DEFINE_PER_CPU(unsigned long, nr_unused);
+ 
+@@ -106,6 +101,11 @@ long get_nr_dirty_inodes(void)
+  * Handle nr_inode sysctl
+  */
+ #ifdef CONFIG_SYSCTL
++/*
++ * Statistics gathering..
++ */
++static struct inodes_stat_t inodes_stat;
++
+ static int proc_nr_inodes(struct ctl_table *table, int write, void *buffer,
+ 			  size_t *lenp, loff_t *ppos)
  {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-sysctl-add-helper-to-register-a-sysctl-mount-point.patch
-sysctl-move-maxolduid-as-a-sysctl-specific-const-fix.patch
-proc-remove-pde_data-completely-fix.patch
-proc-remove-pde_data-completely-fix-fix.patch
-mm-remove-cleancache-fix.patch
-mm-simplify-try_to_unuse-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-arch-x86-include-asm-pgtableh-needs-spinlockh.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+fs-move-inode-sysctls-to-its-own-file.patch
+fs-move-dcache-sysctls-to-its-own-file-fix-2.patch
 
