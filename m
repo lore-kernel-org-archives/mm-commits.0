@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3C733C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 01:22:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1B816C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 01:23:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231592AbiAVBWZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Jan 2022 20:22:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50310 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231402AbiAVBWZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jan 2022 20:22:25 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3576CC06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 17:22:25 -0800 (PST)
+        id S231602AbiAVBXo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Jan 2022 20:23:44 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:50816 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230013AbiAVBXo (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jan 2022 20:23:44 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 93792CE2514
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 01:22:23 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B43B6C340E4;
-        Sat, 22 Jan 2022 01:22:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 28D1061AA5
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 01:23:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 758C2C340E1;
+        Sat, 22 Jan 2022 01:23:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642814541;
-        bh=vDyTpALHmPIy/RWiQ8QmtmXIxuKThR9cLBnUzOcw380=;
+        s=korg; t=1642814623;
+        bh=GMkXmSdw8dAcIHkXvCfnPYIL58hJoflv1jn5skjgK+k=;
         h=Date:From:To:Subject:From;
-        b=N3K2xqUwT0me9Ej/axtdbP7sHgzdF7CxhuBNZF+XZQkBSO+4rt9y8gFzUhEP3KkvP
-         ZYtmVoiU4t3z2EvPoZDHZOHYwkYdnKWh1ymjvLttAykJGOONNZJwaGzV5UQ4xd6mXm
-         ZDo8Jnc7r5KFPBG+y5ZAuLnGJT9Hmw/mYgtY7Fy0=
-Date:   Fri, 21 Jan 2022 17:22:21 -0800
+        b=PJpszzY0WAuKYQTsrAKqStFQsV3FNAAhQdmXiIOtBRSAqczGpYOtJmBZ67dW6CG4f
+         9ylPzzq86xBKRPCT47lNZln1XmbAuxyu0zzJbEGugbEEzZ67C1Oy2UQqK6b0Nun2NP
+         EsBVlRIdoEEANQIwuSCVqm72Krb7qE7rkJrc1QHI=
+Date:   Fri, 21 Jan 2022 17:23:43 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, lkp@intel.com,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        songmuchun@bytedance.com
+To:     colin.king@canonical.com, mm-commits@vger.kernel.org,
+        vbabka@suse.cz
 Subject:  [folded-merged]
- proc-remove-pde_data-completely-fix-fix.patch removed from -mm tree
-Message-ID: <20220122012221.kRWwYhea1%akpm@linux-foundation.org>
+ =?US-ASCII?Q?lib-stackdepot-allow-optional-init-and-stack=5Ftable-allo?=
+ =?US-ASCII?Q?cation-by-kvmalloc-fix.patch?= removed from -mm tree
+Message-ID: <20220122012343.3exqRx8fR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,47 +43,42 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-remove-pde_data-completely-fix-fix
+     Subject: lib/stackdepot: fix spelling mistake and grammar in pr_err message
 has been removed from the -mm tree.  Its filename was
-     proc-remove-pde_data-completely-fix-fix.patch
+     lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc-fix.patch
 
-This patch was dropped because it was folded into proc-remove-pde_data-completely.patch
+This patch was dropped because it was folded into lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-remove-pde_data-completely-fix-fix
+From: Colin Ian King <colin.king@canonical.com>
+Subject: lib/stackdepot: fix spelling mistake and grammar in pr_err message
 
-Cc: Muchun Song <songmuchun@bytedance.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Reported-by: kernel test robot <lkp@intel.com>
+There is a spelling mistake of the work allocation so fix this and
+re-phrase the message to make it easier to read.
+
+Link: https://lkml.kernel.org/r/20211015104159.11282-1-colin.king@canonical.com
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/nubus/proc.c |    2 +-
+ lib/stackdepot.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/drivers/nubus/proc.c~proc-remove-pde_data-completely-fix-fix
-+++ a/drivers/nubus/proc.c
-@@ -93,7 +93,7 @@ struct nubus_proc_pde_data {
- static struct nubus_proc_pde_data *
- nubus_proc_alloc_pde_data(unsigned char *ptr, unsigned int size)
- {
--	struct nubus_proc_pded *pded;
-+	struct nubus_proc_pde_data *pded;
- 
- 	pded = kmalloc(sizeof(*pded), GFP_KERNEL);
- 	if (!pded)
+--- a/lib/stackdepot.c~lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc-fix
++++ a/lib/stackdepot.c
+@@ -186,7 +186,7 @@ __ref int stack_depot_init(void)
+ 			for (i = 0; i < STACK_HASH_SIZE;  i++)
+ 				stack_table[i] = NULL;
+ 		} else {
+-			pr_err("Stack Depot failed hash table allocationg, disabling\n");
++			pr_err("Stack Depot hash table allocation failed, disabling\n");
+ 			stack_depot_disable = true;
+ 			mutex_unlock(&stack_depot_init_mutex);
+ 			return -ENOMEM;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from colin.king@canonical.com are
 
-proc-remove-pde_data-completely.patch
-mm-remove-cleancache-fix.patch
-mm-simplify-try_to_unuse-fix.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-arch-x86-include-asm-pgtableh-needs-spinlockh.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+lib-stackdepot-allow-optional-init-and-stack_table-allocation-by-kvmalloc.patch
 
