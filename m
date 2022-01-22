@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AC2BEC433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:11:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D7DDC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:11:23 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233409AbiAVGLS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:11:18 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56776 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233130AbiAVGLR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:11:17 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B081BC06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:11:17 -0800 (PST)
+        id S233412AbiAVGLW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:11:22 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:41368 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233130AbiAVGLW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:11:22 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4D6AD60E9E
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:11:17 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3751BC340E0;
-        Sat, 22 Jan 2022 06:11:15 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F7D360C5D
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:11:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24317C004E1;
+        Sat, 22 Jan 2022 06:11:20 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642831876;
-        bh=fd0oJ+qkYRBPewjL1a0K6/r0ya0k9kGsK6qcaLo7HWU=;
+        s=korg; t=1642831881;
+        bh=nnl05lhlnxDMaNqi7wrSEfArfcP+xsixck5h9cMZ+xY=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=hSG0yrBI0IiM1V+TylnghGXVwOKy1/DF7O/vMtBeBN9BFc71ylcFzgp9h90CfeHLs
-         arGoG+Tn9yZ3ec7XkYq76hzqkD/4A+0mffT3CHiawDsWOECwwLoNRT48vUsx6gGuia
-         XWyvYvAORVlnChgpGXfJI2EYEvdLEvl+JqcjZ73Y=
-Date:   Fri, 21 Jan 2022 22:11:14 -0800
+        b=p5ejStsVMtsdSUxQW7P0kBcg4LAuQfRfk6L1XUEtWdjcS8MarxMnvZ7kKlsuiMlQy
+         n7pSX9zcRuPV1Se957HJ8mGnS1/3Fp+WnD0tmNsZkOGrEjlWGpw2+F4p6BvM30brK6
+         Zf8/Tnv8KzqB7ubxWgk73rN4QQBuA6k0yz1BvF/8=
+Date:   Fri, 21 Jan 2022 22:11:19 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -48,9 +45,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
         tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
         yzaikin@google.com
-Subject:  [patch 07/69] sysctl: use const for typically used
- max/min proc sysctls
-Message-ID: <20220122061114.dfw5ly26_%akpm@linux-foundation.org>
+Subject:  [patch 08/69] sysctl: use SYSCTL_ZERO to replace some
+ static int zero uses
+Message-ID: <20220122061119.UbG9LtVZO%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -59,15 +56,13 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: sysctl: use const for typically used max/min proc sysctls
+Subject: sysctl: use SYSCTL_ZERO to replace some static int zero uses
 
-When proc_dointvec_minmax() or proc_doulongvec_minmax() are used we are
-using the extra1 and extra2 parameters on the sysctl table only for a min
-and max boundary, these extra1 and extra2 arguments are then used for
-read-only operations.  So make them const to reflect this.
+Use the variable SYSCTL_ZERO to replace some static int boundary variables
+with a value of 0 (minolduid, min_extfrag_threshold,
+min_wakeup_granularity_ns).
 
-[mcgrof@kernel.org: commit log love]
-Link: https://lkml.kernel.org/r/20211123202347.818157-7-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211123202347.818157-8-mcgrof@kernel.org
 Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -113,158 +108,72 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   53 ++++++++++++++++++++++------------------------
- 1 file changed, 26 insertions(+), 27 deletions(-)
+ kernel/sysctl.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
---- a/kernel/sysctl.c~sysctl-use-const-for-typically-used-max-min-proc-sysctls
+--- a/kernel/sysctl.c~sysctl-use-sysctl_zero-to-replace-some-static-int-zero-uses
 +++ a/kernel/sysctl.c
-@@ -108,27 +108,26 @@
- 
- /* Constants used for minimum and  maximum */
- 
--static unsigned long zero_ul;
--static unsigned long one_ul = 1;
--static unsigned long long_max = LONG_MAX;
-+static const unsigned long zero_ul;
-+static const unsigned long one_ul = 1;
-+static const unsigned long long_max = LONG_MAX;
- #ifdef CONFIG_PRINTK
--static int ten_thousand = 10000;
-+static const int ten_thousand = 10000;
- #endif
- #ifdef CONFIG_PERF_EVENTS
--static int six_hundred_forty_kb = 640 * 1024;
-+static const int six_hundred_forty_kb = 640 * 1024;
- #endif
- 
- /* this is needed for the proc_doulongvec_minmax of vm_dirty_bytes */
--static unsigned long dirty_bytes_min = 2 * PAGE_SIZE;
-+static const unsigned long dirty_bytes_min = 2 * PAGE_SIZE;
+@@ -123,7 +123,7 @@ static const unsigned long dirty_bytes_m
  
  /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
--static int maxolduid = 65535;
--static int minolduid;
-+static const int maxolduid = 65535;
-+static const int minolduid;
+ static const int maxolduid = 65535;
+-static const int minolduid;
++/* minolduid is SYSCTL_ZERO */
  
  static const int ngroups_max = NGROUPS_MAX;
  static const int cap_last_cap = CAP_LAST_CAP;
- 
--
- #ifdef CONFIG_INOTIFY_USER
- #include <linux/inotify.h>
- #endif
-@@ -172,8 +171,8 @@ int sysctl_legacy_va_layout;
+@@ -171,7 +171,7 @@ int sysctl_legacy_va_layout;
  #endif
  
  #ifdef CONFIG_COMPACTION
--static int min_extfrag_threshold;
--static int max_extfrag_threshold = 1000;
-+static const int min_extfrag_threshold;
-+static const int max_extfrag_threshold = 1000;
+-static const int min_extfrag_threshold;
++/* min_extfrag_threshold is SYSCTL_ZERO */;
+ static const int max_extfrag_threshold = 1000;
  #endif
  
- #endif /* CONFIG_SYSCTL */
-@@ -2177,8 +2176,8 @@ static struct ctl_table kern_table[] = {
+@@ -2176,7 +2176,7 @@ static struct ctl_table kern_table[] = {
  		.maxlen		= sizeof(int),
  		.mode		= 0644,
  		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &minolduid,
--		.extra2		= &maxolduid,
-+		.extra1		= (void *)&minolduid,
-+		.extra2		= (void *)&maxolduid,
+-		.extra1		= (void *)&minolduid,
++		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= (void *)&maxolduid,
  	},
  	{
- 		.procname	= "overflowgid",
-@@ -2186,8 +2185,8 @@ static struct ctl_table kern_table[] = {
+@@ -2185,7 +2185,7 @@ static struct ctl_table kern_table[] = {
  		.maxlen		= sizeof(int),
  		.mode		= 0644,
  		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &minolduid,
--		.extra2		= &maxolduid,
-+		.extra1		= (void *)&minolduid,
-+		.extra2		= (void *)&maxolduid,
+-		.extra1		= (void *)&minolduid,
++		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= (void *)&maxolduid,
  	},
  #ifdef CONFIG_S390
- 	{
-@@ -2261,7 +2260,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &ten_thousand,
-+		.extra2		= (void *)&ten_thousand,
- 	},
- 	{
- 		.procname	= "printk_devkmsg",
-@@ -2473,7 +2472,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= perf_event_max_stack_handler,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &six_hundred_forty_kb,
-+		.extra2		= (void *)&six_hundred_forty_kb,
- 	},
- 	{
- 		.procname	= "perf_event_max_contexts_per_stack",
-@@ -2629,7 +2628,7 @@ static struct ctl_table vm_table[] = {
- 		.maxlen		= sizeof(dirty_background_bytes),
- 		.mode		= 0644,
- 		.proc_handler	= dirty_background_bytes_handler,
--		.extra1		= &one_ul,
-+		.extra1		= (void *)&one_ul,
- 	},
- 	{
- 		.procname	= "dirty_ratio",
-@@ -2646,7 +2645,7 @@ static struct ctl_table vm_table[] = {
- 		.maxlen		= sizeof(vm_dirty_bytes),
- 		.mode		= 0644,
- 		.proc_handler	= dirty_bytes_handler,
--		.extra1		= &dirty_bytes_min,
-+		.extra1		= (void *)&dirty_bytes_min,
- 	},
- 	{
- 		.procname	= "dirty_writeback_centisecs",
-@@ -2760,8 +2759,8 @@ static struct ctl_table vm_table[] = {
+@@ -2759,7 +2759,7 @@ static struct ctl_table vm_table[] = {
  		.maxlen		= sizeof(int),
  		.mode		= 0644,
  		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &min_extfrag_threshold,
--		.extra2		= &max_extfrag_threshold,
-+		.extra1		= (void *)&min_extfrag_threshold,
-+		.extra2		= (void *)&max_extfrag_threshold,
+-		.extra1		= (void *)&min_extfrag_threshold,
++		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= (void *)&max_extfrag_threshold,
  	},
  	{
- 		.procname	= "compact_unevictable_allowed",
-@@ -3047,8 +3046,8 @@ static struct ctl_table fs_table[] = {
- 		.maxlen		= sizeof(files_stat.max_files),
- 		.mode		= 0644,
- 		.proc_handler	= proc_doulongvec_minmax,
--		.extra1		= &zero_ul,
--		.extra2		= &long_max,
-+		.extra1		= (void *)&zero_ul,
-+		.extra2		= (void *)&long_max,
- 	},
- 	{
- 		.procname	= "nr_open",
-@@ -3072,8 +3071,8 @@ static struct ctl_table fs_table[] = {
+@@ -3071,7 +3071,7 @@ static struct ctl_table fs_table[] = {
  		.maxlen		= sizeof(int),
  		.mode		= 0644,
  		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &minolduid,
--		.extra2		= &maxolduid,
-+		.extra1		= (void *)&minolduid,
-+		.extra2		= (void *)&maxolduid,
+-		.extra1		= (void *)&minolduid,
++		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= (void *)&maxolduid,
  	},
  	{
- 		.procname	= "overflowgid",
-@@ -3081,8 +3080,8 @@ static struct ctl_table fs_table[] = {
+@@ -3080,7 +3080,7 @@ static struct ctl_table fs_table[] = {
  		.maxlen		= sizeof(int),
  		.mode		= 0644,
  		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &minolduid,
--		.extra2		= &maxolduid,
-+		.extra1		= (void *)&minolduid,
-+		.extra2		= (void *)&maxolduid,
+-		.extra1		= (void *)&minolduid,
++		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= (void *)&maxolduid,
  	},
  #ifdef CONFIG_FILE_LOCKING
- 	{
 _
