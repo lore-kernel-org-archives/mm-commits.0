@@ -2,30 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 99BA6C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:12:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3AA5EC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:12:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229661AbiAVGMd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:12:33 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:53978 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbiAVGMc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:12:32 -0500
+        id S229671AbiAVGMj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:12:39 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57078 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229537AbiAVGMi (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:12:38 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C66E8C06173B
+        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:12:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B02CCB81FCB
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:12:31 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F26C6C004E1;
-        Sat, 22 Jan 2022 06:12:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 84F4CB81FCB
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:12:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CB101C004E1;
+        Sat, 22 Jan 2022 06:12:33 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642831950;
-        bh=EtmeLJef+Wm5mN+Nfdd85JrWXCA3/cMXVKE5Ob79Oa8=;
+        s=korg; t=1642831955;
+        bh=QruPzHyXNh6qQTfmuueJTwCRVGiq1Gqm2qjLS72Q2bQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=q6C8JWP9lI22Qh8sKUz5luVEOJYnd4HRDe17Iord11jrYxRlyhF0TsNoh/dIHBnKw
-         RIWKsrf8lNitTuQiegflmogIrihVl9vHREqzjvw5FUaWmEXCGUvm+uwB/Df+cO5i7D
-         HaNSRK/twywluCb5yjsewzmezLoaeAFtvZL7JdtQ=
-Date:   Fri, 21 Jan 2022 22:12:28 -0800
+        b=KD1OJYAkNYTF0N9UvlXUtZ99Z2GmAvka1gfm+ydtw/Zdz6k+5eZrcWJnM8i9bnpFE
+         bOpd7UNUSO2aOQpTpaEitZ2lAW8RRZwWbTwqJn3FS0vrutC8J34Et+3YaKJyfhyr7A
+         BDdxKGh7qYfxdwOCuGbdmb5a1X5F75rI9GyBg728=
+Date:   Fri, 21 Jan 2022 22:12:33 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -45,8 +48,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
         tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
         yzaikin@google.com
-Subject:  [patch 22/69] fs: move binfmt_misc sysctl to its own file
-Message-ID: <20220122061228.nmuo75sDn%akpm@linux-foundation.org>
+Subject:  [patch 23/69] printk: move printk sysctl to
+ printk/sysctl.c
+Message-ID: <20220122061233.5yZ8M9rw_%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -54,8 +58,8 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: fs: move binfmt_misc sysctl to its own file
+From: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: printk: move printk sysctl to printk/sysctl.c
 
 kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
 dishes, this makes it very difficult to maintain.
@@ -65,10 +69,12 @@ where they actually belong.  The proc sysctl maintainers do not want to
 know what sysctl knobs you wish to add for your own piece of code, we just
 care about the core logic.
 
-This moves the binfmt_misc sysctl to its own file to help remove clutter
-from kernel/sysctl.c.
+So move printk sysctl from kernel/sysctl.c to kernel/printk/sysctl.c.  Use
+register_sysctl() to register the sysctl interface.
 
-Link: https://lkml.kernel.org/r/20211124231435.1445213-5-mcgrof@kernel.org
+[mcgrof@kernel.org: fixed compile issues when PRINTK is not set, commit log update]
+Link: https://lkml.kernel.org/r/20211124231435.1445213-6-mcgrof@kernel.org
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
@@ -110,43 +116,223 @@ Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    6 +++++-
- kernel/sysctl.c  |    7 -------
- 2 files changed, 5 insertions(+), 8 deletions(-)
+ kernel/printk/Makefile   |    5 +-
+ kernel/printk/internal.h |    6 ++
+ kernel/printk/printk.c   |    1 
+ kernel/printk/sysctl.c   |   85 +++++++++++++++++++++++++++++++++++++
+ kernel/sysctl.c          |   68 -----------------------------
+ 5 files changed, 96 insertions(+), 69 deletions(-)
 
---- a/fs/binfmt_misc.c~fs-move-binfmt_misc-sysctl-to-its-own-file
-+++ a/fs/binfmt_misc.c
-@@ -822,7 +822,11 @@ static int __init init_misc_binfmt(void)
- 	int err = register_filesystem(&bm_fs_type);
- 	if (!err)
- 		insert_binfmt(&misc_format);
--	return err;
-+	if (!register_sysctl_mount_point("fs/binfmt_misc")) {
-+		pr_warn("Failed to create fs/binfmt_misc sysctl mount point");
-+		return -ENOMEM;
-+	}
-+	return 0;
+--- a/kernel/printk/internal.h~printk-move-printk-sysctl-to-printk-sysctlc
++++ a/kernel/printk/internal.h
+@@ -4,6 +4,12 @@
+  */
+ #include <linux/percpu.h>
+ 
++#if defined(CONFIG_PRINTK) && defined(CONFIG_SYSCTL)
++void __init printk_sysctl_init(void);
++#else
++#define printk_sysctl_init() do { } while (0)
++#endif
++
+ #ifdef CONFIG_PRINTK
+ 
+ /* Flags for a single printk record. */
+--- a/kernel/printk/Makefile~printk-move-printk-sysctl-to-printk-sysctlc
++++ a/kernel/printk/Makefile
+@@ -2,5 +2,8 @@
+ obj-y	= printk.o
+ obj-$(CONFIG_PRINTK)	+= printk_safe.o
+ obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)	+= braille.o
+-obj-$(CONFIG_PRINTK)	+= printk_ringbuffer.o
+ obj-$(CONFIG_PRINTK_INDEX)	+= index.o
++
++obj-$(CONFIG_PRINTK)                 += printk_support.o
++printk_support-y	             := printk_ringbuffer.o
++printk_support-$(CONFIG_SYSCTL)	     += sysctl.o
+--- a/kernel/printk/printk.c~printk-move-printk-sysctl-to-printk-sysctlc
++++ a/kernel/printk/printk.c
+@@ -3211,6 +3211,7 @@ static int __init printk_late_init(void)
+ 	ret = cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN, "printk:online",
+ 					console_cpu_notify, NULL);
+ 	WARN_ON(ret < 0);
++	printk_sysctl_init();
+ 	return 0;
+ }
+ late_initcall(printk_late_init);
+--- /dev/null
++++ a/kernel/printk/sysctl.c
+@@ -0,0 +1,85 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/*
++ * sysctl.c: General linux system control interface
++ */
++
++#include <linux/sysctl.h>
++#include <linux/printk.h>
++#include <linux/capability.h>
++#include <linux/ratelimit.h>
++#include "internal.h"
++
++static const int ten_thousand = 10000;
++
++static int proc_dointvec_minmax_sysadmin(struct ctl_table *table, int write,
++				void __user *buffer, size_t *lenp, loff_t *ppos)
++{
++	if (write && !capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	return proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++}
++
++static struct ctl_table printk_sysctls[] = {
++	{
++		.procname	= "printk",
++		.data		= &console_loglevel,
++		.maxlen		= 4*sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{
++		.procname	= "printk_ratelimit",
++		.data		= &printk_ratelimit_state.interval,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_jiffies,
++	},
++	{
++		.procname	= "printk_ratelimit_burst",
++		.data		= &printk_ratelimit_state.burst,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{
++		.procname	= "printk_delay",
++		.data		= &printk_delay_msec,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= (void *)&ten_thousand,
++	},
++	{
++		.procname	= "printk_devkmsg",
++		.data		= devkmsg_log_str,
++		.maxlen		= DEVKMSG_STR_MAX_SIZE,
++		.mode		= 0644,
++		.proc_handler	= devkmsg_sysctl_set_loglvl,
++	},
++	{
++		.procname	= "dmesg_restrict",
++		.data		= &dmesg_restrict,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax_sysadmin,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
++	},
++	{
++		.procname	= "kptr_restrict",
++		.data		= &kptr_restrict,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax_sysadmin,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_TWO,
++	},
++	{}
++};
++
++void __init printk_sysctl_init(void)
++{
++	register_sysctl_init("kernel", printk_sysctls);
++}
+--- a/kernel/sysctl.c~printk-move-printk-sysctl-to-printk-sysctlc
++++ a/kernel/sysctl.c
+@@ -908,17 +908,6 @@ static int proc_taint(struct ctl_table *
+ 	return err;
  }
  
- static void __exit exit_misc_binfmt(void)
---- a/kernel/sysctl.c~fs-move-binfmt_misc-sysctl-to-its-own-file
-+++ a/kernel/sysctl.c
-@@ -3127,13 +3127,6 @@ static struct ctl_table fs_table[] = {
- 		.extra1		= SYSCTL_ZERO,
- 		.extra2		= SYSCTL_TWO,
+-#ifdef CONFIG_PRINTK
+-static int proc_dointvec_minmax_sysadmin(struct ctl_table *table, int write,
+-				void *buffer, size_t *lenp, loff_t *ppos)
+-{
+-	if (write && !capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+-
+-	return proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+-}
+-#endif
+-
+ /**
+  * struct do_proc_dointvec_minmax_conv_param - proc_dointvec_minmax() range checking structure
+  * @min: pointer to minimum allowable value
+@@ -2210,63 +2199,6 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_doulongvec_minmax,
  	},
--#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
+-#if defined CONFIG_PRINTK
 -	{
--		.procname	= "binfmt_misc",
--		.mode		= 0555,
--		.child		= sysctl_mount_point,
+-		.procname	= "printk",
+-		.data		= &console_loglevel,
+-		.maxlen		= 4*sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-	},
+-	{
+-		.procname	= "printk_ratelimit",
+-		.data		= &printk_ratelimit_state.interval,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_jiffies,
+-	},
+-	{
+-		.procname	= "printk_ratelimit_burst",
+-		.data		= &printk_ratelimit_state.burst,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-	},
+-	{
+-		.procname	= "printk_delay",
+-		.data		= &printk_delay_msec,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= (void *)&ten_thousand,
+-	},
+-	{
+-		.procname	= "printk_devkmsg",
+-		.data		= devkmsg_log_str,
+-		.maxlen		= DEVKMSG_STR_MAX_SIZE,
+-		.mode		= 0644,
+-		.proc_handler	= devkmsg_sysctl_set_loglvl,
+-	},
+-	{
+-		.procname	= "dmesg_restrict",
+-		.data		= &dmesg_restrict,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax_sysadmin,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
+-	{
+-		.procname	= "kptr_restrict",
+-		.data		= &kptr_restrict,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax_sysadmin,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_TWO,
 -	},
 -#endif
  	{
- 		.procname	= "pipe-max-size",
- 		.data		= &pipe_max_size,
+ 		.procname	= "ngroups_max",
+ 		.data		= (void *)&ngroups_max,
 _
