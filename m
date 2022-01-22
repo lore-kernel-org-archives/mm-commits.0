@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CDDFC433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:13:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E11AC433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:13:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229772AbiAVGNL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:13:11 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57200 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233437AbiAVGNK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:13:10 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 11407C06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:13:10 -0800 (PST)
+        id S233434AbiAVGNM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:13:12 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:43670 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233431AbiAVGNL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:13:11 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CCDE8B82100
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:13:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1149FC340E0;
-        Sat, 22 Jan 2022 06:13:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9E5F361037
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:13:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8AD58C340E0;
+        Sat, 22 Jan 2022 06:13:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642831987;
-        bh=BIQK3dWwLkOgSuF+GfSs7qYzMFx1pIri52Ypwa3ILBE=;
+        s=korg; t=1642831991;
+        bh=HM5W3ga6/va5ou8hTvIDT7sQ/fU9rm4pMn7dgF7LweM=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=SPXASiT30qI0gcPQFnosjHHJH4laB072UBIIN+NQ3sLQgKHdWGqY7zAwZje7WknIO
-         oy+GHYVFRspR+SPnmS8bT+TvFYaUkGlcM713uHBNTsxyCsh/lopd9x8BRlsdx33zde
-         2uC8Pr1cl3hlUPdJY52Av8f277Y1WPK2CIYSgocc=
-Date:   Fri, 21 Jan 2022 22:13:06 -0800
+        b=oKoSyLX7BKc5/Jv5GqovgMEbgRH+ZUhAZxvf9fmyDROHtSdEMwPU3+fvjHXs+rxbq
+         fIO4rCnFOh0LvIC1L5UxEADvxZuIu+osuVxVixxqZCXVQB178AuHb7YvMclkXvIqWL
+         eXbn3PR02QHvqUhxgJuK6dPZaOSSa23/9p9K+Csk=
+Date:   Fri, 21 Jan 2022 22:13:10 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
         bfields@fieldses.org, crope@iki.fi, ebiederm@xmission.com,
@@ -37,8 +34,9 @@ To:     akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com,
         nixiaoming@huawei.com, steve@sk2.org,
         torvalds@linux-foundation.org, viro@zeniv.linux.org.uk,
         yzaikin@google.com
-Subject:  [patch 31/69] fs: move shared sysctls to fs/sysctls.c
-Message-ID: <20220122061306.9ayN3FnrG%akpm@linux-foundation.org>
+Subject:  [patch 32/69] fs: move locking sysctls where they are
+ used
+Message-ID: <20220122061310.cQXC1oymW%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -47,22 +45,19 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: fs: move shared sysctls to fs/sysctls.c
+Subject: fs: move locking sysctls where they are used
+
+kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
+dishes, this makes it very difficult to maintain.
 
 To help with this maintenance let's start by moving sysctls to places
 where they actually belong.  The proc sysctl maintainers do not want to
 know what sysctl knobs you wish to add for your own piece of code, we just
 care about the core logic.
 
-To help with this maintenance let's start by moving sysctls to places
-where they actually belong.  The proc sysctl maintainers do not want to
-know what sysctl knobs you wish to add for your own piece of code, we just
-care about the core logic.
+The locking fs sysctls are only used on fs/locks.c, so move them there.
 
-So move sysctls which are shared between filesystems into a common file
-outside of kernel/sysctl.c.
-
-Link: https://lkml.kernel.org/r/20211129205548.605569-6-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211129205548.605569-7-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -78,87 +73,101 @@ Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/Makefile     |    1 +
- fs/sysctls.c    |   38 ++++++++++++++++++++++++++++++++++++++
- kernel/sysctl.c |   18 ------------------
- 3 files changed, 39 insertions(+), 18 deletions(-)
+ fs/locks.c         |   34 ++++++++++++++++++++++++++++++++--
+ include/linux/fs.h |    4 ----
+ kernel/sysctl.c    |   20 --------------------
+ 3 files changed, 32 insertions(+), 26 deletions(-)
 
---- a/fs/Makefile~fs-move-shared-sysctls-to-fs-sysctlsc
-+++ a/fs/Makefile
-@@ -28,6 +28,7 @@ obj-y				+= notify/
- obj-$(CONFIG_EPOLL)		+= eventpoll.o
- obj-y				+= anon_inodes.o
- obj-$(CONFIG_SIGNALFD)		+= signalfd.o
-+obj-$(CONFIG_SYSCTL)		+= sysctls.o
- obj-$(CONFIG_TIMERFD)		+= timerfd.o
- obj-$(CONFIG_EVENTFD)		+= eventfd.o
- obj-$(CONFIG_USERFAULTFD)	+= userfaultfd.o
---- /dev/null
-+++ a/fs/sysctls.c
-@@ -0,0 +1,38 @@
-+// SPDX-License-Identifier: GPL-2.0
-+/*
-+ * /proc/sys/fs shared sysctls
-+ *
-+ * These sysctls are shared between different filesystems.
-+ */
-+#include <linux/init.h>
+--- a/fs/locks.c~fs-move-locking-sysctls-where-they-are-used
++++ a/fs/locks.c
+@@ -62,6 +62,7 @@
+ #include <linux/pid_namespace.h>
+ #include <linux/hashtable.h>
+ #include <linux/percpu.h>
 +#include <linux/sysctl.h>
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/filelock.h>
+@@ -88,8 +89,37 @@ static int target_leasetype(struct file_
+ 	return fl->fl_type;
+ }
+ 
+-int leases_enable = 1;
+-int lease_break_time = 45;
++static int leases_enable = 1;
++static int lease_break_time = 45;
 +
-+static struct ctl_table fs_shared_sysctls[] = {
++#ifdef CONFIG_SYSCTL
++static struct ctl_table locks_sysctls[] = {
 +	{
-+		.procname	= "overflowuid",
-+		.data		= &fs_overflowuid,
++		.procname	= "leases-enable",
++		.data		= &leases_enable,
 +		.maxlen		= sizeof(int),
 +		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_MAXOLDUID,
++		.proc_handler	= proc_dointvec,
 +	},
++#ifdef CONFIG_MMU
 +	{
-+		.procname	= "overflowgid",
-+		.data		= &fs_overflowgid,
++		.procname	= "lease-break-time",
++		.data		= &lease_break_time,
 +		.maxlen		= sizeof(int),
 +		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_MAXOLDUID,
++		.proc_handler	= proc_dointvec,
 +	},
-+	{ }
++#endif /* CONFIG_MMU */
++	{}
 +};
 +
-+static int __init init_fs_shared_sysctls(void)
++static int __init init_fs_locks_sysctls(void)
 +{
-+	register_sysctl_init("fs", fs_shared_sysctls);
++	register_sysctl_init("fs", locks_sysctls);
 +	return 0;
 +}
-+
-+early_initcall(init_fs_shared_sysctls);
---- a/kernel/sysctl.c~fs-move-shared-sysctls-to-fs-sysctlsc
++early_initcall(init_fs_locks_sysctls);
++#endif /* CONFIG_SYSCTL */
+ 
+ /*
+  * The global file_lock_list is only used for displaying /proc/locks, so we
+--- a/include/linux/fs.h~fs-move-locking-sysctls-where-they-are-used
++++ a/include/linux/fs.h
+@@ -82,10 +82,6 @@ extern void __init files_maxfiles_init(v
+ extern unsigned long get_max_files(void);
+ extern unsigned int sysctl_nr_open;
+ extern int leases_enable, lease_break_time;
+-extern int sysctl_protected_symlinks;
+-extern int sysctl_protected_hardlinks;
+-extern int sysctl_protected_fifos;
+-extern int sysctl_protected_regular;
+ 
+ typedef __kernel_rwf_t rwf_t;
+ 
+--- a/kernel/sysctl.c~fs-move-locking-sysctls-where-they-are-used
 +++ a/kernel/sysctl.c
-@@ -2897,24 +2897,6 @@ static struct ctl_table vm_table[] = {
+@@ -2897,26 +2897,6 @@ static struct ctl_table vm_table[] = {
  };
  
  static struct ctl_table fs_table[] = {
+-#ifdef CONFIG_FILE_LOCKING
 -	{
--		.procname	= "overflowuid",
--		.data		= &fs_overflowuid,
+-		.procname	= "leases-enable",
+-		.data		= &leases_enable,
 -		.maxlen		= sizeof(int),
 -		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_MAXOLDUID,
+-		.proc_handler	= proc_dointvec,
 -	},
+-#endif
+-#ifdef CONFIG_MMU
+-#ifdef CONFIG_FILE_LOCKING
 -	{
--		.procname	= "overflowgid",
--		.data		= &fs_overflowgid,
+-		.procname	= "lease-break-time",
+-		.data		= &lease_break_time,
 -		.maxlen		= sizeof(int),
 -		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_MAXOLDUID,
+-		.proc_handler	= proc_dointvec,
 -	},
- #ifdef CONFIG_FILE_LOCKING
+-#endif
+-#endif
  	{
- 		.procname	= "leases-enable",
+ 		.procname	= "protected_symlinks",
+ 		.data		= &sysctl_protected_symlinks,
 _
