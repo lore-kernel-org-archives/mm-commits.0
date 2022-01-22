@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25DBDC433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 01:13:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B4011C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 01:15:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231518AbiAVBN0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Jan 2022 20:13:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48348 "EHLO
+        id S231573AbiAVBPS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Jan 2022 20:15:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48776 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231402AbiAVBNZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jan 2022 20:13:25 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BD46C06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 17:13:25 -0800 (PST)
+        with ESMTP id S231402AbiAVBPS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jan 2022 20:15:18 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC243C06173B
+        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 17:15:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 2CF57B808D1
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 01:13:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA146C340E1;
-        Sat, 22 Jan 2022 01:13:22 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5BE8D61AB6
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 01:15:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9D0E7C340E1;
+        Sat, 22 Jan 2022 01:15:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642814002;
-        bh=DcBYcZ4GmqvM7E5mNZGg3+J8w/I3t89jZiM84fQgROY=;
+        s=korg; t=1642814116;
+        bh=1H4m1TftHDGGVRCzmnDKRUGbY6yTWqh4tc1wwRVZ4NI=;
         h=Date:From:To:Subject:From;
-        b=DZhjNFl7u+/LZwdF8D/Tcu4axxpSQSnFHlWgWfnzqvcqNPCjFd6Z78vc+tsGLdAxi
-         l6ZzSGzcAdDwvG9AtSjL6xnkRhdeDZJEQ9Bi3EsSR6NZOheuRhVuMwrtvKdzeWQF90
-         z6PlBJPROGiRkhzu5aZPyOaP+zdngyMN709j9vms=
-Date:   Fri, 21 Jan 2022 17:13:22 -0800
+        b=olbw/QyoJMt+nq0+327va68E8pxLSDYBKgy0mO9uET5/ixk9ffqrja4HOzjBIaL1l
+         o6lfa1sXUW59q9yvAS1kC5Dff9u+jaKwKRQCyXgzIokFnQkTCkZBZ9P8qyp26m8UYD
+         pm4+H1TQDbGDHEL3gsCMykdG3PRbuMHiOAHrtqUc=
+Date:   Fri, 21 Jan 2022 17:15:16 -0800
 From:   akpm@linux-foundation.org
-To:     mcgrof@kernel.org, mm-commits@vger.kernel.org, sfr@canb.auug.org.au
+To:     akpm@linux-foundation.org, mcgrof@kernel.org,
+        mm-commits@vger.kernel.org
 Subject:  [folded-merged]
- firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3.patch removed
- from -mm tree
-Message-ID: <20220122011322.i92baDSJ1%akpm@linux-foundation.org>
+ sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch removed from
+ -mm tree
+Message-ID: <20220122011516.nyLjXv1rU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,48 +44,51 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3
+     Subject: sysctl-add-helper-to-register-a-sysctl-mount-point-fix
 has been removed from the -mm tree.  Its filename was
-     firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3.patch
+     sysctl-add-helper-to-register-a-sysctl-mount-point-fix.patch
 
-This patch was dropped because it was folded into firmware_loader-move-firmware-sysctl-to-its-own-files.patch
+This patch was dropped because it was folded into sysctl-add-helper-to-register-a-sysctl-mount-point.patch
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sysctl-add-helper-to-register-a-sysctl-mount-point-fix
 
-akpm sucks
+export register_sysctl_mount_point() to modules
 
-Link: https://lkml.kernel.org/r/20211201160626.401d828d@canb.auug.org.au
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+ERROR: modpost: "register_sysctl_mount_point" [fs/binfmt_misc.ko] undefined!
+
 Cc: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/firmware_loader/fallback_table.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/proc/proc_sysctl.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/drivers/base/firmware_loader/fallback_table.c~firmware_loader-move-firmware-sysctl-to-its-own-files-fix-3
-+++ a/drivers/base/firmware_loader/fallback_table.c
-@@ -57,13 +57,13 @@ int register_firmware_config_sysctl(void
- 		return -ENOMEM;
- 	return 0;
- }
--EXPORT_SYMBOL_NS_GPL(register_firmware_config_sysctl);
-+EXPORT_SYMBOL_NS_GPL(register_firmware_config_sysctl, FIRMWARE_LOADER_PRIVATE);
- 
- void unregister_firmware_config_sysctl(void)
+--- a/fs/proc/proc_sysctl.c~sysctl-add-helper-to-register-a-sysctl-mount-point-fix
++++ a/fs/proc/proc_sysctl.c
+@@ -47,6 +47,7 @@ struct ctl_table_header *register_sysctl
  {
- 	unregister_sysctl_table(firmware_config_sysct_table_header);
- 	firmware_config_sysct_table_header = NULL;
+ 	return register_sysctl(path, sysctl_mount_point);
  }
--EXPORT_SYMBOL_NS_GPL(unregister_firmware_config_sysctl);
-+EXPORT_SYMBOL_NS_GPL(unregister_firmware_config_sysctl, FIRMWARE_LOADER_PRIVATE);
++EXPORT_SYMBOL(register_sysctl_mount_point);
  
- #endif /* CONFIG_SYSCTL */
+ static bool is_empty_dir(struct ctl_table_header *head)
+ {
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-firmware_loader-move-firmware-sysctl-to-its-own-files.patch
+sysctl-add-helper-to-register-a-sysctl-mount-point.patch
+sysctl-move-maxolduid-as-a-sysctl-specific-const-fix.patch
+proc-remove-pde_data-completely-fix.patch
+proc-remove-pde_data-completely-fix-fix.patch
+mm-remove-cleancache-fix.patch
+mm-simplify-try_to_unuse-fix.patch
+mm.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+arch-x86-include-asm-pgtableh-needs-spinlockh.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
