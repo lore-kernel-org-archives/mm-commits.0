@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD8B2C433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:12:43 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C0C5BC433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:12:46 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229732AbiAVGMn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:12:43 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57098 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229537AbiAVGMn (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:12:43 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BC10CC06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:12:42 -0800 (PST)
+        id S229537AbiAVGMq (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:12:46 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:43332 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229772AbiAVGMq (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:12:46 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 822FCB81FCF
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:12:41 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD5BAC340E0;
-        Sat, 22 Jan 2022 06:12:38 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B3B6260FBA
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:12:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9EE34C340E0;
+        Sat, 22 Jan 2022 06:12:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642831960;
-        bh=MxNA7iCwRUEDVD8lKTlt9oYMLmDAA/eBONX1AifgnkA=;
+        s=korg; t=1642831965;
+        bh=OYN1Wgb8kNCN+RcY/yro1xDNk5h0kk6fmGQgyU10ahA=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=UYvQawnk05KA5a6DdzpIxh5O4qyFCjh4nX4ktwv+WxCGA4ApyZIt5+YTtKyQ6OJCp
-         wZlImW68hb0INIAedin6TLQMWzEc7l/aY7Mv1QowgNRHYCRZvgWIH11l0b3k5TExPo
-         soxpOBLvDvHI/eoeSaB/4ayCdZwuj3SYx7DSV4zg=
-Date:   Fri, 21 Jan 2022 22:12:38 -0800
+        b=RiiqtFUABIh3BWy+locPB44Nwq8DiMN/e61SlRkiavRErqf9Gi37yPYkA+BVPlIZ0
+         BDNzuaY/J8p6fVV3zmhdnTOzqfEuorED1PctkL49STcZLO7BrHSUHtDddUDYZnptcb
+         GxnumCyVgrp6USWUP6nyj2OLBhnA8oJ2pvyyBpOc=
+Date:   Fri, 21 Jan 2022 22:12:43 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -48,9 +45,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
         tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
         yzaikin@google.com
-Subject:  [patch 24/69] scsi/sg: move sg-big-buff sysctl to
- scsi/sg.c
-Message-ID: <20220122061238.89wj5c10t%akpm@linux-foundation.org>
+Subject:  [patch 25/69] stackleak: move stack_erasing sysctl to
+ stackleak.c
+Message-ID: <20220122061243.4gktiIpir%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -59,7 +56,7 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: scsi/sg: move sg-big-buff sysctl to scsi/sg.c
+Subject: stackleak: move stack_erasing sysctl to stackleak.c
 
 kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
 dishes, this makes it very difficult to maintain.
@@ -69,11 +66,12 @@ where they actually belong.  The proc sysctl maintainers do not want to
 know what sysctl knobs you wish to add for your own piece of code, we just
 care about the core logic.
 
-So move the sg-big-buff sysctl from kernel/sysctl.c to drivers/scsi/sg.c
-and use register_sysctl() to register the sysctl interface.
+So move the stack_erasing sysctl from kernel/sysctl.c to
+kernel/stackleak.c and use register_sysctl() to register the sysctl
+interface.
 
 [mcgrof@kernel.org: commit log update]
-Link: https://lkml.kernel.org/r/20211124231435.1445213-7-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211124231435.1445213-8-mcgrof@kernel.org
 Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -119,115 +117,98 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sg.c |   35 ++++++++++++++++++++++++++++++++++-
- include/scsi/sg.h |    4 ----
- kernel/sysctl.c   |   12 ------------
- 3 files changed, 34 insertions(+), 17 deletions(-)
+ include/linux/stackleak.h |    5 -----
+ kernel/stackleak.c        |   26 ++++++++++++++++++++++++--
+ kernel/sysctl.c           |   14 --------------
+ 3 files changed, 24 insertions(+), 21 deletions(-)
 
---- a/drivers/scsi/sg.c~scsi-sg-move-sg-big-buff-sysctl-to-scsi-sgc
-+++ a/drivers/scsi/sg.c
-@@ -77,7 +77,7 @@ static int sg_proc_init(void);
+--- a/include/linux/stackleak.h~stackleak-move-stack_erasing-sysctl-to-stackleakc
++++ a/include/linux/stackleak.h
+@@ -23,11 +23,6 @@ static inline void stackleak_task_init(s
+ # endif
+ }
  
- #define SG_DEFAULT_TIMEOUT mult_frac(SG_DEFAULT_TIMEOUT_USER, HZ, USER_HZ)
+-#ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
+-int stack_erasing_sysctl(struct ctl_table *table, int write,
+-			void *buffer, size_t *lenp, loff_t *ppos);
+-#endif
+-
+ #else /* !CONFIG_GCC_PLUGIN_STACKLEAK */
+ static inline void stackleak_task_init(struct task_struct *t) { }
+ #endif
+--- a/kernel/stackleak.c~stackleak-move-stack_erasing-sysctl-to-stackleakc
++++ a/kernel/stackleak.c
+@@ -16,11 +16,13 @@
+ #ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
+ #include <linux/jump_label.h>
+ #include <linux/sysctl.h>
++#include <linux/init.h>
  
--int sg_big_buff = SG_DEF_RESERVED_SIZE;
-+static int sg_big_buff = SG_DEF_RESERVED_SIZE;
- /* N.B. This variable is readable and writeable via
-    /proc/scsi/sg/def_reserved_size . Each time sg_open() is called a buffer
-    of this size (or less if there is not enough memory) will be reserved
-@@ -1634,6 +1634,37 @@ MODULE_PARM_DESC(scatter_elem_sz, "scatt
- MODULE_PARM_DESC(def_reserved_size, "size of buffer reserved for each fd");
- MODULE_PARM_DESC(allow_dio, "allow direct I/O (default: 0 (disallow))");
+ static DEFINE_STATIC_KEY_FALSE(stack_erasing_bypass);
  
+-int stack_erasing_sysctl(struct ctl_table *table, int write,
+-			void *buffer, size_t *lenp, loff_t *ppos)
 +#ifdef CONFIG_SYSCTL
-+#include <linux/sysctl.h>
-+
-+static struct ctl_table sg_sysctls[] = {
++static int stack_erasing_sysctl(struct ctl_table *table, int write,
++			void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	int ret = 0;
+ 	int state = !static_branch_unlikely(&stack_erasing_bypass);
+@@ -42,6 +44,26 @@ int stack_erasing_sysctl(struct ctl_tabl
+ 					state ? "enabled" : "disabled");
+ 	return ret;
+ }
++static struct ctl_table stackleak_sysctls[] = {
 +	{
-+		.procname	= "sg-big-buff",
-+		.data		= &sg_big_buff,
++		.procname	= "stack_erasing",
++		.data		= NULL,
 +		.maxlen		= sizeof(int),
-+		.mode		= 0444,
-+		.proc_handler	= proc_dointvec,
++		.mode		= 0600,
++		.proc_handler	= stack_erasing_sysctl,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
 +	},
 +	{}
 +};
 +
-+static struct ctl_table_header *hdr;
-+static void register_sg_sysctls(void)
++static int __init stackleak_sysctls_init(void)
 +{
-+	if (!hdr)
-+		hdr = register_sysctl("kernel", sg_sysctls);
++	register_sysctl_init("kernel", stackleak_sysctls);
++	return 0;
 +}
-+
-+static void unregister_sg_sysctls(void)
-+{
-+	if (hdr)
-+		unregister_sysctl_table(hdr);
-+}
-+#else
-+#define register_sg_sysctls() do { } while (0)
-+#define unregister_sg_sysctls() do { } while (0)
++late_initcall(stackleak_sysctls_init);
 +#endif /* CONFIG_SYSCTL */
-+
- static int __init
- init_sg(void)
- {
-@@ -1666,6 +1697,7 @@ init_sg(void)
- 		return 0;
- 	}
- 	class_destroy(sg_sysfs_class);
-+	register_sg_sysctls();
- err_out:
- 	unregister_chrdev_region(MKDEV(SCSI_GENERIC_MAJOR, 0), SG_MAX_DEVS);
- 	return rc;
-@@ -1674,6 +1706,7 @@ err_out:
- static void __exit
- exit_sg(void)
- {
-+	unregister_sg_sysctls();
- #ifdef CONFIG_SCSI_PROC_FS
- 	remove_proc_subtree("scsi/sg", NULL);
- #endif				/* CONFIG_SCSI_PROC_FS */
---- a/include/scsi/sg.h~scsi-sg-move-sg-big-buff-sysctl-to-scsi-sgc
-+++ a/include/scsi/sg.h
-@@ -29,10 +29,6 @@
-  * For utility and test programs see: http://sg.danny.cz/sg/sg3_utils.html
-  */
  
--#ifdef __KERNEL__
--extern int sg_big_buff; /* for sysctl */
--#endif
--
- 
- typedef struct sg_iovec /* same structure as used by readv() Linux system */
- {                       /* call. It defines one scatter-gather element. */
---- a/kernel/sysctl.c~scsi-sg-move-sg-big-buff-sysctl-to-scsi-sgc
+ #define skip_erasing()	static_branch_unlikely(&stack_erasing_bypass)
+ #else
+--- a/kernel/sysctl.c~stackleak-move-stack_erasing-sysctl-to-stackleakc
 +++ a/kernel/sysctl.c
 @@ -95,9 +95,6 @@
  #if defined(CONFIG_PROVE_LOCKING) || defined(CONFIG_LOCK_STAT)
  #include <linux/lockdep.h>
  #endif
--#ifdef CONFIG_CHR_DEV_SG
--#include <scsi/sg.h>
+-#ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
+-#include <linux/stackleak.h>
 -#endif
- #ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
- #include <linux/stackleak.h>
- #endif
-@@ -2090,15 +2087,6 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= proc_dostring,
+ 
+ #if defined(CONFIG_SYSCTL)
+ 
+@@ -2443,17 +2440,6 @@ static struct ctl_table kern_table[] = {
+ 		.extra2		= SYSCTL_INT_MAX,
  	},
  #endif
--#ifdef CONFIG_CHR_DEV_SG
+-#ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
 -	{
--		.procname	= "sg-big-buff",
--		.data		= &sg_big_buff,
--		.maxlen		= sizeof (int),
--		.mode		= 0444,
--		.proc_handler	= proc_dointvec,
+-		.procname	= "stack_erasing",
+-		.data		= NULL,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0600,
+-		.proc_handler	= stack_erasing_sysctl,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
 -	},
 -#endif
- #ifdef CONFIG_BSD_PROCESS_ACCT
- 	{
- 		.procname	= "acct",
+ 	{ }
+ };
+ 
 _
