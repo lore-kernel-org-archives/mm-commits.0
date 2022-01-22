@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47C82C433FE
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:12:27 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99BA6C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:12:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233429AbiAVGM0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:12:26 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57038 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229661AbiAVGM0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:12:26 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CAB4C06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:12:26 -0800 (PST)
+        id S229661AbiAVGMd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:12:33 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:53978 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229537AbiAVGMc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:12:32 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1C85560C5D
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:12:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10A23C340E4;
-        Sat, 22 Jan 2022 06:12:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B02CCB81FCB
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:12:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F26C6C004E1;
+        Sat, 22 Jan 2022 06:12:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642831945;
-        bh=UPmbSMh7QphyG3WMf24B9AsIcfJqmYQrWbAqNXon6f4=;
+        s=korg; t=1642831950;
+        bh=EtmeLJef+Wm5mN+Nfdd85JrWXCA3/cMXVKE5Ob79Oa8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=k04CIHSp4U0tSHL75astEEyTION0Jn1aK7rx+L1fHzDIen/VpPf9oz57BJVHWk/Ey
-         gxhUCU41UE0sVN6jNjUBdEy6IdaOTsvInLTjj41JUTDwNDWe9Zqg/fOL7HY+JgS96M
-         DXbYEk11WWNzD0RvEiGZsdqxWOq9u0vYDPq7WNbY=
-Date:   Fri, 21 Jan 2022 22:12:23 -0800
+        b=q6C8JWP9lI22Qh8sKUz5luVEOJYnd4HRDe17Iord11jrYxRlyhF0TsNoh/dIHBnKw
+         RIWKsrf8lNitTuQiegflmogIrihVl9vHREqzjvw5FUaWmEXCGUvm+uwB/Df+cO5i7D
+         HaNSRK/twywluCb5yjsewzmezLoaeAFtvZL7JdtQ=
+Date:   Fri, 21 Jan 2022 22:12:28 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -48,9 +45,8 @@ To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
         tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
         yzaikin@google.com
-Subject:  [patch 21/69] sysctl: add helper to register a sysctl
- mount point
-Message-ID: <20220122061223.m4kWDxt5y%akpm@linux-foundation.org>
+Subject:  [patch 22/69] fs: move binfmt_misc sysctl to its own file
+Message-ID: <20220122061228.nmuo75sDn%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -59,16 +55,21 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: sysctl: add helper to register a sysctl mount point
+Subject: fs: move binfmt_misc sysctl to its own file
 
-The way to create a subdirectory on top of sysctl_mount_point is a bit
-obscure, and *why* we do that even so more.  Provide a helper which makes
-it clear why we do this.
+kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
+dishes, this makes it very difficult to maintain.
 
-[akpm@linux-foundation.org: export register_sysctl_mount_point() to modules]
-Link: https://lkml.kernel.org/r/20211124231435.1445213-4-mcgrof@kernel.org
+To help with this maintenance let's start by moving sysctls to places
+where they actually belong.  The proc sysctl maintainers do not want to
+know what sysctl knobs you wish to add for your own piece of code, we just
+care about the core logic.
+
+This moves the binfmt_misc sysctl to its own file to help remove clutter
+from kernel/sysctl.c.
+
+Link: https://lkml.kernel.org/r/20211124231435.1445213-5-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
-Suggested-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -79,6 +80,7 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Cc: Clemens Ladisch <clemens@ladisch.de>
 Cc: David Airlie <airlied@linux.ie>
 Cc: Douglas Gilbert <dgilbert@interlog.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Iurii Zaikin <yzaikin@google.com>
 Cc: James E.J. Bottomley <jejb@linux.ibm.com>
@@ -112,54 +114,39 @@ Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c  |   14 ++++++++++++++
- include/linux/sysctl.h |    7 +++++++
- 2 files changed, 21 insertions(+)
+ fs/binfmt_misc.c |    6 +++++-
+ kernel/sysctl.c  |    7 -------
+ 2 files changed, 5 insertions(+), 8 deletions(-)
 
---- a/fs/proc/proc_sysctl.c~sysctl-add-helper-to-register-a-sysctl-mount-point
-+++ a/fs/proc/proc_sysctl.c
-@@ -35,6 +35,20 @@ struct ctl_table sysctl_mount_point[] =
- 	{ }
- };
- 
-+/**
-+ * register_sysctl_mount_point() - registers a sysctl mount point
-+ * @path: path for the mount point
-+ *
-+ * Used to create a permanently empty directory to serve as mount point.
-+ * There are some subtle but important permission checks this allows in the
-+ * case of unprivileged mounts.
-+ */
-+struct ctl_table_header *register_sysctl_mount_point(const char *path)
-+{
-+	return register_sysctl(path, sysctl_mount_point);
-+}
-+EXPORT_SYMBOL(register_sysctl_mount_point);
-+
- static bool is_empty_dir(struct ctl_table_header *head)
- {
- 	return head->ctl_table[0].child == sysctl_mount_point;
---- a/include/linux/sysctl.h~sysctl-add-helper-to-register-a-sysctl-mount-point
-+++ a/include/linux/sysctl.h
-@@ -209,6 +209,8 @@ extern int sysctl_init(void);
- extern void __register_sysctl_init(const char *path, struct ctl_table *table,
- 				 const char *table_name);
- #define register_sysctl_init(path, table) __register_sysctl_init(path, table, #table)
-+extern struct ctl_table_header *register_sysctl_mount_point(const char *path);
-+
- void do_sysctl_args(void);
- 
- extern int pwrsw_enabled;
-@@ -223,6 +225,11 @@ static inline struct ctl_table_header *r
- {
- 	return NULL;
+--- a/fs/binfmt_misc.c~fs-move-binfmt_misc-sysctl-to-its-own-file
++++ a/fs/binfmt_misc.c
+@@ -822,7 +822,11 @@ static int __init init_misc_binfmt(void)
+ 	int err = register_filesystem(&bm_fs_type);
+ 	if (!err)
+ 		insert_binfmt(&misc_format);
+-	return err;
++	if (!register_sysctl_mount_point("fs/binfmt_misc")) {
++		pr_warn("Failed to create fs/binfmt_misc sysctl mount point");
++		return -ENOMEM;
++	}
++	return 0;
  }
-+
-+static inline struct sysctl_header *register_sysctl_mount_point(const char *path)
-+{
-+	return NULL;
-+}
  
- static inline struct ctl_table_header *register_sysctl_paths(
- 			const struct ctl_path *path, struct ctl_table *table)
+ static void __exit exit_misc_binfmt(void)
+--- a/kernel/sysctl.c~fs-move-binfmt_misc-sysctl-to-its-own-file
++++ a/kernel/sysctl.c
+@@ -3127,13 +3127,6 @@ static struct ctl_table fs_table[] = {
+ 		.extra1		= SYSCTL_ZERO,
+ 		.extra2		= SYSCTL_TWO,
+ 	},
+-#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
+-	{
+-		.procname	= "binfmt_misc",
+-		.mode		= 0555,
+-		.child		= sysctl_mount_point,
+-	},
+-#endif
+ 	{
+ 		.procname	= "pipe-max-size",
+ 		.data		= &pipe_max_size,
 _
