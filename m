@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 95CA1C433FE
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:10:55 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BED4C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:11:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233393AbiAVGKy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:10:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56684 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233130AbiAVGKx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:10:53 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 60D69C06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:10:53 -0800 (PST)
+        id S233399AbiAVGLA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:11:00 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:52836 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233130AbiAVGK7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:10:59 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id F2E0660C5D
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:10:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0476C340E0;
-        Sat, 22 Jan 2022 06:10:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B4ECBB81FC0
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:10:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C7D06C004E1;
+        Sat, 22 Jan 2022 06:10:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642831852;
-        bh=KfGTioAsbpw026tqjEeIR2WGzHLX3gglbUet5+Lx/ag=;
+        s=korg; t=1642831857;
+        bh=E6Xduy2xNYYhrhfnc9CV8bPjzo3VnxenWjDskyHyaB4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=k2s9MmA9O9Q2yZWrNrTpeh5DhYmrXgFWSRySXxhLNymdfbLfMx0USrIYy+eKraKOf
-         N/Gu0rH35fLfvbaXk0bPjrLZuQmswyMpffAR8EYFOFed9ISyCjabNkb9E/u8vTQSym
-         9NJm96+7fan9A8UgvZcc2QKRC1ZmMZ4NB8vjL1jY=
-Date:   Fri, 21 Jan 2022 22:10:50 -0800
+        b=vLg2wIhqxEshsL1oICYkVxC07JZI/WAOlf3SyDkxjd8J/DmeDS1fzsZ0+00EOLm2Z
+         GjsUg8zUO90EG7pvjySSHXrhJFaHxBtn599Et05updm85bl6ooKgoSHBtSzo400k1u
+         azpyUxxvxrKvb6Jgf2sWhMZwPS+8tHCoAVAWtWkw=
+Date:   Fri, 21 Jan 2022 22:10:55 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -48,9 +45,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
         tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
         yzaikin@google.com
-Subject:  [patch 02/69] sysctl: add a new register_sysctl_init()
- interface
-Message-ID: <20220122061050.iP3ldL9Os%akpm@linux-foundation.org>
+Subject:  [patch 03/69] sysctl: move some boundary constants from
+ sysctl.c to sysctl_vals
+Message-ID: <20220122061055.f2yhcctSf%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -59,78 +56,35 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: sysctl: add a new register_sysctl_init() interface
+Subject: sysctl: move some boundary constants from sysctl.c to sysctl_vals
 
-Patch series "sysctl: first set of kernel/sysctl cleanups", v2.
+sysctl has helpers which let us specify boundary values for a min or max
+int value.  Since these are used for a boundary check only they don't
+change, so move these variables to sysctl_vals to avoid adding duplicate
+variables.  This will help with our cleanup of kernel/sysctl.c.
 
-Finally had time to respin the series of the work we had started last year
-on cleaning up the kernel/sysct.c kitchen sink.  People keeps stuffing
-their sysctls in that file and this creates a maintenance burden.  So this
-effort is aimed at placing sysctls where they actually belong.
-
-I'm going to split patches up into series as there is quite a bit of work.
-
-This first set adds register_sysctl_init() for uses of registerting a
-sysctl on the init path, adds const where missing to a few places,
-generalizes common values so to be more easy to share, and starts the move
-of a few kernel/sysctl.c out where they belong.
-
-The majority of rework on v2 in this first patch set is 0-day fixes.  Eric
-W.  Biederman's feedback is later addressed in subsequent patch sets.
-
-I'll only post the first two patch sets for now.  We can address the rest
-once the first two patch sets get completely reviewed / Acked.
-
-
-This patch (of 9):
-
-The kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
-dishes, this makes it very difficult to maintain.
-
-To help with this maintenance let's start by moving sysctls to places
-where they actually belong.  The proc sysctl maintainers do not want to
-know what sysctl knobs you wish to add for your own piece of code, we just
-care about the core logic.
-
-Today though folks heavily rely on tables on kernel/sysctl.c so they can
-easily just extend this table with their needed sysctls.  In order to help
-users move their sysctls out we need to provide a helper which can be used
-during code initialization.
-
-We special-case the initialization use of register_sysctl() since it *is*
-safe to fail, given all that sysctls do is provide a dynamic interface to
-query or modify at runtime an existing variable.  So the use case of
-register_sysctl() on init should *not* stop if the sysctls don't end up
-getting registered.  It would be counter productive to stop boot if a
-simple sysctl registration failed.
-
-Provide a helper for init then, and document the recommended init levels
-to use for callers of this routine.  We will later use this in subsequent
-patches to start slimming down kernel/sysctl.c tables and moving sysctl
-registration to the code which actually needs these sysctls.
-
-[mcgrof@kernel.org: major commit log and documentation rephrasing also moved to fs/proc/proc_sysctl.c                  ]
-Link: https://lkml.kernel.org/r/20211123202347.818157-1-mcgrof@kernel.org
-Link: https://lkml.kernel.org/r/20211123202347.818157-2-mcgrof@kernel.org
+[akpm@linux-foundation.org: update it for "mm/pagealloc: sysctl: change watermark_scale_factor max limit to 30%"]
+[mcgrof@kernel.org: major rebase]
+Link: https://lkml.kernel.org/r/20211123202347.818157-3-mcgrof@kernel.org
 Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Paul Turner <pjt@google.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Sebastian Reichel <sre@kernel.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Qing Wang <wangqing@vivo.com>
-Cc: Benjamin LaHaise <bcrl@kvack.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Paul Turner <pjt@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Qing Wang <wangqing@vivo.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Stephen Kitt <steve@sk2.org>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Antti Palosaari <crope@iki.fi>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -157,69 +111,232 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c  |   33 +++++++++++++++++++++++++++++++++
- include/linux/sysctl.h |    3 +++
- 2 files changed, 36 insertions(+)
+ fs/proc/proc_sysctl.c  |    2 -
+ include/linux/sysctl.h |   13 ++++++++---
+ kernel/sysctl.c        |   45 ++++++++++++++++-----------------------
+ 3 files changed, 30 insertions(+), 30 deletions(-)
 
---- a/fs/proc/proc_sysctl.c~sysctl-add-a-new-register_sysctl_init-interface
+--- a/fs/proc/proc_sysctl.c~sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals
 +++ a/fs/proc/proc_sysctl.c
-@@ -16,6 +16,7 @@
- #include <linux/module.h>
- #include <linux/bpf-cgroup.h>
- #include <linux/mount.h>
-+#include <linux/kmemleak.h>
- #include "internal.h"
+@@ -26,7 +26,7 @@ static const struct file_operations proc
+ static const struct inode_operations proc_sys_dir_operations;
  
- static const struct dentry_operations proc_sys_dentry_operations;
-@@ -1383,6 +1384,38 @@ struct ctl_table_header *register_sysctl
- }
- EXPORT_SYMBOL(register_sysctl);
+ /* shared constants to be used in various sysctls */
+-const int sysctl_vals[] = { 0, 1, INT_MAX };
++const int sysctl_vals[] = { -1, 0, 1, 2, 4, 100, 200, 1000, 3000, INT_MAX };
+ EXPORT_SYMBOL(sysctl_vals);
  
-+/**
-+ * __register_sysctl_init() - register sysctl table to path
-+ * @path: path name for sysctl base
-+ * @table: This is the sysctl table that needs to be registered to the path
-+ * @table_name: The name of sysctl table, only used for log printing when
-+ *              registration fails
-+ *
-+ * The sysctl interface is used by userspace to query or modify at runtime
-+ * a predefined value set on a variable. These variables however have default
-+ * values pre-set. Code which depends on these variables will always work even
-+ * if register_sysctl() fails. If register_sysctl() fails you'd just loose the
-+ * ability to query or modify the sysctls dynamically at run time. Chances of
-+ * register_sysctl() failing on init are extremely low, and so for both reasons
-+ * this function does not return any error as it is used by initialization code.
-+ *
-+ * Context: Can only be called after your respective sysctl base path has been
-+ * registered. So for instance, most base directories are registered early on
-+ * init before init levels are processed through proc_sys_init() and
-+ * sysctl_init().
-+ */
-+void __init __register_sysctl_init(const char *path, struct ctl_table *table,
-+				 const char *table_name)
-+{
-+	struct ctl_table_header *hdr = register_sysctl(path, table);
-+
-+	if (unlikely(!hdr)) {
-+		pr_err("failed when register_sysctl %s to %s\n", table_name, path);
-+		return;
-+	}
-+	kmemleak_not_leak(hdr);
-+}
-+
- static char *append_path(const char *path, char *pos, const char *name)
- {
- 	int namelen;
---- a/include/linux/sysctl.h~sysctl-add-a-new-register_sysctl_init-interface
+ /* Support for permanently empty directories */
+--- a/include/linux/sysctl.h~sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals
 +++ a/include/linux/sysctl.h
-@@ -199,6 +199,9 @@ struct ctl_table_header *register_sysctl
- void unregister_sysctl_table(struct ctl_table_header * table);
+@@ -38,9 +38,16 @@ struct ctl_table_header;
+ struct ctl_dir;
  
- extern int sysctl_init(void);
-+extern void __register_sysctl_init(const char *path, struct ctl_table *table,
-+				 const char *table_name);
-+#define register_sysctl_init(path, table) __register_sysctl_init(path, table, #table)
- void do_sysctl_args(void);
+ /* Keep the same order as in fs/proc/proc_sysctl.c */
+-#define SYSCTL_ZERO	((void *)&sysctl_vals[0])
+-#define SYSCTL_ONE	((void *)&sysctl_vals[1])
+-#define SYSCTL_INT_MAX	((void *)&sysctl_vals[2])
++#define SYSCTL_NEG_ONE			((void *)&sysctl_vals[0])
++#define SYSCTL_ZERO			((void *)&sysctl_vals[1])
++#define SYSCTL_ONE			((void *)&sysctl_vals[2])
++#define SYSCTL_TWO			((void *)&sysctl_vals[3])
++#define SYSCTL_FOUR			((void *)&sysctl_vals[4])
++#define SYSCTL_ONE_HUNDRED		((void *)&sysctl_vals[5])
++#define SYSCTL_TWO_HUNDRED		((void *)&sysctl_vals[6])
++#define SYSCTL_ONE_THOUSAND		((void *)&sysctl_vals[7])
++#define SYSCTL_THREE_THOUSAND		((void *)&sysctl_vals[8])
++#define SYSCTL_INT_MAX			((void *)&sysctl_vals[9])
  
- extern int pwrsw_enabled;
+ extern const int sysctl_vals[];
+ 
+--- a/kernel/sysctl.c~sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals
++++ a/kernel/sysctl.c
+@@ -114,16 +114,9 @@
+ static int sixty = 60;
+ #endif
+ 
+-static int __maybe_unused neg_one = -1;
+-static int __maybe_unused two = 2;
+-static int __maybe_unused four = 4;
+ static unsigned long zero_ul;
+ static unsigned long one_ul = 1;
+ static unsigned long long_max = LONG_MAX;
+-static int one_hundred = 100;
+-static int two_hundred = 200;
+-static int one_thousand = 1000;
+-static int three_thousand = 3000;
+ #ifdef CONFIG_PRINTK
+ static int ten_thousand = 10000;
+ #endif
+@@ -1964,7 +1957,7 @@ static struct ctl_table kern_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= &neg_one,
++		.extra1		= SYSCTL_NEG_ONE,
+ 		.extra2		= SYSCTL_ONE,
+ 	},
+ #endif
+@@ -2306,7 +2299,7 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax_sysadmin,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &two,
++		.extra2		= SYSCTL_TWO,
+ 	},
+ #endif
+ 	{
+@@ -2566,7 +2559,7 @@ static struct ctl_table kern_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= &neg_one,
++		.extra1		= SYSCTL_NEG_ONE,
+ 	},
+ #endif
+ #ifdef CONFIG_RT_MUTEXES
+@@ -2628,7 +2621,7 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= perf_cpu_time_max_percent_handler,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &one_hundred,
++		.extra2		= SYSCTL_ONE_HUNDRED,
+ 	},
+ 	{
+ 		.procname	= "perf_event_max_stack",
+@@ -2646,7 +2639,7 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= perf_event_max_stack_handler,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &one_thousand,
++		.extra2		= SYSCTL_ONE_THOUSAND,
+ 	},
+ #endif
+ 	{
+@@ -2677,7 +2670,7 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= bpf_unpriv_handler,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &two,
++		.extra2		= SYSCTL_TWO,
+ 	},
+ 	{
+ 		.procname	= "bpf_stats_enabled",
+@@ -2731,7 +2724,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= overcommit_policy_handler,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &two,
++		.extra2		= SYSCTL_TWO,
+ 	},
+ 	{
+ 		.procname	= "panic_on_oom",
+@@ -2740,7 +2733,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &two,
++		.extra2		= SYSCTL_TWO,
+ 	},
+ 	{
+ 		.procname	= "oom_kill_allocating_task",
+@@ -2785,7 +2778,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= dirty_background_ratio_handler,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &one_hundred,
++		.extra2		= SYSCTL_ONE_HUNDRED,
+ 	},
+ 	{
+ 		.procname	= "dirty_background_bytes",
+@@ -2802,7 +2795,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= dirty_ratio_handler,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &one_hundred,
++		.extra2		= SYSCTL_ONE_HUNDRED,
+ 	},
+ 	{
+ 		.procname	= "dirty_bytes",
+@@ -2842,7 +2835,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &two_hundred,
++		.extra2		= SYSCTL_TWO_HUNDRED,
+ 	},
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	{
+@@ -2899,7 +2892,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0200,
+ 		.proc_handler	= drop_caches_sysctl_handler,
+ 		.extra1		= SYSCTL_ONE,
+-		.extra2		= &four,
++		.extra2		= SYSCTL_FOUR,
+ 	},
+ #ifdef CONFIG_COMPACTION
+ 	{
+@@ -2916,7 +2909,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= compaction_proactiveness_sysctl_handler,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &one_hundred,
++		.extra2		= SYSCTL_ONE_HUNDRED,
+ 	},
+ 	{
+ 		.procname	= "extfrag_threshold",
+@@ -2961,7 +2954,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= watermark_scale_factor_sysctl_handler,
+ 		.extra1		= SYSCTL_ONE,
+-		.extra2		= &three_thousand,
++		.extra2		= SYSCTL_THREE_THOUSAND,
+ 	},
+ 	{
+ 		.procname	= "percpu_pagelist_high_fraction",
+@@ -3040,7 +3033,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= sysctl_min_unmapped_ratio_sysctl_handler,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &one_hundred,
++		.extra2		= SYSCTL_ONE_HUNDRED,
+ 	},
+ 	{
+ 		.procname	= "min_slab_ratio",
+@@ -3049,7 +3042,7 @@ static struct ctl_table vm_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= sysctl_min_slab_ratio_sysctl_handler,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &one_hundred,
++		.extra2		= SYSCTL_ONE_HUNDRED,
+ 	},
+ #endif
+ #ifdef CONFIG_SMP
+@@ -3339,7 +3332,7 @@ static struct ctl_table fs_table[] = {
+ 		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &two,
++		.extra2		= SYSCTL_TWO,
+ 	},
+ 	{
+ 		.procname	= "protected_regular",
+@@ -3348,7 +3341,7 @@ static struct ctl_table fs_table[] = {
+ 		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &two,
++		.extra2		= SYSCTL_TWO,
+ 	},
+ 	{
+ 		.procname	= "suid_dumpable",
+@@ -3357,7 +3350,7 @@ static struct ctl_table fs_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec_minmax_coredump,
+ 		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &two,
++		.extra2		= SYSCTL_TWO,
+ 	},
+ #if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
+ 	{
 _
