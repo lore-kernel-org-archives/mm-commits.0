@@ -2,30 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D751EC433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:12:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47C82C433FE
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:12:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233427AbiAVGMX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:12:23 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:53890 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229661AbiAVGMX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:12:23 -0500
+        id S233429AbiAVGM0 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:12:26 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57038 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229661AbiAVGM0 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:12:26 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7CAB4C06173B
+        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:12:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E3581B81FCB
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:12:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EFBCC004E1;
-        Sat, 22 Jan 2022 06:12:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1C85560C5D
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:12:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10A23C340E4;
+        Sat, 22 Jan 2022 06:12:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642831940;
-        bh=4f34QbniaFP5T1em3aVmWIhw1dgLoXC5f3T8QcX/sHk=;
+        s=korg; t=1642831945;
+        bh=UPmbSMh7QphyG3WMf24B9AsIcfJqmYQrWbAqNXon6f4=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rqMVwLb/4vjAcIFnTseyJP/o9qiTrmGviC804w5fz41C8g/tA16MmH7Nl3f6wRJKN
-         HEB4O+A9ptSeyDY8McWXB3eUPXM0C6jq71Zyk1N4T7wSImdBsZfeBkfafrWXX+rmKs
-         4NrMEnLCAt0tpd+dxhMCiTrJWQUevDrQHSsyiHQQ=
-Date:   Fri, 21 Jan 2022 22:12:18 -0800
+        b=k04CIHSp4U0tSHL75astEEyTION0Jn1aK7rx+L1fHzDIen/VpPf9oz57BJVHWk/Ey
+         gxhUCU41UE0sVN6jNjUBdEy6IdaOTsvInLTjj41JUTDwNDWe9Zqg/fOL7HY+JgS96M
+         DXbYEk11WWNzD0RvEiGZsdqxWOq9u0vYDPq7WNbY=
+Date:   Fri, 21 Jan 2022 22:12:23 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -45,9 +48,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
         tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
         yzaikin@google.com
-Subject:  [patch 20/69] random: move the random sysctl declarations
- to its own file
-Message-ID: <20220122061218.N1-ElDxfn%akpm@linux-foundation.org>
+Subject:  [patch 21/69] sysctl: add helper to register a sysctl
+ mount point
+Message-ID: <20220122061223.m4kWDxt5y%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -55,23 +58,17 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: random: move the random sysctl declarations to its own file
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: sysctl: add helper to register a sysctl mount point
 
-kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
-dishes, this makes it very difficult to maintain.
+The way to create a subdirectory on top of sysctl_mount_point is a bit
+obscure, and *why* we do that even so more.  Provide a helper which makes
+it clear why we do this.
 
-To help with this maintenance let's start by moving sysctls to places
-where they actually belong.  The proc sysctl maintainers do not want to
-know what sysctl knobs you wish to add for your own piece of code, we just
-care about the core logic.
-
-So move the random sysctls to their own file and use register_sysctl_init().
-
-[mcgrof@kernel.org: commit log update to justify the move]
-Link: https://lkml.kernel.org/r/20211124231435.1445213-3-mcgrof@kernel.org
-Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
+[akpm@linux-foundation.org: export register_sysctl_mount_point() to modules]
+Link: https://lkml.kernel.org/r/20211124231435.1445213-4-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+Suggested-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -82,7 +79,6 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Cc: Clemens Ladisch <clemens@ladisch.de>
 Cc: David Airlie <airlied@linux.ie>
 Cc: Douglas Gilbert <dgilbert@interlog.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Iurii Zaikin <yzaikin@google.com>
 Cc: James E.J. Bottomley <jejb@linux.ibm.com>
@@ -112,66 +108,58 @@ Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
 Cc: Suren Baghdasaryan <surenb@google.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c  |   14 ++++++++++++--
- include/linux/sysctl.h |    1 -
- kernel/sysctl.c        |    5 -----
- 3 files changed, 12 insertions(+), 8 deletions(-)
+ fs/proc/proc_sysctl.c  |   14 ++++++++++++++
+ include/linux/sysctl.h |    7 +++++++
+ 2 files changed, 21 insertions(+)
 
---- a/drivers/char/random.c~random-move-the-random-sysctl-declarations-to-its-own-file
-+++ a/drivers/char/random.c
-@@ -1992,8 +1992,7 @@ static int proc_do_entropy(struct ctl_ta
- }
- 
- static int sysctl_poolsize = POOL_BITS;
--extern struct ctl_table random_table[];
--struct ctl_table random_table[] = {
-+static struct ctl_table random_table[] = {
- 	{
- 		.procname	= "poolsize",
- 		.data		= &sysctl_poolsize,
-@@ -2055,6 +2054,17 @@ struct ctl_table random_table[] = {
- #endif
+--- a/fs/proc/proc_sysctl.c~sysctl-add-helper-to-register-a-sysctl-mount-point
++++ a/fs/proc/proc_sysctl.c
+@@ -35,6 +35,20 @@ struct ctl_table sysctl_mount_point[] =
  	{ }
  };
-+
-+/*
-+ * rand_initialize() is called before sysctl_init(),
-+ * so we cannot call register_sysctl_init() in rand_initialize()
+ 
++/**
++ * register_sysctl_mount_point() - registers a sysctl mount point
++ * @path: path for the mount point
++ *
++ * Used to create a permanently empty directory to serve as mount point.
++ * There are some subtle but important permission checks this allows in the
++ * case of unprivileged mounts.
 + */
-+static int __init random_sysctls_init(void)
++struct ctl_table_header *register_sysctl_mount_point(const char *path)
 +{
-+	register_sysctl_init("kernel/random", random_table);
-+	return 0;
++	return register_sysctl(path, sysctl_mount_point);
 +}
-+device_initcall(random_sysctls_init);
- #endif	/* CONFIG_SYSCTL */
- 
- struct batched_entropy {
---- a/include/linux/sysctl.h~random-move-the-random-sysctl-declarations-to-its-own-file
++EXPORT_SYMBOL(register_sysctl_mount_point);
++
+ static bool is_empty_dir(struct ctl_table_header *head)
+ {
+ 	return head->ctl_table[0].child == sysctl_mount_point;
+--- a/include/linux/sysctl.h~sysctl-add-helper-to-register-a-sysctl-mount-point
 +++ a/include/linux/sysctl.h
-@@ -217,7 +217,6 @@ extern int unaligned_dump_stack;
- extern int no_unaligned_warning;
+@@ -209,6 +209,8 @@ extern int sysctl_init(void);
+ extern void __register_sysctl_init(const char *path, struct ctl_table *table,
+ 				 const char *table_name);
+ #define register_sysctl_init(path, table) __register_sysctl_init(path, table, #table)
++extern struct ctl_table_header *register_sysctl_mount_point(const char *path);
++
+ void do_sysctl_args(void);
  
- extern struct ctl_table sysctl_mount_point[];
--extern struct ctl_table random_table[];
+ extern int pwrsw_enabled;
+@@ -223,6 +225,11 @@ static inline struct ctl_table_header *r
+ {
+ 	return NULL;
+ }
++
++static inline struct sysctl_header *register_sysctl_mount_point(const char *path)
++{
++	return NULL;
++}
  
- #else /* CONFIG_SYSCTL */
- static inline struct ctl_table_header *register_sysctl_table(struct ctl_table * table)
---- a/kernel/sysctl.c~random-move-the-random-sysctl-declarations-to-its-own-file
-+++ a/kernel/sysctl.c
-@@ -2145,11 +2145,6 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= sysctl_max_threads,
- 	},
- 	{
--		.procname	= "random",
--		.mode		= 0555,
--		.child		= random_table,
--	},
--	{
- 		.procname	= "usermodehelper",
- 		.mode		= 0555,
- 		.child		= usermodehelper_table,
+ static inline struct ctl_table_header *register_sysctl_paths(
+ 			const struct ctl_path *path, struct ctl_table *table)
 _
