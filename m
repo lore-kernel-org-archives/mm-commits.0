@@ -2,44 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D473C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 01:21:04 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C7247C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 01:22:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231590AbiAVBVE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 21 Jan 2022 20:21:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50020 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231402AbiAVBVD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jan 2022 20:21:03 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84E4EC06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 17:21:03 -0800 (PST)
+        id S231587AbiAVBWU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 21 Jan 2022 20:22:20 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:50238 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231402AbiAVBWT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 21 Jan 2022 20:22:19 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2342161AA5
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 01:21:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0156CC340E1;
-        Sat, 22 Jan 2022 01:21:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9143961A9C
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 01:22:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C437AC340E1;
+        Sat, 22 Jan 2022 01:22:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642814462;
-        bh=2jgIP2h7lprJXfsxIbEbSNg/aNEUUyHQM44GB7y+V6I=;
+        s=korg; t=1642814539;
+        bh=qcBvS6YyaigPreMhtfnXzvtnrnEvbXG0wyt/dijlyRQ=;
         h=Date:From:To:Subject:From;
-        b=KjQRjrwU9lCV6tR6BeTYHHRN2YdT32vz5ukmSvqSSglioPekt4uCB794fw2+P5SvZ
-         8eTzvGUdOfKc61DiGvrZw7DA8AxsjIiS5WA87EeH0Ro1lVGma6blqv6xawG9mOI00a
-         z1iAj+BPnFCtB0RymRYNOHne0FphyrxxQQcsj4cg=
-Date:   Fri, 21 Jan 2022 17:21:01 -0800
+        b=tANlcudcQH3kxy9pAnCuzPdcybNnJAYMvmgbAlsHOuVqAYrDyrmgfHSlgYk7WZSRq
+         JyvQgcxigHy/VTBnr+zazdvdJTU59MvRcxfTfCaI7wVjwRmtCddDCgqvYCjPztueEe
+         KUVG0x4IsrpJsvt6RsEvIje+zmA8ynI1w6Nm9y14=
+Date:   Fri, 21 Jan 2022 17:22:18 -0800
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, bigeasy@linutronix.de, boqun.feng@gmail.com,
-        dalias@libc.org, geert@linux-m68k.org, longman@redhat.com,
-        minchan@kernel.org, mingo@redhat.com, mm-commits@vger.kernel.org,
-        naresh.kamboju@linaro.org, peterz@infradead.org,
-        senozhatsky@chromium.org, sfr@canb.auug.org.au,
-        umgwanakikbuti@gmail.com, will@kernel.org, ysato@users.osdn.me
-Subject:  [folded-merged]
- locking-rwlocks-introduce-write_lock_nested-fix-2.patch removed from -mm
- tree
-Message-ID: <20220122012101.hMmbc_1f1%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akpm@linux-foundation.org,
+        christian.brauner@ubuntu.com, gladkov.alexey@gmail.com,
+        mm-commits@vger.kernel.org, songmuchun@bytedance.com
+Subject:  [folded-merged] proc-remove-pde_data-completely-fix.patch
+ removed from -mm tree
+Message-ID: <20220122012218.jylar3UJU%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,71 +41,122 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: locking: fixup write_lock_nested() implementation
+     Subject: proc-remove-pde_data-completely-fix
 has been removed from the -mm tree.  Its filename was
-     locking-rwlocks-introduce-write_lock_nested-fix-2.patch
+     proc-remove-pde_data-completely-fix.patch
 
-This patch was dropped because it was folded into locking-rwlocks-introduce-write_lock_nested.patch
+This patch was dropped because it was folded into proc-remove-pde_data-completely.patch
 
 ------------------------------------------------------
-From: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Subject: locking: fixup write_lock_nested() implementation
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: proc-remove-pde_data-completely-fix
 
-    kernel/locking/spinlock.c:306:9: error: implicit declaration of
-    function '__raw_write_lock_nested'; did you mean
+fix naming clash in drivers/nubus/proc.c
 
-
-Link: https://lkml.kernel.org/r/20211123170134.y6xb7pmpgdn4m3bn@linutronix.de
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Reported-by: Naresh Kamboju <naresh.kamboju@linaro.org>
-Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Tested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Will Deacon <will@kernel.org>
-Cc: Waiman Long <longman@redhat.com>
-Cc: Boqun Feng <boqun.feng@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
-Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Yoshinori Sato <ysato@users.osdn.me>
-Cc: Rich Felker <dalias@libc.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Alexey Gladkov <gladkov.alexey@gmail.com>
+Cc: Christian Brauner <christian.brauner@ubuntu.com>
+Cc: Muchun Song <songmuchun@bytedance.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rwlock_api_smp.h |    1 -
- kernel/locking/spinlock.c      |    4 ++++
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ drivers/nubus/proc.c |   36 ++++++++++++++++++------------------
+ 1 file changed, 18 insertions(+), 18 deletions(-)
 
---- a/include/linux/rwlock_api_smp.h~locking-rwlocks-introduce-write_lock_nested-fix-2
-+++ a/include/linux/rwlock_api_smp.h
-@@ -47,7 +47,6 @@ _raw_write_unlock_irqrestore(rwlock_t *l
- 
- #ifdef CONFIG_INLINE_WRITE_LOCK
- #define _raw_write_lock(lock) __raw_write_lock(lock)
--#define _raw_write_lock_nested(lock, subclass) __raw_write_lock_nested(lock, subclass)
- #endif
- 
- #ifdef CONFIG_INLINE_READ_LOCK_BH
---- a/kernel/locking/spinlock.c~locking-rwlocks-introduce-write_lock_nested-fix-2
-+++ a/kernel/locking/spinlock.c
-@@ -301,6 +301,10 @@ void __lockfunc _raw_write_lock(rwlock_t
- }
- EXPORT_SYMBOL(_raw_write_lock);
- 
-+#ifndef CONFIG_DEBUG_LOCK_ALLOC
-+#define __raw_write_lock_nested(lock, subclass)	__raw_write_lock(((void)(subclass), (lock)))
-+#endif
-+
- void __lockfunc _raw_write_lock_nested(rwlock_t *lock, int subclass)
+--- a/drivers/nubus/proc.c~proc-remove-pde_data-completely-fix
++++ a/drivers/nubus/proc.c
+@@ -93,30 +93,30 @@ struct nubus_proc_pde_data {
+ static struct nubus_proc_pde_data *
+ nubus_proc_alloc_pde_data(unsigned char *ptr, unsigned int size)
  {
- 	__raw_write_lock_nested(lock, subclass);
+-	struct nubus_proc_pde_data *pde_data;
++	struct nubus_proc_pded *pded;
+ 
+-	pde_data = kmalloc(sizeof(*pde_data), GFP_KERNEL);
+-	if (!pde_data)
++	pded = kmalloc(sizeof(*pded), GFP_KERNEL);
++	if (!pded)
+ 		return NULL;
+ 
+-	pde_data->res_ptr = ptr;
+-	pde_data->res_size = size;
+-	return pde_data;
++	pded->res_ptr = ptr;
++	pded->res_size = size;
++	return pded;
+ }
+ 
+ static int nubus_proc_rsrc_show(struct seq_file *m, void *v)
+ {
+ 	struct inode *inode = m->private;
+-	struct nubus_proc_pde_data *pde_data;
++	struct nubus_proc_pde_data *pded;
+ 
+-	pde_data = pde_data(inode);
+-	if (!pde_data)
++	pded = pde_data(inode);
++	if (!pded)
+ 		return 0;
+ 
+-	if (pde_data->res_size > m->size)
++	if (pded->res_size > m->size)
+ 		return -EFBIG;
+ 
+-	if (pde_data->res_size) {
++	if (pded->res_size) {
+ 		int lanes = (int)proc_get_parent_data(inode);
+ 		struct nubus_dirent ent;
+ 
+@@ -124,11 +124,11 @@ static int nubus_proc_rsrc_show(struct s
+ 			return 0;
+ 
+ 		ent.mask = lanes;
+-		ent.base = pde_data->res_ptr;
++		ent.base = pded->res_ptr;
+ 		ent.data = 0;
+-		nubus_seq_write_rsrc_mem(m, &ent, pde_data->res_size);
++		nubus_seq_write_rsrc_mem(m, &ent, pded->res_size);
+ 	} else {
+-		unsigned int data = (unsigned int)pde_data->res_ptr;
++		unsigned int data = (unsigned int)pded->res_ptr;
+ 
+ 		seq_putc(m, data >> 16);
+ 		seq_putc(m, data >> 8);
+@@ -142,18 +142,18 @@ void nubus_proc_add_rsrc_mem(struct proc
+ 			     unsigned int size)
+ {
+ 	char name[9];
+-	struct nubus_proc_pde_data *pde_data;
++	struct nubus_proc_pde_data *pded;
+ 
+ 	if (!procdir)
+ 		return;
+ 
+ 	snprintf(name, sizeof(name), "%x", ent->type);
+ 	if (size)
+-		pde_data = nubus_proc_alloc_pde_data(nubus_dirptr(ent), size);
++		pded = nubus_proc_alloc_pde_data(nubus_dirptr(ent), size);
+ 	else
+-		pde_data = NULL;
++		pded = NULL;
+ 	proc_create_single_data(name, S_IFREG | 0444, procdir,
+-			nubus_proc_rsrc_show, pde_data);
++			nubus_proc_rsrc_show, pded);
+ }
+ 
+ void nubus_proc_add_rsrc(struct proc_dir_entry *procdir,
 _
 
-Patches currently in -mm which might be from bigeasy@linutronix.de are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-locking-rwlocks-introduce-write_lock_nested.patch
+proc-remove-pde_data-completely.patch
+proc-remove-pde_data-completely-fix-fix.patch
+mm-remove-cleancache-fix.patch
+mm-simplify-try_to_unuse-fix.patch
+mm.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+arch-x86-include-asm-pgtableh-needs-spinlockh.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
