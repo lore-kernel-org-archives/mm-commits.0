@@ -2,30 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4D7DDC433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:11:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A758C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:11:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233412AbiAVGLW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:11:22 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:41368 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233130AbiAVGLW (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:11:22 -0500
+        id S233418AbiAVGLc (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:11:32 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56834 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233130AbiAVGLc (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:11:32 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 41647C06173B
+        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:11:32 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 2F7D360C5D
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:11:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24317C004E1;
-        Sat, 22 Jan 2022 06:11:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id CDA9060C5D
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:11:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D06B0C004E1;
+        Sat, 22 Jan 2022 06:11:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642831881;
-        bh=nnl05lhlnxDMaNqi7wrSEfArfcP+xsixck5h9cMZ+xY=;
+        s=korg; t=1642831891;
+        bh=Dr/OCPcjkw742g268uiXyUtKIWp/ZFgVqbCxRu5lCRI=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=p5ejStsVMtsdSUxQW7P0kBcg4LAuQfRfk6L1XUEtWdjcS8MarxMnvZ7kKlsuiMlQy
-         n7pSX9zcRuPV1Se957HJ8mGnS1/3Fp+WnD0tmNsZkOGrEjlWGpw2+F4p6BvM30brK6
-         Zf8/Tnv8KzqB7ubxWgk73rN4QQBuA6k0yz1BvF/8=
-Date:   Fri, 21 Jan 2022 22:11:19 -0800
+        b=CGaBsUPW6BJ6WUp+iZPeKbFvF0S+BRvGbgyyqRoNhyPmXWnxV6beZfPtYORuAoGd2
+         2p3k5alJB9i6GW6eWkpXCNb4DUtFgRA3Egrbe46YfjOhPHM7MtbIFYue+U+b9nZ1LI
+         Pqa7U8ttaVIbFQA7emY/PfhC0eJtUMbnKpezBgBM=
+Date:   Fri, 21 Jan 2022 22:11:29 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -45,9 +48,8 @@ To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
         tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
         yzaikin@google.com
-Subject:  [patch 08/69] sysctl: use SYSCTL_ZERO to replace some
- static int zero uses
-Message-ID: <20220122061119.UbG9LtVZO%akpm@linux-foundation.org>
+Subject:  [patch 10/69] dnotify: move dnotify sysctl to dnotify.c
+Message-ID: <20220122061129.xQUYr2gA8%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -56,15 +58,24 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: sysctl: use SYSCTL_ZERO to replace some static int zero uses
+Subject: dnotify: move dnotify sysctl to dnotify.c
 
-Use the variable SYSCTL_ZERO to replace some static int boundary variables
-with a value of 0 (minolduid, min_extfrag_threshold,
-min_wakeup_granularity_ns).
+The kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
+dishes, this makes it very difficult to maintain.
 
-Link: https://lkml.kernel.org/r/20211123202347.818157-8-mcgrof@kernel.org
+To help with this maintenance let's start by moving sysctls to places
+where they actually belong.  The proc sysctl maintainers do not want to
+know what sysctl knobs you wish to add for your own piece of code, we just
+care about the core logic.
+
+So move dnotify sysctls to dnotify.c and use the new
+register_sysctl_init() to register the sysctl interface.
+
+[mcgrof@kernel.org: adjust the commit log to justify the move]
+Link: https://lkml.kernel.org/r/20211123202347.818157-10-mcgrof@kernel.org
 Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
+Acked-by: Jan Kara <jack@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -72,7 +83,6 @@ Cc: Benjamin LaHaise <bcrl@kvack.org>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Jan Kara <jack@suse.cz>
 Cc: Kees Cook <keescook@chromium.org>
 Cc: Paul Turner <pjt@google.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
@@ -108,72 +118,82 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ fs/notify/dnotify/dnotify.c |   21 ++++++++++++++++++++-
+ include/linux/dnotify.h     |    1 -
+ kernel/sysctl.c             |   10 ----------
+ 3 files changed, 20 insertions(+), 12 deletions(-)
 
---- a/kernel/sysctl.c~sysctl-use-sysctl_zero-to-replace-some-static-int-zero-uses
+--- a/fs/notify/dnotify/dnotify.c~dnotify-move-dnotify-sysctl-to-dnotifyc
++++ a/fs/notify/dnotify/dnotify.c
+@@ -19,7 +19,25 @@
+ #include <linux/fdtable.h>
+ #include <linux/fsnotify_backend.h>
+ 
+-int dir_notify_enable __read_mostly = 1;
++static int dir_notify_enable __read_mostly = 1;
++#ifdef CONFIG_SYSCTL
++static struct ctl_table dnotify_sysctls[] = {
++	{
++		.procname	= "dir-notify-enable",
++		.data		= &dir_notify_enable,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{}
++};
++static void __init dnotify_sysctl_init(void)
++{
++	register_sysctl_init("fs", dnotify_sysctls);
++}
++#else
++#define dnotify_sysctl_init() do { } while (0)
++#endif
+ 
+ static struct kmem_cache *dnotify_struct_cache __read_mostly;
+ static struct kmem_cache *dnotify_mark_cache __read_mostly;
+@@ -386,6 +404,7 @@ static int __init dnotify_init(void)
+ 	dnotify_group = fsnotify_alloc_group(&dnotify_fsnotify_ops);
+ 	if (IS_ERR(dnotify_group))
+ 		panic("unable to allocate fsnotify group for dnotify\n");
++	dnotify_sysctl_init();
+ 	return 0;
+ }
+ 
+--- a/include/linux/dnotify.h~dnotify-move-dnotify-sysctl-to-dnotifyc
++++ a/include/linux/dnotify.h
+@@ -29,7 +29,6 @@ struct dnotify_struct {
+ 			    FS_CREATE | FS_RENAME |\
+ 			    FS_MOVED_FROM | FS_MOVED_TO)
+ 
+-extern int dir_notify_enable;
+ extern void dnotify_flush(struct file *, fl_owner_t);
+ extern int fcntl_dirnotify(int, struct file *, unsigned long);
+ 
+--- a/kernel/sysctl.c~dnotify-move-dnotify-sysctl-to-dnotifyc
 +++ a/kernel/sysctl.c
-@@ -123,7 +123,7 @@ static const unsigned long dirty_bytes_m
- 
- /* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and GID */
- static const int maxolduid = 65535;
--static const int minolduid;
-+/* minolduid is SYSCTL_ZERO */
- 
- static const int ngroups_max = NGROUPS_MAX;
- static const int cap_last_cap = CAP_LAST_CAP;
-@@ -171,7 +171,7 @@ int sysctl_legacy_va_layout;
+@@ -49,7 +49,6 @@
+ #include <linux/times.h>
+ #include <linux/limits.h>
+ #include <linux/dcache.h>
+-#include <linux/dnotify.h>
+ #include <linux/syscalls.h>
+ #include <linux/vmstat.h>
+ #include <linux/nfs_fs.h>
+@@ -3089,15 +3088,6 @@ static struct ctl_table fs_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+-	},
+-#endif
+-#ifdef CONFIG_DNOTIFY
+-	{
+-		.procname	= "dir-notify-enable",
+-		.data		= &dir_notify_enable,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+ 	},
  #endif
- 
- #ifdef CONFIG_COMPACTION
--static const int min_extfrag_threshold;
-+/* min_extfrag_threshold is SYSCTL_ZERO */;
- static const int max_extfrag_threshold = 1000;
- #endif
- 
-@@ -2176,7 +2176,7 @@ static struct ctl_table kern_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= (void *)&minolduid,
-+		.extra1		= SYSCTL_ZERO,
- 		.extra2		= (void *)&maxolduid,
- 	},
- 	{
-@@ -2185,7 +2185,7 @@ static struct ctl_table kern_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= (void *)&minolduid,
-+		.extra1		= SYSCTL_ZERO,
- 		.extra2		= (void *)&maxolduid,
- 	},
- #ifdef CONFIG_S390
-@@ -2759,7 +2759,7 @@ static struct ctl_table vm_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= (void *)&min_extfrag_threshold,
-+		.extra1		= SYSCTL_ZERO,
- 		.extra2		= (void *)&max_extfrag_threshold,
- 	},
- 	{
-@@ -3071,7 +3071,7 @@ static struct ctl_table fs_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= (void *)&minolduid,
-+		.extra1		= SYSCTL_ZERO,
- 		.extra2		= (void *)&maxolduid,
- 	},
- 	{
-@@ -3080,7 +3080,7 @@ static struct ctl_table fs_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= (void *)&minolduid,
-+		.extra1		= SYSCTL_ZERO,
- 		.extra2		= (void *)&maxolduid,
- 	},
- #ifdef CONFIG_FILE_LOCKING
+ #ifdef CONFIG_MMU
 _
