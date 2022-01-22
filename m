@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3D573C433FE
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:14:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 50D3CC433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:14:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232941AbiAVGOT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:14:19 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:55094 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230076AbiAVGOR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:14:17 -0500
+        id S233453AbiAVGOU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:14:20 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:44452 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233005AbiAVGOT (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:14:19 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id F4191B81FD1
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:14:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 579B5C004E1;
-        Sat, 22 Jan 2022 06:14:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 72AAB60FB0
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:14:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 87EDCC004E1;
+        Sat, 22 Jan 2022 06:14:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642832054;
-        bh=0OQeLIar8BDXiRJC+Vv9hf5warCJNZL3tKIWOO1h6NM=;
+        s=korg; t=1642832057;
+        bh=b7lciljBSjqplQsBCzbB8pun/hrpJaHvaroEUoPRPSE=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=xqcQbgfveWHg0wlzep4Knh3FV8OGFeQIWfTrdvhmbUqw6UPdqFM8cW+/LXRfpACtW
-         5TlYzw3x4FPf88x1YewwEktZRiMquR/A2g2b9B9/yyHem+7Cb4I56u8pfR+zyoSVbw
-         qf71dz1/QF4OKIhs/MPk7lPMXJlddzq2UWaE+2eE=
-Date:   Fri, 21 Jan 2022 22:14:13 -0800
+        b=RYC+gVCgC88z2ql3VkYVEMCZ4s+ZotSPJaUhVFqnWzKa9o/HNUNpD5PERnGMfjlIo
+         Mwbm6yr4aJW7R3sQ3oIA6KAySNYq0jYoAviHdZsxvAe4dlESCLFXdy0ZZX8Uh1SmDy
+         xi127Yhiw6KBfBi+n3EMPlXmAJwko3lRB2XudYdY=
+Date:   Fri, 21 Jan 2022 22:14:17 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         linux-mm@kvack.org, minchan@kernel.org, mm-commits@vger.kernel.org,
         peterz@infradead.org, senozhatsky@chromium.org, tglx@linutronix.de,
         torvalds@linux-foundation.org, umgwanakikbuti@gmail.com
-Subject:  [patch 51/69] zsmalloc: replace per zpage lock with
- pool->migrate_lock
-Message-ID: <20220122061413.bab40y4Ey%akpm@linux-foundation.org>
+Subject:  [patch 52/69] zsmalloc: replace get_cpu_var with
+ local_lock
+Message-ID: <20220122061417.ETzeDBxMT%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -41,478 +41,78 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: replace per zpage lock with pool->migrate_lock
+From: Mike Galbraith <umgwanakikbuti@gmail.com>
+Subject: zsmalloc: replace get_cpu_var with local_lock
 
-The zsmalloc has used a bit for spin_lock in zpage handle to keep zpage
-object alive during several operations.  However, it causes the problem
-for PREEMPT_RT as well as introducing too complicated.
+The usage of get_cpu_var() in zs_map_object() is problematic because it
+disables preemption and makes it impossible to acquire any sleeping lock
+on PREEMPT_RT such as a spinlock_t.
 
-This patch replaces the bit spin_lock with pool->migrate_lock rwlock.  It
-could make the code simple as well as zsmalloc work under PREEMPT_RT.
+Replace the get_cpu_var() usage with a local_lock_t which is embedded
+struct mapping_area.  It ensures that the access the struct is
+synchronized against all users on the same CPU.
 
-The drawback is the pool->migrate_lock is bigger granuarity than per zpage
-lock so the contention would be higher than old when both IO-related
-operations(i.e., zsmalloc, zsfree, zs_[map|unmap]) and
-compaction(page/zpage migration) are going in parallel(*, the migrate_lock
-is rwlock and IO related functions are all read side lock so there is no
-contention).  However, the write-side is fast enough(dominant overhead is
-just page copy) so it wouldn't affect much.  If the lock granurity becomes
-more problem later, we could introduce table locks based on handle as a
-hash value.
-
-Link: https://lkml.kernel.org/r/20211115185909.3949505-9-minchan@kernel.org
+[minchan: remove the bit_spin_lock part and change the title]
+Link: https://lkml.kernel.org/r/20211115185909.3949505-10-minchan@kernel.org
+Signed-off-by: Mike Galbraith <umgwanakikbuti@gmail.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Tested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
 Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |  205 ++++++++++++++++++++++--------------------------
- 1 file changed, 96 insertions(+), 109 deletions(-)
+ mm/zsmalloc.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-replace-per-zpage-lock-with-pool-migrate_lock
+--- a/mm/zsmalloc.c~zsmalloc-replace-get_cpu_var-with-local_lock
 +++ a/mm/zsmalloc.c
-@@ -30,6 +30,14 @@
+@@ -65,6 +65,7 @@
+ #include <linux/wait.h>
+ #include <linux/pagemap.h>
+ #include <linux/fs.h>
++#include <linux/local_lock.h>
  
- #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ #define ZSPAGE_MAGIC	0x58
  
-+/*
-+ * lock ordering:
-+ *	page_lock
-+ *	pool->migrate_lock
-+ *	class->lock
-+ *	zspage->lock
-+ */
-+
- #include <linux/module.h>
- #include <linux/kernel.h>
- #include <linux/sched.h>
-@@ -101,15 +109,6 @@
- #define _PFN_BITS		(MAX_POSSIBLE_PHYSMEM_BITS - PAGE_SHIFT)
- 
- /*
-- * Memory for allocating for handle keeps object position by
-- * encoding <page, obj_idx> and the encoded value has a room
-- * in least bit(ie, look at obj_to_location).
-- * We use the bit to synchronize between object access by
-- * user and migration.
-- */
--#define HANDLE_PIN_BIT	0
--
--/*
-  * Head in allocated object should have OBJ_ALLOCATED_TAG
-  * to identify the object was allocated or not.
-  * It's okay to add the status bit in the least bit because
-@@ -255,6 +254,8 @@ struct zs_pool {
- 	struct inode *inode;
- 	struct work_struct free_work;
- #endif
-+	/* protect page/zspage migration */
-+	rwlock_t migrate_lock;
+@@ -276,6 +277,7 @@ struct zspage {
  };
  
- struct zspage {
-@@ -297,6 +298,9 @@ static void zs_unregister_migration(stru
- static void migrate_lock_init(struct zspage *zspage);
- static void migrate_read_lock(struct zspage *zspage);
- static void migrate_read_unlock(struct zspage *zspage);
-+static void migrate_write_lock(struct zspage *zspage);
-+static void migrate_write_lock_nested(struct zspage *zspage);
-+static void migrate_write_unlock(struct zspage *zspage);
- static void kick_deferred_free(struct zs_pool *pool);
- static void init_deferred_free(struct zs_pool *pool);
- static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage);
-@@ -308,6 +312,9 @@ static void zs_unregister_migration(stru
- static void migrate_lock_init(struct zspage *zspage) {}
- static void migrate_read_lock(struct zspage *zspage) {}
- static void migrate_read_unlock(struct zspage *zspage) {}
-+static void migrate_write_lock(struct zspage *zspage) {}
-+static void migrate_write_lock_nested(struct zspage *zspage) {}
-+static void migrate_write_unlock(struct zspage *zspage) {}
- static void kick_deferred_free(struct zs_pool *pool) {}
- static void init_deferred_free(struct zs_pool *pool) {}
- static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage) {}
-@@ -359,14 +366,10 @@ static void cache_free_zspage(struct zs_
- 	kmem_cache_free(pool->zspage_cachep, zspage);
- }
+ struct mapping_area {
++	local_lock_t lock;
+ 	char *vm_buf; /* copy buffer for objects that span pages */
+ 	char *vm_addr; /* address of kmap_atomic()'ed pages */
+ 	enum zs_mapmode vm_mm; /* mapping mode */
+@@ -451,7 +453,9 @@ MODULE_ALIAS("zpool-zsmalloc");
+ #endif /* CONFIG_ZPOOL */
  
-+/* class->lock(which owns the handle) synchronizes races */
- static void record_obj(unsigned long handle, unsigned long obj)
+ /* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
+-static DEFINE_PER_CPU(struct mapping_area, zs_map_area);
++static DEFINE_PER_CPU(struct mapping_area, zs_map_area) = {
++	.lock	= INIT_LOCAL_LOCK(lock),
++};
+ 
+ static __maybe_unused int is_first_page(struct page *page)
  {
--	/*
--	 * lsb of @obj represents handle lock while other bits
--	 * represent object value the handle is pointing so
--	 * updating shouldn't do store tearing.
--	 */
--	WRITE_ONCE(*(unsigned long *)handle, obj);
-+	*(unsigned long *)handle = obj;
- }
- 
- /* zpool driver */
-@@ -880,26 +883,6 @@ static bool obj_allocated(struct page *p
- 	return true;
- }
- 
--static inline int testpin_tag(unsigned long handle)
--{
--	return bit_spin_is_locked(HANDLE_PIN_BIT, (unsigned long *)handle);
--}
--
--static inline int trypin_tag(unsigned long handle)
--{
--	return bit_spin_trylock(HANDLE_PIN_BIT, (unsigned long *)handle);
--}
--
--static void pin_tag(unsigned long handle) __acquires(bitlock)
--{
--	bit_spin_lock(HANDLE_PIN_BIT, (unsigned long *)handle);
--}
--
--static void unpin_tag(unsigned long handle) __releases(bitlock)
--{
--	bit_spin_unlock(HANDLE_PIN_BIT, (unsigned long *)handle);
--}
--
- static void reset_page(struct page *page)
- {
- 	__ClearPageMovable(page);
-@@ -968,6 +951,11 @@ static void free_zspage(struct zs_pool *
- 	VM_BUG_ON(get_zspage_inuse(zspage));
- 	VM_BUG_ON(list_empty(&zspage->list));
- 
-+	/*
-+	 * Since zs_free couldn't be sleepable, this function cannot call
-+	 * lock_page. The page locks trylock_zspage got will be released
-+	 * by __free_zspage.
-+	 */
- 	if (!trylock_zspage(zspage)) {
- 		kick_deferred_free(pool);
- 		return;
-@@ -1263,15 +1251,20 @@ void *zs_map_object(struct zs_pool *pool
- 	 */
- 	BUG_ON(in_interrupt());
- 
--	/* From now on, migration cannot move the object */
--	pin_tag(handle);
--
-+	/* It guarantees it can get zspage from handle safely */
-+	read_lock(&pool->migrate_lock);
- 	obj = handle_to_obj(handle);
- 	obj_to_location(obj, &page, &obj_idx);
- 	zspage = get_zspage(page);
- 
--	/* migration cannot move any subpage in this zspage */
-+	/*
-+	 * migration cannot move any zpages in this zspage. Here, class->lock
-+	 * is too heavy since callers would take some time until they calls
-+	 * zs_unmap_object API so delegate the locking from class to zspage
-+	 * which is smaller granularity.
-+	 */
- 	migrate_read_lock(zspage);
-+	read_unlock(&pool->migrate_lock);
- 
+@@ -1269,7 +1273,8 @@ void *zs_map_object(struct zs_pool *pool
  	class = zspage_class(pool, zspage);
  	off = (class->size * obj_idx) & ~PAGE_MASK;
-@@ -1330,7 +1323,6 @@ void zs_unmap_object(struct zs_pool *poo
- 	put_cpu_var(zs_map_area);
+ 
+-	area = &get_cpu_var(zs_map_area);
++	local_lock(&zs_map_area.lock);
++	area = this_cpu_ptr(&zs_map_area);
+ 	area->vm_mm = mm;
+ 	if (off + class->size <= PAGE_SIZE) {
+ 		/* this object is contained entirely within a page */
+@@ -1320,7 +1325,7 @@ void zs_unmap_object(struct zs_pool *poo
+ 
+ 		__zs_unmap_object(area, pages, off, class->size);
+ 	}
+-	put_cpu_var(zs_map_area);
++	local_unlock(&zs_map_area.lock);
  
  	migrate_read_unlock(zspage);
--	unpin_tag(handle);
  }
- EXPORT_SYMBOL_GPL(zs_unmap_object);
- 
-@@ -1424,6 +1416,7 @@ unsigned long zs_malloc(struct zs_pool *
- 	size += ZS_HANDLE_SIZE;
- 	class = pool->size_class[get_size_class_index(size)];
- 
-+	/* class->lock effectively protects the zpage migration */
- 	spin_lock(&class->lock);
- 	zspage = find_get_zspage(class);
- 	if (likely(zspage)) {
-@@ -1501,30 +1494,27 @@ void zs_free(struct zs_pool *pool, unsig
- 	if (unlikely(!handle))
- 		return;
- 
--	pin_tag(handle);
-+	/*
-+	 * The pool->migrate_lock protects the race with zpage's migration
-+	 * so it's safe to get the page from handle.
-+	 */
-+	read_lock(&pool->migrate_lock);
- 	obj = handle_to_obj(handle);
- 	obj_to_page(obj, &f_page);
- 	zspage = get_zspage(f_page);
--
--	migrate_read_lock(zspage);
- 	class = zspage_class(pool, zspage);
--
- 	spin_lock(&class->lock);
-+	read_unlock(&pool->migrate_lock);
-+
- 	obj_free(class->size, obj);
- 	class_stat_dec(class, OBJ_USED, 1);
- 	fullness = fix_fullness_group(class, zspage);
--	if (fullness != ZS_EMPTY) {
--		migrate_read_unlock(zspage);
-+	if (fullness != ZS_EMPTY)
- 		goto out;
--	}
- 
--	migrate_read_unlock(zspage);
--	/* If zspage is isolated, zs_page_putback will free the zspage */
- 	free_zspage(pool, class, zspage);
- out:
--
- 	spin_unlock(&class->lock);
--	unpin_tag(handle);
- 	cache_free_handle(pool, handle);
- }
- EXPORT_SYMBOL_GPL(zs_free);
-@@ -1608,11 +1598,8 @@ static unsigned long find_alloced_obj(st
- 	offset += class->size * index;
- 
- 	while (offset < PAGE_SIZE) {
--		if (obj_allocated(page, addr + offset, &handle)) {
--			if (trypin_tag(handle))
--				break;
--			handle = 0;
--		}
-+		if (obj_allocated(page, addr + offset, &handle))
-+			break;
- 
- 		offset += class->size;
- 		index++;
-@@ -1658,7 +1645,6 @@ static int migrate_zspage(struct zs_pool
- 
- 		/* Stop if there is no more space */
- 		if (zspage_full(class, get_zspage(d_page))) {
--			unpin_tag(handle);
- 			ret = -ENOMEM;
- 			break;
- 		}
-@@ -1667,15 +1653,7 @@ static int migrate_zspage(struct zs_pool
- 		free_obj = obj_malloc(pool, get_zspage(d_page), handle);
- 		zs_object_copy(class, free_obj, used_obj);
- 		obj_idx++;
--		/*
--		 * record_obj updates handle's value to free_obj and it will
--		 * invalidate lock bit(ie, HANDLE_PIN_BIT) of handle, which
--		 * breaks synchronization using pin_tag(e,g, zs_free) so
--		 * let's keep the lock bit.
--		 */
--		free_obj |= BIT(HANDLE_PIN_BIT);
- 		record_obj(handle, free_obj);
--		unpin_tag(handle);
- 		obj_free(class->size, used_obj);
- 	}
- 
-@@ -1789,6 +1767,11 @@ static void migrate_write_lock(struct zs
- 	write_lock(&zspage->lock);
- }
- 
-+static void migrate_write_lock_nested(struct zspage *zspage)
-+{
-+	write_lock_nested(&zspage->lock, SINGLE_DEPTH_NESTING);
-+}
-+
- static void migrate_write_unlock(struct zspage *zspage)
- {
- 	write_unlock(&zspage->lock);
-@@ -1856,11 +1839,10 @@ static int zs_page_migrate(struct addres
- 	struct zspage *zspage;
- 	struct page *dummy;
- 	void *s_addr, *d_addr, *addr;
--	int offset, pos;
-+	int offset;
- 	unsigned long handle;
- 	unsigned long old_obj, new_obj;
- 	unsigned int obj_idx;
--	int ret = -EAGAIN;
- 
- 	/*
- 	 * We cannot support the _NO_COPY case here, because copy needs to
-@@ -1873,32 +1855,25 @@ static int zs_page_migrate(struct addres
- 	VM_BUG_ON_PAGE(!PageMovable(page), page);
- 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
- 
--	zspage = get_zspage(page);
--
--	/* Concurrent compactor cannot migrate any subpage in zspage */
--	migrate_write_lock(zspage);
- 	pool = mapping->private_data;
-+
-+	/*
-+	 * The pool migrate_lock protects the race between zpage migration
-+	 * and zs_free.
-+	 */
-+	write_lock(&pool->migrate_lock);
-+	zspage = get_zspage(page);
- 	class = zspage_class(pool, zspage);
--	offset = get_first_obj_offset(page);
- 
-+	/*
-+	 * the class lock protects zpage alloc/free in the zspage.
-+	 */
- 	spin_lock(&class->lock);
--	if (!get_zspage_inuse(zspage)) {
--		/*
--		 * Set "offset" to end of the page so that every loops
--		 * skips unnecessary object scanning.
--		 */
--		offset = PAGE_SIZE;
--	}
-+	/* the migrate_write_lock protects zpage access via zs_map_object */
-+	migrate_write_lock(zspage);
- 
--	pos = offset;
-+	offset = get_first_obj_offset(page);
- 	s_addr = kmap_atomic(page);
--	while (pos < PAGE_SIZE) {
--		if (obj_allocated(page, s_addr + pos, &handle)) {
--			if (!trypin_tag(handle))
--				goto unpin_objects;
--		}
--		pos += class->size;
--	}
- 
- 	/*
- 	 * Here, any user cannot access all objects in the zspage so let's move.
-@@ -1907,25 +1882,30 @@ static int zs_page_migrate(struct addres
- 	memcpy(d_addr, s_addr, PAGE_SIZE);
- 	kunmap_atomic(d_addr);
- 
--	for (addr = s_addr + offset; addr < s_addr + pos;
-+	for (addr = s_addr + offset; addr < s_addr + PAGE_SIZE;
- 					addr += class->size) {
- 		if (obj_allocated(page, addr, &handle)) {
--			BUG_ON(!testpin_tag(handle));
- 
- 			old_obj = handle_to_obj(handle);
- 			obj_to_location(old_obj, &dummy, &obj_idx);
- 			new_obj = (unsigned long)location_to_obj(newpage,
- 								obj_idx);
--			new_obj |= BIT(HANDLE_PIN_BIT);
- 			record_obj(handle, new_obj);
- 		}
- 	}
-+	kunmap_atomic(s_addr);
- 
- 	replace_sub_page(class, zspage, newpage, page);
--	get_page(newpage);
--
-+	/*
-+	 * Since we complete the data copy and set up new zspage structure,
-+	 * it's okay to release migration_lock.
-+	 */
-+	write_unlock(&pool->migrate_lock);
-+	spin_unlock(&class->lock);
- 	dec_zspage_isolation(zspage);
-+	migrate_write_unlock(zspage);
- 
-+	get_page(newpage);
- 	if (page_zone(newpage) != page_zone(page)) {
- 		dec_zone_page_state(page, NR_ZSPAGES);
- 		inc_zone_page_state(newpage, NR_ZSPAGES);
-@@ -1933,22 +1913,8 @@ static int zs_page_migrate(struct addres
- 
- 	reset_page(page);
- 	put_page(page);
--	page = newpage;
--
--	ret = MIGRATEPAGE_SUCCESS;
--unpin_objects:
--	for (addr = s_addr + offset; addr < s_addr + pos;
--						addr += class->size) {
--		if (obj_allocated(page, addr, &handle)) {
--			BUG_ON(!testpin_tag(handle));
--			unpin_tag(handle);
--		}
--	}
--	kunmap_atomic(s_addr);
--	spin_unlock(&class->lock);
--	migrate_write_unlock(zspage);
- 
--	return ret;
-+	return MIGRATEPAGE_SUCCESS;
- }
- 
- static void zs_page_putback(struct page *page)
-@@ -2077,8 +2043,13 @@ static unsigned long __zs_compact(struct
- 	struct zspage *dst_zspage = NULL;
- 	unsigned long pages_freed = 0;
- 
-+	/* protect the race between zpage migration and zs_free */
-+	write_lock(&pool->migrate_lock);
-+	/* protect zpage allocation/free */
- 	spin_lock(&class->lock);
- 	while ((src_zspage = isolate_zspage(class, true))) {
-+		/* protect someone accessing the zspage(i.e., zs_map_object) */
-+		migrate_write_lock(src_zspage);
- 
- 		if (!zs_can_compact(class))
- 			break;
-@@ -2087,6 +2058,8 @@ static unsigned long __zs_compact(struct
- 		cc.s_page = get_first_page(src_zspage);
- 
- 		while ((dst_zspage = isolate_zspage(class, false))) {
-+			migrate_write_lock_nested(dst_zspage);
-+
- 			cc.d_page = get_first_page(dst_zspage);
- 			/*
- 			 * If there is no more space in dst_page, resched
-@@ -2096,6 +2069,10 @@ static unsigned long __zs_compact(struct
- 				break;
- 
- 			putback_zspage(class, dst_zspage);
-+			migrate_write_unlock(dst_zspage);
-+			dst_zspage = NULL;
-+			if (rwlock_is_contended(&pool->migrate_lock))
-+				break;
- 		}
- 
- 		/* Stop if we couldn't find slot */
-@@ -2103,19 +2080,28 @@ static unsigned long __zs_compact(struct
- 			break;
- 
- 		putback_zspage(class, dst_zspage);
-+		migrate_write_unlock(dst_zspage);
-+
- 		if (putback_zspage(class, src_zspage) == ZS_EMPTY) {
-+			migrate_write_unlock(src_zspage);
- 			free_zspage(pool, class, src_zspage);
- 			pages_freed += class->pages_per_zspage;
--		}
-+		} else
-+			migrate_write_unlock(src_zspage);
- 		spin_unlock(&class->lock);
-+		write_unlock(&pool->migrate_lock);
- 		cond_resched();
-+		write_lock(&pool->migrate_lock);
- 		spin_lock(&class->lock);
- 	}
- 
--	if (src_zspage)
-+	if (src_zspage) {
- 		putback_zspage(class, src_zspage);
-+		migrate_write_unlock(src_zspage);
-+	}
- 
- 	spin_unlock(&class->lock);
-+	write_unlock(&pool->migrate_lock);
- 
- 	return pages_freed;
- }
-@@ -2221,6 +2207,7 @@ struct zs_pool *zs_create_pool(const cha
- 		return NULL;
- 
- 	init_deferred_free(pool);
-+	rwlock_init(&pool->migrate_lock);
- 
- 	pool->name = kstrdup(name, GFP_KERNEL);
- 	if (!pool->name)
 _
