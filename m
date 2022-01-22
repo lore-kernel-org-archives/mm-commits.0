@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF7E0C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:11:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5D923C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:12:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233414AbiAVGLy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:11:54 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56916 "EHLO
+        id S233424AbiAVGMA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:12:00 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56936 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229943AbiAVGLy (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:11:54 -0500
+        with ESMTP id S229943AbiAVGL7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:11:59 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id D631BC06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:11:53 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C5EB4C06173B
+        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:11:58 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 93CEEB81FCA
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:11:52 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E814EC340E4;
-        Sat, 22 Jan 2022 06:11:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 8DE44B81FCB
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:11:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E3039C36AE3;
+        Sat, 22 Jan 2022 06:11:54 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642831911;
-        bh=agbnf7Db/XXK9SP0LmBRctuGt0veXGdUhTt+xw7xnWQ=;
+        s=korg; t=1642831916;
+        bh=WdbgoqRDAgZaI1fNTZXlKW4InTj95MvRwpRHqUHFLNg=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=Gb6OT3k0ZWVLK1vUBgB0AprOtFbXAjjesXawiKYHEZkMPhU4iXBxcn61bdOxDGFhG
-         KgFEdLa6UcucJ0jUAGp2Z6nSh2na6hVY6LEDYHtRgxnoB1eeKuhta+Si5gbIhWtwF6
-         TVqmsp05Z6FUP3DVUaH8MIqHLAgJmB/8BkrADg1g=
-Date:   Fri, 21 Jan 2022 22:11:49 -0800
+        b=Lm7SEMo7e8Qi56Jefhwo/4AaoNWNT9X33sqQkG3475O4E6r0cHrzmJJTDlzcLJp/k
+         emnMqNR5/apUBPVI+IJh4FGnP4vT0Nhxo+2BYr/Qy4Ew2QM2M7yw76mW4BSUJV0HXQ
+         n5zT78e9hcdOsM4KIQFZ3U4fZxwL+TRqtjkqjNJ8=
+Date:   Fri, 21 Jan 2022 22:11:54 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -48,9 +48,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
         tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
         yzaikin@google.com
-Subject:  [patch 14/69] ocfs2: simplify subdirectory registration
- with register_sysctl()
-Message-ID: <20220122061149.xCAYQG8jC%akpm@linux-foundation.org>
+Subject:  [patch 15/69] test_sysctl: simplify subdirectory
+ registration with register_sysctl()
+Message-ID: <20220122061154.OHvD7CXR0%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -59,13 +59,13 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: ocfs2: simplify subdirectory registration with register_sysctl()
+Subject: test_sysctl: simplify subdirectory registration with register_sysctl()
 
 There is no need to user boiler plate code to specify a set of base
 directories we're going to stuff sysctls under.  Simplify this by using
 register_sysctl() and specifying the directory path directly.
 
-// pycocci sysctl-subdir-register-sysctl-simplify.cocci PATH
+// pycocci sysctl-subdir-register-sysctl-simplify.cocci lib/test_sysctl.c
 
 @c1@
 expression E1;
@@ -157,9 +157,8 @@ header =
 +register_sysctl(E3, sysctls);
 
 Generated-by: Coccinelle SmPL
-Link: https://lkml.kernel.org/r/20211123202422.819032-5-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211123202422.819032-6-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -173,6 +172,7 @@ Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Iurii Zaikin <yzaikin@google.com>
 Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
 Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
@@ -203,50 +203,45 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |   25 +------------------------
- 1 file changed, 1 insertion(+), 24 deletions(-)
+ lib/test_sysctl.c |   22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
---- a/fs/ocfs2/stackglue.c~ocfs2-simplify-subdirectory-registration-with-register_sysctl
-+++ a/fs/ocfs2/stackglue.c
-@@ -672,31 +672,8 @@ static struct ctl_table ocfs2_mod_table[
+--- a/lib/test_sysctl.c~test_sysctl-simplify-subdirectory-registration-with-register_sysctl
++++ a/lib/test_sysctl.c
+@@ -128,26 +128,6 @@ static struct ctl_table test_table[] = {
  	{ }
  };
  
--static struct ctl_table ocfs2_kern_table[] = {
+-static struct ctl_table test_sysctl_table[] = {
 -	{
--		.procname	= "ocfs2",
--		.data		= NULL,
+-		.procname	= "test_sysctl",
 -		.maxlen		= 0,
 -		.mode		= 0555,
--		.child		= ocfs2_mod_table
+-		.child		= test_table,
 -	},
 -	{ }
 -};
 -
--static struct ctl_table ocfs2_root_table[] = {
+-static struct ctl_table test_sysctl_root_table[] = {
 -	{
--		.procname	= "fs",
--		.data		= NULL,
+-		.procname	= "debug",
 -		.maxlen		= 0,
 -		.mode		= 0555,
--		.child		= ocfs2_kern_table
+-		.child		= test_sysctl_table,
 -	},
 -	{ }
 -};
 -
- static struct ctl_table_header *ocfs2_table_header;
+ static struct ctl_table_header *test_sysctl_header;
  
--
- /*
-  * Initialization
-  */
-@@ -705,7 +682,7 @@ static int __init ocfs2_stack_glue_init(
- {
- 	strcpy(cluster_stack_name, OCFS2_STACK_PLUGIN_O2CB);
- 
--	ocfs2_table_header = register_sysctl_table(ocfs2_root_table);
-+	ocfs2_table_header = register_sysctl("fs/ocfs2", ocfs2_mod_table);
- 	if (!ocfs2_table_header) {
- 		printk(KERN_ERR
- 		       "ocfs2 stack glue: unable to register sysctl\n");
+ static int __init test_sysctl_init(void)
+@@ -155,7 +135,7 @@ static int __init test_sysctl_init(void)
+ 	test_data.bitmap_0001 = kzalloc(SYSCTL_TEST_BITMAP_SIZE/8, GFP_KERNEL);
+ 	if (!test_data.bitmap_0001)
+ 		return -ENOMEM;
+-	test_sysctl_header = register_sysctl_table(test_sysctl_root_table);
++	test_sysctl_header = register_sysctl("debug/test_sysctl", test_table);
+ 	if (!test_sysctl_header) {
+ 		kfree(test_data.bitmap_0001);
+ 		return -ENOMEM;
 _
