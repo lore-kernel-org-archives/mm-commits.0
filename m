@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5C183C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:11:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 55331C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:11:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233420AbiAVGLo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:11:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56878 "EHLO
+        id S233423AbiAVGLr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:11:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56890 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233414AbiAVGLo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:11:44 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1117C06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:11:43 -0800 (PST)
+        with ESMTP id S233414AbiAVGLr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:11:47 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 593C0C06173B
+        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:11:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B10C2B81FC2
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:11:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1DB1C340E4;
-        Sat, 22 Jan 2022 06:11:39 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id EA8A160FB8
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:11:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EB89BC340E0;
+        Sat, 22 Jan 2022 06:11:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642831901;
-        bh=LUizPhteLeQYD09U6z+BvjgLjTMQ5IKMIHlTp+bMLrs=;
+        s=korg; t=1642831906;
+        bh=OGUpi51vuBEi80P1pTfyVQfmytwKFsLsAWWlDdqlMTs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=uAj8TUPQHnWslShYhxC63K9tHbBAxHLoM3pG0tS4k4n7fjk/qukht0Ug0vrj0mTVx
-         8p25sgW7V6DjLg23ej/juHhLE+saLhxCX26XlHenWqoH34t3XNoxOMZzJv7zZnquLX
-         1n6wXUtIEyxxBBKGz9LU0WwS5d2A0VPIy3MxH838=
-Date:   Fri, 21 Jan 2022 22:11:39 -0800
+        b=CQSz+lrhDa+PH+PzosD4R8bM5M2I8S7wNulWn3nXAB9y7eRbUdcH5c6rQtk+I8WTS
+         PNEU5ZSYaWdcnIkdwO5MFf68LlStjSwWrDLq6zDkybtrMHDTKwVFPyOdhbnPKHiboR
+         NClFi5AiWnp0N/GxLWf+WdtT0DjsFI4nMPOK46mI=
+Date:   Fri, 21 Jan 2022 22:11:44 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -48,9 +48,9 @@ To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
         steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
         tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
         yzaikin@google.com
-Subject:  [patch 12/69] i915: simplify subdirectory registration
- with register_sysctl()
-Message-ID: <20220122061139.vficv5IKT%akpm@linux-foundation.org>
+Subject:  [patch 13/69] macintosh/mac_hid.c: simplify subdirectory
+ registration with register_sysctl()
+Message-ID: <20220122061144.ZhId38pNT%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -59,7 +59,7 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: i915: simplify subdirectory registration with register_sysctl()
+Subject: macintosh/mac_hid.c: simplify subdirectory registration with register_sysctl()
 
 There is no need to user boiler plate code to specify a set of base
 directories we're going to stuff sysctls under.  Simplify this by using
@@ -157,9 +157,8 @@ header =
 +register_sysctl(E3, sysctls);
 
 Generated-by: Coccinelle SmPL
-Link: https://lkml.kernel.org/r/20211123202422.819032-3-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211123202422.819032-4-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
-Acked-by: Jani Nikula <jani.nikula@intel.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -172,6 +171,7 @@ Cc: David Airlie <airlied@linux.ie>
 Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
@@ -193,7 +193,7 @@ Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Cc: Douglas Gilbert <dgilbert@interlog.com>
 Cc: James E.J. Bottomley <jejb@linux.ibm.com>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Jani Nikula <jani.nikula@intel.com>
 Cc: John Ogness <john.ogness@linutronix.de>
 Cc: Martin K. Petersen <martin.petersen@oracle.com>
 Cc: "Rafael J. Wysocki" <rafael@kernel.org>
@@ -203,45 +203,44 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/i915_perf.c |   22 +---------------------
- 1 file changed, 1 insertion(+), 21 deletions(-)
+ drivers/macintosh/mac_hid.c |   24 +-----------------------
+ 1 file changed, 1 insertion(+), 23 deletions(-)
 
---- a/drivers/gpu/drm/i915/i915_perf.c~i915-simplify-subdirectory-registration-with-register_sysctl
-+++ a/drivers/gpu/drm/i915/i915_perf.c
-@@ -4273,26 +4273,6 @@ static struct ctl_table oa_table[] = {
- 	{}
+--- a/drivers/macintosh/mac_hid.c~macintosh-mac_hidc-simplify-subdirectory-registration-with-register_sysctl
++++ a/drivers/macintosh/mac_hid.c
+@@ -239,33 +239,11 @@ static struct ctl_table mac_hid_files[]
+ 	{ }
  };
  
--static struct ctl_table i915_root[] = {
+-/* dir in /proc/sys/dev */
+-static struct ctl_table mac_hid_dir[] = {
 -	{
--	 .procname = "i915",
--	 .maxlen = 0,
--	 .mode = 0555,
--	 .child = oa_table,
--	 },
--	{}
+-		.procname	= "mac_hid",
+-		.maxlen		= 0,
+-		.mode		= 0555,
+-		.child		= mac_hid_files,
+-	},
+-	{ }
 -};
 -
--static struct ctl_table dev_root[] = {
+-/* /proc/sys/dev itself, in case that is not there yet */
+-static struct ctl_table mac_hid_root_dir[] = {
 -	{
--	 .procname = "dev",
--	 .maxlen = 0,
--	 .mode = 0555,
--	 .child = i915_root,
--	 },
--	{}
+-		.procname	= "dev",
+-		.maxlen		= 0,
+-		.mode		= 0555,
+-		.child		= mac_hid_dir,
+-	},
+-	{ }
 -};
 -
- static void oa_init_supported_formats(struct i915_perf *perf)
- {
- 	struct drm_i915_private *i915 = perf->i915;
-@@ -4488,7 +4468,7 @@ static int destroy_config(int id, void *
+ static struct ctl_table_header *mac_hid_sysctl_header;
  
- int i915_perf_sysctl_register(void)
+ static int __init mac_hid_init(void)
  {
--	sysctl_header = register_sysctl_table(dev_root);
-+	sysctl_header = register_sysctl("dev/i915", oa_table);
- 	return 0;
- }
+-	mac_hid_sysctl_header = register_sysctl_table(mac_hid_root_dir);
++	mac_hid_sysctl_header = register_sysctl("dev/mac_hid", mac_hid_files);
+ 	if (!mac_hid_sysctl_header)
+ 		return -ENOMEM;
  
 _
