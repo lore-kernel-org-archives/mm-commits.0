@@ -2,37 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0AD62C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:13:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D5047C433FE
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:13:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233440AbiAVGNv (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:13:51 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:54882 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230076AbiAVGNv (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:13:51 -0500
+        id S233441AbiAVGNx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:13:53 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:44180 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230076AbiAVGNx (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:13:53 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 5CA50B820FE
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:13:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBDFAC004E1;
-        Sat, 22 Jan 2022 06:13:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id D8C9560FBB
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:13:52 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 09E66C340E0;
+        Sat, 22 Jan 2022 06:13:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642832029;
-        bh=1x4JN5S0n9RZ0qlKxGN3jfVL3NgvlQumpjqKP1bFW9Q=;
+        s=korg; t=1642832032;
+        bh=34PHYWdGE/IN8ILmhpY2WSRgnBmEBz+z0QHZsdgOqAQ=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=j20TdlmqPVf3y8HCrTBkYyWWuwSQUQAhBQpF+/5KB/ywT1v7HhEQgrtRYiiPGU/KV
-         nINPPSxZezq8nZri2zdnLTc7r27n82XhsXaiQaS5ZxS7DM3ip3QyttanYQ6QKqhUOt
-         PzvdueyQTnaiVDaWH4+TuIUNx35Ryr40q9RfYjQU=
-Date:   Fri, 21 Jan 2022 22:13:48 -0800
+        b=WUhDHeIeqBdwM7ZyoPJh3dROiKlb6v+7l0AfzVxtuIvJRPFZZ4BzCcsmljZL+w4K5
+         fo5SN/eBojQVFbzDAvT1iBhzc70YRwo6BKQXAD5x+UgetLgFnhXrg41a7KTQuKPExl
+         wvPS4ge4jiDYYP9Fei+tTfGzjjM+lajM5GNUTlcA=
+Date:   Fri, 21 Jan 2022 22:13:51 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, hulkci@huawei.com, libaokun1@huawei.com,
-        linux-mm@kvack.org, mcgrof@kernel.org, mm-commits@vger.kernel.org,
-        torvalds@linux-foundation.org
-Subject:  [patch 43/69] sysctl: returns -EINVAL when a negative
- value is passed to proc_doulongvec_minmax
-Message-ID: <20220122061348.oKWIG8D09%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
+        linux-mm@kvack.org, minchan@kernel.org, mm-commits@vger.kernel.org,
+        peterz@infradead.org, tglx@linutronix.de,
+        torvalds@linux-foundation.org, umgwanakikbuti@gmail.com
+Subject:  [patch 44/69] zsmalloc: introduce some helper functions
+Message-ID: <20220122061351.w-NKvbX3q%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -40,45 +40,214 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Baokun Li <libaokun1@huawei.com>
-Subject: sysctl: returns -EINVAL when a negative value is passed to proc_doulongvec_minmax
+From: Minchan Kim <minchan@kernel.org>
+Subject: zsmalloc: introduce some helper functions
 
-When we pass a negative value to the proc_doulongvec_minmax() function,
-the function returns 0, but the corresponding interface value does not
-change.
+Patch series "zsmalloc: remove bit_spin_lock", v2.
 
-we can easily reproduce this problem with the following commands:
-    cd /proc/sys/fs/epoll
-    echo -1 > max_user_watches; echo $?; cat max_user_watches
+zsmalloc uses bit_spin_lock to minimize space overhead since it's zpage
+granularity lock.  However, it causes zsmalloc non-working under
+PREEMPT_RT as well as adding too much complication.
 
-This function requires a non-negative number to be passed in, so when
-a negative number is passed in, -EINVAL is returned.
+This patchset tries to replace the bit_spin_lock with per-pool rwlock.  It
+also removes unnecessary zspage isolation logic from class, which was the
+other part too much complication added into zsmalloc.
 
-Link: https://lkml.kernel.org/r/20211220092627.3744624-1-libaokun1@huawei.com
-Signed-off-by: Baokun Li <libaokun1@huawei.com>
-Reported-by: Hulk Robot <hulkci@huawei.com>
-Acked-by: Luis Chamberlain <mcgrof@kernel.org>
+Last patch changes the get_cpu_var to local_lock to make it work in
+PREEMPT_RT.
+
+
+This patch (of 9):
+
+get_zspage_mapping returns fullness as well as class_idx.  However, the
+fullness is usually not used since it could be stale in some contexts.  It
+causes misleading as well as unnecessary instructions so this patch
+introduces zspage_class.
+
+obj_to_location also produces page and index but we don't need always the
+index, either so this patch introduces obj_to_page.
+
+Link: https://lkml.kernel.org/r/20211115185909.3949505-1-minchan@kernel.org
+Link: https://lkml.kernel.org/r/20211115185909.3949505-2-minchan@kernel.org
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Tested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/zsmalloc.c |   54 ++++++++++++++++++++----------------------------
+ 1 file changed, 23 insertions(+), 31 deletions(-)
 
---- a/kernel/sysctl.c~sysctl-returns-einval-when-a-negative-value-is-passed-to-proc_doulongvec_minmax
-+++ a/kernel/sysctl.c
-@@ -1145,10 +1145,11 @@ static int __do_proc_doulongvec_minmax(v
- 			err = proc_get_long(&p, &left, &val, &neg,
- 					     proc_wspace_sep,
- 					     sizeof(proc_wspace_sep), NULL);
--			if (err)
-+			if (err || neg) {
-+				err = -EINVAL;
- 				break;
--			if (neg)
--				continue;
-+			}
+--- a/mm/zsmalloc.c~zsmalloc-introduce-some-helper-functions
++++ a/mm/zsmalloc.c
+@@ -517,6 +517,12 @@ static void get_zspage_mapping(struct zs
+ 	*class_idx = zspage->class;
+ }
+ 
++static struct size_class *zspage_class(struct zs_pool *pool,
++					     struct zspage *zspage)
++{
++	return pool->size_class[zspage->class];
++}
 +
- 			val = convmul * val / convdiv;
- 			if ((min && val < *min) || (max && val > *max)) {
- 				err = -EINVAL;
+ static void set_zspage_mapping(struct zspage *zspage,
+ 				unsigned int class_idx,
+ 				enum fullness_group fullness)
+@@ -844,6 +850,12 @@ static void obj_to_location(unsigned lon
+ 	*obj_idx = (obj & OBJ_INDEX_MASK);
+ }
+ 
++static void obj_to_page(unsigned long obj, struct page **page)
++{
++	obj >>= OBJ_TAG_BITS;
++	*page = pfn_to_page(obj >> OBJ_INDEX_BITS);
++}
++
+ /**
+  * location_to_obj - get obj value encoded from (<page>, <obj_idx>)
+  * @page: page object resides in zspage
+@@ -1246,8 +1258,6 @@ void *zs_map_object(struct zs_pool *pool
+ 	unsigned long obj, off;
+ 	unsigned int obj_idx;
+ 
+-	unsigned int class_idx;
+-	enum fullness_group fg;
+ 	struct size_class *class;
+ 	struct mapping_area *area;
+ 	struct page *pages[2];
+@@ -1270,8 +1280,7 @@ void *zs_map_object(struct zs_pool *pool
+ 	/* migration cannot move any subpage in this zspage */
+ 	migrate_read_lock(zspage);
+ 
+-	get_zspage_mapping(zspage, &class_idx, &fg);
+-	class = pool->size_class[class_idx];
++	class = zspage_class(pool, zspage);
+ 	off = (class->size * obj_idx) & ~PAGE_MASK;
+ 
+ 	area = &get_cpu_var(zs_map_area);
+@@ -1304,16 +1313,13 @@ void zs_unmap_object(struct zs_pool *poo
+ 	unsigned long obj, off;
+ 	unsigned int obj_idx;
+ 
+-	unsigned int class_idx;
+-	enum fullness_group fg;
+ 	struct size_class *class;
+ 	struct mapping_area *area;
+ 
+ 	obj = handle_to_obj(handle);
+ 	obj_to_location(obj, &page, &obj_idx);
+ 	zspage = get_zspage(page);
+-	get_zspage_mapping(zspage, &class_idx, &fg);
+-	class = pool->size_class[class_idx];
++	class = zspage_class(pool, zspage);
+ 	off = (class->size * obj_idx) & ~PAGE_MASK;
+ 
+ 	area = this_cpu_ptr(&zs_map_area);
+@@ -1491,8 +1497,6 @@ void zs_free(struct zs_pool *pool, unsig
+ 	struct zspage *zspage;
+ 	struct page *f_page;
+ 	unsigned long obj;
+-	unsigned int f_objidx;
+-	int class_idx;
+ 	struct size_class *class;
+ 	enum fullness_group fullness;
+ 	bool isolated;
+@@ -1502,13 +1506,11 @@ void zs_free(struct zs_pool *pool, unsig
+ 
+ 	pin_tag(handle);
+ 	obj = handle_to_obj(handle);
+-	obj_to_location(obj, &f_page, &f_objidx);
++	obj_to_page(obj, &f_page);
+ 	zspage = get_zspage(f_page);
+ 
+ 	migrate_read_lock(zspage);
+-
+-	get_zspage_mapping(zspage, &class_idx, &fullness);
+-	class = pool->size_class[class_idx];
++	class = zspage_class(pool, zspage);
+ 
+ 	spin_lock(&class->lock);
+ 	obj_free(class, obj);
+@@ -1866,8 +1868,6 @@ static bool zs_page_isolate(struct page
+ {
+ 	struct zs_pool *pool;
+ 	struct size_class *class;
+-	int class_idx;
+-	enum fullness_group fullness;
+ 	struct zspage *zspage;
+ 	struct address_space *mapping;
+ 
+@@ -1880,15 +1880,10 @@ static bool zs_page_isolate(struct page
+ 
+ 	zspage = get_zspage(page);
+ 
+-	/*
+-	 * Without class lock, fullness could be stale while class_idx is okay
+-	 * because class_idx is constant unless page is freed so we should get
+-	 * fullness again under class lock.
+-	 */
+-	get_zspage_mapping(zspage, &class_idx, &fullness);
+ 	mapping = page_mapping(page);
+ 	pool = mapping->private_data;
+-	class = pool->size_class[class_idx];
++
++	class = zspage_class(pool, zspage);
+ 
+ 	spin_lock(&class->lock);
+ 	if (get_zspage_inuse(zspage) == 0) {
+@@ -1907,6 +1902,9 @@ static bool zs_page_isolate(struct page
+ 	 * size_class to prevent further object allocation from the zspage.
+ 	 */
+ 	if (!list_empty(&zspage->list) && !is_zspage_isolated(zspage)) {
++		enum fullness_group fullness;
++		unsigned int class_idx;
++
+ 		get_zspage_mapping(zspage, &class_idx, &fullness);
+ 		atomic_long_inc(&pool->isolated_pages);
+ 		remove_zspage(class, zspage, fullness);
+@@ -1923,8 +1921,6 @@ static int zs_page_migrate(struct addres
+ {
+ 	struct zs_pool *pool;
+ 	struct size_class *class;
+-	int class_idx;
+-	enum fullness_group fullness;
+ 	struct zspage *zspage;
+ 	struct page *dummy;
+ 	void *s_addr, *d_addr, *addr;
+@@ -1949,9 +1945,8 @@ static int zs_page_migrate(struct addres
+ 
+ 	/* Concurrent compactor cannot migrate any subpage in zspage */
+ 	migrate_write_lock(zspage);
+-	get_zspage_mapping(zspage, &class_idx, &fullness);
+ 	pool = mapping->private_data;
+-	class = pool->size_class[class_idx];
++	class = zspage_class(pool, zspage);
+ 	offset = get_first_obj_offset(page);
+ 
+ 	spin_lock(&class->lock);
+@@ -2049,8 +2044,6 @@ static void zs_page_putback(struct page
+ {
+ 	struct zs_pool *pool;
+ 	struct size_class *class;
+-	int class_idx;
+-	enum fullness_group fg;
+ 	struct address_space *mapping;
+ 	struct zspage *zspage;
+ 
+@@ -2058,10 +2051,9 @@ static void zs_page_putback(struct page
+ 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
+ 
+ 	zspage = get_zspage(page);
+-	get_zspage_mapping(zspage, &class_idx, &fg);
+ 	mapping = page_mapping(page);
+ 	pool = mapping->private_data;
+-	class = pool->size_class[class_idx];
++	class = zspage_class(pool, zspage);
+ 
+ 	spin_lock(&class->lock);
+ 	dec_zspage_isolation(zspage);
 _
