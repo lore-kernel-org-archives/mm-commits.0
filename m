@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6E810C4332F
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:13:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 788A0C433FE
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:13:37 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233439AbiAVGNe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:13:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57286 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231552AbiAVGNd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:13:33 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 49D3BC06173B
-        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:13:33 -0800 (PST)
+        id S231552AbiAVGNh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:13:37 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:43960 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230076AbiAVGNg (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:13:36 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DB8C360E0B
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:13:32 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B316BC004E1;
-        Sat, 22 Jan 2022 06:13:31 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6E93E60FB6
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:13:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 43328C004E1;
+        Sat, 22 Jan 2022 06:13:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642832012;
-        bh=gzFjkpgrCyt8F9NXh4EZMpIxyeOfO35EHIrJ/V+y+c4=;
+        s=korg; t=1642832015;
+        bh=cIGG0JpRHjSN1E9Wba5CzZDpZUgTiuPImtGCAuN8YDU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wfLRVoO3UWkIj9zHSgSwNVE3KiduqUjKd9LMhddOJWzkOdTCg/b4zxTG/v3G6k9C3
-         aIuU6rxyLHGujz/u/PtdX0yWrJPH4wcwMmSkJ2swdisYB9sXgmJDQ+9q/DKBPqlxey
-         LwsMaTuRPVVB/LuxQS7A01X8enU/2wiGWLbqNv9Y=
-Date:   Fri, 21 Jan 2022 22:13:31 -0800
+        b=qY3ev5W9XUHB++tXBakSRwqVRVKW+k5+Ny1VzZrKGWe+zg90Gpi6Zs8Gsri+pjdF3
+         x2ERqshzAhvuL1e1EI9vwMaAJvOHXAqnS9zfuyq90q7j1n+njrvDLxxrFX/vff3I+T
+         FxzXICo+hn+UtwA+Ab73sazn1X4RinSglhLFppRQ=
+Date:   Fri, 21 Jan 2022 22:13:34 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, anil.s.keshavamurthy@intel.com,
         christian.brauner@ubuntu.com, crope@iki.fi, davem@davemloft.net,
@@ -38,9 +35,9 @@ To:     akpm@linux-foundation.org, anil.s.keshavamurthy@intel.com,
         naveen.n.rao@linux.ibm.com, nixiaoming@huawei.com, steve@sk2.org,
         torvalds@linux-foundation.org, viro@zeniv.linux.org.uk,
         yzaikin@google.com
-Subject:  [patch 38/69] kernel/sysctl.c: rename sysctl_init() to
- sysctl_init_bases()
-Message-ID: <20220122061331.HESKm3ejJ%akpm@linux-foundation.org>
+Subject:  [patch 39/69] printk: fix build warning when
+ CONFIG_PRINTK=n
+Message-ID: <20220122061334.TbZe0CqSn%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -48,13 +45,19 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: kernel/sysctl.c: rename sysctl_init() to sysctl_init_bases()
+From: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: printk: fix build warning when CONFIG_PRINTK=n
 
-Rename sysctl_init() to sysctl_init_bases() so to reflect exactly what
-this is doing.
+build warning when CONFIG_PRINTK=n
+	kernel/printk/printk.c:175:5: warning: no previous prototype for
+	 'devkmsg_sysctl_set_loglvl' [-Wmissing-prototypes]
 
-Link: https://lkml.kernel.org/r/20211129211943.640266-4-mcgrof@kernel.org
+devkmsg_sysctl_set_loglvl() is only used in sysctl.c when CONFIG_PRINTK=y,
+but it participates in the build when CONFIG_PRINTK=n.  So add compile
+dependency CONFIG_PRINTK=y && CONFIG_SYSCTL=y to fix the build warning.
+
+Link: https://lkml.kernel.org/r/20211129211943.640266-5-mcgrof@kernel.org
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Anil S Keshavamurthy <anil.s.keshavamurthy@intel.com>
@@ -69,79 +72,55 @@ Cc: Lukas Middendorf <kernel@tuxforce.de>
 Cc: Masami Hiramatsu <mhiramat@kernel.org>
 Cc: "Naveen N. Rao" <naveen.n.rao@linux.ibm.com>
 Cc: Stephen Kitt <steve@sk2.org>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mm/alignment.c |    2 +-
- arch/sh/mm/alignment.c  |    2 +-
- fs/proc/proc_sysctl.c   |    4 ++--
- include/linux/sysctl.h  |    2 +-
- kernel/sysctl.c         |    2 +-
- 5 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/printk.h   |    4 ----
+ kernel/printk/internal.h |    2 ++
+ kernel/printk/printk.c   |    3 ++-
+ 3 files changed, 4 insertions(+), 5 deletions(-)
 
---- a/arch/arm/mm/alignment.c~kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases
-+++ a/arch/arm/mm/alignment.c
-@@ -1005,7 +1005,7 @@ static int __init noalign_setup(char *__
- __setup("noalign", noalign_setup);
+--- a/include/linux/printk.h~printk-fix-build-warning-when-config_printk=n
++++ a/include/linux/printk.h
+@@ -183,10 +183,6 @@ extern bool printk_timed_ratelimit(unsig
+ extern int printk_delay_msec;
+ extern int dmesg_restrict;
  
- /*
-- * This needs to be done after sysctl_init, otherwise sys/ will be
-+ * This needs to be done after sysctl_init_bases(), otherwise sys/ will be
-  * overwritten.  Actually, this shouldn't be in sys/ at all since
-  * it isn't a sysctl, and it doesn't contain sysctl information.
-  * We now locate it in /proc/cpu/alignment instead.
---- a/arch/sh/mm/alignment.c~kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases
-+++ a/arch/sh/mm/alignment.c
-@@ -161,7 +161,7 @@ static const struct proc_ops alignment_p
- };
+-extern int
+-devkmsg_sysctl_set_loglvl(struct ctl_table *table, int write, void *buf,
+-			  size_t *lenp, loff_t *ppos);
+-
+ extern void wake_up_klogd(void);
  
- /*
-- * This needs to be done after sysctl_init, otherwise sys/ will be
-+ * This needs to be done after sysctl_init_bases(), otherwise sys/ will be
-  * overwritten.  Actually, this shouldn't be in sys/ at all since
-  * it isn't a sysctl, and it doesn't contain sysctl information.
-  * We now locate it in /proc/cpu/alignment instead.
---- a/fs/proc/proc_sysctl.c~kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases
-+++ a/fs/proc/proc_sysctl.c
-@@ -1419,7 +1419,7 @@ EXPORT_SYMBOL(register_sysctl);
-  * Context: Can only be called after your respective sysctl base path has been
-  * registered. So for instance, most base directories are registered early on
-  * init before init levels are processed through proc_sys_init() and
-- * sysctl_init().
-+ * sysctl_init_bases().
-  */
- void __init __register_sysctl_init(const char *path, struct ctl_table *table,
- 				 const char *table_name)
-@@ -1768,7 +1768,7 @@ int __init proc_sys_init(void)
- 	proc_sys_root->proc_dir_ops = &proc_sys_dir_file_operations;
- 	proc_sys_root->nlink = 0;
+ char *log_buf_addr_get(void);
+--- a/kernel/printk/internal.h~printk-fix-build-warning-when-config_printk=n
++++ a/kernel/printk/internal.h
+@@ -6,6 +6,8 @@
  
--	return sysctl_init();
-+	return sysctl_init_bases();
- }
+ #if defined(CONFIG_PRINTK) && defined(CONFIG_SYSCTL)
+ void __init printk_sysctl_init(void);
++int devkmsg_sysctl_set_loglvl(struct ctl_table *table, int write,
++			      void *buffer, size_t *lenp, loff_t *ppos);
+ #else
+ #define printk_sysctl_init() do { } while (0)
+ #endif
+--- a/kernel/printk/printk.c~printk-fix-build-warning-when-config_printk=n
++++ a/kernel/printk/printk.c
+@@ -171,7 +171,7 @@ static int __init control_devkmsg(char *
+ __setup("printk.devkmsg=", control_devkmsg);
  
- struct sysctl_alias {
---- a/include/linux/sysctl.h~kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases
-+++ a/include/linux/sysctl.h
-@@ -228,7 +228,7 @@ struct ctl_table_header *register_sysctl
- 
- void unregister_sysctl_table(struct ctl_table_header * table);
- 
--extern int sysctl_init(void);
-+extern int sysctl_init_bases(void);
- extern void __register_sysctl_init(const char *path, struct ctl_table *table,
- 				 const char *table_name);
- #define register_sysctl_init(path, table) __register_sysctl_init(path, table, #table)
---- a/kernel/sysctl.c~kernel-sysctlc-rename-sysctl_init-to-sysctl_init_bases
-+++ a/kernel/sysctl.c
-@@ -2844,7 +2844,7 @@ DECLARE_SYSCTL_BASE(vm, vm_table);
- DECLARE_SYSCTL_BASE(debug, debug_table);
- DECLARE_SYSCTL_BASE(dev, dev_table);
- 
--int __init sysctl_init(void)
-+int __init sysctl_init_bases(void)
+ char devkmsg_log_str[DEVKMSG_STR_MAX_SIZE] = "ratelimit";
+-
++#if defined(CONFIG_PRINTK) && defined(CONFIG_SYSCTL)
+ int devkmsg_sysctl_set_loglvl(struct ctl_table *table, int write,
+ 			      void *buffer, size_t *lenp, loff_t *ppos)
  {
- 	register_sysctl_base(kernel);
- 	register_sysctl_base(vm);
+@@ -210,6 +210,7 @@ int devkmsg_sysctl_set_loglvl(struct ctl
+ 
+ 	return 0;
+ }
++#endif /* CONFIG_PRINTK && CONFIG_SYSCTL */
+ 
+ /* Number of registered extended console drivers. */
+ static int nr_ext_console_drivers;
 _
