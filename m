@@ -2,38 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id AF83AC433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:14:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8CCF8C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 22 Jan 2022 06:14:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231661AbiAVGOL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 22 Jan 2022 01:14:11 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:54994 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233454AbiAVGOK (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:14:10 -0500
+        id S233454AbiAVGOO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 22 Jan 2022 01:14:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57434 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233453AbiAVGOM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 22 Jan 2022 01:14:12 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 75498C06173B
+        for <mm-commits@vger.kernel.org>; Fri, 21 Jan 2022 22:14:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 78675B82100
-        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:14:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D45D5C004E1;
-        Sat, 22 Jan 2022 06:14:07 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 12DE060FB0
+        for <mm-commits@vger.kernel.org>; Sat, 22 Jan 2022 06:14:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A4E0C004E1;
+        Sat, 22 Jan 2022 06:14:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642832048;
-        bh=ZKx9EMl3OzJFYCAjAuvpHPQUgev+yMLHgfcEd/K/YSc=;
+        s=korg; t=1642832051;
+        bh=eNf4APmYfmbafrcxWY2sLDr2VpvXjgKJy8gQGYcR1Hs=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=wxGB88GXD/s0ga5p5taHcau98w7h+VPc4MhRlWA3C4ppU5ejB1+8iTOA05UxYBGWU
-         ai0CQeOzl3eLsHqOT+BsaO8IXD0ijXemtS5vDfzvxEa1Xm9y3Vg0tR6YMi/oIVtGbA
-         wUslE9Y74wG+Wrc9Ir+73kdB30bBUR0KCr6v3k94=
-Date:   Fri, 21 Jan 2022 22:14:07 -0800
+        b=GXgypEsbtv26BKAPIwkYh0yPZstdnOCNOM2zimT6c/NSmKiin0VvyLf8bZmsa/kJX
+         zRWsMaxtmogbi42j51Bqw2glOGyN7QOYNJ53CYQkgOgeziTk/nFU0H+uMMeDho0Wrz
+         bZukBXs0ztglZYYJqhKH7/GNJLzRKvz13IV10EPg=
+Date:   Fri, 21 Jan 2022 22:14:10 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, bigeasy@linutronix.de,
         linux-mm@kvack.org, minchan@kernel.org, mm-commits@vger.kernel.org,
-        peterz@infradead.org, senozhatsky@chromium.org, tglx@linutronix.de,
+        naresh.kamboju@linaro.org, peterz@infradead.org,
+        senozhatsky@chromium.org, tglx@linutronix.de,
         torvalds@linux-foundation.org, umgwanakikbuti@gmail.com
-Subject:  [patch 49/69] zsmalloc: remove zspage isolation for
- migration
-Message-ID: <20220122061407.GUBINEueN%akpm@linux-foundation.org>
+Subject:  [patch 50/69] locking/rwlocks: introduce
+ write_lock_nested
+Message-ID: <20220122061410._W9_9hUsD%akpm@linux-foundation.org>
 In-Reply-To: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -42,318 +46,151 @@ List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
 From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: remove zspage isolation for migration
+Subject: locking/rwlocks: introduce write_lock_nested
 
-zspage isolation for migration introduced additional exceptions to be
-dealt with since the zspage was isolated from class list.  The reason why
-I isolated zspage from class list was to prevent race between obj_malloc
-and page migration via allocating zpage from the zspage further.  However,
-it couldn't prevent object freeing from zspage so it needed corner case
-handling.
+In preparation for converting bit_spin_lock to rwlock in zsmalloc so that
+multiple writers of zspages can run at the same time but those zspages are
+supposed to be different zspage instance.  Thus, it's not deadlock.  This
+patch adds write_lock_nested to support the case for LOCKDEP.
 
-This patch removes the whole mess.  Now, we are fine since class->lock and
-zspage->lock can prevent the race.
-
-Link: https://lkml.kernel.org/r/20211115185909.3949505-7-minchan@kernel.org
+[minchan@kernel.org: fix write_lock_nested for RT]
+  Link: https://lkml.kernel.org/r/YZfrMTAXV56HFWJY@google.com
+[bigeasy@linutronix.de: fixup write_lock_nested() implementation]
+  Link: https://lkml.kernel.org/r/20211123170134.y6xb7pmpgdn4m3bn@linutronix.de
+Link: https://lkml.kernel.org/r/20211115185909.3949505-8-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Tested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
-Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |  157 ++----------------------------------------------
- 1 file changed, 8 insertions(+), 149 deletions(-)
+ include/linux/rwlock.h          |    6 ++++++
+ include/linux/rwlock_api_smp.h  |    8 ++++++++
+ include/linux/rwlock_rt.h       |   10 ++++++++++
+ include/linux/spinlock_api_up.h |    1 +
+ kernel/locking/spinlock.c       |   10 ++++++++++
+ kernel/locking/spinlock_rt.c    |   12 ++++++++++++
+ 6 files changed, 47 insertions(+)
 
---- a/mm/zsmalloc.c~zsmalloc-remove-zspage-isolation-for-migration
-+++ a/mm/zsmalloc.c
-@@ -254,10 +254,6 @@ struct zs_pool {
- #ifdef CONFIG_COMPACTION
- 	struct inode *inode;
- 	struct work_struct free_work;
--	/* A wait queue for when migration races with async_free_zspage() */
--	struct wait_queue_head migration_wait;
--	atomic_long_t isolated_pages;
--	bool destroying;
+--- a/include/linux/rwlock_api_smp.h~locking-rwlocks-introduce-write_lock_nested
++++ a/include/linux/rwlock_api_smp.h
+@@ -17,6 +17,7 @@
+ 
+ void __lockfunc _raw_read_lock(rwlock_t *lock)		__acquires(lock);
+ void __lockfunc _raw_write_lock(rwlock_t *lock)		__acquires(lock);
++void __lockfunc _raw_write_lock_nested(rwlock_t *lock, int subclass)	__acquires(lock);
+ void __lockfunc _raw_read_lock_bh(rwlock_t *lock)	__acquires(lock);
+ void __lockfunc _raw_write_lock_bh(rwlock_t *lock)	__acquires(lock);
+ void __lockfunc _raw_read_lock_irq(rwlock_t *lock)	__acquires(lock);
+@@ -209,6 +210,13 @@ static inline void __raw_write_lock(rwlo
+ 	LOCK_CONTENDED(lock, do_raw_write_trylock, do_raw_write_lock);
+ }
+ 
++static inline void __raw_write_lock_nested(rwlock_t *lock, int subclass)
++{
++	preempt_disable();
++	rwlock_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
++	LOCK_CONTENDED(lock, do_raw_write_trylock, do_raw_write_lock);
++}
++
+ #endif /* !CONFIG_GENERIC_LOCKBREAK || CONFIG_DEBUG_LOCK_ALLOC */
+ 
+ static inline void __raw_write_unlock(rwlock_t *lock)
+--- a/include/linux/rwlock.h~locking-rwlocks-introduce-write_lock_nested
++++ a/include/linux/rwlock.h
+@@ -55,6 +55,12 @@ do {								\
+ #define write_lock(lock)	_raw_write_lock(lock)
+ #define read_lock(lock)		_raw_read_lock(lock)
+ 
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++#define write_lock_nested(lock, subclass)	_raw_write_lock_nested(lock, subclass)
++#else
++#define write_lock_nested(lock, subclass)	_raw_write_lock(lock)
++#endif
++
+ #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
+ 
+ #define read_lock_irqsave(lock, flags)			\
+--- a/include/linux/rwlock_rt.h~locking-rwlocks-introduce-write_lock_nested
++++ a/include/linux/rwlock_rt.h
+@@ -28,6 +28,7 @@ extern void rt_read_lock(rwlock_t *rwloc
+ extern int rt_read_trylock(rwlock_t *rwlock);
+ extern void rt_read_unlock(rwlock_t *rwlock);
+ extern void rt_write_lock(rwlock_t *rwlock);
++extern void rt_write_lock_nested(rwlock_t *rwlock, int subclass);
+ extern int rt_write_trylock(rwlock_t *rwlock);
+ extern void rt_write_unlock(rwlock_t *rwlock);
+ 
+@@ -83,6 +84,15 @@ static __always_inline void write_lock(r
+ 	rt_write_lock(rwlock);
+ }
+ 
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++static __always_inline void write_lock_nested(rwlock_t *rwlock, int subclass)
++{
++	rt_write_lock_nested(rwlock, subclass);
++}
++#else
++#define write_lock_nested(lock, subclass)	rt_write_lock(((void)(subclass), (lock)))
++#endif
++
+ static __always_inline void write_lock_bh(rwlock_t *rwlock)
+ {
+ 	local_bh_disable();
+--- a/include/linux/spinlock_api_up.h~locking-rwlocks-introduce-write_lock_nested
++++ a/include/linux/spinlock_api_up.h
+@@ -59,6 +59,7 @@
+ #define _raw_spin_lock_nested(lock, subclass)	__LOCK(lock)
+ #define _raw_read_lock(lock)			__LOCK(lock)
+ #define _raw_write_lock(lock)			__LOCK(lock)
++#define _raw_write_lock_nested(lock, subclass)	__LOCK(lock)
+ #define _raw_spin_lock_bh(lock)			__LOCK_BH(lock)
+ #define _raw_read_lock_bh(lock)			__LOCK_BH(lock)
+ #define _raw_write_lock_bh(lock)		__LOCK_BH(lock)
+--- a/kernel/locking/spinlock.c~locking-rwlocks-introduce-write_lock_nested
++++ a/kernel/locking/spinlock.c
+@@ -300,6 +300,16 @@ void __lockfunc _raw_write_lock(rwlock_t
+ 	__raw_write_lock(lock);
+ }
+ EXPORT_SYMBOL(_raw_write_lock);
++
++#ifndef CONFIG_DEBUG_LOCK_ALLOC
++#define __raw_write_lock_nested(lock, subclass)	__raw_write_lock(((void)(subclass), (lock)))
++#endif
++
++void __lockfunc _raw_write_lock_nested(rwlock_t *lock, int subclass)
++{
++	__raw_write_lock_nested(lock, subclass);
++}
++EXPORT_SYMBOL(_raw_write_lock_nested);
  #endif
- };
  
-@@ -454,11 +450,6 @@ MODULE_ALIAS("zpool-zsmalloc");
- /* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
- static DEFINE_PER_CPU(struct mapping_area, zs_map_area);
- 
--static bool is_zspage_isolated(struct zspage *zspage)
--{
--	return zspage->isolated;
--}
--
- static __maybe_unused int is_first_page(struct page *page)
- {
- 	return PagePrivate(page);
-@@ -744,7 +735,6 @@ static void remove_zspage(struct size_cl
- 				enum fullness_group fullness)
- {
- 	VM_BUG_ON(list_empty(&class->fullness_list[fullness]));
--	VM_BUG_ON(is_zspage_isolated(zspage));
- 
- 	list_del_init(&zspage->list);
- 	class_stat_dec(class, fullness, 1);
-@@ -770,13 +760,9 @@ static enum fullness_group fix_fullness_
- 	if (newfg == currfg)
- 		goto out;
- 
--	if (!is_zspage_isolated(zspage)) {
--		remove_zspage(class, zspage, currfg);
--		insert_zspage(class, zspage, newfg);
--	}
--
-+	remove_zspage(class, zspage, currfg);
-+	insert_zspage(class, zspage, newfg);
- 	set_zspage_mapping(zspage, class_idx, newfg);
--
- out:
- 	return newfg;
+ #ifndef CONFIG_INLINE_WRITE_LOCK_IRQSAVE
+--- a/kernel/locking/spinlock_rt.c~locking-rwlocks-introduce-write_lock_nested
++++ a/kernel/locking/spinlock_rt.c
+@@ -239,6 +239,18 @@ void __sched rt_write_lock(rwlock_t *rwl
  }
-@@ -1511,7 +1497,6 @@ void zs_free(struct zs_pool *pool, unsig
- 	unsigned long obj;
- 	struct size_class *class;
- 	enum fullness_group fullness;
--	bool isolated;
+ EXPORT_SYMBOL(rt_write_lock);
  
- 	if (unlikely(!handle))
- 		return;
-@@ -1533,11 +1518,9 @@ void zs_free(struct zs_pool *pool, unsig
- 		goto out;
- 	}
- 
--	isolated = is_zspage_isolated(zspage);
- 	migrate_read_unlock(zspage);
- 	/* If zspage is isolated, zs_page_putback will free the zspage */
--	if (likely(!isolated))
--		free_zspage(pool, class, zspage);
-+	free_zspage(pool, class, zspage);
- out:
- 
- 	spin_unlock(&class->lock);
-@@ -1718,7 +1701,6 @@ static struct zspage *isolate_zspage(str
- 		zspage = list_first_entry_or_null(&class->fullness_list[fg[i]],
- 							struct zspage, list);
- 		if (zspage) {
--			VM_BUG_ON(is_zspage_isolated(zspage));
- 			remove_zspage(class, zspage, fg[i]);
- 			return zspage;
- 		}
-@@ -1739,8 +1721,6 @@ static enum fullness_group putback_zspag
++#ifdef CONFIG_DEBUG_LOCK_ALLOC
++void __sched rt_write_lock_nested(rwlock_t *rwlock, int subclass)
++{
++	rtlock_might_resched();
++	rwlock_acquire(&rwlock->dep_map, subclass, 0, _RET_IP_);
++	rwbase_write_lock(&rwlock->rwbase, TASK_RTLOCK_WAIT);
++	rcu_read_lock();
++	migrate_disable();
++}
++EXPORT_SYMBOL(rt_write_lock_nested);
++#endif
++
+ void __sched rt_read_unlock(rwlock_t *rwlock)
  {
- 	enum fullness_group fullness;
- 
--	VM_BUG_ON(is_zspage_isolated(zspage));
--
- 	fullness = get_fullness_group(class, zspage);
- 	insert_zspage(class, zspage, fullness);
- 	set_zspage_mapping(zspage, class->index, fullness);
-@@ -1822,35 +1802,10 @@ static void inc_zspage_isolation(struct
- 
- static void dec_zspage_isolation(struct zspage *zspage)
- {
-+	VM_BUG_ON(zspage->isolated == 0);
- 	zspage->isolated--;
- }
- 
--static void putback_zspage_deferred(struct zs_pool *pool,
--				    struct size_class *class,
--				    struct zspage *zspage)
--{
--	enum fullness_group fg;
--
--	fg = putback_zspage(class, zspage);
--	if (fg == ZS_EMPTY)
--		schedule_work(&pool->free_work);
--
--}
--
--static inline void zs_pool_dec_isolated(struct zs_pool *pool)
--{
--	VM_BUG_ON(atomic_long_read(&pool->isolated_pages) <= 0);
--	atomic_long_dec(&pool->isolated_pages);
--	/*
--	 * Checking pool->destroying must happen after atomic_long_dec()
--	 * for pool->isolated_pages above. Paired with the smp_mb() in
--	 * zs_unregister_migration().
--	 */
--	smp_mb__after_atomic();
--	if (atomic_long_read(&pool->isolated_pages) == 0 && pool->destroying)
--		wake_up_all(&pool->migration_wait);
--}
--
- static void replace_sub_page(struct size_class *class, struct zspage *zspage,
- 				struct page *newpage, struct page *oldpage)
- {
-@@ -1876,10 +1831,7 @@ static void replace_sub_page(struct size
- 
- static bool zs_page_isolate(struct page *page, isolate_mode_t mode)
- {
--	struct zs_pool *pool;
--	struct size_class *class;
- 	struct zspage *zspage;
--	struct address_space *mapping;
- 
- 	/*
- 	 * Page is locked so zspage couldn't be destroyed. For detail, look at
-@@ -1889,39 +1841,9 @@ static bool zs_page_isolate(struct page
- 	VM_BUG_ON_PAGE(PageIsolated(page), page);
- 
- 	zspage = get_zspage(page);
--
--	mapping = page_mapping(page);
--	pool = mapping->private_data;
--
--	class = zspage_class(pool, zspage);
--
--	spin_lock(&class->lock);
--	if (get_zspage_inuse(zspage) == 0) {
--		spin_unlock(&class->lock);
--		return false;
--	}
--
--	/* zspage is isolated for object migration */
--	if (list_empty(&zspage->list) && !is_zspage_isolated(zspage)) {
--		spin_unlock(&class->lock);
--		return false;
--	}
--
--	/*
--	 * If this is first time isolation for the zspage, isolate zspage from
--	 * size_class to prevent further object allocation from the zspage.
--	 */
--	if (!list_empty(&zspage->list) && !is_zspage_isolated(zspage)) {
--		enum fullness_group fullness;
--		unsigned int class_idx;
--
--		get_zspage_mapping(zspage, &class_idx, &fullness);
--		atomic_long_inc(&pool->isolated_pages);
--		remove_zspage(class, zspage, fullness);
--	}
--
-+	migrate_write_lock(zspage);
- 	inc_zspage_isolation(zspage);
--	spin_unlock(&class->lock);
-+	migrate_write_unlock(zspage);
- 
- 	return true;
- }
-@@ -2004,21 +1926,6 @@ static int zs_page_migrate(struct addres
- 
- 	dec_zspage_isolation(zspage);
- 
--	/*
--	 * Page migration is done so let's putback isolated zspage to
--	 * the list if @page is final isolated subpage in the zspage.
--	 */
--	if (!is_zspage_isolated(zspage)) {
--		/*
--		 * We cannot race with zs_destroy_pool() here because we wait
--		 * for isolation to hit zero before we start destroying.
--		 * Also, we ensure that everyone can see pool->destroying before
--		 * we start waiting.
--		 */
--		putback_zspage_deferred(pool, class, zspage);
--		zs_pool_dec_isolated(pool);
--	}
--
- 	if (page_zone(newpage) != page_zone(page)) {
- 		dec_zone_page_state(page, NR_ZSPAGES);
- 		inc_zone_page_state(newpage, NR_ZSPAGES);
-@@ -2046,30 +1953,15 @@ unpin_objects:
- 
- static void zs_page_putback(struct page *page)
- {
--	struct zs_pool *pool;
--	struct size_class *class;
--	struct address_space *mapping;
- 	struct zspage *zspage;
- 
- 	VM_BUG_ON_PAGE(!PageMovable(page), page);
- 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
- 
- 	zspage = get_zspage(page);
--	mapping = page_mapping(page);
--	pool = mapping->private_data;
--	class = zspage_class(pool, zspage);
--
--	spin_lock(&class->lock);
-+	migrate_write_lock(zspage);
- 	dec_zspage_isolation(zspage);
--	if (!is_zspage_isolated(zspage)) {
--		/*
--		 * Due to page_lock, we cannot free zspage immediately
--		 * so let's defer.
--		 */
--		putback_zspage_deferred(pool, class, zspage);
--		zs_pool_dec_isolated(pool);
--	}
--	spin_unlock(&class->lock);
-+	migrate_write_unlock(zspage);
- }
- 
- static const struct address_space_operations zsmalloc_aops = {
-@@ -2091,36 +1983,8 @@ static int zs_register_migration(struct
- 	return 0;
- }
- 
--static bool pool_isolated_are_drained(struct zs_pool *pool)
--{
--	return atomic_long_read(&pool->isolated_pages) == 0;
--}
--
--/* Function for resolving migration */
--static void wait_for_isolated_drain(struct zs_pool *pool)
--{
--
--	/*
--	 * We're in the process of destroying the pool, so there are no
--	 * active allocations. zs_page_isolate() fails for completely free
--	 * zspages, so we need only wait for the zs_pool's isolated
--	 * count to hit zero.
--	 */
--	wait_event(pool->migration_wait,
--		   pool_isolated_are_drained(pool));
--}
--
- static void zs_unregister_migration(struct zs_pool *pool)
- {
--	pool->destroying = true;
--	/*
--	 * We need a memory barrier here to ensure global visibility of
--	 * pool->destroying. Thus pool->isolated pages will either be 0 in which
--	 * case we don't care, or it will be > 0 and pool->destroying will
--	 * ensure that we wake up once isolation hits 0.
--	 */
--	smp_mb();
--	wait_for_isolated_drain(pool); /* This can block */
- 	flush_work(&pool->free_work);
- 	iput(pool->inode);
- }
-@@ -2150,7 +2014,6 @@ static void async_free_zspage(struct wor
- 		spin_unlock(&class->lock);
- 	}
- 
--
- 	list_for_each_entry_safe(zspage, tmp, &free_pages, list) {
- 		list_del(&zspage->list);
- 		lock_zspage(zspage);
-@@ -2363,10 +2226,6 @@ struct zs_pool *zs_create_pool(const cha
- 	if (!pool->name)
- 		goto err;
- 
--#ifdef CONFIG_COMPACTION
--	init_waitqueue_head(&pool->migration_wait);
--#endif
--
- 	if (create_cache(pool))
- 		goto err;
- 
+ 	rwlock_release(&rwlock->dep_map, _RET_IP_);
 _
