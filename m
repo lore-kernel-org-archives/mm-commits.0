@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BBB9C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:58:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 36C86C433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:58:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235384AbiAWX6h (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:58:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38470 "EHLO
+        id S240517AbiAWX6i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:58:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38494 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235372AbiAWX6g (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:58:36 -0500
+        with ESMTP id S235155AbiAWX6h (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:58:37 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84560C06173B
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 15:58:31 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8D34BC06173B
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 15:58:37 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4B3EEB80E46
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:58:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AB419C340E3;
-        Sun, 23 Jan 2022 23:58:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 547F0B80D38
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:58:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AD974C340E3;
+        Sun, 23 Jan 2022 23:58:34 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982309;
-        bh=2QzruI+E2dYmoiiQIV05dcm7YiChu8ibqAuyCZhM6/Q=;
+        s=korg; t=1642982315;
+        bh=yrREUkfWYGGtbDaM1WmEtvESfvken9ZbUr2eoPlUBLE=;
         h=Date:From:To:Subject:From;
-        b=g1d8P+88t65A0wcj60I1WuUTvz37aCJ/1WGjnbHLBm1l8+mL0Qy8gQpqWRsjovRkW
-         CVIV4bR2QuD7e9g0DrK1Zz9hpvHSOHxUoojETlTjnC1iki5Ol4MmjBmHF8vLRnczHO
-         rqoZfyBTTD7/VmN5o78MheyQcQeeWIlmYADjHAT0=
-Date:   Sun, 23 Jan 2022 15:58:28 -0800
+        b=H2oh8giOkH56qb1IF+0g9k0DY6YDZsy32mzrjmqiBDd2pYO5D9wX13lCSjJ0s/Rzx
+         3rXWAWePV3ZaUCIogrg8LeXx5w8R29cAYZ8uet6rVFWOGW8N8KGsQnVerTLRGNRtXz
+         B8a3chuSBRIyJVLQb1c8RdiJxaCUnKLOdO2pnP44=
+Date:   Sun, 23 Jan 2022 15:58:34 -0800
 From:   akpm@linux-foundation.org
 To:     ddstreet@ieee.org, geert@linux-m68k.org, hch@lst.de,
         hughd@google.com, jgross@suse.com, Konrad.wilk@oracle.com,
         mm-commits@vger.kernel.org, sjenning@redhat.com,
         vitaly.wool@konsulko.com, willy@infradead.org
-Subject:  [merged] frontswap-remove-frontswap_writethrough.patch
- removed from -mm tree
-Message-ID: <20220123235828.n1dy0y9ZS%akpm@linux-foundation.org>
+Subject:  [merged] frontswap-remove-frontswap_shrink.patch removed
+ from -mm tree
+Message-ID: <20220123235834.ZsckcP7Hk%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,19 +45,19 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: frontswap: remove frontswap_writethrough
+     Subject: frontswap: remove frontswap_shrink
 has been removed from the -mm tree.  Its filename was
-     frontswap-remove-frontswap_writethrough.patch
+     frontswap-remove-frontswap_shrink.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: frontswap: remove frontswap_writethrough
+Subject: frontswap: remove frontswap_shrink
 
-frontswap_writethrough is never called, so remove it.
+frontswap_shrink is never called, so remove it.
 
-Link: https://lkml.kernel.org/r/20211224062246.1258487-3-hch@lst.de
+Link: https://lkml.kernel.org/r/20211224062246.1258487-5-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Juergen Gross <jgross@suse.com>
 Cc: Dan Streetman <ddstreet@ieee.org>
@@ -70,82 +70,135 @@ Cc: Vitaly Wool <vitaly.wool@konsulko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/frontswap.rst |    6 ------
- include/linux/frontswap.h      |    1 -
- mm/frontswap.c                 |   23 +----------------------
- 3 files changed, 1 insertion(+), 29 deletions(-)
+ Documentation/vm/frontswap.rst |   13 ----
+ include/linux/frontswap.h      |    1 
+ mm/frontswap.c                 |   83 -------------------------------
+ 3 files changed, 97 deletions(-)
 
---- a/Documentation/vm/frontswap.rst~frontswap-remove-frontswap_writethrough
+--- a/Documentation/vm/frontswap.rst~frontswap-remove-frontswap_shrink
 +++ a/Documentation/vm/frontswap.rst
-@@ -39,12 +39,6 @@ a disk write and, if the data is later r
- If a store returns failure, transcendent memory has rejected the data, and the
- page can be written to swap as usual.
+@@ -255,19 +255,6 @@ the old data and ensure that it is no lo
+ swap subsystem then writes the new data to the read swap device,
+ this is the correct course of action to ensure coherency.
  
--If a backend chooses, frontswap can be configured as a "writethrough
--cache" by calling frontswap_writethrough().  In this mode, the reduction
--in swap device writes is lost (and also a non-trivial performance advantage)
--in order to allow the backend to arbitrarily "reclaim" space used to
--store frontswap pages to more completely manage its memory usage.
+-* What is frontswap_shrink for?
 -
- Note that if a page is stored and the page already exists in transcendent memory
- (a "duplicate" store), either the store succeeds and the data is overwritten,
- or the store fails AND the page is invalidated.  This ensures stale data may
---- a/include/linux/frontswap.h~frontswap-remove-frontswap_writethrough
+-When the (non-frontswap) swap subsystem swaps out a page to a real
+-swap device, that page is only taking up low-value pre-allocated disk
+-space.  But if frontswap has placed a page in transcendent memory, that
+-page may be taking up valuable real estate.  The frontswap_shrink
+-routine allows code outside of the swap subsystem to force pages out
+-of the memory managed by frontswap and back into kernel-addressable memory.
+-For example, in RAMster, a "suction driver" thread will attempt
+-to "repatriate" pages sent to a remote machine back to the local machine;
+-this is driven using the frontswap_shrink mechanism when memory pressure
+-subsides.
+-
+ * Why does the frontswap patch create the new include file swapfile.h?
+ 
+ The frontswap code depends on some swap-subsystem-internal data
+--- a/include/linux/frontswap.h~frontswap-remove-frontswap_shrink
 +++ a/include/linux/frontswap.h
-@@ -26,7 +26,6 @@ struct frontswap_ops {
+@@ -24,7 +24,6 @@ struct frontswap_ops {
+ };
+ 
  extern void frontswap_register_ops(struct frontswap_ops *ops);
- extern void frontswap_shrink(unsigned long);
+-extern void frontswap_shrink(unsigned long);
  extern unsigned long frontswap_curr_pages(void);
--extern void frontswap_writethrough(bool);
- #define FRONTSWAP_HAS_EXCLUSIVE_GETS
- extern void frontswap_tmem_exclusive_gets(bool);
  
---- a/mm/frontswap.c~frontswap-remove-frontswap_writethrough
+ extern bool __frontswap_test(struct swap_info_struct *, pgoff_t);
+--- a/mm/frontswap.c~frontswap-remove-frontswap_shrink
 +++ a/mm/frontswap.c
-@@ -33,16 +33,6 @@ static struct frontswap_ops *frontswap_o
- 	for ((ops) = frontswap_ops; (ops); (ops) = (ops)->next)
- 
- /*
-- * If enabled, frontswap_store will return failure even on success.  As
-- * a result, the swap subsystem will always write the page to swap, in
-- * effect converting frontswap into a writethrough cache.  In this mode,
-- * there is no direct reduction in swap writes, but a frontswap backend
-- * can unilaterally "reclaim" any pages in use with no data loss, thus
-- * providing increases control over maximum memory usage due to frontswap.
-- */
--static bool frontswap_writethrough_enabled __read_mostly;
--
--/*
-  * If enabled, the underlying tmem implementation is capable of doing
-  * exclusive gets, so frontswap_load, on a successful tmem_get must
-  * mark the page as no longer in frontswap AND mark it dirty.
-@@ -171,15 +161,6 @@ void frontswap_register_ops(struct front
- EXPORT_SYMBOL(frontswap_register_ops);
- 
- /*
-- * Enable/disable frontswap writethrough (see above).
-- */
--void frontswap_writethrough(bool enable)
--{
--	frontswap_writethrough_enabled = enable;
--}
--EXPORT_SYMBOL(frontswap_writethrough);
--
--/*
-  * Enable/disable frontswap exclusive gets (see above).
-  */
- void frontswap_tmem_exclusive_gets(bool enable)
-@@ -283,9 +264,7 @@ int __frontswap_store(struct page *page)
- 	} else {
- 		inc_frontswap_failed_stores();
- 	}
--	if (frontswap_writethrough_enabled)
--		/* report failure so swap also writes to swap device */
--		ret = -1;
-+
- 	return ret;
+@@ -341,89 +341,6 @@ static unsigned long __frontswap_curr_pa
+ 	return totalpages;
  }
- EXPORT_SYMBOL(__frontswap_store);
+ 
+-static int __frontswap_unuse_pages(unsigned long total, unsigned long *unused,
+-					int *swapid)
+-{
+-	int ret = -EINVAL;
+-	struct swap_info_struct *si = NULL;
+-	int si_frontswap_pages;
+-	unsigned long total_pages_to_unuse = total;
+-	unsigned long pages = 0, pages_to_unuse = 0;
+-
+-	assert_spin_locked(&swap_lock);
+-	plist_for_each_entry(si, &swap_active_head, list) {
+-		si_frontswap_pages = atomic_read(&si->frontswap_pages);
+-		if (total_pages_to_unuse < si_frontswap_pages) {
+-			pages = pages_to_unuse = total_pages_to_unuse;
+-		} else {
+-			pages = si_frontswap_pages;
+-			pages_to_unuse = 0; /* unuse all */
+-		}
+-		/* ensure there is enough RAM to fetch pages from frontswap */
+-		if (security_vm_enough_memory_mm(current->mm, pages)) {
+-			ret = -ENOMEM;
+-			continue;
+-		}
+-		vm_unacct_memory(pages);
+-		*unused = pages_to_unuse;
+-		*swapid = si->type;
+-		ret = 0;
+-		break;
+-	}
+-
+-	return ret;
+-}
+-
+-/*
+- * Used to check if it's necessary and feasible to unuse pages.
+- * Return 1 when nothing to do, 0 when need to shrink pages,
+- * error code when there is an error.
+- */
+-static int __frontswap_shrink(unsigned long target_pages,
+-				unsigned long *pages_to_unuse,
+-				int *type)
+-{
+-	unsigned long total_pages = 0, total_pages_to_unuse;
+-
+-	assert_spin_locked(&swap_lock);
+-
+-	total_pages = __frontswap_curr_pages();
+-	if (total_pages <= target_pages) {
+-		/* Nothing to do */
+-		*pages_to_unuse = 0;
+-		return 1;
+-	}
+-	total_pages_to_unuse = total_pages - target_pages;
+-	return __frontswap_unuse_pages(total_pages_to_unuse, pages_to_unuse, type);
+-}
+-
+-/*
+- * Frontswap, like a true swap device, may unnecessarily retain pages
+- * under certain circumstances; "shrink" frontswap is essentially a
+- * "partial swapoff" and works by calling try_to_unuse to attempt to
+- * unuse enough frontswap pages to attempt to -- subject to memory
+- * constraints -- reduce the number of pages in frontswap to the
+- * number given in the parameter target_pages.
+- */
+-void frontswap_shrink(unsigned long target_pages)
+-{
+-	unsigned long pages_to_unuse = 0;
+-	int type, ret;
+-
+-	/*
+-	 * we don't want to hold swap_lock while doing a very
+-	 * lengthy try_to_unuse, but swap_list may change
+-	 * so restart scan from swap_active_head each time
+-	 */
+-	spin_lock(&swap_lock);
+-	ret = __frontswap_shrink(target_pages, &pages_to_unuse, &type);
+-	spin_unlock(&swap_lock);
+-	if (ret == 0)
+-		try_to_unuse(type, true, pages_to_unuse);
+-	return;
+-}
+-EXPORT_SYMBOL(frontswap_shrink);
+-
+ /*
+  * Count and return the number of frontswap pages across all
+  * swap devices.  This is exported so that backend drivers can
 _
 
 Patches currently in -mm which might be from hch@lst.de are
