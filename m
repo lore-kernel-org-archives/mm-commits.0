@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 9D7D5C433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:56:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 26F14C433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:56:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240491AbiAWX4M (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:56:12 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:50926 "EHLO
+        id S240492AbiAWX4P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:56:15 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:51032 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233662AbiAWX4L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:56:11 -0500
+        with ESMTP id S233662AbiAWX4P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:56:15 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4DEE7611F0
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:56:11 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 54FC9C340E3;
-        Sun, 23 Jan 2022 23:56:09 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 3AC3F611F0
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:56:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 42322C340E3;
+        Sun, 23 Jan 2022 23:56:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982170;
-        bh=dA757bOOaqffxRpkmCARAQp7aKOeUH/bAmo2fAtrYCQ=;
+        s=korg; t=1642982174;
+        bh=5GJy+eAkVaXDtngvGVXb6c5rtWBjeert77P13T2gI6U=;
         h=Date:From:To:Subject:From;
-        b=dHUF/WBrv5vcKhyJAEAWba4bWbTxWYfA1ceu0p2v/iLVcZnhgq0MQbY/WfSb+mH7l
-         748yERLO6Oar9IdZRyh/C4QbpF8hZdFW4eUq23pXW0czwULsPyAK/ltpByEv2q4YEs
-         zDqmwxrTkq/umSPluu4InF90rC/aa2LWiXWXX0lM=
-Date:   Sun, 23 Jan 2022 15:56:08 -0800
+        b=sWmtL6Il4S5qljxywcQL6/6/zy2EAjRkxAasZdk02UN/IwrR6UMQQhXhnkNEKfdHJ
+         fB2Nh2gsJB1a+1BhHhn9d0TAmo9qu4vEyyqKQtLv3hcz7Uj621Tg3NMkkyAB9BFgGB
+         iyymjk0TtHVwq1w+EUtsH4KDawiyQcfDjyGrsh7A=
+Date:   Sun, 23 Jan 2022 15:56:12 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -45,9 +45,9 @@ To:     airlied@linux.ie, amir73il@gmail.com,
         surenb@google.com, tytso@mit.edu, viro@zeniv.linux.org.uk,
         wangqing@vivo.com, yzaikin@google.com
 Subject:  [merged]
- test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
+ inotify-simplify-subdirectory-registration-with-register_sysctl.patch
  removed from -mm tree
-Message-ID: <20220123235608.9j8T5b36J%akpm@linux-foundation.org>
+Message-ID: <20220123235612.w8OzMv0d_%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,113 +56,28 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_sysctl: simplify subdirectory registration with register_sysctl()
+     Subject: inotify: simplify subdirectory registration with register_sysctl()
 has been removed from the -mm tree.  Its filename was
-     test_sysctl-simplify-subdirectory-registration-with-register_sysctl.patch
+     inotify-simplify-subdirectory-registration-with-register_sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: test_sysctl: simplify subdirectory registration with register_sysctl()
+From: Xiaoming Ni <nixiaoming@huawei.com>
+Subject: inotify: simplify subdirectory registration with register_sysctl()
 
 There is no need to user boiler plate code to specify a set of base
 directories we're going to stuff sysctls under.  Simplify this by using
 register_sysctl() and specifying the directory path directly.
 
-// pycocci sysctl-subdir-register-sysctl-simplify.cocci lib/test_sysctl.c
+Move inotify_user sysctl to inotify_user.c while at it to remove clutter
+from kernel/sysctl.c.
 
-@c1@
-expression E1;
-identifier subdir, sysctls;
-@@
-
-static struct ctl_table subdir[] = {
-	{
-		.procname = E1,
-		.maxlen = 0,
-		.mode = 0555,
-		.child = sysctls,
-	},
-	{ }
-};
-
-@c2@
-identifier c1.subdir;
-
-expression E2;
-identifier base;
-@@
-
-static struct ctl_table base[] = {
-	{
-		.procname = E2,
-		.maxlen = 0,
-		.mode = 0555,
-		.child = subdir,
-	},
-	{ }
-};
-
-@c3@
-identifier c2.base;
-identifier header;
-@@
-
-header = register_sysctl_table(base);
-
-@r1 depends on c1 && c2 && c3@
-expression c1.E1;
-identifier c1.subdir, c1.sysctls;
-@@
-
--static struct ctl_table subdir[] = {
--	{
--		.procname = E1,
--		.maxlen = 0,
--		.mode = 0555,
--		.child = sysctls,
--	},
--	{ }
--};
-
-@r2 depends on c1 && c2 && c3@
-identifier c1.subdir;
-
-expression c2.E2;
-identifier c2.base;
-@@
--static struct ctl_table base[] = {
--	{
--		.procname = E2,
--		.maxlen = 0,
--		.mode = 0555,
--		.child = subdir,
--	},
--	{ }
--};
-
-@initialize:python@
-@@
-
-def make_my_fresh_expression(s1, s2):
-  return '"' + s1.strip('"') + "/" + s2.strip('"') + '"'
-
-@r3 depends on c1 && c2 && c3@
-expression c1.E1;
-identifier c1.sysctls;
-expression c2.E2;
-identifier c2.base;
-identifier c3.header;
-fresh identifier E3 = script:python(E2, E1) { make_my_fresh_expression(E2, E1) };
-@@
-
-header =
--register_sysctl_table(base);
-+register_sysctl(E3, sysctls);
-
-Generated-by: Coccinelle SmPL
-Link: https://lkml.kernel.org/r/20211123202422.819032-6-mcgrof@kernel.org
+[mcgrof@kernel.org: remember to register fanotify_table]
+  Link: https://lkml.kernel.org/r/YZ5A6iWLb0h3N3RC@bombadil.infradead.org
+[mcgrof@kernel.org: update commit log to reflect new path we decided to take]
+Link: https://lkml.kernel.org/r/20211123202422.819032-7-mcgrof@kernel.org
+Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
@@ -195,7 +110,6 @@ Cc: Sebastian Reichel <sre@kernel.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Stephen Kitt <steve@sk2.org>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Cc: Douglas Gilbert <dgilbert@interlog.com>
 Cc: James E.J. Bottomley <jejb@linux.ibm.com>
 Cc: Jani Nikula <jani.nikula@intel.com>
@@ -208,49 +122,144 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_sysctl.c |   22 +---------------------
- 1 file changed, 1 insertion(+), 21 deletions(-)
+ fs/notify/fanotify/fanotify_user.c |   10 +++++++++-
+ fs/notify/inotify/inotify_user.c   |   11 ++++++++++-
+ include/linux/fanotify.h           |    2 --
+ include/linux/inotify.h            |    3 ---
+ kernel/sysctl.c                    |   21 ---------------------
+ 5 files changed, 19 insertions(+), 28 deletions(-)
 
---- a/lib/test_sysctl.c~test_sysctl-simplify-subdirectory-registration-with-register_sysctl
-+++ a/lib/test_sysctl.c
-@@ -128,26 +128,6 @@ static struct ctl_table test_table[] = {
+--- a/fs/notify/fanotify/fanotify_user.c~inotify-simplify-subdirectory-registration-with-register_sysctl
++++ a/fs/notify/fanotify/fanotify_user.c
+@@ -59,7 +59,7 @@ static int fanotify_max_queued_events __
+ static long ft_zero = 0;
+ static long ft_int_max = INT_MAX;
+ 
+-struct ctl_table fanotify_table[] = {
++static struct ctl_table fanotify_table[] = {
+ 	{
+ 		.procname	= "max_user_groups",
+ 		.data	= &init_user_ns.ucount_max[UCOUNT_FANOTIFY_GROUPS],
+@@ -88,6 +88,13 @@ struct ctl_table fanotify_table[] = {
+ 	},
  	{ }
  };
++
++static void __init fanotify_sysctls_init(void)
++{
++	register_sysctl("fs/fanotify", fanotify_table);
++}
++#else
++#define fanotify_sysctls_init() do { } while (0)
+ #endif /* CONFIG_SYSCTL */
  
--static struct ctl_table test_sysctl_table[] = {
--	{
--		.procname	= "test_sysctl",
--		.maxlen		= 0,
--		.mode		= 0555,
--		.child		= test_table,
--	},
--	{ }
--};
--
--static struct ctl_table test_sysctl_root_table[] = {
--	{
--		.procname	= "debug",
--		.maxlen		= 0,
--		.mode		= 0555,
--		.child		= test_sysctl_table,
--	},
--	{ }
--};
--
- static struct ctl_table_header *test_sysctl_header;
+ /*
+@@ -1743,6 +1750,7 @@ static int __init fanotify_user_setup(vo
+ 	init_user_ns.ucount_max[UCOUNT_FANOTIFY_GROUPS] =
+ 					FANOTIFY_DEFAULT_MAX_GROUPS;
+ 	init_user_ns.ucount_max[UCOUNT_FANOTIFY_MARKS] = max_marks;
++	fanotify_sysctls_init();
  
- static int __init test_sysctl_init(void)
-@@ -155,7 +135,7 @@ static int __init test_sysctl_init(void)
- 	test_data.bitmap_0001 = kzalloc(SYSCTL_TEST_BITMAP_SIZE/8, GFP_KERNEL);
- 	if (!test_data.bitmap_0001)
- 		return -ENOMEM;
--	test_sysctl_header = register_sysctl_table(test_sysctl_root_table);
-+	test_sysctl_header = register_sysctl("debug/test_sysctl", test_table);
- 	if (!test_sysctl_header) {
- 		kfree(test_data.bitmap_0001);
- 		return -ENOMEM;
+ 	return 0;
+ }
+--- a/fs/notify/inotify/inotify_user.c~inotify-simplify-subdirectory-registration-with-register_sysctl
++++ a/fs/notify/inotify/inotify_user.c
+@@ -58,7 +58,7 @@ struct kmem_cache *inotify_inode_mark_ca
+ static long it_zero = 0;
+ static long it_int_max = INT_MAX;
+ 
+-struct ctl_table inotify_table[] = {
++static struct ctl_table inotify_table[] = {
+ 	{
+ 		.procname	= "max_user_instances",
+ 		.data		= &init_user_ns.ucount_max[UCOUNT_INOTIFY_INSTANCES],
+@@ -87,6 +87,14 @@ struct ctl_table inotify_table[] = {
+ 	},
+ 	{ }
+ };
++
++static void __init inotify_sysctls_init(void)
++{
++	register_sysctl("fs/inotify", inotify_table);
++}
++
++#else
++#define inotify_sysctls_init() do { } while (0)
+ #endif /* CONFIG_SYSCTL */
+ 
+ static inline __u32 inotify_arg_to_mask(struct inode *inode, u32 arg)
+@@ -849,6 +857,7 @@ static int __init inotify_user_setup(voi
+ 	inotify_max_queued_events = 16384;
+ 	init_user_ns.ucount_max[UCOUNT_INOTIFY_INSTANCES] = 128;
+ 	init_user_ns.ucount_max[UCOUNT_INOTIFY_WATCHES] = watches_max;
++	inotify_sysctls_init();
+ 
+ 	return 0;
+ }
+--- a/include/linux/fanotify.h~inotify-simplify-subdirectory-registration-with-register_sysctl
++++ a/include/linux/fanotify.h
+@@ -5,8 +5,6 @@
+ #include <linux/sysctl.h>
+ #include <uapi/linux/fanotify.h>
+ 
+-extern struct ctl_table fanotify_table[]; /* for sysctl */
+-
+ #define FAN_GROUP_FLAG(group, flag) \
+ 	((group)->fanotify_data.flags & (flag))
+ 
+--- a/include/linux/inotify.h~inotify-simplify-subdirectory-registration-with-register_sysctl
++++ a/include/linux/inotify.h
+@@ -7,11 +7,8 @@
+ #ifndef _LINUX_INOTIFY_H
+ #define _LINUX_INOTIFY_H
+ 
+-#include <linux/sysctl.h>
+ #include <uapi/linux/inotify.h>
+ 
+-extern struct ctl_table inotify_table[]; /* for sysctl */
+-
+ #define ALL_INOTIFY_BITS (IN_ACCESS | IN_MODIFY | IN_ATTRIB | IN_CLOSE_WRITE | \
+ 			  IN_CLOSE_NOWRITE | IN_OPEN | IN_MOVED_FROM | \
+ 			  IN_MOVED_TO | IN_CREATE | IN_DELETE | \
+--- a/kernel/sysctl.c~inotify-simplify-subdirectory-registration-with-register_sysctl
++++ a/kernel/sysctl.c
+@@ -126,13 +126,6 @@ static const int maxolduid = 65535;
+ static const int ngroups_max = NGROUPS_MAX;
+ static const int cap_last_cap = CAP_LAST_CAP;
+ 
+-#ifdef CONFIG_INOTIFY_USER
+-#include <linux/inotify.h>
+-#endif
+-#ifdef CONFIG_FANOTIFY
+-#include <linux/fanotify.h>
+-#endif
+-
+ #ifdef CONFIG_PROC_SYSCTL
+ 
+ /**
+@@ -3100,20 +3093,6 @@ static struct ctl_table fs_table[] = {
+ 		.proc_handler	= proc_dointvec,
+ 	},
+ #endif
+-#ifdef CONFIG_INOTIFY_USER
+-	{
+-		.procname	= "inotify",
+-		.mode		= 0555,
+-		.child		= inotify_table,
+-	},
+-#endif
+-#ifdef CONFIG_FANOTIFY
+-	{
+-		.procname	= "fanotify",
+-		.mode		= 0555,
+-		.child		= fanotify_table,
+-	},
+-#endif
+ #ifdef CONFIG_EPOLL
+ 	{
+ 		.procname	= "epoll",
 _
 
-Patches currently in -mm which might be from mcgrof@kernel.org are
+Patches currently in -mm which might be from nixiaoming@huawei.com are
 
 
