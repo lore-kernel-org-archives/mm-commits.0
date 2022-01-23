@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B8173C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:57:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 38AA9C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:57:41 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240510AbiAWX5i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:57:38 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:52564 "EHLO
+        id S235007AbiAWX5k (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:57:40 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:52602 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240509AbiAWX5h (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:57:37 -0500
+        with ESMTP id S234999AbiAWX5k (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:57:40 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id DFD6A611EE
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:57:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C2918C340E3;
-        Sun, 23 Jan 2022 23:57:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E110D611F1
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:57:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CA7D0C340E4;
+        Sun, 23 Jan 2022 23:57:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982256;
-        bh=6T6cLV3ybXHXPJ72KqNSdPesInLzI3LeWBFIjs2e8Dk=;
+        s=korg; t=1642982259;
+        bh=7tvPXjtTqtBRK5Pmnsxuk6aeTHpPKTmf0bMjwYYI8Go=;
         h=Date:From:To:Subject:From;
-        b=bBusRWnxGP/PhDIEYQju1wG/QLUpGQMKeKwMn6V4QlZcmw6rSOEQIhU/LSTKBQ+YD
-         UiHP6IDEdzuUwoYApHC2dXjzDM6TeGZ2PfmNtEufR2vuV3/Eq7t0VbQKUPi7sukNWV
-         n4pUhSA7bRLcHTY+8gfEXxVpHd+DCOFdplU8zDXs=
-Date:   Sun, 23 Jan 2022 15:57:35 -0800
+        b=qI9wj/3KKjog8Zwx3cf1HzueFAHSuKWqDFGWuFMjkwNG3NhLRoovuhHG1TiJBw4vw
+         LFohgAbGSRHGa+qF8RftJIFfyDBikVZE/XRMUJrJjgRWtz6KNd9TGqGbyjRyo3ltZx
+         jGi8PvgBO/wmtsx4R+2LAsB0GAfUZoCg6ACbooYs=
+Date:   Sun, 23 Jan 2022 15:57:38 -0800
 From:   akpm@linux-foundation.org
 To:     anil.s.keshavamurthy@intel.com, christian.brauner@ubuntu.com,
         crope@iki.fi, davem@davemloft.net, ebiederm@xmission.com,
@@ -34,9 +34,9 @@ To:     anil.s.keshavamurthy@intel.com, christian.brauner@ubuntu.com,
         naveen.n.rao@linux.ibm.com, nixiaoming@huawei.com, steve@sk2.org,
         viro@zeniv.linux.org.uk, yzaikin@google.com
 Subject:  [merged]
- fs-coredump-move-coredump-sysctls-into-its-own-file.patch removed from -mm
+ kprobe-move-sysctl_kprobes_optimization-to-kprobesc.patch removed from -mm
  tree
-Message-ID: <20220123235735.Zu7Z7B-2e%akpm@linux-foundation.org>
+Message-ID: <20220123235738.TuNw88TCN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,19 +45,29 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/coredump: move coredump sysctls into its own file
+     Subject: kprobe: move sysctl_kprobes_optimization to kprobes.c
 has been removed from the -mm tree.  Its filename was
-     fs-coredump-move-coredump-sysctls-into-its-own-file.patch
+     kprobe-move-sysctl_kprobes_optimization-to-kprobesc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: fs/coredump: move coredump sysctls into its own file
+Subject: kprobe: move sysctl_kprobes_optimization to kprobes.c
 
-This moves the fs/coredump.c respective sysctls to its own file.
+kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
+dishes, this makes it very difficult to maintain.
 
-Link: https://lkml.kernel.org/r/20211129211943.640266-6-mcgrof@kernel.org
+To help with this maintenance let's start by moving sysctls to places
+where they actually belong.  The proc sysctl maintainers do not want to
+know what sysctl knobs you wish to add for your own piece of code, we just
+care about the core logic.
+
+Move sysctl_kprobes_optimization from kernel/sysctl.c to kernel/kprobes.c.
+Use register_sysctl() to register the sysctl interface.
+
+[mcgrof@kernel.org: fix compile issue when CONFIG_OPTPROBES is disabled]
+Link: https://lkml.kernel.org/r/20211129211943.640266-7-mcgrof@kernel.org
 Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -76,221 +86,114 @@ Cc: Stephen Kitt <steve@sk2.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c            |   66 ++++++++++++++++++++++++++++++++++---
- fs/exec.c                |   55 ------------------------------
- include/linux/coredump.h |   10 +++--
- kernel/sysctl.c          |    2 -
- 4 files changed, 67 insertions(+), 66 deletions(-)
+ include/linux/kprobes.h |    6 ------
+ kernel/kprobes.c        |   30 ++++++++++++++++++++++++++----
+ kernel/sysctl.c         |   12 ------------
+ 3 files changed, 26 insertions(+), 22 deletions(-)
 
---- a/fs/coredump.c~fs-coredump-move-coredump-sysctls-into-its-own-file
-+++ a/fs/coredump.c
-@@ -41,6 +41,7 @@
- #include <linux/fs.h>
- #include <linux/path.h>
- #include <linux/timekeeping.h>
-+#include <linux/sysctl.h>
+--- a/include/linux/kprobes.h~kprobe-move-sysctl_kprobes_optimization-to-kprobesc
++++ a/include/linux/kprobes.h
+@@ -348,12 +348,6 @@ extern void opt_pre_handler(struct kprob
  
- #include <linux/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -52,9 +53,9 @@
+ DEFINE_INSN_CACHE_OPS(optinsn);
  
- #include <trace/events/sched.h>
+-#ifdef CONFIG_SYSCTL
+-extern int sysctl_kprobes_optimization;
+-extern int proc_kprobes_optimization_handler(struct ctl_table *table,
+-					     int write, void *buffer,
+-					     size_t *length, loff_t *ppos);
+-#endif /* CONFIG_SYSCTL */
+ extern void wait_for_kprobe_optimizer(void);
+ #else /* !CONFIG_OPTPROBES */
+ static inline void wait_for_kprobe_optimizer(void) { }
+--- a/kernel/kprobes.c~kprobe-move-sysctl_kprobes_optimization-to-kprobesc
++++ a/kernel/kprobes.c
+@@ -48,6 +48,9 @@
+ #define KPROBE_HASH_BITS 6
+ #define KPROBE_TABLE_SIZE (1 << KPROBE_HASH_BITS)
  
--int core_uses_pid;
--unsigned int core_pipe_limit;
--char core_pattern[CORENAME_MAX_SIZE] = "core";
-+static int core_uses_pid;
-+static unsigned int core_pipe_limit;
-+static char core_pattern[CORENAME_MAX_SIZE] = "core";
- static int core_name_size = CORENAME_MAX_SIZE;
++#if !defined(CONFIG_OPTPROBES) || !defined(CONFIG_SYSCTL)
++#define kprobe_sysctls_init() do { } while (0)
++#endif
  
- struct core_name {
-@@ -62,8 +63,6 @@ struct core_name {
- 	int used, size;
- };
- 
--/* The maximal length of core_pattern is also specified in sysctl.c */
--
- static int expand_corename(struct core_name *cn, int size)
- {
- 	char *corename = krealloc(cn->corename, size, GFP_KERNEL);
-@@ -893,6 +892,63 @@ int dump_align(struct coredump_params *c
+ static int kprobes_initialized;
+ /* kprobe_table can be accessed by
+@@ -938,10 +941,10 @@ static void unoptimize_all_kprobes(void)
  }
- EXPORT_SYMBOL(dump_align);
  
-+#ifdef CONFIG_SYSCTL
+ static DEFINE_MUTEX(kprobe_sysctl_mutex);
+-int sysctl_kprobes_optimization;
+-int proc_kprobes_optimization_handler(struct ctl_table *table, int write,
+-				      void *buffer, size_t *length,
+-				      loff_t *ppos)
++static int sysctl_kprobes_optimization;
++static int proc_kprobes_optimization_handler(struct ctl_table *table,
++					     int write, void *buffer,
++					     size_t *length, loff_t *ppos)
+ {
+ 	int ret;
+ 
+@@ -957,6 +960,24 @@ int proc_kprobes_optimization_handler(st
+ 
+ 	return ret;
+ }
 +
-+void validate_coredump_safety(void)
-+{
-+	if (suid_dumpable == SUID_DUMP_ROOT &&
-+	    core_pattern[0] != '/' && core_pattern[0] != '|') {
-+		pr_warn(
-+"Unsafe core_pattern used with fs.suid_dumpable=2.\n"
-+"Pipe handler or fully qualified core dump path required.\n"
-+"Set kernel.core_pattern before fs.suid_dumpable.\n"
-+		);
-+	}
-+}
-+
-+static int proc_dostring_coredump(struct ctl_table *table, int write,
-+		  void *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	int error = proc_dostring(table, write, buffer, lenp, ppos);
-+
-+	if (!error)
-+		validate_coredump_safety();
-+	return error;
-+}
-+
-+static struct ctl_table coredump_sysctls[] = {
++static struct ctl_table kprobe_sysctls[] = {
 +	{
-+		.procname	= "core_uses_pid",
-+		.data		= &core_uses_pid,
++		.procname	= "kprobes-optimization",
++		.data		= &sysctl_kprobes_optimization,
 +		.maxlen		= sizeof(int),
 +		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
++		.proc_handler	= proc_kprobes_optimization_handler,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
 +	},
-+	{
-+		.procname	= "core_pattern",
-+		.data		= core_pattern,
-+		.maxlen		= CORENAME_MAX_SIZE,
-+		.mode		= 0644,
-+		.proc_handler	= proc_dostring_coredump,
-+	},
-+	{
-+		.procname	= "core_pipe_limit",
-+		.data		= &core_pipe_limit,
-+		.maxlen		= sizeof(unsigned int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
-+	{ }
++	{}
 +};
 +
-+static int __init init_fs_coredump_sysctls(void)
++static void __init kprobe_sysctls_init(void)
 +{
-+	register_sysctl_init("kernel", coredump_sysctls);
-+	return 0;
++	register_sysctl_init("debug", kprobe_sysctls);
 +}
-+fs_initcall(init_fs_coredump_sysctls);
-+#endif /* CONFIG_SYSCTL */
-+
- /*
-  * The purpose of always_dump_vma() is to make sure that special kernel mappings
-  * that are useful for post-mortem analysis are included in every core dump.
---- a/fs/exec.c~fs-coredump-move-coredump-sysctls-into-its-own-file
-+++ a/fs/exec.c
-@@ -2103,20 +2103,6 @@ COMPAT_SYSCALL_DEFINE5(execveat, int, fd
+ #endif /* CONFIG_SYSCTL */
  
- #ifdef CONFIG_SYSCTL
+ /* Put a breakpoint for a probe. */
+@@ -2584,6 +2605,7 @@ static int __init init_kprobes(void)
+ 		err = register_module_notifier(&kprobe_module_nb);
  
--static void validate_coredump_safety(void)
--{
--#ifdef CONFIG_COREDUMP
--	if (suid_dumpable == SUID_DUMP_ROOT &&
--	    core_pattern[0] != '/' && core_pattern[0] != '|') {
--		pr_warn(
--"Unsafe core_pattern used with fs.suid_dumpable=2.\n"
--"Pipe handler or fully qualified core dump path required.\n"
--"Set kernel.core_pattern before fs.suid_dumpable.\n"
--		);
--	}
+ 	kprobes_initialized = (err == 0);
++	kprobe_sysctls_init();
+ 	return err;
+ }
+ early_initcall(init_kprobes);
+--- a/kernel/sysctl.c~kprobe-move-sysctl_kprobes_optimization-to-kprobesc
++++ a/kernel/sysctl.c
+@@ -56,7 +56,6 @@
+ #include <linux/reboot.h>
+ #include <linux/ftrace.h>
+ #include <linux/perf_event.h>
+-#include <linux/kprobes.h>
+ #include <linux/oom.h>
+ #include <linux/kmod.h>
+ #include <linux/capability.h>
+@@ -2819,17 +2818,6 @@ static struct ctl_table debug_table[] =
+ 		.proc_handler	= proc_dointvec
+ 	},
+ #endif
+-#if defined(CONFIG_OPTPROBES)
+-	{
+-		.procname	= "kprobes-optimization",
+-		.data		= &sysctl_kprobes_optimization,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_kprobes_optimization_handler,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
 -#endif
--}
--
- static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
- 		void *buffer, size_t *lenp, loff_t *ppos)
- {
-@@ -2140,50 +2126,9 @@ static struct ctl_table fs_exec_sysctls[
  	{ }
  };
  
--#ifdef CONFIG_COREDUMP
--
--static int proc_dostring_coredump(struct ctl_table *table, int write,
--		  void *buffer, size_t *lenp, loff_t *ppos)
--{
--	int error = proc_dostring(table, write, buffer, lenp, ppos);
--
--	if (!error)
--		validate_coredump_safety();
--	return error;
--}
--
--static struct ctl_table kernel_exec_sysctls[] = {
--	{
--		.procname	= "core_uses_pid",
--		.data		= &core_uses_pid,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
--	},
--	{
--		.procname	= "core_pattern",
--		.data		= core_pattern,
--		.maxlen		= CORENAME_MAX_SIZE,
--		.mode		= 0644,
--		.proc_handler	= proc_dostring_coredump,
--	},
--	{
--		.procname	= "core_pipe_limit",
--		.data		= &core_pipe_limit,
--		.maxlen		= sizeof(unsigned int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
--	},
--	{ }
--};
--#endif
--
- static int __init init_fs_exec_sysctls(void)
- {
- 	register_sysctl_init("fs", fs_exec_sysctls);
--#ifdef CONFIG_COREDUMP
--	register_sysctl_init("kernel", kernel_exec_sysctls);
--#endif
- 	return 0;
- }
- 
---- a/include/linux/coredump.h~fs-coredump-move-coredump-sysctls-into-its-own-file
-+++ a/include/linux/coredump.h
-@@ -14,10 +14,6 @@ struct core_vma_metadata {
- 	unsigned long dump_size;
- };
- 
--extern int core_uses_pid;
--extern char core_pattern[];
--extern unsigned int core_pipe_limit;
--
- /*
-  * These are the only things you should do on a core-file: use only these
-  * functions to write out all the necessary info.
-@@ -37,4 +33,10 @@ extern void do_coredump(const kernel_sig
- static inline void do_coredump(const kernel_siginfo_t *siginfo) {}
- #endif
- 
-+#if defined(CONFIG_COREDUMP) && defined(CONFIG_SYSCTL)
-+extern void validate_coredump_safety(void);
-+#else
-+static inline void validate_coredump_safety(void) {}
-+#endif
-+
- #endif /* _LINUX_COREDUMP_H */
---- a/kernel/sysctl.c~fs-coredump-move-coredump-sysctls-into-its-own-file
-+++ a/kernel/sysctl.c
-@@ -62,12 +62,10 @@
- #include <linux/capability.h>
- #include <linux/binfmts.h>
- #include <linux/sched/sysctl.h>
--#include <linux/sched/coredump.h>
- #include <linux/kexec.h>
- #include <linux/bpf.h>
- #include <linux/mount.h>
- #include <linux/userfaultfd_k.h>
--#include <linux/coredump.h>
- #include <linux/latencytop.h>
- #include <linux/pid.h>
- #include <linux/delayacct.h>
 _
 
 Patches currently in -mm which might be from nixiaoming@huawei.com are
