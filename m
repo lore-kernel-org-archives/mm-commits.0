@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 71A0BC433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:57:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F269C433FE
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:57:20 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235094AbiAWX5R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:57:17 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:46078 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240506AbiAWX5R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:57:17 -0500
+        id S240507AbiAWX5T (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:57:19 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38198 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235100AbiAWX5T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:57:19 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 10480C06173B
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 15:57:19 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7989FB80E44
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:57:16 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C040CC340E3;
-        Sun, 23 Jan 2022 23:57:14 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A66F7611FC
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:57:18 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1AD9C340E4;
+        Sun, 23 Jan 2022 23:57:17 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982235;
-        bh=4Q/Ecvf5UvNITUdwf6ONZl8XFLYGB8bZD0D+WNt61XI=;
+        s=korg; t=1642982238;
+        bh=ex2+y23kd5qDMk1mMQ9r7XEp58gKUSQE7Q8Rvunbs/4=;
         h=Date:From:To:Subject:From;
-        b=v8ZTGQlhcd+E6lXmjeuKY1D+rEG5lJmN51vvvaCDKvCF/qBrD89tcHjrG5pstHAgb
-         aN8i5NtAiJ+SeL7bc1gx/dpxOBoIGMuriSQaDUD1/BBYbmQJ7cZV74lQy4aZYCRnRR
-         tLSGKw6ONVfLywMZWmdum/cG3xNRJiSOeNyT6tfk=
-Date:   Sun, 23 Jan 2022 15:57:14 -0800
+        b=b2SdoKDHfRvz0jMnAAujEJKAMOfBGiR+WMOPcNCxt3B7eMsKsIOOfAIW9VqepXJ3O
+         Dys8DR+JRF2xYjiaZl88PUfRVNPhhqiQ/nMEeAPvlDhIUT8owS8DAJwqddzFgq35uz
+         sqm5iVV4OlJhqRB5T3Fo3Awa4BGHfaV0vy15nHHY=
+Date:   Sun, 23 Jan 2022 15:57:17 -0800
 From:   akpm@linux-foundation.org
 To:     andriy.shevchenko@linux.intel.com, bfields@fieldses.org,
         crope@iki.fi, ebiederm@xmission.com, jlayton@kernel.org,
         keescook@chromium.org, kernel@tuxforce.de, mcgrof@kernel.org,
         mm-commits@vger.kernel.org, nixiaoming@huawei.com, steve@sk2.org,
         viro@zeniv.linux.org.uk, yzaikin@google.com
-Subject:  [merged] fs-move-namei-sysctls-to-its-own-file.patch
+Subject:  [merged] fs-move-fs-execc-sysctls-into-its-own-file.patch
  removed from -mm tree
-Message-ID: <20220123235714.gk5--9mgc%akpm@linux-foundation.org>
+Message-ID: <20220123235717.MlsKeix0b%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,15 +46,15 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: move namei sysctls to its own file
+     Subject: fs: move fs/exec.c sysctls into its own file
 has been removed from the -mm tree.  Its filename was
-     fs-move-namei-sysctls-to-its-own-file.patch
+     fs-move-fs-execc-sysctls-into-its-own-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: fs: move namei sysctls to its own file
+Subject: fs: move fs/exec.c sysctls into its own file
 
 kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
 dishes, this makes it very difficult to maintain.
@@ -61,15 +64,15 @@ where they actually belong.  The proc sysctl maintainers do not want to
 know what sysctl knobs you wish to add for your own piece of code, we just
 care about the core logic.
 
-So move namei's own sysctl knobs to its own file.
+So move the fs/exec.c respective sysctls to its own file.
 
-Other than the move we also avoid initializing two static variables to 0
-as this is not needed:
+Since checkpatch complains about style issues with the old code, this move
+also fixes a few of those minor style issues:
 
-  * sysctl_protected_symlinks
-  * sysctl_protected_hardlinks
+  * Use pr_warn() instead of prink(WARNING
+  * New empty lines are wanted at the beginning of routines
 
-Link: https://lkml.kernel.org/r/20211129205548.605569-8-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211129205548.605569-9-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -85,133 +88,202 @@ Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/namei.c         |   58 ++++++++++++++++++++++++++++++++++++++++---
- include/linux/fs.h |    1 
- kernel/sysctl.c    |   36 --------------------------
- 3 files changed, 54 insertions(+), 41 deletions(-)
+ fs/exec.c       |   90 ++++++++++++++++++++++++++++++++++++++++++++++
+ kernel/sysctl.c |   66 ---------------------------------
+ 2 files changed, 90 insertions(+), 66 deletions(-)
 
---- a/fs/namei.c~fs-move-namei-sysctls-to-its-own-file
-+++ a/fs/namei.c
-@@ -1020,10 +1020,60 @@ static inline void put_link(struct namei
- 		path_put(&last->link);
- }
+--- a/fs/exec.c~fs-move-fs-execc-sysctls-into-its-own-file
++++ a/fs/exec.c
+@@ -65,6 +65,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/io_uring.h>
+ #include <linux/syscall_user_dispatch.h>
++#include <linux/coredump.h>
  
--int sysctl_protected_symlinks __read_mostly = 0;
--int sysctl_protected_hardlinks __read_mostly = 0;
--int sysctl_protected_fifos __read_mostly;
--int sysctl_protected_regular __read_mostly;
-+static int sysctl_protected_symlinks __read_mostly;
-+static int sysctl_protected_hardlinks __read_mostly;
-+static int sysctl_protected_fifos __read_mostly;
-+static int sysctl_protected_regular __read_mostly;
+ #include <linux/uaccess.h>
+ #include <asm/mmu_context.h>
+@@ -2099,3 +2100,92 @@ COMPAT_SYSCALL_DEFINE5(execveat, int, fd
+ 				  argv, envp, flags);
+ }
+ #endif
 +
 +#ifdef CONFIG_SYSCTL
-+static struct ctl_table namei_sysctls[] = {
++
++static void validate_coredump_safety(void)
++{
++#ifdef CONFIG_COREDUMP
++	if (suid_dumpable == SUID_DUMP_ROOT &&
++	    core_pattern[0] != '/' && core_pattern[0] != '|') {
++		pr_warn(
++"Unsafe core_pattern used with fs.suid_dumpable=2.\n"
++"Pipe handler or fully qualified core dump path required.\n"
++"Set kernel.core_pattern before fs.suid_dumpable.\n"
++		);
++	}
++#endif
++}
++
++static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
++		void *buffer, size_t *lenp, loff_t *ppos)
++{
++	int error = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
++
++	if (!error)
++		validate_coredump_safety();
++	return error;
++}
++
++static struct ctl_table fs_exec_sysctls[] = {
 +	{
-+		.procname	= "protected_symlinks",
-+		.data		= &sysctl_protected_symlinks,
++		.procname	= "suid_dumpable",
++		.data		= &suid_dumpable,
 +		.maxlen		= sizeof(int),
-+		.mode		= 0600,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+	{
-+		.procname	= "protected_hardlinks",
-+		.data		= &sysctl_protected_hardlinks,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0600,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+	{
-+		.procname	= "protected_fifos",
-+		.data		= &sysctl_protected_fifos,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0600,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_TWO,
-+	},
-+	{
-+		.procname	= "protected_regular",
-+		.data		= &sysctl_protected_regular,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0600,
-+		.proc_handler	= proc_dointvec_minmax,
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax_coredump,
 +		.extra1		= SYSCTL_ZERO,
 +		.extra2		= SYSCTL_TWO,
 +	},
 +	{ }
 +};
 +
-+static int __init init_fs_namei_sysctls(void)
++#ifdef CONFIG_COREDUMP
++
++static int proc_dostring_coredump(struct ctl_table *table, int write,
++		  void *buffer, size_t *lenp, loff_t *ppos)
 +{
-+	register_sysctl_init("fs", namei_sysctls);
++	int error = proc_dostring(table, write, buffer, lenp, ppos);
++
++	if (!error)
++		validate_coredump_safety();
++	return error;
++}
++
++static struct ctl_table kernel_exec_sysctls[] = {
++	{
++		.procname	= "core_uses_pid",
++		.data		= &core_uses_pid,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{
++		.procname	= "core_pattern",
++		.data		= core_pattern,
++		.maxlen		= CORENAME_MAX_SIZE,
++		.mode		= 0644,
++		.proc_handler	= proc_dostring_coredump,
++	},
++	{
++		.procname	= "core_pipe_limit",
++		.data		= &core_pipe_limit,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{ }
++};
++#endif
++
++static int __init init_fs_exec_sysctls(void)
++{
++	register_sysctl_init("fs", fs_exec_sysctls);
++#ifdef CONFIG_COREDUMP
++	register_sysctl_init("kernel", kernel_exec_sysctls);
++#endif
 +	return 0;
 +}
-+fs_initcall(init_fs_namei_sysctls);
 +
++fs_initcall(init_fs_exec_sysctls);
 +#endif /* CONFIG_SYSCTL */
- 
- /**
-  * may_follow_link - Check symlink following for unsafe situations
---- a/include/linux/fs.h~fs-move-namei-sysctls-to-its-own-file
-+++ a/include/linux/fs.h
-@@ -81,7 +81,6 @@ extern void __init files_maxfiles_init(v
- 
- extern unsigned long get_max_files(void);
- extern unsigned int sysctl_nr_open;
--extern int leases_enable, lease_break_time;
- 
- typedef __kernel_rwf_t rwf_t;
- 
---- a/kernel/sysctl.c~fs-move-namei-sysctls-to-its-own-file
+--- a/kernel/sysctl.c~fs-move-fs-execc-sysctls-into-its-own-file
 +++ a/kernel/sysctl.c
-@@ -2898,42 +2898,6 @@ static struct ctl_table vm_table[] = {
+@@ -1117,40 +1117,6 @@ static int proc_dopipe_max_size(struct c
+ 				 do_proc_dopipe_max_size_conv, NULL);
+ }
+ 
+-static void validate_coredump_safety(void)
+-{
+-#ifdef CONFIG_COREDUMP
+-	if (suid_dumpable == SUID_DUMP_ROOT &&
+-	    core_pattern[0] != '/' && core_pattern[0] != '|') {
+-		printk(KERN_WARNING
+-"Unsafe core_pattern used with fs.suid_dumpable=2.\n"
+-"Pipe handler or fully qualified core dump path required.\n"
+-"Set kernel.core_pattern before fs.suid_dumpable.\n"
+-		);
+-	}
+-#endif
+-}
+-
+-static int proc_dointvec_minmax_coredump(struct ctl_table *table, int write,
+-		void *buffer, size_t *lenp, loff_t *ppos)
+-{
+-	int error = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+-	if (!error)
+-		validate_coredump_safety();
+-	return error;
+-}
+-
+-#ifdef CONFIG_COREDUMP
+-static int proc_dostring_coredump(struct ctl_table *table, int write,
+-		  void *buffer, size_t *lenp, loff_t *ppos)
+-{
+-	int error = proc_dostring(table, write, buffer, lenp, ppos);
+-	if (!error)
+-		validate_coredump_safety();
+-	return error;
+-}
+-#endif
+-
+ #ifdef CONFIG_MAGIC_SYSRQ
+ static int sysrq_sysctl_handler(struct ctl_table *table, int write,
+ 				void *buffer, size_t *lenp, loff_t *ppos)
+@@ -1874,29 +1840,6 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	},
+-#ifdef CONFIG_COREDUMP
+-	{
+-		.procname	= "core_uses_pid",
+-		.data		= &core_uses_pid,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-	},
+-	{
+-		.procname	= "core_pattern",
+-		.data		= core_pattern,
+-		.maxlen		= CORENAME_MAX_SIZE,
+-		.mode		= 0644,
+-		.proc_handler	= proc_dostring_coredump,
+-	},
+-	{
+-		.procname	= "core_pipe_limit",
+-		.data		= &core_pipe_limit,
+-		.maxlen		= sizeof(unsigned int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec,
+-	},
+-#endif
+ #ifdef CONFIG_PROC_SYSCTL
+ 	{
+ 		.procname	= "tainted",
+@@ -2898,15 +2841,6 @@ static struct ctl_table vm_table[] = {
  
  static struct ctl_table fs_table[] = {
  	{
--		.procname	= "protected_symlinks",
--		.data		= &sysctl_protected_symlinks,
+-		.procname	= "suid_dumpable",
+-		.data		= &suid_dumpable,
 -		.maxlen		= sizeof(int),
--		.mode		= 0600,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_ONE,
--	},
--	{
--		.procname	= "protected_hardlinks",
--		.data		= &sysctl_protected_hardlinks,
--		.maxlen		= sizeof(int),
--		.mode		= 0600,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_ONE,
--	},
--	{
--		.procname	= "protected_fifos",
--		.data		= &sysctl_protected_fifos,
--		.maxlen		= sizeof(int),
--		.mode		= 0600,
--		.proc_handler	= proc_dointvec_minmax,
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax_coredump,
 -		.extra1		= SYSCTL_ZERO,
 -		.extra2		= SYSCTL_TWO,
 -	},
 -	{
--		.procname	= "protected_regular",
--		.data		= &sysctl_protected_regular,
--		.maxlen		= sizeof(int),
--		.mode		= 0600,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_TWO,
--	},
--	{
- 		.procname	= "suid_dumpable",
- 		.data		= &suid_dumpable,
- 		.maxlen		= sizeof(int),
+ 		.procname	= "pipe-max-size",
+ 		.data		= &pipe_max_size,
+ 		.maxlen		= sizeof(pipe_max_size),
 _
 
 Patches currently in -mm which might be from mcgrof@kernel.org are
