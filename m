@@ -2,41 +2,43 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F308C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id ED01EC433FE
 	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:57:45 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235023AbiAWX5o (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:57:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38288 "EHLO
+        id S235053AbiAWX5p (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:57:45 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38290 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
         with ESMTP id S234999AbiAWX5o (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:57:44 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 29A2EC06173B
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B5CAEC06173B
         for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 15:57:44 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E7A11B80D38
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:57:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 90F7EC340E3;
-        Sun, 23 Jan 2022 23:57:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 56A7960C34
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:57:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9FDCAC340E3;
+        Sun, 23 Jan 2022 23:57:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982261;
-        bh=gKRKVAaM394Ycr6Txkso+llXE1R9eOVRkIZ85raUKW0=;
+        s=korg; t=1642982263;
+        bh=XKXXqOc+XLDkjd4YSsOW+wy76J/snf0ShS6A3dlGiIQ=;
         h=Date:From:To:Subject:From;
-        b=S96fgW5lWjO/SeeDpaYll8y3/rig1F3IBR2epO1PlQ19n1vTE3OF9fTMNiavhBvPG
-         W4vebL0MfcRt5pnYYh4lC9DfsVF91IatDhbksSsEk63HFG9zB2xEoobdW4y7WjDDg3
-         fb2E03aymX5Unrj+2LzD6AOXjgMNSmYNQVIrMxQ0=
-Date:   Sun, 23 Jan 2022 15:57:41 -0800
+        b=fA6KgBHsn01s6MNFTphqGNkctZWXOvToE4Ws5yp8V234rs3EdK7uE7+TfNItObnZE
+         vamDkKdX0+/jiCdRrYiVFh+ihHYZ2uU6Xf97dl+Vi4ucSgoLFQcKttovswHnApqMrI
+         R8i/MgYr0X8ehRaLGyWik3W+2J64cigaaqWUV0qQ=
+Date:   Sun, 23 Jan 2022 15:57:43 -0800
 From:   akpm@linux-foundation.org
-To:     colin.i.king@gmail.com, mcgrof@kernel.org,
+To:     hulkci@huawei.com, libaokun1@huawei.com, mcgrof@kernel.org,
         mm-commits@vger.kernel.org
 Subject:  [merged]
- kernel-sysctlc-remove-unused-variable-ten_thousand.patch removed from -mm
- tree
-Message-ID: <20220123235741.kgiLUxiaI%akpm@linux-foundation.org>
+ =?US-ASCII?Q?sysctl-returns-einval-when-a-negative-value-is-passed-to-?=
+ =?US-ASCII?Q?proc=5Fdoulongvec=5Fminmax.patch?= removed from -mm tree
+Message-ID: <20220123235743.cXvb4lKqc%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,47 +46,56 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sysctl.c: remove unused variable ten_thousand
+     Subject: sysctl: returns -EINVAL when a negative value is passed to proc_doulongvec_minmax
 has been removed from the -mm tree.  Its filename was
-     kernel-sysctlc-remove-unused-variable-ten_thousand.patch
+     sysctl-returns-einval-when-a-negative-value-is-passed-to-proc_doulongvec_minmax.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.i.king@gmail.com>
-Subject: kernel/sysctl.c: remove unused variable ten_thousand
+From: Baokun Li <libaokun1@huawei.com>
+Subject: sysctl: returns -EINVAL when a negative value is passed to proc_doulongvec_minmax
 
-The const variable ten_thousand is not used, it is redundant and can be
-removed.
+When we pass a negative value to the proc_doulongvec_minmax() function,
+the function returns 0, but the corresponding interface value does not
+change.
 
-Cleans up clang warning:
-kernel/sysctl.c:99:18: warning: unused variable 'ten_thousand' [-Wunused-const-variable]
-static const int ten_thousand = 10000;
+we can easily reproduce this problem with the following commands:
+    cd /proc/sys/fs/epoll
+    echo -1 > max_user_watches; echo $?; cat max_user_watches
 
-Link: https://lkml.kernel.org/r/20211221184501.574670-1-colin.i.king@gmail.com
-Fixes: c26da54dc8ca ("printk: move printk sysctl to printk/sysctl.c")
-Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+This function requires a non-negative number to be passed in, so when
+a negative number is passed in, -EINVAL is returned.
+
+Link: https://lkml.kernel.org/r/20211220092627.3744624-1-libaokun1@huawei.com
+Signed-off-by: Baokun Li <libaokun1@huawei.com>
+Reported-by: Hulk Robot <hulkci@huawei.com>
 Acked-by: Luis Chamberlain <mcgrof@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    3 ---
- 1 file changed, 3 deletions(-)
+ kernel/sysctl.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
---- a/kernel/sysctl.c~kernel-sysctlc-remove-unused-variable-ten_thousand
+--- a/kernel/sysctl.c~sysctl-returns-einval-when-a-negative-value-is-passed-to-proc_doulongvec_minmax
 +++ a/kernel/sysctl.c
-@@ -96,9 +96,6 @@
- 
- /* Constants used for minimum and  maximum */
- 
--#ifdef CONFIG_PRINTK
--static const int ten_thousand = 10000;
--#endif
- #ifdef CONFIG_PERF_EVENTS
- static const int six_hundred_forty_kb = 640 * 1024;
- #endif
+@@ -1145,10 +1145,11 @@ static int __do_proc_doulongvec_minmax(v
+ 			err = proc_get_long(&p, &left, &val, &neg,
+ 					     proc_wspace_sep,
+ 					     sizeof(proc_wspace_sep), NULL);
+-			if (err)
++			if (err || neg) {
++				err = -EINVAL;
+ 				break;
+-			if (neg)
+-				continue;
++			}
++
+ 			val = convmul * val / convdiv;
+ 			if ((min && val < *min) || (max && val > *max)) {
+ 				err = -EINVAL;
 _
 
-Patches currently in -mm which might be from colin.i.king@gmail.com are
+Patches currently in -mm which might be from libaokun1@huawei.com are
 
 
