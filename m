@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F1344C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:55:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E5A6FC433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:55:33 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240433AbiAWXz2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:55:28 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:50242 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233662AbiAWXz1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:55:27 -0500
+        id S240466AbiAWXzd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:55:33 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:44642 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233662AbiAWXzd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:55:33 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D2B7611EE
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:55:26 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EC0AC340E3;
-        Sun, 23 Jan 2022 23:55:24 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CD882B80E48
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:55:31 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 37ADCC340E3;
+        Sun, 23 Jan 2022 23:55:29 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982125;
-        bh=d8IWafDufpCzChfqIxBqLA+zcs2Dw1O9hns4idm2vqU=;
+        s=korg; t=1642982130;
+        bh=Py1gxviOVyaonXYvpYJ7sgnm6NPKci3XYKZqJlo+RCw=;
         h=Date:From:To:Subject:From;
-        b=UfKaZD4I4ZHhXemUbjYY53eb/IJ9d7n0Geup5jHjaAXRgHrT+1ninwJ4M+Rio/l0G
-         Ctvvc/aCLkMzIircJlfAzzfyEtpZrkvC62ta2617CIz3qghk2xT3sQipR4atDRg1hn
-         BATy8fi2ffQ7G/saDZ9I1+7sjeh0ZRg0kX4qzCmI=
-Date:   Sun, 23 Jan 2022 15:55:23 -0800
+        b=ZQIZ6PaxrPOmLWWzBMiB3cN/kZ5os2NoMuY0MXf6oiWqz0mx0uWTsraWYeD3GHd2p
+         jlcsCISvfQAiR/qZG4glhTMdnuXZqptM3vU4Zirkc92qsZASFgFhXpKzjfqr/xSAFS
+         w0Zf4WUWTbZsDPod8i5s1eDxVIDtzayXp4T8ngL0=
+Date:   Sun, 23 Jan 2022 15:55:28 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -45,9 +45,9 @@ To:     airlied@linux.ie, amir73il@gmail.com,
         surenb@google.com, tytso@mit.edu, viro@zeniv.linux.org.uk,
         wangqing@vivo.com, yzaikin@google.com
 Subject:  [merged]
- hung_task-move-hung_task-sysctl-interface-to-hung_taskc.patch removed from
- -mm tree
-Message-ID: <20220123235523.cqDLEFCjl%akpm@linux-foundation.org>
+ watchdog-move-watchdog-sysctl-interface-to-watchdogc.patch removed from -mm
+ tree
+Message-ID: <20220123235528.1A-jio69-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -56,15 +56,15 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hung_task: move hung_task sysctl interface to hung_task.c
+     Subject: watchdog: move watchdog sysctl interface to watchdog.c
 has been removed from the -mm tree.  Its filename was
-     hung_task-move-hung_task-sysctl-interface-to-hung_taskc.patch
+     watchdog-move-watchdog-sysctl-interface-to-watchdogc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: hung_task: move hung_task sysctl interface to hung_task.c
+Subject: watchdog: move watchdog sysctl interface to watchdog.c
 
 The kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
 dishes, this makes it very difficult to maintain.
@@ -72,13 +72,14 @@ dishes, this makes it very difficult to maintain.
 To help with this maintenance let's start by moving sysctls to places
 where they actually belong.  The proc sysctl maintainers do not want to
 know what sysctl knobs you wish to add for your own piece of code, we just
-care about the core logic.
+care about the core logic of proc sysctl.
 
-So move hung_task sysctl interface to hung_task.c and use
-register_sysctl() to register the sysctl interface.
+So, move the watchdog syscl interface to watchdog.c.  Use
+register_sysctl() to register the sysctl interface to avoid merge
+conflicts when different features modify sysctl.c at the same time.
 
-[mcgrof@kernel.org: commit log refresh and fixed 2-3 0day reported compile issues]
-Link: https://lkml.kernel.org/r/20211123202347.818157-4-mcgrof@kernel.org
+[mcgrof@kernel.org: justify the move on the commit log]
+Link: https://lkml.kernel.org/r/20211123202347.818157-5-mcgrof@kernel.org
 Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Reviewed-by: Kees Cook <keescook@chromium.org>
@@ -124,78 +125,193 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched/sysctl.h |   14 -----
- kernel/hung_task.c           |   81 +++++++++++++++++++++++++++++++--
- kernel/sysctl.c              |   61 ------------------------
- 3 files changed, 79 insertions(+), 77 deletions(-)
+ kernel/sysctl.c   |   96 -----------------------------------------
+ kernel/watchdog.c |  101 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 101 insertions(+), 96 deletions(-)
 
---- a/include/linux/sched/sysctl.h~hung_task-move-hung_task-sysctl-interface-to-hung_taskc
-+++ a/include/linux/sched/sysctl.h
-@@ -7,20 +7,8 @@
- struct ctl_table;
+--- a/kernel/sysctl.c~watchdog-move-watchdog-sysctl-interface-to-watchdogc
++++ a/kernel/sysctl.c
+@@ -103,16 +103,10 @@
+ #ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
+ #include <linux/stackleak.h>
+ #endif
+-#ifdef CONFIG_LOCKUP_DETECTOR
+-#include <linux/nmi.h>
+-#endif
  
- #ifdef CONFIG_DETECT_HUNG_TASK
--
+ #if defined(CONFIG_SYSCTL)
+ 
+ /* Constants used for minimum and  maximum */
+-#ifdef CONFIG_LOCKUP_DETECTOR
+-static int sixty = 60;
+-#endif
+ 
+ static unsigned long zero_ul;
+ static unsigned long one_ul = 1;
+@@ -2309,96 +2303,6 @@ static struct ctl_table kern_table[] = {
+ 		.mode		= 0444,
+ 		.proc_handler	= proc_dointvec,
+ 	},
+-#if defined(CONFIG_LOCKUP_DETECTOR)
+-	{
+-		.procname       = "watchdog",
+-		.data		= &watchdog_user_enabled,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler   = proc_watchdog,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
+-	{
+-		.procname	= "watchdog_thresh",
+-		.data		= &watchdog_thresh,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_watchdog_thresh,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= &sixty,
+-	},
+-	{
+-		.procname       = "nmi_watchdog",
+-		.data		= &nmi_watchdog_user_enabled,
+-		.maxlen		= sizeof(int),
+-		.mode		= NMI_WATCHDOG_SYSCTL_PERM,
+-		.proc_handler   = proc_nmi_watchdog,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
+-	{
+-		.procname	= "watchdog_cpumask",
+-		.data		= &watchdog_cpumask_bits,
+-		.maxlen		= NR_CPUS,
+-		.mode		= 0644,
+-		.proc_handler	= proc_watchdog_cpumask,
+-	},
+-#ifdef CONFIG_SOFTLOCKUP_DETECTOR
+-	{
+-		.procname       = "soft_watchdog",
+-		.data		= &soft_watchdog_user_enabled,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler   = proc_soft_watchdog,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
+-	{
+-		.procname	= "softlockup_panic",
+-		.data		= &softlockup_panic,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
 -#ifdef CONFIG_SMP
--extern unsigned int sysctl_hung_task_all_cpu_backtrace;
--#else
--#define sysctl_hung_task_all_cpu_backtrace 0
+-	{
+-		.procname	= "softlockup_all_cpu_backtrace",
+-		.data		= &sysctl_softlockup_all_cpu_backtrace,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
 -#endif /* CONFIG_SMP */
+-#endif
+-#ifdef CONFIG_HARDLOCKUP_DETECTOR
+-	{
+-		.procname	= "hardlockup_panic",
+-		.data		= &hardlockup_panic,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
+-#ifdef CONFIG_SMP
+-	{
+-		.procname	= "hardlockup_all_cpu_backtrace",
+-		.data		= &sysctl_hardlockup_all_cpu_backtrace,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
+-#endif /* CONFIG_SMP */
+-#endif
+-#endif
 -
--extern int	     sysctl_hung_task_check_count;
--extern unsigned int  sysctl_hung_task_panic;
-+/* used for hung_task and block/ */
- extern unsigned long sysctl_hung_task_timeout_secs;
--extern unsigned long sysctl_hung_task_check_interval_secs;
--extern int sysctl_hung_task_warnings;
--int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
--		void *buffer, size_t *lenp, loff_t *ppos);
- #else
- /* Avoid need for ifdefs elsewhere in the code */
- enum { sysctl_hung_task_timeout_secs = 0 };
---- a/kernel/hung_task.c~hung_task-move-hung_task-sysctl-interface-to-hung_taskc
-+++ a/kernel/hung_task.c
-@@ -63,7 +63,9 @@ static struct task_struct *watchdog_task
-  * Should we dump all CPUs backtraces in a hung task event?
-  * Defaults to 0, can be changed via sysctl.
-  */
--unsigned int __read_mostly sysctl_hung_task_all_cpu_backtrace;
-+static unsigned int __read_mostly sysctl_hung_task_all_cpu_backtrace;
-+#else
-+#define sysctl_hung_task_all_cpu_backtrace 0
- #endif /* CONFIG_SMP */
- 
- /*
-@@ -222,11 +224,13 @@ static long hung_timeout_jiffies(unsigne
- 		MAX_SCHEDULE_TIMEOUT;
+ #if defined(CONFIG_X86_LOCAL_APIC) && defined(CONFIG_X86)
+ 	{
+ 		.procname       = "unknown_nmi_panic",
+--- a/kernel/watchdog.c~watchdog-move-watchdog-sysctl-interface-to-watchdogc
++++ a/kernel/watchdog.c
+@@ -740,6 +740,106 @@ int proc_watchdog_cpumask(struct ctl_tab
+ 	mutex_unlock(&watchdog_mutex);
+ 	return err;
  }
- 
-+#ifdef CONFIG_SYSCTL
- /*
-  * Process updating of timeout sysctl
-  */
--int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
--				  void *buffer, size_t *lenp, loff_t *ppos)
-+static int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
-+				  void __user *buffer,
-+				  size_t *lenp, loff_t *ppos)
- {
- 	int ret;
- 
-@@ -241,6 +245,76 @@ int proc_dohung_task_timeout_secs(struct
- 	return ret;
- }
- 
-+/*
-+ * This is needed for proc_doulongvec_minmax of sysctl_hung_task_timeout_secs
-+ * and hung_task_check_interval_secs
-+ */
-+static const unsigned long hung_task_timeout_max = (LONG_MAX / HZ);
-+static struct ctl_table hung_task_sysctls[] = {
++
++static const int sixty = 60;
++
++static struct ctl_table watchdog_sysctls[] = {
++	{
++		.procname       = "watchdog",
++		.data		= &watchdog_user_enabled,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler   = proc_watchdog,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
++	},
++	{
++		.procname	= "watchdog_thresh",
++		.data		= &watchdog_thresh,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_watchdog_thresh,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= (void *)&sixty,
++	},
++	{
++		.procname       = "nmi_watchdog",
++		.data		= &nmi_watchdog_user_enabled,
++		.maxlen		= sizeof(int),
++		.mode		= NMI_WATCHDOG_SYSCTL_PERM,
++		.proc_handler   = proc_nmi_watchdog,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
++	},
++	{
++		.procname	= "watchdog_cpumask",
++		.data		= &watchdog_cpumask_bits,
++		.maxlen		= NR_CPUS,
++		.mode		= 0644,
++		.proc_handler	= proc_watchdog_cpumask,
++	},
++#ifdef CONFIG_SOFTLOCKUP_DETECTOR
++	{
++		.procname       = "soft_watchdog",
++		.data		= &soft_watchdog_user_enabled,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler   = proc_soft_watchdog,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
++	},
++	{
++		.procname	= "softlockup_panic",
++		.data		= &softlockup_panic,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
++	},
 +#ifdef CONFIG_SMP
 +	{
-+		.procname	= "hung_task_all_cpu_backtrace",
-+		.data		= &sysctl_hung_task_all_cpu_backtrace,
++		.procname	= "softlockup_all_cpu_backtrace",
++		.data		= &sysctl_softlockup_all_cpu_backtrace,
 +		.maxlen		= sizeof(int),
 +		.mode		= 0644,
 +		.proc_handler	= proc_dointvec_minmax,
@@ -203,147 +319,47 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 +		.extra2		= SYSCTL_ONE,
 +	},
 +#endif /* CONFIG_SMP */
++#endif
++#ifdef CONFIG_HARDLOCKUP_DETECTOR
 +	{
-+		.procname	= "hung_task_panic",
-+		.data		= &sysctl_hung_task_panic,
++		.procname	= "hardlockup_panic",
++		.data		= &hardlockup_panic,
 +		.maxlen		= sizeof(int),
 +		.mode		= 0644,
 +		.proc_handler	= proc_dointvec_minmax,
 +		.extra1		= SYSCTL_ZERO,
 +		.extra2		= SYSCTL_ONE,
 +	},
++#ifdef CONFIG_SMP
 +	{
-+		.procname	= "hung_task_check_count",
-+		.data		= &sysctl_hung_task_check_count,
++		.procname	= "hardlockup_all_cpu_backtrace",
++		.data		= &sysctl_hardlockup_all_cpu_backtrace,
 +		.maxlen		= sizeof(int),
 +		.mode		= 0644,
 +		.proc_handler	= proc_dointvec_minmax,
 +		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
 +	},
-+	{
-+		.procname	= "hung_task_timeout_secs",
-+		.data		= &sysctl_hung_task_timeout_secs,
-+		.maxlen		= sizeof(unsigned long),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dohung_task_timeout_secs,
-+		.extra2		= (void *)&hung_task_timeout_max,
-+	},
-+	{
-+		.procname	= "hung_task_check_interval_secs",
-+		.data		= &sysctl_hung_task_check_interval_secs,
-+		.maxlen		= sizeof(unsigned long),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dohung_task_timeout_secs,
-+		.extra2		= (void *)&hung_task_timeout_max,
-+	},
-+	{
-+		.procname	= "hung_task_warnings",
-+		.data		= &sysctl_hung_task_warnings,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_NEG_ONE,
-+	},
++#endif /* CONFIG_SMP */
++#endif
 +	{}
 +};
 +
-+static void __init hung_task_sysctl_init(void)
++static void __init watchdog_sysctl_init(void)
 +{
-+	register_sysctl_init("kernel", hung_task_sysctls);
++	register_sysctl_init("kernel", watchdog_sysctls);
 +}
 +#else
-+#define hung_task_sysctl_init() do { } while (0)
-+#endif /* CONFIG_SYSCTL */
-+
-+
- static atomic_t reset_hung_task = ATOMIC_INIT(0);
++#define watchdog_sysctl_init() do { } while (0)
+ #endif /* CONFIG_SYSCTL */
  
- void reset_hung_task_detector(void)
-@@ -310,6 +384,7 @@ static int __init hung_task_init(void)
- 	pm_notifier(hungtask_pm_notify, 0);
- 
- 	watchdog_task = kthread_run(watchdog, NULL, "khungtaskd");
-+	hung_task_sysctl_init();
- 
- 	return 0;
+ void __init lockup_detector_init(void)
+@@ -753,4 +853,5 @@ void __init lockup_detector_init(void)
+ 	if (!watchdog_nmi_probe())
+ 		nmi_watchdog_available = true;
+ 	lockup_detector_setup();
++	watchdog_sysctl_init();
  }
---- a/kernel/sysctl.c~hung_task-move-hung_task-sysctl-interface-to-hung_taskc
-+++ a/kernel/sysctl.c
-@@ -134,13 +134,6 @@ static int minolduid;
- static int ngroups_max = NGROUPS_MAX;
- static const int cap_last_cap = CAP_LAST_CAP;
- 
--/*
-- * This is needed for proc_doulongvec_minmax of sysctl_hung_task_timeout_secs
-- * and hung_task_check_interval_secs
-- */
--#ifdef CONFIG_DETECT_HUNG_TASK
--static unsigned long hung_task_timeout_max = (LONG_MAX/HZ);
--#endif
- 
- #ifdef CONFIG_INOTIFY_USER
- #include <linux/inotify.h>
-@@ -2508,60 +2501,6 @@ static struct ctl_table kern_table[] = {
- 		.proc_handler	= proc_dointvec,
- 	},
- #endif
--#ifdef CONFIG_DETECT_HUNG_TASK
--#ifdef CONFIG_SMP
--	{
--		.procname	= "hung_task_all_cpu_backtrace",
--		.data		= &sysctl_hung_task_all_cpu_backtrace,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_ONE,
--	},
--#endif /* CONFIG_SMP */
--	{
--		.procname	= "hung_task_panic",
--		.data		= &sysctl_hung_task_panic,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_ONE,
--	},
--	{
--		.procname	= "hung_task_check_count",
--		.data		= &sysctl_hung_task_check_count,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= SYSCTL_ZERO,
--	},
--	{
--		.procname	= "hung_task_timeout_secs",
--		.data		= &sysctl_hung_task_timeout_secs,
--		.maxlen		= sizeof(unsigned long),
--		.mode		= 0644,
--		.proc_handler	= proc_dohung_task_timeout_secs,
--		.extra2		= &hung_task_timeout_max,
--	},
--	{
--		.procname	= "hung_task_check_interval_secs",
--		.data		= &sysctl_hung_task_check_interval_secs,
--		.maxlen		= sizeof(unsigned long),
--		.mode		= 0644,
--		.proc_handler	= proc_dohung_task_timeout_secs,
--		.extra2		= &hung_task_timeout_max,
--	},
--	{
--		.procname	= "hung_task_warnings",
--		.data		= &sysctl_hung_task_warnings,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= SYSCTL_NEG_ONE,
--	},
--#endif
- #ifdef CONFIG_RT_MUTEXES
- 	{
- 		.procname	= "max_lock_depth",
 _
 
 Patches currently in -mm which might be from nixiaoming@huawei.com are
