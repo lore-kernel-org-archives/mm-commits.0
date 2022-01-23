@@ -2,30 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 308D2C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:56:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 62CD9C433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:56:50 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240498AbiAWX4n (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:56:43 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:51674 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240496AbiAWX4n (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:56:43 -0500
+        id S240501AbiAWX4u (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:56:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38082 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S240496AbiAWX4t (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:56:49 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1B0E4C06173B
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 15:56:49 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B2F2A611F4
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:56:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B73F5C340E3;
-        Sun, 23 Jan 2022 23:56:40 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D7AD2B80E4D
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:56:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3CD3FC340E3;
+        Sun, 23 Jan 2022 23:56:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982202;
-        bh=wTNU1mrV/Jf7X+WM09MuXjoA7GElJcGIoxLvsRCTtKI=;
+        s=korg; t=1642982206;
+        bh=YkJhFvVQZQIyOxuY+Wi4jWtC25dIWvT0tFxFKquHVRA=;
         h=Date:From:To:Subject:From;
-        b=IgWhJXDYEhG8D7R1+rUqXAkEWyZILtszSrGiepgFXhjLNP/ZLH9aG+6R76vLte3m1
-         wx2z3LUNxxgWyL4ysPPYez5SPViR8LD1uU/RpB/jIIczg6lkojBqK6jQ/uLFS1Sho8
-         XQEZpUHexMjVvLYbgeNXADBlOClfwD8kbESvhxQU=
-Date:   Sun, 23 Jan 2022 15:56:40 -0800
+        b=wQwya5G/DlBGfh8LYAloR2BMsurjTpWMEyVthY983SKvw7/cfejFptohFhp9tqT63
+         gynwkUwUg9+RFTugFaSvW+riLr0HqXrdCiEfuvIuHigrh9AlgMBT+F56rHQYW6eFs2
+         AvfBJ5D5O++ugNgLqjAVhHTYgGZaaUdJBzj9lW3o=
+Date:   Sun, 23 Jan 2022 15:56:44 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -45,8 +48,8 @@ To:     airlied@linux.ie, amir73il@gmail.com,
         surenb@google.com, tytso@mit.edu, viro@zeniv.linux.org.uk,
         wangqing@vivo.com, yzaikin@google.com
 Subject:  [merged]
- printk-move-printk-sysctl-to-printk-sysctlc.patch removed from -mm tree
-Message-ID: <20220123235640.FQUqe5R1t%akpm@linux-foundation.org>
+ scsi-sg-move-sg-big-buff-sysctl-to-scsi-sgc.patch removed from -mm tree
+Message-ID: <20220123235644.gXsZ31WKz%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -55,15 +58,15 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: move printk sysctl to printk/sysctl.c
+     Subject: scsi/sg: move sg-big-buff sysctl to scsi/sg.c
 has been removed from the -mm tree.  Its filename was
-     printk-move-printk-sysctl-to-printk-sysctlc.patch
+     scsi-sg-move-sg-big-buff-sysctl-to-scsi-sgc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: printk: move printk sysctl to printk/sysctl.c
+Subject: scsi/sg: move sg-big-buff sysctl to scsi/sg.c
 
 kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
 dishes, this makes it very difficult to maintain.
@@ -73,11 +76,11 @@ where they actually belong.  The proc sysctl maintainers do not want to
 know what sysctl knobs you wish to add for your own piece of code, we just
 care about the core logic.
 
-So move printk sysctl from kernel/sysctl.c to kernel/printk/sysctl.c.  Use
-register_sysctl() to register the sysctl interface.
+So move the sg-big-buff sysctl from kernel/sysctl.c to drivers/scsi/sg.c
+and use register_sysctl() to register the sysctl interface.
 
-[mcgrof@kernel.org: fixed compile issues when PRINTK is not set, commit log update]
-Link: https://lkml.kernel.org/r/20211124231435.1445213-6-mcgrof@kernel.org
+[mcgrof@kernel.org: commit log update]
+Link: https://lkml.kernel.org/r/20211124231435.1445213-7-mcgrof@kernel.org
 Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
@@ -123,222 +126,117 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/Makefile   |    5 +-
- kernel/printk/internal.h |    6 ++
- kernel/printk/printk.c   |    1 
- kernel/printk/sysctl.c   |   85 +++++++++++++++++++++++++++++++++++++
- kernel/sysctl.c          |   68 -----------------------------
- 5 files changed, 96 insertions(+), 69 deletions(-)
+ drivers/scsi/sg.c |   35 ++++++++++++++++++++++++++++++++++-
+ include/scsi/sg.h |    4 ----
+ kernel/sysctl.c   |   12 ------------
+ 3 files changed, 34 insertions(+), 17 deletions(-)
 
---- a/kernel/printk/internal.h~printk-move-printk-sysctl-to-printk-sysctlc
-+++ a/kernel/printk/internal.h
-@@ -4,6 +4,12 @@
-  */
- #include <linux/percpu.h>
+--- a/drivers/scsi/sg.c~scsi-sg-move-sg-big-buff-sysctl-to-scsi-sgc
++++ a/drivers/scsi/sg.c
+@@ -77,7 +77,7 @@ static int sg_proc_init(void);
  
-+#if defined(CONFIG_PRINTK) && defined(CONFIG_SYSCTL)
-+void __init printk_sysctl_init(void);
-+#else
-+#define printk_sysctl_init() do { } while (0)
-+#endif
-+
- #ifdef CONFIG_PRINTK
+ #define SG_DEFAULT_TIMEOUT mult_frac(SG_DEFAULT_TIMEOUT_USER, HZ, USER_HZ)
  
- /* Flags for a single printk record. */
---- a/kernel/printk/Makefile~printk-move-printk-sysctl-to-printk-sysctlc
-+++ a/kernel/printk/Makefile
-@@ -2,5 +2,8 @@
- obj-y	= printk.o
- obj-$(CONFIG_PRINTK)	+= printk_safe.o
- obj-$(CONFIG_A11Y_BRAILLE_CONSOLE)	+= braille.o
--obj-$(CONFIG_PRINTK)	+= printk_ringbuffer.o
- obj-$(CONFIG_PRINTK_INDEX)	+= index.o
-+
-+obj-$(CONFIG_PRINTK)                 += printk_support.o
-+printk_support-y	             := printk_ringbuffer.o
-+printk_support-$(CONFIG_SYSCTL)	     += sysctl.o
---- a/kernel/printk/printk.c~printk-move-printk-sysctl-to-printk-sysctlc
-+++ a/kernel/printk/printk.c
-@@ -3211,6 +3211,7 @@ static int __init printk_late_init(void)
- 	ret = cpuhp_setup_state_nocalls(CPUHP_AP_ONLINE_DYN, "printk:online",
- 					console_cpu_notify, NULL);
- 	WARN_ON(ret < 0);
-+	printk_sysctl_init();
- 	return 0;
- }
- late_initcall(printk_late_init);
---- /dev/null
-+++ a/kernel/printk/sysctl.c
-@@ -0,0 +1,85 @@
-+// SPDX-License-Identifier: GPL-2.0-only
-+/*
-+ * sysctl.c: General linux system control interface
-+ */
-+
+-int sg_big_buff = SG_DEF_RESERVED_SIZE;
++static int sg_big_buff = SG_DEF_RESERVED_SIZE;
+ /* N.B. This variable is readable and writeable via
+    /proc/scsi/sg/def_reserved_size . Each time sg_open() is called a buffer
+    of this size (or less if there is not enough memory) will be reserved
+@@ -1634,6 +1634,37 @@ MODULE_PARM_DESC(scatter_elem_sz, "scatt
+ MODULE_PARM_DESC(def_reserved_size, "size of buffer reserved for each fd");
+ MODULE_PARM_DESC(allow_dio, "allow direct I/O (default: 0 (disallow))");
+ 
++#ifdef CONFIG_SYSCTL
 +#include <linux/sysctl.h>
-+#include <linux/printk.h>
-+#include <linux/capability.h>
-+#include <linux/ratelimit.h>
-+#include "internal.h"
 +
-+static const int ten_thousand = 10000;
-+
-+static int proc_dointvec_minmax_sysadmin(struct ctl_table *table, int write,
-+				void __user *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	if (write && !capable(CAP_SYS_ADMIN))
-+		return -EPERM;
-+
-+	return proc_dointvec_minmax(table, write, buffer, lenp, ppos);
-+}
-+
-+static struct ctl_table printk_sysctls[] = {
++static struct ctl_table sg_sysctls[] = {
 +	{
-+		.procname	= "printk",
-+		.data		= &console_loglevel,
-+		.maxlen		= 4*sizeof(int),
-+		.mode		= 0644,
++		.procname	= "sg-big-buff",
++		.data		= &sg_big_buff,
++		.maxlen		= sizeof(int),
++		.mode		= 0444,
 +		.proc_handler	= proc_dointvec,
-+	},
-+	{
-+		.procname	= "printk_ratelimit",
-+		.data		= &printk_ratelimit_state.interval,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_jiffies,
-+	},
-+	{
-+		.procname	= "printk_ratelimit_burst",
-+		.data		= &printk_ratelimit_state.burst,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
-+	{
-+		.procname	= "printk_delay",
-+		.data		= &printk_delay_msec,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= (void *)&ten_thousand,
-+	},
-+	{
-+		.procname	= "printk_devkmsg",
-+		.data		= devkmsg_log_str,
-+		.maxlen		= DEVKMSG_STR_MAX_SIZE,
-+		.mode		= 0644,
-+		.proc_handler	= devkmsg_sysctl_set_loglvl,
-+	},
-+	{
-+		.procname	= "dmesg_restrict",
-+		.data		= &dmesg_restrict,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax_sysadmin,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_ONE,
-+	},
-+	{
-+		.procname	= "kptr_restrict",
-+		.data		= &kptr_restrict,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec_minmax_sysadmin,
-+		.extra1		= SYSCTL_ZERO,
-+		.extra2		= SYSCTL_TWO,
 +	},
 +	{}
 +};
 +
-+void __init printk_sysctl_init(void)
++static struct ctl_table_header *hdr;
++static void register_sg_sysctls(void)
 +{
-+	register_sysctl_init("kernel", printk_sysctls);
++	if (!hdr)
++		hdr = register_sysctl("kernel", sg_sysctls);
 +}
---- a/kernel/sysctl.c~printk-move-printk-sysctl-to-printk-sysctlc
-+++ a/kernel/sysctl.c
-@@ -908,17 +908,6 @@ static int proc_taint(struct ctl_table *
- 	return err;
- }
++
++static void unregister_sg_sysctls(void)
++{
++	if (hdr)
++		unregister_sysctl_table(hdr);
++}
++#else
++#define register_sg_sysctls() do { } while (0)
++#define unregister_sg_sysctls() do { } while (0)
++#endif /* CONFIG_SYSCTL */
++
+ static int __init
+ init_sg(void)
+ {
+@@ -1666,6 +1697,7 @@ init_sg(void)
+ 		return 0;
+ 	}
+ 	class_destroy(sg_sysfs_class);
++	register_sg_sysctls();
+ err_out:
+ 	unregister_chrdev_region(MKDEV(SCSI_GENERIC_MAJOR, 0), SG_MAX_DEVS);
+ 	return rc;
+@@ -1674,6 +1706,7 @@ err_out:
+ static void __exit
+ exit_sg(void)
+ {
++	unregister_sg_sysctls();
+ #ifdef CONFIG_SCSI_PROC_FS
+ 	remove_proc_subtree("scsi/sg", NULL);
+ #endif				/* CONFIG_SCSI_PROC_FS */
+--- a/include/scsi/sg.h~scsi-sg-move-sg-big-buff-sysctl-to-scsi-sgc
++++ a/include/scsi/sg.h
+@@ -29,10 +29,6 @@
+  * For utility and test programs see: http://sg.danny.cz/sg/sg3_utils.html
+  */
  
--#ifdef CONFIG_PRINTK
--static int proc_dointvec_minmax_sysadmin(struct ctl_table *table, int write,
--				void *buffer, size_t *lenp, loff_t *ppos)
--{
--	if (write && !capable(CAP_SYS_ADMIN))
--		return -EPERM;
--
--	return proc_dointvec_minmax(table, write, buffer, lenp, ppos);
--}
+-#ifdef __KERNEL__
+-extern int sg_big_buff; /* for sysctl */
 -#endif
 -
- /**
-  * struct do_proc_dointvec_minmax_conv_param - proc_dointvec_minmax() range checking structure
-  * @min: pointer to minimum allowable value
-@@ -2210,63 +2199,6 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_doulongvec_minmax,
+ 
+ typedef struct sg_iovec /* same structure as used by readv() Linux system */
+ {                       /* call. It defines one scatter-gather element. */
+--- a/kernel/sysctl.c~scsi-sg-move-sg-big-buff-sysctl-to-scsi-sgc
++++ a/kernel/sysctl.c
+@@ -95,9 +95,6 @@
+ #if defined(CONFIG_PROVE_LOCKING) || defined(CONFIG_LOCK_STAT)
+ #include <linux/lockdep.h>
+ #endif
+-#ifdef CONFIG_CHR_DEV_SG
+-#include <scsi/sg.h>
+-#endif
+ #ifdef CONFIG_STACKLEAK_RUNTIME_DISABLE
+ #include <linux/stackleak.h>
+ #endif
+@@ -2090,15 +2087,6 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler	= proc_dostring,
  	},
--#if defined CONFIG_PRINTK
+ #endif
+-#ifdef CONFIG_CHR_DEV_SG
 -	{
--		.procname	= "printk",
--		.data		= &console_loglevel,
--		.maxlen		= 4*sizeof(int),
--		.mode		= 0644,
+-		.procname	= "sg-big-buff",
+-		.data		= &sg_big_buff,
+-		.maxlen		= sizeof (int),
+-		.mode		= 0444,
 -		.proc_handler	= proc_dointvec,
--	},
--	{
--		.procname	= "printk_ratelimit",
--		.data		= &printk_ratelimit_state.interval,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec_jiffies,
--	},
--	{
--		.procname	= "printk_ratelimit_burst",
--		.data		= &printk_ratelimit_state.burst,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
--	},
--	{
--		.procname	= "printk_delay",
--		.data		= &printk_delay_msec,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= (void *)&ten_thousand,
--	},
--	{
--		.procname	= "printk_devkmsg",
--		.data		= devkmsg_log_str,
--		.maxlen		= DEVKMSG_STR_MAX_SIZE,
--		.mode		= 0644,
--		.proc_handler	= devkmsg_sysctl_set_loglvl,
--	},
--	{
--		.procname	= "dmesg_restrict",
--		.data		= &dmesg_restrict,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax_sysadmin,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_ONE,
--	},
--	{
--		.procname	= "kptr_restrict",
--		.data		= &kptr_restrict,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec_minmax_sysadmin,
--		.extra1		= SYSCTL_ZERO,
--		.extra2		= SYSCTL_TWO,
 -	},
 -#endif
+ #ifdef CONFIG_BSD_PROCESS_ACCT
  	{
- 		.procname	= "ngroups_max",
- 		.data		= (void *)&ngroups_max,
+ 		.procname	= "acct",
 _
 
 Patches currently in -mm which might be from nixiaoming@huawei.com are
