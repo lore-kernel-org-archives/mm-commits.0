@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BF944C433FE
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:57:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0F83AC433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:58:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240511AbiAWX57 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:57:59 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:52758 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234999AbiAWX56 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:57:58 -0500
+        id S235186AbiAWX6D (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:58:03 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:46486 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234999AbiAWX6D (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:58:03 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6C3D560C34
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:57:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9A934C340E3;
-        Sun, 23 Jan 2022 23:57:57 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 313AFB80DC7
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:58:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AE604C340E3;
+        Sun, 23 Jan 2022 23:58:00 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982277;
-        bh=IJ83FcpHT3kjMioFjPQssuNMchOdNWf8+qzgedfmGBM=;
+        s=korg; t=1642982280;
+        bh=KObbdIQT8ED6NhFX5lwUK2F9/It4QWjwY7wZ3OjvA94=;
         h=Date:From:To:Subject:From;
-        b=lMvel1doR8LmJInhCtr8HUPUNn1ozdM9UEaemLmMZIeNiqZIK5kVyquQoK926fKmY
-         rHvMUAVb7EkzEPSKhthJrCfHXhUkt/UA9yYoZjfzzqTmkYX5FGCUOTOlQK8HASqBrq
-         mMWpvfDQlYBUgXcEkZbgPGy+urtJ0c6unw9TCi40=
-Date:   Sun, 23 Jan 2022 15:57:57 -0800
+        b=iKQCoetvwnsvY9SpYmtzlbQwG3mkf1alCXf55FL794MDVcuZJhF749rBjQCpwTJSn
+         TZ2vE8OHnshZHoGdmju+uVtlhZNI+vqRgA4BublPSAGRUZSXqjllbmNBn9Bi5EOwgm
+         NqQ5Uoes/Lr5yYwW7miM+TiwUKZccfli2wQvOW1s=
+Date:   Sun, 23 Jan 2022 15:58:00 -0800
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, minchan@kernel.org,
         mm-commits@vger.kernel.org, peterz@infradead.org,
         senozhatsky@chromium.org, tglx@linutronix.de,
         umgwanakikbuti@gmail.com
 Subject:  [merged]
- zsmalloc-move-huge-compressed-obj-from-page-to-zspage.patch removed from
- -mm tree
-Message-ID: <20220123235757.28CeZGzFm%akpm@linux-foundation.org>
+ zsmalloc-remove-zspage-isolation-for-migration.patch removed from -mm tree
+Message-ID: <20220123235800.Q5H3bvij4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,19 +42,27 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: move huge compressed obj from page to zspage
+     Subject: zsmalloc: remove zspage isolation for migration
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-move-huge-compressed-obj-from-page-to-zspage.patch
+     zsmalloc-remove-zspage-isolation-for-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: move huge compressed obj from page to zspage
+Subject: zsmalloc: remove zspage isolation for migration
 
-The flag aims for zspage, not per page.  Let's move it to zspage.
+zspage isolation for migration introduced additional exceptions to be
+dealt with since the zspage was isolated from class list.  The reason why
+I isolated zspage from class list was to prevent race between obj_malloc
+and page migration via allocating zpage from the zspage further.  However,
+it couldn't prevent object freeing from zspage so it needed corner case
+handling.
 
-Link: https://lkml.kernel.org/r/20211115185909.3949505-6-minchan@kernel.org
+This patch removes the whole mess.  Now, we are fine since class->lock and
+zspage->lock can prevent the race.
+
+Link: https://lkml.kernel.org/r/20211115185909.3949505-7-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Tested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
@@ -66,146 +73,297 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   50 ++++++++++++++++++++++++------------------------
- 1 file changed, 26 insertions(+), 24 deletions(-)
+ mm/zsmalloc.c |  157 ++----------------------------------------------
+ 1 file changed, 8 insertions(+), 149 deletions(-)
 
---- a/mm/zsmalloc.c~zsmalloc-move-huge-compressed-obj-from-page-to-zspage
+--- a/mm/zsmalloc.c~zsmalloc-remove-zspage-isolation-for-migration
 +++ a/mm/zsmalloc.c
-@@ -121,6 +121,7 @@
- #define OBJ_INDEX_BITS	(BITS_PER_LONG - _PFN_BITS - OBJ_TAG_BITS)
- #define OBJ_INDEX_MASK	((_AC(1, UL) << OBJ_INDEX_BITS) - 1)
- 
-+#define HUGE_BITS	1
- #define FULLNESS_BITS	2
- #define CLASS_BITS	8
- #define ISOLATED_BITS	3
-@@ -213,22 +214,6 @@ struct size_class {
- 	struct zs_size_stat stats;
- };
- 
--/* huge object: pages_per_zspage == 1 && maxobj_per_zspage == 1 */
--static void SetPageHugeObject(struct page *page)
--{
--	SetPageOwnerPriv1(page);
--}
--
--static void ClearPageHugeObject(struct page *page)
--{
--	ClearPageOwnerPriv1(page);
--}
--
--static int PageHugeObject(struct page *page)
--{
--	return PageOwnerPriv1(page);
--}
--
- /*
-  * Placed within free objects to form a singly linked list.
-  * For every zspage, zspage->freeobj gives head of this list.
-@@ -278,6 +263,7 @@ struct zs_pool {
- 
- struct zspage {
- 	struct {
-+		unsigned int huge:HUGE_BITS;
- 		unsigned int fullness:FULLNESS_BITS;
- 		unsigned int class:CLASS_BITS + 1;
- 		unsigned int isolated:ISOLATED_BITS;
-@@ -298,6 +284,17 @@ struct mapping_area {
- 	enum zs_mapmode vm_mm; /* mapping mode */
- };
- 
-+/* huge object: pages_per_zspage == 1 && maxobj_per_zspage == 1 */
-+static void SetZsHugePage(struct zspage *zspage)
-+{
-+	zspage->huge = 1;
-+}
-+
-+static bool ZsHugePage(struct zspage *zspage)
-+{
-+	return zspage->huge;
-+}
-+
+@@ -254,10 +254,6 @@ struct zs_pool {
  #ifdef CONFIG_COMPACTION
- static int zs_register_migration(struct zs_pool *pool);
- static void zs_unregister_migration(struct zs_pool *pool);
-@@ -830,7 +827,9 @@ static struct zspage *get_zspage(struct
+ 	struct inode *inode;
+ 	struct work_struct free_work;
+-	/* A wait queue for when migration races with async_free_zspage() */
+-	struct wait_queue_head migration_wait;
+-	atomic_long_t isolated_pages;
+-	bool destroying;
+ #endif
+ };
  
- static struct page *get_next_page(struct page *page)
+@@ -454,11 +450,6 @@ MODULE_ALIAS("zpool-zsmalloc");
+ /* per-cpu VM mapping areas for zspage accesses that cross page boundaries */
+ static DEFINE_PER_CPU(struct mapping_area, zs_map_area);
+ 
+-static bool is_zspage_isolated(struct zspage *zspage)
+-{
+-	return zspage->isolated;
+-}
+-
+ static __maybe_unused int is_first_page(struct page *page)
  {
--	if (unlikely(PageHugeObject(page)))
-+	struct zspage *zspage = get_zspage(page);
-+
-+	if (unlikely(ZsHugePage(zspage)))
- 		return NULL;
- 
- 	return (struct page *)page->index;
-@@ -880,8 +879,9 @@ static unsigned long handle_to_obj(unsig
- static bool obj_allocated(struct page *page, void *obj, unsigned long *phandle)
+ 	return PagePrivate(page);
+@@ -744,7 +735,6 @@ static void remove_zspage(struct size_cl
+ 				enum fullness_group fullness)
  {
- 	unsigned long handle;
-+	struct zspage *zspage = get_zspage(page);
+ 	VM_BUG_ON(list_empty(&class->fullness_list[fullness]));
+-	VM_BUG_ON(is_zspage_isolated(zspage));
  
--	if (unlikely(PageHugeObject(page))) {
-+	if (unlikely(ZsHugePage(zspage))) {
- 		VM_BUG_ON_PAGE(!is_first_page(page), page);
- 		handle = page->index;
- 	} else
-@@ -920,7 +920,6 @@ static void reset_page(struct page *page
- 	ClearPagePrivate(page);
- 	set_page_private(page, 0);
- 	page_mapcount_reset(page);
--	ClearPageHugeObject(page);
- 	page->index = 0;
- }
+ 	list_del_init(&zspage->list);
+ 	class_stat_dec(class, fullness, 1);
+@@ -770,13 +760,9 @@ static enum fullness_group fix_fullness_
+ 	if (newfg == currfg)
+ 		goto out;
  
-@@ -1062,7 +1061,7 @@ static void create_page_chain(struct siz
- 			SetPagePrivate(page);
- 			if (unlikely(class->objs_per_zspage == 1 &&
- 					class->pages_per_zspage == 1))
--				SetPageHugeObject(page);
-+				SetZsHugePage(zspage);
- 		} else {
- 			prev_page->index = (unsigned long)page;
- 		}
-@@ -1307,7 +1306,7 @@ void *zs_map_object(struct zs_pool *pool
- 
- 	ret = __zs_map_object(area, pages, off, class->size);
+-	if (!is_zspage_isolated(zspage)) {
+-		remove_zspage(class, zspage, currfg);
+-		insert_zspage(class, zspage, newfg);
+-	}
+-
++	remove_zspage(class, zspage, currfg);
++	insert_zspage(class, zspage, newfg);
+ 	set_zspage_mapping(zspage, class_idx, newfg);
+-
  out:
--	if (likely(!PageHugeObject(page)))
-+	if (likely(!ZsHugePage(zspage)))
- 		ret += ZS_HANDLE_SIZE;
- 
- 	return ret;
-@@ -1395,7 +1394,7 @@ static unsigned long obj_malloc(struct z
- 	vaddr = kmap_atomic(m_page);
- 	link = (struct link_free *)vaddr + m_offset / sizeof(*link);
- 	set_freeobj(zspage, link->next >> OBJ_TAG_BITS);
--	if (likely(!PageHugeObject(m_page)))
-+	if (likely(!ZsHugePage(zspage)))
- 		/* record handle in the header of allocated chunk */
- 		link->handle = handle;
- 	else
-@@ -1496,7 +1495,10 @@ static void obj_free(int class_size, uns
- 
- 	/* Insert this object in containing zspage's freelist */
- 	link = (struct link_free *)(vaddr + f_offset);
--	link->next = get_freeobj(zspage) << OBJ_TAG_BITS;
-+	if (likely(!ZsHugePage(zspage)))
-+		link->next = get_freeobj(zspage) << OBJ_TAG_BITS;
-+	else
-+		f_page->index = 0;
- 	kunmap_atomic(vaddr);
- 	set_freeobj(zspage, f_objidx);
- 	mod_zspage_inuse(zspage, -1);
-@@ -1867,7 +1869,7 @@ static void replace_sub_page(struct size
- 
- 	create_page_chain(class, zspage, pages);
- 	set_first_obj_offset(newpage, get_first_obj_offset(oldpage));
--	if (unlikely(PageHugeObject(oldpage)))
-+	if (unlikely(ZsHugePage(zspage)))
- 		newpage->index = oldpage->index;
- 	__SetPageMovable(newpage, page_mapping(oldpage));
+ 	return newfg;
  }
+@@ -1511,7 +1497,6 @@ void zs_free(struct zs_pool *pool, unsig
+ 	unsigned long obj;
+ 	struct size_class *class;
+ 	enum fullness_group fullness;
+-	bool isolated;
+ 
+ 	if (unlikely(!handle))
+ 		return;
+@@ -1533,11 +1518,9 @@ void zs_free(struct zs_pool *pool, unsig
+ 		goto out;
+ 	}
+ 
+-	isolated = is_zspage_isolated(zspage);
+ 	migrate_read_unlock(zspage);
+ 	/* If zspage is isolated, zs_page_putback will free the zspage */
+-	if (likely(!isolated))
+-		free_zspage(pool, class, zspage);
++	free_zspage(pool, class, zspage);
+ out:
+ 
+ 	spin_unlock(&class->lock);
+@@ -1718,7 +1701,6 @@ static struct zspage *isolate_zspage(str
+ 		zspage = list_first_entry_or_null(&class->fullness_list[fg[i]],
+ 							struct zspage, list);
+ 		if (zspage) {
+-			VM_BUG_ON(is_zspage_isolated(zspage));
+ 			remove_zspage(class, zspage, fg[i]);
+ 			return zspage;
+ 		}
+@@ -1739,8 +1721,6 @@ static enum fullness_group putback_zspag
+ {
+ 	enum fullness_group fullness;
+ 
+-	VM_BUG_ON(is_zspage_isolated(zspage));
+-
+ 	fullness = get_fullness_group(class, zspage);
+ 	insert_zspage(class, zspage, fullness);
+ 	set_zspage_mapping(zspage, class->index, fullness);
+@@ -1822,35 +1802,10 @@ static void inc_zspage_isolation(struct
+ 
+ static void dec_zspage_isolation(struct zspage *zspage)
+ {
++	VM_BUG_ON(zspage->isolated == 0);
+ 	zspage->isolated--;
+ }
+ 
+-static void putback_zspage_deferred(struct zs_pool *pool,
+-				    struct size_class *class,
+-				    struct zspage *zspage)
+-{
+-	enum fullness_group fg;
+-
+-	fg = putback_zspage(class, zspage);
+-	if (fg == ZS_EMPTY)
+-		schedule_work(&pool->free_work);
+-
+-}
+-
+-static inline void zs_pool_dec_isolated(struct zs_pool *pool)
+-{
+-	VM_BUG_ON(atomic_long_read(&pool->isolated_pages) <= 0);
+-	atomic_long_dec(&pool->isolated_pages);
+-	/*
+-	 * Checking pool->destroying must happen after atomic_long_dec()
+-	 * for pool->isolated_pages above. Paired with the smp_mb() in
+-	 * zs_unregister_migration().
+-	 */
+-	smp_mb__after_atomic();
+-	if (atomic_long_read(&pool->isolated_pages) == 0 && pool->destroying)
+-		wake_up_all(&pool->migration_wait);
+-}
+-
+ static void replace_sub_page(struct size_class *class, struct zspage *zspage,
+ 				struct page *newpage, struct page *oldpage)
+ {
+@@ -1876,10 +1831,7 @@ static void replace_sub_page(struct size
+ 
+ static bool zs_page_isolate(struct page *page, isolate_mode_t mode)
+ {
+-	struct zs_pool *pool;
+-	struct size_class *class;
+ 	struct zspage *zspage;
+-	struct address_space *mapping;
+ 
+ 	/*
+ 	 * Page is locked so zspage couldn't be destroyed. For detail, look at
+@@ -1889,39 +1841,9 @@ static bool zs_page_isolate(struct page
+ 	VM_BUG_ON_PAGE(PageIsolated(page), page);
+ 
+ 	zspage = get_zspage(page);
+-
+-	mapping = page_mapping(page);
+-	pool = mapping->private_data;
+-
+-	class = zspage_class(pool, zspage);
+-
+-	spin_lock(&class->lock);
+-	if (get_zspage_inuse(zspage) == 0) {
+-		spin_unlock(&class->lock);
+-		return false;
+-	}
+-
+-	/* zspage is isolated for object migration */
+-	if (list_empty(&zspage->list) && !is_zspage_isolated(zspage)) {
+-		spin_unlock(&class->lock);
+-		return false;
+-	}
+-
+-	/*
+-	 * If this is first time isolation for the zspage, isolate zspage from
+-	 * size_class to prevent further object allocation from the zspage.
+-	 */
+-	if (!list_empty(&zspage->list) && !is_zspage_isolated(zspage)) {
+-		enum fullness_group fullness;
+-		unsigned int class_idx;
+-
+-		get_zspage_mapping(zspage, &class_idx, &fullness);
+-		atomic_long_inc(&pool->isolated_pages);
+-		remove_zspage(class, zspage, fullness);
+-	}
+-
++	migrate_write_lock(zspage);
+ 	inc_zspage_isolation(zspage);
+-	spin_unlock(&class->lock);
++	migrate_write_unlock(zspage);
+ 
+ 	return true;
+ }
+@@ -2004,21 +1926,6 @@ static int zs_page_migrate(struct addres
+ 
+ 	dec_zspage_isolation(zspage);
+ 
+-	/*
+-	 * Page migration is done so let's putback isolated zspage to
+-	 * the list if @page is final isolated subpage in the zspage.
+-	 */
+-	if (!is_zspage_isolated(zspage)) {
+-		/*
+-		 * We cannot race with zs_destroy_pool() here because we wait
+-		 * for isolation to hit zero before we start destroying.
+-		 * Also, we ensure that everyone can see pool->destroying before
+-		 * we start waiting.
+-		 */
+-		putback_zspage_deferred(pool, class, zspage);
+-		zs_pool_dec_isolated(pool);
+-	}
+-
+ 	if (page_zone(newpage) != page_zone(page)) {
+ 		dec_zone_page_state(page, NR_ZSPAGES);
+ 		inc_zone_page_state(newpage, NR_ZSPAGES);
+@@ -2046,30 +1953,15 @@ unpin_objects:
+ 
+ static void zs_page_putback(struct page *page)
+ {
+-	struct zs_pool *pool;
+-	struct size_class *class;
+-	struct address_space *mapping;
+ 	struct zspage *zspage;
+ 
+ 	VM_BUG_ON_PAGE(!PageMovable(page), page);
+ 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
+ 
+ 	zspage = get_zspage(page);
+-	mapping = page_mapping(page);
+-	pool = mapping->private_data;
+-	class = zspage_class(pool, zspage);
+-
+-	spin_lock(&class->lock);
++	migrate_write_lock(zspage);
+ 	dec_zspage_isolation(zspage);
+-	if (!is_zspage_isolated(zspage)) {
+-		/*
+-		 * Due to page_lock, we cannot free zspage immediately
+-		 * so let's defer.
+-		 */
+-		putback_zspage_deferred(pool, class, zspage);
+-		zs_pool_dec_isolated(pool);
+-	}
+-	spin_unlock(&class->lock);
++	migrate_write_unlock(zspage);
+ }
+ 
+ static const struct address_space_operations zsmalloc_aops = {
+@@ -2091,36 +1983,8 @@ static int zs_register_migration(struct
+ 	return 0;
+ }
+ 
+-static bool pool_isolated_are_drained(struct zs_pool *pool)
+-{
+-	return atomic_long_read(&pool->isolated_pages) == 0;
+-}
+-
+-/* Function for resolving migration */
+-static void wait_for_isolated_drain(struct zs_pool *pool)
+-{
+-
+-	/*
+-	 * We're in the process of destroying the pool, so there are no
+-	 * active allocations. zs_page_isolate() fails for completely free
+-	 * zspages, so we need only wait for the zs_pool's isolated
+-	 * count to hit zero.
+-	 */
+-	wait_event(pool->migration_wait,
+-		   pool_isolated_are_drained(pool));
+-}
+-
+ static void zs_unregister_migration(struct zs_pool *pool)
+ {
+-	pool->destroying = true;
+-	/*
+-	 * We need a memory barrier here to ensure global visibility of
+-	 * pool->destroying. Thus pool->isolated pages will either be 0 in which
+-	 * case we don't care, or it will be > 0 and pool->destroying will
+-	 * ensure that we wake up once isolation hits 0.
+-	 */
+-	smp_mb();
+-	wait_for_isolated_drain(pool); /* This can block */
+ 	flush_work(&pool->free_work);
+ 	iput(pool->inode);
+ }
+@@ -2150,7 +2014,6 @@ static void async_free_zspage(struct wor
+ 		spin_unlock(&class->lock);
+ 	}
+ 
+-
+ 	list_for_each_entry_safe(zspage, tmp, &free_pages, list) {
+ 		list_del(&zspage->list);
+ 		lock_zspage(zspage);
+@@ -2363,10 +2226,6 @@ struct zs_pool *zs_create_pool(const cha
+ 	if (!pool->name)
+ 		goto err;
+ 
+-#ifdef CONFIG_COMPACTION
+-	init_waitqueue_head(&pool->migration_wait);
+-#endif
+-
+ 	if (create_cache(pool))
+ 		goto err;
+ 
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
