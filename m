@@ -2,44 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5AFEBC433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:57:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6727C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:57:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240503AbiAWX5G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:57:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38142 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S240505AbiAWX5E (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:57:04 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D7FDC06173B
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 15:57:04 -0800 (PST)
+        id S240505AbiAWX5J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:57:09 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:45972 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235111AbiAWX5J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:57:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id CFAA860C34
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:57:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8081C340E3;
-        Sun, 23 Jan 2022 23:57:02 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 78DA2B80DC7
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:57:07 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDA77C340E3;
+        Sun, 23 Jan 2022 23:57:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982223;
-        bh=c0a9ICzEUwKCLKyoenGTp65REdnWiQ1o3L2R2xvpsC0=;
+        s=korg; t=1642982226;
+        bh=9+Pbzq4o4lzMS4jEu4JFEP9Zgmip8HtJjW5eC+INaDg=;
         h=Date:From:To:Subject:From;
-        b=bgLlArZGow4szdzGzJPbY68rTPIEZCvd/Hc7oI+NspCz1sOSzRmhXcDL3dDqgwt+S
-         ypSTfk2OwV4P23cazldwYAQbHGyQC16cAdgYSo+C1oc1n69E5HtTj881b9EP8+wsLW
-         Y7qpJ1lcLJVc9tSzYbyS0VclGRrNvz6X496Fr+Lk=
-Date:   Sun, 23 Jan 2022 15:57:02 -0800
+        b=peLL7fyki9TRBfEElmcA6BVb/+eMdZfSdYoxeX76uWQ/wk6DQDBYSSRj9Dz6lk9uW
+         uBi8gjlB8SJjDVQ1pNpOLJZPU9QI7obw2NByW+2mg45Umqkj/McmVQmgOhcTMLAcKZ
+         oHiBEoKgnmfOT9KtXNqvgSsBQ+xVcEw6Xy/y0oe0=
+Date:   Sun, 23 Jan 2022 15:57:05 -0800
 From:   akpm@linux-foundation.org
-To:     andriy.shevchenko@linux.intel.com, arnd@arndb.de,
-        bfields@fieldses.org, crope@iki.fi, ebiederm@xmission.com,
-        jlayton@kernel.org, keescook@chromium.org, kernel@tuxforce.de,
-        mcgrof@kernel.org, mm-commits@vger.kernel.org,
-        nixiaoming@huawei.com, steve@sk2.org, viro@zeniv.linux.org.uk,
-        yzaikin@google.com
-Subject:  [merged] fs-move-dcache-sysctls-to-its-own-file.patch
- removed from -mm tree
-Message-ID: <20220123235702.hb5EX9bnK%akpm@linux-foundation.org>
+To:     andriy.shevchenko@linux.intel.com, bfields@fieldses.org,
+        crope@iki.fi, ebiederm@xmission.com, jlayton@kernel.org,
+        keescook@chromium.org, kernel@tuxforce.de, mcgrof@kernel.org,
+        mic@digikod.net, mm-commits@vger.kernel.org, nixiaoming@huawei.com,
+        steve@sk2.org, viro@zeniv.linux.org.uk, yzaikin@google.com
+Subject:  [merged]
+ sysctl-move-maxolduid-as-a-sysctl-specific-const.patch removed from -mm
+ tree
+Message-ID: <20220123235705.g-S3h5tdN%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,34 +47,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: move dcache sysctls to its own file
+     Subject: sysctl: move maxolduid as a sysctl specific const
 has been removed from the -mm tree.  Its filename was
-     fs-move-dcache-sysctls-to-its-own-file.patch
+     sysctl-move-maxolduid-as-a-sysctl-specific-const.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsystem t=
+ree
 
 ------------------------------------------------------
-From: Luis Chamberlain <mcgrof@kernel.org>
-Subject: fs: move dcache sysctls to its own file
+=46rom: Luis Chamberlain <mcgrof@kernel.org>
+Subject: sysctl: move maxolduid as a sysctl specific const
 
-kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
-dishes, this makes it very difficult to maintain.
+The maxolduid value is only shared for sysctl purposes for use on a max
+range.  Just stuff this into our shared const array.
 
-To help with this maintenance let's start by moving sysctls to places
-where they actually belong.  The proc sysctl maintainers do not want to
-know what sysctl knobs you wish to add for your own piece of code, we just
-care about the core logic.
-
-So move the dcache sysctl clutter out of kernel/sysctl.c.  This is a small
-one-off entry, perhaps later we can simplify this representation, but for
-now we use the helpers we have.  We won't know how we can simplify this
-further untl we're fully done with the cleanup.
-
-[arnd@arndb.de: avoid unused-function warning]
-  Link: https://lkml.kernel.org/r/20211203190123.874239-2-arnd@kernel.org
-Link: https://lkml.kernel.org/r/20211129205548.605569-4-mcgrof@kernel.org
+[akpm@linux-foundation.org: fix sysctl_vals[], per Micka=C3=ABl]
+Link: https://lkml.kernel.org/r/20211129205548.605569-5-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Micka=C3=ABl Sala=C3=BCn <mic@digikod.net>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Antti Palosaari <crope@iki.fi>
@@ -89,124 +79,88 @@ Cc: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dcache.c            |   37 +++++++++++++++++++++++++++++++------
- include/linux/dcache.h |   10 ----------
- include/linux/fs.h     |    2 --
- kernel/sysctl.c        |    7 -------
- 4 files changed, 31 insertions(+), 25 deletions(-)
+ fs/proc/proc_sysctl.c  |    2 +-
+ include/linux/sysctl.h |    3 +++
+ kernel/sysctl.c        |   12 ++++--------
+ 3 files changed, 8 insertions(+), 9 deletions(-)
 
---- a/fs/dcache.c~fs-move-dcache-sysctls-to-its-own-file
-+++ a/fs/dcache.c
-@@ -115,10 +115,13 @@ static inline struct hlist_bl_head *in_l
- 	return in_lookup_hashtable + hash_32(hash, IN_LOOKUP_SHIFT);
- }
- 
--
--/* Statistics gathering. */
--struct dentry_stat_t dentry_stat = {
--	.age_limit = 45,
-+struct dentry_stat_t {
-+	long nr_dentry;
-+	long nr_unused;
-+	long age_limit;		/* age in seconds */
-+	long want_pages;	/* pages requested by system */
-+	long nr_negative;	/* # of unused negative dentries */
-+	long dummy;		/* Reserved for future use */
- };
- 
- static DEFINE_PER_CPU(long, nr_dentry);
-@@ -126,6 +129,10 @@ static DEFINE_PER_CPU(long, nr_dentry_un
- static DEFINE_PER_CPU(long, nr_dentry_negative);
- 
- #if defined(CONFIG_SYSCTL) && defined(CONFIG_PROC_FS)
-+/* Statistics gathering. */
-+static struct dentry_stat_t dentry_stat = {
-+	.age_limit = 45,
-+};
- 
- /*
-  * Here we resort to our own counters instead of using generic per-cpu counters
-@@ -167,14 +174,32 @@ static long get_nr_dentry_negative(void)
- 	return sum < 0 ? 0 : sum;
- }
- 
--int proc_nr_dentry(struct ctl_table *table, int write, void *buffer,
--		   size_t *lenp, loff_t *ppos)
-+static int proc_nr_dentry(struct ctl_table *table, int write, void *buffer,
-+			  size_t *lenp, loff_t *ppos)
- {
- 	dentry_stat.nr_dentry = get_nr_dentry();
- 	dentry_stat.nr_unused = get_nr_dentry_unused();
- 	dentry_stat.nr_negative = get_nr_dentry_negative();
- 	return proc_doulongvec_minmax(table, write, buffer, lenp, ppos);
- }
+--- a/fs/proc/proc_sysctl.c~sysctl-move-maxolduid-as-a-sysctl-specific-const
++++ a/fs/proc/proc_sysctl.c
+@@ -26,7 +26,7 @@ static const struct file_operations proc
+ static const struct inode_operations proc_sys_dir_operations;
+=20
+ /* shared constants to be used in various sysctls */
+-const int sysctl_vals[] =3D { -1, 0, 1, 2, 4, 100, 200, 1000, 3000, INT_MA=
+X };
++const int sysctl_vals[] =3D { -1, 0, 1, 2, 4, 100, 200, 1000, 3000, INT_MA=
+X, 65535 };
+ EXPORT_SYMBOL(sysctl_vals);
+=20
+ const unsigned long sysctl_long_vals[] =3D { 0, 1, LONG_MAX };
+--- a/include/linux/sysctl.h~sysctl-move-maxolduid-as-a-sysctl-specific-con=
+st
++++ a/include/linux/sysctl.h
+@@ -49,6 +49,9 @@ struct ctl_dir;
+ #define SYSCTL_THREE_THOUSAND		((void *)&sysctl_vals[8])
+ #define SYSCTL_INT_MAX			((void *)&sysctl_vals[9])
+=20
++/* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and G=
+ID */
++#define SYSCTL_MAXOLDUID		((void *)&sysctl_vals[10])
 +
-+static struct ctl_table fs_dcache_sysctls[] = {
-+	{
-+		.procname	= "dentry-state",
-+		.data		= &dentry_stat,
-+		.maxlen		= 6*sizeof(long),
-+		.mode		= 0444,
-+		.proc_handler	= proc_nr_dentry,
-+	},
-+	{ }
-+};
-+
-+static int __init init_fs_dcache_sysctls(void)
-+{
-+	register_sysctl_init("fs", fs_dcache_sysctls);
-+	return 0;
-+}
-+fs_initcall(init_fs_dcache_sysctls);
- #endif
- 
- /*
---- a/include/linux/dcache.h~fs-move-dcache-sysctls-to-its-own-file
-+++ a/include/linux/dcache.h
-@@ -61,16 +61,6 @@ extern const struct qstr empty_name;
- extern const struct qstr slash_name;
- extern const struct qstr dotdot_name;
- 
--struct dentry_stat_t {
--	long nr_dentry;
--	long nr_unused;
--	long age_limit;		/* age in seconds */
--	long want_pages;	/* pages requested by system */
--	long nr_negative;	/* # of unused negative dentries */
--	long dummy;		/* Reserved for future use */
--};
--extern struct dentry_stat_t dentry_stat;
--
- /*
-  * Try to keep struct dentry aligned on 64 byte cachelines (this will
-  * give reasonable cacheline footprint with larger lines without the
---- a/include/linux/fs.h~fs-move-dcache-sysctls-to-its-own-file
-+++ a/include/linux/fs.h
-@@ -3531,8 +3531,6 @@ ssize_t simple_attr_write(struct file *f
- 			  size_t len, loff_t *ppos);
- 
- struct ctl_table;
--int proc_nr_dentry(struct ctl_table *table, int write,
--		  void *buffer, size_t *lenp, loff_t *ppos);
- int __init list_bdev_fs_names(char *buf, size_t size);
- 
- #define __FMODE_EXEC		((__force int) FMODE_EXEC)
---- a/kernel/sysctl.c~fs-move-dcache-sysctls-to-its-own-file
+ extern const int sysctl_vals[];
+=20
+ #define SYSCTL_LONG_ZERO	((void *)&sysctl_long_vals[0])
+--- a/kernel/sysctl.c~sysctl-move-maxolduid-as-a-sysctl-specific-const
 +++ a/kernel/sysctl.c
-@@ -2902,13 +2902,6 @@ static struct ctl_table vm_table[] = {
- 
- static struct ctl_table fs_table[] = {
+@@ -110,10 +110,6 @@ static const int six_hundred_forty_kb =3D
+ /* this is needed for the proc_doulongvec_minmax of vm_dirty_bytes */
+ static const unsigned long dirty_bytes_min =3D 2 * PAGE_SIZE;
+=20
+-/* this is needed for the proc_dointvec_minmax for [fs_]overflow UID and G=
+ID */
+-static const int maxolduid =3D 65535;
+-/* minolduid is SYSCTL_ZERO */
+-
+ static const int ngroups_max =3D NGROUPS_MAX;
+ static const int cap_last_cap =3D CAP_LAST_CAP;
+=20
+@@ -2127,7 +2123,7 @@ static struct ctl_table kern_table[] =3D {
+ 		.mode		=3D 0644,
+ 		.proc_handler	=3D proc_dointvec_minmax,
+ 		.extra1		=3D SYSCTL_ZERO,
+-		.extra2		=3D (void *)&maxolduid,
++		.extra2		=3D SYSCTL_MAXOLDUID,
+ 	},
  	{
--		.procname	= "dentry-state",
--		.data		= &dentry_stat,
--		.maxlen		= 6*sizeof(long),
--		.mode		= 0444,
--		.proc_handler	= proc_nr_dentry,
--	},
--	{
- 		.procname	= "overflowuid",
- 		.data		= &fs_overflowuid,
- 		.maxlen		= sizeof(int),
+ 		.procname	=3D "overflowgid",
+@@ -2136,7 +2132,7 @@ static struct ctl_table kern_table[] =3D {
+ 		.mode		=3D 0644,
+ 		.proc_handler	=3D proc_dointvec_minmax,
+ 		.extra1		=3D SYSCTL_ZERO,
+-		.extra2		=3D (void *)&maxolduid,
++		.extra2		=3D SYSCTL_MAXOLDUID,
+ 	},
+ #ifdef CONFIG_S390
+ 	{
+@@ -2908,7 +2904,7 @@ static struct ctl_table fs_table[] =3D {
+ 		.mode		=3D 0644,
+ 		.proc_handler	=3D proc_dointvec_minmax,
+ 		.extra1		=3D SYSCTL_ZERO,
+-		.extra2		=3D (void *)&maxolduid,
++		.extra2		=3D SYSCTL_MAXOLDUID,
+ 	},
+ 	{
+ 		.procname	=3D "overflowgid",
+@@ -2917,7 +2913,7 @@ static struct ctl_table fs_table[] =3D {
+ 		.mode		=3D 0644,
+ 		.proc_handler	=3D proc_dointvec_minmax,
+ 		.extra1		=3D SYSCTL_ZERO,
+-		.extra2		=3D (void *)&maxolduid,
++		.extra2		=3D SYSCTL_MAXOLDUID,
+ 	},
+ #ifdef CONFIG_FILE_LOCKING
+ 	{
 _
 
 Patches currently in -mm which might be from mcgrof@kernel.org are
