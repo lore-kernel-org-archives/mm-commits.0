@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 263D6C433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:55:54 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 09791C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:55:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240485AbiAWXzx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:55:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37872 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233662AbiAWXzx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:55:53 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19E8AC06173B
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 15:55:53 -0800 (PST)
+        id S240487AbiAWXz5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:55:57 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:45050 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233662AbiAWXz5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:55:57 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id CBF57B80E4E
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:55:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 370C3C340E3;
-        Sun, 23 Jan 2022 23:55:49 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0A0FFB80DC7
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:55:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 67CA5C340E3;
+        Sun, 23 Jan 2022 23:55:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982150;
-        bh=DUwQ/1k4ju230DnRFFh8j2yteH/WAhvNF7WamXxoeWg=;
+        s=korg; t=1642982154;
+        bh=Rzn/B1QjpTXMZfq2Q+pvvdVb43XTLQOlBqJXErIxJno=;
         h=Date:From:To:Subject:From;
-        b=Tdz5HrBWneioEXB7tPD6Gur3nPXqS2N3dSkPjDT0/ILbqf9HXyHdlmgBAt9p1eYaX
-         4ICODLbrDh0uiC6OrKjXq8ZLnmGFPB7GlX/hNZVygwsKyEDuoI5qKfomEF5QGYc1S7
-         G61ySsMqsXkesecw+JXraxyOGTuVYX7uivGAcIto=
-Date:   Sun, 23 Jan 2022 15:55:48 -0800
+        b=BR6Fm15RMBFO629Ef6Sux8NR9dv6XvI3kJ0l9rlO0m9iKNtSI0fL5vnu/fgLZbjD/
+         9JLp02veXADQSD5Chdwfoez87T0lgw/GOOLjL8r0qJJSq+JDzM9YiFlbNjOf5nhWev
+         ubNSyNHwu/k5W//30aP5BYf43A4BSH8q/XPGBXeQ=
+Date:   Sun, 23 Jan 2022 15:55:52 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -47,9 +44,10 @@ To:     airlied@linux.ie, amir73il@gmail.com,
         senozhatsky@chromium.org, sre@kernel.org, steve@sk2.org,
         surenb@google.com, tytso@mit.edu, viro@zeniv.linux.org.uk,
         wangqing@vivo.com, yzaikin@google.com
-Subject:  [merged] dnotify-move-dnotify-sysctl-to-dnotifyc.patch
- removed from -mm tree
-Message-ID: <20220123235548.XgwhP81ll%akpm@linux-foundation.org>
+Subject:  [merged]
+ hpet-simplify-subdirectory-registration-with-register_sysctl.patch removed
+ from -mm tree
+Message-ID: <20220123235552.8Spo0CVI9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -58,40 +56,156 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dnotify: move dnotify sysctl to dnotify.c
+     Subject: hpet: simplify subdirectory registration with register_sysctl()
 has been removed from the -mm tree.  Its filename was
-     dnotify-move-dnotify-sysctl-to-dnotifyc.patch
+     hpet-simplify-subdirectory-registration-with-register_sysctl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: dnotify: move dnotify sysctl to dnotify.c
+From: Luis Chamberlain <mcgrof@kernel.org>
+Subject: hpet: simplify subdirectory registration with register_sysctl()
 
-The kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
-dishes, this makes it very difficult to maintain.
+Patch series "sysctl: second set of kernel/sysctl cleanups", v2.
 
-To help with this maintenance let's start by moving sysctls to places
-where they actually belong.  The proc sysctl maintainers do not want to
-know what sysctl knobs you wish to add for your own piece of code, we just
-care about the core logic.
+This is the 2nd set of kernel/sysctl.c cleanups.  The diff stat should
+reflect how this is a much better way to deal with theses.  Fortunately
+coccinelle can be used to ensure correctness for most of these and/or
+future merge conflicts.
 
-So move dnotify sysctls to dnotify.c and use the new
-register_sysctl_init() to register the sysctl interface.
+Note that since this is part of a larger effort to cleanup kernel/sysctl.c
+I think we have no other option but to go with merging these patches in
+either Andrew's tree or keep them staged in a separate tree and send a
+merge request later.  Otherwise kernel/sysctl.c will end up becoming a
+sore spot for the next merge window.
 
-[mcgrof@kernel.org: adjust the commit log to justify the move]
-Link: https://lkml.kernel.org/r/20211123202347.818157-10-mcgrof@kernel.org
-Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
+
+This patch (of 8):
+
+There is no need to user boiler plate code to specify a set of base
+directories we're going to stuff sysctls under.  Simplify this by using
+register_sysctl() and specifying the directory path directly.
+
+// pycocci sysctl-subdir-register-sysctl-simplify.cocci drivers/char/hpet.c
+
+@c1@
+expression E1;
+identifier subdir, sysctls;
+@@
+
+static struct ctl_table subdir[] = {
+	{
+		.procname = E1,
+		.maxlen = 0,
+		.mode = 0555,
+		.child = sysctls,
+	},
+	{ }
+};
+
+@c2@
+identifier c1.subdir;
+
+expression E2;
+identifier base;
+@@
+
+static struct ctl_table base[] = {
+	{
+		.procname = E2,
+		.maxlen = 0,
+		.mode = 0555,
+		.child = subdir,
+	},
+	{ }
+};
+
+@c3@
+identifier c2.base;
+identifier header;
+@@
+
+header = register_sysctl_table(base);
+
+@r1 depends on c1 && c2 && c3@
+expression c1.E1;
+identifier c1.subdir, c1.sysctls;
+@@
+
+-static struct ctl_table subdir[] = {
+-	{
+-		.procname = E1,
+-		.maxlen = 0,
+-		.mode = 0555,
+-		.child = sysctls,
+-	},
+-	{ }
+-};
+
+@r2 depends on c1 && c2 && c3@
+identifier c1.subdir;
+
+expression c2.E2;
+identifier c2.base;
+@@
+-static struct ctl_table base[] = {
+-	{
+-		.procname = E2,
+-		.maxlen = 0,
+-		.mode = 0555,
+-		.child = subdir,
+-	},
+-	{ }
+-};
+
+@initialize:python@
+@@
+
+def make_my_fresh_expression(s1, s2):
+  return '"' + s1.strip('"') + "/" + s2.strip('"') + '"'
+
+@r3 depends on c1 && c2 && c3@
+expression c1.E1;
+identifier c1.sysctls;
+expression c2.E2;
+identifier c2.base;
+identifier c3.header;
+fresh identifier E3 = script:python(E2, E1) { make_my_fresh_expression(E2, E1) };
+@@
+
+header =
+-register_sysctl_table(base);
++register_sysctl(E3, sysctls);
+
+Generated-by: Coccinelle SmPL
+
+Link: https://lkml.kernel.org/r/20211123202422.819032-1-mcgrof@kernel.org
+Link: https://lkml.kernel.org/r/20211123202422.819032-2-mcgrof@kernel.org
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
-Acked-by: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Phillip Potter <phil@philpotter.co.uk>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Julia Lawall <julia.lawall@inria.fr>
+Cc: Lukas Middendorf <kernel@tuxforce.de>
+Cc: Antti Palosaari <crope@iki.fi>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Benjamin LaHaise <bcrl@kvack.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Iurii Zaikin <yzaikin@google.com>
-Cc: Kees Cook <keescook@chromium.org>
 Cc: Paul Turner <pjt@google.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Petr Mladek <pmladek@suse.com>
@@ -100,20 +214,6 @@ Cc: Sebastian Reichel <sre@kernel.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Stephen Kitt <steve@sk2.org>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Antti Palosaari <crope@iki.fi>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Clemens Ladisch <clemens@ladisch.de>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Jani Nikula <jani.nikula@linux.intel.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-Cc: Julia Lawall <julia.lawall@inria.fr>
-Cc: Lukas Middendorf <kernel@tuxforce.de>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Phillip Potter <phil@philpotter.co.uk>
-Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
 Cc: Douglas Gilbert <dgilbert@interlog.com>
 Cc: James E.J. Bottomley <jejb@linux.ibm.com>
 Cc: Jani Nikula <jani.nikula@intel.com>
@@ -126,86 +226,49 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/dnotify/dnotify.c |   21 ++++++++++++++++++++-
- include/linux/dnotify.h     |    1 -
- kernel/sysctl.c             |   10 ----------
- 3 files changed, 20 insertions(+), 12 deletions(-)
+ drivers/char/hpet.c |   22 +---------------------
+ 1 file changed, 1 insertion(+), 21 deletions(-)
 
---- a/fs/notify/dnotify/dnotify.c~dnotify-move-dnotify-sysctl-to-dnotifyc
-+++ a/fs/notify/dnotify/dnotify.c
-@@ -19,7 +19,25 @@
- #include <linux/fdtable.h>
- #include <linux/fsnotify_backend.h>
+--- a/drivers/char/hpet.c~hpet-simplify-subdirectory-registration-with-register_sysctl
++++ a/drivers/char/hpet.c
+@@ -746,26 +746,6 @@ static struct ctl_table hpet_table[] = {
+ 	{}
+ };
  
--int dir_notify_enable __read_mostly = 1;
-+static int dir_notify_enable __read_mostly = 1;
-+#ifdef CONFIG_SYSCTL
-+static struct ctl_table dnotify_sysctls[] = {
-+	{
-+		.procname	= "dir-notify-enable",
-+		.data		= &dir_notify_enable,
-+		.maxlen		= sizeof(int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
-+	{}
-+};
-+static void __init dnotify_sysctl_init(void)
-+{
-+	register_sysctl_init("fs", dnotify_sysctls);
-+}
-+#else
-+#define dnotify_sysctl_init() do { } while (0)
-+#endif
- 
- static struct kmem_cache *dnotify_struct_cache __read_mostly;
- static struct kmem_cache *dnotify_mark_cache __read_mostly;
-@@ -386,6 +404,7 @@ static int __init dnotify_init(void)
- 	dnotify_group = fsnotify_alloc_group(&dnotify_fsnotify_ops);
- 	if (IS_ERR(dnotify_group))
- 		panic("unable to allocate fsnotify group for dnotify\n");
-+	dnotify_sysctl_init();
- 	return 0;
- }
- 
---- a/include/linux/dnotify.h~dnotify-move-dnotify-sysctl-to-dnotifyc
-+++ a/include/linux/dnotify.h
-@@ -29,7 +29,6 @@ struct dnotify_struct {
- 			    FS_CREATE | FS_RENAME |\
- 			    FS_MOVED_FROM | FS_MOVED_TO)
- 
--extern int dir_notify_enable;
- extern void dnotify_flush(struct file *, fl_owner_t);
- extern int fcntl_dirnotify(int, struct file *, unsigned long);
- 
---- a/kernel/sysctl.c~dnotify-move-dnotify-sysctl-to-dnotifyc
-+++ a/kernel/sysctl.c
-@@ -49,7 +49,6 @@
- #include <linux/times.h>
- #include <linux/limits.h>
- #include <linux/dcache.h>
--#include <linux/dnotify.h>
- #include <linux/syscalls.h>
- #include <linux/vmstat.h>
- #include <linux/nfs_fs.h>
-@@ -3089,15 +3088,6 @@ static struct ctl_table fs_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec,
--	},
--#endif
--#ifdef CONFIG_DNOTIFY
+-static struct ctl_table hpet_root[] = {
 -	{
--		.procname	= "dir-notify-enable",
--		.data		= &dir_notify_enable,
--		.maxlen		= sizeof(int),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
- 	},
- #endif
- #ifdef CONFIG_MMU
+-	 .procname = "hpet",
+-	 .maxlen = 0,
+-	 .mode = 0555,
+-	 .child = hpet_table,
+-	 },
+-	{}
+-};
+-
+-static struct ctl_table dev_root[] = {
+-	{
+-	 .procname = "dev",
+-	 .maxlen = 0,
+-	 .mode = 0555,
+-	 .child = hpet_root,
+-	 },
+-	{}
+-};
+-
+ static struct ctl_table_header *sysctl_header;
+ 
+ /*
+@@ -1061,7 +1041,7 @@ static int __init hpet_init(void)
+ 	if (result < 0)
+ 		return -ENODEV;
+ 
+-	sysctl_header = register_sysctl_table(dev_root);
++	sysctl_header = register_sysctl("dev/hpet", hpet_table);
+ 
+ 	result = acpi_bus_register_driver(&hpet_acpi_driver);
+ 	if (result < 0) {
 _
 
-Patches currently in -mm which might be from nixiaoming@huawei.com are
+Patches currently in -mm which might be from mcgrof@kernel.org are
 
 
