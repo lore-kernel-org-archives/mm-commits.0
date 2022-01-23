@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C5ABEC433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:55:25 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F1344C433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:55:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S240460AbiAWXzZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:55:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37762 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S233662AbiAWXzY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:55:24 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4273AC06173B
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 15:55:24 -0800 (PST)
+        id S240433AbiAWXz2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:55:28 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:50242 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S233662AbiAWXz1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:55:27 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id F140DB80E46
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:55:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 36318C340E3;
-        Sun, 23 Jan 2022 23:55:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6D2B7611EE
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:55:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3EC0AC340E3;
+        Sun, 23 Jan 2022 23:55:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982121;
-        bh=iqOnwTyxqc90xLNVujMhsjcolvD5eEMbknrz1imoWwk=;
+        s=korg; t=1642982125;
+        bh=d8IWafDufpCzChfqIxBqLA+zcs2Dw1O9hns4idm2vqU=;
         h=Date:From:To:Subject:From;
-        b=moNlrQi7M8OfgkiSqjRIU1AlVr5GUsXRJXEpAurm22pe3826/zlR+J5EPitRYWAvU
-         /bZE1R+D9JxruedER/p9kAT4tzii4y/DRr2q7tmRRNSa+iF0AuDRTthEWCQud7RXhi
-         FhtPQ9MZteM4ikPoUPN6jLig2BpB7M3JD/MNtjLU=
-Date:   Sun, 23 Jan 2022 15:55:19 -0800
+        b=UfKaZD4I4ZHhXemUbjYY53eb/IJ9d7n0Geup5jHjaAXRgHrT+1ninwJ4M+Rio/l0G
+         Ctvvc/aCLkMzIircJlfAzzfyEtpZrkvC62ta2617CIz3qghk2xT3sQipR4atDRg1hn
+         BATy8fi2ffQ7G/saDZ9I1+7sjeh0ZRg0kX4qzCmI=
+Date:   Sun, 23 Jan 2022 15:55:23 -0800
 From:   akpm@linux-foundation.org
 To:     airlied@linux.ie, amir73il@gmail.com,
         andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
@@ -48,9 +45,9 @@ To:     airlied@linux.ie, amir73il@gmail.com,
         surenb@google.com, tytso@mit.edu, viro@zeniv.linux.org.uk,
         wangqing@vivo.com, yzaikin@google.com
 Subject:  [merged]
- sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals.patch
- removed from -mm tree
-Message-ID: <20220123235519.JHUJU71ug%akpm@linux-foundation.org>
+ hung_task-move-hung_task-sysctl-interface-to-hung_taskc.patch removed from
+ -mm tree
+Message-ID: <20220123235523.cqDLEFCjl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -59,27 +56,33 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sysctl: move some boundary constants from sysctl.c to sysctl_vals
+     Subject: hung_task: move hung_task sysctl interface to hung_task.c
 has been removed from the -mm tree.  Its filename was
-     sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals.patch
+     hung_task-move-hung_task-sysctl-interface-to-hung_taskc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Xiaoming Ni <nixiaoming@huawei.com>
-Subject: sysctl: move some boundary constants from sysctl.c to sysctl_vals
+Subject: hung_task: move hung_task sysctl interface to hung_task.c
 
-sysctl has helpers which let us specify boundary values for a min or max
-int value.  Since these are used for a boundary check only they don't
-change, so move these variables to sysctl_vals to avoid adding duplicate
-variables.  This will help with our cleanup of kernel/sysctl.c.
+The kernel/sysctl.c is a kitchen sink where everyone leaves their dirty
+dishes, this makes it very difficult to maintain.
 
-[akpm@linux-foundation.org: update it for "mm/pagealloc: sysctl: change watermark_scale_factor max limit to 30%"]
-[mcgrof@kernel.org: major rebase]
-Link: https://lkml.kernel.org/r/20211123202347.818157-3-mcgrof@kernel.org
+To help with this maintenance let's start by moving sysctls to places
+where they actually belong.  The proc sysctl maintainers do not want to
+know what sysctl knobs you wish to add for your own piece of code, we just
+care about the core logic.
+
+So move hung_task sysctl interface to hung_task.c and use
+register_sysctl() to register the sysctl interface.
+
+[mcgrof@kernel.org: commit log refresh and fixed 2-3 0day reported compile issues]
+Link: https://lkml.kernel.org/r/20211123202347.818157-4-mcgrof@kernel.org
 Signed-off-by: Xiaoming Ni <nixiaoming@huawei.com>
 Signed-off-by: Luis Chamberlain <mcgrof@kernel.org>
 Reviewed-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Amir Goldstein <amir73il@gmail.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
@@ -90,7 +93,6 @@ Cc: Iurii Zaikin <yzaikin@google.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Paul Turner <pjt@google.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Petr Mladek <pmladek@suse.com>
 Cc: Qing Wang <wangqing@vivo.com>
 Cc: Sebastian Reichel <sre@kernel.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
@@ -122,234 +124,226 @@ Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/proc_sysctl.c  |    2 -
- include/linux/sysctl.h |   13 ++++++++---
- kernel/sysctl.c        |   45 ++++++++++++++++-----------------------
- 3 files changed, 30 insertions(+), 30 deletions(-)
+ include/linux/sched/sysctl.h |   14 -----
+ kernel/hung_task.c           |   81 +++++++++++++++++++++++++++++++--
+ kernel/sysctl.c              |   61 ------------------------
+ 3 files changed, 79 insertions(+), 77 deletions(-)
 
---- a/fs/proc/proc_sysctl.c~sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals
-+++ a/fs/proc/proc_sysctl.c
-@@ -26,7 +26,7 @@ static const struct file_operations proc
- static const struct inode_operations proc_sys_dir_operations;
+--- a/include/linux/sched/sysctl.h~hung_task-move-hung_task-sysctl-interface-to-hung_taskc
++++ a/include/linux/sched/sysctl.h
+@@ -7,20 +7,8 @@
+ struct ctl_table;
  
- /* shared constants to be used in various sysctls */
--const int sysctl_vals[] = { 0, 1, INT_MAX };
-+const int sysctl_vals[] = { -1, 0, 1, 2, 4, 100, 200, 1000, 3000, INT_MAX };
- EXPORT_SYMBOL(sysctl_vals);
+ #ifdef CONFIG_DETECT_HUNG_TASK
+-
+-#ifdef CONFIG_SMP
+-extern unsigned int sysctl_hung_task_all_cpu_backtrace;
+-#else
+-#define sysctl_hung_task_all_cpu_backtrace 0
+-#endif /* CONFIG_SMP */
+-
+-extern int	     sysctl_hung_task_check_count;
+-extern unsigned int  sysctl_hung_task_panic;
++/* used for hung_task and block/ */
+ extern unsigned long sysctl_hung_task_timeout_secs;
+-extern unsigned long sysctl_hung_task_check_interval_secs;
+-extern int sysctl_hung_task_warnings;
+-int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
+-		void *buffer, size_t *lenp, loff_t *ppos);
+ #else
+ /* Avoid need for ifdefs elsewhere in the code */
+ enum { sysctl_hung_task_timeout_secs = 0 };
+--- a/kernel/hung_task.c~hung_task-move-hung_task-sysctl-interface-to-hung_taskc
++++ a/kernel/hung_task.c
+@@ -63,7 +63,9 @@ static struct task_struct *watchdog_task
+  * Should we dump all CPUs backtraces in a hung task event?
+  * Defaults to 0, can be changed via sysctl.
+  */
+-unsigned int __read_mostly sysctl_hung_task_all_cpu_backtrace;
++static unsigned int __read_mostly sysctl_hung_task_all_cpu_backtrace;
++#else
++#define sysctl_hung_task_all_cpu_backtrace 0
+ #endif /* CONFIG_SMP */
  
- /* Support for permanently empty directories */
---- a/include/linux/sysctl.h~sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals
-+++ a/include/linux/sysctl.h
-@@ -38,9 +38,16 @@ struct ctl_table_header;
- struct ctl_dir;
+ /*
+@@ -222,11 +224,13 @@ static long hung_timeout_jiffies(unsigne
+ 		MAX_SCHEDULE_TIMEOUT;
+ }
  
- /* Keep the same order as in fs/proc/proc_sysctl.c */
--#define SYSCTL_ZERO	((void *)&sysctl_vals[0])
--#define SYSCTL_ONE	((void *)&sysctl_vals[1])
--#define SYSCTL_INT_MAX	((void *)&sysctl_vals[2])
-+#define SYSCTL_NEG_ONE			((void *)&sysctl_vals[0])
-+#define SYSCTL_ZERO			((void *)&sysctl_vals[1])
-+#define SYSCTL_ONE			((void *)&sysctl_vals[2])
-+#define SYSCTL_TWO			((void *)&sysctl_vals[3])
-+#define SYSCTL_FOUR			((void *)&sysctl_vals[4])
-+#define SYSCTL_ONE_HUNDRED		((void *)&sysctl_vals[5])
-+#define SYSCTL_TWO_HUNDRED		((void *)&sysctl_vals[6])
-+#define SYSCTL_ONE_THOUSAND		((void *)&sysctl_vals[7])
-+#define SYSCTL_THREE_THOUSAND		((void *)&sysctl_vals[8])
-+#define SYSCTL_INT_MAX			((void *)&sysctl_vals[9])
++#ifdef CONFIG_SYSCTL
+ /*
+  * Process updating of timeout sysctl
+  */
+-int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
+-				  void *buffer, size_t *lenp, loff_t *ppos)
++static int proc_dohung_task_timeout_secs(struct ctl_table *table, int write,
++				  void __user *buffer,
++				  size_t *lenp, loff_t *ppos)
+ {
+ 	int ret;
  
- extern const int sysctl_vals[];
+@@ -241,6 +245,76 @@ int proc_dohung_task_timeout_secs(struct
+ 	return ret;
+ }
  
---- a/kernel/sysctl.c~sysctl-move-some-boundary-constants-from-sysctlc-to-sysctl_vals
++/*
++ * This is needed for proc_doulongvec_minmax of sysctl_hung_task_timeout_secs
++ * and hung_task_check_interval_secs
++ */
++static const unsigned long hung_task_timeout_max = (LONG_MAX / HZ);
++static struct ctl_table hung_task_sysctls[] = {
++#ifdef CONFIG_SMP
++	{
++		.procname	= "hung_task_all_cpu_backtrace",
++		.data		= &sysctl_hung_task_all_cpu_backtrace,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
++	},
++#endif /* CONFIG_SMP */
++	{
++		.procname	= "hung_task_panic",
++		.data		= &sysctl_hung_task_panic,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_ZERO,
++		.extra2		= SYSCTL_ONE,
++	},
++	{
++		.procname	= "hung_task_check_count",
++		.data		= &sysctl_hung_task_check_count,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_ZERO,
++	},
++	{
++		.procname	= "hung_task_timeout_secs",
++		.data		= &sysctl_hung_task_timeout_secs,
++		.maxlen		= sizeof(unsigned long),
++		.mode		= 0644,
++		.proc_handler	= proc_dohung_task_timeout_secs,
++		.extra2		= (void *)&hung_task_timeout_max,
++	},
++	{
++		.procname	= "hung_task_check_interval_secs",
++		.data		= &sysctl_hung_task_check_interval_secs,
++		.maxlen		= sizeof(unsigned long),
++		.mode		= 0644,
++		.proc_handler	= proc_dohung_task_timeout_secs,
++		.extra2		= (void *)&hung_task_timeout_max,
++	},
++	{
++		.procname	= "hung_task_warnings",
++		.data		= &sysctl_hung_task_warnings,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= SYSCTL_NEG_ONE,
++	},
++	{}
++};
++
++static void __init hung_task_sysctl_init(void)
++{
++	register_sysctl_init("kernel", hung_task_sysctls);
++}
++#else
++#define hung_task_sysctl_init() do { } while (0)
++#endif /* CONFIG_SYSCTL */
++
++
+ static atomic_t reset_hung_task = ATOMIC_INIT(0);
+ 
+ void reset_hung_task_detector(void)
+@@ -310,6 +384,7 @@ static int __init hung_task_init(void)
+ 	pm_notifier(hungtask_pm_notify, 0);
+ 
+ 	watchdog_task = kthread_run(watchdog, NULL, "khungtaskd");
++	hung_task_sysctl_init();
+ 
+ 	return 0;
+ }
+--- a/kernel/sysctl.c~hung_task-move-hung_task-sysctl-interface-to-hung_taskc
 +++ a/kernel/sysctl.c
-@@ -114,16 +114,9 @@
- static int sixty = 60;
- #endif
+@@ -134,13 +134,6 @@ static int minolduid;
+ static int ngroups_max = NGROUPS_MAX;
+ static const int cap_last_cap = CAP_LAST_CAP;
  
--static int __maybe_unused neg_one = -1;
--static int __maybe_unused two = 2;
--static int __maybe_unused four = 4;
- static unsigned long zero_ul;
- static unsigned long one_ul = 1;
- static unsigned long long_max = LONG_MAX;
--static int one_hundred = 100;
--static int two_hundred = 200;
--static int one_thousand = 1000;
--static int three_thousand = 3000;
- #ifdef CONFIG_PRINTK
- static int ten_thousand = 10000;
- #endif
-@@ -1964,7 +1957,7 @@ static struct ctl_table kern_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &neg_one,
-+		.extra1		= SYSCTL_NEG_ONE,
- 		.extra2		= SYSCTL_ONE,
+-/*
+- * This is needed for proc_doulongvec_minmax of sysctl_hung_task_timeout_secs
+- * and hung_task_check_interval_secs
+- */
+-#ifdef CONFIG_DETECT_HUNG_TASK
+-static unsigned long hung_task_timeout_max = (LONG_MAX/HZ);
+-#endif
+ 
+ #ifdef CONFIG_INOTIFY_USER
+ #include <linux/inotify.h>
+@@ -2508,60 +2501,6 @@ static struct ctl_table kern_table[] = {
+ 		.proc_handler	= proc_dointvec,
  	},
  #endif
-@@ -2306,7 +2299,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax_sysadmin,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &two,
-+		.extra2		= SYSCTL_TWO,
- 	},
- #endif
- 	{
-@@ -2566,7 +2559,7 @@ static struct ctl_table kern_table[] = {
- 		.maxlen		= sizeof(int),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &neg_one,
-+		.extra1		= SYSCTL_NEG_ONE,
- 	},
- #endif
+-#ifdef CONFIG_DETECT_HUNG_TASK
+-#ifdef CONFIG_SMP
+-	{
+-		.procname	= "hung_task_all_cpu_backtrace",
+-		.data		= &sysctl_hung_task_all_cpu_backtrace,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
+-#endif /* CONFIG_SMP */
+-	{
+-		.procname	= "hung_task_panic",
+-		.data		= &sysctl_hung_task_panic,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= SYSCTL_ZERO,
+-		.extra2		= SYSCTL_ONE,
+-	},
+-	{
+-		.procname	= "hung_task_check_count",
+-		.data		= &sysctl_hung_task_check_count,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= SYSCTL_ZERO,
+-	},
+-	{
+-		.procname	= "hung_task_timeout_secs",
+-		.data		= &sysctl_hung_task_timeout_secs,
+-		.maxlen		= sizeof(unsigned long),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dohung_task_timeout_secs,
+-		.extra2		= &hung_task_timeout_max,
+-	},
+-	{
+-		.procname	= "hung_task_check_interval_secs",
+-		.data		= &sysctl_hung_task_check_interval_secs,
+-		.maxlen		= sizeof(unsigned long),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dohung_task_timeout_secs,
+-		.extra2		= &hung_task_timeout_max,
+-	},
+-	{
+-		.procname	= "hung_task_warnings",
+-		.data		= &sysctl_hung_task_warnings,
+-		.maxlen		= sizeof(int),
+-		.mode		= 0644,
+-		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= SYSCTL_NEG_ONE,
+-	},
+-#endif
  #ifdef CONFIG_RT_MUTEXES
-@@ -2628,7 +2621,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= perf_cpu_time_max_percent_handler,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_hundred,
-+		.extra2		= SYSCTL_ONE_HUNDRED,
- 	},
  	{
- 		.procname	= "perf_event_max_stack",
-@@ -2646,7 +2639,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= perf_event_max_stack_handler,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_thousand,
-+		.extra2		= SYSCTL_ONE_THOUSAND,
- 	},
- #endif
- 	{
-@@ -2677,7 +2670,7 @@ static struct ctl_table kern_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= bpf_unpriv_handler,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &two,
-+		.extra2		= SYSCTL_TWO,
- 	},
- 	{
- 		.procname	= "bpf_stats_enabled",
-@@ -2731,7 +2724,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= overcommit_policy_handler,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &two,
-+		.extra2		= SYSCTL_TWO,
- 	},
- 	{
- 		.procname	= "panic_on_oom",
-@@ -2740,7 +2733,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &two,
-+		.extra2		= SYSCTL_TWO,
- 	},
- 	{
- 		.procname	= "oom_kill_allocating_task",
-@@ -2785,7 +2778,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= dirty_background_ratio_handler,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_hundred,
-+		.extra2		= SYSCTL_ONE_HUNDRED,
- 	},
- 	{
- 		.procname	= "dirty_background_bytes",
-@@ -2802,7 +2795,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= dirty_ratio_handler,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_hundred,
-+		.extra2		= SYSCTL_ONE_HUNDRED,
- 	},
- 	{
- 		.procname	= "dirty_bytes",
-@@ -2842,7 +2835,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &two_hundred,
-+		.extra2		= SYSCTL_TWO_HUNDRED,
- 	},
- #ifdef CONFIG_HUGETLB_PAGE
- 	{
-@@ -2899,7 +2892,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0200,
- 		.proc_handler	= drop_caches_sysctl_handler,
- 		.extra1		= SYSCTL_ONE,
--		.extra2		= &four,
-+		.extra2		= SYSCTL_FOUR,
- 	},
- #ifdef CONFIG_COMPACTION
- 	{
-@@ -2916,7 +2909,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= compaction_proactiveness_sysctl_handler,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_hundred,
-+		.extra2		= SYSCTL_ONE_HUNDRED,
- 	},
- 	{
- 		.procname	= "extfrag_threshold",
-@@ -2961,7 +2954,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= watermark_scale_factor_sysctl_handler,
- 		.extra1		= SYSCTL_ONE,
--		.extra2		= &three_thousand,
-+		.extra2		= SYSCTL_THREE_THOUSAND,
- 	},
- 	{
- 		.procname	= "percpu_pagelist_high_fraction",
-@@ -3040,7 +3033,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= sysctl_min_unmapped_ratio_sysctl_handler,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_hundred,
-+		.extra2		= SYSCTL_ONE_HUNDRED,
- 	},
- 	{
- 		.procname	= "min_slab_ratio",
-@@ -3049,7 +3042,7 @@ static struct ctl_table vm_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= sysctl_min_slab_ratio_sysctl_handler,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &one_hundred,
-+		.extra2		= SYSCTL_ONE_HUNDRED,
- 	},
- #endif
- #ifdef CONFIG_SMP
-@@ -3339,7 +3332,7 @@ static struct ctl_table fs_table[] = {
- 		.mode		= 0600,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &two,
-+		.extra2		= SYSCTL_TWO,
- 	},
- 	{
- 		.procname	= "protected_regular",
-@@ -3348,7 +3341,7 @@ static struct ctl_table fs_table[] = {
- 		.mode		= 0600,
- 		.proc_handler	= proc_dointvec_minmax,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &two,
-+		.extra2		= SYSCTL_TWO,
- 	},
- 	{
- 		.procname	= "suid_dumpable",
-@@ -3357,7 +3350,7 @@ static struct ctl_table fs_table[] = {
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_minmax_coredump,
- 		.extra1		= SYSCTL_ZERO,
--		.extra2		= &two,
-+		.extra2		= SYSCTL_TWO,
- 	},
- #if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
- 	{
+ 		.procname	= "max_lock_depth",
 _
 
 Patches currently in -mm which might be from nixiaoming@huawei.com are
