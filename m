@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BA064C433F5
-	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:58:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 37961C433F5
+	for <mm-commits@archiver.kernel.org>; Sun, 23 Jan 2022 23:58:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235205AbiAWX6G (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 23 Jan 2022 18:58:06 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:46520 "EHLO
+        id S240513AbiAWX6J (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 23 Jan 2022 18:58:09 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:46548 "EHLO
         ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234999AbiAWX6G (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:58:06 -0500
+        with ESMTP id S234999AbiAWX6J (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 23 Jan 2022 18:58:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 45E3AB80DC7
-        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:58:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B81A3C340E3;
-        Sun, 23 Jan 2022 23:58:03 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 147B0B80D38
+        for <mm-commits@vger.kernel.org>; Sun, 23 Jan 2022 23:58:08 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8D13AC340E3;
+        Sun, 23 Jan 2022 23:58:06 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1642982284;
-        bh=kU9kPPiH46u1rDfVOmwy13KRtz1dKAosR1B3f0LGqDQ=;
+        s=korg; t=1642982286;
+        bh=PglnBRVXwIYCsOnDLngcydMtHZ036bAoUnXpVvA5o4I=;
         h=Date:From:To:Subject:From;
-        b=p45Q4KhTrK5DIJn68RaCtO9fmx36y52iRmpOPYQyjYRSygbseujvWbkMa000Yq6ZO
-         KcRCXx4/E88ld4gR578s2g7/NUIlx1N37KQr2ktoL6GV/Qxl1aFUyC3+jzZ/vdUrxI
-         ABnxTfuKJkzYpXtA6Wg1nkwd9BtD9FuBiJc/c96k=
-Date:   Sun, 23 Jan 2022 15:58:03 -0800
+        b=PuMqUzoZc3In0m9LiU9QfIaHmNqVQQOPSf86ZJplJJRfNi/IhkTBWd7sH0dRZWcQ+
+         xJ5N/jqvMA5qJ//X4gamsZOQeugZgMKlOI3DgDDleCEYycE13Tm/MOdzqwAv0DkdGp
+         5fXTcIp09fZ3ogM3Z/rUfW1w+koc8uxDXrSnveRk=
+Date:   Sun, 23 Jan 2022 15:58:06 -0800
 From:   akpm@linux-foundation.org
 To:     bigeasy@linutronix.de, minchan@kernel.org,
-        mm-commits@vger.kernel.org, naresh.kamboju@linaro.org,
-        peterz@infradead.org, senozhatsky@chromium.org, tglx@linutronix.de,
+        mm-commits@vger.kernel.org, peterz@infradead.org,
+        senozhatsky@chromium.org, tglx@linutronix.de,
         umgwanakikbuti@gmail.com
 Subject:  [merged]
- locking-rwlocks-introduce-write_lock_nested.patch removed from -mm tree
-Message-ID: <20220123235803.s8cUshbaK%akpm@linux-foundation.org>
+ zsmalloc-replace-per-zpage-lock-with-pool-migrate_lock.patch removed from
+ -mm tree
+Message-ID: <20220123235806.euRy7YLXn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,161 +43,487 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: locking/rwlocks: introduce write_lock_nested
+     Subject: zsmalloc: replace per zpage lock with pool->migrate_lock
 has been removed from the -mm tree.  Its filename was
-     locking-rwlocks-introduce-write_lock_nested.patch
+     zsmalloc-replace-per-zpage-lock-with-pool-migrate_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: locking/rwlocks: introduce write_lock_nested
+Subject: zsmalloc: replace per zpage lock with pool->migrate_lock
 
-In preparation for converting bit_spin_lock to rwlock in zsmalloc so that
-multiple writers of zspages can run at the same time but those zspages are
-supposed to be different zspage instance.  Thus, it's not deadlock.  This
-patch adds write_lock_nested to support the case for LOCKDEP.
+The zsmalloc has used a bit for spin_lock in zpage handle to keep zpage
+object alive during several operations.  However, it causes the problem
+for PREEMPT_RT as well as introducing too complicated.
 
-[minchan@kernel.org: fix write_lock_nested for RT]
-  Link: https://lkml.kernel.org/r/YZfrMTAXV56HFWJY@google.com
-[bigeasy@linutronix.de: fixup write_lock_nested() implementation]
-  Link: https://lkml.kernel.org/r/20211123170134.y6xb7pmpgdn4m3bn@linutronix.de
-Link: https://lkml.kernel.org/r/20211115185909.3949505-8-minchan@kernel.org
+This patch replaces the bit spin_lock with pool->migrate_lock rwlock.  It
+could make the code simple as well as zsmalloc work under PREEMPT_RT.
+
+The drawback is the pool->migrate_lock is bigger granuarity than per zpage
+lock so the contention would be higher than old when both IO-related
+operations(i.e., zsmalloc, zsfree, zs_[map|unmap]) and
+compaction(page/zpage migration) are going in parallel(*, the migrate_lock
+is rwlock and IO related functions are all read side lock so there is no
+contention).  However, the write-side is fast enough(dominant overhead is
+just page copy) so it wouldn't affect much.  If the lock granurity becomes
+more problem later, we could introduce table locks based on handle as a
+hash value.
+
+Link: https://lkml.kernel.org/r/20211115185909.3949505-9-minchan@kernel.org
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Signed-off-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
 Acked-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Tested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
 Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
+Cc: Peter Zijlstra (Intel) <peterz@infradead.org>
 Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Naresh Kamboju <naresh.kamboju@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rwlock.h          |    6 ++++++
- include/linux/rwlock_api_smp.h  |    8 ++++++++
- include/linux/rwlock_rt.h       |   10 ++++++++++
- include/linux/spinlock_api_up.h |    1 +
- kernel/locking/spinlock.c       |   10 ++++++++++
- kernel/locking/spinlock_rt.c    |   12 ++++++++++++
- 6 files changed, 47 insertions(+)
+ mm/zsmalloc.c |  205 ++++++++++++++++++++++--------------------------
+ 1 file changed, 96 insertions(+), 109 deletions(-)
 
---- a/include/linux/rwlock_api_smp.h~locking-rwlocks-introduce-write_lock_nested
-+++ a/include/linux/rwlock_api_smp.h
-@@ -17,6 +17,7 @@
+--- a/mm/zsmalloc.c~zsmalloc-replace-per-zpage-lock-with-pool-migrate_lock
++++ a/mm/zsmalloc.c
+@@ -30,6 +30,14 @@
  
- void __lockfunc _raw_read_lock(rwlock_t *lock)		__acquires(lock);
- void __lockfunc _raw_write_lock(rwlock_t *lock)		__acquires(lock);
-+void __lockfunc _raw_write_lock_nested(rwlock_t *lock, int subclass)	__acquires(lock);
- void __lockfunc _raw_read_lock_bh(rwlock_t *lock)	__acquires(lock);
- void __lockfunc _raw_write_lock_bh(rwlock_t *lock)	__acquires(lock);
- void __lockfunc _raw_read_lock_irq(rwlock_t *lock)	__acquires(lock);
-@@ -209,6 +210,13 @@ static inline void __raw_write_lock(rwlo
- 	LOCK_CONTENDED(lock, do_raw_write_trylock, do_raw_write_lock);
- }
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
-+static inline void __raw_write_lock_nested(rwlock_t *lock, int subclass)
-+{
-+	preempt_disable();
-+	rwlock_acquire(&lock->dep_map, subclass, 0, _RET_IP_);
-+	LOCK_CONTENDED(lock, do_raw_write_trylock, do_raw_write_lock);
-+}
++/*
++ * lock ordering:
++ *	page_lock
++ *	pool->migrate_lock
++ *	class->lock
++ *	zspage->lock
++ */
 +
- #endif /* !CONFIG_GENERIC_LOCKBREAK || CONFIG_DEBUG_LOCK_ALLOC */
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/sched.h>
+@@ -101,15 +109,6 @@
+ #define _PFN_BITS		(MAX_POSSIBLE_PHYSMEM_BITS - PAGE_SHIFT)
  
- static inline void __raw_write_unlock(rwlock_t *lock)
---- a/include/linux/rwlock.h~locking-rwlocks-introduce-write_lock_nested
-+++ a/include/linux/rwlock.h
-@@ -55,6 +55,12 @@ do {								\
- #define write_lock(lock)	_raw_write_lock(lock)
- #define read_lock(lock)		_raw_read_lock(lock)
- 
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+#define write_lock_nested(lock, subclass)	_raw_write_lock_nested(lock, subclass)
-+#else
-+#define write_lock_nested(lock, subclass)	_raw_write_lock(lock)
-+#endif
-+
- #if defined(CONFIG_SMP) || defined(CONFIG_DEBUG_SPINLOCK)
- 
- #define read_lock_irqsave(lock, flags)			\
---- a/include/linux/rwlock_rt.h~locking-rwlocks-introduce-write_lock_nested
-+++ a/include/linux/rwlock_rt.h
-@@ -28,6 +28,7 @@ extern void rt_read_lock(rwlock_t *rwloc
- extern int rt_read_trylock(rwlock_t *rwlock);
- extern void rt_read_unlock(rwlock_t *rwlock);
- extern void rt_write_lock(rwlock_t *rwlock);
-+extern void rt_write_lock_nested(rwlock_t *rwlock, int subclass);
- extern int rt_write_trylock(rwlock_t *rwlock);
- extern void rt_write_unlock(rwlock_t *rwlock);
- 
-@@ -83,6 +84,15 @@ static __always_inline void write_lock(r
- 	rt_write_lock(rwlock);
- }
- 
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+static __always_inline void write_lock_nested(rwlock_t *rwlock, int subclass)
-+{
-+	rt_write_lock_nested(rwlock, subclass);
-+}
-+#else
-+#define write_lock_nested(lock, subclass)	rt_write_lock(((void)(subclass), (lock)))
-+#endif
-+
- static __always_inline void write_lock_bh(rwlock_t *rwlock)
- {
- 	local_bh_disable();
---- a/include/linux/spinlock_api_up.h~locking-rwlocks-introduce-write_lock_nested
-+++ a/include/linux/spinlock_api_up.h
-@@ -59,6 +59,7 @@
- #define _raw_spin_lock_nested(lock, subclass)	__LOCK(lock)
- #define _raw_read_lock(lock)			__LOCK(lock)
- #define _raw_write_lock(lock)			__LOCK(lock)
-+#define _raw_write_lock_nested(lock, subclass)	__LOCK(lock)
- #define _raw_spin_lock_bh(lock)			__LOCK_BH(lock)
- #define _raw_read_lock_bh(lock)			__LOCK_BH(lock)
- #define _raw_write_lock_bh(lock)		__LOCK_BH(lock)
---- a/kernel/locking/spinlock.c~locking-rwlocks-introduce-write_lock_nested
-+++ a/kernel/locking/spinlock.c
-@@ -300,6 +300,16 @@ void __lockfunc _raw_write_lock(rwlock_t
- 	__raw_write_lock(lock);
- }
- EXPORT_SYMBOL(_raw_write_lock);
-+
-+#ifndef CONFIG_DEBUG_LOCK_ALLOC
-+#define __raw_write_lock_nested(lock, subclass)	__raw_write_lock(((void)(subclass), (lock)))
-+#endif
-+
-+void __lockfunc _raw_write_lock_nested(rwlock_t *lock, int subclass)
-+{
-+	__raw_write_lock_nested(lock, subclass);
-+}
-+EXPORT_SYMBOL(_raw_write_lock_nested);
+ /*
+- * Memory for allocating for handle keeps object position by
+- * encoding <page, obj_idx> and the encoded value has a room
+- * in least bit(ie, look at obj_to_location).
+- * We use the bit to synchronize between object access by
+- * user and migration.
+- */
+-#define HANDLE_PIN_BIT	0
+-
+-/*
+  * Head in allocated object should have OBJ_ALLOCATED_TAG
+  * to identify the object was allocated or not.
+  * It's okay to add the status bit in the least bit because
+@@ -255,6 +254,8 @@ struct zs_pool {
+ 	struct inode *inode;
+ 	struct work_struct free_work;
  #endif
++	/* protect page/zspage migration */
++	rwlock_t migrate_lock;
+ };
  
- #ifndef CONFIG_INLINE_WRITE_LOCK_IRQSAVE
---- a/kernel/locking/spinlock_rt.c~locking-rwlocks-introduce-write_lock_nested
-+++ a/kernel/locking/spinlock_rt.c
-@@ -239,6 +239,18 @@ void __sched rt_write_lock(rwlock_t *rwl
+ struct zspage {
+@@ -297,6 +298,9 @@ static void zs_unregister_migration(stru
+ static void migrate_lock_init(struct zspage *zspage);
+ static void migrate_read_lock(struct zspage *zspage);
+ static void migrate_read_unlock(struct zspage *zspage);
++static void migrate_write_lock(struct zspage *zspage);
++static void migrate_write_lock_nested(struct zspage *zspage);
++static void migrate_write_unlock(struct zspage *zspage);
+ static void kick_deferred_free(struct zs_pool *pool);
+ static void init_deferred_free(struct zs_pool *pool);
+ static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage);
+@@ -308,6 +312,9 @@ static void zs_unregister_migration(stru
+ static void migrate_lock_init(struct zspage *zspage) {}
+ static void migrate_read_lock(struct zspage *zspage) {}
+ static void migrate_read_unlock(struct zspage *zspage) {}
++static void migrate_write_lock(struct zspage *zspage) {}
++static void migrate_write_lock_nested(struct zspage *zspage) {}
++static void migrate_write_unlock(struct zspage *zspage) {}
+ static void kick_deferred_free(struct zs_pool *pool) {}
+ static void init_deferred_free(struct zs_pool *pool) {}
+ static void SetZsPageMovable(struct zs_pool *pool, struct zspage *zspage) {}
+@@ -359,14 +366,10 @@ static void cache_free_zspage(struct zs_
+ 	kmem_cache_free(pool->zspage_cachep, zspage);
  }
- EXPORT_SYMBOL(rt_write_lock);
  
-+#ifdef CONFIG_DEBUG_LOCK_ALLOC
-+void __sched rt_write_lock_nested(rwlock_t *rwlock, int subclass)
-+{
-+	rtlock_might_resched();
-+	rwlock_acquire(&rwlock->dep_map, subclass, 0, _RET_IP_);
-+	rwbase_write_lock(&rwlock->rwbase, TASK_RTLOCK_WAIT);
-+	rcu_read_lock();
-+	migrate_disable();
-+}
-+EXPORT_SYMBOL(rt_write_lock_nested);
-+#endif
-+
- void __sched rt_read_unlock(rwlock_t *rwlock)
++/* class->lock(which owns the handle) synchronizes races */
+ static void record_obj(unsigned long handle, unsigned long obj)
  {
- 	rwlock_release(&rwlock->dep_map, _RET_IP_);
+-	/*
+-	 * lsb of @obj represents handle lock while other bits
+-	 * represent object value the handle is pointing so
+-	 * updating shouldn't do store tearing.
+-	 */
+-	WRITE_ONCE(*(unsigned long *)handle, obj);
++	*(unsigned long *)handle = obj;
+ }
+ 
+ /* zpool driver */
+@@ -880,26 +883,6 @@ static bool obj_allocated(struct page *p
+ 	return true;
+ }
+ 
+-static inline int testpin_tag(unsigned long handle)
+-{
+-	return bit_spin_is_locked(HANDLE_PIN_BIT, (unsigned long *)handle);
+-}
+-
+-static inline int trypin_tag(unsigned long handle)
+-{
+-	return bit_spin_trylock(HANDLE_PIN_BIT, (unsigned long *)handle);
+-}
+-
+-static void pin_tag(unsigned long handle) __acquires(bitlock)
+-{
+-	bit_spin_lock(HANDLE_PIN_BIT, (unsigned long *)handle);
+-}
+-
+-static void unpin_tag(unsigned long handle) __releases(bitlock)
+-{
+-	bit_spin_unlock(HANDLE_PIN_BIT, (unsigned long *)handle);
+-}
+-
+ static void reset_page(struct page *page)
+ {
+ 	__ClearPageMovable(page);
+@@ -968,6 +951,11 @@ static void free_zspage(struct zs_pool *
+ 	VM_BUG_ON(get_zspage_inuse(zspage));
+ 	VM_BUG_ON(list_empty(&zspage->list));
+ 
++	/*
++	 * Since zs_free couldn't be sleepable, this function cannot call
++	 * lock_page. The page locks trylock_zspage got will be released
++	 * by __free_zspage.
++	 */
+ 	if (!trylock_zspage(zspage)) {
+ 		kick_deferred_free(pool);
+ 		return;
+@@ -1263,15 +1251,20 @@ void *zs_map_object(struct zs_pool *pool
+ 	 */
+ 	BUG_ON(in_interrupt());
+ 
+-	/* From now on, migration cannot move the object */
+-	pin_tag(handle);
+-
++	/* It guarantees it can get zspage from handle safely */
++	read_lock(&pool->migrate_lock);
+ 	obj = handle_to_obj(handle);
+ 	obj_to_location(obj, &page, &obj_idx);
+ 	zspage = get_zspage(page);
+ 
+-	/* migration cannot move any subpage in this zspage */
++	/*
++	 * migration cannot move any zpages in this zspage. Here, class->lock
++	 * is too heavy since callers would take some time until they calls
++	 * zs_unmap_object API so delegate the locking from class to zspage
++	 * which is smaller granularity.
++	 */
+ 	migrate_read_lock(zspage);
++	read_unlock(&pool->migrate_lock);
+ 
+ 	class = zspage_class(pool, zspage);
+ 	off = (class->size * obj_idx) & ~PAGE_MASK;
+@@ -1330,7 +1323,6 @@ void zs_unmap_object(struct zs_pool *poo
+ 	put_cpu_var(zs_map_area);
+ 
+ 	migrate_read_unlock(zspage);
+-	unpin_tag(handle);
+ }
+ EXPORT_SYMBOL_GPL(zs_unmap_object);
+ 
+@@ -1424,6 +1416,7 @@ unsigned long zs_malloc(struct zs_pool *
+ 	size += ZS_HANDLE_SIZE;
+ 	class = pool->size_class[get_size_class_index(size)];
+ 
++	/* class->lock effectively protects the zpage migration */
+ 	spin_lock(&class->lock);
+ 	zspage = find_get_zspage(class);
+ 	if (likely(zspage)) {
+@@ -1501,30 +1494,27 @@ void zs_free(struct zs_pool *pool, unsig
+ 	if (unlikely(!handle))
+ 		return;
+ 
+-	pin_tag(handle);
++	/*
++	 * The pool->migrate_lock protects the race with zpage's migration
++	 * so it's safe to get the page from handle.
++	 */
++	read_lock(&pool->migrate_lock);
+ 	obj = handle_to_obj(handle);
+ 	obj_to_page(obj, &f_page);
+ 	zspage = get_zspage(f_page);
+-
+-	migrate_read_lock(zspage);
+ 	class = zspage_class(pool, zspage);
+-
+ 	spin_lock(&class->lock);
++	read_unlock(&pool->migrate_lock);
++
+ 	obj_free(class->size, obj);
+ 	class_stat_dec(class, OBJ_USED, 1);
+ 	fullness = fix_fullness_group(class, zspage);
+-	if (fullness != ZS_EMPTY) {
+-		migrate_read_unlock(zspage);
++	if (fullness != ZS_EMPTY)
+ 		goto out;
+-	}
+ 
+-	migrate_read_unlock(zspage);
+-	/* If zspage is isolated, zs_page_putback will free the zspage */
+ 	free_zspage(pool, class, zspage);
+ out:
+-
+ 	spin_unlock(&class->lock);
+-	unpin_tag(handle);
+ 	cache_free_handle(pool, handle);
+ }
+ EXPORT_SYMBOL_GPL(zs_free);
+@@ -1608,11 +1598,8 @@ static unsigned long find_alloced_obj(st
+ 	offset += class->size * index;
+ 
+ 	while (offset < PAGE_SIZE) {
+-		if (obj_allocated(page, addr + offset, &handle)) {
+-			if (trypin_tag(handle))
+-				break;
+-			handle = 0;
+-		}
++		if (obj_allocated(page, addr + offset, &handle))
++			break;
+ 
+ 		offset += class->size;
+ 		index++;
+@@ -1658,7 +1645,6 @@ static int migrate_zspage(struct zs_pool
+ 
+ 		/* Stop if there is no more space */
+ 		if (zspage_full(class, get_zspage(d_page))) {
+-			unpin_tag(handle);
+ 			ret = -ENOMEM;
+ 			break;
+ 		}
+@@ -1667,15 +1653,7 @@ static int migrate_zspage(struct zs_pool
+ 		free_obj = obj_malloc(pool, get_zspage(d_page), handle);
+ 		zs_object_copy(class, free_obj, used_obj);
+ 		obj_idx++;
+-		/*
+-		 * record_obj updates handle's value to free_obj and it will
+-		 * invalidate lock bit(ie, HANDLE_PIN_BIT) of handle, which
+-		 * breaks synchronization using pin_tag(e,g, zs_free) so
+-		 * let's keep the lock bit.
+-		 */
+-		free_obj |= BIT(HANDLE_PIN_BIT);
+ 		record_obj(handle, free_obj);
+-		unpin_tag(handle);
+ 		obj_free(class->size, used_obj);
+ 	}
+ 
+@@ -1789,6 +1767,11 @@ static void migrate_write_lock(struct zs
+ 	write_lock(&zspage->lock);
+ }
+ 
++static void migrate_write_lock_nested(struct zspage *zspage)
++{
++	write_lock_nested(&zspage->lock, SINGLE_DEPTH_NESTING);
++}
++
+ static void migrate_write_unlock(struct zspage *zspage)
+ {
+ 	write_unlock(&zspage->lock);
+@@ -1856,11 +1839,10 @@ static int zs_page_migrate(struct addres
+ 	struct zspage *zspage;
+ 	struct page *dummy;
+ 	void *s_addr, *d_addr, *addr;
+-	int offset, pos;
++	int offset;
+ 	unsigned long handle;
+ 	unsigned long old_obj, new_obj;
+ 	unsigned int obj_idx;
+-	int ret = -EAGAIN;
+ 
+ 	/*
+ 	 * We cannot support the _NO_COPY case here, because copy needs to
+@@ -1873,32 +1855,25 @@ static int zs_page_migrate(struct addres
+ 	VM_BUG_ON_PAGE(!PageMovable(page), page);
+ 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
+ 
+-	zspage = get_zspage(page);
+-
+-	/* Concurrent compactor cannot migrate any subpage in zspage */
+-	migrate_write_lock(zspage);
+ 	pool = mapping->private_data;
++
++	/*
++	 * The pool migrate_lock protects the race between zpage migration
++	 * and zs_free.
++	 */
++	write_lock(&pool->migrate_lock);
++	zspage = get_zspage(page);
+ 	class = zspage_class(pool, zspage);
+-	offset = get_first_obj_offset(page);
+ 
++	/*
++	 * the class lock protects zpage alloc/free in the zspage.
++	 */
+ 	spin_lock(&class->lock);
+-	if (!get_zspage_inuse(zspage)) {
+-		/*
+-		 * Set "offset" to end of the page so that every loops
+-		 * skips unnecessary object scanning.
+-		 */
+-		offset = PAGE_SIZE;
+-	}
++	/* the migrate_write_lock protects zpage access via zs_map_object */
++	migrate_write_lock(zspage);
+ 
+-	pos = offset;
++	offset = get_first_obj_offset(page);
+ 	s_addr = kmap_atomic(page);
+-	while (pos < PAGE_SIZE) {
+-		if (obj_allocated(page, s_addr + pos, &handle)) {
+-			if (!trypin_tag(handle))
+-				goto unpin_objects;
+-		}
+-		pos += class->size;
+-	}
+ 
+ 	/*
+ 	 * Here, any user cannot access all objects in the zspage so let's move.
+@@ -1907,25 +1882,30 @@ static int zs_page_migrate(struct addres
+ 	memcpy(d_addr, s_addr, PAGE_SIZE);
+ 	kunmap_atomic(d_addr);
+ 
+-	for (addr = s_addr + offset; addr < s_addr + pos;
++	for (addr = s_addr + offset; addr < s_addr + PAGE_SIZE;
+ 					addr += class->size) {
+ 		if (obj_allocated(page, addr, &handle)) {
+-			BUG_ON(!testpin_tag(handle));
+ 
+ 			old_obj = handle_to_obj(handle);
+ 			obj_to_location(old_obj, &dummy, &obj_idx);
+ 			new_obj = (unsigned long)location_to_obj(newpage,
+ 								obj_idx);
+-			new_obj |= BIT(HANDLE_PIN_BIT);
+ 			record_obj(handle, new_obj);
+ 		}
+ 	}
++	kunmap_atomic(s_addr);
+ 
+ 	replace_sub_page(class, zspage, newpage, page);
+-	get_page(newpage);
+-
++	/*
++	 * Since we complete the data copy and set up new zspage structure,
++	 * it's okay to release migration_lock.
++	 */
++	write_unlock(&pool->migrate_lock);
++	spin_unlock(&class->lock);
+ 	dec_zspage_isolation(zspage);
++	migrate_write_unlock(zspage);
+ 
++	get_page(newpage);
+ 	if (page_zone(newpage) != page_zone(page)) {
+ 		dec_zone_page_state(page, NR_ZSPAGES);
+ 		inc_zone_page_state(newpage, NR_ZSPAGES);
+@@ -1933,22 +1913,8 @@ static int zs_page_migrate(struct addres
+ 
+ 	reset_page(page);
+ 	put_page(page);
+-	page = newpage;
+-
+-	ret = MIGRATEPAGE_SUCCESS;
+-unpin_objects:
+-	for (addr = s_addr + offset; addr < s_addr + pos;
+-						addr += class->size) {
+-		if (obj_allocated(page, addr, &handle)) {
+-			BUG_ON(!testpin_tag(handle));
+-			unpin_tag(handle);
+-		}
+-	}
+-	kunmap_atomic(s_addr);
+-	spin_unlock(&class->lock);
+-	migrate_write_unlock(zspage);
+ 
+-	return ret;
++	return MIGRATEPAGE_SUCCESS;
+ }
+ 
+ static void zs_page_putback(struct page *page)
+@@ -2077,8 +2043,13 @@ static unsigned long __zs_compact(struct
+ 	struct zspage *dst_zspage = NULL;
+ 	unsigned long pages_freed = 0;
+ 
++	/* protect the race between zpage migration and zs_free */
++	write_lock(&pool->migrate_lock);
++	/* protect zpage allocation/free */
+ 	spin_lock(&class->lock);
+ 	while ((src_zspage = isolate_zspage(class, true))) {
++		/* protect someone accessing the zspage(i.e., zs_map_object) */
++		migrate_write_lock(src_zspage);
+ 
+ 		if (!zs_can_compact(class))
+ 			break;
+@@ -2087,6 +2058,8 @@ static unsigned long __zs_compact(struct
+ 		cc.s_page = get_first_page(src_zspage);
+ 
+ 		while ((dst_zspage = isolate_zspage(class, false))) {
++			migrate_write_lock_nested(dst_zspage);
++
+ 			cc.d_page = get_first_page(dst_zspage);
+ 			/*
+ 			 * If there is no more space in dst_page, resched
+@@ -2096,6 +2069,10 @@ static unsigned long __zs_compact(struct
+ 				break;
+ 
+ 			putback_zspage(class, dst_zspage);
++			migrate_write_unlock(dst_zspage);
++			dst_zspage = NULL;
++			if (rwlock_is_contended(&pool->migrate_lock))
++				break;
+ 		}
+ 
+ 		/* Stop if we couldn't find slot */
+@@ -2103,19 +2080,28 @@ static unsigned long __zs_compact(struct
+ 			break;
+ 
+ 		putback_zspage(class, dst_zspage);
++		migrate_write_unlock(dst_zspage);
++
+ 		if (putback_zspage(class, src_zspage) == ZS_EMPTY) {
++			migrate_write_unlock(src_zspage);
+ 			free_zspage(pool, class, src_zspage);
+ 			pages_freed += class->pages_per_zspage;
+-		}
++		} else
++			migrate_write_unlock(src_zspage);
+ 		spin_unlock(&class->lock);
++		write_unlock(&pool->migrate_lock);
+ 		cond_resched();
++		write_lock(&pool->migrate_lock);
+ 		spin_lock(&class->lock);
+ 	}
+ 
+-	if (src_zspage)
++	if (src_zspage) {
+ 		putback_zspage(class, src_zspage);
++		migrate_write_unlock(src_zspage);
++	}
+ 
+ 	spin_unlock(&class->lock);
++	write_unlock(&pool->migrate_lock);
+ 
+ 	return pages_freed;
+ }
+@@ -2221,6 +2207,7 @@ struct zs_pool *zs_create_pool(const cha
+ 		return NULL;
+ 
+ 	init_deferred_free(pool);
++	rwlock_init(&pool->migrate_lock);
+ 
+ 	pool->name = kstrdup(name, GFP_KERNEL);
+ 	if (!pool->name)
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
