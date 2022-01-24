@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 880CAC433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 974E1C4332F
 	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:46:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1386959AbiAYDqG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1386947AbiAYDqG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 24 Jan 2022 22:46:06 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45952 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45916 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S3415136AbiAYA53 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:57:29 -0500
+        with ESMTP id S3415119AbiAYA5T (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:57:19 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B890C07596C
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:43:24 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 00301C04D61C
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:43:07 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C35B6B81255
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:43:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1854DC340E4;
-        Mon, 24 Jan 2022 22:43:21 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BB7EAB815B0
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:43:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16545C340E4;
+        Mon, 24 Jan 2022 22:43:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064201;
-        bh=TRedIbpwrdi5tJqUhLNgN0PMQ5/breTXcAf8bVOk8aE=;
+        s=korg; t=1643064185;
+        bh=8P3tWE6JXU5vk5nLQOhvXTVVCV8UqHqh3Se/O8kXw0c=;
         h=Date:From:To:Subject:From;
-        b=QXhs1OiiUG5i8scXr+9jgvFYcO1G3S/dVeSMPR4Zsc1tLkyURE9Q/SGj/TzYkjH56
-         GIDch+68EGv8H3vjAJZkFhN1A5Qbw1EgkLrWkAeAZCrd+VeNBFvCk7e/8k7KBR2CAl
-         xwxngTuuA9i3GnYdrkfOziSepPy6MgsVbtmdRu8c=
-Date:   Mon, 24 Jan 2022 14:43:20 -0800
+        b=BGjwefVbpHlLL9p+SPWHOLeRMcg4ODmocuimSbYjKqmaQT6qt3k7Da21pPi+fVxyh
+         jjbFQ3egVqtTq+vcCqmSmNFEhP+ZqEPJgTgwdukpOZRc9FYOBNq9gT7FjlI75K7XHe
+         GtX2+Na/qVZhWqdppiJPXvb6dmgCoWW/oOFYT3NE=
+Date:   Mon, 24 Jan 2022 14:43:04 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + kasan-clean-up-feature-flags-for-hw_tags-mode.patch
- added to -mm tree
-Message-ID: <20220124224320.n0TyJC_3H%akpm@linux-foundation.org>
+Subject:  +
+ kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch added to -mm
+ tree
+Message-ID: <20220124224304.XFT0vRpmr%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: clean up feature flags for HW_TAGS mode
+     Subject: kasan, page_alloc: allow skipping memory init for HW_TAGS
 has been added to the -mm tree.  Its filename is
-     kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+     kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,19 +68,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: clean up feature flags for HW_TAGS mode
+Subject: kasan, page_alloc: allow skipping memory init for HW_TAGS
 
-- Untie kasan_init_hw_tags() code from the default values of
-  kasan_arg_mode and kasan_arg_stacktrace.
+Add a new GFP flag __GFP_SKIP_ZERO that allows to skip memory
+initialization.  The flag is only effective with HW_TAGS KASAN.
 
-- Move static_branch_enable(&kasan_flag_enabled) to the end of
-  kasan_init_hw_tags_cpu().
+This flag will be used by vmalloc code for page_alloc allocations backing
+vmalloc() mappings in a following patch.  The reason to skip memory
+initialization for these pages in page_alloc is because vmalloc code will
+be initializing them instead.
 
-- Remove excessive comments in kasan_arg_mode switch.
+With the current implementation, when __GFP_SKIP_ZERO is provided,
+__GFP_ZEROTAGS is ignored.  This doesn't matter, as these two flags are
+never provided at the same time.  However, if this is changed in the
+future, this particular implementation detail can be changed as well.
 
-- Add new comments.
-
-Link: https://lkml.kernel.org/r/76ebb340265be57a218564a497e1f52ff36a3879.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/0d53efeff345de7d708e0baa0d8829167772521e.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -94,112 +98,99 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/hw_tags.c |   38 +++++++++++++++++++++-----------------
- mm/kasan/kasan.h   |    2 +-
- 2 files changed, 22 insertions(+), 18 deletions(-)
+ include/linux/gfp.h            |   18 +++++++++++-------
+ include/trace/events/mmflags.h |    1 +
+ mm/page_alloc.c                |   13 ++++++++++++-
+ 3 files changed, 24 insertions(+), 8 deletions(-)
 
---- a/mm/kasan/hw_tags.c~kasan-clean-up-feature-flags-for-hw_tags-mode
-+++ a/mm/kasan/hw_tags.c
-@@ -42,16 +42,22 @@ static enum kasan_arg kasan_arg __ro_aft
- static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
- static enum kasan_arg_stacktrace kasan_arg_stacktrace __initdata;
+--- a/include/linux/gfp.h~kasan-page_alloc-allow-skipping-memory-init-for-hw_tags
++++ a/include/linux/gfp.h
+@@ -55,14 +55,16 @@ struct vm_area_struct;
+ #define ___GFP_ACCOUNT		0x400000u
+ #define ___GFP_ZEROTAGS		0x800000u
+ #ifdef CONFIG_KASAN_HW_TAGS
+-#define ___GFP_SKIP_KASAN_UNPOISON	0x1000000u
+-#define ___GFP_SKIP_KASAN_POISON	0x2000000u
++#define ___GFP_SKIP_ZERO		0x1000000u
++#define ___GFP_SKIP_KASAN_UNPOISON	0x2000000u
++#define ___GFP_SKIP_KASAN_POISON	0x4000000u
+ #else
++#define ___GFP_SKIP_ZERO		0
+ #define ___GFP_SKIP_KASAN_UNPOISON	0
+ #define ___GFP_SKIP_KASAN_POISON	0
+ #endif
+ #ifdef CONFIG_LOCKDEP
+-#define ___GFP_NOLOCKDEP	0x4000000u
++#define ___GFP_NOLOCKDEP	0x8000000u
+ #else
+ #define ___GFP_NOLOCKDEP	0
+ #endif
+@@ -239,9 +241,10 @@ struct vm_area_struct;
+  * %__GFP_ZERO returns a zeroed page on success.
+  *
+  * %__GFP_ZEROTAGS zeroes memory tags at allocation time if the memory itself
+- * is being zeroed (either via __GFP_ZERO or via init_on_alloc). This flag is
+- * intended for optimization: setting memory tags at the same time as zeroing
+- * memory has minimal additional performace impact.
++ * is being zeroed (either via __GFP_ZERO or via init_on_alloc, provided that
++ * __GFP_SKIP_ZERO is not set). This flag is intended for optimization: setting
++ * memory tags at the same time as zeroing memory has minimal additional
++ * performace impact.
+  *
+  * %__GFP_SKIP_KASAN_UNPOISON makes KASAN skip unpoisoning on page allocation.
+  * Only effective in HW_TAGS mode.
+@@ -253,6 +256,7 @@ struct vm_area_struct;
+ #define __GFP_COMP	((__force gfp_t)___GFP_COMP)
+ #define __GFP_ZERO	((__force gfp_t)___GFP_ZERO)
+ #define __GFP_ZEROTAGS	((__force gfp_t)___GFP_ZEROTAGS)
++#define __GFP_SKIP_ZERO ((__force gfp_t)___GFP_SKIP_ZERO)
+ #define __GFP_SKIP_KASAN_UNPOISON ((__force gfp_t)___GFP_SKIP_KASAN_UNPOISON)
+ #define __GFP_SKIP_KASAN_POISON   ((__force gfp_t)___GFP_SKIP_KASAN_POISON)
  
--/* Whether KASAN is enabled at all. */
-+/*
-+ * Whether KASAN is enabled at all.
-+ * The value remains false until KASAN is initialized by kasan_init_hw_tags().
-+ */
- DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
- EXPORT_SYMBOL(kasan_flag_enabled);
+@@ -261,7 +265,7 @@ struct vm_area_struct;
  
--/* Whether the selected mode is synchronous/asynchronous/asymmetric.*/
-+/*
-+ * Whether the selected mode is synchronous, asynchronous, or asymmetric.
-+ * Defaults to KASAN_MODE_SYNC.
-+ */
- enum kasan_mode kasan_mode __ro_after_init;
- EXPORT_SYMBOL_GPL(kasan_mode);
+ /* Room for N __GFP_FOO bits */
+ #define __GFP_BITS_SHIFT (24 +						\
+-			  2 * IS_ENABLED(CONFIG_KASAN_HW_TAGS) +	\
++			  3 * IS_ENABLED(CONFIG_KASAN_HW_TAGS) +	\
+ 			  IS_ENABLED(CONFIG_LOCKDEP))
+ #define __GFP_BITS_MASK ((__force gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
  
- /* Whether to collect alloc/free stack traces. */
--DEFINE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
-+DEFINE_STATIC_KEY_TRUE(kasan_flag_stacktrace);
+--- a/include/trace/events/mmflags.h~kasan-page_alloc-allow-skipping-memory-init-for-hw_tags
++++ a/include/trace/events/mmflags.h
+@@ -53,6 +53,7 @@
  
- /* kasan=off/on */
- static int __init early_kasan_flag(char *arg)
-@@ -127,7 +133,11 @@ void kasan_init_hw_tags_cpu(void)
- 	 * as this function is only called for MTE-capable hardware.
- 	 */
+ #ifdef CONFIG_KASAN_HW_TAGS
+ #define __def_gfpflag_names_kasan ,					       \
++	{(unsigned long)__GFP_SKIP_ZERO,	   "__GFP_SKIP_ZERO"},	       \
+ 	{(unsigned long)__GFP_SKIP_KASAN_POISON,   "__GFP_SKIP_KASAN_POISON"}, \
+ 	{(unsigned long)__GFP_SKIP_KASAN_UNPOISON, "__GFP_SKIP_KASAN_UNPOISON"}
+ #else
+--- a/mm/page_alloc.c~kasan-page_alloc-allow-skipping-memory-init-for-hw_tags
++++ a/mm/page_alloc.c
+@@ -2415,10 +2415,21 @@ static inline bool should_skip_kasan_unp
+ 	return init_tags || (flags & __GFP_SKIP_KASAN_UNPOISON);
+ }
  
--	/* If KASAN is disabled via command line, don't initialize it. */
-+	/*
-+	 * If KASAN is disabled via command line, don't initialize it.
-+	 * When this function is called, kasan_flag_enabled is not yet
-+	 * set by kasan_init_hw_tags(). Thus, check kasan_arg instead.
-+	 */
- 	if (kasan_arg == KASAN_ARG_OFF)
- 		return;
- 
-@@ -154,42 +164,36 @@ void __init kasan_init_hw_tags(void)
- 	if (kasan_arg == KASAN_ARG_OFF)
- 		return;
- 
--	/* Enable KASAN. */
--	static_branch_enable(&kasan_flag_enabled);
--
- 	switch (kasan_arg_mode) {
- 	case KASAN_ARG_MODE_DEFAULT:
--		/*
--		 * Default to sync mode.
--		 */
--		fallthrough;
-+		/* Default is specified by kasan_mode definition. */
-+		break;
- 	case KASAN_ARG_MODE_SYNC:
--		/* Sync mode enabled. */
- 		kasan_mode = KASAN_MODE_SYNC;
- 		break;
- 	case KASAN_ARG_MODE_ASYNC:
--		/* Async mode enabled. */
- 		kasan_mode = KASAN_MODE_ASYNC;
- 		break;
- 	case KASAN_ARG_MODE_ASYMM:
--		/* Asymm mode enabled. */
- 		kasan_mode = KASAN_MODE_ASYMM;
- 		break;
- 	}
- 
- 	switch (kasan_arg_stacktrace) {
- 	case KASAN_ARG_STACKTRACE_DEFAULT:
--		/* Default to enabling stack trace collection. */
--		static_branch_enable(&kasan_flag_stacktrace);
-+		/* Default is specified by kasan_flag_stacktrace definition. */
- 		break;
- 	case KASAN_ARG_STACKTRACE_OFF:
--		/* Do nothing, kasan_flag_stacktrace keeps its default value. */
-+		static_branch_disable(&kasan_flag_stacktrace);
- 		break;
- 	case KASAN_ARG_STACKTRACE_ON:
- 		static_branch_enable(&kasan_flag_stacktrace);
- 		break;
- 	}
- 
-+	/* KASAN is now initialized, enable it. */
-+	static_branch_enable(&kasan_flag_enabled);
++static inline bool should_skip_init(gfp_t flags)
++{
++	/* Don't skip, if hardware tag-based KASAN is not enabled. */
++	if (!kasan_hw_tags_enabled())
++		return false;
 +
- 	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, stacktrace=%s)\n",
- 		kasan_mode_info(),
- 		kasan_stack_collection_enabled() ? "on" : "off");
---- a/mm/kasan/kasan.h~kasan-clean-up-feature-flags-for-hw_tags-mode
-+++ a/mm/kasan/kasan.h
-@@ -12,7 +12,7 @@
- #include <linux/static_key.h>
- #include "../slab.h"
++	/* For hardware tag-based KASAN, skip if requested. */
++	return (flags & __GFP_SKIP_ZERO);
++}
++
+ inline void post_alloc_hook(struct page *page, unsigned int order,
+ 				gfp_t gfp_flags)
+ {
+-	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags);
++	bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags) &&
++			!should_skip_init(gfp_flags);
+ 	bool init_tags = init && (gfp_flags & __GFP_ZEROTAGS);
  
--DECLARE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
-+DECLARE_STATIC_KEY_TRUE(kasan_flag_stacktrace);
- 
- enum kasan_mode {
- 	KASAN_MODE_SYNC,
+ 	set_page_private(page, 0);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
