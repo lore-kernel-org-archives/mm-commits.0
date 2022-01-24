@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 55F1AC433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:12 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 04E2EC433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:24 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1837076AbiAXXIA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 18:08:00 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:44942 "EHLO
+        id S1844194AbiAXXIH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 18:08:07 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:45010 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1837104AbiAXWmR (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:42:17 -0500
+        with ESMTP id S1837118AbiAXWmV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:42:21 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1784361449
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17CB2C340E4;
-        Mon, 24 Jan 2022 22:42:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1F2FA612FC
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ED62C340E4;
+        Mon, 24 Jan 2022 22:42:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064133;
-        bh=tKfPfnElFqaVbOeVo9Y/2vC/VhrDDN8FK464KhOeoV0=;
+        s=korg; t=1643064139;
+        bh=X35tc/huuc+jd34cwOYSiV5T3no4KOOdgZ2QFMOPe7w=;
         h=Date:From:To:Subject:From;
-        b=hzvzjLwtJrAM0ie0V4WHk391VOz9gq/Hco5KVaJ07llmdYo+UAiRSmb9clDZBEgzV
-         SYOrhhVWqUmgqPGGuoS4OfQ4UFYRie1bKTHPFwX85XIR+XtxKlpzyTWC5fEp6Q93NT
-         TTXbS2NCfdfeZO4Ru1dm8UKd2wDBVFh0WNUc4Wzk=
-Date:   Mon, 24 Jan 2022 14:42:12 -0800
+        b=VoOQS/PUsiXQbnxX8926ZKeAPGiYj380WPNmwJu3wKFZFpYuduNBT/aYYLxOvLoqe
+         hLeS0NbIk408YyBVIqAhexjkrqrLJnZSB12jbU6L8WKExsY2SdDfPwFaj0yJLdQ4Za
+         g24RYVzhRdSVKlHB/DqKBJuKhve8XGwZ/ahB/ko4=
+Date:   Mon, 24 Jan 2022 14:42:18 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
 Subject:  +
- kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch added
- to -mm tree
-Message-ID: <20220124224212.coTsMzJ1I%akpm@linux-foundation.org>
+ kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch added to -mm
+ tree
+Message-ID: <20220124224218.9sbUrMBtb%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, page_alloc: move SetPageSkipKASanPoison in post_alloc_hook
+     Subject: kasan, page_alloc: rework kasan_unpoison_pages call site
 has been added to the -mm tree.  Its filename is
-     kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+     kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,17 +65,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, page_alloc: move SetPageSkipKASanPoison in post_alloc_hook
+Subject: kasan, page_alloc: rework kasan_unpoison_pages call site
 
-Pull the SetPageSkipKASanPoison() call in post_alloc_hook() out of the big
-if clause for better code readability.  This also allows for more
-simplifications in the following patches.
+Rework the checks around kasan_unpoison_pages() call in post_alloc_hook().
 
-Also turn the kasan_has_integrated_init() check into the proper
-kasan_hw_tags_enabled() one.  These checks evaluate to the same value, but
-logically skipping kasan poisoning has nothing to do with integrated init.
+The logical condition for calling this function is:
 
-Link: https://lkml.kernel.org/r/7214c1698b754ccfaa44a792113c95cc1f807c48.1643047180.git.andreyknvl@google.com
+- If a software KASAN mode is enabled, we need to mark shadow memory.
+- Otherwise, HW_TAGS KASAN is enabled, and it only makes sense to
+  set tags if they haven't already been cleared by tag_clear_highpage(),
+  which is indicated by init_tags.
+
+This patch concludes the changes for post_alloc_hook().
+
+Link: https://lkml.kernel.org/r/0ecebd0d7ccd79150e3620ea4185a32d3dfe912f.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -90,31 +93,39 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
---- a/mm/page_alloc.c~kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook
+--- a/mm/page_alloc.c~kasan-page_alloc-rework-kasan_unpoison_pages-call-site
 +++ a/mm/page_alloc.c
-@@ -2435,9 +2435,6 @@ inline void post_alloc_hook(struct page
+@@ -2434,15 +2434,20 @@ inline void post_alloc_hook(struct page
+ 		/* Note that memory is already initialized by the loop above. */
  		init = false;
  	}
- 	if (kasan_has_integrated_init()) {
--		if (gfp_flags & __GFP_SKIP_KASAN_POISON)
--			SetPageSkipKASanPoison(page);
--
- 		if (!init_tags)
- 			kasan_unpoison_pages(page, order, init);
- 	} else {
-@@ -2446,6 +2443,9 @@ inline void post_alloc_hook(struct page
- 		if (init)
- 			kernel_init_free_pages(page, 1 << order);
- 	}
-+	/* Propagate __GFP_SKIP_KASAN_POISON to page flags. */
-+	if (kasan_hw_tags_enabled() && (gfp_flags & __GFP_SKIP_KASAN_POISON))
-+		SetPageSkipKASanPoison(page);
+-	if (kasan_has_integrated_init()) {
+-		if (!init_tags) {
+-			kasan_unpoison_pages(page, order, init);
++	/*
++	 * If either a software KASAN mode is enabled, or,
++	 * in the case of hardware tag-based KASAN,
++	 * if memory tags have not been cleared via tag_clear_highpage().
++	 */
++	if (IS_ENABLED(CONFIG_KASAN_GENERIC) ||
++	    IS_ENABLED(CONFIG_KASAN_SW_TAGS) ||
++	    kasan_hw_tags_enabled() && !init_tags) {
++		/* Mark shadow memory or set memory tags. */
++		kasan_unpoison_pages(page, order, init);
  
- 	set_page_owner(page, order, gfp_flags);
- 	page_table_check_alloc(page, order);
+-			/* Note that memory is already initialized by KASAN. */
++		/* Note that memory is already initialized by KASAN. */
++		if (kasan_has_integrated_init())
+ 			init = false;
+-		}
+-	} else {
+-		kasan_unpoison_pages(page, order, init);
+ 	}
+ 	/* If memory is still not initialized, do it now. */
+ 	if (init)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
