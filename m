@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D1812C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:46:03 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0DE2EC43217
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:46:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S246134AbiAYDpx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 22:45:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45862 "EHLO
+        id S246175AbiAYDqB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 22:46:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45386 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S3415090AbiAYA5K (ORCPT
+        with ESMTP id S3415088AbiAYA5K (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:57:10 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 01D0BC05487A
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:42:44 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 28D7AC054876
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:42:38 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BE6EBB815A6
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 16D8EC340E4;
-        Mon, 24 Jan 2022 22:42:41 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BC4BBB812A8
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:36 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0FF5CC340E4;
+        Mon, 24 Jan 2022 22:42:35 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064161;
-        bh=k+VUUEtiV2xcX+qo+vVDzHs05GxLmMGz3QdVDk9euQI=;
+        s=korg; t=1643064155;
+        bh=aBXdwbyApBdlRgzaN16nBspW7P8gvlbneuDkAYklKww=;
         h=Date:From:To:Subject:From;
-        b=wpNUlJ85IUDeqe1zTtchthfnd1koAMbFJMi9liM6vUJaewjmvqkpgenTqB3P6+AHc
-         XJtLAGufYR42or35JXNqKa0eZfwdvAa2+BDGvkAhPqhnmOEUYBWGpHHbaMTix8jZTl
-         T8KnjPAkQY1mXiBNcnZImmuoVQwCdAppSGEI9Sfo=
-Date:   Mon, 24 Jan 2022 14:42:40 -0800
+        b=ESVjnf3Vf0sxodumwu5OH1GsKRqkxWCZ/mB7gSO+GmqYKJscQEBBHGhQSLWSazs95
+         RvJlJOa/IDnG4tmFLgwQjgvBVZ8EIFH3bweVxI4AtOrLy8YlzTrAI9ADY+qwNcrOXV
+         hZ5meZU5Q8RyANs3Hzm07fuyJpyK/UqnT3DFmshY=
+Date:   Mon, 24 Jan 2022 14:42:34 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
- added to -mm tree
-Message-ID: <20220124224240.MfDtIbvBR%akpm@linux-foundation.org>
+Subject:  + kasan-reorder-vmalloc-hooks.patch added to -mm tree
+Message-ID: <20220124224234.4dDhep62L%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, vmalloc: reset tags in vmalloc functions
+     Subject: kasan: reorder vmalloc hooks
 has been added to the -mm tree.  Its filename is
-     kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+     kasan-reorder-vmalloc-hooks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-reorder-vmalloc-hooks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-reorder-vmalloc-hooks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,23 +66,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, vmalloc: reset tags in vmalloc functions
+Subject: kasan: reorder vmalloc hooks
 
-In preparation for adding vmalloc support to SW/HW_TAGS KASAN, reset
-pointer tags in functions that use pointer values in range checks.
+Group functions that [de]populate shadow memory for vmalloc.  Group
+functions that [un]poison memory for vmalloc.
 
-vread() is a special case here.  Despite the untagging of the addr pointer
-in its prologue, the accesses performed by vread() are checked.
+This patch does no functional changes but prepares KASAN code for adding
+vmalloc support to HW_TAGS KASAN.
 
-Instead of accessing the virtual mappings though addr directly, vread()
-recovers the physical address via page_address(vmalloc_to_page()) and
-acceses that.  And as page_address() recovers the pointer tag, the
-accesses get checked.
-
-Link: https://lkml.kernel.org/r/046003c5f683cacb0ba18e1079e9688bb3dca943.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/aeef49eb249c206c4c9acce2437728068da74c28.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -95,65 +89,115 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ include/linux/kasan.h |   20 ++++++++----------
+ mm/kasan/shadow.c     |   43 ++++++++++++++++++++--------------------
+ 2 files changed, 31 insertions(+), 32 deletions(-)
 
---- a/mm/vmalloc.c~kasan-vmalloc-reset-tags-in-vmalloc-functions
-+++ a/mm/vmalloc.c
-@@ -74,7 +74,7 @@ static const bool vmap_allow_huge = fals
+--- a/include/linux/kasan.h~kasan-reorder-vmalloc-hooks
++++ a/include/linux/kasan.h
+@@ -418,34 +418,32 @@ static inline void kasan_init_hw_tags(vo
  
- bool is_vmalloc_addr(const void *x)
+ #ifdef CONFIG_KASAN_VMALLOC
+ 
++void kasan_populate_early_vm_area_shadow(void *start, unsigned long size);
+ int kasan_populate_vmalloc(unsigned long addr, unsigned long size);
+-void kasan_poison_vmalloc(const void *start, unsigned long size);
+-void kasan_unpoison_vmalloc(const void *start, unsigned long size);
+ void kasan_release_vmalloc(unsigned long start, unsigned long end,
+ 			   unsigned long free_region_start,
+ 			   unsigned long free_region_end);
+ 
+-void kasan_populate_early_vm_area_shadow(void *start, unsigned long size);
++void kasan_unpoison_vmalloc(const void *start, unsigned long size);
++void kasan_poison_vmalloc(const void *start, unsigned long size);
+ 
+ #else /* CONFIG_KASAN_VMALLOC */
+ 
++static inline void kasan_populate_early_vm_area_shadow(void *start,
++						       unsigned long size) { }
+ static inline int kasan_populate_vmalloc(unsigned long start,
+ 					unsigned long size)
  {
--	unsigned long addr = (unsigned long)x;
-+	unsigned long addr = (unsigned long)kasan_reset_tag(x);
- 
- 	return addr >= VMALLOC_START && addr < VMALLOC_END;
+ 	return 0;
  }
-@@ -632,7 +632,7 @@ int is_vmalloc_or_module_addr(const void
- 	 * just put it in the vmalloc space.
- 	 */
- #if defined(CONFIG_MODULES) && defined(MODULES_VADDR)
--	unsigned long addr = (unsigned long)x;
-+	unsigned long addr = (unsigned long)kasan_reset_tag(x);
- 	if (addr >= MODULES_VADDR && addr < MODULES_END)
- 		return 1;
- #endif
-@@ -806,6 +806,8 @@ static struct vmap_area *find_vmap_area_
- 	struct vmap_area *va = NULL;
- 	struct rb_node *n = vmap_area_root.rb_node;
+-
+-static inline void kasan_poison_vmalloc(const void *start, unsigned long size)
+-{ }
+-static inline void kasan_unpoison_vmalloc(const void *start, unsigned long size)
+-{ }
+ static inline void kasan_release_vmalloc(unsigned long start,
+ 					 unsigned long end,
+ 					 unsigned long free_region_start,
+-					 unsigned long free_region_end) {}
++					 unsigned long free_region_end) { }
  
-+	addr = (unsigned long)kasan_reset_tag((void *)addr);
-+
- 	while (n) {
- 		struct vmap_area *tmp;
+-static inline void kasan_populate_early_vm_area_shadow(void *start,
+-						       unsigned long size)
++static inline void kasan_unpoison_vmalloc(const void *start, unsigned long size)
++{ }
++static inline void kasan_poison_vmalloc(const void *start, unsigned long size)
+ { }
  
-@@ -827,6 +829,8 @@ static struct vmap_area *__find_vmap_are
+ #endif /* CONFIG_KASAN_VMALLOC */
+--- a/mm/kasan/shadow.c~kasan-reorder-vmalloc-hooks
++++ a/mm/kasan/shadow.c
+@@ -345,27 +345,6 @@ int kasan_populate_vmalloc(unsigned long
+ 	return 0;
+ }
+ 
+-/*
+- * Poison the shadow for a vmalloc region. Called as part of the
+- * freeing process at the time the region is freed.
+- */
+-void kasan_poison_vmalloc(const void *start, unsigned long size)
+-{
+-	if (!is_vmalloc_or_module_addr(start))
+-		return;
+-
+-	size = round_up(size, KASAN_GRANULE_SIZE);
+-	kasan_poison(start, size, KASAN_VMALLOC_INVALID, false);
+-}
+-
+-void kasan_unpoison_vmalloc(const void *start, unsigned long size)
+-{
+-	if (!is_vmalloc_or_module_addr(start))
+-		return;
+-
+-	kasan_unpoison(start, size, false);
+-}
+-
+ static int kasan_depopulate_vmalloc_pte(pte_t *ptep, unsigned long addr,
+ 					void *unused)
  {
- 	struct rb_node *n = vmap_area_root.rb_node;
+@@ -496,6 +475,28 @@ void kasan_release_vmalloc(unsigned long
+ 	}
+ }
  
-+	addr = (unsigned long)kasan_reset_tag((void *)addr);
 +
- 	while (n) {
- 		struct vmap_area *va;
- 
-@@ -2145,7 +2149,7 @@ EXPORT_SYMBOL_GPL(vm_unmap_aliases);
- void vm_unmap_ram(const void *mem, unsigned int count)
- {
- 	unsigned long size = (unsigned long)count << PAGE_SHIFT;
--	unsigned long addr = (unsigned long)mem;
-+	unsigned long addr = (unsigned long)kasan_reset_tag(mem);
- 	struct vmap_area *va;
- 
- 	might_sleep();
-@@ -3404,6 +3408,8 @@ long vread(char *buf, char *addr, unsign
- 	unsigned long buflen = count;
- 	unsigned long n;
- 
-+	addr = kasan_reset_tag(addr);
++void kasan_unpoison_vmalloc(const void *start, unsigned long size)
++{
++	if (!is_vmalloc_or_module_addr(start))
++		return;
 +
- 	/* Don't allow overflow */
- 	if ((unsigned long) addr + count < count)
- 		count = -(unsigned long) addr;
++	kasan_unpoison(start, size, false);
++}
++
++/*
++ * Poison the shadow for a vmalloc region. Called as part of the
++ * freeing process at the time the region is freed.
++ */
++void kasan_poison_vmalloc(const void *start, unsigned long size)
++{
++	if (!is_vmalloc_or_module_addr(start))
++		return;
++
++	size = round_up(size, KASAN_GRANULE_SIZE);
++	kasan_poison(start, size, KASAN_VMALLOC_INVALID, false);
++}
++
+ #else /* CONFIG_KASAN_VMALLOC */
+ 
+ int kasan_alloc_module_shadow(void *addr, size_t size, gfp_t gfp_mask)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
