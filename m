@@ -2,38 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A041CC4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 01:58:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8ED90C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:45:05 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S3411707AbiAYAec (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 19:34:32 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:47292 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S2371817AbiAYAJz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:09:55 -0500
+        id S1386761AbiAYDo7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 22:44:59 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42622 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S3413951AbiAYAl3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:41:29 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 03410C05430C
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:28:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E626261496
-        for <mm-commits@vger.kernel.org>; Tue, 25 Jan 2022 00:09:48 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 14CCFC340F7;
-        Tue, 25 Jan 2022 00:09:48 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id B5AFACE13B6
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:28:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C85AEC340E4;
+        Mon, 24 Jan 2022 22:28:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643069388;
-        bh=KQ+4NexEHs7I3A3HHphuXd/uQw66dQcRxyUvOf7BA3s=;
+        s=korg; t=1643063324;
+        bh=xU7hh9fO1L0YKbS/YwewcK54F3WOtJaolV9ytbRO5E0=;
         h=Date:From:To:Subject:From;
-        b=NFOvj3q+pm0VG3wj/B80F8c+OZbp5Sg2+e4XPC4bEXkrnxuBCAUkvXDnf1n17/k8I
-         Ytfehtnw7PCDT3+/rqGOtnA9Gu5K0Xz0Kp8nkO0ivrWF00rN+XYRTXeKMmm6v8qBAN
-         RVSmX6v7vV2IoGfFXV3czbhsSbEJragx1D4HbAfA=
-Date:   Mon, 24 Jan 2022 16:09:47 -0800
+        b=lByo4CI53jwVlk6TiCkkqXrRsai4sVNj1W5zr3ILiRZnVrfNoVzBu/8L/Sh090fKI
+         w6j2WyLfa/wQVIQ50p+WXEowFO1E3nWmJ71UhSy96C8unA1lgsxKt7znB70CHPWcQH
+         /1PHCViZDjUvjQQv/l3oX4emgCN35H7BxPCkwGPc=
+Date:   Mon, 24 Jan 2022 14:28:43 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, hbathini@linux.ibm.com, mahesh@linux.ibm.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, osalvador@suse.de, sourabhjain@linux.ibm.com
+To:     ebiederm@xmission.com, hch@infradead.org,
+        mm-commits@vger.kernel.org, rdunlap@infradead.org,
+        tony.luck@intel.com
 Subject:  +
- powerpc-fadump-opt-out-from-freeing-pages-on-cma-activation-failure.patch
- added to -mm tree
-Message-ID: <20220125000947.aFI4Aw_oK%akpm@linux-foundation.org>
+ ia64-make-ia64_mca_recovery-bool-instead-of-tristate.patch added to -mm
+ tree
+Message-ID: <20220124222843.H489ykWjC%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/fadump: opt out from freeing pages on cma activation failure
+     Subject: ia64: make IA64_MCA_RECOVERY bool instead of tristate
 has been added to the -mm tree.  Its filename is
-     powerpc-fadump-opt-out-from-freeing-pages-on-cma-activation-failure.patch
+     ia64-make-ia64_mca_recovery-bool-instead-of-tristate.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/powerpc-fadump-opt-out-from-freeing-pages-on-cma-activation-failure.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ia64-make-ia64_mca_recovery-bool-instead-of-tristate.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/powerpc-fadump-opt-out-from-freeing-pages-on-cma-activation-failure.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ia64-make-ia64_mca_recovery-bool-instead-of-tristate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,59 +66,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hari Bathini <hbathini@linux.ibm.com>
-Subject: powerpc/fadump: opt out from freeing pages on cma activation failure
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: ia64: make IA64_MCA_RECOVERY bool instead of tristate
 
-With commit a4e92ce8e4c8 ("powerpc/fadump: Reservationless firmware
-assisted dump"), Linux kernel's Contiguous Memory Allocator (CMA) based
-reservation was introduced in fadump.  That change was aimed at using CMA
-to let applications utilize the memory reserved for fadump while blocking
-it from being used for kernel pages.  The assumption was, even if CMA
-activation fails for whatever reason, the memory still remains reserved to
-avoid it from being used for kernel pages.  But commit 072355c1cf2d
-("mm/cma: expose all pages to the buddy if activation of an area fails")
-breaks this assumption as it started exposing all pages to buddy allocator
-on CMA activation failure.  It led to warning messages like below while
-running crash-utility on vmcore of a kernel having above two commits:
+In linux-next, IA64_MCA_RECOVERY uses the (new) function make_task_dead(),
+which is not exported for use by modules.  Instead of exporting it for one
+user, convert IA64_MCA_RECOVERY to be a bool Kconfig symbol.
 
-  crash: seek error: kernel virtual address: <from reserved region>
+In a config file from "kernel test robot <lkp@intel.com>" for a different
+problem, this linker error was exposed when CONFIG_IA64_MCA_RECOVERY=m.
 
-To fix this problem, opt out from exposing pages to buddy allocator on CMA
-activation failure for fadump reserved memory.
+Fixes this build error:
 
-Link: https://lkml.kernel.org/r/20220117075246.36072-3-hbathini@linux.ibm.com
-Signed-off-by: Hari Bathini <hbathini@linux.ibm.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Mahesh Salgaonkar <mahesh@linux.ibm.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
+ERROR: modpost: "make_task_dead" [arch/ia64/kernel/mca_recovery.ko] undefined!
+
+Link: https://lkml.kernel.org/r/20220124213129.29306-1-rdunlap@infradead.org
+Fixes: 0e25498f8cd4 ("exit: Add and use make_task_dead.")
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Suggested-by: Christoph Hellwig <hch@infradead.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/fadump.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/ia64/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/arch/powerpc/kernel/fadump.c~powerpc-fadump-opt-out-from-freeing-pages-on-cma-activation-failure
-+++ a/arch/powerpc/kernel/fadump.c
-@@ -113,6 +113,12 @@ static int __init fadump_cma_init(void)
- 	}
+--- a/arch/ia64/Kconfig~ia64-make-ia64_mca_recovery-bool-instead-of-tristate
++++ a/arch/ia64/Kconfig
+@@ -318,7 +318,7 @@ config ARCH_PROC_KCORE_TEXT
+ 	depends on PROC_KCORE
  
- 	/*
-+	 *  If CMA activation fails, keep the pages reserved, instead of
-+	 *  exposing them to buddy allocator. Same as 'fadump=nocma' case.
-+	 */
-+	cma_reserve_pages_on_error(fadump_cma);
-+
-+	/*
- 	 * So we now have successfully initialized cma area for fadump.
- 	 */
- 	pr_info("Initialized 0x%lx bytes cma area at %ldMB from 0x%lx "
+ config IA64_MCA_RECOVERY
+-	tristate "MCA recovery from errors other than TLB."
++	bool "MCA recovery from errors other than TLB."
+ 
+ config IA64_PALINFO
+ 	tristate "/proc/pal support"
 _
 
-Patches currently in -mm which might be from hbathini@linux.ibm.com are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-cma-provide-option-to-opt-out-from-exposing-pages-on-activation-failure.patch
-powerpc-fadump-opt-out-from-freeing-pages-on-cma-activation-failure.patch
+ia64-make-ia64_mca_recovery-bool-instead-of-tristate.patch
+sysctl-documentation-fix-table-format-warning.patch
 
