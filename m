@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0C6C4C4332F
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 00:34:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 15708C433FE
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 00:34:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1359220AbiAYAeL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 19:34:11 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:44852 "EHLO
+        id S3411648AbiAYAeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 19:34:13 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:45102 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1837041AbiAXWmG (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:42:06 -0500
+        with ESMTP id S1837152AbiAXWme (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:42:34 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 14AED61444
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 15EF4C340E4;
-        Mon, 24 Jan 2022 22:42:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 17B0361447
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:33 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A047C340E4;
+        Mon, 24 Jan 2022 22:42:32 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064124;
-        bh=ZKdepm9xFF0OoV9cxinE1wcz6Pjo+Q5Aw3KwdiiOvXw=;
+        s=korg; t=1643064152;
+        bh=YZrEAmlDMyeArJLZKsxMPujr4rT/kcuOnrA32KTToe0=;
         h=Date:From:To:Subject:From;
-        b=tX39j7LXGKKbidKNbx5Iiuco2YWomOG0tq0e2yYq9zHr9WP2m0sVLvWdJwjHHM1W2
-         bE1zWOUSJZd1JXAjn3tNaGgqY8gwzpuhgmlBEJwqxXxDI7kL8NsKh1AIwTmaiCIQQL
-         BnC8oOXJwWk43FiKq+EyI+KEoSAbEfTPHjDlEx6U=
-Date:   Mon, 24 Jan 2022 14:42:03 -0800
+        b=axuSQcBuHde0pgARdglmhoo30r3uja3NrRlpSmfKvc2w/c1mGOoI2JKfS3zw5KuZI
+         eRDQwD3rowJ5TZg95yTsMrpdObM03U2rBqP3Rox5LxYDeDWB99h5c9+3/SEkxdEg5v
+         YPCB3FyM8N+KdcjExXbkLlPPlSxj35SA0BoE22Z4=
+Date:   Mon, 24 Jan 2022 14:42:31 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  +
- kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch added to -mm
- tree
-Message-ID: <20220124224203.rUei14V7C%akpm@linux-foundation.org>
+Subject:  + kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+ added to -mm tree
+Message-ID: <20220124224231.UprLhzr7d%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, page_alloc: refactor init checks in post_alloc_hook
+     Subject: kasan, vmalloc: drop outdated VM_KASAN comment
 has been added to the -mm tree.  Its filename is
-     kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+     kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,17 +64,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, page_alloc: refactor init checks in post_alloc_hook
+Subject: kasan, vmalloc: drop outdated VM_KASAN comment
 
-Separate code for zeroing memory from the code clearing tags in
-post_alloc_hook().
+The comment about VM_KASAN in include/linux/vmalloc.c is outdated. 
+VM_KASAN is currently only used to mark vm_areas allocated for kernel
+modules when CONFIG_KASAN_VMALLOC is disabled.
 
-This patch is not useful by itself but makes the simplifications in the
-following patches easier to follow.
+Drop the comment.
 
-This patch does no functional changes.
-
-Link: https://lkml.kernel.org/r/2283fde963adfd8a2b29a92066f106cc16661a3c.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/780395afea83a147b3b5acc36cf2e38f7f8479f9.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
@@ -90,42 +87,29 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ include/linux/vmalloc.h |   11 -----------
+ 1 file changed, 11 deletions(-)
 
---- a/mm/page_alloc.c~kasan-page_alloc-refactor-init-checks-in-post_alloc_hook
-+++ a/mm/page_alloc.c
-@@ -2420,19 +2420,21 @@ inline void post_alloc_hook(struct page
- 		kasan_alloc_pages(page, order, gfp_flags);
- 	} else {
- 		bool init = !want_init_on_free() && want_init_on_alloc(gfp_flags);
-+		bool init_tags = init && (gfp_flags & __GFP_ZEROTAGS);
+--- a/include/linux/vmalloc.h~kasan-vmalloc-drop-outdated-vm_kasan-comment
++++ a/include/linux/vmalloc.h
+@@ -35,17 +35,6 @@ struct notifier_block;		/* in notifier.h
+ #define VM_DEFER_KMEMLEAK	0
+ #endif
  
- 		kasan_unpoison_pages(page, order, init);
- 
--		if (init) {
--			if (gfp_flags & __GFP_ZEROTAGS) {
--				int i;
+-/*
+- * VM_KASAN is used slightly differently depending on CONFIG_KASAN_VMALLOC.
+- *
+- * If IS_ENABLED(CONFIG_KASAN_VMALLOC), VM_KASAN is set on a vm_struct after
+- * shadow memory has been mapped. It's used to handle allocation errors so that
+- * we don't try to poison shadow on free if it was never allocated.
+- *
+- * Otherwise, VM_KASAN is set for kasan_module_alloc() allocations and used to
+- * determine which allocations need the module shadow freed.
+- */
 -
--				for (i = 0; i < 1 << order; i++)
--					tag_clear_highpage(page + i);
--			} else {
--				kernel_init_free_pages(page, 1 << order);
--			}
-+		if (init_tags) {
-+			int i;
-+
-+			for (i = 0; i < 1 << order; i++)
-+				tag_clear_highpage(page + i);
-+
-+			init = false;
- 		}
-+
-+		if (init)
-+			kernel_init_free_pages(page, 1 << order);
- 	}
+ /* bits [20..32] reserved for arch specific ioremap internals */
  
- 	set_page_owner(page, order, gfp_flags);
+ /*
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
