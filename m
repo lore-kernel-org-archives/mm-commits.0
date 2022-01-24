@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 04E2EC433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A2A2C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1844194AbiAXXIH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 18:08:07 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:45010 "EHLO
+        id S1844237AbiAXXIM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 18:08:12 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:45052 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1837118AbiAXWmV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:42:21 -0500
+        with ESMTP id S1837143AbiAXWm3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:42:29 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1F2FA612FC
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:20 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1ED62C340E4;
-        Mon, 24 Jan 2022 22:42:19 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 0EF3C61411
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:26 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0D024C340E4;
+        Mon, 24 Jan 2022 22:42:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064139;
-        bh=X35tc/huuc+jd34cwOYSiV5T3no4KOOdgZ2QFMOPe7w=;
+        s=korg; t=1643064145;
+        bh=32yCiJhhdNx/f/d3DdpFrpxUNQ46XI0YnBWIq/QA5xk=;
         h=Date:From:To:Subject:From;
-        b=VoOQS/PUsiXQbnxX8926ZKeAPGiYj380WPNmwJu3wKFZFpYuduNBT/aYYLxOvLoqe
-         hLeS0NbIk408YyBVIqAhexjkrqrLJnZSB12jbU6L8WKExsY2SdDfPwFaj0yJLdQ4Za
-         g24RYVzhRdSVKlHB/DqKBJuKhve8XGwZ/ahB/ko4=
-Date:   Mon, 24 Jan 2022 14:42:18 -0800
+        b=IgB8T24LuXCvfbCxpfIG7xyZyMSPbCPK2RoRJNGB2JqUuZJsNsrCsOKJsd57SS/2X
+         bgOeCs4vCSuFfyG4y44lIY9syheMk+eA5b09CsZlEO7P+A8YkUUvanTm4qnA65KFAK
+         jdgGkRNinD38xAKjeYkwLfMpB6VAjsv0QU0dX1Ls=
+Date:   Mon, 24 Jan 2022 14:42:24 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  +
- kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch added to -mm
- tree
-Message-ID: <20220124224218.9sbUrMBtb%akpm@linux-foundation.org>
+Subject:  + kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
+ added to -mm tree
+Message-ID: <20220124224224.yDJy8GwNJ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, page_alloc: rework kasan_unpoison_pages call site
+     Subject: kasan: define KASAN_VMALLOC_INVALID for SW_TAGS
 has been added to the -mm tree.  Its filename is
-     kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+     kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,23 +64,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, page_alloc: rework kasan_unpoison_pages call site
+Subject: kasan: define KASAN_VMALLOC_INVALID for SW_TAGS
 
-Rework the checks around kasan_unpoison_pages() call in post_alloc_hook().
+In preparation for adding vmalloc support to SW_TAGS KASAN, provide a
+KASAN_VMALLOC_INVALID definition for it.
 
-The logical condition for calling this function is:
+HW_TAGS KASAN won't be using this value, as it falls back onto page_alloc
+for poisoning freed vmalloc() memory.
 
-- If a software KASAN mode is enabled, we need to mark shadow memory.
-- Otherwise, HW_TAGS KASAN is enabled, and it only makes sense to
-  set tags if they haven't already been cleared by tag_clear_highpage(),
-  which is indicated by init_tags.
-
-This patch concludes the changes for post_alloc_hook().
-
-Link: https://lkml.kernel.org/r/0ecebd0d7ccd79150e3620ea4185a32d3dfe912f.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/1daaaafeb148a7ae8285265edc97d7ca07b6a07d.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -93,39 +87,32 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   19 ++++++++++++-------
- 1 file changed, 12 insertions(+), 7 deletions(-)
+ mm/kasan/kasan.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/page_alloc.c~kasan-page_alloc-rework-kasan_unpoison_pages-call-site
-+++ a/mm/page_alloc.c
-@@ -2434,15 +2434,20 @@ inline void post_alloc_hook(struct page
- 		/* Note that memory is already initialized by the loop above. */
- 		init = false;
- 	}
--	if (kasan_has_integrated_init()) {
--		if (!init_tags) {
--			kasan_unpoison_pages(page, order, init);
-+	/*
-+	 * If either a software KASAN mode is enabled, or,
-+	 * in the case of hardware tag-based KASAN,
-+	 * if memory tags have not been cleared via tag_clear_highpage().
-+	 */
-+	if (IS_ENABLED(CONFIG_KASAN_GENERIC) ||
-+	    IS_ENABLED(CONFIG_KASAN_SW_TAGS) ||
-+	    kasan_hw_tags_enabled() && !init_tags) {
-+		/* Mark shadow memory or set memory tags. */
-+		kasan_unpoison_pages(page, order, init);
+--- a/mm/kasan/kasan.h~kasan-define-kasan_vmalloc_invalid-for-sw_tags
++++ a/mm/kasan/kasan.h
+@@ -71,18 +71,19 @@ static inline bool kasan_sync_fault_poss
+ #define KASAN_PAGE_REDZONE      0xFE  /* redzone for kmalloc_large allocations */
+ #define KASAN_KMALLOC_REDZONE   0xFC  /* redzone inside slub object */
+ #define KASAN_KMALLOC_FREE      0xFB  /* object was freed (kmem_cache_free/kfree) */
++#define KASAN_VMALLOC_INVALID   0xF8  /* unallocated space in vmapped page */
+ #else
+ #define KASAN_FREE_PAGE         KASAN_TAG_INVALID
+ #define KASAN_PAGE_REDZONE      KASAN_TAG_INVALID
+ #define KASAN_KMALLOC_REDZONE   KASAN_TAG_INVALID
+ #define KASAN_KMALLOC_FREE      KASAN_TAG_INVALID
++#define KASAN_VMALLOC_INVALID   KASAN_TAG_INVALID /* only for SW_TAGS */
+ #endif
  
--			/* Note that memory is already initialized by KASAN. */
-+		/* Note that memory is already initialized by KASAN. */
-+		if (kasan_has_integrated_init())
- 			init = false;
--		}
--	} else {
--		kasan_unpoison_pages(page, order, init);
- 	}
- 	/* If memory is still not initialized, do it now. */
- 	if (init)
+ #ifdef CONFIG_KASAN_GENERIC
+ 
+ #define KASAN_KMALLOC_FREETRACK 0xFA  /* object was freed and has free track set */
+ #define KASAN_GLOBAL_REDZONE    0xF9  /* redzone for global variable */
+-#define KASAN_VMALLOC_INVALID   0xF8  /* unallocated space in vmapped page */
+ 
+ /*
+  * Stack redzone shadow values
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
