@@ -2,44 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 345DFC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:46:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A464BC4332F
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:47:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S246353AbiAYDqs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 22:46:48 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40486 "EHLO
+        id S244380AbiAYDqy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 22:46:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44960 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1311730AbiAYClN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 21:41:13 -0500
+        with ESMTP id S1316530AbiAYC56 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 21:57:58 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F233BC0AD1A7
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 16:09:47 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E2379C0EDA4E
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:59:28 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id AF846B81600
-        for <mm-commits@vger.kernel.org>; Tue, 25 Jan 2022 00:09:46 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17A86C340E4;
-        Tue, 25 Jan 2022 00:09:45 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 6002FB815A5
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:59:27 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B5875C36AEC;
+        Mon, 24 Jan 2022 22:59:25 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643069385;
-        bh=CM8KbDYGNZditYccJyGI92Fi7othHo5T96AFOBr4MRs=;
+        s=korg; t=1643065165;
+        bh=jhD5ypmgninKbGAnBPMc2N/TkuS048GcTqqq5965QUM=;
         h=Date:From:To:Subject:From;
-        b=m9kqz4U2H8a2asX7+uUAWNRAxv2vEj1sUzBDghVtCfa9sMfkwHHpWug6SXEZdpTwp
-         QW8SwcXt+jgXXkql9HsepbPgszhkLbfedUD1Ji3Jv4da0usbKsJf4ZkiBqyLFbytjd
-         5MFm4kXL1RUpPXwsjieTtSEGE1m9oDN3wDTEp5N8=
-Date:   Mon, 24 Jan 2022 16:09:44 -0800
+        b=tMgZR9cDWoCTDsT/KwxIU+LjtSp5YUr2XgG596/DUTjc2UW2MGgn8h+8k4hbW9crd
+         n+pUFQpIUufZ41avRYm79VLoyoeWrobICv+GyVqrjVD/xuSoxshZCvxMfEOX+vV7B4
+         m+lbSHPVmgq5uCupPF3bTQa6Hlu9pAwx4DqWkwLQ=
+Date:   Mon, 24 Jan 2022 14:59:25 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, hbathini@linux.ibm.com, mahesh@linux.ibm.com,
-        mike.kravetz@oracle.com, mm-commits@vger.kernel.org,
-        mpe@ellerman.id.au, osalvador@suse.de, sourabhjain@linux.ibm.com
+To:     david@redhat.com, mgorman@techsingularity.net,
+        mm-commits@vger.kernel.org, rppt@kernel.org, vbabka@suse.cz,
+        ziy@nvidia.com
 Subject:  +
- =?US-ASCII?Q?mm-cma-provide-option-to-opt-out-from-exposing-pages-on-acti?=
- =?US-ASCII?Q?vation-failure.patch?= added to -mm tree
-Message-ID: <20220125000944.sj48Pegoj%akpm@linux-foundation.org>
+ mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others.patch
+ added to -mm tree
+Message-ID: <20220124225925.l_AXnrUat%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma: provide option to opt out from exposing pages on activation failure
+     Subject: mm: page_alloc: avoid merging non-fallbackable pageblocks with others
 has been added to the -mm tree.  Its filename is
-     mm-cma-provide-option-to-opt-out-from-exposing-pages-on-activation-failure.patch
+     mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-cma-provide-option-to-opt-out-from-exposing-pages-on-activation-failure.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-provide-option-to-opt-out-from-exposing-pages-on-activation-failure.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,84 +66,143 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hari Bathini <hbathini@linux.ibm.com>
-Subject: mm/cma: provide option to opt out from exposing pages on activation failure
+From: Zi Yan <ziy@nvidia.com>
+Subject: mm: page_alloc: avoid merging non-fallbackable pageblocks with others
 
-Patch series "powerpc/fadump: handle CMA activation failure appropriately", v3.
+This is done in addition to MIGRATE_ISOLATE pageblock merge avoidance.  It
+prepares for the upcoming removal of the MAX_ORDER-1 alignment requirement
+for CMA and alloc_contig_range().
 
-Commit 072355c1cf2d ("mm/cma: expose all pages to the buddy if activation
-of an area fails") started exposing all pages to buddy allocator on CMA
-activation failure.  But there can be CMA users that want to handle the
-reserved memory differently on CMA allocation failure.  Provide an option
-to opt out from exposing pages to buddy for such cases.
+MIGRATE_HIGHATOMIC should not merge with other migratetypes like
+MIGRATE_ISOLATE and MIGRARTE_CMA[1], so this commit prevents that too.
 
-Link: https://lkml.kernel.org/r/20220117075246.36072-1-hbathini@linux.ibm.com
-Link: https://lkml.kernel.org/r/20220117075246.36072-2-hbathini@linux.ibm.com
-Signed-off-by: Hari Bathini <hbathini@linux.ibm.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Mahesh Salgaonkar <mahesh@linux.ibm.com>
-Cc: Sourabh Jain <sourabhjain@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Remove MIGRATE_CMA and MIGRATE_ISOLATE from fallbacks list, since they
+are never used.
+
+[1] https://lore.kernel.org/linux-mm/20211130100853.GP3366@techsingularity.net/
+
+Link: https://lkml.kernel.org/r/20220124175957.1261961-1-zi.yan@sent.com
+Signed-off-by: Zi Yan <ziy@nvidia.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: David Hildenbrand <david@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mike Rapoport <rppt@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cma.h |    2 ++
- mm/cma.c            |   11 +++++++++--
- mm/cma.h            |    1 +
- 3 files changed, 12 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |   11 +++++++++
+ mm/page_alloc.c        |   46 ++++++++++++++++++---------------------
+ 2 files changed, 33 insertions(+), 24 deletions(-)
 
---- a/include/linux/cma.h~mm-cma-provide-option-to-opt-out-from-exposing-pages-on-activation-failure
-+++ a/include/linux/cma.h
-@@ -50,4 +50,6 @@ extern bool cma_pages_valid(struct cma *
- extern bool cma_release(struct cma *cma, const struct page *pages, unsigned long count);
- 
- extern int cma_for_each_area(int (*it)(struct cma *cma, void *data), void *data);
-+
-+extern void cma_reserve_pages_on_error(struct cma *cma);
- #endif
---- a/mm/cma.c~mm-cma-provide-option-to-opt-out-from-exposing-pages-on-activation-failure
-+++ a/mm/cma.c
-@@ -131,8 +131,10 @@ not_in_zone:
- 	bitmap_free(cma->bitmap);
- out_error:
- 	/* Expose all pages to the buddy, they are useless for CMA. */
--	for (pfn = base_pfn; pfn < base_pfn + cma->count; pfn++)
--		free_reserved_page(pfn_to_page(pfn));
-+	if (!cma->reserve_pages_on_error) {
-+		for (pfn = base_pfn; pfn < base_pfn + cma->count; pfn++)
-+			free_reserved_page(pfn_to_page(pfn));
-+	}
- 	totalcma_pages -= cma->count;
- 	cma->count = 0;
- 	pr_err("CMA area %s could not be activated\n", cma->name);
-@@ -150,6 +152,11 @@ static int __init cma_init_reserved_area
+--- a/include/linux/mmzone.h~mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others
++++ a/include/linux/mmzone.h
+@@ -83,6 +83,17 @@ static inline bool is_migrate_movable(in
+ 	return is_migrate_cma(mt) || mt == MIGRATE_MOVABLE;
  }
- core_initcall(cma_init_reserved_areas);
  
-+void __init cma_reserve_pages_on_error(struct cma *cma)
++/*
++ * Check whether a migratetype can be merged with another migratetype.
++ *
++ * It is only mergeable when it can fall back to other migratetypes for
++ * allocation. See fallbacks[MIGRATE_TYPES][3] in page_alloc.c.
++ */
++static inline bool migratetype_is_mergeable(int mt)
 +{
-+	cma->reserve_pages_on_error = true;
++	return mt < MIGRATE_PCPTYPES;
 +}
 +
- /**
-  * cma_init_reserved_mem() - create custom contiguous area from reserved memory
-  * @base: Base address of the reserved area
---- a/mm/cma.h~mm-cma-provide-option-to-opt-out-from-exposing-pages-on-activation-failure
-+++ a/mm/cma.h
-@@ -30,6 +30,7 @@ struct cma {
- 	/* kobject requires dynamic object */
- 	struct cma_kobject *cma_kobj;
- #endif
-+	bool reserve_pages_on_error;
+ #define for_each_migratetype_order(order, type) \
+ 	for (order = 0; order < MAX_ORDER; order++) \
+ 		for (type = 0; type < MIGRATE_TYPES; type++)
+--- a/mm/page_alloc.c~mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others
++++ a/mm/page_alloc.c
+@@ -1099,25 +1099,24 @@ continue_merging:
+ 	}
+ 	if (order < MAX_ORDER - 1) {
+ 		/* If we are here, it means order is >= pageblock_order.
+-		 * We want to prevent merge between freepages on isolate
+-		 * pageblock and normal pageblock. Without this, pageblock
+-		 * isolation could cause incorrect freepage or CMA accounting.
++		 * We want to prevent merge between freepages on pageblock
++		 * without fallbacks and normal pageblock. Without this,
++		 * pageblock isolation could cause incorrect freepage or CMA
++		 * accounting or HIGHATOMIC accounting.
+ 		 *
+ 		 * We don't want to hit this code for the more frequent
+ 		 * low-order merging.
+ 		 */
+-		if (unlikely(has_isolate_pageblock(zone))) {
+-			int buddy_mt;
++		int buddy_mt;
+ 
+-			buddy_pfn = __find_buddy_pfn(pfn, order);
+-			buddy = page + (buddy_pfn - pfn);
+-			buddy_mt = get_pageblock_migratetype(buddy);
+-
+-			if (migratetype != buddy_mt
+-					&& (is_migrate_isolate(migratetype) ||
+-						is_migrate_isolate(buddy_mt)))
+-				goto done_merging;
+-		}
++		buddy_pfn = __find_buddy_pfn(pfn, order);
++		buddy = page + (buddy_pfn - pfn);
++		buddy_mt = get_pageblock_migratetype(buddy);
++
++		if (migratetype != buddy_mt
++				&& (!migratetype_is_mergeable(migratetype) ||
++					!migratetype_is_mergeable(buddy_mt)))
++			goto done_merging;
+ 		max_order = order + 1;
+ 		goto continue_merging;
+ 	}
+@@ -2535,17 +2534,13 @@ struct page *__rmqueue_smallest(struct z
+ /*
+  * This array describes the order lists are fallen back to when
+  * the free lists for the desirable migrate type are depleted
++ *
++ * The other migratetypes do not have fallbacks.
+  */
+ static int fallbacks[MIGRATE_TYPES][3] = {
+ 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_TYPES },
+ 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_TYPES },
+ 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_TYPES },
+-#ifdef CONFIG_CMA
+-	[MIGRATE_CMA]         = { MIGRATE_TYPES }, /* Never used */
+-#endif
+-#ifdef CONFIG_MEMORY_ISOLATION
+-	[MIGRATE_ISOLATE]     = { MIGRATE_TYPES }, /* Never used */
+-#endif
  };
  
- extern struct cma cma_areas[MAX_CMA_AREAS];
+ #ifdef CONFIG_CMA
+@@ -2851,8 +2846,8 @@ static void reserve_highatomic_pageblock
+ 
+ 	/* Yoink! */
+ 	mt = get_pageblock_migratetype(page);
+-	if (!is_migrate_highatomic(mt) && !is_migrate_isolate(mt)
+-	    && !is_migrate_cma(mt)) {
++	/* Only reserve normal pageblocks (i.e., they can merge with others) */
++	if (migratetype_is_mergeable(mt)) {
+ 		zone->nr_reserved_highatomic += pageblock_nr_pages;
+ 		set_pageblock_migratetype(page, MIGRATE_HIGHATOMIC);
+ 		move_freepages_block(zone, page, MIGRATE_HIGHATOMIC, NULL);
+@@ -3601,8 +3596,11 @@ int __isolate_free_page(struct page *pag
+ 		struct page *endpage = page + (1 << order) - 1;
+ 		for (; page < endpage; page += pageblock_nr_pages) {
+ 			int mt = get_pageblock_migratetype(page);
+-			if (!is_migrate_isolate(mt) && !is_migrate_cma(mt)
+-			    && !is_migrate_highatomic(mt))
++			/*
++			 * Only change normal pageblocks (i.e., they can merge
++			 * with others)
++			 */
++			if (migratetype_is_mergeable(mt))
+ 				set_pageblock_migratetype(page,
+ 							  MIGRATE_MOVABLE);
+ 		}
 _
 
-Patches currently in -mm which might be from hbathini@linux.ibm.com are
+Patches currently in -mm which might be from ziy@nvidia.com are
 
-mm-cma-provide-option-to-opt-out-from-exposing-pages-on-activation-failure.patch
-powerpc-fadump-opt-out-from-freeing-pages-on-cma-activation-failure.patch
+mm-page_alloc-avoid-merging-non-fallbackable-pageblocks-with-others.patch
 
