@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 764F8C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:45:28 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id CA993C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:45:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S246001AbiAYDpR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 22:45:17 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45496 "EHLO
+        id S3415295AbiAYDpX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 22:45:23 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45038 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S3415055AbiAYAza (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:55:30 -0500
+        with ESMTP id S3415058AbiAYAzf (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:55:35 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07C1FC054860
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:42:01 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F14DEC054865
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:42:03 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id BA037B81257
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:41:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1293CC340E4;
-        Mon, 24 Jan 2022 22:41:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id B9D9BB81249
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:02 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1588DC340E4;
+        Mon, 24 Jan 2022 22:42:01 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064118;
-        bh=KwcOxWCZBTkVs+0PZLWuQqOw97mUR57S0OplBuRAK3I=;
+        s=korg; t=1643064121;
+        bh=SlNniy8/oMDzJj4KuMD+k1ic/fXnwOx7sWOATPRatlo=;
         h=Date:From:To:Subject:From;
-        b=yzC2vw3kv0RoqIs0uuPQbV/rAIsvEhVkoQDSJmgCXreXB+kGEWgPIFGtQmPvRmoAu
-         2zvXPFfBvIdEaSQbt57fkR9TUBNGK1V+XfNFx/W2zdnO/etgHAOQT51y5G1SQ7+YhC
-         lo5yOae7twgdiA6ijYWzcc7Xz+MycyPf0DI/crYE=
-Date:   Mon, 24 Jan 2022 14:41:57 -0800
+        b=RR+nftI2p35x/SGNerr6RARl8NxVymssHaPi4mp7/wSs8z/61S14GlDm5mWhWAG5U
+         4nq2kp46c9KJ/AKwKVWUvAN653XpI23gNXhExAJR/mz7CgkWMdAuHw0JlT/ZitgARp
+         5S0Ncv2iNs6TM/sCcR8kuJELOV3w3N8zC7xgtIi0=
+Date:   Mon, 24 Jan 2022 14:42:00 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + mm-clarify-__gfp_zerotags-comment.patch added to -mm
+Subject:  +
+ kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch added to -mm
  tree
-Message-ID: <20220124224157.Mn3-0yN3b%akpm@linux-foundation.org>
+Message-ID: <20220124224200.0mrBYgQVY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: clarify __GFP_ZEROTAGS comment
+     Subject: kasan: only apply __GFP_ZEROTAGS when memory is zeroed
 has been added to the -mm tree.  Its filename is
-     mm-clarify-__gfp_zerotags-comment.patch
+     kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-clarify-__gfp_zerotags-comment.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-clarify-__gfp_zerotags-comment.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,18 +68,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: mm: clarify __GFP_ZEROTAGS comment
+Subject: kasan: only apply __GFP_ZEROTAGS when memory is zeroed
 
-__GFP_ZEROTAGS is intended as an optimization: if memory is zeroed during
-allocation, it's possible to set memory tags at the same time with little
-performance impact.
+__GFP_ZEROTAGS should only be effective if memory is being zeroed. 
+Currently, hardware tag-based KASAN violates this requirement.
 
-Clarify this intention of __GFP_ZEROTAGS in the comment.
+Fix by including an initialization check along with checking for
+__GFP_ZEROTAGS.
 
-Link: https://lkml.kernel.org/r/cdffde013973c5634a447513e10ec0d21e8eee29.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/f4f4593f7f675262d29d07c1938db5bd0cd5e285.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -90,24 +91,25 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/kasan/hw_tags.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/include/linux/gfp.h~mm-clarify-__gfp_zerotags-comment
-+++ a/include/linux/gfp.h
-@@ -232,8 +232,10 @@ struct vm_area_struct;
-  *
-  * %__GFP_ZERO returns a zeroed page on success.
-  *
-- * %__GFP_ZEROTAGS returns a page with zeroed memory tags on success, if
-- * __GFP_ZERO is set.
-+ * %__GFP_ZEROTAGS zeroes memory tags at allocation time if the memory itself
-+ * is being zeroed (either via __GFP_ZERO or via init_on_alloc). This flag is
-+ * intended for optimization: setting memory tags at the same time as zeroing
-+ * memory has minimal additional performace impact.
-  *
-  * %__GFP_SKIP_KASAN_POISON returns a page which does not need to be poisoned
-  * on deallocation. Typically used for userspace pages. Currently only has an
+--- a/mm/kasan/hw_tags.c~kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed
++++ a/mm/kasan/hw_tags.c
+@@ -199,11 +199,12 @@ void kasan_alloc_pages(struct page *page
+ 	 * page_alloc.c.
+ 	 */
+ 	bool init = !want_init_on_free() && want_init_on_alloc(flags);
++	bool init_tags = init && (flags & __GFP_ZEROTAGS);
+ 
+ 	if (flags & __GFP_SKIP_KASAN_POISON)
+ 		SetPageSkipKASanPoison(page);
+ 
+-	if (flags & __GFP_ZEROTAGS) {
++	if (init_tags) {
+ 		int i;
+ 
+ 		for (i = 0; i != 1 << order; ++i)
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
