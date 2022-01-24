@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CE63C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 73902C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1380349AbiAXXIf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1583216AbiAXXIf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 24 Jan 2022 18:08:35 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:46447 "EHLO
+Received: from dfw.source.kernel.org ([139.178.84.217]:46446 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1837354AbiAXWn5 (ORCPT
+        with ESMTP id S1837353AbiAXWn5 (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:43:57 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B27861445
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:45 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20F5EC340E4;
-        Mon, 24 Jan 2022 22:42:44 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B0FC61489
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:39 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1F861C340E4;
+        Mon, 24 Jan 2022 22:42:38 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064164;
-        bh=lVSDO2dt2guWwJlJi+PfiOw+wHkVYfULdKnIwLGo57U=;
+        s=korg; t=1643064158;
+        bh=kvjBc+8SxNVyxGD5rWjuqzsrV60K5CSRnJpiwZ0/DoY=;
         h=Date:From:To:Subject:From;
-        b=NtfN7YGmGTdGG2eKFaKgsUUf3MTUCgZXOApmO7ZNYfp/e4rITGJ3QskQoYy9DXxsr
-         RB6ChPVK7zd4HAq+AwBkpMr4AoR97sdWfGPWM0tD4ZDV2CQCyN1FaWzMzZ99tg84Cu
-         sau+qZ6IvDIsytHEHPa5RhsJyKYs9vqWRRqQ8lW0=
-Date:   Mon, 24 Jan 2022 14:42:43 -0800
+        b=aYP8ij+CbCrFgsL71lUEcZYP+mT6fPH5gWrUXKAPpphydBLwDKnAkHEB6evILwsEf
+         xmVQE31zcuC7Nilp8u5pehgEYQGYLczxEH2ivV7C4fkloFpv3H2UAEf4utr5KWCvAo
+         GepahqIPizWS5iCHmzzB9vCAfBV41Ku+y/RYklDI=
+Date:   Mon, 24 Jan 2022 14:42:37 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
- added to -mm tree
-Message-ID: <20220124224243.ruPc6jXRy%akpm@linux-foundation.org>
+Subject:  + kasan-add-wrappers-for-vmalloc-hooks.patch added to -mm
+ tree
+Message-ID: <20220124224237.iVH53v-Fg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, fork: reset pointer tags of vmapped stacks
+     Subject: kasan: add wrappers for vmalloc hooks
 has been added to the -mm tree.  Its filename is
-     kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+     kasan-add-wrappers-for-vmalloc-hooks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-wrappers-for-vmalloc-hooks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-wrappers-for-vmalloc-hooks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,25 +64,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, fork: reset pointer tags of vmapped stacks
+Subject: kasan: add wrappers for vmalloc hooks
 
-Once tag-based KASAN modes start tagging vmalloc() allocations, kernel
-stacks start getting tagged if CONFIG_VMAP_STACK is enabled.
+Add wrappers around functions that [un]poison memory for vmalloc
+allocations.  These functions will be used by HW_TAGS KASAN and therefore
+need to be disabled when kasan=off command line argument is provided.
 
-Reset the tag of kernel stack pointers after allocation in
-alloc_thread_stack_node().
+This patch does no functional changes for software KASAN modes.
 
-For SW_TAGS KASAN, when CONFIG_KASAN_STACK is enabled, the instrumentation
-can't handle the SP register being tagged.
-
-For HW_TAGS KASAN, there's no instrumentation-related issues.  However,
-the impact of having a tagged SP register needs to be properly evaluated,
-so keep it non-tagged for now.
-
-Note, that the memory for the stack allocation still gets tagged to catch
-vmalloc-into-stack out-of-bounds accesses.
-
-Link: https://lkml.kernel.org/r/c6c96f012371ecd80e1936509ebcd3b07a5956f7.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/3b8728eac438c55389fb0f9a8a2145d71dd77487.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
@@ -97,19 +87,57 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/fork.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/kasan.h |   17 +++++++++++++++--
+ mm/kasan/shadow.c     |    5 ++---
+ 2 files changed, 17 insertions(+), 5 deletions(-)
 
---- a/kernel/fork.c~kasan-fork-reset-pointer-tags-of-vmapped-stacks
-+++ a/kernel/fork.c
-@@ -254,6 +254,7 @@ static unsigned long *alloc_thread_stack
- 	 * so cache the vm_struct.
- 	 */
- 	if (stack) {
-+		stack = kasan_reset_tag(stack);
- 		tsk->stack_vm_area = find_vm_area(stack);
- 		tsk->stack = stack;
+--- a/include/linux/kasan.h~kasan-add-wrappers-for-vmalloc-hooks
++++ a/include/linux/kasan.h
+@@ -424,8 +424,21 @@ void kasan_release_vmalloc(unsigned long
+ 			   unsigned long free_region_start,
+ 			   unsigned long free_region_end);
+ 
+-void kasan_unpoison_vmalloc(const void *start, unsigned long size);
+-void kasan_poison_vmalloc(const void *start, unsigned long size);
++void __kasan_unpoison_vmalloc(const void *start, unsigned long size);
++static __always_inline void kasan_unpoison_vmalloc(const void *start,
++						   unsigned long size)
++{
++	if (kasan_enabled())
++		__kasan_unpoison_vmalloc(start, size);
++}
++
++void __kasan_poison_vmalloc(const void *start, unsigned long size);
++static __always_inline void kasan_poison_vmalloc(const void *start,
++						 unsigned long size)
++{
++	if (kasan_enabled())
++		__kasan_poison_vmalloc(start, size);
++}
+ 
+ #else /* CONFIG_KASAN_VMALLOC */
+ 
+--- a/mm/kasan/shadow.c~kasan-add-wrappers-for-vmalloc-hooks
++++ a/mm/kasan/shadow.c
+@@ -475,8 +475,7 @@ void kasan_release_vmalloc(unsigned long
  	}
+ }
+ 
+-
+-void kasan_unpoison_vmalloc(const void *start, unsigned long size)
++void __kasan_unpoison_vmalloc(const void *start, unsigned long size)
+ {
+ 	if (!is_vmalloc_or_module_addr(start))
+ 		return;
+@@ -488,7 +487,7 @@ void kasan_unpoison_vmalloc(const void *
+  * Poison the shadow for a vmalloc region. Called as part of the
+  * freeing process at the time the region is freed.
+  */
+-void kasan_poison_vmalloc(const void *start, unsigned long size)
++void __kasan_poison_vmalloc(const void *start, unsigned long size)
+ {
+ 	if (!is_vmalloc_or_module_addr(start))
+ 		return;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
