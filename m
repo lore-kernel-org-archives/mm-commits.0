@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 93C18C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF7DBC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 00:34:11 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1844395AbiAXXIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 18:08:44 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:46596 "EHLO
+        id S1351596AbiAYAeE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 19:34:04 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:44516 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1383626AbiAXWoJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:44:09 -0500
+        with ESMTP id S1355682AbiAXWlu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:41:50 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 099FA61469
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:43:19 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F73BC340E4;
-        Mon, 24 Jan 2022 22:43:18 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 275F661440
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:41:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21133C340E4;
+        Mon, 24 Jan 2022 22:41:46 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064198;
-        bh=C+gZGwQPTE7mi+CG6fjIqN3BOqAMisLpCo2/EUXeie0=;
+        s=korg; t=1643064106;
+        bh=0swne7Ehfdts0S2jMHKYnWGoksPrS6+lWSHPWT2HTF4=;
         h=Date:From:To:Subject:From;
-        b=nMAmYuJHeGGgMxGsDxLf0d4P6WfVJSpUfqCji13LU7t1eox/KFUlpukmJw1cDldWq
-         Vat+5aOzkviiD6/sI/5K1S0i49Fb/kJkwhZa9zpNeCErpumwitxneujWFOFqe3KlOB
-         q/pAQDjq8Ecq48Sry2xw6+yI8YTqWgh+Kf3jZPIs=
-Date:   Mon, 24 Jan 2022 14:43:17 -0800
+        b=BmLEVejRShIvs/CvSwUHIny9rUAHKRvuyqgSG49Oe9a9BPgVL2ccSHlM4qQqZ0cBt
+         F65vgZRLtOfAhhT+Wjk8jPAd0kUMj230AlPEUUI8/WdlXmv2GWWpKyivACsfzhNmuF
+         BtY6sYvsInohJdCsY5QfkIWeU5UZKERsOxLLrBII=
+Date:   Mon, 24 Jan 2022 14:41:45 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
- added to -mm tree
-Message-ID: <20220124224317.w0gmdN25-%akpm@linux-foundation.org>
+Subject:  +
+ kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch added
+ to -mm tree
+Message-ID: <20220124224145.igRDLOt6V%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: mark kasan_arg_stacktrace as __initdata
+     Subject: kasan, page_alloc: merge kasan_free_pages into free_pages_prepare
 has been added to the -mm tree.  Its filename is
-     kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+     kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,20 +65,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: mark kasan_arg_stacktrace as __initdata
+Subject: kasan, page_alloc: merge kasan_free_pages into free_pages_prepare
 
-As kasan_arg_stacktrace is only used in __init functions, mark it as
-__initdata instead of __ro_after_init to allow it be freed after boot.
+Currently, the code responsible for initializing and poisoning memory in
+free_pages_prepare() is scattered across two locations: kasan_free_pages()
+for HW_TAGS KASAN and free_pages_prepare() itself.  This is confusing.
 
-The other enums for KASAN args are used in kasan_init_hw_tags_cpu(), which
-is not marked as __init as a CPU can be hot-plugged after boot.  Clarify
-this in a comment.
+This and a few following patches combine the code from these two
+locations.  Along the way, these patches also simplify the performed
+checks to make them easier to follow.
 
-Link: https://lkml.kernel.org/r/7fa090865614f8e0c6c1265508efb1d429afaa50.1643047180.git.andreyknvl@google.com
+Replaces the only caller of kasan_free_pages() with its implementation.
+
+As kasan_has_integrated_init() is only true when CONFIG_KASAN_HW_TAGS is
+enabled, moving the code does no functional changes.
+
+This patch is not useful by itself but makes the simplifications in the
+following patches easier to follow.
+
+Link: https://lkml.kernel.org/r/303498d15840bb71905852955c6e2390ecc87139.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Suggested-by: Marco Elver <elver@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -89,32 +98,89 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/hw_tags.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/kasan.h |    8 --------
+ mm/kasan/common.c     |    2 +-
+ mm/kasan/hw_tags.c    |   11 -----------
+ mm/page_alloc.c       |    6 ++++--
+ 4 files changed, 5 insertions(+), 22 deletions(-)
 
---- a/mm/kasan/hw_tags.c~kasan-mark-kasan_arg_stacktrace-as-__initdata
-+++ a/mm/kasan/hw_tags.c
-@@ -40,7 +40,7 @@ enum kasan_arg_stacktrace {
- 
- static enum kasan_arg kasan_arg __ro_after_init;
- static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
--static enum kasan_arg_stacktrace kasan_arg_stacktrace __ro_after_init;
-+static enum kasan_arg_stacktrace kasan_arg_stacktrace __initdata;
- 
- /* Whether KASAN is enabled at all. */
- DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
-@@ -116,7 +116,10 @@ static inline const char *kasan_mode_inf
- 		return "sync";
+--- a/include/linux/kasan.h~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
++++ a/include/linux/kasan.h
+@@ -96,7 +96,6 @@ static inline bool kasan_hw_tags_enabled
  }
  
--/* kasan_init_hw_tags_cpu() is called for each CPU. */
-+/*
-+ * kasan_init_hw_tags_cpu() is called for each CPU.
-+ * Not marked as __init as a CPU can be hot-plugged after boot.
-+ */
- void kasan_init_hw_tags_cpu(void)
+ void kasan_alloc_pages(struct page *page, unsigned int order, gfp_t flags);
+-void kasan_free_pages(struct page *page, unsigned int order);
+ 
+ #else /* CONFIG_KASAN_HW_TAGS */
+ 
+@@ -115,13 +114,6 @@ static __always_inline void kasan_alloc_
  {
+ 	/* Only available for integrated init. */
+ 	BUILD_BUG();
+-}
+-
+-static __always_inline void kasan_free_pages(struct page *page,
+-					     unsigned int order)
+-{
+-	/* Only available for integrated init. */
+-	BUILD_BUG();
+ }
+ 
+ #endif /* CONFIG_KASAN_HW_TAGS */
+--- a/mm/kasan/common.c~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
++++ a/mm/kasan/common.c
+@@ -387,7 +387,7 @@ static inline bool ____kasan_kfree_large
+ 	}
+ 
  	/*
+-	 * The object will be poisoned by kasan_free_pages() or
++	 * The object will be poisoned by kasan_poison_pages() or
+ 	 * kasan_slab_free_mempool().
+ 	 */
+ 
+--- a/mm/kasan/hw_tags.c~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
++++ a/mm/kasan/hw_tags.c
+@@ -213,17 +213,6 @@ void kasan_alloc_pages(struct page *page
+ 	}
+ }
+ 
+-void kasan_free_pages(struct page *page, unsigned int order)
+-{
+-	/*
+-	 * This condition should match the one in free_pages_prepare() in
+-	 * page_alloc.c.
+-	 */
+-	bool init = want_init_on_free();
+-
+-	kasan_poison_pages(page, order, init);
+-}
+-
+ #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+ 
+ void kasan_enable_tagging_sync(void)
+--- a/mm/page_alloc.c~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
++++ a/mm/page_alloc.c
+@@ -1368,15 +1368,17 @@ static __always_inline bool free_pages_p
+ 
+ 	/*
+ 	 * As memory initialization might be integrated into KASAN,
+-	 * kasan_free_pages and kernel_init_free_pages must be
++	 * KASAN poisoning and memory initialization code must be
+ 	 * kept together to avoid discrepancies in behavior.
+ 	 *
+ 	 * With hardware tag-based KASAN, memory tags must be set before the
+ 	 * page becomes unavailable via debug_pagealloc or arch_free_page.
+ 	 */
+ 	if (kasan_has_integrated_init()) {
++		bool init = want_init_on_free();
++
+ 		if (!skip_kasan_poison)
+-			kasan_free_pages(page, order);
++			kasan_poison_pages(page, order, init);
+ 	} else {
+ 		bool init = want_init_on_free();
+ 
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
