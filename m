@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 63CECC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:46:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1A509C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:46:21 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1350537AbiAYDqM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 22:46:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46868 "EHLO
+        id S246230AbiAYDqO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 22:46:14 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46862 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S3415232AbiAYA7U (ORCPT
+        with ESMTP id S3415230AbiAYA7U (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:59:20 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55A20C06B58E
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19D69C06B58B
         for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:44:08 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 10C43614EC
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:43:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1404FC340E4;
-        Mon, 24 Jan 2022 22:43:24 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B9FE614E1
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 183A3C340E4;
+        Mon, 24 Jan 2022 22:42:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064204;
-        bh=f/qpxYUlUxluLh49O2VYLYCrI52wIfmErGjpgWXEXIs=;
+        s=korg; t=1643064176;
+        bh=oz2Rmm0oTU/8c2h9dUPA9Nh5KipzUsC4VUGSXOzv7bI=;
         h=Date:From:To:Subject:From;
-        b=YqkuU9zJ2NWhbhwNrJAzk0MQhoxnCHXtbP6lY+WxhrK2+HmiX9jtOnkxBGYg1c07D
-         VDx9Z6SowpsDmVinAMj6wSMtysbK0uSptLA+SpEUgfXRxTMCcAxJb6CaOIH8ROwKRl
-         6WR4n7Fj9qH3104OP9a6wO+wchLqvjBOnZ2aV1+U=
-Date:   Mon, 24 Jan 2022 14:43:23 -0800
+        b=FBAnxAWpgj2I2u3BKkfm46gS0mTiaJAvvtD2DY0M091aNJ5vP2AvWjPbPwvrksv9I
+         bv5Ti2z0w3HtUZU3QXwJiyzqjrIS9NeOgCeiPjLaRU0qFVJcY0rPFfHwptm8Sh8qQW
+         ylalm/bds+pnMs2d5uZOFcXcNeIMoBxzl9Bohz+o=
+Date:   Mon, 24 Jan 2022 14:42:55 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + kasan-add-kasanvmalloc-command-line-flag.patch added to
- -mm tree
-Message-ID: <20220124224323.58FSRcGtb%akpm@linux-foundation.org>
+Subject:  +
+ kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch added to -mm tree
+Message-ID: <20220124224255.SJ72e4zpn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: add kasan.vmalloc command line flag
+     Subject: kasan, vmalloc: unpoison VM_ALLOC pages after mapping
 has been added to the -mm tree.  Its filename is
-     kasan-add-kasanvmalloc-command-line-flag.patch
+     kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-add-kasanvmalloc-command-line-flag.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-add-kasanvmalloc-command-line-flag.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,21 +67,26 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: add kasan.vmalloc command line flag
+Subject: kasan, vmalloc: unpoison VM_ALLOC pages after mapping
 
-Allow disabling vmalloc() tagging for HW_TAGS KASAN via a kasan.vmalloc
-command line switch.
+Make KASAN unpoison vmalloc mappings after they have been mapped in when
+it's possible: for vmalloc() (indentified via VM_ALLOC) and vm_map_ram().
 
-This is a fail-safe switch intended for production systems that enable
-HW_TAGS KASAN.  In case vmalloc() tagging ends up having an issue not
-detected during testing but that manifests in production, kasan.vmalloc
-allows to turn vmalloc() tagging off while leaving page_alloc/slab tagging
-on.
+The reasons for this are:
 
-Link: https://lkml.kernel.org/r/904f6d4dfa94870cc5fc2660809e093fd0d27c3b.1643047180.git.andreyknvl@google.com
+- For vmalloc() and vm_map_ram(): pages don't get unpoisoned in case
+  mapping them fails.
+- For vmalloc(): HW_TAGS KASAN needs pages to be mapped to set tags via
+  kasan_unpoison_vmalloc().
+
+As a part of these changes, the return value of __vmalloc_node_range() is
+changed to area->addr.  This is a non-functional change, as
+__vmalloc_area_node() returns area->addr anyway.
+
+Link: https://lkml.kernel.org/r/fcb98980e6fcd3c4be6acdcb5d6110898ef28548.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -93,129 +98,91 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/hw_tags.c |   45 ++++++++++++++++++++++++++++++++++++++++++-
- mm/kasan/kasan.h   |    6 +++++
- 2 files changed, 50 insertions(+), 1 deletion(-)
+ mm/vmalloc.c |   30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
 
---- a/mm/kasan/hw_tags.c~kasan-add-kasanvmalloc-command-line-flag
-+++ a/mm/kasan/hw_tags.c
-@@ -32,6 +32,12 @@ enum kasan_arg_mode {
- 	KASAN_ARG_MODE_ASYMM,
- };
- 
-+enum kasan_arg_vmalloc {
-+	KASAN_ARG_VMALLOC_DEFAULT,
-+	KASAN_ARG_VMALLOC_OFF,
-+	KASAN_ARG_VMALLOC_ON,
-+};
-+
- enum kasan_arg_stacktrace {
- 	KASAN_ARG_STACKTRACE_DEFAULT,
- 	KASAN_ARG_STACKTRACE_OFF,
-@@ -40,6 +46,7 @@ enum kasan_arg_stacktrace {
- 
- static enum kasan_arg kasan_arg __ro_after_init;
- static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
-+static enum kasan_arg_vmalloc kasan_arg_vmalloc __initdata;
- static enum kasan_arg_stacktrace kasan_arg_stacktrace __initdata;
- 
- /*
-@@ -56,6 +63,9 @@ EXPORT_SYMBOL(kasan_flag_enabled);
- enum kasan_mode kasan_mode __ro_after_init;
- EXPORT_SYMBOL_GPL(kasan_mode);
- 
-+/* Whether to enable vmalloc tagging. */
-+DEFINE_STATIC_KEY_TRUE(kasan_flag_vmalloc);
-+
- /* Whether to collect alloc/free stack traces. */
- DEFINE_STATIC_KEY_TRUE(kasan_flag_stacktrace);
- 
-@@ -95,6 +105,23 @@ static int __init early_kasan_mode(char
- }
- early_param("kasan.mode", early_kasan_mode);
- 
-+/* kasan.vmalloc=off/on */
-+static int __init early_kasan_flag_vmalloc(char *arg)
-+{
-+	if (!arg)
-+		return -EINVAL;
-+
-+	if (!strcmp(arg, "off"))
-+		kasan_arg_vmalloc = KASAN_ARG_VMALLOC_OFF;
-+	else if (!strcmp(arg, "on"))
-+		kasan_arg_vmalloc = KASAN_ARG_VMALLOC_ON;
-+	else
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+early_param("kasan.vmalloc", early_kasan_flag_vmalloc);
-+
- /* kasan.stacktrace=off/on */
- static int __init early_kasan_flag_stacktrace(char *arg)
- {
-@@ -179,6 +206,18 @@ void __init kasan_init_hw_tags(void)
- 		break;
+--- a/mm/vmalloc.c~kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping
++++ a/mm/vmalloc.c
+@@ -2210,14 +2210,15 @@ void *vm_map_ram(struct page **pages, un
+ 		mem = (void *)addr;
  	}
  
-+	switch (kasan_arg_vmalloc) {
-+	case KASAN_ARG_VMALLOC_DEFAULT:
-+		/* Default is specified by kasan_flag_vmalloc definition. */
-+		break;
-+	case KASAN_ARG_VMALLOC_OFF:
-+		static_branch_disable(&kasan_flag_vmalloc);
-+		break;
-+	case KASAN_ARG_VMALLOC_ON:
-+		static_branch_enable(&kasan_flag_vmalloc);
-+		break;
-+	}
-+
- 	switch (kasan_arg_stacktrace) {
- 	case KASAN_ARG_STACKTRACE_DEFAULT:
- 		/* Default is specified by kasan_flag_stacktrace definition. */
-@@ -194,8 +233,9 @@ void __init kasan_init_hw_tags(void)
- 	/* KASAN is now initialized, enable it. */
- 	static_branch_enable(&kasan_flag_enabled);
+-	mem = kasan_unpoison_vmalloc(mem, size);
+-
+ 	if (vmap_pages_range(addr, addr + size, PAGE_KERNEL,
+ 				pages, PAGE_SHIFT) < 0) {
+ 		vm_unmap_ram(mem, count);
+ 		return NULL;
+ 	}
  
--	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, stacktrace=%s)\n",
-+	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, vmalloc=%s, stacktrace=%s)\n",
- 		kasan_mode_info(),
-+		kasan_vmalloc_enabled() ? "on" : "off",
- 		kasan_stack_collection_enabled() ? "on" : "off");
++	/* Mark the pages as accessible, now that they are mapped. */
++	mem = kasan_unpoison_vmalloc(mem, size);
++
+ 	return mem;
  }
+ EXPORT_SYMBOL(vm_map_ram);
+@@ -2445,7 +2446,14 @@ static struct vm_struct *__get_vm_area_n
  
-@@ -228,6 +268,9 @@ void *__kasan_unpoison_vmalloc(const voi
- 	u8 tag;
- 	unsigned long redzone_start, redzone_size;
+ 	setup_vmalloc_vm(area, va, flags, caller);
  
-+	if (!kasan_vmalloc_enabled())
-+		return (void *)start;
-+
- 	if (!is_vmalloc_or_module_addr(start))
- 		return (void *)start;
+-	area->addr = kasan_unpoison_vmalloc(area->addr, requested_size);
++	/*
++	 * Mark pages for non-VM_ALLOC mappings as accessible. Do it now as a
++	 * best-effort approach, as they can be mapped outside of vmalloc code.
++	 * For VM_ALLOC mappings, the pages are marked as accessible after
++	 * getting mapped in __vmalloc_node_range().
++	 */
++	if (!(flags & VM_ALLOC))
++		area->addr = kasan_unpoison_vmalloc(area->addr, requested_size);
  
---- a/mm/kasan/kasan.h~kasan-add-kasanvmalloc-command-line-flag
-+++ a/mm/kasan/kasan.h
-@@ -12,6 +12,7 @@
- #include <linux/static_key.h>
- #include "../slab.h"
- 
-+DECLARE_STATIC_KEY_TRUE(kasan_flag_vmalloc);
- DECLARE_STATIC_KEY_TRUE(kasan_flag_stacktrace);
- 
- enum kasan_mode {
-@@ -22,6 +23,11 @@ enum kasan_mode {
- 
- extern enum kasan_mode kasan_mode __ro_after_init;
- 
-+static inline bool kasan_vmalloc_enabled(void)
-+{
-+	return static_branch_likely(&kasan_flag_vmalloc);
-+}
-+
- static inline bool kasan_stack_collection_enabled(void)
+ 	return area;
+ }
+@@ -3055,7 +3063,7 @@ void *__vmalloc_node_range(unsigned long
+ 			const void *caller)
  {
- 	return static_branch_unlikely(&kasan_flag_stacktrace);
+ 	struct vm_struct *area;
+-	void *addr;
++	void *ret;
+ 	unsigned long real_size = size;
+ 	unsigned long real_align = align;
+ 	unsigned int shift = PAGE_SHIFT;
+@@ -3117,10 +3125,13 @@ again:
+ 		prot = arch_vmap_pgprot_tagged(prot);
+ 
+ 	/* Allocate physical pages and map them into vmalloc space. */
+-	addr = __vmalloc_area_node(area, gfp_mask, prot, shift, node);
+-	if (!addr)
++	ret = __vmalloc_area_node(area, gfp_mask, prot, shift, node);
++	if (!ret)
+ 		goto fail;
+ 
++	/* Mark the pages as accessible, now that they are mapped. */
++	area->addr = kasan_unpoison_vmalloc(area->addr, real_size);
++
+ 	/*
+ 	 * In this function, newly allocated vm_struct has VM_UNINITIALIZED
+ 	 * flag. It means that vm_struct is not fully initialized.
+@@ -3132,7 +3143,7 @@ again:
+ 	if (!(vm_flags & VM_DEFER_KMEMLEAK))
+ 		kmemleak_vmalloc(area, size, gfp_mask);
+ 
+-	return addr;
++	return area->addr;
+ 
+ fail:
+ 	if (shift > PAGE_SHIFT) {
+@@ -3816,7 +3827,10 @@ retry:
+ 	}
+ 	spin_unlock(&vmap_area_lock);
+ 
+-	/* mark allocated areas as accessible */
++	/*
++	 * Mark allocated areas as accessible. Do it now as a best-effort
++	 * approach, as they can be mapped outside of vmalloc code.
++	 */
+ 	for (area = 0; area < nr_vms; area++)
+ 		vms[area]->addr = kasan_unpoison_vmalloc(vms[area]->addr,
+ 							 vms[area]->size);
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
