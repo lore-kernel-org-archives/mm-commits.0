@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15708C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 00:34:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 65156C433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 00:34:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S3411648AbiAYAeN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 19:34:13 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:45102 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1837152AbiAXWme (ORCPT
+        id S1358129AbiAYAeO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 19:34:14 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:49450 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1383200AbiAXWme (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:42:34 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 17B0361447
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:33 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1A047C340E4;
-        Mon, 24 Jan 2022 22:42:32 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CF84EB8122A
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 27F36C340E4;
+        Mon, 24 Jan 2022 22:42:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064152;
-        bh=YZrEAmlDMyeArJLZKsxMPujr4rT/kcuOnrA32KTToe0=;
+        s=korg; t=1643064148;
+        bh=cfR0D9cestek38yPlN/kSrt9gf5TQapcx/VBLhSXRUM=;
         h=Date:From:To:Subject:From;
-        b=axuSQcBuHde0pgARdglmhoo30r3uja3NrRlpSmfKvc2w/c1mGOoI2JKfS3zw5KuZI
-         eRDQwD3rowJ5TZg95yTsMrpdObM03U2rBqP3Rox5LxYDeDWB99h5c9+3/SEkxdEg5v
-         YPCB3FyM8N+KdcjExXbkLlPPlSxj35SA0BoE22Z4=
-Date:   Mon, 24 Jan 2022 14:42:31 -0800
+        b=r3bJA8s9rOzC8iUnqqm4snhU76yDF2AicUzjMsJthhknXa6DGgItCN9E4uinmNyHt
+         BLs05VE0jk2QJCYF6pPCLNN/uYfCGNacifrNdWCVKtvWE5nOkzXga+eFdh8HpZOXHb
+         nsBIaWD0KrQwsDLSb1it7xZYoH5D8qz8XmgHnYwQ=
+Date:   Mon, 24 Jan 2022 14:42:27 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
- added to -mm tree
-Message-ID: <20220124224231.UprLhzr7d%akpm@linux-foundation.org>
+Subject:  +
+ kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch added to -mm
+ tree
+Message-ID: <20220124224227.vvj3GcxoD%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, vmalloc: drop outdated VM_KASAN comment
+     Subject: kasan, x86, arm64, s390: rename functions for modules shadow
 has been added to the -mm tree.  Its filename is
-     kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+     kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,20 +65,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, vmalloc: drop outdated VM_KASAN comment
+Subject: kasan, x86, arm64, s390: rename functions for modules shadow
 
-The comment about VM_KASAN in include/linux/vmalloc.c is outdated. 
-VM_KASAN is currently only used to mark vm_areas allocated for kernel
-modules when CONFIG_KASAN_VMALLOC is disabled.
+Rename kasan_free_shadow to kasan_free_module_shadow and
+kasan_module_alloc to kasan_alloc_module_shadow.
 
-Drop the comment.
+These functions are used to allocate/free shadow memory for kernel modules
+when KASAN_VMALLOC is not enabled.  The new names better reflect their
+purpose.
 
-Link: https://lkml.kernel.org/r/780395afea83a147b3b5acc36cf2e38f7f8479f9.1643047180.git.andreyknvl@google.com
+Also reword the comment next to their declaration to improve clarity.
+
+Link: https://lkml.kernel.org/r/36db32bde765d5d0b856f77d2d806e838513fe84.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
 Acked-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
@@ -87,29 +91,105 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |   11 -----------
- 1 file changed, 11 deletions(-)
+ arch/arm64/kernel/module.c |    2 +-
+ arch/s390/kernel/module.c  |    2 +-
+ arch/x86/kernel/module.c   |    2 +-
+ include/linux/kasan.h      |   14 +++++++-------
+ mm/kasan/shadow.c          |    4 ++--
+ mm/vmalloc.c               |    2 +-
+ 6 files changed, 13 insertions(+), 13 deletions(-)
 
---- a/include/linux/vmalloc.h~kasan-vmalloc-drop-outdated-vm_kasan-comment
-+++ a/include/linux/vmalloc.h
-@@ -35,17 +35,6 @@ struct notifier_block;		/* in notifier.h
- #define VM_DEFER_KMEMLEAK	0
- #endif
+--- a/arch/arm64/kernel/module.c~kasan-x86-arm64-s390-rename-functions-for-modules-shadow
++++ a/arch/arm64/kernel/module.c
+@@ -58,7 +58,7 @@ void *module_alloc(unsigned long size)
+ 				PAGE_KERNEL, 0, NUMA_NO_NODE,
+ 				__builtin_return_address(0));
  
--/*
-- * VM_KASAN is used slightly differently depending on CONFIG_KASAN_VMALLOC.
-- *
-- * If IS_ENABLED(CONFIG_KASAN_VMALLOC), VM_KASAN is set on a vm_struct after
-- * shadow memory has been mapped. It's used to handle allocation errors so that
-- * we don't try to poison shadow on free if it was never allocated.
-- *
-- * Otherwise, VM_KASAN is set for kasan_module_alloc() allocations and used to
-- * determine which allocations need the module shadow freed.
-- */
--
- /* bits [20..32] reserved for arch specific ioremap internals */
+-	if (p && (kasan_module_alloc(p, size, gfp_mask) < 0)) {
++	if (p && (kasan_alloc_module_shadow(p, size, gfp_mask) < 0)) {
+ 		vfree(p);
+ 		return NULL;
+ 	}
+--- a/arch/s390/kernel/module.c~kasan-x86-arm64-s390-rename-functions-for-modules-shadow
++++ a/arch/s390/kernel/module.c
+@@ -45,7 +45,7 @@ void *module_alloc(unsigned long size)
+ 	p = __vmalloc_node_range(size, MODULE_ALIGN, MODULES_VADDR, MODULES_END,
+ 				 gfp_mask, PAGE_KERNEL_EXEC, VM_DEFER_KMEMLEAK, NUMA_NO_NODE,
+ 				 __builtin_return_address(0));
+-	if (p && (kasan_module_alloc(p, size, gfp_mask) < 0)) {
++	if (p && (kasan_alloc_module_shadow(p, size, gfp_mask) < 0)) {
+ 		vfree(p);
+ 		return NULL;
+ 	}
+--- a/arch/x86/kernel/module.c~kasan-x86-arm64-s390-rename-functions-for-modules-shadow
++++ a/arch/x86/kernel/module.c
+@@ -78,7 +78,7 @@ void *module_alloc(unsigned long size)
+ 				    MODULES_END, gfp_mask,
+ 				    PAGE_KERNEL, VM_DEFER_KMEMLEAK, NUMA_NO_NODE,
+ 				    __builtin_return_address(0));
+-	if (p && (kasan_module_alloc(p, size, gfp_mask) < 0)) {
++	if (p && (kasan_alloc_module_shadow(p, size, gfp_mask) < 0)) {
+ 		vfree(p);
+ 		return NULL;
+ 	}
+--- a/include/linux/kasan.h~kasan-x86-arm64-s390-rename-functions-for-modules-shadow
++++ a/include/linux/kasan.h
+@@ -454,17 +454,17 @@ static inline void kasan_populate_early_
+ 		!defined(CONFIG_KASAN_VMALLOC)
  
  /*
+- * These functions provide a special case to support backing module
+- * allocations with real shadow memory. With KASAN vmalloc, the special
+- * case is unnecessary, as the work is handled in the generic case.
++ * These functions allocate and free shadow memory for kernel modules.
++ * They are only required when KASAN_VMALLOC is not supported, as otherwise
++ * shadow memory is allocated by the generic vmalloc handlers.
+  */
+-int kasan_module_alloc(void *addr, size_t size, gfp_t gfp_mask);
+-void kasan_free_shadow(const struct vm_struct *vm);
++int kasan_alloc_module_shadow(void *addr, size_t size, gfp_t gfp_mask);
++void kasan_free_module_shadow(const struct vm_struct *vm);
+ 
+ #else /* (CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) && !CONFIG_KASAN_VMALLOC */
+ 
+-static inline int kasan_module_alloc(void *addr, size_t size, gfp_t gfp_mask) { return 0; }
+-static inline void kasan_free_shadow(const struct vm_struct *vm) {}
++static inline int kasan_alloc_module_shadow(void *addr, size_t size, gfp_t gfp_mask) { return 0; }
++static inline void kasan_free_module_shadow(const struct vm_struct *vm) {}
+ 
+ #endif /* (CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS) && !CONFIG_KASAN_VMALLOC */
+ 
+--- a/mm/kasan/shadow.c~kasan-x86-arm64-s390-rename-functions-for-modules-shadow
++++ a/mm/kasan/shadow.c
+@@ -498,7 +498,7 @@ void kasan_release_vmalloc(unsigned long
+ 
+ #else /* CONFIG_KASAN_VMALLOC */
+ 
+-int kasan_module_alloc(void *addr, size_t size, gfp_t gfp_mask)
++int kasan_alloc_module_shadow(void *addr, size_t size, gfp_t gfp_mask)
+ {
+ 	void *ret;
+ 	size_t scaled_size;
+@@ -534,7 +534,7 @@ int kasan_module_alloc(void *addr, size_
+ 	return -ENOMEM;
+ }
+ 
+-void kasan_free_shadow(const struct vm_struct *vm)
++void kasan_free_module_shadow(const struct vm_struct *vm)
+ {
+ 	if (vm->flags & VM_KASAN)
+ 		vfree(kasan_mem_to_shadow(vm->addr));
+--- a/mm/vmalloc.c~kasan-x86-arm64-s390-rename-functions-for-modules-shadow
++++ a/mm/vmalloc.c
+@@ -2526,7 +2526,7 @@ struct vm_struct *remove_vm_area(const v
+ 		va->vm = NULL;
+ 		spin_unlock(&vmap_area_lock);
+ 
+-		kasan_free_shadow(vm);
++		kasan_free_module_shadow(vm);
+ 		free_unmap_vmap_area(va);
+ 
+ 		return vm;
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
