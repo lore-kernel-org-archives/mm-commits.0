@@ -2,37 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 5A162C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5CE63C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1844368AbiAXXIe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 18:08:34 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:50488 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1837259AbiAXWni (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:43:38 -0500
+        id S1380349AbiAXXIf (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 18:08:35 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:46447 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1837354AbiAXWn5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:43:57 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B3119B815A6
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:43:34 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 10CEAC340E5;
-        Mon, 24 Jan 2022 22:43:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B27861445
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20F5EC340E4;
+        Mon, 24 Jan 2022 22:42:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064213;
-        bh=NpG333mZaHcDhNLR7hzPfdAMKm3WjGaoR8ZmdGqAbUM=;
+        s=korg; t=1643064164;
+        bh=lVSDO2dt2guWwJlJi+PfiOw+wHkVYfULdKnIwLGo57U=;
         h=Date:From:To:Subject:From;
-        b=TxY57Vepul7BAQGWvhOiXk7iKY704FwVJGw5fx6HTKCUWUomgXKlfPW6/WInroY3V
-         QNCMkuY/5IFpTCqgJLOXHRYrMneCYthgt3GFbQhhuDPnRvkXZn4u/Km78hDCaA9+KQ
-         AEiVAcp1JOYvKDP5FjTRBhIFTeucYErq8iCCeOIw=
-Date:   Mon, 24 Jan 2022 14:43:32 -0800
+        b=NtfN7YGmGTdGG2eKFaKgsUUf3MTUCgZXOApmO7ZNYfp/e4rITGJ3QskQoYy9DXxsr
+         RB6ChPVK7zd4HAq+AwBkpMr4AoR97sdWfGPWM0tD4ZDV2CQCyN1FaWzMzZ99tg84Cu
+         sau+qZ6IvDIsytHEHPa5RhsJyKYs9vqWRRqQ8lW0=
+Date:   Mon, 24 Jan 2022 14:42:43 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + kasan-documentation-updates.patch added to -mm tree
-Message-ID: <20220124224332.Nlu9JQaQJ%akpm@linux-foundation.org>
+Subject:  + kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+ added to -mm tree
+Message-ID: <20220124224243.ruPc6jXRy%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: documentation updates
+     Subject: kasan, fork: reset pointer tags of vmapped stacks
 has been added to the -mm tree.  Its filename is
-     kasan-documentation-updates.patch
+     kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-documentation-updates.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-documentation-updates.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,23 +64,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: documentation updates
+Subject: kasan, fork: reset pointer tags of vmapped stacks
 
-Update KASAN documentation:
+Once tag-based KASAN modes start tagging vmalloc() allocations, kernel
+stacks start getting tagged if CONFIG_VMAP_STACK is enabled.
 
-- Bump Clang version requirement for HW_TAGS as ARM64_MTE depends on
-  AS_HAS_LSE_ATOMICS as of commit 2decad92f4731 ("arm64: mte: Ensure
-  TIF_MTE_ASYNC_FAULT is set atomically"), which requires Clang 12.
-- Add description of the new kasan.vmalloc command line flag.
-- Mention that SW_TAGS and HW_TAGS modes now support vmalloc tagging.
-- Explicitly say that the "Shadow memory" section is only applicable
-  to software KASAN modes.
-- Mention that shadow-based KASAN_VMALLOC is supported on arm64.
+Reset the tag of kernel stack pointers after allocation in
+alloc_thread_stack_node().
 
-Link: https://lkml.kernel.org/r/a61189128fa3f9fbcfd9884ff653d401864b8e74.1643047180.git.andreyknvl@google.com
+For SW_TAGS KASAN, when CONFIG_KASAN_STACK is enabled, the instrumentation
+can't handle the SP register being tagged.
+
+For HW_TAGS KASAN, there's no instrumentation-related issues.  However,
+the impact of having a tagged SP register needs to be properly evaluated,
+so keep it non-tagged for now.
+
+Note, that the memory for the stack allocation still gets tagged to catch
+vmalloc-into-stack out-of-bounds accesses.
+
+Link: https://lkml.kernel.org/r/c6c96f012371ecd80e1936509ebcd3b07a5956f7.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
-Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -91,70 +97,19 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/dev-tools/kasan.rst |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ kernel/fork.c |    1 +
+ 1 file changed, 1 insertion(+)
 
---- a/Documentation/dev-tools/kasan.rst~kasan-documentation-updates
-+++ a/Documentation/dev-tools/kasan.rst
-@@ -30,7 +30,7 @@ Software tag-based KASAN mode is only su
- 
- The hardware KASAN mode (#3) relies on hardware to perform the checks but
- still requires a compiler version that supports memory tagging instructions.
--This mode is supported in GCC 10+ and Clang 11+.
-+This mode is supported in GCC 10+ and Clang 12+.
- 
- Both software KASAN modes work with SLUB and SLAB memory allocators,
- while the hardware tag-based KASAN currently only supports SLUB.
-@@ -206,6 +206,9 @@ additional boot parameters that allow di
-   Asymmetric mode: a bad access is detected synchronously on reads and
-   asynchronously on writes.
- 
-+- ``kasan.vmalloc=off`` or ``=on`` disables or enables tagging of vmalloc
-+  allocations (default: ``on``).
-+
- - ``kasan.stacktrace=off`` or ``=on`` disables or enables alloc and free stack
-   traces collection (default: ``on``).
- 
-@@ -279,8 +282,8 @@ Software tag-based KASAN uses 0xFF as a
- pointers with the 0xFF pointer tag are not checked). The value 0xFE is currently
- reserved to tag freed memory regions.
- 
--Software tag-based KASAN currently only supports tagging of slab and page_alloc
--memory.
-+Software tag-based KASAN currently only supports tagging of slab, page_alloc,
-+and vmalloc memory.
- 
- Hardware tag-based KASAN
- ~~~~~~~~~~~~~~~~~~~~~~~~
-@@ -303,8 +306,8 @@ Hardware tag-based KASAN uses 0xFF as a
- pointers with the 0xFF pointer tag are not checked). The value 0xFE is currently
- reserved to tag freed memory regions.
- 
--Hardware tag-based KASAN currently only supports tagging of slab and page_alloc
--memory.
-+Hardware tag-based KASAN currently only supports tagging of slab, page_alloc,
-+and VM_ALLOC-based vmalloc memory.
- 
- If the hardware does not support MTE (pre ARMv8.5), hardware tag-based KASAN
- will not be enabled. In this case, all KASAN boot parameters are ignored.
-@@ -319,6 +322,8 @@ checking gets disabled.
- Shadow memory
- -------------
- 
-+The contents of this section are only applicable to software KASAN modes.
-+
- The kernel maps memory in several different parts of the address space.
- The range of kernel virtual addresses is large: there is not enough real
- memory to support a real shadow region for every address that could be
-@@ -349,7 +354,7 @@ CONFIG_KASAN_VMALLOC
- 
- With ``CONFIG_KASAN_VMALLOC``, KASAN can cover vmalloc space at the
- cost of greater memory usage. Currently, this is supported on x86,
--riscv, s390, and powerpc.
-+arm64, riscv, s390, and powerpc.
- 
- This works by hooking into vmalloc and vmap and dynamically
- allocating real shadow memory to back the mappings.
+--- a/kernel/fork.c~kasan-fork-reset-pointer-tags-of-vmapped-stacks
++++ a/kernel/fork.c
+@@ -254,6 +254,7 @@ static unsigned long *alloc_thread_stack
+ 	 * so cache the vm_struct.
+ 	 */
+ 	if (stack) {
++		stack = kasan_reset_tag(stack);
+ 		tsk->stack_vm_area = find_vm_area(stack);
+ 		tsk->stack = stack;
+ 	}
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
