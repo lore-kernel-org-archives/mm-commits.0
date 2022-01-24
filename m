@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 87682C433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 93C18C433EF
+	for <mm-commits@archiver.kernel.org>; Mon, 24 Jan 2022 23:08:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1579863AbiAXXIk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 18:08:40 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:46509 "EHLO
+        id S1844395AbiAXXIo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 18:08:44 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:46596 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1837381AbiAXWn7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:43:59 -0500
+        with ESMTP id S1383626AbiAXWoJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:44:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 47C9461465
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:42:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4A78CC340E7;
-        Mon, 24 Jan 2022 22:42:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 099FA61469
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:43:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0F73BC340E4;
+        Mon, 24 Jan 2022 22:43:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064173;
-        bh=ZbD489G+G8cHsx7BnQfeLnh1jaSHDAr515OEtoheGoI=;
+        s=korg; t=1643064198;
+        bh=C+gZGwQPTE7mi+CG6fjIqN3BOqAMisLpCo2/EUXeie0=;
         h=Date:From:To:Subject:From;
-        b=Eq+ntUA6xyrFhBzXLCPbSSuj+L+fwaiI3rjICC39y9e0Uw7+J9w+7+XWXmyAQ8Fvs
-         HbadU7b84YHl2vL+Y1/UuBhCYNG75iJIuUlBBJqq6XRc061Mdsys5HkVhiNsr3rEQU
-         jsYR+WYgZhPR7E52YYcx0WexHqA5TOZqACuqZ1hw=
-Date:   Mon, 24 Jan 2022 14:42:52 -0800
+        b=nMAmYuJHeGGgMxGsDxLf0d4P6WfVJSpUfqCji13LU7t1eox/KFUlpukmJw1cDldWq
+         Vat+5aOzkviiD6/sI/5K1S0i49Fb/kJkwhZa9zpNeCErpumwitxneujWFOFqe3KlOB
+         q/pAQDjq8Ecq48Sry2xw6+yI8YTqWgh+Kf3jZPIs=
+Date:   Mon, 24 Jan 2022 14:43:17 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  +
- kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch added to
- -mm tree
-Message-ID: <20220124224252.y_Tgie4DW%akpm@linux-foundation.org>
+Subject:  + kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+ added to -mm tree
+Message-ID: <20220124224317.w0gmdN25-%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, vmalloc, arm64: mark vmalloc mappings as pgprot_tagged
+     Subject: kasan: mark kasan_arg_stacktrace as __initdata
 has been added to the -mm tree.  Its filename is
-     kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+     kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,20 +64,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, vmalloc, arm64: mark vmalloc mappings as pgprot_tagged
+Subject: kasan: mark kasan_arg_stacktrace as __initdata
 
-HW_TAGS KASAN relies on ARM Memory Tagging Extension (MTE).  With MTE, a
-memory region must be mapped as MT_NORMAL_TAGGED to allow setting memory
-tags via MTE-specific instructions.
+As kasan_arg_stacktrace is only used in __init functions, mark it as
+__initdata instead of __ro_after_init to allow it be freed after boot.
 
-Add proper protection bits to vmalloc() allocations.  These allocations
-are always backed by page_alloc pages, so the tags will actually be
-getting set on the corresponding physical memory.
+The other enums for KASAN args are used in kasan_init_hw_tags_cpu(), which
+is not marked as __init as a CPU can be hot-plugged after boot.  Clarify
+this in a comment.
 
-Link: https://lkml.kernel.org/r/983fc33542db2f6b1e77b34ca23448d4640bbb9e.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/7fa090865614f8e0c6c1265508efb1d429afaa50.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
+Suggested-by: Marco Elver <elver@google.com>
 Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -87,62 +84,37 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/vmalloc.h |    6 ++++++
- include/linux/vmalloc.h          |    7 +++++++
- mm/vmalloc.c                     |    9 +++++++++
- 3 files changed, 22 insertions(+)
+ mm/kasan/hw_tags.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
---- a/arch/arm64/include/asm/vmalloc.h~kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged
-+++ a/arch/arm64/include/asm/vmalloc.h
-@@ -25,4 +25,10 @@ static inline bool arch_vmap_pmd_support
+--- a/mm/kasan/hw_tags.c~kasan-mark-kasan_arg_stacktrace-as-__initdata
++++ a/mm/kasan/hw_tags.c
+@@ -40,7 +40,7 @@ enum kasan_arg_stacktrace {
  
- #endif
+ static enum kasan_arg kasan_arg __ro_after_init;
+ static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
+-static enum kasan_arg_stacktrace kasan_arg_stacktrace __ro_after_init;
++static enum kasan_arg_stacktrace kasan_arg_stacktrace __initdata;
  
-+#define arch_vmap_pgprot_tagged arch_vmap_pgprot_tagged
-+static inline pgprot_t arch_vmap_pgprot_tagged(pgprot_t prot)
-+{
-+	return pgprot_tagged(prot);
-+}
-+
- #endif /* _ASM_ARM64_VMALLOC_H */
---- a/include/linux/vmalloc.h~kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged
-+++ a/include/linux/vmalloc.h
-@@ -115,6 +115,13 @@ static inline int arch_vmap_pte_supporte
+ /* Whether KASAN is enabled at all. */
+ DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
+@@ -116,7 +116,10 @@ static inline const char *kasan_mode_inf
+ 		return "sync";
  }
- #endif
  
-+#ifndef arch_vmap_pgprot_tagged
-+static inline pgprot_t arch_vmap_pgprot_tagged(pgprot_t prot)
-+{
-+	return prot;
-+}
-+#endif
-+
- /*
-  *	Highlevel APIs for driver use
-  */
---- a/mm/vmalloc.c~kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged
-+++ a/mm/vmalloc.c
-@@ -3108,6 +3108,15 @@ again:
- 		goto fail;
- 	}
- 
-+	/*
-+	 * Modify protection bits to allow tagging.
-+	 * This must be done before mapping by __vmalloc_area_node().
-+	 */
-+	if (kasan_hw_tags_enabled() &&
-+	    pgprot_val(prot) == pgprot_val(PAGE_KERNEL))
-+		prot = arch_vmap_pgprot_tagged(prot);
-+
-+	/* Allocate physical pages and map them into vmalloc space. */
- 	addr = __vmalloc_area_node(area, gfp_mask, prot, shift, node);
- 	if (!addr)
- 		goto fail;
+-/* kasan_init_hw_tags_cpu() is called for each CPU. */
++/*
++ * kasan_init_hw_tags_cpu() is called for each CPU.
++ * Not marked as __init as a CPU can be hot-plugged after boot.
++ */
+ void kasan_init_hw_tags_cpu(void)
+ {
+ 	/*
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
