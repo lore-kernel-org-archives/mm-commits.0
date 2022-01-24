@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DF7DBC433F5
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 00:34:11 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60CD5C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 00:34:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351596AbiAYAeE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 19:34:04 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:44516 "EHLO
+        id S3411594AbiAYAeH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 19:34:07 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:44724 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1355682AbiAXWlu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:41:50 -0500
+        with ESMTP id S1383013AbiAXWl4 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 17:41:56 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 275F661440
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:41:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21133C340E4;
-        Mon, 24 Jan 2022 22:41:46 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 186C461446
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:41:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 122FEC340E4;
+        Mon, 24 Jan 2022 22:41:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064106;
-        bh=0swne7Ehfdts0S2jMHKYnWGoksPrS6+lWSHPWT2HTF4=;
+        s=korg; t=1643064115;
+        bh=e+M9gY0VTkn+6Vh41ff/IC6LdiOR9NrOkDzbJbHPejE=;
         h=Date:From:To:Subject:From;
-        b=BmLEVejRShIvs/CvSwUHIny9rUAHKRvuyqgSG49Oe9a9BPgVL2ccSHlM4qQqZ0cBt
-         F65vgZRLtOfAhhT+Wjk8jPAd0kUMj230AlPEUUI8/WdlXmv2GWWpKyivACsfzhNmuF
-         BtY6sYvsInohJdCsY5QfkIWeU5UZKERsOxLLrBII=
-Date:   Mon, 24 Jan 2022 14:41:45 -0800
+        b=ohlJdQ0E3VJ7ShcTdryeJ/gvke+wmXBadI4/Fi2R5lyppVO3AbG6Qa5WEG+qklO1t
+         qor5NV7o9mX/nJp7Hi2x16yIZqct6W9UhVxOJuFZuL0zpzk+z3UpmUbbsKc4qxqnL9
+         /9Liyoekqdk8hjbP7DTH9E9khf0K81BGtBaGca8g=
+Date:   Mon, 24 Jan 2022 14:41:54 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
 Subject:  +
- kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch added
- to -mm tree
-Message-ID: <20220124224145.igRDLOt6V%akpm@linux-foundation.org>
+ kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch added to
+ -mm tree
+Message-ID: <20220124224154.yJ2Ny11un%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, page_alloc: merge kasan_free_pages into free_pages_prepare
+     Subject: kasan: drop skip_kasan_poison variable in free_pages_prepare
 has been added to the -mm tree.  Its filename is
-     kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+     kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,28 +65,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, page_alloc: merge kasan_free_pages into free_pages_prepare
+Subject: kasan: drop skip_kasan_poison variable in free_pages_prepare
 
-Currently, the code responsible for initializing and poisoning memory in
-free_pages_prepare() is scattered across two locations: kasan_free_pages()
-for HW_TAGS KASAN and free_pages_prepare() itself.  This is confusing.
+skip_kasan_poison is only used in a single place.  Call
+should_skip_kasan_poison() directly for simplicity.
 
-This and a few following patches combine the code from these two
-locations.  Along the way, these patches also simplify the performed
-checks to make them easier to follow.
-
-Replaces the only caller of kasan_free_pages() with its implementation.
-
-As kasan_has_integrated_init() is only true when CONFIG_KASAN_HW_TAGS is
-enabled, moving the code does no functional changes.
-
-This patch is not useful by itself but makes the simplifications in the
-following patches easier to follow.
-
-Link: https://lkml.kernel.org/r/303498d15840bb71905852955c6e2390ecc87139.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/1d33212e79bc9ef0b4d3863f903875823e89046f.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
+Suggested-by: Marco Elver <elver@google.com>
 Acked-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -98,89 +86,28 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |    8 --------
- mm/kasan/common.c     |    2 +-
- mm/kasan/hw_tags.c    |   11 -----------
- mm/page_alloc.c       |    6 ++++--
- 4 files changed, 5 insertions(+), 22 deletions(-)
+ mm/page_alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- a/include/linux/kasan.h~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
-+++ a/include/linux/kasan.h
-@@ -96,7 +96,6 @@ static inline bool kasan_hw_tags_enabled
- }
- 
- void kasan_alloc_pages(struct page *page, unsigned int order, gfp_t flags);
--void kasan_free_pages(struct page *page, unsigned int order);
- 
- #else /* CONFIG_KASAN_HW_TAGS */
- 
-@@ -115,13 +114,6 @@ static __always_inline void kasan_alloc_
- {
- 	/* Only available for integrated init. */
- 	BUILD_BUG();
--}
--
--static __always_inline void kasan_free_pages(struct page *page,
--					     unsigned int order)
--{
--	/* Only available for integrated init. */
--	BUILD_BUG();
- }
- 
- #endif /* CONFIG_KASAN_HW_TAGS */
---- a/mm/kasan/common.c~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
-+++ a/mm/kasan/common.c
-@@ -387,7 +387,7 @@ static inline bool ____kasan_kfree_large
- 	}
- 
- 	/*
--	 * The object will be poisoned by kasan_free_pages() or
-+	 * The object will be poisoned by kasan_poison_pages() or
- 	 * kasan_slab_free_mempool().
- 	 */
- 
---- a/mm/kasan/hw_tags.c~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
-+++ a/mm/kasan/hw_tags.c
-@@ -213,17 +213,6 @@ void kasan_alloc_pages(struct page *page
- 	}
- }
- 
--void kasan_free_pages(struct page *page, unsigned int order)
--{
--	/*
--	 * This condition should match the one in free_pages_prepare() in
--	 * page_alloc.c.
--	 */
--	bool init = want_init_on_free();
--
--	kasan_poison_pages(page, order, init);
--}
--
- #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
- 
- void kasan_enable_tagging_sync(void)
---- a/mm/page_alloc.c~kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare
+--- a/mm/page_alloc.c~kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare
 +++ a/mm/page_alloc.c
-@@ -1368,15 +1368,17 @@ static __always_inline bool free_pages_p
+@@ -1301,7 +1301,6 @@ static __always_inline bool free_pages_p
+ 			unsigned int order, bool check_free, fpi_t fpi_flags)
+ {
+ 	int bad = 0;
+-	bool skip_kasan_poison = should_skip_kasan_poison(page, fpi_flags);
+ 	bool init = want_init_on_free();
  
- 	/*
- 	 * As memory initialization might be integrated into KASAN,
--	 * kasan_free_pages and kernel_init_free_pages must be
-+	 * KASAN poisoning and memory initialization code must be
- 	 * kept together to avoid discrepancies in behavior.
- 	 *
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+@@ -1375,7 +1374,7 @@ static __always_inline bool free_pages_p
  	 * With hardware tag-based KASAN, memory tags must be set before the
  	 * page becomes unavailable via debug_pagealloc or arch_free_page.
  	 */
- 	if (kasan_has_integrated_init()) {
-+		bool init = want_init_on_free();
-+
- 		if (!skip_kasan_poison)
--			kasan_free_pages(page, order);
-+			kasan_poison_pages(page, order, init);
- 	} else {
- 		bool init = want_init_on_free();
+-	if (!skip_kasan_poison) {
++	if (!should_skip_kasan_poison(page, fpi_flags)) {
+ 		kasan_poison_pages(page, order, init);
  
+ 		/* Memory is already initialized if KASAN did it internally. */
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
