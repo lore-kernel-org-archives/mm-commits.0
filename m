@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C52C6C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:46:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 880CAC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:46:08 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S246194AbiAYDqD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 22:46:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46382 "EHLO
+        id S1386959AbiAYDqG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 22:46:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45952 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S3415126AbiAYA5T (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:57:19 -0500
+        with ESMTP id S3415136AbiAYA53 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:57:29 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3DF8FC04D620
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:43:11 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2B890C07596C
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:43:24 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D686FB815B0
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:43:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2AD42C340E4;
-        Mon, 24 Jan 2022 22:43:08 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id C35B6B81255
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:43:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1854DC340E4;
+        Mon, 24 Jan 2022 22:43:21 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064188;
-        bh=gxHHRTVZ7+hJ+Ua0pFWs12LY1odbwLDw84ro2HyNwRM=;
+        s=korg; t=1643064201;
+        bh=TRedIbpwrdi5tJqUhLNgN0PMQ5/breTXcAf8bVOk8aE=;
         h=Date:From:To:Subject:From;
-        b=pgcF8R9ZPX3HwoFtd7d9NhAfjjKNrI1zsxweyOrZwkHxq8damR8GW1czD8PGnIIF3
-         DOikIRG91eFwQV87/GEk3CGfGvBewbU3JIfv0lNKCqLAJ07m6hnySwXxXAMJ21YDvG
-         EbjlEdCWzyie16BbCn9CCn6WJWcKeSSqGq3R/myY=
-Date:   Mon, 24 Jan 2022 14:43:07 -0800
+        b=QXhs1OiiUG5i8scXr+9jgvFYcO1G3S/dVeSMPR4Zsc1tLkyURE9Q/SGj/TzYkjH56
+         GIDch+68EGv8H3vjAJZkFhN1A5Qbw1EgkLrWkAeAZCrd+VeNBFvCk7e/8k7KBR2CAl
+         xwxngTuuA9i3GnYdrkfOziSepPy6MgsVbtmdRu8c=
+Date:   Mon, 24 Jan 2022 14:43:20 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  + kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+Subject:  + kasan-clean-up-feature-flags-for-hw_tags-mode.patch
  added to -mm tree
-Message-ID: <20220124224307.SY1Q7EG8l%akpm@linux-foundation.org>
+Message-ID: <20220124224320.n0TyJC_3H%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, vmalloc: add vmalloc tagging for HW_TAGS
+     Subject: kasan: clean up feature flags for HW_TAGS mode
 has been added to the -mm tree.  Its filename is
-     kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+     kasan-clean-up-feature-flags-for-hw_tags-mode.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-clean-up-feature-flags-for-hw_tags-mode.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-clean-up-feature-flags-for-hw_tags-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,39 +67,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, vmalloc: add vmalloc tagging for HW_TAGS
+Subject: kasan: clean up feature flags for HW_TAGS mode
 
-Add vmalloc tagging support to HW_TAGS KASAN.
+- Untie kasan_init_hw_tags() code from the default values of
+  kasan_arg_mode and kasan_arg_stacktrace.
 
-The key difference between HW_TAGS and the other two KASAN modes when it
-comes to vmalloc: HW_TAGS KASAN can only assign tags to physical memory. 
-The other two modes have shadow memory covering every mapped virtual
-memory region.
+- Move static_branch_enable(&kasan_flag_enabled) to the end of
+  kasan_init_hw_tags_cpu().
 
-Make __kasan_unpoison_vmalloc() for HW_TAGS KASAN:
+- Remove excessive comments in kasan_arg_mode switch.
 
-- Skip non-VM_ALLOC mappings as HW_TAGS KASAN can only tag a single
-  mapping of normal physical memory; see the comment in the function.
-- Generate a random tag, tag the returned pointer and the allocation,
-  and initialize the allocation at the same time.
-- Propagate the tag into the page stucts to allow accesses through
-  page_address(vmalloc_to_page()).
+- Add new comments.
 
-The rest of vmalloc-related KASAN hooks are not needed:
-
-- The shadow-related ones are fully skipped.
-- __kasan_poison_vmalloc() is kept as a no-op with a comment.
-
-Poisoning and zeroing of physical pages that are backing vmalloc()
-allocations are skipped via __GFP_SKIP_KASAN_UNPOISON and __GFP_SKIP_ZERO:
-__kasan_unpoison_vmalloc() does that instead.
-
-Enabling CONFIG_KASAN_VMALLOC with HW_TAGS is not yet allowed.
-
-Link: https://lkml.kernel.org/r/d19b2e9e59a9abc59d05b72dea8429dcaea739c6.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/76ebb340265be57a218564a497e1f52ff36a3879.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Co-developed-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
-Signed-off-by: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
@@ -108,327 +89,117 @@ Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Evgenii Stepanov <eugenis@google.com>
 Cc: Mark Rutland <mark.rutland@arm.com>
 Cc: Peter Collingbourne <pcc@google.com>
+Cc: Vincenzo Frascino <vincenzo.frascino@arm.com>
 Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   36 +++++++++++++--
- kernel/scs.c          |    4 -
- mm/kasan/hw_tags.c    |   92 ++++++++++++++++++++++++++++++++++++++++
- mm/kasan/shadow.c     |   10 +++-
- mm/vmalloc.c          |   51 +++++++++++++++++-----
- 5 files changed, 175 insertions(+), 18 deletions(-)
+ mm/kasan/hw_tags.c |   38 +++++++++++++++++++++-----------------
+ mm/kasan/kasan.h   |    2 +-
+ 2 files changed, 22 insertions(+), 18 deletions(-)
 
---- a/include/linux/kasan.h~kasan-vmalloc-add-vmalloc-tagging-for-hw_tags
-+++ a/include/linux/kasan.h
-@@ -25,6 +25,12 @@ struct kunit_kasan_expectation {
- 
- #endif
- 
-+typedef unsigned int __bitwise kasan_vmalloc_flags_t;
-+
-+#define KASAN_VMALLOC_NONE	0x00u
-+#define KASAN_VMALLOC_INIT	0x01u
-+#define KASAN_VMALLOC_VM_ALLOC	0x02u
-+
- #if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
- 
- #include <linux/pgtable.h>
-@@ -418,18 +424,39 @@ static inline void kasan_init_hw_tags(vo
- 
- #ifdef CONFIG_KASAN_VMALLOC
- 
-+#if defined(CONFIG_KASAN_GENERIC) || defined(CONFIG_KASAN_SW_TAGS)
-+
- void kasan_populate_early_vm_area_shadow(void *start, unsigned long size);
- int kasan_populate_vmalloc(unsigned long addr, unsigned long size);
- void kasan_release_vmalloc(unsigned long start, unsigned long end,
- 			   unsigned long free_region_start,
- 			   unsigned long free_region_end);
- 
--void *__kasan_unpoison_vmalloc(const void *start, unsigned long size);
-+#else /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
-+
-+static inline void kasan_populate_early_vm_area_shadow(void *start,
-+						       unsigned long size)
-+{ }
-+static inline int kasan_populate_vmalloc(unsigned long start,
-+					unsigned long size)
-+{
-+	return 0;
-+}
-+static inline void kasan_release_vmalloc(unsigned long start,
-+					 unsigned long end,
-+					 unsigned long free_region_start,
-+					 unsigned long free_region_end) { }
-+
-+#endif /* CONFIG_KASAN_GENERIC || CONFIG_KASAN_SW_TAGS */
-+
-+void *__kasan_unpoison_vmalloc(const void *start, unsigned long size,
-+			       kasan_vmalloc_flags_t flags);
- static __always_inline void *kasan_unpoison_vmalloc(const void *start,
--						    unsigned long size)
-+						unsigned long size,
-+						kasan_vmalloc_flags_t flags)
- {
- 	if (kasan_enabled())
--		return __kasan_unpoison_vmalloc(start, size);
-+		return __kasan_unpoison_vmalloc(start, size, flags);
- 	return (void *)start;
- }
- 
-@@ -456,7 +483,8 @@ static inline void kasan_release_vmalloc
- 					 unsigned long free_region_end) { }
- 
- static inline void *kasan_unpoison_vmalloc(const void *start,
--					   unsigned long size)
-+					   unsigned long size,
-+					   kasan_vmalloc_flags_t flags)
- {
- 	return (void *)start;
- }
---- a/kernel/scs.c~kasan-vmalloc-add-vmalloc-tagging-for-hw_tags
-+++ a/kernel/scs.c
-@@ -32,7 +32,7 @@ static void *__scs_alloc(int node)
- 	for (i = 0; i < NR_CACHED_SCS; i++) {
- 		s = this_cpu_xchg(scs_cache[i], NULL);
- 		if (s) {
--			kasan_unpoison_vmalloc(s, SCS_SIZE);
-+			kasan_unpoison_vmalloc(s, SCS_SIZE, KASAN_VMALLOC_NONE);
- 			memset(s, 0, SCS_SIZE);
- 			return s;
- 		}
-@@ -78,7 +78,7 @@ void scs_free(void *s)
- 		if (this_cpu_cmpxchg(scs_cache[i], 0, s) == NULL)
- 			return;
- 
--	kasan_unpoison_vmalloc(s, SCS_SIZE);
-+	kasan_unpoison_vmalloc(s, SCS_SIZE, KASAN_VMALLOC_NONE);
- 	vfree_atomic(s);
- }
- 
---- a/mm/kasan/hw_tags.c~kasan-vmalloc-add-vmalloc-tagging-for-hw_tags
+--- a/mm/kasan/hw_tags.c~kasan-clean-up-feature-flags-for-hw_tags-mode
 +++ a/mm/kasan/hw_tags.c
-@@ -192,6 +192,98 @@ void __init kasan_init_hw_tags(void)
+@@ -42,16 +42,22 @@ static enum kasan_arg kasan_arg __ro_aft
+ static enum kasan_arg_mode kasan_arg_mode __ro_after_init;
+ static enum kasan_arg_stacktrace kasan_arg_stacktrace __initdata;
+ 
+-/* Whether KASAN is enabled at all. */
++/*
++ * Whether KASAN is enabled at all.
++ * The value remains false until KASAN is initialized by kasan_init_hw_tags().
++ */
+ DEFINE_STATIC_KEY_FALSE(kasan_flag_enabled);
+ EXPORT_SYMBOL(kasan_flag_enabled);
+ 
+-/* Whether the selected mode is synchronous/asynchronous/asymmetric.*/
++/*
++ * Whether the selected mode is synchronous, asynchronous, or asymmetric.
++ * Defaults to KASAN_MODE_SYNC.
++ */
+ enum kasan_mode kasan_mode __ro_after_init;
+ EXPORT_SYMBOL_GPL(kasan_mode);
+ 
+ /* Whether to collect alloc/free stack traces. */
+-DEFINE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
++DEFINE_STATIC_KEY_TRUE(kasan_flag_stacktrace);
+ 
+ /* kasan=off/on */
+ static int __init early_kasan_flag(char *arg)
+@@ -127,7 +133,11 @@ void kasan_init_hw_tags_cpu(void)
+ 	 * as this function is only called for MTE-capable hardware.
+ 	 */
+ 
+-	/* If KASAN is disabled via command line, don't initialize it. */
++	/*
++	 * If KASAN is disabled via command line, don't initialize it.
++	 * When this function is called, kasan_flag_enabled is not yet
++	 * set by kasan_init_hw_tags(). Thus, check kasan_arg instead.
++	 */
+ 	if (kasan_arg == KASAN_ARG_OFF)
+ 		return;
+ 
+@@ -154,42 +164,36 @@ void __init kasan_init_hw_tags(void)
+ 	if (kasan_arg == KASAN_ARG_OFF)
+ 		return;
+ 
+-	/* Enable KASAN. */
+-	static_branch_enable(&kasan_flag_enabled);
+-
+ 	switch (kasan_arg_mode) {
+ 	case KASAN_ARG_MODE_DEFAULT:
+-		/*
+-		 * Default to sync mode.
+-		 */
+-		fallthrough;
++		/* Default is specified by kasan_mode definition. */
++		break;
+ 	case KASAN_ARG_MODE_SYNC:
+-		/* Sync mode enabled. */
+ 		kasan_mode = KASAN_MODE_SYNC;
+ 		break;
+ 	case KASAN_ARG_MODE_ASYNC:
+-		/* Async mode enabled. */
+ 		kasan_mode = KASAN_MODE_ASYNC;
+ 		break;
+ 	case KASAN_ARG_MODE_ASYMM:
+-		/* Asymm mode enabled. */
+ 		kasan_mode = KASAN_MODE_ASYMM;
+ 		break;
+ 	}
+ 
+ 	switch (kasan_arg_stacktrace) {
+ 	case KASAN_ARG_STACKTRACE_DEFAULT:
+-		/* Default to enabling stack trace collection. */
+-		static_branch_enable(&kasan_flag_stacktrace);
++		/* Default is specified by kasan_flag_stacktrace definition. */
+ 		break;
+ 	case KASAN_ARG_STACKTRACE_OFF:
+-		/* Do nothing, kasan_flag_stacktrace keeps its default value. */
++		static_branch_disable(&kasan_flag_stacktrace);
+ 		break;
+ 	case KASAN_ARG_STACKTRACE_ON:
+ 		static_branch_enable(&kasan_flag_stacktrace);
+ 		break;
+ 	}
+ 
++	/* KASAN is now initialized, enable it. */
++	static_branch_enable(&kasan_flag_enabled);
++
+ 	pr_info("KernelAddressSanitizer initialized (hw-tags, mode=%s, stacktrace=%s)\n",
+ 		kasan_mode_info(),
  		kasan_stack_collection_enabled() ? "on" : "off");
- }
+--- a/mm/kasan/kasan.h~kasan-clean-up-feature-flags-for-hw_tags-mode
++++ a/mm/kasan/kasan.h
+@@ -12,7 +12,7 @@
+ #include <linux/static_key.h>
+ #include "../slab.h"
  
-+#ifdef CONFIG_KASAN_VMALLOC
-+
-+static void unpoison_vmalloc_pages(const void *addr, u8 tag)
-+{
-+	struct vm_struct *area;
-+	int i;
-+
-+	/*
-+	 * As hardware tag-based KASAN only tags VM_ALLOC vmalloc allocations
-+	 * (see the comment in __kasan_unpoison_vmalloc), all of the pages
-+	 * should belong to a single area.
-+	 */
-+	area = find_vm_area((void *)addr);
-+	if (WARN_ON(!area))
-+		return;
-+
-+	for (i = 0; i < area->nr_pages; i++) {
-+		struct page *page = area->pages[i];
-+
-+		page_kasan_tag_set(page, tag);
-+	}
-+}
-+
-+void *__kasan_unpoison_vmalloc(const void *start, unsigned long size,
-+				kasan_vmalloc_flags_t flags)
-+{
-+	u8 tag;
-+	unsigned long redzone_start, redzone_size;
-+
-+	if (!is_vmalloc_or_module_addr(start))
-+		return (void *)start;
-+
-+	/*
-+	 * Skip unpoisoning and assigning a pointer tag for non-VM_ALLOC
-+	 * mappings as:
-+	 *
-+	 * 1. Unlike the software KASAN modes, hardware tag-based KASAN only
-+	 *    supports tagging physical memory. Therefore, it can only tag a
-+	 *    single mapping of normal physical pages.
-+	 * 2. Hardware tag-based KASAN can only tag memory mapped with special
-+	 *    mapping protection bits, see arch_vmalloc_pgprot_modify().
-+	 *    As non-VM_ALLOC mappings can be mapped outside of vmalloc code,
-+	 *    providing these bits would require tracking all non-VM_ALLOC
-+	 *    mappers.
-+	 *
-+	 * Thus, for VM_ALLOC mappings, hardware tag-based KASAN only tags
-+	 * the first virtual mapping, which is created by vmalloc().
-+	 * Tagging the page_alloc memory backing that vmalloc() allocation is
-+	 * skipped, see ___GFP_SKIP_KASAN_UNPOISON.
-+	 *
-+	 * For non-VM_ALLOC allocations, page_alloc memory is tagged as usual.
-+	 */
-+	if (!(flags & KASAN_VMALLOC_VM_ALLOC))
-+		return (void *)start;
-+
-+	tag = kasan_random_tag();
-+	start = set_tag(start, tag);
-+
-+	/* Unpoison and initialize memory up to size. */
-+	kasan_unpoison(start, size, flags & KASAN_VMALLOC_INIT);
-+
-+	/*
-+	 * Explicitly poison and initialize the in-page vmalloc() redzone.
-+	 * Unlike software KASAN modes, hardware tag-based KASAN doesn't
-+	 * unpoison memory when populating shadow for vmalloc() space.
-+	 */
-+	redzone_start = round_up((unsigned long)start + size,
-+				 KASAN_GRANULE_SIZE);
-+	redzone_size = round_up(redzone_start, PAGE_SIZE) - redzone_start;
-+	kasan_poison((void *)redzone_start, redzone_size, KASAN_TAG_INVALID,
-+		     flags & KASAN_VMALLOC_INIT);
-+
-+	/*
-+	 * Set per-page tag flags to allow accessing physical memory for the
-+	 * vmalloc() mapping through page_address(vmalloc_to_page()).
-+	 */
-+	unpoison_vmalloc_pages(start, tag);
-+
-+	return (void *)start;
-+}
-+
-+void __kasan_poison_vmalloc(const void *start, unsigned long size)
-+{
-+	/*
-+	 * No tagging here.
-+	 * The physical pages backing the vmalloc() allocation are poisoned
-+	 * through the usual page_alloc paths.
-+	 */
-+}
-+
-+#endif
-+
- #if IS_ENABLED(CONFIG_KASAN_KUNIT_TEST)
+-DECLARE_STATIC_KEY_FALSE(kasan_flag_stacktrace);
++DECLARE_STATIC_KEY_TRUE(kasan_flag_stacktrace);
  
- void kasan_enable_tagging_sync(void)
---- a/mm/kasan/shadow.c~kasan-vmalloc-add-vmalloc-tagging-for-hw_tags
-+++ a/mm/kasan/shadow.c
-@@ -475,8 +475,16 @@ void kasan_release_vmalloc(unsigned long
- 	}
- }
- 
--void *__kasan_unpoison_vmalloc(const void *start, unsigned long size)
-+void *__kasan_unpoison_vmalloc(const void *start, unsigned long size,
-+			       kasan_vmalloc_flags_t flags)
- {
-+	/*
-+	 * Software KASAN modes unpoison both VM_ALLOC and non-VM_ALLOC
-+	 * mappings, so the KASAN_VMALLOC_VM_ALLOC flag is ignored.
-+	 * Software KASAN modes can't optimize zeroing memory by combining it
-+	 * with setting memory tags, so the KASAN_VMALLOC_INIT flag is ignored.
-+	 */
-+
- 	if (!is_vmalloc_or_module_addr(start))
- 		return (void *)start;
- 
---- a/mm/vmalloc.c~kasan-vmalloc-add-vmalloc-tagging-for-hw_tags
-+++ a/mm/vmalloc.c
-@@ -2216,8 +2216,12 @@ void *vm_map_ram(struct page **pages, un
- 		return NULL;
- 	}
- 
--	/* Mark the pages as accessible, now that they are mapped. */
--	mem = kasan_unpoison_vmalloc(mem, size);
-+	/*
-+	 * Mark the pages as accessible, now that they are mapped.
-+	 * With hardware tag-based KASAN, marking is skipped for
-+	 * non-VM_ALLOC mappings, see __kasan_unpoison_vmalloc().
-+	 */
-+	mem = kasan_unpoison_vmalloc(mem, size, KASAN_VMALLOC_NONE);
- 
- 	return mem;
- }
-@@ -2451,9 +2455,12 @@ static struct vm_struct *__get_vm_area_n
- 	 * best-effort approach, as they can be mapped outside of vmalloc code.
- 	 * For VM_ALLOC mappings, the pages are marked as accessible after
- 	 * getting mapped in __vmalloc_node_range().
-+	 * With hardware tag-based KASAN, marking is skipped for
-+	 * non-VM_ALLOC mappings, see __kasan_unpoison_vmalloc().
- 	 */
- 	if (!(flags & VM_ALLOC))
--		area->addr = kasan_unpoison_vmalloc(area->addr, requested_size);
-+		area->addr = kasan_unpoison_vmalloc(area->addr, requested_size,
-+							KASAN_VMALLOC_NONE);
- 
- 	return area;
- }
-@@ -3064,6 +3071,7 @@ void *__vmalloc_node_range(unsigned long
- {
- 	struct vm_struct *area;
- 	void *ret;
-+	kasan_vmalloc_flags_t kasan_flags;
- 	unsigned long real_size = size;
- 	unsigned long real_align = align;
- 	unsigned int shift = PAGE_SHIFT;
-@@ -3116,21 +3124,39 @@ again:
- 		goto fail;
- 	}
- 
--	/*
--	 * Modify protection bits to allow tagging.
--	 * This must be done before mapping by __vmalloc_area_node().
--	 */
-+	/* Prepare arguments for __vmalloc_area_node(). */
- 	if (kasan_hw_tags_enabled() &&
--	    pgprot_val(prot) == pgprot_val(PAGE_KERNEL))
-+	    pgprot_val(prot) == pgprot_val(PAGE_KERNEL)) {
-+		/*
-+		 * Modify protection bits to allow tagging.
-+		 * This must be done before mapping in __vmalloc_area_node().
-+		 */
- 		prot = arch_vmap_pgprot_tagged(prot);
- 
-+		/*
-+		 * Skip page_alloc poisoning and zeroing for physical pages
-+		 * backing VM_ALLOC mapping. Memory is instead poisoned and
-+		 * zeroed by kasan_unpoison_vmalloc().
-+		 */
-+		gfp_mask |= __GFP_SKIP_KASAN_UNPOISON | __GFP_SKIP_ZERO;
-+	}
-+
- 	/* Allocate physical pages and map them into vmalloc space. */
- 	ret = __vmalloc_area_node(area, gfp_mask, prot, shift, node);
- 	if (!ret)
- 		goto fail;
- 
--	/* Mark the pages as accessible, now that they are mapped. */
--	area->addr = kasan_unpoison_vmalloc(area->addr, real_size);
-+	/*
-+	 * Mark the pages as accessible, now that they are mapped.
-+	 * The init condition should match the one in post_alloc_hook()
-+	 * (except for the should_skip_init() check) to make sure that memory
-+	 * is initialized under the same conditions regardless of the enabled
-+	 * KASAN mode.
-+	 */
-+	kasan_flags = KASAN_VMALLOC_VM_ALLOC;
-+	if (!want_init_on_free() && want_init_on_alloc(gfp_mask))
-+		kasan_flags |= KASAN_VMALLOC_INIT;
-+	area->addr = kasan_unpoison_vmalloc(area->addr, real_size, kasan_flags);
- 
- 	/*
- 	 * In this function, newly allocated vm_struct has VM_UNINITIALIZED
-@@ -3830,10 +3856,13 @@ retry:
- 	/*
- 	 * Mark allocated areas as accessible. Do it now as a best-effort
- 	 * approach, as they can be mapped outside of vmalloc code.
-+	 * With hardware tag-based KASAN, marking is skipped for
-+	 * non-VM_ALLOC mappings, see __kasan_unpoison_vmalloc().
- 	 */
- 	for (area = 0; area < nr_vms; area++)
- 		vms[area]->addr = kasan_unpoison_vmalloc(vms[area]->addr,
--							 vms[area]->size);
-+							 vms[area]->size,
-+							 KASAN_VMALLOC_NONE);
- 
- 	kfree(vas);
- 	return vms;
+ enum kasan_mode {
+ 	KASAN_MODE_SYNC,
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
