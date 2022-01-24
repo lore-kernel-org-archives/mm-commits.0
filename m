@@ -2,42 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DE370C433FE
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:45:16 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E0A74C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:45:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S2365693AbiAYDpK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 22:45:10 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45454 "EHLO
+        id S3415033AbiAYDpM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 22:45:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44976 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S3415033AbiAYAzU (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:55:20 -0500
+        with ESMTP id S3415036AbiAYAzV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:55:21 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 04315C055A84
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:41:52 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 213F0C055A88
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:41:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B6A3CB81257
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:41:50 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 07F7EC340E4;
-        Mon, 24 Jan 2022 22:41:48 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id D20E4B81257
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:41:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2671AC340E4;
+        Mon, 24 Jan 2022 22:41:52 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064109;
-        bh=IRR7Wf18ce/2JSX1GEknZZAD4DOA+a/ApPGKNZLM2pQ=;
+        s=korg; t=1643064112;
+        bh=a6Fu+lhvFElXMTY2YudwVezcN6LBVqWeY/DyAEPiG04=;
         h=Date:From:To:Subject:From;
-        b=yx/mwiYKIA/ZNhoqBVhJNiMIXhigDhsbWn56xVW+9bDbqF4pdlRlNETzH1BWZ4W0W
-         vQzaxat9wlZEelmEnpccqZ94Jh+pUP0qseAhRVOjDLEqSRErwpgCko3Yk4MFSXH2ma
-         qDTIcO/pyeWR9WmIIHFago3h+lZPRlLCam5wHJSU=
-Date:   Mon, 24 Jan 2022 14:41:48 -0800
+        b=v01AUYruRJOcCLp0fszR6RV3yCoxgfRi8u4umpZJVQdfHbfvB6MHDaPLQa0IVEYG/
+         aN6iHLa51mbjDkBfvRpcYBX12yidgEH/v9Uw46cxWFNZIO4Nq+jMqqhPEvSY7Vkb1Z
+         dMd35IjvziD0yVYWoUDcf2sre23l2K4B4AHqnZ4s=
+Date:   Mon, 24 Jan 2022 14:41:51 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
 Subject:  +
- kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch added to -mm
+ kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch added to -mm
  tree
-Message-ID: <20220124224148.tHZv6zwY1%akpm@linux-foundation.org>
+Message-ID: <20220124224151.Jd4F765wl%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, page_alloc: simplify kasan_poison_pages call site
+     Subject: kasan, page_alloc: init memory of skipped pages on free
 has been added to the -mm tree.  Its filename is
-     kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+     kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,17 +68,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, page_alloc: simplify kasan_poison_pages call site
+Subject: kasan, page_alloc: init memory of skipped pages on free
 
-Simplify the code around calling kasan_poison_pages() in
-free_pages_prepare().
+Since commit 7a3b83537188 ("kasan: use separate (un)poison implementation
+for integrated init"), when all init, kasan_has_integrated_init(), and
+skip_kasan_poison are true, free_pages_prepare() doesn't initialize the
+page.  This is wrong.
 
-This patch does no functional changes.
+Fix it by remembering whether kasan_poison_pages() performed
+initialization, and call kernel_init_free_pages() if it didn't.
 
-Link: https://lkml.kernel.org/r/ae4f9bcf071577258e786bcec4798c145d718c46.1643047180.git.andreyknvl@google.com
+Reordering kasan_poison_pages() and kernel_init_free_pages() is OK, since
+kernel_init_free_pages() can handle poisoned memory.
+
+Link: https://lkml.kernel.org/r/1d97df75955e52727a3dc1c4e33b3b50506fc3fd.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Reviewed-by: Alexander Potapenko <glider@google.com>
 Acked-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
 Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
@@ -90,43 +96,31 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ mm/page_alloc.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/mm/page_alloc.c~kasan-page_alloc-simplify-kasan_poison_pages-call-site
+--- a/mm/page_alloc.c~kasan-page_alloc-init-memory-of-skipped-pages-on-free
 +++ a/mm/page_alloc.c
-@@ -1302,6 +1302,7 @@ static __always_inline bool free_pages_p
- {
- 	int bad = 0;
- 	bool skip_kasan_poison = should_skip_kasan_poison(page, fpi_flags);
-+	bool init = want_init_on_free();
- 
- 	VM_BUG_ON_PAGE(PageTail(page), page);
- 
-@@ -1374,19 +1375,10 @@ static __always_inline bool free_pages_p
+@@ -1375,11 +1375,16 @@ static __always_inline bool free_pages_p
  	 * With hardware tag-based KASAN, memory tags must be set before the
  	 * page becomes unavailable via debug_pagealloc or arch_free_page.
  	 */
--	if (kasan_has_integrated_init()) {
--		bool init = want_init_on_free();
--
--		if (!skip_kasan_poison)
--			kasan_poison_pages(page, order, init);
--	} else {
--		bool init = want_init_on_free();
--
--		if (init)
--			kernel_init_free_pages(page, 1 << order);
--		if (!skip_kasan_poison)
--			kasan_poison_pages(page, order, init);
--	}
-+	if (init && !kasan_has_integrated_init())
-+		kernel_init_free_pages(page, 1 << order);
-+	if (!skip_kasan_poison)
-+		kasan_poison_pages(page, order, init);
+-	if (init && !kasan_has_integrated_init())
+-		kernel_init_free_pages(page, 1 << order);
+-	if (!skip_kasan_poison)
++	if (!skip_kasan_poison) {
+ 		kasan_poison_pages(page, order, init);
  
++		/* Memory is already initialized if KASAN did it internally. */
++		if (kasan_has_integrated_init())
++			init = false;
++	}
++	if (init)
++		kernel_init_free_pages(page, 1 << order);
++
  	/*
  	 * arch_free_page() can make the page's contents inaccessible.  s390
+ 	 * does this.  So nothing which can access the page's contents should
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
