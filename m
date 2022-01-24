@@ -2,42 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E0A74C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:45:19 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 764F8C433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:45:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S3415033AbiAYDpM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 22:45:12 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44976 "EHLO
+        id S246001AbiAYDpR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 22:45:17 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45496 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S3415036AbiAYAzV (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:55:21 -0500
+        with ESMTP id S3415055AbiAYAza (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 19:55:30 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 213F0C055A88
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:41:55 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 07C1FC054860
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 14:42:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id D20E4B81257
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:41:53 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2671AC340E4;
-        Mon, 24 Jan 2022 22:41:52 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id BA037B81257
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 22:41:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1293CC340E4;
+        Mon, 24 Jan 2022 22:41:58 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643064112;
-        bh=a6Fu+lhvFElXMTY2YudwVezcN6LBVqWeY/DyAEPiG04=;
+        s=korg; t=1643064118;
+        bh=KwcOxWCZBTkVs+0PZLWuQqOw97mUR57S0OplBuRAK3I=;
         h=Date:From:To:Subject:From;
-        b=v01AUYruRJOcCLp0fszR6RV3yCoxgfRi8u4umpZJVQdfHbfvB6MHDaPLQa0IVEYG/
-         aN6iHLa51mbjDkBfvRpcYBX12yidgEH/v9Uw46cxWFNZIO4Nq+jMqqhPEvSY7Vkb1Z
-         dMd35IjvziD0yVYWoUDcf2sre23l2K4B4AHqnZ4s=
-Date:   Mon, 24 Jan 2022 14:41:51 -0800
+        b=yzC2vw3kv0RoqIs0uuPQbV/rAIsvEhVkoQDSJmgCXreXB+kGEWgPIFGtQmPvRmoAu
+         2zvXPFfBvIdEaSQbt57fkR9TUBNGK1V+XfNFx/W2zdnO/etgHAOQT51y5G1SQ7+YhC
+         lo5yOae7twgdiA6ijYWzcc7Xz+MycyPf0DI/crYE=
+Date:   Mon, 24 Jan 2022 14:41:57 -0800
 From:   akpm@linux-foundation.org
 To:     andreyknvl@google.com, catalin.marinas@arm.com, dvyukov@google.com,
         elver@google.com, eugenis@google.com, glider@google.com,
         mark.rutland@arm.com, mm-commits@vger.kernel.org, pcc@google.com,
         ryabinin.a.a@gmail.com, vincenzo.frascino@arm.com, will@kernel.org
-Subject:  +
- kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch added to -mm
+Subject:  + mm-clarify-__gfp_zerotags-comment.patch added to -mm
  tree
-Message-ID: <20220124224151.Jd4F765wl%akpm@linux-foundation.org>
+Message-ID: <20220124224157.Mn3-0yN3b%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan, page_alloc: init memory of skipped pages on free
+     Subject: mm: clarify __GFP_ZEROTAGS comment
 has been added to the -mm tree.  Its filename is
-     kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+     mm-clarify-__gfp_zerotags-comment.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-clarify-__gfp_zerotags-comment.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-clarify-__gfp_zerotags-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,20 +67,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan, page_alloc: init memory of skipped pages on free
+Subject: mm: clarify __GFP_ZEROTAGS comment
 
-Since commit 7a3b83537188 ("kasan: use separate (un)poison implementation
-for integrated init"), when all init, kasan_has_integrated_init(), and
-skip_kasan_poison are true, free_pages_prepare() doesn't initialize the
-page.  This is wrong.
+__GFP_ZEROTAGS is intended as an optimization: if memory is zeroed during
+allocation, it's possible to set memory tags at the same time with little
+performance impact.
 
-Fix it by remembering whether kasan_poison_pages() performed
-initialization, and call kernel_init_free_pages() if it didn't.
+Clarify this intention of __GFP_ZEROTAGS in the comment.
 
-Reordering kasan_poison_pages() and kernel_init_free_pages() is OK, since
-kernel_init_free_pages() can handle poisoned memory.
-
-Link: https://lkml.kernel.org/r/1d97df75955e52727a3dc1c4e33b3b50506fc3fd.1643047180.git.andreyknvl@google.com
+Link: https://lkml.kernel.org/r/cdffde013973c5634a447513e10ec0d21e8eee29.1643047180.git.andreyknvl@google.com
 Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
 Acked-by: Marco Elver <elver@google.com>
 Cc: Alexander Potapenko <glider@google.com>
@@ -96,31 +90,24 @@ Cc: Will Deacon <will@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ include/linux/gfp.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
---- a/mm/page_alloc.c~kasan-page_alloc-init-memory-of-skipped-pages-on-free
-+++ a/mm/page_alloc.c
-@@ -1375,11 +1375,16 @@ static __always_inline bool free_pages_p
- 	 * With hardware tag-based KASAN, memory tags must be set before the
- 	 * page becomes unavailable via debug_pagealloc or arch_free_page.
- 	 */
--	if (init && !kasan_has_integrated_init())
--		kernel_init_free_pages(page, 1 << order);
--	if (!skip_kasan_poison)
-+	if (!skip_kasan_poison) {
- 		kasan_poison_pages(page, order, init);
- 
-+		/* Memory is already initialized if KASAN did it internally. */
-+		if (kasan_has_integrated_init())
-+			init = false;
-+	}
-+	if (init)
-+		kernel_init_free_pages(page, 1 << order);
-+
- 	/*
- 	 * arch_free_page() can make the page's contents inaccessible.  s390
- 	 * does this.  So nothing which can access the page's contents should
+--- a/include/linux/gfp.h~mm-clarify-__gfp_zerotags-comment
++++ a/include/linux/gfp.h
+@@ -232,8 +232,10 @@ struct vm_area_struct;
+  *
+  * %__GFP_ZERO returns a zeroed page on success.
+  *
+- * %__GFP_ZEROTAGS returns a page with zeroed memory tags on success, if
+- * __GFP_ZERO is set.
++ * %__GFP_ZEROTAGS zeroes memory tags at allocation time if the memory itself
++ * is being zeroed (either via __GFP_ZERO or via init_on_alloc). This flag is
++ * intended for optimization: setting memory tags at the same time as zeroing
++ * memory has minimal additional performace impact.
+  *
+  * %__GFP_SKIP_KASAN_POISON returns a page which does not need to be poisoned
+  * on deallocation. Typically used for userspace pages. Currently only has an
 _
 
 Patches currently in -mm which might be from andreyknvl@google.com are
