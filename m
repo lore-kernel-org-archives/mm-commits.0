@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3615EC4332F
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 097D0C433F5
 	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 03:46:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387047AbiAYDqe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 24 Jan 2022 22:46:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37336 "EHLO
+        id S240995AbiAYDq3 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 24 Jan 2022 22:46:29 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:57260 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1378529AbiAYC2L (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 21:28:11 -0500
+        with ESMTP id S3415829AbiAYBwW (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 24 Jan 2022 20:52:22 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3D851C094264
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 16:17:44 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2090AC09B046
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 17:15:21 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D0F886134C
-        for <mm-commits@vger.kernel.org>; Tue, 25 Jan 2022 00:17:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0C800C340ED;
-        Tue, 25 Jan 2022 00:17:43 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id B0E6961208
+        for <mm-commits@vger.kernel.org>; Tue, 25 Jan 2022 01:15:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E66F6C340E4;
+        Tue, 25 Jan 2022 01:15:19 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643069863;
-        bh=5401A3sin24rz1XIiGr+zftCWtHYs1gzUEcCkF+Br6k=;
+        s=korg; t=1643073320;
+        bh=ZdS1LXgngzQr7jwpJreT/Ch1VG/4TGUuTVl4tn0AOTw=;
         h=Date:From:To:Subject:From;
-        b=XUtJjTeSV2F2dCrKfbA54y/bfJQfCwmt/EHkxuB+okXZVN+s6FF2L+thAu9DYNqau
-         0kkwqah2+Wy9U1osO0ae+2DktKy+8FOOWvHC1ADlBvw5jnlVUCfNrHZqrVRfc/Vujo
-         8ppOQODWSXwD5egd0JMwMbiAK2v+KIjHluUlIyz8=
-Date:   Mon, 24 Jan 2022 16:17:42 -0800
+        b=hcFkwk4CqXyCiRLBqNlzczY5hsTrN318o6u/W7iEPFNUyTb6zs/0c8OjZN7yawp6U
+         ogKWxVZ6TJITl23TXzkW/faDLqihoCa9D+CQFVM4F1O3qfwz3pyZ1LGM2XZ73Njm+V
+         rSwnJ5IixTK4vwT9uvcwaoRLUCNLgjnftUL1KtNI=
+Date:   Mon, 24 Jan 2022 17:15:19 -0800
 From:   akpm@linux-foundation.org
-To:     kamezawa.hiroyu@jp.fujitsu.com, krupa.ramakrishnan@amd.com,
-        mhocko@suse.com, mm-commits@vger.kernel.org,
-        richard.weiyang@gmail.com, rientjes@google.com
-Subject:  +
- mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+To:     dave@stgolabs.net, dhowells@redhat.com, longman@redhat.com,
+        manfred@colorfullife.com, mm-commits@vger.kernel.org,
+        viro@zeniv.linux.org.uk
+Subject:  + ipc-mqueue-use-get_tree_nodev-in-mqueue_get_tree.patch
  added to -mm tree
-Message-ID: <20220125001742.EfykzBG6a%akpm@linux-foundation.org>
+Message-ID: <20220125011519.T2EyhsPPg%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: adding same penalty is enough to get round-robin order
+     Subject: ipc/mqueue: use get_tree_nodev() in mqueue_get_tree()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+     ipc-mqueue-use-get_tree_nodev-in-mqueue_get_tree.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ipc-mqueue-use-get_tree_nodev-in-mqueue_get_tree.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ipc-mqueue-use-get_tree_nodev-in-mqueue_get_tree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,69 +65,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/page_alloc: adding same penalty is enough to get round-robin order
+From: Waiman Long <longman@redhat.com>
+Subject: ipc/mqueue: use get_tree_nodev() in mqueue_get_tree()
 
-To make node order in round-robin in the same distance group, we add a
-penalty to the first node we got in each round.
+When running the stress-ng clone benchmark with multiple testing threads,
+it was found that there were significant spinlock contention in sget_fc().
+The contended spinlock was the sb_lock.  It is under heavy contention
+because the following code in the critcal section of sget_fc():
 
-To get a round-robin order in the same distance group, we don't need to
-decrease the penalty since:
+  hlist_for_each_entry(old, &fc->fs_type->fs_supers, s_instances) {
+      if (test(old, fc))
+          goto share_extant_sb;
+  }
 
-  * find_next_best_node() always iterates node in the same order
-  * distance matters more then penalty in find_next_best_node()
-  * in nodes with the same distance, the first one would be picked up
+After testing with added instrumentation code, it was found that the the
+benchmark could generate thousands of ipc namespaces with the
+corresponding number of entries in the mqueue's fs_supers list where the
+namespaces are the key for the search.  This leads to excessive time in
+scanning the list for a match.
 
-So it is fine to increase same penalty when we get the first node in the
-same distance group.
+Looking back at the mqueue calling sequence leading to sget_fc():
 
-Link: https://lkml.kernel.org/r/20220123013537.20491-1-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Krupa Ramakrishnan <krupa.ramakrishnan@amd.com>
-Cc: Michal Hocko <mhocko@suse.com>
+  mq_init_ns()
+  => mq_create_mount()
+  => fc_mount()
+  => vfs_get_tree()
+  => mqueue_get_tree()
+  => get_tree_keyed()
+  => vfs_get_super()
+  => sget_fc()
+
+Currently, mq_init_ns() is the only mqueue function that will indirectly
+call mqueue_get_tree() with a newly allocated ipc namespace as the key for
+searching.  As a result, there will never be a match with the exising ipc
+namespaces stored in the mqueue's fs_supers list.
+
+So using get_tree_keyed() to do an existing ipc namespace search is just a
+waste of time.  Instead, we could use get_tree_nodev() to eliminate the
+useless search.  By doing so, we can greatly reduce the sb_lock hold time
+and avoid the spinlock contention problem in case a large number of ipc
+namespaces are present.
+
+Of course, if the code is modified in the future to allow
+mqueue_get_tree() to be called with an existing ipc namespace instead of a
+new one, we will have to use get_tree_keyed() in this case.
+
+The following stress-ng clone benchmark command was run on a 2-socket
+48-core Intel system:
+
+./stress-ng --clone 32 --verbose --oomable --metrics-brief -t 20
+
+The "bogo ops/s" increased from 5948.45 before patch to 9137.06 after
+patch. This is an increase of 54% in performance.
+
+Link: https://lkml.kernel.org/r/20220121172315.19652-1-longman@redhat.com
+Fixes: 935c6912b198 ("ipc: Convert mqueue fs to fs_context")
+Signed-off-by: Waiman Long <longman@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Manfred Spraul <manfred@colorfullife.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ ipc/mqueue.c |   14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
---- a/mm/page_alloc.c~mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order
-+++ a/mm/page_alloc.c
-@@ -6319,13 +6319,12 @@ static void build_thisnode_zonelists(pg_
- static void build_zonelists(pg_data_t *pgdat)
+--- a/ipc/mqueue.c~ipc-mqueue-use-get_tree_nodev-in-mqueue_get_tree
++++ a/ipc/mqueue.c
+@@ -45,6 +45,7 @@
+ 
+ struct mqueue_fs_context {
+ 	struct ipc_namespace	*ipc_ns;
++	bool			 newns;	/* Set if newly created ipc namespace */
+ };
+ 
+ #define MQUEUE_MAGIC	0x19800202
+@@ -427,6 +428,14 @@ static int mqueue_get_tree(struct fs_con
  {
- 	static int node_order[MAX_NUMNODES];
--	int node, load, nr_nodes = 0;
-+	int node, nr_nodes = 0;
- 	nodemask_t used_mask = NODE_MASK_NONE;
- 	int local_node, prev_node;
+ 	struct mqueue_fs_context *ctx = fc->fs_private;
  
- 	/* NUMA-aware ordering of nodes */
- 	local_node = pgdat->node_id;
--	load = nr_online_nodes;
- 	prev_node = local_node;
++	/*
++	 * With a newly created ipc namespace, we don't need to do a search
++	 * for an ipc namespace match, but we still need to set s_fs_info.
++	 */
++	if (ctx->newns) {
++		fc->s_fs_info = ctx->ipc_ns;
++		return get_tree_nodev(fc, mqueue_fill_super);
++	}
+ 	return get_tree_keyed(fc, mqueue_fill_super, ctx->ipc_ns);
+ }
  
- 	memset(node_order, 0, sizeof(node_order));
-@@ -6337,11 +6336,10 @@ static void build_zonelists(pg_data_t *p
- 		 */
- 		if (node_distance(local_node, node) !=
- 		    node_distance(local_node, prev_node))
--			node_load[node] += load;
-+			node_load[node] += nr_online_nodes;
+@@ -454,6 +463,10 @@ static int mqueue_init_fs_context(struct
+ 	return 0;
+ }
  
- 		node_order[nr_nodes++] = node;
- 		prev_node = node;
--		load--;
- 	}
++/*
++ * mq_init_ns() is currently the only caller of mq_create_mount().
++ * So the ns parameter is always a newly created ipc namespace.
++ */
+ static struct vfsmount *mq_create_mount(struct ipc_namespace *ns)
+ {
+ 	struct mqueue_fs_context *ctx;
+@@ -465,6 +478,7 @@ static struct vfsmount *mq_create_mount(
+ 		return ERR_CAST(fc);
  
- 	build_zonelists_in_node_order(pgdat, node_order, nr_nodes);
+ 	ctx = fc->fs_private;
++	ctx->newns = true;
+ 	put_ipc_ns(ctx->ipc_ns);
+ 	ctx->ipc_ns = get_ipc_ns(ns);
+ 	put_user_ns(fc->user_ns);
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from longman@redhat.com are
 
-mm-page-mapping-folio-mapping-should-have-the-same-offset.patch
-mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
-mm-page_alloc-add-penalty-to-local_node.patch
+ipc-mqueue-use-get_tree_nodev-in-mqueue_get_tree.patch
 
