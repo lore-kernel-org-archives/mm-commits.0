@@ -2,39 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id F2FE4C433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 06:46:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66B7CC433EF
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 06:55:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1358832AbiAYGqp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Jan 2022 01:46:45 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:41630 "EHLO
+        id S242167AbiAYGz2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Jan 2022 01:55:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44076 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1357959AbiAYGo0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 01:44:26 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DC0B5C07E317
-        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 21:02:05 -0800 (PST)
+        with ESMTP id S1377574AbiAYGwr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 01:52:47 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1EDBC06F8D1
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 21:24:50 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 6A276615D9
-        for <mm-commits@vger.kernel.org>; Tue, 25 Jan 2022 05:02:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A46CEC340E0;
-        Tue, 25 Jan 2022 05:02:04 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 529D8CE16D0
+        for <mm-commits@vger.kernel.org>; Tue, 25 Jan 2022 05:24:49 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A1902C340E0;
+        Tue, 25 Jan 2022 05:24:47 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643086924;
-        bh=vNRTnMvKB2jpuQTIm7IULQ0puWjWKNMT0F2mOh53fgE=;
+        s=korg; t=1643088287;
+        bh=ZF1+Zgw+gX78Hys6jwiJCdb3b6MVKySrL0QSnWRJZVY=;
         h=Date:From:To:Subject:From;
-        b=JfnkE3iDnE3hHAjzzFcBycj90e2e9fjoi7/DQpyhI6vWUgxoQTGmsut8eKC+ZUFf1
-         jagfIoG9cOyDvmC8vAYmFbzmtTMf82l6xzxBiJy8wo7/XOp51I5zQ7dR/9kAYHAdSU
-         q11ut1hguLMe/SiBlVV4LLpIV0sQUp1MPjFQBWMA=
-Date:   Mon, 24 Jan 2022 21:02:04 -0800
+        b=rd6ODlWSWmuPfdfoKjoymVjuur3hvM5rzM7svMbxZD0cYmN2CxuTqZOaPTfbCQu5R
+         5KCefwOdw2SM6Xq+4aw4UuVM195vKrEE5wqeU2VyrpeSwgIR55cdofw9/UfRgHtYck
+         b+nuB+8D9us0KpDpjpR2yo0K5WwwTkUVpsuJHu6g=
+Date:   Mon, 24 Jan 2022 21:24:47 -0800
 From:   akpm@linux-foundation.org
-To:     linmiaohe@huawei.com, mike.kravetz@oracle.com,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com
-Subject:  + mm-hwpoison-remove-obsolete-comment.patch added to -mm
- tree
-Message-ID: <20220125050204.lfQuYSMGA%akpm@linux-foundation.org>
+To:     anton@tuxera.com, mm-commits@vger.kernel.org,
+        mudongliangabcd@gmail.com
+Subject:  + ntfs-add-sanity-check-on-allocation-size.patch added to
+ -mm tree
+Message-ID: <20220125052447.BHOp0tpNs%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +43,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory-failure.c: remove obsolete comment
+     Subject: ntfs: add sanity check on allocation size
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-remove-obsolete-comment.patch
+     ntfs-add-sanity-check-on-allocation-size.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-remove-obsolete-comment.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ntfs-add-sanity-check-on-allocation-size.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-remove-obsolete-comment.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ntfs-add-sanity-check-on-allocation-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,41 +64,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/memory-failure.c: remove obsolete comment
+From: Dongliang Mu <mudongliangabcd@gmail.com>
+Subject: ntfs: add sanity check on allocation size
 
-With the introduction of mf_mutex, most of memory error handling process
-is mutually exclusive, so the in-line comment about subtlety about
-double-checking PageHWPoison is no more correct.  So remove it.
+ntfs_read_inode_mount invokes ntfs_malloc_nofs with zero allocation size. 
+It triggers one BUG in the __ntfs_malloc function.
 
-Link: https://lkml.kernel.org/r/20220125025601.3054511-1-naoya.horiguchi@linux.dev
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Suggested-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Fix this by adding sanity check on ni->attr_list_size.
+
+Link: https://lkml.kernel.org/r/20220120094914.47736-1-dzm91@hust.edu.cn
+Reported-by: syzbot+3c765c5248797356edaa@syzkaller.appspotmail.com
+Signed-off-by: Dongliang Mu <mudongliangabcd@gmail.com>
+Acked-by: Anton Altaparmakov <anton@tuxera.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 ------
- 1 file changed, 6 deletions(-)
+ fs/ntfs/inode.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/mm/memory-failure.c~mm-hwpoison-remove-obsolete-comment
-+++ a/mm/memory-failure.c
-@@ -2150,12 +2150,6 @@ static int __soft_offline_page(struct pa
- 		.gfp_mask = GFP_USER | __GFP_MOVABLE | __GFP_RETRY_MAYFAIL,
- 	};
- 
--	/*
--	 * Check PageHWPoison again inside page lock because PageHWPoison
--	 * is set by memory_failure() outside page lock. Note that
--	 * memory_failure() also double-checks PageHWPoison inside page lock,
--	 * so there's no race between soft_offline_page() and memory_failure().
--	 */
- 	lock_page(page);
- 	if (!PageHuge(page))
- 		wait_on_page_writeback(page);
+--- a/fs/ntfs/inode.c~ntfs-add-sanity-check-on-allocation-size
++++ a/fs/ntfs/inode.c
+@@ -1881,6 +1881,10 @@ int ntfs_read_inode_mount(struct inode *
+ 		}
+ 		/* Now allocate memory for the attribute list. */
+ 		ni->attr_list_size = (u32)ntfs_attr_size(a);
++		if (!ni->attr_list_size) {
++			ntfs_error(sb, "Attr_list_size is zero");
++			goto put_err_out;
++		}
+ 		ni->attr_list = ntfs_malloc_nofs(ni->attr_list_size);
+ 		if (!ni->attr_list) {
+ 			ntfs_error(sb, "Not enough memory to allocate buffer "
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from mudongliangabcd@gmail.com are
 
-mm-hwpoison-remove-obsolete-comment.patch
+ntfs-add-sanity-check-on-allocation-size.patch
 
