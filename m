@@ -2,47 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1109EC433EF
-	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 06:31:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 2263FC433F5
+	for <mm-commits@archiver.kernel.org>; Tue, 25 Jan 2022 06:41:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1345658AbiAYGbm (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Jan 2022 01:31:42 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37276 "EHLO
+        id S1355779AbiAYGk4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Jan 2022 01:40:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:40188 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346490AbiAYG2B (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 01:28:01 -0500
+        with ESMTP id S1354371AbiAYGiM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 01:38:12 -0500
 Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B2DA3C038AC1;
-        Mon, 24 Jan 2022 20:50:07 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4C538C058CA8
+        for <mm-commits@vger.kernel.org>; Mon, 24 Jan 2022 20:56:16 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id 2B3EECE16B3;
-        Tue, 25 Jan 2022 04:50:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DFD44C340E0;
-        Tue, 25 Jan 2022 04:50:03 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 9BF21CE16B9
+        for <mm-commits@vger.kernel.org>; Tue, 25 Jan 2022 04:56:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C02DAC340E0;
+        Tue, 25 Jan 2022 04:56:12 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643086204;
-        bh=MstIM0rfaGotgpIRhr3v2d3CRHPSm8jc0mTlrOLcJxo=;
+        s=korg; t=1643086572;
+        bh=TqWS79Ts6A2mKajqvdNL1hsWSRrq/ORnitqDFdpHBvo=;
         h=Date:From:To:Subject:From;
-        b=Lrsh0Q8tGqa0pv7IbmSLB4fvrXfcSh2y3ASf2l1GTuzXuIGsewaT+D4C+eIQBXDIz
-         CiPwR3Ts9+fIKRDmtZGkmJYzb3GezUt9V57jvUdeoEI6VwQK9Oj3RYMS+6+sMxaicr
-         bf6oMYR7+/JmS21zZseT36XuDP3+sqk8y8aJmg/8=
-Date:   Mon, 24 Jan 2022 20:50:03 -0800
+        b=LLb7t4XMBvrLFnCgvfjSOzodEB196QVRTNM50+BlAdt4TG2rwV3TeuTnOxIh19cJY
+         rAkspghxdpAz2nP5wLbzVuNwzWOyfewOVNUim4OOsl8WFjohXdvREMwlt2iOOy4NFI
+         ZIahYTTvKe/rYsfr7UsLohQ2MqPu6llK1lhB+ZSE=
+Date:   Mon, 24 Jan 2022 20:56:12 -0800
 From:   akpm@linux-foundation.org
-To:     aarcange@redhat.com, akpm@linux-foundation.org,
-        alex.williamson@redhat.com, jack@suse.cz, jglisse@redhat.com,
-        jhubbard@nvidia.com, kirill.shutemov@linux.intel.com,
-        mm-commits@vger.kernel.org, peterx@redhat.com,
-        stable@vger.kernel.org
+To:     0x7f454c46@gmail.com, avagin@gmail.com, mm-commits@vger.kernel.org,
+        viro@zeniv.linux.org.uk
 Subject:  +
- mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch added to -mm
+ fs-pipe-use-kvcalloc-to-allocate-a-pipe_buffer-array.patch added to -mm
  tree
-Message-ID: <20220125045003.H9m6c36XQ%akpm@linux-foundation.org>
+Message-ID: <20220125045612.0_A0LAXgY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -50,16 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup.c: fix invalid page pointer returned with FOLL_PIN gups
+     Subject: fs/pipe: use kvcalloc to allocate a pipe_buffer array
 has been added to the -mm tree.  Its filename is
-     mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch
+     fs-pipe-use-kvcalloc-to-allocate-a-pipe_buffer-array.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-invalid-page-pointer-r=
-eturned-with-foll_pin-gups.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-pipe-use-kvcalloc-to-allocate-a-pipe_buffer-array.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-invalid-page-pointer-r=
-eturned-with-foll_pin-gups.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-pipe-use-kvcalloc-to-allocate-a-pipe_buffer-array.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,94 +59,86 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing=
- your code ***
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Peter Xu <peterx@redhat.com>
-Subject: mm/gup.c: fix invalid page pointer returned with FOLL_PIN gups
+From: Andrei Vagin <avagin@gmail.com>
+Subject: fs/pipe: use kvcalloc to allocate a pipe_buffer array
 
-Alex reported invalid page pointer returned with pin_user_pages_remote()
-from vfio after upstream commit 4b6c33b32296 ("vfio/type1: Prepare for
-batched pinning with struct vfio_batch").  This problem breaks NVIDIA vfio
-mdev.
+Right now, kcalloc is used to allocate a pipe_buffer array.  The size of
+the pipe_buffer struct is 40 bytes.  kcalloc allows allocating reliably
+chunks with sizes less or equal to PAGE_ALLOC_COSTLY_ORDER (3).  It means
+that the maximum pipe size is 3.2MB in this case.
 
-It turns out that it's not the fault of the vfio commit; however after
-vfio switches to a full page buffer to store the page pointers it starts
-to expose the problem easier.
+In CRIU, we use pipes to dump processes memory.  CRIU freezes a target
+process, injects a parasite code into it and then this code splices memory
+into pipes.  If a maximum pipe size is small, we need to do many
+iterations or create many pipes.
 
-The problem is for VM_PFNMAP vmas we should normally fail with an -EFAULT
-then vfio will carry on to handle the MMIO regions.  However when the bug
-triggered, follow_page_mask() returned -EEXIST for such a page, which will
-jump over the current page, leaving that entry in **pages untouched.=20
-However the caller is not aware of it, hence the caller will reference the
-page as usual even if the pointer data can be anything.
+kvcalloc attempt to allocate physically contiguous memory, but upon
+failure, fall back to non-contiguous (vmalloc) allocation and so it isn't
+limited by PAGE_ALLOC_COSTLY_ORDER.
 
-We had that -EEXIST logic since commit 1027e4436b6a ("mm: make GUP handle
-pfn mapping unless FOLL_GET is requested") which seems very reasonable.=20
-It could be that when we reworked GUP with FOLL_PIN we could have
-overlooked that special path in commit 3faa52c03f44 ("mm/gup: track
-FOLL_PIN pages"), even if that commit rightfully touched up
-follow_devmap_pud() on checking FOLL_PIN when it needs to return an
--EEXIST.
+The maximum pipe size for non-root users is limited by the
+/proc/sys/fs/pipe-max-size sysctl that is 1MB by default, so only the root
+user will be able to trigger vmalloc allocations.
 
-Since at it, add another WARN_ON_ONCE() at the -EEXIST handling to make
-sure we mustn't have **pages set when reaching there, because otherwise it
-means the caller will try to read a garbage right after __get_user_pages()
-returns.
-
-Attaching the Fixes to the FOLL_PIN rework commit, as it happened later
-than 1027e4436b6a.
-
-Link: https://lkml.kernel.org/r/20220125033700.69705-1-peterx@redhat.com
-Fixes: 3faa52c03f44 ("mm/gup: track FOLL_PIN pages")
-Signed-off-by: Peter Xu <peterx@redhat.com>
-Reported-by: Alex Williamson <alex.williamson@redhat.com>
-Debugged-by: Alex Williamson <alex.williamson@redhat.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: J=C3=A9r=C3=B4me Glisse <jglisse@redhat.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220104171058.22580-1-avagin@gmail.com
+Signed-off-by: Andrei Vagin <avagin@gmail.com>
+Reviewed-by: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andrei Vagin <avagin@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ fs/pipe.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
---- a/mm/gup.c~mm-fix-invalid-page-pointer-returned-with-foll_pin-gups
-+++ a/mm/gup.c
-@@ -440,7 +440,7 @@ static int follow_pfn_pte(struct vm_area
- 		pte_t *pte, unsigned int flags)
- {
- 	/* No page to get reference */
--	if (flags & FOLL_GET)
-+	if (flags & (FOLL_GET | FOLL_PIN))
- 		return -EFAULT;
-=20
- 	if (flags & FOLL_TOUCH) {
-@@ -1181,7 +1181,13 @@ retry:
- 			/*
- 			 * Proper page table entry exists, but no corresponding
- 			 * struct page.
-+			 *
-+			 * Warn if we jumped over even with a valid **pages.
-+			 * It shouldn't trigger in practise, but when there's
-+			 * buggy returns on -EEXIST we'll warn before returning
-+			 * an invalid page pointer in the array.
- 			 */
-+			WARN_ON_ONCE(pages);
- 			goto next_page;
- 		} else if (IS_ERR(page)) {
- 			ret =3D PTR_ERR(page);
+--- a/fs/pipe.c~fs-pipe-use-kvcalloc-to-allocate-a-pipe_buffer-array
++++ a/fs/pipe.c
+@@ -803,7 +803,7 @@ struct pipe_inode_info *alloc_pipe_info(
+ 	if (too_many_pipe_buffers_hard(user_bufs) && pipe_is_unprivileged_user())
+ 		goto out_revert_acct;
+ 
+-	pipe->bufs = kcalloc(pipe_bufs, sizeof(struct pipe_buffer),
++	pipe->bufs = kvcalloc(pipe_bufs, sizeof(struct pipe_buffer),
+ 			     GFP_KERNEL_ACCOUNT);
+ 
+ 	if (pipe->bufs) {
+@@ -846,7 +846,7 @@ void free_pipe_info(struct pipe_inode_in
+ 	}
+ 	if (pipe->tmp_page)
+ 		__free_page(pipe->tmp_page);
+-	kfree(pipe->bufs);
++	kvfree(pipe->bufs);
+ 	kfree(pipe);
+ }
+ 
+@@ -1261,8 +1261,7 @@ int pipe_resize_ring(struct pipe_inode_i
+ 	if (nr_slots < n)
+ 		return -EBUSY;
+ 
+-	bufs = kcalloc(nr_slots, sizeof(*bufs),
+-		       GFP_KERNEL_ACCOUNT | __GFP_NOWARN);
++	bufs = kvcalloc(nr_slots, sizeof(*bufs), GFP_KERNEL_ACCOUNT);
+ 	if (unlikely(!bufs))
+ 		return -ENOMEM;
+ 
+@@ -1289,7 +1288,7 @@ int pipe_resize_ring(struct pipe_inode_i
+ 	head = n;
+ 	tail = 0;
+ 
+-	kfree(pipe->bufs);
++	kvfree(pipe->bufs);
+ 	pipe->bufs = bufs;
+ 	pipe->ring_size = nr_slots;
+ 	if (pipe->max_usage > nr_slots)
 _
 
-Patches currently in -mm which might be from peterx@redhat.com are
+Patches currently in -mm which might be from avagin@gmail.com are
 
-mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch
+fs-pipe-use-kvcalloc-to-allocate-a-pipe_buffer-array.patch
 
