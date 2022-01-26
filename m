@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 01618C5DF62
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Jan 2022 00:35:52 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4E8DFC3525A
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Jan 2022 01:48:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232754AbiAZAfw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Jan 2022 19:35:52 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36502 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235342AbiAZAfw (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 19:35:52 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F31E0C06173B
-        for <mm-commits@vger.kernel.org>; Tue, 25 Jan 2022 16:35:51 -0800 (PST)
+        id S235984AbiAZBsr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Jan 2022 20:48:47 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:54626 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235983AbiAZBsr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 20:48:47 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 935D3614B7
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 00:35:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C17BDC340E0;
-        Wed, 26 Jan 2022 00:35:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 27909B81BA0
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 01:48:46 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 587AEC340E0;
+        Wed, 26 Jan 2022 01:48:44 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643157351;
-        bh=63CkLJqv9yxvYRGZM3M0bVgHLdoKUR5yz+d3snZXl2U=;
+        s=korg; t=1643161725;
+        bh=8gPgcB+Ku824ZPvdAcKwk+Q1gcnOBAYpFtxtdNPFwZI=;
         h=Date:From:To:Subject:From;
-        b=cPgGq76H67SM6BaUOAe3BDOtUlfKI3O9T7aRgF6J+Idw2Vz51+Zviv7WTicxAsdpf
-         S/tbcp8AsJ+h8GUcqQQ2gGvGE9B1+/7UE9yxT1Yuhix8HuOLlud/uwoS6vYBzcjWbN
-         anKcc0slVroBUWnZYh5Xa51jz/xyhi9yKcdHMrtI=
-Date:   Tue, 25 Jan 2022 16:35:50 -0800
+        b=Zc9Zun/2cdH4iW3uSp9QntLLxF8wscQU9T4Io4o3p16lAlyWihRb+S4QUS094wt7q
+         HE+nLaibgevl/6h+d6swMvh6PpvxavoCm47UFp1zjk6mfL5pZiWf8Aj3PtXS1fgeOC
+         QmAGVfWo2NqUOreVyPCWzxsS3dhIuCIIWqU+kGXk=
+Date:   Tue, 25 Jan 2022 17:48:43 -0800
 From:   akpm@linux-foundation.org
-To:     arnd@arndb.de, keescook@chromium.org, masahiroy@kernel.org,
-        mm-commits@vger.kernel.org, nathan@kernel.org,
-        ndesaulniers@google.com, penguin-kernel@I-love.SAKURA.ne.jp
-Subject:  +
- kconfigdebug-make-debug_info-selectable-from-a-choice.patch added to -mm
- tree
-Message-ID: <20220126003550.LEBG0fgrl%akpm@linux-foundation.org>
+To:     andrealmeid@collabora.com, apopple@nvidia.com,
+        chi.minghao@zte.com.cn, dave@stgolabs.net, davem@davemloft.net,
+        dvhart@infradead.org, kuba@kernel.org,
+        mathew.j.martineau@linux.intel.com, matthieu.baerts@tessares.net,
+        mic@digikod.net, mingo@redhat.com, mm-commits@vger.kernel.org,
+        pbonzini@redhat.com, peterz@infradead.org, shuah@kernel.org,
+        tglx@linutronix.de, usama.anjum@collabora.com
+Subject:  + selftests-set-the-build-variable-to-absolute-path.patch
+ added to -mm tree
+Message-ID: <20220126014843.T_L4uk4wB%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Kconfig.debug: make DEBUG_INFO selectable from a choice
+     Subject: selftests: set the BUILD variable to absolute path
 has been added to the -mm tree.  Its filename is
-     kconfigdebug-make-debug_info-selectable-from-a-choice.patch
+     selftests-set-the-build-variable-to-absolute-path.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kconfigdebug-make-debug_info-selectable-from-a-choice.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-set-the-build-variable-to-absolute-path.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kconfigdebug-make-debug_info-selectable-from-a-choice.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-set-the-build-variable-to-absolute-path.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,218 +66,132 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: Kconfig.debug: make DEBUG_INFO selectable from a choice
+From: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Subject: selftests: set the BUILD variable to absolute path
 
-Currently it's not possible to enable DEBUG_INFO for an all*config build,
-since it is marked as "depends on !COMPILE_TEST".  This generally makes
-sense because a debug build of an all*config target ends up taking much
-longer and the output is much larger.  Having this be "default off" makes
-sense.  However, there are cases where enabling DEBUG_INFO for such builds
-is useful for doing treewide A/B comparisons of build options, etc.
+Patch series "selftests: Fix separate output directory builds", v2.
 
-Make DEBUG_INFO selectable from any of the DWARF version choice options,
-with DEBUG_INFO_NONE being the default for COMPILE_TEST.  The mutually
-exclusive relationship between DWARF5 and BTF must be inverted, but the
-result remains the same.  Additionally moves DEBUG_KERNEL and DEBUG_MISC
-up to the top of the menu because they were enabling features _above_ it,
-making it weird to navigate menuconfig.
+Build of several selftests fail if separate output directory is
+specified by the following methods:
+1) make -C tools/testing/selftests O=<build_dir>
+2) export KBUILD_OUTPUT="build_dir"; make -C tools/testing/selftests
 
-Link: https://lkml.kernel.org/r/20220125075126.891825-1-keescook@chromium.org
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Suggested-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
-Reviewed-by: Nick Desaulniers <ndesaulniers@google.com>
-Tested-by: Nick Desaulniers <ndesaulniers@google.com>
-Reviewed-by: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Build fails because of several reasons:
+1) The kernel headers aren't found.
+2) The path of output objects is wrong and hence unaccessible.
+
+These problems can be solved by:
+1) Including the correct path of uapi header files
+2) By setting the BUILD variable correctly inside Makefile
+
+Following different build scenarios have been tested after making these
+changes to verify that nothing gets broken with these changes:
+make -C tools/testing/selftests
+make -C tools/testing/selftests/futex
+make -C tools/testing/selftests/kvm
+make -C tools/testing/selftests/landlock
+make -C tools/testing/selftests/net
+make -C tools/testing/selftests/net/mptcp
+make -C tools/testing/selftests/vm
+make -C tools/testing/selftests O=build
+make -C tools/testing/selftests o=/opt/build
+export KBUILD_OUTPUT="/opt/build"; make -C tools/testing/selftests
+export KBUILD_OUTPUT="build"; make -C tools/testing/selftests
+cd <any_dir>; make -C <src_path>/tools/testing/selftests
+cd <any_dir>; make -C <src_path>/tools/testing/selftests O=build
+
+
+This patch (of 10):
+
+The build of kselftests fails if relative path is specified through
+KBUILD_OUTPUT or O=<path> method.  BUILD variable is used to determine the
+path of the output objects.  When make is run from other directories with
+relative paths, the exact path of the build objects is ambiguous and build
+fails.
+
+	make[1]: Entering directory '/home/usama/repos/kernel/linux_mainline2/tools/testing/selftests/alsa'
+	gcc     mixer-test.c -L/usr/lib/x86_64-linux-gnu -lasound  -o build/kselftest/alsa/mixer-test
+	/usr/bin/ld: cannot open output file build/kselftest/alsa/mixer-test
+
+Set the BUILD variable to the absolute path of the output directory.  Make
+the logic readable and easy to follow.  Use spaces instead of tabs for
+indentation as if with tab indentation is considered recipe in make.
+
+Link: https://lkml.kernel.org/r/20220119101531.2850400-1-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20220119101531.2850400-2-usama.anjum@collabora.com
+Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Darren Hart <dvhart@infradead.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Andr Almeida <andrealmeid@collabora.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Mickal Salan <mic@digikod.net>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Jakub Kicinski <kuba@kernel.org>
+Cc: Mat Martineau <mathew.j.martineau@linux.intel.com>
+Cc: Matthieu Baerts <matthieu.baerts@tessares.net>
+Cc: Minghao Chi <chi.minghao@zte.com.cn>
+Cc: Alistair Popple <apopple@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |  140 +++++++++++++++++++++++---------------------
- 1 file changed, 75 insertions(+), 65 deletions(-)
+ tools/testing/selftests/Makefile |   26 +++++++++++++++++---------
+ 1 file changed, 17 insertions(+), 9 deletions(-)
 
---- a/lib/Kconfig.debug~kconfigdebug-make-debug_info-selectable-from-a-choice
-+++ a/lib/Kconfig.debug
-@@ -208,20 +208,88 @@ config DEBUG_BUGVERBOSE
+--- a/tools/testing/selftests/Makefile~selftests-set-the-build-variable-to-absolute-path
++++ a/tools/testing/selftests/Makefile
+@@ -114,19 +114,27 @@ ifdef building_out_of_srctree
+ override LDFLAGS =
+ endif
  
- endmenu # "printk and dmesg options"
+-ifneq ($(O),)
+-	BUILD := $(O)/kselftest
++top_srcdir ?= ../../..
++
++ifeq ("$(origin O)", "command line")
++  KBUILD_OUTPUT := $(O)
++endif
++
++ifneq ($(KBUILD_OUTPUT),)
++  # Make's built-in functions such as $(abspath ...), $(realpath ...) cannot
++  # expand a shell special character '~'. We use a somewhat tedious way here.
++  abs_objtree := $(shell cd $(top_srcdir) && mkdir -p $(KBUILD_OUTPUT) && cd $(KBUILD_OUTPUT) && pwd)
++  $(if $(abs_objtree),, \
++    $(error failed to create output directory "$(KBUILD_OUTPUT)"))
++  # $(realpath ...) resolves symlinks
++  abs_objtree := $(realpath $(abs_objtree))
++  BUILD := $(abs_objtree)/kselftest
+ else
+-	ifneq ($(KBUILD_OUTPUT),)
+-		BUILD := $(KBUILD_OUTPUT)/kselftest
+-	else
+-		BUILD := $(shell pwd)
+-		DEFAULT_INSTALL_HDR_PATH := 1
+-	endif
++  BUILD := $(CURDIR)
++  DEFAULT_INSTALL_HDR_PATH := 1
+ endif
  
-+config DEBUG_KERNEL
-+	bool "Kernel debugging"
-+	help
-+	  Say Y here if you are developing drivers or trying to debug and
-+	  identify kernel problems.
-+
-+config DEBUG_MISC
-+	bool "Miscellaneous debug code"
-+	default DEBUG_KERNEL
-+	depends on DEBUG_KERNEL
-+	help
-+	  Say Y here if you need to enable miscellaneous debug code that should
-+	  be under a more specific debug option but isn't.
-+
- menu "Compile-time checks and compiler options"
- 
- config DEBUG_INFO
--	bool "Compile the kernel with debug info"
--	depends on DEBUG_KERNEL && !COMPILE_TEST
-+	bool
- 	help
--	  If you say Y here the resulting kernel image will include
--	  debugging info resulting in a larger kernel image.
-+	  A kernel debug info option other than "None" has been selected
-+	  in the "Debug information" choice below, indicating that debug
-+	  information will be generated for build targets.
-+
-+choice
-+	prompt "Debug information"
-+	depends on DEBUG_KERNEL
-+	default DEBUG_INFO_NONE if COMPILE_TEST
-+	help
-+	  Selecting something other than "None" results in a kernel image
-+	  that will include debugging info resulting in a larger kernel image.
- 	  This adds debug symbols to the kernel and modules (gcc -g), and
- 	  is needed if you intend to use kernel crashdump or binary object
- 	  tools like crash, kgdb, LKCD, gdb, etc on the kernel.
--	  Say Y here only if you plan to debug the kernel.
- 
--	  If unsure, say N.
-+	  Choose which version of DWARF debug info to emit. If unsure,
-+	  select "Toolchain default".
-+
-+config DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT
-+	bool "Rely on the toolchain's implicit default DWARF version"
-+	select DEBUG_INFO
-+	help
-+	  The implicit default version of DWARF debug info produced by a
-+	  toolchain changes over time.
-+
-+	  This can break consumers of the debug info that haven't upgraded to
-+	  support newer revisions, and prevent testing newer versions, but
-+	  those should be less common scenarios.
-+
-+config DEBUG_INFO_DWARF4
-+	bool "Generate DWARF Version 4 debuginfo"
-+	select DEBUG_INFO
-+	help
-+	  Generate DWARF v4 debug info. This requires gcc 4.5+ and gdb 7.0+.
-+
-+	  If you have consumers of DWARF debug info that are not ready for
-+	  newer revisions of DWARF, you may wish to choose this or have your
-+	  config select this.
-+
-+config DEBUG_INFO_DWARF5
-+	bool "Generate DWARF Version 5 debuginfo"
-+	select DEBUG_INFO
-+	depends on !CC_IS_CLANG || (CC_IS_CLANG && (AS_IS_LLVM || (AS_IS_GNU && AS_VERSION >= 23502)))
-+	help
-+	  Generate DWARF v5 debug info. Requires binutils 2.35.2, gcc 5.0+ (gcc
-+	  5.0+ accepts the -gdwarf-5 flag but only had partial support for some
-+	  draft features until 7.0), and gdb 8.0+.
-+
-+	  Changes to the structure of debug info in Version 5 allow for around
-+	  15-18% savings in resulting image and debug info section sizes as
-+	  compared to DWARF Version 4. DWARF Version 5 standardizes previous
-+	  extensions such as accelerators for symbol indexing and the format
-+	  for fission (.dwo/.dwp) files. Users may not want to select this
-+	  config if they rely on tooling that has not yet been updated to
-+	  support DWARF Version 5.
-+
-+config DEBUG_INFO_NONE
-+	bool "Disable debug information"
-+	help
-+	  Do not build the kernel with debugging information, which will
-+	  result in a faster and smaller build.
-+
-+endchoice # "Debug information"
- 
- if DEBUG_INFO
- 
-@@ -267,56 +335,12 @@ config DEBUG_INFO_SPLIT
- 	  to know about the .dwo files and include them.
- 	  Incompatible with older versions of ccache.
- 
--choice
--	prompt "DWARF version"
--	help
--	  Which version of DWARF debug info to emit.
--
--config DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT
--	bool "Rely on the toolchain's implicit default DWARF version"
--	help
--	  The implicit default version of DWARF debug info produced by a
--	  toolchain changes over time.
--
--	  This can break consumers of the debug info that haven't upgraded to
--	  support newer revisions, and prevent testing newer versions, but
--	  those should be less common scenarios.
--
--	  If unsure, say Y.
--
--config DEBUG_INFO_DWARF4
--	bool "Generate DWARF Version 4 debuginfo"
--	help
--	  Generate DWARF v4 debug info. This requires gcc 4.5+ and gdb 7.0+.
--
--	  If you have consumers of DWARF debug info that are not ready for
--	  newer revisions of DWARF, you may wish to choose this or have your
--	  config select this.
--
--config DEBUG_INFO_DWARF5
--	bool "Generate DWARF Version 5 debuginfo"
--	depends on !CC_IS_CLANG || (CC_IS_CLANG && (AS_IS_LLVM || (AS_IS_GNU && AS_VERSION >= 23502)))
--	depends on !DEBUG_INFO_BTF
--	help
--	  Generate DWARF v5 debug info. Requires binutils 2.35.2, gcc 5.0+ (gcc
--	  5.0+ accepts the -gdwarf-5 flag but only had partial support for some
--	  draft features until 7.0), and gdb 8.0+.
--
--	  Changes to the structure of debug info in Version 5 allow for around
--	  15-18% savings in resulting image and debug info section sizes as
--	  compared to DWARF Version 4. DWARF Version 5 standardizes previous
--	  extensions such as accelerators for symbol indexing and the format
--	  for fission (.dwo/.dwp) files. Users may not want to select this
--	  config if they rely on tooling that has not yet been updated to
--	  support DWARF Version 5.
--
--endchoice # "DWARF version"
--
- config DEBUG_INFO_BTF
- 	bool "Generate BTF typeinfo"
- 	depends on !DEBUG_INFO_SPLIT && !DEBUG_INFO_REDUCED
- 	depends on !GCC_PLUGIN_RANDSTRUCT || COMPILE_TEST
- 	depends on BPF_SYSCALL
-+	depends on !DEBUG_INFO_DWARF5
- 	help
- 	  Generate deduplicated BTF type information from DWARF debug info.
- 	  Turning this on expects presence of pahole tool, which will convert
-@@ -585,20 +609,6 @@ source "lib/Kconfig.kcsan"
- 
- endmenu
- 
--config DEBUG_KERNEL
--	bool "Kernel debugging"
--	help
--	  Say Y here if you are developing drivers or trying to debug and
--	  identify kernel problems.
--
--config DEBUG_MISC
--	bool "Miscellaneous debug code"
--	default DEBUG_KERNEL
--	depends on DEBUG_KERNEL
--	help
--	  Say Y here if you need to enable miscellaneous debug code that should
--	  be under a more specific debug option but isn't.
--
- menu "Networking Debugging"
- 
- source "net/Kconfig.debug"
+ # Prepare for headers install
+-top_srcdir ?= ../../..
+ include $(top_srcdir)/scripts/subarch.include
+ ARCH           ?= $(SUBARCH)
+ export KSFT_KHDR_INSTALL_DONE := 1
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from usama.anjum@collabora.com are
 
-kconfigdebug-make-debug_info-selectable-from-a-choice.patch
+selftests-set-the-build-variable-to-absolute-path.patch
+selftests-add-and-export-a-kernel-uapi-headers-path.patch
+selftests-correct-the-headers-install-path.patch
+selftests-futex-add-the-uapi-headers-include-variable.patch
+selftests-kvm-add-the-uapi-headers-include-variable.patch
+selftests-landlock-add-the-uapi-headers-include-variable.patch
+selftests-net-add-the-uapi-headers-include-variable.patch
+selftests-mptcp-add-the-uapi-headers-include-variable.patch
+selftests-vm-add-the-uapi-headers-include-variable.patch
+selftests-vm-remove-dependecy-from-internal-kernel-macros.patch
 
