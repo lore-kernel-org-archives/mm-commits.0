@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7E803C5AC75
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Jan 2022 00:31:33 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D90BDC5DF62
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Jan 2022 00:34:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235302AbiAZAbd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Jan 2022 19:31:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35534 "EHLO
+        id S235301AbiAZAeP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Jan 2022 19:34:15 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36114 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235278AbiAZAbc (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 19:31:32 -0500
+        with ESMTP id S235306AbiAZAeM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 19:34:12 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 881C2C06161C
-        for <mm-commits@vger.kernel.org>; Tue, 25 Jan 2022 16:31:31 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AC4C8C06161C
+        for <mm-commits@vger.kernel.org>; Tue, 25 Jan 2022 16:34:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 39B1EB81B99
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 00:31:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5573C340E5;
-        Wed, 26 Jan 2022 00:31:28 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 68498B81074
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 00:34:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C5362C340E0;
+        Wed, 26 Jan 2022 00:34:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643157089;
-        bh=yc4CfHzmTvhZHRXOXGr0lUwdWH1UPMY4YoafF5OUefQ=;
+        s=korg; t=1643157249;
+        bh=7GjQ6dCfGeb7Hs1Y7G7tMvAW5MdKobfKcxgP52BZs6I=;
         h=Date:From:To:Subject:From;
-        b=kximltRNmiQcIF0o6b/x6wkKcuZqA400lMiy9aibGKpLcG0TUM7KfF+jWb+jWJL1G
-         4J/3oWioGFE55rIfyinjHOH9bFesdRCDMjaReqejBxoCxv+0vKkM88hepaD7KBzN56
-         llJ5sbFq69S/oh9NIwRMEXHBLRwbHfobbN969gNE=
-Date:   Tue, 25 Jan 2022 16:31:28 -0800
+        b=N1eKh8e5vY7KBVu36mWOQLoJqJt2N56L9fLstK16vleva4Jax92Kco6ObNfjdh820
+         eq3CRJvZGt5jMnco8Q0tkFCX2tI95tEZPe0nrbs+A9NQGIRVoRIdid3vNpPP5a4pwg
+         8USsZIBdpYoJ5unkQrtuDFENbTKIZe7ZFilaWhus=
+Date:   Tue, 25 Jan 2022 16:34:08 -0800
 From:   akpm@linux-foundation.org
 To:     anshuman.khandual@arm.com, jhubbard@nvidia.com, mingo@redhat.com,
         mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
         rostedt@goodmis.org, willy@infradead.org, ziy@nvidia.com
-Subject:  [failures]
+Subject:  +
  mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch
- removed from -mm tree
-Message-ID: <20220126003128.myWmGEd1L%akpm@linux-foundation.org>
+ added to -mm tree
+Message-ID: <20220126003408.B3nMWT6Mq%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,10 +46,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm/migration: add trace events for base page and HugeTLB migrations
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch
 
-This patch was dropped because it had testing failures
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Anshuman Khandual <anshuman.khandual@arm.com>
@@ -161,4 +175,7 @@ _
 Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
 mm-generalize-arch_has_filter_pgprot.patch
+mm-migration-add-trace-events-for-thp-migrations.patch
+mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch
+mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations-fix.patch
 
