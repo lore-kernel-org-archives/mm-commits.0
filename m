@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4979EC5AC75
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A9CC6C6369B
 	for <mm-commits@archiver.kernel.org>; Wed, 26 Jan 2022 01:49:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235995AbiAZBtH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S235996AbiAZBtH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 25 Jan 2022 20:49:07 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:54770 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235996AbiAZBs7 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 20:48:59 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:34164 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S235988AbiAZBtD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 20:49:03 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E7FFDB81AC6
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 01:48:58 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 216D8C340E0;
-        Wed, 26 Jan 2022 01:48:56 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 44F43615E6
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 01:49:03 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1CAB4C340E0;
+        Wed, 26 Jan 2022 01:49:02 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643161736;
-        bh=uUHySouKikyHNqwlxz4mS5Gnyl4t4S//otcGHTQPm1Q=;
+        s=korg; t=1643161742;
+        bh=m4LBkYuKukvZP+Er48I9xTndZmlACULO0H08V9kAkrU=;
         h=Date:From:To:Subject:From;
-        b=XfkI+AEB+YcuVOyM6FwssTXY8PXmeZAvCPjJddCzuxai1AHg87pjd4hwAY+1fPBfx
-         JRiNv/Z2lRx5QsU+ahreMFk8XllfhwiKp32wTrn4VyrzxE7VZRGvE6wzNxgYAGFqHN
-         /V8bNtCLuYZnch740FBjdI6MLspt8+HOv8IgW9HA=
-Date:   Tue, 25 Jan 2022 17:48:55 -0800
+        b=z7FtBxRgyNg8MC0sQQS150Pkrl/nUv7ZenPOGmjS7xweFnfICjwDGdDdbzuQqdCcB
+         ydV/TalOr6hB2YZPrK4qn5RU6GaBIqdQiNQpfgzVb3BYRsaggA6AuFZFXOXYfFKxZI
+         CcFVPC+AKm2XFqO/l6cpZNltqjT2QU9KiWDjlfcU=
+Date:   Tue, 25 Jan 2022 17:49:01 -0800
 From:   akpm@linux-foundation.org
 To:     andrealmeid@collabora.com, apopple@nvidia.com,
         chi.minghao@zte.com.cn, dave@stgolabs.net, davem@davemloft.net,
@@ -35,8 +35,8 @@ To:     andrealmeid@collabora.com, apopple@nvidia.com,
         pbonzini@redhat.com, peterz@infradead.org, shuah@kernel.org,
         tglx@linutronix.de, usama.anjum@collabora.com
 Subject:  +
- selftests-kvm-add-the-uapi-headers-include-variable.patch added to -mm tree
-Message-ID: <20220126014855.CZKyqo7Bi%akpm@linux-foundation.org>
+ selftests-net-add-the-uapi-headers-include-variable.patch added to -mm tree
+Message-ID: <20220126014901._IzLwdZ7X%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: kvm: add the uapi headers include variable
+     Subject: selftests: net: add the uapi headers include variable
 has been added to the -mm tree.  Its filename is
-     selftests-kvm-add-the-uapi-headers-include-variable.patch
+     selftests-net-add-the-uapi-headers-include-variable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-kvm-add-the-uapi-headers-include-variable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-net-add-the-uapi-headers-include-variable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-kvm-add-the-uapi-headers-include-variable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-net-add-the-uapi-headers-include-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,12 +67,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests: kvm: add the uapi headers include variable
+Subject: selftests: net: add the uapi headers include variable
 
 Out of tree build of this test fails if relative path of the output
-directory is specified.  Add KHDR_INCLUDES to correctly reach the headers.
+directory is specified.  Add the KHDR_INCLUDES to correctly reach the
+headers.
 
-Link: https://lkml.kernel.org/r/20220119101531.2850400-6-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20220119101531.2850400-8-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andr Almeida <andrealmeid@collabora.com>
@@ -92,20 +93,20 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/kvm/Makefile |    2 +-
+ tools/testing/selftests/net/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/kvm/Makefile~selftests-kvm-add-the-uapi-headers-include-variable
-+++ a/tools/testing/selftests/kvm/Makefile
-@@ -149,7 +149,7 @@ endif
- CFLAGS += -Wall -Wstrict-prototypes -Wuninitialized -O2 -g -std=gnu99 \
- 	-fno-stack-protector -fno-PIE -I$(LINUX_TOOL_INCLUDE) \
- 	-I$(LINUX_TOOL_ARCH_INCLUDE) -I$(LINUX_HDR_PATH) -Iinclude \
--	-I$(<D) -Iinclude/$(UNAME_M) -I.. $(EXTRA_CFLAGS)
-+	-I$(<D) -Iinclude/$(UNAME_M) -I.. $(EXTRA_CFLAGS) $(KHDR_INCLUDES)
+--- a/tools/testing/selftests/net/Makefile~selftests-net-add-the-uapi-headers-include-variable
++++ a/tools/testing/selftests/net/Makefile
+@@ -2,7 +2,7 @@
+ # Makefile for net selftests
  
- no-pie-option := $(call try-run, echo 'int main() { return 0; }' | \
-         $(CC) -Werror -no-pie -x c - -o "$$TMP", -no-pie)
+ CFLAGS =  -Wall -Wl,--no-as-needed -O2 -g
+-CFLAGS += -I../../../../usr/include/
++CFLAGS += -I../../../../usr/include/ $(KHDR_INCLUDES)
+ 
+ TEST_PROGS := run_netsocktests run_afpackettests test_bpf.sh netdevice.sh \
+ 	      rtnetlink.sh xfrm_policy.sh test_blackhole_dev.sh
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
