@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 77663C3525A
-	for <mm-commits@archiver.kernel.org>; Wed, 26 Jan 2022 01:49:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4979EC5AC75
+	for <mm-commits@archiver.kernel.org>; Wed, 26 Jan 2022 01:49:09 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233710AbiAZBtG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 25 Jan 2022 20:49:06 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:54802 "EHLO
+        id S235995AbiAZBtH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 25 Jan 2022 20:49:07 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:54770 "EHLO
         ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236003AbiAZBtC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 20:49:02 -0500
+        with ESMTP id S235996AbiAZBs7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 25 Jan 2022 20:48:59 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 31EA7B81BA2
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 01:49:01 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 52006C340E0;
-        Wed, 26 Jan 2022 01:48:59 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id E7FFDB81AC6
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 01:48:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 216D8C340E0;
+        Wed, 26 Jan 2022 01:48:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643161739;
-        bh=HaPlEgr4WG8cvT+2t24r8nZQF0vUkw8IJ5gus0ZYD5g=;
+        s=korg; t=1643161736;
+        bh=uUHySouKikyHNqwlxz4mS5Gnyl4t4S//otcGHTQPm1Q=;
         h=Date:From:To:Subject:From;
-        b=aX/Hfs3aa7fJ/KXhxEYP0kLRGAJ2S3FJrM2MDWzUQoAQhrHBAIW2oVizBb0nUhkpH
-         ji8rgpQSXP0PSXNH8z80r2itwawHmS8QRE+sBMMs7UlhG+RNSd5CygJajH0YO6Twwu
-         3OSvww6TfGGi78+N9uYA0KDFxmWZzQ5uMQoZlLew=
-Date:   Tue, 25 Jan 2022 17:48:58 -0800
+        b=XfkI+AEB+YcuVOyM6FwssTXY8PXmeZAvCPjJddCzuxai1AHg87pjd4hwAY+1fPBfx
+         JRiNv/Z2lRx5QsU+ahreMFk8XllfhwiKp32wTrn4VyrzxE7VZRGvE6wzNxgYAGFqHN
+         /V8bNtCLuYZnch740FBjdI6MLspt8+HOv8IgW9HA=
+Date:   Tue, 25 Jan 2022 17:48:55 -0800
 From:   akpm@linux-foundation.org
 To:     andrealmeid@collabora.com, apopple@nvidia.com,
         chi.minghao@zte.com.cn, dave@stgolabs.net, davem@davemloft.net,
@@ -35,9 +35,8 @@ To:     andrealmeid@collabora.com, apopple@nvidia.com,
         pbonzini@redhat.com, peterz@infradead.org, shuah@kernel.org,
         tglx@linutronix.de, usama.anjum@collabora.com
 Subject:  +
- selftests-landlock-add-the-uapi-headers-include-variable.patch added to -mm
- tree
-Message-ID: <20220126014858.gCuV-Actj%akpm@linux-foundation.org>
+ selftests-kvm-add-the-uapi-headers-include-variable.patch added to -mm tree
+Message-ID: <20220126014855.CZKyqo7Bi%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -46,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: landlock: add the uapi headers include variable
+     Subject: selftests: kvm: add the uapi headers include variable
 has been added to the -mm tree.  Its filename is
-     selftests-landlock-add-the-uapi-headers-include-variable.patch
+     selftests-kvm-add-the-uapi-headers-include-variable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-landlock-add-the-uapi-headers-include-variable.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-kvm-add-the-uapi-headers-include-variable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-landlock-add-the-uapi-headers-include-variable.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-kvm-add-the-uapi-headers-include-variable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,13 +67,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests: landlock: add the uapi headers include variable
+Subject: selftests: kvm: add the uapi headers include variable
 
 Out of tree build of this test fails if relative path of the output
-directory is specified.  Add the KHDR_INCLUDES to correctly reach the
-headers.
+directory is specified.  Add KHDR_INCLUDES to correctly reach the headers.
 
-Link: https://lkml.kernel.org/r/20220119101531.2850400-7-usama.anjum@collabora.com
+Link: https://lkml.kernel.org/r/20220119101531.2850400-6-usama.anjum@collabora.com
 Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Andr Almeida <andrealmeid@collabora.com>
@@ -94,19 +92,20 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/landlock/Makefile |    2 +-
+ tools/testing/selftests/kvm/Makefile |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/tools/testing/selftests/landlock/Makefile~selftests-landlock-add-the-uapi-headers-include-variable
-+++ a/tools/testing/selftests/landlock/Makefile
-@@ -1,6 +1,6 @@
- # SPDX-License-Identifier: GPL-2.0
+--- a/tools/testing/selftests/kvm/Makefile~selftests-kvm-add-the-uapi-headers-include-variable
++++ a/tools/testing/selftests/kvm/Makefile
+@@ -149,7 +149,7 @@ endif
+ CFLAGS += -Wall -Wstrict-prototypes -Wuninitialized -O2 -g -std=gnu99 \
+ 	-fno-stack-protector -fno-PIE -I$(LINUX_TOOL_INCLUDE) \
+ 	-I$(LINUX_TOOL_ARCH_INCLUDE) -I$(LINUX_HDR_PATH) -Iinclude \
+-	-I$(<D) -Iinclude/$(UNAME_M) -I.. $(EXTRA_CFLAGS)
++	-I$(<D) -Iinclude/$(UNAME_M) -I.. $(EXTRA_CFLAGS) $(KHDR_INCLUDES)
  
--CFLAGS += -Wall -O2
-+CFLAGS += -Wall -O2 $(KHDR_INCLUDES)
- 
- src_test := $(wildcard *_test.c)
- 
+ no-pie-option := $(call try-run, echo 'int main() { return 0; }' | \
+         $(CC) -Werror -no-pie -x c - -o "$$TMP", -no-pie)
 _
 
 Patches currently in -mm which might be from usama.anjum@collabora.com are
