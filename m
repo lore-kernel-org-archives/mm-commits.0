@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B56D3C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 03:13:57 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 499FDC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 04:07:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235081AbiA0DN5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jan 2022 22:13:57 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38268 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229997AbiA0DN4 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 22:13:56 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AE391C06161C
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 19:13:56 -0800 (PST)
+        id S233885AbiA0EHs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jan 2022 23:07:48 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:40410 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229512AbiA0EHs (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 23:07:48 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 4A2046173C
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 03:13:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 902F9C340E7;
-        Thu, 27 Jan 2022 03:13:55 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 408A1B82025
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 04:07:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CC574C340E4;
+        Thu, 27 Jan 2022 04:07:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643253235;
-        bh=4a7axO7SExOQ+jpUB089A6Cma136pOYQYKwPlniXFzc=;
+        s=korg; t=1643256466;
+        bh=X00+UiZTsV8Y96sXXfRiFZ2Wj2brbzRBs+8n8RNVJ/Q=;
         h=Date:From:To:Subject:From;
-        b=lFVhr5Od04lqiILSPCwRzAgaX/M2Gx2kR3jqi+GyzWB0o6EkXFp8RlY7IabuCmCs1
-         ywUxBiOjQTNWkijZ39CXQW8fzRB+VwAyqLueh1kXTr7GdSa9kOIYtdQ2Eg9PF2b7Xl
-         s9A1C3u4mlAVQ/T9Y5ZxiLRWQBrn3EHDGrBT8ceM=
-Date:   Wed, 26 Jan 2022 19:13:55 -0800
+        b=AIkLOZ6cjywPX6p4zcSpNA2hQPQ89X/8OsLN/Lyb29ybh80tTEOueuU5sxJpGc9ow
+         xlRTEDx8kWGbmU/DsR1P9t2A/9yGKz0AGKiFobWHwBH61NdEWCdmf99hPBxEVIyOxf
+         Wl/UqCoPCyDn7YciKYDR1BI9QWjZIgQn5rjGA1dY=
+Date:   Wed, 26 Jan 2022 20:07:45 -0800
 From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, mm-commits@vger.kernel.org
-Subject:  [obsolete]
- arch-x86-include-asm-pgtableh-needs-spinlockh.patch removed from -mm tree
-Message-ID: <20220127031355.ruPU2Si2Y%akpm@linux-foundation.org>
+To:     anshuman.khandual@arm.com, jhubbard@nvidia.com, mingo@redhat.com,
+        mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        rostedt@goodmis.org, willy@infradead.org, ziy@nvidia.com
+Subject:  [failures]
+ mm-migration-add-trace-events-for-thp-migrations.patch removed from -mm
+ tree
+Message-ID: <20220127040745.26G-gK3mY%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,60 +42,113 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/include/asm/pgtable.h needs spinlock.h
+     Subject: mm/migration: add trace events for THP migrations
 has been removed from the -mm tree.  Its filename was
-     arch-x86-include-asm-pgtableh-needs-spinlockh.patch
+     mm-migration-add-trace-events-for-thp-migrations.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/x86/include/asm/pgtable.h needs spinlock.h
+From: Anshuman Khandual <anshuman.khandual@arm.com>
+Subject: mm/migration: add trace events for THP migrations
 
-In file included from ./include/linux/pgtable.h:6,
-                 from ./include/linux/kasan.h:30,
-                 from mm/kasan/common.c:14:
-./arch/x86/include/asm/pgtable.h:56:8: error: unknown type name 'spinlock_t'
-   56 | extern spinlock_t pgd_lock;
-      |        ^~~~~~~~~~
+Patch series "mm/migration: Add trace events".
+
+This adds trace events for all migration scenarios including base page,
+THP and HugeTLB.
 
 
+This patch (of 2):
+
+This adds two trace events for PMD based THP migration without split. 
+These events closely follow the implementation details like setting and
+removing of PMD migration entries, which are essential operations for THP
+migration.
+
+Link: https://lkml.kernel.org/r/1643080105-11416-1-git-send-email-anshuman.khandual@arm.com
+Link: https://lkml.kernel.org/r/1643080105-11416-2-git-send-email-anshuman.khandual@arm.com
+Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Cc: Matthew Wilcox <willy@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    1 +
- mm/kasan/common.c              |    1 +
- 2 files changed, 2 insertions(+)
+ include/trace/events/thp.h |   27 +++++++++++++++++++++++++++
+ mm/huge_memory.c           |    5 +++++
+ 2 files changed, 32 insertions(+)
 
---- a/arch/x86/include/asm/pgtable.h~arch-x86-include-asm-pgtableh-needs-spinlockh
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -3,6 +3,7 @@
- #define _ASM_X86_PGTABLE_H
+--- a/include/trace/events/thp.h~mm-migration-add-trace-events-for-thp-migrations
++++ a/include/trace/events/thp.h
+@@ -48,6 +48,33 @@ TRACE_EVENT(hugepage_update,
+ 	    TP_printk("hugepage update at addr 0x%lx and pte = 0x%lx clr = 0x%lx, set = 0x%lx", __entry->addr, __entry->pte, __entry->clr, __entry->set)
+ );
  
- #include <linux/mem_encrypt.h>
-+#include <linux/spinlock.h>
- #include <asm/page.h>
- #include <asm/pgtable_types.h>
++DECLARE_EVENT_CLASS(migration_pmd,
++
++		TP_PROTO(unsigned long addr, unsigned long pmd),
++
++		TP_ARGS(addr, pmd),
++
++		TP_STRUCT__entry(
++			__field(unsigned long, addr)
++			__field(unsigned long, pmd)
++		),
++
++		TP_fast_assign(
++			__entry->addr = addr;
++			__entry->pmd = pmd;
++		),
++		TP_printk("addr=%lx, pmd=%lx", __entry->addr, __entry->pmd)
++);
++
++DEFINE_EVENT(migration_pmd, set_migration_pmd,
++	TP_PROTO(unsigned long addr, unsigned long pmd),
++	TP_ARGS(addr, pmd)
++);
++
++DEFINE_EVENT(migration_pmd, remove_migration_pmd,
++	TP_PROTO(unsigned long addr, unsigned long pmd),
++	TP_ARGS(addr, pmd)
++);
+ #endif /* _TRACE_THP_H */
  
---- a/mm/kasan/common.c~arch-x86-include-asm-pgtableh-needs-spinlockh
-+++ a/mm/kasan/common.c
-@@ -15,6 +15,7 @@
- #include <linux/kernel.h>
- #include <linux/linkage.h>
- #include <linux/memblock.h>
-+#include <linux/spinlock.h>
- #include <linux/memory.h>
- #include <linux/mm.h>
- #include <linux/module.h>
+ /* This part must be outside protection */
+--- a/mm/huge_memory.c~mm-migration-add-trace-events-for-thp-migrations
++++ a/mm/huge_memory.c
+@@ -39,6 +39,9 @@
+ #include <asm/pgalloc.h>
+ #include "internal.h"
+ 
++#define CREATE_TRACE_POINTS
++#include <trace/events/thp.h>
++
+ /*
+  * By default, transparent hugepage support is disabled in order to avoid
+  * risking an increased memory footprint for applications that are not
+@@ -3173,6 +3176,7 @@ void set_pmd_migration_entry(struct page
+ 	set_pmd_at(mm, address, pvmw->pmd, pmdswp);
+ 	page_remove_rmap(page, true);
+ 	put_page(page);
++	trace_set_migration_pmd(address, pmd_val(pmdswp));
+ }
+ 
+ void remove_migration_pmd(struct page_vma_mapped_walk *pvmw, struct page *new)
+@@ -3206,5 +3210,6 @@ void remove_migration_pmd(struct page_vm
+ 	if ((vma->vm_flags & VM_LOCKED) && !PageDoubleMap(new))
+ 		mlock_vma_page(new);
+ 	update_mmu_cache_pmd(vma, address, pvmw->pmd);
++	trace_remove_migration_pmd(address, pmd_val(pmde));
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from anshuman.khandual@arm.com are
 
-include-linux-sysctlh-fix-register_sysctl_mount_point-return-type.patch
-mm.patch
-documentation-vm-page_ownerrst-update-the-documentation-fix.patch
-mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
-proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
-mutex-subsystem-synchro-test-module-fix.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
+mm-generalize-arch_has_filter_pgprot.patch
+mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch
+mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations-fix.patch
 
