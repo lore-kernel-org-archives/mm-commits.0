@@ -2,38 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id C408CC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 02:32:10 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 75EB1C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 02:38:52 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235184AbiA0CcK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jan 2022 21:32:10 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:40796 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S235172AbiA0CcH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 21:32:07 -0500
+        id S231810AbiA0Ciw (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jan 2022 21:38:52 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:52622 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231508AbiA0Civ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 21:38:51 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 14836B820FA;
-        Thu, 27 Jan 2022 02:32:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AA264C340E7;
-        Thu, 27 Jan 2022 02:32:04 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 69B3361338
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 02:38:51 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A7AA8C340E7;
+        Thu, 27 Jan 2022 02:38:50 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643250724;
-        bh=YzlRjD2NwJvgx9dl0mMJbAjpAx04oz+MwQOeOlUhor8=;
+        s=korg; t=1643251130;
+        bh=bu0hMM3EHar3uHxhCB4MyTbBQLI9o1CJrZ8c4ueEyWI=;
         h=Date:From:To:Subject:From;
-        b=QJA54a8C01Z6XZd08K+E5O89ChSt6dp5euvREGYksNFxeSXRnVUIppKVLwtV2Vkid
-         yKHWiVcNAM0OgiVhlqL0YgcSqitVEl3QgExt1xLqLZWWT4UWRA9E6w2mEz1uFQiGlI
-         CoHu++xZsBfuUCAEM8G2ApRA2cptFL/a5kb4aa4Y=
-Date:   Wed, 26 Jan 2022 18:32:04 -0800
+        b=w0MKUsOoE6KGJP8xkYUzgeqiuyz4nK8Jm5MFmp6nQUWYRJgdCuRKsaBrVZKV4tPzV
+         7uHCPJlrRPpZtNfUe0fOKKHu1DhS9YeUJViW7Fv+sxYswDdgjiIkP29XryDhGHUCV+
+         MlMx0nl0PdWFCBmRRP43CzPQaWGGqHv3it99mBlA=
+Date:   Wed, 26 Jan 2022 18:38:50 -0800
 From:   akpm@linux-foundation.org
-To:     khalid.aziz@oracle.com, mm-commits@vger.kernel.org,
-        rppt@linux.ibm.com, stable@vger.kernel.org, stettberger@dokucode.de
+To:     0x7f454c46@gmail.com, avagin@gmail.com, mm-commits@vger.kernel.org
 Subject:  +
- mm-pgtable-define-pte_index-so-that-preprocessor-could-recognize-it.patch
- added to -mm tree
-Message-ID: <20220127023204.YhI-sD-TA%akpm@linux-foundation.org>
+ =?US-ASCII?Q?fs-pipe-local-vars-has-to-match-types-of-proper-pipe=5Fino?=
+ =?US-ASCII?Q?de=5Finfo-fields.patch?= added to -mm tree
+Message-ID: <20220127023850.o2eIwEK85%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/pgtable: define pte_index so that preprocessor could recognize it
+     Subject: fs/pipe.c: local vars have to match types of proper pipe_inode_info fields
 has been added to the -mm tree.  Its filename is
-     mm-pgtable-define-pte_index-so-that-preprocessor-could-recognize-it.patch
+     fs-pipe-local-vars-has-to-match-types-of-proper-pipe_inode_info-fields.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-pgtable-define-pte_index-so-that-preprocessor-could-recognize-it.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-pipe-local-vars-has-to-match-types-of-proper-pipe_inode_info-fields.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-pgtable-define-pte_index-so-that-preprocessor-could-recognize-it.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-pipe-local-vars-has-to-match-types-of-proper-pipe_inode_info-fields.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,41 +63,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Rapoport <rppt@linux.ibm.com>
-Subject: mm/pgtable: define pte_index so that preprocessor could recognize it
+From: Andrei Vagin <avagin@gmail.com>
+Subject: fs/pipe.c: local vars have to match types of proper pipe_inode_info fields
 
-Since commit 974b9b2c68f3 ("mm: consolidate pte_index() and pte_offset_*()
-definitions") pte_index is a static inline and there is no define for it
-that can be recognized by the preprocessor.  As a result,
-vm_insert_pages() uses slower loop over vm_insert_page() instead of
-insert_pages() that amortizes the cost of spinlock operations when
-inserting multiple pages.
+head, tail, ring_size are declared as unsigned int, so all local variables
+that operate with these fields have to be unsigned to avoid signed integer
+overflow.
 
-Link: https://lkml.kernel.org/r/20220111145457.20748-1-rppt@kernel.org
-Fixes: 974b9b2c68f3 ("mm: consolidate pte_index() and pte_offset_*() definitions")
-Signed-off-by: Mike Rapoport <rppt@linux.ibm.com>
-Reported-by: Christian Dietrich <stettberger@dokucode.de>
-Reviewed-by: Khalid Aziz <khalid.aziz@oracle.com>
-Cc: <stable@vger.kernel.org>
+Right now, it isn't an issue because the maximum pipe size is limited by
+1U<<31.
+
+Link: https://lkml.kernel.org/r/20220106171946.36128-1-avagin@gmail.com
+Signed-off-by: Andrei Vagin <avagin@gmail.com>
+Suggested-by: Dmitry Safonov <0x7f454c46@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pgtable.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/pipe.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/include/linux/pgtable.h~mm-pgtable-define-pte_index-so-that-preprocessor-could-recognize-it
-+++ a/include/linux/pgtable.h
-@@ -62,6 +62,7 @@ static inline unsigned long pte_index(un
+--- a/fs/pipe.c~fs-pipe-local-vars-has-to-match-types-of-proper-pipe_inode_info-fields
++++ a/fs/pipe.c
+@@ -606,7 +606,7 @@ out:
+ static long pipe_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
  {
- 	return (address >> PAGE_SHIFT) & (PTRS_PER_PTE - 1);
- }
-+#define pte_index pte_index
+ 	struct pipe_inode_info *pipe = filp->private_data;
+-	int count, head, tail, mask;
++	unsigned int count, head, tail, mask;
  
- #ifndef pmd_index
- static inline unsigned long pmd_index(unsigned long address)
+ 	switch (cmd) {
+ 	case FIONREAD:
+@@ -828,7 +828,7 @@ out_free_uid:
+ 
+ void free_pipe_info(struct pipe_inode_info *pipe)
+ {
+-	int i;
++	unsigned int i;
+ 
+ #ifdef CONFIG_WATCH_QUEUE
+ 	if (pipe->watch_queue) {
 _
 
-Patches currently in -mm which might be from rppt@linux.ibm.com are
+Patches currently in -mm which might be from avagin@gmail.com are
 
-mm-pgtable-define-pte_index-so-that-preprocessor-could-recognize-it.patch
+fs-pipe-use-kvcalloc-to-allocate-a-pipe_buffer-array.patch
+fs-pipe-local-vars-has-to-match-types-of-proper-pipe_inode_info-fields.patch
 
