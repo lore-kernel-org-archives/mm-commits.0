@@ -2,36 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 770F7C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 20:23:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 8BB81C433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 22:01:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234414AbiA0UX5 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Jan 2022 15:23:57 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:57606 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231384AbiA0UX5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jan 2022 15:23:57 -0500
+        id S231848AbiA0WBa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Jan 2022 17:01:30 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42930 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230245AbiA0WBa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jan 2022 17:01:30 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 0979CC061714;
+        Thu, 27 Jan 2022 14:01:30 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 5E833618C8
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 20:23:57 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8CCF7C340E4;
-        Thu, 27 Jan 2022 20:23:56 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id CB22EB823B3;
+        Thu, 27 Jan 2022 22:01:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 17E33C340E4;
+        Thu, 27 Jan 2022 22:01:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643315036;
-        bh=EHb2Ig84CjXpWdNXUwQMm3oqQ95IKV1DOEr85r2PN/I=;
+        s=korg; t=1643320887;
+        bh=0z8p2yLCqEk/0Th5JJwZ5/UasvV/M8AHkxabuCmxRM0=;
         h=Date:From:To:Subject:From;
-        b=NTGOhajXduFUd0FzbM5zXHAWBtyU04heJpQFk3nfD3rQIY+SmyIa2zkeU2QwXBs2L
-         fAdX7q1rp72jqzAzviZEFVB/kcl49GhNBv4lzqbvcdANUgFqQxNSKq/hT5Nk2iGcTd
-         yCn6p2XOVv+EycSF9xvJPmaswhD0YTinJzxLvJnQ=
-Date:   Thu, 27 Jan 2022 12:23:55 -0800
+        b=jdOr4qnAe7YbZCl5WEXYZc772ZQQocCRDcjKDWChaY5buzQ41qpLct8KlMKlHBFey
+         YIAfEK9+69lBNk5s3ligVS7nyCvuQe7lliaLNP/o6ljsf8RwJreKmuqLSoDZTNPs3i
+         IpO9A5Nlh+Osc/wLpI4eNg5tTceQ3JThdFDLlEek=
+Date:   Thu, 27 Jan 2022 14:01:26 -0800
 From:   akpm@linux-foundation.org
-To:     guro@fb.com, hannes@cmpxchg.org, mhocko@suse.com,
-        mm-commits@vger.kernel.org, shakeelb@google.com, vvs@virtuozzo.com
-Subject:  + memcg-replace-in_interrupt-with-in_task.patch added to
- -mm tree
-Message-ID: <20220127202355.xQMKP2Eel%akpm@linux-foundation.org>
+To:     1vier1@web.de, arnd@arndb.de, cgel.zte@gmail.com,
+        chi.minghao@zte.com.cn, dbueso@suse.de, manfred@colorfullife.com,
+        mhocko@kernel.org, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, shakeelb@google.com, stable@vger.kernel.org,
+        unixbhaskar@gmail.com, urezki@gmail.com, vvs@virtuozzo.com,
+        zealci@zte.com.cn
+Subject:  [alternative-merged]
+ mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch removed
+ from -mm tree
+Message-ID: <20220127220126.zRE0qPjlu%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -40,70 +48,72 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: replace in_interrupt() with !in_task()
-has been added to the -mm tree.  Its filename is
-     memcg-replace-in_interrupt-with-in_task.patch
+     Subject: mm/util.c: make kvfree() safe for calling while holding spinlocks
+has been removed from the -mm tree.  Its filename was
+     mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/memcg-replace-in_interrupt-with-in_task.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/memcg-replace-in_interrupt-with-in_task.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Shakeel Butt <shakeelb@google.com>
-Subject: memcg: replace in_interrupt() with !in_task()
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: mm/util.c: make kvfree() safe for calling while holding spinlocks
 
-Replace the deprecated in_interrupt() with !in_task() because
-in_interrupt() returns true for BH disabled even if the call happens in
-the task context.  in_task() is the right interface to differentiate task
-context from NMI, hard IRQ and softirq contexts.
+One codepath in find_alloc_undo() calls kvfree() while holding a spinlock.
+Since vfree() can sleep this is a bug.
 
-Link: https://lkml.kernel.org/r/20220127162636.3461256-1-shakeelb@google.com
-Signed-off-by: Shakeel Butt <shakeelb@google.com>
+Previously, the code path used kfree(), and kfree() is safe to be called
+while holding a spinlock.
+
+Minghao proposed to fix this by updating find_alloc_undo().
+
+Alternate proposal to fix this: Instead of changing find_alloc_undo(),
+change kvfree() so that the same rules as for kfree() apply: Having
+different rules for kfree() and kvfree() just asks for bugs.
+
+Disadvantage: Releasing vmalloc'ed memory will be delayed a bit.
+
+Link: https://lkml.kernel.org/r/20211222194828.15320-1-manfred@colorfullife.com
+Link: https://lore.kernel.org/all/20211222081026.484058-1-chi.minghao@zte.com.cn/
+Fixes: fc37a3b8b438 ("[PATCH] ipc sem: use kvmalloc for sem_undo allocation")
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Reported-by: Minghao Chi <chi.minghao@zte.com.cn>
 Cc: Vasily Averin <vvs@virtuozzo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Roman Gushchin <guro@fb.com>
+Cc: CGEL ZTE <cgel.zte@gmail.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Davidlohr Bueso <dbueso@suse.de>
+Cc: Bhaskar Chowdhury <unixbhaskar@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Uladzislau Rezki <urezki@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: <1vier1@web.de>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ++--
+ mm/util.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/mm/memcontrol.c~memcg-replace-in_interrupt-with-in_task
-+++ a/mm/memcontrol.c
-@@ -2688,7 +2688,7 @@ done_restock:
- 			READ_ONCE(memcg->swap.high);
- 
- 		/* Don't bother a random interrupted task */
--		if (in_interrupt()) {
-+		if (!in_task()) {
- 			if (mem_high) {
- 				schedule_work(&memcg->high_work);
- 				break;
-@@ -6968,7 +6968,7 @@ void mem_cgroup_sk_alloc(struct sock *sk
- 		return;
- 
- 	/* Do not associate the sock with unrelated interrupted task's memcg. */
--	if (in_interrupt())
-+	if (!in_task())
- 		return;
- 
- 	rcu_read_lock();
+--- a/mm/util.c~mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks
++++ a/mm/util.c
+@@ -603,12 +603,12 @@ EXPORT_SYMBOL(kvmalloc_node);
+  * It is slightly more efficient to use kfree() or vfree() if you are certain
+  * that you know which one to use.
+  *
+- * Context: Either preemptible task context or not-NMI interrupt.
++ * Context: Any context except NMI interrupt.
+  */
+ void kvfree(const void *addr)
+ {
+ 	if (is_vmalloc_addr(addr))
+-		vfree(addr);
++		vfree_atomic(addr);
+ 	else
+ 		kfree(addr);
+ }
 _
 
-Patches currently in -mm which might be from shakeelb@google.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-memcg-replace-in_interrupt-with-in_task.patch
 
