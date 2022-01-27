@@ -2,38 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 262E9C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 02:25:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 60D5CC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 02:27:18 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233001AbiA0CZO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jan 2022 21:25:14 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:46080 "EHLO
+        id S229927AbiA0C1R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jan 2022 21:27:17 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:47386 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229518AbiA0CZO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 21:25:14 -0500
+        with ESMTP id S229518AbiA0C1P (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 21:27:15 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 10CB560C93
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 02:25:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21E0CC340E7;
-        Thu, 27 Jan 2022 02:25:13 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 836B460C3E
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 02:27:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4131C340E7;
+        Thu, 27 Jan 2022 02:27:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643250313;
-        bh=/KEwy62jwBe3KuUR9ntYEKpwL48PhXglDeM6jATX5Gs=;
+        s=korg; t=1643250435;
+        bh=zeeD4yYjyak20fL0FccC1XVpCx6BT4zFn+kUbvfH0Uc=;
         h=Date:From:To:Subject:From;
-        b=lph9ATfh9aTN1VM9MjiU9PMZfW7MQ5/DCNRm65u3hFZb9yNAe2B399AtMx+XiIcd4
-         aJF6BqcY6fMgE1nju1LROiI3o2mhpr+9fqsoANCOBFQ8XQT/MX+113NpoTQQ3QQxUB
-         /gabp/wwv2OAY+HlnHo4tqf7C+XmgnrDEyIDAv6U=
-Date:   Wed, 26 Jan 2022 18:25:12 -0800
+        b=OJI1PvFRTRegHRGl3/Sd1HgEqMyNeb9Aw/k86ICMXGxpIPJgJTSjwUIGBnoAZfVSX
+         PTHYazsTijVlEy0YjDSRbpIp7n/34QXUf/Qlv5+vY42JNoIn2cpiZZHq203bTBz1cv
+         auqoVoRLjqIdLaAX2ZwfMRHrrvwDW1gwP6APvDzY=
+Date:   Wed, 26 Jan 2022 18:27:14 -0800
 From:   akpm@linux-foundation.org
-To:     cgel.zte@gmail.com, chi.minghao@zte.com.cn, gechangwei@live.cn,
-        ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
-        junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org,
-        piaojun@huawei.com, zealci@zte.com.cn
-Subject:  + ocfs2-cleanup-some-return-variables.patch added to -mm
- tree
-Message-ID: <20220127022512.LQrXQcMjZ%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
+        tony.luck@intel.com, youquan.song@intel.com
+Subject:  +
+ mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch added
+ to -mm tree
+Message-ID: <20220127022714.M2sOzPDh9%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: cleanup some return variables
+     Subject: mm/hwpoison: fix error page recovered but reported "not recovered"
 has been added to the -mm tree.  Its filename is
-     ocfs2-cleanup-some-return-variables.patch
+     mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-cleanup-some-return-variables.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-cleanup-some-return-variables.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,93 +62,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@linux.alibaba.com>
-Subject: ocfs2: cleanup some return variables
+From: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Subject: mm/hwpoison: fix error page recovered but reported "not recovered"
 
-Simply return directly instead of assign the return value to another
-variable.
+When an uncorrected memory error is consumed there is a race between the
+CMCI from the memory controller reporting an uncorrected error with a UCNA
+signature, and the core reporting and SRAR signature machine check when
+the data is about to be consumed.
 
-Link: https://lkml.kernel.org/r/20220114021641.13927-1-joseph.qi@linux.alibaba.com
-Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Cc: Minghao Chi <chi.minghao@zte.com.cn>
-Cc: CGEL ZTE <cgel.zte@gmail.com>
-Cc: Mark Fasheh <mark@fasheh.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Changwei Ge <gechangwei@live.cn>
-Cc: Gang He <ghe@suse.com>
-Cc: Jun Piao <piaojun@huawei.com>
+If the CMCI wins that race, the page is marked poisoned when
+uc_decode_notifier() calls memory_failure() and the machine check
+processing code finds the page already poisoned.  It calls
+kill_accessing_process() to make sure a SIGBUS is sent.  But returns the
+wrong error code.
+
+Console log looks like this:
+
+[34775.674296] mce: Uncorrected hardware memory error in user-access at 3710b3400
+[34775.675413] Memory failure: 0x3710b3: recovery action for dirty LRU page: Recovered
+[34775.690310] Memory failure: 0x3710b3: already hardware poisoned
+[34775.696247] Memory failure: 0x3710b3: Sending SIGBUS to einj_mem_uc:361438 due to hardware memory corruption
+[34775.706072] mce: Memory error not recovered
+
+kill_accessing_process() is supposed to return -EHWPOISON to notify that
+SIGBUS is already set to the process and kill_me_maybe() doesn't have to
+send it again.  But current code simply fails to do this, so fix it to
+make sure to work as intended.  This change avoids the noise message
+"Memory error not recovered" and skips duplicate SIGBUSs.
+
+[tony.luck@intel.com: reword some parts of commit message]
+Link: https://lkml.kernel.org/r/20220113231117.1021405-1-naoya.horiguchi@linux.dev
+Fixes: a3f5d80ea401 ("mm,hwpoison: send SIGBUS with error virutal address")
+Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
+Reported-by: Youquan Song <youquan.song@intel.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c       |    9 +++------
- fs/ocfs2/stack_user.c |   18 ++++++------------
- 2 files changed, 9 insertions(+), 18 deletions(-)
+ mm/memory-failure.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
---- a/fs/ocfs2/file.c~ocfs2-cleanup-some-return-variables
-+++ a/fs/ocfs2/file.c
-@@ -540,15 +540,12 @@ int ocfs2_add_inode_data(struct ocfs2_su
- 			 struct ocfs2_alloc_context *meta_ac,
- 			 enum ocfs2_alloc_restarted *reason_ret)
- {
--	int ret;
- 	struct ocfs2_extent_tree et;
- 
- 	ocfs2_init_dinode_extent_tree(&et, INODE_CACHE(inode), fe_bh);
--	ret = ocfs2_add_clusters_in_btree(handle, &et, logical_offset,
--					  clusters_to_add, mark_unwritten,
--					  data_ac, meta_ac, reason_ret);
--
--	return ret;
-+	return ocfs2_add_clusters_in_btree(handle, &et, logical_offset,
-+					   clusters_to_add, mark_unwritten,
-+					   data_ac, meta_ac, reason_ret);
+--- a/mm/memory-failure.c~mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered
++++ a/mm/memory-failure.c
+@@ -707,8 +707,10 @@ static int kill_accessing_process(struct
+ 			      (void *)&priv);
+ 	if (ret == 1 && priv.tk.addr)
+ 		kill_proc(&priv.tk, pfn, flags);
++	else
++		ret = 0;
+ 	mmap_read_unlock(p->mm);
+-	return ret ? -EFAULT : -EHWPOISON;
++	return ret > 0 ? -EHWPOISON : -EFAULT;
  }
  
- static int ocfs2_extend_allocation(struct inode *inode, u32 logical_start,
---- a/fs/ocfs2/stack_user.c~ocfs2-cleanup-some-return-variables
-+++ a/fs/ocfs2/stack_user.c
-@@ -683,28 +683,22 @@ static int user_dlm_lock(struct ocfs2_cl
- 			 void *name,
- 			 unsigned int namelen)
- {
--	int ret;
--
- 	if (!lksb->lksb_fsdlm.sb_lvbptr)
- 		lksb->lksb_fsdlm.sb_lvbptr = (char *)lksb +
- 					     sizeof(struct dlm_lksb);
- 
--	ret = dlm_lock(conn->cc_lockspace, mode, &lksb->lksb_fsdlm,
--		       flags|DLM_LKF_NODLCKWT, name, namelen, 0,
--		       fsdlm_lock_ast_wrapper, lksb,
--		       fsdlm_blocking_ast_wrapper);
--	return ret;
-+	return dlm_lock(conn->cc_lockspace, mode, &lksb->lksb_fsdlm,
-+			flags|DLM_LKF_NODLCKWT, name, namelen, 0,
-+			fsdlm_lock_ast_wrapper, lksb,
-+			fsdlm_blocking_ast_wrapper);
- }
- 
- static int user_dlm_unlock(struct ocfs2_cluster_connection *conn,
- 			   struct ocfs2_dlm_lksb *lksb,
- 			   u32 flags)
- {
--	int ret;
--
--	ret = dlm_unlock(conn->cc_lockspace, lksb->lksb_fsdlm.sb_lkid,
--			 flags, &lksb->lksb_fsdlm, lksb);
--	return ret;
-+	return dlm_unlock(conn->cc_lockspace, lksb->lksb_fsdlm.sb_lkid,
-+			  flags, &lksb->lksb_fsdlm, lksb);
- }
- 
- static int user_dlm_lock_status(struct ocfs2_dlm_lksb *lksb)
+ static const char *action_name[] = {
 _
 
-Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
+Patches currently in -mm which might be from naoya.horiguchi@nec.com are
 
-jbd2-export-jbd2_journal__journal_head.patch
-ocfs2-fix-a-deadlock-when-commit-trans.patch
-ocfs2-cleanup-some-return-variables.patch
+mm-hwpoison-remove-obsolete-comment.patch
+mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
 
