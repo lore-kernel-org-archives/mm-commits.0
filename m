@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED061C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 22:43:02 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E46AEC433FE
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 22:43:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S241930AbiA0WnC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Jan 2022 17:43:02 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:34752 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238592AbiA0WnB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jan 2022 17:43:01 -0500
+        id S238592AbiA0WnH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Jan 2022 17:43:07 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:50902 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S244140AbiA0WnG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jan 2022 17:43:06 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id E32E0B818E6
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 22:42:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2BA3EC340E6;
-        Thu, 27 Jan 2022 22:42:58 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 4B7CD61C04
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 22:43:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 25D89C340E4;
+        Thu, 27 Jan 2022 22:43:05 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643323378;
-        bh=aAh0hURQB3tZN64RZ8E+7CMM+znm4dkYB2+ulRckJL8=;
+        s=korg; t=1643323385;
+        bh=z3FmZNVdjA+jwPS/0trr5fusAPlw7dlXFA/FNXWyekI=;
         h=Date:From:To:Subject:From;
-        b=2Qsd5mytNDMutw4RlamZGE00BAFfEkUTvpsbqes1s+cNo/d7HhpJvLpNRXOoYgANk
-         8IEad4PnsSLKLppS1MHW5gDMAzOkQ1ywAaflWatkxbKNVFW3XXPE+0NezQf1w8m2fe
-         9mS8NWnG8BaY/FyHbgMCwwRrWuVwdp70Og7P9RSk=
-Date:   Thu, 27 Jan 2022 14:42:57 -0800
+        b=dTZdOj6i7mGltOCnowl0epLy1bdap+VmYLTPDvlCKZQ1Rl4R7dikgPnOvMBxvRJGn
+         trIhctRtAVQIjnesyNJk8XcrW+VV/nCHPrUKq5aCrdsbQzGiy/D09NY1EXq8/UCo7d
+         XAyChxmXb2oW69Ynb+mws9dR9SyEeHW7/CqIlTtU=
+Date:   Thu, 27 Jan 2022 14:43:04 -0800
 From:   akpm@linux-foundation.org
 To:     Anna.Schumaker@Netapp.com, axboe@kernel.dk, chao@kernel.org,
         david@fromorbit.com, djwong@kernel.org, hch@lst.de,
@@ -34,9 +34,10 @@ To:     Anna.Schumaker@Netapp.com, axboe@kernel.dk, chao@kernel.org,
         miklos@szeredi.hu, mm-commits@vger.kernel.org, neilb@suse.de,
         paolo.valente@linaro.org, philipp.reisner@linbit.com,
         trond.myklebust@hammerspace.com
-Subject:  + fuse-dont-set-clear-bdi_congested.patch added to -mm
+Subject:  +
+ block-bfq-ioschedc-use-false-rather-than-blk_rw_async.patch added to -mm
  tree
-Message-ID: <20220127224257.b_yZFBJgH%akpm@linux-foundation.org>
+Message-ID: <20220127224304.NOlAPf65f%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -45,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fuse: don't set/clear bdi_congested
+     Subject: block/bfq-iosched.c: use "false" rather than "BLK_RW_ASYNC"
 has been added to the -mm tree.  Its filename is
-     fuse-dont-set-clear-bdi_congested.patch
+     block-bfq-ioschedc-use-false-rather-than-blk_rw_async.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fuse-dont-set-clear-bdi_congested.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/block-bfq-ioschedc-use-false-rather-than-blk_rw_async.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fuse-dont-set-clear-bdi_congested.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/block-bfq-ioschedc-use-false-rather-than-blk_rw_async.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -67,12 +68,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: NeilBrown <neilb@suse.de>
-Subject: fuse: don't set/clear bdi_congested
+Subject: block/bfq-iosched.c: use "false" rather than "BLK_RW_ASYNC"
 
-The bdo congestion framework is no longer used to manage writeout etc, so
-drop updating it in fuse.
+bfq_get_queue() expects a "bool" for the third arg, so pass "false" rather
+than "BLK_RW_ASYNC" which will soon be removed.
 
-Link: https://lkml.kernel.org/r/164325158958.29787.9472805850412952920.stgit@noble.brown
+Link: https://lkml.kernel.org/r/164325158959.29787.11286416793279041497.stgit@noble.brown
 Signed-off-by: NeilBrown <neilb@suse.de>
 Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
 Cc: Chao Yu <chao@kernel.org>
@@ -92,67 +93,20 @@ Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fuse/control.c |   17 -----------------
- fs/fuse/dev.c     |    8 --------
- 2 files changed, 25 deletions(-)
+ block/bfq-iosched.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/fs/fuse/control.c~fuse-dont-set-clear-bdi_congested
-+++ a/fs/fuse/control.c
-@@ -164,7 +164,6 @@ static ssize_t fuse_conn_congestion_thre
- {
- 	unsigned val;
- 	struct fuse_conn *fc;
--	struct fuse_mount *fm;
- 	ssize_t ret;
+--- a/block/bfq-iosched.c~block-bfq-ioschedc-use-false-rather-than-blk_rw_async
++++ a/block/bfq-iosched.c
+@@ -5448,7 +5448,7 @@ static void bfq_check_ioprio_change(stru
+ 	bfqq = bic_to_bfqq(bic, false);
+ 	if (bfqq) {
+ 		bfq_release_process_ref(bfqd, bfqq);
+-		bfqq = bfq_get_queue(bfqd, bio, BLK_RW_ASYNC, bic, true);
++		bfqq = bfq_get_queue(bfqd, bio, false, bic, true);
+ 		bic_set_bfqq(bic, bfqq, false);
+ 	}
  
- 	ret = fuse_conn_limit_write(file, buf, count, ppos, &val,
-@@ -178,22 +177,6 @@ static ssize_t fuse_conn_congestion_thre
- 	down_read(&fc->killsb);
- 	spin_lock(&fc->bg_lock);
- 	fc->congestion_threshold = val;
--
--	/*
--	 * Get any fuse_mount belonging to this fuse_conn; s_bdi is
--	 * shared between all of them
--	 */
--
--	if (!list_empty(&fc->mounts)) {
--		fm = list_first_entry(&fc->mounts, struct fuse_mount, fc_entry);
--		if (fc->num_background < fc->congestion_threshold) {
--			clear_bdi_congested(fm->sb->s_bdi, BLK_RW_SYNC);
--			clear_bdi_congested(fm->sb->s_bdi, BLK_RW_ASYNC);
--		} else {
--			set_bdi_congested(fm->sb->s_bdi, BLK_RW_SYNC);
--			set_bdi_congested(fm->sb->s_bdi, BLK_RW_ASYNC);
--		}
--	}
- 	spin_unlock(&fc->bg_lock);
- 	up_read(&fc->killsb);
- 	fuse_conn_put(fc);
---- a/fs/fuse/dev.c~fuse-dont-set-clear-bdi_congested
-+++ a/fs/fuse/dev.c
-@@ -315,10 +315,6 @@ void fuse_request_end(struct fuse_req *r
- 				wake_up(&fc->blocked_waitq);
- 		}
- 
--		if (fc->num_background == fc->congestion_threshold && fm->sb) {
--			clear_bdi_congested(fm->sb->s_bdi, BLK_RW_SYNC);
--			clear_bdi_congested(fm->sb->s_bdi, BLK_RW_ASYNC);
--		}
- 		fc->num_background--;
- 		fc->active_background--;
- 		flush_bg_queue(fc);
-@@ -540,10 +536,6 @@ static bool fuse_request_queue_backgroun
- 		fc->num_background++;
- 		if (fc->num_background == fc->max_background)
- 			fc->blocked = 1;
--		if (fc->num_background == fc->congestion_threshold && fm->sb) {
--			set_bdi_congested(fm->sb->s_bdi, BLK_RW_SYNC);
--			set_bdi_congested(fm->sb->s_bdi, BLK_RW_ASYNC);
--		}
- 		list_add_tail(&req->list, &fc->bg_queue);
- 		flush_bg_queue(fc);
- 		queued = true;
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
