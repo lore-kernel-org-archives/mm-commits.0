@@ -2,39 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 74F69C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 01:37:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F7E8C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 01:52:31 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234574AbiA0Bhh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jan 2022 20:37:37 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44246 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234582AbiA0Bhh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 20:37:37 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F315CC06161C
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 17:37:36 -0800 (PST)
+        id S234671AbiA0Bwb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jan 2022 20:52:31 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:57406 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232204AbiA0Bwa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 20:52:30 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 0A481B81EE8
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 01:37:35 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A6203C340E3;
-        Thu, 27 Jan 2022 01:37:33 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1A730B820F1;
+        Thu, 27 Jan 2022 01:52:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5A417C340E7;
+        Thu, 27 Jan 2022 01:52:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643247453;
-        bh=E0RYJ1mU8Ja7YcDn29GiLDal8iJ53lYNAr/M3tq/HXY=;
+        s=korg; t=1643248347;
+        bh=N3uHMf93qUV2UqmDk/3ynkjX/YZ8hIZ9blePZHcu+5M=;
         h=Date:From:To:Subject:From;
-        b=y1NwaE3gjsSpN7vbpgZj27Rg9wvCC/1Paj28cKnGMRrFpiKvNLrgP628iJRKyXOxK
-         WfbULJJba/LIOjG4JPJrnp2yWYnddhRWez2MajGa4C0MSFNLa49lVtX1NCVht2pT18
-         aJZ88Q0Ng1fbB89+LB8SfELWiF6imDt9LMRbCfXQ=
-Date:   Wed, 26 Jan 2022 17:37:33 -0800
+        b=lM2/FfbKOkwH0hnuWQoXza2IvHs449Ifbu5iTLvjJPput1hwex+rY7Y8SBZLeXUob
+         rzDBWFuIniRQrmzTyQRAhCdIB0Yp9HVwvNpVCPFRvghKnYO4bHk8WVM3VxKIfn/kWK
+         pVWD06GsEXwEJIIB4A8hHx2cGrBEJgbht0hRq2Ss=
+Date:   Wed, 26 Jan 2022 17:52:26 -0800
 From:   akpm@linux-foundation.org
-To:     david@redhat.com, linmiaohe@huawei.com, mm-commits@vger.kernel.org,
-        rientjes@google.com, songmuchun@bytedance.com
-Subject:  + mm-highmem-remove-unnecessary-done-label.patch added to
- -mm tree
-Message-ID: <20220127013733._U4XwhlVM%akpm@linux-foundation.org>
+To:     aneesh.kumar@linux.ibm.com, anshuman.khandual@arm.com,
+        dave.hansen@linux.intel.com, gthelen@google.com, hpa@zytor.com,
+        hughd@google.com, jirislaby@kernel.org, mingo@redhat.com,
+        mm-commits@vger.kernel.org, pasha.tatashin@soleen.com,
+        pjt@google.com, rientjes@google.com, rppt@kernel.org,
+        songmuchun@bytedance.com, stable@vger.kernel.org,
+        weixugc@google.com, will@kernel.org, ziy@nvidia.com
+Subject:  +
+ mm-debug_vm_pgtable-remove-pte-entry-from-the-page-table.patch added to -mm
+ tree
+Message-ID: <20220127015226.QSDavwGEn%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/highmem: remove unnecessary done label
+     Subject: mm/debug_vm_pgtable: remove pte entry from the page table
 has been added to the -mm tree.  Its filename is
-     mm-highmem-remove-unnecessary-done-label.patch
+     mm-debug_vm_pgtable-remove-pte-entry-from-the-page-table.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-highmem-remove-unnecessary-done-label.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-debug_vm_pgtable-remove-pte-entry-from-the-page-table.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-highmem-remove-unnecessary-done-label.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-debug_vm_pgtable-remove-pte-entry-from-the-page-table.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,61 +67,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Miaohe Lin <linmiaohe@huawei.com>
-Subject: mm/highmem: remove unnecessary done label
+From: Pasha Tatashin <pasha.tatashin@soleen.com>
+Subject: mm/debug_vm_pgtable: remove pte entry from the page table
 
-Remove unnecessary done label to simplify the code.
+Patch series "page table check fixes and cleanups", v4.
 
-Link: https://lkml.kernel.org/r/20220126092542.64659-1-linmiaohe@huawei.com
-Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
+Two fixes:
+
+  mm/debug_vm_pgtable: remove pte entry from the page table
+	- remove a pte entry from the page table at the end of
+	  debug_vm_pgtable pte test
+
+  mm/khugepaged: unify collapse pmd clear, flush and free
+  mm/page_table_check: check entries at pmd levels
+	- check pmd level in page_table_check for PTE regular entries
+	  prior to freeing.
+	  repro.c: https://gist.github.com/soleen/fdcd501d5df103976245fe84e9535087
+	  config: https://gist.github.com/soleen/8a56f923c2fea9ce9c75b4e2517d4162
+	  qemu_script: https://gist.github.com/soleen/f4be4795826b7ab1a51ae659582e179c
+	  base image:
+	  https://storage.googleapis.com/syzkaller/wheezy.img
+	  https://storage.googleapis.com/syzkaller/wheezy.img.key
+
+Small cleanup:
+  mm/page_table_check: use unsigned long for page counters and cleanup
+
+
+This patch (of 4):
+
+The pte entry that is used in pte_advanced_tests() is never removed from
+the page table at the end of the test.
+
+The issue is detected by page_table_check, to repro compile kernel with
+the following configs:
+
+CONFIG_DEBUG_VM_PGTABLE=y
+CONFIG_PAGE_TABLE_CHECK=y
+CONFIG_PAGE_TABLE_CHECK_ENFORCED=y
+
+During the boot the following BUG is printed:
+
+[    2.262821] debug_vm_pgtable: [debug_vm_pgtable         ]: Validating
+               architecture page table helpers
+[    2.276826] ------------[ cut here ]------------
+[    2.280426] kernel BUG at mm/page_table_check.c:162!
+[    2.284118] invalid opcode: 0000 [#1] PREEMPT SMP PTI
+[    2.287787] CPU: 0 PID: 1 Comm: swapper/0 Not tainted
+               5.16.0-11413-g2c271fe77d52 #3
+[    2.293226] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996),
+               BIOS rel-1.15.0-0-g2dd4b9b3f840-prebuilt.qemu.org
+               04/01/2014
+...
+
+The entry should be properly removed from the page table before the page
+is released to the free list.
+
+Link: https://lkml.kernel.org/r/20220126183637.1840960-2-pasha.tatashin@soleen.com
+Fixes: a5c3b9ffb0f4 ("mm/debug_vm_pgtable: add tests validating advanced arch page table helpers")
+Signed-off-by: Pasha Tatashin <pasha.tatashin@soleen.com>
+Reviewed-by: Zi Yan <ziy@nvidia.com>
+Tested-by: Zi Yan <ziy@nvidia.com>
 Acked-by: David Rientjes <rientjes@google.com>
+Cc: Paul Turner <pjt@google.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Will Deacon <will@kernel.org>
+Cc: Mike Rapoport <rppt@kernel.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Cc: Jiri Slaby <jirislaby@kernel.org>
+Cc: Muchun Song <songmuchun@bytedance.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Anshuman Khandual <anshuman.khandual@arm.com>
+Cc: <stable@vger.kernel.org>	[5.9+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ mm/debug_vm_pgtable.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/mm/highmem.c~mm-highmem-remove-unnecessary-done-label
-+++ a/mm/highmem.c
-@@ -736,11 +736,11 @@ void *page_address(const struct page *pa
- 		list_for_each_entry(pam, &pas->lh, list) {
- 			if (pam->page == page) {
- 				ret = pam->virtual;
--				goto done;
-+				break;
- 			}
- 		}
- 	}
--done:
+--- a/mm/debug_vm_pgtable.c~mm-debug_vm_pgtable-remove-pte-entry-from-the-page-table
++++ a/mm/debug_vm_pgtable.c
+@@ -171,6 +171,8 @@ static void __init pte_advanced_tests(st
+ 	ptep_test_and_clear_young(args->vma, args->vaddr, args->ptep);
+ 	pte = ptep_get(args->ptep);
+ 	WARN_ON(pte_young(pte));
 +
- 	spin_unlock_irqrestore(&pas->lock, flags);
- 	return ret;
- }
-@@ -773,13 +773,12 @@ void set_page_address(struct page *page,
- 		list_for_each_entry(pam, &pas->lh, list) {
- 			if (pam->page == page) {
- 				list_del(&pam->list);
--				spin_unlock_irqrestore(&pas->lock, flags);
--				goto done;
-+				break;
- 			}
- 		}
- 		spin_unlock_irqrestore(&pas->lock, flags);
- 	}
--done:
-+
- 	return;
++	ptep_get_and_clear_full(args->mm, args->vaddr, args->ptep, 1);
  }
  
+ static void __init pte_savedwrite_tests(struct pgtable_debug_args *args)
 _
 
-Patches currently in -mm which might be from linmiaohe@huawei.com are
+Patches currently in -mm which might be from pasha.tatashin@soleen.com are
 
-mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
-mm-vmalloc-remove-unneeded-function-forward-declaration.patch
-mm-balloon_compaction-make-balloon-page-compaction-callbacks-static.patch
-mm-highmem-remove-unnecessary-done-label.patch
-mm-hmmc-remove-unneeded-local-variable-ret.patch
+mm-debug_vm_pgtable-remove-pte-entry-from-the-page-table.patch
+mm-page_table_check-use-unsigned-long-for-page-counters-and-cleanup.patch
+mm-khugepaged-unify-collapse-pmd-clear-flush-and-free.patch
+mm-page_table_check-check-entries-at-pmd-levels.patch
 
