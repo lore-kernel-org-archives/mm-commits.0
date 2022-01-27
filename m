@@ -2,119 +2,97 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 2B789C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 09:44:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 017F4C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 15:46:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238755AbiA0Jo2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Jan 2022 04:44:28 -0500
-Received: from mga17.intel.com ([192.55.52.151]:16502 "EHLO mga17.intel.com"
-        rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-        id S238758AbiA0Jo2 (ORCPT <rfc822;mm-commits@vger.kernel.org>);
-        Thu, 27 Jan 2022 04:44:28 -0500
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1643276668; x=1674812668;
-  h=from:to:subject:in-reply-to:references:date:message-id:
-   mime-version:content-transfer-encoding;
-  bh=dk0qamhX2TbtdZHxZwkI3zlHxXhVxx0UNGFBByp7cwQ=;
-  b=jFfHa66eUP05WZJUGGMSnrDlJqW0ew9ltXO+8UC57mEEQjD4rCpjfNXC
-   mqBRml2VfMy7I7aMG9FFOm8zgmzlxfZ2k0Ge2uxKr2zlbFlB+lztxgbW8
-   g2fz4cQjNysHqMYiDSkLbnSCoFxDyZQT4AB2u+wDCYSGzycAt+d+MnCX+
-   HzoQ3+7nRVUTkqctLds+C9DcIhLEvkS98Iouu2RVfcsvrkZb01Yb075jS
-   4xDHxLCDLL1LY9QAUbAsnAvuE/QZl6Qa7KI5rzMSpwtnk+ciV48tHtJpa
-   RqfGuIpjxVvhhNkvIXuqKN2yP3HrxOKQMKrg2Rlj98NgoXhj/z2ssMomY
-   A==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10239"; a="227474899"
-X-IronPort-AV: E=Sophos;i="5.88,320,1635231600"; 
-   d="scan'208";a="227474899"
-Received: from fmsmga003.fm.intel.com ([10.253.24.29])
-  by fmsmga107.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 01:44:27 -0800
-X-IronPort-AV: E=Sophos;i="5.88,320,1635231600"; 
-   d="scan'208";a="618268633"
-Received: from johnlyon-mobl.ger.corp.intel.com (HELO localhost) ([10.252.16.209])
-  by fmsmga003-auth.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 27 Jan 2022 01:44:23 -0800
-From:   Jani Nikula <jani.nikula@linux.intel.com>
-To:     Randy Dunlap <rdunlap@infradead.org>, akpm@linux-foundation.org,
-        broonie@kernel.org, linux-fsdevel@vger.kernel.org,
-        linux-kernel@vger.kernel.org, linux-mm@kvack.org,
-        linux-next@vger.kernel.org, mhocko@suse.cz,
-        mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        dri-devel@lists.freedesktop.org, intel-gfx@lists.freedesktop.org
-Subject: Re: mmotm 2022-01-26-21-04 uploaded (gpu/drm/i915/i915_gem_evict.h)
-In-Reply-To: <6b4f3d82-01e8-5bf3-927f-33ac62178fd5@infradead.org>
-Organization: Intel Finland Oy - BIC 0357606-4 - Westendinkatu 7, 02160 Espoo
-References: <20220127050456.M1eh-ltbc%akpm@linux-foundation.org>
- <6b4f3d82-01e8-5bf3-927f-33ac62178fd5@infradead.org>
-Date:   Thu, 27 Jan 2022 11:44:18 +0200
-Message-ID: <8735l9y0lp.fsf@intel.com>
+        id S243099AbiA0PqC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Jan 2022 10:46:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39510 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S234341AbiA0PqC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jan 2022 10:46:02 -0500
+Received: from mail-wm1-x32e.google.com (mail-wm1-x32e.google.com [IPv6:2a00:1450:4864:20::32e])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AEA06C06173B
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 07:46:01 -0800 (PST)
+Received: by mail-wm1-x32e.google.com with SMTP id c190-20020a1c9ac7000000b0035081bc722dso2140941wme.5
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 07:46:01 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=colorfullife-com.20210112.gappssmtp.com; s=20210112;
+        h=message-id:date:mime-version:user-agent:subject:content-language:to
+         :references:from:in-reply-to:content-transfer-encoding;
+        bh=mD8BsuCJasSkpkxaaqDLPDCI5MsBcn4xIxsCb70RTuM=;
+        b=M6+5QuWsfjE0nxWNyt7LZ2xEMKHfzVGJpRUfyqYBz36uv2uueN7CErKAXyPpUr3Oo/
+         xFGbmTwYvIrK6ikSHqnWqqnlEl8TSddTlZdpnvmH7Yi0Z1uIzfFt3FrBAHuTeBiRbYT/
+         u+TaaklUyDv+RZc3ZtAqehkCXOzs5mbuwIrohFyNH54a7TCgbcShSrZQXJZiSZXWpS2t
+         h0AyWUUrSzfvvD46g/2/wqWKzjbyEgFVRtn0aep4Xpa5u0rRaWBZs4/jvanNxG3lrdAT
+         8HLtFrfUtu3YMtDMUV9EnxBYr9mFVDub8Pp5Ms0z92mw221wKGNMiNKAnJEZ7Xzzx4Iw
+         DVfg==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:message-id:date:mime-version:user-agent:subject
+         :content-language:to:references:from:in-reply-to
+         :content-transfer-encoding;
+        bh=mD8BsuCJasSkpkxaaqDLPDCI5MsBcn4xIxsCb70RTuM=;
+        b=mG0tCRYPft+RbN2ye25dXBUrW/PneUu7XJkOvzYbVSsl4P7OeglNF6KCggpkryBaE2
+         c654YIPzvBmkOazKCVgt6qRejYkFEzocCnnJ/hhoq3PfHhxF5s6o1hPcnRDRwinlbKxb
+         Nl/mu6s4R3mEHxsK3x+pZj778YfQvnon4PPeYjXoieRo400jFNkRU3Qc/Yx+igNireF4
+         NbyeeXCsD4QLkJ0YySudx5G68sGl74njs6u4geVaZ0hbBBNGHpVUd/HAQlYlGyuxV6Ai
+         GvcaDgIURzH2Ie0hP/EqcE43uUGWAJqt+jliOKCLv+AYKZH5E7cVYaJMpKer0eyR5yOk
+         KdkA==
+X-Gm-Message-State: AOAM532zxcStShLSnfFd9lwSlpnCUuDBBP2hLrdHrDAiGXQmDMSTBLTu
+        fIUONRHNnwL7yumSGG+ChHDv+w==
+X-Google-Smtp-Source: ABdhPJxND0YwiWRTGwsVdqIY/nCGxAEVWGCOpdIMKYmIqtlS3y76dsdyR7NPE2OSE9SxxGl7vb49Dg==
+X-Received: by 2002:a05:600c:34c2:: with SMTP id d2mr12160612wmq.120.1643298360247;
+        Thu, 27 Jan 2022 07:46:00 -0800 (PST)
+Received: from ?IPV6:2003:d9:9707:d500:f72a:8d22:e3d4:f73? (p200300d99707d500f72a8d22e3d40f73.dip0.t-ipconnect.de. [2003:d9:9707:d500:f72a:8d22:e3d4:f73])
+        by smtp.googlemail.com with ESMTPSA id m6sm2780185wrw.54.2022.01.27.07.45.59
+        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
+        Thu, 27 Jan 2022 07:45:59 -0800 (PST)
+Message-ID: <5ae2873f-527f-9769-a606-4ff6786c0fcc@colorfullife.com>
+Date:   Thu, 27 Jan 2022 16:45:58 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
+Subject: Re: +
+ mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch added to
+ -mm tree
+Content-Language: en-US
+To:     akpm@linux-foundation.org, 1vier1@web.de, arnd@arndb.de,
+        cgel.zte@gmail.com, chi.minghao@zte.com.cn, dbueso@suse.de,
+        mhocko@kernel.org, mm-commits@vger.kernel.org,
+        rdunlap@infradead.org, shakeelb@google.com, stable@vger.kernel.org,
+        unixbhaskar@gmail.com, urezki@gmail.com, vvs@virtuozzo.com,
+        zealci@zte.com.cn
+References: <20220127025542.F0GTnQlNA%akpm@linux-foundation.org>
+From:   Manfred Spraul <manfred@colorfullife.com>
+In-Reply-To: <20220127025542.F0GTnQlNA%akpm@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Wed, 26 Jan 2022, Randy Dunlap <rdunlap@infradead.org> wrote:
-> On 1/26/22 21:04, akpm@linux-foundation.org wrote:
->> The mm-of-the-moment snapshot 2022-01-26-21-04 has been uploaded to
->>=20
->>    https://www.ozlabs.org/~akpm/mmotm/
->>=20
->> mmotm-readme.txt says
->>=20
->> README for mm-of-the-moment:
->>=20
->> https://www.ozlabs.org/~akpm/mmotm/
->>=20
->> This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
->> more than once a week.
->>=20
->> You will need quilt to apply these patches to the latest Linus release (=
-5.x
->> or 5.x-rcY).  The series file is in broken-out.tar.gz and is duplicated =
-in
->> https://ozlabs.org/~akpm/mmotm/series
->>=20
->> The file broken-out.tar.gz contains two datestamp files: .DATE and
->> .DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
->> followed by the base kernel version against which this patch series is to
->> be applied.
+Hi Andrew,
+
+On 1/27/22 03:55, akpm@linux-foundation.org wrote:
+> The patch titled
+>       Subject: mm/util.c: make kvfree() safe for calling while holding spinlocks
+> has been added to the -mm tree.  Its filename is
+>       mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch
 >
-> on x86_64:
-> (from linux-next.patch)
->
->
->   HDRTEST drivers/gpu/drm/i915/i915_gem_evict.h
-> In file included from <command-line>:0:0:
-> ./../drivers/gpu/drm/i915/i915_gem_evict.h:15:15: error: =E2=80=98struct =
-i915_gem_ww_ctx=E2=80=99 declared inside parameter list will not be visible=
- outside of this definition or declaration [-Werror]
->         struct i915_gem_ww_ctx *ww,
->                ^~~~~~~~~~~~~~~
-> ./../drivers/gpu/drm/i915/i915_gem_evict.h:21:14: error: =E2=80=98struct =
-i915_gem_ww_ctx=E2=80=99 declared inside parameter list will not be visible=
- outside of this definition or declaration [-Werror]
->        struct i915_gem_ww_ctx *ww,
->               ^~~~~~~~~~~~~~~
-> ./../drivers/gpu/drm/i915/i915_gem_evict.h:25:16: error: =E2=80=98struct =
-i915_gem_ww_ctx=E2=80=99 declared inside parameter list will not be visible=
- outside of this definition or declaration [-Werror]
->          struct i915_gem_ww_ctx *ww);
->                 ^~~~~~~~~~~~~~~
-> cc1: all warnings being treated as errors
+> This patch should soon appear at
+>      https://ozlabs.org/~akpm/mmots/broken-out/mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch
+> and later at
+>      https://ozlabs.org/~akpm/mmotm/broken-out/mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch
 
-Thanks for the report.
+Please drop and replace with
 
-This is only visible with CONFIG_DRM_I915_WERROR=3Dy which depends on
-COMPILE_TEST=3Dn. We use the "HDRTEST" and -Werror for development and CI
-to keep the driver clean, but it's not really intended for general
-consumption. Usually when something like this even hits the tree it's
-because of a merge mishap somewhere down the line.
+https://marc.info/?l=linux-kernel&m=164132744522325&w=2
 
-BR,
-Jani.
+If I should rediff/resend, just ping me.
 
+--
 
---=20
-Jani Nikula, Intel Open Source Graphics Center
+     Manfred
+
