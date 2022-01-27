@@ -2,30 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 59619C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 22:43:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E7F59C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 22:43:10 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S244421AbiA0WnG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Jan 2022 17:43:06 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:50870 "EHLO
+        id S242219AbiA0WnK (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Jan 2022 17:43:10 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:50928 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238592AbiA0WnC (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jan 2022 17:43:02 -0500
+        with ESMTP id S242272AbiA0WnJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jan 2022 17:43:09 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 49F0261BFE
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 22:43:02 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20847C340E6;
-        Thu, 27 Jan 2022 22:43:01 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 5969461BFE
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 22:43:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 354B0C340E4;
+        Thu, 27 Jan 2022 22:43:08 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643323381;
-        bh=YDEVKdHL6PiJm2Zskrc6WM5RpygqygiDMLV4tEuxy0E=;
+        s=korg; t=1643323388;
+        bh=Fm7+VBQKanJ9O1HZGJpkXfQ+kScZJfVa+XCwqVZyhP8=;
         h=Date:From:To:Subject:From;
-        b=azF3m85JhGK/71kdmF0mrx80vSQErutvAnNdOQ7JF14LJrom2eIoSiRFxte9KmnvS
-         Gq8YSmjVVi+urk67WachV0t6QgdtLf0sMDsX2ey3FVqqgcx+q36ri+ilo4g5vwo0vE
-         nUNqoxwMsEbelDegroPylyOdndhe/lOQAIyz0WyY=
-Date:   Thu, 27 Jan 2022 14:43:00 -0800
+        b=XF5v8k3N/Sq6jUSnfwB5icphNh1tT2D6HgQemeUjwTSR3qCXSOQG2UrS4lllMMmR0
+         P6ng5mDBwPWwsU0dSSvv9v5Lds8IMzVkNiVhN6ONfrzDURnB+ZcwZnKuHb+PlwJxjc
+         k2k3gBZsofkHmFX/5RStQItCPxNn/W+ePSkSDLZI=
+Date:   Thu, 27 Jan 2022 14:43:07 -0800
 From:   akpm@linux-foundation.org
 To:     Anna.Schumaker@Netapp.com, axboe@kernel.dk, chao@kernel.org,
         david@fromorbit.com, djwong@kernel.org, hch@lst.de,
@@ -34,8 +34,9 @@ To:     Anna.Schumaker@Netapp.com, axboe@kernel.dk, chao@kernel.org,
         miklos@szeredi.hu, mm-commits@vger.kernel.org, neilb@suse.de,
         paolo.valente@linaro.org, philipp.reisner@linbit.com,
         trond.myklebust@hammerspace.com
-Subject:  + nfs-remove-congestion-control.patch added to -mm tree
-Message-ID: <20220127224300.zCn75E1Rs%akpm@linux-foundation.org>
+Subject:  + remove-congestion-tracking-framework.patch added to -mm
+ tree
+Message-ID: <20220127224307.sez01tyt4%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: NFS: remove congestion control
+     Subject: mm: remove congestion tracking framework
 has been added to the -mm tree.  Its filename is
-     nfs-remove-congestion-control.patch
+     remove-congestion-tracking-framework.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/nfs-remove-congestion-control.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/remove-congestion-tracking-framework.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/nfs-remove-congestion-control.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/remove-congestion-tracking-framework.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,175 +67,164 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: NeilBrown <neilb@suse.de>
-Subject: NFS: remove congestion control
+Subject: mm: remove congestion tracking framework
 
-Linux no longer uses the bdi congestion tracking framework.  So remove
-code from bdi which tries to support it.
+This framework is no longer used - so discard it.
 
-Also remove the "nfs_congestion_kb" sysctl.  This is a user-visible
-change, but unlikely to be a problematic one.
-
-Link: https://lkml.kernel.org/r/164325158959.29787.14903007819591774556.stgit@noble.brown
+Link: https://lkml.kernel.org/r/164325158960.29787.17588717894058708630.stgit@noble.brown
 Signed-off-by: NeilBrown <neilb@suse.de>
-Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
-Cc: Chao Yu <chao@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Darrick J. Wong <djwong@kernel.org>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ilya Dryomov <idryomov@gmail.com>
 Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Chao Yu <chao@kernel.org>
 Cc: Jeff Layton <jlayton@kernel.org>
-Cc: Jens Axboe <axboe@kernel.dk>
-Cc: Lars Ellenberg <lars.ellenberg@linbit.com>
+Cc: Ilya Dryomov <idryomov@gmail.com>
 Cc: Miklos Szeredi <miklos@szeredi.hu>
-Cc: Paolo Valente <paolo.valente@linaro.org>
-Cc: Philipp Reisner <philipp.reisner@linbit.com>
-Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
 Cc: Trond Myklebust <trond.myklebust@hammerspace.com>
+Cc: Anna Schumaker <Anna.Schumaker@Netapp.com>
+Cc: Ryusuke Konishi <konishi.ryusuke@gmail.com>
+Cc: Darrick J. Wong <djwong@kernel.org>
+Cc: Philipp Reisner <philipp.reisner@linbit.com>
+Cc: Lars Ellenberg <lars.ellenberg@linbit.com>
+Cc: Paolo Valente <paolo.valente@linaro.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nfs/sysctl.c           |    7 ----
- fs/nfs/write.c            |   53 ------------------------------------
- include/linux/nfs_fs.h    |    1 
- include/linux/nfs_fs_sb.h |    1 
- 4 files changed, 1 insertion(+), 61 deletions(-)
+ include/linux/backing-dev-defs.h |    8 ----
+ include/linux/backing-dev.h      |    2 -
+ include/trace/events/writeback.h |   28 --------------
+ mm/backing-dev.c                 |   57 -----------------------------
+ 4 files changed, 95 deletions(-)
 
---- a/fs/nfs/sysctl.c~nfs-remove-congestion-control
-+++ a/fs/nfs/sysctl.c
-@@ -22,13 +22,6 @@ static struct ctl_table nfs_cb_sysctls[]
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec_jiffies,
- 	},
--	{
--		.procname	= "nfs_congestion_kb",
--		.data		= &nfs_congestion_kb,
--		.maxlen		= sizeof(nfs_congestion_kb),
--		.mode		= 0644,
--		.proc_handler	= proc_dointvec,
--	},
- 	{ }
+--- a/include/linux/backing-dev-defs.h~remove-congestion-tracking-framework
++++ a/include/linux/backing-dev-defs.h
+@@ -207,14 +207,6 @@ struct backing_dev_info {
+ #endif
  };
  
---- a/fs/nfs/write.c~nfs-remove-congestion-control
-+++ a/fs/nfs/write.c
-@@ -397,33 +397,8 @@ static int wb_priority(struct writeback_
- 	return ret;
- }
+-enum {
+-	BLK_RW_ASYNC	= 0,
+-	BLK_RW_SYNC	= 1,
+-};
+-
+-void clear_bdi_congested(struct backing_dev_info *bdi, int sync);
+-void set_bdi_congested(struct backing_dev_info *bdi, int sync);
+-
+ struct wb_lock_cookie {
+ 	bool locked;
+ 	unsigned long flags;
+--- a/include/linux/backing-dev.h~remove-congestion-tracking-framework
++++ a/include/linux/backing-dev.h
+@@ -135,8 +135,6 @@ static inline bool writeback_in_progress
  
--/*
-- * NFS congestion control
-- */
+ struct backing_dev_info *inode_to_bdi(struct inode *inode);
+ 
+-long congestion_wait(int sync, long timeout);
 -
--int nfs_congestion_kb;
--
--#define NFS_CONGESTION_ON_THRESH 	(nfs_congestion_kb >> (PAGE_SHIFT-10))
--#define NFS_CONGESTION_OFF_THRESH	\
--	(NFS_CONGESTION_ON_THRESH - (NFS_CONGESTION_ON_THRESH >> 2))
--
--static void nfs_set_page_writeback(struct page *page)
--{
--	struct inode *inode = page_file_mapping(page)->host;
--	struct nfs_server *nfss = NFS_SERVER(inode);
--	int ret = test_set_page_writeback(page);
--
--	WARN_ON_ONCE(ret != 0);
--
--	if (atomic_long_inc_return(&nfss->writeback) >
--			NFS_CONGESTION_ON_THRESH)
--		set_bdi_congested(inode_to_bdi(inode), BLK_RW_ASYNC);
--}
--
- static void nfs_end_page_writeback(struct nfs_page *req)
+ static inline bool mapping_can_writeback(struct address_space *mapping)
  {
--	struct inode *inode = page_file_mapping(req->wb_page)->host;
--	struct nfs_server *nfss = NFS_SERVER(inode);
- 	bool is_done;
+ 	return inode_to_bdi(mapping->host)->capabilities & BDI_CAP_WRITEBACK;
+--- a/include/trace/events/writeback.h~remove-congestion-tracking-framework
++++ a/include/trace/events/writeback.h
+@@ -735,34 +735,6 @@ TRACE_EVENT(writeback_sb_inodes_requeue,
+ 	)
+ );
  
- 	is_done = nfs_page_group_sync_on_bit(req, PG_WB_END);
-@@ -432,8 +407,6 @@ static void nfs_end_page_writeback(struc
- 		return;
- 
- 	end_page_writeback(req->wb_page);
--	if (atomic_long_dec_return(&nfss->writeback) < NFS_CONGESTION_OFF_THRESH)
--		clear_bdi_congested(inode_to_bdi(inode), BLK_RW_ASYNC);
- }
- 
- /*
-@@ -617,7 +590,7 @@ static int nfs_page_async_flush(struct n
- 	if (IS_ERR(req))
- 		goto out;
- 
--	nfs_set_page_writeback(page);
-+	set_page_writeback(page);
- 	WARN_ON_ONCE(test_bit(PG_CLEAN, &req->wb_flags));
- 
- 	/* If there is a fatal error that covers this write, just exit */
-@@ -1850,7 +1823,6 @@ static void nfs_commit_release_pages(str
- 	struct nfs_page	*req;
- 	int status = data->task.tk_status;
- 	struct nfs_commit_info cinfo;
--	struct nfs_server *nfss;
- 
- 	while (!list_empty(&data->pages)) {
- 		req = nfs_list_entry(data->pages.next);
-@@ -1891,9 +1863,6 @@ static void nfs_commit_release_pages(str
- 		/* Latency breaker */
- 		cond_resched();
- 	}
--	nfss = NFS_SERVER(data->inode);
--	if (atomic_long_read(&nfss->writeback) < NFS_CONGESTION_OFF_THRESH)
--		clear_bdi_congested(inode_to_bdi(data->inode), BLK_RW_ASYNC);
- 
- 	nfs_init_cinfo(&cinfo, data->inode, data->dreq);
- 	nfs_commit_end(cinfo.mds);
-@@ -2162,26 +2131,6 @@ int __init nfs_init_writepagecache(void)
- 	if (nfs_commit_mempool == NULL)
- 		goto out_destroy_commit_cache;
- 
--	/*
--	 * NFS congestion size, scale with available memory.
--	 *
--	 *  64MB:    8192k
--	 * 128MB:   11585k
--	 * 256MB:   16384k
--	 * 512MB:   23170k
--	 *   1GB:   32768k
--	 *   2GB:   46340k
--	 *   4GB:   65536k
--	 *   8GB:   92681k
--	 *  16GB:  131072k
--	 *
--	 * This allows larger machines to have larger/more transfers.
--	 * Limit the default to 256M
--	 */
--	nfs_congestion_kb = (16*int_sqrt(totalram_pages())) << (PAGE_SHIFT-10);
--	if (nfs_congestion_kb > 256*1024)
--		nfs_congestion_kb = 256*1024;
+-DECLARE_EVENT_CLASS(writeback_congest_waited_template,
 -
- 	return 0;
+-	TP_PROTO(unsigned int usec_timeout, unsigned int usec_delayed),
+-
+-	TP_ARGS(usec_timeout, usec_delayed),
+-
+-	TP_STRUCT__entry(
+-		__field(	unsigned int,	usec_timeout	)
+-		__field(	unsigned int,	usec_delayed	)
+-	),
+-
+-	TP_fast_assign(
+-		__entry->usec_timeout	= usec_timeout;
+-		__entry->usec_delayed	= usec_delayed;
+-	),
+-
+-	TP_printk("usec_timeout=%u usec_delayed=%u",
+-			__entry->usec_timeout,
+-			__entry->usec_delayed)
+-);
+-
+-DEFINE_EVENT(writeback_congest_waited_template, writeback_congestion_wait,
+-
+-	TP_PROTO(unsigned int usec_timeout, unsigned int usec_delayed),
+-
+-	TP_ARGS(usec_timeout, usec_delayed)
+-);
+-
+ DECLARE_EVENT_CLASS(writeback_single_inode_template,
  
- out_destroy_commit_cache:
---- a/include/linux/nfs_fs.h~nfs-remove-congestion-control
-+++ a/include/linux/nfs_fs.h
-@@ -569,7 +569,6 @@ extern void nfs_complete_unlink(struct d
- /*
-  * linux/fs/nfs/write.c
-  */
--extern int  nfs_congestion_kb;
- extern int  nfs_writepage(struct page *page, struct writeback_control *wbc);
- extern int  nfs_writepages(struct address_space *, struct writeback_control *);
- extern int  nfs_flush_incompatible(struct file *file, struct page *page);
---- a/include/linux/nfs_fs_sb.h~nfs-remove-congestion-control
-+++ a/include/linux/nfs_fs_sb.h
-@@ -137,7 +137,6 @@ struct nfs_server {
- 	struct rpc_clnt *	client_acl;	/* ACL RPC client handle */
- 	struct nlm_host		*nlm_host;	/* NLM client handle */
- 	struct nfs_iostats __percpu *io_stats;	/* I/O statistics */
--	atomic_long_t		writeback;	/* number of writeback pages */
- 	unsigned int		flags;		/* various flags */
- 
- /* The following are for internal use only. Also see uapi/linux/nfs_mount.h */
+ 	TP_PROTO(struct inode *inode,
+--- a/mm/backing-dev.c~remove-congestion-tracking-framework
++++ a/mm/backing-dev.c
+@@ -1005,60 +1005,3 @@ const char *bdi_dev_name(struct backing_
+ 	return bdi->dev_name;
+ }
+ EXPORT_SYMBOL_GPL(bdi_dev_name);
+-
+-static wait_queue_head_t congestion_wqh[2] = {
+-		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[0]),
+-		__WAIT_QUEUE_HEAD_INITIALIZER(congestion_wqh[1])
+-	};
+-static atomic_t nr_wb_congested[2];
+-
+-void clear_bdi_congested(struct backing_dev_info *bdi, int sync)
+-{
+-	wait_queue_head_t *wqh = &congestion_wqh[sync];
+-	enum wb_congested_state bit;
+-
+-	bit = sync ? WB_sync_congested : WB_async_congested;
+-	if (test_and_clear_bit(bit, &bdi->wb.congested))
+-		atomic_dec(&nr_wb_congested[sync]);
+-	smp_mb__after_atomic();
+-	if (waitqueue_active(wqh))
+-		wake_up(wqh);
+-}
+-EXPORT_SYMBOL(clear_bdi_congested);
+-
+-void set_bdi_congested(struct backing_dev_info *bdi, int sync)
+-{
+-	enum wb_congested_state bit;
+-
+-	bit = sync ? WB_sync_congested : WB_async_congested;
+-	if (!test_and_set_bit(bit, &bdi->wb.congested))
+-		atomic_inc(&nr_wb_congested[sync]);
+-}
+-EXPORT_SYMBOL(set_bdi_congested);
+-
+-/**
+- * congestion_wait - wait for a backing_dev to become uncongested
+- * @sync: SYNC or ASYNC IO
+- * @timeout: timeout in jiffies
+- *
+- * Waits for up to @timeout jiffies for a backing_dev (any backing_dev) to exit
+- * write congestion.  If no backing_devs are congested then just wait for the
+- * next write to be completed.
+- */
+-long congestion_wait(int sync, long timeout)
+-{
+-	long ret;
+-	unsigned long start = jiffies;
+-	DEFINE_WAIT(wait);
+-	wait_queue_head_t *wqh = &congestion_wqh[sync];
+-
+-	prepare_to_wait(wqh, &wait, TASK_UNINTERRUPTIBLE);
+-	ret = io_schedule_timeout(timeout);
+-	finish_wait(wqh, &wait);
+-
+-	trace_writeback_congestion_wait(jiffies_to_usecs(timeout),
+-					jiffies_to_usecs(jiffies - start));
+-
+-	return ret;
+-}
+-EXPORT_SYMBOL(congestion_wait);
 _
 
 Patches currently in -mm which might be from neilb@suse.de are
