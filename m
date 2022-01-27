@@ -2,44 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8E720C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 02:55:45 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DB020C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 03:03:16 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235244AbiA0Czo (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jan 2022 21:55:44 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33996 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229484AbiA0Czo (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 21:55:44 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7BC2AC06161C;
-        Wed, 26 Jan 2022 18:55:44 -0800 (PST)
+        id S229882AbiA0DDQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jan 2022 22:03:16 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:36626 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229668AbiA0DDP (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 22:03:15 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 151AB615CA;
-        Thu, 27 Jan 2022 02:55:44 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id E1BF9C340E7;
-        Thu, 27 Jan 2022 02:55:42 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 6CF43615B6
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 03:03:15 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 8FB5BC340E7;
+        Thu, 27 Jan 2022 03:03:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643252143;
-        bh=7VT4F78pieYXk3mgorT2C63j+TveepT8ZgpGu3rr5XM=;
+        s=korg; t=1643252594;
+        bh=FhY54fem1ylsgWiDRWUl+ABvKGOaHt2KwC4BkF6IF+Q=;
         h=Date:From:To:Subject:From;
-        b=izKtxtJCezIbYbXdDPwF58Dqkbb8mweNSNpOPTh+ggFzSx4bUk8Wx50DMyvEuK2yw
-         lv8oRvgGgBL6lwYxDIXuMGsYysaf049BNA0PISm0IqZIT9OpBf12lBW6VH7lLyG33y
-         BdL7ZVP0jMxaBOzgm/OvL8KLWym8QGsDy5VhQc0A=
-Date:   Wed, 26 Jan 2022 18:55:42 -0800
+        b=rUbgK1EWVUB0ykL6zqPWcz2VzUg31QDN0cIJjwF/bS+ymibYMiYOLKKBUxCuDAiZ/
+         rimlgI0WPfDL73kqSxny+qDHOWR2hLQtVDFF5JOnnA0lke3BEsGe01MgAy8fQv5+fA
+         tyWdgypXqmJXI8w6fd1XuT6EwURUC8HTGodxlwJc=
+Date:   Wed, 26 Jan 2022 19:03:13 -0800
 From:   akpm@linux-foundation.org
-To:     1vier1@web.de, arnd@arndb.de, cgel.zte@gmail.com,
-        chi.minghao@zte.com.cn, dbueso@suse.de, manfred@colorfullife.com,
-        mhocko@kernel.org, mm-commits@vger.kernel.org,
-        rdunlap@infradead.org, shakeelb@google.com, stable@vger.kernel.org,
-        unixbhaskar@gmail.com, urezki@gmail.com, vvs@virtuozzo.com,
-        zealci@zte.com.cn
-Subject:  +
- mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch added
- to -mm tree
-Message-ID: <20220127025542.F0GTnQlNA%akpm@linux-foundation.org>
+To:     adobriyan@gmail.com, akirakawata1@gmail.com, ebiederm@xmission.com,
+        keescook@chromium.org, lkp@intel.com, lukas.bulwahn@gmail.com,
+        mm-commits@vger.kernel.org, viro@zeniv.linux.org.uk
+Subject:  + fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
+ added to -mm tree
+Message-ID: <20220127030313.7I8gM_XQ5%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -48,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/util.c: make kvfree() safe for calling while holding spinlocks
+     Subject: fs/binfmt_elf: fix AT_PHDR for unusual ELF files
 has been added to the -mm tree.  Its filename is
-     mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch
+     fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,66 +62,129 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: mm/util.c: make kvfree() safe for calling while holding spinlocks
+From: Akira Kawata <akirakawata1@gmail.com>
+Subject: fs/binfmt_elf: fix AT_PHDR for unusual ELF files
 
-One codepath in find_alloc_undo() calls kvfree() while holding a spinlock.
-Since vfree() can sleep this is a bug.
+Patch series "fs/binfmt_elf: Fix AT_PHDR for unusual ELF files", v4.
 
-Previously, the code path used kfree(), and kfree() is safe to be called
-while holding a spinlock.
+These patches fix a bug in AT_PHDR calculation.
 
-Minghao proposed to fix this by updating find_alloc_undo().
+We cannot calculate AT_PHDR as the sum of load_addr and exec->e_phoff. 
+This is because exec->e_phoff is the offset of PHDRs in the file and the
+address of PHDRs in the memory may differ from it.  These patches fix the
+bug by calculating the address of program headers from PT_LOADs directly.
 
-Alternate proposal to fix this: Instead of changing find_alloc_undo(),
-change kvfree() so that the same rules as for kfree() apply: Having
-different rules for kfree() and kvfree() just asks for bugs.
 
-Disadvantage: Releasing vmalloc'ed memory will be delayed a bit.
+This patch (of 2):
 
-Link: https://lkml.kernel.org/r/20211222194828.15320-1-manfred@colorfullife.com
-Link: https://lore.kernel.org/all/20211222081026.484058-1-chi.minghao@zte.com.cn/
-Fixes: fc37a3b8b438 ("[PATCH] ipc sem: use kvmalloc for sem_undo allocation")
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Reported-by: Zeal Robot <zealci@zte.com.cn>
-Reported-by: Minghao Chi <chi.minghao@zte.com.cn>
-Cc: Vasily Averin <vvs@virtuozzo.com>
-Cc: CGEL ZTE <cgel.zte@gmail.com>
-Cc: Shakeel Butt <shakeelb@google.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Davidlohr Bueso <dbueso@suse.de>
-Cc: Bhaskar Chowdhury <unixbhaskar@gmail.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Uladzislau Rezki <urezki@gmail.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: <1vier1@web.de>
-Cc: <stable@vger.kernel.org>
+As pointed out in the bugzilla discussion, we cannot calculate AT_PHDR as
+the sum of load_addr and exec->e_phoff.
+
+: The AT_PHDR of ELF auxiliary vectors should point to the memory address
+: of program header. But binfmt_elf.c calculates this address as follows:
+:
+: NEW_AUX_ENT(AT_PHDR, load_addr + exec->e_phoff);
+:
+: which is wrong since e_phoff is the file offset of program header and
+: load_addr is the memory base address from PT_LOAD entry.
+:
+: The ld.so uses AT_PHDR as the memory address of program header. In normal
+: case, since the e_phoff is usually 64 and in the first PT_LOAD region, it
+: is the correct program header address.
+:
+: But if the address of program header isn't equal to the first PT_LOAD
+: address + e_phoff (e.g.  Put the program header in other non-consecutive
+: PT_LOAD region), ld.so will try to read program header from wrong address
+: then crash or use incorrect program header.
+
+This is because exec->e_phoff is the offset of PHDRs in the file and the
+address of PHDRs in the memory may differ from it.  This patch fixes the
+bug by calculating the address of program headers from PT_LOADs directly.
+
+Link: https://lkml.kernel.org/r/20211212232414.1402199-1-akirakawata1@gmail.com
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=197921
+Link: https://lkml.kernel.org/r/20211212232414.1402199-2-akirakawata1@gmail.com
+Signed-off-by: Akira Kawata <akirakawata1@gmail.com>
+Reported-by: kernel test robot <lkp@intel.com>
+Cc: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/util.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/binfmt_elf.c |   20 ++++++++++++++------
+ 1 file changed, 14 insertions(+), 6 deletions(-)
 
---- a/mm/util.c~mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks
-+++ a/mm/util.c
-@@ -603,12 +603,12 @@ EXPORT_SYMBOL(kvmalloc_node);
-  * It is slightly more efficient to use kfree() or vfree() if you are certain
-  * that you know which one to use.
-  *
-- * Context: Either preemptible task context or not-NMI interrupt.
-+ * Context: Any context except NMI interrupt.
-  */
- void kvfree(const void *addr)
+--- a/fs/binfmt_elf.c~fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files
++++ a/fs/binfmt_elf.c
+@@ -170,8 +170,8 @@ static int padzero(unsigned long elf_bss
+ 
+ static int
+ create_elf_tables(struct linux_binprm *bprm, const struct elfhdr *exec,
+-		unsigned long load_addr, unsigned long interp_load_addr,
+-		unsigned long e_entry)
++		unsigned long interp_load_addr,
++		unsigned long e_entry, unsigned long phdr_addr)
  {
- 	if (is_vmalloc_addr(addr))
--		vfree(addr);
-+		vfree_atomic(addr);
- 	else
- 		kfree(addr);
- }
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long p = bprm->p;
+@@ -257,7 +257,7 @@ create_elf_tables(struct linux_binprm *b
+ 	NEW_AUX_ENT(AT_HWCAP, ELF_HWCAP);
+ 	NEW_AUX_ENT(AT_PAGESZ, ELF_EXEC_PAGESIZE);
+ 	NEW_AUX_ENT(AT_CLKTCK, CLOCKS_PER_SEC);
+-	NEW_AUX_ENT(AT_PHDR, load_addr + exec->e_phoff);
++	NEW_AUX_ENT(AT_PHDR, phdr_addr);
+ 	NEW_AUX_ENT(AT_PHENT, sizeof(struct elf_phdr));
+ 	NEW_AUX_ENT(AT_PHNUM, exec->e_phnum);
+ 	NEW_AUX_ENT(AT_BASE, interp_load_addr);
+@@ -823,7 +823,7 @@ static int parse_elf_properties(struct f
+ static int load_elf_binary(struct linux_binprm *bprm)
+ {
+ 	struct file *interpreter = NULL; /* to shut gcc up */
+- 	unsigned long load_addr = 0, load_bias = 0;
++	unsigned long load_addr, load_bias = 0, phdr_addr = 0;
+ 	int load_addr_set = 0;
+ 	unsigned long error;
+ 	struct elf_phdr *elf_ppnt, *elf_phdata, *interp_elf_phdata = NULL;
+@@ -1169,6 +1169,13 @@ out_free_interp:
+ 				reloc_func_desc = load_bias;
+ 			}
+ 		}
++
++		if (elf_ppnt->p_offset <= elf_ex->e_phoff &&
++		    elf_ex->e_phoff < elf_ppnt->p_offset + elf_ppnt->p_filesz) {
++			phdr_addr = elf_ex->e_phoff - elf_ppnt->p_offset +
++				    elf_ppnt->p_vaddr;
++		}
++
+ 		k = elf_ppnt->p_vaddr;
+ 		if ((elf_ppnt->p_flags & PF_X) && k < start_code)
+ 			start_code = k;
+@@ -1204,6 +1211,7 @@ out_free_interp:
+ 	}
+ 
+ 	e_entry = elf_ex->e_entry + load_bias;
++	phdr_addr += load_bias;
+ 	elf_bss += load_bias;
+ 	elf_brk += load_bias;
+ 	start_code += load_bias;
+@@ -1267,8 +1275,8 @@ out_free_interp:
+ 		goto out;
+ #endif /* ARCH_HAS_SETUP_ADDITIONAL_PAGES */
+ 
+-	retval = create_elf_tables(bprm, elf_ex,
+-			  load_addr, interp_load_addr, e_entry);
++	retval = create_elf_tables(bprm, elf_ex, interp_load_addr,
++				   e_entry, phdr_addr);
+ 	if (retval < 0)
+ 		goto out;
+ 
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from akirakawata1@gmail.com are
 
-mm-utilc-make-kvfree-safe-for-calling-while-holding-spinlocks.patch
+fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
+fs-binfmt_elf-refactor-load_elf_binary-function.patch
 
