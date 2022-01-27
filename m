@@ -2,37 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 60D5CC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 02:27:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 39384C433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 02:29:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229927AbiA0C1R (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jan 2022 21:27:17 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:47386 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229518AbiA0C1P (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 21:27:15 -0500
+        id S235108AbiA0C3V (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jan 2022 21:29:21 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:40106 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229518AbiA0C3V (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 21:29:21 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 836B460C3E
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 02:27:15 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4131C340E7;
-        Thu, 27 Jan 2022 02:27:14 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 49BB1B820F5
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 02:29:20 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id B9D0CC340E7;
+        Thu, 27 Jan 2022 02:29:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643250435;
-        bh=zeeD4yYjyak20fL0FccC1XVpCx6BT4zFn+kUbvfH0Uc=;
+        s=korg; t=1643250559;
+        bh=lWtHLZZ/bPwbfRFrXFv48hsKkRMGBhDOPcs/lN5oPi4=;
         h=Date:From:To:Subject:From;
-        b=OJI1PvFRTRegHRGl3/Sd1HgEqMyNeb9Aw/k86ICMXGxpIPJgJTSjwUIGBnoAZfVSX
-         PTHYazsTijVlEy0YjDSRbpIp7n/34QXUf/Qlv5+vY42JNoIn2cpiZZHq203bTBz1cv
-         auqoVoRLjqIdLaAX2ZwfMRHrrvwDW1gwP6APvDzY=
-Date:   Wed, 26 Jan 2022 18:27:14 -0800
+        b=B+R2ve8id4IqIKkb6JfXGjuiKos9XrGlAhWoxibuvVMv1+QjUwwMSUk03p4vUnaud
+         74FjPQfjiGCyNcwJWIxBDZ4zHxiGWAeBwkrjMJhM+0pvi3Gt0oVBsfjhWEsBt1lEsb
+         /buDjuJcFx7VFP3BKrTCnbUPF5EavIHUPqnSTJpw=
+Date:   Wed, 26 Jan 2022 18:29:18 -0800
 From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        tony.luck@intel.com, youquan.song@intel.com
-Subject:  +
- mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch added
- to -mm tree
-Message-ID: <20220127022714.M2sOzPDh9%akpm@linux-foundation.org>
+To:     dave.hansen@linux.intel.com, hughd@google.com,
+        mm-commits@vger.kernel.org, ran.xiaokai@zte.com.cn,
+        saravanand@fb.com, yang.shi@linux.alibaba.com,
+        yang.yang29@zte.com.cn
+Subject:  + mm-vmstat-add-event-for-ksm-swapping-in-copy.patch
+ added to -mm tree
+Message-ID: <20220127022918.Ldvl5-7ii%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -41,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: fix error page recovered but reported "not recovered"
+     Subject: mm/vmstat: add event for ksm swapping in copy
 has been added to the -mm tree.  Its filename is
-     mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
+     mm-vmstat-add-event-for-ksm-swapping-in-copy.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-add-event-for-ksm-swapping-in-copy.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-add-event-for-ksm-swapping-in-copy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,64 +63,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Subject: mm/hwpoison: fix error page recovered but reported "not recovered"
+From: Yang Yang <yang.yang29@zte.com.cn>
+Subject: mm/vmstat: add event for ksm swapping in copy
 
-When an uncorrected memory error is consumed there is a race between the
-CMCI from the memory controller reporting an uncorrected error with a UCNA
-signature, and the core reporting and SRAR signature machine check when
-the data is about to be consumed.
+When faults in from swap what used to be a KSM page and that page had been
+swapped in before, system has to make a copy, and leaves remerging the
+pages to a later pass of ksmd.
 
-If the CMCI wins that race, the page is marked poisoned when
-uc_decode_notifier() calls memory_failure() and the machine check
-processing code finds the page already poisoned.  It calls
-kill_accessing_process() to make sure a SIGBUS is sent.  But returns the
-wrong error code.
+That is not good for performace, we'd better to reduce this kind of copy. 
+There are some ways to reduce it, for example lessen swappiness or
+madvise(, , MADV_MERGEABLE) range.  So add this event to support doing
+this tuning.  Just like this patch: "mm, THP, swap: add THP swapping out
+fallback counting".
 
-Console log looks like this:
-
-[34775.674296] mce: Uncorrected hardware memory error in user-access at 3710b3400
-[34775.675413] Memory failure: 0x3710b3: recovery action for dirty LRU page: Recovered
-[34775.690310] Memory failure: 0x3710b3: already hardware poisoned
-[34775.696247] Memory failure: 0x3710b3: Sending SIGBUS to einj_mem_uc:361438 due to hardware memory corruption
-[34775.706072] mce: Memory error not recovered
-
-kill_accessing_process() is supposed to return -EHWPOISON to notify that
-SIGBUS is already set to the process and kill_me_maybe() doesn't have to
-send it again.  But current code simply fails to do this, so fix it to
-make sure to work as intended.  This change avoids the noise message
-"Memory error not recovered" and skips duplicate SIGBUSs.
-
-[tony.luck@intel.com: reword some parts of commit message]
-Link: https://lkml.kernel.org/r/20220113231117.1021405-1-naoya.horiguchi@linux.dev
-Fixes: a3f5d80ea401 ("mm,hwpoison: send SIGBUS with error virutal address")
-Signed-off-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reported-by: Youquan Song <youquan.song@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
+Link: https://lkml.kernel.org/r/20220113023839.758845-1-yang.yang29@zte.com.cn
+Signed-off-by: Yang Yang <yang.yang29@zte.com.cn>
+Reviewed-by: Ran Xiaokai <ran.xiaokai@zte.com.cn>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Yang Shi <yang.shi@linux.alibaba.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Saravanan D <saravanand@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/vm_event_item.h |    3 +++
+ mm/ksm.c                      |    3 +++
+ mm/vmstat.c                   |    3 +++
+ 3 files changed, 9 insertions(+)
 
---- a/mm/memory-failure.c~mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered
-+++ a/mm/memory-failure.c
-@@ -707,8 +707,10 @@ static int kill_accessing_process(struct
- 			      (void *)&priv);
- 	if (ret == 1 && priv.tk.addr)
- 		kill_proc(&priv.tk, pfn, flags);
-+	else
-+		ret = 0;
- 	mmap_read_unlock(p->mm);
--	return ret ? -EFAULT : -EHWPOISON;
-+	return ret > 0 ? -EHWPOISON : -EFAULT;
- }
+--- a/include/linux/vm_event_item.h~mm-vmstat-add-event-for-ksm-swapping-in-copy
++++ a/include/linux/vm_event_item.h
+@@ -129,6 +129,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ #ifdef CONFIG_SWAP
+ 		SWAP_RA,
+ 		SWAP_RA_HIT,
++#ifdef CONFIG_KSM
++		KSM_SWPIN_COPY,
++#endif
+ #endif
+ #ifdef CONFIG_X86
+ 		DIRECT_MAP_LEVEL2_SPLIT,
+--- a/mm/ksm.c~mm-vmstat-add-event-for-ksm-swapping-in-copy
++++ a/mm/ksm.c
+@@ -2595,6 +2595,9 @@ struct page *ksm_might_need_to_copy(stru
+ 		SetPageDirty(new_page);
+ 		__SetPageUptodate(new_page);
+ 		__SetPageLocked(new_page);
++#ifdef CONFIG_SWAP
++		count_vm_event(KSM_SWPIN_COPY);
++#endif
+ 	}
  
- static const char *action_name[] = {
+ 	return new_page;
+--- a/mm/vmstat.c~mm-vmstat-add-event-for-ksm-swapping-in-copy
++++ a/mm/vmstat.c
+@@ -1385,6 +1385,9 @@ const char * const vmstat_text[] = {
+ #ifdef CONFIG_SWAP
+ 	"swap_ra",
+ 	"swap_ra_hit",
++#ifdef CONFIG_KSM
++	"ksm_swpin_copy",
++#endif
+ #endif
+ #ifdef CONFIG_X86
+ 	"direct_map_level2_splits",
 _
 
-Patches currently in -mm which might be from naoya.horiguchi@nec.com are
+Patches currently in -mm which might be from yang.yang29@zte.com.cn are
 
-mm-hwpoison-remove-obsolete-comment.patch
-mm-hwpoison-fix-error-page-recovered-but-reported-not-recovered.patch
+mm-vmstat-add-event-for-ksm-swapping-in-copy.patch
 
