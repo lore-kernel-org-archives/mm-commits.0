@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A21EC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 01:56:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 262E9C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 02:25:15 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234724AbiA0B4N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jan 2022 20:56:13 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48508 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231336AbiA0B4N (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 20:56:13 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E3F7C06161C
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 17:56:13 -0800 (PST)
+        id S233001AbiA0CZO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jan 2022 21:25:14 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:46080 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229518AbiA0CZO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 21:25:14 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B80061B3B
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 01:56:12 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0535C340E7;
-        Thu, 27 Jan 2022 01:56:11 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 10CB560C93
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 02:25:14 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 21E0CC340E7;
+        Thu, 27 Jan 2022 02:25:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643248572;
-        bh=LIR7rVa1THBg2gylzWGbq1KrO/z1UvmcBhfpti/9FS8=;
+        s=korg; t=1643250313;
+        bh=/KEwy62jwBe3KuUR9ntYEKpwL48PhXglDeM6jATX5Gs=;
         h=Date:From:To:Subject:From;
-        b=Mu54ek13f/ybAaXSfUP0UrQiO+O27fhRgnWdeTGV/fzhCH8s9q6vTw5zffQsKjG1f
-         wygt4xqoHoAEOqTa9BtA/Gobzu6+o4eYGxggOS4zPUOgR4x/YOtsOc0TYvJspnwmLG
-         /JOkuzha1SL1zVSYl2WiCrPtImry0I4hMBwo2ODI=
-Date:   Wed, 26 Jan 2022 17:56:11 -0800
+        b=lph9ATfh9aTN1VM9MjiU9PMZfW7MQ5/DCNRm65u3hFZb9yNAe2B399AtMx+XiIcd4
+         aJF6BqcY6fMgE1nju1LROiI3o2mhpr+9fqsoANCOBFQ8XQT/MX+113NpoTQQ3QQxUB
+         /gabp/wwv2OAY+HlnHo4tqf7C+XmgnrDEyIDAv6U=
+Date:   Wed, 26 Jan 2022 18:25:12 -0800
 From:   akpm@linux-foundation.org
-To:     baolin.wang@linux.alibaba.com, dan.carpenter@oracle.com,
-        jrdr.linux@gmail.com, linmiaohe@huawei.com,
-        mm-commits@vger.kernel.org, rientjes@google.com, sj@kernel.org
-Subject:  + mm-damon-remove-redundant-page-validation.patch added
- to -mm tree
-Message-ID: <20220127015611.erMHMIRqR%akpm@linux-foundation.org>
+To:     cgel.zte@gmail.com, chi.minghao@zte.com.cn, gechangwei@live.cn,
+        ghe@suse.com, jlbec@evilplan.org, joseph.qi@linux.alibaba.com,
+        junxiao.bi@oracle.com, mark@fasheh.com, mm-commits@vger.kernel.org,
+        piaojun@huawei.com, zealci@zte.com.cn
+Subject:  + ocfs2-cleanup-some-return-variables.patch added to -mm
+ tree
+Message-ID: <20220127022512.LQrXQcMjZ%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/damon: remove redundant page validation
+     Subject: ocfs2: cleanup some return variables
 has been added to the -mm tree.  Its filename is
-     mm-damon-remove-redundant-page-validation.patch
+     ocfs2-cleanup-some-return-variables.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-remove-redundant-page-validation.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/ocfs2-cleanup-some-return-variables.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-remove-redundant-page-validation.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-cleanup-some-return-variables.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,56 +63,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Baolin Wang <baolin.wang@linux.alibaba.com>
-Subject: mm/damon: remove redundant page validation
+From: Joseph Qi <joseph.qi@linux.alibaba.com>
+Subject: ocfs2: cleanup some return variables
 
-It will never get a NULL page by pte_page() as discussed in thread [1],
-thus remove the redundant page validation to fix below Smatch static
-checker warning.
+Simply return directly instead of assign the return value to another
+variable.
 
-    mm/damon/vaddr.c:405 damon_hugetlb_mkold()
-    warn: 'page' can't be NULL.
-
-[1] https://lore.kernel.org/linux-mm/20220106091200.GA14564@kili/
-
-Link: https://lkml.kernel.org/r/6d32f7d201b8970d53f51b6c5717d472aed2987c.1642386715.git.baolin.wang@linux.alibaba.com
-Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: SeongJae Park <sj@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Souptick Joarder <jrdr.linux@gmail.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
+Link: https://lkml.kernel.org/r/20220114021641.13927-1-joseph.qi@linux.alibaba.com
+Signed-off-by: Joseph Qi <joseph.qi@linux.alibaba.com>
+Reported-by: Zeal Robot <zealci@zte.com.cn>
+Cc: Minghao Chi <chi.minghao@zte.com.cn>
+Cc: CGEL ZTE <cgel.zte@gmail.com>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Changwei Ge <gechangwei@live.cn>
+Cc: Gang He <ghe@suse.com>
+Cc: Jun Piao <piaojun@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/damon/vaddr.c |    6 ------
- 1 file changed, 6 deletions(-)
+ fs/ocfs2/file.c       |    9 +++------
+ fs/ocfs2/stack_user.c |   18 ++++++------------
+ 2 files changed, 9 insertions(+), 18 deletions(-)
 
---- a/mm/damon/vaddr.c~mm-damon-remove-redundant-page-validation
-+++ a/mm/damon/vaddr.c
-@@ -402,9 +402,6 @@ static void damon_hugetlb_mkold(pte_t *p
- 	pte_t entry = huge_ptep_get(pte);
- 	struct page *page = pte_page(entry);
+--- a/fs/ocfs2/file.c~ocfs2-cleanup-some-return-variables
++++ a/fs/ocfs2/file.c
+@@ -540,15 +540,12 @@ int ocfs2_add_inode_data(struct ocfs2_su
+ 			 struct ocfs2_alloc_context *meta_ac,
+ 			 enum ocfs2_alloc_restarted *reason_ret)
+ {
+-	int ret;
+ 	struct ocfs2_extent_tree et;
  
--	if (!page)
--		return;
+ 	ocfs2_init_dinode_extent_tree(&et, INODE_CACHE(inode), fe_bh);
+-	ret = ocfs2_add_clusters_in_btree(handle, &et, logical_offset,
+-					  clusters_to_add, mark_unwritten,
+-					  data_ac, meta_ac, reason_ret);
 -
- 	get_page(page);
+-	return ret;
++	return ocfs2_add_clusters_in_btree(handle, &et, logical_offset,
++					   clusters_to_add, mark_unwritten,
++					   data_ac, meta_ac, reason_ret);
+ }
  
- 	if (pte_young(entry)) {
-@@ -564,9 +561,6 @@ static int damon_young_hugetlb_entry(pte
- 		goto out;
- 
- 	page = pte_page(entry);
--	if (!page)
--		goto out;
+ static int ocfs2_extend_allocation(struct inode *inode, u32 logical_start,
+--- a/fs/ocfs2/stack_user.c~ocfs2-cleanup-some-return-variables
++++ a/fs/ocfs2/stack_user.c
+@@ -683,28 +683,22 @@ static int user_dlm_lock(struct ocfs2_cl
+ 			 void *name,
+ 			 unsigned int namelen)
+ {
+-	int ret;
 -
- 	get_page(page);
+ 	if (!lksb->lksb_fsdlm.sb_lvbptr)
+ 		lksb->lksb_fsdlm.sb_lvbptr = (char *)lksb +
+ 					     sizeof(struct dlm_lksb);
  
- 	if (pte_young(entry) || !page_is_idle(page) ||
+-	ret = dlm_lock(conn->cc_lockspace, mode, &lksb->lksb_fsdlm,
+-		       flags|DLM_LKF_NODLCKWT, name, namelen, 0,
+-		       fsdlm_lock_ast_wrapper, lksb,
+-		       fsdlm_blocking_ast_wrapper);
+-	return ret;
++	return dlm_lock(conn->cc_lockspace, mode, &lksb->lksb_fsdlm,
++			flags|DLM_LKF_NODLCKWT, name, namelen, 0,
++			fsdlm_lock_ast_wrapper, lksb,
++			fsdlm_blocking_ast_wrapper);
+ }
+ 
+ static int user_dlm_unlock(struct ocfs2_cluster_connection *conn,
+ 			   struct ocfs2_dlm_lksb *lksb,
+ 			   u32 flags)
+ {
+-	int ret;
+-
+-	ret = dlm_unlock(conn->cc_lockspace, lksb->lksb_fsdlm.sb_lkid,
+-			 flags, &lksb->lksb_fsdlm, lksb);
+-	return ret;
++	return dlm_unlock(conn->cc_lockspace, lksb->lksb_fsdlm.sb_lkid,
++			  flags, &lksb->lksb_fsdlm, lksb);
+ }
+ 
+ static int user_dlm_lock_status(struct ocfs2_dlm_lksb *lksb)
 _
 
-Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
+Patches currently in -mm which might be from joseph.qi@linux.alibaba.com are
 
-mm-damon-remove-redundant-page-validation.patch
+jbd2-export-jbd2_journal__journal_head.patch
+ocfs2-fix-a-deadlock-when-commit-trans.patch
+ocfs2-cleanup-some-return-variables.patch
 
