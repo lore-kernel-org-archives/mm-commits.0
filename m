@@ -2,40 +2,36 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E97D7C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 01:29:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 56B9DC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 01:33:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234468AbiA0B3P (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jan 2022 20:29:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42364 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231940AbiA0B3P (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 20:29:15 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F1549C06161C
-        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 17:29:14 -0800 (PST)
+        id S234527AbiA0Bdj (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jan 2022 20:33:39 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:51022 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231771AbiA0Bdj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 20:33:39 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8F81B61BAC
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 01:29:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B7A4AC340E3;
-        Thu, 27 Jan 2022 01:29:13 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 4DC40B820ED
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 01:33:38 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 0825DC340E3;
+        Thu, 27 Jan 2022 01:33:36 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643246954;
-        bh=bPTKwS63i0BR2plYnrfGgKf1gBUtB3Nw2I0xh7qryhc=;
+        s=korg; t=1643247217;
+        bh=/LHA3S2AwNcj5vgI/2ndnpO1E1pu1UJmnoPwb/NxK04=;
         h=Date:From:To:Subject:From;
-        b=dQGFLHAOtyFBQuzLqxwEhs24oCQUx+H8jjbh2ETRigoXZUcFFzTHuX4iRfpEuD7L2
-         K7Dkng4PpMLoDrCm6xp9Szbp/8/r0LsgteZB2ArP6YYZ6N6GZrb5vDdCoT+lFfGjsr
-         VXp467BisimsDOf6YEJ49eCvyCdmm4y/hSHdcHHg=
-Date:   Wed, 26 Jan 2022 17:29:13 -0800
+        b=v+xdrTJP1VCPgq+YJwuehtXF+hVQGUBc3dwculLH48Yi7oHtoxeip9A9ohaNas593
+         sY0AOGsJ2NgysUsnL8y+Xi66A4cvip7Ow9dpmVK18WfL1nn6+UUYicMyB7SI94cbYz
+         E26OJZveoIM+C8GtF4a1Aktv8L90CTkplC9o8NK8=
+Date:   Wed, 26 Jan 2022 17:33:36 -0800
 From:   akpm@linux-foundation.org
-To:     andreyknvl@gmail.com, bigeasy@linutronix.de, dvyukov@google.com,
-        elver@google.com, glider@google.com, mm-commits@vger.kernel.org,
-        nogikh@google.com, tarasmadan@google.com
-Subject:  + kcov-properly-handle-subsequent-mmap-calls.patch added
- to -mm tree
-Message-ID: <20220127012913.5iDor1NYk%akpm@linux-foundation.org>
+To:     mm-commits@vger.kernel.org, sj@kernel.org
+Subject:  +
+ mm-damon-dbgfs-init_regions-use-target-index-instead-of-target-id.patch
+ added to -mm tree
+Message-ID: <20220127013336.e0f_LVeRA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -44,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: properly handle subsequent mmap calls
+     Subject: mm/damon/dbgfs/init_regions: use target index instead of target id
 has been added to the -mm tree.  Its filename is
-     kcov-properly-handle-subsequent-mmap-calls.patch
+     mm-damon-dbgfs-init_regions-use-target-index-instead-of-target-id.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kcov-properly-handle-subsequent-mmap-calls.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-dbgfs-init_regions-use-target-index-instead-of-target-id.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kcov-properly-handle-subsequent-mmap-calls.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-dbgfs-init_regions-use-target-index-instead-of-target-id.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,116 +61,166 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Aleksandr Nogikh <nogikh@google.com>
-Subject: kcov: properly handle subsequent mmap calls
+From: SeongJae Park <sj@kernel.org>
+Subject: mm/damon/dbgfs/init_regions: use target index instead of target id
 
-Allocate the kcov buffer during KCOV_MODE_INIT in order to untie mmapping
-of a kcov instance and the actual coverage collection process. Modify
-kcov_mmap, so that it can be reliably used any number of times once
-KCOV_MODE_INIT has succeeded.
+Patch series "Remove the type-unclear target id concept".
 
-These changes to the user-facing interface of the tool only weaken the
-preconditions, so all existing user space code should remain compatible
-with the new version.
+DAMON asks each monitoring target ('struct damon_target') to have one
+'unsigned long' integer called 'id', which should be unique among the
+targets of same monitoring context.  Meaning of it is, however, totally up
+to the monitoring primitives that registered to the monitoring context. 
+For example, the virtual address spaces monitoring primitives treats the
+id as a 'struct pid' pointer.
 
-Link: https://lkml.kernel.org/r/20220117153634.150357-3-nogikh@google.com
-Signed-off-by: Aleksandr Nogikh <nogikh@google.com>
-Reviewed-by: Dmitry Vyukov <dvyukov@google.com>
-Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Marco Elver <elver@google.com>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Taras Madan <tarasmadan@google.com>
+This makes the code flexible but ugly, not well-documented, and
+type-unsafe[1].  Also, identification of each target can be done via its
+index.  For the reason, this patchset removes the concept and uses clear
+type definition.
+
+[1] https://lore.kernel.org/linux-mm/20211013154535.4aaeaaf9d0182922e405dd1e@linux-foundation.org/
+
+
+This patch (of 4):
+
+Target id is a 'unsigned long' data, which can be interpreted differently
+by each monitoring primitives.  For example, it means 'struct pid *' for
+the virtual address spaces monitoring, while it means nothing but an
+integer to be displayed to debugfs interface users for the physical
+address space monitoring.  It's flexible but makes code ugly and
+type-unsafe[1].
+
+To be prepared for eventual removal of the concept, this commit removes a
+use case of the concept in 'init_regions' debugfs file handling.  In
+detail, this commit replaces use of the id with the index of each target
+in the context's targets list.
+
+[1] https://lore.kernel.org/linux-mm/20211013154535.4aaeaaf9d0182922e405dd1e@linux-foundation.org/
+
+Link: https://lkml.kernel.org/r/20211230100723.2238-1-sj@kernel.org
+Link: https://lkml.kernel.org/r/20211230100723.2238-2-sj@kernel.org
+Signed-off-by: SeongJae Park <sj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kcov.c |   34 +++++++++++++++-------------------
- 1 file changed, 15 insertions(+), 19 deletions(-)
+ mm/damon/dbgfs-test.h |   20 ++++++++++----------
+ mm/damon/dbgfs.c      |   25 ++++++++++++-------------
+ 2 files changed, 22 insertions(+), 23 deletions(-)
 
---- a/kernel/kcov.c~kcov-properly-handle-subsequent-mmap-calls
-+++ a/kernel/kcov.c
-@@ -459,37 +459,28 @@ void kcov_task_exit(struct task_struct *
- static int kcov_mmap(struct file *filep, struct vm_area_struct *vma)
+--- a/mm/damon/dbgfs.c~mm-damon-dbgfs-init_regions-use-target-index-instead-of-target-id
++++ a/mm/damon/dbgfs.c
+@@ -440,18 +440,20 @@ static ssize_t sprint_init_regions(struc
  {
- 	int res = 0;
--	void *area;
- 	struct kcov *kcov = vma->vm_file->private_data;
- 	unsigned long size, off;
- 	struct page *page;
- 	unsigned long flags;
+ 	struct damon_target *t;
+ 	struct damon_region *r;
++	int target_idx = 0;
+ 	int written = 0;
+ 	int rc;
  
--	area = vmalloc_user(vma->vm_end - vma->vm_start);
--	if (!area)
--		return -ENOMEM;
--
- 	spin_lock_irqsave(&kcov->lock, flags);
- 	size = kcov->size * sizeof(unsigned long);
--	if (kcov->mode != KCOV_MODE_INIT || vma->vm_pgoff != 0 ||
-+	if (kcov->area == NULL || vma->vm_pgoff != 0 ||
- 	    vma->vm_end - vma->vm_start != size) {
- 		res = -EINVAL;
- 		goto exit;
+ 	damon_for_each_target(t, c) {
+ 		damon_for_each_region(r, t) {
+ 			rc = scnprintf(&buf[written], len - written,
+-					"%lu %lu %lu\n",
+-					t->id, r->ar.start, r->ar.end);
++					"%d %lu %lu\n",
++					target_idx, r->ar.start, r->ar.end);
+ 			if (!rc)
+ 				return -ENOMEM;
+ 			written += rc;
+ 		}
++		target_idx++;
  	}
--	if (!kcov->area) {
--		kcov->area = area;
--		vma->vm_flags |= VM_DONTEXPAND;
--		spin_unlock_irqrestore(&kcov->lock, flags);
--		for (off = 0; off < size; off += PAGE_SIZE) {
--			page = vmalloc_to_page(kcov->area + off);
--			if (vm_insert_page(vma, vma->vm_start + off, page))
--				WARN_ONCE(1, "vm_insert_page() failed");
--		}
--		return 0;
-+	spin_unlock_irqrestore(&kcov->lock, flags);
-+	vma->vm_flags |= VM_DONTEXPAND;
-+	for (off = 0; off < size; off += PAGE_SIZE) {
-+		page = vmalloc_to_page(kcov->area + off);
-+		if (vm_insert_page(vma, vma->vm_start + off, page))
-+			WARN_ONCE(1, "vm_insert_page() failed");
- 	}
-+	return 0;
- exit:
- 	spin_unlock_irqrestore(&kcov->lock, flags);
--	vfree(area);
- 	return res;
+ 	return written;
+ }
+@@ -485,22 +487,19 @@ out:
+ 	return len;
  }
  
-@@ -674,6 +665,7 @@ static long kcov_ioctl(struct file *file
- 	unsigned int remote_num_handles;
- 	unsigned long remote_arg_size;
- 	unsigned long size, flags;
-+	void *area;
+-static int add_init_region(struct damon_ctx *c,
+-			 unsigned long target_id, struct damon_addr_range *ar)
++static int add_init_region(struct damon_ctx *c, int target_idx,
++		struct damon_addr_range *ar)
+ {
+ 	struct damon_target *t;
+ 	struct damon_region *r, *prev;
+-	unsigned long id;
++	unsigned long idx = 0;
+ 	int rc = -EINVAL;
  
- 	kcov = filep->private_data;
- 	switch (cmd) {
-@@ -683,17 +675,21 @@ static long kcov_ioctl(struct file *file
- 		 * Must happen before anything else.
- 		 *
- 		 * First check the size argument - it must be at least 2
--		 * to hold the current position and one PC. Later we allocate
--		 * size * sizeof(unsigned long) memory, that must not overflow.
-+		 * to hold the current position and one PC.
- 		 */
- 		size = arg;
- 		if (size < 2 || size > INT_MAX / sizeof(unsigned long))
- 			return -EINVAL;
-+		area = vmalloc_user(size * sizeof(unsigned long));
-+		if (area == NULL)
-+			return -ENOMEM;
- 		spin_lock_irqsave(&kcov->lock, flags);
- 		if (kcov->mode != KCOV_MODE_DISABLED) {
- 			spin_unlock_irqrestore(&kcov->lock, flags);
-+			vfree(area);
- 			return -EBUSY;
- 		}
-+		kcov->area = area;
- 		kcov->size = size;
- 		kcov->mode = KCOV_MODE_INIT;
- 		spin_unlock_irqrestore(&kcov->lock, flags);
+ 	if (ar->start >= ar->end)
+ 		return -EINVAL;
+ 
+ 	damon_for_each_target(t, c) {
+-		id = t->id;
+-		if (targetid_is_pid(c))
+-			id = (unsigned long)pid_vnr((struct pid *)id);
+-		if (id == target_id) {
++		if (idx++ == target_idx) {
+ 			r = damon_new_region(ar->start, ar->end);
+ 			if (!r)
+ 				return -ENOMEM;
+@@ -523,7 +522,7 @@ static int set_init_regions(struct damon
+ 	struct damon_target *t;
+ 	struct damon_region *r, *next;
+ 	int pos = 0, parsed, ret;
+-	unsigned long target_id;
++	int target_idx;
+ 	struct damon_addr_range ar;
+ 	int err;
+ 
+@@ -533,11 +532,11 @@ static int set_init_regions(struct damon
+ 	}
+ 
+ 	while (pos < len) {
+-		ret = sscanf(&str[pos], "%lu %lu %lu%n",
+-				&target_id, &ar.start, &ar.end, &parsed);
++		ret = sscanf(&str[pos], "%d %lu %lu%n",
++				&target_idx, &ar.start, &ar.end, &parsed);
+ 		if (ret != 3)
+ 			break;
+-		err = add_init_region(c, target_id, &ar);
++		err = add_init_region(c, target_idx, &ar);
+ 		if (err)
+ 			goto fail;
+ 		pos += parsed;
+--- a/mm/damon/dbgfs-test.h~mm-damon-dbgfs-init_regions-use-target-index-instead-of-target-id
++++ a/mm/damon/dbgfs-test.h
+@@ -113,19 +113,19 @@ static void damon_dbgfs_test_set_init_re
+ {
+ 	struct damon_ctx *ctx = damon_new_ctx();
+ 	unsigned long ids[] = {1, 2, 3};
+-	/* Each line represents one region in ``<target id> <start> <end>`` */
+-	char * const valid_inputs[] = {"2 10 20\n 2   20 30\n2 35 45",
+-		"2 10 20\n",
+-		"2 10 20\n1 39 59\n1 70 134\n  2  20 25\n",
++	/* Each line represents one region in ``<target idx> <start> <end>`` */
++	char * const valid_inputs[] = {"1 10 20\n 1   20 30\n1 35 45",
++		"1 10 20\n",
++		"1 10 20\n0 39 59\n0 70 134\n  1  20 25\n",
+ 		""};
+ 	/* Reading the file again will show sorted, clean output */
+-	char * const valid_expects[] = {"2 10 20\n2 20 30\n2 35 45\n",
+-		"2 10 20\n",
+-		"1 39 59\n1 70 134\n2 10 20\n2 20 25\n",
++	char * const valid_expects[] = {"1 10 20\n1 20 30\n1 35 45\n",
++		"1 10 20\n",
++		"0 39 59\n0 70 134\n1 10 20\n1 20 25\n",
+ 		""};
+-	char * const invalid_inputs[] = {"4 10 20\n",	/* target not exists */
+-		"2 10 20\n 2 14 26\n",		/* regions overlap */
+-		"1 10 20\n2 30 40\n 1 5 8"};	/* not sorted by address */
++	char * const invalid_inputs[] = {"3 10 20\n",	/* target not exists */
++		"1 10 20\n 1 14 26\n",		/* regions overlap */
++		"0 10 20\n1 30 40\n 0 5 8"};	/* not sorted by address */
+ 	char *input, *expect;
+ 	int i, rc;
+ 	char buf[256];
 _
 
-Patches currently in -mm which might be from nogikh@google.com are
+Patches currently in -mm which might be from sj@kernel.org are
 
-kcov-split-ioctl-handling-into-locked-and-unlocked-parts.patch
-kcov-properly-handle-subsequent-mmap-calls.patch
+mm-damon-dbgfs-init_regions-use-target-index-instead-of-target-id.patch
+docs-admin-guide-mm-damon-usage-update-for-changed-initail_regions-file-input.patch
+mm-damon-core-move-damon_set_targets-into-dbgfs.patch
+mm-damon-remove-the-target-id-concept.patch
 
