@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E461EC433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 22:14:50 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BECCFC433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 22:15:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229507AbiA0WOu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 27 Jan 2022 17:14:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45960 "EHLO
+        id S232422AbiA0WPn (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 27 Jan 2022 17:15:43 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46150 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234343AbiA0WOu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jan 2022 17:14:50 -0500
+        with ESMTP id S236026AbiA0WPn (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 27 Jan 2022 17:15:43 -0500
 Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1970EC061714
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 14:14:50 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C44A6C06173B
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 14:15:42 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 796F861BAD
-        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 22:14:49 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B71E9C340E4;
-        Thu, 27 Jan 2022 22:14:48 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 591D061BAD
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 22:15:42 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5AF8C340E4;
+        Thu, 27 Jan 2022 22:15:41 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643321688;
-        bh=9M1ZPJVyf5r7I1kqqjsWbwf+kjGLSqAaIHw85O/NtlE=;
+        s=korg; t=1643321741;
+        bh=gld6zwrUHBAyY76X0byHNC7HT1ie9r8ukIKPXl8pFDU=;
         h=Date:From:To:Subject:From;
-        b=0+Whe0sHJ+Y1l+Or/WuyWsobHDr1M3keleHpbgcEw8IULqJHHh7p0ChkRjfU5xCQJ
-         YWCmarxPCh7tp//eC8XhQPugQMu+Go8Z8LSZNYcqD96YtkZGhHtYaQJjqAOqEPiH77
-         lriEicjrQjjM8ucKERB9D1j3PzxUTiUh3SzlmYNQ=
-Date:   Thu, 27 Jan 2022 14:14:48 -0800
+        b=rku6SUbu6mzeAVWNF6xIzvhCc/stnefxTY41VqkouA/SyawF8uNL7pMZFZmfJQDx/
+         mxXv74V3ojYFC2p3yQYpjkVnO273+/fxu4537n04/aALehFkTE9TE7iX/Q7SHnnirn
+         U4ETseK46LJk43pREDoQCzmBBYeXkSJP+gErJ+MM=
+Date:   Thu, 27 Jan 2022 14:15:41 -0800
 From:   akpm@linux-foundation.org
-To:     akirakawata1@gmail.com, keescook@chromium.org,
-        mm-commits@vger.kernel.org
+To:     linmiaohe@huawei.com, mm-commits@vger.kernel.org,
+        rppt@linux.ibm.com
 Subject:  +
- fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files-v5.patch added to -mm tree
-Message-ID: <20220127221448.1-CwX5BhV%akpm@linux-foundation.org>
+ mm-sparse-make-mminit_validate_memmodel_limits-static.patch added to -mm
+ tree
+Message-ID: <20220127221541.ah_1QVFQA%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files-v5
+     Subject: mm/sparse: make mminit_validate_memmodel_limits() static
 has been added to the -mm tree.  Its filename is
-     fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files-v5.patch
+     mm-sparse-make-mminit_validate_memmodel_limits-static.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files-v5.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-sparse-make-mminit_validate_memmodel_limits-static.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files-v5.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-sparse-make-mminit_validate_memmodel_limits-static.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,38 +65,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Akira Kawata <akirakawata1@gmail.com>
-Subject: fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files-v5
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/sparse: make mminit_validate_memmodel_limits() static
 
-add comment per Kees
+It's only used in the sparse.c now. So we can make it static and further
+clean up the relevant code.
 
-Link: https://lkml.kernel.org/r/20220127124014.338760-2-akirakawata1@gmail.com
-Signed-off-by: Akira Kawata <akirakawata1@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
+Link: https://lkml.kernel.org/r/20220127093221.63524-1-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Reviewed-by: Mike Rapoport <rppt@linux.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_elf.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ mm/internal.h |   11 -----------
+ mm/sparse.c   |    2 +-
+ 2 files changed, 1 insertion(+), 12 deletions(-)
 
---- a/fs/binfmt_elf.c~fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files-v5
-+++ a/fs/binfmt_elf.c
-@@ -1170,6 +1170,10 @@ out_free_interp:
- 			}
- 		}
+--- a/mm/internal.h~mm-sparse-make-mminit_validate_memmodel_limits-static
++++ a/mm/internal.h
+@@ -572,17 +572,6 @@ static inline void mminit_verify_zonelis
+ }
+ #endif /* CONFIG_DEBUG_MEMORY_INIT */
  
-+		/*
-+		 * Figure out which segment in the file contains the Program
-+		 * Header table, and map to the associated memory address.
-+		 */
- 		if (elf_ppnt->p_offset <= elf_ex->e_phoff &&
- 		    elf_ex->e_phoff < elf_ppnt->p_offset + elf_ppnt->p_filesz) {
- 			phdr_addr = elf_ex->e_phoff - elf_ppnt->p_offset +
+-/* mminit_validate_memmodel_limits is independent of CONFIG_DEBUG_MEMORY_INIT */
+-#if defined(CONFIG_SPARSEMEM)
+-extern void mminit_validate_memmodel_limits(unsigned long *start_pfn,
+-				unsigned long *end_pfn);
+-#else
+-static inline void mminit_validate_memmodel_limits(unsigned long *start_pfn,
+-				unsigned long *end_pfn)
+-{
+-}
+-#endif /* CONFIG_SPARSEMEM */
+-
+ #define NODE_RECLAIM_NOSCAN	-2
+ #define NODE_RECLAIM_FULL	-1
+ #define NODE_RECLAIM_SOME	0
+--- a/mm/sparse.c~mm-sparse-make-mminit_validate_memmodel_limits-static
++++ a/mm/sparse.c
+@@ -126,7 +126,7 @@ static inline int sparse_early_nid(struc
+ }
+ 
+ /* Validate the physical addressing limitations of the model */
+-void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
++static void __meminit mminit_validate_memmodel_limits(unsigned long *start_pfn,
+ 						unsigned long *end_pfn)
+ {
+ 	unsigned long max_sparsemem_pfn = 1UL << (MAX_PHYSMEM_BITS-PAGE_SHIFT);
 _
 
-Patches currently in -mm which might be from akirakawata1@gmail.com are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files.patch
-fs-binfmt_elf-fix-at_phdr-for-unusual-elf-files-v5.patch
-fs-binfmt_elf-refactor-load_elf_binary-function.patch
+mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
+mm-sparse-make-mminit_validate_memmodel_limits-static.patch
+mm-vmalloc-remove-unneeded-function-forward-declaration.patch
+mm-balloon_compaction-make-balloon-page-compaction-callbacks-static.patch
+mm-highmem-remove-unnecessary-done-label.patch
+mm-hmmc-remove-unneeded-local-variable-ret.patch
 
