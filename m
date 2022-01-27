@@ -2,39 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F1F5C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 01:54:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3A21EC433F5
+	for <mm-commits@archiver.kernel.org>; Thu, 27 Jan 2022 01:56:14 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234711AbiA0By2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 26 Jan 2022 20:54:28 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:59586 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S232133AbiA0By1 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 20:54:27 -0500
+        id S234724AbiA0B4N (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 26 Jan 2022 20:56:13 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:48508 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S231336AbiA0B4N (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 26 Jan 2022 20:56:13 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4E3F7C06161C
+        for <mm-commits@vger.kernel.org>; Wed, 26 Jan 2022 17:56:13 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8CFDC61C1A;
-        Thu, 27 Jan 2022 01:54:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA1CAC340E7;
-        Thu, 27 Jan 2022 01:54:26 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9B80061B3B
+        for <mm-commits@vger.kernel.org>; Thu, 27 Jan 2022 01:56:12 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C0535C340E7;
+        Thu, 27 Jan 2022 01:56:11 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643248467;
-        bh=OPW8zGNwD8UsHs50Ux/JGsuNPeShoa0uo8igMI6BEoI=;
+        s=korg; t=1643248572;
+        bh=LIR7rVa1THBg2gylzWGbq1KrO/z1UvmcBhfpti/9FS8=;
         h=Date:From:To:Subject:From;
-        b=vNqs9F9LBqtVxQ1iUurBHHM2SXiwmDMkog6LA0UxbTurBtbK1oBk/s9VwIvvTrutk
-         pYvPtDQ+bU8CVhfAwnAn+OhSSQRvN86lfMMq1NpzehZjoVOJVfU75EvWXhSnxbQ5wH
-         CrS+ydXBACUiP/gc+JUSSr2CNu4gt1FaqPv1WvTM=
-Date:   Wed, 26 Jan 2022 17:54:26 -0800
+        b=Mu54ek13f/ybAaXSfUP0UrQiO+O27fhRgnWdeTGV/fzhCH8s9q6vTw5zffQsKjG1f
+         wygt4xqoHoAEOqTa9BtA/Gobzu6+o4eYGxggOS4zPUOgR4x/YOtsOc0TYvJspnwmLG
+         /JOkuzha1SL1zVSYl2WiCrPtImry0I4hMBwo2ODI=
+Date:   Wed, 26 Jan 2022 17:56:11 -0800
 From:   akpm@linux-foundation.org
-To:     ebiederm@xmission.com, jannh@google.com,
-        mm-commits@vger.kernel.org, rdunlap@infradead.org,
-        stable@vger.kernel.org, viro@zeniv.linux.org.uk,
-        wmessmer@microsoft.com
-Subject:  +
- coredump-also-dump-first-pages-of-non-executable-elf-libraries.patch added
+To:     baolin.wang@linux.alibaba.com, dan.carpenter@oracle.com,
+        jrdr.linux@gmail.com, linmiaohe@huawei.com,
+        mm-commits@vger.kernel.org, rientjes@google.com, sj@kernel.org
+Subject:  + mm-damon-remove-redundant-page-validation.patch added
  to -mm tree
-Message-ID: <20220127015426.x6Ewcg_BH%akpm@linux-foundation.org>
+Message-ID: <20220127015611.erMHMIRqR%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -43,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: also dump first pages of non-executable ELF libraries
+     Subject: mm/damon: remove redundant page validation
 has been added to the -mm tree.  Its filename is
-     coredump-also-dump-first-pages-of-non-executable-elf-libraries.patch
+     mm-damon-remove-redundant-page-validation.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/coredump-also-dump-first-pages-of-non-executable-elf-libraries.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-damon-remove-redundant-page-validation.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/coredump-also-dump-first-pages-of-non-executable-elf-libraries.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-damon-remove-redundant-page-validation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,116 +65,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jann Horn <jannh@google.com>
-Subject: coredump: also dump first pages of non-executable ELF libraries
+From: Baolin Wang <baolin.wang@linux.alibaba.com>
+Subject: mm/damon: remove redundant page validation
 
-When I rewrote the VMA dumping logic for coredumps, I changed it to
-recognize ELF library mappings based on the file being executable instead
-of the mapping having an ELF header.  But turns out, distros ship many ELF
-libraries as non-executable, so the heuristic goes wrong...
+It will never get a NULL page by pte_page() as discussed in thread [1],
+thus remove the redundant page validation to fix below Smatch static
+checker warning.
 
-Restore the old behavior where FILTER(ELF_HEADERS) dumps the first page of
-any offset-0 readable mapping that starts with the ELF magic.
+    mm/damon/vaddr.c:405 damon_hugetlb_mkold()
+    warn: 'page' can't be NULL.
 
-This fix is technically layer-breaking a bit, because it checks for
-something ELF-specific in fs/coredump.c; but since we probably want to
-share this between standard ELF and FDPIC ELF anyway, I guess it's fine? 
-And this also keeps the change small for backporting.
+[1] https://lore.kernel.org/linux-mm/20220106091200.GA14564@kili/
 
-Link: https://lkml.kernel.org/r/20220126025739.2014888-1-jannh@google.com
-Fixes: 429a22e776a2 ("coredump: rework elf/elf_fdpic vma_dump_size() into c=
-ommon helper")
-Signed-off-by: Jann Horn <jannh@google.com>
-Reported-by: Bill Messmer <wmessmer@microsoft.com>
-Cc: "Eric W . Biederman" <ebiederm@xmission.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/6d32f7d201b8970d53f51b6c5717d472aed2987c.1642386715.git.baolin.wang@linux.alibaba.com
+Signed-off-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Reviewed-by: SeongJae Park <sj@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Souptick Joarder <jrdr.linux@gmail.com>
+Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   39 ++++++++++++++++++++++++++++++++++-----
- 1 file changed, 34 insertions(+), 5 deletions(-)
+ mm/damon/vaddr.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
---- a/fs/coredump.c~coredump-also-dump-first-pages-of-non-executable-elf-libraries
-+++ a/fs/coredump.c
-@@ -42,6 +42,7 @@
- #include <linux/path.h>
- #include <linux/timekeeping.h>
- #include <linux/sysctl.h>
-+#include <linux/elf.h>
+--- a/mm/damon/vaddr.c~mm-damon-remove-redundant-page-validation
++++ a/mm/damon/vaddr.c
+@@ -402,9 +402,6 @@ static void damon_hugetlb_mkold(pte_t *p
+ 	pte_t entry = huge_ptep_get(pte);
+ 	struct page *page = pte_page(entry);
  
- #include <linux/uaccess.h>
- #include <asm/mmu_context.h>
-@@ -980,6 +981,8 @@ static bool always_dump_vma(struct vm_ar
- 	return false;
- }
- 
-+#define DUMP_SIZE_MAYBE_ELFHDR_PLACEHOLDER 1
-+
- /*
-  * Decide how much of @vma's contents should be included in a core dump.
-  */
-@@ -1039,9 +1042,20 @@ static unsigned long vma_dump_size(struc
- 	 * dump the first page to aid in determining what was mapped here.
- 	 */
- 	if (FILTER(ELF_HEADERS) &&
--	    vma->vm_pgoff == 0 && (vma->vm_flags & VM_READ) &&
--	    (READ_ONCE(file_inode(vma->vm_file)->i_mode) & 0111) != 0)
--		return PAGE_SIZE;
-+	    vma->vm_pgoff == 0 && (vma->vm_flags & VM_READ)) {
-+		if ((READ_ONCE(file_inode(vma->vm_file)->i_mode) & 0111) != 0)
-+			return PAGE_SIZE;
-+
-+		/*
-+		 * ELF libraries aren't always executable.
-+		 * We'll want to check whether the mapping starts with the ELF
-+		 * magic, but not now - we're holding the mmap lock,
-+		 * so copy_from_user() doesn't work here.
-+		 * Use a placeholder instead, and fix it up later in
-+		 * dump_vma_snapshot().
-+		 */
-+		return DUMP_SIZE_MAYBE_ELFHDR_PLACEHOLDER;
-+	}
- 
- #undef	FILTER
- 
-@@ -1116,8 +1130,6 @@ int dump_vma_snapshot(struct coredump_pa
- 		m->end = vma->vm_end;
- 		m->flags = vma->vm_flags;
- 		m->dump_size = vma_dump_size(vma, cprm->mm_flags);
+-	if (!page)
+-		return;
 -
--		vma_data_size += m->dump_size;
- 	}
+ 	get_page(page);
  
- 	mmap_write_unlock(mm);
-@@ -1127,6 +1139,23 @@ int dump_vma_snapshot(struct coredump_pa
- 		return -EFAULT;
- 	}
+ 	if (pte_young(entry)) {
+@@ -564,9 +561,6 @@ static int damon_young_hugetlb_entry(pte
+ 		goto out;
  
-+	for (i = 0; i < *vma_count; i++) {
-+		struct core_vma_metadata *m = (*vma_meta) + i;
-+
-+		if (m->dump_size == DUMP_SIZE_MAYBE_ELFHDR_PLACEHOLDER) {
-+			char elfmag[SELFMAG];
-+
-+			if (copy_from_user(elfmag, (void __user *)m->start, SELFMAG) ||
-+					memcmp(elfmag, ELFMAG, SELFMAG) != 0) {
-+				m->dump_size = 0;
-+			} else {
-+				m->dump_size = PAGE_SIZE;
-+			}
-+		}
-+
-+		vma_data_size += m->dump_size;
-+	}
-+
- 	*vma_data_size_ptr = vma_data_size;
- 	return 0;
- }
+ 	page = pte_page(entry);
+-	if (!page)
+-		goto out;
+-
+ 	get_page(page);
+ 
+ 	if (pte_young(entry) || !page_is_idle(page) ||
 _
 
-Patches currently in -mm which might be from jannh@google.com are
+Patches currently in -mm which might be from baolin.wang@linux.alibaba.com are
 
-coredump-also-dump-first-pages-of-non-executable-elf-libraries.patch
+mm-damon-remove-redundant-page-validation.patch
 
