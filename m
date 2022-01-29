@@ -2,125 +2,123 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 6968BC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 28 Jan 2022 21:38:23 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 89BDAC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 29 Jan 2022 02:13:49 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1351511AbiA1ViW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Jan 2022 16:38:22 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:58942 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1351613AbiA1Vhz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jan 2022 16:37:55 -0500
+        id S240822AbiA2CNs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Jan 2022 21:13:48 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33664 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S239177AbiA2CNr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jan 2022 21:13:47 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 513BAC061714
+        for <mm-commits@vger.kernel.org>; Fri, 28 Jan 2022 18:13:47 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 58702B826FE
-        for <mm-commits@vger.kernel.org>; Fri, 28 Jan 2022 21:37:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 698ACC340E7;
-        Fri, 28 Jan 2022 21:37:52 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 62437CE19FC
+        for <mm-commits@vger.kernel.org>; Sat, 29 Jan 2022 02:13:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 864F4C340E7;
+        Sat, 29 Jan 2022 02:13:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643405873;
-        bh=CXkSUfrjogxSsxWWc4gLm9+ykUhw9VrFhUcZwsZcGDw=;
-        h=Date:From:To:Subject:From;
-        b=Qo5pXv5RBEHUidmqC8i6RF8vwQI9AEh7s6zxvGto8oWL//xhAJ29Z0uBUoT68tpmG
-         E22cUFYDLlE6FsrCA2I4pG9croSZ+rz2ZwsGspDQrsPXKYnReBCsKEj9E44rRjwTs0
-         e5X7g12DkJLHRUFYhp87x760KO+OInE9+kUDuxDk=
-Date:   Fri, 28 Jan 2022 13:37:50 -0800
-From:   akpm@linux-foundation.org
-To:     mm-commits@vger.kernel.org, will@kernel.org, tglx@linutronix.de,
-        sfr@canb.auug.org.au, rmk+kernel@armlinux.org.uk,
-        paul.walmsley@sifive.com, palmer@rivosinc.com, palmer@dabbelt.com,
-        mingo@redhat.com, linux@armlinux.org.uk, hpa@zytor.com,
-        ebiederm@xmission.com, dave.hansen@linux.intel.com,
-        catalin.marinas@arm.com, bp@alien8.de, bhe@redhat.com,
-        aou@eecs.berkeley.edu, alex@ghiti.fr, jszhang@kernel.org
-Subject:  [failures]
- arm-use-is_enabledconfig_kexec_core-instead-of-ifdef.patch removed from -mm
- tree
-Message-ID: <20220128213750.MIW5R%akpm@linux-foundation.org>
-User-Agent: s-nail v14.9.10
+        s=korg; t=1643422422;
+        bh=PLmxLObYhBHM4XBKCrtFGPUFhiw/wDMgp5m78x7yHlo=;
+        h=Date:From:To:Cc:Subject:From;
+        b=zNhN1DU/fp1dCEk3ZFlHxNVzFmYPQ7CQIkpSAX+pdRo/ajAeqH/00luwLbyQMkH5F
+         Uy6yiGXpboS7M7NVyvJW9C+o08Mmy8VaEHIuz8xOFzR4WeyszIRF5AQpK6eY4a7lrV
+         hfc2apqLdvBC7oXXU3mIrKGXSi6LECNQmwan8g8I=
+Date:   Fri, 28 Jan 2022 18:13:41 -0800
+From:   Andrew Morton <akpm@linux-foundation.org>
+To:     Linus Torvalds <torvalds@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, linux-mm@kvack.org
+Subject: incoming
+Message-Id: <20220128181341.2103de95948608a65958ae40@linux-foundation.org>
+X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+12 patches, based on 169387e2aa291a4e3cb856053730fe99d6cec06f.
 
-The patch titled
-     Subject: arm: use IS_ENABLED(CONFIG_KEXEC_CORE) instead of #ifdef
-has been removed from the -mm tree.  Its filename was
-     arm-use-is_enabledconfig_kexec_core-instead-of-ifdef.patch
+Subsystems affected by this patch series:
 
-This patch was dropped because it had testing failures
+  sysctl
+  binfmt
+  ia64
+  mm/memory-failure
+  mm/folios
+  selftests
+  mm/kasan
+  mm/psi
+  ocfs2
 
-------------------------------------------------------
-From: Jisheng Zhang <jszhang@kernel.org>
-Subject: arm: use IS_ENABLED(CONFIG_KEXEC_CORE) instead of #ifdef
+Subsystem: sysctl
 
-Replace the conditional compilation using "#ifdef CONFIG_KEXEC_CORE" by a
-check for "IS_ENABLED(CONFIG_KEXEC_CORE)", to simplify the code and
-increase compile coverage.
+    Andrew Morton <akpm@linux-foundation.org>:
+      include/linux/sysctl.h: fix register_sysctl_mount_point() return type
 
-Link: https://lkml.kernel.org/r/20211206160514.2000-6-jszhang@kernel.org
-Signed-off-by: Jisheng Zhang <jszhang@kernel.org>
-Reviewed-by: Russell King (Oracle) <rmk+kernel@armlinux.org.uk>
-Acked-by: Baoquan He <bhe@redhat.com>
-Cc: Albert Ou <aou@eecs.berkeley.edu>
-Cc: Alexandre Ghiti <alex@ghiti.fr>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Palmer Dabbelt <palmer@dabbelt.com>
-Cc: Palmer Dabbelt <palmer@rivosinc.com>
-Cc: Paul Walmsley <paul.walmsley@sifive.com>
-Cc: Russell King <linux@armlinux.org.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Will Deacon <will@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+Subsystem: binfmt
 
- arch/arm/kernel/setup.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+    Tong Zhang <ztong0001@gmail.com>:
+      binfmt_misc: fix crash when load/unload module
 
---- a/arch/arm/kernel/setup.c~arm-use-is_enabledconfig_kexec_core-instead-of-ifdef
-+++ a/arch/arm/kernel/setup.c
-@@ -973,7 +973,6 @@ static int __init init_machine_late(void
- }
- late_initcall(init_machine_late);
- 
--#ifdef CONFIG_KEXEC
- /*
-  * The crash region must be aligned to 128MB to avoid
-  * zImage relocating below the reserved region.
-@@ -1001,6 +1000,9 @@ static void __init reserve_crashkernel(v
- 	unsigned long long total_mem;
- 	int ret;
- 
-+	if (!IS_ENABLED(CONFIG_KEXEC_CORE))
-+		return;
-+
- 	total_mem = get_total_mem();
- 	ret = parse_crashkernel(boot_command_line, total_mem,
- 				&crash_size, &crash_base);
-@@ -1056,9 +1058,6 @@ static void __init reserve_crashkernel(v
- 		insert_resource(&iomem_resource, &crashk_boot_res);
- 	}
- }
--#else
--static inline void reserve_crashkernel(void) {}
--#endif /* CONFIG_KEXEC */
- 
- void __init hyp_mode_check(void)
- {
-_
+Subsystem: ia64
 
-Patches currently in -mm which might be from jszhang@kernel.org are
+    Randy Dunlap <rdunlap@infradead.org>:
+      ia64: make IA64_MCA_RECOVERY bool instead of tristate
 
-kexec-make-crashk_res-crashk_low_res-and-crash_notes-symbols-always-visible.patch
-riscv-mm-init-use-is_enabledconfig_kexec_core-instead-of-ifdef.patch
-x86-setup-use-is_enabledconfig_kexec_core-instead-of-ifdef.patch
-arm64-mm-use-is_enabledconfig_kexec_core-instead-of-ifdef.patch
+Subsystem: mm/memory-failure
+
+    Joao Martins <joao.m.martins@oracle.com>:
+      memory-failure: fetch compound_head after pgmap_pfn_valid()
+
+Subsystem: mm/folios
+
+    Wei Yang <richard.weiyang@gmail.com>:
+      mm: page->mapping folio->mapping should have the same offset
+
+Subsystem: selftests
+
+    Maor Gottlieb <maorg@nvidia.com>:
+      tools/testing/scatterlist: add missing defines
+
+Subsystem: mm/kasan
+
+    Marco Elver <elver@google.com>:
+      kasan: test: fix compatibility with FORTIFY_SOURCE
+
+    Peter Collingbourne <pcc@google.com>:
+      mm, kasan: use compare-exchange operation to set KASAN page tag
+
+Subsystem: mm/psi
+
+    Suren Baghdasaryan <surenb@google.com>:
+      psi: fix "no previous prototype" warnings when CONFIG_CGROUPS=n
+      psi: fix "defined but not used" warnings when CONFIG_PROC_FS=n
+
+Subsystem: ocfs2
+
+    Joseph Qi <joseph.qi@linux.alibaba.com>:
+    Patch series "ocfs2: fix a deadlock case":
+      jbd2: export jbd2_journal_[grab|put]_journal_head
+      ocfs2: fix a deadlock when commit trans
+
+ arch/ia64/Kconfig                    |    2 
+ fs/binfmt_misc.c                     |    8 +--
+ fs/jbd2/journal.c                    |    2 
+ fs/ocfs2/suballoc.c                  |   25 ++++-------
+ include/linux/mm.h                   |   17 +++++--
+ include/linux/mm_types.h             |    1 
+ include/linux/psi.h                  |   11 ++--
+ include/linux/sysctl.h               |    2 
+ kernel/sched/psi.c                   |   79 ++++++++++++++++++-----------------
+ lib/test_kasan.c                     |    5 ++
+ mm/memory-failure.c                  |    6 ++
+ tools/testing/scatterlist/linux/mm.h |    3 -
+ 12 files changed, 91 insertions(+), 70 deletions(-)
 
