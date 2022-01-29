@@ -2,42 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DCF50C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 29 Jan 2022 21:41:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 3EC16C433F5
+	for <mm-commits@archiver.kernel.org>; Sat, 29 Jan 2022 21:41:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353209AbiA2VlP (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 29 Jan 2022 16:41:15 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34432 "EHLO
+        id S1353222AbiA2VlS (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 29 Jan 2022 16:41:18 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34444 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353214AbiA2VlO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 29 Jan 2022 16:41:14 -0500
+        with ESMTP id S1353214AbiA2VlR (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 29 Jan 2022 16:41:17 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87C88C061714
-        for <mm-commits@vger.kernel.org>; Sat, 29 Jan 2022 13:41:14 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7927BC061714;
+        Sat, 29 Jan 2022 13:41:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4376CB82817
-        for <mm-commits@vger.kernel.org>; Sat, 29 Jan 2022 21:41:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 86B6EC340E8;
-        Sat, 29 Jan 2022 21:41:11 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 41B67B82812;
+        Sat, 29 Jan 2022 21:41:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id C4C2EC340E8;
+        Sat, 29 Jan 2022 21:41:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643492471;
-        bh=Q3+WJXs6P1o3JAP4kOGsUH2ygzsANEWwx5SaFt9TCkw=;
+        s=korg; t=1643492475;
+        bh=HcQaM4uHbzU5KF8uZ0eERG7hSGsc2MgWgOfJIJw+SN8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=P2FlLG0ZYWrzAYCWXn8klkW3dBin5nyxgu0H72rF1VkMk8+H+RhLoHRiSHAo/VrQ2
-         ipVJRB+P0YDBR5D6n6Rc4waR/CvUhK4tIzMWA24P4nu3CDXGIkF9lb9Th3TQLX8yPw
-         5R3So5vneK+Z5HRcnMLRPvZ4kpSnFLyhxnULcYIQ=
-Date:   Sat, 29 Jan 2022 13:41:11 -0800
+        b=p7TRmllIX3WRnElWKRKuTIoPXLu5lvVYgP26VDXNSzQSP1hsRr1x19MUuMQyizY/2
+         Rtryo8NfWkNqi7WjMeJPeRgHsaiqzz8YF7vxd8xNxbFH47KgpAYyLn4HbuuKjNeMdk
+         48pGOxOpWEBIgomD7+rj56pwo0a9ml6jNEXHNIBI=
+Date:   Sat, 29 Jan 2022 13:41:14 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
 To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
-        brendanhiggins@google.com, dvyukov@google.com, elver@google.com,
-        glider@google.com, keescook@chromium.org, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, npache@redhat.com,
-        ryabinin.a.a@gmail.com, torvalds@linux-foundation.org
-Subject:  [patch 07/12] kasan: test: fix compatibility with
- FORTIFY_SOURCE
-Message-ID: <20220129214111.2i2Jilwui%akpm@linux-foundation.org>
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
+        peterz@infradead.org, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 08/12] mm, kasan: use compare-exchange operation
+ to set KASAN page tag
+Message-ID: <20220129214114.kH5sHZ6C3%akpm@linux-foundation.org>
 In-Reply-To: <20220129134026.8ccf701012f26eb2c2c269c9@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
@@ -45,87 +44,51 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Marco Elver <elver@google.com>
-Subject: kasan: test: fix compatibility with FORTIFY_SOURCE
+From: Peter Collingbourne <pcc@google.com>
+Subject: mm, kasan: use compare-exchange operation to set KASAN page tag
 
-With CONFIG_FORTIFY_SOURCE enabled, string functions will also perform
-dynamic checks using __builtin_object_size(ptr), which when failed will
-panic the kernel.
+It has been reported that the tag setting operation on newly-allocated
+pages can cause the page flags to be corrupted when performed concurrently
+with other flag updates as a result of the use of non-atomic operations. 
+Fix the problem by using a compare-exchange loop to update the tag.
 
-Because the KASAN test deliberately performs out-of-bounds operations, the
-kernel panics with FORTIFY_SOURCE, for example:
-
- | kernel BUG at lib/string_helpers.c:910!
- | invalid opcode: 0000 [#1] PREEMPT SMP KASAN PTI
- | CPU: 1 PID: 137 Comm: kunit_try_catch Tainted: G    B             5.16.0-rc3+ #3
- | Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.14.0-2 04/01/2014
- | RIP: 0010:fortify_panic+0x19/0x1b
- | ...
- | Call Trace:
- |  <TASK>
- |  kmalloc_oob_in_memset.cold+0x16/0x16
- |  ...
-
-Fix it by also hiding `ptr` from the optimizer, which will ensure that
-__builtin_object_size() does not return a valid size, preventing fortified
-string functions from panicking.
-
-Link: https://lkml.kernel.org/r/20220124160744.1244685-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reported-by: Nico Pache <npache@redhat.com>
-Reviewed-by: Nico Pache <npache@redhat.com>
+Link: https://lkml.kernel.org/r/20220120020148.1632253-1-pcc@google.com
+Link: https://linux-review.googlesource.com/id/I456b24a2b9067d93968d43b4bb3351c0cec63101
+Fixes: 2813b9c02962 ("kasan, mm, arm64: tag non slab memory allocated via pagealloc")
+Signed-off-by: Peter Collingbourne <pcc@google.com>
 Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Brendan Higgins <brendanhiggins@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ include/linux/mm.h |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
---- a/lib/test_kasan.c~kasan-test-fix-compatibility-with-fortify_source
-+++ a/lib/test_kasan.c
-@@ -492,6 +492,7 @@ static void kmalloc_oob_in_memset(struct
- 	ptr = kmalloc(size, GFP_KERNEL);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+--- a/include/linux/mm.h~mm-use-compare-exchange-operation-to-set-kasan-page-tag
++++ a/include/linux/mm.h
+@@ -1506,11 +1506,18 @@ static inline u8 page_kasan_tag(const st
  
-+	OPTIMIZER_HIDE_VAR(ptr);
- 	OPTIMIZER_HIDE_VAR(size);
- 	KUNIT_EXPECT_KASAN_FAIL(test,
- 				memset(ptr, 0, size + KASAN_GRANULE_SIZE));
-@@ -515,6 +516,7 @@ static void kmalloc_memmove_negative_siz
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
+ static inline void page_kasan_tag_set(struct page *page, u8 tag)
+ {
+-	if (kasan_enabled()) {
+-		tag ^= 0xff;
+-		page->flags &= ~(KASAN_TAG_MASK << KASAN_TAG_PGSHIFT);
+-		page->flags |= (tag & KASAN_TAG_MASK) << KASAN_TAG_PGSHIFT;
+-	}
++	unsigned long old_flags, flags;
++
++	if (!kasan_enabled())
++		return;
++
++	tag ^= 0xff;
++	old_flags = READ_ONCE(page->flags);
++	do {
++		flags = old_flags;
++		flags &= ~(KASAN_TAG_MASK << KASAN_TAG_PGSHIFT);
++		flags |= (tag & KASAN_TAG_MASK) << KASAN_TAG_PGSHIFT;
++	} while (unlikely(!try_cmpxchg(&page->flags, &old_flags, flags)));
+ }
  
- 	memset((char *)ptr, 0, 64);
-+	OPTIMIZER_HIDE_VAR(ptr);
- 	OPTIMIZER_HIDE_VAR(invalid_size);
- 	KUNIT_EXPECT_KASAN_FAIL(test,
- 		memmove((char *)ptr, (char *)ptr + 4, invalid_size));
-@@ -531,6 +533,7 @@ static void kmalloc_memmove_invalid_size
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 
- 	memset((char *)ptr, 0, 64);
-+	OPTIMIZER_HIDE_VAR(ptr);
- 	KUNIT_EXPECT_KASAN_FAIL(test,
- 		memmove((char *)ptr, (char *)ptr + 4, invalid_size));
- 	kfree(ptr);
-@@ -893,6 +896,7 @@ static void kasan_memchr(struct kunit *t
- 	ptr = kmalloc(size, GFP_KERNEL | __GFP_ZERO);
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 
-+	OPTIMIZER_HIDE_VAR(ptr);
- 	OPTIMIZER_HIDE_VAR(size);
- 	KUNIT_EXPECT_KASAN_FAIL(test,
- 		kasan_ptr_result = memchr(ptr, '1', size + 1));
-@@ -919,6 +923,7 @@ static void kasan_memcmp(struct kunit *t
- 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, ptr);
- 	memset(arr, 0, sizeof(arr));
- 
-+	OPTIMIZER_HIDE_VAR(ptr);
- 	OPTIMIZER_HIDE_VAR(size);
- 	KUNIT_EXPECT_KASAN_FAIL(test,
- 		kasan_int_result = memcmp(ptr, arr, size+1));
+ static inline void page_kasan_tag_reset(struct page *page)
 _
