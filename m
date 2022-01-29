@@ -2,106 +2,90 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 06128C433EF
-	for <mm-commits@archiver.kernel.org>; Sat, 29 Jan 2022 02:14:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AFABDC433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 29 Jan 2022 02:14:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352173AbiA2COZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Jan 2022 21:14:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33806 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237464AbiA2COZ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jan 2022 21:14:25 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 206A4C061714
-        for <mm-commits@vger.kernel.org>; Fri, 28 Jan 2022 18:14:25 -0800 (PST)
+        id S1352176AbiA2COa (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Jan 2022 21:14:30 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:34142 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237464AbiA2CO3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jan 2022 21:14:29 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BAC6461631
-        for <mm-commits@vger.kernel.org>; Sat, 29 Jan 2022 02:14:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBBF0C340E8;
-        Sat, 29 Jan 2022 02:14:23 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9848AB826A5;
+        Sat, 29 Jan 2022 02:14:28 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 18B91C340E7;
+        Sat, 29 Jan 2022 02:14:27 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643422464;
-        bh=f5jLvhnm9yNe/zMKjo8gyaqBIg5K7lhZuhAKD/Z+CqU=;
+        s=korg; t=1643422467;
+        bh=HcQaM4uHbzU5KF8uZ0eERG7hSGsc2MgWgOfJIJw+SN8=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=rGPKDev6UfbPAOr1rRoBbzWyB0HmLAmUDicqpScY77cTSiuiQZOnk6BsmwpFsHlGS
-         7U8RkcFeZdWqWBEQgQtLs5dYdxCwgW79P4SAr1f4OVLmBU/lwa6692DnwxTSyrW4a2
-         eaVNfbtibqNxPQ4q60VDmVKTAR7VWkNnERDCC06M=
-Date:   Fri, 28 Jan 2022 18:14:23 -0800
+        b=zqDzdM8OISLXNKghZjUgtHrG1DJKpCz0zqMSB5ld+PWiVQ4mqkv42zVNen2oIQT+p
+         YJU8qghy5eGvtZuY+f7GxEt66Klem1Nqcl27kTNEAWtVeVAxIGTTuc7fdpGSuCeuXE
+         rxl2K7BZhOXeKlkxVKxQ+AwneotmsK5debUhkuCg=
+Date:   Fri, 28 Jan 2022 18:14:26 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, bigeasy@linutronix.de, hch@lst.de,
-        linux-mm@kvack.org, maorg@nvidia.com, mm-commits@vger.kernel.org,
-        tglx@linutronix.de, torvalds@linux-foundation.org
-Subject:  [patch 4/7] tools/testing/scatterlist: add missing
- defines
-Message-ID: <20220129021423.pzhI3k31o%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, andreyknvl@gmail.com,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org, pcc@google.com,
+        peterz@infradead.org, stable@vger.kernel.org,
+        torvalds@linux-foundation.org
+Subject:  [patch 5/7] mm, kasan: use compare-exchange operation to
+ set KASAN page tag
+Message-ID: <20220129021426.fXzRllwUv%akpm@linux-foundation.org>
 In-Reply-To: <20220128181341.2103de95948608a65958ae40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-=46rom: Maor Gottlieb <maorg@nvidia.com>
-Subject: tools/testing/scatterlist: add missing defines
+From: Peter Collingbourne <pcc@google.com>
+Subject: mm, kasan: use compare-exchange operation to set KASAN page tag
 
-The cited commits replaced preemptible with pagefault_disabled and
-flush_kernel_dcache_page with flush_dcache_page respectively, hence need
-to update the corresponding defines in the test.
+It has been reported that the tag setting operation on newly-allocated
+pages can cause the page flags to be corrupted when performed concurrently
+with other flag updates as a result of the use of non-atomic operations. 
+Fix the problem by using a compare-exchange loop to update the tag.
 
-scatterlist.c: In function =E2=80=98sg_miter_stop=E2=80=99:
-scatterlist.c:919:4: warning: implicit declaration of function =E2=80=98flu=
-sh_dcache_page=E2=80=99 [-Wimplicit-function-declaration]
-    flush_dcache_page(miter->page);
-    ^~~~~~~~~~~~~~~~~
-In file included from ./linux/scatterlist.h:8:0,
-                 from scatterlist.c:9:
-scatterlist.c:922:18: warning: implicit declaration of function =E2=80=98pa=
-gefault_disabled=E2=80=99 [-Wimplicit-function-declaration]
-    WARN_ON_ONCE(!pagefault_disabled());
-                  ^
-./linux/mm.h:23:25: note: in definition of macro =E2=80=98WARN_ON_ONCE=E2=
-=80=99
-  int __ret_warn_on =3D !!(condition);                      \
-                         ^~~~~~~~~
-
-Link: https://lkml.kernel.org/r/20220118082105.1737320-1-maorg@nvidia.com
-Fixes: 723aca208516 ("mm/scatterlist: replace the !preemptible warning in s=
-g_miter_stop()")
-Fixes: 0e84f5dbf8d6 ("scatterlist: replace flush_kernel_dcache_page with fl=
-ush_dcache_page")
-Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
-Tested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Christoph Hellwig <hch@lst.de>
+Link: https://lkml.kernel.org/r/20220120020148.1632253-1-pcc@google.com
+Link: https://linux-review.googlesource.com/id/I456b24a2b9067d93968d43b4bb3351c0cec63101
+Fixes: 2813b9c02962 ("kasan, mm, arm64: tag non slab memory allocated via pagealloc")
+Signed-off-by: Peter Collingbourne <pcc@google.com>
+Reviewed-by: Andrey Konovalov <andreyknvl@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/scatterlist/linux/mm.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mm.h |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
---- a/tools/testing/scatterlist/linux/mm.h~tools-testing-scatterlist-add-mi=
-ssing-defines
-+++ a/tools/testing/scatterlist/linux/mm.h
-@@ -74,7 +74,7 @@ static inline unsigned long page_to_phys
- 	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),   \
- 	      x, y)
-=20
--#define preemptible() (1)
-+#define pagefault_disabled() (0)
-=20
- static inline void *kmap(struct page *page)
+--- a/include/linux/mm.h~mm-use-compare-exchange-operation-to-set-kasan-page-tag
++++ a/include/linux/mm.h
+@@ -1506,11 +1506,18 @@ static inline u8 page_kasan_tag(const st
+ 
+ static inline void page_kasan_tag_set(struct page *page, u8 tag)
  {
-@@ -127,6 +127,7 @@ kmalloc_array(unsigned int n, unsigned i
- #define kmemleak_free(a)
-=20
- #define PageSlab(p) (0)
-+#define flush_dcache_page(p)
-=20
- #define MAX_ERRNO	4095
-=20
+-	if (kasan_enabled()) {
+-		tag ^= 0xff;
+-		page->flags &= ~(KASAN_TAG_MASK << KASAN_TAG_PGSHIFT);
+-		page->flags |= (tag & KASAN_TAG_MASK) << KASAN_TAG_PGSHIFT;
+-	}
++	unsigned long old_flags, flags;
++
++	if (!kasan_enabled())
++		return;
++
++	tag ^= 0xff;
++	old_flags = READ_ONCE(page->flags);
++	do {
++		flags = old_flags;
++		flags &= ~(KASAN_TAG_MASK << KASAN_TAG_PGSHIFT);
++		flags |= (tag & KASAN_TAG_MASK) << KASAN_TAG_PGSHIFT;
++	} while (unlikely(!try_cmpxchg(&page->flags, &old_flags, flags)));
+ }
+ 
+ static inline void page_kasan_tag_reset(struct page *page)
 _
