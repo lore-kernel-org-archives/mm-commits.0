@@ -2,83 +2,106 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B6C52C433FE
-	for <mm-commits@archiver.kernel.org>; Sat, 29 Jan 2022 02:14:24 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 06128C433EF
+	for <mm-commits@archiver.kernel.org>; Sat, 29 Jan 2022 02:14:26 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1344877AbiA2COY (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 28 Jan 2022 21:14:24 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:34108 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237464AbiA2COX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jan 2022 21:14:23 -0500
+        id S1352173AbiA2COZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 28 Jan 2022 21:14:25 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:33806 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S237464AbiA2COZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 28 Jan 2022 21:14:25 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 206A4C061714
+        for <mm-commits@vger.kernel.org>; Fri, 28 Jan 2022 18:14:25 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4DA1DB82763
-        for <mm-commits@vger.kernel.org>; Sat, 29 Jan 2022 02:14:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id AFBDCC340E7;
-        Sat, 29 Jan 2022 02:14:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BAC6461631
+        for <mm-commits@vger.kernel.org>; Sat, 29 Jan 2022 02:14:24 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DBBF0C340E8;
+        Sat, 29 Jan 2022 02:14:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643422461;
-        bh=zSDHBCH3P+O3RfADVkHf3HrCwZThcIKMpyMGSUaHFTE=;
+        s=korg; t=1643422464;
+        bh=f5jLvhnm9yNe/zMKjo8gyaqBIg5K7lhZuhAKD/Z+CqU=;
         h=Date:From:To:Subject:In-Reply-To:From;
-        b=YFq1zRnBSOi8iwOaTSyjn5rD2tAyTEYdtTwEnzTspJ19oi4olrLgiiDocO5nWsrhH
-         v0JaI4R4QK5Flt6XoGX5fHNAmAKvZ+ZZAdAw5JHO3CJOafKPJE6QmLaVDsYiK7rGFX
-         4mZzhXO+eeZw+MlYQzAw0XQSAXJw9wflOFjR4MqU=
-Date:   Fri, 28 Jan 2022 18:14:20 -0800
+        b=rGPKDev6UfbPAOr1rRoBbzWyB0HmLAmUDicqpScY77cTSiuiQZOnk6BsmwpFsHlGS
+         7U8RkcFeZdWqWBEQgQtLs5dYdxCwgW79P4SAr1f4OVLmBU/lwa6692DnwxTSyrW4a2
+         eaVNfbtibqNxPQ4q60VDmVKTAR7VWkNnERDCC06M=
+Date:   Fri, 28 Jan 2022 18:14:23 -0800
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     akpm@linux-foundation.org, dan.j.williams@intel.com,
-        jane.chu@oracle.com, joao.m.martins@oracle.com, linux-mm@kvack.org,
-        mm-commits@vger.kernel.org, naoya.horiguchi@nec.com,
-        songmuchun@bytedance.com, torvalds@linux-foundation.org
-Subject:  [patch 3/7] memory-failure: fetch compound_head after
- pgmap_pfn_valid()
-Message-ID: <20220129021420.PgBIZm-q9%akpm@linux-foundation.org>
+To:     akpm@linux-foundation.org, bigeasy@linutronix.de, hch@lst.de,
+        linux-mm@kvack.org, maorg@nvidia.com, mm-commits@vger.kernel.org,
+        tglx@linutronix.de, torvalds@linux-foundation.org
+Subject:  [patch 4/7] tools/testing/scatterlist: add missing
+ defines
+Message-ID: <20220129021423.pzhI3k31o%akpm@linux-foundation.org>
 In-Reply-To: <20220128181341.2103de95948608a65958ae40@linux-foundation.org>
 User-Agent: s-nail v14.8.16
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-From: Joao Martins <joao.m.martins@oracle.com>
-Subject: memory-failure: fetch compound_head after pgmap_pfn_valid()
+=46rom: Maor Gottlieb <maorg@nvidia.com>
+Subject: tools/testing/scatterlist: add missing defines
 
-memory_failure_dev_pagemap() at the moment assumes base pages (e.g. 
-dax_lock_page()).  For devmap with compound pages fetch the compound_head
-in case a tail page memory failure is being handled.
+The cited commits replaced preemptible with pagefault_disabled and
+flush_kernel_dcache_page with flush_dcache_page respectively, hence need
+to update the corresponding defines in the test.
 
-Currently this is a nop, but in the advent of compound pages in
-dev_pagemap it allows memory_failure_dev_pagemap() to keep working.
+scatterlist.c: In function =E2=80=98sg_miter_stop=E2=80=99:
+scatterlist.c:919:4: warning: implicit declaration of function =E2=80=98flu=
+sh_dcache_page=E2=80=99 [-Wimplicit-function-declaration]
+    flush_dcache_page(miter->page);
+    ^~~~~~~~~~~~~~~~~
+In file included from ./linux/scatterlist.h:8:0,
+                 from scatterlist.c:9:
+scatterlist.c:922:18: warning: implicit declaration of function =E2=80=98pa=
+gefault_disabled=E2=80=99 [-Wimplicit-function-declaration]
+    WARN_ON_ONCE(!pagefault_disabled());
+                  ^
+./linux/mm.h:23:25: note: in definition of macro =E2=80=98WARN_ON_ONCE=E2=
+=80=99
+  int __ret_warn_on =3D !!(condition);                      \
+                         ^~~~~~~~~
 
-Without this fix memory-failure handling (i.e.  MCEs on pmem) with
-device-dax configured namespaces will regress (and crash).  
-
-Link: https://lkml.kernel.org/r/20211202204422.26777-2-joao.m.martins@oracle.com
-Reported-by: Jane Chu <jane.chu@oracle.com>
-Signed-off-by: Joao Martins <joao.m.martins@oracle.com>
-Reviewed-by: Naoya Horiguchi <naoya.horiguchi@nec.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
+Link: https://lkml.kernel.org/r/20220118082105.1737320-1-maorg@nvidia.com
+Fixes: 723aca208516 ("mm/scatterlist: replace the !preemptible warning in s=
+g_miter_stop()")
+Fixes: 0e84f5dbf8d6 ("scatterlist: replace flush_kernel_dcache_page with fl=
+ush_dcache_page")
+Signed-off-by: Maor Gottlieb <maorg@nvidia.com>
+Tested-by: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ tools/testing/scatterlist/linux/mm.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
---- a/mm/memory-failure.c~memory-failure-fetch-compound_head-after-pgmap_pfn_valid
-+++ a/mm/memory-failure.c
-@@ -1596,6 +1596,12 @@ static int memory_failure_dev_pagemap(un
- 	}
- 
- 	/*
-+	 * Pages instantiated by device-dax (not filesystem-dax)
-+	 * may be compound pages.
-+	 */
-+	page = compound_head(page);
-+
-+	/*
- 	 * Prevent the inode from being freed while we are interrogating
- 	 * the address_space, typically this would be handled by
- 	 * lock_page(), but dax pages do not use the page lock. This
+--- a/tools/testing/scatterlist/linux/mm.h~tools-testing-scatterlist-add-mi=
+ssing-defines
++++ a/tools/testing/scatterlist/linux/mm.h
+@@ -74,7 +74,7 @@ static inline unsigned long page_to_phys
+ 	      __UNIQUE_ID(min1_), __UNIQUE_ID(min2_),   \
+ 	      x, y)
+=20
+-#define preemptible() (1)
++#define pagefault_disabled() (0)
+=20
+ static inline void *kmap(struct page *page)
+ {
+@@ -127,6 +127,7 @@ kmalloc_array(unsigned int n, unsigned i
+ #define kmemleak_free(a)
+=20
+ #define PageSlab(p) (0)
++#define flush_dcache_page(p)
+=20
+ #define MAX_ERRNO	4095
+=20
 _
