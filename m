@@ -2,37 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0156BC433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Jan 2022 22:02:07 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D1C19C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Jan 2022 22:18:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S229919AbiAaWCH (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Jan 2022 17:02:07 -0500
-Received: from sin.source.kernel.org ([145.40.73.55]:55534 "EHLO
-        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229710AbiAaWCH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 17:02:07 -0500
+        id S232495AbiAaWSR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Jan 2022 17:18:17 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:37494 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S232213AbiAaWSQ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 17:18:16 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id A12D5CE16A1
-        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 22:02:05 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B765EC340E8;
-        Mon, 31 Jan 2022 22:02:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 13579615A2
+        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 22:18:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08DE3C340E8;
+        Mon, 31 Jan 2022 22:18:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643666524;
-        bh=ENOI6tXhxqIdez00JyiCA6WEJKrTBAL7lwOBR12zuZo=;
+        s=korg; t=1643667495;
+        bh=0uJQOLNxDWtJRxWzDyG1CBTO0tW1suh+MKFJXJf73A0=;
         h=Date:To:From:Subject:From;
-        b=t+YcuZ+uSo3BFyteKPrTCmUKy9N5VVZlmSKT4zBbsor1rWV6oFxKE7jEL4kUj0a1F
-         i1MDA/374m9E3QQ+MxvntbrtkXXyH7aKUiY0eae7yj0exsqio3zXUB1coEdj0F2+tW
-         BagA7U7lWHw0GLcgiGBEK4NQXxbza5aEzAb5oQyw=
-Received: by hp1 (sSMTP sendmail emulation); Mon, 31 Jan 2022 14:02:02 -0800
-Date:   Mon, 31 Jan 2022 14:02:02 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org,
-        oleksiy.avramchenko@sonymobile.com, npiggin@gmail.com,
-        hch@infradead.org, urezki@gmail.com, akpm@linux-foundation.org
+        b=UjSV/dxk30/9A2uBxkVaUf7neJ/P6uJUcMlyqNnk6Ajl85RWciTrmDS/R0aThGUR5
+         f9jxnbwZVVBJ/MxcSlL1ugHUQ/jgDxnH5M87eq2WN/HYi1IyUZX++kNhJADwu8tnUE
+         k8c9pMQmgGG6EypdqEFCAbst0pfRM9pmafobC6U0=
+Received: by hp1 (sSMTP sendmail emulation); Mon, 31 Jan 2022 14:18:13 -0800
+Date:   Mon, 31 Jan 2022 14:18:13 -0800
+To:     mm-commits@vger.kernel.org, tj@kernel.org, rppt@linux.ibm.com,
+        richard.weiyang@gmail.com, raquini@redhat.com, osalvador@suse.de,
+        npache@redhat.com, eric.dumazet@gmail.com, dennis@kernel.org,
+        david@redhat.com, cl@linux.com, amakhalov@vmware.com,
+        mhocko@suse.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-vmalloc-move-draining-areas-out-of-caller-context.patch added to -mm tree
-Message-Id: <20220131220202.B765EC340E8@smtp.kernel.org>
+Subject: + mm-memory_hotplug-make-arch_alloc_nodedata-independent-on-config_memory_hotplug.patch added to -mm tree
+Message-Id: <20220131221814.08DE3C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: Move draining areas out of caller context
+     Subject: mm, memory_hotplug: make arch_alloc_nodedata independent on CONFIG_MEMORY_HOTPLUG
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-move-draining-areas-out-of-caller-context.patch
+     mm-memory_hotplug-make-arch_alloc_nodedata-independent-on-config_memory_hotplug.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-move-draining-areas-out-of-caller-context.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-make-arch_alloc_nodedata-independent-on-config_memory_hotplug.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-move-draining-areas-out-of-caller-context.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-make-arch_alloc_nodedata-independent-on-config_memory_hotplug.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,110 +63,228 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Uladzislau Rezki (Sony)" <urezki@gmail.com>
-Subject: mm/vmalloc: Move draining areas out of caller context
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, memory_hotplug: make arch_alloc_nodedata independent on CONFIG_MEMORY_HOTPLUG
 
-A caller initiates the drain procces from its context once the
-drain threshold is reached or passed. There are at least two
-drawbacks of doing so:
+Patch series "mm, memory_hotplug: handle unitialized numa node gracefully".
 
-a) a caller can be a high-prio or RT task. In that case it can
-   stuck in doing the actual drain of all lazily freed areas.
-   This is not optimal because such tasks usually are latency
-   sensitive where the control should be returned back as soon
-   as possible in order to drive such workloads in time. See
-   96e2db456135 ("mm/vmalloc: rework the drain logic")
+The core of the fix is patch 2 which also links existing bug reports.  The
+high level goal is to have all possible numa nodes have their pgdat
+allocated and initialized so 
 
-b) It is not safe to call vfree() during holding a spinlock due
-   to the vmap_purge_lock mutex. The was a report about this from
-   Zeal Robot <zealci@zte.com.cn> here:
-   https://lore.kernel.org/all/20211222081026.484058-1-chi.minghao@zte.com.cn
+	for_each_possible_node(nid)
+		NODE_DATA(nid)
 
-Moving the drain to the separate work context addresses those
-issues.
+will never return garbage.  This has proven to be problem in several
+places when an offline numa node is used for an allocation just to realize
+that node_data and therefore allocation fallback zonelists are not
+initialized and such an allocation request blows up.
 
-v1->v2:
-   - Added prefix "_work" to the drain worker function.
-v2->v3:
-   - Remove the drain_vmap_work_in_progress. Extra queuing
-     is expectable under heavy load but it can be disregarded
-     because a work will bail out if nothing to be done.
+There were attempts to address that by checking node_online in several
+places including the page allocator.  This patchset approaches the problem
+from a different perspective and instead of special casing, which just
+adds a runtime overhead, it allocates pglist_data for each possible node. 
+This can add some memory overhead for platforms with high number of
+possible nodes if they do not contain any memory.  This should be a rather
+rare configuration though.
 
-Link: https://lkml.kernel.org/r/20220131144058.35608-1-urezki@gmail.com
-Signed-off-by: Uladzislau Rezki (Sony) <urezki@gmail.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Nicholas Piggin <npiggin@gmail.com>
-Cc: Oleksiy Avramchenko <oleksiy.avramchenko@sonymobile.com>
+How to test this? David has provided and excellent howto:
+http://lkml.kernel.org/r/6e5ebc19-890c-b6dd-1924-9f25c441010d@redhat.com
+
+Patches 1 and 3-6 are mostly cleanups.  The patchset has been reviewed by
+Rafael (thanks!) and the core fix tested by Rafael and Alexey (thanks to
+both).  David has tested as per instructions above and hasn't found any
+fallouts in the memory hotplug scenarios.
+
+
+This patch (of 6):
+
+This is a preparatory patch and it doesn't introduce any functional
+change.  It merely pulls out arch_alloc_nodedata (and co) outside of
+CONFIG_MEMORY_HOTPLUG because the following patch will need to call this
+from the generic MM code.
+
+Link: https://lkml.kernel.org/r/20220127085305.20890-1-mhocko@kernel.org
+Link: https://lkml.kernel.org/r/20220127085305.20890-2-mhocko@kernel.org
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Rafael Aquini <raquini@redhat.com>
+Acked-by: David Hildenbrand <david@redhat.com>
+Acked-by: Mike Rapoport <rppt@linux.ibm.com>
+Reviewed-by: Oscar Salvador <osalvador@suse.de>
+Cc: Alexey Makhalov <amakhalov@vmware.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dennis Zhou <dennis@kernel.org>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Nico Pache <npache@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Wei Yang <richard.weiyang@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ arch/ia64/mm/discontig.c       |    2 
+ include/linux/memory_hotplug.h |  119 +++++++++++++++----------------
+ 2 files changed, 59 insertions(+), 62 deletions(-)
 
---- a/mm/vmalloc.c~mm-vmalloc-move-draining-areas-out-of-caller-context
-+++ a/mm/vmalloc.c
-@@ -792,6 +792,8 @@ RB_DECLARE_CALLBACKS_MAX(static, free_vm
- 
- static void purge_vmap_area_lazy(void);
- static BLOCKING_NOTIFIER_HEAD(vmap_notify_list);
-+static void drain_vmap_area_work(struct work_struct *work);
-+static DECLARE_WORK(drain_vmap_work, drain_vmap_area_work);
- 
- static atomic_long_t nr_vmalloc_pages;
- 
-@@ -1723,18 +1725,6 @@ static bool __purge_vmap_area_lazy(unsig
+--- a/arch/ia64/mm/discontig.c~mm-memory_hotplug-make-arch_alloc_nodedata-independent-on-config_memory_hotplug
++++ a/arch/ia64/mm/discontig.c
+@@ -608,7 +608,6 @@ void __init paging_init(void)
+ 	zero_page_memmap_ptr = virt_to_page(ia64_imva(empty_zero_page));
  }
  
- /*
-- * Kick off a purge of the outstanding lazy areas. Don't bother if somebody
-- * is already purging.
-- */
--static void try_purge_vmap_area_lazy(void)
--{
--	if (mutex_trylock(&vmap_purge_lock)) {
--		__purge_vmap_area_lazy(ULONG_MAX, 0);
--		mutex_unlock(&vmap_purge_lock);
--	}
--}
--
--/*
-  * Kick off a purge of the outstanding lazy areas.
-  */
- static void purge_vmap_area_lazy(void)
-@@ -1745,6 +1735,20 @@ static void purge_vmap_area_lazy(void)
- 	mutex_unlock(&vmap_purge_lock);
+-#ifdef CONFIG_MEMORY_HOTPLUG
+ pg_data_t *arch_alloc_nodedata(int nid)
+ {
+ 	unsigned long size = compute_pernodesize(nid);
+@@ -626,7 +625,6 @@ void arch_refresh_nodedata(int update_no
+ 	pgdat_list[update_node] = update_pgdat;
+ 	scatter_node_data();
  }
+-#endif
  
-+static void drain_vmap_area_work(struct work_struct *work)
+ #ifdef CONFIG_SPARSEMEM_VMEMMAP
+ int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node,
+--- a/include/linux/memory_hotplug.h~mm-memory_hotplug-make-arch_alloc_nodedata-independent-on-config_memory_hotplug
++++ a/include/linux/memory_hotplug.h
+@@ -16,6 +16,65 @@ struct memory_group;
+ struct resource;
+ struct vmem_altmap;
+ 
++#ifdef CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
++/*
++ * For supporting node-hotadd, we have to allocate a new pgdat.
++ *
++ * If an arch has generic style NODE_DATA(),
++ * node_data[nid] = kzalloc() works well. But it depends on the architecture.
++ *
++ * In general, generic_alloc_nodedata() is used.
++ * Now, arch_free_nodedata() is just defined for error path of node_hot_add.
++ *
++ */
++extern pg_data_t *arch_alloc_nodedata(int nid);
++extern void arch_free_nodedata(pg_data_t *pgdat);
++extern void arch_refresh_nodedata(int nid, pg_data_t *pgdat);
++
++#else /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
++
++#define arch_alloc_nodedata(nid)	generic_alloc_nodedata(nid)
++#define arch_free_nodedata(pgdat)	generic_free_nodedata(pgdat)
++
++#ifdef CONFIG_NUMA
++/*
++ * XXX: node aware allocation can't work well to get new node's memory at this time.
++ *	Because, pgdat for the new node is not allocated/initialized yet itself.
++ *	To use new node's memory, more consideration will be necessary.
++ */
++#define generic_alloc_nodedata(nid)				\
++({								\
++	kzalloc(sizeof(pg_data_t), GFP_KERNEL);			\
++})
++/*
++ * This definition is just for error path in node hotadd.
++ * For node hotremove, we have to replace this.
++ */
++#define generic_free_nodedata(pgdat)	kfree(pgdat)
++
++extern pg_data_t *node_data[];
++static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
 +{
-+	unsigned long nr_lazy;
-+
-+	do {
-+		mutex_lock(&vmap_purge_lock);
-+		__purge_vmap_area_lazy(ULONG_MAX, 0);
-+		mutex_unlock(&vmap_purge_lock);
-+
-+		/* Recheck if further work is required. */
-+		nr_lazy = atomic_long_read(&vmap_lazy_nr);
-+	} while (nr_lazy > lazy_max_pages());
++	node_data[nid] = pgdat;
 +}
 +
- /*
-  * Free a vmap area, caller ensuring that the area has been unmapped
-  * and flush_cache_vunmap had been called for the correct range
-@@ -1771,7 +1775,7 @@ static void free_vmap_area_noflush(struc
++#else /* !CONFIG_NUMA */
++
++/* never called */
++static inline pg_data_t *generic_alloc_nodedata(int nid)
++{
++	BUG();
++	return NULL;
++}
++static inline void generic_free_nodedata(pg_data_t *pgdat)
++{
++}
++static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
++{
++}
++#endif /* CONFIG_NUMA */
++#endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
++
+ #ifdef CONFIG_MEMORY_HOTPLUG
+ struct page *pfn_to_online_page(unsigned long pfn);
  
- 	/* After this point, we may free va at any time */
- 	if (unlikely(nr_lazy > lazy_max_pages()))
--		try_purge_vmap_area_lazy();
-+		schedule_work(&drain_vmap_work);
- }
+@@ -154,66 +213,6 @@ int add_pages(int nid, unsigned long sta
+ 	      struct mhp_params *params);
+ #endif /* ARCH_HAS_ADD_PAGES */
  
- /*
+-#ifdef CONFIG_HAVE_ARCH_NODEDATA_EXTENSION
+-/*
+- * For supporting node-hotadd, we have to allocate a new pgdat.
+- *
+- * If an arch has generic style NODE_DATA(),
+- * node_data[nid] = kzalloc() works well. But it depends on the architecture.
+- *
+- * In general, generic_alloc_nodedata() is used.
+- * Now, arch_free_nodedata() is just defined for error path of node_hot_add.
+- *
+- */
+-extern pg_data_t *arch_alloc_nodedata(int nid);
+-extern void arch_free_nodedata(pg_data_t *pgdat);
+-extern void arch_refresh_nodedata(int nid, pg_data_t *pgdat);
+-
+-#else /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
+-
+-#define arch_alloc_nodedata(nid)	generic_alloc_nodedata(nid)
+-#define arch_free_nodedata(pgdat)	generic_free_nodedata(pgdat)
+-
+-#ifdef CONFIG_NUMA
+-/*
+- * If ARCH_HAS_NODEDATA_EXTENSION=n, this func is used to allocate pgdat.
+- * XXX: kmalloc_node() can't work well to get new node's memory at this time.
+- *	Because, pgdat for the new node is not allocated/initialized yet itself.
+- *	To use new node's memory, more consideration will be necessary.
+- */
+-#define generic_alloc_nodedata(nid)				\
+-({								\
+-	kzalloc(sizeof(pg_data_t), GFP_KERNEL);			\
+-})
+-/*
+- * This definition is just for error path in node hotadd.
+- * For node hotremove, we have to replace this.
+- */
+-#define generic_free_nodedata(pgdat)	kfree(pgdat)
+-
+-extern pg_data_t *node_data[];
+-static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
+-{
+-	node_data[nid] = pgdat;
+-}
+-
+-#else /* !CONFIG_NUMA */
+-
+-/* never called */
+-static inline pg_data_t *generic_alloc_nodedata(int nid)
+-{
+-	BUG();
+-	return NULL;
+-}
+-static inline void generic_free_nodedata(pg_data_t *pgdat)
+-{
+-}
+-static inline void arch_refresh_nodedata(int nid, pg_data_t *pgdat)
+-{
+-}
+-#endif /* CONFIG_NUMA */
+-#endif /* CONFIG_HAVE_ARCH_NODEDATA_EXTENSION */
+-
+ void get_online_mems(void);
+ void put_online_mems(void);
+ 
 _
 
-Patches currently in -mm which might be from urezki@gmail.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-mm-vmalloc-move-draining-areas-out-of-caller-context.patch
+mm-memory_hotplug-make-arch_alloc_nodedata-independent-on-config_memory_hotplug.patch
+mm-handle-uninitialized-numa-nodes-gracefully.patch
+mm-memory_hotplug-drop-arch_free_nodedata.patch
+mm-memory_hotplug-reorganize-new-pgdat-initialization.patch
+mm-make-free_area_init_node-aware-of-memory-less-nodes.patch
 
