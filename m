@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7F9F0C433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Jan 2022 19:43:51 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id AB223C433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Jan 2022 19:43:53 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377339AbiAaTnt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Jan 2022 14:43:49 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53438 "EHLO
+        id S1377367AbiAaTnu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Jan 2022 14:43:50 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53436 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377565AbiAaTnr (ORCPT
+        with ESMTP id S1377539AbiAaTnr (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 14:43:47 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 88A59C061748
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 63FFAC061744
         for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 11:43:45 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id D8D90CE13C7
-        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 19:43:43 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 57576C340EE;
-        Mon, 31 Jan 2022 19:43:41 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id E519E6145B
+        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 19:43:44 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 72F3BC340ED;
+        Mon, 31 Jan 2022 19:43:43 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643658222;
-        bh=uSplF/HHAl0aQwK03zeVf1jixtkAi/WKGHdmdiJoJTg=;
+        s=korg; t=1643658224;
+        bh=d7Y17lD4RyTPWQI5ZjV/NWnbUr6dndx9PCGBjwyBgeY=;
         h=Date:From:To:Subject:From;
-        b=A3q8aYAi6kmeP50XrY+vNsRH8NrMvI8QWyMBkp16Piyt5bg667kvuCSxTZmB0hbDr
-         7Xz3xX1m6vy1Cx5klHNtAOVeSi6FEHovZpQ3KdX14e7czG/jx9JLq++IOnuYwk0nJr
-         s6Oxk53KOpNmR4TgLiIWERyOXRBPpgrcXZsgSbs8=
-Date:   Mon, 31 Jan 2022 11:43:40 -0800
+        b=pyXb6ZQLj/bwI/PcegGUvofrjLEFtRsuTMoNTVRf0fKUeMAdNNBCdtYCTDuznZcDI
+         JxNFO7dG44DFIGOeQKVoclBkbiYxEIkiBuhT4oR9tgTJqfha/UpfcDf7gJGCoG7u57
+         HOwZnb4F/TR0rgQdct3elOTw1onCV4merY0FZ1zY=
+Date:   Mon, 31 Jan 2022 11:43:42 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, david@redhat.com, ddutile@redhat.com,
         guro@fb.com, hch@lst.de, hughd@google.com, jack@suse.cz,
@@ -40,9 +40,10 @@ To:     aarcange@redhat.com, david@redhat.com, ddutile@redhat.com,
         shakeelb@google.com, shy828301@gmail.com,
         torvalds@linux-foundation.org, vbabka@suse.cz, willy@infradead.org,
         zhangliang5@huawei.com
-Subject:  + mm-streamline-cow-logic-in-do_swap_page.patch added to
+Subject:  +
+ mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page.patch added to
  -mm tree
-Message-ID: <20220131194340.oatBnYu4k%akpm@linux-foundation.org>
+Message-ID: <20220131194342.PhWzJF_HS%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +52,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: streamline COW logic in do_swap_page()
+     Subject: mm/huge_memory: streamline COW logic in do_huge_pmd_wp_page()
 has been added to the -mm tree.  Its filename is
-     mm-streamline-cow-logic-in-do_swap_page.patch
+     mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-streamline-cow-logic-in-do_swap_page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-streamline-cow-logic-in-do_swap_page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,51 +74,76 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm: streamline COW logic in do_swap_page()
+Subject: mm/huge_memory: streamline COW logic in do_huge_pmd_wp_page()
 
-Currently we have a different COW logic when:
-* triggering a read-fault to swapin first and then trigger a write-fault
-  -> do_swap_page() + do_wp_page()
-* triggering a write-fault to swapin
-  -> do_swap_page() + do_wp_page() only if we fail reuse in do_swap_page()
+We currently have a different COW logic for anon THP than we have for
+ordinary anon pages in do_wp_page(): the effect is that the issue reported
+in CVE-2020-29374 is currently still possible for anon THP: an unintended
+information leak from the parent to the child.
 
-The COW logic in do_swap_page() is different than our reuse logic in
-do_wp_page().  The COW logic in do_wp_page() -- page_count() == 1 -- makes
-currently sure that we certainly don't have a remaining reference, e.g.,
-via GUP, on the target page we want to reuse: if there is any unexpected
-reference, we have to copy to avoid information leaks.
+Let's apply the same logic (page_count() == 1), with similar optimizations
+to remove additional references first as we really want to avoid
+PTE-mapping the THP and copying individual pages best we can.
 
-As do_swap_page() behaves differently, in environments with swap enabled
-we can currently have an unintended information leak from the parent to
-the child, similar as known from CVE-2020-29374:
+If we end up with a page that has page_count() != 1, we'll have to PTE-map
+the THP and fallback to do_wp_page(), which will always copy the page.
 
-	1. Parent writes to anonymous page
-	-> Page is mapped writable and modified
-	2. Page is swapped out
-	-> Page is unmapped and replaced by swap entry
-	3. fork()
-	-> Swap entries are copied to child
-	4. Child pins page R/O
-	-> Page is mapped R/O into child
-	5. Child unmaps page
-	-> Child still holds GUP reference
-	6. Parent writes to page
-	-> Page is reused in do_swap_page()
-	-> Child can observe changes
+Note that KSM does not apply to THP.
 
-Exchanging 2. and 3. should have the same effect.
+I. Interaction with the swapcache and writeback
 
-Let's apply the same COW logic as in do_wp_page(), conditionally trying to
-remove the page from the swapcache after freeing the swap entry, however,
-before actually mapping our page.  We can change the order now that we use
-try_to_free_swap(), which doesn't care about the mapcount, instead of
-reuse_swap_page().
+While a THP is in the swapcache, the swapcache holds one reference on each
+subpage of the THP.  So with PageSwapCache() set, we expect as many
+additional references as we have subpages.  If we manage to remove the THP
+from the swapcache, all these references will be gone.
 
-To handle references from the LRU pagevecs, conditionally drain the local
-LRU pagevecs when required, however, don't consider the page_count() when
-deciding whether to drain to keep it simple for now.
+Usually, a THP is not split when entered into the swapcache and stays a
+compound page.  However, try_to_unmap() will PTE-map the THP and use PTE
+swap entries.  There are no PMD swap entries for that purpose,
+consequently, we always only swapin subpages into PTEs.
 
-Link: https://lkml.kernel.org/r/20220131162940.210846-5-david@redhat.com
+Removing a page from the swapcache can fail either when there are
+remaining swap entries (in which case COW is the right thing to do) or if
+the page is currently under writeback.
+
+Having a locked, R/O PMD-mapped THP that is in the swapcache seems to be
+possible only in corner cases, for example, if try_to_unmap() failed after
+adding the page to the swapcache.  However, it's comparatively easy to
+handle.
+
+As we have to fully unmap a THP before starting writeback, and swapin is
+always done on the PTE level, we shouldn't find a R/O PMD-mapped THP in
+the swapcache that is under writeback.  This should at least leave
+writeback out of the picture.
+
+II. Interaction with GUP references
+
+Having a R/O PMD-mapped THP with GUP references (i.e., R/O references)
+will result in PTE-mapping the THP on a write fault.  Similar to ordinary
+anon pages, do_wp_page() will have to copy sub-pages and result in a
+disconnect between the GUP references and the pages actually mapped into
+the page tables.  To improve the situation in the future, we'll need
+additional handling to mark anonymous pages as definitely exclusive to a
+single process, only allow GUP pins on exclusive anon pages, and disallow
+sharing of exclusive anon pages with GUP pins e.g., during fork().
+
+III. Interaction with references from LRU pagevecs
+
+There is no need to try draining the (local) LRU pagevecs in case we would
+stumble over a !PageLRU() page: folio_add_lru() and friends will always
+flush the affected pagevec after adding a compound page to it immediately
+-- pagevec_add_and_need_flush() always returns "true" for them.  Note that
+the LRU pagevecs will hold a reference on the compound page for a very
+short time, between adding the page to the pagevec and draining it
+immediately afterwards.
+
+IV. Interaction with speculative/temporary references
+
+Similar to ordinary anon pages, other speculative/temporary references on
+the THP, for example, from the pagecache or page migration code, will
+disallow exclusive reuse of the page.  We'll have to PTE-map the THP.
+
+Link: https://lkml.kernel.org/r/20220131162940.210846-6-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -146,99 +172,46 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |   55 +++++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 43 insertions(+), 12 deletions(-)
+ mm/huge_memory.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
---- a/mm/memory.c~mm-streamline-cow-logic-in-do_swap_page
-+++ a/mm/memory.c
-@@ -3497,6 +3497,25 @@ static vm_fault_t remove_device_exclusiv
- 	return 0;
- }
+--- a/mm/huge_memory.c~mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page
++++ a/mm/huge_memory.c
+@@ -1303,7 +1303,6 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ 	page = pmd_page(orig_pmd);
+ 	VM_BUG_ON_PAGE(!PageHead(page), page);
  
-+static inline bool should_try_to_free_swap(struct page *page,
-+					   struct vm_area_struct *vma,
-+					   unsigned int fault_flags)
-+{
-+	if (!PageSwapCache(page))
-+		return false;
-+	if (mem_cgroup_swap_full(page) || (vma->vm_flags & VM_LOCKED) ||
-+	    PageMlocked(page))
-+		return true;
-+	/*
-+	 * If we want to map a page that's in the swapcache writable, we
-+	 * have to detect via the refcount if we're really the exclusive
-+	 * user. Try freeing the swapcache to get rid of the swapcache
-+	 * reference only in case it's likely that we'll be the exlusive user.
-+	 */
-+	return (fault_flags & FAULT_FLAG_WRITE) && !PageKsm(page) &&
-+		page_count(page) == 2;
-+}
-+
- /*
-  * We enter with non-exclusive mmap_lock (to exclude vma changes,
-  * but allow concurrent faults), and pte mapped but not yet locked.
-@@ -3638,6 +3657,16 @@ vm_fault_t do_swap_page(struct vm_fault
- 			page = swapcache;
- 			goto out_page;
- 		}
-+
-+		/*
-+		 * If we want to map a page that's in the swapcache writable, we
-+		 * have to detect via the refcount if we're really the exclusive
-+		 * owner. Try removing the extra reference from the local LRU
-+		 * pagevecs if required.
-+		 */
-+		if ((vmf->flags & FAULT_FLAG_WRITE) && page == swapcache &&
-+		    !PageKsm(page) && !PageLRU(page))
-+			lru_add_drain();
- 	}
- 
- 	cgroup_throttle_swaprate(page, GFP_KERNEL);
-@@ -3656,19 +3685,25 @@ vm_fault_t do_swap_page(struct vm_fault
+-	/* Lock page for reuse_swap_page() */
+ 	if (!trylock_page(page)) {
+ 		get_page(page);
+ 		spin_unlock(vmf->ptl);
+@@ -1319,10 +1318,15 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
  	}
  
  	/*
--	 * The page isn't present yet, go ahead with the fault.
--	 *
--	 * Be careful about the sequence of operations here.
--	 * To get its accounting right, reuse_swap_page() must be called
--	 * while the page is counted on swap but not yet in mapcount i.e.
--	 * before page_add_anon_rmap() and swap_free(); try_to_free_swap()
--	 * must be called after the swap_free(), or it will never succeed.
-+	 * Remove the swap entry and conditionally try to free up the swapcache.
-+	 * We're already holding a reference on the page but haven't mapped it
-+	 * yet.
+-	 * We can only reuse the page if nobody else maps the huge page or it's
+-	 * part.
++	 * See do_wp_page(): we can only map the page writable if there are
++	 * no additional references. Note that we always drain the LRU
++	 * pagevecs immediately after adding a THP.
  	 */
-+	swap_free(entry);
-+	if (should_try_to_free_swap(page, vma, vmf->flags))
+-	if (reuse_swap_page(page)) {
++	if (page_count(page) > 1 + PageSwapCache(page) * thp_nr_pages(page))
++		goto unlock_fallback;
++	if (PageSwapCache(page))
 +		try_to_free_swap(page);
++	if (page_count(page) == 1) {
+ 		pmd_t entry;
+ 		entry = pmd_mkyoung(orig_pmd);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+@@ -1333,6 +1337,7 @@ vm_fault_t do_huge_pmd_wp_page(struct vm
+ 		return VM_FAULT_WRITE;
+ 	}
  
- 	inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
- 	dec_mm_counter_fast(vma->vm_mm, MM_SWAPENTS);
- 	pte = mk_pte(page, vma->vm_page_prot);
--	if ((vmf->flags & FAULT_FLAG_WRITE) && reuse_swap_page(page)) {
-+
-+	/*
-+	 * Same logic as in do_wp_page(); however, optimize for fresh pages
-+	 * that are certainly not shared because we just allocated them without
-+	 * exposing them to the swapcache.
-+	 */
-+	if ((vmf->flags & FAULT_FLAG_WRITE) && !PageKsm(page) &&
-+	    (page != swapcache || page_count(page) == 1)) {
- 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
- 		vmf->flags &= ~FAULT_FLAG_WRITE;
- 		ret |= VM_FAULT_WRITE;
-@@ -3694,10 +3729,6 @@ vm_fault_t do_swap_page(struct vm_fault
- 	set_pte_at(vma->vm_mm, vmf->address, vmf->pte, pte);
- 	arch_do_swap_page(vma->vm_mm, vma, vmf->address, pte, vmf->orig_pte);
- 
--	swap_free(entry);
--	if (mem_cgroup_swap_full(page) ||
--	    (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
--		try_to_free_swap(page);
++unlock_fallback:
  	unlock_page(page);
- 	if (page != swapcache && swapcache) {
- 		/*
+ 	spin_unlock(vmf->ptl);
+ fallback:
 _
 
 Patches currently in -mm which might be from david@redhat.com are
