@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 907C2C433EF
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Jan 2022 19:51:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DDCE4C433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Jan 2022 19:51:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231583AbiAaTvE (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Jan 2022 14:51:04 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55022 "EHLO
+        id S1377447AbiAaTvF (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Jan 2022 14:51:05 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:55028 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377447AbiAaTvB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 14:51:01 -0500
+        with ESMTP id S1377468AbiAaTvD (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 14:51:03 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 12A4CC06173B
-        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 11:51:01 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37649C061714
+        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 11:51:02 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id C3111B82C34
-        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 19:50:59 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 22E04C340E8;
-        Mon, 31 Jan 2022 19:50:58 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id EBA2DB82C0E
+        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 19:51:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71EFEC340ED;
+        Mon, 31 Jan 2022 19:50:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643658658;
-        bh=IkaU55Kirs6l/b9HiySt1xagM0EZD3Lg0PkYVokoYYA=;
+        s=korg; t=1643658659;
+        bh=nh2w1NIglhV9huGPUvqSCg5SbaVHexyLZA5ZdBBK3Bs=;
         h=Date:From:To:Subject:From;
-        b=mYMiB95ITESMuk8sov2IZ9SM8AIwOfbDCIiBEwEm++SQ3DyFdme4UN+MBUMC0EURq
-         mabAqPPZ8UlWDQrufYeCyY3YemY7fln42bJU2mymiNX9HkUIdFB1GfWT2pY/BhrleM
-         F3bB/vNFC/T93KfkTqzBb2yubsEiIotOmRl56jBU=
-Date:   Mon, 31 Jan 2022 11:50:57 -0800
+        b=rOlLaG/UGM/jrd6hl81pct1rqbi+NGO7cmkwiT8mzwXxmIGicZwPk4kh1iABsXynQ
+         4mYhmFFvnccCA783eZzJr6+1nB+lJ47fKB9Ru5i1RUR5Lzqul6GwoDrLR0oaZeFS6J
+         Nd7jS27Wc+1Aeim6nQ7/Fj8t6Z0l87lS/3XhXw28=
+Date:   Mon, 31 Jan 2022 11:50:58 -0800
 From:   akpm@linux-foundation.org
 To:     almasrymina@google.com, duanxiongchun@bytedance.com,
         kirill.shutemov@linux.intel.com, lars.persson@axis.com,
@@ -36,9 +36,9 @@ To:     almasrymina@google.com, duanxiongchun@bytedance.com,
         rientjes@google.com, songmuchun@bytedance.com, willy@infradead.org,
         ziy@nvidia.com
 Subject:  +
- mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch added
+ mm-hugetlb-fix-missing-cache-flush-in-hugetlb_mcopy_atomic_pte.patch added
  to -mm tree
-Message-ID: <20220131195057.a-f78vn0T%akpm@linux-foundation.org>
+Message-ID: <20220131195058.l_s17xXCI%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -47,14 +47,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: fix missing cache flush in copy_huge_page_from_user()
+     Subject: mm: hugetlb: fix missing cache flush in hugetlb_mcopy_atomic_pte()
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch
+     mm-hugetlb-fix-missing-cache-flush-in-hugetlb_mcopy_atomic_pte.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-missing-cache-flush-in-hugetlb_mcopy_atomic_pte.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-missing-cache-flush-in-hugetlb_mcopy_atomic_pte.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -69,42 +69,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: hugetlb: fix missing cache flush in copy_huge_page_from_user()
+Subject: mm: hugetlb: fix missing cache flush in hugetlb_mcopy_atomic_pte()
 
-The userfaultfd calls copy_huge_page_from_user() which does not do any
-cache flushing for the target page.  Then the target page will be mapped
-to the user space with a different address (user address), which might
-have an alias issue with the kernel address used to copy the data from the
-user to.  Fix this issue by flushing dcache in copy_huge_page_from_user().
+folio_copy() will copy the data from one page to the target page, then the
+target page will be mapped to the user space address, which might have an
+alias issue with the kernel address used to copy the data from the page
+to.  Fix this issue by flushing dcache but not use flush_dcache_folio()
+since it is not backportable.
 
-Link: https://lkml.kernel.org/r/20220131160254.43211-4-songmuchun@bytedance.com
-Fixes: fa4d75c1de13 ("userfaultfd: hugetlbfs: add copy_huge_page_from_user for hugetlb userfaultfd support")
+Link: https://lkml.kernel.org/r/20220131160254.43211-5-songmuchun@bytedance.com
+Fixes: 8cc5fcbb5be8 ("mm, hugetlb: fix racy resv_huge_pages underflow on UFFDIO_COPY")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Mina Almasry <almasrymina@google.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Lars Persson <lars.persson@axis.com>
 Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mina Almasry <almasrymina@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
 Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/hugetlb.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- a/mm/memory.c~mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user
-+++ a/mm/memory.c
-@@ -5499,6 +5499,8 @@ long copy_huge_page_from_user(struct pag
- 		if (rc)
- 			break;
- 
-+		flush_dcache_page(subpage);
+--- a/mm/hugetlb.c~mm-hugetlb-fix-missing-cache-flush-in-hugetlb_mcopy_atomic_pte
++++ a/mm/hugetlb.c
+@@ -5804,6 +5804,8 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 			goto out;
+ 		}
+ 	} else {
++		int i, nr;
 +
- 		cond_resched();
+ 		if (vm_shared &&
+ 		    hugetlbfs_pagecache_present(h, dst_vma, dst_addr)) {
+ 			put_page(*pagep);
+@@ -5819,6 +5821,9 @@ int hugetlb_mcopy_atomic_pte(struct mm_s
+ 			goto out;
+ 		}
+ 		folio_copy(page_folio(page), page_folio(*pagep));
++		nr = compound_nr(page);
++		for (i = 0; i < nr; i++)
++			flush_dcache_page(page + i);
+ 		put_page(*pagep);
+ 		*pagep = NULL;
  	}
- 	return ret_val;
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
