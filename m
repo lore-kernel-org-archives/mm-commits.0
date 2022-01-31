@@ -2,33 +2,30 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A5E83C433FE
-	for <mm-commits@archiver.kernel.org>; Mon, 31 Jan 2022 19:44:01 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D8C7AC4332F
+	for <mm-commits@archiver.kernel.org>; Mon, 31 Jan 2022 19:44:02 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1377351AbiAaToA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Jan 2022 14:44:00 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:53452 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1377365AbiAaTnu (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 14:43:50 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 87469C06173B
-        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 11:43:49 -0800 (PST)
+        id S1377363AbiAaToB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Jan 2022 14:44:01 -0500
+Received: from sin.source.kernel.org ([145.40.73.55]:38266 "EHLO
+        sin.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1377403AbiAaTnz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 14:43:55 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id DBF5ECE13C9
-        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 19:43:47 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 7CFADC340E8;
-        Mon, 31 Jan 2022 19:43:45 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id E21FBCE13CD
+        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 19:43:53 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 71D50C340E8;
+        Mon, 31 Jan 2022 19:43:51 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643658226;
-        bh=zT4jys86Dpsmp9LJm1dirFj7HKpWe/kDx0Q/BuGHhZk=;
+        s=korg; t=1643658232;
+        bh=n7LsqGG0QoyFsYZ+BK8atcZoxl19gawx31+t2i7BkL4=;
         h=Date:From:To:Subject:From;
-        b=a21jx8sopObmdE9XD99RQ6PHP5XEdQeaSpbXQPXm30K9spwPpka7JP6/ecmKpeSjX
-         XV3vEGL6kBpCSWQeboNeZx/aIM42kA5TDfQh+Pre+Ob1qyXMAcTGx1q5YcpXIVP60R
-         I5RZMj1A6KeyZKepiVPm3egzR8c7neDP9CdqnKSQ=
-Date:   Mon, 31 Jan 2022 11:43:45 -0800
+        b=aIxAm07iLfUv5i2v0ovja1MyiF/vR6GBNk+fXrCv/RuBCM+p4SXseDlBmGwBhVqbJ
+         L8fbm6pLcVZg7uHxiXffnYTftzeulbZy9OyeSt9IfpIK7A8IcV1H1PgT2Z21siNJ3+
+         NGmBZIFacvZYE0G2EBojIEw8+UwxNetHyB/f1YCc=
+Date:   Mon, 31 Jan 2022 11:43:50 -0800
 From:   akpm@linux-foundation.org
 To:     aarcange@redhat.com, david@redhat.com, ddutile@redhat.com,
         guro@fb.com, hch@lst.de, hughd@google.com, jack@suse.cz,
@@ -40,9 +37,10 @@ To:     aarcange@redhat.com, david@redhat.com, ddutile@redhat.com,
         shakeelb@google.com, shy828301@gmail.com,
         torvalds@linux-foundation.org, vbabka@suse.cz, willy@infradead.org,
         zhangliang5@huawei.com
-Subject:  + mm-khugepaged-remove-reuse_swap_page-usage.patch added
+Subject:  +
+ mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch added
  to -mm tree
-Message-ID: <20220131194345.2iuKoUaMa%akpm@linux-foundation.org>
+Message-ID: <20220131194350.mx2cEibZH%akpm@linux-foundation.org>
 User-Agent: s-nail v14.8.16
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
@@ -51,14 +49,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/khugepaged: remove reuse_swap_page() usage
+     Subject: mm/huge_memory: remove stale locking logic from __split_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     mm-khugepaged-remove-reuse_swap_page-usage.patch
+     mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-khugepaged-remove-reuse_swap_page-usage.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-khugepaged-remove-reuse_swap_page-usage.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -73,31 +71,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: mm/khugepaged: remove reuse_swap_page() usage
+Subject: mm/huge_memory: remove stale locking logic from __split_huge_pmd()
 
-reuse_swap_page() currently indicates if we can write to an anon page
-without COW.  A COW is required if the page is shared by multiple
-processes (either already mapped or via swap entries) or if there is
-concurrent writeback that cannot tolerate concurrent page modifications.
+Let's remove the stale logic that was required for reuse_swap_page().
 
-However, in the context of khugepaged we're not actually going to write to
-a read-only mapped page, we'll copy the page content to our newly
-allocated THP and map that THP writable.  All we have to make sure is that
-the read-only mapped page we're about to copy won't get reused by another
-process sharing the page, otherwise, page content would get modified.  But
-that is already guaranteed via multiple mechanisms (e.g., holding a
-reference, holding the page lock, removing the rmap after copying the
-page).
-
-The swapcache handling was introduced in commit 10359213d05a ("mm:
-incorporate read-only pages into transparent huge pages") and it sounds
-like it merely wanted to mimic what do_swap_page() would do when trying to
-map a page obtained via the swapcache writable.
-
-As that logic is unnecessary, let's just remove it, removing the last user
-of reuse_swap_page().
-
-Link: https://lkml.kernel.org/r/20220131162940.210846-7-david@redhat.com
+Link: https://lkml.kernel.org/r/20220131162940.210846-10-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -126,47 +104,66 @@ Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    1 -
- mm/khugepaged.c                    |   11 -----------
- 2 files changed, 12 deletions(-)
+ mm/huge_memory.c |   32 +-------------------------------
+ 1 file changed, 1 insertion(+), 31 deletions(-)
 
---- a/include/trace/events/huge_memory.h~mm-khugepaged-remove-reuse_swap_page-usage
-+++ a/include/trace/events/huge_memory.h
-@@ -29,7 +29,6 @@
- 	EM( SCAN_VMA_NULL,		"vma_null")			\
- 	EM( SCAN_VMA_CHECK,		"vma_check_failed")		\
- 	EM( SCAN_ADDRESS_RANGE,		"not_suitable_address_range")	\
--	EM( SCAN_SWAP_CACHE_PAGE,	"page_swap_cache")		\
- 	EM( SCAN_DEL_PAGE_LRU,		"could_not_delete_page_from_lru")\
- 	EM( SCAN_ALLOC_HUGE_PAGE_FAIL,	"alloc_huge_page_failed")	\
- 	EM( SCAN_CGROUP_CHARGE_FAIL,	"ccgroup_charge_failed")	\
---- a/mm/khugepaged.c~mm-khugepaged-remove-reuse_swap_page-usage
-+++ a/mm/khugepaged.c
-@@ -46,7 +46,6 @@ enum scan_result {
- 	SCAN_VMA_NULL,
- 	SCAN_VMA_CHECK,
- 	SCAN_ADDRESS_RANGE,
--	SCAN_SWAP_CACHE_PAGE,
- 	SCAN_DEL_PAGE_LRU,
- 	SCAN_ALLOC_HUGE_PAGE_FAIL,
- 	SCAN_CGROUP_CHARGE_FAIL,
-@@ -683,16 +682,6 @@ static int __collapse_huge_page_isolate(
- 			result = SCAN_PAGE_COUNT;
- 			goto out;
- 		}
--		if (!pte_write(pteval) && PageSwapCache(page) &&
--				!reuse_swap_page(page)) {
--			/*
--			 * Page is in the swap cache and cannot be re-used.
--			 * It cannot be collapsed into a THP.
--			 */
--			unlock_page(page);
--			result = SCAN_SWAP_CACHE_PAGE;
--			goto out;
--		}
+--- a/mm/huge_memory.c~mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd
++++ a/mm/huge_memory.c
+@@ -2152,8 +2152,6 @@ void __split_huge_pmd(struct vm_area_str
+ {
+ 	spinlock_t *ptl;
+ 	struct mmu_notifier_range range;
+-	bool do_unlock_page = false;
+-	pmd_t _pmd;
  
- 		/*
- 		 * Isolate the page to avoid collapsing an hugepage
+ 	mmu_notifier_range_init(&range, MMU_NOTIFY_CLEAR, 0, vma, vma->vm_mm,
+ 				address & HPAGE_PMD_MASK,
+@@ -2172,35 +2170,9 @@ void __split_huge_pmd(struct vm_area_str
+ 			goto out;
+ 	}
+ 
+-repeat:
+ 	if (pmd_trans_huge(*pmd)) {
+-		if (!page) {
++		if (!page)
+ 			page = pmd_page(*pmd);
+-			/*
+-			 * An anonymous page must be locked, to ensure that a
+-			 * concurrent reuse_swap_page() sees stable mapcount;
+-			 * but reuse_swap_page() is not used on shmem or file,
+-			 * and page lock must not be taken when zap_pmd_range()
+-			 * calls __split_huge_pmd() while i_mmap_lock is held.
+-			 */
+-			if (PageAnon(page)) {
+-				if (unlikely(!trylock_page(page))) {
+-					get_page(page);
+-					_pmd = *pmd;
+-					spin_unlock(ptl);
+-					lock_page(page);
+-					spin_lock(ptl);
+-					if (unlikely(!pmd_same(*pmd, _pmd))) {
+-						unlock_page(page);
+-						put_page(page);
+-						page = NULL;
+-						goto repeat;
+-					}
+-					put_page(page);
+-				}
+-				do_unlock_page = true;
+-			}
+-		}
+ 		if (PageMlocked(page))
+ 			clear_page_mlock(page);
+ 	} else if (!(pmd_devmap(*pmd) || is_pmd_migration_entry(*pmd)))
+@@ -2208,8 +2180,6 @@ repeat:
+ 	__split_huge_pmd_locked(vma, pmd, range.start, freeze);
+ out:
+ 	spin_unlock(ptl);
+-	if (do_unlock_page)
+-		unlock_page(page);
+ 	/*
+ 	 * No need to double call mmu_notifier->invalidate_range() callback.
+ 	 * They are 3 cases to consider inside __split_huge_pmd_locked():
 _
 
 Patches currently in -mm which might be from david@redhat.com are
