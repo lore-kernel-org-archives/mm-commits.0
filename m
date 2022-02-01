@@ -2,37 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A1E58C433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 00:18:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 5F8B2C433FE
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 00:40:04 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230162AbiBAASh (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Jan 2022 19:18:37 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:52014 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229754AbiBAASh (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 19:18:37 -0500
+        id S230414AbiBAAkD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Jan 2022 19:40:03 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:36604 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230376AbiBAAkC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 19:40:02 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E3DE2C061714;
+        Mon, 31 Jan 2022 16:40:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 6010AB82CC0
-        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 00:18:36 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id DDC3DC340E8;
-        Tue,  1 Feb 2022 00:18:33 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 82F2760FDB;
+        Tue,  1 Feb 2022 00:40:01 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 841DFC340E8;
+        Tue,  1 Feb 2022 00:39:59 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643674715;
-        bh=+Nj9g41PbPqH81EZ3VRQHnpdo+Rw+0j8EfAOTuGrTC4=;
+        s=korg; t=1643676000;
+        bh=CsrXfoGMeQKaG2qPeBp//CQavVXu6y759jKmNTE+4L4=;
         h=Date:To:From:Subject:From;
-        b=vd0CFTPs+nMVbwsp73l+LX04I0zGoq0xEXKDWlXl5enF5bwdWCQuxchguF90PLnCH
-         nidEt9/VeEhsZY2heNziZOIn6OqdsFKMnbmKR2roaNWZ/OCcKrvkTcKpoNq7b9uw8B
-         GbuRx2FR4TysyFjBm+jT7FWnCZpeSlp3ZjvpN+vE=
-Received: by hp1 (sSMTP sendmail emulation); Mon, 31 Jan 2022 16:18:33 -0800
-Date:   Mon, 31 Jan 2022 16:18:33 -0800
-To:     mm-commits@vger.kernel.org, ojeda@kernel.org,
-        ndesaulniers@google.com, nathan@kernel.org, masahiroy@kernel.org,
-        keescook@chromium.org, akpm@linux-foundation.org
+        b=v+OsPI7k6b586cpIuu6JoKfz2yybET7JjhBwvl0cMto6MxzYaE/ZJyUdHRV+ODtoK
+         1DEo8l6WnatWTs3I7PPFRODOQaI1r/MMyi2yGX2DQPf6Kki/KRBYsrTlt/w9C5X+Lw
+         O18GJqV/ajbReRUNF7Dh9TE2XonGCSRn0QOE7u0U=
+Received: by hp1 (sSMTP sendmail emulation); Mon, 31 Jan 2022 16:39:59 -0800
+Date:   Mon, 31 Jan 2022 16:39:59 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        viro@zeniv.linux.org.uk, stable@vger.kernel.org,
+        mtk.manpages@gmail.com, keescook@chromium.org,
+        ebiederm@xmission.com, dalias@libc.org, brauner@kernel.org,
+        ariadne@dereferenced.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + kconfigdebug-make-debug_info-selectable-from-a-choice-fix.patch added to -mm tree
-Message-Id: <20220201001833.DDC3DC340E8@smtp.kernel.org>
+Subject: [alternative-merged] fs-exec-require-argv-presence-in-do_execveat_common.patch removed from -mm tree
+Message-Id: <20220201003959.841DFC340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,90 +45,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Kconfig.debug: make DEBUG_INFO always default=n
-has been added to the -mm tree.  Its filename is
-     kconfigdebug-make-debug_info-selectable-from-a-choice-fix.patch
+     Subject: fs/exec: require argv[0] presence in do_execveat_common()
+has been removed from the -mm tree.  Its filename was
+     fs-exec-require-argv-presence-in-do_execveat_common.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/kconfigdebug-make-debug_info-selectable-from-a-choice-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/kconfigdebug-make-debug_info-selectable-from-a-choice-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: Kconfig.debug: make DEBUG_INFO always default=n
+From: Ariadne Conill <ariadne@dereferenced.org>
+Subject: fs/exec: require argv[0] presence in do_execveat_common()
 
-While trying to make sure CONFIG_DEBUG_INFO wasn't set for COMPILE_TEST, I
-ordered the choices incorrectly to retain the prior default=n state.  Move
-DEBUG_INFO_NONE to the top so that the default choice is disabled, and
-remove the "if COMPILE_TEST" as it is now redundant.
+In several other operating systems, it is a hard requirement that the
+second argument to execve(2) be the name of a program, thus prohibiting a
+scenario where argc < 1.  POSIX 2017 also recommends this behaviour, but
+it is not an explicit requirement[0]:
 
-Link: https://lkml.kernel.org/r/20220128214131.580131-1-keescook@chromium.org
-Link: https://lore.kernel.org/lkml/YfRY6+CaQxX7O8vF@dev-arch.archlinux-ax161
-Reported-by: Nathan Chancellor <nathan@kernel.org>
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
-Cc: Masahiro Yamada <masahiroy@kernel.org>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Miguel Ojeda <ojeda@kernel.org>
+    The argument arg0 should point to a filename string that is
+    associated with the process being started by one of the exec
+    functions.
+
+To ensure that execve(2) with argc < 1 is not a useful tool for shellcode
+to use, we can validate this in do_execveat_common() and fail for this
+scenario, effectively blocking successful exploitation of CVE-2021-4034
+and similar bugs which depend on execve(2) working with argc < 1.
+
+We use -EINVAL for this case, mirroring recent changes to FreeBSD and
+OpenBSD.  -EINVAL is also used by QNX for this, while Solaris uses
+-EFAULT.
+
+In earlier versions of the patch, it was proposed that we create a fake
+argv for applications to use when argc < 1, but it was concluded that it
+would be better to just fail the execve(2) in these cases, as launching a
+process with an empty or NULL argv[0] was likely to just cause more
+problems.
+
+Interestingly, Michael Kerrisk opened an issue about this in 2008[1], but
+there was no consensus to support fixing this issue then.  Hopefully now
+that CVE-2021-4034 shows practical exploitative use[2] of this bug in a
+shellcode, we can reconsider.
+
+This issue is being tracked in the KSPP issue tracker[3].
+
+There are a few[4][5] minor edge cases (primarily in test suites) that are
+caught by this, but we plan to work with the projects to fix those edge
+cases.
+
+[0]: https://pubs.opengroup.org/onlinepubs/9699919799/functions/exec.html
+[1]: https://bugzilla.kernel.org/show_bug.cgi?id=8408
+[2]: https://www.qualys.com/2022/01/25/cve-2021-4034/pwnkit.txt
+[3]: https://github.com/KSPP/linux/issues/176
+[4]: https://codesearch.debian.net/search?q=execve%5C+*%5C%28%5B%5E%2C%5D%2B%2C+*NULL&literal=0
+[5]: https://codesearch.debian.net/search?q=execlp%3F%5Cs*%5C%28%5B%5E%2C%5D%2B%2C%5Cs*NULL&literal=0
+
+Link: https://lkml.kernel.org/r/20220127000724.15106-1-ariadne@dereferenced.org
+Signed-off-by: Ariadne Conill <ariadne@dereferenced.org>
+Reported-by: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |   13 ++++++-------
- 1 file changed, 6 insertions(+), 7 deletions(-)
+ fs/exec.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
---- a/lib/Kconfig.debug~kconfigdebug-make-debug_info-selectable-from-a-choice-fix
-+++ a/lib/Kconfig.debug
-@@ -234,7 +234,6 @@ config DEBUG_INFO
- choice
- 	prompt "Debug information"
- 	depends on DEBUG_KERNEL
--	default DEBUG_INFO_NONE if COMPILE_TEST
- 	help
- 	  Selecting something other than "None" results in a kernel image
- 	  that will include debugging info resulting in a larger kernel image.
-@@ -245,6 +244,12 @@ choice
- 	  Choose which version of DWARF debug info to emit. If unsure,
- 	  select "Toolchain default".
+--- a/fs/exec.c~fs-exec-require-argv-presence-in-do_execveat_common
++++ a/fs/exec.c
+@@ -1897,6 +1897,10 @@ static int do_execveat_common(int fd, st
+ 	}
  
-+config DEBUG_INFO_NONE
-+	bool "Disable debug information"
-+	help
-+	  Do not build the kernel with debugging information, which will
-+	  result in a faster and smaller build.
-+
- config DEBUG_INFO_DWARF_TOOLCHAIN_DEFAULT
- 	bool "Rely on the toolchain's implicit default DWARF version"
- 	select DEBUG_INFO
-@@ -283,12 +288,6 @@ config DEBUG_INFO_DWARF5
- 	  config if they rely on tooling that has not yet been updated to
- 	  support DWARF Version 5.
- 
--config DEBUG_INFO_NONE
--	bool "Disable debug information"
--	help
--	  Do not build the kernel with debugging information, which will
--	  result in a faster and smaller build.
--
- endchoice # "Debug information"
- 
- if DEBUG_INFO
+ 	retval = count(argv, MAX_ARG_STRINGS);
++	if (retval == 0) {
++		pr_warn_once("Attempted to run process '%s' with NULL argv\n", bprm->filename);
++		retval = -EINVAL;
++	}
+ 	if (retval < 0)
+ 		goto out_free;
+ 	bprm->argc = retval;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from ariadne@dereferenced.org are
 
-kconfigdebug-make-debug_info-selectable-from-a-choice.patch
-kconfigdebug-make-debug_info-selectable-from-a-choice-fix.patch
 
