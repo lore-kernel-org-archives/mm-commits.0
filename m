@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 152D6C433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 20:50:05 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id BE805C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 20:58:22 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236497AbiBAUuD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Feb 2022 15:50:03 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:53778 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231629AbiBAUuD (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2022 15:50:03 -0500
+        id S242672AbiBAU6U (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Feb 2022 15:58:20 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:55472 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S242531AbiBAU6S (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2022 15:58:18 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 015FE61723;
-        Tue,  1 Feb 2022 20:50:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1C34DC340EB;
-        Tue,  1 Feb 2022 20:50:01 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 7A892B82F8D
+        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 20:58:17 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DCF7CC340EB;
+        Tue,  1 Feb 2022 20:58:14 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643748602;
-        bh=QnZATx0lkZS4eAV3fifDYwvtSlnhsWLURXHzYtsWpuc=;
+        s=korg; t=1643749096;
+        bh=fqo/Cs9VmeENzUszBePsTs/X5/ArzOQQR2v+mm2TnSc=;
         h=Date:To:From:Subject:From;
-        b=KfcXgPqzHO9g+s0BpDSMKICyrYDmJ1JwIIPzJ0K/do9ZZsFESryR/cyl9d8HvvD0O
-         G8aow4dfzc+gexkVNP6w0BpPQCSEwpV/FDyibOyHZFsMs8kL6Hc03b1ce1E9FfV0yV
-         1ONwvCC4cBU/tDOMVzr6ohv9008DZzpXhpp0X8GU=
-Received: by hp1 (sSMTP sendmail emulation); Tue, 01 Feb 2022 12:50:00 -0800
-Date:   Tue, 01 Feb 2022 12:50:00 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        kirill.shutemov@linux.intel.com, jhubbard@nvidia.com,
-        jglisse@redhat.com, jack@suse.cz, alex.williamson@redhat.com,
-        aarcange@redhat.com, peterx@redhat.com, akpm@linux-foundation.org
+        b=F5Jsn1YWOiYkfqTmbFsr8zTQJN5wnY6BjNwP99Wditv/qmkiJbxSnoCEm6+7haOer
+         rO+Yp1xNHrnkzXk5E5D6LWA/rFqR2Lmx9eJ5bJcEeZ676hgZ2eID4mEK5aKoyipyXy
+         W7TiXROZEQANuMe5Ch086SZSO/t+Qhvv/n2W7qno=
+Received: by hp1 (sSMTP sendmail emulation); Tue, 01 Feb 2022 12:58:14 -0800
+Date:   Tue, 01 Feb 2022 12:58:14 -0800
+To:     mm-commits@vger.kernel.org, kirill.shutemov@linux.intel.com,
+        jhubbard@nvidia.com, jgg@ziepe.ca, jgg@nvidia.com, jack@suse.cz,
+        david@redhat.com, alex.williamson@redhat.com, aarcange@redhat.com,
+        peterx@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch removed from -mm tree
-Message-Id: <20220201205001.1C34DC340EB@smtp.kernel.org>
+Subject: + mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch added to -mm tree
+Message-Id: <20220201205814.DCF7CC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,15 +41,34 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup.c: fix invalid page pointer returned with FOLL_PIN gups
-has been removed from the -mm tree.  Its filename was
+     Subject: mm: fix invalid page pointer returned with FOLL_PIN gups
+has been added to the -mm tree.  Its filename is
      mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Peter Xu <peterx@redhat.com>
-Subject: mm/gup.c: fix invalid page pointer returned with FOLL_PIN gups
+Subject: mm: fix invalid page pointer returned with FOLL_PIN gups
+
+Patch series "mm/gup: some cleanups", v2.
+
+
+This patch (of 4):
 
 Alex reported invalid page pointer returned with pin_user_pages_remote()
 from vfio after upstream commit 4b6c33b32296 ("vfio/type1: Prepare for
@@ -75,32 +94,29 @@ FOLL_PIN pages"), even if that commit rightfully touched up
 follow_devmap_pud() on checking FOLL_PIN when it needs to return an
 -EEXIST.
 
-Since at it, add another WARN_ON_ONCE() at the -EEXIST handling to make
-sure we mustn't have **pages set when reaching there, because otherwise it
-means the caller will try to read a garbage right after __get_user_pages()
-returns.
+Attaching the Fixes to the FOLL_PIN rework commit, as it happened later than
+1027e4436b6a.
 
-Attaching the Fixes to the FOLL_PIN rework commit, as it happened later
-than 1027e4436b6a.
-
-Link: https://lkml.kernel.org/r/20220125033700.69705-1-peterx@redhat.com
+Link: https://lkml.kernel.org/r/20220201101108.306062-1-jhubbard@nvidia.com
+Link: https://lkml.kernel.org/r/20220201101108.306062-2-jhubbard@nvidia.com
 Fixes: 3faa52c03f44 ("mm/gup: track FOLL_PIN pages")
 Signed-off-by: Peter Xu <peterx@redhat.com>
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
+Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Reported-by: Alex Williamson <alex.williamson@redhat.com>
 Debugged-by: Alex Williamson <alex.williamson@redhat.com>
 Tested-by: Alex Williamson <alex.williamson@redhat.com>
-Reviewed-by: John Hubbard <jhubbard@nvidia.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Jan Kara <jack@suse.cz>
-Cc: Jérôme Glisse <jglisse@redhat.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: <stable@vger.kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jason Gunthorpe <jgg@ziepe.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ mm/gup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 --- a/mm/gup.c~mm-fix-invalid-page-pointer-returned-with-foll_pin-gups
 +++ a/mm/gup.c
@@ -113,22 +129,9 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  		return -EFAULT;
  
  	if (flags & FOLL_TOUCH) {
-@@ -1181,7 +1181,13 @@ retry:
- 			/*
- 			 * Proper page table entry exists, but no corresponding
- 			 * struct page.
-+			 *
-+			 * Warn if we jumped over even with a valid **pages.
-+			 * It shouldn't trigger in practise, but when there's
-+			 * buggy returns on -EEXIST we'll warn before returning
-+			 * an invalid page pointer in the array.
- 			 */
-+			WARN_ON_ONCE(pages);
- 			goto next_page;
- 		} else if (IS_ERR(page)) {
- 			ret = PTR_ERR(page);
 _
 
 Patches currently in -mm which might be from peterx@redhat.com are
 
+mm-fix-invalid-page-pointer-returned-with-foll_pin-gups.patch
 
