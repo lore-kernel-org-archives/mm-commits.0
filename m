@@ -2,37 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A6695C433FE
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 00:52:14 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DFB9FC433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 00:54:48 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231345AbiBAAwO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Jan 2022 19:52:14 -0500
-Received: from ams.source.kernel.org ([145.40.68.75]:36076 "EHLO
-        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231351AbiBAAwJ (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 19:52:09 -0500
+        id S230053AbiBAAyr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Jan 2022 19:54:47 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:39898 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229739AbiBAAyr (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 19:54:47 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 55183C061714
+        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 16:54:46 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 4D73DB82CA2;
-        Tue,  1 Feb 2022 00:52:08 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C129CC340E8;
-        Tue,  1 Feb 2022 00:52:05 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 2204BB82CCC
+        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 00:54:45 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BB0F5C340E8;
+        Tue,  1 Feb 2022 00:54:42 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643676727;
-        bh=QOi8H3QAK1EPbB/Xm/Ov9s81bm+RTRA6MdtBDdjQxt4=;
+        s=korg; t=1643676883;
+        bh=IIlTY8pNMEA+eXMo+27InYpFH90Y8iVdfCUK9dtvE94=;
         h=Date:To:From:Subject:From;
-        b=HeaqmVmZgE1tfS8Mm9ZUwg2XcWpCNg1zzWWOk0Ot/5gIzFUfyxxX2/PGEG84oTKMI
-         N3POAQd+D3sE/LYtcgD6C/2d5LgB404pYIXYP6SVY9TbMARSr+07oRsG89Km2Dt8j5
-         aCpw5GbFtrIgZWiBEFynI/gGwhIT8DqsUvxwZvEc=
-Received: by hp1 (sSMTP sendmail emulation); Mon, 31 Jan 2022 16:52:05 -0800
-Date:   Mon, 31 Jan 2022 16:52:05 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        osalvador@suse.de, david@redhat.com, catalin.marinas@arm.com,
-        lang.yu@amd.com, akpm@linux-foundation.org
+        b=AwaMUNRVyBhNCHI3aMwgY/fl4lJV5b2n6U3AFetyd53nDH9mTjijGFYIiLG+wdX6m
+         kfOMXsMZYZ+2sHsp5Di/RikhSLeO+rhNySyjs8ZzN8ppNTYr5o48kW8Xyqx9tlSMpp
+         hag7hErORuhTKfdzB3TQ+ySAiIsGMMaOoIelx+0w=
+Received: by hp1 (sSMTP sendmail emulation); Mon, 31 Jan 2022 16:54:42 -0800
+Date:   Mon, 31 Jan 2022 16:54:42 -0800
+To:     mm-commits@vger.kernel.org, lukas.bulwahn@gmail.com,
+        dwaipayanray1@gmail.com, joe@perches.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-kmemleak-avoid-scanning-potential-huge-holes.patch added to -mm tree
-Message-Id: <20220201005205.C129CC340E8@smtp.kernel.org>
+Subject: + checkpatch-add-fix-option-for-some-trailing_statements.patch added to -mm tree
+Message-Id: <20220201005442.BB0F5C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -40,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak: avoid scanning potential huge holes
+     Subject: checkpatch: add --fix option for some TRAILING_STATEMENTS
 has been added to the -mm tree.  Its filename is
-     mm-kmemleak-avoid-scanning-potential-huge-holes.patch
+     checkpatch-add-fix-option-for-some-trailing_statements.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-avoid-scanning-potential-huge-holes.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-fix-option-for-some-trailing_statements.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-avoid-scanning-potential-huge-holes.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-fix-option-for-some-trailing_statements.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -61,123 +63,76 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Lang Yu <lang.yu@amd.com>
-Subject: mm/kmemleak: avoid scanning potential huge holes
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: add --fix option for some TRAILING_STATEMENTS
 
-When using devm_request_free_mem_region() and devm_memremap_pages() to add
-ZONE_DEVICE memory, if requested free mem region's end pfn were huge(e.g.,
-0x400000000), the node_end_pfn() will be also huge (see
-move_pfn_range_to_zone()).  Thus it creates a huge hole between
-node_start_pfn() and node_end_pfn().
+Single line code like:
 
-We found on some AMD APUs, amdkfd requested such a free mem region and
-created a huge hole.  In such a case, following code snippet was just
-doing busy test_bit() looping on the huge hole.
+	if (foo) bar;
 
-for (pfn = start_pfn; pfn < end_pfn; pfn++) {
-	struct page *page = pfn_to_online_page(pfn);
-		if (!page)
-			continue;
-	...
-}
+should generally be written:
 
-So we got a soft lockup:
+	if (foo)
+		bar;
 
-watchdog: BUG: soft lockup - CPU#6 stuck for 26s! [bash:1221]
-CPU: 6 PID: 1221 Comm: bash Not tainted 5.15.0-custom #1
-RIP: 0010:pfn_to_online_page+0x5/0xd0
-Call Trace:
-  ? kmemleak_scan+0x16a/0x440
-  kmemleak_write+0x306/0x3a0
-  ? common_file_perm+0x72/0x170
-  full_proxy_write+0x5c/0x90
-  vfs_write+0xb9/0x260
-  ksys_write+0x67/0xe0
-  __x64_sys_write+0x1a/0x20
-  do_syscall_64+0x3b/0xc0
-  entry_SYSCALL_64_after_hwframe+0x44/0xae
+Add a --fix test to do so.
 
-I did some tests with the patch.
+This fix is not done when an ASSIGN_IN_IF in the same line exists.
 
-(1) amdgpu module unloaded
-
-before the patch:
-
-real    0m0.976s
-user    0m0.000s
-sys     0m0.968s
-
-after the patch:
-
-real    0m0.981s
-user    0m0.000s
-sys     0m0.973s
-
-(2) amdgpu module loaded
-
-before the patch:
-
-real    0m35.365s
-user    0m0.000s
-sys     0m35.354s
-
-after the patch:
-
-real    0m1.049s
-user    0m0.000s
-sys     0m1.042s
-
-Link: https://lkml.kernel.org/r/20211108140029.721144-1-lang.yu@amd.com
-Signed-off-by: Lang Yu <lang.yu@amd.com>
-Acked-by: David Hildenbrand <david@redhat.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Oscar Salvador <osalvador@suse.de>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220128185924.80137-2-joe@perches.com
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Dwaipayan Ray <dwaipayanray1@gmail.com>
+Cc: Lukas Bulwahn <lukas.bulwahn@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ scripts/checkpatch.pl |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
 
---- a/mm/kmemleak.c~mm-kmemleak-avoid-scanning-potential-huge-holes
-+++ a/mm/kmemleak.c
-@@ -1410,7 +1410,8 @@ static void kmemleak_scan(void)
- {
- 	unsigned long flags;
- 	struct kmemleak_object *object;
--	int i;
-+	struct zone *zone;
-+	int __maybe_unused i;
- 	int new_leaks = 0;
+--- a/scripts/checkpatch.pl~checkpatch-add-fix-option-for-some-trailing_statements
++++ a/scripts/checkpatch.pl
+@@ -5551,6 +5551,7 @@ sub process {
+ 		    defined($stat) && defined($cond) &&
+ 		    $line =~ /\b(?:if|while|for)\s*\(/ && $line !~ /^.\s*#/) {
+ 			my ($s, $c) = ($stat, $cond);
++			my $fixed_assign_in_if = 0;
  
- 	jiffies_last_scan = jiffies;
-@@ -1450,9 +1451,9 @@ static void kmemleak_scan(void)
- 	 * Struct page scanning for each node.
- 	 */
- 	get_online_mems();
--	for_each_online_node(i) {
--		unsigned long start_pfn = node_start_pfn(i);
--		unsigned long end_pfn = node_end_pfn(i);
-+	for_each_populated_zone(zone) {
-+		unsigned long start_pfn = zone->zone_start_pfn;
-+		unsigned long end_pfn = zone_end_pfn(zone);
- 		unsigned long pfn;
+ 			if ($c =~ /\bif\s*\(.*[^<>!=]=[^=].*/s) {
+ 				if (ERROR("ASSIGN_IN_IF",
+@@ -5575,6 +5576,7 @@ sub process {
+ 						$newline .= ')';
+ 						$newline .= " {" if (defined($brace));
+ 						fix_insert_line($fixlinenr + 1, $newline);
++						$fixed_assign_in_if = 1;
+ 					}
+ 				}
+ 			}
+@@ -5598,8 +5600,20 @@ sub process {
+ 					$stat_real = "[...]\n$stat_real";
+ 				}
  
- 		for (pfn = start_pfn; pfn < end_pfn; pfn++) {
-@@ -1461,8 +1462,8 @@ static void kmemleak_scan(void)
- 			if (!page)
- 				continue;
+-				ERROR("TRAILING_STATEMENTS",
+-				      "trailing statements should be on next line\n" . $herecurr . $stat_real);
++				if (ERROR("TRAILING_STATEMENTS",
++					  "trailing statements should be on next line\n" . $herecurr . $stat_real) &&
++				    !$fixed_assign_in_if &&
++				    $cond_lines == 0 &&
++				    $fix && $perl_version_ok &&
++				    $fixed[$fixlinenr] =~ /^\+(\s*)((?:if|while|for)\s*$balanced_parens)\s*(.*)$/) {
++					my $indent = $1;
++					my $test = $2;
++					my $rest = rtrim($4);
++					if ($rest =~ /;$/) {
++						$fixed[$fixlinenr] = "\+$indent$test";
++						fix_insert_line($fixlinenr + 1, "$indent\t$rest");
++					}
++				}
+ 			}
+ 		}
  
--			/* only scan pages belonging to this node */
--			if (page_to_nid(page) != i)
-+			/* only scan pages belonging to this zone */
-+			if (page_zone(page) != zone)
- 				continue;
- 			/* only scan if page is in use */
- 			if (page_count(page) == 0)
 _
 
-Patches currently in -mm which might be from lang.yu@amd.com are
+Patches currently in -mm which might be from joe@perches.com are
 
-mm-kmemleak-avoid-scanning-potential-huge-holes.patch
+checkpatch-add-fix-option-for-some-trailing_statements.patch
 
