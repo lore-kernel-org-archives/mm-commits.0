@@ -2,41 +2,42 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id DD869C433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 01:58:58 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 88E51C433F5
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 02:02:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231983AbiBAB66 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 31 Jan 2022 20:58:58 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54536 "EHLO
+        id S232660AbiBACC2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 31 Jan 2022 21:02:28 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:54918 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231927AbiBAB65 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 20:58:57 -0500
+        with ESMTP id S232659AbiBACA7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 31 Jan 2022 21:00:59 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id AF164C061714
-        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 17:58:57 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DB640C0613EC
+        for <mm-commits@vger.kernel.org>; Mon, 31 Jan 2022 18:00:35 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 76722B82C0D
-        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 01:58:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CEC7EC340E8;
-        Tue,  1 Feb 2022 01:58:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9B96EB82CE7
+        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 02:00:34 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D9279C34115;
+        Tue,  1 Feb 2022 02:00:31 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643680735;
-        bh=Io15ig48QDKH9KXPatQ5Ydu6JOCF4XajYOgyEkrNBfA=;
+        s=korg; t=1643680833;
+        bh=OHOm7DkWYaiskD6M7PSwq+RCb0JEKBMI1XgIPDD7KTA=;
         h=Date:To:From:Subject:From;
-        b=DvhtzmCvOhf/q1JpIsMQKXTtgRFZEb44LtlVt7hZjDdqqaKN29uIRiwc7qdpyexCX
-         9L3DOckYBJqpVpfF+tLUS2xaf2WxA4Fdql5jrcPmeFFPxeiJ1Xwos85dvtuAl/MCLX
-         zoCSqxRdVXhBq5/h8z6hOAVzj2fnpEXCc3vR1S4M=
-Received: by hp1 (sSMTP sendmail emulation); Mon, 31 Jan 2022 17:58:53 -0800
-Date:   Mon, 31 Jan 2022 17:58:53 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
-        rostedt@goodmis.org, n-horiguchi@ah.jp.nec.com, mingo@redhat.com,
-        lkp@intel.com, jhubbard@nvidia.com, anshuman.khandual@arm.com,
-        akpm@linux-foundation.org
+        b=IUbLXHytJS4aGZAuMytm4AvCsybBwRU0jqD1lf2DD3RT8UQTyK18ZgasuKkzvgAPO
+         RcLeGSEm4sIShEJlKG/ZUXeJyf5iQlS6kc1r3Qv9+LTM17EZyvZxbgNsYay77m30mb
+         A9qNuQXLINg1wBgpkiPzLLx/sgDFzI0EhF+Juwpc=
+Received: by hp1 (sSMTP sendmail emulation); Mon, 31 Jan 2022 18:00:31 -0800
+Date:   Mon, 31 Jan 2022 18:00:31 -0800
+To:     mm-commits@vger.kernel.org, yangyingliang@huawei.com,
+        willy@infradead.org, viro@zeniv.linux.org.uk, shuah@kernel.org,
+        mtk.manpages@gmail.com, ebiederm@xmission.com, dalias@libc.org,
+        brauner@kernel.org, ariadne@dereferenced.org,
+        keescook@chromium.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch added to -mm tree
-Message-Id: <20220201015853.CEC7EC340E8@smtp.kernel.org>
+Subject: + selftests-exec-test-for-empty-string-on-null-argv.patch added to -mm tree
+Message-Id: <20220201020031.D9279C34115@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +45,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/migration: add trace events for base page and HugeTLB migrations
+     Subject: selftests/exec: test for empty string on NULL argv
 has been added to the -mm tree.  Its filename is
-     mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch
+     selftests-exec-test-for-empty-string-on-null-argv.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/selftests-exec-test-for-empty-string-on-null-argv.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-exec-test-for-empty-string-on-null-argv.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,140 +66,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anshuman Khandual <anshuman.khandual@arm.com>
-Subject: mm/migration: add trace events for base page and HugeTLB migrations
+From: Kees Cook <keescook@chromium.org>
+Subject: selftests/exec: test for empty string on NULL argv
 
-This adds two trace events for base page and HugeTLB page migrations. 
-These events, closely follow the implementation details like setting and
-removing of PTE migration entries, which are essential operations for
-migration.  The new CREATE_TRACE_POINTS in <mm/rmap.c> covers both
-<events/migration.h> and <events/tlb.h> based trace events.  Hence drop
-redundant CREATE_TRACE_POINTS from other places which could have otherwise
-conflicted during build.
+Test for the NULL argv argument producing a single empty string on exec.
 
-Link: https://lkml.kernel.org/r/1643368182-9588-3-git-send-email-anshuman.khandual@arm.com
-Signed-off-by: Anshuman Khandual <anshuman.khandual@arm.com>
-Reported-by: kernel test robot <lkp@intel.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Zi Yan <ziy@nvidia.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: John Hubbard <jhubbard@nvidia.com>
+Link: https://lkml.kernel.org/r/20220201011637.2457646-1-keescook@chromium.org
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Yang Yingliang <yangyingliang@huawei.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Ariadne Conill <ariadne@dereferenced.org>
+Cc: Christian Brauner <brauner@kernel.org>
 Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Rich Felker <dalias@libc.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/init.c             |    1 -
- include/trace/events/migrate.h |   31 +++++++++++++++++++++++++++++++
- mm/migrate.c                   |    4 +++-
- mm/rmap.c                      |    6 ++++++
- 4 files changed, 40 insertions(+), 2 deletions(-)
+ tools/testing/selftests/exec/Makefile    |    1 
+ tools/testing/selftests/exec/null-argv.c |   78 +++++++++++++++++++++
+ 2 files changed, 79 insertions(+)
 
---- a/arch/x86/mm/init.c~mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations
-+++ a/arch/x86/mm/init.c
-@@ -31,7 +31,6 @@
-  * We need to define the tracepoints somewhere, and tlb.c
-  * is only compiled when SMP=y.
-  */
--#define CREATE_TRACE_POINTS
- #include <trace/events/tlb.h>
+--- a/tools/testing/selftests/exec/Makefile~selftests-exec-test-for-empty-string-on-null-argv
++++ a/tools/testing/selftests/exec/Makefile
+@@ -10,6 +10,7 @@ TEST_GEN_FILES := execveat.symlink execv
+ TEST_FILES := Makefile
  
- #include "mm_internal.h"
---- a/include/trace/events/migrate.h~mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations
-+++ a/include/trace/events/migrate.h
-@@ -105,6 +105,37 @@ TRACE_EVENT(mm_migrate_pages_start,
- 		  __print_symbolic(__entry->reason, MIGRATE_REASON))
- );
+ TEST_GEN_PROGS += recursion-depth
++TEST_GEN_PROGS += null-argv
  
-+DECLARE_EVENT_CLASS(migration_pte,
+ EXTRA_CLEAN := $(OUTPUT)/subdir.moved $(OUTPUT)/execveat.moved $(OUTPUT)/xxxxx*	\
+ 	       $(OUTPUT)/S_I*.test
+--- /dev/null
++++ a/tools/testing/selftests/exec/null-argv.c
+@@ -0,0 +1,78 @@
++// SPDX-License-Identifier: GPL-2.0-only
++/* Test that empty argvs are swapped out for a single empty string. */
++#include <stdio.h>
++#include <unistd.h>
++#include <sys/types.h>
++#include <sys/wait.h>
 +
-+		TP_PROTO(unsigned long addr, unsigned long pte, int order),
++#include "../kselftest.h"
 +
-+		TP_ARGS(addr, pte, order),
++#define FORK(exec)				\
++do {						\
++	pid = fork();				\
++	if (pid == 0) {				\
++		/* Child */			\
++		exec; /* Some kind of exec */	\
++		perror("# " #exec);		\
++		return 1;			\
++	}					\
++	check_result(pid, #exec);		\
++} while (0)
 +
-+		TP_STRUCT__entry(
-+			__field(unsigned long, addr)
-+			__field(unsigned long, pte)
-+			__field(int, order)
-+		),
++void check_result(pid_t pid, const char *msg)
++{
++	int wstatus;
 +
-+		TP_fast_assign(
-+			__entry->addr = addr;
-+			__entry->pte = pte;
-+			__entry->order = order;
-+		),
++	if (pid == (pid_t)-1) {
++		perror("# fork");
++		ksft_test_result_fail("fork failed: %s\n", msg);
++		return;
++	}
++	if (waitpid(pid, &wstatus, 0) < 0) {
++		perror("# waitpid");
++		ksft_test_result_fail("waitpid failed: %s\n", msg);
++		return;
++	}
++	if (!WIFEXITED(wstatus)) {
++		ksft_test_result_fail("child did not exit: %s\n", msg);
++		return;
++	}
++	if (WEXITSTATUS(wstatus) != 0) {
++		ksft_test_result_fail("non-zero exit: %s\n", msg);
++		return;
++	}
++	ksft_test_result_pass("%s\n", msg);
++}
 +
-+		TP_printk("addr=%lx, pte=%lx order=%d", __entry->addr, __entry->pte, __entry->order)
-+);
++int main(int argc, char *argv[], char *envp[])
++{
++	pid_t pid;
++	static char * const args[] = { NULL };
++	static char * const str[] = { "", NULL };
 +
-+DEFINE_EVENT(migration_pte, set_migration_pte,
-+	TP_PROTO(unsigned long addr, unsigned long pte, int order),
-+	TP_ARGS(addr, pte, order)
-+);
++	/* argc counting checks */
++	if (argc < 1) {
++		fprintf(stderr, "# FAIL: saw argc == 0 (old kernel?)\n");
++		return 1;
++	}
++	if (argc != 1) {
++		fprintf(stderr, "# FAIL: unknown argc (%d)\n", argc);
++		return 1;
++	}
++	if (argv[0][0] == '\0') {
++		/* Good, we found a NULL terminated string at argv[0]! */
++		return 0;
++	}
 +
-+DEFINE_EVENT(migration_pte, remove_migration_pte,
-+	TP_PROTO(unsigned long addr, unsigned long pte, int order),
-+	TP_ARGS(addr, pte, order)
-+);
++	/* Test runner. */
++	ksft_print_header();
++	ksft_set_plan(5);
 +
- #endif /* _TRACE_MIGRATE_H */
- 
- /* This part must be outside protection */
---- a/mm/migrate.c~mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations
-+++ a/mm/migrate.c
-@@ -54,7 +54,6 @@
- 
- #include <asm/tlbflush.h>
- 
--#define CREATE_TRACE_POINTS
- #include <trace/events/migrate.h>
- 
- #include "internal.h"
-@@ -257,6 +256,9 @@ static bool remove_migration_pte(struct
- 		if (PageTransHuge(page) && PageMlocked(page))
- 			clear_page_mlock(page);
- 
-+		trace_remove_migration_pte(pvmw.address, pte_val(pte),
-+					   compound_order(new));
++	FORK(execve(argv[0], str, NULL));
++	FORK(execve(argv[0], NULL, NULL));
++	FORK(execve(argv[0], NULL, envp));
++	FORK(execve(argv[0], args, NULL));
++	FORK(execve(argv[0], args, envp));
 +
- 		/* No need to invalidate - it was non-present before */
- 		update_mmu_cache(vma, pvmw.address, pvmw.pte);
- 	}
---- a/mm/rmap.c~mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations
-+++ a/mm/rmap.c
-@@ -76,7 +76,9 @@
- 
- #include <asm/tlbflush.h>
- 
-+#define CREATE_TRACE_POINTS
- #include <trace/events/tlb.h>
-+#include <trace/events/migrate.h>
- 
- #include "internal.h"
- 
-@@ -1861,6 +1863,8 @@ static bool try_to_migrate_one(struct pa
- 			if (pte_swp_uffd_wp(pteval))
- 				swp_pte = pte_swp_mkuffd_wp(swp_pte);
- 			set_pte_at(mm, pvmw.address, pvmw.pte, swp_pte);
-+			trace_set_migration_pte(pvmw.address, pte_val(swp_pte),
-+						compound_order(page));
- 			/*
- 			 * No need to invalidate here it will synchronize on
- 			 * against the special swap migration pte.
-@@ -1929,6 +1933,8 @@ static bool try_to_migrate_one(struct pa
- 			if (pte_uffd_wp(pteval))
- 				swp_pte = pte_swp_mkuffd_wp(swp_pte);
- 			set_pte_at(mm, address, pvmw.pte, swp_pte);
-+			trace_set_migration_pte(address, pte_val(swp_pte),
-+						compound_order(page));
- 			/*
- 			 * No need to invalidate here it will synchronize on
- 			 * against the special swap migration pte.
++	ksft_exit(ksft_cnt.ksft_pass == ksft_plan);
++}
 _
 
-Patches currently in -mm which might be from anshuman.khandual@arm.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-mm-generalize-arch_has_filter_pgprot.patch
-mm-migration-add-trace-events-for-thp-migrations.patch
-mm-migration-add-trace-events-for-base-page-and-hugetlb-migrations.patch
+kconfigdebug-make-debug_info-selectable-from-a-choice.patch
+kconfigdebug-make-debug_info-selectable-from-a-choice-fix.patch
+exec-force-single-empty-string-when-argv-is-empty.patch
+selftests-exec-test-for-empty-string-on-null-argv.patch
 
