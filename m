@@ -2,39 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 40A68C433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 21:33:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D2730C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 21:37:56 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232320AbiBAVd2 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Feb 2022 16:33:28 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:50562 "EHLO
+        id S233436AbiBAVh4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Feb 2022 16:37:56 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:52726 "EHLO
         dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229785AbiBAVd0 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2022 16:33:26 -0500
+        with ESMTP id S229785AbiBAVhz (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2022 16:37:55 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id D0631616EA
-        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 21:33:25 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3F3FC340EB;
-        Tue,  1 Feb 2022 21:33:23 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 9D5FC61793
+        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 21:37:55 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA778C340EB;
+        Tue,  1 Feb 2022 21:37:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643751205;
-        bh=bl92YtqEWrzZXK/WwtSa/+EcJ/+vNndzzgQKeUQQAzw=;
+        s=korg; t=1643751475;
+        bh=wxBbnteOScRmENSXJfneVOTKdAxyDxYLHTjVCy/wS58=;
         h=Date:To:From:Subject:From;
-        b=qD4D5yQGJr0dCqBGZL1rD//OqtyoVfU/76bQkrhKm55vrK8/XYDevrhIB7H8Mi4Gy
-         O6nRSRctdwDJMOe8UL69J9sCBhzGWi6WVK42Fkl2lZ4qzZ4CO99kdWBj6Fbpi+lhLm
-         qm27F978tmyFQeOlqgNXNB8MBTivjwrLFO5S1M1Q=
-Received: by hp1 (sSMTP sendmail emulation); Tue, 01 Feb 2022 13:33:23 -0800
-Date:   Tue, 01 Feb 2022 13:33:23 -0800
-To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com, vbabka@suse.cz,
-        surenb@google.com, songmuchun@bytedance.com, shy828301@gmail.com,
-        shakeelb@google.com, rppt@linux.ibm.com, mhocko@suse.com,
-        hannes@cmpxchg.org, guro@fb.com, richard.weiyang@gmail.com,
+        b=eF7V9wRju9rceOc8weKHj/q0wNwMQiHImLMVBvzMOZAJatvCxHvlXccE4q3h6KoAI
+         86W2f5A7PpBwnpEOEKpa1EJKvTKqeJ83MtApsxcIzkQkaDXTnnGLAnWvPzNI0wpdQj
+         94/35dbsJ5Na22zuEEi/voRmOm8oW5m3tDqNq+Cw=
+Received: by hp1 (sSMTP sendmail emulation); Tue, 01 Feb 2022 13:37:53 -0800
+Date:   Tue, 01 Feb 2022 13:37:53 -0800
+To:     mm-commits@vger.kernel.org, ndesaulniers@google.com,
+        nathan@kernel.org, keescook@chromium.org, glider@google.com,
+        dvyukov@google.com, arnd@arndb.de, elver@google.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-memcg-retrieve-parent-memcg-from-cssparent.patch added to -mm tree
-Message-Id: <20220201213323.D3F3FC340EB@smtp.kernel.org>
+Subject: + revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch added to -mm tree
+Message-Id: <20220201213753.BA778C340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcg: retrieve parent memcg from css.parent
+     Subject: Revert "ubsan, kcsan: Don't combine sanitizer with kcov on clang"
 has been added to the -mm tree.  Its filename is
-     mm-memcg-retrieve-parent-memcg-from-cssparent.patch
+     revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-memcg-retrieve-parent-memcg-from-cssparent.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memcg-retrieve-parent-memcg-from-cssparent.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -63,53 +62,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Wei Yang <richard.weiyang@gmail.com>
-Subject: mm/memcg: retrieve parent memcg from css.parent
+From: Marco Elver <elver@google.com>
+Subject: Revert "ubsan, kcsan: Don't combine sanitizer with kcov on clang"
 
-The parent we get from page_counter is correct, while this is two
-different hierarchy.
+This reverts commit ea91a1d45d19469001a4955583187b0d75915759.
 
-Let's retrieve the parent memcg from css.parent just like parent_cs(),
-blkcg_parent(), etc.
+Since df05c0e9496c ("Documentation: Raise the minimum supported version
+of LLVM to 11.0.0") the minimum Clang version is now 11.0, which fixed
+the UBSAN/KCSAN vs. KCOV incompatibilities.
 
-Link: https://lkml.kernel.org/r/20220201004643.8391-2-richard.weiyang@gmail.com
-Signed-off-by: Wei Yang <richard.weiyang@gmail.com>
-Reviewed-by: Muchun Song <songmuchun@bytedance.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Roman Gushchin <guro@fb.com>
-Reviewed-by: Shakeel Butt <shakeelb@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Yang Shi <shy828301@gmail.com>
-Cc: Suren Baghdasaryan <surenb@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mike Rapoport <rppt@linux.ibm.com>
+Link: https://bugs.llvm.org/show_bug.cgi?id=45831
+Link: https://lkml.kernel.org/r/YaodyZzu0MTCJcvO@elver.google.com
+Link: https://lkml.kernel.org/r/20220128105631.509772-1-elver@google.com
+Signed-off-by: Marco Elver <elver@google.com>
+Reviewed-by: Nathan Chancellor <nathan@kernel.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Nathan Chancellor <nathan@kernel.org>
+Cc: Nick Desaulniers <ndesaulniers@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ lib/Kconfig.kcsan |   11 -----------
+ lib/Kconfig.ubsan |   12 ------------
+ 2 files changed, 23 deletions(-)
 
---- a/include/linux/memcontrol.h~mm-memcg-retrieve-parent-memcg-from-cssparent
-+++ a/include/linux/memcontrol.h
-@@ -841,9 +841,7 @@ static inline struct mem_cgroup *lruvec_
-  */
- static inline struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg)
- {
--	if (!memcg->memory.parent)
--		return NULL;
--	return mem_cgroup_from_counter(memcg->memory.parent, memory);
-+	return mem_cgroup_from_css(memcg->css.parent);
- }
+--- a/lib/Kconfig.kcsan~revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang
++++ a/lib/Kconfig.kcsan
+@@ -10,21 +10,10 @@ config HAVE_KCSAN_COMPILER
+ 	  For the list of compilers that support KCSAN, please see
+ 	  <file:Documentation/dev-tools/kcsan.rst>.
  
- static inline bool mem_cgroup_is_descendant(struct mem_cgroup *memcg,
+-config KCSAN_KCOV_BROKEN
+-	def_bool KCOV && CC_HAS_SANCOV_TRACE_PC
+-	depends on CC_IS_CLANG
+-	depends on !$(cc-option,-Werror=unused-command-line-argument -fsanitize=thread -fsanitize-coverage=trace-pc)
+-	help
+-	  Some versions of clang support either KCSAN and KCOV but not the
+-	  combination of the two.
+-	  See https://bugs.llvm.org/show_bug.cgi?id=45831 for the status
+-	  in newer releases.
+-
+ menuconfig KCSAN
+ 	bool "KCSAN: dynamic data race detector"
+ 	depends on HAVE_ARCH_KCSAN && HAVE_KCSAN_COMPILER
+ 	depends on DEBUG_KERNEL && !KASAN
+-	depends on !KCSAN_KCOV_BROKEN
+ 	select STACKTRACE
+ 	help
+ 	  The Kernel Concurrency Sanitizer (KCSAN) is a dynamic
+--- a/lib/Kconfig.ubsan~revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang
++++ a/lib/Kconfig.ubsan
+@@ -27,16 +27,6 @@ config UBSAN_TRAP
+ 	  the system. For some system builders this is an acceptable
+ 	  trade-off.
+ 
+-config UBSAN_KCOV_BROKEN
+-	def_bool KCOV && CC_HAS_SANCOV_TRACE_PC
+-	depends on CC_IS_CLANG
+-	depends on !$(cc-option,-Werror=unused-command-line-argument -fsanitize=bounds -fsanitize-coverage=trace-pc)
+-	help
+-	  Some versions of clang support either UBSAN or KCOV but not the
+-	  combination of the two.
+-	  See https://bugs.llvm.org/show_bug.cgi?id=45831 for the status
+-	  in newer releases.
+-
+ config CC_HAS_UBSAN_BOUNDS
+ 	def_bool $(cc-option,-fsanitize=bounds)
+ 
+@@ -46,7 +36,6 @@ config CC_HAS_UBSAN_ARRAY_BOUNDS
+ config UBSAN_BOUNDS
+ 	bool "Perform array index bounds checking"
+ 	default UBSAN
+-	depends on !UBSAN_KCOV_BROKEN
+ 	depends on CC_HAS_UBSAN_ARRAY_BOUNDS || CC_HAS_UBSAN_BOUNDS
+ 	help
+ 	  This option enables detection of directly indexed out of bounds
+@@ -72,7 +61,6 @@ config UBSAN_ARRAY_BOUNDS
+ config UBSAN_LOCAL_BOUNDS
+ 	bool "Perform array local bounds checking"
+ 	depends on UBSAN_TRAP
+-	depends on !UBSAN_KCOV_BROKEN
+ 	depends on $(cc-option,-fsanitize=local-bounds)
+ 	help
+ 	  This option enables -fsanitize=local-bounds which traps when an
 _
 
-Patches currently in -mm which might be from richard.weiyang@gmail.com are
+Patches currently in -mm which might be from elver@google.com are
 
-mm-memcg-mem_cgroup_per_node-is-already-set-to-0-on-allocation.patch
-mm-memcg-retrieve-parent-memcg-from-cssparent.patch
-mm-page_alloc-add-same-penalty-is-enough-to-get-round-robin-order.patch
-mm-page_alloc-add-penalty-to-local_node.patch
-memcg-do-not-tweak-node-in-alloc_mem_cgroup_per_node_info.patch
+revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch
 
