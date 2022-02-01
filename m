@@ -2,38 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id D2730C433EF
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 21:37:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0A9ABC433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 22:20:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S233436AbiBAVh4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Feb 2022 16:37:56 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:52726 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229785AbiBAVhz (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2022 16:37:55 -0500
+        id S232316AbiBAWUM (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Feb 2022 17:20:12 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:50468 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S229971AbiBAWUM (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2022 17:20:12 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 91577C06173B
+        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 14:20:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 9D5FC61793
-        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 21:37:55 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id BA778C340EB;
-        Tue,  1 Feb 2022 21:37:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 16CACB82FB6
+        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 22:20:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 3636FC340EB;
+        Tue,  1 Feb 2022 22:20:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643751475;
-        bh=wxBbnteOScRmENSXJfneVOTKdAxyDxYLHTjVCy/wS58=;
+        s=korg; t=1643754008;
+        bh=mktDJJ4fKsCkF3DI8XXu/ktDsnQcMFtTYBl8707c6nI=;
         h=Date:To:From:Subject:From;
-        b=eF7V9wRju9rceOc8weKHj/q0wNwMQiHImLMVBvzMOZAJatvCxHvlXccE4q3h6KoAI
-         86W2f5A7PpBwnpEOEKpa1EJKvTKqeJ83MtApsxcIzkQkaDXTnnGLAnWvPzNI0wpdQj
-         94/35dbsJ5Na22zuEEi/voRmOm8oW5m3tDqNq+Cw=
-Received: by hp1 (sSMTP sendmail emulation); Tue, 01 Feb 2022 13:37:53 -0800
-Date:   Tue, 01 Feb 2022 13:37:53 -0800
-To:     mm-commits@vger.kernel.org, ndesaulniers@google.com,
-        nathan@kernel.org, keescook@chromium.org, glider@google.com,
-        dvyukov@google.com, arnd@arndb.de, elver@google.com,
+        b=sgQeWgMJrHOjfBesnE04ZDz1RqHSzKsA8PkXdMSMzCgp+yEfsKyObt/lzInTJ2J4U
+         BBinA+XXFo4BKhCm78IohqcAgWGEsC17zbXFGn/HJUWW+SzJyt4RDrUS2ifyUGEXKb
+         K+L6RNTtamr+1Af75aJLN9aunjE6ssukVsSKXIaw=
+Received: by hp1 (sSMTP sendmail emulation); Tue, 01 Feb 2022 14:20:06 -0800
+Date:   Tue, 01 Feb 2022 14:20:06 -0800
+To:     mm-commits@vger.kernel.org, ziy@nvidia.com,
+        zhongjiang-ali@linux.alibaba.com, weixugc@google.com,
+        shy828301@gmail.com, shakeelb@google.com, riel@surriel.com,
+        peterz@infradead.org, osalvador@suse.de, mhocko@suse.com,
+        mgorman@techsingularity.net, hasanalmaruf@fb.com,
+        feng.tang@intel.com, dave.hansen@linux.intel.com,
+        baolin.wang@linux.alibaba.com, ying.huang@intel.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch added to -mm tree
-Message-Id: <20220201213753.BA778C340EB@smtp.kernel.org>
+Subject: + numa-balancing-add-page-promotion-counter.patch added to -mm tree
+Message-Id: <20220201222007.3636FC340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +48,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "ubsan, kcsan: Don't combine sanitizer with kcov on clang"
+     Subject: NUMA Balancing: add page promotion counter
 has been added to the -mm tree.  Its filename is
-     revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch
+     numa-balancing-add-page-promotion-counter.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/numa-balancing-add-page-promotion-counter.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/numa-balancing-add-page-promotion-counter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,95 +69,165 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Marco Elver <elver@google.com>
-Subject: Revert "ubsan, kcsan: Don't combine sanitizer with kcov on clang"
+From: Huang Ying <ying.huang@intel.com>
+Subject: NUMA Balancing: add page promotion counter
 
-This reverts commit ea91a1d45d19469001a4955583187b0d75915759.
+With the advent of various new memory types, some machines will have
+multiple types of memory, e.g.  DRAM and PMEM (persistent memory).  The
+memory subsystem of these machines can be called memory tiering system,
+because the performance of the different types of memory are different.
 
-Since df05c0e9496c ("Documentation: Raise the minimum supported version
-of LLVM to 11.0.0") the minimum Clang version is now 11.0, which fixed
-the UBSAN/KCSAN vs. KCOV incompatibilities.
+After commit c221c0b0308f ("device-dax: "Hotplug" persistent memory for
+use like normal RAM"), the PMEM could be used as the cost-effective
+volatile memory in separate NUMA nodes.  In a typical memory tiering
+system, there are CPUs, DRAM and PMEM in each physical NUMA node.  The
+CPUs and the DRAM will be put in one logical node, while the PMEM will be
+put in another (faked) logical node.
 
-Link: https://bugs.llvm.org/show_bug.cgi?id=45831
-Link: https://lkml.kernel.org/r/YaodyZzu0MTCJcvO@elver.google.com
-Link: https://lkml.kernel.org/r/20220128105631.509772-1-elver@google.com
-Signed-off-by: Marco Elver <elver@google.com>
-Reviewed-by: Nathan Chancellor <nathan@kernel.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Nathan Chancellor <nathan@kernel.org>
-Cc: Nick Desaulniers <ndesaulniers@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+To optimize the system overall performance, the hot pages should be placed
+in DRAM node.  To do that, we need to identify the hot pages in the PMEM
+node and migrate them to DRAM node via NUMA migration.
+
+In the original NUMA balancing, there are already a set of existing
+mechanisms to identify the pages recently accessed by the CPUs in a node
+and migrate the pages to the node.  So we can reuse these mechanisms to
+build the mechanisms to optimize the page placement in the memory tiering
+system.  This is implemented in this patchset.
+
+At the other hand, the cold pages should be placed in PMEM node.  So, we
+also need to identify the cold pages in the DRAM node and migrate them to
+PMEM node.
+
+In commit 26aa2d199d6f ("mm/migrate: demote pages during reclaim"), a
+mechanism to demote the cold DRAM pages to PMEM node under memory pressure
+is implemented.  Based on that, the cold DRAM pages can be demoted to PMEM
+node proactively to free some memory space on DRAM node to accommodate the
+promoted hot PMEM pages.  This is implemented in this patchset too.
+
+We have tested the solution with the pmbench memory accessing benchmark
+with the 80:20 read/write ratio and the Gauss access address distribution
+on a 2 socket Intel server with Optane DC Persistent Memory Model.  The
+test results shows that the pmbench score can improve up to 95.9%.
+
+
+This patch (of 3):
+
+In a system with multiple memory types, e.g.  DRAM and PMEM, the CPU and
+DRAM in one socket will be put in one NUMA node as before, while the PMEM
+will be put in another NUMA node as described in the description of the
+commit c221c0b0308f ("device-dax: "Hotplug" persistent memory for use like
+normal RAM").  So, the NUMA balancing mechanism will identify all PMEM
+accesses as remote access and try to promote the PMEM pages to DRAM.
+
+To distinguish the number of the inter-type promoted pages from that of
+the inter-socket migrated pages.  A new vmstat count is added.  The
+counter is per-node (count in the target node).  So this can be used to
+identify promotion imbalance among the NUMA nodes.
+
+Link: https://lkml.kernel.org/r/20220128082751.593478-1-ying.huang@intel.com
+Link: https://lkml.kernel.org/r/20220128082751.593478-2-ying.huang@intel.com
+Signed-off-by: "Huang, Ying" <ying.huang@intel.com>
+Reviewed-by: Yang Shi <shy828301@gmail.com>
+Tested-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Reviewed-by: Baolin Wang <baolin.wang@linux.alibaba.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Rik van Riel <riel@surriel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Zi Yan <ziy@nvidia.com>
+Cc: Wei Xu <weixugc@google.com>
+Cc: Shakeel Butt <shakeelb@google.com>
+Cc: zhongjiang-ali <zhongjiang-ali@linux.alibaba.com>
+Cc: Oscar Salvador <osalvador@suse.de>
+Cc: Feng Tang <feng.tang@intel.com>
+Cc: Hasan Al Maruf <hasanalmaruf@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.kcsan |   11 -----------
- lib/Kconfig.ubsan |   12 ------------
- 2 files changed, 23 deletions(-)
+ include/linux/mmzone.h |    3 +++
+ include/linux/node.h   |    5 +++++
+ mm/migrate.c           |   13 ++++++++++---
+ mm/vmstat.c            |    3 +++
+ 4 files changed, 21 insertions(+), 3 deletions(-)
 
---- a/lib/Kconfig.kcsan~revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang
-+++ a/lib/Kconfig.kcsan
-@@ -10,21 +10,10 @@ config HAVE_KCSAN_COMPILER
- 	  For the list of compilers that support KCSAN, please see
- 	  <file:Documentation/dev-tools/kcsan.rst>.
+--- a/include/linux/mmzone.h~numa-balancing-add-page-promotion-counter
++++ a/include/linux/mmzone.h
+@@ -222,6 +222,9 @@ enum node_stat_item {
+ #ifdef CONFIG_SWAP
+ 	NR_SWAPCACHE,
+ #endif
++#ifdef CONFIG_NUMA_BALANCING
++	PGPROMOTE_SUCCESS,	/* promote successfully */
++#endif
+ 	NR_VM_NODE_STAT_ITEMS
+ };
  
--config KCSAN_KCOV_BROKEN
--	def_bool KCOV && CC_HAS_SANCOV_TRACE_PC
--	depends on CC_IS_CLANG
--	depends on !$(cc-option,-Werror=unused-command-line-argument -fsanitize=thread -fsanitize-coverage=trace-pc)
--	help
--	  Some versions of clang support either KCSAN and KCOV but not the
--	  combination of the two.
--	  See https://bugs.llvm.org/show_bug.cgi?id=45831 for the status
--	  in newer releases.
--
- menuconfig KCSAN
- 	bool "KCSAN: dynamic data race detector"
- 	depends on HAVE_ARCH_KCSAN && HAVE_KCSAN_COMPILER
- 	depends on DEBUG_KERNEL && !KASAN
--	depends on !KCSAN_KCOV_BROKEN
- 	select STACKTRACE
- 	help
- 	  The Kernel Concurrency Sanitizer (KCSAN) is a dynamic
---- a/lib/Kconfig.ubsan~revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang
-+++ a/lib/Kconfig.ubsan
-@@ -27,16 +27,6 @@ config UBSAN_TRAP
- 	  the system. For some system builders this is an acceptable
- 	  trade-off.
+--- a/include/linux/node.h~numa-balancing-add-page-promotion-counter
++++ a/include/linux/node.h
+@@ -181,4 +181,9 @@ static inline void register_hugetlbfs_wi
  
--config UBSAN_KCOV_BROKEN
--	def_bool KCOV && CC_HAS_SANCOV_TRACE_PC
--	depends on CC_IS_CLANG
--	depends on !$(cc-option,-Werror=unused-command-line-argument -fsanitize=bounds -fsanitize-coverage=trace-pc)
--	help
--	  Some versions of clang support either UBSAN or KCOV but not the
--	  combination of the two.
--	  See https://bugs.llvm.org/show_bug.cgi?id=45831 for the status
--	  in newer releases.
--
- config CC_HAS_UBSAN_BOUNDS
- 	def_bool $(cc-option,-fsanitize=bounds)
+ #define to_node(device) container_of(device, struct node, dev)
  
-@@ -46,7 +36,6 @@ config CC_HAS_UBSAN_ARRAY_BOUNDS
- config UBSAN_BOUNDS
- 	bool "Perform array index bounds checking"
- 	default UBSAN
--	depends on !UBSAN_KCOV_BROKEN
- 	depends on CC_HAS_UBSAN_ARRAY_BOUNDS || CC_HAS_UBSAN_BOUNDS
- 	help
- 	  This option enables detection of directly indexed out of bounds
-@@ -72,7 +61,6 @@ config UBSAN_ARRAY_BOUNDS
- config UBSAN_LOCAL_BOUNDS
- 	bool "Perform array local bounds checking"
- 	depends on UBSAN_TRAP
--	depends on !UBSAN_KCOV_BROKEN
- 	depends on $(cc-option,-fsanitize=local-bounds)
- 	help
- 	  This option enables -fsanitize=local-bounds which traps when an
++static inline bool node_is_toptier(int node)
++{
++	return node_state(node, N_CPU);
++}
++
+ #endif /* _LINUX_NODE_H_ */
+--- a/mm/migrate.c~numa-balancing-add-page-promotion-counter
++++ a/mm/migrate.c
+@@ -2073,6 +2073,7 @@ int migrate_misplaced_page(struct page *
+ 	pg_data_t *pgdat = NODE_DATA(node);
+ 	int isolated;
+ 	int nr_remaining;
++	int nr_succeeded;
+ 	LIST_HEAD(migratepages);
+ 	new_page_t *new;
+ 	bool compound;
+@@ -2111,7 +2112,8 @@ int migrate_misplaced_page(struct page *
+ 
+ 	list_add(&page->lru, &migratepages);
+ 	nr_remaining = migrate_pages(&migratepages, *new, NULL, node,
+-				     MIGRATE_ASYNC, MR_NUMA_MISPLACED, NULL);
++				     MIGRATE_ASYNC, MR_NUMA_MISPLACED,
++				     &nr_succeeded);
+ 	if (nr_remaining) {
+ 		if (!list_empty(&migratepages)) {
+ 			list_del(&page->lru);
+@@ -2120,8 +2122,13 @@ int migrate_misplaced_page(struct page *
+ 			putback_lru_page(page);
+ 		}
+ 		isolated = 0;
+-	} else
+-		count_vm_numa_events(NUMA_PAGE_MIGRATE, nr_pages);
++	}
++	if (nr_succeeded) {
++		count_vm_numa_events(NUMA_PAGE_MIGRATE, nr_succeeded);
++		if (!node_is_toptier(page_to_nid(page)) && node_is_toptier(node))
++			mod_node_page_state(NODE_DATA(node), PGPROMOTE_SUCCESS,
++					    nr_succeeded);
++	}
+ 	BUG_ON(!list_empty(&migratepages));
+ 	return isolated;
+ 
+--- a/mm/vmstat.c~numa-balancing-add-page-promotion-counter
++++ a/mm/vmstat.c
+@@ -1242,6 +1242,9 @@ const char * const vmstat_text[] = {
+ #ifdef CONFIG_SWAP
+ 	"nr_swapcached",
+ #endif
++#ifdef CONFIG_NUMA_BALANCING
++	"pgpromote_success",
++#endif
+ 
+ 	/* enum writeback_stat_item counters */
+ 	"nr_dirty_threshold",
 _
 
-Patches currently in -mm which might be from elver@google.com are
+Patches currently in -mm which might be from ying.huang@intel.com are
 
-revert-ubsan-kcsan-dont-combine-sanitizer-with-kcov-on-clang.patch
+numa-balancing-add-page-promotion-counter.patch
+numa-balancing-optimize-page-placement-for-memory-tiering-system.patch
+memory-tiering-skip-to-scan-fast-memory.patch
 
