@@ -2,41 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id E144DC433F5
-	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 20:58:29 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 77995C433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  1 Feb 2022 20:58:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230520AbiBAU63 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 1 Feb 2022 15:58:29 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60228 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231172AbiBAU6X (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2022 15:58:23 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 31D66C06173B
-        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 12:58:23 -0800 (PST)
+        id S231172AbiBAU6a (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 1 Feb 2022 15:58:30 -0500
+Received: from dfw.source.kernel.org ([139.178.84.217]:59360 "EHLO
+        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S242667AbiBAU60 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 1 Feb 2022 15:58:26 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id AFA186176B
-        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 20:58:22 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id C8414C340EB;
-        Tue,  1 Feb 2022 20:58:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BFC9C6176B
+        for <mm-commits@vger.kernel.org>; Tue,  1 Feb 2022 20:58:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D01C3C340EB;
+        Tue,  1 Feb 2022 20:58:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643749102;
-        bh=DLNcyv7PXYZceHyjiiQerbztLIhL51QKhwoiOjDUajI=;
+        s=korg; t=1643749105;
+        bh=uySinXV1IVIh+JM81IdO1rcp+QoS/7A0vzCC4Lz+FXw=;
         h=Date:To:From:Subject:From;
-        b=AJu9uEPrzBqN6cJQcsTmqwL29cIm7zKflaeoVWFJdDU+Oyw6tpMtl/3znKXMLjD3E
-         v5NXGaMA8mpJvBXeTkFZ72EPuIigN2mJejd9Nlcik1uYnsF5CuKKbzFbRKxP6axF5y
-         nalapwxkYkoGLXIbcowKvRTQxVH6wVueuzn3abhw=
-Received: by hp1 (sSMTP sendmail emulation); Tue, 01 Feb 2022 12:58:20 -0800
-Date:   Tue, 01 Feb 2022 12:58:20 -0800
+        b=VOrvN6nQI0oy57WzGwshQkwFnD+O/pMzzciiIogvKNsihRLW5/GSYXrLMKWyqG016
+         EWuBzdMYOBhKoJNRARHGi9eDRDp+5qQfkvW/3OMBRxbKrTtQGY+BwctK6vzfvJM1aW
+         3tlSiB3FRFeNlArOjrc6k0p+ZAhCq23PSPBffLVc=
+Received: by hp1 (sSMTP sendmail emulation); Tue, 01 Feb 2022 12:58:23 -0800
+Date:   Tue, 01 Feb 2022 12:58:23 -0800
 To:     mm-commits@vger.kernel.org, peterx@redhat.com,
         kirill.shutemov@linux.intel.com, jgg@ziepe.ca, jgg@nvidia.com,
         jack@suse.cz, david@redhat.com, alex.williamson@redhat.com,
         aarcange@redhat.com, jhubbard@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gup-remove-unused-pin_user_pages_locked.patch added to -mm tree
-Message-Id: <20220201205820.C8414C340EB@smtp.kernel.org>
+Subject: + mm-gup-remove-get_user_pages_locked.patch added to -mm tree
+Message-Id: <20220201205823.D01C3C340EB@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup: remove unused pin_user_pages_locked()
+     Subject: mm/gup: remove get_user_pages_locked()
 has been added to the -mm tree.  Its filename is
-     mm-gup-remove-unused-pin_user_pages_locked.patch
+     mm-gup-remove-get_user_pages_locked.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-remove-unused-pin_user_pages_locked.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-gup-remove-get_user_pages_locked.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-remove-unused-pin_user_pages_locked.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gup-remove-get_user_pages_locked.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,52 +63,90 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: John Hubbard <jhubbard@nvidia.com>
-Subject: mm/gup: remove unused pin_user_pages_locked()
+Subject: mm/gup: remove get_user_pages_locked()
 
-This routine was used for a short while, but then the calling code was
-refactored and the only caller was removed.
+There is only one caller of get_user_pages_locked().  The purpose of
+get_user_pages_locked() is to allow for unlocking the mmap_lock when
+reading a page from the disk during a page fault (hidden behind
+VM_FAULT_RETRY).  The idea is to reduce contention on the heavily-used
+mmap_lock.  (Thanks to Jan Kara for clearly pointing that out, and in fact
+I've used some of his wording here.)
 
-Link: https://lkml.kernel.org/r/20220201101108.306062-4-jhubbard@nvidia.com
+However, it is unlikely for lookup_node() to take a page fault.  With that
+in mind, change over to calling get_user_pages_fast().  This simplifies
+the code, runs a little faster in the expected case, and allows removing
+get_user_pages_locked() entirely.
+
+Link: https://lkml.kernel.org/r/20220201101108.306062-5-jhubbard@nvidia.com
 Signed-off-by: John Hubbard <jhubbard@nvidia.com>
-Reviewed-by: David Hildenbrand <david@redhat.com>
-Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
+Suggested-by: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: Jan Kara <jack@suse.cz>
 Cc: Alex Williamson <alex.williamson@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jason Gunthorpe <jgg@ziepe.ca>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Peter Xu <peterx@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 --
- mm/gup.c           |   29 -----------------------------
- 2 files changed, 31 deletions(-)
+ include/linux/mm.h |    2 -
+ mm/gup.c           |   59 -------------------------------------------
+ mm/mempolicy.c     |   21 ++++++---------
+ 3 files changed, 9 insertions(+), 73 deletions(-)
 
---- a/include/linux/mm.h~mm-gup-remove-unused-pin_user_pages_locked
+--- a/include/linux/mm.h~mm-gup-remove-get_user_pages_locked
 +++ a/include/linux/mm.h
-@@ -1918,8 +1918,6 @@ long pin_user_pages(unsigned long start,
+@@ -1916,8 +1916,6 @@ long get_user_pages(unsigned long start,
+ long pin_user_pages(unsigned long start, unsigned long nr_pages,
+ 		    unsigned int gup_flags, struct page **pages,
  		    struct vm_area_struct **vmas);
- long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
- 		    unsigned int gup_flags, struct page **pages, int *locked);
--long pin_user_pages_locked(unsigned long start, unsigned long nr_pages,
+-long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
 -		    unsigned int gup_flags, struct page **pages, int *locked);
  long get_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
  		    struct page **pages, unsigned int gup_flags);
  long pin_user_pages_unlocked(unsigned long start, unsigned long nr_pages,
---- a/mm/gup.c~mm-gup-remove-unused-pin_user_pages_locked
+--- a/mm/gup.c~mm-gup-remove-get_user_pages_locked
 +++ a/mm/gup.c
-@@ -3120,32 +3120,3 @@ long pin_user_pages_unlocked(unsigned lo
- 	return get_user_pages_unlocked(start, nr_pages, pages, gup_flags);
+@@ -2119,65 +2119,6 @@ long get_user_pages(unsigned long start,
  }
- EXPORT_SYMBOL(pin_user_pages_unlocked);
--
--/*
-- * pin_user_pages_locked() is the FOLL_PIN variant of get_user_pages_locked().
-- * Behavior is the same, except that this one sets FOLL_PIN and rejects
-- * FOLL_GET.
+ EXPORT_SYMBOL(get_user_pages);
+ 
+-/**
+- * get_user_pages_locked() - variant of get_user_pages()
+- *
+- * @start:      starting user address
+- * @nr_pages:   number of pages from start to pin
+- * @gup_flags:  flags modifying lookup behaviour
+- * @pages:      array that receives pointers to the pages pinned.
+- *              Should be at least nr_pages long. Or NULL, if caller
+- *              only intends to ensure the pages are faulted in.
+- * @locked:     pointer to lock flag indicating whether lock is held and
+- *              subsequently whether VM_FAULT_RETRY functionality can be
+- *              utilised. Lock must initially be held.
+- *
+- * It is suitable to replace the form:
+- *
+- *      mmap_read_lock(mm);
+- *      do_something()
+- *      get_user_pages(mm, ..., pages, NULL);
+- *      mmap_read_unlock(mm);
+- *
+- *  to:
+- *
+- *      int locked = 1;
+- *      mmap_read_lock(mm);
+- *      do_something()
+- *      get_user_pages_locked(mm, ..., pages, &locked);
+- *      if (locked)
+- *          mmap_read_unlock(mm);
+- *
+- * We can leverage the VM_FAULT_RETRY functionality in the page fault
+- * paths better by using either get_user_pages_locked() or
+- * get_user_pages_unlocked().
+- *
 - */
--long pin_user_pages_locked(unsigned long start, unsigned long nr_pages,
+-long get_user_pages_locked(unsigned long start, unsigned long nr_pages,
 -			   unsigned int gup_flags, struct page **pages,
 -			   int *locked)
 -{
@@ -123,17 +158,66 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 -	 */
 -	if (WARN_ON_ONCE(gup_flags & FOLL_LONGTERM))
 -		return -EINVAL;
--
--	/* FOLL_GET and FOLL_PIN are mutually exclusive. */
--	if (WARN_ON_ONCE(gup_flags & FOLL_GET))
+-	/*
+-	 * FOLL_PIN must only be set internally by the pin_user_pages*() APIs,
+-	 * never directly by the caller, so enforce that:
+-	 */
+-	if (WARN_ON_ONCE(gup_flags & FOLL_PIN))
 -		return -EINVAL;
 -
--	gup_flags |= FOLL_PIN;
 -	return __get_user_pages_locked(current->mm, start, nr_pages,
 -				       pages, NULL, locked,
 -				       gup_flags | FOLL_TOUCH);
 -}
--EXPORT_SYMBOL(pin_user_pages_locked);
+-EXPORT_SYMBOL(get_user_pages_locked);
+-
+ /*
+  * get_user_pages_unlocked() is suitable to replace the form:
+  *
+--- a/mm/mempolicy.c~mm-gup-remove-get_user_pages_locked
++++ a/mm/mempolicy.c
+@@ -907,17 +907,14 @@ static void get_policy_nodemask(struct m
+ static int lookup_node(struct mm_struct *mm, unsigned long addr)
+ {
+ 	struct page *p = NULL;
+-	int err;
++	int ret;
+ 
+-	int locked = 1;
+-	err = get_user_pages_locked(addr & PAGE_MASK, 1, 0, &p, &locked);
+-	if (err > 0) {
+-		err = page_to_nid(p);
++	ret = get_user_pages_fast(addr & PAGE_MASK, 1, 0, &p);
++	if (ret > 0) {
++		ret = page_to_nid(p);
+ 		put_page(p);
+ 	}
+-	if (locked)
+-		mmap_read_unlock(mm);
+-	return err;
++	return ret;
+ }
+ 
+ /* Retrieve NUMA policy */
+@@ -968,14 +965,14 @@ static long do_get_mempolicy(int *policy
+ 	if (flags & MPOL_F_NODE) {
+ 		if (flags & MPOL_F_ADDR) {
+ 			/*
+-			 * Take a refcount on the mpol, lookup_node()
+-			 * will drop the mmap_lock, so after calling
+-			 * lookup_node() only "pol" remains valid, "vma"
+-			 * is stale.
++			 * Take a refcount on the mpol, because we are about to
++			 * drop the mmap_lock, after which only "pol" remains
++			 * valid, "vma" is stale.
+ 			 */
+ 			pol_refcount = pol;
+ 			vma = NULL;
+ 			mpol_get(pol);
++			mmap_read_unlock(mm);
+ 			err = lookup_node(mm, addr);
+ 			if (err < 0)
+ 				goto out;
 _
 
 Patches currently in -mm which might be from jhubbard@nvidia.com are
