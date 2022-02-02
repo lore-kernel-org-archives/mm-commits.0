@@ -2,34 +2,34 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 8D883C433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  2 Feb 2022 22:52:59 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 268B9C433EF
+	for <mm-commits@archiver.kernel.org>; Wed,  2 Feb 2022 22:53:03 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237297AbiBBWw7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 2 Feb 2022 17:52:59 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45146 "EHLO
+        id S1347938AbiBBWxC (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 2 Feb 2022 17:53:02 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:45162 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236831AbiBBWw6 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Feb 2022 17:52:58 -0500
+        with ESMTP id S236831AbiBBWxC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 2 Feb 2022 17:53:02 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B91BFC061714
-        for <mm-commits@vger.kernel.org>; Wed,  2 Feb 2022 14:52:57 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id DFFC4C061714
+        for <mm-commits@vger.kernel.org>; Wed,  2 Feb 2022 14:53:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 73DB4B832BF
-        for <mm-commits@vger.kernel.org>; Wed,  2 Feb 2022 22:52:56 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 9AE56C004E1;
-        Wed,  2 Feb 2022 22:52:53 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 9DDFFB8310A
+        for <mm-commits@vger.kernel.org>; Wed,  2 Feb 2022 22:53:00 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id D8FA8C004E1;
+        Wed,  2 Feb 2022 22:52:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643842375;
-        bh=6HzehVya+RKtHw34+QZ3Jf3BW6I39O8A/XcCi8k4atU=;
+        s=korg; t=1643842379;
+        bh=B12bsiRH8882jUx8o7K1jCVwEHUjRyoLUjoYiS6rbBU=;
         h=Date:To:From:Subject:From;
-        b=GrlKy3GbI/VrWaz1S5JEDiUAX2UVyQ3ip39YfRi4ho8Q2hyD10AIlJkCO+ZpA0QCW
-         mCHuFw7I4eSpAjwGgZdm3ljTSZHTLsyKpwrQ6V3cgpZNrEIhOSyEgyPdKXzRNRCdaN
-         Mtjn1QaSOVAQX2jNezvd7hGi8J8Dr9U5CQfAoMN8=
-Received: by hp1 (sSMTP sendmail emulation); Wed, 02 Feb 2022 14:52:52 -0800
-Date:   Wed, 02 Feb 2022 14:52:52 -0800
+        b=Zl5KC/w+vLahTOt6qpW1HI+y/DS3e/NcCFbhkkxk1qySy35beHdLuEzyex2JI3tMA
+         16OYLzm+i7YtVCHxJefHd8qxKAKm2ahV5BoDmlKuUAothTllaxqPBia70J6w3FSnj/
+         BxkNMMz6tkpTwwjlGfhQre6/evVzDVkcFFdc1e8I=
+Received: by hp1 (sSMTP sendmail emulation); Wed, 02 Feb 2022 14:52:57 -0800
+Date:   Wed, 02 Feb 2022 14:52:57 -0800
 To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
         senozhatsky@chromium.org, rppt@kernel.org, rostedt@goodmis.org,
         rientjes@google.com, pmladek@suse.com, mhocko@kernel.org,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, vdavydov.dev@gmail.com,
         guro@fb.com, aquini@redhat.com, andriy.shevchenko@linux.intel.com,
         longman@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + lib-vsprintf-avoid-redundant-work-with-0-size.patch added to -mm tree
-Message-Id: <20220202225253.9AE56C004E1@smtp.kernel.org>
+Subject: + mm-page_owner-use-scnprintf-to-avoid-excessive-buffer-overrun-check.patch added to -mm tree
+Message-Id: <20220202225257.D8FA8C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf: avoid redundant work with 0 size
+     Subject: mm/page_owner: use scnprintf() to avoid excessive buffer overrun check
 has been added to the -mm tree.  Its filename is
-     lib-vsprintf-avoid-redundant-work-with-0-size.patch
+     mm-page_owner-use-scnprintf-to-avoid-excessive-buffer-overrun-check.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintf-avoid-redundant-work-with-0-size.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-use-scnprintf-to-avoid-excessive-buffer-overrun-check.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintf-avoid-redundant-work-with-0-size.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-use-scnprintf-to-avoid-excessive-buffer-overrun-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,110 +68,81 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Waiman Long <longman@redhat.com>
-Subject: lib/vsprintf: avoid redundant work with 0 size
+Subject: mm/page_owner: use scnprintf() to avoid excessive buffer overrun check
 
-Patch series "mm/page_owner: Extend page_owner to show memcg information", v4.
+The snprintf() function can return a length greater than the given input
+size.  That will require a check for buffer overrun after each invocation
+of snprintf().  scnprintf(), on the other hand, will never return a
+greater length.  By using scnprintf() in selected places, we can avoid
+some buffer overrun checks except after stack_depot_snprint() and after
+the last snprintf().
 
-While debugging the constant increase in percpu memory consumption on a
-system that spawned large number of containers, it was found that a lot of
-offline mem_cgroup structures remained in place without being freed. 
-Further investigation indicated that those mem_cgroup structures were
-pinned by some pages.
-
-In order to find out what those pages are, the existing page_owner
-debugging tool is extended to show memory cgroup information and whether
-those memcgs are offline or not.  With the enhanced page_owner tool, the
-following is a typical page that pinned the mem_cgroup structure in my
-test case:
-
-Page allocated via order 0, mask 0x1100cca(GFP_HIGHUSER_MOVABLE), pid 162970 (podman), ts 1097761405537 ns, free_ts 1097760838089 ns
-PFN 1925700 type Movable Block 3761 type Movable Flags 0x17ffffc00c001c(uptodate|dirty|lru|reclaim|swapbacked|node=0|zone=2|lastcpupid=0x1fffff)
- prep_new_page+0xac/0xe0
- get_page_from_freelist+0x1327/0x14d0
- __alloc_pages+0x191/0x340
- alloc_pages_vma+0x84/0x250
- shmem_alloc_page+0x3f/0x90
- shmem_alloc_and_acct_page+0x76/0x1c0
- shmem_getpage_gfp+0x281/0x940
- shmem_write_begin+0x36/0xe0
- generic_perform_write+0xed/0x1d0
- __generic_file_write_iter+0xdc/0x1b0
- generic_file_write_iter+0x5d/0xb0
- new_sync_write+0x11f/0x1b0
- vfs_write+0x1ba/0x2a0
- ksys_write+0x59/0xd0
- do_syscall_64+0x37/0x80
- entry_SYSCALL_64_after_hwframe+0x44/0xae
-Charged to offline memcg libpod-conmon-15e4f9c758422306b73b2dd99f9d50a5ea53cbb16b4a13a2c2308a4253cc0ec8.
-
-So the page was not freed because it was part of a shmem segment.  That is
-useful information that can help users to diagnose similar problems.
-
-With cgroup v1, /proc/cgroups can be read to find out the total number of
-memory cgroups (online + offline).  With cgroup v2, the cgroup.stat of the
-root cgroup can be read to find the number of dying cgroups (most likely
-pinned by dying memcgs).
-
-The page_owner feature is not supposed to be enabled for production system
-due to its memory overhead.  However, if it is suspected that dying memcgs
-are increasing over time, a test environment with page_owner enabled can
-then be set up with appropriate workload for further analysis on what may
-be causing the increasing number of dying memcgs.
-
-
-This patch (of 4):
-
-For *scnprintf(), vsnprintf() is always called even if the input size is
-0.  That is a waste of time, so just return 0 in this case.
-
-Note that vsnprintf() will never return -1 to indicate an error.  So
-skipping the call to vsnprintf() when size is 0 will have no functional
-impact at all.
-
-Link: https://lkml.kernel.org/r/20220202203036.744010-1-longman@redhat.com
-Link: https://lkml.kernel.org/r/20220202203036.744010-2-longman@redhat.com
+Link: https://lkml.kernel.org/r/20220202203036.744010-3-longman@redhat.com
 Signed-off-by: Waiman Long <longman@redhat.com>
 Acked-by: David Rientjes <rientjes@google.com>
 Reviewed-by: Sergey Senozhatsky <senozhatsky@chromium.org>
-Acked-by: Roman Gushchin <guro@fb.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
-Cc: Petr Mladek <pmladek@suse.com>
-Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Ira Weiny <ira.weiny@intel.com>
 Cc: Mike Rapoport <rppt@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+Cc: Petr Mladek <pmladek@suse.com>
 Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Roman Gushchin <guro@fb.com>
+Cc: Steven Rostedt (Google) <rostedt@goodmis.org>
+Cc: Vladimir Davydov <vdavydov.dev@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/page_owner.c |   14 +++-----------
+ 1 file changed, 3 insertions(+), 11 deletions(-)
 
---- a/lib/vsprintf.c~lib-vsprintf-avoid-redundant-work-with-0-size
-+++ a/lib/vsprintf.c
-@@ -2895,13 +2895,15 @@ int vscnprintf(char *buf, size_t size, c
- {
- 	int i;
+--- a/mm/page_owner.c~mm-page_owner-use-scnprintf-to-avoid-excessive-buffer-overrun-check
++++ a/mm/page_owner.c
+@@ -338,19 +338,16 @@ print_page_owner(char __user *buf, size_
+ 	if (!kbuf)
+ 		return -ENOMEM;
  
-+	if (unlikely(!size))
-+		return 0;
-+
- 	i = vsnprintf(buf, size, fmt, args);
+-	ret = snprintf(kbuf, count,
++	ret = scnprintf(kbuf, count,
+ 			"Page allocated via order %u, mask %#x(%pGg), pid %d, ts %llu ns, free_ts %llu ns\n",
+ 			page_owner->order, page_owner->gfp_mask,
+ 			&page_owner->gfp_mask, page_owner->pid,
+ 			page_owner->ts_nsec, page_owner->free_ts_nsec);
  
- 	if (likely(i < size))
- 		return i;
--	if (size != 0)
--		return size - 1;
--	return 0;
-+
-+	return size - 1;
- }
- EXPORT_SYMBOL(vscnprintf);
+-	if (ret >= count)
+-		goto err;
+-
+ 	/* Print information relevant to grouping pages by mobility */
+ 	pageblock_mt = get_pageblock_migratetype(page);
+ 	page_mt  = gfp_migratetype(page_owner->gfp_mask);
+-	ret += snprintf(kbuf + ret, count - ret,
++	ret += scnprintf(kbuf + ret, count - ret,
+ 			"PFN %lu type %s Block %lu type %s Flags %pGp\n",
+ 			pfn,
+ 			migratetype_names[page_mt],
+@@ -358,19 +355,14 @@ print_page_owner(char __user *buf, size_
+ 			migratetype_names[pageblock_mt],
+ 			&page->flags);
  
+-	if (ret >= count)
+-		goto err;
+-
+ 	ret += stack_depot_snprint(handle, kbuf + ret, count - ret, 0);
+ 	if (ret >= count)
+ 		goto err;
+ 
+ 	if (page_owner->last_migrate_reason != -1) {
+-		ret += snprintf(kbuf + ret, count - ret,
++		ret += scnprintf(kbuf + ret, count - ret,
+ 			"Page has been migrated, last migrate reason: %s\n",
+ 			migrate_reason_names[page_owner->last_migrate_reason]);
+-		if (ret >= count)
+-			goto err;
+ 	}
+ 
+ 	ret += snprintf(kbuf + ret, count - ret, "\n");
 _
 
 Patches currently in -mm which might be from longman@redhat.com are
