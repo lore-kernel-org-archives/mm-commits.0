@@ -2,40 +2,37 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CDB58C433EF
-	for <mm-commits@archiver.kernel.org>; Thu,  3 Feb 2022 23:12:20 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E6DC5C4332F
+	for <mm-commits@archiver.kernel.org>; Thu,  3 Feb 2022 23:14:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238866AbiBCXMU (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Feb 2022 18:12:20 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:38622 "EHLO
-        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237983AbiBCXMT (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2022 18:12:19 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 84FCFC061714
-        for <mm-commits@vger.kernel.org>; Thu,  3 Feb 2022 15:12:19 -0800 (PST)
+        id S1355943AbiBCXOA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Feb 2022 18:14:00 -0500
+Received: from ams.source.kernel.org ([145.40.68.75]:42924 "EHLO
+        ams.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S1355941AbiBCXN7 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2022 18:13:59 -0500
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 3E03BB835EC
-        for <mm-commits@vger.kernel.org>; Thu,  3 Feb 2022 23:12:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A5833C340E8;
-        Thu,  3 Feb 2022 23:12:15 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 08E46B835ED
+        for <mm-commits@vger.kernel.org>; Thu,  3 Feb 2022 23:13:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id AEBA6C340E8;
+        Thu,  3 Feb 2022 23:13:56 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643929936;
-        bh=Ynv94u4vBwospwm33bu77BNXQxXT8ECBB1QNNYppX58=;
+        s=korg; t=1643930037;
+        bh=HblRQRe5N8x5VafldAkJCnrvoHXbCcWQNW1hQUrQuZc=;
         h=Date:To:From:Subject:From;
-        b=M30KYMm19gKx6KhmxndKnlUJ9HlAxW0KwqqJgKE3xEH0KU2EkQxJFqZ9cSt0WVPS6
-         zxhTtPNN6qtnR3+ufBpwaiqiQjQ1g0kRdepF6oHxg+21SC+yZgTmsY4oPFhKlNlv8i
-         7vXVo6WPIofwe7U//193RmYnkYmm/Drvl8EFn7TA=
-Received: by hp1 (sSMTP sendmail emulation); Thu, 03 Feb 2022 15:12:15 -0800
-Date:   Thu, 03 Feb 2022 15:12:15 -0800
-To:     mm-commits@vger.kernel.org, mingo@kernel.org,
-        kirill.shutemov@linux.intel.com, jforbes@redhat.com,
-        aquini@redhat.com, longman@redhat.com, akpm@linux-foundation.org
+        b=aftcGT6BOH1GrAfKKfyh3H038nJSVAtveU+4VrbOgiGcm3bi+/je8/a/EPOH8+q42
+         u7sITe0FA7kqmvDjFFlu3EFgudCRP4BYb74q2BtGHJhcWEGPY+JSBRJSFvdJ3FsONi
+         KpUhDYx2xa5KOJ7I0ZoUftA7XC+BtWv88sVelo+M=
+Received: by hp1 (sSMTP sendmail emulation); Thu, 03 Feb 2022 15:13:56 -0800
+Date:   Thu, 03 Feb 2022 15:13:56 -0800
+To:     mm-commits@vger.kernel.org, shuah@kernel.org,
+        chi.minghao@zte.com.cn, skhan@linuxfoundation.org,
+        akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning-v2.patch added to -mm tree
-Message-Id: <20220203231215.A5833C340E8@smtp.kernel.org>
+Subject: + kselftest-vm-revert-tools-testing-selftests-vm-userfaultfdc-use-swap-to-make-code-cleaner.patch added to -mm tree
+Message-Id: <20220203231356.AEBA6C340E8@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +40,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning-v2
+     Subject: kselftest/vm: revert "tools/testing/selftests/vm/userfaultfd.c: use swap() to make code cleaner"
 has been added to the -mm tree.  Its filename is
-     mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning-v2.patch
+     kselftest-vm-revert-tools-testing-selftests-vm-userfaultfdc-use-swap-to-make-code-cleaner.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning-v2.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kselftest-vm-revert-tools-testing-selftests-vm-userfaultfdc-use-swap-to-make-code-cleaner.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning-v2.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kselftest-vm-revert-tools-testing-selftests-vm-userfaultfdc-use-swap-to-make-code-cleaner.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,47 +61,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Waiman Long <longman@redhat.com>
-Subject: mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning-v2
+From: Shuah Khan <skhan@linuxfoundation.org>
+Subject: kselftest/vm: revert "tools/testing/selftests/vm/userfaultfd.c: use swap() to make code cleaner"
 
-Link: https://lkml.kernel.org/r/20220202003550.698768-1-longman@redhat.com
-Fixes: 83e3c48729d9 ("mm/sparsemem: Allocate mem_section at runtime for CONFIG_SPARSEMEM_EXTREME=y")
-Fixes: 3e347261a80b ("sparsemem extreme implementation")
-Reported-by: Justin Forbes <jforbes@redhat.com>
-Signed-off-by: Waiman Long <longman@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Rafael Aquini <aquini@redhat.com>
+With this change, userfaultfd fails to build with undefined reference
+swap() error:
+
+userfaultfd.c: In function `userfaultfd_stress':
+userfaultfd.c:1530:17: warning: implicit declaration of function `swap'; did you mean `swab'? [-Wimplicit-function-declaration]
+ 1530 |                 swap(area_src, area_dst);
+      |                 ^~~~
+      |                 swab
+/usr/bin/ld: /tmp/ccDGOAdV.o: in function `userfaultfd_stress':
+userfaultfd.c:(.text+0x549e): undefined reference to `swap'
+/usr/bin/ld: userfaultfd.c:(.text+0x54bc): undefined reference to `swap'
+collect2: error: ld returned 1 exit status
+
+Revert the commit to fix the problem.
+
+Link: https://lkml.kernel.org/r/20220202003340.87195-1-skhan@linuxfoundation.org
+Fixes: 2c769ed7137a ("tools/testing/selftests/vm/userfaultfd.c: use swap() to make code cleaner")
+Signed-off-by: Shuah Khan <skhan@linuxfoundation.org>
+Cc: Shuah Khan <shuah@kernel.org>
+Cc: Minghao Chi <chi.minghao@zte.com.cn>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
---- a/include/linux/mmzone.h~mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning-v2
-+++ a/include/linux/mmzone.h
-@@ -1390,11 +1390,9 @@ static inline unsigned long *section_to_
- static inline struct mem_section *__nr_to_section(unsigned long nr)
+--- a/tools/testing/selftests/vm/userfaultfd.c~kselftest-vm-revert-tools-testing-selftests-vm-userfaultfdc-use-swap-to-make-code-cleaner
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -1417,6 +1417,7 @@ static void userfaultfd_pagemap_test(uns
+ static int userfaultfd_stress(void)
  {
- #ifdef CONFIG_SPARSEMEM_EXTREME
--	if (!*mem_section)
-+	if (!*mem_section || !mem_section[SECTION_NR_TO_ROOT(nr)])
- 		return NULL;
- #endif
--	if (!mem_section[SECTION_NR_TO_ROOT(nr)])
--		return NULL;
- 	return &mem_section[SECTION_NR_TO_ROOT(nr)][nr & SECTION_ROOT_MASK];
- }
- extern size_t mem_section_usage_size(void);
+ 	void *area;
++	char *tmp_area;
+ 	unsigned long nr;
+ 	struct uffdio_register uffdio_register;
+ 	struct uffd_stats uffd_stats[nr_cpus];
+@@ -1527,9 +1528,13 @@ static int userfaultfd_stress(void)
+ 					    count_verify[nr], nr);
+ 
+ 		/* prepare next bounce */
+-		swap(area_src, area_dst);
+-
+-		swap(area_src_alias, area_dst_alias);
++		tmp_area = area_src;
++		area_src = area_dst;
++		area_dst = tmp_area;
++
++		tmp_area = area_src_alias;
++		area_src_alias = area_dst_alias;
++		area_dst_alias = tmp_area;
+ 
+ 		uffd_stats_report(uffd_stats, nr_cpus);
+ 	}
 _
 
-Patches currently in -mm which might be from longman@redhat.com are
+Patches currently in -mm which might be from skhan@linuxfoundation.org are
 
-lib-vsprintf-avoid-redundant-work-with-0-size.patch
-mm-page_owner-use-scnprintf-to-avoid-excessive-buffer-overrun-check.patch
-mm-page_owner-print-memcg-information.patch
-mm-page_owner-record-task-command-name.patch
-mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning.patch
-mm-sparsemem-fix-mem_section-will-never-be-null-gcc-12-warning-v2.patch
-ipc-mqueue-use-get_tree_nodev-in-mqueue_get_tree.patch
+kselftest-vm-revert-tools-testing-selftests-vm-userfaultfdc-use-swap-to-make-code-cleaner.patch
+docs-vm-fix-unexpected-indentation-warns-in-page_owner.patch
 
