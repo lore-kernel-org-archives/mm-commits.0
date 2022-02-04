@@ -2,104 +2,84 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 39B49C433F5
-	for <mm-commits@archiver.kernel.org>; Fri,  4 Feb 2022 04:48:39 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6CB3DC433FE
+	for <mm-commits@archiver.kernel.org>; Fri,  4 Feb 2022 04:49:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230119AbiBDEsi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Thu, 3 Feb 2022 23:48:38 -0500
-Received: from dfw.source.kernel.org ([139.178.84.217]:48430 "EHLO
-        dfw.source.kernel.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241715AbiBDEsi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2022 23:48:38 -0500
+        id S241067AbiBDEtL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Thu, 3 Feb 2022 23:49:11 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56516 "EHLO
+        lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+        with ESMTP id S230404AbiBDEtL (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Thu, 3 Feb 2022 23:49:11 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4A68EC061714
+        for <mm-commits@vger.kernel.org>; Thu,  3 Feb 2022 20:49:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 0E90561B46
-        for <mm-commits@vger.kernel.org>; Fri,  4 Feb 2022 04:48:38 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 4D98AC004E1;
-        Fri,  4 Feb 2022 04:48:37 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 1B8DB61AAC
+        for <mm-commits@vger.kernel.org>; Fri,  4 Feb 2022 04:49:09 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 2B976C004E1;
+        Fri,  4 Feb 2022 04:49:07 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1643950117;
-        bh=acTcsiWTfExJwsF+ZMbsLeLZj7KAWvifRi1Zm0RUsKg=;
-        h=Date:From:To:Cc:Subject:From;
-        b=vP8pyX3ccvgHa58EaWaVHDIPlqxZAb9W0+gcybnW5YcWoLD4LS1K3QxzQLB8uPGIf
-         BWK40zlEVWT6RhyIwksFmbLP1bVQ66A7wQVwlVVMH3lvyM0cKQPYeL6HCjTMLQeF83
-         M+PDN7ufnOUPiAFocfw8v0vAmpoJcKXZAwGpYUZc=
-Date:   Thu, 3 Feb 2022 20:48:36 -0800
+        s=korg; t=1643950148;
+        bh=ljC+ZB7/P+JNIOZfeDuwZx/G/aLrfvXi55fo2JuPMkc=;
+        h=Date:To:From:In-Reply-To:Subject:From;
+        b=16uofj9/66KjMZ6UkbUWHKdubwUpkyJSMTpx/nyhq2WX3yc5iQ8exyc8z82KCehIB
+         yu7wi8N1JvXRFaaIpg82tWqFYejKbNKA9qSgpP9xCjRP5euYGjM/0gDf43npfQIr8j
+         lGwOZ3SOI0JDxSZUI/eDobIsgeC/DngSMug7eUcE=
+Received: by hp1 (sSMTP sendmail emulation); Thu, 03 Feb 2022 20:49:06 -0800
+Date:   Thu, 03 Feb 2022 20:49:06 -0800
+To:     vbabka@suse.cz, linux@roeck-us.net, francesco.dolcini@toradex.com,
+        david@redhat.com, bot@kernelci.org, aisheng.dong@nxp.com,
+        chenwandun@huawei.com, akpm@linux-foundation.org,
+        linux-mm@kvack.org, mm-commits@vger.kernel.org,
+        torvalds@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     linux-mm@kvack.org, mm-commits@vger.kernel.org
-Subject: incoming
-Message-Id: <20220203204836.88dcebe504f440686cc63a60@linux-foundation.org>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-pc-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20220203204836.88dcebe504f440686cc63a60@linux-foundation.org>
+Subject: [patch 01/10] Revert "mm/page_isolation: unset migratetype directly for non Buddy page"
+Message-Id: <20220204044907.2B976C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-10 patches, based on 1f2cfdd349b7647f438c1e552dc1b983da86d830.
+From: Chen Wandun <chenwandun@huawei.com>
+Subject: Revert "mm/page_isolation: unset migratetype directly for non Buddy page"
 
-Subsystems affected by this patch series:
+This reverts commit 721fb891ad0b3956d5c168b2931e3e5e4fb7ca40.
 
-  mm/vmscan
-  mm/debug
-  mm/pagemap
-  ipc
-  mm/kmemleak
-  MAINTAINERS
-  mm/selftests
+commit 721fb891ad0b ("mm/page_isolation: unset migratetype directly for
+non Buddy page") will result memory that should in buddy disappear by
+mistake.  move_freepages_block move all pages in pageblock instead of
+pages indicated by input parameter, so if input pages is not in buddy but
+other pages in pageblock is in buddy, it will result in page out of
+control.
 
-Subsystem: mm/vmscan
+Link: https://lkml.kernel.org/r/20220126024436.13921-1-chenwandun@huawei.com
+Fixes: 721fb891ad0b ("mm/page_isolation: unset migratetype directly for non Buddy page")
+Signed-off-by: Chen Wandun <chenwandun@huawei.com>
+Reported-by: "kernelci.org bot" <bot@kernelci.org>
+Acked-by: David Hildenbrand <david@redhat.com>
+Tested-by: Dong Aisheng <aisheng.dong@nxp.com>
+Tested-by: Francesco Dolcini <francesco.dolcini@toradex.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-    Chen Wandun <chenwandun@huawei.com>:
-      Revert "mm/page_isolation: unset migratetype directly for non Buddy page"
+ mm/page_isolation.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Subsystem: mm/debug
-
-    Pasha Tatashin <pasha.tatashin@soleen.com>:
-    Patch series "page table check fixes and cleanups", v5:
-      mm/debug_vm_pgtable: remove pte entry from the page table
-      mm/page_table_check: use unsigned long for page counters and cleanup
-      mm/khugepaged: unify collapse pmd clear, flush and free
-      mm/page_table_check: check entries at pmd levels
-
-Subsystem: mm/pagemap
-
-    Mike Rapoport <rppt@linux.ibm.com>:
-      mm/pgtable: define pte_index so that preprocessor could recognize it
-
-Subsystem: ipc
-
-    Minghao Chi <chi.minghao@zte.com.cn>:
-      ipc/sem: do not sleep with a spin lock held
-
-Subsystem: mm/kmemleak
-
-    Lang Yu <lang.yu@amd.com>:
-      mm/kmemleak: avoid scanning potential huge holes
-
-Subsystem: MAINTAINERS
-
-    Mike Rapoport <rppt@linux.ibm.com>:
-      MAINTAINERS: update rppt's email
-
-Subsystem: mm/selftests
-
-    Shuah Khan <skhan@linuxfoundation.org>:
-      kselftest/vm: revert "tools/testing/selftests/vm/userfaultfd.c: use swap() to make code cleaner"
-
- MAINTAINERS                              |    2 -
- include/linux/page_table_check.h         |   19 ++++++++++
- include/linux/pgtable.h                  |    1 
- ipc/sem.c                                |    4 +-
- mm/debug_vm_pgtable.c                    |    2 +
- mm/khugepaged.c                          |   37 +++++++++++---------
- mm/kmemleak.c                            |   13 +++----
- mm/page_isolation.c                      |    2 -
- mm/page_table_check.c                    |   55 +++++++++++++++----------------
- tools/testing/selftests/vm/userfaultfd.c |   11 ++++--
- 10 files changed, 89 insertions(+), 57 deletions(-)
-
+--- a/mm/page_isolation.c~revert-mm-page_isolation-unset-migratetype-directly-for-non-buddy-page
++++ a/mm/page_isolation.c
+@@ -115,7 +115,7 @@ static void unset_migratetype_isolate(st
+ 	 * onlining - just onlined memory won't immediately be considered for
+ 	 * allocation.
+ 	 */
+-	if (!isolated_page && PageBuddy(page)) {
++	if (!isolated_page) {
+ 		nr_pages = move_freepages_block(zone, page, migratetype, NULL);
+ 		__mod_zone_freepage_state(zone, nr_pages, migratetype);
+ 	}
+_
