@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 90BB5C433FE
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Feb 2022 21:00:26 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 052F0C4332F
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Feb 2022 21:00:27 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231511AbiBGVAZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S231536AbiBGVAZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Mon, 7 Feb 2022 16:00:25 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34888 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34930 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231536AbiBGVAX (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 16:00:23 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 4CF55C043180
-        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 13:00:22 -0800 (PST)
+        with ESMTP id S231801AbiBGVAY (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 16:00:24 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42E8DC0401D1
+        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 13:00:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id E77186150C
-        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 21:00:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 41154C340EE;
-        Mon,  7 Feb 2022 21:00:21 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C0C236152D
+        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 21:00:22 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 210D1C004E1;
+        Mon,  7 Feb 2022 21:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644267621;
-        bh=jkMXc4ZZiKxf55aznMxtaPMDcFMED/HSh8V8o99tyy8=;
+        s=korg; t=1644267622;
+        bh=hGGbR7ApzDz81HgPxqPQGDxoEVoLdQ8EvoCK7WnMFzY=;
         h=Date:To:From:Subject:From;
-        b=L9vGgNoNFdTpCe0M9KJ8Erf08kYjoEa2+g5JZE5QnoF6dRnpj8IQVCvxCzhEfSf27
-         w2d/bHjgLX7Shv5//HP9qgtG7LrNicZG6o/WMj0O7AuKMPZ+2btFobheCnkg2yGHF6
-         YXEMluEgbn6OQHsOTvJ5SYgEhXeapX0BO3rjJFxw=
-Date:   Mon, 07 Feb 2022 13:00:20 -0800
-To:     mm-commits@vger.kernel.org, christophe.leroy@csgroup.eu,
-        akpm@linux-foundation.org
+        b=FSIEcl6nvT7PnOO28k3jaEV0zZtklBJnp6VRT+l7n/eeTLrVltU+qVGXldeoglYYp
+         bOmlF5NDgtGetbFllJ+qdDmzliThyzYZq6Yqqf8b1RpNEDdW5L8jp3leCoxagobKvP
+         WUSyyGrwtCanlwnsoiCS2OTli0Z7lnzcpCJNPEh0=
+Date:   Mon, 07 Feb 2022 13:00:21 -0800
+To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au, neilb@suse.de,
+        jack@suse.cz, colin.i.king@gmail.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + ilog2-force-inlining-of-__ilog2_u32-and-__ilog2_u64.patch added to -mm tree
-Message-Id: <20220207210021.41154C340EE@smtp.kernel.org>
+Subject: + remove-bdi_congested-and-wb_congested-and-related-functions-fix-2.patch added to -mm tree
+Message-Id: <20220207210022.210D1C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ilog2: force inlining of __ilog2_u32() and __ilog2_u64()
+     Subject: ext2: remove unused pointer bdi
 has been added to the -mm tree.  Its filename is
-     ilog2-force-inlining-of-__ilog2_u32-and-__ilog2_u64.patch
+     remove-bdi_congested-and-wb_congested-and-related-functions-fix-2.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/ilog2-force-inlining-of-__ilog2_u32-and-__ilog2_u64.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/remove-bdi_congested-and-wb_congested-and-related-functions-fix-2.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/ilog2-force-inlining-of-__ilog2_u32-and-__ilog2_u64.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/remove-bdi_congested-and-wb_congested-and-related-functions-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,113 +62,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christophe Leroy <christophe.leroy@csgroup.eu>
-Subject: ilog2: force inlining of __ilog2_u32() and __ilog2_u64()
+From: Colin Ian King <colin.i.king@gmail.com>
+Subject: ext2: remove unused pointer bdi
 
-Building a kernel with CONFIG_CC_OPTIMISE_FOR_SIZE leads to __ilog2_u32()
-being duplicated 50 times and __ilog2_u64() 3 times in vmlinux on a tiny
-powerpc32 config.
+The call to bdi_congested has been removed and so the bdi pointer is no
+longer required.  Remove it.
 
-__ilog2_u32() being 2 instructions it is not worth being kept out of line,
-so force inlining.  Allthough the u64 version is a bit bigger, there is
-still a small benefit in keeping it inlined.  On a 64 bits config there's
-a real benefit.
-
-With this change the size of vmlinux text is reduced by 1 kbytes, which is
-approx 50% more than the size of the removed functions.
-
-Before the patch there is for instance:
-
-	c00d2a94 <__ilog2_u32>:
-	c00d2a94:	7c 63 00 34 	cntlzw  r3,r3
-	c00d2a98:	20 63 00 1f 	subfic  r3,r3,31
-	c00d2a9c:	4e 80 00 20 	blr
-
-	c00d36d8 <__order_base_2>:
-	c00d36d8:	28 03 00 01 	cmplwi  r3,1
-	c00d36dc:	40 81 00 2c 	ble     c00d3708 <__order_base_2+0x30>
-	c00d36e0:	94 21 ff f0 	stwu    r1,-16(r1)
-	c00d36e4:	7c 08 02 a6 	mflr    r0
-	c00d36e8:	38 63 ff ff 	addi    r3,r3,-1
-	c00d36ec:	90 01 00 14 	stw     r0,20(r1)
-	c00d36f0:	4b ff f3 a5 	bl      c00d2a94 <__ilog2_u32>
-	c00d36f4:	80 01 00 14 	lwz     r0,20(r1)
-	c00d36f8:	38 63 00 01 	addi    r3,r3,1
-	c00d36fc:	7c 08 03 a6 	mtlr    r0
-	c00d3700:	38 21 00 10 	addi    r1,r1,16
-	c00d3704:	4e 80 00 20 	blr
-	c00d3708:	38 60 00 00 	li      r3,0
-	c00d370c:	4e 80 00 20 	blr
-
-With the patch it has become:
-
-	c00d356c <__order_base_2>:
-	c00d356c:	28 03 00 01 	cmplwi  r3,1
-	c00d3570:	40 81 00 14 	ble     c00d3584 <__order_base_2+0x18>
-	c00d3574:	38 63 ff ff 	addi    r3,r3,-1
-	c00d3578:	7c 63 00 34 	cntlzw  r3,r3
-	c00d357c:	20 63 00 20 	subfic  r3,r3,32
-	c00d3580:	4e 80 00 20 	blr
-	c00d3584:	38 60 00 00 	li      r3,0
-	c00d3588:	4e 80 00 20 	blr
-
-No more need for __order_base_2() to setup a stack frame and
-save/restore caller address. And the following 'add 1' is
-merged in the subtract.
-
-Another typical use of it:
-
-	c080ff28 <hugepagesz_setup>:
-	...
-	c080fff8:	7f c3 f3 78 	mr      r3,r30
-	c080fffc:	4b 8f 81 f1 	bl      c01081ec <__ilog2_u32>
-	c0810000:	38 63 ff f2 	addi    r3,r3,-14
-	...
-
-Becomes
-
-	c080ff1c <hugepagesz_setup>:
-	...
-	c080ffec:	7f c3 00 34 	cntlzw  r3,r30
-	c080fff0:	20 63 00 11 	subfic  r3,r3,17
-	...
-
-Here no need to move r30 argument to r3 then substract 14 to result.  Just
-work on r30 and merge the 'sub 14' with the 'sub from 31'.
-
-Link: https://lkml.kernel.org/r/803a2ac3d923ebcfd0dd40f5886b05cae7bb0aba.1644243860.git.christophe.leroy@csgroup.eu
-Signed-off-by: Christophe Leroy <christophe.leroy@csgroup.eu>
+Link: https://lkml.kernel.org/r/20220207134039.337197-1-colin.i.king@gmail.com
+Fixes: 9bbab3a63d49 ("mm/fs: remove bdi_congested() and wb_congested() and related functions")
+Signed-off-by: Colin Ian King <colin.i.king@gmail.com>
+Cc: NeilBrown <neilb@suse.de>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/log2.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ext2/ialloc.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/include/linux/log2.h~ilog2-force-inlining-of-__ilog2_u32-and-__ilog2_u64
-+++ a/include/linux/log2.h
-@@ -18,7 +18,7 @@
-  * - the arch is not required to handle n==0 if implementing the fallback
-  */
- #ifndef CONFIG_ARCH_HAS_ILOG2_U32
--static inline __attribute__((const))
-+static __always_inline __attribute__((const))
- int __ilog2_u32(u32 n)
- {
- 	return fls(n) - 1;
-@@ -26,7 +26,7 @@ int __ilog2_u32(u32 n)
- #endif
+--- a/fs/ext2/ialloc.c~remove-bdi_congested-and-wb_congested-and-related-functions-fix-2
++++ a/fs/ext2/ialloc.c
+@@ -170,9 +170,6 @@ static void ext2_preread_inode(struct in
+ 	unsigned long offset;
+ 	unsigned long block;
+ 	struct ext2_group_desc * gdp;
+-	struct backing_dev_info *bdi;
+-
+-	bdi = inode_to_bdi(inode);
  
- #ifndef CONFIG_ARCH_HAS_ILOG2_U64
--static inline __attribute__((const))
-+static __always_inline __attribute__((const))
- int __ilog2_u64(u64 n)
- {
- 	return fls64(n) - 1;
+ 	block_group = (inode->i_ino - 1) / EXT2_INODES_PER_GROUP(inode->i_sb);
+ 	gdp = ext2_get_group_desc(inode->i_sb, block_group, NULL);
 _
 
-Patches currently in -mm which might be from christophe.leroy@csgroup.eu are
+Patches currently in -mm which might be from colin.i.king@gmail.com are
 
-mm-remove-usercopy_warn.patch
-mm-outline-copy_overflow.patch
-ilog2-force-inlining-of-__ilog2_u32-and-__ilog2_u64.patch
+remove-bdi_congested-and-wb_congested-and-related-functions-fix-2.patch
 
