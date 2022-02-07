@@ -2,197 +2,172 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B1063C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Feb 2022 21:47:36 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id C5936C433EF
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Feb 2022 22:24:01 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S242113AbiBGVre (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Feb 2022 16:47:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60820 "EHLO
+        id S236291AbiBGWYB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Feb 2022 17:24:01 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:49660 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S242070AbiBGVre (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 16:47:34 -0500
-Received: from bombadil.infradead.org (bombadil.infradead.org [IPv6:2607:7c80:54:e::133])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 8BEDCC061355;
-        Mon,  7 Feb 2022 13:47:31 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=bombadil.20210309; h=Sender:In-Reply-To:Content-Type:
-        MIME-Version:References:Message-ID:Subject:Cc:To:From:Date:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=WTLHsRuDo0Kmv8T0AeQW2bl2SYgMY9Rc1wnxTFKAxD8=; b=x9wSvaCIjxMdzhOVgZc4nT/gyv
-        RjR4GoPq0LCzkRJmGgpdswZmkCBaFiV10tfDG74bxgZ6WgsIR0kLIJgP/sUaRNhsQ+kVMZNvHMhsM
-        FR7Eb3r7P0zIi8cu46ZcOXWWRfYcnL2fgZt/TC+KC8KVnQQ4kZzSllTO9He835HE69PF62+MzOi+m
-        FDscSzVw34q69OEZlDld6qvYkKLCigAccYzPWQ6XPfYuMhvlVzy3K5JU8oa2sR8gGQY988obVqPI8
-        RvKFTwufkBVa7BTgL36vKisl/p8q0iYp05GEircLU5DT0Xu6rT3KID6p0iKox07Az0gZJ0VYXmnuK
-        POYLGxyA==;
-Received: from mcgrof by bombadil.infradead.org with local (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nHBqT-00BnlU-8E; Mon, 07 Feb 2022 21:46:49 +0000
-Date:   Mon, 7 Feb 2022 13:46:49 -0800
-From:   Luis Chamberlain <mcgrof@kernel.org>
-To:     Domenico Andreoli <domenico.andreoli@linux.com>,
-        Tong Zhang <ztong0001@gmail.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>
-Cc:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
-        andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
-        benh@kernel.crashing.org, clemens@ladisch.de, crope@iki.fi,
-        dgilbert@interlog.com, gregkh@linuxfoundation.org, jack@suse.cz,
-        jani.nikula@intel.com, jani.nikula@linux.intel.com,
-        jejb@linux.ibm.com, jlbec@evilplan.org, john.ogness@linutronix.de,
-        joonas.lahtinen@linux.intel.com, joseph.qi@linux.alibaba.com,
-        julia.lawall@inria.fr, keescook@chromium.org, kernel@tuxforce.de,
-        linux-mm@kvack.org, mark@fasheh.com, martin.petersen@oracle.com,
-        mm-commits@vger.kernel.org, nixiaoming@huawei.com,
-        penguin-kernel@i-love.sakura.ne.jp, peterz@infradead.org,
-        phil@philpotter.co.uk, pjt@google.com, pmladek@suse.com,
-        rafael@kernel.org, rodrigo.vivi@intel.com, rostedt@goodmis.org,
-        senozhatsky@chromium.org, sre@kernel.org, steve@sk2.org,
-        surenb@google.com, torvalds@linux-foundation.org, tytso@mit.edu,
-        viro@zeniv.linux.org.uk, wangqing@vivo.com, yzaikin@google.com,
-        linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Fix regression due to "fs: move binfmt_misc sysctl to
- its own file"
-Message-ID: <YgGTSR628xhRvCjB@bombadil.infradead.org>
-References: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
- <20220122061228.nmuo75sDn%akpm@linux-foundation.org>
- <YgEeQNdgBuHRyEWl@dumbo>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <YgEeQNdgBuHRyEWl@dumbo>
-Sender: Luis Chamberlain <mcgrof@infradead.org>
+        with ESMTP id S233002AbiBGWYA (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 17:24:00 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9629CC0612A4
+        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 14:23:59 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 571B8B81709
+        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 22:23:58 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EF5E6C004E1;
+        Mon,  7 Feb 2022 22:23:56 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1644272637;
+        bh=VDl7KEk9KOL/qQ4iQEfaj66b8zXA8aIkkIKVsRYia/s=;
+        h=Date:To:From:Subject:From;
+        b=MqTGvi19INNIVq3h0G2cLuhBQdj7Y01fyvXtaL9WFe1Gzzx4C+oL2DpT727o7ztcN
+         wIzLoIlR8VZ0xZctH4gjJj47MFjLjHOiRUR/TfCnLDn/Txq1Ncoa/cKk8oJbmnokj8
+         QfOEUTZbvEyQLhq4+iMvwtFt88azT4pO2bj4+w/4=
+Date:   Mon, 07 Feb 2022 14:23:56 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        rcampbell@nvidia.com, jhubbard@nvidia.com, jglisse@redhat.com,
+        jgg@nvidia.com, hch@lst.de, Felix.Kuehling@amd.com,
+        Alex.Sierra@amd.com, apopple@nvidia.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + migratec-remove-vma-check-in-migrate_vma_setup.patch added to -mm tree
+Message-Id: <20220207222356.EF5E6C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, Feb 07, 2022 at 02:27:28PM +0100, Domenico Andreoli wrote:
-> Commit 3ba442d5331f did not go unnoticed, binfmt-support stopped to
-> work on my Debian system since v5.17-rc2 (did not check with -rc1).
-> 
-> The existance of /proc/sys/fs/binfmt_misc is a precondition for
-> attempting to mount the binfmt_misc fs, which in turn triggers the
-> autoload of the binfmt_misc module. Without it, no module is loaded
-> and no binfmt is available at boot.
-> 
-> Building as built-in or manually loading the module and mounting the fs
-> works fine, it's therefore only a matter of interaction with user-space.
-> 
-> I could try to improve the Debian systemd configuration but I can't
-> say anything about the other distributions.
-> 
-> In the meanwhile this patch restores a working system right after boot.
-> 
-> Fixes: 3ba442d5331f ("fs: move binfmt_misc sysctl to its own file")
-> Signed-off-by: Domenico Andreoli <domenico.andreoli@linux.com>
-> Cc: Al Viro <viro@zeniv.linux.org.uk>
-> Cc: Amir Goldstein <amir73il@gmail.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> Cc: Antti Palosaari <crope@iki.fi>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-> Cc: Benjamin LaHaise <bcrl@kvack.org>
-> Cc: Clemens Ladisch <clemens@ladisch.de>
-> Cc: David Airlie <airlied@linux.ie>
-> Cc: Douglas Gilbert <dgilbert@interlog.com>
-> Cc: Eric Biederman <ebiederm@xmission.com>
-> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> Cc: Iurii Zaikin <yzaikin@google.com>
-> Cc: James E.J. Bottomley <jejb@linux.ibm.com>
-> Cc: Jan Kara <jack@suse.cz>
-> Cc: Jani Nikula <jani.nikula@intel.com>
-> Cc: Jani Nikula <jani.nikula@linux.intel.com>
-> Cc: Joel Becker <jlbec@evilplan.org>
-> Cc: John Ogness <john.ogness@linutronix.de>
-> Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
-> Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
-> Cc: Julia Lawall <julia.lawall@inria.fr>
-> Cc: Kees Cook <keescook@chromium.org>
-> Cc: Lukas Middendorf <kernel@tuxforce.de>
-> Cc: Luis Chamberlain <mcgrof@kernel.org>
-> Cc: Mark Fasheh <mark@fasheh.com>
-> Cc: Martin K. Petersen <martin.petersen@oracle.com>
-> Cc: Paul Turner <pjt@google.com>
-> Cc: Peter Zijlstra <peterz@infradead.org>
-> Cc: Petr Mladek <pmladek@suse.com>
-> Cc: Phillip Potter <phil@philpotter.co.uk>
-> Cc: Qing Wang <wangqing@vivo.com>
-> Cc: "Rafael J. Wysocki" <rafael@kernel.org>
-> Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
-> Cc: Sebastian Reichel <sre@kernel.org>
-> Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
-> Cc: Stephen Kitt <steve@sk2.org>
-> Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
-> Cc: Suren Baghdasaryan <surenb@google.com>
-> Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-> Cc: "Theodore Ts'o" <tytso@mit.edu>
-> Cc: Xiaoming Ni <nixiaoming@huawei.com>
-> 
-> ---
->  fs/binfmt_misc.c |    6 +-----
->  kernel/sysctl.c  |   13 +++++++++++++
->  2 files changed, 14 insertions(+), 5 deletions(-)
-> 
-> Index: b/fs/binfmt_misc.c
-> ===================================================================
-> --- a/fs/binfmt_misc.c
-> +++ b/fs/binfmt_misc.c
-> @@ -817,20 +817,16 @@ static struct file_system_type bm_fs_typ
->  };
->  MODULE_ALIAS_FS("binfmt_misc");
->  
-> -static struct ctl_table_header *binfmt_misc_header;
-> -
->  static int __init init_misc_binfmt(void)
->  {
->  	int err = register_filesystem(&bm_fs_type);
->  	if (!err)
->  		insert_binfmt(&misc_format);
-> -	binfmt_misc_header = register_sysctl_mount_point("fs/binfmt_misc");
-> -	return 0;
-> +	return err;
->  }
 
-OK I think the issue here should have been that declaring this on
-fs/binfmt_misc.c creates the chicken and the egg issue, and so we
-need to do this on built-in code. Instead of your patch can you try
-this instead, it just always creates the sysctl mount always now
-so long as proc sysctl is enabled. It does not do the unregistration
-as we always want the path present as it used to be before as well.
+The patch titled
+     Subject: migrate.c: remove vma check in migrate_vma_setup()
+has been added to the -mm tree.  Its filename is
+     migratec-remove-vma-check-in-migrate_vma_setup.patch
 
-diff --git a/fs/binfmt_misc.c b/fs/binfmt_misc.c
-index c07f35719ee3..4b8f1b11a7c8 100644
---- a/fs/binfmt_misc.c
-+++ b/fs/binfmt_misc.c
-@@ -817,20 +817,16 @@ static struct file_system_type bm_fs_type = {
- };
- MODULE_ALIAS_FS("binfmt_misc");
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/migratec-remove-vma-check-in-migrate_vma_setup.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/migratec-remove-vma-check-in-migrate_vma_setup.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Alistair Popple <apopple@nvidia.com>
+Subject: migrate.c: remove vma check in migrate_vma_setup()
+
+Patch series "Migrate device coherent pages on get_user_pages()", v2.
+
+Device coherent pages represent memory on a coherently attached device
+such as a GPU which is usually under the control of a driver.  These pages
+should not be pinned as the driver needs to be able to move pages as
+required.  Currently this is enforced by failing any attempt to pin a
+device coherent page.
+
+A similar problem exists for ZONE_MOVABLE pages.  In that case though the
+pages are migrated instead of causing failure.  There is no reason the
+kernel can't migrate device coherent pages so this series implements
+migration for device coherent pages so the same strategy of migrate and
+pin can be used.
+
+This series depends on the series "Add MEMORY_DEVICE_COHERENT for coherent
+device memory mapping"[1] which is in linux-next-20220204 and should apply
+cleanly to that.
+
+[1] - https://lore.kernel.org/linux-mm/20220128200825.8623-1-alex.sierra@amd.com/
+
+
+This patch (of 2):
+
+migrate_vma_setup() checks that a valid vma is passed so that the page
+tables can be walked to find the pfns associated with a given address
+range.  However in some cases the pfns are already known, such as when
+migrating device coherent pages during pin_user_pages() meaning a valid
+vma isn't required.
+
+Link: https://lkml.kernel.org/r/cover.0d3c846b1c6c294e055ff7ebe221fab9964c1436.1644207242.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/6831bf69f7c7699be83b31c9c56212b5fb07f873.1644207242.git-series.apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alex Sierra <Alex.Sierra@amd.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ mm/migrate.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
+
+--- a/mm/migrate.c~migratec-remove-vma-check-in-migrate_vma_setup
++++ a/mm/migrate.c
+@@ -2609,24 +2609,24 @@ int migrate_vma_setup(struct migrate_vma
  
--static struct ctl_table_header *binfmt_misc_header;
+ 	args->start &= PAGE_MASK;
+ 	args->end &= PAGE_MASK;
+-	if (!args->vma || is_vm_hugetlb_page(args->vma) ||
+-	    (args->vma->vm_flags & VM_SPECIAL) || vma_is_dax(args->vma))
+-		return -EINVAL;
+-	if (nr_pages <= 0)
+-		return -EINVAL;
+-	if (args->start < args->vma->vm_start ||
+-	    args->start >= args->vma->vm_end)
+-		return -EINVAL;
+-	if (args->end <= args->vma->vm_start || args->end > args->vma->vm_end)
+-		return -EINVAL;
+ 	if (!args->src || !args->dst)
+ 		return -EINVAL;
++	if (args->vma) {
++		if (is_vm_hugetlb_page(args->vma) ||
++			(args->vma->vm_flags & VM_SPECIAL) || vma_is_dax(args->vma))
++			return -EINVAL;
++		if (args->start < args->vma->vm_start ||
++			args->start >= args->vma->vm_end)
++			return -EINVAL;
++		if (args->end <= args->vma->vm_start || args->end > args->vma->vm_end)
++			return -EINVAL;
++
++		memset(args->src, 0, sizeof(*args->src) * nr_pages);
++		args->cpages = 0;
++		args->npages = 0;
+ 
+-	memset(args->src, 0, sizeof(*args->src) * nr_pages);
+-	args->cpages = 0;
+-	args->npages = 0;
 -
- static int __init init_misc_binfmt(void)
- {
- 	int err = register_filesystem(&bm_fs_type);
- 	if (!err)
- 		insert_binfmt(&misc_format);
--	binfmt_misc_header = register_sysctl_mount_point("fs/binfmt_misc");
- 	return 0;
- }
+-	migrate_vma_collect(args);
++		migrate_vma_collect(args);
++	}
  
- static void __exit exit_misc_binfmt(void)
- {
--	unregister_sysctl_table(binfmt_misc_header);
- 	unregister_binfmt(&misc_format);
- 	unregister_filesystem(&bm_fs_type);
- }
-diff --git a/fs/file_table.c b/fs/file_table.c
-index 57edef16dce4..4f4739c9405c 100644
---- a/fs/file_table.c
-+++ b/fs/file_table.c
-@@ -119,6 +119,7 @@ static struct ctl_table fs_stat_sysctls[] = {
- static int __init init_fs_stat_sysctls(void)
- {
- 	register_sysctl_init("fs", fs_stat_sysctls);
-+	register_sysctl_mount_point("fs/binfmt_misc");
- 	return 0;
- }
- fs_initcall(init_fs_stat_sysctls);
+ 	if (args->cpages)
+ 		migrate_vma_unmap(args);
+@@ -2811,7 +2811,7 @@ void migrate_vma_pages(struct migrate_vm
+ 			continue;
+ 		}
+ 
+-		if (!page) {
++		if (!page && migrate->vma) {
+ 			if (!(migrate->src[i] & MIGRATE_PFN_MIGRATE))
+ 				continue;
+ 			if (!notified) {
+_
+
+Patches currently in -mm which might be from apopple@nvidia.com are
+
+migratec-remove-vma-check-in-migrate_vma_setup.patch
+mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
+
