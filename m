@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5879C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id D4DDBC43219
 	for <mm-commits@archiver.kernel.org>; Mon,  7 Feb 2022 21:00:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231625AbiBGVAx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Feb 2022 16:00:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34924 "EHLO
+        id S231526AbiBGVAy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Feb 2022 16:00:54 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:35000 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231526AbiBGVAe (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 16:00:34 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 37FBAC0401E1
-        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 13:00:28 -0800 (PST)
+        with ESMTP id S231864AbiBGVA1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 16:00:27 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 70F36C0401D1
+        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 13:00:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C8FD86156D
-        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 21:00:27 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 26226C004E1;
-        Mon,  7 Feb 2022 21:00:27 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 22277B816FF
+        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 21:00:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id BDEF2C004E1;
+        Mon,  7 Feb 2022 21:00:23 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644267627;
-        bh=upaJNjvW3tkA/mivpFwnXBQk8JhQJU+CPJU4bzozKkI=;
+        s=korg; t=1644267623;
+        bh=jP9ofZaGXLvf66Ig2G8hUqXm25gtBebXDz/a+AUBJE8=;
         h=Date:To:From:Subject:From;
-        b=KJ6rn5nzCXIQNxMQL8i8xW0BYXBBND+UMCSmJrMThXCzMf4LRJvH7+t7FNXjE/0SD
-         9v3EypMS/OgyuV+WHtDUWGY9aUZ0K9EFiRj7u6JnUizcKUkVj2ZNXv0cMBO3hIqs4Z
-         l5ZTBPFmR7A6nJjphChd8S4aDGOCGNlvYFT2yy1E=
-Date:   Mon, 07 Feb 2022 13:00:26 -0800
-To:     mm-commits@vger.kernel.org, mcgrof@kernel.org,
-        domenico.andreoli@linux.com, akpm@linux-foundation.org
+        b=krQpugo7Dj3ddD5KVf/wJkpXvH+V8M9sAOUnV7uJ+FWa5tL7c1/Ha2OKWzepB5fup
+         Pa+LOAqvsgQ0pltPlHjlJ7uYwmjq1GP9zJY6NVox9+O0avxhz4pIIbpkcL1igkCjA9
+         ansDTnr8zlIHwOpSGVbNZEnN/UisXc5rzUjtp/Z0=
+Date:   Mon, 07 Feb 2022 13:00:23 -0800
+To:     mm-commits@vger.kernel.org, linmiaohe@huawei.com, david@redhat.com,
+        akpm@linux-foundation.org, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file.patch added to -mm tree
-Message-Id: <20220207210027.26226C004E1@smtp.kernel.org>
+Subject: + mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch added to -mm tree
+Message-Id: <20220207210023.BDEF2C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix regression due to "fs: move binfmt_misc sysctl to its own file"
+     Subject: mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix
 has been added to the -mm tree.  Its filename is
-     fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file.patch
+     mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,99 +62,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Domenico Andreoli <domenico.andreoli@linux.com>
-Subject: fix regression due to "fs: move binfmt_misc sysctl to its own file"
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix
 
-Commit 3ba442d5331f did not go unnoticed, binfmt-support stopped to work
-on my Debian system since v5.17-rc2 (did not check with -rc1).
+remove the comment altogether, per David
 
-The existence of /proc/sys/fs/binfmt_misc is a precondition for attempting
-to mount the binfmt_misc fs, which in turn triggers the autoload of the
-binfmt_misc module.  Without it, no module is loaded and no binfmt is
-available at boot.
-
-Building as built-in or manually loading the module and mounting the fs
-works fine, it's therefore only a matter of interaction with user-space.
-
-I could try to improve the Debian systemd configuration but I can't
-say anything about the other distributions.
-
-In the meanwhile this patch restores a working system right after boot.
-
-Link: https://lkml.kernel.org/r/YgEeQNdgBuHRyEWl@dumbo
-Fixes: 3ba442d5331f ("fs: move binfmt_misc sysctl to its own file")
-Signed-off-by: Domenico Andreoli <domenico.andreoli@linux.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    6 +-----
- kernel/sysctl.c  |   13 +++++++++++++
- 2 files changed, 14 insertions(+), 5 deletions(-)
+ mm/memory_hotplug.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
---- a/fs/binfmt_misc.c~fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file
-+++ a/fs/binfmt_misc.c
-@@ -817,20 +817,16 @@ static struct file_system_type bm_fs_typ
- };
- MODULE_ALIAS_FS("binfmt_misc");
- 
--static struct ctl_table_header *binfmt_misc_header;
--
- static int __init init_misc_binfmt(void)
- {
- 	int err = register_filesystem(&bm_fs_type);
- 	if (!err)
- 		insert_binfmt(&misc_format);
--	binfmt_misc_header = register_sysctl_mount_point("fs/binfmt_misc");
--	return 0;
-+	return err;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix
++++ a/mm/memory_hotplug.c
+@@ -295,9 +295,6 @@ struct page *pfn_to_online_page(unsigned
  }
+ EXPORT_SYMBOL_GPL(pfn_to_online_page);
  
- static void __exit exit_misc_binfmt(void)
+-/*
+- * Reasonably generic function for adding memory.
+- */
+ int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
+ 		struct mhp_params *params)
  {
--	unregister_sysctl_table(binfmt_misc_header);
- 	unregister_binfmt(&misc_format);
- 	unregister_filesystem(&bm_fs_type);
- }
---- a/kernel/sysctl.c~fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file
-+++ a/kernel/sysctl.c
-@@ -2806,6 +2806,17 @@ static struct ctl_table vm_table[] = {
- 	{ }
- };
- 
-+static struct ctl_table fs_table[] = {
-+#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
-+	{
-+		.procname	= "binfmt_misc",
-+		.mode		= 0555,
-+		.child		= sysctl_mount_point,
-+	},
-+#endif
-+	{ }
-+};
-+
- static struct ctl_table debug_table[] = {
- #ifdef CONFIG_SYSCTL_EXCEPTION_TRACE
- 	{
-@@ -2825,6 +2836,7 @@ static struct ctl_table dev_table[] = {
- 
- DECLARE_SYSCTL_BASE(kernel, kern_table);
- DECLARE_SYSCTL_BASE(vm, vm_table);
-+DECLARE_SYSCTL_BASE(fs, fs_table);
- DECLARE_SYSCTL_BASE(debug, debug_table);
- DECLARE_SYSCTL_BASE(dev, dev_table);
- 
-@@ -2832,6 +2844,7 @@ int __init sysctl_init_bases(void)
- {
- 	register_sysctl_base(kernel);
- 	register_sysctl_base(vm);
-+	register_sysctl_base(fs);
- 	register_sysctl_base(debug);
- 	register_sysctl_base(dev);
- 
 _
 
-Patches currently in -mm which might be from domenico.andreoli@linux.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file.patch
+remove-bdi_congested-and-wb_congested-and-related-functions-fix.patch
+mm.patch
+documentation-vm-page_ownerrst-update-the-documentation-fix.patch
+mm-move-page-writeback-sysctls-to-is-own-file-checkpatch-fixes.patch
+mm-move-page-writeback-sysctls-to-is-own-file-fix.patch
+mm-mempolicy-convert-from-atomic_t-to-refcount_t-on-mempolicy-refcnt-fix.patch
+numa-balancing-optimize-page-placement-for-memory-tiering-system-fix.patch
+numa-balancing-optimize-page-placement-for-memory-tiering-system-fix-fix.patch
+mm-handle-uninitialized-numa-nodes-gracefully-fix.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages-fix.patch
+mm-outline-copy_overflow-fix.patch
+proc-alloc-path_max-bytes-for-proc-pid-fd-symlinks-fix.patch
+linux-next-rejects.patch
+mutex-subsystem-synchro-test-module-fix.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
 
