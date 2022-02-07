@@ -2,105 +2,218 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 68A78C433EF
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Feb 2022 08:42:35 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 1DC63C4321E
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Feb 2022 13:58:58 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S243765AbiBGIlu (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Feb 2022 03:41:50 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60210 "EHLO
+        id S232984AbiBGN5i (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Feb 2022 08:57:38 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60732 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1345482AbiBGIdS (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 03:33:18 -0500
-X-Greylist: delayed 62 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Mon, 07 Feb 2022 00:33:18 PST
-Received: from mga12.intel.com (mga12.intel.com [192.55.52.136])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 26EC3C043181
-        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 00:33:18 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple;
-  d=intel.com; i=@intel.com; q=dns/txt; s=Intel;
-  t=1644222798; x=1675758798;
-  h=from:to:cc:subject:references:date:in-reply-to:
-   message-id:mime-version;
-  bh=st4wTbqnfe8/mBeekfXuiOPVETSNLYzBUQmdsLF+6k4=;
-  b=QeDmcRgZ2EaqA++DAPawa41O+d9RWy3pOLlcDpfSFGWecBKIxXSDOdV3
-   MuOi+iR2Ks/lzOy/VyKVrszAr82ERdm3lgikZpV+kkuzOVXffP4Bw9FaQ
-   OVhGxeF1L6hwVG6KVCGldeKHf47YaMxF56Q/iB6jz/AvRm8AsmBRQRkPP
-   Kg8TNp6VBqTrkULed1flzuYgFsaNndEUzWWU3/AnWbSHCRXMwdf0JerF2
-   jkakzney1KghsXXEQz6Vq8IHyezlH/CQsSM4qxX7ZeJA5ncmo+hV+Lx6i
-   rWNQ+k0Ox02BhP6qZX7CMEAnkDdHw9fWUDM+nS8UYcTZR87Bm9a3d62C9
-   Q==;
-X-IronPort-AV: E=McAfee;i="6200,9189,10250"; a="228641796"
-X-IronPort-AV: E=Sophos;i="5.88,349,1635231600"; 
-   d="scan'208";a="228641796"
-Received: from orsmga008.jf.intel.com ([10.7.209.65])
-  by fmsmga106.fm.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2022 00:32:16 -0800
-X-IronPort-AV: E=Sophos;i="5.88,349,1635231600"; 
-   d="scan'208";a="540002966"
-Received: from yhuang6-desk2.sh.intel.com (HELO yhuang6-desk2.ccr.corp.intel.com) ([10.239.13.11])
-  by orsmga008-auth.jf.intel.com with ESMTP/TLS/ECDHE-RSA-AES256-GCM-SHA384; 07 Feb 2022 00:32:12 -0800
-From:   "Huang, Ying" <ying.huang@intel.com>
-To:     Peter Zijlstra <peterz@infradead.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, ziy@nvidia.com,
-        zhongjiang-ali@linux.alibaba.com, weixugc@google.com,
-        shy828301@gmail.com, shakeelb@google.com, riel@surriel.com,
-        osalvador@suse.de, mhocko@suse.com, mgorman@techsingularity.net,
-        hasanalmaruf@fb.com, feng.tang@intel.com,
-        dave.hansen@linux.intel.com, baolin.wang@linux.alibaba.com
-Subject: Re: +
- numa-balancing-optimize-page-placement-for-memory-tiering-system.patch
- added to -mm tree
-References: <20220201222010.E9F39C340EB@smtp.kernel.org>
-        <20220202101926.GY20638@worktop.programming.kicks-ass.net>
-Date:   Mon, 07 Feb 2022 16:32:10 +0800
-In-Reply-To: <20220202101926.GY20638@worktop.programming.kicks-ass.net> (Peter
-        Zijlstra's message of "Wed, 2 Feb 2022 11:19:26 +0100")
-Message-ID: <87leynm60l.fsf@yhuang6-desk2.ccr.corp.intel.com>
-User-Agent: Gnus/5.13 (Gnus v5.13) Emacs/27.1 (gnu/linux)
+        with ESMTP id S1358816AbiBGN1d (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 08:27:33 -0500
+Received: from mail-ej1-x62d.google.com (mail-ej1-x62d.google.com [IPv6:2a00:1450:4864:20::62d])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 816C6C043181;
+        Mon,  7 Feb 2022 05:27:32 -0800 (PST)
+Received: by mail-ej1-x62d.google.com with SMTP id og43so18061000ejc.0;
+        Mon, 07 Feb 2022 05:27:32 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20210112;
+        h=sender:date:from:to:cc:subject:message-id:references:mime-version
+         :content-disposition:in-reply-to;
+        bh=uodRgi0lSvjfu6z/loPgCdPJcwfTd50pHHEutx7a7FU=;
+        b=GOkuyBYFBgK7TrBFV7AaPdglSjAc9h7eSRY4Vn43CJi87x2sGC2JrvOL79WmgPPF/a
+         8HQLM/ySYk9O1Y7qZdIa60UODXU0Smf1aUvLNN0PPcEWAvmZxk/x5FPmFeJzSaNPIvGi
+         VjNVSR6bx3GwOlp3M3yFXx9pIdrE6g/XqeIe0bOSubz3pxs9FfFxNmR+v9GOmlO7vHTD
+         wa4EzWuoIb9nmdNlbv5BPvJiGwK2NqqvMlalkuUDKBVjvPNsi8jc0PCs4BuZ10WcXDJ+
+         50ZKZ/Om8/K7NkCv7WC9SdOCzoZERiYveT9d5FCIyKn4PA5EvLJadw9MgvhBZ1QLrcjD
+         uIqw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20210112;
+        h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
+         :references:mime-version:content-disposition:in-reply-to;
+        bh=uodRgi0lSvjfu6z/loPgCdPJcwfTd50pHHEutx7a7FU=;
+        b=EQuKtLF1kLxJi3O3Ff0kG1sHawHTcPQ6KQ2Lh8qvO37yJkAR3MhQvJEVqg7tA0kmxj
+         TPf8MpXQ14OLXPm41+6rqIsPTY4tvcoF+9c/mHtEY5VPbZmsyYaDPwazAVOQmEhiemIW
+         G4baEfh/j6WVYFGOkW5JoxDQnnzMPKhQfe0BAuXRWuXwQuRDTGNgSNl5dJi8YzzcwTd2
+         Pro3wY0WR6SxGpA/QBUgvtqb6W/g4vCq7AszfwMHcbllrPCBHfdFHzevDg2+KK7ehlhG
+         aMCH3/lIJn2iyCt6VNmPSAP69snAp82KPtRWsR046K0njX8LxohXFi7JyVfNSeeg6CpY
+         30Jw==
+X-Gm-Message-State: AOAM530OvPAznji+EVAzwXabJ1VV4EExIojzD8ygEg7GVZIEs9ToGPw6
+        ySEMLdu4GEXeYHmGfUc/kKc=
+X-Google-Smtp-Source: ABdhPJwO2cWoWb2zHzBal8Bo+vfe+9ev1QdE8F6uXO4YWA/GdnWjQziOhW/5NX3D8Y0V8NGNxSArvA==
+X-Received: by 2002:a17:906:f156:: with SMTP id gw22mr7510658ejb.321.1644240450800;
+        Mon, 07 Feb 2022 05:27:30 -0800 (PST)
+Received: from dumbo (tor-exit-13.zbau.f3netze.de. [2a0b:f4c0:16c:13::1])
+        by smtp.gmail.com with ESMTPSA id a18sm5215946edu.31.2022.02.07.05.27.30
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 07 Feb 2022 05:27:30 -0800 (PST)
+Sender: Domenico Andreoli <domenico.andreoli.it@gmail.com>
+Received: from cavok by dumbo with local (Exim 4.94.2)
+        (envelope-from <cavok@dumbo>)
+        id 1nH43E-0002H6-41; Mon, 07 Feb 2022 14:27:28 +0100
+Date:   Mon, 7 Feb 2022 14:27:28 +0100
+From:   Domenico Andreoli <domenico.andreoli@linux.com>
+To:     airlied@linux.ie, akpm@linux-foundation.org, amir73il@gmail.com,
+        andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
+        benh@kernel.crashing.org, clemens@ladisch.de, crope@iki.fi,
+        dgilbert@interlog.com, ebiederm@xmission.com,
+        gregkh@linuxfoundation.org, jack@suse.cz, jani.nikula@intel.com,
+        jani.nikula@linux.intel.com, jejb@linux.ibm.com,
+        jlbec@evilplan.org, john.ogness@linutronix.de,
+        joonas.lahtinen@linux.intel.com, joseph.qi@linux.alibaba.com,
+        julia.lawall@inria.fr, keescook@chromium.org, kernel@tuxforce.de,
+        linux-mm@kvack.org, mark@fasheh.com, martin.petersen@oracle.com,
+        mcgrof@kernel.org, mm-commits@vger.kernel.org,
+        nixiaoming@huawei.com, penguin-kernel@i-love.sakura.ne.jp,
+        peterz@infradead.org, phil@philpotter.co.uk, pjt@google.com,
+        pmladek@suse.com, rafael@kernel.org, rodrigo.vivi@intel.com,
+        rostedt@goodmis.org, senozhatsky@chromium.org, sre@kernel.org,
+        steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
+        tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
+        yzaikin@google.com
+Cc:     linux-kernel@vger.kernel.org
+Subject: [PATCH] Fix regression due to "fs: move binfmt_misc sysctl to its
+ own file"
+Message-ID: <YgEeQNdgBuHRyEWl@dumbo>
+References: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
+ <20220122061228.nmuo75sDn%akpm@linux-foundation.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ascii
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20220122061228.nmuo75sDn%akpm@linux-foundation.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-Peter Zijlstra <peterz@infradead.org> writes:
+Commit 3ba442d5331f did not go unnoticed, binfmt-support stopped to
+work on my Debian system since v5.17-rc2 (did not check with -rc1).
 
-> On Tue, Feb 01, 2022 at 02:20:10PM -0800, Andrew Morton wrote:
->> 
->> The patch titled
->>      Subject: NUMA balancing: optimize page placement for memory tiering system
->> has been added to the -mm tree.  Its filename is
->>      numa-balancing-optimize-page-placement-for-memory-tiering-system.patch
->> 
->> This patch should soon appear at
->>     https://ozlabs.org/~akpm/mmots/broken-out/numa-balancing-optimize-page-placement-for-memory-tiering-system.patch
->> and later at
->>     https://ozlabs.org/~akpm/mmotm/broken-out/numa-balancing-optimize-page-placement-for-memory-tiering-system.patch
->> 
->> Before you just go and hit "reply", please:
->>    a) Consider who else should be cc'ed
->>    b) Prefer to cc a suitable mailing list as well
->>    c) Ideally: find the original patch on the mailing list and do a
->>       reply-to-all to that, adding suitable additional cc's
->> 
->> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
->> 
->> The -mm tree is included into linux-next and is updated
->> there every 3-4 working days
->> 
->> ------------------------------------------------------
->> From: Huang Ying <ying.huang@intel.com>
->> Subject: NUMA balancing: optimize page placement for memory tiering system
->
-> I'm thinking this is a bit soon, current stuff is all sorts of broken
-> in the presence of memory only nodes.
->
-> I *really* want to see all that fixed before we merge this stuff.
+The existance of /proc/sys/fs/binfmt_misc is a precondition for
+attempting to mount the binfmt_misc fs, which in turn triggers the
+autoload of the binfmt_misc module. Without it, no module is loaded
+and no binfmt is available at boot.
 
-Hi, Peter,
+Building as built-in or manually loading the module and mounting the fs
+works fine, it's therefore only a matter of interaction with user-space.
 
-I am working on the fixing now.  And I will try my best to fix it as
-soon as possible.
+I could try to improve the Debian systemd configuration but I can't
+say anything about the other distributions.
 
-Best Regards,
-Huang, Ying]
+In the meanwhile this patch restores a working system right after boot.
+
+Fixes: 3ba442d5331f ("fs: move binfmt_misc sysctl to its own file")
+Signed-off-by: Domenico Andreoli <domenico.andreoli@linux.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Douglas Gilbert <dgilbert@interlog.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: James E.J. Bottomley <jejb@linux.ibm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jani Nikula <jani.nikula@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Julia Lawall <julia.lawall@inria.fr>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Lukas Middendorf <kernel@tuxforce.de>
+Cc: Luis Chamberlain <mcgrof@kernel.org>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
+Cc: Paul Turner <pjt@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Phillip Potter <phil@philpotter.co.uk>
+Cc: Qing Wang <wangqing@vivo.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Stephen Kitt <steve@sk2.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
+
+---
+ fs/binfmt_misc.c |    6 +-----
+ kernel/sysctl.c  |   13 +++++++++++++
+ 2 files changed, 14 insertions(+), 5 deletions(-)
+
+Index: b/fs/binfmt_misc.c
+===================================================================
+--- a/fs/binfmt_misc.c
++++ b/fs/binfmt_misc.c
+@@ -817,20 +817,16 @@ static struct file_system_type bm_fs_typ
+ };
+ MODULE_ALIAS_FS("binfmt_misc");
+ 
+-static struct ctl_table_header *binfmt_misc_header;
+-
+ static int __init init_misc_binfmt(void)
+ {
+ 	int err = register_filesystem(&bm_fs_type);
+ 	if (!err)
+ 		insert_binfmt(&misc_format);
+-	binfmt_misc_header = register_sysctl_mount_point("fs/binfmt_misc");
+-	return 0;
++	return err;
+ }
+ 
+ static void __exit exit_misc_binfmt(void)
+ {
+-	unregister_sysctl_table(binfmt_misc_header);
+ 	unregister_binfmt(&misc_format);
+ 	unregister_filesystem(&bm_fs_type);
+ }
+Index: b/kernel/sysctl.c
+===================================================================
+--- a/kernel/sysctl.c
++++ b/kernel/sysctl.c
+@@ -2806,6 +2806,17 @@ static struct ctl_table vm_table[] = {
+ 	{ }
+ };
+ 
++static struct ctl_table fs_table[] = {
++#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
++	{
++		.procname	= "binfmt_misc",
++		.mode		= 0555,
++		.child		= sysctl_mount_point,
++	},
++#endif
++	{ }
++};
++
+ static struct ctl_table debug_table[] = {
+ #ifdef CONFIG_SYSCTL_EXCEPTION_TRACE
+ 	{
+@@ -2825,6 +2836,7 @@ static struct ctl_table dev_table[] = {
+ 
+ DECLARE_SYSCTL_BASE(kernel, kern_table);
+ DECLARE_SYSCTL_BASE(vm, vm_table);
++DECLARE_SYSCTL_BASE(fs, fs_table);
+ DECLARE_SYSCTL_BASE(debug, debug_table);
+ DECLARE_SYSCTL_BASE(dev, dev_table);
+ 
+@@ -2832,6 +2844,7 @@ int __init sysctl_init_bases(void)
+ {
+ 	register_sysctl_base(kernel);
+ 	register_sysctl_base(vm);
++	register_sysctl_base(fs);
+ 	register_sysctl_base(debug);
+ 	register_sysctl_base(dev);
+ 
