@@ -2,38 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A60ABC433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Feb 2022 21:00:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F4EDC433FE
+	for <mm-commits@archiver.kernel.org>; Mon,  7 Feb 2022 21:00:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231925AbiBGVAd (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Feb 2022 16:00:33 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34928 "EHLO
+        id S231960AbiBGVAe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 7 Feb 2022 16:00:34 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:34914 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231667AbiBGVAY (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 16:00:24 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 15D7BC043189
+        with ESMTP id S231534AbiBGVAZ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 16:00:25 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id F3D2FC06173B
         for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 13:00:23 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id B8480B816FF
-        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 21:00:21 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 5B1D4C004E1;
-        Mon,  7 Feb 2022 21:00:20 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 94C0A61565
+        for <mm-commits@vger.kernel.org>; Mon,  7 Feb 2022 21:00:23 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9AF3C004E1;
+        Mon,  7 Feb 2022 21:00:22 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644267620;
-        bh=YrWahkIyBlq4ID6kB1blx2gmz+se4f7T3wPRhzLiFIs=;
+        s=korg; t=1644267623;
+        bh=L/p/g7C+GJpSFlmn4lrg4P9qJSnPutpSRlHj9WZM3VI=;
         h=Date:To:From:Subject:From;
-        b=aan1r036jtTGGVI6b6RvUSO3iHX6ENmlHHXfE1bDc/Rb9SJpRMIHfMoGlhxCrgtpj
-         WSnFo2BlFvncPqUwrdXWnkerdpKEoj5ldX0l3agw2TfbS/dAs8MIsAycAvjNZz4GXd
-         6/LSXgn/hNvxiKGFs4McAo2ih2GMHcCQKmuHtGrs=
-Date:   Mon, 07 Feb 2022 13:00:19 -0800
-To:     mm-commits@vger.kernel.org, adobriyan@gmail.com, nathan@kernel.org,
+        b=BYfwZ7Q2bfDhctD2t25b3CHknvYufWOjEcisJ1pbJrAs5+oIM061jhaIGobRdddw/
+         yAQoBCRa8Xvq4+ra7BYYfIHeuyGYpDLRDoEL6TP8Ce0wTjdc9fWEcXYjzu7pKSd/8g
+         hWhGx/JinOGuZcCfOi6fhHolA7jcAdRKAu9oQWIo=
+Date:   Mon, 07 Feb 2022 13:00:22 -0800
+To:     mm-commits@vger.kernel.org, david@redhat.com, linmiaohe@huawei.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + proc-avoid-unused-variable-warning-in-pagemap_pmd_range.patch added to -mm tree
-Message-Id: <20220207210020.5B1D4C004E1@smtp.kernel.org>
+Subject: + mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch added to -mm tree
+Message-Id: <20220207210022.E9AF3C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -41,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: avoid unused variable warning in pagemap_pmd_range()
+     Subject: mm/memory_hotplug: remove obsolete comment of __add_pages
 has been added to the -mm tree.  Its filename is
-     proc-avoid-unused-variable-warning-in-pagemap_pmd_range.patch
+     mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/proc-avoid-unused-variable-warning-in-pagemap_pmd_range.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/proc-avoid-unused-variable-warning-in-pagemap_pmd_range.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,45 +62,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nathan Chancellor <nathan@kernel.org>
-Subject: proc: avoid unused variable warning in pagemap_pmd_range()
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory_hotplug: remove obsolete comment of __add_pages
 
-When building with CONFIG_TRANSPARENT_HUGEPAGE=n, there is a warning about
-migration being unused:
+Patch series "A few cleanup patches around memory_hotplug".
 
-  fs/proc/task_mmu.c:1444:7: warning: unused variable 'migration' [-Wunused-variable]
-          bool migration = false;
-               ^
-  1 warning generated.
+This series contains a few patches to fix obsolete and misplaced comments,
+clean up the try_offline_node function and so on.  
 
-Move the ifdef preprocessor directive up to include migration so it is
-only included in the file when it is used.
 
-Link: https://lkml.kernel.org/r/20220207171049.1102239-1-nathan@kernel.org
-Signed-off-by: Nathan Chancellor <nathan@kernel.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
+This patch (of 4):
+
+Since commit f1dd2cd13c4b ("mm, memory_hotplug: do not associate hotadded
+memory to zones until online"), there is no need to pass in the zone.
+
+Link: https://lkml.kernel.org/r/20220207133643.23427-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220207133643.23427-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: David Hildenbrand <david@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/memory_hotplug.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
---- a/fs/proc/task_mmu.c~proc-avoid-unused-variable-warning-in-pagemap_pmd_range
-+++ a/fs/proc/task_mmu.c
-@@ -1441,9 +1441,9 @@ static int pagemap_pmd_range(pmd_t *pmdp
- 	spinlock_t *ptl;
- 	pte_t *pte, *orig_pte;
- 	int err = 0;
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	bool migration = false;
+--- a/mm/memory_hotplug.c~mm-memory_hotplug-remove-obsolete-comment-of-__add_pages
++++ a/mm/memory_hotplug.c
+@@ -296,10 +296,7 @@ struct page *pfn_to_online_page(unsigned
+ EXPORT_SYMBOL_GPL(pfn_to_online_page);
  
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	ptl = pmd_trans_huge_lock(pmdp, vma);
- 	if (ptl) {
- 		u64 flags = 0, frame = 0;
+ /*
+- * Reasonably generic function for adding memory.  It is
+- * expected that archs that support memory hotplug will
+- * call this function after deciding the zone to which to
+- * add the new pages.
++ * Reasonably generic function for adding memory.
+  */
+ int __ref __add_pages(int nid, unsigned long pfn, unsigned long nr_pages,
+ 		struct mhp_params *params)
 _
 
-Patches currently in -mm which might be from nathan@kernel.org are
+Patches currently in -mm which might be from linmiaohe@huawei.com are
 
-proc-avoid-unused-variable-warning-in-pagemap_pmd_range.patch
+mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
+mm-sparse-make-mminit_validate_memmodel_limits-static.patch
+mm-vmalloc-remove-unneeded-function-forward-declaration.patch
+mm-mmzoneh-remove-unused-macros.patch
+mm-balloon_compaction-make-balloon-page-compaction-callbacks-static.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
+mm-memory_hotplug-avoid-calling-zone_intersects-for-zone_normal.patch
+mm-memory_hotplug-clean-up-try_offline_node.patch
+mm-memory_hotplug-fix-misplaced-comment-in-offline_pages.patch
+mm-highmem-remove-unnecessary-done-label.patch
+mm-hmmc-remove-unneeded-local-variable-ret.patch
 
