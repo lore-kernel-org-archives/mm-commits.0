@@ -2,41 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id A0FC3C35296
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B1E30C47084
 	for <mm-commits@archiver.kernel.org>; Tue,  8 Feb 2022 22:26:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387702AbiBHW0I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1387707AbiBHW0I (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 8 Feb 2022 17:26:08 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:37198 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:52576 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1386817AbiBHVPx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2022 16:15:53 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 65C92C0612B8
-        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 13:15:52 -0800 (PST)
+        with ESMTP id S1386397AbiBHUX1 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2022 15:23:27 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 1A38AC0613CB
+        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 12:23:26 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C3C5161615
-        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 21:15:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 08202C004E1;
-        Tue,  8 Feb 2022 21:15:50 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A10CB615B1
+        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 20:23:25 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E8D9EC004E1;
+        Tue,  8 Feb 2022 20:23:24 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644354951;
-        bh=CIRNP3WDcQhzyXy7dlH8kly5KZTTQ2FSg0gsbUmx6jI=;
+        s=korg; t=1644351805;
+        bh=mVLcJRxUSQhdDKUMlpCrExRijpdZd6sGW7D1E8292JA=;
         h=Date:To:From:Subject:From;
-        b=R4WSDVjntdoJp9uxgsnGdSfY2wYv69zxz6VXQG53IwPeb14RgqZ3RDoTFjtMAUwaQ
-         srqZkl+UPOAXDOGiSONVjDjb1PmN7G90iTUcLy9SGXsEBqlcZ+YmIAlm1pYlGv45Wi
-         6GTD1tK69KTOvglSq6Zt+KNVuJv4c5oySEvygx1c=
-Date:   Tue, 08 Feb 2022 13:15:50 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, willy@infradead.org,
-        rientjes@google.com, mike.kravetz@oracle.com,
-        lars.persson@axis.com, kirill.shutemov@linux.intel.com,
-        duanxiongchun@bytedance.com, almasrymina@google.com,
-        songmuchun@bytedance.com, akpm@linux-foundation.org
+        b=HmG7bd2Ps+socOP2TatNQ6RWzQBuWCXogXi+JijCUnM0WT9FtDBjTONev6EcoOyvX
+         96mP1WnuIj6NXvWEE1aBgwfILEFrNcaqc/lUroTnXvbyQpQ9c2KItiM6RlvJgqeDtu
+         PB8bVCi0ndpteIsUWukhCQCfqI+W9hXhKNZaKiCY=
+Date:   Tue, 08 Feb 2022 12:23:24 -0800
+To:     mm-commits@vger.kernel.org, ryabinin.a.a@gmail.com,
+        glider@google.com, elver@google.com, dvyukov@google.com,
+        andreyknvl@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd.patch added to -mm tree
-Message-Id: <20220208211551.08202C004E1@smtp.kernel.org>
+Subject: + kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy.patch added to -mm tree
+Message-Id: <20220208202324.E8D9EC004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +42,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: fix wrong cache flush in remove_migration_pmd()
+     Subject: kasan: test: prevent cache merging in kmem_cache_double_destroy
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd.patch
+     kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -65,62 +63,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: thp: fix wrong cache flush in remove_migration_pmd()
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: test: prevent cache merging in kmem_cache_double_destroy
 
-The flush_cache_range() is supposed to be justified only if the page is
-already placed in process page table, and that is done right after
-flush_cache_range().  So using this interface is wrong.  And there is no
-need to invalite cache since it was non-present before in
-remove_migration_pmd().  So just to remove it.
+With HW_TAGS KASAN and kasan.stacktrace=off, the cache created in the
+kmem_cache_double_destroy() test might get merged with an existing one. 
+Thus, the first kmem_cache_destroy() call won't actually destroy it but
+will only decrease the refcount.  This causes the test to fail.
 
-Link: https://lkml.kernel.org/r/20220208073617.70342-2-songmuchun@bytedance.com
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Lars Persson <lars.persson@axis.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Mina Almasry <almasrymina@google.com>
+Provide an empty constructor for the created cache to prevent the cache
+from getting merged.
+
+Link: https://lkml.kernel.org/r/b597bd434c49591d8af00ee3993a42c609dc9a59.1644346040.git.andreyknvl@google.com
+Fixes: f98f966cd750 ("kasan: test: add test case for double-kmem_cache_destroy()")
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Reviewed-by: Marco Elver <elver@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/test_kasan.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
---- a/mm/huge_memory.c~mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd
-+++ a/mm/huge_memory.c
-@@ -3124,7 +3124,6 @@ void remove_migration_pmd(struct page_vm
- 	if (pmd_swp_uffd_wp(*pvmw->pmd))
- 		pmde = pmd_wrprotect(pmd_mkuffd_wp(pmde));
- 
--	flush_cache_range(vma, mmun_start, mmun_start + HPAGE_PMD_SIZE);
- 	if (PageAnon(new))
- 		page_add_anon_rmap(new, vma, mmun_start, true);
- 	else
-@@ -3132,6 +3131,8 @@ void remove_migration_pmd(struct page_vm
- 	set_pmd_at(mm, mmun_start, pvmw->pmd, pmde);
- 	if ((vma->vm_flags & VM_LOCKED) && !PageDoubleMap(new))
- 		mlock_vma_page(new);
-+
-+	/* No need to invalidate - it was non-present before */
- 	update_mmu_cache_pmd(vma, address, pvmw->pmd);
+--- a/lib/test_kasan.c~kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy
++++ a/lib/test_kasan.c
+@@ -869,11 +869,14 @@ static void kmem_cache_invalid_free(stru
+ 	kmem_cache_destroy(cache);
  }
- #endif
+ 
++static void empty_cache_ctor(void *object) { }
++
+ static void kmem_cache_double_destroy(struct kunit *test)
+ {
+ 	struct kmem_cache *cache;
+ 
+-	cache = kmem_cache_create("test_cache", 200, 0, 0, NULL);
++	/* Provide a constructor to prevent cache merging. */
++	cache = kmem_cache_create("test_cache", 200, 0, 0, empty_cache_ctor);
+ 	KUNIT_ASSERT_NOT_ERR_OR_NULL(test, cache);
+ 	kmem_cache_destroy(cache);
+ 	KUNIT_EXPECT_KASAN_FAIL(test, kmem_cache_destroy(cache));
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd.patch
-mm-fix-missing-cache-flush-for-all-tail-pages-of-compound-page.patch
-mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch
-mm-hugetlb-fix-missing-cache-flush-in-hugetlb_mcopy_atomic_pte.patch
-mm-replace-multiple-dcache-flush-with-flush_dcache_folio.patch
-mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page.patch
-mm-hugetlb-replace-hugetlb_free_vmemmap_enabled-with-a-static_key.patch
-mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
-selftests-vm-add-a-hugetlb-test-case.patch
-mm-sparsemem-move-vmemmap-related-to-hugetlb-to-config_hugetlb_page_free_vmemmap.patch
+kasan-test-prevent-cache-merging-in-kmem_cache_double_destroy.patch
+kasan-page_alloc-deduplicate-should_skip_kasan_poison.patch
+kasan-page_alloc-move-tag_clear_highpage-out-of-kernel_init_free_pages.patch
+kasan-page_alloc-merge-kasan_free_pages-into-free_pages_prepare.patch
+kasan-page_alloc-simplify-kasan_poison_pages-call-site.patch
+kasan-page_alloc-init-memory-of-skipped-pages-on-free.patch
+kasan-drop-skip_kasan_poison-variable-in-free_pages_prepare.patch
+mm-clarify-__gfp_zerotags-comment.patch
+kasan-only-apply-__gfp_zerotags-when-memory-is-zeroed.patch
+kasan-page_alloc-refactor-init-checks-in-post_alloc_hook.patch
+kasan-page_alloc-merge-kasan_alloc_pages-into-post_alloc_hook.patch
+kasan-page_alloc-combine-tag_clear_highpage-calls-in-post_alloc_hook.patch
+kasan-page_alloc-move-setpageskipkasanpoison-in-post_alloc_hook.patch
+kasan-page_alloc-move-kernel_init_free_pages-in-post_alloc_hook.patch
+kasan-page_alloc-rework-kasan_unpoison_pages-call-site.patch
+kasan-clean-up-metadata-byte-definitions.patch
+kasan-define-kasan_vmalloc_invalid-for-sw_tags.patch
+kasan-x86-arm64-s390-rename-functions-for-modules-shadow.patch
+kasan-vmalloc-drop-outdated-vm_kasan-comment.patch
+kasan-reorder-vmalloc-hooks.patch
+kasan-add-wrappers-for-vmalloc-hooks.patch
+kasan-vmalloc-reset-tags-in-vmalloc-functions.patch
+kasan-fork-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-arm64-reset-pointer-tags-of-vmapped-stacks.patch
+kasan-vmalloc-add-vmalloc-tagging-for-sw_tags.patch
+kasan-vmalloc-arm64-mark-vmalloc-mappings-as-pgprot_tagged.patch
+kasan-vmalloc-unpoison-vm_alloc-pages-after-mapping.patch
+kasan-mm-only-define-___gfp_skip_kasan_poison-with-hw_tags.patch
+kasan-page_alloc-allow-skipping-unpoisoning-for-hw_tags.patch
+kasan-page_alloc-allow-skipping-memory-init-for-hw_tags.patch
+kasan-vmalloc-add-vmalloc-tagging-for-hw_tags.patch
+kasan-vmalloc-only-tag-normal-vmalloc-allocations.patch
+kasan-arm64-dont-tag-executable-vmalloc-allocations.patch
+kasan-mark-kasan_arg_stacktrace-as-__initdata.patch
+kasan-clean-up-feature-flags-for-hw_tags-mode.patch
+kasan-add-kasanvmalloc-command-line-flag.patch
+kasan-allow-enabling-kasan_vmalloc-and-sw-hw_tags.patch
+arm64-select-kasan_vmalloc-for-sw-hw_tags-modes.patch
+kasan-documentation-updates.patch
+kasan-improve-vmalloc-tests.patch
 
