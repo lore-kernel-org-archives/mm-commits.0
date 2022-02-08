@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 15A3FC3527D
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 59CB2C433F5
 	for <mm-commits@archiver.kernel.org>; Tue,  8 Feb 2022 22:26:40 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387661AbiBHW0B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        id S1387667AbiBHW0B (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
         Tue, 8 Feb 2022 17:26:01 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46404 "EHLO
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387088AbiBHVyH (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2022 16:54:07 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E92EEC0612BC
-        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 13:54:06 -0800 (PST)
+        with ESMTP id S1387081AbiBHVyC (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2022 16:54:02 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 35179C0612B8
+        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 13:54:01 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 85143615FB
-        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 21:54:06 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D5028C004E1;
-        Tue,  8 Feb 2022 21:54:05 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id 8773ECE1C9B
+        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 21:53:59 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DF758C004E1;
+        Tue,  8 Feb 2022 21:53:57 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644357246;
-        bh=VGxlFcughfviP8+vW9GAf0HciNbvUklSiBaKG9SRA+A=;
+        s=korg; t=1644357238;
+        bh=/BiFy8dsI5J7poJcRMr6oqsgiiFiMFAGBaZD1NZ+Ges=;
         h=Date:To:From:Subject:From;
-        b=i691wGp9Jvn8o7xkpItJfj42VE377wMsr8YesFvOKJpW46Z/CZan6G4tPKn8tDg4z
-         BShXESkGcLbEvLzTTda4Dx7K/KsTOJbD+ZGzyfjjz6JQ5ppibFUTP1gX/6VUIbOZIS
-         p+fzfBcVJOG0DhoTk2JnWLk+ThCBC+zvXzexR6GU=
-Date:   Tue, 08 Feb 2022 13:54:05 -0800
+        b=zqZfqKzjoMkLxoQY+DnF2ZQRUTBoqIf9UlNV6+/EoDZPlJ9BGKJAk12OgQ7uhDXC9
+         FfY73kXUfeLcM4hDuY6MvjzNxZ2akgWZMLUP4OHu2/zjg8j3NItS0yYnMpgfk6AfcZ
+         fgQhYn5V8/HjgVetSphNuYWEOadjnemKpohWhwlM=
+Date:   Tue, 08 Feb 2022 13:53:57 -0800
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         vbabka@suse.cz, surenb@google.com, shakeelb@google.com,
         riel@surriel.com, mhocko@suse.com, kirill@shutemov.name,
         hannes@cmpxchg.org, gthelen@google.com, david@redhat.com,
         apopple@nvidia.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-munlock-delete-smp_mb-from-__pagevec_lru_add_fn.patch added to -mm tree
-Message-Id: <20220208215405.D5028C004E1@smtp.kernel.org>
+Subject: + mm-munlock-maintain-page-mlock_count-while-unevictable.patch added to -mm tree
+Message-Id: <20220208215357.DF758C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/munlock: delete smp_mb() from __pagevec_lru_add_fn()
+     Subject: mm/munlock: maintain page->mlock_count while unevictable
 has been added to the -mm tree.  Its filename is
-     mm-munlock-delete-smp_mb-from-__pagevec_lru_add_fn.patch
+     mm-munlock-maintain-page-mlock_count-while-unevictable.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-delete-smp_mb-from-__pagevec_lru_add_fn.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-maintain-page-mlock_count-while-unevictable.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-delete-smp_mb-from-__pagevec_lru_add_fn.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-maintain-page-mlock_count-while-unevictable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,13 +66,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/munlock: delete smp_mb() from __pagevec_lru_add_fn()
+Subject: mm/munlock: maintain page->mlock_count while unevictable
 
-My reading of comment on smp_mb__after_atomic() in __pagevec_lru_add_fn()
-says that it can now be deleted; and that remains so when the next patch
-is added.
+Previous patches have been preparatory: now implement page->mlock_count. 
+The ordering of the "Unevictable LRU" is of no significance, and there is
+no point holding unevictable pages on a list: place page->mlock_count to
+overlay page->lru.prev (since page->lru.next is overlaid by compound_head,
+which needs to be even so as not to satisfy PageTail - though 2 could be
+added instead of 1 for each mlock, if that's ever an improvement).
 
-Link: https://lkml.kernel.org/r/9121d34d-4889-51f1-56c7-255138f43b8d@google.com
+But it's only safe to rely on or modify page->mlock_count while lruvec
+lock is held and page is on unevictable "LRU" - we can save lots of edits
+by continuing to pretend that there's an imaginary LRU here (there is an
+unevictable count which still needs to be maintained, but not a list).
+
+The mlock_count technique suffers from an unreliability much like with
+page_mlock(): while someone else has the page off LRU, not much can be
+done.  As before, err on the safe side (behave as if mlock_count 0), and
+let try_to_unlock_one() move the page to unevictable if reclaim finds out
+later on - a few misplaced pages don't matter, what we want to avoid is
+imbalancing reclaim by flooding evictable lists with unevictable pages.
+
+I am not a fan of "if (!isolate_lru_page(page)) putback_lru_page(page);":
+if we have taken lruvec lock to get the page off its present list, then we
+save everyone trouble (and however many extra atomic ops) by putting it on
+its destination list immediately.
+
+Link: https://lkml.kernel.org/r/3d204af4-664f-e4b0-4781-16718a2efb9c@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -89,58 +109,229 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |   37 +++++++++----------------------------
- 1 file changed, 9 insertions(+), 28 deletions(-)
+ include/linux/mm_inline.h |   11 ++++--
+ include/linux/mm_types.h  |   19 +++++++++-
+ mm/huge_memory.c          |    5 ++
+ mm/memcontrol.c           |    3 -
+ mm/mlock.c                |   66 ++++++++++++++++++++++++++++--------
+ mm/mmzone.c               |    7 +++
+ mm/swap.c                 |    1 
+ 7 files changed, 91 insertions(+), 21 deletions(-)
 
---- a/mm/swap.c~mm-munlock-delete-smp_mb-from-__pagevec_lru_add_fn
-+++ a/mm/swap.c
-@@ -1025,37 +1025,18 @@ static void __pagevec_lru_add_fn(struct
+--- a/include/linux/mm_inline.h~mm-munlock-maintain-page-mlock_count-while-unevictable
++++ a/include/linux/mm_inline.h
+@@ -99,7 +99,8 @@ void lruvec_add_folio(struct lruvec *lru
  
- 	VM_BUG_ON_FOLIO(folio_test_lru(folio), folio);
+ 	update_lru_size(lruvec, lru, folio_zonenum(folio),
+ 			folio_nr_pages(folio));
+-	list_add(&folio->lru, &lruvec->lists[lru]);
++	if (lru != LRU_UNEVICTABLE)
++		list_add(&folio->lru, &lruvec->lists[lru]);
+ }
  
-+	folio_set_lru(folio);
- 	/*
--	 * A folio becomes evictable in two ways:
--	 * 1) Within LRU lock [munlock_vma_page() and __munlock_pagevec()].
--	 * 2) Before acquiring LRU lock to put the folio on the correct LRU
--	 *    and then
--	 *   a) do PageLRU check with lock [check_move_unevictable_pages]
--	 *   b) do PageLRU check before lock [clear_page_mlock]
--	 *
--	 * (1) & (2a) are ok as LRU lock will serialize them. For (2b), we need
--	 * following strict ordering:
--	 *
--	 * #0: __pagevec_lru_add_fn		#1: clear_page_mlock
--	 *
--	 * folio_set_lru()			folio_test_clear_mlocked()
--	 * smp_mb() // explicit ordering	// above provides strict
--	 *					// ordering
--	 * folio_test_mlocked()			folio_test_lru()
-+	 * Is an smp_mb__after_atomic() still required here, before
-+	 * folio_evictable() tests PageMlocked, to rule out the possibility
-+	 * of stranding an evictable folio on an unevictable LRU?  I think
-+	 * not, because munlock_page() only clears PageMlocked while the LRU
-+	 * lock is held.
- 	 *
--	 *
--	 * if '#1' does not observe setting of PG_lru by '#0' and
--	 * fails isolation, the explicit barrier will make sure that
--	 * folio_evictable check will put the folio on the correct
--	 * LRU. Without smp_mb(), folio_set_lru() can be reordered
--	 * after folio_test_mlocked() check and can make '#1' fail the
--	 * isolation of the folio whose mlocked bit is cleared (#0 is
--	 * also looking at the same folio) and the evictable folio will
--	 * be stranded on an unevictable LRU.
-+	 * (That is not true of __page_cache_release(), and not necessarily
-+	 * true of release_pages(): but those only clear PageMlocked after
-+	 * put_page_testzero() has excluded any other users of the page.)
- 	 */
--	folio_set_lru(folio);
--	smp_mb__after_atomic();
+ static __always_inline void add_page_to_lru_list(struct page *page,
+@@ -115,6 +116,7 @@ void lruvec_add_folio_tail(struct lruvec
+ 
+ 	update_lru_size(lruvec, lru, folio_zonenum(folio),
+ 			folio_nr_pages(folio));
++	/* This is not expected to be used on LRU_UNEVICTABLE */
+ 	list_add_tail(&folio->lru, &lruvec->lists[lru]);
+ }
+ 
+@@ -127,8 +129,11 @@ static __always_inline void add_page_to_
+ static __always_inline
+ void lruvec_del_folio(struct lruvec *lruvec, struct folio *folio)
+ {
+-	list_del(&folio->lru);
+-	update_lru_size(lruvec, folio_lru_list(folio), folio_zonenum(folio),
++	enum lru_list lru = folio_lru_list(folio);
++
++	if (lru != LRU_UNEVICTABLE)
++		list_del(&folio->lru);
++	update_lru_size(lruvec, lru, folio_zonenum(folio),
+ 			-folio_nr_pages(folio));
+ }
+ 
+--- a/include/linux/mm_types.h~mm-munlock-maintain-page-mlock_count-while-unevictable
++++ a/include/linux/mm_types.h
+@@ -85,7 +85,16 @@ struct page {
+ 			 * lruvec->lru_lock.  Sometimes used as a generic list
+ 			 * by the page owner.
+ 			 */
+-			struct list_head lru;
++			union {
++				struct list_head lru;
++				/* Or, for the Unevictable "LRU list" slot */
++				struct {
++					/* Always even, to negate PageTail */
++					void *__filler;
++					/* Count page's or folio's mlocks */
++					unsigned int mlock_count;
++				};
++			};
+ 			/* See page-flags.h for PAGE_MAPPING_FLAGS */
+ 			struct address_space *mapping;
+ 			pgoff_t index;		/* Our offset within mapping. */
+@@ -241,7 +250,13 @@ struct folio {
+ 		struct {
+ 	/* public: */
+ 			unsigned long flags;
+-			struct list_head lru;
++			union {
++				struct list_head lru;
++				struct {
++					void *__filler;
++					unsigned int mlock_count;
++				};
++			};
+ 			struct address_space *mapping;
+ 			pgoff_t index;
+ 			void *private;
+--- a/mm/huge_memory.c~mm-munlock-maintain-page-mlock_count-while-unevictable
++++ a/mm/huge_memory.c
+@@ -2290,8 +2290,11 @@ static void lru_add_page_tail(struct pag
+ 	} else {
+ 		/* head is still on lru (and we have it frozen) */
+ 		VM_WARN_ON(!PageLRU(head));
++		if (PageUnevictable(tail))
++			tail->mlock_count = 0;
++		else
++			list_add_tail(&tail->lru, &head->lru);
+ 		SetPageLRU(tail);
+-		list_add_tail(&tail->lru, &head->lru);
+ 	}
+ }
+ 
+--- a/mm/memcontrol.c~mm-munlock-maintain-page-mlock_count-while-unevictable
++++ a/mm/memcontrol.c
+@@ -1257,8 +1257,7 @@ struct lruvec *folio_lruvec_lock_irqsave
+  * @nr_pages: positive when adding or negative when removing
+  *
+  * This function must be called under lru_lock, just before a page is added
+- * to or just after a page is removed from an lru list (that ordering being
+- * so as to allow it to check that lru_size 0 is consistent with list_empty).
++ * to or just after a page is removed from an lru list.
+  */
+ void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
+ 				int zid, int nr_pages)
+--- a/mm/mlock.c~mm-munlock-maintain-page-mlock_count-while-unevictable
++++ a/mm/mlock.c
+@@ -54,16 +54,35 @@ EXPORT_SYMBOL(can_do_mlock);
+  */
+ void mlock_page(struct page *page)
+ {
++	struct lruvec *lruvec;
++	int nr_pages = thp_nr_pages(page);
++
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+ 
+ 	if (!TestSetPageMlocked(page)) {
+-		int nr_pages = thp_nr_pages(page);
 -
- 	if (folio_evictable(folio)) {
- 		if (was_unevictable)
- 			__count_vm_events(UNEVICTABLE_PGRESCUED, nr_pages);
+ 		mod_zone_page_state(page_zone(page), NR_MLOCK, nr_pages);
+-		count_vm_events(UNEVICTABLE_PGMLOCKED, nr_pages);
+-		if (!isolate_lru_page(page))
+-			putback_lru_page(page);
++		__count_vm_events(UNEVICTABLE_PGMLOCKED, nr_pages);
+ 	}
++
++	/* There is nothing more we can do while it's off LRU */
++	if (!TestClearPageLRU(page))
++		return;
++
++	lruvec = folio_lruvec_lock_irq(page_folio(page));
++	if (PageUnevictable(page)) {
++		page->mlock_count++;
++		goto out;
++	}
++
++	del_page_from_lru_list(page, lruvec);
++	ClearPageActive(page);
++	SetPageUnevictable(page);
++	page->mlock_count = 1;
++	add_page_to_lru_list(page, lruvec);
++	__count_vm_events(UNEVICTABLE_PGCULLED, nr_pages);
++out:
++	SetPageLRU(page);
++	unlock_page_lruvec_irq(lruvec);
+ }
+ 
+ /**
+@@ -72,19 +91,40 @@ void mlock_page(struct page *page)
+  */
+ void munlock_page(struct page *page)
+ {
++	struct lruvec *lruvec;
++	int nr_pages = thp_nr_pages(page);
++
+ 	VM_BUG_ON_PAGE(PageTail(page), page);
+ 
++	lock_page_memcg(page);
++	lruvec = folio_lruvec_lock_irq(page_folio(page));
++	if (PageLRU(page) && PageUnevictable(page)) {
++		/* Then mlock_count is maintained, but might undercount */
++		if (page->mlock_count)
++			page->mlock_count--;
++		if (page->mlock_count)
++			goto out;
++	}
++	/* else assume that was the last mlock: reclaim will fix it if not */
++
+ 	if (TestClearPageMlocked(page)) {
+-		int nr_pages = thp_nr_pages(page);
++		__mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
++		if (PageLRU(page) || !PageUnevictable(page))
++			__count_vm_events(UNEVICTABLE_PGMUNLOCKED, nr_pages);
++		else
++			__count_vm_events(UNEVICTABLE_PGSTRANDED, nr_pages);
++	}
+ 
+-		mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
+-		if (!isolate_lru_page(page)) {
+-			putback_lru_page(page);
+-			count_vm_events(UNEVICTABLE_PGMUNLOCKED, nr_pages);
+-		} else if (PageUnevictable(page)) {
+-			count_vm_events(UNEVICTABLE_PGSTRANDED, nr_pages);
+-		}
++	/* page_evictable() has to be checked *after* clearing Mlocked */
++	if (PageLRU(page) && PageUnevictable(page) && page_evictable(page)) {
++		del_page_from_lru_list(page, lruvec);
++		ClearPageUnevictable(page);
++		add_page_to_lru_list(page, lruvec);
++		__count_vm_events(UNEVICTABLE_PGRESCUED, nr_pages);
+ 	}
++out:
++	unlock_page_lruvec_irq(lruvec);
++	unlock_page_memcg(page);
+ }
+ 
+ /*
+--- a/mm/mmzone.c~mm-munlock-maintain-page-mlock_count-while-unevictable
++++ a/mm/mmzone.c
+@@ -81,6 +81,13 @@ void lruvec_init(struct lruvec *lruvec)
+ 
+ 	for_each_lru(lru)
+ 		INIT_LIST_HEAD(&lruvec->lists[lru]);
++	/*
++	 * The "Unevictable LRU" is imaginary: though its size is maintained,
++	 * it is never scanned, and unevictable pages are not threaded on it
++	 * (so that their lru fields can be reused to hold mlock_count).
++	 * Poison its list head, so that any operations on it would crash.
++	 */
++	list_del(&lruvec->lists[LRU_UNEVICTABLE]);
+ }
+ 
+ #if defined(CONFIG_NUMA_BALANCING) && !defined(LAST_CPUPID_NOT_IN_PAGE_FLAGS)
+--- a/mm/swap.c~mm-munlock-maintain-page-mlock_count-while-unevictable
++++ a/mm/swap.c
+@@ -1062,6 +1062,7 @@ static void __pagevec_lru_add_fn(struct
+ 	} else {
+ 		folio_clear_active(folio);
+ 		folio_set_unevictable(folio);
++		folio->mlock_count = !!folio_test_mlocked(folio);
+ 		if (!was_unevictable)
+ 			__count_vm_events(UNEVICTABLE_PGCULLED, nr_pages);
+ 	}
 _
 
 Patches currently in -mm which might be from hughd@google.com are
