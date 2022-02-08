@@ -2,118 +2,153 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id B5B58C433F5
-	for <mm-commits@archiver.kernel.org>; Mon,  7 Feb 2022 22:53:34 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 6F85AC433EF
+	for <mm-commits@archiver.kernel.org>; Tue,  8 Feb 2022 06:47:07 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S239092AbiBGWxe (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 7 Feb 2022 17:53:34 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:32814 "EHLO
+        id S241410AbiBHGrG (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Feb 2022 01:47:06 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:42962 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231758AbiBGWxd (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 7 Feb 2022 17:53:33 -0500
-Received: from mail-yb1-xb29.google.com (mail-yb1-xb29.google.com [IPv6:2607:f8b0:4864:20::b29])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3C256C061355;
-        Mon,  7 Feb 2022 14:53:33 -0800 (PST)
-Received: by mail-yb1-xb29.google.com with SMTP id 192so18395168ybd.10;
-        Mon, 07 Feb 2022 14:53:33 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=khCuXFvktKenvt0NMs7br3GwZ3/YeGP6WmAl4hcRAtk=;
-        b=kpXQP4l5WqQVZcPI2J7GhEMqRblCCx/VRl+7iJydLg96usujA3KkyvhEDN8DAxkZrC
-         VqNQE2h1mUw9YHBsuHDWeCSqBv7hN2FtGHYPBnPFuVYbUO4b6eFwMorU0hNXO0hFHfqJ
-         LH9ZfKHrUD9BIxCdMloGbBLY83ikW/eYozz6FCJN5KLYDKjZvCwBdm24RNLvaha87PF/
-         9d21FkIthNP97QSw5w5kozooVmpSzF9o5ARO2dod2p6VRtFAb54CBjPdMCQ9mYa3UuhT
-         wiRoyL2/Vgfj+NQH7GbZ4UCDrjQ6iOX4wO9+6zkestoQ0q2WCsWTwDsTqHxwi6Y1r1OI
-         jnUg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=khCuXFvktKenvt0NMs7br3GwZ3/YeGP6WmAl4hcRAtk=;
-        b=n4zlGNicuxMNVlCzx2oKAi85GYQNVJdOTgxbZGLAADuRj1U+i1OLMtLmW/76U7bet4
-         +5/MSDZR00e55o60OpLriCkLHZFlmLGTh7aUOJNw4aQsMn2sXFrxPfJLZjfs/6pMvG4l
-         oefED+qwAn9Fyanf5wWnZUunV/ij4magGPEUW9amCM07JOqjQ4sYTpuLP3KxulAmqSaN
-         w+1312bv/VLVKDRkfne6Hji/yq5/PO7IlyRZD6K2WKO7Jzfn0LWqK441dBANu4gT0vr+
-         /fBT8ZrwXYs8YjOwKWhe73kLQKitX3J3h+QPQX7Xorzh0taZ5LF52vZGwo73RfiZSZgP
-         nzaA==
-X-Gm-Message-State: AOAM533jwHIGaL3EVzi0vZTrEurGpQ1Ds0n3kQbT94ZWLgfZA81L2sIx
-        dXwv6jv0F9eUcbMTnAerLlh+d0Npe8nxC/FApvQ=
-X-Google-Smtp-Source: ABdhPJwtR96yA0741OSUHlWaYDYM35eW1MyuwW/VLWiMWd373q68Xe4YJlgprQaxpU/4SKFiD85WcCUCA08nNOmIrX4=
-X-Received: by 2002:a25:148b:: with SMTP id 133mr2112718ybu.270.1644274412302;
- Mon, 07 Feb 2022 14:53:32 -0800 (PST)
+        with ESMTP id S1347746AbiBHGrG (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2022 01:47:06 -0500
+Received: from wp530.webpack.hosteurope.de (wp530.webpack.hosteurope.de [IPv6:2a01:488:42:1000:50ed:8234::])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 56017C0401EF;
+        Mon,  7 Feb 2022 22:47:04 -0800 (PST)
+Received: from ip4d144895.dynamic.kabel-deutschland.de ([77.20.72.149] helo=[192.168.66.200]); authenticated
+        by wp530.webpack.hosteurope.de running ExIM with esmtpsa (TLS1.3:ECDHE_RSA_AES_128_GCM_SHA256:128)
+        id 1nHKGn-0001c4-RJ; Tue, 08 Feb 2022 07:46:34 +0100
+Message-ID: <4be9dede-c1b8-8532-b576-f9c787157931@leemhuis.info>
+Date:   Tue, 8 Feb 2022 07:46:31 +0100
 MIME-Version: 1.0
-References: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
- <20220122061228.nmuo75sDn%akpm@linux-foundation.org> <YgEeQNdgBuHRyEWl@dumbo> <YgGTSR628xhRvCjB@bombadil.infradead.org>
-In-Reply-To: <YgGTSR628xhRvCjB@bombadil.infradead.org>
-From:   Tong Zhang <ztong0001@gmail.com>
-Date:   Mon, 7 Feb 2022 14:53:21 -0800
-Message-ID: <CAA5qM4BGmrkwatyO_h3F=ErDZ9t5swuttbt6NkQU-1KDGDiD4g@mail.gmail.com>
+User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:91.0) Gecko/20100101
+ Thunderbird/91.5.0
 Subject: Re: [PATCH] Fix regression due to "fs: move binfmt_misc sysctl to its
  own file"
-To:     Luis Chamberlain <mcgrof@kernel.org>
-Cc:     Domenico Andreoli <domenico.andreoli@linux.com>,
-        "Eric W. Biederman" <ebiederm@xmission.com>,
-        David Airlie <airlied@linux.ie>,
-        Andrew Morton <akpm@linux-foundation.org>, amir73il@gmail.com,
-        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-        Arnd Bergmann <arnd@arndb.de>, bcrl@kvack.org,
+Content-Language: en-BS
+To:     Domenico Andreoli <domenico.andreoli@linux.com>, airlied@linux.ie,
+        akpm@linux-foundation.org, amir73il@gmail.com,
+        andriy.shevchenko@linux.intel.com, arnd@arndb.de, bcrl@kvack.org,
         benh@kernel.crashing.org, clemens@ladisch.de, crope@iki.fi,
-        dgilbert@interlog.com, Greg KH <gregkh@linuxfoundation.org>,
-        jack@suse.cz, jani.nikula@intel.com, jani.nikula@linux.intel.com,
-        "James E.J. Bottomley" <jejb@linux.ibm.com>, jlbec@evilplan.org,
-        john.ogness@linutronix.de, joonas.lahtinen@linux.intel.com,
-        Joseph Qi <joseph.qi@linux.alibaba.com>, julia.lawall@inria.fr,
-        Kees Cook <keescook@chromium.org>, kernel@tuxforce.de,
-        Linux Memory Management List <linux-mm@kvack.org>,
-        mark@fasheh.com, "Martin K. Petersen" <martin.petersen@oracle.com>,
-        mm-commits@vger.kernel.org, nixiaoming@huawei.com,
-        penguin-kernel@i-love.sakura.ne.jp, peterz@infradead.org,
-        phil@philpotter.co.uk, pjt@google.com, pmladek@suse.com,
-        rafael@kernel.org, rodrigo.vivi@intel.com, rostedt@goodmis.org,
-        senozhatsky@chromium.org, sre@kernel.org, steve@sk2.org,
-        surenb@google.com, torvalds@linux-foundation.org, tytso@mit.edu,
-        Al Viro <viro@zeniv.linux.org.uk>, wangqing@vivo.com,
-        Iurii Zaikin <yzaikin@google.com>,
-        open list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
+        dgilbert@interlog.com, ebiederm@xmission.com,
+        gregkh@linuxfoundation.org, jack@suse.cz, jani.nikula@intel.com,
+        jani.nikula@linux.intel.com, jejb@linux.ibm.com,
+        jlbec@evilplan.org, john.ogness@linutronix.de,
+        joonas.lahtinen@linux.intel.com, joseph.qi@linux.alibaba.com,
+        julia.lawall@inria.fr, keescook@chromium.org, kernel@tuxforce.de,
+        linux-mm@kvack.org, mark@fasheh.com, martin.petersen@oracle.com,
+        mcgrof@kernel.org, mm-commits@vger.kernel.org,
+        nixiaoming@huawei.com, penguin-kernel@i-love.sakura.ne.jp,
+        peterz@infradead.org, phil@philpotter.co.uk, pjt@google.com,
+        pmladek@suse.com, rafael@kernel.org, rodrigo.vivi@intel.com,
+        rostedt@goodmis.org, senozhatsky@chromium.org, sre@kernel.org,
+        steve@sk2.org, surenb@google.com, torvalds@linux-foundation.org,
+        tytso@mit.edu, viro@zeniv.linux.org.uk, wangqing@vivo.com,
+        yzaikin@google.com
+Cc:     linux-kernel@vger.kernel.org,
+        "regressions@lists.linux.dev" <regressions@lists.linux.dev>
+References: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
+ <20220122061228.nmuo75sDn%akpm@linux-foundation.org> <YgEeQNdgBuHRyEWl@dumbo>
+From:   Thorsten Leemhuis <regressions@leemhuis.info>
+In-Reply-To: <YgEeQNdgBuHRyEWl@dumbo>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+X-bounce-key: webpack.hosteurope.de;regressions@leemhuis.info;1644302824;a34e687f;
+X-HE-SMSGID: 1nHKGn-0001c4-RJ
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Mon, Feb 7, 2022 at 1:46 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
->
-> OK I think the issue here should have been that declaring this on
-> fs/binfmt_misc.c creates the chicken and the egg issue, and so we
-> need to do this on built-in code. Instead of your patch can you try
-> this instead, it just always creates the sysctl mount always now
-> so long as proc sysctl is enabled. It does not do the unregistration
-> as we always want the path present as it used to be before as well.
->
-> diff --git a/fs/file_table.c b/fs/file_table.c
-> index 57edef16dce4..4f4739c9405c 100644
-> --- a/fs/file_table.c
-> +++ b/fs/file_table.c
-> @@ -119,6 +119,7 @@ static struct ctl_table fs_stat_sysctls[] = {
->  static int __init init_fs_stat_sysctls(void)
->  {
->         register_sysctl_init("fs", fs_stat_sysctls);
-> +       register_sysctl_mount_point("fs/binfmt_misc");
->         return 0;
->  }
->  fs_initcall(init_fs_stat_sysctls);
 
-I'm looking at the original code, and it seems that if we don't select
-CONFIG_BINFMT_MISC at all,
-this file won't be created. This would suggest an IF MACRO around
-> +       register_sysctl_mount_point("fs/binfmt_misc");
-and it should looks like
-+#if IS_ENABLED(CONFIG_BINFMT_MISC)
-+       register_sysctl_mount_point("fs/binfmt_misc");
-+#endif
-or if you prefer original style:
-#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
+[TLDR: I'm adding the regression report below to regzbot, the Linux
+kernel regression tracking bot; all text you find below is compiled from
+a few templates paragraphs you might have encountered already already
+from similar mails.]
 
-- Tong
+Hi, this is your Linux kernel regression tracker speaking.
+
+CCing the regression mailing list, as it should be in the loop for all
+regressions, as explained here:
+https://www.kernel.org/doc/html/latest/admin-guide/reporting-issues.html
+
+On 07.02.22 14:27, Domenico Andreoli wrote:
+> Commit 3ba442d5331f did not go unnoticed, binfmt-support stopped to
+> work on my Debian system since v5.17-rc2 (did not check with -rc1).
+> 
+> The existance of /proc/sys/fs/binfmt_misc is a precondition for
+> attempting to mount the binfmt_misc fs, which in turn triggers the
+> autoload of the binfmt_misc module. Without it, no module is loaded
+> and no binfmt is available at boot.
+> 
+> Building as built-in or manually loading the module and mounting the fs
+> works fine, it's therefore only a matter of interaction with user-space.
+> 
+> I could try to improve the Debian systemd configuration but I can't
+> say anything about the other distributions.
+> 
+> In the meanwhile this patch restores a working system right after boot.
+> [...]
+
+To be sure this issue doesn't fall through the cracks unnoticed, I'm
+adding it to regzbot, my Linux kernel regression tracking bot:
+
+#regzbot ^introduced 3ba442d5331f
+#regzbot title  binfmt-support stopped to work
+#regzbot ignore-activity
+
+Reminder for developers: when fixing the issue, please add a 'Link:'
+tags pointing to the report (the mail quoted above) using
+lore.kernel.org/r/, as explained in
+'Documentation/process/submitting-patches.rst' and
+'Documentation/process/5.Posting.rst'. This allows the bot to connect
+the report with any patches posted or committed to fix the issue; this
+again allows the bot to show the current status of regressions and
+automatically resolve the issue when the fix hits the right tree.
+
+I'm sending this to everyone that got the initial report, to make them
+aware of the tracking. I also hope that messages like this motivate
+people to directly get at least the regression mailing list and ideally
+even regzbot involved when dealing with regressions, as messages like
+this wouldn't be needed then.
+
+Don't worry, I'll send further messages wrt to this regression just to
+the lists (with a tag in the subject so people can filter them away), if
+they are relevant just for regzbot. With a bit of luck no such messages
+will be needed anyway.
+
+Ciao, Thorsten (wearing his 'the Linux kernel's regression tracker' hat)
+
+P.S.: As the Linux kernel's regression tracker I'm getting a lot of
+reports on my table. I can only look briefly into most of them and lack
+knowledge about most of the areas they concern. I thus unfortunately
+will sometimes get things wrong or miss something important. I hope
+that's not the case here; if you think it is, don't hesitate to tell me
+in a public reply, it's in everyone's interest to set the public record
+straight.
+
+-- 
+Additional information about regzbot:
+
+If you want to know more about regzbot, check out its web-interface, the
+getting start guide, and the references documentation:
+
+https://linux-regtracking.leemhuis.info/regzbot/
+https://gitlab.com/knurd42/regzbot/-/blob/main/docs/getting_started.md
+https://gitlab.com/knurd42/regzbot/-/blob/main/docs/reference.md
+
+The last two documents will explain how you can interact with regzbot
+yourself if your want to.
+
+Hint for reporters: when reporting a regression it's in your interest to
+CC the regression list and tell regzbot about the issue, as that ensures
+the regression makes it onto the radar of the Linux kernel's regression
+tracker -- that's in your interest, as it ensures your report won't fall
+through the cracks unnoticed.
+
+Hint for developers: you normally don't need to care about regzbot once
+it's involved. Fix the issue as you normally would, just remember to
+include 'Link:' tag in the patch descriptions pointing to all reports
+about the issue. This has been expected from developers even before
+regzbot showed up for reasons explained in
+'Documentation/process/submitting-patches.rst' and
+'Documentation/process/5.Posting.rst'.
