@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 61EB9C433EF
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 71B34C35278
 	for <mm-commits@archiver.kernel.org>; Tue,  8 Feb 2022 22:26:39 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1387615AbiBHWZx (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Tue, 8 Feb 2022 17:25:53 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46452 "EHLO
+        id S1387625AbiBHWZ4 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Tue, 8 Feb 2022 17:25:56 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:46308 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1387100AbiBHVyP (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2022 16:54:15 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id E88ABC0612B8
-        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 13:54:13 -0800 (PST)
+        with ESMTP id S1387075AbiBHVxu (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Tue, 8 Feb 2022 16:53:50 -0500
+Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5E4DCC0612B8
+        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 13:53:49 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 8363D615FB
-        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 21:54:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id D3399C004E1;
-        Tue,  8 Feb 2022 21:54:12 +0000 (UTC)
+        by sin.source.kernel.org (Postfix) with ESMTPS id AB14ECE1C9C
+        for <mm-commits@vger.kernel.org>; Tue,  8 Feb 2022 21:53:47 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DC473C004E1;
+        Tue,  8 Feb 2022 21:53:45 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644357253;
-        bh=IsZeIjqTBn4YhXG1T8G9cRq/ADMaMRlzO7/GKCXBN6s=;
+        s=korg; t=1644357226;
+        bh=gEfKKqiI0z3VKBny5Y7aJQaaXY4f3TGwFIROjNmCvcw=;
         h=Date:To:From:Subject:From;
-        b=oO8dlwG1xuujW0kbuue28ND8HohKP4KNuna1Q/rIgtaVC0QoEfzasQ+6UfXFZO2Np
-         6MXACvBklsdRSvua1h4t63q4L5ILchQAMoTWQF8rTfeIlgpE1eZU604mKWXZWZWBn8
-         twVl5t0On5glsZkemJAVXmFn8zUTVCEAqAg0+J8k=
-Date:   Tue, 08 Feb 2022 13:54:12 -0800
+        b=FslpyUkUilvrcVWqwzaNRJrnq3PVbEEzegrpRobBXGoXD/JKQvPNt26OLvjIHnY9I
+         /9K/vbVOTuY8xZAR4ODdcQ7VZH8JHgzcYAfQF+Gt+RZbzODgvlYSWYSTIcP+yr1EAO
+         IoR9Yf0SL16TYbfVpgTu6QPYaQGETFG/du22Ww68=
+Date:   Tue, 08 Feb 2022 13:53:45 -0800
 To:     mm-commits@vger.kernel.org, yuzhao@google.com, willy@infradead.org,
         vbabka@suse.cz, surenb@google.com, shakeelb@google.com,
         riel@surriel.com, mhocko@suse.com, kirill@shutemov.name,
         hannes@cmpxchg.org, gthelen@google.com, david@redhat.com,
         apopple@nvidia.com, hughd@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch added to -mm tree
-Message-Id: <20220208215412.D3399C004E1@smtp.kernel.org>
+Subject: + mm-munlock-delete-munlock_vma_pages_all-allow-oomreap.patch added to -mm tree
+Message-Id: <20220208215345.DC473C004E1@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp: collapse_file() do try_to_unmap(TTU_BATCH_FLUSH)
+     Subject: mm/munlock: delete munlock_vma_pages_all(), allow oomreap
 has been added to the -mm tree.  Its filename is
-     mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch
+     mm-munlock-delete-munlock_vma_pages_all-allow-oomreap.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-munlock-delete-munlock_vma_pages_all-allow-oomreap.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-collapse_file-do-try_to_unmapttu_batch_flush.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-munlock-delete-munlock_vma_pages_all-allow-oomreap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,27 +66,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm/thp: collapse_file() do try_to_unmap(TTU_BATCH_FLUSH)
+Subject: mm/munlock: delete munlock_vma_pages_all(), allow oomreap
 
-collapse_file() is using unmap_mapping_pages(1) on each small page found
-mapped, unlike others (reclaim, migration, splitting, memory-failure) who
-use try_to_unmap().  There are four advantages to try_to_unmap(): first,
-its TTU_IGNORE_MLOCK option now avoids leaving mlocked page in pagevec;
-second, its vma lookup uses i_mmap_lock_read() not i_mmap_lock_write();
-third, it breaks out early if page is not mapped everywhere it might be;
-fourth, its TTU_BATCH_FLUSH option can be used, as in page reclaim, to
-save up all the TLB flushing until all of the pages have been unmapped.
+munlock_vma_pages_range() will still be required, when munlocking but not
+munmapping a set of pages; but when unmapping a pte, the mlock count will
+be maintained in much the same way as it will be maintained when mapping
+in the pte.  Which removes the need for munlock_vma_pages_all() on mlocked
+vmas when munmapping or exiting: eliminating the catastrophic contention
+on i_mmap_rwsem, and the need for page lock on the pages.
 
-Wild guess: perhaps it was originally written to use try_to_unmap(), but
-hit the VM_BUG_ON_PAGE(page_mapped) after unmapping, because without
-TTU_SYNC it may skip page table locks; but unmap_mapping_pages() never
-skips them, so fixed the issue.  I did once hit that VM_BUG_ON_PAGE()
-since making this change: we could pass TTU_SYNC here, but I think just
-delete the check - the race is very rare, this is an ordinary small page
-so we don't need to be so paranoid about mapcount surprises, and the
-page_ref_freeze() just below already handles the case adequately.
+There is still a need to update locked_vm accounting according to the
+munmapped vmas when munmapping: do that in detach_vmas_to_be_unmapped(). 
+exit_mmap() does not need locked_vm updates, so delete unlock_range().
 
-Link: https://lkml.kernel.org/r/cc3ad3e4-7045-f00-5a81-de3e3de6b69@google.com
+And wasn't I the one who forbade the OOM reaper to attack mlocked vmas,
+because of the uncertainty in blocking on all those page locks?  No fear
+of that now, so permit the OOM reaper on mlocked vmas.
+
+Link: https://lkml.kernel.org/r/8dddb3d4-361-da5-538-3f3ae1b326b@google.com
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Alistair Popple <apopple@nvidia.com>
 Cc: David Hildenbrand <david@redhat.com>
@@ -103,40 +100,158 @@ Cc: Yu Zhao <yuzhao@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/khugepaged.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/internal.h |   16 ++--------------
+ mm/madvise.c  |    5 +++++
+ mm/mlock.c    |    4 ++--
+ mm/mmap.c     |   32 ++------------------------------
+ mm/oom_kill.c |    2 +-
+ 5 files changed, 12 insertions(+), 47 deletions(-)
 
---- a/mm/khugepaged.c~mm-thp-collapse_file-do-try_to_unmapttu_batch_flush
-+++ a/mm/khugepaged.c
-@@ -1823,13 +1823,12 @@ static void collapse_file(struct mm_stru
- 		}
+--- a/mm/internal.h~mm-munlock-delete-munlock_vma_pages_all-allow-oomreap
++++ a/mm/internal.h
+@@ -71,11 +71,6 @@ void free_pgtables(struct mmu_gather *tl
+ 		unsigned long floor, unsigned long ceiling);
+ void pmd_install(struct mm_struct *mm, pmd_t *pmd, pgtable_t *pte);
  
- 		if (page_mapped(page))
--			unmap_mapping_pages(mapping, index, 1, false);
-+			try_to_unmap(page, TTU_IGNORE_MLOCK | TTU_BATCH_FLUSH);
+-static inline bool can_madv_lru_vma(struct vm_area_struct *vma)
+-{
+-	return !(vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP));
+-}
+-
+ struct zap_details;
+ void unmap_page_range(struct mmu_gather *tlb,
+ 			     struct vm_area_struct *vma,
+@@ -398,12 +393,8 @@ extern long populate_vma_page_range(stru
+ extern long faultin_vma_page_range(struct vm_area_struct *vma,
+ 				   unsigned long start, unsigned long end,
+ 				   bool write, int *locked);
+-extern void munlock_vma_pages_range(struct vm_area_struct *vma,
+-			unsigned long start, unsigned long end);
+-static inline void munlock_vma_pages_all(struct vm_area_struct *vma)
+-{
+-	munlock_vma_pages_range(vma, vma->vm_start, vma->vm_end);
+-}
++extern int mlock_future_check(struct mm_struct *mm, unsigned long flags,
++			      unsigned long len);
  
- 		xas_lock_irq(&xas);
- 		xas_set(&xas, index);
+ /*
+  * must be called with vma's mmap_lock held for read or write, and page locked.
+@@ -411,9 +402,6 @@ static inline void munlock_vma_pages_all
+ extern void mlock_vma_page(struct page *page);
+ extern void munlock_vma_page(struct page *page);
  
- 		VM_BUG_ON_PAGE(page != xas_load(&xas), page);
--		VM_BUG_ON_PAGE(page_mapped(page), page);
+-extern int mlock_future_check(struct mm_struct *mm, unsigned long flags,
+-			      unsigned long len);
+-
+ /*
+  * Clear the page's PageMlocked().  This can be useful in a situation where
+  * we want to unconditionally remove a page from the pagecache -- e.g.,
+--- a/mm/madvise.c~mm-munlock-delete-munlock_vma_pages_all-allow-oomreap
++++ a/mm/madvise.c
+@@ -530,6 +530,11 @@ static void madvise_cold_page_range(stru
+ 	tlb_end_vma(tlb, vma);
+ }
+ 
++static inline bool can_madv_lru_vma(struct vm_area_struct *vma)
++{
++	return !(vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP));
++}
++
+ static long madvise_cold(struct vm_area_struct *vma,
+ 			struct vm_area_struct **prev,
+ 			unsigned long start_addr, unsigned long end_addr)
+--- a/mm/mlock.c~mm-munlock-delete-munlock_vma_pages_all-allow-oomreap
++++ a/mm/mlock.c
+@@ -137,8 +137,8 @@ void munlock_vma_page(struct page *page)
+  * Returns with VM_LOCKED cleared.  Callers must be prepared to
+  * deal with this.
+  */
+-void munlock_vma_pages_range(struct vm_area_struct *vma,
+-			     unsigned long start, unsigned long end)
++static void munlock_vma_pages_range(struct vm_area_struct *vma,
++				    unsigned long start, unsigned long end)
+ {
+ 	/* Reimplementation to follow in later commit */
+ }
+--- a/mm/mmap.c~mm-munlock-delete-munlock_vma_pages_all-allow-oomreap
++++ a/mm/mmap.c
+@@ -2674,6 +2674,8 @@ detach_vmas_to_be_unmapped(struct mm_str
+ 	vma->vm_prev = NULL;
+ 	do {
+ 		vma_rb_erase(vma, &mm->mm_rb);
++		if (vma->vm_flags & VM_LOCKED)
++			mm->locked_vm -= vma_pages(vma);
+ 		mm->map_count--;
+ 		tail_vma = vma;
+ 		vma = vma->vm_next;
+@@ -2778,22 +2780,6 @@ int split_vma(struct mm_struct *mm, stru
+ 	return __split_vma(mm, vma, addr, new_below);
+ }
+ 
+-static inline void
+-unlock_range(struct vm_area_struct *start, unsigned long limit)
+-{
+-	struct mm_struct *mm = start->vm_mm;
+-	struct vm_area_struct *tmp = start;
+-
+-	while (tmp && tmp->vm_start < limit) {
+-		if (tmp->vm_flags & VM_LOCKED) {
+-			mm->locked_vm -= vma_pages(tmp);
+-			munlock_vma_pages_all(tmp);
+-		}
+-
+-		tmp = tmp->vm_next;
+-	}
+-}
+-
+ /* Munmap is split into 2 main parts -- this part which finds
+  * what needs doing, and the areas themselves, which do the
+  * work.  This now handles partial unmappings.
+@@ -2874,12 +2860,6 @@ int __do_munmap(struct mm_struct *mm, un
+ 			return error;
+ 	}
+ 
+-	/*
+-	 * unlock any mlock()ed ranges before detaching vmas
+-	 */
+-	if (mm->locked_vm)
+-		unlock_range(vma, end);
+-
+ 	/* Detach vmas from rbtree */
+ 	if (!detach_vmas_to_be_unmapped(mm, vma, prev, end))
+ 		downgrade = false;
+@@ -3147,20 +3127,12 @@ void exit_mmap(struct mm_struct *mm)
+ 		 * Nothing can be holding mm->mmap_lock here and the above call
+ 		 * to mmu_notifier_release(mm) ensures mmu notifier callbacks in
+ 		 * __oom_reap_task_mm() will not block.
+-		 *
+-		 * This needs to be done before calling unlock_range(),
+-		 * which clears VM_LOCKED, otherwise the oom reaper cannot
+-		 * reliably test it.
+ 		 */
+ 		(void)__oom_reap_task_mm(mm);
+-
+ 		set_bit(MMF_OOM_SKIP, &mm->flags);
+ 	}
+ 
+ 	mmap_write_lock(mm);
+-	if (mm->locked_vm)
+-		unlock_range(mm->mmap, ULONG_MAX);
+-
+ 	arch_exit_mmap(mm);
+ 
+ 	vma = mm->mmap;
+--- a/mm/oom_kill.c~mm-munlock-delete-munlock_vma_pages_all-allow-oomreap
++++ a/mm/oom_kill.c
+@@ -526,7 +526,7 @@ bool __oom_reap_task_mm(struct mm_struct
+ 	set_bit(MMF_UNSTABLE, &mm->flags);
+ 
+ 	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
+-		if (!can_madv_lru_vma(vma))
++		if (vma->vm_flags & (VM_HUGETLB|VM_PFNMAP))
+ 			continue;
  
  		/*
- 		 * The page is expected to have page_count() == 3:
-@@ -1893,6 +1892,13 @@ xa_locked:
- 	xas_unlock_irq(&xas);
- xa_unlocked:
- 
-+	/*
-+	 * If collapse is successful, flush must be done now before copying.
-+	 * If collapse is unsuccessful, does flush actually need to be done?
-+	 * Do it anyway, to clear the state.
-+	 */
-+	try_to_unmap_flush();
-+
- 	if (result == SCAN_SUCCEED) {
- 		struct page *page, *tmp;
- 
 _
 
 Patches currently in -mm which might be from hughd@google.com are
