@@ -2,41 +2,45 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 62EA6C433F5
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Feb 2022 18:06:08 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9CA46C433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Feb 2022 20:39:34 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238644AbiBISGD (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Feb 2022 13:06:03 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:56436 "EHLO
+        id S229547AbiBIUja (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Feb 2022 15:39:30 -0500
+Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:52378 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238652AbiBISGB (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2022 13:06:01 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9AAD4C05CB88
-        for <mm-commits@vger.kernel.org>; Wed,  9 Feb 2022 10:06:03 -0800 (PST)
+        with ESMTP id S232022AbiBIUj3 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2022 15:39:29 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id BD05AE018E42
+        for <mm-commits@vger.kernel.org>; Wed,  9 Feb 2022 12:39:29 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 204E761B69
-        for <mm-commits@vger.kernel.org>; Wed,  9 Feb 2022 18:06:03 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 58C9DC340E7;
-        Wed,  9 Feb 2022 18:06:02 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id 60C9861AD5
+        for <mm-commits@vger.kernel.org>; Wed,  9 Feb 2022 20:39:29 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 99B3FC340E7;
+        Wed,  9 Feb 2022 20:39:28 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644429962;
-        bh=6wf6QIN0IrhQBebpjduVfAxqrxkOO8k+tn/oEqA17Hc=;
-        h=Date:From:To:Subject:From;
-        b=Qu3CphZtPffu8WdFJlmNRdsvBqXBzXGr2HJYHYuScmgl3p29lza4XW7n71desSz+0
-         A49Uk8vESVKCBTRLLf3LzVW3SIrzjUFsbz0tVl9OCi/VxPSlEODmUsNcKFozeVn1vr
-         kVtWPiQSh8sWxFhN2duMiMYd5qy/PrHe+4bRriOw=
-Date:   Wed, 09 Feb 2022 10:06:01 -0800
-From:   akpm@linux-foundation.org
-To:     akpm@linux-foundation.org, domenico.andreoli@linux.com,
-        mcgrof@kernel.org, mm-commits@vger.kernel.org
-Subject:  [merged]
- fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file.patch
- removed from -mm tree
-Message-ID: <20220209180601.sefQRYbdF%akpm@linux-foundation.org>
-User-Agent: s-nail v14.8.16
+        s=korg; t=1644439168;
+        bh=UXgIpYYsVku5dYLLu2vJZg0MTlYM6KfjG85cI55cmYI=;
+        h=Date:To:From:Subject:From;
+        b=b2utqSliMmvQFBhlN0AEfTLJjCViZeZAEGXhJzlzxDgdjrSicGjvQr/mwAwI390dd
+         bjlaVZyjgY2ap2AatnMxTf/qCU4KnXue++c5gb/j66SsN6QmxkKPxwvK3d6u2+gjjL
+         90LzqsjZwRibvdI0iPuO+sY9M3b7+lSD53qKJoN8=
+Date:   Wed, 09 Feb 2022 12:39:27 -0800
+To:     mm-commits@vger.kernel.org, ying.huang@intel.com,
+        shy828301@gmail.com, ponnuvel.palaniyappan@canonical.com,
+        minchan@kernel.org, matthew.ruffell@canonical.com,
+        linmiaohe@huawei.com, jay.vosburgh@canonical.com,
+        ioanna-maria.alifieraki@canonical.com, halves@canonical.com,
+        gerald.yang@canonical.com, gavin.guo@canonical.com,
+        dongdong.tao@canonical.com, dan.streetman@canonical.com,
+        daniel.hill@canonical.com, mfo@canonical.com,
+        akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch added to -mm tree
+Message-Id: <20220209203928.99B3FC340E7@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,105 +48,89 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fix regression due to "fs: move binfmt_misc sysctl to its own file"
-has been removed from the -mm tree.  Its filename was
-     fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file.patch
+     Subject: mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4
+has been added to the -mm tree.  Its filename is
+     mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Domenico Andreoli <domenico.andreoli@linux.com>
-Subject: fix regression due to "fs: move binfmt_misc sysctl to its own file"
+From: Mauricio Faria de Oliveira <mfo@canonical.com>
+Subject: mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4
 
-Commit 3ba442d5331f did not go unnoticed, binfmt-support stopped to work
-on my Debian system since v5.17-rc2 (did not check with -rc1).
+v4: - fixed Fixes: tag to first support, after tests on v4.5;
+      updated commit message/reproducer section with results.
+    - tested on v5.17-rc3 and v4.5.
+    - shorten comment line; remove inner braces in the check.
+      (Thanks: Christoph Hellwig <hch@infradead.org>)
+    - clarify comment about __remove_mapping()
+      (Thanks: Yu Zhao <yuzhao@google.com>)
 
-The existence of /proc/sys/fs/binfmt_misc is a precondition for attempting
-to mount the binfmt_misc fs, which in turn triggers the autoload of the
-binfmt_misc module.  Without it, no module is loaded and no binfmt is
-available at boot.
-
-Building as built-in or manually loading the module and mounting the fs
-works fine, it's therefore only a matter of interaction with user-space.
-
-I could try to improve the Debian systemd configuration but I can't
-say anything about the other distributions.
-
-In the meanwhile this patch restores a working system right after boot.
-
-Link: https://lkml.kernel.org/r/YgEeQNdgBuHRyEWl@dumbo
-Fixes: 3ba442d5331f ("fs: move binfmt_misc sysctl to its own file")
-Signed-off-by: Domenico Andreoli <domenico.andreoli@linux.com>
-Cc: Luis Chamberlain <mcgrof@kernel.org>
+Link: https://lkml.kernel.org/r/20220209202659.183418-1-mfo@canonical.com
+Fixes: 854e9ed09ded ("mm: support madvise(MADV_FREE)")
+Signed-off-by: Mauricio Faria de Oliveira <mfo@canonical.com>
+Reviewed-by: "Huang, Ying" <ying.huang@intel.com>
+Cc: Dan Hill <daniel.hill@canonical.com>
+Cc: Dan Streetman <dan.streetman@canonical.com>
+Cc: Dongdong Tao <dongdong.tao@canonical.com>
+Cc: Gavin Guo <gavin.guo@canonical.com>
+Cc: Gerald Yang <gerald.yang@canonical.com>
+Cc: Heitor Alves de Siqueira <halves@canonical.com>
+Cc: Ioanna Alifieraki <ioanna-maria.alifieraki@canonical.com>
+Cc: Jay Vosburgh <jay.vosburgh@canonical.com>
+Cc: Matthew Ruffell <matthew.ruffell@canonical.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Ponnuvel Palaniyappan <ponnuvel.palaniyappan@canonical.com>
+Cc: Yang Shi <shy828301@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/binfmt_misc.c |    6 +-----
- kernel/sysctl.c  |   13 +++++++++++++
- 2 files changed, 14 insertions(+), 5 deletions(-)
+ mm/rmap.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
---- a/fs/binfmt_misc.c~fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file
-+++ a/fs/binfmt_misc.c
-@@ -817,20 +817,16 @@ static struct file_system_type bm_fs_typ
- };
- MODULE_ALIAS_FS("binfmt_misc");
+--- a/mm/rmap.c~mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4
++++ a/mm/rmap.c
+@@ -1614,16 +1614,16 @@ static bool try_to_unmap_one(struct page
+ 				map_count = page_mapcount(page);
  
--static struct ctl_table_header *binfmt_misc_header;
--
- static int __init init_misc_binfmt(void)
- {
- 	int err = register_filesystem(&bm_fs_type);
- 	if (!err)
- 		insert_binfmt(&misc_format);
--	binfmt_misc_header = register_sysctl_mount_point("fs/binfmt_misc");
--	return 0;
-+	return err;
- }
+ 				/*
+-				 * Order reads for page refcount and dirty flag;
+-				 * see __remove_mapping().
++				 * Order reads for page refcount and dirty flag
++				 * (see comments in __remove_mapping()).
+ 				 */
+ 				smp_rmb();
  
- static void __exit exit_misc_binfmt(void)
- {
--	unregister_sysctl_table(binfmt_misc_header);
- 	unregister_binfmt(&misc_format);
- 	unregister_filesystem(&bm_fs_type);
- }
---- a/kernel/sysctl.c~fix-regression-due-to-fs-move-binfmt_misc-sysctl-to-its-own-file
-+++ a/kernel/sysctl.c
-@@ -2806,6 +2806,17 @@ static struct ctl_table vm_table[] = {
- 	{ }
- };
- 
-+static struct ctl_table fs_table[] = {
-+#if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
-+	{
-+		.procname	= "binfmt_misc",
-+		.mode		= 0555,
-+		.child		= sysctl_mount_point,
-+	},
-+#endif
-+	{ }
-+};
-+
- static struct ctl_table debug_table[] = {
- #ifdef CONFIG_SYSCTL_EXCEPTION_TRACE
- 	{
-@@ -2825,6 +2836,7 @@ static struct ctl_table dev_table[] = {
- 
- DECLARE_SYSCTL_BASE(kernel, kern_table);
- DECLARE_SYSCTL_BASE(vm, vm_table);
-+DECLARE_SYSCTL_BASE(fs, fs_table);
- DECLARE_SYSCTL_BASE(debug, debug_table);
- DECLARE_SYSCTL_BASE(dev, dev_table);
- 
-@@ -2832,6 +2844,7 @@ int __init sysctl_init_bases(void)
- {
- 	register_sysctl_base(kernel);
- 	register_sysctl_base(vm);
-+	register_sysctl_base(fs);
- 	register_sysctl_base(debug);
- 	register_sysctl_base(dev);
- 
+ 				/*
+-				 * The only page refs must be from the isolation
+-				 * plus one or more rmap's (dropped by discard:).
++				 * The only page refs must be one from isolation
++				 * plus the rmap(s) (dropped by discard:).
+ 				 */
+-				if ((ref_count == 1 + map_count) &&
++				if (ref_count == 1 + map_count &&
+ 				    !PageDirty(page)) {
+ 					/* Invalidate as we cleared the pte */
+ 					mmu_notifier_invalidate_range(mm,
 _
 
-Patches currently in -mm which might be from domenico.andreoli@linux.com are
+Patches currently in -mm which might be from mfo@canonical.com are
 
+mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read.patch
+mm-fix-race-between-madv_free-reclaim-and-blkdev-direct-io-read-v4.patch
 
