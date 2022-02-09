@@ -2,56 +2,56 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7635FC433EF
-	for <mm-commits@archiver.kernel.org>; Wed,  9 Feb 2022 07:31:21 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 23B26C433F5
+	for <mm-commits@archiver.kernel.org>; Wed,  9 Feb 2022 07:49:28 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232425AbiBIHbQ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Feb 2022 02:31:16 -0500
-Received: from lindbergh.monkeyblade.net ([23.128.96.19]:60410 "EHLO
+        id S239295AbiBIHtW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Feb 2022 02:49:22 -0500
+Received: from lindbergh.monkeyblade.net ([23.128.96.19]:44060 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229925AbiBIHbO (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2022 02:31:14 -0500
-Received: from mail-ed1-x52b.google.com (mail-ed1-x52b.google.com [IPv6:2a00:1450:4864:20::52b])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id B6F76C0613CB;
-        Tue,  8 Feb 2022 23:31:17 -0800 (PST)
-Received: by mail-ed1-x52b.google.com with SMTP id m11so3183582edi.13;
-        Tue, 08 Feb 2022 23:31:17 -0800 (PST)
+        with ESMTP id S230479AbiBIHtV (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2022 02:49:21 -0500
+Received: from mail-ed1-x531.google.com (mail-ed1-x531.google.com [IPv6:2a00:1450:4864:20::531])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 82B92C05CB82;
+        Tue,  8 Feb 2022 23:49:24 -0800 (PST)
+Received: by mail-ed1-x531.google.com with SMTP id s7so3391123edd.3;
+        Tue, 08 Feb 2022 23:49:24 -0800 (PST)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=gmail.com; s=20210112;
         h=sender:date:from:to:cc:subject:message-id:references:mime-version
          :content-disposition:in-reply-to;
-        bh=LV46nVT6ZyUm4CkAW3e5eCUPfVZ1+2GfU1mW0n/r+DU=;
-        b=H69Zufbut5euCO/mhsNgnHpm5HF95kNT8FFxBZPneQ36ZWcmxcqtAf0tovWvk5UY84
-         8b6UpfZbNy3Gu5IHyK/TYgsAU1nzGxbSUHiA7EffiG+jw9meOn8M6ORG29l/5wJF4ifi
-         GtIkq8IwUXA7SUFwyEsA/z9ZR44S1uCNfPCx/VU5T6Q/9THAZjOJKTm1yo8j60i7oEGG
-         e8O/Z0BvHhQ26ExvMPnywoN4pZ6qPEqD1RcnnIY8Wuc13XlpahSe/apkDCqC3Ws5uASI
-         yW2xN5gTADriFkzeFBjhBzZ5k1owEfBxOby84JyMnqThuX68uU1pFxcv02y9L4H0h/+I
-         o6ew==
+        bh=LUzGldKtZC3jOl6Fq1nfXnQKprYL3pMs6oURDAZ0EmE=;
+        b=KOvrX9K5oGQAb0XaO6VlNj0WKjC9bavJrqO6YBN2wMeYSLTNMMq4OUNbxxQtCKhHDd
+         iu25luITlcqZYE2ZMl8jsIxUQcGUjf1t8MvTEu7cO0V8NYRhxcGzsEpD1e6wWB6KCcEH
+         0rpvH33A61Wk0zcJSRuAlliDXLG6zwTrSJx00FL4JwfzkkJ/qHVrYtTj2wAsdgoV7TMB
+         hwCCfDzPd1GoWbg0oaynvhMWtw4g/aAxwnqQBwBsnpb/TEI5Xq9aU0rd7fKr1uiirDCK
+         jCmdSG28ZM5umxg0NiSDA5adQqe+DSKSQyEyk5V5cf7WFwgJa3VnWxM/pbluedefgbiC
+         W5bA==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
         d=1e100.net; s=20210112;
         h=x-gm-message-state:sender:date:from:to:cc:subject:message-id
          :references:mime-version:content-disposition:in-reply-to;
-        bh=LV46nVT6ZyUm4CkAW3e5eCUPfVZ1+2GfU1mW0n/r+DU=;
-        b=YeauyGyWfAAtvi6W5DGJnoe6y3m95wm2pcnnRtGf5k9P8QIpwyGRbc3TWqO6y9l/EK
-         Aor8ovM8C5h/ECxz03VqYLYeFAlwG4Dm6y8QwS+4+v89xZxwLPgBMVYZxtqWFuFIwHiB
-         Z8U+pIHbtmhHin/44xlEqSuQvSg0clqmd2DcEn2kKXE9kUl1i/EodVwwt8c2zyklURcL
-         O1X8BvYAm5EKZ2wypNyBIXdDFCt/2+cjANx947Xq3sKjCvbGjRWCmSij+FylIPS9LFUf
-         eZPNecjf5RjHqpBEYZpU0bGmyz6SsTY/O6JeJ3vSqWhhxv4VYZnrc5sLQCO6KTY4tV/W
-         9vIA==
-X-Gm-Message-State: AOAM533/3Smm942G7RdKkj6oDqzcOt186aSDgbGHHr/ftIaCWlIFjlCg
-        h4tztC0FrSSjhG5QrU97/pU=
-X-Google-Smtp-Source: ABdhPJwxxXeD0s8j9xGnQpug+hmPsXoxK3Md0tSKC+zT37eaK5mRNiORfFe11V+D/e4B71FM7EzZUw==
-X-Received: by 2002:a05:6402:35d4:: with SMTP id z20mr1072349edc.13.1644391876048;
-        Tue, 08 Feb 2022 23:31:16 -0800 (PST)
-Received: from dumbo ([2a0b:f4c2:1::1])
-        by smtp.gmail.com with ESMTPSA id ak15sm3300369ejc.73.2022.02.08.23.31.14
+        bh=LUzGldKtZC3jOl6Fq1nfXnQKprYL3pMs6oURDAZ0EmE=;
+        b=J0bGm3fy/VYmJmJkGCQkJw7L0RWdN1ILbL+ckl8ITbxNQzHYD7V026yhSyuE2pMyhx
+         YaJE+lXoiWgCGE80rohhOVnYlD5yqJ9htRJsOhqzk3S147IsU6Gubps6fMprY4w9C1X3
+         kAOuuHy3NEifsdK9xj/N/COA7JIBez/Yn/BIVSUn0A46EkoNfDjOTwJ80l2HqGUCwmTF
+         dUr5poTBICneOCtVIyTqpnh5RLDQpBZpw2pQ7Bc+no8VzsfkAak/oQPyGNqP/D3pMgIX
+         bsRol9mMN1afjFYSxEF22C+MTKyLmQPQTjQHWcoA3zTvtmWZRpTui1W6k8Tz4zFJIerD
+         gbdA==
+X-Gm-Message-State: AOAM533ZhWdb+M6NmHMLjgi2v70qkkr91M45GcqAfNcAt95eRdtTxXZ8
+        XkOaCrVb23w59BLzw73LAx4=
+X-Google-Smtp-Source: ABdhPJy7j/jOKxsaAV2/AtzcWda7tM3HPoh6bV/FquZcserdfo9YfUiMeSpCU161wWXwVjfQXLLUEA==
+X-Received: by 2002:a05:6402:51cd:: with SMTP id r13mr1079014edd.381.1644392962839;
+        Tue, 08 Feb 2022 23:49:22 -0800 (PST)
+Received: from dumbo ([185.220.101.84])
+        by smtp.gmail.com with ESMTPSA id l1sm5690964ejb.81.2022.02.08.23.49.22
         (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Tue, 08 Feb 2022 23:31:15 -0800 (PST)
+        Tue, 08 Feb 2022 23:49:22 -0800 (PST)
 Sender: Domenico Andreoli <domenico.andreoli.it@gmail.com>
 Received: from cavok by dumbo with local (Exim 4.94.2)
         (envelope-from <cavok@dumbo>)
-        id 1nHhRZ-00051Y-B3; Wed, 09 Feb 2022 08:31:13 +0100
-Date:   Wed, 9 Feb 2022 08:31:13 +0100
+        id 1nHhj6-0002av-MX; Wed, 09 Feb 2022 08:49:20 +0100
+Date:   Wed, 9 Feb 2022 08:49:20 +0100
 From:   Domenico Andreoli <domenico.andreoli@linux.com>
 To:     Luis Chamberlain <mcgrof@kernel.org>
 Cc:     Tong Zhang <ztong0001@gmail.com>,
@@ -77,10 +77,11 @@ Cc:     Tong Zhang <ztong0001@gmail.com>,
         surenb@google.com, torvalds@linux-foundation.org, tytso@mit.edu,
         Al Viro <viro@zeniv.linux.org.uk>, wangqing@vivo.com,
         Iurii Zaikin <yzaikin@google.com>,
-        open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] Fix regression due to "fs: move binfmt_misc sysctl to
- its own file"
-Message-ID: <YgNtwZg77417oFBO@dumbo>
+        open list <linux-kernel@vger.kernel.org>,
+        regressions@lists.linux.dev
+Subject: [PATCH v2] Fix regression due to "fs: move binfmt_misc sysctl to its
+ own file"
+Message-ID: <YgNyAC8VMeuOD/uQ@dumbo>
 References: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
  <20220122061228.nmuo75sDn%akpm@linux-foundation.org>
  <YgEeQNdgBuHRyEWl@dumbo>
@@ -96,98 +97,111 @@ Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Tue, Feb 08, 2022 at 09:20:42AM -0800, Luis Chamberlain wrote:
-> On Mon, Feb 07, 2022 at 02:53:21PM -0800, Tong Zhang wrote:
-> > On Mon, Feb 7, 2022 at 1:46 PM Luis Chamberlain <mcgrof@kernel.org> wrote:
-> > >
-> > > OK I think the issue here should have been that declaring this on
-> > > fs/binfmt_misc.c creates the chicken and the egg issue, and so we
-> > > need to do this on built-in code. Instead of your patch can you try
-> > > this instead, it just always creates the sysctl mount always now
-> > > so long as proc sysctl is enabled. It does not do the unregistration
-> > > as we always want the path present as it used to be before as well.
-> > >
-> > > diff --git a/fs/file_table.c b/fs/file_table.c
-> > > index 57edef16dce4..4f4739c9405c 100644
-> > > --- a/fs/file_table.c
-> > > +++ b/fs/file_table.c
-> > > @@ -119,6 +119,7 @@ static struct ctl_table fs_stat_sysctls[] = {
-> > >  static int __init init_fs_stat_sysctls(void)
-> > >  {
-> > >         register_sysctl_init("fs", fs_stat_sysctls);
-> > > +       register_sysctl_mount_point("fs/binfmt_misc");
-> > >         return 0;
-> > >  }
-> > >  fs_initcall(init_fs_stat_sysctls);
-> > 
-> > I'm looking at the original code, and it seems that if we don't select
-> > CONFIG_BINFMT_MISC at all,
-> > this file won't be created. This would suggest an IF MACRO around
-> > > +       register_sysctl_mount_point("fs/binfmt_misc");
-> > and it should looks like
-> > +#if IS_ENABLED(CONFIG_BINFMT_MISC)
-> > +       register_sysctl_mount_point("fs/binfmt_misc");
-> > +#endif
-> > or if you prefer original style:
-> > #if defined(CONFIG_BINFMT_MISC) || defined(CONFIG_BINFMT_MISC_MODULE)
-> 
-> Or better yet using IS_ENABLED() to avoid the ifdef cruft:
-> 
-> diff --git a/fs/binfmt_misc.c b/fs/binfmt_misc.c
-> index c07f35719ee3..4b8f1b11a7c8 100644
-> --- a/fs/binfmt_misc.c
-> +++ b/fs/binfmt_misc.c
-> @@ -817,20 +817,16 @@ static struct file_system_type bm_fs_type = {
->  };
->  MODULE_ALIAS_FS("binfmt_misc");
->  
-> -static struct ctl_table_header *binfmt_misc_header;
-> -
->  static int __init init_misc_binfmt(void)
->  {
->  	int err = register_filesystem(&bm_fs_type);
->  	if (!err)
->  		insert_binfmt(&misc_format);
-> -	binfmt_misc_header = register_sysctl_mount_point("fs/binfmt_misc");
->  	return 0;
->  }
->  
->  static void __exit exit_misc_binfmt(void)
->  {
-> -	unregister_sysctl_table(binfmt_misc_header);
->  	unregister_binfmt(&misc_format);
->  	unregister_filesystem(&bm_fs_type);
->  }
-> diff --git a/fs/file_table.c b/fs/file_table.c
-> index 57edef16dce4..4969021fa676 100644
-> --- a/fs/file_table.c
-> +++ b/fs/file_table.c
-> @@ -119,6 +119,8 @@ static struct ctl_table fs_stat_sysctls[] = {
->  static int __init init_fs_stat_sysctls(void)
->  {
->  	register_sysctl_init("fs", fs_stat_sysctls);
-> +	if (IS_ENABLED(CONFIG_BINFMT_MISC))
-> +		register_sysctl_mount_point("fs/binfmt_misc");
->  	return 0;
->  }
->  fs_initcall(init_fs_stat_sysctls);
+Commit 3ba442d5331f did not go unnoticed, binfmt-support stopped to
+work on my Debian system since v5.17-rc2 (did not check with -rc1).
 
-Apologies for the late reply, I was notified the patch is added to the
-mm patchset and thought to be late for any update but now I'm not seeing
-it anywhere. Maybe it's been dropped?
+The existance of the /proc/sys/fs/binfmt_misc is a precondition for
+attempting to mount the binfmt_misc fs, which in turn triggers the
+autoload of the binfmt_misc module. Without it, no module is loaded
+and no binfmt is available at boot.
 
-Forgot of IS_ENABLED(), I would surely use it in the v2.
+Building as built-in or manually loading the module and mounting the fs
+works fine, it's therefore only a matter of interaction with user-space.
+I could try to improve the Debian systemd configuration but I can't
+say anything about the other distributions.
 
-Not clear what's the benefit in registering the mount point in
-fs/file_table.c vs. kernel/sysctl.c.  I'd keep it close to where people
-was used to find it, unless there is a good reason otherwise.
+This patch restores a working system right after boot.
 
-Could you please elaborate?
+v2:
+- move creation of fs/binfmt_misc to fs/file_table.c
+- use IS_ENABLED() to conditionally create it
 
-Thanks for your review!
+Fixes: 3ba442d5331f ("fs: move binfmt_misc sysctl to its own file")
+Signed-off-by: Domenico Andreoli <domenico.andreoli@linux.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Amir Goldstein <amir73il@gmail.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Antti Palosaari <crope@iki.fi>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Benjamin LaHaise <bcrl@kvack.org>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Douglas Gilbert <dgilbert@interlog.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Iurii Zaikin <yzaikin@google.com>
+Cc: James E.J. Bottomley <jejb@linux.ibm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jani Nikula <jani.nikula@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: John Ogness <john.ogness@linutronix.de>
+Cc: Joonas Lahtinen <joonas.lahtinen@linux.intel.com>
+Cc: Joseph Qi <joseph.qi@linux.alibaba.com>
+Cc: Julia Lawall <julia.lawall@inria.fr>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Lukas Middendorf <kernel@tuxforce.de>
+Cc: Mark Fasheh <mark@fasheh.com>
+Cc: Martin K. Petersen <martin.petersen@oracle.com>
+Cc: Paul Turner <pjt@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Petr Mladek <pmladek@suse.com>
+Cc: Phillip Potter <phil@philpotter.co.uk>
+Cc: Qing Wang <wangqing@vivo.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Rodrigo Vivi <rodrigo.vivi@intel.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Sergey Senozhatsky <senozhatsky@chromium.org>
+Cc: Stephen Kitt <steve@sk2.org>
+Cc: Steven Rostedt (VMware) <rostedt@goodmis.org>
+Cc: Suren Baghdasaryan <surenb@google.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Xiaoming Ni <nixiaoming@huawei.com>
 
-Dom
+---
+ fs/binfmt_misc.c |    6 +-----
+ fs/file_table.c  |    2 ++
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
--- 
-rsa4096: 3B10 0CA1 8674 ACBA B4FE  FCD2 CE5B CF17 9960 DE13
-ed25519: FFB4 0CC3 7F2E 091D F7DA  356E CC79 2832 ED38 CB05
+Index: b/fs/binfmt_misc.c
+===================================================================
+--- a/fs/binfmt_misc.c
++++ b/fs/binfmt_misc.c
+@@ -817,20 +817,16 @@ static struct file_system_type bm_fs_typ
+ };
+ MODULE_ALIAS_FS("binfmt_misc");
+ 
+-static struct ctl_table_header *binfmt_misc_header;
+-
+ static int __init init_misc_binfmt(void)
+ {
+ 	int err = register_filesystem(&bm_fs_type);
+ 	if (!err)
+ 		insert_binfmt(&misc_format);
+-	binfmt_misc_header = register_sysctl_mount_point("fs/binfmt_misc");
+-	return 0;
++	return err;
+ }
+ 
+ static void __exit exit_misc_binfmt(void)
+ {
+-	unregister_sysctl_table(binfmt_misc_header);
+ 	unregister_binfmt(&misc_format);
+ 	unregister_filesystem(&bm_fs_type);
+ }
+Index: b/fs/file_table.c
+===================================================================
+--- a/fs/file_table.c
++++ b/fs/file_table.c
+@@ -119,6 +119,8 @@ static struct ctl_table fs_stat_sysctls[
+ static int __init init_fs_stat_sysctls(void)
+ {
+ 	register_sysctl_init("fs", fs_stat_sysctls);
++	if (IS_ENABLED(CONFIG_BINFMT_MISC))
++		register_sysctl_mount_point("fs/binfmt_misc");
+ 	return 0;
+ }
+ fs_initcall(init_fs_stat_sysctls);
