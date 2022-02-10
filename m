@@ -2,130 +2,88 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 7EB93C433F5
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Feb 2022 02:00:06 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D214C433EF
+	for <mm-commits@archiver.kernel.org>; Thu, 10 Feb 2022 04:13:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S234032AbiBJCAB (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Feb 2022 21:00:01 -0500
-Received: from gmail-smtp-in.l.google.com ([23.128.96.19]:60114 "EHLO
+        id S232897AbiBJENk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Wed, 9 Feb 2022 23:13:40 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:51364 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S234420AbiBJB7S (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2022 20:59:18 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CD1B428CF5
-        for <mm-commits@vger.kernel.org>; Wed,  9 Feb 2022 17:36:02 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        with ESMTP id S231833AbiBJENj (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2022 23:13:39 -0500
+Received: from gandalf.ozlabs.org (mail.ozlabs.org [IPv6:2404:9400:2221:ea00::3])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A9A6BB
+        for <mm-commits@vger.kernel.org>; Wed,  9 Feb 2022 20:13:39 -0800 (PST)
+Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id 549B061206
-        for <mm-commits@vger.kernel.org>; Thu, 10 Feb 2022 00:18:30 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id A530FC340E7;
-        Thu, 10 Feb 2022 00:18:29 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644452309;
-        bh=9OxQrIoVmaITfKe+pto0dvjOFkVugQjL3BrCQ4cOak0=;
-        h=Date:To:From:Subject:From;
-        b=UF1l0W/VxBI01718wSsLrdXIGniEWlsgiGk9f542BqGLJTkSgjhVKO38zD26hhKL7
-         zybq9B+7mRG3GwU0LmHxHVrKDjVU4DiLyV0AJ5muqG9YxMjIXRKQXvDKbLxeq+5Rd9
-         5rAm00wDF6rdp3U3cwUUOQPXxhrKIKB8xhtO+WXo=
-Date:   Wed, 09 Feb 2022 16:18:29 -0800
-To:     mm-commits@vger.kernel.org, sfr@canb.auug.org.au,
-        apopple@nvidia.com, sj@kernel.org, akpm@linux-foundation.org
-From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing-fix.patch added to -mm tree
-Message-Id: <20220210001829.A530FC340E7@smtp.kernel.org>
+        by mail.ozlabs.org (Postfix) with ESMTPSA id 4JvNf516nYz4xNn;
+        Thu, 10 Feb 2022 15:13:33 +1100 (AEDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
+        s=201702; t=1644466413;
+        bh=JmTyAI85ivwA7zpahkn8JLtDZz0qmQLHf+tPBbOmPjU=;
+        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
+        b=fQZIgOaMOjToCs4cQZ/hqtpiKGQmM5H3HP8xWnv7m9BEwVBNwJ9iUodmC//NnGLIg
+         XYu+oksUDCkEIVE1AyyuIopNKVgvIDooD2VbxppLxZ3/k68qpuzNFGHDS21X3wONaE
+         6OToYZXETmWMj+UvOgQREpxbM+hkR9CNOmODaZvxb/Y3DE5DKcY0EsTt6XTaK0fNRy
+         MbMtQbo9oUq8sHDwpbmZ+qFgVxkaB+6wdkwsTH52Z7TEPsyiqRmLec8iQuG28dkb6C
+         3+iUk/G5EBfnh6WGL8ey1hOAs+g8BGzIkuZBV4znlFTLB4sxSuUfvo1D/JEUXV9+eM
+         guLWkbfp3A05Q==
+Date:   Thu, 10 Feb 2022 15:13:32 +1100
+From:   Stephen Rothwell <sfr@canb.auug.org.au>
+To:     Andrew Morton <akpm@linux-foundation.org>
+Cc:     mm-commits@vger.kernel.org, apopple@nvidia.com, sj@kernel.org
+Subject: Re: +
+ mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing-fix.patch
+ added to -mm tree
+Message-ID: <20220210151332.039720ca@canb.auug.org.au>
+In-Reply-To: <20220210001829.A530FC340E7@smtp.kernel.org>
+References: <20220210001829.A530FC340E7@smtp.kernel.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="Sig_/FDzSrU_ZCKDrqdB++3MVb1O";
+ protocol="application/pgp-signature"; micalg=pgp-sha256
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
+--Sig_/FDzSrU_ZCKDrqdB++3MVb1O
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-The patch titled
-     Subject: mm/gup: make migrate_device_page() fails always if !CONFIG_DEVICE_PRIVATE
-has been added to the -mm tree.  Its filename is
-     mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing-fix.patch
+Hi Andrew,
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing-fix.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing-fix.patch
+On Wed, 09 Feb 2022 16:18:29 -0800 Andrew Morton <akpm@linux-foundation.org=
+> wrote:
+>
+> The patch titled
+>      Subject: mm/gup: make migrate_device_page() fails always if !CONFIG_=
+DEVICE_PRIVATE
+> has been added to the -mm tree.  Its filename is
+>      mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failin=
+g-fix.patch
 
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
+Added to linux-next today.
 
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+--=20
+Cheers,
+Stephen Rothwell
 
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+--Sig_/FDzSrU_ZCKDrqdB++3MVb1O
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
 
-------------------------------------------------------
-From: SeongJae Park <sj@kernel.org>
-Subject: mm/gup: make migrate_device_page() fails always if !CONFIG_DEVICE_PRIVATE
+-----BEGIN PGP SIGNATURE-----
 
-Commit 7059ac82be44 ("mm/gup.c: migrate device coherent pages when
-pinning instead of failing") in -mm tree[1] introduces
-'migrate_device_page()', which uses several functions that defined under
-CONFIG_DEVICE_RIVATE.  As a result, build under 'CONFIG_MIGRATION &&
-!CONFIG_DEVICE_PRIVATE' fails as below.
+iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmIEkOwACgkQAVBC80lX
+0GzlaAgAn8+OgPBbhBy4yT96ebDCok80izrQ+gNzsyb7/K5Jz2/3wNEPnepB2WdN
+ABLPheoXE+8aZZMPOGLIKQ11ZLa35VGVCHEEkvWccARWErxfqLPlgNgJnotbS7mH
+9mJfV3M9voyK2Gpt5psYkFvn2hjNfeEDjqYofnaiVq+jXVe+DSCsSeAAKTRJ7fCS
+lHlkdMAuGG+zPmjcDUEYxD8JBbvibXaHJIGEuGShroUOFvsxl3TB9BByU1T4azT0
+hQCb/QFIWPGxLLL1bfzeHpELWmJk8XDV+1KYVAk4IwBhJH3Nr36nsR+6ACgj3jTe
+AFS78WIzX7Iyvx7OZL8uYtPzavrpLQ==
+=TrrZ
+-----END PGP SIGNATURE-----
 
-      LD      .tmp_vmlinux.kallsyms1
-    mm/gup.o: In function `migrate_device_page':
-    /linux/mm/gup.c:1856: undefined reference to `migrate_vma_setup'
-    /linux/mm/gup.c:1876: undefined reference to `migrate_vma_pages'
-    /linux/mm/gup.c:1879: undefined reference to `migrate_vma_finalize'
-    /linux/Makefile:1222: recipe for target 'vmlinux' failed
-    make[1]: *** [vmlinux] Error 1
-
-This commit fixes it by implementing an always-failing version of the
-function for !CONFIG_DEVICE_PRIVATE'.
-
-[1] https://www.ozlabs.org/~akpm/mmotm/broken-out/mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
-
-Link: https://lkml.kernel.org/r/20220209094158.21941-3-sj@kernel.org
-Signed-off-by: SeongJae Park <sj@kernel.org>
-Cc: Alistair Popple <apopple@nvidia.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- mm/gup.c |    9 +++++++++
- 1 file changed, 9 insertions(+)
-
---- a/mm/gup.c~mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing-fix
-+++ a/mm/gup.c
-@@ -1834,6 +1834,7 @@ struct page *get_dump_page(unsigned long
- #endif /* CONFIG_ELF_CORE */
- 
- #ifdef CONFIG_MIGRATION
-+#ifdef CONFIG_DEVICE_PRIVATE
- /*
-  * Migrates a device coherent page back to normal memory. Caller should have a
-  * reference on page which will be copied to the new page if migration is
-@@ -1887,6 +1888,14 @@ static struct page *migrate_device_page(
- 
- 	return dpage;
- }
-+#else
-+static inline struct page *migrate_device_page(struct page *page,
-+					unsigned int gup_flags)
-+{
-+	return NULL;
-+}
-+#endif /* CONFIG_DEVICE_PRIVATE */
-+
- 
- /*
-  * Check whether all pages are pinnable, if so return number of pages.  If some
-_
-
-Patches currently in -mm which might be from sj@kernel.org are
-
-mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing-fix.patch
-mm-damon-dbgfs-init_regions-use-target-index-instead-of-target-id.patch
-docs-admin-guide-mm-damon-usage-update-for-changed-initail_regions-file-input.patch
-mm-damon-core-move-damon_set_targets-into-dbgfs.patch
-mm-damon-remove-the-target-id-concept.patch
-
+--Sig_/FDzSrU_ZCKDrqdB++3MVb1O--
