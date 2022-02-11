@@ -2,40 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EA339C433F5
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 20:47:15 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 83842C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 20:47:17 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353347AbiBKUrO (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Feb 2022 15:47:14 -0500
+        id S229988AbiBKUrR (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Feb 2022 15:47:17 -0500
 Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:42532 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229988AbiBKUrM (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 15:47:12 -0500
+        with ESMTP id S1353339AbiBKUrO (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 15:47:14 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 89364CF9
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 12:47:10 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 74008CFD
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 12:47:12 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 1F014B82CDF
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 20:47:09 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B405FC340E9;
-        Fri, 11 Feb 2022 20:47:07 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 1F417B82CE0
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 20:47:11 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A9A3FC340E9;
+        Fri, 11 Feb 2022 20:47:09 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644612427;
-        bh=aoo4ZiKYGuxDp0bH966aK9gmmZGyNMVQqs35nF3oXGw=;
+        s=korg; t=1644612429;
+        bh=XHgQhd5rmmHEJncZTfBmNio7fUWv3aEcgZVjqrMcetY=;
         h=Date:To:From:Subject:From;
-        b=xFyfkdLK2LfXe+Itf+9a3AKXiLiSHCebDYgEuPBRcm/jEEu005Ga6f0UQ+ehcLiEx
-         KioL8wgnn0YjRo9iImSuDo2Lqq8DY0FYt3Sv9zaxf0wK/lnNyV0zKiNZE7Fn8UN6hw
-         KOCZ1YnDoCMy8XebI50YGQ08KWqv+RlZTy9+xdVQ=
-Date:   Fri, 11 Feb 2022 12:47:07 -0800
+        b=Y17sV5sC61ovYIF4UcX3CNFfP/c3KCWJTeRzOLnVGjz+XOiX0qJIjTn+pMgRLJ04K
+         Lo1AUCBL4PoFXrAMAxJbPQj4dSwD3DATc2j6O4BmL910r1Mra6gR9XyIMYEls1NoEJ
+         JO8DEN5Ubl14d8VcUG5xXcUSUytYBzPmVLby4Cm0=
+Date:   Fri, 11 Feb 2022 12:47:09 -0800
 To:     mm-commits@vger.kernel.org, willy@infradead.org,
         rcampbell@nvidia.com, jhubbard@nvidia.com, jglisse@redhat.com,
         jgg@nvidia.com, hch@lst.de, Felix.Kuehling@amd.com,
-        alex.sierra@amd.com, apopple@nvidia.com, akpm@linux-foundation.org
+        apopple@nvidia.com, alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: [to-be-updated] mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch removed from -mm tree
-Message-Id: <20220211204707.B405FC340E9@smtp.kernel.org>
+Subject: [to-be-updated] tools-add-hmm-gup-test-for-long-term-pinned-device-pages.patch removed from -mm tree
+Message-Id: <20220211204709.A9A3FC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,29 +43,24 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/gup.c: migrate device coherent pages when pinning instead of failing
+     Subject: tools: add hmm gup test for long term pinned device pages
 has been removed from the -mm tree.  Its filename was
-     mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
+     tools-add-hmm-gup-test-for-long-term-pinned-device-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Alistair Popple <apopple@nvidia.com>
-Subject: mm/gup.c: migrate device coherent pages when pinning instead of failing
+From: Alex Sierra <alex.sierra@amd.com>
+Subject: tools: add hmm gup test for long term pinned device pages
 
-Currently any attempts to pin a device coherent page will fail.  This is
-because device coherent pages need to be managed by a device driver, and
-pinning them would prevent a driver from migrating them off the device.
+The intention is to test device coherent type pages that have been called
+through get user pages with PIN_LONGTERM flag set.  These pages should get
+migrated back to normal system memory.
 
-However this is no reason to fail pinning of these pages.  These are
-coherent and accessible from the CPU so can be migrated just like pinning
-ZONE_MOVABLE pages.  So instead of failing all attempts to pin them first
-try migrating them out of ZONE_DEVICE.
-
-Link: https://lkml.kernel.org/r/dd9960b327ca49a9103d9f97868ea7b0b81186c4.1644207242.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/6a2145be66877fd3a08c9acec4ec3d53d82a864f.1644207242.git-series.apopple@nvidia.com
+Signed-off-by: Alex Sierra <alex.sierra@amd.com>
 Signed-off-by: Alistair Popple <apopple@nvidia.com>
-Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
-Cc: Alex Sierra <alex.sierra@amd.com>
+Reviewed-by: Felix Kuehling <Felix.Kuehling@amd.com>
 Cc: Christoph Hellwig <hch@lst.de>
 Cc: Jason Gunthorpe <jgg@nvidia.com>
 Cc: Jerome Glisse <jglisse@redhat.com>
@@ -75,150 +70,135 @@ Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |  105 +++++++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 95 insertions(+), 10 deletions(-)
+ tools/testing/selftests/vm/Makefile    |    2 
+ tools/testing/selftests/vm/hmm-tests.c |   81 +++++++++++++++++++++++
+ 2 files changed, 82 insertions(+), 1 deletion(-)
 
---- a/mm/gup.c~mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing
-+++ a/mm/gup.c
-@@ -1835,6 +1835,60 @@ struct page *get_dump_page(unsigned long
+--- a/tools/testing/selftests/vm/hmm-tests.c~tools-add-hmm-gup-test-for-long-term-pinned-device-pages
++++ a/tools/testing/selftests/vm/hmm-tests.c
+@@ -36,6 +36,7 @@
+  * in the usual include/uapi/... directory.
+  */
+ #include "../../../../lib/test_hmm_uapi.h"
++#include "../../../../mm/gup_test.h"
  
- #ifdef CONFIG_MIGRATION
- /*
-+ * Migrates a device coherent page back to normal memory. Caller should have a
-+ * reference on page which will be copied to the new page if migration is
-+ * successful or dropped on failure.
-+ */
-+static struct page *migrate_device_page(struct page *page,
-+					unsigned int gup_flags)
-+{
-+	struct page *dpage;
-+	struct migrate_vma args;
-+	unsigned long src_pfn, dst_pfn = 0;
-+
-+	lock_page(page);
-+	src_pfn = migrate_pfn(page_to_pfn(page)) | MIGRATE_PFN_MIGRATE;
-+	args.src = &src_pfn;
-+	args.dst = &dst_pfn;
-+	args.cpages = 1;
-+	args.npages = 1;
-+	args.vma = NULL;
-+	migrate_vma_setup(&args);
-+	if (!(src_pfn & MIGRATE_PFN_MIGRATE))
-+		return NULL;
-+
-+	dpage = alloc_pages(GFP_USER | __GFP_NOWARN, 0);
-+
-+	/*
-+	 * get/pin the new page now so we don't have to retry gup after
-+	 * migrating. We already have a reference so this should never fail.
-+	 */
-+	if (dpage && WARN_ON_ONCE(!try_grab_page(dpage, gup_flags))) {
-+		__free_pages(dpage, 0);
-+		dpage = NULL;
-+	}
-+
-+	if (dpage) {
-+		lock_page(dpage);
-+		dst_pfn = migrate_pfn(page_to_pfn(dpage));
-+	}
-+
-+	migrate_vma_pages(&args);
-+	if (src_pfn & MIGRATE_PFN_MIGRATE)
-+		copy_highpage(dpage, page);
-+	migrate_vma_finalize(&args);
-+	if (dpage && !(src_pfn & MIGRATE_PFN_MIGRATE)) {
-+		if (gup_flags & FOLL_PIN)
-+			unpin_user_page(dpage);
-+		else
-+			put_page(dpage);
-+		dpage = NULL;
-+	}
-+
-+	return dpage;
-+}
-+
+ struct hmm_buffer {
+ 	void		*ptr;
+@@ -60,6 +61,8 @@ enum {
+ #define NTIMES		10
+ 
+ #define ALIGN(x, a) (((x) + (a - 1)) & (~((a) - 1)))
++/* Just the flags we need, copied from mm.h: */
++#define FOLL_WRITE	0x01	/* check pte is writable */
+ 
+ FIXTURE(hmm)
+ {
+@@ -1766,4 +1769,82 @@ TEST_F(hmm, exclusive_cow)
+ 	hmm_buffer_free(buffer);
+ }
+ 
 +/*
-  * Check whether all pages are pinnable, if so return number of pages.  If some
-  * pages are not pinnable, migrate them, and unpin all pages. Return zero if
-  * pages were migrated, or if some pages were not successfully isolated.
-@@ -1862,15 +1916,40 @@ static long check_and_migrate_movable_pa
- 			continue;
- 		prev_head = head;
- 		/*
--		 * If we get a movable page, since we are going to be pinning
--		 * these entries, try to move them out if possible.
-+		 * Device coherent pages are managed by a driver and should not
-+		 * be pinned indefinitely as it prevents the driver moving the
-+		 * page. So when trying to pin with FOLL_LONGTERM instead try
-+		 * migrating page out of device memory.
- 		 */
- 		if (is_dev_private_or_coherent_page(head)) {
-+			/*
-+			 * device private pages will get faulted in during gup
-+			 * so it shouldn't be possible to see one here.
-+			 */
- 			WARN_ON_ONCE(is_device_private_page(head));
--			ret = -EFAULT;
--			goto unpin_pages;
-+			WARN_ON_ONCE(PageCompound(head));
++ * Test get user device pages through gup_test. Setting PIN_LONGTERM flag.
++ * This should trigger a migration back to system memory for both, private
++ * and coherent type pages.
++ * This test makes use of gup_test module. Make sure GUP_TEST_CONFIG is added
++ * to your configuration before you run it.
++ */
++TEST_F(hmm, hmm_gup_test)
++{
++	struct hmm_buffer *buffer;
++	struct gup_test gup;
++	int gup_fd;
++	unsigned long npages;
++	unsigned long size;
++	unsigned long i;
++	int *ptr;
++	int ret;
++	unsigned char *m;
 +
-+			/*
-+			 * migration will fail if the page is pinned, so convert
-+			 * the pin on the source page to a normal reference.
-+			 */
-+			if (gup_flags & FOLL_PIN) {
-+				get_page(head);
-+				unpin_user_page(head);
-+			}
++	gup_fd = open("/sys/kernel/debug/gup_test", O_RDWR);
++	if (gup_fd == -1)
++		SKIP(return, "Skipping test, could not find gup_test driver");
 +
-+			pages[i] = migrate_device_page(head, gup_flags);
-+			if (!pages[i]) {
-+				ret = -EBUSY;
-+				break;
-+			}
-+			continue;
- 		}
++	npages = 4;
++	ASSERT_NE(npages, 0);
++	size = npages << self->page_shift;
++
++	buffer = malloc(sizeof(*buffer));
++	ASSERT_NE(buffer, NULL);
++
++	buffer->fd = -1;
++	buffer->size = size;
++	buffer->mirror = malloc(size);
++	ASSERT_NE(buffer->mirror, NULL);
++
++	buffer->ptr = mmap(NULL, size,
++			   PROT_READ | PROT_WRITE,
++			   MAP_PRIVATE | MAP_ANONYMOUS,
++			   buffer->fd, 0);
++	ASSERT_NE(buffer->ptr, MAP_FAILED);
++
++	/* Initialize buffer in system memory. */
++	for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
++		ptr[i] = i;
++
++	/* Migrate memory to device. */
++	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++	/* Check what the device read. */
++	for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
++		ASSERT_EQ(ptr[i], i);
++
++	gup.nr_pages_per_call = npages;
++	gup.addr = (unsigned long)buffer->ptr;
++	gup.gup_flags = FOLL_WRITE;
++	gup.size = size;
++	/*
++	 * Calling gup_test ioctl. It will try to PIN_LONGTERM these device pages
++	 * causing a migration back to system memory for both, private and coherent
++	 * type pages.
++	 */
++	if (ioctl(gup_fd, PIN_LONGTERM_BENCHMARK, &gup)) {
++		perror("ioctl on PIN_LONGTERM_BENCHMARK\n");
++		goto out_test;
++	}
++
++	/* Take snapshot to make sure pages have been migrated to sys memory */
++	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_SNAPSHOT, buffer, npages);
++	ASSERT_EQ(ret, 0);
++	ASSERT_EQ(buffer->cpages, npages);
++	m = buffer->mirror;
++	for (i = 0; i < npages; i++)
++		ASSERT_EQ(m[i], HMM_DMIRROR_PROT_WRITE);
++out_test:
++	close(gup_fd);
++	hmm_buffer_free(buffer);
++}
+ TEST_HARNESS_MAIN
+--- a/tools/testing/selftests/vm/Makefile~tools-add-hmm-gup-test-for-long-term-pinned-device-pages
++++ a/tools/testing/selftests/vm/Makefile
+@@ -143,7 +143,7 @@ $(OUTPUT)/mlock-random-test $(OUTPUT)/me
  
-+		/*
-+		 * If we get a movable page, since we are going to be pinning
-+		 * these entries, try to move them out if possible.
-+		 */
- 		if (!is_pinnable_page(head)) {
- 			if (PageHuge(head)) {
- 				if (!isolate_huge_page(head, &movable_page_list))
-@@ -1898,16 +1977,22 @@ static long check_and_migrate_movable_pa
- 	 * If list is empty, and no isolation errors, means that all pages are
- 	 * in the correct zone.
- 	 */
--	if (list_empty(&movable_page_list) && !isolation_error_count)
-+	if (!ret && list_empty(&movable_page_list) && !isolation_error_count)
- 		return nr_pages;
+ $(OUTPUT)/gup_test: ../../../../mm/gup_test.h
  
--unpin_pages:
--	if (gup_flags & FOLL_PIN) {
--		unpin_user_pages(pages, nr_pages);
--	} else {
--		for (i = 0; i < nr_pages; i++)
-+	for (i = 0; i < nr_pages; i++)
-+		if (!pages[i])
-+			continue;
-+		else if (gup_flags & FOLL_PIN)
-+			unpin_user_page(pages[i]);
-+		else
- 			put_page(pages[i]);
-+
-+	if (ret && !list_empty(&movable_page_list)) {
-+		putback_movable_pages(&movable_page_list);
-+		return ret;
- 	}
-+
- 	if (!list_empty(&movable_page_list)) {
- 		ret = migrate_pages(&movable_page_list, alloc_migration_target,
- 				    NULL, (unsigned long)&mtc, MIGRATE_SYNC,
+-$(OUTPUT)/hmm-tests: local_config.h
++$(OUTPUT)/hmm-tests: local_config.h ../../../../mm/gup_test.h
+ 
+ # HMM_EXTRA_LIBS may get set in local_config.mk, or it may be left empty.
+ $(OUTPUT)/hmm-tests: LDLIBS += $(HMM_EXTRA_LIBS)
 _
 
-Patches currently in -mm which might be from apopple@nvidia.com are
+Patches currently in -mm which might be from alex.sierra@amd.com are
 
-mm-remove-the-vma-check-in-migrate_vma_setup.patch
-mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
+mm-add-zone-device-coherent-type-memory-support.patch
+mm-add-device-coherent-vma-selection-for-memory-migration.patch
+mm-gup-fail-get_user_pages-for-longterm-dev-coherent-type.patch
+drm-amdkfd-add-spm-support-for-svm.patch
+drm-amdkfd-coherent-type-as-sys-mem-on-migration-to-ram.patch
+lib-test_hmm-add-ioctl-to-get-zone-device-type.patch
+lib-test_hmm-add-module-param-for-zone-device-type.patch
+lib-add-support-for-device-coherent-type-in-test_hmm.patch
+tools-update-hmm-test-to-support-device-coherent-type.patch
+tools-update-test_hmm-script-to-support-sp-config.patch
 
