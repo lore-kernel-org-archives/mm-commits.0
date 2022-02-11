@@ -2,41 +2,41 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 4F3C5C433F5
+	by smtp.lore.kernel.org (Postfix) with ESMTP id DF797C433EF
 	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 18:53:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S235513AbiBKSxX (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Feb 2022 13:53:23 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:60456 "EHLO
+        id S238203AbiBKSxZ (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Feb 2022 13:53:25 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:60450 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S236688AbiBKSxW (ORCPT
+        with ESMTP id S236681AbiBKSxW (ORCPT
         <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 13:53:22 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 6BB61CE3
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 39C07CF3
         for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 10:53:20 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id B90FCCE2B2A
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 18:53:18 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EC225C340ED;
-        Fri, 11 Feb 2022 18:53:16 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A01F461D9F
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 18:53:19 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id EAFA0C340E9;
+        Fri, 11 Feb 2022 18:53:18 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644605597;
-        bh=g8GB6OBeJ7nZe1v13AK+DmQtUlsd+ad90IIxtYqKfqs=;
+        s=korg; t=1644605599;
+        bh=68/FboyRhyep/5Xf9ADdjyPisCcpIxJCxQwM197y5+c=;
         h=Date:To:From:Subject:From;
-        b=CFggv8FcJEyxaCszwQo3rnLUaDDdJb1vp/0NE+ReQ+ykEHSNYhARITGXAXIvw3W6v
-         brj1xte6faP49GD8wkShf6B53ZUiu1ahYNBW3mNF+clEyVUv5PhKLXUKdGZxgCG7Kb
-         FeY8DTMqOHkWCTZD0M8V9Npzp86H26pvwRfufu3k=
-Date:   Fri, 11 Feb 2022 10:53:16 -0800
+        b=l3cJAJCRaFvx/7mD5fOd8Bsxw76Bsg0PCbPGcAUfQzslQLsFxBZIvtGuldf4KDNCL
+         lEIMujcc4Y8NqVXBxPpt4cJdHtejiDBjt7sgRbWMNGx8R5QsoRgcVpfcNrFiMeyZu8
+         IhTCVOfouWHR0+fCrkxY+8kqpie7UDWd/956ey9c=
+Date:   Fri, 11 Feb 2022 10:53:18 -0800
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, rientjes@google.com,
         peterx@redhat.com, mike.kravetz@oracle.com, lars.persson@axis.com,
         kirill.shutemov@linux.intel.com, fam.zheng@bytedance.com,
         duanxiongchun@bytedance.com, axelrasmussen@google.com,
         songmuchun@bytedance.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-missing-cache-flush-for-all-tail-pages-of-compound-page.patch added to -mm tree
-Message-Id: <20220211185316.EC225C340ED@smtp.kernel.org>
+Subject: + mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch added to -mm tree
+Message-Id: <20220211185318.EAFA0C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,14 +44,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix missing cache flush for all tail pages of compound page
+     Subject: mm: hugetlb: fix missing cache flush in copy_huge_page_from_user()
 has been added to the -mm tree.  Its filename is
-     mm-fix-missing-cache-flush-for-all-tail-pages-of-compound-page.patch
+     mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-fix-missing-cache-flush-for-all-tail-pages-of-compound-page.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-missing-cache-flush-for-all-tail-pages-of-compound-page.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -66,59 +66,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: fix missing cache flush for all tail pages of compound page
+Subject: mm: hugetlb: fix missing cache flush in copy_huge_page_from_user()
 
-The D-cache maintenance inside move_to_new_page() only consider one page,
-there is still D-cache maintenance issue for tail pages of compound page
-(e.g.  THP or HugeTLB).
+userfaultfd calls copy_huge_page_from_user() which does not do any cache
+flushing for the target page.  Then the target page will be mapped to the
+user space with a different address (user address), which might have an
+alias issue with the kernel address used to copy the data from the user
+to.  Fix this issue by flushing dcache in copy_huge_page_from_user().
 
-THP migration is only enabled on x86_64, ARM64 and powerpc, while powerpc
-and arm64 need to maintain the consistency between I-Cache and D-Cache,
-which depends on flush_dcache_page() to maintain the consistency between
-I-Cache and D-Cache.
-
-But there is no issues on arm64 and powerpc since they already considers
-the compound page cache flushing in their icache flush function.  HugeTLB
-migration is enabled on arm, arm64, mips, parisc, powerpc, riscv, s390 and
-sh, while arm has handled the compound page cache flush in
-flush_dcache_page(), but most others do not.
-
-In theory, the issue exists on many architectures.  Fix this by not using
-flush_dcache_folio() since it is not backportable.
-
-Link: https://lkml.kernel.org/r/20220210123058.79206-3-songmuchun@bytedance.com
-Fixes: 290408d4a250 ("hugetlb: hugepage migration core")
+Link: https://lkml.kernel.org/r/20220210123058.79206-4-songmuchun@bytedance.com
+Fixes: fa4d75c1de13 ("userfaultfd: hugetlbfs: add copy_huge_page_from_user for hugetlb userfaultfd support")
 Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Reviewed-by: Zi Yan <ziy@nvidia.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Axel Rasmussen <axelrasmussen@google.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Fam Zheng <fam.zheng@bytedance.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Lars Persson <lars.persson@axis.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Peter Xu <peterx@redhat.com>
 Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
+Cc: Zi Yan <ziy@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/migrate.c~mm-fix-missing-cache-flush-for-all-tail-pages-of-compound-page
-+++ a/mm/migrate.c
-@@ -916,9 +916,12 @@ static int move_to_new_page(struct page
- 		if (!PageMappingFlags(page))
- 			page->mapping = NULL;
+--- a/mm/memory.c~mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user
++++ a/mm/memory.c
+@@ -5499,6 +5499,8 @@ long copy_huge_page_from_user(struct pag
+ 		if (rc)
+ 			break;
  
--		if (likely(!is_zone_device_page(newpage)))
--			flush_dcache_page(newpage);
-+		if (likely(!is_zone_device_page(newpage))) {
-+			int i, nr = compound_nr(newpage);
- 
-+			for (i = 0; i < nr; i++)
-+				flush_dcache_page(newpage + i);
-+		}
++		flush_dcache_page(subpage);
++
+ 		cond_resched();
  	}
- out:
- 	return rc;
+ 	return ret_val;
 _
 
 Patches currently in -mm which might be from songmuchun@bytedance.com are
