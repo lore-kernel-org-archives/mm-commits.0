@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 42158C433FE
+	by smtp.lore.kernel.org (Postfix) with ESMTP id F27A9C4332F
 	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 20:50:00 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1353395AbiBKUt7 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Feb 2022 15:49:59 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43976 "EHLO
+        id S1353387AbiBKUuA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Feb 2022 15:50:00 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43994 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1353399AbiBKUt5 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 15:49:57 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2FC0DD4B
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 12:49:55 -0800 (PST)
+        with ESMTP id S1353388AbiBKUt6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 15:49:58 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 19518CFA
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 12:49:57 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id B03D7620AB
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 20:49:54 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 06237C340E9;
-        Fri, 11 Feb 2022 20:49:53 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id A4B9D620B2
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 20:49:56 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id F1F03C340E9;
+        Fri, 11 Feb 2022 20:49:55 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644612594;
-        bh=jsntvA9N587PJtaFTexVjd9D1tC8lTldZ6YO3sS0r7c=;
+        s=korg; t=1644612596;
+        bh=TsJeIwq+S/SAzbvgOAl/N2+nxJNnUl7C/HSz/USL5+c=;
         h=Date:To:From:Subject:From;
-        b=eQxHF8N37/BW8Ahdc+pK3x+w8yK/jOlZZVSwhE+In0PC/IZ2zgnPJdlmGCtuqjHgP
-         MMxuOOtp/M3XQsY10oxyc/2Zv1zTXAd2DzZ50fxDKF68fPxPpm3B56kzR/XZOcxJ2L
-         334E2QOcGHvgdRygLg2mhHLcfQVSL5IymlErGtYc=
-Date:   Fri, 11 Feb 2022 12:49:53 -0800
+        b=O58SreoJwXIfe9X368kKbJjIlw3bVq9Oka0gb0FZfz8hBhdzqFQb7Fc03CuJDlDz1
+         s6AbHjJtfhkDvu+q9u4Piyn2+Q+4qgo5kWDCPzHq5vyxMiAZrBXyxYTb0olIABN9Ip
+         LIfyK9TbxKKXBgvBWvSi8Fnuzy6EtGKbYkaMLWGM=
+Date:   Fri, 11 Feb 2022 12:49:55 -0800
 To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
         songmuchun@bytedance.com, rcampbell@nvidia.com, lyude@redhat.com,
         logang@deltatee.com, linmiaohe@huawei.com, kherbst@redhat.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
         bskeggs@redhat.com, apopple@nvidia.com, alexander.deucher@amd.com,
         alex.sierra@amd.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + tools-update-hmm-test-to-support-device-coherent-type.patch added to -mm tree
-Message-Id: <20220211204954.06237C340E9@smtp.kernel.org>
+Subject: + tools-update-test_hmm-script-to-support-sp-config.patch added to -mm tree
+Message-Id: <20220211204955.F1F03C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools: update hmm-test to support device coherent type
+     Subject: tools: update test_hmm script to support SP config
 has been added to the -mm tree.  Its filename is
-     tools-update-hmm-test-to-support-device-coherent-type.patch
+     tools-update-test_hmm-script-to-support-sp-config.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/tools-update-hmm-test-to-support-device-coherent-type.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/tools-update-test_hmm-script-to-support-sp-config.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/tools-update-hmm-test-to-support-device-coherent-type.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/tools-update-test_hmm-script-to-support-sp-config.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,21 +68,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alex Sierra <alex.sierra@amd.com>
-Subject: tools: update hmm-test to support device coherent type
+Subject: tools: update test_hmm script to support SP config
 
-Test cases such as migrate_fault and migrate_multiple, were modified to
-explicit migrate from device to sys memory without the need of page
-faults, when using device coherent type.
+Add two more parameters to set spm_addr_dev0 & spm_addr_dev1 addresses. 
+These two parameters configure the start SP addresses for each device in
+test_hmm driver.  Consequently, this configures zone device type as
+coherent.
 
-Snapshot test case updated to read memory device type first and based on
-that, get the proper returned results migrate_ping_pong test case added to
-test explicit migration from device to sys memory for both private and
-coherent zone types.
-
-Helpers to migrate from device to sys memory and vicerversa were also
-added.
-
-Link: https://lkml.kernel.org/r/20220210072828.2930359-24-hch@lst.de
+Link: https://lkml.kernel.org/r/20220210072828.2930359-25-hch@lst.de
 Signed-off-by: Alex Sierra <alex.sierra@amd.com>
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
@@ -105,280 +98,64 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/tools/testing/selftests/vm/hmm-tests.c~tools-update-hmm-test-to-support-device-coherent-type
-+++ a/tools/testing/selftests/vm/hmm-tests.c
-@@ -44,6 +44,14 @@ struct hmm_buffer {
- 	int		fd;
- 	uint64_t	cpages;
- 	uint64_t	faults;
-+	int		zone_device_type;
-+};
-+
-+enum {
-+	HMM_PRIVATE_DEVICE_ONE,
-+	HMM_PRIVATE_DEVICE_TWO,
-+	HMM_COHERENCE_DEVICE_ONE,
-+	HMM_COHERENCE_DEVICE_TWO,
- };
+--- a/tools/testing/selftests/vm/test_hmm.sh~tools-update-test_hmm-script-to-support-sp-config
++++ a/tools/testing/selftests/vm/test_hmm.sh
+@@ -40,11 +40,26 @@ check_test_requirements()
  
- #define TWOMEG		(1 << 21)
-@@ -60,6 +68,21 @@ FIXTURE(hmm)
- 	unsigned int	page_shift;
- };
- 
-+FIXTURE_VARIANT(hmm)
-+{
-+	int     device_number;
-+};
-+
-+FIXTURE_VARIANT_ADD(hmm, hmm_device_private)
-+{
-+	.device_number = HMM_PRIVATE_DEVICE_ONE,
-+};
-+
-+FIXTURE_VARIANT_ADD(hmm, hmm_device_coherent)
-+{
-+	.device_number = HMM_COHERENCE_DEVICE_ONE,
-+};
-+
- FIXTURE(hmm2)
+ load_driver()
  {
- 	int		fd0;
-@@ -68,6 +91,24 @@ FIXTURE(hmm2)
- 	unsigned int	page_shift;
- };
+-	modprobe $DRIVER > /dev/null 2>&1
++	if [ $# -eq 0 ]; then
++		modprobe $DRIVER > /dev/null 2>&1
++	else
++		if [ $# -eq 2 ]; then
++			modprobe $DRIVER spm_addr_dev0=$1 spm_addr_dev1=$2
++				> /dev/null 2>&1
++		else
++			echo "Missing module parameters. Make sure pass"\
++			"spm_addr_dev0 and spm_addr_dev1"
++			usage
++		fi
++	fi
+ 	if [ $? == 0 ]; then
+ 		major=$(awk "\$2==\"HMM_DMIRROR\" {print \$1}" /proc/devices)
+ 		mknod /dev/hmm_dmirror0 c $major 0
+ 		mknod /dev/hmm_dmirror1 c $major 1
++		if [ $# -eq 2 ]; then
++			mknod /dev/hmm_dmirror2 c $major 2
++			mknod /dev/hmm_dmirror3 c $major 3
++		fi
+ 	fi
+ }
  
-+FIXTURE_VARIANT(hmm2)
-+{
-+	int     device_number0;
-+	int     device_number1;
-+};
-+
-+FIXTURE_VARIANT_ADD(hmm2, hmm2_device_private)
-+{
-+	.device_number0 = HMM_PRIVATE_DEVICE_ONE,
-+	.device_number1 = HMM_PRIVATE_DEVICE_TWO,
-+};
-+
-+FIXTURE_VARIANT_ADD(hmm2, hmm2_device_coherent)
-+{
-+	.device_number0 = HMM_COHERENCE_DEVICE_ONE,
-+	.device_number1 = HMM_COHERENCE_DEVICE_TWO,
-+};
-+
- static int hmm_open(int unit)
+@@ -58,7 +73,7 @@ run_smoke()
  {
- 	char pathname[HMM_PATH_MAX];
-@@ -81,12 +122,19 @@ static int hmm_open(int unit)
- 	return fd;
+ 	echo "Running smoke test. Note, this test provides basic coverage."
+ 
+-	load_driver
++	load_driver $1 $2
+ 	$(dirname "${BASH_SOURCE[0]}")/hmm-tests
+ 	unload_driver
+ }
+@@ -75,6 +90,9 @@ usage()
+ 	echo "# Smoke testing"
+ 	echo "./${TEST_NAME}.sh smoke"
+ 	echo
++	echo "# Smoke testing with SPM enabled"
++	echo "./${TEST_NAME}.sh smoke <spm_addr_dev0> <spm_addr_dev1>"
++	echo
+ 	exit 0
  }
  
-+static bool hmm_is_coherent_type(int dev_num)
-+{
-+	return (dev_num >= HMM_COHERENCE_DEVICE_ONE);
-+}
-+
- FIXTURE_SETUP(hmm)
- {
- 	self->page_size = sysconf(_SC_PAGE_SIZE);
- 	self->page_shift = ffs(self->page_size) - 1;
- 
--	self->fd = hmm_open(0);
-+	self->fd = hmm_open(variant->device_number);
-+	if (self->fd < 0 && hmm_is_coherent_type(variant->device_number))
-+		SKIP(exit(0), "DEVICE_COHERENT not available");
- 	ASSERT_GE(self->fd, 0);
- }
- 
-@@ -95,9 +143,11 @@ FIXTURE_SETUP(hmm2)
- 	self->page_size = sysconf(_SC_PAGE_SIZE);
- 	self->page_shift = ffs(self->page_size) - 1;
- 
--	self->fd0 = hmm_open(0);
-+	self->fd0 = hmm_open(variant->device_number0);
-+	if (self->fd0 < 0 && hmm_is_coherent_type(variant->device_number0))
-+		SKIP(exit(0), "DEVICE_COHERENT not available");
- 	ASSERT_GE(self->fd0, 0);
--	self->fd1 = hmm_open(1);
-+	self->fd1 = hmm_open(variant->device_number1);
- 	ASSERT_GE(self->fd1, 0);
- }
- 
-@@ -144,6 +194,7 @@ static int hmm_dmirror_cmd(int fd,
- 	}
- 	buffer->cpages = cmd.cpages;
- 	buffer->faults = cmd.faults;
-+	buffer->zone_device_type = cmd.zone_device_type;
- 
- 	return 0;
- }
-@@ -211,6 +262,20 @@ static void hmm_nanosleep(unsigned int n
- 	nanosleep(&t, NULL);
- }
- 
-+static int hmm_migrate_sys_to_dev(int fd,
-+				   struct hmm_buffer *buffer,
-+				   unsigned long npages)
-+{
-+	return hmm_dmirror_cmd(fd, HMM_DMIRROR_MIGRATE_TO_DEV, buffer, npages);
-+}
-+
-+static int hmm_migrate_dev_to_sys(int fd,
-+				   struct hmm_buffer *buffer,
-+				   unsigned long npages)
-+{
-+	return hmm_dmirror_cmd(fd, HMM_DMIRROR_MIGRATE_TO_SYS, buffer, npages);
-+}
-+
- /*
-  * Simple NULL test of device open/close.
-  */
-@@ -875,7 +940,7 @@ TEST_F(hmm, migrate)
- 		ptr[i] = i;
- 
- 	/* Migrate memory to device. */
--	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_MIGRATE, buffer, npages);
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
- 	ASSERT_EQ(ret, 0);
- 	ASSERT_EQ(buffer->cpages, npages);
- 
-@@ -923,7 +988,7 @@ TEST_F(hmm, migrate_fault)
- 		ptr[i] = i;
- 
- 	/* Migrate memory to device. */
--	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_MIGRATE, buffer, npages);
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
- 	ASSERT_EQ(ret, 0);
- 	ASSERT_EQ(buffer->cpages, npages);
- 
-@@ -936,7 +1001,7 @@ TEST_F(hmm, migrate_fault)
- 		ASSERT_EQ(ptr[i], i);
- 
- 	/* Migrate memory to the device again. */
--	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_MIGRATE, buffer, npages);
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
- 	ASSERT_EQ(ret, 0);
- 	ASSERT_EQ(buffer->cpages, npages);
- 
-@@ -976,7 +1041,7 @@ TEST_F(hmm, migrate_shared)
- 	ASSERT_NE(buffer->ptr, MAP_FAILED);
- 
- 	/* Migrate memory to device. */
--	ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_MIGRATE, buffer, npages);
-+	ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
- 	ASSERT_EQ(ret, -ENOENT);
- 
- 	hmm_buffer_free(buffer);
-@@ -1015,7 +1080,7 @@ TEST_F(hmm2, migrate_mixed)
- 	p = buffer->ptr;
- 
- 	/* Migrating a protected area should be an error. */
--	ret = hmm_dmirror_cmd(self->fd1, HMM_DMIRROR_MIGRATE, buffer, npages);
-+	ret = hmm_migrate_sys_to_dev(self->fd1, buffer, npages);
- 	ASSERT_EQ(ret, -EINVAL);
- 
- 	/* Punch a hole after the first page address. */
-@@ -1023,7 +1088,7 @@ TEST_F(hmm2, migrate_mixed)
- 	ASSERT_EQ(ret, 0);
- 
- 	/* We expect an error if the vma doesn't cover the range. */
--	ret = hmm_dmirror_cmd(self->fd1, HMM_DMIRROR_MIGRATE, buffer, 3);
-+	ret = hmm_migrate_sys_to_dev(self->fd1, buffer, 3);
- 	ASSERT_EQ(ret, -EINVAL);
- 
- 	/* Page 2 will be a read-only zero page. */
-@@ -1055,13 +1120,13 @@ TEST_F(hmm2, migrate_mixed)
- 
- 	/* Now try to migrate pages 2-5 to device 1. */
- 	buffer->ptr = p + 2 * self->page_size;
--	ret = hmm_dmirror_cmd(self->fd1, HMM_DMIRROR_MIGRATE, buffer, 4);
-+	ret = hmm_migrate_sys_to_dev(self->fd1, buffer, 4);
- 	ASSERT_EQ(ret, 0);
- 	ASSERT_EQ(buffer->cpages, 4);
- 
- 	/* Page 5 won't be migrated to device 0 because it's on device 1. */
- 	buffer->ptr = p + 5 * self->page_size;
--	ret = hmm_dmirror_cmd(self->fd0, HMM_DMIRROR_MIGRATE, buffer, 1);
-+	ret = hmm_migrate_sys_to_dev(self->fd0, buffer, 1);
- 	ASSERT_EQ(ret, -ENOENT);
- 	buffer->ptr = p;
- 
-@@ -1070,8 +1135,12 @@ TEST_F(hmm2, migrate_mixed)
- }
- 
- /*
-- * Migrate anonymous memory to device private memory and fault it back to system
-- * memory multiple times.
-+ * Migrate anonymous memory to device memory and back to system memory
-+ * multiple times. In case of private zone configuration, this is done
-+ * through fault pages accessed by CPU. In case of coherent zone configuration,
-+ * the pages from the device should be explicitly migrated back to system memory.
-+ * The reason is Coherent device zone has coherent access by CPU, therefore
-+ * it will not generate any page fault.
-  */
- TEST_F(hmm, migrate_multiple)
- {
-@@ -1107,8 +1176,7 @@ TEST_F(hmm, migrate_multiple)
- 			ptr[i] = i;
- 
- 		/* Migrate memory to device. */
--		ret = hmm_dmirror_cmd(self->fd, HMM_DMIRROR_MIGRATE, buffer,
--				      npages);
-+		ret = hmm_migrate_sys_to_dev(self->fd, buffer, npages);
- 		ASSERT_EQ(ret, 0);
- 		ASSERT_EQ(buffer->cpages, npages);
- 
-@@ -1116,7 +1184,13 @@ TEST_F(hmm, migrate_multiple)
- 		for (i = 0, ptr = buffer->mirror; i < size / sizeof(*ptr); ++i)
- 			ASSERT_EQ(ptr[i], i);
- 
--		/* Fault pages back to system memory and check them. */
-+		/* Migrate back to system memory and check them. */
-+		if (hmm_is_coherent_type(variant->device_number)) {
-+			ret = hmm_migrate_dev_to_sys(self->fd, buffer, npages);
-+			ASSERT_EQ(ret, 0);
-+			ASSERT_EQ(buffer->cpages, npages);
-+		}
-+
- 		for (i = 0, ptr = buffer->ptr; i < size / sizeof(*ptr); ++i)
- 			ASSERT_EQ(ptr[i], i);
- 
-@@ -1354,13 +1428,13 @@ TEST_F(hmm2, snapshot)
- 
- 	/* Page 5 will be migrated to device 0. */
- 	buffer->ptr = p + 5 * self->page_size;
--	ret = hmm_dmirror_cmd(self->fd0, HMM_DMIRROR_MIGRATE, buffer, 1);
-+	ret = hmm_migrate_sys_to_dev(self->fd0, buffer, 1);
- 	ASSERT_EQ(ret, 0);
- 	ASSERT_EQ(buffer->cpages, 1);
- 
- 	/* Page 6 will be migrated to device 1. */
- 	buffer->ptr = p + 6 * self->page_size;
--	ret = hmm_dmirror_cmd(self->fd1, HMM_DMIRROR_MIGRATE, buffer, 1);
-+	ret = hmm_migrate_sys_to_dev(self->fd1, buffer, 1);
- 	ASSERT_EQ(ret, 0);
- 	ASSERT_EQ(buffer->cpages, 1);
- 
-@@ -1377,9 +1451,16 @@ TEST_F(hmm2, snapshot)
- 	ASSERT_EQ(m[2], HMM_DMIRROR_PROT_ZERO | HMM_DMIRROR_PROT_READ);
- 	ASSERT_EQ(m[3], HMM_DMIRROR_PROT_READ);
- 	ASSERT_EQ(m[4], HMM_DMIRROR_PROT_WRITE);
--	ASSERT_EQ(m[5], HMM_DMIRROR_PROT_DEV_PRIVATE_LOCAL |
--			HMM_DMIRROR_PROT_WRITE);
--	ASSERT_EQ(m[6], HMM_DMIRROR_PROT_NONE);
-+	if (!hmm_is_coherent_type(variant->device_number0)) {
-+		ASSERT_EQ(m[5], HMM_DMIRROR_PROT_DEV_PRIVATE_LOCAL |
-+				HMM_DMIRROR_PROT_WRITE);
-+		ASSERT_EQ(m[6], HMM_DMIRROR_PROT_NONE);
-+	} else {
-+		ASSERT_EQ(m[5], HMM_DMIRROR_PROT_DEV_COHERENT_LOCAL |
-+				HMM_DMIRROR_PROT_WRITE);
-+		ASSERT_EQ(m[6], HMM_DMIRROR_PROT_DEV_COHERENT_REMOTE |
-+				HMM_DMIRROR_PROT_WRITE);
-+	}
- 
- 	hmm_buffer_free(buffer);
- }
+@@ -84,7 +102,7 @@ function run_test()
+ 		usage
+ 	else
+ 		if [ "$1" = "smoke" ]; then
+-			run_smoke
++			run_smoke $2 $3
+ 		else
+ 			usage
+ 		fi
 _
 
 Patches currently in -mm which might be from alex.sierra@amd.com are
