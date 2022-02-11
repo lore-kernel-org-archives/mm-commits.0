@@ -2,44 +2,39 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id EB66FC433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 18:05:13 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 33D3CC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 18:16:19 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1348091AbiBKSFN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Feb 2022 13:05:13 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:51686 "EHLO
+        id S238329AbiBKSQT (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Feb 2022 13:16:19 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:56680 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231338AbiBKSFN (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 13:05:13 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42EC9D48
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 10:05:11 -0800 (PST)
+        with ESMTP id S237442AbiBKSQS (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 13:16:18 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F437D4C
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 10:16:14 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id C2F6F61E34
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 18:05:10 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1715AC340E9;
-        Fri, 11 Feb 2022 18:05:10 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C0C1761E3F
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 18:16:13 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 20033C340ED;
+        Fri, 11 Feb 2022 18:16:13 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644602710;
-        bh=g/HJn5Epx+pbwr9v5wPiSTc3KoEtF13Z0yTxiU6BJBA=;
+        s=korg; t=1644603373;
+        bh=qYxA7rPJ4OPPYlzlGoWhs7w1HN52WQFeZz7acLTCqe8=;
         h=Date:To:From:Subject:From;
-        b=Swog/byBt1OseiGHozDEzi//GfCQpH1RcoROu32rR1vOsxeJbQ/GURecFbHv73T3z
-         QiEIjTPiKpAEk9sc0A8mTpCrrhSYyybhcCC+WGoHPt1zclEtR5yHPqUFIqhxU2QC5l
-         cY9me+Neb6tqWa7awlK3vSpVRjiJdIy5Z0TAsNJ8=
-Date:   Fri, 11 Feb 2022 10:05:09 -0800
-To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
-        sumit.semwal@linaro.org, sashal@kernel.org, pcc@google.com,
-        mhocko@suse.com, legion@kernel.org,
-        kirill.shutemov@linux.intel.com, keescook@chromium.org,
-        hannes@cmpxchg.org, gorcunov@gmail.com, ebiederm@xmission.com,
-        david@redhat.com, dave@stgolabs.net, dave.hansen@intel.com,
-        chris.hyser@oracle.com, ccross@google.com, caoxiaofeng@yulong.com,
-        brauner@kernel.org, surenb@google.com, akpm@linux-foundation.org
+        b=Lpa/Cir5mudgfGtcRU5GAzyHNtIRd5o5kAPzxtuFVXzwm5hYeFjyYtGI6w5FtkL1n
+         QsrZstcUSd6HnbyzNZqShtJ7Mb22c32u/qMbOv5LK4jD2t34kV3XN+jDwrmEUqdpGK
+         fRnd/s+g7KFCEXCdnXYUSDko454PcQ0Mp+TZqnME=
+Date:   Fri, 11 Feb 2022 10:16:12 -0800
+To:     mm-commits@vger.kernel.org, rparrazo@redhat.com, rafael@kernel.org,
+        osalvador@suse.de, mhocko@suse.com, gregkh@linuxfoundation.org,
+        david@redhat.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch added to -mm tree
-Message-Id: <20220211180510.1715AC340E9@smtp.kernel.org>
+Subject: + drivers-base-node-rename-link_mem_sections-to-register_memory_block_under_node.patch added to -mm tree
+Message-Id: <20220211181613.20033C340ED@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -47,9 +42,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix use-after-free when anon vma name is used after vma is freed
+     Subject: drivers/base/node: rename link_mem_sections() to register_memory_block_under_node()
 has been added to the -mm tree.  Its filename is
-     mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch
+     drivers-base-node-rename-link_mem_sections-to-register_memory_block_under_node.patch
 
 This patch should soon appear at
     https://ozlabs.org/~akpm/mmots/broken-out/
@@ -68,256 +63,144 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Suren Baghdasaryan <surenb@google.com>
-Subject: mm: fix use-after-free when anon vma name is used after vma is freed
+From: David Hildenbrand <david@redhat.com>
+Subject: drivers/base/node: rename link_mem_sections() to register_memory_block_under_node()
 
-When adjacent vmas are being merged it can result in the vma that was
-originally passed to madvise_update_vma being destroyed.  In the current
-implementation, the name parameter passed to madvise_update_vma points
-directly to vma->anon_name->name and it is used after the call to
-vma_merge.  In the cases when vma_merge merges the original vma and
-destroys it, this will result in use-after-free bug as shown below:
+Patch series "drivers/base/memory: determine and store zone for single-zone memory blocks", v2.
 
-madvise_vma_behavior << passes vma->anon_name->name as name param
-  madvise_update_vma(name)
-    vma_merge
-      __vma_adjust
-        vm_area_free <-- frees the vma
-    replace_vma_anon_name(name) <-- UAF
+I remember talking to Michal in the past about removing
+test_pages_in_a_zone(), which we use for:
+* verifying that a memory block we intend to offline is really only managed
+  by a single zone. We don't support offlining of memory blocks that are
+  managed by multiple zones (e.g., multiple nodes, DMA and DMA32)
+* exposing that zone to user space via
+  /sys/devices/system/memory/memory*/valid_zones
 
-Fix this by raising the name refcount and stabilizing it. Introduce
-vma_anon_name_{get/put} API for this purpose.
+Now that I identified some more cases where test_pages_in_a_zone() might
+go wrong, and we received an UBSAN report (see patch #3), let's get rid of
+this PFN walker.
 
-Link: https://lkml.kernel.org/r/20220211013032.623763-1-surenb@google.com
-Fixes: 9a10064f5625 ("mm: add a field to store names for private anonymous memory")
-Signed-off-by: Suren Baghdasaryan <surenb@google.com>
-Reported-by: syzbot+aa7b3d4b35f9dc46a366@syzkaller.appspotmail.com
-Cc: Colin Cross <ccross@google.com>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
+So instead of detecting the zone at runtime with test_pages_in_a_zone() by
+scanning the memmap, let's determine and remember for each memory block if
+it's managed by a single zone.  The stored zone can then be used for the
+above two cases, avoiding a manual lookup using test_pages_in_a_zone().
+
+This avoids eventually stumbling over uninitialized memmaps in corner
+cases, especially when ZONE_DEVICE ranges partly fall into memory block
+(that are responsible for managing System RAM).
+
+Handling memory onlining is easy, because we online to exactly one zone. 
+Handling boot memory is more tricky, because we want to avoid scanning all
+zones of all nodes to detect possible zones that overlap with the physical
+memory region of interest.  Fortunately, we already have code that
+determines the applicable nodes for a memory block, to create sysfs links
+-- we'll hook into that.
+
+Patch #1 is a simple cleanup I had laying around for a longer time.
+Patch #2 contains the main logic to remove test_pages_in_a_zone() and
+further details.
+
+[1] https://lkml.kernel.org/r/20220128144540.153902-1-david@redhat.com
+[2] https://lkml.kernel.org/r/20220203105212.30385-1-david@redhat.com
+
+
+This patch (of 2):
+
+Let's adjust the stale terminology, making it match
+unregister_memory_block_under_nodes() and
+do_register_memory_block_under_node().  We're dealing with memory block
+devices, which span 1..X memory sections.
+
+Link: https://lkml.kernel.org/r/20220210184359.235565-1-david@redhat.com
+Link: https://lkml.kernel.org/r/20220210184359.235565-2-david@redhat.com
+Signed-off-by: David Hildenbrand <david@redhat.com>
+Acked-by: Oscar Salvador <osalvador@suse.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Matthew Wilcox <willy@infradead.org>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Christian Brauner <brauner@kernel.org>
-Cc: Alexey Gladkov <legion@kernel.org>
-Cc: Sasha Levin <sashal@kernel.org>
-Cc: Chris Hyser <chris.hyser@oracle.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Peter Collingbourne <pcc@google.com>
-Cc: Xiaofeng Cao <caoxiaofeng@yulong.com>
-Cc: David Hildenbrand <david@redhat.com>
-Cc: Cyrill Gorcunov <gorcunov@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Rafael Parra <rparrazo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/include/linux/mm_inline.h~mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed
-+++ a/include/linux/mm_inline.h
-@@ -145,6 +145,11 @@ static __always_inline void del_page_fro
-  */
- extern const char *vma_anon_name(struct vm_area_struct *vma);
- 
-+/* mmap_lock should be read-locked */
-+extern struct anon_vma_name *vma_anon_name_get(struct vm_area_struct *vma);
-+
-+extern void vma_anon_name_put(struct anon_vma_name *anon_name);
-+
- /*
-  * mmap_lock should be read-locked for orig_vma->vm_mm.
-  * mmap_lock should be write-locked for new_vma->vm_mm or new_vma should be
-@@ -176,6 +181,14 @@ static inline const char *vma_anon_name(
- {
- 	return NULL;
- }
-+
-+static inline
-+struct anon_vma_name *vma_anon_name_get(struct vm_area_struct *vma)
-+{
-+	return NULL;
-+}
-+
-+static inline void vma_anon_name_put(struct anon_vma_name *anon_name) {}
- static inline void dup_vma_anon_name(struct vm_area_struct *orig_vma,
- 			      struct vm_area_struct *new_vma) {}
- static inline void free_vma_anon_name(struct vm_area_struct *vma) {}
---- a/mm/madvise.c~mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed
-+++ a/mm/madvise.c
-@@ -70,6 +70,9 @@ static struct anon_vma_name *anon_vma_na
- 	struct anon_vma_name *anon_name;
- 	size_t count;
- 
-+	if (!name)
-+		return NULL;
-+
- 	/* Add 1 for NUL terminator at the end of the anon_name->name */
- 	count = strlen(name) + 1;
- 	anon_name = kmalloc(struct_size(anon_name, name, count), GFP_KERNEL);
-@@ -103,6 +106,23 @@ const char *vma_anon_name(struct vm_area
- 	return vma->anon_name->name;
+--- a/drivers/base/node.c~drivers-base-node-rename-link_mem_sections-to-register_memory_block_under_node
++++ a/drivers/base/node.c
+@@ -892,8 +892,9 @@ void unregister_memory_block_under_nodes
+ 			  kobject_name(&node_devices[mem_blk->nid]->dev.kobj));
  }
  
-+struct anon_vma_name *vma_anon_name_get(struct vm_area_struct *vma)
-+{
-+	if (!has_vma_anon_name(vma))
-+		return NULL;
-+
-+	mmap_assert_locked(vma->vm_mm);
-+
-+	kref_get(&vma->anon_name->kref);
-+	return vma->anon_name;
-+}
-+
-+void vma_anon_name_put(struct anon_vma_name *anon_name)
-+{
-+	if (anon_name)
-+		kref_put(&anon_name->kref, vma_anon_name_free);
-+}
-+
- void dup_vma_anon_name(struct vm_area_struct *orig_vma,
- 		       struct vm_area_struct *new_vma)
+-void link_mem_sections(int nid, unsigned long start_pfn, unsigned long end_pfn,
+-		       enum meminit_context context)
++void register_memory_blocks_under_node(int nid, unsigned long start_pfn,
++				       unsigned long end_pfn,
++				       enum meminit_context context)
  {
-@@ -126,33 +146,34 @@ void free_vma_anon_name(struct vm_area_s
+ 	walk_memory_blocks_func_t func;
+ 
+--- a/include/linux/node.h~drivers-base-node-rename-link_mem_sections-to-register_memory_block_under_node
++++ a/include/linux/node.h
+@@ -99,13 +99,13 @@ extern struct node *node_devices[];
+ typedef  void (*node_registration_func_t)(struct node *);
+ 
+ #if defined(CONFIG_MEMORY_HOTPLUG) && defined(CONFIG_NUMA)
+-void link_mem_sections(int nid, unsigned long start_pfn,
+-		       unsigned long end_pfn,
+-		       enum meminit_context context);
++void register_memory_blocks_under_node(int nid, unsigned long start_pfn,
++				       unsigned long end_pfn,
++				       enum meminit_context context);
+ #else
+-static inline void link_mem_sections(int nid, unsigned long start_pfn,
+-				     unsigned long end_pfn,
+-				     enum meminit_context context)
++static inline void register_memory_blocks_under_node(int nid, unsigned long start_pfn,
++						     unsigned long end_pfn,
++						     enum meminit_context context)
+ {
  }
- 
- /* mmap_lock should be write-locked */
--static int replace_vma_anon_name(struct vm_area_struct *vma, const char *name)
-+static int replace_vma_anon_name(struct vm_area_struct *vma,
-+				 struct anon_vma_name *anon_name)
- {
--	const char *anon_name;
-+	const char *orig_name;
- 
--	if (!name) {
-+	if (!anon_name) {
- 		free_vma_anon_name(vma);
- 		return 0;
- 	}
- 
--	anon_name = vma_anon_name(vma);
--	if (anon_name) {
-+	orig_name = vma_anon_name(vma);
-+	if (orig_name) {
- 		/* Same name, nothing to do here */
--		if (!strcmp(name, anon_name))
-+		if (!strcmp(anon_name->name, orig_name))
- 			return 0;
- 
- 		free_vma_anon_name(vma);
- 	}
--	vma->anon_name = anon_vma_name_alloc(name);
--	if (!vma->anon_name)
--		return -ENOMEM;
-+	kref_get(&anon_name->kref);
-+	vma->anon_name = anon_name;
- 
- 	return 0;
- }
- #else /* CONFIG_ANON_VMA_NAME */
--static int replace_vma_anon_name(struct vm_area_struct *vma, const char *name)
-+static int replace_vma_anon_name(struct vm_area_struct *vma,
-+				 struct anon_vma_name *anon_name)
- {
--	if (name)
-+	if (anon_name)
- 		return -EINVAL;
- 
- 	return 0;
-@@ -161,12 +182,15 @@ static int replace_vma_anon_name(struct
- /*
-  * Update the vm_flags on region of a vma, splitting it or merging it as
-  * necessary.  Must be called with mmap_sem held for writing;
-+ * Caller should ensure anon_name stability by raising its refcount even when
-+ * anon_name belongs to a valid vma because this function might free that vma.
-  */
- static int madvise_update_vma(struct vm_area_struct *vma,
- 			      struct vm_area_struct **prev, unsigned long start,
- 			      unsigned long end, unsigned long new_flags,
--			      const char *name)
-+			      struct anon_vma_name *anon_name)
- {
-+	const char *name = anon_name ? anon_name->name : NULL;
- 	struct mm_struct *mm = vma->vm_mm;
- 	int error;
- 	pgoff_t pgoff;
-@@ -209,7 +233,7 @@ success:
- 	 */
- 	vma->vm_flags = new_flags;
- 	if (!vma->vm_file) {
--		error = replace_vma_anon_name(vma, name);
-+		error = replace_vma_anon_name(vma, anon_name);
+ #endif
+@@ -129,8 +129,8 @@ static inline int register_one_node(int
+ 		error = __register_one_node(nid);
  		if (error)
  			return error;
- 	}
-@@ -976,6 +1000,7 @@ static int madvise_vma_behavior(struct v
- {
- 	int error;
- 	unsigned long new_flags = vma->vm_flags;
-+	struct anon_vma_name *anon_name;
- 
- 	switch (behavior) {
- 	case MADV_REMOVE:
-@@ -1040,8 +1065,10 @@ static int madvise_vma_behavior(struct v
- 		break;
+-		/* link memory sections under this node */
+-		link_mem_sections(nid, start_pfn, end_pfn, MEMINIT_EARLY);
++		register_memory_blocks_under_node(nid, start_pfn, end_pfn,
++						  MEMINIT_EARLY);
  	}
  
-+	anon_name = vma_anon_name_get(vma);
- 	error = madvise_update_vma(vma, prev, start, end, new_flags,
--				   vma_anon_name(vma));
-+				   anon_name);
-+	vma_anon_name_put(anon_name);
+ 	return error;
+--- a/mm/memory_hotplug.c~drivers-base-node-rename-link_mem_sections-to-register_memory_block_under_node
++++ a/mm/memory_hotplug.c
+@@ -1383,9 +1383,9 @@ int __ref add_memory_resource(int nid, s
+ 		BUG_ON(ret);
+ 	}
  
- out:
- 	/*
-@@ -1225,7 +1252,7 @@ int madvise_walk_vmas(struct mm_struct *
- static int madvise_vma_anon_name(struct vm_area_struct *vma,
- 				 struct vm_area_struct **prev,
- 				 unsigned long start, unsigned long end,
--				 unsigned long name)
-+				 unsigned long anon_name)
- {
- 	int error;
+-	/* link memory sections under this node.*/
+-	link_mem_sections(nid, PFN_DOWN(start), PFN_UP(start + size - 1),
+-			  MEMINIT_HOTPLUG);
++	register_memory_blocks_under_node(nid, PFN_DOWN(start),
++					  PFN_UP(start + size - 1),
++					  MEMINIT_HOTPLUG);
  
-@@ -1234,7 +1261,7 @@ static int madvise_vma_anon_name(struct
- 		return -EBADF;
- 
- 	error = madvise_update_vma(vma, prev, start, end, vma->vm_flags,
--				   (const char *)name);
-+				   (struct anon_vma_name *)anon_name);
- 
- 	/*
- 	 * madvise() returns EAGAIN if kernel resources, such as
-@@ -1248,8 +1275,10 @@ static int madvise_vma_anon_name(struct
- int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
- 			  unsigned long len_in, const char *name)
- {
-+	struct anon_vma_name *anon_name;
- 	unsigned long end;
- 	unsigned long len;
-+	int ret;
- 
- 	if (start & ~PAGE_MASK)
- 		return -EINVAL;
-@@ -1266,8 +1295,12 @@ int madvise_set_anon_name(struct mm_stru
- 	if (end == start)
- 		return 0;
- 
--	return madvise_walk_vmas(mm, start, end, (unsigned long)name,
-+	anon_name = anon_vma_name_alloc(name);
-+	ret = madvise_walk_vmas(mm, start, end, (unsigned long)anon_name,
- 				 madvise_vma_anon_name);
-+	vma_anon_name_put(anon_name);
-+
-+	return ret;
- }
- #endif /* CONFIG_ANON_VMA_NAME */
- /*
+ 	/* create new memmap entry */
+ 	if (!strcmp(res->name, "System RAM"))
 _
 
-Patches currently in -mm which might be from surenb@google.com are
+Patches currently in -mm which might be from david@redhat.com are
 
-mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch
+mm-optimize-do_wp_page-for-exclusive-pages-in-the-swapcache.patch
+mm-optimize-do_wp_page-for-fresh-pages-in-local-lru-pagevecs.patch
+mm-slightly-clarify-ksm-logic-in-do_swap_page.patch
+mm-streamline-cow-logic-in-do_swap_page.patch
+mm-huge_memory-streamline-cow-logic-in-do_huge_pmd_wp_page.patch
+mm-khugepaged-remove-reuse_swap_page-usage.patch
+mm-swapfile-remove-stale-reuse_swap_page.patch
+mm-huge_memory-remove-stale-page_trans_huge_mapcount.patch
+mm-huge_memory-remove-stale-locking-logic-from-__split_huge_pmd.patch
+drivers-base-memory-add-memory-block-to-memory-group-after-registration-succeeded.patch
+drivers-base-node-consolidate-node-device-subsystem-initialization-in-node_dev_init.patch
+drivers-base-node-rename-link_mem_sections-to-register_memory_block_under_node.patch
+drivers-base-memory-determine-and-store-zone-for-single-zone-memory-blocks.patch
+proc-vmcore-fix-possible-deadlock-on-concurrent-mmap-and-read.patch
 
