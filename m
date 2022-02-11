@@ -2,107 +2,131 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id CAEE1C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 18:35:38 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id E2DB6C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 18:43:25 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1352729AbiBKSfi (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Feb 2022 13:35:38 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:41646 "EHLO
+        id S1352943AbiBKSnW (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Feb 2022 13:43:22 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:46692 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346051AbiBKSfi (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 13:35:38 -0500
-Received: from mail-io1-xd2e.google.com (mail-io1-xd2e.google.com [IPv6:2607:f8b0:4864:20::d2e])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id EBDB7184
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 10:35:33 -0800 (PST)
-Received: by mail-io1-xd2e.google.com with SMTP id s18so12434938ioa.12
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 10:35:33 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=linuxfoundation.org; s=google;
-        h=subject:to:references:from:message-id:date:user-agent:mime-version
-         :in-reply-to:content-language:content-transfer-encoding;
-        bh=YG2mtDCQAmHKIGQN1Eu7bQuJAuyZkXd1RbbixtMnArE=;
-        b=KOwmSeAWLyMDR7YExr/Dy/eKVXJTND6Ojnfwm5cx9XKmCBbkZ0Nj1/71HLaREhxAyn
-         wtIg72FetE4ch+dq3mG7O+H0c4VieC6iAejR3rP3um78qF/zuZeE7nkdZK9lVy05TNqU
-         lkJ/T2n4vo58bZ8zGjF6Aw/3DtoB1Pe16Fty0=
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:subject:to:references:from:message-id:date
-         :user-agent:mime-version:in-reply-to:content-language
-         :content-transfer-encoding;
-        bh=YG2mtDCQAmHKIGQN1Eu7bQuJAuyZkXd1RbbixtMnArE=;
-        b=PaLHgUDqhzNfopkS7W9IxVHGnMlf8ZMbb+f8rA52eH0XYM9g0MY10V7lpfjpQXulAO
-         FzKDJ8PCrkcIZn/dBfrOK7R0cg8/wFc9/pQmgA9zbmiTRO6CXcvLzAkWXSV7RQUn6AzZ
-         4ByDW8T3OQKk6p3CteK/KCoBS7RxVvbDKgsu0pl/yOwuTGr4aOvVgioGAfWh7g0a5KRo
-         CQLTHd64aPCAfphWQc7VzWyVLwPxbcULocSDYbfnLPT+nkvWkRh5d3dvkAplhiGSfeJF
-         rF43xs776ITxdY28L4HxO0GbdM8Si4Jxm5+SXo6lcbiMzYqDvZ9umzVvup3i5mEavv/f
-         JVeA==
-X-Gm-Message-State: AOAM531a0nV11LhnKQwA0g8nXHgKyn1YvMD9pulpeqgEYRwMiF+3X2Vb
-        zlbsOoTcCAFrxidxEV7B7fSYMUdGBxvAOw==
-X-Google-Smtp-Source: ABdhPJxo8568LcN9ktIC1erRyIfVyA5h5BZiiPFtUEu5vEdqDW6uP7K/u9v2gkw0Pw07hNEs2PaDVg==
-X-Received: by 2002:a05:6602:2a4b:: with SMTP id k11mr1527598iov.136.1644604533363;
-        Fri, 11 Feb 2022 10:35:33 -0800 (PST)
-Received: from [192.168.1.128] ([71.205.29.0])
-        by smtp.gmail.com with ESMTPSA id s18sm14450622iov.5.2022.02.11.10.35.32
-        (version=TLS1_3 cipher=TLS_AES_128_GCM_SHA256 bits=128/128);
-        Fri, 11 Feb 2022 10:35:33 -0800 (PST)
-Subject: Re: + selftests-exec-add-non-regular-to-test_gen_progs.patch added to
- -mm tree
-To:     Andrew Morton <akpm@linux-foundation.org>,
-        mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        keescook@chromium.org, ebiederm@xmission.com, bot@kernelci.org,
-        usama.anjum@collabora.com, Shuah Khan <skhan@linuxfoundation.org>
-References: <20220211182612.B562CC340ED@smtp.kernel.org>
-From:   Shuah Khan <skhan@linuxfoundation.org>
-Message-ID: <9130ef69-02eb-1a46-970c-0ce6fa6a68ad@linuxfoundation.org>
-Date:   Fri, 11 Feb 2022 11:35:32 -0700
-User-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:78.0) Gecko/20100101
- Thunderbird/78.8.1
-MIME-Version: 1.0
-In-Reply-To: <20220211182612.B562CC340ED@smtp.kernel.org>
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Language: en-US
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S1352820AbiBKSnB (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 13:43:01 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A0AB9334
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 10:42:58 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+        (No client certificate requested)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5DEE1B82BC7
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 18:42:57 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id E9AC4C340E9;
+        Fri, 11 Feb 2022 18:42:55 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1644604976;
+        bh=IfnuqrourREVQI5fH3y5si5LGp5EPsmoJIRAM1z7QEw=;
+        h=Date:To:From:Subject:From;
+        b=rQ9CZT8BQZ4F6LOoqPYsJrlqRpDcwKEgzltVcMWnpc5bXCg2lm/2l8M45Vxj5Q/gg
+         tldBKG0wOJxll8qPmgXL4u65aBXXXpSmcizAhaGErB/y9YCb++4jS0SPuWYq94JFaJ
+         YJxkiZDCqVB5yutWhx8p0kt4C/AW4outMZ02AF9I=
+Date:   Fri, 11 Feb 2022 10:42:55 -0800
+To:     mm-commits@vger.kernel.org, n-horiguchi@ah.jp.nec.com,
+        linmiaohe@huawei.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch added to -mm tree
+Message-Id: <20220211184255.E9AC4C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On 2/11/22 11:26 AM, Andrew Morton wrote:
-> The patch titled
->       Subject: selftests/exec: add non-regular to TEST_GEN_PROGS
-> has been added to the -mm tree.  Its filename is
->       selftests-exec-add-non-regular-to-test_gen_progs.patch
-> 
-> This patch should soon appear at
->      https://ozlabs.org/~akpm/mmots/broken-out/selftests-exec-add-non-regular-to-test_gen_progs.patch
-> and later at
->      https://ozlabs.org/~akpm/mmotm/broken-out/selftests-exec-add-non-regular-to-test_gen_progs.patch
-> 
-> Before you just go and hit "reply", please:
->     a) Consider who else should be cc'ed
->     b) Prefer to cc a suitable mailing list as well
->     c) Ideally: find the original patch on the mailing list and do a
->        reply-to-all to that, adding suitable additional cc's
-> 
-> *** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-> 
-> The -mm tree is included into linux-next and is updated
-> there every 3-4 working days
-> 
-> ------------------------------------------------------
-> From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-> Subject: selftests/exec: add non-regular to TEST_GEN_PROGS
-> 
-> non-regular file needs to be compiled and then copied to the output
-> directory.  Remove it from TEST_PROGS and add it to TEST_GEN_PROGS.  This
-> removes error thrown by rsync when non-regular object isn't found:
-> 
 
-Andrew,
+The patch titled
+     Subject: mm/memory-failure.c: minor clean up for memory_failure_dev_pagemap
+has been added to the -mm tree.  Its filename is
+     mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
 
-I pushed this to linux-kselftest fixes for rc5. I can go drop it now,
-and you can take this through yours.
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
 
-thanks,
--- Shuah
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
+
+------------------------------------------------------
+From: Miaohe Lin <linmiaohe@huawei.com>
+Subject: mm/memory-failure.c: minor clean up for memory_failure_dev_pagemap
+
+Patch series "mm/memory-failure.c: A few cleanup patches for memory failure".
+
+This series contains a few patches to simplify the code logic, remove
+unneeded variable and remove obsolete comment.  More details can be found
+in the respective changelogs.
+
+
+This patch (of 8):
+
+The flags always has MF_ACTION_REQUIRED and MF_MUST_KILL set.  So we do
+not need to check these flags again.
+
+Link: https://lkml.kernel.org/r/20220210141733.1908-1-linmiaohe@huawei.com
+Link: https://lkml.kernel.org/r/20220210141733.1908-2-linmiaohe@huawei.com
+Signed-off-by: Miaohe Lin <linmiaohe@huawei.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+
+--- a/mm/memory-failure.c~mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap
++++ a/mm/memory-failure.c
+@@ -1640,7 +1640,7 @@ static int memory_failure_dev_pagemap(un
+ 	 * SIGBUS (i.e. MF_MUST_KILL)
+ 	 */
+ 	flags |= MF_ACTION_REQUIRED | MF_MUST_KILL;
+-	collect_procs(page, &tokill, flags & MF_ACTION_REQUIRED);
++	collect_procs(page, &tokill, true);
+ 
+ 	list_for_each_entry(tk, &tokill, nd)
+ 		if (tk->size_shift)
+@@ -1655,7 +1655,7 @@ static int memory_failure_dev_pagemap(un
+ 		start = (page->index << PAGE_SHIFT) & ~(size - 1);
+ 		unmap_mapping_range(page->mapping, start, size, 0);
+ 	}
+-	kill_procs(&tokill, flags & MF_MUST_KILL, false, pfn, flags);
++	kill_procs(&tokill, true, false, pfn, flags);
+ 	rc = 0;
+ unlock:
+ 	dax_unlock_page(page, cookie);
+_
+
+Patches currently in -mm which might be from linmiaohe@huawei.com are
+
+mm-memremap-avoid-calling-kasan_remove_zero_shadow-for-device-private-memory.patch
+filemap-remove-find_get_pages.patch
+mm-sparse-make-mminit_validate_memmodel_limits-static.patch
+mm-vmalloc-remove-unneeded-function-forward-declaration.patch
+mm-mmzoneh-remove-unused-macros.patch
+mm-memory-failurec-minor-clean-up-for-memory_failure_dev_pagemap.patch
+mm-memory-failurec-avoid-walking-page-table-when-vma_address-return-efault.patch
+mm-memory-failurec-rework-the-signaling-logic-in-kill_proc.patch
+mm-memory-failurec-remove-unneeded-orig_head.patch
+mm-memory-failurec-remove-pageslab-check-in-hwpoison_filter_dev.patch
+mm-memory-failurec-rework-the-try_to_unmap-logic-in-hwpoison_user_mappings.patch
+mm-memory-failurec-remove-obsolete-comment-in-__soft_offline_page.patch
+mm-memory-failurec-remove-unnecessary-pagetranstail-check.patch
+mm-balloon_compaction-make-balloon-page-compaction-callbacks-static.patch
+mm-memory_hotplug-remove-obsolete-comment-of-__add_pages.patch
+mm-memory_hotplug-avoid-calling-zone_intersects-for-zone_normal.patch
+mm-memory_hotplug-clean-up-try_offline_node.patch
+mm-memory_hotplug-fix-misplaced-comment-in-offline_pages.patch
+mm-highmem-remove-unnecessary-done-label.patch
+mm-hmmc-remove-unneeded-local-variable-ret.patch
 
