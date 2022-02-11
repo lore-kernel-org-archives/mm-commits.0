@@ -2,88 +2,136 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 0D214C433EF
-	for <mm-commits@archiver.kernel.org>; Thu, 10 Feb 2022 04:13:44 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 122DCC4332F
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 08:37:47 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232897AbiBJENk (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Wed, 9 Feb 2022 23:13:40 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:51364 "EHLO
+        id S236068AbiBKIhp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Feb 2022 03:37:45 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:60708 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231833AbiBJENj (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Wed, 9 Feb 2022 23:13:39 -0500
-Received: from gandalf.ozlabs.org (mail.ozlabs.org [IPv6:2404:9400:2221:ea00::3])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5A9A6BB
-        for <mm-commits@vger.kernel.org>; Wed,  9 Feb 2022 20:13:39 -0800 (PST)
-Received: from authenticated.ozlabs.org (localhost [127.0.0.1])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange ECDHE (P-256) server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        with ESMTP id S1346945AbiBKIhm (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 03:37:42 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FB5FE5B;
+        Fri, 11 Feb 2022 00:37:39 -0800 (PST)
+Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
+        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by mail.ozlabs.org (Postfix) with ESMTPSA id 4JvNf516nYz4xNn;
-        Thu, 10 Feb 2022 15:13:33 +1100 (AEDT)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=canb.auug.org.au;
-        s=201702; t=1644466413;
-        bh=JmTyAI85ivwA7zpahkn8JLtDZz0qmQLHf+tPBbOmPjU=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=fQZIgOaMOjToCs4cQZ/hqtpiKGQmM5H3HP8xWnv7m9BEwVBNwJ9iUodmC//NnGLIg
-         XYu+oksUDCkEIVE1AyyuIopNKVgvIDooD2VbxppLxZ3/k68qpuzNFGHDS21X3wONaE
-         6OToYZXETmWMj+UvOgQREpxbM+hkR9CNOmODaZvxb/Y3DE5DKcY0EsTt6XTaK0fNRy
-         MbMtQbo9oUq8sHDwpbmZ+qFgVxkaB+6wdkwsTH52Z7TEPsyiqRmLec8iQuG28dkb6C
-         3+iUk/G5EBfnh6WGL8ey1hOAs+g8BGzIkuZBV4znlFTLB4sxSuUfvo1D/JEUXV9+eM
-         guLWkbfp3A05Q==
-Date:   Thu, 10 Feb 2022 15:13:32 +1100
-From:   Stephen Rothwell <sfr@canb.auug.org.au>
-To:     Andrew Morton <akpm@linux-foundation.org>
-Cc:     mm-commits@vger.kernel.org, apopple@nvidia.com, sj@kernel.org
-Subject: Re: +
- mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing-fix.patch
- added to -mm tree
-Message-ID: <20220210151332.039720ca@canb.auug.org.au>
-In-Reply-To: <20220210001829.A530FC340E7@smtp.kernel.org>
-References: <20220210001829.A530FC340E7@smtp.kernel.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/FDzSrU_ZCKDrqdB++3MVb1O";
- protocol="application/pgp-signature"; micalg=pgp-sha256
+        by ams.source.kernel.org (Postfix) with ESMTPS id 47EA9B828B0;
+        Fri, 11 Feb 2022 08:37:37 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAF0CC340E9;
+        Fri, 11 Feb 2022 08:37:35 +0000 (UTC)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
+        s=korg; t=1644568655;
+        bh=5c6KBaaLTHrMX1kA30FbMcSSSlzks4MU7Z7WSXf9qG4=;
+        h=Date:To:From:Subject:From;
+        b=Z8L6EPOmclxffQLAp9tVs7/e/xkfxT92+KCkLGIVa0HtTHYqAvtfqXD6ny+OPVrcE
+         vjindQr17pvb9AxIu033pmcOzJjXULuSvJWm7GvUSaBfwo2DnZfEnrX4EOzWhmUBtj
+         gPJfK1rlDUhQxf21BmTLfO9wUB0+diLXMRCsf7OI=
+Date:   Fri, 11 Feb 2022 00:37:35 -0800
+To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
+        mike.kravetz@oracle.com, almasrymina@google.com,
+        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
+From:   Andrew Morton <akpm@linux-foundation.org>
+Subject: + mm-hugetlb-fix-kernel-crash-with-hugetlb-mremap.patch added to -mm tree
+Message-Id: <20220211083735.CAF0CC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
---Sig_/FDzSrU_ZCKDrqdB++3MVb1O
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
 
-Hi Andrew,
+The patch titled
+     Subject: mm/hugetlb: fix kernel crash with hugetlb mremap
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb-fix-kernel-crash-with-hugetlb-mremap.patch
 
-On Wed, 09 Feb 2022 16:18:29 -0800 Andrew Morton <akpm@linux-foundation.org=
-> wrote:
->
-> The patch titled
->      Subject: mm/gup: make migrate_device_page() fails always if !CONFIG_=
-DEVICE_PRIVATE
-> has been added to the -mm tree.  Its filename is
->      mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failin=
-g-fix.patch
+This patch should soon appear at
+    https://ozlabs.org/~akpm/mmots/broken-out/
+and later at
+    https://ozlabs.org/~akpm/mmotm/broken-out/
 
-Added to linux-next today.
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
 
---=20
-Cheers,
-Stephen Rothwell
+*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
 
---Sig_/FDzSrU_ZCKDrqdB++3MVb1O
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
------BEGIN PGP SIGNATURE-----
+------------------------------------------------------
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
+Subject: mm/hugetlb: fix kernel crash with hugetlb mremap
 
-iQEzBAEBCAAdFiEENIC96giZ81tWdLgKAVBC80lX0GwFAmIEkOwACgkQAVBC80lX
-0GzlaAgAn8+OgPBbhBy4yT96ebDCok80izrQ+gNzsyb7/K5Jz2/3wNEPnepB2WdN
-ABLPheoXE+8aZZMPOGLIKQ11ZLa35VGVCHEEkvWccARWErxfqLPlgNgJnotbS7mH
-9mJfV3M9voyK2Gpt5psYkFvn2hjNfeEDjqYofnaiVq+jXVe+DSCsSeAAKTRJ7fCS
-lHlkdMAuGG+zPmjcDUEYxD8JBbvibXaHJIGEuGShroUOFvsxl3TB9BByU1T4azT0
-hQCb/QFIWPGxLLL1bfzeHpELWmJk8XDV+1KYVAk4IwBhJH3Nr36nsR+6ACgj3jTe
-AFS78WIzX7Iyvx7OZL8uYtPzavrpLQ==
-=TrrZ
------END PGP SIGNATURE-----
+This fixes the below crash:
 
---Sig_/FDzSrU_ZCKDrqdB++3MVb1O--
+kernel BUG at include/linux/mm.h:2373!
+cpu 0x5d: Vector: 700 (Program Check) at [c00000003c6e76e0]
+    pc: c000000000581a54: pmd_to_page+0x54/0x80
+    lr: c00000000058d184: move_hugetlb_page_tables+0x4e4/0x5b0
+    sp: c00000003c6e7980
+   msr: 9000000000029033
+  current = 0xc00000003bd8d980
+  paca    = 0xc000200fff610100   irqmask: 0x03   irq_happened: 0x01
+    pid   = 9349, comm = hugepage-mremap
+kernel BUG at include/linux/mm.h:2373!
+[link register   ] c00000000058d184 move_hugetlb_page_tables+0x4e4/0x5b0
+[c00000003c6e7980] c00000000058cecc move_hugetlb_page_tables+0x22c/0x5b0 (unreliable)
+[c00000003c6e7a90] c00000000053b78c move_page_tables+0xdbc/0x1010
+[c00000003c6e7bd0] c00000000053bc34 move_vma+0x254/0x5f0
+[c00000003c6e7c90] c00000000053c790 sys_mremap+0x7c0/0x900
+[c00000003c6e7db0] c00000000002c450 system_call_exception+0x160/0x2c0
+
+the kernel can't use huge_pte_offset before it set the pte entry because a
+page table lookup check for huge PTE bit in the page table to
+differentiate between a huge pte entry and a pointer to pte page.  A
+huge_pte_alloc won't mark the page table entry huge and hence kernel
+should not use huge_pte_offset after a huge_pte_alloc.
+
+Link: https://lkml.kernel.org/r/20220211063221.99293-1-aneesh.kumar@linux.ibm.com
+Fixes: 550a7d60bd5e ("mm, hugepages: add mremap() support for hugepage backed vma")
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
+Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reviewed-by: Mina Almasry <almasrymina@google.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+
+--- a/mm/hugetlb.c~mm-hugetlb-fix-kernel-crash-with-hugetlb-mremap
++++ a/mm/hugetlb.c
+@@ -4851,14 +4851,13 @@ again:
+ }
+ 
+ static void move_huge_pte(struct vm_area_struct *vma, unsigned long old_addr,
+-			  unsigned long new_addr, pte_t *src_pte)
++			  unsigned long new_addr, pte_t *src_pte, pte_t *dst_pte)
+ {
+ 	struct hstate *h = hstate_vma(vma);
+ 	struct mm_struct *mm = vma->vm_mm;
+-	pte_t *dst_pte, pte;
+ 	spinlock_t *src_ptl, *dst_ptl;
++	pte_t pte;
+ 
+-	dst_pte = huge_pte_offset(mm, new_addr, huge_page_size(h));
+ 	dst_ptl = huge_pte_lock(h, mm, dst_pte);
+ 	src_ptl = huge_pte_lockptr(h, mm, src_pte);
+ 
+@@ -4917,7 +4916,7 @@ int move_hugetlb_page_tables(struct vm_a
+ 		if (!dst_pte)
+ 			break;
+ 
+-		move_huge_pte(vma, old_addr, new_addr, src_pte);
++		move_huge_pte(vma, old_addr, new_addr, src_pte, dst_pte);
+ 	}
+ 	flush_tlb_range(vma, old_end - len, old_end);
+ 	mmu_notifier_invalidate_range_end(&range);
+_
+
+Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+
+mm-hugetlb-fix-kernel-crash-with-hugetlb-mremap.patch
+
