@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id BE5C9C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 20:48:53 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 99EDCC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 20:48:57 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S1346918AbiBKUsy (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Feb 2022 15:48:54 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43314 "EHLO
+        id S245367AbiBKUs6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Feb 2022 15:48:58 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:43334 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S241836AbiBKUsx (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 15:48:53 -0500
-Received: from dfw.source.kernel.org (dfw.source.kernel.org [IPv6:2604:1380:4641:c500::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2A8E5CFA
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 12:48:52 -0800 (PST)
+        with ESMTP id S241836AbiBKUs5 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 15:48:57 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9FFDACEC
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 12:48:55 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by dfw.source.kernel.org (Postfix) with ESMTPS id BBB4762097
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 20:48:51 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 05E3CC340E9;
-        Fri, 11 Feb 2022 20:48:50 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 5C9F0B82CF4
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 20:48:54 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 151A7C340E9;
+        Fri, 11 Feb 2022 20:48:53 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644612531;
-        bh=whpYXNB+Ef1eq9XCof1EC0HmdpAQTe+H4QiY0ZzwtAo=;
+        s=korg; t=1644612533;
+        bh=waHdxMdtATPNOyMF3qc3K2+idyuIiVVgZWFEICL370o=;
         h=Date:To:From:Subject:From;
-        b=rFKx87u7BOxVewCMZvIhUz9hQBxzn9eWkQ/gejrbSI3qPuUzKqXG2RQ1kEsLIujun
-         L9CHb0Faj/45xXyrmJdCofMmorjpjgaxN/fbI4AJboGeowrakb1ZcmY2rFvFNduv5B
-         FvFPxmTtwLVpvA+7SDoatMUKouDBUx2C+YGj5qZc=
-Date:   Fri, 11 Feb 2022 12:48:50 -0800
+        b=RLY5AGqvrNL2oIDb7CbSjs9261fTJfuufJrre2fFG5ZzJlr7eMqTAiJN9EPKrtJSN
+         fbCz0bhluvGKTsHDHqFtyv1JPZ/MpZe5x9XCK2xu8ztJj3z22hIcy1ZZalCSnbJ9Vg
+         X/Uba8ZeTPCkUsjm+ACLg/43GtLlZ9QrawKJvIDQ=
+Date:   Fri, 11 Feb 2022 12:48:52 -0800
 To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
         songmuchun@bytedance.com, rcampbell@nvidia.com, lyude@redhat.com,
         logang@deltatee.com, linmiaohe@huawei.com, kherbst@redhat.com,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, Xinhui.Pan@amd.com,
         bskeggs@redhat.com, apopple@nvidia.com, alex.sierra@amd.com,
         alexander.deucher@amd.com, hch@lst.de, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-remove-a-pointless-config_zone_device-check-in-memremap_pages.patch added to -mm tree
-Message-Id: <20220211204851.05E3CC340E9@smtp.kernel.org>
+Subject: + mm-remove-the-__kernel__-guard-from-linux-mmh.patch added to -mm tree
+Message-Id: <20220211204853.151A7C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove a pointless CONFIG_ZONE_DEVICE check in memremap_pages
+     Subject: mm: remove the __KERNEL__ guard from <linux/mm.h>
 has been added to the -mm tree.  Its filename is
-     mm-remove-a-pointless-config_zone_device-check-in-memremap_pages.patch
+     mm-remove-the-__kernel__-guard-from-linux-mmh.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-a-pointless-config_zone_device-check-in-memremap_pages.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-remove-the-__kernel__-guard-from-linux-mmh.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-a-pointless-config_zone_device-check-in-memremap_pages.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-the-__kernel__-guard-from-linux-mmh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,59 +68,51 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: mm: remove a pointless CONFIG_ZONE_DEVICE check in memremap_pages
+Subject: mm: remove the __KERNEL__ guard from <linux/mm.h>
 
-Patch series "start sorting out the ZONE_DEVICE refcount mess", v2.
+__KERNEL__ ifdefs don't make sense outside of include/uapi/.
 
-This series removes the offset by one refcount for ZONE_DEVICE pages that
-are freed back to the driver owning them, which is just device private
-ones for now, but also the planned device coherent pages and the ehanced
-p2p ones pending.
-
-It does not address the fsdax pages yet, which will be attacked in a
-follow on series.
-
-
-This patch (of 27):
-
-memremap.c is only built when CONFIG_ZONE_DEVICE is set, so remove
-the superflous extra check.
-
-Link: https://lkml.kernel.org/r/20220210072828.2930359-1-hch@lst.de
-Link: https://lkml.kernel.org/r/20220210072828.2930359-2-hch@lst.de
+Link: https://lkml.kernel.org/r/20220210072828.2930359-3-hch@lst.de
 Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reviewed-by: Logan Gunthorpe <logang@deltatee.com>
 Reviewed-by: Jason Gunthorpe <jgg@nvidia.com>
 Reviewed-by: Chaitanya Kulkarni <kch@nvidia.com>
 Reviewed-by: Muchun Song <songmuchun@bytedance.com>
 Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Miaohe Lin <linmiaohe@huawei.com>
 Tested-by: "Sierra Guiza, Alejandro (Alex)" <alex.sierra@amd.com>
-Cc: Felix Kuehling <Felix.Kuehling@amd.com>
+
 Cc: Alex Deucher <alexander.deucher@amd.com>
-Cc: Christian Knig <christian.koenig@amd.com>
-Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
+Cc: Alistair Popple <apopple@nvidia.com>
 Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Christian Knig <christian.koenig@amd.com>
+Cc: Felix Kuehling <Felix.Kuehling@amd.com>
 Cc: Karol Herbst <kherbst@redhat.com>
 Cc: Lyude Paul <lyude@redhat.com>
-Cc: Alistair Popple <apopple@nvidia.com>
+Cc: Miaohe Lin <linmiaohe@huawei.com>
+Cc: "Pan, Xinhui" <Xinhui.Pan@amd.com>
 Cc: Ralph Campbell <rcampbell@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/memremap.c~mm-remove-a-pointless-config_zone_device-check-in-memremap_pages
-+++ a/mm/memremap.c
-@@ -349,8 +349,7 @@ void *memremap_pages(struct dev_pagemap
- 		}
- 		break;
- 	case MEMORY_DEVICE_FS_DAX:
--		if (!IS_ENABLED(CONFIG_ZONE_DEVICE) ||
--		    IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
-+		if (IS_ENABLED(CONFIG_FS_DAX_LIMITED)) {
- 			WARN(1, "File system DAX not supported\n");
- 			return ERR_PTR(-EINVAL);
- 		}
+--- a/include/linux/mm.h~mm-remove-the-__kernel__-guard-from-linux-mmh
++++ a/include/linux/mm.h
+@@ -3,9 +3,6 @@
+ #define _LINUX_MM_H
+ 
+ #include <linux/errno.h>
+-
+-#ifdef __KERNEL__
+-
+ #include <linux/mmdebug.h>
+ #include <linux/gfp.h>
+ #include <linux/bug.h>
+@@ -3372,5 +3369,4 @@ madvise_set_anon_name(struct mm_struct *
+ }
+ #endif
+ 
+-#endif /* __KERNEL__ */
+ #endif /* _LINUX_MM_H */
 _
 
 Patches currently in -mm which might be from hch@lst.de are
