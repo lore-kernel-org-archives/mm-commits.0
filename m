@@ -2,40 +2,38 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 34670C433EF
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 18:26:18 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 66073C433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 18:29:35 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S237494AbiBKS0S (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Feb 2022 13:26:18 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:37610 "EHLO
+        id S1347914AbiBKS3f (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Feb 2022 13:29:35 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:39046 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S231703AbiBKS0R (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 13:26:17 -0500
+        with ESMTP id S1343586AbiBKS3f (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 13:29:35 -0500
 Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 9B699BC;
-        Fri, 11 Feb 2022 10:26:15 -0800 (PST)
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 690DC184
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 10:29:33 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 25BE4B82B96;
-        Fri, 11 Feb 2022 18:26:14 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id B562CC340ED;
-        Fri, 11 Feb 2022 18:26:12 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 0FB06B82A48
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 18:29:32 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id A3772C340E9;
+        Fri, 11 Feb 2022 18:29:30 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644603972;
-        bh=vfmncepaPypMZwfR1mG4BAkP3b+DbtouCdTpVJ1JAdw=;
+        s=korg; t=1644604170;
+        bh=NQhkDDSvpEsMB+r3a0MrU7h8yuJmeJWPs0tQs9ZB7mk=;
         h=Date:To:From:Subject:From;
-        b=Rn8A5R4fN1OoZDfRosZghS18nykfx1x8vdF0dJDkIaPNVDzITRzI2pfJqejQMZWEf
-         bq8Sk+A8EoV7ZybKwgOYx/XkudyqPO1emJi0YO0i7C7srmECNa9qVYQ4flQ19oLy7a
-         yhPZd5b6Y8gI3jhjQWYWD3xjrYcjfPNlu4dLzwfU=
-Date:   Fri, 11 Feb 2022 10:26:12 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        skhan@linuxfoundation.org, keescook@chromium.org,
-        ebiederm@xmission.com, bot@kernelci.org, usama.anjum@collabora.com,
+        b=hIyeRw/0ixCIF62lE1aDzMD+ZEV7Eqsjh7Q4wHaSY+xPKvJdcVBwJJ83H0JrLOygl
+         /mWL1s/gap42BY3b+ytGyPMQREAkugTW3BOP3DAbfRfLdpwSqeueUcdz2dgIyNHV60
+         cTwbLEqdjqJqm3PA/XXCT1ZmiH4ahupna+ncmQOU=
+Date:   Fri, 11 Feb 2022 10:29:30 -0800
+To:     mm-commits@vger.kernel.org, dmitry.baryshkov@linaro.org,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + selftests-exec-add-non-regular-to-test_gen_progs.patch added to -mm tree
-Message-Id: <20220211182612.B562CC340ED@smtp.kernel.org>
+Subject: + container_ofh-make-container_of-const-aware.patch added to -mm tree
+Message-Id: <20220211182930.A3772C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -43,14 +41,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/exec: add non-regular to TEST_GEN_PROGS
+     Subject: container_of.h: make container_of const-aware
 has been added to the -mm tree.  Its filename is
-     selftests-exec-add-non-regular-to-test_gen_progs.patch
+     container_ofh-make-container_of-const-aware.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/selftests-exec-add-non-regular-to-test_gen_progs.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/container_ofh-make-container_of-const-aware.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/selftests-exec-add-non-regular-to-test_gen_progs.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/container_ofh-make-container_of-const-aware.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -64,54 +62,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Subject: selftests/exec: add non-regular to TEST_GEN_PROGS
+From: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
+Subject: container_of.h: make container_of const-aware
 
-non-regular file needs to be compiled and then copied to the output
-directory.  Remove it from TEST_PROGS and add it to TEST_GEN_PROGS.  This
-removes error thrown by rsync when non-regular object isn't found:
+container_of() macro has one major drawback.  It does not check whether
+the passed ptr has a const pointer, the result will always be a non-const
+pointer.  Use a _Generic() construct (supported since gcc 4.9 and Clang
+3.0) to teach container_of that if converting a const pointer, the
+returned pointer should also have the const modifier.
 
-rsync: [sender] link_stat "/linux/tools/testing/selftests/exec/non-regular" failed: No such file or directory (2)
-rsync error: some files/attrs were not transferred (see previous errors) (code 23) at main.c(1333) [sender=3.2.3]
-
-Link: https://lkml.kernel.org/r/20220210171323.1304501-1-usama.anjum@collabora.com
-Fixes: 0f71241a8e32 ("selftests/exec: add file type errno tests")
-Signed-off-by: Muhammad Usama Anjum <usama.anjum@collabora.com>
-Reported-by: "kernelci.org bot" <bot@kernelci.org>
-Reviewed-by: Shuah Khan <skhan@linuxfoundation.org>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220210170434.3924169-1-dmitry.baryshkov@linaro.org
+Signed-off-by: Dmitry Baryshkov <dmitry.baryshkov@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/tools/testing/selftests/exec/Makefile~selftests-exec-add-non-regular-to-test_gen_progs
-+++ a/tools/testing/selftests/exec/Makefile
-@@ -3,8 +3,8 @@ CFLAGS = -Wall
- CFLAGS += -Wno-nonnull
- CFLAGS += -D_GNU_SOURCE
+--- a/include/linux/container_of.h~container_ofh-make-container_of-const-aware
++++ a/include/linux/container_of.h
+@@ -19,7 +19,11 @@
+ 	static_assert(__same_type(*(ptr), ((type *)0)->member) ||	\
+ 		      __same_type(*(ptr), void),			\
+ 		      "pointer type mismatch in container_of()");	\
+-	((type *)(__mptr - offsetof(type, member))); })
++	_Generic((ptr),							\
++		const typeof(((type *)0)->member)*:			\
++			((const type *)(__mptr - offsetof(type, member))), \
++		default: ((type *)(__mptr - offsetof(type, member)))	\
++	); })
  
--TEST_PROGS := binfmt_script non-regular
--TEST_GEN_PROGS := execveat load_address_4096 load_address_2097152 load_address_16777216
-+TEST_PROGS := binfmt_script
-+TEST_GEN_PROGS := execveat load_address_4096 load_address_2097152 load_address_16777216 non-regular
- TEST_GEN_FILES := execveat.symlink execveat.denatured script subdir
- # Makefile is a run-time dependency, since it's accessed by the execveat test
- TEST_FILES := Makefile
+ /**
+  * container_of_safe - cast a member of a structure out to the containing structure
+@@ -35,6 +39,10 @@
+ 		      __same_type(*(ptr), void),			\
+ 		      "pointer type mismatch in container_of_safe()");	\
+ 	IS_ERR_OR_NULL(__mptr) ? ERR_CAST(__mptr) :			\
+-		((type *)(__mptr - offsetof(type, member))); })
++	_Generic((ptr),							\
++		const typeof(((type *)0)->member)*:			\
++			((const type *)(__mptr - offsetof(type, member))), \
++		default: ((type *)(__mptr - offsetof(type, member)))	\
++	); })
+ 
+ #endif	/* _LINUX_CONTAINER_OF_H */
 _
 
-Patches currently in -mm which might be from usama.anjum@collabora.com are
+Patches currently in -mm which might be from dmitry.baryshkov@linaro.org are
 
-selftests-exec-add-non-regular-to-test_gen_progs.patch
-selftests-set-the-build-variable-to-absolute-path.patch
-selftests-add-and-export-a-kernel-uapi-headers-path.patch
-selftests-correct-the-headers-install-path.patch
-selftests-futex-add-the-uapi-headers-include-variable.patch
-selftests-kvm-add-the-uapi-headers-include-variable.patch
-selftests-landlock-add-the-uapi-headers-include-variable.patch
-selftests-net-add-the-uapi-headers-include-variable.patch
-selftests-mptcp-add-the-uapi-headers-include-variable.patch
-selftests-vm-add-the-uapi-headers-include-variable.patch
-selftests-vm-remove-dependecy-from-internal-kernel-macros.patch
+container_ofh-make-container_of-const-aware.patch
 
