@@ -2,41 +2,40 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 25F96C4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 18:53:32 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9C81EC433F5
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 20:47:12 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236688AbiBKSxb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Feb 2022 13:53:31 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:60590 "EHLO
+        id S1353343AbiBKUrL (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Feb 2022 15:47:11 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:42508 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S237478AbiBKSx3 (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 13:53:29 -0500
-Received: from sin.source.kernel.org (sin.source.kernel.org [IPv6:2604:1380:40e1:4800::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 7C9C8CED
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 10:53:26 -0800 (PST)
+        with ESMTP id S229988AbiBKUrJ (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 15:47:09 -0500
+Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 94028CF9
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 12:47:07 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by sin.source.kernel.org (Postfix) with ESMTPS id C06EBCE2B2C
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 18:53:24 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id EEFE5C340F0;
-        Fri, 11 Feb 2022 18:53:22 +0000 (UTC)
+        by ams.source.kernel.org (Postfix) with ESMTPS id 46470B82CA7
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 20:47:06 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id DA985C340E9;
+        Fri, 11 Feb 2022 20:47:04 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644605603;
-        bh=EEDi6QcfI/4Fzo+vkKFQeEjbeJOVejiec7/kpPxsLvc=;
+        s=korg; t=1644612425;
+        bh=uOJw7viZlOuN46tRb1tABhrHcxL7rPLnRAjWV9fSuP4=;
         h=Date:To:From:Subject:From;
-        b=BND2JQd3CnntjBuYdQlBAyZz/y+jg690sYTt5gR/VcfDzh3LLu9TvoRDpRvU97g94
-         iOC9DlzM4/nmGcwymPovAXujTZz9upzBvFGJS9182WMyI0/6KtILS3/WmdmPoxkpK0
-         JzJ8H+rqh3krWxXWZaDfR7gvQVJLJ/qqKwX65K4U=
-Date:   Fri, 11 Feb 2022 10:53:22 -0800
-To:     mm-commits@vger.kernel.org, ziy@nvidia.com, rientjes@google.com,
-        peterx@redhat.com, mike.kravetz@oracle.com, lars.persson@axis.com,
-        kirill.shutemov@linux.intel.com, fam.zheng@bytedance.com,
-        duanxiongchun@bytedance.com, axelrasmussen@google.com,
-        songmuchun@bytedance.com, akpm@linux-foundation.org
+        b=H9rbsoqIk/GMO1GgskHmng9cQs9x17pEKLioe3uqlV9g1pM2gUzBF/EcUjWCUU4oG
+         3q/zU4tAQYk2je895lq2l4rjsFujaI6J6Bc83tNgHbf9IysbH085s1N2YFJps4b/bp
+         CDTVJxGPiPs0XDdR5ika+1PkZNlTJcP26OVgQPD0=
+Date:   Fri, 11 Feb 2022 12:47:04 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org,
+        rcampbell@nvidia.com, jhubbard@nvidia.com, jglisse@redhat.com,
+        jgg@nvidia.com, hch@lst.de, Felix.Kuehling@amd.com,
+        Alex.Sierra@amd.com, apopple@nvidia.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-shmem-fix-missing-cache-flush-in-shmem_mfill_atomic_pte.patch added to -mm tree
-Message-Id: <20220211185322.EEFE5C340F0@smtp.kernel.org>
+Subject: [to-be-updated] migratec-remove-vma-check-in-migrate_vma_setup.patch removed from -mm tree
+Message-Id: <20220211204704.DA985C340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -44,83 +43,118 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: shmem: fix missing cache flush in shmem_mfill_atomic_pte()
-has been added to the -mm tree.  Its filename is
-     mm-shmem-fix-missing-cache-flush-in-shmem_mfill_atomic_pte.patch
+     Subject: migrate.c: remove vma check in migrate_vma_setup()
+has been removed from the -mm tree.  Its filename was
+     migratec-remove-vma-check-in-migrate_vma_setup.patch
 
-This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-fix-missing-cache-flush-in-shmem_mfill_atomic_pte.patch
-and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-fix-missing-cache-flush-in-shmem_mfill_atomic_pte.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/process/submit-checklist.rst when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Muchun Song <songmuchun@bytedance.com>
-Subject: mm: shmem: fix missing cache flush in shmem_mfill_atomic_pte()
+From: Alistair Popple <apopple@nvidia.com>
+Subject: migrate.c: remove vma check in migrate_vma_setup()
 
-userfaultfd calls shmem_mfill_atomic_pte() which does not do any cache
-flushing for the target page.  Then the target page will be mapped to the
-user space with a different address (user address), which might have an
-alias issue with the kernel address used to copy the data from the user
-to.  Insert flush_dcache_page() in non-zero-page case.  And replace
-clear_highpage() with clear_user_highpage() which already considers the
-cache maintenance.
+Patch series "Migrate device coherent pages on get_user_pages()", v2.
 
-Link: https://lkml.kernel.org/r/20220210123058.79206-6-songmuchun@bytedance.com
-Fixes: 8d1039634206 ("userfaultfd: shmem: add shmem_mfill_zeropage_pte for userfaultfd support")
-Fixes: 4c27fe4c4c84 ("userfaultfd: shmem: add shmem_mcopy_atomic_pte for userfaultfd support")
-Signed-off-by: Muchun Song <songmuchun@bytedance.com>
-Cc: Axel Rasmussen <axelrasmussen@google.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Fam Zheng <fam.zheng@bytedance.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Lars Persson <lars.persson@axis.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Peter Xu <peterx@redhat.com>
-Cc: Xiongchun Duan <duanxiongchun@bytedance.com>
-Cc: Zi Yan <ziy@nvidia.com>
+Device coherent pages represent memory on a coherently attached device
+such as a GPU which is usually under the control of a driver.  These pages
+should not be pinned as the driver needs to be able to move pages as
+required.  Currently this is enforced by failing any attempt to pin a
+device coherent page.
+
+A similar problem exists for ZONE_MOVABLE pages.  In that case though the
+pages are migrated instead of causing failure.  There is no reason the
+kernel can't migrate device coherent pages so this series implements
+migration for device coherent pages so the same strategy of migrate and
+pin can be used.
+
+This series depends on the series "Add MEMORY_DEVICE_COHERENT for coherent
+device memory mapping"[1] which is in linux-next-20220204 and should apply
+cleanly to that.
+
+[1] - https://lore.kernel.org/linux-mm/20220128200825.8623-1-alex.sierra@amd.com/
+
+
+This patch (of 2):
+
+migrate_vma_setup() checks that a valid vma is passed so that the page
+tables can be walked to find the pfns associated with a given address
+range.  However in some cases the pfns are already known, such as when
+migrating device coherent pages during pin_user_pages() meaning a valid
+vma isn't required.
+
+Link: https://lkml.kernel.org/r/cover.0d3c846b1c6c294e055ff7ebe221fab9964c1436.1644207242.git-series.apopple@nvidia.com
+Link: https://lkml.kernel.org/r/6831bf69f7c7699be83b31c9c56212b5fb07f873.1644207242.git-series.apopple@nvidia.com
+Signed-off-by: Alistair Popple <apopple@nvidia.com>
+Acked-by: Felix Kuehling <Felix.Kuehling@amd.com>
+Cc: Ralph Campbell <rcampbell@nvidia.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jason Gunthorpe <jgg@nvidia.com>
+Cc: Jerome Glisse <jglisse@redhat.com>
+Cc: Matthew Wilcox (Oracle) <willy@infradead.org>
+Cc: Alex Sierra <Alex.Sierra@amd.com>
+Cc: John Hubbard <jhubbard@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
+ mm/migrate.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
---- a/mm/shmem.c~mm-shmem-fix-missing-cache-flush-in-shmem_mfill_atomic_pte
-+++ a/mm/shmem.c
-@@ -2357,8 +2357,10 @@ int shmem_mfill_atomic_pte(struct mm_str
- 				/* don't free the page */
- 				goto out_unacct_blocks;
- 			}
+--- a/mm/migrate.c~migratec-remove-vma-check-in-migrate_vma_setup
++++ a/mm/migrate.c
+@@ -2613,24 +2613,24 @@ int migrate_vma_setup(struct migrate_vma
+ 
+ 	args->start &= PAGE_MASK;
+ 	args->end &= PAGE_MASK;
+-	if (!args->vma || is_vm_hugetlb_page(args->vma) ||
+-	    (args->vma->vm_flags & VM_SPECIAL) || vma_is_dax(args->vma))
+-		return -EINVAL;
+-	if (nr_pages <= 0)
+-		return -EINVAL;
+-	if (args->start < args->vma->vm_start ||
+-	    args->start >= args->vma->vm_end)
+-		return -EINVAL;
+-	if (args->end <= args->vma->vm_start || args->end > args->vma->vm_end)
+-		return -EINVAL;
+ 	if (!args->src || !args->dst)
+ 		return -EINVAL;
++	if (args->vma) {
++		if (is_vm_hugetlb_page(args->vma) ||
++			(args->vma->vm_flags & VM_SPECIAL) || vma_is_dax(args->vma))
++			return -EINVAL;
++		if (args->start < args->vma->vm_start ||
++			args->start >= args->vma->vm_end)
++			return -EINVAL;
++		if (args->end <= args->vma->vm_start || args->end > args->vma->vm_end)
++			return -EINVAL;
 +
-+			flush_dcache_page(page);
- 		} else {		/* ZEROPAGE */
--			clear_highpage(page);
-+			clear_user_highpage(page, dst_addr);
++		memset(args->src, 0, sizeof(*args->src) * nr_pages);
++		args->cpages = 0;
++		args->npages = 0;
+ 
+-	memset(args->src, 0, sizeof(*args->src) * nr_pages);
+-	args->cpages = 0;
+-	args->npages = 0;
+-
+-	migrate_vma_collect(args);
++		migrate_vma_collect(args);
++	}
+ 
+ 	if (args->cpages)
+ 		migrate_vma_unmap(args);
+@@ -2815,7 +2815,7 @@ void migrate_vma_pages(struct migrate_vm
+ 			continue;
  		}
- 	} else {
- 		page = *pagep;
+ 
+-		if (!page) {
++		if (!page && migrate->vma) {
+ 			if (!(migrate->src[i] & MIGRATE_PFN_MIGRATE))
+ 				continue;
+ 			if (!notified) {
 _
 
-Patches currently in -mm which might be from songmuchun@bytedance.com are
+Patches currently in -mm which might be from apopple@nvidia.com are
 
-mm-thp-fix-wrong-cache-flush-in-remove_migration_pmd.patch
-mm-fix-missing-cache-flush-for-all-tail-pages-of-compound-page.patch
-mm-hugetlb-fix-missing-cache-flush-in-copy_huge_page_from_user.patch
-mm-hugetlb-fix-missing-cache-flush-in-hugetlb_mcopy_atomic_pte.patch
-mm-shmem-fix-missing-cache-flush-in-shmem_mfill_atomic_pte.patch
-mm-userfaultfd-fix-missing-cache-flush-in-mcopy_atomic_pte-and-__mcopy_atomic.patch
-mm-replace-multiple-dcache-flush-with-flush_dcache_folio.patch
-mm-hugetlb-free-the-2nd-vmemmap-page-associated-with-each-hugetlb-page.patch
-mm-hugetlb-replace-hugetlb_free_vmemmap_enabled-with-a-static_key.patch
-mm-sparsemem-use-page-table-lock-to-protect-kernel-pmd-operations.patch
-selftests-vm-add-a-hugetlb-test-case.patch
-mm-sparsemem-move-vmemmap-related-to-hugetlb-to-config_hugetlb_page_free_vmemmap.patch
+mm-remove-the-vma-check-in-migrate_vma_setup.patch
+mm-gup-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
+mm-gupc-migrate-device-coherent-pages-when-pinning-instead-of-failing.patch
 
