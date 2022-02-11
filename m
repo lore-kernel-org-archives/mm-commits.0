@@ -2,39 +2,44 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 122DCC4332F
-	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 08:37:47 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id EB66FC433EF
+	for <mm-commits@archiver.kernel.org>; Fri, 11 Feb 2022 18:05:13 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S236068AbiBKIhp (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Fri, 11 Feb 2022 03:37:45 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:60708 "EHLO
+        id S1348091AbiBKSFN (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Fri, 11 Feb 2022 13:05:13 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:51686 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S1346945AbiBKIhm (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 03:37:42 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [IPv6:2604:1380:4601:e00::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 3FB5FE5B;
-        Fri, 11 Feb 2022 00:37:39 -0800 (PST)
+        with ESMTP id S231338AbiBKSFN (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Fri, 11 Feb 2022 13:05:13 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 42EC9D48
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 10:05:11 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 47EA9B828B0;
-        Fri, 11 Feb 2022 08:37:37 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id CAF0CC340E9;
-        Fri, 11 Feb 2022 08:37:35 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id C2F6F61E34
+        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 18:05:10 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 1715AC340E9;
+        Fri, 11 Feb 2022 18:05:10 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644568655;
-        bh=5c6KBaaLTHrMX1kA30FbMcSSSlzks4MU7Z7WSXf9qG4=;
+        s=korg; t=1644602710;
+        bh=g/HJn5Epx+pbwr9v5wPiSTc3KoEtF13Z0yTxiU6BJBA=;
         h=Date:To:From:Subject:From;
-        b=Z8L6EPOmclxffQLAp9tVs7/e/xkfxT92+KCkLGIVa0HtTHYqAvtfqXD6ny+OPVrcE
-         vjindQr17pvb9AxIu033pmcOzJjXULuSvJWm7GvUSaBfwo2DnZfEnrX4EOzWhmUBtj
-         gPJfK1rlDUhQxf21BmTLfO9wUB0+diLXMRCsf7OI=
-Date:   Fri, 11 Feb 2022 00:37:35 -0800
-To:     mm-commits@vger.kernel.org, stable@vger.kernel.org,
-        mike.kravetz@oracle.com, almasrymina@google.com,
-        aneesh.kumar@linux.ibm.com, akpm@linux-foundation.org
+        b=Swog/byBt1OseiGHozDEzi//GfCQpH1RcoROu32rR1vOsxeJbQ/GURecFbHv73T3z
+         QiEIjTPiKpAEk9sc0A8mTpCrrhSYyybhcCC+WGoHPt1zclEtR5yHPqUFIqhxU2QC5l
+         cY9me+Neb6tqWa7awlK3vSpVRjiJdIy5Z0TAsNJ8=
+Date:   Fri, 11 Feb 2022 10:05:09 -0800
+To:     mm-commits@vger.kernel.org, willy@infradead.org, vbabka@suse.cz,
+        sumit.semwal@linaro.org, sashal@kernel.org, pcc@google.com,
+        mhocko@suse.com, legion@kernel.org,
+        kirill.shutemov@linux.intel.com, keescook@chromium.org,
+        hannes@cmpxchg.org, gorcunov@gmail.com, ebiederm@xmission.com,
+        david@redhat.com, dave@stgolabs.net, dave.hansen@intel.com,
+        chris.hyser@oracle.com, ccross@google.com, caoxiaofeng@yulong.com,
+        brauner@kernel.org, surenb@google.com, akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + mm-hugetlb-fix-kernel-crash-with-hugetlb-mremap.patch added to -mm tree
-Message-Id: <20220211083735.CAF0CC340E9@smtp.kernel.org>
+Subject: + mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch added to -mm tree
+Message-Id: <20220211180510.1715AC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -42,9 +47,9 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: fix kernel crash with hugetlb mremap
+     Subject: mm: fix use-after-free when anon vma name is used after vma is freed
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-fix-kernel-crash-with-hugetlb-mremap.patch
+     mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch
 
 This patch should soon appear at
     https://ozlabs.org/~akpm/mmots/broken-out/
@@ -63,75 +68,256 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.ibm.com>
-Subject: mm/hugetlb: fix kernel crash with hugetlb mremap
+From: Suren Baghdasaryan <surenb@google.com>
+Subject: mm: fix use-after-free when anon vma name is used after vma is freed
 
-This fixes the below crash:
+When adjacent vmas are being merged it can result in the vma that was
+originally passed to madvise_update_vma being destroyed.  In the current
+implementation, the name parameter passed to madvise_update_vma points
+directly to vma->anon_name->name and it is used after the call to
+vma_merge.  In the cases when vma_merge merges the original vma and
+destroys it, this will result in use-after-free bug as shown below:
 
-kernel BUG at include/linux/mm.h:2373!
-cpu 0x5d: Vector: 700 (Program Check) at [c00000003c6e76e0]
-    pc: c000000000581a54: pmd_to_page+0x54/0x80
-    lr: c00000000058d184: move_hugetlb_page_tables+0x4e4/0x5b0
-    sp: c00000003c6e7980
-   msr: 9000000000029033
-  current = 0xc00000003bd8d980
-  paca    = 0xc000200fff610100   irqmask: 0x03   irq_happened: 0x01
-    pid   = 9349, comm = hugepage-mremap
-kernel BUG at include/linux/mm.h:2373!
-[link register   ] c00000000058d184 move_hugetlb_page_tables+0x4e4/0x5b0
-[c00000003c6e7980] c00000000058cecc move_hugetlb_page_tables+0x22c/0x5b0 (unreliable)
-[c00000003c6e7a90] c00000000053b78c move_page_tables+0xdbc/0x1010
-[c00000003c6e7bd0] c00000000053bc34 move_vma+0x254/0x5f0
-[c00000003c6e7c90] c00000000053c790 sys_mremap+0x7c0/0x900
-[c00000003c6e7db0] c00000000002c450 system_call_exception+0x160/0x2c0
+madvise_vma_behavior << passes vma->anon_name->name as name param
+  madvise_update_vma(name)
+    vma_merge
+      __vma_adjust
+        vm_area_free <-- frees the vma
+    replace_vma_anon_name(name) <-- UAF
 
-the kernel can't use huge_pte_offset before it set the pte entry because a
-page table lookup check for huge PTE bit in the page table to
-differentiate between a huge pte entry and a pointer to pte page.  A
-huge_pte_alloc won't mark the page table entry huge and hence kernel
-should not use huge_pte_offset after a huge_pte_alloc.
+Fix this by raising the name refcount and stabilizing it. Introduce
+vma_anon_name_{get/put} API for this purpose.
 
-Link: https://lkml.kernel.org/r/20220211063221.99293-1-aneesh.kumar@linux.ibm.com
-Fixes: 550a7d60bd5e ("mm, hugepages: add mremap() support for hugepage backed vma")
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Mina Almasry <almasrymina@google.com>
-Cc: <stable@vger.kernel.org>
+Link: https://lkml.kernel.org/r/20220211013032.623763-1-surenb@google.com
+Fixes: 9a10064f5625 ("mm: add a field to store names for private anonymous memory")
+Signed-off-by: Suren Baghdasaryan <surenb@google.com>
+Reported-by: syzbot+aa7b3d4b35f9dc46a366@syzkaller.appspotmail.com
+Cc: Colin Cross <ccross@google.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Matthew Wilcox <willy@infradead.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Christian Brauner <brauner@kernel.org>
+Cc: Alexey Gladkov <legion@kernel.org>
+Cc: Sasha Levin <sashal@kernel.org>
+Cc: Chris Hyser <chris.hyser@oracle.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Peter Collingbourne <pcc@google.com>
+Cc: Xiaofeng Cao <caoxiaofeng@yulong.com>
+Cc: David Hildenbrand <david@redhat.com>
+Cc: Cyrill Gorcunov <gorcunov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
 
---- a/mm/hugetlb.c~mm-hugetlb-fix-kernel-crash-with-hugetlb-mremap
-+++ a/mm/hugetlb.c
-@@ -4851,14 +4851,13 @@ again:
+--- a/include/linux/mm_inline.h~mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed
++++ a/include/linux/mm_inline.h
+@@ -145,6 +145,11 @@ static __always_inline void del_page_fro
+  */
+ extern const char *vma_anon_name(struct vm_area_struct *vma);
+ 
++/* mmap_lock should be read-locked */
++extern struct anon_vma_name *vma_anon_name_get(struct vm_area_struct *vma);
++
++extern void vma_anon_name_put(struct anon_vma_name *anon_name);
++
+ /*
+  * mmap_lock should be read-locked for orig_vma->vm_mm.
+  * mmap_lock should be write-locked for new_vma->vm_mm or new_vma should be
+@@ -176,6 +181,14 @@ static inline const char *vma_anon_name(
+ {
+ 	return NULL;
+ }
++
++static inline
++struct anon_vma_name *vma_anon_name_get(struct vm_area_struct *vma)
++{
++	return NULL;
++}
++
++static inline void vma_anon_name_put(struct anon_vma_name *anon_name) {}
+ static inline void dup_vma_anon_name(struct vm_area_struct *orig_vma,
+ 			      struct vm_area_struct *new_vma) {}
+ static inline void free_vma_anon_name(struct vm_area_struct *vma) {}
+--- a/mm/madvise.c~mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed
++++ a/mm/madvise.c
+@@ -70,6 +70,9 @@ static struct anon_vma_name *anon_vma_na
+ 	struct anon_vma_name *anon_name;
+ 	size_t count;
+ 
++	if (!name)
++		return NULL;
++
+ 	/* Add 1 for NUL terminator at the end of the anon_name->name */
+ 	count = strlen(name) + 1;
+ 	anon_name = kmalloc(struct_size(anon_name, name, count), GFP_KERNEL);
+@@ -103,6 +106,23 @@ const char *vma_anon_name(struct vm_area
+ 	return vma->anon_name->name;
  }
  
- static void move_huge_pte(struct vm_area_struct *vma, unsigned long old_addr,
--			  unsigned long new_addr, pte_t *src_pte)
-+			  unsigned long new_addr, pte_t *src_pte, pte_t *dst_pte)
++struct anon_vma_name *vma_anon_name_get(struct vm_area_struct *vma)
++{
++	if (!has_vma_anon_name(vma))
++		return NULL;
++
++	mmap_assert_locked(vma->vm_mm);
++
++	kref_get(&vma->anon_name->kref);
++	return vma->anon_name;
++}
++
++void vma_anon_name_put(struct anon_vma_name *anon_name)
++{
++	if (anon_name)
++		kref_put(&anon_name->kref, vma_anon_name_free);
++}
++
+ void dup_vma_anon_name(struct vm_area_struct *orig_vma,
+ 		       struct vm_area_struct *new_vma)
  {
- 	struct hstate *h = hstate_vma(vma);
- 	struct mm_struct *mm = vma->vm_mm;
--	pte_t *dst_pte, pte;
- 	spinlock_t *src_ptl, *dst_ptl;
-+	pte_t pte;
+@@ -126,33 +146,34 @@ void free_vma_anon_name(struct vm_area_s
+ }
  
--	dst_pte = huge_pte_offset(mm, new_addr, huge_page_size(h));
- 	dst_ptl = huge_pte_lock(h, mm, dst_pte);
- 	src_ptl = huge_pte_lockptr(h, mm, src_pte);
+ /* mmap_lock should be write-locked */
+-static int replace_vma_anon_name(struct vm_area_struct *vma, const char *name)
++static int replace_vma_anon_name(struct vm_area_struct *vma,
++				 struct anon_vma_name *anon_name)
+ {
+-	const char *anon_name;
++	const char *orig_name;
  
-@@ -4917,7 +4916,7 @@ int move_hugetlb_page_tables(struct vm_a
- 		if (!dst_pte)
- 			break;
- 
--		move_huge_pte(vma, old_addr, new_addr, src_pte);
-+		move_huge_pte(vma, old_addr, new_addr, src_pte, dst_pte);
+-	if (!name) {
++	if (!anon_name) {
+ 		free_vma_anon_name(vma);
+ 		return 0;
  	}
- 	flush_tlb_range(vma, old_end - len, old_end);
- 	mmu_notifier_invalidate_range_end(&range);
+ 
+-	anon_name = vma_anon_name(vma);
+-	if (anon_name) {
++	orig_name = vma_anon_name(vma);
++	if (orig_name) {
+ 		/* Same name, nothing to do here */
+-		if (!strcmp(name, anon_name))
++		if (!strcmp(anon_name->name, orig_name))
+ 			return 0;
+ 
+ 		free_vma_anon_name(vma);
+ 	}
+-	vma->anon_name = anon_vma_name_alloc(name);
+-	if (!vma->anon_name)
+-		return -ENOMEM;
++	kref_get(&anon_name->kref);
++	vma->anon_name = anon_name;
+ 
+ 	return 0;
+ }
+ #else /* CONFIG_ANON_VMA_NAME */
+-static int replace_vma_anon_name(struct vm_area_struct *vma, const char *name)
++static int replace_vma_anon_name(struct vm_area_struct *vma,
++				 struct anon_vma_name *anon_name)
+ {
+-	if (name)
++	if (anon_name)
+ 		return -EINVAL;
+ 
+ 	return 0;
+@@ -161,12 +182,15 @@ static int replace_vma_anon_name(struct
+ /*
+  * Update the vm_flags on region of a vma, splitting it or merging it as
+  * necessary.  Must be called with mmap_sem held for writing;
++ * Caller should ensure anon_name stability by raising its refcount even when
++ * anon_name belongs to a valid vma because this function might free that vma.
+  */
+ static int madvise_update_vma(struct vm_area_struct *vma,
+ 			      struct vm_area_struct **prev, unsigned long start,
+ 			      unsigned long end, unsigned long new_flags,
+-			      const char *name)
++			      struct anon_vma_name *anon_name)
+ {
++	const char *name = anon_name ? anon_name->name : NULL;
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	int error;
+ 	pgoff_t pgoff;
+@@ -209,7 +233,7 @@ success:
+ 	 */
+ 	vma->vm_flags = new_flags;
+ 	if (!vma->vm_file) {
+-		error = replace_vma_anon_name(vma, name);
++		error = replace_vma_anon_name(vma, anon_name);
+ 		if (error)
+ 			return error;
+ 	}
+@@ -976,6 +1000,7 @@ static int madvise_vma_behavior(struct v
+ {
+ 	int error;
+ 	unsigned long new_flags = vma->vm_flags;
++	struct anon_vma_name *anon_name;
+ 
+ 	switch (behavior) {
+ 	case MADV_REMOVE:
+@@ -1040,8 +1065,10 @@ static int madvise_vma_behavior(struct v
+ 		break;
+ 	}
+ 
++	anon_name = vma_anon_name_get(vma);
+ 	error = madvise_update_vma(vma, prev, start, end, new_flags,
+-				   vma_anon_name(vma));
++				   anon_name);
++	vma_anon_name_put(anon_name);
+ 
+ out:
+ 	/*
+@@ -1225,7 +1252,7 @@ int madvise_walk_vmas(struct mm_struct *
+ static int madvise_vma_anon_name(struct vm_area_struct *vma,
+ 				 struct vm_area_struct **prev,
+ 				 unsigned long start, unsigned long end,
+-				 unsigned long name)
++				 unsigned long anon_name)
+ {
+ 	int error;
+ 
+@@ -1234,7 +1261,7 @@ static int madvise_vma_anon_name(struct
+ 		return -EBADF;
+ 
+ 	error = madvise_update_vma(vma, prev, start, end, vma->vm_flags,
+-				   (const char *)name);
++				   (struct anon_vma_name *)anon_name);
+ 
+ 	/*
+ 	 * madvise() returns EAGAIN if kernel resources, such as
+@@ -1248,8 +1275,10 @@ static int madvise_vma_anon_name(struct
+ int madvise_set_anon_name(struct mm_struct *mm, unsigned long start,
+ 			  unsigned long len_in, const char *name)
+ {
++	struct anon_vma_name *anon_name;
+ 	unsigned long end;
+ 	unsigned long len;
++	int ret;
+ 
+ 	if (start & ~PAGE_MASK)
+ 		return -EINVAL;
+@@ -1266,8 +1295,12 @@ int madvise_set_anon_name(struct mm_stru
+ 	if (end == start)
+ 		return 0;
+ 
+-	return madvise_walk_vmas(mm, start, end, (unsigned long)name,
++	anon_name = anon_vma_name_alloc(name);
++	ret = madvise_walk_vmas(mm, start, end, (unsigned long)anon_name,
+ 				 madvise_vma_anon_name);
++	vma_anon_name_put(anon_name);
++
++	return ret;
+ }
+ #endif /* CONFIG_ANON_VMA_NAME */
+ /*
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.ibm.com are
+Patches currently in -mm which might be from surenb@google.com are
 
-mm-hugetlb-fix-kernel-crash-with-hugetlb-mremap.patch
+mm-fix-use-after-free-when-anon-vma-name-is-used-after-vma-is-freed.patch
 
