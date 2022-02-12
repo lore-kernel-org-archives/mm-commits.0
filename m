@@ -2,84 +2,113 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 3018DC433F5
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Feb 2022 05:24:46 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 47652C433FE
+	for <mm-commits@archiver.kernel.org>; Sat, 12 Feb 2022 08:07:30 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S231153AbiBLFYr (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Feb 2022 00:24:47 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:49258 "EHLO
+        id S232570AbiBLIHb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sat, 12 Feb 2022 03:07:31 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:60278 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229468AbiBLFYq (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Feb 2022 00:24:46 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 5995928E19
-        for <mm-commits@vger.kernel.org>; Fri, 11 Feb 2022 21:24:44 -0800 (PST)
-Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
-        (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-        (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id EB4A3B82E4E
-        for <mm-commits@vger.kernel.org>; Sat, 12 Feb 2022 05:24:42 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 697EBC340E7;
-        Sat, 12 Feb 2022 05:24:41 +0000 (UTC)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644643481;
-        bh=uEDAhcRzsKIbuXy+ThKnGGt3zbBE61T6oJdwQm2QIa0=;
-        h=Date:From:To:Cc:Subject:In-Reply-To:References:From;
-        b=UXXWPbTYZiIBrZ+2sX42s2jsYvKEFidIJ8x0EU2Ta+IsjY0skCdhTn8/5KC2Ee81e
-         XUA0PmG2xUpKLS2AEvMBUpbcaJA9B4ft3cjc0xUAnipR0xR2/l6KiNtco4To/ZwBFf
-         xke1oIh6uQVmZLabkox12Q9cwnyN/iZN/e0tloYM=
-Date:   Fri, 11 Feb 2022 21:24:40 -0800
-From:   Andrew Morton <akpm@linux-foundation.org>
-To:     Linus Torvalds <torvalds@linux-foundation.org>
-Cc:     Linux-MM <linux-mm@kvack.org>, mm-commits@vger.kernel.org,
-        patches@lists.linux.dev
-Subject: Re: incoming
-Message-Id: <20220211212440.7fc283e731d05d5ce33dfd43@linux-foundation.org>
-In-Reply-To: <CAHk-=wjxzxa36L0hO6FG9BQT9xsjLhi2G61r1EPjO3v7kofEHg@mail.gmail.com>
-References: <20220211162756.9f8e8baef81183041ccfc16f@linux-foundation.org>
-        <CAHk-=wjxzxa36L0hO6FG9BQT9xsjLhi2G61r1EPjO3v7kofEHg@mail.gmail.com>
-X-Mailer: Sylpheed 3.7.0 (GTK+ 2.24.33; x86_64-redhat-linux-gnu)
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+        with ESMTP id S229559AbiBLIHa (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Feb 2022 03:07:30 -0500
+Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A44B426AEF;
+        Sat, 12 Feb 2022 00:07:26 -0800 (PST)
+DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
+        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
+        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
+        Content-Transfer-Encoding:Content-ID:Content-Description;
+        bh=iHhueysbCF7cZjZhCX5TgtZT8UQe1Vger0YteybGiHM=; b=KZ7FrHGXWuM3vnsfygdkKvajuH
+        HuXE9S5PDDVjtgv6hUCvHtMGYSY+2zIHQcfSewF1XUBn+bHq43Ke6pLvf2GXejVcdNm1FRlkezyfX
+        L6rzJ8TapkKwrrt03ZG6XcJlXdM5kdTGaiMtsUX2Gv8fmwuga3U4UZ47wxOauG4dbJ9jsYe2M1CEm
+        1L+LaBoGdG4As0KICqso/EpU/rIyRtgCJPjBwCHs0nOdx7IHLngoXektapvUKMgUgcUSHCFl2D/2z
+        TsBjmjtoT4Jv6hc4ro4Q7IUetKgvTmjSHTXoHXHL6vvZ6eTk9eZJKG3PpqCB+NDBLW/9rD/Q7dt32
+        JlxLz67g==;
+Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
+        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
+        id 1nInQi-00B6RH-1w; Sat, 12 Feb 2022 08:06:52 +0000
+Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
+        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
+        (Client did not present a certificate)
+        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 3F5B53002C5;
+        Sat, 12 Feb 2022 09:06:49 +0100 (CET)
+Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
+        id 115DD201C872D; Sat, 12 Feb 2022 09:06:49 +0100 (CET)
+Date:   Sat, 12 Feb 2022 09:06:49 +0100
+From:   Peter Zijlstra <peterz@infradead.org>
+To:     Randy Dunlap <rdunlap@infradead.org>
+Cc:     Andrew Morton <akpm@linux-foundation.org>, broonie@kernel.org,
+        mhocko@suse.cz, sfr@canb.auug.org.au, linux-next@vger.kernel.org,
+        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
+        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
+        Josh Poimboeuf <jpoimboe@redhat.com>,
+        Steven Rostedt <rostedt@goodmis.org>
+Subject: Re: mmotm 2022-02-11-15-07 uploaded (objtool: ftrace_likely_update)
+Message-ID: <YgdqmbK7Irwa2Ryh@hirez.programming.kicks-ass.net>
+References: <20220211230819.191B1C340E9@smtp.kernel.org>
+ <8074da01-7aa3-9913-1a1e-2ce307ccdbbd@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <8074da01-7aa3-9913-1a1e-2ce307ccdbbd@infradead.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, 11 Feb 2022 18:02:53 -0800 Linus Torvalds <torvalds@linux-foundation.org> wrote:
-
-> On Fri, Feb 11, 2022 at 4:27 PM Andrew Morton <akpm@linux-foundation.org> wrote:
-> >
-> > 5 patches, based on f1baf68e1383f6ed93eb9cff2866d46562607a43.
+On Fri, Feb 11, 2022 at 06:32:06PM -0800, Randy Dunlap wrote:
+> on x86_64:
 > 
-> So this *completely* flummoxed 'b4', because you first sent the wrong
-> series, and then sent the right one in the same thread.
+> $ gcc --version
+> gcc (SUSE Linux) 7.5.0
 > 
-> I fetched the emails  manually, but honestly, this was confusing even
-> then, with two "[PATCH x/5]" series where the only way to tell the
-> right one was basically by date of email. They did arrive in the same
-> order in my mailbox, but even that wouldn't have been guaranteed if
-> there had been some mailer delays somewhere..
-
-Yes, I wondered.  Sorry bout that.
-
-> So next time when you mess up, resend it all as a completely new
-> series and completely new threading - so with a new header email too.
-> Please?
-
-Wilco.
-
-> And since I'm here, let me just verify that yes, the series you
-> actually want me to apply is this one (as described by the head
-> email):
 > 
->   Subject: [patch 1/5] fs/binfmt_elf: fix PT_LOAD p_align values ..
->   Subject: [patch 2/5] fs/proc: task_mmu.c: don't read mapcount f..
->   Subject: [patch 3/5] mm: vmscan: remove deadlock due to throttl..
->   Subject: [patch 4/5] mm: memcg: synchronize objcg lists with a ..
->   Subject: [patch 5/5] kfence: make test case compatible with run..
-> 
-> and not the other one with GUP patches?
+> vmlinux.o: warning: objtool: fixup_bad_iret()+0x72: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: noist_exc_debug()+0x30: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: exc_nmi()+0x14e: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: poke_int3_handler()+0x55: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: __sev_get_ghcb()+0x1b: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: __sev_put_ghcb()+0x18: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: __sev_es_ist_exit()+0x2b: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: kernel_exc_vmm_communication()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: rcu_dynticks_eqs_exit()+0x2c: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: rcu_dynticks_eqs_enter()+0x29: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: rcu_eqs_exit.constprop.62()+0x1a: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: rcu_eqs_enter.constprop.63()+0x23: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: rcu_nmi_enter()+0x17: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: irqentry_nmi_enter()+0x36: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: irqentry_nmi_exit()+0xa1: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: enter_from_user_mode()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: syscall_enter_from_user_mode()+0x53: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: syscall_enter_from_user_mode_prepare()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: irqentry_enter_from_user_mode()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: context_tracking_recursion_enter()+0x67: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: __context_tracking_enter()+0x2c: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: fixup_bad_iret()+0x72: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: noist_exc_debug()+0x30: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: exc_nmi()+0x14e: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: poke_int3_handler()+0x55: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: __sev_get_ghcb()+0x1b: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: __sev_put_ghcb()+0x18: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: __sev_es_ist_exit()+0x2b: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: kernel_exc_vmm_communication()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: rcu_dynticks_eqs_exit()+0x2c: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: rcu_dynticks_eqs_enter()+0x29: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: rcu_eqs_exit.constprop.62()+0x1a: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: rcu_eqs_enter.constprop.63()+0x23: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: rcu_nmi_enter()+0x17: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: irqentry_nmi_enter()+0x36: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: irqentry_nmi_exit()+0xa1: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: enter_from_user_mode()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: syscall_enter_from_user_mode()+0x53: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: syscall_enter_from_user_mode_prepare()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: irqentry_enter_from_user_mode()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: context_tracking_recursion_enter()+0x67: call to ftrace_likely_update() leaves .noinstr.text section
+> vmlinux.o: warning: objtool: __context_tracking_enter()+0x2c: call to ftrace_likely_update() leaves .noinstr.text section
 
-Those are the ones.  Five fixes, three with cc:stable.
+Yes, TRACE_BRANCH_PROFILING and PROFILE_ALL_BRANCHES are fundamentally
+broken and I have no intention of trying to fix them.
+
+The moment we pull PTI into noinstr C code this will result in insta
+boot fail.
