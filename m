@@ -2,113 +2,162 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 47652C433FE
-	for <mm-commits@archiver.kernel.org>; Sat, 12 Feb 2022 08:07:30 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id B6E7CC433EF
+	for <mm-commits@archiver.kernel.org>; Sun, 13 Feb 2022 15:45:54 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S232570AbiBLIHb (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sat, 12 Feb 2022 03:07:31 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:60278 "EHLO
+        id S232406AbiBMPp6 (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Sun, 13 Feb 2022 10:45:58 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:46722 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S229559AbiBLIHa (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sat, 12 Feb 2022 03:07:30 -0500
-Received: from casper.infradead.org (casper.infradead.org [IPv6:2001:8b0:10b:1236::1])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A44B426AEF;
-        Sat, 12 Feb 2022 00:07:26 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; q=dns/txt; c=relaxed/relaxed;
-        d=infradead.org; s=casper.20170209; h=In-Reply-To:Content-Type:MIME-Version:
-        References:Message-ID:Subject:Cc:To:From:Date:Sender:Reply-To:
-        Content-Transfer-Encoding:Content-ID:Content-Description;
-        bh=iHhueysbCF7cZjZhCX5TgtZT8UQe1Vger0YteybGiHM=; b=KZ7FrHGXWuM3vnsfygdkKvajuH
-        HuXE9S5PDDVjtgv6hUCvHtMGYSY+2zIHQcfSewF1XUBn+bHq43Ke6pLvf2GXejVcdNm1FRlkezyfX
-        L6rzJ8TapkKwrrt03ZG6XcJlXdM5kdTGaiMtsUX2Gv8fmwuga3U4UZ47wxOauG4dbJ9jsYe2M1CEm
-        1L+LaBoGdG4As0KICqso/EpU/rIyRtgCJPjBwCHs0nOdx7IHLngoXektapvUKMgUgcUSHCFl2D/2z
-        TsBjmjtoT4Jv6hc4ro4Q7IUetKgvTmjSHTXoHXHL6vvZ6eTk9eZJKG3PpqCB+NDBLW/9rD/Q7dt32
-        JlxLz67g==;
-Received: from j217100.upc-j.chello.nl ([24.132.217.100] helo=noisy.programming.kicks-ass.net)
-        by casper.infradead.org with esmtpsa (Exim 4.94.2 #2 (Red Hat Linux))
-        id 1nInQi-00B6RH-1w; Sat, 12 Feb 2022 08:06:52 +0000
-Received: from hirez.programming.kicks-ass.net (hirez.programming.kicks-ass.net [192.168.1.225])
-        (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
-         key-exchange X25519 server-signature RSA-PSS (4096 bits) server-digest SHA256)
-        (Client did not present a certificate)
-        by noisy.programming.kicks-ass.net (Postfix) with ESMTPS id 3F5B53002C5;
-        Sat, 12 Feb 2022 09:06:49 +0100 (CET)
-Received: by hirez.programming.kicks-ass.net (Postfix, from userid 1000)
-        id 115DD201C872D; Sat, 12 Feb 2022 09:06:49 +0100 (CET)
-Date:   Sat, 12 Feb 2022 09:06:49 +0100
-From:   Peter Zijlstra <peterz@infradead.org>
-To:     Randy Dunlap <rdunlap@infradead.org>
-Cc:     Andrew Morton <akpm@linux-foundation.org>, broonie@kernel.org,
-        mhocko@suse.cz, sfr@canb.auug.org.au, linux-next@vger.kernel.org,
-        linux-fsdevel@vger.kernel.org, linux-mm@kvack.org,
-        linux-kernel@vger.kernel.org, mm-commits@vger.kernel.org,
-        Josh Poimboeuf <jpoimboe@redhat.com>,
-        Steven Rostedt <rostedt@goodmis.org>
-Subject: Re: mmotm 2022-02-11-15-07 uploaded (objtool: ftrace_likely_update)
-Message-ID: <YgdqmbK7Irwa2Ryh@hirez.programming.kicks-ass.net>
-References: <20220211230819.191B1C340E9@smtp.kernel.org>
- <8074da01-7aa3-9913-1a1e-2ce307ccdbbd@infradead.org>
+        with ESMTP id S230012AbiBMPp6 (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Sun, 13 Feb 2022 10:45:58 -0500
+X-Greylist: delayed 662 seconds by postgrey-1.37 at lindbergh.monkeyblade.net; Sun, 13 Feb 2022 07:45:52 PST
+Received: from new2-smtp.messagingengine.com (new2-smtp.messagingengine.com [66.111.4.224])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id A89115F8D1
+        for <mm-commits@vger.kernel.org>; Sun, 13 Feb 2022 07:45:52 -0800 (PST)
+Received: from compute5.internal (compute5.nyi.internal [10.202.2.45])
+        by mailnew.nyi.internal (Postfix) with ESMTP id 21C5E58012C;
+        Sun, 13 Feb 2022 10:34:47 -0500 (EST)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute5.internal (MEProxy); Sun, 13 Feb 2022 10:34:47 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:date:date:from:from
+        :in-reply-to:in-reply-to:message-id:mime-version:references
+        :reply-to:sender:subject:subject:to:to:x-me-proxy:x-me-proxy
+        :x-me-sender:x-me-sender:x-sasl-enc; s=fm2; bh=UA8T6JiS2f3ocAFcD
+        gjHyjxICxgUmp2Ip3lgkBm5b9k=; b=ahRWvieaYNmVdj3m2nCPuqkay7sl2L4ut
+        BuMLw7cTlreuR8lIZh7gi4o/Fmre4X8afwjL79FXQdgh67v+JJYY+blDijP1fZsT
+        PELmblx7syqCsp281VitTT0I5Lv/GtxiJJFgBjgkv43tJzDzznDxg954cJf/aRI6
+        P930bt4poGLa+M0D8ioQT0wb8fDLA3ZAaUy6F4wnoffegOe9q9IGK3sn3cBFdm8q
+        BfV43tR3WENkOWn4I5Nh8WFd58Ikn/O+o429UdrsG5zrh/CzZEIizHhFUO3tIK3b
+        rePocJilix9hHlmqoijz1XesiGLMpZt6xchTOJDSJCpCOuAms/gwg==
+X-ME-Sender: <xms:FCUJYvVWD523C5yxVO7jdLtY-OX7nBPv3HvHAdtGM60X7NzHurnTJw>
+    <xme:FCUJYnlAeo9Ew5sUKf62pWHuDnChnKrHRjQOT4oO69ImfUmH3sdJYiArzyvoFUlvX
+    QMUlyuLAXzbK8k>
+X-ME-Received: <xmr:FCUJYraB5kFtZjdh-RDZQ3RBSscTSGnjU30IVALmi8z9skluvybwKVmtZY6nZW10koTA9mSbG8ETiH547puW-7ZZpeXqbQ>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvvddrjedtgdejfecutefuodetggdotefrodftvf
+    curfhrohhfihhlvgemucfhrghsthforghilhdpqfgfvfdpuffrtefokffrpgfnqfghnecu
+    uegrihhlohhuthemuceftddtnecusecvtfgvtghiphhivghnthhsucdlqddutddtmdenuc
+    fjughrpeffhffvuffkfhggtggujgesthdtredttddtvdenucfhrhhomhepkfguohcuufgt
+    hhhimhhmvghluceoihguohhstghhsehiughoshgthhdrohhrgheqnecuggftrfgrthhtvg
+    hrnheptdffkeekfeduffevgeeujeffjefhtefgueeugfevtdeiheduueeukefhudehleet
+    necuvehluhhsthgvrhfuihiivgeptdenucfrrghrrghmpehmrghilhhfrhhomhepihguoh
+    hstghhsehiughoshgthhdrohhrgh
+X-ME-Proxy: <xmx:FCUJYqUqWtSq8yN47UI41vHediP7TWziXt8gjR4lKUOmyu7E9whw1A>
+    <xmx:FCUJYpkqFA8pd60dBGBDfXh-3YZeg7WD3sV08Vz2pfTMjFnY3iUpPQ>
+    <xmx:FCUJYnc1zv3SmapGD31m0pXeZw8SN8DfsgTX7vfNKKtOUqug4d30Rw>
+    <xmx:FyUJYp-0Bhr6JGHzk6NiYIcM9J8x86sDxavsbuuJEc6v6G5v4nCgLw>
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Sun,
+ 13 Feb 2022 10:34:42 -0500 (EST)
+Date:   Sun, 13 Feb 2022 17:34:38 +0200
+From:   Ido Schimmel <idosch@idosch.org>
+To:     Domenico Andreoli <domenico.andreoli@linux.com>
+Cc:     Luis Chamberlain <mcgrof@kernel.org>,
+        Tong Zhang <ztong0001@gmail.com>,
+        "Eric W. Biederman" <ebiederm@xmission.com>,
+        David Airlie <airlied@linux.ie>,
+        Andrew Morton <akpm@linux-foundation.org>, amir73il@gmail.com,
+        Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+        Arnd Bergmann <arnd@arndb.de>, bcrl@kvack.org,
+        benh@kernel.crashing.org, clemens@ladisch.de, crope@iki.fi,
+        dgilbert@interlog.com, Greg KH <gregkh@linuxfoundation.org>,
+        jack@suse.cz, jani.nikula@intel.com, jani.nikula@linux.intel.com,
+        "James E.J. Bottomley" <jejb@linux.ibm.com>, jlbec@evilplan.org,
+        john.ogness@linutronix.de, joonas.lahtinen@linux.intel.com,
+        Joseph Qi <joseph.qi@linux.alibaba.com>, julia.lawall@inria.fr,
+        Kees Cook <keescook@chromium.org>, kernel@tuxforce.de,
+        Linux Memory Management List <linux-mm@kvack.org>,
+        mark@fasheh.com, "Martin K. Petersen" <martin.petersen@oracle.com>,
+        mm-commits@vger.kernel.org, nixiaoming@huawei.com,
+        penguin-kernel@i-love.sakura.ne.jp, peterz@infradead.org,
+        phil@philpotter.co.uk, pjt@google.com, pmladek@suse.com,
+        rafael@kernel.org, rodrigo.vivi@intel.com, rostedt@goodmis.org,
+        senozhatsky@chromium.org, sre@kernel.org, steve@sk2.org,
+        surenb@google.com, torvalds@linux-foundation.org, tytso@mit.edu,
+        Al Viro <viro@zeniv.linux.org.uk>, wangqing@vivo.com,
+        Iurii Zaikin <yzaikin@google.com>,
+        open list <linux-kernel@vger.kernel.org>,
+        regressions@lists.linux.dev
+Subject: Re: [PATCH v2] Fix regression due to "fs: move binfmt_misc sysctl to
+ its own file"
+Message-ID: <YgklDvNecca1/8in@shredder>
+References: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
+ <20220122061228.nmuo75sDn%akpm@linux-foundation.org>
+ <YgEeQNdgBuHRyEWl@dumbo>
+ <YgGTSR628xhRvCjB@bombadil.infradead.org>
+ <CAA5qM4BGmrkwatyO_h3F=ErDZ9t5swuttbt6NkQU-1KDGDiD4g@mail.gmail.com>
+ <YgKmaggsipzzCGCg@bombadil.infradead.org>
+ <YgNyAC8VMeuOD/uQ@dumbo>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <8074da01-7aa3-9913-1a1e-2ce307ccdbbd@infradead.org>
+In-Reply-To: <YgNyAC8VMeuOD/uQ@dumbo>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Fri, Feb 11, 2022 at 06:32:06PM -0800, Randy Dunlap wrote:
-> on x86_64:
+On Wed, Feb 09, 2022 at 08:49:20AM +0100, Domenico Andreoli wrote:
+>  fs/binfmt_misc.c |    6 +-----
+>  fs/file_table.c  |    2 ++
+>  2 files changed, 3 insertions(+), 5 deletions(-)
 > 
-> $ gcc --version
-> gcc (SUSE Linux) 7.5.0
-> 
-> 
-> vmlinux.o: warning: objtool: fixup_bad_iret()+0x72: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: noist_exc_debug()+0x30: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: exc_nmi()+0x14e: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: poke_int3_handler()+0x55: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: __sev_get_ghcb()+0x1b: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: __sev_put_ghcb()+0x18: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: __sev_es_ist_exit()+0x2b: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: kernel_exc_vmm_communication()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: rcu_dynticks_eqs_exit()+0x2c: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: rcu_dynticks_eqs_enter()+0x29: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: rcu_eqs_exit.constprop.62()+0x1a: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: rcu_eqs_enter.constprop.63()+0x23: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: rcu_nmi_enter()+0x17: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: irqentry_nmi_enter()+0x36: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: irqentry_nmi_exit()+0xa1: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: enter_from_user_mode()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: syscall_enter_from_user_mode()+0x53: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: syscall_enter_from_user_mode_prepare()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: irqentry_enter_from_user_mode()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: context_tracking_recursion_enter()+0x67: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: __context_tracking_enter()+0x2c: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: fixup_bad_iret()+0x72: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: noist_exc_debug()+0x30: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: exc_nmi()+0x14e: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: poke_int3_handler()+0x55: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: __sev_get_ghcb()+0x1b: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: __sev_put_ghcb()+0x18: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: __sev_es_ist_exit()+0x2b: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: kernel_exc_vmm_communication()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: rcu_dynticks_eqs_exit()+0x2c: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: rcu_dynticks_eqs_enter()+0x29: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: rcu_eqs_exit.constprop.62()+0x1a: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: rcu_eqs_enter.constprop.63()+0x23: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: rcu_nmi_enter()+0x17: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: irqentry_nmi_enter()+0x36: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: irqentry_nmi_exit()+0xa1: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: enter_from_user_mode()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: syscall_enter_from_user_mode()+0x53: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: syscall_enter_from_user_mode_prepare()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: irqentry_enter_from_user_mode()+0x4f: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: context_tracking_recursion_enter()+0x67: call to ftrace_likely_update() leaves .noinstr.text section
-> vmlinux.o: warning: objtool: __context_tracking_enter()+0x2c: call to ftrace_likely_update() leaves .noinstr.text section
+> Index: b/fs/binfmt_misc.c
+> ===================================================================
+> --- a/fs/binfmt_misc.c
+> +++ b/fs/binfmt_misc.c
+> @@ -817,20 +817,16 @@ static struct file_system_type bm_fs_typ
+>  };
+>  MODULE_ALIAS_FS("binfmt_misc");
+>  
+> -static struct ctl_table_header *binfmt_misc_header;
+> -
+>  static int __init init_misc_binfmt(void)
+>  {
+>  	int err = register_filesystem(&bm_fs_type);
+>  	if (!err)
+>  		insert_binfmt(&misc_format);
+> -	binfmt_misc_header = register_sysctl_mount_point("fs/binfmt_misc");
+> -	return 0;
+> +	return err;
+>  }
+>  
+>  static void __exit exit_misc_binfmt(void)
+>  {
+> -	unregister_sysctl_table(binfmt_misc_header);
+>  	unregister_binfmt(&misc_format);
+>  	unregister_filesystem(&bm_fs_type);
+>  }
+> Index: b/fs/file_table.c
+> ===================================================================
+> --- a/fs/file_table.c
+> +++ b/fs/file_table.c
+> @@ -119,6 +119,8 @@ static struct ctl_table fs_stat_sysctls[
+>  static int __init init_fs_stat_sysctls(void)
+>  {
+>  	register_sysctl_init("fs", fs_stat_sysctls);
+> +	if (IS_ENABLED(CONFIG_BINFMT_MISC))
+> +		register_sysctl_mount_point("fs/binfmt_misc");
 
-Yes, TRACE_BRANCH_PROFILING and PROFILE_ALL_BRANCHES are fundamentally
-broken and I have no intention of trying to fix them.
+Hi,
 
-The moment we pull PTI into noinstr C code this will result in insta
-boot fail.
+kmemleak complains about this:
+
+# cat /sys/kernel/debug/kmemleak
+unreferenced object 0xffff8881045fea88 (size 96):
+  comm "swapper/0", pid 1, jiffies 4294669355 (age 167.804s)
+  hex dump (first 32 bytes):
+    e0 c8 07 88 ff ff ff ff 00 00 00 00 01 00 00 00  ................
+    01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
+  backtrace:
+    [<ffffffff81d11637>] __register_sysctl_table+0x117/0x1150
+    [<ffffffff86c3600f>] init_fs_stat_sysctls+0x30/0x33
+    [<ffffffff81002558>] do_one_initcall+0x108/0x690
+    [<ffffffff86bca8bd>] kernel_init_freeable+0x45a/0x4de
+    [<ffffffff83e0757f>] kernel_init+0x1f/0x220
+    [<ffffffff810048cf>] ret_from_fork+0x1f/0x30
+
+>  	return 0;
+>  }
+>  fs_initcall(init_fs_stat_sysctls);
+> 
