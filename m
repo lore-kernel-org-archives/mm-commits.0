@@ -2,33 +2,33 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id ED1A7C433F5
-	for <mm-commits@archiver.kernel.org>; Mon, 14 Feb 2022 21:06:41 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id A8809C433FE
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Feb 2022 21:06:43 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S230302AbiBNVGs (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Mon, 14 Feb 2022 16:06:48 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:54974 "EHLO
+        id S229960AbiBNVGt (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Feb 2022 16:06:49 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:53570 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S230307AbiBNVGb (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Feb 2022 16:06:31 -0500
-Received: from ams.source.kernel.org (ams.source.kernel.org [145.40.68.75])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id CFB24136842
-        for <mm-commits@vger.kernel.org>; Mon, 14 Feb 2022 13:06:14 -0800 (PST)
+        with ESMTP id S230393AbiBNVGd (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Feb 2022 16:06:33 -0500
+Received: from dfw.source.kernel.org (dfw.source.kernel.org [139.178.84.217])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 2F2D3109A5A
+        for <mm-commits@vger.kernel.org>; Mon, 14 Feb 2022 13:06:17 -0800 (PST)
 Received: from smtp.kernel.org (relay.kernel.org [52.25.139.140])
         (using TLSv1.2 with cipher ECDHE-RSA-AES256-GCM-SHA384 (256/256 bits))
         (No client certificate requested)
-        by ams.source.kernel.org (Postfix) with ESMTPS id 7FCECB816D2
-        for <mm-commits@vger.kernel.org>; Mon, 14 Feb 2022 21:06:13 +0000 (UTC)
-Received: by smtp.kernel.org (Postfix) with ESMTPSA id 24E2EC340E9;
-        Mon, 14 Feb 2022 21:06:12 +0000 (UTC)
+        by dfw.source.kernel.org (Postfix) with ESMTPS id BE087612CA
+        for <mm-commits@vger.kernel.org>; Mon, 14 Feb 2022 21:06:16 +0000 (UTC)
+Received: by smtp.kernel.org (Postfix) with ESMTPSA id 19CCAC340E9;
+        Mon, 14 Feb 2022 21:06:16 +0000 (UTC)
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/simple; d=linux-foundation.org;
-        s=korg; t=1644872772;
-        bh=iXeebKdEO4+pKuprujYgUiFqguqHs+nhQjFOOvSkarU=;
+        s=korg; t=1644872776;
+        bh=ikT3XF1+9R7fmCmDNk9Nu90FI91DbyzzkNtboUh4Yh0=;
         h=Date:To:From:Subject:From;
-        b=ArCONfzHYA75I0CSuvo9A3JokHlIm089yimKEqvxxPC+SF5QlJ5r5wOaTMoovrx7Q
-         yDNiSdMVt5LwM06RL/1WGJ0lFWH7A4gE8PvPfLPBDoV4G6rngARHBQ+YlZblaqmYf8
-         7A5jqpzRqLE7h8++/QWuIbjfA96PrvZFyaU4PdU0=
-Date:   Mon, 14 Feb 2022 13:06:11 -0800
+        b=OdSpNUfg89VVeN6YU5GI6FxlhatS5t1FRS22z64WivEMv242MFYuWNdPvhur3Og6L
+         1cccw2pJ9v8V2tXziwh0cZxsvTMCHQnJmJv/H/WXQl2rTORzUySAD0/jnkLtm3hzIl
+         eGmkeuMbn8iwGmh1XxRC7BjZpD/gJH6J3WjHDq6Y=
+Date:   Mon, 14 Feb 2022 13:06:15 -0800
 To:     mm-commits@vger.kernel.org, ziy@nvidia.com, vbabka@suse.cz,
         robin.murphy@arm.com, robh+dt@kernel.org, paulus@samba.org,
         m.szyprowski@samsung.com, mst@redhat.com, mpe@ellerman.id.au,
@@ -37,8 +37,8 @@ To:     mm-commits@vger.kernel.org, ziy@nvidia.com, vbabka@suse.cz,
         aneesh.kumar@linux.ibm.com, david@redhat.com,
         akpm@linux-foundation.org
 From:   Andrew Morton <akpm@linux-foundation.org>
-Subject: + cma-factor-out-minimum-alignment-requirement.patch added to -mm tree
-Message-Id: <20220214210612.24E2EC340E9@smtp.kernel.org>
+Subject: + mm-enforce-pageblock_order-max_order.patch added to -mm tree
+Message-Id: <20220214210616.19CCAC340E9@smtp.kernel.org>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
@@ -46,14 +46,14 @@ X-Mailing-List: mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cma: factor out minimum alignment requirement
+     Subject: mm: enforce pageblock_order < MAX_ORDER
 has been added to the -mm tree.  Its filename is
-     cma-factor-out-minimum-alignment-requirement.patch
+     mm-enforce-pageblock_order-max_order.patch
 
 This patch should soon appear at
-    https://ozlabs.org/~akpm/mmots/broken-out/cma-factor-out-minimum-alignment-requirement.patch
+    https://ozlabs.org/~akpm/mmots/broken-out/mm-enforce-pageblock_order-max_order.patch
 and later at
-    https://ozlabs.org/~akpm/mmotm/broken-out/cma-factor-out-minimum-alignment-requirement.patch
+    https://ozlabs.org/~akpm/mmotm/broken-out/mm-enforce-pageblock_order-max_order.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -68,203 +68,201 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: David Hildenbrand <david@redhat.com>
-Subject: cma: factor out minimum alignment requirement
+Subject: mm: enforce pageblock_order < MAX_ORDER
 
-Patch series "mm: enforce pageblock_order < MAX_ORDER".
+Some places in the kernel don't really expect pageblock_order >=
+MAX_ORDER, and it looks like this is only possible in corner cases:
 
-Having pageblock_order >= MAX_ORDER seems to be able to happen in corner
-cases and some parts of the kernel are not prepared for it.
+1) CONFIG_DEFERRED_STRUCT_PAGE_INIT we'll end up freeing pageblock_order
+   pages via __free_pages_core(), which cannot possibly work.
 
-For example, Aneesh has shown [1] that such kernels can be compiled on
-ppc64 with 64k base pages by setting FORCE_MAX_ZONEORDER=8, which will run
-into a WARN_ON_ONCE(order >= MAX_ORDER) in comapction code right during
-boot.
+2) find_zone_movable_pfns_for_nodes() will roundup the ZONE_MOVABLE
+   start PFN to MAX_ORDER_NR_PAGES. Consequently with a bigger
+   pageblock_order, we could have a single pageblock partially managed by
+   two zones.
 
-We can get pageblock_order >= MAX_ORDER when the default hugetlb size is
-bigger than the maximum allocation granularity of the buddy, in which case
-we are no longer talking about huge pages but instead gigantic pages.
+3) compaction code runs into __fragmentation_index() with order
+   >= MAX_ORDER, when checking WARN_ON_ONCE(order >= MAX_ORDER). [1]
 
-Having pageblock_order >= MAX_ORDER can only make alloc_contig_range() of
-such gigantic pages more likely to succeed.
+4) mm/page_reporting.c won't be reporting any pages with default
+   page_reporting_order == pageblock_order, as we'll be skipping the
+   reporting loop inside page_reporting_process_zone().
 
-Reliable use of gigantic pages either requires boot time allcoation or
-CMA, no need to overcomplicate some places in the kernel to optimize for
-corner cases that are broken in other areas of the kernel.
+5) __rmqueue_fallback() will never be able to steal with
+   ALLOC_NOFRAGMENT.
 
+pageblock_order >= MAX_ORDER is weird either way: it's a pure optimization
+for making alloc_contig_range(), as used for allcoation of gigantic pages,
+a little more reliable to succeed.  However, if there is demand for
+somewhat reliable allocation of gigantic pages, affected setups should be
+using CMA or boottime allocations instead.
 
-This patch (of 2):
-
-Let's enforce pageblock_order < MAX_ORDER and simplify.
-
-Especially patch #1 can be regarded a cleanup before:
-	[PATCH v5 0/6] Use pageblock_order for cma and alloc_contig_range
-	alignment. [2]
+So let's make sure that pageblock_order < MAX_ORDER and simplify.
 
 [1] https://lkml.kernel.org/r/87r189a2ks.fsf@linux.ibm.com
-[2] https://lkml.kernel.org/r/20220211164135.1803616-1-zi.yan@sent.com
 
-Link: https://lkml.kernel.org/r/20220214174132.219303-2-david@redhat.com
+Link: https://lkml.kernel.org/r/20220214174132.219303-3-david@redhat.com
 Signed-off-by: David Hildenbrand <david@redhat.com>
 Reviewed-by: Zi Yan <ziy@nvidia.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Frank Rowand <frowand.list@gmail.com>
+Cc: John Garry via iommu <iommu@lists.linux-foundation.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michael S. Tsirkin <mst@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Frank Rowand <frowand.list@gmail.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: John Garry via iommu <iommu@lists.linux-foundation.org>
-
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/fadump-internal.h |    5 ----
- arch/powerpc/kernel/fadump.c               |    2 -
- drivers/of/of_reserved_mem.c               |    9 ++------
- include/linux/cma.h                        |    9 ++++++++
- kernel/dma/contiguous.c                    |    4 ---
- mm/cma.c                                   |   20 ++++---------------
- 6 files changed, 19 insertions(+), 30 deletions(-)
+ drivers/virtio/virtio_mem.c     |    9 ++------
+ include/linux/cma.h             |    3 --
+ include/linux/pageblock-flags.h |    7 ++++--
+ mm/Kconfig                      |    3 ++
+ mm/page_alloc.c                 |   32 +++++++-----------------------
+ 5 files changed, 20 insertions(+), 34 deletions(-)
 
---- a/arch/powerpc/include/asm/fadump-internal.h~cma-factor-out-minimum-alignment-requirement
-+++ a/arch/powerpc/include/asm/fadump-internal.h
-@@ -19,11 +19,6 @@
- 
- #define memblock_num_regions(memblock_type)	(memblock.memblock_type.cnt)
- 
--/* Alignment per CMA requirement. */
--#define FADUMP_CMA_ALIGNMENT	(PAGE_SIZE <<				\
--				 max_t(unsigned long, MAX_ORDER - 1,	\
--				 pageblock_order))
--
- /* FAD commands */
- #define FADUMP_REGISTER			1
- #define FADUMP_UNREGISTER		2
---- a/arch/powerpc/kernel/fadump.c~cma-factor-out-minimum-alignment-requirement
-+++ a/arch/powerpc/kernel/fadump.c
-@@ -544,7 +544,7 @@ int __init fadump_reserve_mem(void)
- 		if (!fw_dump.nocma) {
- 			fw_dump.boot_memory_size =
- 				ALIGN(fw_dump.boot_memory_size,
--				      FADUMP_CMA_ALIGNMENT);
-+				      CMA_MIN_ALIGNMENT_BYTES);
- 		}
- #endif
- 
---- a/drivers/of/of_reserved_mem.c~cma-factor-out-minimum-alignment-requirement
-+++ a/drivers/of/of_reserved_mem.c
-@@ -22,6 +22,7 @@
- #include <linux/slab.h>
- #include <linux/memblock.h>
- #include <linux/kmemleak.h>
-+#include <linux/cma.h>
- 
- #include "of_private.h"
- 
-@@ -116,12 +117,8 @@ static int __init __reserved_mem_alloc_s
- 	if (IS_ENABLED(CONFIG_CMA)
- 	    && of_flat_dt_is_compatible(node, "shared-dma-pool")
- 	    && of_get_flat_dt_prop(node, "reusable", NULL)
--	    && !nomap) {
--		unsigned long order =
--			max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
--
--		align = max(align, (phys_addr_t)PAGE_SIZE << order);
--	}
-+	    && !nomap)
-+		align = max_t(phys_addr_t, align, CMA_MIN_ALIGNMENT_BYTES);
- 
- 	prop = of_get_flat_dt_prop(node, "alloc-ranges", &len);
- 	if (prop) {
---- a/include/linux/cma.h~cma-factor-out-minimum-alignment-requirement
-+++ a/include/linux/cma.h
-@@ -20,6 +20,15 @@
- 
- #define CMA_MAX_NAME 64
- 
-+/*
-+ * TODO: once the buddy -- especially pageblock merging and alloc_contig_range()
-+ * -- can deal with only some pageblocks of a higher-order page being
-+ *  MIGRATE_CMA, we can use pageblock_nr_pages.
-+ */
-+#define CMA_MIN_ALIGNMENT_PAGES max_t(phys_addr_t, MAX_ORDER_NR_PAGES, \
-+				      pageblock_nr_pages)
-+#define CMA_MIN_ALIGNMENT_BYTES (PAGE_SIZE * CMA_MIN_ALIGNMENT_PAGES)
-+
- struct cma;
- 
- extern unsigned long totalcma_pages;
---- a/kernel/dma/contiguous.c~cma-factor-out-minimum-alignment-requirement
-+++ a/kernel/dma/contiguous.c
-@@ -399,8 +399,6 @@ static const struct reserved_mem_ops rme
- 
- static int __init rmem_cma_setup(struct reserved_mem *rmem)
- {
--	phys_addr_t align = PAGE_SIZE << max(MAX_ORDER - 1, pageblock_order);
--	phys_addr_t mask = align - 1;
- 	unsigned long node = rmem->fdt_node;
- 	bool default_cma = of_get_flat_dt_prop(node, "linux,cma-default", NULL);
- 	struct cma *cma;
-@@ -416,7 +414,7 @@ static int __init rmem_cma_setup(struct
- 	    of_get_flat_dt_prop(node, "no-map", NULL))
- 		return -EINVAL;
- 
--	if ((rmem->base & mask) || (rmem->size & mask)) {
-+	if (!IS_ALIGNED(rmem->base | rmem->size, CMA_MIN_ALIGNMENT_BYTES)) {
- 		pr_err("Reserved memory: incorrect alignment of CMA region\n");
- 		return -EINVAL;
- 	}
---- a/mm/cma.c~cma-factor-out-minimum-alignment-requirement
-+++ a/mm/cma.c
-@@ -168,7 +168,6 @@ int __init cma_init_reserved_mem(phys_ad
- 				 struct cma **res_cma)
- {
- 	struct cma *cma;
--	phys_addr_t alignment;
- 
- 	/* Sanity checks */
- 	if (cma_area_count == ARRAY_SIZE(cma_areas)) {
-@@ -179,15 +178,12 @@ int __init cma_init_reserved_mem(phys_ad
- 	if (!size || !memblock_is_region_reserved(base, size))
- 		return -EINVAL;
- 
--	/* ensure minimal alignment required by mm core */
--	alignment = PAGE_SIZE <<
--			max_t(unsigned long, MAX_ORDER - 1, pageblock_order);
--
- 	/* alignment should be aligned with order_per_bit */
--	if (!IS_ALIGNED(alignment >> PAGE_SHIFT, 1 << order_per_bit))
-+	if (!IS_ALIGNED(CMA_MIN_ALIGNMENT_PAGES, 1 << order_per_bit))
- 		return -EINVAL;
- 
--	if (ALIGN(base, alignment) != base || ALIGN(size, alignment) != size)
-+	/* ensure minimal alignment required by mm core */
-+	if (!IS_ALIGNED(base | size, CMA_MIN_ALIGNMENT_BYTES))
- 		return -EINVAL;
+--- a/drivers/virtio/virtio_mem.c~mm-enforce-pageblock_order-max_order
++++ a/drivers/virtio/virtio_mem.c
+@@ -2476,13 +2476,10 @@ static int virtio_mem_init_hotplug(struc
+ 				      VIRTIO_MEM_DEFAULT_OFFLINE_THRESHOLD);
  
  	/*
-@@ -262,14 +258,8 @@ int __init cma_declare_contiguous_nid(ph
- 	if (alignment && !is_power_of_2(alignment))
- 		return -EINVAL;
+-	 * We want subblocks to span at least MAX_ORDER_NR_PAGES and
+-	 * pageblock_nr_pages pages. This:
+-	 * - Is required for now for alloc_contig_range() to work reliably -
+-	 *   it doesn't properly handle smaller granularity on ZONE_NORMAL.
++	 * TODO: once alloc_contig_range() works reliably with pageblock
++	 * granularity on ZONE_NORMAL, use pageblock_nr_pages instead.
+ 	 */
+-	sb_size = max_t(uint64_t, MAX_ORDER_NR_PAGES,
+-			pageblock_nr_pages) * PAGE_SIZE;
++	sb_size = PAGE_SIZE * MAX_ORDER_NR_PAGES;
+ 	sb_size = max_t(uint64_t, vm->device_block_size, sb_size);
  
--	/*
--	 * Sanitise input arguments.
--	 * Pages both ends in CMA area could be merged into adjacent unmovable
--	 * migratetype page by page allocator's buddy algorithm. In the case,
--	 * you couldn't get a contiguous memory, which is not what we want.
--	 */
--	alignment = max(alignment,  (phys_addr_t)PAGE_SIZE <<
--			  max_t(unsigned long, MAX_ORDER - 1, pageblock_order));
-+	/* Sanitise input arguments. */
-+	alignment = max_t(phys_addr_t, alignment, CMA_MIN_ALIGNMENT_BYTES);
- 	if (fixed && base & (alignment - 1)) {
- 		ret = -EINVAL;
- 		pr_err("Region at %pa must be aligned to %pa bytes\n",
+ 	if (sb_size < memory_block_size_bytes() && !force_bbm) {
+--- a/include/linux/cma.h~mm-enforce-pageblock_order-max_order
++++ a/include/linux/cma.h
+@@ -25,8 +25,7 @@
+  * -- can deal with only some pageblocks of a higher-order page being
+  *  MIGRATE_CMA, we can use pageblock_nr_pages.
+  */
+-#define CMA_MIN_ALIGNMENT_PAGES max_t(phys_addr_t, MAX_ORDER_NR_PAGES, \
+-				      pageblock_nr_pages)
++#define CMA_MIN_ALIGNMENT_PAGES MAX_ORDER_NR_PAGES
+ #define CMA_MIN_ALIGNMENT_BYTES (PAGE_SIZE * CMA_MIN_ALIGNMENT_PAGES)
+ 
+ struct cma;
+--- a/include/linux/pageblock-flags.h~mm-enforce-pageblock_order-max_order
++++ a/include/linux/pageblock-flags.h
+@@ -37,8 +37,11 @@ extern unsigned int pageblock_order;
+ 
+ #else /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
+ 
+-/* Huge pages are a constant size */
+-#define pageblock_order		HUGETLB_PAGE_ORDER
++/*
++ * Huge pages are a constant size, but don't exceed the maximum allocation
++ * granularity.
++ */
++#define pageblock_order		min_t(unsigned int, HUGETLB_PAGE_ORDER, MAX_ORDER - 1)
+ 
+ #endif /* CONFIG_HUGETLB_PAGE_SIZE_VARIABLE */
+ 
+--- a/mm/Kconfig~mm-enforce-pageblock_order-max_order
++++ a/mm/Kconfig
+@@ -262,6 +262,9 @@ config HUGETLB_PAGE_SIZE_VARIABLE
+ 	  HUGETLB_PAGE_ORDER when there are multiple HugeTLB page sizes available
+ 	  on a platform.
+ 
++	  Note that the pageblock_order cannot exceed MAX_ORDER - 1 and will be
++	  clamped down to MAX_ORDER - 1.
++
+ config CONTIG_ALLOC
+ 	def_bool (MEMORY_ISOLATION && COMPACTION) || CMA
+ 
+--- a/mm/page_alloc.c~mm-enforce-pageblock_order-max_order
++++ a/mm/page_alloc.c
+@@ -1054,14 +1054,12 @@ static inline void __free_one_page(struc
+ 		int migratetype, fpi_t fpi_flags)
+ {
+ 	struct capture_control *capc = task_capc(zone);
++	unsigned int max_order = pageblock_order;
+ 	unsigned long buddy_pfn;
+ 	unsigned long combined_pfn;
+-	unsigned int max_order;
+ 	struct page *buddy;
+ 	bool to_tail;
+ 
+-	max_order = min_t(unsigned int, MAX_ORDER - 1, pageblock_order);
+-
+ 	VM_BUG_ON(!zone_is_initialized(zone));
+ 	VM_BUG_ON_PAGE(page->flags & PAGE_FLAGS_CHECK_AT_PREP, page);
+ 
+@@ -2262,19 +2260,8 @@ void __init init_cma_reserved_pageblock(
+ 	} while (++p, --i);
+ 
+ 	set_pageblock_migratetype(page, MIGRATE_CMA);
+-
+-	if (pageblock_order >= MAX_ORDER) {
+-		i = pageblock_nr_pages;
+-		p = page;
+-		do {
+-			set_page_refcounted(p);
+-			__free_pages(p, MAX_ORDER - 1);
+-			p += MAX_ORDER_NR_PAGES;
+-		} while (i -= MAX_ORDER_NR_PAGES);
+-	} else {
+-		set_page_refcounted(page);
+-		__free_pages(page, pageblock_order);
+-	}
++	set_page_refcounted(page);
++	__free_pages(page, pageblock_order);
+ 
+ 	adjust_managed_page_count(page, pageblock_nr_pages);
+ 	page_zone(page)->cma_pages += pageblock_nr_pages;
+@@ -7429,16 +7416,15 @@ static inline void setup_usemap(struct z
+ /* Initialise the number of pages represented by NR_PAGEBLOCK_BITS */
+ void __init set_pageblock_order(void)
+ {
+-	unsigned int order;
++	unsigned int order = MAX_ORDER - 1;
+ 
+ 	/* Check that pageblock_nr_pages has not already been setup */
+ 	if (pageblock_order)
+ 		return;
+ 
+-	if (HPAGE_SHIFT > PAGE_SHIFT)
++	/* Don't let pageblocks exceed the maximum allocation granularity. */
++	if (HPAGE_SHIFT > PAGE_SHIFT && HUGETLB_PAGE_ORDER < order)
+ 		order = HUGETLB_PAGE_ORDER;
+-	else
+-		order = MAX_ORDER - 1;
+ 
+ 	/*
+ 	 * Assume the largest contiguous order of interest is a huge page.
+@@ -9026,14 +9012,12 @@ struct page *has_unmovable_pages(struct
+ #ifdef CONFIG_CONTIG_ALLOC
+ static unsigned long pfn_max_align_down(unsigned long pfn)
+ {
+-	return pfn & ~(max_t(unsigned long, MAX_ORDER_NR_PAGES,
+-			     pageblock_nr_pages) - 1);
++	return ALIGN_DOWN(pfn, MAX_ORDER_NR_PAGES);
+ }
+ 
+ static unsigned long pfn_max_align_up(unsigned long pfn)
+ {
+-	return ALIGN(pfn, max_t(unsigned long, MAX_ORDER_NR_PAGES,
+-				pageblock_nr_pages));
++	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
+ }
+ 
+ #if defined(CONFIG_DYNAMIC_DEBUG) || \
 _
 
 Patches currently in -mm which might be from david@redhat.com are
