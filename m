@@ -2,59 +2,55 @@ Return-Path: <mm-commits-owner@kernel.org>
 X-Spam-Checker-Version: SpamAssassin 3.4.0 (2014-02-07) on
 	aws-us-west-2-korg-lkml-1.web.codeaurora.org
 Received: from vger.kernel.org (vger.kernel.org [23.128.96.18])
-	by smtp.lore.kernel.org (Postfix) with ESMTP id 1ED31C433EF
-	for <mm-commits@archiver.kernel.org>; Sun, 13 Feb 2022 21:10:56 +0000 (UTC)
+	by smtp.lore.kernel.org (Postfix) with ESMTP id 9744DC433F5
+	for <mm-commits@archiver.kernel.org>; Mon, 14 Feb 2022 07:47:44 +0000 (UTC)
 Received: (majordomo@vger.kernel.org) by vger.kernel.org via listexpand
-        id S238369AbiBMVLA (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
-        Sun, 13 Feb 2022 16:11:00 -0500
-Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:45048 "EHLO
+        id S241473AbiBNHru (ORCPT <rfc822;mm-commits@archiver.kernel.org>);
+        Mon, 14 Feb 2022 02:47:50 -0500
+Received: from mxb-00190b01.gslb.pphosted.com ([23.128.96.19]:60256 "EHLO
         lindbergh.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-        with ESMTP id S238366AbiBMVLA (ORCPT
-        <rfc822;mm-commits@vger.kernel.org>); Sun, 13 Feb 2022 16:11:00 -0500
-Received: from mail-yb1-xb2f.google.com (mail-yb1-xb2f.google.com [IPv6:2607:f8b0:4864:20::b2f])
-        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id C1B7653736;
-        Sun, 13 Feb 2022 13:10:53 -0800 (PST)
-Received: by mail-yb1-xb2f.google.com with SMTP id y6so40658328ybc.5;
-        Sun, 13 Feb 2022 13:10:53 -0800 (PST)
-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20210112;
-        h=mime-version:references:in-reply-to:from:date:message-id:subject:to
-         :cc;
-        bh=KnKCC7oMagFCvCCjM7qG97XmzNcP6hM32qMyVum/dto=;
-        b=MBIsTxnulA1MrNZ+IsfyQOaRrtwl2q4GUdFP2YSW/j/CQ7Uo5Oyds++JXr0KB6K9x+
-         VvreKfnZ4OI7eVME/n17ninBX9E56yUSQQ2R5qj1lIXf8yPQQYP0ERc5X1WpaRPHcP6q
-         QBrvTrlTGLyZ33s8yg3ouAySmVx67aNQvEXNDL9nOKXi0E+hnuwldGSabx914lYBnHX/
-         z3iO9qpTjoXA7zxlL3mje/Z58DspXjcEz6W1Er/cCM6QtpZm7+Fqnit3iBgWOcMGkzpT
-         3G/s1CZFbveKF+K2Tz9XNltXXoekdReLddn9QZCT9+yQ8vWU3HTdGuaU+22FP9LRB0Wd
-         ZMIQ==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20210112;
-        h=x-gm-message-state:mime-version:references:in-reply-to:from:date
-         :message-id:subject:to:cc;
-        bh=KnKCC7oMagFCvCCjM7qG97XmzNcP6hM32qMyVum/dto=;
-        b=kL8AVBJqWXh3lXFDbx9yqD6X9xDvT1XimpC2m/NKAM2qNi07YZFWCwHpm2qo/kL/0E
-         R86nAwjUqFirs7Mbn00PuTfyAvZMNTaXb4Tmqr4le9YkcER7kF/AXGIh6FeOe/aT1G7e
-         ZTArl7nbQUT73ayfORRJdqKAwF2crtlF7njI146ESkaBudGZP/BXPKgCWOiT5EEKLcBC
-         WOtU0bh8VHkF0f7LV8BKIajZx/3y35AshHlaLmjOlmmFiTKNuOT030OoysIxV5s8MWQh
-         Qf8TAfsOHVAZJjvDzEE/shc3pWafxDGz4ytJQt/eZwHVnRrZ1aZRJkOsBV/FqJKztCNI
-         ZTBA==
-X-Gm-Message-State: AOAM531bBJsuxNhaiHvBMOqAa91tMKYM66wfOLgdrO237RTk6kvI8Z1u
-        Lrf/IUL/qVyXcu6CeFtz/E9dQ97BNY/20A0V9Xk=
-X-Google-Smtp-Source: ABdhPJxsBiwJdcvDK4XS9bg3KFwCrZ2nWejzoPKdiLINBF5sJzAhBkiYNgJAgG2bJBMKOIu1ap5H/J3qK03vAQhcyqc=
-X-Received: by 2002:a05:6902:124f:: with SMTP id t15mr11084809ybu.640.1644786652734;
- Sun, 13 Feb 2022 13:10:52 -0800 (PST)
-MIME-Version: 1.0
-References: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
- <20220122061228.nmuo75sDn%akpm@linux-foundation.org> <YgEeQNdgBuHRyEWl@dumbo>
- <YgGTSR628xhRvCjB@bombadil.infradead.org> <CAA5qM4BGmrkwatyO_h3F=ErDZ9t5swuttbt6NkQU-1KDGDiD4g@mail.gmail.com>
- <YgKmaggsipzzCGCg@bombadil.infradead.org> <YgNyAC8VMeuOD/uQ@dumbo> <YgklDvNecca1/8in@shredder>
-In-Reply-To: <YgklDvNecca1/8in@shredder>
-From:   Tong Zhang <ztong0001@gmail.com>
-Date:   Sun, 13 Feb 2022 13:10:42 -0800
-Message-ID: <CAA5qM4AP=pOi1dFFgELJ97nSwTBqrruseGmTF-qab=xj2==_Xg@mail.gmail.com>
-Subject: Re: [PATCH v2] Fix regression due to "fs: move binfmt_misc sysctl to
- its own file"
-To:     Ido Schimmel <idosch@idosch.org>
+        with ESMTP id S231537AbiBNHrt (ORCPT
+        <rfc822;mm-commits@vger.kernel.org>); Mon, 14 Feb 2022 02:47:49 -0500
+Received: from new1-smtp.messagingengine.com (new1-smtp.messagingengine.com [66.111.4.221])
+        by lindbergh.monkeyblade.net (Postfix) with ESMTPS id 332F55AED7;
+        Sun, 13 Feb 2022 23:47:42 -0800 (PST)
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+        by mailnew.nyi.internal (Postfix) with ESMTP id 4022E580307;
+        Mon, 14 Feb 2022 02:47:41 -0500 (EST)
+Received: from mailfrontend2 ([10.202.2.163])
+  by compute1.internal (MEProxy); Mon, 14 Feb 2022 02:47:41 -0500
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=
+        messagingengine.com; h=cc:cc:content-type:date:date:from:from
+        :in-reply-to:in-reply-to:message-id:mime-version:references
+        :reply-to:sender:subject:subject:to:to:x-me-proxy:x-me-proxy
+        :x-me-sender:x-me-sender:x-sasl-enc; s=fm2; bh=hAXX3YSLYKv5f+3SJ
+        iOjChLyf8mfaVkznY08o7XQW04=; b=AEFHuuBiG5Rx7IwbFz2PZNrjBSV+zjWCk
+        INbNRR9KxljQlpP+7uStHn16q1SnXUgQf7tclU2wVvllgh5tuZZteV08hVSPAJqn
+        9Dic8MUa/tISNShO0PY2vQlE6RBggjfTqJALeJk0HkyFi7qFfQm8fWpkfKFy2Iw4
+        7awm3Y5s4ZdYB7d/0kAyKb3FzGmCRjb6eGaGimjxXR9AIa3uivhRSmaiugigOgeI
+        KvjnXEfI5H/hDwTDfiKQC3unegasIQdS/CjSXcf5PR8Ls3BL+rKYUWurXiMxGLYG
+        O7XdsbMSqUP4LJL/wHVQfxSqc0ou6NB5jo5ZSTvXYgzM1nCLOLKeA==
+X-ME-Sender: <xms:GAkKYo-6CdMYwzh8ssqo1lS500yoCiLZOGwg1o_rB9fbb_uecxnVtA>
+    <xme:GAkKYgsFi97jM0nScOUwioPd_y_TW45suu8GOYokal6312azFy6Mbjv-PhAQjj6zH
+    D211jMdhq3umC8>
+X-ME-Received: <xmr:GAkKYuBfPc-GAIVk99c2_Pwnu1OMfogOOt8ce0GqRiNJXcnoM-pMKzUqs4oGkDBRp7VIrgP2fAF9bQtDRwUgrQHIhG8>
+X-ME-Proxy-Cause: gggruggvucftvghtrhhoucdtuddrgedvvddrjedugdduudduucetufdoteggodetrfdotf
+    fvucfrrhhofhhilhgvmecuhfgrshhtofgrihhlpdfqfgfvpdfurfetoffkrfgpnffqhgen
+    uceurghilhhouhhtmecufedttdenucesvcftvggtihhpihgvnhhtshculddquddttddmne
+    cujfgurhepfffhvffukfhfgggtuggjsehttdertddttddvnecuhfhrohhmpefkughoucfu
+    tghhihhmmhgvlhcuoehiughoshgthhesihguohhstghhrdhorhhgqeenucggtffrrghtth
+    gvrhhnpefgvefgveeuudeuffeiffehieffgfejleevtdetueetueffkeevgffgtddugfek
+    veenucffohhmrghinhepkhgvrhhnvghlrdhorhhgnecuvehluhhsthgvrhfuihiivgeptd
+    enucfrrghrrghmpehmrghilhhfrhhomhepihguohhstghhsehiughoshgthhdrohhrgh
+X-ME-Proxy: <xmx:GAkKYod-qEiQCIdV_VZvmD-bunUy86Dfw0UqUWJRnHK4DV07pTOpkQ>
+    <xmx:GAkKYtPtIkRxnipq1gT07lMIbcVsFr7qGcWlHCa5oTTH-p3MX-0zWw>
+    <xmx:GAkKYilx9R30KFjPp136qCE2IlJnh8Xa8Oy3L58ihexHTPalDixoPA>
+    <xmx:HQkKYvGitqYU94RhMQeTbk4UKrJg1g2I0w1F2J0fsk-EUyVkzI_D8A>
+Received: by mail.messagingengine.com (Postfix) with ESMTPA; Mon,
+ 14 Feb 2022 02:47:35 -0500 (EST)
+Date:   Mon, 14 Feb 2022 09:47:32 +0200
+From:   Ido Schimmel <idosch@idosch.org>
+To:     Tong Zhang <ztong0001@gmail.com>
 Cc:     Domenico Andreoli <domenico.andreoli@linux.com>,
         Luis Chamberlain <mcgrof@kernel.org>,
         "Eric W. Biederman" <ebiederm@xmission.com>,
@@ -86,82 +82,30 @@ Cc:     Domenico Andreoli <domenico.andreoli@linux.com>,
         Iurii Zaikin <yzaikin@google.com>,
         open list <linux-kernel@vger.kernel.org>,
         regressions@lists.linux.dev
-Content-Type: text/plain; charset="UTF-8"
+Subject: Re: [PATCH v2] Fix regression due to "fs: move binfmt_misc sysctl to
+ its own file"
+Message-ID: <YgoJFAltbyqTT6Kz@shredder>
+References: <20220121221021.60533b009c357d660791476e@linux-foundation.org>
+ <20220122061228.nmuo75sDn%akpm@linux-foundation.org>
+ <YgEeQNdgBuHRyEWl@dumbo>
+ <YgGTSR628xhRvCjB@bombadil.infradead.org>
+ <CAA5qM4BGmrkwatyO_h3F=ErDZ9t5swuttbt6NkQU-1KDGDiD4g@mail.gmail.com>
+ <YgKmaggsipzzCGCg@bombadil.infradead.org>
+ <YgNyAC8VMeuOD/uQ@dumbo>
+ <YgklDvNecca1/8in@shredder>
+ <CAA5qM4AP=pOi1dFFgELJ97nSwTBqrruseGmTF-qab=xj2==_Xg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAA5qM4AP=pOi1dFFgELJ97nSwTBqrruseGmTF-qab=xj2==_Xg@mail.gmail.com>
 Precedence: bulk
 Reply-To: linux-kernel@vger.kernel.org
 List-ID: <mm-commits.vger.kernel.org>
 X-Mailing-List: mm-commits@vger.kernel.org
 
-On Sun, Feb 13, 2022 at 7:34 AM Ido Schimmel <idosch@idosch.org> wrote:
->
-> On Wed, Feb 09, 2022 at 08:49:20AM +0100, Domenico Andreoli wrote:
-> >  fs/binfmt_misc.c |    6 +-----
-> >  fs/file_table.c  |    2 ++
-> >  2 files changed, 3 insertions(+), 5 deletions(-)
-> >
-> > Index: b/fs/binfmt_misc.c
-> > ===================================================================
-> > --- a/fs/binfmt_misc.c
-> > +++ b/fs/binfmt_misc.c
-> > @@ -817,20 +817,16 @@ static struct file_system_type bm_fs_typ
-> >  };
-> >  MODULE_ALIAS_FS("binfmt_misc");
-> >
-> > -static struct ctl_table_header *binfmt_misc_header;
-> > -
-> >  static int __init init_misc_binfmt(void)
-> >  {
-> >       int err = register_filesystem(&bm_fs_type);
-> >       if (!err)
-> >               insert_binfmt(&misc_format);
-> > -     binfmt_misc_header = register_sysctl_mount_point("fs/binfmt_misc");
-> > -     return 0;
-> > +     return err;
-> >  }
-> >
-> >  static void __exit exit_misc_binfmt(void)
-> >  {
-> > -     unregister_sysctl_table(binfmt_misc_header);
-> >       unregister_binfmt(&misc_format);
-> >       unregister_filesystem(&bm_fs_type);
-> >  }
-> > Index: b/fs/file_table.c
-> > ===================================================================
-> > --- a/fs/file_table.c
-> > +++ b/fs/file_table.c
-> > @@ -119,6 +119,8 @@ static struct ctl_table fs_stat_sysctls[
-> >  static int __init init_fs_stat_sysctls(void)
-> >  {
-> >       register_sysctl_init("fs", fs_stat_sysctls);
-> > +     if (IS_ENABLED(CONFIG_BINFMT_MISC))
-> > +             register_sysctl_mount_point("fs/binfmt_misc");
->
-> Hi,
->
-> kmemleak complains about this:
->
-> # cat /sys/kernel/debug/kmemleak
-> unreferenced object 0xffff8881045fea88 (size 96):
->   comm "swapper/0", pid 1, jiffies 4294669355 (age 167.804s)
->   hex dump (first 32 bytes):
->     e0 c8 07 88 ff ff ff ff 00 00 00 00 01 00 00 00  ................
->     01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
->   backtrace:
->     [<ffffffff81d11637>] __register_sysctl_table+0x117/0x1150
->     [<ffffffff86c3600f>] init_fs_stat_sysctls+0x30/0x33
->     [<ffffffff81002558>] do_one_initcall+0x108/0x690
->     [<ffffffff86bca8bd>] kernel_init_freeable+0x45a/0x4de
->     [<ffffffff83e0757f>] kernel_init+0x1f/0x220
->     [<ffffffff810048cf>] ret_from_fork+0x1f/0x30
->
-> >       return 0;
-> >  }
-> >  fs_initcall(init_fs_stat_sysctls);
-> >
+On Sun, Feb 13, 2022 at 01:10:42PM -0800, Tong Zhang wrote:
+> Hi Ido,
+> Thanks for the report. This is a known issue. The fix is proposed here.
+> https://lore.kernel.org/all/YgRbEG21AUrLSFKX@bombadil.infradead.org/
 
-Hi Ido,
-Thanks for the report. This is a known issue. The fix is proposed here.
-https://lore.kernel.org/all/YgRbEG21AUrLSFKX@bombadil.infradead.org/
-
-Thanks,
-- Tong
+Great, thanks for letting me know
